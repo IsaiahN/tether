@@ -18,6 +18,7 @@ from __future__ import annotations
 import sys
 
 import gate
+import instruments
 import speak
 from gamma import Atom, Ctx, Gamma, Term
 from ledger import Ledger
@@ -117,7 +118,23 @@ def main(cycles: int = 16) -> int:
     print(f"  checks form over {len(led)} entries, reading the ledger and nothing else.")
     print("  A pass means WELL-FORMED. It never means right.")
 
-    head(6, "RUN REPORT")
+    head(6, "THE INSTRUMENTS")
+    ch = run.chain
+    print(f"  stage             : {ch['stage']}")
+    reads = "indicts" if ch["indicted"] else "does NOT indict"
+    print(f"    {reads} the architecture -- only {instruments.INDICTS} ever does")
+    print(f"  reuse funnel      : {ch['reuse_branch']}")
+    print(f"    identity holds  : {ch['branch_identity_holds']}")
+    print(f"  phase mix         : {run.phases['total']}")
+    print("    human reference : ~30 probe / ~10 directed / ~5 strategy to a level win.")
+    print("    compare the SHAPE across levels, never the absolute counts.")
+    print(f"  clocks            : {run.clocks['reads']}")
+    print(f"    steps_to_model  : {run.clocks['steps_to_model']}"
+          f"   steps_to_win: {run.clocks['steps_to_win']}")
+    print(f"  retroactive       : {len(run.retro)} parked residual(s) closed by a term "
+          "minted elsewhere")
+
+    head(7, "RUN REPORT")
     print(f"  mode              : {led.mode}")
     print(f"  cycles            : {run.cycles}")
     print(f"  library           : {len(gam.library)} terms "

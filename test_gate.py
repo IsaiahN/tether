@@ -97,6 +97,14 @@ def test_irreversible_cut():
     _refuses(r, gate.IRREVERSIBLE_CUT)
 
 
+def test_unreached_unmeasured():
+    """A park with no coverage is `unreachable` smuggled in wearing `unreached`'s word."""
+    r = valid()
+    r[2]["detail"].update(verdict="depth_exhausted", units=8, depth=2)
+    r[2]["detail"].pop("coverage", None)
+    _refuses(r, gate.UNREACHED_UNMEASURED)
+
+
 if __name__ == "__main__":
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     for fn in fns:

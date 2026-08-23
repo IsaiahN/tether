@@ -30,6 +30,7 @@ UNSETTLED_ACCEPT = "unsettled-accept"
 NO_MODE = "no-mode"
 FILTER_VERDICT = "filter-verdict"
 IRREVERSIBLE_CUT = "irreversible-cut"
+UNREACHED_UNMEASURED = "unreached-unmeasured"
 
 STEPS = ("PERCEIVE", "ROUTE", "MINT", "ACCEPT", "SETTLE", "PROMOTE", "IMPORT", "REPEAT")
 MODES = ("general", "specified", "grounded")
@@ -45,7 +46,8 @@ def _v(check: str, token: str, seq: int | None = None, note: str = "") -> dict:
 
 def check(rows: list[dict]) -> dict:
     """Returns {"verdict": pass|refuse, ...}. The FIRST refusal is the named one."""
-    for fn in (_mode, _steps, _inputs, _routing, _guards, _settlement, _filters, _cuts):
+    for fn in (_mode, _steps, _inputs, _routing, _guards, _settlement, _filters, _cuts,
+               _unreached):
         out = fn(rows)
         if out is not None:
             return out
@@ -161,6 +163,26 @@ def _cuts(rows: list[dict]) -> dict | None:
         for cut in r.get("detail", {}).get("cuts") or []:
             if "rank" not in cut or not cut.get("reversible", False):
                 return _v("cuts", IRREVERSIBLE_CUT, r.get("seq"), str(cut.get("name")))
+    return None
+
+
+def _unreached(rows: list[dict]) -> dict | None:
+    """9. An abstention states its DENOMINATOR.
+
+    `unreached` and `unreachable` are different claims and only one of them is ever
+    available to a frame about itself. A park that does not carry the fraction of the
+    space actually seen is the stronger claim smuggled in wearing the weaker one's word,
+    so the coverage number is required at the point of refusal, not in a later report.
+    """
+    parked = ("budget_spent", "depth_exhausted")
+    for r in rows:
+        d = r.get("detail", {})
+        if d.get("verdict") in parked:
+            cov = d.get("coverage")
+            if not isinstance(cov, (int, float)) or not 0.0 <= cov <= 1.0:
+                return _v("unreached", UNREACHED_UNMEASURED, r.get("seq"))
+            if d.get("units") is None or d.get("depth") is None:
+                return _v("unreached", UNREACHED_UNMEASURED, r.get("seq"))
     return None
 
 

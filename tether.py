@@ -13,6 +13,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import grammar as G
+import instruments as I
 from gamma import Ctx, Gamma, Term
 from ledger import SPECIFIED, Ledger
 from probe import Drive
@@ -83,6 +84,10 @@ class Report:
     abstained: dict[str, dict] = field(default_factory=dict)
     refusals: list[str] = field(default_factory=list)
     demoted: list[str] = field(default_factory=list)
+    chain: dict = field(default_factory=dict)
+    phases: dict = field(default_factory=dict)
+    clocks: dict = field(default_factory=dict)
+    retro: list = field(default_factory=list)
     stopped_at_link: str = "1 - perception"
 
 
@@ -102,6 +107,10 @@ class Agent:
         self.candidates: dict[str, int] = {}     # term -> cycle accepted, awaiting the ground
         self.settled: set[str] = set()
         self.demoted: list[str] = []
+        self.chain = I.Chain()
+        self.phases = I.Phases()
+        self.clocks = I.Clocks()
+        self.retro: list[dict] = []
         self.drive = Drive()
         self.cycle = 0
         self._prev_bet: str | None = None
@@ -148,6 +157,7 @@ class Agent:
         # the bracket channel: this env defines no coarse view, so it is inert. Stated.
         self.led.record(self.cycle, "PERCEIVE", "@bracket", "bet", channel=BRACKET,
                         mass=0.0, inert="env.transform() is None; no coarse view defined")
+        self.chain.note_diff(any(r.mass > 0 for r in res.values()))
         self.trace.append((before, action, after))
         self.gamma.tick = len(self.trace)
         self._prev_pred = pred
@@ -282,6 +292,7 @@ class Agent:
                 self.abstained[slot] = {"depth": self.cfg.max_depth, "candidates": seen,
                                         "coverage": detail["coverage"],
                                         "verdict": detail["verdict"],
+                                        "units_then": stats.get("units", 0),
                                         "base_bits": round(base, 3)}
             self.led.record(self.cycle, "MINT", slot, "park", **detail)
             return
@@ -308,6 +319,96 @@ class Agent:
         self.led.record(self.cycle, "ACCEPT", slot, "accept", term=term.name,
                         origin=term.origin, seq=len(self.led),
                         status="candidate", cited="no: candidate may be held, not cited")
+        self.chain.note_mint()
+        self.sweep(term, slot)
+
+    def _reach(self, slot: str, hist: list) -> tuple[float, Term] | None:
+        """Re-run the search for a parked slot because the UNIT SET grew.
+
+        This is the chunking claim made falsifiable: closure(Gamma) is unchanged and no
+        atom was added, but a settled term now counts as one unit, so a composition that
+        was past max_depth in atoms can be within it in units. No actions are spent -- it
+        re-reads evidence already on the trace -- so it is search cost, never budget.
+        """
+        best = None
+        for cand in self.gamma.enumerate_closure("val", "val", self.cfg.max_depth,
+                                                 self.cfg.budget):
+            for bind in self._bindings(slot):
+                t = Term(cand.atoms, operand=bind)
+                left = self._left(t, slot, hist)
+                if best is None or left < best[0]:
+                    best = (left, t)
+                if left == 0.0:
+                    return best
+        return best
+
+    def sweep(self, term: Term, origin_slot: str) -> None:
+        """Re-run a newly accepted term against every outstanding parked residual.
+
+        Costs no actions -- it re-reads evidence already paid for. And a term minted for
+        one slot that explains another slot's old residual is an operator REUSED on a task
+        it was not minted for, which is the stated bar for the whole loop firing once.
+        """
+        outstanding = sorted(self.owed_import - {origin_slot})
+        units_now = len(self.gamma.units())
+
+        def stale(rec: dict) -> bool:
+            """`depth_exhausted` is not permanent. It means 'the whole space AT THIS UNIT
+            SET', so a settled chunk that adds a unit retracts it -- the reachable set
+            genuinely grew. Until then it is a depth verdict, already recorded, and
+            charging it to the reuse funnel would let a missing second task read as
+            MINTED_UNUSED, an architecture verdict."""
+            return (rec.get("verdict") != "depth_exhausted"
+                    or units_now > rec.get("units_then", 0))
+
+        eligible = [s for s in outstanding if stale(self.abstained.get(s, {}))]
+        if not eligible:
+            self.chain.reuse_branch["no-eligible-target"] += 1
+            return
+        for slot in eligible:
+            how = "direct"
+            hist = self.history(slot)
+            base = self._accumulated(slot, self.gamma.library[self.bound.get(slot, IDN)])
+            best = None
+            for bind in self._bindings(slot):
+                cand = Term(term.atoms, operand=bind)
+                left = self._left(cand, slot, hist)
+                if best is None or left < best[0]:
+                    best = (left, cand)
+            left, cand = best
+            rec = self.abstained.get(slot, {})
+            if left > 0.0 and units_now > rec.get("units_then", units_now):
+                # counted so its inertness is a measured zero, not hidden dead code
+                self.chain.reuse_branch["rescan"] += 1
+                found = self._reach(slot, hist)
+                if found is not None and found[0] < left:
+                    left, cand = found
+                    how = "chunk"
+            if left == 0.0:
+                self.chain.note_reuse_attempt(f"closed:{how}")
+                self.chain.note_reused()
+                self.chain.note_cleared()
+                self.bound[slot] = (cand.name if cand.name in self.gamma.library
+                                    else self._install_reuse(cand, slot))
+                self.owed_import.discard(slot)
+                born = self.abstained.pop(slot, {})
+                rec = {"term": cand.name, "slot": slot, "cycle": self.cycle,
+                       "was": born.get("verdict"), "via": how}
+                self.retro.append(rec)
+                self.led.record(self.cycle, "MINT", slot, "retro", term=cand.name,
+                                verdict="retroactive resolution", reused_from=origin_slot,
+                                guards={"support": True, "reachability": True,
+                                        "novelty": False},
+                                note="minted elsewhere; it explains this slot's parked residual",
+                                **rec)
+            elif left < base:
+                self.chain.note_reuse_attempt("did-not-pay")
+            else:
+                self.chain.note_reuse_attempt("no-split")
+
+    def _install_reuse(self, cand: Term, slot: str) -> str:
+        self.gamma.accept(cand, seq=len(self.led), residual=f"reuse:{slot}@{self.cycle}")
+        return cand.name
 
     def settle(self, res: dict[str, SlotResidual]) -> None:
         """The ground settles it, by held-out payment: a term predicts a transition it was
@@ -376,6 +477,10 @@ class Agent:
         focal = self.slots[0]
         focal = next((s for s in self.slots if s in self.owed_import), focal)
         action = action or self.drive.choose(ACTIONS, self.cycle)
+        # PROBE when nothing is bound to look at, DIRECTED when a term is driving the bet.
+        # STRATEGY arrives with routines and is 0 until then -- an honest zero, not a gap.
+        phase = I.DIRECTED if self.bound.get(focal) else I.PROBE
+        self.phases.note(phase)
 
         try:
             bid, utts = self._utter(action, before, focal)
@@ -407,8 +512,11 @@ class Agent:
                                                            "novelty": False},
                             note="density(R) at zero on the transition channel; perturbing")
         self.settle(res)
+        _, degree = self.env.objective()
+        self.clocks.note(self.drive.err, 1 if degree >= 1.0 else 0)
         self.cycle += 1
         self.led.record(self.cycle - 1, "REPEAT", "@loop", "repeat",
+                        phase=phase, stage=self.chain.seg.stage(),
                         gamma_size=len(self.gamma.library), owed=sorted(self.owed_import))
         return True
 
@@ -420,6 +528,11 @@ class Agent:
                      demoted=list(self.demoted),
                      settled=sorted(self.settled), owed_import=set(self.owed_import),
                      abstained=dict(self.abstained), refusals=list(self.refusals))
+        self.chain.close("run_end")
+        rep.chain = self.chain.report()
+        rep.phases = self.phases.report()
+        rep.clocks = self.clocks.report()
+        rep.retro = list(self.retro)
         rep.stopped_at_link = self._link()
         return rep
 

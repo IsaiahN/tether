@@ -210,6 +210,13 @@ class Gamma:
         """
         units = self.units()
         emitted = 0
+        # written UP FRONT: a caller that breaks early abandons the generator, so anything
+        # only written at exhaustion is never seen. `units` and `estimate` are known now;
+        # `seen` is kept live per yield so an early break still reports honest coverage.
+        if stats is not None:
+            stats["units"] = len(units)
+            stats["estimate"] = self.space_estimate(len(units), max_depth)
+            stats["seen"] = 0
         frontier = [u.atoms for u in units if u.in_type == in_type]
         depth = 1
         spent = False
@@ -221,6 +228,8 @@ class Gamma:
                         spent = True
                         break
                     emitted += 1
+                    if stats is not None:
+                        stats["seen"] = emitted
                     yield Term(chain)
                 if depth < max_depth:
                     nxt += [chain + u.atoms for u in units if u.in_type == chain[-1].out_type]
@@ -231,8 +240,6 @@ class Gamma:
             stats["seen"] = emitted
             stats["budget_spent"] = spent
             stats["depth_exhausted"] = not spent
-            stats["units"] = len(units)
-            stats["estimate"] = self.space_estimate(len(units), max_depth)
 
     @staticmethod
     def space_estimate(units: int, max_depth: int) -> int:

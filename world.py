@@ -107,6 +107,14 @@ def _opaque(v, _a, _s):
     return (v * v + 3) % M      # quadratic: no composition of affine atoms reaches it
 
 
+def _ladder(v, _a, _s):
+    """Four atoms deep -- `dbl . neg . inc . wrap` -- which is PAST max_depth, so it is
+    unreachable in atoms. It is `dbl` applied to SWING's rule, so once swing settles and
+    becomes one unit it is two units deep and reachable. Nothing was added to the closure;
+    only the grain of the search changed. This slot is the chunking claim's falsifier."""
+    return (-(v * 2) + 1) % M
+
+
 def _chase(_v, _a, s):
     """An INTERACTION: this slot's next value is a function of ANOTHER slot's current one,
     and its own value is irrelevant. Unreachable without operand arity, by construction."""
@@ -114,7 +122,7 @@ def _chase(_v, _a, s):
 
 
 RULES = {"steady": _steady, "climb": _climb, "swing": _swing,
-         "driven": _driven, "opaque": _opaque, "chase": _chase}
+         "driven": _driven, "opaque": _opaque, "chase": _chase, "ladder": _ladder}
 
 # what the harness knows and the agent does not. Used only to score the demo.
 TRUTH = {"steady": "idn (an atom: the answer was already known)",
@@ -122,7 +130,8 @@ TRUTH = {"steady": "idn (an atom: the answer was already known)",
          "swing": "neg . inc . wrap",
          "driven": "act . wrap",
          "opaque": "UNREACHABLE from these atoms -- quadratic, they are all affine",
-         "chase": "take<climb> . inc -- an interaction; needs operand arity"}
+         "chase": "take<climb> . inc -- an interaction; needs operand arity",
+         "ladder": "dbl . neg . inc . wrap -- 4 atoms, past max_depth; 2 units after swing"}
 
 
 @dataclass
@@ -134,7 +143,8 @@ class Transitions:
     def __post_init__(self) -> None:
         self.state: dict[str, int] = dict(self.start or
                                           {"steady": 3, "climb": 0, "swing": 2,
-                                           "driven": 1, "opaque": 2, "chase": 5})
+                                           "driven": 1, "opaque": 2, "chase": 5,
+                                           "ladder": 4})
 
     # -- the eight -------------------------------------------------------------------
 
