@@ -6,4 +6,6 @@ __pycache__/
 .ruff_cache/
 runs/
 docs/deps.svg
-runs/
+
+# working documents -- local only, not published
+docs/
