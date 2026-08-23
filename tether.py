@@ -400,7 +400,7 @@ class Agent:
                                 guards={"support": True, "reachability": True,
                                         "novelty": False},
                                 note="minted elsewhere; it explains this slot's parked residual",
-                                **rec)
+                                was=rec["was"], via=rec["via"])
             elif left < base:
                 self.chain.note_reuse_attempt("did-not-pay")
             else:
