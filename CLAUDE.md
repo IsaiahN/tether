@@ -1,7 +1,7 @@
 # tether
 
 Agent-level implementation of the Tether decision architecture. Version 7.
-Domain-agnostic core. `main` is the general proof of concept; competition work goes on
+Domain-agnostic. `core` is the general proof of concept; competition work goes on
 its own branch.
 
 ---

@@ -979,7 +979,7 @@ external, and it fails loudly.
 
 ### Q26 — Instantiating the framework in a domain: the eight-slot binding table
 
-From `PHILOSOPHY.md` §14. `main` is domain-agnostic, so this is the contract an adapter
+From `PHILOSOPHY.md` §14. `core` is domain-agnostic, so this is the contract an adapter
 must satisfy — the generalisation of the `Marketplace` protocol's actor / currency / arena
 bindings.
 
