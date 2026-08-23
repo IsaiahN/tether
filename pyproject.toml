@@ -1,0 +1,27 @@
+[project]
+name = "tether"
+version = "0.7.0"
+description = "Decision architecture: residual routing, gated minting, provenance. No LLM."
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest", "ruff"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["grammar", "ledger", "gate", "gamma", "world", "tether", "speak", "probe"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RET", "ARG", "C4"]
+
+[tool.pytest.ini_options]
+testpaths = ["."]
+addopts = "-q -p no:cacheprovider"
