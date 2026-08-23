@@ -329,30 +329,29 @@ def _difficulty(slots: dict) -> dict:
             "mean_minimal_len": round(sum(lens) / len(lens), 3) if lens else None}
 
 
-_PRISTINE: Gamma | None = None
-
-
-def _atom_gamma() -> Gamma:
-    """A Gamma that never learns. The key must describe the CLOSURE OVER ATOMS, which is
-    fixed. Handing it the agent's Gamma would make `in_closure` drift as the library
-    fills -- the denominator moving under the measurement, and abstention on level 4
-    graded against a different question than on level 0."""
-    global _PRISTINE
-    if _PRISTINE is None:
-        _PRISTINE = Gamma(_atoms())
-    return _PRISTINE
-
-
 def key(snap: Snap, max_depth: int = 3, budget: int = 4000) -> dict:
     """Per slot: the family, the shortest atom-composition equal to it, whether one
-    exists at all."""
-    gam = _atom_gamma()
+    exists at all.
+
+    `closure` below is a THROWAWAY enumerator over the atoms, not a Gamma in the
+    architecture's sense: nothing settles into it, nothing carries out of it, and it
+    lives for one call. The agent keeps the one Gamma. The type is borrowed only so the
+    enumeration is not reimplemented here.
+
+    It must not be the agent's Gamma, and it must not be shared. `enumerate_closure`
+    composes over UNITS -- atoms plus settled terms -- so a learning Gamma makes
+    `in_closure` grow as the library fills: the denominator moving under the
+    measurement, and abstention on level 4 graded against a different question than on
+    level 0. A module-level instance would have the same defect one stray `.settle()`
+    later, and silently. Construction costs 0.04ms, so there is nothing to save.
+    """
+    closure = Gamma(_atoms())
     names = snap.slots()
     out = {}
     for slot in names:
         rule, dep = snap.rules[slot], snap.spec.rules[slot].reads
         minimal = None
-        for cand in gam.enumerate_closure("val", "val", max_depth, budget):
+        for cand in closure.enumerate_closure("val", "val", max_depth, budget):
             for b in [None] + [s for s in names if s != slot]:
                 t = Term(cand.atoms, operand=b)
                 if _same(t, rule, slot, dep, b, names):
