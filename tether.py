@@ -48,6 +48,11 @@ def term_bits(k: int, alphabet: int) -> float:
     return (k + 1) * math.log2(alphabet + 1)
 
 
+def pays(cost: float, left: float, base: float) -> bool:
+    """The bargain. Strict: a tie does not license a new term."""
+    return cost + left < base
+
+
 @dataclass
 class Config:
     max_depth: int = 3
@@ -77,6 +82,7 @@ class Report:
     owed_import: set[str] = field(default_factory=set)
     abstained: dict[str, dict] = field(default_factory=dict)
     refusals: list[str] = field(default_factory=list)
+    demoted: list[str] = field(default_factory=list)
     stopped_at_link: str = "1 - perception"
 
 
@@ -89,11 +95,13 @@ class Agent:
         self.led = led if led is not None else Ledger(mode=self.cfg.mode)
         self.slots = env.slots()
         self.bound: dict[str, str] = {}
-        self.history: dict[str, list[tuple[int, str, int]]] = {s: [] for s in self.slots}
+        # the whole before-state is kept, because an operand is another slot's past value
+        self.trace: list[tuple[dict[str, int], str, dict[str, int]]] = []
         self.owed_import: set[str] = set()
         self.abstained: dict[str, dict] = {}
         self.candidates: dict[str, int] = {}     # term -> cycle accepted, awaiting the ground
         self.settled: set[str] = set()
+        self.demoted: list[str] = []
         self.drive = Drive()
         self.cycle = 0
         self._prev_bet: str | None = None
@@ -102,13 +110,21 @@ class Agent:
 
     # -- step 1 -----------------------------------------------------------------------
 
-    def _predict(self, slot: str, before: int, action: str) -> int:
+    def history(self, slot: str) -> list[tuple[dict[str, int], str, int]]:
+        """(before-state, action, this slot's after-value) for every recorded step."""
+        return [(b, a, af[slot]) for b, a, af in self.trace]
+
+    @staticmethod
+    def _ops(term: Term, state: dict[str, int]) -> tuple:
+        return (state[term.operand],) if term.operand else ()
+
+    def _predict(self, slot: str, state: dict[str, int], action: str) -> int:
         term = self.gamma.library[self.bound.get(slot, IDN)]
-        return term.apply(before, Ctx(action=action)) % M
+        return term.apply(state[slot], Ctx(action=action, operands=self._ops(term, state))) % M
 
     def perceive(self, action: str) -> dict[str, SlotResidual]:
         before = self.env.observe()
-        pred = {s: self._predict(s, before[s], action) for s in self.slots}
+        pred = {s: self._predict(s, before, action) for s in self.slots}
         _, deg_before = self.env.objective()
         self.env.step(action)
         after = self.env.observe()
@@ -118,7 +134,6 @@ class Agent:
         for s in self.slots:
             r = SlotResidual(s, TRANSITION, pred[s], after[s], correction_bits(pred[s], after[s]))
             res[s] = r
-            self.history[s].append((before[s], action, after[s]))
             self.led.record(self.cycle, "PERCEIVE", s, "bet", channel=TRANSITION,
                             predicted=pred[s], actual=after[s], mass=r.bits,
                             bound=self.bound.get(s, IDN))
@@ -133,6 +148,8 @@ class Agent:
         # the bracket channel: this env defines no coarse view, so it is inert. Stated.
         self.led.record(self.cycle, "PERCEIVE", "@bracket", "bet", channel=BRACKET,
                         mass=0.0, inert="env.transform() is None; no coarse view defined")
+        self.trace.append((before, action, after))
+        self.gamma.tick = len(self.trace)
         self._prev_pred = pred
         return res
 
@@ -158,28 +175,35 @@ class Agent:
     # -- step 2 -----------------------------------------------------------------------
 
     def _library_fit(self, slot: str, exclude: str | None) -> str | None:
-        hist = self.history[slot]
+        hist = self.history(slot)
         fits = [(len(t), n) for n, t in self.gamma.library.items()
-                if n != exclude and self._explains(t, hist)]
+                if n != exclude and self._explains(t, slot, hist)]
         return min(fits)[1] if fits else None
 
-    @staticmethod
-    def _explains(term: Term, hist: list[tuple[int, str, int]]) -> bool:
-        return bool(hist) and all(term.apply(b, Ctx(action=a)) % M == c % M for b, a, c in hist)
+    def _explains(self, term: Term, slot: str, hist) -> bool:
+        return bool(hist) and self._left(term, slot, hist) == 0.0
+
+    def _left(self, term: Term, slot: str, hist) -> float:
+        """What the term leaves unexplained across the slot's history, in bits."""
+        total = 0.0
+        for state, action, actual in hist:
+            got = term.apply(state[slot], Ctx(action=action, operands=self._ops(term, state)))
+            total += correction_bits(got, actual)
+        return total
 
     def route(self, res: dict[str, SlotResidual]) -> list[tuple[str, str, str | None]]:
         out = []
         for slot, r in res.items():
             if r.mass == 0.0:
                 b, fit = HELD, None
-            elif len(self.history[slot]) < 2:
+            elif len(self.trace) < 2:
                 b, fit = NOVEL, None
             else:
                 fit = self._library_fit(slot, self.bound.get(slot))
                 b = REBIND if fit else MECHANISM
             out.append((slot, b, fit))
             self.led.record(self.cycle, "ROUTE", slot, "route", bin=b,
-                            why_not=WHY_NOT[b], support=len(self.history[slot]))
+                            why_not=WHY_NOT[b], support=len(self.trace))
         return out
 
     # -- steps 3 to 5 -------------------------------------------------------------------
@@ -188,51 +212,77 @@ class Agent:
         """|R| over the slot's whole history. Accumulated, because the model cost is paid
         once and the savings scale with n -- which is what makes the bargain discriminate.
         No min_support: the arithmetic is its own support gate."""
-        return sum(correction_bits(term.apply(b, Ctx(action=a)), c)
-                   for b, a, c in self.history[slot])
+        return self._left(term, slot, self.history(slot))
+
+    def _bindings(self, slot: str) -> list[str | None]:
+        """Which slots may fill operand 0. None first -- a unary term is cheaper, so it
+        wins when both fit, which is Occam priced rather than preferred."""
+        return [None] + [s for s in self.slots if s != slot]
 
     def mint(self, slot: str) -> None:
-        hist = self.history[slot]
+        hist = self.history(slot)
         base = self._accumulated(slot, self.gamma.library[self.bound.get(slot, IDN)])
         guards = {"support": base > 0.0, "reachability": False, "novelty": False}
         cuts: list[dict] = []
         best: tuple[float, float, Term] | None = None
-        seen = 0
+        stats: dict = {"seen": 0, "budget_spent": False, "depth_exhausted": True,
+                       "units": self.gamma.alphabet, "estimate": 0}
+        rank = 0
 
         if guards["support"]:
             for cand in self.gamma.enumerate_closure("val", "val", self.cfg.max_depth,
-                                                     self.cfg.budget):
-                seen += 1
-                if self.gamma.is_atom(cand) or cand.name in self.gamma.library:
-                    cuts.append({"name": cand.name, "rank": seen, "reversible": True,
-                                 "reason": "not-novel"})
-                    continue
-                guards["novelty"] = True
-                left = self._accumulated_with(hist, cand)
-                cost = term_bits(len(cand), self.gamma.alphabet)
-                if not cost + left < base:
-                    cuts.append({"name": cand.name, "rank": seen, "reversible": True,
-                                 "reason": "does-not-pay"})
-                    continue
-                guards["reachability"] = True
-                if best is None or left < best[0]:
-                    best = (left, cost, cand)
-                if left == 0.0:
+                                                     self.cfg.budget, stats):
+                for bind in (self._bindings(slot) if cand.reads_operand else [None]):
+                    rank += 1
+                    term = Term(cand.atoms, operand=bind)
+                    if self.gamma.is_atom(term) or term.name in self.gamma.library:
+                        cuts.append({"name": term.name, "rank": rank, "reversible": True,
+                                     "reason": "not-novel"})
+                        continue
+                    guards["novelty"] = True
+                    left = self._left(term, slot, hist)
+                    cost = term_bits(len(term), self.gamma.alphabet)
+                    if not pays(cost, left, base):
+                        cuts.append({"name": term.name, "rank": rank, "reversible": True,
+                                     "reason": "does-not-pay"})
+                        continue
+                    guards["reachability"] = True
+                    if best is None or left < best[0]:
+                        best = (left, cost, term)
+                if best is not None and best[0] == 0.0:
                     break
 
-        exhausted = seen >= self.cfg.budget
-        detail = {"guards": guards, "candidates_seen": seen, "code": CODE,
-                  "base_bits": round(base, 3), "cuts": cuts[:12],
-                  "budget_exhausted": exhausted, "depth": self.cfg.max_depth}
+        seen = stats["seen"]
+        est = max(stats["estimate"], seen)
+        detail = {"guards": guards, "candidates_seen": seen, "candidates_tried": rank,
+                  "code": CODE, "base_bits": round(base, 3), "cuts": cuts[:12],
+                  "budget_exhausted": bool(stats["budget_spent"]),
+                  "depth": self.cfg.max_depth, "units": stats["units"],
+                  "space_estimate": est,
+                  "coverage": round(seen / est, 6) if est else 0.0}
 
         if best is None:
-            # nothing in closure(Gamma) CLOSES R, and nothing even PAYS. Only IMPORT moves
-            # the wall, and this build has no second frame -- so the debt is recorded.
-            detail["verdict"] = "unreached"
-            detail["note"] = "unreached at this budget; not a proof of unreachable"
-            self.owed_import.add(slot)
-            self.abstained[slot] = {"depth": self.cfg.max_depth, "candidates": seen,
-                                    "base_bits": round(base, 3)}
+            # THE VERDICT IS NOT ONE WORD. "I stopped early" and "the whole space at this
+            # depth does not contain one" are different claims and only one is strong.
+            if not guards["support"]:
+                detail["verdict"] = "no_support"
+            elif stats["budget_spent"]:
+                detail["verdict"] = "budget_spent"
+                detail["note"] = (f"stopped early; coverage {detail['coverage']:.4f}. "
+                                  "Says nothing about whether a term exists")
+            elif not guards["novelty"]:
+                detail["verdict"] = "not_novel"
+                detail["note"] = "the machinery worked; the answer was already known"
+            else:
+                detail["verdict"] = "depth_exhausted"
+                detail["note"] = ("the whole space at this depth was seen and none paid; "
+                                  "not at this depth, NOT unreachable")
+            if detail["verdict"] in ("budget_spent", "depth_exhausted"):
+                self.owed_import.add(slot)
+                self.abstained[slot] = {"depth": self.cfg.max_depth, "candidates": seen,
+                                        "coverage": detail["coverage"],
+                                        "verdict": detail["verdict"],
+                                        "base_bits": round(base, 3)}
             self.led.record(self.cycle, "MINT", slot, "park", **detail)
             return
 
@@ -240,39 +290,51 @@ class Agent:
         self.gamma.accept(term, seq=len(self.led), residual=f"{slot}@{self.cycle}")
         self.bound[slot] = term.name
         closes = left == 0.0
-        # only a term that CLOSED R is eligible to settle. A partial term was already
-        # observed to fail on the history it was fitted to, so a later lucky hit is not
-        # the ground settling it -- it stays a candidate until something closes.
         if closes:
             self.candidates[term.name] = self.cycle
-        if not closes:
-            self.owed_import.add(slot)
-        else:
             self.owed_import.discard(slot)
             self.abstained.pop(slot, None)
-        self.led.record(self.cycle, "MINT", slot, "mint", verdict="pays", closes=closes,
-                        term=term.name, term_bits=round(cost, 3), left_bits=round(left, 3),
-                        **detail)
+        else:
+            # it pays and it is not the mechanism. Accepting is correct; settling for it
+            # is not -- the slot keeps owing until something closes R.
+            self.owed_import.add(slot)
+        detail["verdict"] = "pays"
+        detail["closes"] = closes
+        if not closes:
+            detail["note"] = "pays but does not close R; the slot still owes"
+        detail.update(term=term.name, term_depth=len(term), operand=term.operand,
+                      term_bits=round(cost, 3), left_bits=round(left, 3))
+        self.led.record(self.cycle, "MINT", slot, "mint", **detail)
         self.led.record(self.cycle, "ACCEPT", slot, "accept", term=term.name,
                         origin=term.origin, seq=len(self.led),
                         status="candidate", cited="no: candidate may be held, not cited")
 
-    def _accumulated_with(self, hist: list[tuple[int, str, int]], term: Term) -> float:
-        return sum(correction_bits(term.apply(b, Ctx(action=a)), c) for b, a, c in hist)
-
     def settle(self, res: dict[str, SlotResidual]) -> None:
         """The ground settles it, by held-out payment: a term predicts a transition it was
-        never fitted to. A gate passing is not the ground."""
+        never fitted to. And it un-settles the same way -- a settled term that mispredicts
+        on fresh evidence is DEMOTED, defeasibly, never deleted."""
         for slot, r in res.items():
             name = self.bound.get(slot)
-            if not name or name in self.settled:
+            if not name:
+                continue
+            if r.mass > 0.0:
+                # express-before-judge: this term actually predicted, and was wrong
+                if self.gamma.refute(name):
+                    self.demoted.append(name)
+                    self.led.record(self.cycle, "SETTLE", slot, "demote", term=name,
+                                    status="candidate",
+                                    verdict="mispredicted on fresh evidence",
+                                    rejections=round(self.gamma.rejection_of(name), 3),
+                                    note="defeasible: the rejection decays and it may settle again")
                 continue
             born = self.candidates.get(name)
-            if born is None or born >= self.cycle or r.mass > 0.0:
+            if born is None or born >= self.cycle or self.gamma.is_settled(name):
                 continue
+            self.gamma.settle(name)
             self.settled.add(name)
             self.led.record(self.cycle, "SETTLE", slot, "settle", term=name,
-                            status="accepted", verdict="held on a transition it was not fitted to",
+                            status="accepted",
+                            verdict="held on a transition it was not fitted to",
                             held_out_cycle=self.cycle, fitted_through=born)
 
     # -- the utterance: the only way an action is proposed --------------------------------
@@ -292,11 +354,10 @@ class Agent:
         ground = G.compose(G.GROUND, *refs)
 
         if bound:
-            pred = self._predict(focal, before[focal], action)
+            pred = self._predict(focal, before, action)
             bet = G.compose("BECOME", G.Leaf(G.T.OBJECT, focal), G.Leaf(G.T.ATTR, pred))
             der = G.compose(G.DERIVE, ground, G.ref(bound, "term"), bet)
-            pay = G.compose(G.PAY, G.price(float(len(self.history[focal])),
-                                           len(self.history[focal])))
+            pay = G.compose(G.PAY, G.price(float(len(self.trace)), len(self.trace)))
         else:
             der = G.compose(G.DERIVE, ground, G.T.PRED)       # the typed hole: a probe
             pay = G.compose(G.PAY, G.price(None, None, "explicit-null: nothing bound"))
@@ -312,7 +373,7 @@ class Agent:
     def step(self, action: str | None = None) -> bool:
         """One turn. Returns False if no action was proposed -- which is a legal outcome."""
         before = self.env.observe()
-        focal = max(self.slots, key=lambda s: len(self.history[s]) and 1 or 0)
+        focal = self.slots[0]
         focal = next((s for s in self.slots if s in self.owed_import), focal)
         action = action or self.drive.choose(ACTIONS, self.cycle)
 
@@ -356,6 +417,7 @@ class Agent:
             self.step()
         rep = Report(cycles=self.cycle, bound=dict(self.bound),
                      minted=[e.detail["term"] for e in self.led.by_event("mint")],
+                     demoted=list(self.demoted),
                      settled=sorted(self.settled), owed_import=set(self.owed_import),
                      abstained=dict(self.abstained), refusals=list(self.refusals))
         rep.stopped_at_link = self._link()
@@ -363,7 +425,7 @@ class Agent:
 
     def _link(self) -> str:
         """Figure 3's diagnostic: which link did it stop at, and was that measured?"""
-        if not any(self.history.values()):
+        if not self.trace:
             return "1 - perception (measured: no observations)"
         if not self.gamma.library:
             return "2 - vocabulary (measured: empty library)"

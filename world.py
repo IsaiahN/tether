@@ -75,39 +75,54 @@ def _atoms() -> list[Atom]:
         return v % M
 
     fns = [idn, inc, dec, dbl, neg, act, wrap]
-    return [Atom(f.__name__, f, "val", "val") for f in fns]
+    out = [Atom(f.__name__, f, "val", "val") for f in fns]
+
+    def take(v, c):
+        """Read the bound operand slot instead of my own value. The one atom that makes
+        an interaction expressible at all."""
+        return c.operands[0] if c.operands else v
+
+    out.append(Atom("take", take, "val", "val", reads_operand=True))
+    return out
 
 
 # the hidden rules. Names are for the harness's report, never shown to the agent.
-def _steady(v, _a):
+def _steady(v, _a, _s):
     return v
 
 
-def _climb(v, _a):
+def _climb(v, _a, _s):
     return (v + 1) % M
 
 
-def _swing(v, _a):
+def _swing(v, _a, _s):
     return (-v + 1) % M
 
 
-def _driven(v, a):
+def _driven(v, a, _s):
     return (v + DELTA[a]) % M
 
 
-def _opaque(v, _a):
+def _opaque(v, _a, _s):
     return (v * v + 3) % M      # quadratic: no composition of affine atoms reaches it
 
 
+def _chase(_v, _a, s):
+    """An INTERACTION: this slot's next value is a function of ANOTHER slot's current one,
+    and its own value is irrelevant. Unreachable without operand arity, by construction."""
+    return (s["climb"] + 1) % M
+
+
 RULES = {"steady": _steady, "climb": _climb, "swing": _swing,
-         "driven": _driven, "opaque": _opaque}
+         "driven": _driven, "opaque": _opaque, "chase": _chase}
 
 # what the harness knows and the agent does not. Used only to score the demo.
 TRUTH = {"steady": "idn (an atom: the answer was already known)",
          "climb": "inc . wrap",
          "swing": "neg . inc . wrap",
          "driven": "act . wrap",
-         "opaque": "UNREACHABLE from these atoms -- quadratic, they are all affine"}
+         "opaque": "UNREACHABLE from these atoms -- quadratic, they are all affine",
+         "chase": "take<climb> . inc -- an interaction; needs operand arity"}
 
 
 @dataclass
@@ -119,7 +134,7 @@ class Transitions:
     def __post_init__(self) -> None:
         self.state: dict[str, int] = dict(self.start or
                                           {"steady": 3, "climb": 0, "swing": 2,
-                                           "driven": 1, "opaque": 2})
+                                           "driven": 1, "opaque": 2, "chase": 5})
 
     # -- the eight -------------------------------------------------------------------
 
@@ -162,20 +177,36 @@ class Transitions:
     def step(self, action: str) -> None:
         if action not in ACTIONS:
             raise ValueError(f"unknown action: {action}")
-        self.state = {k: RULES[k](v, action) % M for k, v in self.state.items()}
+        before = dict(self.state)
+        self.state = {k: RULES[k](v, action, before) % M for k, v in before.items()}
 
 
 def unreachable_slots(env: Transitions, gam, max_depth: int, budget: int) -> list[str]:
     """What the HARNESS knows by exhaustive check, and the agent never sees. Used only to
-    score abstention: a slot no term in the enumerated closure predicts on every action."""
+    score abstention: a slot no term in the enumerated closure predicts on every action,
+    under any operand binding."""
+    slots = env.slots()
     out = []
-    for slot in env.slots():
+    for slot in slots:
         rule = RULES[slot]
+        binds = [None] + [s for s in slots if s != slot]
         ok = False
         for term in gam.enumerate_closure("val", "val", max_depth, budget):
-            if all(term.apply(v, Ctx(action=a)) % M == rule(v, a) % M
-                   for v in range(M) for a in ACTIONS):
-                ok = True
+            for b in binds:
+                good = True
+                for v in range(M):
+                    for a in ACTIONS:
+                        st = {s: (v if s == slot else (v + 1) % M) for s in slots}
+                        ops = (st[b],) if b else ()
+                        if term.apply(v, Ctx(action=a, operands=ops)) % M != rule(v, a, st) % M:
+                            good = False
+                            break
+                    if not good:
+                        break
+                if good:
+                    ok = True
+                    break
+            if ok:
                 break
         if not ok:
             out.append(slot)

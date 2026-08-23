@@ -4,9 +4,15 @@ Atoms are given. Molecules are priors -- named type-valid composites, loaded at 
 stamped so the record separates what the agent was handed from what it worked out.
 MINT composes inside the closure and can never add an atom; only IMPORT moves the wall.
 
+Three things beyond a plain library:
+
+  ARITY     a term reads its own slot AND bound operands, so an interaction is expressible
+  CHUNKING  a SETTLED term re-enters the search as one unit, so depth is measured in units
+            and reach compounds while the closure itself is unchanged
+  STANDING  a settled term the ground later refutes is demoted, weighted and clocked --
+            defeasible, never deleted
+
 Reports lambda, the spectral radius of the type transfer matrix, against V = |atoms|.
-That is "typing beats size" as a measured quantity, available before anything runs, and
-it gives REACHABILITY a cost model: depth d costs lambda^d, not V^d.
 """
 
 from __future__ import annotations
@@ -20,10 +26,17 @@ sys.dont_write_bytecode = True
 
 PRIOR, MINTED, IMPORTED = "prior", "minted", "imported"
 
+# how fast a rejection fades on the logical clock. A refutation is retractable.
+REJECTION_HALFLIFE = 8.0
+
 
 @dataclass(frozen=True)
 class Ctx:
+    """What an atom may read. All before-state: there is no accessor to the outcome, so a
+    term that predicts by peeking is not constructible."""
+
     action: Any = None
+    operands: tuple = ()          # other slots' values, in the term's binding order
 
 
 @dataclass(frozen=True)
@@ -32,6 +45,7 @@ class Atom:
     fn: Callable[[Any, Ctx], Any]
     in_type: str
     out_type: str
+    reads_operand: bool = False   # declared at construction, never inferred from the name
 
     def __repr__(self) -> str:
         return f"Atom({self.name})"
@@ -39,14 +53,16 @@ class Atom:
 
 @dataclass(frozen=True)
 class Term:
-    """A composition of atoms, applied left to right."""
+    """A composition of atoms applied left to right, with an optional operand binding."""
 
     atoms: tuple[Atom, ...]
     origin: str = MINTED
+    operand: str | None = None    # which slot fills operand 0, or None for unary
 
     @property
     def name(self) -> str:
-        return " . ".join(a.name for a in self.atoms)
+        base = " . ".join(a.name for a in self.atoms)
+        return f"{base}<{self.operand}>" if self.operand else base
 
     @property
     def in_type(self) -> str:
@@ -55,6 +71,10 @@ class Term:
     @property
     def out_type(self) -> str:
         return self.atoms[-1].out_type
+
+    @property
+    def reads_operand(self) -> bool:
+        return any(a.reads_operand for a in self.atoms)
 
     def __len__(self) -> int:
         return len(self.atoms)
@@ -68,6 +88,30 @@ class Term:
         return value
 
 
+@dataclass
+class Standing:
+    """A term's record against the ground. Weighted, clocked, and never a hard ban."""
+
+    settled_at: int | None = None
+    rejections: float = 0.0
+    last_tick: int = 0
+
+    def refute(self, tick: int) -> None:
+        self.decay(tick)
+        self.rejections += 1.0
+        self.settled_at = None
+
+    def decay(self, tick: int) -> None:
+        gap = max(0, tick - self.last_tick)
+        if gap:
+            self.rejections *= 0.5 ** (gap / REJECTION_HALFLIFE)
+            self.last_tick = tick
+
+    @property
+    def settled(self) -> bool:
+        return self.settled_at is not None
+
+
 class Gamma:
     def __init__(self, atoms: list[Atom],
                  molecules: list[tuple[str, tuple[str, ...]]] = ()) -> None:
@@ -77,6 +121,8 @@ class Gamma:
         self._by_name = {a.name: a for a in atoms}
         self.library: dict[str, Term] = {}
         self.stamps: dict[str, dict[str, Any]] = {}
+        self.standing: dict[str, Standing] = {}
+        self.tick = 0
         for a in atoms:
             self._install(Term((a,), origin=PRIOR), seq=-1, residual=None)
         for label, chain in molecules:
@@ -84,20 +130,50 @@ class Gamma:
 
     # -- construction ---------------------------------------------------------------
 
-    def build(self, names: tuple[str, ...], origin: str = MINTED) -> Term:
-        return Term(tuple(self._by_name[n] for n in names), origin=origin)
+    def build(self, names: tuple[str, ...], origin: str = MINTED,
+              operand: str | None = None) -> Term:
+        return Term(tuple(self._by_name[n] for n in names), origin=origin, operand=operand)
 
     def _install(self, term: Term, seq: int, residual: str | None) -> Term:
         self.library[term.name] = term
         self.stamps[term.name] = {"origin": term.origin, "seq": seq, "residual": residual}
+        self.standing.setdefault(term.name, Standing(last_tick=self.tick))
         return term
 
     def accept(self, term: Term, seq: int, residual: str) -> Term:
-        """Stamped with where it came from and when. The stamp is not bookkeeping:
-        a derived term and an adopted one differ only in the record."""
+        """Stamped with where it came from and when. A derived term and an adopted one
+        differ only in the record."""
         if term.name in self.library:
             raise ValueError(f"already in library: {term.name}")
         return self._install(term, seq, residual)
+
+    # -- standing: the ground's verdict, defeasibly ----------------------------------
+
+    def settle(self, name: str) -> None:
+        """The ground paid on evidence the term was never fitted to."""
+        self.standing.setdefault(name, Standing()).settled_at = self.tick
+
+    def refute(self, name: str) -> bool:
+        """A settled term mispredicted on fresh evidence. Demoted to candidate -- not
+        deleted, and the rejection decays, so it can settle again if it starts paying."""
+        st = self.standing.setdefault(name, Standing())
+        was = st.settled
+        st.refute(self.tick)
+        return was
+
+    def is_settled(self, name: str) -> bool:
+        return self.standing.get(name, Standing()).settled
+
+    def rejection_of(self, name: str) -> float:
+        st = self.standing.get(name)
+        if st is None:
+            return 0.0
+        st.decay(self.tick)
+        return st.rejections
+
+    @property
+    def settled_terms(self) -> list[Term]:
+        return [t for n, t in self.library.items() if self.is_settled(n)]
 
     # -- reach ----------------------------------------------------------------------
 
@@ -106,38 +182,73 @@ class Gamma:
         return len(self.atoms)
 
     def is_atom(self, term: Term) -> bool:
-        """NOVEL means novel relative to atoms, not to the world."""
+        """NOVEL is relative to atoms, not to the world."""
         return len(term) == 1 and term.atoms[0].name in self._by_name
 
-    def enumerate_closure(self, in_type: str, out_type: str, max_depth: int,
-                          budget: int) -> Iterator[Term]:
-        """Type-valid pipelines, shortest first, capped by budget.
+    def units(self) -> list[Term]:
+        """What the search composes FROM: the atoms, plus every SETTLED term as one unit.
 
-        Yielding a term is a WITNESS that it is reachable. Exhausting the budget without
-        yielding is UNREACHED -- a fact about this search, never a proof of absence.
+        The closure does not change -- MINT still cannot add an atom. What changes is what
+        is reachable at a given budget: a settled 3-atom term makes depth 3 reach 9 atoms.
+        Only what the ground has paid for becomes a shortcut.
         """
+        seen = {a.name for a in self.atoms}
+        out = [Term((a,), origin=PRIOR) for a in self.atoms]
+        for t in self.settled_terms:
+            if t.name not in seen and len(t) > 1:
+                seen.add(t.name)
+                out.append(Term(t.atoms, origin=t.origin))
+        return out
+
+    def enumerate_closure(self, in_type: str, out_type: str, max_depth: int, budget: int,
+                          stats: dict | None = None) -> Iterator[Term]:
+        """Type-valid pipelines over UNITS, shortest first, capped by budget.
+
+        Yielding a term is a WITNESS that it is reachable. Stopping is one of two facts and
+        they are not the same claim: `budget_spent` (we stopped early) or `depth_exhausted`
+        (we saw the whole space at this depth and it did not contain one).
+        """
+        units = self.units()
         emitted = 0
-        frontier = [(a,) for a in self.atoms if a.in_type == in_type]
+        frontier = [u.atoms for u in units if u.in_type == in_type]
         depth = 1
+        spent = False
         while frontier and depth <= max_depth:
             nxt: list[tuple[Atom, ...]] = []
             for chain in frontier:
                 if chain[-1].out_type == out_type:
                     if emitted >= budget:
-                        return
+                        spent = True
+                        break
                     emitted += 1
                     yield Term(chain)
                 if depth < max_depth:
-                    nxt += [chain + (a,) for a in self.atoms if a.in_type == chain[-1].out_type]
+                    nxt += [chain + u.atoms for u in units if u.in_type == chain[-1].out_type]
+            if spent:
+                break
             frontier, depth = nxt, depth + 1
+        if stats is not None:
+            stats["seen"] = emitted
+            stats["budget_spent"] = spent
+            stats["depth_exhausted"] = not spent
+            stats["units"] = len(units)
+            stats["estimate"] = self.space_estimate(len(units), max_depth)
+
+    @staticmethod
+    def space_estimate(units: int, max_depth: int) -> int:
+        """Roughly how many compositions exist at this depth: sum of units^d.
+
+        The denominator that turns 'unreached' from a word into a measurement.
+        """
+        return sum(units ** d for d in range(1, max_depth + 1))
 
     # -- typing beats size, as a number -----------------------------------------------
 
     def type_report(self, iters: int = 200) -> dict[str, float]:
         """lambda = spectral radius of the type transfer matrix, by power iteration.
 
-        The number of well-typed terms of size n grows as lambda^n; an untyped bag of V
-        symbols grows as V^n. The ratio is what typing buys, per unit depth.
+        Well-typed terms of size n grow as lambda^n; an untyped bag of V symbols grows as
+        V^n. The ratio is what typing buys per unit of depth.
         """
         types = sorted({a.in_type for a in self.atoms} | {a.out_type for a in self.atoms})
         idx = {t: i for i, t in enumerate(types)}
