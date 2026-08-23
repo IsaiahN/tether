@@ -111,11 +111,36 @@ class Agent:
         self.phases = I.Phases()
         self.clocks = I.Clocks()
         self.retro: list[dict] = []
+        # parked residuals survive a level boundary; the trace does not. So a parked
+        # record carries its OWN evidence -- retrospective re-attribution is free in
+        # actions and is not free in memory.
+        self.parked: dict[str, dict] = {}
+        self.level = 0
         self.drive = Drive()
         self.cycle = 0
         self._prev_bet: str | None = None
         self._prev_pred: dict[str, int] | None = None
         self.refusals: list[str] = []
+
+    def retarget(self, env: Any, level: int) -> None:
+        """Move to the next level. Gamma and standing carry; the trace and the bindings
+        do not, because slot names mean nothing across a boundary.
+
+        Everything still owed is parked WITH its history, which is the only way a term
+        minted three levels later can be tested against it -- the mint will never revisit
+        it, so this is the sweep's one irreplaceable job."""
+        for slot in sorted(self.owed_import):
+            rec = dict(self.abstained.get(slot, {}))
+            rec.update(slot=slot, level=self.level, hist=self.history(slot),
+                       slots=list(self.slots))
+            self.parked[f"L{self.level}:{slot}"] = rec
+        self.env, self.level = env, level
+        self.slots = env.slots()
+        self.bound, self.trace = {}, []
+        self.owed_import, self.abstained = set(), {}
+        self.candidates = {}
+        self._prev_bet = self._prev_pred = None
+        self.drive = Drive()
 
     # -- step 1 -----------------------------------------------------------------------
 
@@ -322,7 +347,7 @@ class Agent:
         self.chain.note_mint()
         self.sweep(term, slot)
 
-    def _reach(self, slot: str, hist: list) -> tuple[float, Term] | None:
+    def _reach(self, slot: str, hist: list, slots: list) -> tuple[float, Term] | None:
         """Re-run the search for a parked slot because the UNIT SET grew.
 
         This is the chunking claim made falsifiable: closure(Gamma) is unchanged and no
@@ -333,7 +358,7 @@ class Agent:
         best = None
         for cand in self.gamma.enumerate_closure("val", "val", self.cfg.max_depth,
                                                  self.cfg.budget):
-            for bind in self._bindings(slot):
+            for bind in [None] + [s2 for s2 in slots if s2 != slot]:
                 t = Term(cand.atoms, operand=bind)
                 left = self._left(t, slot, hist)
                 if best is None or left < best[0]:
@@ -345,62 +370,69 @@ class Agent:
     def sweep(self, term: Term, origin_slot: str) -> None:
         """Re-run a newly accepted term against every outstanding parked residual.
 
-        Costs no actions -- it re-reads evidence already paid for. And a term minted for
-        one slot that explains another slot's old residual is an operator REUSED on a task
-        it was not minted for, which is the stated bar for the whole loop firing once.
+        Costs no actions -- it re-reads evidence already paid for. A term minted for one
+        slot that explains another slot's old residual is an operator REUSED on a task it
+        was not minted for, which is the stated bar for the loop firing once. Targets come
+        from this level (which the mint also revisits) and from earlier levels (which it
+        never does -- the only place the sweep is irreplaceable).
         """
-        outstanding = sorted(self.owed_import - {origin_slot})
         units_now = len(self.gamma.units())
+        targets = [(s, s, self.history(s), self.abstained.get(s, {}), self.slots)
+                   for s in sorted(self.owed_import - {origin_slot})]
+        targets += [(k, r["slot"], r["hist"], r, r["slots"])
+                    for k, r in sorted(self.parked.items())]
 
         def stale(rec: dict) -> bool:
             """`depth_exhausted` is not permanent. It means 'the whole space AT THIS UNIT
-            SET', so a settled chunk that adds a unit retracts it -- the reachable set
-            genuinely grew. Until then it is a depth verdict, already recorded, and
-            charging it to the reuse funnel would let a missing second task read as
-            MINTED_UNUSED, an architecture verdict."""
+            SET', so a settled chunk that adds a unit retracts it."""
             return (rec.get("verdict") != "depth_exhausted"
                     or units_now > rec.get("units_then", 0))
 
-        eligible = [s for s in outstanding if stale(self.abstained.get(s, {}))]
+        eligible = [t for t in targets if stale(t[3]) and t[2]]
         if not eligible:
             self.chain.reuse_branch["no-eligible-target"] += 1
             return
-        for slot in eligible:
+        for tkey, slot, hist, rec, slots in eligible:
             how = "direct"
-            hist = self.history(slot)
-            base = self._accumulated(slot, self.gamma.library[self.bound.get(slot, IDN)])
+            base = self._left(self.gamma.library[self.bound.get(slot, IDN)], slot, hist)
             best = None
-            for bind in self._bindings(slot):
+            for bind in [None] + [s for s in slots if s != slot]:
                 cand = Term(term.atoms, operand=bind)
                 left = self._left(cand, slot, hist)
                 if best is None or left < best[0]:
                     best = (left, cand)
             left, cand = best
-            rec = self.abstained.get(slot, {})
             if left > 0.0 and units_now > rec.get("units_then", units_now):
-                # counted so its inertness is a measured zero, not hidden dead code
                 self.chain.reuse_branch["rescan"] += 1
-                found = self._reach(slot, hist)
+                found = self._reach(slot, hist, slots)
                 if found is not None and found[0] < left:
-                    left, cand = found
-                    how = "chunk"
+                    left, cand, how = found[0], found[1], "chunk"
+            cross = tkey != slot
             if left == 0.0:
                 self.chain.note_reuse_attempt(f"closed:{how}")
                 self.chain.note_reused()
                 self.chain.note_cleared()
-                self.bound[slot] = (cand.name if cand.name in self.gamma.library
-                                    else self._install_reuse(cand, slot))
-                self.owed_import.discard(slot)
-                born = self.abstained.pop(slot, {})
-                rec = {"term": cand.name, "slot": slot, "cycle": self.cycle,
-                       "was": born.get("verdict"), "via": how}
-                self.retro.append(rec)
-                self.led.record(self.cycle, "MINT", slot, "retro", term=cand.name,
-                                verdict="retroactive resolution", reused_from=origin_slot,
+                name = (cand.name if cand.name in self.gamma.library
+                        else self._install_reuse(cand, slot))
+                if cross:
+                    self.parked.pop(tkey, None)
+                else:
+                    self.bound[slot] = name
+                    self.owed_import.discard(slot)
+                    self.abstained.pop(slot, None)
+                out = {"term": name, "slot": slot, "cycle": self.cycle,
+                       "was": rec.get("verdict"), "via": how,
+                       "cross_level": cross, "parked_on": rec.get("level")}
+                self.retro.append(out)
+                # charged to the ORIGIN's chain, not the target's: the sweep is not the
+                # target slot's per-step loop running a second time, it is part of what
+                # happened when the origin minted. The target is named, not impersonated.
+                self.led.record(self.cycle, "ACCEPT", origin_slot, "retro", term=name,
+                                verdict="retroactive resolution", target=tkey,
                                 guards={"support": True, "reachability": True,
                                         "novelty": False},
-                                note="minted elsewhere; it explains this slot's parked residual",
-                                was=rec["was"], via=rec["via"])
+                                note="minted here; it explains a residual parked elsewhere",
+                                was=out["was"], via=how, cross_level=cross)
             elif left < base:
                 self.chain.note_reuse_attempt("did-not-pay")
             else:
