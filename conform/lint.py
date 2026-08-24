@@ -35,6 +35,29 @@ crossing that happens to agree is findable only by the second, and it stays find
 only while it stays green -- once the values diverge it is a bug anyone can see, and by
 then it has been load-bearing for months.
 
+AND HOW TO WITNESS A CHECKER, which is not the same as witnessing a rule:
+
+    A WITNESS FOR A CHECKER MUST REINTRODUCE THE DEFECT, NEVER DISABLE THE CHECK.
+
+Disabling the check tests that the check exists. Reintroducing the defect tests that the
+harness can REACH it -- and the second is the property in question, because "found
+nothing because the subject is clean" and "found nothing because the harness cannot go
+red" produce identical output. Two states, one report, which is the same structural
+argument as VACUOUS and as the denominator witness.
+
+Learned by doing the wrong one: breaking A5's implementation found nothing, correctly,
+because unbind-on-hold had already fixed the defect at source. Only breaking the FRAME
+showed the harness could reach the case.
+
+THESE FOUR ARE A RECORD OF HOW THIS CHECKER FAILED, not a philosophy of checkers. Every
+one came from a defect and none from reasoning about what a good checker should do, and
+they name four sites where a checker goes quiet:
+
+    fixtures before changes            an ordering with an observable half-state
+    witness the boundary, not the rule  exemptions and denominators, never decisions
+    exemptions as data, not logic       a table can be pinned; logic widens quietly
+    reintroduce, never disable          the only way to test reach rather than existence
+
     python lint.py              check this repo
     python lint.py --selftest   witnesses only
     python lint.py --blind      what a static pass cannot see, and who can
@@ -399,17 +422,24 @@ def selftest() -> dict[str, str]:
 
 
 def run(paths: list[Path]) -> dict[str, dict]:
-    """Returns one entry per rule, plus `_unreadable` -- files that could not be read at
-    all, which is neither a pass nor a finding about them."""
+    """Returns one entry per rule, plus `_unusable` -- files that could not be read or
+    parsed, which is neither a pass nor a finding about them."""
     trusted = {k for k, v in selftest().items() if v == "ok"}
-    # a file that cannot be READ has not been checked, and one stray byte should not
-    # take the whole seat down and be reported as a finding about the code
-    srcs, unreadable = {}, []
+    # A file becomes a SUBJECT by being read AND parsed, and it can fail at either.
+    # Decode, I/O and syntax are three routes to the same state: not checked. Leaving
+    # syntax in the rule loop reported it four times over -- once per rule, each with an
+    # asserted cause about the code -- and took the board from three clean rules to zero.
+    srcs, unusable = {}, []
     for p in paths:
         try:
-            srcs[p] = p.read_text(encoding="utf-8")
+            text = p.read_text(encoding="utf-8")
+            ast.parse(text)
         except (UnicodeDecodeError, OSError) as e:
-            unreadable.append(f"{p.name}: {type(e).__name__}")
+            unusable.append(f"{p.name}: {type(e).__name__}")
+        except SyntaxError as e:
+            unusable.append(f"{p.name}: SyntaxError line {e.lineno}")
+        else:
+            srcs[p] = text
     allsrc = tuple(srcs.values())
     shared = _scan(allsrc)          # once per run, handed in rather than cached
     res: dict[str, dict] = {}
@@ -420,12 +450,9 @@ def run(paths: list[Path]) -> dict[str, dict]:
         found, seen = [], 0
         for p, src in srcs.items():
             others = allsrc if r.crossfile else ()
-            try:
-                f, n = (r.fn(src, others, shared, p.name) if r.crossfile
-                        else r.fn(src))
-            except SyntaxError as e:
-                found.append(f"{p.name}: unparseable -- {e}")
-                continue
+            # no SyntaxError guard here: a file that does not parse never enters
+            # `srcs`, so by this point every source is a real subject
+            f, n = (r.fn(src, others, shared, p.name) if r.crossfile else r.fn(src))
             found += [f"{p.name}: {x}" for x in f]
             seen += n
         if found:
@@ -434,13 +461,13 @@ def run(paths: list[Path]) -> dict[str, dict]:
             res[r.rid] = {"status": VACUOUS, "why": ["examined 0 candidates"]}
         else:
             res[r.rid] = {"status": PASS, "why": [f"{seen} candidates examined"]}
-    res["_unreadable"] = unreadable
+    res["_unusable"] = unusable
     return res
 
 
 def report(paths: list[Path]) -> int:
     res = run(paths)
-    unreadable = res.pop("_unreadable", [])
+    unusable = res.pop("_unusable", [])
     rank = {FAIL: 0, SUPPRESSED: 1, VACUOUS: 2, PASS: 3}
     for rid in sorted(res, key=lambda r: (rank[res[r]["status"]], r)):
         print(f"  {rid:<10} {res[rid]['status']}")
@@ -459,10 +486,16 @@ def report(paths: list[Path]) -> int:
     for k in ("ELSEWHERE", "NO-BEHAVIOUR", "NOT-EXPRESSIBLE", "NOT-CHECKABLE"):
         print(f"    {kinds.get(k, 0):>2} {k}")
     print("  A static pass is single-frame: no promotion, no import, no second scale.")
-    if unreadable:
-        print(f"  {len(unreadable)} file(s) could not be read, so were not checked: "
-              + ", ".join(unreadable[:4]))
-    return 1 if n[FAIL] else 0
+    if unusable:
+        print(f"  {len(unusable)} file(s) could not be read or parsed, so were not "
+              "checked: " + ", ".join(unusable[:4]))
+    # THREE EXIT CODES, because there are three outcomes. 0 clean · 1 found something ·
+    # 2 could not check everything. A file that could not be checked has not passed, but
+    # it is not a finding about the code either, and collapsing it into 1 makes the
+    # caller assert a cause it never observed.
+    if n[FAIL]:
+        return 1
+    return 2 if unusable else 0
 
 
 def main(argv: list[str]) -> int:

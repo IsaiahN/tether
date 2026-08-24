@@ -74,6 +74,11 @@ def run_stage(argv: list[str], needs: Path | None = None) -> tuple[str, str]:
         return "DID-NOT-RUN", "timed out after 120s"
     if p.returncode == 0:
         return "ok", ""
+    if p.returncode == 2:
+        # by convention: the stage ran and could not check everything. Not a finding
+        # about the code, so the caller must not attach one.
+        last = [ln for ln in p.stdout.splitlines() if ln.strip()]
+        return "INCOMPLETE", (last[-1].strip() if last else "")[:300]
     if not p.stdout.strip() and any(m in p.stderr for m in NEVER_STARTED):
         return "DID-NOT-RUN", p.stderr.strip().splitlines()[-1][:200]
     # the FINDINGS, not the tail. Every one of these tools prints what it found first
@@ -101,7 +106,7 @@ def main(argv: list[str]) -> int:
     for name, status, detail, why in results:
         print(f"  {name:<8} {status}")
         if status == "FAIL":
-            print(f"           {why}")      # a cause, and only when the stage ran
+            print(f"           {why}")      # a cause, and only when one was observed
         if detail:
             print(f"           {detail}")
     print(f"\n  {len(results) - len(bad)}/{len(results)} seats clean")
