@@ -701,6 +701,13 @@ STRUCTURAL = {             # a property of the code or the type, invisible to an
     "A1": "closure generated not stored -- a property of the type",
     "A9": "the reference is not the subject -- the seam; a record cannot prove it",
     "B13": "the ground is not a frame -- the record sees its answers, never its nature",
+    "A6i": "ONE label covering TWO mechanisms -- A6 inverted. A6's subject is a PAIR of "
+           "labels, so a frame emitting one label has no pair and reads VACUOUS. The "
+           "record then shows one label and one site, and a second mechanism hiding "
+           "behind the same `by` is invisible to any record: it is a property of the "
+           "code, not of what the code wrote. Safe here only because `phase` is read "
+           "off `by`, so one label means one site -- and that is a structural fact, "
+           "not something this suite verifies.",
 }
 NOT_CHECKABLE = {          # a reading discipline. Pretending otherwise is the decoration
     "B14": "a seat is not a person",
