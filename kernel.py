@@ -129,9 +129,14 @@ class Frame:
     def _surprise(self, bits: float) -> None:
         self._integral += bits
 
-    def rec(self, step: str, slot: str, event: str, **d: Any) -> None:
+    def rec(self, step: str, slot: str, event: str, of: tuple = (), **d: Any) -> None:
+        """`of` names the slots a recorded quantity was derived from. A magnitude drawn
+        from more than one slot is an aggregation, and this is what makes that visible
+        in the record rather than only in the source."""
         self.ledger.append({"seq": len(self.ledger), "cycle": self.cycle,
                             "step": step, "slot": slot, "event": event,
+                            "of": list(of) if of else ([slot] if not slot.startswith("@")
+                                                       else []),
                             "mode": "specified", "detail": d})
 
     # -- the code, declared. Both halves of the bargain are lengths under it -----------
@@ -165,8 +170,11 @@ class Frame:
                 cause = GENUINE
             self.R.mass[slot] = bits
             self.R.cause[slot] = cause
+            # `from_value` is the input the prediction was computed from. Without it
+            # the record cannot distinguish a bet placed on the belief from one placed
+            # on the observation, and the second has no model that could be wrong.
             self.rec("PERCEIVE", slot, "bet", mass=bits, cause=cause, action=action,
-                     predicted=pred, actual=obs, bound=term)
+                     from_value=before[slot], predicted=pred, actual=obs, bound=term)
             # STANDING ON A TERM IS CITING IT. The bet at step 1 is derived from the
             # bound term, so binding a candidate and predicting from it is exactly
             # "an unsettled term used as evidence in a later bet". The discipline was
@@ -255,6 +263,9 @@ class Frame:
                  status="candidate", note="held, and not citable until the ground settles it")
 
     def settle(self, phi: Term, slot: Slot) -> str:
+        # what the ground was ASKED and what it ANSWERED, both recorded. Without the
+        # answer on the row, a frame reporting `accepted` cannot be distinguished from
+        # one that never asked -- and a gate passing is not the ground.
         held = self.ground(self.G, phi, self.hist[slot], slot)
         if held:
             self.candidates.discard(phi)
@@ -266,6 +277,7 @@ class Frame:
             self.bound.pop(slot, None)
             self.owed.add(slot)
         self.rec("SETTLE", slot, "settle" if held else "hold", term=phi,
+                 asked=(phi, slot), ground_said=held,
                  status="accepted" if held else "candidate",
                  verdict=("held on a transition it was not fitted to" if held
                           else "the ground has not paid; it stays a candidate"))
@@ -292,8 +304,10 @@ class Frame:
             # SUPPORT AT ZERO IS AN INSTRUCTION, NOT A STOP. You cannot compress what
             # you never observed, so perturb; the outcome re-enters as an observation.
             g = {"support": False, "reachability": False, "novelty": False}
-            self.rec("MINT", "@loop", "park", guards=g, verdict="no_support",
-                     base_bits=0.0, coverage=0.0, units=len(self.G.closure()), depth=2)
+            # carries no magnitude: SUPPORT is a predicate over slots ("|R+_s| > 0 for
+            # SOME slot s"), not a quantity averaged across them
+            self.rec("MINT", "@loop", "park", of=tuple(sorted(self.R.mass)),
+                     guards=g, verdict="no_support")
             self.rec("MINT", "@loop", "probe", guards=g,
                      note="density(R) at zero on every slot; perturbing")
         for slot, (b, _why) in self.route().items():
@@ -328,6 +342,9 @@ class Check:
     # of which could have triggered it has examined nothing, and "2 rows examined" would
     # put a real denominator under an empty subject. The scope predicate must BE the
     # check predicate.
+
+
+MAGNITUDES = ("mass", "base_bits", "term_bits", "left_bits")
 
 
 class Unrunnable(Exception):
@@ -546,6 +563,81 @@ def _b15(rows):
              if r.get("mode") not in ("general", "specified", "grounded")], len(rows))
 
 
+@_check("A7", "SYMBOLS + Step 1: 'R is measured per slot, never as a single global "
+              "number' / 'averaging across slots is how a live signal disappears'",
+        [{"event": "bet", "slot": "s0", "of": ["s0", "s1"], "detail": {"mass": 3.3}}],
+        [{"event": "bet", "slot": "s0", "of": ["s0"], "detail": {"mass": 3.3}}],
+        (), n_bad=1, n_ok=1)
+def _a7(rows):
+    """A magnitude is per slot. A predicate over slots is not a magnitude -- SUPPORT is
+    'for SOME slot s' -- so only rows carrying a residual quantity are the subject."""
+    out, seen = [], 0
+    for r in rows:
+        d = r.get("detail", {})
+        mags = [k for k in MAGNITUDES if k in d]
+        if not mags:
+            continue
+        seen += 1
+        if "of" not in r:
+            raise Unrunnable("rows carrying a magnitude do not record `of`")
+        if len(r["of"]) != 1:
+            out.append(f"seq {r.get('seq')}: {mags} derived from {r['of']}")
+    return out, seen
+
+
+@_check("B2", "Step 5: 'the ground settles it' · 'a gate passing is not the ground'",
+        [{"event": "settle", "detail": {"term": "x", "status": "accepted"}}],
+        [{"event": "settle", "detail": {"term": "x", "status": "accepted",
+                                        "asked": ["x", "s0"], "ground_said": True}},
+         {"event": "hold", "detail": {"term": "y", "status": "candidate",
+                                      "asked": ["y", "s0"], "ground_said": False}}],
+        ("settle", "hold"), n_bad=1, n_ok=2)
+def _b2(rows):
+    """A settlement must carry what the ground was asked and what it answered, and the
+    status must match the answer. Otherwise a frame that never asked, or one that
+    overrode the reply, is indistinguishable from one the ground paid."""
+    out, seen = [], 0
+    for r in rows:
+        if r.get("event") not in ("settle", "hold"):
+            continue
+        d, seen = r["detail"], seen + 1
+        if "ground_said" not in d or "asked" not in d:
+            out.append(f"{d.get('term')}: status {d.get('status')!r} with no answer "
+                       "from the ground on the row")
+        elif d["ground_said"] != (d.get("status") == "accepted"):
+            out.append(f"{d.get('term')}: ground said {d['ground_said']}, "
+                       f"status {d.get('status')!r}")
+    return out, seen
+
+
+@_check("B3", "Step 1: 'the bet is placed on b, the belief -- not on the observation. A "
+              "system that predicts from what it just saw has no model to be wrong'",
+        [{"event": "bet", "slot": "s0", "detail": {"from_value": 1, "actual": 4}},
+         {"event": "bet", "slot": "s0", "detail": {"from_value": 9, "actual": 9}}],
+        [{"event": "bet", "slot": "s0", "detail": {"from_value": 1, "actual": 4}},
+         {"event": "bet", "slot": "s0", "detail": {"from_value": 4, "actual": 6}}],
+        ("bet",), n_bad=1, n_ok=1)
+def _b3(rows):
+    """The before-state of step n is the after-state of step n-1. A bet whose input is
+    not the previous outcome was computed from something else -- and the only other
+    thing available is this step's observation. The first bet on a slot has no
+    predecessor and is not the subject."""
+    prev, out, seen = {}, [], 0
+    for r in rows:
+        if r.get("event") != "bet":
+            continue
+        d, slot = r["detail"], r.get("slot")
+        if "from_value" not in d:
+            raise Unrunnable("bet rows do not record `from_value`")
+        if slot in prev:
+            seen += 1
+            if d["from_value"] != prev[slot]:
+                out.append(f"{slot}: predicted from {d['from_value']}, but the previous "
+                           f"outcome was {prev[slot]}")
+        prev[slot] = d.get("actual")
+    return out, seen
+
+
 # Named in CONFLATIONS.md and not built. Three different facts were wearing one label,
 # and only the middle pile is actionable -- separating them is what makes the report say
 # something. Silence here is how coverage shrinks.
@@ -558,11 +650,8 @@ NO_BEHAVIOUR = {           # the frame does not do this yet; nothing to check
     "B11": "the library is restructured -- no refactor operator exists",
     "B12": "the habitat is enumerated -- no habitat in this frame",
 }
-NO_EVIDENCE = {            # the property is real and the RECORD does not carry it.
-    "A7": "R never aggregated -- needs per-slot provenance on each recorded quantity",
-    "B2": "the gate is not the ground -- record what the ground was asked and answered",
-    "B3": "the bet is on b, not o' -- the bet row must carry the input it predicted from",
-}
+NO_EVIDENCE: dict[str, str] = {}   # emptied: A7, B2 and B3 are built, each on one
+#                                    field added to a row the frame already wrote
 STRUCTURAL = {             # a property of the code or the type, invisible to any record
     "A1": "closure generated not stored -- a property of the type",
     "A9": "the reference is not the subject -- the seam; a record cannot prove it",
