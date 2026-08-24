@@ -28,8 +28,51 @@ from copy import deepcopy
 from dataclasses import dataclass, field, replace
 from typing import Any
 
-from gamma import Ctx, Gamma, Term
-from world import ACTIONS, DELTA, M, _atoms
+from gamma import Atom, Ctx, Gamma, Term
+
+# This module's OWN domain facts. Importing world's was a boundary crossing between two
+# domains, and it also meant the generated worlds inherited the vocabulary designed for
+# the hand-built toy -- so `in_closure`, the denominator under every abstention number
+# here, was defined against a choice made for a different world. Declared locally the
+# values are the same and the dependency is not.
+M = 7          # anchor: prime, and small enough that the key can sweep the whole domain
+ACTIONS = ("A", "B", "C")
+DELTA = {"A": 1, "B": 2, "C": 4}
+
+
+def _atoms() -> list[Atom]:
+    """The generator's own primitives. Same set as the toy world's today; the point is
+    that changing one no longer silently changes the other."""
+    def idn(v, _c):
+        return v
+
+    def inc(v, _c):
+        return v + 1
+
+    def dec(v, _c):
+        return v - 1
+
+    def dbl(v, _c):
+        return v * 2
+
+    def neg(v, _c):
+        return -v
+
+    def act(v, c):
+        return v + DELTA.get(c.action, 0)
+
+    def wrap(v, _c):
+        return v % M
+
+    out = [Atom(f.__name__, f, "val", "val") for f in (idn, inc, dec, dbl, neg, act, wrap)]
+
+    def take(v, c):
+        """Reads the bound operand slot instead of this one. The one atom that makes an
+        interaction expressible at all."""
+        return c.operands[0] if c.operands else v
+
+    out.append(Atom("take", take, "val", "val", reads_operand=True))
+    return out
 
 sys.dont_write_bytecode = True
 
@@ -230,6 +273,12 @@ class Snap:
 
     def transform(self) -> Any:
         return None
+
+    def actions(self) -> tuple[str, ...]:
+        return ACTIONS
+
+    def alphabet(self) -> int:
+        return M
 
     # -- running ---------------------------------------------------------------------
 

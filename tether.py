@@ -17,7 +17,6 @@ import instruments as I
 from gamma import Ctx, Gamma, Term
 from ledger import SPECIFIED, Ledger
 from probe import Drive
-from world import ACTIONS, M
 
 sys.dont_write_bytecode = True
 
@@ -41,8 +40,10 @@ WHY_NOT = {
 TRANSITION, REWARD, BRACKET = "transition", "reward", "bracket"
 
 
-def correction_bits(a: int, b: int) -> float:
-    return 0.0 if a % M == b % M else math.log2(M)
+def correction_bits(a: int, b: int, alphabet: int) -> float:
+    """The code's FORM is the loop's -- uniform over the alphabet -- and its SIZE is the
+    domain's. Neither half is a module global reached across a boundary."""
+    return 0.0 if a % alphabet == b % alphabet else math.log2(alphabet)
 
 
 def term_bits(k: int, alphabet: int) -> float:
@@ -95,6 +96,8 @@ class Agent:
     def __init__(self, env: Any, gam: Gamma, cfg: Config | None = None,
                  led: Ledger | None = None) -> None:
         self.env, self.gamma = env, gam
+        self.actions = tuple(env.actions())        # asked for, never imported
+        self.alphabet = int(env.alphabet())
         self.cfg = cfg if cfg is not None else Config()
         # not `led or ...`: an empty Ledger has len 0 and is therefore falsy
         self.led = led if led is not None else Ledger(mode=self.cfg.mode)
@@ -154,7 +157,8 @@ class Agent:
 
     def _predict(self, slot: str, state: dict[str, int], action: str) -> int:
         term = self.gamma.library[self.bound.get(slot, IDN)]
-        return term.apply(state[slot], Ctx(action=action, operands=self._ops(term, state))) % M
+        return term.apply(state[slot],
+                          Ctx(action=action, operands=self._ops(term, state))) % self.alphabet
 
     def perceive(self, action: str) -> dict[str, SlotResidual]:
         before = self.env.observe()
@@ -166,7 +170,8 @@ class Agent:
 
         res: dict[str, SlotResidual] = {}
         for s in self.slots:
-            r = SlotResidual(s, TRANSITION, pred[s], after[s], correction_bits(pred[s], after[s]))
+            bits = correction_bits(pred[s], after[s], self.alphabet)
+            r = SlotResidual(s, TRANSITION, pred[s], after[s], bits)
             res[s] = r
             self.led.record(self.cycle, "PERCEIVE", s, "bet", channel=TRANSITION,
                             predicted=pred[s], actual=after[s], mass=r.bits,
@@ -223,7 +228,7 @@ class Agent:
         total = 0.0
         for state, action, actual in hist:
             got = term.apply(state[slot], Ctx(action=action, operands=self._ops(term, state)))
-            total += correction_bits(got, actual)
+            total += correction_bits(got, actual, self.alphabet)
         return total
 
     def route(self, res: dict[str, SlotResidual]) -> list[tuple[str, str, str | None]]:
@@ -508,7 +513,7 @@ class Agent:
         before = self.env.observe()
         focal = self.slots[0]
         focal = next((s for s in self.slots if s in self.owed_import), focal)
-        action = action or self.drive.choose(ACTIONS, self.cycle)
+        action = action or self.drive.choose(self.actions, self.cycle)
         # PROBE when nothing is bound to look at, DIRECTED when a term is driving the bet.
         # STRATEGY arrives with routines and is 0 until then -- an honest zero, not a gap.
         phase = I.DIRECTED if self.bound.get(focal) else I.PROBE

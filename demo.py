@@ -77,7 +77,7 @@ def main(cycles: int = 16) -> int:
     pred = bad.apply(before, Ctx(action="A")) % M
     env.step("A")
     actual = env.observe()[victim]
-    bits = correction_bits(pred, actual)
+    bits = correction_bits(pred, actual, env.alphabet())
     print(f"  installed : `{bad.name}` on {victim}, stamped {gam.stamps[bad.name]}")
     print(f"  ground    : predicted {pred}, actual {actual}  ->  residual {bits} bits")
     print(f"  CAUGHT    : {'yes -- the ground refused it' if bits > 0 else 'no'}")

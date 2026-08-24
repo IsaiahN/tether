@@ -27,8 +27,11 @@ M = 7   # anchor: prime, and small enough that the harness can sweep the whole
 ACTIONS = ("A", "B", "C")
 DELTA = {"A": 1, "B": 2, "C": 4}
 
-REQUIRED = ("substrate", "environment", "actors", "currency",
-            "ground", "slots", "atoms", "transform")
+# Ten members. `actions` and `alphabet` were the two the loop used to reach past the
+# contract for, which is why its action set could not grow: a language-level import is a
+# step-7 IMPORT executed by the import system instead of by the loop.
+REQUIRED = ("substrate", "environment", "actors", "currency", "ground",
+            "slots", "atoms", "transform", "actions", "alphabet")
 
 
 @runtime_checkable
@@ -43,13 +46,16 @@ class Env(Protocol):
     def slots(self) -> list[str]: ...
     def atoms(self) -> list[Atom]: ...
     def transform(self) -> Any: ...
+    def actions(self) -> tuple[str, ...]: ...
+    def alphabet(self) -> int: ...
 
 
 def bind(env: Any) -> Any:
     """Refuse an adapter that cannot fill all eight."""
     missing = [m for m in REQUIRED if not callable(getattr(env, m, None))]
     if missing:
-        raise TypeError(f"env fills {8 - len(missing)}/8 of the contract; missing: {missing}")
+        raise TypeError(f"env fills {len(REQUIRED) - len(missing)}/{len(REQUIRED)} "
+                        f"of the contract; missing: {missing}")
     return env
 
 
@@ -169,6 +175,17 @@ class Transitions:
 
     def atoms(self) -> list[Atom]:
         return _atoms()
+
+    def actions(self) -> tuple[str, ...]:
+        """What the domain advertises. Growth in this set is an IMPORT, and it can only
+        be one if the loop asks rather than reads a module global."""
+        return ACTIONS
+
+    def alphabet(self) -> int:
+        """|V|, the number of distinguishable values. The loop declares the code's FORM
+        -- uniform over the alphabet -- and the domain supplies its size; a correction
+        therefore costs log2(alphabet) bits and a value normalises mod alphabet."""
+        return M
 
     def transform(self) -> Any:
         """No coarse view is defined for this env, so the bracket channel is inert here.

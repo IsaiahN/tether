@@ -105,6 +105,37 @@ def test_unreached_unmeasured():
     _refuses(r, gate.UNREACHED_UNMEASURED)
 
 
+def test_contract_refuses_a_partial_adapter():
+    """BOTH EDGES of the contract's width. An adapter missing a member must be refused
+    by name, and a complete one accepted -- so the member set cannot silently shrink
+    (the partial is accepted) or grow (the complete one is refused)."""
+    from world import REQUIRED, Transitions, bind
+    complete = Transitions()
+    for member in REQUIRED:
+        class Partial:
+            pass
+        for m in REQUIRED:
+            if m != member:
+                setattr(Partial, m, getattr(type(complete), m))
+        try:
+            bind(Partial())
+        except TypeError as exc:
+            assert member in str(exc), f"refused without naming {member}: {exc}"
+        else:
+            raise AssertionError(f"bind accepted an adapter with no {member}()")
+
+
+def test_contract_accepts_a_complete_adapter():
+    from world import Transitions, bind
+    bind(Transitions())          # must not raise
+
+
+def test_contract_declares_actions_and_alphabet():
+    """The two members the loop was reaching past the contract to get."""
+    from world import REQUIRED
+    assert "actions" in REQUIRED and "alphabet" in REQUIRED
+
+
 if __name__ == "__main__":
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     for fn in fns:
