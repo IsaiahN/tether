@@ -30,6 +30,7 @@ import ast
 import io
 import sys
 import tokenize
+from collections import Counter
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -38,6 +39,27 @@ from typing import Any
 sys.dont_write_bytecode = True
 
 PASS, FAIL, VACUOUS, SUPPRESSED = "PASS", "FAIL", "VACUOUS", "SUPPRESSED"
+
+# Runners that collect by convention from OUTSIDE the package, where no in-package
+# reference exists to find. (module suffix, name prefix) -- both must match, which is
+# what keeps the exemption from swallowing an orphan that merely looks like a test.
+# An exemption expressed as DATA is one a fixture can pin; expressed as logic it widens
+# quietly, which is how this rule swallowed its own real finding once already.
+COLLECTORS = (
+    ("test_", "test_"),      # pytest functions, in a pytest module
+    ("_test.py", "test_"),
+    ("test_", "Test"),       # pytest classes, in a pytest module
+    ("_test.py", "Test"),
+    ("", "pytest_"),         # pytest hooks: a documented namespace, any module
+)
+
+
+def _collected(fname: str, name: str) -> bool:
+    """Collected by a runner OUTSIDE the package, where no in-package reference exists
+    to find. An empty module pattern means the name alone is the convention, which is
+    true only of the hook namespace -- and is pinned by a fixture so it cannot spread."""
+    return any((not mod or mod in fname) and name.startswith(pre)
+               for mod, pre in COLLECTORS)
 
 
 @dataclass
@@ -50,14 +72,18 @@ class Rule:
     n_bad: int
     n_ok: int
     crossfile: bool = False
+    bad_name: str = "mod.py"       # the fixture's filename: some exemptions depend on it
+    ok_name: str = "mod.py"
 
 
 RULES: list[Rule] = []
 
 
-def rule(rid, cite, bad, ok, *, n_bad, n_ok, crossfile=False):
+def rule(rid, cite, bad, ok, *, n_bad, n_ok, crossfile=False,
+         bad_name="mod.py", ok_name="mod.py"):
     def deco(fn):
-        RULES.append(Rule(rid, cite, fn, bad, ok, n_bad, n_ok, crossfile))
+        RULES.append(Rule(rid, cite, fn, bad, ok, n_bad, n_ok, crossfile,
+                          bad_name, ok_name))
         return fn
     return deco
 
@@ -164,38 +190,92 @@ def _nofail(src: str, *_: Any) -> tuple[list[str], int]:
       "def sniff(n):\n    return n.startswith('head_')\n"
       "def head_dead():\n    return 3\n"
       "@reg\ndef decorated_dead():\n    return 4\n"
+      "def test_orphan():\n    return 5\n"
+      "def pytestish():\n    return 6\n"
+      "class Testish:\n    pass\n"
       "print(used(), sniff)\n",
       "def used():\n    return 1\n"
       "def test_a():\n    return 2\n"
-      "fns = [v for k, v in globals().items() if k.startswith('test_')]\n"
-      "print(used(), fns)\n",
-      n_bad=4, n_ok=1, crossfile=True)
-def _isolated(src: str, others: tuple[str, ...] = ()) -> tuple[list[str], int]:
+      "def pytest_configure():\n    return 3\n"
+      "class TestThing:\n    pass\n"
+      "print(used())\n",
+      n_bad=7, n_ok=1, crossfile=True,
+      # THE FILENAMES ARE PART OF THE FIXTURE. bad is NOT a collector module, so its
+      # `test_orphan` must still be flagged; ok IS one, so its `test_a` must not be.
+      # Three ways the exemption can move and all three break a count:
+      #   it vanishes            -> ok's test_a is flagged      -> the control fires
+      #   it widens by name only -> bad's test_orphan is exempt -> bad examines 6 not 7
+      # The two module-independent shapes are pinned the same way:
+      # `pytestish` and `Testish` sit in a NON-collector module and
+      # must still be flagged, so the hook prefix cannot loosen from
+      # `pytest_` to `pytest`, and the class row cannot stop requiring
+      # a collector module.
+      #   it widens by module    -> ok's `used` is exempt       -> ok examines 0 not 1
+      bad_name="helpers.py", ok_name="test_thing.py")
+def _isolated(src: str, others: tuple[str, ...] = (),
+              scan: tuple[Counter, set] | None = None,
+              name: str = "") -> tuple[list[str], int]:
     """Defined and referenced nowhere in the package. Cross-file by nature, which is why
-    it cannot be a per-file ruff rule."""
+    it cannot be a per-file ruff rule.
+
+    The package is scanned ONCE and cached on the identity of the source tuple: scanning
+    it per file is quadratic, and at 541 files that is 292k parses rather than 541.
+    Self-references are subtracted exactly -- a recursive function refers to itself, and
+    a count threshold guessing at that is the kind of approximation that goes quiet.
+    """
+    fname = name
     tree = ast.parse(src)
     # a DECORATED definition is registered by its decorator -- that is what a decorator
     # is for -- so its name need never appear again. Flagging it would report the
     # registry pattern as dead code, which is a rule firing on correct code: worse than
     # no rule, because it trains you to ignore the output.
-    defined = {n.name: n.lineno for n in tree.body
+    defined = {n.name: n for n in tree.body
                if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))
                and not n.name.startswith("__") and not n.decorator_list}
-    used: set[str] = set()
-    conventions: set[str] = set()          # prefixes a registry collects by name
-    for text in (src, *others):
+    if not defined:
+        return [], 0
+    refs, conventions = scan if scan is not None else _scan((src, *others))
+    out, seen = [], 0
+    for name, node in defined.items():
+        if any(name.startswith(c) or name.endswith(c) for c in conventions if c):
+            continue                       # collected by an in-package registry
+        if _collected(fname, name):
+            continue                       # collected by an external runner
+        seen += 1
+        own = sum(1 for n in ast.walk(node)
+                  if (isinstance(n, ast.Name) and n.id == name)
+                  or (isinstance(n, ast.Attribute) and n.attr == name))
+        if refs.get(name, 0) - own <= 0:
+            out.append(f"`{name}`: defined and referenced nowhere in the package")
+    return out, seen
+
+
+def _scan(texts: tuple[str, ...]) -> tuple[Counter, set]:
+    """(reference counts, registry prefixes) over the whole package.
+
+    Called ONCE per run and the result handed to the rule, rather than cached: keying a
+    cache on id() of a transient tuple is unsound, because CPython reuses the address
+    after the tuple is freed -- the control fixture got the witness's scan and the rule
+    suppressed itself. Which is the witness working, on the optimisation that broke it.
+    """
+    refs: Counter = Counter()
+    conventions: set[str] = set()
+    for text in texts:
+        try:
+            tree = ast.parse(text)
+        except SyntaxError:
+            continue
         # `[v for k, v in globals().items() if k.startswith("test_")]` registers by
         # convention rather than by reference, the way a decorator registers by call.
         # Both are real uses. But a prefix only counts as a registry if it is applied to
         # a NAMESPACE listing -- otherwise this rule's own `startswith("check")` would
         # exempt every name ending in check, including the dead one it should catch.
-        for stmt in ast.walk(ast.parse(text)):
+        for stmt in ast.walk(tree):
             if not isinstance(stmt, ast.stmt):
                 continue
             sub = list(ast.walk(stmt))
-            listing = any(isinstance(c, ast.Call) and isinstance(c.func, ast.Name)
-                          and c.func.id in ("globals", "vars", "dir") for c in sub)
-            if not listing:
+            if not any(isinstance(c, ast.Call) and isinstance(c.func, ast.Name)
+                       and c.func.id in ("globals", "vars", "dir") for c in sub):
                 continue
             for c in sub:
                 if (isinstance(c, ast.Call) and isinstance(c.func, ast.Attribute)
@@ -203,22 +283,15 @@ def _isolated(src: str, others: tuple[str, ...] = ()) -> tuple[list[str], int]:
                     conventions.update(a.value for a in c.args
                                        if isinstance(a, ast.Constant)
                                        and isinstance(a.value, str))
-        for n in ast.walk(ast.parse(text)):
+        for n in ast.walk(tree):
             if isinstance(n, ast.Name):
-                used.add(n.id)
+                refs[n.id] += 1
             elif isinstance(n, ast.Attribute):
-                used.add(n.attr)
+                refs[n.attr] += 1
             elif isinstance(n, ast.Constant) and isinstance(n.value, str):
-                used.update(n.value.split())        # registries, __all__
-    out, seen = [], 0
-    for name in defined:
-        if any(name.startswith(c) or name.endswith(c) for c in conventions if c):
-            continue                       # collected by convention
-        seen += 1
-        refs = sum(text.count(name) for text in (src, *others))
-        if name not in used or refs <= 1:
-            out.append(f"`{name}`: defined and referenced nowhere in the package")
-    return out, seen
+                for w in n.value.split():
+                    refs[w] += 1           # registries and __all__ name by string
+    return refs, conventions
 
 
 # ---------------------------------------------------------------------------------------
@@ -266,8 +339,8 @@ def selftest() -> dict[str, str]:
     out = {}
     for r in RULES:
         try:
-            bad, nb = r.fn(r.bad)
-            ok, no = r.fn(r.ok)
+            bad, nb = r.fn(r.bad, (), None, r.bad_name)
+            ok, no = r.fn(r.ok, (), None, r.ok_name)
         except Exception as e:                                   # noqa: BLE001
             out[r.rid] = f"UNWITNESSED ({type(e).__name__}: {e})"
             continue
@@ -290,6 +363,8 @@ def selftest() -> dict[str, str]:
 def run(paths: list[Path]) -> dict[str, dict]:
     trusted = {k for k, v in selftest().items() if v == "ok"}
     srcs = {p: p.read_text(encoding="utf-8") for p in paths}
+    allsrc = tuple(srcs.values())
+    shared = _scan(allsrc)          # once per run, handed in rather than cached
     res: dict[str, dict] = {}
     for r in RULES:
         if r.rid not in trusted:
@@ -297,9 +372,10 @@ def run(paths: list[Path]) -> dict[str, dict]:
             continue
         found, seen = [], 0
         for p, src in srcs.items():
-            others = tuple(v for q, v in srcs.items() if q != p) if r.crossfile else ()
+            others = allsrc if r.crossfile else ()
             try:
-                f, n = r.fn(src, others)
+                f, n = (r.fn(src, others, shared, p.name) if r.crossfile
+                        else r.fn(src))
             except SyntaxError as e:
                 found.append(f"{p.name}: unparseable -- {e}")
                 continue
