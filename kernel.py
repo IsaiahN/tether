@@ -180,8 +180,13 @@ class Frame:
     def route(self) -> dict[Slot, tuple[str, str]]:
         out = {}
         for slot, mass in self.R.mass.items():
-            if mass == 0.0:
+            if mass == 0.0 and slot not in self.owed:
                 out[slot] = ("TRANSFERRED", "the invariant held; nothing owed")
+            elif mass == 0.0:
+                # a slice reading zero while the accumulated residual is live. Routing
+                # this as TRANSFERRED would retire a debt on the strength of one step.
+                out[slot] = ("BROKEN_MECHANISM",
+                             "this step read zero and the slot still owes")
             else:
                 # REBINDING searches the LIBRARY. A term in the closure that is not in
                 # the library has not been minted, so refitting to it would be a mint.
@@ -253,6 +258,13 @@ class Frame:
         held = self.ground(self.G, phi, self.hist[slot], slot)
         if held:
             self.candidates.discard(phi)
+        else:
+            # YOU CAN PROPOSE ON A CANDIDATE; YOU CANNOT STAND ON ONE. Accepting keeps
+            # it in the library -- held, defeasibly -- but the ground refused it HERE,
+            # so it stops driving this slot's prediction. Leaving it bound is the only
+            # place the citation discipline can actually be broken.
+            self.bound.pop(slot, None)
+            self.owed.add(slot)
         self.rec("SETTLE", slot, "settle" if held else "hold", term=phi,
                  status="accepted" if held else "candidate",
                  verdict=("held on a transition it was not fitted to" if held
@@ -652,10 +664,11 @@ class Linter:
 
 TRUTH = {"s0": lambda v: (2 * v + 1) % K,
          "s1": lambda v: (v + 2) % K,
-         # quadratic: outside the closure of {idn, inc, dbl}, which are all affine. A
-         # term may still PAY on it without CLOSING it, which is the only way A3's
-         # subject is ever non-empty.
-         "s2": lambda v: (v * v) % K}
+         # increment with one exception. Every atom here is affine, so no composition
+         # covers the exception: the best available term pays on the bulk and leaves the
+         # exception as residue. That is PAYS IS NOT CLOSES arising on the merits rather
+         # than from a history too short to falsify a wrong term.
+         "s2": lambda v: 0 if v == 5 else (v + 1) % K}
 
 
 def ground(lib: Library, phi: Term, hist, slot: Slot) -> bool:
