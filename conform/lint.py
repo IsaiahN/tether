@@ -49,14 +49,33 @@ Learned by doing the wrong one: breaking A5's implementation found nothing, corr
 because unbind-on-hold had already fixed the defect at source. Only breaking the FRAME
 showed the harness could reach the case.
 
-THESE FOUR ARE A RECORD OF HOW THIS CHECKER FAILED, not a philosophy of checkers. Every
-one came from a defect and none from reasoning about what a good checker should do, and
-they name four sites where a checker goes quiet:
+AND ONE THAT IS NOT ABOUT GOING QUIET, but about layers:
 
-    fixtures before changes            an ordering with an observable half-state
+    A REPAIR CAN SATISFY ITS OWN LAYER AND VIOLATE THE CONTRACT AT THE LAYER ABOVE.
+
+Making an unchecked file exit non-zero was right here and routed it to check.py's FAIL
+branch, which attaches a cause -- so `lint FAIL: dead code, an unanchored constant, or a
+singleton` when the truth was that a file did not parse. Correct locally, wrong at the
+boundary, and the boundary is where the cause gets asserted. It recreated the defect that
+had been fixed one commit earlier.
+
+The repair for THAT is worth stating too, because it is the substitution this whole
+exercise has been removing:
+
+    AN EXIT CODE IS A DECLARATION. A PATTERN MATCH OVER STDOUT IS A GUESS.
+
+Three codes, not a better filter: 0 clean, 1 found something, 2 could not check
+everything -- matching the three states inside each seat.
+
+THESE FIVE ARE A RECORD OF HOW THIS CHECKER FAILED, not a philosophy of checkers. Every
+one came from a defect and none from reasoning about what a good checker should do. Four
+name a site where a checker goes quiet; the fifth names where one lies instead:
+
+    fixtures before changes             an ordering with an observable half-state
     witness the boundary, not the rule  exemptions and denominators, never decisions
     exemptions as data, not logic       a table can be pinned; logic widens quietly
-    reintroduce, never disable          the only way to test reach rather than existence
+    reintroduce, never disable          tests reach rather than existence
+    a repair can break the layer above  and the layer above is where causes are asserted
 
     python lint.py              check this repo
     python lint.py --selftest   witnesses only
