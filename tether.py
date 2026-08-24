@@ -10,6 +10,7 @@ from __future__ import annotations
 import math
 import sys
 from dataclasses import dataclass, field
+from itertools import islice
 from typing import Any
 
 import grammar as G
@@ -21,6 +22,11 @@ from probe import Drive
 sys.dont_write_bytecode = True
 
 IDN = "idn"
+
+# anchor: how many reachable terms an experiment weighs before choosing. Bounded because
+# the choice is made every step and the closure grows; 200 covers depth 2 over the toy
+# alphabet exactly, and truncation only ever narrows the spread, never invents one.
+DISCRIMINATE_BUDGET = 200
 
 # THE CODE, declared. Both halves of the bargain are lengths under it.
 #   a correction on one slot-transition: log2(M) bits, a uniform code over the M values
@@ -36,6 +42,9 @@ WHY_NOT = {
     REBIND: "not mechanism: a term already in the library explains the whole history",
     MECHANISM: "not rebinding: no library term explains the history, so the model is wrong",
 }
+
+# why a zero reading is not always HELD
+OWES = "not held: this step read zero and the slot still owes"
 
 TRANSITION, REWARD, BRACKET = "transition", "reward", "bracket"
 
@@ -237,14 +246,24 @@ class Agent:
     def route(self, res: dict[str, SlotResidual]) -> list[tuple[str, str, str | None]]:
         out = []
         for slot, r in res.items():
-            if r.mass == 0.0:
+            if r.mass == 0.0 and slot not in self.owed_import:
                 b, fit = HELD, None
+            elif r.mass == 0.0:
+                # a slice reading zero while the accumulated residual is live. HELD says
+                # "the slot is bound and the bound term predicted it" -- neither is true
+                # of a slot that owes, and routing it here retires a debt on one step's
+                # evidence. It is why an unbound slot fell back to idn and was never
+                # revisited.
+                b, fit = MECHANISM, self._library_fit(slot, self.bound.get(slot))
+                if fit:
+                    b = REBIND
             elif len(self.trace) < 2:
                 b, fit = NOVEL, None
             else:
                 fit = self._library_fit(slot, self.bound.get(slot))
                 b = REBIND if fit else MECHANISM
-            out.append((slot, b, fit))
+            why = OWES if (r.mass == 0.0 and slot in self.owed_import) else WHY_NOT[b]
+            out.append((slot, b, fit, why))
             self.led.record(self.cycle, "ROUTE", slot, "route", bin=b,
                             why_not=WHY_NOT[b], support=len(self.trace))
         return out
@@ -256,6 +275,34 @@ class Agent:
         once and the savings scale with n -- which is what makes the bargain discriminate.
         No min_support: the arithmetic is its own support gate."""
         return self._left(term, slot, self.history(slot))
+
+    def choose(self, before: dict[str, int]) -> tuple[str, str]:
+        """(action, by). `by` names the site that chose, so the phase label can be
+        checked against the mechanism instead of believed.
+
+        DISCRIMINATE: a slot owes and the reachable terms disagree about what an action
+        will produce there. An outcome every candidate predicts alike teaches nothing,
+        so the action worth taking is the one that separates them most -- which is the
+        difference between a probe and an experiment, and it is derived from Gamma
+        rather than from any knowledge of the answer.
+
+        DRAW: nothing owes, or no action separates anything. Then the draw is
+        UNINFORMED BY CONSTRUCTION, which is the safety property: a probe chosen by the
+        current model can only confirm the current model.
+        """
+        owed = [s for s in sorted(self.owed_import) if s in before]
+        if owed:
+            cands = list(islice(self.gamma.enumerate_closure(
+                "val", "val", 2, DISCRIMINATE_BUDGET), DISCRIMINATE_BUDGET))
+            spread = {}
+            for act in self.actions:
+                spread[act] = sum(
+                    len({t.apply(before[s], Ctx(action=act, operands=())) % self.alphabet
+                         for t in cands})
+                    for s in owed)
+            if spread and max(spread.values()) > min(spread.values()):
+                return max(self.actions, key=lambda a: spread[a]), "discriminate"
+        return self.drive.choose(self.actions, self.cycle), "draw"
 
     def _bindings(self, slot: str) -> list[str | None]:
         """Which slots may fill operand 0. None first -- a unary term is cheaper, so it
@@ -467,6 +514,13 @@ class Agent:
                                     verdict="mispredicted on fresh evidence",
                                     rejections=round(self.gamma.rejection_of(name), 3),
                                     note="defeasible: the rejection decays and it may settle again")
+                    # YOU CAN PROPOSE ON A CANDIDATE; YOU CANNOT STAND ON ONE. Only
+                    # on a REFUTATION -- the ground reversing a settlement it had made.
+                    # A candidate that mispredicts has not been refused; it has not yet
+                    # proven itself, and unbinding there would stop any term ever
+                    # accumulating the evidence it needs to settle.
+                    self.bound.pop(slot, None)
+                    self.owed_import.add(slot)
                 continue
             born = self.candidates.get(name)
             if born is None or born >= self.cycle or self.gamma.is_settled(name):
@@ -525,10 +579,14 @@ class Agent:
         # only decides the first step -- before any mass exists.
         focal = max(sorted(self.slots),
                     key=lambda s: (self._last_mass.get(s, 0.0), s in self.owed_import))
-        action = action or self.drive.choose(self.actions, self.cycle)
-        # PROBE when nothing is bound to look at, DIRECTED when a term is driving the bet.
-        # STRATEGY arrives with routines and is 0 until then -- an honest zero, not a gap.
-        phase = I.DIRECTED if self.bound.get(focal) else I.PROBE
+        by = "given"
+        if action is None:
+            action, by = self.choose(before)
+        # THE PHASE IS READ OFF THE SITE THAT CHOSE, never asserted alongside it. It
+        # used to be `DIRECTED if a term is bound`, attached to an action drawn by the
+        # identical mechanism either way -- a label the mechanism could not make.
+        # STRATEGY arrives with routines and is 0 until then: an honest zero, not a gap.
+        phase = I.DIRECTED if by == "discriminate" else I.PROBE
         self.phases.note(phase)
 
         try:
@@ -545,7 +603,7 @@ class Agent:
                             heads=[a.head for a in term.args if hasattr(a, "head")])
 
         res = self.perceive(action)
-        for slot, b, fit in self.route(res):
+        for slot, b, fit, _why in self.route(res):
             if b == REBIND and fit:
                 self.bound[slot] = fit
                 self.owed_import.discard(slot)
@@ -566,7 +624,7 @@ class Agent:
                          1 if degree >= 1.0 else 0)
         self.cycle += 1
         self.led.record(self.cycle - 1, "REPEAT", "@loop", "repeat",
-                        phase=phase, stage=self.chain.seg.stage(),
+                        phase=phase, by=by, stage=self.chain.seg.stage(),
                         gamma_size=len(self.gamma.library), owed=sorted(self.owed_import))
         return True
 
