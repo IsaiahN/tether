@@ -395,21 +395,28 @@ def _a4(rows):
 
 @_check("A5", "Step 5: 'until the ground settles it, a term is CANDIDATE: it may be held "
               "and it may not be cited'",
-        [{"event": "cite", "detail": {"term": "x", "allowed": True}}],
-        [{"event": "settle", "detail": {"term": "x"}},
-         {"event": "cite", "detail": {"term": "x", "allowed": True}},
-         {"event": "cite", "detail": {"term": "x", "allowed": True}}], ("cite", "settle"),
-                 n_bad=1, n_ok=2)
+        [{"event": "settle", "slot": "s1", "detail": {"term": "x"}},
+         {"event": "cite", "slot": "s2", "detail": {"term": "x", "allowed": True}}],
+        [{"event": "settle", "slot": "s1", "detail": {"term": "x"}},
+         {"event": "cite", "slot": "s1", "detail": {"term": "x", "allowed": True}},
+         {"event": "cite", "slot": "s1", "detail": {"term": "x", "allowed": True}}],
+        ("cite", "settle"), n_bad=1, n_ok=2)
 def _a5(rows):
+    # keyed on (slot, term): the ground settles a term FOR A SLOT -- `ground()` takes
+    # the slot -- so a settlement on one slot licenses nothing on another. Keying on the
+    # term alone lets one settlement anywhere license citation everywhere, which is how
+    # a term the ground REFUSED goes on predicting.
     settled, out, seen = set(), [], 0
     for r in rows:
         d = r.get("detail", {})
+        key = (r.get("slot"), d.get("term"))
         if r.get("event") == "settle":
-            settled.add(d.get("term"))
+            settled.add(key)
         elif r.get("event") == "cite" and d.get("allowed"):
             seen += 1
-            if d.get("term") not in settled:
-                out.append(f"{d.get('term')}: cited before the ground settled it")
+            if key not in settled:
+                out.append(f"{d.get('term')} on {r.get('slot')}: cited where the ground "
+                           "has not settled it")
     return out, seen
 
 
@@ -670,7 +677,7 @@ def main(argv: list[str]) -> int:
         return 0
     f = Frame(ground)
     state = {"s0": 1, "s1": 3, "s2": 2}
-    for _ in range(5):
+    for _ in range(12):
         before = dict(state)
         after = {s: TRUTH[s](before[s]) for s in state}
         f.step(before, after)
