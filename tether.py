@@ -121,6 +121,7 @@ class Agent:
         self.level = 0
         self.drive = Drive()
         self.cycle = 0
+        self._last_mass: dict[str, float] = {}
         self._prev_bet: str | None = None
         self._prev_pred: dict[str, int] | None = None
         self.refusals: list[str] = []
@@ -176,7 +177,6 @@ class Agent:
             self.led.record(self.cycle, "PERCEIVE", s, "bet", channel=TRANSITION,
                             predicted=pred[s], actual=after[s], mass=r.bits,
                             bound=self.bound.get(s, IDN))
-            self.drive.note(action, r.bits > 0)
 
         # the reward channel: on the figures, and reported here. Its remedy is the
         # composition of actions, which is not built -- so it is recorded, not actioned.
@@ -187,10 +187,13 @@ class Agent:
         # the bracket channel: this env defines no coarse view, so it is inert. Stated.
         self.led.record(self.cycle, "PERCEIVE", "@bracket", "bet", channel=BRACKET,
                         mass=0.0, inert="env.transform() is None; no coarse view defined")
-        self.chain.note_diff(any(r.mass > 0 for r in res.values()))
+        live = any(r.mass > 0 for r in res.values())
+        self.drive.note_step(live)      # once per step: SUPPORT is over slots, not per slot
+        self.chain.note_diff(live)
         self.trace.append((before, action, after))
         self.gamma.tick = len(self.trace)
         self._prev_pred = pred
+        self._last_mass = {s: r.mass for s, r in res.items()}
         return res
 
     def _route_reward(self, degree: float, moved: float) -> None:
@@ -483,9 +486,14 @@ class Agent:
         per = G.compose(G.PERCEIVE, *see)
         pid = f"p{self.cycle}"
 
+        # THE OBJECTIVE THE ENV NAMED, not a constant. This line used to call
+        # objective(), discard the name, and assert ALL(BECOME(slot, 0)) -- which is
+        # false wherever the objective is anything else, and speak.py renders the
+        # utterance as the agent's account of itself. The frame supplies the shape; the
+        # domain supplies the content.
         name, deg = self.env.objective()
         want = G.compose(G.WANT, G.compose("ALL", G.compose(
-            "BECOME", G.Leaf(G.T.OBJECT, "slot"), G.Leaf(G.T.ATTR, 0))))
+            "BECOME", G.Leaf(G.T.OBJECT, name), G.Leaf(G.T.ATTR, "satisfied"))))
 
         bound = self.bound.get(focal)
         refs = [G.ref(pid, "perceive")] + ([G.ref(bound, "term")] if bound else [])
@@ -511,8 +519,12 @@ class Agent:
     def step(self, action: str | None = None) -> bool:
         """One turn. Returns False if no action was proposed -- which is a legal outcome."""
         before = self.env.observe()
-        focal = self.slots[0]
-        focal = next((s for s in self.slots if s in self.owed_import), focal)
+        # ATTEND TO WHAT OWES MOST. R+_s is defined and already measured; picking
+        # slots[0] made the phase histogram a function of alphabetical order, so
+        # renaming a slot moved an instrument. Ties break on owing, then on name, which
+        # only decides the first step -- before any mass exists.
+        focal = max(sorted(self.slots),
+                    key=lambda s: (self._last_mass.get(s, 0.0), s in self.owed_import))
         action = action or self.drive.choose(self.actions, self.cycle)
         # PROBE when nothing is bound to look at, DIRECTED when a term is driving the bet.
         # STRATEGY arrives with routines and is 0 until then -- an honest zero, not a gap.
@@ -550,7 +562,8 @@ class Agent:
                             note="density(R) at zero on the transition channel; perturbing")
         self.settle(res)
         _, degree = self.env.objective()
-        self.clocks.note(self.drive.err, 1 if degree >= 1.0 else 0)
+        self.clocks.note(not self.owed_import and bool(self.bound),
+                         1 if degree >= 1.0 else 0)
         self.cycle += 1
         self.led.record(self.cycle - 1, "REPEAT", "@loop", "repeat",
                         phase=phase, stage=self.chain.seg.stage(),

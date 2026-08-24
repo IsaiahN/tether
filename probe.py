@@ -24,52 +24,48 @@ import zlib
 
 sys.dont_write_bytecode = True
 
-# anchor: specified, not grounded -- an EMA weight giving about a ten-step memory.
-# No measurement sets it. REPAIRS 1 removes it: with SUPPORT as a boolean over
-# slots there is no average left to smooth.
-ALPHA = 0.1
-# anchor: specified, not grounded -- a threshold standing in for a predicate the
-# formula states exactly: SUPPORT is |R+_s| > 0 for SOME slot s. REPAIRS 1 deletes it.
-EPS = 0.02
-# anchor: specified, not grounded -- observations before an untrained model may call
-# itself bored. Likely redundant once SUPPORT is a boolean: a fresh model has live
-# mass by construction.
-WARM = 12
+# no ALPHA, no EPS, no WARM.
+#
+# SUPPORT is `|R+_s| > 0 for SOME slot s` -- a PREDICATE over slots, not a magnitude
+# averaged across them. The EMA existed to smooth an average that should never have
+# been computed, the two epsilons were thresholds standing in for the predicate, and
+# the warmup guarded a fresh model from calling itself bored -- which a predicate does
+# by construction, because a fresh model has live mass on its first miss.
+#
+# Four deletions and one boolean, and A7's violation goes with them.
 
 
 class Drive:
-    """The trigger and the draw. Owns a counter nothing else touches.
-
-    The error starts at MAXIMAL, never at zero: a fresh model that claimed to explain
-    everything would fire on step one, from no evidence at all.
-    """
+    """The trigger and the draw. Owns a counter nothing else touches."""
 
     def __init__(self, seed: str = "") -> None:
-        self.err = 1.0
+        self.live = True        # a fresh model has not yet failed to be surprised
         self.n = 0
         self.misses = 0
         self.fires = 0
         self.scored = 0
         self._seed = zlib.crc32(seed.encode()) & 0xFFFF
 
-    def note(self, _action: str, missed: bool) -> None:
-        """Every outcome feeds the same model -- including a probe's own, which is what
-        closes the loop: a probe that shakes something loose raises the error and
-        suppresses the next probe until the agent has explained what it found."""
+    def note_step(self, any_live: bool) -> None:
+        """ONE call per step, not one per slot. Whether SOME slot carried live mass --
+        a predicate over slots, never an average across them, because averaging is how
+        a live signal disappears. A probe that shakes something loose sets this true
+        and suppresses the next probe until the agent has explained what it found."""
         self.n += 1
-        self.misses += int(missed)
-        self.err = (1.0 - ALPHA) * self.err + ALPHA * (1.0 if missed else 0.0)
+        self.live = any_live
+        self.misses += int(any_live)
 
     def note_score(self, moved: bool) -> None:
         self.scored += int(moved)
 
     def bored(self) -> bool:
-        """Is the agent learning nothing? Its own error, and nothing else."""
-        return self.n >= WARM and self.err <= EPS
+        """SUPPORT at zero: no slot carried live mass. You cannot compress what you
+        never observed, so the answer is perturb, not stop."""
+        return self.n > 0 and not self.live
 
     def starving(self) -> bool:
         """Nothing is scoring: the curiosity drive's trigger, on the reward channel."""
-        return self.n >= WARM and self.scored == 0
+        return self.n > 0 and self.scored == 0
 
     def choose(self, actions: tuple[str, ...], cycle: int) -> str:
         """A draw over the labels the environment advertised, and nothing else.
@@ -80,5 +76,6 @@ class Drive:
 
     def report(self) -> dict[str, object]:
         return {"probe_fires": self.fires, "probe_n": self.n, "probe_misses": self.misses,
-                "probe_err": round(self.err, 5), "bored": self.bored(),
-                "starving": self.starving(), "eps": EPS, "warm": WARM}
+                "any_live": self.live, "bored": self.bored(),
+                "starving": self.starving(),
+                "support": "|R+_s| > 0 for SOME slot s -- a predicate, not a threshold"}

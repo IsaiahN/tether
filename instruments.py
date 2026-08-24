@@ -164,14 +164,17 @@ class Phases:
 class Clocks:
     """Two, because understanding is not winning and they fail differently."""
 
-    eps: float = 0.05
     steps_to_model: int | None = None
     steps_to_win: int | None = None
     _step: int = 0
 
-    def note(self, err_ema: float, levels: int) -> None:
+    def note(self, all_explained: bool, levels: int) -> None:
+        """`modelled` is NO SLOT OWES -- not an averaged error under a threshold. A
+        global reading near zero with one live slot is a legal state and not an inert
+        one, so an average would declare the model complete while a slot is unexplained,
+        and it would do so sooner the more slots there are."""
         self._step += 1
-        if self.steps_to_model is None and err_ema <= self.eps:
+        if self.steps_to_model is None and all_explained:
             self.steps_to_model = self._step
         if self.steps_to_win is None and levels > 0:
             self.steps_to_win = self._step
