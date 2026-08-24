@@ -300,12 +300,13 @@ class Check:
     fn: Callable[[list], list]
     bad: list                      # MUST produce a finding
     ok: list                       # MUST NOT
-    reads: tuple[str, ...] = ()    # the events it examines; () means every row
+    reads: tuple[str, ...] = ()    # documentation only; the count comes from the check
 
-    def scope(self, rows: list) -> int:
-        """How many rows this check actually looked at. Zero is not a pass."""
-        return len(rows) if not self.reads else sum(
-            1 for r in rows if r.get("event") in self.reads)
+    # A check returns (findings, examined). `examined` is what it actually predicated
+    # on, never the count of a declared event type: a check over two mint rows neither
+    # of which could have triggered it has examined nothing, and "2 rows examined" would
+    # put a real denominator under an empty subject. The scope predicate must BE the
+    # check predicate.
 
 
 class Unrunnable(Exception):
@@ -334,28 +335,32 @@ _M = "MINT"
         [{"event": "mint",
       "detail": {"term_bits": 6.0, "left_bits": 0.0, "base_bits": 6.6}}], ("mint",))
 def _a2(rows):
-    out = []
+    out, seen = [], 0
     for r in _rows(rows, "mint"):
         d = r["detail"]
         if not all(k in d for k in ("term_bits", "left_bits", "base_bits")):
             raise Unrunnable("mint rows lack term_bits/left_bits/base_bits")
+        seen += 1
         if not d["term_bits"] + d["left_bits"] < d["base_bits"]:
             out.append(f"{d.get('term')}: {d['term_bits']}+{d['left_bits']} !< {d['base_bits']}")
-    return out
+    return out, seen
 
 
 @_check("A3", "Step 3: 'PAYS IS NOT CLOSES ... step 7 fires on failure to CLOSE R'",
         [{"event": "mint", "slot": "s", "detail": {"left_bits": 2.0, "closes": True}}],
         [{"event": "mint", "slot": "s", "detail": {"left_bits": 2.0, "closes": False}}], ("mint",))
 def _a3(rows):
-    out = []
+    out, seen = [], 0
     for r in _rows(rows, "mint"):
         d = r["detail"]
         if "left_bits" not in d or "closes" not in d:
             raise Unrunnable("mint rows lack left_bits/closes")
-        if d["left_bits"] > 0 and d["closes"]:
+        if d["left_bits"] <= 0:
+            continue                     # not the subject: this mint closed R
+        seen += 1
+        if d["closes"]:
             out.append(f"{r.get('slot')}: leftover > 0 yet marked closing")
-    return out
+    return out, seen
 
 
 @_check("A4", "Step 1: 'a low reading has three causes and only two of them are about R "
@@ -363,14 +368,15 @@ def _a3(rows):
         [{"event": "bet", "slot": "s", "detail": {"mass": 0.0}}],
         [{"event": "bet", "slot": "s", "detail": {"mass": 0.0, "cause": GENUINE}}], ("bet",))
 def _a4(rows):
-    out = []
+    out, seen = [], 0
     for r in _rows(rows, "bet"):
         d = r["detail"]
         if d.get("mass", 1.0) != 0.0:
-            continue
+            continue                     # not the subject: only a LOW reading has causes
+        seen += 1
         if d.get("cause") not in CAUSES:
             out.append(f"{r.get('slot')}: zero mass, cause={d.get('cause')!r}")
-    return out
+    return out, seen
 
 
 @_check("A5", "Step 5: 'until the ground settles it, a term is CANDIDATE: it may be held "
@@ -379,14 +385,16 @@ def _a4(rows):
         [{"event": "settle", "detail": {"term": "x"}},
          {"event": "cite", "detail": {"term": "x", "allowed": True}}], ("cite", "settle"))
 def _a5(rows):
-    settled, out = set(), []
+    settled, out, seen = set(), [], 0
     for r in rows:
         d = r.get("detail", {})
         if r.get("event") == "settle":
             settled.add(d.get("term"))
-        elif r.get("event") == "cite" and d.get("allowed") and d.get("term") not in settled:
-            out.append(f"{d.get('term')}: cited before the ground settled it")
-    return out
+        elif r.get("event") == "cite" and d.get("allowed"):
+            seen += 1
+            if d.get("term") not in settled:
+                out.append(f"{d.get('term')}: cited before the ground settled it")
+    return out, seen
 
 
 @_check("A6", "Step 2: 'a bin without its discriminator is a label, not a diagnosis'",
@@ -403,21 +411,23 @@ def _a6(rows):
         if "by" not in d:
             raise Unrunnable("repeat rows carry no `by` (the site that chose the action)")
         sites[d["phase"]].add(d["by"])
-    labels, out = sorted(sites), []
+    labels, out, seen = sorted(sites), [], 0
     for i, a in enumerate(labels):
         for b in labels[i + 1:]:
+            seen += 1            # a PAIR of labels is the subject; one label alone is not
             if sites[a] == sites[b]:
                 out.append(f"{a} and {b} share every producing site {sorted(sites[a])}: "
                            "one of them is decoration")
-    return out
+    return out, seen
 
 
 @_check("A8", "Step 4: 'stamped with where it came from and when'",
         [{"event": "accept", "detail": {"term": "x"}}],
         [{"event": "accept", "detail": {"term": "x", "origin": "minted"}}], ("accept",))
 def _a8(rows):
-    return [f"{r['detail'].get('term')}: accept without origin"
-            for r in _rows(rows, "accept") if "origin" not in r["detail"]]
+    acc = _rows(rows, "accept")
+    return ([f"{r['detail'].get('term')}: accept without origin"
+             for r in acc if "origin" not in r["detail"]], len(acc))
 
 
 @_check("B1", "Step 3: 'REACHABILITY HAS NO NEGATIVE ... an exhausted budget proves "
@@ -426,15 +436,17 @@ def _a8(rows):
         [{"event": "park", "detail": {"verdict": "depth_exhausted", "coverage": 1.0,
                                       "units": 3, "depth": 2}}], ("park",))
 def _b1(rows):
-    out = []
+    out, seen = [], 0
     for r in _rows(rows, "park"):
         d = r["detail"]
-        if d.get("verdict") == "unreachable":
-            out.append(f"{r.get('slot')}: claims `unreachable`; no frame certifies its own limit")
-        elif d.get("verdict") == "depth_exhausted" and not all(
-                k in d for k in ("coverage", "units", "depth")):
+        if d.get("verdict") not in ("unreachable", "depth_exhausted"):
+            continue                     # not the subject: only a reach claim is graded
+        seen += 1
+        if d["verdict"] == "unreachable":
+            out.append(f"{r.get('slot')}: claims unreachable; no frame certifies its own limit")
+        elif not all(k in d for k in ("coverage", "units", "depth")):
             out.append(f"{r.get('slot')}: abstains without stating its denominator")
-    return out
+    return out, seen
 
 
 @_check("B4", "Step 3: 'THE GUARDS -- a product, not a checklist. Any factor at zero "
@@ -444,14 +456,15 @@ def _b1(rows):
         [{"event": "mint", "detail": {"guards": {"support": True, "reachability": True,
                                                  "novelty": True}}}], ("mint",))
 def _b4(rows):
-    out = []
+    out, seen = [], 0
     for r in _rows(rows, "mint"):
         g = r["detail"].get("guards")
         if g is None:
             raise Unrunnable("mint rows record no guards")
+        seen += 1
         if not all(g.values()):
             out.append(f"{r.get('slot')}: minted with a guard at zero {g}")
-    return out
+    return out, seen
 
 
 @_check("B5", "Step 3: 'SUPPORT AT ZERO IS AN INSTRUCTION, NOT A STOP ... perturb'",
@@ -460,9 +473,10 @@ def _b4(rows):
          {"event": "park", "slot": "s", "detail": {"verdict": "no_support"}}], ("park", "probe"))
 def _b5(rows):
     probed = {r.get("slot") for r in _rows(rows, "probe")}
-    return [f"{r.get('slot')}: support at zero and no probe followed"
-            for r in _rows(rows, "park")
-            if r["detail"].get("verdict") == "no_support" and r.get("slot") not in probed]
+    subject = [r for r in _rows(rows, "park")
+               if r["detail"].get("verdict") == "no_support"]
+    return ([f"{r.get('slot')}: support at zero and no probe followed"
+             for r in subject if r.get("slot") not in probed], len(subject))
 
 
 @_check("B6", "Notes: 'the time-integral of prediction error is monotone: a drive may "
@@ -472,23 +486,24 @@ def _b5(rows):
         [{"event": "repeat", "detail": {"integral": 2.0}},
          {"event": "repeat", "detail": {"integral": 5.0}}], ("repeat",))
 def _b6(rows):
-    out, last = [], 0.0
+    out, last, seen = [], 0.0, 0
     for r in _rows(rows, "repeat"):
         v = r["detail"].get("integral")
         if v is None:
             raise Unrunnable("repeat rows carry no integral")
+        seen += 1
         if v < last:
             out.append(f"integral fell {last} -> {v}: a surprise record was forgotten")
         last = v
-    return out
+    return out, seen
 
 
 @_check("B15", "DECLARING THE MODE: 'three legitimate modes, and the mode must be stated'",
         [{"event": "bet", "detail": {}}],
         [{"event": "bet", "mode": "specified", "detail": {}}])
 def _b15(rows):
-    return [f"seq {r.get('seq')}: no mode declared" for r in rows
-            if r.get("mode") not in ("general", "specified", "grounded")]
+    return ([f"seq {r.get('seq')}: no mode declared" for r in rows
+             if r.get("mode") not in ("general", "specified", "grounded")], len(rows))
 
 
 # named in CONFLATIONS.md and deliberately not built. Silence here is how coverage shrinks.
@@ -518,7 +533,7 @@ class Linter:
         out = {}
         for c in CHECKS:
             try:
-                bad, ok = c.fn(c.bad), c.fn(c.ok)
+                bad, ok = c.fn(c.bad)[0], c.fn(c.ok)[0]
             except Exception as e:                              # noqa: BLE001
                 out[c.cid] = f"UNWITNESSED ({type(e).__name__}: {e})"
                 continue
@@ -539,18 +554,18 @@ class Linter:
                 res[c.cid] = {"status": "SUPPRESSED", "why": ["its witness did not fire"]}
                 continue
             try:
-                found = c.fn(rows)
+                found, seen = c.fn(rows)
             except Unrunnable as e:
                 res[c.cid] = {"status": "UNRUNNABLE", "why": [str(e)]}
                 continue
-            seen = c.scope(rows)
             if found:
                 res[c.cid] = {"status": "FAIL", "why": found}
             elif seen == 0:
                 # a pass over nothing is a guaranteed number. The discipline may be
                 # sound and simply never exercised, which is not the same as upheld.
                 res[c.cid] = {"status": "VACUOUS",
-                              "why": [f"examined 0 rows of {c.reads or 'any'}"]}
+                              "why": ["examined 0 rows -- the discipline may be sound "
+                                      "and simply never exercised, which is not upheld"]}
             else:
                 res[c.cid] = {"status": "PASS", "why": [f"{seen} rows examined"]}
         for cid, why in UNIMPL.items():
@@ -567,8 +582,9 @@ class Linter:
             for w in res[cid]["why"][:3]:
                 print(f"        {w}")
         n = {s: sum(1 for r in res.values() if r["status"] == s) for s in rank}
-        print(f"\n  {n['PASS']} pass · {n['FAIL']} fail · {n['UNRUNNABLE']} unrunnable "
-              f"· {n['SUPPRESSED']} suppressed · {n['UNIMPL']} unimplemented")
+        print(f"\n  {n['PASS']} pass · {n['FAIL']} fail · {n['VACUOUS']} vacuous "
+              f"· {n['UNRUNNABLE']} unrunnable · {n['SUPPRESSED']} suppressed "
+              f"· {n['UNIMPL']} unimplemented")
         print(f"  {len(CHECKS)} checks carry a witness; {len(UNIMPL)} are named and not built.")
         return 1 if n["FAIL"] else 0
 
