@@ -28,7 +28,8 @@ from pathlib import Path
 
 sys.dont_write_bytecode = True
 
-ROOT = Path(__file__).parent
+ROOT = Path(__file__).parent.parent        # the repo, not this folder
+HERE = Path(__file__).parent
 PY = ROOT / ".venv" / "Scripts" / "python.exe"
 if not PY.exists():
     PY = Path(sys.executable)
@@ -39,8 +40,12 @@ STAGES = (
     ("ruff", [str(PY), "-m", "ruff", "check", ".", "--exclude", ".venv",
       "--output-format=concise"],
      "a layer boundary crossed, or a lint rule broken"),
-    ("lint", [str(PY), "lint.py"], "dead code, an unanchored constant, or a singleton"),
-    ("kernel", [str(PY), "kernel.py"], "a conformance check failed against its own record"),
+    ("lint", [str(PY), str(HERE / "lint.py")],
+     "dead code, an unanchored constant, or a singleton"),
+    ("kernel", [str(PY), str(HERE / "kernel.py")],
+     "a conformance check failed against its own record"),
+    ("stateful", [str(PY), str(HERE / "stateful.py"), "--fast"],
+     "an invariant broke on a generated history"),
     ("demo", [str(PY), "demo.py"], "the loop did not complete"),
     ("gate", [str(PY), "gate.py", "runs/demo.jsonl"], "the record is not well-formed"),
     ("tests", [str(PY), "test_gate.py"], "the gate's own defect suite regressed"),

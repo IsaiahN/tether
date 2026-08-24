@@ -461,8 +461,12 @@ def main(argv: list[str]) -> int:
             print(f"  {rid:<5} {kind:<16} {why}")
         return 0
     args = [a for a in argv if not a.startswith("--")]
-    root = Path(__file__).parent
-    paths = [Path(a) for a in args] if args else sorted(root.glob("*.py"))
+    # the repo, not this folder: the rule set is about the build it grades, and a
+    # checker that only scanned its own directory would report a clean package
+    root = Path(__file__).parent.parent
+    paths = ([Path(a) for a in args] if args else
+             sorted(p for p in root.rglob("*.py")
+                    if ".venv" not in p.parts and "runs" not in p.parts))
     print(f"lint: {len(paths)} file(s)\n")
     return report(paths)
 
