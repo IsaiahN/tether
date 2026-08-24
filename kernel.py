@@ -323,20 +323,19 @@ class Frame:
         owed = sorted(self.owed & set(before))
         if owed:
             cands = self._compose()
-            best = None
-            for act in self.actions:
-                spread = sum(len({self.G.apply(phi, before[slot], act) for phi in cands})
-                             for slot in owed)
-                if best is None or spread > best[0]:
-                    best = (spread, act)
-            flat = sum(len({self.G.apply(phi, before[slot], self.actions[0])
-                            for phi in cands}) for slot in owed)
-            if best and best[0] > flat:
-                return best[1], "discriminate"
+            spread = {act: sum(len({self.G.apply(phi, before[slot], act) for phi in cands})
+                               for slot in owed)
+                      for act in self.actions}
+            # an action discriminates when it separates the candidates MORE THAN ANOTHER
+            # ACTION DOES. Comparing the best against the spread at actions[0] instead
+            # makes actions[0] unchoosable -- best > best is false -- so the verdict
+            # would turn on which key happens to sort first rather than on the world.
+            if max(spread.values()) > min(spread.values()):
+                return max(self.actions, key=lambda a: spread[a]), "discriminate"
         return self.actions[self.cycle % len(self.actions)], "draw"
 
     # -- step 8 ----------------------------------------------------------------------------
-    def step(self, before: dict, world: Callable[[dict, str], dict]) -> None:
+    def step(self, before: dict, world: Callable[[dict, str], dict]) -> dict:
         """The world responds to the action, so the action is chosen before the outcome
         exists. Bet, act, observe -- in that order, which is what step 1 says."""
         self.cycle += 1
@@ -364,6 +363,7 @@ class Frame:
         self.rec("REPEAT", "@loop", "repeat", phase=phase, by=by, action=action,
                  owed=sorted(self.owed), gamma=len(self.G.derived),
                  integral=round(self.integral, 3))
+        return after
 
 
 # =========================================================================================
@@ -836,8 +836,9 @@ def main(argv: list[str]) -> int:
         return {s: TRUTH[s](bef[s], act) for s in bef}
 
     for _ in range(12):
-        f.step(dict(state), world)
-        state = {s: TRUTH[s](state[s], f.ledger[-1]["detail"]["action"]) for s in state}
+        # the outcome comes back from step, so the state is advanced from one place and
+        # the caller does not have to read the action back out of the record
+        state = f.step(state, world)
     print(f"bound    : {f.bound}")
     print(f"library  : {sorted(f.G.derived)}")
     print(f"candidate: {sorted(f.candidates)}")
