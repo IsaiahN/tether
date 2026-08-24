@@ -104,14 +104,21 @@ def _anchor(src: str, *_: Any) -> tuple[list[str], int]:
       "Step 2 generalised: 'the sorter must not be the composer' -- a module-level "
       "mutable lets a reference drift with the thing it is checking",
       "_C = None\ndef get():\n    global _C\n    _C = build()\n    return _C\n",
-      "def get():\n    return build()\n",
-      n_bad=1, n_ok=0)
+      "_C = None\ndef get():\n    return build(_C)\n",
+      n_bad=1, n_ok=1)
 def _singleton(src: str, *_: Any) -> tuple[list[str], int]:
-    out, seen = [], 0
-    for node in ast.walk(ast.parse(src)):
+    """The subject is every module-level binding that COULD be rebound from inside a
+    function -- not the rebindings themselves. Counting only violations makes subject
+    and violation the same set, so the rule can never report PASS and a clean file is
+    indistinguishable from one with nothing to check. That is the guaranteed number in
+    a rule's own denominator."""
+    tree = ast.parse(src)
+    seen = sum(1 for n in tree.body if isinstance(n, (ast.Assign, ast.AnnAssign)))
+    out = []
+    for node in ast.walk(tree):
         if isinstance(node, ast.Global):
-            seen += 1
-            out.extend(f"`{n}`: module-level state rebound inside a function" for n in node.names)
+            out.extend(f"`{n}`: module-level state rebound inside a function"
+                       for n in node.names)
     return out, seen
 
 
@@ -144,9 +151,21 @@ def _nofail(src: str, *_: Any) -> tuple[list[str], int]:
 
 @rule("ISOLATED",
       "'No isolated code. No silent code. No code without reason.'",
-      "def used():\n    return 1\ndef never():\n    return 2\nprint(used())\n",
-      "def used():\n    return 1\nprint(used())\n",
-      n_bad=2, n_ok=1, crossfile=True)
+      # BOTH directions of the exemption. `sniff` uses startswith on something that is
+      # NOT a namespace listing, so `head_` must not become a convention and head_dead
+      # must still be flagged -- which is the poisoning this rule inflicted on itself,
+      # now a fixture rather than a memory. And the control holds a REAL registry, so a
+      # scope tightened until it exempts nothing would fail the control instead.
+      "def used():\n    return 1\n"
+      "def never():\n    return 2\n"
+      "def sniff(n):\n    return n.startswith('head_')\n"
+      "def head_dead():\n    return 3\n"
+      "print(used(), sniff)\n",
+      "def used():\n    return 1\n"
+      "def test_a():\n    return 2\n"
+      "fns = [v for k, v in globals().items() if k.startswith('test_')]\n"
+      "print(used(), fns)\n",
+      n_bad=4, n_ok=1, crossfile=True)
 def _isolated(src: str, others: tuple[str, ...] = ()) -> tuple[list[str], int]:
     """Defined and referenced nowhere in the package. Cross-file by nature, which is why
     it cannot be a per-file ruff rule."""
