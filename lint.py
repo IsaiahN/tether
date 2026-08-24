@@ -19,6 +19,22 @@ The discipline is the one that matters, carried over from kernel.py:
   covers them, or the reason none does. A linter reporting only what it found reads as a
   complete account of something it accounts for a fifth of.
 
+WHY A STATIC SEAT EXISTS AT ALL, given it catches a fraction of what a record-reader
+does. Because there is a class only structure can see:
+
+    A COUPLING THAT PRODUCES THE RIGHT ANSWER IS INVISIBLE TO ANY TEST OF RESULTS.
+
+snaps imported world's atom set. Every value identical, every output correct, every
+check green -- and `in_closure`, the denominator under every abstention number snaps
+reports, was defined against a vocabulary chosen for a different world. Change one and
+the other moves silently. No ledger check can find that, because nothing in the record
+is wrong; the defect is the dependency, not the value.
+
+The record-readers test what the code DID. This tests what it is ATTACHED TO. A boundary
+crossing that happens to agree is findable only by the second, and it stays findable
+only while it stays green -- once the values diverge it is a bug anyone can see, and by
+then it has been load-bearing for months.
+
     python lint.py              check this repo
     python lint.py --selftest   witnesses only
     python lint.py --blind      what a static pass cannot see, and who can
