@@ -83,6 +83,21 @@ code is actually running, not by the number.
 No isolated code. No silent code. No code without reason. Legible beats silent,
 demonstrated.
 
+**A checker goes silent in five places, and they are named in `conform/lint.py`'s
+docstring.** Read them before widening an exemption, changing a denominator, or writing a
+witness — each was found by a checker going quiet once, and none by reasoning about what a
+good checker should do:
+
+- **fixtures before changes** — the only order with an observable half-state
+- **witness the boundary, not the decision** — exemptions and denominators, never the rule
+- **exemptions as data, not logic** — a table can be pinned; logic widens quietly
+- **reintroduce the defect, never disable the check** — tests reach, not existence
+- **a repair can break the layer above** — and that is where causes get asserted
+
+Two corollaries with the same standing: *a control that examines nothing cannot
+demonstrate a clean state*, and *an exit code is a declaration where a pattern match over
+stdout is a guess*.
+
 ### How I work here
 
 - **Do not over-test, do not over-probe.** Self-generated tests are mostly not helpful.
