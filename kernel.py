@@ -52,8 +52,21 @@ Slot = str
 Term = str
 
 K = 10          # anchor: the observation alphabet |V|; a correction costs log2(K) bits
-PRIMS: dict[str, Callable[[int], int]] = {
-    "idn": lambda v: v, "inc": lambda v: v + 1, "dbl": lambda v: v * 2}
+ACTIONS = ("a", "b")
+DELTA = {"a": 1, "b": 3}        # anchor: two actions that must be distinguishable, and
+#                                 a spread wide enough that one does not alias the other
+
+# An atom may read the action. Without one, no term can express an action-dependent
+# transition, no action can be chosen for a reason, and `directed` is a label with no
+# mechanism behind it -- which is what A6 was reporting.
+# every atom takes (value, action) whether it reads the action or not: one uniform
+# signature, no branching on whether an atom is action-dependent. ARG005 is the
+# discipline, not a defect -- an atom that took a different shape could not compose.
+PRIMS: dict[str, Callable[[int, str], int]] = {   # noqa: ARG005
+    "idn": lambda v, a: v,        # noqa: ARG005
+    "inc": lambda v, a: v + 1,    # noqa: ARG005
+    "dbl": lambda v, a: v * 2,    # noqa: ARG005
+    "act": lambda v, a: v + DELTA[a]}
 
 GENUINE, CHANNEL_CLOSED, SLICE_TOO_SMALL = "genuine", "channel_closed", "slice_too_small"
 CAUSES = (GENUINE, CHANNEL_CLOSED, SLICE_TOO_SMALL)
@@ -88,9 +101,9 @@ class Library:
             return [term]
         return [a for s in self.grammar.get(term, []) for a in self.atoms_of(s)]
 
-    def apply(self, term: Term, v: int) -> int:
-        for a in self.atoms_of(term):
-            v = PRIMS[a](v)
+    def apply(self, term: Term, v: int, action: str) -> int:
+        for at in self.atoms_of(term):
+            v = PRIMS[at](v, action)
         return v % K
 
 
@@ -108,12 +121,14 @@ class Residual:
 
 
 class Frame:
-    def __init__(self, ground: Callable, actions: tuple[str, ...] = ("a", "b")):
+    def __init__(self, ground: Callable, actions: tuple[str, ...] = ACTIONS):
         self.G = Library(primitives=set(PRIMS))
         self.ground = ground                     # injected; the loop cannot modify it
         self.actions = actions
         self.R = Residual()
-        self.hist: dict[Slot, list[tuple[int, int]]] = defaultdict(list)
+        # (before, action, after): the action is part of the evidence, because a term
+        # that reads it cannot be scored against a history that dropped it
+        self.hist: dict[Slot, list[tuple[int, str, int]]] = defaultdict(list)
         self.bound: dict[Slot, Term] = {}
         self.owed: set[Slot] = set()
         self.candidates: set[Term] = set()       # accepted, unsettled: held, not citable
@@ -149,15 +164,16 @@ class Frame:
     def left(self, term: Term, slot: Slot) -> float:
         """|R|phi| accumulated over the slot's history: the model cost is paid once and
         the savings scale with n, which is what makes the bargain discriminate."""
-        return sum(self.correction_bits(self.G.apply(term, b), a) for b, a in self.hist[slot])
+        return sum(self.correction_bits(self.G.apply(term, b, act), aft)
+                   for b, act, aft in self.hist[slot])
 
     # -- step 1 ------------------------------------------------------------------------
     def perceive(self, action: str, before: dict, after: dict) -> None:
         self.R = Residual()
         for slot, obs in after.items():
             term = self.bound.get(slot, "idn")
-            pred = self.G.apply(term, before[slot])
-            self.hist[slot].append((before[slot], obs))
+            pred = self.G.apply(term, before[slot], action)
+            self.hist[slot].append((before[slot], action, obs))
             bits = self.correction_bits(pred, obs)
             if bits > 0:
                 cause = GENUINE
@@ -289,16 +305,45 @@ class Frame:
         self.rec("PROMOTE", slot, "cite", term=phi, allowed=ok)
         return ok
 
+    # -- choosing the action ------------------------------------------------------------
+    def choose(self, before: dict) -> tuple[str, str]:
+        """(action, by). `by` names the site that chose it, so the label can be checked
+        against the mechanism instead of believed.
+
+        DISCRIMINATE: some slot owes, and the candidates disagree about what an action
+        will produce there. An outcome every candidate predicts alike teaches nothing,
+        so the action worth taking is the one that separates them most -- which is the
+        difference between a probe and an experiment, and it is derived from Gamma
+        rather than from any knowledge of the answer.
+
+        DRAW: nothing owes, or no action separates anything. Then the draw is
+        uninformed BY CONSTRUCTION, which is the safety property: a probe chosen by the
+        current model can only confirm the current model.
+        """
+        owed = sorted(self.owed & set(before))
+        if owed:
+            cands = self._compose()
+            best = None
+            for act in self.actions:
+                spread = sum(len({self.G.apply(phi, before[slot], act) for phi in cands})
+                             for slot in owed)
+                if best is None or spread > best[0]:
+                    best = (spread, act)
+            flat = sum(len({self.G.apply(phi, before[slot], self.actions[0])
+                            for phi in cands}) for slot in owed)
+            if best and best[0] > flat:
+                return best[1], "discriminate"
+        return self.actions[self.cycle % len(self.actions)], "draw"
+
     # -- step 8 ----------------------------------------------------------------------------
-    def step(self, before: dict, after: dict) -> None:
+    def step(self, before: dict, world: Callable[[dict, str], dict]) -> None:
+        """The world responds to the action, so the action is chosen before the outcome
+        exists. Bet, act, observe -- in that order, which is what step 1 says."""
         self.cycle += 1
-        # THE ACTION. `by` names the site that chose it. There is NO PHASE LABEL here:
-        # this world is action-inert -- nothing in TRUTH reads the action and no atom
-        # takes one -- so no directed path can exist, and a `directed`/`probe` label
-        # would be a distinction the mechanism cannot make. A6 now reads VACUOUS, which
-        # is the true statement: the discipline is unexercised, not upheld. Restoring
-        # the label without an action-dependent world would restore the decoration.
-        action, by = self.actions[self.cycle % len(self.actions)], "draw"
+        action, by = self.choose(before)
+        # the phase is READ OFF the site that chose, never asserted alongside it
+        phase = "directed" if by == "discriminate" else "probe"
+        after = world(before, action)
         self.perceive(action, before, after)
         if not any(m > 0.0 for m in self.R.mass.values()):
             # SUPPORT AT ZERO IS AN INSTRUCTION, NOT A STOP. You cannot compress what
@@ -316,7 +361,7 @@ class Frame:
                 if phi:
                     self.accept(phi, slot, "minted")
                     self.settle(phi, slot)
-        self.rec("REPEAT", "@loop", "repeat", by=by, action=action,
+        self.rec("REPEAT", "@loop", "repeat", phase=phase, by=by, action=action,
                  owed=sorted(self.owed), gamma=len(self.G.derived),
                  integral=round(self.integral, 3))
 
@@ -751,21 +796,28 @@ class Linter:
 # DEMO
 # ---------------------------------------------------------------------------------------
 
-TRUTH = {"s0": lambda v: (2 * v + 1) % K,
-         "s1": lambda v: (v + 2) % K,
+# same uniform signature on the ground's side, for the same reason
+TRUTH = {"s0": lambda v, a: (2 * v + 1) % K,       # noqa: ARG005
+         "s1": lambda v, a: (v + 2) % K,           # noqa: ARG005
+         # reads the action. Expressible only through `act`, and the only slot for which
+         # one action is more informative than another -- so it is what makes a directed
+         # step possible at all.
+         "s3": lambda v, a: (v + DELTA[a]) % K,
          # increment with one exception. Every atom here is affine, so no composition
          # covers the exception: the best available term pays on the bulk and leaves the
          # exception as residue. That is PAYS IS NOT CLOSES arising on the merits rather
          # than from a history too short to falsify a wrong term.
-         "s2": lambda v: 0 if v == 5 else (v + 1) % K}
+         "s2": lambda v, a: 0 if v == 5 else (v + 1) % K}   # noqa: ARG005
 
 
 def ground(lib: Library, phi: Term, hist, slot: Slot) -> bool:
-    """Held-out payment. The slot is passed, never read from mutable outside state: a
-    ground that depends on the world around it is not a ground, it is another frame."""
-    seen = {b for b, _ in hist}
-    out = [(v, TRUTH[slot](v)) for v in range(K) if v not in seen]
-    return bool(out) and all(lib.apply(phi, b) == a for b, a in out)
+    """Held-out payment over (value, action) pairs the term was never fitted to. The
+    slot is passed, never read from mutable outside state: a ground that depends on the
+    world around it is not a ground, it is another frame."""
+    seen = {(b, act) for b, act, _ in hist}
+    out = [(v, act, TRUTH[slot](v, act)) for v in range(K) for act in ACTIONS
+           if (v, act) not in seen]
+    return bool(out) and all(lib.apply(phi, v, act) == want for v, act, want in out)
 
 
 def main(argv: list[str]) -> int:
@@ -778,12 +830,14 @@ def main(argv: list[str]) -> int:
             print(f"  {cid:<5} {v}")
         return 0
     f = Frame(ground)
-    state = {"s0": 1, "s1": 3, "s2": 2}
+    state = {"s0": 1, "s1": 3, "s2": 2, "s3": 0}
+
+    def world(bef, act):
+        return {s: TRUTH[s](bef[s], act) for s in bef}
+
     for _ in range(12):
-        before = dict(state)
-        after = {s: TRUTH[s](before[s]) for s in state}
-        f.step(before, after)
-        state = after
+        f.step(dict(state), world)
+        state = {s: TRUTH[s](state[s], f.ledger[-1]["detail"]["action"]) for s in state}
     print(f"bound    : {f.bound}")
     print(f"library  : {sorted(f.G.derived)}")
     print(f"candidate: {sorted(f.candidates)}")
@@ -792,7 +846,8 @@ def main(argv: list[str]) -> int:
     # to a short history can agree at a single value and be wrong everywhere else, and a
     # one-point oracle reports that as correct -- which is the false mint, undetected by
     # the thing put there to detect it.
-    correct = {s: all(f.G.apply(f.bound.get(s, "idn"), v) == TRUTH[s](v) for v in range(K))
+    correct = {s: all(f.G.apply(f.bound.get(s, "idn"), v, act) == TRUTH[s](v, act)
+                      for v in range(K) for act in ACTIONS)
                for s in TRUTH}
     print(f"correct  : {correct}   (over all {K} values, not a sample)")
     print(f"\nLINTER over {len(f.ledger)} rows:")
