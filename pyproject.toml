@@ -20,7 +20,26 @@ line-length = 100
 target-version = "py311"
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "SIM", "RET", "ARG", "C4"]
+select = ["E", "F", "I", "UP", "B", "SIM", "RET", "ARG", "C4", "TID"]
+
+# THE LAYER BOUNDARY, as config rather than as code -- ruff expresses this natively and
+# reimplementing it would be the reinvention no grep can see. A language-level import of
+# a domain fact is a step-7 IMPORT executed by the import system instead of by the loop,
+# which is why the action set cannot grow. The message is the "use this instead" note:
+# it arrives at the moment of the mistake, which is the only moment it helps.
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"world.ACTIONS".msg = "the loop may not read the action set; add actions() to the Env contract and grow it through step 7"
+"world.M".msg = "the loop may not read the value space; the env declares its own code -- see DECLARE THE CODE"
+"world.DELTA".msg = "an action's effect is the domain's, not the loop's"
+"world.RULES".msg = "the hidden rules are the ground's; the loop cannot see them"
+"world._atoms".msg = "private name across a module boundary; take the atom set as an argument"
+"world.TRUTH".msg = "the answer key is the harness's; only demo.py and the grader may read it"
+
+[tool.ruff.lint.per-file-ignores]
+# the harness sits OUTSIDE the loop by office: keeping the anchor reachable is a seat's
+# job, and a ground maintainer that could not read the ground would be no maintainer
+"demo.py" = ["TID251"]
+"test_gate.py" = ["TID251"]
 
 [tool.pytest.ini_options]
 testpaths = ["."]
