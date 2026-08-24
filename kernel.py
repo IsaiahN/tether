@@ -11,10 +11,12 @@ the thing most likely to certify a system that did nothing:
   IT NEVER TOUCHES THE FRAME.  `Linter.run` takes a list of dicts. It cannot reach into
   the object it grades. A reference sharing state with its subject is not a reference.
 
-  EVERY CHECK CARRIES A WITNESS.  A bad input it MUST reject and a control it MUST
-  accept. `selftest` runs both on every invocation, and a check that fails either is
-  SUPPRESSED — its live verdict is discarded, not trusted. You cannot add a check that
-  always passes: it will suppress itself the first time it runs.
+  EVERY CHECK CARRIES A WITNESS, AND SO DOES ITS DENOMINATOR.  A bad input it MUST
+  reject, a control it MUST accept, and a row count on each that the FIXTURE states.
+  `selftest` runs all three on every invocation, and a check failing any is SUPPRESSED —
+  its live verdict discarded, not trusted. You cannot add a check that always passes: it
+  suppresses itself the first time it runs. Nor one that fabricates how much it looked
+  at, which would put a real-looking denominator under an empty subject.
 
   IT REPORTS WHAT IT DID NOT CHECK.  Four states, never two. PASS · FAIL · VACUOUS
   (it examined no rows) · UNRUNNABLE (the record lacks the field) · UNIMPL (named in
@@ -301,6 +303,8 @@ class Check:
     bad: list                      # MUST produce a finding
     ok: list                       # MUST NOT
     reads: tuple[str, ...] = ()    # documentation only; the count comes from the check
+    n_bad: int = 0                 # rows the fixtures say it should have examined --
+    n_ok: int = 0                  # stated by the fixture author, never by the check
 
     # A check returns (findings, examined). `examined` is what it actually predicated
     # on, never the count of a declared event type: a check over two mint rows neither
@@ -316,9 +320,11 @@ class Unrunnable(Exception):
 CHECKS: list[Check] = []
 
 
-def _check(cid, cite, bad, ok, reads=()):
+def _check(cid, cite, bad, ok, reads=(), *, n_bad: int, n_ok: int):
+    """n_bad/n_ok are required: a check added without stating what its fixtures hold
+    would report an unwitnessed denominator, which is the hole this closes."""
     def deco(fn):
-        CHECKS.append(Check(cid, cite, fn, bad, ok, reads))
+        CHECKS.append(Check(cid, cite, fn, bad, ok, reads, n_bad, n_ok))
         return fn
     return deco
 
@@ -333,7 +339,8 @@ _M = "MINT"
 @_check("A2", "Step 3: 'a bargain, not a threshold: |phi| + |R|phi| < |R|. DECLARE THE CODE'",
         [{"event": "mint", "detail": {"term_bits": 9.0, "left_bits": 9.0, "base_bits": 1.0}}],
         [{"event": "mint",
-      "detail": {"term_bits": 6.0, "left_bits": 0.0, "base_bits": 6.6}}], ("mint",))
+      "detail": {"term_bits": 6.0, "left_bits": 0.0, "base_bits": 6.6}}], ("mint",),
+              n_bad=1, n_ok=1)
 def _a2(rows):
     out, seen = [], 0
     for r in _rows(rows, "mint"):
@@ -348,7 +355,8 @@ def _a2(rows):
 
 @_check("A3", "Step 3: 'PAYS IS NOT CLOSES ... step 7 fires on failure to CLOSE R'",
         [{"event": "mint", "slot": "s", "detail": {"left_bits": 2.0, "closes": True}}],
-        [{"event": "mint", "slot": "s", "detail": {"left_bits": 2.0, "closes": False}}], ("mint",))
+        [{"event": "mint", "slot": "s", "detail": {"left_bits": 2.0, "closes": False}}], ("mint",),
+                n_bad=1, n_ok=1)
 def _a3(rows):
     out, seen = [], 0
     for r in _rows(rows, "mint"):
@@ -366,7 +374,8 @@ def _a3(rows):
 @_check("A4", "Step 1: 'a low reading has three causes and only two of them are about R "
               "stopping'",
         [{"event": "bet", "slot": "s", "detail": {"mass": 0.0}}],
-        [{"event": "bet", "slot": "s", "detail": {"mass": 0.0, "cause": GENUINE}}], ("bet",))
+        [{"event": "bet", "slot": "s", "detail": {"mass": 0.0, "cause": GENUINE}}], ("bet",),
+                n_bad=1, n_ok=1)
 def _a4(rows):
     out, seen = [], 0
     for r in _rows(rows, "bet"):
@@ -383,7 +392,8 @@ def _a4(rows):
               "and it may not be cited'",
         [{"event": "cite", "detail": {"term": "x", "allowed": True}}],
         [{"event": "settle", "detail": {"term": "x"}},
-         {"event": "cite", "detail": {"term": "x", "allowed": True}}], ("cite", "settle"))
+         {"event": "cite", "detail": {"term": "x", "allowed": True}}], ("cite", "settle"),
+                 n_bad=1, n_ok=1)
 def _a5(rows):
     settled, out, seen = set(), [], 0
     for r in rows:
@@ -401,7 +411,8 @@ def _a5(rows):
         [{"event": "repeat", "detail": {"phase": "probe", "by": "draw"}},
          {"event": "repeat", "detail": {"phase": "directed", "by": "draw"}}],
         [{"event": "repeat", "detail": {"phase": "probe", "by": "draw"}},
-         {"event": "repeat", "detail": {"phase": "directed", "by": "term"}}], ("repeat",))
+         {"event": "repeat", "detail": {"phase": "directed", "by": "term"}}], ("repeat",),
+                 n_bad=1, n_ok=1)
 def _a6(rows):
     sites = defaultdict(set)
     for r in _rows(rows, "repeat"):
@@ -423,7 +434,8 @@ def _a6(rows):
 
 @_check("A8", "Step 4: 'stamped with where it came from and when'",
         [{"event": "accept", "detail": {"term": "x"}}],
-        [{"event": "accept", "detail": {"term": "x", "origin": "minted"}}], ("accept",))
+        [{"event": "accept", "detail": {"term": "x", "origin": "minted"}}], ("accept",),
+                n_bad=1, n_ok=1)
 def _a8(rows):
     acc = _rows(rows, "accept")
     return ([f"{r['detail'].get('term')}: accept without origin"
@@ -434,7 +446,7 @@ def _a8(rows):
               "UNREACHED, which is not unreachable'",
         [{"event": "park", "detail": {"verdict": "unreachable"}}],
         [{"event": "park", "detail": {"verdict": "depth_exhausted", "coverage": 1.0,
-                                      "units": 3, "depth": 2}}], ("park",))
+                                      "units": 3, "depth": 2}}], ("park",), n_bad=1, n_ok=1)
 def _b1(rows):
     out, seen = [], 0
     for r in _rows(rows, "park"):
@@ -454,7 +466,7 @@ def _b1(rows):
         [{"event": "mint", "detail": {"guards": {"support": True, "reachability": False,
                                                  "novelty": True}}}],
         [{"event": "mint", "detail": {"guards": {"support": True, "reachability": True,
-                                                 "novelty": True}}}], ("mint",))
+                                                 "novelty": True}}}], ("mint",), n_bad=1, n_ok=1)
 def _b4(rows):
     out, seen = [], 0
     for r in _rows(rows, "mint"):
@@ -470,7 +482,8 @@ def _b4(rows):
 @_check("B5", "Step 3: 'SUPPORT AT ZERO IS AN INSTRUCTION, NOT A STOP ... perturb'",
         [{"event": "park", "slot": "s", "detail": {"verdict": "no_support"}}],
         [{"event": "probe", "slot": "s", "detail": {}},
-         {"event": "park", "slot": "s", "detail": {"verdict": "no_support"}}], ("park", "probe"))
+         {"event": "park", "slot": "s", "detail": {"verdict": "no_support"}}], ("park", "probe"),
+                 n_bad=1, n_ok=1)
 def _b5(rows):
     probed = {r.get("slot") for r in _rows(rows, "probe")}
     subject = [r for r in _rows(rows, "park")
@@ -484,7 +497,7 @@ def _b5(rows):
         [{"event": "repeat", "detail": {"integral": 5.0}},
          {"event": "repeat", "detail": {"integral": 2.0}}],
         [{"event": "repeat", "detail": {"integral": 2.0}},
-         {"event": "repeat", "detail": {"integral": 5.0}}], ("repeat",))
+         {"event": "repeat", "detail": {"integral": 5.0}}], ("repeat",), n_bad=2, n_ok=2)
 def _b6(rows):
     out, last, seen = [], 0.0, 0
     for r in _rows(rows, "repeat"):
@@ -500,7 +513,7 @@ def _b6(rows):
 
 @_check("B15", "DECLARING THE MODE: 'three legitimate modes, and the mode must be stated'",
         [{"event": "bet", "detail": {}}],
-        [{"event": "bet", "mode": "specified", "detail": {}}])
+        [{"event": "bet", "mode": "specified", "detail": {}}], n_bad=1, n_ok=1)
 def _b15(rows):
     return ([f"seq {r.get('seq')}: no mode declared" for r in rows
              if r.get("mode") not in ("general", "specified", "grounded")], len(rows))
@@ -533,7 +546,8 @@ class Linter:
         out = {}
         for c in CHECKS:
             try:
-                bad, ok = c.fn(c.bad)[0], c.fn(c.ok)[0]
+                bad, nb = c.fn(c.bad)
+                ok, no = c.fn(c.ok)
             except Exception as e:                              # noqa: BLE001
                 out[c.cid] = f"UNWITNESSED ({type(e).__name__}: {e})"
                 continue
@@ -541,6 +555,13 @@ class Linter:
                 out[c.cid] = "UNWITNESSED (the witness produced no finding)"
             elif ok:
                 out[c.cid] = f"UNWITNESSED (the control produced {len(ok)})"
+            elif (nb, no) != (c.n_bad, c.n_ok):
+                # the count is self-reported, so it needs a witness of its own: without
+                # this a check can fabricate a denominator and pass both fixtures, and
+                # a real-looking number under an empty subject is exactly what VACUOUS
+                # was added to prevent.
+                out[c.cid] = (f"UNWITNESSED (counted {nb}/{no}, "
+                              f"the fixtures hold {c.n_bad}/{c.n_ok})")
             else:
                 out[c.cid] = "ok"
         return out
