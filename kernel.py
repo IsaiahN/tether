@@ -196,14 +196,9 @@ class Frame:
     # -- step 3 ------------------------------------------------------------------------
     def mint(self, slot: Slot) -> Term | None:
         base = self.left(self.bound.get(slot, "idn"), slot)
-        guards = {"support": base > 0.0, "reachability": False, "novelty": False}
-        if not guards["support"]:
-            self.rec("MINT", slot, "probe", guards=guards,
-                     note="density(R) at zero: perturb, the outcome re-enters as observation")
-            self.rec("MINT", slot, "park", guards=guards, base_bits=base,
-                     coverage=0.0, units=len(self.G.closure()), depth=2,
-                     verdict="no_support")
-            return None
+        # support is checked at step level, where the whole residual is visible; by the
+        # time route() has sent a slot here, this slot's base is necessarily > 0
+        guards = {"support": True, "reachability": False, "novelty": False}
         best, seen = None, 0
         for phi in self._compose():
             seen += 1
@@ -273,19 +268,29 @@ class Frame:
     # -- step 8 ----------------------------------------------------------------------------
     def step(self, before: dict, after: dict) -> None:
         self.cycle += 1
-        # THE ACTION. `by` names the site that chose it, so a label can be checked against
-        # the mechanism rather than believed. Both branches draw today -- and the check
-        # below will say so rather than letting the label stand.
+        # THE ACTION. `by` names the site that chose it. There is NO PHASE LABEL here:
+        # this world is action-inert -- nothing in TRUTH reads the action and no atom
+        # takes one -- so no directed path can exist, and a `directed`/`probe` label
+        # would be a distinction the mechanism cannot make. A6 now reads VACUOUS, which
+        # is the true statement: the discipline is unexercised, not upheld. Restoring
+        # the label without an action-dependent world would restore the decoration.
         action, by = self.actions[self.cycle % len(self.actions)], "draw"
-        phase = "directed" if any(self.bound.get(s) for s in after) else "probe"
         self.perceive(action, before, after)
+        if not any(m > 0.0 for m in self.R.mass.values()):
+            # SUPPORT AT ZERO IS AN INSTRUCTION, NOT A STOP. You cannot compress what
+            # you never observed, so perturb; the outcome re-enters as an observation.
+            g = {"support": False, "reachability": False, "novelty": False}
+            self.rec("MINT", "@loop", "park", guards=g, verdict="no_support",
+                     base_bits=0.0, coverage=0.0, units=len(self.G.closure()), depth=2)
+            self.rec("MINT", "@loop", "probe", guards=g,
+                     note="density(R) at zero on every slot; perturbing")
         for slot, (b, _why) in self.route().items():
             if b == "BROKEN_MECHANISM":
                 phi = self.mint(slot)
                 if phi:
                     self.accept(phi, slot, "minted")
                     self.settle(phi, slot)
-        self.rec("REPEAT", "@loop", "repeat", phase=phase, by=by, action=action,
+        self.rec("REPEAT", "@loop", "repeat", by=by, action=action,
                  owed=sorted(self.owed), gamma=len(self.G.derived),
                  integral=round(self.integral, 3))
 
@@ -392,8 +397,9 @@ def _a4(rows):
               "and it may not be cited'",
         [{"event": "cite", "detail": {"term": "x", "allowed": True}}],
         [{"event": "settle", "detail": {"term": "x"}},
+         {"event": "cite", "detail": {"term": "x", "allowed": True}},
          {"event": "cite", "detail": {"term": "x", "allowed": True}}], ("cite", "settle"),
-                 n_bad=1, n_ok=1)
+                 n_bad=1, n_ok=2)
 def _a5(rows):
     settled, out, seen = set(), [], 0
     for r in rows:
@@ -497,7 +503,9 @@ def _b5(rows):
         [{"event": "repeat", "detail": {"integral": 5.0}},
          {"event": "repeat", "detail": {"integral": 2.0}}],
         [{"event": "repeat", "detail": {"integral": 2.0}},
-         {"event": "repeat", "detail": {"integral": 5.0}}], ("repeat",), n_bad=2, n_ok=2)
+         {"event": "repeat", "detail": {"integral": 5.0}},
+         {"event": "repeat", "detail": {"integral": 9.0}}], ("repeat",),
+        n_bad=2, n_ok=3)
 def _b6(rows):
     out, last, seen = [], 0.0, 0
     for r in _rows(rows, "repeat"):
@@ -519,23 +527,37 @@ def _b15(rows):
              if r.get("mode") not in ("general", "specified", "grounded")], len(rows))
 
 
-# named in CONFLATIONS.md and deliberately not built. Silence here is how coverage shrinks.
-UNIMPL = {
-    "A1": "closure generated not stored -- a property of the type, not of the record",
-    "A7": "R never aggregated -- needs per-slot provenance on every recorded quantity",
-    "A9": "the reference is not the subject -- structural; see THE SEAM above",
-    "B2": "the gate is not the ground -- the ground is injected, not recorded",
-    "B3": "the bet is on b, not o' -- needs dataflow",
+# Named in CONFLATIONS.md and not built. Three different facts were wearing one label,
+# and only the middle pile is actionable -- separating them is what makes the report say
+# something. Silence here is how coverage shrinks.
+
+NO_BEHAVIOUR = {           # the frame does not do this yet; nothing to check
     "B7": "F requires a pose -- step 6 is not built",
     "B8": "shadow then echo -- step 6 is not built",
     "B9": "generators cross, playback never -- step 6 is not built",
     "B10": "import passes through step 7 -- step 7 is not built",
     "B11": "the library is restructured -- no refactor operator exists",
     "B12": "the habitat is enumerated -- no habitat in this frame",
-    "B13": "the ground is not a frame -- structural; injected at construction",
-    "B14": "a seat is not a person -- not code-checkable",
-    "B16": "R is always a slice -- a reading discipline, not a code property",
 }
+NO_EVIDENCE = {            # the property is real and the RECORD does not carry it.
+    "A7": "R never aggregated -- needs per-slot provenance on each recorded quantity",
+    "B2": "the gate is not the ground -- record what the ground was asked and answered",
+    "B3": "the bet is on b, not o' -- the bet row must carry the input it predicted from",
+}
+STRUCTURAL = {             # a property of the code or the type, invisible to any record
+    "A1": "closure generated not stored -- a property of the type",
+    "A9": "the reference is not the subject -- the seam; a record cannot prove it",
+    "B13": "the ground is not a frame -- the record sees its answers, never its nature",
+}
+NOT_CHECKABLE = {          # a reading discipline. Pretending otherwise is the decoration
+    "B14": "a seat is not a person",
+    "B16": "R is always a slice",
+}
+UNIMPL_KIND = {**{k: ("NO-BEHAVIOUR", v) for k, v in NO_BEHAVIOUR.items()},
+               **{k: ("NO-EVIDENCE", v) for k, v in NO_EVIDENCE.items()},
+               **{k: ("STRUCTURAL", v) for k, v in STRUCTURAL.items()},
+               **{k: ("NOT-CHECKABLE", v) for k, v in NOT_CHECKABLE.items()}}
+UNIMPL = {k: v for k, (_kind, v) in UNIMPL_KIND.items()}
 
 
 class Linter:
@@ -589,8 +611,8 @@ class Linter:
                                       "and simply never exercised, which is not upheld"]}
             else:
                 res[c.cid] = {"status": "PASS", "why": [f"{seen} rows examined"]}
-        for cid, why in UNIMPL.items():
-            res[cid] = {"status": "UNIMPL", "why": [why]}
+        for cid, (kind, why) in UNIMPL_KIND.items():
+            res[cid] = {"status": "UNIMPL", "kind": kind, "why": [why]}
         return res
 
     @classmethod
@@ -599,14 +621,21 @@ class Linter:
         rank = {"FAIL": 0, "SUPPRESSED": 1, "UNRUNNABLE": 2, "VACUOUS": 3,
                 "PASS": 4, "UNIMPL": 5}
         for cid in sorted(res, key=lambda c: (rank[res[c]["status"]], c)):
-            print(f"  {cid:<5} {res[cid]['status']}")
+            k = res[cid].get("kind")
+            print(f"  {cid:<5} {res[cid]['status']}{' · ' + k if k else ''}")
             for w in res[cid]["why"][:3]:
                 print(f"        {w}")
         n = {s: sum(1 for r in res.values() if r["status"] == s) for s in rank}
         print(f"\n  {n['PASS']} pass · {n['FAIL']} fail · {n['VACUOUS']} vacuous "
               f"· {n['UNRUNNABLE']} unrunnable · {n['SUPPRESSED']} suppressed "
               f"· {n['UNIMPL']} unimplemented")
-        print(f"  {len(CHECKS)} checks carry a witness; {len(UNIMPL)} are named and not built.")
+        print(f"  {len(CHECKS)} checks carry a witness; {len(UNIMPL)} named and not built:")
+        print(f"    {len(NO_EVIDENCE)} NO-EVIDENCE  the property is real, the record "
+              "lacks the field -- actionable now")
+        print(f"    {len(NO_BEHAVIOUR)} NO-BEHAVIOUR the frame does not do this yet "
+              "-- a build, not a fix")
+        print(f"    {len(STRUCTURAL)} STRUCTURAL   invisible to any record")
+        print(f"    {len(NOT_CHECKABLE)} NOT-CHECKABLE a reading discipline")
         return 1 if n["FAIL"] else 0
 
 
@@ -614,7 +643,12 @@ class Linter:
 # DEMO
 # ---------------------------------------------------------------------------------------
 
-TRUTH = {"s0": lambda v: (2 * v + 1) % K, "s1": lambda v: (v + 2) % K}
+TRUTH = {"s0": lambda v: (2 * v + 1) % K,
+         "s1": lambda v: (v + 2) % K,
+         # quadratic: outside the closure of {idn, inc, dbl}, which are all affine. A
+         # term may still PAY on it without CLOSING it, which is the only way A3's
+         # subject is ever non-empty.
+         "s2": lambda v: (v * v) % K}
 
 
 def ground(lib: Library, phi: Term, hist, slot: Slot) -> bool:
@@ -635,7 +669,7 @@ def main(argv: list[str]) -> int:
             print(f"  {cid:<5} {v}")
         return 0
     f = Frame(ground)
-    state = {"s0": 1, "s1": 3}
+    state = {"s0": 1, "s1": 3, "s2": 2}
     for _ in range(5):
         before = dict(state)
         after = {s: TRUTH[s](before[s]) for s in state}
@@ -645,7 +679,13 @@ def main(argv: list[str]) -> int:
     print(f"library  : {sorted(f.G.derived)}")
     print(f"candidate: {sorted(f.candidates)}")
     print(f"integral : {f.integral:.2f} (monotone)")
-    print(f"correct  : {({s: f.G.apply(f.bound.get(s, 'idn'), 4) == TRUTH[s](4) for s in TRUTH})}")
+    # extensional equality over the WHOLE domain, not one sampled point. A term fitted
+    # to a short history can agree at a single value and be wrong everywhere else, and a
+    # one-point oracle reports that as correct -- which is the false mint, undetected by
+    # the thing put there to detect it.
+    correct = {s: all(f.G.apply(f.bound.get(s, "idn"), v) == TRUTH[s](v) for v in range(K))
+               for s in TRUTH}
+    print(f"correct  : {correct}   (over all {K} values, not a sample)")
     print(f"\nLINTER over {len(f.ledger)} rows:")
     return Linter.report(f.ledger)
 
