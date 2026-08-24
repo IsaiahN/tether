@@ -34,27 +34,38 @@ PY = ROOT / ".venv" / "Scripts" / "python.exe"
 if not PY.exists():
     PY = Path(sys.executable)
 
-# (name, argv, what a non-zero exit means). Order matters: demo writes the ledger that
-# gate reads, so it runs first.
+# (name, argv, what a non-zero exit means, the file it needs). The last field exists
+# because FileNotFoundError only fires when the EXECUTABLE is missing: a missing SCRIPT
+# starts Python fine and exits non-zero, so it was reported as a stage that ran and found
+# something -- with an asserted cause. `gate FAIL -- the record is not well-formed` when
+# the truth was that gate.py does not exist.
 STAGES = (
     ("ruff", [str(PY), "-m", "ruff", "check", ".", "--exclude", ".venv",
       "--output-format=concise"],
-     "a layer boundary crossed, or a lint rule broken"),
+     "a layer boundary crossed, or a lint rule broken", None),
     ("lint", [str(PY), str(HERE / "lint.py")],
-     "dead code, an unanchored constant, or a singleton"),
+     "dead code, an unanchored constant, or a singleton", HERE / "lint.py"),
     ("kernel", [str(PY), str(HERE / "kernel.py")],
-     "a conformance check failed against its own record"),
+     "a conformance check failed against its own record", HERE / "kernel.py"),
     ("stateful", [str(PY), str(HERE / "stateful.py"), "--fast"],
-     "an invariant broke on a generated history"),
-    ("demo", [str(PY), "demo.py"], "the loop did not complete"),
-    ("gate", [str(PY), "gate.py", "runs/demo.jsonl"], "the record is not well-formed"),
-    ("tests", [str(PY), "test_gate.py"], "the gate's own defect suite regressed"),
+     "an invariant broke on a generated history", HERE / "stateful.py"),
+    ("demo", [str(PY), "demo.py"], "the loop did not complete", ROOT / "demo.py"),
+    ("gate", [str(PY), "gate.py", "runs/demo.jsonl"],
+     "the record is not well-formed", ROOT / "gate.py"),
+    ("tests", [str(PY), "test_gate.py"],
+     "the gate's own defect suite regressed", ROOT / "test_gate.py"),
 )
 
+# stderr from an interpreter that never reached the program. A backstop for the cases a
+# path check cannot cover, such as `-m ruff` with ruff uninstalled.
+NEVER_STARTED = ("can't open file", "No module named", "cannot find the file")
 
-def run_stage(argv: list[str]) -> tuple[str, str]:
+
+def run_stage(argv: list[str], needs: Path | None = None) -> tuple[str, str]:
     """(status, detail). DID-NOT-RUN is its own state: a stage that could not start has
-    not passed, and folding it into one would be the silence this exists to prevent."""
+    not passed, and folding it into a FAIL asserts a cause that was never observed."""
+    if needs is not None and not needs.exists():
+        return "DID-NOT-RUN", f"{needs.name} does not exist"
     try:
         p = subprocess.run(argv, cwd=ROOT, capture_output=True, text=True, timeout=120)
     except FileNotFoundError as e:
@@ -63,6 +74,8 @@ def run_stage(argv: list[str]) -> tuple[str, str]:
         return "DID-NOT-RUN", "timed out after 120s"
     if p.returncode == 0:
         return "ok", ""
+    if not p.stdout.strip() and any(m in p.stderr for m in NEVER_STARTED):
+        return "DID-NOT-RUN", p.stderr.strip().splitlines()[-1][:200]
     # the FINDINGS, not the tail. Every one of these tools prints what it found first
     # and a summary last, so the tail is the least informative part of the output.
     out = [ln.strip() for ln in (p.stdout + p.stderr).splitlines() if ln.strip()]
@@ -73,7 +86,8 @@ def run_stage(argv: list[str]) -> tuple[str, str]:
 
 
 def main(argv: list[str]) -> int:
-    results = [(name, *run_stage(cmd), why) for name, cmd, why in STAGES]
+    results = [(name, *run_stage(cmd, needs), why)
+               for name, cmd, why, needs in STAGES]
     bad = [r for r in results if r[1] != "ok"]
 
     if "--hook" in argv:
@@ -86,12 +100,12 @@ def main(argv: list[str]) -> int:
 
     for name, status, detail, why in results:
         print(f"  {name:<8} {status}")
-        if status != "ok":
-            print(f"           {why}")
-            if detail:
-                print(f"           {detail}")
+        if status == "FAIL":
+            print(f"           {why}")      # a cause, and only when the stage ran
+        if detail:
+            print(f"           {detail}")
     print(f"\n  {len(results) - len(bad)}/{len(results)} seats clean")
-    if bad:
+    if any(s == "DID-NOT-RUN" for _n, s, _d, _w in results):
         print("  a stage reported DID-NOT-RUN has not passed; it was not asked.")
     return 1 if bad else 0
 

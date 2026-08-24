@@ -399,8 +399,17 @@ def selftest() -> dict[str, str]:
 
 
 def run(paths: list[Path]) -> dict[str, dict]:
+    """Returns one entry per rule, plus `_unreadable` -- files that could not be read at
+    all, which is neither a pass nor a finding about them."""
     trusted = {k for k, v in selftest().items() if v == "ok"}
-    srcs = {p: p.read_text(encoding="utf-8") for p in paths}
+    # a file that cannot be READ has not been checked, and one stray byte should not
+    # take the whole seat down and be reported as a finding about the code
+    srcs, unreadable = {}, []
+    for p in paths:
+        try:
+            srcs[p] = p.read_text(encoding="utf-8")
+        except (UnicodeDecodeError, OSError) as e:
+            unreadable.append(f"{p.name}: {type(e).__name__}")
     allsrc = tuple(srcs.values())
     shared = _scan(allsrc)          # once per run, handed in rather than cached
     res: dict[str, dict] = {}
@@ -425,11 +434,13 @@ def run(paths: list[Path]) -> dict[str, dict]:
             res[r.rid] = {"status": VACUOUS, "why": ["examined 0 candidates"]}
         else:
             res[r.rid] = {"status": PASS, "why": [f"{seen} candidates examined"]}
+    res["_unreadable"] = unreadable
     return res
 
 
 def report(paths: list[Path]) -> int:
     res = run(paths)
+    unreadable = res.pop("_unreadable", [])
     rank = {FAIL: 0, SUPPRESSED: 1, VACUOUS: 2, PASS: 3}
     for rid in sorted(res, key=lambda r: (rank[res[r]["status"]], r)):
         print(f"  {rid:<10} {res[rid]['status']}")
@@ -448,6 +459,9 @@ def report(paths: list[Path]) -> int:
     for k in ("ELSEWHERE", "NO-BEHAVIOUR", "NOT-EXPRESSIBLE", "NOT-CHECKABLE"):
         print(f"    {kinds.get(k, 0):>2} {k}")
     print("  A static pass is single-frame: no promotion, no import, no second scale.")
+    if unreadable:
+        print(f"  {len(unreadable)} file(s) could not be read, so were not checked: "
+              + ", ".join(unreadable[:4]))
     return 1 if n[FAIL] else 0
 
 
