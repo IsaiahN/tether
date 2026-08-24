@@ -68,7 +68,8 @@ def rule(rid, cite, bad, ok, *, n_bad, n_ok, crossfile=False):
 @rule("ANCHOR",
       "DECLARING THE MODE: 'an unmeasured number is a specification of what to measure "
       "and can be worth a great deal' -- labelled as such, which is the whole condition",
-      "EPS = 0.02\n",
+      "ONE = 1\nEPS = 0.02\n",
+      "ONE = 1\n"
       "EPS = 0.02  # anchor: human play completes a level in <500 actions; this is 2x\n",
       n_bad=1, n_ok=1)
 def _anchor(src: str, *_: Any) -> tuple[list[str], int]:
@@ -125,7 +126,9 @@ def _singleton(src: str, *_: Any) -> tuple[list[str], int]:
 @rule("NOFAIL",
       "Step 2: 'a bin without its discriminator is a label, not a diagnosis' -- a check "
       "with no failing path is a label",
+      "def helper(x):\n    return True\n"
       "def check_x(rows):\n    return True\n",
+      "def helper(x):\n    return True\n"
       "def check_x(rows):\n    for r in rows:\n        if r:\n            return False\n"
       "    return True\n",
       n_bad=1, n_ok=1)
@@ -160,6 +163,7 @@ def _nofail(src: str, *_: Any) -> tuple[list[str], int]:
       "def never():\n    return 2\n"
       "def sniff(n):\n    return n.startswith('head_')\n"
       "def head_dead():\n    return 3\n"
+      "@reg\ndef decorated_dead():\n    return 4\n"
       "print(used(), sniff)\n",
       "def used():\n    return 1\n"
       "def test_a():\n    return 2\n"
@@ -271,6 +275,11 @@ def selftest() -> dict[str, str]:
             out[r.rid] = "UNWITNESSED (the witness produced no finding)"
         elif ok:
             out[r.rid] = f"UNWITNESSED (the control produced {len(ok)})"
+        elif r.n_ok == 0:
+            # a control that examines NOTHING cannot demonstrate a clean state: subject
+            # and violation are the same set, PASS is unreachable, and VACUOUS quietly
+            # does its work. This is the check on the checkers, read off the fixture.
+            out[r.rid] = "UNWITNESSED (the control examines nothing; PASS unreachable)"
         elif (nb, no) != (r.n_bad, r.n_ok):
             out[r.rid] = f"UNWITNESSED (counted {nb}/{no}, the fixtures hold {r.n_bad}/{r.n_ok})"
         else:

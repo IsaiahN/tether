@@ -737,6 +737,12 @@ class Linter:
                 out[c.cid] = "UNWITNESSED (the witness produced no finding)"
             elif ok:
                 out[c.cid] = f"UNWITNESSED (the control produced {len(ok)})"
+            elif c.n_ok == 0:
+                # a control that examines NOTHING cannot demonstrate a clean state, so
+                # the rule has no reachable PASS: subject and violation are the same set
+                # and VACUOUS silently does the work PASS should. Cheapest possible
+                # check on the checkers, and it reads straight off the fixture.
+                out[c.cid] = "UNWITNESSED (the control examines nothing; PASS unreachable)"
             elif (nb, no) != (c.n_bad, c.n_ok):
                 # the count is self-reported, so it needs a witness of its own: without
                 # this a check can fabricate a denominator and pass both fixtures, and
