@@ -196,11 +196,6 @@ def _check_terminal(head: str, args: tuple) -> None:
             raise Ill("ill-typed: DERIVE cites no record and is not a probe")
 
 
-def head_check(head: str) -> str | None:
-    """The one check currency riding a speech-act head."""
-    return _prime(head).check
-
-
 def ref(record_id: Any, kind: str) -> Leaf:
     return Leaf(T.RECORD, str(record_id), kind=str(kind))
 

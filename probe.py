@@ -24,9 +24,17 @@ import zlib
 
 sys.dont_write_bytecode = True
 
-ALPHA = 0.1     # the error EMA's weight on the newest step: about a ten-step memory
-EPS = 0.02      # what "explains everything" means numerically
-WARM = 12       # observations before an untrained model is allowed to call itself bored
+# anchor: specified, not grounded -- an EMA weight giving about a ten-step memory.
+# No measurement sets it. REPAIRS 1 removes it: with SUPPORT as a boolean over
+# slots there is no average left to smooth.
+ALPHA = 0.1
+# anchor: specified, not grounded -- a threshold standing in for a predicate the
+# formula states exactly: SUPPORT is |R+_s| > 0 for SOME slot s. REPAIRS 1 deletes it.
+EPS = 0.02
+# anchor: specified, not grounded -- observations before an untrained model may call
+# itself bored. Likely redundant once SUPPORT is a boolean: a fresh model has live
+# mass by construction.
+WARM = 12
 
 
 class Drive:

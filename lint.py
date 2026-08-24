@@ -94,20 +94,42 @@ def rule(rid, cite, bad, ok, *, n_bad, n_ok, crossfile=False,
 @rule("ANCHOR",
       "DECLARING THE MODE: 'an unmeasured number is a specification of what to measure "
       "and can be worth a great deal' -- labelled as such, which is the whole condition",
-      "ONE = 1\nEPS = 0.02\n",
+      # a comment separated by a BLANK LINE is attached to nothing, so both constants
+      # below must still be flagged. Widen the exemption to "an anchor anywhere in the
+      # file" and the witness stops producing findings; drop the block form and the
+      # control starts producing them. Both edges of the attachment rule.
       "ONE = 1\n"
-      "EPS = 0.02  # anchor: human play completes a level in <500 actions; this is 2x\n",
-      n_bad=1, n_ok=1)
+      "# anchor: attached to nothing\n"
+      "\n"
+      "EPS = 0.02\n"
+      "WARM = 12\n",
+      "ONE = 1\n"
+      "# anchor: human play completes a level in <500 actions; this is the 2x ceiling\n"
+      "EPS = 0.02\n"
+      "WARM = 12  # anchor: same measurement, stated inline\n",
+      n_bad=2, n_ok=2)
 def _anchor(src: str, *_: Any) -> tuple[list[str], int]:
     """A module-level constant with no stated basis is an invented metric. Comments are
     invisible to the AST, so this is one of the few things only a token pass can see."""
-    anchored = set()
+    # A basis may need more than one line, so a contiguous comment block IMMEDIATELY
+    # above counts as well as a same-line comment. Immediately: a blank line between
+    # them means the comment is attached to whatever preceded it, not to this constant.
+    comments: set[int] = set()
+    anchors: set[int] = set()
     try:
         for tok in tokenize.generate_tokens(io.StringIO(src).readline):
-            if tok.type == tokenize.COMMENT and "anchor:" in tok.string:
-                anchored.add(tok.start[0])
+            if tok.type == tokenize.COMMENT:
+                comments.add(tok.start[0])
+                if "anchor:" in tok.string:
+                    anchors.add(tok.start[0])
     except (tokenize.TokenError, IndentationError):
         pass
+    anchored = set(anchors)
+    for ln in sorted(anchors):
+        row = ln + 1
+        while row in comments:          # walk down through the rest of the block
+            row += 1
+        anchored.add(row)               # the statement the block sits directly above
     out, seen = [], 0
     for node in ast.parse(src).body:
         if not (isinstance(node, ast.Assign) and len(node.targets) == 1):

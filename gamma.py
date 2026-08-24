@@ -26,7 +26,9 @@ sys.dont_write_bytecode = True
 
 PRIOR, MINTED, IMPORTED = "prior", "minted", "imported"
 
-# how fast a rejection fades on the logical clock. A refutation is retractable.
+# anchor: specified, not grounded -- the formula requires demotion to be weighted and
+# clocked, so a halflife is specified; nothing measures THIS halflife. A refutation is
+# retractable, and how fast is a target for measurement rather than a finding.
 REJECTION_HALFLIFE = 8.0
 
 

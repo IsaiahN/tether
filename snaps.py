@@ -44,7 +44,8 @@ WEIGHTS = {"identity": 3, "affine": 8, "quadratic": 6, "action": 8, "interact": 
            "regime": 10}
 
 OBJECTIVES = ("ALL", "ANY", "COUNT", "AVOID")
-LATE = 999          # a tick past any switch, for the key's regime probe
+LATE = 999   # anchor: greater than any switch the generator emits (max 16), so the
+#              key probes a tick strictly past every regime change
 
 
 @dataclass

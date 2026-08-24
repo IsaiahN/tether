@@ -22,7 +22,8 @@ from gamma import Atom, Ctx
 
 sys.dont_write_bytecode = True
 
-M = 7                       # the modulus everything lives in
+M = 7   # anchor: prime, and small enough that the harness can sweep the whole
+#         domain exhaustively -- which is what makes unreachable_slots a proof
 ACTIONS = ("A", "B", "C")
 DELTA = {"A": 1, "B": 2, "C": 4}
 
