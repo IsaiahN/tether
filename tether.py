@@ -188,6 +188,7 @@ class Agent:
         self.slots = env.slots()
         self.alphabet = self._alphabets(env)      # a new level may value slots differently
         self.bound, self.trace = {}, []
+        self._disproof: dict[str, dict] = {}
         self.owed_import, self.abstained = set(), {}
         self.candidates = {}
         # a new level is a new instrument: the verdict was about the OLD slot set
@@ -310,7 +311,9 @@ class Agent:
                             of=(s,),
                             from_value=before[s], predicted=pred[s], actual=after[s],
                             mass=r.bits, cause=self._cause(s, r.bits),
-                            bound=self.bound.get(s, IDN))
+                            bound=self.bound.get(s, IDN),
+                            **({"disproof": self._disproof[s]}
+                               if s in self._disproof else {}))
             self._standing(s)
 
         # the reward channel: on the figures, and reported here. Its remedy is the
@@ -526,7 +529,25 @@ class Agent:
                          for t in cands})
                     for s in owed)
             if spread and max(spread.values()) > min(spread.values()):
-                return max(self.actions, key=lambda a: spread[a]), "discriminate"
+                pick = max(self.actions, key=lambda a: spread[a])
+                # WHAT THIS ACTION BUYS, stated before it is taken. Listing the values
+                # the candidates predict is TRUE AND UNFALSIFIABLE -- it spans the
+                # whole alphabet, so no outcome contradicts it. The falsifiable form
+                # is the guarantee: group the candidates by prediction, and
+                # `live - largest bucket` die WHATEVER happens. The outcome can land
+                # in the largest bucket and meet it exactly, or elsewhere and beat it.
+                self._disproof = {}
+                for s in owed:
+                    buckets: dict[int, int] = {}
+                    for t in cands:
+                        v = t.apply(before[s], Ctx(action=pick, operands=()))
+                        buckets[v % self.alphabet[s]] = buckets.get(
+                            v % self.alphabet[s], 0) + 1
+                    self._disproof[s] = {
+                        "live": len(cands), "splits": len(buckets),
+                        "refuted_at_least": len(cands) - max(buckets.values()),
+                        "by": f"any outcome on {s} after {pick}"}
+                return pick, "discriminate"
         return self.drive.choose(self.actions, self.cycle), "draw"
 
     def _bindings(self, slot: str) -> list[str | None]:
@@ -836,6 +857,7 @@ class Agent:
         focal = max(sorted(self.slots),
                     key=lambda s: (self._last_mass.get(s, 0.0), s in self.owed_import))
         by = "given"
+        self._disproof = {}
         if action is None:
             action, by = self.choose(before)
         # THE PHASE IS READ OFF THE SITE THAT CHOSE, never asserted alongside it. It

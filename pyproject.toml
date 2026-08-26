@@ -27,6 +27,29 @@ select = ["E", "F", "I", "UP", "B", "SIM", "RET", "ARG", "C4", "TID"]
 # a domain fact is a step-7 IMPORT executed by the import system instead of by the loop,
 # which is why the action set cannot grow. The message is the "use this instead" note:
 # it arrives at the moment of the mistake, which is the only moment it helps.
+#
+# THE SECOND FIREWALL, and it has no entries yet because the module it guards is unbuilt.
+# The first bans GAME FACTS. This one bans HARNESS CONFIGURATION, and it is the more
+# dangerous of the two BECAUSE IT SOUNDS ADMINISTRATIVE. A config value is easier to
+# justify reading than a rule of the game, which is exactly what makes it easier to leak.
+#
+#   THE SEAT MAY READ THE HARNESS. THE AGENT MAY READ ONLY THE FRAME.
+#
+# MAX_ACTIONS, the import graph, function signatures, how FrameData is constructed, what
+# the platform will and will not deliver -- all of it is the seat's business, and reading
+# it is how we know whether a submission runs at all. NONE of it enters the library, the
+# priors, the grammar, or any decision the agent makes. The agent discovers its budget by
+# running out, or is told by the frame. Never by a number someone read from a config.
+#
+# THE RISK IS IN ENCODING, NEVER IN READING -- and it is checkable rather than trusted:
+# if the agent's behaviour changes when the number changes, the number is in the agent.
+# Measured 2026-08-26 on the loop's own budget, `run(cycles)`: a 40-cycle run is a
+# BIT-IDENTICAL PREFIX of a 90-cycle run on all six panel worlds. The budget is not in
+# the agent.
+#
+# Entries go in when the harness bridge exists. The ban cannot be `agents.agent.Agent`,
+# because the bridge must subclass it -- it is the CONFIG the loop may not read, with the
+# bridge exempted by office the way `demo.py` is.
 [tool.ruff.lint.flake8-tidy-imports.banned-api]
 "world.ACTIONS".msg = "the loop may not read the action set; add actions() to the Env contract and grow it through step 7"
 "world.M".msg = "the loop may not read the value space; the env declares its own code -- see DECLARE THE CODE"

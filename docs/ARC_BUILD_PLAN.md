@@ -157,6 +157,46 @@ over a detected grid, so the reason it is unmeasured here does not apply there.*
 from *a mechanism that has never measured anything* to **a mechanism whose first real
 reading is in this build**, and those have different dispositions.
 
+### Reconciled against `ARC-AGI-3-Agents` source, 2026-08-26
+
+The repo is checked out now. It had been read second-hand from notebooks, and **two things
+the plan relies on were wrong.**
+
+**1 · `MAX_ACTIONS` is 80 in the base class, and this project defended 1000.**
+`Agent.MAX_ACTIONS: int = 80`, commented *to avoid looping forever if agent doesnt exit*,
+and `main()` enforces it as a hard loop bound. §22.1 defended **1000** on the basis
+*humans complete a level in under 500 actions, so this is the 2× honest ceiling* — **a
+legitimate anchor, external to the frame, for a number 12.5× the default.** A subclass
+override is the mechanism (one in-repo agent sets `MAX_ACTIONS = 1000000`).
+
+> **So the project must SET it deliberately and record the basis on the line.**
+> Inheriting 80 silently is the failure; overriding to 1000 without recording why is the
+> same failure wearing a decision's clothes.
+
+**2 · The reasoning echo does not reach the live agent, and §3 assumed it does.**
+§3 builds on *`frames[i].action_input.reasoning` returns what was attached to the action
+that produced frame `i` — the agent can read why it did each past thing from the
+environment's own record of it.* **`_convert_raw_frame_data` constructs `FrameData` from
+eight fields and `action_input` is not one of them.** In the live loop `self.frames` are
+those converted objects. `action_input` is read in exactly one place: the **`Playback`**
+class, from a recording file.
+
+> **The reasoning survives into the RECORDING and not back to the playing agent.**
+> §3's *what appears in replays* holds. *The agent can read its own past reasoning* does
+> not, through this harness — **and anything specified downstream of that channel needs
+> re-reading against what exists.**
+
+**And one that was right for a better reason than stated:** `agents/__init__.py` must be
+rewritten not merely because it eagerly imports langgraph and smolagents, but because
+**`AVAILABLE_AGENTS` is built from `Agent.__subclasses__()`** — a subclass must be
+*imported* to register at all.
+
+**Also corrected:** §1 says building against the toolkit's `step(reasoning=…)` signature
+would not run on Kaggle. **The harness calls that signature itself** —
+`self.arc_env.step(action, data=data, reasoning=reasoning)`. It wraps the toolkit rather
+than replacing it. The instruction (attach to the action object) stands; the reason does
+not.
+
 ### And one capability ARC GIVES, which must be labelled as borrowed
 
 The move is not all cost. §21.1: everywhere else in this design the agent gets
