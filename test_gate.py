@@ -85,6 +85,19 @@ def test_unsettled_accept():
     _refuses(r, gate.UNSETTLED_ACCEPT)
 
 
+def test_settled_elsewhere_is_not_settled_here():
+    """The ground settles a term FOR A SLOT, so a settlement on one licenses nothing on
+    another. Keyed on the term alone, one settlement anywhere licenses acceptance
+    everywhere -- which is how a term the ground refused goes on being accepted.
+
+    The settle row in `valid()` IS the accepted row, so moving its slot moves both sides
+    of the comparison and witnesses nothing. A SECOND slot is what the case needs."""
+    r = valid()
+    r.append({"mode": "specified", "seq": 5, "cycle": 1, "step": "PROMOTE", "slot": "s2",
+              "event": "cite", "detail": {"term": "a . b", "status": "accepted"}})
+    _refuses(r, gate.UNSETTLED_ACCEPT)
+
+
 def test_filter_verdict():
     r = valid()
     r[2]["detail"].update(budget_exhausted=True, verdict="unreachable")

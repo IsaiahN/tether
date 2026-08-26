@@ -69,11 +69,29 @@ def sentences(rows: list[dict]) -> list[tuple[list[int], str]]:
                                f"on a transition it was never fitted to. It is accepted "
                                f"now, and may be cited."))
         elif ev == "probe":
-            out.append(([seq], f"Nothing has surprised me for a while -- my own error is "
-                               f"{_n(d.get('probe_err'), 3)} over {d.get('probe_n')} "
-                               f"observations. I cannot compress what I never observed, so "
-                               f"I am perturbing, and the outcome comes back as an ordinary "
-                               f"observation."))
+            # WHAT THE PROBE DOES, not what it used to. It cited `probe_err`, a field
+            # deleted with the EMA, and rendered "my own error is None"; and it described
+            # perturbing, when the draw was always the default and the change is that the
+            # model no longer gets to choose. Twice diverged from the mechanism.
+            out.append(([seq], f"On {slot} nothing is live. Over {d.get('probe_n')} "
+                               f"observations no slot carried mass, so my model explains "
+                               f"everything I can currently see -- and an action I picked "
+                               f"from that model could only confirm it. So I am not "
+                               f"picking this one: the draw is uninformed, and what comes "
+                               f"back is an ordinary observation."))
+        elif ev == "unreached":
+            # THE HARDEST THING THE AGENT CAN SAY, and it could not say it before: not
+            # `I cannot explain this` but `there may be nothing here I can see`. The two
+            # readings are indistinguishable from inside, and pretending otherwise would
+            # be the confident half of exactly the failure this reports.
+            out.append(([seq], f"I have drawn every action I was offered "
+                               f"({', '.join(d.get('tried') or [])}) over "
+                               f"{d.get('observations')} observations, and nothing in "
+                               f"{', '.join(d.get('slots') or [])} has ever moved. Either "
+                               f"this world is still, or what moves is not something I am "
+                               f"built to see -- from here those are the same reading. The "
+                               f"second is answered by a different set of slots, and I do "
+                               f"not have a way to change mine."))
         elif ev == "refused":
             out.append(([seq], f"I did not act. The utterance did not compose: "
                                f"{d.get('reason')}."))

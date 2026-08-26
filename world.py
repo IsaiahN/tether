@@ -47,7 +47,7 @@ class Env(Protocol):
     def atoms(self) -> list[Atom]: ...
     def transform(self) -> Any: ...
     def actions(self) -> tuple[str, ...]: ...
-    def alphabet(self) -> int: ...
+    def alphabet(self) -> int | dict[str, int]: ...
 
 
 def bind(env: Any) -> Any:
@@ -181,10 +181,17 @@ class Transitions:
         be one if the loop asks rather than reads a module global."""
         return ACTIONS
 
-    def alphabet(self) -> int:
+    def alphabet(self) -> int | dict[str, int]:
         """|V|, the number of distinguishable values. The loop declares the code's FORM
         -- uniform over the alphabet -- and the domain supplies its size; a correction
-        therefore costs log2(alphabet) bits and a value normalises mod alphabet."""
+        therefore costs log2(alphabet) bits and a value normalises mod alphabet.
+
+        ONE NUMBER OR ONE PER SLOT. Every slot here holds an integer mod M, so one number
+        says it. A domain whose slots differ -- a position, a colour, a boolean -- says so
+        per slot, and each is then charged its own code rather than the widest one in the
+        world. Charging a boolean log2(7) inflates its residual by the factor its
+        information was reduced, and the bargain comes out loosest where least is at
+        stake."""
         return M
 
     def transform(self) -> Any:

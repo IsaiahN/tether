@@ -124,6 +124,9 @@ class Gamma:
         self.library: dict[str, Term] = {}
         self.stamps: dict[str, dict[str, Any]] = {}
         self.standing: dict[str, Standing] = {}
+        # name -> the two verdicts that promoted it. A dict rather than a set because
+        # `primitive requires both` is only checkable if both are on the record.
+        self.primitives: dict[str, dict] = {}
         self.tick = 0
         for a in atoms:
             self._install(Term((a,), origin=PRIOR), seq=-1, residual=None)
@@ -154,6 +157,21 @@ class Gamma:
     def settle(self, name: str) -> None:
         """The ground paid on evidence the term was never fitted to."""
         self.standing.setdefault(name, Standing()).settled_at = self.tick
+
+    def promote(self, name: str, shadow: dict, echo: dict) -> None:
+        """PRIMITIVE. Settled is held-out payment on the slot the term was minted for,
+        and that does not discriminate -- every wrong term in the false-mint read fired
+        the held-out test and survived it. A primitive is the stronger thing: it closed a
+        residual RECORDED BEFORE IT EXISTED, somewhere it was not minted for.
+
+        Both verdicts or neither. Echo alone is apophenia -- a structure found and given
+        somewhere to live. Shadow alone is a local hack called a primitive.
+        """
+        self.primitives[name] = {"shadow": shadow, "echo": echo}
+
+    def is_primitive(self, name: str) -> bool:
+        return name in self.primitives
+
 
     def refute(self, name: str) -> bool:
         """A settled term mispredicted on fresh evidence. Demoted to candidate -- not
@@ -194,12 +212,22 @@ class Gamma:
         is reachable at a given budget: a settled 3-atom term makes depth 3 reach 9 atoms.
         Only what the ground has paid for becomes a shortcut.
         """
+        # DEDUP ON WHAT IS EMITTED, not on what was settled. `t.name` carries the
+        # operand binding and the emitted unit does not, so two settled terms differing
+        # only in their binding both passed the check and both went in -- one unit
+        # counted twice, inflating `space_estimate` and with it the `coverage`
+        # denominator on every mint row. The binding is re-decided per slot at mint, and
+        # `enumerate_closure` composes over `.atoms` alone, so the chunk IS the atom
+        # sequence and the operand has no business in the key.
         seen = {a.name for a in self.atoms}
         out = [Term((a,), origin=PRIOR) for a in self.atoms]
         for t in self.settled_terms:
-            if t.name not in seen and len(t) > 1:
-                seen.add(t.name)
-                out.append(Term(t.atoms, origin=t.origin))
+            if len(t) <= 1:
+                continue
+            unit = Term(t.atoms, origin=t.origin)
+            if unit.name not in seen:
+                seen.add(unit.name)
+                out.append(unit)
         return out
 
     def enumerate_closure(self, in_type: str, out_type: str, max_depth: int, budget: int,

@@ -44,6 +44,7 @@ class Drive:
         self.misses = 0
         self.fires = 0
         self.scored = 0
+        self.tried: set[str] = set()      # which advertised actions have been drawn
         self._seed = zlib.crc32(seed.encode()) & 0xFFFF
 
     def note_step(self, any_live: bool) -> None:
@@ -59,9 +60,27 @@ class Drive:
         self.scored += int(moved)
 
     def bored(self) -> bool:
-        """SUPPORT at zero: no slot carried live mass. You cannot compress what you
-        never observed, so the answer is perturb, not stop."""
+        """SUPPORT at zero ON THIS STEP: no slot carried live mass. You cannot compress
+        what you never observed, so the answer is perturb, not stop."""
         return self.n > 0 and not self.live
+
+    def never_live(self, n_actions: int) -> bool:
+        """SUPPORT at zero FOR THE WHOLE RUN, with every action tried.
+
+        `bored` reads the last step, so a momentary quiet and an instrument that has
+        never once registered anything come back identical -- and only the second is
+        evidence about the INSTRUMENT rather than about the model. This is the third
+        cause of a low reading, CHANNEL_CLOSED, at the level of what the slots are:
+        nothing the frame can see has ever moved.
+
+        The action clause is what makes it positive rather than absential. `I drew every
+        action on offer and nothing changed` is a bound reporting back. `nothing has
+        changed yet` is true on step one of every run there has ever been.
+
+        It does NOT distinguish a static world from an instrument that cannot reach one.
+        Those are the same from in here, and saying so is the honest half.
+        """
+        return self.n > 0 and self.misses == 0 and len(self.tried) >= n_actions
 
     def starving(self) -> bool:
         """Nothing is scoring: the curiosity drive's trigger, on the reward channel."""
@@ -72,10 +91,12 @@ class Drive:
         Deterministic in the cycle so a run is reproducible; no wall clock, no RNG state."""
         if self.bored():
             self.fires += 1
-        return sorted(actions)[(cycle * 7 + self._seed) % len(actions)]
+        pick = sorted(actions)[(cycle * 7 + self._seed) % len(actions)]
+        self.tried.add(pick)
+        return pick
 
     def report(self) -> dict[str, object]:
         return {"probe_fires": self.fires, "probe_n": self.n, "probe_misses": self.misses,
                 "any_live": self.live, "bored": self.bored(),
-                "starving": self.starving(),
+                "starving": self.starving(), "tried": sorted(self.tried),
                 "support": "|R+_s| > 0 for SOME slot s -- a predicate, not a threshold"}

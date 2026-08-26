@@ -109,7 +109,12 @@ def _routing(rows: list[dict]) -> dict | None:
     routed: dict[tuple[int, str], int] = {}
     for r in rows:
         c, slot, d = r.get("cycle", 0), r.get("slot"), r.get("detail", {})
-        if r.get("event") == "bet" and float(d.get("mass", 0)) > 0:
+        # `mass` on a slot, `shortfall` on the reward channel: two names because they
+        # are two quantities -- a per-slot residual and a score over the board -- and
+        # only the first is R. Both mean the row carried a live reading that owes a
+        # routing, which is what this check is about.
+        reading = float(d.get("mass", d.get("shortfall", 0)))
+        if r.get("event") == "bet" and reading > 0:
             live.add((c, slot))
         if r.get("event") == "route":
             k = (c, slot)
@@ -136,12 +141,20 @@ def _guards(rows: list[dict]) -> dict | None:
 
 
 def _settlement(rows: list[dict]) -> dict | None:
-    """5. Nothing is labelled ACCEPTED without a settle event. A gate is not the ground."""
-    settled = {str(r.get("detail", {}).get("term")) for r in rows if r.get("event") == "settle"}
+    """5. Nothing is labelled ACCEPTED without a settle event. A gate is not the ground.
+
+    KEYED ON (slot, term). The ground settles a term FOR A SLOT, so a settlement on one
+    slot licenses nothing on another -- keyed on the term alone, one settlement anywhere
+    licenses acceptance everywhere, which is how a term the ground REFUSED goes on being
+    accepted. The reference checker was repaired for exactly this and the repair did not
+    cross to here.
+    """
+    settled = {(r.get("slot"), str(r.get("detail", {}).get("term")))
+               for r in rows if r.get("event") == "settle"}
     for r in rows:
         d = r.get("detail", {})
         if (str(d.get("status", "")).lower() == "accepted"
-                and str(d.get("term")) not in settled):
+                and (r.get("slot"), str(d.get("term"))) not in settled):
             return _v("settlement", UNSETTLED_ACCEPT, r.get("seq"), str(d.get("term")))
     return None
 

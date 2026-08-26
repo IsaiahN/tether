@@ -83,7 +83,7 @@ code is actually running, not by the number.
 No isolated code. No silent code. No code without reason. Legible beats silent,
 demonstrated.
 
-**A checker goes silent in five places, and they are named in `conform/lint.py`'s
+**A checker goes silent in seven places, and they are named in `conform/lint.py`'s
 docstring.** Read them before widening an exemption, changing a denominator, or writing a
 witness — each was found by a checker going quiet once, and none by reasoning about what a
 good checker should do:
@@ -93,10 +93,35 @@ good checker should do:
 - **exemptions as data, not logic** — a table can be pinned; logic widens quietly
 - **reintroduce the defect, never disable the check** — tests reach, not existence
 - **a repair can break the layer above** — and that is where causes get asserted
+- **a metric whose denominator the mechanism changes cannot falsify that mechanism** —
+  before pinning a falsifier, ask whether the mechanism moves the quantity the metric is
+  computed over. If it does, the metric is measuring itself. `false_mint_rate` is over
+  CLAIMS, and STAGE 1's whole effect was on what counts as a claim; it moved numerator and
+  denominator together, read null, and a correct mechanism was withdrawn on it
+- **assume it is already specified, and go look** — not *check afterwards*. An improvised
+  metric is fitted to the case that prompted it, which is a repair validated on its own
+  case, one level up. **Nine times the corpus had already named the instrument, and nine
+  times the specified one was the better one**: `λ` as the spectral radius · `UNREACHED`
+  as the post-escalation claim · the escalation ladder · chunk reuse count · retrieval
+  keyed by residual shape · `R_T` as a gate rather than a reading · binding by contact
+  rather than by enumeration · `λ^d` as the coverage denominator · reset-vs-advance before
+  demoting at a boundary. **The design step is a search of the corpus, not a design.**
 
-Two corollaries with the same standing: *a control that examines nothing cannot
-demonstrate a clean state*, and *an exit code is a declaration where a pattern match over
-stdout is a guess*.
+Five corollaries with the same standing: *a control that examines nothing cannot
+demonstrate a clean state*; *an exit code is a declaration where a pattern match over
+stdout is a guess*; *a panel property must be measured before it is used as a premise,
+never asserted from the shape of the generator* — the DS ladder was called easing on ten
+seeds, is flat on forty, and a panel repair was designed on top of it; and *before a null
+is read as a finding about a mechanism, state what property of the panel the mechanism
+would need in order to show, and confirm the panel has it* — `M = 7` is prime so no
+coarsening can preserve arithmetic, the ladder is flat so the carried-cold gap has nowhere
+to open, and four independent slots make echo nearly accidental. **Three nulls, three
+worlds structurally unable to reward the thing tested, and none of it visible in the
+result.** And *read the things that produce conditions before the things that produce
+results* — a generator, a config, a plan, a fixture. **They do not announce themselves,
+and a condition is invisible in the results it conditions.** `SNAPS_PLAN` was the shortest
+document in the set, was never opened, and four of its ten sections overturned a published
+conclusion. The laws apply to the panel, not only to the code.
 
 ### How I work here
 

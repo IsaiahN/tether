@@ -48,7 +48,11 @@ STAGES = (
     ("kernel", [str(PY), str(HERE / "kernel.py")],
      "a conformance check failed against its own record", HERE / "kernel.py"),
     ("stateful", [str(PY), str(HERE / "stateful.py"), "--fast"],
-     "an invariant broke on a generated history", HERE / "stateful.py"),
+     "an invariant broke on a generated history for the REFERENCE loop",
+     HERE / "stateful.py"),
+    ("shipped", [str(PY), str(HERE / "stateful.py"), "--fast", "--tether"],
+     "an invariant broke on a generated history for tether.Agent",
+     HERE / "stateful.py"),
     ("demo", [str(PY), "demo.py"], "the loop did not complete", ROOT / "demo.py"),
     ("gate", [str(PY), "gate.py", "runs/demo.jsonl"],
      "the record is not well-formed", ROOT / "gate.py"),
@@ -109,9 +113,19 @@ def main(argv: list[str]) -> int:
             print(f"           {why}")      # a cause, and only when one was observed
         if detail:
             print(f"           {detail}")
-    print(f"\n  {len(results) - len(bad)}/{len(results)} seats clean")
-    if any(s == "DID-NOT-RUN" for _n, s, _d, _w in results):
-        print("  a stage reported DID-NOT-RUN has not passed; it was not asked.")
+    # THE THREE STATES SURVIVE INTO THE SUMMARY. Inside a seat, `found something`,
+    # `could not check everything` and `never ran` are kept apart on purpose; folding
+    # them into clean-vs-not put INCOMPLETE back on the side of a finding, which is the
+    # exact reading it was added to prevent.
+    n_found = sum(1 for _n, s, _d, _w in results if s == "FAIL")
+    print(f"\n  {len(results) - len(bad)}/{len(results)} seats clean, "
+          f"{n_found} found something")
+    for state, note in (("INCOMPLETE", "ran and could not check everything, which is "
+                                       "not a finding about the code."),
+                        ("DID-NOT-RUN", "has not passed; it was not asked.")):
+        n = sum(1 for _n, s, _d, _w in results if s == state)
+        if n:
+            print(f"  {n} stage(s) reported {state}: {note}")
     return 1 if bad else 0
 
 

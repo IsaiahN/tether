@@ -98,11 +98,40 @@ class SlotSpec:
 
     family: str
     k: int = 1
+    # anchor: INERT. `spec_for` supplies every one of these from the rng on every slot it
+    # builds, so the defaults are reached only by a spec written by hand -- as the tests
+    # and the fixtures do. They are placeholders, and their values carry no claim.
     a: int = 2
     reads: str | None = None
-    lag: int = 2
-    switch: int = 12
-    k2: int = 3
+    lag: int = 2       # anchor: inert, as above -- spec_for draws it
+    switch: int = 12   # anchor: inert, as above -- spec_for draws it
+    k2: int = 3        # anchor: inert, as above -- spec_for draws it
+
+
+def _views(names: list[str]) -> list[tuple[str, Callable]]:
+    """The coarse views this world offers, built from the SLOT NAMES and nothing else.
+
+    Each is a T_A: a many-to-one map from the full reading to a coarser one. The
+    concretisation T_E is the coarse value taken literally, so `x <= T_E(T_A(x))` holds
+    and the round trip loses whatever the view discarded -- which is what R_T measures.
+
+    THIS FUNCTION IS NOT GIVEN THE RULES. That is the whole guarantee: a view cannot be
+    chosen for resolving a rule it has never been shown. Offering the right one is then
+    the agent's problem, exactly as finding the action that matters is.
+    """
+    out: list[tuple[str, Callable]] = [("full", dict)]
+    out.append(("parity", lambda st: {k: v % 2 for k, v in st.items()}))
+    out.append(("half", lambda st: {k: v // 2 for k, v in st.items()}))
+    for i in range(len(names) - 1):
+        a, b = names[i], names[i + 1]
+        out.append((f"merge:{a}+{b}",
+                    lambda st, a=a, b=b: {**{k: v for k, v in st.items()
+                                             if k not in (a, b)},
+                                          f"{a}+{b}": (st[a] + st[b]) % M}))
+    for nm in names:
+        out.append((f"drop:{nm}", lambda st, nm=nm: {k: v for k, v in st.items()
+                                                     if k != nm}))
+    return out
 
 
 @dataclass
@@ -112,10 +141,14 @@ class WorldSpec:
     obj: str = "ALL"
     tgt: int = 0
     who: str = "s0"
+    # anchor: INERT, same as SlotSpec's -- `spec_for` sets n = max(1, slots // 2) for
+    # every generated world. Reached only by a hand-written spec.
     n: int = 2
-    # the objective must be HELD, not merely touched. A state hit by chance is not a win:
-    # holding it requires predicting what the next action does, so 3 is the smallest hold
-    # that cannot be satisfied by one-step luck. Anchored, not tuned.
+    # anchor: the objective must be HELD, not merely touched. A state hit by chance is
+    # not a win: holding it requires predicting what the next action does, so 3 is the
+    # smallest hold that cannot be satisfied by one-step luck. The basis was stated here
+    # from the start and used the word "Anchored" rather than the marker, so the checker
+    # could not read it -- which is the format being the contract, working as intended.
     hold: int = 3
     start: dict[str, int] = field(default_factory=dict)
 
@@ -123,6 +156,23 @@ class WorldSpec:
 def _pick(rng: random.Random, pool) -> str:
     pool = list(pool)
     return rng.choices(pool, weights=[WEIGHTS[f] for f in pool])[0]
+
+
+def _pick_other(rng: random.Random, avoid: set[str], slots: int) -> str:
+    """A NEW family, not merely a redrawn one. `deviate` sampled the whole set, so a
+    rung labelled "one new family introduced" left every family unchanged 18% of the
+    time and "half the rules change" moved fewer than half 14% of the time. A ladder
+    whose rungs are not the deviation they claim cannot measure transfer: the point of
+    DS is that the relationship between consecutive levels is KNOWN.
+
+    `avoid` is a SET because the 0.8 edit runs after the 0.4 edit and can land on the
+    same slot -- excluding only the current family let it put the slot back where it
+    started, and A -> B -> A is a rung that reports a change and made none.
+    """
+    pool = [f for f in FAMILIES if f not in avoid]
+    if slots < 2:
+        pool = [f for f in pool if f not in RELATIONAL]
+    return _pick(rng, pool or [f for f in FAMILIES if f not in RELATIONAL])
 
 
 def spec_for(seed: int, n_slots: int = 5) -> WorldSpec:
@@ -174,6 +224,7 @@ def deviate(spec: WorldSpec, ds: float, rng: random.Random) -> WorldSpec:
     if ds >= 1.0:
         return spec_for(rng.randrange(10 ** 6), len(spec.slots))
     s = deepcopy(spec)
+    was = {n: r.family for n, r in spec.rules.items()}     # the level being deviated FROM
     s.start = {n: rng.randrange(M) for n in s.slots}       # DS 0.0: a reskin
     if ds >= 0.2:
         for nm in s.slots:
@@ -182,7 +233,7 @@ def deviate(spec: WorldSpec, ds: float, rng: random.Random) -> WorldSpec:
     if ds >= 0.4:
         nm = rng.choice(s.slots)
         others = [o for o in s.slots if o != nm]
-        fam = _pick(rng, FAMILIES)
+        fam = _pick_other(rng, {was[nm]}, len(s.slots))
         s.rules[nm] = replace(s.rules[nm], family=fam,
                               reads=rng.choice(others) if fam in RELATIONAL else None)
     if ds >= 0.6:
@@ -191,7 +242,7 @@ def deviate(spec: WorldSpec, ds: float, rng: random.Random) -> WorldSpec:
     if ds >= 0.8:
         for nm in rng.sample(s.slots, max(1, len(s.slots) // 2)):
             others = [o for o in s.slots if o != nm]
-            fam = _pick(rng, FAMILIES)
+            fam = _pick_other(rng, {was[nm], s.rules[nm].family}, len(s.slots))
             s.rules[nm] = replace(s.rules[nm], family=fam,
                                   reads=rng.choice(others) if fam in RELATIONAL else None)
     return _acyclic(s, rng)
@@ -272,7 +323,11 @@ class Snap:
         return _atoms()
 
     def transform(self) -> Any:
-        return None
+        """The resolutions on offer, in the same spirit as `actions()`: a set, unlabelled,
+        and which of them resolves anything is not stated. `full` is among them, so the
+        finest reading is reachable -- INWARD sharpens toward it rather than inventing it.
+        """
+        return tuple(_views(self.slots()))
 
     def actions(self) -> tuple[str, ...]:
         return ACTIONS
@@ -524,3 +579,22 @@ def ladder(seed: int, levels: int = 5, ds: float = 0.4, steps: int = 60,
         out.append(row)
         spec = deviate(spec, ds, rng)
     return out
+
+
+if __name__ == "__main__":
+    # THE LADDER HAD NO CALLER. Its own docstring calls DS the only reason transfer is
+    # measurable, and nothing ran it -- the dead-code rule could not say so because
+    # `ladder` is an ordinary English word and the package's own prose mentions it.
+    seed = int(sys.argv[1]) if len(sys.argv) > 1 else 0
+    ds = float(sys.argv[2]) if len(sys.argv) > 2 else 0.4
+    print(f"  DS {ds} ladder from seed {seed}\n")
+    print(f"  {'lv':>2} {'claimed':>8} {'false':>6} {'abst':>5} {'f.abst':>7} "
+          f"{'carried':>8} {'uptake':>7} {'end':>9} {'used':>5}")
+    for row in ladder(seed, levels=4, ds=ds, steps=40, n_slots=4):
+        print(f"  {row['level']:>2} {row['claimed']:>8} {row['false_mint']:>6} "
+              f"{row['abstained']:>5} {row['false_abstention']:>7} "
+              f"{row['carried']:>8} "
+              f"{(row['uptake_rate'] if row['uptake_rate'] is not None else 0):>7.2f} "
+              f"{row['ending']:>9} {row['used']:>5}")
+    print("\n  carried is the only transfer number here: a term MINTED on an earlier "
+          "level\n  and reused on this one. Everything else describes one level.")

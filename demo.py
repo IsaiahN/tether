@@ -144,9 +144,16 @@ def main(cycles: int = 16) -> int:
     print(f"  still owed        : {sorted(run.owed_import)}")
     print(f"  stopped at link   : {run.stopped_at_link}")
     print(f"  utterances refused: {len(run.refusals)}")
+    # Figure 11 gives a substituted habitat TWO silent failure modes and this printed
+    # one. The second is what the harness BROUGHT, and it is the answer key: every
+    # correctness and abstention number here is graded against an exhaustive sweep of the
+    # hidden rules, which no real domain supplies.
     print("  CAVEAT            : a synthetic solve proves wiring and never capability.")
-    print("                      This harness is a substituted habitat; what it failed to")
-    print("                      reproduce is invisible until the goal fails.")
+    print("                      This harness is a substituted habitat, and it fails two")
+    print("                      ways in silence. What it failed to REPRODUCE is invisible")
+    print("                      until the goal fails. What it BROUGHT is the answer key --")
+    print("                      abstention is scored against an exhaustive sweep of the")
+    print("                      hidden rules, and no real domain hands one over.")
     print("\n  ledger: runs/demo.jsonl   (python gate.py runs/demo.jsonl)")
 
     return 0 if verdict["verdict"] == gate.PASS and not false else 1

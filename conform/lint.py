@@ -67,15 +67,45 @@ exercise has been removing:
 Three codes, not a better filter: 0 clean, 1 found something, 2 could not check
 everything -- matching the three states inside each seat.
 
-THESE FIVE ARE A RECORD OF HOW THIS CHECKER FAILED, not a philosophy of checkers. Every
+THESE SEVEN ARE A RECORD OF HOW THIS CHECKER FAILED, not a philosophy of checkers. Every
 one came from a defect and none from reasoning about what a good checker should do. Four
-name a site where a checker goes quiet; the fifth names where one lies instead:
+name a site where a checker goes quiet, the fifth names where one lies instead, and the
+sixth names where a measurement is invented that never had to be:
 
     fixtures before changes             an ordering with an observable half-state
     witness the boundary, not the rule  exemptions and denominators, never decisions
     exemptions as data, not logic       a table can be pinned; logic widens quietly
     reintroduce, never disable          tests reach rather than existence
     a repair can break the layer above  and the layer above is where causes are asserted
+    assume it is already specified      an improvised metric is fitted to the case that
+                                        prompted it
+    the metric's subject must not move  a denominator the mechanism changes measures
+                                        itself
+
+THE SIXTH IS A DEFAULT RATHER THAN A CAUTION, on nine instances where the corpus had
+already named the instrument and the specified one was better every time:
+
+    lib ok here / lib          for `chunk reuse count` -- and its denominator can only
+                               grow under a never-delete library, so it could not rise
+                               whatever the loop did
+    depth_exhausted at rung 0  for `UNREACHED`, which is reserved for after an escalation
+                               ladder of five priced rungs that was never built
+    an extension-class index   for retrieval keyed by residual shape -- arity, symmetry,
+                               scale, effect shape -- which needs nothing materialised
+    R_T as a row               where the ruling says it is the admission criterion
+    a boundary revert          where reset-vs-advance was the stated discriminator
+
+**The design step is a search of the corpus, not a design.** Every one of these was built
+first and found afterwards.
+
+THE SEVENTH is the one that cost a correct mechanism. STAGE 1 moved the claim from MINT to
+SETTLE -- the corpus's own `if nothing settled it, the result is a candidate` -- and was
+graded by `false_mint_rate`, which is computed OVER CLAIMS. A mechanism that converts
+claims into candidates moves the numerator and the denominator together, so the rate could
+not detect it, read null, and the mechanism was reverted.
+
+    before pinning a falsifier, ask whether the mechanism moves the quantity the
+    metric is computed over. if it does, the metric is measuring itself.
 
     python lint.py              check this repo
     python lint.py --selftest   witnesses only
@@ -109,6 +139,7 @@ COLLECTORS = (
     ("test_", "Test"),       # pytest classes, in a pytest module
     ("_test.py", "Test"),
     ("", "pytest_"),         # pytest hooks: a documented namespace, any module
+    ("stateful", "teardown"), # hypothesis calls it on a RuleBasedStateMachine
 )
 
 
@@ -129,19 +160,29 @@ class Rule:
     ok: str
     n_bad: int
     n_ok: int
+    # the denominator alone cannot witness WHICH defect a rule reaches: "bad produced
+    # findings" holds just as well when it found six of seven. A rule that quietly stops
+    # catching one shape keeps its seen count and keeps producing findings, so the count
+    # that has to move is this one.
+    n_found: int = 0
     crossfile: bool = False
     bad_name: str = "mod.py"       # the fixture's filename: some exemptions depend on it
     ok_name: str = "mod.py"
+    # a SECOND file, for a rule whose subject is the package rather than the file. Until
+    # this existed a crossfile rule was witnessed with others=(), so the half of it that
+    # reads other files was never exercised by its own fixture.
+    bad_other: tuple[str, str] | None = None
+    ok_other: tuple[str, str] | None = None
 
 
 RULES: list[Rule] = []
 
 
-def rule(rid, cite, bad, ok, *, n_bad, n_ok, crossfile=False,
-         bad_name="mod.py", ok_name="mod.py"):
+def rule(rid, cite, bad, ok, *, n_bad, n_ok, n_found=0, crossfile=False,
+         bad_name="mod.py", ok_name="mod.py", bad_other=None, ok_other=None):
     def deco(fn):
-        RULES.append(Rule(rid, cite, fn, bad, ok, n_bad, n_ok, crossfile,
-                          bad_name, ok_name))
+        RULES.append(Rule(rid, cite, fn, bad, ok, n_bad, n_ok, n_found, crossfile,
+                          bad_name, ok_name, bad_other, ok_other))
         return fn
     return deco
 
@@ -160,15 +201,30 @@ def rule(rid, cite, bad, ok, *, n_bad, n_ok, crossfile=False,
       "# anchor: attached to nothing\n"
       "\n"
       "EPS = 0.02\n"
-      "WARM = 12\n",
+      "WARM = 12\n"
+      "class Cfg:\n    depth: int = 3\n",
       "ONE = 1\n"
       "# anchor: human play completes a level in <500 actions; this is the 2x ceiling\n"
       "EPS = 0.02\n"
-      "WARM = 12  # anchor: same measurement, stated inline\n",
-      n_bad=2, n_ok=2)
+      "WARM = 12  # anchor: same measurement, stated inline\n"
+      "class Cfg:\n"
+      "    # anchor: the depth at which the falsifier sits one step past\n"
+      "    depth: int = 3\n",
+      n_bad=3, n_ok=3, n_found=3)
 def _anchor(src: str, *_: Any) -> tuple[list[str], int]:
-    """A module-level constant with no stated basis is an invented metric. Comments are
-    invisible to the AST, so this is one of the few things only a token pass can see."""
+    """A constant with no stated basis is an invented metric. Comments are invisible to the
+    AST, so this is one of the few things only a token pass can see.
+
+    THE SUBJECT IS MODULE LEVEL **AND CLASS FIELDS**. It was module level alone, and the
+    two numbers that set the whole search -- `Config.max_depth` and `Config.budget` -- are
+    dataclass field defaults, so the rule could not see the place its property mattered
+    most. Sixth time a rule's subject turned out narrower than the property it states.
+
+    NOT default arguments, and that is a scope decision rather than an oversight: fifteen
+    exist in this package and most are harness conveniences overridden at every call site.
+    A rule widened until it fires on everything is the lesson ISOLATED taught by inflicting
+    it on itself. **The form is named here so the gap is known rather than rediscovered.**
+    """
     # A basis may need more than one line, so a contiguous comment block IMMEDIATELY
     # above counts as well as a same-line comment. Immediately: a blank line between
     # them means the comment is attached to whatever preceded it, not to this constant.
@@ -189,13 +245,25 @@ def _anchor(src: str, *_: Any) -> tuple[list[str], int]:
             row += 1
         anchored.add(row)               # the statement the block sits directly above
     out, seen = [], 0
-    for node in ast.parse(src).body:
-        if not (isinstance(node, ast.Assign) and len(node.targets) == 1):
+    tree = ast.parse(src)
+    # module level, plus one level into any class body. A field default is a constant that
+    # happens to live behind a name, and the name being lowercase is a convention about
+    # where it sits rather than about what it does.
+    subject = list(tree.body)
+    for node in tree.body:
+        if isinstance(node, ast.ClassDef):
+            subject += node.body
+    for node in subject:
+        if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            t, v = node.target, node.value
+        elif isinstance(node, ast.Assign) and len(node.targets) == 1:
+            t, v = node.targets[0], node.value
+        else:
             continue
-        t = node.targets[0]
-        if not (isinstance(t, ast.Name) and t.id.isupper()):
+        if not isinstance(t, ast.Name):
             continue
-        v = node.value
+        if not (t.id.isupper() or isinstance(node, ast.AnnAssign)):
+            continue
         if not (isinstance(v, ast.Constant) and isinstance(v.value, (int, float))
                 and not isinstance(v.value, bool)):
             continue
@@ -258,6 +326,85 @@ def _nofail(src: str, *_: Any) -> tuple[list[str], int]:
     return out, seen
 
 
+@rule("REACH",
+      "A1: 'closure(Gamma) -- everything expressible by combining the primitives, at any "
+      "depth' -- generated, never a second producer",
+      # THE PROPERTY, NOT THE PROXY. `nothing is stored` is what an effect-index breaks
+      # while leaving A1's actual guarantee intact, so the subject is the two things
+      # storing the closure would have destroyed: a second writer for the library, and a
+      # second place that extends an atom sequence.
+      #
+      # `memo` in the control is the discrimination. It stores what the generator
+      # produced, which the proxy forbids and the property allows -- it composes nothing
+      # and writes nothing, so reach still has one producer and the library one writer.
+      "class G:\n"
+      "    def accept(self, t):\n        self.library[t.name] = t\n"
+      "    def enumerate_closure(self, d):\n"
+      "        for u in self.units:\n            yield Term(self.chain + u.atoms)\n"
+      "    def precompute(self):\n"
+      "        return [self.chain + u.atoms for u in self.units]\n",
+      "class G:\n"
+      "    def accept(self, t):\n        self.library[t.name] = t\n"
+      "    def enumerate_closure(self, d):\n"
+      "        for u in self.units:\n            yield Term(self.chain + u.atoms)\n"
+      "    def memo(self):\n"
+      "        return list(self.enumerate_closure(3))\n",
+      n_bad=3, n_ok=2, n_found=2, crossfile=True,
+      # the second writer sits in ANOTHER FILE, because that is where it would really
+      # appear: the loop reaching past accept() to write the library directly. Per-file
+      # counting sees one writer in each and reports nothing.
+      bad_other=("loop.py", "def bind(g, t):\n    g.library[t.name] = t\n"),
+      ok_other=("loop.py", "def read(g, n):\n    return g.library[n]\n"))
+def _reach(src: str, others: tuple = (), _scan=None, name: str = "") -> tuple[list, int]:
+    """Two clauses, both about who is allowed to act rather than about what exists."""
+    files = {name or "mod.py": src}
+    for fname, text in others:
+        files.setdefault(fname, text)
+
+    def sites(text):
+        """(library-write function names, [(function name, is a generator)] compositions).
+        Walks with the innermost enclosing function, so a nested def is not credited to
+        its parent."""
+        writes, comps = set(), []
+
+        def walk(node, fn, gen):
+            for child in ast.iter_child_nodes(node):
+                if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    sub_gen = any(isinstance(x, (ast.Yield, ast.YieldFrom))
+                                  for x in ast.walk(child))
+                    walk(child, child.name, sub_gen)
+                    continue
+                if isinstance(child, ast.Assign):
+                    for t in child.targets:
+                        if (isinstance(t, ast.Subscript)
+                                and isinstance(t.value, ast.Attribute)
+                                and t.value.attr == "library"):
+                            writes.add(fn)
+                if (isinstance(child, ast.BinOp) and isinstance(child.op, ast.Add)
+                        and any(isinstance(x, ast.Attribute) and x.attr == "atoms"
+                                for x in (child.left, child.right))):
+                    comps.append((fn, gen))
+                walk(child, fn, gen)
+        walk(ast.parse(text), "<module>", False)
+        return writes, comps
+
+    here_w, here_c = sites(src)
+    everywhere = set()
+    for text in files.values():
+        everywhere |= sites(text)[0]
+
+    out = []
+    if here_w and len(everywhere) > 1:
+        out.append(f"the library has {len(everywhere)} writers {sorted(everywhere)}: "
+                   "accept() is not its only writer, so a stored reach is indistinguishable "
+                   "from the library")
+    for fn, gen in here_c:
+        if not gen:
+            out.append(f"`{fn}` extends an atom sequence and does not yield: reach has a "
+                       "second producer, so enumerate_closure is not the only one")
+    return out, len(here_w) + len(here_c)
+
+
 @rule("ISOLATED",
       "'No isolated code. No silent code. No code without reason.'",
       # BOTH directions of the exemption. `sniff` uses startswith on something that is
@@ -265,21 +412,47 @@ def _nofail(src: str, *_: Any) -> tuple[list[str], int]:
       # must still be flagged -- which is the poisoning this rule inflicted on itself,
       # now a fixture rather than a memory. And the control holds a REAL registry, so a
       # scope tightened until it exempts nothing would fail the control instead.
+      # `prosed` is named in an ENGLISH SENTENCE and nowhere else, which is how a
+      # docstring-heavy package exempts every ordinary-word identifier it owns.
+      # `orphan` is a METHOD, which the rule could not see while it read tree.body.
+      "\"\"\"A note on prosed, and why the thing works.\"\"\"\n"
       "def used():\n    return 1\n"
       "def never():\n    return 2\n"
+      "def prosed():\n    return 7\n"
       "def sniff(n):\n    return n.startswith('head_')\n"
       "def head_dead():\n    return 3\n"
       "@reg\ndef decorated_dead():\n    return 4\n"
       "def test_orphan():\n    return 5\n"
       "def pytestish():\n    return 6\n"
       "class Testish:\n    pass\n"
-      "print(used(), sniff)\n",
+      "def teardown():\n    return 10\n"
+      "class Holder:\n"
+      "    def orphan(self):\n        return 8\n"
+      "    def spoken(self):\n        return 9\n"
+      "print(used(), sniff, Holder)\n",
+      # the control keeps BOTH shapes alive: `livewire` is named by a registry string,
+      # which is a real reference; `alive` is a method that is called. Tighten the
+      # string rule until it exempts nothing and livewire is flagged here instead.
       "def used():\n    return 1\n"
+      "def exported():\n    return 6\n"
+      "def livewire():\n    return 4\n"
+      "REG = {'livewire': livewire}\n"
       "def test_a():\n    return 2\n"
       "def pytest_configure():\n    return 3\n"
       "class TestThing:\n    pass\n"
-      "print(used())\n",
-      n_bad=7, n_ok=1, crossfile=True,
+      "class Keeper:\n"
+      "    def alive(self):\n        return 5\n"
+      "print(used(), REG, Keeper().alive())\n",
+      n_bad=12, n_ok=5, n_found=8, crossfile=True,
+      # BOTH DIRECTIONS OF THE SCOPE. `stranger` spells `never` and does not import the
+      # module that defines it, so `never` must still be flagged -- the shape that had
+      # `world.py`'s "ladder" slot clearing `snaps.ladder`. `consumer` DOES import, and
+      # `exported` is referenced from nowhere else, so a scope tightened to the defining
+      # module alone flags it and the control fires instead.
+      bad_other=("stranger.py",
+                 'SLOTS = {"never": 1}\nprint(SLOTS, SLOTS.spoken)\n'),
+      ok_other=("consumer.py",
+                'import test_thing\nprint(test_thing.exported())\n'),
       # THE FILENAMES ARE PART OF THE FIXTURE. bad is NOT a collector module, so its
       # `test_orphan` must still be flagged; ok IS one, so its `test_a` must not be.
       # Three ways the exemption can move and all three break a count:
@@ -309,12 +482,35 @@ def _isolated(src: str, others: tuple[str, ...] = (),
     # is for -- so its name need never appear again. Flagging it would report the
     # registry pattern as dead code, which is a rule firing on correct code: worse than
     # no rule, because it trains you to ignore the output.
-    defined = {n.name: n for n in tree.body
-               if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))
-               and not n.name.startswith("__") and not n.decorator_list}
+    # tree.body ONLY was module scope, so every method in the package sat outside the
+    # subject -- and a method is reached by attribute, which this already counts. Class
+    # bodies are walked one level down; deeper nesting is a closure, not an interface.
+    top = [n for n in tree.body
+           if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))]
+    meths = [m for n in top if isinstance(n, ast.ClassDef) for m in n.body
+             if isinstance(m, (ast.FunctionDef, ast.AsyncFunctionDef))]
+    defined = {n.name: n for n in top + meths
+               if not n.name.startswith("__") and not n.decorator_list}
+    is_method = {m.name for m in meths}
     if not defined:
         return [], 0
-    refs, conventions = scan if scan is not None else _scan((src, *others))
+    per, imports, conventions = (scan if scan is not None
+                                 else _scan(((fname, src), *others)))
+    mod = fname[:-3] if fname.endswith(".py") else fname
+    # A MODULE-LEVEL NAME MUST BE IMPORTED TO BE USED; A METHOD MUST NOT. The first is
+    # reached through the module namespace, so a module that never imports this one
+    # cannot mean this name whatever word it spells -- which is how `world.py`'s
+    # "ladder" slot was clearing `snaps.ladder` two files away. The second is reached
+    # through an OBJECT: `agent.phases.level_done()` names instruments from a file that
+    # never imports it, and `world.bind` reaches a Snap method by getattr over a string.
+    # Scoping methods by imports invents dead code instead of finding it.
+    visible = {mod} | {m for m, imp in imports.items() if mod in imp}
+    scoped: Counter = Counter()
+    for m in visible:
+        scoped.update(per.get(m, Counter()))
+    package: Counter = Counter()
+    for c in per.values():
+        package.update(c)
     out, seen = [], 0
     for name, node in defined.items():
         if any(name.startswith(c) or name.endswith(c) for c in conventions if c):
@@ -325,26 +521,43 @@ def _isolated(src: str, others: tuple[str, ...] = (),
         own = sum(1 for n in ast.walk(node)
                   if (isinstance(n, ast.Name) and n.id == name)
                   or (isinstance(n, ast.Attribute) and n.attr == name))
+        refs = package if name in is_method else scoped
         if refs.get(name, 0) - own <= 0:
-            out.append(f"`{name}`: defined and referenced nowhere in the package")
+            where = ("the package" if name in is_method
+                     else "any module that imports this one")
+            out.append(f"`{name}`: defined and referenced nowhere in {where}")
     return out, seen
 
 
-def _scan(texts: tuple[str, ...]) -> tuple[Counter, set]:
-    """(reference counts, registry prefixes) over the whole package.
+def _scan(files: tuple[tuple[str, str], ...]) -> tuple[dict, dict, set]:
+    """(per-module reference counts, per-module imports, registry prefixes).
+
+    Counts are kept PER MODULE rather than summed over the package, because a bare name
+    matched everywhere lets any module clear a dead definition in any other. `world.py`
+    holds `RULES = {"ladder": _ladder}` naming a slot; that string was clearing
+    `snaps.ladder`, an unrelated and genuinely dead function two files away.
 
     Called ONCE per run and the result handed to the rule, rather than cached: keying a
     cache on id() of a transient tuple is unsound, because CPython reuses the address
     after the tuple is freed -- the control fixture got the witness's scan and the rule
     suppressed itself. Which is the witness working, on the optimisation that broke it.
     """
-    refs: Counter = Counter()
+    per: dict[str, Counter] = {}
+    imports: dict[str, set[str]] = {}
     conventions: set[str] = set()
-    for text in texts:
+    for fname, text in files:
+        mod = fname[:-3] if fname.endswith(".py") else fname
+        refs = per.setdefault(mod, Counter())
+        seen_imports = imports.setdefault(mod, set())
         try:
             tree = ast.parse(text)
         except SyntaxError:
             continue
+        for n in ast.walk(tree):
+            if isinstance(n, ast.Import):
+                seen_imports.update(a.name.split(".")[-1] for a in n.names)
+            elif isinstance(n, ast.ImportFrom) and n.module:
+                seen_imports.add(n.module.split(".")[-1])
         # `[v for k, v in globals().items() if k.startswith("test_")]` registers by
         # convention rather than by reference, the way a decorator registers by call.
         # Both are real uses. But a prefix only counts as a registry if it is applied to
@@ -368,10 +581,16 @@ def _scan(texts: tuple[str, ...]) -> tuple[Counter, set]:
                 refs[n.id] += 1
             elif isinstance(n, ast.Attribute):
                 refs[n.attr] += 1
-            elif isinstance(n, ast.Constant) and isinstance(n.value, str):
-                for w in n.value.split():
-                    refs[w] += 1           # registries and __all__ name by string
-    return refs, conventions
+            # A REGISTRY NAMES ONE THING; PROSE MENTIONS MANY. Splitting on whitespace
+            # made every word of every docstring a reference, so an identifier that is
+            # also an ordinary English word could never be flagged -- and the better the
+            # prose, the wider the hole. The whole string must BE the identifier:
+            # `{"ladder": _ladder}` still counts, `"a DS-controlled level ladder"` does
+            # not.
+            elif (isinstance(n, ast.Constant) and isinstance(n.value, str)
+                  and n.value.isidentifier()):
+                refs[n.value] += 1
+    return per, imports, conventions
 
 
 # ---------------------------------------------------------------------------------------
@@ -399,8 +618,6 @@ BLIND: dict[str, tuple[str, str]] = {
     "B9": ("NO-BEHAVIOUR", "generators cross, playback never -- step 6 is not built"),
     "B11": ("NO-BEHAVIOUR", "the library is restructured -- no refactor operator exists"),
     "B12": ("NO-BEHAVIOUR", "the habitat is enumerated -- no habitat type exists"),
-    "A1": ("NOT-EXPRESSIBLE", "closure generated not stored -- keying on the identifier "
-                              "`closure` goes blind on a rename, silently"),
     "A9": ("NOT-EXPRESSIBLE", "the reference is not the subject -- SINGLETON catches the "
                               "commonest shape; the general property is not static"),
     "A6i": ("NOT-EXPRESSIBLE", "one label covering two mechanisms -- a property of the "
@@ -419,8 +636,8 @@ def selftest() -> dict[str, str]:
     out = {}
     for r in RULES:
         try:
-            bad, nb = r.fn(r.bad, (), None, r.bad_name)
-            ok, no = r.fn(r.ok, (), None, r.ok_name)
+            bad, nb = r.fn(r.bad, (r.bad_other,) if r.bad_other else (), None, r.bad_name)
+            ok, no = r.fn(r.ok, (r.ok_other,) if r.ok_other else (), None, r.ok_name)
         except Exception as e:                                   # noqa: BLE001
             out[r.rid] = f"UNWITNESSED ({type(e).__name__}: {e})"
             continue
@@ -435,6 +652,13 @@ def selftest() -> dict[str, str]:
             out[r.rid] = "UNWITNESSED (the control examines nothing; PASS unreachable)"
         elif (nb, no) != (r.n_bad, r.n_ok):
             out[r.rid] = f"UNWITNESSED (counted {nb}/{no}, the fixtures hold {r.n_bad}/{r.n_ok})"
+        elif r.n_found and len(bad) != r.n_found:
+            # WHICH defects the rule reaches, not merely that it reaches one. A rule that
+            # stops catching a single shape keeps its denominator and still produces
+            # findings, so nothing above this line moves. Opt-in: a rule that has not
+            # pinned its findings leaves n_found at 0 and is checked as before.
+            out[r.rid] = (f"UNWITNESSED (the witness produced {len(bad)} findings, "
+                          f"the fixture pins {r.n_found})")
         else:
             out[r.rid] = "ok"
     return out
@@ -459,7 +683,7 @@ def run(paths: list[Path]) -> dict[str, dict]:
             unusable.append(f"{p.name}: SyntaxError line {e.lineno}")
         else:
             srcs[p] = text
-    allsrc = tuple(srcs.values())
+    allsrc = tuple((p.name, src) for p, src in srcs.items())
     shared = _scan(allsrc)          # once per run, handed in rather than cached
     res: dict[str, dict] = {}
     for r in RULES:

@@ -16,7 +16,7 @@ from typing import Any
 import grammar as G
 import instruments as I
 from gamma import Ctx, Gamma, Term
-from ledger import SPECIFIED, Ledger
+from ledger import CHANNEL_CLOSED, GENUINE, SLICE_TOO_SMALL, SPECIFIED, Ledger
 from probe import Drive
 
 sys.dont_write_bytecode = True
@@ -66,7 +66,16 @@ def pays(cost: float, left: float, base: float) -> bool:
 
 @dataclass
 class Config:
+    # anchor: grounded in the toy world's own falsifier. `world._ladder` is four atoms
+    # deep -- `dbl . neg . inc . wrap` -- which is PAST this depth, so it is unreachable
+    # in atoms and reachable in units once `swing` settles. Depth 3 is what makes the
+    # chunking claim falsifiable; at 4 the falsifier would be reachable without chunking.
     max_depth: int = 3
+    # anchor: specified, and it bounds the wrong quantity -- stated rather than fixed
+    # here. It caps CLOSURE YIELDS in `enumerate_closure`, and the search's work is yields
+    # times operand bindings. Measured over 12 worlds: max yields 1884, max tried 4206,
+    # and `budget_exhausted` reported zero times. So the depth-3 space is exhaustive here
+    # and the declared bound never binds -- while the work exceeded it.
     budget: int = 4000
     mode: str = SPECIFIED
 
@@ -106,7 +115,7 @@ class Agent:
                  led: Ledger | None = None) -> None:
         self.env, self.gamma = env, gam
         self.actions = tuple(env.actions())        # asked for, never imported
-        self.alphabet = int(env.alphabet())
+        self.alphabet = self._alphabets(env)
         self.cfg = cfg if cfg is not None else Config()
         # not `led or ...`: an empty Ledger has len 0 and is therefore falsy
         self.led = led if led is not None else Ledger(mode=self.cfg.mode)
@@ -131,6 +140,23 @@ class Agent:
         self.drive = Drive()
         self.cycle = 0
         self._last_mass: dict[str, float] = {}
+        # THE INTEGRAL IS READ, NEVER REDUCED. Every step's surprise is added and nothing
+        # subtracts, so a drive that learned to make the number go down would be
+        # forgetting a surprise rather than explaining one. Monotone by construction
+        # because correction_bits is never negative.
+        self._integral = 0.0
+        self._stood: list[tuple[str, str, bool]] = []
+        # slots whose accumulated residual is zero: nothing to compress, so nothing to
+        # mint. The instruction is per slot and the wheel is not, so they queue here
+        # until a probe actually takes the wheel and can be recorded against them.
+        self._starved: set[str] = set()
+        self._promotions: list[tuple[str, dict, dict]] = []
+        self._said_never_live = False
+        # THE INSTRUMENT IN USE. `full` is the finest the env offers, so the agent
+        # starts where nothing is lost and INWARD has nowhere to sharpen to -- which is
+        # the honest default until step 7 exists to move it. Choosing a coarse one here
+        # would be picking the agent's perception for it.
+        self._view: tuple = ("full", dict)
         self._prev_bet: str | None = None
         self._prev_pred: dict[str, int] | None = None
         self.refusals: list[str] = []
@@ -147,11 +173,26 @@ class Agent:
             rec.update(slot=slot, level=self.level, hist=self.history(slot),
                        slots=list(self.slots))
             self.parked[f"L{self.level}:{slot}"] = rec
+        # NO BOUNDARY REVERT. Reverting unpromoted terms to candidate here was built,
+        # measured on two independent panels, and cost opportunity, uptake and carried in
+        # both -- with nothing measurable bought: the target did not move, the side
+        # effect did not replicate, and the rate difference was 1.3 SE.
+        #
+        # The diagnosis is why it stays out. Settled-ness was never the property that
+        # separates a mechanism from a term that closed a slice -- all ten wrong terms in
+        # the false-mint read fired the held-out test and survived it -- so gating a
+        # boundary on it removed good terms along with bad. `promote` remains and still
+        # records: shadow-then-echo does fire on a ladder, and that is worth keeping
+        # observable for whatever gates on it next.
         self.env, self.level = env, level
         self.slots = env.slots()
+        self.alphabet = self._alphabets(env)      # a new level may value slots differently
         self.bound, self.trace = {}, []
         self.owed_import, self.abstained = set(), {}
         self.candidates = {}
+        # a new level is a new instrument: the verdict was about the OLD slot set
+        self._said_never_live = False
+        self._view = ("full", dict)
         self._prev_bet = self._prev_pred = None
         self.drive = Drive()
 
@@ -168,7 +209,85 @@ class Agent:
     def _predict(self, slot: str, state: dict[str, int], action: str) -> int:
         term = self.gamma.library[self.bound.get(slot, IDN)]
         return term.apply(state[slot],
-                          Ctx(action=action, operands=self._ops(term, state))) % self.alphabet
+                          Ctx(action=action,
+                              operands=self._ops(term, state))) % self.alphabet[slot]
+
+    def _standing(self, slot: str) -> None:
+        """HELD AND CITED ARE TWO ROWS, not one. A candidate may be held -- bound, and
+        driving the bet, which is the only way it ever accumulates the held-out evidence
+        that settles it -- and it may not be cited. The bet at step 1 IS derived from the
+        bound term, so this is where the distinction is either taken or lost, and it was
+        being lost: nothing in the record said which of the two was happening.
+
+        READ HERE, WRITTEN AT STEP 6. `cite` is a PROMOTE-step event, so writing it from
+        step 1 put a ROUTE row after a PROMOTE row inside the cycle and the gate refused
+        the record. The settled-ness has to be read at the bet, though -- a term that
+        settles later in this same cycle was still a candidate when the bet stood on it.
+
+        An atom is exempt: the ground never owed anything for a primitive, so there is
+        nothing for it to have settled.
+        """
+        name = self.bound.get(slot)
+        if name and not self.gamma.is_atom(self.gamma.library[name]):
+            self._stood.append((slot, name, self.gamma.is_settled(name)))
+
+    def _promote(self) -> None:
+        """Step 6: what step 1 stood on, and what the sweep earned."""
+        for name, shadow, echo in self._promotions:
+            if self.gamma.is_primitive(name):
+                continue
+            self.gamma.promote(name, shadow, echo)
+            self.led.record(self.cycle, "PROMOTE", echo["slot"], "promote", term=name,
+                            primitive=True, shadow=shadow, echo=echo,
+                            verdict="closed a residual recorded before it existed, "
+                                    "on a slot it was not minted for")
+        self._promotions.clear()
+
+        for slot, name, settled in self._stood:
+            if settled:
+                self.led.record(self.cycle, "PROMOTE", slot, "cite", term=name,
+                                allowed=True, via="bound: it drove this step's bet")
+            else:
+                self.led.record(self.cycle, "PROMOTE", slot, "hold", term=name,
+                                status="candidate", asked=[name, slot], ground_said=False,
+                                via="bound and unsettled: held, and not cited")
+        self._stood.clear()
+
+    def _round_trip(self, t_a, before: dict[str, int]) -> tuple[float, bool]:
+        """(R_T in bits, whether it was measured). The pre-image is counted by sweeping
+        the domain, capped by the SAME declared budget the closure search uses -- this is
+        a search over readings rather than over terms, and a capped sweep that says so
+        beats an uncapped one that stalls. When the sweep is capped the reading is not a
+        small R_T, it is NO R_T, and the row must not report the first as the second.
+        """
+        slots = sorted(before)
+        span = math.prod(self.alphabet[s] for s in slots)
+        if span > self.cfg.budget:
+            return 0.0, False
+        target, seen = t_a(before), 0
+        for n in range(span):
+            k, cand = n, {}
+            for s in slots:
+                cand[s] = k % self.alphabet[s]
+                k //= self.alphabet[s]
+            if t_a(cand) == target:
+                seen += 1
+        return (math.log2(seen) if seen else 0.0), True
+
+    def _cause(self, slot: str, bits: float) -> str:
+        """Which of the three a reading has. Every branch is read off state the loop
+        already holds -- no new measurement, and no branch on the slot's identity."""
+        if bits > 0.0:
+            return GENUINE               # not a low reading; the question does not arise
+        if len(self.trace) < 2:
+            return SLICE_TOO_SMALL       # nothing has been held out yet, so nothing held
+        if slot in self.owed_import:
+            # THE SLOT OWES AND THIS STEP READ ZERO. The residual is known live, so the
+            # zero is what this step failed to deliver and not the model being right.
+            # It is the same distinction OWES makes at step 2, on the row rather than
+            # in the routing.
+            return CHANNEL_CLOSED
+        return GENUINE
 
     def perceive(self, action: str) -> dict[str, SlotResidual]:
         before = self.env.observe()
@@ -180,22 +299,72 @@ class Agent:
 
         res: dict[str, SlotResidual] = {}
         for s in self.slots:
-            bits = correction_bits(pred[s], after[s], self.alphabet)
+            bits = correction_bits(pred[s], after[s], self.alphabet[s])
             r = SlotResidual(s, TRANSITION, pred[s], after[s], bits)
             res[s] = r
+            # from_value is the input the bet was computed from, and it is the whole
+            # difference between a bet on the BELIEF and one on the observation -- the
+            # second has no model that could be wrong. It was always `before[s]`; it was
+            # just never on the row, so nothing could tell the two apart.
             self.led.record(self.cycle, "PERCEIVE", s, "bet", channel=TRANSITION,
-                            predicted=pred[s], actual=after[s], mass=r.bits,
+                            of=(s,),
+                            from_value=before[s], predicted=pred[s], actual=after[s],
+                            mass=r.bits, cause=self._cause(s, r.bits),
                             bound=self.bound.get(s, IDN))
+            self._standing(s)
 
         # the reward channel: on the figures, and reported here. Its remedy is the
         # composition of actions, which is not built -- so it is recorded, not actioned.
+        # a zero here is degree == 1.0: the objective is met and there is genuinely
+        # nothing owing on this channel. Not a channel that failed to deliver.
+        # THE REWARD CHANNEL IS NOT R, SO IT IS NOT `mass`. `1 - degree` where degree
+        # is hit/len(slots) is a SCORE OVER THE WHOLE BOARD: how well the objective is
+        # met, not a gap between a prediction and an outcome at a slot. R is always a
+        # slice, and a quantity that cannot be sliced is not R -- keying it `mass` was
+        # the conflation, and declaring `of` honestly is what exposed it.
+        #
+        # Per-slot reporting would not repair this. Dividing a global score by slot
+        # manufactures a slice rather than finding one, which is the same defect
+        # installed deliberately, so the contract keeps returning one scalar.
+        shortfall = round(1.0 - deg_after, 4)
         self.led.record(self.cycle, "PERCEIVE", "@objective", "bet", channel=REWARD,
                         objective=name, degree=round(deg_after, 4),
-                        mass=round(1.0 - deg_after, 4), moved=round(deg_after - deg_before, 4))
+                        from_value=round(deg_before, 4), actual=round(deg_after, 4),
+                        shortfall=shortfall,
+                        moved=round(deg_after - deg_before, 4))
         self._route_reward(deg_after, deg_after - deg_before)
-        # the bracket channel: this env defines no coarse view, so it is inert. Stated.
-        self.led.record(self.cycle, "PERCEIVE", "@bracket", "bet", channel=BRACKET,
-                        mass=0.0, inert="env.transform() is None; no coarse view defined")
+        # the bracket channel: this env defines no coarse view, so it is inert. The
+        # cause was already here and it was in prose -- `inert=...` says CHANNEL_CLOSED
+        # in a sentence, on a row that then reported cause=None. The taxonomy is the
+        # field; the sentence stays because it names WHICH channel and why.
+        # ASKED, NOT ASSERTED. This row used to say `env.transform() is None` in a
+        # string and the loop never called it -- so a world that DID define a coarse view
+        # would have had the channel reported closed anyway, which is a cause stated
+        # without being observed. The contract member is now read.
+        #
+        # An explicit null, not a missing field: with no coarse view there is no value
+        # this bet could have been computed from. Those are different rows.
+        coarse = self.env.transform()
+        if coarse is None:
+            self.led.record(self.cycle, "PERCEIVE", "@bracket", "bet", channel=BRACKET,
+                            of=("@bracket",), from_value=None, actual=None,
+                            mass=0.0, cause=CHANNEL_CLOSED, coarse_view=False,
+                            inert="env.transform() returned None; no coarse view defined")
+        else:
+            # R_T IS A READING NOW. It is the round-trip loss of the view the agent is
+            # ACTUALLY USING -- `full` until INWARD exists, where it is measured to be
+            # zero rather than assumed to be. The offered alternatives are reported once
+            # per level, not per step: the set does not change within one.
+            rt, measured = self._round_trip(self._view[1], before)
+            self.led.record(self.cycle, "PERCEIVE", "@bracket", "bet", channel=BRACKET,
+                            of=("@bracket",), from_value=None, actual=None,
+                            mass=round(rt, 3) if measured else 0.0,
+                            cause=GENUINE if measured else CHANNEL_CLOSED,
+                            coarse_view=True, view=self._view[0], measured=measured,
+                            inert=None if measured else
+                            "the domain sweep is past budget: R_T is unmeasured, which "
+                            "is not the same as small")
+        self._integral += sum(r.mass for r in res.values())
         live = any(r.mass > 0 for r in res.values())
         self.drive.note_step(live)      # once per step: SUPPORT is over slots, not per slot
         self.chain.note_diff(live)
@@ -240,7 +409,7 @@ class Agent:
         total = 0.0
         for state, action, actual in hist:
             got = term.apply(state[slot], Ctx(action=action, operands=self._ops(term, state)))
-            total += correction_bits(got, actual, self.alphabet)
+            total += correction_bits(got, actual, self.alphabet[slot])
         return total
 
     def route(self, res: dict[str, SlotResidual]) -> list[tuple[str, str, str | None]]:
@@ -270,6 +439,54 @@ class Agent:
 
     # -- steps 3 to 5 -------------------------------------------------------------------
 
+    @staticmethod
+    def _alphabets(env) -> dict[str, int]:
+        """PER SLOT. A domain with one range declares one number and every slot gets it;
+        a domain whose slots differ declares the difference. The loop's code is uniform
+        either way -- that is the FORM, and it is the loop's; the SIZE is the domain's,
+        and there was never a reason it had to be a single size."""
+        a = env.alphabet()
+        if isinstance(a, dict):
+            return {s: int(v) for s, v in a.items()}
+        return dict.fromkeys(env.slots(), int(a))
+
+    def _residual_obs(self, slot: str, term: Term, hist: list) -> list:
+        """R, DESCRIBED: the observations the bound term got wrong. Step 2 already sorts
+        the residual and names what changed; this is the same object handed to step 3
+        instead of being recomputed as a scalar."""
+        out = []
+        for state, action, actual in hist:
+            got = term.apply(state[slot], Ctx(action=action,
+                                              operands=self._ops(term, state)))
+            if got % self.alphabet[slot] != actual % self.alphabet[slot]:
+                out.append((state, action, actual))
+        return out
+
+    def _cannot_pay(self, term: Term, slot: str, robs: list, cost: float,
+                    base: float) -> bool:
+        """A BOUND FROM THE RESIDUAL, not a guess about which atoms are needed.
+
+        correction_bits is binary, so |R|phi| is log2(V) times the count of observations
+        phi gets wrong, and `base` is that count over R. A term wrong on k of R is wrong
+        at least k times overall, so `cost + log2(V)*k >= base` proves it cannot pay --
+        at any history length, whatever it does on the rest.
+
+        Necessary, so nothing that would have paid or closed is lost. That is the whole
+        difference from the version that skipped operand-reading terms when R showed no
+        dependence on another slot: THAT reasons about what a term ought to need, and it
+        drops terms that read an operand without varying with it on the observed slice.
+        Measured, it lost a closing term. This cannot.
+        """
+        unit = math.log2(self.alphabet[slot])
+        wrong = 0
+        for state, action, actual in robs:
+            got = term.apply(state[slot], Ctx(action=action,
+                                              operands=self._ops(term, state)))
+            wrong += got % self.alphabet[slot] != actual % self.alphabet[slot]
+            if cost + unit * wrong >= base:
+                return True          # `wrong` only grows; the rest of R adds nothing
+        return False
+
     def _accumulated(self, slot: str, term: Term) -> float:
         """|R| over the slot's whole history. Accumulated, because the model cost is paid
         once and the savings scale with n -- which is what makes the bargain discriminate.
@@ -290,6 +507,14 @@ class Agent:
         UNINFORMED BY CONSTRUCTION, which is the safety property: a probe chosen by the
         current model can only confirm the current model.
         """
+        # SUPPORT AT ZERO REFUSES THE MODEL THE WHEEL. `bored()` means no slot carried
+        # live mass: the model explains everything it can currently see, and an action
+        # IT selects can only confirm it. So boredom does not pick a different draw --
+        # the draw was always uninformed and always the default, which is why `fires`
+        # counted 441 perturbations that changed no action. What it changes is who is
+        # allowed to choose, and 26 of those 441 steps were being steered by the model.
+        if self.drive.bored():
+            return self.drive.choose(self.actions, self.cycle), "probe"
         owed = [s for s in sorted(self.owed_import) if s in before]
         if owed:
             cands = list(islice(self.gamma.enumerate_closure(
@@ -297,7 +522,7 @@ class Agent:
             spread = {}
             for act in self.actions:
                 spread[act] = sum(
-                    len({t.apply(before[s], Ctx(action=act, operands=())) % self.alphabet
+                    len({t.apply(before[s], Ctx(action=act, operands=())) % self.alphabet[s]
                          for t in cands})
                     for s in owed)
             if spread and max(spread.values()) > min(spread.values()):
@@ -311,7 +536,9 @@ class Agent:
 
     def mint(self, slot: str) -> None:
         hist = self.history(slot)
-        base = self._accumulated(slot, self.gamma.library[self.bound.get(slot, IDN)])
+        held = self.gamma.library[self.bound.get(slot, IDN)]
+        base = self._accumulated(slot, held)
+        robs = self._residual_obs(slot, held, hist)
         guards = {"support": base > 0.0, "reachability": False, "novelty": False}
         cuts: list[dict] = []
         best: tuple[float, float, Term] | None = None
@@ -330,8 +557,17 @@ class Agent:
                                      "reason": "not-novel"})
                         continue
                     guards["novelty"] = True
-                    left = self._left(term, slot, hist)
                     cost = term_bits(len(term), self.gamma.alphabet)
+                    # LET THE RESIDUAL SAY WHERE TO LOOK. Walking the whole history for
+                    # every candidate is exhaustive search; R already names the
+                    # observations that need fixing, and a term that cannot fix enough of
+                    # them is refused without the walk. 6.7x less work over the panel and
+                    # nothing lost, because the bound is necessary rather than plausible.
+                    if self._cannot_pay(term, slot, robs, cost, base):
+                        cuts.append({"name": term.name, "rank": rank, "reversible": True,
+                                     "reason": "bounded-out: cannot pay on R alone"})
+                        continue
+                    left = self._left(term, slot, hist)
                     if not pays(cost, left, base):
                         cuts.append({"name": term.name, "rank": rank, "reversible": True,
                                      "reason": "does-not-pay"})
@@ -367,6 +603,8 @@ class Agent:
                 detail["verdict"] = "depth_exhausted"
                 detail["note"] = ("the whole space at this depth was seen and none paid; "
                                   "not at this depth, NOT unreachable")
+            if detail["verdict"] == "no_support":
+                self._starved.add(slot)
             if detail["verdict"] in ("budget_spent", "depth_exhausted"):
                 self.owed_import.add(slot)
                 self.abstained[slot] = {"depth": self.cfg.max_depth, "candidates": seen,
@@ -374,7 +612,7 @@ class Agent:
                                         "verdict": detail["verdict"],
                                         "units_then": stats.get("units", 0),
                                         "base_bits": round(base, 3)}
-            self.led.record(self.cycle, "MINT", slot, "park", **detail)
+            self.led.record(self.cycle, "MINT", slot, "park", of=(slot,), **detail)
             return
 
         left, cost, term = best
@@ -395,7 +633,7 @@ class Agent:
             detail["note"] = "pays but does not close R; the slot still owes"
         detail.update(term=term.name, term_depth=len(term), operand=term.operand,
                       term_bits=round(cost, 3), left_bits=round(left, 3))
-        self.led.record(self.cycle, "MINT", slot, "mint", **detail)
+        self.led.record(self.cycle, "MINT", slot, "mint", of=(slot,), **detail)
         self.led.record(self.cycle, "ACCEPT", slot, "accept", term=term.name,
                         origin=term.origin, seq=len(self.led),
                         status="candidate", cited="no: candidate may be held, not cited")
@@ -479,6 +717,17 @@ class Agent:
                        "was": rec.get("verdict"), "via": how,
                        "cross_level": cross, "parked_on": rec.get("level")}
                 self.retro.append(out)
+                # SHADOW AND ECHO, and the sweep was throwing the verdict away. The
+                # target's residual is on the record before this term was accepted --
+                # `hist` is evidence already paid for -- and the term closes it on a slot
+                # it was not minted for. That is the pair, and it queues for step 6.
+                if slot != origin_slot or cross:
+                    self._promotions.append((name, {
+                        "target": tkey, "parked_on": rec.get("level"),
+                        "observations": len(hist),
+                        "recorded_before": self.gamma.stamps[name]["seq"],
+                    }, {"closed": True, "slot": slot, "minted_for": origin_slot,
+                        "cross_level": cross, "via": how}))
                 # charged to the ORIGIN's chain, not the target's: the sweep is not the
                 # target slot's per-step loop running a second time, it is part of what
                 # happened when the origin minted. The target is named, not impersonated.
@@ -511,6 +760,7 @@ class Agent:
                     self.demoted.append(name)
                     self.led.record(self.cycle, "SETTLE", slot, "demote", term=name,
                                     status="candidate",
+                                    asked=[name, slot], ground_said=False,
                                     verdict="mispredicted on fresh evidence",
                                     rejections=round(self.gamma.rejection_of(name), 3),
                                     note="defeasible: the rejection decays and it may settle again")
@@ -527,8 +777,14 @@ class Agent:
                 continue
             self.gamma.settle(name)
             self.settled.add(name)
+            # WHAT WAS ASKED AND WHAT CAME BACK. The question is `does this term
+            # predict a transition it was never fitted to`, and `r.mass == 0.0` on a
+            # cycle later than the one it was minted on IS the answer. Both facts were
+            # here; neither was on the row, so a frame that never asked and one the
+            # ground paid arrived looking the same.
             self.led.record(self.cycle, "SETTLE", slot, "settle", term=name,
                             status="accepted",
+                            asked=[name, slot], ground_said=True,
                             verdict="held on a transition it was not fitted to",
                             held_out_cycle=self.cycle, fitted_through=born)
 
@@ -612,18 +868,40 @@ class Agent:
                                 status="candidate", note="refit; the library did not change")
             elif b == MECHANISM:
                 self.mint(slot)
-        if self.drive.bored():
-            self.led.record(self.cycle, "MINT", "@probe", "probe",
-                            **self.drive.report(), guards={"support": False,
-                                                           "reachability": False,
-                                                           "novelty": False},
-                            note="density(R) at zero on the transition channel; perturbing")
+        if by == "probe":
+            # ONE ROW PER SLOT THAT ASKED FOR IT, and `@probe` only when the trigger was
+            # the global reading rather than any particular slot. It used to be `@probe`
+            # always, so a slot parked at no_support could never be matched to the probe
+            # that answered it -- which is what B5 reads, and it was failing on it.
+            for slot in sorted(self._starved) or ["@probe"]:
+                self.led.record(self.cycle, "MINT", slot, "probe",
+                                **self.drive.report(),
+                                guards={"support": False, "reachability": False,
+                                        "novelty": False},
+                                note="support at zero; the model does not choose this one")
+            self._starved.clear()
+        if self.drive.never_live(len(self.actions)) and not self._said_never_live:
+            # NAMED, AND THE REMEDY IS NOT BUILT. Every action has been drawn and no slot
+            # has ever carried mass, so either the world is static or the slots do not
+            # reach what moves -- indistinguishable from here. The second is
+            # CHANNEL_CLOSED about the INTERFACE, and its remedy is step 7 INWARD, which
+            # does not exist. Recording it beats a silent zero.
+            self._said_never_live = True
+            self.led.record(self.cycle, "IMPORT", "@instrument", "unreached",
+                            observations=self.drive.n, tried=sorted(self.drive.tried),
+                            slots=sorted(self.slots),
+                            verdict="no slot has ever carried live mass and every action "
+                                    "has been drawn",
+                            remedy="step 7 INWARD: a slot set that reaches what moves",
+                            built=False)
         self.settle(res)
+        self._promote()
         _, degree = self.env.objective()
         self.clocks.note(not self.owed_import and bool(self.bound),
                          1 if degree >= 1.0 else 0)
         self.cycle += 1
         self.led.record(self.cycle - 1, "REPEAT", "@loop", "repeat",
+                        integral=round(self._integral, 3),
                         phase=phase, by=by, stage=self.chain.seg.stage(),
                         gamma_size=len(self.gamma.library), owed=sorted(self.owed_import))
         return True

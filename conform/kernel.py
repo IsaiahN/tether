@@ -698,7 +698,12 @@ NO_BEHAVIOUR = {           # the frame does not do this yet; nothing to check
 NO_EVIDENCE: dict[str, str] = {}   # emptied: A7, B2 and B3 are built, each on one
 #                                    field added to a row the frame already wrote
 STRUCTURAL = {             # a property of the code or the type, invisible to any record
-    "A1": "closure generated not stored -- a property of the type",
+    "A1": "closure generated not stored -- a property of the type, and invisible to any "
+          "record. THE STATIC SEAT CATCHES IT: lint's REACH checks the two things storing "
+          "the closure would have destroyed -- accept() as the library's only writer, and "
+          "enumerate_closure as the only thing that extends an atom sequence. `nothing is "
+          "stored` was a proxy and it was the proxy that could not be expressed; the "
+          "property can.",
     "A9": "the reference is not the subject -- the seam; a record cannot prove it",
     "B13": "the ground is not a frame -- the record sees its answers, never its nature",
     "A6i": "ONE label covering TWO mechanisms -- A6 inverted. A6's subject is a PAIR of "
