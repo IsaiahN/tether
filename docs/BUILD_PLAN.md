@@ -296,6 +296,22 @@ Ordering matters; the sizes are a guess and carry no provenance.
 **Target: under 1,500 lines total.** v1–v6 died of weight. If a stage is pushing that,
 the design is wrong rather than the estimate.
 
+**READ 2026-08-26, AND IT FIRED. 2,374 lines** across the nine — 1,785 discounting blanks
+and comments. **`tether.py` is 936 of them, 39% of the package, against an estimate of
+*medium*.** The stage pushing it is stage 3, which is the loop.
+
+**Most of the overshoot is one week's work: net +388 across the nine, +278 in `tether.py`.**
+The residual bound, cite/hold, the A4 cause codes, `R_T` as pre-image bits, per-slot
+alphabets. Every one derived from the corpus, every one justified on its own, **and this
+line says that is exactly the condition under which to distrust them.** It is failure
+mode #1 in `CLAUDE.md`, and the audit that produced the additions did not measure weight
+because the number lives here and nothing reads it.
+
+**Recorded rather than acted on.** Subtracting to a target is how a number gets gamed; the
+finding is that the design is carrying more than it was meant to, and the next build should
+close a mechanism rather than open one. **The falsifier was pinned before the work and read
+after — which is the only order in which it could have said anything.**
+
 ---
 
 ## 8. What actually happened

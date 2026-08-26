@@ -85,6 +85,118 @@ Two readings are available even before that, and both are readable without any w
 **Target for the whole plan: a run that produces both readings honestly, on a real game.**
 Winning is downstream of that and is not the deliverable.
 
+### And what an ARC result can and cannot test — stated before the run, not after
+
+`DISCOVERY` Q27 tiers domains by the quality of their anchor, and the tier decides what a
+result means:
+
+| domain | anchor | quality |
+|---|---|---|
+| an interpreter, a proof checker | does it evaluate correctly | **near-perfect** — mechanical, instant, unarguable |
+| **a rover, a game, a puzzle — ARC** | did it reach the goal | **good** — sparse, slow, does not negotiate |
+| "is this a good answer for a person" | human judgment | **poor** — it updates, which is Figure 2 collapse 1 |
+
+> **A crisp-ground domain tests the MACHINERY. A poor-ground domain tests the ALIGNMENT
+> CLAIM. Doing both at once teaches nothing about either.**
+
+**`snaps` is the top tier** — exact match on the next state, mechanical, instant,
+constitutive. **ARC is the middle.** So the ARC run is a step DOWN in ground quality and it
+**tests machinery**, which is the correct order Q27 prescribes: prove the loop where the
+anchor cannot be talked to, then move outward.
+
+**The consequence to state now:** a strong ARC score is evidence about the machinery and
+**is not evidence for the alignment claim, which is the project's stated goal.** That
+misreading is available to any reader and to us, and it is cheaper to head off here than to
+correct in a write-up.
+
+**But the alignment claim does NOT need a poorer ground, and a first draft of this section
+said it did.** Alignment here is triangulation: **the system shows its reasoning, the human
+shows theirs, neither is the anchor, and the ground settles it.** A disagreement then has
+exactly two causes -- **the human holds context the library does not** (an import: name what
+is missing and supply it) or **something else is weighting the decision**, risk or reward or
+the cost of being wrong, which is **not a disagreement about the world** and was never
+derivable by the system. **Both are locatable only if the reasoning is legible**, which is
+why a black box leaves only override or defer, and neither is alignment.
+
+**So what the alignment claim needs is not a POOR ground. It is a ground THE AGENT CANNOT
+SEE**, scored over **the agent's report rather than over its answers** — and that is a
+weaker requirement, already implemented:
+
+    unreachable in fact  : ['opaque']   (harness knows; the agent is not told)
+    agent abstained on   : ['opaque']
+    correct abstentions  : 1/1        FALSE abstentions : 0/6
+
+**`demo.py` runs it today** on a top-tier ground. **The missing domain is that arrangement
+at scale — withheld ground, report-scored — which is buildable and much smaller than a test
+of values.**
+
+### And the second thing the ARC move gives up, which is not the tier
+
+`ARC_AGENT` §5: **Stage 2 gave slots BY NAME on purpose** — *a gridworld tests perception
+and the loop at once, which is two experiments in a trench coat* — **so that a failure was
+unambiguously a LOOP failure.** That was a designed property, bought by refusing a
+perception layer.
+
+> **ARC removes that choice. Slots have to be found.**
+
+**So the move does two things at once, and they are independent:** a tier down in ground
+quality, **and the perception confound reintroduced.** An ARC failure will not be
+unambiguously a loop failure — it may be a segmentation failure wearing one.
+
+**This is a designed property being given up, not a limitation being accepted**, and the
+difference matters for how a null reads. **State it before the run**, for the reason the
+tiering is stated before the run: **a caveat that arrives after a result reads as
+excuse-making, and the identical sentence written beforehand reads as design.**
+
+**And one mechanism changes disposition on the way in.** `R_T` has produced **zero readings
+in this repo, ever** — `world` supplies no `transform()`, and `snaps`'s domain sweep needs
+16,807 against a 4,000 budget, so every reading is the capped case. **In ARC it is
+`logical_grid`'s admission criterion**: commit to a detected board only if the round trip is
+near-lossless, `None` otherwise, with `1 − fidelity` as `R_T`. **That is a fidelity number
+over a detected grid, so the reason it is unmeasured here does not apply there.** It moves
+from *a mechanism that has never measured anything* to **a mechanism whose first real
+reading is in this build**, and those have different dispositions.
+
+### And one capability ARC GIVES, which must be labelled as borrowed
+
+The move is not all cost. §21.1: everywhere else in this design the agent gets
+**observational** data — it acts, the world moves, it reads the gap — and *correlation is
+cheap; causation is not, **because you can never re-run the same moment.***
+
+**A level-resetting loss breaks that, and it is the only place in the whole loop where a
+controlled experiment is available:** same starting board, vary exactly one action, observe
+the difference. That is *disambiguating intervention* (Schulz & Bonawitz) and causal
+structure learning from intervention (Gopnik) — the machinery that separates `A→B` from
+`A and B co-occur`.
+
+> **But its precondition is that THE GAMES ARE DETERMINISTIC, which is a property of the
+> domain and not of the design.**
+
+**So label it borrowed.** The only controlled experiment the agent can run is a gift from
+ARC, and **it evaporates in any domain that is not deterministic.** A capability that
+depends on a domain property must be marked as such **before anything is built on it as if
+it were structural** — otherwise the next port silently loses causal inference and nobody
+knows which assumption went missing.
+
+### And the shadow test, turned on this project's own choice of ARC
+
+`DISCOVERY` Q26 closes the eight-slot contract by applying the framework to its own porting:
+
+> **Was there a residual in this domain already unexplained that the framework predicts, or
+> did we go looking for somewhere to put it? Echo without shadow is apophenia, INCLUDING
+> when the thing being ported is this framework.**
+
+**Answerable, and not answered in writing.** It is the first question a reviewer asks, and
+having the corpus ask it is worth less than having it answered. **Answer it before the run,
+for the same reason as the tiering above.**
+
+**One negative result belongs with it**, per `PHILOSOPHY` §15's instruction that it travel
+with the hypothesis rather than behind it: **ARC game-shapes do not predict solving
+primitives, measured three ways.** That gate came back negative. §15.3's retrieval keys on
+**residual shape** rather than on game, which is exactly what the negative implies — so the
+design already complies, and **a design choice separated from the evidence that forced it
+reads as a preference.**
+
 ---
 
 ## 2. The organizing principle, which already worked once
