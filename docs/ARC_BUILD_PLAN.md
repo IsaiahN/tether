@@ -157,6 +157,80 @@ over a detected grid, so the reason it is unmeasured here does not apply there.*
 from *a mechanism that has never measured anything* to **a mechanism whose first real
 reading is in this build**, and those have different dispositions.
 
+### How the test works, and what it establishes  ·  `[I]`, 2026-08-27
+
+**THE TEST IS NOT THE SCORE.** A zero can mean the theory is wrong, **or four wiring
+defects in sequence.** §22.6 says it plainly — *a wiring gap gets written up as a theory
+failure* — and that is what happened to `g7` for a month.
+
+> **So the deliverable is the score PLUS a chain that says where it stopped.**
+> `RESIDUAL_EMPTY` indicts perception. `MINTED_UNUSED` indicts the architecture.
+> **Same zero, different verdicts, and only the instruments separate them.**
+
+**And the narration is what makes a loss legible.** A failure that names the step — *ROUTE
+sorted this into mechanism when it was rebinding*; *the mint offered nothing and SUPPORT was
+the zero* — is a finding. A failure that says *it did not work* is not. **That is why the
+whitebox requirement was never a constraint on winning: it is what makes the result mean
+something either way.**
+
+#### The ablation, and what it isolates
+
+**Wipe the learned library. Keep the ability to describe.** §23.4's stratified clause
+sharpened by §15.2 — the agent forgets these games and retains its priors, its primitives,
+and its capacity to characterise a residual and search.
+
+> **Which separates two claims that keep getting conflated: does this agent know these 25
+> games, versus DOES THIS LOOP LEARN GAMES.** The first is worthless for the private set.
+> The second is the thesis.
+
+**Anything less than clean is diagnostic rather than a failure**, because the stage code
+says where each one stopped.
+
+#### The limit of that test, and how to answer it
+
+**The agent forgets. THE ARCHITECTURE DOES NOT.** Every design decision that survived is one
+that helped on these 25, so ablation shows the loop can **rediscover**, not that it
+**generalises**.
+
+**But if the theory is sound there should be very few decisions of that kind, and that is
+COUNTABLE rather than a matter of confidence.** The distinction that decides each one:
+
+| | |
+|---|---|
+| **a game showing you something is broken** | **legitimate** — that is the residual doing its job |
+| **a game telling you what to build** | **the leak** |
+
+**And the test is whether the fix generalises:** *bindings come from contact* is general;
+*this game needs a wall detector* is not.
+
+> **So the count worth running is: HOW MANY MECHANISMS WOULD HAVE BEEN BUILT THE SAME WAY
+> WITH NO GAMES AT ALL?** If it is most of them, the architecture is derived and the
+> ablation result means what we want it to mean.
+
+**§13.4 already identifies the honest exceptions** — three archetype-derived files against
+six domain-general, with the corpus flagging those three as the seductive ones. **Quarantined
+rather than invisible, which is the right state for them to be in.**
+
+#### The arbitration, and why the position is legitimate
+
+**A human arbiter rules on gaps and exceptions**, because the corpus is a theory under test
+and nuances may be needed.
+
+**The corpus's own rule is that a maker checking their own work is the soundness condition
+failing, so the position needs its warrant stated or the seat will notice the tension:** the
+arbiter is **outside the slice being graded**, and the ground is **`levels_completed`, which
+the arbiter cannot move.** That is what makes it sound rather than special pleading.
+
+**Each exception is a ROW, not a judgement** — granted at the step that failed, with the
+evidence that prompted it and **what would have shown it wrong.** A ruling carries provenance
+so a later reader can locate the error rather than only feel it.
+
+> **The failure mode to guard is the anchor updating on what the frame produced** — an
+> exception granted because a mechanism failed and the theory feels right. **The narration is
+> what makes that auditable afterward by someone who did not write the corpus.**
+
+---
+
 ### Reconciled against `ARC-AGI-3-Agents` source, 2026-08-26
 
 The repo is checked out now. It had been read second-hand from notebooks, and **two things
