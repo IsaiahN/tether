@@ -21,6 +21,7 @@ import sys
 import numpy as np
 from arcengine import FrameDataRaw, GameState
 
+import arc_atoms
 import arc_lens
 import arc_percept
 import arc_run
@@ -99,6 +100,16 @@ def _fidelity(state, palette):
 
 def main() -> None:
     atoms = _atoms()
+
+    # 3b. THE THREE SPACES, and the number that has never meant anything until now. §11.3:
+    # *the instrument was working in the toy world; it just had nothing to measure.*
+    one = gamma.Gamma(atoms).type_report()
+    three = gamma.Gamma(arc_atoms.three_spaces(atoms)).type_report()
+    print(f"  lambda, one space   : {one['lambda']} = V {one['V']}, {one['types']} type"
+          f"   (the Stage 1 falsifier firing)")
+    print(f"  lambda, three spaces: {three['lambda']} < V {three['V']}, {three['types']} types"
+          f"   advantage/depth {three['advantage_per_depth']}")
+    assert three["lambda"] < three["V"], "3b's done-when: lambda < V with a real ratio"
     probe_board = FakeWrapper().reset().frame[-1]
     names = sorted(cells(probe_board))
 

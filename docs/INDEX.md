@@ -638,6 +638,78 @@ a finding.
 
 ---
 
+# `3b` — BUILT 2026-08-27. `λ < V` for the first time, and the falsifier stops firing
+
+**`arc_atoms.py`: EXTRACT + RELATE + QUANTIFY, joined to whatever PREDICT the domain
+supplies.** Measured side by side in one run:
+
+    one space    lambda 3.0 = V 3.0,  1 type    <- the Stage 1 falsifier, firing
+    three spaces lambda 3.0 < V 14.0, 4 types   advantage/depth 4.67
+
+> **The falsifier that has fired for this project's entire life stops firing**, and §11.3
+> called it exactly: *`λ = V = 7`, because every atom was `val → val` and the type graph was a
+> single node ... **the instrument was working; it just had nothing to measure.***
+
+### The machinery needed nothing new
+
+**`enumerate_closure(in_type, out_type, ...)` was already type-directed and `Atom` already
+carried `in_type`/`out_type`.** What was missing was an atom set whose types are not all
+`val → val`. **A whole phase item turning out to be an atom set rather than a mechanism** —
+fourth instance today of work that exists and is filed elsewhere.
+
+> **AND THAT SAYS SOMETHING ABOUT THE PLAN'S UNIT.** `[I]`: **the tables list CAPABILITIES, and capabilities and mechanisms are not the same unit.** Three of the four times, **the mechanism was present and the capability was not** — the type-directed closure without varied types, the seven sensors without the item that lists them, the retro sweep without a level trigger. **So *is it built* is the wrong question to ask a row; *what does it still owe* is the right one**, and the two differ most where the mechanism is finished.
+
+### And the graph connects, sparsely, in the right place
+
+    OBJ  -> ATTR   colour, row, col                 the extractors
+    OBJ  -> PRED   colour . same, colour . other    extract then relate
+    OBJ  -> OBJ    colour . same . all              THE FULL CHAIN
+    val  -> val    idn, inc, dbl                    PREDICT, separate
+    ATTR -> val    0 found                          <- the sparsity is REAL
+
+**`ATTR` does not reach `val`**, so a search in one space does not drown in the other — which
+is *most primitives do not compose with most others*, measured rather than asserted. **And
+`colour . same . all` is an `OBJ → OBJ` term: an objective that can be POSED**, which §11.2
+says is impossible without extractors. Figure 3's link 2, unbroken.
+
+### Two things it does not do, said rather than discovered later
+
+**The extractors are `2b`'s sensors WRAPPED, not rewritten** — `colour`, `row`, `col`, `h`,
+`w` come off the component dict `arc_percept.components` already builds, because a second
+`position` would be the reinvention no grep can see.
+
+**And operand TYPING is `0a`'s and stays parked.** `gamma` types an atom's input and output
+and not its operand, so §11.2's `ATTR × ATTR → PRED` is expressed as `ATTR → PRED` with an
+operand-reading atom. **The type GRAPH is what `λ` is computed over and it is sparse either
+way — but the second argument's type is unchecked**, and saying so now is cheaper than
+discovering it at `3c`.
+
+---
+
+# THE AGENT DIAGNOSES LINK 2, AND §11.2 PREDICTS LINK 2 — independently
+
+**`demo.py`, measured:**
+
+    stopped at link : 2 - vocabulary (measured: 1 slot(s) unreached at budget)
+
+**§11.2, written before it:** *without extractors there are no attributes; without attributes
+no predicates can be stated; without predicates no objective can be posed* — **Figure 3's
+chain breaking at LINK 2, exactly where the figure says chains usually break, *because it
+attracts the least attention and the fewest instruments*.**
+
+> **These agree and neither is derived from the other.** The demo's link code is computed from
+> the loop's own state — no slot owes, is anything bound, did anything settle — and reports
+> the first link that fails. §11.2's claim comes from the composition spaces and the absence
+> of `grid × object → ATTR`. **Two routes, one link.**
+
+**Which is a stronger argument for taking `3b` first than the ordering was.** The ordering
+says `3a` is unreadable without `λ`; this says **`3b` is work on the link the agent's own
+instrument reports itself stopping at.** A self-report that agrees with an independent
+prediction is the one case where the self-report carries weight — *a frame cannot score itself
+with a quantity it produces*, and here the corroboration comes from outside the frame.
+
+---
+
 # `3b` CHECKED — two of §11.2's three statuses have moved since it was written
 
 **§11.2 is `3b`'s real spec, and it is sharper than the Phase 3 table:**
