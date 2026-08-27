@@ -11,6 +11,50 @@ and the source says more than the code does.
 `ok` the code matches the source · `gap` the source specifies more · `wrong` the code
 contradicts it · `open` specified, not built
 
+## The two fields — `kind` and `provenance`, INSTALLED 2026-08-27 as a rule, not a stamp
+
+**The obvious build was 202 hand classifications. `git blame` makes that unnecessary and
+worse.** Per-row commit and date are already recorded, so **the provenance of every existing
+row is a FACT recoverable from history rather than a judgement made in one sitting.** The
+fields say where to look and mark the boundary.
+
+**`kind`** — `mechanism` · `measurement` · `citation`. **Only `mechanism` rows are in the
+count.** A measurement sourced to *measured, 12 worlds* has no corpus citation and is not a
+leak; it is not a mechanism at all, and counting it as one is what made the first attempt
+read 74% and mean nothing.
+
+**`provenance`** — four values, because *invented with no source* is not automatically bad:
+
+| value | what it means | how it is decided |
+|---|---|---|
+| `derived` | the corpus specified it, then it was built | the citation predates the code in history |
+| `found` | it was built, then traced to the corpus | **the citation POSTDATES the code** — `lint.py` records this as the sixth law's own shape: *every one of these was built first and found afterwards* |
+| `chosen` | it fills a design space the corpus MARKED and did not settle | the corpus rules out wrong answers and leaves choices; a decision is not a leak |
+| `unattributed` | no source and no marked space | **the population to examine.** Not automatically wrong either — but it is where a game leak would live |
+
+### The watermark, and why it is a commit rather than a stamp
+
+**Every row in this file today was written before any game was played.** That is not an
+opinion — no adapter exists, `2a` has not started, and `git blame` dates every line. So:
+
+> **WATERMARK: unset. It becomes the FIRST `2a` COMMIT, recorded here at the moment `2a`
+> begins.** Every row at or before it is `pre-game` by construction. Every row after it
+> carries `provenance` explicitly, and `unattributed` after the watermark is the one
+> combination that must be justified rather than noted.
+
+**A watermark is checkable and a stamp is not.** `git blame docs/INDEX.md` against one commit
+hash answers *was this row written before any game* exactly, for every row, forever — and it
+keeps answering after the memory that would have supplied a hand stamp is gone. **Which is
+the point: the fact decays, and git is where it does not.**
+
+> **SO THE DEADLINE DISSOLVES RATHER THAN BEING MET, and the board item changes shape.**
+> The clock was on the MEMORY, and a watermark does not need it. **These two fields no
+> longer stand BEFORE `2a` — `2a` RECORDS the watermark as part of itself.** Nothing is
+> gated on them, and treating them as a blocker would be holding up a phase for a fact
+> that git already keeps.
+
+---
+
 **AND THE COUNT THIS FILE IS SUPPOSED TO BE THE INSTRUMENT FOR, WHICH IT CANNOT YET RUN.**
 `[I]`: ablation shows the loop can REDISCOVER, not that it GENERALISES, because *every design
 decision that survived is one that helped on these 25* — **so the count worth running is how
@@ -177,6 +221,7 @@ honestly: the `ARC-AGI-3-Agents` repo *is not checked out anywhere locally*, so 
 | **the retro sweep + level-completion credit** | `ARC_AGENT` §21.3 | **built, and its ARC consumer is specified.** Seven levels means **seven separate positive settlements, not one**, so the reward channel is sparse but is not the single bit a game win would be. But **a level completes at step 500 and the last action did not cause it — the trajectory did**, so crediting the final action is the delayed-effects bug at the scale of a whole segment. **The sweep is the mechanism**: on completion, re-examine the segment for which hypotheses were live, which terms had settled, which residuals closed along the way — **retrospective credit over a RECORDED history, costing no actions.** `tether` already emits `retro` rows for exactly this operation on residuals. **The mechanism exists; the level-completion trigger does not** |
 | **COMPETITION collapses reset and advance — and names where the discriminator lives** | `ARC_AGENT` §1 | **the fact the withdrawn boundary build needed.** Kaggle **forces COMPETITION and it cannot be opted out of**: `make` may be called **exactly once per environment**, the scorecard cannot be read mid-run, and **game resets SILENTLY BECOME LEVEL RESETS.** So the platform hands the agent one signal for two events. The loop's level-change handler fires either way — it clears `bound`, `trace`, `owed_import`, `abstained`, `candidates` and keeps Γ, on the stated ground that *a new level is a new instrument: the verdict was about the OLD slot set* — **and cannot tell an advance from a reset-after-loss.** **Reset-versus-advance was the stated discriminator the boundary revert turned on**, and §1 says where it must come from: **`levels_completed` is in the frame**, which is also why the mid-run reward signal cannot come from the scorecard. **Nothing in the loop depends on re-making an env, so that half is satisfied by construction** |
 | **RULED 2026-08-27 — availability is state-conditioned, and `never_live` claims too much** | Isaiah | **the ruling that unblocks Phase 2, and it changes the shape of the fix rather than only the denominator.** `[I]` *if an action suddenly becomes available or unavailable, **it is because a condition of some sort has been met or unmet**.* **So availability is BOTH** — an observation about the world, because a change in it carries information about a condition; **and** level-scoped, because conditions are level-specific. Not either/or. **AND THE SECOND HALF IS THE SHARPER ONE.** `[I]` *if an agent tries all the available moves and nothing changed, **it is possibly stuck somewhere (like trapped by walls) or it does not understand what state or mode itself or the game board is in that requires a particular move OR SEQUENCE that it has not done**.* **So `never_live` firing has THREE causes and the row collapses them into one**: the instrument is dead; the agent is positioned where actions look inert (Q18's wall); or **the required thing is a SEQUENCE and the denominator is over ACTIONS.** **Trying every action individually and seeing nothing does not exclude a two-action sequence doing something** — so *I drew every action on offer and nothing changed* is a positive bound over SINGLE ACTIONS being read as a bound over WHAT THE AGENT CAN DO. **Those differ by exactly composition, which is §15.5's verb gap**, and the cheap correct move is to narrow the claim to what it supports rather than wait for routines |
+| **`0a` operand arity — PARKED 2026-08-27, ruled** | `ARC_BUILD_PLAN` Phase 0 · Isaiah | **not built, and the reason is measured.** `0a` wants arity N with cap 4. **`Ctx.operands` is already N-ary; only `Term.operand` is unary — so the work is binding-side only.** But **only `take` reads an operand and it reads `operands[0]`. NOTHING READS INDEX 1.** So the loop half alone is **structurally complete and observably inert**: 32% of closure yields read an operand (185 of 584 at depth 3), bindings per candidate would go **5 → 65**, and per-mint binding work **925 → 12,025 — 13× for zero capability** until an atom consumes past index 0. **And the atom that would is the DOMAIN's, not the loop's.** Appending one honours the atom-order pin, but the atom COUNT moves `space_estimate`, `coverage`, `λ`, `V` — **and every number on this panel was measured under the current set**: the false-mint rate, the exponent, chunk reuse, the transfer curve. **Phase 3d replaces the atom set with grid transforms anyway, so a toy-world operand-1 atom is scaffolding for a panel that gets replaced.** **Ruled: neither half until Phase 2 says what an interaction looks like on a real board** — the same argument that made the availability row a plain event |
 | **`actions()` is a fixed tuple; ARC's action set varies per frame** | `ARC_AGENT` §2 · **and §15.7 says what the growth IS** | **BLOCKING FOR ARC, and it is `never_live`'s SECOND unsound premise.** `FrameData.available_actions` is **raw ints that change per frame**. The `Env` contract is `actions() -> tuple[str, ...]`, read once, and **`never_live(len(self.actions))` gates on that fixed count** — so *I drew every action on offer* is computed against a total that no longer means what it meant. **This is independent of the `tried`-has-no-state defect and stacks with it**: one makes *every action tried* insensitive to WHERE, the other makes it insensitive to WHEN. **And TID251's own message anticipates only GROWTH** — *add `actions()` to the Env contract and grow it through step 7* — which is monotone. **ARC's set also SHRINKS**, and an action becoming unavailable is not the same event as one never having existed. **AND §15.7 RULES ON THE GROWTH DIRECTION**: *IMPORT was closed for a lone agent, and is now **open via nature — action-set growth and value-domain growth ARE IMPORT EVENTS, and should be recorded as such.*** So a widening action set is not a contract violation, it is **step 7 firing**, which is exactly where TID251's message already points it. **Shrinkage still has no home** |
 | **the ground is `levels_completed`, and there is no score** | `ARC_AGENT` §2 | **the eight-slot contract's `ground`, named from the package rather than from prose.** `FrameData` has **no `score` field** — a sample notebook records having to replace `latest_frame.score` with `levels_completed`. **`levels_completed == win_levels` is a game win, which is the terminal condition's first clause already in `CLAUDE.md`.** And the frame carries **`full_reset: bool`** alongside `levels_completed`, **which refines the row above**: COMPETITION collapses the two events in the API's SEMANTICS, and the frame still carries both fields to tell them apart |
 | **`frame` is a stack, and the settled board is `frame[-1]`** | `ARC_AGENT` §2 | **a trap with a receipt.** `frame: list[list[list[int]]]` is **3-D — a STACK of 2-D grids, not one grid** — and the animation plays oldest to newest. `new-horse`'s `unwrap_frame` worked it out the hard way and wrote down why: **acting on `frame[0]` means betting on a board the world has already left.** Which is the bet-side error the whole loop is built to make impossible, available for free through a shape assumption |
