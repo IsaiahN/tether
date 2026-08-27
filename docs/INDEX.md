@@ -638,6 +638,51 @@ a finding.
 
 ---
 
+# PHASE 3 CHECKED BEFORE ORDERING — and it is NOT the same shape as the owed greens
+
+**Fifth item the check has been applied to, and it found two things.**
+
+### 1 · `λ < V` IS gradeable by Phase 3 itself — my row read as though it were blocked
+
+The index said Phase 3b's done-when *cannot be graded here at all*, which is true of `snaps`
+and reads as though Phase 3 were stalled like the two owed greens. **It is not, and §11.3 says
+why:**
+
+> *The Stage 1 falsifier fired in the toy world: **`λ = V = 7`, because every atom was
+> `val → val` and the type graph was a single node.** With three spaces the graph is genuinely
+> sparse — `grid → ATTR`, `ATTR × ATTR → PRED`, `PRED → OBJ`, `slot × action → slot` — and
+> most primitives do not compose with most others. **`λ < V` for real, and the number starts
+> reporting something. The instrument was working in the toy world; it just had nothing to
+> measure.***
+
+**The types come from `3b`'s OWN DESIGN, not from the domain.** So Phase 3's done-when is
+supplied by Phase 3 — **a real difference from contact ranking and `never_live`, which need a
+board nobody can author.** One waits on a file; the other waits on itself.
+
+**And the closing line is the corpus ahead again**: *the instrument was working; it just had
+nothing to measure* is the panel-cannot-exercise pattern, **written about `λ` before `λ` was
+measured.**
+
+### 2 · SEVEN OF THE NINE MINIMUM SENSORS ARE ALREADY BUILT
+
+`3a`'s first clause is *the nine minimum sensors, typed, total with `NOT_RESOLVED`, priced*.
+**Seven landed under Phase 2's item numbers**, at `2b` and `2c`:
+
+    1 components  BUILT     2 colour   BUILT     3 position  BUILT
+    4 extent      BUILT     5 shape    BUILT     6 overlap   BUILT
+    8 touching    BUILT     7 delta    NOT       9 changed   NOT
+
+**Nobody would have known**, because the work is filed under the items that needed it rather
+than under the item that lists it — **the same shape as §19's two halves, fixed months apart
+under different numbers and connected only by §19's own title.**
+
+**What `3a` still owes** is `delta` and `changed`, the typing and totality with
+`NOT_RESOLVED`, the pricing — **and its real blocker is unchanged**: *load generously across
+the six loadable shapes, all stamped `prior`*, which runs through the **molecules path that
+has zero call sites**, with **the Cyc pre-emption still unwritten.**
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
