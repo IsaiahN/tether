@@ -637,6 +637,48 @@ a finding.
 
 ---
 
+# `R_T` WORKS — 2026-08-27, and it was the invented quantity all along
+
+**`2c`'s first move was a fix, not a build.** `PHILOSOPHY` §0.3 and §16.1 say it twice, in
+the same words: ***`R_T` is the gap between `x` and `T_E(T_A(x))`*** — guaranteed
+non-negative by the extensive law, *the measurement of what the coarser description cannot
+hold*. **That is LOCAL**: the loss on the state actually sent, O(slots), no budget.
+
+**What was built counted the PRE-IMAGE** — how many concrete states share a coarse one —
+which is a GLOBAL property of the view and needs a domain sweep. **Different quantity, and
+the sweep is why R_T never produced a reading anywhere**: 8.24e+05 on the toy world against a
+4,000 budget, 1.68e+04 on `snaps`, 3.32e+13 on a 4x4 board, past float range on 64x64.
+**Ninth-plus instance of the sixth law, and the most expensive: the corpus specified the
+instrument, the build did something else, and the something-else made it unmeasurable
+everywhere.**
+
+**FIRST WORKING READINGS IN THE PROJECT**, and they order the views by what each loses:
+
+    full          0.000    lossless
+    drop:sN       2.807  = log2(7), exactly one slot's whole code
+    merge:sX+sY   5.615  = two slots
+    parity, half 14.037  = all five, since correction_bits is binary
+
+**And the `measured` flag is gone with the sweep** — it guarded a cap, there is nothing to
+cap, and leaving it would have been a branch that cannot fire. On the panel: **360 bracket
+rows, all reading 0.000, because the view in use is `full`.** That is the same number it
+always showed and it now means something different — **before, zero meant UNMEASURABLE;
+now it means the view lost nothing**, which is what the code comment always claimed: *`full`
+until INWARD exists, where it is measured to be zero rather than assumed to be.*
+
+**THE FIX CAUGHT A BUG IN ITSELF, and it is the same direction error twice in one day.**
+First implementation read **`drop:s0` as 0.000 bits** — a view that DROPS a slot, scoring
+lossless. The cause was a tolerant fallback: reconstructing a missing key from the true value
+lets `T_E` recover exactly what the view discarded. **A dropped slot costs its whole code.**
+Identical in shape to `_applies` this morning, where dropping unevaluable frames would have
+made a term evaluable on half a history read as a perfect explainer. **Both were caught by
+looking at whether the numbers moved, not by review.**
+
+**No regression:** 1/1 correct and 0/6 false abstentions, 1,463 compositions, mint 20 /
+settle 6.
+
+---
+
 # `2b`'s detector does not exist, and two documents disagree about which one it is
 
 **Asked before `2b` rather than discovered as a green.** The loud/silent split is `2b`'s
@@ -886,6 +928,34 @@ states I have occupied*** is a different sentence from ***nothing I can do chang
 > **And the narrow version is the better sentence anyway** — it says what the evidence
 > supports and names its own scope, where the broad one overclaims **in the direction the
 > whole abstention discipline exists to prevent.**
+
+---
+
+# A fallback in a reconstruction is a CLAIM THAT NOTHING WAS LOST
+
+**Twice in one day, in unrelated code, and identical in shape.** Both were leniency in a
+reconstruction, both made a loss invisible, and **both failed toward *nothing was lost*,
+which is the direction that goes quiet.**
+
+| | the tolerant line | what it claimed | what it was |
+|---|---|---|---|
+| **`_applies`** | drop frames a term cannot be evaluated on | *this term explains the history* | `_explains` requires `_left == 0.0`, so **a term evaluable on half a history reads as a PERFECT EXPLAINER** |
+| **`_round_trip`** | `back.get(s, before[s])` — fall back to the true value for a slot the view dropped | *this view is lossless* | **`drop:s0` read 0.000 bits.** Dropping a slot is maximal loss; the fallback let `T_E` reconstruct exactly what `T_A` discarded |
+
+> **A reconstruction that fills a gap from the source is not a reconstruction. It is the
+> source wearing the reconstruction's name**, and every measurement taken across it reads
+> zero loss.
+
+**AND NEITHER WAS VISIBLE TO REVIEW.** Both lines are locally reasonable — a missing key
+plausibly means *unchanged*, an inapplicable frame plausibly means *skip*. **Both were caught
+by watching whether a number moved**, and only because the right value was known
+independently: a view that drops a slot must cost that slot's code, and `2.807 = log2(7)` is
+checkable without trusting the implementation.
+
+**So it is witnessed the way an exemption is**, per the checker law — *witness the boundary,
+not the decision*. **A fallback is a boundary: it is where the measurement stops measuring
+and starts assuming**, and it belongs in a table that can be pinned rather than in a line
+that reads fine.
 
 ---
 

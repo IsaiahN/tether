@@ -279,26 +279,35 @@ class Agent:
                                 via="bound and unsettled: held, and not cited")
         self._stood.clear()
 
-    def _round_trip(self, t_a, before: dict[str, int]) -> tuple[float, bool]:
-        """(R_T in bits, whether it was measured). The pre-image is counted by sweeping
-        the domain, capped by the SAME declared budget the closure search uses -- this is
-        a search over readings rather than over terms, and a capped sweep that says so
-        beats an uncapped one that stalls. When the sweep is capped the reading is not a
-        small R_T, it is NO R_T, and the row must not report the first as the second.
+    def _round_trip(self, t_a, before: dict[str, int]) -> float:
+        """R_T in bits: THE GAP BETWEEN `x` AND `T_E(T_A(x))`, per §16.1 and §0.3.
+
+        Send it up, bring it back, charge what came back wrong. `T_E` is the coarse value
+        taken literally -- the concretisation the view contract already implies -- so the
+        extensive law `x <= T_E(T_A(x))` holds and the gap is non-negative by construction
+        rather than by hope.
+
+        THIS REPLACES A PRE-IMAGE SWEEP, which was a different quantity. Counting how many
+        concrete states share a coarse one measures the VIEW's global lossiness; the gap
+        measures what THIS state lost, which is what the corpus defines and what a residual
+        needs. The sweep was also unmeasurable everywhere it was ever run -- 8.24e+05 on the
+        toy world against a 4,000 budget, 1.68e+04 on `snaps`, 3.32e+13 on a 4x4 board, and
+        past the range of a float on 64x64 -- so every reading it ever produced was the
+        capped one. **The gap is O(slots) and has no budget at all.**
         """
-        slots = sorted(before)
-        span = math.prod(self.alphabet[s] for s in slots)
-        if span > self.cfg.budget:
-            return 0.0, False
-        target, seen = t_a(before), 0
-        for n in range(span):
-            k, cand = n, {}
-            for s in slots:
-                cand[s] = k % self.alphabet[s]
-                k //= self.alphabet[s]
-            if t_a(cand) == target:
-                seen += 1
-        return (math.log2(seen) if seen else 0.0), True
+        back = t_a(before)
+        # A SLOT THE VIEW DROPPED COSTS ITS WHOLE CODE, not nothing. Falling back to the
+        # true value would let `T_E` reconstruct what the view discarded and read a
+        # dropping view as lossless -- the same direction error as `_applies`: a tolerant
+        # fallback makes a lossy thing look perfect. Measured: `drop:s0` read 0.000 bits
+        # before this line, and dropping a slot is maximal loss.
+        total = 0.0
+        for s, v in before.items():
+            if s in back:
+                total += correction_bits(back[s], v, self.alphabet[s])
+            else:
+                total += math.log2(self.alphabet[s])
+        return total
 
     def _cause(self, slot: str, bits: float) -> str:
         """Which of the three a reading has. Every branch is read off state the loop
@@ -383,15 +392,14 @@ class Agent:
             # ACTUALLY USING -- `full` until INWARD exists, where it is measured to be
             # zero rather than assumed to be. The offered alternatives are reported once
             # per level, not per step: the set does not change within one.
-            rt, measured = self._round_trip(self._view[1], before)
+            # ALWAYS MEASURED NOW. The `measured` flag guarded a capped sweep, and with
+            # the gap there is nothing to cap -- so the flag and its `is not the same as
+            # small` caveat are gone rather than left as a branch that cannot fire.
+            rt = self._round_trip(self._view[1], before)
             self.led.record(self.cycle, "PERCEIVE", "@bracket", "bet", channel=BRACKET,
                             of=("@bracket",), from_value=None, actual=None,
-                            mass=round(rt, 3) if measured else 0.0,
-                            cause=GENUINE if measured else CHANNEL_CLOSED,
-                            coarse_view=True, view=self._view[0], measured=measured,
-                            inert=None if measured else
-                            "the domain sweep is past budget: R_T is unmeasured, which "
-                            "is not the same as small")
+                            mass=round(rt, 3), cause=GENUINE,
+                            coarse_view=True, view=self._view[0])
         self._integral += sum(r.mass for r in res.values())
         live = any(r.mass > 0 for r in res.values())
         self.drive.note_step(live)      # once per step: SUPPORT is over slots, not per slot
