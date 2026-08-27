@@ -39,6 +39,16 @@ leak — and the test between them is whether the fix generalises. **No games ha
 so none of the 52 can be a game leak yet. Which makes now the right time to install the
 field, while every row's provenance is still knowable.**
 
+**THE DEADLINE IS PINNED AT `2a`, AND THE PIN IS DELIBERATELY EARLY.** The TRUE boundary is
+**the first observed frame** — writing `arc_world.py` is safe, because the adapter is built
+from an API contract now checked out in source and nothing about it can be game-shaped.
+That line sits INSIDE `2a`, between writing it and running it. **A boundary inside an item
+is one you cross without noticing**, which is the failure being guarded against — so it is
+pinned at the item edge instead: **both fields land before `2a` begins.** Slightly early,
+and impossible to cross unaware. **Everything up to that point — blocker 1's three parts,
+blockers 2 and 3, `0a`'s binding side — is toy-world work with every row's provenance still
+knowable by whoever wrote it.** **So the clock is REAL AND NOT URGENT, and the distinction is worth keeping: *deadline* invites doing it now, and what is actually true is that NOTHING BEFORE `2a` CAN DECAY.** That says WHEN rather than HOW SOON, and it is the same reasoning as the atom-order pin — a boundary you can cross without noticing is not a boundary, and one you cannot reach early is not a rush.
+
 **What this column establishes, and what it does not.** It is a claim about INTERNAL
 FIDELITY -- whether the build matches what was decided -- and nothing else. **The corpus
 being right about the code is not the corpus being right about the world.** The transfer
