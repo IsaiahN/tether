@@ -1,0 +1,145 @@
+"""2a. The eight members over `arc_agi`. The ADAPTER, and deliberately nothing more.
+
+THE DECOMPOSITION IS NOT HERE. ARC has no named slots -- finding them is perception, which
+is 2b -- so `slots()` returns whatever the injected `decompose` says. The adapter's job is
+the API boundary; what counts as a slot is 2b's, and injecting it is how 2a declines to
+answer a question that belongs to the next item. Same for the atom set, which is 3d's.
+
+WHAT THIS FILE MAY READ. It is the domain side of the TID251 wall, so importing `arc_agi`
+is its job and not a breach. It reads the FRAME and the wrapper's own surface. It does not
+read game internals, and there is nothing here that knows what any board means.
+"""
+from __future__ import annotations
+
+import sys
+from collections.abc import Callable
+from typing import Any
+
+from arcengine import GameAction, GameState
+
+sys.dont_write_bytecode = True
+
+# the board is a numpy ndarray, NOT `list[list[int]]`: `FrameDataRaw.frame` is a
+# property over a PrivateAttr holding `List[ndarray]`, runtime-only and unserialized.
+# The HARNESS converts with `arr.tolist()`; the TOOLKIT path -- this one -- does not,
+# so a decomposition written against the harness's lists would silently receive arrays.
+Decompose = Callable[[Any], dict[str, int]]
+
+
+class ArcWorld:
+    """One ARC environment, wearing the eight-member contract.
+
+    `decompose` turns the settled board into named slots and is 2b's to supply.
+    `atoms` is 3d's. Both are arguments because neither is the adapter's to decide, and a
+    default for either would be this file answering a question it was built to defer.
+    """
+
+    def __init__(self, wrapper: Any, decompose: Decompose, atoms: list,
+                 palette: int, name: str = "arc") -> None:
+        self.w = wrapper
+        self._decompose = decompose
+        self._atoms = list(atoms)
+        # no default: the palette size is the DOMAIN's fact, and a number invented here
+        # would be a magic constant wearing an adapter's clothes.
+        self._palette = int(palette)
+        self._name = name
+        self._frame = self.w.reset()
+
+    # -- the eight -----------------------------------------------------------------------
+
+    def substrate(self) -> str:
+        return (f"a stack of 2-D grids of colour indices mod {self._palette}; "
+                "the settled board is frame[-1]")
+
+    def environment(self) -> str:
+        return "a hidden per-game rule set; the shaping medium is the board"
+
+    def actors(self) -> str:
+        return ("the actions the frame advertises, which change per frame because "
+                "availability is a condition met or unmet")
+
+    def currency(self) -> str:
+        return "prediction error in bits, per slot"
+
+    def ground(self) -> str:
+        return ("levels_completed, read off the frame. There is no score field, and "
+                "levels_completed == win_levels is the win")
+
+    def slots(self) -> list[str]:
+        b = self.board()
+        return [] if b is None else sorted(self._decompose(b))
+
+    def atoms(self) -> list:
+        return list(self._atoms)
+
+    def transform(self) -> Any:
+        """No coarse view yet. The lens is `logical_grid` and it arrives with 2c, so the
+        bracket channel is inert here -- stated rather than omitted, the way the toy world
+        states it, because an absent channel and an unfed one read the same from inside."""
+        return None
+
+    # -- running -------------------------------------------------------------------------
+
+    def actions(self) -> tuple[str, ...]:
+        """What the FRAME advertises, re-read every call.
+
+        SIMPLE ACTIONS ONLY. `ACTION6` is complex and carries `x, y` -- a POSITIONED
+        action, which is §17.1's arity question and 2c's to answer. Advertising it here
+        without the position would be advertising an action the loop cannot actually take.
+
+        AND RESET IS WITHHELD, which `is_simple()` would otherwise let through. §21.2:
+        `ResetGate` bans THE AGENT CALLING RESET, because a self-inflicted restart is the
+        farming path -- `bounds.py` exists because a harness once force-RESET on GAME_OVER
+        to farm ~18 unearned attempts. A GAME-INFLICTED restart is the world's own rule
+        and reaches the loop as an observation; an agent-callable one is a bypass of it.
+        """
+        return tuple(GameAction.from_id(i).name
+                     for i in (self._frame.available_actions or ())
+                     if GameAction.from_id(i).is_simple()
+                     and GameAction.from_id(i) is not GameAction.RESET)
+
+    def alphabet(self) -> int:
+        return self._palette
+
+    def objective(self) -> tuple[str, float]:
+        f = self._frame
+        win = f.win_levels or 1
+        return "ALL(BECOME(level, completed))", min(1.0, f.levels_completed / win)
+
+    def board(self) -> Any:
+        """The SETTLED board, as a numpy ndarray.
+
+        `frame` is a stack played oldest to newest, so acting on frame[0] means betting
+        on a board the world has already left. Empty until the first frame arrives, and
+        an empty stack is a legal state rather than an error."""
+        if self._frame is None or self._frame.is_empty():
+            return None
+        return self._frame.frame[-1]
+
+    def observe(self) -> dict[str, int]:
+        b = self.board()
+        return {} if b is None else dict(self._decompose(b))
+
+    def step(self, action: str) -> None:
+        act = GameAction[action]
+        nxt = self.w.step(act)
+        if nxt is not None:
+            self._frame = nxt
+
+    # -- read by the harness, never by the loop --------------------------------------------
+
+    def terminal(self) -> str:
+        f = self._frame
+        if f.state == GameState.WIN:
+            return "advance"
+        if f.state == GameState.GAME_OVER:
+            return "death"
+        return ""
+
+    def levels(self) -> tuple[int, int]:
+        return self._frame.levels_completed, self._frame.win_levels
+
+    # `reset_kind` -- RESET vs ADVANCE, which invert the meaning of a residual spike
+    # (§21.5) -- is NOT here. The frame carries `full_reset` and `levels_completed`, so the
+    # discriminator is recoverable, and 2e is what consumes it. Building it now would be a
+    # mechanism ahead of its consumer, which ISOLATED caught on the first run.

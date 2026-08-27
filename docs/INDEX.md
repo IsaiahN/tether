@@ -213,6 +213,7 @@ which is the same shape as the six checker sites.**
 | **`molecule` names two different things** | `DISCOVERY` Q21 · `BUILD_PLAN` Stage 1 | **a collision inside the corpus, inherited by the code.** In Stage 1 and `gamma.py` a **molecule is a named type-valid composite PRIOR** -- a term with holes, stamped `prior`. In Q21 and `redux_arch/molecule.py` a **molecule is a quantified typed OBJECTIVE** -- `ALL/SOME/ONE/NONE` over a relation, returning a verdict and a degree. **Both usages are the corpus's own**, the code follows the first, and **anyone reading Q21 then `gamma.py` will conflate a prior term with an objective.** Not a defect in either; a hazard in the join |
 | **`verdict` is a mixed field, and the gate matches on it** | `DISCOVERY` Q16 | **gap, latent rather than live.** Q16's rule: **fixed tokens are the record, prose is a rendering OF the record** -- *a fixed token is a value and a sentence is not*, and `v4-cold`'s output was worse to read and **the only one of the two a gate could check**. Measured: `verdict` is `pays` on mint and `depth_exhausted` on park -- tokens -- and on settle it is **`held on a transition it was not fitted to`, a sentence**. `gate._unreached` does `d.get("verdict") in (...)`. No collision today, and **the settle verdict is a claim the Gate structurally cannot check**. The checkable content is already in adjacent TOKEN fields on the same row -- `asked`, `ground_said`, `held_out_cycle`, `fitted_through` -- so the sentence is redundant narration sitting in a field the Gate reads |
 | **the inliner is an AUDIT of the seam, not a packaging chore** | `ARC_AGENT` §6 | **open, and it is the sharper reading.** *The builder/gate split has to survive the flattening or it was never structural.* **A separation that exists only because of file boundaries is a convention; one that survives being flattened into a single file is a property.** So **Kaggle's one-file requirement is an accidental audit of the architecture's central claim** — the first time a deployment constraint tests something rather than merely constraining it. The constraint half: Kaggle wants one file; the core is eight modules. §6's three rules: **`gate.py` imports nothing and must still import nothing after inlining** -- inline it as its own section with no cross-references and run it after the play loop over the local ledger -- because **its non-access is the whole reason it is sound, and an inliner that quietly wires it to the loop destroys that.** **The builder/gate split has to survive the flattening or it was never structural.** And the output must be **generated, never hand-edited** -- *a notebook edited in place is a notebook whose source of truth has moved* |
+| **what `2a` needs, and what is Phase 5's** | scoped 2026-08-27 | **two of the three open checklist items are Phase 5's, and the third resolves as a side effect of `2a`'s own prerequisite.** The **gateway readiness loop** is the ONLINE/COMPETITION path through `gateway:8001`; `2a` is *the eight members over `arc_agi` **OFFLINE*** — no credentials, no gateway — **so Phase 5.** The **submission schema** governs the submission artifact — **Phase 5**, and §6 already flags one sample as stale. The **16 KB validator** binds when reasoning is first attached, which is stage **E**, not `2a` — **and it lives inside `arc_agi`, so it stops being unverifiable the moment that package exists locally.** **AND THE PREREQUISITE NOBODY NAMED: `arc_agi` IS NOT INSTALLED.** The harness pins **`arc-agi>=0.9.1`**; this venv has no such module, so **`2a` cannot start.** Installing it also makes item 1 checkable, **so the open list shrinks by one at the moment `2a` becomes possible.** **And it would be this repo's FIRST third-party dependency** — `arc-agi` pulls `pydantic`, `numpy`, `requests`. That does not touch the Gate's soundness argument, which is about `gate.py`'s IMPORTS and not the venv's contents, and TID251 already governs what the loop may import with `arc_world.py` on the domain side. **But a stdlib-only repo acquiring dependencies should be a decision rather than a `pip install` nobody recorded** |
 | **PRE-SUBMISSION CHECKLIST — RECONCILED AGAINST SOURCE 2026-08-26** | `ARC-AGI-3-Agents` @ `agents/agent.py`, cloned | **the checkout was worth it: TWO OF FIVE WERE WRONG, and two new facts came out that no notebook shows.** **(1) `step(reasoning=…)` — CORRECTED.** §1 says building against the toolkit signature *would not run on Kaggle*. **The harness calls that signature itself**: `do_action_request` does `reasoning = getattr(action, "reasoning", None)` then **`self.arc_env.step(action, data=data, reasoning=reasoning)`**. The harness WRAPS the toolkit; they are not alternatives. §1's instruction (attach to the action object) is right and **its reason is wrong** — and a non-dict reasoning is auto-wrapped as `{"text": str(...)}`. **(2) `agents/__init__.py` — CONFIRMED, with a better reason.** It eagerly imports langgraph (lines 8–10) and smolagents (line 16), **and `AVAILABLE_AGENTS` is built from `Agent.__subclasses__()`, so a subclass must be IMPORTED to register at all.** That is why the rewrite is necessary, not merely that it is. **(3) the 16 KB validator** lives in the `arc_agi` package, not this repo — **still unverified.** **(4) the gateway readiness loop** and **(5) the submission schema** are notebook- and competition-page-side — **still open.** Original body: **NO LOCAL SYMPTOM ON ANY OF THEM. Everything passes, nothing runs**, and they will all be discovered in the same fifteen minutes unless they are checked as a set. **(1)** only the **harness** API runs on Kaggle — the toolkit's `step(reasoning=…)` signature works locally and does not run there. **(2)** the `reasoning` blob **raises above 16 KB** rather than truncating, and no platform doc states the limit. **(3)** `agents/__init__.py` **must be rewritten** — the shipped one eagerly imports packages that are not installed. **(4)** the **gateway readiness loop** must run before anything else. **(5)** the **submission schema differs between samples and one looks stale** — confirm against the competition page. **THE CHECKLIST IS A SYMPTOM AND THE FIX IS ONE ACTION.** §10 flags the root cause
 honestly: the `ARC-AGI-3-Agents` repo *is not checked out anywhere locally*, so the `Agent` base class's exact contract — constructor args, `MAX_ACTIONS`, what it does with the returned action — **is being read second-hand from notebooks rather than from source.** **Every one of the five is downstream of that**, so the repair is not five checks but **check out the repo and read the contract from source** — which is the session's own shape one more time: **five items reconstructed from fragments, with the primary source available and unopened.** The docs interleave two APIs and **only the harness runs on Kaggle** -- building against the toolkit's `step(reasoning=…)` signature works locally and does not run there. Same class as the **16 KB `reasoning` cap that raises rather than truncating**, which no platform doc states. **Everything works, nothing runs**, and the cost is a submission window rather than a debugging session. §6 adds two more of the same kind: **`agents/__init__.py` must be rewritten** because the shipped one eagerly imports packages that are not installed, and **the gateway readiness loop must run before anything else.** §6 also flags its own uncertainty — the submission schema differs between samples and **one looks stale; confirm against the competition page** |
 | **reset vs advance INVERTS the verdict — and the chain is now complete** | `ARC_AGENT` §21.5 ⭐ · §1 · §2 | **the specification the withdrawn boundary build did not have.** Both events change the board, so **both produce a large residual, and the meaning inverts.** A level **RESET** after a loss returns a **KNOWN** board — *on a board you have already modelled, a residual has no excuse* — so a spike means **your model is wrong: real evidence, demote.** A level **ADVANCE** gives an **UNKNOWN** board with new mechanics by design, so the same spike means **normal: evidence about nothing yet.** ***Same number, opposite verdict, disambiguated for free by which event fired.*** **And the failure without it is precisely targeted:** *the demotion logic poisons itself at exactly the wrong moment — every level advance would demote the good terms that carried the last level. **The agent would punish its best work for the crime of a scene change.*** **The chain closes across three sections**: §21.5 gives the rule, **§1 says COMPETITION collapses the two events in the API's semantics**, and **§2 says the frame still carries `full_reset: bool` and `levels_completed: int`** — so the discriminator is recoverable from the data even where the platform stops exposing it as a distinction. **The boundary revert was withdrawn because the build did not turn on this. This is what it was supposed to turn on** |
@@ -633,6 +634,79 @@ ledger for an `abstain` event, found none, and had written down that the product
 the one item of six with no record. **The event is `park`, carrying a verdict.** A search
 for the wrong name returns the same empty set as an absent mechanism, and only the second is
 a finding.
+
+---
+
+# `2a` — BUILT 2026-08-27. The watermark is NOT set
+
+**`arc_world.py`: the eight members over `arc_agi`, and deliberately nothing more.**
+`arc-agi 0.9.9` and `arcengine 0.9.3` are installed — **this repo's first third-party
+dependencies, 27 transitive** including flask, matplotlib, numpy and pydantic.
+
+**THE DECOMPOSITION AND THE ATOM SET ARE INJECTED, NOT CHOSEN.** ARC has no named slots;
+finding them is perception, which is `2b`. The atom set is grid transforms, which is `3d`.
+**Both are constructor arguments, because a default for either would be the adapter
+answering a question it exists to defer** — and the fixture's `cells` is the IDENTITY
+decomposition, which assumes no structure, because assuming none is the only honest
+placeholder before perception.
+
+### Three corrections from source, none of them in any document
+
+| | |
+|---|---|
+| **AND THE §2 RELIABILITY CLAIM NARROWS** | I filed §2 as *the one transcription of three with no error* — nine fields, same names, same types, verified. **That is true OF `FrameData` AND NOT OF THE RAW TYPE.** `FrameDataRaw` is what the wrapper actually returns, and §2 does not describe it. **A section verified on one type is not a section verified**, and carrying it as a general reliability reading would be the same over-generalisation the transcription errors themselves were |
+| **`FrameDataRaw` has no `frame` FIELD** | it is a **property over a `PrivateAttr` holding `List[ndarray]`** — *runtime-only, not validated, not serialized*. **The board is a numpy array, not `list[list[int]]`** |
+| **the two API paths differ in the board's TYPE** | the harness converts with `arr.tolist()`; the toolkit path does not. **A decomposition written against the harness's lists would silently receive arrays** |
+| **`RESET.is_simple()` is `True`** | so `actions()` would have advertised it. **§21.2 bans THE AGENT CALLING RESET** — `bounds.py` exists because a harness once force-RESET on GAME_OVER to farm ~18 unearned attempts. **Withheld explicitly, and the fixture asserts it** |
+
+### The checkers caught two things on the first run
+
+**ISOLATED** flagged `arc_world.py` immediately: `ArcWorld` referenced nowhere, and
+**`reset_kind` defined and referenced nowhere in the package.** The second is the pattern
+from earlier today — **a mechanism ahead of its consumer.** `reset_kind` is §21.5's
+discriminator and `2e` is what consumes it, so **it was removed rather than kept**, with a
+comment saying the frame carries `full_reset` and `levels_completed` so it stays recoverable.
+**TID251** then caught the fixture reaching `world._atoms` — *a private name across a module
+boundary* — so **the fixture declares its own atoms**, which is what a domain does.
+
+### `arc_check.py` is the consumer, and it says what it cannot say
+
+Real `FrameDataRaw` objects from a fake wrapper: **the type contract is genuinely exercised
+while the game is not a game.** The eight members fill, `bind` accepts, the loop turns 12
+cycles over 478 rows, the gate passes. **And it prints its own limit: A SYNTHETIC SOLVE
+PROVES WIRING AND NEVER CAPABILITY.** Figure 11's second failure mode bites hardest here
+because the same hand authored both sides.
+
+> ### THE WATERMARK IS NOT SET, AND THAT IS THE RULING
+>
+> **A synthetic fixture is not a game.** No environment files exist — not in this repo, not
+> in the harness repo, not bundled; `arcengine` ships the framework for WRITING games, not
+> games. **So the boundary waits for the first REAL environment file**, and every row in this
+> index is still `pre-game` by construction. **This is exactly the line that gets crossed by
+> a commit message rather than by a decision, which is why it is written down before `2a`
+> lands rather than after.**
+
+---
+
+# Why three blockers pass and none can be demonstrated here
+
+**Stated as the reason rather than as an apology.** The three fixes are correct, the panel
+shows nothing, and **that is a property of what they fix rather than a gap in the testing.**
+
+> **THE DETECTOR AND THE THING IT DETECTS ARRIVE TOGETHER.** Each blocker repairs a
+> mechanism whose subject does not exist on `snaps`, so its correctness is untestable until
+> the subject does — **and the subject is Phase 2.**
+
+| blocker | first real test | why not before |
+|---|---|---|
+| **1 · `never_live`** | **`2b`**, perception | `never_live` is now correct and still fires 0 of 6. **`2b` is the first place that correctness is exercised** — connected components as slots inherits the loud/silent split, and `never_live` is the plan's own detector for it. Blocker 1 went first for exactly this reason |
+| **2 · slot re-read** | **`2b`** | `snaps` slots never change. The falsifier had to be CONSTRUCTED to fire — and firing it found three defects, so the construction was not ceremony |
+| **3 · contact ranking** | **`2c`**, the affordance profile | every `snaps` slot varies across the residual, so contact scores are near-uniform and ranking has nothing to rank. **§16.4's seven booleans learned by contact are exactly where slots DIFFER in variance** — a wall that never moves, a background that never changes, an object that responds. **`2c` is the first place the ranking has anything to order** |
+
+**So two of three get their first real test INSIDE Phase 2 rather than before it**, and the
+third was tested by building its subject. **A green panel here is not coverage and was never
+going to be** — which is why it is written down beside the builds instead of inferred from
+them later.
 
 ---
 
