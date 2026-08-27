@@ -161,6 +161,35 @@ class Phases:
 
 
 @dataclass
+class Preconditions:
+    """§16.8 sensor 2: pairwise `a became available after b`, with counts.
+
+    An action appearing is a CONDITION MET, and the action just taken is the only candidate
+    for having met it. This counts the pairs and nothing else -- it does not rank them, name
+    a cause, or gate anything. **A count is not a claim**: `b` preceding `a` many times is
+    evidence the agent can read, and reading it is the agent's job rather than this table's.
+
+    Cheap by construction: at most |actions| squared cells, 49 for ARC's seven.
+    """
+
+    after: Counter = field(default_factory=Counter)
+    gone_after: Counter = field(default_factory=Counter)
+
+    def note(self, prev: str | None, came: list[str], gone: list[str]) -> None:
+        if prev is None:
+            return                      # nothing preceded the first frame
+        for a in came:
+            self.after[(prev, a)] += 1
+        for a in gone:
+            self.gone_after[(prev, a)] += 1
+
+    def report(self) -> dict:
+        return {"came_after": {f"{b}->{a}": n for (b, a), n in sorted(self.after.items())},
+                "gone_after": {f"{b}->{a}": n for (b, a), n in sorted(self.gone_after.items())},
+                "reads": "a count, not a claim: what followed what, for the agent to read"}
+
+
+@dataclass
 class Clocks:
     """Two, because understanding is not winning and they fail differently."""
 

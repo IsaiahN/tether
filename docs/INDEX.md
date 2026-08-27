@@ -637,6 +637,53 @@ a finding.
 
 ---
 
+# `2c`'s sensors — TWO BUILT, TWO BLOCKED ON `2b`, and that splits the item
+
+**§16.8's four, read rather than taken from the build table's one-line summary:**
+
+| | sensor | state |
+|---|---|---|
+| **1** | **action-set delta** — *the previous action changed the gating* | **BUILT, and it was half-built already.** `_advertised` detected the delta at blocker 1, but §16.8 says THE PREVIOUS ACTION, and nothing attributed it. That attribution is also sensor 2's whole input, so they were one change |
+| **2** | **precondition edges** — pairwise *a became available after b*, with counts | **BUILT.** `Preconditions` in `instruments.py`, at most `|actions|²` cells — 49 for ARC's seven |
+| **3** | **control mode** — avatar / actuator / coupled | **BLOCKED ON `2b`.** It asks which OBJECT the actions move, and that is not expressible while slots are cells |
+| **4** | **affordance profile** — seven booleans per object KIND, by contact | **BLOCKED ON `2b`.** Per KIND, and there are no kinds until perception makes them |
+
+> **So `2c` splits, and it is not a clean reorder.** The lens and sensors 1–2 land BEFORE
+> `2b`, because the lens is `2b`'s instrument. **Sensors 3 and 4 land AFTER it**, because they
+> need what `2b` produces. **The item is not one block that moved — it is two halves either
+> side of `2b`**, and treating it as a single reorder would have left 3 and 4 unbuildable at
+> the front of the queue with nobody noticing why.
+
+**AND THE NEAR-MISS IS A KNOWN CLASS ARRIVING IN A SEQUENCING DECISION.** The reorder's
+reason was correct and applied to HALF the item: *the lens is `2b`'s instrument, so `2c` moves
+first.* **Moving the whole item carried two sensors that need what `2b` produces.** A correct
+reason generalised one step too far — the same shape as a rule whose subject is narrower than
+its property, which this file already tracks six times in the checkers. **This one was in a
+plan rather than in code, and it was caught by reading §16.8 properly rather than by anything
+downstream.** Nothing would have failed; sensors 3 and 4 would simply have sat at the front of
+the queue, unbuildable, with no signal saying why.
+
+**MEASURED, on a fixture that gates an action after five steps** — `snaps` and the toy world
+have constant action sets, so neither sensor could fire there:
+
+    action-set delta    came=['ACTION4']  after=ACTION2
+    precondition edges  {'ACTION2->ACTION4': 1}
+
+**A COUNT IS NOT A CLAIM.** `Preconditions` counts pairs and does nothing else — no ranking,
+no cause named, no gate. **`b` preceding `a` many times is evidence the agent reads; reading
+it is the agent's job rather than the table's**, which is the same line the probe holds when
+it draws uninformed.
+
+> **AND IT IS THE ONE MOST LIKELY TO ERODE.** A table that RANKS is one line from a table that
+> DECIDES, and nobody would call the line a violation — sorting by count reads as a
+> convenience. **The proposer/scorer separation is the same distinction and it is enforced by
+> nothing here**: `Preconditions` has no consumer yet, so the first consumer is where it gets
+> decided. **Recorded now, while the table is inert and the decision is free.**
+
+**No regression:** 1/1 correct, 0/6 false, 1,463 compositions.
+
+---
+
 # `2c`'s lens — BUILT 2026-08-27, and the bracket channel is open
 
 `arc_lens.py`. **Offer coarse views of a board, and offer NONE unless one is near-lossless** —

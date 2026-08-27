@@ -164,6 +164,7 @@ class Agent:
         self.chain = I.Chain()
         self.phases = I.Phases()
         self.clocks = I.Clocks()
+        self.pre = I.Preconditions()   # §16.8 sensor 2, fed by the delta
         self.retro: list[dict] = []
         # parked residuals survive a level boundary; the trace does not. So a parked
         # record carries its OWN evidence -- retrospective re-attribution is free in
@@ -223,6 +224,7 @@ class Agent:
         self.alphabet = self._alphabets(env)      # a new level may value slots differently
         self.bound, self.trace = {}, []
         self._disproof: dict[str, dict] = {}
+        self._last_action: str | None = None   # what may have changed the gating
         self.owed_import, self.abstained = set(), {}
         self.candidates = {}
         # a new level is a new instrument: the verdict was about the OLD slot set
@@ -619,8 +621,13 @@ class Agent:
             return
         gone = sorted(set(self.actions) - set(now))
         came = sorted(set(now) - set(self.actions))
+        # §16.8 SENSOR 1 IS `the PREVIOUS ACTION changed the gating`, and the delta alone
+        # does not say which action. This runs at the top of the step, so the action just
+        # taken is the only candidate -- and attributing it is also sensor 2's whole input.
+        self.pre.note(self._last_action, came, gone)
         self.led.record(self.cycle, "PERCEIVE", "@instrument", "advertised",
                         gone=gone, came=came, was=len(self.actions), now=len(now),
+                        after=self._last_action,
                         note="a condition was met or unmet; the denominator moved")
         self.actions = now
 
@@ -1003,6 +1010,7 @@ class Agent:
                             id=uid, text=repr(term),
                             heads=[a.head for a in term.args if hasattr(a, "head")])
 
+        self._last_action = action
         res = self.perceive(action)
         for slot, b, fit, _why in self.route(res):
             if b == REBIND and fit:

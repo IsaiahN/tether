@@ -48,9 +48,13 @@ class FakeWrapper:
         self.n = 0
 
     def _frame(self) -> FrameDataRaw:
+        # a trivial GATE, so §16.8's sensors 1 and 2 have something to see: ACTION4 is
+        # available only after five steps. The condition is mine and carries no meaning --
+        # what is being tested is that a change is DETECTED and ATTRIBUTED, not what gates.
+        acts = [0, 1, 2, 3] + ([4] if self.n >= 5 else [])
         f = FrameDataRaw(game_id="fixture", state=GameState.NOT_FINISHED,
                          levels_completed=0, win_levels=3,
-                         available_actions=[0, 1, 2, 3])
+                         available_actions=acts)
         board = np.zeros((SIDE, SIDE), dtype=int)
         board[0][0] = self.n % PALETTE
         f.frame = [board]
@@ -129,6 +133,10 @@ def main() -> None:
     print(f"  loop                : {agent.cycle} cycles, {len(led.rows())} rows, {dict(c)}")
     print(f"  gate                : {verdict['verdict']}")
     br = [r for r in led.rows() if r["detail"].get("channel") == "bracket"]
+    adv = [r for r in led.rows() if r["event"] == "advertised"]
+    print(f"  action-set delta    : {len(adv)} rows"
+          + (f", came={adv[0]['detail']['came']} after={adv[0]['detail']['after']}" if adv else ""))
+    print(f"  precondition edges  : {agent.pre.report()['came_after']}")
     print(f"  bracket channel     : {len(br)} rows, "
           f"cause={br[0]['detail']['cause'] if br else None}, "
           f"R_T={br[0]['detail']['mass'] if br else None}, "
