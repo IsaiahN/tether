@@ -1617,6 +1617,34 @@ the kind of coupling that is invisible in a table and obvious in a run.
 
 ---
 
+# STEP 7 OUTWARD AND THE PEER CHANNEL — mostly already recorded. NOT BUILDING TOWARD IT
+
+**Checked, and the corpus carries more of this than the note assumed.** `ARC_AGENT` §13:
+
+- **Figure 6 names three external sources** — *nature · corpus · peer frame* — and the
+  corrected reading is recorded: *"I have been writing that a lone agent has no IMPORT channel
+  — Mars, no peer frame, step 7 OUTWARD closed. **Figure 6 does not say that.**"*
+- **Three channels the environment actually imports through**: action-set growth (**yes** —
+  atoms, the closure expands), value-domain growth (**yes**), instrument extension
+  (**inward**, not import).
+- **And the game-is-nature-not-a-peer clause is there verbatim**: *the game is not a peer
+  frame in Figure 8's sense: **you cannot read its closure, only its outputs**, so there is no
+  union surplus to search and no triangulation. **That channel is what a swarm would open**,
+  and it is the honest reason swarms are on the roadmap rather than a nicety.*
+- **`low ρ` is present too**, in the breeder's-equation form — *low ρ between rooms; the next
+  room is picked against the residual the last one surfaced* — **about room-to-room handoffs,
+  not about two frames meeting.**
+
+**WHAT IS NOT RECORDED, and is filed here as NOT A RULING AND NOT TO BE BUILT TOWARD:**
+frames meeting frames as an **interface-construction** problem; **low ρ paired against high
+ρ** rather than as a handoff property; and **systemic forensics** — *how did this terrain
+form, what are the rules of engagement, what are the conditions of agreement.*
+
+**Filed, not scheduled.** The corpus already routes the peer channel to the swarm, and the
+game supplies nature instead — so nothing here changes what is built next.
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
