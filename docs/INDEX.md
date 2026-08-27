@@ -1308,6 +1308,45 @@ rather than an accident of process lifetime.* §11: the entry discipline above. 
 third, and unlike the other two it is structural rather than undecided** — no policy fixes it,
 because the shapes are in different homes by design.
 
+### 8 · THE ABLATION SCOPING — RULED 2026-08-27, and it is a corpus scope error
+
+**The ruling is a RE-SCOPING, not a new line.** §11 already states the entry rule; it is
+scoped to *the library*; priors load into six homes and only TERM lives in Γ. **So four of
+five shapes escape a rule whose stated purpose is the thing they escape** — a scope error in
+the corpus, not a decision anyone had to make. **The rule binds all six homes.** What entered
+under *cannot run without it* is what the ablation stays blind to; what entered under
+*promoted from crude* is what it wipes.
+
+| shape | entered under | ablation | note |
+|---|---|---|---|
+| **SENSOR** — the nine | cannot run without | **blind** | wiping tests blindness, not composition |
+| **SENSOR** — beyond the nine | **neither** | **FORBIDDEN, not wiped** | **the ruling's real bite** — §12.3 requires these be REACHED, so the re-scoping does not decide their fate, it **forbids them**, and that directly constrains `3a`'s *load generously* |
+| **TERM** | promoted, or prior | **wiped** | unchanged |
+| **BIAS** | never necessary | **wiped** | safe: a reversible cut removes speed, not answers |
+| **CONSTRAINT** | plausibility, not necessity | **wiped** | |
+| **TRACKER** | cannot run without | **blind** | identity across frames is **perception, not knowledge** — and `2b` demonstrated it load-bearing by producing three defects in its absence |
+| **BUDGET** | see below | **cognitive bounds wiped** | |
+
+**AND `BUDGET` SPLIT CLEANLY, so one of the two open calls dissolved rather than being
+decided.** §12.1's examples are `subitizing ≤ 4`, `relational complexity ~ 4`,
+`working-memory span` — **all three are bounds on cognition.** The termination-bearing numbers
+are `max_depth` and `budget` in `Config`: **seat-side, already anchored, already behind the
+second firewall, and never one of the six shapes.** So *termination blind* is **vacuously
+true** and needs no carve-out. **The `BUDGET` collision flagged in §5 as a hazard arrived as a
+live consequence one ruling later** — the argument for having recorded it while it was clear.
+
+**Written into `CLAUDE.md` under terminal-condition clause 3**, which is where §11 said to put
+it — *a discipline to write into `CLAUDE.md` before any of it* — **and where it had never
+been.** Second unwritten pre-emption in the Cyc class, and unlike Cyc it was load-bearing on a
+ruling rather than on a reader.
+
+**SEPARABLE AND RECORDED AS FOLLOWING: justified is not enumerable.** Re-scoping the entry rule
+makes what survives **justified**; it does not make it **countable**. §11's bench ceremony —
+recorded import, cited residual, every pull counted — is the answer to the second, and **the
+ablation's own claim eventually needs it**: *composed-it and was-handed-it stay
+distinguishable* requires knowing what was handed, and **a justified-but-uncounted survivor
+cannot be reported.** Not now.
+
 ### WHAT THE CHECK CHANGES
 
 **Not the two known blockers.** The unrun priors path and the unwritten Cyc pre-emption are

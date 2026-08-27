@@ -204,6 +204,22 @@ Not "it improved". Five clauses, each checkable:
    the agent composed it. If the win disappears, the library was carrying the answer and
    the agent was retrieving, not reasoning.* The sharpest clause and a runnable
    falsifier. **Back up first; refuse to wipe if verification failed.**
+
+   **AND THE ENTRY RULE THAT PROTECTS IT, WHICH `ARC_AGENT` §11 SAID TO WRITE HERE AND WHICH
+   WAS NEVER WRITTEN:** *a prior enters **only** if the loop cannot run without it, or the
+   agent minted a crude version first and we are promoting it. **Never because it would help
+   on a game** — the moment one enters for that reason we have encoded an answer, and the
+   ablation clause cannot tell us we did.*
+
+   **§11 scoped it to THE LIBRARY, and that is a scope error rather than a decision.** Priors
+   load into **six homes** and only TERM lives in Γ — so four of five shapes escaped a rule
+   **whose stated purpose is the thing they escape.** The rule binds all six homes. **What
+   entered under *cannot run without it* is what the ablation stays blind to; what entered
+   under *promoted from crude* is what it wipes.** Ruled 2026-08-27: TRACKER blind (identity
+   across frames is perception, not knowledge — wiping it makes the agent blind rather than
+   untaught); BUDGET's cognitive bounds wiped, its termination caps never being priors at all;
+   and **SENSORs beyond the nine are not wiped but FORBIDDEN**, because §12.3 says they must be
+   reached and *reaching is the only evidence the composition system works.*
 4. **Not fed** — no answer encoded anywhere. Every correction must generalise; a fix
    that helps one case is an answer wearing a fix's clothes.
 5. **Time to learn** — and the budget is not the excuse.
