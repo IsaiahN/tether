@@ -131,10 +131,22 @@ after the fact there is nothing to catch, because after the fact the reading is 
 - **Check what a name means in both places you are using it, before pinning a shape to it.**
   Two legitimate quantities under one word is well-formed code, well-formed docs and a
   well-formed measurement. `conform/lint.py` declares this unlintable as `A6i`, and it has
-  two instances: **`molecule`** is a prior term in `gamma` and a quantified objective in
-  `DISCOVERY` Q21; **`DIRECTED`** is `by == "discriminate"` in the loop and *bets with bound
-  terms* in `ARC_AGENT` §22.2 — **9% and 37% on the same runs.** Both surfaced exactly where
-  a headline was about to be made.
+  **three instances, of two kinds.** **RETROSPECTIVE, caught at the point of damage:**
+  **`molecule`** is a prior term in `gamma` and a quantified objective in `DISCOVERY` Q21;
+  **`DIRECTED`** is `by == "discriminate"` in the loop and *bets with bound terms* in
+  `ARC_AGENT` §22.2 — **9% and 37% on the same runs.** **PROSPECTIVE, and the only one whose
+  value came from being recorded while nothing was wrong:** **`BUDGET`** is a loadable prior
+  shape of cognitive bounds in `ARC_AGENT` §12.1 and the harness cap in §22.1 — filed as
+  *checked and clear*, and it made the Phase 3a ablation split takeable instead of a guess
+  one ruling later.
+
+  **So the trigger is *where a headline OR A RULING is about to be made*.** And the
+  prospective half needs its own condition, because it is the harder case to justify at the
+  time: **a cleared hazard is worth recording when the ITEM THAT WOULD COLLIDE WITH IT IS
+  NAMEABLE.** `3a` was identifiable in advance as the only item loading one of `BUDGET`'s two
+  senses, which is why it was written down. **That condition is checkable, and it is what
+  stops this becoming *record every near-miss* — which is how a register fills with noise
+  until nobody reads it.**
 - **Read the things that produce conditions before the things that produce results** — a
   generator, a config, a plan, a fixture.
 - **Read the SPEC of each item before ordering a phase, not the row that summarises it.**
