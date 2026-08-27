@@ -22,6 +22,7 @@ import numpy as np
 from arcengine import FrameDataRaw, GameState
 
 import arc_lens
+import arc_percept
 import gamma
 import gate
 import ledger
@@ -113,9 +114,12 @@ def main() -> None:
     print(f"  lens, speckled board: {[n for n, _ in offered] if offered else None}"
           "   (NOT a rendering of anything coarser -> None)")
 
-    # the ACTUAL board's verdict, so the channel is open or closed for a reason
+    # 2b: segmented objects as slots, replacing the identity decomposition. The lens is
+    # computed over the CELL naming because a stride view is a fact about the board's
+    # geometry, not about the objects found on it.
     real = arc_lens.lens(names, SIDE, _fidelity(cells(probe_board), PALETTE))
-    env = ArcWorld(FakeWrapper(), cells, atoms, palette=PALETTE, views=real)
+    seg = arc_percept.Objects()
+    env = ArcWorld(FakeWrapper(), seg, atoms, palette=PALETTE, views=real)
 
     print("  the eight fill      :", end=" ")
     bind(env)
@@ -133,6 +137,11 @@ def main() -> None:
     print(f"  loop                : {agent.cycle} cycles, {len(led.rows())} rows, {dict(c)}")
     print(f"  gate                : {verdict['verdict']}")
     br = [r for r in led.rows() if r["detail"].get("channel") == "bracket"]
+    pres = [r for r in led.rows() if r["event"] == "present"]
+    print(f"  perception          : {len(env.slots())} object slots, "
+          f"{len(seg.tracked)} tracked objects")
+    print(f"  slot-set changes    : {len(pres)} rows"
+          + (f", came={pres[0]['detail']['came'][:3]}" if pres else ""))
     adv = [r for r in led.rows() if r["event"] == "advertised"]
     print(f"  action-set delta    : {len(adv)} rows"
           + (f", came={adv[0]['detail']['came']} after={adv[0]['detail']['after']}" if adv else ""))

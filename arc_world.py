@@ -47,6 +47,7 @@ class ArcWorld:
         self._palette = int(palette)
         self._name = name
         self._frame = self.w.reset()
+        self._read: dict[str, int] | None = None
 
     # -- the eight -----------------------------------------------------------------------
 
@@ -68,9 +69,22 @@ class ArcWorld:
         return ("levels_completed, read off the frame. There is no score field, and "
                 "levels_completed == win_levels is the win")
 
+    def _decomposed(self) -> dict[str, int]:
+        """ONCE PER FRAME. The decomposition is a function OF THE FRAME, and 2b's is
+        STATEFUL because tracking is -- so calling it from both `slots()` and `observe()`
+        advanced the tracker twice per step and the two disagreed, which surfaced as a
+        `KeyError` on a slot that existed in one call and not the other.
+
+        **The eight-member contract assumes purity and perception cannot be pure.** Caching
+        per frame is where the two meet: the frame is what changes, so it is what the cache
+        is keyed on."""
+        if self._read is None:
+            b = self.board()
+            self._read = {} if b is None else dict(self._decompose(b))
+        return self._read
+
     def slots(self) -> list[str]:
-        b = self.board()
-        return [] if b is None else sorted(self._decompose(b))
+        return sorted(self._decomposed())
 
     def atoms(self) -> list:
         return list(self._atoms)
@@ -122,14 +136,14 @@ class ArcWorld:
         return self._frame.frame[-1]
 
     def observe(self) -> dict[str, int]:
-        b = self.board()
-        return {} if b is None else dict(self._decompose(b))
+        return dict(self._decomposed())
 
     def step(self, action: str) -> None:
         act = GameAction[action]
         nxt = self.w.step(act)
         if nxt is not None:
             self._frame = nxt
+        self._read = None          # a new frame is a new decomposition
 
     # -- read by the harness, never by the loop --------------------------------------------
 

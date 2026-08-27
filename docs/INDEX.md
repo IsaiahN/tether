@@ -240,6 +240,7 @@ honestly: the `ARC-AGI-3-Agents` repo *is not checked out anywhere locally*, so 
 | one constants block | `DISCOVERY` Q14 | **gap** — per-site anchors enforced by a rule instead; deviation, now recorded |
 | a basis attached to the wrong question | `DISCOVERY` Q24 | **declared limit** — `max_depth = 3` HAS provenance (the chunking falsifier) and the principled bound is a different quantity (Ashby's requisite variety). **ANCHOR checks that a number has a basis. It checks NEITHER of the two properties that make a basis an anchor.** (1) that the basis answers the question the number is used for — this row's original finding. (2) **that the basis is EXTERNAL TO THE FRAME**, named by `ARC_AGENT` §22.1: *"increased for better pattern exploration"* is **tuned toward a desired behaviour by the frame that benefits from it** and is the failure mode; *"humans complete a level in under 500 actions, so 1000 is the 2× ceiling"* is **anchored to a measurement the agent cannot move**. **A human's move count is not a quantity the agent produces, so using it as a reference is not self-scoring** — Figure 1's rule deciding which of two justified numbers is legitimate. **Both are bases. Only one is an anchor, and the checker cannot tell them apart.** §22.1's diagnosis of the original defect is the one to keep: ***what was missing was never the basis — it was that the basis was in your head and not in the constants block.*** Not closable statically — declared, like default arguments |
 | provenance standard | `DISCOVERY` Q19 | **gap** — `0.98`'s docstring names the measurement that forced it *and the value that would have been wrong*. No constant here meets that bar |
+| **the eight-member contract assumes PURITY and never says so** | `world.Env` · measured at `2b` | **a property of the CONTRACT, not of the code that tripped on it.** `slots()` and `observe()` are separate members and nothing says they may not both be called per step — **so a domain whose decomposition is STATEFUL advances its state twice and the two members disagree.** Perception cannot be pure: tracking is what makes a slot the SAME slot next frame. It surfaced as a `KeyError` on a slot present in one call and not the other, and the fix is that **the decomposition is a function OF THE FRAME** — computed once, cache cleared on `step`. **The next domain with stateful perception hits this identically**, which is why it is filed against the contract |
 | the checker imports nothing | `DISCOVERY` Q23 | **ok, UNCHECKED** — *the Gate receives a reification, not the running machine, and a checker over data is domain-blind by construction.* `gate.py` imports `json` and `sys`; `conform/kernel.py` only stdlib. **Holds, and no rule enforces it** — and `BUILD_PLAN` §5's falsifier says *if the inliner wires it to the loop, the soundness argument is gone* |
 | A1 — closure generated, not stored | `PHILOSOPHY` §14 · `CONFLATIONS` A1 | **ok** — REACH, written to the property |
 | **the proctor rules themselves** | `PHILOSOPHY` §0.2 | **ok, and they are not what they look like.** *Never encode the answer · the proposer proposes, never scores · a hardcoded procedure that pre-answers is a fault even when correct · generators cross up, playback never does · residue is the agent's to close.* These read as a working style. **They are the clauses of a substitution constraint**: natural selection is the only known process that produced open-ended structure with no designer, so it is both the existence proof and the specification, and *unnatural selection* is legitimate only where it preserves all six of its ordering properties. **Relaxing one does not make the build faster -- it makes the result authorship rather than selection, and an authored result does not transfer because nothing external tested it** |
@@ -634,6 +635,86 @@ ledger for an `abstain` event, found none, and had written down that the product
 the one item of six with no record. **The event is `park`, carrying a verdict.** A search
 for the wrong name returns the same empty set as an absent mechanism, and only the second is
 a finding.
+
+---
+
+# `2b` — BUILT 2026-08-27, and blocker 2's detector fired for real
+
+`arc_percept.py`. **Segmented objects as slots, tracked by overlap, dying only on evidence.**
+An object contributes five int slots — `row`, `col`, `h`, `w`, `colour` — because `POSITION`
+and `EXTENT` are two-dimensional and the loop takes one int per slot, **and separate axes are
+the only encoding in which a `translate` atom acts on a slot sensibly.**
+
+    perception        10 object slots, 2 tracked objects
+    slot-set changes  3 `present` rows -- came=['o1.col', 'o1.colour', 'o1.h']
+    gate              pass, 333 rows
+
+> **BLOCKER 2'S DETECTOR FIRED FOR REAL.** Not on a wrapper built to make it fire —
+> **perception genuinely produced a changing slot set** and `_present()` caught it three
+> times. **One of the three undemonstrable greens is now a measurement.**
+
+### Two choices the corpus does not settle, made and stated
+
+**4-CONNECTIVITY, not 8.** *Connected same-symbol components* does not say which. Four splits
+diagonal touches into separate objects, so the agent sees MORE slots — and **over-segmentation
+is recoverable** (the agent can learn two slots move together) while **under-segmentation is
+the loud/silent failure**, one slot hiding a rule operating below it.
+
+**NO BACKGROUND COLOUR.** Every same-symbol region is a component, including colour 0.
+**Treating 0 as background is domain knowledge about what a board means**, and perception is
+not entitled to it. It costs slots and refuses an assumption.
+
+### Three defects, found by running it
+
+**1 · Overlap alone cannot track a move, and the ATOM SET proves it is a defect rather than a
+limit.** A 1×2 object moving one row has ZERO cell overlap with itself, so a translation read
+as a death and a birth. **`translate` is in the specified atom set, and a translate atom is
+unobservable if translation destroys identity.** §12.3 sensor 5 is the answer and I had
+skipped it as not-needed-for-slots-to-exist: **`shape(obj)` at NORMALIZED OFFSETS is
+position-independent**, so it carries identity across a move. After: `{'o1.row': (1, 2)}` — a
+translation as a single-slot delta, which is what an atom can act on.
+
+**2 · The eight-member contract assumes PURITY and perception cannot be pure.** `slots()` and
+`observe()` each called the decomposition, and tracking is stateful — **so two calls per step
+advanced the tracker twice and the two disagreed**, surfacing as a `KeyError` on a slot that
+existed in one call and not the other. **The decomposition is a function OF THE FRAME**, so it
+is computed once per frame and cached, and the cache clears on `step`.
+
+**3 · The slot set can move WITHIN a step, and `_present` only catches boundaries.** An object
+can die between the bet and the reading, so `self.slots` is stale by the time `after` is read.
+**A slot that vanished under the bet is UNEXPLAINED, not absent** — it is charged a full code
+and the row carries `vanished`. Same rule as `_applies` and the round-trip fallback: **missing
+is charged, never skipped.** Third instance today of that exact direction.
+
+**No regression:** 1/1 correct, 0/6 false, 1,463 compositions, mint 20 / settle 6.
+
+---
+
+# `2b`'s three decisions — ALL SETTLED BY THE CORPUS, checked before writing
+
+**Three choices live inside *connected components as slots, tracking by overlap, death only on
+evidence*, and the third is the one that gets made by whoever writes it.** Asked before, not
+after — and **all three turn out already answered.**
+
+| decision | answer | where |
+|---|---|---|
+| **what counts as a component** | **connected SAME-SYMBOL components** — near-decomposable clusters after Simon, *the boundary is where cohesion drops*. Adjacency AND colour identity, not either | `DISCOVERY` Q6 · `ARC_AGENT` §5 |
+| **same object across frames** | **permanence by IoU overlap**, so identity survives recolour and reshape | `ARC_AGENT` §5 · Q6 |
+| **when the object is not found** | **it persists.** *Segmentation is a revisable belief*; an object **persists through non-observation (occlusion) and DIES ONLY ON EVIDENCE — when its cells are taken over by other live objects.*** Not-found is NOT dead | `DISCOVERY` Q6, SETTLED |
+
+**AND THE THIRD IS THE EROSION, ANSWERED AGAINST THE EASY OPTION.** The cheap move is to drop
+a slot when its object is not found — **which is a silent slot-set change, blocker 2's defect
+arriving from the other direction.** The corpus refuses it, and blocker 2 now makes it loud
+anyway: dropping a slot trips `_present()` and emits a row. **The rule and the detector agree,
+and neither knew about the other.**
+
+**AND THE ONE THAT LOOKED OPEN DISSOLVES.** The IoU THRESHOLD has no recorded basis, which is
+the ANCHOR problem — **and there is no threshold.** The sensor table types it
+**`overlap(a, b) : OBJ × OBJ → RATIO`**, a measured ratio rather than a boolean, so tracking
+matches each object to the previous one with **maximum overlap** and nothing needs a cutoff.
+**The predicate-not-threshold discipline that REPAIRS 1 enforced when it deleted `EPS` and
+`WARM`, holding one layer out — and I was one step from inventing a number the type signature
+already rules out.**
 
 ---
 
@@ -1032,6 +1113,29 @@ states I have occupied*** is a different sentence from ***nothing I can do chang
 > **And the narrow version is the better sentence anyway** — it says what the evidence
 > supports and names its own scope, where the broad one overclaims **in the direction the
 > whole abstention discipline exists to prevent.**
+
+---
+
+# ABSENCE IS CHARGED UNLESS SOMETHING PROVES OTHERWISE — a standing default
+
+**Three unrelated sites in one day, one direction, and the direction is what matters.** Each
+was a place where something was MISSING rather than wrong, and each had a locally reasonable
+lenient reading:
+
+| site | what was missing | the lenient reading | what it would have claimed |
+|---|---|---|---|
+| **`_applies`** | a frame the term cannot be evaluated on | skip it | **a term evaluable on half a history is a PERFECT EXPLAINER** — `_explains` needs `_left == 0.0` |
+| **`round_trip_gap`** | a slot the view dropped | reconstruct it from the truth | **a slot-DROPPING view is LOSSLESS** — `drop:s0` read 0.000 bits |
+| **`perceive`** | a slot that vanished under the bet | omit it from the residual | **an object that died was correctly predicted** |
+
+> **ALL THREE FAIL TOWARD *NOTHING WAS LOST*, which is the direction that goes quiet.** So it
+> is a DEFAULT and not three decisions that happened to agree: **absence is charged unless
+> something proves otherwise.** The exception has to be argued at the site; the charge does
+> not.
+
+**And none was visible to review** — skipping an inapplicable frame, filling a missing key,
+omitting a dead slot all read as reasonable. **All three were caught by a number that did not
+move**, and each time only because the right value was derivable from outside the code.
 
 ---
 

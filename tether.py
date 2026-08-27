@@ -338,16 +338,28 @@ class Agent:
 
     def perceive(self, action: str) -> dict[str, SlotResidual]:
         before = self.env.observe()
-        pred = {s: self._predict(s, before, action) for s in self.slots}
+        # A BET CAN ONLY BE MADE ON A SLOT THAT WAS THERE. With perception the slot set can
+        # move WITHIN a step -- an object dies between the bet and the reading -- and
+        # `_present` only catches that at step boundaries. So the bet is over `before`.
+        betting = [s for s in self.slots if s in before]
+        pred = {s: self._predict(s, before, action) for s in betting}
         _, deg_before = self.env.objective()
         self.env.step(action)
         after = self.env.observe()
         name, deg_after = self.env.objective()
 
         res: dict[str, SlotResidual] = {}
-        for s in self.slots:
-            bits = correction_bits(pred[s], after[s], self.alphabet[s])
-            r = SlotResidual(s, TRANSITION, pred[s], after[s], bits)
+        for s in betting:
+            # A SLOT THAT VANISHED UNDER THE BET IS UNEXPLAINED, not absent. The object was
+            # there when the bet was made and is gone now, which is a full code's worth of
+            # correction -- and `death only on evidence` means it went because its cells were
+            # taken, so the disappearance is a reading rather than a gap. Same rule as
+            # `_applies`: missing is charged, never skipped.
+            gone = s not in after
+            actual = pred[s] if gone else after[s]
+            bits = (math.log2(self.alphabet[s]) if gone
+                    else correction_bits(pred[s], actual, self.alphabet[s]))
+            r = SlotResidual(s, TRANSITION, pred[s], actual, bits)
             res[s] = r
             # from_value is the input the bet was computed from, and it is the whole
             # difference between a bet on the BELIEF and one on the observation -- the
@@ -355,7 +367,8 @@ class Agent:
             # just never on the row, so nothing could tell the two apart.
             self.led.record(self.cycle, "PERCEIVE", s, "bet", channel=TRANSITION,
                             of=(s,),
-                            from_value=before[s], predicted=pred[s], actual=after[s],
+                            from_value=before[s], predicted=pred[s], actual=actual,
+                            **({"vanished": True} if gone else {}),
                             mass=r.bits, cause=self._cause(s, r.bits),
                             bound=self.bound.get(s, IDN),
                             **({"disproof": self._disproof[s]}
