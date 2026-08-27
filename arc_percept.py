@@ -86,6 +86,111 @@ def overlap(a: frozenset, b: frozenset) -> float:
     return len(a & b) / len(a | b)
 
 
+def touching(a: dict, b: dict) -> bool:
+    """§12.3 sensor 8, `OBJ x OBJ -> BOOL`: contact, the default causal hypothesis.
+
+    4-adjacency between any cell of one and any cell of the other, matching the connectivity
+    segmentation uses -- two objects touch on the same relation that would have merged them
+    had they shared a colour. Using 8 here and 4 there would mean `touching` could be true of
+    objects the segmenter would never have joined, which is a different relation wearing the
+    same name.
+    """
+    cells = b["cells"]
+    return any((r + dr, c + dc) in cells
+               for r, c in a["cells"]
+               for dr, dc in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+
+
+def kind_of(obj: dict) -> tuple:
+    """What counts as the same KIND. COLOUR AND SHAPE, and the choice has the asymmetry
+    that decided 4-connectivity.
+
+    Too coarse conflates two behaviours under one profile -- a red wall and a red key become
+    one row whose booleans contradict each other, and **nothing says so**. Too fine splits a
+    kind that would have transferred, which costs generality and is recoverable. **Splitting
+    is recoverable, conflation is the silent failure**, so the finer key wins.
+
+    And it is not a taxonomy: §16.4 says **do not classify the substance** -- a blob-kind
+    vocabulary learned on the public set is *the archetype trap wearing a perception costume*.
+    Colour and shape are what the sensors already report, not a category anyone named.
+    """
+    return (obj["colour"], obj["shape"])
+
+
+class Affordances:
+    """§16.4's seven, per kind, learned by interaction.
+
+    *"Wall" is not a category, it is a profile -- and the profile is what transfers, because a
+    private-set game with a wall it has never seen still has a thing that blocks.*
+
+    WHAT IS READABLE HERE AND WHAT IS NOT. All seven are defined by behaviour UNDER CONTACT,
+    and contact needs a mover. Four of them further need to know which object is MINE:
+    `blocks` and `passes` are about movement INTO a thing, which presupposes an avatar, and
+    §16.2's control mode is what supplies one. **On a board with no avatar those stay unread
+    rather than false** -- an unread affordance and an absent one are different claims, and
+    the profile records which it is.
+    """
+
+    SEVEN = ("blocks", "passes", "moves_when_touched", "changes_on_touch",
+             "triggers_remote", "terminates", "consumed")
+
+    def __init__(self) -> None:
+        self.seen: dict[tuple, dict[str, bool]] = {}
+
+    def note(self, before: dict[str, dict], after: dict[str, dict],
+             mover: str | None) -> None:
+        """One contact event teaches one kind, over TRACKED objects.
+
+        IDENTITY IS READ, NOT RE-DERIVED. A first version took raw component lists and
+        matched survivors BY KIND -- and since a kind carries shape, an object that merely
+        RESHAPED had no survivor of its kind and read `consumed: True`. **The background
+        region scored consumed because something moved through it.** `Objects` already owns
+        identity, by overlap and then by shape, so this reads it instead of inventing a
+        second and worse answer to the same question.
+
+        `mover` is the avatar's name when the control mode found one, and None otherwise --
+        which leaves the movement-into readings UNREAD rather than guessed.
+        """
+        for name, o in before.items():
+            partners = [q for n, q in before.items() if n != name and touching(o, q)]
+            if not partners:
+                continue
+            row = self.seen.setdefault(kind_of(o), {})
+            survivor = after.get(name)
+            if survivor is None:
+                row["consumed"] = True
+            elif survivor["cells"] != o["cells"]:
+                # DISPLACED OR TRANSFORMED, and §16.4 names them separately: *moves-when-
+                # touched: it DISPLACES on contact* against *changes-on-touch: it recolours
+                # or TRANSFORMS*. Cell-set inequality alone conflates them -- the background
+                # region read `moves_when_touched` because something moved THROUGH it.
+                # Shape and position already separate the two; no new sensor is needed.
+                same_shape = shape_of(survivor) == shape_of(o)
+                if same_shape:
+                    row["moves_when_touched"] = True
+                else:
+                    row["changes_on_touch"] = True
+                if survivor["colour"] != o["colour"]:
+                    row["changes_on_touch"] = True
+            if mover is not None and any(n == mover for n, q in before.items()
+                                         if q in partners):
+                # contact WITH the avatar: whether it yielded is the blocks/passes read
+                yielded = survivor is not None and survivor["cells"] != o["cells"]
+                row["blocks"], row["passes"] = not yielded, yielded
+
+    def profile(self, obj: dict) -> dict[str, bool | None]:
+        """Seven readings. `None` means UNREAD -- never observed in contact -- which is a
+        different claim from False and is kept distinct for the same reason `unreached` is
+        kept distinct from `unreachable`."""
+        row = self.seen.get(kind_of(obj), {})
+        return {name: row.get(name) for name in self.SEVEN}
+
+    def report(self) -> dict:
+        return {"kinds": len(self.seen),
+                "profiles": {str(k): v for k, v in sorted(self.seen.items(), key=str)},
+                "reads": "behaviour under contact, per kind -- not a substance taxonomy"}
+
+
 class Objects:
     """The decomposition, stateful because tracking is.
 

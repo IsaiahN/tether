@@ -190,6 +190,65 @@ class Preconditions:
 
 
 @dataclass
+class Agency:
+    """§16.8 sensor 3, and §16.2 rules how it may be read.
+
+    `THE_MISSION`: *the ONLY legitimate distinction is topical I/O -- is there an AVATAR my
+    directional actions translate, or do I act through a CLICK ACTUATOR -- and even that
+    **BLENDS mid-game**, so it must be detected CONTINGENTLY PER STEP, never used to label
+    the game.*
+
+    So this is a sensor, not a config flag, and `mode()` is re-read every step:
+
+        one slot's delta correlates with my action   -> avatar
+        no slot correlates but the board changes     -> actuator, acting at a distance
+        several correlate                            -> coupled bodies
+
+    A PREDICATE, NOT A THRESHOLD. A slot is action-contingent when SOME action has always
+    moved it and SOME OTHER action has never moved it -- an existence claim over what was
+    observed, with no rate, no cutoff and no window to tune. Weaker than a correlation and
+    it cannot be gamed by a number nobody chose.
+    """
+
+    moved: Counter = field(default_factory=Counter)     # (slot, action) -> times it changed
+    tried: Counter = field(default_factory=Counter)     # (slot, action) -> times it was tried
+    any_change: int = 0
+    steps: int = 0
+
+    def note(self, action: str, changed: set[str], slots: list[str]) -> None:
+        self.steps += 1
+        self.any_change += int(bool(changed))
+        for s in slots:
+            self.tried[(s, action)] += 1
+            if s in changed:
+                self.moved[(s, action)] += 1
+
+    def contingent(self) -> list[str]:
+        """Slots whose movement depends on WHICH action was taken."""
+        out = []
+        for s in {k[0] for k in self.tried}:
+            acts = [a for (sl, a) in self.tried if sl == s]
+            always = [a for a in acts if self.moved[(s, a)] == self.tried[(s, a)]]
+            never = [a for a in acts if self.moved[(s, a)] == 0]
+            if always and never:
+                out.append(s)
+        return sorted(out)
+
+    def mode(self) -> str:
+        c = self.contingent()
+        if len(c) == 1:
+            return "avatar"
+        if len(c) > 1:
+            return "coupled"
+        return "actuator" if self.any_change else "unread"
+
+    def report(self) -> dict:
+        c = self.contingent()
+        return {"control_mode": self.mode(), "contingent_slots": c, "steps": self.steps,
+                "reads": "per step, never a label -- it blends mid-game (§16.2)"}
+
+
+@dataclass
 class Clocks:
     """Two, because understanding is not winning and they fail differently."""
 

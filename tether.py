@@ -165,6 +165,7 @@ class Agent:
         self.phases = I.Phases()
         self.clocks = I.Clocks()
         self.pre = I.Preconditions()   # §16.8 sensor 2, fed by the delta
+        self.agency = I.Agency()       # §16.8 sensor 3, a per-step read
         self.retro: list[dict] = []
         # parked residuals survive a level boundary; the trace does not. So a parked
         # record carries its OWN evidence -- retrospective re-attribution is free in
@@ -425,6 +426,10 @@ class Agent:
                             of=("@bracket",), from_value=None, actual=None,
                             mass=round(rt, 3), cause=GENUINE,
                             coarse_view=True, view=self._view[0])
+        # §16.8 SENSOR 3. Which slots moved under THIS action, so the control mode is a
+        # contingency read rather than a label -- §16.2: it blends mid-game, so it is
+        # detected per step and never used to name the game.
+        self.agency.note(action, {s for s, r in res.items() if r.mass > 0}, sorted(res))
         self._integral += sum(r.mass for r in res.values())
         live = any(r.mass > 0 for r in res.values())
         self.drive.note_step(live)      # once per step: SUPPORT is over slots, not per slot

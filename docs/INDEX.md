@@ -638,6 +638,77 @@ a finding.
 
 ---
 
+# THE BUILD TABLES GROUP BY COST, NOT BY DEPENDENCY — twice now
+
+**§16.8 lists four sensors with a `cost` column: trivial, 49 cells, one correlation, one row
+per kind.** Nothing in it says **4 depends on 3 and on 8**, and 8 is not even in the table —
+it is one of §12.3's nine. **Building in listed order would have produced sensor 4 against an
+avatar that had not been read yet**, and the `blocks`/`passes` readings would have been
+guessed rather than left unread.
+
+**Same shape as the `2c` split**, which grouped a lens and four sensors under one item and hid
+that half of them needed `2b`. **A table that orders by cost tells you what is cheap; the
+dependency order falls out of neither the table nor the cost.**
+
+> **So read the SPEC of each item before ordering a phase, not the row that summarises it.**
+> Both misorderings were caught by reading §16.8 and §16.4 rather than by anything failing —
+> **nothing would have failed. The work would just have been done against something that was
+> not there yet.**
+
+**`2d` and `2e` are the remaining rows in the same table.** Their dependencies have not been
+checked against their own sections.
+
+---
+
+# Sensors 3 and 4 — BUILT 2026-08-27, and 4 needed a sensor from the other list
+
+**§16.8's four are now four**, and building 4 surfaced a dependency the build table does not
+show: **§16.4 defines an affordance as behaviour UNDER CONTACT, so sensor 4 needs
+`touching(a, b)` — which is §12.3 sensor 8, not one of the four.** And *blocks: movement into
+it fails* presupposes an avatar, which is sensor 3's read. **So the four cheap sensors are not
+independent: 4 depends on 3 and on 8.**
+
+### Sensor 3 · control mode, a per-step read and never a label
+
+§16.2 is strict: *it BLENDS mid-game, so it must be detected contingently per step, never used
+to label the game.* Built as `Agency`, re-read every step:
+
+    one contingent slot   -> avatar        several -> coupled
+    none, but change      -> actuator      none, no change -> unread
+
+**A PREDICATE, NOT A THRESHOLD.** A slot is action-contingent when SOME action has always
+moved it and SOME OTHER has never — an existence claim over what was observed, **no rate, no
+cutoff, no window to tune.** Verified to discriminate all three: `avatar ['a']`,
+`coupled ['a','b']`, `actuator []`. On the fixture it reads **actuator**, correctly — the
+board changes on a clock rather than by action, so nothing is action-contingent.
+
+### Sensor 4 · affordances, not substances
+
+§16.4: **do not classify the substance** — a blob-kind taxonomy learned on the public set is
+*the archetype trap wearing a perception costume*. ***"Wall" is not a category, it is a
+profile — and the profile is what transfers.*** Seven booleans per kind, and **`None` means
+UNREAD rather than false**, kept distinct for the same reason `unreached` is kept from
+`unreachable`. The fixture reads **7/7 unread**: its objects touch and nothing happens.
+
+**KIND IS COLOUR AND SHAPE**, on the asymmetry that decided 4-connectivity: **too coarse
+conflates two behaviours into one contradictory row and nothing says so; too fine splits a
+kind that would have transferred, which is recoverable.**
+
+### Two defects, both found by running it
+
+**1 · A false `consumed`.** The background region scored *consumed* because something moved
+THROUGH it: matching survivors BY KIND fails when a kind carries shape, so any RESHAPE looks
+like death. **`Objects` already owns identity by overlap and then by shape** — the fix is to
+READ it rather than re-derive it, and re-deriving was a second and worse answer to a question
+already answered.
+
+**2 · A false `moves_when_touched`.** Cell-set inequality conflates §16.4's *displaces* with
+its *transforms*. **Shape and position already separate them** — same shape and different
+place is a displacement; different shape is a transformation. No new sensor needed, and the
+background now reads `changes_on_touch`, which is what happened to it.
+
+---
+
 # `2b` — BUILT 2026-08-27, and blocker 2's detector fired for real
 
 `arc_percept.py`. **Segmented objects as slots, tracked by overlap, dying only on evidence.**

@@ -142,6 +142,21 @@ def main() -> None:
           f"{len(seg.tracked)} tracked objects")
     print(f"  slot-set changes    : {len(pres)} rows"
           + (f", came={pres[0]['detail']['came'][:3]}" if pres else ""))
+    # §16.8 sensor 4, over the tracked objects the loop just produced. `mover` is the
+    # avatar's name when the control mode found one -- here it has not, so the
+    # movement-into readings stay UNREAD rather than guessed.
+    af = arc_percept.Affordances()
+    snap_a = dict(seg.tracked)
+    env.step(env.actions()[0])
+    env.observe()
+    af.note(snap_a, dict(seg.tracked), mover=None)
+    prof = af.profile(next(iter(seg.tracked.values()))) if seg.tracked else {}
+    print(f"  affordances         : {af.report()['kinds']} kinds; one profile = "
+          f"{ {k: v for k, v in prof.items() if v is not None} } "
+          f"({sum(v is None for v in prof.values())}/7 unread)")
+    ag = agent.agency.report()
+    print(f"  control mode        : {ag['control_mode']}  "
+          f"contingent={ag['contingent_slots'][:3]}  over {ag['steps']} steps")
     adv = [r for r in led.rows() if r["event"] == "advertised"]
     print(f"  action-set delta    : {len(adv)} rows"
           + (f", came={adv[0]['detail']['came']} after={adv[0]['detail']['after']}" if adv else ""))
