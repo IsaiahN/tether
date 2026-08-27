@@ -638,6 +638,40 @@ a finding.
 
 ---
 
+# PHASE 3's ORDER IS `3b` → `3c` + `3d` → `3a`, and §23.6 says so outright
+
+**Sixth time the check has been applied, sixth thing it found — and this one the corpus states
+in a numbered list rather than leaving to be derived.**
+
+> §23.5: *Loading is not free. More atoms means a larger `λ`, so `λ^d` grows and a fixed budget
+> covers a **smaller fraction** of the space — which shows up as coverage falling and, if
+> nothing is done, **as more false `UNREACHED`**.*
+>
+> ***Loading generously therefore REQUIRES retrieval-by-characterised-residual, not
+> enumeration.** A big library is an asset when you look things up by the shape of your gap
+> and a liability when you walk it in registry order.*
+>
+> **Plan consequence: Phase 3c stops being optional.** *If the library is loaded heavily,
+> retrieval AND THE RANK FUNCTION are prerequisites rather than improvements — **otherwise
+> loading makes the agent WORSE by drowning every search**.*
+
+**And §23.6 item 6 makes it explicit: *Phase 3c (retrieval + rank) is promoted to a
+prerequisite of loading, not a follow-on.*** Note *and the rank function* — **`3d` moves
+too.** The table's `3a → 3b → 3c → 3d` is wrong in three places at once.
+
+**So `3a` is not blocked on one thing but on three**: the unrun priors path, the unwritten Cyc
+pre-emption, and now **`3c` + `3d` as stated prerequisites.** Which is consistent — *load
+generously* is the item that makes every other cost worse, and it is listed first.
+
+### And §23.6 item 4 is already built
+
+*Report minted-fraction per solution — **the composer-vs-lookup number, free from the
+stamps***. `minted_fraction` is already in the ladder's row keys, computed from the origin
+stamps at `grade`. **Fifth instance today of work that exists and is filed elsewhere**, and
+this one is a whole reporting item.
+
+---
+
 # `3b` — BUILT 2026-08-27. `λ < V` for the first time, and the falsifier stops firing
 
 **`arc_atoms.py`: EXTRACT + RELATE + QUANTIFY, joined to whatever PREDICT the domain
@@ -784,6 +818,94 @@ under different numbers and connected only by §19's own title.**
 `NOT_RESOLVED`, the pricing — **and its real blocker is unchanged**: *load generously across
 the six loadable shapes, all stamped `prior`*, which runs through the **molecules path that
 has zero call sites**, with **the Cyc pre-emption still unwritten.**
+
+---
+
+# `3c` — BUILT 2026-08-27. `retrieval.py`, and the null it first read was the panel again
+
+**§15.3 is `3c`'s spec and it is one sentence:** *the whole library is present and reachable;
+**what you cannot do is ask for a primitive by name** — you get it by describing the gap it
+fits.* Figure 9 supplies the procedure — ***matching is a one-pass check, not a search*** —
+and §23.5 supplies the stake: a big library is *an asset when you look things up by the shape
+of your gap and a liability when you walk it in registry order.*
+
+**`_library_fit` was the registry walk, in those words.** It scored **every** library term
+against the **whole** history and took the shortest that explained. Now the residual is
+characterised, the library is ordered by how well each term's key fits that description, and
+the first explainer wins.
+
+### 1 · WHAT IS KEYED, AND THE HALF THAT DELIBERATELY IS NOT
+
+§15.3 lists four keys. **Two are properties of a TERM and two are properties of its
+BEHAVIOUR**, and only the first two are free:
+
+| key | keyed here? | why |
+|---|---|---|
+| type signature | **yes** | read straight off `Atom.in_type / out_type` |
+| arity | **yes** | `reads_operand`, against the gap's own counted arity |
+| what varies / invariant | **no** | needs the term applied to the residual's frames |
+| effect shape | **no** | same — *describe in effect terms* requires running it |
+
+**Keying what is free and evaluating what is not IS the one-pass check.** Keying all four
+would need every term evaluated to compute its key, which is the search §15.3 replaces —
+**the mechanism would consume exactly the work it exists to save.**
+
+### 2 · TWO THINGS IT DOES NOT DO, BOTH BECAUSE A CHECK ALREADY SAYS SO
+
+**It materialises nothing.** `closure(Γ)` is generated and never stored (A1), and the REACH
+rule exists to keep **one producer of reach**. So this indexes the **library**, which is
+stored anyway, by a function computed on demand. **A stored index over the closure would be a
+second producer of reach** — and the index already recorded that the A1 REACH check was built
+first *to protect against a design the corpus never asked for*. It holds: `3c` did not want
+one.
+
+**It does not gate.** Retrieval **orders** and returns every name; a term scoring zero is
+tried last, never dropped. This is `_cannot_pay`'s lesson reused verbatim — *filtering by what
+a term ought to need lost a closing term* — and contact ranking's: **order, never exclude.**
+
+**Length is the tie-break inside the habitat**, so MDL's preference is not overturned, only
+**restricted to the habitat first**. Ordering by length alone is the registry walk; ordering
+by fit alone would discard the one preference the bargain is built on.
+
+### 3 · IT READ 3% AND THE 3% WAS THE PANEL
+
+Measured against the implementation it replaced, on the demo, both running on every call:
+
+    library-fit calls  27          SAME PICK  27 / 27          differing  none
+    _explains evals -- registry walk 253  ·  retrieval 245  ·  work avoided 3%
+
+**27/27 identical picks is the result that matters** — behaviour preserved exactly, nothing
+excluded, which is the claim the no-gating design has to make good on.
+
+**And 3% is not a null about retrieval.** The corollary fired before it could be read as one:
+*before a null is read as a finding about a mechanism, state what property of the panel the
+mechanism would need in order to show, and confirm the panel has it.* Retrieval discriminates
+on **type signature**. The demo's library is **entirely `val → val` — one distinct signature,
+one node in the type graph.** There is nothing to discriminate on, so it structurally cannot
+show. On `3b`'s three spaces, which is the panel that has the property:
+
+| library | terms | signatures | registry walk | retrieval |
+|---|---|---|---|---|
+| demo | 8 | **1** | 1 eval | 1 eval — *nothing to show* |
+| three spaces | 19 | **4** | **11 evals** | **4** — one per habitat |
+
+**One evaluation to reach the right habitat, for every signature.** That is §15.3's *one
+lookup*, and the registry walk needs up to **five** for the same term — a gap that widens with
+the library, which is exactly §23.5's asset-or-liability.
+
+**This is the fourth time a null has been a fact about the world it was measured in**, and the
+second time the world was *this repo's own demo*. **`3b`'s closing line predicted it in
+advance** — *the instrument was working; it just had nothing to measure* — written about `λ`,
+and now true word for word of retrieval. **Two mechanisms, one panel defect, one sentence
+covering both.**
+
+### 4 · IT IS NOT AN `arc_` MODULE, AND THAT WAS A CORRECTION
+
+Built as `arc_index.py` and renamed to **`retrieval.py`** before wiring. Nothing in it is
+ARC-specific — it keys on `Atom`'s own types — and `tether.py` is the **domain-agnostic**
+loop. An `arc_` import there would have inverted the dependency and put a domain name in the
+one file that must not have one. **The rename cost nothing at 3c and would have been
+structural by Phase 5.**
 
 ---
 

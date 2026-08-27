@@ -143,7 +143,12 @@ after the fact there is nothing to catch, because after the fact the reading is 
   sensor 8 from a different list and sensor 3's read; `2d`'s `bounded` is *defined* by a cap
   nobody had set; `2e` turned out to be the consumer for two mechanisms built without
   triggers. **None of them would have FAILED** — the work would have been done against
-  something that was not there yet.
+  something that was not there yet. **And the reason it keeps paying is that the tables list
+  CAPABILITIES while the code files MECHANISMS**: three of five times the mechanism was
+  present and the capability was not — a type-directed closure with no varied types, seven
+  sensors under the items that needed them, a sweep with no trigger. **So *is it built* is the
+  wrong question to ask a row; *what does it still owe* is the right one, and the two differ
+  most where the mechanism is finished.**
 - **Assume it is already specified, and go look.** This is the sixth law and it is ALSO a
   step, which is why it appears twice — the other six install something that fires, and
   this one cannot. **And familiarity actively suppresses it**: citing a file feels like

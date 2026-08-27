@@ -395,7 +395,7 @@ translation detector was measured at `has_self: false` for 904 steps (§18.3).
 |---|---|
 | **3a** | the **nine minimum sensors**, typed, total with `NOT_RESOLVED`, priced (§12.3) — then **load generously** across the six loadable shapes, all stamped `prior`. **No routines** (§23.2) |
 | **3b** | **EXTRACT / RELATE / PREDICT** as typed families; report `λ` — and here the type graph is genuinely sparse, so the number should finally mean something (§11.3) |
-| **3c** | **retrieval by characterised residual** — indexed by type signature, arity, invariants, effect shape. Full library, no gating (§15.3). **PREREQUISITE, not a follow-on**: a loaded Γ raises `λ`, so enumeration order drowns the search and manufactures false `UNREACHED` (§23.5) |
+| **3c** ✅ BUILT | `retrieval.py`, wired into `_library_fit`. 27/27 identical picks; 11→4 evals on 3b's three spaces, one lookup per habitat. Keys the two free properties (signature, arity) and leaves the two behavioural ones to the bargain. **retrieval by characterised residual** — indexed by type signature, arity, invariants, effect shape. Full library, no gating (§15.3). **PREREQUISITE, not a follow-on**: a loaded Γ raises `λ`, so enumeration order drowns the search and manufactures false `UNREACHED` (§23.5) |
 | **3d** | the **rank function** — cost, reuse count, type-match to the residual, recency; **plus plan length prior** (§0.1). Ranked cuts, reversible, recorded |
 | **3e** | **the four imports** available from the start — `bfs_dist`, second moments, global transform, Levenshtein. **Retrieval is by residual, not by name** |
 

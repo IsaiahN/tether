@@ -15,6 +15,7 @@ from typing import Any
 
 import grammar as G
 import instruments as I
+import retrieval
 from gamma import Ctx, Gamma, Term
 from ledger import (
     ADVANCE,
@@ -504,10 +505,23 @@ class Agent:
     # -- step 2 -----------------------------------------------------------------------
 
     def _library_fit(self, slot: str, exclude: str | None) -> str | None:
+        """3c / §15.3: ask for the term by DESCRIBING THE GAP, not by walking the registry.
+
+        The version this replaces scored every library term against the whole history and took
+        the shortest that explained -- *walking it in registry order*, which §23.5 names as
+        what makes a big library a liability. Now the residual is characterised, the library is
+        ordered by how well each term's key fits that description, and the first explainer
+        wins. **Nothing is excluded**, so a term that would have been found before is still
+        found; it is reached sooner or later, never not at all.
+        """
         hist = self.history(slot)
-        fits = [(len(t), n) for n, t in self.gamma.library.items()
-                if n != exclude and self._explains(t, slot, hist)]
-        return min(fits)[1] if fits else None
+        if not hist:
+            return None
+        gap = retrieval.characterise(hist, slot, list(self.alphabet))
+        for n in retrieval.retrieve(self.gamma.library, gap):
+            if n != exclude and self._explains(self.gamma.library[n], slot, hist):
+                return n
+        return None
 
     def _explains(self, term: Term, slot: str, hist) -> bool:
         return bool(hist) and self._left(term, slot, hist) == 0.0
