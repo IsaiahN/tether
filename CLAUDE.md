@@ -123,7 +123,7 @@ and a condition is invisible in the results it conditions.** `SNAPS_PLAN` was th
 document in the set, was never opened, and four of its ten sections overturned a published
 conclusion. The laws apply to the panel, not only to the code.
 
-**And TWO STEPS, which are a different kind of thing and are filed apart on purpose.**
+**And THREE STEPS, which are a different kind of thing and are filed apart on purpose.**
 Every law above installs something that fires — a rule, a fixture, a witness, a denominator
 that can be checked. **These cannot. They happen before the work or they do not happen, and
 after the fact there is nothing to catch, because after the fact the reading is clean.**
@@ -137,6 +137,14 @@ after the fact there is nothing to catch, because after the fact the reading is 
   a headline was about to be made.
 - **Read the things that produce conditions before the things that produce results** — a
   generator, a config, a plan, a fixture.
+- **Assume it is already specified, and go look.** This is the sixth law and it is ALSO a
+  step, which is why it appears twice — the other six install something that fires, and
+  this one cannot. **And familiarity actively suppresses it**: citing a file feels like
+  evidence of having read it, so each successful lookup accumulates evidence in the wrong
+  direction, and the entry you never needed stays unread precisely because you kept finding
+  what you did. `A6i` was declared in a table quoted from for six batches and read on the
+  last edit of the session. **There is no state recording how completely a file was read,
+  so *I have read this* is a memory of an act rather than a claim that can be checked.**
 
 **And the reason they are steps and not laws eight and nine: `B17`.** *Pre-registration does
 not protect a reading if the instrument measures something else.* The phase sweep pinned its
