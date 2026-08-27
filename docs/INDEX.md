@@ -536,6 +536,127 @@ rather than in a write-up after it.
 
 ---
 
+# THE LOOP APPLIED TO DESIGN DECISIONS — §0.2 rules it IN, and it breaks in two places
+
+`[I]` *"If the framework is recursive over bounded frames, a design decision is a bounded
+frame ... a choice nobody has made is a residual, and it has been treated as the place the
+theory stops."*
+
+**Filed as two break points and NOT as an endorsement** — a general endorsement would be
+exactly the coherence §0.2 says the recursion buys, sold as the correctness it says the
+recursion does not.
+
+### 0 · IT IS NOT A PROPOSAL. §0.2 ALREADY RULED, AND IT RULED IT IN
+
+> *A theory about frames that exempts itself is either **special pleading** (the law binds
+> every frame but this one) or **incomplete** (it does not cover the case of itself, so it is
+> not general). **There is no third option.***
+
+**So exempting design decisions is the special-pleading branch, already named.** The gap is
+that the recursion has not been RUN at this scale, not that it was undecided.
+
+**And §0.2 pre-answers the thin part, differently from how it was framed.** The distinction it
+holds is **apply vs certify**: self-application is a consistency requirement and is met;
+self-validation is forbidden by Figure 8's rule 2. Then the closing line — ***the recursion
+buys coherence, not correctness, and the framework already says which one settles it. The
+ground does.*** **The slow clock rate is therefore not thinness in the recursion**: the
+recursion settles nothing at ANY scale, agent included. The ground being expensive here is a
+fact about the ground.
+
+**The decision type also already exists, and it is the four-value `provenance` field above.**
+`chosen` — *fills a design space the corpus MARKED and did not settle* — IS this category,
+already carved, and already given the reason it cannot collapse into `unattributed`: *the
+corpus rules out wrong answers and leaves choices, so a mechanism filling a marked design
+space is a DECISION, not a leak.* **It is scoped to mechanisms. That is a SCOPE gap, not a
+missing primitive.**
+
+**And the ground is cheaper than a phase.** `ARC_BUILD_PLAN` §191 supplies it: *the test is
+whether the fix generalises — **bindings come from contact** is general; **this game needs a
+wall detector** is not*, over the two-row typing (*a game showing you something is broken* is
+legitimate; *a game telling you what to build* is the leak), and it calls the count
+**COUNTABLE rather than a matter of confidence.** Step 5 does not have to cost a phase.
+
+### 1 · BREAK ONE — THE INDEPENDENT SCORER AND THE GENUINE RESIDUAL ARE DISJOINT
+
+**The section-check is not a settle. It is step 2, reachability, and it is `_library_fit` at
+the seat's scale.** It asks *does the corpus already determine this* — *can it be composed
+from commitments already made.* A settle is a verdict on whether a choice was **right**; this
+returns whether it was **already made.**
+
+**Six for six today the answer was REBIND — and by the loop's own accounting a rebind is not a
+discovery.** It means there was no residual there. The check has been paying by finding that
+the gaps were not gaps. **Real value, and not evidence the recursion produces mints.**
+
+Then the disjointness. §8.4 carries the clause: ***death → explanation requires an interpreter
+derivationally independent of the thing being explained. Otherwise it is two mirrors.*** The
+corpus qualifies — written earlier, in a different context — which is Figure 6's *contact with
+a frame whose closure differs*, and is **why the check works at all.**
+
+> **But the corpus is silent BY CONSTRUCTION on exactly the decisions that need settling.** A
+> genuine unmade choice is one it did not rule on — that is what makes it unmade.
+>
+> **Where the corpus speaks, the decision was not a residual. Where it is silent, there is a
+> real residual and no independent frame except the slow ground.**
+>
+> **The section-check can never settle the decisions that need settling.**
+
+**And §8.4's complaint at agent scale is this same gap one level up** — *nothing says the
+sorter must be independent of the composer.* **The theory failing in the same place at both
+scales is a stronger result than it succeeding at both**, and it is the sharpest evidence in
+this section that the recursion holds.
+
+### 2 · BREAK TWO — NO DECLARED CODE, SO THE BARGAIN IS UNPRICEABLE
+
+`|φ| + |R|φ| < |R|` requires a **declared CODE**, and the loop declares one on every mint row.
+**At seat scale nothing declares one.**
+
+So *a decision taken because it is convenient is a threshold wearing a bargain's clothes* is
+true and understated: **without a code the two cannot be told apart even in principle.**
+**Not a discipline failure — a missing declaration.** Decisions can be COMPARED; they cannot
+be PRICED.
+
+**And the split is clean: the guard triple lifts, the bargain does not.** SUPPORT (is there
+evidence in the frame), REACHABILITY (composable from decisions already taken), NOVELTY (a new
+commitment or a restatement) are **three predicates and all three survive the lift.** The
+bargain is **one inequality and it does not.**
+
+### 3 · THE ENUMERATION IS PARTIALLY AVAILABLE, AND THE REST IS REFUSED
+
+| | |
+|---|---|
+| **available** | decisions typed **by source** — the four-value `provenance` · typed **by cause** — §191's two rows · the **generality test** |
+| **NOT available** | a typed space of what decisions are **about** |
+
+**Refused rather than supplied, and the reason is this session's own catch:** inventing it
+would be **`type-match` at seat scale** — a term that reads well, is not in the corpus, and
+silently double-weights the same evidence. `3d` caught that one because §17.7 had a tuple to
+check against. **Here there is nothing to check against, which is precisely why it must not be
+invented.**
+
+**One observation, with its n stated: all three instances are the same shape — *which of two
+already-built objects owns this responsibility*.** Slots vs objects · extension classes vs
+retrieval keys · grammar vs gamma pricing. **An ALLOCATION decision between existing things.
+n = 3, one candidate shape, not an enumeration** — and it should arrive a fourth time
+unprompted before being treated as one.
+
+### 4 · TWO CORRECTIONS TO THE CLAIM AS STATED
+
+**It is residual vs ABSENCE, not residual vs gap.** `R_T` *is* a gap; the two are not opposed.
+The live distinction is that a residual is **charged** and an absence is **uncharged** — and
+**absence is charged unless something proves otherwise** was adopted from three sites earlier
+today. **So the claim is a consequence of a standing rule rather than a new one**, and filing
+an unmade choice as *where the theory stops* is the uncharged reading that default already
+rules out.
+
+**And the `3b` analogy is stronger than stated.** `3b`'s finding was that `enumerate_closure`
+was ALREADY type-directed and `Atom` ALREADY carried types — ***the machinery needed nothing
+new***; what was missing was an atom set with varied types. **Applied here: the loop is already
+domain-agnostic, `provenance` already types decisions, and what is missing is again INSTANCES
+WITH VARIED TYPES.** **Which is the panel defect for the third time, now at the seat's scale**
+— beside the single type node and the unwired reuse funnel.
+
+---
+
 # Arrival has never occurred, and that is the scope statement
 
 **The largest single fact the reading produced, and it is not a defect.**
