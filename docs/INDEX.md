@@ -638,6 +638,92 @@ a finding.
 
 ---
 
+# THE CAP — RULED 2026-08-27. Four parts, and one of them is the one that gets lost
+
+> ### 500 actions PER LEVEL, ACCRUING. Unspent budget carries forward.
+
+**FOUR PARTS, RECORDED TOGETHER BECAUSE THREE SURVIVE A CARELESS READ AND ONE DOES NOT:**
+
+| | |
+|---|---|
+| **the number** | 500 |
+| **the unit** | per LEVEL, not per run |
+| **the accrual** | **unspent budget CARRIES FORWARD, so an efficient agent has more room later** |
+| **the basis** | `[I]` *measured from agents I have trained. **Just enough room to make mistakes*** — an observation about how learners actually behave, not a guess and not a preference |
+
+**`500 per level` without the accrual reads as a flat cap, and someone will implement the flat
+version.** The accrual is the part that gets lost first, which is why it is a named part
+rather than a clause.
+
+**AND THE BASIS IS EXTERNAL IN §22.1's SENSE**, which is what makes it an anchor rather than a
+number tuned toward a behaviour by the frame that benefits from it: **it is not a quantity
+this agent produces and it cannot be moved by performing differently within a run.** The
+harness's **80** is a comment about infinite loops; §22.1's **1000** is 2× a human's move
+count; **this is measured on LEARNERS, which is closer to the thing being bounded.**
+
+### What it does to `2d`, and it must be said on the row
+
+§20.1 defines `bounded` as *the run ends without a death and without your cap firing.* **Under
+an accruing budget, the cap firing is partly a fact about the AGENT's efficiency rather than
+only about the game** — so **the same board is `bounded` for a careful agent and `capped` for
+a wasteful one.**
+
+> **That is correct, and it means the classification is about THE PAIR and not about the game
+> alone.** It goes on the row rather than being left for a later reader to infer, because
+> *termination class* reads as a property of the world and under accrual it is not.
+
+### And the fixture — stated rather than assumed
+
+**The fixture does NOT share this number.** A fixture running a handful of steps does not need
+500, and a convenient value there is **how the accrual quietly does not get built: the FLAT
+version passes a short fixture perfectly.** So the fixture gets its own value with its own
+recorded reason, under the same label `SIDE` and `PALETTE` already carry — *a fixture
+dimension, nothing read off it.*
+
+> **AND THE ACCRUAL HAS TO BE EXERCISED SOMEWHERE OR IT IS UNTESTED.** A single-level fixture
+> cannot show carry-forward, so `2d`'s fixture must run **more than one level** with budget
+> left over on the first. **Otherwise the flat implementation and the accruing one are
+> indistinguishable**, which is the vacuity problem arriving in a cap.
+
+---
+
+# `2d` and `2e` checked against their own sections — and both need a number nobody set
+
+**The check is now a step rather than a caution, and it found the same dependency in both.**
+
+**§20.1 makes the cap DEFINITIONAL for `2d`.** Its four reads are asymmetric on purpose:
+
+| read | from | direction |
+|---|---|---|
+| a win is possible | `win_levels > 0` | given up front |
+| **death is possible** | `state == GAME_OVER`, once | **proven on the first death, NEVER disproven** |
+| **bounded** | the run ends without a death **and without your cap firing** | proven by observation |
+| **open** | none of the above, so far | **never proven — only defaulted to** |
+
+> ***Not having died is not evidence that you cannot die.*** So `DEATH_POSSIBLE` **latches**
+> true and never latches back, and **`OPEN` is a standing ASSUMPTION rather than a finding,
+> and must be reported as one.** The easy two-state version reports *this game has no death*,
+> which is the absential reading the corpus rules out: *absence of evidence resting on
+> completeness never holds mid-episode.* Same discipline as the affordance profile's `None`
+> and as `unreached` against `unreachable` — **three states, and the third is a claim about
+> what has not been observed.**
+
+**And `2e`'s five event types are WIN / DEATH / LEVEL-RESET / LEVEL-ADVANCE / CAP** — the cap
+again, this time as an event that must be told from the other four.
+
+> ### BOTH DEPEND ON `MAX_ACTIONS`, WHICH IS A SEAT PARAMETER AND IS STILL UNSET.
+> The harness base class defaults to **80**; §22.1 defends **1000** on the 2× human ceiling,
+> **a legitimate external basis for a number 12.5× the default.** `2d` cannot read `bounded`
+> without it and `2e` cannot name `CAP` without it. **Inheriting 80 silently is the failure;
+> overriding without recording why is the same failure wearing a decision's clothes** — and
+> it is now blocking rather than tidy.
+
+**`2e`'s hard part remains answered**: §21.5 gives reset-versus-advance, and the frame carries
+`full_reset` and `levels_completed`, so the discriminator is recoverable even where
+COMPETITION collapses the two.
+
+---
+
 # THE BUILD TABLES GROUP BY COST, NOT BY DEPENDENCY — twice now
 
 **§16.8 lists four sensors with a `cost` column: trivial, 49 cells, one correlation, one row

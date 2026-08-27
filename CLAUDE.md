@@ -123,7 +123,7 @@ and a condition is invisible in the results it conditions.** `SNAPS_PLAN` was th
 document in the set, was never opened, and four of its ten sections overturned a published
 conclusion. The laws apply to the panel, not only to the code.
 
-**And THREE STEPS, which are a different kind of thing and are filed apart on purpose.**
+**And FOUR STEPS, which are a different kind of thing and are filed apart on purpose.**
 Every law above installs something that fires — a rule, a fixture, a witness, a denominator
 that can be checked. **These cannot. They happen before the work or they do not happen, and
 after the fact there is nothing to catch, because after the fact the reading is clean.**
@@ -137,6 +137,13 @@ after the fact there is nothing to catch, because after the fact the reading is 
   a headline was about to be made.
 - **Read the things that produce conditions before the things that produce results** — a
   generator, a config, a plan, a fixture.
+- **Read the SPEC of each item before ordering a phase, not the row that summarises it.**
+  Build tables group by cost; the dependency order falls out of neither the table nor the
+  cost. **Four for four**: `2c` grouped a lens with sensors that needed `2b`; sensor 4 needed
+  sensor 8 from a different list and sensor 3's read; `2d`'s `bounded` is *defined* by a cap
+  nobody had set; `2e` turned out to be the consumer for two mechanisms built without
+  triggers. **None of them would have FAILED** — the work would have been done against
+  something that was not there yet.
 - **Assume it is already specified, and go look.** This is the sixth law and it is ALSO a
   step, which is why it appears twice — the other six install something that fires, and
   this one cannot. **And familiarity actively suppresses it**: citing a file feels like
