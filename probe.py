@@ -44,7 +44,10 @@ class Drive:
         self.misses = 0
         self.fires = 0
         self.scored = 0
-        self.tried: set[str] = set()      # which advertised actions have been drawn
+        # WHERE, not just WHICH. An action drawn three times from one state is not
+        # three trials -- inert is a verdict earned by trials from DIFFERENT states,
+        # because an action can look dead from having been tried against a wall.
+        self.tried: dict[str, set] = {}   # action -> distinct states it was drawn from
         self._seed = zlib.crc32(seed.encode()) & 0xFFFF
 
     def note_step(self, any_live: bool) -> None:
@@ -79,24 +82,39 @@ class Drive:
 
         It does NOT distinguish a static world from an instrument that cannot reach one.
         Those are the same from in here, and saying so is the honest half.
+
+        AND THE DENOMINATOR IS OVER ACTIONS WHILE THE THING REQUIRED MAY BE A SEQUENCE,
+        so this cannot mean `nothing I can do changes anything`. It means the narrow
+        thing: no SINGLE action, from the states occupied, changed anything.
         """
-        return self.n > 0 and self.misses == 0 and len(self.tried) >= n_actions
+        # anchor: an action earns `inert` at TWO distinct states, never one. One state
+        # cannot separate a dead action from a positional artefact; two is the smallest
+        # number that can. Not tuned -- the smallest with the property.
+        earned = sum(1 for seen in self.tried.values() if len(seen) > 1)
+        return self.n > 0 and self.misses == 0 and earned >= n_actions
+
+    def trials(self) -> dict[str, int]:
+        """How many distinct states each action was drawn from -- the evidence behind
+        `never_live`, put on the row so the claim can be checked rather than believed."""
+        return {a: len(seen) for a, seen in sorted(self.tried.items())}
 
     def starving(self) -> bool:
         """Nothing is scoring: the curiosity drive's trigger, on the reward channel."""
         return self.n > 0 and self.scored == 0
 
-    def choose(self, actions: tuple[str, ...], cycle: int) -> str:
+    def choose(self, actions: tuple[str, ...], cycle: int, where: object = None) -> str:
         """A draw over the labels the environment advertised, and nothing else.
-        Deterministic in the cycle so a run is reproducible; no wall clock, no RNG state."""
+        Deterministic in the cycle so a run is reproducible; no wall clock, no RNG state.
+
+        `where` is the state it was drawn from, and it is what makes a trial a trial."""
         if self.bored():
             self.fires += 1
         pick = sorted(actions)[(cycle * 7 + self._seed) % len(actions)]
-        self.tried.add(pick)
+        self.tried.setdefault(pick, set()).add(where)
         return pick
 
     def report(self) -> dict[str, object]:
         return {"probe_fires": self.fires, "probe_n": self.n, "probe_misses": self.misses,
                 "any_live": self.live, "bored": self.bored(),
-                "starving": self.starving(), "tried": sorted(self.tried),
+                "starving": self.starving(), "tried": self.trials(),
                 "support": "|R+_s| > 0 for SOME slot s -- a predicate, not a threshold"}

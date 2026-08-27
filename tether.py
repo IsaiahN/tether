@@ -110,6 +110,12 @@ class Report:
     stopped_at_link: str = "1 - perception"
 
 
+def _where(state: dict[str, int]) -> tuple:
+    """A hashable state, so a trial can be located. Two draws of one action from
+    the same state are one trial, which is the whole of Q18's defect."""
+    return tuple(sorted(state.items()))
+
+
 class Agent:
     def __init__(self, env: Any, gam: Gamma, cfg: Config | None = None,
                  led: Ledger | None = None) -> None:
@@ -186,6 +192,7 @@ class Agent:
         # observable for whatever gates on it next.
         self.env, self.level = env, level
         self.slots = env.slots()
+        self.actions = tuple(env.actions())       # a new level may advertise differently
         self.alphabet = self._alphabets(env)      # a new level may value slots differently
         self.bound, self.trace = {}, []
         self._disproof: dict[str, dict] = {}
@@ -200,12 +207,30 @@ class Agent:
     # -- step 1 -----------------------------------------------------------------------
 
     def history(self, slot: str) -> list[tuple[dict[str, int], str, int]]:
-        """(before-state, action, this slot's after-value) for every recorded step."""
-        return [(b, a, af[slot]) for b, a, af in self.trace]
+        """(before-state, action, this slot's after-value) for every recorded step.
+
+        Frames before the slot existed are skipped rather than faulted: a slot that
+        arrived mid-episode has no history from before it arrived. BOTH ENDPOINTS are
+        required, not just the after-value -- the ARRIVAL frame has the slot in `after`
+        and not in `before`, so it is not a transition observation and a term applied to
+        it would fault on the missing before-value."""
+        return [(b, a, af[slot]) for b, a, af in self.trace if slot in af and slot in b]
 
     @staticmethod
     def _ops(term: Term, state: dict[str, int]) -> tuple:
         return (state[term.operand],) if term.operand else ()
+
+    @staticmethod
+    def _applies(term: Term, state: dict[str, int]) -> bool:
+        """Whether this term can be evaluated on this frame at all.
+
+        A term reading an operand cannot be applied where that operand did not exist,
+        which happens the moment a slot arrives mid-episode and something binds to it.
+        INAPPLICABLE IS UNEXPLAINED, and every caller charges it as such: dropping the
+        frame instead would let a term evaluable on half a history look like a perfect
+        explainer, and evaluating it as if unary would silently change what it says.
+        """
+        return not term.operand or term.operand in state
 
     def _predict(self, slot: str, state: dict[str, int], action: str) -> int:
         term = self.gamma.library[self.bound.get(slot, IDN)]
@@ -411,6 +436,9 @@ class Agent:
         """What the term leaves unexplained across the slot's history, in bits."""
         total = 0.0
         for state, action, actual in hist:
+            if not self._applies(term, state):
+                total += math.log2(self.alphabet[slot])   # inapplicable is unexplained
+                continue
             got = term.apply(state[slot], Ctx(action=action, operands=self._ops(term, state)))
             total += correction_bits(got, actual, self.alphabet[slot])
         return total
@@ -459,6 +487,9 @@ class Agent:
         instead of being recomputed as a scalar."""
         out = []
         for state, action, actual in hist:
+            if not self._applies(term, state):
+                out.append((state, action, actual))   # inapplicable is unexplained
+                continue
             got = term.apply(state[slot], Ctx(action=action,
                                               operands=self._ops(term, state)))
             if got % self.alphabet[slot] != actual % self.alphabet[slot]:
@@ -483,9 +514,12 @@ class Agent:
         unit = math.log2(self.alphabet[slot])
         wrong = 0
         for state, action, actual in robs:
-            got = term.apply(state[slot], Ctx(action=action,
-                                              operands=self._ops(term, state)))
-            wrong += got % self.alphabet[slot] != actual % self.alphabet[slot]
+            if not self._applies(term, state):
+                wrong += 1                            # inapplicable is unexplained
+            else:
+                got = term.apply(state[slot], Ctx(action=action,
+                                                  operands=self._ops(term, state)))
+                wrong += got % self.alphabet[slot] != actual % self.alphabet[slot]
             if cost + unit * wrong >= base:
                 return True          # `wrong` only grows; the rest of R adds nothing
         return False
@@ -517,7 +551,7 @@ class Agent:
         # counted 441 perturbations that changed no action. What it changes is who is
         # allowed to choose, and 26 of those 441 steps were being steered by the model.
         if self.drive.bored():
-            return self.drive.choose(self.actions, self.cycle), "probe"
+            return self.drive.choose(self.actions, self.cycle, _where(before)), "probe"
         owed = [s for s in sorted(self.owed_import) if s in before]
         if owed:
             cands = list(islice(self.gamma.enumerate_closure(
@@ -548,12 +582,81 @@ class Agent:
                         "refuted_at_least": len(cands) - max(buckets.values()),
                         "by": f"any outcome on {s} after {pick}"}
                 return pick, "discriminate"
-        return self.drive.choose(self.actions, self.cycle), "draw"
+        return self.drive.choose(self.actions, self.cycle, _where(before)), "draw"
 
-    def _bindings(self, slot: str) -> list[str | None]:
-        """Which slots may fill operand 0. None first -- a unary term is cheaper, so it
-        wins when both fit, which is Occam priced rather than preferred."""
-        return [None] + [s for s in self.slots if s != slot]
+    def _advertised(self) -> None:
+        """The action set is re-read every step, and a CHANGE is recorded.
+
+        It was read once at construction and never again, so a set that varies -- ARC's
+        does, per frame -- left `never_live` counting against a total that no longer
+        meant what it meant. An action appearing or disappearing is a CONDITION met or
+        unmet, so it is an observation and not bookkeeping.
+
+        A PLAIN EVENT AND NOT A FOURTH CHANNEL, decided rather than defaulted: what a
+        condition looks like on a real board is Phase 2's to say, and a channel built
+        for a shape nobody has seen is a decomposition from a description. A plain
+        event can become a channel later; a channel is harder to unbuild."""
+        now = tuple(self.env.actions())
+        if now == self.actions:
+            return
+        gone = sorted(set(self.actions) - set(now))
+        came = sorted(set(now) - set(self.actions))
+        self.led.record(self.cycle, "PERCEIVE", "@instrument", "advertised",
+                        gone=gone, came=came, was=len(self.actions), now=len(now),
+                        note="a condition was met or unmet; the denominator moved")
+        self.actions = now
+
+    def _present(self) -> None:
+        """The slot set is re-read every step, and a CHANGE is recorded.
+
+        It was read at construction and at retarget and nowhere else, so an object
+        arriving mid-episode produced NO BET, NO RESIDUAL AND NO ROW -- invisible
+        rather than an error, which is why Phase 2's falsifier could not fire. Cells
+        never do this and objects always will.
+
+        A plain event, for the same reason the action set's is: what an arrival means
+        on a real board is Phase 2's to say."""
+        now = tuple(self.env.slots())
+        if now == tuple(self.slots):
+            return
+        gone = sorted(set(self.slots) - set(now))
+        came = sorted(set(now) - set(self.slots))
+        for g in gone:
+            self.bound.pop(g, None)
+            self.owed_import.discard(g)
+            self.abstained.pop(g, None)
+        # a term bound to a SURVIVING slot may read an operand on a departed one, and
+        # `_ops` would fault on the next bet. It owes again rather than faulting.
+        orphaned = sorted(k for k, n in self.bound.items()
+                          if self.gamma.library[n].operand in gone)
+        for k in orphaned:
+            self.bound.pop(k, None)
+            self.owed_import.add(k)
+        self.led.record(self.cycle, "PERCEIVE", "@instrument", "present",
+                        gone=gone, came=came, orphaned=orphaned,
+                        was=len(self.slots), now=len(now),
+                        note="an object arrived or left; a new slot has no history "
+                             "and owes nothing yet")
+        self.slots = list(now)
+        self.alphabet = self._alphabets(self.env)
+
+    def _bindings(self, slot: str, robs: list) -> list[str | None]:
+        """Which slots may fill operand 0, ORDERED by contact and NEVER FILTERED by it.
+
+        None first -- a unary term is cheaper, so it wins when both fit, which is Occam
+        priced rather than preferred. Then the rest by how much each VARIES across the
+        residual's own frames: a slot constant wherever the bound term was wrong carries
+        nothing that could discriminate those frames, so it is tried last. §16.5
+        enumerates contact; Figure 11 ranks by cascade.
+
+        ORDERING, NEVER EXCLUSION, and the difference is measured rather than argued.
+        The version that DROPPED operand-reading terms when R showed no dependence on
+        another slot LOST A CLOSING TERM -- `_cannot_pay` records it. Ranking cannot:
+        every binding is still reached, and since the mint breaks on the first closer,
+        order decides WHICH closer is found and never WHETHER one exists."""
+        others = [s for s in self.slots if s != slot]
+        seen = {s: len({st[s] for st, _, _ in robs if s in st}) for s in others}
+        return [None] + sorted(others, key=lambda s: (-seen[s], s))
 
     def mint(self, slot: str) -> None:
         hist = self.history(slot)
@@ -570,7 +673,7 @@ class Agent:
         if guards["support"]:
             for cand in self.gamma.enumerate_closure("val", "val", self.cfg.max_depth,
                                                      self.cfg.budget, stats):
-                for bind in (self._bindings(slot) if cand.reads_operand else [None]):
+                for bind in (self._bindings(slot, robs) if cand.reads_operand else [None]):
                     rank += 1
                     term = Term(cand.atoms, operand=bind)
                     if self.gamma.is_atom(term) or term.name in self.gamma.library:
@@ -849,6 +952,8 @@ class Agent:
 
     def step(self, action: str | None = None) -> bool:
         """One turn. Returns False if no action was proposed -- which is a legal outcome."""
+        self._advertised()
+        self._present()       # before the frame, so slots and frame cannot disagree
         before = self.env.observe()
         # ATTEND TO WHAT OWES MOST. R+_s is defined and already measured; picking
         # slots[0] made the phase histogram a function of alphabetical order, so
@@ -910,10 +1015,13 @@ class Agent:
             # does not exist. Recording it beats a silent zero.
             self._said_never_live = True
             self.led.record(self.cycle, "IMPORT", "@instrument", "unreached",
-                            observations=self.drive.n, tried=sorted(self.drive.tried),
+                            observations=self.drive.n, trials=self.drive.trials(),
                             slots=sorted(self.slots),
-                            verdict="no slot has ever carried live mass and every action "
-                                    "has been drawn",
+                            verdict="no SINGLE action, each drawn from at least two "
+                                    "distinct states, changed any slot",
+                            scope="single actions, from the states occupied -- this "
+                                  "does not exclude a SEQUENCE, because the "
+                                  "denominator is over actions",
                             remedy="step 7 INWARD: a slot set that reaches what moves",
                             built=False)
         self.settle(res)

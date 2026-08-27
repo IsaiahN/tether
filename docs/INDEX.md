@@ -591,6 +591,137 @@ a finding.
 
 ---
 
+# Blocker 3 — BUILT 2026-08-27, and the corpus had already refuted the obvious version
+
+**`_bindings` returned `[None] + every other slot`, unordered.** §16.5 says *enumerate
+contact*; Figure 11 adds *rank by cascade*. **The obvious build is a contact FILTER, and it
+was already tried and already measured.** `_cannot_pay`'s docstring, three lines above code
+edited twice today: *the version that skipped operand-reading terms when R showed no
+dependence on another slot ... **drops terms that read an operand without varying with it on
+the observed slice. Measured, IT LOST A CLOSING TERM.*** **Sixth law, on a docstring already
+read twice in the same session.**
+
+> **So contact may ORDER the bindings and may never EXCLUDE any.** Ranking cannot lose a
+> term — every binding is still reached — and it is consequential anyway, because **the mint
+> breaks on the first closer**, so order decides WHICH closer is found and never WHETHER one
+> exists. Filtering is what lost the term; ordering is what §16.5 and Figure 11 actually ask
+> for.
+
+**Built:** `None` first, still Occam-priced; then the others by **how much each varies across
+the residual's own frames** — a slot constant wherever the bound term was wrong carries
+nothing that could discriminate those frames, so it is tried last rather than dropped.
+
+**MEASURED, AND IT CHANGED NOTHING HERE.** Toy world identical — 1/1, 0/6, 1463 compositions,
+the same three settled terms. Panel identical — **mint 20, settle 6, the same six terms.**
+**The reason is structural: on `snaps` every slot varies across the residual** (five slots over
+Z₇, all updating every step), so contact scores are near-uniform and the order barely moves.
+**Ranking matters where slots DIFFER in variance — a static slot, a wall, a background.
+`snaps` has none; ARC does.** Third mechanism this batch whose exercise waits for ARC, after
+`advertised` and `present`'s gone/orphaned branch. **Said here so a green panel is not read as
+coverage.**
+
+---
+
+# Blocker 2 — BUILT 2026-08-27, and firing the falsifier found three more defects
+
+**`self.slots = env.slots()` was read at construction and at retarget and nowhere else**, so
+an object arriving mid-episode produced **no bet, no residual and no row** — invisible rather
+than an error, which is why Phase 2's falsifier could not fire. **`_present()` now re-reads
+every step, before the frame is taken, and emits a plain `present` row** naming what came,
+what went, and which bound terms were orphaned by a departed operand.
+
+**MADE TO FIRE**, with a throwaway env that grows a slot at step 20 — because `snaps` never
+does and a mechanism nothing exercises is the class this file already tracks:
+
+    present rows: 1  ->  cycle 20, came=['newborn']
+    bets on the new slot after arrival: 25   (previously 0 -- invisible)
+    ran to cycle 45, no fault · gate: PASS over 1,167 rows
+
+**THREE DEFECTS, FOUND BY FIRING IT, none of them predicted:**
+
+- **`history` faulted** on frames where the slot was absent — a slot has no history from
+  before it existed
+- **and faulted again on the ARRIVAL FRAME specifically**, which holds the slot in `after`
+  and not in `before`. **Both endpoints are required**: a transition observation needs a
+  before-value, and the arrival frame has none
+- **`_ops` faulted** when a candidate term bound the new slot as an OPERAND and was evaluated
+  against frames predating it — `_residual_obs` had filtered for the BOUND term, and
+  `_cannot_pay` evaluates CANDIDATES
+
+**AND ONE DIRECTION ERROR IN MY OWN FIX, caught before it landed anywhere else.** The first
+pass DROPPED unevaluable frames. That is backwards: `_explains` requires `_left == 0.0`, so a
+term evaluable on half a history would have looked like **a perfect explainer**. **Inapplicable
+is UNEXPLAINED**, and all three sites now charge it — `_left` adds a full unit, `_residual_obs`
+includes the frame in R, `_cannot_pay` counts it wrong. **Evaluating it as if unary would have
+been worse: a silent change to what the term says.**
+
+**No regression**: `1463` compositions, `16.844` bits, 1/1 correct and 0/6 false abstentions —
+identical. `_applies` is always true where slots are stable, argued and then measured.
+
+---
+
+# Blocker 1 — BUILT 2026-08-27
+
+**All three parts in, verified rather than assumed, 8/8 and ruff clean.**
+
+| part | built | measured |
+|---|---|---|
+| **WHERE** | `Drive.tried` is `dict[str, set]` — action to the **distinct states it was drawn from** — and `choose` takes `where`. `never_live` counts an action only once it has **two** distinct states behind it | `trials()` reads `{A: 8, B: 7, C: 7}` on the panel, so the new denominator is reachable rather than unmeetable |
+| **WHEN** | `env.actions()` is **re-read every step** and in `retarget`, which never re-read it. A change emits an **`advertised`** row naming what came, what went, and that **the denominator moved** | **0 events on `snaps`, honestly** — its action set is constant. **And the gate was run over a synthetic ledger containing the new row: `pass`**, so Phase 2 will not discover a rejection |
+| **WHAT** | the row carries `trials` and a `scope` field; the verdict says *no SINGLE action, each drawn from at least two distinct states, changed any slot*; **`speak.py` renders the narrow claim** | the account now names its own limit: *that is a claim about single actions and not about everything I could do — **a SEQUENCE I have not tried may still move something, and I have no way to tell from here*** |
+
+**The anchor on the two:** an action earns `inert` at **two** distinct states, never one — one
+state cannot separate a dead action from a positional artefact, two is the smallest number
+that can. **Not tuned; the smallest with the property.**
+
+**`never_live` still fires 0 of 6, unchanged** — nothing about this made the panel produce it,
+and it was never supposed to. **The row and the sentence are exercised by construction rather
+than by the panel**, which is stated here so it is not mistaken for coverage.
+
+---
+
+## The brief it was built from
+
+**It goes first because 2b's detector IS `never_live`.** The plan's own remedy for the
+loud/silent split is *`never_live` is now built as the detector, and the utterance can say
+it*, so **Phase 2's perception layer has no way to see the silent failure it is most exposed
+to until this lands.** The other blockers are not blocked by it — they are useless before it.
+
+| part | what | source |
+|---|---|---|
+| **WHERE** | `tried` keys on **`(action, state)`**. Action labels alone make *every action tried* insensitive to WHERE it was tried, so an action inert against a wall counts as inert | `DISCOVERY` Q18, and `ARC_BUILD_PLAN`'s second pass already states the fix |
+| **WHEN** | the denominator is **LEVEL-SCOPED**, and an availability CHANGE is recorded. `actions()` is a fixed tuple read once; ARC's set varies per frame, which makes the same claim insensitive to WHEN | `ARC_AGENT` §2 · the 2026-08-27 ruling |
+| **WHAT** | the claim **NARROWS** to *no single action, from the states I have occupied, changed anything* | the ruling's second half |
+
+### Two things answered before parts two and three land — decisions, not rulings
+
+**1 · The availability change is a PLAIN EVENT, not a fourth channel. Decided, and the
+reason is the decision.** A condition being met or unmet is residual-shaped — predicted
+availability against actual — so the easy path is a channel beside transition, reward and
+bracket. **It is not taken, because the loop does not yet know what a condition LOOKS LIKE on
+a real board; Phase 2's perception layer is what would say.** Building a channel for a shape
+nobody has seen is the decomposition-from-a-description catch, one domain over.
+
+> **And the asymmetry is the reason rather than simplicity: a plain event can become a
+> channel later; a channel is harder to unbuild.** Recorded so the next reader knows it was
+> DECIDED and not DEFAULTED — picking the easy option silently is how a channel gets born
+> without anyone choosing to build one.
+
+**2 · The utterance says the NARROW claim.** Part three changes what the row asserts, and
+`speak.py` renders rows into the agent's account of itself. ***No single action, from the
+states I have occupied*** is a different sentence from ***nothing I can do changes anything***
+— and the second is what the current wording implies.
+
+> **This is the deliverable, not a detail.** *The agent's report of its own epistemic state
+> is sound and checkable from outside* is the precondition for triangulation. **A record and
+> an account that disagree at the point the claim is strongest is the fifth instance of that
+> class this session, and the first that would land in the sentence a reviewer reads.**
+> **And the narrow version is the better sentence anyway** — it says what the evidence
+> supports and names its own scope, where the broad one overclaims **in the direction the
+> whole abstention discipline exists to prevent.**
+
+---
+
 # Which nulls can the panel only produce?
 
 **A standing sweep, not a row.** Three mechanisms were found reporting a null the panel

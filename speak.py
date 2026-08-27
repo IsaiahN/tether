@@ -84,14 +84,20 @@ def sentences(rows: list[dict]) -> list[tuple[list[int], str]]:
             # `I cannot explain this` but `there may be nothing here I can see`. The two
             # readings are indistinguishable from inside, and pretending otherwise would
             # be the confident half of exactly the failure this reports.
-            out.append(([seq], f"I have drawn every action I was offered "
-                               f"({', '.join(d.get('tried') or [])}) over "
-                               f"{d.get('observations')} observations, and nothing in "
-                               f"{', '.join(d.get('slots') or [])} has ever moved. Either "
-                               f"this world is still, or what moves is not something I am "
-                               f"built to see -- from here those are the same reading. The "
-                               f"second is answered by a different set of slots, and I do "
-                               f"not have a way to change mine."))
+            tr = d.get('trials') or {}
+            drawn = ', '.join(f'{a} from {n}' for a, n in sorted(tr.items()))
+            out.append(([seq], f"I have drawn each action I was offered from at least "
+                               f"two distinct states ({drawn}) over "
+                               f"{d.get('observations')} observations, and no single one "
+                               f"of them changed {', '.join(d.get('slots') or [])}. "
+                               f"That is a claim about single actions and not about "
+                               f"everything I could do -- a SEQUENCE I have not tried "
+                               f"may still move something, and I have no way to tell "
+                               f"from here. Of what it does cover: either this world is "
+                               f"still, or what moves is not something I am built to "
+                               f"see. Those are the same reading from in here, and the "
+                               f"second is answered by a different set of slots, which "
+                               f"I have no way to change."))
         elif ev == "refused":
             out.append(([seq], f"I did not act. The utterance did not compose: "
                                f"{d.get('reason')}."))
