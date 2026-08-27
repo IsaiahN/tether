@@ -168,6 +168,7 @@ class Agent:
         self.abstained: dict[str, dict] = {}
         self.candidates: dict[str, int] = {}     # term -> cycle accepted, awaiting the ground
         self.settled: set[str] = set()
+        self._settled_at_level: set[str] = set()   # the segment's starting line
         self.demoted: list[str] = []
         self.chain = I.Chain()
         self.phases = I.Phases()
@@ -240,6 +241,26 @@ class Agent:
         self.led.record(self.level, "IMPORT", "@loop", "ending", how=how, to_level=level,
                         reads=ENDING_READS.get(how, "unnamed ending"),
                         consumed_by="nothing yet -- boundary demotion is a separate item")
+        # §21.3: A COMPLETION IS A SETTLE, AND THE SWEEP IS HOW YOU FIND OUT WHAT CAUSED IT.
+        # *A level completes at step 500 and the last action did not cause it -- the
+        # trajectory did*, so crediting the final action is the delayed-effects bug at the
+        # scale of a whole segment. This credits the SEGMENT: what was bound while it ran and
+        # what settled during it, over a RECORDED history, costing no actions.
+        #
+        # CREDIT ONLY, AND THE OTHER HALF IS ELSEWHERE. §21.4: *crediting without the decay is
+        # the incumbency pathology; decaying without the credit throws away the only positive
+        # evidence there is.* The decay is boundary demotion, which is its own item and turns
+        # on §21.5's event type -- so this row says where the missing half lives rather than
+        # leaving a both-and looking finished.
+        if how in ("advance", "win"):
+            self.led.record(self.level, "SETTLE", "@loop", "credit",
+                            settled_here=sorted(self.settled - self._settled_at_level),
+                            bound_here=sorted(set(self.bound.values())),
+                            over_steps=len(self.trace), how=how,
+                            note="the segment is credited, not the last action",
+                            decay_half="boundary demotion, its own item -- credit without "
+                                       "decay is the incumbency pathology (§21.4)")
+        self._settled_at_level = set(self.settled)
         self.env, self.level = env, level
         self.slots = env.slots()
         self.actions = tuple(env.actions())       # a new level may advertise differently

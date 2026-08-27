@@ -77,6 +77,7 @@ class Chain:
     seg: Segment = field(default_factory=Segment)
     stalls: Counter = field(default_factory=Counter)
     advances: int = 0          # counted apart: an advance is drive/search, NOT the loop
+    capped: int = 0            # PSEUDO-DEATHS: the seat ended it, not the world
     reuse_attempts: int = 0
     reuse_branch: Counter = field(default_factory=Counter)
     last_stage: str | None = None
@@ -109,11 +110,23 @@ class Chain:
     # -- segment ends ------------------------------------------------------------------
 
     def close(self, how: str) -> str:
-        """how: 'advance' (not scored -- not a loop firing), 'death', or 'run_end'."""
+        """how: one of `2e`'s five -- `win`, `death`, `reset`, `advance`, `cap` -- or
+        `run_end`. An advance is not scored: it is not a loop firing.
+
+        **A CAP IS A PSEUDO-DEATH IMPOSED FROM OUTSIDE THE GAME**, and it is neither. It ends
+        the episode like a death, but the cause is THE SEAT rather than the world -- and it is
+        not a stall either, because the loop did not fail to progress: **it ran out of room
+        the seat granted.** Counting it as a stall attributes a reasoning stage to a
+        resource exhaustion, which is §19's bug in a third place -- the first two being the
+        mint's `UNREACHED` and the episode's ending. *Never let a filter hand you a verdict*,
+        and a budget is a filter.
+        """
         stage = self.seg.stage()
         self.last_stage = stage
-        if how == "advance":
+        if how in ("advance", "win"):
             self.advances += 1
+        elif how == "cap":
+            self.capped += 1        # neither an advance nor a stall: the seat ended it
         else:
             self.stalls[stage] += 1
         self.seg = Segment()

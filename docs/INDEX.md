@@ -638,6 +638,111 @@ a finding.
 
 ---
 
+# PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
+
+**Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
+
+| owed | what it needs |
+|---|---|
+| **contact ranking** | a board where **the mint actually fires** AND slots **differ in variance**. The fixture has the second and not the first |
+| **`never_live`** | a board with **walls** — somewhere the agent can be genuinely stuck |
+
+**AND NEITHER CAN BE SUPPLIED BY A FIXTURE I AUTHOR.** *A fixture with a payable rule I
+designed would be testing my rule, not the ranking* — which is the structural guarantee
+applied one level out: **whatever supplies the rule must not be shown what the mechanism
+needs**, the way `snaps._views` is never handed `spec.rules` and states that as its whole
+guarantee. **Authoring both sides is precisely the thing that cannot be done here**, and it
+is why the `Grows` wrapper and the lens fixture were legitimate — they tested PLUMBING, where
+authoring both sides costs nothing, and these two are not plumbing.
+
+> **Real environment files supply both without anyone choosing them**, which is the point:
+> the rule is payable or it is not, and the walls are there or they are not, and **nobody
+> decided either.** So both owed validations sit on the same dependency as `2a`'s watermark —
+> **the first real environment file** — and that is a thing to obtain rather than to build.
+
+**Two of three blocker validations therefore wait on a file nobody has**, and that is worth
+knowing as a precondition rather than discovered as two stalled rows in Phase 3.
+
+---
+
+# CORRECTION — TWO of the three greens still owe their demonstration, not one
+
+**I said contact ranking would get its first real test at sensor 4, and then restated that as
+though it had.** It did not, and the claim was wrong twice over:
+
+- **sensor 4 does not touch `_bindings`.** The affordance profile reads objects under contact;
+  contact RANKING orders operand bindings inside the mint. Different mechanisms, and the
+  connection was an argument about variance rather than a code path.
+- **and the ARC fixture never reaches the mint at all.** Measured: 12 cycles, 333 rows —
+  `utterance 36 · bet 134 · route 122 · park 18 · rebind 3 · probe 4` and **zero `mint`
+  events.** The search runs and parks; nothing pays, because a trivial rule over three atoms
+  offers nothing to buy. **No mint means no `_bindings` means no ranking.**
+
+| green | state |
+|---|---|
+| **blocker 2 · slot re-read** | **DEMONSTRATED.** Perception produced a genuinely changing slot set and `_present` caught it three times, on real behaviour rather than a wrapper built to fire it |
+| **blocker 3 · contact ranking** | **STILL OWED.** Needs a board where the mint actually fires AND slots differ in variance. The fixture supplies the second and not the first |
+| **blocker 1 · `never_live`** | **STILL OWED.** Needs a board where the agent is genuinely stuck; nothing has produced one |
+
+> **A prediction restated as an outcome, and it survived two exchanges before being
+> checked.** The tell was available the whole time — the fixture's event counts were printed
+> on every run and `mint` was never among them. **Nothing failed; a green was simply
+> credited to the wrong cause.**
+
+---
+
+# PHASE 2 CLOSES — the sweep trigger, a third site for §19, and one check deferred
+
+### The cap is a PSEUDO-DEATH, and that found §19's bug a third time
+
+`[I]` **the max-actions cap is a pseudo-death, and it is imposed from outside the game.**
+`2d` already handled it for the termination class. **`Chain.close` did not**: anything not
+`advance` counted as a **STALL AT THE CURRENT STAGE**, so a capped run was attributed to a
+reasoning stage as though the loop had failed to progress there.
+
+> **It had not. It ran out of room the seat granted.** A cap is neither an advance nor a
+> stall, and it now counts apart. **Third site for §19** — the mint's `UNREACHED`, the
+> episode's ending, and now the CHAIN: *never let a filter hand you a verdict*, and a budget
+> is a filter. **The first two report an exhaustion as a verdict about the WORLD; this one
+> reported it as a verdict about the AGENT'S REASONING.** Verified: 2 advances, 2 capped, 1
+> stall — a cap in neither bucket.
+
+### The sweep trigger — credit only, and the row says where the other half is
+
+§21.3: ***a level completes at step 500 and the last action did not cause it — the trajectory
+did***, so crediting the final action is the delayed-effects bug at the scale of a whole
+segment. **A completion now emits a `credit` row over the SEGMENT** — what settled during it,
+what was bound while it ran, over how many steps, on a recorded history costing no actions.
+Verified: three completions, the first crediting three terms settled in-segment.
+
+**CREDIT ONLY.** §21.4: *crediting without the decay is the incumbency pathology; decaying
+without the credit throws away the only positive evidence there is.* **The decay is boundary
+demotion, which is its own item and turns on §21.5's event type** — so the row carries
+`decay_half` naming where the missing half lives, **rather than leaving a both-and looking
+finished.**
+
+### And the `disproof` gate check is DEFERRED — I argued the instruction down
+
+**§21.2's discriminator separates a CHOSEN death from an inflicted one. The agent cannot
+choose to die**: there is no mechanism, and `arc_world` withholds RESET so it cannot
+self-restart. **Every death is world-inflicted, so the check would examine ZERO rows, pass,
+and read identically to a check that examined many.** Same as `reset_kind`, removed for being
+ahead of its consumer, and the shadow-test check, deferred to ship with arrival. **It ships
+when deliberate death does, which is where its subject comes from.** The FIELD stays and is
+right to — it fires 74 times recording what a discriminating draw buys, which is a different
+thing and waits on nothing.
+
+**AND THE GATE CANNOT REPORT VACUITY, WHERE `lint` CAN.** *"The gate passed"* is currently
+indistinguishable from *"the gate looked at nothing"* without measuring from outside — which
+is what answering this question required. **Measured 2026-08-27: all nine examine something.**
+Smallest subjects are `_guards` and `_settlement` at **4 rows** each; `_unreached` 21,
+`_cuts` 25, `_filters` 28, `_routing` 128, and three over all 421. **A fact that can quietly
+stop being true, and the next check added to the gate is exactly when it would.**
+
+**No regression:** 1/1 correct, 0/6 false, 1,463 compositions, mint 20 / settle 6.
+
+---
+
 # `2e`'s event types — BUILT 2026-08-27, recorded and deliberately not consumed
 
 **Five endings in `ledger.py`, each with its reading**, and `retarget` carries the kind rather
