@@ -651,9 +651,16 @@ a finding.
 designed would be testing my rule, not the ranking* — which is the structural guarantee
 applied one level out: **whatever supplies the rule must not be shown what the mechanism
 needs**, the way `snaps._views` is never handed `spec.rules` and states that as its whole
-guarantee. **Authoring both sides is precisely the thing that cannot be done here**, and it
-is why the `Grows` wrapper and the lens fixture were legitimate — they tested PLUMBING, where
-authoring both sides costs nothing, and these two are not plumbing.
+guarantee. **And the discriminator is not *do not author both sides*** — `Grows` and the lens fixture
+each had one author and both were fine.
+
+> **A FIXTURE IS SAFE EXACTLY WHEN THERE IS NOTHING IN IT THE RESULT COULD BE SMUGGLED
+> FROM.** Plumbing has no answer to leak: whether the eight members fill, whether a row
+> reaches the gate, whether a slot survives a frame — **the author cannot tilt those by
+> knowing them.** A payable rule is different in kind, because the ranking's result is a
+> fact ABOUT that rule, and whoever wrote the rule has already chosen the answer.
+> **Same author, opposite verdicts, and the test is what the fixture CONTAINS rather
+> than who wrote it.**
 
 > **Real environment files supply both without anyone choosing them**, which is the point:
 > the rule is payable or it is not, and the walls are there or they are not, and **nobody
