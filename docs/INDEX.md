@@ -638,6 +638,38 @@ a finding.
 
 ---
 
+# `3b` CHECKED — two of §11.2's three statuses have moved since it was written
+
+**§11.2 is `3b`'s real spec, and it is sharper than the Phase 3 table:**
+
+| space | signature | §11.2 said | actually |
+|---|---|---|---|
+| **PREDICT** | `slot × action → slot` | built | **built** — `gamma.py`'s atoms |
+| **RELATE / QUANTIFY** | `ATTR × ATTR → PRED → OBJ` | *`grammar.py` exists, **unwired*** | **WIRED FOR SPEAKING, NOT FOR SEARCHING** |
+| **EXTRACT** | `grid × object → ATTR` | **missing** | **the extractors exist; the TYPING does not** |
+
+**RELATE is not unwired.** `tether` imports `grammar` and `G.compose` has eleven call sites —
+every action passes through a composed utterance or does not happen. **But the MINT enumerates
+`gamma`'s closure only.** Grammar composes utterances; nothing composes over it as a SEARCH
+SPACE. **A narrower gap than *unwired*, and a different fix.**
+
+**And EXTRACT's extractors exist — they are `2b`'s sensors.** `colour`, `position`, `extent`,
+`shape` are literally `OBJ → ATTR`; `components` is `FRAME → [OBJ]`. **What is missing is not
+the computations but the TYPING** — they are Python functions, not typed atoms in a registry
+the closure can compose over.
+
+> **So `3b` is not three families built from scratch. It is one space to type, one space to
+> join to the search, and one already there.** Which is the same shape as seven-of-nine: **the
+> work exists and is filed where it was needed rather than where it is listed.** Third
+> instance today.
+
+**And §11.2 names the stake**: *without extractors there are no attributes; without attributes
+no predicates can be stated; without predicates no objective can be posed* — **Figure 3's
+chain, breaking at link 2, exactly where the figure says chains usually break, *because it
+attracts the least attention and the fewest instruments*.**
+
+---
+
 # PHASE 3 CHECKED BEFORE ORDERING — and it is NOT the same shape as the owed greens
 
 **Fifth item the check has been applied to, and it found two things.**
