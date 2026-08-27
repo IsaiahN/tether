@@ -247,9 +247,14 @@ Not "it improved". Five clauses, each checkable:
    **the admitting clause must be recorded AS ENTRIES HAPPEN or the deferred half becomes
    unrunnable.** Same shape as the watermark: the decision defers, the recording cannot.
 
-   **§11 scoped it to THE LIBRARY, and that is a scope error rather than a decision.** Priors
-   load into **six homes** and only TERM lives in Γ — so four of five shapes escaped a rule
-   **whose stated purpose is the thing they escape.** The rule binds all six homes. **What
+   **§11'S LIBRARY SCOPE IS CORRECT — the 2026-08-27 re-scoping was the error, and this is
+   the corrected text.** I read *four of five shapes escape a rule whose purpose is the thing
+   they escape* and widened §11 to all six homes. **The conflict came from the word, not the
+   rule.** Entering means **entering Γ**; the five non-Γ homes are **POPULATED, not entered**.
+   So the two tests divide without overlapping and neither needs widening: **§23.2's *what to
+   look at vs what to do* governs loading the five; §11's two clauses govern entry into Γ.**
+   And *TERM wiped* is now **vacuous** — a TERM is VISIBLE, never held unearned, so nothing
+   unearned is in Γ to wipe. **What
    entered under *cannot run without it* is what the ablation stays blind to; what entered
    under *promoted from crude* is what it wipes.** Ruled 2026-08-27: TRACKER blind (identity
    across frames is perception, not knowledge — wiping it makes the agent blind rather than

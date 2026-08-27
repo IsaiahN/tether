@@ -123,8 +123,16 @@ class Standing:
 
 
 class Gamma:
-    def __init__(self, atoms: list[Atom],
-                 molecules: list[tuple[str, tuple[str, ...]]] = ()) -> None:
+    def __init__(self, atoms: list[Atom]) -> None:
+        """NO `molecules` PARAMETER, and its removal is the 2026-08-27 ruling in code.
+
+        It installed TERM priors at construction with `origin=PRIOR` -- **the one route by
+        which a term could enter Γ without being earned**, which §11 forbids and which the
+        VISIBLE SET replaces: a term is visible, aimed at, and enters only when regenerated,
+        under clause two. It had zero call sites, so it was not dormant but a **trapdoor to a
+        forbidden state**, and leaving it would have made `admissions` report a bucket that
+        must never be populated. **It also retires half of `molecule`'s A6i collision.**
+        """
         if not atoms:
             raise ValueError("Gamma needs at least one atom")
         self.atoms = list(atoms)
@@ -143,11 +151,6 @@ class Gamma:
         for a in atoms:
             self._install(Term((a,), origin=PRIOR), seq=-1, residual=None,
                           admitted=NECESSARY)   # the loop cannot run without a vocabulary
-        for label, chain in molecules:
-            # NO CLAUSE STATED. `None` is the honest reading and the population to
-            # examine -- the same disposition as `unattributed` in the provenance field.
-            self._install(self.build(chain, origin=PRIOR), seq=-1,
-                          residual=f"molecule:{label}", admitted=None)
 
     # -- construction ---------------------------------------------------------------
 
@@ -164,7 +167,14 @@ class Gamma:
         return term
 
     def admissions(self) -> dict[str, int]:
-        """How many entries cited each clause. `unstated` is the population to examine."""
+        """How many entries cited each of §11's two clauses.
+
+        **`unstated` IS NOW A FALSIFIER RATHER THAN A POPULATION.** Before the visible-set
+        ruling it meant *no clause was recorded*; now the only ways into Γ are `necessary`
+        (the atoms) and `promoted` (earned), so **a non-zero `unstated` means something
+        entered by a route that should not exist.** It should read zero forever, and the
+        bucket is kept precisely so that it can be checked rather than assumed.
+        """
         out: dict[str, int] = {}
         for st in self.stamps.values():
             if st["origin"] != PRIOR:

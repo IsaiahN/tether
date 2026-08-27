@@ -1566,6 +1566,31 @@ exists and what it would do, and cannot execute it.* **EARN** is regenerating th
 under ablation, and it then enters **under §11 clause two, `promoted`** — which the
 admitting-clause field records, built one commit earlier for a different reason.
 
+### 6b-ii · THE CORRECTION, APPLIED AT THE SITE — and it closed a trapdoor
+
+**`CLAUDE.md`'s entry was written as a re-scoping and is not one any more**, so it is
+corrected in place rather than annotated — the working-document treatment, so the next reader
+meets the correction instead of the error. **Most of yesterday's ruling survives**: the load
+side still binds, SENSORs beyond the nine are still forbidden, the shape-by-shape dispositions
+still hold. **What goes is the re-scoping itself, and with it *TERM wiped*.**
+
+**AND THE CORRECTION HAD A CONSEQUENCE IN CODE.** `Gamma.__init__` took a `molecules`
+parameter that installed TERM priors at construction with `origin=PRIOR` — **the one route by
+which a term could enter Γ without being earned.** It had **zero call sites**, which had been
+filed as *the unrun priors path* and `3a`'s first blocker.
+
+> **It was not dormant. It was a trapdoor to a state the ruling forbids** — and leaving it
+> would have made `admissions` report a bucket that must never be populated. **Removed.**
+
+**`unstated` therefore changes meaning: it is now a FALSIFIER, not a population.** Before the
+ruling it meant *no clause recorded*; now the only ways into Γ are `necessary` (the atoms) and
+`promoted` (earned), so **a non-zero `unstated` means something entered by a route that should
+not exist.** Kept so it can be checked rather than assumed. Reads `{'necessary': 8}`.
+
+**And it retires half of `molecule`'s A6i collision** — the first of the two named instances,
+*a prior term in `gamma` and a quantified objective in `DISCOVERY` Q21.* **The `gamma` sense
+no longer exists.**
+
 ### 6c · THE LOAD — 17 ROWS, ALL CITED, AND NONE CHOSEN FOR USEFULNESS
 
 `priors.py`, from `ARC_HUMAN_PRIORS.md`: **CONSTRAINT 5 · TRACKER 4 · BIAS 4 · BUDGET 4.**
