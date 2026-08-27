@@ -15,11 +15,13 @@ a rule with structure would invite reading a result off a fixture that cannot ca
 from __future__ import annotations
 
 import collections
+import math
 import sys
 
 import numpy as np
 from arcengine import FrameDataRaw, GameState
 
+import arc_lens
 import gamma
 import gate
 import ledger
@@ -80,9 +82,36 @@ def cells(board) -> dict[str, int]:
             for r in range(SIDE) for c in range(SIDE)}
 
 
+def _fidelity(state, palette):
+    """1 - R_T/ceiling, where the ceiling is a whole restatement of every slot. The units
+    are the caller's, which is why `arc_lens` takes this rather than computing it: the lens
+    knows about shape and the loop knows about bits."""
+    ceiling = len(state) * math.log2(palette)
+    alpha = dict.fromkeys(state, palette)
+    return lambda t_a: 1.0 - tether.round_trip_gap(t_a, state, alpha) / ceiling
+
+
 def main() -> None:
     atoms = _atoms()
-    env = ArcWorld(FakeWrapper(), cells, atoms, palette=PALETTE)
+    probe_board = FakeWrapper().reset().frame[-1]
+    names = sorted(cells(probe_board))
+
+    # BOTH OUTCOMES, because `None` is the one that matters most. The uniform board IS
+    # representable at stride 2; the speckled one is not, and one differing cell per block
+    # is enough -- which is the point, since that cell is exactly what a coarse view loses.
+    flat = dict.fromkeys(names, 3)
+    committed = arc_lens.lens(names, SIDE, _fidelity(flat, PALETTE))
+    print(f"  lens, uniform board : {[n for n, _ in committed] if committed else None}"
+          "   (coarse-representable -> commits)")
+
+    speckled = {n: (3 if n in ("c00", "c02", "c20", "c22") else 5) for n in names}
+    offered = arc_lens.lens(names, SIDE, _fidelity(speckled, PALETTE))
+    print(f"  lens, speckled board: {[n for n, _ in offered] if offered else None}"
+          "   (NOT a rendering of anything coarser -> None)")
+
+    # the ACTUAL board's verdict, so the channel is open or closed for a reason
+    real = arc_lens.lens(names, SIDE, _fidelity(cells(probe_board), PALETTE))
+    env = ArcWorld(FakeWrapper(), cells, atoms, palette=PALETTE, views=real)
 
     print("  the eight fill      :", end=" ")
     bind(env)
@@ -99,6 +128,11 @@ def main() -> None:
     verdict = gate.check(led.rows())
     print(f"  loop                : {agent.cycle} cycles, {len(led.rows())} rows, {dict(c)}")
     print(f"  gate                : {verdict['verdict']}")
+    br = [r for r in led.rows() if r["detail"].get("channel") == "bracket"]
+    print(f"  bracket channel     : {len(br)} rows, "
+          f"cause={br[0]['detail']['cause'] if br else None}, "
+          f"R_T={br[0]['detail']['mass'] if br else None}, "
+          f"view={br[0]['detail'].get('view') if br else None}")
 
     assert "RESET" not in acts, "RESET reached the loop: the farming path is open"
     assert verdict["verdict"] == "pass", verdict

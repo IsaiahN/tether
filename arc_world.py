@@ -35,10 +35,13 @@ class ArcWorld:
     """
 
     def __init__(self, wrapper: Any, decompose: Decompose, atoms: list,
-                 palette: int, name: str = "arc") -> None:
+                 palette: int, views: Any = None, name: str = "arc") -> None:
         self.w = wrapper
         self._decompose = decompose
         self._atoms = list(atoms)
+        # 2c's lens, injected for the same reason the decomposition is: the coarse views a
+        # board offers depend on what a slot IS, and that is not the adapter's to decide.
+        self._views = views
         # no default: the palette size is the DOMAIN's fact, and a number invented here
         # would be a magic constant wearing an adapter's clothes.
         self._palette = int(palette)
@@ -73,10 +76,12 @@ class ArcWorld:
         return list(self._atoms)
 
     def transform(self) -> Any:
-        """No coarse view yet. The lens is `logical_grid` and it arrives with 2c, so the
-        bracket channel is inert here -- stated rather than omitted, the way the toy world
-        states it, because an absent channel and an unfed one read the same from inside."""
-        return None
+        """The coarse views this board offers, or None if the lens committed to nothing.
+
+        2c supplies them. `None` is a READING rather than an absence: the loop records it as
+        `channel_closed` with `env.transform() returned None` as the cause, which is the
+        honest state for a board that is not a rendering of anything coarser."""
+        return self._views
 
     # -- running -------------------------------------------------------------------------
 

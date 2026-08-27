@@ -637,6 +637,63 @@ a finding.
 
 ---
 
+# `2c`'s lens — BUILT 2026-08-27, and the bracket channel is open
+
+`arc_lens.py`. **Offer coarse views of a board, and offer NONE unless one is near-lossless** —
+§5's rule, with `1 − fidelity` as `R_T`. **Both outcomes are exercised**: a uniform board
+commits `['full', 'stride:2']`; a speckled one returns **`None`**, which is the honest state
+for a board that is not a rendering of anything coarser. **`None` is a READING, not an
+absence** — the loop already records it as `channel_closed` with the reason on the row, and a
+lens that offered views nothing could commit to would report a channel open and carrying
+noise.
+
+**THE VIEWS ARE BUILT FROM SHAPE ALONE.** A stride divides the side or it does not; nothing
+in the file is shown a rule, a colour's meaning, or an outcome — the same guarantee
+`snaps._views` states for itself, and what keeps offering a view from being answering the
+question. **And the block takes its first member's value rather than a mean**, because
+averaging would invent a value no cell held.
+
+**The gate is inherited with its provenance rather than chosen:** `0.98`, because a true 5-px
+grid scored **0.818** while a spurious 2-px tiling scored **0.946** — the wrong answer scored
+higher — so fidelity alone cannot discriminate and the stride comes from motion.
+
+**AND THE CHANNEL IS OPEN FOR THE FIRST TIME ON AN ARC-SHAPED WORLD:** 12 bracket rows,
+`cause=genuine`, `R_T=0.0`, `view=full`. **Zero because the agent uses the identity view** —
+`stride:2` is offered and nothing selects it, which is INWARD and unbuilt. **Measured zero,
+not assumed zero**, which is the whole distinction the nulls sweep exists to make.
+
+**One producer of the quantity.** `round_trip_gap` moved to module level in `tether.py` so
+the loop and anything scoring a view share one implementation — the alternative was a second
+copy of the gap in the lens, which is the reinvention no grep can see. **And the lens takes
+`fidelity` as a callable rather than importing the loop**: the lens knows about shape, the
+loop knows about bits, and the domain does not depend on the loop.
+
+**Two things ISOLATED caught, both on first run**, continuing the day's pattern: `lens`
+defined and referenced nowhere until the fixture consumed it, and — earlier — `reset_kind`
+built ahead of its consumer and removed. **The checker on the author, twice.**
+
+**AND THE STRONGEST FORM OF THE VACUITY DISCIPLINE, arriving as a CONSTRUCTION
+REQUIREMENT rather than as a check.** *A control that examines nothing cannot demonstrate a
+clean state* is normally asked AFTER the fact — did this see anything? **Here it could not be
+deferred: the `None` path needs a board with a cell that differs INSIDE a block, and that
+cell is exactly what a coarse view loses.** So **the fixture cannot be completed without
+constructing the failure it is meant to detect.** A checker asks whether something examined
+anything; this made finishing impossible without it. **Better position than a checker can
+occupy, and it was not designed — it fell out of the thing being measured.**
+
+> **AND IT DOES NOT GENERALISE.** The fixture and the failure COINCIDED here: a lens
+> whose failure is losing a cell inside a block cannot have its refusal tested without
+> such a board. **Most instruments have no such property**, and elsewhere the case has
+> to be constructed deliberately — as `Grows` was for blocker 2. **The discipline came
+> free once. It is not free.**
+
+**And one error of mine the fixture caught.** I claimed to exercise both lens outcomes and
+tested the same case twice: `reset()` sets `n = 0`, so the probe board is **uniformly zero**
+and coarse-representable. The `None` path needed a board with a cell that differs inside a
+block — which is exactly the cell a coarse view loses, and the reason the path matters.
+
+---
+
 # `R_T` WORKS — 2026-08-27, and it was the invented quantity all along
 
 **`2c`'s first move was a fix, not a build.** `PHILOSOPHY` §0.3 and §16.1 say it twice, in

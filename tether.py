@@ -55,6 +55,33 @@ def correction_bits(a: int, b: int, alphabet: int) -> float:
     return 0.0 if a % alphabet == b % alphabet else math.log2(alphabet)
 
 
+def round_trip_gap(t_a, state: dict[str, int], alphabet: dict[str, int]) -> float:
+    """R_T: THE GAP BETWEEN `x` AND `T_E(T_A(x))`, per PHILOSOPHY §0.3 and §16.1.
+
+    Send it up, bring it back, charge what came back wrong. `T_E` is the coarse value taken
+    literally, so the extensive law `x <= T_E(T_A(x))` holds and the gap is non-negative by
+    construction rather than by hope.
+
+    A SLOT THE VIEW DROPPED COSTS ITS WHOLE CODE, not nothing. Reconstructing a missing key
+    from the true value would let `T_E` recover exactly what `T_A` discarded and read a
+    dropping view as lossless -- measured, `drop:s0` read 0.000 bits before that line went
+    in. **A fallback in a reconstruction is a claim that nothing was lost.**
+
+    THIS REPLACED A PRE-IMAGE SWEEP, which measured a different quantity -- the VIEW's global
+    lossiness rather than THIS state's loss -- and was over budget on every panel that
+    exists: 8.24e+05 on the toy world against 4,000, 1.68e+04 on `snaps`, 3.32e+13 on a 4x4
+    board, past float range on 64x64. The gap is O(slots) and has no budget at all.
+    """
+    back = t_a(state)
+    total = 0.0
+    for slot, v in state.items():
+        if slot in back:
+            total += correction_bits(back[slot], v, alphabet[slot])
+        else:
+            total += math.log2(alphabet[slot])
+    return total
+
+
 def term_bits(k: int, alphabet: int) -> float:
     return (k + 1) * math.log2(alphabet + 1)
 
@@ -287,27 +314,10 @@ class Agent:
         extensive law `x <= T_E(T_A(x))` holds and the gap is non-negative by construction
         rather than by hope.
 
-        THIS REPLACES A PRE-IMAGE SWEEP, which was a different quantity. Counting how many
-        concrete states share a coarse one measures the VIEW's global lossiness; the gap
-        measures what THIS state lost, which is what the corpus defines and what a residual
-        needs. The sweep was also unmeasurable everywhere it was ever run -- 8.24e+05 on the
-        toy world against a 4,000 budget, 1.68e+04 on `snaps`, 3.32e+13 on a 4x4 board, and
-        past the range of a float on 64x64 -- so every reading it ever produced was the
-        capped one. **The gap is O(slots) and has no budget at all.**
+        The arithmetic is `round_trip_gap` at module level, so the loop and anything
+        scoring a view share ONE implementation rather than two that can drift.
         """
-        back = t_a(before)
-        # A SLOT THE VIEW DROPPED COSTS ITS WHOLE CODE, not nothing. Falling back to the
-        # true value would let `T_E` reconstruct what the view discarded and read a
-        # dropping view as lossless -- the same direction error as `_applies`: a tolerant
-        # fallback makes a lossy thing look perfect. Measured: `drop:s0` read 0.000 bits
-        # before this line, and dropping a slot is maximal loss.
-        total = 0.0
-        for s, v in before.items():
-            if s in back:
-                total += correction_bits(back[s], v, self.alphabet[s])
-            else:
-                total += math.log2(self.alphabet[s])
-        return total
+        return round_trip_gap(t_a, before, self.alphabet)
 
     def _cause(self, slot: str, bits: float) -> str:
         """Which of the three a reading has. Every branch is read off state the loop
