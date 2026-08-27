@@ -128,6 +128,10 @@ class Gamma:
         # `primitive requires both` is only checkable if both are on the record.
         self.primitives: dict[str, dict] = {}
         self.tick = 0
+        # 3d / §17.7. Set by the agent to a `(unit) -> tuple` ranking. None keeps the
+        # registry order this had, so installing a rank is an observable change and not
+        # installing one changes nothing.
+        self.unit_rank = None
         for a in atoms:
             self._install(Term((a,), origin=PRIOR), seq=-1, residual=None)
         for label, chain in molecules:
@@ -228,7 +232,10 @@ class Gamma:
             if unit.name not in seen:
                 seen.add(unit.name)
                 out.append(unit)
-        return out
+        # 3d: ORDER IS THE SEARCH'S ONLY FREE VARIABLE. `enumerate_closure` breaks on the
+        # first zero-residual term, so what the units are sorted by decides how many
+        # candidates get tried before it is found. Registry order when nothing is installed.
+        return sorted(out, key=self.unit_rank) if self.unit_rank else out
 
     def enumerate_closure(self, in_type: str, out_type: str, max_depth: int, budget: int,
                           stats: dict | None = None) -> Iterator[Term]:

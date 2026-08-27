@@ -172,6 +172,8 @@ class Agent:
         self._settled_at_level: set[str] = set()   # the segment's starting line
         self.demoted: list[str] = []
         self.chain = I.Chain()
+        self.rank = I.Rank()
+        self.gamma.unit_rank = self.rank.key
         self.phases = I.Phases()
         self.clocks = I.Clocks()
         self.pre = I.Preconditions()   # §16.8 sensor 2, fed by the delta
@@ -841,6 +843,7 @@ class Agent:
         left, cost, term = best
         self.gamma.accept(term, seq=len(self.led), residual=f"{slot}@{self.cycle}")
         self.bound[slot] = term.name
+        self.rank.note(term.name, self.cycle)
         closes = left == 0.0
         if closes:
             self.candidates[term.name] = self.cycle
@@ -930,6 +933,12 @@ class Agent:
                 self.chain.note_cleared()
                 name = (cand.name if cand.name in self.gamma.library
                         else self._install_reuse(cand, slot))
+                # 3d: COUNT REUSE WHERE THE FUNNEL ALREADY DETECTS IT. The bind sites are
+                # once-per-term by construction -- a rebind picks a DIFFERENT term, since
+                # `_library_fit` excludes the incumbent -- so counting there reads 1 forever.
+                # And the `cross` case never touches `bound` at all, which is precisely the
+                # reuse §17.7 means.
+                self.rank.note(name, self.cycle)
                 if cross:
                     self.parked.pop(tkey, None)
                 else:
@@ -1089,6 +1098,7 @@ class Agent:
         for slot, b, fit, _why in self.route(res):
             if b == REBIND and fit:
                 self.bound[slot] = fit
+                self.rank.note(fit, self.cycle)
                 self.owed_import.discard(slot)
                 self.abstained.pop(slot, None)
                 self.led.record(self.cycle, "ACCEPT", slot, "rebind", term=fit,

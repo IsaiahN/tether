@@ -438,15 +438,18 @@ transfer question turned out to be answerable with a parameter the machinery alr
 and the second below arrived from `BUILD_PLAN` Stage 1 rather than from the panel's own
 list. **`the panel is the binding constraint` was a general claim, and what remains is two
 specific structural facts — a prime modulus and a single type — rather than the systemic
-version.** Each for a stated structural reason rather than a hunch.
+version.** **And the single type is the one that keeps being paid for**: it is not a question
+awaiting an answer but a property every type-keyed measurement on this panel is missing, so it
+is stated as a defect below rather than as an open question. Each for a stated structural reason rather than a hunch.
 
 | question | what the panel would need | why `snaps` cannot |
 |---|---|---|
 | ~~should shadow-only terms cross?~~ | **ANSWERED — `SNAPS_PLAN` §3 rules standing persists.** Not a panel question after all | — |
 | ~~does the library transfer?~~ | **ANSWERED — not waiting.** Reuse across DS is 0.72, 0.35, 0.21, 0.20, 0.04, monotone. `SNAPS_PLAN` §7 falsifier 1 does not fire. The level-wise flatness was one point at DS 0.4 | — |
+| **REUSE NEVER CLOSES — the second panel defect, found by `3d`.** The funnel reports `{'no-eligible-target': 4}` and the ladder stage is **`REUSE_UNWIRED`**, *implementation, loop not connected*. **Every unit reads `used == 1`, flat at 16, 40 and 80 cycles.** So anything ranked by, gated on, or measured over REUSE is undefined here — `3d`'s rank function has two of three terms inert on it. **Stated as a defect, not an open question, for the same reason as the type node: the third mechanism to hit it should not pay the discovery cost again** | a run in which a settled term is bound a second time, or bound for a second slot | the funnel attempts and finds no eligible target, every time |
 | **does coarsening make rules expressible?** | a value space with non-trivial quotients, or structure that regroups rather than coarsens | `M = 7` is **prime**, so no non-trivial coarsening of Z₇ preserves the arithmetic the atoms are made of |
 | **what does a coarse view lose?** — **NOT *NEVER MEASURED*; *FIRST MEASURED IN THE NEXT BUILD*.** The reason it is unmeasured here — a domain sweep needing 16,807 against a 4,000 budget — **does not apply to a fidelity number over a detected grid.** Different disposition: not a dead mechanism, an unexercised one whose first real reading is scheduled. **AND IT IS LOAD-BEARING THERE.** `ARC_AGENT` §5: `logical_grid` commits to a detected board **only if the round trip is near-lossless**, returning `None` otherwise, and **`1 − fidelity` IS `R_T`**. So the mechanism with zero readings here **is the lens's admission criterion there.** Its calibration is the anti-citation in this file: a true 5-px grid scored **0.818** while a spurious 2-px tiling scored **0.946** — **the wrong answer scored higher**, which is why the gate sits at 0.98 and the stride is taken from motion instead of from fidelity | a domain small enough to sweep within the declared budget | **`R_T` HAS NEVER PRODUCED A READING.** `world` returns `None` from `transform()`, so `_round_trip` is not called -- recorded honestly as `channel_closed` with `inert` naming the reason. `snaps` DOES offer views, so it is called, and returns `(0.0, False)` every time: the sweep needs `7^5 = 16,807` and `budget` is `4,000`. The toy world would need `823,543`. **Every reading in existence is the capped case**, which is why the docstring's *not a small R_T, it is NO R_T* is carrying the entire mechanism |
-| **does typing beat size?** | atoms spanning more than one type | **every atom is the same type**, so the transfer matrix is 1×1 and `λ = V = 8.0` BY CONSTRUCTION, `types: 1`. `demo.py` reports it and reads it correctly — *typing buys nothing in this world, and that is the instrument working*. But a panel that can only ever return `λ = V` **cannot distinguish a sparse grammar from a dense one**, so the falsifier fires without carrying information about the code. **`ARC_BUILD_PLAN` Phase 3b's done-when is `λ < V` with a real ratio — it cannot be graded here at all**, which is a sequencing fact rather than a defect |
+| **ONE TYPE NODE — and it is a PANEL DEFECT, not one mechanism's question.** Originally filed as *does typing beat size?*, which is λ's version of it. **It has now cost two mechanisms and will cost the third**: `λ` reads `V` by construction, and `3c`'s retrieval read **3% work avoided** on the demo before the corollary caught it — *retrieval discriminates on type signature, and there is one signature.* On `3b`'s three spaces the same code reads **11 evals → 4**. **Anything keyed on, ranked by, or measured over TYPE is undefined on this panel** — which is `3d`'s rank function next, since *type-match to the residual* is one of its four terms. **Do not rediscover it a third time: state the panel first, then read the number.** `3b`'s own closing line is the general form, written before either measurement — *the instrument was working; it just had nothing to measure* | atoms spanning more than one type | **every atom is the same type**, so the transfer matrix is 1×1 and `λ = V = 8.0` BY CONSTRUCTION, `types: 1`. `demo.py` reports it and reads it correctly — *typing buys nothing in this world, and that is the instrument working*. But a panel that can only ever return `λ = V` **cannot distinguish a sparse grammar from a dense one**, so the falsifier fires without carrying information about the code. **`ARC_BUILD_PLAN` Phase 3b's done-when is `λ < V` with a real ratio — it cannot be graded here at all**, which is a sequencing fact rather than a defect |
 
 **And the structural guarantee is the same in all three:** whatever sets the panel's
 property must not be shown what the agent carries — the way `_views(names)` is never shown
@@ -906,6 +909,96 @@ ARC-specific — it keys on `Atom`'s own types — and `tether.py` is the **doma
 loop. An `arc_` import there would have inverted the dependency and put a domain name in the
 one file that must not have one. **The rename cost nothing at 3c and would have been
 structural by Phase 5.**
+
+---
+
+# `3d` — BUILT 2026-08-27. The rank function, and TWO OF ITS THREE TERMS ARE INERT HERE
+
+### 1 · THE SECTION CHECK MOVED THE BUILD BEFORE IT STARTED
+
+**The row says four terms — *cost, reuse count, type-match to the residual, recency*. The spec
+says three.** §17.7's interim fix is `(cost, reuse count, recency of the residual it last
+closed)`, and **`type-match` appears nowhere in the corpus — only in the build-plan row.**
+
+**And it is not a harmless extra.** `3c` shipped last turn ordering the library by type fit.
+Adding type-match to the rank would **apply the same signal twice at two stages**: retrieval
+selects the habitat, the rank orders *within* it. The row's fourth term is a reinvention of the
+module built the turn before — **and on this panel it would have been silently constant**,
+since there is one type node. The panel row written this session called this exact item.
+
+**Two more things the section says and the row cannot:**
+
+- **§18.7: a rank function is one of only TWO genuinely new builds in the document.** *Six of
+  eight gaps had answers already written ... the two that are genuinely new build are the two
+  the hunt came back empty on: **delayed effects, and a rank function.*** So the sixth law's
+  *go look* returns nothing here — **which makes this the item where invention is most likely
+  and least checkable**, and the reason the stated tuple is taken verbatim rather than improved.
+- **§17.7: the trained proposer (§15.6) replaces this and *should not be waited for*.** Interim
+  by instruction. Four fields, not a model. And §15.6 conditions that proposer on **the
+  characterised residual from §15.3** — which is `3c`. The two builds are already joined.
+
+### 2 · THE GATE ALREADY PASSES, SO THE GATE IS NOT THE DEMONSTRATION
+
+§17.7: *the gate already requires every cut ranked and reversible, **so a rank function is
+mandatory, not optional — and there isn't one.*** **It has been passing all along.** 300 cuts
+across 25 rows, every one carrying `rank` and `reversible`. But `rank` is `rank += 1` — **the
+enumeration position** — and the gate's test is `"rank" not in cut`, a **field-presence check**.
+**Registry order satisfies the requirement that was meant to force a rank function into
+existence.** A check that cannot distinguish a principled ordering from a counter.
+
+*(Recorded because I first reported this check as vacuous. It is not — I queried the key `cut`
+and the field is `cuts`. The corrected finding is sharper than the withdrawn one.)*
+
+**So the falsifier is `candidates_tried`, which the ledger already records** — and the reading
+is `3c`'s shape: **same terms minted, fewer candidates tried.** `enumerate_closure` breaks on
+the first zero-residual term, so order decides how many are tried before it is found.
+
+### 3 · IT RANKS UNITS, NOT CANDIDATES
+
+**A minted candidate is by construction not in the library** — the novelty guard cuts the ones
+that are — so its own reuse count is zero always and a rank over candidates is dead on arrival.
+The objects with reuse histories are **the units the search composes from** (§14.2: *a settled
+term re-enters the search as one unit*), so `units()` is ordered and every composition
+downstream inherits it, at no per-candidate cost. `gamma.unit_rank` defaults to `None`, which
+keeps the exact registry order — **installing a rank is an observable change and not installing
+one changes nothing.**
+
+### 4 · THE READING, AND WHY IT IS NOT A READING ABOUT THE RANK
+
+    candidates_tried   registry 77,006   ranked 77,183   (+0.2%)
+    terms minted       4                 4               SAME TERMS: True
+
+**Same four terms — behaviour preserved.** And +0.2% is inert. **Two of the three terms cannot
+act on this panel, each for a named reason:**
+
+| term | live? | why |
+|---|---|---|
+| **cost** | yes | but BFS already approximates it, so it is nearly the order that was there |
+| **reuse count** | **NO** | **the funnel never closes.** `reuse funnel: {'no-eligible-target': 4}`, ladder stage **`REUSE_UNWIRED`** — *implementation, loop not connected.* Every tracked unit reads `used == 1`, so `-used` is **constant** and orders nothing. Flat at 16, 40 and 80 cycles |
+| **recency** | no | third key; only reached when cost AND reuse tie, and reuse never varies |
+
+**Only cost is live, and cost was already approximated. That is the whole +0.2%.**
+
+**AND THE DEMO HAS BEEN PRINTING THE REASON ON STDOUT THE WHOLE TIME.** `stage: REUSE_UNWIRED`
+is in every run's output. The corollary's *read the things that produce conditions* has a
+weaker sibling here: **this condition was not hidden in a generator or a config — it was in the
+report**, and it still took a null reading to look at it.
+
+### 5 · ONE WIRING DEFECT, FOUND BY THE PANEL CHECK RATHER THAN BY A TEST
+
+First wiring noted reuse at the three `self.bound[slot] = …` sites. **A bind is once-per-term
+by construction** — a rebind picks a *different* term, since `_library_fit` excludes the
+incumbent — so `used` would have read `1` forever **and the flat 16/40/80 result would have
+looked like a fact about the panel.** Worse, the funnel's `cross` branch (a term reused for a
+*different* slot, which is the reuse §17.7 means) **never touches `bound` at all.** Now noted
+where `note_reused()` fires, which is the funnel's own definition. **The reinvention rule: the
+detector existed and I built a second one beside it.**
+
+### 6 · WHAT IT OWES
+
+**A panel where reuse fires** — same disposition as contact ranking and `never_live`, and now
+the third item waiting on the same kind of thing. **Not a dead mechanism; an unexercised one**,
+and the distinction is the one `R_T` needed too.
 
 ---
 

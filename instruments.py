@@ -19,6 +19,7 @@ from __future__ import annotations
 import sys
 from collections import Counter
 from dataclasses import dataclass, field
+from typing import Any
 
 sys.dont_write_bytecode = True
 
@@ -200,6 +201,48 @@ class Preconditions:
         return {"came_after": {f"{b}->{a}": n for (b, a), n in sorted(self.after.items())},
                 "gone_after": {f"{b}->{a}": n for (b, a), n in sorted(self.gone_after.items())},
                 "reads": "a count, not a claim: what followed what, for the agent to read"}
+
+
+@dataclass
+class Rank:
+    """3d / §17.7. The interim rank function -- `(cost, reuse count, recency)`, IN THAT ORDER.
+
+    §17.7: *no principled rank function anywhere -- enumeration is registry-order everywhere
+    it appears ... the reuse funnel does supply the beginnings of one (**a φ that has been
+    reused should rank above one that has not**), but nobody wired it.* And the fix it names
+    is explicit: *rank by `(cost, reuse count, recency of the residual it last closed)`.*
+
+    **THE TUPLE ORDER IS THE SPEC'S, NOT A CHOICE.** Cost first means reuse only breaks ties
+    among units of equal cost, which is weaker than the parenthetical's *above one that has
+    not* -- and the two are in tension. **The stated tuple wins**, because an improvised
+    ordering is a repair fitted to the case that prompted it, and what the weaker version
+    turns out to do is a reading about the interim rank rather than a reason to redesign it.
+
+    IT RANKS UNITS, NOT CANDIDATES. A minted candidate is by construction NOT in the library
+    -- the novelty guard cuts the ones that are -- so its own reuse count is zero always, and
+    a rank over candidates would be dead on arrival. **The objects that HAVE reuse histories
+    are the units the search composes from** (§14.2: a settled term re-enters the search as
+    one unit), and ordering `units()` reorders every composition downstream for free.
+
+    §17.7 also says the trained proposer (§15.6) replaces this and **should not be waited
+    for**, which is why this is four fields rather than a model.
+    """
+
+    used: dict[str, int] = field(default_factory=dict)
+    last: dict[str, int] = field(default_factory=dict)
+
+    def note(self, name: str, cycle: int) -> None:
+        """This term just closed a residual. Both terms of the rank come off one event."""
+        self.used[name] = self.used.get(name, 0) + 1
+        self.last[name] = cycle
+
+    def key(self, unit: Any) -> tuple:
+        n = unit.name
+        return (len(unit), -self.used.get(n, 0), -self.last.get(n, -1))
+
+    def report(self) -> dict:
+        return {"tracked": len(self.used), "reused": sum(1 for v in self.used.values() if v > 1),
+                "reads": "cost first, per §17.7's stated tuple; reuse breaks ties within a cost"}
 
 
 @dataclass
