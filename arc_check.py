@@ -23,6 +23,7 @@ from arcengine import FrameDataRaw, GameState
 
 import arc_lens
 import arc_percept
+import arc_run
 import gamma
 import gate
 import ledger
@@ -154,6 +155,24 @@ def main() -> None:
     print(f"  affordances         : {af.report()['kinds']} kinds; one profile = "
           f"{ {k: v for k, v in prof.items() if v is not None} } "
           f"({sum(v is None for v in prof.values())}/7 unread)")
+    # 2d. THE ACCRUAL MUST BE EXERCISED OR IT IS UNTESTED: a single-level run cannot tell
+    # the flat cap from the accruing one, so this runs TWO levels and leaves budget on the
+    # first. `left` above one level's worth is the proof the accrual ran.
+    #
+    # anchor: 6, a FIXTURE DIMENSION and nothing read off it -- small enough that budget is
+    # visibly left over, where 500 would take a real run to exhaust.
+    bud = arc_run.Budget(per_level=6)
+    term = agent.term
+    term.offer(win_levels=3)
+    for _lvl in range(2):
+        bud.level_starts()
+        for _ in range(4):                     # four spent of six: two carry forward
+            bud.spend()
+        term.ending("cap" if bud.exhausted() else "advance")
+    print(f"  budget (accruing)   : {bud.report()['left']} left after 2 levels x 6, 8 spent"
+          f"   flat would leave {6 - 4}")
+    t = term.report()
+    print(f"  termination class   : {t['class']}  proven={t['proven']}  assumed={t['assumed']}")
     ag = agent.agency.report()
     print(f"  control mode        : {ag['control_mode']}  "
           f"contingent={ag['contingent_slots'][:3]}  over {ag['steps']} steps")

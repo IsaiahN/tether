@@ -638,6 +638,54 @@ a finding.
 
 ---
 
+# `2d` — BUILT 2026-08-27. The class latches, and the accrual is provably not flat
+
+**`Termination` in `instruments.py`, `Budget` in `arc_run.py`.** Four states, verified to
+discriminate:
+
+    no endings yet  -> open, "never proven, only defaulted to"
+    after a CAP     -> STILL open, capped_seen=True
+    after a death   -> death_possible, PROVEN
+    +3 clean ends   -> STILL death_possible  (it LATCHES)
+
+**A CAP FIRING DOES NOT PROVE `bounded`**, and that is the slip worth naming: the run ended
+because WE stopped it, not because the game did. §20.1 is exact — *without a death **and
+without your cap firing*** — so a capped ending leaves the class `open` and records
+`capped_seen` separately. **Treating a cap as an ending is the two-state version arriving by
+the side door** — **and it is the first of today's five where the collapse would have been HIDDEN rather than obvious.** The other four are visibly two-state when they go wrong: a field reads `False` instead of `None`, a claim says `unreachable` instead of `unreached`. **Here all three states exist in the code and one is simply never entered** — `open` becomes unreachable the moment a cap counts as an ending, because every run ends one way or the other. **A three-state discipline with an unreachable third state reads as compliant**, which is the vacuity problem arriving in a state machine.
+
+**AND `OPEN` IS REPORTED AS AN ASSUMPTION**, never as a finding. `report()` splits `proven`
+from `assumed`, so *this game has no death* is not sayable — **fourth site today for the same
+three-state rule**, after `None`-means-unread, `unreached` against `unreachable`, and
+`channel_closed` against a zero.
+
+### The accrual, proven distinguishable rather than assumed built
+
+**The flat version passes a short fixture perfectly**, so the fixture runs TWO levels and
+leaves budget on the first:
+
+    2 levels x 6 accrued, 8 spent  ->  4 LEFT
+    the flat cap would leave       ->  2
+
+**Different numbers, so the fixture says which implementation ran.** The accrual is one line
+that can be pointed at — **`left += per_level`, never `left = per_level`** — and it is written
+that way because it is the part that gets lost.
+
+### And the second firewall decided the shape
+
+**The agent does not read the cap.** `arc_run.py` is seat-side and the loop never imports it;
+**`capped` reaches the sensor as an EVENT.** A cap value inside the agent's reasoning is the
+second firewall's whole subject — *the agent discovers its budget by running out, or is told
+by the frame, never by a number someone read from a config.* **One module rather than a copy
+per runner**, because the fixture uses it now and the bridge will at Phase 5, and two
+accruing budgets would drift on exactly the clause that is easiest to lose.
+
+**`bounded` IS ABOUT THE PAIR**, and the row says so: under accrual the cap firing is partly a
+fact about the agent's efficiency, so the same board is `bounded` for a careful agent and
+`capped` for a wasteful one.
+
+---
+
 # THE CAP — RULED 2026-08-27. Four parts, and one of them is the one that gets lost
 
 > ### 500 actions PER LEVEL, ACCRUING. Unspent budget carries forward.

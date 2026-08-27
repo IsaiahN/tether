@@ -190,6 +190,80 @@ class Preconditions:
 
 
 @dataclass
+class Termination:
+    """§16.8 sensor / §20.1: what KIND of ending this environment has.
+
+    Nothing in the frame announces it, so it is read -- and **the evidence is asymmetric**:
+
+        a win is possible    `win_levels > 0`              given up front
+        DEATH is possible    a GAME_OVER, once             PROVEN, never disproven
+        bounded              an ending with no death and no cap firing   proven by observation
+        OPEN                 none of the above, so far     NEVER PROVEN -- only defaulted to
+
+    ***Not having died is not evidence that you cannot die.*** So `death_possible` LATCHES
+    true and never latches back, and **`OPEN` is a standing ASSUMPTION rather than a
+    finding.** The two-state version reports *this game has no death*, which is the absential
+    claim the corpus rules out everywhere else: *absence of evidence resting on completeness
+    never holds mid-episode.* `report()` therefore says which reads are PROVEN and which are
+    ASSUMED, and the class alone is never the whole answer.
+
+    THE AGENT DOES NOT READ THE CAP. `capped` arrives as an EVENT from the seat, because
+    harness configuration is the seat's business and the agent discovers its budget by
+    running out. A cap value in here would be a config number inside the agent's reasoning,
+    which is the second firewall's whole subject.
+
+    AND UNDER AN ACCRUING BUDGET `bounded` IS ABOUT THE PAIR, NOT THE GAME. The cap firing is
+    partly a fact about the AGENT's efficiency, so the same board is `bounded` for a careful
+    agent and `capped` for a wasteful one. Said on the row, because *termination class* reads
+    as a property of the world and under accrual it is not.
+    """
+
+    win_possible: bool = False
+    death_possible: bool = False        # latches; never latches back
+    bounded_seen: bool = False
+    capped_seen: bool = False
+    endings: int = 0
+
+    def offer(self, win_levels: int) -> None:
+        """Given up front, and the only read that needs no observation."""
+        self.win_possible = self.win_possible or win_levels > 0
+
+    def ending(self, kind: str) -> None:
+        """One episode ended. `kind` is the seat's word: `death`, `cap`, or an ordinary end."""
+        self.endings += 1
+        if kind == "death":
+            self.death_possible = True      # LATCHED
+        elif kind == "cap":
+            self.capped_seen = True
+        else:
+            self.bounded_seen = True
+
+    def klass(self) -> str:
+        if self.death_possible:
+            return "death_possible"
+        if self.bounded_seen:
+            return "bounded"
+        return "open"
+
+    def report(self) -> dict:
+        k = self.klass()
+        return {
+            "class": k,
+            "win_possible": self.win_possible,
+            "death_possible": self.death_possible,
+            "capped_seen": self.capped_seen,
+            "endings": self.endings,
+            "proven": [n for n, v in (("win_possible", self.win_possible),
+                                      ("death_possible", self.death_possible),
+                                      ("bounded", self.bounded_seen)) if v],
+            "assumed": ["open -- never proven, only defaulted to"] if k == "open" else [],
+            "reads": ("not having died is not evidence that you cannot die; and under an "
+                      "accruing budget `bounded` is about the AGENT-GAME PAIR, since the cap "
+                      "firing is partly a fact about efficiency"),
+        }
+
+
+@dataclass
 class Agency:
     """§16.8 sensor 3, and §16.2 rules how it may be read.
 

@@ -166,6 +166,7 @@ class Agent:
         self.clocks = I.Clocks()
         self.pre = I.Preconditions()   # §16.8 sensor 2, fed by the delta
         self.agency = I.Agency()       # §16.8 sensor 3, a per-step read
+        self.term = I.Termination()    # 2d / §20.1, latching and asymmetric
         self.retro: list[dict] = []
         # parked residuals survive a level boundary; the trace does not. So a parked
         # record carries its OWN evidence -- retrospective re-attribution is free in
