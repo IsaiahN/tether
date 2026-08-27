@@ -1235,6 +1235,56 @@ headline was about to be made.**
 `delta` (7) and `changed` (9) still owed; seven built under `2b`/`2c`. **§12.3's own list
 matches what was filed under the other items** — no change.
 
+### 7 · THE ABLATION CLAUSE REACHES ONE SHAPE IN SIX — a finding about the TEST
+
+**Terminal condition clause 3 is the sharpest one and the only runnable falsifier:** *back up
+Γ, verify the backup, wipe Γ, re-run. If the win survives, the agent composed it; if it
+disappears, the library was carrying the answer.*
+
+**It wipes Γ. Only TERM lives in Γ.** So `SENSOR`, `CONSTRAINT`, `TRACKER`, `BIAS` and
+`BUDGET` — **five of the six shapes `3a` loads generously — survive the wipe untouched**, and
+the clause is silent about all five.
+
+**The corpus already knows something can survive a wipe, and made that case honest.** §11's
+**bench** is *primitives NOT in Γ that the agent cannot reach, entering only by an IMPORT
+ceremony citing the residual it closes* — with a shadow-test gate, a Figure 6 debit, and
+*every pull counted*. Its stated payoff is precisely this: ***wipe Γ and the bench remains, so
+composed-it and was-handed-it stay distinguishable.***
+
+> **The five shapes are a THIRD category the corpus does not have a name for: they survive,
+> and unlike the bench they are uncounted, unceremonied, and loaded generously.**
+
+**And §11's entry discipline misses them by its own scope.** *A prior enters **the library**
+only if the loop cannot run without it, or the agent minted a crude version first ... because
+the moment a prior enters for the second reason, we have encoded an answer, and **the ablation
+clause will not be able to tell us we did**.* **Four of the five never touch the library**, so
+the rule written to protect the ablation does not reach the shapes the ablation cannot see.
+
+**THE COUNTERWEIGHT, WHICH IS REAL AND SHOULD BE VOLUNTEERED.** Some of what survives *should*
+survive. **The nine minimum sensors are `loop cannot run without it` by construction** —
+wiping them makes the agent blind rather than untaught, and a blind agent failing demonstrates
+nothing. So the fix is **not** a wider wipe. The distinction that matters is inside the five:
+
+| within the surviving five | should the ablation see it? |
+|---|---|
+| the **nine minimum sensors** — the loop cannot run without them | **no.** Wiping them tests blindness, not composition |
+| **everything loaded beyond the nine** — Tier 2 reaches, CONSTRAINT, TRACKER, BIAS, BUDGET priors | **yes**, and it currently does not |
+
+**So clause 3 measures *did the agent compose the TERMs*, not *did the agent compose*.** That
+is narrower than the clause reads, and **`3a` is the item that widens the gap**, because
+loading generously across five invisible shapes is exactly the operation the test cannot see.
+
+**§12.3's Tier 2 rule is this same point from the other side** — *reaching is the only evidence
+the composition system works* — so loading the composables and running the ablation would leave
+**nothing demonstrating composition in either instrument.**
+
+**AND THE CLAUSE NOW HAS THREE STATED DEPENDENCIES, TWO OF THEM THE CORPUS'S OWN.** §17.8:
+*library persistence across levels and games is undecided, and **it is exactly what the
+ablation clause tests** — that test only means something once persistence is a stated policy
+rather than an accident of process lifetime.* §11: the entry discipline above. **This is the
+third, and unlike the other two it is structural rather than undecided** — no policy fixes it,
+because the shapes are in different homes by design.
+
 ### WHAT THE CHECK CHANGES
 
 **Not the blockers.** The unrun priors path and the unwritten Cyc pre-emption are unmoved.
