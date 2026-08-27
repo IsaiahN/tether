@@ -655,6 +655,39 @@ domain-agnostic, `provenance` already types decisions, and what is missing is ag
 WITH VARIED TYPES.** **Which is the panel defect for the third time, now at the seat's scale**
 — beside the single type node and the unwired reuse funnel.
 
+### 5 · HELD, NOT FILED — two observations with their bars, and the second is why this exists
+
+**THE THIRD PANEL DEFECT MAY NOT BE ONE, AND IT PRESENTS IDENTICALLY TO THE TWO THAT ARE.**
+
+| | the type node · the reuse funnel | the seat-scale one |
+|---|---|---|
+| what supplies the missing property | **a different panel** | **nothing can** |
+| how the next mechanism meets it | it **re-announces itself** the moment something keys on it | **silently, from zero** |
+
+**Decisions arrive one at a time, from Isaiah, unrepeatably — the instances ARE the project's
+history.** So there is no panel that could supply varied ones, which makes it **categorically
+different while looking the same from inside a null reading.** It may be a fourth thing the
+GROUND is expensive about rather than a fourth defect — **which is §0.2's own recursion-thin
+vs ground-costly distinction, arriving one level further in.**
+
+> **HELD AT n = 1. BAR: a second arrival before it is filed as anything.**
+
+**And it is recorded for an asymmetry that applies to it and not to its neighbours.** The other
+two re-announce themselves; **this one, if lost, is met from zero and mistaken for them** —
+which is the confusion it exists to prevent. **It was called the sharpest thing in a writeup it
+was not in**, so the compaction failure `CLAUDE.md` names landed on the one observation least
+able to survive it, and that is the argument for the row rather than a reason to note it.
+
+**The two held observations, in one place so neither is a memory:**
+
+| held | n | bar |
+|---|---|---|
+| the **allocation shape** — *which of two already-built objects owns this responsibility* | 3 | a **fourth, unprompted** |
+| **the seat-scale defect may be the ground being expensive, not a defect** | 1 | a **second arrival** |
+
+**Held is a status, not a weaker row.** Filing either early is the `type-match` move — a shape
+that reads well, with nothing to check it against.
+
 ---
 
 # Arrival has never occurred, and that is the scope statement
@@ -1120,6 +1153,94 @@ detector existed and I built a second one beside it.**
 **A panel where reuse fires** — same disposition as contact ranking and `never_live`, and now
 the third item waiting on the same kind of thing. **Not a dead mechanism; an unexercised one**,
 and the distinction is the one `R_T` needed too.
+
+---
+
+# `3a` CHECKED BEFORE ITS BLOCKERS CLEAR — and it is NOT one load into Γ
+
+**Read before building, on the argument that if the section says something the row does not —
+which it has every time — better to know before the blockers clear than after.** It does, five
+times, and one of them is a defect in the corpus rather than in the row.
+
+### 1 · THERE ARE EIGHT SHAPES, NOT SEVEN, AND EACH SECTION SHOWS A DIFFERENT SEVEN
+
+**§23.2 opens *"the seven shapes from §12.1 sort cleanly"*. They are not the same seven.**
+
+| | §12.1's seventh | §23.2's seventh |
+|---|---|---|
+| name | **ALREADY THE LOOP** | **ROUTINE** |
+| what it says | *several catalogued priors ARE the architecture — adding them as library entries would **duplicate the loop inside the loop*** | *a routine is a solution, and **solutions are the thing that must not transfer in*** |
+| appears in the other section? | **no** — `ROUTINE` occurs exactly once in the document, inside §23.2 | **no** — §12.1 never names it |
+
+**Both tables have seven rows. Both look complete. Neither is.** And the two missing entries
+are **both prohibitions, and each section carries only one of them** — so a builder working
+from §23.2 alone never meets the duplication trap, and one working from §12.1 alone never
+meets *never load a routine*, **which is the single most important rule in `3a`.**
+
+**This is A6i at the level of a SET.** Not one word with two meanings — two sets under one
+count, each internally coherent, each citing the other. **The check that finds it is reading
+both, and nothing short of that would.**
+
+### 2 · "ALL STAMPED `prior`" IS TRUE OF ONE SHAPE IN SIX
+
+**§12.1 has a `lives in` column, and the row and §23.6 both read as though it says Γ:**
+
+| shape | lives in | in Γ? |
+|---|---|---|
+| **TERM** | **Γ, stamped `prior`** | **yes — this one** |
+| SENSOR | a typed registry | no |
+| CONSTRAINT | a filter **before** the bargain | no |
+| TRACKER | perception's identity rule | no |
+| BIAS | search order, reversible | no |
+| BUDGET | the constants block | no |
+
+**So *Γ ships loaded* (§23.6 item 1) and *load generously across the six loadable shapes, all
+stamped `prior`* (the row) both describe a single-destination operation, and the operation is
+SIX LOADS INTO SIX HOMES, five of them outside Γ.** A stamp is a Γ concept; five of the six
+cannot carry one. **`3a` is not a loading task with a provenance stamp on it — it is five
+integrations plus one stamped load**, and the ablation clause reaches only the sixth.
+
+### 3 · BIAS'S CONSUMER IS `3d`, BUILT TWO COMMITS AGO
+
+§12.1: *a prior that reorders search is a cut ... **biases enter as ranked, reversible cuts or
+they do not enter.*** **`3d` is that machinery**, and until two commits ago the BIAS shape had
+nowhere to land. **The reordering got this right by accident** — `3a` moved last for §23.5's
+reason (retrieval before loading), and the BIAS dependency is a second, independent reason for
+the same order that neither the table nor §23.5 states.
+
+### 4 · "LOAD GENEROUSLY" HAS A BOUNDARY THE ROW DOES NOT CARRY
+
+§12.3, on the Tier 2 compositions — symmetry, containment, holes, counting-by-colour,
+alignment: ***they are Tier 2 and the agent should have to reach for them, because reaching is
+the only evidence the composition system works.***
+
+> **Generous ACROSS the six shapes. Never across what composes from the nine.** Loading
+> `symmetry` or `count` is not over-generosity — **it removes the evidence that the
+> composition system works at all**, which is the thing `3a` exists to be graded on.
+
+### 5 · `BUDGET` IS TWO QUANTITIES UNDER ONE WORD — CHECKED, AND CLEAR
+
+**§12.1's BUDGET is *a number with provenance* in the constants block, and its examples are
+`subitizing ≤ 4`, `relational complexity ~ 4`, `working-memory span`** — bounds on COGNITION.
+**§22.1's is `MAX_ACTIONS`, the harness cap**, anchored to human play. **Same shape name,
+different objects, and one of them is behind the second firewall.**
+
+**No conflict: a subitizing bound is a fact about the world and is loadable; the harness cap is
+the seat's and is not.** Recorded because `3a` is the only item that loads one of them, the
+word does not distinguish them, and **A6i's two known instances both surfaced exactly where a
+headline was about to be made.**
+
+### 6 · THE NINE, CONFIRMED
+
+`delta` (7) and `changed` (9) still owed; seven built under `2b`/`2c`. **§12.3's own list
+matches what was filed under the other items** — no change.
+
+### WHAT THE CHECK CHANGES
+
+**Not the blockers.** The unrun priors path and the unwritten Cyc pre-emption are unmoved.
+**What changes is what clearing them means**: `3a` was filed as *load Γ generously and stamp
+it*, and it is **five integrations into five subsystems, one stamped Γ load, and a prohibition
+that exists in only one of the two sections that define the taxonomy.**
 
 ---
 
