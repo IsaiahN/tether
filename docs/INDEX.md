@@ -1538,6 +1538,42 @@ adopted it.** **This is a doctrine conflict revealed by the ruling rather than c
 — and it is Isaiah's to resolve, because deciding it here would be picking which of two corpus
 rules governs.
 
+### 7 · THE `PRIOR` COLLISION — and it makes yesterday's ruling UNIMPLEMENTABLE as written
+
+**Three usages, at three scales.** `gamma.PRIOR` is an **origin stamp**, and **every atom
+receives it at construction** — so it means *no mint record*, a provenance default. §11's
+`prior` is **a category admitted under an entry rule**. And §12.1's title is the corpus saying
+so outright: ***a prior is not one kind of thing, so it cannot have one code shape.***
+
+> **The stamp is not evidence the rule was applied.** `3a`'s *all stamped `prior`* invites
+> exactly that reading, and `gamma` stamps things that never faced an entry test.
+
+**AND HERE IS THE CONSEQUENCE.** Yesterday's ruling partitions by **which clause admitted a
+thing** — *what entered under `cannot run without it` is what the ablation stays blind to;
+what entered under `promoted from crude` is what it wipes.* **Nothing records the clause.**
+`stamps[name]` carries `origin`, `seq` and `residual`; **the admitting clause is nowhere**, so
+the partition cannot be computed and **the ruling is unimplementable as written.**
+
+**This is not a defect in the ruling — it is a missing field**, and the same shape as the
+four-value `provenance` that was added for mechanisms when a citation turned out not to prove
+derivation. **The fix is one field recording which clause admitted an entry.** Stated, not
+taken: adding it decides how the ablation partitions, which is Isaiah's.
+
+### 8 · `3a` AND THE HOLDOUT ARE COUPLED, AND THE PLAN SHOWS THEM APART
+
+**`3a` is where the false-abstention population arrives.** Loading raises `λ`, `λ^d` grows,
+coverage falls, and **false `UNREACHED` multiplies** — §23.5's whole argument for `3c` being a
+prerequisite rather than a follow-on.
+
+**And `never_live` is the detector whose subject is empty here.** Its two premises were
+corrected; its subject is not, because the panel has no walls.
+
+> **So `3a` widens a failure mode whose detector only fires on a board nobody has, and the
+> first place the population and the detector exist together is THE HOLDOUT.**
+
+**The plan lists them in different phases with no dependency drawn.** Recorded because it is
+the kind of coupling that is invisible in a table and obvious in a run.
+
 ---
 
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has

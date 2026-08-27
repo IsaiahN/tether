@@ -140,6 +140,13 @@ after the fact there is nothing to catch, because after the fact the reading is 
   *checked and clear*, and it made the Phase 3a ablation split takeable instead of a guess
   one ruling later.
 
+  **A FOURTH, and it is the one that made a ruling unimplementable:** **`PRIOR`** is an
+  **origin stamp** in `gamma` — every atom gets it at construction, so it means *no mint
+  record* — and in `ARC_AGENT` §11 it is **a category admitted under an entry rule**. §12.1's
+  own title says *a prior is not one kind of thing, so it cannot have one code shape.* **The
+  stamp is therefore not evidence the rule was applied**, which is exactly what `3a`'s *all
+  stamped `prior`* invites a reader to believe.
+
   **So the trigger is *where a headline OR A RULING is about to be made*.** And the
   prospective half needs its own condition, because it is the harder case to justify at the
   time: **a cleared hazard is worth recording when the ITEM THAT WOULD COLLIDE WITH IT IS
