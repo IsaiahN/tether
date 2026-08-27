@@ -621,11 +621,25 @@ BLIND: dict[str, tuple[str, str]] = {
     "A9": ("NOT-EXPRESSIBLE", "the reference is not the subject -- SINGLETON catches the "
                               "commonest shape; the general property is not static"),
     "A6i": ("NOT-EXPRESSIBLE", "one label covering two mechanisms -- a property of the "
-                               "code, invisible to a record AND to a shape pass"),
+                               "code, invisible to a record AND to a shape pass. TWO "
+                               "INSTANCES FOUND 2026-08-26: `molecule` is a prior term in "
+                               "gamma and a quantified objective in DISCOVERY Q21; "
+                               "`DIRECTED` is `by == discriminate` here and `bets with "
+                               "bound terms` in ARC_AGENT 22.2, which read 9% and 37% on "
+                               "the same runs. BOTH SURFACED WHERE A HEADLINE WAS ABOUT "
+                               "TO BE MADE, and neither was catchable in advance"),
     "B13": ("NOT-EXPRESSIBLE", "the ground is not a frame -- injection is visible, "
                                "nature is not"),
     "B14": ("NOT-CHECKABLE", "a seat is not a person -- a reading discipline"),
     "B16": ("NOT-CHECKABLE", "R is always a slice -- a reading discipline"),
+    "B17": ("NOT-CHECKABLE", "PRE-REGISTRATION DOES NOT PROTECT A READING IF THE "
+                             "INSTRUMENT MEASURES SOMETHING ELSE -- a reading discipline, "
+                             "and the one with no signature. A wrong denominator has one; "
+                             "a null the panel can only produce has one; this looks "
+                             "exactly like a correct result AND THE PRE-REGISTRATION IS "
+                             "WHAT MAKES IT CONVINCING. Cost nothing on the phase sweep "
+                             "only because 9-vs-37 is impossible to miss; 15-vs-18 passes "
+                             "straight through"),
 }
 
 

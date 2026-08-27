@@ -572,6 +572,9 @@ def ladder(seed: int, levels: int = 5, ds: float = 0.4, steps: int = 60,
         agent.chain.close(ending if ending in ("advance", "death") else "run_end")
         agent.phases.level_done()
         row = grade(agent, snap, k, lib_before)
+        # the phase mix is computed already and was being discarded at the boundary.
+        # §22.3: the histogram is free -- the loop knows which branch chose each action.
+        row.update(phases=agent.phases.mix(agent.phases.per_level[-1]))
         row.update(level=lv, ds=(None if lv == 0 else ds), ending=ending, used=used,
                    objective=k["objective"], difficulty=k["difficulty"],
                    parked=len(agent.parked),

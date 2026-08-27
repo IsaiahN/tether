@@ -123,6 +123,29 @@ and a condition is invisible in the results it conditions.** `SNAPS_PLAN` was th
 document in the set, was never opened, and four of its ten sections overturned a published
 conclusion. The laws apply to the panel, not only to the code.
 
+**And TWO STEPS, which are a different kind of thing and are filed apart on purpose.**
+Every law above installs something that fires — a rule, a fixture, a witness, a denominator
+that can be checked. **These cannot. They happen before the work or they do not happen, and
+after the fact there is nothing to catch, because after the fact the reading is clean.**
+
+- **Check what a name means in both places you are using it, before pinning a shape to it.**
+  Two legitimate quantities under one word is well-formed code, well-formed docs and a
+  well-formed measurement. `conform/lint.py` declares this unlintable as `A6i`, and it has
+  two instances: **`molecule`** is a prior term in `gamma` and a quantified objective in
+  `DISCOVERY` Q21; **`DIRECTED`** is `by == "discriminate"` in the loop and *bets with bound
+  terms* in `ARC_AGENT` §22.2 — **9% and 37% on the same runs.** Both surfaced exactly where
+  a headline was about to be made.
+- **Read the things that produce conditions before the things that produce results** — a
+  generator, a config, a plan, a fixture.
+
+**And the reason they are steps and not laws eight and nine: `B17`.** *Pre-registration does
+not protect a reading if the instrument measures something else.* The phase sweep pinned its
+expected shape in advance, correctly, derived from an independent measurement — **and pinned
+it to a label whose meaning had never been checked.** Discipline correctly applied, producing
+a false finding with a clean provenance trail. **It cost nothing only because 9-versus-37 is
+impossible to miss; 15-versus-18 passes straight through.** A step filed among mechanisms
+reads as something that will be enforced, and it will not be.
+
 ### How I work here
 
 - **Do not over-test, do not over-probe.** Self-generated tests are mostly not helpful.
