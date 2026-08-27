@@ -31,6 +31,29 @@ GENERAL, SPECIFIED, GROUNDED = "general", "specified", "grounded"
 # red, which is the drift being caught rather than prevented.
 GENUINE, CHANNEL_CLOSED, SLICE_TOO_SMALL = "genuine", "channel_closed", "slice_too_small"
 
+# 2e. THE FIVE ENDINGS, distinguished -- and the distinction is §19's episode half.
+#
+#   *"I ran out" is not "I was wrong" -- the same bug in two places.* The MINT half was fixed
+#   at Phase 0d, splitting one `UNREACHED` into `no_support` / `not_novel` / `budget_spent` /
+#   `depth_exhausted`. The EPISODE half is this: a run ending meant both *I hit the action
+#   cap* and *the world killed me*. **In both cases a resource exhaustion was being reported
+#   as a verdict about the world**, which is Figure 9's rule broken in the loop's own
+#   reporting: never let a filter hand you a verdict.
+WIN, DEATH, RESET, ADVANCE, CAP = "win", "death", "reset", "advance", "cap"
+
+# §21.5: RESET and ADVANCE produce the SAME residual spike and mean OPPOSITE things, and the
+# frame carries `full_reset` and `levels_completed` so the discriminator survives even where
+# COMPETITION collapses the two events in the API's semantics.
+ENDING_READS = {
+    WIN: "the objective was met",
+    DEATH: "the world ended the episode -- evidence about the world",
+    RESET: "the next board is KNOWN, so a residual spike means THE MODEL IS WRONG. On a "
+           "board already modelled a residual has no excuse",
+    ADVANCE: "the next board is UNKNOWN by design, so a residual spike means NOTHING YET. "
+             "Demoting here punishes the terms that carried the last level",
+    CAP: "the seat's budget ran out. NOT a verdict about the world -- §19's episode half",
+}
+
 
 @dataclass(frozen=True)
 class Entry:

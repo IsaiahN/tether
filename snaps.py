@@ -544,14 +544,14 @@ def ladder(seed: int, levels: int = 5, ds: float = 0.4, steps: int = 60,
     """Play a DS-controlled sequence. Gamma and parked residuals carry across the
     boundary; the trace and the bindings do not."""
     from gamma import Gamma
-    from ledger import Ledger
+    from ledger import ADVANCE, Ledger
     from tether import Agent
     from world import bind
 
     rng = random.Random(seed + 7919)
     spec = spec_for(seed, n_slots)
     gam = Gamma(_atoms())
-    agent, out = None, []
+    agent, out, last_end = None, [], None
     for lv in range(levels):
         snap = Snap(spec)
         k = key(snap)
@@ -559,7 +559,9 @@ def ladder(seed: int, levels: int = 5, ds: float = 0.4, steps: int = 60,
         if agent is None:
             agent = Agent(bind(snap), gam, cfg, Ledger())
         else:
-            agent.retarget(bind(snap), lv)
+            # 2e: the PREVIOUS level's ending, carried rather than defaulted. A kind
+            # that is always `advance` is a field that says nothing.
+            agent.retarget(bind(snap), lv, last_end or ADVANCE)
         ending, used = "exhausted", steps
         for i in range(steps):
             agent.step()
@@ -569,7 +571,8 @@ def ladder(seed: int, levels: int = 5, ds: float = 0.4, steps: int = 60,
                 break
         if ending == "exhausted" and spec.obj == "AVOID" and not snap.dead:
             ending = "advance"          # surviving the budget IS the win for AVOID
-        agent.chain.close(ending if ending in ("advance", "death") else "run_end")
+        last_end = ending if ending in ("advance", "death") else "run_end"
+        agent.chain.close(last_end)
         agent.phases.level_done()
         row = grade(agent, snap, k, lib_before)
         # the phase mix is computed already and was being discarded at the boundary.

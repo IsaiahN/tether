@@ -638,6 +638,84 @@ a finding.
 
 ---
 
+# `2e`'s event types — BUILT 2026-08-27, recorded and deliberately not consumed
+
+**Five endings in `ledger.py`, each with its reading**, and `retarget` carries the kind rather
+than defaulting it:
+
+    win      the objective was met
+    death    the world ended the episode -- evidence about the world
+    reset    the next board is KNOWN, so a spike means THE MODEL IS WRONG
+    advance  the next board is UNKNOWN by design, so a spike means NOTHING YET
+    cap      the seat's budget ran out. NOT a verdict about the world
+
+**§21.5's pair is the point: `reset` and `advance` produce the SAME residual spike and mean
+OPPOSITE things**, and the reading is on the row so a later reader does not have to infer it.
+Verified firing on a real ladder — three `ending` rows, each carrying `how`, `to_level` and
+its reading.
+
+**AND THE LADDER NOW CARRIES THE PREVIOUS LEVEL'S ENDING** rather than defaulting to
+`advance`. **A kind that is always `advance` is a field that says nothing** — the same defect
+as `allowed: true` on 32 rows, which the nulls sweep flagged and which turned out to be its
+own false positive. Here it would have been real.
+
+### RECORDED, NOT CONSUMED — and that is the decision
+
+**What reads this is boundary demotion, which is its own board item.** The revert was
+withdrawn because **settled-ness was the wrong gate**, and §21.5 proposes a different one —
+the event type. **Building the consumer inside `2e` would be the same mistake in the other
+direction**: a mechanism arriving with its trigger, before the item that owns the decision.
+The row says so in `consumed_by`.
+
+### Still open in `2e`, both already-known rows
+
+| | |
+|---|---|
+| **a gate check over `disproof`** | §21.6: *deliberate death is legitimate when `expect` and `disproof` are stated first — **a gate check, not a judgement call***. The field exists; no check reads it |
+| **the level-completion sweep trigger** | §21.6: *a completion is a per-level settle, **credited by the sweep over the segment***. `retro` rows exist; nothing fires them on a completion |
+
+**No regression:** 1/1 correct, 0/6 false, 1,463 compositions.
+
+---
+
+# `2e` checked — it is the EPISODE HALF of a bug fixed halfway at Phase 0d
+
+**Fifth item the check has been applied to, fifth thing it found — and this one reframes the
+item rather than adding to it.**
+
+**§19: *"I ran out" is not "I was wrong" — THE SAME BUG IN TWO PLACES.***
+
+| where | the conflation | state |
+|---|---|---|
+| **the mint** | `UNREACHED` means both *the search budget ran out* and *no such term exists at this depth* | **FIXED at Phase 0d** — `no_support` / `not_novel` / `budget_spent` / `depth_exhausted`, each with coverage |
+| **the episode** | a run ending means both ***I hit the action cap*** and ***the world killed me*** | **`2e`'s CAP event. Unfixed** |
+
+> ***In both cases a resource exhaustion is being reported as a verdict about the world*** —
+> Figure 9's rule violated in the loop's own reporting: **never let a filter hand you a
+> verdict.**
+
+**So `2e` is not five event types plus two open rows. It is the second half of one bug**, and
+the first half was fixed months earlier under a different item number. **Nobody connected
+them**, and §19 connects them in its own title.
+
+**And it is the same distinction `2d` was built on an hour ago** — a cap firing is not a
+verdict about the game, which is why a capped ending leaves the termination class `open`.
+**The mint half, the termination half, and the event-type half are one rule at three sites.**
+
+### `2e`'s full scope, now known
+
+| | |
+|---|---|
+| **the five event types** | WIN / DEATH / LEVEL-RESET / LEVEL-ADVANCE / CAP, distinguished — **§21.5's rule inverts the meaning of a residual spike between the middle two** |
+| **a gate check over `disproof`** | §21.6: *deliberate death is legitimate when `expect` and `disproof` are stated first — **a gate check, not a judgement call*** |
+| **the level-completion sweep trigger** | §21.6: *a completion is a per-level settle, **credited by the sweep over the segment**, not by the last action* |
+
+**Two of those three are already open rows that close as a side effect**, and the third is
+§19's episode half. **Nothing here is new work discovered late — it is three known things
+that turn out to be one item.**
+
+---
+
 # `2d` — BUILT 2026-08-27. The class latches, and the accrual is provably not flat
 
 **`Termination` in `instruments.py`, `Budget` in `arc_run.py`.** Four states, verified to

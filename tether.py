@@ -16,7 +16,15 @@ from typing import Any
 import grammar as G
 import instruments as I
 from gamma import Ctx, Gamma, Term
-from ledger import CHANNEL_CLOSED, GENUINE, SLICE_TOO_SMALL, SPECIFIED, Ledger
+from ledger import (
+    ADVANCE,
+    CHANNEL_CLOSED,
+    ENDING_READS,
+    GENUINE,
+    SLICE_TOO_SMALL,
+    SPECIFIED,
+    Ledger,
+)
 from probe import Drive
 
 sys.dont_write_bytecode = True
@@ -197,7 +205,7 @@ class Agent:
         self._prev_pred: dict[str, int] | None = None
         self.refusals: list[str] = []
 
-    def retarget(self, env: Any, level: int) -> None:
+    def retarget(self, env: Any, level: int, how: str = ADVANCE) -> None:
         """Move to the next level. Gamma and standing carry; the trace and the bindings
         do not, because slot names mean nothing across a boundary.
 
@@ -220,6 +228,18 @@ class Agent:
         # boundary on it removed good terms along with bad. `promote` remains and still
         # records: shadow-then-echo does fire on a ladder, and that is worth keeping
         # observable for whatever gates on it next.
+        # 2e. WHICH ENDING, recorded with its reading. §21.5: reset and advance produce
+        # the SAME residual spike and mean OPPOSITE things -- known board versus unknown --
+        # so the kind is carried rather than inferred, and the frame keeps `full_reset` and
+        # `levels_completed` so it survives COMPETITION collapsing the two.
+        #
+        # RECORDED, NOT YET CONSUMED. What reads this is boundary demotion, which is its own
+        # item: the revert was withdrawn because settled-ness was the wrong gate, and §21.5
+        # proposes a different one. Building the consumer here would be the same mistake in
+        # the other direction.
+        self.led.record(self.level, "IMPORT", "@loop", "ending", how=how, to_level=level,
+                        reads=ENDING_READS.get(how, "unnamed ending"),
+                        consumed_by="nothing yet -- boundary demotion is a separate item")
         self.env, self.level = env, level
         self.slots = env.slots()
         self.actions = tuple(env.actions())       # a new level may advertise differently
