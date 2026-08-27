@@ -1447,6 +1447,99 @@ discover it in a scored run* — and **the failure mode is a crash, not a trunca
 
 ---
 
+# `3a` — PART ONE BUILT 2026-08-27. Part two is blocked by yesterday's own ruling
+
+### 1 · THE SEVEN "BUILT" SENSORS WERE BUILT AS FUNCTIONS
+
+**`NOT_RESOLVED` did not occur anywhere in the repository.** §12.2 defines a sensor as a
+dataclass with six fields and four properties — **typed output, total with an explicit
+non-reading, composable, priced** — and the seven filed as BUILT under `2b`/`2c` had none of
+the four. Plain functions returning `list`, `frozenset`, `float`, `bool`. **The fourth step
+verbatim: the MECHANISM was present, the CAPABILITY was not, and *is it built* returned yes.**
+
+### 2 · TOTALITY WAS A LIVE CONFABULATION PATH, ONE LEVEL BELOW WHERE ABSTENTION IS BUILT
+
+§12.2: *never a guess, never a default ... it is what lets "this instrument cannot see it"
+propagate up instead of becoming a wrong attribute.* **The chain that existed:**
+
+    components(unreadable) -> []        asserts "there are no objects"
+    Objects(...)           -> {}        no slots
+    ArcWorld._decomposed   -> {}        `{} if b is None else ...`
+    the loop               -> no slots, no residual, CLEAN BILL OF HEALTH
+
+**A blind instrument reporting a healthy world** — which is the exact failure the whole
+architecture exists to prevent, running one level below where it is implemented. **`blind` is
+now a reading and an empty dict is a guess**, and the two are separated at the world boundary.
+
+### 3 · THE NINE EXIST, AND TWO OF THEM WERE OWED
+
+`sensors.py`: `Sensor`, `NOT_RESOLVED` as a falsey singleton, a typed `Registry`, and
+§12.3's nine wrapped around `arc_percept` — **never reimplemented.** **`delta` (7) and
+`changed` (9) were the two owed since `2b`** and are built. **Tier 2 is deliberately absent**,
+which the 2026-08-27 ruling makes *forbidden* rather than merely ungenerous.
+
+**THE PRICE IS DECLARED WITHOUT A UNIT, AND THAT IS SAID RATHER THAN PAPERED OVER.** §12.2
+gives `cost: int` and the bargain *a sensor that costs more than the residual it resolves is
+not worth having* — but **a residual is in BITS and a sensor's cost is READS, and the corpus
+never gives the conversion.** So `cost` is reads-per-call, countable from the signature, and
+**the sensor bargain must not be run until the unit is settled.** Inventing a bits-like number
+would be the magic number; comparing the two would be the seventh law's error one level down.
+
+### 4 · THREE THINGS THE BUILD ITSELF FOUND
+
+**The registry's type-directed lookup has NO CONSUMER, and lint said so on the first pass.**
+`producing()` / `accepting()` are what make a registry more than a dict — **and nothing
+composes sensors yet**, because the decomposition arrives as one injected callable. They
+belong with §12.4. **Not shipped**, on *never ship half a mechanism*; the ISOLATED rule caught
+it before the commit.
+
+**The obvious wiring was a circular import.** `sensors` wraps `arc_percept`, so `arc_percept`
+cannot read back through it. **The consumer had to be `arc_world`**, which sits above both —
+and that is the correct layer anyway, since the world owns the frame.
+
+**AND THE FIRST GUARD MANUFACTURED A FALSE ABSTENTION.** It tested `isinstance(frame, list)`;
+**boards arrive as `ndarray`**, so a perfectly readable board reported BLIND and the fixture
+died with an empty slot set. **A totality guard that is too strict is the same defect as one
+too loose, in the opposite direction** — and `ARC_BUILD_PLAN` already names it for filters:
+*manufactures false abstentions.* Now duck-typed: **the question is whether the instrument can
+see, not what the frame is made of.** Caught by the fixture on the first run.
+
+### 5 · THE CYC PRE-EMPTION — WRITTEN, and there was no README at all
+
+`README.md` did not exist. Q3's line is now in it, with the distinction made checkable rather
+than asserted: **Cyc's predicates were correct when their authors agreed; there was no arbiter
+that could return a verdict they had not anticipated.** Here the arbiter is fixed before the
+agent starts and returns the same verdict regardless of what the library says.
+
+### 6 · PART TWO IS BLOCKED, AND THE BLOCKER IS YESTERDAY'S RULING
+
+**Two findings, and the second is the blocker.**
+
+**Q3 flags the payload as unspecified**, in the corpus's own words: ***"Still needs answering:
+what molecules does the rover start with, concretely?"*** So the priors path is not merely
+unrun — **nobody has said what it loads.**
+
+**And the entry rule appears to forbid the load.** Yesterday's ruling binds §11 to all six
+homes, and was explicitly used to **forbid** SENSORs beyond the nine — so it constrains ENTRY,
+not only ablation scope. Applied to TERM:
+
+| clause | does a TERM prior at start qualify? |
+|---|---|
+| *the loop cannot run without it* | **no** — the loop mints its own terms |
+| *the agent minted a crude version first and we are promoting it* | **no** — nothing is minted at start |
+
+> **So no TERM prior can be loaded at start under the rule as written — and that is `3a`'s
+> headline operation and §23.6 item 1's *Γ ships loaded*.**
+
+**§23.2 permits exactly what §11 forbids.** They are two different entry tests: §23.2 asks
+*does it name what to look at, or what to do*; §11 asks *cannot-run-without / promoted-from-
+crude / never because it would help.* **§11 is strictly stronger, and yesterday's ruling
+adopted it.** **This is a doctrine conflict revealed by the ruling rather than created by it**
+— and it is Isaiah's to resolve, because deciding it here would be picking which of two corpus
+rules governs.
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**

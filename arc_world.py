@@ -17,6 +17,10 @@ from typing import Any
 
 from arcengine import GameAction, GameState
 
+import sensors
+
+SENSORS = sensors.minimum_set()
+
 sys.dont_write_bytecode = True
 
 # the board is a numpy ndarray, NOT `list[list[int]]`: `FrameDataRaw.frame` is a
@@ -38,6 +42,7 @@ class ArcWorld:
                  palette: int, views: Any = None, name: str = "arc") -> None:
         self.w = wrapper
         self._decompose = decompose
+        self.blind = False
         self._atoms = list(atoms)
         # 2c's lens, injected for the same reason the decomposition is: the coarse views a
         # board offers depend on what a slot IS, and that is not the adapter's to decide.
@@ -80,7 +85,14 @@ class ArcWorld:
         is keyed on."""
         if self._read is None:
             b = self.board()
-            self._read = {} if b is None else dict(self._decompose(b))
+            # THROUGH THE TYPED REGISTRY. `{}` from an unreadable board asserts *this board
+            # has no slots*, so the loop reads zero residual and reports a clean bill of
+            # health FROM A BLIND INSTRUMENT -- the confabulation §12.2's totality exists to
+            # stop, one level below where abstention is implemented. `blind` is the reading;
+            # an empty dict is a guess.
+            seen = SENSORS.read("components", b)
+            self.blind = seen is sensors.NOT_RESOLVED
+            self._read = {} if self.blind else dict(self._decompose(b))
         return self._read
 
     def slots(self) -> list[str]:
