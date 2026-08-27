@@ -393,7 +393,7 @@ translation detector was measured at `has_self: false` for 904 steps (§18.3).
 
 | | build |
 |---|---|
-| **3a** | the **nine minimum sensors**, typed, total with `NOT_RESOLVED`, priced (§12.3) — then **load generously** across the six loadable shapes, all stamped `prior`. **No routines** (§23.2) |
+| **3a** ✅ BUILT | `sensors.py` (nine, typed/total/priced) · `priors.py` (17 rows, all cited) · `visible.py` (TERM is VISIBLE, never held — §11 untouched). the **nine minimum sensors**, typed, total with `NOT_RESOLVED`, priced (§12.3) — then **load generously** across the six loadable shapes, all stamped `prior`. **No routines** (§23.2) |
 | **3b** | **EXTRACT / RELATE / PREDICT** as typed families; report `λ` — and here the type graph is genuinely sparse, so the number should finally mean something (§11.3) |
 | **3c** ✅ BUILT | `retrieval.py`, wired into `_library_fit`. 27/27 identical picks; 11→4 evals on 3b's three spaces, one lookup per habitat. Keys the two free properties (signature, arity) and leaves the two behavioural ones to the bargain. **retrieval by characterised residual** — indexed by type signature, arity, invariants, effect shape. Full library, no gating (§15.3). **PREREQUISITE, not a follow-on**: a loaded Γ raises `λ`, so enumeration order drowns the search and manufactures false `UNREACHED` (§23.5) |
 | **3d** ✅ BUILT | `instruments.Rank` + `gamma.unit_rank`. **`type-match` in this row is not in the spec** — §17.7's tuple is `(cost, reuse count, recency)`, and type-match would double-apply `3c`'s signal. Same terms minted, +0.2%: **reuse and recency are both inert here**, funnel stage `REUSE_UNWIRED`. the **rank function** — cost, reuse count, recency; **plus plan length prior** (§0.1). Ranked cuts, reversible, recorded |

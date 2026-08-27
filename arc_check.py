@@ -28,7 +28,9 @@ import arc_run
 import gamma
 import gate
 import ledger
+import priors
 import tether
+import visible
 from arc_world import ArcWorld
 from gamma import Atom
 from world import bind
@@ -140,6 +142,22 @@ def main() -> None:
     print(f"  actions advertised  : {acts}   RESET withheld: {'RESET' not in acts}")
     print(f"  board type          : {type(env.board()).__name__}   alphabet: {env.alphabet()}")
     print(f"  objective           : {env.objective()}")
+
+    # 3a. THE LOAD. Five shapes into their homes; TERM into the VISIBLE SET, never Gamma.
+    # Populating is not entering: §23.2's test governs what may be LOADED, §11's two clauses
+    # govern what may ENTER Gamma, and the ruling is that these are different questions.
+    loaded = priors.load()
+    vis = visible.seed_from(loaded)
+    pr = priors.report()
+    print(f"  priors loaded       : {pr['total']} rows, {pr['cited']} cited, "
+          f"{ {k: len(v) for k, v in loaded.items()} }")
+    aimed = vis.aimable("CONSTRAINT")[0].aim()
+    print(f"  visible set         : {vis.report()['visible']} visible, "
+          f"{vis.report()['earned']} earned, 0 held without earning")
+    print(f"  aiming              : {aimed['aiming_at']} -- holds={aimed['holds']}, "
+          f"predicts={aimed['predicts'][0][:44]}")
+    print(f"  earning             : admit_under="
+          f"{vis.earn(aimed['aiming_at'])['admit_under']}  (clause two, never a load)")
 
     led = ledger.Ledger()
     agent = tether.Agent(env, gamma.Gamma(atoms), tether.Config(), led)

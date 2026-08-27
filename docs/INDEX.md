@@ -1529,7 +1529,68 @@ than asserted: **Cyc's predicates were correct when their authors agreed; there 
 that could return a verdict they had not anticipated.** Here the arbiter is fixed before the
 agent starts and returns the same verdict regardless of what the library says.
 
-### 6 · PART TWO IS BLOCKED, AND THE BLOCKER IS YESTERDAY'S RULING
+### 6b · PART TWO — RULED AND BUILT. *Visible, not held*, and it dissolves the conflict
+
+**The ruling: a TERM may be VISIBLE without being HELD.** All possible priors exist already;
+an organism does not compose its priors, it inherits them and expresses what the environment
+triggers. **The seed needs ACCESS to everything, because the terrain and the pressure are
+unknown and reactivity is the point — but access is not possession**, and that is the
+distinction §11 and §23.2 were both reaching for with one word.
+
+**§11 IS UNTOUCHED. §23.2's *load generously* becomes *populate the visible set generously*.**
+Visibility is not entry, so there is no third clause and no weakening.
+
+**AND IT CORRECTS YESTERDAY'S RE-SCOPING.** I called §11's library scope *a scope error rather
+than a decision* and bound it to all six homes. **That was the error.** Entering means
+entering Γ; the five non-Γ homes are **populated**, not entered. **Two tests, two questions:**
+§23.2's *what to look at vs what to do* governs loading the five; §11's two clauses govern
+entry into Γ. **And yesterday's *TERM wiped* becomes vacuous** — nothing unearned is in Γ to
+wipe, which is the ruling's *the ablation problem shrinks rather than being managed.*
+
+**NOT CALLED A CATALOGUE, AND THAT WAS A FIFTH A6i CATCH.** §14.7 uses `catalogue` for the
+FAILURE: *a library that grows and is never reused is a catalogue, and a catalogue is what
+"the agent is composing" looks like when it is not* — the metric it puts on the wall, with
+zero reuse as *the failure signature that would otherwise look like progress*. **The two are
+structural opposites**: §14.7's is HELD BUT NEVER USED inside Γ; this is VISIBLE BUT NEVER
+HELD outside it. **The ruling prevents the failure its original name described**, and *load
+TERM into the catalogue* would have read as the failure mode endorsed. **`the visible set`**
+— `seed` was rejected on the ruling's own logic: a seed becomes the thing, and this is what
+the agent can see and has not grown.
+
+| an entry carries | and deliberately omits |
+|---|---|
+| `kind` · `affordance` (what it WOULD do) · `provenance` · `holders` | **the composition, the atom chain, the parameters, the implementation** |
+
+**AIM** adopts the affordance predicates as a goal hypothesis — *the agent sees a capability
+exists and what it would do, and cannot execute it.* **EARN** is regenerating the pattern
+under ablation, and it then enters **under §11 clause two, `promoted`** — which the
+admitting-clause field records, built one commit earlier for a different reason.
+
+### 6c · THE LOAD — 17 ROWS, ALL CITED, AND NONE CHOSEN FOR USEFULNESS
+
+`priors.py`, from `ARC_HUMAN_PRIORS.md`: **CONSTRAINT 5 · TRACKER 4 · BIAS 4 · BUDGET 4.**
+`visible.py` makes all 17 visible and holds none. **Every row cites a catalogue line**, and
+the only question asked of each was *which shape is this, and does §23.2 admit it* — **never
+*is this useful*, which is the move that encodes an answer and is indistinguishable from a
+real prior afterwards.**
+
+**DELIBERATELY ABSENT**: the catalogue's problem-solving and analogical rows are mostly
+**ROUTINE** — means-ends analysis, goal decomposition, backward chaining are *what to do* —
+and the meta-learning rows are **ALREADY THE LOOP**, which §12.1 says would *duplicate the
+loop inside the loop*. **BUDGET is cognitive bounds only** (subitizing 4, relational
+complexity 4, focus 4, span 7); the termination caps stay seat-side, per the third A6i
+instance.
+
+**UNVERIFIED AGAINST ITS SOURCE, AND SAID IN THE MODULE.** The four entry fields are the
+ruling's. **The earlier architecture material specifying this structure is not in `docs/` and
+was not read**, so anything it adds beyond the four is unchecked here rather than
+contradicted.
+
+**One defect the build produced:** `Γ` in a **runtime** string killed the fixture on the
+Windows console's cp1252. Docstrings are never printed and are fine; **strings that reach
+stdout are not.** Fixed, and worth knowing before Phase 5 emits a digest.
+
+### 6 · WHAT PART TWO WAS BLOCKED ON, BEFORE THE RULING
 
 **Two findings, and the second is the blocker.**
 
