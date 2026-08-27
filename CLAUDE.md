@@ -219,7 +219,15 @@ Not "it improved". Five clauses, each checkable:
 1. **It wins** — the whole task, not the first step.
 2. **Whitebox** — its own record names the reason, and the stated reason matches the
    ground's reason.
-3. **Ablation** — back up Γ, verify the backup, wipe Γ, re-run. *If the win survives,
+3. **Ablation — A POST-MASTERY TEST, and the corpus says so in the clause's own grammar.**
+   *If **the win** survives* takes THE WIN as its subject, so below mastery it has no
+   referent: wipe the library of an agent at 3/25 and it goes to 3/25 or lower, and **neither
+   number is interpretable, because there was nothing worth wiping.** "It wins" is clause 1
+   and this is clause 3. §11 agrees from the other side — *an agent handed every prior never
+   mints, and you cannot tell a composer from a lookup table* — and a composer/lookup
+   distinction needs something composed. **Run it at 25/25, not before.**
+
+   Back up Γ, verify the backup, wipe Γ, re-run. *If the win survives,
    the agent composed it. If the win disappears, the library was carrying the answer and
    the agent was retrieving, not reasoning.* The sharpest clause and a runnable
    falsifier. **Back up first; refuse to wipe if verification failed.**
@@ -229,6 +237,15 @@ Not "it improved". Five clauses, each checkable:
    agent minted a crude version first and we are promoting it. **Never because it would help
    on a game** — the moment one enters for that reason we have encoded an answer, and the
    ablation clause cannot tell us we did.*
+
+   **THE RULE SPLITS IN TWO, AND ONLY ONE HALF IS LIVE.** The **LOAD side binds today**:
+   *SENSORs beyond the nine are forbidden, because §12.3 says the agent must reach for them
+   and reaching is the only evidence the composition system works* — a constraint on `3a`
+   regardless of when any wipe happens. The **WIPE side — which shapes survive — is owed at
+   25/25**, not now. **But its PRECONDITION does not defer**: the partition is by *which
+   clause admitted a thing*, and that cannot be reconstructed later from a `prior` stamp, so
+   **the admitting clause must be recorded AS ENTRIES HAPPEN or the deferred half becomes
+   unrunnable.** Same shape as the watermark: the decision defers, the recording cannot.
 
    **§11 scoped it to THE LIBRARY, and that is a scope error rather than a decision.** Priors
    load into **six homes** and only TERM lives in Γ — so four of five shapes escaped a rule

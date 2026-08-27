@@ -1258,7 +1258,25 @@ headline was about to be made.**
 `delta` (7) and `changed` (9) still owed; seven built under `2b`/`2c`. **§12.3's own list
 matches what was filed under the other items** — no change.
 
-### 7 · THE ABLATION CLAUSE REACHES ONE SHAPE IN SIX — a finding about the TEST
+### 7 · THE ABLATION CLAUSE REACHES ONE SHAPE IN SIX — a finding about a test that SHOULD NOT RUN YET
+
+**RE-FILED 2026-08-27 as post-mastery, and the corpus already sequenced it that way.** The
+clause reads *if **the win** survives* — **it takes the win as its subject**, so below mastery
+it has no referent. Wipe the library at 3/25 and the result is 3/25 or lower, **uninterpretable
+in both directions because there was nothing worth wiping.** *It wins* is clause 1; this is
+clause 3. **No disagreement to surface: the corpus sequences it this way implicitly but
+unambiguously**, and §11 says it from the other side — *you cannot tell a composer from a
+lookup table*, which needs something composed.
+
+**So everything below is TRUE AND NOT LIVE.** It is a defect in an instrument that should not
+be run before 25/25, and **it needs to be right before 25/25 rather than before `3a`.** What
+IS live from the same ruling is the **load side** — Tier 2 forbidden — which binds `3a` today
+and is already implemented in `sensors.minimum_set()`.
+
+**AND ONE PART OF THE DEFERRED HALF DOES NOT DEFER.** The partition is by *which clause
+admitted a thing*, and §7 above shows the admitting clause is recorded nowhere. **It cannot be
+reconstructed at 25/25 from a `prior` stamp**, so the field has to exist while entries are
+happening. **The decision defers; the recording cannot** — the watermark's shape exactly.
 
 **Terminal condition clause 3 is the sharpest one and the only runnable falsifier:** *back up
 Γ, verify the backup, wipe Γ, re-run. If the win survives, the agent composed it; if it
