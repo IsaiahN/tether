@@ -238,6 +238,31 @@ Not "it improved". Five clauses, each checkable:
 
 ---
 
+## Which documents I may repair, and which I may only annotate
+
+**The corpus is the one derivationally independent frame available, and editing it spends the
+property the whole check runs on.** §8.4: *death → explanation requires an interpreter
+**derivationally independent of the thing being explained**. Otherwise it is two mirrors.* The
+corpus qualifies because it was written **earlier, by Isaiah, in a different context** — which
+is why the section check has paid on every item it touched. **Repair a defect in it and the
+next check against it is that much closer to dead reckoning.**
+
+| | files | treatment |
+|---|---|---|
+| **WORKING — inside the seat** | `CLAUDE.md` · `ARC_BUILD_PLAN.md` · `docs/INDEX.md` · all code | **repair at source.** A finding left as a note makes the next reader re-derive it |
+| **CORPUS — annotated from outside** | `ARC_AGENT.md` · `PHILOSOPHY.md` · `DISCOVERY.md` · `SNAPS_PLAN.md` · `FALSE_MINT.md` · `BUILD_PLAN.md` · `DOCTRINE_AUDIT.md` | **record the defect in `INDEX.md`; do not fix it.** Isaiah's to repair or leave — **if he repairs it the provenance stays clean, because he wrote both halves** |
+
+**A DEFECT ANNOTATED EXTERNALLY IS STILL CHECKABLE. A CORPUS I HAVE EDITED IS NOT.** Live
+instance: `ARC_AGENT` §23.2 opens *"the seven shapes from §12.1"* and they are **not the same
+seven** — it drops `ALREADY THE LOOP` and adds `ROUTINE`, so **eight shapes appear as two
+tables of seven and each section carries one prohibition the other lacks.** Recorded, left
+unfixed, and the `INDEX` cross-reference is the mitigation.
+
+**THE BOUNDARY IS WHAT GETS FUZZY, NOT THE PRINCIPLE** — a document appearing later needs a
+side, and *is this a working document* is answerable only against a written split. **The rule
+places itself**: `CLAUDE.md` is working by its own terms, which is why this entry could be
+written at all.
+
 ## Hard rules for the code
 
 - **No bytecode.** `sys.dont_write_bytecode` in the package root;
