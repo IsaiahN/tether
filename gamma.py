@@ -26,6 +26,14 @@ sys.dont_write_bytecode = True
 
 PRIOR, MINTED, IMPORTED = "prior", "minted", "imported"
 
+# WHICH CLAUSE ADMITTED AN ENTRY -- §11's two, and `None` for "not stated".
+# ORIGIN IS NOT THIS. `PRIOR` is stamped on every atom at construction, so it records that no
+# mint occurred -- NOT that an entry rule was applied. The ablation partitions by CLAUDE.md's
+# clause 3, which asks WHICH CLAUSE let a thing in, and that cannot be recovered from `prior`
+# afterwards. Recorded at entry because it is unrecoverable later; what each value IMPLIES for
+# the wipe is a separate and deferred decision, and nothing here presupposes it.
+NECESSARY, PROMOTED = "necessary", "promoted"
+
 # anchor: specified, not grounded -- the formula requires demotion to be weighted and
 # clocked, so a halflife is specified; nothing measures THIS halflife. A refutation is
 # retractable, and how fast is a target for measurement rather than a finding.
@@ -133,9 +141,13 @@ class Gamma:
         # installing one changes nothing.
         self.unit_rank = None
         for a in atoms:
-            self._install(Term((a,), origin=PRIOR), seq=-1, residual=None)
+            self._install(Term((a,), origin=PRIOR), seq=-1, residual=None,
+                          admitted=NECESSARY)   # the loop cannot run without a vocabulary
         for label, chain in molecules:
-            self._install(self.build(chain, origin=PRIOR), seq=-1, residual=f"molecule:{label}")
+            # NO CLAUSE STATED. `None` is the honest reading and the population to
+            # examine -- the same disposition as `unattributed` in the provenance field.
+            self._install(self.build(chain, origin=PRIOR), seq=-1,
+                          residual=f"molecule:{label}", admitted=None)
 
     # -- construction ---------------------------------------------------------------
 
@@ -143,11 +155,22 @@ class Gamma:
               operand: str | None = None) -> Term:
         return Term(tuple(self._by_name[n] for n in names), origin=origin, operand=operand)
 
-    def _install(self, term: Term, seq: int, residual: str | None) -> Term:
+    def _install(self, term: Term, seq: int, residual: str | None,
+                 admitted: str | None = None) -> Term:
         self.library[term.name] = term
-        self.stamps[term.name] = {"origin": term.origin, "seq": seq, "residual": residual}
+        self.stamps[term.name] = {"origin": term.origin, "seq": seq, "residual": residual,
+                                  "admitted": admitted}
         self.standing.setdefault(term.name, Standing(last_tick=self.tick))
         return term
+
+    def admissions(self) -> dict[str, int]:
+        """How many entries cited each clause. `unstated` is the population to examine."""
+        out: dict[str, int] = {}
+        for st in self.stamps.values():
+            if st["origin"] != PRIOR:
+                continue
+            out[st.get("admitted") or "unstated"] = out.get(st.get("admitted") or "unstated", 0) + 1
+        return out
 
     def accept(self, term: Term, seq: int, residual: str) -> Term:
         """Stamped with where it came from and when. A derived term and an adopted one

@@ -1577,6 +1577,29 @@ four-value `provenance` that was added for mechanisms when a citation turned out
 derivation. **The fix is one field recording which clause admitted an entry.** Stated, not
 taken: adding it decides how the ablation partitions, which is Isaiah's.
 
+### 7b · THE ADMITTING CLAUSE IS NOW RECORDED — the input, not the decision
+
+**The split is one level finer than *record vs decide*, and that is what made it takeable.**
+*Which clause admitted this* is **a fact about the entry**; *what each clause implies for the
+wipe* is the deferred decision. **The field records the first and presupposes nothing about
+the second.**
+
+**§11's enumeration is clean, which is the condition that had to hold.** Exactly two admitting
+clauses; the bench's IMPORT ceremony is a separate route **already carried by
+`origin=IMPORTED`**; so the missing distinction lives only *within* `origin=PRIOR`. **And
+there is no judgement in the classification** — `promoted` is checkable, because a mint record
+for the crude version exists, and `necessary` is **inherited from §12.3's stated criterion**
+rather than decided per entry.
+
+`gamma`: `NECESSARY` / `PROMOTED`, on `stamps`, reported through the ledger as `admissions`.
+**Atoms are `necessary`** — the loop cannot run without a vocabulary. **Molecules load with
+`None`, and that is deliberate**: no clause is stated for them, `unstated` is the honest
+reading and **the population to examine**, which is `unattributed`'s disposition exactly.
+Demo reads `{'necessary': 8}`.
+
+**Taken now because it is unrecoverable later** — a `prior` stamp at 25/25 cannot be
+back-classified, so the deferred half would have become unrunnable against its own subject.
+
 ### 8 · `3a` AND THE HOLDOUT ARE COUPLED, AND THE PLAN SHOWS THEM APART
 
 **`3a` is where the false-abstention population arrives.** Loading raises `λ`, `λ^d` grows,

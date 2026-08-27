@@ -1143,7 +1143,8 @@ class Agent:
         self.led.record(self.cycle - 1, "REPEAT", "@loop", "repeat",
                         integral=round(self._integral, 3),
                         phase=phase, by=by, stage=self.chain.seg.stage(),
-                        gamma_size=len(self.gamma.library), owed=sorted(self.owed_import))
+                        gamma_size=len(self.gamma.library), owed=sorted(self.owed_import),
+                        admissions=self.gamma.admissions())
         return True
 
     def run(self, cycles: int) -> Report:
