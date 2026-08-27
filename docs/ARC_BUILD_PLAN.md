@@ -431,7 +431,7 @@ log says.
 |---|---|
 | **5a** | `build_notebook.py` — inline the core into one `my_agent.py`, emit the `.ipynb`. **Generated, never hand-edited** |
 | **5b** | the harness bridge — `MyAgent(Agent)`, `choose_action` returns what the utterance proposed **or no action** |
-| **5c** | the reasoning digest — ≤ **16 KB**, with `expect` and `disproof` stated *before* the action (§3) |
+| **5c** | the reasoning digest — **import `arcengine.MAX_REASONING_BYTES`, do not restate 16 KB**: the constant has an authoritative source and the engine RAISES past it, so the failure is a crash rather than a truncation. With `expect` and `disproof` stated *before* the action (§3) |
 | **5d** | the rerun scaffold — gateway wait, `agents/__init__.py` rewrite, `.env`, submission parquet |
 
 **Done when:** it runs end to end in a Kaggle rerun and the reasoning appears in the replay.

@@ -1370,6 +1370,83 @@ that exists in only one of the two sections that define the taxonomy.**
 
 ---
 
+# THE HOLDOUT AND THE HARDER WORLDS — CHECKED 2026-08-27, before either was ordered
+
+### 1 · THE BLOCKER, NAMED — and it is the one item where doing the work destroys it
+
+**It is not *an environment file*, and the engine is not the gap.** `arcengine` **is
+installed** and exports `ARCBaseGame`, `Level`, `Sprite`, `Camera`, `FrameData`,
+`GameAction`, `GameState`. **`arc_world.py` already imports the types.** The package ships
+**no data directory and no game.** `ARCBaseGame` is an **ABC**; a game is a concrete subclass
+supplying levels, sprites and win conditions.
+
+> **THE BLOCKER IS AN AUTHORED GAME, AND IT MUST BE AUTHORED BY SOMEONE ELSE.**
+>
+> **The only item on the board that is not work — and the only one where doing the work
+> destroys the thing it delivers.** *A fixture with a payable rule I designed tests my rule,
+> not the ranking.* **All three owed validations fail identically if the board is ours**, so
+> effort here is not merely useless but disqualifying.
+
+**AND THE SPLIT IS CLEAN: THE BLOCKER IS DATA, NOT CODE.** Everything the holdout needs can be
+**built**; none of it can be **run**. **Which unblocks Phase 5's bridge today** — `5b`'s
+`MyAgent(Agent)` / `choose_action` is buildable and checkable against the engine's types with
+no game present. **Not visible before the check, and it is a real unblocking rather than a
+reordering.**
+
+### 2 · PHASE 4 IS PARTLY UNGRADEABLE BEFORE THE HOLDOUT, NOT MERELY WORSE
+
+**Two of five items are gated on measurements only a real board produces:**
+
+| item | the gate | why the toy world cannot supply it |
+|---|---|---|
+| **4c** — Γ as simulator | depth gated by **measured** `sim_fidelity` | a measurement, not a setting |
+| **4e** — level-reset as controlled experiment | **determinism** | *a property of the DOMAIN, not of the design* |
+
+**That is a stronger claim than *cheaper to fail early*.** Phase 4 is not better after the
+holdout; **it is partly ungradeable before it.**
+
+### 3 · WHAT THE HOLDOUT DISCHARGES, AND THE HALF THAT STILL NEEDS A NUMBER
+
+**Three owed validations, and the third became owed this morning** — contact ranking,
+`never_live`, and **`3d`'s reuse term**, inert on `snaps` because the funnel never closes.
+Plus **the watermark**, which §*provenance* makes a line crossed by a commit rather than by a
+decision, and which should be deliberate.
+
+**And §22.6 splits into two halves of different readiness.** *Ratio is the alarm, stage is the
+diagnosis, and without the stage code they are indistinguishable — which is how a wiring gap
+gets written up as a theory failure.* **The diagnosis half is already live**: today's `3d`
+read `REUSE_UNWIRED` off that ladder. **The alarm half needs `human_reference`** — a human
+step count per level **that nobody has supplied.** So a holdout yields a diagnosis either way;
+the ratio needs one more number, and it is not the game.
+
+### 4 · HARDER WORLDS — CONFIRMED VERBATIM, AND THE RISK IS NOT AESTHETIC
+
+**`SNAPS_PLAN` §2 confirms exactly**: five families, **three outside closure** (`lagged`,
+`hidden`, `regime`), *the direct attack on the 42% false-mint rate* — they punish a term
+fitted to a slice **that cannot contain the evidence that would refute it.**
+
+**And the timing argument is corpus-backed.** `ARC_AGENT` §9: the agent must abstain when the
+atom it needs is not in the closure, *which on ARC is **not planted but real, and therefore no
+longer measurable against a known answer**. **That is a loss of measurement we should feel.***
+**So the toy world is the only place false-abstention is measurable at all**, and
+*don't become a small ARC* **protects the one measurement that does not survive the move** —
+not a preference about panel quality.
+
+**RE-PINNED: that clause is `ARC_AGENT` §9, NOT `SNAPS_PLAN` §9**, which is the exclusion
+list. **Both documents have a §9, and the two citations sat one sentence apart.** **A bare
+section number across two files is the A6i hazard class** — same shape, same day — and it is
+worth fixing wherever a bare `§n` appears, not only here.
+
+### 5 · ONE FREE FINDING FOR PHASE 5
+
+**`5c` specifies the digest as ≤ 16 KB. `arcengine` exports `MAX_REASONING_BYTES = 16 * 1024`
+and RAISES past it.** The numbers agree and nothing is broken — but **the constant has an
+authoritative source, and `5c` should import it rather than restate it.** *One producer, at a
+boundary the seat does not own.* The plan's own note is right — *test the boundary rather than
+discover it in a scored run* — and **the failure mode is a crash, not a truncation.**
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
