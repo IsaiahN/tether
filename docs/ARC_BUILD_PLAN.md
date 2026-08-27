@@ -573,7 +573,53 @@ Cells never do this and objects always will.
 object-level view of a sub-object rule read **zero residual for twenty steps** -- the agent
 believing it had explained a world still moving underneath it. Worse than a narrowing that
 drops a candidate: that excludes a term which would have been tested; this excludes the
-observation. `never_live` is now built as the detector, and the utterance can say it.
+observation.
+
+> ### CORRECTED 2026-08-27 — this said `never_live` is now built as the detector. IT IS THE WRONG ONE, AND IT CANNOT FIRE ON THIS.
+
+**`never_live` requires `misses == 0`, and `misses` is WHOLE-INSTRUMENT** — `note_step`
+increments it whenever SOME slot carried mass. **The loud/silent case has other slots live by
+construction**: one view reads zero *while the world moves underneath it*. So `misses > 0` and
+the detector never fires. **Not a weak detector — the wrong one**, and the one everyone would
+have reached for, because it was in the plan.
+
+**`DECOMPOSITION.md` names the right one, with its mechanism:** *a decomposition failure is a
+PERSISTENT zero* — and on the round trip, ***that is exactly the instrument that would have
+made the silent loss loud. The objects view of a sub-object rule read zero residual for twenty
+steps; its round-trip gap on the fleck cell would have been positive on every one of them.***
+
+> **THE DETECTOR IS `R_T`, THE BRACKET CHANNEL. NOT `never_live`.**
+
+**And the built `R_T` cannot compute it at ARC scale.** `_round_trip` finds the pre-image by
+SWEEPING THE DOMAIN, capped by `cfg.budget`: 8.24e+05 on the toy world, 1.68e+04 on `snaps`,
+3.32e+13 on a 4x4 board, and on 64x64 **the span overflows a float**. Toy-shaped, and it does
+not transfer. **`logical_grid`'s `1 - fidelity` is a different computation that does not
+sweep** — and it is `2c`'s.
+
+### Which reorders Phase 2: `2c` BEFORE `2b`
+
+**Not a preference.** `2b` is the item most exposed to the loud/silent failure, and `2c`
+supplies the only implementation of its detector that works at ARC scale. Shipping `2b` first
+is not a choice with a cost — it is building the most exposed item with no instrument that
+could see the failure. **`arc_world.transform()` returns `None` today, so the bracket channel
+is inert exactly where the failure lives.**
+
+### And `2c`'s brief says what it is FOR, not only what it contains
+
+**Its stated content is the four cheap sensors** — action-set delta, precondition edges,
+control mode, affordance profile (§16.8). **That is not why it moves first.**
+
+> **`2c` IS `2b`'S INSTRUMENT.** The round-trip gap is what makes a wrong decomposition
+> READABLE, and `logical_grid`'s rule is the shape of it: **commit to a detected view only if
+> the round trip is near-lossless, return `None` otherwise**, with `1 - fidelity` as `R_T`.
+> **If this is not in the brief, `2c` gets built as a sensor package and `2b` proceeds blind
+> anyway** — which is the same failure as the plan naming `never_live`: **a detector that
+> exists and is not pointed at the thing.**
+
+**And its calibration is the anti-citation this project already holds up as the standard:** a
+true 5-px grid scored **0.818** while a spurious 2-px tiling scored **0.946** — *the wrong
+answer scored higher* — which is why the gate sits at 0.98 and the stride comes from motion
+rather than from fidelity.
 
 ## Phase 3c IS the effect-index, and A1 had to come first
 

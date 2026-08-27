@@ -637,6 +637,54 @@ a finding.
 
 ---
 
+# `2b`'s detector does not exist, and two documents disagree about which one it is
+
+**Asked before `2b` rather than discovered as a green.** The loud/silent split is `2b`'s
+characteristic failure — *an object-level view of a sub-object rule read **zero residual for
+twenty steps**, the agent believing it had explained a world still moving underneath it.*
+**Three things are true and they do not fit together.**
+
+**1 · `ARC_BUILD_PLAN` names `never_live`, and `never_live` structurally cannot fire on it.**
+Phase 2's note reads *`never_live` is now built as the detector, and the utterance can say
+it.* But `never_live` requires **`misses == 0`**, and `misses` is WHOLE-INSTRUMENT —
+`note_step` increments it when SOME slot carried mass. **The loud/silent case is one slot
+reading zero WHILE THE WORLD MOVES**, so other slots are live, `misses > 0`, and the detector
+never fires. **A trigger and a signature that do not meet.**
+
+**2 · `DECOMPOSITION.md` specifies a different detector, and names it exactly.** *A
+decomposition failure is a PERSISTENT zero, and the predicate that would catch it is **a
+fraction over the run rather than a boolean over the step**.* Then, on the round trip: ***that
+is exactly the instrument that would have made the silent loss loud. The objects view of a
+sub-object rule read zero residual for twenty steps; its round-trip gap on the fleck cell
+would have been positive on every one of them.*** **The detector is `R_T`, not `never_live`.**
+
+**3 · And the built `R_T` cannot compute it anywhere.** `_round_trip` finds the pre-image by
+**sweeping the domain**, capped by `cfg.budget`:
+
+    toy world        span 8.24e+05    budget 4000   UNMEASURABLE
+    snaps            span 1.68e+04    budget 4000   UNMEASURABLE
+    arc, 4x4 cells   span 3.32e+13    budget 4000   UNMEASURABLE
+    arc, 64x64 cells span OVERFLOWS A FLOAT
+
+**Not merely over budget on a real board — past the range of the number type.** The sweep
+implementation is toy-shaped and does not transfer at all. **`logical_grid`'s `R_T` is
+`1 − fidelity`, a DIFFERENT computation that does not sweep — and it arrives at `2c`.**
+
+> ### So `2b` ships blind to its own worst failure unless `2c` lands with it or before it
+>
+> **`2b` is where a decomposition can be wrong, and the instrument that would say so is
+> `2c`'s.** `arc_world.transform()` returns `None` today, so the bracket channel is inert
+> exactly where the failure lives. **This is a sequencing fact and it was findable before
+> `2b` started, which is the only time it is cheap.**
+
+**And the earlier note stands corrected**: `DECOMPOSITION` records *the socket existed and
+was not being read* — `transform()` was the tenth contract member and **nothing ever called
+it**, its only occurrence being inside a STRING asserting it returns None. **That half is
+fixed** — `_round_trip` calls it now and the bracket row names `env.transform() returned
+None` as the cause. **The socket is read. What flows through it is still nothing.**
+
+---
+
 # `2a` — BUILT 2026-08-27. The watermark is NOT set
 
 **`arc_world.py`: the eight members over `arc_agi`, and deliberately nothing more.**
