@@ -684,6 +684,27 @@ able to survive it, and that is the argument for the row rather than a reason to
 |---|---|---|
 | the **allocation shape** — *which of two already-built objects owns this responsibility* | 3 | a **fourth, unprompted** |
 | **the seat-scale defect may be the ground being expensive, not a defect** | 1 | a **second arrival** |
+| **a guard whose SUBJECT excludes the thing it guards against** | **1 observed** (+1 predicted) | a **second OBSERVED instance**, not a second instance |
+
+**THE THIRD ONE, because its n is the whole question.** Two instances: `never_live` requires
+`misses == 0` and therefore **cannot fire on the case it was named for** — *observed*; and
+§11's entry discipline governs what enters **the library** while four of the five surviving
+prior shapes never touch it — ***predicted***, read out of the text, not yet gone quiet
+because `3a` has not run. **CLAUDE.md's seven laws were each found by a checker going quiet
+ONCE, and none by reasoning about what a good checker should do** — so against that standard
+this is **n = 1**, and the bar is a second *observed* instance.
+
+**And it is a FOURTH failure in a family of three, which is why it is worth holding at all:**
+
+| named already | what it is |
+|---|---|
+| **VACUOUS** | nothing to examine |
+| **harness cannot go red** (`lint.py`) | *found nothing because the subject is clean* and *found nothing because the harness cannot reach it* produce identical output |
+| **the seventh law** | a denominator **the mechanism moves** |
+| **THIS** | **the rule is well-formed, the harness CAN reach it, the evaluation is correct — and the failure case is outside the rule's SUBJECT by construction** |
+
+**It is the worst of the family because all three existing detectors report health.** There is
+plenty to examine and none of it is the thing.
 
 **Held is a status, not a weaker row.** Filing either early is the `type-match` move — a shape
 that reads well, with nothing to check it against.
@@ -817,7 +838,9 @@ prerequisite of loading, not a follow-on.*** Note *and the rank function* — **
 too.** The table's `3a → 3b → 3c → 3d` is wrong in three places at once.
 
 **So `3a` is not blocked on one thing but on three**: the unrun priors path, the unwritten Cyc
-pre-emption, and now **`3c` + `3d` as stated prerequisites.** Which is consistent — *load
+pre-emption, and now **`3c` + `3d` as stated prerequisites.** *(`3c` and `3d` have since been
+built, and the `3a` section check added a FOURTH that is not a code path at all — the ablation
+scoping. See that section's closing.)* Which is consistent — *load
 generously* is the item that makes every other cost worse, and it is listed first.
 
 ### And §23.6 item 4 is already built
@@ -1287,7 +1310,21 @@ because the shapes are in different homes by design.
 
 ### WHAT THE CHECK CHANGES
 
-**Not the blockers.** The unrun priors path and the unwritten Cyc pre-emption are unmoved.
+**Not the two known blockers.** The unrun priors path and the unwritten Cyc pre-emption are
+unmoved. **But §7 adds a third, and it is a different kind of thing** — not a code path and not
+a missing sentence, but **a decision about what `3a`'s own falsifier can see.**
+
+> **SETTLE THE ABLATION SCOPING BEFORE `3a` LOADS, NOT AFTER — and the argument is decisive on
+> its own.** Afterwards the untested load is already in and the wipe still cannot see it.
+> **There is no recovery position: you cannot retrospectively distinguish what was loaded from
+> what was composed if the instrument never saw either.**
+
+**And the line inside the five is what drawing it requires** — the nine the ablation should
+stay blind to, versus everything loaded beyond them, which it should see. **Neither the
+`derived`/`chosen` split nor §11's bench ceremony draws it, and nobody has.**
+
+**So these are ONE item, not two: the scoping decision requires the line, and the line IS the
+scoping decision.**
 **What changes is what clearing them means**: `3a` was filed as *load Γ generously and stamp
 it*, and it is **five integrations into five subsystems, one stamped Γ load, and a prohibition
 that exists in only one of the two sections that define the taxonomy.**
