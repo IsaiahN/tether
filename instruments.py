@@ -27,7 +27,12 @@ sys.dont_write_bytecode = True
 DIED_PRE_DIFF = "DIED_PRE_DIFF"        # implementation -- the diff never ran
 RESIDUAL_EMPTY = "RESIDUAL_EMPTY"      # library -- wrong grain, nothing to explain
 MINT_UNFIRED = "MINT_UNFIRED"          # gate calibration -- residual there, no mint
-REUSE_UNWIRED = "REUSE_UNWIRED"        # implementation -- reuse never ATTEMPTED
+REUSE_UNWIRED = "REUSE_UNWIRED"        # reuse never ATTEMPTED -- A READING, NOT A VERDICT.
+# The corpus glosses this `implementation -- loop not connected`, and that is FALSE on the
+# 2026-08-28 ls20 run: the sweep ran seven times and refused seven times at a gate whose
+# condition it names. The flag is true; the diagnosis is not the rung's to give.
+# THE_FORMULA has the shape: one reading, three causes, and one of them is *a seat's
+# office* -- so the layer above validates, and the rung reports.
 MINTED_UNUSED = "MINTED_UNUSED"        # ARCHITECTURE -- the only code that indicts
 USED_NOCLEAR = "USED_NOCLEAR"          # drive layer -- reused, nothing cleared
 CLEARED = "CLEARED"                    # the loop fired once

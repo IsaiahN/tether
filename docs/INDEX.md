@@ -2385,6 +2385,80 @@ repaired by counting the attempt or by not counting the branch.**
 
 ---
 
+# THE RUNG, AND THE ASSERTION REGISTER — both checked, and the corpus has both
+
+### 1 · THE RULING IS ALREADY IN THE CORPUS, so it governs rather than being designed
+
+`THE_FORMULA`, on a low residual reading:
+
+> *a low reading has three causes and only two of them are about R stopping:*
+> *the prediction is good — **genuine** · the channel closed — step 8's undetectable case,
+> **a seat's office** · the instrument never reached it — **step 7 INWARD***
+
+**One reading, three causes, and one of them explicitly adjudicated by a layer above because
+it is undetectable from inside.** That is the ruling — *the rung reports, the layer above
+judges* — **already written, applied to the residual rather than the ladder.** And the office
+concept recurs: *the loop does not maintain the ground, that is a seat's office*; *the ground
+did not decay, the channel did — that is a seat's office, and the cat has no seat.*
+
+**So no seventh rung.** The vocabulary stays fixed, no reading already taken is against a
+different instrument, and what changes is that **a rung's gloss stops being a verdict.**
+
+### 2 · IT IS *NOT* DISTINGUISHABLE FROM WHAT IS RECORDED — and that is the finding
+
+**The funnel records the OUTCOME, not the CONDITION.** One bucket, `no-eligible-target`, for
+both causes:
+
+    refused, condition legitimately holds    not a fault
+    refused, nothing supplied the condition  a fault
+
+**I had to INSTRUMENT the run to tell them apart** — 33 targets present, all with history,
+zero passing `stale()`. **None of that is in the record.** The input exists in the code and is
+not written down, so **the adjudicating layer would have nothing to adjudicate on.**
+
+**And the corpus's own discipline points at the fix without extending it:** *the reuse funnel
+charges every attempt to **a string literal written at the branch that resolved it***. **A
+finer literal is inside that discipline**, not a change to it — the branch names which
+condition refused rather than that some condition did.
+
+### 3 · THE GLOSS IS CORRECTED AT SOURCE, per the ruling and the document split
+
+**`instruments.py` is a working file, so repaired.** *Loop not connected* is false on the
+`ls20` run regardless of who adjudicates. **`ARC_AGENT`'s copy of the gloss is CORPUS and is
+annotated, not edited** — the independence is worth more than the tidiness, and this is the
+third live instance of that split costing something.
+
+### 4 · THE ASSERTION REGISTER ALREADY EXISTS, AND IT IS THE READ-STATE BLOCK
+
+**One thing, not two — and the read-state block is already the general form, scoped small.**
+It states the principle in its own words:
+
+> **The index is a CLAIM ABOUT THAT RECORD, and *a claim about a record has to be checked
+> against it.* It never was.**
+
+**And its header is a sharper *how established* than read/inferred/recalled:** ***READ AGAINST
+WHAT, not merely read*** — *a section read before a finding and the same section read after
+are different reads, and the read-state's `read` is weaker than it looks.* **Recording the
+date is the same instinct**, and the block already carries it implicitly by living in a
+git-blamed file behind a watermark.
+
+**So: GENERALISE THE BLOCK, do not build a parallel register.** A second one is precisely the
+collision this project has caught three times — and the near-miss is real, because
+`provenance`'s four values (`derived · found · chosen · unattributed`) are **the same shape for
+a different subject**: how a MECHANISM came to be, not how a CLAIM was established. **Two
+registers with four-value provenance fields would read as one.**
+
+**AND THE CAUTION THE BLOCK ITSELF SUPPLIES: a register of assertions is a set of
+assertions.** The read-state **was** a register and it **was wrong** — it said `DISCOVERY` Q1
+and Q8 were unread when the batch log recorded both. **A register does not check itself**, so
+the value is entirely in `recalled` entries actually being checked against a source — which is
+why the stated bar (*it gates a decision expensive to unwind*) is load-bearing rather than
+tidy: **it keeps the register small enough to check.**
+
+**NOT BUILT.**
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
