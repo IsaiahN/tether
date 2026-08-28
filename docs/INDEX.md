@@ -3167,6 +3167,57 @@ corpus prices the first and nothing prices the second.
 
 ---
 
+# THE FOUR QUESTIONS ARE ALREADY RECORDED — at the ruled unit, and nothing needs adding
+
+**Ruled: the unit is the (term, slot) pair, because the loop's event is the slot-step and a
+term-level total is an aggregation across slots.** Checked, and **the ledger already records
+every event at exactly that unit.**
+
+| every `bet` row carries | every `settle` / `demote` row carries |
+|---|---|
+| `bound=<term>` · `mass=r.bits` · `cause` · slot · cycle | `asked=[name, slot]` · `ground_said` · `term` · cycle |
+
+    called   a bet row exists with that term bound to that slot
+    held     mass == 0 and cause == GENUINE
+    failed   mass > 0
+    arc      first `settle` row to first `demote` row, by cycle
+
+**AND `cause` ALREADY CARRIES THE FOURTH DISTINCTION.** *Applied and wrong is a different state
+from did not apply* — and `mass == 0 with CHANNEL_CLOSED` is *the slot owes and this step read
+zero*, **which is did-not-deliver rather than predicted-right.** The third state is on the row.
+
+### ⚠ A CORRECTION: I SAID THE RECORD COULD NOT DISTINGUISH THEM. IT CAN
+
+**This morning I reported *held-before-fails-now and never-held-here are the same row*. That is
+true of `Standing` and false of the record** — **I checked the in-memory object and called it
+the record.** `Standing.refute()` erases `settled_at`; **the ledger keeps the `settle` row AND
+the `demote` row, both with cycles.** A term with a settle followed by a demote is visibly
+different from one with only a demote.
+
+> **So the third-state repair is not a precondition of the arc.** It is a defect in `Standing`
+> — real, and worth fixing on its own terms — **but the arc is computable without it**, and
+> building the repair *in order to* enable the arc would be repairing the wrong layer.
+
+### SO THE ANSWER TO *WHAT SHOULD AN ACCUMULATED SETTLE RECORD CARRY* IS: NOTHING NEW
+
+**Not four counters. Not a list of settle events. A QUERY.** The events are already recorded,
+already per-pair, already with the outcome and the cycle — **and step 5's outcome IS written
+where it can be read; what is missing is only that nothing reads it.**
+
+**Which is the sixth law at a call site again:** *assume it is already recorded, and go look.*
+**And it matters more than usual here, because four fields on `Term` would have been a second
+producer of a fact the ledger already holds** — the A1 shape, at the level of a record.
+
+**WHAT IS GENUINELY ABSENT** is the reader, and its disposition is the staleness test: *held
+consistently and then stopped* is the room's signal and **nothing computes it.** The other two
+readings — *held whenever it applied* and *held rarely* — bear on the 42%: **a term that closed
+once and never held again is visibly different from one that keeps holding**, and ten wrong
+terms fired the held-out test and survived it.
+
+**NOT BUILT.**
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
