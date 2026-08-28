@@ -1862,6 +1862,81 @@ should be pre-registered against the corpus and authored from it, the way the ni
 
 ---
 
+# ARC'S PREDICT ATOMS — DERIVED AND PRE-REGISTERED 2026-08-27. Two of six, and both bind
+
+**A LOOKUP, NOT A DESIGN.** `ARC_AGENT`'s eight-member table names them: *grid transforms:
+**translate, recolour, reflect, rotate, appear, vanish***. The sixth law again — the set was
+specified and the plan pointed at `3d`.
+
+### 1 · FOUR OF THE SIX CANNOT BE EXPRESSED, AND THE GAP IS IN `Ctx`
+
+An atom is `val × action × operands → val` **for one slot**, and a slot is one int.
+
+| | | |
+|---|---|---|
+| **translate** | ✓ | `v + operand` |
+| **recolour** | ✓ | `v → operand` |
+| **appear · vanish** | ✗ | **existence is not a slot VALUE.** The slot SET changes, and `_present` already sees it — an event, not a transform |
+| **reflect** | ✗ | needs the **board extent**; `Ctx` carries only `action` and other slots' values, and **the board is not a slot** |
+| **rotate** | ✗ | **couples row and col**, and an atom returns one slot's value |
+
+**Reported, never substituted.** *A `reflect` that quietly reflected about the object's own box
+would be a different operator wearing the corpus's word, and it would have passed every check.*
+**And neither delta is chosen**: both read an OPERAND, following `take`'s pattern, so the step
+size and the target colour are **discovered by binding** — a `translate` hardcoded to `+1`
+would be this file choosing the world's step size.
+
+**A THIRD ATOM WAS FORCED BY THE LOOP, NOT CHOSEN: `idn`.** `_predict` falls back to
+`self.bound.get(slot, IDN)`, so **a Γ without an identity raises `KeyError` on the first
+unbound slot** — which is exactly what the first run did. *The loop cannot run without it* in
+the most literal available sense, so it enters under §11 clause one. **Every working atom set
+in the repo already had one and none said why**, which is how the omission survived into a
+named six-atom list.
+
+### 2 · PRE-REGISTERED BEFORE THE RUN, AND BOTH HELD
+
+| # | registered | read |
+|---|---|---|
+| 1 | **`λ < V`** — Stage D: *here the type graph is genuinely sparse, so the number should mean something* | **λ 3.0 vs V 14, types 4. HELD**, with a real ratio |
+| 2 | **both atoms must BIND**, or they are not part of the world's vocabulary | **translate 3 · recolour 4**, across 7 bound slots. **HELD** |
+| 3 | **no claim about mint count** — the stall was `REUSE_UNWIRED` and these atoms do not touch reuse | mints **1 → 7**, all `pays`; library 4 → 21; parks 229 → 192 |
+
+**ROW 3 IS AN OBSERVATION AND NOT A VINDICATION, and the distinction is the point of having
+written it down first.** No prediction was made, so none was confirmed. **And the stall did
+NOT move — still `REUSE_UNWIRED`, funnel `no-eligible-target` seven times instead of one.**
+More mints, same wall: *a game showing you something is broken is legitimate; a game telling
+you what to build is not*, and the build was derived from the corpus before the run rather
+than from the run.
+
+### 3 · `0a` ARRIVES AS A LIVE CONSEQUENCE
+
+The minted terms are readable: `idn . translate<o12.col>` · `idn . recolour<o17.colour>` ·
+**`idn . recolour<o11.h>`**. **Every atom is `val → val`, so nothing stops a colour operator
+binding a height as its operand.** `arc_atoms` flagged this when it was written — *operand
+TYPING is `0a`'s and is parked; `gamma` types an atom's input and output and not its operand*
+— **and it is now visible in real bindings rather than as a caveat.** The type graph has four
+nodes and the ATTRIBUTE type has none.
+
+### 3b · THE RUNNER MOVED INTO THE REPO, BECAUSE LINT REFUSED THE ALTERNATIVE
+
+**`arc_predict` was isolated and the commit was blocked.** The runner lived in a scratch file,
+so nothing in the package imported the atoms. **`arc_holdout.py` is the consumer**, seat-side,
+and the refusal was right for a second reason the rule does not state: **a run reported from a
+scratch file is not reproducible, and this is the project's first real reading.**
+
+**Not run by `conform/check.py`** — it needs the network and downloads content, and the
+checkers stay offline and deterministic. **A game IDENTIFIER is a public name and is in the
+file; no mechanics are**, and `environment_files/` is gitignored **and** linter-excluded.
+
+### 4 · THE COUNT IS NOT A MEASUREMENT
+
+**Six was a list; two is what the signature admits; neither is derived from the environment.**
+`ARC_BUILD_PLAN`: Ashby's inequality gives `closure(Γ)` *a lower bound the environment imposes
+rather than one the designer picks* — **and nothing computes it.** Stated so the number is not
+mistaken for a reading.
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
