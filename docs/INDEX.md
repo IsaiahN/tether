@@ -692,6 +692,23 @@ able to survive it, and that is the argument for the row rather than a reason to
 | **the seat-scale defect may be the ground being expensive, not a defect** | 1 | a **second arrival** |
 | **a guard whose SUBJECT excludes the thing it guards against** | **1 observed** (+1 predicted) | a **second OBSERVED instance**, not a second instance |
 
+**A NINTH INSTANCE, AND IT IS A DIFFERENT AND MORE EXPENSIVE CLASS: A CORRECT CITATION
+ATTACHED TO CODE THAT DOES THE OPPOSITE.** A6i is two meanings under one word. **This is one
+meaning, cited accurately, implemented backwards** — `_bindings` quotes §16.5 and Figure 11
+correctly and then **invents the list §16.5 forbids inventing**, ranking by variance while the
+contact sensor sits unused.
+
+> **The citation is what makes it expensive.** A wrong implementation with no citation reads
+> as unfinished. **A wrong implementation with a right citation reads as DERIVED — and
+> therefore as already checked.** It survived a session, a status of *built*, a filed report
+> calling it *specified and needing no ruling*, and an owed-demonstration row that presupposed
+> the mechanism existed.
+
+**The tell is available and cheap: the cited clause is a claim about the CODE, so read the
+clause and the code together, not the clause and the docstring.** *You do not invent the list*
+is checkable in one line — `others = [s for s in self.slots if s != slot]` — and nobody looked,
+**because the citation had already answered the question the reading would have asked.**
+
 **AND TWO RULES ABOUT RULINGS, both of which earned their keep the day they were written:**
 
 **A PARK MUST STATE A CHECKABLE TRIGGER, because a park exists to be correctly NOT lifted.**
@@ -1449,7 +1466,9 @@ holdout; **it is partly ungradeable before it.**
 
 ### 3 · WHAT THE HOLDOUT DISCHARGES, AND THE HALF THAT STILL NEEDS A NUMBER
 
-**Three owed validations, and the third became owed this morning** — contact ranking,
+**Three owed validations — and one of them has since been WITHDRAWN rather than discharged:
+contact ranking is not built, so it was never owed a demonstration.** As read at the time —
+contact ranking,
 `never_live`, and **`3d`'s reuse term**, inert on `snaps` because the funnel never closes.
 Plus **the watermark**, which §*provenance* makes a line crossed by a commit rather than by a
 decision, and which should be deliberate.
@@ -1801,7 +1820,7 @@ rather than merely surprising.
 | owed | status after `ls20` |
 |---|---|
 | **`never_live`** | **its SUBJECT now exists.** All four actions tried at **10 distinct states each** — the toy world could not supply that. **No action is never-live, because all four stayed available for 40 cycles.** A real null with a real subject, which is a different object from the empty-subject null |
-| **contact ranking** | **1 mint.** Ranking needs a mint with more than one candidate binding. The board produced a mint — more than `snaps` ever did — **and one is not enough** |
+| **contact ranking** | **WITHDRAWN AS AN OWED GREEN — it is NOT BUILT.** The run was to be its demonstration; reading the code for §16.5 showed there is nothing to demonstrate. `_bindings` takes **every other slot** and ranks by **variance**, with `touching()` built and unused. **A demonstration was never what it was owed** — it was owed the mechanism it is named after |
 | **the rank function's reuse term** | **unchanged.** Funnel attempted once, `no-eligible-target`. **The second panel defect is not a `snaps` defect** — it reproduces on `ls20` |
 
 **Two of the three moved from *unexercisable* to *exercised and null*, which is progress of a
