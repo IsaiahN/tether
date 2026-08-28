@@ -2988,6 +2988,35 @@ to be** — which is the argument for inspecting rather than characterising, one
 bench, for its own measurement, with no agent in the run. On a scored run nobody restarts
 anything.* **Strictly more borrowed than determinism, which survives the port.**
 
+### 4 · IT IS `B17`, SECOND INSTANCE — the same law, not one layer out
+
+***Pre-registration does not protect a reading if the instrument measures something else.***
+**That is literally this**: two outcomes pinned in advance, and the instrument measured the
+MODEL where the reading was about the WORLD. **B17's mechanism was a label with two meanings;
+this one was a quantity substitution. Same law, different mechanism.**
+
+**And B17's cost clause applies exactly.** *It cost nothing only because 9-versus-37 is
+impossible to miss; 15-versus-18 passes straight through.* **`0.0` against 3-of-3 is impossible
+to miss too** — **had the residual read a small nonzero difference I would have taken it as a
+weak signal and never checked the variable.** Both instances survived on the size of the gap
+rather than on the discipline.
+
+**AND THE LIMIT THIS PUTS ON PRE-REGISTRATION IS THE FINDING.** Both branches I named were
+about the measurement's RESULT; the defect was in the MEASUREMENT. **A defective outcome
+variable reads exactly like a quantity that does not discriminate — same zero, different
+repair — and no amount of naming the outcomes separates them.**
+
+### 5 · AND THE COUNT WAS THREE, AND IT IS TWO
+
+**Claimed: `_rtype`, the residual-versus-world outcome, and the aggregate `sim_fidelity` was
+refused for.** **Instances 2 and 3 are ONE EXPRESSION.** `sum(_last_mass.values())` was *both*
+the wrong quantity (model, not world) *and* the wrong construction (a sum, not per-slot) —
+**two defects in one line, which is how it was reported when found and then became two
+entries.**
+
+**n = 2**, and the over-count is this morning's three-of-five in the same shape, on the same
+day. **Corrected before it was carried.
+
 ---
 
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
