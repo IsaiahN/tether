@@ -3484,6 +3484,30 @@ stopped-by-the-world — and the third collapses into the first if nobody asks.*
 
 ---
 
+# `no_change` BUILT — and the staleness signal is six named terms, not 110
+
+    TERM dispositions  never-held 10 · held-then-stopped 6 · never-called 1 · mixed 2   19 pairs
+    persistence prior  held-then-stopped 104 · never-held 9 · closed-once 2            115 pairs
+    room-invalidated   idn . translate<o1.h>   @o20.w  @o21.w  @o22.w
+                       idn . translate<o12.col>@o21.col @o22.col · <o12.row>@o20.col
+
+**THE SIX ARE NOT SCATTERED — they are TWO TERMS ACROSS SIBLING SLOTS.** `translate<o1.h>`
+invalidated on the `.w` of o20, o21 and o22; `translate<o12.col>` on the `.col` of o21 and o22.
+**A term failing across a family of slots at once is what a room change looks like**, and under
+110 it was invisible.
+
+**AND THE PRIOR'S OWN READING IS KEPT, NOT DROPPED.** `held-then-stopped: 104` on the
+persistence prior is a real reading — *the world was still, then it moved*, 104 times — and
+`DOCTRINE_AUDIT` §8 is right that it is *a real and defensible prior*. **What was wrong was
+reading it as a term's track record**, not recording it.
+
+**AND THE CASCADE IS NOW EXPOSED RATHER THAN REPAIRED.** The audit's *`density(R)` is inflated
+by every slot that simply changes, and `bored()` reads that inflated value* is **the same 104**,
+seen from the drive layer. **The row now names the prior; nothing yet stops it inflating
+`density(R)`** — the record is fixed and the cascade is not.
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
