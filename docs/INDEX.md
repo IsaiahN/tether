@@ -3697,6 +3697,23 @@ look free.**
 > difference where there is one** — which is the failure mode that would have retired the
 > split as *no measurable benefit*.
 
+**AND IT IS NOT THE TWO-STATE COLLAPSE, THOUGH THE SYMPTOM IS IDENTICAL.** Two distinct states
+reading as one is the same *appearance* — but **every one of the nine sites is a REPRESENTATION
+that cannot hold the difference**: a guard's subject, a key, a signature, a field, a stamp.
+**Here the representation is a float and holds `3.5569` perfectly well. The collapse is in the
+COMPUTATION.**
+
+**Grouping them would be the four-classes error again** — a resemblance made into a class on the
+same day the correction was recorded. **Filed as distinct, at n = 1**, with the sharper
+statement of what makes it worse than a wrong number:
+
+> **A wrong value is a wrong value. A COMPARISON returning *no difference* reads as a
+> FINDING** — so the instrument was about to make a decision, not merely report badly, and the
+> decision would have been **to skip a repair that buys three things.**
+
+**Bar: a second instance where a broken computation, not a broken representation, returns a
+false null on a comparison.**
+
 **AND THE λ DEFECT IS SEPARABLE AND SHOULD BE FIXED ANYWAY.** The split removes *this* cycle;
 **`4a`'s own primes could reintroduce one** — `When(PRED, ROUTINE) → ROUTINE` with any routine
 producing a `PRED` closes a loop. **A λ that is silently wrong on cyclic graphs is a defect in
