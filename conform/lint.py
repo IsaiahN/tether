@@ -768,9 +768,14 @@ def main(argv: list[str]) -> int:
     # the repo, not this folder: the rule set is about the build it grades, and a
     # checker that only scanned its own directory would report a clean package
     root = Path(__file__).parent.parent
+    # `environment_files` IS THE SECOND FIREWALL, AND GITIGNORE WAS NOT ENOUGH. The checkers
+    # walk the FILESYSTEM, not git -- so the first downloaded game was linted, and its
+    # constants and function names were printed into the seat's view. Two exclusion
+    # mechanisms, and only one had been done. Game source is CONTENT, not harness: the seat
+    # may read the harness, and this is neither the seat's business nor the agent's.
+    skip = {".venv", "runs", "environment_files", "recordings"}
     paths = ([Path(a) for a in args] if args else
-             sorted(p for p in root.rglob("*.py")
-                    if ".venv" not in p.parts and "runs" not in p.parts))
+             sorted(p for p in root.rglob("*.py") if not skip & set(p.parts)))
     print(f"lint: {len(paths)} file(s)\n")
     return report(paths)
 
