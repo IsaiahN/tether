@@ -2051,7 +2051,7 @@ named six-atom list.
 
 | # | registered | read |
 |---|---|---|
-| 1 | **`λ < V`** — Stage D: *here the type graph is genuinely sparse, so the number should mean something* | **λ 3.0 vs V 14, types 4. HELD**, with a real ratio |
+| 1 | **`λ < V`** — Stage D: *here the type graph is genuinely sparse, so the number should mean something* | **HELD** — recorded as *λ 3.0 vs V 14*, ⚠ **and 3.0 was wrong**: `type_report` used unshifted power iteration, which does not converge on the cyclic type graph. **True λ = 3.5569**, corrected 2026-08-28. **`λ < V` holds either way** and the conclusion is unchanged |
 | 2 | **both atoms must BIND**, or they are not part of the world's vocabulary | **translate 3 · recolour 4**, across 7 bound slots. **HELD** |
 | 3 | **no claim about mint count** — the stall was `REUSE_UNWIRED` and these atoms do not touch reuse | mints **1 → 7**, all `pays`; library 4 → 21; parks 229 → 192 |
 
@@ -3661,8 +3661,11 @@ node is **not verified here**, and the structural possibility is stated rather t
 
 **Measured in memory, without building the split:**
 
-    conflated (as built)   V=14  lambda=3.0  types=4   depth-4 crossings=225
-    OBJ split              V=14  lambda=3.0  types=5   depth-4 crossings=0
+    conflated (as built)   V=14  lambda=3.5569  types=4   depth-4 crossings=225
+    OBJ split              V=14  lambda=3.0     types=5   depth-4 crossings=0
+
+*(Both λ figures re-measured after the shift fix below. The first reading of this table said
+**3.0 for both**, which is what a broken instrument looks like when it is asked to compare.)*
 
 **So the Stage 1 answer stands** — and the reason it stands is not the reassuring one.
 
@@ -3683,10 +3686,16 @@ radius; the implementation computes something else whenever the graph has a cycl
 > **`3b`'s finding holds.** But *the falsifier stopped firing for the first time in the
 > project's life* was reported with a number that is wrong on the graph it was measured over.
 
-**AND THE SPLIT REPAIRS IT AS A SIDE EFFECT.** With the cycle broken, the matrix is acyclic
-plus one self-loop, power iteration converges, **and 3.0 is then correct.** So the `OBJ` split
-buys two things: **225 meaningless pipelines removed, and λ made computable.** A much stronger
-case than *the types are conflated*.
+**AND THE SPLIT REPAIRS IT AS A SIDE EFFECT — AND BUYS A THIRD THING NOBODY COULD SEE.** With
+the cycle broken the matrix is acyclic plus one self-loop and 3.0 is correct. But re-measured
+with the fix, **the split LOWERS λ: 3.5569 → 3.0.** So it buys **225 meaningless pipelines
+removed, λ made computable, and a real reduction in the search's growth rate** — and **the
+third was invisible under the broken instrument, which reported 3.0 for both and made the split
+look free.**
+
+> **A broken instrument does not only misreport a value. Asked to COMPARE, it reported no
+> difference where there is one** — which is the failure mode that would have retired the
+> split as *no measurable benefit*.
 
 **AND THE λ DEFECT IS SEPARABLE AND SHOULD BE FIXED ANYWAY.** The split removes *this* cycle;
 **`4a`'s own primes could reintroduce one** — `When(PRED, ROUTINE) → ROUTINE` with any routine

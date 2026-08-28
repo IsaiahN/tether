@@ -321,11 +321,29 @@ class Gamma:
 
     # -- typing beats size, as a number -----------------------------------------------
 
-    def type_report(self, iters: int = 200) -> dict[str, float]:
-        """lambda = spectral radius of the type transfer matrix, by power iteration.
+    def type_report(self, iters: int = 400) -> dict[str, float]:
+        """lambda = spectral radius of the type transfer matrix. SHIFTED, and that is the fix.
 
         Well-typed terms of size n grow as lambda^n; an untyped bag of V symbols grows as
         V^n. The ratio is what typing buys per unit of depth.
+
+        **PLAIN POWER ITERATION DOES NOT CONVERGE ON A PERIODIC MATRIX, AND A TYPE GRAPH IS
+        PERIODIC WHENEVER IT HAS A CYCLE.** Measured on the three-space set: the graph is a
+        3-cycle `OBJ -> ATTR -> PRED -> OBJ` plus an aperiodic `val` self-loop, the true
+        spectral radius is **3.5569 = (5*3*3)^(1/3)**, and the old iteration reported
+        **3.0000** -- it oscillated on the cyclic block and settled on the self-loop. **The
+        missing 0.557 was exactly the cycle**, on the quantity the Stage 1 falsifier was
+        answered with, which `CLAUDE.md` cites as *the spectral radius* by name.
+
+        **THE SHIFT IS EXACT, NOT AN APPROXIMATION.** For a NON-NEGATIVE matrix -- and a
+        transfer matrix is counts -- Perron-Frobenius gives a real dominant root `r` with
+        `r >= |lambda_i|` for every eigenvalue, so `rho(M + cI) = r + c`. Adding `c` to the
+        diagonal gives every node a self-loop, which makes the matrix APERIODIC and the
+        iterate converge; subtracting `c` afterwards recovers `r`.
+
+        **AND THE NORM CHANGED WITH IT.** The old code took the max-norm of the iterate as
+        the eigenvalue; the growth ratio is what converges, so `v` is normalised to sum 1 and
+        `lambda` is the L1 mass of `Mv`.
         """
         types = sorted({a.in_type for a in self.atoms} | {a.out_type for a in self.atoms})
         idx = {t: i for i, t in enumerate(types)}
@@ -333,14 +351,19 @@ class Gamma:
         m = [[0.0] * n for _ in range(n)]
         for a in self.atoms:
             m[idx[a.in_type]][idx[a.out_type]] += 1.0
-        v = [1.0] * n
+        shift = 1.0
+        for i in range(n):
+            m[i][i] += shift
+        v = [1.0 / n] * n if n else []
         lam = 0.0
         for _ in range(iters):
             w = [sum(m[i][j] * v[i] for i in range(n)) for j in range(n)]
-            lam = max(abs(x) for x in w) or 0.0
-            if lam == 0.0:
+            total = sum(w)
+            if total <= 0.0:
                 break
-            v = [x / lam for x in w]
+            lam = total
+            v = [x / total for x in w]
+        lam = max(0.0, lam - shift)
         v_count = float(self.alphabet)
         return {"lambda": round(lam, 4), "V": v_count, "types": n,
                 "advantage_per_depth": round(v_count / lam, 4) if lam else float("inf")}
