@@ -3544,6 +3544,30 @@ computed and nothing that is checked.
 check would need**, and here the promise of the check is written into the producer's docstring.
 ***A guarantee that reads as enforced and is not*** — `_bindings`' shape, in the grammar.
 
+### 4 · ⚠ CORRECTION TO MY OWN REPORT: the utterance layer IS checked, at the right site
+
+**I said *the whole utterance layer is unchecked*. That is wrong.** `DISCOVERY` Q4 puts the
+refusal at construction, not at the ledger:
+
+> ***PARSE, which precedes all three: an ill-typed utterance is refused at the head before any
+> currency is charged.*** · *`compose()` **raises with its reason, never silently.** An
+> ill-typed utterance is a refusal with a named head, not a shrug.*
+
+**And `compose()` does exactly that** — `raise Ill(f"ill-typed: {head} expects {want} but got
+{got}")`, plus `_check_terminal`. **The type layer is checked where the corpus says, and it
+works.**
+
+**SO THE GAP IS NARROWER AND SHARPER: `compose` checks TYPE, and *a number without evidence* is
+a CONTENT claim.** `price(4.0, 4, None)` and `price(4.0, None, None)` are **both well-typed
+`PRICE` leaves** — the type system cannot separate them, by construction. **A type-checked
+grammar was never going to catch this**, and the docstring names the wrong site *and* the wrong
+kind of check.
+
+| the docstring claims | the truth |
+|---|---|
+| refused **at the gate** | the gate never sees it; `compose` does |
+| refused for **having no evidence** | `compose` refuses ill-TYPING; this is well-typed and empty |
+
 ### ⚠ AND I REPEATED THE AUDIT'S CLAIM WITHOUT CHECKING IT
 
 **I reported *the gate checks its shape* an hour ago, taken from §9.** **Third time today I
