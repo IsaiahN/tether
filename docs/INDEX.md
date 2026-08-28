@@ -2721,6 +2721,56 @@ level-resetting LOSS**, which is a different clause from §21.2's licence to see
 
 ---
 
+# `ResetGate` AS A STATE CONDITION — CHECKED, and the corpus rules against it AT THAT STATE
+
+**The proposal: RESET from `GAME_OVER` is continuing rather than farming — nothing to escape,
+no attempt to farm — so the gate becomes a readable condition and the restart stops being
+borrowed.** Checked against §21.2 as asked. **It draws the line elsewhere, and the recorded
+incident is the exact case.**
+
+### 1 · THE INCIDENT IS RESET-ON-`GAME_OVER`, BY NAME
+
+> ***`bounds.py` exists because the Redux harness once violated this by force-RESETting **on
+> GAME_OVER** to farm ~18 unearned attempts.***
+
+**The state the proposal licenses is the state the incident occurred in.** And the mechanism is
+visible in the wording — ***unearned ATTEMPTS***. **On a scored run the scarce resource is
+attempts, not board position.** After `GAME_OVER` there is nothing to escape *within the
+episode*, which is what the proposal reads; **what a restart buys is another attempt at the
+level**, which is what the scorecard counts and what "farming" names.
+
+### 2 · AND THE CORPUS DRAWS THE LINE BY *WHO*, NOT BY *WHICH STATE*
+
+`arc_world`, at the site: ***a GAME-INFLICTED restart is the world's own rule and reaches the
+loop as an observation; an AGENT-CALLABLE one is a bypass of it.*** §21.2 the same: *`ResetGate`
+bans the **agent calling** RESET.* **The distinction is agency, and the proposal re-draws it by
+state.** Where the corpus already draws a line elsewhere, that governs.
+
+### 3 · AND THERE IS NO DECISION POINT TO GATE — RESET IS NOT IN THE ACTION SET
+
+`actions()` filters it: `… and GameAction.from_id(i) is not GameAction.RESET`. **The agent
+never sees RESET, so a gate that reads a condition and refuses has no subject.** Making it
+state-conditioned means **putting RESET back into the agent's action set**, which is not a gate
+reading a condition — **it is re-opening the path `bounds.py` closed**, with a condition
+attached.
+
+**On the second question asked — can the gate read the state where it decides — the state IS
+readable (`terminal()` returns `'death'` at the moment of the crash). That is not the
+obstacle. The obstacle is that there is no decision to condition.**
+
+### 4 · SO THE BORROWING STANDS, AND THE PROPOSAL ADDS NOTHING EITHER WAY
+
+**Scored run: the restart is farming, by the recorded incident.** **Unscored run: the seat can
+already restart, which was ruled legitimate an hour ago.** **So there is no case where the
+agent-callable version buys something the seat-side version does not** — and the cost recorded
+on that row stands unchanged: *an experiment the agent cannot run alone is not a capability the
+agent has; on the private set nobody restarts anything.*
+
+**NOT BUILT, and not a close call: the corpus rules on the exact state, with a measured
+incident and a number attached.**
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
