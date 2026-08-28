@@ -2808,7 +2808,11 @@ well.**
     before the repair    CRASH at 130
     after the repair     endings {'death': 32}   states 130   deaths 0.200
     edge-triggered       endings {'death': 1}    states 131   revisited 1   deaths 0.006
-    absence excluded     (pending)
+    absence excluded     endings {'death': 1}    states 130   revisited 0   deaths 0.006
+
+**All four readings are now correct, and every null is explained rather than open.** The
+phantom revisit is gone, the ending count is one, and **§21.2's number reads 0.006** — one
+death in 160 cycles, which is what happened.
 
 **`terminal()` IS NOW READ AND `retarget` FIRES.** `4e`'s wiring is out from behind the crash.
 
