@@ -2295,6 +2295,75 @@ reuse funnel, and the seat-scale case.
 
 ---
 
+# `REUSE_UNWIRED` CHECKED — **it is a MISREADING, and the funnel is correctly refusing**
+
+### 1 · WHICH CONDITION NEVER PASSES — measured, not reasoned
+
+`eligible = [t for t in targets if stale(t[3]) and t[2]]`, over 7 sweeps on `ls20`:
+
+    owed_targets    33 total, present in ALL 7 calls    targets EXIST
+    owed_with_hist  33                                  condition 2 passes for every one
+    owed_stale       0, in 0 of 7 calls                 CONDITION 1 NEVER PASSES
+    parked_targets   0 always                           0 advances, so that source is empty
+
+**`stale()` is the single gate.** It is false only when `verdict == depth_exhausted` **and**
+the unit count has not grown. **All five owed slots read `depth_exhausted`**, and `units` grew
+**exactly once** — 14 → 15.
+
+**AND TWO TERMS SETTLED, NOT ZERO.** `idn . translate<o1.h>` and `idn . translate<o12.row>` —
+**but they share the atom sequence `(idn, translate)`, and `units()` dedups on the EMITTED
+sequence, which carries no operand.** So two settlements produced **one** unit. The gate needs
+the unit set to grow *after* an abstention; it grew once, before them.
+
+### 2 · NEVER-SATISFIED, NOT NEVER-SUPPLIED — and the funnel is RIGHT
+
+**Supplied**: targets exist, every one has history. **Not satisfied**: the precondition is unit
+growth after an abstention, and it does not recur. **The sweep is not broken and is not
+disconnected — it is refusing correctly, for a reason it can state.**
+
+### 3 · THE STAGES DO NOT DISTINGUISH THEM, AND IT IS WORSE THAN A COLLAPSE
+
+**The early return increments the branch counter WITHOUT recording the attempt:**
+
+    self.chain.reuse_branch["no-eligible-target"] += 1   # <- bypasses note_reuse_attempt
+    return
+
+    MEASURED:  sum(reuse_branch) = 7      reuse_attempts = 0      IDENTITY VIOLATED
+
+**The corpus publishes that identity and names the defect it exists to catch:** *the reuse
+funnel charges every attempt to a string literal written at the branch that resolved it,
+publishing `sum(reuse_branch) == reuse_attempts` — so **an attempt with no branch is a defect
+the counter can state.*** **Ours is the mirror: a BRANCH WITH NO ATTEMPT**, and nothing checks
+the identity in either direction.
+
+**THE CONSEQUENCE IS THE STANDING DIAGNOSIS ITSELF.** `seg.reuse_attempted` stays `False`, so
+the ladder can never pass `REUSE_UNWIRED` — which the corpus glosses ***minted, reuse never
+ATTEMPTED → implementation, loop not connected.*** **The sweep attempted seven times and
+refused seven times for a stated reason, and the ladder reports that no attempt happened.**
+
+> **And the next rung is `MINTED_UNUSED` — *ARCHITECTURE, the only code that indicts*.** So
+> the misreading sits exactly on the boundary between a **wiring** verdict and an
+> **architecture** verdict, which is the one distinction §22.6 exists to protect.
+
+**WHICH RUNG IT SHOULD READ IS A RULING, NOT A REPAIR.** The observed state — *attempted,
+refused before trying, correctly* — is neither *never attempted* nor *tried and not explained*.
+**It may be a seventh rung the ladder does not have.**
+
+### 4 · PHASE 4 — ONE HALF CLEARED, THE OTHER NEVER WAS A BOARD PROBLEM
+
+**I said Phase 4 was *partly ungradeable until a real board exists*. Half of that was right,
+and for the wrong reason.**
+
+| | |
+|---|---|
+| **`4e`** — level-reset as controlled experiment | **CLEARED.** Determinism is a property of the domain, and a playable board now exists, so it is measurable: same start, vary one action |
+| **`4c`** — Γ as simulator, gated on `sim_fidelity` | **NOT cleared, and a board was never the blocker.** §0.2: *that is a threshold on an average across slots, which is the construction deleted from `probe.py`* — **and the EMA weight and the depth schedule are both magic numbers. *Needs restating as a predicate before it is built.*** **It also violates a hard rule directly: *no aggregation across slots; averaging is how a live signal disappears.*** |
+
+**NOT BUILT. Two rulings owed: which rung the refusal reads as, and whether the identity is
+repaired by counting the attempt or by not counting the branch.**
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
