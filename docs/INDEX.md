@@ -3350,6 +3350,76 @@ what a bet row carries is a record-format decision rather than a patch.**
 
 ---
 
+# THREE CHECKS ON WHAT A BET ROW CARRIES — and the second one's premise is wrong
+
+### 1 · `no_change` IS NOT A WORD THE CORPUS HAS. And the confidence asymmetry IS
+
+**Nothing names a no-term stance.** `no_change` would be new vocabulary — small, and the
+ruling's reasoning is its own justification: **`idn` is a term with a cost and a provenance;
+having no term is not.**
+
+**BUT THE CONFIDENCE QUESTION HAS A HALF-ANSWER AND THE ASYMMETRY IS THE FINDING.** The corpus
+names **strength of REFUTATION** and not strength of confirmation: `falsified_ledger` is
+*weighted, never binary — strength-of-rejection, so the consumer de-prioritises*, decayed over
+a **logical clock**; `Standing.rejections` is that, built.
+
+| side | exists |
+|---|---|
+| **how much a term has been REFUTED** | `Standing.rejections` — weighted, decaying, built |
+| **how much a term has HELD** | **`behaviour`'s `held`/`called`, per pair, built today** |
+| **the two combined into a confidence** | **nothing, and combining them would be an invented number** |
+
+**So the two sources you named are both real and both present — a term's history of holding
+(now computable) and the present residual (`_last_mass`).** **The corpus supports neither being
+turned into a scalar**, and *nothing scores itself with a quantity it produces* is the reason
+to leave them as two readings rather than one number.
+
+### 2 · A MULTI-STEP BET IS ALREADY EXPRESSIBLE — the premise is wrong, with one condition
+
+**`ARC_AGENT` §2 answers it directly and says the opposite of the assumption:**
+
+> ***It needs no new row type and no contract member.*** *`perceive(action)` calls
+> `env.step(action)` once and compares the reading before against the reading after. **It never
+> assumes the env took one step.** If an action is a sequence and `env.step` executes it, the
+> bet is already over the whole attempt and the residual is already about the whole attempt —
+> because **the loop only ever sees before and after.*** · *The intention half is free. **The
+> composition half is not** — building `northwest` out of what actions turn out to do is
+> composing over a second type, and `Gamma` is typed `val → val`. **A contract question rather
+> than a field.***
+
+**SO THERE IS NO MID-PLAN STEP TO MARK — PROVIDED THE ROUTINE EXECUTES AS ONE `env.step`.**
+
+**AND THE ARC ADAPTER DOES NOT MEET THAT CONDITION.** `ArcWorld.step(action: str)` takes one
+`GameAction` and calls `w.step` once. **A three-action routine is three bets today**, so the
+mid-plan problem is real *here* — **and its repair is an adapter decision (does `step` accept a
+sequence?), not a field on the bet row.**
+
+**AND `STRATEGY` ALREADY EXISTS AS AN HONEST ZERO:** *STRATEGY arrives with routines and is 0
+until then — an honest zero, not a gap.* **Sixth time the thing being designed already had a
+name and a socket waiting.**
+
+> **THE LIMIT STATED PLAINLY, AS ASKED: every reading over bet rows is SINGLE-STEP-ONLY until
+> routines execute atomically.** `behaviour`'s counters would score a correct multi-step term
+> as `never-held`, and **that limit is now written down.**
+
+### 3 · THE CATEGORIES EXIST AND THE MASK SHOULD REUSE THEM
+
+| the mask's category | the existing vocabulary |
+|---|---|
+| **objects** | the slot's own attribute — a slot IS `{obj}.{row\|col\|h\|w\|colour}` |
+| **movements** | `DELTA` — §12.3 sensor 7, in `sensors.py`'s attribute set |
+| **relations** | `contact`, from `habitat` — the only one built; containment is Tier 2 |
+| **channel** | `transition` · `reward` · `bracket`, already on every row |
+| **why unexplained** | `genuine` · `channel_closed` · `slice_too_small`, already on every row |
+
+**No new taxonomy is needed and inventing one would be the third classification beside `_rtype`
+and the affordance profile.** **The attribute is already in the slot NAME**, so the object
+categorisation costs a split on `.` and nothing else.
+
+**NOT BUILT.**
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
