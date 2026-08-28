@@ -2809,6 +2809,21 @@ well.**
     after the repair     endings {'death': 32}   states 130   deaths 0.200
     edge-triggered       endings {'death': 1}    states 131   revisited 1   deaths 0.006
     absence excluded     endings {'death': 1}    states 130   revisited 0   deaths 0.006
+    seat restarts        endings {'death': 1}    states 159   revisited 0   PAIRS 1
+
+**§21.1's CONTROLLED EXPERIMENT HAS FIRED — one pair.** Same state, exactly one action varied,
+both outcomes read. **The only controlled experiment available anywhere in the loop, run for
+the first time.**
+
+**And the restart recovered the dead time**: 159 live states against 160 cycles, where without
+it ~30 steps produced nothing. **`revisited 0` with `pairs 1` is the mechanism's own
+separation** — no state recurred under the SAME action (which would be a determinism reading),
+one recurred under a DIFFERENT one (which is the experiment).
+
+> **BORROWED, AND THE LABEL SITS WHERE THE NUMBER IS PUBLISHED, not only on the row:** *the
+> controlled pairs exist only because the SEAT restarts the bench; on a scored run nobody
+> restarts anything, so the pair count is not a capability the agent has.* **Strictly more
+> borrowed than determinism** — determinism survives the port and this does not.
 
 **All four readings are now correct, and every null is explained rather than open.** The
 phantom revisit is gone, the ending count is one, and **§21.2's number reads 0.006** — one
