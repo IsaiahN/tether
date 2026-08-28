@@ -292,6 +292,26 @@ depends on a domain property must be marked as such **before anything is built o
 it were structural** — otherwise the next port silently loses causal inference and nobody
 knows which assumption went missing.
 
+#### A SECOND BORROWING, RULED 2026-08-28, and it is worse than the first
+
+**Measured on `ls20`: the game does not auto-reset.** It reaches `GAME_OVER` at ~step 128,
+`board()` returns `None`, and it **stays** there. So *same starting board, vary one action*
+needs **something to restart the apparatus** — and `ResetGate` bans the AGENT from doing it.
+
+**RULED: a seat-side restart is legitimate**, for the same reason `arc_run.py` is — *the seat
+sets the run's conditions and the agent does not reach for them.* A harness restarting between
+trials is **the experimenter resetting the apparatus**, which differs in kind from the agent
+calling RESET to farm attempts. **`bounds.py` exists because of the second, not the first.**
+
+> **AND THE COST, ON THE ROW RATHER THAN IMPLICIT: an experiment the agent cannot run alone is
+> not a capability the agent has. ON THE PRIVATE SET NOBODY RESTARTS ANYTHING.** So it is a
+> valid measurement of the world's causal structure and **NOT a mechanism available in a
+> scored run.**
+
+**IT IS STRICTLY MORE BORROWED THAN DETERMINISM.** Determinism is a property the private set
+still has — the gift survives the port. **The restart is a property of the HARNESS, and it
+does not survive it at all.** Two borrowings at the same site, and only one of them travels.
+
 ### And the shadow test, turned on this project's own choice of ARC
 
 `DISCOVERY` Q26 closes the eight-slot contract by applying the framework to its own porting:
@@ -413,7 +433,7 @@ not the number.
 |---|---|
 | **4a** | **six NSM primes** — `DO`, `MOVE`, `HAPPEN`, `IF`, `BEFORE/AFTER`, `FOR SOME TIME` — into the existing basis. **One grammar, not a bolted-on combinator language** (§15.5) |
 | **4b** | routines priced by the **goal residual**, same bargain, one level up |
-| **4c** | **Γ as simulator** — roll forward a candidate routine before committing; depth gated by measured `sim_fidelity` (§0.2) |
+| **4c** ⚠ **NOT BUILDABLE AS WRITTEN** | **`sim_fidelity` as specified violates a hard rule**: *no aggregation across slots; averaging is how a live signal disappears.* §0.2: *a threshold on an average across slots — the construction deleted from `probe.py`* — with the EMA weight and depth schedule both magic numbers. **Needs restating as a predicate before anything builds it.** Three forms have in-repo precedent (existential over slots · deleted because it self-warms · a measured ratio with no cutoff) and **the measured-ratio form has a recorded counterexample**: `arc_lens`'s calibration reads *a true 5-px grid scored 0.818, a spurious 2-px tiling scored 0.946 — **the wrong answer scored higher***, so an argmax over fidelity selects the degenerate view. **Γ as simulator** — roll forward a candidate routine before committing; depth gated by `sim_fidelity` (§0.2) |
 | **4d** | **lag as a priced parameter** — `+log₂(k+1)` bits, tested by the sweep machinery (§19.4) |
 | **4e** | **level-reset as controlled experiment** — same board, vary one action. Deliberate death legal **only with `expect` and `disproof` stated first**; publish the budget fraction spent on it (§21.2) |
 
