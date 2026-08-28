@@ -691,7 +691,7 @@ able to survive it, and that is the argument for the row rather than a reason to
 | the **allocation shape** — *which of two already-built objects owns this responsibility* | 3 | a **fourth, unprompted** |
 | **the seat-scale defect may be the ground being expensive, not a defect** | 1 | a **second arrival** |
 | **a guard whose SUBJECT excludes the thing it guards against** | **1 observed** (+1 predicted) | a **second OBSERVED instance**, not a second instance |
-| **the producer states a distinction AT THE SITE and the consumer discards it** | **1** | a **sixth instance** |
+| **the producer states a distinction AT THE SITE and the consumer discards it** | **2** | a **sixth instance** |
 
 **THE FOURTH ONE, AND ITS COUNT WAS CORRECTED BEFORE IT WAS WRITTEN DOWN.** I claimed *three
 of five* in conversation. **Checked: one of five.** Only `Affordances.profile` states the
@@ -2321,20 +2321,41 @@ the unit set to grow *after* an abstention; it grew once, before them.
 growth after an abstention, and it does not recur. **The sweep is not broken and is not
 disconnected — it is refusing correctly, for a reason it can state.**
 
-### 3 · THE STAGES DO NOT DISTINGUISH THEM, AND IT IS WORSE THAN A COLLAPSE
+### 3 · ⚠ THE IDENTITY FINDING WAS WRONG AND IS WITHDRAWN. The defect is the GLOSS
 
-**The early return increments the branch counter WITHOUT recording the attempt:**
+**WITHDRAWN 2026-08-28, same session, before it was acted on.** I reported
+`sum(reuse_branch) = 7` against `reuse_attempts = 0` as a **violated identity**. It is not.
 
-    self.chain.reuse_branch["no-eligible-target"] += 1   # <- bypasses note_reuse_attempt
-    return
+    Chain.report()["branch_identity_holds"] : True
+    NOT_ATTEMPTS = ("no-eligible-target", "rescan")
 
-    MEASURED:  sum(reuse_branch) = 7      reuse_attempts = 0      IDENTITY VIOLATED
+**`Chain.report` already computes the identity over ATTEMPTS ONLY, and says why beside it:**
+*two keys are bookkeeping, not attempts — **"no-eligible-target" (there was no second task to
+fail on)** and "rescan" (the unit set grew, so the search was re-run). **Both are counted so
+their zeros are measured, and both are excluded from the identity.*** **I summed the counter
+naively and read a violation into a distinction the code had already drawn.**
 
-**The corpus publishes that identity and names the defect it exists to catch:** *the reuse
-funnel charges every attempt to a string literal written at the branch that resolved it,
-publishing `sum(reuse_branch) == reuse_attempts` — so **an attempt with no branch is a defect
-the counter can state.*** **Ours is the mirror: a BRANCH WITH NO ATTEMPT**, and nothing checks
-the identity in either direction.
+> **This is the session's own recurring shape, and this time I am the consumer.** `Objects`
+> stated non-observation ≠ death and was followed. `Affordances` stated `None` ≠ `False` and
+> `_rtype` collapsed it. **`Chain` states attempts ≠ bookkeeping and I collapsed it — then
+> recorded the collapse as a finding and committed it.** The producer wrote the distinction
+> down; the consumer did not read it. **A second instance of the fourth held observation, and
+> it moves that bar from n=1 to n=2.**
+
+**SO `reuse_attempted == False` IS CORRECT BY THE CODE'S OWN DEFINITION** — nothing was
+attempted, because there was no eligible target to attempt against. **The early return is not
+a bypass; it is the documented path for a non-attempt.**
+
+### 3b · WHAT SURVIVES: the LADDER'S GLOSS, and it is still the real defect
+
+**The flag is right and the label's gloss is wrong.** `REUSE_UNWIRED` is glossed ***minted,
+reuse never ATTEMPTED → implementation — LOOP NOT CONNECTED.*** **The loop is connected. It
+ran seven times and refused seven times at a gate, correctly, for a stated reason.**
+
+> **`not attempted` is true. `not connected` is false.** The rung conflates them, and the next
+> rung up is `MINTED_UNUSED` — ***ARCHITECTURE, the only code that indicts*** — so the state
+> sits between a wiring gloss it does not deserve and an architecture verdict it has not
+> earned. **That is still the §22.6 boundary, and the seventh rung is still the fix.**
 
 **THE CONSEQUENCE IS THE STANDING DIAGNOSIS ITSELF.** `seg.reuse_attempted` stays `False`, so
 the ladder can never pass `REUSE_UNWIRED` — which the corpus glosses ***minted, reuse never
