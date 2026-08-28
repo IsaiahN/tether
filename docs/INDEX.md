@@ -626,6 +626,29 @@ evidence in the frame), REACHABILITY (composable from decisions already taken), 
 commitment or a restatement) are **three predicates and all three survive the lift.** The
 bargain is **one inequality and it does not.**
 
+### 2b · BREAK THREE — a second independent frame exists, and it qualifies only intermittently
+
+**The analysis above concludes the corpus is the one derivationally independent frame.** That
+missed one that was operating the whole time: **the ARRANGEMENT — two parties, one proposing
+and one checking.** It met Figure 2's condition **twice in a day, in opposite directions**: a
+class I proposed over four different failures, dissolved by a check; a connection Isaiah
+proposed, held at a link. **Neither was caught by whoever proposed it.**
+
+> **But the property is not *two frames*. It is *two frames DISAGREEING*, and agreement
+> between them is worth exactly what Figure 2 says agreement is worth** — *two frames agreeing
+> tells you about their shared evidence pool, not about the world.*
+
+**AND THE RECORD SAYS SO PLAINLY.** The identity violation, the three-of-five split, the
+reproduce-versus-collide — **all agreements, all wrong.** The two that held were the two where
+one party pushed back. **So the arrangement produced results twice and cannot be relied on,
+because nothing makes either party disagree. It happened; it is not a mechanism.**
+
+**WHICH LEAVES THE SECTION'S HONEST STATE AS TWO FRAMES AND NEITHER SUFFICIENT:** one that is
+independent and **constitutively silent** exactly where a decision needs settling, and one that
+is independent **only when it disagrees**, with nothing to make it. **That is a third break
+point rather than an improvement to the first two** — and it is why the recursion buying
+coherence rather than correctness is the operative clause, not a caveat on it.
+
 ### 3 · THE ENUMERATION IS PARTIALLY AVAILABLE, AND THE REST IS REFUSED
 
 | | |
@@ -2530,6 +2553,68 @@ a new literal that is not listed **starts counting as an ATTEMPT** and breaks
 **Listed rather than prefix-matched**, per the checker law: *exemptions as data, not logic — a
 table can be pinned; logic widens quietly.* A `startswith` test would exempt any literal
 anyone later coined, including one that genuinely is an attempt.
+
+---
+
+# `4c` AND `4e` CHECKED — one has a template and a marked space, one is ready
+
+### `4c` · THE PREDICATE FORM HAS THREE WORKED PRECEDENTS, and the specific one is UNSPECIFIED
+
+**The direction is not a hand-wave — REPAIRS 1 did this conversion three times, and each is a
+different shape:**
+
+| threshold deleted | what replaced it |
+|---|---|
+| `EPS = 0.02` | ***the guard is `any(mass > 0)`, not `mean < eps`*** — an **existential over slots** replacing an aggregate |
+| `WARM = 12` | **deleted outright** — *a predicate warms itself; a fresh model has live mass on its first miss* |
+| the IoU cutoff | `overlap` returns a **RATIO**, and tracking takes **maximum overlap**, so ***nothing needs a cutoff*** — **relative, not absolute** |
+
+**And Q20 is the closest analogue**: it specified *an error EMA fallen to ~0 with enough
+observations*, and the build uses **a single-step predicate**, because *REPAIRS 1 removed the
+EMA for aggregating across slots.* **`sim_fidelity` is that same construction, unconverted.**
+
+**WHAT THE CORPUS DOES NOT SAY IS WHICH.** The three precedents give three forms — existential
+over slots, delete-because-it-self-corrects, or relative-so-no-cutoff — and *depth grows as
+fidelity rises* would become a **reading** under any of them (§20.4's surviving proposal:
+*end the epoch when the agent stops learning, not at a fixed count*). **The form is specified,
+the choice is not. A marked design space, and it goes to Isaiah rather than getting invented.**
+
+**AND THE REASON NOT TO LEAVE THE ROW AS IT STANDS** is the `_bindings` shape exactly: **a line
+that reads as buildable and is not, which nobody re-reads.** The row currently specifies a
+construction that violates a hard rule — *no aggregation across slots; averaging is how a live
+signal disappears* — and reads as a spec.
+
+### `4e` · READY, and the deferred gate check's subject arrives with it
+
+**Determinism is a domain property and `ls20` is playable locally**, so the controlled
+experiment is available: same board, vary one action, read the difference. **§21.1 calls it
+the only place in the loop a controlled experiment exists.**
+
+**And §21.2's discriminator is BUILT, not owed.** `disproof` records `{live, splits,
+refuted_at_least, by}` and **varies 40–71 across 74 rows** — so it distinguishes a well-chosen
+discriminating action from a poor one. §21.2's two discriminators both hold: **the mechanism**
+(`ResetGate` bans the *agent* calling RESET; a game-inflicted restart is the world's own rule)
+and **the intent** (hypothesis and disproof stated *before* the action).
+
+> **THE CHECK THAT WAS DEFERRED SHIPS WITH THIS ITEM.** The index already records it: *a gate
+> check over `disproof` — the field exists; no check reads it*, deferred *when deliberate
+> death does, which is where its subject comes from.* **`4e` IS that arrival**, so the check
+> ships with `4e` rather than staying deferred — and a control that examines nothing cannot
+> demonstrate a clean state.
+
+**Plus the number §21.2 names to publish beside it: *what fraction of the action budget went
+to deliberate deaths. If that is 40%, someone should see it rather than infer it.***
+
+### WHAT THE TWO CHECKS TOUCH
+
+| | |
+|---|---|
+| **held observations** | **none of the four.** Neither item bears on them |
+| **panel defects** | **the single type node — `4c` only, and indirectly**: a predicate over slots needs slots that differ, and `ls20` supplies 105. **Not the toy world** |
+| **outstanding rows** | **`4e` closes one**: the deferred `disproof` gate check. **`4c` closes none and opens a ruling** |
+| **`REUSE_UNWIRED`** | untouched by both |
+
+**NOT BUILT. One ruling owed on `4c`: which predicate form. `4e` needs no ruling.**
 
 ---
 
