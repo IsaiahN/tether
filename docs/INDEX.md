@@ -2099,7 +2099,7 @@ interface decision about the eight-member contract**, and it is the only structu
 | **conditions** | **yes** — the action set plus the precondition lattice (§16.1, *at most seven booleans, no pixels involved*) |
 | **relations** | **yes** — contact, containment, precondition, correlate-with-my-action |
 | **rank by cascade** | **orders on distance outward from the residual** |
-| **when to stop** | **NOT SPECIFIED.** *"until the cascade stops mattering"* is unquantified |
+| **when to stop** | **DECLARED PRAGMATIC, not unspecified** — see below. The figure says so in its own words, and the loop has no convergence criterion by construction |
 
 **And the bad regions are already marked, which is what makes it a decision rather than a
 guess:** a **fixed depth** is an invented number; **everything** is inventing the list again,
@@ -2146,7 +2146,32 @@ third is a reading taken below the break.***
 | **`REUSE_UNWIRED`** | **NO.** §16.5 does not touch reuse. The standing diagnosis is unaffected |
 | `never_live` · the reuse term · the visible set's unverified structure · step 7 · justified≠enumerable | **no** |
 
-**NOT BUILT. One decision is owed first: the stopping rule.**
+### THE STOPPING RULE — the corpus DECLARES it rather than leaving it open
+
+**Filed above as *NOT SPECIFIED*. That was wrong, and the sixth law found it:**
+
+> `PHILOSOPHY` §16: *the enumeration runs "outward until the cascade stops mattering", **which
+> is a pragmatic bound and says so**.* · `THE_FORMULA`: *that bound is pragmatic, **never a
+> completeness claim**.* · **Step 8: *the loop has no convergence criterion by construction*.**
+
+**So the requirement is not to FIND a principled rule — it is to DECLARE whatever rule as
+pragmatic and never let it read as completeness.** The bad regions stay marked (a fixed depth
+is an invented number; *everything* is inventing the list), **and the honest part was already
+fixed: the reporting, not the rule.**
+
+**Two candidate forms, both derived and neither recommended — the choice is Isaiah's:**
+
+| candidate | form | precedent |
+|---|---|---|
+| **no new relation TYPE in the next ring** | a property of the world, read rather than set | **the IoU threshold dissolving into *match by maximum overlap*** — the same move, and the threshold had *no recorded basis*, which was the ANCHOR problem |
+| **the ring stops paying** — no new residual recorded | a reading rather than a setting, in the loop's own currency | **§20.4's surviving proposal**: *end the epoch when the agent stops learning, not at a fixed count* — **a game still surprising you gets more actions because it is still paying** |
+
+**They differ in what they read.** The first stops on **type novelty** and is closer to *read
+it off the world*; the second stops on **residual yield** and is closer to the loop's existing
+accounting. **Both are pragmatic and must say so on the row that reports them.**
+
+**NOT BUILT. The stopping rule is the one decision owed, and its FORM is freer than the check
+first suggested while its REPORTING is fixed by the corpus.**
 
 ---
 
