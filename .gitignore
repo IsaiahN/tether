@@ -9,3 +9,10 @@ docs/deps.svg
 
 # working documents -- local only, not published
 docs/example
+
+# Game content, downloaded by `arc_agi`'s NORMAL mode into `environments_dir`.
+# BEFORE THE FIRST DOWNLOAD, WHICH IS THE ONLY TIME IT IS FREE. This repo is public and the
+# files are not ours to redistribute -- and the second firewall's real work starts here: the
+# seat may read them, the agent may read only the frame.
+environment_files/
+recordings/
