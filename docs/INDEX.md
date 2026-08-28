@@ -3218,6 +3218,138 @@ terms fired the held-out test and survived it.
 
 ---
 
+# THE THIRD-STATE RULE — eight sites, enumerated, and ONE place it is violated
+
+**The count was being carried in conversation and not in the record** — *seventh site*, *eighth
+site*, quoted three times and enumerated nowhere. **Which is the assertion class exactly: a
+claim about state, load-bearing, recorded nowhere as a claim.** Checked, and it holds:
+
+| site | the two states that are not one |
+|---|---|
+| `sensors.NOT_RESOLVED` | a value · **never read** |
+| `Affordances.profile` | `None` ≠ `False` — *for the same reason `unreached` is kept distinct from `unreachable`* |
+| `habitat._rtype` | `contact:unobserved` (reader present, never seen) ≠ `contact:inert` (**read**, affords nothing) |
+| `tether.sweep` | `no-targets` (nothing supplied) ≠ `none-stale` (**the condition legitimately holds**) |
+| `arc_world.blind` | cannot see ≠ nothing there |
+| `tether._cause` | `CHANNEL_CLOSED` — owes and read zero ≠ **predicted right** |
+| `behaviour.no_delivery` | did not deliver ≠ **held** |
+| `gate` | `unreached` ≠ `unreachable` — stopped looking ≠ proved absent |
+
+**EIGHT WHERE THE RULE IS APPLIED. ONE WHERE IT IS NOT:** `Standing.refute()` sets
+`settled_at = None`, collapsing *held-then-failed* into *never-held*. **The defect stands alone
+against eight instances of the same rule**, which is a stronger case for repairing it than any
+argument about the rule.
+
+**AND THE `no_delivery` ONE WOULD HAVE BEEN THE MOST EXPENSIVE.** Counting a `channel_closed`
+zero as a hold **inflates the exact number the staleness disposition reads** — *a term that
+stopped being tried would have read as a term that keeps working.* **Least visible, in the
+field that measures holding.**
+
+**The sites were always in the code. The COUNT was in the conversation** — and that is the
+distinction the assertion register exists to make.
+
+---
+
+# SPLITTING — CHECKED. The clause IS in the corpus, and the trigger's input is DISCARDED
+
+### ⚠ CORRECTION FIRST: I SAID IT WAS NOT THERE
+
+When *split before search* was raised earlier I reported ***that phrasing does not appear in
+any document I have***. **It does — `THE_FORMULA` step 7.** I searched `ARC_AGENT` and
+`PHILOSOPHY` for *Figure 9* and never searched `THE_FORMULA` for the words. **A search for the
+citation, not for the content**, which is the familiarity inversion the sixth law names.
+
+### 1 · AND IT IS RICHER THAN THE SUMMARY IN THREE WAYS
+
+> *IS THERE A FACT HERE? Disagreements that do not shrink with effort, **where each rule keeps
+> working well on a different subset**, are not one hard question but several well-formed ones.
+> Split rather than search. **And when the split lands on a union rather than a partition,
+> unbundle before searching again.*** · *THEN it is two questions, not one, and **their
+> instruments are opposed. Never read one against the other.***
+
+| the summary | what step 7 adds |
+|---|---|
+| *does not shrink with effort* | **and each rule works well on a DIFFERENT SUBSET** — the trigger is competitive, not just flat |
+| — | **unbundle when the split lands on a union rather than a partition** — a second operation |
+| — | **the output is INWARD / OUTWARD, and their instruments are OPPOSED** |
+
+### 2 · THE OUTPUT IS NEITHER RESIDUALS NOR GOALS — it is a fork between two REMEDIES
+
+    INWARD   is our representation adequate to hold it?  Extend the instrument.
+    OUTWARD  does another frame already hold it?  IMPORT.
+
+**So §16.7's trap is not the falsifier here** — step 7 emits a **routing decision**, and
+emitting a goal would be the trap, but the nearer failure is Figure 9's: *some unreachability
+is depth and some is genuine absence, and **from inside the frame the two look the same***. **A
+split that concludes OUTWARD has made a claim about absence the frame cannot make.**
+
+### 3 · NEAR-DECOMPOSABILITY ALREADY LICENSED A SPLIT, AND IT IS SPENT
+
+§12.1 files it under **ALREADY THE LOOP**: *near-decomposability — **the licence for per-slot at
+all.** Simon 1962, and it is already the ground under `perception.py`.* **The world factoring
+into sparsely interacting parts is why `R` is indexed per slot.** So it does not license
+splitting a search; **it licensed the split the architecture already has**, and adding it again
+would duplicate the loop inside the loop.
+
+### 4 · THE TRIGGER'S QUANTITY EXISTS AND IS DESTROYED BY A SUM
+
+**`_left(term, slot, hist)` returns a FLOAT** — it loops the history accumulating bits and
+returns the total. **The trigger needs *which observations each candidate got right*, and the
+sum is exactly what destroys that.**
+
+> **Two candidates each explaining a different subset is INVISIBLE to a scalar.** `_left` is
+> computed per candidate on every mint and thrown away, so the split's input is produced and
+> discarded on every cycle.
+
+**Which is the day's shape once more: an aggregate hiding the structure the mechanism needs.**
+The repair is small — `_left` returning the mask alongside the total — **and it is a
+precondition rather than the mechanism.**
+
+**And the loop's existing responses are all *one hard question*:** abstain, park, search
+deeper. ***None of them is "this is not one question."***
+
+**NOT BUILT.**
+
+---
+
+# THE READER'S FIRST READING WAS 95% DEFAULT BINDING — and the cause is a NINTH site
+
+    idn      held-then-stopped        104   |   minted   held-then-stopped     6
+    idn      never-held                 9   |   minted   never-held           12
+    idn      closed-once-then-failed    2   |   minted   never-called          1
+
+**`held-then-stopped: 110` would have been quoted as *the room invalidated 110 things*.**
+**104 of them are `idn`** — and `idn`'s whole track record is *the slot was static, then it
+moved*, which is a fact about slots rather than about terms.
+
+### THE REAL READING IS 19 PAIRS, AND IT BEARS ON THE 42%
+
+**6 held-then-stopped** — genuine staleness, on terms that could carry it. **12 never held at
+all**, of 19 minted pairs. *A term that closed once and never held again is visibly different
+from one that keeps holding*, and **most minted pairs are in the first group.**
+
+### AND THE CAUSE IS A NINTH TWO-STATE SITE, IN THE ROW ITSELF
+
+    bound=self.bound.get(s, IDN)
+
+**The bet row writes `IDN` both when `idn` IS the bound term and when NOTHING is bound.** So
+the record cannot separate ***a hypothesis that this slot does not change*** from ***no
+hypothesis at all*** — and 104 pairs are the second wearing the first's name.
+
+> **`_predict` falling back to `IDN` is correct** — the loop must predict something. **Writing
+> that fallback to the ledger as if it were a binding is not.** The prediction needs a default;
+> **the record needs the difference.**
+
+**Ninth site, and the first one found IN A LEDGER ROW rather than in code that reads one** —
+which is why it contaminated a reading built to be careful about exactly this. **The reader
+counts three states correctly and the row it reads only has two.**
+
+**AND IT IS NOT THE READER'S TO FIX.** Excluding `idn` in `behaviour.py` would paper over a
+record that cannot express the distinction — **the repair belongs at the write, and changing
+what a bet row carries is a record-format decision rather than a patch.**
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**

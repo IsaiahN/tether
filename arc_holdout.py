@@ -26,6 +26,7 @@ import arc_atoms
 import arc_percept
 import arc_predict
 import arc_run
+import behaviour
 import experiment
 import gamma
 import gate
@@ -128,6 +129,9 @@ def play(game: str = "ls20", cycles: int = 40) -> dict:
         "events": dict(collections.Counter(r["event"] for r in rows)),
         "habitat": hab.report() if hab else "no residual to seed from",
         "habitat_residuals": len(hab.residuals()) if hab else 0,
+        # what the terms have DONE, per (term, slot), read from the ledger rather than
+        # accumulated on the term -- the events were always there and nothing asked.
+        "behaviour": behaviour.report(rows),
         "affordance_kinds": aff.report()["kinds"],
         "endings": dict(endings),
         # §21.2's number, published rather than inferred: *if that is 40%, someone should
