@@ -3657,7 +3657,44 @@ node is **not verified here**, and the structural possibility is stated rather t
 > Adding verbs to a graph with a conflated node compounds it — and **the node is the one
 > `QUANTIFY` produces, which is exactly where routines attach.**
 
-**NOT BUILT. `4a` needs a type decision, and the type set needs a defect fixed first.**
+### 3 · λ SURVIVES THE SPLIT — and checking that found λ ITSELF IS WRONG
+
+**Measured in memory, without building the split:**
+
+    conflated (as built)   V=14  lambda=3.0  types=4   depth-4 crossings=225
+    OBJ split              V=14  lambda=3.0  types=5   depth-4 crossings=0
+
+**So the Stage 1 answer stands** — and the reason it stands is not the reassuring one.
+
+    TRUE spectral radius : 3.5569        the 3-cycle (5*3*3)^(1/3) = 3.5569
+    type_report reports  : 3.0000
+
+**`type_report` NORMALISES BY MAX-NORM, AND POWER ITERATION DOES NOT CONVERGE ON A PERIODIC
+MATRIX.** The conflated graph is a **3-cycle** `OBJ→ATTR→PRED→OBJ` (period 3) **plus an
+aperiodic `val` self-loop** — so the iterate oscillates on the cyclic block and the reported
+value settles on the self-loop's 3.0. **The missing 0.557 is exactly the cycle.**
+
+**AND THIS IS THE QUANTITY THE STAGE 1 FALSIFIER WAS ANSWERED WITH.** `CLAUDE.md`'s citation
+table names it exactly: *typing beats size, as a number — **spectral radius** of the type
+transfer matrix, standard analytic combinatorics.* **The specified instrument is the spectral
+radius; the implementation computes something else whenever the graph has a cycle.**
+
+> **THE CONCLUSION SURVIVES AND THE NUMBER DOES NOT.** `λ < V` reads 3.0 < 14 and 3.56 < 14 —
+> **`3b`'s finding holds.** But *the falsifier stopped firing for the first time in the
+> project's life* was reported with a number that is wrong on the graph it was measured over.
+
+**AND THE SPLIT REPAIRS IT AS A SIDE EFFECT.** With the cycle broken, the matrix is acyclic
+plus one self-loop, power iteration converges, **and 3.0 is then correct.** So the `OBJ` split
+buys two things: **225 meaningless pipelines removed, and λ made computable.** A much stronger
+case than *the types are conflated*.
+
+**AND THE λ DEFECT IS SEPARABLE AND SHOULD BE FIXED ANYWAY.** The split removes *this* cycle;
+**`4a`'s own primes could reintroduce one** — `When(PRED, ROUTINE) → ROUTINE` with any routine
+producing a `PRED` closes a loop. **A λ that is silently wrong on cyclic graphs is a defect in
+the instrument, not in this graph.**
+
+**NOT BUILT. `4a` is three parts in order — split `OBJ`, add ACTION and ROUTINE, then the
+primes — and λ's computation is a fourth, separable, and upstream of trusting any of them.**
 
 ---
 
