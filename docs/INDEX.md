@@ -2175,6 +2175,65 @@ first suggested while its REPORTING is fixed by the corpus.**
 
 ---
 
+# §16.5 — BUILT 2026-08-27. **The first residual produced without a bet being wrong**
+
+`habitat.py`, seeded from the residual as Figure 11 specifies, run on `ls20`:
+
+    seed o10 (the slot carrying the most unexplained mass)
+    2 rings · 3 actors · 8 relations · types ['contact']
+    stopped_at_ring 2 -- "no new relation type in ring 3"
+    residuals_emitted 8        goals_emitted 0
+
+**EIGHT RESIDUALS FROM STRUCTURE, WITH NO BET HAVING BEEN WRONG.** That is the closed door
+opening, and it opens **from the side the check predicted**: not by making relations bettable,
+but by making the **inability to represent them** the thing recorded. *What you cannot perceive
+or measure yet is the residual*, mechanised.
+
+### THE FALSIFIER HELD, AND IT WAS STATED FIRST
+
+**§16.7's trap: *a module that jumps to the third is a reading taken below the break.*** The
+report carries **`goals_emitted: 0`** as a standing field — not because zero is expected, but
+because **the moment it is non-zero this is objective abduction wearing a perception layer's
+name**, and `abduced=[]` on most games is the measured record of where that ends. **Stated
+before the first run rather than discovered after.**
+
+### ONE RELATION OF FOUR, AND THE OTHER THREE ARE REPORTED
+
+| §16.5's relation | disposition |
+|---|---|
+| **contact** | **built** — sensor 8, Tier 1, and it finally has a consumer |
+| **containment** | **NOT hardcoded.** §12.3 lists it with *symmetry, holes, counting-by-colour* as **Tier 2**, composing from the nine, and *the agent should have to reach for them*. **Hardcoding it deletes the evidence the composition system works** — the same rule that forbids loading it |
+| **precondition** · **correlate-with-my-action** | **loop-side.** §16.1's lattice and the action history are not perception's to compute |
+
+**Same shape as the atoms this afternoon: the corpus names four, one is available, the rest are
+reported rather than substituted.**
+
+### THE STOP IS PRAGMATIC, SAYS SO, AND LEAVES A TRACE
+
+Ruled: **no new relation type in the next ring** — a property of the world, read rather than
+set, the same move as the IoU threshold dissolving into match-by-maximum-overlap. **And the
+report carries the types seen and the ring at which the set stopped growing**, so the stop is
+auditable from the record rather than only correct in the moment — the one thing the
+type-novelty rule lacked on its own.
+
+**Declared pragmatic in the output itself**, per `PHILOSOPHY` §16's *a pragmatic bound and says
+so* and `THE_FORMULA`'s *never a completeness claim.* **No maximum-rings parameter**: the
+object set is finite, so the cascade terminates without an invented number.
+
+### AND ONE TYPE IS ALL THE PANEL DISCRIMINATES, SO THE RULE STOPS AT RING 2 BY CONSTRUCTION
+
+`types: ['contact']`. **The relation type is contact QUALIFIED BY THE CONTACTED OBJECT'S
+AFFORDANCE PROFILE** — §16.5's actors column is *objects, **with affordance profiles***, so the
+profile is part of the habitat rather than an addition. **With no affordance reader wired the
+type is bare `contact`, one type, and any ring after the first adds none.**
+
+**`Affordances` is built and fixture-only**, so wiring it is what gives the stopping rule
+something to discriminate. **Recorded rather than worked around**: the rule is not inert, the
+panel is one-dimensional, and that is the fourth time this session — after the type node, the
+reuse funnel, and the seat-scale case.
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**

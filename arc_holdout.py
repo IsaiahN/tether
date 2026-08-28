@@ -26,6 +26,7 @@ import arc_predict
 import arc_run
 import gamma
 import gate
+import habitat
 import ledger
 import tether
 from arc_world import ArcWorld
@@ -60,6 +61,16 @@ def play(game: str = "ls20", cycles: int = 40) -> dict:
 
     rows = led.rows()
     g = ag.gamma
+
+    # §16.5. SEEDED FROM THE RESIDUAL, which is what Figure 11 says: *everything in contact
+    # with the residual*, not with an arbitrary object. The slot carrying the most
+    # unexplained mass names its object, and the cascade runs outward from there.
+    tracked = getattr(ag.env, "_decompose", None)
+    objs = dict(getattr(tracked, "tracked", {}) or {})
+    worst = max(ag._last_mass, key=ag._last_mass.get, default=None) if ag._last_mass else None
+    hab = None
+    if worst and objs:
+        hab = habitat.enumerate_from(objs, worst.split(".")[0])
     return {
         "game": game, "board": list(getattr(board, "shape", (len(board), len(board[0])))),
         "palette": palette, "slots": len(env.slots()), "blind": env.blind,
@@ -74,6 +85,8 @@ def play(game: str = "ls20", cycles: int = 40) -> dict:
         "lambda": g.type_report(), "atoms": len(g.atoms),
         "unexpressible": arc_predict.unexpressible(),
         "events": dict(collections.Counter(r["event"] for r in rows)),
+        "habitat": hab.report() if hab else "no residual to seed from",
+        "habitat_residuals": len(hab.residuals()) if hab else 0,
     }
 
 
