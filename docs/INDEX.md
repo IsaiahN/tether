@@ -3099,6 +3099,74 @@ day. **Corrected before it was carried.
 
 ---
 
+# THE STALE LIBRARY AND THE ROUTINE'S PRICE — three checks, three different answers
+
+### 1 · THE DISPOSITION IS §21.4, AND ITS DECAY HALF WAS BUILT AND WITHDRAWN
+
+**§21.4 rules it already:** *a completion is simultaneously a settle and a regime-change
+warning* — **credit** the hypotheses live at completion, **and** *ARC-AGI-3 changes mechanics
+between levels, so **do not trust them in the next level until RE-TESTED***. *Crediting without
+the decay is the incumbency pathology; decaying without the credit throws away the only
+positive evidence there is.*
+
+**And *re-tested* is the staleness test, by name.**
+
+**BUT THE DECAY HALF WAS BUILT, MEASURED ON TWO PANELS, AND WITHDRAWN** — `tether.py` carries
+the record: *reverting unpromoted terms to candidate at a boundary cost opportunity, uptake and
+carried in both, with nothing measurable bought; the rate difference was 1.3 SE.*
+
+> **AND THE WITHDRAWAL'S DIAGNOSIS IS THE ARGUMENT FOR THE NEW PROPOSAL.** *Settled-ness was
+> never the property that separates a mechanism from a term that closed a slice — all ten wrong
+> terms in the false-mint read fired the held-out test and survived it — so **gating a boundary
+> on it removed good terms along with bad.*** The revert was a **blanket** disposition on the
+> **wrong gate.**
+
+**The staleness test is a different gate: a per-term OBSERVED failure, not a boundary sweep.**
+*The terms that fail name themselves*, so upsert/caveat/re-derive apply to a named set rather
+than to the library. **That is what the withdrawal asked for in its own words** — *`promote`
+remains and still records ... worth keeping observable **for whatever gates on it next***.
+
+### 2 · AND NO, A FAILURE CANNOT BE ATTRIBUTED TODAY. The field is small and absent
+
+**`Standing.refute()` sets `settled_at = None`.** So after a refutation:
+
+    a term that settled at tick 40 and failed at 90   ->  settled_at None, rejections 1
+    a term that never settled and failed              ->  settled_at None, rejections 1
+
+**Identical records.** *Held before, fails now* and *never held here* are the same row — **which
+is the two-state collapse again, in the field the mechanism would read.**
+
+**The nearest thing that exists is `_settled_at_level`**, the segment's starting line, used once
+to compute `settled_here` in the retarget row. **It is overwritten at every boundary and queried
+by nothing**, so the history exists for exactly one level and is then gone.
+
+### 3 · THE CORPUS PRICES ROUTINES IN BITS, AND MARKS IT SETTLED — so that governs
+
+> `DISCOVERY` **Q21 — *is `R_goal` measurable* — SETTLED: yes, `1 − degree(molecule)`, **priced
+> by the same MDL one level up***. · `ARC_AGENT`: *ACT | routine | Seq/When/Until | a goal
+> residual no routine closes* — **demonstrated by pricing a quantified objective with the same
+> two-part MDL one level up.**
+
+**AND THE OBJECTION ADDRESSES ONLY THE FIRST TERM.** *Move left then press* and *move left three
+times then press* are not separated by description length — **true, and the bargain is
+TWO-part.** What separates them is `|R|φ|`: **the wrong routine leaves the goal residual
+unexplained and fails the second term.** Description length alone was never the test.
+
+**BUT THE ACTION COST IS GENUINELY UNCOUNTED, AND THAT PART IS NOT A CORRECTION — IT IS A
+GAP.** *Every step is one of 500, non-refundable, accruing*; a three-step routine costs three
+actions **to find out about**, whether or not it pays. **Nothing prices that.** The bits budget
+measures what a routine EXPLAINS; the action budget measures what trying it COSTS, and the
+corpus prices the first and nothing prices the second.
+
+> **So the two do not dissolve into one question — they are two budgets.** Routines compete
+> with terms for BITS (Q21, settled) and with probes for ACTIONS (unpriced). *What does this
+> buy given what I am currently trying to do* is `disproof`'s form pointed at the second
+> budget, **and the second budget has no accounting at all.**
+
+**NOT BUILT. Three checks, and the third is the one that opens something.**
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
