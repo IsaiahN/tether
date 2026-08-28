@@ -714,8 +714,16 @@ subtlety missed, the thing it consumes unread.**
 
 **And the check it implies is a READ rather than an analysis**: *what states does this output
 distinguish*, answerable from the producer's own docstring, **local to one call site.** That
-locality is what separates it from the general form — and **at n=1 it is an observation, not a
+locality is what separates it from the general form — and **at n=2 it is an observation, not a
 rule.**
+
+**A LINK, NOT A NARROWING.** The `REUSE_UNWIRED` collision has the same shape one level out —
+**a rule whose SUBJECT excludes what it guards against, arriving as a RECORD whose FIELDS
+exclude what a reading needs.** *Guard's subject* and *schema's expressiveness* are different
+layers, and **the connection being exact is not evidence: two things having the same shape is
+what a resemblance looks like from inside.** **Third instance before either is narrowed
+against the other** — the same restraint the four-classes correction required this morning,
+and the second time today it has been applied to a pattern proposed from a resemblance.
 
 **A NINTH INSTANCE, AND IT IS A DIFFERENT AND MORE EXPENSIVE CLASS: A CORRECT CITATION
 ATTACHED TO CODE THAT DOES THE OPPOSITE.** A6i is two meanings under one word. **This is one
@@ -2484,6 +2492,22 @@ was skipped — it is a distinction that did not exist to be read**, which is a 
 category from every other failure recorded today and the only honest thing to file it as.
 **The fix and the diagnosis of the misreading arrived together, because the fix is what made
 the misreading visible.**
+
+> **THE BOUNDARY, STATED GENERALLY: a record that cannot express a distinction will read as
+> agreement no matter how carefully it is read.** So the section check's coverage is bounded
+> by **the record's expressiveness**, not by the reader's care — and that is the first limit
+> anyone has put on a check that has otherwise paid on every item.
+
+**AND THE INSTRUMENT THAT ADDRESSES IT IS A DIFFERENT ONE, not a refinement.** The section
+check reads **what a record says**; this asks **what the record's fields are incapable of
+saying** — ***what could this record not distinguish***. Different subject, different
+question, **and answerable without a run**, which makes it a standing sweep rather than an
+investigation. **It is the nulls sweep pointed at the SCHEMA rather than at the values.**
+
+**ITS OWN LIMIT, STATED WITH IT:** it can only ask about **fields that exist.** A distinction
+nobody thought to have a field for is invisible to it too — **the same regress the checker
+laws hit, and it stops in the same place: a person asking *what am I not able to tell
+apart*.** Recorded as bounded rather than as a solution.
 
 ### 5 · BUILT — the refusal now names its condition, and the two panels differ
 
