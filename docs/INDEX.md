@@ -2074,6 +2074,82 @@ reason**, and it is worth stating on the row before anyone builds one.
 
 ---
 
+# §16.5 CHECKED BEFORE BUILDING — three questions, and the corpus answers all three
+
+### Q1 · BUILDABLE — and it does NOT need `0a`'s arity. The park stays parked
+
+**The relations in §16.5 are consumed in TRAVERSAL, not bet on.** *List everything in contact
+with the residual, then what is in contact with those, and outward* — the contact edge is
+**walked**, and the output is an ordered list of ACTORS. **Binding one operand from that list
+is still arity 1.**
+
+> **So `0a`'s trigger — *an atom that consumes past index 0* — stays unfired.** §16.5 is
+> **parallel to the arity park, not downstream of it**, and the 13×-for-zero-capability
+> argument is untouched. **The closed door is not the same door as `0a`.**
+
+**What it DOES require is one channel opened**: contact must become visible to the loop, which
+today sees `slots()` → names and `observe()` → name→int and nothing else. **That is an
+interface decision about the eight-member contract**, and it is the only structural cost.
+
+### Q2 · MOSTLY SPECIFIED. The STOPPING RULE is the design space, and it comes to Isaiah
+
+| habitat column | specified? |
+|---|---|
+| **actors** | **yes** — objects **with affordance profiles**, and §16.4 fixes the vocabulary: *blocks · passes · moves-when-touched · changes-on-touch · triggers-remote*, **read by behaviour under contact, never by substance** |
+| **conditions** | **yes** — the action set plus the precondition lattice (§16.1, *at most seven booleans, no pixels involved*) |
+| **relations** | **yes** — contact, containment, precondition, correlate-with-my-action |
+| **rank by cascade** | **orders on distance outward from the residual** |
+| **when to stop** | **NOT SPECIFIED.** *"until the cascade stops mattering"* is unquantified |
+
+**And the bad regions are already marked, which is what makes it a decision rather than a
+guess:** a **fixed depth** is an invented number; **everything** is inventing the list again,
+which is the defect §16.5 exists to name. **Neither is available, and nothing in between is
+specified.**
+
+### Q3 · IT PRODUCES A RESIDUAL. That is the door opening
+
+**The corpus already flagged the clause as settling this** — *the clause that settles the
+direction question outright*:
+
+> ***What you cannot perceive or measure yet IS the residual.***
+
+**And the mechanism is immediate rather than subtle: the habitat's third column is RELATIONS,
+and no relation has a slot.** So enumerating the habitat **produces, on the first pass, a set
+of things the agent can see and cannot represent** — and each is a residual by that clause.
+**That is exactly the route from structural observation to recorded residual**, and it does not
+wait for a bet to be wrong.
+
+**If it only ordered a search it would be Figure 11's ranking half alone** — which is what
+`_bindings` does today, badly, and calls contact ranking.
+
+### A FOURTH CONSTRAINT THE QUESTIONS DID NOT ASK FOR, AND IT BOUNDS THE BUILD
+
+**§16.7's trap.** *"Building a case for what it believes to be true about its purpose"* is
+objective abduction, and **the measured history is `abduced=[]` on most games.** The corpus's
+fix: *discovering the objective = **minting the φ that explains the residual***, on Figure 3's
+ordering — **perception, then vocabulary, then objective** — and ***a module that jumps to the
+third is a reading taken below the break.***
+
+> **So §16.5 is a PERCEPTION-LAYER enumeration that emits RESIDUALS. The moment it emits
+> GOALS it is the trap, and the trap is where every prior attempt died.**
+
+### WHICH OUTSTANDING ITEMS THE CHECK TOUCHES
+
+| item | touched? |
+|---|---|
+| **contact ranking** (withdrawn) | **yes — §16.5 IS what it was owed** |
+| **B12 `NO-BEHAVIOUR`** | **yes** — *enumerated, never composed* is B12's own wording; the check becomes runnable |
+| **the interface question** | **yes** — same mechanism, per the plan's own unification |
+| **`touching` built and unused** · **`Affordances` fixture-only** | **yes** — both get their first consumer |
+| **the closed door** | **this is what opens it** |
+| **`0a` arity** | **NO. Parallel, and the park's trigger stays unfired** |
+| **`REUSE_UNWIRED`** | **NO.** §16.5 does not touch reuse. The standing diagnosis is unaffected |
+| `never_live` · the reuse term · the visible set's unverified structure · step 7 · justified≠enumerable | **no** |
+
+**NOT BUILT. One decision is owed first: the stopping rule.**
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
