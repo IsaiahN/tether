@@ -154,3 +154,29 @@ if __name__ == "__main__":
     for fn in fns:
         fn()
     print(f"{len(fns)} gate checks pass")
+
+
+def test_undeclared_death():
+    """A CHOSEN death with no disproof is farming wearing an experiment's word (§21.2)."""
+    r = valid()
+    r.append({"mode": "specified", "seq": 5, "cycle": 1, "step": "IMPORT", "slot": "@loop",
+              "event": "ending", "detail": {"how": "death", "deliberate": True}})
+    _refuses(r, gate.UNDECLARED_DEATH)
+
+
+def test_declared_death_passes():
+    """The same death WITH its disproof stated is the experiment §21.2 licenses."""
+    r = valid()
+    r.append({"mode": "specified", "seq": 5, "cycle": 1, "step": "IMPORT", "slot": "@loop",
+              "event": "ending",
+              "detail": {"how": "death", "deliberate": True,
+                         "disproof": {"live": 40, "splits": 3, "refuted_at_least": 12}}})
+    assert gate.check(r)["verdict"] == gate.PASS
+
+
+def test_world_inflicted_death_is_not_the_subject():
+    """An UNCHOSEN death is not a bypass of anything, so declaring it would be theatre."""
+    r = valid()
+    r.append({"mode": "specified", "seq": 5, "cycle": 1, "step": "IMPORT", "slot": "@loop",
+              "event": "ending", "detail": {"how": "death"}})
+    assert gate.check(r)["verdict"] == gate.PASS

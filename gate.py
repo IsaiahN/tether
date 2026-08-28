@@ -31,6 +31,7 @@ NO_MODE = "no-mode"
 FILTER_VERDICT = "filter-verdict"
 IRREVERSIBLE_CUT = "irreversible-cut"
 UNREACHED_UNMEASURED = "unreached-unmeasured"
+UNDECLARED_DEATH = "undeclared-death"
 
 STEPS = ("PERCEIVE", "ROUTE", "MINT", "ACCEPT", "SETTLE", "PROMOTE", "IMPORT", "REPEAT")
 MODES = ("general", "specified", "grounded")
@@ -47,7 +48,7 @@ def _v(check: str, token: str, seq: int | None = None, note: str = "") -> dict:
 def check(rows: list[dict]) -> dict:
     """Returns {"verdict": pass|refuse, ...}. The FIRST refusal is the named one."""
     for fn in (_mode, _steps, _inputs, _routing, _guards, _settlement, _filters, _cuts,
-               _unreached):
+               _unreached, _experiment):
         out = fn(rows)
         if out is not None:
             return out
@@ -196,6 +197,37 @@ def _unreached(rows: list[dict]) -> dict | None:
                 return _v("unreached", UNREACHED_UNMEASURED, r.get("seq"))
             if d.get("units") is None or d.get("depth") is None:
                 return _v("unreached", UNREACHED_UNMEASURED, r.get("seq"))
+    return None
+
+
+def _experiment(rows: list[dict]) -> dict | None:
+    """10. A DELIBERATE death states its disproof BEFORE the action. §21.2's discriminator.
+
+    *If a death costs actions and returns you to a known board, choosing to die is a way of
+    buying an experiment* -- **and it is one step from farming**, which this project has
+    already been burned by: `bounds.py` exists because *the Redux harness once force-RESET on
+    GAME_OVER to farm ~18 unearned attempts*. §21.2 keeps them apart with two checkable
+    things, and this is the second: *an experiment states its hypothesis AND ITS DISPROOF
+    BEFORE the action; farming states nothing and just wants the board back.*
+
+    **ONLY A DEATH THE AGENT CHOSE IS IN SCOPE.** A world-inflicted GAME_OVER is not a bypass
+    of anything and declaring it would be theatre, so the check reads `deliberate` -- which
+    the loop sets only when it acted FOR the ending. **A death with no such mark is not
+    examined**, and that exemption is data on the row rather than logic here.
+
+    The first check whose subject arrives with the item that needed it: before deliberate
+    death exists there is nothing to examine, and a control that examines nothing cannot
+    demonstrate a clean state.
+    """
+    for r in rows:
+        d = r.get("detail", {})
+        if r.get("event") != "ending" or d.get("how") != "death":
+            continue
+        if not d.get("deliberate"):
+            continue                      # world-inflicted: not this check's subject
+        if not d.get("disproof"):
+            return _v("experiment", UNDECLARED_DEATH, r.get("seq"),
+                      "a chosen death with no disproof stated before it")
     return None
 
 

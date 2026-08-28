@@ -2618,6 +2618,57 @@ to deliberate deaths. If that is 40%, someone should see it rather than infer it
 
 ---
 
+# `4e` — BUILT 2026-08-28. Three mechanisms, and all three read NULL at 40 cycles
+
+### 1 · WHAT WAS BUILT
+
+**`experiment.py`** — §21.1's controlled comparison. *Same starting board, vary exactly one
+action, observe the difference*, keyed on **the full slot reading, never a digest**: two boards
+agreeing on a hash is Figure 2's collapse at the level of the key, and the mechanism's whole
+claim is *the same moment, re-run*. **Determinism is MEASURED as repeats rather than assumed**,
+and an unstable repeat invalidates the pairs drawn from that state.
+
+**Gate check 10** — §21.2's discriminator. A **chosen** death with no `disproof` stated before
+it is refused. **World-inflicted deaths are not its subject** — declaring one would be theatre
+— and that exemption is **data on the row** (`deliberate`) rather than logic in the check.
+**Three tests: the defect, the declared case that passes, and the out-of-scope case.** 13 gate
+checks → 16.
+
+**`terminal()` got its consumer.** It was written *read by the harness, never by the loop* and
+read by nothing since `2a`. A `GAME_OVER` nobody reads is a level-resetting loss the agent
+cannot exploit — **and the loss is the only controlled experiment available.**
+
+**And §21.2's number is published rather than inferred**: `budget_to_deaths`.
+
+### 2 · ALL THREE READ NULL, AND THE NULLS CHAIN
+
+    endings {}          no terminal reached in 40 cycles
+    states_seen 40      controlled_pairs 0      states_revisited 0
+    budget_to_deaths 0.0
+
+**Forty steps, forty distinct states.** On a 64×64 board with 105 slots the full reading
+essentially never repeats — **so the only thing that returns you to a seen state is a RESET,
+and a reset needs a death.** The chain is: **no death → no reset → no repeated state → no
+control.**
+
+**AND THE PANEL DOES SUPPLY DEATHS.** Blind cycling of all four actions reads `GAME_OVER` on
+**172 of 300 steps** — confirmed *before* the build, not after, per the panel-property rule.
+**So the null is not the panel lacking the property.** Whether it is cycle scarcity or the
+agent's policy differing from blind play is **a longer run's to say, and that run is pending.**
+
+### 3 · A CORRECTION TO MY OWN SECTION CHECK
+
+**I wrote that `4e` IS the arrival of the deferred `disproof` check's subject.** It is not.
+The subject is a **DELIBERATE** death — the agent *choosing* to die to buy an experiment — and
+that is an **agent-policy** change, not wiring. **§21.1's controlled experiment needs only a
+level-resetting LOSS**, which is a different clause from §21.2's licence to seek one.
+
+> **The check ships and its subject is still empty.** Which is the thing I said a check must
+> not do, arriving in the item I said would fix it. **Recorded rather than smoothed**: the
+> check is correct and cheap, and it examines nothing until deliberate death exists.
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**

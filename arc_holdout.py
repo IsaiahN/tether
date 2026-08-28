@@ -24,6 +24,7 @@ import arc_atoms
 import arc_percept
 import arc_predict
 import arc_run
+import experiment
 import gamma
 import gate
 import habitat
@@ -63,10 +64,27 @@ def play(game: str = "ls20", cycles: int = 40) -> dict:
     # put a domain reader inside the loop, which is the wrong side of the wall.
     seg = ag.env._decompose
     aff = arc_percept.Affordances()
+    ctrl = experiment.Controlled()
+    endings = collections.Counter()
     for _ in range(cycles):
         before = {k: dict(v) for k, v in seg.tracked.items()}
+        state = env.observe()
         ag.step()
         aff.note(before, dict(seg.tracked), mover=None)
+        # §21.1's control: the state BEFORE the action, the action, and what it cost. A
+        # repeat of the same state under a different action is the only re-run the loop gets.
+        # The action is read AFTER the step -- it is chosen inside it, so reading it before
+        # gives the previous step's, which would pair a state with the wrong action.
+        act = getattr(ag, "_last_action", None)
+        if act:
+            ctrl.visit(state, act, sum(ag._last_mass.values()))
+        # 4e. `terminal()` was built as *read by the harness, never by the loop* and read by
+        # nothing since. A GAME_OVER that nobody reads is a level-resetting loss the agent
+        # cannot exploit -- and the loss is the ONLY controlled experiment available.
+        end = env.terminal()
+        if end:
+            endings[end] += 1
+            ag.retarget(env, env.levels()[0], how=end)
 
     rows = led.rows()
     g = ag.gamma
@@ -97,6 +115,11 @@ def play(game: str = "ls20", cycles: int = 40) -> dict:
         "habitat": hab.report() if hab else "no residual to seed from",
         "habitat_residuals": len(hab.residuals()) if hab else 0,
         "affordance_kinds": aff.report()["kinds"],
+        "endings": dict(endings),
+        "experiment": ctrl.report(),
+        # §21.2's number, published rather than inferred: *if that is 40%, someone should
+        # see it rather than infer it.*
+        "budget_to_deaths": (round(endings.get("death", 0) / cycles, 4) if cycles else 0.0),
     }
 
 
