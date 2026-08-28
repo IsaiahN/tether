@@ -2455,6 +2455,36 @@ the value is entirely in `recalled` entries actually being checked against a sou
 why the stated bar (*it gates a decision expensive to unwind*) is load-bearing rather than
 tidy: **it keeps the register small enough to check.**
 
+### 5b · ⚠ RETROACTIVE: THE DIAGNOSIS DID NOT REPRODUCE. IT COLLIDED
+
+**I argued this morning that `REUSE_UNWIRED` on `snaps` and on `ls20` was *the same rung on
+both, so a fact about the loop rather than about a panel*. That was the argument that made it
+the next item.** The finer literal shows it false:
+
+    ls20    none-stale ONLY          every refusal is the loop correctly declining
+    snaps   none-stale AND no-targets   correct declining MIXED with supply failures
+
+**Two different states under one label, and I read their agreement as corroboration.**
+
+**IT IS FIGURE 2's COLLAPSE 2, AT THE READING LEVEL, and the corpus is explicit:** ***two
+frames agreeing tells you about their shared evidence pool, not about the world. Agreement is
+disqualifying for a verdict.*** `ARC_AGENT` applies it to detectors — *four correlated
+detectors are one detector wearing four names* — and **mine is the inverse: two states wearing
+one name, with the agreement MANUFACTURED BY THE LABEL rather than observed.** The shared pool
+was the string.
+
+**DISPOSITION: the item was worth doing and the reason was wrong.** Both true, and separating
+them is what stops a good outcome from validating a bad argument — **the same treatment as the
+ruling with three supports where one was false.** The conclusion survives on the gloss defect
+and the panel split; the premise does not.
+
+**AND WHAT WOULD HAVE CAUGHT IT EARLIER: NOTHING.** The panels reported *identical strings*,
+and no instrument could separate them until the literal was split. **This is not a check that
+was skipped — it is a distinction that did not exist to be read**, which is a different
+category from every other failure recorded today and the only honest thing to file it as.
+**The fix and the diagnosis of the misreading arrived together, because the fix is what made
+the misreading visible.**
+
 ### 5 · BUILT — the refusal now names its condition, and the two panels differ
 
     ls20    {'no-eligible-target:none-stale': 7}
