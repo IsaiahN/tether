@@ -37,10 +37,16 @@ read 74% and mean nothing.
 **Every row in this file today was written before any game was played.** That is not an
 opinion — no adapter exists, `2a` has not started, and `git blame` dates every line. So:
 
-> **WATERMARK: unset. It becomes the FIRST `2a` COMMIT, recorded here at the moment `2a`
-> begins.** Every row at or before it is `pre-game` by construction. Every row after it
-> carries `provenance` explicitly, and `unattributed` after the watermark is the one
-> combination that must be justified rather than noted.
+> **WATERMARK: SET 2026-08-27, at the commit bearing this line.** Every row at or before it
+> is `pre-game` **by construction** — no game existed, no adapter had run, and `git blame`
+> against this commit hash answers *was this written before any game* for every row, forever.
+> **Every row after it carries `provenance` explicitly, and `unattributed` after the watermark
+> is the one combination that must be justified rather than noted.**
+>
+> **DELIBERATE, NOT CROSSED.** The line is set in its own commit, before `environment_files/`
+> exists and before any download — because a watermark that arrives as a side effect of
+> fetching a game records the moment badly. The gitignore went first for the same reason: each
+> is free only before, and neither is folded into the run.
 
 **A watermark is checkable and a stamp is not.** `git blame docs/INDEX.md` against one commit
 hash answers *was this row written before any game* exactly, for every row, forever — and it
