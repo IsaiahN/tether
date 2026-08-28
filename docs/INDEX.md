@@ -3420,6 +3420,70 @@ categorisation costs a split on `.` and nothing else.
 
 ---
 
+# BOTH HAVE NAMES, AND THE FIRST CARRIES A CASCADE NOBODY CONNECTED
+
+### 1 · `no_change` IS A PERSISTENCE PRIOR, and `DOCTRINE_AUDIT` §8 already named the defect
+
+**Titled *The identity default is an unstamped prior*, quoting the exact line:**
+
+> `term = self.gamma.library[self.bound.get(slot, IDN)]`
+>
+> *An unbound slot is predicted to **not change**. That is a **persistence prior** — a real and
+> defensible one, and **one of the six loadable shapes.** But it is applied invisibly: **not
+> stamped `prior`, not recorded as a choice, not falsifiable.***
+
+**So the ruling is stronger than *record that nothing was bound*.** The fallback is not the
+absence of a claim — **it is a prior being applied without entering under the entry rule,
+without a stamp, and without being falsifiable.** Recording `no_change` makes an invisible
+prior visible, which is a different and better act than noting an absence.
+
+**AND THE CASCADE IS THE PART NOBODY CONNECTED:**
+
+> *For an unbound slot, "residual" means **it moved**, not "my model was wrong" — **there is no
+> model.** So **`density(R)` is inflated at the start by every slot that simply changes**, and
+> **`bored()` reads that inflated value.***
+
+**One root, two consequences, found six months apart:** the audit found `density(R)` and
+`bored()` inflated; **today's reader hit the same root and read 95% noise.** Neither was
+connected to the other until now, and **the drive layer's trigger is downstream of it.**
+
+### 2 · THE BOOLEAN-PLUS-EVIDENCE FORM IS `PRICE`, AND IT IS A STUB
+
+`grammar.py`: `PRICE = "PRICE"  # **a cost claim with its evidence count**, or an explicit
+null.` **That is the ruled form — a claim, its evidence, and an explicit null — already a type
+in the speech grammar.**
+
+**And `DOCTRINE_AUDIT` §9 records it as stubbed:** *`PAY` carries a step count, not a price
+... **value and evidence-count are the same number.*** **So the form exists, is typed, is
+checked for SHAPE by the gate, and carries nothing.**
+
+**The built instance of the same discipline is `disproof`:** ***presence with a number is an
+experiment, absence is a stall*** — **a boolean whose evidence rides with it, never a score.**
+
+### 3 · THE ABORT CASE IS EXPRESSIBLE TODAY, AND THE RECORD FOR IT DOES NOT EXIST
+
+**Every frame carries what the distinction needs:**
+
+    state              NOT_FINISHED · GAME_OVER · WIN    -> the world ended it
+    available_actions  the next action gone mid-sequence -> a condition closed
+    levels_completed   changed                           -> a level boundary
+    full_reset                                           -> the board was replaced
+
+**So *the sequence stopped at step 2 because the world ended it* IS distinguishable from *it
+completed and did not work*** — the signals are per-frame and already read by `terminal()`.
+
+> **What does not exist is the record it would go on.** `ArcWorld.step(action: str)` takes ONE
+> `GameAction`, so **no sequence executes and there is no outcome row for one.** The third
+> state is not missing from the data — **it is missing from a record that has no subject yet.**
+
+**Which makes it `4a`'s to supply rather than a field to add now**, and the constraint is worth
+stating with it: **three outcomes, not two — completed-and-failed, completed-and-worked, and
+stopped-by-the-world — and the third collapses into the first if nobody asks.**
+
+**NOT BUILT.**
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
