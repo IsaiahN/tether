@@ -96,15 +96,27 @@ def _rtype(obj: dict, aff: Any) -> str:
     §16.5's actors column is *objects, **with affordance profiles** (§16.4)*, so the profile
     is part of the habitat rather than an addition to it. **Read by behaviour under contact,
     never by substance** -- §16.4 is explicit that a taxonomy of blob-kinds is the archetype
-    trap wearing a perception costume. With no affordance reader the type is bare `contact`,
-    and the report then shows one type, which is a reading about what the panel can
-    discriminate rather than a defect here.
+    trap wearing a perception costume.
+
+    **THREE STATES, NOT TWO, AND THE FIRST VERSION CONFLATED THE LAST TWO.** `Affordances`
+    keeps `None` distinct from `False` *for the same reason `unreached` is kept distinct from
+    `unreachable`*, and a type function that collapses them throws that away one layer up:
+
+        `contact`              NO READER WIRED -- a fact about the build
+        `contact:unobserved`   reader present, this kind never seen in contact yet
+        `contact:inert`        READ, and it affords nothing
+        `contact:blocks,...`   read, and these are what it affords
+
+    **A sparse type set means different things in each case**, and only the first is a wiring
+    defect. The second is the honest early state of a learned reading and resolves with play.
     """
     if aff is None:
-        return "contact"
+        return "contact"                       # NO READER -- a WIRING state
     prof = aff.profile(obj)
+    if all(v is None for v in prof.values()):
+        return "contact:unobserved"            # reader present, never seen in contact
     on = sorted(k for k, v in prof.items() if v)
-    return "contact:" + (",".join(on) if on else "unread")
+    return "contact:" + (",".join(on) if on else "inert")   # READ, and affords nothing
 
 
 def enumerate_from(objects: dict[str, dict], seed: str, aff: Any = None) -> Habitat:

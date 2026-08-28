@@ -2220,7 +2220,43 @@ type-novelty rule lacked on its own.
 so* and `THE_FORMULA`'s *never a completeness claim.* **No maximum-rings parameter**: the
 object set is finite, so the cascade terminates without an invented number.
 
-### AND ONE TYPE IS ALL THE PANEL DISCRIMINATES, SO THE RULE STOPS AT RING 2 BY CONSTRUCTION
+### `Affordances` WIRED — the stopping rule now DISCRIMINATES, and the caution caught a defect
+
+    before   2 rings ·  3 actors ·  8 relations · types ['contact']
+    after    3 rings ·  9 actors · 13 relations · types ['contact:moves_when_touched',
+                                                         'contact:changes_on_touch',
+                                                         'contact:unobserved']
+    stopped_at_ring 3 -- "no new relation type in ring 4"    residuals 13, goals 0
+    97 affordance kinds learned over 40 steps
+
+**It stopped at ring 2 BY CONSTRUCTION and now stops at ring 3 ON A READING.** The rule was
+never inert; the panel was one-dimensional, and the thing it discriminates by had been built
+at `2c` and wired to nothing since. **A consumer arriving for a mechanism that was waiting —
+the connection-table shape rather than new work.**
+
+**DRIVEN STEP-WISE, because §16.4 is a LEARNED reading.** *Behaviour under contact* needs a
+before/after pair per step, `run()` offers no hook, and putting a domain reader inside the loop
+would be the wrong side of the wall. So the holdout drives `step()` and notes the pair.
+
+### AND THE CAUTION CAUGHT A LIVE DEFECT IN CODE TWENTY MINUTES OLD
+
+**`_rtype` returned `unread` for an all-`False` profile as well as an all-`None` one** —
+collapsing *read, and it affords nothing* into *never observed*. **`Affordances` keeps `None`
+distinct from `False` in its own docstring, *for the same reason `unreached` is kept distinct
+from `unreachable`*, and my type function threw that away one layer up.** Three states now:
+
+| type | means |
+|---|---|
+| `contact` | **no reader wired** — a fact about the build |
+| `contact:unobserved` | reader present, **this kind never seen in contact yet** |
+| `contact:inert` | **read**, and it affords nothing |
+| `contact:blocks,…` | read, and these are what it affords |
+
+**`contact:unobserved` appears in the live run as its own type**, alongside two read
+affordances — so a sparse type set is now readable as *early* rather than as *unwired*, and
+**only the first row is a defect.** The second resolves with play and the report says which.
+
+### THE ONE-TYPE READING, SUPERSEDED
 
 `types: ['contact']`. **The relation type is contact QUALIFIED BY THE CONTACTED OBJECT'S
 AFFORDANCE PROFILE** — §16.5's actors column is *objects, **with affordance profiles***, so the

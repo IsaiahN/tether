@@ -57,7 +57,16 @@ def play(game: str = "ls20", cycles: int = 40) -> dict:
     ag = tether.Agent(env, gamma.Gamma(env.atoms()), tether.Config(), led)
     bud = arc_run.Budget()
     bud.level_starts()
-    ag.run(cycles)
+
+    # DRIVEN STEP-WISE so `Affordances` can learn. §16.4 reads behaviour under contact, which
+    # needs a before/after pair per step -- `run()` gives no hook, and the alternative was to
+    # put a domain reader inside the loop, which is the wrong side of the wall.
+    seg = ag.env._decompose
+    aff = arc_percept.Affordances()
+    for _ in range(cycles):
+        before = {k: dict(v) for k, v in seg.tracked.items()}
+        ag.step()
+        aff.note(before, dict(seg.tracked), mover=None)
 
     rows = led.rows()
     g = ag.gamma
@@ -70,7 +79,7 @@ def play(game: str = "ls20", cycles: int = 40) -> dict:
     worst = max(ag._last_mass, key=ag._last_mass.get, default=None) if ag._last_mass else None
     hab = None
     if worst and objs:
-        hab = habitat.enumerate_from(objs, worst.split(".")[0])
+        hab = habitat.enumerate_from(objs, worst.split(".")[0], aff=aff)
     return {
         "game": game, "board": list(getattr(board, "shape", (len(board), len(board[0])))),
         "palette": palette, "slots": len(env.slots()), "blind": env.blind,
@@ -87,6 +96,7 @@ def play(game: str = "ls20", cycles: int = 40) -> dict:
         "events": dict(collections.Counter(r["event"] for r in rows)),
         "habitat": hab.report() if hab else "no residual to seed from",
         "habitat_residuals": len(hab.residuals()) if hab else 0,
+        "affordance_kinds": aff.report()["kinds"],
     }
 
 
