@@ -1737,6 +1737,86 @@ game supplies nature instead — so nothing here changes what is built next.
 
 ---
 
+# THE FIRST HOLDOUT — `ls20`, 2026-08-27, and the chain stops where the toy world stops
+
+**THE BLOCKER WAS NEVER *NOBODY HAS A GAME*.** `arcengine` ships no games — that finding held.
+**But `arc_agi`, the CLIENT, was installed the whole time**, and `make()` dispatches
+`NORMAL → "download game and run locally" → LocalEnvironmentWrapper`. **Get-it-from-the-API
+and play-locally-fast are ONE path.** I checked the engine and stopped; the client was one
+directory over. **The session's own genus, once more.**
+
+### 1 · THE RUN
+
+Anonymous key (`/api/games/anonkey`, no registration), **25 environments visible**, `ls20`
+downloaded at version `9607627b`, played through `LocalEnvironmentWrapper`. **Pre-watermark
+atoms only** — the three-atom plumbing set authored before any game existed, so **provably not
+fitted to `ls20`.** ARC's real PREDICT atoms **do not exist**: `arc_check` says they *arrive at
+3d*, and `3d` delivered the rank function.
+
+    board 64x64, palette 13 READ FROM THE FRAME     100 object slots, blind=False
+    40 cycles, 8,940 ledger rows, GATE: PASS        1 mint, verdict `pays`, 1 accept, 1 rebind
+    229 parks, 6 slots owed, 0 advances, 0 capped   admissions {necessary: 3}
+
+**Perception worked on a real board.** 100 slots from a 64×64 grid, `blind` false, the palette
+read rather than assumed. **The gate passes on a real run.**
+
+### 2 · WHERE THE CHAIN STOPS — `REUSE_UNWIRED`, and it is a WIRING verdict
+
+    stalls (closed segments)  {REUSE_UNWIRED: 1}        last_stage  REUSE_UNWIRED
+    reuse funnel              {no-eligible-target: 1}
+
+**§22.6 is the whole reason this is readable**: *ratio is the alarm, stage is the diagnosis,
+and without the stage code they are indistinguishable — which is how a **wiring gap gets
+written up as a theory failure.*** `REUSE_UNWIRED` is *implementation, loop not connected*.
+**The same rung as the toy world, reached on a real board** — which makes it a fact about the
+loop rather than about `snaps`.
+
+**AND I NEARLY PUBLISHED THE WRONG ONE.** `chain.seg.stage()` read **`DIED_PRE_DIFF`** — a
+dramatic headline and false. `seg` is the **currently open** segment; a fresh one has
+`diff_ran=False` by construction. **The instrument is `stalls`, *which link breaks as a
+measured distribution*, over CLOSED segments.** A live snapshot and a measured distribution are
+different objects, and `note_diff` fires every step, which is what made the reading impossible
+rather than merely surprising.
+
+### 3 · THE THREE OWED VALIDATIONS — none demonstrated, and their statuses now DIFFER
+
+| owed | status after `ls20` |
+|---|---|
+| **`never_live`** | **its SUBJECT now exists.** All four actions tried at **10 distinct states each** — the toy world could not supply that. **No action is never-live, because all four stayed available for 40 cycles.** A real null with a real subject, which is a different object from the empty-subject null |
+| **contact ranking** | **1 mint.** Ranking needs a mint with more than one candidate binding. The board produced a mint — more than `snaps` ever did — **and one is not enough** |
+| **the rank function's reuse term** | **unchanged.** Funnel attempted once, `no-eligible-target`. **The second panel defect is not a `snaps` defect** — it reproduces on `ls20` |
+
+**Two of the three moved from *unexercisable* to *exercised and null*, which is progress of a
+kind the plan did not distinguish.** The third did not move at all, and **that is now a finding
+about the mechanism rather than about the panel.**
+
+### 3b · THE FIREWALL BREACHED IN THE TOOLING, FIRST THING, AND GITIGNORE WAS NOT ENOUGH
+
+**The download put `ls20.py` under `environment_files/`, and `conform/lint.py` walks the
+FILESYSTEM rather than git.** So the first thing that happened after the run was **the linter
+reading the game's source and printing its constants and function names into the seat's
+view.**
+
+> **Two exclusion mechanisms, and only one had been done.** Gitignoring keeps content out of
+> **commits**; it does nothing about tools that `rglob` the tree. **`ruff` happens to be
+> gitignore-aware and excluded it unasked, which is why exactly one checker surfaced it** —
+> the other would have gone on reading it silently.
+
+**Game source is CONTENT, not harness.** *The seat may read the harness* does not reach it.
+Fixed at source; `environment_files` and `recordings` now skip alongside `.venv` and `runs`.
+**And the shape is the day's shape again: I did the half I was thinking about and not the half
+I was not.**
+
+### 4 · WHAT THE RUN SAYS IS MISSING
+
+**One mint in 40 cycles over 100 slots, and 229 parks.** The atoms are arithmetic on slot
+values; the domain's operators are grid transforms. **The plumbing set is the honest thing to
+have run** — authoring grid atoms with a game present is the encoded-answer path — **and the
+stopping point is the argument for building them deliberately, pre-registered, rather than the
+excuse for skipping the step.**
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
