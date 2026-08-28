@@ -742,13 +742,30 @@ class Agent:
         self.alphabet = self._alphabets(self.env)
 
     def _bindings(self, slot: str, robs: list) -> list[str | None]:
-        """Which slots may fill operand 0, ORDERED by contact and NEVER FILTERED by it.
+        """Which slots may fill operand 0, ordered by VARIANCE and never filtered.
 
-        None first -- a unary term is cheaper, so it wins when both fit, which is Occam
-        priced rather than preferred. Then the rest by how much each VARIES across the
-        residual's own frames: a slot constant wherever the bound term was wrong carries
-        nothing that could discriminate those frames, so it is tried last. §16.5
-        enumerates contact; Figure 11 ranks by cascade.
+        **THIS IS NOT CONTACT RANKING AND THE PREVIOUS DOCSTRING SAID IT WAS.** It cited
+        §16.5 and Figure 11 and then did neither: the list is EVERY other slot -- which is
+        exactly what §16.5 forbids, *you do not invent the list, you read it off the world*
+        -- and the order is variance, not contact. `touching()` is built and unused.
+
+        **THE CITATION IS WHY IT SURVIVED.** A wrong implementation with no source reads as
+        unfinished; with a correct source it reads as DERIVED, and so as already checked. It
+        outlived a status of `built`, a report calling it *specified*, and an owed-DEMONSTRATION
+        row that presupposed the mechanism existed. Read a cited clause against the CODE.
+
+        **AND CONTACT CANNOT BE CONSULTED FROM HERE AT ALL, WHICH IS THE HONEST REASON.** The
+        loop sees `env.slots()` (names) and `env.observe()` (name -> int). `touching(a, b)`
+        needs two object dicts with cells, and objects live inside the decomposition. **A
+        relation is not a slot, so it never crosses into the loop** -- and making it cross IS
+        §16.5, not a step before it. Approximating contact with a proxy available here would
+        be the same defect with a better docstring.
+
+        WHAT IT ACTUALLY DOES. None first -- a unary term is cheaper, so it wins when both
+        fit, which is Occam priced rather than preferred. Then by how much each slot VARIES
+        across the residual's own frames: a slot constant wherever the bound term was wrong
+        carries nothing that could discriminate those frames, so it is tried last. That is a
+        real signal and a defensible order. It is not the specified one.
 
         ORDERING, NEVER EXCLUSION, and the difference is measured rather than argued.
         The version that DROPPED operand-reading terms when R showed no dependence on
