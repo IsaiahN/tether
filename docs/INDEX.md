@@ -3744,6 +3744,55 @@ which are a lookup and already exact.**
 
 ---
 
+# THE CONTRACT QUESTION IS BIGGER THAN A TYPE — ARC HAS NO ACTION-READING ATOM AT ALL
+
+    action chosen BY   : {'draw': 82, 'probe': 38}      no 'discriminate', ever
+    rows with disproof : 0
+    phases             : probe 1.0   directed 0.0   strategy 0.0
+
+**§2622 measured what this costs, in the toy world, before it was built here:**
+
+    spread distinguishes the actions, with `act`    33/96   (34%)
+    spread distinguishes the actions, without `act`  0/96   ( 0%)
+
+> ***`choose`'s discriminate branch is a property of the atom set, not a model the agent
+> built. Remove that one atom and the agent cannot tell its actions apart at all. It has never
+> had to learn what pressing something does, because the primitive it was given already knew.***
+> **That is the thing the action world has to take away.**
+
+**ARC IS ALREADY THAT WORLD, BY ACCIDENT.** `arc_predict`'s three atoms — `idn`, `translate`,
+`recolour` — **all read operands and none reads `c.action`**, because they were derived from
+the corpus's six grid transforms and the corpus's list has no action-reader in it. **The thing
+§2622 says has to be taken away was taken away this afternoon and nobody noticed.**
+
+### AND THE PHASE READING WOULD HAVE BEEN THE WRONG DIAGNOSIS
+
+**§22.2's phase curve was recorded as *available and never plotted*. It is now plotted, on a
+real board: probe 1.0.** And §22.2's own reading of that is ***random still dominant late → it
+never left phase 1, nothing is being modelled.***
+
+**THAT WOULD BE FALSE.** Seven terms minted on this run. **The agent models slots and never
+ACTS to discriminate**, because `DIRECTED` is a property of how the ACTION was chosen, not of
+whether anything was modelled. **A phase histogram at 100% probe with a live mint rate is a
+different state from phase 1**, and the curve alone cannot say so.
+
+### TWO CAUSES POINT THE SAME WAY, AND BOTH ARE REAL
+
+| | |
+|---|---|
+| **no action-reading atom** | `choose`'s discriminate branch computes spread over candidate predictions; with no atom reading the action, **every action predicts identically** and the branch never fires. `0/96` is the corpus's own measurement of exactly this |
+| **`density(R)` inflated** | `DOCTRINE_AUDIT` §8's cascade — *density(R) is inflated at the start by every slot that simply changes, and `bored()` reads that inflated value* — **so the probe branch is taken more often than the residual warrants** |
+
+**Neither is established as dominant and it would be easy to attribute to one.** Recorded as
+two, because **the fix for each is different**: the first is `4a`'s ACTION type and `DO`; the
+second is the persistence prior's cascade, still open.
+
+**SO THE CONTRACT QUESTION HAS A MEASURED MOTIVATION RATHER THAN A CITED ONE.** Not *the corpus
+says add verbs* — **the agent cannot tell its four actions apart, measured, and `DO` is the
+prime that would let it.**
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
