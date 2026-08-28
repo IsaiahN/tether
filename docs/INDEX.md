@@ -691,6 +691,31 @@ able to survive it, and that is the argument for the row rather than a reason to
 | the **allocation shape** — *which of two already-built objects owns this responsibility* | 3 | a **fourth, unprompted** |
 | **the seat-scale defect may be the ground being expensive, not a defect** | 1 | a **second arrival** |
 | **a guard whose SUBJECT excludes the thing it guards against** | **1 observed** (+1 predicted) | a **second OBSERVED instance**, not a second instance |
+| **the producer states a distinction AT THE SITE and the consumer discards it** | **1** | a **sixth instance** |
+
+**THE FOURTH ONE, AND ITS COUNT WAS CORRECTED BEFORE IT WAS WRITTEN DOWN.** I claimed *three
+of five* in conversation. **Checked: one of five.** Only `Affordances.profile` states the
+distinction in its own docstring — *`None` means UNREAD ... a different claim from False, kept
+distinct **for the same reason `unreached` is kept distinct from `unreachable`*** — and
+`_rtype` collapsed it into *affords nothing* one layer up. **`Objects` states *an object not
+found is NOT dead* and that rule was FOLLOWED. `components` states no totality distinction at
+all; §12.2 does, in the corpus.**
+
+**AND CHECKING THE COUNT SHOWED THE FIVE ARE NOT ONE CLASS.** `never_live` is the fourth
+failure class above; `_bindings` is the ninth, a citation making wrong code look derived;
+`_cannot_pay` was a filter-versus-order error; `components` was a missing totality specified in
+the corpus rather than at the site. **Four classes, and the pattern I proposed was a fifth
+laid over them.** A count taken as a figure would have made a class out of a resemblance.
+
+**WHAT IT IS, NARROWLY: the sixth law one layer in.** *Assume it is already specified and go
+look* has been applied to the corpus all week; **this is the same move at a CALL SITE.** The
+producer wrote down what its output distinguishes, and the consumer did not read it — **not a
+subtlety missed, the thing it consumes unread.**
+
+**And the check it implies is a READ rather than an analysis**: *what states does this output
+distinguish*, answerable from the producer's own docstring, **local to one call site.** That
+locality is what separates it from the general form — and **at n=1 it is an observation, not a
+rule.**
 
 **A NINTH INSTANCE, AND IT IS A DIFFERENT AND MORE EXPENSIVE CLASS: A CORRECT CITATION
 ATTACHED TO CODE THAT DOES THE OPPOSITE.** A6i is two meanings under one word. **This is one
