@@ -40,6 +40,7 @@ from dataclasses import dataclass
 sys.dont_write_bytecode = True
 
 GENUINE = "genuine"
+NO_CHANGE = "no_change"
 
 
 @dataclass
@@ -123,15 +124,30 @@ def read(rows: list[dict]) -> dict[tuple[str, str], Pair]:
 
 
 def report(rows: list[dict]) -> dict:
-    """Dispositions, counted. **The count is over PAIRS, never over terms.**"""
+    """Dispositions, counted. **The count is over PAIRS, never over terms.**
+
+    **THE PERSISTENCE PRIOR IS REPORTED APART FROM TERMS, and the first version did not.**
+    An unbound slot rests on `no_change`, which is a prior rather than a hypothesis the agent
+    earned -- its record is *the slot was still, then it moved*, **a fact about slots.** Read
+    together with terms it was **104 of 110 `held-then-stopped`**, and the number would have
+    been quoted as *the room invalidated 110 things*.
+
+    **Kept rather than dropped**, because `DOCTRINE_AUDIT` 8 is right that it is a real prior
+    and its record is a real reading -- **of the world's stillness, not of a term.**
+    """
     pairs = read(rows)
     kinds: dict[str, int] = {}
+    stance: dict[str, int] = {}
     for p in pairs.values():
         k = p.reading()
-        kinds[k] = kinds.get(k, 0) + 1
+        if p.term == NO_CHANGE:
+            stance[k] = stance.get(k, 0) + 1
+        else:
+            kinds[k] = kinds.get(k, 0) + 1
     stale = [f"{p.term}@{p.slot}" for p in pairs.values()
-             if p.reading() == "held-then-stopped"]
+             if p.reading() == "held-then-stopped" and p.term != NO_CHANGE]
     return {"pairs": len(pairs), "dispositions": kinds,
+            "persistence_prior": stance,
             "arcs": {f"{p.term}@{p.slot}": p.arc
                      for p in pairs.values() if p.arc is not None},
             "room_invalidated": stale,

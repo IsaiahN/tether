@@ -22,6 +22,7 @@ from ledger import (
     CHANNEL_CLOSED,
     ENDING_READS,
     GENUINE,
+    NO_CHANGE,
     SLICE_TOO_SMALL,
     SPECIFIED,
     Ledger,
@@ -416,7 +417,10 @@ class Agent:
                             from_value=before[s], predicted=pred[s], actual=actual,
                             **({"vanished": True} if gone else {}),
                             mass=r.bits, cause=self._cause(s, r.bits),
-                            bound=self.bound.get(s, IDN),
+                            # NOT `IDN`: an unbound slot rests on a persistence prior,
+                            # and recording it as a term made 104 of 110 staleness
+                            # readings noise. `_predict` still falls back to `idn`.
+                            bound=self.bound.get(s, NO_CHANGE),
                             **({"disproof": self._disproof[s]}
                                if s in self._disproof else {}))
             self._standing(s)

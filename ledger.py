@@ -31,6 +31,16 @@ GENERAL, SPECIFIED, GROUNDED = "general", "specified", "grounded"
 # red, which is the drift being caught rather than prevented.
 GENUINE, CHANNEL_CLOSED, SLICE_TOO_SMALL = "genuine", "channel_closed", "slice_too_small"
 
+# WHAT A BET RESTS ON WHEN NOTHING IS BOUND. `idn` is a TERM -- an atom with a cost and a
+# provenance; having no term is not, and writing the second as the first made a default look
+# like a choice. `DOCTRINE_AUDIT` 8 named the defect before the reader hit it: *an unbound
+# slot is predicted to not change -- a PERSISTENCE PRIOR, one of the six loadable shapes,
+# applied invisibly: not stamped `prior`, not recorded as a choice, not falsifiable.*
+#
+# THE PREDICTION STILL FALLS BACK TO `idn` AND MUST. The loop has to predict something. What
+# changes is the RECORD: the prediction needs a default, the record needs the difference.
+NO_CHANGE = "no_change"
+
 # 2e. THE FIVE ENDINGS, distinguished -- and the distinction is §19's episode half.
 #
 #   *"I ran out" is not "I was wrong" -- the same bug in two places.* The MINT half was fixed
