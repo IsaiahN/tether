@@ -3611,6 +3611,56 @@ evidence count and a rule forbidding it would be arbitrary.
 
 ---
 
+# `4a` CHECKED — and the check found a defect in the type system `4a` would extend
+
+### 1 · §15.5's CLAIM IS ABOUT THE PRIMES, AND THE TYPE SET DOES NOT SUPPORT THEM
+
+**§15.5 is exact and its mapping is a lookup:** `Act(a)` → **DO, MOVE, HAPPEN** · `Seq` →
+**BEFORE, AFTER** · `When` → **IF** *(`BECAUSE` is causal, not conditional — a different
+prime)* · `Until` → **FOR SOME TIME + NOT** · the guard → **CAN, which is already there.**
+*The routine algebra is not a new language. It is the missing third of the one already chosen.*
+
+**But every one of the thirteen primes produces `PRED` or `OBJ`, and the type set is
+`OBJECT · ATTR · REGION · PRED · OBJ · RECORD · PRICE`. There is no ACTION and no ROUTINE.**
+So `DO` has nothing to take and `Seq` has nothing to take or return.
+
+**§2622 named the same gap from the other side**: *composing over a second type — actions
+rather than values — and `Gamma` is typed `val → val`. **A real extension, and a contract
+question rather than a field.*** **Two sections, one conclusion: `4a` needs a type before it
+needs a prime.**
+
+### 2 · AND `OBJ` ALREADY MEANS TWO THINGS, IN ONE FILE
+
+`arc_atoms.py`:
+
+    _extract()   Atom(k, pick(k), OBJ, ATTR)    OBJ -> ATTR    OBJ is AN OBJECT
+    _quantify()  Atom("all", ..., PRED, OBJ)    PRED -> OBJ    OBJ is AN OBJECTIVE
+
+**`grammar.py` keeps them apart** — `OBJECT = "a slot's identity"` and `OBJ = "a complete
+objective"` — **and `arc_atoms` uses one constant for both.** So the type graph has a node that
+is two things, and **`λ = 3.0` over 4 nodes was measured on it.**
+
+**MEASURED, NOT ARGUED:**
+
+    depth 3   0 pipelines cross the conflated node
+    depth 4   225, the first being  `colour . same . all . colour`
+
+***Read a colour, compare it, quantify to an OBJECTIVE, then read a COLOUR OFF THE
+OBJECTIVE.*** Well-typed, meaningless, and the type system exists to refuse exactly this.
+
+**IT IS LATENT AT `max_depth = 3` AND NOT ABSENT** — and the depth that hides it was anchored
+to *the toy world's chunking falsifier*, **for an unrelated reason.** *(Chunking composes over
+UNITS, so a settled 2-atom chunk reaches 4 atoms at depth 3 — whether a chunk path crosses this
+node is **not verified here**, and the structural possibility is stated rather than claimed.)*
+
+> **A6i, in the type system `4a` would extend, found by checking `4a` before building it.**
+> Adding verbs to a graph with a conflated node compounds it — and **the node is the one
+> `QUANTIFY` produces, which is exactly where routines attach.**
+
+**NOT BUILT. `4a` needs a type decision, and the type set needs a defect fixed first.**
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
