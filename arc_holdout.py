@@ -66,6 +66,7 @@ def play(game: str = "ls20", cycles: int = 40) -> dict:
     aff = arc_percept.Affordances()
     ctrl = experiment.Controlled()
     endings = collections.Counter()
+    was_terminal = ""
     for _ in range(cycles):
         before = {k: dict(v) for k, v in seg.tracked.items()}
         state = env.observe()
@@ -76,15 +77,28 @@ def play(game: str = "ls20", cycles: int = 40) -> dict:
         # The action is read AFTER the step -- it is chosen inside it, so reading it before
         # gives the previous step's, which would pair a state with the wrong action.
         act = getattr(ag, "_last_action", None)
-        if act:
+        # AND NOT ON A BOARDLESS FRAME. After death `observe()` is `{}`, so every such
+        # frame shares the signature `()` and two absences read as the same state
+        # revisited -- a determinism reading over nothing. **An absence is not a state of
+        # the world**, which is the same rule that made `components` return NOT_RESOLVED
+        # rather than `[]` this morning, arriving one layer out.
+        if act and state:
             ctrl.visit(state, act, sum(ag._last_mass.values()))
         # 4e. `terminal()` was built as *read by the harness, never by the loop* and read by
         # nothing since. A GAME_OVER that nobody reads is a level-resetting loss the agent
         # cannot exploit -- and the loss is the ONLY controlled experiment available.
+        # AN ENDING IS A TRANSITION, NOT A STATE, AND THE FIRST VERSION COUNTED THE STATE.
+        # `terminal()` reports the CURRENT frame, so once `ls20` is GAME_OVER it answers
+        # `death` on every later step -- and retargeting on each of them recorded 32
+        # endings for one death and published `budget_to_deaths` as 0.200 when one death
+        # in 160 cycles is 0.006. **The same misreading as taking 172-of-300 GAME_OVER
+        # frames for abundant deaths, arriving in code an hour after it was caught in
+        # prose.** Edge-triggered: the ending fires where the state CHANGES.
         end = env.terminal()
-        if end:
+        if end and end != was_terminal:
             endings[end] += 1
             ag.retarget(env, env.levels()[0], how=end)
+        was_terminal = end
 
     rows = led.rows()
     g = ag.gamma

@@ -2803,6 +2803,41 @@ blindness: *a system that could zero its own surprise record could look calm by 
 forgotten it was ever wrong.* **A turn with no reading must not look like a turn that went
 well.**
 
+### 1b · THE REPAIR OPENED THE ENDING, AND EACH FIX EXPOSED THE NEXT DEFECT — ALL MINE
+
+    before the repair    CRASH at 130
+    after the repair     endings {'death': 32}   states 130   deaths 0.200
+    edge-triggered       endings {'death': 1}    states 131   revisited 1   deaths 0.006
+    absence excluded     (pending)
+
+**`terminal()` IS NOW READ AND `retarget` FIRES.** `4e`'s wiring is out from behind the crash.
+
+**DEFECT ONE, MINE: A PERSISTING STATE READ AS A RECURRING EVENT — THE THIRD TIME TODAY.**
+`terminal()` reports the CURRENT frame, so once `ls20` is `GAME_OVER` it answers `death` on
+every later step. The wiring retargeted on each, recording **32 endings for one death** and
+publishing **`budget_to_deaths` as 0.200 when the honest figure is 0.006** — **§21.2's number,
+the one written down precisely so nobody has to infer it, wrong by a factor of 32.** *(First
+appearance: my reading of 172-of-300 `GAME_OVER` frames as abundant deaths. Second and third:
+this wiring and this number, an hour later, in code.)* **Edge-triggered now: an ending fires
+where the state CHANGES.**
+
+**DEFECT TWO, ALSO MINE, EXPOSED BY THE FIRST FIX.** `revisited 1` appeared. After death
+`observe()` returns `{}`, so **every boardless frame shares the signature `()`** and two
+absences read as *the same state revisited* — a determinism reading over nothing. **An absence
+is not a state of the world**, which is the rule that made `components` return `NOT_RESOLVED`
+rather than `[]` this morning, **arriving one layer out and unenforced there.**
+
+### 1c · AND THE REMAINING NULLS ARE NOW EXPLAINED RATHER THAN OPEN
+
+**131 states from 160 cycles: about 30 steps produce no state at all.** After death the board
+stays `None`, the agent survives and idles. **`revisited 0` and `pairs 0` follow directly —
+nothing restarts the board, so no state recurs, so the controlled experiment has no subject.**
+
+**Which lands exactly where the borrowing ruling put it**, with the cost now measured rather
+than argued: **without a seat-side restart, ~30 of 160 cycles are dead time and the pair count
+is structurally zero.** §21.1 needs *the same starting board*; `ls20` does not auto-reset; and
+`ResetGate` correctly bans the agent from restarting.
+
 ### 2 · `4c` CANNOT BE BUILT — its subject does not exist
 
 **`4c` is *roll forward a candidate ROUTINE before committing*, and routines are `4a`/`4b`.**
