@@ -2988,6 +2988,25 @@ to be** — which is the argument for inspecting rather than characterising, one
 bench, for its own measurement, with no agent in the run. On a scored run nobody restarts
 anything.* **Strictly more borrowed than determinism, which survives the port.**
 
+### 3b · `signature()` PAID FOR SOMETHING NOBODY WAS MEASURING
+
+**The key is the full slot reading, never a digest**, and the reason recorded this morning was
+Figure 2: **two boards agreeing on a hash is the collapse at the level of the key**, and the
+mechanism's whole claim is *the same moment, re-run* — which a collision silently falsifies.
+
+**It bought a second thing that was not the reason.** `states_seen 1` across four trials means
+**all four resets returned the SAME board, exactly** — and that is §21.1's determinism
+precondition, ***the property the only controlled experiment in the loop rests on***,
+**measured rather than assumed.**
+
+> **A digest would have hidden precisely that.** Two *similar* boards collide into one key and
+> read as *exact*, so the precondition would have looked confirmed whether or not it held —
+> **the reading would have been identical and the fact underneath it unknown.**
+
+**A decision taken to avoid one failure, paying for something nobody was measuring yet.** Worth
+recording as a shape: the reason a choice was made and the thing it turned out to secure are
+**different**, and the second is invisible at the time the first is being argued.
+
 ### 4 · IT IS `B17`, SECOND INSTANCE — the same law, not one layer out
 
 ***Pre-registration does not protect a reading if the instrument measures something else.***
