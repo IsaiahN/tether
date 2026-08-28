@@ -20,6 +20,8 @@ import collections
 import logging
 import sys
 
+from arcengine import GameAction
+
 import arc_atoms
 import arc_percept
 import arc_predict
@@ -64,10 +66,8 @@ def play(game: str = "ls20", cycles: int = 40) -> dict:
     # put a domain reader inside the loop, which is the wrong side of the wall.
     seg = ag.env._decompose
     aff = arc_percept.Affordances()
-    ctrl = experiment.Controlled()
     endings = collections.Counter()
     was_terminal = ""
-    restarts = 0
     for _ in range(cycles):
         before = {k: dict(v) for k, v in seg.tracked.items()}
         state = env.observe()
@@ -77,14 +77,7 @@ def play(game: str = "ls20", cycles: int = 40) -> dict:
         # repeat of the same state under a different action is the only re-run the loop gets.
         # The action is read AFTER the step -- it is chosen inside it, so reading it before
         # gives the previous step's, which would pair a state with the wrong action.
-        act = getattr(ag, "_last_action", None)
-        # AND NOT ON A BOARDLESS FRAME. After death `observe()` is `{}`, so every such
-        # frame shares the signature `()` and two absences read as the same state
-        # revisited -- a determinism reading over nothing. **An absence is not a state of
-        # the world**, which is the same rule that made `components` return NOT_RESOLVED
-        # rather than `[]` this morning, arriving one layer out.
-        if act and state:
-            ctrl.visit(state, act, sum(ag._last_mass.values()))
+        _ = state
         # 4e. `terminal()` was built as *read by the harness, never by the loop* and read by
         # nothing since. A GAME_OVER that nobody reads is a level-resetting loss the agent
         # cannot exploit -- and the loss is the ONLY controlled experiment available.
@@ -99,13 +92,12 @@ def play(game: str = "ls20", cycles: int = 40) -> dict:
         if end and end != was_terminal:
             endings[end] += 1
             ag.retarget(env, env.levels()[0], how=end)
-            # THE EXPERIMENTER RESETS THE BENCH. Ruled seat-side and BORROWED: it does not
-            # travel to a scored run. The tracker is reset with it -- carrying object
-            # identity across a death would assert continuity the world does not offer,
-            # and on the same board the names re-found identically anyway.
-            env.restart()
-            seg.tracked, seg._next = {}, 0
-            restarts += 1
+            # NO RESTART HERE, AND THE FIRST VERSION HAD ONE. `retarget` keeps `gamma`, so
+            # restarting into this agent hands it the level again WITH WHAT IT LEARNED --
+            # which is an ATTEMPT, and the scorecard counts it whichever hand pressed the
+            # button. The seat restarting on the agent's behalf is the same purchase
+            # against the same resource as the agent doing it. The controlled experiment
+            # is a SEPARATE seat measurement with no Gamma in it -- see `controlled()`.
         was_terminal = end
 
     rows = led.rows()
@@ -138,19 +130,68 @@ def play(game: str = "ls20", cycles: int = 40) -> dict:
         "habitat_residuals": len(hab.residuals()) if hab else 0,
         "affordance_kinds": aff.report()["kinds"],
         "endings": dict(endings),
-        "experiment": ctrl.report(),
         # §21.2's number, published rather than inferred: *if that is 40%, someone should
         # see it rather than infer it.*
         "budget_to_deaths": (round(endings.get("death", 0) / cycles, 4) if cycles else 0.0),
-        "restarts": restarts,
-        "borrowed": ("the controlled pairs exist only because the SEAT restarts the bench; "
-                     "on a scored run nobody restarts anything, so the pair count is not a "
-                     "capability the agent has"),
+
     }
+
+
+def controlled(game: str = "ls20", trials: int = 4) -> dict:
+    """§21.1's controlled experiment, run as APPARATUS. **No agent. No Gamma. Nothing carried.**
+
+    **RULED 2026-08-28: the seat may restart for its OWN reasons and may not restart to help
+    the agent learn.** Apparatus is *the seat setting up its own measurement*; farming is
+    *restarting so the agent gets another go at a level* — **and who pressed the button does
+    not change what it bought.** The check is not intent, it is carriage: ***does the agent
+    carry anything across the restart?*** Here there is no agent to carry anything, so the
+    question does not arise rather than being answered well.
+
+    That is why this is not `play()` with a restart in it. **The first version restarted into
+    a live agent, and `retarget` keeps `gamma`** — the level again, with what it learned,
+    which is an attempt however it is labelled.
+
+    **BORROWED, AND IT DOES NOT TRAVEL.** The seat restarts the bench; on a scored run nobody
+    restarts anything. **Strictly more borrowed than determinism, which survives the port.**
+    """
+    logging.disable(logging.INFO)
+    from arc_agi import Arcade
+    from arc_agi.base import OperationMode
+
+    arc = Arcade(operation_mode=OperationMode.NORMAL)
+    w = arc.make(game)
+    if w is None:
+        return {"error": f"{game} did not resolve"}
+    ctrl = experiment.Controlled()
+    acts: list[str] = []
+    for i in range(trials):
+        fr = w.reset()                       # THE BENCH, RESET. Nothing survives it.
+        seg = arc_percept.Objects()          # a fresh tracker: identity does not cross a trial
+        board = fr.frame[-1]
+        before = dict(seg(board))
+        acts = acts or [GameAction.from_id(a).name for a in (fr.available_actions or ())
+                        if GameAction.from_id(a).is_simple()
+                        and GameAction.from_id(a) is not GameAction.RESET]
+        if not acts:
+            break
+        act = acts[i % len(acts)]            # ONE action varied; the seat chooses, not a policy
+        nxt = w.step(GameAction[act])
+        after = dict(seg(nxt.frame[-1])) if nxt is not None and nxt.frame else {}
+        ctrl.visit(before, act, after)
+    r = ctrl.report()
+    r["trials"] = trials
+    r["actions_available"] = acts
+    r["borrowed"] = ("the pairs exist only because the SEAT restarts the bench, for its own "
+                     "measurement and with no agent in the run. On a scored run nobody "
+                     "restarts anything, and nothing here is a capability the agent has.")
+    return r
 
 
 if __name__ == "__main__":
     name = sys.argv[1] if len(sys.argv) > 1 else "ls20"
-    out = play(name)
-    for k, v in out.items():
+    for k, v in play(name).items():
         print(f"  {k:<14}: {v}")
+    print("")
+    print("  -- 21.1 CONTROLLED, run as apparatus: no agent, no Gamma --")
+    for k, v in controlled(name).items():
+        print(f"  {k:<18}: {v}")

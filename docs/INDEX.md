@@ -2914,6 +2914,82 @@ layer out and unenforced there.** The rule existed; the layer above did not carr
 
 ---
 
+# MECHANISMS WAITING FOR CONSUMERS — four, and the fourth was DECLARED rather than found
+
+| mechanism | built | consumer arrived |
+|---|---|---|
+| `touching` (sensor 8) | `2b` | **2026-08-27, §16.5's habitat** — computed and consulted by nothing until then |
+| `Affordances` | `2c` | **2026-08-27** — fixture display only, until it qualified the habitat's relation types |
+| `terminal()` | `2a` | **2026-08-28, `4e`** — written *read by the harness, never by the loop* and read by nothing |
+| **`experiment.pairs`** | **2026-08-28** | **NONE — and said on the day it was built** |
+
+**THREE WERE FOUND BY A CHECK. ONE WAS DECLARED AT BIRTH.** That is the register working
+prospectively for the first time in this class — the same distinction the A6i entry draws
+between its retrospective and prospective instances, arriving in a different class on the same
+day.
+
+**And the declaration is the whole difference.** An object produced with no reader is a shape
+this project has catalogued repeatedly; **naming it while building it costs nothing and finding
+it later costs a check.** `pairs` has no consumer, building one is a separate item with its own
+section check, and **one pair is a mechanism working rather than a result.**
+
+---
+
+# THE CONTROLLED EXPERIMENT, REBUILT AS APPARATUS — and it discriminates 3 for 3
+
+    states_seen 1        all four trials from the same board -- the reset is exact
+    controlled_pairs 3   four actions from one state
+    DISCRIMINATING 3     every pair shows a per-slot difference in the WORLD's response
+    unstable 0
+
+### 1 · WHAT I BUILT AN HOUR AGO WAS A CONTINUATION, AND THE RULING EXCLUDES IT
+
+**Ruled: the seat may restart for its OWN reasons and may not restart to help the agent
+learn** — and the check is **carriage, not intent**: *does the agent carry anything across the
+restart?* **`retarget` keeps `gamma`.** So the first version handed the level back **with what
+had been learned**, which is an attempt however it is labelled, and *who pressed the button
+does not change what it bought.*
+
+**`ArcWorld.restart()` DELETED rather than rewired.** Its only caller was that continuation,
+and a method whose purpose is restarting into a live agent is **a trapdoor to the version the
+ruling forbids** — second trapdoor removed today, after `molecules`.
+
+**`controlled()` is the replacement and it has no agent in it at all.** Fresh wrapper reset per
+trial, fresh tracker, no Γ. **The carriage question does not arise rather than being answered
+well.**
+
+### 2 · AND THE OUTCOME VARIABLE WAS WRONG, WHICH IS WHY THE FIRST PAIR READ 0.0
+
+**The first version compared `sum(_last_mass.values())` — the MODEL's residual, aggregated
+across slots.** Two defects in one expression:
+
+- **It measures the model, and §21.1 asks about the world.** *Disambiguating intervention*
+  (Schulz & Bonawitz) and *causal structure learning from intervention* (Gopnik) are about
+  **causal structure, not about calibrating a predictor.** Both quantities are per-slot and
+  available at the same instant, **so the substitution is invisible** — `_rtype`'s shape
+  exactly: the right quantity one layer down, a plausible neighbour used instead.
+- **It is an aggregate across slots**, the construction the hard rules refuse and the one
+  `sim_fidelity` was refused for **the same afternoon**.
+
+**THE 0.0 WAS THE VARIABLE, NOT THE QUANTITY.** With the world's per-slot response and an
+existential reading — ***any slot differing***, never a sum — the same experiment reads
+**3 of 3 discriminating.** *(And the model-state confound dissolves rather than being managed:
+with the world as the outcome, two visits whose slots were all `IDN`-bound are simply
+irrelevant, because the model is not a term in the measurement.)*
+
+### 3 · BOTH BRANCHES WERE NAMED IN ADVANCE AND NEITHER WAS THE ANSWER
+
+*The object carries a signal* or *a controlled experiment measuring a quantity that does not
+discriminate.* **It was a third thing: a defective outcome variable**, which reads exactly like
+the second and is a different repair. **Named in advance, and still not the shape it turned out
+to be** — which is the argument for inspecting rather than characterising, one more time.
+
+**BORROWED, AT THE POINT OF PUBLICATION:** *the pairs exist only because the SEAT restarts the
+bench, for its own measurement, with no agent in the run. On a scored run nobody restarts
+anything.* **Strictly more borrowed than determinism, which survives the port.**
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**

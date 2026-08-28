@@ -15,6 +15,23 @@ action, with both outcomes read. Anything else is two observations that happen t
 So the signature is the full slot reading -- not a summary, not a hash of a summary -- because
 **two boards agreeing on a digest is Figure 2's collapse at the level of the key.**
 
+**THE OUTCOME IS THE WORLD'S RESPONSE, NOT THE MODEL'S RESIDUAL, AND THE FIRST VERSION HAD IT
+WRONG.** §21.1 asks *did the world do something different* -- it is *disambiguating
+intervention* (Schulz & Bonawitz) and *causal structure learning from intervention* (Gopnik),
+**both about the world's causal structure and neither about calibrating a predictor.** The
+residual measures the MODEL. **Both are per-slot quantities available at the same instant, so
+the substitution is invisible** -- the same shape as `_rtype` taking a plausible neighbour when
+the right quantity was one layer down.
+
+**AND IT DISSOLVES A CONFOUND RATHER THAN MANAGING ONE.** With the residual as the outcome, two
+visits whose slots were all `IDN`-bound produce an identical reading and the model state is a
+term in the measurement. **With the world's response, the model is not in the comparison at
+all**, so two identical model states are simply irrelevant.
+
+**AND THE READING IS EXISTENTIAL, NEVER A SUM.** `any slot differing` rather than a total: an
+aggregate can be flat while every slot underneath it moved, which is the construction the hard
+rules refuse and which the first version shipped.
+
 **IT RECORDS, IT DOES NOT DECIDE.** A pair is evidence about one action's effect; what that
 means for a bet is the loop's, and what it means for a diagnosis is a seat's. The rung
 reports; the layer above judges.
@@ -43,7 +60,7 @@ class Controlled:
         """
         return tuple(sorted(state.items()))
 
-    def visit(self, state: dict[str, int], action: str, outcome: float) -> dict | None:
+    def visit(self, state: dict[str, int], action: str, outcome: dict[str, int]) -> dict | None:
         """One (state, action, outcome). Returns a PAIR when this completes a control.
 
         A pair is the same signature under a DIFFERENT action. The same action twice is a
@@ -53,18 +70,22 @@ class Controlled:
         sig = self.signature(state)
         prior = self.seen.setdefault(sig, {})
         if action in prior:
-            # same state, same action: a determinism reading, not a control.
             prior[action]["repeats"] += 1
             prior[action]["stable"] = prior[action]["stable"] and (
-                abs(prior[action]["outcome"] - outcome) < 1e-9)
+                prior[action]["outcome"] == outcome)
             return None
         pair = None
         if prior:
             other = sorted(prior)[0]
+            a_out = prior[other]["outcome"]
+            moved = sorted(k for k in set(a_out) | set(outcome)
+                           if a_out.get(k) != outcome.get(k))
             pair = {"varied": (other, action), "slots": len(state),
-                    "outcome_a": prior[other]["outcome"], "outcome_b": outcome,
-                    "difference": outcome - prior[other]["outcome"],
-                    "reads": "same state, exactly one action varied, both outcomes read"}
+                    "slots_differing": moved, "n_differing": len(moved),
+                    "discriminates": bool(moved),
+                    "reads": ("same state, exactly one action varied, and the WORLD's "
+                              "per-slot response compared. ANY slot differing is the "
+                              "reading -- an existential, never a sum")}
             self.pairs.append(pair)
         prior[action] = {"outcome": outcome, "repeats": 0, "stable": True}
         return pair
@@ -85,6 +106,7 @@ class Controlled:
     def report(self) -> dict:
         d = self.determinism()
         return {"states_seen": len(self.seen), "controlled_pairs": len(self.pairs),
+                "discriminating": sum(1 for p in self.pairs if p["discriminates"]),
                 **d,
                 "reads": ("a pair is the same state with exactly one action varied; "
                           "`unstable` above zero means the domain did not hold still and "
