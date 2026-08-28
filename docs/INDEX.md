@@ -1807,6 +1807,23 @@ Fixed at source; `environment_files` and `recordings` now skip alongside `.venv`
 **And the shape is the day's shape again: I did the half I was thinking about and not the half
 I was not.**
 
+**WHAT IS CONTAMINATED AND WHAT IS NOT, stated rather than left at *breached*:**
+
+| | |
+|---|---|
+| **seen** | two constants (a background and a padding colour) and three function names, in lint output |
+| **NOT seen** | any rule, level, objective, transition or solution. The linter reports shapes, not behaviour |
+| **the agent** | **read none of it.** The breach is in a checker that runs beside the loop, not in the loop |
+| **entered a brief, the library, the priors, the grammar or a decision** | **nothing** |
+
+**AND THE CONTAINMENT IS CHECKABLE RATHER THAN PROMISED.** The one leaked constant that could
+conceivably matter is a background colour — **and `arc_percept` refuses the concept outright,
+in text written before any game existed**: *NO BACKGROUND COLOUR. Every same-symbol region is
+a component, INCLUDING colour 0. **Treating 0 as background is domain knowledge about what a
+board means, and this file is not entitled to it.*** `components(board)` takes **one
+argument**. **There is no parameter for it to have entered**, and that refusal is
+pre-watermark, so `git blame` settles it rather than my memory.
+
 ### 4 · WHAT THE RUN SAYS IS MISSING
 
 **One mint in 40 cycles over 100 slots, and 229 parks.** The atoms are arithmetic on slot
@@ -1814,6 +1831,34 @@ values; the domain's operators are grid transforms. **The plumbing set is the ho
 have run** — authoring grid atoms with a game present is the encoded-answer path — **and the
 stopping point is the argument for building them deliberately, pre-registered, rather than the
 excuse for skipping the step.**
+
+---
+
+# ARC'S PREDICT ATOMS DO NOT EXIST — and the plan points at the wrong item for the SIXTH time
+
+**`arc_check` says it plainly and nobody read it as a debt:** *"ARC's real atom set is grid
+transforms and arrives at 3d; these three are a plumbing set and nothing is read off them."*
+**`3d` delivered the rank function.** `arc_atoms.three_spaces(predict)` takes PREDICT as an
+argument *because inventing one there would be that file choosing what the agent may bet on* —
+and **no caller has ever supplied one.** The holdout ran on `idn · inc · act`: arithmetic on
+slot values, against a domain whose operators are grid transforms.
+
+**SIXTH INSTANCE OF THE PLAN NAMING THE WRONG ITEM**, and the list is checkable:
+
+| # | the plan said | it was |
+|---|---|---|
+| 1 | `2b`'s detector is `never_live` | `R_T` |
+| 2 | build tables order phases | they group by **cost**; dependency falls out of neither |
+| 3 | `3a → 3b → 3c → 3d` | **reversed** — §23.5 makes `3c` a prerequisite |
+| 4 | `3d` ranks on four terms incl. `type-match` | §17.7's tuple has **three**, and the fourth double-applies `3c` |
+| 5 | "the seven shapes from §12.1" | **eight**, as two tables of seven |
+| 6 | **PREDICT atoms arrive at `3d`** | **`3d` was the rank function. They do not exist** |
+
+**AND THE STOPPING POINT IS THE ARGUMENT FOR BUILDING THEM DELIBERATELY, NOT THE EXCUSE FOR
+SKIPPING THE STEP.** Authoring grid atoms *now*, with `ls20` downloaded and a stall to explain,
+is **the encoded-answer path wearing a diagnosis's clothes** — the fix that helps one case. They
+should be pre-registered against the corpus and authored from it, the way the nine sensors were,
+**and the run that motivated them is exactly why that has to be deliberate.**
 
 ---
 
