@@ -2771,6 +2771,54 @@ incident and a number attached.**
 
 ---
 
+# THE CRASH REPAIRED, AND `4c` BLOCKED — both after their section checks
+
+### 1 · THE REPAIR GOES IN `step()`, AND THE CHECK CHANGED ITS SHAPE
+
+**Ruled: the loop tolerates a boardless frame, because *no slots to act on* is a state of the
+world and not a condition the seat sets.** Verified: **no crash in 220 cycles**, and
+`terminal()` reads `'death'` where the loop used to die.
+
+**THE VOCABULARY NAMED IN THE RULING EXISTS FOR A DIFFERENT SUBJECT.** `CHANNEL_CLOSED` in
+the loop is **per-slot** — *the slot owes and this step read zero* — and `probe`'s is *nothing
+the frame can see has ever moved*. **Neither is *there are no slots at all*.**
+
+**AND THE CORPUS CONSTRAINS *the loop must be able to hear it*.** `THE_FORMULA`: *R stops
+arriving because the prediction is perfect* and *because the channel closed* look alike from
+inside — ***detecting the second is not something the loop can do; that job belongs to a
+position outside the loop.***
+
+> **So the repair REPORTS AND ADJUDICATES NOTHING.** It records that the slot set is empty and
+> explicitly does not say whether that is a terminal frame, a closed channel or a perception
+> failure. **The rung reports; the layer above judges — the same ruling, arriving in the
+> repair that prompted it.** `PHILOSOPHY` Q3 gives the positive form: *what the agent can do
+> instead is **report its own epistemic state soundly***, which is achievable where knowing
+> the truth is not.
+
+**TWO DETAILS THE CHECK SUPPLIED.** `False` was already the right return — the contract is
+*returns False if no action was proposed, which is a legal outcome* — so **a step that cannot
+happen returns what a step proposing nothing returns.** And **the monotone surprise integral
+is untouched**, which `THE_FORMULA` names as the one structural defence against this exact
+blindness: *a system that could zero its own surprise record could look calm by having
+forgotten it was ever wrong.* **A turn with no reading must not look like a turn that went
+well.**
+
+### 2 · `4c` CANNOT BE BUILT — its subject does not exist
+
+**`4c` is *roll forward a candidate ROUTINE before committing*, and routines are `4a`/`4b`.**
+Neither is built; **no NSM primes occur anywhere in the tree.** And `disproof`'s form needs
+**more than one candidate to group by prediction** — with none, it is zero by construction.
+
+**THE RULING ON THE FORM STANDS AND IS UNAFFECTED.** Two mechanisms, on the lens's precedent;
+`disproof` as the second signal, because it is **a barrier rather than a score and cannot be
+satisfied by doing nothing** — a no-change rollout matches perfectly and refutes nothing.
+**With the clause at the site: the second signal must not be derivable from the first, since a
+second signal computed from the same trace is one mechanism with two names.**
+
+**Blocked on `4a`/`4b`, which is sequencing rather than a defect in the ruling.**
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**

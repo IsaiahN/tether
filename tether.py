@@ -1099,6 +1099,30 @@ class Agent:
         self._advertised()
         self._present()       # before the frame, so slots and frame cannot disagree
         before = self.env.observe()
+        if not self.slots:
+            # NO SLOTS IS A STATE OF THE WORLD, NOT AN IMPOSSIBILITY. `max()` on an empty
+            # sequence made a legal state fatal: `ls20` reaches GAME_OVER at cycle 130,
+            # `board()` returns None, and the loop died on the frame that told it so.
+            #
+            # AND IT REPORTS RATHER THAN ADJUDICATES, which is the corpus's own division.
+            # `THE_FORMULA`: *R stops arriving because the prediction is perfect* and *R
+            # stops arriving because the channel closed* look alike from inside, and
+            # **detecting the second is not something the loop can do -- that job belongs
+            # to a position outside the loop.** So this records the reading and names
+            # nothing: whether an empty slot set is a terminal frame, a closed channel or
+            # a perception failure is a seat's office. `PHILOSOPHY` Q3 gives the positive
+            # form -- *what the agent can do instead is report its own epistemic state
+            # soundly*, which is achievable where knowing the truth is not.
+            #
+            # `False` is the existing contract for *no action was proposed*, so a step that
+            # cannot happen returns what a step that proposed nothing returns, and the
+            # monotone surprise integral is untouched -- a turn with no reading must not
+            # look like a turn that went well.
+            self.led.record(self.cycle, "PERCEIVE", "@loop", "no_slots",
+                            slots=0, cause=CHANNEL_CLOSED,
+                            reads="the slot set is empty; what that MEANS is not read here")
+            self.cycle += 1
+            return False
         # ATTEND TO WHAT OWES MOST. R+_s is defined and already measured; picking
         # slots[0] made the phase histogram a function of alphabetical order, so
         # renaming a slot moved an instrument. Ties break on owing, then on name, which
