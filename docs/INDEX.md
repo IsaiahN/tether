@@ -3508,6 +3508,55 @@ seen from the drive layer. **The row now names the prior; nothing yet stops it i
 
 ---
 
+# `PRICE` CHECKED — the refusal it promises does not exist, and cannot at the current write
+
+### 1 · THE TYPE IS RIGHT AND ONE CALL SITE IS ALREADY CORRECT
+
+`grammar.py`: `PRICE = "PRICE"  # a cost claim with its evidence count, or an explicit null`,
+and `price(value, n, reason)`. **The two callers differ:**
+
+    G.price(float(len(self.trace)), len(self.trace))    <- the stub: value == n
+    G.price(None, None, "explicit-null: nothing bound") <- CORRECT, and already there
+
+**So the explicit-null path is built and used.** The defect is one call site, exactly as
+`DOCTRINE_AUDIT` §9 says: *value and evidence-count are the same number.*
+
+### 2 · BUT THE GATE REFUSAL IT PROMISES DOES NOT EXIST
+
+**`price`'s own docstring:** *"A number without evidence is representable here and **refused at
+the gate**."* · **`DOCTRINE_AUDIT` §9:** *"a stub in a slot **the gate checks the shape of** but
+not the meaning of, so it passes."*
+
+> **`gate.py` contains no reference to `PRICE` and none to utterances. `grammar.py` has no
+> type-check or validator.** The gate checks **neither** shape nor meaning. **The stub passes
+> because nothing looks at it.**
+
+### 3 · AND IT COULD NOT, BECAUSE THE UTTERANCE IS FLATTENED AT THE WRITE
+
+    self.led.record(..., "utterance", kind=kind, id=uid, text=repr(term), heads=[...])
+
+**`text=repr(term)`.** A `PRICE` leaf with a value and no evidence arrives at the ledger as
+**characters inside a string** — `"PAY(PRICE(4.0, 4, None))"` — and nothing can inspect it.
+**The structure is destroyed before the record exists**, so filling the stub changes what is
+computed and nothing that is checked.
+
+**Which is the day's shape at the level of a whole subsystem: the record cannot express what a
+check would need**, and here the promise of the check is written into the producer's docstring.
+***A guarantee that reads as enforced and is not*** — `_bindings`' shape, in the grammar.
+
+### ⚠ AND I REPEATED THE AUDIT'S CLAIM WITHOUT CHECKING IT
+
+**I reported *the gate checks its shape* an hour ago, taken from §9.** **Third time today I
+have repeated an unverified claim out of a document** — after *split before search is not in
+the corpus* and *the record cannot distinguish held-then-failed*. **All three were checkable in
+one grep**, and the pattern is the same each time: **a document's statement about the code,
+carried forward as if it were a reading of the code.**
+
+**NOT BUILT. Filling the stub is one line and buys nothing until the utterance reaches the
+ledger as structure rather than as `repr`.**
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
