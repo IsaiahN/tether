@@ -1928,6 +1928,27 @@ scratch file is not reproducible, and this is the project's first real reading.*
 checkers stay offline and deterministic. **A game IDENTIFIER is a public name and is in the
 file; no mechanics are**, and `environment_files/` is gitignored **and** linter-excluded.
 
+### 3c · `0a`'s UNPARK CONDITION FIRED FOR ONE HALF AND NOT THE OTHER
+
+**The park ruling names its own trigger:** *neither half until **Phase 2 says what an
+interaction looks like on a real board**.* A real board now exists and has produced real
+bindings — **so the trigger is checkable rather than a matter of judgement, and it splits.**
+
+| half | fired? | evidence |
+|---|---|---|
+| **operand TYPING** | **YES** | `idn . recolour<o11.h>` — a **height** bound as a colour operator's operand. `gamma` types an atom's input and output **and not its operand**, so nothing refused it. **The parked decision produced exactly the defect it predicted, on a real board** |
+| **operand ARITY** (N-ary) | **NO** | the ruling's condition was *an atom that consumes past index 0*. **`translate` and `recolour` both read `operands[0]`.** Grepped: **nothing in the repo reads index 1.** So the measured **13× for zero capability** still stands, unchanged |
+
+**The domain supplied the typing case and not the arity case**, and conflating them would
+unpark a mechanism whose own cost argument is still exactly true.
+
+**AND THE PARK RULING LEANED ON THE WRONG-POINTER BUG ITSELF.** One of its reasons was
+*Phase 3d replaces the atom set with grid transforms anyway, so a toy-world operand-1 atom is
+scaffolding for a panel that gets replaced.* **`3d` was the rank function; the atoms arrived
+at `3a` and had to be derived from the corpus by hand.** **The seventh instance of the plan
+naming the wrong item, and this one is inside a ruling that used it as a premise** — the
+conclusion survives on its other reasons, and the premise did not.
+
 ### 4 · THE COUNT IS NOT A MEASUREMENT
 
 **Six was a list; two is what the signature admits; neither is derived from the environment.**
