@@ -2653,8 +2653,26 @@ control.**
 
 **AND THE PANEL DOES SUPPLY DEATHS.** Blind cycling of all four actions reads `GAME_OVER` on
 **172 of 300 steps** — confirmed *before* the build, not after, per the panel-property rule.
-**So the null is not the panel lacking the property.** Whether it is cycle scarcity or the
-agent's policy differing from blind play is **a longer run's to say, and that run is pending.**
+**So the null is not the panel lacking the property.**
+
+**AND THE BLIND NUMBERS SAY MORE THAN THEY FIRST READ AS.** 300 steps split **128
+`NOT_FINISHED` then 172 `GAME_OVER`** — which is not *dies often*, it is **died once around
+step 128 and stayed dead.** So `ls20` does not auto-reset on death; the state persists.
+
+| run | endings | states | revisited | pairs |
+|---|---|---|---|---|
+| 40 cycles | none | 40 | 0 | 0 |
+| **100 cycles** | **none** | 100 | 0 | 0 |
+
+**A 100-cycle agent run sits BELOW blind play's death point**, so the null is consistent with
+scarcity and says nothing yet about policy. **220 cycles is running.** *(And the earlier
+reading of 172-of-300 as "the panel supplies deaths abundantly" was a misread of a persisting
+state as a recurring event — the property holds, the abundance does not.)*
+
+**AND IF THE GAME DOES NOT AUTO-RESET, §21.1's EXPERIMENT NEEDS SOMETHING TO RESTART IT** —
+which `ResetGate` bans the agent from doing. **That would make the controlled experiment
+depend on a seat-side restart, and whether that is legitimate is §21.2's question, not a
+wiring detail.** Flagged rather than assumed.
 
 ### 3 · A CORRECTION TO MY OWN SECTION CHECK
 
