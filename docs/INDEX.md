@@ -2455,7 +2455,27 @@ the value is entirely in `recalled` entries actually being checked against a sou
 why the stated bar (*it gates a decision expensive to unwind*) is load-bearing rather than
 tidy: **it keeps the register small enough to check.**
 
-**NOT BUILT.**
+### 5 · BUILT — the refusal now names its condition, and the two panels differ
+
+    ls20    {'no-eligible-target:none-stale': 7}
+    snaps   {'no-eligible-target:none-stale': 3, 'no-eligible-target:no-targets': 1}
+
+**Four literals, exhaustive over the gate**: `no-targets` (nothing owed and nothing parked),
+`none-stale` (**the condition legitimately holds — the loop working**), `no-history` (targets
+with no evidence), `none-eligible` (each target fails one or the other).
+
+**AND THE TWO PANELS ALREADY READ DIFFERENTLY, which is the whole point.** `ls20` is
+**entirely `none-stale`** — every refusal is the loop correctly declining, none is a supply
+failure. **`snaps` carries both**, so the same bucket was covering opposite diagnoses on the
+panel it was read from all week. **The adjudicating layer now has something to read; it had
+nothing before.**
+
+**ONE COUPLING THAT WOULD HAVE FAILED SILENTLY.** `NOT_ATTEMPTS` is an exact-string tuple, so
+a new literal that is not listed **starts counting as an ATTEMPT** and breaks
+`branch_identity_holds` — the identity would have gone false without anything naming why.
+**Listed rather than prefix-matched**, per the checker law: *exemptions as data, not logic — a
+table can be pinned; logic widens quietly.* A `startswith` test would exempt any literal
+anyone later coined, including one that genuinely is an attempt.
 
 ---
 

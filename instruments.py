@@ -43,7 +43,16 @@ STAGES = (DIED_PRE_DIFF, RESIDUAL_EMPTY, MINT_UNFIRED, REUSE_UNWIRED,
 INDICTS = MINTED_UNUSED     # and nothing else
 
 # funnel keys that record a fact about the search rather than a reuse attempt
-NOT_ATTEMPTS = ("no-eligible-target", "rescan")
+# BOOKKEEPING, NOT ATTEMPTS -- excluded from `sum(reuse_branch) == reuse_attempts`.
+# LISTED, NEVER PREFIX-MATCHED. A `startswith("no-eligible-target")` test would silently
+# exempt any future literal someone coined, which is the checker law's *exemptions as data,
+# not logic: a table can be pinned; logic widens quietly.* Each refusal condition earns its
+# row here, and a new branch that is genuinely an ATTEMPT must not be added.
+NOT_ATTEMPTS = ("no-eligible-target", "rescan",
+                "no-eligible-target:no-targets",      # nothing owed and nothing parked
+                "no-eligible-target:none-stale",      # the condition legitimately holds
+                "no-eligible-target:no-history",      # targets with no evidence to reuse on
+                "no-eligible-target:none-eligible")   # each target fails one or the other
 
 PROBE, DIRECTED, STRATEGY = "probe", "directed", "strategy"
 

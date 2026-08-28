@@ -926,7 +926,26 @@ class Agent:
 
         eligible = [t for t in targets if stale(t[3]) and t[2]]
         if not eligible:
-            self.chain.reuse_branch["no-eligible-target"] += 1
+            # NAME WHICH CONDITION REFUSED, not merely that one did. §18.1's discipline is
+            # *charge every attempt to a string literal written at the branch that resolved
+            # it*, so a finer literal is INSIDE that rule rather than an extension of it.
+            #
+            # AND THE READING IS NOT THE RUNG'S TO GIVE. `THE_FORMULA`: one reading, three
+            # causes, and one of them is *a seat's office*. `none-stale` is a refusal whose
+            # condition legitimately holds -- the loop working -- and `no-targets` is nothing
+            # supplying the condition. Same flag, opposite diagnoses, and the layer above
+            # decides which. It could not, while both arrived as one bucket.
+            n_stale = sum(1 for t in targets if stale(t[3]))
+            n_hist = sum(1 for t in targets if t[2])
+            if not targets:
+                why = "no-eligible-target:no-targets"
+            elif not n_stale:
+                why = "no-eligible-target:none-stale"
+            elif not n_hist:
+                why = "no-eligible-target:no-history"
+            else:
+                why = "no-eligible-target:none-eligible"
+            self.chain.reuse_branch[why] += 1
             return
         for tkey, slot, hist, rec, slots in eligible:
             how = "direct"
