@@ -37,7 +37,10 @@ import arc_percept as P
 
 sys.dont_write_bytecode = True
 
-FRAME, OBJ = "FRAME", "OBJ"
+# OBJECT, not OBJ: `grammar` reserves OBJ for *a complete objective* and OBJECT for
+# *a slot's identity*. A sensor reads a thing, so it takes OBJECT -- and `arc_atoms`
+# now draws the same line, so all three files mean one thing by each word.
+FRAME, OBJECT = "FRAME", "OBJECT"
 COLOUR, COUNT, POSITION, EXTENT = "COLOUR", "COUNT", "POSITION", "EXTENT"
 SHAPE, BOOL, DELTA, AXIS, RATIO, REGION = "SHAPE", "BOOL", "DELTA", "AXIS", "RATIO", "REGION"
 
@@ -197,13 +200,13 @@ def minimum_set() -> Registry:
     rather than merely ungenerous.
     """
     return Registry([
-        Sensor("components", _components, (FRAME,), OBJ, "prior", 1),
-        Sensor("colour", _attr("colour", int), (OBJ,), COLOUR, "prior", 1),
-        Sensor("position", _attr("row", int), (OBJ,), POSITION, "prior", 1),
-        Sensor("extent", _attr("h", int), (OBJ,), EXTENT, "prior", 1),
-        Sensor("shape", _shape, (OBJ,), SHAPE, "prior", 1),
-        Sensor("overlap", _overlap, (OBJ, OBJ), RATIO, "prior", 2),
-        Sensor("delta", _delta, (OBJ, OBJ), DELTA, "prior", 2),
-        Sensor("touching", _touching, (OBJ, OBJ), BOOL, "prior", 2),
+        Sensor("components", _components, (FRAME,), OBJECT, "prior", 1),
+        Sensor("colour", _attr("colour", int), (OBJECT,), COLOUR, "prior", 1),
+        Sensor("position", _attr("row", int), (OBJECT,), POSITION, "prior", 1),
+        Sensor("extent", _attr("h", int), (OBJECT,), EXTENT, "prior", 1),
+        Sensor("shape", _shape, (OBJECT,), SHAPE, "prior", 1),
+        Sensor("overlap", _overlap, (OBJECT, OBJECT), RATIO, "prior", 2),
+        Sensor("delta", _delta, (OBJECT, OBJECT), DELTA, "prior", 2),
+        Sensor("touching", _touching, (OBJECT, OBJECT), BOOL, "prior", 2),
         Sensor("changed", _changed, (FRAME, FRAME), REGION, "prior", 2),
     ])

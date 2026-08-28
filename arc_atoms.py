@@ -34,16 +34,24 @@ from gamma import Atom, Ctx
 
 sys.dont_write_bytecode = True
 
-OBJ, ATTR, PRED, QUANT, VAL = "OBJ", "ATTR", "PRED", "QUANT", "val"
+# OBJECT AND OBJ ARE DIFFERENT NODES, AND ONE CONSTANT USED TO BE BOTH.
+# `_extract` takes OBJECT -- a thing on the board. `_quantify` yields OBJ -- a complete
+# objective, which is `grammar.T.OBJ`'s own gloss. Under one name the type graph had a node
+# that was two things, and the closure composed across it: 225 pipelines at depth 4, the
+# first being `colour . same . all . colour` -- quantify to an objective, then read a colour
+# OFF the objective. Well-typed, meaningless, and refusing that is what the type system is
+# for. `grammar.py` had kept them apart all along as OBJECT and OBJ.
+OBJECT, OBJ = "OBJECT", "OBJ"
+ATTR, PRED, QUANT, VAL = "ATTR", "PRED", "QUANT", "val"
 
 
 def _extract() -> list[Atom]:
-    """`OBJ → ATTR`. One per sensor 2b already computes, wrapped and not rewritten."""
+    """`OBJECT → ATTR`. One per sensor 2b already computes, wrapped and not rewritten."""
     def pick(key: str):
         def fn(o: Any, _c: Ctx) -> Any:
             return o.get(key, 0) if isinstance(o, dict) else o
         return fn
-    return [Atom(k, pick(k), OBJ, ATTR) for k in ("colour", "row", "col", "h", "w")]
+    return [Atom(k, pick(k), OBJECT, ATTR) for k in ("colour", "row", "col", "h", "w")]
 
 
 def _relate() -> list[Atom]:

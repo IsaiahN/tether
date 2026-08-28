@@ -3719,8 +3719,28 @@ false null on a comparison.**
 producing a `PRED` closes a loop. **A λ that is silently wrong on cyclic graphs is a defect in
 the instrument, not in this graph.**
 
-**NOT BUILT. `4a` is three parts in order — split `OBJ`, add ACTION and ROUTINE, then the
-primes — and λ's computation is a fourth, separable, and upstream of trusting any of them.**
+### 4 · BUILT — the `OBJ` split, across all three files that meant it
+
+    before   V=14  lambda=3.5569  types=4   depth-4 crossings=225
+    after    V=14  lambda=3.0     types=5   depth-4 crossings=0
+
+**`arc_atoms` now takes `OBJECT` into EXTRACT and yields `OBJ` from QUANTIFY** — the line
+`grammar.py` had drawn all along, where `OBJECT` is *a slot's identity* and `OBJ` is *a
+complete objective*.
+
+**AND `sensors.py` WAS RENAMED WITH IT, because it had the same constant meaning the same
+thing.** Leaving it would have kept `OBJ` meaning *object* in one file and *objective* in
+another — **the collision half-repaired, which is how it comes back.** All three files now mean
+one thing by each word.
+
+**The fixture reads `lambda, three spaces: 3.0 < V 14.0, **5 types**`** and the nine sensors
+still resolve. **Stage 1's two readings both stand**: `λ = V = 3.0, 1 type` for the single
+space (the falsifier firing), `3.0 < 14.0, 5 types` for the three (it not firing).
+
+**Two of `4a`'s four parts are done — λ's computation and the split — and both were repairs to
+things already built, checkable against readings that already existed.** What remains is
+**ACTION and ROUTINE**, which is the contract question §2622 named, and then **the six primes,
+which are a lookup and already exact.**
 
 ---
 
