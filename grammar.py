@@ -202,5 +202,24 @@ def ref(record_id: Any, kind: str) -> Leaf:
 
 def price(value: float | None, n: int | None = None, reason: str | None = None) -> Leaf:
     """A number with its evidence count, or an explicit null with a reason.
-    A number without evidence is representable here and refused at the gate."""
+
+    **REFUSED HERE, AND THE DOCSTRING USED TO NAME THE WRONG SITE TWICE.** It said *a number
+    without evidence is representable here and refused at the gate* -- and `gate.py` contains
+    no reference to `PRICE` or to utterances, so nothing refused it; and the ledger receives
+    `text=repr(term)`, so nothing downstream COULD. **A guarantee that read as enforced.**
+
+    **AND IT IS NOT A TYPE CHECK, WHICH IS WHY `compose` WAS NEVER GOING TO CATCH IT.**
+    `price(4.0, 4, None)` and `price(4.0, None, None)` are both well-typed `PRICE` leaves --
+    the type system cannot separate them by construction. **A number without evidence is a
+    CONTENT claim**, so it is refused where the content is assembled.
+
+    **BOTH HALVES COME FROM THE TYPE'S OWN DEFINITION**, not from a rule invented here:
+    *a number WITH ITS EVIDENCE COUNT* -- so a value requires `n`; *or an EXPLICIT null WITH A
+    REASON* -- so a null requires the reason that makes it explicit. **An unexplained null is
+    the same defect as an unevidenced number**, in the other direction.
+    """
+    if value is not None and n is None:
+        raise Ill("ill-formed: PRICE carries a value with no evidence count")
+    if value is None and not reason:
+        raise Ill("ill-formed: a null PRICE must be EXPLICIT -- state the reason")
     return Leaf(T.PRICE, (value, n, reason))

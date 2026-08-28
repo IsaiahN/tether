@@ -3576,8 +3576,38 @@ the corpus* and *the record cannot distinguish held-then-failed*. **All three we
 one grep**, and the pattern is the same each time: **a document's statement about the code,
 carried forward as if it were a reading of the code.**
 
-**NOT BUILT. Filling the stub is one line and buys nothing until the utterance reaches the
-ledger as structure rather than as `repr`.**
+### 5 · BUILT — the content rule, at the site the content is assembled
+
+    value + evidence     accepted
+    explicit null        accepted
+    value, NO evidence   REFUSED: PRICE carries a value with no evidence count
+    null, NO reason      REFUSED: a null PRICE must be EXPLICIT -- state the reason
+
+**Not in `compose`, and not in the gate.** `PAY` is a Speech-act prime rather than a terminal,
+and more to the point **the check is not a type check** — so it goes where the content is
+assembled, and a malformed `PRICE` leaf becomes **unconstructible** rather than refused later.
+
+**BOTH HALVES COME FROM THE TYPE'S OWN DEFINITION.** *A number **with its evidence count*** →
+a value requires `n`. *Or an **explicit** null **with a reason*** → a null requires the reason
+that makes it explicit. **An unexplained null is the same defect in the other direction**, and
+it was representable before.
+
+**And the docstring's false guarantee is replaced by the true one**, with both errors named:
+it claimed *refused at the gate* where the gate never sees an utterance, and it claimed a
+refusal for missing evidence where `compose` refuses only ill-TYPING.
+
+### 6 · AND IT DOES NOT FIX §9's ACTUAL COMPLAINT — said plainly
+
+**`G.price(4.0, 4)` is still accepted, and the live caller is
+`G.price(float(len(self.trace)), len(self.trace))`.** §9's defect is ***value and
+evidence-count are the same number*** — **a step count wearing a price** — and that is
+**well-formed under this rule and always will be**, because a price may legitimately equal its
+evidence count and a rule forbidding it would be arbitrary.
+
+> **The rule catches an unevidenced number. It does not catch a number that is the wrong
+> quantity.** §9 needs `PAY` to have a price to carry, and **nothing computes one** —
+> *Figure 8's surplus accounting has no real input.* **That is a different item and it is not
+> closed by this.**
 
 ---
 
