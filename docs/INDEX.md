@@ -542,6 +542,67 @@ rather than in a write-up after it.
 
 ---
 
+# WHAT THE FRAMEWORK IS FOR, and the question to ask a reading FIRST
+
+`[I]` *"The metatheory does not solve anything. It says what a solution has to look like. And
+the residual tells you which part of that shape is missing."*
+
+**NEITHER HALF WORKS ALONE: the shape without a reading is a claim; a reading without the shape
+is a null.** And today is the clean example — **the shape said *the outcome should be the
+world's response, per slot*; the reading said `0.0`; the gap between them was a wrong
+variable.** Neither the shape nor the number would have found it.
+
+### WHY SO MUCH OF THIS IS INSTRUMENTS
+
+**The shape constrains the instruments too**, and that is what most of this file records.
+*Three states, not two.* *A refusal names its condition.* *Report, do not adjudicate.* **None
+is about the agent** — each is **the form a checkable claim has to have**, applied to the thing
+doing the checking.
+
+> **Which is why the corpus keeps being right about tooling and silent about design choices.
+> It constrains FORM. It does not pick CONTENTS** — and that is exactly why *a choice nobody
+> has made* is a **residual and not a gap.**
+
+### AND AN INSTRUMENT IS MADE BY BEING WRONG, NOT BY BEING BUILT
+
+**Not built, then used. Built, used, found wrong in a specific way — and the finding is what
+made it an instrument.** The nulls sweep's first output was its own false positive.
+`disproof`'s first version was a tautology, width 7 over the whole of Z₇. The controlled
+experiment measured the MODEL where §21.1 asks about the WORLD. **Each is the loop applied to a
+tool, and this register is not a list of failures — it is how each became one.**
+
+### WHAT CHANGES IN PRACTICE
+
+**The first question about a reading is not *what did it measure*. It is *does this reading
+have the form the shape says it should*.** *The outcome is the world's response* would have
+flagged the residual variable **before the number was taken**.
+
+**Twice in one stretch a null was read as a result** — `pairs 0` and the reuse funnel — **and
+both were the instrument rather than the quantity.** The shape is what asks that first.
+
+### AND THE GUARD IT MUST ARRIVE WITH
+
+**A proctor who knows the shape can fit findings to it.** That is the failure this discipline
+exists against, and it is why **pre-registration, the panel-cannot-exercise corollary, and
+*report, do not adjudicate* are all defences against the person holding the shape.**
+
+> **The shape says what a solution looks like, and a reading that conforms to the shape is not
+> thereby correct. BOTH HALVES, ALWAYS TOGETHER.**
+
+### TWO CONSEQUENCES RECORDED WITH IT
+
+**`B17` is at two instances and the discipline caught neither.** *Nine-versus-thirty-seven* and
+*residual-versus-world* were both large enough to notice on their own; pre-registration held in
+both cases and did not help. **The discipline names the branches; it does not check the
+variable.** Two instances, zero caught by the thing meant to catch them.
+
+**And a decision's value cannot be assessed when it is made.** `signature()` was chosen against
+Figure 2's collapse and paid for §21.1's determinism precondition, which nobody was measuring.
+**Which is the argument for recording the REASONING rather than the conclusion — the reason is
+what lets someone later see what else it bought.**
+
+---
+
 # THE LOOP APPLIED TO DESIGN DECISIONS — §0.2 rules it IN, and it breaks in two places
 
 `[I]` *"If the framework is recursive over bounded frames, a design decision is a bounded
