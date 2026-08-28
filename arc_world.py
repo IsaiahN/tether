@@ -167,6 +167,26 @@ class ArcWorld:
             return "death"
         return ""
 
+    def restart(self) -> None:
+        """Put the apparatus back. **THE SEAT CALLS THIS. THE AGENT CANNOT REACH IT.**
+
+        `ls20` does not auto-reset -- it holds `GAME_OVER` and `board()` stays `None` -- so
+        §21.1's *same starting board* needs the experimenter to reset the bench between
+        trials. **That is a different act from the agent calling RESET**, which `actions()`
+        withholds and `bounds.py` exists to prevent: the harness restarting between trials is
+        not a bypass of the world's rule, it IS the experiment's setup.
+
+        **AND IT DOES NOT TRAVEL.** On a scored run nobody restarts anything, so every pair
+        this makes available is a measurement of the world's causal structure and **not a
+        capability the agent has** -- the same label determinism carries, and strictly worse,
+        because determinism survives the port and this does not.
+        """
+        fresh = self.w.reset()
+        if fresh is not None:
+            self._frame = fresh
+        self._read = None
+        self.blind = False
+
     def levels(self) -> tuple[int, int]:
         return self._frame.levels_completed, self._frame.win_levels
 

@@ -67,6 +67,7 @@ def play(game: str = "ls20", cycles: int = 40) -> dict:
     ctrl = experiment.Controlled()
     endings = collections.Counter()
     was_terminal = ""
+    restarts = 0
     for _ in range(cycles):
         before = {k: dict(v) for k, v in seg.tracked.items()}
         state = env.observe()
@@ -98,6 +99,13 @@ def play(game: str = "ls20", cycles: int = 40) -> dict:
         if end and end != was_terminal:
             endings[end] += 1
             ag.retarget(env, env.levels()[0], how=end)
+            # THE EXPERIMENTER RESETS THE BENCH. Ruled seat-side and BORROWED: it does not
+            # travel to a scored run. The tracker is reset with it -- carrying object
+            # identity across a death would assert continuity the world does not offer,
+            # and on the same board the names re-found identically anyway.
+            env.restart()
+            seg.tracked, seg._next = {}, 0
+            restarts += 1
         was_terminal = end
 
     rows = led.rows()
@@ -134,6 +142,10 @@ def play(game: str = "ls20", cycles: int = 40) -> dict:
         # §21.2's number, published rather than inferred: *if that is 40%, someone should
         # see it rather than infer it.*
         "budget_to_deaths": (round(endings.get("death", 0) / cycles, 4) if cycles else 0.0),
+        "restarts": restarts,
+        "borrowed": ("the controlled pairs exist only because the SEAT restarts the bench; "
+                     "on a scored run nobody restarts anything, so the pair count is not a "
+                     "capability the agent has"),
     }
 
 

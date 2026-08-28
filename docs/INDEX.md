@@ -2858,6 +2858,47 @@ second signal computed from the same trace is one mechanism with two names.**
 
 ---
 
+# A PERSISTING STATE READ AS A RECURRING EVENT — three instances in one session, all mine
+
+**Same misread three times, in three different materials, and the third only became visible
+once the second was fixed:**
+
+| # | where | what it did |
+|---|---|---|
+| 1 | **a reading** | 300 steps splitting 128 `NOT_FINISHED` / 172 `GAME_OVER` read as *the panel supplies deaths abundantly*. It is **one death at ~128 and a state that persists** |
+| 2 | **wiring** | `terminal()` reports the CURRENT frame, so the seat retargeted on every post-death step — **32 endings for one death** |
+| 3 | **a signature** | after death `observe()` is `{}`, so **every boardless frame shares the key `()`** and two absences read as *the same state revisited* |
+
+### AND THE THIRD IS THE WORST BECAUSE OF WHERE IT LANDED
+
+**Instance 2 published `budget_to_deaths` as `0.200`. The honest figure is `0.006`.**
+
+**That is §21.2's number** — the one specified as ***if that is 40%, someone should see it
+rather than infer it*** — **wrong by a factor of 32, in the field built precisely so a reader
+would not have to infer.** A number whose entire purpose is to stop an inference, misreporting
+by 32×. **The failure is in the instrument, not in the thing measured**, which is the class the
+whole session has been chasing and this is its sharpest instance.
+
+> **THE INSTRUMENTS BUILT TO PREVENT INFERENCE ARE NOT EXEMPT FROM THE ERRORS THEY EXIST TO
+> PREVENT** — and the exposure is structural: **a number that exists to be trusted is a number
+> nobody re-derives.** `coverage`, `disproof`, `admissions`, `branch_identity_holds` and
+> `goals_emitted` are all of that kind, and **each is read rather than recomputed**, which is
+> the property that let this one stand at 32× until a recount was forced by something else.
+
+### WHAT DISTINGUISHES THE THREE, SINCE RESEMBLANCE IS NOT A CLASS
+
+**They are one shape and not one mechanism.** Instance 1 was an inference from a summary;
+2 was a level-versus-edge trigger; 3 was a key that could not tell absence from a value.
+**Related by the same confusion — *is this thing happening, or is it still true?* — and by
+nothing else.** Recorded as a shape with three instances rather than filed as a class, per the
+four-classes correction.
+
+**The one transferable clause: *an absence is not a state of the world*** — which is the rule
+that made `components` return `NOT_RESOLVED` rather than `[]` this morning, **arriving one
+layer out and unenforced there.** The rule existed; the layer above did not carry it.
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
