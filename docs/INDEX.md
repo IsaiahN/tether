@@ -2674,6 +2674,40 @@ which `ResetGate` bans the agent from doing. **That would make the controlled ex
 depend on a seat-side restart, and whether that is legitimate is §21.2's question, not a
 wiring detail.** Flagged rather than assumed.
 
+### 2b · THE CRASH, DIAGNOSED — the death arrives at cycle 130 and the loop does not survive it
+
+    CRASH at cycle 130    env.terminal() 'death'    env.blind True
+    slots 0               frame GameState.GAME_OVER    board None
+
+**It was scarcity, and the death lands where the panel said it would** — blind play's
+transition is ~128, the agent's is 130. **So the nulls at 40 and 100 were runs that stopped
+before the transition**, and everything past it was **unmeasured rather than empty.** Every
+reading taken at those lengths had an unstated ceiling and nobody knew there was one.
+
+**AND THE CAUSE IS NOT AN UNREADABLE BOARD — THERE IS NO BOARD.** `board()` returns `None` on
+a terminal frame, so `_decomposed` sets `blind`, `slots()` is empty, and
+`focal = max(sorted(self.slots), …)` raises on an empty sequence. ***No slots to act on* is a
+legitimate state and `max()` is a crash.**
+
+**`terminal()` IS CORRECT AND UNREACHED.** It returns `'death'` at exactly that moment — the
+mechanism works. **`4e`'s wiring reads it AFTER `ag.step()`, and the step raises first**, so
+the ending is never recorded and `retarget` never fires. **The only controlled experiment
+available is behind a crash rather than behind a design gap.**
+
+### 2c · WHOSE SHAPE IS IT — and the answer argues for keeping two things apart
+
+`ArcWorld.blind` **is set correctly** and the loop **never reads it**; the loop reads
+`slots()`, which is `list[str]` and cannot express *blind* at all.
+
+> **That is NOT cleanly the fourth held observation.** There, `Affordances` stated `None` ≠
+> `False` **in a value the consumer read**, and `_rtype` collapsed it. **Here the consumer
+> reads a DIFFERENT accessor that never carried the distinction** — a record whose fields
+> exclude what a reading needs, which is **the LINKED instrument, not the observation.**
+
+**So this instance sits on the junction and does not settle it — it shows the two are
+genuinely distinguishable.** Which is an argument for the separation that was recorded as a
+link rather than a narrowing, and **the held observation stays at n = 2.**
+
 ### 3 · A CORRECTION TO MY OWN SECTION CHECK
 
 **I wrote that `4e` IS the arrival of the deferred `disproof` check's subject.** It is not.
