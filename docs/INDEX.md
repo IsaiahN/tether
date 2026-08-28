@@ -692,6 +692,24 @@ able to survive it, and that is the argument for the row rather than a reason to
 | **the seat-scale defect may be the ground being expensive, not a defect** | 1 | a **second arrival** |
 | **a guard whose SUBJECT excludes the thing it guards against** | **1 observed** (+1 predicted) | a **second OBSERVED instance**, not a second instance |
 
+**AND TWO RULES ABOUT RULINGS, both of which earned their keep the day they were written:**
+
+**A PARK MUST STATE A CHECKABLE TRIGGER, because a park exists to be correctly NOT lifted.**
+`0a`'s said *an atom that consumes past index 0* — **which is a grep.** *Revisit later* is a
+memory. **Today that specificity stopped an unpark Isaiah proposed and I would have agreed
+with**: a real board arrived, the typing case fired, and *the domain has supplied it* was half
+right. **A vague park would have been lifted on the strength of the half**, reviving a
+mechanism whose measured 13×-for-zero-capability is still exactly true. **The rule is worth
+having because the instance shows what a vague one costs.**
+
+**A RULING WITH THREE SUPPORTS, ONE FALSE, LOAD CARRIED BY THE OTHER TWO, IS NOT A WRONG
+RULING.** `0a`'s premise *Phase 3d replaces the atom set anyway* was false — `3d` was the rank
+function. **Saying *the ruling was wrong* discards the 13× and the atom-count argument, both
+still true and neither dependent on it.** And the qualifier that makes it fair: **nobody could
+have known without running**, which is the **only kind of false premise that is not a failure
+of checking** — and what distinguishes it from the seven wrong-pointer instances, all of which
+were checkable in advance and were not checked.
+
 **THE THIRD ONE, because its n is the whole question.** Two instances: `never_live` requires
 `misses == 0` and therefore **cannot fire on the case it was named for** — *observed*; and
 §11's entry discipline governs what enters **the library** while four of the five surviving
@@ -1955,6 +1973,85 @@ conclusion survives on its other reasons, and the premise did not.
 `ARC_BUILD_PLAN`: Ashby's inequality gives `closure(Γ)` *a lower bound the environment imposes
 rather than one the designer picks* — **and nothing computes it.** Stated so the number is not
 mistaken for a reading.
+
+---
+
+# THE GAP UNDER THE GAP — reported, not built. **ONE absence, and the corpus already filed it**
+
+### 1 · WHAT PATH EXISTS TODAY: exactly one, and it structurally cannot carry structure
+
+    perceive() -> predict per BOUND SLOT -> compare -> SlotResidual
+
+**That is the only route.** And **a slot is one int** — `{obj}.row | .col | .h | .w |
+.colour`. **So structure enters only by BECOMING a slot**, and a relation between two objects
+is never a slot. **Contains, touches, blocks, supports, occludes cannot be bet on, so they
+cannot be wrong, so they cannot produce a residual.** Not a missing feature — a closed door.
+
+**And the structural sensors mostly feed nothing:**
+
+| sensor | where it goes |
+|---|---|
+| `components` · `shape` · `overlap` | the decomposition → slots → bets. **The only structure that reaches the loop, and only by becoming a value** |
+| **`touching` (sensor 8)** | **NOWHERE.** Built at `2b`, computed, **never consulted by any decision** |
+| `Affordances` (sensor 4) | **the fixture's display only** |
+| `Preconditions` · `Agency` | in the loop — but they feed the control-mode and gating reads, **not the residual** |
+
+### 2 · THE CORPUS ALREADY FILED IT AS ONE ABSENCE — and as THREE findings, not two
+
+**`ARC_AGENT` §16.5, *Habitat enumeration as an operation the agent runs*, citing Figure 11:**
+
+> *List everything in contact with the residual, then what is in contact with those, and
+> outward until the cascade stops mattering. **You do not invent the list. You read it off the
+> world**, and **what you cannot perceive or measure yet is the residual.***
+
+**`ARC_BUILD_PLAN` already wrote the unification, and it names THREE:** *§16.5 is one mechanism
+answering three separate findings* — **the operand binding** (§17.1's *the slot that owes plus
+whatever is in contact with it*), **B12 `NO-BEHAVIOUR`** (*the habitat is enumerated* — the
+checker property exists and **nothing implements it**), and **the interface question** (*not a
+coarser alphabet, a different slot set* — Figure 11 says which slots: the ones in the cascade).
+
+**And it already identified the direction clause**: *what you cannot perceive or measure yet IS
+the residual* — filed there as ***the clause that settles the direction question outright.***
+
+### 3 · FIGURE 9 IS NOT THE SECOND MECHANISM. IT IS THE ARGUMENT FOR THE FIRST
+
+**Figure 9 in these documents is not *split before search*** — that phrasing does not appear in
+any file I have, and I cannot confirm it. **What Figure 9 says is:**
+
+> *φ* out of reach: **nothing inside can prove that** · **the witness is always imported** ·
+> **the edge can only be named from beyond it***
+
+**Which is the standing-gap problem stated as a limit.** Everything outside the slice is not
+provable from inside — so **the edge has to be read off the world rather than derived**, and
+that is precisely what §16.5 does. **Figure 9 explains why §16.5 must exist; it is not a second
+route to the same place.**
+
+### 4 · A DEFECT IN THE ONE PLACE THAT CITES §16.5 — and it is mine, from this session
+
+`_bindings`' docstring: *"ORDERED by contact ... §16.5 enumerates contact; Figure 11 ranks by
+cascade."* **The code does neither.**
+
+    others = [s for s in self.slots if s != slot]              <- EVERY other slot
+    seen   = {s: len({st[s] for st, _, _ in robs ...})}        <- ranked by VARIANCE
+    return [None] + sorted(others, key=lambda s: (-seen[s], s))
+
+**Two departures.** It **invents the list** — which is `ARC_BUILD_PLAN`'s own complaint about
+`_bindings`, verbatim, still true after the change. And it **ranks by variance, not contact**,
+while **`touching()` is built and unused.** **Contact ranking ranks by variance and is called
+contact ranking** — the eighth A6i-shaped instance, in a mechanism I built this session and
+filed as *owed only its demonstration*. **It was owed more than that.**
+
+### 5 · THE LIFETIME IS ALREADY ENFORCED BY A MECHANISM
+
+A map of one board is **playback**, and *generators cross up, playback never does*. **The
+boundary already exists**: `retarget` clears `bound`, `trace`, `abstained`, `owed_import`,
+`candidates`, `_disproof`, `drive`, `_view` — **and keeps `gamma`.** So a map goes where the
+per-episode state goes, **and the firewall is enforced by an existing method rather than by
+discipline.** *Vocabulary permanent, instances transient* — the visible set's shape one level
+down. **A map that persists "just as a cache" is the failure with a reasonable-sounding
+reason**, and it is worth stating on the row before anyone builds one.
+
+**NOT BUILT. Reported.**
 
 ---
 
