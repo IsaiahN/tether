@@ -3987,6 +3987,56 @@ an hour ago are one item, and separating them was the error.**
 
 ---
 
+# THE CONTRACT QUESTION RESOLVES FROM THE CORPUS — and there are FOUR spaces, not three
+
+### 1 · ROUTINES DO NOT EXTEND `Gamma`. §985's TABLE SAYS SO OUTRIGHT
+
+> *The whole composition story, stated once:*
+>
+>     space     object    composes by                   priced against
+>     SENSE     sensor    prime(extractor, extractor)   discriminability
+>     PREDICT   term      chaining + chunking            transition residual
+>     ACT       routine   Seq / When / Until             goal residual
+>
+> *One bargain across all three — `|φ| + |R|φ| < |R|`.*
+
+**Three spaces, three COMPOSERS, three PRICES, one bargain.** **PREDICT composes by chaining —
+that is `enumerate_closure`, `val → val`. ACT composes by `Seq / When / Until`, which is not
+chaining and not `Gamma`.**
+
+> **So §2622's *composing over a second type* is not an extension of `Gamma`'s closure.** It is
+> **a different space with a different composer**, priced against the goal residual — which is
+> Q21, already SETTLED. **The contract question resolves by reading rather than by ruling.**
+
+### 2 · AND "THREE COMPOSITION SPACES" NAMES TWO DIFFERENT TRIPLES
+
+    §11.2   PREDICT · RELATE/QUANTIFY · EXTRACT      "we have one and a half"
+    §985    SENSE   · PREDICT         · ACT          "the whole composition story"
+
+**They overlap on PREDICT, and on EXTRACT/SENSE** — §11.2 names the extractors
+(`grid × object → ATTR`), §985 composes sensors **from** extractors, **the same space at two
+levels.** *(Identification stated so it can be disputed: if they are distinct, the union is
+five rather than four.)*
+
+**§11.2 has no ACT. §985 has no RELATE/QUANTIFY. So the union is FOUR and each table shows
+THREE.**
+
+> **SECOND INSTANCE OF THE TWO-TABLES SHAPE, in the same document as the first** — after
+> *the seven shapes from §12.1* which were eight. **Both tables read as complete; neither is;
+> and each omits what the other's third member is.**
+
+### 3 · WHICH MEANS `3b` BUILT §11.2's TRIPLE AND `4a` NEEDS §985's THIRD
+
+`arc_atoms.three_spaces()` is **EXTRACT + RELATE + QUANTIFY joined to PREDICT** — §11.2's,
+correctly, and that is what `3b` was. **ACT is a space nobody has built, with its own composer
+and its own price**, and it is where routines live.
+
+**So `4a` is not an extension of `3b`'s work. It is the fourth space.** And the ordering
+inside it stands: **the primes (with `IF`) are the composer for that space, and the per-action
+atom family needs `IF` to be useful.**
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
