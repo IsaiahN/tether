@@ -60,23 +60,37 @@ class Controlled:
         """
         return tuple(sorted(state.items()))
 
-    def visit(self, state: dict[str, int], action: str, outcome: dict[str, int]) -> dict | None:
-        """One (state, action, outcome). Returns a PAIR when this completes a control.
+    def visit(self, state: dict[str, int], action: str,
+              outcome: dict[str, int]) -> list[dict]:
+        """One (state, action, outcome). Returns EVERY pair this completes.
 
         A pair is the same signature under a DIFFERENT action. The same action twice is a
         determinism check, not an experiment, and is kept separately rather than counted --
         it says the domain held still, which is the precondition rather than the result.
+
+        **AGAINST EVERY PRIOR ACTION, NOT THE FIRST, AND THE FIRST VERSION DID THE LATTER.**
+        It paired on `sorted(prior)[0]`, giving `n-1` pairs where the check needs
+        `n(n-1)/2` -- so `ls20`'s *3 of 3 discriminating* said **ACTION1 differs from each of
+        the others** and said **nothing about whether 2, 3 and 4 differ from each other.**
+        That is exactly §2622 §5's third required property, ***two actuators that are
+        indistinguishable, so `I cannot tell these apart` is reachable*** -- **untestable
+        under a reading that sounded complete.**
         """
         sig = self.signature(state)
         prior = self.seen.setdefault(sig, {})
+        # DID THIS ACTION CHANGE ANYTHING AT ALL? Not a comparison -- §5's *an actuator that
+        # does nothing* needs one action's before against its after, and a PAIR can never
+        # say it: two actions that both do nothing are indistinguishable AND inert, and the
+        # pair reports only the first.
+        moved_self = sorted(k for k in set(state) | set(outcome)
+                            if state.get(k) != outcome.get(k))
         if action in prior:
             prior[action]["repeats"] += 1
             prior[action]["stable"] = prior[action]["stable"] and (
                 prior[action]["outcome"] == outcome)
-            return None
-        pair = None
-        if prior:
-            other = sorted(prior)[0]
+            return []
+        made = []
+        for other in sorted(prior):
             a_out = prior[other]["outcome"]
             moved = sorted(k for k in set(a_out) | set(outcome)
                            if a_out.get(k) != outcome.get(k))
@@ -87,8 +101,10 @@ class Controlled:
                               "per-slot response compared. ANY slot differing is the "
                               "reading -- an existential, never a sum")}
             self.pairs.append(pair)
-        prior[action] = {"outcome": outcome, "repeats": 0, "stable": True}
-        return pair
+            made.append(pair)
+        prior[action] = {"outcome": outcome, "repeats": 0, "stable": True,
+                         "moved": moved_self, "inert": not moved_self}
+        return made
 
     def determinism(self) -> dict:
         """What the repeats say about the DOMAIN, reported apart from the experiments.
@@ -103,11 +119,36 @@ class Controlled:
                 "repeated_readings": len(reps),
                 "unstable": sum(1 for v in reps if not v["stable"])}
 
+    def vacuity(self) -> dict:
+        """§2622 §5, stated in advance and answerable only with all pairs.
+
+        > *If motor learning does not fire, that has two readings and they must be separable
+        > BEFORE the run: **the mechanism does not work** vs **this world could not have
+        > shown it**. This world can show it only if all three are present and reachable.*
+
+        **Each of the three is a reachability claim about the PANEL, not a result** -- and
+        `absent` here means a null on motor learning would be **vacuous rather than a
+        finding.**
+        """
+        acts = {a: v for byact in self.seen.values() for a, v in byact.items()}
+        inert = sorted(a for a, v in acts.items() if v.get("inert"))
+        same = [p["varied"] for p in self.pairs if not p["discriminates"]]
+        return {
+            "discoverable_effect": sorted(a for a, v in acts.items() if v.get("moved")),
+            "does_nothing": inert,
+            "indistinguishable": same,
+            "all_three_present": bool(acts) and bool(inert) and bool(same)
+                                 and any(v.get("moved") for v in acts.values()),
+            "reads": ("all three must be REACHABLE or a motor-learning null is vacuous "
+                      "rather than a result. `does_nothing` needs one action's before "
+                      "against its after; `indistinguishable` needs every pair, not n-1"),
+        }
+
     def report(self) -> dict:
         d = self.determinism()
         return {"states_seen": len(self.seen), "controlled_pairs": len(self.pairs),
                 "discriminating": sum(1 for p in self.pairs if p["discriminates"]),
-                **d,
+                **d, "vacuity": self.vacuity(),
                 "reads": ("a pair is the same state with exactly one action varied; "
                           "`unstable` above zero means the domain did not hold still and "
                           "the pairs from that state are not controls")}

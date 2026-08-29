@@ -3862,9 +3862,38 @@ action rather than a comparison of two.
 produce a null with two readings and no way to separate them — **which §5 says must be
 separable BEFORE the run.**
 
-**NOT BUILT. The order inside the action work is: complete `controlled()` to all pairs and
-add the does-nothing reading · run §5's vacuity check on `ls20` · then the atom · then the
-contract question.**
+### 4 · BUILT, AND THE VACUITY CHECK RETURNS **FALSE**
+
+    pairs 6  discriminating 6            n(n-1)/2 = 6, where the old instrument formed 3
+    discoverable effect : ACTION1 ACTION2 ACTION3 ACTION4
+    does nothing        : NONE
+    indistinguishable   : NONE
+    ALL THREE PRESENT   : False
+
+**`ls20` CANNOT SHOW MOTOR LEARNING IN §5's SENSE.** Two of three required properties are
+absent: **no action does nothing**, so `useless` is not a finding the agent can reach; **no two
+are indistinguishable**, so `I cannot tell these apart` is not reachable.
+
+**AND THE CORPUS'S OWN CLAUSE IS THE DIAGNOSIS:** ***an unlabelled action set where every
+action does something distinct and useful is STILL ENCODED. Most should do nothing or nothing
+detectable. Finding that out is the work.*** **All four of `ls20`'s actions do something
+distinct** — so by the corpus's standard there is nothing about *which ones don't matter* to
+discover.
+
+> **So a motor-learning null on `ls20` would be VACUOUS, and §5's whole purpose is that this be
+> known BEFORE the run.** It is now known before the atom exists.
+
+**AND THE OLD READING WAS NARROWER THAN IT SOUNDED.** *3 of 3 discriminating* this afternoon
+was **1-versus-each**, and it read as completeness. **6 of 6 is the same board saying something
+strictly stronger**, and only the completed instrument could ask the question §5 requires.
+
+**THE LIMIT ON THIS READING, STATED:** four trials from the **initial board only.** A later
+board may gate actions differently — §16.1's *`available_actions` changes per frame* is exactly
+that — so **`does_nothing` and `indistinguishable` are unreachable HERE and not proven
+unreachable in `ls20`.** The check is over one state.
+
+**NOT BUILT beyond the instrument. The atom's validation cannot be `ls20`'s action set as it
+stands**, and that is a panel finding rather than a reason not to build the atom.
 
 ---
 
