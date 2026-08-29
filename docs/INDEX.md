@@ -4571,6 +4571,74 @@ MEASUREMENT, which is still owed.
 
 ---
 
+# VARIABLES IN THE KEY — THE CORPUS SPECIFIES IT, AND `retrieval.py` HAS HALF OF IT ALREADY
+
+**Reported, not built.** Three lookups, three answers, and the expectation that at least one
+was already the same idea was **correct on the first one.**
+
+### 1 · IT IS §15.3's THIRD KEY, AND THE BUILT HALF IS THE ONE NOT NAMED IN THE ASK
+
+§15.3's keys are **`type signature · arity · what varies vs is invariant · effect shape`**, and
+`ARC_BUILD_PLAN` 3c records what was built: *keys the two free properties (signature, arity)
+and leaves the two behavioural ones to the bargain.* `INDEX` line 1184 gives the reason —
+**`what varies / invariant | no | needs the term applied to the residual's frames`.**
+
+> **BUT `characterise()` ALREADY COMPUTES BOTH.** `retrieval.py` returns
+> `{"arity", "varies", "invariant", "n"}` — **on the GAP side.** And `key_of(term)` returns
+> `(t_in, t_out, arity)`, with `fits()` scoring signature and arity only.
+>
+> **SO THE GAP ALREADY SAYS WHAT VARIES AND THE TERM SAYS NOTHING.** *A shape with holes is
+> exactly what varies* is not an analogy — **it is the same object, and the missing half is the
+> TERM side.** The built half is the half the ask did not mention.
+
+**Same idea, not new, half-present, and the absent half is named with its blocker already
+written down.** The design step is a search of the corpus, and this is the tenth time.
+
+### 2 · THE ARITY PARK's TRIGGER HAS **NOT** FIRED — AND THE REPAINT FIX CANNOT FIRE IT
+
+**Grepped today: nothing reads `operands[1]`.** The only operand readers are `same`, `other`,
+`greater` and `translate`, `recolour` — **all index 0**, unchanged by this session's build.
+
+**A variable-keyed affordance table is a LOOKUP, not an atom**, so it creates no operand
+consumer and the trigger does not notice it. **The COMPOSITION half would fire it** — a relation
+term binding two objects reads index 1 — **but it is blocked one level earlier by something
+that is not arity**, and `habitat.py` already states it:
+
+> ***A relation is not a slot**, so `contains`, `touches`, `blocks` cannot be bet on, cannot be
+> wrong, and cannot produce a residual.*
+
+**R is indexed per slot and a relation has none.** So **the park sits downstream of a blocker
+that is not cost**, and unparking on the composition claim would unpark a mechanism whose
+consumer still cannot exist. **The trigger's condition is exact and it is still unmet — third
+check, third time unfired.**
+
+### 3 · THE 13× WAS NEVER RECOMPUTED — IT WAS CARRIED, AND ITS PANEL IS GONE
+
+`INDEX` 2094 reads *the measured 13× for zero capability still stands, unchanged* — and the
+evidence offered is **the grep**. **A grep establishes ZERO CAPABILITY; it does not re-measure
+a COST.** The number itself — 32% of closure yields reading an operand, 185 of 584 at depth 3,
+bindings per candidate 5 → 65, per-mint work 925 → 12,025 — **was measured on the TOY panel
+under the old atom set.**
+
+> **AND THE RULING THAT PRODUCED IT PREDICTED ITS OWN EXPIRY:** *Phase 3d replaces the atom set
+> with grid transforms anyway, so a toy-world operand-1 atom is scaffolding for a panel that
+> gets replaced.* **3d is built. `arc_predict` is three atoms.** The ratio is a function of atom
+> count and closure depth and **both changed**, so the number is stale **by the ruling's own
+> reasoning** rather than by a new argument.
+
+**It is not a verdict and it is not yet a trade either** — a trade needs a capability on the
+other side, and §2's blocker says there is not one. **Re-measuring is cheap and is what makes
+13× either a real price or a stale one; it is not the thing standing in the way.**
+
+### AND `composed_from` DOES NOT EXIST — THE MECHANISM DOES, AND IT IS STRONGER
+
+**No such tag anywhere: not in the code, not in any document.** What exists is `Term.atoms`
+with `name` = `" . ".join(a.name ...)` — **a composite does not carry a tag naming its parts,
+it IS its parts**, and §14.7's chunk reuse counts a term appearing as a CONSTITUENT of a later
+mint. **A label can drift from what it labels; a constituent tuple cannot.**
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
