@@ -4896,6 +4896,64 @@ closest thing here to the property §18.3 asks for.
 
 ---
 
+# `toggle` AT 0/19 WAS THREE DEFECTS DEEP, AND THE FAMILY IS FOUR
+
+**Three candidate causes were named and none guessed. Two were falsified with positive evidence
+and the third turned out to be the wrong question.**
+
+    transcription defect     FALSIFIED. Fed a synthetic period-2 alternation, the rule fires at
+                             exactly the right step -- streak 1 at step 2, `has_self` at step 3
+    the driver's actions     FALSIFIED. Re-ran the panel with a single REPEATED action against
+                             the cycling one. Both zero, so the action policy is not it
+    no toggling regions      OVERTURNED, NOT CONFIRMED. **15 of 19 games have cells returning to
+                             their two-steps-ago value**, seven reach residual 0.0, and `sk48`
+                             reaches streak 3 -- above `MIN_REPEAT`
+
+**ELIMINATION WOULD HAVE LANDED ON THE THIRD AND IT WAS FALSE.** *Prefer positive causal
+evidence over absential* is the rule, and this is the case it is for: two exclusions and a
+subtraction would have published *the panel has no toggling regions*, **which the direct
+measurement refutes in its first column.**
+
+### THE ACTUAL CAUSE: `has_self` IS ONE WORD OVER TWO QUANTITIES, INSIDE THE FAMILY
+
+    translation · growth · toggle    `self._streak >= MIN_REPEAT`   -- MOMENTARY, right now
+    value                            the whole episode's series     -- CUMULATIVE
+
+**The screen read `has_self()` ONCE, at the final step.** So it asked the momentary three *are
+you mid-streak* and the cumulative one *did it ever hold*, **and compared the answers as though
+they were the same reading.** `sk48` reached streak 3 and had reset before step 25.
+
+> **THIS IS `A6i`, INSIDE A FAMILY BUILT THIS SESSION, AND IT WAS INHERITED RATHER THAN
+> INTRODUCED** — Redux's members carry the same split. **The check is *look the word up in both
+> places*, and both places are in one file.** Four members, one method name, two quantities.
+
+**THE FIX IS TO THE INSTRUMENT, NOT THE MEMBERS.** *Transcribe, do not improve* holds: the
+members are unchanged and the screen now POLLS every step and records whether a member EVER
+reported a self. **That is §18.3's own phrasing** — *`has_self: false` for **904 steps*** means
+never, not *not right now*.
+
+### AND THE READING CHANGES COMPLETELY
+
+    member        ever    at final step        fails on
+    translation   12/19       4/19             7 games
+    growth         4/19       3/19            15 games
+    value         18/19      16/19             1 game
+    toggle         2/19       0/19            17 games
+
+**`uninformative: []` — all four have both a success and a failure. `all_pairs_readable: True`,
+and this time not as an artefact.** Every pair disagrees somewhere: 10, 6, 12, 2, 14, 16.
+
+> **THE FAMILY IS FOUR.** `toggle` fires on two games and the question of whether to drop it
+> does not arise.
+
+**AND ONE WEAKNESS IS STATED RATHER THAN LEFT IN THE TABLE.** `value` fails on **one** game, so
+every pair containing it rests on that single game plus the other member's failures — **thin,
+and `informative` is true by the narrowest margin the predicate allows.** `growth|toggle` at 2
+disagreements is the other thin one. **Four of six pairs are comfortable; two are not, and the
+requirement is discharged only as far as the thin ones allow.**
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**

@@ -67,14 +67,22 @@ def _run(arc, game: str, cycles: int) -> dict:
         return {"surfaced_actions": len(acts), "skipped": "no surfaced action"}
     fam = arc_self.family()
     board = fr.frame[-1]
+    # POLLED EVERY STEP, NOT READ ONCE AT THE END. Three of the four members answer
+    # `has_self` from a CURRENT streak and one answers it from the whole history -- so a
+    # single read at the last step asks the momentary ones *are you mid-streak* and the
+    # cumulative one *did it ever hold*, and compares the answers. `ever` asks all four the
+    # same question, which is also 18.3's own: `has_self: false` for 904 steps means NEVER.
+    ever: set[str] = set()
     for i in range(cycles):
         nxt = w.step(GameAction[acts[i % len(acts)]])
         if nxt is None or not nxt.frame:
             break
         fam.observe(board, acts[i % len(acts)], nxt.frame[-1])
         board = nxt.frame[-1]
+        ever |= {m.name for m in fam.members if m.has_self()}
     r = fam.report()
-    return {"surfaced_actions": len(acts), "has_self": r["has_self"],
+    return {"surfaced_actions": len(acts), "has_self": sorted(ever),
+            "at_final_step": r["has_self"],
             "residuals": r["residuals"], "selected": r["selected"],
             "unmodeled": r["unmodeled"]}
 
