@@ -4064,9 +4064,20 @@ POSITIONED action, §17.1's arity question and `2c`'s to answer. **Advertising i
 the position would be advertising an action the loop cannot actually take.*** **The reason is
 sound and the consequence was never stated.**
 
-> **SIX GAMES ARE ENTIRELY POSITIONED-ACTION, AND THE AGENT CANNOT ACT ON THEM AT ALL.**
-> `ft09` · `lp85` · `r11l` · `s5i5` · `tn36` · `vc33`. **A quarter of the panel is unplayable,
-> not badly played.**
+> **AT THE INITIAL FRAME, SIX GAMES ADVERTISED ONLY `ACTION6`, so the adapter surfaced
+> nothing.** `ft09` · `lp85` · `r11l` · `s5i5` · `tn36` · `vc33`.
+
+**⚠ AND *A QUARTER OF THE PANEL IS UNPLAYABLE* IS ONE SCOPE TOO WIDE — corrected.** What was
+measured is **one state, at step zero, before anything happened.** And `available_actions`
+**changes per frame** — the check established that this afternoon — so *these games offer only
+that action* is **a claim about a whole game from a single observation.** **The collapse
+catalogued ten times today, made in the summary of the finding that catalogued it.**
+
+**WHAT SURVIVES, WHICH IS STILL THE POINT:** the adapter **drops `ACTION6` on every frame**,
+because a positioned action has no position to supply — **so the agent cannot take a positioned
+action on any board at any frame.** That is frame-independent and it is the fact. **What is not
+established is that the six stay empty**; an action could become available later, and
+**assuming either way is the error.**
 
 ### 3 · ⚠ AND THE SCREEN'S ZEROS WERE NOT READINGS
 
@@ -4213,6 +4224,63 @@ detectors wearing one name* is precisely what the wrong answer here looks like.
 
 **Its docstring needs the amendment regardless** — it cites §16.2 and §16.2's heading carries
 `⚠ AMENDED BY §18.3`.
+
+---
+
+# READ: REDUX's `self_family.py` — the rules are general, and it answers the `Agency` question
+
+**Read for the RULE, never the classification, and capability-at-write-time.**
+
+### 1 · IT IS A FAMILY OF FOUR, WHICH IS EVIDENCE **FOR** §18.3's AMENDMENT
+
+`TranslationSelf · GrowthEdgeSelf · ValueLatentSelf · RegionToggleSelf`, plus a
+`SelfHypothesis` base and a `SelfModelFamily`. **Redux did not use one test that worked — it
+used four**, so the amendment is not contradicted by the thing it was drawn from.
+
+### 2 · THE RULES ARE GENERAL, AND THE INDEPENDENCE DISCIPLINE IS IN THE BASE CLASS
+
+> *`observe(before, action, after) → residual in [0,1]` (0 = perfectly predicted this step,
+> 1 = explained nothing). **Members are compared ONLY by this ground-facing residual, never by
+> judging each other.***
+
+**Each reads a signal, not a game.** Translation: `1 − (vacated+arrived)/changed`. Growth: the
+colour whose count grew most, `1 − new_cells/changed`. Toggle: ***a cell toggles iff its value
+returns to what it was two steps ago — this rejects random repaint, where cells change every
+step but never come back.*** **That last is a rule with its own falsifier attached.**
+
+**And the selector is the corpus's own form**: EWMA per member, `selected()` = the
+lowest-residual member that `has_self()`, plus **a completeness critic** — `self_unmodeled()`
+fires when *no member has a self, OR the best residual is still high — **the whole family
+failed together, which flags a shared smuggled presupposition to surface.***
+
+### 3 · IT ANSWERS THE `Agency` QUESTION — AND WITH A THIRD OPTION
+
+`ValueLatentSelf` carries `act_delta = {}  # action → EWMA change in the tracked resource`, and
+*attribute the resource change under THIS action, so "preserve the resource" is actionable*.
+
+> **So Redux does NOT separate *what responds to me* from *what kind of thing I am*. Each
+> MEMBER carries its own action attribution.** Neither *fifth member* nor *substrate* —
+> **per-member contingency**, which is the option neither of us had. **Still Isaiah's ruling,
+> now with a worked precedent.**
+
+### 4 · WHAT DOES NOT TRAVEL, AND ONE THING I READ THAT SHOULD NOT HAVE
+
+**Seven unanchored constants**: `window=2`, `res < 0.5`, `streak >= 2`, `K=8`, `bucket=8`,
+`alpha=0.3`, `unmodeled_threshold=0.6`. **None carries a basis in the file.** Under this repo's
+anchor rule each needs one, and `0.5` and `0.6` are thresholds on residuals — **the exact
+construction `EPS` was deleted for.**
+
+**And `GrowthEdgeSelf` and `ValueLatentSelf` both call `background_colour()`** — *the
+background is the frame, not the self.* **This repo's `arc_percept` refuses the concept
+outright**: *treating 0 as background is domain knowledge about what a board means, and this
+file is not entitled to it.* **So two of the four rules rest on a primitive this project ruled
+out**, and salvaging them as-is would import it.
+
+> **⚠ AND THE FILE NAMES A GAME MECHANIC IN A DOCSTRING, WHICH I READ BEFORE I COULD AVOID
+> IT.** `ValueLatentSelf`'s docstring identifies a specific colour and what it does in `ls20`.
+> **Recorded as read, and it does not enter**: the member's RULE is *find the colour whose count
+> moves monotonically* — general, and it never needed the instance. **The rule salvages; the
+> docstring is the thing to leave**, which is exactly the line drawn before reading.
 
 ---
 

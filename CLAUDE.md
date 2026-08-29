@@ -90,7 +90,12 @@ good checker should do:
 
 - **fixtures before changes** — the only order with an observable half-state
 - **witness the boundary, not the decision** — exemptions and denominators, never the rule
-- **exemptions as data, not logic** — a table can be pinned; logic widens quietly
+- **exemptions as data, not logic** — a table can be pinned; logic widens quietly. **And it
+  reaches a MEASUREMENT'S POPULATION, not only a rule's scope**: the detector-family
+  independence test must exclude the six games where the adapter surfaces no actions,
+  because **every detector fails there for a reason external to the detectors** and four
+  independent ones would read as correlated. **Excluded on a checkable fact — no surfaced
+  actions — never on judgement.** First instance outside a rule's scope
 - **reintroduce the defect, never disable the check** — tests reach, not existence
 - **a repair can break the layer above** — and that is where causes get asserted
 - **a metric whose denominator the mechanism changes cannot falsify that mechanism** —
