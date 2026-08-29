@@ -4552,6 +4552,23 @@ silently.
 discover — the consumer is its own item, and shipping one inside this build would be half a
 mechanism.
 
+### THE BOUNDARY FIRES, MEASURED — AND ONE HALF OF IT IS STILL UNOBSERVED
+
+**150 cycles, one ending: `boundary rows: 1`, `env_dropped = True`, and the episode binding
+reads `None` afterwards.** The hook is reached from `retarget`, the world's `boundary()` runs,
+and the binding is gone. **Not a wiring that type-checks — a wiring that ran.**
+
+> **WHAT IS NOT SHOWN IS THE RE-BIND.** The ending landed with no further steps, so *drops at a
+> boundary* is measured and *binds again on the next episode* is only readable from the code
+> (`see()` sets `common` only while it is `None`). **Stated because a clean reading of half a
+> cycle looks exactly like a clean reading of the whole one** — which is the shape three
+> recorded nulls already had.
+
+**And the residuals stay spread at 150 cycles** — `translation 0.199 · growth 0.394 ·
+value 0.008 · toggle 0.462`, consistent with the 40-cycle run. **Four readings, not four names
+for one**, though that remains an observation about agreement rather than the independence
+MEASUREMENT, which is still owed.
+
 ---
 
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
