@@ -133,6 +133,11 @@ def play(game: str = "ls20", cycles: int = 40) -> dict:
         # accumulated on the term -- the events were always there and nothing asked.
         "behaviour": behaviour.report(rows),
         "affordance_kinds": aff.report()["kinds"],
+        # 18.3's family. DIAGNOSTIC-ONLY TODAY, and 18.4 names that as a measured failure:
+        # *the sensorium found the right self and changed nothing, because the only consumer
+        # was the post-hoc veto.* Nothing reads `selected()` yet -- the consumer is the
+        # proposer, which is its own item, and shipping one here would be half a mechanism.
+        "selves": env.selves.report(),
         "endings": dict(endings),
         # §21.2's number, published rather than inferred: *if that is 40%, someone should
         # see it rather than infer it.*

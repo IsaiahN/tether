@@ -4499,6 +4499,61 @@ so.
 
 ---
 
+# BUILT: §18.3's DETECTOR FAMILY — `self_family.py` + `arc_self.py`
+
+**Three rulings landed together.** Section check first: §18.3 read in full, §16.2 read as the
+clause it amends, §16.4 and §18.4 read as the ones it sits between.
+
+### THE SPLIT, AND IT IS THE REPO's OWN PATTERN
+
+`self_family.py` holds **the seam and the selection** and is domain-agnostic; `arc_self.py`
+holds **the four members**, which read boards. The members are INJECTED, on
+`arc_atoms.three_spaces(predict)`'s pattern — **the agnostic file must not know what a self can
+look like**, or membership becomes a decision taken there.
+
+**THE DISCIPLINE IS IN THE BASE CLASS**: members are compared only by a ground-facing residual
+and never by judging each other; the family holds no cross-member state. **And the completeness
+critic came with it** — `unmodeled()` fires when no member has a self **or** the best one leaves
+more unexplained than it explains.
+
+### THIRTEEN CONSTANTS, NOT SEVEN — AND MY OWN COUNT WAS THE ERROR
+
+**I counted constructor defaults and the bodies carried six more.** All are accounted for at the
+site: `window` (x2) and `bucket` **dropped by scope** — used only by `self_frame`, Redux's
+state key for a policy, which has no consumer here; `K` **dropped by scoping** — the history IS
+the episode; `alpha` → **running mean**; `res < 0.5` (x2) and `0.6` → **`explained >
+unexplained`**, two halves of one quantity meeting where nobody chose; `mono < 0.8` →
+**every nonzero step shares a sign**, existential; `-10**9` **removed**; `net >= len(nz)`
+**transcribed unchanged**, already parameterless.
+
+> **ONE NUMBER SURVIVES: `MIN_REPEAT = 2`, and the ANCHOR rule caught it before I wrote the
+> basis.** *One observation is a coincidence — over a single step every direction is monotone,
+> every change is a first change, and no repeat has happened.* **The checker fired on exactly
+> the thing it exists for**, which is the second time a rule in `conform/` has found something
+> in a build rather than confirming one.
+
+### WHERE THE PER-EPISODE BINDING LIVES, AND WHAT CLEARS IT — ASKED FOR, ANSWERED
+
+**The rule is permanent and lives in the member; the binding is `Episode.common` and lives with
+it.** *The most common colour, this episode* — bound on first sight, **not** `background_colour()`,
+which names a stable fact that is not one.
+
+**The family lives on `ArcWorld` because the members read BOARDS and the loop may not.** So the
+drop is triggered from `retarget`, **the tenth thing clearing where nine already do** — and a
+world with no episode bindings **records that it had no hook** rather than being skipped
+silently.
+
+### AND IT IS DIAGNOSTIC-ONLY TODAY, WHICH §18.4 NAMES AS A MEASURED FAILURE
+
+> *The sensorium found the right self and changed nothing, because the only consumer of
+> perception was the post-hoc veto. **Perception has to enter the PROPOSER.***
+
+**Nothing reads `selected()`.** Stated in the code and here rather than left for a reader to
+discover — the consumer is its own item, and shipping one inside this build would be half a
+mechanism.
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**

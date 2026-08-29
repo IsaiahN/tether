@@ -335,7 +335,19 @@ class Termination:
 
 @dataclass
 class Agency:
-    """§16.8 sensor 3, and §16.2 rules how it may be read.
+    """§16.8 sensor 3, and §16.2 rules how it may be read.  **WARNING: §16.2 IS AMENDED BY
+    §18.3**, which this docstring cited without saying so.
+
+    §18.3: *one slot's delta correlates with my action -> avatar* **is one detector, and it was
+    measured to fail** -- 904 steps of `has_self: false`, because it looked for one thing.
+    Control-mode detection is a FAMILY with an independence requirement, not a single
+    correlation test.
+
+    **THIS IS NOT REPLACED AND IS NOT A FIFTH MEMBER.** It reads SLOTS; the family reads
+    BOARDS, which the loop may not see -- so they sit on opposite sides of the wall and neither
+    can do the other's job. **And per-member contingency is the ruling**: each family member
+    attributes its OWN signal to actions, so *what responds to me* is not lifted out into a
+    substrate under the four. `self_family.SelfHypothesis.contingency` is where that lives.
 
     `THE_MISSION`: *the ONLY legitimate distinction is topical I/O -- is there an AVATAR my
     directional actions translate, or do I act through a CLICK ACTUATOR -- and even that

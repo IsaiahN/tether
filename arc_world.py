@@ -17,6 +17,7 @@ from typing import Any
 
 from arcengine import GameAction, GameState
 
+import arc_self
 import sensors
 
 SENSORS = sensors.minimum_set()
@@ -53,6 +54,10 @@ class ArcWorld:
         self._name = name
         self._frame = self.w.reset()
         self._read: dict[str, int] | None = None
+        # 18.3's family lives HERE because the members read BOARDS and the agent may not.
+        # What it holds that is episode-scoped is dropped by `boundary()`, which the loop
+        # calls at a level change -- see `tether.retarget`.
+        self.selves = arc_self.family()
 
     # -- the eight -----------------------------------------------------------------------
 
@@ -152,10 +157,19 @@ class ArcWorld:
 
     def step(self, action: str) -> None:
         act = GameAction[action]
+        was = self.board()
         nxt = self.w.step(act)
         if nxt is not None:
             self._frame = nxt
         self._read = None          # a new frame is a new decomposition
+        now = self.board()
+        if was is not None and now is not None:
+            self.selves.observe(was, action, now)
+
+    def boundary(self) -> None:
+        """Drop what was bound to THIS episode. Colours permute on a refresh, so a colour
+        identity is valid only for the episode it was read in."""
+        self.selves.boundary()
 
     # -- read by the harness, never by the loop --------------------------------------------
 

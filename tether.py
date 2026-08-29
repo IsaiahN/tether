@@ -242,6 +242,19 @@ class Agent:
         # item: the revert was withdrawn because settled-ness was the wrong gate, and §21.5
         # proposes a different one. Building the consumer here would be the same mistake in
         # the other direction.
+        # THE TENTH THING CLEARING HERE, and it is the world's rather than the loop's.
+        # The agent cannot see a board, so anything a colour was bound to lives on the far
+        # side -- but the BOUNDARY is the loop's event, so the trigger belongs here with the
+        # nine. A world with no episode bindings records that it had no hook: absence stated,
+        # never assumed.
+        drop = getattr(self.env, "boundary", None)
+        if drop is not None:
+            drop()
+        self.led.record(self.level, "IMPORT", "@loop", "boundary",
+                        env_dropped=drop is not None,
+                        reads=("per-episode bindings the WORLD holds -- a colour identity is "
+                               "valid only for the episode it was read in, so it drops where "
+                               "`bound` and `trace` drop"))
         self.led.record(self.level, "IMPORT", "@loop", "ending", how=how, to_level=level,
                         reads=ENDING_READS.get(how, "unnamed ending"),
                         consumed_by="nothing yet -- boundary demotion is a separate item")
