@@ -4398,6 +4398,36 @@ constants, which is a separate objection.
 
 **AWAITING THE RULING BEFORE RE-SCOPING**, and the family's shape changes if they return.
 
+### 4 · RECLASSIFIED: PLACEMENT, NOT A MECHANISM GAP
+
+**Ruled by Isaiah on the reading**: *it isn't that the lifetime is unenforceable — it's that
+these two aren't where the enforcement lives.* `retarget` is a working boundary with nine
+things already clearing through it. **Nothing is missing; two objects sit outside it.** The
+earlier framing invited a mechanism to be built, and **the mechanism exists.**
+
+### 5 · A DECISION CORRECT FOR A SCOPE NOBODY STATED — AND IT IS NOT `A6i`
+
+`kind_of`'s asymmetry argument *inverts* at the boundary: within an episode the finer key only
+risks splitting; across one it buys splitting AND merging. **The reasoning was sound and the
+scope it was sound for was never written down.**
+
+> **DISTINGUISHED FROM `A6i` DELIBERATELY, because the smell is the same and the defect is
+> not.** `A6i` is **two legitimate quantities under one word** — `molecule`, `DIRECTED`,
+> `BUDGET`, `PRIOR`. **This is ONE quantity under an unstated LIFETIME.** A6i's check is *look
+> the word up in both places*; that check passes here, because `kind_of` means one thing
+> everywhere. **What is missing is not a second sense — it is the scope over which the
+> justification holds.**
+
+**Recorded as a finding, not proposed as a law.** Whether this earns a step is Isaiah's; what
+is checkable now is that it exists and that the existing check would not have caught it.
+
+### 6 · MARKED: THE FITTING IS VISIBLE IN A KEY, NOT INFERRED FROM A RATE
+
+Every prior instance of *the library is fitted to the arithmetic it saw* was **a number** —
+reuse halving, the false-mint rate. **A colour-keyed affordance row is the mechanism itself, in
+a dict key.** *Checkable rather than inferred*, which is the difference between a reading and
+a measurement of the thing that produced it.
+
 ---
 
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
