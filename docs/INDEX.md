@@ -4681,6 +4681,47 @@ mint. **A label can drift from what it labels; a constituent tuple cannot.**
 
 ---
 
+# RULED: DO NOT RE-MEASURE THE 13×, AND THE REASON IS A NEW COROLLARY
+
+> `[I]` ***Don't re-measure. It isn't in the way, three checks say the blocker is elsewhere,
+> and a cheap measurement that changes nothing is a number someone will later cite.***
+
+**THIS IS NOT THE INVENTED-METRIC RULE AND IT IS SHARPER.** The documented failure is
+*inventing metrics and magic numbers* — a quantity that was never legitimate. **Here the
+measurement would be REAL, correctly taken, and cheap.** The objection is what happens
+afterwards: **a number acquires authority by existing**, and one with no decision attached gets
+cited by whoever finds it, against a question it was never measured for.
+
+    the existing rule    do not invent a quantity
+    this corollary       do not TAKE a legitimate one that cannot change a decision
+
+**Checkable before the measurement rather than after**: *name the decision this would change.*
+If none, the number is a citation waiting to happen. **And it is the cheapness that makes it
+dangerous** — an expensive measurement has to argue for itself.
+
+### AND IT PAIRS WITH THE NAMED-CONDITION TEST AS WRITE-SIDE AND READ-SIDE
+
+`0a`'s trigger is *an atom that consumes past index 0* — **a grep, not *revisit later***. The
+named-condition test is the same discipline from the other end:
+
+    WRITING a ruling    state the condition under which it expires, in checkable form
+    READING one         look for that condition; if it named one and it fired, the ruling was
+                        DISCHARGED. If it named none and went stale, that is the defect
+
+**One habit, two moments, and each is worthless without the other** — an expiry nobody reads is
+a comment, and a reader looking for an expiry that was never written finds nothing and calls it
+sound.
+
+### THE ORDERING, RULED
+
+    1  THE TERM SIDE OF §15.3's THIRD KEY   largest, and it has a BUILT HALF -- the gap says
+                                            what varies and the term says nothing. The transfer
+                                            question with a named missing piece
+    2  `Affordances`'s KEY                  the live site, and small
+    3  THE 13×                              NOT TAKEN. Ruled above
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
