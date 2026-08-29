@@ -4088,6 +4088,63 @@ act*.
 
 ---
 
+# `Agency`'s CONSUMER — the corpus answers, and it first refuses the sensor
+
+### 1 · `Agency` IS §16.2's SINGLE DETECTOR, AND §16.2 IS AMENDED IN ITS OWN HEADING
+
+`### 16.2 Avatar or actuator is a per-step read, never a label · **⚠ AMENDED BY §18.3**`
+
+**`Agency`'s docstring cites §16.2 and not the amendment.** And §18.3's correction is explicit:
+
+> ***Correction to §16.2: control-mode detection is a FAMILY with an independence requirement,
+> not a single correlation test.*** *A family of four **translation-flavoured** detectors would
+> not have helped: **their failure modes are correlated, so they fail together on the same
+> games.*** · *Four correlated detectors are **one detector wearing four names**, which is
+> collapse 2 inside the perception layer.*
+
+    TranslationSelf   a rigid object that moves
+    GrowthEdgeSelf    a growing / advancing trail
+    ValueLatentSelf   non-spatial -- a scalar, a colour's total count
+    RegionToggleSelf  a bounded region that genuinely alternates
+
+**`Agency` is one test** — *a slot is action-contingent when some action has always moved it
+and some other never has.* **Correct as a predicate, and the amended-away design.**
+
+> **AND IT WAS REFUTED ON `ls20` SPECIFICALLY.** *The first live `ls20` test refuted the
+> keystone's single instantiation: **`has_self: false` for 904 steps**, because the forward
+> model looked for ONE thing — a rigid object that translates — and **`ls20`'s self does not
+> translate. It is a growing/advancing trail.*** **The board every measurement today was taken
+> on is the board that refuted the single detector.**
+
+### 2 · AND §18.4 ANSWERS THE CONSUMER QUESTION, AS A MEASURED FAILURE
+
+> *The live `ls20` test proved the sensorium had become **DIAGNOSTIC-ONLY**: it found the
+> right self and **changed nothing**, because **the only consumer of perception was the
+> post-hoc veto**, which has no legal move at an all-directions-fatal board. **Perception has
+> to enter the PROPOSER, not just what it forbids.***
+
+**So: the PROPOSER — what the agent TRIES — and explicitly not a veto or a filter.** Of the
+three candidates, **the probe's choice of action is proposer-side and admissible**; the contact
+cascade's ranking is proposer-side too; **§16.5's habitat enumeration is perception-side and
+would make it diagnostic again** — *found the right self and changed nothing* is that failure,
+measured.
+
+**And *the drive* was right to hold back**: the drive is where a veto-shaped consumer would sit,
+and §18.4 names exactly that as the thing that changed nothing.
+
+### 3 · A PER-STEP READ CAN BE CONSUMED — AS A DECAYING ESTIMATE, NEVER A CLASSIFICATION
+
+§16.2 forbids a **label**; §18.3's family is *each priced by its own ground-facing residual and
+**selected by EWMA***. **An EWMA is re-selectable every step and decays** — so it is a
+preference that can be overturned, not a classification that persists. **That is the corpus's
+own form, and it is the constraint stated before anything reads it:** a consumer may hold a
+decaying estimate; **holding a decision is the label §16.2 forbids.**
+
+**SO THE ORDER IS: the family before the consumer.** Consuming `Agency` as built would wire a
+decision to a detector the corpus corrected, **on the board that produced the correction.**
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
