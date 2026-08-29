@@ -4037,6 +4037,57 @@ atom family needs `IF` to be useful.**
 
 ---
 
+# WHERE *FOUR ACTIONS* COMES FROM — and a quarter of the panel is invisible to the agent
+
+**Asked because the number had been repeated all day without being checked. Two answers, and
+both matter.**
+
+### 1 · ON `ls20` THE FOUR ARE THE GAME'S — and the advertised set never changes
+
+`ls20` advertises **`[1, 2, 3, 4]`**, all simple, no RESET. **The adapter drops nothing there**
+and both its filters are no-ops. And over 120 steps: **one distinct advertised set, zero
+changes.** So on this board *four* is `ls20`'s figure, not the agent's.
+
+> **AND THAT IS ITSELF A PANEL PROPERTY NOBODY HAD.** §16.1 calls the action-set delta *a
+> causal readout with no perception at all* — *the previous action changed the world's
+> gating.* **On `ls20` that channel is empty for 120 steps**, so the precondition lattice has
+> had nothing to read, on the board every measurement was taken on.
+
+### 2 · ACROSS THE PANEL THE ADAPTER DROPS `ACTION6`, AND IT BITES 19 OF 25
+
+    19 of 25   advertise ACTION6, and it is dropped in every one
+     6 of 25   advertise ONLY ACTION6 -> the adapter surfaces NOTHING
+     6 of 25   no drop:  g50t · ls20 · re86 · tr87 · tu93 · wa30
+
+**The drop is a stated decision, not a default:** *`ACTION6` is complex and carries `x, y` — a
+POSITIONED action, §17.1's arity question and `2c`'s to answer. **Advertising it here without
+the position would be advertising an action the loop cannot actually take.*** **The reason is
+sound and the consequence was never stated.**
+
+> **SIX GAMES ARE ENTIRELY POSITIONED-ACTION, AND THE AGENT CANNOT ACT ON THEM AT ALL.**
+> `ft09` · `lp85` · `r11l` · `s5i5` · `tn36` · `vc33`. **A quarter of the panel is unplayable,
+> not badly played.**
+
+### 3 · ⚠ AND THE SCREEN'S ZEROS WERE NOT READINGS
+
+**Those six read `0 pairs, 0 disc, 0 inert, 0 same` in the panel screen and I tabulated them
+beside real measurements.** They are not *this board has no discriminating actions* — they are
+**this board has no actions**. **A row of zeros meaning ABSENCE OF INSTRUMENT, printed in a
+column meaning ABSENCE OF EFFECT.**
+
+**The selection survives**: `g50t` has **no drop**, so its all-three reading is over its full
+advertised set. **`sk48` drops `ACTION6`**, so its reading is over a subset and it is the
+weaker of the two.
+
+### 4 · WHICH REPRICES `2c`
+
+**Positioned actions are outside every measurement taken today**, and §17.1's arity question
+is not a refinement — **it is the difference between six of twenty-five games being playable
+and unplayable**, and between the agent ever being able to express *reach the anchor, then
+act*.
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
