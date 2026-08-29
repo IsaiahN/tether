@@ -4143,6 +4143,22 @@ decaying estimate; **holding a decision is the label §16.2 forbids.**
 **SO THE ORDER IS: the family before the consumer.** Consuming `Agency` as built would wire a
 decision to a detector the corpus corrected, **on the board that produced the correction.**
 
+### 4 · AND IT IS NOT *BUILT, NO CONSUMER*. IT IS *SUPERSEDED, NO CONSUMER*
+
+**A different item, and the difference decides what happens to it.** `touching`, `Affordances`
+and `terminal()` were **correct mechanisms waiting** — each was wired the day a consumer
+arrived, unchanged. **`Agency` is fed every step** (`self.agency.note(...)` in `perceive`) and
+**its reading is never taken** — and if it were taken, the reading is the one §18.3 corrected.
+
+> **So it does not join the four on the consumers-waiting list.** Wiring it is not the fix;
+> **replacing it with the non-simulable family is**, and the family's members are named
+> already. **`Agency`'s accumulation may survive as one member — `TranslationSelf`'s
+> neighbour — and it cannot be the whole detector.**
+
+**And the refutation was in the record the whole time.** *904 steps of `has_self: false`* is a
+measured result about `ls20`, sitting in §18.3, **while every reading today was taken on
+`ls20`.**
+
 ---
 
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
