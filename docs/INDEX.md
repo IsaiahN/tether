@@ -4344,6 +4344,62 @@ and it would have passed every check.* **Recorded as the gap, not closed.**
 
 ---
 
+# THE COLOUR FINDING IS A LIFETIME PROBLEM — AND THE REPO ALREADY HAS THE LEAK
+
+**Isaiah's correction, checked at the sites.** `arc_percept`'s refusal was of background as a
+DOMAIN PRIMITIVE and was right about that; it was never a refusal of reading a colour's ROLE
+within an episode. **Colours permute when a game refreshes, so a colour identity is valid for
+the episode it was read in** — vocabulary permanent, instances transient.
+
+### 1 · IS THE LIFETIME ENFORCEABLE AT THE SITE? **FOR A NEW READING YES, FOR THE EXISTING ONE NO**
+
+`retarget`'s clear list is nine assignments, and **every one of them is on the AGENT**:
+`bound`, `trace`, `owed_import`, `abstained`, `candidates`, `drive`, `_view`, `_prev_bet`,
+`_prev_pred`, plus `slots`/`actions`/`alphabet` re-read from env. **A per-episode colour
+reading placed on the agent is enforced by one line there.**
+
+> **BUT THE TWO COLOUR-HOLDING OBJECTS ARE BOTH ON THE FAR SIDE OF THAT BOUNDARY.**
+> `Affordances` is a local in `play()`; `Objects` is `ArcWorld._decompose`. **`retarget` cannot
+> reach either, and does not try.** So the lifetime is enforceable for something built agent-side
+> and **is not enforced for what exists** — which is the leak, stated as asked.
+
+### 2 · DOES THE PROBLEM EXIST ELSEWHERE? **ONE REAL INSTANCE, ONE SMALL ONE, ONE CLEAN**
+
+| site | keyed on | crosses a boundary? |
+|---|---|---|
+| **`Affordances.seen`** | **`kind_of(obj)` = `(colour, shape)`** | **YES — constructed once per RUN, never reset** |
+| `ArcWorld._palette` | `max(board)+1` at the first frame | yes, held for the run |
+| `Objects.tracked` | overlap, then shape at normalized offsets | **clean — its docstring says *survives recolour*** |
+
+**`Affordances` IS THE INSTANCE, AND ITS OWN DOCSTRING NAMES THE CONTRADICTION:** *the PROFILE
+is what transfers, because a private-set game with a wall it has never seen still has a thing
+that blocks.* **The value is claimed to transfer and the KEY it is stored under cannot** —
+vocabulary and instance in the same dict, and *colour 4 blocks* is arithmetic wearing a
+profile's name.
+
+**AND `kind_of`'s JUSTIFICATION IS EPISODE-SCOPED WITHOUT SAYING SO.** *Splitting is
+recoverable, conflation is the silent failure, so the finer key wins* — **sound within an
+episode.** Across a refresh colour is a random relabel rather than a discriminator, so the
+finer key buys **both** directions: the same thing splits, and two different things can merge
+into one row. **The premise that colour carries information is what dies at the boundary, not
+the key.**
+
+> **AND THIS IS THE MEASURED FINDING WITH ITS MECHANISM NAMED.** *Reuse halved when only the
+> constants changed — same mechanisms, different numbers: the library is fitted to the
+> arithmetic it saw.* **A colour-keyed affordance row is exactly that arithmetic**, and it is
+> the first site where the fitting is visible in a key rather than inferred from a rate.
+
+### 3 · SO TWO OF REDUX's FOUR MEMBERS COME BACK
+
+`GrowthEdgeSelf` never needed background as a concept — **it needs the most common colour, this
+episode**, discarded at retarget alongside `bound` and `trace`. **Re-scope, not repair.** The
+earlier *does not travel* verdict on these two is **withdrawn**; what stands against them is the
+constants, which is a separate objection.
+
+**AWAITING THE RULING BEFORE RE-SCOPING**, and the family's shape changes if they return.
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
