@@ -52,8 +52,26 @@ def characterise(robs: list, slot: str, slots: list[str]) -> dict:
 
 
 def key_of(term: Any) -> tuple:
-    """A term's index key: its type signature and its arity. Both free to read off it."""
-    return (term.in_type, term.out_type, 2 if term.reads_operand else 1)
+    """A term's index key: signature, arity, and **the slot it can read**. All free.
+
+    **THE THIRD IS §15.3's THIRD KEY, AND THE BLOCKER SAID IT WAS NOT FREE.** The recorded
+    reason was *needs the term applied to the residual's frames*, filed beside `effect shape`
+    under *properties of its BEHAVIOUR*. **The grouping is what was wrong, not the reasoning
+    about cost** -- `effect shape` genuinely requires running it; this does not.
+
+    **`Ctx` HAS TWO FIELDS.** An atom is `fn(v, c)` and `c` carries `action` and `operands` and
+    nothing else, so a term's dependency set is bounded at CONSTRUCTION: its own slot, its
+    operand slot, the action. **It cannot vary with a slot it has no accessor for**, and
+    `reads_operand` is *declared at construction, never inferred*. So the INVARIANT half is
+    read off the term in O(1) and the *would consume the work it exists to save* argument does
+    not reach it.
+
+    **SOUND ONE WAY AND NOT THE OTHER, WHICH IS WHY IT IS A KEY AND NOT A PROOF.** Invariance
+    is exact -- no accessor, no dependence. *Varies* is an upper bound: a term that reads its
+    operand may still ignore it. **`fits` orders and excludes nothing, so an over-approximation
+    is the right shape**; a gate would need the exact set and would have to run the term.
+    """
+    return (term.in_type, term.out_type, 2 if term.reads_operand else 1, term.operand)
 
 
 def fits(term: Any, gap: dict, in_type: str, out_type: str) -> int:
@@ -62,9 +80,16 @@ def fits(term: Any, gap: dict, in_type: str, out_type: str) -> int:
     Two points for the type signature the slot actually needs, one for matching the gap's
     arity. **A zero score still comes back** -- ordering is the whole mechanism, and a term
     that scores nothing is tried last rather than not at all.
+
+    **THE THIRD KEY SCORES LIKE ARITY**, which is the other free one: *aimed at a slot that
+    actually moved* is one point, and a term reading a slot the residual held still gets
+    nothing for it. **A unary term is invariant to every other slot**, so it scores where the
+    gap has nothing else varying -- an invariance claim rather than an absence of one.
     """
-    t_in, t_out, arity = key_of(term)
-    return 2 * (t_in == in_type and t_out == out_type) + (arity == gap["arity"])
+    t_in, t_out, arity, reads = key_of(term)
+    aimed = (not gap["varies"]) if reads is None else (reads in gap["varies"])
+    return (2 * (t_in == in_type and t_out == out_type)
+            + (arity == gap["arity"]) + bool(aimed))
 
 
 def retrieve(library: dict, gap: dict, in_type: str = "val",

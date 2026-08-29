@@ -4198,12 +4198,22 @@ covers both of the exclusions asked for.**
 **A requirement, with no measurement attached.** The panel screen is the instrument — run each
 member across the twenty-five and check they fail on **different** games.
 
-> **⚠ AND THE SIX `ACTION6`-ONLY GAMES WOULD FALSIFY THE TEST.** On `ft09`, `lp85`, `r11l`,
-> `s5i5`, `tn36`, `vc33` **the adapter surfaces no actions at all** — so **every detector fails
-> there, for a reason that has nothing to do with the detectors.** Included, they add a shared
-> failure mode by construction and **four independent detectors would read as correlated.**
-> **They must be excluded, and the exclusion is data rather than judgement**: no surfaced
-> actions, checkable per game.
+> **⚠ AND THE SIX GAMES WITH NO SURFACED ACTION WOULD FALSIFY THE TEST.** On `ft09`, `lp85`,
+> `r11l`, `s5i5`, `tn36`, `vc33` **the adapter surfaces no action** — they advertise a
+> positioned click and the adapter drops it, because the loop cannot supply a position. So
+> **every detector fails there BECAUSE NOTHING ACTS**, which is a shared failure mode from the
+> **HARNESS** rather than from the family. Included, four independent detectors read as
+> correlated. **Excluded, and the exclusion is data rather than judgement**: no surfaced
+> action, checkable per game.
+>
+> **AND THE LABEL MUST NOT BE *NO-ACTION GAMES*, WHICH IMPORTS A CLAIM ABOUT THE GAMES FROM A
+> FACT ABOUT THE ADAPTER.** What is true is that the agent has no surfaced action there. **What
+> is NOT established is that those games have no actions** — a click at a coordinate could be a
+> button, a pad, a placement, or a proxy for a movement nobody named, **and nothing has ever
+> been able to find out.** The claim would be **false the moment positioned actions are
+> supplied**, which is what the arity work is for. **Same collapse as the zeros: absence of
+> instrument printed in a column meaning absence of effect** — corrected in the results table,
+> and it survived here, which is where whoever runs the test would have met it.
 
 ### 3 · WHETHER `Agency` IS A MEMBER IS NOT SETTLED BY §18.3, AND I WILL NOT ASSERT IT
 
@@ -4305,8 +4315,8 @@ best residual is still high — **the whole family failed together***.
 used as a premise, never asserted from the shape of the generator.* **Non-simulability is
 currently asserted from the shape of the four descriptions** — translation, growth, scalar,
 toggle *look* independent. **The DS ladder looked like easing on ten seeds.** The four are
-plausibly independent and that is not a measurement; **the six no-action games are the worked
-case of why — every detector fails there for a reason external to the detectors, and four
+plausibly independent and that is not a measurement; **the six games with no surfaced action
+are the worked case of why — every detector fails there because nothing acts, and four
 independent ones read as correlated.**
 
 **So the exclusion recorded under *exemptions as data* is not a detail of one test. It is the
@@ -4719,6 +4729,50 @@ sound.
                                             question with a named missing piece
     2  `Affordances`'s KEY                  the live site, and small
     3  THE 13×                              NOT TAKEN. Ruled above
+
+---
+
+# BUILT: §15.3's THIRD KEY, TERM SIDE — AND THE BLOCKER WAS A GROUPING, NOT A COST
+
+**Checked before assuming, as ruled.** The recorded blocker was *needs the term applied to the
+residual's frames*, filed in a table beside `effect shape` under ***properties of its
+BEHAVIOUR***, with the argument that keying all four *would consume exactly the work it exists
+to save.*
+
+> **THE ARGUMENT IS RIGHT AND THE GROUPING IS WRONG.** `effect shape` genuinely requires running
+> the term. **This does not.** `Ctx` has TWO FIELDS — `action` and `operands` — and an atom is
+> `fn(v, c)`, so **a term's dependency set is bounded at CONSTRUCTION**: its own slot, its
+> operand slot, the action. **It cannot vary with a slot it has no accessor for**, and
+> `reads_operand` is *declared at construction, never inferred*. **O(1) off the term.**
+
+**AND THAT IS THE BUILD-TABLE STEP AT THE LEVEL OF A KEY TABLE.** *Build tables group by cost;
+the dependency order falls out of neither the table nor the cost.* **Here a KEY table grouped
+two keys by cost and the grouping was false for one of them** — five for five, and the first
+instance outside a build plan.
+
+**SOUND ONE WAY ONLY, WHICH IS WHY IT IS A KEY AND NOT A GATE.** Invariance is exact — no
+accessor, no dependence. *Varies* is an upper bound: a term reading its operand may still
+ignore it. **`fits` orders and excludes nothing, so an over-approximation is the right shape.**
+
+### MEASURED, AND THE NULL IS NOT YET INTERPRETABLE — THE PANEL PROPERTY IS NAMED
+
+**Toy panel: byte-identical output.** Not evidence of neutrality on its own — *a control that
+examines nothing cannot demonstrate a clean state* — so the key was instrumented on a real run.
+
+    2,792 (term, gap) pairs      one game, 30 cycles, library 21, world slots 105
+    28 points awarded            ALL to unary terms in gaps where nothing else varied
+    692 operand-term pairs       ZERO points
+    6 distinct operand slots     across the whole library, against 105 slots
+
+**Namespaces CHECKED, not assumed** — `term.operand` reads `o12.col`, `gap["varies"]` holds
+`o11.col`. **Same format, so 692-and-zero is not a mismatch.**
+
+> **WHAT THE MECHANISM WOULD NEED IN ORDER TO SHOW, STATED BEFORE THE NULL IS READ:** *a gap
+> whose `varies` contains a slot some library term is bound to.* **The library binds six slots
+> of 105 and none coincided.** So this is a reading about a thin panel, **not a verdict on the
+> key** — and it is the fourth time a null has been recorded against a world structurally
+> unable to reward the thing tested, this time with the property named in advance instead of
+> found afterwards.
 
 ---
 
