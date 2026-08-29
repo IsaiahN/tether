@@ -17,6 +17,7 @@ from typing import Any
 
 from arcengine import GameAction, GameState
 
+import arc_percept
 import arc_self
 import sensors
 
@@ -58,6 +59,9 @@ class ArcWorld:
         # What it holds that is episode-scoped is dropped by `boundary()`, which the loop
         # calls at a level change -- see `tether.retarget`.
         self.selves = arc_self.family()
+        # 16.4's profile table. Here for the same reason: it reads OBJECTS, and its per-episode
+        # bindings drop through `boundary()` rather than living past a level change.
+        self.aff = arc_percept.Affordances()
 
     # -- the eight -----------------------------------------------------------------------
 
@@ -158,6 +162,7 @@ class ArcWorld:
     def step(self, action: str) -> None:
         act = GameAction[action]
         was = self.board()
+        was_objs = {k: dict(v) for k, v in self._decompose.tracked.items()}
         nxt = self.w.step(act)
         if nxt is not None:
             self._frame = nxt
@@ -165,11 +170,14 @@ class ArcWorld:
         now = self.board()
         if was is not None and now is not None:
             self.selves.observe(was, action, now)
+        self._decomposed()          # re-track before reading contact on the new frame
+        self.aff.note(was_objs, dict(self._decompose.tracked), mover=None)
 
     def boundary(self) -> None:
         """Drop what was bound to THIS episode. Colours permute on a refresh, so a colour
         identity is valid only for the episode it was read in."""
         self.selves.boundary()
+        self.aff.boundary()
 
     # -- read by the harness, never by the loop --------------------------------------------
 

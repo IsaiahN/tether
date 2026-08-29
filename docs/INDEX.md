@@ -4776,6 +4776,52 @@ examines nothing cannot demonstrate a clean state* — so the key was instrument
 
 ---
 
+# BUILT: `Affordances`'s KEY HOLDS A VARIABLE — AND ITS DEFENCE ANSWERED THE WRONG OBJECTION
+
+**Section check first: §16.4 in full.** It names no key at all — *seven booleans per object
+kind, learned by interaction* — so `kind_of` was the repo's invention and had to be checked
+against §16.4's actual test rather than its own note.
+
+### THE OLD DEFENCE CHECKED PROVENANCE WHERE §16.4 TESTS SURVIVAL
+
+> *It is not a taxonomy: §16.4 says do not classify the substance. **Colour and shape are what
+> the sensors already report, not a category anyone named.***
+
+**§16.4 does not ask who named it.** It says *a taxonomy learned from the public set **will not
+survive contact with a private one***. **Colour fails that twice**: it permutes on a refresh,
+and §16.4's own example is ***a wall it has never seen***, whose colour is one it has never seen
+either. **A defence that answers a different objection reads as a defence**, which is why it
+survived being quoted.
+
+**AND SHAPE ALREADY CARRIED THE INVARIANCE, ONE FUNCTION UP.** `shape_of` is §12.3 sensor 5 at
+normalized offsets — ***identity under translation as well as under recolour***. **The property
+the new key needs was stated in the file, in the function the old key was calling.**
+
+### THE COARSENING IS REAL, MEASURED, AND MADE LOUD RATHER THAN CLAIMED HARMLESS
+
+The old note's own objection to a coarse key was ***and nothing says so***. So `Affordances` now
+records which colours bind to each key this episode and reports any key carrying more than one:
+
+    56 keys under the variable key        against 77 the old key would have made
+    20 keys carrying >1 colour            largest carries 3
+    bindings after `boundary()`: 0        table kept: 56
+
+> **THE CONFLATION THE OLD NOTE SAID NOTHING ABOUT IS NOW THE THING THAT SAYS SO** — and 20 of
+> 56 is not a rounding error. **Reported as a live reading rather than settled**: whether those
+> rows contradict themselves is a question the profile can answer and nobody has asked it.
+
+### AND THE PLACEMENT IS THE RULED ONE, MEASURED
+
+**`Affordances` moved from a local in `play()` onto `ArcWorld`**, where `boundary()` reaches it
+— *a local sat outside the boundary `retarget` triggers, which is the placement the ruling was
+about.* **Table permanent, bindings transient, and both halves measured in the same run.**
+
+**The contact reading moved into `step()` with it**, which also fixed a smaller thing: the
+before-snapshot in `play()` was the PREVIOUS iteration's tracker state, and the world has a
+true before/after pair.
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**

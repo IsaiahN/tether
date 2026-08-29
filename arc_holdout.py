@@ -62,18 +62,16 @@ def play(game: str = "ls20", cycles: int = 40) -> dict:
     bud = arc_run.Budget()
     bud.level_starts()
 
-    # DRIVEN STEP-WISE so `Affordances` can learn. §16.4 reads behaviour under contact, which
-    # needs a before/after pair per step -- `run()` gives no hook, and the alternative was to
-    # put a domain reader inside the loop, which is the wrong side of the wall.
-    seg = ag.env._decompose
-    aff = arc_percept.Affordances()
+    # DRIVEN STEP-WISE so the ending can be read per step. THE CONTACT READING MOVED INTO THE
+    # WORLD: it needs a before/after pair, the world already has one in `step`, and a local
+    # here sat OUTSIDE the boundary `retarget` triggers -- which is the placement the colour
+    # ruling was about.
+    aff = env.aff
     endings = collections.Counter()
     was_terminal = ""
     for _ in range(cycles):
-        before = {k: dict(v) for k, v in seg.tracked.items()}
         state = env.observe()
-        ag.step()
-        aff.note(before, dict(seg.tracked), mover=None)
+        ag.step()          # the world notes contact inside `step`, on its own before/after
         # §21.1's control: the state BEFORE the action, the action, and what it cost. A
         # repeat of the same state under a different action is the only re-run the loop gets.
         # The action is read AFTER the step -- it is chosen inside it, so reading it before
@@ -133,6 +131,7 @@ def play(game: str = "ls20", cycles: int = 40) -> dict:
         # accumulated on the term -- the events were always there and nothing asked.
         "behaviour": behaviour.report(rows),
         "affordance_kinds": aff.report()["kinds"],
+        "keys_carrying_two_colours": aff.report()["keys_carrying_two_colours"],
         # 18.3's family. DIAGNOSTIC-ONLY TODAY, and 18.4 names that as a measured failure:
         # *the sensorium found the right self and changed nothing, because the only consumer
         # was the post-hoc veto.* Nothing reads `selected()` yet -- the consumer is the

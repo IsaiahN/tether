@@ -102,19 +102,31 @@ def touching(a: dict, b: dict) -> bool:
 
 
 def kind_of(obj: dict) -> tuple:
-    """What counts as the same KIND. COLOUR AND SHAPE, and the choice has the asymmetry
-    that decided 4-connectivity.
+    """What counts as the same KIND. **SHAPE, with a HOLE where the colour was.**
 
-    Too coarse conflates two behaviours under one profile -- a red wall and a red key become
-    one row whose booleans contradict each other, and **nothing says so**. Too fine splits a
-    kind that would have transferred, which costs generality and is recoverable. **Splitting
-    is recoverable, conflation is the silent failure**, so the finer key wins.
+    **THE OLD KEY WAS `(colour, shape)`, AND ITS DEFENCE ANSWERED A DIFFERENT OBJECTION THAN
+    §16.4 RAISES.** It read: *it is not a taxonomy -- colour and shape are what the sensors
+    already report, not a category anyone named.* **§16.4 does not test PROVENANCE, it tests
+    SURVIVAL** -- *a taxonomy learned from the public set **will not survive contact with a
+    private one***. **Colour fails that twice**: it permutes on a refresh, and §16.4's own
+    example is *a wall it has never seen*, whose colour is one it has never seen either.
 
-    And it is not a taxonomy: §16.4 says **do not classify the substance** -- a blob-kind
-    vocabulary learned on the public set is *the archetype trap wearing a perception costume*.
-    Colour and shape are what the sensors already report, not a category anyone named.
+    **AND THE ASYMMETRY ARGUMENT WAS SOUND FOR A SCOPE NOBODY STATED.** *Splitting is
+    recoverable, conflation is the silent failure, so the finer key wins* holds WITHIN an
+    episode. Across one, colour is a random relabel, so the finer key buys **both** directions:
+    the same thing splits, and two different things merge on a colour nobody chose.
+
+    **SHAPE IS THE HALF THAT ALREADY CARRIES IT.** `shape_of` is §12.3 sensor 5 at normalized
+    offsets -- *identity under translation **as well as under recolour***. The invariance this
+    key needs was already stated one function up.
+
+    **AND THE COARSENING IS NOT FREE, SO IT IS MADE LOUD RATHER THAN CLAIMED HARMLESS.** Two
+    same-shape objects of different colours now share a row, which is the direction the old
+    docstring called silent. `Affordances` therefore RECORDS the colours that bind to each key
+    this episode, and reports any key carrying more than one. **The conflation the old note
+    said nothing about is now the thing that says so.**
     """
-    return (obj["colour"], obj["shape"])
+    return (obj["shape"],)
 
 
 class Affordances:
@@ -136,6 +148,15 @@ class Affordances:
 
     def __init__(self) -> None:
         self.seen: dict[tuple, dict[str, bool]] = {}
+        # WHICH COLOURS BOUND TO EACH KEY, THIS EPISODE. The variable's binding, not the key:
+        # the table is permanent and this is not, so it drops at a boundary with `bound` and
+        # the map. It is also the conflation witness -- a key with two colours in it is a row
+        # carrying two things.
+        self.bindings: dict[tuple, set[int]] = {}
+
+    def boundary(self) -> None:
+        """Drop the bindings, keep the table. **Vocabulary permanent, instances transient.**"""
+        self.bindings = {}
 
     def note(self, before: dict[str, dict], after: dict[str, dict],
              mover: str | None) -> None:
@@ -155,7 +176,9 @@ class Affordances:
             partners = [q for n, q in before.items() if n != name and touching(o, q)]
             if not partners:
                 continue
-            row = self.seen.setdefault(kind_of(o), {})
+            key = kind_of(o)
+            row = self.seen.setdefault(key, {})
+            self.bindings.setdefault(key, set()).add(int(o["colour"]))
             survivor = after.get(name)
             if survivor is None:
                 row["consumed"] = True
@@ -186,7 +209,12 @@ class Affordances:
         return {name: row.get(name) for name in self.SEVEN}
 
     def report(self) -> dict:
+        multi = {str(k): sorted(v) for k, v in self.bindings.items() if len(v) > 1}
         return {"kinds": len(self.seen),
+                # THE COARSENING, MADE LOUD. The old key's own objection to a coarse key was
+                # *nothing says so*; this is what says so.
+                "keys_carrying_two_colours": multi,
+                "bound_this_episode": {str(k): sorted(v) for k, v in self.bindings.items()},
                 "profiles": {str(k): v for k, v in sorted(self.seen.items(), key=str)},
                 "reads": "behaviour under contact, per kind -- not a substance taxonomy"}
 
