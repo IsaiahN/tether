@@ -4630,12 +4630,54 @@ under the old atom set.**
 other side, and §2's blocker says there is not one. **Re-measuring is cheap and is what makes
 13× either a real price or a stale one; it is not the thing standing in the way.**
 
+### THE PARK's THREE CHECKS EACH FAILED DIFFERENTLY, AND THE LIST IS THE CHEAP PART
+
+**Recorded so a fourth check does not re-run a settled one.** The trigger is *an atom that
+consumes past index 0*, and it has been tested three times:
+
+    1  the new atom set        `translate` and `recolour` both read index 0 -- NO CONSUMER
+                               among the atoms that replaced the toy set
+    2  16.5's habitat (Q1)     the candidate consumer turned out to be ARITY 1 itself
+    3  variables in the key    a variable-keyed TABLE is a lookup, not an atom; and the
+                               composition half is blocked UPSTREAM by a non-cost blocker
+
+**Three different reasons, none of them cost.** A fourth candidate should be checked against
+this list first: **the question is not *is it N-ary* but *is it an ATOM, and can it exist at
+all*.**
+
+### AND A RULING THAT NAMES ITS OWN EXPIRY IS DISCHARGED, NOT FALSIFIED
+
+The 13× is the fifth or sixth stale premise found inside a ruling **and it is not the same kind
+as the others.** It stated the condition under which it would go stale — *Phase 3d replaces the
+atom set* — **and the condition happened.**
+
+> **THE OTHERS WERE PREMISES THAT TURNED OUT FALSE. THIS ONE WAS A PREMISE THAT EXPIRED ON
+> SCHEDULE.** The park working as designed, and the difference is checkable rather than a
+> matter of tone: **look for a named condition in the ruling itself.** One that has none and
+> goes stale is a defect; one that named the condition and it fired **did its job.**
+
 ### AND `composed_from` DOES NOT EXIST — THE MECHANISM DOES, AND IT IS STRONGER
 
 **No such tag anywhere: not in the code, not in any document.** What exists is `Term.atoms`
 with `name` = `" . ".join(a.name ...)` — **a composite does not carry a tag naming its parts,
 it IS its parts**, and §14.7's chunk reuse counts a term appearing as a CONSTITUENT of a later
 mint. **A label can drift from what it labels; a constituent tuple cannot.**
+
+> **AND THIS ONE IS A DIFFERENT KIND OF CARRY-FORWARD: A MECHANISM THAT HAS NEVER EXISTED
+> ANYWHERE.** The prior instances each had a real source that said something, or that was
+> misread. **This had no source at all**, so there was nothing to check against and the only
+> refutation is exhaustive absence.
+>
+> **WHICH IS AVAILABLE HERE AND IS NOT AVAILABLE MID-EPISODE, AND THE DOCTRINE DRAWS EXACTLY
+> THAT LINE.** *Absence of evidence resting on completeness never holds mid-episode* — because
+> the world is open and unvisited states outnumber visited ones. **A repo is a CLOSED world**:
+> a grep over the code and every document is genuinely exhaustive, so *it does not exist* is
+> positive evidence here and a guess there. **The rule is unchanged; what changes is whether
+> completeness is reachable, and that is a property of the search space rather than of the
+> claim.**
+>
+> **AND THE REGISTER IS NOT ONE PERSON's.** This entry was Isaiah's assertion, the prior five
+> were mine, and a register that only holds one side would have missed it.
 
 ---
 
