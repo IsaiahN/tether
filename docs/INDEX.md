@@ -3760,6 +3760,13 @@ which are a lookup and already exact.**
 > had to learn what pressing something does, because the primitive it was given already knew.***
 > **That is the thing the action world has to take away.**
 
+> **⚠ AND THE PANEL THIS WAS MEASURED ON IS THE WEAK END, established afterwards by the
+> screen: `ls20` has EVERY action distinct and NOTHING inert — the corpus's *still encoded*
+> case. So `0 discriminating draws` was taken on the board least able to reward action
+> learning.** It does not invalidate the gap — **the agent still could not tell four distinct
+> actions apart** — but the number is weaker than it looked and the caveat belongs here rather
+> than in the screen's section.
+
 **ARC IS ALREADY THAT WORLD, BY ACCIDENT.** `arc_predict`'s three atoms — `idn`, `translate`,
 `recolour` — **all read operands and none reads `c.action`**, because they were derived from
 the corpus's six grid transforms and the corpus's list has no action-reader in it. **The thing
@@ -3936,6 +3943,47 @@ action distinct, nothing inert, which is the corpus's *still encoded* case.
 **THE LIMIT, UNCHANGED: initial board only, six trials.** `available_actions` changes per
 frame (§16.1), so **a board reading zero here is not proven to lack the properties later.** A
 positive is strong; a negative is *unreachable at the start*.
+
+---
+
+# ⚠ THE ATOM IS NOT SEPARABLE FROM THE PRIMES — my ordering an hour ago was wrong
+
+**I split the action work into *an atom, which needs no contract decision* and *the contract
+question*. Checking what such an atom could COMPUTE reverses it.**
+
+### THE SPECIFIED FORM IS A PARAMETERISED FAMILY, AND THE CORPUS SAYS SO TWICE
+
+§13's channel table: ***action-set growth → new operators → **yes — atoms, straightforwardly.
+The closure expands.**** · §1093: a **parameterised atom family**, `HAS_COLOUR(c)`, extended
+when the domain grows. **So: one atom per advertised action, growing with the action set.**
+
+### BUT AN ATOM CANNOT LEARN, AND THAT IS THE WHOLE PROBLEM
+
+The toy world's `act` is `v + DELTA.get(c.action, 0)` — **the effects are a table closed over
+at construction**, which §2622 names as the handout to remove. **Without the table, an atom
+reading `c.action` has nothing to return**: an atom is a fixed function, so any per-action
+output it produces IS a mapping, handed.
+
+**To predict differently per action without being told the difference, exactly one of three
+must be true:**
+
+| | |
+|---|---|
+| **an atom hands the mapping** | the toy world. **The thing to remove** |
+| **binding becomes per (slot, ACTION)** | `self.bound: dict[str, str]` is **keyed by slot alone** — a contract change |
+| **conditional composition exists** | *IF action was A, then transform* — **and `IF` is one of §15.5's six primes** |
+
+> **The corpus names the third.** `When(P, R)` → **IF**, in the constructor table. **So the
+> action atom is useful only once conditional composition exists, and that is the primes.**
+
+**AND A GATE ATOM DOES NOT SUBSTITUTE.** `under_A(v, c) = v if c.action == "A" else 0` returns
+**0** on a non-match — a specific wrong prediction, not *no claim*. Atoms compose sequentially,
+so there is no additive branch to hide it in. **The gate needs `IF`'s semantics and cannot
+approximate them.**
+
+**SO THE ORDER INSIDE `4a` IS: the primes (with `IF`), THEN the per-action atom family** — and
+the measured gap does **not** get fixed by a smaller piece first. **The two items I separated
+an hour ago are one item, and separating them was the error.**
 
 ---
 
