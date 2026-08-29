@@ -5074,6 +5074,78 @@ consumer is a report, not a safeguard.*
 
 ---
 
+# `appear` / `vanish` ARE `recolour`, AND `consumed` CARRIES THE SAME DEFECT — DEMONSTRATED
+
+**Section check first, as ruled. Nothing changed.**
+
+### 1 · THE CORPUS DOES NOT RULE ON CAMOUFLAGE — IT NAMES THE PRIOR THAT DECIDES IT
+
+**`camouflage` appears nowhere in the corpus.** But its licence does, as a named TRACKER prior:
+
+> `ARC_AGENT` §12.1, TRACKER row: *persistence, occlusion, **numerical-vs-featural identity***
+
+and `priors.py` already loaded it with the catalogue's operational statement:
+
+> ***'same individual' is tracked separately from 'same appearance'*** — Xu & Carey 1996
+
+**That sentence IS the derivation.** A thing persisting while its look changes is the case the
+prior exists to name. **Loaded, cited, and never applied to the atom table.**
+
+**AND THE NEAREST THING TO A RULING IS AN OPEN QUESTION, NOT A RULING.** §13.2: *`GONE` is a
+**fourth** outcome the four bins do not name. A slot that vanishes is neither held, novel,
+rebinding, nor mechanism. **Worth deciding where it routes.*** — and it is about a SLOT
+vanishing, **the level `arc_predict` already refused appear/vanish at.** So nothing governs, the
+question is open in the corpus's own words, and the prior that answers it was already in the
+building.
+
+### 2 · `consumed` IS EXPOSED, AND IT IS MEASURED RATHER THAN ARGUED
+
+§16.4 defines it as ***it disappears on contact*** — and *disappears* is the ambiguous word.
+`Affordances.note` writes it on `survivor is None`, and `survivor` comes from the tracker, whose
+rule is **death only on evidence**: *dies only when its cells are taken over by other live
+objects.*
+
+**CAMOUFLAGE PRODUCES EXACTLY THAT APPEARANCE.** A block recoloured to match its surround stops
+being a separate component, the surround absorbs its cells, the surround is live — so the object
+is dropped. **Run:**
+
+    before tracked: ['o0', 'o1']        a 2-cell block inside a surround
+    after  tracked: ['o0']              the block recolours to the surround's value
+    dropped: ['o1']
+    affordance row written: consumed: True
+
+> **THE TRACKER's RULE IS NOT WRONG IN FORM — ITS EVIDENCE PREDICATE CANNOT SEPARATE ABSORPTION
+> FROM TAKEOVER.** *Death only on evidence* is right; *cells held by other live objects* is
+> satisfied identically by a thing being overwritten and a thing changing colour to match. **The
+> distinction the prior draws is exactly the one the predicate cannot make.**
+
+### 3 · THE TWO ARE ONE FINDING AT TWO LAYERS, AND `arc_predict` HAD THE OBSERVATION WITH THE WRONG CAUSE
+
+    atom table    calls it a WORLD OPERATION      appear / vanish
+    tracker       calls it a DEATH                consumed
+    both          are reading a VALUE CHANGE through a segmenter that groups by COLOUR
+
+`arc_predict` refused them because *existence is not a slot VALUE — the slot SET changes and
+`_present` sees it: an event, not a transform.* **The observation is exactly right and the cause
+is one layer off.** The slot set changes **because the segmenter merged two components**, not
+because anything ceased to exist. **Refused for the right reason at the wrong level**, which is
+why the refusal read as settled.
+
+### 4 · WHAT THE CORRECTION WOULD COST, AND WHY THE ATOM HALF IS THE BLOCKED ONE
+
+Six become four — `translate · recolour · reflect · rotate` — with **`recolour` doing the work of
+three**, and `arc_predict` expressing **two of four** rather than two of six. `reflect` and
+`rotate` are unchanged in their reasons: board extent, and coupling two slots.
+
+> **BUT THE ATOM HALF CANNOT LAND FIRST.** Expressing camouflage as `recolour` requires a slot to
+> still be there to recolour, **and the tracker deletes it before the atom could bet on it.**
+> The tracker defect is load-bearing and the atom-table correction is downstream of it. **A
+> six-to-four edit alone would name an operation the perception layer destroys.**
+
+**Reported, not changed.**
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
