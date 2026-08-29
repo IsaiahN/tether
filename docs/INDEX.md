@@ -3897,6 +3897,48 @@ stands**, and that is a panel finding rather than a reason not to build the atom
 
 ---
 
+# THE PANEL SCREEN — two of 25 boards can show motor learning, and the decision dissolves
+
+    game   pairs  disc  inert  same
+    g50t   10     7     3      3     <-- ALL THREE
+    sk48   10     9     2      1     <-- ALL THREE
+    ls20    6     6     0      0     the board everything has been measured on
+    lf52   10     0     0     10     all four actions IDENTICAL at the start
+    sc25    6     0     4      6     four inert, every pair indistinguishable
+
+**§2622 §5's three properties, screened across every game the anonymous key exposes.**
+`g50t` is the strongest — **3 inert, 3 indistinguishable, 7 discriminating** — so each
+property is well-represented rather than marginal.
+
+> **So the choice between *find a board* and *build the action world* had a third answer, and
+> it was one measurement away.** §2622 §4's action world is still specified and still
+> unscheduled; **it is no longer the only route.**
+
+### WHY SELECTING ON THIS IS NOT ENCODING, STATED BECAUSE PANEL CHOICE IS WHERE IT HIDES
+
+**The screen reads STRUCTURE ONLY** — does an action change anything, do two actions differ.
+**No rule, objective, or mechanic is read**, and the instrument is the one already behind
+`controlled()`.
+
+**And the property selected on is the SHAPE OF THE QUESTION, not its answer.** *Some actions
+are inert* does not predict whether the agent will do well; **it makes `useless` a reachable
+FINDING.** That is §5's own criterion — *this world can show it only if all three are present*
+— so selecting for it **is the check, not a thumb on it.** A board chosen because the agent
+scores well there would be the other thing.
+
+### AND THE SCREEN SAYS MORE THAN ITS HEADLINE
+
+**`lf52`: 10 pairs, ZERO discriminating, 10 indistinguishable** — at the initial board **all
+four actions do exactly the same thing.** **`sc25`: four inert, every pair indistinguishable.**
+**And `ls20` — the board every reading today was taken on — is the opposite extreme**: every
+action distinct, nothing inert, which is the corpus's *still encoded* case.
+
+**THE LIMIT, UNCHANGED: initial board only, six trials.** `available_actions` changes per
+frame (§16.1), so **a board reading zero here is not proven to lack the properties later.** A
+positive is strong; a negative is *unreachable at the start*.
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
