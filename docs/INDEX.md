@@ -4483,6 +4483,20 @@ what a record is.**
 inference from it was natural, and `Term`'s two fields refute it. **The four prior instances
 were all documents; this one would have been a data-flow I could see half of.**
 
+**AND THAT IS A DIFFERENT KIND, WHICH IS THE PART WORTH KEEPING.** A document claim has a
+citable source and can be grepped — *assume it is already specified, and go look* is a step
+that fires on it. ***I traced it and it looked like it reached predicates* has no source to
+check against.** Both existing mitigations are document-oriented and **neither reaches this.**
+
+**WHAT REFUTED IT WAS READING THE DESTINATION'S SHAPE, NOT TRACING THE PATH.** The path was
+traced correctly: valued leaf → GROUND → bet → recorded. **Every step true, terminating in
+something that cannot hold what was traced.** `Term` is two fields and only reading them says
+so.
+
+> **So the transferable half is: READ WHAT RECEIVES, before concluding what reaches it.** The
+> mirror of *read the things that produce conditions before the things that produce results* —
+> same asymmetry, opposite end. **Recorded as a finding; whether it earns a step is Isaiah's.**
+
 ---
 
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
