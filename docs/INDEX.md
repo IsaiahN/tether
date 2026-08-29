@@ -4818,7 +4818,32 @@ about.* **Table permanent, bindings transient, and both halves measured in the s
 
 **The contact reading moved into `step()` with it**, which also fixed a smaller thing: the
 before-snapshot in `play()` was the PREVIOUS iteration's tracker state, and the world has a
-true before/after pair.
+true before/after pair. **Found by moving the reading, not by looking for it.**
+
+> **AND THE RE-BIND IS STILL NOT SHOWN — THIS RUN MEASURED A DIFFERENT PAIR.** *Bindings 0,
+> table 56* is **DROP plus RETENTION**, which the family's run could not show because it has
+> nothing to retain. **Re-bind is *does a new episode repopulate it*, and neither run reached
+> a second episode.** Three measurements, easily read as one: **drop · retention · re-bind**,
+> and only the first two exist. Recorded because *bindings 0, table kept* looks like the whole
+> cycle and is two thirds of it.
+
+### THE ELEVENTH LOOKUP, AND THE SHORTEST DISTANCE YET
+
+The invariance the new key needed was in `shape_of` — ***identity under translation as well as
+under recolour*** — **the function `kind_of` was already calling.**
+
+> **NOT A DOCUMENT, NOT ANOTHER MODULE, THE CALLEE.** The step's own clause is that *familiarity
+> actively suppresses it: citing a file feels like evidence of having read it.* **This is the
+> strongest form — not citing, CALLING.** A function you invoke every time reads as known, and
+> there is no state recording that its docstring was never opened. **Proximity did not help and
+> may be what hid it.**
+
+### AND THE 20 OF 56 ARE A CHECKABLE CONFLATION, WHICH IS A DIFFERENT OBJECT
+
+`[I]` ***A conflation that can be checked is a different object from one that can't.*** The
+rows carrying two colours either contradict themselves in their seven booleans or they do not,
+and **the profile can answer it.** Left as a live reading with the question named: **nobody has
+asked it, and the asking is what separates a coarsening from a defect.**
 
 ---
 
