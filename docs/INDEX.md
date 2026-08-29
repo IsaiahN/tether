@@ -3776,16 +3776,34 @@ ACTS to discriminate**, because `DIRECTED` is a property of how the ACTION was c
 whether anything was modelled. **A phase histogram at 100% probe with a live mint rate is a
 different state from phase 1**, and the curve alone cannot say so.
 
-### TWO CAUSES POINT THE SAME WAY, AND BOTH ARE REAL
+### ⚠ ONE CAUSE, NOT TWO — I RECORDED A SECOND AND IT IS WRONG TWICE OVER
 
-| | |
-|---|---|
-| **no action-reading atom** | `choose`'s discriminate branch computes spread over candidate predictions; with no atom reading the action, **every action predicts identically** and the branch never fires. `0/96` is the corpus's own measurement of exactly this |
-| **`density(R)` inflated** | `DOCTRINE_AUDIT` §8's cascade — *density(R) is inflated at the start by every slot that simply changes, and `bored()` reads that inflated value* — **so the probe branch is taken more often than the residual warrants** |
+**Recorded minutes earlier as *two causes point the same way*. Corrected on reading the CODE
+rather than the audit.**
 
-**Neither is established as dominant and it would be easy to attribute to one.** Recorded as
-two, because **the fix for each is different**: the first is `4a`'s ACTION type and `DO`; the
-second is the persistence prior's cascade, still open.
+**THE ONE REAL CAUSE.** `choose`'s discriminate branch computes spread over candidate
+predictions; **with no atom reading the action, every action predicts identically** and the
+branch cannot fire. **`0/96` is the corpus's own measurement of exactly this.**
+
+**THE SECOND WAS NOT A CAUSE OF THIS READING, AND ITS DIRECTION WAS BACKWARDS:**
+
+    note_step(any_live):  self.live = any_live
+    bored():              return self.n > 0 and not self.live
+
+- **It does not touch the phase histogram.** `phase = DIRECTED if by == "discriminate" else
+  PROBE`, so `by='draw'` — **82 of 120** — counts as PROBE too. **The 1.0 is entirely about
+  discrimination never firing**; `bored()` is not in it.
+- **And the direction is inverted.** `bored()` is true when **NOTHING** carried live mass, so
+  inflating `density(R)` with slots that simply change makes `any_live` true MORE often →
+  `bored()` fires **LESS** → **fewer probes, not more.**
+
+> **`DOCTRINE_AUDIT` §8 says *`bored()` reads that inflated value* and does not say which way
+> it moves. I supplied the direction and got it backwards** — the fourth time today a
+> document's statement was carried forward **with something added that the document did not
+> say.**
+
+**The persistence-prior cascade is still real and still open. It is NOT a cause of the phase
+reading**, and pairing them would have aimed a repair at a symptom it does not produce.
 
 **SO THE CONTRACT QUESTION HAS A MEASURED MOTIVATION RATHER THAN A CITED ONE.** Not *the corpus
 says add verbs* — **the agent cannot tell its four actions apart, measured, and `DO` is the
