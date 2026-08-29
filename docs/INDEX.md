@@ -4430,6 +4430,61 @@ a measurement of the thing that produced it.
 
 ---
 
+# THE GRAMMAR's HOLE AND A VARIABLE KEY ARE **NOT** THE SAME MECHANISM — AND MERGING THEM IS `A6i`
+
+**Checked before building, which is the whole value of asking.** `is_hole(x)` is
+`isinstance(x, T)` — **the hole IS the type enum member** — and it appears in exactly two
+places, both gates inside `_check_terminal`. **Three differences, and the third is the one that
+matters.**
+
+| | grammar's hole | a variable key's `?c` |
+|---|---|---|
+| **identity** | `T.ATTR is T.ATTR` — **two holes are indistinguishable** | `?c` in two positions must be **the same** `?c` |
+| **binding** | **never bound by anything.** Two uses, both gates | **must** bind per episode, and drop at a boundary |
+| **quantifier** | *I don't know, and I'm asking* | *I don't care which, and it's the same one* |
+
+**THE HOLE IS CLOSED BY MEASUREMENT; `?c` IS DESTROYED BY IT.** The grammar's docstring says so
+outright — ***"a bare type as a leaf: a template without content. This is how a question is
+asked."*** A probe answers it and it is gone. **A key's `?c` is meant to stay open forever**;
+resolving it re-creates the exact defect the re-scoping removes.
+
+> **SO NAMING THEM ONE THING PUTS AN EXISTENTIAL AND A UNIVERSAL UNDER ONE WORD, WHICH IS
+> `A6i` — the real one, and the check FAILS here where it PASSED on `kind_of`.** Look *hole* up
+> in both places and you get two quantities. **Two things, and the collision is FOUND rather
+> than made, because it was checked before either was built.**
+
+**AND THE HOLE IS THE DEGENERATE CASE ONLY IF YOU IGNORE THE QUANTIFIER** — one occurrence, no
+binding, which is what makes the resemblance strong enough to be dangerous. **The resemblance
+is the hazard, not the evidence.**
+
+---
+
+# DOES THE VARIABLE KEY REACH PREDICATES? **NO — AND `Term`'s SHAPE IS WHY**
+
+**I was about to say yes.** The predicate constructors do carry concrete values —
+`G.Leaf(G.T.ATTR, before[s])` in the GROUND, and for a `.colour` slot **that int is a colour.**
+Four such sites in `tether.py`.
+
+**BUT Γ's LIBRARY CANNOT HOLD ONE.** `library[term.name] = term`, and a `Term` is
+`atoms: tuple[Atom, ...]` plus **`operand: str | None` — a SLOT NAME, never a value.** No
+concrete number can enter, which is the same property `arc_predict` established deliberately:
+***neither delta is chosen; both atoms read an OPERAND, so the step size and the target colour
+are discovered by binding.***
+
+**The valued leaves live in the UTTERANCE layer and land in the LEDGER** — a record of what was
+said at a cycle, stamped with it. **A record holding an episode's colour is correct; that is
+what a record is.**
+
+> **SO THE SCOPE IS NARROW AND CHECKABLE: the variable key is needed exactly where a KEY is
+> built over a concrete value, and there is ONE such site — `kind_of`.** `ArcWorld._palette` is
+> a held scalar, not a key. **Predicates are closed by construction.**
+
+**AND THIS WOULD HAVE BEEN THE FIFTH UNVERIFIED CARRY-FORWARD.** The exposure was visible, the
+inference from it was natural, and `Term`'s two fields refute it. **The four prior instances
+were all documents; this one would have been a data-flow I could see half of.**
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
