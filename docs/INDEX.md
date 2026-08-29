@@ -4161,6 +4161,61 @@ measured result about `ls20`, sitting in §18.3, **while every reading today was
 
 ---
 
+# THE DETECTOR FAMILY — checked. One question is a lookup, one is marked, one is unsettled
+
+### 1 · THE MEMBERS ARE NAMED. THEIR DETECTION RULES ARE NOT
+
+    TranslationSelf   a rigid object that moves
+    GrowthEdgeSelf    a growing / advancing trail
+    ValueLatentSelf   non-spatial -- a scalar, a colour's total count
+    RegionToggleSelf  a bounded region that genuinely alternates
+
+**Four, by name, each with a one-line gloss — so the SET is a lookup and needs no ruling.**
+**And the glosses say what *self* MEANS, not how to detect it.** §18.3 gives no signature, no
+input, no rule. **The membership is specified; the detection is a marked design space**, and
+saying which is which is the answer to the first question.
+
+**And the set already satisfies the requirement it was built for**: `GrowthEdgeSelf` does not
+assume rigidity, `ValueLatentSelf` does not assume spatiality at all. **The corpus's own set
+covers both of the exclusions asked for.**
+
+### 2 · INDEPENDENCE IS REQUIRED AND ITS TEST IS NOT GIVEN — and the panel has a trap
+
+> ***"Non-simulable" means the members do not share a failure mode.*** *Four correlated
+> detectors are one detector wearing four names.*
+
+**A requirement, with no measurement attached.** The panel screen is the instrument — run each
+member across the twenty-five and check they fail on **different** games.
+
+> **⚠ AND THE SIX `ACTION6`-ONLY GAMES WOULD FALSIFY THE TEST.** On `ft09`, `lp85`, `r11l`,
+> `s5i5`, `tn36`, `vc33` **the adapter surfaces no actions at all** — so **every detector fails
+> there, for a reason that has nothing to do with the detectors.** Included, they add a shared
+> failure mode by construction and **four independent detectors would read as correlated.**
+> **They must be excluded, and the exclusion is data rather than judgement**: no surfaced
+> actions, checkable per game.
+
+### 3 · WHETHER `Agency` IS A MEMBER IS NOT SETTLED BY §18.3, AND I WILL NOT ASSERT IT
+
+**`Agency` is not among the four by name.** And the two readings differ in kind:
+
+| | |
+|---|---|
+| **`Agency`** | *which slots respond to my actions* — contingency, per (slot, action) |
+| **the four** | *what KIND of thing the self is* — form |
+
+**§18.3 frames the family as *control-mode detection*, which is `Agency`'s question** — so they
+are the same subject. **But `Agency` MEASURES contingency and the four INTERPRET its shape**,
+which makes *substrate all four read* as available a reading as *a fifth member*.
+
+**The corpus does not say.** Ruling it a member is defensible and **it is a ruling, not a
+finding** — recorded as unsettled rather than resolved by the nearest fit, because *four
+detectors wearing one name* is precisely what the wrong answer here looks like.
+
+**Its docstring needs the amendment regardless** — it cites §16.2 and §16.2's heading carries
+`⚠ AMENDED BY §18.3`.
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
