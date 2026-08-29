@@ -3811,6 +3811,63 @@ prime that would let it.**
 
 ---
 
+# THE ACTION WORK SPLITS IN TWO, AND THE CORPUS PRE-REGISTERED ITS VACUITY CHECK
+
+### 1 · READING AN ACTION NEEDS NO TYPE. COMPOSING OVER ONE DOES
+
+**`Ctx.action` already exists** — *what an atom may read: `action`, `operands`* — and the toy
+world's `act` reads it today. **So an action-reading ARC atom is `Atom(name, fn, "val",
+"val")` and needs nothing new.**
+
+> **The contract question §2622 names is only about COMPOSING over actions** — `Seq` producing
+> a compound action — **which is routines.** *The intention half is free; the composition half
+> is not.*
+
+**Which separates the item: the measured gap — 0 discriminating draws in 120 cycles — is fixed
+by an atom, not by the contract decision.** They were one thing an hour ago.
+
+### 2 · BUT §5 PRE-REGISTERS THE VACUITY CHECK, AND IT BINDS BEFORE ANY OF IT
+
+> *If motor learning does not fire, that has two readings and **they must be separable BEFORE
+> the run**: **the mechanism does not work** ← a result · **this world could not have shown
+> it** ← vacuous.*
+>
+> **This world can show it only if all three are present and reachable:**
+> *an actuator whose effect is discoverable from the record alone* · *an actuator that **does
+> nothing**, so `useless` is a finding the agent can reach* · *two actuators that are
+> **indistinguishable**, so `I cannot tell these apart` is reachable.*
+
+**And the encoding clause with it:** ***an unlabelled action set where every action does
+something distinct and useful is still encoded. Most should do nothing or nothing detectable.
+Finding that out is the work.***
+
+### 3 · `controlled()` IS THE INSTRUMENT FOR THIS — AND IT CANNOT ANSWER TWO OF THE THREE
+
+**It pairs every action against the FIRST one**, not against each other:
+
+    other = sorted(prior)[0]        # 1v2, 1v3, 1v4 -- never 2v3, 2v4, 3v4
+
+**So `ls20`'s reading of *3 pairs, 3 discriminating* says ACTION1 differs from each of the
+others. It says NOTHING about whether 2, 3 and 4 differ from each other** — which is exactly
+*two actuators are indistinguishable*, the third required property.
+
+> **A gap in my own instrument, at precisely the property the corpus demands be checked before
+> the run.** `n−1` pairs where the check needs `n(n−1)/2`.
+
+**AND `an actuator that does nothing` IS UNTESTED TOO** — a pair records that two actions
+*differ*, never that one action *changes nothing*, which needs the before/after of a single
+action rather than a comparison of two.
+
+**So the vacuity check cannot be run today**, and running motor learning without it would
+produce a null with two readings and no way to separate them — **which §5 says must be
+separable BEFORE the run.**
+
+**NOT BUILT. The order inside the action work is: complete `controlled()` to all pairs and
+add the does-nothing reading · run §5's vacuity check on `ls20` · then the atom · then the
+contract question.**
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
