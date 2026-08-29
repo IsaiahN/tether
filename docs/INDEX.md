@@ -4284,6 +4284,66 @@ out**, and salvaging them as-is would import it.
 
 ---
 
+# §18.3's INDEPENDENCE REQUIREMENT IS ASSERTED, AND ONLY ITS FAILURE HALF IS MEASURABLE
+
+**Found by reading the critic against the clause it implements.** §18.3 names collapse 2 from
+the AGREEMENT side:
+
+> *"Non-simulable" means the members do not share a failure mode. Four correlated detectors
+> are **one detector wearing four names**, which is collapse 2 inside the perception layer.*
+
+**Redux's critic fires from the FAILURE side, and only there**: *no member has a self, OR the
+best residual is still high — **the whole family failed together***.
+
+> **THE TWO ARE NOT THE SAME EVENT, AND THE ASYMMETRY IS THE POINT.** Four members **failing**
+> together is visible in the residuals alone. Four members **agreeing and all being right by
+> common cause** is invisible without the ground. **So the critic instruments the detectable
+> half and §18.3's actual requirement — that they not share a failure mode — is instrumented by
+> nothing.** Redux measured what it could see.
+
+**AND THAT IS THE PANEL LAW ONE LEVEL DOWN.** *A panel property must be MEASURED before it is
+used as a premise, never asserted from the shape of the generator.* **Non-simulability is
+currently asserted from the shape of the four descriptions** — translation, growth, scalar,
+toggle *look* independent. **The DS ladder looked like easing on ten seeds.** The four are
+plausibly independent and that is not a measurement; **the six no-action games are the worked
+case of why — every detector fails there for a reason external to the detectors, and four
+independent ones read as correlated.**
+
+**So the exclusion recorded under *exemptions as data* is not a detail of one test. It is the
+only reason the independence measurement can be run at all**, and the measurement is owed
+before the premise is used.
+
+---
+
+# THE QUARANTINE SHAPE, NAMED BY ISAIAH, AND THIS IS ITS SECOND INSTANCE
+
+> **The mechanics quarantined, the second-order content salvaged.**
+
+A source that carries both a specific task's mechanics and a general structural rule is read
+**for the rule**, with the mechanics recorded-as-read and refused entry. `self_family.py` is an
+instance: the rule *find the colour whose count moves monotonically* travelled; the docstring
+naming a colour and its behaviour in one game did not, **and the rule never needed it.**
+
+**THE TEST IS WHETHER THE RULE STILL STANDS WITH THE INSTANCE DELETED.** If it does, the
+instance was illustration. **If it does not, the instance WAS the rule** and nothing salvages —
+which is the case the shape exists to catch, and neither instance so far has hit it.
+
+---
+
+# TWO OF REDUX's FOUR RULES REST ON A PRIMITIVE THIS REPO REFUSED, AND THE GAP IS NAMED
+
+`GrowthEdgeSelf` and `ValueLatentSelf` both call `background_colour()` — *the background is the
+frame, not the self.* `arc_percept` refuses it: *treating 0 as background is domain knowledge
+about what a board means, and this file is not entitled to it.*
+
+**WHAT THE CALL IS ACTUALLY DOING is excluding the LARGEST region from being read as the self**,
+and *largest* is a reading the repo already has. **Whether that substitution is legitimate is
+not settled here** — it is a different rule with the same effect on the cases Redux ran, which
+is exactly the shape `reflect` was refused for: *a different operator wearing the corpus's word,
+and it would have passed every check.* **Recorded as the gap, not closed.**
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
