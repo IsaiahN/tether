@@ -19,6 +19,16 @@ For this panel to be able to show independence at all, **each PAIR must disagree
 one member finding a self where the other does not. A pair that never disagrees is
 **indistinguishable on this panel**, which is a fact about the panel and not evidence that the
 two are one detector. Reported per pair rather than as a single verdict.
+
+**AND THAT CHECK WAS INSUFFICIENT ON ITS FIRST RUN, RECORDED HERE RATHER THAN REPAIRED
+QUIETLY.** *Did one member find a self where the other did not* **is satisfied against everyone
+by a member that never fires** — `toggle` returned 0 of 19 and all three of its pairs read
+`separable`. **`B17` on this file's own instrument**: pinned in advance, committed before the
+run, and measuring *do they differ* where the question is *do they FAIL differently*.
+
+> **THE CONDITION A MEMBER MUST MEET BEFORE ANY PAIR CONTAINING IT IS READABLE: both a success
+> AND a failure on the panel.** A constant member is neither independent nor correlated — it is
+> uninformative, and `informative` reports it per member so a pair is never read past it.
 """
 from __future__ import annotations
 
@@ -86,6 +96,9 @@ def screen(cycles: int = 25, games: tuple = ()) -> dict:
     found = {n: sorted(g for g in played if n in per[g]["has_self"]) for n in names}
     failed = {n: sorted(g for g in played if n not in per[g]["has_self"]) for n in names}
 
+    # A MEMBER CARRIES FAILURE-MODE INFORMATION ONLY IF IT HAS BOTH A SUCCESS AND A FAILURE.
+    # Constant either way, it is neither independent nor correlated -- it is uninformative.
+    info = {n: bool(found[n]) and bool(failed[n]) for n in names}
     pairs = {}
     for i, a in enumerate(names):
         for b in names[i + 1:]:
@@ -98,6 +111,9 @@ def screen(cycles: int = 25, games: tuple = ()) -> dict:
                 # two were never separated, so this panel cannot say whether they are one
                 # detector. It is NOT evidence that they are.
                 "separable_here": bool(only_a or only_b),
+                # AND THE GUARD THE FIRST RUN NEEDED. A constant member satisfies
+                # `separable_here` against everyone, so the pair is unreadable regardless.
+                "readable": bool(only_a or only_b) and info[a] and info[b],
             }
     return {
         "cycles": cycles, "panel": list(panel), "played": played,
@@ -107,12 +123,16 @@ def screen(cycles: int = 25, games: tuple = ()) -> dict:
                             "nothing acts, which is a shared failure mode from the HARNESS. "
                             "NOT a claim that these games have no actions"),
         "found_self_on": found, "failed_on": failed,
+        "informative": info,
+        "uninformative": sorted(n for n, v in info.items() if not v),
         "pairs": pairs,
-        "all_pairs_separable": all(p["separable_here"] for p in pairs.values()),
+        "all_pairs_readable": all(p["readable"] for p in pairs.values()),
         "per_game": per,
         "reads": ("failure is has_self() False -- binary, no threshold. A pair that never "
                   "disagrees is INDISTINGUISHABLE ON THIS PANEL, which is a fact about the "
-                  "panel rather than evidence the two are one detector"),
+                  "panel rather than evidence the two are one detector. And a pair is "
+                  "READABLE only if BOTH members are informative: a member that never fires "
+                  "looks separable from everyone"),
     }
 
 

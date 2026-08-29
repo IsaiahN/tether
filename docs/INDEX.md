@@ -4847,6 +4847,55 @@ asked it, and the asking is what separates a coarsening from a defect.**
 
 ---
 
+# MEASURED: §18.3's INDEPENDENCE — AND MY PRE-REGISTERED CHECK WAS ITSELF INSUFFICIENT
+
+19 games, 25 cycles, apparatus with no agent and no Gamma. **The exclusion held: all 19 played,
+none skipped inside the panel.**
+
+    member        found a self    failed    on
+    translation      4 / 19         15      ar25, ls20, re86, tr87
+    growth           3 / 19         16      ls20, sk48, tu93
+    value           16 / 19          3      sixteen
+    toggle           0 / 19         19      NONE
+
+### THE CHECK REPORTED `all_pairs_separable: True` AND THAT READING IS WRONG
+
+**`separable_here` asked *did one member find a self where the other did not*. A member that
+never fires satisfies that against everyone.** All three `toggle` pairs came back separable
+**because toggle is dead, not because their failure modes differ** — and the pre-registration I
+committed before the reading did not catch it.
+
+> **THIS IS `B17` ON MY OWN INSTRUMENT.** *Pre-registration does not protect a reading if the
+> instrument measures something else.* The condition was pinned in advance, in a file committed
+> before the run, **and it measured *do they differ* where the question is *do they FAIL
+> differently*.** Discipline correctly applied, producing a reading that would have been
+> published as *independence confirmed on all six pairs*.
+
+**THE CORRECTED CONDITION, AND IT IS ONE LINE**: *a member carries failure-mode information only
+if it has BOTH a success and a failure on the panel.* **A constant member is neither independent
+nor correlated — it is uninformative**, and every pair containing it is unreadable rather than
+passing.
+
+### WHAT THE PANEL ACTUALLY SUPPORTS
+
+**Three of four members are informative.** `toggle` is constant-False across 19 games and **the
+measurement cannot say whether it shares a failure mode with anything** — it has no successes to
+compare. Whether that is the rule being right and the panel having no toggling region, the
+driver's cycling actions interacting with a two-step rule, or a transcription defect, **is not
+decided by this run and is not guessed here.**
+
+**And the one real signal is small and stated as such**: `translation`'s successes are a strict
+SUBSET of `value`'s, `growth`'s are not. **At a 16-of-19 base rate subset-hood is nearly
+automatic, so it carries little** — recorded so it is not mistaken for a correlation finding.
+`translation` and `growth` overlap on **one** game of seven successes between them, which is the
+closest thing here to the property §18.3 asks for.
+
+> **SO THE REQUIREMENT IS STILL NOT DISCHARGED, AND NOW IT IS UNDISCHARGED FOR A NAMED
+> REASON** rather than for want of a measurement. **That is the improvement**; the number is
+> not.
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
