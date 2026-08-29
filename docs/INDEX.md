@@ -4954,6 +4954,126 @@ requirement is discharged only as far as the thin ones allow.**
 
 ---
 
+# SECTION CHECK: THE PROPOSER — §18.4 AND `probe.py` CONFLICT AT ONE OF THE THREE EXITS
+
+**Reported, not built.** §18.4 is a rule drawn from a measured failure:
+
+> *The sensorium had become **diagnostic-only**: it found the right self and changed nothing,
+> because the only consumer of perception was the post-hoc veto. **Perception has to enter the
+> PROPOSER**, not just what it forbids.* **Sensors must feed proposal, not only filtering.**
+
+**`choose()` HAS THREE EXITS AND THEY ARE NOT INTERCHANGEABLE:**
+
+    bored -> "probe"     support at zero, so the model is refused the wheel
+    "discriminate"       a slot owes and reachable terms disagree; picks the action that
+                         separates their predictions most. ALREADY MODEL-DRIVEN
+    "draw"               nothing owes, or no action separates anything
+
+**AND `probe.py` STATES THE DRAW's PROPERTY IN TERMS THAT NAME WHAT WOULD ENTER:**
+
+> *UNINFORMED BY CONSTRUCTION, and that is the safety property. The draw sees the advertised
+> action set and nothing else — **not the score, not the goal, not the effect model, not a
+> slot's value.** A probe chosen by the current model can only confirm the current model.*
+
+> **A SELF-FRAME IS SLOT VALUES.** So perception entering the draw breaks that clause **word for
+> word**, not by interpretation. **§18.4 and `probe.py` are in real conflict at two of the three
+> exits** — and the two they conflict at are exactly the ones where perception is most obviously
+> absent.
+
+### WHERE IT CAN LAND WITHOUT BREAKING A STATED PROPERTY
+
+**`discriminate` only.** It already reads `Gamma`, the owed slots and the alphabet, so it holds
+no uninformedness to lose.
+
+**AND WHAT WOULD ENTER IS `contingency()`, NOT `selected()`.** `contingency` is a **measured
+per-action fact** — this member's own signal under each action. **`selected()` as a target would
+be a GOAL**, and §16.7's trap is exactly that: *a module that jumps to the objective is a
+reading taken below the break.* **The member says what responded; it must not say what to want.**
+
+> **SO THE FORK IS ISAIAH's, AND IT IS A REAL ONE RATHER THAN A GAP:** either §18.4 lands on
+> `discriminate` alone and the draw keeps its property, or the draw's *not a slot's value*
+> clause is amended — **and the second is the one that costs the safety argument.** Not built
+> either way.
+
+---
+
+# `discriminate` IS FLAT BECAUSE NO ARC ATOM READS THE ACTION — AND THAT DECIDES THE RULING's FATE
+
+**Measured before building into it, and the site turned out dead.** 120 steps on one game:
+
+    draw 82 · probe 38 · discriminate 0
+
+**Then the three guards, separated:**
+
+    bored -> probe                  38
+    not bored, but NOTHING OWED      2      <- the branch IS reachable
+    owed, but SPREAD FLAT           80      <- and this is where it dies
+
+**SO IT IS NOT UNREACHABLE. SLOTS OWE ON 82 OF 120 STEPS, CANDIDATES ENUMERATE (12 and 20),
+AND EVERY ACTION SCORES IDENTICALLY.**
+
+### THE CAUSE IS THE ATOM SET, AND IT IS EXACT
+
+`spread[act]` applies each candidate under `Ctx(action=act, operands=())`. **The three ARC atoms
+are `idn`, `translate`, `recolour`** and, with `operands=()`:
+
+    _idn(v, _c)        -> v                                    signature takes `_c`, unused
+    _translate(v, c)   -> v + c.operands[0] IF c.operands ELSE v   -> v
+    _recolour(v, c)    -> c.operands[0] IF c.operands ELSE v       -> v
+
+**All three return `v` for every action.** Grepped: **`c.action` is read in exactly three places
+in the repo — `world.py`, `snaps.py`, and a fixture — and NONE of them is an ARC atom.**
+
+> **SO `spread` IS CONSTANT BY CONSTRUCTION AND `max > min` CAN NEVER HOLD ON ARC.** The branch
+> that chooses between actions is scored by a vocabulary in which **no action is expressible.**
+> `discriminate` did not fail; it was asked to distinguish actions using terms that cannot
+> mention one.
+
+**AND `arc_predict`'s PRE-REGISTRATION DID NOT REACH IT.** It pinned three claims — `λ < V`,
+*both atoms must BIND*, and *no claim about mint count* — **all about the atoms as PREDICTORS,
+none about what the atom set makes unavailable elsewhere.** The corpus's six are all grid
+transforms and **not one is action-indexed**, so the gap is in the specified list rather than in
+the transcription. **A sixth structural consequence of an atom set nobody costed for the branch
+that consumes it.**
+
+### WHAT THIS DOES TO THE RULING — IT STRENGTHENS IT
+
+`[I]` ***§18.4 lands on `discriminate` alone*** — correct, and **now with the reason the branch
+needs it.** `contingency()` is a **measured per-action fact**, and the branch is flat **precisely
+because it holds no per-action content at all.** So perception entering there is not a tie-break
+on a working mechanism: **it is the only action-sensitive signal available to a branch whose
+whole job is choosing between actions.**
+
+> **BUT IT IS A DIFFERENT INSERTION POINT THAN THE ONE I PROPOSED, AND THAT IS ISAIAH's TO
+> RULE.** A tie-break inside `max(spread)` is dead — there are no ties, there is no winner. The
+> live point is **the case the branch currently DECLINES**: owed slots, flat spread, and a
+> measured per-action difference. **Not built.** And the two must not be blended: `spread` is
+> Gamma's prediction and `contingency` is a measurement, **and a frame cannot score itself with
+> a quantity it produces** — so they are separate readings, never summed.
+
+---
+
+# THE BLIND WRITE IS FIXED, AND THE FIX IS MEASURED ON THE SAME TRAJECTORY
+
+    before      +1..+6   blind=True  tracked=20  aff_bindings=15   <- all 15 in ONE step
+    after       +1..+6   blind=True  tracked=20  aff_bindings=0    <- guarded
+
+**Both readers now abstain when `blind`, and the abstention is COUNTED** (`unobserved`) rather
+than silent — *the flag says why, the counter says how much.*
+
+**AND THE FLAG HAD NO CONSUMER.** `blind` is set and used inside `_decomposed` to produce `{}`,
+and its only other reader in the repo is a report field. **The loop was safe by a different
+route** — `{}` slots trip `no_slots` — **so the flag protected nothing a new caller could
+inherit, which is how a sibling reader walked past it.** *A correctly-computed flag with no
+consumer is a report, not a safeguard.*
+
+> **AND THE RE-BIND IS STILL NOT DEMONSTRATED FOR EITHER HALF.** The `0 -> 15` was the blind
+> write, not a re-bind. **Drop and retention are measured; re-bind needs a run that crosses a
+> boundary and then SEES a readable board**, which this trajectory does not provide within six
+> steps.
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**

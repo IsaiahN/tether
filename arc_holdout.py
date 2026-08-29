@@ -132,6 +132,7 @@ def play(game: str = "ls20", cycles: int = 40) -> dict:
         "behaviour": behaviour.report(rows),
         "affordance_kinds": aff.report()["kinds"],
         "keys_carrying_two_colours": aff.report()["keys_carrying_two_colours"],
+        "unobserved_steps": env.unobserved,
         # 18.3's family. DIAGNOSTIC-ONLY TODAY, and 18.4 names that as a measured failure:
         # *the sensorium found the right self and changed nothing, because the only consumer
         # was the post-hoc veto.* Nothing reads `selected()` yet -- the consumer is the

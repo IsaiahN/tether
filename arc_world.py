@@ -62,6 +62,9 @@ class ArcWorld:
         # 16.4's profile table. Here for the same reason: it reads OBJECTS, and its per-episode
         # bindings drop through `boundary()` rather than living past a level change.
         self.aff = arc_percept.Affordances()
+        # HOW MANY STEPS NOBODY OBSERVED. A skipped read that is not counted is the silent
+        # half of an abstention -- the flag says WHY, this says HOW MUCH.
+        self.unobserved = 0
 
     # -- the eight -----------------------------------------------------------------------
 
@@ -168,10 +171,19 @@ class ArcWorld:
             self._frame = nxt
         self._read = None          # a new frame is a new decomposition
         now = self.board()
-        if was is not None and now is not None:
-            self.selves.observe(was, action, now)
         self._decomposed()          # re-track before reading contact on the new frame
-        self.aff.note(was_objs, dict(self._decompose.tracked), mover=None)
+        # BOTH READERS ABSTAIN ON A BLIND FRAME, AND ONLY ONE OF THEM USED TO. When `blind`,
+        # `_decomposed` never calls the tracker, so `tracked` KEEPS ITS LAST READABLE STATE --
+        # and `note` then compared stale to stale and wrote 15 bindings in a single step,
+        # measured. That is `_decomposed`'s own warning at a sibling site: a reading taken
+        # FROM A BLIND INSTRUMENT. The loop was already safe by a different route (`{}` slots
+        # trip `no_slots`), so the flag protected nothing that a new caller could inherit.
+        if self.blind:
+            self.unobserved += 1
+        else:
+            if was is not None and now is not None:
+                self.selves.observe(was, action, now)
+            self.aff.note(was_objs, dict(self._decompose.tracked), mover=None)
 
     def boundary(self) -> None:
         """Drop what was bound to THIS episode. Colours permute on a refresh, so a colour
