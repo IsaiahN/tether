@@ -1,0 +1,3878 @@
+[
+ {
+  "uses": 45,
+  "symbol": "ident",
+  "names": [
+   "Identity"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 44,
+  "symbol": "flow",
+  "names": [
+   "Flow",
+   "Flow (Network)",
+   "Flow (Skill)",
+   "Flow State"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 43,
+  "symbol": "net",
+  "names": [
+   "Network"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 42,
+  "symbol": "meaning",
+  "names": [
+   "Lived Meaning"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 41,
+  "symbol": "node",
+  "names": [
+   "Node"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 38,
+  "symbol": "trace",
+  "names": [
+   "Memory Trace"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 32,
+  "symbol": "state",
+  "names": [
+   "Game State",
+   "State (Automaton)"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 31,
+  "symbol": "edge",
+  "names": [
+   "Edge"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 30,
+  "symbol": "auto",
+  "names": [
+   "Autocatalysis",
+   "Automaticity",
+   "Automaton"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 30,
+  "symbol": "alt",
+  "names": [
+   "Alternative"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 28,
+  "symbol": "rand",
+  "names": [
+   "Randomness"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 25,
+  "symbol": "pres",
+  "names": [
+   "Presence",
+   "Pressure"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 25,
+  "symbol": "prop",
+  "names": [
+   "Proposition",
+   "Proprioception",
+   "Propulsion"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 24,
+  "symbol": "group",
+  "names": [
+   "Group"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 23,
+  "symbol": "bound",
+  "names": [
+   "Boundary"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 23,
+  "symbol": "rule",
+  "names": [
+   "Rule (Automaton)"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 22,
+  "symbol": "mem",
+  "names": [
+   "Memory"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 22,
+  "symbol": "self",
+  "names": [
+   "Self"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 21,
+  "symbol": "reflect",
+  "names": [
+   "Reflection"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 21,
+  "symbol": "str",
+  "names": [
+   "Stress"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 21,
+  "symbol": "link",
+  "names": [
+   "Link",
+   "Magical Link"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 21,
+  "symbol": "sub",
+  "names": [
+   "Substrate/Food",
+   "Subversion"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 20,
+  "symbol": "set",
+  "names": [
+   "Setpoint"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 19,
+  "symbol": "ds",
+  "names": [
+   "Structure"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 18,
+  "symbol": "cnt",
+  "names": [
+   "Contact"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 18,
+  "symbol": "trust",
+  "names": [
+   "Trust"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 18,
+  "symbol": "meta",
+  "names": [
+   "Meta-Action",
+   "Metagame",
+   "Metamorphosis"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 17,
+  "symbol": "intf",
+  "names": [
+   "Interference"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 17,
+  "symbol": "sim",
+  "names": [
+   "Simulation"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 17,
+  "symbol": "sens",
+  "names": [
+   "Sensation",
+   "Sensitivity",
+   "Sensory Modality"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 17,
+  "symbol": "rew",
+  "names": [
+   "Reward"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 17,
+  "symbol": "retrieve",
+  "names": [
+   "Retrieval",
+   "Retrieval (Learning)"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 17,
+  "symbol": "logic",
+  "names": [
+   "Logic"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 16,
+  "symbol": "ct",
+  "names": [
+   "Continuity"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 16,
+  "symbol": "su",
+  "names": [
+   "Support"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 16,
+  "symbol": "ht",
+  "names": [
+   "Heat"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 16,
+  "symbol": "rep",
+  "names": [
+   "Reproduction",
+   "Reputation"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 16,
+  "symbol": "feedback",
+  "names": [
+   "Feedback (Learning)",
+   "Feedback Loop"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 16,
+  "symbol": "transform",
+  "names": [
+   "Transformation"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 16,
+  "symbol": "trans",
+  "names": [
+   "Transgression",
+   "Transition"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 15,
+  "symbol": "goal",
+  "names": [
+   "Goal",
+   "Goal attribution"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 15,
+  "symbol": "bel",
+  "names": [
+   "Belief"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 15,
+  "symbol": "val",
+  "names": [
+   "Valence",
+   "Value"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 15,
+  "symbol": "frac",
+  "names": [
+   "Fractal Dimension",
+   "Fracture Toughness"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 15,
+  "symbol": "dur",
+  "names": [
+   "Duration"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 15,
+  "symbol": "heal",
+  "names": [
+   "Healing"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 15,
+  "symbol": "dream",
+  "names": [
+   "Dream"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 14,
+  "symbol": "met",
+  "names": [
+   "Metabolism",
+   "Metabolism (Cellular)",
+   "Metaphor"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 14,
+  "symbol": "alg",
+  "names": [
+   "Algorithm"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 14,
+  "symbol": "bal",
+  "names": [
+   "Balance",
+   "Energy Balance"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 14,
+  "symbol": "stim",
+  "names": [
+   "Stimulus"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 14,
+  "symbol": "cue",
+  "names": [
+   "Cue / Trigger"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 14,
+  "symbol": "agen",
+  "names": [
+   "Agency"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 14,
+  "symbol": "intent",
+  "names": [
+   "Intentionality"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 13,
+  "symbol": "grv",
+  "names": [
+   "Gravity"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 13,
+  "symbol": "fati",
+  "names": [
+   "Fatigue"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 13,
+  "symbol": "cat",
+  "names": [
+   "Catabolism",
+   "Catalyst"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 13,
+  "symbol": "hab",
+  "names": [
+   "Habit"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 13,
+  "symbol": "resource",
+  "names": [
+   "Resource"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 13,
+  "symbol": "commit",
+  "names": [
+   "Commitment"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 13,
+  "symbol": "imag",
+  "names": [
+   "Imagination"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 13,
+  "symbol": "disc",
+  "names": [
+   "Discipline",
+   "Discovery"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 13,
+  "symbol": "rel",
+  "names": [
+   "Relationship",
+   "Relief"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 12,
+  "symbol": "cst",
+  "names": [
+   "Cost"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 12,
+  "symbol": "schema",
+  "names": [
+   "Body Schema"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 12,
+  "symbol": "insight",
+  "names": [
+   "Insight"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 12,
+  "symbol": "inter",
+  "names": [
+   "Interdependence",
+   "Interoception"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 12,
+  "symbol": "rhyt",
+  "names": [
+   "Rhythm"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 12,
+  "symbol": "abs",
+  "names": [
+   "Absorption",
+   "Absurd"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 12,
+  "symbol": "sync",
+  "names": [
+   "Synchronization"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 12,
+  "symbol": "ant",
+  "names": [
+   "Anticipation"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 12,
+  "symbol": "cons",
+  "names": [
+   "Consequence",
+   "Consistency"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 12,
+  "symbol": "path",
+  "names": [
+   "Path (Network)",
+   "Pathogen"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 12,
+  "symbol": "narr",
+  "names": [
+   "Narrative",
+   "Narrative Identity"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 12,
+  "symbol": "xtn",
+  "names": [
+   "Exertion"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 11,
+  "symbol": "cont",
+  "names": [
+   "Contagion",
+   "Contingency"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 11,
+  "symbol": "var",
+  "names": [
+   "Variance",
+   "Variety"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 11,
+  "symbol": "ind",
+  "names": [
+   "Individual",
+   "Inductance"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 11,
+  "symbol": "srch",
+  "names": [
+   "Search"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 11,
+  "symbol": "neg",
+  "names": [
+   "Negative Feedback"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 11,
+  "symbol": "bia",
+  "names": [
+   "Bias"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 11,
+  "symbol": "freq",
+  "names": [
+   "Frequency"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 11,
+  "symbol": "wind",
+  "names": [
+   "Wind"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 11,
+  "symbol": "prey",
+  "names": [
+   "Prey"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 11,
+  "symbol": "cell",
+  "names": [
+   "Cell"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 11,
+  "symbol": "init",
+  "names": [
+   "Initiation"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 10,
+  "symbol": "cor",
+  "names": [
+   "Coriolis Effect",
+   "Correlation"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 10,
+  "symbol": "ohm",
+  "names": [
+   "Resistance"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 10,
+  "symbol": "amp",
+  "names": [
+   "Amplitude",
+   "Current"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 10,
+  "symbol": "sel",
+  "names": [
+   "Selection"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 10,
+  "symbol": "store",
+  "names": [
+   "Storage",
+   "Storage (Learning)"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 10,
+  "symbol": "rec",
+  "names": [
+   "Recency Effect",
+   "Recovery"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 10,
+  "symbol": "res",
+  "names": [
+   "Resonance",
+   "Resource"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 10,
+  "symbol": "window",
+  "names": [
+   "Timing Window"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 10,
+  "symbol": "hyp",
+  "names": [
+   "Hyperbolic Space",
+   "Hypnagogia"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 10,
+  "symbol": "through",
+  "names": [
+   "Throughput"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 10,
+  "symbol": "rit",
+  "names": [
+   "Ritual"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 10,
+  "symbol": "novelty",
+  "names": [
+   "Novelty"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 10,
+  "symbol": "err",
+  "names": [
+   "Error Signal"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 10,
+  "symbol": "pred",
+  "names": [
+   "Predation"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 10,
+  "symbol": "moral",
+  "names": [
+   "Moral Framework"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 10,
+  "symbol": "unc",
+  "names": [
+   "Unconscious"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 10,
+  "symbol": "routine",
+  "names": [
+   "Routine / Behavior"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 10,
+  "symbol": "promise",
+  "names": [
+   "Promise"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 10,
+  "symbol": "quest",
+  "names": [
+   "Question"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 9,
+  "symbol": "damp",
+  "names": [
+   "Damping"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 9,
+  "symbol": "mol",
+  "names": [
+   "Compound"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 9,
+  "symbol": "heu",
+  "names": [
+   "Heuristic"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 9,
+  "symbol": "utl",
+  "names": [
+   "Utility"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 9,
+  "symbol": "sym",
+  "names": [
+   "Symmetry",
+   "Sympathetic Magic"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 9,
+  "symbol": "plas",
+  "names": [
+   "Plasticity"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 9,
+  "symbol": "tim",
+  "names": [
+   "Timbre",
+   "Timing"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 9,
+  "symbol": "norm",
+  "names": [
+   "Norm"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 9,
+  "symbol": "risk",
+  "names": [
+   "Risk"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 9,
+  "symbol": "sem",
+  "names": [
+   "Semantic Memory",
+   "Semantics"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 9,
+  "symbol": "inv",
+  "names": [
+   "Inventory",
+   "Topological Invariant"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 9,
+  "symbol": "sched",
+  "names": [
+   "Schedule"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 9,
+  "symbol": "aro",
+  "names": [
+   "Arousal"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 9,
+  "symbol": "world",
+  "names": [
+   "Lifeworld"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 9,
+  "symbol": "temp",
+  "names": [
+   "Temperature",
+   "Temporality"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 9,
+  "symbol": "inst",
+  "names": [
+   "Instinct"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 9,
+  "symbol": "coven",
+  "names": [
+   "Covenant"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 9,
+  "symbol": "revo",
+  "names": [
+   "Revolution",
+   "Revolution (Transformation)"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 9,
+  "symbol": "expl",
+  "names": [
+   "Exploration"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 9,
+  "symbol": "proc",
+  "names": [
+   "Process",
+   "Processing"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 9,
+  "symbol": "laugh",
+  "names": [
+   "Laughter"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 9,
+  "symbol": "inherit",
+  "names": [
+   "Inheritance"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 8,
+  "symbol": "ge",
+  "names": [
+   "Geometry"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 8,
+  "symbol": "so",
+  "names": [
+   "Solidity"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 8,
+  "symbol": "ca",
+  "names": [
+   "Causality"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 8,
+  "symbol": "seq",
+  "names": [
+   "Sequence"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 8,
+  "symbol": "hyd",
+  "names": [
+   "Flowing substance"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 8,
+  "symbol": "scl",
+  "names": [
+   "Scale"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 8,
+  "symbol": "transfer",
+  "names": [
+   "Transfer (Learning)"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 8,
+  "symbol": "thr",
+  "names": [
+   "Threshold"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 8,
+  "symbol": "resp",
+  "names": [
+   "Response"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 8,
+  "symbol": "reso",
+  "names": [
+   "Resonance"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 8,
+  "symbol": "diff",
+  "names": [
+   "Diffusion"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 8,
+  "symbol": "refr",
+  "names": [
+   "Refraction"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 8,
+  "symbol": "inf",
+  "names": [
+   "Influence"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 8,
+  "symbol": "dim",
+  "names": [
+   "Dimensionality"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 8,
+  "symbol": "grace",
+  "names": [
+   "Grace"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 8,
+  "symbol": "fdbk",
+  "names": [
+   "Feedback"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 8,
+  "symbol": "prag",
+  "names": [
+   "Pragmatics"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 8,
+  "symbol": "form",
+  "names": [
+   "Form"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 8,
+  "symbol": "tox",
+  "names": [
+   "Toxin"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 8,
+  "symbol": "traum",
+  "names": [
+   "Trauma"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 8,
+  "symbol": "other",
+  "names": [
+   "Other"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 8,
+  "symbol": "wonder",
+  "names": [
+   "Wonder"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 8,
+  "symbol": "seed",
+  "names": [
+   "Seed"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 8,
+  "symbol": "anc",
+  "names": [
+   "Ancestor"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 8,
+  "symbol": "root",
+  "names": [
+   "Root"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "ent",
+  "names": [
+   "Entanglement",
+   "Entropy"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 7,
+  "symbol": "cel",
+  "names": [
+   "Cell"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "meas",
+  "names": [
+   "Measurement"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "entg",
+  "names": [
+   "Entanglement"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "prob",
+  "names": [
+   "Probability"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "con",
+  "names": [
+   "Constitutive Rule",
+   "Contrast"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 7,
+  "symbol": "osc",
+  "names": [
+   "Oscillation"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "slv",
+  "names": [
+   "Solvent"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "assem",
+  "names": [
+   "Self-Assembly"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "mot",
+  "names": [
+   "Motivation"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "loop",
+  "names": [
+   "Loop (Automaton)"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "trd",
+  "names": [
+   "Trade"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "ges",
+  "names": [
+   "Gestalt"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "clr",
+  "names": [
+   "Clarity"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "witness",
+  "names": [
+   "Witness (Pathological)"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "refl",
+  "names": [
+   "Reflection"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "tran",
+  "names": [
+   "Transmission"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "rea",
+  "names": [
+   "Reality"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "magic",
+  "names": [
+   "Magic Circle"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "evo",
+  "names": [
+   "Evolution"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "mind",
+  "names": [
+   "Mindfulness"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "ego",
+  "names": [
+   "Ego"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "frame",
+  "names": [
+   "Frame"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "joy",
+  "names": [
+   "Joy"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "mood",
+  "names": [
+   "Mood"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "gain",
+  "names": [
+   "Gain"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "wound",
+  "names": [
+   "Wound"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "imm",
+  "names": [
+   "Immunity"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "will",
+  "names": [
+   "Will"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "basis",
+  "names": [
+   "Decision Basis"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "loyal",
+  "names": [
+   "Loyalty"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "need",
+  "names": [
+   "Need"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "satis",
+  "names": [
+   "Satisfaction"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "value",
+  "names": [
+   "Value"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "grief",
+  "names": [
+   "Grief"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 7,
+  "symbol": "branch",
+  "names": [
+   "Branch"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "co",
+  "names": [
+   "Cohesion"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "st",
+  "names": [
+   "Space and time",
+   "Statistics"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 6,
+  "symbol": "gaze",
+  "names": [
+   "Gaze following"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "eff",
+  "names": [
+   "Efficiency"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "lev",
+  "names": [
+   "Lever"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "ph",
+  "names": [
+   "Acidity",
+   "Phase"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 6,
+  "symbol": "mss",
+  "names": [
+   "Mass"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "mut",
+  "names": [
+   "Mutation",
+   "Variation"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 6,
+  "symbol": "emo",
+  "names": [
+   "Valence"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "exe",
+  "names": [
+   "Deliberate control"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "gme",
+  "names": [
+   "Game"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "debt",
+  "names": [
+   "Debt"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "vest",
+  "names": [
+   "Vestibular Sense"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "hard",
+  "names": [
+   "Hardness"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "med",
+  "names": [
+   "Medium"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "ret",
+  "names": [
+   "Retrospection"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "fores",
+  "names": [
+   "Foresight"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "cult",
+  "names": [
+   "Culture"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "expec",
+  "names": [
+   "Expectation"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "knot",
+  "names": [
+   "Knot"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "constraint",
+  "names": [
+   "Constraint"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "latency",
+  "names": [
+   "Decision Latency"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "horiz",
+  "names": [
+   "Horizon"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "scar",
+  "names": [
+   "Scar"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "grad",
+  "names": [
+   "Gradient"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "prec",
+  "names": [
+   "Precision"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "pref",
+  "names": [
+   "Preference"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "conc",
+  "names": [
+   "Concept"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "anal",
+  "names": [
+   "Analogy"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "virt",
+  "names": [
+   "Virtue"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "vice",
+  "names": [
+   "Vice"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "fid",
+  "names": [
+   "Fidelity"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "def",
+  "names": [
+   "Defiance"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "drive",
+  "names": [
+   "Drive"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "mort",
+  "names": [
+   "Mortality"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "becoming",
+  "names": [
+   "Becoming"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 6,
+  "symbol": "clock",
+  "names": [
+   "Clock (Automaton)"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "an",
+  "names": [
+   "Anabolism",
+   "Animacy"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 5,
+  "symbol": "tmp",
+  "names": [
+   "Temperature"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "sur",
+  "names": [
+   "Surprise"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "lat",
+  "names": [
+   "Latency",
+   "Latent heat"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 5,
+  "symbol": "adapt",
+  "names": [
+   "Adaptability"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "inr",
+  "names": [
+   "Inertia"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "eq",
+  "names": [
+   "Equilibrium"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "rest",
+  "names": [
+   "Restorative"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "asy",
+  "names": [
+   "Information asymmetry"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "rsk",
+  "names": [
+   "Risk"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "output",
+  "names": [
+   "Output"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "prp",
+  "names": [
+   "Proportion"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "rhy",
+  "names": [
+   "Rhythm"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "uni",
+  "names": [
+   "Unity"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "hap",
+  "names": [
+   "Haptics"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "disp",
+  "names": [
+   "Dispersion"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "obj",
+  "names": [
+   "Objective"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "proj",
+  "names": [
+   "Projective Space"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "queue",
+  "names": [
+   "Queue"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "supply",
+  "names": [
+   "Supply Chain"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "sign",
+  "names": [
+   "Sign/Divination",
+   "Signifier"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 5,
+  "symbol": "diss",
+  "names": [
+   "Dissolution"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "awe",
+  "names": [
+   "Awe"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "fear",
+  "names": [
+   "Fear"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "aff",
+  "names": [
+   "Affect",
+   "Affinity"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 5,
+  "symbol": "emergence",
+  "names": [
+   "Emergence"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "hum",
+  "names": [
+   "Humidity"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "axiom",
+  "names": [
+   "Axiom"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "void",
+  "names": [
+   "Void"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "agent",
+  "names": [
+   "Agent"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "react",
+  "names": [
+   "Reaction"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "lived",
+  "names": [
+   "Lived Body"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "infer",
+  "names": [
+   "Inference"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "abstr",
+  "names": [
+   "Abstraction"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "consc",
+  "names": [
+   "Conscience"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "strength",
+  "names": [
+   "Strength"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "stub",
+  "names": [
+   "Stubbornness"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "refusal",
+  "names": [
+   "Refusal"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "dissent",
+  "names": [
+   "Dissent"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "heresy",
+  "names": [
+   "Heresy"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "want",
+  "names": [
+   "Want"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "aspir",
+  "names": [
+   "Aspiration"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "crave",
+  "names": [
+   "Craving"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "cluster",
+  "names": [
+   "Clustering"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "endur",
+  "names": [
+   "Endurance"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "cath",
+  "names": [
+   "Catharsis"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "legacy",
+  "names": [
+   "Legacy"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "iron",
+  "names": [
+   "Irony"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "qs",
+  "names": [
+   "Quorum Sensing"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "biofilm",
+  "names": [
+   "Biofilm"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "desc",
+  "names": [
+   "Descendant"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "dyn",
+  "names": [
+   "Dynasty"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 5,
+  "symbol": "tech",
+  "names": [
+   "Technique"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "dec",
+  "names": [
+   "Misrepresentation"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "red",
+  "names": [
+   "Redundancy"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "vol",
+  "names": [
+   "Volume"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "pul",
+  "names": [
+   "Pulley"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "enrg",
+  "names": [
+   "Energy store"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "phase",
+  "names": [
+   "Phase Transition"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "art",
+  "names": [
+   "Articulation"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "coup",
+  "names": [
+   "Coupling"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "pos",
+  "names": [
+   "Positive Feedback"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "homeo",
+  "names": [
+   "Homeostasis"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "att",
+  "names": [
+   "Attention"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "inhib",
+  "names": [
+   "Inhibition"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "ec",
+  "names": [
+   "Efference Copy"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "kin",
+  "names": [
+   "Kinesthesia"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "atp",
+  "names": [
+   "Energy Currency"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "elas",
+  "names": [
+   "Elasticity"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "bnd",
+  "names": [
+   "Bond"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "echo",
+  "names": [
+   "Echo"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "lag",
+  "names": [
+   "Lag"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "encode",
+  "names": [
+   "Encoding"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "decay",
+  "names": [
+   "Decay"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "interf",
+  "names": [
+   "Interference"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "epis",
+  "names": [
+   "Episodic Memory"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "word",
+  "names": [
+   "Incantation"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "union",
+  "names": [
+   "Union"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "ang",
+  "names": [
+   "Anger"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "sad",
+  "names": [
+   "Sadness"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "syn",
+  "names": [
+   "Syntax"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "infect",
+  "names": [
+   "Infection"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "chron",
+  "names": [
+   "Chronic"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "exis",
+  "names": [
+   "Existence"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "illu",
+  "names": [
+   "Illusion"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "trigger",
+  "names": [
+   "Contextual Trigger"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "cam",
+  "names": [
+   "Camouflage / Crypsis"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "pack",
+  "names": [
+   "Pack/Sociality"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "dig",
+  "names": [
+   "Digestion"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "turing",
+  "names": [
+   "Turing Instability"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "buck",
+  "names": [
+   "Buckling"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "field",
+  "names": [
+   "Morphogenetic Field"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "whole",
+  "names": [
+   "Wholeness"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "regret",
+  "names": [
+   "Regret"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "integ",
+  "names": [
+   "Integrity"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "auth",
+  "names": [
+   "Authenticity"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "alleg",
+  "names": [
+   "Allegiance"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "gap",
+  "names": [
+   "Information Gap"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "epist",
+  "names": [
+   "Epistemic Curiosity"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "despair",
+  "names": [
+   "Despair"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "joke",
+  "names": [
+   "Joke"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "satire",
+  "names": [
+   "Satire"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "gene",
+  "names": [
+   "Gene (Lineage)"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "input",
+  "names": [
+   "Input"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "apply",
+  "names": [
+   "Application"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 4,
+  "symbol": "catalyst",
+  "names": [
+   "Catalyst (Transformation)"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "gs",
+  "names": [
+   "Gestalt"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "to",
+  "names": [
+   "Topology"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "fo",
+  "names": [
+   "Forward model"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "px",
+  "names": [
+   "Cell value"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "fr",
+  "names": [
+   "Frequency"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "cnd",
+  "names": [
+   "Conductivity, thermal"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "vlt",
+  "names": [
+   "Voltage"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "bit",
+  "names": [
+   "Bit"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "cmp",
+  "names": [
+   "Compression"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "sup",
+  "names": [
+   "Superposition"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "nocl",
+  "names": [
+   "No copying"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "lim",
+  "names": [
+   "Speed limit"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "fluid",
+  "names": [
+   "Fluidity"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "lft",
+  "names": [
+   "Lift"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "spr",
+  "names": [
+   "Spring"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "rdx",
+  "names": [
+   "Electron transfer"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "act",
+  "names": [
+   "Activation energy"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "scr",
+  "names": [
+   "Scarcity",
+   "Screw"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 3,
+  "symbol": "inc",
+  "names": [
+   "Incentive"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "cre",
+  "names": [
+   "Creep"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "difr",
+  "names": [
+   "Diffraction"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "wave",
+  "names": [
+   "Sound Wave"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "count",
+  "names": [
+   "Countdown"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "coold",
+  "names": [
+   "Cooldown"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "term",
+  "names": [
+   "Termination Condition"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "turn",
+  "names": [
+   "Turn"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "bottleneck",
+  "names": [
+   "Bottleneck"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "waste",
+  "names": [
+   "Waste"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "taboo",
+  "names": [
+   "Taboo"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "agencych",
+  "names": [
+   "Agency"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "silence",
+  "names": [
+   "Silence"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "awaken",
+  "names": [
+   "Awakening"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "morph",
+  "names": [
+   "Morpheme"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "style",
+  "names": [
+   "Style"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "front",
+  "names": [
+   "Front"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "storm",
+  "names": [
+   "Storm"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "mim",
+  "names": [
+   "Mimicry"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "terr",
+  "names": [
+   "Territoriality"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "mig",
+  "names": [
+   "Migration"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "dna cel",
+  "names": [
+   "DNA"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "rhet",
+  "names": [
+   "Rhetoric"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "tenac",
+  "names": [
+   "Tenacity"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "prin",
+  "names": [
+   "Principled Disobedience"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "repr",
+  "names": [
+   "Repression"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "courage",
+  "names": [
+   "Courage"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "frust",
+  "names": [
+   "Frustration"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "wanting",
+  "names": [
+   "Wanting (vs. Liking)"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "accept",
+  "names": [
+   "Acceptance"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "novel",
+  "names": [
+   "Novelty"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "surp",
+  "names": [
+   "Surprise"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "inq",
+  "names": [
+   "Inquisitiveness"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "night",
+  "names": [
+   "Nightmare"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "wit",
+  "names": [
+   "Wit"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "prog",
+  "names": [
+   "Program"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "expert",
+  "names": [
+   "Expertise"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 3,
+  "symbol": "transmute",
+  "names": [
+   "Transmutation"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "nu",
+  "names": [
+   "Number"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "l1",
+  "names": [
+   "Level-1 perspective"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "l2",
+  "names": [
+   "Level-2 perspective"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "fb",
+  "names": [
+   "False belief"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "chg",
+  "names": [
+   "Charge"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "mag",
+  "names": [
+   "Magnetic field"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "dev",
+  "names": [
+   "Development"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "hom",
+  "names": [
+   "Homeostasis"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "hsh",
+  "names": [
+   "Digest"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "dil",
+  "names": [
+   "Time dilation"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "ramp",
+  "names": [
+   "Ramp"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "gear",
+  "names": [
+   "Gear"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "trac",
+  "names": [
+   "Traction"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "gait",
+  "names": [
+   "Gait"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "elm",
+  "names": [
+   "Element"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "sto",
+  "names": [
+   "Ratio"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "slf",
+  "names": [
+   "Self-model"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "ray",
+  "names": [
+   "Light Ray"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "polar",
+  "names": [
+   "Polarization"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "timing",
+  "names": [
+   "Timing (Skill)"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "role",
+  "names": [
+   "Role"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "her",
+  "names": [
+   "Herding"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "op",
+  "names": [
+   "Operational Rule"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "attn",
+  "names": [
+   "Attention (Learning)"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "signf",
+  "names": [
+   "Signified"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "text",
+  "names": [
+   "Text"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "inflam",
+  "names": [
+   "Inflammation"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "acute",
+  "names": [
+   "Acute"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "clim",
+  "names": [
+   "Climate"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "vis",
+  "names": [
+   "Viscosity",
+   "Visibility"
+  ],
+  "collision": true
+ },
+ {
+  "uses": 2,
+  "symbol": "ing",
+  "names": [
+   "Ingestion"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "membrane",
+  "names": [
+   "Membrane"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "excr",
+  "names": [
+   "Excretion"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "scope",
+  "names": [
+   "Scope"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "metach",
+  "names": [
+   "Meta-Choice"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "inert",
+  "names": [
+   "Inertia"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "non",
+  "names": [
+   "Nonconformity"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "liking",
+  "names": [
+   "Liking"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "nexus",
+  "names": [
+   "Nexus"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "transaction",
+  "names": [
+   "Transaction"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "offer",
+  "names": [
+   "Offer"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "circ",
+  "names": [
+   "Circadian Rhythm"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "com",
+  "names": [
+   "Comedy"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "phage",
+  "names": [
+   "Bacteriophage"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "degree",
+  "names": [
+   "Degree"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "central",
+  "names": [
+   "Centrality"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 2,
+  "symbol": "improv",
+  "names": [
+   "Improvisation"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "tele",
+  "names": [
+   "Teleological stance"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "adv",
+  "names": [
+   "Input model"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "adj",
+  "names": [
+   "Adjacency"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "cap",
+  "names": [
+   "Capacitance"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "cod",
+  "names": [
+   "Code"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "tun",
+  "names": [
+   "Tunnelling"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "obs",
+  "names": [
+   "Observer effect"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "srt",
+  "names": [
+   "Sort"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "surf",
+  "names": [
+   "Surface tension"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "ful",
+  "names": [
+   "Fulcrum"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "strn",
+  "names": [
+   "Strain"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "yiel",
+  "names": [
+   "Yield Strength"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "opac",
+  "names": [
+   "Opacity"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "abso",
+  "names": [
+   "Absorption"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "crv",
+  "names": [
+   "Curvature"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "beat",
+  "names": [
+   "Beat"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "score",
+  "names": [
+   "Score"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "imp",
+  "names": [
+   "Implicit Rule"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "dist",
+  "names": [
+   "Distribution"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "entro",
+  "names": [
+   "Entropy (Stochastic)"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "luck",
+  "names": [
+   "Luck"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "karma",
+  "names": [
+   "Karma"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "prim",
+  "names": [
+   "Primacy Effect"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "orient",
+  "names": [
+   "Orientability"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "genus",
+  "names": [
+   "Genus"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "mv",
+  "names": [
+   "Movement"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "el",
+  "names": [
+   "Elliptic Space"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "spirit",
+  "names": [
+   "Animism/Spirit"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "disg",
+  "names": [
+   "Disgust"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "servo",
+  "names": [
+   "Servomechanism"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "air",
+  "names": [
+   "Air Mass"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "adhesion",
+  "names": [
+   "Cell Adhesion"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "perc",
+  "names": [
+   "Precision"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "metath",
+  "names": [
+   "Meta-Thought"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "syll",
+  "names": [
+   "Syllogism"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "reciprocity",
+  "names": [
+   "Reciprocity"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "rem",
+  "names": [
+   "REM Sleep"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "nrem",
+  "names": [
+   "NREM Sleep"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "incon",
+  "names": [
+   "Incongruity"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "slap",
+  "names": [
+   "Slapstick"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "fruit",
+  "names": [
+   "Fruit"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "topo",
+  "names": [
+   "Topology (Network)"
+  ],
+  "collision": false
+ },
+ {
+  "uses": 1,
+  "symbol": "economy",
+  "names": [
+   "Economy of Motion"
+  ],
+  "collision": false
+ }
+]

@@ -1,0 +1,3717 @@
+{
+ "meta": {
+  "purpose": "Working vocabulary for a composing agent. Not an irreducible set \u2014 measured, none exists.",
+  "measured": {
+   "tier1_atoms_total": 585,
+   "composites_total": 2205,
+   "within_domain_ingredient_share": "74%",
+   "coverage_growth": "~5 composites unlocked per atom added, linear from pick 1 to pick 60",
+   "finding": "61 shallow independent trees, not one deep tree"
+  },
+  "how_to_use": [
+   "set_a is the atom vocabulary: 200 of 585, carrying most references, every domain root guaranteed present.",
+   "set_b is the level-2 layer: 200 composites that other entries actually reach for. This is where a composer's leverage is.",
+   "roots are the bottom node of each of the 61 trees \u2014 the atom that domain's own composites use most. Start here when entering a domain cold.",
+   "A symbol may collide across domains. Always read (domain, symbol) as the key, never symbol alone."
+  ],
+  "cautions": [
+   "Recipes use '+' for seven different relations. See OPERATORS.md before reading a recipe as a procedure.",
+   "Ingredient resolution is name/symbol matching with same-domain preference. False positives exist.",
+   "'uses' counts how many other entries name this one as an ingredient. It is a popularity measure, not a distance."
+  ]
+ },
+ "roots": [
+  {
+   "domain": "Acoustic",
+   "symbol": "Echo",
+   "name": "Echo",
+   "definition": "The reflection of a sound wave off a surface. Delay indicates distance.",
+   "local_uses": 8,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Action",
+   "symbol": "Init",
+   "name": "Initiation",
+   "definition": "The moment a choice is made to act. The \"spark\" of the deed.",
+   "local_uses": 11,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Adherence",
+   "symbol": "Promise",
+   "name": "Promise",
+   "definition": "A stated commitment that creates an expectation in another. The social bond.",
+   "local_uses": 16,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Adversarial",
+   "symbol": "Dec",
+   "name": "Misrepresentation",
+   "definition": "act to make another's model wrong",
+   "local_uses": 4,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Aesthetic",
+   "symbol": "Ges",
+   "name": "Gestalt",
+   "definition": "the whole exceeding the parts \u2014 also Human Gs",
+   "local_uses": 7,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Aleatory",
+   "symbol": "Rand",
+   "name": "Randomness",
+   "definition": "The absence of pattern or predictability. True stochasticity.",
+   "local_uses": 28,
+   "atoms_in_play": 8
+  },
+  {
+   "domain": "Atmospheric",
+   "symbol": "Wind",
+   "name": "Wind",
+   "definition": "The horizontal movement of air from high to low pressure. The atmosphere's circulation.",
+   "local_uses": 22,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Automaton",
+   "symbol": "Auto",
+   "name": "Automaton",
+   "definition": "A self-operating machine or system. The \"one that moves itself.\"",
+   "local_uses": 20,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Cellular",
+   "symbol": "Cell",
+   "name": "Cell",
+   "definition": "The fundamental unit of life. A membrane-bound, self-replicating entity containing genetic material and metabolic machinery.",
+   "local_uses": 20,
+   "atoms_in_play": 7
+  },
+  {
+   "domain": "Character",
+   "symbol": "Ident",
+   "name": "Identity",
+   "definition": "The persistent sense of self across time. The \"who\" that endures.",
+   "local_uses": 14,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Chemical",
+   "symbol": "Mol",
+   "name": "Compound",
+   "definition": "two or more bound into a unit",
+   "local_uses": 9,
+   "atoms_in_play": 9
+  },
+  {
+   "domain": "Choice",
+   "symbol": "Alt",
+   "name": "Alternative",
+   "definition": "A possible option or pathway. A branch point in the decision space.",
+   "local_uses": 24,
+   "atoms_in_play": 9
+  },
+  {
+   "domain": "Connection",
+   "symbol": "Link",
+   "name": "Link",
+   "definition": "A direct connection between two entities. The \"thread.\"",
+   "local_uses": 28,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Curiosity",
+   "symbol": "Wonder",
+   "name": "Wonder",
+   "definition": "The emotional response to the mysterious, vast, or awe-inspiring. The \"wow\" of the unknown.",
+   "local_uses": 16,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Cybernetic",
+   "symbol": "Set",
+   "name": "Setpoint",
+   "definition": "The target state that the system is trying to achieve. The \"goal.\"",
+   "local_uses": 20,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Desire",
+   "symbol": "Goal",
+   "name": "Goal",
+   "definition": "A cognitive representation of a desired future state. The \"toward which.\"",
+   "local_uses": 18,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Dynamic",
+   "symbol": "Stim",
+   "name": "Stimulus",
+   "definition": "input arriving; energy put into the system",
+   "local_uses": 7,
+   "atoms_in_play": 9
+  },
+  {
+   "domain": "Economic",
+   "symbol": "Trd",
+   "name": "Trade",
+   "definition": "voluntary exchange; both sides prefer what they receive",
+   "local_uses": 6,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Electrical",
+   "symbol": "Amp",
+   "name": "Current",
+   "definition": "charge flowing",
+   "local_uses": 3,
+   "atoms_in_play": 7
+  },
+  {
+   "domain": "Embodiment",
+   "symbol": "Schema",
+   "name": "Body Schema",
+   "definition": "The dynamic, plastic neural representation of the body's structure and boundaries.",
+   "local_uses": 9,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Emotion",
+   "symbol": "Val",
+   "name": "Valence",
+   "definition": "The intrinsic attractiveness (positive) or aversiveness (negative) of an experience. The \"good/bad\" axis.",
+   "local_uses": 10,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Exchange",
+   "symbol": "Resource",
+   "name": "Resource",
+   "definition": "A good, service, or value that is exchanged. The \"what\" of the transaction.",
+   "local_uses": 22,
+   "atoms_in_play": 7
+  },
+  {
+   "domain": "Fluid",
+   "symbol": "Hyd",
+   "name": "Flowing substance",
+   "definition": "a continuous thing that runs downhill",
+   "local_uses": 8,
+   "atoms_in_play": 3
+  },
+  {
+   "domain": "Habit",
+   "symbol": "Cue",
+   "name": "Cue / Trigger",
+   "definition": "The stimulus that initiates a habitual action. The \"if\" of the loop.",
+   "local_uses": 11,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Heat",
+   "symbol": "Ht",
+   "name": "Heat",
+   "definition": "energy moving from hot to cold",
+   "local_uses": 5,
+   "atoms_in_play": 6
+  },
+  {
+   "domain": "Human",
+   "symbol": "Ge",
+   "name": "Geometry",
+   "definition": "points, lines, angles, handedness",
+   "local_uses": 5,
+   "atoms_in_play": 12
+  },
+  {
+   "domain": "Information",
+   "symbol": "Alg",
+   "name": "Algorithm",
+   "definition": "a finite sequence of steps",
+   "local_uses": 8,
+   "atoms_in_play": 7
+  },
+  {
+   "domain": "Kinetic",
+   "symbol": "Prop",
+   "name": "Propulsion",
+   "definition": "force generated to overcome inertia \u2014 push, pull, thrust, contract",
+   "local_uses": 7,
+   "atoms_in_play": 9
+  },
+  {
+   "domain": "Large-scale",
+   "symbol": "Grv",
+   "name": "Gravity",
+   "definition": "attraction toward mass",
+   "local_uses": 8,
+   "atoms_in_play": 5
+  },
+  {
+   "domain": "Learning",
+   "symbol": "Reflect",
+   "name": "Reflection",
+   "definition": "The consideration of one's own learning process. The \"meta.\"",
+   "local_uses": 5,
+   "atoms_in_play": 8
+  },
+  {
+   "domain": "Lineage",
+   "symbol": "Seed",
+   "name": "Seed",
+   "definition": "The origin point of a lineage. The potential, the source, the beginning.",
+   "local_uses": 16,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Linguistic",
+   "symbol": "Sem",
+   "name": "Semantics",
+   "definition": "The mapping from symbols to meaning. What words and sentences point to in the world.",
+   "local_uses": 8,
+   "atoms_in_play": 9
+  },
+  {
+   "domain": "Living",
+   "symbol": "Cel",
+   "name": "Cell",
+   "definition": "the unit that divides",
+   "local_uses": 7,
+   "atoms_in_play": 9
+  },
+  {
+   "domain": "Logistical",
+   "symbol": "Flow",
+   "name": "Flow",
+   "definition": "The movement of resources through a network. Rate of transfer per unit time.",
+   "local_uses": 22,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Ludic / Absurdist",
+   "symbol": "Laugh",
+   "name": "Laughter",
+   "definition": "The physiological, emotional, and social response to humor. The \"release.\"",
+   "local_uses": 9,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Ludological",
+   "symbol": "State",
+   "name": "Game State",
+   "definition": "The complete description of the game at a given moment. All positions, scores, resources.",
+   "local_uses": 16,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Material",
+   "symbol": "Str",
+   "name": "Stress",
+   "definition": "Force per unit area applied to a material (pressure). The \"load\" on the system.",
+   "local_uses": 13,
+   "atoms_in_play": 9
+  },
+  {
+   "domain": "Mechanical",
+   "symbol": "Lev",
+   "name": "Lever",
+   "definition": "a rigid bar turning about a point",
+   "local_uses": 5,
+   "atoms_in_play": 5
+  },
+  {
+   "domain": "Medical",
+   "symbol": "Wound",
+   "name": "Wound",
+   "definition": "A structural breach or trauma that disrupts function (cut, burn, fracture).",
+   "local_uses": 12,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Mnemonic",
+   "symbol": "Trace",
+   "name": "Memory Trace",
+   "definition": "The physical or informational substrate of a memory (engram, synaptic change, data record).",
+   "local_uses": 20,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Morphogenetic",
+   "symbol": "Diff",
+   "name": "Diffusion",
+   "definition": "The random, passive spreading of particles (morphogens) from high to low concentration.",
+   "local_uses": 7,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Network",
+   "symbol": "Node",
+   "name": "Node",
+   "definition": "A point of connection in a network. The \"vertex.\"",
+   "local_uses": 68,
+   "atoms_in_play": 7
+  },
+  {
+   "domain": "Noetic",
+   "symbol": "Ego",
+   "name": "Ego",
+   "definition": "The sense of a separate, bounded self. The \"I\" that experiences and acts.",
+   "local_uses": 14,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Nutritional",
+   "symbol": "Sub",
+   "name": "Substrate/Food",
+   "definition": "The raw material from which energy and building blocks are extracted.",
+   "local_uses": 15,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Ontological",
+   "symbol": "Sim",
+   "name": "Simulation",
+   "definition": "A reality that is generated by an underlying algorithm or process.",
+   "local_uses": 12,
+   "atoms_in_play": 8
+  },
+  {
+   "domain": "Optical",
+   "symbol": "Intf",
+   "name": "Interference",
+   "definition": "Two or more light waves superpose; constructive (bright) or destructive (dark) patterns.",
+   "local_uses": 10,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Pathological",
+   "symbol": "Grief",
+   "name": "Grief",
+   "definition": "The deep, slow, enduring response to loss. The \"mourning.\"",
+   "local_uses": 12,
+   "atoms_in_play": 9
+  },
+  {
+   "domain": "Phenomenological",
+   "symbol": "Other",
+   "name": "Other",
+   "definition": "The experience of another subject. The Other is not an object; it is a witness.",
+   "local_uses": 16,
+   "atoms_in_play": 9
+  },
+  {
+   "domain": "Psychological",
+   "symbol": "Mot",
+   "name": "Motivation",
+   "definition": "drive to close the gap between here and the goal",
+   "local_uses": 6,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Quantum",
+   "symbol": "Meas",
+   "name": "Measurement",
+   "definition": "observing forces one of them",
+   "local_uses": 6,
+   "atoms_in_play": 7
+  },
+  {
+   "domain": "Raw data",
+   "symbol": "Px",
+   "name": "Cell value",
+   "definition": "a value at a position",
+   "local_uses": 3,
+   "atoms_in_play": 8
+  },
+  {
+   "domain": "Rebellion",
+   "symbol": "Dissent",
+   "name": "Dissent",
+   "definition": "The expression of disagreement with a prevailing view or authority.",
+   "local_uses": 10,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Skill",
+   "symbol": "Flow",
+   "name": "Flow (Skill)",
+   "definition": "The state of total immersion and effortless performance. The \"zone.\"",
+   "local_uses": 9,
+   "atoms_in_play": 8
+  },
+  {
+   "domain": "Social",
+   "symbol": "Group",
+   "name": "Group",
+   "definition": "A collection of individuals who perceive themselves as a collective. Shared identity.",
+   "local_uses": 22,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Somnial",
+   "symbol": "Dream",
+   "name": "Dream",
+   "definition": "A narrative, symbolic, often surreal sequence of images, sensations, and emotions occurring during sleep.",
+   "local_uses": 28,
+   "atoms_in_play": 9
+  },
+  {
+   "domain": "Temporal",
+   "symbol": "Ant",
+   "name": "Anticipation",
+   "definition": "The felt sense of a future event. Expectation. Tension before the release.",
+   "local_uses": 12,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Thaumaturgical",
+   "symbol": "Rit",
+   "name": "Ritual",
+   "definition": "A structured sequence of symbolic actions, repeated for a specific magical purpose.",
+   "local_uses": 7,
+   "atoms_in_play": 7
+  },
+  {
+   "domain": "Thought",
+   "symbol": "Logic",
+   "name": "Logic",
+   "definition": "The formal rules of valid inference. The \"calculus\" of thought.",
+   "local_uses": 20,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Topological",
+   "symbol": "Knot",
+   "name": "Knot",
+   "definition": "An embedding of a circle into 3D space that is not unknotted. A tangled loop.",
+   "local_uses": 12,
+   "atoms_in_play": 10
+  },
+  {
+   "domain": "Transformation",
+   "symbol": "Form",
+   "name": "Form",
+   "definition": "The current state or shape of a thing. The \"what it is.\"",
+   "local_uses": 14,
+   "atoms_in_play": 9
+  },
+  {
+   "domain": "Zoological",
+   "symbol": "Prey",
+   "name": "Prey",
+   "definition": "An organism that is hunted and consumed. Evolves defenses.",
+   "local_uses": 22,
+   "atoms_in_play": 9
+  }
+ ],
+ "set_a_atoms": [
+  {
+   "symbol": "Ident",
+   "name": "Identity",
+   "domain": "Character",
+   "definition": "The persistent sense of self across time. The \"who\" that endures.",
+   "uses": 45,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Meaning",
+   "name": "Lived Meaning",
+   "domain": "Phenomenological",
+   "definition": "The significance a situation has for the experiencer, prior to interpretation.",
+   "uses": 42,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Trace",
+   "name": "Memory Trace",
+   "domain": "Mnemonic",
+   "definition": "The physical or informational substrate of a memory (engram, synaptic change, data record).",
+   "uses": 38,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Node",
+   "name": "Node",
+   "domain": "Network",
+   "definition": "A point of connection in a network. The \"vertex.\"",
+   "uses": 34,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Alt",
+   "name": "Alternative",
+   "domain": "Choice",
+   "definition": "A possible option or pathway. A branch point in the decision space.",
+   "uses": 30,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Net",
+   "name": "Network",
+   "domain": "Social",
+   "definition": "The pattern of connections between individuals (who knows whom, who influences whom).",
+   "uses": 30,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Rand",
+   "name": "Randomness",
+   "domain": "Aleatory",
+   "definition": "The absence of pattern or predictability. True stochasticity.",
+   "uses": 28,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Edge",
+   "name": "Edge",
+   "domain": "Network",
+   "definition": "A link between two nodes. The \"connection.\"",
+   "uses": 25,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Group",
+   "name": "Group",
+   "domain": "Social",
+   "definition": "A collection of individuals who perceive themselves as a collective. Shared identity.",
+   "uses": 24,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Rule",
+   "name": "Rule (Automaton)",
+   "domain": "Automaton",
+   "definition": "A deterministic instruction that governs behavior. The \"if/then.\"",
+   "uses": 23,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Self",
+   "name": "Self",
+   "domain": "Ontological",
+   "definition": "The persistent sense of \"I\" that experiences reality. The experiencer.",
+   "uses": 22,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Refl",
+   "name": "Reflection",
+   "domain": "Optical",
+   "definition": "Light bounces off a surface. Angle of incidence = angle of reflection.",
+   "uses": 22,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Mem",
+   "name": "Memory",
+   "domain": "Psychological",
+   "definition": "storing and retrieving past states and outcomes",
+   "uses": 22,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "State",
+   "name": "Game State",
+   "domain": "Ludological",
+   "definition": "The complete description of the game at a given moment. All positions, scores, resources.",
+   "uses": 21,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Str",
+   "name": "Stress",
+   "domain": "Material",
+   "definition": "Force per unit area applied to a material (pressure). The \"load\" on the system.",
+   "uses": 21,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Auto",
+   "name": "Automaton",
+   "domain": "Automaton",
+   "definition": "A self-operating machine or system. The \"one that moves itself.\"",
+   "uses": 20,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Set",
+   "name": "Setpoint",
+   "domain": "Cybernetic",
+   "definition": "The target state that the system is trying to achieve. The \"goal.\"",
+   "uses": 20,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "DS",
+   "name": "Structure",
+   "domain": "Information",
+   "definition": "how data is arranged: list, tree, graph",
+   "uses": 19,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Cnt",
+   "name": "Contact",
+   "domain": "Kinetic",
+   "definition": "interaction with a surface or a medium \u2014 also the Human prior",
+   "uses": 18,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Trust",
+   "name": "Trust",
+   "domain": "Social",
+   "definition": "The expectation that another agent will act in a cooperative manner. Social capital.",
+   "uses": 18,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Bound",
+   "name": "Boundary",
+   "domain": "Embodiment",
+   "definition": "The felt distinction between \"me\" (my body) and \"not-me\" (the external world).",
+   "uses": 17,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Flow",
+   "name": "Flow",
+   "domain": "Fluid",
+   "definition": "directed movement of a substance",
+   "uses": 17,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Rew",
+   "name": "Reward",
+   "domain": "Habit",
+   "definition": "The positive outcome that reinforces the loop. The \"because\" of the loop.",
+   "uses": 17,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Sim",
+   "name": "Simulation",
+   "domain": "Ontological",
+   "definition": "A reality that is generated by an underlying algorithm or process.",
+   "uses": 17,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Logic",
+   "name": "Logic",
+   "domain": "Thought",
+   "definition": "The formal rules of valid inference. The \"calculus\" of thought.",
+   "uses": 17,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Ht",
+   "name": "Heat",
+   "domain": "Heat",
+   "definition": "energy moving from hot to cold",
+   "uses": 16,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Su",
+   "name": "Support",
+   "domain": "Human",
+   "definition": "an unsupported thing falls; stability depends on contact",
+   "uses": 16,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Ct",
+   "name": "Continuity",
+   "domain": "Human",
+   "definition": "objects travel connected, unobstructed paths",
+   "uses": 16,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Retrieve",
+   "name": "Retrieval",
+   "domain": "Mnemonic",
+   "definition": "The process of accessing a stored trace. Recall and recognition.",
+   "uses": 16,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Transform",
+   "name": "Transformation",
+   "domain": "Pathological",
+   "definition": "The fundamental change wrought by suffering. The \"becoming new.\"",
+   "uses": 16,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Heal",
+   "name": "Healing",
+   "domain": "Medical",
+   "definition": "The process of repairing damage and restoring function over time.",
+   "uses": 15,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Sub",
+   "name": "Substrate/Food",
+   "domain": "Nutritional",
+   "definition": "The raw material from which energy and building blocks are extracted.",
+   "uses": 15,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Bel",
+   "name": "Belief",
+   "domain": "Psychological",
+   "definition": "an internal model of what is true",
+   "uses": 15,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Dream",
+   "name": "Dream",
+   "domain": "Somnial",
+   "definition": "A narrative, symbolic, often surreal sequence of images, sensations, and emotions occurring during sleep.",
+   "uses": 15,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Link",
+   "name": "Link",
+   "domain": "Connection",
+   "definition": "A direct connection between two entities. The \"thread.\"",
+   "uses": 14,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Stim",
+   "name": "Stimulus",
+   "domain": "Dynamic",
+   "definition": "input arriving; energy put into the system",
+   "uses": 14,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Cue",
+   "name": "Cue / Trigger",
+   "domain": "Habit",
+   "definition": "The stimulus that initiates a habitual action. The \"if\" of the loop.",
+   "uses": 14,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Alg",
+   "name": "Algorithm",
+   "domain": "Information",
+   "definition": "a finite sequence of steps",
+   "uses": 14,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Intent",
+   "name": "Intentionality",
+   "domain": "Phenomenological",
+   "definition": "The directedness of consciousness toward an object. Awareness is always of something.",
+   "uses": 14,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Prop",
+   "name": "Proposition",
+   "domain": "Thought",
+   "definition": "A mental statement that can be true or false. The unit of belief and reasoning.",
+   "uses": 14,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Trans",
+   "name": "Transition",
+   "domain": "Automaton",
+   "definition": "The change from one state to another. The \"step.\"",
+   "uses": 13,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Net",
+   "name": "Network",
+   "domain": "Connection",
+   "definition": "A structure of interconnected nodes and edges. The \"web.\"",
+   "uses": 13,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Resource",
+   "name": "Resource",
+   "domain": "Exchange",
+   "definition": "A good, service, or value that is exchanged. The \"what\" of the transaction.",
+   "uses": 13,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Grv",
+   "name": "Gravity",
+   "domain": "Large-scale",
+   "definition": "attraction toward mass",
+   "uses": 13,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Fati",
+   "name": "Fatigue",
+   "domain": "Material",
+   "definition": "Progressive weakening under cyclic loading (repeated stress). Cumulative damage over time.",
+   "uses": 13,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Hab",
+   "name": "Habit",
+   "domain": "Psychological",
+   "definition": "automatic behaviour triggered by a situation",
+   "uses": 13,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Imag",
+   "name": "Imagination",
+   "domain": "Thought",
+   "definition": "The generation of mental simulations, scenarios, and counterfactuals.",
+   "uses": 13,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Xtn",
+   "name": "Exertion",
+   "domain": "Action",
+   "definition": "The energy applied in the act. The \"force\" or \"work\" done.",
+   "uses": 12,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Cst",
+   "name": "Cost",
+   "domain": "Economic",
+   "definition": "what is given up to get it, including what else you could have done",
+   "uses": 12,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Schema",
+   "name": "Body Schema",
+   "domain": "Embodiment",
+   "definition": "The dynamic, plastic neural representation of the body's structure and boundaries.",
+   "uses": 12,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Feedback",
+   "name": "Feedback Loop",
+   "domain": "Habit",
+   "definition": "The information that reinforces or weakens a habit.",
+   "uses": 12,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Path",
+   "name": "Pathogen",
+   "domain": "Medical",
+   "definition": "A biological agent that causes disease (virus, bacteria, fungus, prion).",
+   "uses": 12,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Insight",
+   "name": "Insight",
+   "domain": "Noetic",
+   "definition": "A sudden, non-linear, deep understanding that reconfigures perception.",
+   "uses": 12,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Ant",
+   "name": "Anticipation",
+   "domain": "Temporal",
+   "definition": "The felt sense of a future event. Expectation. Tension before the release.",
+   "uses": 12,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Sync",
+   "name": "Synchronization",
+   "domain": "Temporal",
+   "definition": "The alignment of two or more temporal rhythms. Being \"in sync.\"",
+   "uses": 12,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Init",
+   "name": "Initiation",
+   "domain": "Action",
+   "definition": "The moment a choice is made to act. The \"spark\" of the deed.",
+   "uses": 11,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Wind",
+   "name": "Wind",
+   "domain": "Atmospheric",
+   "definition": "The horizontal movement of air from high to low pressure. The atmosphere's circulation.",
+   "uses": 11,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "State",
+   "name": "State (Automaton)",
+   "domain": "Automaton",
+   "definition": "The current configuration of an automaton. The \"snapshot.\"",
+   "uses": 11,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Cell",
+   "name": "Cell",
+   "domain": "Cellular",
+   "definition": "The fundamental unit of life. A membrane-bound, self-replicating entity containing genetic material and metabolic machinery.",
+   "uses": 11,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Commit",
+   "name": "Commitment",
+   "domain": "Choice",
+   "definition": "The binding of the will to a selected alternative. The point of no return.",
+   "uses": 11,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Rel",
+   "name": "Relationship",
+   "domain": "Connection",
+   "definition": "The dynamic interaction between two or more entities. The \"between.\"",
+   "uses": 11,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Neg",
+   "name": "Negative Feedback",
+   "domain": "Cybernetic",
+   "definition": "A loop that reduces the error. Stabilizing. Homeostasis.",
+   "uses": 11,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Srch",
+   "name": "Search",
+   "domain": "Information",
+   "definition": "finding a target in a space",
+   "uses": 11,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Flow",
+   "name": "Flow",
+   "domain": "Logistical",
+   "definition": "The movement of resources through a network. Rate of transfer per unit time.",
+   "uses": 11,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Bia",
+   "name": "Bias",
+   "domain": "Psychological",
+   "definition": "systematic departure from what the evidence supports",
+   "uses": 11,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Prey",
+   "name": "Prey",
+   "domain": "Zoological",
+   "definition": "An organism that is hunted and consumed. Evolves defenses.",
+   "uses": 11,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Cons",
+   "name": "Consequence",
+   "domain": "Action",
+   "definition": "The outcome or effect of the action.",
+   "uses": 10,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Promise",
+   "name": "Promise",
+   "domain": "Adherence",
+   "definition": "A stated commitment that creates an expectation in another. The social bond.",
+   "uses": 10,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Rhy",
+   "name": "Rhythm",
+   "domain": "Aesthetic",
+   "definition": "repetition with variation; a pulse that creates expectation",
+   "uses": 10,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Moral",
+   "name": "Moral Framework",
+   "domain": "Character",
+   "definition": "The internal system of values and principles that guides judgment.",
+   "uses": 10,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Quest",
+   "name": "Question",
+   "domain": "Curiosity",
+   "definition": "The cognitive act of inquiry. The \"what, why, how\" of the mind.",
+   "uses": 10,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Err",
+   "name": "Error Signal",
+   "domain": "Cybernetic",
+   "definition": "The difference between the current state and the desired state (setpoint). The driver of correction.",
+   "uses": 10,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Ohm",
+   "name": "Resistance",
+   "domain": "Electrical",
+   "definition": "opposition to flow",
+   "uses": 10,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Val",
+   "name": "Valence",
+   "domain": "Emotion",
+   "definition": "The intrinsic attractiveness (positive) or aversiveness (negative) of an experience. The \"good/bad\" axis.",
+   "uses": 10,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Novelty",
+   "name": "Novelty",
+   "domain": "Habit",
+   "definition": "The capacity to break or override a habit in response to new information.",
+   "uses": 10,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Routine",
+   "name": "Routine / Behavior",
+   "domain": "Habit",
+   "definition": "The action sequence itself. The \"then\" of the loop.",
+   "uses": 10,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Sel",
+   "name": "Selection",
+   "domain": "Living",
+   "definition": "differential survival",
+   "uses": 10,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Through",
+   "name": "Throughput",
+   "domain": "Logistical",
+   "definition": "The rate at which a system processes resources. Output per unit time.",
+   "uses": 10,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Meta",
+   "name": "Metagame",
+   "domain": "Ludological",
+   "definition": "The game about the game. Strategy selection, counter-strategies, tier lists.",
+   "uses": 10,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Intf",
+   "name": "Interference",
+   "domain": "Optical",
+   "definition": "Two or more light waves superpose; constructive (bright) or destructive (dark) patterns.",
+   "uses": 10,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Ind",
+   "name": "Individual",
+   "domain": "Social",
+   "definition": "A single agent with its own goals, beliefs, and preferences. The atomic unit of the social.",
+   "uses": 10,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Unc",
+   "name": "Unconscious",
+   "domain": "Somnial",
+   "definition": "The vast, submerged part of the psyche; inaccessible to waking consciousness but active in dreams.",
+   "uses": 10,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Window",
+   "name": "Timing Window",
+   "domain": "Temporal",
+   "definition": "A specific interval in which an action is valid. Before or after, it fails.",
+   "uses": 10,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Rit",
+   "name": "Ritual",
+   "domain": "Thaumaturgical",
+   "definition": "A structured sequence of symbolic actions, repeated for a specific magical purpose.",
+   "uses": 10,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Pred",
+   "name": "Predation",
+   "domain": "Zoological",
+   "definition": "The hunting and consuming of one organism (prey) by another (predator).",
+   "uses": 10,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Coven",
+   "name": "Covenant",
+   "domain": "Adherence",
+   "definition": "A sacred or binding agreement between parties. A sealed promise.",
+   "uses": 9,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Risk",
+   "name": "Risk",
+   "domain": "Aleatory",
+   "definition": "The exposure to the possibility of loss or gain. Probability \u00d7 Consequence.",
+   "uses": 9,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Mol",
+   "name": "Compound",
+   "domain": "Chemical",
+   "definition": "two or more bound into a unit",
+   "uses": 9,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Disc",
+   "name": "Discovery",
+   "domain": "Curiosity",
+   "definition": "The moment of finding something new, previously unknown.",
+   "uses": 9,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Expl",
+   "name": "Exploration",
+   "domain": "Curiosity",
+   "definition": "The active, behavioral seeking of new information and experiences.",
+   "uses": 9,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Goal",
+   "name": "Goal",
+   "domain": "Desire",
+   "definition": "A cognitive representation of a desired future state. The \"toward which.\"",
+   "uses": 9,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Rec",
+   "name": "Recovery",
+   "domain": "Dynamic",
+   "definition": "how fast resource returns after a demand",
+   "uses": 9,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Utl",
+   "name": "Utility",
+   "domain": "Economic",
+   "definition": "how well preferences are satisfied",
+   "uses": 9,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Inter",
+   "name": "Interoception",
+   "domain": "Embodiment",
+   "definition": "Sense of the internal state of the body (heartbeat, breathing, hunger, fatigue, pain).",
+   "uses": 9,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Aro",
+   "name": "Arousal",
+   "domain": "Emotion",
+   "definition": "The intensity of activation: calm \u2194 excited; drowsy \u2194 alert. The \"high/low\" axis.",
+   "uses": 9,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "So",
+   "name": "Solidity",
+   "domain": "Human",
+   "definition": "two things cannot occupy one place",
+   "uses": 9,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Inherit",
+   "name": "Inheritance",
+   "domain": "Lineage",
+   "definition": "The transmission of traits, resources, or essence from ancestors to descendants.",
+   "uses": 9,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Sched",
+   "name": "Schedule",
+   "domain": "Logistical",
+   "definition": "A temporal plan for moving resources through the network. When and in what order.",
+   "uses": 9,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Laugh",
+   "name": "Laughter",
+   "domain": "Ludic / Absurdist",
+   "definition": "The physiological, emotional, and social response to humor. The \"release.\"",
+   "uses": 9,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Plas",
+   "name": "Plasticity",
+   "domain": "Material",
+   "definition": "Ability to permanently deform when stress exceeds the elastic limit. No recovery.",
+   "uses": 9,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Cont",
+   "name": "Contagion",
+   "domain": "Medical",
+   "definition": "The transmission of a disease from one organism to another.",
+   "uses": 9,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "World",
+   "name": "Lifeworld",
+   "domain": "Phenomenological",
+   "definition": "The pre-scientific, pre-theoretical world of everyday meaning and experience.",
+   "uses": 9,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Heu",
+   "name": "Heuristic",
+   "domain": "Psychological",
+   "definition": "fast, automatic, rule-of-thumb",
+   "uses": 9,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Flow",
+   "name": "Flow (Skill)",
+   "domain": "Skill",
+   "definition": "The state of total immersion and effortless performance. The \"zone.\"",
+   "uses": 9,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Norm",
+   "name": "Norm",
+   "domain": "Social",
+   "definition": "An implicit or explicit rule governing behavior within a group. Conformity pressure.",
+   "uses": 9,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Inst",
+   "name": "Instinct",
+   "domain": "Zoological",
+   "definition": "An innate, fixed pattern of behavior. Hardwired. Triggered by specific stimuli (sign stimuli).",
+   "uses": 9,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Reso",
+   "name": "Resonance",
+   "domain": "Acoustic",
+   "definition": "The natural frequency of an object. When driven at this frequency, amplitude amplifies dramatically.",
+   "uses": 8,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Freq",
+   "name": "Frequency",
+   "domain": "Acoustic",
+   "definition": "The number of oscillations per second (Hz). Pitch: high = treble, low = bass.",
+   "uses": 8,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Dur",
+   "name": "Duration",
+   "domain": "Action",
+   "definition": "The length of the action. The \"how long\" of the act.",
+   "uses": 8,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Agen",
+   "name": "Agency",
+   "domain": "Action",
+   "definition": "The felt sense of \"I caused this.\"",
+   "uses": 8,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Scl",
+   "name": "Scale",
+   "domain": "Aesthetic",
+   "definition": "extent, including extent beyond easy grasp",
+   "uses": 8,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Wonder",
+   "name": "Wonder",
+   "domain": "Curiosity",
+   "definition": "The emotional response to the mysterious, vast, or awe-inspiring. The \"wow\" of the unknown.",
+   "uses": 8,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Fdbk",
+   "name": "Feedback",
+   "domain": "Cybernetic",
+   "definition": "The return of output to input. The circular flow of information.",
+   "uses": 8,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Thr",
+   "name": "Threshold",
+   "domain": "Dynamic",
+   "definition": "the point at which behaviour changes abruptly",
+   "uses": 8,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Resp",
+   "name": "Response",
+   "domain": "Dynamic",
+   "definition": "what the system does about it",
+   "uses": 8,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Hyd",
+   "name": "Flowing substance",
+   "domain": "Fluid",
+   "definition": "a continuous thing that runs downhill",
+   "uses": 8,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Ge",
+   "name": "Geometry",
+   "domain": "Human",
+   "definition": "points, lines, angles, handedness",
+   "uses": 8,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Ca",
+   "name": "Causality",
+   "domain": "Human",
+   "definition": "covariation, intervention, launching",
+   "uses": 8,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Transfer",
+   "name": "Transfer (Learning)",
+   "domain": "Learning",
+   "definition": "The application of knowledge from one domain to another. The \"generalization.\"",
+   "uses": 8,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Seed",
+   "name": "Seed",
+   "domain": "Lineage",
+   "definition": "The origin point of a lineage. The potential, the source, the beginning.",
+   "uses": 8,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Root",
+   "name": "Root",
+   "domain": "Lineage",
+   "definition": "The foundational origin. The \"deep source.\"",
+   "uses": 8,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Anc",
+   "name": "Ancestor",
+   "domain": "Lineage",
+   "definition": "The one from whom the lineage descends. The root of the tree.",
+   "uses": 8,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Sem",
+   "name": "Semantics",
+   "domain": "Linguistic",
+   "definition": "The mapping from symbols to meaning. What words and sentences point to in the world.",
+   "uses": 8,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Prag",
+   "name": "Pragmatics",
+   "domain": "Linguistic",
+   "definition": "The use of language in context. What the speaker intends and what the listener infers.",
+   "uses": 8,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Inv",
+   "name": "Inventory",
+   "domain": "Logistical",
+   "definition": "Stored resources waiting to be used or moved. A buffer against uncertainty.",
+   "uses": 8,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Abs",
+   "name": "Absurd",
+   "domain": "Ludic / Absurdist",
+   "definition": "That which defies logic, reason, or expectation. The \"nonsense.\"",
+   "uses": 8,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Frac",
+   "name": "Fracture Toughness",
+   "domain": "Material",
+   "definition": "Resistance to crack propagation. High = tough (rubber). Low = brittle (glass).",
+   "uses": 8,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Tox",
+   "name": "Toxin",
+   "domain": "Medical",
+   "definition": "A poisonous substance that disrupts biological function (chemical, biological, radiological).",
+   "uses": 8,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Diff",
+   "name": "Diffusion",
+   "domain": "Morphogenetic",
+   "definition": "The random, passive spreading of particles (morphogens) from high to low concentration.",
+   "uses": 8,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Grace",
+   "name": "Grace",
+   "domain": "Noetic",
+   "definition": "An unearned, spontaneous gift of understanding or transformation.",
+   "uses": 8,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Refr",
+   "name": "Refraction",
+   "domain": "Optical",
+   "definition": "Light bends as it passes between mediums (Snell's Law: n\u2081 sin \u03b8\u2081 = n\u2082 sin \u03b8\u2082).",
+   "uses": 8,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Traum",
+   "name": "Trauma",
+   "domain": "Pathological",
+   "definition": "A wound \u2014 physical, emotional, or psychological \u2014 that exceeds the system's capacity to integrate. The \"fracture.\"",
+   "uses": 8,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Other",
+   "name": "Other",
+   "domain": "Phenomenological",
+   "definition": "The experience of another subject. The Other is not an object; it is a witness.",
+   "uses": 8,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Seq",
+   "name": "Sequence",
+   "domain": "Raw data",
+   "definition": "two states co-occurring in time",
+   "uses": 8,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Revo",
+   "name": "Revolution",
+   "domain": "Rebellion",
+   "definition": "The systematic, often collective, overthrow of an existing order.",
+   "uses": 8,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Inf",
+   "name": "Influence",
+   "domain": "Social",
+   "definition": "The ability to change the beliefs, preferences, or actions of another agent.",
+   "uses": 8,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Rep",
+   "name": "Reputation",
+   "domain": "Social",
+   "definition": "The collective belief about an individual's past behavior. A social signal.",
+   "uses": 8,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Dim",
+   "name": "Dimensionality",
+   "domain": "Topological",
+   "definition": "The number of independent coordinates needed to specify a point (1D, 2D, 3D, 4D...).",
+   "uses": 8,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Form",
+   "name": "Form",
+   "domain": "Transformation",
+   "definition": "The current state or shape of a thing. The \"what it is.\"",
+   "uses": 8,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Tim",
+   "name": "Timing",
+   "domain": "Action",
+   "definition": "The temporal placement of the action. The \"when\" of the deed.",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Will",
+   "name": "Will",
+   "domain": "Action",
+   "definition": "The volitional drive that powers action. The \"I shall do this.\"",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Loyal",
+   "name": "Loyalty",
+   "domain": "Adherence",
+   "definition": "The sustained adherence to a person, group, or cause, often despite difficulty.",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Ges",
+   "name": "Gestalt",
+   "domain": "Aesthetic",
+   "definition": "the whole exceeding the parts \u2014 also Human Gs",
+   "uses": 7,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Clr",
+   "name": "Clarity",
+   "domain": "Aesthetic",
+   "definition": "how easily the structure can be read",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Prob",
+   "name": "Probability",
+   "domain": "Aleatory",
+   "definition": "A numerical measure of the likelihood of an event (0 to 1). The language of uncertainty.",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Loop",
+   "name": "Loop (Automaton)",
+   "domain": "Automaton",
+   "definition": "A repeated cycle of transitions. The \"iteration.\"",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Slv",
+   "name": "Solvent",
+   "domain": "Chemical",
+   "definition": "what dissolves the other thing",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Basis",
+   "name": "Decision Basis",
+   "domain": "Choice",
+   "definition": "The information and criteria used to select among alternatives.",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Osc",
+   "name": "Oscillation",
+   "domain": "Cybernetic",
+   "definition": "Cyclic behavior caused by feedback that is too slow or gain that is too high.",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Gain",
+   "name": "Gain",
+   "domain": "Cybernetic",
+   "definition": "The amplification factor of the feedback loop. Too high = instability; Too low = sluggishness.",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Satis",
+   "name": "Satisfaction",
+   "domain": "Desire",
+   "definition": "The positive feeling that arises when desire is fulfilled. The \"I have.\"",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Need",
+   "name": "Need",
+   "domain": "Desire",
+   "definition": "A requirement for survival, flourishing, or psychological well-being. The \"I must.\"",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Trd",
+   "name": "Trade",
+   "domain": "Economic",
+   "definition": "voluntary exchange; both sides prefer what they receive",
+   "uses": 7,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Agen",
+   "name": "Agency",
+   "domain": "Embodiment",
+   "definition": "The subjective feeling of \"I caused this action,\" distinct from the action itself.",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Pres",
+   "name": "Presence",
+   "domain": "Embodiment",
+   "definition": "The subjective feeling of \"being inside\" the body and located in a specific place.",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Joy",
+   "name": "Joy",
+   "domain": "Emotion",
+   "definition": "A positive, variable-arousal state. Signals safety/reward. Promotes approach and exploration.",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Value",
+   "name": "Value",
+   "domain": "Exchange",
+   "definition": "The worth or utility attributed to a resource. The \"why\" of the transaction.",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Pres",
+   "name": "Pressure",
+   "domain": "Fluid",
+   "definition": "force spread over an area \u2014 also Heat T1",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Prop",
+   "name": "Propulsion",
+   "domain": "Kinetic",
+   "definition": "force generated to overcome inertia \u2014 push, pull, thrust, contract",
+   "uses": 7,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Sens",
+   "name": "Sensation",
+   "domain": "Learning",
+   "definition": "The raw intake of information from the environment. The \"input.\"",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Branch",
+   "name": "Branch",
+   "domain": "Lineage",
+   "definition": "A divergent line of descent. The split in the tree.",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Narr",
+   "name": "Narrative",
+   "domain": "Linguistic",
+   "definition": "The structuring of events into a causal, meaningful story with beginning, middle, and end.",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Cel",
+   "name": "Cell",
+   "domain": "Living",
+   "definition": "the unit that divides",
+   "uses": 7,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Node",
+   "name": "Node",
+   "domain": "Logistical",
+   "definition": "A point in a network where resources are processed, stored, or transferred. A junction.",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Magic",
+   "name": "Magic Circle",
+   "domain": "Ludological",
+   "definition": "The boundary between the game and reality. Inside the circle, the game's rules apply.",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Wound",
+   "name": "Wound",
+   "domain": "Medical",
+   "definition": "A structural breach or trauma that disrupts function (cut, burn, fracture).",
+   "uses": 7,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Imm",
+   "name": "Immunity",
+   "domain": "Medical",
+   "definition": "The system's ability to recognize and neutralize pathogens/toxins.",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Assem",
+   "name": "Self-Assembly",
+   "domain": "Morphogenetic",
+   "definition": "The spontaneous organization of components into a larger, functional structure without external direction.",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Ego",
+   "name": "Ego",
+   "domain": "Noetic",
+   "definition": "The sense of a separate, bounded self. The \"I\" that experiences and acts.",
+   "uses": 7,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Mind",
+   "name": "Mindfulness",
+   "domain": "Noetic",
+   "definition": "The disciplined cultivation of non-judgmental attention to the present moment.",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Cat",
+   "name": "Catabolism",
+   "domain": "Nutritional",
+   "definition": "The breakdown of complex molecules to release energy (exothermic).",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Frame",
+   "name": "Frame",
+   "domain": "Ontological",
+   "definition": "The context that defines what is \"inside\" and \"outside.\" The boundary of the game.",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Rea",
+   "name": "Reality",
+   "domain": "Ontological",
+   "definition": "The totality of all that exists. The sum total of what is the case.",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Tran",
+   "name": "Transmission",
+   "domain": "Optical",
+   "definition": "Light passes through a material (transparency).",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Grief",
+   "name": "Grief",
+   "domain": "Pathological",
+   "definition": "The deep, slow, enduring response to loss. The \"mourning.\"",
+   "uses": 7,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Witness",
+   "name": "Witness (Pathological)",
+   "domain": "Pathological",
+   "definition": "The one who sees and acknowledges suffering. The \"holder.\"",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Mot",
+   "name": "Motivation",
+   "domain": "Psychological",
+   "definition": "drive to close the gap between here and the goal",
+   "uses": 7,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Emo",
+   "name": "Valence",
+   "domain": "Psychological",
+   "definition": "positive or negative, calm or aroused; it biases choice",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Meas",
+   "name": "Measurement",
+   "domain": "Quantum",
+   "definition": "observing forces one of them",
+   "uses": 7,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Entg",
+   "name": "Entanglement",
+   "domain": "Quantum",
+   "definition": "two things correlated without a visible link",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Rhyt",
+   "name": "Rhythm",
+   "domain": "Temporal",
+   "definition": "The pattern of events over time. Regular or irregular intervals. The pulse of the system.",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Dur",
+   "name": "Duration",
+   "domain": "Temporal",
+   "definition": "The objective length of time an event occupies (seconds, frames). Measurable, uniform.",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Link",
+   "name": "Magical Link",
+   "domain": "Thaumaturgical",
+   "definition": "A connection between two objects that allows magic to affect one by acting on the other.",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Frac",
+   "name": "Fractal Dimension",
+   "domain": "Topological",
+   "definition": "A dimension that is not an integer (e.g., 1.5). Self-similarity across scales.",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Evo",
+   "name": "Evolution",
+   "domain": "Transformation",
+   "definition": "Gradual change over time. The \"unfolding.\"",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Meta",
+   "name": "Metamorphosis",
+   "domain": "Transformation",
+   "definition": "A dramatic, complete change of form. The \"rebirth.\"",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Sens",
+   "name": "Sensory Modality",
+   "domain": "Zoological",
+   "definition": "The specific way an animal perceives the world (sight, hearing, smell, vibration, electroreception).",
+   "uses": 7,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Clock",
+   "name": "Clock (Automaton)",
+   "domain": "Automaton",
+   "definition": "The temporal pulse that drives transitions. The \"tick.\"",
+   "uses": 6,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Proc",
+   "name": "Process",
+   "domain": "Automaton",
+   "definition": "An automated sequence of actions. The \"running program.\"",
+   "uses": 6,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Reflect",
+   "name": "Reflection",
+   "domain": "Learning",
+   "definition": "The consideration of one's own learning process. The \"meta.\"",
+   "uses": 6,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Lev",
+   "name": "Lever",
+   "domain": "Mechanical",
+   "definition": "a rigid bar turning about a point",
+   "uses": 6,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Scar",
+   "name": "Scar",
+   "domain": "Pathological",
+   "definition": "The permanent mark left by a wound. The \"reminder.\"",
+   "uses": 6,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Mort",
+   "name": "Mortality",
+   "domain": "Pathological",
+   "definition": "The awareness of inevitable death. The \"final countdown.\"",
+   "uses": 6,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Knot",
+   "name": "Knot",
+   "domain": "Topological",
+   "definition": "An embedding of a circle into 3D space that is not unknotted. A tangled loop.",
+   "uses": 6,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Becoming",
+   "name": "Becoming",
+   "domain": "Transformation",
+   "definition": "The process of moving from one form to another. The \"what it is becoming.\"",
+   "uses": 6,
+   "is_domain_root": false
+  },
+  {
+   "symbol": "Amp",
+   "name": "Current",
+   "domain": "Electrical",
+   "definition": "charge flowing",
+   "uses": 5,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Dissent",
+   "name": "Dissent",
+   "domain": "Rebellion",
+   "definition": "The expression of disagreement with a prevailing view or authority.",
+   "uses": 5,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Echo",
+   "name": "Echo",
+   "domain": "Acoustic",
+   "definition": "The reflection of a sound wave off a surface. Delay indicates distance.",
+   "uses": 4,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Dec",
+   "name": "Misrepresentation",
+   "domain": "Adversarial",
+   "definition": "act to make another's model wrong",
+   "uses": 4,
+   "is_domain_root": true
+  },
+  {
+   "symbol": "Px",
+   "name": "Cell value",
+   "domain": "Raw data",
+   "definition": "a value at a position",
+   "uses": 3,
+   "is_domain_root": true
+  }
+ ],
+ "set_b_level2": [
+  {
+   "name": "Integration",
+   "domain": "Connection",
+   "tier": 4,
+   "recipe": "Net + Link + Whole + Coherence",
+   "definition": "The integration of multiple connections into a coherent whole.",
+   "uses": 13
+  },
+  {
+   "name": "Adaptation",
+   "domain": "Living",
+   "tier": 4,
+   "recipe": "Selection + Hom",
+   "definition": "a population comes to fit its surroundings",
+   "uses": 13
+  },
+  {
+   "name": "Practice",
+   "domain": "Learning",
+   "tier": 2,
+   "recipe": "Apply + Repetition + Refinement",
+   "definition": "The act of applying knowledge repeatedly to develop skill. The \"repetition.\"",
+   "uses": 12
+  },
+  {
+   "name": "Move",
+   "domain": "Action",
+   "tier": 2,
+   "recipe": "Init + Exertion + Dur + Trajectory",
+   "definition": "Moving an object from A to B. Translational action.",
+   "uses": 10
+  },
+  {
+   "name": "Grab",
+   "domain": "Action",
+   "tier": 2,
+   "recipe": "Init + Perc + Contact",
+   "definition": "Taking hold of an object. Preparing for further action.",
+   "uses": 9
+  },
+  {
+   "name": "Strategy",
+   "domain": "Ludological",
+   "tier": 3,
+   "recipe": "Action + State + Obj + Prediction",
+   "definition": "A complete plan of action across all possible states. A mapping from states to actions.",
+   "uses": 9
+  },
+  {
+   "name": "Ecosystem",
+   "domain": "Living",
+   "tier": 4,
+   "recipe": "Producer + Predator + Decomposer + Transport",
+   "definition": "a self-sustaining community",
+   "uses": 9
+  },
+  {
+   "name": "Break",
+   "domain": "Habit",
+   "tier": 2,
+   "recipe": "Habit + Distruption + Novelty",
+   "definition": "The interruption of a habit by a novel stimulus or conscious intervention.",
+   "uses": 8
+  },
+  {
+   "name": "Market",
+   "domain": "Economic",
+   "tier": 2,
+   "recipe": "Trd + common price + Asy",
+   "definition": "many buyers and sellers at agreed prices",
+   "uses": 8
+  },
+  {
+   "name": "Observe",
+   "domain": "Learning",
+   "tier": 2,
+   "recipe": "Sens + Attn + Intake",
+   "definition": "The act of attending to information. The \"looking.\"",
+   "uses": 7
+  },
+  {
+   "name": "Cycle",
+   "domain": "Somnial",
+   "tier": 3,
+   "recipe": "Circ + REM + NREM + Rhythm (Temporal)",
+   "definition": "The complete, recurring sequence of sleep stages across a night.",
+   "uses": 7
+  },
+  {
+   "name": "Sleep",
+   "domain": "Temporal",
+   "tier": 4,
+   "recipe": "Dead_Time + Recovery + Reset",
+   "definition": "A period of zero activity that resets the system. Full recharge.",
+   "uses": 7
+  },
+  {
+   "name": "Lens",
+   "domain": "Optical",
+   "tier": 2,
+   "recipe": "Refr + Curve",
+   "definition": "A curved transparent medium. Converging (convex) focuses light; diverging (concave) spreads it.",
+   "uses": 7
+  },
+  {
+   "name": "Sacrifice",
+   "domain": "Human",
+   "tier": 4,
+   "recipe": "Value of information + Decompose",
+   "definition": "give something up to see the structure",
+   "uses": 7
+  },
+  {
+   "name": "Shift",
+   "domain": "Transformation",
+   "tier": 2,
+   "recipe": "Form + Phase + Transition",
+   "definition": "The fundamental act of transformation: moving from one form to another.",
+   "uses": 6
+  },
+  {
+   "name": "Focus",
+   "domain": "Aesthetic",
+   "tier": 2,
+   "recipe": "Con + emphasis",
+   "definition": "one element made distinct enough to draw attention",
+   "uses": 6
+  },
+  {
+   "name": "Run",
+   "domain": "Kinetic",
+   "tier": 2,
+   "recipe": "Walk + Inr",
+   "definition": "an airborne phase; faster, costlier, ballistic",
+   "uses": 6
+  },
+  {
+   "name": "Gift",
+   "domain": "Exchange",
+   "tier": 2,
+   "recipe": "Resource + Agent + Agent + No_Expected_Return",
+   "definition": "Giving without expectation of immediate return. The \"present.\"",
+   "uses": 5
+  },
+  {
+   "name": "Release",
+   "domain": "Action",
+   "tier": 2,
+   "recipe": "Init + Agen (cease) + Contact (break)",
+   "definition": "Letting go of an object. Dropping, throwing.",
+   "uses": 5
+  },
+  {
+   "name": "Press",
+   "domain": "Action",
+   "tier": 2,
+   "recipe": "Init + Exertion (low) + Tim",
+   "definition": "A simple, discrete input. A button press, a click. The atomic action.",
+   "uses": 5
+  },
+  {
+   "name": "Communication",
+   "domain": "Social",
+   "tier": 2,
+   "recipe": "Ind + Ind + Signal",
+   "definition": "The transmission of information between agents. Language, gesture, symbol.",
+   "uses": 5
+  },
+  {
+   "name": "Continuation",
+   "domain": "Aesthetic",
+   "tier": 2,
+   "recipe": "Ges + direction",
+   "definition": "things along a line read as one path",
+   "uses": 5
+  },
+  {
+   "name": "Empathy",
+   "domain": "Psychological",
+   "tier": 3,
+   "recipe": "Slf + other's state",
+   "definition": "simulate what another is experiencing",
+   "uses": 5
+  },
+  {
+   "name": "Chaos",
+   "domain": "Dynamic",
+   "tier": 2,
+   "recipe": "Sens high + Coup high + Var extreme",
+   "definition": "deterministic and unpredictable; small differences explode; bounded, never repeats",
+   "uses": 5
+  },
+  {
+   "name": "Walk",
+   "domain": "Kinetic",
+   "tier": 2,
+   "recipe": "Prop + Bal + Cnt",
+   "definition": "alternating contact; something always touching",
+   "uses": 5
+  },
+  {
+   "name": "Differentiation",
+   "domain": "Living",
+   "tier": 2,
+   "recipe": "Cel + Dev",
+   "definition": "a general cell becomes a specific one",
+   "uses": 5
+  },
+  {
+   "name": "Contain",
+   "domain": "Human",
+   "tier": 2,
+   "recipe": "To + So",
+   "definition": "a thing is held inside a boundary",
+   "uses": 5
+  },
+  {
+   "name": "Rotate",
+   "domain": "Human",
+   "tier": 2,
+   "recipe": "Ge + Gs",
+   "definition": "an object turns about a centre",
+   "uses": 5
+  },
+  {
+   "name": "Chemical",
+   "domain": "Transformation",
+   "tier": 6,
+   "recipe": "50",
+   "definition": "49",
+   "uses": 4
+  },
+  {
+   "name": "Evolve",
+   "domain": "Transformation",
+   "tier": 2,
+   "recipe": "Form + Evo + Time + Adaptation",
+   "definition": "Gradual change over time.",
+   "uses": 4
+  },
+  {
+   "name": "Microbiome",
+   "domain": "Cellular",
+   "tier": 3,
+   "recipe": "Cell + Symbiosis + Host + Ecosystem",
+   "definition": "The community of microorganisms living in/on a host organism.",
+   "uses": 4
+  },
+  {
+   "name": "Counter",
+   "domain": "Action",
+   "tier": 4,
+   "recipe": "Tim (response) + Action (mirrored) + Xtn (amplified)",
+   "definition": "Responding to an opponent's action with a specifically timed counter-move.",
+   "uses": 4
+  },
+  {
+   "name": "Replay",
+   "domain": "Temporal",
+   "tier": 2,
+   "recipe": "Ret + Action (repeat)",
+   "definition": "Re-execute a previous action sequence exactly as it was performed.",
+   "uses": 4
+  },
+  {
+   "name": "Delay",
+   "domain": "Temporal",
+   "tier": 2,
+   "recipe": "Lag + Action",
+   "definition": "A predetermined lag between trigger and response. A delayed trap.",
+   "uses": 4
+  },
+  {
+   "name": "Mirror",
+   "domain": "Optical",
+   "tier": 2,
+   "recipe": "Refl + Surface",
+   "definition": "A perfectly smooth surface. It redirects a light ray at an equal but opposite angle. The angle is reversible.",
+   "uses": 4
+  },
+  {
+   "name": "Reset",
+   "domain": "Dynamic",
+   "tier": 3,
+   "recipe": "Deep rest + Setpoint restored",
+   "definition": "return to a known state deliberately, rather than being returned to one",
+   "uses": 4
+  },
+  {
+   "name": "Burst",
+   "domain": "Dynamic",
+   "tier": 3,
+   "recipe": "Saturation brief + Chaos local",
+   "definition": "a spike of activity, then quiet",
+   "uses": 4
+  },
+  {
+   "name": "Criticality",
+   "domain": "Dynamic",
+   "tier": 3,
+   "recipe": "Chaos + Equilibrium at the edge",
+   "definition": "poised between order and disorder; maximal information processing",
+   "uses": 4
+  },
+  {
+   "name": "Saturation",
+   "domain": "Dynamic",
+   "tier": 2,
+   "recipe": "Stim excessive + Resp clipped",
+   "definition": "output at a ceiling; more input changes nothing",
+   "uses": 4
+  },
+  {
+   "name": "Hop",
+   "domain": "Kinetic",
+   "tier": 2,
+   "recipe": "Prop vertical + Spr + Grv",
+   "definition": "one ballistic leap on elastic recoil",
+   "uses": 4
+  },
+  {
+   "name": "Collapsed mass",
+   "domain": "Large-scale",
+   "tier": 3,
+   "recipe": "Escape threshold + Collapse",
+   "definition": "so dense nothing escapes",
+   "uses": 4
+  },
+  {
+   "name": "Predator",
+   "domain": "Living",
+   "tier": 3,
+   "recipe": "Met + motion + senses",
+   "definition": "consumes other organisms",
+   "uses": 4
+  },
+  {
+   "name": "Switch",
+   "domain": "Electrical",
+   "tier": 3,
+   "recipe": "Conductor + Break",
+   "definition": "a controllable gap",
+   "uses": 4
+  },
+  {
+   "name": "Decompose",
+   "domain": "Human",
+   "tier": 3,
+   "recipe": "Plan + Backchain",
+   "definition": "break a goal into ordered parts",
+   "uses": 4
+  },
+  {
+   "name": "Array",
+   "domain": "Information",
+   "tier": 2,
+   "recipe": "DS + Srch",
+   "definition": "contiguous, indexed",
+   "uses": 4
+  },
+  {
+   "name": "Expand",
+   "domain": "Heat",
+   "tier": 2,
+   "recipe": "Ht + Vol",
+   "definition": "heating grows volume",
+   "uses": 4
+  },
+  {
+   "name": "Bind",
+   "domain": "Human",
+   "tier": 2,
+   "recipe": "Gs + Co",
+   "definition": "features group into one thing",
+   "uses": 4
+  },
+  {
+   "name": "Revolt",
+   "domain": "Transformation",
+   "tier": 2,
+   "recipe": "Form + Revo + Overthrow",
+   "definition": "Sudden, radical change of a system.",
+   "uses": 3
+  },
+  {
+   "name": "Convert",
+   "domain": "Transformation",
+   "tier": 2,
+   "recipe": "Form + Transmute + Substance",
+   "definition": "The conversion of one substance into another.",
+   "uses": 3
+  },
+  {
+   "name": "Story",
+   "domain": "Linguistic",
+   "tier": 2,
+   "recipe": "Narr + Events + Causality + Time (Temp)",
+   "definition": "A structured narrative. A sequence of events connected by causality and meaning.",
+   "uses": 3
+  },
+  {
+   "name": "Utterance",
+   "domain": "Linguistic",
+   "tier": 2,
+   "recipe": "Sentence + Prag + Context",
+   "definition": "A sentence spoken in a specific context with a specific intention. The unit of communicative action.",
+   "uses": 3
+  },
+  {
+   "name": "Capacity",
+   "domain": "Logistical",
+   "tier": 2,
+   "recipe": "Edge + Through + Limit",
+   "definition": "The maximum flow that an edge can carry. Exceed it; congestion occurs.",
+   "uses": 3
+  },
+  {
+   "name": "Route",
+   "domain": "Logistical",
+   "tier": 2,
+   "recipe": "Node + Edge + Flow + Path",
+   "definition": "Find a path from source to destination. Connectivity is the first requirement.",
+   "uses": 3
+  },
+  {
+   "name": "Consolidation",
+   "domain": "Mnemonic",
+   "tier": 3,
+   "recipe": "Trace + Sleep (Time) + Strengthening",
+   "definition": "The process by which a fragile trace becomes stable and long-lasting (e.g., overnight).",
+   "uses": 3
+  },
+  {
+   "name": "Accelerate",
+   "domain": "Temporal",
+   "tier": 2,
+   "recipe": "Dur (compressed) + Speed",
+   "definition": "Speed up the flow of time for a specific object or region.",
+   "uses": 3
+  },
+  {
+   "name": "Fluency",
+   "domain": "Aesthetic",
+   "tier": 4,
+   "recipe": "Clr + Sym + Prp",
+   "definition": "how easily a thing is processed; high fluency reads as good",
+   "uses": 3
+  },
+  {
+   "name": "Closure",
+   "domain": "Aesthetic",
+   "tier": 2,
+   "recipe": "Ges + incompleteness",
+   "definition": "the mind completes a broken pattern",
+   "uses": 3
+  },
+  {
+   "name": "Regulation",
+   "domain": "Psychological",
+   "tier": 4,
+   "recipe": "Exe + Emo",
+   "definition": "deliberately modulate a response; reappraise what a thing means",
+   "uses": 3
+  },
+  {
+   "name": "Momentum",
+   "domain": "Dynamic",
+   "tier": 2,
+   "recipe": "Inr + Resp sustained",
+   "definition": "accumulated tendency to continue; distinct from inertia, which is resistance to starting",
+   "uses": 3
+  },
+  {
+   "name": "Glide",
+   "domain": "Kinetic",
+   "tier": 2,
+   "recipe": "Lft + Inr forward",
+   "definition": "descend shallowly; trade height for distance",
+   "uses": 3
+  },
+  {
+   "name": "Fly",
+   "domain": "Kinetic",
+   "tier": 2,
+   "recipe": "Prop + Lft + Med air",
+   "definition": "sustained, and it costs continuously",
+   "uses": 3
+  },
+  {
+   "name": "Roll",
+   "domain": "Kinetic",
+   "tier": 2,
+   "recipe": "Cnt continuous + Inr",
+   "definition": "the whole body turns about an axis",
+   "uses": 3
+  },
+  {
+   "name": "Kinematic chain",
+   "domain": "Mechanical",
+   "tier": 4,
+   "recipe": "Body schema + motion",
+   "definition": "connected rigid segments",
+   "uses": 3
+  },
+  {
+   "name": "Equilibrate",
+   "domain": "Human",
+   "tier": 4,
+   "recipe": "Anchor + Ballistics",
+   "definition": "find the force that reaches balance",
+   "uses": 3
+  },
+  {
+   "name": "Graph",
+   "domain": "Information",
+   "tier": 3,
+   "recipe": "Tree + arbitrary links",
+   "definition": "nodes and edges",
+   "uses": 3
+  },
+  {
+   "name": "Markov chain",
+   "domain": "Raw data",
+   "tier": 3,
+   "recipe": "Histogram + N-gram",
+   "definition": "what follows what, with probability",
+   "uses": 3
+  },
+  {
+   "name": "Recombination",
+   "domain": "Living",
+   "tier": 2,
+   "recipe": "Cel + Rep + Cod",
+   "definition": "one becomes two different",
+   "uses": 3
+  },
+  {
+   "name": "Division",
+   "domain": "Living",
+   "tier": 2,
+   "recipe": "Cel + Rep",
+   "definition": "one becomes two identical",
+   "uses": 3
+  },
+  {
+   "name": "Capacitor",
+   "domain": "Electrical",
+   "tier": 2,
+   "recipe": "Cap + Chg",
+   "definition": "stores charge",
+   "uses": 3
+  },
+  {
+   "name": "Conductor",
+   "domain": "Electrical",
+   "tier": 2,
+   "recipe": "Cnd + Chg",
+   "definition": "lets charge pass",
+   "uses": 3
+  },
+  {
+   "name": "Contract",
+   "domain": "Heat",
+   "tier": 2,
+   "recipe": "Ht + Vol",
+   "definition": "cooling shrinks it",
+   "uses": 3
+  },
+  {
+   "name": "Freeze",
+   "domain": "Heat",
+   "tier": 2,
+   "recipe": "Tmp + Ph",
+   "definition": "liquid becomes solid",
+   "uses": 3
+  },
+  {
+   "name": "Texture",
+   "domain": "Raw data",
+   "tier": 2,
+   "recipe": "Px + Adj",
+   "definition": "local structure",
+   "uses": 3
+  },
+  {
+   "name": "Pretext",
+   "domain": "Adversarial",
+   "tier": 2,
+   "recipe": "Eff + Tele",
+   "definition": "act inefficiently to hide the efficient path",
+   "uses": 3
+  },
+  {
+   "name": "Mislead",
+   "domain": "Adversarial",
+   "tier": 2,
+   "recipe": "FB + Dec",
+   "definition": "supply a false premise",
+   "uses": 3
+  },
+  {
+   "name": "Trajectory",
+   "domain": "Human",
+   "tier": 2,
+   "recipe": "Nu + Ct",
+   "definition": "track the paths of a few moving things",
+   "uses": 3
+  },
+  {
+   "name": "Aesthetic",
+   "domain": "Transformation",
+   "tier": 6,
+   "recipe": "50",
+   "definition": "46",
+   "uses": 2
+  },
+  {
+   "name": "Cycle",
+   "domain": "Transformation",
+   "tier": 3,
+   "recipe": "Shift + Shift + Return + Renewal",
+   "definition": "A cyclical transformation. The \"wheel of becoming.\"",
+   "uses": 2
+  },
+  {
+   "name": "Emerge",
+   "domain": "Transformation",
+   "tier": 2,
+   "recipe": "Change + Novelty + Arise",
+   "definition": "The arising of new properties from change.",
+   "uses": 2
+  },
+  {
+   "name": "Performance",
+   "domain": "Skill",
+   "tier": 3,
+   "recipe": "Skill + Audience + Execution + Flow",
+   "definition": "The execution of skill in a performance context.",
+   "uses": 2
+  },
+  {
+   "name": "Mastery",
+   "domain": "Skill",
+   "tier": 3,
+   "recipe": "Skill + Depth + Intuition + Flow",
+   "definition": "Deep, integrated, intuitive mastery of a domain.",
+   "uses": 2
+  },
+  {
+   "name": "Refine",
+   "domain": "Skill",
+   "tier": 2,
+   "recipe": "Action + Feedback + Adjust",
+   "definition": "The improvement of a skill through feedback.",
+   "uses": 2
+  },
+  {
+   "name": "Detect",
+   "domain": "Automaton",
+   "tier": 2,
+   "recipe": "Input + State + Match",
+   "definition": "The automaton detects a specific input or state condition. The \"sensing.\"",
+   "uses": 2
+  },
+  {
+   "name": "Plasmid",
+   "domain": "Cellular",
+   "tier": 3,
+   "recipe": "DNA_Cel + Extra + Transfer",
+   "definition": "A small, circular piece of DNA that can be transferred between bacteria.",
+   "uses": 2
+  },
+  {
+   "name": "Release",
+   "domain": "Pathological",
+   "tier": 2,
+   "recipe": "Cath + Emotion + Expression",
+   "definition": "The emotional release that brings relief.",
+   "uses": 2
+  },
+  {
+   "name": "Counterfactual",
+   "domain": "Choice",
+   "tier": 3,
+   "recipe": "Regret + Alt (rejected) + Simulation (Temp)",
+   "definition": "Mentally simulating the outcome of the rejected alternative. \"What if I had chosen differently?\"",
+   "uses": 2
+  },
+  {
+   "name": "Chain",
+   "domain": "Action",
+   "tier": 4,
+   "recipe": "Press + Press + Press (sequential)",
+   "definition": "A series of actions linked together. The combo.",
+   "uses": 2
+  },
+  {
+   "name": "Atmosphere",
+   "domain": "Phenomenological",
+   "tier": 2,
+   "recipe": "Mood + Environment + Color",
+   "definition": "The emotional coloring of the world. A room can feel \"heavy,\" \"light,\" or \"tense.\"",
+   "uses": 2
+  },
+  {
+   "name": "Respiration",
+   "domain": "Nutritional",
+   "tier": 2,
+   "recipe": "Cat + Glucose + Oxygen",
+   "definition": "Aerobic energy production. Glucose + O\u2082 \u2192 CO\u2082 + H\u2082O + ATP (high yield).",
+   "uses": 2
+  },
+  {
+   "name": "Cyclone",
+   "domain": "Atmospheric",
+   "tier": 3,
+   "recipe": "Low_Pressure + Wind + Cor (curved)",
+   "definition": "A rotating storm system. Winds spiral inward and upward. Counterclockwise (Northern Hemisphere).",
+   "uses": 2
+  },
+  {
+   "name": "Discourse",
+   "domain": "Linguistic",
+   "tier": 2,
+   "recipe": "Utterance + Utterance + Sequence",
+   "definition": "A connected series of utterances. A conversation, a speech, a text.",
+   "uses": 2
+  },
+  {
+   "name": "Alliance",
+   "domain": "Social",
+   "tier": 2,
+   "recipe": "Ind + Ind + Trust + Rep (shared)",
+   "definition": "A formal or informal agreement to act cooperatively. A pact.",
+   "uses": 2
+  },
+  {
+   "name": "Cooperation",
+   "domain": "Social",
+   "tier": 2,
+   "recipe": "Ind + Ind + Trust + Shared_Goal",
+   "definition": "Two or more agents work together toward a common outcome. Mutual benefit.",
+   "uses": 2
+  },
+  {
+   "name": "Decelerate",
+   "domain": "Temporal",
+   "tier": 2,
+   "recipe": "Dur (stretched) + Slowness",
+   "definition": "Slow down the flow of time for a specific object or region.",
+   "uses": 2
+  },
+  {
+   "name": "Composite",
+   "domain": "Material",
+   "tier": 3,
+   "recipe": "Brittle (hard) + Ductile (tough)",
+   "definition": "Combine two materials (e.g., fiberglass, reinforced concrete). The composite has the hardness of one and the toughness of the other. Resists cracks.",
+   "uses": 2
+  },
+  {
+   "name": "Competition",
+   "domain": "Economic",
+   "tier": 3,
+   "recipe": "Market + several sellers",
+   "definition": "pressure toward lower price or higher quality",
+   "uses": 2
+  },
+  {
+   "name": "Production",
+   "domain": "Economic",
+   "tier": 2,
+   "recipe": "inputs + Cst + output",
+   "definition": "transform into something worth more",
+   "uses": 2
+  },
+  {
+   "name": "Oscillating reaction",
+   "domain": "Chemical",
+   "tier": 4,
+   "recipe": "Rdx + Cat + autocatalysis",
+   "definition": "cycles between states on a chemical clock",
+   "uses": 2
+  },
+  {
+   "name": "Isomerisation",
+   "domain": "Chemical",
+   "tier": 3,
+   "recipe": "Mol + Cat + energy",
+   "definition": "same parts, different arrangement",
+   "uses": 2
+  },
+  {
+   "name": "Dehydration",
+   "domain": "Chemical",
+   "tier": 2,
+   "recipe": "Mol + heat",
+   "definition": "water is driven out",
+   "uses": 2
+  },
+  {
+   "name": "Synthesis",
+   "domain": "Chemical",
+   "tier": 2,
+   "recipe": "Elm + Mol combine",
+   "definition": "two become one more complex",
+   "uses": 2
+  },
+  {
+   "name": "Deep rest",
+   "domain": "Dynamic",
+   "tier": 5,
+   "recipe": "Rest + Saturation recovery",
+   "definition": "complete shutdown; unresponsive by design",
+   "uses": 2
+  },
+  {
+   "name": "Adaptive homeostasis",
+   "domain": "Dynamic",
+   "tier": 4,
+   "recipe": "Fatigue + Rec dynamic + Stress",
+   "definition": "the baseline shifts to stay stable under changing load",
+   "uses": 2
+  },
+  {
+   "name": "Hysteresis",
+   "domain": "Dynamic",
+   "tier": 3,
+   "recipe": "Lat + Thr differing by direction",
+   "definition": "the state depends on the path taken; the way up differs from the way down",
+   "uses": 2
+  },
+  {
+   "name": "Runaway",
+   "domain": "Dynamic",
+   "tier": 3,
+   "recipe": "Chaos + Res unbounded + positive feedback",
+   "definition": "growth with nothing to stop it",
+   "uses": 2
+  },
+  {
+   "name": "Metastability",
+   "domain": "Dynamic",
+   "tier": 3,
+   "recipe": "Equilibrium unstable + Oscillation damped",
+   "definition": "near a stable point, easily kicked out of it",
+   "uses": 2
+  },
+  {
+   "name": "Dash",
+   "domain": "Kinetic",
+   "tier": 4,
+   "recipe": "Run + burst",
+   "definition": "brief extreme acceleration; crosses a gap at once",
+   "uses": 2
+  },
+  {
+   "name": "Tumble",
+   "domain": "Kinetic",
+   "tier": 2,
+   "recipe": "Roll + Inr angular",
+   "definition": "rotational momentum recovering balance",
+   "uses": 2
+  },
+  {
+   "name": "Swim",
+   "domain": "Kinetic",
+   "tier": 2,
+   "recipe": "Prop + Med liquid + Lft",
+   "definition": "gravity offset by buoyancy",
+   "uses": 2
+  },
+  {
+   "name": "Crawl",
+   "domain": "Kinetic",
+   "tier": 2,
+   "recipe": "Prop + Cnt low Bal",
+   "definition": "many low contact points; slow, stable, low",
+   "uses": 2
+  },
+  {
+   "name": "Not",
+   "domain": "Electrical",
+   "tier": 4,
+   "recipe": "Transistor inverting + Resistor",
+   "definition": "input on, output off",
+   "uses": 2
+  },
+  {
+   "name": "Torque",
+   "domain": "Mechanical",
+   "tier": 4,
+   "recipe": "Lev + Joint",
+   "definition": "turning force is force times distance",
+   "uses": 2
+  },
+  {
+   "name": "Cascade",
+   "domain": "Human",
+   "tier": 4,
+   "recipe": "Chunk + Backchain + Subitise",
+   "definition": "trigger a chain of a few linked events",
+   "uses": 2
+  },
+  {
+   "name": "Sequence of operations",
+   "domain": "Quantum",
+   "tier": 3,
+   "recipe": "Reversible operation + Entg",
+   "definition": "several in a row",
+   "uses": 2
+  },
+  {
+   "name": "Tree",
+   "domain": "Information",
+   "tier": 3,
+   "recipe": "Array + Linked list",
+   "definition": "parent and child",
+   "uses": 2
+  },
+  {
+   "name": "Decomposer",
+   "domain": "Living",
+   "tier": 3,
+   "recipe": "Fermentation + Cel + spores",
+   "definition": "breaks down what is left",
+   "uses": 2
+  },
+  {
+   "name": "Diode",
+   "domain": "Electrical",
+   "tier": 3,
+   "recipe": "Conductor + Insulator asymmetric",
+   "definition": "one-way",
+   "uses": 2
+  },
+  {
+   "name": "Lower vigilance",
+   "domain": "Adversarial",
+   "tier": 3,
+   "recipe": "Pretext + False target",
+   "definition": "act against your own path to be discounted",
+   "uses": 2
+  },
+  {
+   "name": "Mimic",
+   "domain": "Adversarial",
+   "tier": 3,
+   "recipe": "Gaze + Stand-in",
+   "definition": "copy another's attention pattern",
+   "uses": 2
+  },
+  {
+   "name": "Anchor",
+   "domain": "Human",
+   "tier": 3,
+   "recipe": "Balance + Stack",
+   "definition": "fix a base so the centre of mass stays over it",
+   "uses": 2
+  },
+  {
+   "name": "Ballistics",
+   "domain": "Human",
+   "tier": 3,
+   "recipe": "Collide + Predict",
+   "definition": "work out an arc",
+   "uses": 2
+  },
+  {
+   "name": "Camouflage",
+   "domain": "Human",
+   "tier": 3,
+   "recipe": "Recolour + Surround",
+   "definition": "match what is around you",
+   "uses": 2
+  },
+  {
+   "name": "Wayfind",
+   "domain": "Human",
+   "tier": 3,
+   "recipe": "Dead reckon + Reorient",
+   "definition": "integrate motion, reset at landmarks",
+   "uses": 2
+  },
+  {
+   "name": "Optimise",
+   "domain": "Human",
+   "tier": 3,
+   "recipe": "Exploit + Explore",
+   "definition": "balance known reward against unknown",
+   "uses": 2
+  },
+  {
+   "name": "Schematise",
+   "domain": "Human",
+   "tier": 3,
+   "recipe": "Bind + Chunk",
+   "definition": "treat a cluster as one thing",
+   "uses": 2
+  },
+  {
+   "name": "Filter",
+   "domain": "Human",
+   "tier": 3,
+   "recipe": "Contain + Pass through",
+   "definition": "a boundary some things cross",
+   "uses": 2
+  },
+  {
+   "name": "Expansion",
+   "domain": "Large-scale",
+   "tier": 2,
+   "recipe": "ST + Scale",
+   "definition": "the extent itself grows",
+   "uses": 2
+  },
+  {
+   "name": "Orbit",
+   "domain": "Large-scale",
+   "tier": 2,
+   "recipe": "Grv + Velocity",
+   "definition": "falling forever without landing",
+   "uses": 2
+  },
+  {
+   "name": "Attraction",
+   "domain": "Large-scale",
+   "tier": 2,
+   "recipe": "Mss + Grv",
+   "definition": "massive things pull",
+   "uses": 2
+  },
+  {
+   "name": "Collapse",
+   "domain": "Quantum",
+   "tier": 2,
+   "recipe": "Sup + Meas",
+   "definition": "observing forces one",
+   "uses": 2
+  },
+  {
+   "name": "Electromagnet",
+   "domain": "Electrical",
+   "tier": 2,
+   "recipe": "Mag + Amp",
+   "definition": "current makes a field",
+   "uses": 2
+  },
+  {
+   "name": "Resistor",
+   "domain": "Electrical",
+   "tier": 2,
+   "recipe": "Ohm + Conductor",
+   "definition": "a controlled obstruction",
+   "uses": 2
+  },
+  {
+   "name": "Convection",
+   "domain": "Heat",
+   "tier": 2,
+   "recipe": "Ht + Vol + Su",
+   "definition": "hot rises, cold sinks",
+   "uses": 2
+  },
+  {
+   "name": "Conduction",
+   "domain": "Heat",
+   "tier": 2,
+   "recipe": "Ht + Cnd",
+   "definition": "heat crosses to an adjacent cold thing",
+   "uses": 2
+  },
+  {
+   "name": "Threshold map",
+   "domain": "Raw data",
+   "tier": 2,
+   "recipe": "Px + Var",
+   "definition": "where variation is high",
+   "uses": 2
+  },
+  {
+   "name": "Stand-in",
+   "domain": "Adversarial",
+   "tier": 2,
+   "recipe": "Cont + Dec",
+   "definition": "use a neutral object in place of the real one",
+   "uses": 2
+  },
+  {
+   "name": "Entrain",
+   "domain": "Adversarial",
+   "tier": 2,
+   "recipe": "Gaze + Cont",
+   "definition": "synchronise with another's rhythm",
+   "uses": 2
+  },
+  {
+   "name": "Decoy",
+   "domain": "Adversarial",
+   "tier": 2,
+   "recipe": "Gaze + Goal",
+   "definition": "attend to one thing to redirect inference about another",
+   "uses": 2
+  },
+  {
+   "name": "Conceal",
+   "domain": "Adversarial",
+   "tier": 2,
+   "recipe": "Dec + L1",
+   "definition": "occupy the part another cannot see",
+   "uses": 2
+  },
+  {
+   "name": "Measure",
+   "domain": "Human",
+   "tier": 2,
+   "recipe": "Nu + Ge",
+   "definition": "assign a magnitude to a spatial feature",
+   "uses": 2
+  },
+  {
+   "name": "Imitate",
+   "domain": "Human",
+   "tier": 2,
+   "recipe": "An + Fo",
+   "definition": "predict a consequence, then perform it",
+   "uses": 2
+  },
+  {
+   "name": "Predict",
+   "domain": "Human",
+   "tier": 2,
+   "recipe": "St + Ca",
+   "definition": "infer the next state from the last",
+   "uses": 2
+  },
+  {
+   "name": "Chunk",
+   "domain": "Human",
+   "tier": 2,
+   "recipe": "Gs + St",
+   "definition": "a repeating sequence becomes one unit",
+   "uses": 2
+  },
+  {
+   "name": "Pass through",
+   "domain": "Human",
+   "tier": 2,
+   "recipe": "Ct + To",
+   "definition": "a thing crosses an opening",
+   "uses": 2
+  },
+  {
+   "name": "Collide",
+   "domain": "Human",
+   "tier": 2,
+   "recipe": "So + Ca",
+   "definition": "a struck thing moves; an unstruck one does not",
+   "uses": 2
+  },
+  {
+   "name": "Recolour",
+   "domain": "Human",
+   "tier": 2,
+   "recipe": "Co + Featural identity",
+   "definition": "appearance changes, identity does not",
+   "uses": 2
+  },
+  {
+   "name": "Economic",
+   "domain": "Transformation",
+   "tier": 6,
+   "recipe": "51",
+   "definition": "50",
+   "uses": 1
+  },
+  {
+   "name": "Spark",
+   "domain": "Transformation",
+   "tier": 2,
+   "recipe": "Catalyst + Change + Initiate",
+   "definition": "The precipitation of change.",
+   "uses": 1
+  },
+  {
+   "name": "Alter",
+   "domain": "Transformation",
+   "tier": 2,
+   "recipe": "Form + Mut + Change",
+   "definition": "A change in fundamental nature.",
+   "uses": 1
+  },
+  {
+   "name": "Collaborative",
+   "domain": "Learning",
+   "tier": 4,
+   "recipe": "Social + Learn + Share + Build",
+   "definition": "Learning through interaction with others. The \"community.\"",
+   "uses": 1
+  },
+  {
+   "name": "Generalize",
+   "domain": "Learning",
+   "tier": 2,
+   "recipe": "Transfer + Domain + Domain",
+   "definition": "The application of knowledge from one domain to another. The \"application.\"",
+   "uses": 1
+  },
+  {
+   "name": "Recall",
+   "domain": "Learning",
+   "tier": 2,
+   "recipe": "Retrieve + Cue + Access",
+   "definition": "The act of retrieving stored knowledge. The \"remembering.\"",
+   "uses": 1
+  },
+  {
+   "name": "Memorize",
+   "domain": "Learning",
+   "tier": 2,
+   "recipe": "Store + Rehearsal + Consolidation",
+   "definition": "The act of committing information to memory. The \"retention.\"",
+   "uses": 1
+  },
+  {
+   "name": "Traverse",
+   "domain": "Network",
+   "tier": 2,
+   "recipe": "Node + Edge + Node",
+   "definition": "Moving through a network. The \"pathfinding.\"",
+   "uses": 1
+  },
+  {
+   "name": "Connect",
+   "domain": "Network",
+   "tier": 2,
+   "recipe": "Node + Node + Edge",
+   "definition": "The fundamental act of network construction. Creating a link.",
+   "uses": 1
+  },
+  {
+   "name": "Iterate",
+   "domain": "Automaton",
+   "tier": 2,
+   "recipe": "Loop + Trans + Clock",
+   "definition": "The repeated application of transitions over time. The \"automaton running.\"",
+   "uses": 1
+  },
+  {
+   "name": "Adhere",
+   "domain": "Cellular",
+   "tier": 2,
+   "recipe": "Biofilm + Surface + Attachment",
+   "definition": "A bacterium attaches to a surface and begins to form a biofilm.",
+   "uses": 1
+  },
+  {
+   "name": "Divide",
+   "domain": "Cellular",
+   "tier": 2,
+   "recipe": "Cell + Replication + Copy",
+   "definition": "The fundamental act of cellular reproduction. Mitosis, binary fission.",
+   "uses": 1
+  },
+  {
+   "name": "Ascend",
+   "domain": "Somnial",
+   "tier": 2,
+   "recipe": "Sleep + Wake + Transition",
+   "definition": "The act of waking up. The return to the conscious world.",
+   "uses": 1
+  },
+  {
+   "name": "Sell",
+   "domain": "Exchange",
+   "tier": 2,
+   "recipe": "Resource + Currency + Transaction",
+   "definition": "Giving a resource in exchange for currency. The \"sale.\"",
+   "uses": 1
+  },
+  {
+   "name": "Buy",
+   "domain": "Exchange",
+   "tier": 2,
+   "recipe": "Resource + Currency + Transaction",
+   "definition": "Acquiring a resource by giving currency. The \"purchase.\"",
+   "uses": 1
+  },
+  {
+   "name": "Longing",
+   "domain": "Desire",
+   "tier": 4,
+   "recipe": "Desire + Absence + Nostalgia (Temp)",
+   "definition": "A desire for something that is absent or distant. The ache of separation.",
+   "uses": 1
+  },
+  {
+   "name": "Passion",
+   "domain": "Desire",
+   "tier": 4,
+   "recipe": "Desire + Intensity + Commitment (Adh) + Sustained",
+   "definition": "An intense, sustained desire that becomes part of one's identity.",
+   "uses": 1
+  },
+  {
+   "name": "Replace",
+   "domain": "Habit",
+   "tier": 2,
+   "recipe": "Old_Habit + New_Routine + Rew",
+   "definition": "Substituting a new behavior for an old one in response to the same cue.",
+   "uses": 1
+  },
+  {
+   "name": "Reframe",
+   "domain": "Thought",
+   "tier": 3,
+   "recipe": "Conc + Context + Meaning (shift)",
+   "definition": "Change the conceptual lens through which a situation is viewed.",
+   "uses": 1
+  },
+  {
+   "name": "Counterargue",
+   "domain": "Thought",
+   "tier": 2,
+   "recipe": "Rhet + Prop + Opposition",
+   "definition": "Generate an argument against a proposition. The \"devil's advocate.\"",
+   "uses": 1
+  },
+  {
+   "name": "Connect",
+   "domain": "Action",
+   "tier": 3,
+   "recipe": "Grab + Move + Contact (matching)",
+   "definition": "Link two objects or systems.",
+   "uses": 1
+  },
+  {
+   "name": "Swing",
+   "domain": "Action",
+   "tier": 3,
+   "recipe": "Grab + Move (pendular) + Tim (rhythmic)",
+   "definition": "Move an object or self in an arc.",
+   "uses": 1
+  },
+  {
+   "name": "Hold",
+   "domain": "Action",
+   "tier": 2,
+   "recipe": "Grab + Dur (sustained) + Agen (continuous)",
+   "definition": "Maintaining a grip or position over time. The \"sustained action.\"",
+   "uses": 1
+  },
+  {
+   "name": "Pain",
+   "domain": "Phenomenological",
+   "tier": 2,
+   "recipe": "Qual + Injury + Aversive_Feel",
+   "definition": "The raw, unpleasant, bodily-embedded feeling of damage or threat.",
+   "uses": 1
+  },
+  {
+   "name": "Uptake",
+   "domain": "Nutritional",
+   "tier": 2,
+   "recipe": "Abs + Membrane (Bio) + Transporter",
+   "definition": "Move the monomers from the gut into the bloodstream/interior.",
+   "uses": 1
+  },
+  {
+   "name": "Ontological shock",
+   "domain": "Ontological",
+   "tier": 3,
+   "recipe": "Rea + Sim + Collision",
+   "definition": "The realization that your reality is a simulation. The \"red pill\" moment.",
+   "uses": 1
+  },
+  {
+   "name": "Evapotranspiration",
+   "domain": "Atmospheric",
+   "tier": 2,
+   "recipe": "Hum + Water (Aquatic) + Heat (Thermo)",
+   "definition": "Water evaporates from the surface and transpires from plants. The source of atmospheric moisture.",
+   "uses": 1
+  },
+  {
+   "name": "Convection",
+   "domain": "Atmospheric",
+   "tier": 2,
+   "recipe": "Temp + Hum + Rise",
+   "definition": "Warm, moist air rises. Cooler, denser air sinks. The vertical circulation of the atmosphere.",
+   "uses": 1
+  },
+  {
+   "name": "Epidemic",
+   "domain": "Medical",
+   "tier": 3,
+   "recipe": "Cont + Population + Spread",
+   "definition": "A disease spreads rapidly through a community. Exponential growth.",
+   "uses": 1
+  },
+  {
+   "name": "Ambiguity",
+   "domain": "Linguistic",
+   "tier": 4,
+   "recipe": "Syn + Sem + Multiple_Interpretations",
+   "definition": "A sentence with more than one possible meaning. \"I saw the man with the telescope.\"",
+   "uses": 1
+  },
+  {
+   "name": "Interpretation",
+   "domain": "Linguistic",
+   "tier": 3,
+   "recipe": "Text + Context + Reader",
+   "definition": "The process of deriving meaning from a text. The reader actively constructs meaning.",
+   "uses": 1
+  },
+  {
+   "name": "Reference",
+   "domain": "Linguistic",
+   "tier": 2,
+   "recipe": "Sign + World + Pointing",
+   "definition": "The relationship between a symbol and the object/event it points to. The act of naming.",
+   "uses": 1
+  },
+  {
+   "name": "Sentence",
+   "domain": "Linguistic",
+   "tier": 2,
+   "recipe": "Word + Syn + Sem",
+   "definition": "A structured sequence of words that expresses a complete thought. The unit of propositional meaning.",
+   "uses": 1
+  },
+  {
+   "name": "Gratitude",
+   "domain": "Emotion",
+   "tier": 3,
+   "recipe": "Joy + Benefactor + Social (Soc)",
+   "definition": "Positive valence toward an agent who provided a benefit. Promotes reciprocity.",
+   "uses": 1
+  },
+  {
+   "name": "Shame",
+   "domain": "Emotion",
+   "tier": 3,
+   "recipe": "Sad + Fear (social) + Self (exposed)",
+   "definition": "Negative valence directed at the self for a social failure. Promotes withdrawal.",
+   "uses": 1
+  },
+  {
+   "name": "Pride",
+   "domain": "Emotion",
+   "tier": 3,
+   "recipe": "Joy + Achievement + Self (Psych)",
+   "definition": "Positive valence directed at the self for an accomplishment. Promotes future effort.",
+   "uses": 1
+  },
+  {
+   "name": "Guilt",
+   "domain": "Emotion",
+   "tier": 3,
+   "recipe": "Sad + Ang (inward) + Action (wrong)",
+   "definition": "Negative valence directed at the self for a perceived transgression. Promotes reparation.",
+   "uses": 1
+  },
+  {
+   "name": "Slice",
+   "domain": "Topological",
+   "tier": 2,
+   "recipe": "Dim + Cross-Section",
+   "definition": "Cut a higher-dimensional object to see its lower-dimensional shadow. A 4D hypersphere appears as a 3D sphere that changes size.",
+   "uses": 1
+  },
+  {
+   "name": "Wrap",
+   "domain": "Topological",
+   "tier": 2,
+   "recipe": "Bound + Identification",
+   "definition": "Glue opposite edges of a rectangle. Creates a cylinder, torus, or Klein bottle. The grid wraps around.",
+   "uses": 1
+  },
+  {
+   "name": "Recall",
+   "domain": "Mnemonic",
+   "tier": 2,
+   "recipe": "Retrieve + Cue + Trace",
+   "definition": "Actively reconstruct a memory from a partial cue. The act of bringing the past into the present.",
+   "uses": 1
+  },
+  {
+   "name": "Fatalism",
+   "domain": "Aleatory",
+   "tier": 4,
+   "recipe": "Fate + Prob (ignored) + Action (passive)",
+   "definition": "The belief that outcomes are predetermined. Action is meaningless.",
+   "uses": 1
+  },
+  {
+   "name": "Exploit",
+   "domain": "Ludological",
+   "tier": 5,
+   "recipe": "Con + Unintended_Interaction + Utility",
+   "definition": "A sequence of actions that leverages a rule interaction not intended by the designer. A \"cheat\" within the rules.",
+   "uses": 1
+  },
+  {
+   "name": "Ruleset",
+   "domain": "Ludological",
+   "tier": 2,
+   "recipe": "Con + Op + Imp",
+   "definition": "The complete set of rules that define the game. The game's \"constitution.\"",
+   "uses": 1
+  },
+  {
+   "name": "Play",
+   "domain": "Ludological",
+   "tier": 2,
+   "recipe": "Op + Action + Magic",
+   "definition": "Engage in the game. Perform an action within the magic circle.",
+   "uses": 1
+  },
+  {
+   "name": "Gossip",
+   "domain": "Social",
+   "tier": 2,
+   "recipe": "Net + Rep + Communication",
+   "definition": "Information about an individual's reputation spreads through the network.",
+   "uses": 1
+  },
+  {
+   "name": "Imitation",
+   "domain": "Social",
+   "tier": 2,
+   "recipe": "Ind + Inf + Observe",
+   "definition": "Copy the actions of another agent. Learning through observation.",
+   "uses": 1
+  },
+  {
+   "name": "Nostalgia",
+   "domain": "Temporal",
+   "tier": 5,
+   "recipe": "Ret + Emotion (positive) + Ant (longing)",
+   "definition": "A bittersweet longing for a past state. The desire to return to a previous temporal configuration.",
+   "uses": 1
+  },
+  {
+   "name": "Project",
+   "domain": "Temporal",
+   "tier": 2,
+   "recipe": "Fores + State",
+   "definition": "Simulate the future state of the grid N frames ahead. See the consequences before they happen.",
+   "uses": 1
+  },
+  {
+   "name": "Wait",
+   "domain": "Temporal",
+   "tier": 2,
+   "recipe": "Dur + Patience",
+   "definition": "Do nothing for a specified number of frames. Allows other processes to catch up.",
+   "uses": 1
+  },
+  {
+   "name": "Soundscape",
+   "domain": "Acoustic",
+   "tier": 6,
+   "recipe": "Echo + Reverb + Ambient + Listener",
+   "definition": "The entire acoustic environment as perceived by a listener. The background hum of existence.",
+   "uses": 1
+  },
+  {
+   "name": "Coherence",
+   "domain": "Acoustic",
+   "tier": 6,
+   "recipe": "Intf + Correlation + Phase",
+   "definition": "A measure of how \"together\" different parts of a sound wave are. High coherence = a pure tone; low = noise.",
+   "uses": 1
+  },
+  {
+   "name": "Echolocation",
+   "domain": "Acoustic",
+   "tier": 2,
+   "recipe": "Echo + Receiver + Delay",
+   "definition": "Emit a sound pulse; measure the time until the echo returns. Distance = (speed \u00d7 time) / 2. Maps the environment in darkness.",
+   "uses": 1
+  },
+  {
+   "name": "Periscope",
+   "domain": "Optical",
+   "tier": 3,
+   "recipe": "MIRROR + MIRROR (parallel, 45\u00b0)",
+   "definition": "Two parallel mirrors at 45\u00b0. Allows you to see over/around obstacles without exposing yourself.",
+   "uses": 1
+  },
+  {
+   "name": "Filter",
+   "domain": "Optical",
+   "tier": 2,
+   "recipe": "Abso (selective) + Tran",
+   "definition": "A material that absorbs some wavelengths and transmits others (e.g., a red filter only lets red through).",
+   "uses": 1
+  }
+ ]
+}

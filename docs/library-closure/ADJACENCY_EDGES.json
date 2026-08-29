@@ -1,0 +1,1427 @@
+[
+ {
+  "a": "Human",
+  "b": "Mechanical",
+  "w": 10
+ },
+ {
+  "a": "Economic",
+  "b": "Exchange",
+  "w": 6
+ },
+ {
+  "a": "Learning",
+  "b": "Skill",
+  "w": 6
+ },
+ {
+  "a": "Automaton",
+  "b": "Ludological",
+  "w": 5
+ },
+ {
+  "a": "Cybernetic",
+  "b": "Dynamic",
+  "w": 5
+ },
+ {
+  "a": "Exchange",
+  "b": "Social",
+  "w": 5
+ },
+ {
+  "a": "Somnial",
+  "b": "Temporal",
+  "w": 5
+ },
+ {
+  "a": "Information",
+  "b": "Thought",
+  "w": 4
+ },
+ {
+  "a": "Connection",
+  "b": "Habit",
+  "w": 4
+ },
+ {
+  "a": "Pathological",
+  "b": "Phenomenological",
+  "w": 4
+ },
+ {
+  "a": "Fluid",
+  "b": "Human",
+  "w": 3
+ },
+ {
+  "a": "Large-scale",
+  "b": "Skill",
+  "w": 3
+ },
+ {
+  "a": "Acoustic",
+  "b": "Optical",
+  "w": 3
+ },
+ {
+  "a": "Network",
+  "b": "Temporal",
+  "w": 3
+ },
+ {
+  "a": "Aleatory",
+  "b": "Ludological",
+  "w": 3
+ },
+ {
+  "a": "Living",
+  "b": "Logistical",
+  "w": 3
+ },
+ {
+  "a": "Phenomenological",
+  "b": "Thaumaturgical",
+  "w": 3
+ },
+ {
+  "a": "Noetic",
+  "b": "Skill",
+  "w": 3
+ },
+ {
+  "a": "Noetic",
+  "b": "Social",
+  "w": 3
+ },
+ {
+  "a": "Noetic",
+  "b": "Pathological",
+  "w": 3
+ },
+ {
+  "a": "Ontological",
+  "b": "Phenomenological",
+  "w": 3
+ },
+ {
+  "a": "Adherence",
+  "b": "Human",
+  "w": 3
+ },
+ {
+  "a": "Rebellion",
+  "b": "Social",
+  "w": 3
+ },
+ {
+  "a": "Connection",
+  "b": "Desire",
+  "w": 3
+ },
+ {
+  "a": "Exchange",
+  "b": "Ludological",
+  "w": 3
+ },
+ {
+  "a": "Cellular",
+  "b": "Learning",
+  "w": 3
+ },
+ {
+  "a": "Learning",
+  "b": "Lineage",
+  "w": 3
+ },
+ {
+  "a": "Lineage",
+  "b": "Phenomenological",
+  "w": 3
+ },
+ {
+  "a": "Automaton",
+  "b": "Transformation",
+  "w": 3
+ },
+ {
+  "a": "Network",
+  "b": "Social",
+  "w": 3
+ },
+ {
+  "a": "Connection",
+  "b": "Learning",
+  "w": 3
+ },
+ {
+  "a": "Learning",
+  "b": "Phenomenological",
+  "w": 3
+ },
+ {
+  "a": "Adversarial",
+  "b": "Medical",
+  "w": 2
+ },
+ {
+  "a": "Human",
+  "b": "Ludological",
+  "w": 2
+ },
+ {
+  "a": "Human",
+  "b": "Learning",
+  "w": 2
+ },
+ {
+  "a": "Fluid",
+  "b": "Raw data",
+  "w": 2
+ },
+ {
+  "a": "Automaton",
+  "b": "Human",
+  "w": 2
+ },
+ {
+  "a": "Human",
+  "b": "Kinetic",
+  "w": 2
+ },
+ {
+  "a": "Chemical",
+  "b": "Dynamic",
+  "w": 2
+ },
+ {
+  "a": "Dynamic",
+  "b": "Psychological",
+  "w": 2
+ },
+ {
+  "a": "Ludological",
+  "b": "Social",
+  "w": 2
+ },
+ {
+  "a": "Kinetic",
+  "b": "Topological",
+  "w": 2
+ },
+ {
+  "a": "Emotion",
+  "b": "Psychological",
+  "w": 2
+ },
+ {
+  "a": "Emotion",
+  "b": "Phenomenological",
+  "w": 2
+ },
+ {
+  "a": "Linguistic",
+  "b": "Phenomenological",
+  "w": 2
+ },
+ {
+  "a": "Medical",
+  "b": "Pathological",
+  "w": 2
+ },
+ {
+  "a": "Atmospheric",
+  "b": "Phenomenological",
+  "w": 2
+ },
+ {
+  "a": "Ontological",
+  "b": "Transformation",
+  "w": 2
+ },
+ {
+  "a": "Temporal",
+  "b": "Zoological",
+  "w": 2
+ },
+ {
+  "a": "Cellular",
+  "b": "Nutritional",
+  "w": 2
+ },
+ {
+  "a": "Chemical",
+  "b": "Morphogenetic",
+  "w": 2
+ },
+ {
+  "a": "Information",
+  "b": "Morphogenetic",
+  "w": 2
+ },
+ {
+  "a": "Action",
+  "b": "Phenomenological",
+  "w": 2
+ },
+ {
+  "a": "Aleatory",
+  "b": "Choice",
+  "w": 2
+ },
+ {
+  "a": "Choice",
+  "b": "Phenomenological",
+  "w": 2
+ },
+ {
+  "a": "Habit",
+  "b": "Thought",
+  "w": 2
+ },
+ {
+  "a": "Character",
+  "b": "Learning",
+  "w": 2
+ },
+ {
+  "a": "Character",
+  "b": "Phenomenological",
+  "w": 2
+ },
+ {
+  "a": "Adherence",
+  "b": "Social",
+  "w": 2
+ },
+ {
+  "a": "Automaton",
+  "b": "Rebellion",
+  "w": 2
+ },
+ {
+  "a": "Curiosity",
+  "b": "Habit",
+  "w": 2
+ },
+ {
+  "a": "Aleatory",
+  "b": "Curiosity",
+  "w": 2
+ },
+ {
+  "a": "Curiosity",
+  "b": "Phenomenological",
+  "w": 2
+ },
+ {
+  "a": "Connection",
+  "b": "Morphogenetic",
+  "w": 2
+ },
+ {
+  "a": "Connection",
+  "b": "Social",
+  "w": 2
+ },
+ {
+  "a": "Adherence",
+  "b": "Exchange",
+  "w": 2
+ },
+ {
+  "a": "Phenomenological",
+  "b": "Somnial",
+  "w": 2
+ },
+ {
+  "a": "Cellular",
+  "b": "Living",
+  "w": 2
+ },
+ {
+  "a": "Aesthetic",
+  "b": "Lineage",
+  "w": 2
+ },
+ {
+  "a": "Lineage",
+  "b": "Transformation",
+  "w": 2
+ },
+ {
+  "a": "Automaton",
+  "b": "Thought",
+  "w": 2
+ },
+ {
+  "a": "Automaton",
+  "b": "Social",
+  "w": 2
+ },
+ {
+  "a": "Human",
+  "b": "Network",
+  "w": 2
+ },
+ {
+  "a": "Habit",
+  "b": "Skill",
+  "w": 2
+ },
+ {
+  "a": "Skill",
+  "b": "Temporal",
+  "w": 2
+ },
+ {
+  "a": "Connection",
+  "b": "Transformation",
+  "w": 2
+ },
+ {
+  "a": "Adversarial",
+  "b": "Desire",
+  "w": 1
+ },
+ {
+  "a": "Aleatory",
+  "b": "Quantum",
+  "w": 1
+ },
+ {
+  "a": "Kinetic",
+  "b": "Large-scale",
+  "w": 1
+ },
+ {
+  "a": "Human",
+  "b": "Psychological",
+  "w": 1
+ },
+ {
+  "a": "Adversarial",
+  "b": "Human",
+  "w": 1
+ },
+ {
+  "a": "Heat",
+  "b": "Human",
+  "w": 1
+ },
+ {
+  "a": "Electrical",
+  "b": "Habit",
+  "w": 1
+ },
+ {
+  "a": "Large-scale",
+  "b": "Quantum",
+  "w": 1
+ },
+ {
+  "a": "Human",
+  "b": "Transformation",
+  "w": 1
+ },
+ {
+  "a": "Heat",
+  "b": "Mechanical",
+  "w": 1
+ },
+ {
+  "a": "Adversarial",
+  "b": "Heat",
+  "w": 1
+ },
+ {
+  "a": "Information",
+  "b": "Quantum",
+  "w": 1
+ },
+ {
+  "a": "Kinetic",
+  "b": "Ludological",
+  "w": 1
+ },
+ {
+  "a": "Exchange",
+  "b": "Kinetic",
+  "w": 1
+ },
+ {
+  "a": "Action",
+  "b": "Kinetic",
+  "w": 1
+ },
+ {
+  "a": "Dynamic",
+  "b": "Kinetic",
+  "w": 1
+ },
+ {
+  "a": "Kinetic",
+  "b": "Learning",
+  "w": 1
+ },
+ {
+  "a": "Kinetic",
+  "b": "Nutritional",
+  "w": 1
+ },
+ {
+  "a": "Choice",
+  "b": "Dynamic",
+  "w": 1
+ },
+ {
+  "a": "Dynamic",
+  "b": "Exchange",
+  "w": 1
+ },
+ {
+  "a": "Dynamic",
+  "b": "Temporal",
+  "w": 1
+ },
+ {
+  "a": "Chemical",
+  "b": "Transformation",
+  "w": 1
+ },
+ {
+  "a": "Chemical",
+  "b": "Living",
+  "w": 1
+ },
+ {
+  "a": "Large-scale",
+  "b": "Psychological",
+  "w": 1
+ },
+ {
+  "a": "Information",
+  "b": "Psychological",
+  "w": 1
+ },
+ {
+  "a": "Desire",
+  "b": "Psychological",
+  "w": 1
+ },
+ {
+  "a": "Living",
+  "b": "Psychological",
+  "w": 1
+ },
+ {
+  "a": "Noetic",
+  "b": "Psychological",
+  "w": 1
+ },
+ {
+  "a": "Aleatory",
+  "b": "Economic",
+  "w": 1
+ },
+ {
+  "a": "Automaton",
+  "b": "Economic",
+  "w": 1
+ },
+ {
+  "a": "Economic",
+  "b": "Ludological",
+  "w": 1
+ },
+ {
+  "a": "Economic",
+  "b": "Living",
+  "w": 1
+ },
+ {
+  "a": "Aesthetic",
+  "b": "Ludological",
+  "w": 1
+ },
+ {
+  "a": "Aesthetic",
+  "b": "Kinetic",
+  "w": 1
+ },
+ {
+  "a": "Aesthetic",
+  "b": "Living",
+  "w": 1
+ },
+ {
+  "a": "Aesthetic",
+  "b": "Linguistic",
+  "w": 1
+ },
+ {
+  "a": "Aesthetic",
+  "b": "Nutritional",
+  "w": 1
+ },
+ {
+  "a": "Electrical",
+  "b": "Embodiment",
+  "w": 1
+ },
+ {
+  "a": "Embodiment",
+  "b": "Raw data",
+  "w": 1
+ },
+ {
+  "a": "Embodiment",
+  "b": "Living",
+  "w": 1
+ },
+ {
+  "a": "Dynamic",
+  "b": "Material",
+  "w": 1
+ },
+ {
+  "a": "Material",
+  "b": "Psychological",
+  "w": 1
+ },
+ {
+  "a": "Material",
+  "b": "Social",
+  "w": 1
+ },
+ {
+  "a": "Optical",
+  "b": "Quantum",
+  "w": 1
+ },
+ {
+  "a": "Optical",
+  "b": "Social",
+  "w": 1
+ },
+ {
+  "a": "Aesthetic",
+  "b": "Optical",
+  "w": 1
+ },
+ {
+  "a": "Acoustic",
+  "b": "Exchange",
+  "w": 1
+ },
+ {
+  "a": "Acoustic",
+  "b": "Quantum",
+  "w": 1
+ },
+ {
+  "a": "Acoustic",
+  "b": "Large-scale",
+  "w": 1
+ },
+ {
+  "a": "Acoustic",
+  "b": "Information",
+  "w": 1
+ },
+ {
+  "a": "Acoustic",
+  "b": "Skill",
+  "w": 1
+ },
+ {
+  "a": "Acoustic",
+  "b": "Material",
+  "w": 1
+ },
+ {
+  "a": "Acoustic",
+  "b": "Aesthetic",
+  "w": 1
+ },
+ {
+  "a": "Acoustic",
+  "b": "Transformation",
+  "w": 1
+ },
+ {
+  "a": "Desire",
+  "b": "Temporal",
+  "w": 1
+ },
+ {
+  "a": "Living",
+  "b": "Temporal",
+  "w": 1
+ },
+ {
+  "a": "Economic",
+  "b": "Social",
+  "w": 1
+ },
+ {
+  "a": "Learning",
+  "b": "Social",
+  "w": 1
+ },
+ {
+  "a": "Living",
+  "b": "Social",
+  "w": 1
+ },
+ {
+  "a": "Action",
+  "b": "Ludological",
+  "w": 1
+ },
+ {
+  "a": "Ludological",
+  "b": "Phenomenological",
+  "w": 1
+ },
+ {
+  "a": "Aleatory",
+  "b": "Linguistic",
+  "w": 1
+ },
+ {
+  "a": "Aleatory",
+  "b": "Connection",
+  "w": 1
+ },
+ {
+  "a": "Aleatory",
+  "b": "Automaton",
+  "w": 1
+ },
+ {
+  "a": "Aleatory",
+  "b": "Ontological",
+  "w": 1
+ },
+ {
+  "a": "Information",
+  "b": "Mnemonic",
+  "w": 1
+ },
+ {
+  "a": "Mnemonic",
+  "b": "Nutritional",
+  "w": 1
+ },
+ {
+  "a": "Mnemonic",
+  "b": "Quantum",
+  "w": 1
+ },
+ {
+  "a": "Fluid",
+  "b": "Mnemonic",
+  "w": 1
+ },
+ {
+  "a": "Connection",
+  "b": "Mnemonic",
+  "w": 1
+ },
+ {
+  "a": "Learning",
+  "b": "Mnemonic",
+  "w": 1
+ },
+ {
+  "a": "Aesthetic",
+  "b": "Topological",
+  "w": 1
+ },
+ {
+  "a": "Automaton",
+  "b": "Topological",
+  "w": 1
+ },
+ {
+  "a": "Large-scale",
+  "b": "Topological",
+  "w": 1
+ },
+ {
+  "a": "Choice",
+  "b": "Logistical",
+  "w": 1
+ },
+ {
+  "a": "Logistical",
+  "b": "Nutritional",
+  "w": 1
+ },
+ {
+  "a": "Learning",
+  "b": "Logistical",
+  "w": 1
+ },
+ {
+  "a": "Aleatory",
+  "b": "Logistical",
+  "w": 1
+ },
+ {
+  "a": "Ludological",
+  "b": "Thaumaturgical",
+  "w": 1
+ },
+ {
+  "a": "Large-scale",
+  "b": "Noetic",
+  "w": 1
+ },
+ {
+  "a": "Noetic",
+  "b": "Transformation",
+  "w": 1
+ },
+ {
+  "a": "Aesthetic",
+  "b": "Noetic",
+  "w": 1
+ },
+ {
+  "a": "Emotion",
+  "b": "Habit",
+  "w": 1
+ },
+ {
+  "a": "Emotion",
+  "b": "Living",
+  "w": 1
+ },
+ {
+  "a": "Emotion",
+  "b": "Temporal",
+  "w": 1
+ },
+ {
+  "a": "Dynamic",
+  "b": "Emotion",
+  "w": 1
+ },
+ {
+  "a": "Choice",
+  "b": "Cybernetic",
+  "w": 1
+ },
+ {
+  "a": "Cybernetic",
+  "b": "Transformation",
+  "w": 1
+ },
+ {
+  "a": "Cybernetic",
+  "b": "Living",
+  "w": 1
+ },
+ {
+  "a": "Cybernetic",
+  "b": "Economic",
+  "w": 1
+ },
+ {
+  "a": "Cybernetic",
+  "b": "Ontological",
+  "w": 1
+ },
+ {
+  "a": "Linguistic",
+  "b": "Skill",
+  "w": 1
+ },
+ {
+  "a": "Linguistic",
+  "b": "Ontological",
+  "w": 1
+ },
+ {
+  "a": "Linguistic",
+  "b": "Transformation",
+  "w": 1
+ },
+ {
+  "a": "Living",
+  "b": "Medical",
+  "w": 1
+ },
+ {
+  "a": "Atmospheric",
+  "b": "Human",
+  "w": 1
+ },
+ {
+  "a": "Atmospheric",
+  "b": "Dynamic",
+  "w": 1
+ },
+ {
+  "a": "Aesthetic",
+  "b": "Ontological",
+  "w": 1
+ },
+ {
+  "a": "Noetic",
+  "b": "Ontological",
+  "w": 1
+ },
+ {
+  "a": "Learning",
+  "b": "Ontological",
+  "w": 1
+ },
+ {
+  "a": "Ontological",
+  "b": "Thought",
+  "w": 1
+ },
+ {
+  "a": "Habit",
+  "b": "Ontological",
+  "w": 1
+ },
+ {
+  "a": "Action",
+  "b": "Ontological",
+  "w": 1
+ },
+ {
+  "a": "Exchange",
+  "b": "Ontological",
+  "w": 1
+ },
+ {
+  "a": "Human",
+  "b": "Ontological",
+  "w": 1
+ },
+ {
+  "a": "Adversarial",
+  "b": "Zoological",
+  "w": 1
+ },
+ {
+  "a": "Living",
+  "b": "Zoological",
+  "w": 1
+ },
+ {
+  "a": "Acoustic",
+  "b": "Nutritional",
+  "w": 1
+ },
+ {
+  "a": "Learning",
+  "b": "Nutritional",
+  "w": 1
+ },
+ {
+  "a": "Human",
+  "b": "Nutritional",
+  "w": 1
+ },
+ {
+  "a": "Chemical",
+  "b": "Nutritional",
+  "w": 1
+ },
+ {
+  "a": "Morphogenetic",
+  "b": "Social",
+  "w": 1
+ },
+ {
+  "a": "Material",
+  "b": "Morphogenetic",
+  "w": 1
+ },
+ {
+  "a": "Cellular",
+  "b": "Morphogenetic",
+  "w": 1
+ },
+ {
+  "a": "Kinetic",
+  "b": "Morphogenetic",
+  "w": 1
+ },
+ {
+  "a": "Choice",
+  "b": "Morphogenetic",
+  "w": 1
+ },
+ {
+  "a": "Large-scale",
+  "b": "Morphogenetic",
+  "w": 1
+ },
+ {
+  "a": "Mnemonic",
+  "b": "Morphogenetic",
+  "w": 1
+ },
+ {
+  "a": "Dynamic",
+  "b": "Morphogenetic",
+  "w": 1
+ },
+ {
+  "a": "Living",
+  "b": "Morphogenetic",
+  "w": 1
+ },
+ {
+  "a": "Connection",
+  "b": "Phenomenological",
+  "w": 1
+ },
+ {
+  "a": "Embodiment",
+  "b": "Phenomenological",
+  "w": 1
+ },
+ {
+  "a": "Action",
+  "b": "Skill",
+  "w": 1
+ },
+ {
+  "a": "Action",
+  "b": "Human",
+  "w": 1
+ },
+ {
+  "a": "Action",
+  "b": "Habit",
+  "w": 1
+ },
+ {
+  "a": "Action",
+  "b": "Choice",
+  "w": 1
+ },
+ {
+  "a": "Learning",
+  "b": "Thought",
+  "w": 1
+ },
+ {
+  "a": "Phenomenological",
+  "b": "Thought",
+  "w": 1
+ },
+ {
+  "a": "Living",
+  "b": "Thought",
+  "w": 1
+ },
+ {
+  "a": "Choice",
+  "b": "Thought",
+  "w": 1
+ },
+ {
+  "a": "Character",
+  "b": "Economic",
+  "w": 1
+ },
+ {
+  "a": "Character",
+  "b": "Linguistic",
+  "w": 1
+ },
+ {
+  "a": "Character",
+  "b": "Connection",
+  "w": 1
+ },
+ {
+  "a": "Character",
+  "b": "Ontological",
+  "w": 1
+ },
+ {
+  "a": "Character",
+  "b": "Medical",
+  "w": 1
+ },
+ {
+  "a": "Character",
+  "b": "Skill",
+  "w": 1
+ },
+ {
+  "a": "Character",
+  "b": "Human",
+  "w": 1
+ },
+ {
+  "a": "Character",
+  "b": "Temporal",
+  "w": 1
+ },
+ {
+  "a": "Habit",
+  "b": "Living",
+  "w": 1
+ },
+ {
+  "a": "Action",
+  "b": "Adherence",
+  "w": 1
+ },
+ {
+  "a": "Adherence",
+  "b": "Desire",
+  "w": 1
+ },
+ {
+  "a": "Adherence",
+  "b": "Habit",
+  "w": 1
+ },
+ {
+  "a": "Adherence",
+  "b": "Phenomenological",
+  "w": 1
+ },
+ {
+  "a": "Human",
+  "b": "Rebellion",
+  "w": 1
+ },
+ {
+  "a": "Phenomenological",
+  "b": "Rebellion",
+  "w": 1
+ },
+ {
+  "a": "Curiosity",
+  "b": "Large-scale",
+  "w": 1
+ },
+ {
+  "a": "Curiosity",
+  "b": "Kinetic",
+  "w": 1
+ },
+ {
+  "a": "Curiosity",
+  "b": "Ontological",
+  "w": 1
+ },
+ {
+  "a": "Connection",
+  "b": "Psychological",
+  "w": 1
+ },
+ {
+  "a": "Connection",
+  "b": "Large-scale",
+  "w": 1
+ },
+ {
+  "a": "Connection",
+  "b": "Ludological",
+  "w": 1
+ },
+ {
+  "a": "Connection",
+  "b": "Exchange",
+  "w": 1
+ },
+ {
+  "a": "Acoustic",
+  "b": "Connection",
+  "w": 1
+ },
+ {
+  "a": "Connection",
+  "b": "Network",
+  "w": 1
+ },
+ {
+  "a": "Desire",
+  "b": "Exchange",
+  "w": 1
+ },
+ {
+  "a": "Aleatory",
+  "b": "Exchange",
+  "w": 1
+ },
+ {
+  "a": "Linguistic",
+  "b": "Somnial",
+  "w": 1
+ },
+ {
+  "a": "Emotion",
+  "b": "Somnial",
+  "w": 1
+ },
+ {
+  "a": "Somnial",
+  "b": "Transformation",
+  "w": 1
+ },
+ {
+  "a": "Connection",
+  "b": "Somnial",
+  "w": 1
+ },
+ {
+  "a": "Ontological",
+  "b": "Pathological",
+  "w": 1
+ },
+ {
+  "a": "Habit",
+  "b": "Pathological",
+  "w": 1
+ },
+ {
+  "a": "Pathological",
+  "b": "Temporal",
+  "w": 1
+ },
+ {
+  "a": "Connection",
+  "b": "Pathological",
+  "w": 1
+ },
+ {
+  "a": "Aesthetic",
+  "b": "Pathological",
+  "w": 1
+ },
+ {
+  "a": "Lineage",
+  "b": "Pathological",
+  "w": 1
+ },
+ {
+  "a": "Human",
+  "b": "Pathological",
+  "w": 1
+ },
+ {
+  "a": "Emotion",
+  "b": "Pathological",
+  "w": 1
+ },
+ {
+  "a": "Ludic / Absurdist",
+  "b": "Ludological",
+  "w": 1
+ },
+ {
+  "a": "Linguistic",
+  "b": "Ludic / Absurdist",
+  "w": 1
+ },
+ {
+  "a": "Ludic / Absurdist",
+  "b": "Rebellion",
+  "w": 1
+ },
+ {
+  "a": "Ludic / Absurdist",
+  "b": "Phenomenological",
+  "w": 1
+ },
+ {
+  "a": "Ludic / Absurdist",
+  "b": "Ontological",
+  "w": 1
+ },
+ {
+  "a": "Cellular",
+  "b": "Logistical",
+  "w": 1
+ },
+ {
+  "a": "Cellular",
+  "b": "Connection",
+  "w": 1
+ },
+ {
+  "a": "Cellular",
+  "b": "Medical",
+  "w": 1
+ },
+ {
+  "a": "Cellular",
+  "b": "Psychological",
+  "w": 1
+ },
+ {
+  "a": "Cellular",
+  "b": "Chemical",
+  "w": 1
+ },
+ {
+  "a": "Cellular",
+  "b": "Lineage",
+  "w": 1
+ },
+ {
+  "a": "Cellular",
+  "b": "Social",
+  "w": 1
+ },
+ {
+  "a": "Lineage",
+  "b": "Linguistic",
+  "w": 1
+ },
+ {
+  "a": "Habit",
+  "b": "Lineage",
+  "w": 1
+ },
+ {
+  "a": "Lineage",
+  "b": "Quantum",
+  "w": 1
+ },
+ {
+  "a": "Human",
+  "b": "Lineage",
+  "w": 1
+ },
+ {
+  "a": "Automaton",
+  "b": "Mechanical",
+  "w": 1
+ },
+ {
+  "a": "Automaton",
+  "b": "Living",
+  "w": 1
+ },
+ {
+  "a": "Automaton",
+  "b": "Temporal",
+  "w": 1
+ },
+ {
+  "a": "Automaton",
+  "b": "Habit",
+  "w": 1
+ },
+ {
+  "a": "Automaton",
+  "b": "Desire",
+  "w": 1
+ },
+ {
+  "a": "Morphogenetic",
+  "b": "Network",
+  "w": 1
+ },
+ {
+  "a": "Habit",
+  "b": "Network",
+  "w": 1
+ },
+ {
+  "a": "Logistical",
+  "b": "Network",
+  "w": 1
+ },
+ {
+  "a": "Fluid",
+  "b": "Network",
+  "w": 1
+ },
+ {
+  "a": "Network",
+  "b": "Transformation",
+  "w": 1
+ },
+ {
+  "a": "Dynamic",
+  "b": "Network",
+  "w": 1
+ },
+ {
+  "a": "Living",
+  "b": "Network",
+  "w": 1
+ },
+ {
+  "a": "Exchange",
+  "b": "Network",
+  "w": 1
+ },
+ {
+  "a": "Human",
+  "b": "Skill",
+  "w": 1
+ },
+ {
+  "a": "Logistical",
+  "b": "Skill",
+  "w": 1
+ },
+ {
+  "a": "Aesthetic",
+  "b": "Skill",
+  "w": 1
+ },
+ {
+  "a": "Connection",
+  "b": "Skill",
+  "w": 1
+ },
+ {
+  "a": "Lineage",
+  "b": "Skill",
+  "w": 1
+ },
+ {
+  "a": "Automaton",
+  "b": "Skill",
+  "w": 1
+ },
+ {
+  "a": "Curiosity",
+  "b": "Skill",
+  "w": 1
+ },
+ {
+  "a": "Living",
+  "b": "Transformation",
+  "w": 1
+ },
+ {
+  "a": "Habit",
+  "b": "Transformation",
+  "w": 1
+ },
+ {
+  "a": "Temporal",
+  "b": "Transformation",
+  "w": 1
+ },
+ {
+  "a": "Dynamic",
+  "b": "Transformation",
+  "w": 1
+ },
+ {
+  "a": "Action",
+  "b": "Transformation",
+  "w": 1
+ }
+]
