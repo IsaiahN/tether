@@ -34,6 +34,13 @@ PRIOR, MINTED, IMPORTED = "prior", "minted", "imported"
 # the wipe is a separate and deferred decision, and nothing here presupposes it.
 NECESSARY, PROMOTED = "necessary", "promoted"
 
+# AN OPERAND TYPE HAS TWO FORMS AND ONE SENTINEL IS THE MINIMUM THAT SAYS SO. `recolour`
+# needs a COLOUR whatever slot it is applied to; `translate` needs whatever the TARGET is,
+# because `v + operand` is only meaningful between commensurable quantities. A single fixed
+# string could express the first and not the second, and the second is the one that produced
+# the defect.
+SAME_AS_TARGET = "@same"
+
 # anchor: specified, not grounded -- the formula requires demotion to be weighted and
 # clocked, so a halflife is specified; nothing measures THIS halflife. A refutation is
 # retractable, and how fast is a target for measurement rather than a finding.
@@ -56,6 +63,12 @@ class Atom:
     in_type: str
     out_type: str
     reads_operand: bool = False   # declared at construction, never inferred from the name
+    # WHAT THE OPERAND MUST BE, not only THAT there is one. `0a`'s typing half, whose
+    # trigger fired on a real board: `idn . recolour<o11.h>` bound a HEIGHT as a colour
+    # operator's operand and nothing refused it, because this class typed input and output
+    # and not the operand. `None` means UNDECLARED and is checked nowhere -- an absence the
+    # binder reports rather than a permission.
+    operand_type: str | None = None
 
     def __repr__(self) -> str:
         return f"Atom({self.name})"
@@ -85,6 +98,16 @@ class Term:
     @property
     def reads_operand(self) -> bool:
         return any(a.reads_operand for a in self.atoms)
+
+    @property
+    def operand_type(self) -> str | None:
+        """What the OPERAND-READING atom requires. A Term is what the binder sees, so the
+        requirement has to be reachable from here -- reading it off the Term returned `None`
+        on every one of 911,035 calls and the check was inert."""
+        for a in self.atoms:
+            if a.reads_operand:
+                return a.operand_type
+        return None
 
     def __len__(self) -> int:
         return len(self.atoms)

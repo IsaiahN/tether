@@ -110,6 +110,16 @@ class ArcWorld:
     def slots(self) -> list[str]:
         return sorted(self._decomposed())
 
+    def slot_types(self) -> dict[str, str]:
+        """What KIND of quantity each slot holds. **The loop may not derive this.**
+
+        A slot name is `{object}.{attribute}` and the attribute IS the type -- but that is a
+        fact about how THIS adapter names slots, and a loop that split on `.` would be
+        reading domain structure. Same shape as `alphabet()`: the domain declares, the loop
+        compares.
+        """
+        return {s: s.rsplit(".", 1)[-1] for s in self._decomposed()}
+
     def atoms(self) -> list:
         return list(self._atoms)
 

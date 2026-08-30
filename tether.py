@@ -16,6 +16,7 @@ from typing import Any
 import grammar as G
 import instruments as I
 import retrieval
+from gamma import SAME_AS_TARGET as G_SAME
 from gamma import Ctx, Gamma, Term
 from ledger import (
     ADVANCE,
@@ -159,6 +160,7 @@ class Agent:
         self.env, self.gamma = env, gam
         self.actions = tuple(env.actions())        # asked for, never imported
         self.alphabet = self._alphabets(env)
+        self.slot_types = self._slot_types(env)
         self.cfg = cfg if cfg is not None else Config()
         # not `led or ...`: an empty Ledger has len 0 and is therefore falsy
         self.led = led if led is not None else Ledger(mode=self.cfg.mode)
@@ -282,6 +284,7 @@ class Agent:
         self.slots = env.slots()
         self.actions = tuple(env.actions())       # a new level may advertise differently
         self.alphabet = self._alphabets(env)      # a new level may value slots differently
+        self.slot_types = self._slot_types(env)   # and may type them differently
         self.bound, self.trace = {}, []
         self._disproof: dict[str, dict] = {}
         self._last_action: str | None = None   # what may have changed the gating
@@ -584,6 +587,14 @@ class Agent:
     # -- steps 3 to 5 -------------------------------------------------------------------
 
     @staticmethod
+    def _slot_types(env) -> dict[str, str]:
+        """PER SLOT, and ABSENT IS A READING. A world that declares no types gets `{}` and
+        every operand check is skipped -- which is reported, not assumed. The loop compares
+        strings the domain supplied; it never derives a type from a slot's name."""
+        f = getattr(env, "slot_types", None)
+        return {str(k): str(v) for k, v in f().items()} if f is not None else {}
+
+    @staticmethod
     def _alphabets(env) -> dict[str, int]:
         """PER SLOT. A domain with one range declares one number and every slot gets it;
         a domain whose slots differ declares the difference. The loop's code is uniform
@@ -757,6 +768,28 @@ class Agent:
                              "and owes nothing yet")
         self.slots = list(now)
         self.alphabet = self._alphabets(self.env)
+        self.slot_types = self._slot_types(self.env)
+
+    def _operand_fits(self, cand, target: str, bind: str | None) -> bool:
+        """`0a`'s TYPING half, whose trigger fired on a real board.
+
+        `idn . recolour<o11.h>` bound a HEIGHT as a colour operator's operand. `gamma` typed
+        an atom's input and output **and not its operand**, so nothing refused it.
+
+        **A NECESSARY CONDITION, NOT A PREFERENCE.** It refuses a binding that cannot mean
+        anything -- a row plus a colour -- and never ranks one binding above another. The
+        narrowing costs no capability, which is the only kind of narrowing that is free.
+
+        **AND AN UNDECLARED TYPE ADMITS.** A world with no `slot_types` and an atom with no
+        `operand_type` both fall through to True: the check is absent, not passing.
+        """
+        want = getattr(cand, "operand_type", None)
+        if bind is None or want is None or not self.slot_types:
+            return True
+        if want == G_SAME:
+            want = self.slot_types.get(target)
+        got = self.slot_types.get(bind)
+        return want is None or got is None or want == got
 
     def _bindings(self, slot: str, robs: list) -> list[str | None]:
         """Which slots may fill operand 0, ordered by VARIANCE and never filtered.
@@ -808,7 +841,9 @@ class Agent:
         if guards["support"]:
             for cand in self.gamma.enumerate_closure("val", "val", self.cfg.max_depth,
                                                      self.cfg.budget, stats):
-                for bind in (self._bindings(slot, robs) if cand.reads_operand else [None]):
+                binds = self._bindings(slot, robs) if cand.reads_operand else [None]
+                binds = [x for x in binds if self._operand_fits(cand, slot, x)]
+                for bind in binds:
                     rank += 1
                     term = Term(cand.atoms, operand=bind)
                     if self.gamma.is_atom(term) or term.name in self.gamma.library:

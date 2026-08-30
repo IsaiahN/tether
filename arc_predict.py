@@ -56,7 +56,7 @@ from __future__ import annotations
 
 import sys
 
-from gamma import Atom, Ctx
+from gamma import SAME_AS_TARGET, Atom, Ctx
 
 sys.dont_write_bytecode = True
 
@@ -93,8 +93,15 @@ def predict() -> list[Atom]:
     deliberately and had never been filled by any caller.**
     """
     return [Atom("idn", _idn, "val", "val"),
-            Atom("translate", _translate, "val", "val", reads_operand=True),
-            Atom("recolour", _recolour, "val", "val", reads_operand=True)]
+            # `v + operand` is meaningful only between commensurable quantities, so the
+            # operand must be whatever the target is. A row plus a colour is arithmetic
+            # that type-checks and means nothing.
+            Atom("translate", _translate, "val", "val", reads_operand=True,
+                 operand_type=SAME_AS_TARGET),
+            # `v -> operand` puts the operand IN the slot, so it must be a colour whatever
+            # the target is. THIS IS THE DEFECT'S OWN SITE: `idn . recolour<o11.h>`.
+            Atom("recolour", _recolour, "val", "val", reads_operand=True,
+                 operand_type="colour")]
 
 
 def unexpressible() -> dict[str, str]:
