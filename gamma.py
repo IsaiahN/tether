@@ -17,7 +17,7 @@ Reports lambda, the spectral radius of the type transfer matrix, against V = |at
 
 from __future__ import annotations
 
-import hashlib
+import random
 import sys
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
@@ -117,7 +117,7 @@ class Term:
     def reads_operand(self) -> bool:
         return any(a.reads_operand for a in self.atoms)
 
-    def handle(self, game: str, salt: str) -> str:
+    def handle(self, game: str) -> str:
         """`{game}_{INITIALS}_{kind}_{suffix}` -- PROVENANCE, assigned by the system.
 
         **The letters are the first letter of each atom IN COMPOSITION ORDER**, so the handle
@@ -144,13 +144,13 @@ class Term:
         """
         letters = "".join(a.name[0].upper() for a in self.atoms)
         kind = "chain" if len(self.atoms) > 1 else "term"
-        # FIVE CHARACTERS THAT BEHAVE LIKE RANDOM AND REPRODUCE EXACTLY. A real RNG would
-        # satisfy uniqueness and break the thing the handle is FOR: `probe.py` -- *deterministic
-        # in the cycle so a run is reproducible; no wall clock, no RNG state* -- and a handle
-        # that differs between two runs of the same game cannot show that the SAME term
-        # transferred. Hashing the composition gives both: uniform, collision-resistant, and
-        # identical on every replay.
-        h = hashlib.sha1(f"{game}|{self.name}|{salt}".encode()).hexdigest()[:5]
+        # EIGHT RANDOM CHARACTERS. RULED, and the consequence is recorded rather than
+        # re-argued: a handle drawn at random DIFFERS BETWEEN TWO RUNS OF THE SAME GAME, so
+        # two runs cannot be compared by handle. Transfer is still readable WITHIN a run --
+        # `ls20_ITR_chain_...` pulled against a `bp35` residual is the same string in both
+        # rows -- and it is the cross-run comparison that is given up. `random` rather than a
+        # wall clock, so nothing here reads the outside world.
+        h = "".join(random.choices("0123456789abcdef", k=8))
         return f"{game}_{letters}_{kind}_{h}"
 
     @property
@@ -251,9 +251,15 @@ class Gamma:
         # a provenance.
         if term.origin != PRIOR:
             # A HANDLE IS PROVENANCE FOR SOMETHING MINTED. An atom was never minted anywhere,
-            # and every atom installs at the same seq -- so handling them collided 4 of 14 and
-            # said nothing true about any of them.
-            self.handles[term.name] = term.handle(self.game, f"{seq:04x}")
+            # so it gets none: every atom installs at the same seq, and handling them collided
+            # 4 of 14 while saying nothing true about any.
+            #
+            # ASSIGNED ONCE, NEVER REASSIGNED -- and this is what makes a DRAWN suffix safe.
+            # **Identity is the COMPOSITION, not the handle**: `term.name` is exact, so a
+            # composition that already exists keeps the handle it was born with and a second
+            # install cannot rewrite its provenance. Without this a re-mint would draw a fresh
+            # handle for the same term and the two would read as two discoveries.
+            self.handles.setdefault(term.name, term.handle(self.game))
         self.stamps[term.name] = {"origin": term.origin, "seq": seq, "residual": residual,
                                   "admitted": admitted}
         self.standing.setdefault(term.name, Standing(last_tick=self.tick))
