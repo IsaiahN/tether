@@ -5146,6 +5146,70 @@ three**, and `arc_predict` expressing **two of four** rather than two of six. `r
 
 ---
 
+# `discriminate: 0` IS THE DESIGNED STATE — AND THE PROPOSED FIX WAS THE ENCODED ANSWER
+
+**Read this before proposing an atom against a flat spread.** `ARC_AGENT` measured both arms
+and recorded the number:
+
+    spread distinguishes the actions, WITH `act`     33/96   (34%)
+    spread distinguishes the actions, WITHOUT `act`   0/96   ( 0%)
+
+> *`act` is the only atom that reads `c.action`, and its effect table is **closed over at
+> construction**. **`choose`'s discriminate branch is a property of the atom set, not a model
+> the agent built.** It has never had to learn what pressing something does, because the
+> primitive it was given already knew. **That is the thing the action world has to take
+> away**, and taking it away is what makes motor learning a question rather than a lookup.*
+
+**THE ARC SET HAS NO `act` DELIBERATELY.** The only `c.action` readers in the repo are the two
+toy worlds and a fixture. **So 80-of-82 flat on `ls20` is `0/96` reproduced on a real board** —
+**a known result, reported as a discovery across four exchanges.**
+
+### THREE READINGS AS A DEFECT, TWO OF THEM MINE, AND THE FIX WAS THE UNFORGIVABLE ONE
+
+**`discriminate: 0` was filed as a defect three times**, and each time the proposed repair was
+*an atom that reads `c.action`* — **which is the encoded answer, with a name, a section and a
+measurement already standing against it.** It was ruled on as *expensive and honest against
+cheap and meaning-changing*, **and the third option was that the expensive one hands the agent
+the discrimination.**
+
+**NOTHING CAUGHT IT UNTIL THE CORPUS DID, FOUR SECTIONS FROM WHERE THE READING WAS TAKEN.** The
+framing was supplied by the same party proposing the build, so the check had nothing
+independent to run against — **which is §8.4's own condition, failing in the small.**
+
+### THE REAL ITEM, AND IT IS ALREADY MEASURED
+
+**A LEARNED contingency becoming bindable, not an atom that arrives knowing.**
+`SelfHypothesis.contingency()` reads `toggle: {ACTION1: 0.962, ACTION2: 0.481, ...}` on `ls20`
+— **that separates the actions, it was learned rather than handed, and nothing consumes it.**
+
+**Which is §18.4's proposer half, ruled and never built** — *the member says what responded; it
+must not say what to want.* **The item is not new; it is the answer to the question atoms were
+being proposed against.**
+
+---
+
+# THE GUARD: A REAL `When(P, R)` WITH A FALSE WARRANT, AND THE PRE-REGISTRATION CAUGHT IT
+
+**Built, works, mints — 4 of 7 terms on a 30-cycle run carry one.** Bounded on the residual
+rather than the action set, `None` first, no atom added.
+
+**AND ITS JUSTIFICATION WAS FALSE.** Predicted: `SPREAD FLAT` falls, `REUSE_UNWIRED` stays,
+`none-stale` moves. **Measured: 21 of 21 flat, `room_invalidated` 0, and no segment closed so
+`REUSE_UNWIRED` was UNOBSERVABLE rather than confirmed.**
+
+> **THE CAUSE WAS NOT THE LINK NAMED, AND THE AUTHORISED REPAIR WAS INERT.** `spread`'s
+> `Ctx(operands=())` was diagnosed and a one-line change ruled — **and confirmed inert before
+> it was made**: `units()` strips the operand and the guard before emitting, *the chunk IS the
+> atom sequence and the operand has no business in the key*, **so `enumerate_closure` yields
+> bare chains and `spread` never sees a guard at all.** Deliberate, documented one method
+> away, and the justification was written without reading it.
+
+**A SECOND INERT MECHANISM WOULD HAVE SHIPPED IN THE SAME SESSION AS THE FIRST.** `operand_type`
+read `None` on 911,035 calls because it lived on the atoms and the check read a `Term`;
+**this one was caught before the edit rather than after.**
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**

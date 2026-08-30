@@ -667,6 +667,28 @@ class Agent:
         DRAW: nothing owes, or no action separates anything. Then the draw is
         UNINFORMED BY CONSTRUCTION, which is the safety property: a probe chosen by the
         current model can only confirm the current model.
+
+        **DISCRIMINATE READING ZERO ON ARC IS THE DESIGNED STATE, NOT A DEFECT. Read this
+        before proposing an atom against it.** `ARC_AGENT` measured both arms:
+
+            spread distinguishes the actions, WITH `act`     33/96   (34%)
+            spread distinguishes the actions, WITHOUT `act`   0/96   ( 0%)
+
+        `act` is `v + DELTA.get(c.action, 0)` with its effect table **closed over at
+        construction** -- so *`choose`'s discriminate branch is a property of the atom set,
+        not a model the agent built. It has never had to learn what pressing something does,
+        because the primitive it was given already knew.* **That is the thing the action
+        world has to take away**, and the ARC set has no `act` for exactly that reason.
+
+        **So a flat spread is the honest reading of an agent that has not learned what its
+        actions do.** Measured here: 80 of 82 eligible steps on `ls20`, which is the toy
+        panel's 0/96 reproduced on a real board. **It was read as a defect three times --
+        twice by me -- and each time the proposed fix was an atom that reads `c.action`,
+        which is the encoded answer with a name and a measurement already against it.**
+
+        **WHAT WOULD MOVE IT LEGITIMATELY is a LEARNED contingency becoming bindable** --
+        `SelfHypothesis.contingency()` already separates the actions on `ls20` and is
+        consumed by nothing. That is §18.4's proposer half, still owed.
         """
         # SUPPORT AT ZERO REFUSES THE MODEL THE WHEEL. `bored()` means no slot carried
         # live mass: the model explains everything it can currently see, and an action
