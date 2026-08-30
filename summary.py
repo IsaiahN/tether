@@ -92,13 +92,40 @@ def reused(rows: list[dict]) -> dict:
     *A never-pulled bench item was a guess* -- so a term absent from this dict is a reading
     about whoever put it there, not only about the run.
     """
-    pulls: dict[str, int] = {}
+    pulls: dict[str, dict] = {}
     for r in rows:
         if r.get("event") == "pull":
-            n = (r.get("detail") or {}).get("term")
+            d = r.get("detail") or {}
+            n = d.get("term")
             if n:
-                pulls[n] = pulls.get(n, 0) + 1
+                e = pulls.setdefault(n, {"pulls": 0, "origin": d.get("origin")})
+                e["pulls"] += 1
     return pulls
+
+
+def transfer(rows: list[dict], gamma) -> dict:
+    """**THE IMPORT's EVIDENCE COLUMN.** An imported term that gets pulled on a NEW game is
+    transfer; one that never gets pulled **was a guess, by §14.7's own words.**
+
+    **This is why `IMPORTED` had to be a third bucket.** It wipes like `promoted`, so the
+    ablation is unaffected -- *the distinction it buys is countability, not survival* -- and
+    countability is exactly what makes this number exist. A term entering as `promoted` would
+    be indistinguishable from one minted here, and the transfer claim would have no subject.
+
+    **A COUNT CAN BE GOT MANY WAYS; THIS CANNOT.** *This many were minted elsewhere* is
+    ambiguous. **A composition that names its parts, carries the game it was born in, and was
+    pulled against a residual in a different one** is transfer with a handle on it.
+    """
+    held = {n: t for n, t in gamma.library.items() if t.origin == "imported"}
+    p = reused(rows)
+    pulled = {n: p[n]["pulls"] for n in held if n in p}
+    return {"imported_held": len(held),
+            "imported_pulled": len(pulled), "pulls": pulled,
+            "never_pulled": sorted(set(held) - set(pulled)),
+            "handles": {n: gamma.handles.get(n) for n in held},
+            "reads": ("an imported term pulled here is TRANSFER; one never pulled was a "
+                      "guess. The handle's prefix is the game it was born in, so a pull row "
+                      "and a handle together say composed there, used here")}
 
 
 def reached_and_failed(rows: list[dict]) -> dict:
@@ -122,6 +149,7 @@ def report(rows: list[dict], gamma) -> dict:
         "MINTED": m,
         "CHAINS": c,
         "REUSED": reused(rows),
+        "TRANSFER": transfer(rows, gamma),
         "REACHED_AND_FAILED": reached_and_failed(rows),
         "chunk_reuse_count": sum(len(x["inside_later_mints"]) for x in c),
         "reads": ("14.7's three inherited, MINTED added. `effective atom depth` is NOT here: "

@@ -553,8 +553,13 @@ class Agent:
         for n in retrieval.retrieve(self.gamma.library, gap):
             if n != exclude and self._explains(self.gamma.library[n], slot, hist):
                 st = self.gamma.stamps.get(n)
+                # STAMPS ARE DICTS. `getattr(st, "origin")` returned None on every pull, so
+                # the transfer column would have read *no imported term was ever pulled*
+                # whatever the truth -- sixth instance of an absence rendered as a value, and
+                # written in the same session that recorded the flavour.
                 self.led.record(self.cycle, "ROUTE", slot, "pull", term=n,
-                                origin=getattr(st, "origin", None) if st else None,
+                                origin=(st or {}).get("origin"),
+                                admitted=(st or {}).get("admitted"),
                                 reads="a library entry REACHED FOR -- 14.7's bench pull")
                 return n
         # REACHED AND FAILED, WHICH IS THE HALF NOTHING COULD SEE. *I looked for something with

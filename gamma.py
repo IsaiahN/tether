@@ -35,7 +35,7 @@ PRIOR, MINTED, IMPORTED = "prior", "minted", "imported"
 # clause 3, which asks WHICH CLAUSE let a thing in, and that cannot be recovered from `prior`
 # afterwards. Recorded at entry because it is unrecoverable later; what each value IMPLIES for
 # the wipe is a separate and deferred decision, and nothing here presupposes it.
-NECESSARY, PROMOTED = "necessary", "promoted"
+NECESSARY, PROMOTED, ACCEPTED = "necessary", "promoted", "accepted"
 
 # AN OPERAND TYPE HAS TWO FORMS AND ONE SENTINEL IS THE MINIMUM THAT SAYS SO. `recolour`
 # needs a COLOUR whatever slot it is applied to; `translate` needs whatever the TARGET is,
@@ -282,11 +282,25 @@ class Gamma:
     def admissions(self) -> dict[str, int]:
         """How many entries cited each of §11's two clauses.
 
-        **`unstated` IS NOW A FALSIFIER RATHER THAN A POPULATION.** Before the visible-set
-        ruling it meant *no clause was recorded*; now the only ways into Γ are `necessary`
-        (the atoms) and `promoted` (earned), so **a non-zero `unstated` means something
-        entered by a route that should not exist.** It should read zero forever, and the
-        bucket is kept precisely so that it can be checked rather than assumed.
+        **FOUR CLAUSES, AND `unstated` IS STILL THE FALSIFIER.**
+
+            necessary   the atoms -- §11 clause one, *the loop cannot run without it*
+            accepted    minted, closed a residual, paid the bargain. **Earned and pre-boundary**
+            promoted    survived a boundary -- §11 clause two
+            imported    minted on another game. Across games there is no *first*, so it is not
+                        clause two; it wipes like `promoted` and is counted apart
+
+        **`accepted` WAS ADDED AFTER THIS COUNTER FIRED, WHICH IS THE ONLY REASON IT IS HERE.**
+        The text above once read *the only ways in are `necessary` and `promoted`, so a
+        non-zero `unstated` means something entered by a route that should not exist* -- and
+        that was **correct about the routes it knew and silent about the one that carries
+        everything.** It could not fail, because it also read `origin != PRIOR: continue` and
+        so counted the atoms alone. Fixed, it read **19 of 21 unstated** on the first run with
+        real mints in it.
+
+        **AND `unstated` MUST STILL BE ABLE TO FIRE.** Four clauses and a fifth bucket for
+        *none of these* -- **a falsifier that cannot be non-zero is exactly what this one had
+        just stopped being.**
         """
         out: dict[str, int] = {}
         for st in self.stamps.values():
@@ -305,7 +319,11 @@ class Gamma:
         differ only in the record."""
         if term.name in self.library:
             raise ValueError(f"already in library: {term.name}")
-        return self._install(term, seq, residual)
+        # THE FOURTH CLAUSE, RULED. A term that closed a residual and paid the bargain is
+        # EARNED -- it simply has not crossed a boundary yet, and `promoted` is a claim about
+        # surviving one. Leaving it clauseless made `unstated` read 19 of 21 on the first run
+        # that put real mints through the counter.
+        return self._install(term, seq, residual, admitted=ACCEPTED)
 
     # -- standing: the ground's verdict, defeasibly ----------------------------------
 

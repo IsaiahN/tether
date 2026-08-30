@@ -5352,6 +5352,97 @@ and the one that needed to was the one that could not be read.
 
 ---
 
+# AN ACTION LABEL IS AN INSTANCE, NOT VOCABULARY — THE COLOUR RULING'S THIRD ARRIVAL
+
+**Found while justifying the binding-drop, and it is better than the justification it replaced.**
+
+    ls20 advertises   ACTION1 ACTION2 ACTION3 ACTION4
+    sk48 advertises   ACTION1 ACTION2 ACTION3 ACTION4 ACTION7
+
+**BOTH WERE WRONG ABOUT WHY THE GUARD MUST DROP.** The stated reasons were *the slot does not
+exist elsewhere* and *the action may not be advertised* — **and `ACTION1` IS advertised on both.**
+
+> **THE DROP IS NOT PREVENTING A BROKEN REFERENCE. IT IS REFUSING A CLAIM THAT WAS NEVER TESTED
+> THERE.** A guard learned on `ls20` says *this term applies when ACTION1 is taken* **on ls20**,
+> and `ACTION1` on `sk48` is a different action wearing the same label.
+>
+> **A dangling reference fails loudly. A label that resolves to something different fails
+> silently** — and it would have read as a guard that transferred.
+
+**SO IT IS THE COLOUR RULING ON THE ACTION DIMENSION.** `ACTION1` names a POSITION IN AN
+ADVERTISED LIST, and two games' lists are not the same list. **Vocabulary permanent, instances
+transient** — third arrival, **and the first where the instance is a NAME rather than a NUMBER,
+which is the harder case: a number reads as arbitrary and a name reads as meaning something.**
+
+**AND `ACTION7` IS WHAT MAKES IT CHECKABLE RATHER THAN ARGUED.** The action sets differ, so a
+term guarded on a label that means different things in the two games would be
+**indistinguishable** from one guarded on a label that means the same — **unless the binding is
+dropped.** `sk48` was picked as a second board for an unrelated reason (the panel screen found it
+clean apart from dropping `ACTION6`) and turns out to be the pair that can test this.
+
+---
+
+# THE `getattr` BUG, AND THE DIRECTION IT FAILED IN
+
+`stamps` are **dicts**. `getattr(st, "origin", None)` returned `None` on every pull, so the
+transfer column would have reported **no imported term was ever pulled, whatever the truth.**
+
+> **NOT A CRASH AND NOT A WRONG NUMBER — THE ANSWER THE ARCHITECTURE IS BUILT TO BE ABLE TO
+> TRUST**, produced by a lookup that could not work, **on the project's own central claim.**
+> **Sixth instance of an absence rendered as a value, written in the session that recorded the
+> flavour, and the third of them caught by RUNNING rather than by reading.**
+
+**AND THE THIRD BUCKET EARNS ITSELF HERE.** *Across games there is no first* was raised AGAINST
+the import; it is what makes the import measurable. **A term entering as `promoted` would be
+indistinguishable from one minted locally and the transfer claim would have no subject.**
+`IMPORTED` wipes like `promoted` — **the distinction it buys is countability, not survival**, and
+countability is exactly what makes the number exist.
+
+---
+
+# THE FALSIFIER FIRED ON ITS FIRST REAL READING, AND IT WAS OVER-BROAD
+
+**`unstated` read 19 of 21** on the first run that put real mints through it -- and it could
+not have read anything before, because it also filtered `origin != PRIOR` and so counted the
+atoms alone. **Fixed, and then it fired.**
+
+    necessary   14      the atoms
+    imported     2      minted on ls20, loaded into sk48
+    unstated    19      every term `accept()` put in the library
+
+**RULED: `unstated` WAS OVER-BROAD, AND A FOURTH CLAUSE IS THE ANSWER.** *`accept()` writing to
+the library IS the mint working* -- a term that closed a residual and paid the bargain is
+**earned; it simply has not crossed a boundary yet, and `promoted` is a claim about surviving
+one.** Moving it to `candidates` would stop the closure composing over it, **which breaks
+chunking, and chunking is measured working.**
+
+> **AND THE DOCSTRING WAS CORRECT ABOUT THE ROUTES IT KNEW AND SILENT ABOUT THE ONE THAT
+> CARRIES EVERYTHING.** *The only ways in are `necessary` and `promoted`* was written before
+> minting produced entries at scale. **`unstated` is kept as a fifth bucket and verified able
+> to fire** -- a clauseless install reads `{necessary: 14, accepted: 1, unstated: 1}` --
+> because **a falsifier that cannot be non-zero is exactly what this one had just stopped
+> being.**
+
+### AND THE DIVERSITY FINDING IS THE SHARPER OF THE TWO
+
+`ls20` minted **seven** terms. Loading them into `sk48` read **`loaded: 2, already_held: 5`** --
+not a dedup against `sk48`, but **the binding-strip collapsing seven entries into two chains**:
+`idn . translate` and `translate . translate`.
+
+> **ALL THE DIVERSITY WAS IN THE BINDINGS AND NONE IN THE COMPOSITION.** So
+> `chunk_reuse_count: 0` has a narrower cause than *everything is depth 2*: **there were only
+> ever two shapes.** **A library growing in bindings is not a library growing** -- which is
+> §14.7's catalogue failure with a mechanism nobody had named.
+
+### AND THE FIRST TRANSFER READING IS ZERO, AS A BASELINE RATHER THAN A VERDICT
+
+**Two compositions offered, 25 cycles, one pair of games: `imported_pulled: 0`.** The load, the
+origin, the handle and the refusal column all worked -- **so this is the number, not a
+mechanism failure and not an excuse for one.** Too thin to conclude against transfer, and it
+stands as the baseline the next reading is compared to.
+
+---
+
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
 
 **Not two open rows. One dependency, and it is the one thing on the board nobody can build.**
