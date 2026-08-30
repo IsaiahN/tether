@@ -81,11 +81,28 @@ class Term:
     atoms: tuple[Atom, ...]
     origin: str = MINTED
     operand: str | None = None    # which slot fills operand 0, or None for unary
+    # §15.5's `When(P, R)` -- guarded by a predicate -- and it is a CONSTRUCTOR there, not
+    # an atom. A chain has no branch, so a gate written as an atom would have to
+    # short-circuit the rest of it, which `val -> val` gives it no way to do. So the guard
+    # lives on the Term: `f` when the action matches, IDENTITY otherwise.
+    #
+    # BOUND, NEVER ENUMERATED, and that is what makes it survive ARC: the action set changes
+    # per frame, so a per-action ATOM would have to be rebuilt. This adds no atom.
+    #
+    # WHAT IT DOES NOT DO, AND IT WAS BUILT ON THE CLAIM THAT IT DID. It does not reach
+    # `discriminate`. `units()` strips the operand and the guard before emitting -- *the
+    # chunk IS the atom sequence and the operand has no business in the key* -- so
+    # `enumerate_closure` yields bare chains and `spread` never sees a guard. That is
+    # DELIBERATE and documented one method away, and the justification was written without
+    # reading it. **The guard works where `_ops` supplies operands, which is bets.**
+    guard: str | None = None
 
     @property
     def name(self) -> str:
         base = " . ".join(a.name for a in self.atoms)
-        return f"{base}<{self.operand}>" if self.operand else base
+        if self.operand:
+            base = f"{base}<{self.operand}>"
+        return f"{base}?{self.guard}" if self.guard else base
 
     @property
     def in_type(self) -> str:
@@ -116,6 +133,10 @@ class Term:
         return f"Term({self.name})"
 
     def apply(self, value: Any, ctx: Ctx) -> Any:
+        """IDENTITY WHEN THE GUARD FAILS, which is the whole conditional. `When(P, R)` with
+        `idn` as the else-branch -- the only two-branch form a left-to-right chain admits."""
+        if self.guard is not None and ctx.action != self.guard:
+            return value
         for a in self.atoms:
             value = a.fn(value, ctx)
         return value

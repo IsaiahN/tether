@@ -770,6 +770,19 @@ class Agent:
         self.alphabet = self._alphabets(self.env)
         self.slot_types = self._slot_types(self.env)
 
+    def _guards(self, robs: list) -> list[str | None]:
+        """Which actions a guard may name. **None first, and then only what R contains.**
+
+        A guard on an action the term was never wrong under explains nothing, so the
+        candidate set is the actions appearing in the residual's own observations -- *let
+        the residual say where to look*, the same bound `_cannot_pay` uses. **Necessary
+        condition, not a preference**: it cannot remove a guard that could have paid.
+
+        **None first for the same reason `_bindings` puts it first** -- an unguarded term is
+        cheaper, so it wins when both fit, which is Occam priced rather than preferred.
+        """
+        return [None, *sorted({a for _, a, _ in robs if a is not None})]
+
     def _operand_fits(self, cand, target: str, bind: str | None) -> bool:
         """`0a`'s TYPING half, whose trigger fired on a real board.
 
@@ -843,9 +856,9 @@ class Agent:
                                                      self.cfg.budget, stats):
                 binds = self._bindings(slot, robs) if cand.reads_operand else [None]
                 binds = [x for x in binds if self._operand_fits(cand, slot, x)]
-                for bind in binds:
+                for bind, g in ((b, g) for b in binds for g in self._guards(robs)):
                     rank += 1
-                    term = Term(cand.atoms, operand=bind)
+                    term = Term(cand.atoms, operand=bind, guard=g)
                     if self.gamma.is_atom(term) or term.name in self.gamma.library:
                         cuts.append({"name": term.name, "rank": rank, "reversible": True,
                                      "reason": "not-novel"})
