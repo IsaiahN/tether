@@ -540,9 +540,28 @@ class Agent:
         if not hist:
             return None
         gap = retrieval.characterise(hist, slot, list(self.alphabet))
+        # THE GAP IS CITED BEFORE THE PULL, AND THE ROW IS WHAT PROVES IT. §15.3: *a retrieval
+        # requires a characterised residual, so it is a derivation step: it cites the gap, it
+        # lands in the ledger, and the gate can check that the citation preceded the pull.*
+        # Nothing recorded it until now -- the ordering was real at this site and unwritten,
+        # which is the one thing this session found genuinely ABSENT rather than unconsumed.
+        self.led.record(self.cycle, "ROUTE", slot, "reach",
+                        gap={k: v for k, v in gap.items() if k != "varies"},
+                        reads=("the gap, cited BEFORE the library is read. One record, three "
+                               "consumers: the pull count, the description's ordering proof, "
+                               "and an import's shadow test"))
         for n in retrieval.retrieve(self.gamma.library, gap):
             if n != exclude and self._explains(self.gamma.library[n], slot, hist):
+                st = self.gamma.stamps.get(n)
+                self.led.record(self.cycle, "ROUTE", slot, "pull", term=n,
+                                origin=getattr(st, "origin", None) if st else None,
+                                reads="a library entry REACHED FOR -- 14.7's bench pull")
                 return n
+        # REACHED AND FAILED, WHICH IS THE HALF NOTHING COULD SEE. *I looked for something with
+        # this shape and found nothing* is an UNREACHED with a subject, and a retrieval that
+        # returns nothing leaves no other trace at all.
+        self.led.record(self.cycle, "ROUTE", slot, "reach_failed",
+                        reads="described the gap and the library held nothing that explains it")
         return None
 
     def _explains(self, term: Term, slot: str, hist) -> bool:
@@ -769,9 +788,13 @@ class Agent:
         if f is None:
             return None
         sep: dict[str, int] = dict.fromkeys(self.actions, 0)
-        for per_action in f().values():
-            if not set(sep) <= set(per_action):
-                continue          # this member has not yet observed every advertised action
+        for rec in f().values():
+            per_action, stable = rec["per_action"], rec["stable"]
+            # TWO GATES, BOTH FROM THE START. Population alone is satisfied by ONE observation
+            # per action, and four single values are trivially all-different -- so `sep` would
+            # credit noise, which is a non-flat spread on nothing and worse than a flat one.
+            if not set(sep) <= set(per_action) or not stable:
+                continue
             vals = {a: v for a, v in per_action.items() if a in sep}
             for a, v in vals.items():
                 # DISTINCTIVE MEANS DISTINGUISHABLE FROM EVERY ALTERNATIVE, NOT FROM SOME.

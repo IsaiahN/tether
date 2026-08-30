@@ -207,7 +207,8 @@ class ArcWorld:
         difference is provenance, and provenance is the whole of it -- an empty dict before
         anything is observed is what a closed-over effect table can never produce.
         """
-        return {m.name: m.contingency() for m in self.selves.members}
+        return {m.name: {"per_action": m.contingency(), "stable": m.stable()}
+                for m in self.selves.members}
 
     def boundary(self) -> None:
         """Drop what was bound to THIS episode. Colours permute on a refresh, so a colour

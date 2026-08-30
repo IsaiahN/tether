@@ -17,6 +17,7 @@ Reports lambda, the spectral radius of the type transfer matrix, against V = |at
 
 from __future__ import annotations
 
+import hashlib
 import sys
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
@@ -116,6 +117,42 @@ class Term:
     def reads_operand(self) -> bool:
         return any(a.reads_operand for a in self.atoms)
 
+    def handle(self, game: str, salt: str) -> str:
+        """`{game}_{INITIALS}_{kind}_{suffix}` -- PROVENANCE, assigned by the system.
+
+        **The letters are the first letter of each atom IN COMPOSITION ORDER**, so the handle
+        carries its own decomposition: `ls20_ITR_chain_7f21` pulled against a `bp35` residual
+        says *minted on one game, composed from these three, reused on another* **without
+        opening anything.**
+
+        **THE PREFIX IS BIRTH, NEVER USE.** A term minted on `ls20` and pulled on `bp35` keeps
+        `ls20_`; the pull count is its life.
+
+        **AND THE LETTERS ARE A MNEMONIC, NEVER A KEY -- MEASURED, NOT CAUTIONED.** The 14-atom
+        ARC set has **10 distinct initials**: `A` is `above`/`all`/`any`, `C` is `col`/`colour`,
+        `R` is `recolour`/`row`. A 3-chain has at most 1000 letter-triples against a depth-3
+        closure far larger than that, **and this is the smallest atom set this will ever run
+        on.** The suffix is what makes a handle unique.
+
+        **NOTHING SHOULD EVER PARSE THEM, AND THE REASON IS THAT IT NEVER NEEDS TO**: `name` IS
+        the composition, exactly and unambiguously, one field away. A letter-parse is never the
+        shortest path to the parts, so the way to stop one being written is that a correct
+        alternative is nearer -- not a warning that a reader has to obey.
+
+        **The letters derive from `Atom.name` and are NOT stable across a rename.** Tolerable
+        only because they are not a key; if anything ever keys on them, that becomes a defect.
+        """
+        letters = "".join(a.name[0].upper() for a in self.atoms)
+        kind = "chain" if len(self.atoms) > 1 else "term"
+        # FIVE CHARACTERS THAT BEHAVE LIKE RANDOM AND REPRODUCE EXACTLY. A real RNG would
+        # satisfy uniqueness and break the thing the handle is FOR: `probe.py` -- *deterministic
+        # in the cycle so a run is reproducible; no wall clock, no RNG state* -- and a handle
+        # that differs between two runs of the same game cannot show that the SAME term
+        # transferred. Hashing the composition gives both: uniform, collision-resistant, and
+        # identical on every replay.
+        h = hashlib.sha1(f"{game}|{self.name}|{salt}".encode()).hexdigest()[:5]
+        return f"{game}_{letters}_{kind}_{h}"
+
     @property
     def operand_type(self) -> str | None:
         """What the OPERAND-READING atom requires. A Term is what the binder sees, so the
@@ -167,7 +204,7 @@ class Standing:
 
 
 class Gamma:
-    def __init__(self, atoms: list[Atom]) -> None:
+    def __init__(self, atoms: list[Atom], game: str = "x") -> None:
         """NO `molecules` PARAMETER, and its removal is the 2026-08-27 ruling in code.
 
         It installed TERM priors at construction with `origin=PRIOR` -- **the one route by
@@ -182,6 +219,10 @@ class Gamma:
         self.atoms = list(atoms)
         self._by_name = {a.name: a for a in atoms}
         self.library: dict[str, Term] = {}
+        # PROVENANCE, one field. `{game}_{INITIALS}_{kind}_{suffix}` -- the game is where the
+        # term was MINTED, and it does not change when the term is later pulled elsewhere.
+        self.game = str(game)
+        self.handles: dict[str, str] = {}
         self.stamps: dict[str, dict[str, Any]] = {}
         self.standing: dict[str, Standing] = {}
         # name -> the two verdicts that promoted it. A dict rather than a set because
@@ -205,6 +246,14 @@ class Gamma:
     def _install(self, term: Term, seq: int, residual: str | None,
                  admitted: str | None = None) -> Term:
         self.library[term.name] = term
+        # THE HANDLE IS STAMPED AT INSTALL, because the prefix is BIRTH: where it was minted,
+        # never where it is later pulled. Assigning it anywhere else would let a pull rewrite
+        # a provenance.
+        if term.origin != PRIOR:
+            # A HANDLE IS PROVENANCE FOR SOMETHING MINTED. An atom was never minted anywhere,
+            # and every atom installs at the same seq -- so handling them collided 4 of 14 and
+            # said nothing true about any of them.
+            self.handles[term.name] = term.handle(self.game, f"{seq:04x}")
         self.stamps[term.name] = {"origin": term.origin, "seq": seq, "residual": residual,
                                   "admitted": admitted}
         self.standing.setdefault(term.name, Standing(last_tick=self.tick))

@@ -58,7 +58,7 @@ def play(game: str = "ls20", cycles: int = 40) -> dict:
     env = ArcWorld(w, arc_percept.Objects(), arc_atoms.three_spaces(arc_predict.predict()),
                    palette=palette, name=game)
     led = ledger.Ledger()
-    ag = tether.Agent(env, gamma.Gamma(env.atoms()), tether.Config(), led)
+    ag = tether.Agent(env, gamma.Gamma(env.atoms(), game=game), tether.Config(), led)
     bud = arc_run.Budget()
     bud.level_starts()
 
@@ -118,7 +118,14 @@ def play(game: str = "ls20", cycles: int = 40) -> dict:
         # §22.6: the stage code is the DIAGNOSIS. `stalls` over CLOSED segments, never
         # `seg.stage()` -- the live segment is whatever is currently open, and a fresh one
         # reads DIED_PRE_DIFF by construction.
+        # ABSENT, RENDERED AS ABSENT. `Chain.close()` has two callers -- `snaps.py` and
+        # `tether.run()` -- and this driver calls `ag.step()` directly, so NO SEGMENT EVER
+        # CLOSES HERE and the stage is never computed. `last_stage: None` read as *no stall*
+        # for a whole exchange and was compared against a `snaps` reading as though both were
+        # measurements. **A reading against an absence whose name looked like a reading.**
         "stalls": dict(ag.chain.stalls), "last_stage": ag.chain.last_stage,
+        "stage_reads": ("UNCOMPUTED on this path -- `close()` is never called, so `None` here "
+                        "means the instrument did not run, NOT that nothing stalled"),
         "reuse_funnel": dict(ag.chain.reuse_branch),
         "mints": sum(1 for r in rows if r["event"] == "mint"),
         "library": len(g.library), "admissions": g.admissions(),

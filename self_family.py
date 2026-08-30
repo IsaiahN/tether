@@ -56,6 +56,8 @@ class SelfHypothesis:
 
     def __init__(self) -> None:
         self._by_action: dict[str, list[float]] = {}
+        self._order: tuple[str, ...] = ()   # its own ranking of the actions, last seen
+        self._held = 0                      # how long that ranking has been unchanged
 
     def observe(self, _before, _action, _after) -> float:
         return 1.0
@@ -66,10 +68,28 @@ class SelfHypothesis:
     def boundary(self) -> None:
         """Drop what was bound to THIS episode. Vocabulary permanent, instances transient."""
         self._by_action = {}
+        self._order, self._held = (), 0
 
     def _attribute(self, action: str, signal: float) -> None:
         """This member's OWN signal, under this action. Per-member contingency."""
         self._by_action.setdefault(str(action), []).append(float(signal))
+        c = self.contingency()
+        now = tuple(sorted(c, key=lambda a: c[a]))
+        self._held = self._held + 1 if now == self._order else 0
+        self._order = now
+
+    def stable(self) -> bool:
+        """**ORDINAL, BECAUSE A THRESHOLD HERE WOULD MEASURE THE SAMPLE COUNT.**
+
+        A running mean changes by `(x - mean) / n`, which shrinks as `1/n` **whatever the data
+        does** -- so *change below epsilon* would report how many observations there are, not
+        whether the estimate settled. That is `EPS`'s own failure, and it is why this is a
+        RANKING rather than a magnitude: **has this member stopped reordering the actions.**
+
+        `MIN_REPEAT` is reused rather than a second constant invented -- *one observation is a
+        coincidence* is the same claim about a ranking as about a streak.
+        """
+        return self._held >= MIN_REPEAT
 
     def contingency(self) -> dict[str, float]:
         return {a: sum(v) / len(v) for a, v in sorted(self._by_action.items()) if v}
