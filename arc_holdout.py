@@ -19,6 +19,7 @@ from __future__ import annotations
 import collections
 import logging
 import sys
+from pathlib import Path
 
 from arcengine import GameAction
 
@@ -38,8 +39,18 @@ from arc_world import ArcWorld
 sys.dont_write_bytecode = True
 
 
-def play(game: str = "ls20", cycles: int = 40) -> dict:
-    """Download one game, run the loop on it, and report where the chain stops."""
+def play(game: str = "ls20", cycles: int = 40, library: str | None = None) -> dict:
+    """Download one game, run the loop on it, and report where the chain stops.
+
+    **`library` IS §17.8's SWITCH, and the default is cold.** *State it, and make it switchable
+    so the ablation is runnable* -- so persistence is something the SEAT turns on by naming a
+    path, never something the agent does or a process lifetime decides. Pass one and the
+    library loads before play and saves after; pass nothing and the run starts cold, which is
+    what makes the ablation a matter of not passing an argument.
+
+    **THE SAVE IS THE SEAT's AND OUT OF THE AGENT's REACH** -- `play` calls it, the loop never
+    does, and nothing in `tether.py` knows the path exists.
+    """
     logging.disable(logging.INFO)
     from arc_agi import Arcade
     from arc_agi.base import OperationMode
@@ -59,6 +70,7 @@ def play(game: str = "ls20", cycles: int = 40) -> dict:
                    palette=palette, name=game)
     led = ledger.Ledger()
     ag = tether.Agent(env, gamma.Gamma(env.atoms(), game=game), tether.Config(), led)
+    loaded = ag.gamma.load(library) if library and Path(library).exists() else None
     bud = arc_run.Budget()
     bud.level_starts()
 
@@ -101,6 +113,7 @@ def play(game: str = "ls20", cycles: int = 40) -> dict:
 
     rows = led.rows()
     g = ag.gamma
+    saved = g.save(library) if library else None
 
     # §16.5. SEEDED FROM THE RESIDUAL, which is what Figure 11 says: *everything in contact
     # with the residual*, not with an arbitrary object. The slot carrying the most
@@ -129,6 +142,10 @@ def play(game: str = "ls20", cycles: int = 40) -> dict:
         "reuse_funnel": dict(ag.chain.reuse_branch),
         "mints": sum(1 for r in rows if r["event"] == "mint"),
         "library": len(g.library), "admissions": g.admissions(),
+        # §17.8's decision, visible in the report rather than in a process lifetime.
+        "persistence": {"switch": library or "cold (default)",
+                        "loaded": loaded, "saved": saved,
+                        "handles": len(g.handles)},
         "lambda": g.type_report(), "atoms": len(g.atoms),
         "unexpressible": arc_predict.unexpressible(),
         "events": dict(collections.Counter(r["event"] for r in rows)),

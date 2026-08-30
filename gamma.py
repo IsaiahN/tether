@@ -17,6 +17,8 @@ Reports lambda, the spectral radius of the type transfer matrix, against V = |at
 
 from __future__ import annotations
 
+import json
+import pathlib
 import random
 import sys
 from collections.abc import Callable, Iterator
@@ -144,12 +146,24 @@ class Term:
         """
         letters = "".join(a.name[0].upper() for a in self.atoms)
         kind = "chain" if len(self.atoms) > 1 else "term"
-        # EIGHT RANDOM CHARACTERS. RULED, and the consequence is recorded rather than
-        # re-argued: a handle drawn at random DIFFERS BETWEEN TWO RUNS OF THE SAME GAME, so
-        # two runs cannot be compared by handle. Transfer is still readable WITHIN a run --
-        # `ls20_ITR_chain_...` pulled against a `bp35` residual is the same string in both
-        # rows -- and it is the cross-run comparison that is given up. `random` rather than a
-        # wall clock, so nothing here reads the outside world.
+        # EIGHT RANDOM CHARACTERS, AND THE DEDUP IS WHAT MAKES IT REPRODUCIBLE -- NOT THE
+        # SUFFIX. I argued a drawn suffix cannot reproduce across runs; **that describes the
+        # design as a defect.** The library PERSISTS by design -- *humans do not reset their
+        # memory every time they play a new game* -- so a composition minted once keeps its
+        # handle for the life of the library. **There is no cold start after the first, and a
+        # first run has nothing to reproduce against**, the same as a person's first game.
+        #
+        # So the suffix is generated ONCE, for a composition the library does not already
+        # hold: the mint path cuts `term.name in library` as `not-novel` before anything is
+        # minted, and `_install` uses `setdefault`. **The lookup is stable, so the handle is.**
+        #
+        # THE CASE A HASH WOULD HAVE COVERED, recorded so the objection is not re-derived: two
+        # libraries that DIVERGED -- separate machines, or a swarm minting independently and
+        # merging later -- would carry two handles for one composition. **Dedup on the
+        # COMPOSITION fixes that at merge**, which is why the check is on `name` and not on
+        # the handle.
+        #
+        # `random` rather than a wall clock, so nothing here reads the outside world.
         h = "".join(random.choices("0123456789abcdef", k=8))
         return f"{game}_{letters}_{kind}_{h}"
 
@@ -276,9 +290,14 @@ class Gamma:
         """
         out: dict[str, int] = {}
         for st in self.stamps.values():
-            if st["origin"] != PRIOR:
-                continue
-            out[st.get("admitted") or "unstated"] = out.get(st.get("admitted") or "unstated", 0) + 1
+            # EVERY INSTALLED TERM, NOT ONLY THE PRIORS. This read `origin != PRIOR: continue`
+            # and so counted the ATOMS ALONE -- which made `unstated should read zero forever`
+            # true for a reason that had nothing to do with the check: its population could
+            # only contain priors, and a prior always carries `necessary`. **A falsifier over
+            # a population that cannot contain the defect it looks for.** Confirmed by running
+            # it on a fresh Gamma, reading `{necessary: 14}`, and reporting the zero as clean.
+            key = st.get("admitted") or "unstated"
+            out[key] = out.get(key, 0) + 1
         return out
 
     def accept(self, term: Term, seq: int, residual: str) -> Term:
@@ -340,6 +359,76 @@ class Gamma:
     def is_atom(self, term: Term) -> bool:
         """NOVEL is relative to atoms, not to the world."""
         return len(term) == 1 and term.atoms[0].name in self._by_name
+
+    # -- persistence: §17.8's decision, made rather than defaulted -------------------------
+
+    def save(self, path: str) -> dict:
+        """Write the minted library. **SEAT-SIDE: the agent never calls this.**
+
+        §17.8 asked for a POLICY and a SWITCH -- *state it, and make it switchable so the
+        ablation is runnable* -- and recorded its own inclination as *start cold across games*.
+        **Isaiah ruled the opposite: the library persists, because transfer is the claim.**
+        §17.8 calls that a decision rather than a default, so both are in bounds and this is
+        the one taken. **The switch is that nothing calls save/load unless the seat does**, so
+        the ablation stays runnable by simply not loading.
+
+        **ATOMS ARE NOT WRITTEN.** They are the registry, identical on both sides; writing them
+        would be a second producer of the vocabulary. What is written is the COMPOSITION -- the
+        atom NAMES in order -- plus origin, admitting clause and handle.
+        """
+        out = []
+        for name, t in self.library.items():
+            if t.origin == PRIOR:
+                continue          # an atom was not minted; there is nothing to carry
+            st = self.stamps.get(name)
+            out.append({"atoms": [a.name for a in t.atoms], "origin": t.origin,
+                        "handle": self.handles.get(name), "game": self.game,
+                        "admitted": getattr(st, "admitted", None) if st else None,
+                        "residual": getattr(st, "residual", None) if st else None})
+        pathlib.Path(path).write_text(json.dumps(out, indent=1), encoding="utf-8")
+        return {"written": len(out), "path": path}
+
+    def load(self, path: str) -> dict:
+        """Read a saved library into this Gamma. **SEAT-SIDE, and it REFUSES loudly.**
+
+        **THE COMPOSITION CROSSES AND THE BINDING DOES NOT**, which is the colour ruling
+        applied to a term: *vocabulary permanent, instances transient*. `translate<o11.row>`
+        names a slot that does not exist in another game and an action another game may not
+        advertise -- so **operand and guard are dropped and the atom chain is kept**, which is
+        exactly what `units()` already does when it emits a settled term: *the chunk IS the
+        atom sequence*.
+
+        **A TERM WHOSE ATOMS THIS REGISTRY LACKS IS REFUSED, NOT SKIPPED.** A different domain
+        has a different atom set, and silently dropping half a library would read as a small
+        library rather than as an incompatible one.
+
+        **AND A TERM FROM ANOTHER GAME ENTERS AS `IMPORTED`, NEVER AS `promoted`.** §11 clause
+        two is *the agent minted a crude version first and we are promoting it* -- and across
+        games there is no first. `necessary` stays, `promoted` wipes, **`IMPORTED` wipes and is
+        counted apart**, so the transfer number is readable and the ablation is unaffected.
+        """
+        rows = json.loads(pathlib.Path(path).read_text(encoding="utf-8"))
+        took, refused = [], []
+        for r in rows:
+            names = tuple(r["atoms"])
+            if not all(n in self._by_name for n in names):
+                refused.append({"atoms": list(names), "why": "atom not in this registry"})
+                continue
+            t = Term(tuple(self._by_name[n] for n in names),
+                     origin=IMPORTED if r.get("game") != self.game else r["origin"])
+            if t.name in self.library:
+                took.append({"handle": r.get("handle"), "already_held": True})
+                continue          # dedup on the COMPOSITION -- it keeps the handle it has
+            self._install(t, seq=-2, residual=r.get("residual"),
+                          admitted=IMPORTED if t.origin == IMPORTED else r.get("admitted"))
+            if r.get("handle"):
+                self.handles[t.name] = r["handle"]   # the birth handle, carried
+            took.append({"handle": r.get("handle"), "already_held": False})
+        return {"loaded": sum(1 for x in took if not x["already_held"]),
+                "already_held": sum(1 for x in took if x["already_held"]),
+                "refused": refused,
+                "reads": ("composition crosses, binding does not. A refused row is an "
+                          "INCOMPATIBLE registry, not a small library")}
 
     def units(self) -> list[Term]:
         """What the search composes FROM: the atoms, plus every SETTLED term as one unit.
