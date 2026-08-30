@@ -195,6 +195,20 @@ class ArcWorld:
                 self.selves.observe(was, action, now)
             self.aff.note(was_objs, dict(self._decompose.tracked), mover=None)
 
+    def contingency(self) -> dict[str, dict[str, float]]:
+        """What each self-hypothesis MEASURED under each action. **Learned, never handed.**
+
+        `{member: {action: mean of that member's own signal}}` -- action names and scalars,
+        the same class as `actions()` and `alphabet()`. No board crosses, and nothing here
+        says what any action MEANS: a member reports what moved when it acted.
+
+        **THIS IS THE HALF `act` WOULD HAVE HANDED.** `ARC_AGENT`: *it has never had to learn
+        what pressing something does, because the primitive it was given already knew.* The
+        difference is provenance, and provenance is the whole of it -- an empty dict before
+        anything is observed is what a closed-over effect table can never produce.
+        """
+        return {m.name: m.contingency() for m in self.selves.members}
+
     def boundary(self) -> None:
         """Drop what was bound to THIS episode. Colours permute on a refresh, so a colour
         identity is valid only for the episode it was read in."""

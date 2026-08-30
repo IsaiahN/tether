@@ -2553,6 +2553,14 @@ tidy: **it keeps the register small enough to check.**
 both, so a fact about the loop rather than about a panel*. That was the argument that made it
 the next item.** The finer literal shows it false:
 
+> **⚠ REFINED 2026-08-29, AND THE CAUSE IS ONE LAYER BELOW THE COLLISION.** *Did not reproduce*
+> is right and *collided* is not the whole of it: **`REUSE_UNWIRED` is a CHAIN STAGE and
+> `none-stale` is a FUNNEL REASON — two instruments, not two readings of one.** And the chain's
+> stage is **never computed on ARC at all**: `Chain.close()` has two callers, `snaps.py` and
+> `tether.run()`, and `arc_holdout.play()` drives `ag.step()` directly because *`run()` gives
+> no hook*. **So `ls20` never had a stage to compare.** The comparison was between a reading
+> and an absence, and the absence had a name that looked like a reading.
+
     ls20    none-stale ONLY          every refusal is the loop correctly declining
     snaps   none-stale AND no-targets   correct declining MIXED with supply failures
 
@@ -5207,6 +5215,140 @@ rather than the action set, `None` first, no atom added.
 **A SECOND INERT MECHANISM WOULD HAVE SHIPPED IN THE SAME SESSION AS THE FIRST.** `operand_type`
 read `None` on 911,035 calls because it lived on the atoms and the check read a `Term`;
 **this one was caught before the edit rather than after.**
+
+---
+
+# FOUR INDEPENDENT DETECTORS CONVERGED ON ONE FACT — §18.3's AMENDMENT PAYING OFF
+
+**Recorded independently of the proposer build, which failed its own falsifier. This is a
+family result and it stands whatever happens to that.**
+
+150 cycles, `ls20`, per-member per-action attribution:
+
+    value    ACTION3  -2.692     against  +0.98, +0.50, +0.41
+    toggle   ACTION3   0.878     against   0.43,  0.29,  0.28
+    growth   ACTION3   0.523     against   0.75,  0.71,  0.54
+    translation ACTION3 0.941    against   0.50,  0.66,  0.91
+
+**OPPOSITE SIGNS, INCOMMENSURABLE UNITS, SAME ACTION.** Three members report an explained
+fraction in [0,1]; `value` reports a **signed count difference**. **A shared reading across
+those has to survive a change of units, not only a change of member** — which is what makes
+this evidence rather than a leak.
+
+> **AND THE INVERSION IS THE PART TO KEEP.** *If every member produces the same split, that is
+> about the world* was the natural framing and **it is backwards.** Same split across
+> commensurable signals is a common cause; **same split across INCOMMENSURABLE ones is either
+> the world or a leak, and the units decide which.** Here they differ, so it is the world.
+
+### AND IT RETIRES THE TWO-PAIR SHAPE AS A LENGTH ARTEFACT
+
+At 40 cycles the reading was `toggle: {A1 0.962, A2 0.481, A3 0.962, A4 0.481}` — **two pairs,
+alternating.** At 150 it is **ACTION3 against the rest**, in every member independently. **The
+pairing was the run length, not the world** — the fourth time this session a reading at one
+length did not survive a longer one, and the first where the shorter reading looked more
+structured than the truth.
+
+### 4a: MOVES, THEN STABILISES — WHICH IS LEARNING RATHER THAN TRACKING
+
+    toggle      / ACTION3   0.0 -> 0.746 -> 0.838 -> 0.853 -> 0.878
+    translation / ACTION3   0.962 -> 0.89 -> 0.921 -> 0.935 -> 0.941
+
+**Monotone toward a limit in both, from opposite directions.** *Non-constant* was necessary and
+not sufficient; **converging is the sufficient half**, and both converge.
+
+---
+
+# `REUSE_UNWIRED` IS UNOBSERVABLE ON ARC, AND TWO RUNS MEASURED NOTHING
+
+**`segments closed: 0` at 30 cycles and at 150.** Read as *needs a longer run* the first time.
+
+**`Chain.close()` has exactly two callers: `snaps.py` and `tether.run()` on `run_end`.**
+`arc_holdout.play()` drives `ag.step()` directly and **never calls `run()`** — it says so in its
+own comment, *`run()` gives no hook*. **So no segment can close on the ARC path at any length.**
+
+> **A precondition that fails twice for the same structural reason is a fact about the
+> instrument's reachability**, and setting a third cycle count would have measured nothing a
+> third time. **Third instance of the session's pattern** — a mechanism reachable in principle
+> and called from nowhere on the live path, after `touching()` and `contingency()` itself.
+
+---
+
+# THE PROPOSER's FIRST BUILD FAILED ITS OWN FALSIFIER, AND THE GUARD WAS IN THE CLAIM
+
+    every action observed at step  22
+    first `discriminate:learned`    2
+    fired before all seen        TRUE
+
+**Pre-registered before the number existed, in the form stated as un-cheatable by its author,
+and it withdrew the author's own build.**
+
+**THE CLAIM WAS *structural* AND THE PROPERTY WAS *of degree*.** *`contingency()` is keyed on
+observed actions, so it cannot separate until every action has been tried* — **true premise,
+false implication.** `act` separates on ZERO evidence; that build separated on PARTIAL evidence.
+**Both separate before the agent has learned what its actions do**, and the difference claimed
+to be in kind was in degree.
+
+**AND *there is no parameter for me to tune* WAS ALSO TRUE AND ALSO DID NOT IMPLY IT.** A
+falsifier can be un-tunable and still be guarded by an assertion rather than by the code. **The
+gate is now a `continue` in the loop: a member contributes only when every advertised action
+appears in ITS OWN dict.**
+
+---
+
+# FOUR FLAVOURS OF ONE DEFECT, AND ALL FOUR PASS EVERY CHECK
+
+**Found separately over one session and they are one class.** A mechanism that is present,
+correct, and never reaches the thing it was built for.
+
+    computed with no consumer     `blind` is set correctly inside `_decomposed`, and its only
+                                  other reader in the repo is a report field
+    producing with no consumer    `contingency()` had exactly one caller -- `report()`
+    reachable with no caller      `Chain.close()` has two callers, neither on the ARC path;
+                                  `touching()` likewise; the frame layer likewise
+    ABSENT RENDERED AS PRESENT    `last_stage: None` reads as *no stall*, not as *never ran*
+
+> **THE FOURTH IS THE WORST AND IT IS THE ONE THAT SPEAKS.** The first three are silent — an
+> unread flag, an unconsumed producer, an uncalled method — and silence eventually prompts the
+> question *is anything using this*. **`None` renders as a clean outcome.** It was compared
+> against a `snaps` reading for a whole exchange as though it were a measurement, and the
+> comparison was between a reading and an absence **whose name looked like a reading**.
+
+### AND THE RULE THAT SHOULD CATCH THEM CHECKS A NARROWER THING
+
+`conform/lint.py`'s ISOLATED: ***"Defined and referenced nowhere in the package."*** **Its
+subject is REFERENCED; the property is REACHED ON THE LIVE PATH.** A reference from a report
+field, a test, or a branch that never executes satisfies it.
+
+**All four above are referenced. None is reached when the agent plays.** **Seventh site for *the
+rule's subject was narrower than the property it was written for*,** and the first where four
+independent instances were found before anyone looked for the class.
+
+---
+
+# THE PROPOSER: THREE POST-HOC CLAUSES REFUSED, AND THE PATTERN IS THE FINDING
+
+**Each clause was individually defensible. The count is what makes them tuning.**
+
+    1  population gate      after the build fired at step 2 with one action observed
+    2  `sep` differs-from-all   after the gated build never fired in 150 cycles
+    3  stability clause     after the gated build fired on single samples -- REFUSED
+
+> `[I]` ***A build converging on a target by being told where it missed, which is what the
+> pre-registration exists to prevent.*** **No single step looks like tuning and the sequence
+> is nothing else.**
+
+**WHAT THE FAILED RUNS ESTABLISHED, AND IT IS REAL:**
+
+- **the gate needs population AND stability** — *every action seen* is satisfied by one
+  observation each, and four single values are trivially all-different, so `sep` credits noise
+- **the driver must be measured at a NAMED MOMENT** — reading 5 predicted from end-of-run data
+  and measured at first fire. **Two moments, and the registration named neither, so it did not
+  fail — it was unaskable as written**
+- **`sep` means *differs from all others*** — *at least one* is satisfied by nearly every action
+
+**A PRE-REGISTRATION THAT DOES NOT NAME *WHEN* IS UNDER-SPECIFIED EVEN WHEN IT NAMES *WHAT*.**
+Every reading in this session's tables named a quantity and a direction; **none named a moment**,
+and the one that needed to was the one that could not be read.
 
 ---
 

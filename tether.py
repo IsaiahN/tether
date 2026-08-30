@@ -728,7 +728,62 @@ class Agent:
                         "refuted_at_least": len(cands) - max(buckets.values()),
                         "by": f"any outcome on {s} after {pick}"}
                 return pick, "discriminate"
+        learned = self._learned_split()
+        if learned is not None:
+            return learned, "discriminate:learned"
         return self.drive.choose(self.actions, self.cycle, _where(before)), "draw"
+
+    def _learned_split(self) -> str | None:
+        """§18.4's proposer half: perception ENTERS the proposal, it does not veto.
+
+        *The sensorium found the right self and changed nothing, because the only consumer of
+        perception was the post-hoc veto.* This picks an action; it forbids none.
+
+        **`contingency()`, NEVER `selected()`.** The question is *do any members separate
+        these actions* -- an existential over members. No member is chosen, so *what kind of
+        thing I am* is never consulted; only *what responded when I acted*.
+
+        **AND IT IS NEVER SUMMED WITH `spread`.** `spread` is Gamma's prediction and this is a
+        measurement; sharing a scale would be a frame scoring itself with a quantity it
+        produces. Two readings, two `by` labels, so the phase can be checked against the
+        mechanism instead of believed.
+
+        **THE TIME SHAPE IS A GATE, AND THE FIRST VERSION ASSERTED IT INSTEAD.** That build
+        claimed *keyed on observed actions, so it cannot separate until every action has been
+        tried* -- and its own pre-registered falsifier caught it: **every action observed at
+        step 22, first fire at step 2.** `contingency()` being keyed on observed actions is
+        true and does not imply it; **`act` separates on ZERO evidence and that separated on
+        PARTIAL evidence, which is a difference of degree.** The guard was in the claim.
+
+        **SO THE CONDITION IS NOW IN THE CODE**: a member contributes only when every
+        advertised action appears in ITS OWN dict. Not *should not* fire early -- **cannot**,
+        and if it does the gate is not where this docstring says it is.
+
+        **AND NOTHING SUMS ACROSS MEMBERS, WHICH IS LOAD-BEARING RATHER THAN TIDY.** The four
+        signals are not commensurable: three report an explained fraction in [0,1] and
+        `value` reports a signed count difference. Every comparison here is WITHIN one
+        member; cross-member arithmetic would be a category error, and a fifth member added
+        later must not introduce one.
+        """
+        f = getattr(self.env, "contingency", None)
+        if f is None:
+            return None
+        sep: dict[str, int] = dict.fromkeys(self.actions, 0)
+        for per_action in f().values():
+            if not set(sep) <= set(per_action):
+                continue          # this member has not yet observed every advertised action
+            vals = {a: v for a, v in per_action.items() if a in sep}
+            for a, v in vals.items():
+                # DISTINCTIVE MEANS DISTINGUISHABLE FROM EVERY ALTERNATIVE, NOT FROM SOME.
+                # The first version asked *differs from at least one*, which nearly every
+                # action satisfies -- so `sep` came out uniform, `max == min`, and the branch
+                # never fired in 150 cycles. A coding error against a stated intent rather
+                # than a parameter that read wrong, which is why correcting it is not tuning.
+                if all(w != v for b, w in vals.items() if b != a):
+                    sep[a] += 1          # this member finds THIS action distinctive
+        if not sep or max(sep.values()) == 0 or max(sep.values()) == min(sep.values()):
+            return None
+        return max(self.actions, key=lambda a: sep[a])
 
     def _advertised(self) -> None:
         """The action set is re-read every step, and a CHANGE is recorded.
