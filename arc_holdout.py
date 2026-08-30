@@ -33,6 +33,7 @@ import gamma
 import gate
 import habitat
 import ledger
+import summary
 import tether
 from arc_world import ArcWorld
 
@@ -154,6 +155,9 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None) -> di
         # what the terms have DONE, per (term, slot), read from the ledger rather than
         # accumulated on the term -- the events were always there and nothing asked.
         "behaviour": behaviour.report(rows),
+        # THE END-OF-RUN SUMMARY. 14.7's three inherited plus MINTED, read off the ledger and
+        # Gamma rather than accumulated anywhere.
+        "summary": summary.report(rows, g),
         "affordance_kinds": aff.report()["kinds"],
         "keys_carrying_two_colours": aff.report()["keys_carrying_two_colours"],
         "unobserved_steps": env.unobserved,
