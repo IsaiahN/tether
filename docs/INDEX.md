@@ -6635,3 +6635,39 @@ than a check.** Nothing could go silent, because nothing was running: a stale me
 in prose is inert until someone believes it, and **the someone was going to be whoever wired
 `λ^d` in as the denominator.** Repaired at source.
 
+
+---
+
+# WHAT THE WRONG DENOMINATOR WOULD HAVE COST, HAD ITS CONSUMER EXISTED
+
+**It cost nothing, and the reason is build order rather than the size of the defect.** §19.2's
+escalation ladder is not built, so no code read `coverage` and chose a rung. **That is the only
+thing standing between this and a permanent misdirection**, and it is worth writing down because
+a defect measured by its damage would score zero here.
+
+    the ladder, and what the two denominators argue for
+    rung 1  re-rank      free       V^d: "seen 15 of 2954" -- 0.5%, barely looked
+    rung 2  more budget  linear     V^d: the obvious read. MORE OF THE SAME SPACE
+    rung 3  more lag     xk
+    rung 4  more depth   xlambda    exact: "seen 15 of 15" -- the space is EXHAUSTED
+    rung 5  more arity   quartic    exact: the only two rungs that can change anything
+
+> **`budget_spent` NEVER OCCURS IN THE RUN.** The budget was never the binding constraint and
+> could not become one, because the whole depth-3 space is 15 candidates. **Rungs 1 and 2 are
+> provably incapable of finding anything**, and `V^d` is precisely the picture that argues for
+> them: *0.5% seen* is what "try harder in the same direction" looks like.
+
+**AND IT WOULD HAVE BEEN SELF-CONFIRMING, WHICH IS THE WORST PROPERTY.** Escalate to rung 2,
+spend more budget, find nothing — because there is nothing left to find — and the result reads as
+*still under-explored*, arguing for rung 2 again. **The ladder climbs its two cheapest rungs
+forever and never reaches depth or arity**, and every step of it is a ledger entry saying the
+agent looked harder. **A false `UNREACHED` with five rungs of provenance behind it** is exactly
+what §19.2 exists to prevent.
+
+### THE RECORDING, WHICH IS THE GENERAL PART
+
+**A defect whose cost is zero because its consumer is unbuilt is not a small defect. It is an
+unexercised one**, and the two are indistinguishable by any measurement taken now. **Build order
+decided which of those it was, not judgement** — the same accident that made `A6i`'s `BUDGET`
+worth recording while nothing was wrong.
+
