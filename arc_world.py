@@ -17,6 +17,7 @@ from typing import Any
 
 from arcengine import GameAction, GameState
 
+import arc_atoms
 import arc_percept
 import arc_self
 import sensors
@@ -113,12 +114,17 @@ class ArcWorld:
     def slot_types(self) -> dict[str, str]:
         """What KIND of quantity each slot holds. **The loop may not derive this.**
 
-        A slot name is `{object}.{attribute}` and the attribute IS the type -- but that is a
-        fact about how THIS adapter names slots, and a loop that split on `.` would be
-        reading domain structure. Same shape as `alphabet()`: the domain declares, the loop
-        compares.
+        A slot name is `{object}.{attribute}` and a loop that split on `.` would be reading
+        domain structure. Same shape as `alphabet()`: the domain declares, the loop compares.
+
+        **THE ATTRIBUTE IS NOT THE TYPE, AND RETURNING THE KEY SAID IT WAS.** §12.2's set is
+        `COLOUR COUNT POSITION EXTENT SHAPE BOOL DELTA AXIS RATIO` and *the attribute types
+        are what make the join sound* -- `row` and `col` are one POSITION. Typed through
+        `arc_atoms.ATTRIBUTE_TYPE`, which is the same table `_extract` types its atoms with,
+        because a slot IS an object's attribute and two tables would drift.
         """
-        return {s: s.rsplit(".", 1)[-1] for s in self._decomposed()}
+        return {s: arc_atoms.ATTRIBUTE_TYPE.get(s.rsplit(".", 1)[-1], s.rsplit(".", 1)[-1])
+                for s in self._decomposed()}
 
     def atoms(self) -> list:
         return list(self._atoms)

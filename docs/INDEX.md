@@ -6751,3 +6751,61 @@ over a large candidate set, which is §15.3 and §23.5's question**, and it has 
 where the standing finding is that `_explains` is `retrieve()`'s only consumer and the ranking
 feeds a decision it cannot change.
 
+
+---
+
+# ONE ATTRIBUTE-TYPE TABLE — AND THE PRE-REGISTERED TRIGGER FIRED
+
+**`slot_types()` returned the slot's KEY and called it the type.** §12.2: *`ATTR` alone is not
+enough — `SAME(ATTR, ATTR)` would happily compare a colour to a cell count. **The attribute types
+are what make the join sound.*** Its set is `COLOUR COUNT POSITION EXTENT SHAPE BOOL DELTA AXIS
+RATIO`, in which `row` and `col` are one POSITION and `h` and `w` are one EXTENT.
+
+### THE DUPLICATE WAS ONE COMMIT OLD AND IT WAS MINE
+
+**`sensors.py:44-45` already declared all nine.** The `ATTR` split declared four of them again in
+`arc_atoms.py` a commit later — **two producers of one fact, with identical strings**, which is
+harmless exactly until one side changes. Imported now, and `ATTRIBUTE_TYPE` is the single key→type
+table both `_extract` and `slot_types` read, **because a slot IS an object's attribute.**
+
+### THE MEASUREMENT, PRE-REGISTERED, AND WHAT IT COULD NOT SETTLE
+
+    ls20, 30 cycles          BEFORE     AFTER
+    operand checks          666,311   532,289
+    refused                 530,356   354,384
+    refusal rate             0.7960    0.6658
+    library (minted)             13         9   <- the pre-registered trigger
+    mint events                  13         9
+    defects                       0         0   8 seats, 16 gate checks
+
+> **THE BEFORE/AFTER PAIR IS CONFOUNDED AND THE TRIGGER FIRED ON THE CONFOUND.** A different
+> admitted binding means a different term, a different action, **a different board** — so the two
+> runs are not one trajectory measured twice. **`13 → 9` cannot be attributed to the widening from
+> these numbers**, and a pre-registration that names a quantity does not make the quantity
+> comparable.
+
+**THE TRAJECTORY-FREE MEASUREMENT IS THE ONE THAT ATTRIBUTES.** Enumerate every (target, bind)
+pair under both type schemes — no run, no divergence:
+
+    translate  (SAME_AS_TARGET)   admits 5 -> 9   NEW: (row,col) (col,row) (h,w) (w,h)
+    recolour   (COLOUR)           admits 5 -> 5   unchanged
+
+**Four pairs, every one within a type, and exactly §12.2's grain.** Cross-type is still refused.
+
+### SO WHAT THE WIDENING BOUGHT IS THE BARGAIN CHOOSING DIFFERENTLY
+
+**`recolour`'s admission set is bit-identical and its candidates are still reached 184,275 times**
+— not starved by the ordering, reaching the bargain and not paying. So the terms that left did not
+leave through the filter; **four extra `translate` bindings close residuals that `recolour` chains
+previously closed.**
+
+> **AND THAT IS A CAPABILITY CHANGE, WHICH `_operand_fits`' WARRANT DOES NOT COVER.** Its
+> docstring's licence is *the narrowing costs no capability, which is the only kind of narrowing
+> that is free* — measured as 80% refused with the library unchanged. **A widening is not that
+> claim in reverse and does not inherit it.** Recorded as its own event, with its own number.
+
+**WHAT THESE FOUR QUANTITIES CANNOT SAY IS WHETHER IT IS AN IMPROVEMENT.** Library size is
+frame-internal — the count fell and the *kind* changed, and neither is evidence. **The
+ground-facing quantity is residual closure, and it was not in the pre-registered set**, which is
+the honest limit of this reading rather than a result to interpret around.
+

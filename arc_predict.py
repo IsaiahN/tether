@@ -57,6 +57,7 @@ from __future__ import annotations
 import sys
 
 from gamma import SAME_AS_TARGET, Atom, Ctx
+from sensors import COLOUR
 
 sys.dont_write_bytecode = True
 
@@ -101,7 +102,7 @@ def predict() -> list[Atom]:
             # `v -> operand` puts the operand IN the slot, so it must be a colour whatever
             # the target is. THIS IS THE DEFECT'S OWN SITE: `idn . recolour<o11.h>`.
             Atom("recolour", _recolour, "val", "val", reads_operand=True,
-                 operand_type="colour")]
+                 operand_type=COLOUR)]
 
 
 def unexpressible() -> dict[str, str]:

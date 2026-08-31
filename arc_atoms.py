@@ -31,6 +31,7 @@ import sys
 from typing import Any
 
 from gamma import Atom, Ctx
+from sensors import COLOUR, EXTENT, OBJECT, POSITION
 
 sys.dont_write_bytecode = True
 
@@ -41,7 +42,7 @@ sys.dont_write_bytecode = True
 # first being `colour . same . all . colour` -- quantify to an objective, then read a colour
 # OFF the objective. Well-typed, meaningless, and refusing that is what the type system is
 # for. `grammar.py` had kept them apart all along as OBJECT and OBJ.
-OBJECT, OBJ = "OBJECT", "OBJ"
+OBJ = "OBJ"          # `OBJECT` is imported from `sensors`; this one is the objective
 # `ATTR` IS A SPACE, NOT A TYPE, AND THE CODE MADE IT A TYPE. §11.2's table names
 # `ATTR x ATTR -> PRED` as one of THREE COMPOSITION SPACES; §12.3's table names the types
 # inside it -- `OBJ -> COLOUR`, `OBJ -> POSITION`, `OBJ -> EXTENT`, `OBJ -> SHAPE`. `_relate`
@@ -49,10 +50,18 @@ OBJECT, OBJ = "OBJECT", "OBJ"
 # the type: it made `above` -- an ORDER -- apply to a colour, 4 of the 60 terms in
 # `OBJECT -> {PRED, OBJ}` at depth 3. Well-typed and meaningless, and the colour ruling is why:
 # a colour is a LABEL that permutes on refresh, so `>` on it compares two arbitrary indices.
-COLOUR, POSITION, EXTENT, SHAPE = "COLOUR", "POSITION", "EXTENT", "SHAPE"
+# IMPORTED, NOT REDECLARED. `sensors.py` already carried §12.2's nine attribute types, and
+# the ATTR split declared four of them here a commit later -- two producers of one fact, with
+# identical strings, which is harmless exactly until one side changes.
 COMPARABLE = (COLOUR, POSITION, EXTENT)   # equality is meaningful on all of them
 ORDERED = (POSITION, EXTENT)              # order is meaningful only on these
 PRED, QUANT, VAL = "PRED", "QUANT", "val"
+
+# THE ONE TABLE. An object record's key -> the §12.2 type its values inhabit. `_extract` reads
+# it to type its atoms and `ArcWorld.slot_types` reads it to type its slots, and those are the
+# same fact: a slot IS an object's attribute. Declared once so they cannot drift apart.
+ATTRIBUTE_TYPE = {"colour": COLOUR, "row": POSITION, "col": POSITION,
+                  "h": EXTENT, "w": EXTENT}
 
 
 def _extract() -> list[Atom]:
@@ -68,9 +77,7 @@ def _extract() -> list[Atom]:
         def fn(o: Any, _c: Ctx) -> Any:
             return o.get(key, 0) if isinstance(o, dict) else o
         return fn
-    return [Atom(k, pick(k), OBJECT, t)
-            for k, t in (("colour", COLOUR), ("row", POSITION), ("col", POSITION),
-                         ("h", EXTENT), ("w", EXTENT))]
+    return [Atom(k, pick(k), OBJECT, t) for k, t in ATTRIBUTE_TYPE.items()]
 
 
 def _relate() -> list[Atom]:
