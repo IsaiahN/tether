@@ -6809,3 +6809,88 @@ frame-internal — the count fell and the *kind* changed, and neither is evidenc
 ground-facing quantity is residual closure, and it was not in the pre-registered set**, which is
 the honest limit of this reading rather than a result to interpret around.
 
+
+---
+
+# B17's FOURTH VARIANT: THE FLAW WAS IN THE MEASUREMENT'S DESIGN, AND IT WAS APPROVED
+
+**Pre-registration protected nothing here, and for a new reason.** The first three variants had a
+NAME whose two meanings could be looked up — `molecule`, `DIRECTED`, `BUDGET`, `PRIOR`. The third
+had no name at all, the reading being the measurement. **This one has a well-defined quantity,
+correctly named, measured before and after, and the pair is not comparable.**
+
+    library (minted)   13 -> 9      registered in advance as the trigger
+                                    and a different admitted binding means a different
+                                    action, so the two runs are not one trajectory twice
+
+> **NAMING A QUANTITY IN ADVANCE DOES NOT MAKE THE QUANTITY COMPARABLE.** Pre-registration fixes
+> WHAT is measured and says nothing about whether the two measurements share a subject. **A
+> before/after on a system whose behaviour the change alters is two subjects**, and the discipline
+> that is supposed to catch fitting is silent about it.
+
+**AND THE PART WORTH RECORDING IS WHO WROTE IT.** The pre-registration was Isaiah's, approved and
+carried out as specified, **and the flaw was in it at the moment of approval.** Both of us read it
+as sound. **A registered quantity reads as a decision already made**, which is exactly the
+property that makes registration valuable and exactly what stops it being re-examined.
+
+**THE CHECK IS ONE QUESTION AND IT IS CHEAP:** *does the change alter the trajectory the
+measurement is taken over?* If yes, the before/after is confounded and something trajectory-free
+is needed — **which existed here, cost one enumeration, and settled it exactly.**
+
+---
+
+# THE DUPLICATE WAS FOUND BY BUILDING THE CONSUMER, NOT BY READING EITHER FILE
+
+**`sensors.py` declared §12.2's nine types; the `ATTR` split declared four of them again one
+commit later.** Identical strings, so **no check could fire and no diff would look wrong** — and
+`grep COLOUR` returns both without either looking like a mistake.
+
+> **IT SURFACED WHEN ONE THING NEEDED TO READ BOTH.** `slot_types` had to name the same types
+> `_extract` names, and at that moment the question *where does this constant live* has exactly
+> one right answer and the repo had two. **Neither file is wrong when read alone. The pair is
+> wrong, and only a consumer of both is positioned to see it.**
+
+**WHICH IS A DIFFERENT DETECTION MODE FROM EVERY LAW IN `CLAUDE.md`** — those install something
+that fires, or are steps taken before the work. **This one is a shape that becomes visible only
+when a third thing depends on both halves**, and until then it is two correct files.
+
+
+---
+
+# THE FIXED-SEQUENCE MEASUREMENT — 45% WAS THE CONFOUND, 1.6% IS THE EFFECT
+
+**`step(action=...)` already accepted a forced action, so the replay needed no new mechanism.**
+Both arms run the same 30 actions, see the same boards, and differ only in whether `slot_types`
+declares §12.2 types or slot keys. **Taken in both directions** — once on each arm's own free
+trajectory — so neither arm is measured only on ground it chose.
+
+    FREE (each its own trajectory)          FIXED, TYPED's seq      FIXED, KEYED's seq
+      typed  integral 233.128  lib  9         typed  233.128  9       typed  421.850  13
+      keyed  integral 425.551  lib 13         keyed  236.828  9       keyed  425.551  13
+
+**THE LIBRARY DIFFERENCE IS ENTIRELY TRAJECTORY.** On a fixed sequence both arms mint the same
+count — **9 and 9, 13 and 13.** The pre-registered `13 -> 9` was confound with nothing under it,
+**and that is now measured rather than argued.**
+
+**THE REAL EFFECT IS -3.70 BITS, THE SAME IN BOTH DIRECTIONS** — `236.828 -> 233.128` and
+`425.551 -> 421.850`, identical to three decimals, **which reads as one recurring correction
+rather than a diffuse gain.** Sign consistent under the symmetric check. **1.6% of the integral.**
+
+> **THE FREE COMPARISON WOULD HAVE READ AS A 45% REDUCTION IN SURPRISE.** `425.551 -> 233.128`.
+> **The effect is 1.6%, so the confound overstated it by 29x, and in the direction that flatters
+> the change.** Not a distortion at the margin — it would have been the headline, it was
+> pre-registered, and every number in it is correctly computed.
+
+**AND THE INTEGRAL IS THE RIGHT INSTRUMENT BECAUSE IT WAS ALREADY THERE.** `_integral` accumulates
+`correction_bits` against the actual, monotone by construction, *read never reduced* — the
+ground's own disagreement with the agent's bets. **No metric was invented for this reading**, which
+is the ninth time the specified instrument was already in the code.
+
+### WHAT IT LICENSES, WHICH IS LESS THAN IT LOOKS
+
+**The widening is not a regression**, and on the ground-facing number it is slightly positive both
+ways. **It does not license *the typed grain is better***: 1.6% on one game over 30 cycles, with a
+single-correction signature, is a reading consistent with the two schemes being near-equivalent
+**and with the four newly-admitted pairs mattering once.** The reason to keep it is §12.2's, not
+this number's.
+
