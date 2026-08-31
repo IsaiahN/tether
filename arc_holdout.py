@@ -72,6 +72,8 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None) -> di
     led = ledger.Ledger()
     ag = tether.Agent(env, gamma.Gamma(env.atoms(), game=game), tether.Config(), led)
     loaded = ag.gamma.load(library) if library and Path(library).exists() else None
+    # Q25 needs the set BEFORE play and there is exactly one moment it exists
+    inherited = ({summary._chain(t) for t in ag.gamma.library.values()} if loaded else set())
     bud = arc_run.Budget()
     bud.level_starts()
 
@@ -158,6 +160,16 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None) -> di
         # THE END-OF-RUN SUMMARY. 14.7's three inherited plus MINTED, read off the ledger and
         # Gamma rather than accumulated anywhere.
         "summary": summary.report(rows, g),
+        # Q25's VERDICT IS UNINTERPRETABLE ALONE, so it never travels alone. *No divergence*
+        # is a copy loop only if there WAS something left to explain -- otherwise the level
+        # had nothing to add and retrieving was correct. `outstanding` is that reading, and
+        # the pair is the claim.
+        "branching": summary.branching(g, inherited),
+        "residual": {"pe_integral": round(ag.pe_integral(), 3),
+                     "outstanding": round(ag.outstanding(), 3),
+                     "reads": ("no divergence WITH outstanding surprise is a level that "
+                               "failed to compose; no divergence with none left is a level "
+                               "that had nothing to add")},
         "affordance_kinds": aff.report()["kinds"],
         "keys_carrying_two_colours": aff.report()["keys_carrying_two_colours"],
         "unobserved_steps": env.unobserved,

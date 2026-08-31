@@ -128,6 +128,36 @@ def transfer(rows: list[dict], gamma) -> dict:
                       "and a handle together say composed there, used here")}
 
 
+def branching(gamma, inherited: set[str]) -> dict:
+    """**Q25's BRANCHING TEST, on the generation the run just formed.**
+
+    *A tower of seats, agents, or generations that has produced no divergence has no transform
+    and is a copy loop however deep it goes* -- and Q25's point is that this is **visible
+    without access to the transform itself.** So this compares OUTPUT SETS and never asks how a
+    term was made.
+
+    **DIVERGENCE IS ON THE COMPOSITION, NOT THE BINDING**, and that is the whole of the design.
+    Bindings are re-decided per slot in every game, so a binding-keyed difference is non-empty
+    by construction and the check could never fail -- *a metric whose denominator the mechanism
+    changes cannot falsify that mechanism*. The atom sequence is what `save` carries across and
+    what `units` composes over, so it is what a generation can be said to have added.
+
+    `inherited` is the composition set present after loading and before playing. Empty means a
+    cold run, which is generation zero and **cannot branch by definition** -- reported as such
+    rather than as a failure.
+    """
+    final = {_chain(t) for t in gamma.library.values()}
+    # ON A COLD RUN `added` WOULD BE THE WHOLE LIBRARY, ATOMS INCLUDED -- which is not a set
+    # of additions, it is the absence of a parent rendered as a maximal difference. Null, like
+    # the verdict it belongs to.
+    added = sorted(final - inherited) if inherited else None
+    return {"inherited": len(inherited), "final": len(final), "added": added,
+            "diverged": bool(added) if inherited else None,
+            "reads": ("generation zero cannot branch, so `diverged` is null on a cold run. "
+                      "On a warm one, no added composition means this level is a copy of its "
+                      "parent however deep the tower goes -- Q25, and it fails loudly")}
+
+
 def reached_and_failed(rows: list[dict]) -> dict:
     """**Descriptions that retrieved nothing.** *I looked for something with this shape and
     found nothing* is an `UNREACHED` with a SUBJECT, and it is the half the visible set exists

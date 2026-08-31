@@ -7121,3 +7121,56 @@ re-runs, and `CLAUDE.md` defers it to 25/25 because below mastery *neither numbe
 interpretable*. **Q25 needs no mastery**: a tower either branched or it did not, and that is
 readable now, on runs already taken.
 
+
+---
+
+# Q25's BRANCHING TEST — BUILT 2026-08-31, AND GENERATION 2 READS `False`
+
+**The audit's Class-A hit from the semantic pass, built as `summary.branching`, called by
+`arc_holdout.play`.**
+
+    gen 0  ls20   inherited  0   final 15   added --   diverged None   cold: cannot branch
+    gen 1  sk48   inherited 15   final 20   added  5   diverged True
+    gen 2  g50t   inherited 20   final 20   added  0   diverged False  <- fires
+
+**`g50t` INHERITED 20 COMPOSITIONS AND RETURNED 20.** The older holdout row for the same game
+reads *minted 12* — **twelve terms minted, zero new shapes.** The library grew in bindings and
+not in compositions, which is *fifty saved entries were eleven shapes* with a verdict attached.
+
+### THE DESIGN DECISION IS THE WHOLE CHECK: COMPOSITION, NEVER BINDING
+
+**Bindings are re-decided per slot in every game**, so a binding-keyed difference is non-empty by
+construction and `diverged` could never read `False`. **A check that cannot fail is not a check**
+— *a metric whose denominator the mechanism changes cannot falsify that mechanism*, arriving as a
+design constraint rather than as a post-hoc catch. The atom sequence is what `save` carries and
+what `units` composes over, so it is what a generation can be said to have added.
+
+**AND ALL THREE VERDICTS WERE SHOWN REACHABLE BEFORE THE RUN** — `None` on a cold parent, `False`
+on an identical inheritance, `True` on one composition more. **A diagnostic whose failure state
+has never been produced is an assertion.**
+
+### THE COLD-RUN FIELD WAS AN ABSENCE RENDERED AS A MAXIMAL DIFFERENCE
+
+With no parent, `added = final - {}` listed **the entire library, atoms included**, as new
+compositions. The verdict was already `None`; the list was not. **Null now, like the verdict it
+belongs to** — fourth instance of that flavour, and the first caught by reading the code between
+writing it and reading its output.
+
+### THE VERDICT DOES NOT TRAVEL ALONE, AND SHIPPING IT ALONE WAS HALF A MECHANISM
+
+> **No divergence is a copy loop only if there was something left to explain.** If `g50t`'s
+> residuals were already covered by the inherited shapes, retrieving was correct and there was
+> nothing to compose.
+
+**Which is the terminal condition's clause 3 asked cheaply** — *if the win survives the agent
+composed it; if it disappears the library was carrying the answer and the agent was retrieving.*
+**`outstanding()` is the disambiguator and it was built two commits earlier**, so the holdout
+report now carries `pe_integral` and `outstanding` beside `branching`. **Neither reading is a
+claim without the other.**
+
+### DETERMINISM, ARGUED AND BEING CONFIRMED
+
+`ls20`, `sk48` and `g50t` contain no randomness, and the loop's only random call is the handle
+suffix, which touches no decision. **So one run is the verdict rather than a draw** — stated as
+an argument from the absence of a source, with a repeat run in flight to confirm it.
+
