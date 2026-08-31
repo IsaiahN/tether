@@ -7183,3 +7183,53 @@ said what to expect and the run could have refuted it.
 **Every composition this tower has ever added is drawn from the three `val → val` atoms**, which
 is the one corner anything enumerates. The branching that exists is happening in 3 atoms of 14.
 
+
+---
+
+# §12.4's SECTION CHECK — TWO `A6i` INSTANCES, RECORDED BEFORE THE BUILD
+
+**Both are PROSPECTIVE, and the item that would collide with them is nameable: §12.4's trigger,
+which is the next build.** That is the condition `BUDGET` established for recording a cleared
+hazard, and it is what stops a register filling with near-misses.
+
+### `slot` — AND IT DECIDES WHAT IS PERMITTED, NOT ONLY WHAT IS MEASURED
+
+    corpus   a slot is an OBJECT             §12.3: "no slots, so `R` cannot be indexed per slot"
+                                             §12.3 s3: "a slot is not the SAME slot next frame"
+    code     a slot is an OBJECT.ATTRIBUTE   `env.slots()` -> 100 names over 20 objects
+
+**Five code-slots per corpus-slot — and that gap is exactly §12.4's *attribute vector*.** The
+trigger reads, translated: **two OBJECTS whose attribute values all match and whose residuals
+differ**, and the code's `slot` cannot express it.
+
+> **AND THE HARD RULE READS OPPOSITE WAYS UNDER THE TWO MEANINGS.** *No aggregation across slots*
+> — forming an object's residual from its five channels is aggregation ACROSS slots in the code's
+> vocabulary and WITHIN one slot in the corpus's. **A step that is required under one reading is
+> forbidden under the other**, which is the first `A6i` to change a permission rather than a
+> number.
+
+### `residual` — THREE QUANTITIES, AND ONE OF THEM I BUILT THIS WEEK
+
+    outstanding      surprise not yet explained          `DISCOVERY`, built 2026-08-30
+    per-step mass    this step's correction bits         `SlotResidual.mass`
+    |R| held         over the slot's history vs the      `_accumulated` -- what the MINT
+                     term currently bound                calls `base`
+
+**Adding `outstanding` two commits ago made this word carry three quantities**, which is worth
+noting on its own: **a new instrument can create an `A6i` rather than only inherit one.** The
+mint's `base` is the codebase's own meaning and is the one to read §12.4 against.
+
+### THE VECTOR IS FEATURAL, AND THE CORPUS DOES NOT SAY SO
+
+    pairs sharing (colour, row, col, h, w)   0     across 25 steps, 21 objects
+    pairs sharing (colour, h, w)            75
+
+**Zero is structural, not rare: two distinct objects cannot share a position**, and `priors.py`
+carries solidity as a CONSTRAINT saying so. **So the trigger with position in its vector can
+never fire** — and the null would have read as *no two slots are ever indistinguishable* when the
+cause is that the test included the one attribute that cannot collide.
+
+**AND §12.4's OWN REMEDY SETTLES THE FIX RATHER THAN MY PREFERENCE.** Its example is
+`parity(position)` — **position is what the new sensor reads to SPLIT them, so it cannot also be
+what made them look alike.** Derived from the corpus's example, not chosen.
+
