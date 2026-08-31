@@ -7073,3 +7073,51 @@ is one regex over seven documents and it took minutes. **`what is built and unre
 is named with no referent` are different searches over the same corpus**, and only the first had
 ever been run.
 
+
+---
+
+# THE SEMANTIC PASS — ROLES AND CONSUMERS, NOT STRINGS. ONE HIT, AND A CORRECTION TO THE RATE
+
+**The mechanical pass finds names wearing parentheses. This one runs over TABLE SHAPES** — every
+corpus table with a *lives in* / *consumer* / *status* column, nine of them.
+
+    §12.1  seven prior shapes, `lives in`      ALL SEVEN HOMES EXIST -- clean
+    §11.2  three spaces, `status`              STATUSES DECLARED -- Class B
+    §15.3  four retrieval keys                 effect shape unbuilt, ALREADY RECORDED
+    Q26    the eight-slot Env protocol         ALL EIGHT built on `ArcWorld` -- clean
+    Q24    requisite variety, `H(...)`         DECLARED AT THE SITE -- Class B
+    Q25    the branching test                  **CLASS A**
+
+### AND IT CORRECTS THE RATE I USED TO ARGUE FOR RUNNING IT
+
+**§11.2's status column reads *`grammar.py` exists, unwired* and *EXTRACT: missing*.** I called
+RELATE/QUANTIFY's absent consumer the audit's second hit. **The corpus declares both, so it was
+Class B all along** — the same distinction that makes the audit an instrument, applied to my own
+count and taking one off it. **Two Class-A hits from the mechanical pass, one from this one.**
+
+### Q25 IS A CHECK, WHICH IS A THIRD SHAPE
+
+> *An invertible transform, iterated, is a permutation — orbits, not a tree... **a tower of
+> seats, agents, or generations that has produced no divergence has no transform and is a copy
+> loop however deep it goes** — and that is visible without access to the transform itself.*
+> **Recommendation. Ship it as a check on any multi-level structure the build grows. Cheap,
+> external, and it fails loudly.**
+
+**The library chain IS that structure** — `ls20 → sk48` through `save`/`load`, with `IMPORTED` as
+its own admitting clause — **and it is built.** Nothing implements the test and no site declares
+the gap. **`outstanding` and `density` were quantities; this is a diagnostic**, which is why no
+regex over callables would have surfaced it.
+
+**AND THE DATA TO RUN IT ON ALREADY EXISTS.** The holdout runs read `imported held/pulled: 3/0`
+and `11/0` — **inherited terms were never pulled.** That is not the same claim as *no divergence*
+and it points the same way: **the second generation produced nothing from its inheritance.** The
+check is not built and I have not run it; **what is recorded here is that the subject exists, the
+structure is built, and the diagnostic the corpus recommends for exactly this has no referent.**
+
+### WHY IT MATTERS MORE THAN ITS SIZE
+
+**It is the cheap external half of the terminal condition's clause 3.** The ablation wipes Γ and
+re-runs, and `CLAUDE.md` defers it to 25/25 because below mastery *neither number is
+interpretable*. **Q25 needs no mastery**: a tower either branched or it did not, and that is
+readable now, on runs already taken.
+
