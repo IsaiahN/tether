@@ -7702,3 +7702,54 @@ motivation was sound and the mechanism it motivated was not the one that worked.
 a measured 0** — the old number measured nothing, so this reading has no predecessor. **Per game,
 never pooled.**
 
+
+---
+
+# THE FIGURES ON THE ITEM IN FLIGHT — FIVE READINGS, AND FOUR OF THEM REFRAME RATHER THAN CONFIRM
+
+**FIGURE 9 · THE INSTANCE-FREE KEY IS NOT A REFINEMENT.** *Evidence bearing on the residual is
+admissible; evidence bearing only on its MAKER is a stake-inducing channel, and the verifier is
+denied it.* **A slot name is evidence about whose residual it was.** So slot-keyed retrieval was
+admitting a channel the figure disqualifies — **the change removed an inadmissible key rather than
+improving a key.**
+
+**FIGURE 6 · THE CIRCLE'S EXIT IS NAMED.** *The question is not whether a sensor could exist. It
+is whether anything, at any resolution, is already returning something that FAILS TO RESOLVE.*
+**`_delta`'s body was `rb - ra`, already returning something, sealed in a two-place sensor.** So
+§12.4's `UNREACHED` stands and the exit is **not install the missing sensor** but **find the
+proto-instrument already returning something unresolved** — *an instrument is improved from a
+worse instrument already returning something, never built from a description.*
+
+**FIGURE 10 · THE CONVENTION/VERDICT LINE.** *It carries only what it did not author... It does
+author CONVENTIONS, because nothing else can see across a seam. A convention makes no claim about
+the world; a verdict and an atom both do.* **The handle scheme is a convention. A skill map is a
+verdict.** The ruling made twice this week, arriving with its reason.
+
+**FIGURE 3 · WHERE EVERY READING THIS WEEK SITS.** Link 2 is *terms for what things afford* —
+measured and failing. Link 3, the objective — **never reached, so never assessed.** **Everything
+measured this week is at link 2**, and *a reading taken below the break is a reading of nothing.*
+
+**FIGURE 8 + 9 · WHY FULL REACH IS A REQUIREMENT.** *Only a sealed room can be searched to the
+end, and no frame is a sealed room* — so an abstention is worth something **only when it names the
+closure it searched.** §12.4's does. **A reach that cannot touch 2,689 of 2,700 entries makes every
+abstention a reading over a corner, and the agent cannot say which corner, because it does not
+know the entries are there.**
+
+---
+
+# F2, FILED AS A FINDING WITH ITS SHAPE STATED
+
+**§15.3's third key is substantially the arity key wearing a second name.** 87.3% identical, and
+the derived amendment moved it to **88.6%** — correct about what `SAME_AS_TARGET` means and
+reducing the signal it was meant to restore.
+
+> **THE SIGNAL IS MISSING, NOT THE BRANCH.** A better branch over the same inputs cannot separate
+> the keys, because both are computed from *does this term read an operand* and *did anything
+> move*. **The surviving independent signal is `recolour`'s typed `COLOUR` operand and nothing
+> else.**
+
+**NOT A TASK, AND NOT TO BE GUESSED AT.** §15.3's four keys are named and this is the third; a
+fifth signal invented here is the improvised-metric failure at the level of a key. **The corpus
+names the remaining one — `effect shape`, *what changed, not what caused it* — and it is the one
+key never built.**
+

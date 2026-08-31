@@ -74,6 +74,19 @@ I have a documented weakness for **invented metrics and magic numbers**. Coverag
 minted, compression achieved, and anything else the frame produces are frame-internal
 and are not evidence.
 
+**CONTACT IS WHAT SEPARATES CAPABILITY FROM INSTRUMENTATION, AND IT IS FIGURE 11's.**
+*Capability is a property of agent-and-habitat, never of the agent alone. An improvement that
+does not change contact changes nothing, however much it improves.* Asked of one day's work:
+`outstanding`, the branching test, both audit passes, the `idn` cut — **instruments, no contact
+change**. `delta` published and the import made pullable — **contact**. That is the whole of *a
+third of it moved the goal*, and it is **not a discipline failure**: most work does not touch
+contact, and only contact moves capability. **The question to ask of a change is whether the
+agent can now reach something it could not**, not whether a number improved.
+
+**And it is why widening PERCEPTION is legitimate where installing TIER 2 is not.** *Introduce,
+never subtract*: one changes contact, the other **substitutes the habitat** — and *a synthetic
+solve proves wiring and never capability.*
+
 **A flat metric is not a dead direction.** A level bump is 30–40 things going right at
 once; solving 20 of 30 shows nothing. Judge by whether the reasoning is sound and the
 code is actually running, not by the number.
