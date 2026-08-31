@@ -29,7 +29,7 @@ sys.dont_write_bytecode = True
 
 PRIOR, MINTED, IMPORTED = "prior", "minted", "imported"
 
-# WHICH CLAUSE ADMITTED AN ENTRY -- §11's two, and `None` for "not stated".
+# WHICH CLAUSE ADMITTED AN ENTRY -- Â§11's two, and `None` for "not stated".
 # ORIGIN IS NOT THIS. `PRIOR` is stamped on every atom at construction, so it records that no
 # mint occurred -- NOT that an entry rule was applied. The ablation partitions by CLAUDE.md's
 # clause 3, which asks WHICH CLAUSE let a thing in, and that cannot be recovered from `prior`
@@ -84,7 +84,7 @@ class Term:
     atoms: tuple[Atom, ...]
     origin: str = MINTED
     operand: str | None = None    # which slot fills operand 0, or None for unary
-    # §15.5's `When(P, R)` -- guarded by a predicate -- and it is a CONSTRUCTOR there, not
+    # Â§15.5's `When(P, R)` -- guarded by a predicate -- and it is a CONSTRUCTOR there, not
     # an atom. A chain has no branch, so a gate written as an atom would have to
     # short-circuit the rest of it, which `val -> val` gives it no way to do. So the guard
     # lives on the Term: `f` when the action matches, IDENTITY otherwise.
@@ -222,7 +222,7 @@ class Gamma:
         """NO `molecules` PARAMETER, and its removal is the 2026-08-27 ruling in code.
 
         It installed TERM priors at construction with `origin=PRIOR` -- **the one route by
-        which a term could enter Γ without being earned**, which §11 forbids and which the
+        which a term could enter Î“ without being earned**, which Â§11 forbids and which the
         VISIBLE SET replaces: a term is visible, aimed at, and enters only when regenerated,
         under clause two. It had zero call sites, so it was not dormant but a **trapdoor to a
         forbidden state**, and leaving it would have made `admissions` report a bucket that
@@ -243,7 +243,7 @@ class Gamma:
         # `primitive requires both` is only checkable if both are on the record.
         self.primitives: dict[str, dict] = {}
         self.tick = 0
-        # 3d / §17.7. Set by the agent to a `(unit) -> tuple` ranking. None keeps the
+        # 3d / Â§17.7. Set by the agent to a `(unit) -> tuple` ranking. None keeps the
         # registry order this had, so installing a rank is an observable change and not
         # installing one changes nothing.
         self.unit_rank = None
@@ -280,13 +280,13 @@ class Gamma:
         return term
 
     def admissions(self) -> dict[str, int]:
-        """How many entries cited each of §11's two clauses.
+        """How many entries cited each of Â§11's two clauses.
 
         **FOUR CLAUSES, AND `unstated` IS STILL THE FALSIFIER.**
 
-            necessary   the atoms -- §11 clause one, *the loop cannot run without it*
+            necessary   the atoms -- Â§11 clause one, *the loop cannot run without it*
             accepted    minted, closed a residual, paid the bargain. **Earned and pre-boundary**
-            promoted    survived a boundary -- §11 clause two
+            promoted    survived a boundary -- Â§11 clause two
             imported    minted on another game. Across games there is no *first*, so it is not
                         clause two; it wipes like `promoted` and is counted apart
 
@@ -378,15 +378,15 @@ class Gamma:
         """NOVEL is relative to atoms, not to the world."""
         return len(term) == 1 and term.atoms[0].name in self._by_name
 
-    # -- persistence: §17.8's decision, made rather than defaulted -------------------------
+    # -- persistence: Â§17.8's decision, made rather than defaulted -------------------------
 
     def save(self, path: str) -> dict:
         """Write the minted library. **SEAT-SIDE: the agent never calls this.**
 
-        §17.8 asked for a POLICY and a SWITCH -- *state it, and make it switchable so the
+        Â§17.8 asked for a POLICY and a SWITCH -- *state it, and make it switchable so the
         ablation is runnable* -- and recorded its own inclination as *start cold across games*.
         **Isaiah ruled the opposite: the library persists, because transfer is the claim.**
-        §17.8 calls that a decision rather than a default, so both are in bounds and this is
+        Â§17.8 calls that a decision rather than a default, so both are in bounds and this is
         the one taken. **The switch is that nothing calls save/load unless the seat does**, so
         the ablation stays runnable by simply not loading.
 
@@ -420,7 +420,7 @@ class Gamma:
         has a different atom set, and silently dropping half a library would read as a small
         library rather than as an incompatible one.
 
-        **AND A TERM FROM ANOTHER GAME ENTERS AS `IMPORTED`, NEVER AS `promoted`.** §11 clause
+        **AND A TERM FROM ANOTHER GAME ENTERS AS `IMPORTED`, NEVER AS `promoted`.** Â§11 clause
         two is *the agent minted a crude version first and we are promoting it* -- and across
         games there is no first. `necessary` stays, `promoted` wipes, **`IMPORTED` wipes and is
         counted apart**, so the transfer number is readable and the ablation is unaffected.
@@ -477,7 +477,8 @@ class Gamma:
         return sorted(out, key=self.unit_rank) if self.unit_rank else out
 
     def enumerate_closure(self, in_type: str, out_type: str, max_depth: int, budget: int,
-                          stats: dict | None = None) -> Iterator[Term]:
+                          stats: dict | None = None,
+                          order: Callable[[Term], float] | None = None) -> Iterator[Term]:
         """Type-valid pipelines over UNITS, shortest first, capped by budget.
 
         Yielding a term is a WITNESS that it is reachable. Stopping is one of two facts and
@@ -493,7 +494,27 @@ class Gamma:
             stats["units"] = len(units)
             stats["estimate"] = self.space_estimate(len(units), max_depth)
             stats["seen"] = 0
-        frontier = [u.atoms for u in units if u.in_type == in_type]
+        start = [u for u in units if u.in_type == in_type]
+        # §23.5's PREREQUISITE, and it is not a new judgement. *Loading generously requires
+        # retrieval-by-characterised-residual, not enumeration -- a big library is an asset
+        # when you look things up by the shape of your gap and a liability when you walk it in
+        # registry order.* Under a budget SOMETHING already decides what is seen, and it is
+        # currently the order units happen to be in. This replaces an accident with a ranking.
+        #
+        # **IT ORDERS, IT NEVER ADMITS.** The bargain is untouched, so nothing passes here that
+        # would not have passed before -- what changes is which candidates are REACHED inside
+        # `budget`, never which are accepted.
+        #
+        # **A DEGENERATE RANKING IS REFUSED.** All units scoring alike makes the argmax
+        # arbitrary, and acting on an arbitrary argmax is noise wearing an ordering's name.
+        # `max > min` is the existential `discriminate` already uses -- no parameter.
+        if order is not None and start:
+            sc = [order(u) for u in start]
+            if max(sc) > min(sc):
+                start = [u for _, u in sorted(zip(sc, start, strict=True),
+                                              key=lambda x: (-x[0], x[1].name))]
+        frontier = [u.atoms for u in start]
+        frontier = [u.atoms for u in start]
         depth = 1
         spent = False
         while frontier and depth <= max_depth:

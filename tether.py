@@ -10,6 +10,7 @@ from __future__ import annotations
 import math
 import sys
 from dataclasses import dataclass, field
+from functools import partial
 from itertools import islice
 from typing import Any
 
@@ -957,8 +958,14 @@ class Agent:
         rank = 0
 
         if guards["support"]:
+            # THE GAP IS ALREADY CHARACTERISED FOR RETRIEVAL; the search gets the same key.
+            # §23.5: retrieval and the rank function are PREREQUISITES for a loaded library,
+            # *otherwise loading makes the agent worse by drowning every search* -- and the
+            # library is loaded by design as of the persistence ruling.
+            gap = retrieval.characterise(robs, slot, list(self.alphabet))
+            by_fit = partial(retrieval.fits, gap=gap, in_type="val", out_type="val")
             for cand in self.gamma.enumerate_closure("val", "val", self.cfg.max_depth,
-                                                     self.cfg.budget, stats):
+                                                     self.cfg.budget, stats, order=by_fit):
                 binds = self._bindings(slot, robs) if cand.reads_operand else [None]
                 binds = [x for x in binds if self._operand_fits(cand, slot, x)]
                 for bind, g in ((b, g) for b in binds for g in self._guards(robs)):
