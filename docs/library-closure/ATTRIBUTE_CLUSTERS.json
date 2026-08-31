@@ -1,0 +1,7337 @@
+{
+ "meta": {
+  "purpose": "Attribute vocabulary clustered. Passes 1-2 mechanical; pass 3 ruled.",
+  "written_forms": 5055,
+  "after_form_normalisation": 4924,
+  "head_words": 2202,
+  "multi_member_head_words": 775,
+  "total_mentions": 7932,
+  "clusters": 17,
+  "mentions_covered": 1736,
+  "rulings": [
+   "RATE renamed SPEED; velocity, acceleration, flow, throughput moved into it.",
+   "MOTION keeps only the fact of moving: motion, movement, displacement, mobility, locomotion.",
+   "DIRECTION split out as its own cluster: path, trajectory, orientation, vector, axis, heading.",
+   "delta assigned to CHANGE, not MOTION -- a temperature delta is not motion.",
+   "phase assigned to TIME, not STATE -- 13 of 16 mentions are the bare temporal word.",
+   "COLOUR at 6 is accurate, not a parse failure: the source list is light on colour by design."
+  ]
+ },
+ "clusters_detail": {
+  "DIRECTION": {
+   "heads": [
+    "trajectory",
+    "orientation",
+    "vector",
+    "direction",
+    "path",
+    "axis"
+   ],
+   "mentions": 73,
+   "forms": {
+    "trajectory": [
+     "trajectory",
+     "optimal trajectory",
+     "future trajectory",
+     "developmental trajectory",
+     "ballistic trajectory",
+     "altering trajectory"
+    ],
+    "orientation": [
+     "head orientation",
+     "orientation",
+     "mirror orientation",
+     "body orientation",
+     "long term orientation"
+    ],
+    "vector": [
+     "state vector",
+     "feature vector",
+     "action vector",
+     "force vector",
+     "normal vector",
+     "vector",
+     "weight vector",
+     "forward vector",
+     "gravity vector"
+    ],
+    "direction": [
+     "direction",
+     "gaze direction",
+     "wind direction",
+     "approach direction",
+     "flow direction",
+     "rotation direction",
+     "facing direction",
+     "speed in all direction",
+     "time direction",
+     "influence direction",
+     "step direction"
+    ],
+    "path": [
+     "path",
+     "light path",
+     "two path",
+     "predicted collision path",
+     "efficient path",
+     "chosen path",
+     "flow path",
+     "hidden path",
+     "action against path",
+     "extended path",
+     "smooth path",
+     "shortest path",
+     "missed path",
+     "constrained path",
+     "short path"
+    ],
+    "axis": [
+     "rotation axis",
+     "forward axis",
+     "polarizer axis",
+     "dimension axis"
+    ]
+   }
+  },
+  "POSITION": {
+   "heads": [
+    "cell",
+    "position",
+    "location"
+   ],
+   "mentions": 52,
+   "forms": {
+    "cell": [
+     "memory cell",
+     "parent cell",
+     "daughter cell",
+     "stem cell",
+     "cell",
+     "occupied cell",
+     "muscle cell",
+     "immune cell",
+     "recipient cell",
+     "t cell",
+     "cancer cell",
+     "hadley cell",
+     "ferrel cell",
+     "polar cell",
+     "single cell",
+     "generic cell",
+     "eukaryotic cell"
+    ],
+    "position": [
+     "position",
+     "pivot position",
+     "limb position",
+     "all position",
+     "vertical position",
+     "leader position",
+     "touch position",
+     "actual position",
+     "two position",
+     "serial position"
+    ],
+    "location": [
+     "location",
+     "object location",
+     "storage location",
+     "facility location",
+     "precise location"
+    ]
+   }
+  },
+  "SPEED": {
+   "heads": [
+    "acceleration",
+    "rate",
+    "flow",
+    "speed",
+    "velocity",
+    "throughput"
+   ],
+   "mentions": 182,
+   "forms": {
+    "acceleration": [
+     "acceleration",
+     "vertical acceleration"
+    ],
+    "rate": [
+     "reaction rate",
+     "heart rate",
+     "strain rate",
+     "rate",
+     "flow rate",
+     "spread rate",
+     "decay rate",
+     "arrival rate",
+     "service rate",
+     "diffusion rate",
+     "response rate",
+     "recovery rate",
+     "growth rate",
+     "cooling rate",
+     "charge flow rate",
+     "activity rate",
+     "forward rate",
+     "reverse rate",
+     "processing rate",
+     "inflow rate",
+     "outflow rate",
+     "entropy rate",
+     "habituation rate",
+     "heat flow rate",
+     "temperature change rate",
+     "measurement rate",
+     "mass loss rate",
+     "descent rate",
+     "roll rate",
+     "stimulu rate",
+     "variance rate",
+     "resource rate",
+     "novelty rate",
+     "computation rate",
+     "collapse rate",
+     "interconversion rate",
+     "information rate",
+     "error rate",
+     "adoption rate",
+     "change rate",
+     "win rate",
+     "wandering rate",
+     "transmission rate",
+     "intensification rate",
+     "predation rate",
+     "consumption rate"
+    ],
+    "flow": [
+     "flow",
+     "energy flow",
+     "information flow",
+     "current flow",
+     "resource flow",
+     "continuou flow",
+     "heat flow",
+     "electron flow",
+     "fluid flow",
+     "max flow",
+     "traffic flow",
+     "return flow",
+     "perfect flow",
+     "blocked flow",
+     "temporal flow",
+     "control flow",
+     "data flow",
+     "perpetual flow"
+    ],
+    "speed": [
+     "speed",
+     "wind speed",
+     "high speed",
+     "signal speed",
+     "propagation speed",
+     "rotation speed",
+     "horizontal speed",
+     "top speed",
+     "light speed",
+     "computational speed",
+     "adaptation speed",
+     "adversary speed",
+     "belt speed",
+     "response speed",
+     "correction speed"
+    ],
+    "velocity": [
+     "velocity",
+     "angular velocity",
+     "relative velocity",
+     "slip velocity",
+     "joint velocity",
+     "initial velocity",
+     "conductor velocity",
+     "escape velocity",
+     "forward velocity",
+     "lateral velocity",
+     "target velocity",
+     "fall velocity",
+     "release velocity"
+    ],
+    "throughput": [
+     "throughput",
+     "global throughput"
+    ]
+   }
+  },
+  "ACTION": {
+   "heads": [
+    "command",
+    "action",
+    "input",
+    "trigger",
+    "move",
+    "intervention"
+   ],
+   "mentions": 184,
+   "forms": {
+    "command": [
+     "motor command",
+     "action command",
+     "chain of command"
+    ],
+    "action": [
+     "action",
+     "agent action",
+     "observed action",
+     "deceptive action",
+     "future action",
+     "forbidden action",
+     "consistent action",
+     "collective action",
+     "continued action",
+     "repeated action",
+     "automatic action",
+     "goal action",
+     "available action",
+     "chosen action",
+     "change in action",
+     "group action",
+     "player action",
+     "target action",
+     "ongoing action",
+     "long term action",
+     "physical action",
+     "autonomou action",
+     "steering action",
+     "other action",
+     "assistive action",
+     "inefficient action",
+     "defense action",
+     "strike action",
+     "defensive action",
+     "current action",
+     "past action",
+     "hidden action",
+     "no action",
+     "apparent action",
+     "copied action",
+     "cooperative action",
+     "impulsive action",
+     "sequential action",
+     "simultaneou action",
+     "possible action",
+     "best action",
+     "short term action",
+     "suboptimal action",
+     "lack of action",
+     "ritual action",
+     "attention on action",
+     "corrective action",
+     "amplifying action",
+     "preemptive action",
+     "optimal action",
+     "rising action",
+     "ingestion action",
+     "engaged action",
+     "breaking action",
+     "mirrored action",
+     "delayed action",
+     "external action",
+     "suppressed action",
+     "action on action",
+     "redemptive action",
+     "coping action",
+     "mindless action",
+     "subversive action",
+     "decisive action",
+     "mass action",
+     "immediate action",
+     "sustained action",
+     "information action",
+     "multiple action"
+    ],
+    "input": [
+     "input",
+     "energy input",
+     "visual input",
+     "work input",
+     "computer input",
+     "vestibular input",
+     "control input",
+     "reference input",
+     "external input"
+    ],
+    "trigger": [
+     "trigger",
+     "fear trigger",
+     "environmental trigger",
+     "multiple trigger"
+    ],
+    "move": [
+     "legal move",
+     "multiple move",
+     "coordinated move",
+     "evasion move",
+     "possible move",
+     "upward move",
+     "downward move"
+    ],
+    "intervention": [
+     "intervention",
+     "consciou intervention"
+    ]
+   }
+  },
+  "STATE": {
+   "heads": [
+    "state",
+    "condition",
+    "mode"
+   ],
+   "mentions": 105,
+   "forms": {
+    "state": [
+     "state",
+     "current state",
+     "future state",
+     "game state",
+     "actual world state",
+     "knowledge state",
+     "steady state",
+     "emotional state",
+     "consciousness state",
+     "predicted sensory state",
+     "actual sensory state",
+     "binary state",
+     "unknown state",
+     "change in state",
+     "oxidation state",
+     "old state",
+     "new state",
+     "system state",
+     "past state",
+     "known unread state",
+     "hidden state",
+     "world state",
+     "contact state",
+     "basi state",
+     "post measurement state",
+     "final state",
+     "original state",
+     "copied state",
+     "known state",
+     "two state",
+     "clean state",
+     "goal state",
+     "self state",
+     "observed other state",
+     "body state",
+     "polarization state",
+     "immediate state",
+     "quantum state",
+     "internal state",
+     "encoding state",
+     "retrieval state",
+     "network state",
+     "flow state",
+     "sensed state",
+     "stable state",
+     "unfulfilled state",
+     "stuck state",
+     "initial state",
+     "finite state",
+     "transitional state"
+    ],
+    "condition": [
+     "condition",
+     "win condition",
+     "boundary condition",
+     "initial condition",
+     "draw condition",
+     "deadlock condition",
+     "past condition",
+     "environmental condition",
+     "matching condition"
+    ],
+    "mode": [
+     "plate mode",
+     "observation mode",
+     "pattern mode"
+    ]
+   }
+  },
+  "COUNT": {
+   "heads": [
+    "count",
+    "number",
+    "quantity",
+    "frequency",
+    "population"
+   ],
+   "mentions": 67,
+   "forms": {
+    "count": [
+     "count",
+     "seller count",
+     "cycle count",
+     "teeth count",
+     "joint count",
+     "event count",
+     "boundary count",
+     "edge count",
+     "bin count",
+     "transition count",
+     "contact count",
+     "action count",
+     "relationship count",
+     "case count"
+    ],
+    "number": [
+     "reynold number",
+     "crossing number",
+     "atomic number",
+     "mach number"
+    ],
+    "quantity": [
+     "quantity",
+     "resource quantity",
+     "output quantity",
+     "input quantity",
+     "order quantity"
+    ],
+    "frequency": [
+     "frequency",
+     "driving frequency",
+     "question frequency",
+     "resonant frequency",
+     "vibration frequency",
+     "thought frequency",
+     "oscillator frequency",
+     "symbol frequency",
+     "natural frequency",
+     "autonomou frequency",
+     "high frequency",
+     "low frequency",
+     "sound frequency",
+     "reward frequency",
+     "matched frequency"
+    ],
+    "population": [
+     "population",
+     "one population",
+     "clonal population"
+    ]
+   }
+  },
+  "CONTACT": {
+   "heads": [
+    "distance",
+    "edge",
+    "boundary",
+    "contact",
+    "gap"
+   ],
+   "mentions": 93,
+   "forms": {
+    "distance": [
+     "distance",
+     "goal distance",
+     "interatomic distance",
+     "spatial distance",
+     "input distance",
+     "output distance",
+     "predator distance",
+     "lead distance",
+     "reachable distance",
+     "object distance",
+     "image distance",
+     "decreasing distance",
+     "increasing distance"
+    ],
+    "edge": [
+     "edge",
+     "new edge",
+     "boundary edge",
+     "rectangle edge",
+     "sharp edge",
+     "incident edge",
+     "internal edge",
+     "random edge",
+     "critical edge"
+    ],
+    "boundary": [
+     "boundary",
+     "perceived boundary",
+     "no turn boundary",
+     "game boundary",
+     "circle boundary",
+     "fractal boundary",
+     "performance boundary",
+     "air mass boundary",
+     "ultimate boundary",
+     "human machine boundary"
+    ],
+    "contact": [
+     "contact",
+     "physical contact",
+     "foot contact",
+     "solid contact",
+     "point contact",
+     "ground contact",
+     "quick contact",
+     "continuou contact"
+    ],
+    "gap": [
+     "gap",
+     "information gap"
+    ]
+   }
+  },
+  "SHAPE": {
+   "heads": [
+    "angle",
+    "curvature",
+    "shape",
+    "form"
+   ],
+   "mentions": 50,
+   "forms": {
+    "angle": [
+     "angle",
+     "joint angle",
+     "rotation angle",
+     "incident angle",
+     "reflected angle",
+     "wedge angle",
+     "polarizer angle",
+     "observer angle",
+     "deflection angle",
+     "turning angle",
+     "deviation angle",
+     "critical angle"
+    ],
+    "curvature": [
+     "curvature",
+     "mirror curvature",
+     "negative curvature"
+    ],
+    "shape": [
+     "shape",
+     "object shape",
+     "implied shape"
+    ],
+    "form": [
+     "final form",
+     "initial form",
+     "new form",
+     "phonetic form",
+     "storage form"
+    ]
+   }
+  },
+  "STRUCTURE": {
+   "heads": [
+    "order",
+    "pattern",
+    "structure",
+    "arrangement"
+   ],
+   "mentions": 108,
+   "forms": {
+    "order": [
+     "order",
+     "temporal order",
+     "turn order",
+     "global order",
+     "player order",
+     "word order",
+     "vertical order",
+     "exploration order",
+     "spontaneou order",
+     "hidden order",
+     "diffraction order",
+     "higher order",
+     "topological order",
+     "dequeue order",
+     "service order",
+     "urgent order",
+     "preference order",
+     "second order",
+     "urgency order",
+     "old order",
+     "new order"
+    ],
+    "pattern": [
+     "pattern",
+     "global pattern",
+     "temporal pattern",
+     "contact pattern",
+     "interference pattern",
+     "choice pattern",
+     "behaviour pattern",
+     "action pattern",
+     "movement pattern",
+     "attentional pattern",
+     "local pattern",
+     "past pattern",
+     "radiation pattern",
+     "touch pattern",
+     "fringe pattern",
+     "intensity pattern",
+     "repeated pattern",
+     "sand pattern",
+     "vibration pattern",
+     "collective pattern",
+     "infinite pattern",
+     "persistent pattern",
+     "vein pattern",
+     "engineered pattern",
+     "fixed pattern",
+     "life pattern",
+     "universal pattern",
+     "coherent pattern",
+     "emergent pattern"
+    ],
+    "structure": [
+     "structure",
+     "external structure",
+     "phrase structure",
+     "local structure",
+     "relational structure",
+     "same structure",
+     "dislocation structure",
+     "large structure",
+     "persistent structure",
+     "dimensional structure",
+     "internal structure",
+     "grammatical structure",
+     "language structure",
+     "thought structure",
+     "emergent structure",
+     "core structure",
+     "large scale structure",
+     "narrative structure",
+     "joke structure",
+     "complete structure",
+     "real world structure",
+     "skill structure"
+    ],
+    "arrangement": [
+     "arrangement",
+     "different arrangement"
+    ]
+   }
+  },
+  "SIGNAL": {
+   "heads": [
+    "response",
+    "output",
+    "measurement",
+    "signal",
+    "report",
+    "observation"
+   ],
+   "mentions": 176,
+   "forms": {
+    "response": [
+     "response",
+     "emotional response",
+     "physiological response",
+     "mutual best response",
+     "conditioned response",
+     "automatic response",
+     "agent response",
+     "secondary response",
+     "neural response",
+     "faster response",
+     "immune response",
+     "meaningful response",
+     "orienting response",
+     "awe response",
+     "grief response",
+     "group response"
+    ],
+    "output": [
+     "output",
+     "usable output",
+     "work output",
+     "sound output",
+     "reproductive output"
+    ],
+    "measurement": [
+     "measurement",
+     "syndrome measurement"
+    ],
+    "signal": [
+     "signal",
+     "microbiome signal",
+     "input signal",
+     "output signal",
+     "physiological signal",
+     "muscle spindle signal",
+     "external signal",
+     "outcome signal",
+     "small input signal",
+     "large output signal",
+     "demodulated signal",
+     "neural signal",
+     "environmental signal",
+     "interoceptive signal",
+     "nociceptor signal",
+     "correction signal",
+     "reputation signal",
+     "body signal",
+     "warning signal",
+     "relevant signal",
+     "meaningful signal",
+     "spatiotemporal signal",
+     "reward signal",
+     "density signal",
+     "error signal"
+    ],
+    "report": [
+     "self report",
+     "report",
+     "peer report",
+     "agent report",
+     "curiosity report",
+     "heaviness report",
+     "agency report",
+     "presence report",
+     "dizziness report",
+     "immersion report",
+     "dream report"
+    ],
+    "observation": [
+     "observation",
+     "self observation",
+     "sensation observation",
+     "sustained observation"
+    ]
+   }
+  },
+  "TIME": {
+   "heads": [
+    "delay",
+    "time",
+    "phase",
+    "period",
+    "interval",
+    "latency",
+    "duration",
+    "lag"
+   ],
+   "mentions": 172,
+   "forms": {
+    "delay": [
+     "delay",
+     "time delay",
+     "recall after delay",
+     "echo delay",
+     "phase delay"
+    ],
+    "time": [
+     "time",
+     "action time",
+     "response time",
+     "decision time",
+     "cycle time",
+     "start time",
+     "reaction time",
+     "air time",
+     "event time",
+     "arrival time",
+     "elapsed time",
+     "settling time",
+     "stimulu time",
+     "planning time",
+     "consistency across time",
+     "end time",
+     "consequence time",
+     "next action time",
+     "remaining time",
+     "wait time",
+     "onset time",
+     "behaviour over time",
+     "transition time",
+     "dwell time",
+     "processing time",
+     "identification time",
+     "adaptation time",
+     "outcome time",
+     "photon arrival time",
+     "storage time",
+     "decay time",
+     "trigger time",
+     "expected time",
+     "actual time",
+     "nonlocal time",
+     "order time",
+     "delivery time",
+     "pick time",
+     "recovery time",
+     "reconfiguration time",
+     "delay time",
+     "flight time",
+     "change over time"
+    ],
+    "phase": [
+     "phase",
+     "expansion phase",
+     "collapse phase",
+     "beat phase"
+    ],
+    "period": [
+     "period",
+     "rest period",
+     "oscillation period",
+     "incubation period",
+     "beat period",
+     "cooldown period",
+     "sensitive period"
+    ],
+    "interval": [
+     "interval",
+     "blind interval",
+     "valid interval",
+     "retention interval",
+     "perceived interval",
+     "fixed interval",
+     "review interval"
+    ],
+    "latency": [
+     "latency",
+     "response latency"
+    ],
+    "duration": [
+     "duration",
+     "long duration",
+     "stress duration",
+     "tool use duration",
+     "delay duration",
+     "attention duration",
+     "subjective duration"
+    ],
+    "lag": [
+     "lag",
+     "jet lag"
+    ]
+   }
+  },
+  "IDENTITY": {
+   "heads": [
+    "type",
+    "identity",
+    "label"
+   ],
+   "mentions": 36,
+   "forms": {
+    "type": [
+     "material type",
+     "cell type",
+     "environment type",
+     "action type",
+     "boundary type",
+     "knot type",
+     "centrality type"
+    ],
+    "identity": [
+     "identity",
+     "shared identity",
+     "solvent identity",
+     "self identity",
+     "loss of identity",
+     "changed identity",
+     "constructed identity",
+     "group identity",
+     "core identity",
+     "rebelliou identity",
+     "night identity",
+     "new identity",
+     "ironic identity",
+     "skilled identity"
+    ],
+    "label": [
+     "unit label",
+     "leaf label"
+    ]
+   }
+  },
+  "FORCE": {
+   "heads": [
+    "stress",
+    "force",
+    "tension",
+    "energy",
+    "pressure",
+    "mass",
+    "load",
+    "weight",
+    "torque",
+    "momentum"
+   ],
+   "mentions": 155,
+   "forms": {
+    "stress": [
+     "stress",
+     "shear stress",
+     "pre stress",
+     "internal stress",
+     "residual stress"
+    ],
+    "force": [
+     "force",
+     "load force",
+     "input force",
+     "normal force",
+     "contact force",
+     "upward force",
+     "effort force",
+     "output force",
+     "gravitational force",
+     "friction force",
+     "applied force",
+     "vertical force",
+     "restoring force",
+     "muscle force",
+     "intercellular force",
+     "disturbing force",
+     "counter force",
+     "tidal force",
+     "propulsive force",
+     "lift force",
+     "rebound force",
+     "net force",
+     "shear force",
+     "interatomic force",
+     "pressure force",
+     "mechanical force",
+     "compressive force",
+     "interparticle force",
+     "sustained force",
+     "focused force",
+     "amplified force",
+     "resistance to force",
+     "multiple force",
+     "motivational force",
+     "life force"
+    ],
+    "tension": [
+     "tension",
+     "surface tension",
+     "constant tension",
+     "tendon tension",
+     "muscle tension",
+     "group tension"
+    ],
+    "energy": [
+     "potential energy",
+     "energy",
+     "stored energy",
+     "activation energy",
+     "surface energy",
+     "kinetic energy",
+     "low energy",
+     "particle energy",
+     "elastic energy",
+     "impact energy",
+     "photon energy",
+     "chemical energy",
+     "fundamental energy"
+    ],
+    "pressure": [
+     "pressure",
+     "vapour pressure",
+     "external pressure",
+     "time pressure",
+     "sound pressure",
+     "price pressure",
+     "under pressure",
+     "evolutionary pressure"
+    ],
+    "mass": [
+     "mass",
+     "center of mass",
+     "rotating mass",
+     "visible mass",
+     "accelerating mass",
+     "critical mass"
+    ],
+    "load": [
+     "indenter load",
+     "load",
+     "internal load",
+     "critical load",
+     "ethical load"
+    ],
+    "weight": [
+     "weight",
+     "edge weight",
+     "moral weight",
+     "synaptic weight",
+     "ethical weight",
+     "inherited weight"
+    ],
+    "torque": [
+     "torque",
+     "joint torque"
+    ],
+    "momentum": [
+     "angular momentum",
+     "momentum",
+     "orbital angular momentum"
+    ]
+   }
+  },
+  "EXTENT": {
+   "heads": [
+    "area",
+    "volume",
+    "dimension",
+    "size",
+    "length",
+    "width",
+    "scale",
+    "depth",
+    "height",
+    "magnitude"
+   ],
+   "mentions": 113,
+   "forms": {
+    "area": [
+     "area",
+     "indentation area",
+     "cross sectional area",
+     "support area",
+     "horizon area",
+     "infinite area",
+     "zero area",
+     "non defended area",
+     "novel area"
+    ],
+    "volume": [
+     "volume",
+     "submerged volume",
+     "container volume",
+     "closed volume",
+     "cavity volume",
+     "zero volume"
+    ],
+    "dimension": [
+     "dimension",
+     "part dimension"
+    ],
+    "size": [
+     "group size",
+     "particle size",
+     "size",
+     "domain size",
+     "original size",
+     "compressed size",
+     "absolute size",
+     "wound size",
+     "window size",
+     "aperture size",
+     "population size",
+     "input size",
+     "perturbation size",
+     "system size",
+     "grain size",
+     "sample size",
+     "bet size",
+     "batch size",
+     "effect size",
+     "droplet size",
+     "cluster size",
+     "tissue size",
+     "body part size"
+    ],
+    "length": [
+     "crack length",
+     "length",
+     "tool length",
+     "original length",
+     "final length",
+     "message length",
+     "chain length",
+     "code length",
+     "minimum length",
+     "stride length",
+     "column length",
+     "focal length",
+     "objective focal length",
+     "eyepiece focal length",
+     "neck length",
+     "coherence length",
+     "uncountable length",
+     "infinite length",
+     "no well defined length",
+     "queue length",
+     "day length",
+     "average path length"
+    ],
+    "width": [
+     "aperture width",
+     "gap width"
+    ],
+    "scale": [
+     "scale",
+     "time scale"
+    ],
+    "depth": [
+     "depth",
+     "optical depth",
+     "infinite depth"
+    ],
+    "height": [
+     "barrier height",
+     "surface height",
+     "height",
+     "ledge height"
+    ],
+    "magnitude": [
+     "response magnitude",
+     "error magnitude"
+    ]
+   }
+  },
+  "MOTION": {
+   "heads": [
+    "motion",
+    "displacement",
+    "movement"
+   ],
+   "mentions": 41,
+   "forms": {
+    "motion": [
+     "motion",
+     "pendular motion",
+     "perpetual motion",
+     "bar motion",
+     "independent motion",
+     "object motion",
+     "self motion",
+     "upward motion",
+     "limb motion",
+     "source motion",
+     "vertical motion",
+     "forward motion",
+     "wasted motion"
+    ],
+    "displacement": [
+     "displacement",
+     "linear displacement",
+     "body displacement",
+     "object displacement",
+     "minor displacement"
+    ],
+    "movement": [
+     "movement",
+     "eye movement",
+     "slow movement",
+     "mouth movement",
+     "contact movement",
+     "ion movement",
+     "imagined movement",
+     "fast movement",
+     "upward movement",
+     "continuou movement",
+     "meaningful movement"
+    ]
+   }
+  },
+  "CHANGE": {
+   "heads": [
+    "difference",
+    "change",
+    "variation",
+    "update",
+    "shift",
+    "transition"
+   ],
+   "mentions": 123,
+   "forms": {
+    "difference": [
+     "phase difference",
+     "path difference",
+     "difference",
+     "temperature difference",
+     "potential difference",
+     "feature difference",
+     "genetic difference",
+     "price difference"
+    ],
+    "change": [
+     "change",
+     "behavioural change",
+     "behaviour change",
+     "temperature change",
+     "state change",
+     "input change",
+     "output change",
+     "belief change",
+     "fundamental change",
+     "radical change",
+     "phase change",
+     "external change",
+     "detected change",
+     "utility change",
+     "opinion change",
+     "system change",
+     "personality change",
+     "anticipatory change",
+     "phenotype change",
+     "altitude change",
+     "net change",
+     "conformational change",
+     "brain change",
+     "physiological change",
+     "synaptic change",
+     "permanent change",
+     "response change",
+     "setpoint change",
+     "axiom change",
+     "gene expression change",
+     "evolutionary change",
+     "rule change",
+     "positive change",
+     "habit of change",
+     "regime change",
+     "self change",
+     "dramatic change",
+     "genetic change",
+     "rapid change",
+     "identity change",
+     "perpetual change"
+    ],
+    "variation": [
+     "variation",
+     "pressure variation",
+     "trait variation",
+     "subtle variation",
+     "parameter variation"
+    ],
+    "update": [
+     "price update",
+     "action update",
+     "policy update",
+     "update",
+     "path update"
+    ],
+    "shift": [
+     "phase shift",
+     "perspective shift",
+     "predictable shift",
+     "trait shift",
+     "baseline shift",
+     "prism shift",
+     "frequency shift",
+     "meta shift",
+     "frame shift",
+     "perception shift",
+     "permanent shift",
+     "paradigm shift",
+     "context shift",
+     "attention shift",
+     "circadian shift"
+    ],
+    "transition": [
+     "transition",
+     "waking transition",
+     "consciousness transition",
+     "conditional transition",
+     "phase transition"
+    ]
+   }
+  },
+  "COLOUR": {
+   "heads": [
+    "color"
+   ],
+   "mentions": 6,
+   "forms": {
+    "color": [
+     "object color",
+     "background color",
+     "color",
+     "emotional color"
+    ]
+   }
+  }
+ },
+ "unassigned_head_words": {
+  "object": {
+   "mentions": 42,
+   "forms": [
+    "object",
+    "two object",
+    "neutral object",
+    "target object",
+    "goal object",
+    "no object",
+    "number of object",
+    "real object",
+    "moving object",
+    "one object",
+    "new object",
+    "model object",
+    "top object",
+    "bottom object",
+    "decoy object",
+    "tracked object",
+    "distance between object",
+    "higher dim object",
+    "inanimate object",
+    "ego as object",
+    "self as object",
+    "awareness without object",
+    "imprinting object",
+    "focal object",
+    "desired object"
+   ]
+  },
+  "rule": {
+   "mentions": 42,
+   "forms": [
+    "rule",
+    "local rule",
+    "formal rule",
+    "simple rule",
+    "update rule",
+    "action on rule",
+    "choice rule",
+    "score rule",
+    "operational rule",
+    "implicit rule",
+    "official rule",
+    "inside rule",
+    "outside rule",
+    "violation rule",
+    "syntactic rule",
+    "morphological rule",
+    "communication rule",
+    "aggregation rule"
+   ]
+  },
+  "event": {
+   "mentions": 41,
+   "forms": [
+    "event",
+    "past event",
+    "random event",
+    "loss event",
+    "surprising event",
+    "release event",
+    "division event",
+    "response before event",
+    "no event",
+    "trigger event",
+    "confounded event",
+    "contact event",
+    "chunked event",
+    "ambiguou event",
+    "predicted event",
+    "correlated event",
+    "update event",
+    "suggested event",
+    "recalled event",
+    "aversive event",
+    "unexpected event",
+    "emotional event",
+    "same event",
+    "discrete event",
+    "life event",
+    "surprise event",
+    "discovery event",
+    "future event",
+    "injury event",
+    "trauma event"
+   ]
+  },
+  "meaning": {
+   "mentions": 36,
+   "forms": [
+    "meaning",
+    "new meaning",
+    "shared meaning",
+    "symbolic meaning",
+    "affective meaning",
+    "derived meaning",
+    "different meaning",
+    "related meaning",
+    "unrelated meaning",
+    "inferred meaning",
+    "holistic meaning",
+    "social meaning",
+    "hidden meaning",
+    "return to meaning",
+    "loss of meaning",
+    "search for new meaning",
+    "life meaning",
+    "no ultimate meaning",
+    "refusal of meaning",
+    "no need for meaning"
+   ]
+  },
+  "outcome": {
+   "mentions": 34,
+   "forms": [
+    "outcome",
+    "later outcome",
+    "predicted outcome",
+    "variance of outcome",
+    "measurement outcome",
+    "fixed outcome",
+    "extreme outcome",
+    "subsequent outcome",
+    "negative outcome",
+    "no good outcome",
+    "process over outcome"
+   ]
+  },
+  "level": {
+   "mentions": 31,
+   "forms": [
+    "resource level",
+    "effort level",
+    "water level",
+    "inventory level",
+    "input level",
+    "output level",
+    "noise level",
+    "sound pressure level",
+    "stock level",
+    "rumination level",
+    "blood nutrient level",
+    "stimulu level",
+    "price level",
+    "fatigue level",
+    "stress level",
+    "trust level",
+    "challenge level",
+    "skill level",
+    "multiple level",
+    "energy at trophic level",
+    "multiple trophic level",
+    "trophic level",
+    "deprivation level",
+    "drive level",
+    "level"
+   ]
+  },
+  "sequence": {
+   "mentions": 30,
+   "forms": [
+    "sequence",
+    "action sequence",
+    "event sequence",
+    "instruction sequence",
+    "infection sequence",
+    "node sequence",
+    "bit sequence",
+    "message sequence",
+    "input sequence",
+    "subgoal sequence",
+    "recorded sequence",
+    "pseudo random sequence",
+    "control sequence",
+    "word sequence",
+    "illogical sequence"
+   ]
+  },
+  "persistence": {
+   "mentions": 30,
+   "forms": [
+    "persistence",
+    "action persistence",
+    "symptom persistence"
+   ]
+  },
+  "cycle": {
+   "mentions": 29,
+   "forms": [
+    "cycle",
+    "nutrient cycle",
+    "behaviour cycle",
+    "temperature cycle",
+    "optimize cycle",
+    "annual cycle",
+    "matter cycle",
+    "motivation cycle",
+    "continuou cycle",
+    "amplifying cycle",
+    "complete cycle",
+    "delegation cycle",
+    "no cycle",
+    "eternal cycle"
+   ]
+  },
+  "a": {
+   "mentions": 29,
+   "forms": [
+    "entity a",
+    "input a",
+    "node a",
+    "concentration a",
+    "event a",
+    "module a",
+    "clock a",
+    "force a",
+    "market a",
+    "action a",
+    "strategy a",
+    "acetyl co a",
+    "goal a",
+    "good a",
+    "currency a",
+    "stimulu a",
+    "state a"
+   ]
+  },
+  "b": {
+   "mentions": 29,
+   "forms": [
+    "entity b",
+    "input b",
+    "node b",
+    "concentration b",
+    "rate b",
+    "event b",
+    "module b",
+    "clock b",
+    "force b",
+    "market b",
+    "action b",
+    "strategy b",
+    "goal b",
+    "good b",
+    "currency b",
+    "stimulu b",
+    "state b"
+   ]
+  },
+  "behaviour": {
+   "mentions": 28,
+   "forms": [
+    "behaviour",
+    "collective behaviour",
+    "exploration behaviour",
+    "observed behaviour",
+    "social behaviour",
+    "choice behaviour",
+    "harmful behaviour",
+    "search behaviour",
+    "escape behaviour",
+    "asymptotic behaviour",
+    "aggressive behaviour",
+    "agent behaviour",
+    "complete behaviour",
+    "encoded behaviour",
+    "stable behaviour",
+    "alternative behaviour",
+    "approach behaviour",
+    "inquiry behaviour",
+    "seeking behaviour"
+   ]
+  },
+  "choice": {
+   "mentions": 28,
+   "forms": [
+    "choice",
+    "strategy choice",
+    "action choice",
+    "delayed choice",
+    "decision choice",
+    "individual choice",
+    "group choice",
+    "maximin choice",
+    "maximax choice",
+    "lexical choice",
+    "hierarchical choice",
+    "rational choice",
+    "after many choice",
+    "illusion of choice",
+    "independent choice",
+    "repeated choice"
+   ]
+  },
+  "node": {
+   "mentions": 28,
+   "forms": [
+    "node",
+    "new node",
+    "source node",
+    "dest node",
+    "deepest node",
+    "start node",
+    "pressure node",
+    "intermediate node",
+    "cloud node",
+    "current node",
+    "next node",
+    "quantum node",
+    "central node"
+   ]
+  },
+  "belief": {
+   "mentions": 27,
+   "forms": [
+    "belief",
+    "agent belief",
+    "fixed belief",
+    "alternative belief",
+    "shared belief",
+    "dominant belief",
+    "default belief",
+    "stated belief",
+    "growth belief"
+   ]
+  },
+  "memory": {
+   "mentions": 27,
+   "forms": [
+    "memory",
+    "new memory",
+    "autobiographical memory",
+    "old memory",
+    "body memory",
+    "contiguou memory",
+    "state memory",
+    "negative memory",
+    "shared memory",
+    "climate memory",
+    "repressed memory",
+    "holding memory",
+    "collective memory"
+   ]
+  },
+  "stimulu": {
+   "mentions": 25,
+   "forms": [
+    "stimulu",
+    "new stimulu",
+    "current stimulu",
+    "neutral stimulu",
+    "sign stimulu",
+    "subliminal stimulu",
+    "priming stimulu",
+    "conditioned stimulu",
+    "preferred stimulu",
+    "novel stimulu",
+    "unconditioned stimulu"
+   ]
+  },
+  "value": {
+   "mentions": 25,
+   "forms": [
+    "value",
+    "pixel value",
+    "score value",
+    "outcome value",
+    "reference value",
+    "truth value",
+    "resistance value",
+    "first value",
+    "store of value",
+    "output value",
+    "expected value",
+    "max flow value",
+    "gain value",
+    "shared value"
+   ]
+  },
+  "intensity": {
+   "mentions": 25,
+   "forms": [
+    "transmitted intensity",
+    "intensity",
+    "incident intensity",
+    "color intensity",
+    "stress intensity",
+    "stimulu intensity",
+    "sound intensity",
+    "light intensity",
+    "reflected intensity",
+    "urge intensity",
+    "pursuit intensity"
+   ]
+  },
+  "source": {
+   "mentions": 24,
+   "forms": [
+    "source",
+    "motion source",
+    "heat source",
+    "light source",
+    "sound source",
+    "wrong source",
+    "concrete source",
+    "nothing as source",
+    "energy source"
+   ]
+  },
+  "point": {
+   "mentions": 23,
+   "forms": [
+    "contact point",
+    "data point",
+    "vanishing point",
+    "central point",
+    "interior point",
+    "limit point",
+    "dew point",
+    "support point",
+    "balance point",
+    "mid point",
+    "infinity point",
+    "reorder point",
+    "branch point",
+    "meeting point",
+    "breaking point"
+   ]
+  },
+  "network": {
+   "mentions": 23,
+   "forms": [
+    "network",
+    "concept network",
+    "complete network",
+    "distributed network",
+    "global network",
+    "complex network",
+    "hidden network",
+    "ever expanding network",
+    "entire network",
+    "global gene network",
+    "cosmic network",
+    "ecosystem network"
+   ]
+  },
+  "target": {
+   "mentions": 22,
+   "forms": [
+    "target",
+    "bacterial target",
+    "source target",
+    "action target",
+    "true target"
+   ]
+  },
+  "amplitude": {
+   "mentions": 22,
+   "forms": [
+    "amplitude",
+    "stress amplitude",
+    "oscillation amplitude",
+    "pressure amplitude",
+    "probability amplitude",
+    "swing amplitude",
+    "input amplitude",
+    "sway amplitude",
+    "vibration amplitude"
+   ]
+  },
+  "continuity": {
+   "mentions": 22,
+   "forms": [
+    "continuity",
+    "path continuity",
+    "power continuity",
+    "bodily continuity"
+   ]
+  },
+  "cost": {
+   "mentions": 21,
+   "forms": [
+    "cost",
+    "opportunity cost",
+    "monetary cost",
+    "action cost",
+    "continuou cost",
+    "energy cost",
+    "terrain cost",
+    "unpriced cost",
+    "signal cost",
+    "mimic cost",
+    "externality cost",
+    "past cost",
+    "future cost",
+    "total cost",
+    "holding cost",
+    "setup cost",
+    "transport cost",
+    "metabolic cost"
+   ]
+  },
+  "error": {
+   "mentions": 21,
+   "forms": [
+    "error",
+    "prediction error",
+    "systematic error",
+    "phase error",
+    "model error",
+    "potential error"
+   ]
+  },
+  "distribution": {
+   "mentions": 20,
+   "forms": [
+    "probability distribution",
+    "distribution",
+    "force distribution",
+    "degree distribution",
+    "signal distribution",
+    "temperature distribution",
+    "pressure distribution",
+    "spatial distribution",
+    "opinion distribution",
+    "strategy distribution",
+    "uniform distribution",
+    "normal distribution"
+   ]
+  },
+  "exchange": {
+   "mentions": 20,
+   "forms": [
+    "exchange",
+    "resource exchange",
+    "medium of exchange",
+    "decentralised exchange",
+    "ritual exchange",
+    "information exchange"
+   ]
+  },
+  "effect": {
+   "mentions": 20,
+   "forms": [
+    "effect",
+    "no effect",
+    "belief in effect",
+    "subliminal effect",
+    "critical effect",
+    "zeno effect",
+    "systemic effect",
+    "ripple effect",
+    "dilution effect",
+    "irreversible effect",
+    "special effect",
+    "amplified effect",
+    "maximum effect",
+    "behavioural effect"
+   ]
+  },
+  "accuracy": {
+   "mentions": 19,
+   "forms": [
+    "accuracy",
+    "recall accuracy",
+    "prediction accuracy",
+    "forecast accuracy"
+   ]
+  },
+  "release": {
+   "mentions": 19,
+   "forms": [
+    "release",
+    "energy release",
+    "emotional release",
+    "regulated release",
+    "water release",
+    "communal release"
+   ]
+  },
+  "awareness": {
+   "mentions": 19,
+   "forms": [
+    "self awareness",
+    "marginal awareness",
+    "construct awareness",
+    "no awareness",
+    "mortality awareness",
+    "peripheral awareness",
+    "horizon of awareness",
+    "miracle of awareness",
+    "consciou awareness",
+    "death awareness"
+   ]
+  },
+  "repetition": {
+   "mentions": 19,
+   "forms": [
+    "repetition",
+    "stimulu repetition"
+   ]
+  },
+  "self": {
+   "mentions": 19,
+   "forms": [
+    "true self",
+    "permanent loss of self",
+    "ecological self",
+    "loss of self",
+    "force toward self",
+    "force away from self",
+    "conformity vs self",
+    "false self",
+    "violation of self",
+    "reflected self",
+    "subjective self",
+    "accumulated self",
+    "other self",
+    "shadow self",
+    "essential self",
+    "authentic self",
+    "new self",
+    "transforming self"
+   ]
+  },
+  "loss": {
+   "mentions": 17,
+   "forms": [
+    "loss",
+    "prob loss",
+    "magnitude loss",
+    "seam loss",
+    "host loss",
+    "correlation loss",
+    "water loss",
+    "low loss",
+    "mutual loss",
+    "self loss",
+    "tissue loss",
+    "progress loss",
+    "irreparable loss"
+   ]
+  },
+  "performance": {
+   "mentions": 17,
+   "forms": [
+    "performance",
+    "task performance",
+    "subsequent performance",
+    "physical performance"
+   ]
+  },
+  "transformation": {
+   "mentions": 17,
+   "forms": [
+    "transformation",
+    "complete transformation",
+    "possible transformation",
+    "radical transformation",
+    "master of transformation"
+   ]
+  },
+  "threshold": {
+   "mentions": 17,
+   "forms": [
+    "threshold",
+    "critical threshold",
+    "transition threshold",
+    "reset threshold",
+    "low threshold",
+    "autoinducer threshold"
+   ]
+  },
+  "stability": {
+   "mentions": 17,
+   "forms": [
+    "stability",
+    "output stability",
+    "price stability"
+   ]
+  },
+  "connection": {
+   "mentions": 17,
+   "forms": [
+    "connection",
+    "persistent connection",
+    "learned connection",
+    "network connection",
+    "new connection",
+    "many connection",
+    "broken connection",
+    "selective connection",
+    "meaningful connection",
+    "deep connection"
+   ]
+  },
+  "probability": {
+   "mentions": 16,
+   "forms": [
+    "probability",
+    "transition probability",
+    "transmission probability",
+    "objective probability",
+    "escape probability",
+    "recall probability",
+    "occupancy probability"
+   ]
+  },
+  "transfer": {
+   "mentions": 16,
+   "forms": [
+    "transfer",
+    "state transfer",
+    "information transfer",
+    "generational transfer",
+    "medium transfer",
+    "skill transfer",
+    "gene transfer"
+   ]
+  },
+  "gradient": {
+   "mentions": 15,
+   "forms": [
+    "temperature gradient",
+    "concentration gradient",
+    "gradient",
+    "humidity gradient",
+    "texture gradient",
+    "refractive index gradient",
+    "pressure gradient",
+    "signal gradient"
+   ]
+  },
+  "current": {
+   "mentions": 15,
+   "forms": [
+    "current",
+    "rate of change of current",
+    "field without current",
+    "base current",
+    "collector current",
+    "coil current",
+    "persistent current"
+   ]
+  },
+  "consistency": {
+   "mentions": 15,
+   "forms": [
+    "consistency",
+    "action consistency",
+    "choice consistency"
+   ]
+  },
+  "integration": {
+   "mentions": 15,
+   "forms": [
+    "integration",
+    "sensory integration",
+    "temporal integration",
+    "identity integration",
+    "abstract integration",
+    "complete integration"
+   ]
+  },
+  "context": {
+   "mentions": 15,
+   "forms": [
+    "context",
+    "social context",
+    "spatiotemporal context",
+    "environmental context",
+    "specific context",
+    "novel context"
+   ]
+  },
+  "growth": {
+   "mentions": 15,
+   "forms": [
+    "growth",
+    "differential growth",
+    "brain growth",
+    "relative growth",
+    "moral growth",
+    "collective growth",
+    "belief in growth"
+   ]
+  },
+  "resistance": {
+   "mentions": 15,
+   "forms": [
+    "resistance",
+    "sustained resistance",
+    "crack resistance",
+    "no resistance",
+    "increasing resistance",
+    "successful resistance",
+    "antibiotic resistance"
+   ]
+  },
+  "goal": {
+   "mentions": 15,
+   "forms": [
+    "goal",
+    "false goal",
+    "predicted goal",
+    "designer goal",
+    "common goal",
+    "unified goal",
+    "blocked goal",
+    "higher goal",
+    "significant goal",
+    "structured goal"
+   ]
+  },
+  "system": {
+   "mentions": 15,
+   "forms": [
+    "system",
+    "rule system",
+    "reputation system",
+    "complete system",
+    "full system",
+    "time in system",
+    "semiotic system",
+    "frame system",
+    "interacting system",
+    "learning system",
+    "old system",
+    "new system"
+   ]
+  },
+  "function": {
+   "mentions": 14,
+   "forms": [
+    "specialised function",
+    "function",
+    "cost function",
+    "loss of function",
+    "utility function",
+    "immune function",
+    "hash function",
+    "periodic function",
+    "restoration of function",
+    "programmed function"
+   ]
+  },
+  "wavelength": {
+   "mentions": 14,
+   "forms": [
+    "wavelength",
+    "light wavelength",
+    "absorbed wavelength",
+    "forbidden wavelength",
+    "pattern wavelength"
+   ]
+  },
+  "prediction": {
+   "mentions": 14,
+   "forms": [
+    "prediction",
+    "rational prediction",
+    "future prediction",
+    "opponent prediction",
+    "perfect prediction",
+    "disturbance prediction",
+    "symbolic prediction"
+   ]
+  },
+  "capacity": {
+   "mentions": 14,
+   "forms": [
+    "capacity",
+    "storage capacity",
+    "frame capacity",
+    "charge capacity",
+    "edge capacity",
+    "computational capacity"
+   ]
+  },
+  "balance": {
+   "mentions": 14,
+   "forms": [
+    "balance",
+    "force balance",
+    "mass balance",
+    "energy balance"
+   ]
+  },
+  "gain": {
+   "mentions": 14,
+   "forms": [
+    "gain",
+    "height gain",
+    "information gain",
+    "amplitude gain",
+    "damping gain",
+    "coupling gain",
+    "mutual gain",
+    "energy gain",
+    "knowledge gain",
+    "statu gain"
+   ]
+  },
+  "material": {
+   "mentions": 13,
+   "forms": [
+    "material",
+    "emotional material",
+    "genetic material",
+    "phase change material",
+    "raw material",
+    "rejected material"
+   ]
+  },
+  "expression": {
+   "mentions": 13,
+   "forms": [
+    "expression",
+    "gene expression",
+    "facial expression",
+    "curiosity expression",
+    "artistic expression",
+    "seriou expression",
+    "creative expression"
+   ]
+  },
+  "emergence": {
+   "mentions": 13,
+   "forms": [
+    "emergence",
+    "solution emergence",
+    "sudden emergence"
+   ]
+  },
+  "failure": {
+   "mentions": 13,
+   "forms": [
+    "failure",
+    "sudden failure",
+    "cycle to failure",
+    "retrieval failure",
+    "social failure",
+    "organ failure",
+    "node failure",
+    "subsequent failure"
+   ]
+  },
+  "interaction": {
+   "mentions": 13,
+   "forms": [
+    "interaction",
+    "local interaction",
+    "environment interaction",
+    "strategic interaction",
+    "repeated interaction",
+    "complex interaction"
+   ]
+  },
+  "feedback": {
+   "mentions": 13,
+   "forms": [
+    "feedback",
+    "positive feedback",
+    "social feedback",
+    "visual feedback",
+    "delayed feedback",
+    "unified feedback"
+   ]
+  },
+  "situation": {
+   "mentions": 13,
+   "forms": [
+    "situation",
+    "novel situation",
+    "social situation",
+    "illogical situation"
+   ]
+  },
+  "effort": {
+   "mentions": 13,
+   "forms": [
+    "effort",
+    "sustained effort",
+    "no effort",
+    "future effort",
+    "minimum effort",
+    "increased effort",
+    "persistent effort",
+    "minimal effort"
+   ]
+  },
+  "trust": {
+   "mentions": 13,
+   "forms": [
+    "trust",
+    "loss of trust"
+   ]
+  },
+  "learning": {
+   "mentions": 13,
+   "forms": [
+    "learning",
+    "social learning",
+    "self directed learning",
+    "consciou learning",
+    "unconsciou learning",
+    "group learning",
+    "autonomou learning",
+    "universal learning"
+   ]
+  },
+  "community": {
+   "mentions": 13,
+   "forms": [
+    "community",
+    "microbial community",
+    "sustained community"
+   ]
+  },
+  "surface": {
+   "mentions": 12,
+   "forms": [
+    "surface",
+    "fluid surface",
+    "vertical surface",
+    "fracture surface",
+    "clean surface",
+    "parabolic surface",
+    "infinite surface",
+    "minimal surface"
+   ]
+  },
+  "strength": {
+   "mentions": 12,
+   "forms": [
+    "strength",
+    "coupling strength",
+    "field strength",
+    "grouping strength",
+    "edge strength",
+    "mechanical strength",
+    "bond strength",
+    "trace strength",
+    "encoding strength"
+   ]
+  },
+  "formation": {
+   "mentions": 12,
+   "forms": [
+    "product formation",
+    "image formation",
+    "reaction formation",
+    "solid formation",
+    "trace formation",
+    "crack formation",
+    "memory formation",
+    "droplet formation",
+    "character formation",
+    "goal formation"
+   ]
+  },
+  "concentration": {
+   "mentions": 12,
+   "forms": [
+    "concentration",
+    "catalyst concentration",
+    "h concentration",
+    "solute concentration",
+    "water concentration",
+    "product concentration",
+    "internal concentration",
+    "toxin concentration",
+    "morphogen concentration"
+   ]
+  },
+  "emotion": {
+   "mentions": 12,
+   "forms": [
+    "emotion",
+    "positive emotion",
+    "negative emotion",
+    "observed emotion",
+    "group emotion",
+    "intense emotion"
+   ]
+  },
+  "practice": {
+   "mentions": 12,
+   "forms": [
+    "practice",
+    "focused practice",
+    "common practice",
+    "habitual practice",
+    "consciou practice",
+    "consistent practice",
+    "ritualised practice",
+    "intentional practice",
+    "sustained practice"
+   ]
+  },
+  "interpretation": {
+   "mentions": 12,
+   "forms": [
+    "interpretation",
+    "shared interpretation",
+    "two interpretation",
+    "different interpretation",
+    "changed interpretation"
+   ]
+  },
+  "loop": {
+   "mentions": 12,
+   "forms": [
+    "loop",
+    "causal loop",
+    "closed loop",
+    "perspective loop",
+    "inner loop",
+    "outer loop",
+    "adaptive loop",
+    "infinite loop"
+   ]
+  },
+  "domain": {
+   "mentions": 12,
+   "forms": [
+    "source domain",
+    "target domain",
+    "shared domain",
+    "domain",
+    "different domain",
+    "new domain"
+   ]
+  },
+  "variance": {
+   "mentions": 12,
+   "forms": [
+    "variance",
+    "local variance",
+    "high variance",
+    "output variance"
+   ]
+  },
+  "recognition": {
+   "mentions": 12,
+   "forms": [
+    "recognition",
+    "pattern recognition",
+    "texture recognition",
+    "group recognition",
+    "mutual recognition"
+   ]
+  },
+  "heat": {
+   "mentions": 12,
+   "forms": [
+    "heat",
+    "latent heat",
+    "excessive heat",
+    "postprandial heat"
+   ]
+  },
+  "process": {
+   "mentions": 12,
+   "forms": [
+    "process",
+    "self as process",
+    "mental process",
+    "structured process"
+   ]
+  },
+  "matrix": {
+   "mentions": 11,
+   "forms": [
+    "transition matrix",
+    "adjacency matrix",
+    "payoff matrix",
+    "matrix",
+    "covariance matrix"
+   ]
+  },
+  "feature": {
+   "mentions": 11,
+   "forms": [
+    "feature",
+    "observed state feature",
+    "number of distinct feature",
+    "grouped feature",
+    "element feature",
+    "shared feature",
+    "surface feature",
+    "exaggerated feature"
+   ]
+  },
+  "field": {
+   "mentions": 11,
+   "forms": [
+    "velocity field",
+    "magnetic field",
+    "force field",
+    "descriptive field",
+    "field"
+   ]
+  },
+  "correlation": {
+   "mentions": 11,
+   "forms": [
+    "correlation",
+    "feature correlation",
+    "action outcome correlation",
+    "phase correlation"
+   ]
+  },
+  "potential": {
+   "mentions": 11,
+   "forms": [
+    "potential",
+    "gravitational potential",
+    "barrier potential",
+    "chemical potential",
+    "action potential",
+    "developmental potential",
+    "future potential"
+   ]
+  },
+  "strategy": {
+   "mentions": 11,
+   "forms": [
+    "strategy",
+    "counter strategy",
+    "viable strategy",
+    "choosing strategy",
+    "attack strategy"
+   ]
+  },
+  "price": {
+   "mentions": 11,
+   "forms": [
+    "price",
+    "clearing price",
+    "equilibrium price",
+    "asset price",
+    "no price"
+   ]
+  },
+  "recall": {
+   "mentions": 11,
+   "forms": [
+    "recall",
+    "no recall",
+    "subsequent recall",
+    "information recall",
+    "uncontrollable recall",
+    "later recall",
+    "deliberate recall"
+   ]
+  },
+  "cue": {
+   "mentions": 11,
+   "forms": [
+    "cue",
+    "environmental cue",
+    "same cue",
+    "new cue",
+    "reward become cue"
+   ]
+  },
+  "history": {
+   "mentions": 11,
+   "forms": [
+    "contact history",
+    "interaction history",
+    "trade history",
+    "state history",
+    "deformation history",
+    "error history",
+    "metabolic history",
+    "gradient history",
+    "history"
+   ]
+  },
+  "control": {
+   "mentions": 11,
+   "forms": [
+    "control",
+    "no external control",
+    "real time control",
+    "distributed control",
+    "meta control",
+    "loss of control",
+    "cognitive control"
+   ]
+  },
+  "reward": {
+   "mentions": 11,
+   "forms": [
+    "reward",
+    "known reward",
+    "new reward"
+   ]
+  },
+  "reality": {
+   "mentions": 11,
+   "forms": [
+    "reality",
+    "birth of reality",
+    "false reality",
+    "fundamental reality",
+    "no base reality",
+    "shared reality",
+    "alternative reality",
+    "relational reality",
+    "automaton as reality"
+   ]
+  },
+  "timing": {
+   "mentions": 11,
+   "forms": [
+    "timing",
+    "counter timing",
+    "action timing",
+    "developmental timing",
+    "response timing"
+   ]
+  },
+  "adaptation": {
+   "mentions": 11,
+   "forms": [
+    "adaptation",
+    "current adaptation"
+   ]
+  },
+  "benefit": {
+   "mentions": 11,
+   "forms": [
+    "mutual benefit",
+    "benefit",
+    "both benefit",
+    "individual benefit",
+    "externality benefit",
+    "collective benefit",
+    "unintended benefit"
+   ]
+  },
+  "skill": {
+   "mentions": 11,
+   "forms": [
+    "skill",
+    "embodied skill",
+    "deep skill",
+    "universal skill",
+    "cumulative skill"
+   ]
+  },
+  "agent": {
+   "mentions": 11,
+   "forms": [
+    "two agent",
+    "multiple agent",
+    "agent",
+    "other agent",
+    "decentralised agent",
+    "networked agent",
+    "narrative agent"
+   ]
+  },
+  "model": {
+   "mentions": 10,
+   "forms": [
+    "model",
+    "mental model",
+    "target agent model",
+    "body model",
+    "candidate model",
+    "predictive model",
+    "system model"
+   ]
+  },
+  "appearance": {
+   "mentions": 10,
+   "forms": [
+    "appearance",
+    "object appearance",
+    "solution appearance",
+    "deceptive appearance",
+    "pure appearance"
+   ]
+  },
+  "density": {
+   "mentions": 10,
+   "forms": [
+    "density",
+    "fluid density",
+    "population density",
+    "prey density",
+    "cell density"
+   ]
+  },
+  "ratio": {
+   "mentions": 10,
+   "forms": [
+    "ratio",
+    "frequency ratio",
+    "rotation ratio",
+    "force ratio",
+    "lift drag ratio",
+    "density ratio",
+    "efficiency ratio",
+    "value ratio"
+   ]
+  },
+  "voltage": {
+   "mentions": 10,
+   "forms": [
+    "voltage",
+    "induced voltage",
+    "capacitor voltage"
+   ]
+  },
+  "product": {
+   "mentions": 10,
+   "forms": [
+    "product",
+    "protein product",
+    "waste product",
+    "hydrolysi product"
+   ]
+  },
+  "information": {
+   "mentions": 10,
+   "forms": [
+    "information",
+    "mutual information",
+    "private information",
+    "reputation information",
+    "perfect information"
+   ]
+  },
+  "resource": {
+   "mentions": 10,
+   "forms": [
+    "resource",
+    "current resource",
+    "common resource",
+    "limited resource"
+   ]
+  },
+  "line": {
+   "mentions": 10,
+   "forms": [
+    "parallel line",
+    "new line",
+    "line",
+    "long line",
+    "maternal line",
+    "paternal line",
+    "boundary line"
+   ]
+  },
+  "link": {
+   "mentions": 10,
+   "forms": [
+    "link",
+    "causal link",
+    "covalent link",
+    "persistent link",
+    "cross sentence link",
+    "permanent link",
+    "multiple link"
+   ]
+  },
+  "focu": {
+   "mentions": 10,
+   "forms": [
+    "focu",
+    "attention focu",
+    "repetitive focu",
+    "attentional focu"
+   ]
+  },
+  "perception": {
+   "mentions": 10,
+   "forms": [
+    "perception",
+    "altered perception",
+    "beyond perception",
+    "color perception"
+   ]
+  },
+  "separation": {
+   "mentions": 10,
+   "forms": [
+    "separation",
+    "mirror separation"
+   ]
+  },
+  "laughter": {
+   "mentions": 10,
+   "forms": [
+    "laughter",
+    "deep laughter",
+    "cosmic laughter",
+    "shared laughter"
+   ]
+  },
+  "violation": {
+   "mentions": 10,
+   "forms": [
+    "violation",
+    "logic violation",
+    "trust violation",
+    "norm violation",
+    "public violation",
+    "expectation violation"
+   ]
+  },
+  "decision": {
+   "mentions": 10,
+   "forms": [
+    "decision",
+    "future decision",
+    "allocation decision",
+    "quick decision",
+    "group decision",
+    "subject of decision"
+   ]
+  },
+  "evolution": {
+   "mentions": 10,
+   "forms": [
+    "co evolution",
+    "evolution",
+    "population evolution"
+   ]
+  },
+  "regulation": {
+   "mentions": 10,
+   "forms": [
+    "regulation",
+    "self regulation",
+    "chronic regulation",
+    "appetite regulation"
+   ]
+  },
+  "spread": {
+   "mentions": 9,
+   "forms": [
+    "spread",
+    "network spread",
+    "feature spread",
+    "global spread"
+   ]
+  },
+  "binding": {
+   "mentions": 9,
+   "forms": [
+    "temporal binding",
+    "binding",
+    "self binding",
+    "strong binding",
+    "receptor binding"
+   ]
+  },
+  "medium": {
+   "mentions": 9,
+   "forms": [
+    "medium",
+    "miscible medium",
+    "porou medium",
+    "solid medium",
+    "curved medium",
+    "no medium"
+   ]
+  },
+  "activity": {
+   "mentions": 9,
+   "forms": [
+    "neural activity",
+    "activity",
+    "enzyme activity",
+    "brain activity",
+    "core muscle activity",
+    "optical activity",
+    "structured activity"
+   ]
+  },
+  "agency": {
+   "mentions": 9,
+   "forms": [
+    "agency",
+    "other agency"
+   ]
+  },
+  "setpoint": {
+   "mentions": 9,
+   "forms": [
+    "setpoint",
+    "nested setpoint"
+   ]
+  },
+  "sound": {
+   "mentions": 9,
+   "forms": [
+    "sound",
+    "incident sound",
+    "loud sound",
+    "soft sound",
+    "environmental sound",
+    "specy sound",
+    "emitted sound"
+   ]
+  },
+  "damage": {
+   "mentions": 9,
+   "forms": [
+    "tissue damage",
+    "damage",
+    "cellular damage"
+   ]
+  },
+  "o": {
+   "mentions": 9,
+   "forms": [
+    "o",
+    "no o"
+   ]
+  },
+  "commitment": {
+   "mentions": 9,
+   "forms": [
+    "commitment",
+    "rapid commitment",
+    "formal commitment",
+    "group commitment",
+    "increasing commitment",
+    "network of commitment",
+    "emotional commitment"
+   ]
+  },
+  "chain": {
+   "mentions": 9,
+   "forms": [
+    "chain",
+    "product chain",
+    "linear chain",
+    "derivation chain",
+    "unbroken chain",
+    "supply chain"
+   ]
+  },
+  "feeling": {
+   "mentions": 9,
+   "forms": [
+    "gut feeling",
+    "simulated feeling",
+    "feeling",
+    "boundary feeling",
+    "subjective feeling",
+    "agency feeling",
+    "eerie feeling"
+   ]
+  },
+  "good": {
+   "mentions": 9,
+   "forms": [
+    "good",
+    "capital good",
+    "unpriced good"
+   ]
+  },
+  "execution": {
+   "mentions": 9,
+   "forms": [
+    "execution",
+    "non execution",
+    "unconsciou execution",
+    "parallel execution",
+    "perfect execution"
+   ]
+  },
+  "conflict": {
+   "mentions": 9,
+   "forms": [
+    "conflict",
+    "retrieval conflict",
+    "value conflict",
+    "inner conflict"
+   ]
+  },
+  "improvement": {
+   "mentions": 9,
+   "forms": [
+    "improvement",
+    "performance improvement",
+    "health improvement"
+   ]
+  },
+  "part": {
+   "mentions": 8,
+   "forms": [
+    "part",
+    "body part",
+    "rejected part"
+   ]
+  },
+  "list": {
+   "mentions": 8,
+   "forms": [
+    "unsorted list",
+    "sorted list",
+    "recall list",
+    "goal list",
+    "specy list"
+   ]
+  },
+  "statement": {
+   "mentions": 8,
+   "forms": [
+    "statement",
+    "explicit statement",
+    "self referential statement",
+    "problem statement",
+    "public statement"
+   ]
+  },
+  "acceptance": {
+   "mentions": 8,
+   "forms": [
+    "acceptance",
+    "network acceptance"
+   ]
+  },
+  "glucose": {
+   "mentions": 8,
+   "forms": [
+    "glucose",
+    "blood glucose"
+   ]
+  },
+  "recovery": {
+   "mentions": 8,
+   "forms": [
+    "recovery",
+    "failure recovery",
+    "no recovery"
+   ]
+  },
+  "expectation": {
+   "mentions": 8,
+   "forms": [
+    "expectation",
+    "future expectation",
+    "new expectation"
+   ]
+  },
+  "symbol": {
+   "mentions": 8,
+   "forms": [
+    "symbol",
+    "shared symbol",
+    "money as symbol",
+    "dream symbol",
+    "recurring symbol"
+   ]
+  },
+  "component": {
+   "mentions": 8,
+   "forms": [
+    "component",
+    "all component",
+    "connected component",
+    "biological component",
+    "mechanical component",
+    "giant component"
+   ]
+  },
+  "consequence": {
+   "mentions": 8,
+   "forms": [
+    "consequence",
+    "predicted consequence",
+    "accept consequence",
+    "acceptance of consequence"
+   ]
+  },
+  "reference": {
+   "mentions": 8,
+   "forms": [
+    "self reference",
+    "reference",
+    "object reference"
+   ]
+  },
+  "selection": {
+   "mentions": 8,
+   "forms": [
+    "selection",
+    "strategy selection",
+    "rule selection",
+    "self selection",
+    "reality selection"
+   ]
+  },
+  "impact": {
+   "mentions": 8,
+   "forms": [
+    "impact",
+    "landing impact",
+    "real world impact",
+    "emotional impact",
+    "indirect impact",
+    "enduring impact"
+   ]
+  },
+  "rhythm": {
+   "mentions": 8,
+   "forms": [
+    "rhythm",
+    "gaze rhythm",
+    "brain rhythm",
+    "ultradian rhythm"
+   ]
+  },
+  "uncertainty": {
+   "mentions": 8,
+   "forms": [
+    "uncertainty",
+    "future uncertainty",
+    "no uncertainty",
+    "deliberate uncertainty"
+   ]
+  },
+  "image": {
+   "mentions": 8,
+   "forms": [
+    "image",
+    "mirror image",
+    "false image",
+    "digital image",
+    "mental image"
+   ]
+  },
+  "solution": {
+   "mentions": 8,
+   "forms": [
+    "sudden solution",
+    "good enough solution",
+    "uniform solution",
+    "solution",
+    "transcendent solution"
+   ]
+  },
+  "wave": {
+   "mentions": 8,
+   "forms": [
+    "shock wave",
+    "incoming wave",
+    "gravitational wave",
+    "pulse wave",
+    "standing wave",
+    "sound wave",
+    "wave"
+   ]
+  },
+  "element": {
+   "mentions": 8,
+   "forms": [
+    "element",
+    "displaced element",
+    "three element",
+    "array element",
+    "mobile element"
+   ]
+  },
+  "activation": {
+   "mentions": 8,
+   "forms": [
+    "activation",
+    "motor cortex activation",
+    "brain activation",
+    "physiological activation",
+    "stem cell activation"
+   ]
+  },
+  "efficiency": {
+   "mentions": 8,
+   "forms": [
+    "efficiency",
+    "energy efficiency",
+    "transfer efficiency"
+   ]
+  },
+  "payoff": {
+   "mentions": 8,
+   "forms": [
+    "payoff",
+    "cooperation payoff",
+    "defection payoff",
+    "sum of payoff"
+   ]
+  },
+  "power": {
+   "mentions": 8,
+   "forms": [
+    "power",
+    "muscle power",
+    "objective power",
+    "eyepiece power",
+    "belief in power",
+    "emanative power"
+   ]
+  },
+  "group": {
+   "mentions": 8,
+   "forms": [
+    "group",
+    "in group",
+    "out group",
+    "local group",
+    "braid group",
+    "extreme group",
+    "tight group"
+   ]
+  },
+  "healing": {
+   "mentions": 8,
+   "forms": [
+    "healing",
+    "impaired healing",
+    "deep healing",
+    "laughter healing"
+   ]
+  },
+  "restoration": {
+   "mentions": 8,
+   "forms": [
+    "restoration",
+    "energy restoration"
+   ]
+  },
+  "slope": {
+   "mentions": 7,
+   "forms": [
+    "slope",
+    "error slope"
+   ]
+  },
+  "comparison": {
+   "mentions": 7,
+   "forms": [
+    "comparison",
+    "genetic sequence comparison",
+    "utility comparison",
+    "self comparison",
+    "counterfactual comparison"
+   ]
+  },
+  "variable": {
+   "mentions": 7,
+   "forms": [
+    "variable",
+    "internal variable",
+    "chemical variable"
+   ]
+  },
+  "space": {
+   "mentions": 7,
+   "forms": [
+    "space",
+    "state space",
+    "hyperbolic space",
+    "exotic space",
+    "sacred space",
+    "negotiation space",
+    "restorative space"
+   ]
+  },
+  "deviation": {
+   "mentions": 7,
+   "forms": [
+    "deviation",
+    "geodesic deviation",
+    "standard deviation"
+   ]
+  },
+  "player": {
+   "mentions": 7,
+   "forms": [
+    "player",
+    "other player"
+   ]
+  },
+  "contrast": {
+   "mentions": 7,
+   "forms": [
+    "contrast",
+    "edge contrast"
+   ]
+  },
+  "map": {
+   "mentions": 7,
+   "forms": [
+    "spatial map",
+    "concentration map",
+    "density map",
+    "body map",
+    "hand map",
+    "underwater map"
+   ]
+  },
+  "curve": {
+   "mentions": 7,
+   "forms": [
+    "stress strain curve",
+    "supply curve",
+    "demand curve",
+    "curve",
+    "adoption curve",
+    "bell curve"
+   ]
+  },
+  "transmission": {
+   "mentions": 7,
+   "forms": [
+    "transmission",
+    "community transmission"
+   ]
+  },
+  "similarity": {
+   "mentions": 7,
+   "forms": [
+    "similarity",
+    "self similarity"
+   ]
+  },
+  "freedom": {
+   "mentions": 7,
+   "forms": [
+    "freedom",
+    "degree of freedom",
+    "creative freedom"
+   ]
+  },
+  "utterance": {
+   "mentions": 7,
+   "forms": [
+    "utterance",
+    "multiple utterance"
+   ]
+  },
+  "root": {
+   "mentions": 7,
+   "forms": [
+    "root",
+    "two root",
+    "foundational root"
+   ]
+  },
+  "concept": {
+   "mentions": 7,
+   "forms": [
+    "concept",
+    "abstract concept",
+    "unrelated concept"
+   ]
+  },
+  "world": {
+   "mentions": 7,
+   "forms": [
+    "change in world",
+    "subjective world",
+    "perceptual world",
+    "common world",
+    "everyday world",
+    "new world",
+    "complete dream world"
+   ]
+  },
+  "knowledge": {
+   "mentions": 7,
+   "forms": [
+    "knowledge",
+    "background knowledge",
+    "knowledge of knowledge",
+    "forbidden knowledge",
+    "deep knowledge",
+    "web of knowledge"
+   ]
+  },
+  "simulation": {
+   "mentions": 7,
+   "forms": [
+    "simulation",
+    "forward simulation",
+    "comprehensive simulation",
+    "ancestor simulation",
+    "nested simulation",
+    "mental simulation"
+   ]
+  },
+  "judgment": {
+   "mentions": 7,
+   "forms": [
+    "judgment",
+    "immediate judgment",
+    "individual judgment",
+    "social judgment",
+    "moral judgment",
+    "networked judgment"
+   ]
+  },
+  "promise": {
+   "mentions": 7,
+   "forms": [
+    "promise",
+    "stated promise",
+    "broken promise"
+   ]
+  },
+  "degree": {
+   "mentions": 7,
+   "forms": [
+    "degree",
+    "high degree",
+    "six degree"
+   ]
+  },
+  "suffering": {
+   "mentions": 7,
+   "forms": [
+    "suffering",
+    "sustained suffering",
+    "shared suffering"
+   ]
+  },
+  "generation": {
+   "mentions": 7,
+   "forms": [
+    "generation",
+    "meaning generation",
+    "wealth generation",
+    "next generation"
+   ]
+  },
+  "rotation": {
+   "mentions": 7,
+   "forms": [
+    "rotation",
+    "mechanical rotation",
+    "polarised light rotation",
+    "violent rotation"
+   ]
+  },
+  "story": {
+   "mentions": 7,
+   "forms": [
+    "life story",
+    "false story",
+    "self story",
+    "unfolding story",
+    "story"
+   ]
+  },
+  "specy": {
+   "mentions": 7,
+   "forms": [
+    "two specy",
+    "specy",
+    "harmless specy",
+    "two harmful specy"
+   ]
+  },
+  "break": {
+   "mentions": 7,
+   "forms": [
+    "tracking break",
+    "strain at break",
+    "outline break",
+    "hard to break",
+    "refuse to break",
+    "break"
+   ]
+  },
+  "depletion": {
+   "mentions": 7,
+   "forms": [
+    "depletion",
+    "glycogen depletion",
+    "ego depletion"
+   ]
+  },
+  "agreement": {
+   "mentions": 7,
+   "forms": [
+    "agreement",
+    "formal agreement",
+    "player agreement",
+    "sacred agreement",
+    "remembered agreement"
+   ]
+  },
+  "reduction": {
+   "mentions": 7,
+   "forms": [
+    "error reduction",
+    "uncertainty reduction",
+    "strength reduction",
+    "size reduction",
+    "reduction"
+   ]
+  },
+  "joy": {
+   "mentions": 7,
+   "forms": [
+    "joy",
+    "profound joy",
+    "forbidden joy",
+    "intense joy"
+   ]
+  },
+  "renewal": {
+   "mentions": 7,
+   "forms": [
+    "renewal",
+    "periodic renewal"
+   ]
+  },
+  "lineage": {
+   "mentions": 7,
+   "forms": [
+    "lineage",
+    "universal lineage",
+    "self defined by lineage",
+    "guardian of lineage",
+    "keeper of lineage",
+    "evolutionary lineage"
+   ]
+  },
+  "sery": {
+   "mentions": 6,
+   "forms": [
+    "time sery",
+    "two time sery"
+   ]
+  },
+  "dynamic": {
+   "mentions": 6,
+   "forms": [
+    "population dynamic",
+    "spread dynamic",
+    "opinion dynamic",
+    "strategy dynamic",
+    "spatiotemporal dynamic",
+    "dynamic"
+   ]
+  },
+  "test": {
+   "mentions": 6,
+   "forms": [
+    "bell test",
+    "retention test",
+    "statistical test",
+    "test"
+   ]
+  },
+  "bond": {
+   "mentions": 6,
+   "forms": [
+    "bond",
+    "emotional bond"
+   ]
+  },
+  "index": {
+   "mentions": 6,
+   "forms": [
+    "refractive index",
+    "index",
+    "core refractive index",
+    "group index",
+    "periodic index"
+   ]
+  },
+  "content": {
+   "mentions": 6,
+   "forms": [
+    "harmonic content",
+    "caloric content",
+    "content",
+    "symbolic content",
+    "dream content",
+    "funny content"
+   ]
+  },
+  "invariance": {
+   "mentions": 6,
+   "forms": [
+    "invariance",
+    "scale invariance"
+   ]
+  },
+  "distortion": {
+   "mentions": 6,
+   "forms": [
+    "time distortion",
+    "distortion"
+   ]
+  },
+  "physiology": {
+   "mentions": 6,
+   "forms": [
+    "physiology",
+    "mirrored physiology"
+   ]
+  },
+  "bias": {
+   "mentions": 6,
+   "forms": [
+    "bias",
+    "behavioural bias",
+    "cognitive bias"
+   ]
+  },
+  "presence": {
+   "mentions": 6,
+   "forms": [
+    "presence",
+    "threat presence",
+    "co presence"
+   ]
+  },
+  "end": {
+   "mentions": 6,
+   "forms": [
+    "end",
+    "window end",
+    "permanent end",
+    "journey without end"
+   ]
+  },
+  "utility": {
+   "mentions": 6,
+   "forms": [
+    "utility",
+    "future utility",
+    "aggregate utility",
+    "expected utility"
+   ]
+  },
+  "premise": {
+   "mentions": 6,
+   "forms": [
+    "premise",
+    "major premise",
+    "minor premise",
+    "false premise"
+   ]
+  },
+  "relationship": {
+   "mentions": 6,
+   "forms": [
+    "relationship",
+    "living relationship",
+    "social relationship",
+    "balanced relationship",
+    "symbiotic relationship"
+   ]
+  },
+  "search": {
+   "mentions": 6,
+   "forms": [
+    "search",
+    "cessation of search"
+   ]
+  },
+  "influence": {
+   "mentions": 6,
+   "forms": [
+    "influence",
+    "mutual influence"
+   ]
+  },
+  "eeg": {
+   "mentions": 6,
+   "forms": [
+    "eeg",
+    "theta eeg"
+   ]
+  },
+  "perspective": {
+   "mentions": 6,
+   "forms": [
+    "perspective",
+    "observer perspective",
+    "shift in perspective",
+    "dark perspective",
+    "comic perspective"
+   ]
+  },
+  "problem": {
+   "mentions": 6,
+   "forms": [
+    "problem",
+    "halting problem"
+   ]
+  },
+  "production": {
+   "mentions": 6,
+   "forms": [
+    "production",
+    "entropy production",
+    "self production",
+    "heat production",
+    "matrix production"
+   ]
+  },
+  "host": {
+   "mentions": 6,
+   "forms": [
+    "host",
+    "infected host",
+    "susceptible host"
+   ]
+  },
+  "factor": {
+   "mentions": 6,
+   "forms": [
+    "growth factor",
+    "scale factor",
+    "stress intensity factor",
+    "scaling factor"
+   ]
+  },
+  "parameter": {
+   "mentions": 6,
+   "forms": [
+    "order parameter",
+    "control parameter",
+    "damage parameter",
+    "bunching parameter",
+    "rate parameter",
+    "parameter"
+   ]
+  },
+  "freq": {
+   "mentions": 6,
+   "forms": [
+    "driving freq",
+    "natural freq",
+    "damping at freq",
+    "observed freq",
+    "left freq",
+    "right freq"
+   ]
+  },
+  "propagation": {
+   "mentions": 6,
+   "forms": [
+    "propagation",
+    "signal propagation"
+   ]
+  },
+  "clock": {
+   "mentions": 6,
+   "forms": [
+    "clock",
+    "chemical clock",
+    "internal clock"
+   ]
+  },
+  "diffusion": {
+   "mentions": 6,
+   "forms": [
+    "diffusion",
+    "activator diffusion",
+    "inhibitor diffusion"
+   ]
+  },
+  "quality": {
+   "mentions": 6,
+   "forms": [
+    "quality",
+    "action quality"
+   ]
+  },
+  "deformation": {
+   "mentions": 6,
+   "forms": [
+    "deformation",
+    "permanent deformation",
+    "repeated deformation",
+    "no permanent deformation"
+   ]
+  },
+  "region": {
+   "mentions": 6,
+   "forms": [
+    "region",
+    "elastic region",
+    "plastic region"
+   ]
+  },
+  "seed": {
+   "mentions": 6,
+   "forms": [
+    "seed",
+    "first seed",
+    "self as seed"
+   ]
+  },
+  "protection": {
+   "mentions": 6,
+   "forms": [
+    "protection",
+    "belief in protection"
+   ]
+  },
+  "principle": {
+   "mentions": 6,
+   "forms": [
+    "principle",
+    "anthropic principle",
+    "holographic principle",
+    "moral principle",
+    "two principle"
+   ]
+  },
+  "understanding": {
+   "mentions": 6,
+   "forms": [
+    "understanding",
+    "self understanding",
+    "deep understanding"
+   ]
+  },
+  "experience": {
+   "mentions": 6,
+   "forms": [
+    "subjective experience",
+    "valenced experience",
+    "raw experience",
+    "stream of experience",
+    "shared experience"
+   ]
+  },
+  "truth": {
+   "mentions": 6,
+   "forms": [
+    "truth",
+    "foundational truth"
+   ]
+  },
+  "sacrifice": {
+   "mentions": 6,
+   "forms": [
+    "sacrifice",
+    "self sacrifice"
+   ]
+  },
+  "desire": {
+   "mentions": 6,
+   "forms": [
+    "object of desire",
+    "old desire",
+    "new desire",
+    "intense desire",
+    "suppressed desire",
+    "desire"
+   ]
+  },
+  "mystery": {
+   "mentions": 6,
+   "forms": [
+    "mystery",
+    "ultimate mystery",
+    "ever unfolding mystery"
+   ]
+  },
+  "wisdom": {
+   "mentions": 6,
+   "forms": [
+    "wisdom",
+    "accumulated wisdom"
+   ]
+  },
+  "legacy": {
+   "mentions": 6,
+   "forms": [
+    "legacy",
+    "complete genetic legacy",
+    "drive for legacy"
+   ]
+  },
+  "view": {
+   "mentions": 5,
+   "forms": [
+    "agent view",
+    "outside view",
+    "point of view"
+   ]
+  },
+  "data": {
+   "mentions": 5,
+   "forms": [
+    "data",
+    "surviving data",
+    "failed data"
+   ]
+  },
+  "offspring": {
+   "mentions": 5,
+   "forms": [
+    "offspring",
+    "helpless offspring",
+    "mobile offspring"
+   ]
+  },
+  "score": {
+   "mentions": 5,
+   "forms": [
+    "fitness score",
+    "cohesion score",
+    "score",
+    "match score",
+    "similarity score"
+   ]
+  },
+  "environment": {
+   "mentions": 5,
+   "forms": [
+    "environment",
+    "different environment"
+   ]
+  },
+  "transport": {
+   "mentions": 5,
+   "forms": [
+    "parallel transport",
+    "o co transport",
+    "water vapour transport",
+    "long range transport"
+   ]
+  },
+  "constant": {
+   "mentions": 5,
+   "forms": [
+    "spring constant",
+    "time constant",
+    "hubble constant",
+    "constant"
+   ]
+  },
+  "flux": {
+   "mentions": 5,
+   "forms": [
+    "flux",
+    "energy flux",
+    "neutron flux",
+    "moisture flux"
+   ]
+  },
+  "composition": {
+   "mentions": 5,
+   "forms": [
+    "composition",
+    "chemical composition",
+    "elemental composition"
+   ]
+  },
+  "application": {
+   "mentions": 5,
+   "forms": [
+    "rule application",
+    "universal application",
+    "successful application",
+    "skill application"
+   ]
+  },
+  "supply": {
+   "mentions": 5,
+   "forms": [
+    "supply",
+    "money supply",
+    "good supply",
+    "external supply"
+   ]
+  },
+  "demand": {
+   "mentions": 5,
+   "forms": [
+    "demand",
+    "authority demand"
+   ]
+  },
+  "alternative": {
+   "mentions": 5,
+   "forms": [
+    "alternative",
+    "foregone alternative",
+    "haunting alternative"
+   ]
+  },
+  "illusion": {
+   "mentions": 5,
+   "forms": [
+    "illusion",
+    "rubber hand illusion",
+    "shared illusion",
+    "network of illusion"
+   ]
+  },
+  "set": {
+   "mentions": 5,
+   "forms": [
+    "permanent set",
+    "belief set",
+    "option set",
+    "cut set",
+    "rule set"
+   ]
+  },
+  "decay": {
+   "mentions": 5,
+   "forms": [
+    "decay",
+    "amplitude decay",
+    "oscillation decay",
+    "exponential decay"
+   ]
+  },
+  "risk": {
+   "mentions": 5,
+   "forms": [
+    "risk",
+    "default risk",
+    "subjective risk",
+    "offsetting risk"
+   ]
+  },
+  "enforcement": {
+   "mentions": 5,
+   "forms": [
+    "rule enforcement",
+    "enforcement",
+    "norm enforcement"
+   ]
+  },
+  "record": {
+   "mentions": 5,
+   "forms": [
+    "data record",
+    "trauma record",
+    "moral record",
+    "record",
+    "cyclical record"
+   ]
+  },
+  "detail": {
+   "mentions": 5,
+   "forms": [
+    "detail",
+    "event detail",
+    "memory detail"
+   ]
+  },
+  "sum": {
+   "mentions": 5,
+   "forms": [
+    "angle sum",
+    "miner sum",
+    "sum",
+    "capacity sum"
+   ]
+  },
+  "stage": {
+   "mentions": 5,
+   "forms": [
+    "stage",
+    "end stage",
+    "sleep stage",
+    "grief stage"
+   ]
+  },
+  "approach": {
+   "mentions": 5,
+   "forms": [
+    "approach",
+    "mutual approach"
+   ]
+  },
+  "mark": {
+   "mentions": 5,
+   "forms": [
+    "permanent mark",
+    "mark",
+    "physical mark"
+   ]
+  },
+  "detection": {
+   "mentions": 5,
+   "forms": [
+    "detection",
+    "signal detection",
+    "gap detection",
+    "avoid detection"
+   ]
+  },
+  "alignment": {
+   "mentions": 5,
+   "forms": [
+    "alignment",
+    "value alignment"
+   ]
+  },
+  "reinforcement": {
+   "mentions": 5,
+   "forms": [
+    "reinforcement",
+    "group reinforcement"
+   ]
+  },
+  "fear": {
+   "mentions": 5,
+   "forms": [
+    "fear",
+    "intense fear",
+    "confronting fear"
+   ]
+  },
+  "plan": {
+   "mentions": 5,
+   "forms": [
+    "plan",
+    "body plan",
+    "no external plan"
+   ]
+  },
+  "trait": {
+   "mentions": 5,
+   "forms": [
+    "trait",
+    "population trait",
+    "cultural trait",
+    "defining trait"
+   ]
+  },
+  "coefficient": {
+   "mentions": 5,
+   "forms": [
+    "thermal expansion coefficient",
+    "cluster coefficient",
+    "absorption coefficient",
+    "clustering coefficient"
+   ]
+  },
+  "waste": {
+   "mentions": 5,
+   "forms": [
+    "waste",
+    "no waste",
+    "metabolic waste"
+   ]
+  },
+  "entropy": {
+   "mentions": 5,
+   "forms": [
+    "entropy",
+    "black hole entropy"
+   ]
+  },
+  "substance": {
+   "mentions": 5,
+   "forms": [
+    "continuou substance",
+    "initial substance",
+    "final substance",
+    "base substance",
+    "noble substance"
+   ]
+  },
+  "adjustment": {
+   "mentions": 5,
+   "forms": [
+    "adjustment",
+    "skill adjustment"
+   ]
+  },
+  "oscillation": {
+   "mentions": 5,
+   "forms": [
+    "oscillation",
+    "vertical oscillation",
+    "concentration oscillation",
+    "generational oscillation"
+   ]
+  },
+  "air": {
+   "mentions": 5,
+   "forms": [
+    "warm air",
+    "cold air"
+   ]
+  },
+  "challenge": {
+   "mentions": 5,
+   "forms": [
+    "challenge",
+    "embrace challenge"
+   ]
+  },
+  "creation": {
+   "mentions": 5,
+   "forms": [
+    "creation",
+    "path creation",
+    "skilled creation"
+   ]
+  },
+  "maintenance": {
+   "mentions": 5,
+   "forms": [
+    "maintenance",
+    "balance maintenance",
+    "identity maintenance"
+   ]
+  },
+  "difficulty": {
+   "mentions": 5,
+   "forms": [
+    "retrieval difficulty",
+    "task difficulty",
+    "difficulty",
+    "overcoming difficulty"
+   ]
+  },
+  "revelation": {
+   "mentions": 5,
+   "forms": [
+    "revelation",
+    "type revelation",
+    "partial revelation"
+   ]
+  },
+  "collapse": {
+   "mentions": 5,
+   "forms": [
+    "collapse",
+    "wavefunction collapse",
+    "potential collapse"
+   ]
+  },
+  "hardness": {
+   "mentions": 5,
+   "forms": [
+    "hardness",
+    "surface hardness"
+   ]
+  },
+  "return": {
+   "mentions": 5,
+   "forms": [
+    "return",
+    "desire to return",
+    "point of no return",
+    "no return"
+   ]
+  },
+  "increase": {
+   "mentions": 5,
+   "forms": [
+    "entropy increase",
+    "strength increase",
+    "speed increase",
+    "value increase",
+    "fitness increase"
+   ]
+  },
+  "culture": {
+   "mentions": 5,
+   "forms": [
+    "culture",
+    "dominant culture",
+    "alternative culture"
+   ]
+  },
+  "narrative": {
+   "mentions": 5,
+   "forms": [
+    "narrative",
+    "shared narrative",
+    "national narrative",
+    "active narrative"
+   ]
+  },
+  "frame": {
+   "mentions": 5,
+   "forms": [
+    "non personal frame",
+    "problem frame",
+    "gift frame",
+    "outside frame",
+    "hidden frame"
+   ]
+  },
+  "resolution": {
+   "mentions": 5,
+   "forms": [
+    "resolution",
+    "conflict resolution",
+    "no resolution"
+   ]
+  },
+  "reaction": {
+   "mentions": 5,
+   "forms": [
+    "reaction",
+    "immune reaction",
+    "chain reaction",
+    "chemical reaction"
+   ]
+  },
+  "thought": {
+   "mentions": 5,
+   "forms": [
+    "thought",
+    "persistent thought",
+    "unbidden thought",
+    "divine thought",
+    "threatening thought"
+   ]
+  },
+  "journey": {
+   "mentions": 5,
+   "forms": [
+    "journey",
+    "substrate journey"
+   ]
+  },
+  "fundamental": {
+   "mentions": 5,
+   "forms": [
+    "action as fundamental",
+    "fundamental",
+    "relationship as fundamental",
+    "life fundamental",
+    "process as fundamental"
+   ]
+  },
+  "responsibility": {
+   "mentions": 5,
+   "forms": [
+    "responsibility",
+    "moral responsibility"
+   ]
+  },
+  "habit": {
+   "mentions": 5,
+   "forms": [
+    "habit",
+    "sequential habit",
+    "multiple habit",
+    "interconnected habit",
+    "identity through habit"
+   ]
+  },
+  "mastery": {
+   "mentions": 5,
+   "forms": [
+    "mastery",
+    "self mastery",
+    "path to mastery"
+   ]
+  },
+  "vision": {
+   "mentions": 5,
+   "forms": [
+    "vision",
+    "alternative vision",
+    "shared vision",
+    "dark vision"
+   ]
+  },
+  "hope": {
+   "mentions": 5,
+   "forms": [
+    "hope",
+    "persistent hope",
+    "loss of hope"
+   ]
+  },
+  "becoming": {
+   "mentions": 5,
+   "forms": [
+    "becoming",
+    "continuou becoming"
+   ]
+  },
+  "witness": {
+   "mentions": 5,
+   "forms": [
+    "witness",
+    "health witness"
+   ]
+  },
+  "hole": {
+   "mentions": 4,
+   "forms": [
+    "hole",
+    "black hole"
+   ]
+  },
+  "charge": {
+   "mentions": 4,
+   "forms": [
+    "charge",
+    "net charge"
+   ]
+  },
+  "consumption": {
+   "mentions": 4,
+   "forms": [
+    "consumption",
+    "substrate consumption",
+    "oxygen consumption"
+   ]
+  },
+  "algorithm": {
+   "mentions": 4,
+   "forms": [
+    "algorithm",
+    "search algorithm"
+   ]
+  },
+  "horizon": {
+   "mentions": 4,
+   "forms": [
+    "event horizon",
+    "horizon",
+    "prediction horizon",
+    "long time horizon"
+   ]
+  },
+  "gravity": {
+   "mentions": 4,
+   "forms": [
+    "gravity",
+    "observed gravity",
+    "against gravity"
+   ]
+  },
+  "transform": {
+   "mentions": 4,
+   "forms": [
+    "transform",
+    "mirror transform",
+    "fourier transform"
+   ]
+  },
+  "sensation": {
+   "mentions": 4,
+   "forms": [
+    "predicted sensation",
+    "actual sensation"
+   ]
+  },
+  "threat": {
+   "mentions": 4,
+   "forms": [
+    "threat",
+    "response to body threat"
+   ]
+  },
+  "crossing": {
+   "mentions": 4,
+   "forms": [
+    "crossing",
+    "zero crossing",
+    "boundary crossing"
+   ]
+  },
+  "info": {
+   "mentions": 4,
+   "forms": [
+    "individual info",
+    "sensory info",
+    "volume info",
+    "congestion info"
+   ]
+  },
+  "trace": {
+   "mentions": 4,
+   "forms": [
+    "old trace",
+    "new trace",
+    "stored trace",
+    "memory trace"
+   ]
+  },
+  "independence": {
+   "mentions": 4,
+   "forms": [
+    "independence",
+    "context independence",
+    "early independence"
+   ]
+  },
+  "other": {
+   "mentions": 4,
+   "forms": [
+    "override other",
+    "effect on other",
+    "overriding other"
+   ]
+  },
+  "word": {
+   "mentions": 4,
+   "forms": [
+    "word",
+    "related word"
+   ]
+  },
+  "intent": {
+   "mentions": 4,
+   "forms": [
+    "speaker intent",
+    "protective intent",
+    "inferred intent"
+   ]
+  },
+  "mapping": {
+   "mentions": 4,
+   "forms": [
+    "mapping",
+    "systematic mapping",
+    "relational mapping"
+   ]
+  },
+  "prey": {
+   "mentions": 4,
+   "forms": [
+    "prey",
+    "consume prey",
+    "subdue prey",
+    "extract prey"
+   ]
+  },
+  "match": {
+   "mentions": 4,
+   "forms": [
+    "background match",
+    "match",
+    "frequency match"
+   ]
+  },
+  "intake": {
+   "mentions": 4,
+   "forms": [
+    "energy intake",
+    "caloric intake",
+    "no intake"
+   ]
+  },
+  "expenditure": {
+   "mentions": 4,
+   "forms": [
+    "expenditure",
+    "energy expenditure"
+   ]
+  },
+  "affect": {
+   "mentions": 4,
+   "forms": [
+    "affect",
+    "positive affect"
+   ]
+  },
+  "start": {
+   "mentions": 4,
+   "forms": [
+    "start",
+    "window start"
+   ]
+  },
+  "thinking": {
+   "mentions": 4,
+   "forms": [
+    "counterfactual thinking",
+    "automatic thinking",
+    "critical thinking"
+   ]
+  },
+  "logic": {
+   "mentions": 4,
+   "forms": [
+    "logic",
+    "loose logic"
+   ]
+  },
+  "support": {
+   "mentions": 4,
+   "forms": [
+    "group support",
+    "mechanical support",
+    "mutual support",
+    "support"
+   ]
+  },
+  "fulfillment": {
+   "mentions": 4,
+   "forms": [
+    "fulfillment",
+    "need fulfillment"
+   ]
+  },
+  "item": {
+   "mentions": 4,
+   "forms": [
+    "item",
+    "two item",
+    "food item"
+   ]
+  },
+  "imagery": {
+   "mentions": 4,
+   "forms": [
+    "imagery",
+    "vivid imagery",
+    "fluid imagery",
+    "surreal imagery"
+   ]
+  },
+  "evidence": {
+   "mentions": 4,
+   "forms": [
+    "evidence",
+    "repression evidence",
+    "contradictory evidence"
+   ]
+  },
+  "substrate": {
+   "mentions": 4,
+   "forms": [
+    "substrate",
+    "inorganic substrate"
+   ]
+  },
+  "tree": {
+   "mentions": 4,
+   "forms": [
+    "lineage tree",
+    "huffman tree",
+    "parse tree"
+   ]
+  },
+  "ancestor": {
+   "mentions": 4,
+   "forms": [
+    "ancestor",
+    "common ancestor",
+    "archetypal ancestor"
+   ]
+  },
+  "program": {
+   "mentions": 4,
+   "forms": [
+    "program",
+    "running program",
+    "developmental program"
+   ]
+  },
+  "cluster": {
+   "mentions": 4,
+   "forms": [
+    "between cluster",
+    "cluster"
+   ]
+  },
+  "modification": {
+   "mentions": 4,
+   "forms": [
+    "modification",
+    "rule modification"
+   ]
+  },
+  "signature": {
+   "mentions": 4,
+   "forms": [
+    "signature",
+    "personal signature"
+   ]
+  },
+  "unit": {
+   "mentions": 4,
+   "forms": [
+    "unit",
+    "repeating unit",
+    "cost per unit",
+    "fundamental unit"
+   ]
+  },
+  "array": {
+   "mentions": 4,
+   "forms": [
+    "value array",
+    "sorted array",
+    "echo array",
+    "electrode array"
+   ]
+  },
+  "estimate": {
+   "mentions": 4,
+   "forms": [
+    "position estimate",
+    "subsequent estimate",
+    "reach estimate",
+    "integral estimate"
+   ]
+  },
+  "cohesion": {
+   "mentions": 4,
+   "forms": [
+    "cohesion",
+    "group cohesion"
+   ]
+  },
+  "mechanism": {
+   "mentions": 4,
+   "forms": [
+    "lock mechanism",
+    "switch mechanism",
+    "market mechanism",
+    "coping mechanism"
+   ]
+  },
+  "equilibrium": {
+   "mentions": 4,
+   "forms": [
+    "equilibrium",
+    "nash equilibrium"
+   ]
+  },
+  "cooling": {
+   "mentions": 4,
+   "forms": [
+    "rapid cooling",
+    "pacific cooling",
+    "global cooling"
+   ]
+  },
+  "layer": {
+   "mentions": 4,
+   "forms": [
+    "ice layer",
+    "higher layer",
+    "lower layer",
+    "mythic layer"
+   ]
+  },
+  "matter": {
+   "mentions": 4,
+   "forms": [
+    "matter",
+    "dead matter",
+    "choice matter"
+   ]
+  },
+  "breakdown": {
+   "mentions": 4,
+   "forms": [
+    "breakdown",
+    "substrate breakdown",
+    "tissue breakdown"
+   ]
+  },
+  "dna": {
+   "mentions": 4,
+   "forms": [
+    "dna",
+    "donor dna",
+    "free dna",
+    "circular dna"
+   ]
+  },
+  "result": {
+   "mentions": 4,
+   "forms": [
+    "result",
+    "stored result"
+   ]
+  },
+  "sender": {
+   "mentions": 4,
+   "forms": [
+    "sender",
+    "truthful sender"
+   ]
+  },
+  "qubit": {
+   "mentions": 4,
+   "forms": [
+    "two qubit",
+    "qubit",
+    "logical qubit",
+    "physical qubit"
+   ]
+  },
+  "radiu": {
+   "mentions": 4,
+   "forms": [
+    "radiu",
+    "schwarzschild radiu"
+   ]
+  },
+  "grip": {
+   "mentions": 4,
+   "forms": [
+    "grip",
+    "persistent grip"
+   ]
+  },
+  "up": {
+   "mentions": 4,
+   "forms": [
+    "threshold up",
+    "speed up",
+    "bottom up",
+    "giving up"
+   ]
+  },
+  "window": {
+   "mentions": 4,
+   "forms": [
+    "timing window",
+    "varying window",
+    "sensitive window"
+   ]
+  },
+  "amplification": {
+   "mentions": 4,
+   "forms": [
+    "output amplification",
+    "physiological amplification",
+    "self amplification",
+    "amplification"
+   ]
+  },
+  "water": {
+   "mentions": 4,
+   "forms": [
+    "water",
+    "warm water"
+   ]
+  },
+  "manipulation": {
+   "mentions": 4,
+   "forms": [
+    "manipulation",
+    "external manipulation",
+    "linguistic manipulation"
+   ]
+  },
+  "attribution": {
+   "mentions": 4,
+   "forms": [
+    "causal attribution",
+    "blame attribution",
+    "attribution",
+    "effort attribution"
+   ]
+  },
+  "preference": {
+   "mentions": 4,
+   "forms": [
+    "preference",
+    "simple preference",
+    "ordered preference",
+    "equal preference"
+   ]
+  },
+  "beam": {
+   "mentions": 4,
+   "forms": [
+    "incident beam",
+    "object beam",
+    "reference beam",
+    "donut beam"
+   ]
+  },
+  "processing": {
+   "mentions": 4,
+   "forms": [
+    "processing",
+    "parallel processing",
+    "offline processing"
+   ]
+  },
+  "success": {
+   "mentions": 4,
+   "forms": [
+    "success",
+    "other success"
+   ]
+  },
+  "exit": {
+   "mentions": 4,
+   "forms": [
+    "loop exit",
+    "exit",
+    "untie to exit",
+    "no exit"
+   ]
+  },
+  "engagement": {
+   "mentions": 4,
+   "forms": [
+    "engagement",
+    "re engagement"
+   ]
+  },
+  "consciousness": {
+   "mentions": 4,
+   "forms": [
+    "consciousness",
+    "self consciousness"
+   ]
+  },
+  "fate": {
+   "mentions": 4,
+   "forms": [
+    "cell fate",
+    "belief in fate",
+    "fate"
+   ]
+  },
+  "encoding": {
+   "mentions": 4,
+   "forms": [
+    "encoding",
+    "intentional encoding",
+    "surface encoding"
+   ]
+  },
+  "identification": {
+   "mentions": 4,
+   "forms": [
+    "no identification",
+    "identification",
+    "non identification"
+   ]
+  },
+  "connectivity": {
+   "mentions": 4,
+   "forms": [
+    "connectivity",
+    "global connectivity"
+   ]
+  },
+  "precision": {
+   "mentions": 4,
+   "forms": [
+    "precision",
+    "delivery precision"
+   ]
+  },
+  "striving": {
+   "mentions": 4,
+   "forms": [
+    "non striving",
+    "universal striving",
+    "perpetual striving",
+    "cessation of striving"
+   ]
+  },
+  "attachment": {
+   "mentions": 4,
+   "forms": [
+    "non attachment",
+    "deep attachment",
+    "bacterial attachment",
+    "preferential attachment"
+   ]
+  },
+  "mind": {
+   "mentions": 4,
+   "forms": [
+    "quiet mind",
+    "other mind",
+    "cosmic mind",
+    "swarm mind"
+   ]
+  },
+  "peace": {
+   "mentions": 4,
+   "forms": [
+    "peace",
+    "fleeting peace"
+   ]
+  },
+  "closure": {
+   "mentions": 4,
+   "forms": [
+    "wound closure",
+    "closure",
+    "temporary closure"
+   ]
+  },
+  "death": {
+   "mentions": 4,
+   "forms": [
+    "programmed death",
+    "traumatic death",
+    "acceptance of death",
+    "cell death"
+   ]
+  },
+  "being": {
+   "mentions": 4,
+   "forms": [
+    "non being",
+    "ground of being",
+    "visceral being",
+    "being"
+   ]
+  },
+  "universe": {
+   "mentions": 4,
+   "forms": [
+    "new universe",
+    "parallel universe",
+    "self contained universe",
+    "deterministic universe"
+   ]
+  },
+  "gene": {
+   "mentions": 4,
+   "forms": [
+    "gene",
+    "resistance gene"
+   ]
+  },
+  "decline": {
+   "mentions": 4,
+   "forms": [
+    "performance decline",
+    "functional decline"
+   ]
+  },
+  "subject": {
+   "mentions": 4,
+   "forms": [
+    "other subject",
+    "body as subject",
+    "subject"
+   ]
+  },
+  "conformity": {
+   "mentions": 4,
+   "forms": [
+    "non conformity",
+    "social conformity",
+    "conformity"
+   ]
+  },
+  "unconsciou": {
+   "mentions": 4,
+   "forms": [
+    "unconsciou",
+    "collective unconsciou"
+   ]
+  },
+  "absurdity": {
+   "mentions": 4,
+   "forms": [
+    "absurdity",
+    "existential absurdity"
+   ]
+  },
+  "polygon": {
+   "mentions": 3,
+   "forms": [
+    "point in polygon",
+    "support polygon"
+   ]
+  },
+  "viewpoint": {
+   "mentions": 3,
+   "forms": [
+    "viewpoint",
+    "agent viewpoint"
+   ]
+  },
+  "jump": {
+   "mentions": 3,
+   "forms": [
+    "pressure jump",
+    "state jump",
+    "layer jump"
+   ]
+  },
+  "device": {
+   "mentions": 3,
+   "forms": [
+    "measurement device",
+    "cohesive device",
+    "poetic device"
+   ]
+  },
+  "gaze": {
+   "mentions": 3,
+   "forms": [
+    "gaze",
+    "mutual gaze",
+    "ironic gaze"
+   ]
+  },
+  "copy": {
+   "mentions": 3,
+   "forms": [
+    "efferent copy",
+    "identical copy",
+    "copy"
+   ]
+  },
+  "accel": {
+   "mentions": 3,
+   "forms": [
+    "linear accel",
+    "angular accel",
+    "vertical accel"
+   ]
+  },
+  "ownership": {
+   "mentions": 3,
+   "forms": [
+    "touch ownership",
+    "ownership",
+    "body ownership"
+   ]
+  },
+  "peak": {
+   "mentions": 3,
+   "forms": [
+    "peak",
+    "transmission peak",
+    "amplitude peak"
+   ]
+  },
+  "envelope": {
+   "mentions": 3,
+   "forms": [
+    "envelope",
+    "amplitude envelope"
+   ]
+  },
+  "cooperation": {
+   "mentions": 3,
+   "forms": [
+    "past cooperation",
+    "cooperation",
+    "non cooperation"
+   ]
+  },
+  "definition": {
+   "mentions": 3,
+   "forms": [
+    "game definition",
+    "ostensive definition",
+    "self definition"
+   ]
+  },
+  "valence": {
+   "mentions": 3,
+   "forms": [
+    "action valence",
+    "valence"
+   ]
+  },
+  "description": {
+   "mentions": 3,
+   "forms": [
+    "intentional description",
+    "description"
+   ]
+  },
+  "rejection": {
+   "mentions": 3,
+   "forms": [
+    "rejection",
+    "system rejection"
+   ]
+  },
+  "pain": {
+   "mentions": 3,
+   "forms": [
+    "pain",
+    "archive of pain"
+   ]
+  },
+  "entry": {
+   "mentions": 3,
+   "forms": [
+    "portal of entry",
+    "entry",
+    "lexical entry"
+   ]
+  },
+  "limit": {
+   "mentions": 3,
+   "forms": [
+    "limit",
+    "computability limit"
+   ]
+  },
+  "predator": {
+   "mentions": 3,
+   "forms": [
+    "predator",
+    "top predator"
+   ]
+  },
+  "organ": {
+   "mentions": 3,
+   "forms": [
+    "sensory organ",
+    "sense organ"
+   ]
+  },
+  "coloration": {
+   "mentions": 3,
+   "forms": [
+    "coloration",
+    "bright coloration"
+   ]
+  },
+  "disappearance": {
+   "mentions": 3,
+   "forms": [
+    "disappearance",
+    "food disappearance"
+   ]
+  },
+  "decrease": {
+   "mentions": 3,
+   "forms": [
+    "substrate decrease",
+    "amplitude decrease",
+    "attention decrease"
+   ]
+  },
+  "thickness": {
+   "mentions": 3,
+   "forms": [
+    "thickness",
+    "film thickness"
+   ]
+  },
+  "core": {
+   "mentions": 3,
+   "forms": [
+    "core",
+    "defiance as core",
+    "curiosity as core"
+   ]
+  },
+  "validity": {
+   "mentions": 3,
+   "forms": [
+    "validity",
+    "logical validity"
+   ]
+  },
+  "correction": {
+   "mentions": 3,
+   "forms": [
+    "correction",
+    "self correction"
+   ]
+  },
+  "routine": {
+   "mentions": 3,
+   "forms": [
+    "routine",
+    "new routine"
+   ]
+  },
+  "oath": {
+   "mentions": 3,
+   "forms": [
+    "oath",
+    "binding oath"
+   ]
+  },
+  "refusal": {
+   "mentions": 3,
+   "forms": [
+    "refusal",
+    "moral refusal"
+   ]
+  },
+  "norm": {
+   "mentions": 3,
+   "forms": [
+    "norm",
+    "deviant norm",
+    "community norm"
+   ]
+  },
+  "diversity": {
+   "mentions": 3,
+   "forms": [
+    "diversity",
+    "topic diversity",
+    "network diversity"
+   ]
+  },
+  "term": {
+   "mentions": 3,
+   "forms": [
+    "term",
+    "integral term",
+    "long term"
+   ]
+  },
+  "awakening": {
+   "mentions": 3,
+   "forms": [
+    "awakening",
+    "partial awakening"
+   ]
+  },
+  "gaps": {
+   "mentions": 3,
+   "forms": [
+    "memory gaps",
+    "gaps",
+    "new gaps"
+   ]
+  },
+  "health": {
+   "mentions": 3,
+   "forms": [
+    "health",
+    "host health"
+   ]
+  },
+  "setup": {
+   "mentions": 3,
+   "forms": [
+    "setup",
+    "mental setup"
+   ]
+  },
+  "parent": {
+   "mentions": 3,
+   "forms": [
+    "parent",
+    "two parent"
+   ]
+  },
+  "computation": {
+   "mentions": 3,
+   "forms": [
+    "computation",
+    "universal computation"
+   ]
+  },
+  "consolidation": {
+   "mentions": 3,
+   "forms": [
+    "memory consolidation",
+    "consolidation"
+   ]
+  },
+  "beat": {
+   "mentions": 3,
+   "forms": [
+    "deviation from beat",
+    "perceived beat",
+    "external beat"
+   ]
+  },
+  "genotype": {
+   "mentions": 3,
+   "forms": [
+    "genotype",
+    "same genotype"
+   ]
+  },
+  "phenotype": {
+   "mentions": 3,
+   "forms": [
+    "phenotype",
+    "different phenotype"
+   ]
+  },
+  "property": {
+   "mentions": 3,
+   "forms": [
+    "novel property",
+    "mixed property",
+    "new property"
+   ]
+  },
+  "arc": {
+   "mentions": 3,
+   "forms": [
+    "arc",
+    "observed arc",
+    "narrative arc"
+   ]
+  },
+  "base": {
+   "mentions": 3,
+   "forms": [
+    "base",
+    "conjugate base",
+    "support base"
+   ]
+  },
+  "decoy": {
+   "mentions": 3,
+   "forms": [
+    "decoy",
+    "multiple decoy"
+   ]
+  },
+  "vapour": {
+   "mentions": 3,
+   "forms": [
+    "water vapour",
+    "vapour"
+   ]
+  },
+  "flame": {
+   "mentions": 3,
+   "forms": [
+    "flame",
+    "sacred flame"
+   ]
+  },
+  "expansion": {
+   "mentions": 3,
+   "forms": [
+    "thermal expansion",
+    "credit expansion",
+    "expansion"
+   ]
+  },
+  "metal": {
+   "mentions": 3,
+   "forms": [
+    "two metal",
+    "metal"
+   ]
+  },
+  "visibility": {
+   "mentions": 3,
+   "forms": [
+    "visibility",
+    "reduced visibility"
+   ]
+  },
+  "friction": {
+   "mentions": 3,
+   "forms": [
+    "surface friction",
+    "friction"
+   ]
+  },
+  "dissipation": {
+   "mentions": 3,
+   "forms": [
+    "dissipation",
+    "power dissipation"
+   ]
+  },
+  "ethanol": {
+   "mentions": 3,
+   "forms": [
+    "lactate ethanol",
+    "ethanol"
+   ]
+  },
+  "tissue": {
+   "mentions": 3,
+   "forms": [
+    "donor tissue",
+    "fibrou tissue",
+    "adipose tissue"
+   ]
+  },
+  "case": {
+   "mentions": 3,
+   "forms": [
+    "base case",
+    "worst case",
+    "best case"
+   ]
+  },
+  "head": {
+   "mentions": 3,
+   "forms": [
+    "read write head",
+    "hydrophilic head",
+    "head"
+   ]
+  },
+  "basi": {
+   "mentions": 3,
+   "forms": [
+    "basi",
+    "bodily basi",
+    "emotional basi"
+   ]
+  },
+  "iteration": {
+   "mentions": 3,
+   "forms": [
+    "iteration",
+    "grover iteration"
+   ]
+  },
+  "sensitivity": {
+   "mentions": 3,
+   "forms": [
+    "sensitivity",
+    "reward sensitivity"
+   ]
+  },
+  "capability": {
+   "mentions": 3,
+   "forms": [
+    "damping capability",
+    "body capability",
+    "control capability"
+   ]
+  },
+  "exponent": {
+   "mentions": 3,
+   "forms": [
+    "power law exponent",
+    "lyapunov exponent"
+   ]
+  },
+  "susceptibility": {
+   "mentions": 3,
+   "forms": [
+    "susceptibility",
+    "nonlinear susceptibility",
+    "host susceptibility"
+   ]
+  },
+  "tuning": {
+   "mentions": 3,
+   "forms": [
+    "fine tuning",
+    "self tuning"
+   ]
+  },
+  "suppression": {
+   "mentions": 3,
+   "forms": [
+    "amplitude suppression",
+    "individual suppression",
+    "suppression"
+   ]
+  },
+  "attractor": {
+   "mentions": 3,
+   "forms": [
+    "attractor",
+    "new attractor"
+   ]
+  },
+  "channel": {
+   "mentions": 3,
+   "forms": [
+    "protein channel",
+    "flow channel",
+    "channel"
+   ]
+  },
+  "inhibition": {
+   "mentions": 3,
+   "forms": [
+    "inhibition",
+    "muscle inhibition"
+   ]
+  },
+  "arrival": {
+   "mentions": 3,
+   "forms": [
+    "nonlinear arrival",
+    "arrival"
+   ]
+  },
+  "reversal": {
+   "mentions": 3,
+   "forms": [
+    "preference reversal",
+    "phase reversal",
+    "seasonal wind reversal"
+   ]
+  },
+  "motivation": {
+   "mentions": 3,
+   "forms": [
+    "motivation",
+    "intrinsic motivation",
+    "loss of motivation"
+   ]
+  },
+  "exclusion": {
+   "mentions": 3,
+   "forms": [
+    "exclusion",
+    "no exclusion"
+   ]
+  },
+  "winner": {
+   "mentions": 3,
+   "forms": [
+    "winner",
+    "no winner"
+   ]
+  },
+  "ease": {
+   "mentions": 3,
+   "forms": [
+    "cooperation ease",
+    "ease"
+   ]
+  },
+  "sensor": {
+   "mentions": 3,
+   "forms": [
+    "sensor",
+    "skin sensor",
+    "wavefront sensor"
+   ]
+  },
+  "detachment": {
+   "mentions": 3,
+   "forms": [
+    "detachment",
+    "interoceptive detachment"
+   ]
+  },
+  "schema": {
+   "mentions": 3,
+   "forms": [
+    "body schema",
+    "schema"
+   ]
+  },
+  "fracture": {
+   "mentions": 3,
+   "forms": [
+    "fracture",
+    "rough fracture"
+   ]
+  },
+  "ultimate": {
+   "mentions": 3,
+   "forms": [
+    "ultimate",
+    "simulation as ultimate",
+    "laughter as ultimate"
+   ]
+  },
+  "law": {
+   "mentions": 3,
+   "forms": [
+    "malu law",
+    "new law",
+    "power law"
+   ]
+  },
+  "mirror": {
+   "mentions": 3,
+   "forms": [
+    "two mirror",
+    "multiple mirror",
+    "deformable mirror"
+   ]
+  },
+  "lens": {
+   "mentions": 3,
+   "forms": [
+    "lens",
+    "new lens",
+    "suffering lens"
+   ]
+  },
+  "extension": {
+   "mentions": 3,
+   "forms": [
+    "cooldown extension",
+    "cognitive extension",
+    "lifespan extension"
+   ]
+  },
+  "opportunity": {
+   "mentions": 3,
+   "forms": [
+    "missed opportunity",
+    "arbitrage opportunity",
+    "opportunity"
+   ]
+  },
+  "future": {
+   "mentions": 3,
+   "forms": [
+    "future",
+    "ideal future"
+   ]
+  },
+  "purpose": {
+   "mentions": 3,
+   "forms": [
+    "specific purpose",
+    "greater purpose",
+    "purpose"
+   ]
+  },
+  "fact": {
+   "mentions": 3,
+   "forms": [
+    "institutional fact",
+    "sheer fact",
+    "fact"
+   ]
+  },
+  "archive": {
+   "mentions": 3,
+   "forms": [
+    "archive",
+    "scar archive"
+   ]
+  },
+  "met": {
+   "mentions": 3,
+   "forms": [
+    "objective met",
+    "objective not met",
+    "obligation met"
+   ]
+  },
+  "abstraction": {
+   "mentions": 3,
+   "forms": [
+    "abstraction",
+    "increase abstraction",
+    "decrease abstraction"
+   ]
+  },
+  "exploration": {
+   "mentions": 3,
+   "forms": [
+    "tree exploration",
+    "perpetual exploration",
+    "exploration"
+   ]
+  },
+  "removal": {
+   "mentions": 3,
+   "forms": [
+    "removal",
+    "gradual removal"
+   ]
+  },
+  "preservation": {
+   "mentions": 3,
+   "forms": [
+    "preservation",
+    "invariant preservation"
+   ]
+  },
+  "stock": {
+   "mentions": 3,
+   "forms": [
+    "stock",
+    "buffer stock",
+    "safety stock"
+   ]
+  },
+  "intelligence": {
+   "mentions": 3,
+   "forms": [
+    "central intelligence",
+    "collective intelligence",
+    "machine intelligence"
+   ]
+  },
+  "exposure": {
+   "mentions": 3,
+   "forms": [
+    "self exposure",
+    "primary exposure",
+    "secondary exposure"
+   ]
+  },
+  "drive": {
+   "mentions": 3,
+   "forms": [
+    "drive",
+    "intense drive",
+    "fundamental drive"
+   ]
+  },
+  "regeneration": {
+   "mentions": 3,
+   "forms": [
+    "regeneration",
+    "tissue regeneration"
+   ]
+  },
+  "text": {
+   "mentions": 3,
+   "forms": [
+    "text",
+    "universe as text"
+   ]
+  },
+  "wound": {
+   "mentions": 3,
+   "forms": [
+    "wound",
+    "identity defined by wound"
+   ]
+  },
+  "instability": {
+   "mentions": 3,
+   "forms": [
+    "instability",
+    "accumulated instability",
+    "homogeneou instability"
+   ]
+  },
+  "wind": {
+   "mentions": 3,
+   "forms": [
+    "rotating wind",
+    "strong wind"
+   ]
+  },
+  "aerosol": {
+   "mentions": 3,
+   "forms": [
+    "dust aerosol",
+    "sulfur aerosol",
+    "aerosol"
+   ]
+  },
+  "foundation": {
+   "mentions": 3,
+   "forms": [
+    "new foundation",
+    "commitment as foundation",
+    "foundation"
+   ]
+  },
+  "anxiety": {
+   "mentions": 3,
+   "forms": [
+    "anxiety",
+    "existential anxiety"
+   ]
+  },
+  "escape": {
+   "mentions": 3,
+   "forms": [
+    "escape",
+    "reflexive escape"
+   ]
+  },
+  "reflective": {
+   "mentions": 3,
+   "forms": [
+    "non reflective",
+    "pre reflective",
+    "reflective"
+   ]
+  },
+  "pathway": {
+   "mentions": 3,
+   "forms": [
+    "central pathway",
+    "pathway",
+    "neural pathway"
+   ]
+  },
+  "present": {
+   "mentions": 3,
+   "forms": [
+    "speciou present",
+    "shaping present"
+   ]
+  },
+  "option": {
+   "mentions": 3,
+   "forms": [
+    "two option",
+    "multiple option",
+    "too many option"
+   ]
+  },
+  "justification": {
+   "mentions": 3,
+   "forms": [
+    "justification",
+    "moral justification"
+   ]
+  },
+  "loyalty": {
+   "mentions": 3,
+   "forms": [
+    "divided loyalty",
+    "two loyalty",
+    "false loyalty"
+   ]
+  },
+  "rebellion": {
+   "mentions": 3,
+   "forms": [
+    "rebellion",
+    "forged in rebellion"
+   ]
+  },
+  "unknown": {
+   "mentions": 3,
+   "forms": [
+    "unknown",
+    "vast unknown"
+   ]
+  },
+  "curiosity": {
+   "mentions": 3,
+   "forms": [
+    "perpetual curiosity",
+    "prolonged curiosity",
+    "curiosity"
+   ]
+  },
+  "seeking": {
+   "mentions": 3,
+   "forms": [
+    "adventure seeking",
+    "habitual seeking",
+    "urgent seeking"
+   ]
+  },
+  "need": {
+   "mentions": 3,
+   "forms": [
+    "mutual need",
+    "need",
+    "recovery need"
+   ]
+  },
+  "grief": {
+   "mentions": 3,
+   "forms": [
+    "grief",
+    "persistent grief",
+    "permanent sacred grief"
+   ]
+  },
+  "giver": {
+   "mentions": 3,
+   "forms": [
+    "giver",
+    "archetypal giver"
+   ]
+  },
+  "obligation": {
+   "mentions": 3,
+   "forms": [
+    "future obligation",
+    "obligation",
+    "unresolved obligation"
+   ]
+  },
+  "debt": {
+   "mentions": 3,
+   "forms": [
+    "debt",
+    "unsettled debt"
+   ]
+  },
+  "sleep": {
+   "mentions": 3,
+   "forms": [
+    "sleep",
+    "chronic short sleep"
+   ]
+  },
+  "dream": {
+   "mentions": 3,
+   "forms": [
+    "dream",
+    "repeated dream",
+    "self in dream"
+   ]
+  },
+  "architecture": {
+   "mentions": 3,
+   "forms": [
+    "meaning architecture",
+    "complex architecture",
+    "microscopic architecture"
+   ]
+  },
+  "construction": {
+   "mentions": 3,
+   "forms": [
+    "construction",
+    "active construction"
+   ]
+  },
+  "dynasty": {
+   "mentions": 3,
+   "forms": [
+    "dynasty",
+    "spirit of dynasty"
+   ]
+  },
+  "machine": {
+   "mentions": 3,
+   "forms": [
+    "ghost in machine",
+    "domino machine",
+    "eureka machine"
+   ]
+  },
+  "catalyst": {
+   "mentions": 3,
+   "forms": [
+    "catalyst",
+    "ultimate catalyst"
+   ]
+  },
+  "helix": {
+   "mentions": 2,
+   "forms": [
+    "helix",
+    "double helix"
+   ]
+  },
+  "conductivity": {
+   "mentions": 2,
+   "forms": [
+    "thermal conductivity",
+    "material conductivity"
+   ]
+  },
+  "division": {
+   "mentions": 2,
+   "forms": [
+    "cell division",
+    "division"
+   ]
+  },
+  "organism": {
+   "mentions": 2,
+   "forms": [
+    "organism",
+    "super organism"
+   ]
+  },
+  "particle": {
+   "mentions": 2,
+   "forms": [
+    "two particle",
+    "particle"
+   ]
+  },
+  "attempt": {
+   "mentions": 2,
+   "forms": [
+    "cloning attempt",
+    "control attempt"
+   ]
+  },
+  "atom": {
+   "mentions": 2,
+   "forms": [
+    "atom",
+    "same atom"
+   ]
+  },
+  "amount": {
+   "mentions": 2,
+   "forms": [
+    "reactant amount",
+    "product amount"
+   ]
+  },
+  "observer": {
+   "mentions": 2,
+   "forms": [
+    "relative size to observer",
+    "observer"
+   ]
+  },
+  "offset": {
+   "mentions": 2,
+   "forms": [
+    "offset",
+    "temporal offset"
+   ]
+  },
+  "membership": {
+   "mentions": 2,
+   "forms": [
+    "membership",
+    "category membership"
+   ]
+  },
+  "book": {
+   "mentions": 2,
+   "forms": [
+    "rule book",
+    "book"
+   ]
+  },
+  "p": {
+   "mentions": 2,
+   "forms": [
+    "p",
+    "1 p"
+   ]
+  },
+  "retrieval": {
+   "mentions": 2,
+   "forms": [
+    "fact retrieval",
+    "retrieval"
+   ]
+  },
+  "intersection": {
+   "mentions": 2,
+   "forms": [
+    "line intersection",
+    "intersection"
+   ]
+  },
+  "scaling": {
+   "mentions": 2,
+   "forms": [
+    "scaling",
+    "gradient scaling"
+   ]
+  },
+  "assignment": {
+   "mentions": 2,
+   "forms": [
+    "task assignment",
+    "assignment"
+   ]
+  },
+  "one": {
+   "mentions": 2,
+   "forms": [
+    "action on one",
+    "flip one"
+   ]
+  },
+  "dissolution": {
+   "mentions": 2,
+   "forms": [
+    "boundary dissolution",
+    "ego dissolution"
+   ]
+  },
+  "pair": {
+   "mentions": 2,
+   "forms": [
+    "minimal pair",
+    "base pair"
+   ]
+  },
+  "severity": {
+   "mentions": 2,
+   "forms": [
+    "severity",
+    "high severity"
+   ]
+  },
+  "role": {
+   "mentions": 2,
+   "forms": [
+    "role",
+    "multiple role"
+   ]
+  },
+  "display": {
+   "mentions": 2,
+   "forms": [
+    "agonistic display",
+    "aggressive display"
+   ]
+  },
+  "face": {
+   "mentions": 2,
+   "forms": [
+    "face",
+    "face to face"
+   ]
+  },
+  "restriction": {
+   "mentions": 2,
+   "forms": [
+    "restriction",
+    "future restriction"
+   ]
+  },
+  "stop": {
+   "mentions": 2,
+   "forms": [
+    "resistance to stop",
+    "never stop"
+   ]
+  },
+  "urgency": {
+   "mentions": 2,
+   "forms": [
+    "urgency",
+    "meaning urgency"
+   ]
+  },
+  "blockage": {
+   "mentions": 2,
+   "forms": [
+    "blockage",
+    "persistent blockage"
+   ]
+  },
+  "dependency": {
+   "mentions": 2,
+   "forms": [
+    "survival dependency",
+    "mutual dependency"
+   ]
+  },
+  "centrality": {
+   "mentions": 2,
+   "forms": [
+    "betweenness centrality",
+    "centrality"
+   ]
+  },
+  "making": {
+   "mentions": 2,
+   "forms": [
+    "decision making",
+    "sense making"
+   ]
+  },
+  "synthesi": {
+   "mentions": 2,
+   "forms": [
+    "protein synthesi",
+    "synthesi"
+   ]
+  },
+  "adhesion": {
+   "mentions": 2,
+   "forms": [
+    "adhesion",
+    "cell adhesion"
+   ]
+  },
+  "step": {
+   "mentions": 2,
+   "forms": [
+    "step",
+    "intermediate step"
+   ]
+  },
+  "receptor": {
+   "mentions": 2,
+   "forms": [
+    "sensory receptor",
+    "nutrient receptor"
+   ]
+  },
+  "smoothness": {
+   "mentions": 2,
+   "forms": [
+    "smoothness",
+    "surface smoothness"
+   ]
+  },
+  "mismatch": {
+   "mentions": 2,
+   "forms": [
+    "mismatch",
+    "reality mismatch"
+   ]
+  },
+  "cause": {
+   "mentions": 2,
+   "forms": [
+    "cause",
+    "spuriou cause"
+   ]
+  },
+  "merge": {
+   "mentions": 2,
+   "forms": [
+    "false merge",
+    "subject object merge"
+   ]
+  },
+  "regularity": {
+   "mentions": 2,
+   "forms": [
+    "established regularity",
+    "regularity"
+   ]
+  },
+  "filter": {
+   "mentions": 2,
+   "forms": [
+    "filter",
+    "perceptual filter"
+   ]
+  },
+  "extraction": {
+   "mentions": 2,
+   "forms": [
+    "feature extraction",
+    "extraction"
+   ]
+  },
+  "reservoir": {
+   "mentions": 2,
+   "forms": [
+    "hot reservoir",
+    "cold reservoir"
+   ]
+  },
+  "removed": {
+   "mentions": 2,
+   "forms": [
+    "heat removed",
+    "edge removed"
+   ]
+  },
+  "rise": {
+   "mentions": 2,
+   "forms": [
+    "pressure rise",
+    "temperature rise"
+   ]
+  },
+  "drop": {
+   "mentions": 2,
+   "forms": [
+    "temperature drop",
+    "effort drop"
+   ]
+  },
+  "temp": {
+   "mentions": 2,
+   "forms": [
+    "hot temp",
+    "cold temp"
+   ]
+  },
+  "compatibility": {
+   "mentions": 2,
+   "forms": [
+    "immune compatibility",
+    "compatibility"
+   ]
+  },
+  "tail": {
+   "mentions": 2,
+   "forms": [
+    "tail",
+    "hydrophobic tail"
+   ]
+  },
+  "push": {
+   "mentions": 2,
+   "forms": [
+    "push",
+    "gentle push"
+   ]
+  },
+  "call": {
+   "mentions": 2,
+   "forms": [
+    "function call",
+    "recursive call"
+   ]
+  },
+  "method": {
+   "mentions": 2,
+   "forms": [
+    "public method",
+    "structured method"
+   ]
+  },
+  "asymmetry": {
+   "mentions": 2,
+   "forms": [
+    "friction asymmetry",
+    "information asymmetry"
+   ]
+  },
+  "impulse": {
+   "mentions": 2,
+   "forms": [
+    "vertical impulse",
+    "small impulse"
+   ]
+  },
+  "handhold": {
+   "mentions": 2,
+   "forms": [
+    "handhold",
+    "alternating handhold"
+   ]
+  },
+  "hold": {
+   "mentions": 2,
+   "forms": [
+    "alternating hold",
+    "hold"
+   ]
+  },
+  "wall": {
+   "mentions": 2,
+   "forms": [
+    "vertical wall",
+    "curved wall"
+   ]
+  },
+  "switching": {
+   "mentions": 2,
+   "forms": [
+    "mode switching",
+    "fuel switching"
+   ]
+  },
+  "zone": {
+   "mentions": 2,
+   "forms": [
+    "wake zone",
+    "three zone"
+   ]
+  },
+  "sign": {
+   "mentions": 2,
+   "forms": [
+    "feedback sign",
+    "sign"
+   ]
+  },
+  "injection": {
+   "mentions": 2,
+   "forms": [
+    "noise injection",
+    "injection"
+   ]
+  },
+  "perturbation": {
+   "mentions": 2,
+   "forms": [
+    "absorb perturbation",
+    "perturbation"
+   ]
+  },
+  "compound": {
+   "mentions": 2,
+   "forms": [
+    "compound",
+    "two compound"
+   ]
+  },
+  "h": {
+   "mentions": 2,
+   "forms": [
+    "h",
+    "p h"
+   ]
+  },
+  "oh": {
+   "mentions": 2,
+   "forms": [
+    "oh",
+    "na oh"
+   ]
+  },
+  "acid": {
+   "mentions": 2,
+   "forms": [
+    "acid",
+    "weak acid"
+   ]
+  },
+  "fat": {
+   "mentions": 2,
+   "forms": [
+    "fat",
+    "carbohydrate fat"
+   ]
+  },
+  "settling": {
+   "mentions": 2,
+   "forms": [
+    "settling",
+    "never settling"
+   ]
+  },
+  "template": {
+   "mentions": 2,
+   "forms": [
+    "template",
+    "stored template"
+   ]
+  },
+  "party": {
+   "mentions": 2,
+   "forms": [
+    "third party",
+    "insured party"
+   ]
+  },
+  "taking": {
+   "mentions": 2,
+   "forms": [
+    "risk taking",
+    "turn taking"
+   ]
+  },
+  "completeness": {
+   "mentions": 2,
+   "forms": [
+    "perceived completeness",
+    "completeness"
+   ]
+  },
+  "switch": {
+   "mentions": 2,
+   "forms": [
+    "switch",
+    "perspective switch"
+   ]
+  },
+  "suggestion": {
+   "mentions": 2,
+   "forms": [
+    "suggestion",
+    "pre sleep suggestion"
+   ]
+  },
+  "tilt": {
+   "mentions": 2,
+   "forms": [
+    "head tilt",
+    "axial tilt"
+   ]
+  },
+  "toughness": {
+   "mentions": 2,
+   "forms": [
+    "toughness",
+    "fracture toughness"
+   ]
+  },
+  "life": {
+   "mentions": 2,
+   "forms": [
+    "infinite life",
+    "sustain life"
+   ]
+  },
+  "spectrum": {
+   "mentions": 2,
+   "forms": [
+    "transmission spectrum",
+    "spectrum"
+   ]
+  },
+  "magnification": {
+   "mentions": 2,
+   "forms": [
+    "magnification",
+    "total magnification"
+   ]
+  },
+  "wavefront": {
+   "mentions": 2,
+   "forms": [
+    "incoming wavefront",
+    "helical wavefront"
+   ]
+  },
+  "harmonic": {
+   "mentions": 2,
+   "forms": [
+    "second harmonic",
+    "harmonic"
+   ]
+  },
+  "cancellation": {
+   "mentions": 2,
+   "forms": [
+    "reflection cancellation",
+    "cancellation"
+   ]
+  },
+  "pulse": {
+   "mentions": 2,
+   "forms": [
+    "emitted pulse",
+    "pulse"
+   ]
+  },
+  "echo": {
+   "mentions": 2,
+   "forms": [
+    "tissue echo",
+    "echo"
+   ]
+  },
+  "suspension": {
+   "mentions": 2,
+   "forms": [
+    "object suspension",
+    "suspension"
+   ]
+  },
+  "resonance": {
+   "mentions": 2,
+   "forms": [
+    "resonance",
+    "persistent resonance"
+   ]
+  },
+  "past": {
+   "mentions": 2,
+   "forms": [
+    "future affect past",
+    "negative past"
+   ]
+  },
+  "alliance": {
+   "mentions": 2,
+   "forms": [
+    "alliance",
+    "temporary alliance"
+   ]
+  },
+  "act": {
+   "mentions": 2,
+   "forms": [
+    "selfish act",
+    "mental act"
+   ]
+  },
+  "isolation": {
+   "mentions": 2,
+   "forms": [
+    "isolation",
+    "prey isolation"
+   ]
+  },
+  "contagion": {
+   "mentions": 2,
+   "forms": [
+    "emotional contagion",
+    "contagion"
+   ]
+  },
+  "ranking": {
+   "mentions": 2,
+   "forms": [
+    "ranking",
+    "priority ranking"
+   ]
+  },
+  "counter": {
+   "mentions": 2,
+   "forms": [
+    "mutual counter",
+    "counter"
+   ]
+  },
+  "restart": {
+   "mentions": 2,
+   "forms": [
+    "no restart",
+    "simulation restart"
+   ]
+  },
+  "sample": {
+   "mentions": 2,
+   "forms": [
+    "sample",
+    "random sample"
+   ]
+  },
+  "laws": {
+   "mentions": 2,
+   "forms": [
+    "laws",
+    "scaling laws"
+   ]
+  },
+  "cues": {
+   "mentions": 2,
+   "forms": [
+    "cues",
+    "celestial cues"
+   ]
+  },
+  "specific": {
+   "mentions": 2,
+   "forms": [
+    "specific",
+    "specy specific"
+   ]
+  },
+  "gluing": {
+   "mentions": 2,
+   "forms": [
+    "gluing",
+    "edge gluing"
+   ]
+  },
+  "shadow": {
+   "mentions": 2,
+   "forms": [
+    "lower dim shadow",
+    "shadow"
+   ]
+  },
+  "outside": {
+   "mentions": 2,
+   "forms": [
+    "no inside outside",
+    "outside"
+   ]
+  },
+  "spacetime": {
+   "mentions": 2,
+   "forms": [
+    "tangled spacetime",
+    "spacetime"
+   ]
+  },
+  "allocation": {
+   "mentions": 2,
+   "forms": [
+    "resource allocation",
+    "allocation"
+   ]
+  },
+  "graph": {
+   "mentions": 2,
+   "forms": [
+    "graph",
+    "social graph"
+   ]
+  },
+  "override": {
+   "mentions": 2,
+   "forms": [
+    "priority override",
+    "override"
+   ]
+  },
+  "route": {
+   "mentions": 2,
+   "forms": [
+    "alternative route",
+    "transmission route"
+   ]
+  },
+  "off": {
+   "mentions": 2,
+   "forms": [
+    "trade off",
+    "on off"
+   ]
+  },
+  "prevention": {
+   "mentions": 2,
+   "forms": [
+    "prevention",
+    "aging prevention"
+   ]
+  },
+  "blueprint": {
+   "mentions": 2,
+   "forms": [
+    "complete blueprint",
+    "blueprint"
+   ]
+  },
+  "go": {
+   "mentions": 2,
+   "forms": [
+    "letting go",
+    "complete let go"
+   ]
+  },
+  "upgrade": {
+   "mentions": 2,
+   "forms": [
+    "skill upgrade",
+    "challenge upgrade"
+   ]
+  },
+  "center": {
+   "mentions": 2,
+   "forms": [
+    "ego center",
+    "awareness center"
+   ]
+  },
+  "idea": {
+   "mentions": 2,
+   "forms": [
+    "creative idea",
+    "idea"
+   ]
+  },
+  "use": {
+   "mentions": 2,
+   "forms": [
+    "use",
+    "regular use"
+   ]
+  },
+  "baseline": {
+   "mentions": 2,
+   "forms": [
+    "emotional baseline",
+    "baseline"
+   ]
+  },
+  "constraint": {
+   "mentions": 2,
+   "forms": [
+    "constraint",
+    "skull constraint"
+   ]
+  },
+  "central": {
+   "mentions": 2,
+   "forms": [
+    "no central",
+    "identity central"
+   ]
+  },
+  "wording": {
+   "mentions": 2,
+   "forms": [
+    "different wording",
+    "wording"
+   ]
+  },
+  "conversation": {
+   "mentions": 2,
+   "forms": [
+    "conversation",
+    "internal conversation"
+   ]
+  },
+  "relevance": {
+   "mentions": 2,
+   "forms": [
+    "relevance",
+    "identity relevance"
+   ]
+  },
+  "antigen": {
+   "mentions": 2,
+   "forms": [
+    "antigen",
+    "self antigen"
+   ]
+  },
+  "warning": {
+   "mentions": 2,
+   "forms": [
+    "early warning",
+    "shared warning"
+   ]
+  },
+  "rain": {
+   "mentions": 2,
+   "forms": [
+    "steady rain",
+    "heavy rain"
+   ]
+  },
+  "rainfall": {
+   "mentions": 2,
+   "forms": [
+    "extreme rainfall",
+    "below normal rainfall"
+   ]
+  },
+  "doubt": {
+   "mentions": 2,
+   "forms": [
+    "doubt",
+    "epistemic doubt"
+   ]
+  },
+  "code": {
+   "mentions": 2,
+   "forms": [
+    "running code",
+    "ethical code"
+   ]
+  },
+  "dependent": {
+   "mentions": 2,
+   "forms": [
+    "dependent",
+    "context dependent"
+   ]
+  },
+  "defence": {
+   "mentions": 2,
+   "forms": [
+    "territorial defence",
+    "defence"
+   ]
+  },
+  "aversion": {
+   "mentions": 2,
+   "forms": [
+    "predator aversion",
+    "loss aversion"
+   ]
+  },
+  "mobilisation": {
+   "mentions": 2,
+   "forms": [
+    "fat mobilisation",
+    "mobilisation"
+   ]
+  },
+  "deficit": {
+   "mentions": 2,
+   "forms": [
+    "cumulative deficit",
+    "nutrient deficit"
+   ]
+  },
+  "currency": {
+   "mentions": 2,
+   "forms": [
+    "energy currency",
+    "currency"
+   ]
+  },
+  "directedness": {
+   "mentions": 2,
+   "forms": [
+    "object directedness",
+    "continuou directedness"
+   ]
+  },
+  "objectification": {
+   "mentions": 2,
+   "forms": [
+    "objectification",
+    "self objectification"
+   ]
+  },
+  "invisible": {
+   "mentions": 2,
+   "forms": [
+    "self as invisible",
+    "invisible"
+   ]
+  },
+  "gift": {
+   "mentions": 2,
+   "forms": [
+    "primary gift",
+    "pain as gift"
+   ]
+  },
+  "stasi": {
+   "mentions": 2,
+   "forms": [
+    "stasi",
+    "long stasi"
+   ]
+  },
+  "unfolding": {
+   "mentions": 2,
+   "forms": [
+    "continuou unfolding",
+    "unfolding"
+   ]
+  },
+  "attribute": {
+   "mentions": 2,
+   "forms": [
+    "conflicting attribute",
+    "direction attribute"
+   ]
+  },
+  "dilemma": {
+   "mentions": 2,
+   "forms": [
+    "moral dilemma",
+    "dilemma"
+   ]
+  },
+  "scenario": {
+   "mentions": 2,
+   "forms": [
+    "scenario",
+    "novel scenario"
+   ]
+  },
+  "disposition": {
+   "mentions": 2,
+   "forms": [
+    "negative disposition",
+    "disposition"
+   ]
+  },
+  "harm": {
+   "mentions": 2,
+   "forms": [
+    "harm",
+    "psychological harm"
+   ]
+  },
+  "answer": {
+   "mentions": 2,
+   "forms": [
+    "no perfect answer",
+    "no final answer"
+   ]
+  },
+  "design": {
+   "mentions": 2,
+   "forms": [
+    "consciou design",
+    "structural design"
+   ]
+  },
+  "driven": {
+   "mentions": 2,
+   "forms": [
+    "environment driven",
+    "curiosity driven"
+   ]
+  },
+  "struggle": {
+   "mentions": 2,
+   "forms": [
+    "ongoing struggle",
+    "power struggle"
+   ]
+  },
+  "resilience": {
+   "mentions": 2,
+   "forms": [
+    "resilience",
+    "community resilience"
+   ]
+  },
+  "orthodoxy": {
+   "mentions": 2,
+   "forms": [
+    "orthodoxy",
+    "new orthodoxy"
+   ]
+  },
+  "repression": {
+   "mentions": 2,
+   "forms": [
+    "repression",
+    "awareness from repression"
+   ]
+  },
+  "breaking": {
+   "mentions": 2,
+   "forms": [
+    "boundary breaking",
+    "rule breaking"
+   ]
+  },
+  "will": {
+   "mentions": 2,
+   "forms": [
+    "will",
+    "agent without will"
+   ]
+  },
+  "craving": {
+   "mentions": 2,
+   "forms": [
+    "craving",
+    "re craving"
+   ]
+  },
+  "out": {
+   "mentions": 2,
+   "forms": [
+    "acting out",
+    "no perceived way out"
+   ]
+  },
+  "pursuit": {
+   "mentions": 2,
+   "forms": [
+    "compulsive pursuit",
+    "perpetual pursuit"
+   ]
+  },
+  "tolerance": {
+   "mentions": 2,
+   "forms": [
+    "uncertainty tolerance",
+    "risk tolerance"
+   ]
+  },
+  "inquiry": {
+   "mentions": 2,
+   "forms": [
+    "sustained inquiry",
+    "perpetual inquiry"
+   ]
+  },
+  "engine": {
+   "mentions": 2,
+   "forms": [
+    "engine",
+    "logic engine"
+   ]
+  },
+  "ties": {
+   "mentions": 2,
+   "forms": [
+    "strong ties",
+    "weak ties"
+   ]
+  },
+  "entanglement": {
+   "mentions": 2,
+   "forms": [
+    "quantum entanglement",
+    "entanglement"
+   ]
+  },
+  "repayment": {
+   "mentions": 2,
+   "forms": [
+    "repayment",
+    "future repayment"
+   ]
+  },
+  "giving": {
+   "mentions": 2,
+   "forms": [
+    "gift giving",
+    "endless giving"
+   ]
+  },
+  "market": {
+   "mentions": 2,
+   "forms": [
+    "two market",
+    "gene market"
+   ]
+  },
+  "theme": {
+   "mentions": 2,
+   "forms": [
+    "unresolved theme",
+    "mortality theme"
+   ]
+  },
+  "weaving": {
+   "mentions": 2,
+   "forms": [
+    "narrative weaving",
+    "weaving"
+   ]
+  },
+  "ecology": {
+   "mentions": 2,
+   "forms": [
+    "ecology",
+    "microbial ecology"
+   ]
+  },
+  "crisi": {
+   "mentions": 2,
+   "forms": [
+    "identity crisi",
+    "succession crisi"
+   ]
+  },
+  "soul": {
+   "mentions": 2,
+   "forms": [
+    "deepened soul",
+    "free soul"
+   ]
+  },
+  "joke": {
+   "mentions": 2,
+   "forms": [
+    "earlier joke",
+    "cosmic joke"
+   ]
+  },
+  "descent": {
+   "mentions": 2,
+   "forms": [
+    "universal descent",
+    "descent"
+   ]
+  },
+  "run": {
+   "mentions": 2,
+   "forms": [
+    "auto run",
+    "continuou run"
+   ]
+  },
+  "web": {
+   "mentions": 2,
+   "forms": [
+    "infinite web",
+    "insight web"
+   ]
+  },
+  "learner": {
+   "mentions": 2,
+   "forms": [
+    "learner",
+    "lifelong learner"
+   ]
+  },
+  "sharing": {
+   "mentions": 2,
+   "forms": [
+    "sharing",
+    "knowledge sharing"
+   ]
+  },
+  "expert": {
+   "mentions": 2,
+   "forms": [
+    "way of expert",
+    "expert"
+   ]
+  },
+  "style": {
+   "mentions": 2,
+   "forms": [
+    "personal style",
+    "style"
+   ]
+  }
+ }
+}
