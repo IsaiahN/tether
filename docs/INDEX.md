@@ -6881,10 +6881,19 @@ rather than a diffuse gain.** Sign consistent under the symmetric check. **1.6% 
 > the change.** Not a distortion at the margin — it would have been the headline, it was
 > pre-registered, and every number in it is correctly computed.
 
-**AND THE INTEGRAL IS THE RIGHT INSTRUMENT BECAUSE IT WAS ALREADY THERE.** `_integral` accumulates
-`correction_bits` against the actual, monotone by construction, *read never reduced* — the
-ground's own disagreement with the agent's bets. **No metric was invented for this reading**, which
-is the ninth time the specified instrument was already in the code.
+**THE INSTRUMENT WAS ALREADY THERE AND IT IS THE WRONG ONE OF TWO — CORRECTED.** `DISCOVERY`
+names them in consecutive bullets: **`pe_integral()`** is *every surprise ever, monotone
+non-decreasing* and is built as `_integral`; **`outstanding()`** is *surprise not yet explained*
+and is annotated ***this is the aim and the currency*** — **and it does not exist in the code**,
+nor does `explain(bits)`. **So this reading is PREDICTION ERROR on a fixed sequence, not residual
+closure**, and the two differ exactly where it matters: the integral rises whether or not the
+library explains anything. Direction and magnitude are unaffected; the name was.
+
+**AND THE LAW FIRED ON THE READING RATHER THAN ON THE BUILD.** *Assume it is already specified,
+and go look* — the lookup happened AFTER the measurement, and what it found was that the corpus
+distinguishes two quantities where the reading assumed one. **The instrument being present is what
+stopped the search**, which is the familiarity failure in its exact form: finding something is
+evidence in the wrong direction.
 
 ### WHAT IT LICENSES, WHICH IS LESS THAN IT LOOKS
 
@@ -6893,4 +6902,63 @@ ways. **It does not license *the typed grain is better***: 1.6% on one game over
 single-correction signature, is a reading consistent with the two schemes being near-equivalent
 **and with the four newly-admitted pairs mattering once.** The reason to keep it is §12.2's, not
 this number's.
+
+
+---
+
+# `outstanding()` AND `explain(bits)` — BUILT 2026-08-30. THE AIM EXISTED AS A SPEC AND NOT AS A NUMBER
+
+**`DISCOVERY` names two quantities in consecutive bullets and the code had one.**
+
+    pe_integral()   every surprise ever, monotone non-decreasing        built as `_integral`
+    outstanding()   surprise not yet explained -- THE AIM AND THE       ABSENT
+                    CURRENCY
+    explain(bits)   reduces outstanding only; the integral is           ABSENT
+                    untouched
+
+> **THE FIRST COUNTER-INSTANCE TO THE NINE.** Every prior case of *assume it is already
+> specified, and go look* found the specified instrument PRESENT and better. **Here the corpus
+> named the aim, annotated it as the currency, and it was not there at all** — so the tally is
+> nine specified-and-present and one specified-and-absent, **and the absent one is the aim.**
+> *Most of this system is specified-and-unconsumed* was the wrong reading of the nine.
+
+### PER SLOT, WHICH IS A DEVIATION FROM THE SPEC'S OWN SIGNATURE AND THE RULE OUTRANKS IT
+
+`DISCOVERY` writes `outstanding()` and `explain(bits)` — nullary, scalar. **`CLAUDE.md`: *No
+aggregation across slots. R is indexed per object slot. Averaging is how a live signal
+disappears.*** Stored per slot; `outstanding()` sums on read, **so the total is a reading and
+never the storage.** `explain` takes the slot.
+
+**AND IT PAID ON THE FIRST RUN.** `o10.row` and `o11.row` hold 33.3 bits each of the 99.9
+outstanding — **the surprise is concentrated, and the scalar the spec asked for could not have
+said where.**
+
+### THE IDENTITY IS THE FALSIFIER, AND THE CLAMP IS REPORTED
+
+    pe_integral  233.128   =   outstanding  99.912   +   explained  133.218
+    monotone: True             overclaimed 0.000 on 9 of 9 mint rows
+
+**`base - left` and the accumulated per-step mass are two accountings of one slot's residual**,
+and whether they were commensurable was an assumption. **Zero overclaim on every row measures
+it.** The clamp returns what it swallowed rather than swallowing it — *a clamp that reports
+nothing is an absence rendered as a value*, and that flavour has now been caught three times.
+
+**43% of the run's surprise is explained and 57% is outstanding** — the first ground-facing
+closure figure this loop has been able to produce, and the denominator every closure claim from
+here reads against.
+
+
+### AND THE LINT REFUSED THE FIRST VERSION OF THIS COMMIT
+
+    ISOLATED  FAIL - tether.py: `pe_integral`: defined and referenced nowhere in the package
+
+**`pe_integral()` was called only by the probe that measured it.** Reading `self._integral`
+directly at the one site that reports it left the specified accessor as a synonym sitting beside
+the raw attribute — **a mechanism present and never reached, added while writing the record of
+five other instances of exactly that.** The report now reads through it.
+
+> **THE CHECKER'S SCOPE IS THE PACKAGE AND THAT IS WHY IT FIRED.** A probe outside the package
+> exercised the method perfectly, and *tests reach, not existence* is the law that makes an
+> external caller not count. **Being able to demonstrate it from a script is precisely the state
+> ISOLATED exists to refuse**, and it is the seventh site.
 

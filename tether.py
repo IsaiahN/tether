@@ -197,6 +197,13 @@ class Agent:
         # forgetting a surprise rather than explaining one. Monotone by construction
         # because correction_bits is never negative.
         self._integral = 0.0
+        # `DISCOVERY`'s SECOND QUANTITY, and the corpus calls it *the aim and the currency*.
+        # The integral is every surprise ever; this is surprise NOT YET EXPLAINED, and only
+        # `explain` reduces it -- understanding a surprise afterwards does not unmake having
+        # been surprised. PER SLOT because R is, and a single number cannot say WHERE the
+        # surprise is; `outstanding()` sums on read, so the total is a reading rather than
+        # the storage.
+        self._outstanding: dict[str, float] = {}
         self._stood: list[tuple[str, str, bool]] = []
         # slots whose accumulated residual is zero: nothing to compress, so nothing to
         # mint. The instruction is per slot and the wheel is not, so they queue here
@@ -497,6 +504,8 @@ class Agent:
         # detected per step and never used to name the game.
         self.agency.note(action, {s for s, r in res.items() if r.mass > 0}, sorted(res))
         self._integral += sum(r.mass for r in res.values())
+        for _s, _r in res.items():
+            self._outstanding[_s] = self._outstanding.get(_s, 0.0) + _r.mass
         live = any(r.mass > 0 for r in res.values())
         self.drive.note_step(live)      # once per step: SUPPORT is over slots, not per slot
         self.chain.note_diff(live)
@@ -572,6 +581,30 @@ class Agent:
 
     def _explains(self, term: Term, slot: str, hist) -> bool:
         return bool(hist) and self._left(term, slot, hist) == 0.0
+
+    def pe_integral(self) -> float:
+        """Every surprise ever. Monotone: there is no `suppress`, and no drive may zero it."""
+        return self._integral
+
+    def outstanding(self, slot: str | None = None) -> float:
+        """Surprise not yet explained -- per slot, or summed when no slot is named."""
+        if slot is not None:
+            return self._outstanding.get(slot, 0.0)
+        return sum(self._outstanding.values())
+
+    def explain(self, slot: str, bits: float) -> tuple[float, float]:
+        """Reduce OUTSTANDING only. The integral is untouched.
+
+        Returns `(explained, overclaimed)`. **The clamp is reported, never silent**: the
+        per-step mass and `_left` are two accountings of one slot's residual, so a claim
+        larger than the slot has outstanding is the two disagreeing -- which is a reading,
+        and a clamp that swallowed it would be the third flavour of an absence rendered as
+        a value.
+        """
+        have = self._outstanding.get(slot, 0.0)
+        took = max(0.0, min(bits, have))
+        self._outstanding[slot] = have - took
+        return round(took, 3), round(max(0.0, bits - have), 3)
 
     def _left(self, term: Term, slot: str, hist) -> float:
         """What the term leaves unexplained across the slot's history, in bits."""
@@ -1035,6 +1068,7 @@ class Agent:
             return
 
         left, cost, term = best
+        detail["explained"], detail["overclaimed"] = self.explain(slot, base - left)
         self.gamma.accept(term, seq=len(self.led), residual=f"{slot}@{self.cycle}")
         self.bound[slot] = term.name
         self.rank.note(term.name, self.cycle)
@@ -1141,6 +1175,7 @@ class Agent:
                     left, cand, how = found[0], found[1], "chunk"
             cross = tkey != slot
             if left == 0.0:
+                self.explain(slot, base - left)
                 self.chain.note_reuse_attempt(f"closed:{how}")
                 self.chain.note_reused()
                 self.chain.note_cleared()
@@ -1378,7 +1413,8 @@ class Agent:
                          1 if degree >= 1.0 else 0)
         self.cycle += 1
         self.led.record(self.cycle - 1, "REPEAT", "@loop", "repeat",
-                        integral=round(self._integral, 3),
+                        integral=round(self.pe_integral(), 3),
+                        outstanding=round(self.outstanding(), 3),
                         phase=phase, by=by, stage=self.chain.seg.stage(),
                         gamma_size=len(self.gamma.library), owed=sorted(self.owed_import),
                         admissions=self.gamma.admissions())
