@@ -7552,3 +7552,42 @@ where the accounting is scoped** — and possibly the level boundary's shape: `r
 per-episode state, and the residual accounting does not know boundaries exist. **Owed as a check,
 not a fix.**
 
+
+---
+
+# THE SEGMENT CHECK — THE DISTINCTION IS CARRIED, AND ITS BREAK EVENTS ARE THE WRONG GRAIN
+
+**`instruments.Segment` already states the principle, almost word for word:**
+
+> *One span of play between two break events. **Signals are scoped HERE, never cumulated over
+> the run**: a mint in segment 3 must not credit the stall in segment 7, or a wiring gap
+> silently reads as progress.*
+
+**Substitute one word and it is the finding** — *a term correct in segment 3 must not be charged
+for segment 7's regime.* **`Segment` scopes the CHAIN DIAGNOSTICS; `_left` cumulates the RESIDUAL
+over a slot's whole history.** One of the two things the principle should govern.
+
+### BUT SCOPING TO IT WOULD CHANGE NOTHING, AND THAT IS THE ANSWER
+
+    step  0..13   level 0 throughout · seg.steps 1..14 unbroken · boundary/ending rows: 0
+    o10.drow      -5 0 0 5 -5 0 0 5 | -5 -5 -5 -5 -5 -5
+
+**The regime changes at step 8 and there is no break event anywhere near it.** `Segment`'s spans
+are LEVEL boundaries; `o10` goes from oscillating to running while nothing at the episode scale
+moves. **A segment-scoped `_left` would score the same whole history, because there is one
+segment.**
+
+### WHICH NAMES THE REAL FINDING, AND IT IS A THIRD CIRCLE
+
+**The regime change is a property of the SLOT's behaviour, not of the episode.** So a
+segment-scoped residual needs per-slot break detection — **and the signal that a regime changed IS
+a term that stops explaining, which is the residual.**
+
+> **THE THING THAT WOULD DETECT THE BOUNDARY IS THE QUANTITY BEING SCORED OVER THE SPAN THE
+> BOUNDARY WOULD DEFINE.** Same shape as §12.4's — *reaching needs Tier 2, Tier 2 enters only by
+> being reached* — and as the transfer column's, where the binding that must not cross is what the
+> gate tests. **Third this session, and all three are correct designs rather than defects.**
+
+**Recorded as a check, not a fix.** What it establishes: the principle exists and is right, the
+machinery exists at the episode grain, and the case needs a grain nothing currently produces.
+
