@@ -30,6 +30,7 @@ from ledger import (
     Ledger,
 )
 from probe import Drive
+from sensors import POSITION
 
 sys.dont_write_bytecode = True
 
@@ -582,6 +583,68 @@ class Agent:
     def _explains(self, term: Term, slot: str, hist) -> bool:
         return bool(hist) and self._left(term, slot, hist) == 0.0
 
+    def indistinguishable(self) -> list[dict]:
+        """§12.4's TRIGGER: *two slots with the same attribute vector and different residuals.*
+
+        **A corpus SLOT is an object and a code slot is one of its attributes** -- five to one
+        here -- so the vector is an object's slots and `slot_owner` supplies the grouping.
+
+        **THE VECTOR IS FEATURAL, AND `POSITION` IS EXCLUDED BY DERIVATION.** Two distinct
+        objects cannot share a position, which `priors.py` carries as solidity, so a vector
+        holding one can never match and the trigger could never fire. §12.4's own remedy is
+        `parity(position)` -- **position is what the new sensor READS to split them, so it
+        cannot also be what made them look alike.** Expressible only because the types exist:
+        *featural* is *not POSITION*, not a list of attribute names.
+
+        **RANKED BY VECTOR MULTIPLICITY, WHICH THE REMEDY CANNOT MOVE.** Ranking by the
+        residual gap would rank on a quantity the mechanism changes. **How many objects shared
+        the vector is fixed before any sensor is composed** -- the remedy changes what splits
+        them, never how many looked alike. A ranking, never a cut: the bargain still decides
+        which remedy pays.
+        """
+        # READ FRESH, AND AN UNDECLARED OWNER IS NOT AN OWNER. `slots`, `alphabet` and
+        # `slot_types` are refreshed at THREE sites -- init, retarget, and the per-step one
+        # that fires when an object arrives or leaves. Holding owners as a field meant
+        # maintaining that invariant, and it was added at two of the three: the missing one is
+        # the object-arrival site, which is the exact case this trigger exists for. `get(s, s)`
+        # then made every unmapped slot its own single-attribute object; ten matched each other
+        # on a bare colour and read as a 21-object discrimination failure. Reading fresh
+        # removes the invariant instead of maintaining it, and absence is now an exclusion.
+        owners = self._slot_owners(self.env)
+        if not owners:
+            return []
+        state = self.env.observe()
+        groups: dict[tuple, list[str]] = {}
+        owned: dict[str, list[str]] = {}
+        for s in self.slots:
+            if s in owners:
+                owned.setdefault(owners[s], []).append(s)
+        for owner, ss in owned.items():
+            feat = [x for x in ss if self.slot_types.get(x) != POSITION]
+            # A PARTIAL VECTOR IS NOT A WEAKER MATCH, IT IS A DIFFERENT CLAIM. `self.slots` is
+            # a snapshot and objects vanish, so a missing attribute silently SHRANK the vector
+            # and two objects agreeing on the one that survived read as indistinguishable --
+            # 21 objects "matching" on a bare colour. An object that cannot supply its whole
+            # featural set is excluded, never matched on the remainder.
+            if not feat or any(x not in state for x in feat):
+                continue
+            groups.setdefault(tuple(sorted((self.slot_types.get(x), state[x])
+                                           for x in feat)), []).append(owner)
+        out = []
+        for vec, members in groups.items():
+            if len(members) < 2:
+                continue
+            rs = {}
+            for o in members:
+                rs[o] = round(sum(self._left(self.gamma.library[self.bound.get(x, IDN)],
+                                             x, self.history(x))
+                                  for x in owned[o] if self.history(x)), 3)
+            if len(set(rs.values())) < 2:
+                continue
+            out.append({"vector": [list(p) for p in vec], "multiplicity": len(members),
+                        "residuals": rs, "gap": round(max(rs.values()) - min(rs.values()), 3)})
+        return sorted(out, key=lambda d: -d["multiplicity"])
+
     def pe_integral(self) -> float:
         """Every surprise ever. Monotone: there is no `suppress`, and no drive may zero it."""
         return self._integral
@@ -650,6 +713,14 @@ class Agent:
         every operand check is skipped -- which is reported, not assumed. The loop compares
         strings the domain supplied; it never derives a type from a slot's name."""
         f = getattr(env, "slot_types", None)
+        return {str(k): str(v) for k, v in f().items()} if f is not None else {}
+
+    @staticmethod
+    def _slot_owners(env) -> dict[str, str]:
+        """PER SLOT, and ABSENT IS A READING. A world that declares no owners gets `{}` and
+        §12.4's trigger reports that it has no vector to form, rather than forming one from
+        a name."""
+        f = getattr(env, "slot_owner", None)
         return {str(k): str(v) for k, v in f().items()} if f is not None else {}
 
     @staticmethod
@@ -1412,6 +1483,13 @@ class Agent:
         self.clocks.note(not self.owed_import and bool(self.bound),
                          1 if degree >= 1.0 else 0)
         self.cycle += 1
+        # §12.4's trigger is a PERCEPTION reading -- the vocabulary failing to resolve two
+        # things the world distinguishes -- so it is recorded, not acted on here.
+        indist = self.indistinguishable()
+        self.led.record(self.cycle - 1, "PERCEIVE", "@vector", "indistinct",
+                        pairs=len(indist), top=indist[:3],
+                        reads=("same featural vector, different |R|. Ranked by how many "
+                               "objects shared the vector, which the remedy cannot move"))
         self.led.record(self.cycle - 1, "REPEAT", "@loop", "repeat",
                         integral=round(self.pe_integral(), 3),
                         outstanding=round(self.outstanding(), 3),

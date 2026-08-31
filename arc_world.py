@@ -126,6 +126,17 @@ class ArcWorld:
         return {s: arc_atoms.ATTRIBUTE_TYPE.get(s.rsplit(".", 1)[-1], s.rsplit(".", 1)[-1])
                 for s in self._decomposed()}
 
+    def slot_owner(self) -> dict[str, str]:
+        """Which SUBJECT each slot is an attribute of. **The loop may not derive this.**
+
+        §12.4's trigger is over *slots with the same attribute VECTOR*, and a vector needs
+        several slots to belong to one thing. `slot_types` already establishes the pattern and
+        the reason: a slot name is `{object}.{attribute}` here, **and a loop that split on `.`
+        would be reading domain structure.** Grouping is that same split, so the domain
+        declares it and the loop only compares.
+        """
+        return {s: s.rsplit(".", 1)[0] for s in self._decomposed()}
+
     def atoms(self) -> list:
         return list(self._atoms)
 

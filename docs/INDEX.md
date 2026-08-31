@@ -7263,3 +7263,69 @@ its whole budget on the trigger. **§12.4 prices the REMEDY by the bargain and s
 ordering the triggers** — so the ordering question is real, unspecified, and the next thing to
 check rather than to invent.
 
+
+---
+
+# §12.4's TRIGGER — BUILT 2026-08-31, RANKED BY VECTOR MULTIPLICITY
+
+    25 steps each   steps fired   groups/step   max multiplicity   top group's |R| gap
+      ls20             0 / 25          0.0            --                  --
+      sk48            25 / 25          8.0            24               66.42
+      g50t             7 / 25          0.3             2               36.54
+
+    sk48's top group   vector [COLOUR 2, EXTENT 1, EXTENT 1] x 24 objects
+
+**Twenty-four objects, all colour 2 and all 1x1, whose residuals span 66 bits.** The vocabulary
+says they are one thing; the world says they are not. **That is §12.4's condition, on a board.**
+
+### THREE DERIVATIONS, NONE OF THEM CHOSEN
+
+**The subject is an OBJECT**, because a corpus slot is one and a code slot is one of its
+attributes. **The grouping is declared by the domain** — `ArcWorld.slot_owner`, the same shape and
+the same reason as `slot_types`: *a loop that split on `.` would be reading domain structure.*
+**The vector is featural**, because solidity makes a position-bearing vector unmatchable and
+§12.4's own remedy `parity(position)` puts position on the remedy's side.
+
+**AND *FEATURAL* IS EXPRESSIBLE ONLY BECAUSE THE TYPES EXIST.** It is `!= POSITION`, not a list of
+attribute names — **the `ATTR` split from four days ago is what makes this line writable.**
+
+### THE RANKING IS MULTIPLICITY, AND THE ALTERNATIVE WAS THE TRAP
+
+**Ranking by the residual gap ranks on a quantity the mechanism moves.** *How many objects shared
+the vector* is fixed before any sensor is composed: **the remedy changes what splits them, never
+how many looked alike.** A ranking and never a cut — the bargain still decides which remedy pays.
+
+### THE DEFECT I INTRODUCED, AND WHAT CAUGHT IT
+
+    before   sk48 multiplicity 21, vector [['COLOUR', 2]]        <- ONE element
+    after    sk48 multiplicity 24, vector [COLOUR 2, EXT 1, EXT 1]
+
+**`slots`, `alphabet` and `slot_types` are refreshed at THREE sites** — init, retarget, and a
+per-step one that fires when *an object arrived or left*. **I held owners as a field and
+maintained the invariant at two of the three; the one I missed is the object-arrival site, which
+is the exact case this trigger exists for.** `get(s, s)` then made every unmapped slot its own
+single-attribute object, **ten of which matched each other on a bare colour and read as a
+21-object discrimination failure.** Reading fresh removes the invariant rather than maintaining
+it.
+
+> **WHAT CAUGHT IT WAS THE VECTOR BEING IN THE LEDGER ROW.** `pairs` and `multiplicity` alone read
+> as a strong result; `vector [['COLOUR', 2]]` is visibly wrong to anyone who knows it should have
+> three elements. **Legibility as the instrument, doing the job the doctrine claims for it** — the
+> record named the shape and the shape was the defect.
+
+**FIFTH INSTANCE OF AN ABSENCE RENDERED AS A VALUE, AND THE FIRST I INTRODUCED** — written while
+composing the record of the other four. **The fallback is where it entered**: `get(s, s)` turns
+*no declared owner* into *is its own owner*, the same move as a clamp that swallows what it
+clamped.
+
+**AND MY FIRST EXPLANATION WAS WRONG AND IS CORRECTED AT THE SITE.** I wrote *held on the agent it
+went stale*, which would make `slot_types` stale too — **measured at 0 untyped slots over 15 steps
+on both panels, so the sibling is clean and the cause was a missed refresh site, not staleness.**
+A wrong cause recorded in code is worse than none.
+
+### `CLAUDE.md` REPAIRED: THE SAMPLE-SIZE COROLLARY NOW STATES BOTH SIGNS
+
+*Ten seeds versus forty* was filed against over-claiming a positive. **Over-claiming a null is the
+worse case, because a null presents as caution and needs no defence** — and the tell is the
+explanation, since a null carrying a satisfying causal story is harder to doubt than a bare one.
+

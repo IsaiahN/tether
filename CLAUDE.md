@@ -126,7 +126,14 @@ would need in order to show, and confirm the panel has it* — `M = 7` is prime 
 coarsening can preserve arithmetic, the ladder is flat so the carried-cold gap has nowhere
 to open, and four independent slots make echo nearly accidental. **Three nulls, three
 worlds structurally unable to reward the thing tested, and none of it visible in the
-result.** And *read the things that produce conditions before the things that produce
+result.** **AND THE SAMPLE-SIZE HALF RUNS IN BOTH DIRECTIONS, WHICH IT WAS NOT WRITTEN TO
+SAY.** *Ten seeds versus forty* is filed against over-claiming a POSITIVE. §12.4's trigger
+fired **0 of 25 steps on `ls20`, 25 of 25 on `sk48`, 7 of 25 on `g50t`** — one panel, and
+*the trigger cannot fire* was drafted as a fact about the mechanism. **Over-claiming a null
+is the worse case, because a null presents as caution and needs no defence.** And the tell
+is the explanation: *objects that look alike behave alike* was true of `ls20` and general in
+its wording. **A null carrying a satisfying causal story is harder to doubt than a bare
+one**, so the story is the thing to distrust, not the number. And *read the things that produce conditions before the things that produce
 results* — a generator, a config, a plan, a fixture. **They do not announce themselves,
 and a condition is invisible in the results it conditions.** `SNAPS_PLAN` was the shortest
 document in the set, was never opened, and four of its ten sections overturned a published
