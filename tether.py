@@ -30,7 +30,7 @@ from ledger import (
     Ledger,
 )
 from probe import Drive
-from sensors import OBJECT, POSITION
+from sensors import COMMENSURABLE, DELTA, OBJECT, POSITION
 
 sys.dont_write_bytecode = True
 
@@ -589,7 +589,13 @@ class Agent:
         **A corpus SLOT is an object and a code slot is one of its attributes** -- five to one
         here -- so the vector is an object's slots and `slot_owner` supplies the grouping.
 
-        **THE VECTOR IS FEATURAL, AND `POSITION` IS EXCLUDED BY DERIVATION.** Two distinct
+        **THE VECTOR IS FEATURAL, AND TWO TYPES ARE EXCLUDED FOR OPPOSITE REASONS.** `DELTA`
+        is BEHAVIOUR, and the premise is *look alike, behave differently* -- a vector holding
+        motion collapses the two sides of the trigger, since objects that move differently
+        would leave the group on the very difference the residual is there to detect.
+        `POSITION` is excluded from the other direction: it is what the REMEDY reads.
+
+        **AND `POSITION` IS EXCLUDED BY DERIVATION.** Two distinct
         objects cannot share a position, which `priors.py` carries as solidity, so a vector
         holding one can never match and the trigger could never fire. §12.4's own remedy is
         `parity(position)` -- **position is what the new sensor READS to split them, so it
@@ -620,7 +626,7 @@ class Agent:
             if s in owners:
                 owned.setdefault(owners[s], []).append(s)
         for owner, ss in owned.items():
-            feat = [x for x in ss if self.slot_types.get(x) != POSITION]
+            feat = [x for x in ss if self.slot_types.get(x) not in (POSITION, DELTA)]
             # A PARTIAL VECTOR IS NOT A WEAKER MATCH, IT IS A DIFFERENT CLAIM. `self.slots` is
             # a snapshot and objects vanish, so a missing attribute silently SHRANK the vector
             # and two objects agreeing on the one that survived read as indistinguishable --
@@ -1046,7 +1052,8 @@ class Agent:
         if want == G_SAME:
             want = self.slot_types.get(target)
         got = self.slot_types.get(bind)
-        return want is None or got is None or want == got
+        return (want is None or got is None or want == got
+                or frozenset((want, got)) in COMMENSURABLE)
 
     def _bindings(self, slot: str, robs: list) -> list[str | None]:
         """Which slots may fill operand 0, ordered by VARIANCE and never filtered.

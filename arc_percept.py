@@ -65,6 +65,24 @@ def components(board: Any) -> list[dict]:
     return out
 
 
+def delta_of(old: dict, new: dict) -> tuple[int, int]:
+    """§12.3 sensor 7, `OBJ x OBJ -> DELTA`: **one object at two times, not two objects at
+    one.**
+
+    **THE SIGNATURE DOES NOT SAY WHICH, AND THE CORPUS SEPARATES THEM ONLY IN PROSE.** Of
+    §12.3's three `OBJ x OBJ` sensors, `overlap` and `delta` are DIACHRONIC -- *the slot is
+    the same slot next frame*, *motion and the contingency test for self* -- and `touching` is
+    SYNCHRONIC, *contact, the default causal hypothesis*. The witness is in this file:
+    `overlap(obj["cells"], old["cells"])` already reads one `OBJ x OBJ` sensor across time.
+
+    **AND THE SENSOR EXISTED WITHOUT THIS FUNCTION, WHICH IS WHY NOTHING CALLED IT.** Four of
+    the six wrap a perception function and all four are called every step; `_delta` and
+    `_changed` were written as leaves and neither is called from the loop. **A sensor with no
+    implementation here has nothing the tracker can reach for.**
+    """
+    return int(new["row"]) - int(old["row"]), int(new["col"]) - int(old["col"])
+
+
 def shape_of(obj: dict) -> frozenset:
     """§12.3 sensor 5, `OBJ -> SHAPE`: the cell pattern at NORMALIZED OFFSETS.
 
@@ -263,6 +281,15 @@ class Objects:
                 best = f"o{self._next}"
                 self._next += 1
             claimed.add(best)
+            # SENSOR 7, AT THE ONE MOMENT BOTH FRAMES ARE IN HAND. A BIRTH GETS NO DELTA AND
+            # NOT A ZERO: §12.2 requires a value or an explicit non-reading, and `0` would say
+            # *it did not move* where the truth is *there was nothing to move from*. An absent
+            # slot is what the loop already handles -- *a new slot has no history and owes
+            # nothing yet* -- so absence is the reading.
+            prev = self.tracked.get(best)
+            if prev is not None:
+                dr, dc = delta_of(prev, obj)
+                obj = {**obj, "drow": dr, "dcol": dc}
             fresh[best] = obj
 
         # DEATH ONLY ON EVIDENCE. An unmatched tracked object keeps its slots unless another
@@ -277,6 +304,7 @@ class Objects:
 
         state: dict[str, int] = {}
         for name, obj in self.tracked.items():
-            for attr in ("row", "col", "h", "w", "colour"):
-                state[f"{name}.{attr}"] = int(obj[attr])
+            for attr in ("row", "col", "h", "w", "colour", "drow", "dcol"):
+                if attr in obj:
+                    state[f"{name}.{attr}"] = int(obj[attr])
         return state

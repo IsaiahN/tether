@@ -44,6 +44,20 @@ FRAME, OBJECT = "FRAME", "OBJECT"
 COLOUR, COUNT, POSITION, EXTENT = "COLOUR", "COUNT", "POSITION", "EXTENT"
 SHAPE, BOOL, DELTA, AXIS, RATIO, REGION = "SHAPE", "BOOL", "DELTA", "AXIS", "RATIO", "REGION"
 
+# WHICH DISTINCT TYPES ADD. `translate`'s rule is *`v + operand` is meaningful only between
+# COMMENSURABLE quantities*, and it was implemented as `SAME_AS_TARGET` because identity was
+# the only commensurable pair the type system could express. A position plus its own
+# displacement is a position -- the affine operation -- and publishing `delta` as a slot type
+# is what made the rule's own warrant reach further than its implementation.
+#
+# DECLARED AS A TABLE, NOT DERIVED. *Exemptions as data, not logic*: a pair can be pinned, and
+# a predicate over type names would widen quietly the next time a type is added.
+# ONE PAIR, NOT TWO. `(EXTENT, DELTA)` was written here and the warrant does not cover it:
+# the affine operation is *a position plus its own displacement*, and the only deltas that
+# exist are POSITION deltas, so `height + row-displacement` had nothing behind it but both
+# being cell counts. Removed before it was ever read -- which is what a pinned table is for.
+COMMENSURABLE = frozenset({frozenset((POSITION, DELTA))})
+
 
 class _NotResolved:
     """§12.2's explicit non-reading. A singleton so `is` works and no value equals it."""
@@ -204,7 +218,7 @@ def _delta(a: Any, b: Any) -> Any:
     rb, cb = _attr("row", int)(b), _attr("col", int)(b)
     if NOT_RESOLVED in (ra, ca, rb, cb):
         return NOT_RESOLVED
-    return (rb - ra, cb - ca)
+    return P.delta_of(a, b)   # WRAPS, like the other four. It was a leaf, so nothing called it
 
 
 def _changed(f1: Any, f2: Any) -> Any:

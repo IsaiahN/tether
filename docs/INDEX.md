@@ -5441,6 +5441,22 @@ origin, the handle and the refusal column all worked -- **so this is the number,
 mechanism failure and not an excuse for one.** Too thin to conclude against transfer, and it
 stands as the baseline the next reading is compared to.
 
+> **RETIRED 2026-08-31, AND NOT AS *TOO THIN*. THE NUMBER WAS NEVER A MEASUREMENT.** Three
+> independent reasons, each sufficient on its own. **(1)** Every composition of length >= 2
+> reads an operand -- 12 of 12 at depth 3, and `idn` becoming non-composable closed the only
+> escape -- so binding correctly not crossing makes an imported term **extensionally `idn` on
+> arrival**, and `_explains` tests exact explanation of a slot's whole history. It can only
+> explain a slot that never moves. **(2)** The only path that re-binds is the sweep, and it
+> emits no `pull` row, which is the only event `reused()` counts. **(3)** A re-bound term's
+> name carries its binding, so `_install_reuse` enters it as a NEW name stamped `accepted` --
+> `transfer`'s `held` set is keyed on imported names and cannot match it. **The paragraph
+> above says the load, the origin, the handle and the refusal column all worked. They did.
+> The column measuring the outcome did not exist.**
+>
+> **AND THE TWO RULINGS COLLIDE WITHOUT EITHER BEING WRONG.** *The composition crosses; the
+> binding does not* is correct. *`_explains` tests behaviour exactly* is correct. **Together
+> they produce a quantity that cannot be non-zero**, and nothing in either ruling says so.
+
 ---
 
 # PHASE 3's PRECONDITION — two blocker validations wait on a file nobody has
@@ -7410,4 +7426,129 @@ what a plausible explanation reaches for**, and the adjacent case is what distin
 promising both to §12.4, and §12.4 needed one. **The check fired on a debt rather than on a
 build** — a booked debt is a guess about what a mechanism will need, and it is worth checking
 against the mechanism when the mechanism arrives.
+
+
+---
+
+# PRE-REGISTERED, BEFORE THE REBUILT TRANSFER COLUMN RUNS
+
+**A number that has never been non-zero has no baseline**, so anything above zero would read as
+success. The meaning is fixed here, in advance.
+
+    what is being changed
+      1  `characterise` reports WHICH TYPES varied, not which slots
+      2  `key_of` reads `Term.operand_type` -- declared at construction, so it CROSSES --
+         instead of `term.operand`, which is a slot name and does not
+      3  the pull site RE-BINDS a candidate that reads an operand and holds no binding,
+         which is what "binding does not cross" requires and the import path never did
+      4  `transfer` keys on the COMPOSITION, and the sweep's reuse emits a `pull` row
+
+    what would falsify the rebuild
+      *  a term that paid before and does not now -- the third key must ORDER, never admit
+      *  `space_exact` disagreeing with the enumeration -- the type change touches `accepts`
+      *  8 seats, 16 gate checks
+
+    what a non-zero reading DOES NOT license
+      *  `imported_pulled > 0` is NOT evidence of transfer on its own. A re-bound imported
+         composition explaining a slot is **one composition, one slot, one board.**
+      *  The claim needs the pull to be on a board the term was NOT minted on, which the
+         handle's prefix already records -- **so the reading is `pulled AND handle-prefix !=
+         this game`, and anything else is a local reuse wearing an import's name.**
+      *  A rise from 0 is not an improvement over a measured 0. **The old number measured
+         nothing**, so the first honest reading has no predecessor and must not be reported
+         as one.
+
+
+---
+
+# PRE-REGISTERED: THE COMMENSURABILITY WIDENING
+
+**Does this change alter the trajectory the measurement is taken over? YES** — new bindings admit,
+so different terms are minted, so different actions are taken. **Fixed sequence is therefore the
+only comparable form, and that is settled BEFORE approval rather than discovered after.** B17's
+fourth variant, applied in advance for the first time.
+
+    three arms, one fixed action sequence
+      A  no delta slots                    the state before the sensor was called
+      B  delta slots, SAME_AS_TARGET       the sensor published and unusable
+      C  delta slots, COMMENSURABLE        the ruling
+
+    the four quantities
+      out_base        outstanding over the ORIGINAL slots only -- the like-for-like column
+      library         terms admitted
+      refusal rate    `_operand_fits`, which the widening moves by construction
+      defects         8 seats, 16 gate checks
+
+**WHAT WOULD FALSIFY THE RULING.** `out_base` for C equal to A and B. **B already measured
+bit-identical to A in both directions — 70.31 and 199.82 — so an unchanged `out_base` means the
+widening bought nothing and the sensor is inert for a second reason.**
+
+**WHAT A FALL DOES NOT LICENCE.** `out_base` falling is one game, one sequence. **It says the
+affine term was reachable and paid, not that motion is now modelled** — and per-game, never
+pooled, so it is a reading about `ls20` until another panel says otherwise.
+
+
+---
+
+# `delta` CALLED, AND THE ONE TERM THAT USES IT IS RIGHT ON A SEGMENT
+
+**Sensor 7 was never called by anything.** Four of the six perception sensors wrap a function in
+`arc_percept` and all four run every step; `_delta` and `_changed` were written as **leaves** with
+the arithmetic inline, **so the perception layer had nothing to reach for.** `delta_of` now exists,
+`_delta` wraps it like the other four, and the tracker publishes `drow`/`dcol` at the one moment
+both frames are in hand.
+
+**A BIRTH GETS NO DELTA AND NOT A ZERO.** §12.2 requires a value or an explicit non-reading, and
+`0` says *it did not move* where the truth is *there was nothing to move from*. **Absent, which
+the loop already handles** — *a new slot has no history and owes nothing yet*.
+
+### THE PAIRING, SETTLED BY A WITNESS RATHER THAN THE GLOSS
+
+`OBJ x OBJ` covers *two objects now* and *one object twice*, and §12.3 separates them only in
+prose. **Of its three, `overlap` and `delta` are DIACHRONIC and `touching` is SYNCHRONIC** — and
+`arc_percept:250` already reads one across time: `overlap(obj["cells"], old["cells"])`.
+
+### THE COMMENSURABILITY WIDENING, AND WHAT IT DID AND DID NOT BUY
+
+    fixed sequence, 20 steps        out_base   library   refusal rate
+      A  no delta slots               70.31        7        0.6671
+      B  delta, SAME_AS_TARGET        70.31       11        0.7619
+      C  delta, COMMENSURABLE         70.31       11        0.4956
+
+**`out_base` identical in all three.** `row + drow` — a position plus its own displacement — was
+refused by `SAME_AS_TARGET`, and the rule's own warrant is *commensurability*, which a row and a
+row-delta satisfy. **`SAME_AS_TARGET` was an implementation of commensurability under a type
+system where same-type was the only commensurable pair.** The widening admits **216,202 bindings
+that were refused before**, and no delta-bound term was minted.
+
+**`(EXTENT, DELTA)` WAS IN THE TABLE AND IS OUT.** Height plus a row-displacement has nothing
+behind it but both being cell counts. **Removed before it was ever read, which is what a pinned
+table buys** — a second pair would have ridden in on the first's warrant.
+
+### B17'S FIFTH VARIANT: AN OUTCOME REGISTERED AS THE FALSIFIER FOR A WARRANT-BASED RULING
+
+**I registered *`out_base` unchanged falsifies the ruling*.** It is unchanged, and the ruling is
+right anyway.
+
+> **TWO CLAIMS, AND ONLY ONE IS WHAT THE WIDENING RESTS ON.** The CAPABILITY claim — *the rule now
+> expresses commensurability* — is testable and passed, at 216,202 bindings. The PERFORMANCE claim
+> — *it explains more* — was never the justification. **Registering the second as the test of the
+> first means a correct rule is falsified by a board that does not exercise it**, which is
+> *per-game, never pooled* arriving inside a pre-registration.
+
+**THE GENERAL FORM:** when a change is justified by *the rule already said this*, **the test is
+whether the rule now expresses it, not whether anything improves.**
+
+### AND THE FINDING UNDERNEATH IS A SCOPING PROBLEM, NOT A BARGAIN ONE
+
+    o10 (row, drow)   (40,-5) (40,0) (40,0) (45,5) (40,-5) (40,0) (40,0) (45,5) (40,-5)
+                      (35,-5) (30,-5) (25,-5) (20,-5) (15,-5)
+    `row + drow` predicts the next row: 7 of 13
+
+**Seven steps of oscillation, then six of uniform -5.** The constant-velocity model is **exactly
+right on the run and wrong at every turn**, and `_left` scores the slot's WHOLE history, so a term
+correct on a segment cannot pay. **The first case this session where a CORRECT term is refused by
+where the accounting is scoped** — and possibly the level boundary's shape: `retarget` clears
+per-episode state, and the residual accounting does not know boundaries exist. **Owed as a check,
+not a fix.**
 
