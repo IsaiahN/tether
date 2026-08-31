@@ -126,6 +126,15 @@ class ArcWorld:
         return {s: arc_atoms.ATTRIBUTE_TYPE.get(s.rsplit(".", 1)[-1], s.rsplit(".", 1)[-1])
                 for s in self._decomposed()}
 
+    def sensors(self) -> Any:
+        """The typed registry. `atoms()` declares Γ's vocabulary; this declares perception's.
+
+        §12.1 puts SENSOR in *a typed registry, which is not Γ*, and §12.4 has the agent
+        compose new sensors from it -- so the loop has to be able to reach it, the same way it
+        reaches the atoms. The domain supplies the instrument set; the loop composes.
+        """
+        return SENSORS
+
     def slot_owner(self) -> dict[str, str]:
         """Which SUBJECT each slot is an attribute of. **The loop may not derive this.**
 

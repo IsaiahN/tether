@@ -7329,3 +7329,54 @@ A wrong cause recorded in code is worse than none.
 worse case, because a null presents as caution and needs no defence** — and the tell is the
 explanation, since a null carrying a satisfying causal story is harder to doubt than a bare one.
 
+
+---
+
+# §12.4's REMEDY — BUILT, AND ITS VERDICT IS `UNREACHED` WITH A DENOMINATOR
+
+**`sensors.py:95`'s booked debt is paid.** `Registry.accepting` and `Registry.closure` exist;
+`env.sensors()` hands the loop the registry the way `env.atoms()` hands it Γ's vocabulary.
+
+    g50t   fired 5/20   top multiplicity 2, gap 16.61
+                        remedy {closure 4, composable 0, verdict UNREACHED}
+    ls20   fired 0/20   no trigger, so no remedy
+
+**NOVELTY EXCLUDES THE BARE SENSORS**, because *the current sensor set says those slots are
+identical* is the trigger's own premise — so a remedy has to be a COMPOSITION, and §12.5 names
+the guard as *novelty (not already a sensor)*. **There are none, so the agent abstains, and the
+abstention carries the number that makes it checkable.** §12.4: *we can know the closure of our
+own sensor set, and therefore we can still score whether abstention was correct.*
+
+### THE VERDICT IS STRUCTURAL, WHICH DEFERS THE BLOCKER INSTEAD OF HITTING IT
+
+**Evaluating a candidate against two objects needs the objects, which the loop does not have.**
+There are no candidates, so **the answer does not depend on which objects triggered** — and the
+objects-into-the-loop question defers to the moment a composable candidate exists.
+
+### THE REASON I FIRST RECORDED WAS WRONG, AND THE OTHER ENTRY POINTS CAUGHT IT
+
+    from (OBJECT,)          4 chains, longest 1
+    from (FRAME,)           5 chains, longest 2   <- components . colour, . position, . extent, . shape
+    from (OBJECT, OBJECT)   3 chains, longest 1
+    accepting(COLOUR | POSITION | EXTENT | SHAPE | RATIO | DELTA | BOOL | REGION)   all EMPTY
+
+**I wrote *no sensor accepts another's output* and it is false** — `components . colour` composes.
+**The true statement is narrower: nothing accepts an ATTRIBUTE type**, so a chain that reaches one
+terminates, and from an OBJECT that is one step. **Second wrong cause recorded in this build**,
+and both were caught by measuring an adjacent case rather than by re-reading the claim.
+
+### AND THE CIRCLE IS THE FINDING
+
+**What would accept an attribute type is `parity(POSITION)` or `holes(SHAPE)` — §12.4's own
+examples of what the agent should compose.** §12.3 forbids installing them, *because reaching is
+the only evidence the composition system works.*
+
+> **So the reach mechanism cannot reach.** The nine terminate at attributes; Tier 2 is exactly the
+> class that would extend past one; and Tier 2 may only enter by being reached. **`UNREACHED` is
+> therefore the correct and permanent verdict under the current entry rule** — not a gap in the
+> build, and not something more search would fix.
+
+**WHICH IS WHY THE ABSTENTION IS THE RESULT RATHER THAN A DISAPPOINTMENT.** The agent says *I
+cannot tell these apart, and I cannot build an instrument that would, from what I hold* — and
+names the closure it searched. **That is the alignment claim at the perception level, measured.**
+

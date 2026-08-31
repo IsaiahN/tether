@@ -30,7 +30,7 @@ from ledger import (
     Ledger,
 )
 from probe import Drive
-from sensors import POSITION
+from sensors import OBJECT, POSITION
 
 sys.dont_write_bytecode = True
 
@@ -644,6 +644,40 @@ class Agent:
             out.append({"vector": [list(p) for p in vec], "multiplicity": len(members),
                         "residuals": rs, "gap": round(max(rs.values()) - min(rs.values()), 3)})
         return sorted(out, key=lambda d: -d["multiplicity"])
+
+    def resolve(self) -> dict:
+        """§12.4's REMEDY: can a composition of existing sensors split what the vocabulary
+        cannot? The INWARD branch, and its verdict today is the OUTWARD one.
+
+        **NOVELTY EXCLUDES THE BARE SENSORS.** A chain of length one is a sensor the agent
+        already has, and *the current sensor set says those slots are identical* is the
+        trigger's premise -- so a remedy must be a COMPOSITION. §12.5 names the guard:
+        *novelty (not already a sensor)*.
+
+        **THE VERDICT IS STRUCTURAL, WHICH IS WHY IT NEEDS NO OBJECT.** If the closure holds
+        no chain longer than one, nothing composable exists to try and the answer does not
+        depend on which objects triggered. **Evaluating a candidate against two objects is
+        what needs them, and there are no candidates** -- so the blocker defers to the moment
+        it becomes real rather than blocking now.
+
+        **AND THE ABSTENTION CARRIES ITS DENOMINATOR.** §12.4: *we can know the closure of our
+        own sensor set, and therefore we can still score whether abstention was correct.* An
+        abstention without the number is a word.
+        """
+        reg = getattr(self.env, "sensors", None)
+        if reg is None:
+            return {"verdict": "no_registry", "reads": "the domain declares no instruments"}
+        chains = reg().closure((OBJECT,), self.cfg.max_depth)
+        composable = [c for c in chains if len(c) > 1]
+        return {"closure": len(chains), "composable": len(composable),
+                "verdict": "reachable" if composable else "unreached",
+                "reads": ("UNREACHED at the SENSOR level: every chain is length one, so every "
+                          "candidate is a sensor already held and novelty refuses it. NOT "
+                          "because sensors cannot compose -- `components . colour` does, from "
+                          "a FRAME -- but because nothing accepts an ATTRIBUTE type, so a "
+                          "chain that reaches one terminates, and from an OBJECT that is one "
+                          "step. What would accept one is `parity(POSITION)` or `holes(SHAPE)` "
+                          "-- §12.4's own examples, and §12.3 forbids installing them")}
 
     def pe_integral(self) -> float:
         """Every surprise ever. Monotone: there is no `suppress`, and no drive may zero it."""
@@ -1488,6 +1522,7 @@ class Agent:
         indist = self.indistinguishable()
         self.led.record(self.cycle - 1, "PERCEIVE", "@vector", "indistinct",
                         pairs=len(indist), top=indist[:3],
+                        remedy=self.resolve() if indist else None,
                         reads=("same featural vector, different |R|. Ranked by how many "
                                "objects shared the vector, which the remedy cannot move"))
         self.led.record(self.cycle - 1, "REPEAT", "@loop", "repeat",

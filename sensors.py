@@ -93,11 +93,39 @@ class Registry:
             raise ValueError(f"two sensors named {s.name}")
         self._by_name[s.name] = s
 
-    # NO TYPE-DIRECTED LOOKUP YET, DELIBERATELY. `producing(out_type)` / `accepting(in_types)`
-    # are what makes a registry more than a dict -- and NOTHING COMPOSES SENSORS yet, because
-    # the decomposition arrives as one injected callable. They belong with §12.4 (*how the
-    # agent invents a sensor*), and shipping them now would be the half-mechanism the lint
-    # rule caught on the first pass.
+    # THE DEBT BOOKED HERE IS PAID. `producing` / `accepting` are what make a registry more
+    # than a dict, they were deferred to §12.4 because nothing composed sensors, and §12.4's
+    # trigger now exists and needs them.
+
+    # THE DEBT WAS BOOKED AS TWO AND ONE WAS OWED. `producing(out_type)` was named beside
+    # `accepting` and the closure never needs it: a remedy asks for anything that SPLITS, not
+    # for a chain ending in a chosen type. Written, refused by ISOLATED, removed. A booked debt
+    # is a guess about what a mechanism will need, and it is worth checking against the
+    # mechanism when the mechanism arrives.
+
+    def accepting(self, *in_types: str) -> list[Sensor]:
+        return [s for s in self._by_name.values() if s.in_types == tuple(in_types)]
+
+    def closure(self, in_types: tuple[str, ...], max_depth: int) -> list[tuple[Sensor, ...]]:
+        """Every sensor chain from `in_types`, each link accepting the last's output.
+
+        **§12.2's third property made runnable** -- *a sensor's output can feed another's
+        input, which is what makes the registry a closure rather than a list.* Enumerated in
+        full and returned, because §12.4 needs its SIZE as a denominator: *we can know the
+        closure of our own sensor set, and therefore we can still score whether abstention was
+        correct.* An abstention without that number is a word.
+        """
+        out: list[tuple[Sensor, ...]] = []
+        frontier = [(s,) for s in self.accepting(*in_types)]
+        depth = 1
+        while frontier and depth <= max_depth:
+            out.extend(frontier)
+            nxt: list[tuple[Sensor, ...]] = []
+            if depth < max_depth:
+                for chain in frontier:
+                    nxt += [chain + (s,) for s in self.accepting(chain[-1].out_type)]
+            frontier, depth = nxt, depth + 1
+        return out
 
     def read(self, name: str, *args: Any) -> Any:
         """One call, and NOT_RESOLVED is returned rather than raised: an instrument that

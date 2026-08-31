@@ -316,6 +316,19 @@ written at all.
   permitted — it proposes, never scores, never promotes. See `docs/DISCOVERY.md` Q4.
 - **No aggregation across slots.** R is indexed per object slot. Averaging is how a live
   signal disappears.
+- **No pooling across games — the same law, one level up.** Every game tests a different
+  skill, so a rate across games averages a board that tests the thing with a board that does
+  not. **A mechanism firing on one board and not another is not a mechanism reading**: §12.4's
+  trigger fires 25/25 on `sk48`, 7/25 on `g50t` and 0/25 on `ls20`, and *`ls20` does not test
+  discrimination* is the finding. **Firing nowhere across many games is broken; firing only
+  where the skill is present is CORRECT, and it is the stronger verdict because it
+  discriminates.** Per game, never pooled.
+- **The skill map is a reading, never an input.** *Which games need which skill* and *what
+  overlapped across games* are taken from the ledger AFTERWARDS. **The moment either is
+  available beforehand the mechanism has been handed its answer** — `act` arrived knowing what
+  each action does; a skill map would arrive knowing what each game requires. **Same failure,
+  one level up.** And the firing pattern is not evidence FOR an independent fact about which
+  games test what: **the trigger finding work IS the evidence, and the pattern IS the map.**
 - **Nothing scores itself.** A frame cannot score itself with a quantity it produces.
 - **One Γ, one registry.** Never two loaded copies of the type system — a double-loaded
   module is a reinvention no grep can see.
