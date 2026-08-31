@@ -7591,3 +7591,66 @@ a term that stops explaining, which is the residual.**
 **Recorded as a check, not a fix.** What it establishes: the principle exists and is right, the
 machinery exists at the episode grain, and the case needs a grain nothing currently produces.
 
+
+---
+
+# A MECHANISM WHOSE INPUT IS ITS OWN OUTPUT — THREE THIS SESSION, AND IT IS A CLASS
+
+**Each was found separately and each is the design being honest rather than a defect.**
+
+    §12.4       reaching needs a Tier-2 sensor; Tier 2 may enter only by being reached
+    transfer    the binding that must not cross is what the gate tests behaviour with
+    segment     a segment-scoped residual needs break detection, and the break signal is
+                a term that stops explaining -- which is the residual
+
+> **THE TELL IS THAT THE FIX NAMES ITSELF AND IS FORBIDDEN BY THE THING IT WOULD FIX.** Install
+> the sensor and the reaching is no longer evidence. Keep the binding and the composition no
+> longer crosses. Scope the residual and you need the boundary the residual defines.
+
+**AND ALL THREE SURFACED FROM A NEGATIVE.** `UNREACHED` with closure 4; `imported_pulled: 0`; *no
+change from scoping to `Segment`*. **A circle presents as a null**, which is why the null had to be
+read carefully rather than reported — and twice this session a null was nearly published as a
+mechanism finding.
+
+**NOT A LAW AND NOT A DEFECT REGISTER.** It is a shape to recognise: **when a mechanism's
+precondition is its own product, the honest move is to state the circle and measure inside it**,
+which is what the closure denominator, the three reasons, and the segment grain each are.
+
+
+---
+
+# THE REGISTRATION RE-READ — AND THE POPULATION CHANGED UNDER IT
+
+**Written before `drow`/`dcol` existed, and the key it registers is measured against residuals.**
+Re-read rather than re-run, and it does not survive unamended.
+
+    ls20 / 18 steps, 154 gaps characterised
+      gaps whose `varies_types` contains DELTA        154 of 154
+      THIRD KEY's own spread per gap                  1, on every gap
+      THIRD KEY vs ARITY KEY, identical score         3227 of 3696 pairs -- 87.3%
+      gaps where the two differ at all                154 of 154
+
+**DELTA SLOTS VARY EVERY STEP, SO *SOMETHING VARIED* BECAME UNIVERSALLY TRUE.** The
+`SAME_AS_TARGET` branch — *aimed wherever anything moved* — is now a **constant 1**. It was
+written when a non-empty `varies` was a real discriminator, and 42 new slots ended that.
+
+**AND THE KEY HAS LARGELY COLLAPSED ONTO ARITY.** 87.3% identical. **A key that duplicates another
+orders nothing new, and a spread measurement cannot see it** — the spread reads 1 on every gap and
+looks healthy. The surviving 12.7% is entirely `recolour`'s typed `COLOUR` operand, where the type
+is genuinely sometimes absent from `varies_types`.
+
+> **THE REGISTERED FALSIFIER COULD NOT CATCH EITHER.** *A term that paid before and does not now*
+> tests ADMISSION. Both findings are about ORDERING. **The registration had no falsifier for the
+> thing that changed**, which is what re-reading catches and re-running does not.
+
+### THE AMENDMENT, DERIVED
+
+`SAME_AS_TARGET` means *the operand has the target's type*, so the aimed test is **is the TARGET's
+type among the types that varied** — discriminating, and instance-free. **`fits` cannot ask it
+today**: it receives `in_type`/`out_type` as `val`/`val`, the PREDICT space, and never sees the
+target slot's §12.2 type. `characterise` knows the slot and can carry it.
+
+**ADDED TO THE FALSIFIER SET:** *key 3's agreement with key 2*. A key whose scores duplicate
+another's is inert however wide its spread, **and nothing in the original registration would have
+reported it.**
+
