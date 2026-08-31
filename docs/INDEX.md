@@ -6455,3 +6455,102 @@ auditable. Collected while reading, with the source that carries each.
 **And one anti-citation, kept because it is the standard being aimed at:** `logical_grid`'s
 `0.98` docstring records the measurement that forced it **and the value that would have
 been wrong**. No constant in this repo meets that bar.
+
+---
+
+# THE ORDERING A/B WAS READING `idn`'s SYMMETRY — `differ: True` BEFORE AND AFTER, AND ONLY ONE OF THEM IS ABOUT ORDERING
+
+**Re-read after the narrow cut, as ruled — *it may become measurable for free*. It did, and the
+free part is not the one that was expected.**
+
+    BEFORE                                    AFTER
+    ordered   admits  9                       ordered   admits 13
+    unordered admits  9                       unordered admits 13
+    identical set: False                      identical set: False
+    differ:        True                       differ:        True
+
+    only-in-ordered                           only-in-ordered
+      translate . idn<o1.w>                     recolour . recolour<o1.colour>
+      translate . idn<o12.col>                  recolour . recolour<o8.colour>
+      translate . idn<o15.row>?ACTION1          recolour . translate<o1.colour>?ACTION2
+      translate . idn<o2.row>?ACTION1           recolour . translate<o16.colour>?ACTION2
+    only-in-unordered                         only-in-unordered
+      idn . translate<o1.w>                     translate . recolour<o11.w>
+      idn . translate<o12.col>                  translate . recolour<o6.row>
+      idn . translate<o15.row>?ACTION1          translate . translate<o16.row>?ACTION2
+      idn . translate<o2.row>?ACTION1           translate . translate<o17.row>?ACTION2
+
+> **THE BEFORE COLUMN IS THE SAME FOUR FUNCTIONS TWICE.** `translate . idn<o1.w>` and
+> `idn . translate<o1.w>` share their operand, their guard and their behaviour — `idn` is the
+> neutral element, so the two chains are one function written two ways. **The A/B reported that
+> ordering changes what is admitted, and what it had actually detected was which side of the
+> composition the identity landed on.**
+
+**AND `differ: True` IS THE SAME VALUE IN BOTH COLUMNS.** The boolean cannot separate them; only
+the differing elements can, and the boolean is what a reading records. **A true result, on a
+real difference, that was not about its subject** — B17's shape without B17's protection,
+because there was no label to check. **The instrument was the enumeration, not a name.**
+
+### WHAT THE AFTER COLUMN ESTABLISHES, AND WHAT IT DOES NOT
+
+Different first atoms, different operands, different bound attributes. **`recolour`-first on one
+side and `translate`-first on the other, systematically** — not scattered, which is what a
+budget boundary with a real preference looks like. **So clause 1 is now demonstrable on content:
+ordering changes which terms survive a fixed budget.**
+
+**It does not establish that the ordering is BETTER.** Both arms admit 13. Nothing here ranks the
+ordered four above the unordered four, and **the quantity that would — whether the admitted set
+pays more against the ground — is not measured.** *Coverage rose* would be the invented metric;
+*a different set at the same count* is what was measured.
+
+### 9 → 13 IS THE CUT, NOT THE ORDERING
+
+**Both arms move together**, so the extra four are the budget no longer being spent on
+`idn`-padded duplicates. **A direct consequence of the cut and not an ordering effect** — it
+would be read as one from either column alone.
+
+
+---
+
+# B17's THIRD VARIANT: NO LABEL AT ALL, BECAUSE THE READING WAS THE MEASUREMENT
+
+**Named from the ordering re-read.** The prior instances of *pre-registration does not protect a
+reading if the instrument measures something else* all had **a name to look up in two places** —
+`molecule`, `DIRECTED`, `BUDGET`, `PRIOR`. The check is *read the word in both places before
+pinning a shape to it*, and it presumes there is a word.
+
+> **`differ: True` HAS NO WORD.** It is a boolean over two sets produced by the enumeration
+> itself. It read `True` before the `idn` cut and `True` after, **same value, opposite meaning**,
+> and there was nothing to disagree with it because **the reading and the measurement were the
+> same object.**
+
+**SO THE TRIGGER IS DIFFERENT AND HAS TO BE.** `A6i` asks *what does this name mean in the other
+place*. This asks: **can this reading be wrong while still being true?** A boolean over
+constructed sets can, because the sets carry structure the boolean discards — **and the discarded
+structure is exactly where a symmetry of the mechanism hides.** The check is to look at the
+differing ELEMENTS at least once before trusting a difference, **and it costs one print.**
+
+**IT IS A STEP, NOT A LAW, FOR THE SAME REASON THE OTHER FOUR ARE.** After the fact `differ:
+True` is a clean reading with a clean provenance trail, and there is nothing to catch.
+
+---
+
+# THE CONTROL CAUGHT AN ATTRIBUTION — FIRST TIME THIS SESSION, AND THAT IS WHAT CONTROLS ARE FOR
+
+**9 → 13 admitted terms, and both arms moved together.** From the ordered column alone the four
+extra terms read as the ordering finding a better set. **What separates them is that the
+unordered arm gained the same four**, so the cause is the cut, not the ranking.
+
+> **Every other control this session CONFIRMED a clean state** — the toy panel's byte-identical
+> output, the bit-identical enumeration runs, `_cannot_pay`'s zero terms lost. **This one
+> reassigned a cause.** *A control that examines nothing cannot demonstrate a clean state* is the
+> corollary already filed; this is its other half — **a control that examines something can take
+> a result away from the mechanism that was about to be credited with it.**
+
+### REGISTERED: WHAT WOULD SETTLE THE ORDERING, SO IT IS A GAP AND NOT A SILENCE
+
+**Clause 1 is demonstrable on content; *better* is unmeasured.** The quantity is **whether the
+admitted set pays more against the ground** — same budget, same count, and the ordered arm's
+terms surviving more settles than the unordered arm's. **`settled_terms` after N cycles, both
+arms, one panel.** Not run. It is cheap and it is not blocked on anything; it is registered here
+so *13 either way* is never read as neutral evidence for the ranking.

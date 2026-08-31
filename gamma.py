@@ -29,6 +29,9 @@ sys.dont_write_bytecode = True
 
 PRIOR, MINTED, IMPORTED = "prior", "minted", "imported"
 
+# The identity, by name. It predicts and it does not compose -- see the closure.
+IDN_NAME = "idn"
+
 # WHICH CLAUSE ADMITTED AN ENTRY -- Â§11's two, and `None` for "not stated".
 # ORIGIN IS NOT THIS. `PRIOR` is stamped on every atom at construction, so it records that no
 # mint occurred -- NOT that an entry rule was applied. The ablation partitions by CLAUDE.md's
@@ -529,7 +532,26 @@ class Gamma:
                         stats["seen"] = emitted
                     yield Term(chain)
                 if depth < max_depth:
-                    nxt += [chain + u.atoms for u in units if u.in_type == chain[-1].out_type]
+                    # THE IDENTITY IS NOT COMPOSABLE. `X . idn` and `idn . X` compute `X`, so
+                    # every occurrence inside a chain is a longer spelling of a shorter term --
+                    # and the closure was counting them as distinct candidates. **39 names
+                    # computed 7 functions at depth 3, 25 of the 39 containing `idn`**, a 5.57x
+                    # inflation growing 1.00 -> 2.40 -> 5.57 with depth.
+                    #
+                    # THAT NUMBER IS COVERAGE'S DENOMINATOR. §19.1 turns `UNREACHED` into a
+                    # measurement with `candidates_seen / estimate`, and both sides were
+                    # counting each function several times -- **so it does not cancel**: the
+                    # numerator spends real budget on duplicates, the denominator is a `λ^d`
+                    # estimate that never saw one.
+                    #
+                    # **IT STAYS A DEPTH-1 CANDIDATE.** *This slot does not change* is a real
+                    # prediction and `idn` alone is how it is said -- removing it from `units()`
+                    # entirely was tried and the falsifier caught it: **7 functions fell to 6.**
+                    # So the cut is on COMPOSITION, not on membership, and `_predict`'s fallback
+                    # reads `library["idn"]` directly and is untouched.
+                    nxt += [chain + u.atoms for u in units
+                            if u.in_type == chain[-1].out_type
+                            and not any(a.name == IDN_NAME for a in (*chain, *u.atoms))]
             if spent:
                 break
             frontier, depth = nxt, depth + 1
