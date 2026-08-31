@@ -7380,3 +7380,34 @@ the only evidence the composition system works.*
 cannot tell these apart, and I cannot build an instrument that would, from what I hold* — and
 names the closure it searched. **That is the alignment claim at the perception level, measured.**
 
+
+---
+
+# AN ADJACENT CASE IS A BETTER INSTRUMENT THAN RE-READING THE CLAIM
+
+**Both wrong causes in the §12.4 build were caught the same way, and it was not by checking the
+reasoning.**
+
+    claim   "held on the agent it went stale"        the SIBLING was the control:
+                                                     `slot_types` measured 0 untyped slots
+                                                     over 15 steps on both panels, so it was
+                                                     unaffected and the hypothesis died
+    claim   "no sensor accepts another's output"     the OTHER ENTRY POINT was the control:
+                                                     `closure(("FRAME",))` returns
+                                                     `components . colour`, so composition
+                                                     exists and the wide claim was false
+
+> **A CAUSE STATED ABOUT A MECHANISM PREDICTS SOMETHING ABOUT ITS NEIGHBOURS.** *Fields on the
+> agent go stale* predicts `slot_types` is stale too. *Sensors cannot compose* predicts every
+> entry type is flat. **Both predictions are cheap, and both were false** — where re-reading the
+> claim would have found it plausible each time, because it was written to be.
+
+**AND THE CORRECT NARROWER CLAIM SURVIVED IN BOTH CASES.** The cause was a missed refresh SITE,
+not staleness; nothing accepts an ATTRIBUTE type, not nothing composes. **The wide version is
+what a plausible explanation reaches for**, and the adjacent case is what distinguishes them.
+
+**`producing` IS THE THIRD, AND ISOLATED FOUND IT.** Booked beside `accepting` in a comment
+promising both to §12.4, and §12.4 needed one. **The check fired on a debt rather than on a
+build** — a booked debt is a guess about what a mechanism will need, and it is worth checking
+against the mechanism when the mechanism arrives.
+

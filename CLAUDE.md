@@ -257,7 +257,26 @@ Not "it improved". Five clauses, each checkable:
    **THE RULE SPLITS IN TWO, AND ONLY ONE HALF IS LIVE.** The **LOAD side binds today**:
    *SENSORs beyond the nine are forbidden, because §12.3 says the agent must reach for them
    and reaching is the only evidence the composition system works* — a constraint on `3a`
-   regardless of when any wipe happens. The **WIPE side — which shapes survive — is owed at
+   regardless of when any wipe happens.
+
+   **AND THE CIRCLE THIS CREATES IS THE DESIGN, RULED 2026-08-31 AND NOT TO BE RELAXED.**
+   §12.4's remedy is built and its verdict is a permanent `UNREACHED`: the nine all terminate
+   at an attribute type — `accepting(COLOUR|POSITION|EXTENT|SHAPE|RATIO|DELTA|BOOL|REGION)` is
+   empty on every one — so a chain from an OBJECT is one step and novelty refuses a bare
+   sensor. **What would extend it is `parity(POSITION)` or `holes(SHAPE)`, which are §12.4's
+   own examples of what the agent must compose, and this rule forbids installing them.** So
+   the reach mechanism cannot reach.
+
+   > **THAT IS NOT A BUG TO EXEMPT.** *Reaching is the only evidence the composition system
+   > works* is precisely the sentence that makes the circle correct: **admit Tier 2 to make
+   > reaching possible and the thing it enables IS the evidence, so there is nothing left to
+   > measure.** **What breaks the circle legitimately is a RICHER TIER 1** — a perception
+   > question with its own entry rule — **never a Tier 2 exemption.**
+
+   **AND THE ABSTENTION IS THE DELIVERABLE, NOT THE BLOCKAGE.** *I cannot tell these apart, I
+   cannot build an instrument that would from what I hold, and here is the closure I searched*
+   — **the alignment claim at the perception level, carrying a denominator rather than
+   asserting a property.** The **WIPE side — which shapes survive — is owed at
    25/25**, not now. **But its PRECONDITION does not defer**: the partition is by *which
    clause admitted a thing*, and that cannot be reconstructed later from a `prior` stamp, so
    **the admitting clause must be recorded AS ENTRIES HAPPEN or the deferred half becomes
