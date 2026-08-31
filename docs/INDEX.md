@@ -7233,3 +7233,33 @@ cause is that the test included the one attribute that cannot collide.
 `parity(position)` — **position is what the new sensor reads to SPLIT them, so it cannot also be
 what made them look alike.** Derived from the corpus's example, not chosen.
 
+
+### THE PANEL PROPERTY — AND `ls20` ALONE WOULD HAVE KILLED THE BUILD
+
+    25 steps each        objects   featural-dup pairs   same |R|   TRIGGER   steps fired
+      ls20                    21                  100        100         0        0 / 25
+      sk48                    70                 5161        663      4498       25 / 25
+      g50t                    15                    8          0         8        7 / 25
+
+**`sk48` fires on every step. `g50t` fires on 7 of 25 and every pair it finds triggers. `ls20`
+never fires.** One panel was measured first and it is the outlier.
+
+> **THE PRECEDENT IS THE DS LADDER, RUNNING IN THE OPPOSITE DIRECTION.** *Called easing on ten
+> seeds, flat on forty* is cited against over-claiming a POSITIVE. **This is the same error with
+> the sign reversed — over-claiming a NULL — and it is the more dangerous one, because a null
+> presents as caution.** *§12.4's trigger cannot fire* was drafted, with a mechanism-shaped
+> explanation attached (*objects that look alike behave alike*), and it was a fact about 21
+> objects on one board.
+
+**AND THE EXPLANATION WAS THE TELL.** A null with a satisfying causal story is harder to doubt
+than a bare one. **The story was true of `ls20` and general in its wording**, which is exactly how
+a panel fact becomes a mechanism claim.
+
+### WHAT IT MEANS FOR THE BUILD
+
+**§12.4 is demonstrable, and the trigger is if anything too permissive.** 4,498 triggering pairs
+over 25 steps on `sk48` is ~180 per step; if each launches a sensor search the mechanism spends
+its whole budget on the trigger. **§12.4 prices the REMEDY by the bargain and says nothing about
+ordering the triggers** — so the ordering question is real, unspecified, and the next thing to
+check rather than to invent.
+
