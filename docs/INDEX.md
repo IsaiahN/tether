@@ -7171,6 +7171,15 @@ claim without the other.**
 ### DETERMINISM, ARGUED AND BEING CONFIRMED
 
 `ls20`, `sk48` and `g50t` contain no randomness, and the loop's only random call is the handle
-suffix, which touches no decision. **So one run is the verdict rather than a draw** — stated as
-an argument from the absence of a source, with a repeat run in flight to confirm it.
+suffix, which touches no decision. **So one run is the verdict rather than a draw.**
+
+**CONFIRMED: the repeat run is identical on every field** — inherited, final, added and verdict
+across all three generations, and the same five compositions at gen 1. **The argument from the
+absence of a source and the measurement agree**, which is the order to do them in: the argument
+said what to expect and the run could have refuted it.
+
+**AND THE FIVE ARE ALL PREDICT-SPACE** — `recolour . recolour`, `recolour . translate`,
+`translate . recolour`, `translate . translate . translate`, `recolour . recolour . recolour`.
+**Every composition this tower has ever added is drawn from the three `val → val` atoms**, which
+is the one corner anything enumerates. The branching that exists is happening in 3 atoms of 14.
 
