@@ -928,7 +928,15 @@ the strong claim made at rung zero, and the corpus reserves the honest claim for
 ladder. **97.5% abstention accuracy is measured over slots declined at depth 3 with no
 escalation attempted.**
 
-## §19.1 · the coverage denominator is the wrong quantity
+## §19.1 · the coverage denominator is the wrong quantity — FIXED 2026-08-30
+
+**`space_estimate` is gone; `space_exact` counts the closure's actual population** — start type,
+end type, `idn` non-composable, over `units()` rather than atoms. Falsified against unbounded
+enumeration: **100 (in, out, depth) triples, 0 mismatches.** The warrant was not the corpus
+mismatch below but what it printed: **298 of 298 `depth_exhausted` rows carried `coverage
+0.005`**, a verdict and a number contradicting each other on the same row. Now 1.000000. The
+original finding follows, unchanged.
+
 
 > `estimated space at depth d ≈ λ^d` (the spectral radius)
 

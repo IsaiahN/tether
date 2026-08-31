@@ -461,7 +461,7 @@ class Gamma:
         # DEDUP ON WHAT IS EMITTED, not on what was settled. `t.name` carries the
         # operand binding and the emitted unit does not, so two settled terms differing
         # only in their binding both passed the check and both went in -- one unit
-        # counted twice, inflating `space_estimate` and with it the `coverage`
+        # counted twice, inflating the space count and with it the `coverage`
         # denominator on every mint row. The binding is re-decided per slot at mint, and
         # `enumerate_closure` composes over `.atoms` alone, so the chunk IS the atom
         # sequence and the operand has no business in the key.
@@ -495,7 +495,7 @@ class Gamma:
         # `seen` is kept live per yield so an early break still reports honest coverage.
         if stats is not None:
             stats["units"] = len(units)
-            stats["estimate"] = self.space_estimate(len(units), max_depth)
+            stats["estimate"] = self.space_exact(units, in_type, out_type, max_depth)
             stats["seen"] = 0
         start = [u for u in units if u.in_type == in_type]
         # §23.5's PREREQUISITE, and it is not a new judgement. *Loading generously requires
@@ -561,12 +561,39 @@ class Gamma:
             stats["depth_exhausted"] = not spent
 
     @staticmethod
-    def space_estimate(units: int, max_depth: int) -> int:
-        """Roughly how many compositions exist at this depth: sum of units^d.
+    def space_exact(units: list[Term], in_type: str, out_type: str, max_depth: int) -> int:
+        """How many terms the closure WOULD emit with no budget. Not an estimate.
 
-        The denominator that turns 'unreached' from a word into a measurement.
+        §19.1 asks for `candidates_seen / estimate` and offers `~ lambda^d` because lambda was
+        already computed. **`lambda^d` is the asymptotic form of this count**, and three things
+        it cannot see are decided per call: the closure starts only at `in_type`, yields only
+        at `out_type`, and refuses `idn` inside a chain. Same quantity, counted rather than
+        approximated -- and it is CHECKABLE, which an estimate is not: enumerate with an
+        unbounded budget and the two numbers must agree exactly.
+
+        **AND IT IS COUNTED OVER `units`, WHICH IS WHY §23.5's MECHANISM CAN APPEAR AT ALL.**
+        *More atoms means a larger lambda, so lambda^d grows and a fixed budget covers a
+        smaller fraction.* `lambda` is the spectral radius of the ATOM table and never moves
+        when a term settles, so under it a loaded library would show no fall in coverage
+        whatever happened. `units` grows as the ground pays for chunks.
         """
-        return sum(units ** d for d in range(1, max_depth + 1))
+        free = [u for u in units if not any(a.name == IDN_NAME for a in u.atoms)]
+        total = sum(1 for u in units if u.in_type == in_type and u.out_type == out_type)
+        # length 1 counts every unit; length > 1 only the idn-free ones, both as the head of
+        # the chain and as each extension -- the closure's rule, not a separate policy
+        live: dict[str, int] = {}
+        for u in free:
+            if u.in_type == in_type:
+                live[u.out_type] = live.get(u.out_type, 0) + 1
+        for _ in range(2, max_depth + 1):
+            nxt: dict[str, int] = {}
+            for t, n in live.items():
+                for u in free:
+                    if u.in_type == t:
+                        nxt[u.out_type] = nxt.get(u.out_type, 0) + n
+            live = nxt
+            total += live.get(out_type, 0)
+        return total
 
     # -- typing beats size, as a number -----------------------------------------------
 
@@ -577,12 +604,17 @@ class Gamma:
         V^n. The ratio is what typing buys per unit of depth.
 
         **PLAIN POWER ITERATION DOES NOT CONVERGE ON A PERIODIC MATRIX, AND A TYPE GRAPH IS
-        PERIODIC WHENEVER IT HAS A CYCLE.** Measured on the three-space set: the graph is a
-        3-cycle `OBJ -> ATTR -> PRED -> OBJ` plus an aperiodic `val` self-loop, the true
-        spectral radius is **3.5569 = (5*3*3)^(1/3)**, and the old iteration reported
-        **3.0000** -- it oscillated on the cyclic block and settled on the self-loop. **The
-        missing 0.557 was exactly the cycle**, on the quantity the Stage 1 falsifier was
-        answered with, which `CLAUDE.md` cites as *the spectral radius* by name.
+        PERIODIC WHENEVER IT HAS A CYCLE.** The shift below is the general fix and it stays.
+
+        **BUT THE CYCLE THIS DOCSTRING USED TO MEASURE ON DOES NOT EXIST, AND `4222e32` IS WHY.**
+        It read the graph as a 3-cycle `OBJ -> ATTR -> PRED -> OBJ` and gave the true radius as
+        `3.5569 = (5*3*3)^(1/3)`, calling the iteration's `3.0000` the bug. That arithmetic
+        closes the cycle by treating `OBJECT` and `OBJ` as one node -- **the exact conflation
+        `4222e32` split apart**, `OBJECT` being a thing on the board and `OBJ` a complete
+        objective. Post-split the graph is `OBJECT -> ATTR -> PRED -> OBJ`, a path that
+        terminates, plus the `val` self-loop. **So 3.0 is the true spectral radius and the
+        number this docstring named as the defect is the correct one.** A repair one layer up
+        falsifying the reading below, and the reading was left asserting the old world.
 
         **THE SHIFT IS EXACT, NOT AN APPROXIMATION.** For a NON-NEGATIVE matrix -- and a
         transfer matrix is counts -- Perron-Frobenius gives a real dominant root `r` with

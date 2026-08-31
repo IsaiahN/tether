@@ -6554,3 +6554,84 @@ admitted set pays more against the ground** — same budget, same count, and the
 terms surviving more settles than the unordered arm's. **`settled_terms` after N cycles, both
 arms, one panel.** Not run. It is cheap and it is not blocked on anything; it is registered here
 so *13 either way* is never read as neutral evidence for the ranking.
+
+---
+
+# THE COVERAGE DENOMINATOR — FIXED, AND THE WARRANT WAS 298 ROWS CONTRADICTING THEMSELVES
+
+**`ARC_BUILD_PLAN` §19.1 recorded this and left it**: *`Gamma.space_estimate` computes
+`sum(units^d)` — `V^d`, not `λ^d`.* It was left because in the snaps world `λ = V = 8` made them
+numerically identical. **In the three-space world they are not, and the consequence was printed
+on every mint row.**
+
+    BEFORE                                        AFTER
+    verdict           n     coverage              verdict           n     coverage
+    depth_exhausted  298    0.005078 .. 0.011065  depth_exhausted  298    1.000000 .. 1.000000
+    pays              13    0.002031 .. 0.011065  pays              13    0.400000 .. 1.000000
+
+> **`depth_exhausted` MEANS *I SAW THE WHOLE SPACE AT THIS DEPTH*. It printed `coverage 0.005`
+> BESIDE ITSELF, 298 TIMES OUT OF 298.** §19.1's own rule is *coverage near 1.0 licenses "not at
+> this depth"; coverage near zero licenses nothing at all.* **Every row made the strong claim in
+> its verdict and withdrew it in its number**, and the two had been sitting adjacent in the
+> ledger the whole time.
+
+### THE FIX IS THE SPECIFIED QUANTITY COUNTED INSTEAD OF APPROXIMATED
+
+§19.1 offers `≈ λ^d` **and says why: because `λ` was already computed.** That is a cost argument,
+not a definition — `λ^d` is the ASYMPTOTIC FORM of the number of type-valid chains at depth `d`,
+and **three things it cannot see are decided per call**: the closure starts only at `in_type`,
+yields only at `out_type`, and now refuses `idn` inside a chain. `space_exact` counts them.
+
+**AND UNLIKE AN ESTIMATE IT HAS A FALSIFIER, WHICH IS THE POINT.** Enumerate with an unbounded
+budget; the count must agree exactly. **100 (in, out, depth) triples across four depths, 0
+mismatches.** `val→val` at depth 3: emitted 15, counted 15 — **the same 15 the `idn` cut left.**
+
+### `λ` IS COMPUTED OVER ATOMS, SO §23.5's MECHANISM COULD NOT HAVE APPEARED
+
+> *More atoms means a larger `λ`, so `λ^d` grows and a fixed budget covers a smaller fraction —
+> which shows up as coverage falling and, if nothing is done, as more false `UNREACHED`.*
+
+**`type_report` builds its matrix from `self.atoms`, which MINT cannot add to.** So `λ` is
+constant for the life of a run whatever the library does, and **a loaded library would have shown
+no fall in coverage no matter what happened** — the mechanism §23.5 makes Phase 3c non-optional
+for was structurally unable to appear. `space_exact` counts over `units()`, which grows as the
+ground pays for chunks. **Fourth null-with-a-named-cause, and this one was found before the null
+rather than after.**
+
+### AND IT WAS POINTING THE ESCALATION LADDER AT THE WRONG RUNG
+
+**The space at depth 3 is 15 candidates, not 2,954.** `budget_spent` never occurs in the run —
+the budget was never the binding constraint. **Under `V^d` the agent read as having seen 0.5% of
+a large space, which is a picture that argues for rung 2, *more budget*.** The true picture is
+that rungs 1 and 2 are useless here and only **depth** or **arity** can help. §19.2 is not built,
+so nothing acted on it; **the denominator would have chosen the rung when it is.**
+
+
+---
+
+# `type_report`'s DOCSTRING WAS MEASURING A GRAPH `4222e32` HAD ALREADY DELETED
+
+**Found while checking `λ` before using it as a denominator.** The docstring reads the
+three-space type graph as a **3-cycle `OBJ → ATTR → PRED → OBJ`**, gives the true spectral radius
+as **`3.5569 = (5*3*3)^(1/3)`**, and calls the iteration's **`3.0000`** the bug — *the missing
+0.557 was exactly the cycle*.
+
+    the graph as it actually is
+      OBJECT -> ATTR   5        a thing on the board, then one of its attributes
+      ATTR   -> PRED   3
+      PRED   -> OBJ    3        ... a COMPLETE OBJECTIVE. the path ends here
+      val    -> val    3        the only cycle
+
+> **`(5*3*3)^(1/3)` CLOSES THE CYCLE BY TREATING `OBJECT` AND `OBJ` AS ONE NODE** — which is the
+> exact conflation commit `4222e32` was written to split, `arc_atoms.py`'s own comment saying so:
+> *under one name the type graph had a node that was two things, and the closure composed across
+> it — 225 pipelines at depth 4.* **So 3.0 is the true spectral radius, and the docstring names
+> the correct value as the defect.**
+
+**A REPAIR ONE LAYER UP FALSIFYING THE READING BELOW, AND THE READING KEPT ASSERTING THE OLD
+WORLD.** The law is already filed — *a repair can break the layer above, and that is where causes
+get asserted* — **and this is the first instance where the broken layer is a DOCSTRING rather
+than a check.** Nothing could go silent, because nothing was running: a stale measurement claim
+in prose is inert until someone believes it, and **the someone was going to be whoever wired
+`λ^d` in as the denominator.** Repaired at source.
+
