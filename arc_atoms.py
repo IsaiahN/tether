@@ -42,20 +42,43 @@ sys.dont_write_bytecode = True
 # OFF the objective. Well-typed, meaningless, and refusing that is what the type system is
 # for. `grammar.py` had kept them apart all along as OBJECT and OBJ.
 OBJECT, OBJ = "OBJECT", "OBJ"
-ATTR, PRED, QUANT, VAL = "ATTR", "PRED", "QUANT", "val"
+# `ATTR` IS A SPACE, NOT A TYPE, AND THE CODE MADE IT A TYPE. §11.2's table names
+# `ATTR x ATTR -> PRED` as one of THREE COMPOSITION SPACES; §12.3's table names the types
+# inside it -- `OBJ -> COLOUR`, `OBJ -> POSITION`, `OBJ -> EXTENT`, `OBJ -> SHAPE`. `_relate`
+# cited §11.2 and typed on the space's name, which is correct about the space and wrong about
+# the type: it made `above` -- an ORDER -- apply to a colour, 4 of the 60 terms in
+# `OBJECT -> {PRED, OBJ}` at depth 3. Well-typed and meaningless, and the colour ruling is why:
+# a colour is a LABEL that permutes on refresh, so `>` on it compares two arbitrary indices.
+COLOUR, POSITION, EXTENT, SHAPE = "COLOUR", "POSITION", "EXTENT", "SHAPE"
+COMPARABLE = (COLOUR, POSITION, EXTENT)   # equality is meaningful on all of them
+ORDERED = (POSITION, EXTENT)              # order is meaningful only on these
+PRED, QUANT, VAL = "PRED", "QUANT", "val"
 
 
 def _extract() -> list[Atom]:
-    """`OBJECT → ATTR`. One per sensor 2b already computes, wrapped and not rewritten."""
+    """`OBJECT → COLOUR | POSITION | EXTENT`. One per sensor 2b already computes.
+
+    **WHICH FIVE THESE ARE WAS NEVER DECIDED.** They are the object record's keys that happen
+    to hold an `int`; `cells` and `shape` hold frozensets and were skipped by the wrapping, not
+    by a rule. §12.3 admits NINE sensors on *the loop cannot run without it* and three of them
+    are reachable here -- colour, position, extent. **The ceiling on what can be represented is
+    an encoding accident**, and the next reader will assume five was chosen.
+    """
     def pick(key: str):
         def fn(o: Any, _c: Ctx) -> Any:
             return o.get(key, 0) if isinstance(o, dict) else o
         return fn
-    return [Atom(k, pick(k), OBJECT, ATTR) for k in ("colour", "row", "col", "h", "w")]
+    return [Atom(k, pick(k), OBJECT, t)
+            for k, t in (("colour", COLOUR), ("row", POSITION), ("col", POSITION),
+                         ("h", EXTENT), ("w", EXTENT))]
 
 
 def _relate() -> list[Atom]:
     """`ATTR → PRED`, reading a second ATTR as an operand.
+
+    `same` and `other` are EQUALITY and hold on every attribute; `above` is ORDER and holds
+    only on `POSITION` and `EXTENT`. That is the whole of the split -- one atom refused three
+    compositions, and it is refused by TYPE rather than by a rule naming `colour`.
 
     §11.2 types this `ATTR × ATTR → PRED`. The operand's type is not checked -- see the
     module note -- so the arity is real and the typing of the second argument is not.
@@ -69,9 +92,12 @@ def _relate() -> list[Atom]:
     def above(v: Any, c: Ctx) -> Any:
         return int(bool(c.operands) and v > c.operands[0])
 
-    return [Atom("same", same, ATTR, PRED, reads_operand=True),
-            Atom("other", other, ATTR, PRED, reads_operand=True),
-            Atom("above", above, ATTR, PRED, reads_operand=True)]
+    return [Atom("same", same, COMPARABLE[0], PRED, reads_operand=True,
+                 also_accepts=COMPARABLE[1:]),
+            Atom("other", other, COMPARABLE[0], PRED, reads_operand=True,
+                 also_accepts=COMPARABLE[1:]),
+            Atom("above", above, ORDERED[0], PRED, reads_operand=True,
+                 also_accepts=ORDERED[1:])]
 
 
 def _quantify() -> list[Atom]:

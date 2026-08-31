@@ -6671,3 +6671,83 @@ unexercised one**, and the two are indistinguishable by any measurement taken no
 decided which of those it was, not judgement** — the same accident that made `A6i`'s `BUDGET`
 worth recording while nothing was wrong.
 
+
+---
+
+# ELEVEN OF FOURTEEN ATOMS ARE NEVER ENUMERATED — EXTRACT, RELATE AND QUANTIFY ARE INERT
+
+**Found while measuring the warrant for the `ATTR` split, and it is larger than the warrant.**
+Every `enumerate_closure` call in the live loop asks `("val", "val")` — three sites in `tether.py`,
+one in `world.py`, one in `snaps.py`.
+
+    reachable from (val, val)   idn  translate  recolour
+    never enumerated            colour row col h w · same other above · all any none
+
+> **§11.2 CALLS EXTRACT THE DECISIVE SPACE** — *without extractors there are no attributes;
+> without attributes no predicates can be stated; without predicates no objective can be posed*,
+> and it puts the break at link 2 of Figure 3's chain. **It is built, typed, and the mint never
+> asks for it.** The three-space work exists as a vocabulary the loop has no way to reach.
+
+**Fifth flavour of *mechanism present, never reached*, and the largest.** It is also the reason
+two of today's numbers read as they do: `λ = 3.0` is the `val` self-loop **because the val
+self-loop is the only part of the graph anything walks**, and the depth-3 space is 15 candidates
+for the same reason. **Both were read as facts about the closure and they are facts about one
+corner of it.**
+
+---
+
+# `ATTR` WAS A SPACE'S NAME USED AS A TYPE — SPLIT 2026-08-30
+
+**§11.2's table names three composition SPACES**, one row of which is `ATTR × ATTR → PRED`.
+**§12.3's table names the TYPES**: `OBJ → COLOUR`, `OBJ → POSITION`, `OBJ → EXTENT`, `OBJ → SHAPE`.
+`_relate` cited §11.2 and typed on the space's name.
+
+> **CORRECT ABOUT THE SPACE, WRONG ABOUT THE TYPE** — and the citation is why it survived, which
+> is `_bindings`' finding arriving a second time: **a wrong implementation with a right source
+> reads as derived, and so as already checked.**
+
+**The consequence was `above` — an ORDER — applying to a colour**, which the colour ruling says is
+a label that permutes on refresh, so `>` compares two arbitrary indices.
+
+    closure OBJECT -> {PRED, OBJ}, depth 3      before   after
+      terms                                        60      56
+      `above` on POSITION or EXTENT                16      16
+      `above` on a COLOUR                           4       0
+      `colour . same`, `colour . other`            yes     yes
+
+**The falsifier was *fewer meaningless terms, the same legitimate ones*, and it passes.** Equality
+holds on every attribute and is untouched; order is refused by TYPE rather than by a rule naming
+`colour`. **`space_exact` tracked the split with no change** — 196 (in, out, depth) triples, 0
+mismatches — because the denominator is counted over the same `accepts` the closure walks.
+
+### AND IT DOES NOT MOVE `λ`, WHICH IS A DIFFERENT ITEM
+
+`λ` is 3.0 before and after; types 5 → 7. §12.5's *what changes is that the type graph becomes
+sparse — which is the thing that was making `λ` uninformative* **is about the PREDICT atoms
+getting real types instead of `val → val`.** The `ATTR` split sparsifies a region nothing walks.
+
+### NOTHING ENTERED Γ, SO NO ADMITTING CLAUSE IS OWED YET
+
+**This is a retyping of atoms already present, not an entry.** The `necessary` stamp for `shape`,
+`overlap`, `delta` and `touching` is owed **at the moment they enter**, on §12.3's *the loop
+cannot run without it* — and the three-of-nine split is an encoding accident rather than a second
+admission decision, so the ablation partition is unaffected.
+
+---
+
+# §12.4 DOES NOT SPECIFY THE INTERSECTION QUERY — THE INDEX IS A PARALLEL MECHANISM
+
+**Section check, asked before integrating the attribute work.** §12.4's trigger is an EQUALITY
+test — *two slots with the same attribute vector and different residuals* — and its three guards
+are support (*two slots differ and we cannot tell them apart*), reachability (**a composition of
+sensors splits them**), novelty.
+
+> **THAT IS A DISCRIMINATION QUERY: IN, TWO ATTRIBUTE VECTORS; OUT, A SENSOR THAT SEPARATES
+> THEM.** An attribute index answers the inverse — in, attribute names; out, atoms carrying them.
+> **§12.5 names the candidate generator outright**: *the sensor closure is the same enumerator.*
+
+So the index is not §12.4's input, and cannot borrow its warrant. **It is a retrieval structure
+over a large candidate set, which is §15.3 and §23.5's question**, and it has to be argued there —
+where the standing finding is that `_explains` is `retrieve()`'s only consumer and the ranking
+feeds a decision it cannot change.
+

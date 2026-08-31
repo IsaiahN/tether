@@ -75,6 +75,17 @@ class Atom:
     # and not the operand. `None` means UNDECLARED and is checked nowhere -- an absence the
     # binder reports rather than a permission.
     operand_type: str | None = None
+    # MORE THAN ONE INPUT TYPE, because `ATTR` was one name over two quantities. §11.2 names
+    # `ATTR x ATTR -> PRED` as a composition SPACE and §12.3 names the TYPES in it -- COLOUR,
+    # POSITION, EXTENT, SHAPE -- and reading the space's name as a type is what let `above`
+    # apply to a colour. Equality holds on all of them; order holds only on some. An atom
+    # therefore accepts a SET, and duplicating atoms per type was the alternative: `units()`
+    # dedups on name, so that would have put the type into the term's identity and its handle.
+    also_accepts: tuple[str, ...] = ()
+
+    @property
+    def accepts(self) -> tuple[str, ...]:
+        return (self.in_type, *self.also_accepts)
 
     def __repr__(self) -> str:
         return f"Atom({self.name})"
@@ -109,6 +120,10 @@ class Term:
         if self.operand:
             base = f"{base}<{self.operand}>"
         return f"{base}?{self.guard}" if self.guard else base
+
+    @property
+    def accepts(self) -> tuple[str, ...]:
+        return self.atoms[0].accepts
 
     @property
     def in_type(self) -> str:
@@ -497,7 +512,7 @@ class Gamma:
             stats["units"] = len(units)
             stats["estimate"] = self.space_exact(units, in_type, out_type, max_depth)
             stats["seen"] = 0
-        start = [u for u in units if u.in_type == in_type]
+        start = [u for u in units if in_type in u.accepts]
         # §23.5's PREREQUISITE, and it is not a new judgement. *Loading generously requires
         # retrieval-by-characterised-residual, not enumeration -- a big library is an asset
         # when you look things up by the shape of your gap and a liability when you walk it in
@@ -550,7 +565,7 @@ class Gamma:
                     # So the cut is on COMPOSITION, not on membership, and `_predict`'s fallback
                     # reads `library["idn"]` directly and is untouched.
                     nxt += [chain + u.atoms for u in units
-                            if u.in_type == chain[-1].out_type
+                            if chain[-1].out_type in u.accepts
                             and not any(a.name == IDN_NAME for a in (*chain, *u.atoms))]
             if spent:
                 break
@@ -578,18 +593,18 @@ class Gamma:
         whatever happened. `units` grows as the ground pays for chunks.
         """
         free = [u for u in units if not any(a.name == IDN_NAME for a in u.atoms)]
-        total = sum(1 for u in units if u.in_type == in_type and u.out_type == out_type)
+        total = sum(1 for u in units if in_type in u.accepts and u.out_type == out_type)
         # length 1 counts every unit; length > 1 only the idn-free ones, both as the head of
         # the chain and as each extension -- the closure's rule, not a separate policy
         live: dict[str, int] = {}
         for u in free:
-            if u.in_type == in_type:
+            if in_type in u.accepts:
                 live[u.out_type] = live.get(u.out_type, 0) + 1
         for _ in range(2, max_depth + 1):
             nxt: dict[str, int] = {}
             for t, n in live.items():
                 for u in free:
-                    if u.in_type == t:
+                    if t in u.accepts:
                         nxt[u.out_type] = nxt.get(u.out_type, 0) + n
             live = nxt
             total += live.get(out_type, 0)
@@ -626,12 +641,14 @@ class Gamma:
         the eigenvalue; the growth ratio is what converges, so `v` is normalised to sum 1 and
         `lambda` is the L1 mass of `Mv`.
         """
-        types = sorted({a.in_type for a in self.atoms} | {a.out_type for a in self.atoms})
+        types = sorted({t for a in self.atoms for t in a.accepts}
+                      | {a.out_type for a in self.atoms})
         idx = {t: i for i, t in enumerate(types)}
         n = len(types)
         m = [[0.0] * n for _ in range(n)]
         for a in self.atoms:
-            m[idx[a.in_type]][idx[a.out_type]] += 1.0
+            for t in a.accepts:
+                m[idx[t]][idx[a.out_type]] += 1.0
         shift = 1.0
         for i in range(n):
             m[i][i] += shift
