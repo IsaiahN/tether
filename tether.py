@@ -537,6 +537,17 @@ class Agent:
 
     # -- step 2 -----------------------------------------------------------------------
 
+    def _rebindings(self, term: Term, slot: str):
+        """The term as held, then -- only if it arrived unbound and reads an operand -- the
+        typed re-bindings of it. **Composition crosses, binding does not**, so a loaded term
+        has to be re-bound at the destination or it is the identity here."""
+        yield term
+        if not term.reads_operand or term.operand:
+            return
+        for b in self.slots:
+            if b != slot and self._operand_fits(term, slot, b):
+                yield Term(term.atoms, operand=b, guard=term.guard)
+
     def _library_fit(self, slot: str, exclude: str | None) -> str | None:
         """3c / §15.3: ask for the term by DESCRIBING THE GAP, not by walking the registry.
 
@@ -550,7 +561,7 @@ class Agent:
         hist = self.history(slot)
         if not hist:
             return None
-        gap = retrieval.characterise(hist, slot, list(self.alphabet))
+        gap = retrieval.characterise(hist, slot, list(self.alphabet), self.slot_types)
         # THE GAP IS CITED BEFORE THE PULL, AND THE ROW IS WHAT PROVES IT. §15.3: *a retrieval
         # requires a characterised residual, so it is a derivation step: it cites the gap, it
         # lands in the ledger, and the gate can check that the citation preceded the pull.*
@@ -562,13 +573,36 @@ class Agent:
                                "consumers: the pull count, the description's ordering proof, "
                                "and an import's shadow test"))
         for n in retrieval.retrieve(self.gamma.library, gap):
-            if n != exclude and self._explains(self.gamma.library[n], slot, hist):
-                st = self.gamma.stamps.get(n)
+            if n == exclude:
+                continue
+            # RE-BIND WHAT ARRIVED WITHOUT A BINDING. `save` drops the operand because a slot
+            # name is an instance, so an IMPORTED operand-reading term is `idn` here -- both
+            # `translate` and `recolour` return `v` on empty operands -- and `_explains` tests
+            # behaviour, so it could never explain a slot that moves. Binding is re-decided at
+            # the destination for every locally minted term; the import path never did it.
+            #
+            # ONLY IMPORTS PAY THIS. Every term made here carries its binding, so the candidates
+            # are exactly the loaded ones, and a cold run adds nothing. Typed by
+            # `_operand_fits`, which is the same filter the mint uses.
+            for cand in self._rebindings(self.gamma.library[n], slot):
+                if not self._explains(cand, slot, hist):
+                    continue
+                held, n = n, (n if cand.name == n
+                              else (cand.name if cand.name in self.gamma.library
+                                    else self._install_reuse(cand, slot)))
+                st = self.gamma.stamps.get(held)
                 # STAMPS ARE DICTS. `getattr(st, "origin")` returned None on every pull, so
                 # the transfer column would have read *no imported term was ever pulled*
                 # whatever the truth -- sixth instance of an absence rendered as a value, and
                 # written in the same session that recorded the flavour.
+                #
+                # AND THE ROW CARRIES THE COMPOSITION AND THE HELD NAME. A re-bound import is
+                # installed under a NEW name stamped `accepted`, so a column keyed on the
+                # imported NAME could never match it however well transfer worked. The
+                # composition is what crossed, and it is what the reading has to key on.
                 self.led.record(self.cycle, "ROUTE", slot, "pull", term=n,
+                                held=held, chain=" . ".join(a.name for a in cand.atoms),
+                                rebound=held != n,
                                 origin=(st or {}).get("origin"),
                                 admitted=(st or {}).get("admitted"),
                                 reads="a library entry REACHED FOR -- 14.7's bench pull")
@@ -1107,7 +1141,7 @@ class Agent:
             # §23.5: retrieval and the rank function are PREREQUISITES for a loaded library,
             # *otherwise loading makes the agent worse by drowning every search* -- and the
             # library is loaded by design as of the persistence ruling.
-            gap = retrieval.characterise(robs, slot, list(self.alphabet))
+            gap = retrieval.characterise(robs, slot, list(self.alphabet), self.slot_types)
             by_fit = partial(retrieval.fits, gap=gap, in_type="val", out_type="val")
             for cand in self.gamma.enumerate_closure("val", "val", self.cfg.max_depth,
                                                      self.cfg.budget, stats, order=by_fit):
@@ -1288,6 +1322,14 @@ class Agent:
             cross = tkey != slot
             if left == 0.0:
                 self.explain(slot, base - left)
+                # THE SWEEP IS A PULL AND EMITTED NO PULL ROW. `reused()` counts `pull` rows
+                # and this is the only path that RE-BINDS, so every reuse it found was
+                # invisible to the bench-pull and transfer columns both.
+                self.led.record(self.cycle, "ROUTE", slot, "pull", term=cand.name,
+                                held=tkey, chain=" . ".join(a.name for a in cand.atoms),
+                                rebound=True, via="sweep",
+                                origin=(self.gamma.stamps.get(tkey) or {}).get("origin"),
+                                reads="a library entry reached for BY THE SWEEP")
                 self.chain.note_reuse_attempt(f"closed:{how}")
                 self.chain.note_reused()
                 self.chain.note_cleared()

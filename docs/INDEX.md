@@ -7654,3 +7654,51 @@ target slot's §12.2 type. `characterise` knows the slot and can carry it.
 another's is inert however wide its spread, **and nothing in the original registration would have
 reported it.**
 
+
+---
+
+# THE TRANSFER COLUMN HAS A SUBJECT — AND THE KEY THAT MOTIVATED IT DID NOT CAUSE THE RESULT
+
+    F1  retrieve returns every library name   29 of 29 -- ORDERS ONLY          PASSES
+    F2  key 3 vs key 2 identical              88.6%, was 87.3%                 FAILS
+
+    TRANSFER  ls20 -> sk48, 18 steps each
+      imported_held     2
+      imported_pulled   2   translate . translate x7 · recolour . translate x1
+      pulled_elsewhere  both -- handle prefix is `ls20`, pulled on `sk48`
+      never_pulled      none
+
+**THE THREE REASONS ARE CLOSED AND THE NUMBER IS A MEASUREMENT.** An unbound import computed the
+identity — `translate . translate` on 7 returned **7**, re-bound it returns **13**. The sweep
+re-bound and emitted no `pull` row. A re-bound import installs under a new name stamped
+`accepted`, so a name-keyed column could never match it. **Re-bind at the pull site, a pull row
+from the sweep, and a column keyed on the composition.**
+
+### AND THE AMENDMENT I DERIVED MADE THE KEY WORSE
+
+**F2 was registered from the re-read: *a key that duplicates another is inert however wide its
+spread*.** The fix — `SAME_AS_TARGET` means *the operand has the target's type*, so ask whether
+the TARGET's type varied — is correct about what `SAME_AS_TARGET` means **and moved the agreement
+from 87.3% to 88.6%.** It reduced the independent signal it was derived to restore.
+
+> **SO §15.3's THIRD KEY IS SUBSTANTIALLY THE ARITY KEY WEARING A SECOND NAME**, and a derivation
+> from what a constant *means* did not fix it. **The remaining independent signal is `recolour`'s
+> typed `COLOUR` operand and nothing else.**
+
+### WHICH MAKES THE HONEST ATTRIBUTION UNCOMFORTABLE AND WORTH STATING
+
+**F1 guarantees `retrieve` returns EVERY name, so ordering cannot determine whether a term is
+found — only when.** The transfer result therefore comes from **re-binding, the sweep's row, and
+the composition key**. The two key changes that motivated the whole build — types instead of slot
+names, `operand_type` instead of `operand` — **are correct, are what made *pattern crosses,
+instance does not* apply to retrieval, and did not cause this number.**
+
+**Following the key through the pull site is what exposed the other three defects.** The
+motivation was sound and the mechanism it motivated was not the one that worked.
+
+### WHAT IT DOES NOT LICENCE, PRE-REGISTERED BEFORE THE RUN
+
+**One pair of games, 18 steps, two compositions.** And **a rise from 0 is not an improvement over
+a measured 0** — the old number measured nothing, so this reading has no predecessor. **Per game,
+never pooled.**
+

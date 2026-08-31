@@ -30,10 +30,13 @@ from __future__ import annotations
 import sys
 from typing import Any
 
+from gamma import SAME_AS_TARGET
+
 sys.dont_write_bytecode = True
 
 
-def characterise(robs: list, slot: str, slots: list[str]) -> dict:
+def characterise(robs: list, slot: str, slots: list[str],
+                 types: dict[str, str] | None = None) -> dict:
     """THE GAP, DESCRIBED. `R`'s own structure, computed from the residual and nothing else.
 
     `arity` is how many slots the gap involves: a residual whose frames all hold one slot's
@@ -47,7 +50,14 @@ def characterise(robs: list, slot: str, slots: list[str]) -> dict:
     varies = tuple(s for s in others
                    if len({st.get(s) for st, _, _ in robs if s in st}) > 1)
     invariant = tuple(s for s in others if s not in varies)
-    return {"arity": 1 + (1 if varies else 0), "varies": varies,
+    # WHICH TYPES VARIED, NOT WHICH SLOTS -- and this is the key that CROSSES. A slot name is
+    # an instance: `o11.col` does not exist on the next board, so a key holding one can only
+    # ever match at home. *Vocabulary permanent, instances transient*, applied to the
+    # RETRIEVAL KEY -- the one place the ruling had not reached, though the stored term has
+    # obeyed it since `save` dropped the binding. Figure 9's form: arity and scale, no ids.
+    tv = tuple(sorted(types[s] for s in varies if s in types)) if types else ()
+    return {"arity": 1 + (1 if varies else 0), "varies": varies, "varies_types": tv,
+            "target_type": (types or {}).get(slot),
             "invariant": invariant, "n": len(robs)}
 
 
@@ -71,7 +81,11 @@ def key_of(term: Any) -> tuple:
     operand may still ignore it. **`fits` orders and excludes nothing, so an over-approximation
     is the right shape**; a gate would need the exact set and would have to run the term.
     """
-    return (term.in_type, term.out_type, 2 if term.reads_operand else 1, term.operand)
+    # `operand_type` AND NOT `operand`. The first is declared at construction and is a TYPE,
+    # so it survives `save` dropping the binding; the second is a slot name and does not. An
+    # imported term keyed on `operand` scored as if unary on every gap, which is the shape of
+    # the transfer column having no subject.
+    return (term.in_type, term.out_type, 2 if term.reads_operand else 1, term.operand_type)
 
 
 def fits(term: Any, gap: dict, in_type: str, out_type: str) -> int:
@@ -87,7 +101,17 @@ def fits(term: Any, gap: dict, in_type: str, out_type: str) -> int:
     gap has nothing else varying -- an invariance claim rather than an absence of one.
     """
     t_in, t_out, arity, reads = key_of(term)
-    aimed = (not gap["varies"]) if reads is None else (reads in gap["varies"])
+    if reads is None:
+        aimed = not gap["varies"]
+    elif reads == SAME_AS_TARGET:
+        # THE TARGET'S TYPE, NOT "ANYTHING MOVED". The first version asked `bool(varies)` and
+        # measured as a CONSTANT the moment `delta` published 42 slots that vary every step:
+        # 154 of 154 gaps had something moving, and the key collapsed onto arity at 87.3%.
+        # `SAME_AS_TARGET` says the operand HAS THE TARGET'S TYPE, so the question is whether
+        # that type is among the ones that moved -- discriminating, and still instance-free.
+        aimed = gap.get("target_type") in gap.get("varies_types", ())
+    else:
+        aimed = reads in gap.get("varies_types", ())
     return (2 * (t_in == in_type and t_out == out_type)
             + (arity == gap["arity"]) + bool(aimed))
 

@@ -116,13 +116,31 @@ def transfer(rows: list[dict], gamma) -> dict:
     ambiguous. **A composition that names its parts, carries the game it was born in, and was
     pulled against a residual in a different one** is transfer with a handle on it.
     """
-    held = {n: t for n, t in gamma.library.items() if t.origin == "imported"}
-    p = reused(rows)
-    pulled = {n: p[n]["pulls"] for n in held if n in p}
+    # KEYED ON THE COMPOSITION, WHICH IS WHAT CROSSED. Keyed on the NAME it could never match:
+    # a re-bound import installs under a new name stamped `accepted`, so the column would read
+    # zero however well transfer worked -- one of three independent reasons the old number was
+    # not a measurement. The others: an unbound operand-reading term is `idn`, so it explained
+    # nothing; and the sweep, the only path that re-bound, emitted no `pull` row.
+    held: dict[str, list[str]] = {}
+    for n, t in gamma.library.items():
+        if t.origin == "imported":
+            held.setdefault(_chain(t), []).append(n)
+    pulled: dict[str, int] = {}
+    foreign: dict[str, bool] = {}
+    for r in rows:
+        if r.get("event") != "pull":
+            continue
+        d = r.get("detail") or {}
+        c = d.get("chain")
+        if c in held:
+            pulled[c] = pulled.get(c, 0) + 1
+            h = gamma.handles.get(d.get("held") or "") or ""
+            foreign[c] = bool(h) and not h.startswith(f"{gamma.game}_")
     return {"imported_held": len(held),
             "imported_pulled": len(pulled), "pulls": pulled,
+            "pulled_from_elsewhere": {c: v for c, v in foreign.items() if v},
             "never_pulled": sorted(set(held) - set(pulled)),
-            "handles": {n: gamma.handles.get(n) for n in held},
+            "handles": {c: [gamma.handles.get(n) for n in ns] for c, ns in held.items()},
             "reads": ("an imported term pulled here is TRANSFER; one never pulled was a "
                       "guess. The handle's prefix is the game it was born in, so a pull row "
                       "and a handle together say composed there, used here")}
