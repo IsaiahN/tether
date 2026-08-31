@@ -7753,3 +7753,44 @@ fifth signal invented here is the improvised-metric failure at the level of a ke
 names the remaining one — `effect shape`, *what changed, not what caused it* — and it is the one
 key never built.**
 
+
+---
+
+# `_changed` CLOSES, AND THE SHARPER TEST FINDS `shape` — 43 OF 43
+
+**FIGURE 6 SET THE TEST: *is anything, at any resolution, already returning something that fails
+to resolve?*** Applied to `_changed` in its weak form and its strong one.
+
+    WEAK    changed cells lying outside every tracked object
+              ls20  728 changed, 0 outside        g50t  246 changed, 0 outside
+    STRONG  objects whose CELLS changed while no published attribute moved
+              ls20   72 changed, 13 silent (18.1%)  -- SHAPE moved in 13
+              g50t   34 changed,  6 silent (17.6%)  -- SHAPE moved in  6
+              sk48  259 changed, 24 silent  (9.3%)  -- SHAPE moved in 24
+
+**`_changed` CLOSES ON THE WEAK TEST.** Every changed cell belongs to a tracked object, so it sees
+no region the decomposition misses — **measured, where my earlier answer was the arity argument.**
+And §12.3 glosses it *where to look*: an attention reading, so `_extract` was never its consumer.
+
+**THE STRONG TEST FINDS `shape`, ON EVERY PANEL, AT 43 OF 43.** An object's cells change, the
+agent's entire slot vocabulary holds still, and **`shape` moved every time.** Per game, never
+pooled: 18.1%, 17.6%, 9.3% — three boards, three rates, not one board's quirk.
+
+> **THE `delta` FINDING AGAIN AND STRONGER.** `delta` was never computed by anything; **`shape` is
+> computed every step by the tracker, for identity, and discarded.** Sensor 5, one of the nine, so
+> no entry question arises — and *the composable set was decided by which sensors happened to
+> return integers* now has its cost measured: **43 invisible changes, 100% of them shape.**
+
+### THE BLOCKER IS NOT WHAT I WAS ABOUT TO SAY
+
+**`correction_bits` is already the comparable-only form:** `0.0 if a % alphabet == b % alphabet
+else log2(alphabet)`. **An equality test that never uses order** — the `%` is normalisation, not a
+metric. So §12.2 typing SHAPE as *comparable, not orderable* costs the residual accounting
+nothing, and the machinery is there.
+
+**WHAT IS ACTUALLY IN THE WAY IS THE ALPHABET.** `log2(alphabet)` is what being wrong costs, and a
+shape slot has no bounded alphabet declared. **A derivable form exists** — a shape is a subset of
+its own bounding box, so the uniform code over that space is `h*w` bits, from two attributes
+already published — **but that is per object per step, where `_alphabets` is per slot and declared
+once by the domain.** That is a contract question and a ruling, not a line.
+

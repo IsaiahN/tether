@@ -65,6 +65,23 @@ type is the opposite of generalising — anything branched on type is dead weigh
 cannot transfer. The only legitimate distinction is thin I/O, detected contingently per
 step, never used as a label.
 
+### Why the constraints are the constraints
+
+**Each is the answer to *what would make this claim falsifiable*, and not one of them is a design
+preference.**
+
+| the constraint | the claim it makes falsifiable |
+|---|---|
+| **the ground is the only metric** | a frame cannot score itself with a quantity it produces |
+| **the bargain prices terms** | a term that explains everything by saying nothing must fail |
+| **reach must be total** | a partial closure makes every null unreadable — *only a sealed room can be searched to the end*, so an abstention counts only when it names the closure it searched |
+| **import must be provenanced** | convergent derivation and adopted import are **indistinguishable in the contents**; only the record of where each came from separates them |
+| **the knowledge must be domain-agnostic** | the membrane lets only METHODS cross — a binding is a recording, a composition is a method |
+
+**REMOVING ANY ONE LEAVES A SYSTEM THAT CAN LOOK LIKE IT WORKS AND CANNOT BE SHOWN TO.** That is
+the test to apply when a constraint feels expensive: not *is this slowing us down* but **which
+claim stops being checkable without it.**
+
 ### Metrics
 
 **Only the ground counts.** A proxy metric is an anchor that updates, and an updating
