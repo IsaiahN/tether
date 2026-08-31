@@ -6962,3 +6962,114 @@ five other instances of exactly that.** The report now reads through it.
 > external caller not count. **Being able to demonstrate it from a script is precisely the state
 > ISOLATED exists to refuse**, and it is the seventh site.
 
+
+---
+
+# ELEVEN OF FOURTEEN WAS TRUE AS A FACT AND WRONG AS A DIAGNOSIS — RETRACTED
+
+**The item was *the mint asks for the slot's declared type*, and it is measurably wrong.**
+
+    RELATE/QUANTIFY candidates against real slot histories, ls20/20
+      (candidate, binding) pairs tried    476
+      pairs that BEAT the held term         0
+      closest any came                     25.9 bits WORSE
+      all(v) -> 0 or 1                     vs a slot value in [0, 13)
+
+**§11.2's TABLE ASSIGNS THE CONSUMER AND I READ PAST IT.**
+
+    PREDICT             slot x action -> slot         what can be BET ON
+    RELATE / QUANTIFY   ATTR x ATTR -> PRED -> OBJ    what can be STATED AND WANTED
+    EXTRACT             grid x object -> ATTR         what can be REPRESENTED AT ALL
+
+**The mint bets. These atoms state.** Everything downstream of an extract atom is a truth
+value, so **no chain from a slot type can produce a slot value** — not marginally, structurally.
+
+> **SO *ELEVEN OF FOURTEEN ARE NEVER ENUMERATED* IS THE CORRECT BEHAVIOUR OF A MINT THAT BETS.**
+> Five EXTRACT atoms duplicate what perception already publishes as slots; six RELATE/QUANTIFY
+> atoms cannot pay a betting bargain. **The fact was right, the reading was that a space was
+> being starved, and the space was never the mint's.** Same shape as `differ: True` — a true
+> observation whose subject was wrong.
+
+### AND BUILDING IT WOULD HAVE CORRUPTED THE DENOMINATOR COMMITTED AN HOUR AGO
+
+**476 unpayable candidates per slot per cycle enter `space_exact`'s count and `candidates_seen`
+alike.** Coverage rises, `outstanding` does not move, and every `UNREACHED` verdict is taken over
+a space most of whose members are structurally incapable of explaining anything. **A metric whose
+denominator the mechanism changes cannot falsify that mechanism** — the law, arriving at the
+build that would have triggered it.
+
+### THE SIX HAVE TWO SPECIFIED CONSUMERS AND NEITHER IS THE MINT
+
+- **§12.4's discrimination.** *A composition of sensors splits them* — `same(v, operand)`
+  separates two slots with the same attribute vector. **It does not bet, so a truth value is
+  exactly the right output.**
+- **The objective side.** §11.2's *stated and wanted*, and `DISCOVERY` Q21's `score_molecule` —
+  *one bargain, two levels*. A `PRED -> OBJ` chain IS a candidate objective, and `grammar.T.OBJ`
+  glosses `OBJ` as *a complete objective*. `env.objective()` is currently only read.
+
+**WHICH COLLAPSES THE CHAIN'S ITEMS 2 AND 4 INTO ONE.** The six become useful when a
+discrimination consumer exists, and not before — and `shape` is the same case, since `OBJECT ->
+SHAPE` cannot be bet on either. **The whole EXTRACT/RELATE/QUANTIFY half of Γ has one consumer.**
+
+
+---
+
+# THE AUDIT: WHAT THE CORPUS NAMES THAT HAS NO REFERENT — RUN 2026-08-31
+
+**A different search from *what is built and unreached*, which is the one that has been running
+all week.** Every `name(...)` written inside backticks across the seven corpus documents, checked
+against every name the package defines. **39 distinct, and they sort into five classes — only one
+of which is dangerous.**
+
+    A  LOAD-BEARING INSIDE BUILT MACHINERY, no referent      outstanding · explain · density
+    B  ABSENT AND DECLARED ABSENT BY THE CORPUS ITSELF       suppress · Act · Seq · Until
+                                                             holes · parity · ratio
+    C  INSIDE A SECTION THAT IS WHOLLY UNBUILT               orthogonality · prime
+    D  PRESENT UNDER ANOTHER NAME                            position · extent · delta
+                                                             reachability · is_refuted · HAS_COLOUR
+    E  NOT OURS                                              MyAgent · Arcade · choose_action
+                                                             logical_read · float · H · T_A · T_E
+
+**CLASS B IS THE ONE THAT MAKES THE AUDIT WORTH RUNNING, BY BEING SAFE.** `There is no
+`suppress()`` and §15.5's *in the basis today: **no*** are the corpus tracking its own gaps.
+**A gap the corpus declares is not a defect; a gap it does not is.** Without the split, 39 names
+read as 39 problems and the audit would be noise.
+
+### THE NEW HIT IS `density(R)`, AND IT IS `outstanding()`'s SHAPE EXACTLY
+
+**§11.6 settles where the curiosity drive lives, and rests it on the quantity:**
+
+> *the curiosity trigger **must be on the transition channel**, because `density(R) ≈ 0` on the
+> reward channel is the normal state and would fire the drive permanently.*
+
+**The three channels are built. The drive is built. `density` has never been computed** — so a
+placement decision in running code rests on *a panel property asserted from the shape of the
+generator*, which is the corollary's exact subject.
+
+    ls20 / 30 cycles       per bet     per step (what `drive.note_step` consumes)
+      reward                0.0000     0.0000
+      bracket               0.0000     0.0000
+      transition            0.0200     0.8000
+
+**MEASURED, AND THE PREMISE HOLDS** — 0.0000 against 0.8000 is the distinction the argument
+needs. **But the word carries two denominators 40x apart, and under the other one the argument
+fails**: 0.00 against 0.02 is two channels that are both nearly always zero. **`A6i` in a
+quantity rather than a label** — and the corpus's gloss (*`levels_completed` moves rarely*) and
+the code (`note_step`, per step) resolve it the same way without either saying so.
+
+### TWO SIDE FINDINGS
+
+**§15.5's table is stale on one row.** It lists `When(P, R)` under *in the basis today: **no***,
+and `Term.guard` is a real `When(P, R)`, built and committed. `Act`, `Seq` and `Until` are still
+correctly **no**. **Corpus, so recorded and not fixed.**
+
+**`quantifier(ALL/SOME/ONE/NONE)` names four and `_quantify` builds three.** `all`, `any`, `none`
+map to ALL, SOME, NONE. **`ONE` — exactly one — has no atom.**
+
+### THE RATE, AND WHY IT ARGUES FOR RUNNING IT AGAIN
+
+**Two Class-A hits from two items, both found by accident before the search existed.** The search
+is one regex over seven documents and it took minutes. **`what is built and unreached` and `what
+is named with no referent` are different searches over the same corpus**, and only the first had
+ever been run.
+
