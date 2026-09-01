@@ -258,6 +258,33 @@ reads as something that will be enforced, and it will not be.
 6. Writes long comments performing rigour into a codebase nobody reads.
 7. Encodes the answer. The unforgivable one.
 
+### The instantiation check — which comes first, and is not a score
+
+**The only goal right now is a WORKING INSTANTIATION OF THE FRAMEWORK.** Not winning, not a
+count, not a rate. **The test is not of the agent — it is of the framework running as an
+instance in the agent.**
+
+**And it is checkable without any score:** does the loop run end to end — perceive · bet · be
+wrong · mint · settle · promote · import — **with every step producing a receipt that could have
+been refuted and was not.** ARC is a proving surface with the right properties, and
+`levels_completed` is what the surface reports, never what the framework claims.
+
+> **A RUN IS NOT AN INSTANTIATION AND NOT A CONTACT CHANGE.** Figure 11: *an improvement that does
+> not change contact changes nothing.* A measurement introduces nothing. **The answer to too many
+> instruments is never one more instrument** — it is the next mechanism the framework names and
+> the code does not have.
+
+**AND A GROUND READING TAKEN BELOW THE BREAK IS A READING OF NOTHING.** `levels_completed` is
+link 4. With link 2 measured-and-failing and link 3 never reached, zero levels cannot separate
+*the machinery is broken* from *the agent cannot express the objective*. **Run for it when link 3
+exists** — when there is something to diagnose rather than a number with no subject.
+
+**The map, and every entry is a mechanism the framework names rather than a proxy:**
+
+    INSTANTIATED       perceive · the bet · the bargain · minting · promotion · transfer
+    NOT INSTANTIATED   the objective layer · the second consumer for EXTRACT/RELATE/QUANTIFY
+                       · the description vocabulary · everything gated behind those
+
 ### The terminal condition
 
 Not "it improved". Five clauses, each checkable:

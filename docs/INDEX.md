@@ -7895,20 +7895,30 @@ reading reduced the cost and did not make the slot explicable.**
 
 ---
 
-# EVERY READING IN THIS DOCUMENT WAS TAKEN IN THE FIRST ~1% OF AN EPISODE
+# THE GROUND HAS NEVER MOVED — AND MY READING OF WHY WAS A PROXY I BUILT FROM OUR OWN CONFIG
 
-**Measured 2026-08-31, after a week of readings, because nobody had asked.**
+**RETRACTED IN PART, SAME DAY. The measurement stands; the interpretation was invented.**
 
-    a win is            7 levels          `win_levels = 7`, `levels_completed = 0`
-    the budget is       500 actions PER LEVEL, ACCRUING -- up to 3,500 for an episode
-    our runs are        18-40 actions     4-8% of ONE level's budget, ~1% of an episode
-    the ground reads    objective degree FLAT at 0.0 on `ls20` and `g50t`
-                        level 0 -> 0, terminal "" -- no level has ever completed
+    MEASURED    objective degree FLAT at 0.0 on `ls20` and `g50t` over 30 actions
+                level 0 -> 0, terminal "" -- no level has ever completed
+                `win_levels = 7`, `levels_completed = 0`
 
-> **THE FINDING IS NOT THAT THE AGENT CANNOT WIN. IT IS THAT NO RUN HAS EVER BEEN LONG ENOUGH TO
-> LOOK.** Zero levels over 30 actions on a 500-action level is not a result about the agent; it is
-> the absence of a measurement. **And every reading in this document carries that scope condition
-> unstated** — `outstanding`, coverage, the branching test, `bench pulls`, the transfer column,
+    ASSERTED AND NOT MEASURED
+                "500 actions per level, so our runs are ~1% of an episode"
+                `PER_LEVEL = 500` is `arc_run.py:24` -- OURS. A seat-side cap.
+                `CLAUDE.md`'s second firewall says so: the cap is the seat's choice.
+                **NOTHING IN THIS REPO ASKS THE GAME WHAT A LEVEL AFFORDS.**
+                A game that ends at 40 actions is consistent with every number above.
+
+> **I ARGUED AGAINST PROXY METRICS AND THEN BUILT ONE, WITH A DENOMINATOR TAKEN FROM OUR OWN
+> CONFIG AND PRESENTED AS A FACT ABOUT THE WORLD.** The `1%` was arithmetic over a constant we
+> set. **Same shape as `space_estimate`, in the week `space_estimate` was fixed** — and the
+> failure mode is the one `CLAUDE.md` lists against me by name.
+
+> **WHAT SURVIVES: the runs are short and the ground has never moved, and I cannot say short
+> RELATIVE TO WHAT.** Zero levels over 30 actions is the absence of a measurement, not a result
+> about the agent — **and that much needed no assumed denominator to say.** Every reading in this
+> document does carry an unquantified scope condition — `outstanding`, coverage, the branching test, `bench pulls`, the transfer column,
 > §12.4's firing rates, the `delta` and `shape` findings. **All of them are characterisations of
 > the first moments of a game.**
 
@@ -7921,6 +7931,13 @@ null is read as a finding, state what property the panel would need in order to 
 40-action run on a 3,500-action episode cannot reward anything that takes a level to appear**, and
 that was true of every measurement taken this week.
 
-**THE CHEAPEST THING ON THE BOARD IS A LONG RUN**, and it is the only one that can produce a
-reading about clause 1. Nothing else in the register can.
+**AND THE PROPOSAL I DREW FROM IT CONTRADICTED THE ARGUMENT THAT PRODUCED IT.** *Twenty
+findings, three contact changes* — then I proposed a RUN, which is **zero contact changes and the
+purest instrument of all.** Figure 11: *an improvement that does not change contact changes
+nothing.* **The answer to too many instruments is not one more instrument.**
+
+**AND `levels_completed` IS LINK 4, READ BELOW A BREAK AT LINK 2.** Zero levels on a five-slot
+vocabulary cannot separate *the machinery is broken* from *the agent cannot express the
+objective*. **It would be an uninterpretable null with a satisfying story available** — the failure
+named twice this week, walked into a third time by the person naming it.
 
