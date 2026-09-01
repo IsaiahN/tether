@@ -257,6 +257,79 @@ def levels(rows: list[dict]) -> dict:
                       "a statement about the run, not a null about the library")}
 
 
+def reach(rows: list[dict], gamma) -> dict:
+    """**§14.7's FOUR NUMBERS, which §14.8 says to report every run.** *They describe REACH, not
+    success, and the ground still settles everything.*
+
+    **`bench pulls` IS THE MVS, AND *PER PRIMITIVE* IS THE PHRASE THAT MAKES IT ONE.** `reused`
+    counts pulls by TERM NAME -- `translate . translate<o14.row>` -- and §14.7 asks per
+    PRIMITIVE, which decomposes that into the atoms the agent actually reached for. **Which
+    atoms compose most of the rest is not a fifth number; it is this one read correctly.**
+
+    **AND `a never-pulled bench item was a guess` INDICTS WHOEVER STOCKED IT**, so the
+    deliverable has both columns: pulled, and offered-and-never-reached.
+    """
+    # COMPOSITIONS, NOT NAMES. `Term.name` carries the binding and the atom tuple does not, so
+    # a bound settled name never matched and the count read 0 -- which is §14.7's stated FAILURE
+    # SIGNATURE, produced by a comparison rather than by the library. 0 -> 8 and 0 -> 1.
+    settled = {tuple(a.name for a in t.atoms) for t in gamma.settled_terms}
+    units = {u.name: len(u.atoms) for u in gamma.units()}
+
+    # 1. effective atom depth -- the atom count of the deepest chain a depth-3 search reaches.
+    #    Flat at 3 means every unit is an atom and chunking is not compounding.
+    depth = 3 * max(units.values(), default=1)
+
+    # 2. chunk reuse -- how often a settled term appears INSIDE a later mint. §14.7: *zero is
+    #    the failure signature, and it is the one that would otherwise look like progress.*
+    chunk = 0
+    # A CONTIGUOUS SUBSEQUENCE OVER THE ATOM TUPLE, not a substring over the joined name. The
+    # string form is safe for these atom names and is the wrong shape -- it would match a name
+    # that happens to embed another, and the claim is about a chain containing a chunk.
+    #
+    # **OCCURRENCES, NOT TERMS-CONTAINING.** §14.7 says *how OFTEN a settled term appears
+    # inside a later mint*, so a chunk appearing twice in one term counts twice. The other
+    # reading -- how many later terms contain it -- is the smaller number and is not what the
+    # sentence says; recorded here because the phrase admits both and the difference is exactly
+    # the factor that decides whether chunking compounds.
+    for t in gamma.library.values():
+        seq = tuple(a.name for a in t.atoms)
+        if seq in settled:
+            continue
+        for u in settled:
+            k = len(u)
+            chunk += sum(1 for i in range(len(seq) - k + 1) if seq[i:i + k] == u)
+
+    # 3. bench pulls PER PRIMITIVE, and the never-pulled column beside it
+    pulled: dict[str, int] = {}
+    for r in rows:
+        if r.get("event") != "pull":
+            continue
+        d = r.get("detail") or {}
+        for a in (d.get("chain") or d.get("term") or "").split(JOINT):
+            a = a.strip().split("<")[0].split("?")[0]
+            if a:
+                pulled[a] = pulled.get(a, 0) + 1
+    offered = {a.name for a in gamma.atoms}
+    never = sorted(offered - set(pulled))
+
+    # 4. unreached rate over time -- §14.7: *should fall as chunks accumulate.*
+    mints = [r for r in rows if r.get("event") in ("mint", "park")]
+    per: dict[int, list] = {}
+    for r in mints:
+        per.setdefault(r["cycle"] // 5, []).append(
+            (r.get("detail") or {}).get("verdict") in ("budget_spent", "depth_exhausted"))
+    series = [round(sum(v) / len(v), 3) for _, v in sorted(per.items()) if v]
+
+    return {"effective_atom_depth": depth,
+            "chunk_reuse": chunk,
+            "bench_pulls_per_primitive": dict(sorted(pulled.items(), key=lambda kv: -kv[1])),
+            "never_pulled": never,
+            "unreached_rate_over_time": series,
+            "reads": ("§14.7's four. Depth flat at 3 means chunking is not compounding; chunk "
+                      "reuse of zero is the failure signature; a never-pulled primitive was a "
+                      "guess by whoever stocked it; and the unreached rate should FALL")}
+
+
 def reached_and_failed(rows: list[dict]) -> dict:
     """**Descriptions that retrieved nothing.** *I looked for something with this shape and
     found nothing* is an `UNREACHED` with a SUBJECT, and it is the half the visible set exists

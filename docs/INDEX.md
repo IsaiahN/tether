@@ -8378,3 +8378,102 @@ denominator.** Not designed, and not to be guessed at from the shape of a good c
 the life of the project, and the hoist changed **no number** — `455.91` and `526.88` identical.
 **A pure-cost defect leaves no trace in any reading the register keeps.**
 
+
+---
+
+# OPEN QUESTION: DOES THE BOND VOCABULARY THIN WITH LEVEL?
+
+**Recorded as a question, not a claim.** Figure 4: *the transform between scales loses
+information, and that is the point — going up throws away detail, and that is what makes the
+result reapplicable.* **If loss is what carries a composition up, the lowest level is where least
+has been thrown away** — so more bond types would be available there, and higher levels would
+carry coarser relations because that is what survived. **Seven at the term level, fewer at
+whatever composes over terms.**
+
+**AND IT WOULD PARTLY EXPLAIN THE RECIPES.** 2,111 of 2,651 written with `+`. **Read so far as a
+notation failure; it may also be a LEVEL fact** — those recipes describe a coarser level than the
+terms they would compile to, and `+` is what survived the climb. **Both can be true: the notation
+is flat AND the level may genuinely carry less structure.**
+
+> **IT FITS WHAT WE ALREADY SEE, WHICH IS WHY IT IS A QUESTION.** *Fitting what we see* is what
+> the two cut rows of the chemistry mapping were cut for — bond strength and the loop as a
+> macro-molecule — and an analogy is load-bearing only when the target casts a shadow.
+
+**WHEN IT BECOMES MEASURABLE, AND IT IS FURTHER OFF THAN IT LOOKS.** It needs the second level to
+hold more than one SHAPE. Today `ls20` has two terms longer than `max_depth` — **and both begin
+`translate . translate . translate`, so they may be one shape under two bindings.** *Fifty saved
+entries were eleven shapes* is the same collapse, and **a count of terms is not a count of shapes**,
+which is the distinction the question turns on.
+
+
+---
+
+# §14.7's FOUR NUMBERS — BUILT, AND THE MVS WAS NEVER A SEPARATE ITEM
+
+**§14.8: *report the four numbers every run, next to the abstention rate.* None was built.** And
+the MVS is one of them: ***bench pulls, PER PRIMITIVE — which imports the agent actually needed.***
+`summary.reused` counts pulls by TERM NAME; per primitive decomposes those into atoms, **which is
+*which atoms compose most of the rest*, read off what the agent reached for.** Not a fifth number.
+
+> **SO *WHAT IS IT WAITING ON* HAS THE ANSWER: NOTHING.** Deferred three times because I treated
+> it as a study to design rather than a number the corpus had specified — **the third time this
+> week. `score_molecule` had a specified price I went looking for; `contact_first` had a specified
+> consumer I proposed a third thing for; the MVS had a specified form I kept scheduling.**
+
+    ls20   effective atom depth 6 (flat = 3)   unreached over time [0.943, 0.867, 0.919, 0.954]
+           bench pulls  recolour 5 · translate 4 · none 2 · all 2   never pulled 13 of 17
+    g50t   effective atom depth 6              unreached over time [1.0, 0.938, 0.978, 0.992]
+           bench pulls  recolour 17 · translate 3                   never pulled 15 of 17
+
+**EFFECTIVE ATOM DEPTH READS 6 AND NOT 3** — units of length two exist, so a depth-3 search reaches
+six atoms. **It was flat until candidacy landed this morning**, and §14.7's own number reads the
+second level.
+
+**AND THE UNREACHED RATE IS NOT FALLING.** §14.7: *should fall as chunks accumulate — and if it
+does not, reach is not growing whatever the library size says.* **The number reads the failure it
+was built to detect, on its first run.**
+
+### THE NEVER-PULLED COLUMN HAS THREE POPULATIONS, AND I HAD IT AS ONE
+
+    applied to a slot value (an int), the 17 atoms are:
+      9 EXTENSIONALLY `idn`   idn · colour · row · col · h · w · drow · dcol · shape
+      6 truth-producers       same 0 · other 1 · above 1 · all 1 · any 1 · none 0
+      2 predictors            translate · recolour
+
+**`pick`'s non-dict branch returns its argument, so every EXTRACT atom is the identity on an
+integer.** They are never pulled because **`idn` is shorter and wins the bargain outright** — not
+because they are unreachable. **`_library_fit` does not filter by type**: `retrieve` returns every
+name and `_explains` decides, which is why `all` and `none` were pulled on `ls20` — they explain a
+slot sitting at 0 or 1.
+
+> **NINE ATOMS ARE ONE FUNCTION.** I reported the `all`/`any` pair as the extensional collapse in
+> the priors; **the real number is nine**, and the 39-names-7-functions measurement was taken over
+> an alphabet already 9-to-1 redundant **on the input the loop actually supplies.**
+
+**AND *A NEVER-PULLED BENCH ITEM WAS A GUESS* IS RIGHT, WITH THE GUESS NAMED**: that eight
+`OBJECT → ATTR` atoms would do something when handed an integer.
+
+### TWO IMPLEMENTATION CHOICES §14.7 DOES NOT SETTLE, MADE AND RECORDED
+
+**Chunk reuse read 0 because `Term.name` carries the binding and the atom tuple does not** — a
+bound settled name never matched an unbound chain. **§14.7's stated failure signature, produced by
+a comparison rather than by the library.**
+
+**And it now counts OCCURRENCES over a CONTIGUOUS SUBSEQUENCE of the atom tuple.** *How OFTEN a
+settled term appears inside a later mint* reads as occurrences; the alternative — how many later
+terms contain it — is the smaller number and is not what the sentence says. **The substring test
+over the joined name was the wrong shape and would match a name that embeds another.**
+
+
+### AND CHUNK REUSE MOVED THREE TIMES WITHOUT THE LIBRARY CHANGING
+
+    0  / 0    a bound `Term.name` compared against an unbound chain -- never matched
+    8  / 1    compositions, substring over the joined name, terms-containing
+    18 / 2    contiguous subsequence over the atom tuple, OCCURRENCES
+
+**Three readings of one library, and the first is §14.7's stated failure signature.** *Zero is the
+failure signature, and it is the one that would otherwise look like progress* — **and it can be
+produced by the measurement before the library gets a say.** Which is the corollary already filed,
+arriving on the number the corpus singles out: *a metric can report the failure it was built to
+detect, for a reason that is not the failure.*
+
