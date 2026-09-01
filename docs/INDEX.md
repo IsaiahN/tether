@@ -7990,3 +7990,59 @@ it waits on is the agent explaining more.
 in `+`, and `Term` is left-to-right, which is `→`.** The reason it cannot predict and the reason
 `+` has no form are the same reason.
 
+
+---
+
+# THE COMPOSITE SYSTEM HAS ONE LEVEL, AND THE GATE IS THE CLOSURE TEST'S SCOPE
+
+**Measured 2026-09-01, after three threads — `varies`, `≡`, multi-operand — that were all
+downstream of this and none of which moved it.**
+
+    ls20 / g50t, 20 steps each
+      SETTLED terms                              0        0
+      len(units()) at step 1 and step 20      17->17   17->17     never grows
+      terms longer than max_depth                0        0       nothing reused a unit
+      mint rows                                 13        7       ALL verdict "pays"
+      candidates (closed: left == 0)             0        0
+      demotions                                  0        0
+
+**NOTHING HAS EVER SETTLED, SO `units()` HAS NEVER HELD ANYTHING BUT ATOMS.** The second level has
+not failed — **it has never existed.** And *chunk reuse reads zero* is therefore a **tautology**,
+not a finding: no chain can contain a settled term when there are none.
+
+### THE CHAIN, EACH LINK MEASURED
+
+    every mint PAYS and none CLOSES        13 of 13, 7 of 7, `left > 0` every time
+      -> `closes = left == 0.0` is never true, so `candidates` stays empty
+      -> `settle()` requires `name in self.candidates`, so nothing settles
+      -> `units()` = atoms + settled, so it never grows past 17
+      -> no settled term is ever a building block
+      -> ONE LEVEL, structurally
+
+### AND THE TERMS THAT WOULD SETTLE ALREADY EXIST
+
+    close over the WHOLE history   0 of 13    0 of 5
+    close over a SUFFIX of >= 3    7 of 13    3 of 5
+    longest exact suffix seen      12 of 19 observations
+
+**`left` is exactness over the slot's ENTIRE history.** More than half the bound terms are exact
+over a recent stretch and are charged for a stretch they were never fitted to. **The promotion
+path is not failing to find terms — it is refusing the ones it has, on scope.**
+
+> **AND §21.5 IS THE CORPUS SAYING SO.** *Level RESET after a loss — the board is KNOWN — a
+> residual means the model is wrong. Level ADVANCE — the board is UNKNOWN — **a residual means
+> nothing yet.*** `_left` charges it either way.
+
+### THE SUFFIX SIDESTEPS THE THIRD CIRCLE
+
+**The segment check closed because `Segment`'s break events are LEVEL boundaries and there were
+zero of them in 14 steps — and because a segment-scoped residual needs break detection, whose
+signal is the residual.** **A SUFFIX needs no break detection at all**: *how far back does
+exactness extend* is computable without knowing where the regime changed. **The circle has an exit
+and it is the direction of the scan.**
+
+**WHAT IS NOT ESTABLISHED, AND IT IS THE ruling:** whether promoting on a suffix is correct at
+all, what length would qualify, and what it does to false mints. **A term exact on a suffix was
+wrong earlier**, and the defeasible demotion machinery — `refute`, decaying rejection — is what
+would have to carry that. **Nothing is built.**
+
