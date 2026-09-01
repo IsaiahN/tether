@@ -8347,3 +8347,34 @@ expensive enough to notice by it.**
     library, settled                                   identical
     wall clock   the pair timed out at 120s -> 53s + 26s
 
+
+---
+
+# NO SEAT MEASURES COST — A MISSING CHECK CATEGORY, NOT A MISSING RULE
+
+**`_bindings` was rebuilt for every candidate in the mint's hottest loop** — an owner map, a
+contact set and a variance count each time, when it depends only on the slot and the residual.
+**Eight seats read clean throughout.**
+
+    ruff · lint · kernel · stateful · shipped · demo · gate · tests
+    all green, and none of them measures how long anything takes
+
+**THE TELL IS THAT THE DEFECT PREDATED THE CHANGE THAT EXPOSED IT.** `contact_first` did not cause
+it; **it made it expensive enough to notice.** So the trigger was a THRESHOLD BEING CROSSED, not a
+change introducing anything — **and the only signal was a measurement of mine failing to finish.**
+
+> **ELEVENTH INSTANCE OF *NOTHING WOULD HAVE SAID SO*, AND THE FIRST WHERE THE MISSING CHECK IS A
+> CATEGORY.** Every earlier one was a rule with a narrow subject that went quiet — a denominator,
+> an exemption, a witness. **This is a whole class of property with no seat at all**, which means
+> the same defect can sit anywhere in the loop and nothing will report it.
+
+**FILED AS A GAP, NOT A BUILD.** What a cost seat would need is not obvious — a wall-clock
+assertion is a magic number and a machine-dependent one, and *`CLAUDE.md` records invented metrics
+and magic numbers as a known weakness*. **The honest form is probably a COUNT rather than a time**
+— calls to `_left`, or candidates evaluated per mint — **which is machine-independent and has a
+denominator.** Not designed, and not to be guessed at from the shape of a good checker.
+
+**AND THE ADJACENT FINDING STAYS RECORDED**: `_bindings`' rebuild was invisible to every check for
+the life of the project, and the hoist changed **no number** — `455.91` and `526.88` identical.
+**A pure-cost defect leaves no trace in any reading the register keeps.**
+
