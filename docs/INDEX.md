@@ -7892,3 +7892,35 @@ reading reduced the cost and did not make the slot explicable.**
 > *bigger* is not. **The id has no structure; the shape it stands for does.** That is the label
 > ruling's honest cost, and it is filed as the finding rather than solved with a smaller number.
 
+
+---
+
+# EVERY READING IN THIS DOCUMENT WAS TAKEN IN THE FIRST ~1% OF AN EPISODE
+
+**Measured 2026-08-31, after a week of readings, because nobody had asked.**
+
+    a win is            7 levels          `win_levels = 7`, `levels_completed = 0`
+    the budget is       500 actions PER LEVEL, ACCRUING -- up to 3,500 for an episode
+    our runs are        18-40 actions     4-8% of ONE level's budget, ~1% of an episode
+    the ground reads    objective degree FLAT at 0.0 on `ls20` and `g50t`
+                        level 0 -> 0, terminal "" -- no level has ever completed
+
+> **THE FINDING IS NOT THAT THE AGENT CANNOT WIN. IT IS THAT NO RUN HAS EVER BEEN LONG ENOUGH TO
+> LOOK.** Zero levels over 30 actions on a 500-action level is not a result about the agent; it is
+> the absence of a measurement. **And every reading in this document carries that scope condition
+> unstated** — `outstanding`, coverage, the branching test, `bench pulls`, the transfer column,
+> §12.4's firing rates, the `delta` and `shape` findings. **All of them are characterisations of
+> the first moments of a game.**
+
+**WHICH IS FIGURE 3's LINK-3 POINT WITH A NUMBER ON IT.** *Everything measured is at link 2, and a
+reading taken below the break is a reading of nothing* — and the break is not only that link 3 was
+never built. **It is that the runs stop before the ground could have said anything.**
+
+**AND IT IS THE PANEL-PROPERTY LAW APPLIED TO RUN LENGTH RATHER THAN TO WORLD CONTENT.** *Before a
+null is read as a finding, state what property the panel would need in order to show it.* **A
+40-action run on a 3,500-action episode cannot reward anything that takes a level to appear**, and
+that was true of every measurement taken this week.
+
+**THE CHEAPEST THING ON THE BOARD IS A LONG RUN**, and it is the only one that can produce a
+reading about clause 1. Nothing else in the register can.
+
