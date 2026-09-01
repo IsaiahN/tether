@@ -8123,3 +8123,60 @@ library also went 20 to 30, and more terms explain more whether or not any compo
 **Held separate as ruled, and it was not needed** — candidacy moved `units()` on its own. Whether
 promoting on a suffix is correct remains unruled and unbuilt.
 
+
+---
+
+# THE CHEMISTRY MAPPING — FOUR ROWS, TESTED AGAINST *DOES IT PREDICT A RESIDUAL*
+
+**Table 1 is definitional and already load-bearing**: element/atom, valence bond/operator,
+molecule/molecule, straight-chain alkane/linear recipe, branched molecule/complex recipe,
+structural formula/recipe. **It settled *chains are molecules* — a chain is the degenerate case,
+one bond type and a spine — and it retired the multi-operand line by making branching visible.**
+
+**The four extended rows, each against the stated test:** *does it predict a residual the current
+frame cannot explain?* **Two are already out for failing it — bond strength and the loop as a
+macro-molecule — and an analogy is load-bearing only when the target casts a shadow.**
+
+### ISOMERS — PASSES, AT 100%
+
+    multisets with more than one arrangement          3
+    of those, EXTENSIONALLY DISTINCT                  3   (100%)
+      [recolour, translate] -> `translate . recolour` and `recolour . translate`
+
+**Order alone — the one structural variation this system has — produces a distinct substance in
+every case measured**, with one bond type. **And it separates two things one word was covering:**
+`idn`'s *39 names, 7 functions* was redundant **spelling**, not isomerism. **Isomers are where the
+arrangements genuinely differ; `idn` was where they did not**, and *extensional collapse* was
+naming both.
+
+### CATALYST — PASSES, AND ITS SUBJECT ARRIVED WITH CANDIDACY
+
+    ls20   settled 14 | spent (demoted) 7 | survived use unchanged 7
+    g50t   settled 10 | spent           7 | survived use unchanged 3
+    `rejection_of` on survivors: 0.386, 0.0, 2.747 -- GRADED, not binary
+
+**The instruments existed all along** — `refute`, `rejection_of`, `is_settled`. **What did not
+exist was a population**: settled was 0, so nothing could be spent. **The row was unaskable
+yesterday and is askable today**, which is a correction to *nothing currently distinguishes a term
+that regenerates from one that is spent* — both instruments distinguish it and neither had a
+subject.
+
+### CYCLIC — SPLITS, AND THE HALF THAT WAS CITED IS THE HALF THAT FAILS
+
+**The three circles are a fact about OUR CODEBASE, checkable by inspection.** They are not a
+residual the agent's frame cannot explain, and the test is about the agent's frame. **On that
+reading the row fails.**
+
+**The AGENT-SIDE reading passes**: a slot whose delta increases with its own delta is positive
+feedback, decreasing is negative, and *the sign of the loop decides the outcome* is a **gap shape**
+— matchable against a residual, and `drow`/`dcol` are exactly the slots that would show it.
+
+**So the row survives on a reading that was not the one given for it**, and the seat-side version
+is a useful description rather than a prediction.
+
+### FUNCTIONAL GROUP — FALSIFIABLE, AND NOW THIN RATHER THAN EMPTY
+
+*`Ascent` and `Descent` share `Momentum` and differ only in the feedback sign* needs molecules to
+check against. **There were none; there are now two distinct units per game.** **n = 2 is thin and
+it is not zero**, which is a change of state rather than of verdict.
+
