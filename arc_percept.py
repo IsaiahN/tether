@@ -253,6 +253,8 @@ class Objects:
         self._next = 0
 
     def __call__(self, board: Any) -> dict[str, int]:
+        if not hasattr(self, "_shapes"):
+            self._shapes: dict = {}
         found = components(board)
         claimed: set[str] = set()
         fresh: dict[str, dict] = {}
@@ -304,7 +306,16 @@ class Objects:
 
         state: dict[str, int] = {}
         for name, obj in self.tracked.items():
+            # SENSOR 5, PUBLISHED AS A PER-EPISODE ID. A shape is a frozenset and a slot is
+            # an int, which is the whole of why it was never published -- *the composable set
+            # was decided by which sensors happened to return integers*. **The id is a LABEL,
+            # exactly like `colour`**: arbitrary, comparable, never orderable, and valid only
+            # for the episode it was assigned in. Measured cost of leaving it out: 43 of 43
+            # cell-changes on three boards moved no published attribute, and shape moved in
+            # every one.
+            sid = self._shapes.setdefault(obj["shape"], len(self._shapes))
             for attr in ("row", "col", "h", "w", "colour", "drow", "dcol"):
                 if attr in obj:
                     state[f"{name}.{attr}"] = int(obj[attr])
+            state[f"{name}.shape"] = sid
         return state

@@ -7794,3 +7794,55 @@ its own bounding box, so the uniform code over that space is `h*w` bits, from tw
 already published — **but that is per object per step, where `_alphabets` is per slot and declared
 once by the domain.** That is a contract question and a ruling, not a line.
 
+
+---
+
+# `shape` PUBLISHES — THE GAP CLOSES 18 OF 18, AND IT IS NOW 98% OF THE RESIDUAL
+
+    ls20   cell-changes 68 | five-attrs-silent 12 | SHAPE CAUGHT 12 of 12
+    g50t   cell-changes 32 | five-attrs-silent  6 | SHAPE CAUGHT  6 of  6
+
+    ls20   integral 233 -> 18,883 (81x) | outstanding 15,164, of which SHAPE 14,843 (98%)
+    g50t                                | outstanding  6,722, of which SHAPE  6,328 (94%)
+
+**PUBLISHED AS A PER-EPISODE ID, WHICH IS THE COLOUR TREATMENT.** A shape is a frozenset and a
+slot is an int — *the composable set was decided by which sensors happened to return integers* —
+so the id is a LABEL: arbitrary, comparable, never orderable, valid only for the episode it was
+assigned in. **`correction_bits` was already an equality test**, so nothing in the accounting had
+to change.
+
+**THE ALPHABET IS PER SLOT AND PER STEP**, as ruled. `_alphabets` always accepted a dict; every
+slot that existed when it was written had a constant range. **A shape slot's is `2**(h*w)` over
+its own bounding box — derived from two published attributes, nothing tuned — and it moves when
+the object resizes.** The declaration is still the domain's; only *when* it is read has moved.
+
+**AND THE DELTAS WERE PUBLISHED AGAINST THE PALETTE**, so `drow = -5` and `drow = 8` both read as
+8 under the modulo on a 13-colour board. **A collision introduced with the sensor and found while
+implementing this.** Fixed to the board's range.
+
+### TWO THINGS CAUGHT IN MY OWN WORK
+
+**8 SEATS READ CLEAN WHILE THE REAL PATH WAS BROKEN.** `if b` on a numpy board raises, and no
+conform world hands one back — **so the checks were green and the first real run died.** `b is
+None` now, with the reason at the site.
+
+**AND MY FIRST VERIFICATION WAS VACUOUS.** It tested whether the shape SLOT EXISTS, which is now
+always true, rather than whether its VALUE changed — *a control that examines nothing cannot
+demonstrate a clean state*, and mine examined nothing. The corrected check is 12 of 12 and 6 of 6.
+
+### THE ALPHABET IS A FORK AND IT IS NOT MINE TO TAKE
+
+**`2**(h*w)` is a sound UPPER BOUND and a vast overestimate.** A component is CONNECTED and must
+touch all four sides of its own bounding box, so the reachable space is far smaller — and the
+uniform code charges **4,096 bits** for being wrong about a full-board object.
+
+> **NO TERM CAN EXPLAIN A CHANGING SHAPE ID.** The atoms are `idn`, `translate`, `recolour`;
+> `idn` explains a static shape and arithmetic on a label means nothing. **So the mint will be
+> drawn to the slots carrying the most bits, and they are the ones it structurally cannot
+> explain.** That is honest — the surprise IS unexplained — and it will dominate every aggregate.
+
+**THE ALTERNATIVE IS THE LABEL READING:** a shape alphabet is the count of distinct shapes, as
+`colour`'s is the palette. **That is a GROWING denominator**, which is the defect class recorded
+against `lib ok here / lib`. **Two defensible derivations with opposite failure modes**, and
+picking between them on the number they produce is fitting.
+

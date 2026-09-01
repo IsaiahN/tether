@@ -1464,6 +1464,11 @@ class Agent:
         """One turn. Returns False if no action was proposed -- which is a legal outcome."""
         self._advertised()
         self._present()       # before the frame, so slots and frame cannot disagree
+        # PER STEP, BECAUSE ONE SLOT TYPE'S RANGE IS NOT CONSTANT. A shape slot's alphabet is
+        # `2**(h*w)` over its own bounding box, which moves when the object resizes -- and a
+        # resize changes slot VALUES, not the slot SET, so the three existing refresh sites
+        # never fire. The declaration is still the domain's; only when it is read has moved.
+        self.alphabet = self._alphabets(self.env)
         before = self.env.observe()
         if not self.slots:
             # NO SLOTS IS A STATE OF THE WORLD, NOT AN IMPOSSIBILITY. `max()` on an empty

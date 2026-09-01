@@ -177,8 +177,43 @@ class ArcWorld:
                      if GameAction.from_id(i).is_simple()
                      and GameAction.from_id(i) is not GameAction.RESET)
 
-    def alphabet(self) -> int:
-        return self._palette
+    def alphabet(self) -> dict[str, int]:
+        """PER SLOT, AND FOR SOME SLOTS PER STEP. `_alphabets` has always accepted a dict --
+        *a domain whose slots differ declares the difference* -- and every slot that existed
+        when it was written had a constant range, so a single number was enough.
+
+        **A SHAPE SLOT DOES NOT, AND THAT IS A PROPERTY OF SHAPE.** A shape is a subset of its
+        own bounding box, so the uniform code over what it could have been is `h*w` bits and
+        the alphabet is `2**(h*w)` -- derived from two attributes already published, nothing
+        tuned. It changes when the object resizes, so **this function returns different values
+        on different calls for the same slot, by design**: the next reader will find that and
+        take it for a defect without this line beside it. The line stays where it was -- the
+        domain declares, the loop compares -- and only WHEN the declaration is read has moved.
+
+        **AND THE DELTAS ARE FIXED HERE TOO.** They were published against the palette, so
+        `drow = -5` and `drow = 8` both read as 8 under `correction_bits`' modulo on a
+        13-colour board -- a collision introduced with the sensor and found while implementing
+        this. A displacement ranges over the board, not the palette.
+        """
+        d = self._decomposed()
+        b = self.board()
+        # `b is None`, NEVER `if b`: the board is a numpy array and its truth value raises.
+        # 8 seats read clean with this wrong, because no conform world hands back an array.
+        h = len(b) if b is not None else self._palette
+        w = len(b[0]) if b is not None and len(b) else self._palette
+        out: dict[str, int] = {}
+        for s in d:
+            key = s.rsplit(".", 1)[-1]
+            if key == "shape":
+                o = self._decompose.tracked.get(s.rsplit(".", 1)[0], {})
+                out[s] = 2 ** max(1, int(o.get("h", 1)) * int(o.get("w", 1)))
+            elif key == "drow":
+                out[s] = 2 * h
+            elif key == "dcol":
+                out[s] = 2 * w
+            else:
+                out[s] = self._palette
+        return out
 
     def objective(self) -> tuple[str, float]:
         f = self._frame

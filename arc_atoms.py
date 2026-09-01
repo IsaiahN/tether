@@ -31,7 +31,7 @@ import sys
 from typing import Any
 
 from gamma import Atom, Ctx
-from sensors import COLOUR, DELTA, EXTENT, OBJECT, POSITION
+from sensors import COLOUR, DELTA, EXTENT, OBJECT, POSITION, SHAPE
 
 sys.dont_write_bytecode = True
 
@@ -53,7 +53,7 @@ OBJ = "OBJ"          # `OBJECT` is imported from `sensors`; this one is the obje
 # IMPORTED, NOT REDECLARED. `sensors.py` already carried §12.2's nine attribute types, and
 # the ATTR split declared four of them here a commit later -- two producers of one fact, with
 # identical strings, which is harmless exactly until one side changes.
-COMPARABLE = (COLOUR, POSITION, EXTENT, DELTA)   # equality is meaningful on all of them
+COMPARABLE = (COLOUR, POSITION, EXTENT, DELTA, SHAPE)   # equality is meaningful on all
 ORDERED = (POSITION, EXTENT, DELTA)       # order is meaningful only on these
 PRED, QUANT, VAL = "PRED", "QUANT", "val"
 
@@ -61,7 +61,8 @@ PRED, QUANT, VAL = "PRED", "QUANT", "val"
 # it to type its atoms and `ArcWorld.slot_types` reads it to type its slots, and those are the
 # same fact: a slot IS an object's attribute. Declared once so they cannot drift apart.
 ATTRIBUTE_TYPE = {"colour": COLOUR, "row": POSITION, "col": POSITION,
-                  "h": EXTENT, "w": EXTENT, "drow": DELTA, "dcol": DELTA}
+                  "h": EXTENT, "w": EXTENT, "drow": DELTA, "dcol": DELTA,
+                  "shape": SHAPE}
 
 
 def _extract() -> list[Atom]:
