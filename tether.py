@@ -58,12 +58,18 @@ CODE = ("uniform(M) per correction; (k+1)*log2(|atoms|+1) + (k-1)*log2(|bonds|) 
 # sequence's LENGTH is unknown and must be terminated. There are exactly `k-1` bonds and `k` is
 # already read, so nothing terminates them.
 #
-# **IT WILL RISE SILENTLY AND THAT WILL LOOK LIKE A REGRESSION.** The moment a second operator
-# exists every term costs `(k-1)*log2(2)` more, and at seven it is 2.8 bits per bond. Measured
-# 2026-09-01 against the libraries as they stood: under a flat `log2(7)`, terms paying fell 7 to
-# 4 on `ls20` and 3 to 2 on `g50t` -- **the four marginal payers pay by 1.49 bits and the
-# cheapest bond is 2.8.** They stop paying when branching becomes a choice, and that is correct:
-# a branched molecule says more than a spine and today it says more for free.
+# **AND IN THIS SPACE IT IS FIXED AT ONE, WHICH IS THE SIGNATURE'S AND NOT A STAGE.** §11.2 types
+# PREDICT as `slot x action -> slot`, so composition here IS function composition, and each of
+# the other six fails on what it would do to a VALUE: `+` gives two values with no combining
+# rule; `⇒` is creation and a slot's value cannot not-exist-then-exist; `∥` needs a selector,
+# which is a truth PREDICT has no type for; `−` is a set operation on a scalar; `≡` is a synonym
+# and not a computation; `⋛` yields a truth. **One of seven has a form here and it is the one
+# implemented** -- so `Term` being a chain is the signature, not a limitation.
+#
+# **AN EARLIER VERSION OF THIS COMMENT SAID THE TERM WOULD RISE SILENTLY AND PREDICTED FOUR
+# MARGINAL PAYERS STOPPING AT 1.49 BITS AGAINST A 2.8-BIT BOND. THAT CANNOT HAPPEN HERE.** The
+# expression stays general because a space that admits more bonds prices them automatically;
+# the value in THIS space does not move.
 BONDS = 1
 
 HELD, NOVEL, REBIND, MECHANISM = "held", "novel", "rebinding", "mechanism"

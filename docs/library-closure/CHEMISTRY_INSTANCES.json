@@ -1,0 +1,1136 @@
+{
+ "meta": {
+  "purpose": "Worked instances of the chemistry mapping, found by search over ATOMS.md rather than composed as examples.",
+  "isomer_families": 34,
+  "catalyst_candidates": 19,
+  "mutual_cycles": 1,
+  "method": {
+   "isomers": "entries whose recipes reduce to an identical ingredient set",
+   "catalysts": "entries whose definition says survives / without being consumed / its own",
+   "cycles": "entries whose recipe names an entry whose recipe names them back",
+   "functional_groups": "recipes sharing an ingredient where the qualifier fixes the outcome"
+  }
+ },
+ "isomers": [
+  {
+   "ingredients": [
+    "ph",
+    "tmp"
+   ],
+   "members": [
+    {
+     "name": "Melt",
+     "domain": "Heat",
+     "tier": 2,
+     "recipe": "Tmp + Ph",
+     "definition": "solid becomes liquid"
+    },
+    {
+     "name": "Freeze",
+     "domain": "Heat",
+     "tier": 2,
+     "recipe": "Tmp + Ph",
+     "definition": "liquid becomes solid"
+    },
+    {
+     "name": "Boil",
+     "domain": "Heat",
+     "tier": 2,
+     "recipe": "Tmp + Ph",
+     "definition": "liquid becomes gas"
+    },
+    {
+     "name": "Condense",
+     "domain": "Heat",
+     "tier": 2,
+     "recipe": "Tmp + Ph",
+     "definition": "gas becomes liquid"
+    },
+    {
+     "name": "Sublimate",
+     "domain": "Heat",
+     "tier": 2,
+     "recipe": "Tmp + Ph",
+     "definition": "solid becomes gas directly"
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "so",
+    "su"
+   ],
+   "members": [
+    {
+     "name": "Fall",
+     "domain": "Human",
+     "tier": 2,
+     "recipe": "Su + So",
+     "definition": "an unsupported thing drops"
+    },
+    {
+     "name": "Lever",
+     "domain": "Mechanical",
+     "tier": 2,
+     "recipe": "Su + So",
+     "definition": "a rigid bar turning about a point"
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "ca",
+    "st"
+   ],
+   "members": [
+    {
+     "name": "Predict",
+     "domain": "Human",
+     "tier": 2,
+     "recipe": "St + Ca",
+     "definition": "infer the next state from the last"
+    },
+    {
+     "name": "Associate",
+     "domain": "Human",
+     "tier": 2,
+     "recipe": "Ca + St",
+     "definition": "link events because one precedes the other"
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "ht",
+    "vol"
+   ],
+   "members": [
+    {
+     "name": "Expand",
+     "domain": "Heat",
+     "tier": 2,
+     "recipe": "Ht + Vol",
+     "definition": "heating grows volume"
+    },
+    {
+     "name": "Contract",
+     "domain": "Heat",
+     "tier": 2,
+     "recipe": "Ht + Vol",
+     "definition": "cooling shrinks it"
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "alg",
+    "ds"
+   ],
+   "members": [
+    {
+     "name": "Queue",
+     "domain": "Information",
+     "tier": 2,
+     "recipe": "DS + Alg",
+     "definition": "first in, first out"
+    },
+    {
+     "name": "Stack",
+     "domain": "Information",
+     "tier": 2,
+     "recipe": "DS + Alg",
+     "definition": "last in, first out"
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "grv",
+    "mss"
+   ],
+   "members": [
+    {
+     "name": "Attraction",
+     "domain": "Large-scale",
+     "tier": 2,
+     "recipe": "Mss + Grv",
+     "definition": "massive things pull"
+    },
+    {
+     "name": "Bound system",
+     "domain": "Large-scale",
+     "tier": 3,
+     "recipe": "Mss + Grv",
+     "definition": "many bodies held together"
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "early state",
+    "expansion"
+   ],
+   "members": [
+    {
+     "name": "Remnant radiation",
+     "domain": "Large-scale",
+     "tier": 3,
+     "recipe": "expansion + early state",
+     "definition": "leftover signal from the beginning"
+    },
+    {
+     "name": "Rapid early expansion",
+     "domain": "Large-scale",
+     "tier": 4,
+     "recipe": "Expansion + early state",
+     "definition": "a brief period of very fast growth"
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "decompose",
+    "schematise"
+   ],
+   "members": [
+    {
+     "name": "Recurse",
+     "domain": "Human",
+     "tier": 4,
+     "recipe": "Decompose + Schematise",
+     "definition": "apply the same solution inside itself"
+    },
+    {
+     "name": "Recurse",
+     "domain": "Human",
+     "tier": 4,
+     "recipe": "Decompose + Schematise",
+     "definition": "apply the same solution inside itself — also Information T4"
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "agen",
+    "inter",
+    "pres"
+   ],
+   "members": [
+    {
+     "name": "Cotard delusion",
+     "domain": "Embodiment",
+     "tier": 3,
+     "recipe": "Inter (flat) + Pres (absent) + Agen (null)",
+     "definition": "The extreme feeling of not being \"in\" one's body, or believing one is dead. Used for critical system failure states."
+    },
+    {
+     "name": "Dissociation",
+     "domain": "Embodiment",
+     "tier": 5,
+     "recipe": "Agen (low) + Pres (low) + Inter (detached)",
+     "definition": "The feeling of watching yourself from outside. Actions happen, but you don't feel like the author. A trap state."
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "frac",
+    "str"
+   ],
+   "members": [
+    {
+     "name": "Brittle failure",
+     "domain": "Material",
+     "tier": 2,
+     "recipe": "Frac (low) + Str (sudden)",
+     "definition": "A material with low fracture toughness shatters instantly with no plastic deformation (glass, ceramic)."
+    },
+    {
+     "name": "Crack propagation",
+     "domain": "Material",
+     "tier": 4,
+     "recipe": "Frac (low) + Str (focused)",
+     "definition": "A microscopic flaw (crack) concentrates stress at its tip. The crack grows uncontrollably if the material is brittle."
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "hard",
+    "plas"
+   ],
+   "members": [
+    {
+     "name": "Work harden",
+     "domain": "Material",
+     "tier": 3,
+     "recipe": "Plas (repeated) + Hard (increase)",
+     "definition": "Repeated plastic deformation (hammering) increases hardness but decreases ductility. The material becomes stiffer until it cracks."
+    },
+    {
+     "name": "Perfect plasticity",
+     "domain": "Material",
+     "tier": 6,
+     "recipe": "Plas (infinite) + Hard (zero)",
+     "definition": "A material that deforms without any resistance once yield is exceeded. It flows like honey."
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "bond",
+    "str"
+   ],
+   "members": [
+    {
+     "name": "Shear failure",
+     "domain": "Material",
+     "tier": 4,
+     "recipe": "Str (lateral) + Bond (Chemical)",
+     "definition": "Forces slide one layer of material against another. Rivets snap, glue peels, beams twist."
+    },
+    {
+     "name": "Decohesion",
+     "domain": "Material",
+     "tier": 5,
+     "recipe": "Bond (Chemical) + Str (tension)",
+     "definition": "Molecules are pulled apart at the atomic level. The material separates along grain boundaries. The ultimate limit of all materials."
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "curve",
+    "refr"
+   ],
+   "members": [
+    {
+     "name": "Lens",
+     "domain": "Optical",
+     "tier": 2,
+     "recipe": "Refr + Curve",
+     "definition": "A curved transparent medium. Converging (convex) focuses light; diverging (concave) spreads it."
+    },
+    {
+     "name": "Acoustic lens",
+     "domain": "Acoustic",
+     "tier": 3,
+     "recipe": "Refr (sound) + Curve (material)",
+     "definition": "A curved medium that focuses or defocuses sound waves. Like a lens, but for pressure waves."
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "rhyt",
+    "sync"
+   ],
+   "members": [
+    {
+     "name": "Rhythm entrain",
+     "domain": "Temporal",
+     "tier": 2,
+     "recipe": "Rhyt + Sync",
+     "definition": "Align your actions to an external beat. Move in time with the metronome."
+    },
+    {
+     "name": "Clock skew",
+     "domain": "Temporal",
+     "tier": 4,
+     "recipe": "Sync (broken) + Rhyt (mismatch)",
+     "definition": "Two clocks are out of sync. Events happen at different times for different observers."
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "strategy",
+    "utility"
+   ],
+   "members": [
+    {
+     "name": "Counterplay",
+     "domain": "Ludological",
+     "tier": 4,
+     "recipe": "Strategy + Strategy + Utility (reverse)",
+     "definition": "A strategy that is specifically designed to defeat another strategy. Rock-paper-scissors."
+    },
+    {
+     "name": "Balance",
+     "domain": "Ludological",
+     "tier": 5,
+     "recipe": "Strategy + Strategy + Utility (equal)",
+     "definition": "No strategy is dominant. All viable strategies have roughly equal winning potential."
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "action",
+    "counter",
+    "prediction"
+   ],
+   "members": [
+    {
+     "name": "Telegraph",
+     "domain": "Ludological",
+     "tier": 4,
+     "recipe": "Action + Prediction + Counter",
+     "definition": "An action that signals your future action. A \"tell\" that can be exploited."
+    },
+    {
+     "name": "Baiting",
+     "domain": "Ludological",
+     "tier": 4,
+     "recipe": "Action (suboptimal) + Prediction + Counter (trap)",
+     "definition": "Deliberately perform a suboptimal action to lure the opponent into a trap."
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "expectation",
+    "memory",
+    "rand"
+   ],
+   "members": [
+    {
+     "name": "Gambler fallacy",
+     "domain": "Aleatory",
+     "tier": 2,
+     "recipe": "Rand + Memory (false) + Expectation (biased)",
+     "definition": "Believing that a streak of heads makes tails more likely. The \"law of small numbers.\""
+    },
+    {
+     "name": "Hot hand",
+     "domain": "Aleatory",
+     "tier": 2,
+     "recipe": "Rand + Memory (illusory) + Expectation (overconfidence)",
+     "definition": "Believing that a streak of successes makes future successes more likely."
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "outcome",
+    "risk",
+    "strategy"
+   ],
+   "members": [
+    {
+     "name": "Minimax",
+     "domain": "Aleatory",
+     "tier": 5,
+     "recipe": "Risk + Outcome (worst) + Strategy",
+     "definition": "Choose the strategy that maximizes your minimum possible payoff. Play it safe."
+    },
+    {
+     "name": "Maximax",
+     "domain": "Aleatory",
+     "tier": 5,
+     "recipe": "Risk + Outcome (best) + Strategy",
+     "definition": "Choose the strategy that maximizes your maximum possible payoff. Go for the jackpot."
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "interf",
+    "new_trace",
+    "old_trace"
+   ],
+   "members": [
+    {
+     "name": "Proactive interf",
+     "domain": "Mnemonic",
+     "tier": 2,
+     "recipe": "Interf + Old_Trace + New_Trace",
+     "definition": "Old memories interfere with the retrieval of new ones."
+    },
+    {
+     "name": "Retroactive interf",
+     "domain": "Mnemonic",
+     "tier": 2,
+     "recipe": "Interf + New_Trace + Old_Trace",
+     "definition": "New memories interfere with the retrieval of old ones."
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "context",
+    "retrieve",
+    "trace"
+   ],
+   "members": [
+    {
+     "name": "State dependence",
+     "domain": "Mnemonic",
+     "tier": 3,
+     "recipe": "Trace + Context + Retrieve",
+     "definition": "Memory retrieval is best when the internal state (mood, drug) matches the encoding state."
+    },
+    {
+     "name": "Déjà vu",
+     "domain": "Mnemonic",
+     "tier": 4,
+     "recipe": "Trace (false familiarity) + Retrieve (misfire) + Context",
+     "definition": "The feeling of having experienced a present situation before, without a specific memory."
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "challenge",
+    "flow",
+    "skill"
+   ],
+   "members": [
+    {
+     "name": "Flow engage",
+     "domain": "Noetic",
+     "tier": 2,
+     "recipe": "Flow + Challenge + Skill (matched)",
+     "definition": "Enter a state of total immersion. The action becomes effortless."
+    },
+    {
+     "name": "Flow challenge",
+     "domain": "Noetic",
+     "tier": 4,
+     "recipe": "Flow + Skill (growing) + Challenge (increasing)",
+     "definition": "Continuously adjust the challenge to stay in the flow channel. Never bored, never anxious."
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "err",
+    "neg",
+    "set"
+   ],
+   "members": [
+    {
+     "name": "Negative loop",
+     "domain": "Cybernetic",
+     "tier": 2,
+     "recipe": "Err + Set + Neg",
+     "definition": "Compare current state to setpoint. If error exists, apply correction to reduce it. Stabilizes."
+    },
+    {
+     "name": "The control hierarchy",
+     "domain": "Cybernetic",
+     "tier": 5,
+     "recipe": "Set + Set (nested) + Err + Neg",
+     "definition": "A multi-level system where higher-level setpoints shape lower-level behavior. A chain of command."
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "base",
+    "meta",
+    "shift"
+   ],
+   "members": [
+    {
+     "name": "Level ascend",
+     "domain": "Ontological",
+     "tier": 3,
+     "recipe": "Base + Meta + Shift",
+     "definition": "Move from a lower level of reality to a higher one. Ascend the ontological hierarchy."
+    },
+    {
+     "name": "Level descend",
+     "domain": "Ontological",
+     "tier": 3,
+     "recipe": "Meta + Base + Shift",
+     "definition": "Move from a higher level of reality to a lower one. Descend the ontological hierarchy."
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "grab",
+    "move",
+    "sustained_exertion"
+   ],
+   "members": [
+    {
+     "name": "Pull",
+     "domain": "Action",
+     "tier": 3,
+     "recipe": "Grab + Move (toward self) + Sustained_Exertion",
+     "definition": "Move an object closer to the actor."
+    },
+    {
+     "name": "Push",
+     "domain": "Action",
+     "tier": 3,
+     "recipe": "Grab (or contact) + Move (away from self) + Sustained_Exertion",
+     "definition": "Move an object away from the actor."
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "grab",
+    "move",
+    "tim"
+   ],
+   "members": [
+    {
+     "name": "Climb",
+     "domain": "Action",
+     "tier": 3,
+     "recipe": "Move (upward) + Grab (repeated) + Tim (alternating)",
+     "definition": "Ascending a vertical surface using handholds."
+    },
+    {
+     "name": "Swing",
+     "domain": "Action",
+     "tier": 3,
+     "recipe": "Grab + Move (pendular) + Tim (rhythmic)",
+     "definition": "Move an object or self in an arc."
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "alt",
+    "pref"
+   ],
+   "members": [
+    {
+     "name": "Binary choice",
+     "domain": "Choice",
+     "tier": 2,
+     "recipe": "Alt + Alt + Pref (simple)",
+     "definition": "The simplest form of choice: yes/no, left/right, A/B. The fundamental fork."
+    },
+    {
+     "name": "Multiple choice",
+     "domain": "Choice",
+     "tier": 2,
+     "recipe": "Alt + Alt + Alt + Pref (ordered)",
+     "definition": "A choice among multiple alternatives (A, B, C, D...)."
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "alt",
+    "basis",
+    "latency"
+   ],
+   "members": [
+    {
+     "name": "Hesitation",
+     "domain": "Choice",
+     "tier": 2,
+     "recipe": "Latency + Alt (equal) + Basis (weak)",
+     "definition": "A choice that takes a long time because the options are equally preferred or the basis is unclear."
+    },
+    {
+     "name": "Decision fatigue",
+     "domain": "Choice",
+     "tier": 4,
+     "recipe": "Latency (increasing) + Basis (degrading) + Alt (repeated)",
+     "definition": "The progressive degradation of decision quality after many choices. Energy is depleted."
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "infer",
+    "prop"
+   ],
+   "members": [
+    {
+     "name": "Deduce",
+     "domain": "Thought",
+     "tier": 2,
+     "recipe": "Prop + Prop + Infer",
+     "definition": "Draw a specific conclusion from general premises. If all A are B, and C is A, then C is B."
+    },
+    {
+     "name": "Reasoning chain",
+     "domain": "Thought",
+     "tier": 4,
+     "recipe": "Prop + Prop + Prop + Infer (series)",
+     "definition": "A sequence of logical steps from premise to conclusion. The \"chain\" of reasoning."
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "cue",
+    "rew",
+    "routine"
+   ],
+   "members": [
+    {
+     "name": "Loop",
+     "domain": "Habit",
+     "tier": 2,
+     "recipe": "Cue + Routine + Rew",
+     "definition": "The fundamental habit unit. A stimulus triggers an action that yields a reward."
+    },
+    {
+     "name": "Habit stack",
+     "domain": "Habit",
+     "tier": 3,
+     "recipe": "Cue + Routine + Routine + Rew",
+     "definition": "Chaining multiple habits together. One habit triggers the next."
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "currency",
+    "resource",
+    "transaction"
+   ],
+   "members": [
+    {
+     "name": "Buy",
+     "domain": "Exchange",
+     "tier": 2,
+     "recipe": "Resource + Currency + Transaction",
+     "definition": "Acquiring a resource by giving currency. The \"purchase.\""
+    },
+    {
+     "name": "Sell",
+     "domain": "Exchange",
+     "tier": 2,
+     "recipe": "Resource + Currency + Transaction",
+     "definition": "Giving a resource in exchange for currency. The \"sale.\""
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "sleep",
+    "transition",
+    "wake"
+   ],
+   "members": [
+    {
+     "name": "Descend",
+     "domain": "Somnial",
+     "tier": 2,
+     "recipe": "Wake + Sleep + Transition",
+     "definition": "The act of falling asleep. The crossing of the threshold."
+    },
+    {
+     "name": "Ascend",
+     "domain": "Somnial",
+     "tier": 2,
+     "recipe": "Sleep + Wake + Transition",
+     "definition": "The act of waking up. The return to the conscious world."
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "edge",
+    "node"
+   ],
+   "members": [
+    {
+     "name": "Connect",
+     "domain": "Network",
+     "tier": 2,
+     "recipe": "Node + Node + Edge",
+     "definition": "The fundamental act of network construction. Creating a link."
+    },
+    {
+     "name": "Traverse",
+     "domain": "Network",
+     "tier": 2,
+     "recipe": "Node + Edge + Node",
+     "definition": "Moving through a network. The \"pathfinding.\""
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "depth",
+    "flow",
+    "integration",
+    "skill"
+   ],
+   "members": [
+    {
+     "name": "Mastery",
+     "domain": "Learning",
+     "tier": 4,
+     "recipe": "Skill + Depth + Integration + Flow",
+     "definition": "The state of complete, integrated mastery. The \"expert.\""
+    },
+    {
+     "name": "The mastery path",
+     "domain": "Learning",
+     "tier": 5,
+     "recipe": "Skill + Depth + Flow + Integration",
+     "definition": "The path to mastery. The \"way of the expert.\""
+    }
+   ]
+  },
+  {
+   "ingredients": [
+    "creation",
+    "material",
+    "quality",
+    "skill"
+   ],
+   "members": [
+    {
+     "name": "Craft",
+     "domain": "Skill",
+     "tier": 3,
+     "recipe": "Skill + Material + Creation + Quality",
+     "definition": "The skilled creation of objects or outcomes."
+    },
+    {
+     "name": "The craftsman",
+     "domain": "Skill",
+     "tier": 5,
+     "recipe": "Skill + Material + Creation + Quality",
+     "definition": "The archetype of the one who creates through skill."
+    }
+   ]
+  }
+ ],
+ "catalysts": [
+  {
+   "name": "Producer",
+   "domain": "Living",
+   "recipe": "Energy capture + Cel + Su",
+   "definition": "makes its own energy, stays put"
+  },
+  {
+   "name": "Self-organised criticality",
+   "domain": "Dynamic",
+   "recipe": "Criticality + Avalanche + self-tuning",
+   "definition": "it finds the edge without being tuned there"
+  },
+  {
+   "name": "Self-sustaining rhythm",
+   "domain": "Dynamic",
+   "recipe": "Bistability + Negative feedback + Entrainment",
+   "definition": "oscillates at its own rate, independent of what drives it"
+  },
+  {
+   "name": "Catalysis",
+   "domain": "Chemical",
+   "recipe": "Act lowered + Cat present",
+   "definition": "a cheaper route to the same end, and the helper survives"
+  },
+  {
+   "name": "Autocatalysis",
+   "domain": "Chemical",
+   "recipe": "product + Cat same",
+   "definition": "the product speeds its own production — Dynamic `Positive feedback` is the same shape"
+  },
+  {
+   "name": "Self-assembly",
+   "domain": "Chemical",
+   "recipe": "Mol + weak bonds",
+   "definition": "units organise into a larger structure without being placed"
+  },
+  {
+   "name": "Priming",
+   "domain": "Psychological",
+   "recipe": "Att below awareness + Retrieve automatic",
+   "definition": "exposure shapes later responses without being noticed"
+  },
+  {
+   "name": "Witness stance",
+   "domain": "Extra Scrutiny",
+   "recipe": "Witness",
+   "definition": "observe your own reasoning without being it — the independence clause applied to yourself"
+  },
+  {
+   "name": "Trans shipment",
+   "domain": "Logistical",
+   "recipe": "Node + Transfer + Flow",
+   "definition": "A resource passes through an intermediate node without being processed. A relay."
+  },
+  {
+   "name": "Over-attribution of agency",
+   "domain": "Thaumaturgical",
+   "recipe": "Spirit + Object + Agency",
+   "definition": "Treat an object as if it has a will. It may act on its own if properly respected/provoked."
+  },
+  {
+   "name": "Ultra stability",
+   "domain": "Cybernetic",
+   "recipe": "Homeo + Set + Adaptation (meta)",
+   "definition": "A system that can maintain stability even when its internal structure changes. It adapts its own setpoints."
+  },
+  {
+   "name": "The infinite regulator",
+   "domain": "Cybernetic",
+   "recipe": "Set + Err + Set (meta) + Set (meta-meta)",
+   "definition": "A system that regulates its own regulation. It has a setpoint for its setpoint. Infinite regress."
+  },
+  {
+   "name": "The homeostatic universe",
+   "domain": "Cybernetic",
+   "recipe": "Homeo + Cosmic + Set + Fdbk",
+   "definition": "The universe itself is a homeostatic system. It maintains its own constants (fine-tuning)."
+  },
+  {
+   "name": "The autopoietic",
+   "domain": "Cybernetic",
+   "recipe": "Homeo + Self + Production + Boundary (Emb)",
+   "definition": "A system that produces itself. It maintains its own identity by regenerating its components."
+  },
+  {
+   "name": "Poetic function",
+   "domain": "Linguistic",
+   "recipe": "Language + Form + Aesthetic (Aes)",
+   "definition": "Language is used for its own sake. Poetry, wordplay, rhythm, and beauty."
+  },
+  {
+   "name": "Starvation response",
+   "domain": "Nutritional",
+   "recipe": "Bal (extreme deficit) + Cat (tissue) + Conservation",
+   "definition": "The system breaks down its own tissues (muscle, fat) for energy and downregulates non-essential processes."
+  },
+  {
+   "name": "Mirroring",
+   "domain": "Phenomenological",
+   "recipe": "Other + Intent + Empathy (Psych)",
+   "definition": "The immediate recognition that the Other is like me: a subject with its own interiority."
+  },
+  {
+   "name": "The dream ecosystem",
+   "domain": "Somnial",
+   "recipe": "Dream + Symbol + Archetype + Interaction",
+   "definition": "The complete, interconnected world of a dream. Its own ecology."
+  },
+  {
+   "name": "Self modifying",
+   "domain": "Automaton",
+   "recipe": "Auto + Rule + Change + Adaptation",
+   "definition": "An automaton that can modify its own rules. The \"self-programming.\""
+  }
+ ],
+ "cycles": [
+  {
+   "members": [
+    {
+     "name": "Runaway",
+     "domain": "Dynamic",
+     "recipe": "Chaos + Res unbounded + positive feedback",
+     "definition": "growth with nothing to stop it"
+    },
+    {
+     "name": "Positive feedback",
+     "domain": "Dynamic",
+     "recipe": "Runaway + Coup increasing",
+     "definition": "the response increases it"
+    }
+   ]
+  }
+ ],
+ "functional_groups": {
+  "momentum": [
+   {
+    "name": "Ascent",
+    "domain": "Dynamic",
+    "recipe": "Negative feedback + Momentum",
+    "definition": "error shrinking under correction; the trajectory that ends in a win"
+   },
+   {
+    "name": "Descent",
+    "domain": "Dynamic",
+    "recipe": "Positive feedback + Momentum",
+    "definition": "error growing because nothing corrects it; the trajectory that ends in a loss"
+   },
+   {
+    "name": "Acoustic radiation pressure",
+    "domain": "Acoustic",
+    "recipe": "Wave + Momentum + Med",
+    "definition": "Sound carries momentum. It can push objects. An acoustic tractor beam."
+   }
+  ],
+  "res": [
+   {
+    "name": "Stress",
+    "domain": "Dynamic",
+    "recipe": "Stim high + Res depleting + Damp overloaded",
+    "definition": "pushing against a constraint while running down"
+   },
+   {
+    "name": "Urgency",
+    "domain": "Dynamic",
+    "recipe": "Res depleting + Thr approaching",
+    "definition": "time pressure shortening how much gets searched before acting. Not downstream of desire — `Frustration resp = Frust + Blockage`, so urgency needs wanting AND being unable"
+   },
+   {
+    "name": "Stalemate",
+    "domain": "Dynamic",
+    "recipe": "Stress + Res zero + equal forces",
+    "definition": "two forces exactly balanced; nothing moves"
+   },
+   {
+    "name": "Runaway",
+    "domain": "Dynamic",
+    "recipe": "Chaos + Res unbounded + positive feedback",
+    "definition": "growth with nothing to stop it"
+   },
+   {
+    "name": "Stagnation",
+    "domain": "Dynamic",
+    "recipe": "Equilibrium + Res depleting",
+    "definition": "error neither shrinking nor growing while the budget runs down; the trajectory that ends in a draw"
+   },
+   {
+    "name": "Death spiral",
+    "domain": "Dynamic",
+    "recipe": "Catastrophe + Slow-fast + Res zero",
+    "definition": "irreversible collapse; no recovery available"
+   },
+   {
+    "name": "Consumption",
+    "domain": "Economic",
+    "recipe": "Res + Utl",
+    "definition": "the final use; the resource is gone"
+   },
+   {
+    "name": "Public good",
+    "domain": "Economic",
+    "recipe": "Res + non-excludable + non-rivalrous",
+    "definition": "nobody can be kept out and use does not deplete it"
+   },
+   {
+    "name": "Liquidity",
+    "domain": "Economic",
+    "recipe": "Res + speed of trade + Rsk",
+    "definition": "how easily a thing converts without losing value"
+   },
+   {
+    "name": "Synchronize",
+    "domain": "Connection",
+    "recipe": "Res + Rhythm + Align",
+    "definition": "The alignment of two systems through sympathetic vibration."
+   },
+   {
+    "name": "Resonate",
+    "domain": "Connection",
+    "recipe": "Res + Freq + Amplify",
+    "definition": "The amplification of connection through alignment of frequency."
+   },
+   {
+    "name": "Sympathetic bond",
+    "domain": "Connection",
+    "recipe": "Link + Aff + Res + Distant (Thaum)",
+    "definition": "A connection that persists across distance. Sympathetic magic."
+   },
+   {
+    "name": "Resonance field",
+    "domain": "Connection",
+    "recipe": "Res + Node + Energy + Pattern",
+    "definition": "A field of resonance where all connected nodes vibrate together."
+   }
+  ],
+  "damp": [
+   {
+    "name": "Rest",
+    "domain": "Dynamic",
+    "recipe": "Stim low + Var low + Damp high",
+    "definition": "stable, unchanging, unresponsive; nothing happens unless provoked"
+   },
+   {
+    "name": "Oscillation",
+    "domain": "Dynamic",
+    "recipe": "Lat + Damp low + Coup feedback",
+    "definition": "periodic movement about a point"
+   },
+   {
+    "name": "Stress",
+    "domain": "Dynamic",
+    "recipe": "Stim high + Res depleting + Damp overloaded",
+    "definition": "pushing against a constraint while running down"
+   },
+   {
+    "name": "Setpoint [dup: `Goal`, Desire]",
+    "domain": "Dynamic",
+    "recipe": "Damp + Resp target",
+    "definition": "the reference a system compares its state against; the thing error is measured from. Cybernetic says it directly — `Goal seeking = Setpoint + Error + Action + Feedback`"
+   },
+   {
+    "name": "Break habit",
+    "domain": "Dynamic",
+    "recipe": "Dither + Witness stance + Damp",
+    "definition": "inject noise while watching, and dissipate the momentum — a brake, and `Damp` exists in Dynamic, Acoustic and Cybernetic already"
+   },
+   {
+    "name": "Negative feedback",
+    "domain": "Dynamic",
+    "recipe": "Stress + Damp increasing",
+    "definition": "the response reduces the thing that caused it"
+   },
+   {
+    "name": "Reverberation",
+    "domain": "Acoustic",
+    "recipe": "Echo + Multiple_Surfaces + Damp (low)",
+    "definition": "The persistence of sound after the source stops. Long reverberation = \"live\" room. Short = \"dead\" room."
+   },
+   {
+    "name": "Absorption",
+    "domain": "Acoustic",
+    "recipe": "Damp + Med (porous)",
+    "definition": "A material that soaks up sound energy (acoustic foam, carpet). Reduces reflections."
+   },
+   {
+    "name": "Damping material",
+    "domain": "Acoustic",
+    "recipe": "Damp + Composite + Absorption",
+    "definition": "A material engineered to absorb specific frequencies. Makes rooms acoustically \"dead.\""
+   },
+   {
+    "name": "Vibration sensing",
+    "domain": "Acoustic",
+    "recipe": "Damp + Contact + Accelerometer",
+    "definition": "Detect vibrations through solid contact. A \"thump\" on the floor can be felt through the structure."
+   },
+   {
+    "name": "Gain tune",
+    "domain": "Cybernetic",
+    "recipe": "Gain + Osc + Damp",
+    "definition": "Adjust the gain to achieve the desired response: fast without overshoot, stable without sluggishness."
+   }
+  ],
+  "positive feedback": [
+   {
+    "name": "Runaway",
+    "domain": "Dynamic",
+    "recipe": "Chaos + Res unbounded + positive feedback",
+    "definition": "growth with nothing to stop it"
+   },
+   {
+    "name": "Descent",
+    "domain": "Dynamic",
+    "recipe": "Positive feedback + Momentum",
+    "definition": "error growing because nothing corrects it; the trajectory that ends in a loss"
+   }
+  ],
+  "negative feedback": [
+   {
+    "name": "Ascent",
+    "domain": "Dynamic",
+    "recipe": "Negative feedback + Momentum",
+    "definition": "error shrinking under correction; the trajectory that ends in a win"
+   },
+   {
+    "name": "Self-sustaining rhythm",
+    "domain": "Dynamic",
+    "recipe": "Bistability + Negative feedback + Entrainment",
+    "definition": "oscillates at its own rate, independent of what drives it"
+   }
+  ]
+ }
+}

@@ -176,6 +176,36 @@ def branching(gamma, inherited: set[str]) -> dict:
                       "parent however deep the tower goes -- Q25, and it fails loudly")}
 
 
+def catalysts(gamma) -> dict:
+    """**Which terms SURVIVED THEIR OWN USE, and which were spent.** `CHEMISTRY.md`'s test,
+    stated there as *does this term survive its own use unchanged -- checkable per term, and
+    nothing currently records it.*
+
+    **THE MATERIAL WAS ALWAYS THERE AND HAD NO POPULATION.** `Standing` carries `settled_at`
+    and a DECAYING `rejections`, and `refute` clears the first while raising the second. What
+    did not exist was anything settled: candidacy was gated on closure and nothing ever closed,
+    so nothing could be spent. **The reading became possible the day the gate moved, which is
+    the third instrument this week whose subject arrived with candidacy.**
+
+    **AND `rejections` IS GRADED, WHICH IS MORE THAN THE ANALOGY ASKED FOR.** A catalyst is
+    binary in chemistry -- consumed or not. Here a term carries how often the ground has turned
+    on it, halved over `REJECTION_HALFLIFE`, so *spent* has a degree and a term can recover.
+    """
+    out: dict[str, dict] = {}
+    for name, st in gamma.standing.items():
+        settled = st.settled_at is not None
+        out[name] = {"settled": settled, "rejections": round(st.rejections, 3)}
+    survived = [n for n, v in out.items() if v["settled"] and v["rejections"] == 0.0]
+    spent = [n for n, v in out.items() if not v["settled"] and v["rejections"] > 0.0]
+    return {"survived_use_unchanged": len(survived), "spent": len(spent),
+            "recovering": len([n for n, v in out.items()
+                               if v["settled"] and v["rejections"] > 0.0]),
+            "per_term": out,
+            "reads": ("a term settled and never turned on is a CATALYST -- it survived its own "
+                      "use and is available again. `rejections` is graded and decays, so spent "
+                      "is a degree and a term can recover")}
+
+
 def reached_and_failed(rows: list[dict]) -> dict:
     """**Descriptions that retrieved nothing.** *I looked for something with this shape and
     found nothing* is an `UNREACHED` with a SUBJECT, and it is the half the visible set exists

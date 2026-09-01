@@ -8218,3 +8218,31 @@ needed the GENERAL form it already implied.** Fourth or fifth time a registratio
 turned out not to exhaust the space, **and each time the registration was written before the
 mechanism was read.**
 
+
+---
+
+# `CHEMISTRY.md` READ — THE CATALYST TEST BUILT, AND MY OWN MORNING NUMBER CORRECTED
+
+**`summary.catalysts` implements *does this term survive its own use unchanged*, which the
+document names as checkable and unrecorded.** Right about the derived property; the material was
+always there — `Standing.settled_at` and a decaying `rejections`, with `refute` clearing one and
+raising the other. **What did not exist was a population: nothing settled until candidacy landed.**
+
+    ls20   survived use unchanged 1 | spent 25 | recovering 6
+    g50t   survived use unchanged 0 | spent 10 | recovering 3
+    recovering, graded: 1.0 · 4.236 · 2.758 · 1.917 -- still settled, having been turned on
+
+**AND IT CORRECTS THIS MORNING'S READING.** I reported *7 survived* from `settled` minus the demote
+list, **which counts terms that settled late and were never tested.** The strict property —
+`settled_at is not None and rejections == 0` — **is 1 and 0.** Almost every term that settles is
+eventually turned on.
+
+> **WHICH MAKES THE COMPOSED CATALYST CASE NEARLY UNAVAILABLE HERE.** `Break habit = Dither +
+> Witness stance + Damp` *works because both survive the breaking; a consumed component could not
+> be used again on the next groove.* **One term in about thirty survives.**
+
+**AND `rejections` IS GRADED WHERE CHEMISTRY IS BINARY.** A catalyst is consumed or not; here a
+term carries how often the ground turned on it, halved over `REJECTION_HALFLIFE`, **so spent has a
+degree and a term can recover** — six did on `ls20`. **More than the analogy asked for**, which is
+the mapping paying rather than fitting.
+

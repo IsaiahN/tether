@@ -165,6 +165,7 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None) -> di
         # had nothing to add and retrieving was correct. `outstanding` is that reading, and
         # the pair is the claim.
         "branching": summary.branching(g, inherited),
+        "catalysts": summary.catalysts(g),
         "residual": {"pe_integral": round(ag.pe_integral(), 3),
                      "outstanding": round(ag.outstanding(), 3),
                      "reads": ("no divergence WITH outstanding surprise is a level that "
