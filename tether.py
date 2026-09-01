@@ -1188,9 +1188,13 @@ class Agent:
             # library is loaded by design as of the persistence ruling.
             gap = retrieval.characterise(robs, slot, list(self.alphabet), self.slot_types)
             by_fit = partial(retrieval.fits, gap=gap, in_type="val", out_type="val")
+            # HOISTED. `_bindings` depends on `slot` and `robs` and not on the candidate, and
+            # it was being rebuilt identically for every one -- an owner map, a contact set and
+            # a variance count per candidate. Computed once here; the ORDER is unchanged.
+            operand_binds = self._bindings(slot, robs)
             for cand in self.gamma.enumerate_closure("val", "val", self.cfg.max_depth,
                                                      self.cfg.budget, stats, order=by_fit):
-                binds = self._bindings(slot, robs) if cand.reads_operand else [None]
+                binds = operand_binds if cand.reads_operand else [None]
                 binds = [x for x in binds if self._operand_fits(cand, slot, x)]
                 for bind, g in ((b, g) for b in binds for g in self._guards(robs)):
                     rank += 1
@@ -1638,6 +1642,11 @@ class Agent:
         self.led.record(self.cycle - 1, "REPEAT", "@loop", "repeat",
                         integral=round(self.pe_integral(), 3),
                         outstanding=round(self.outstanding(), 3),
+                        # LEVEL ON EVERY REPEAT ROW, because a per-level series cannot be
+                        # reconstructed without it. The `ending` row carries `to_level` and
+                        # records the BOUNDARY; nothing said which level a given cycle was in,
+                        # so the four columns had no way to be segmented.
+                        level=self.level,
                         phase=phase, by=by, stage=self.chain.seg.stage(),
                         gamma_size=len(self.gamma.library), owed=sorted(self.owed_import),
                         admissions=self.gamma.admissions())

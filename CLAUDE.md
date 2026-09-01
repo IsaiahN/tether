@@ -187,8 +187,12 @@ actual and never reduced; `explain` moves surprise out of `outstanding` and cann
 **A system that could zero its own surprise record would look calm by having forgotten it was ever
 wrong.**
 
-**THE ONE PLACE SOMETHING DOES LEAVE IS `retarget`** — and that is not dilution, it is **the cup
-being emptied because the room changed.** Figure 11's isolation law: *isolation is not removal of
+**AND NOTHING LEAVES AT `retarget` EITHER — CORRECTED 2026-09-01.** I wrote that it was *the cup
+being emptied because the room changed*, and it is not. **The bindings clear because the SLOTS do
+not survive; the RESIDUAL does not clear**, and `outstanding` is monotone-by-addition for exactly
+that reason. **A level boundary is the world EXPANDING, not being replaced** — a new level adds
+problems to a cup that still holds everything the last one did not explain. **The mechanism was
+already correct for that; only the account of it was wrong.** Figure 11's isolation law: *isolation is not removal of
 the habitat, it is substitution of one habitat for another.* **You do not get an empty cup. You
 get a different one** — with whatever it already had, and whatever you failed to bring across.
 **Two failure modes, and the second is the one that keeps arriving: what you failed to reproduce

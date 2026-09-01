@@ -206,6 +206,57 @@ def catalysts(gamma) -> dict:
                       "is a degree and a term can recover")}
 
 
+def levels(rows: list[dict]) -> dict:
+    """**THE ACCOUNT, SCOPED TO THE LEVEL BOUNDARY.** Four columns per level -- what was HELD
+    entering it, USED during it, MINTED during it, and what the RESIDUAL did across it.
+
+    **THE BOUNDARY IS THE SCOPE BECAUSE IT IS THE ONLY MOMENT *CONTRIBUTED* HAS A REFERENT.**
+    `levels_completed` is the sole ground signal, so *this term was live when the counter moved*
+    is the first statement that touches it. **A per-term reduction of 14 bits is frame-internal**
+    and belongs here as an INPUT rather than as the deliverable.
+
+    **AND IT PRODUCES A SERIES, NOT A VERDICT**, which is §14.7's own form: *unreached rate over
+    time, and it should fall as chunks accumulate.*
+
+    **THE PREDICTION IT MAKES FALSIFIABLE.** Each level adds problems to a cup that still holds
+    everything the last one did not explain -- the residual does not leave, and `outstanding` is
+    monotone-by-addition for exactly that reason. **So a library that is not composing should
+    show RISING unexplained mass per level, and one that is composing should show the opposite.**
+
+    **AND WHEN NO LEVEL HAS ADVANCED THE READING IS `UNREACHED`, NOT NULL.** One level means one
+    row and no differences, which is a statement about the run rather than about the library.
+    """
+    seq = [r for r in rows if r.get("event") == "repeat"]
+    if not seq:
+        return {"levels": [], "verdict": "no_cycles", "reads": "nothing ran"}
+    spans: dict[int, dict] = {}
+    for r in seq:
+        lv = r["detail"].get("level", 0)
+        d = spans.setdefault(lv, {"level": lv, "first": r["cycle"], "last": r["cycle"],
+                                  "outstanding_in": r["detail"].get("outstanding"),
+                                  "outstanding_out": None})
+        d["last"] = r["cycle"]
+        d["outstanding_out"] = r["detail"].get("outstanding")
+    for d in spans.values():
+        lo, hi = d["first"], d["last"]
+        d["used"] = len({(x.get("detail") or {}).get("term") for x in rows
+                         if x.get("event") == "pull" and lo <= x["cycle"] <= hi})
+        d["minted"] = sum(1 for x in rows
+                          if x.get("event") == "mint" and lo <= x["cycle"] <= hi)
+        d["held_entering"] = sum(1 for x in rows
+                                 if x.get("event") == "mint" and x["cycle"] < lo)
+        a, b = d["outstanding_in"], d["outstanding_out"]
+        d["residual_moved"] = None if a is None or b is None else round(b - a, 3)
+        del d["first"], d["last"]
+    out = [spans[k] for k in sorted(spans)]
+    advanced = len(out) > 1
+    return {"levels": out, "advanced": advanced,
+            "verdict": "series" if advanced else "unreached",
+            "reads": ("four columns per level. ONE level means no differences and the verdict is "
+                      "UNREACHED -- no level advanced, so no contribution reading exists. That is "
+                      "a statement about the run, not a null about the library")}
+
+
 def reached_and_failed(rows: list[dict]) -> dict:
     """**Descriptions that retrieved nothing.** *I looked for something with this shape and
     found nothing* is an `UNREACHED` with a SUBJECT, and it is the half the visible set exists

@@ -8291,3 +8291,59 @@ move a number when the budget binds or when something closes. **Neither happens 
 is the same shape as `enumerate_closure`'s `order=` — built, correct, and waiting on a search that
 stops early.
 
+
+---
+
+# THE ACCOUNT — SCOPED TO THE LEVEL BOUNDARY, AND ITS FIRST READING IS `UNREACHED`
+
+**The per-term reader was the wrong shape.** *This term reduced 14 bits and held 38 steps* is true
+and says nothing about what contributed to anything. **`levels_completed` is the only ground
+signal, so a level advance is the one moment `contributed` has a referent** — and the per-term
+account is the INPUT rather than the deliverable.
+
+    summary.levels(rows) -- four columns per level
+      held      what was in the library entering it
+      used      what was pulled during it
+      minted    what was composed during it
+      residual  what `outstanding` did across it
+
+    g50t, 12 steps    verdict UNREACHED · advanced False
+                      level 0 | held 0 · used 2 · minted 7 · residual moved +383.136
+
+**ONE LEVEL MEANS NO DIFFERENCES, AND THE VERDICT IS `UNREACHED` RATHER THAN NULL** — *no level
+advanced, so no contribution reading exists*, which is a statement about the run and not about the
+library. **The class the register is full of, declared instead of discovered.**
+
+### THE LEDGER WAS MISSING THE FIELD THE SERIES NEEDS
+
+**Nothing recorded which level a cycle was in.** The `ending` row carries `to_level` and marks the
+boundary; the `repeat` row carried the integral, the outstanding and the stage and not the level.
+**One field, and the four columns had no way to be segmented without it.**
+
+### AND IT PRODUCES A SERIES, WHICH IS §14.7's OWN FORM
+
+*Unreached rate over time, and it should fall as chunks accumulate.* **A per-level series is that
+shape**, and the prediction is registerable before the first advance:
+
+> **Each level ADDS problems to a cup that still holds everything the last one did not explain.**
+> So **a library that is not composing should show RISING unexplained mass per level, and one that
+> is composing should show the opposite.** The one level we have reads `+383.136` with nothing to
+> compare it to.
+
+### AND `retarget` DOES NOT EMPTY THE CUP — CORRECTED IN `CLAUDE.md`
+
+I wrote it as *the cup being emptied because the room changed.* **It is not.** The bindings clear
+because the SLOTS do not survive; **the residual does not clear**, and `outstanding` is
+monotone-by-addition for exactly that reason. **A level boundary is the world expanding, not being
+replaced** — and the mechanism was already correct for it.
+
+### THE HOIST — COST ONLY, VERIFIED
+
+`_bindings` depends on the slot and the residual and **was being rebuilt for every candidate**: an
+owner map, a contact set and a variance count each time. **True before `contact_first` and made
+expensive enough to notice by it.**
+
+    outstanding  455.91 / 526.88 -> 455.91 / 526.88   IDENTICAL
+    library, settled                                   identical
+    wall clock   the pair timed out at 120s -> 53s + 26s
+
