@@ -29,6 +29,7 @@ from ledger import (
     SPECIFIED,
     Ledger,
 )
+from priors import contact_first
 from probe import Drive
 from sensors import COMMENSURABLE, DELTA, OBJECT, POSITION
 
@@ -1148,7 +1149,25 @@ class Agent:
         order decides WHICH closer is found and never WHETHER one exists."""
         others = [s for s in self.slots if s != slot]
         seen = {s: len({st[s] for st, _, _ in robs if s in st}) for s in others}
-        return [None] + sorted(others, key=lambda s: (-seen[s], s))
+        # CONTACT FIRST, THEN VARIANCE. §16.5: *list everything in contact with the residual,
+        # then what is in contact with those, and outward until the cascade stops mattering --
+        # you do not invent the list, you read it off the world.* The docstring above records
+        # that this returned EVERY other slot ordered by variance, which §16.5 forbids, and
+        # that `touching()` was built and unused. **`priors.contact_first` was the only BIAS
+        # declared without a function**, cited to Michotte 1946, and this is it.
+        #
+        # **STILL ORDERS AND STILL REMOVES NOTHING.** §12.1 admits a bias only as a *ranked,
+        # reversible cut*, and a filter here would make contact decide REACHABILITY rather than
+        # order -- which is the first ring of the cascade mistaken for the whole of it.
+        owners = self._slot_owners(self.env)
+        touch = getattr(self.env, "contacts", None)
+        near: set[str] = set()
+        if touch is not None and owners:
+            mine = owners.get(slot)
+            adj = set(touch().get(mine, ()))
+            near = {s for s in others if owners.get(s) in adj}
+        rank = contact_first(near)
+        return [None] + sorted(others, key=lambda s: (*rank(s), -seen[s], s))
 
     def mint(self, slot: str) -> None:
         hist = self.history(slot)

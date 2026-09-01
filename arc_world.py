@@ -56,6 +56,7 @@ class ArcWorld:
         self._name = name
         self._frame = self.w.reset()
         self._read: dict[str, int] | None = None
+        self._contacts: dict[str, list[str]] | None = None
         # 18.3's family lives HERE because the members read BOARDS and the agent may not.
         # What it holds that is episode-scoped is dropped by `boundary()`, which the loop
         # calls at a level change -- see `tether.retarget`.
@@ -134,6 +135,26 @@ class ArcWorld:
         reaches the atoms. The domain supplies the instrument set; the loop composes.
         """
         return SENSORS
+
+    def contacts(self) -> dict[str, list[str]]:
+        """Which objects touch, this frame. **The loop may not derive this** -- §12.3 sensor 8,
+        and §16.5's *you do not invent the list, you read it off the world.*
+
+        **CACHED ON THE FRAME**, for the reason `_decomposed` is: `_bindings` is called per
+        candidate, and contact is 210 pairs on a 21-object board. Measured density is ~12%, so
+        the answer is small even where the computation is not.
+        """
+        if self._contacts is None:
+            tr = self._decompose.tracked
+            names = sorted(tr)
+            out: dict[str, list[str]] = {n: [] for n in names}
+            for i, a in enumerate(names):
+                for b in names[i + 1:]:
+                    if arc_percept.touching(tr[a], tr[b]):
+                        out[a].append(b)
+                        out[b].append(a)
+            self._contacts = out
+        return self._contacts
 
     def slot_owner(self) -> dict[str, str]:
         """Which SUBJECT each slot is an attribute of. **The loop may not derive this.**
@@ -253,6 +274,7 @@ class ArcWorld:
         if nxt is not None:
             self._frame = nxt
         self._read = None          # a new frame is a new decomposition
+        self._contacts = None      # and a new set of contacts
         now = self.board()
         self._decomposed()          # re-track before reading contact on the new frame
         # BOTH READERS ABSTAIN ON A BLIND FRAME, AND ONLY ONE OF THEM USED TO. When `blind`,

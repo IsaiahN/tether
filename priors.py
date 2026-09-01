@@ -107,13 +107,27 @@ def _take_the_best(uses: dict[str, int]) -> Callable[[Any], tuple]:
     return key
 
 
+def contact_first(near: Any) -> Callable[[Any], tuple]:
+    """Contact-then-motion is perceived as causation, so a slot on a body in contact with the
+    owing one is tried first. **Orders; removes nothing** -- §16.5 is a CASCADE, *outward until
+    it stops mattering*, and a filter would make contact decide reachability rather than order.
+
+    **THE ONLY BIAS IN THIS LIST THAT HAD NO FUNCTION**, declared with its citation and never
+    implemented -- and `_bindings` records the consequence at its own site: *the list is EVERY
+    other slot, which is exactly what §16.5 forbids, and `touching()` is built and unused.*
+    """
+    def key(slot: Any) -> tuple:
+        return (0 if slot in near else 1,)
+    return key
+
+
 BIASES = [
     Prior("simplicity", "BIAS", "prefer the shorter hypothesis fitting the evidence",
           "Chater & Vitanyi", _simplicity),
     Prior("take_the_best", "BIAS", "take-the-best; ecological rationality",
           "Gigerenzer & Goldstein 1996", _take_the_best),
     Prior("contact_first", "BIAS", "contact-then-motion is perceived as causation",
-          "Michotte 1946; Leslie & Keeble 1987"),
+          "Michotte 1946; Leslie & Keeble 1987", contact_first),
     Prior("essentialism", "BIAS",
           "a hidden non-obvious property causes observable behaviour and outranks appearance",
           "Gelman & Wellman 1991"),

@@ -8246,3 +8246,48 @@ term carries how often the ground turned on it, halved over `REJECTION_HALFLIFE`
 degree and a term can recover** — six did on `ls20`. **More than the analogy asked for**, which is
 the mapping paying rather than fitting.
 
+
+---
+
+# `contact_first` — THE ONLY BIAS DECLARED WITHOUT A FUNCTION, NOW IMPLEMENTED
+
+**`priors.py` carried it with a citation and no `fn`** — Michotte 1946, Leslie & Keeble 1987 —
+while `simplicity` and `take_the_best` both had one. **`_delta`'s shape a third time: admitted,
+cited, and never given an implementation.**
+
+**AND `_bindings` RECORDED THE CONSEQUENCE AT ITS OWN SITE**: *the list is EVERY other slot, which
+is exactly what §16.5 forbids — you do not invent the list, you read it off the world — and
+`touching()` is built and unused.*
+
+### THE PUBLICATION QUESTION ANSWERED BY THE CORPUS, NOT BY ARITY
+
+**`touching` does not become a slot.** Dense pairs are `O(n^2)` — 2,415 on `sk48`, and the
+measurement **timed out computing them**. Sparse pairs churn the slot set. **§16.5 names the real
+consumer: the binding candidate list**, which is `O(n)` for the one slot being minted.
+
+    contact density   ls20  21 objects, 210 pairs, 24-26 touching per step (12%)
+                      g50t  16 objects, 120 pairs, 13-16 touching per step (13%)
+    mean contacts per object ~2.4
+
+> **WHICH RETIRES A FINDING I CARRIED FOR DAYS.** I recorded *a relation is not a slot, so it never
+> crosses* as the right diagnosis with the wrong remedy, and said the remedy was publishing the
+> scalar. **The corpus's remedy is that the relation never crosses at all** — it orders candidates
+> on the perception side and the loop receives a list.
+
+### AND IT ORDERS, WHICH MEANS ITS EFFECT IS CONFINED TO TIES
+
+    fixed sequence, 20 steps       outstanding    library    settled
+      ls20   before / after        455.91 / 455.91   30 / 31   14 / 14
+      g50t   before / after        526.88 / 526.88   11 / 11   10 / 10
+      bound terms with an operand on a CONTACTING body:  ls20 5 of 13 · g50t 0 of 3
+
+**`outstanding` is unchanged to the decimal, and that is correct rather than disappointing.** The
+mint iterates EVERY binding and keeps the best, breaking only on a closer — **and nothing closes**
+— so an ordering decides which of several equal-`left` bindings wins and nothing else. **One extra
+term on `ls20`.**
+
+**AN ORDERING MATTERS WHEN THE SEARCH IS TRUNCATED, AND THIS SEARCH IS NOT.** `contact_first` will
+move a number when the budget binds or when something closes. **Neither happens today**, and that
+is the same shape as `enumerate_closure`'s `order=` — built, correct, and waiting on a search that
+stops early.
+
