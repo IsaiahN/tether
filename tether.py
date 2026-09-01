@@ -1219,13 +1219,24 @@ class Agent:
         self.bound[slot] = term.name
         self.rank.note(term.name, self.cycle)
         closes = left == 0.0
+        # Q7: THE MINT MAKES A CANDIDATE; THE GROUND SETTLES IT BY HELD-OUT PAYMENT. *A
+        # candidate becomes accepted once it predicts transitions it was never fitted to.*
+        # Candidacy was gated on `closes` and NOTHING EVER CLOSED -- 13 of 13 and 7 of 7 paid
+        # without closing -- so `candidates` stayed empty, `settle()` never fired, `units()`
+        # was 17 atoms at step 1 and 17 at step 20, and the composite system had ONE LEVEL
+        # structurally. Chunk reuse read zero as a TAUTOLOGY, not as a finding.
+        #
+        # THE SLOT STILL OWES, AND THAT IS UNCHANGED. *The slot keeps owing until something
+        # closes R* is true and is a fact about the SLOT -- `owed_import` keeps it. Whether
+        # the TERM is a real regularity is Q7's separate question and the ground answers it on
+        # a later step. §14.2 is the guard that makes this safe: an unsettled term is *usable
+        # as a slot's binding, NOT as a building block*, and `units()` admits settled only --
+        # which is Q7's *held but not cited*, already built.
+        self.candidates[term.name] = self.cycle
         if closes:
-            self.candidates[term.name] = self.cycle
             self.owed_import.discard(slot)
             self.abstained.pop(slot, None)
         else:
-            # it pays and it is not the mechanism. Accepting is correct; settling for it
-            # is not -- the slot keeps owing until something closes R.
             self.owed_import.add(slot)
         detail["verdict"] = "pays"
         detail["closes"] = closes

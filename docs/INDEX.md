@@ -8046,3 +8046,80 @@ all, what length would qualify, and what it does to false mints. **A term exact 
 wrong earlier**, and the defeasible demotion machinery — `refute`, decaying rejection — is what
 would have to carry that. **Nothing is built.**
 
+
+---
+
+# PRE-REGISTERED: CANDIDACY
+
+**The change is one arrow: every accepted mint becomes a candidate.** Q7 — *a candidate becomes
+accepted once it predicts transitions it was never fitted to.* Candidacy is currently gated on
+`left == 0`, and nothing has ever closed.
+
+    THE FALSIFIER -- `outstanding`, on a FIXED SEQUENCE, before and after
+      Its denominator is the run's total surprise, which candidacy does not move, so numerator
+      and denominator are independent -- the property `false_mint_rate` lacks, and the reason
+      that one withdrew a correct mechanism once already.
+
+      IF `units()` GROWS AND `outstanding` DOES NOT FALL, the settled terms are not explaining
+      anything and the gate was doing real work.
+
+    THE WIRING CHECK -- `len(units())` at step 1 versus step 20. Currently 17 and 17.
+      Flat after the change means the arrow did not land: wiring, not design.
+
+    HELD SEPARATE -- promoting on a SUFFIX is a different proposal and is not in this change.
+      It rides in only if candidacy fails to move `units()` without it. Kept apart so the
+      reading attributes.
+
+**Does this change alter the trajectory the measurement is taken over? YES** — settled terms enter
+`units()`, so the search space changes, so different terms are found. **Fixed sequence is the only
+comparable form, settled before approval rather than discovered after.**
+
+
+---
+
+# CANDIDACY — BUILT 2026-09-01. THE COMPOSITE SYSTEM HAS A SECOND LEVEL
+
+**One arrow: every accepted mint becomes a candidate.** Q7's ordering — *the mint makes a
+candidate; the ground settles it by held-out payment* — where the code had closure make one.
+
+    fixed sequence, 20 steps        BEFORE            AFTER
+      ls20  units                   17 -> 17          17 -> 19
+            settled                        0                14
+            candidates                     0                23
+            outstanding               637.86            455.91     -28.6%
+            library                       20                30
+      g50t  units                   17 -> 17          17 -> 19
+            settled                        0                10
+            outstanding               582.88            526.88      -9.6%
+
+**THE WIRING CHECK PASSES**: `units()` grows, so the arrow landed. **THE FALSIFIER PASSES**:
+`outstanding` falls on both, on the same actions, replay faithful. The registered failure — *units
+grows and outstanding does not fall* — did not occur, **and `outstanding`'s denominator is the
+run's total surprise, which candidacy does not move.**
+
+### AND THE SECOND LEVEL IS USED, WHICH IS A DIFFERENT CLAIM
+
+    settled 14 -> 2 DISTINCT new units    `translate . translate`, `recolour . recolour`
+    terms longer than `max_depth` (3)     ls20: 2 · g50t: 0
+
+**A four-atom term is not constructible from atoms alone at depth 3.** `translate . translate .
+translate . translate` exists only by composing over a settled unit. **Twice on `ls20`, never on
+`g50t`** — per game, never pooled: on one board the second level is in use, on the other it is
+available and unused.
+
+**AND 14 SETTLED BECAME 2 UNITS**, because `units()` dedups on the emitted name with the binding
+stripped. *Fifty saved entries were eleven shapes*, measured again from the other side.
+
+### WHAT IT DOES NOT LICENSE
+
+**20 steps, two games.** And **`outstanding` falling is not solely the second level** — the
+library also went 20 to 30, and more terms explain more whether or not any composed over a unit.
+**The `> max_depth` count separates EXISTENCE from USE and does not apportion the fall.**
+
+**The ground has not moved.** Levels 0, degree flat. This is a reading about the machinery.
+
+### AND THE SUFFIX PROPOSAL DID NOT RIDE IN
+
+**Held separate as ruled, and it was not needed** — candidacy moved `units()` on its own. Whether
+promoting on a suffix is correct remains unruled and unbuilt.
+
