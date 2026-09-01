@@ -205,8 +205,20 @@ class ArcWorld:
         for s in d:
             key = s.rsplit(".", 1)[-1]
             if key == "shape":
-                o = self._decompose.tracked.get(s.rsplit(".", 1)[0], {})
-                out[s] = 2 ** max(1, int(o.get("h", 1)) * int(o.get("w", 1)))
+                # THE COUNT OF LABELS, NOT THE SPACE OF SHAPES. The slot holds an ID, and an
+                # id is a label -- arbitrary, comparable, never orderable -- so its alphabet
+                # is the number of labels, exactly as `colour`'s is the palette. `2**(h*w)`
+                # priced the space of shapes that COULD exist, which is not what the slot
+                # holds, and charged 4,096 bits for a full-board object.
+                #
+                # **IT GROWS WITH OBSERVATION, AND THAT IS STATED RATHER THAN AVOIDED.** Being
+                # wrong costs more as the world turns out to be richer -- a fact about the
+                # world, not a metric drifting, and colour's would do the same on a board that
+                # revealed new colours. **The failure mode to WATCH is unbounded growth**: if
+                # the shape count never settles, the cost of a shape miss never settles
+                # either. Different from `lib ok here / lib`, which was a RATIO whose
+                # denominator the mechanism itself moved.
+                out[s] = max(2, len(getattr(self._decompose, "_shapes", ()) or ()))
             elif key == "drow":
                 out[s] = 2 * h
             elif key == "dcol":

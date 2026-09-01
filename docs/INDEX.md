@@ -7846,3 +7846,49 @@ uniform code charges **4,096 bits** for being wrong about a full-board object.
 against `lib ok here / lib`. **Two defensible derivations with opposite failure modes**, and
 picking between them on the number they produce is fitting.
 
+
+---
+
+# THE LABEL READING, AND THE PRICE DRIFTS WITHIN A RUN
+
+**A shape slot holds an ID and an id is a label** — arbitrary, comparable, never orderable — so
+its alphabet is the count of labels, exactly as `colour`'s is the palette. **`2**(h*w)` priced the
+space of shapes that COULD exist, which is not what the slot holds.**
+
+                  integral   outstanding   SHAPE share      under 2**(h*w)
+      ls20           608.2         455.2      133.8  29%    18,883 / 15,164 / 98%
+      g50t           575.6         477.6       75.8  16%    14,778 /  6,722 / 94%
+      detection   12 of 12 and 6 of 6 -- UNCHANGED. only the pricing moved
+
+### THE GROWING DENOMINATOR IS REAL, AND IT IS PER GAME
+
+    distinct shapes at steps 1,5,10,15,20,25,30
+      ls20   18 25 36 52 52 52 52     settled at step 15
+      g50t   12 16 22 26 33 38 44     +18 in the last 15 -- STILL GROWING
+
+**`ls20` settles and `g50t` does not**, which is *per game, never pooled* arriving in the failure
+mode rather than in the result. **The growth is logarithmic in cost** — a doubling of the shape
+count adds one bit — so unbounded growth gives unbounded-but-slow cost rather than a blow-up.
+
+> **AND IT DRIFTS THE PRICE WITHIN A RUN, WHICH COLOUR DOES NOT.** A shape miss at step 5 on
+> `g50t` costs `log2(16)` and the same miss at step 30 costs `log2(44)`. **`pe_integral` is
+> monotone by construction and now sums a quantity charged at different rates over its own
+> span** — two identical events, two prices. **Colour has no such drift: its palette is declared
+> at construction and discovered by nobody.**
+
+**DIFFERENT FROM `lib ok here / lib`, WHICH WAS A RATIO WHOSE DENOMINATOR THE MECHANISM MOVED.**
+This is a per-slot cost whose denominator grows with **observation** — a fact about the world, not
+a metric drifting under its own mechanism. **Recorded as a watch, not a defect**, and the thing to
+check is whether a board exists where the count never settles at all.
+
+### AND THE FORK'S OTHER HALF SURVIVED THE RULING
+
+**No term can explain a changing shape id under either reading.** The atoms are `idn`, `translate`,
+`recolour`; `idn` explains a static shape and arithmetic on a label means nothing. **The label
+reading reduced the cost and did not make the slot explicable.**
+
+> **THE AGENT IS NOW MAXIMALLY SURPRISED BY EXACTLY THE THING IT HAS NO VOCABULARY FOR** — and
+> `recolour`'s form over a label already works, so *shape becomes that shape* is expressible while
+> *bigger* is not. **The id has no structure; the shape it stands for does.** That is the label
+> ruling's honest cost, and it is filed as the finding rather than solved with a smaller number.
+
