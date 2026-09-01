@@ -8180,3 +8180,41 @@ is a useful description rather than a prediction.
 check against. **There were none; there are now two distinct units per game.** **n = 2 is thin and
 it is not zero**, which is a change of state rather than of verdict.
 
+
+---
+
+# THE BOND TERM — TAKEN AS `log2(|bonds|)`, WHICH IS ZERO TODAY
+
+    CODE   uniform(M) per correction; (k+1)*log2(|atoms|+1) + (k-1)*log2(|bonds|) per term
+    BONDS  1   -- a `Term` is applied left to right, which is ONE bond: sequence
+
+**`log2(7)` would charge for a choice among one.** `CODE` charges `log2(alphabet)` per position and
+**the alphabet is what is available** — a symbol from a one-symbol alphabet costs nothing because
+it tells you nothing. **The zero is a consequence, not a concession**, and it prices every future
+operator automatically.
+
+**NO STOP, AND THE ASYMMETRY IS DERIVED.** The atom term carries `+1` because a sequence's LENGTH
+is unknown. **There are exactly `k-1` bonds and `k` is already read**, so nothing terminates them.
+
+    measured against the libraries as they stood, under a FLAT log2(7)
+      terms paying    ls20  7 -> 4       g50t  3 -> 2
+      the marginal payers pay by 1.49 bits; the cheapest bond is 2.8
+
+**SO IT WILL RISE SILENTLY AND WILL LOOK LIKE A REGRESSION.** Those four stop paying the moment
+branching is a choice — **which is correct: a branched molecule says more than a spine, and today
+it says more for free.** The reason is at the site so the next reader does not read it as a defect.
+
+### AND THE ISOMER FINDING IS WHY THIS IS NOT A CONTRADICTION
+
+**3 of 3 arrangements are extensionally distinct under ONE bond type** — because the distinction
+there is **order**, not bond choice. **Order is already priced**: two arrangements are two
+sequences at the same cost. **The operator carries information in proportion to how many
+alternatives exist, which is none today.**
+
+### THE REGISTRATION'S TWO OUTCOMES DID NOT EXHAUST THE SPACE
+
+*Most still pay* and *the code needs a different form* were the branches. **Neither fired: the code
+needed the GENERAL form it already implied.** Fourth or fifth time a registration's outcomes have
+turned out not to exhaust the space, **and each time the registration was written before the
+mechanism was read.**
+

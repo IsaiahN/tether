@@ -169,6 +169,32 @@ and a condition is invisible in the results it conditions.** `SNAPS_PLAN` was th
 document in the set, was never opened, and four of its ten sections overturned a published
 conclusion. The laws apply to the panel, not only to the code.
 
+**AND THE DILUTION RULE, WHICH STATES CONTAINMENT BETTER THAN THE ABOVE DO.** *You can dilute a
+residual of apple juice in a cup with water, but unless it leaves the confines it cannot be
+removed.* **Dilution is not removal**: the concentration changed and the quantity did not, and
+nothing inside the cup can reduce it. Figure 11's *introduce, never subtract* is the same law —
+adding water is the only move available from inside.
+
+**THE TEST, AND IT IS ONE QUESTION:** *does anything leave the confines?* **If not, it is a
+dilution and the quantity is unchanged.** It would have retired the segment-scoping proposal
+before it was measured — the regime change is INSIDE the cup, `Segment`'s boundaries are level
+changes, and a slot going from oscillating to running is not one. **That is a better account than
+*there was no break event near step 8*: the break was real and internal, and internal changes
+dilute.**
+
+**AND `outstanding` IS THIS RULE AS A DATA STRUCTURE.** `pe_integral` is monotone against the
+actual and never reduced; `explain` moves surprise out of `outstanding` and cannot unspend it.
+**A system that could zero its own surprise record would look calm by having forgotten it was ever
+wrong.**
+
+**THE ONE PLACE SOMETHING DOES LEAVE IS `retarget`** — and that is not dilution, it is **the cup
+being emptied because the room changed.** Figure 11's isolation law: *isolation is not removal of
+the habitat, it is substitution of one habitat for another.* **You do not get an empty cup. You
+get a different one** — with whatever it already had, and whatever you failed to bring across.
+**Two failure modes, and the second is the one that keeps arriving: what you failed to reproduce
+is invisible until the goal fails; what you unintentionally introduced is invisible until it
+acts.**
+
 **And FOUR STEPS, which are a different kind of thing and are filed apart on purpose.**
 Every law above installs something that fires — a rule, a fixture, a witness, a denominator
 that can be checked. **These cannot. They happen before the work or they do not happen, and

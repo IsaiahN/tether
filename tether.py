@@ -44,7 +44,27 @@ DISCRIMINATE_BUDGET = 200
 # THE CODE, declared. Both halves of the bargain are lengths under it.
 #   a correction on one slot-transition: log2(M) bits, a uniform code over the M values
 #   a term of k atoms:                   (k+1) * log2(|atoms|+1), the atoms plus a stop
-CODE = "uniform(M) per correction; (k+1)*log2(|atoms|+1) per term"
+CODE = ("uniform(M) per correction; (k+1)*log2(|atoms|+1) + (k-1)*log2(|bonds|) per term")
+
+# HOW MANY BOND TYPES THE TERM LANGUAGE HAS. A `Term` is applied left to right, which is ONE
+# bond -- sequence -- so this is 1 and the bond term is `log2(1) = 0`.
+#
+# **THE ZERO IS A CONSEQUENCE, NOT A DESIGN.** `CODE` charges `log2(alphabet)` per position and
+# the alphabet is WHAT IS AVAILABLE; a symbol drawn from a one-symbol alphabet costs nothing
+# because it tells you nothing. Charging `log2(7)` for a choice among one would be charging for
+# information that is not there, which is the one thing a description length refuses to do.
+#
+# **NO STOP SYMBOL, AND THE ASYMMETRY IS DERIVED.** The atom term carries `+1` because a
+# sequence's LENGTH is unknown and must be terminated. There are exactly `k-1` bonds and `k` is
+# already read, so nothing terminates them.
+#
+# **IT WILL RISE SILENTLY AND THAT WILL LOOK LIKE A REGRESSION.** The moment a second operator
+# exists every term costs `(k-1)*log2(2)` more, and at seven it is 2.8 bits per bond. Measured
+# 2026-09-01 against the libraries as they stood: under a flat `log2(7)`, terms paying fell 7 to
+# 4 on `ls20` and 3 to 2 on `g50t` -- **the four marginal payers pay by 1.49 bits and the
+# cheapest bond is 2.8.** They stop paying when branching becomes a choice, and that is correct:
+# a branched molecule says more than a spine and today it says more for free.
+BONDS = 1
 
 HELD, NOVEL, REBIND, MECHANISM = "held", "novel", "rebinding", "mechanism"
 
@@ -95,8 +115,8 @@ def round_trip_gap(t_a, state: dict[str, int], alphabet: dict[str, int]) -> floa
     return total
 
 
-def term_bits(k: int, alphabet: int) -> float:
-    return (k + 1) * math.log2(alphabet + 1)
+def term_bits(k: int, alphabet: int, bonds: int = BONDS) -> float:
+    return (k + 1) * math.log2(alphabet + 1) + (k - 1) * math.log2(max(bonds, 1))
 
 
 def pays(cost: float, left: float, base: float) -> bool:
