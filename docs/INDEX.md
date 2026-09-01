@@ -7941,3 +7941,52 @@ vocabulary cannot separate *the machinery is broken* from *the agent cannot expr
 objective*. **It would be an uninterpretable null with a satisfying story available** — the failure
 named twice this week, walked into a third time by the person naming it.
 
+
+---
+
+# `varies`' SUBJECT — CLOSED, AND THE DESCRIPTION KEY IS CORRECT AND PREMATURE
+
+**The test was the corpus's own wording: *from the residual's own structure*. A slot that moved
+and was correctly predicted has no residual, so scoping `varies` to residual-carrying slots is a
+reading of the spec rather than a design choice.**
+
+    same window, both games          as built    scoped to residual-carrying
+      ls20, 168 gaps                    23.6            23.6      reduction 1.00x
+      g50t, 120 gaps                    23.9            23.9      reduction 1.00x
+
+**NO REDUCTION. Every slot that varied in the window also carried residual mass in it.** So both
+diagnoses die together — **mine (*the key measures the board's activity*) and the *different
+languages* reading.** The key is measuring the residual's structure already.
+
+### AND THE MECHANISM IS ONE LINE
+
+    ls20   176 slots | bound to something other than `idn`: 13   (163 -> idn)
+    g50t   120 slots | bound to something other than `idn`:  5   (115 -> idn)
+
+**93% and 96% of slots predict *nothing changes*.** So **moved and mispredicted are the same
+event**, and `varies` equals the residual-carrying set **by construction, not by coincidence.**
+
+> **THE DESCRIPTION IS SATURATED BECAUSE THE RESIDUAL IS SATURATED, AND THE RESIDUAL IS SATURATED
+> BECAUSE THE AGENT PREDICTS ALMOST NOTHING.** The key is not broken, the vocabulary is not the
+> wrong language, and a finer one would not help. **The key is CORRECT AND PREMATURE.**
+
+**IT BECOMES INFORMATIVE AS THE AGENT IMPROVES.** When most slots are correctly predicted,
+`varies` shrinks to the few that are not — **and a handful of slots is a residual's own structure
+in the sense §15.3 means.** The saturation is a symptom of the agent, measured through the key.
+
+### WHICH CONVERGES THE ITEMS INSTEAD OF MULTIPLYING THEM
+
+**The cluster rewrite stays refused** — for a better reason than *the gap side says everything
+moved*: **the gap side is right that everything is wrong.**
+
+**F2's diagnosis closes.** Not a missing signal, not different languages, not a saturated
+description — **a library that explains 13 slots of 176.**
+
+**And the description vocabulary is not the next build.** It is correct, it is waiting, and what
+it waits on is the agent explaining more.
+
+**WHICH LANDS ON THE OPERATOR FINDING.** The agent explains 13 of 176 with a vocabulary of
+`translate`/`recolour` chains at arity 1, under one relation. **2,111 of 2,651 recipes are written
+in `+`, and `Term` is left-to-right, which is `→`.** The reason it cannot predict and the reason
+`+` has no form are the same reason.
+
