@@ -9123,3 +9123,103 @@ repo** -- `arc_world` 108, testing board readability. `sensors.py` returned it f
 and **nothing downstream could receive one: a declared abstention with no path.** There is now a
 path, and it is empty.
 
+
+---
+
+# THREE CHECKS: `∥` RULED, THE CYCLE BOUND LOCATED, AND THE CONSUMER FOUND ALREADY BUILT
+
+## 1 · `∥` -- THE OUTSIDE DOCUMENT IS WRONG, AND `∥` HAS ONE SENSE
+
+**`OPERATORS.md` does not merely gloss the operators; it supplies a DISCRIMINATING TEST for each,
+and the test decides this.**
+
+    +   conjunction   both present, order irrelevant   swap the operands -- does meaning change?
+    ∥   disjunction   either suffices, not both        REMOVE ONE -- does it still work?
+
+**"Run independently or in parallel" IS *both present, order irrelevant*. That is `+`.** The document
+assigned `+`'s meaning to `∥`'s glyph.
+
+**And the test settles it rather than the gloss.** Two genuinely concurrent contributors: **remove one
+and it breaks -> `+`.** It survives removal only where one was redundant -- **and then it is
+disjunction, correctly classified.** *Concurrency is not a second sense of `∥`; it is `+` under
+another name.*
+
+**THE CAUSE IS NAMEABLE: it read the GLYPH's convention -- process-algebra `P ∥ Q` -- rather than the
+table's definition.** Which is `A6i` from the outside: **one symbol, two conventions**, and here the
+corpus's definition is authoritative **because it carries an operational test and the convention does
+not.**
+
+> **AND IT DOES NOT TOUCH `≡`, WHICH IS A DIFFERENT FINDING IN KIND.** `≡`'s two senses are INTERNAL
+> -- `OPERATORS.md` defines it as *two names, one referent* and its own worked example says a
+> definitional identity **is not a recipe at all**. The outside document split the same seam
+> independently. **`∥`'s claimed second sense exists only in the outside document and fails the
+> corpus's own test.** One is corroboration at independence; the other is a misreading.
+
+## 2 · THE CYCLE BOUND IS NOT IN THE CORPUS -- BUT THE RULING ON WHERE IT GOES IS
+
+**Composition cannot cycle today, and the reason is structural: `Term.atoms` is a TUPLE applied left
+to right.** No branch, no back-reference, termination guaranteed by length. **Figure 12's *a chain
+cannot close by construction* is the code's actual shape**, not an aspiration.
+
+**What IS bounded is the SEARCH** -- `Config.max_depth` and `Config.budget`, `while frontier and depth
+<= max_depth`. **That bounds ENUMERATION, not EVALUATION**, and a cyclic term would loop at evaluation
+regardless of how it was found.
+
+**So the bound is not in the corpus, exactly as read -- and it becomes necessary the moment trees
+arrive.** Same latency class as the other three, **and the first that is not a number.**
+
+**AND `snaps._acyclic` CARRIES THE RULING, one level over, in its own docstring:**
+
+> *"A `chain` slot reads its target's NEW value, so chain-to-chain would be a cycle inside one tick.
+> **Repair at the SPEC, not with a guard at evaluation -- a world that cannot be evaluated is a
+> malformed world, not a runtime case to handle.**"*
+
+**Transferred: refuse a cyclic composition AT CONSTRUCTION, never with a runtime guard.** The corpus
+does not have the bound and **does have the ruling on where it belongs**, which is the more expensive
+half.
+
+## 3 · THE CONSUMER FOR `OBJ` IS BUILT, TYPED, AND IN EVERY BET
+
+**`grammar.py` 81:** `_p(WANT, "Speech-act", (T.OBJ,), T.PRED, ...)`
+
+> **`WANT : OBJ -> PRED`.** It is one of the four nodes of `_BET_ORDER`, so **every bet the agent
+> makes already consumes an objective.**
+
+**I SAID LAST TURN THAT NOTHING CONSUMES `OBJ`. THAT WAS WRONG, and `CLAUDE.md`'s instantiation map
+says it too** -- *the second consumer for EXTRACT/RELATE/QUANTIFY* listed as NOT INSTANTIATED.
+**Fourth form again: the corpus behind the code, and me repeating the corpus without checking.**
+
+**WHAT IS ACTUALLY MISSING IS THE WIRE.** `tether` 1537:
+
+    name, deg = self.env.objective()
+    want = G.compose(G.WANT, G.compose("ALL", G.compose(
+        "BECOME", G.Leaf(G.T.OBJECT, name), G.Leaf(G.T.ATTR, "satisfied"))))
+
+**The `WANT` is hand-built from the world's ONE hardcoded objective string.** The composed chain
+`OBJECT -> ATTR -> PRED -> OBJ` produces objectives; `WANT` consumes objectives; **the two are never
+connected.** Producer built, consumer built, no wire.
+
+**AND `arc_atoms` ALREADY NAMES THE CORRESPONDENCE**: *"`_quantify` yields OBJ -- a complete objective,
+which is `grammar.T.OBJ`'s own gloss."* **So the two `OBJ`s are declared to be the same thing in two
+representations, and nothing acts on the declaration.**
+
+## AND THE WIRE NEEDS A SELECTOR, WHICH IS WHERE IT STOPS
+
+**One objective needs no choosing. A COMPOSED chain yields many** -- every `PRED` through
+`all`/`any`/`none`. **So wiring the producer to the consumer requires something that picks, the
+moment it is wired.**
+
+**Q21 is the picker and it is the only one named:** *the same bargain one level up, thresholded at its
+own median against the progress stream.* **And the progress stream is `levels_completed / win_levels`,
+measured `0.0` start to end on both games.**
+
+> **SO THE CIRCLE IS: the wire needs a selector, the selector is Q21, Q21 needs progress variance, and
+> the stream is flat.** Recorded two days ago as the truth-space blocker, **now reached from the
+> opposite end and arriving at the same edge** -- which is what makes it structural rather than a gap
+> in what has been built.
+
+**AND THE PRECEDENT IS `0a`, WHICH IS THIS EXACT SHAPE ONE NODE OVER.** *Structurally complete and
+observably inert*, parked on a measured 13x-for-zero-capability, with the trigger *an atom that
+consumes past index 0* -- **a grep, not *revisit later*.** The trigger here is the same kind of thing:
+**a progress stream with more than one value.**
+
