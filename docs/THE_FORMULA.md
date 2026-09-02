@@ -1,6 +1,6 @@
 # THE FORMULA
 
-The per-step cycle in compact form, with every symbol defined. This is the whole of the mechanism; the figures are its parts drawn out.
+The per-step cycle in compact form, with every symbol defined. This is the whole of the mechanism; the figures are its parts drawn out. Composition, which the loop names and does not define, is Figure 12.
 
 **Why the ordering matters more than any single step.** Each step consumes what the one before produces. A diagnosis that cannot be traced to a step is probably vocabulary rather than a derivation, and a reading taken below a step whose input never arrived describes nothing.
 
@@ -28,6 +28,8 @@ Read this first if you have not seen the notation. Every symbol below appears in
 | **φ** | a candidate term | A new predicate the system is considering adding to the library. Read *phi*. |
 | **\|φ\|** | its cost | How much it costs to state `φ`, under a **declared code**. Also written `cost(φ)`. |
 | **\|R\|φ\|** | the leftover | How much residual remains once `φ` explains what it can. Also written `left(R,φ)`. **May be greater than zero.** |
+| **bond** | the joint | The typed relation between two operands. Seven of them, and which one holds is not recoverable from the operands, so a term that names only its ingredients has recorded half of itself. |
+| **molecule** | a bonded arrangement | Any composition of atoms and the bonds between them. A chain is the degenerate case: one bond type, no branching. Nothing about a chain is a different kind of object. |
 | **T_A** | going up | Abstraction. Detail is thrown away, which is what makes the result reusable. *(≡ `α` in abstract interpretation.)* |
 | **T_E** | coming back | Concretisation. Putting an abstract result back into a specific situation. *(≡ `γ`.)* |
 | **R_T** | the round trip | The gap between what was sent up and what came back down. Measures what the coarser description cannot hold. |
@@ -94,6 +96,22 @@ Read this first if you have not seen the notation. Every symbol below appears in
    Both halves are lengths under a code. DECLARE THE CODE. Without one the
    inequality is not evaluable, and two implementations are not running the
    same test. A margin, if used, carries its provenance.
+
+   AND φ IS A MOLECULE, SO THE CODE CHARGES ITS BONDS. A composition of k
+   atoms carries k-1 bonds, and a bond costs what it could have been:
+
+     |φ|  =  (k+1)·log₂(|atoms|+1)  +  (k-1)·log₂(|bonds|)
+
+   Logarithmic in the bonds available, so the term is zero where only one
+   bond exists and rises as the vocabulary of bonds grows. A bond that costs
+   nothing is a bond that carries nothing, which is a formula recording its
+   ingredients and not its arrangement.
+
+   AND THE ARRANGEMENT IS THE SUBSTANCE. Two candidates with an identical
+   ingredient set are not variants of one thing. Under a symmetric bond k
+   operands have k! spellings and one term, so a code charging for the
+   sequence overcharges by log₂(k!) while the bond term undercharges. Both
+   wrong, in opposite directions, and only one is usually noticed.
 
    THE GUARDS — a product, not a checklist. Any factor at zero forces inertness:
 
@@ -269,6 +287,12 @@ Which is why the last line of step 8 is a boundary rather than a flourish: **det
 
 **And closure(Γ) is only searchable because it is typed.** An untyped bag of `V` primitives grows as `Vⁿ`. A typed grammar grows as `λⁿ`, where `λ` is the spectral radius of the type transfer matrix — and `λ < V` whenever the type graph is sparse. Typing does not shrink the library; it shrinks the branching at the point of choice, which is what makes REACHABILITY a search rather than a wish.
 
+**And typing is not the only thing the grammar carries.** A term is a molecule: atoms joined by typed bonds, and the bond carries information the operands do not. Seven bonds, three symmetric and four ordered, so the same atom set under different bonds is different terms and a notation that records only the ingredients has recorded half of itself. Which is why `closure(Γ)` is a space of arrangements rather than of sets, and why a vocabulary holding only ingredients can name a state and not a route to one: a plan is a sequence, a goal is a comparison, progress is a subtraction, and each of those is a bond.
+
+**And a settled molecule becomes an atom for whatever composes over it.** So *irreducible* is a fact about a level, never about the world, and there is no bottom for the same reason step 6 says there is no top. Which also means a frame that cannot settle has one level however large its library: nothing composes over what was never admitted as a part. Whether a settled arrangement must be re-earned depends on the substrate — where the record crosses, re-deriving is a lookup and the cost was spent once; across a boundary that drops it, every lineage pays again.
+
+**And a composition costs in two currencies, which do not add.** Length under the code prices the description; the action budget prices finding out whether it holds. They are in different units, so neither predicts the other and a frame holding one accounting will not notice the shortfall. A long chain of cheap parts is expensive to state and may cost one action to refute; a short arrangement over a costly operand is cheap to state and may take a whole budget to settle. Summing them into one figure is the error, not the fix for it.
+
 **Step 6 is a membrane in both directions.** What crosses is a method, never a recording. A seed carries no small tree — it carries what will grow one, and the level it lands on decides what it becomes.
 
 **Step 7 has two routes and they must not be confused.** Import is the only operator that adds a primitive. Instrumentation is the only thing that extends what can be represented at all. Neither can be deposited in mid-air: composition extends from the atoms you hold, instrumentation extends from a reading that already exists and fails to resolve.
@@ -376,6 +400,9 @@ To demonstrate the loop on a case, state each step explicitly and stop where the
 21. **Step 8 — the seat above is instantiated on demand.** The stack is a meta-continuation; the tower is infinite in specification and finite in the run.
 
 31. **Step 1 and the symbol for `R` — `R` is always a slice.** What cannot be perceived is residual that cannot be read, not residual that is absent. A low reading has three causes, and only two of them are about `R` stopping: the third is the permanent condition and its remedy is step 7 INWARD.
+
+32. **Step 3 — φ is a molecule and the code charges its bonds.** `|φ| = (k+1)·log₂(|atoms|+1) + (k-1)·log₂(|bonds|)`. Zero where one bond exists, rising as the bond vocabulary grows. The previous draft said *declare the code* and left the arrangement uncharged, so a formula recorded its ingredients and not its structure.
+33. **Step 3 — the arrangement is the substance.** Two candidates with an identical ingredient set are different terms. Under a symmetric bond `k` operands have `k!` spellings and one term, so a sequence-charging code overcharges by `log₂(k!)` while the bond term undercharges.
 
 **Additions to the notes**
 
