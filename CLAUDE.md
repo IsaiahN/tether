@@ -100,6 +100,12 @@ third of it moved the goal*, and it is **not a discipline failure**: most work d
 contact, and only contact moves capability. **The question to ask of a change is whether the
 agent can now reach something it could not**, not whether a number improved.
 
+**AND THE RATIO READS DIFFERENTLY ONCE THE INSTRUMENTS ARE FINISHED — `[I]`, 2026-09-02.** *A third
+of it moved the goal* was recorded as the honest split of a day. **It is the wrong frame for a
+sequence**: the instruments were the PREREQUISITE, and a prerequisite scores zero on contact every
+day until the day it does not. **The test still holds per change and does not aggregate** — summing
+contact over a week and dividing is the same error as pooling a rate across games.
+
 **And it is why widening PERCEPTION is legitimate where installing TIER 2 is not.** *Introduce,
 never subtract*: one changes contact, the other **substitutes the habitat** — and *a synthetic
 solve proves wiring and never capability.*
