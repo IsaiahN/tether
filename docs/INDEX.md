@@ -10317,3 +10317,40 @@ wall — **and the front-loaded cost is a property of the loop rather than of a 
 without egress fails at SETUP rather than degrading** — the right failure mode, and the reason the
 eight seats are deliberately excluded from that path.
 
+
+---
+
+# THE FRONT-LOADING CHECK IS PER GAME, NOT A RATIO — PINNED BEFORE THE RUNS LAND
+
+**Proposed: *if the cost is front-loaded, `g50t`'s 2.5× advantage at 1000 should shrink at 150 — and
+if the gap holds, the cost is not front-loaded.*** **THAT IS NOT WHAT THE RATIO TESTS.**
+
+**Front-loading is a WITHIN-GAME claim** — early cycles cost more than late ones. **If both boards
+are front-loaded to the same degree, the ratio between them is unchanged**, because it divides out.
+**So a gap holding at 2.5× falsifies nothing.**
+
+**AND THE BETWEEN-GAME GAP HAS A DIFFERENT DRIVER, WHICH THE 1000-CYCLE NUMBERS ALREADY SHOW:**
+
+    g50t   5 actions   library 127   104 mints   12 slots used   2024s
+    ls20   4 actions   library 105    74 mints   22 slots used   5147s
+
+**`g50t` has MORE actions, MORE library and MORE mints, and runs 2.5× FASTER.** So the driver is
+**neither cycles nor library size** — and the one column that moves the right way is **slots**, which
+sets `owed`, which the discriminate branch loops over. *Roughly 2× the slots, roughly 2.5× the time.*
+
+## THE CORRECT TEST, AND ONE HALF IS ALREADY IN
+
+> **PER GAME: compare `time(150)` against `0.15 × time(1000)`.** Much greater means front-loaded.
+
+    ls20   0.15 x 5147s = 772s ~ 13 min predicted.  MEASURED: >47 min and did not finish.
+           ** FRONT-LOADED, and by more than 3.6x on a lower bound **
+    g50t   0.15 x 2024s = 304s ~ 5 min predicted.   pending
+
+**So the claim already has one confirmation and the pending run is the second**, and neither depends
+on the ratio.
+
+**AND THE RATIO IS STILL WORTH READING — for the OTHER question.** If `slots` drives cost, the gap
+should hold near 2.5× at any length. **A gap that MOVES would say the driver is not slots**, which is
+a finding about the cost model rather than about front-loading. **Two readings, two claims, and
+they were about to be run together.**
+
