@@ -8776,7 +8776,11 @@ for all five; ***what does it still owe*** returns the same event five times.
        (the truth space)       partition of a constant separates nothing
     2  the level series        rising unexplained mass per level, if the agent is not
                                composing. One level = one point = no series
-    3  Budget's ACCRUAL        `left += per_level`. NEVER RUN LIVE -- `level_starts()` is
+    3  Budget's ACCRUAL        ** SUPERSEDED 2026-09-02: the accrual was the SECOND half.
+                               `spend()` was never called either, so the whole counter was
+                               inert -- and it is the UNIT every reading was taken without.
+                               Wired now; the accrual still waits on a level advance **
+                               `left += per_level`. NEVER RUN LIVE -- `level_starts()` is
        ** never executed **    called ONCE at `arc_holdout.py:78` and never again. Exercised
                                only by `arc_check.py`'s two-level fixture
     4  `boundary()` at a       `arc_world.py:65` -- bindings drop at a LEVEL change. Fires
@@ -10284,6 +10288,20 @@ run answers both questions and this one is the last that will not.
 
 ---
 
+# ~~THE COST IS FRONT-LOADED~~ — SUPERSEDED. IT WAS NEVER FRONT-LOADING
+
+> **CORRECTED 2026-09-02.** The episode ends around the same point on both boards and every cycle
+> after it is a free no-op. **`150 cycles cost 96% of 1000` measured an EPISODE LENGTH, not a cost
+> curve** — and the 1000-cycle runs came in FASTER than the 150-cycle ones on both boards. **The
+> `6.4×` multiple is void: the linear model assumed 1000 live cycles and there were ~140.**
+>
+> **AND THE RUN-LENGTH RULING LOSES ITS NUMBER.** *There is no cheap short run* **stands** — a short
+> run still buys most of the episode. **`96% of the cost` does not**, and until (1)'s counter has run
+> the correct figure is **unmeasured, in actions.**
+>
+> **This is one of four symptoms of a single defect — see *THE LOOP IS MEASURED IN CYCLES*.** The
+> section below is kept for the measurements, which are sound, and its CAUSE is wrong.
+
 # THE COST IS FRONT-LOADED, AND EVERY RUN-LENGTH ESTIMATE THIS WEEK ASSUMED IT WAS NOT
 
 **`ls20` at 150 cycles ran 47 minutes and did not finish. `ls20` at 1000 cycles took 86.** So
@@ -11351,4 +11369,30 @@ rather than decided.**
 
 **This commit makes the unit READABLE and changes no behaviour.** *The counter exists and is read;
 there is no new number yet, and nothing was re-run.*
+
+
+---
+
+# 3 · THE TIE ITEM IS CLOSED — THE FIX COMES OFF THE BOARD
+
+    ls20   sep:1 109 of 129   84.5%
+    g50t   sep:1  84 of  93   90.3%
+
+> **ONE ACTION SCORES HIGHEST ALONE ON BOTH BOARDS. THE `nothing is broken` ROW FIRED, SO THE
+> TIE-BREAK IS NOT THE REPAIR AND IS REMOVED FROM THE BOARD** rather than left sitting there
+> unmarked.
+
+**WHAT REMAINS TRUE:** the lock-on is real — **93 of 131 acts on `g50t` (71%), 129 of 152 on `ls20`
+(85%), all through `discriminate:learned`** — and **`discriminate` fired zero times on either board.**
+
+> **AND ITS CAUSE IS NOW OPEN.** It is **not ties**, and it is **not the `spread` argmax**, and the
+> percentages that suggested near-total lock were contaminated. **What makes `_learned_split` return
+> the same action is unexplained, and saying so is the honest state.**
+
+**THE 10–15% THAT ARE TIES IS A SEPARATE AND SMALLER FACT** — `sep:2` 20 on `ls20`, `sep:2/3/4` = 9
+on `g50t`. **Real, resolved arbitrarily by `self.actions` order, and not the thing to fix first.**
+
+**AND THE ROW THAT CLOSED IT EXISTED BECAUSE FIVE EARLIER REGISTRATIONS FAILED BY LISTING ONLY WHAT
+WAS EXPECTED.** *The fourth row's third save* — **and the first that closes an item rather than
+redirecting one.**
 
