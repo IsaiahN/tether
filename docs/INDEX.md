@@ -10592,3 +10592,128 @@ distrust.* **I applied it to the agent's nulls and not to my own retraction**, w
 > general form is not another rule — **it is a second subject for the ones that exist**, and *run it
 > on yourself* is shorter than any of them.
 
+
+---
+
+# `ls20` CONFIRMS `g50t` ON ALL FOUR READINGS — AND THE SPREAD BRANCH IS DEAD ON BOTH BOARDS
+
+    ls20   by: discriminate:learned 128 · draw 20 · probe 2      ACTION2 105    4978s
+    g50t   by: discriminate:learned  93 · probe 23 · draw 15     ACTION2  94    1940s
+    BOTH   discriminate (the `spread` argmax): ZERO.   ties: {} on both.   advanced: false
+
+**`discriminate` FIRED NOT ONCE ON EITHER BOARD.** The branch I named all week, and built the first
+tie counter on, **does not run.** The lock is `_learned_split` on both games — **128 of 150 and 93 of
+131** — and `discriminate:learned` against `ACTION2` is the same event counted twice on each.
+
+**FRONT-LOADING, CONFIRMED TWICE AND AT THE SAME MULTIPLE:**
+
+    ls20   150 cycles 4978s vs 1000 cycles 5147s   = 97%   (6.4x the linear prediction)
+    g50t   150 cycles 1940s vs 1000 cycles 2024s   = 96%   (6.4x the linear prediction)
+
+**Two boards, two run lengths, and the same 6.4×.** *There is no cheap short run* is now measured
+rather than inferred.
+
+**AND THE RATIO HELD — 2.54 AT 1000, 2.57 AT 150** — which was the pinned reading for the OTHER
+question: **a gap that does not move with length means the driver is a CONSTANT of the board.** Slots,
+22 against 12, feeding `owed`. **Confirmed, and kept separate from the front-loading claim as
+registered.**
+
+---
+
+# SECTION CHECK ON THE THREE READINGS: TWO ARE IN THE CORPUS, AND THE INCREMENTS ARE DIFFERENT
+
+## READING TWO IS FIGURE 12's, VERBATIM
+
+> *"A vocabulary holding only ingredients can name a state and not a route to one: a plan is a
+> sequence, **a goal is a comparison**, progress is a subtraction, and each of those is a bond."*
+
+**A sub-goal IS a relation, and it is a BOND.** So *you cannot want a configuration you cannot name*
+is **already stated**, and `RELATIONS.md` does not supply the claim — **it supplies the CUSTOMER
+LIST.** *About twenty relations, each `same`/`other`/`above` over two objects' attributes.*
+
+> **WHICH IS THE MORE USEFUL CONTRIBUTION AND SHOULD BE FILED AS THAT.** The claim was unfalsifiable
+> while nothing named what a goal would be a comparison OF. **Twenty named relations is the first
+> evidence the sentence has ever had.**
+
+## READING ONE IS PARTLY FIGURE 3, AND THE NEW PART IS THE PART THAT SAYS WHAT TO BUILD
+
+**§11.2 already has a chain breaking:** *without extractors no attributes; without attributes no
+predicates; without predicates no objective — Figure 3's chain, and the break is at link 2.*
+
+**BUT THAT DIAGNOSIS WAS SUPERSEDED THIS WEEK.** EXTRACT is built; attributes exist. **Figure 3's
+*vocabulary* is one link and does not split UNARY attributes from BINARY relations** — and that split
+is the whole finding: **the unary half is built, the binary half is one of seventy.**
+
+**And the gradient vocabulary is genuinely new.** *No field without relations, no gradient without a
+field, and a gradient is what makes energy available for work rather than merely present* — **Figure
+3 has no such term**, and it is what makes the measurement legible: *2,834 outstanding and 104 mints
+is abundant energy at equilibrium.*
+
+**SO: the chain is Figure 3's, the TERM it names is finer than Figure 3's, and the gradient framing
+is `RECURSIVE_TRANSFORMATION`'s.** Three parts, one already held.
+
+## READING THREE STANDS AS RECORDED — third confirmation, first from outside the vocabulary.
+
+---
+
+# THE PAIRING IS AN EXTENSION OF FIGURE 12, AND THE INCREMENT HAS AN EDGE CASE
+
+**Figure 12: a notation recording only ingredients *has recorded half of itself*.** That is a claim
+about **information content** — the arrangement must be PRICED.
+
+**The pairing: neither is DEFINED without the other.** That is **definitional**, and strictly
+stronger. **Half is not nothing, so Figure 12 does not say the ingredients fail to denote.**
+
+> **AND THE EDGE CASE IS `k = 1`.** A one-atom term has **no bond** and denotes perfectly well —
+> which looks like a state with no structure. **The resolution is that at `k = 1` the structure is
+> the TYPE, not a bond** — and the loop already enforces exactly that: an `Atom` carries
+> `in_type`/`out_type`, **and a slot with no type has no alphabet and cannot be priced.**
+
+**So the pairing holds across the composition layer with *structure* read as TYPE at `k = 1` and
+BONDS at `k > 1`** — and that reading is not in Figure 12, which speaks only of bonds. **Extension,
+with the increment stated.**
+
+---
+
+# RULED: THE TIER-2 CIRCLE AT THIS SITE, AND IT DISSOLVES RATHER THAN NEEDING AN EXEMPTION
+
+**§12.3 states the test as a table row:** *whether it composes from the nine — **if yes it is Tier 2
+and should be MINTED, NOT INSTALLED.*** **`contains` composes from overlap and extent. `aligned`
+composes from position equality.** **Both are Tier 2. Publishing them as sensors is forbidden**, and
+*publishing a relation is not installing a composite* does not survive the row's own wording.
+
+> **BUT `overlap` IS SENSOR 6 OF THE NINE — TIER 1 — AND IT COMPUTES THE WRONG QUANTITY.** IoU over
+> **normalised shapes**: congruence, no position. **Repairing a Tier 1 sensor to compute what §12.3
+> says it computes is not an exemption. It is the repair the entry rule was written to permit.**
+
+**AND IT DISSOLVES THE CIRCLE INSTEAD OF WIDENING IT.** `CLAUDE.md`: *what breaks the circle
+legitimately is a RICHER TIER 1 — a perception question with its own entry rule — never a Tier 2
+exemption.* **Fixing `overlap` is precisely a richer Tier 1**, and containment, intersection,
+coincidence and nesting become **reachable by composition**, which is what §12.3 says must happen.
+**The agent still has to reach.**
+
+**THIRD SITE, AND THE FIRST WHERE THE CIRCLE HAD A LEGITIMATE EXIT.** §12.4's `parity(POSITION)` had
+none; `count` had none. **This one does, because the blocked composite reduces to a Tier 1 sensor
+that is BUILT AND WRONG rather than absent.**
+
+---
+
+# THE ORDERING, WITH THE RUN'S ANSWER IN HAND FOR TWO OF THREE
+
+    NOT BLOCKED    repair `overlap` to bounding-box or cell-set position. TIER 1, ruled above,
+                   independent of the tie question and of the selector entirely
+    BLOCKED ON A   the selector fix. `tied_at_max` is still unmeasured -- the instrument was
+    RE-RUN         on `spread`, which fires zero times. If `sep:1` dominates, NOTHING IS
+                   BROKEN and the fix would be wrong
+    REFUSED        installing `contains` / `aligned` / the four relation atoms as sensors
+
+**AND ON THE ORDERING CLAIM:** *if reading one holds, the relation vocabulary is not third behind the
+selector fix — it is what the selector fix exists to serve.* **True, and it does not reorder the
+work**, because the two failures compose: **a locked selector visits one configuration repeatedly, and
+a thin vocabulary notices nothing about wherever it arrives.** *Widening the reading buys nothing
+while the search repeats itself; fixing the search buys nothing while there is nothing to notice.*
+
+> **WHICH IS WHY `overlap` GOES FIRST AND IS NOT A COMPROMISE: it is the only one of the three that
+> is unblocked, ruled, and Tier 1.** The selector's turn comes when the re-run says whether it is
+> broken.
+
