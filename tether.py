@@ -77,6 +77,12 @@ CODE = ("uniform(M) per correction; (k+1)*log2(|atoms|+1) + (k-1)*log2(|bonds|) 
 # expression stays general because a space that admits more bonds prices them automatically;
 # the value in THIS space does not move.
 BONDS = 1
+# `[I]` NOTE, NOT A FINDING: the bond term is an entropy term, and not by analogy. Shannon and
+# thermodynamic entropy are the same mathematics and MDL is built on Shannon -- both already cited
+# on Figure 5. So `log2(|bonds|)` is the entropy of the ARRANGEMENT SPACE in bits: more bond types
+# means more distinguishable arrangements, priced at the log of the increase. Two laws in one line
+# -- the first says you cannot create atoms, the second says rearranging them is not free. Its
+# value is that the formula is checkable against Shannon instead of taken on trust.
 
 HELD, NOVEL, REBIND, MECHANISM = "held", "novel", "rebinding", "mechanism"
 

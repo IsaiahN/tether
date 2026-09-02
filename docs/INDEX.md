@@ -8853,3 +8853,98 @@ anything consumes it.** `molecule` was catchable when Figure 12's gloss entered 
 one edit ago, with zero call sites -- **and A6i's existing trigger would not have fired there,
 because no ruling was being made.**
 
+
+---
+
+# `[I]` THE FOUR LAWS: ONE FINDING, THREE PARALLELS, AND ALL FOUR ARE IMPORTS
+
+**Marked by kind in the figures' own convention, and entered as IMPORTS WITH A SOURCE rather than
+as ground.** Thermodynamics is a frame's laws and the frame is ours, **so Figure 8's rule applies:
+an import is debited against the source frame's independence, and the source is named.**
+
+## THE SECTION CHECK, WHICH WAS THE SPECIFIC QUESTION
+
+**Asked: does Figure 11's isolation law or Figure 10's channel decay already carry the direction?**
+
+**FIGURE 11 DOES NOT.** *Isolation is substitution, not removal*, with **two silent failure modes:
+what you failed to reproduce, and what you brought with you.** Both are properties **of the moment
+of substitution** -- a static comparison of two habitats. **Nothing about what happens next.**
+
+**FIGURE 10 DOES, FOR THE CHANNEL.** *"The ground does not decay, the channel does -- stale
+percepts, dropped transients, saturated metrics, pooled readings. The output is not a verdict, it is
+`you have lost touch`* -> **keep the anchor reachable.**" **That is a direction and a contact remedy,
+already stated**, and closer to the claim than I expected to find.
+
+> **SO THE FINDING NARROWS AND SURVIVES, AND THE RESIDUE IS THE PART THAT MATTERS.** Figure 10 gives
+> **FOUR MECHANISMS** by which a channel decays. **The second law gives a direction that does not
+> depend on which mechanism** -- and an enumeration of failure modes is always potentially
+> incomplete, so *a channel exhibiting none of the four* is arguable under Figure 10 and refused
+> under the second law. **A list of ways is not a direction.**
+
+**And the scope differs: Figure 10's subject is the CHANNEL -- the instrument going stale. The
+claim's subject is the FRAME -- what it holds.** Neither figure orients that one.
+
+**Eleventh instance, and the third distinct form this week.** Not *the corpus named the instrument*,
+not *the corpus refused the claim*, but **the corpus carried it at one scope and not the other.**
+
+## THE FINDING, SCOPED AS IT MUST BE
+
+> **`[F]` IN THIS FRAME, ISOLATION HAS A DIRECTION.** A frame that stops touching the ground can
+> only lose structure. **Not *might drift* -- the direction is fixed, and it does not reverse
+> without contact.**
+
+**NOT CLAIMED: that isolated frames degrade necessarily and everywhere.** The import is from this
+universe's physics; **a frame with different laws would need a different filler for the same
+structural slot.**
+
+**THE SLOT IS WHAT THE FRAMEWORK CLAIMS. THE FILLER IS WHAT WE IMPORTED** -- vocabulary versus
+instance, arriving at the level of the whole framework, **and that split has now been the answer six
+times.**
+
+**What it adds:** it makes **Figure 10's *permanent work rather than a solved state* a NECESSITY
+rather than an observation.** And the weaker form the corpus already holds without it is Figure 11's
+*what you failed to reproduce is invisible until the goal fails* -- **the direction is the import's
+contribution, held at the import's confidence.**
+
+## THE THREE PARALLELS
+
+**`[P]` ZEROTH -- transitivity licenses the thermometer.** Without it temperature is not a
+well-defined quantity. **Restates Figure 2:** frames are comparable without talking because each
+ranges against the anchor separately and **the comparison runs through the thing neither can move.**
+**And collapse 1 is the zeroth law broken** -- an anchor that updates means the third system moved
+and transitivity fails. *It says why the design works; the design already says it.*
+
+**`[P]` FIRST -- energy is neither created nor destroyed, only transformed.** **Restates Figure 6:**
+*MINT composes inside the closure and can never add an atom.* Minting is **re-reading, not
+creation.** **And IMPORT is the open-system exception**, the first law holding only for a closed one:
+*the wall moves only on contact with a frame whose closure differs.*
+
+**`[P]` THIRD -- absolute zero is approachable and unattainable in finitely many operations.**
+**Restates Figure 7:** *every room closes some of the gap; no finite number of them ever arrives.*
+**And zero residual is the framework's absolute zero** -- perfectly ordered, nothing left to explain,
+completely inert. **Which is the loop's stopping condition and why it is ambiguous:** *a perfect
+prediction or a closed channel, and from inside those look the same.*
+
+## AND THE REASON THE FRAMEWORK DOES NOT REST ON ANY OF THEM
+
+**Figure 6: an import adds no atom to the world.** The world does not gain primitives; **a frame
+gains ACCESS.** So *other universes have different atoms* is already stated, and what is ours is
+access rather than the inventory.
+
+**Which is why the framework cannot be grounded in physics: physics is a frame with a closure, and
+grounding a metatheory in one frame's closure is what Figure 2 calls collapse 1.**
+
+**The corpus's load-bearing results are the ones that hold in ANY frame** -- *composing inside a
+closed set never leaves it* is definitional, and **Godel, Tarski and Chaitin are theorems.** Those do
+not depend on our physics. **The thermodynamic parallels are corroboration from a frame that reached
+the same structures separately, which is worth more as corroboration than it would be as
+foundation.**
+
+## THE ENTROPY IDENTITY -- FILED AS A NOTE, AT THE CODE'S SITE
+
+**Placed at `tether.BONDS`, not in the figure**, because its value is that a reader can check the
+formula against Shannon rather than take it on trust. **Shannon and thermodynamic entropy are the
+same mathematics, MDL is built on Shannon, and both are already cited on Figure 5** -- so
+`log2(|bonds|)` **is** the entropy of the arrangement space in bits. **Two laws in one line: the
+first says you cannot create atoms, the second says rearranging them is not free.**
+
