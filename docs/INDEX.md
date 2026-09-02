@@ -10494,3 +10494,50 @@ which is *never encode the answer* wearing an operational disguise. **`environme
 gitignored, so the artefact cannot be committed** — but the constraint is on REASONING FROM IT, not
 only on storing it, and the gitignore does not enforce that half.
 
+
+---
+
+# `[I]` THE HUMAN ANCHOR IS A READING ON ONE OF §22.5's TWO CLOCKS, AND §22.1 DOES NOT SAY SO
+
+> *"The reason 500 is a decent number is that humans have already composed these atoms and priors
+> thousands of times, and the agent is coming in relatively cold."*
+
+**§22.1's anchor is sound and its provenance is right** — *a human's move count is not a quantity the
+agent produces, so using it as a reference is not self-scoring.* **The anchor is legitimate. What it
+MEASURES is narrower than it reads.**
+
+**AND §22.5 ALREADY SUPPLIES THE VOCABULARY, ONE SECTION LATER:**
+
+    steps-to-model   the transition-residual EMA falling and staying low   links 1-2
+    steps-to-win     `levels_completed` rising                             links 3-5
+    "the gap between them is the cost of EXECUTION as distinct from the cost of LEARNING"
+
+> **A HUMAN'S MOVE COUNT IS A `steps-to-win` READING WITH `steps-to-model` AT APPROXIMATELY ZERO** —
+> not because a human paid nothing to learn object permanence and contact and support, **but because
+> that cost was paid before the run started, thousands of times over.** *The corpus names the two
+> clocks and then anchors a budget to one of them without saying which.*
+
+## SO THE 2× IS DOING UNPRICED WORK
+
+**The multiplier reads as a safety margin on search. It is not.** **It is the whole allowance for
+`steps-to-model` in an agent that has none of it done** — and **nothing checks whether 2× is the
+right multiple**, because the quantity it stands in for was never measured on either side.
+
+**A COLD AGENT'S TOTAL IS `steps-to-model + steps-to-win`. THE ANCHOR IS THE SECOND TERM ALONE.**
+Comparing them is a category error the corpus is already equipped to refuse, **and §22.5 says they
+FAIL differently, which is the same claim from the diagnostic side.**
+
+## AND IT IS THE `post-mastery` CATEGORY, WHICH THE TERMINAL CONDITION ALREADY USES
+
+**Clause 3 says the ablation is a POST-MASTERY test — *wipe the library of an agent at 3/25 and
+neither number is interpretable, because there was nothing worth wiping.*** **A human is a
+post-mastery agent by construction.** So the human anchor is **the right comparison for a mastered
+agent and the wrong one for a cold one**, which is the distinction clause 3 already draws for the
+ablation and nobody drew for the budget.
+
+## WHAT IT DOES NOT DO
+
+**It does not rescue the current agent.** Budget is not the binding constraint at any length — **the
+selector is** — so this changes how the anchor should be READ and changes nothing about the
+diagnosis. **Recorded because the next person to size a run will read §22.1 and not §22.5.**
+
