@@ -11396,3 +11396,45 @@ on `g50t`. **Real, resolved arbitrarily by `self.actions` order, and not the thi
 WAS EXPECTED.** *The fourth row's third save* — **and the first that closes an item rather than
 redirecting one.**
 
+
+---
+
+# 4 · THE THIRD AUDIT, RUN DELIBERATELY — HALF A IS CLEAN, HALF B HAS THREE NEW
+
+## HALF A · A PRODUCER WITH NO CONSUMER — EXACTLY TWO, BOTH ALREADY KNOWN
+
+    agency   `self.agency.` appears ONCE in tether (the note). `report()` only in arc_check
+    term     `self.term.` appears ZERO times in tether. arc_check FEEDS IT AND READS IT
+    ---
+    drive    8 refs, `report()` spread into a ledger row at 1686          CONSUMED + REPORTED
+    rank     4 refs, `report()` NEVER CALLED -- and `gamma.unit_rank = self.rank.key`   POLICY
+    chain / phases / clocks / pre   reported live                          CLEAN
+
+**NO FOURTH SURFACED.** The class is small and the two known members are the whole of it.
+
+> **AND `rank` IS WHY THE DISTINCTION IS LOAD-BEARING RATHER THAN PEDANTIC.** Its `report()` is called
+> **nowhere**, and it is **not dead** — it is the enumeration's rank function. **On the naive grep it
+> is the strongest hit on the board.** *Four of eight would have read as findings.*
+
+## HALF B · A CONSUMER WITH NO PRODUCER — FIVE, AND THREE ARE NEW
+
+    DECLARED, NEVER PRODUCED   AXIS · COUNT · (FRAME, OBJECT_BEFORE -- ROOT TYPES, correct)
+    DECLARED, NEVER CONSUMED   BOOL · RATIO · REGION · AXIS · COUNT
+
+**`FRAME` and `OBJECT_BEFORE` are supplied by the caller and produced by nothing BY DESIGN** — root
+types, and the new one is unproducible for the same reason the old one is. **Not defects.**
+
+> **BUT `BOOL`, `RATIO` AND `REGION` ARE DEAD ENDS: PRODUCED AND UNCONSUMABLE.** `touching` yields
+> `BOOL`, `overlap` yields `RATIO`, `changed` yields `REGION` — **and no sensor or atom accepts any of
+> the three.** A chain reaching one **cannot extend**; it can be a last link and never a middle one.
+
+**`AXIS` AND `COUNT` ARE FULLY UNATTACHED** — neither produced nor consumed. **`COUNT` was known;
+`AXIS` is new**, and it is one of §12.2's nine attribute types.
+
+## AND THIS IS THE §12.4 CIRCLE'S MECHANISM AT THE GENERAL LEVEL
+
+**I recorded that *the nine all terminate at an attribute type — `accepting(...)` is empty on every
+one*.** **Now the general reason is measured: FIVE OF THIRTEEN DECLARED TYPES HAVE NO CONSUMER AT
+ALL.** *So `closure` cannot extend past them, and depth caps at one on every branch that reaches
+them.* **The circle is not a property of the nine — it is a property of the type graph's shape.**
+
