@@ -11208,3 +11208,60 @@ by someone who has not read the justification.**
 worth keeping together: **an underestimate exempts an ITEM from scrutiny; a caution and a good
 justification each exempt THEMSELVES.**
 
+
+---
+
+# THE TIE QUESTION IS ANSWERED — AND `taken` IS CONTAMINATED BY MY OWN DENOMINATOR
+
+    ties   sep:1  84 | sep:2 3 | sep:3 4 | sep:4 2      sums to 93
+    by     draw 15 | probe 23 | discriminate:learned 93  sums to 131
+    taken  881 + 94 + 4 + 8 + 11                         sums to 998        secs 1899
+
+**`by` IS IDENTICAL TO THE 150-CYCLE RUN — 15/23/93 — WHILE `taken` WENT FROM 148 TO 998.** Two
+counters over the same events cannot both be right.
+
+## THE CAUSE IS THE COUNTER I ADDED, AND `tether` SAYS SO IN A COMMENT I HAD READ
+
+> *"**NO SLOTS IS A STATE OF THE WORLD, NOT AN IMPOSSIBILITY.** `max()` on an empty sequence made a
+> legal state fatal: **`ls20` reaches GAME_OVER at cycle 130, `board()` returns None**, and the loop
+> died on the frame that told it so ... `False` is the existing contract for *no action was
+> proposed*."*
+
+**After the episode ends, `step()` proposes no action every cycle.** No ACT row, so **no `by`** — but
+`_advertised` still runs at the top of the step, **and I made `pre.note` unconditional to get a
+denominator**, so `taken[self._last_action]` increments on every dead cycle with `_last_action` frozen
+at its final value.
+
+> **SO `ACTION1: 881` MEANS `_last_action` WAS `ACTION1` FOR 881 CYCLES, NOT THAT IT WAS TAKEN 881
+> TIMES.** **131 actions in 1000 cycles. 867 dead ones.** *A denominator built to stop a count
+> misreading as a rule now miscounts.*
+
+## WHAT IS RETRACTED
+
+**THE LOCK-ON FIGURES.** *96% on `ls20`, 88% on `g50t`* are inflated by dead cycles. **The honest
+figure is over `by`: 93 of 131 acts came from `discriminate:learned` — 71%, not 88%.** The lock is
+real and **a quarter smaller than reported.**
+
+**AND THE FRONT-LOADING EXPLANATION, WHICH IS THE WORSE ERROR.** I attributed *150 cycles cost 96% of
+1000* to `owed × cands × actions` shrinking as terms bind. **The real reason is that the episode ends
+around cycle 130 and everything after is a free no-op.**
+
+    g50t   150 cycles  1940s
+    g50t  1000 cycles  1899s     -- the LONGER run was FASTER
+
+**Cycles 131–1000 cost approximately nothing because the game was over.** *The measurement was never
+of front-loading; it was of an episode length.* **And the 6.4× "linear prediction" multiple is
+meaningless — the linear model assumed 1000 live cycles and there were 131.**
+
+## WHAT SURVIVES, AND THE TIE QUESTION IS ANSWERED
+
+**`discriminate` fired ZERO times again — and this time the counter SAYS so**, by keying `sep:` and
+`spread:` separately. **The empty-instrument failure did not recur, as designed.**
+
+> **`sep:1` in 84 of 93 fires — 90%. THE SECOND PINNED OUTCOME DOMINATES:** one action scores highest
+> **alone**, and the selector is doing what it says. **A tie-break would address the other 10%**
+> (`sep:2` 3, `sep:3` 4, `sep:4` 2), **which is real and is not the lock.**
+
+**So the fix on the board was aimed at a tenth of the behaviour**, and the registration's *nothing is
+broken* row is the one that fired — **which is exactly why it was written down.**
+
