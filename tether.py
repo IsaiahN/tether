@@ -50,6 +50,11 @@ CODE = ("uniform(M) per correction; (k+1)*log2(|atoms|+1) + (k-1)*log2(|bonds|) 
 # HOW MANY BOND TYPES THE TERM LANGUAGE HAS. A `Term` is applied left to right, which is ONE
 # bond -- sequence -- so this is 1 and the bond term is `log2(1) = 0`.
 #
+# **THE SOURCE IS `THE_FORMULA` NOTE 32**, which states the code and says why the previous draft
+# was wrong: *it said declare the code and left the arrangement uncharged, so a formula recorded
+# its ingredients and not its structure.* The derivation below is the same result reached from
+# §11.2's signature, kept because it says why the value here is ONE and not merely zero-for-now.
+#
 # **THE ZERO IS A CONSEQUENCE, NOT A DESIGN.** `CODE` charges `log2(alphabet)` per position and
 # the alphabet is WHAT IS AVAILABLE; a symbol drawn from a one-symbol alphabet costs nothing
 # because it tells you nothing. Charging `log2(7)` for a choice among one would be charging for

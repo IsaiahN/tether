@@ -8533,3 +8533,52 @@ in a commit that reads as mine.
 **Both were caught by reading the commit output, and both were unpushed.** The working-tree
 discipline caught it twice and the register caught it neither time.
 
+
+---
+
+# THREE QUANTITIES THAT ARE ZERO TODAY AND FIRE TOGETHER
+
+**All three are correct now, all three go live the instant a second bond exists, and none was
+written down as a set.** A reader finding one has no reason to look for the others.
+
+    1  THE BOND TERM        `(k-1)·log2(|bonds|)` in `term_bits`, with `BONDS = 1`
+                            zero because `log2(1) = 0`. Rises to 2.8 bits per bond at seven.
+                            MEASURED under a flat `log2(7)`: terms paying fall 7->4 on `ls20`
+                            and 3->2 on `g50t`, the marginal payers paying by 1.49 bits.
+
+    2  THE `k!` OVERCHARGE  `THE_FORMULA` note 33 -- a sequence-charging code overcharges by
+                            `log2(k!)` under a SYMMETRIC bond. `->` is ordered, so today the
+                            overcharge is EXACTLY ZERO. 1 bit at k=2, 2.58 at k=3, 4.58 at k=4.
+
+    3  `space_exact`        counts type-valid CHAINS, which is arrangements under one bond.
+                            *`closure(Γ)` is a space of arrangements rather than of sets*, so
+                            the denominator UNDERCOUNTS the moment a second bond exists -- and
+                            every coverage figure computed against it moves with it.
+
+**THE FIRST TWO ARE PRICES AND THE THIRD IS A DENOMINATOR**, which is why they matter differently:
+a mispriced term fails to pay, **and a wrong denominator makes every `UNREACHED` a reading over a
+space the agent never enumerated.** *A metric whose denominator the mechanism changes cannot
+falsify that mechanism* — and adding a bond changes it.
+
+---
+
+# RULED: `molecule` HAS FOUR HOMES AND Q21's SENSE YIELDS
+
+**`conform/lint.py` registers it as `A6i`** — *a prior term in `gamma` and a quantified objective in
+`DISCOVERY` Q21, 9% and 37% on the same runs.* **`THE_FORMULA`'s symbol table now adds a third
+gloss** — *any composition of atoms and the bonds between them* — **so two corpus documents
+disagree, which is worse than a register entry: the register is where an `A6i` lives UNTIL it is
+ruled.**
+
+**Q21's own sentence contains the resolution**: *a molecule is a quantified typed **objective***.
+**The thing already has a word.** Figure 12's sense has no alternative — a bonded arrangement is
+what *molecule* imports from chemistry, and the whole mapping rests on it.
+
+> **SO `molecule` MEANS A BONDED ARRANGEMENT, AND Q21's SENSE IS AN OBJECTIVE.** `score_molecule`
+> becomes `score_objective` when it is built. **It costs nothing in code today** — it is unbuilt —
+> **which is the cheapest moment a naming collision is ever resolvable.**
+
+**AND THE PRECEDENT IS `OBJECT`/`OBJ`.** One constant was two things, the type graph composed
+across it, and `grammar.py` had kept them apart all along. **The same shape: one word, two
+quantities, and one of them already had another name.**
+
