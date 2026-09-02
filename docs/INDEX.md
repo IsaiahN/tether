@@ -11265,3 +11265,59 @@ meaningless — the linear model assumed 1000 live cycles and there were 131.**
 **So the fix on the board was aimed at a tenth of the behaviour**, and the registration's *nothing is
 broken* row is the one that fired — **which is exactly why it was written down.**
 
+
+---
+
+# `ls20` CONFIRMS, AND FOUR SEPARATE RECORDS TURN OUT TO BE ONE FINDING
+
+    ls20   ties sep:1 109 | sep:2 20        by draw 21 | learned 129 | probe 2 = 152 acts
+           taken 998      advanced false    4885s -- against 4978s at 150 cycles
+    g50t   ties sep:1  84 | 2:3 3:4 4:2     by 15 | 23 | 93 = 131 acts
+           taken 998      advanced false    1899s -- against 1940s at 150 cycles
+
+**THE LONGER RUN WAS FASTER ON BOTH BOARDS.** *Dead cycles are free, and there are 846 and 867 of
+them.*
+
+**THE TIE ANSWER HOLDS ACROSS BOTH:** `sep:1` is **84.5%** on `ls20` and **90%** on `g50t`. **One
+action scores highest alone; a tie-break addresses 10–15%.** *The `nothing is broken` row fired on
+both.*
+
+## AND THE NO-RESTART IS A RULING, WHICH CHANGES WHAT THE DEAD CYCLES ARE
+
+> ***NO RESTART HERE, AND THE FIRST VERSION HAD ONE.*** *`retarget` keeps `gamma`, so restarting into
+> this agent hands it the level again with what it learned — which is an ATTEMPT... **The seat
+> restarting on the agent's behalf is the same purchase against the same resource as the agent doing
+> it.***
+
+**So the spin is CORRECT BEHAVIOUR under a correct ruling.** *There is no bug in the dying.* **The
+defect is that the loop keeps counting.**
+
+## THE UNIT IS WRONG, AND THAT IS THE ONE FINDING BEHIND FOUR RECORDS
+
+    play(cycles=N)   counts LOOP ITERATIONS. After the first death they are no-ops
+    arc_run.Budget   counts ACTIONS -- and `spend()` is called ONLY in `arc_check.py`
+
+> **`Budget` IS CONSTRUCTED, SEEDED WITH `level_starts()`, AND NEVER CONSUMED IN THE LIVE PATH.**
+> **Third instance of the third audit's shape — and this one is the unit the whole run should be
+> measured in.**
+
+**WHICH COLLAPSES FOUR THINGS RECORDED SEPARATELY TODAY:**
+
+    the "front-loading" finding      not front-loading -- the episode ends and the rest is free
+    the run-length ruling            40 -> 1000 cycles bought ~3-4x more ACTIONS, not 25x
+    the `taken` contamination        a dead cycle credited the last live action again
+    the never-executed accrual       `Budget` is the right counter and nothing calls `spend`
+
+**ONE STATEMENT: THE LOOP IS MEASURED IN CYCLES AND SHOULD BE MEASURED IN ACTIONS.** Every one of the
+four is that sentence seen from a different side, **and each was filed as its own item.**
+
+## FIXED: THE CONTAMINATION, AT ITS CAUSE
+
+**`self._last_action = None` on the no-slots exit.** `Preconditions.note` already returns early on
+`None` — *nothing preceded the first frame* — **so a dead cycle now credits nothing**, and the rule
+that was already there covers the case it was written for.
+
+**The published `taken` figures from before this commit are contaminated and the lock-on percentages
+derived from them are retracted** — *the honest figure is over `by`: 93 of 131 on `g50t` (71%), 129
+of 152 on `ls20` (85%).*
+

@@ -1624,6 +1624,14 @@ class Agent:
             self.led.record(self.cycle, "PERCEIVE", "@loop", "no_slots",
                             slots=0, cause=CHANNEL_CLOSED,
                             reads="the slot set is empty; what that MEANS is not read here")
+            # NO ACTION WAS TAKEN, SO NOTHING PRECEDED THE NEXT FRAME. `_advertised` runs at
+            # the top of every step and feeds `Preconditions` with `_last_action`; leaving it
+            # set meant a DEAD cycle credited the last live action again. Measured: `taken`
+            # summed to 998 over 1000 cycles while `by` -- which counts only steps that
+            # acted -- summed to 131, and `ACTION1: 881` was one action held for 850 cycles
+            # after GAME_OVER rather than taken 881 times. The denominator built to stop a
+            # count reading as a rule was itself miscounting.
+            self._last_action = None
             self.cycle += 1
             return False
         # ATTEND TO WHAT OWES MOST. R+_s is defined and already measured; picking
