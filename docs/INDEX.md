@@ -10995,3 +10995,31 @@ membrane drops.**
 substance, and a new arrangement applies above*, which is the pairing section's own sentence. **One
 vocabulary at every level, and not one bond carried up through them.**
 
+
+---
+
+# THE IDENTITY GAP CONSTRAINS §12.4's REACH MECHANISM, NOT JUST THE TYPES
+
+**The gap, with its owner:** *`shape_of` answers **is this the same object**, and that answer never
+reaches the type checker.* **Identity across frames is the tracker's, and no signature can state it.**
+
+**AND THE CONSEQUENCE IS ABOUT WHO SUPPLIES THE OPERANDS.**
+
+    the loop calling `delta`      SAFE. The tracker matched the slots, so the two operands are
+                                  the same object by construction
+    a COMPOSED chain calling it   UNSAFE. Nothing matched anything. The chain satisfies the
+                                  types, satisfies the bond, and may pair two different objects
+
+> **SO SENSORS 6 AND 7 ARE SAFE IN THE LOOP'S HANDS AND UNSAFE IN THE COMPOSER'S** — and §12.4's
+> whole purpose is to hand them to the composer. **The reach mechanism cannot admit the two
+> cross-frame sensors as they stand, and neither the split nor the bond field changes that.**
+
+**Which makes it a SIXTH LATENCY, and unlike the other five it is a constraint on a mechanism rather
+than a quantity or a type.** It bites the moment `accepting`/`closure` yields a chain through `delta`
+or `overlap` — **which is `UNREACHED` today for unrelated reasons, so nothing is wrong yet and
+something will be.**
+
+**AND IT NARROWS WHAT A BOND FIELD WOULD BUY.** *Subsumes the split, generalises the encoding, houses
+the remaining five* — all true — **and it does not make the two sensors composable.** Worth carrying
+beside the specification so the field is not built expecting it.
+
