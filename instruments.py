@@ -202,10 +202,16 @@ class Preconditions:
 
     after: Counter = field(default_factory=Counter)
     gone_after: Counter = field(default_factory=Counter)
+    # THE DENOMINATOR, AND WITHOUT IT `after` CANNOT SAY WHETHER AN EDGE IS A RULE. `b -> a`
+    # seen four times is four out of four or four out of ninety, and only the second is a
+    # condition. It counts every step, not only the steps where the set changed, which is why
+    # `note` is now called unconditionally.
+    taken: Counter = field(default_factory=Counter)
 
     def note(self, prev: str | None, came: list[str], gone: list[str]) -> None:
         if prev is None:
             return                      # nothing preceded the first frame
+        self.taken[prev] += 1
         for a in came:
             self.after[(prev, a)] += 1
         for a in gone:
@@ -214,7 +220,17 @@ class Preconditions:
     def report(self) -> dict:
         return {"came_after": {f"{b}->{a}": n for (b, a), n in sorted(self.after.items())},
                 "gone_after": {f"{b}->{a}": n for (b, a), n in sorted(self.gone_after.items())},
-                "reads": "a count, not a claim: what followed what, for the agent to read"}
+                "taken": dict(sorted(self.taken.items())),
+                # CONDITIONAL, AS TWO COUNTS RATHER THAN A VERDICT. An edge that fires on
+                # EVERY `b` is a rule; one that fires on SOME is gated by something else --
+                # which is the fifth topology, and it is a reading over the denominator
+                # rather than an instrument of its own.
+                "sometimes": {f"{b}->{a}": [n, self.taken[b]]
+                              for (b, a), n in sorted(self.after.items())
+                              if 0 < n < self.taken[b]},
+                "reads": ("counts, not claims: what followed what, out of how many. "
+                          "`sometimes` is an edge that did not fire every time its "
+                          "predecessor was taken -- the same action, a different outcome")}
 
 
 @dataclass

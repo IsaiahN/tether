@@ -174,6 +174,10 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None) -> di
                                "failed to compose; no divergence with none left is a level "
                                "that had nothing to add")},
         "affordance_kinds": aff.report()["kinds"],
+        # §16.1's precondition lattice, which was fed every step and read only by a conform
+        # print -- and an instrument read only by a test is indistinguishable, from outside,
+        # from one that does not exist.
+        "preconditions": ag.pre.report(),
         "keys_carrying_two_colours": aff.report()["keys_carrying_two_colours"],
         "unobserved_steps": env.unobserved,
         # 18.3's family. DIAGNOSTIC-ONLY TODAY, and 18.4 names that as a measured failure:

@@ -199,6 +199,11 @@ class Agent:
                  led: Ledger | None = None) -> None:
         self.env, self.gamma = env, gam
         self.actions = tuple(env.actions())        # asked for, never imported
+        # SET HERE AND NOT ONLY IN `retarget`. `_advertised` reads it at the top of every
+        # step; it only ever REACHED that read after the set had changed, so the attribute's
+        # absence before the first `retarget` was masked by an early return. Feeding the
+        # denominator unconditionally is what surfaced it.
+        self._last_action: str | None = None
         self.alphabet = self._alphabets(env)
         self.slot_types = self._slot_types(env)
         self.cfg = cfg if cfg is not None else Config()
@@ -1060,14 +1065,19 @@ class Agent:
         for a shape nobody has seen is a decomposition from a description. A plain
         event can become a channel later; a channel is harder to unbuild."""
         now = tuple(self.env.actions())
-        if now == self.actions:
-            return
         gone = sorted(set(self.actions) - set(now))
         came = sorted(set(now) - set(self.actions))
         # §16.8 SENSOR 1 IS `the PREVIOUS ACTION changed the gating`, and the delta alone
         # does not say which action. This runs at the top of the step, so the action just
         # taken is the only candidate -- and attributing it is also sensor 2's whole input.
+        #
+        # NOTED EVERY STEP, INCLUDING THE STEPS THAT CHANGED NOTHING. An edge's denominator
+        # is how often the predecessor was taken, and a no-change step is precisely the case
+        # where it was taken and the edge did NOT fire. Returning early here counted only
+        # the successes, so every edge read as a rule and none could read as gated.
         self.pre.note(self._last_action, came, gone)
+        if not came and not gone:
+            return
         self.led.record(self.cycle, "PERCEIVE", "@instrument", "advertised",
                         gone=gone, came=came, was=len(self.actions), now=len(now),
                         after=self._last_action,

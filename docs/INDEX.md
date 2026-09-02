@@ -9462,3 +9462,137 @@ affordances, four quantifiers, seven operators. **Every one of those lists would
 build order**, and §12.3 says the opposite in its own words: *they are Tier 2 and the agent should
 have to reach for them.*
 
+
+---
+
+# `[I]` THE VALIDATING CUE — AND THE STREAK BREAKS ON IT
+
+**A cue that fires and, in firing, says the earlier steps counted.** Not *this happened* but ***that
+stretch was a piece of the solution.*** **Retroactive validation: the confirmation arrives after the
+work and is about the work, not about the moment.**
+
+**Structurally unlike the other four.** Independent, sequential, unlocking and conditional are all
+statements about **WHEN a cue fires.** This one is a statement about **WHAT AN EARLIER STRETCH WAS
+WORTH** — same event, different subject. **And it is the only one that turns an ambiguous history
+into a graded one**: before it every step reads *nothing happened*; after it, a specific run of steps
+reads *those counted*.
+
+**It is the wrist tilt in the only form an indifferent board can give.** The board cannot say
+*warmer* about a plan it does not know — **but it can fire a cue whose precondition was a set of
+prior actions.** *A warmer signal delivered late rather than continuously: no gradient, and a
+checkpoint.*
+
+**AND THE CORPUS HAS THE MECHANISM ONE LEVEL DOWN.** Q7: *a candidate becomes accepted once it
+predicts transitions it was never fitted to.* **A term settles because something later confirms it.
+Same structure at the cue layer — a stretch of actions settles because a later cue confirms it — and
+the mechanism exists for TERMS with nothing applying it to ACTIONS.**
+
+**And it makes the fifth reading cheap.** A validating cue **supplies the subset for free**: the
+actions since the last one ARE the candidate set. **No combinatorics** — the same trick as
+`settled_at`, where the boundary is recorded when it happens rather than reconstructed afterwards.
+
+## THE CHECK: NEITHER CANDIDATE IS IT, AND SIXTEEN-FOR-SIXTEEN ENDS HERE
+
+**`Chain.close(how)` is NOT it.** Its vocabulary is `win · death · reset · advance · cap · run_end` —
+**episode endings, not cue firings** — and the two that DO validate a stretch, `win` and `advance`,
+**are the gated ground signal we already have.** No new information.
+
+**`Affordances.triggers_remote` is NOT it, and the reason is a finding.** It is declared in `SEVEN`
+and **never written.** `note` is **contact-local by construction** — it `continue`s when an object
+has no touching partner — **and a remote trigger has no touching partner at the remote end.**
+`terminates` likewise. **Five of seven are set: `consumed`, `moves_when_touched`,
+`changes_on_touch`, `blocks`, `passes`.**
+
+> **SO `profile()` RETURNS `None` = UNREAD FOR TWO OF SEVEN, FOREVER, AND NOTHING SAYS SO.** The
+> docstring defends `None` as *a different claim from False* — correctly — **but it cannot separate
+> *not yet observed* from *no input path exists*.** `blocks`/`passes` abstain CONTINGENTLY, awaiting
+> an avatar. `triggers_remote`/`terminates` abstain **STRUCTURALLY.** **That is `unreached` versus
+> `unreachable`, the corpus's own pair, unapplied one layer down from where it was invented.**
+
+**THIRD DECLARED-NODE-WITH-NO-PRODUCER TODAY** — `COUNT`, `ONE`, and now two of the seven. **And this
+one has a cause the others lacked: the instrument's SCOPE is narrower than its VOCABULARY.**
+
+**AND I CLAIMED THE CUE ALPHABET WAS BUILT. IT IS FIVE-SEVENTHS BUILT**, and the missing two are
+exactly the ones this question needed. **Corrected here rather than carried.**
+
+## BUILT: THE DENOMINATOR, WHICH IS WHAT MAKES `conditional` A READING
+
+**`Preconditions` counted successes and nothing else.** `b -> a` seen four times is **four out of
+four or four out of ninety**, and only the second is a condition. **A count with no denominator
+cannot distinguish a rule from a coincidence, so every edge read as a rule and none could read as
+gated.**
+
+    taken: Counter          how often each action was taken -- EVERY step, not only changes
+    sometimes: {edge: [n, taken[b]]}    0 < n < taken[b] -- fired some times and not others
+
+**`conditional` is therefore not an instrument. It is the fifth topology as two counts**, and it
+needed the denominator rather than a new sensor. **Published as counts, never a verdict** — the
+table's own rule: *a count is not a claim.*
+
+**AND FEEDING IT UNCONDITIONALLY EXPOSED A LATENT BUG.** `_advertised` read `self._last_action` at
+the top of every step, and **the attribute was initialised only in `retarget`** — reachable before
+its own initialisation, and masked because the early return meant the read was only ever hit after
+the set had already changed. **Repaired at the constructor.** *A repair can break the layer above*,
+and here the break was the useful part.
+
+## AND THE ONE LINE
+
+**`pre.report()` now rides in the holdout report beside `affordance_kinds`.** It had **one reader in
+the repo — a conform print.** **An instrument fed by the loop and read only by a test is
+indistinguishable, from outside, from one that does not exist.**
+
+**MEASURED ON PUBLICATION:** **THE TABLE IS EMPTY ON BOTH GAMES, AND THAT IS THE POINT OF HAVING PUBLISHED IT.**
+
+    ls20   taken {ACTION1: 31, ACTION2: 3, ACTION3: 3, ACTION4: 2}   -- 39 steps
+    g50t   taken {ACTION1: 9, ACTION2: 17, ACTION3: 4, ACTION4: 3, ACTION5: 6}   -- 39 steps
+    BOTH   came_after {}   gone_after {}   sometimes {}
+
+**THE ADVERTISED ACTION SET NEVER CHANGED ONCE, IN 39 STEPS, ON EITHER GAME.** So §16.1's
+precondition lattice -- *the cheapest structural model in the whole problem* -- **has no data at all
+on the games we run**, and `_advertised`'s ledger row never fires either. **Sensor 1 and sensor 2 are
+both silent on this panel.**
+
+> **AND THE PANEL LAW APPLIES BEFORE THE NULL IS READ.** §16.1's premise is that availability *changes
+> per frame because a condition is met or unmet*, and `arc_world.actors()` repeats it. **Measured:
+> constant on both.** The premise is a property of the panel and **was never checked before an
+> instrument was built on it.** Two games is a small panel and `sk48` is untested here -- §12.4's
+> trigger fired 0/25 on `ls20` and 25/25 on `sk48`, **so per-game variation is exactly what to
+> expect, and *the trigger cannot fire* is the over-claim to avoid.**
+
+**WHAT THE ONE LINE BOUGHT IS THIS PARAGRAPH.** An instrument read only by a conform print would have
+stayed empty indefinitely and looked built. **The `taken` column is the only thing with content, and
+it is a reading about the DRIVE rather than the world** -- `ACTION1` 31 of 39 on `ls20` -- which is
+not what the table was for and is worth knowing anyway.
+
+## THE THIRD AUDIT QUESTION, AND IT WAS OVERDUE
+
+**Not *what has no referent*. Not *what has no seat*. But *what is fed by the loop and read only by a
+test*.** Three instances now — `NOT_RESOLVED`, `Preconditions.report()`, and the two unwritten
+affordances are its inverse (**declared and never fed**). **Both halves are the same grep from
+opposite ends: a producer with no consumer, and a consumer with no producer.**
+
+
+## AND IT WAS RUN. SEVEN INSTRUMENTS, TWO HITS
+
+| instrument | fed by the loop | read on a LIVE run | |
+|---|---|---|---|
+| `chain` | yes | `stalls`, `reuse_funnel` | ok -- and its own report says `close()` never fires |
+| `rank` | yes | consumed as `gamma.unit_rank` | ok -- a POLICY, not a reading, correctly unreported |
+| `phases` | yes | via `rep.phases` | ok |
+| `clocks` | yes | via `rep.clocks` | ok |
+| `pre` | yes | **now** in the holdout | fixed this turn |
+| **`agency`** | **yes, every perceive** | **`arc_check` only** | **HIT** -- the shape exactly |
+| **`term`** | **NEVER** | **`arc_check`, which feeds it itself** | **HIT, and worse** |
+
+**`self.term` appears ONCE in `tether.py` -- the construction at line 229.** Never noted, never read.
+**And `arc_check` 194 does `term = agent.term` then `term.offer(...)`: the seat reaches into the
+agent, supplies the input the loop never supplies, and checks the output.** *A control that examines
+nothing cannot demonstrate a clean state* -- **and a test that provides its own subject's input is
+testing itself.**
+
+> **THE DISTINCTION THE PASS TURNED ON IS *REPORTED* VERSUS *CONSUMED*.** `rank` is read by nothing
+> and is not dead: `gamma.unit_rank = self.rank.key` makes it **a policy the loop runs on.** Four of
+> seven would have read as dead on the grep alone. **The audit question needs its second half --
+> *and is its output used for anything at all* -- or it manufactures five findings where there are
+> two.**
+
