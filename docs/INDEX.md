@@ -9809,3 +9809,84 @@ structure, not a pull count** — and **§12.3's nine sensors were admitted by e
 distinguish. **And it answers the standing worry about registrations whose branches do not exhaust
 the space: this one adds a row rather than reinterpreting the existing two.**
 
+
+---
+
+# CORRECTION: RANDOM WALK IS ONE THING, NOT A PAIRING — AND TWO CHECKS, ONE OF WHICH NARROWS YESTERDAY
+
+**`[I]`: *the cues, rigid-body and geometry sensors are why random walk isn't random.***
+
+**I wrote *random walk paired with cue detection* — two things, one of which could be built first.
+IT IS ONE THING.** The walk is **random in the ACTION channel and structured in the READING.** Every
+step is a sample, **and the detector is what makes it a sample rather than a step.**
+
+> **A walk with no reading accumulates nothing.** Motion without observation. **A walk with relation
+> detectors is systematic sampling of the configuration space** — undirected in *where it goes*,
+> exhaustive in *what it notices when it arrives.*
+
+**AND THE FRAMING MATTERS FOR WHAT GETS BUILT.** *Pair X with Y* **invites building one and
+deferring the other, and the deferred half is the one that does the work.** The walk exists. **The
+reading is what is missing** — and the detectors are **not an optimisation on a baseline strategy,
+they are half of the strategy.**
+
+**WHICH MAKES THE MISSING HALF COUNTABLE, AND THE OLD FRAMING COULD NOT.** *Thirty composable
+relations, one published* — **the reading is roughly a thirtieth built.** First time the walk's
+weakness has been a number rather than a description.
+
+## TWO SUPPORTS HELD LOOSER THAN OFFERED, AND ONE IS DROPPED
+
+***Entropy always was*** — there is no state of a system in which undirected movement is unavailable
+— **is exactly the property an irreducible needs, and it carries the claim alone.**
+
+***Computational randomness is a very lossy compression* PREDICTS NOTHING I CAN CHECK.** A PRNG is
+deterministic and looks random. **Keep the claim, drop that support** — *that is what two rows were
+cut from Figure 12 for*, and the same test applies to a support as to a bond.
+
+## CHECK 1 · `probe.py`'s DOCSTRING CARRIES BOTH ENDS ALREADY
+
+    UNINFORMED BY CONSTRUCTION ... The draw sees the advertised action set and nothing else
+    Its outcome re-enters as an ordinary observation and is judged under the unchanged bargain
+
+**The first sentence is how the draw is MADE. The second is what the draw YIELDS.** So it is *the
+same sentence read at the other end*, and **the docstring frames the structure as a SAFETY property
+where the new reading frames it as a STRATEGY.** Same mechanism, and *you cannot compress what you
+never observed* is already in the file.
+
+**Eighteen.**
+
+## CHECK 2 · THE CORPUS DOES PRICE A SEARCH BY ITS READING — AND IT NARROWS YESTERDAY'S RECORD
+
+**Q24, via `ARC_BUILD_PLAN`:** *"If `R` is not falling: either Γ's variety is below the
+environment's — **mint** — or the disturbance variety was **never observed** — **probe**. It
+reframes MINT as **variety acquisition**, which gives `closure(Γ)` **a lower bound the environment
+imposes rather than one the designer picks.**"*
+
+**That is a policy priced by what it OBSERVED, and it is Ashby's requisite variety.** Built
+instrument on the same side: **`Drive.tried` is `action -> distinct states it was drawn from`** —
+*how many distinct states each action was drawn from*, a reading-side count, **not an action-side
+one.**
+
+> **AND IT NARROWS WHAT I RECORDED YESTERDAY.** I wrote that *the habitat bounds the vocabulary* is a
+> genuine extension because Figure 11 speaks only of capability. **Against Figure 11 that stands.
+> Against Q24 it does not: *a bound the environment imposes rather than one the designer picks* is
+> the same principle, already written.** What is new is the **DIRECTION** — **Q24 bounds `closure(Γ)`
+> from BELOW by disturbance variety; the habitat claim bounds it from ABOVE by what the medium
+> admits.** **Two bounds, one source, and only the floor was written down.**
+
+**Nineteen, and the correction is the more useful half:** *checked against Figure 11* is not
+*checked against the corpus*, **and naming the figure I checked is what let the miss be found the
+same day.**
+
+**AND THE CORPUS FLAGS ITS OWN AS UNBUILT:** *Ashby's inequality is the principled version and
+nothing computes it* — `Config.max_depth = 3` is anchored to the toy world's chunking falsifier,
+**a different quantity.** So the floor is specified and uncomputed, **and the ceiling is now
+specified and uncomputed beside it.**
+
+## AND THE RE-RUN'S THIRD ROW GAINS ITS REASON
+
+**Registered before the runs: *if nothing fires at 1000, that is evidence about the detector rather
+than the budget.*** **It now has a reason rather than a hunch: ONE published relation is the reading
+almost entirely absent**, so the expected outcome is that the budget moves **the counts** and not
+**the kind of thing the agent notices** — *which the precondition table and the affordance profile
+would show separately.*
+
