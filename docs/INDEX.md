@@ -9596,3 +9596,91 @@ testing itself.**
 > *and is its output used for anything at all* -- or it manufactures five findings where there are
 > two.**
 
+
+---
+
+# `[I]` FOUR CHECKS ON THE RELATION VOCABULARY, AND ONE OF THEM RETRACTS THIS WEEK'S NULLS
+
+## 1 · RUN LENGTH IS RULED, AND WE HAVE BEEN RUNNING AT 4% OF IT
+
+**`arc_holdout.play(game, cycles: int = 40)`.** Measured: `taken` sums to **39 steps** on `ls20` and
+**39** on `g50t`.
+
+**`ARC_AGENT` §22.1 RULES 1000 PER LEVEL, WITH PROVENANCE:** *humans complete a level in under 500
+actions, typically ~100; this is the 2× honest ceiling* — filed as **anchored to a measurement of
+the world the agent cannot move**, *specified mode, with provenance*. And `[I]` separately: *"under
+500 moves per level to understand."*
+
+> **`arc_run.PER_LEVEL = 500` is the accruing budget. `cycles=40` is the UNDECLARED cap that
+> actually binds, and it is 25× tighter than the ruled one.**
+
+**SO EVERY NULL READ THIS WEEK WAS TAKEN AT 4% OF THE RULED BUDGET** — the precondition table empty,
+the objective degree `0.0` throughout, no level advanced, the extractor A/B byte-identical. **All at
+39 steps.** *What if a game takes 300 moves* has never been tested because **nothing ran past 40.**
+
+**WHAT THIS DOES AND DOES NOT RETRACT.** It does **not** touch the structural findings: typing
+excludes extractors from the transition bargain at any run length, and `triggers_remote` is
+unwritten at any budget. **It does retract the PANEL readings** — *a flat progress stream at 39
+steps is not evidence that the stream is flat*, and I published it as one. **The single condition
+under every measurement, never declared as a condition.** *Read the things that produce conditions
+before the things that produce results*, and `play`'s own signature is the producer.
+
+## 2 · `_overlap` IS NEITHER CELLS NOR BOXES — IT IS NORMALISED SHAPES
+
+    def _overlap(a, b):  return P.overlap(P.shape_of(a), P.shape_of(b))
+
+**`shape_of` normalises to the bounding-box origin, so this is intersection-over-union of two
+FORMS.** It measures **congruence — are these the same shape — and carries no spatial information
+whatever.**
+
+**AND THE WORRY WAS RIGHT ABOUT THE VERSION IT IS NOT.** Over raw board cells, **solidity means two
+distinct objects never share a cell, so cell-IoU between them is identically `0` on any frame.**
+**Containment, intersection and coincidence therefore CANNOT reduce to cell-overlap on a solid
+grid.** They need **bounding boxes**, which nothing computes.
+
+> **SO IT IS A DIFFERENT SENSOR, NOT ONE LINE** — and publishing `_overlap` as built would deliver
+> shape congruence under the name of spatial overlap.
+
+**AND IT IS AN `A6i`.** `arc_percept.overlap` is IoU over **board cells across frames**, used by the
+tracker for identity — correct. `sensors._overlap` is IoU over **normalised shapes in one frame** —
+also correct, different subject. **One name, two quantities, and the relation vocabulary reduces a
+dozen entries to the wrong one of them.**
+
+**AND `_overlap` IS NEVER CALLED.** `SENSORS.read` appears once in the repo, for `components`.
+**Fourth declared-with-no-consumer today.**
+
+## 3 · FIGURE 11 DOES NOT SAY THE HABITAT BOUNDS THE VOCABULARY
+
+**`DISCOVERY` C7 quotes Figure 11 as *an improvement that does not change contact changes nothing* —
+an acceptance criterion about CAPABILITY.** §16 treats the habitat as a thing to **ENUMERATE** —
+*what is this world made of, what are the levers.* **Neither says the medium bounds the atom set.**
+
+**So it is a genuine extension, and the second check this week the corpus did not already answer.**
+**Recorded as `[I]`, not derived here.**
+
+## 4 · THE SPLIT HAS THREE CATEGORIES, NOT TWO — AND THE MIDDLE ONE IS OURS
+
+**Filing the absent terms as *dropped by the medium* versus *a library gap* loses the category that
+matters.**
+
+    DROPPED BY THE MEDIUM     `occlude` -- no viewpoint, no depth. RELATIONS.md's own words:
+    (correct, not ours)       *the one static relation a grid genuinely cannot express*
+
+    FLATTENED BY OUR RULING   `spin` `interlock` symmetry similarity rotation rolling --
+    (ours, and revisitable)   they need ORIENTATION, and 90° rotation SURVIVES the
+                              compression fine. What flattened it is `shape` being a label:
+                              *arbitrary, comparable, never orderable* -- the accounting's
+                              ruling, not the grid's
+
+    ABSENT FROM THE LIBRARY   `disjoint` `intersect` `adjacent` `align` `nest` `concentric`
+    (the real gap)            `collinear` `perpendicular` `congruent` `offset` `tangent`
+
+**The middle category is the finding.** *The compression is the filter* is right, **and it does not
+cover these: we flattened them, the medium did not.** Which makes the shape ruling's cost countable
+in a second place, and **the only one of the three that is a decision to revisit rather than a fact
+to accept.**
+
+**`perpendicular` sits across the line and shows why the split needs care** — dropped in its 3D
+sense, **composable on a grid** (*one extends in row, the other in column*). **One word, two
+relations**, and only one of them is gone.
+
