@@ -9389,3 +9389,76 @@ record over ACTION SUBSETS, not over steps.** The two hidden variables are asymm
 cues exist is a count; how many of which are needed is invisible to any count**, and only shows in
 combinations attempted.
 
+
+---
+
+# THE CUE TOPOLOGY IS §16.1, IT IS BUILT, AND IT IS NEVER READ ON A LIVE RUN
+
+**The ruling was *build the four*. THREE OF THEM EXIST, ONE IS RULED OUT IN ADVANCE, AND THE ACTUAL
+GAP IS SOMEWHERE ELSE.** Sixteenth check this week and the largest.
+
+## §16.1 SPECIFIES THE INSTRUMENT, AND SPECIFIES IT OVER A DIFFERENT SOURCE THAN WE ASSUMED
+
+> *"`available_actions` is three sensors in one, and it is the cheapest data in the game... **the
+> pattern over time** — which conditions gate which, a **precondition structure**... A precondition
+> lattice over ≤7 operators is the cheapest structural model in the whole problem, and it answers
+> exactly the question — **what conditions are gated, and do they build on each other?**"*
+
+**WE WERE GOING TO READ IT OFF FRAME-DIFF HISTORY. §16.1 READS IT OFF THE ADVERTISED ACTION SET** —
+*at most seven booleans, no pixels involved.* **The cue topology is in the availability channel, not
+in the board**, and that is a materially cheaper instrument for the same question.
+
+## AND `instruments.Preconditions` IS IT, BUILT TO THE SPEC
+
+    after: Counter          (b, a) -> n     `a became available after b`
+    gone_after: Counter     (b, a) -> n     the inverse
+
+**Fed every step from `_advertised`**, which re-reads the set and attributes the change to
+`self._last_action` — *the action just taken is the only candidate for having met the condition.*
+**And the docstring already carries the discipline: *a count is not a claim... reading it is the
+agent's job rather than this table's.***
+
+## THE FIVE SHAPES AGAINST WHAT EXISTS
+
+| shape | status |
+|---|---|
+| **sequential** | **BUILT** — `Preconditions.after` is *b then a*, with counts, exactly §16.1's pairwise edges |
+| **unlocking** | **BUILT, same table** — an action APPEARING is a condition met; `gone_after` is the inverse |
+| **independent** | **A READING OVER THE BUILT TABLE** — an action whose predecessors are evenly spread has no precondition. **No new instrument** |
+| **conditional** | **NOT BUILT.** `Affordances.bindings` is the nearest thing and its subject is COLOUR CONFLATION — *a key with two colours in it is a row carrying two things* — not *the same action gives a different cue depending on state* |
+| **k-of-n** | **RULED OUT IN ADVANCE BY §16.1 ITSELF** |
+
+**§16.1 ON k-OF-n, WRITTEN BEFORE THE QUESTION WAS ASKED:** *"The lattice is over subsets, so it is
+**exponential in principle**; the useful version is **pairwise edges** — *a became available after b*
+— with counts, not the full subset order. **Pairwise is 49 cells and it is enough to see a chain.**"*
+
+> **SO THE SUBSET RECORD IS NOT A MISSING FEATURE TO FILE. IT IS A THING THE CORPUS DECLINED, WITH
+> ITS REASON AND ITS SUBSTITUTE NAMED IN THE SAME SENTENCE.** *File it separately with what it needs*
+> would have recorded as an open item something already closed against.
+
+## THE ACTUAL GAP, AND IT IS NOT ANY OF THE FIVE
+
+**`Preconditions.report()` HAS EXACTLY ONE READER IN THE REPO: `arc_check.py` 211, a conform seat
+print.** It is **not in the holdout report.** So on every real run the table is fed at every step,
+counts every edge, **and its output reaches nothing.**
+
+**Same shape as `NOT_RESOLVED` before yesterday: a declared reading with no path.** Third instance of
+that pattern this week — **and the pattern is now nameable: an instrument fed by the loop and read
+only by a test is indistinguishable, from the outside, from one that does not exist.**
+
+**THE CHEAPEST CONTACT-ADJACENT ITEM ON THE BOARD IS ONE LINE** — publish `pre.report()` beside
+`affordance_kinds` — **and it is what makes the independence reading possible at all**, since a
+reading over a table nobody prints is a reading nobody can take.
+
+## AND `ONE` STAYS OUT, AS A GENERAL STATEMENT
+
+> **THE CORPUS NAMING A THING IS NOT AN ENTRY CLAUSE.** The two clauses are *the loop cannot run
+> without it* and *the agent minted a crude version and we are promoting it*. **`ONE` satisfies
+> neither**, and Q21 listing four quantifiers is a description of a scheme rather than a licence to
+> install its members.
+
+**This matters beyond `ONE` because the corpus names a great deal** — nine sensors, seven
+affordances, four quantifiers, seven operators. **Every one of those lists would otherwise read as a
+build order**, and §12.3 says the opposite in its own words: *they are Tier 2 and the agent should
+have to reach for them.*
+
