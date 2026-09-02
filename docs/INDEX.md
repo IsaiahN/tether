@@ -10433,3 +10433,22 @@ ran as a pair, the 150s ran as a pair. **Almost the entire cost of a 1000-cycle 
 > costs what a 1000-cycle answer costs, **so the only rational run length is the long one** — and
 > every short run this week paid nearly full price for a fraction of the evidence.
 
+
+---
+
+# THE INSTRUMENT MUST SPAN EVERY ROW OF ITS OWN REGISTRATION
+
+**`[I]`: *vacuity with a hypothesis attached.*** A registration naming two causes with an instrument
+covering one **returns a null that looks like an answer** — which is strictly worse than no
+instrument, because no instrument prompts a question and an empty reading closes one.
+
+**THE CHECK IS ONE LINE, BEFORE THE RUN:** *for each row of the registration, name the field that
+would show it.* **A row with no field is a row that cannot fire** — and the registration then reads as
+covering a space it does not reach.
+
+**AND IT IS DISTINCT FROM THE UNEXPECTED-ROW LAW, THOUGH THEY LOOK ALIKE.** That one is about the
+SPACE being too small. **This one is about the INSTRUMENT being narrower than a space that was
+correctly drawn** — and here the space was right, the row was there, **and the row that fired was the
+one nothing measured.** *The pinned row caught what the instrument missed*, which is the fourth row's
+second save and only worked because it existed.
+
