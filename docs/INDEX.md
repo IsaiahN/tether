@@ -10461,11 +10461,20 @@ second save and only worked because it existed.
 was ample at BOTH run lengths.** The specifics are a property of a particular game, **are
 seat-readable and must not enter this record**, and are not needed for the finding.
 
-## SO THE RETRACTION IS ITSELF RETRACTED, AND IT WAS THE WORSE ERROR
+## THE REASON IS RETRACTED. THE WITHDRAWAL STANDS.
 
 **I withdrew a week of panel readings on the grounds that *a flat progress stream at 39 steps is not
 evidence the stream is flat*.** **That premise is false: the budget was not the limiter at 39 steps
 and was not the limiter at 998 either.**
+
+> **BUT THE READINGS DO NOT COME BACK, AND SAYING SO EXPLICITLY IS THE POINT.** They were never
+> readings of the panel. **They are readings of a LOCKED SELECTOR on a panel** — the policy visited
+> one configuration repeatedly at every length — **which is a different fault from under-sampling and
+> equally disqualifying.**
+
+**So: withdrawn, and the reason changes.** *The retraction was on a false premise* reads as *the
+readings are back* **and they are not.** `[I]`, and the correction is the half that would otherwise
+have been inherited.
 
 > **AND IT IS EXACTLY THE FAILURE MODE I HAD WRITTEN DOWN.** *A null carrying a satisfying causal
 > story is harder to doubt than a bare one, so the story is the thing to distrust.* **"We did not look
@@ -10540,4 +10549,46 @@ ablation and nobody drew for the budget.
 **It does not rescue the current agent.** Budget is not the binding constraint at any length — **the
 selector is** — so this changes how the anchor should be READ and changes nothing about the
 diagnosis. **Recorded because the next person to size a run will read §22.1 and not §22.5.**
+
+
+---
+
+# THREE DISCIPLINES WITH NO MECHANISM — CHECKABLE BY A PERSON AND BY NOTHING ELSE
+
+**`[I]`. They share a property and have been recorded separately, which hid it.**
+
+    1  THE COST SEAT              nothing measures what a change costs in actions.
+                                  `THE_FORMULA`'s second currency has no reader
+    2  COMMIT MESSAGE vs FILES    no seat compares what a message claims against what
+                                  was staged. `git add -A` swept a corpus file twice
+    3  PER-GAME QUANTITY          seat-readable, must not be recorded, must never
+                                  calibrate a parameter. `environment_files/` is
+                                  gitignored, so STORAGE is covered and REASONING is not
+
+**THE THIRD IS THE ONE THAT CANNOT BE MECHANISED EVEN IN PRINCIPLE.** *A seat that may read the
+harness can always reason from what it read.* **The gitignore enforces the half that was never the
+risk** — and the thing that stopped the reasoning was a person, in the same minute, **not a check.**
+
+**AND LISTING THEM TOGETHER IS THE POINT:** a discipline with no mechanism looks like an oversight
+when it stands alone and like a CATEGORY when it stands with two others. **Three is enough to say the
+category is real rather than that three checks are missing.**
+
+---
+
+# `RUN IT ON YOURSELF` IS NOW SHORTER THAN THE RULES IT KEEPS QUALIFYING
+
+**Fourth instance of authored-and-not-turned-around, and this one on a rule three days old:** *a null
+carrying a satisfying causal story is harder to doubt than a bare one, so the story is the thing to
+distrust.* **I applied it to the agent's nulls and not to my own retraction**, whose story —
+*we did not look long enough* — was exactly the satisfying kind.
+
+    the audit question   framed at the codebase, never at a proposal
+    the panel law        applied to the games, never to my own measurement population
+    the story rule       applied to the agent's nulls, never to my own retraction
+    read the mechanism   applied to `spread`'s guard, never to the branch I had also pinned
+
+> **FOUR RULES, ONE OMISSION, AND IT IS NOT A MEMORY FAILURE.** Every one was in hand and in use.
+> **What was missing each time is that the rule's SUBJECT was assumed to be the code.** So the
+> general form is not another rule — **it is a second subject for the ones that exist**, and *run it
+> on yourself* is shorter than any of them.
 
