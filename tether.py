@@ -1287,6 +1287,17 @@ class Agent:
             self.abstained.pop(slot, None)
         else:
             self.owed_import.add(slot)
+        # THE CONTACT CLAUSE, RECORDED HERE BECAUSE IT CANNOT BE RECOVERED LATER. Contact is a
+        # fact about THIS frame and `summary` reads after the run, so *bound to a slot that was
+        # in contact* has to be written when the binding is chosen. Same shape as `level` on the
+        # repeat row: the reader forces a field the ledger did not carry.
+        detail["operand_in_contact"] = None
+        if term.operand:
+            owners = self._slot_owners(self.env)
+            touch = getattr(self.env, "contacts", None)
+            if owners and touch is not None:
+                adj = set(touch().get(owners.get(slot), ()))
+                detail["operand_in_contact"] = owners.get(term.operand) in adj
         detail["verdict"] = "pays"
         detail["closes"] = closes
         if not closes:

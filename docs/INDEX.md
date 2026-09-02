@@ -8477,3 +8477,39 @@ produced by the measurement before the library gets a say.** Which is the coroll
 arriving on the number the corpus singles out: *a metric can report the failure it was built to
 detect, for a reason that is not the failure.*
 
+
+---
+
+# THE PER-TERM ACCOUNT — `minted` EXTENDED, AND IT SAYS THE CLAUSE IT COULD NOT
+
+**Not a new reader.** `summary.minted` already carried nine of the columns — handle, composition,
+origin, admitting clause, the residual it was aimed at, cost and left. **A parallel `account()`
+would have been two producers of one fact**, which is the duplication I created between
+`sensors.py` and `arc_atoms.py` a week ago and then had to undo.
+
+    ls20_TT_chain_9448fc3f
+      translate . translate   aimed at o16.w@4
+      reduced 14.802 bits | cost 12.51 | left 3.7 | operand in contact: False
+      settled at None | rejections 1.42 | admitted accepted
+
+**`operand in contact` reads True on one of three and False on two** — a real discrimination, from
+a sensor computed every step and discarded until today.
+
+### THE CONTACT CLAUSE HAD TO BE RECORDED, NOT DERIVED
+
+**Contact is a fact about THIS frame and `summary` reads after the run**, so *bound to a slot that
+was in contact* cannot be recovered later. **One field on the mint row, written where the binding
+is chosen** — and that is **twice in two builds that a reader forced a field the ledger did not
+carry**, after `level` on the repeat row. **The readers are finding gaps in the record rather than
+only reading it.**
+
+### AND THE SPLIT FOUND A DEFECT IN THE READER ITSELF
+
+    31 accounts: 24 from a MINT · 7 installed by the SWEEP
+
+**`_install_reuse` accepts against a parked residual and writes no mint row**, so every
+mint-sourced column read `None` for those seven. **`reduced_bits: None` reads as *reduced
+nothing*** where the truth is *this did not come from a mint*. **Sixth flavour of an absence
+rendered as a value, and the first found inside a reader written to state accounts** — `installed_by`
+now names the reason the columns are empty.
+

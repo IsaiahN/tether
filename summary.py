@@ -28,6 +28,8 @@ from __future__ import annotations
 
 import sys
 
+from gamma import Standing
+
 sys.dont_write_bytecode = True
 
 # Composition is sequential-only today, so every joint carries the same operator. The column
@@ -58,10 +60,26 @@ def minted(rows: list[dict], gamma) -> list[dict]:
             continue
         st = gamma.stamps.get(name) or {}
         d = bits.get(name, {})
-        out.append({"handle": gamma.handles.get(name), "term": name,
+        # WHY THE MINT COLUMNS ARE EMPTY, RATHER THAN A NULL THAT READS AS ZERO. A term the
+        # SWEEP installed has no mint row -- `_install_reuse` accepts it against a parked
+        # residual -- so cost, left and reduced are absent BECAUSE IT WAS NOT MINTED, and
+        # `reduced_bits: None` otherwise reads as *reduced nothing*. The sixth flavour of an
+        # absence rendered as a value, caught in a reader written to state accounts.
+        out.append({"installed_by": "mint" if d else "sweep",
+                    "handle": gamma.handles.get(name), "term": name,
                     "atoms": [a.name for a in t.atoms], "joints": [JOINT] * (len(t.atoms) - 1),
                     "origin": t.origin, "admitted": st.get("admitted"),
                     "against_residual": st.get("residual"),
+                    # THE ACCOUNT'S REMAINING CLAUSES. `minted` already carried the handle,
+                    # the composition, the residual it was aimed at and what it cost; what an
+                    # account needs beyond that is TENURE, the FAILURE POINT, and whether the
+                    # operand sat on a body in contact. Three fields, one reader, no second
+                    # producer -- a parallel `account()` would have duplicated nine columns.
+                    "reduced_bits": d.get("explained"),
+                    "settled_at": (gamma.standing.get(name) or Standing()).settled_at,
+                    "rejections": round((gamma.standing.get(name)
+                                         or Standing()).rejections, 3),
+                    "operand_in_contact": d.get("operand_in_contact"),
                     "cost_bits": d.get("term_bits"), "left_bits": d.get("left_bits"),
                     "closed_it": d.get("closes")})
     return out
