@@ -8948,3 +8948,84 @@ same mathematics, MDL is built on Shannon, and both are already cited on Figure 
 `log2(|bonds|)` **is** the entropy of the arrangement space in bits. **Two laws in one line: the
 first says you cannot create atoms, the second says rearranging them is not free.**
 
+
+---
+
+# SECTION CHECK ON `EXTRACT`: IT IS BUILT, AND THE DEFECT IS THAT IT CANNOT ABSTAIN
+
+**The question was what §12.2's `OBJECT -> ATTR` sensors need in order to publish. THEY ALREADY
+PUBLISH.** `arc_atoms.ATTRIBUTE_TYPE` carries **eight** keys and `_extract` makes an `Atom` of each:
+
+    colour -> COLOUR     row, col -> POSITION     h, w -> EXTENT
+    drow, dcol -> DELTA  shape -> SHAPE
+
+**All four of §12.3's unary sensors are represented**, two of them on both axes. **So §11.2's table
+saying EXTRACT is *missing* is stale against the code** -- corpus, annotated here, not edited.
+
+**Twelfth instance, and a fourth form: the corpus was BEHIND the code.** Every previous one had the
+corpus ahead. **The check is not only a lookup for things I am about to design -- it is a diff, and
+it runs in both directions.**
+
+## THE DEFECT, AND IT IS §12.2's SECOND PROPERTY EXACTLY
+
+**§12.2:** *"Total, with an explicit non-reading. A sensor returns a value or `NOT_RESOLVED`. **Never
+a guess, never a default.** That is abstention at the sensor level, and it is what lets 'this
+instrument cannot see it' propagate up instead of becoming a wrong attribute."*
+
+**`arc_atoms._extract`'s `pick`:**
+
+    return o.get(key, 0) if isinstance(o, dict) else o
+
+> **`o.get(key, 0)` IS A DEFAULT, AND IT IS THE ONE THE RULE NAMES.**
+
+**`sensors.py` honours the rule at every branch** -- eleven `NOT_RESOLVED` returns, and its own
+header says the pre-existing code had *"no `NOT_RESOLVED`"* and that this was the defect being
+repaired. **The extractor wrapping reintroduced it one layer up**, in the file whose docstring says
+the sensors were *wrapped rather than rewritten*.
+
+## AND THE CASE IS ALREADY WRITTEN DOWN AT THE OTHER SITE, IN ITS OWN WORDS
+
+**`arc_percept.py` 288, at the tracker**, on why `drow`/`dcol` are ABSENT on a birth:
+
+> *"...it did not move* where the truth is *there was nothing to move from*. An absent slot is what
+> the loop already handles -- *a new slot has no history and owes nothing yet* -- so **absence is the
+> reading**."
+
+**The absence was built deliberately, with the hazard named at the site. `pick` restores the exact
+`0` the absence exists to prevent.** On every birth, `drow` extracts `0` and the agent cannot
+separate **did not move** from **was not there last frame.**
+
+**TWO FILES, ONE RULE, OPPOSITE BEHAVIOURS -- and neither is wrong on its own reading.** The tracker
+is right that absence is the reading; the extractor is right that an atom must return something.
+**The rule that resolves them is §12.2's, and only one file is applying it.**
+
+**This is the alignment claim failing at the lowest level it can fail at.** Not a wrong answer -- **a
+confabulated one, at the sensor, where the whole architecture says abstention must start.**
+
+## WHAT THE CHECK ALSO CAUGHT: THE DOCSTRING SAYS FIVE AND THE TABLE HAS EIGHT
+
+**`_extract`'s docstring:** *"WHICH FIVE THESE ARE WAS NEVER DECIDED... `cells` and `shape` hold
+frozensets and were skipped by the wrapping, not by a rule. **The ceiling on what can be represented
+is an encoding accident, and the next reader will assume five was chosen.**"*
+
+**`shape` and the two DELTA keys were published since**, so the table is eight and the warning is
+stale -- **and the warning was RIGHT: the ceiling moved by an encoding change, exactly as it said,
+and the docstring recording that fact is now the thing that is out of date.** Repairable at source;
+it is code.
+
+## SO THE BUILD IS NOT "ADD EXTRACT". IT IS THREE THINGS, AND THE CORPUS SPECIFIES ALL THREE
+
+    1  `pick` returns NOT_RESOLVED on a missing key      §12.2, verbatim
+    2  NOT_RESOLVED PROPAGATES through composition       §12.2: "lets 'this instrument cannot
+       to the term, which then cannot bet on that slot   see it' PROPAGATE UP instead of
+                                                         becoming a wrong attribute"
+    3  the docstring's count and warning repaired        it is code, and it is now false
+
+**No design question in any of the three.** Propagation was the one place a choice looked available
+and §12.2 answers it in the same sentence that states the rule.
+
+**AND THE THING THAT WOULD MAKE IT VISIBLE IS ALREADY MEASURED.** The extractors are **8 of the 13
+never-pulled atoms**. If abstention changes nothing, the pull counts do not move and the mechanism
+is inert; **if it changes something, it changes what a term is allowed to bet on, and that is
+contact.**
+
