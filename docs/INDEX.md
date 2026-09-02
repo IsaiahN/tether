@@ -10452,3 +10452,45 @@ correctly drawn** — and here the space was right, the row was there, **and the
 one nothing measured.** *The pinned row caught what the instrument missed*, which is the fourth row's
 second save and only worked because it existed.
 
+
+---
+
+# RETRACTED: "EVERY NULL WAS READ AT 4% OF THE BUDGET" — THE BUDGET WAS NEVER BINDING
+
+**`[I]` confirms, from knowledge held at the seat and deliberately not shared, that the action budget
+was ample at BOTH run lengths.** The specifics are a property of a particular game, **are
+seat-readable and must not enter this record**, and are not needed for the finding.
+
+## SO THE RETRACTION IS ITSELF RETRACTED, AND IT WAS THE WORSE ERROR
+
+**I withdrew a week of panel readings on the grounds that *a flat progress stream at 39 steps is not
+evidence the stream is flat*.** **That premise is false: the budget was not the limiter at 39 steps
+and was not the limiter at 998 either.**
+
+> **AND IT IS EXACTLY THE FAILURE MODE I HAD WRITTEN DOWN.** *A null carrying a satisfying causal
+> story is harder to doubt than a bare one, so the story is the thing to distrust.* **"We did not look
+> long enough" is that story**, applied to my own null, **three days after recording the rule.**
+
+## WHICH MAKES `advanced: false` A STRAIGHT NEGATIVE
+
+**I have been reporting *the loop does far more work at budget and still advances no level* as a
+curiosity — a third outcome neither row predicted.** **It is not a curiosity. It is a plain negative
+on the objective, at a budget that was never the constraint.**
+
+## AND THE REAL CONFOUND IS THE ONE THE RE-RUN FOUND
+
+**The selector.** `discriminate:learned` locking the great majority of acts onto one action — **that
+is why the precondition table is empty and why nothing advances, and it holds at every run length.**
+**The confound was never budget. It was always the policy.**
+
+**The re-run still earned its keep** — it produced the branch split and the front-loading number —
+**but not for the reason it was run.** *It was run to lift a ceiling that was not there.*
+
+## THE DISCIPLINE NOTE, WHICH IS THE PART THAT GENERALISES
+
+**A per-game quantity is seat-readable and must not be recorded, and must never calibrate a
+parameter.** Sizing a run against a game's own action counts is **tuning the harness to the task**,
+which is *never encode the answer* wearing an operational disguise. **`environment_files/` is
+gitignored, so the artefact cannot be committed** — but the constraint is on REASONING FROM IT, not
+only on storing it, and the gitignore does not enforce that half.
+
