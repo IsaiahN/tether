@@ -11023,3 +11023,65 @@ something will be.**
 the remaining five* — all true — **and it does not make the two sensors composable.** Worth carrying
 beside the specification so the field is not built expecting it.
 
+
+---
+
+# `[I]` `frame` IS A LIST AND WE TAKE THE LAST — MEASURED, AND THE TWO BOARDS DIFFER COMPLETELY
+
+## THE READ: FOUR SITES, ALL `frame[-1]`
+
+    arc_holdout 65, 233, 242      arc_world 264 (`board()`)
+
+**And `board()`'s docstring KNOWS it is a sequence:** *"`frame` is a stack played oldest to newest,
+so acting on `frame[0]` means betting on a board the world has already left."* **It defends `[-1]`
+against `[0]` and is silent on everything between them.** *The discard is deliberate about the wrong
+end.*
+
+## THE MEASUREMENT, AND IT IS A PER-GAME FACT
+
+    ls20   41 responses   frames-per-response {1: 41}                NOTHING IS DISCARDED
+    g50t   41 responses   frames-per-response {1: 25, 7: 4, 9: 12}   39% CARRY 7 OR 9
+
+> **SO BOTH BRANCHES OF THE CHECK ARE TRUE, ONE PER BOARD.** On `ls20` the identity gap stands as
+> filed and frames are not the answer. **On `g50t`, 16 of 41 actions return a 7-or-9-frame animation
+> and we keep one of each — six or eight intermediate frames thrown away per motion event.**
+
+**AND *PER GAME, NEVER POOLED* IS VINDICATED AGAIN**: averaging a board that animates with one that
+does not would have produced *some frames are sometimes discarded*, **which is true of neither
+board.**
+
+**THE DISCARD IS NOT UNIFORM — IT CONCENTRATES ON THE MOTION EVENTS.** A single-frame response is a
+step where little moved; **the 7- and 9-frame responses are where something travelled.** *So the
+frames are being dropped exactly where identity across time is hardest to establish*, which is the
+supporting fact rather than the proof.
+
+## WHAT IT DOES AND DOES NOT CLOSE
+
+**IT MAKES THE TRACKER'S JOB EASIER AND DOES NOT CLOSE THE GAP I FILED.** `Objects` matches by
+**maximum overlap**, and overlap between consecutive animation frames is far larger than between two
+settled boards — **so matching becomes near-trivial where today it is ambiguous, on the board that
+has them.**
+
+**BUT THE TYPE SYSTEM STILL CANNOT STATE IDENTITY**, and **the composer is still unsafe**: a chain
+that pairs two objects satisfies the types and the bond whatever the tracker knows. **The sixth
+latency is unchanged.** *The frames remove the NEED on one board; they do not give the signature a
+way to say it.*
+
+**AND `delta` WOULD CHANGE KIND, WHICH IS THE PART WORTH KEEPING.** *Motion as continuity across a
+sequence* rather than *a difference between two snapshots* — **and the `→` bond would then already
+exist in the data rather than being encoded**, which is the strongest form of the claim.
+
+## WHAT THE PERCEPTION LAYER WOULD HAVE TO CHANGE — STATED, NOT BUILT
+
+    board()        returns one grid; would return the stack, or the loop would iterate it
+    _decomposed()  runs once per response; would run per frame, in order
+    Objects        threads identity by max overlap between CONSECUTIVE frames rather than
+                   between settled boards -- the same mechanism, smaller steps
+    delta          a sum over the sequence rather than one difference
+
+**Not a new sensor and not a new type. The same tracker over a finer sampling** — which is why it is
+worth checking before anything is built on the gap.
+
+**NOTE ON THE MEASUREMENT ITSELF: it created a scorecard on the API** — the environment does that on
+`Arcade(...)`, and it is an outbound artefact of running the read at all.
+
