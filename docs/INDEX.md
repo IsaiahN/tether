@@ -8555,10 +8555,23 @@ written down as a set.** A reader finding one has no reason to look for the othe
                             the denominator UNDERCOUNTS the moment a second bond exists -- and
                             every coverage figure computed against it moves with it.
 
-**THE FIRST TWO ARE PRICES AND THE THIRD IS A DENOMINATOR**, which is why they matter differently:
-a mispriced term fails to pay, **and a wrong denominator makes every `UNREACHED` a reading over a
-space the agent never enumerated.** *A metric whose denominator the mechanism changes cannot
-falsify that mechanism* — and adding a bond changes it.
+## THEY ARE NOT ONE SET. TWO ARE PRICES AND ONE IS A DENOMINATOR
+
+**A MISPRICED TERM FAILS TO PAY, AND THE FAILURE IS RECOVERABLE.** Items 1 and 2 move `cost` in a
+comparison against `base`. A term that should have paid and did not is **still in the residual** —
+`outstanding` is monotone against the actual, nothing was spent, and re-pricing later re-offers
+every term that was refused. **The loss is throughput.**
+
+**A WRONG DENOMINATOR CORRUPTS A VERDICT, AND THE VERDICT IS ALREADY PUBLISHED.** Item 3 sits under
+coverage, and coverage is what an `UNREACHED` is a claim about. **A closure searched to the end
+against the wrong `λ^d` is an abstention that names a room it did not search** — which is the one
+thing reach-must-be-total exists to prevent, and the reading is already in the ledger. *A metric
+whose denominator the mechanism changes cannot falsify that mechanism*, and adding a bond changes
+it.
+
+> **SO THE ORDER IS FIXED WHEN THEY GO LIVE: the denominator first, prices after.** Re-pricing over
+> a corrected space is arithmetic. **Re-reading every published `UNREACHED` is not, and the
+> abstentions are the deliverable.**
 
 ---
 
@@ -8660,4 +8673,183 @@ and both items unblock together. **Until then, manufacturing a stream to price a
 invented-metric failure mode with a specification quoted over it** — and `outstanding()` is the
 nearest candidate and is disqualified for exactly the stated reason: **it is frame-internal, so
 pricing an objective against it is a frame scoring itself with a quantity it produces.**
+
+
+---
+
+# `[I]` THE CONSERVED AND THE EXPENDABLE — AND THE CORPUS ALREADY HAD FOUR FIFTHS OF IT
+
+**Isaiah's connection from the free-energy article, recorded with his cut intact.** The check ran
+first this time, and it found a boundary rather than a duplicate.
+
+## The table, as given
+
+| | atoms | bonds | residual | ground |
+|---|---|---|---|---|
+| **evolution** | genes | linkage, epistasis, recombination | fitness gap | survival and reproduction outcome |
+| **agents** | primitives | the seven operators | prediction error | whatever the board returns |
+| **chemistry** | elements | covalent, ionic, hydrogen | **ΔG** — what could still happen, zero at equilibrium | the second law |
+
+**Three corrections it carries.** *The niche is the habitat, not the ground* — Figure 11's own
+distinction, and the most common way this table gets written wrong. **Conservation laws are
+constraint priors, not the ground**: they say what is admissible before you look, and the second law
+says which admissible direction happens. **And ΔG rather than G**, because free energy is not
+absolute and only changes are physically meaningful.
+
+> **AND THE ROW THAT FITS BEST IS THE ONE TO DISTRUST.** *Agents* is the case the framework was
+> built from, **so its fitting perfectly is not evidence.** Recorded in his words because it is the
+> discipline applied to his own table, which is the half that usually goes unwritten.
+
+## Why chemistry has a residual and no frame
+
+**It is Figure 11's unmaintained mode** — *no seat, no live frame; nothing selects, and what survives
+is what the ground kept.* **Evolution is the same regime.**
+
+**So the generalised residual is the gap between the current state and what the ground will settle
+for.** Prediction error where a frame exists; **fitness gap or ΔG where none does.** The frame is
+what makes the gap *predictive* rather than merely *actual* — it is not what makes there be a gap.
+
+## The claim, and the version that is NOT claimed
+
+**NOT CLAIMED: that the second law explains why the transform is lossy.** Figure 4's loss has its own
+reason — *going up throws away detail, and that is what makes the result reapplicable.* **A lossless
+transform is possible and useless, so the necessity comes from the PURPOSE, not from
+thermodynamics.**
+
+**CLAIMED, in the article's own words:** *"Free energy is subject to irreversible loss in the course
+of such work. Since first-law energy is always conserved, it is evident that free energy is an
+expendable, second-law kind of energy."* **Two kinds of quantity in one system: one conserved, one
+expendable, and only one survives a process.**
+
+## Which is the membrane rule with a reason under it, AND THE FOOTING CHANGES
+
+*Only methods cross up, only head starts come down.* **The method is the conserved kind; the
+occasion is the expendable kind.**
+
+> **It was stated as a prohibition WE IMPOSED. This says a recording is the expendable kind and was
+> ALREADY SPENT — so carrying it up is not forbidden; there is nothing left in it to carry.**
+
+**A prohibition invites the question *what if we allowed it*. An emptiness does not.**
+
+## THE CHECK: four fifths present, and the fifth is exactly the load-bearing half
+
+**Ordered as Isaiah predicted — Figure 4's notes and the Weismann citation first, and both paid.**
+
+| | where | verdict |
+|---|---|---|
+| the membrane rule, verbatim | `ARC_BUILD_PLAN` 2032, quoting Figure 4 | **present** — *"a recording carried upward looks like knowledge and is a description of one occasion"* |
+| Weismann | `PHILOSOPHY` 241 and 754 | **present, twice** — and 754 already carries the independence: *"arrived at a century earlier for its own reasons"* |
+| **the cut** | `PHILOSOPHY` 395, quoting Figure 4 | **PRESENT, AND IT IS THE CORPUS'S OWN SENTENCE** — *"going up throws away detail; that is what makes the result reapplicable, but it means the trip is not reversible"* |
+| the round trip's meaning | `PHILOSOPHY` ~445 | **present, near-verbatim** — `R_T` is *"the honest report of what the coarser description cannot hold"* |
+| irreversibility as a REQUIREMENT | `ARC_BUILD_PLAN` 830 · `PHILOSOPHY` 398 | **present** — *a bijection has neither branching nor irreversibility*; an invertible transform is **fatal**, because a bijection iterated gives orbits and not a tree |
+| **the conserved/expendable split** | — | **ABSENT.** No `conserved`, `expendable`, `free energy`, `second law` or `thermodynam` anywhere in the corpus |
+| **the changed footing** | — | **ABSENT.** The corpus states the rule and its CONSEQUENCE — *"produces a system that repeats a past success and cannot produce a new one"* — never a reason the recording is empty |
+
+**SO THE CUT WAS UNNECESSARY AND IS THE MOST VALUABLE PART OF THE ITEM.** Isaiah cut the
+thermodynamic explanation of lossiness before offering it; **the corpus had already refused the same
+claim, for the same reason, in Figure 4's own words.** Two frames arriving at one boundary
+independently is what the whole method is for — **and it means the surviving claim is the one that
+was never in contention.**
+
+## ANNOTATION TO `PHILOSOPHY` 754 — Weismann is now corroboration at maximum independence
+
+**Corpus, so annotated and not edited.** The citation reads *"generators cross up, playback never
+does, arrived at a century earlier for its own reasons."* **It should now say THIRD FRAME.**
+
+    1  the membrane rule   ours, derived from Figure 4's round trip
+    2  Weismann 1892       germline barrier, biology, a century earlier
+    3  free energy         conserved vs expendable, thermodynamics
+
+**Three frames, three centuries, three fields, one distinction** — and none of the three derived from
+another. **§8.4's requirement is an interpreter DERIVATIONALLY INDEPENDENT of the thing explained;
+this is that condition met twice over on a single rule**, which is the strongest corroboration
+available and is stronger than anything the corpus currently claims for it.
+
+---
+
+# THE DELIBERATE PASS: FIVE THINGS WAIT ON A LEVEL ADVANCE, AND TWO HAVE NEVER EXECUTED
+
+**Two were found by accident, which is why the pass was worth running.** *Is it built* returns yes
+for all five; ***what does it still owe*** returns the same event five times.
+
+    1  score_objective         the progress stream has no variance -- a median-thresholded
+       (the truth space)       partition of a constant separates nothing
+    2  the level series        rising unexplained mass per level, if the agent is not
+                               composing. One level = one point = no series
+    3  Budget's ACCRUAL        `left += per_level`. NEVER RUN LIVE -- `level_starts()` is
+       ** never executed **    called ONCE at `arc_holdout.py:78` and never again. Exercised
+                               only by `arc_check.py`'s two-level fixture
+    4  `boundary()` at a       `arc_world.py:65` -- bindings drop at a LEVEL change. Fires
+       level change            live only via `retarget` on GAME_OVER, which is a different
+       ** never on a level **  event reaching the same code by a different route
+    5  terminal 1 and 3        "it wins" is clause 1; the ablation is a POST-MASTERY test
+
+**ITEMS 3 AND 4 ARE THE FINDING.** The first two are measurements that would read null, which is
+recoverable. **These are MECHANISMS that have never run in the situation they were written for** --
+and item 3's own docstring says *"THE ACCRUAL IS THE PART THAT GETS LOST. `500 per level` reads as a
+flat cap"*, so it is a mechanism that documents its own failure mode and has never once been in
+position to exhibit it.
+
+**A fixture is not an execution.** `arc_check.py` proves the accrual CAN run; **nothing shows it
+DOES**, because the live path calls the trigger once. *Tests reach, not existence* -- and here the
+test reaches something the loop never does.
+
+> **AND THE DEPENDENCY WAS IN NO GRAPH.** Five items, five different files, one event, **and not one
+> of them names it as a precondition.** The single common cause was invisible because each item
+> looked complete on its own.
+
+## Which makes `levels_completed` a PRECONDITION, not a metric
+
+**And it has been neither all week.** As a metric it was correctly refused -- *a ground reading taken
+below the break is a reading of nothing*. **As a precondition it was never considered at all**, and
+that is a different role for the same quantity: **not what we read off the run, but what five
+mechanisms are waiting for permission from.**
+
+---
+
+# AND THE TRUTH-SPACE FINDING IS SHARPER THAN RECORDED: THE OBJECTIVE EXISTS AND IS CONSTANT
+
+**`arc_world.objective()` returns `("ALL(BECOME(level, completed))", levels_completed / win_levels)`.**
+Measured: **`start 0.0 max 0.0 end 0.0` on both games.** So Q21's shape -- a quantifier over an inner
+relation, returning a degree -- **is already instantiated**, and I filed the consumer as needing a
+thing that is built.
+
+**THERE ARE TWO GATES AND THEY ARE AT DIFFERENT LEVELS.**
+
+**GATE 1 -- there is ONE objective and the agent did not pose it.** The bargain prices a CHOICE;
+**a bargain with a single candidate is not a bargain.** `ALL(BECOME(level, completed))` is the
+terminal condition read off the frame, which is legitimate -- **the ground is allowed to be known.**
+What is missing is the **sub-objectives**, the intermediate wants that would partition progress
+toward it, **and those are what Q21 prices.**
+
+**And there are none because there is no vocabulary to state one in.** No EXTRACT -> no attributes ->
+no predicates -> no sub-objective. **§11.2's chain, breaking at link 2, exactly where Figure 3 says
+chains break** -- *"because it attracts the least attention and the fewest instruments."*
+
+**GATE 2 -- the stream is flat**, which blocks the pricing even if candidates existed.
+
+> **GATE 1 IS ABOVE GATE 2, AND ONLY GATE 1 IS OURS TO MOVE.** A level advance is a capability
+> outcome. **EXTRACT is a build.** So the item's true dependency is not the event after all -- it is
+> the missing space in §11.2's own table, and the flat stream is what would block it AFTERWARDS.
+
+**I had the order backwards when I reported the section check**, and the correction changes what is
+actionable: **the truth-space consumer is not gated on a level advance. Its INPUT is.**
+
+---
+
+# THE GENERAL RULE FROM THE `molecule` CASE
+
+> **RESOLVE A NAMING COLLISION WHILE THE LOSING SENSE IS UNBUILT. It is the cheapest a collision is
+> ever resolvable, and the cost rises with every call site.**
+
+**`score_molecule` -> `score_objective` cost nothing because nothing calls it.** `OBJECT`/`OBJ` cost
+a type-graph audit because the type graph already composed across it. **Same collision class, two
+prices, and the difference was entirely WHEN.**
+
+**AND IT GIVES `A6i` A TRIGGER IT LACKED.** The register says *check what a name means in both places
+before pinning a shape to it*, and its trigger is *where a headline or a ruling is about to be made*.
+**This adds a second and cheaper one: at the moment a second sense is FIRST WRITTEN DOWN, before
+anything consumes it.** `molecule` was catchable when Figure 12's gloss entered the symbol table --
+one edit ago, with zero call sites -- **and A6i's existing trigger would not have fired there,
+because no ruling was being made.**
 
