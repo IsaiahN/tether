@@ -10932,3 +10932,66 @@ list instead of from Part 6.*
 resource that makes the configuration count terminate** — with a stated reason it cannot be summed
 with bits, **and now the correct reason.**
 
+
+---
+
+# `[I]` THE BOND AS A SIGNATURE FIELD — CHECKED, NOT BUILT. IT SUBSUMES, AND BOTH MISS THE SAME HALF
+
+## 1 · IT CAN BE A FIELD, AND IT DOES SUBSUME THE SPLIT
+
+**`Sensor` is a plain dataclass — `name · fn · in_types · out_type · origin · cost`.** Adding
+`bond` is one field, and `Registry.accepting` matches `s.in_types == tuple(in_types)`, so it would
+match on **(in_types, bond)** with no structural change.
+
+    OBJECT_BEFORE says   operand 1 comes from an earlier frame
+    `->`          says   operand 1 precedes operand 2
+
+**At the sensor layer those are the same claim about frames**, so **yes: subsumed** — and the bond is
+the better encoding, **one field over seven values against a type name per temporal role.**
+
+> **BUT NEITHER EXPRESSES WHAT `delta` ACTUALLY REQUIRES, AND THAT IS THE FINDING.** *Motion* needs
+> **the same slot** at two moments. **`delta(objA@t1, objB@t2)` is ordered, is typed
+> `OBJECT_BEFORE × OBJECT`, and is a position difference rather than motion.** **Both mechanisms
+> encode TEMPORAL ORDER and neither encodes IDENTITY ACROSS TIME.**
+
+**So the split I built yesterday and the bond proposal miss the same half.** The bond generalises the
+half that was covered; **it does not reach the half that was not.** *Identity across frames is the
+tracker's job and the type system cannot state it.*
+
+**RECOMMENDATION: keep the split until the bond field exists, then replace it.** A working refusal is
+not withdrawn for a proposal — **and the replacement is a strict generalisation, so nothing is lost
+in the swap.**
+
+## 2 · ITS OWN COLUMN, AND §12.2 IS THE RIGHT HOME FOR THE COLUMN
+
+**A bond is not a type — it is the relation BETWEEN typed operands** — so **a value inside `in_types`
+would be the `ATTR` mistake exactly: one column carrying two quantities.** **A separate field on the
+same dataclass is the right shape**, and §12.2 is the right home because it IS the signature.
+
+> **AND THE FIELD'S ARITY IS ALREADY DETERMINED BY THE PRICING.** `term_bits` charges
+> **`(k-1)·log₂(|bonds|)`** — *`k-1` bonds for `k` operands.* So the field is **`bonds: tuple[str,
+> ...]` of length `k-1`**, one per adjacent pair, **not a single scalar.** The formula fixed the
+> shape before the field was proposed, which is the corpus specifying an instrument again.
+
+## 3 · THE RECURSION IS NOT STATED, AND THE MEMBRANE TELLS AGAINST THE STRONG FORM
+
+**`THE_FORMULA`:** *"a settled molecule becomes an atom for whatever composes over it."* **It says
+nothing about the bond travelling** — and the sentence immediately after **makes crossing
+substrate-dependent**:
+
+> *"Whether a settled arrangement must be re-earned depends on the substrate — where the record
+> crosses, re-deriving is a lookup and the cost was spent once; across a boundary that drops it,
+> every lineage pays again."*
+
+**And Figure 4's membrane tells against it directly:** *going up throws away detail.* **A
+molecule-as-atom presents as an atom, and its internal bond is precisely the internal detail the
+membrane drops.**
+
+    STRONG FORM   the bond travels with the operand        NOT STATED, and the membrane refuses it
+    WEAK FORM     bonds exist at every level, and a NEW    HOLDS, and it is the state-structure
+                  bond applies above                        swap in the bond's own terms
+
+**The weak form is what the recursion claim needs and all it gets** — *the arrangement becomes
+substance, and a new arrangement applies above*, which is the pairing section's own sentence. **One
+vocabulary at every level, and not one bond carried up through them.**
+
