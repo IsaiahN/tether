@@ -8513,3 +8513,23 @@ nothing*** where the truth is *this did not come from a mint*. **Sixth flavour o
 rendered as a value, and the first found inside a reader written to state accounts** — `installed_by`
 now names the reason the columns are empty.
 
+
+### AND I SWEPT A CORPUS FILE IN WITH `git add -A` — SECOND INSTANCE, TEN DAYS AFTER RECORDING THE FIRST
+
+`docs/THE_FORMULA.md` had been edited externally — **Figure 12 integrated into the corpus**, with
+the bond paragraph, the recursion paragraph, the two-currencies paragraph and notes 32–33 — **and
+`git add -A` put it in a commit whose message named none of it.**
+
+**The first instance swept 23,000 lines of `docs/library-closure/` deliverables and was recorded
+at the time.** This one is worse in kind: **a CORPUS file, which I may annotate and never edit**,
+in a commit that reads as mine.
+
+> **THE RECORD DID NOT PREVENT THE REPEAT, AND THAT IS THE FINDING.** A note saying *I used
+> `git add -A` and it swept files* is a description of an event; **it installs nothing.** The
+> laws that hold are the ones that fire — and there is no seat that inspects a commit's file list
+> against its message. **Same category as the cost seat: a property with no check, not a rule
+> that went quiet.**
+
+**Both were caught by reading the commit output, and both were unpushed.** The working-tree
+discipline caught it twice and the register caught it neither time.
+
