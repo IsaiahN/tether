@@ -8606,3 +8606,58 @@ Figure-12 integration (`c28a0fc`) from my latency clause. **That is checkable; *
 disclosure* is not.** If a later section check leans on either clause, it is leaning on itself, and
 the diff is where that gets caught.
 
+
+---
+
+# SECTION CHECK ON THE TRUTH SPACE: THE PRICE IS SPECIFIED, THE STREAM IS FLAT
+
+**The question was** *what does §11.2's "stated and wanted" consume, and does the corpus name a
+price for it that isn't the transition bargain.* **It names one, and it is not a second bargain.**
+
+**Q21, in its own words:** *"And it is priced by the same bargain, one level up. `score_molecule`
+asks whether the molecule's per-step degree partitions the progress stream, thresholded at **its own
+median** so the split is data-driven — 'no free parameter' — and charges two bits for the
+description. Same two-part MDL, applied to objectives instead of transitions."* And the
+recommendation: **one bargain, two levels — atoms priced against transitions, objectives priced
+against progress.** Which is also how Q1 closes: the two residuals share machinery, so they are two
+readings of one mechanism rather than two mechanisms.
+
+**THE TENTH TIME THE CORPUS HAD ALREADY NAMED THE INSTRUMENT.** I was carrying *invent a price for
+the objective level* as an open design question with a magic-number hazard attached. There was no
+design question. **The threshold rule is specified AND is specified to have no free parameter.**
+
+## And the charge has the defect note 32 just repaired, one level up
+
+**Two bits is `log₂(4)` and four is the QUANTIFIER alphabet** — `ALL SOME ONE NONE`. But an
+objective is `quantifier × relation × scope × pairing`, and **pairing alone is a choice among three**
+(`consecutive` `all_pairs` `unary`). **So the objective's code charges one of its four dimensions:
+it records its ingredients and not its arrangement, which is note 32's sentence verbatim.**
+
+**Recorded, not fixed** — and the source is out of bounds. `redux_arch/molecule.py` is in the parent
+folder, so this is a defect in **what the corpus states**, which is the layer the build reads.
+
+## THE BLOCKER, AND IT IS A PANEL PROPERTY, CHECKED BEFORE THE BUILD RATHER THAN AFTER
+
+**`score_molecule` partitions THE PROGRESS STREAM. We do not have one.** `arc_world.ground()`:
+*"levels_completed, read off the frame. **There is no score field**, and `levels_completed ==
+win_levels` is the win."* **Measured: `level start 0 end 0` on both games.**
+
+> **A median-thresholded partition of a CONSTANT stream separates nothing.** Every objective scores
+> identically, the scorer returns the same verdict for all of them, **and it looks like it works.**
+
+**This is the panel-property law run FORWARD for the first time.** *Before a null is read as a
+finding about a mechanism, state what property of the panel the mechanism would need in order to
+show, and confirm the panel has it.* Three nulls were read before that check; **this one is being
+read before the mechanism exists**, which is the only position from which it costs nothing.
+
+**AND IT MAKES A SECOND ITEM'S DEPENDENCY VISIBLE.** The level-series prediction — *rising
+unexplained mass per level if the agent is not composing* — **is waiting on the same event, and
+neither item was filed as depending on it.** *Is it built* was the wrong question; **what does it
+still owe** returns: **a stream with variance, which is not a component of either item.**
+
+**THE FALSIFIER, PRE-REGISTERED:** the moment any game advances one level, the stream has variance
+and both items unblock together. **Until then, manufacturing a stream to price against is the
+invented-metric failure mode with a specification quoted over it** — and `outstanding()` is the
+nearest candidate and is disqualified for exactly the stated reason: **it is frame-internal, so
+pricing an objective against it is a frame scoring itself with a quantity it produces.**
+
