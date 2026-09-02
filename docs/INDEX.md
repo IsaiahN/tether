@@ -9223,3 +9223,76 @@ observably inert*, parked on a measured 13x-for-zero-capability, with the trigge
 consumes past index 0* -- **a grep, not *revisit later*.** The trigger here is the same kind of thing:
 **a progress stream with more than one value.**
 
+
+---
+
+# THE MAP CARRIED A FALSE BLOCKER, AND THREE THINGS RECORDED BEHIND IT
+
+## THE CORRECTION TO `CLAUDE.md`, WHICH IS THE ITEM THAT MATTERS
+
+**The instantiation map listed *the second consumer for EXTRACT/RELATE/QUANTIFY* as NOT
+INSTANTIATED. IT EXISTS.** `WANT : OBJ → PRED`, one of `_BET_ORDER`'s four nodes, in every bet.
+
+**Repaired at source, because `CLAUDE.md` is a working document.** What replaces it is smaller and
+true: **the WIRE and the SELECTOR are missing, not the consumer.**
+
+> **A MAP ENTRY SAYING A THING DOES NOT EXIST IS WORSE THAN ONE SAYING IT IS UNFINISHED.** *Does not
+> exist* closes the question; *unfinished* invites a look. **This one closed it for a week and was
+> quoted back several times, by me, as a blocker.**
+
+**AND THE FAILURE IS THE FOURTH FORM'S WORST CASE.** The other three had the corpus ahead of the code
+or behind it. **This one had me READING the corpus, QUOTING it, and never checking it** — and
+familiarity is the mechanism: *citing a file feels like evidence of having read it.*
+
+## THE GLYPH RULE, FROM `∥`
+
+> **A GLYPH'S CONVENTION AND A TABLE'S DEFINITION CAN DIVERGE, AND ONLY ONE OF THEM HAS A TEST.**
+
+**`∥` reads as process-algebra parallel composition to anyone arriving from outside**, and
+`OPERATORS.md` defines it as disjunction **with a discriminating test attached** — *remove one, does
+it still work?* **The definition wins because it is falsifiable and the convention is not.**
+
+**And the rule names when it applies: wherever a corpus borrows a symbol that already means something
+elsewhere.** Which is most of them — `≡`, `⇒`, `∥`, `⋛` all carry prior conventions. **The table is
+authoritative for the same reason the ground is: it is the thing that can be checked against.**
+
+## THE CYCLE BOUND IS THE FOURTH LATENCY, AND THE FIRST THAT IS NOT A NUMBER
+
+    4  A CYCLIC COMPOSITION   impossible today: `Term.atoms` is a TUPLE applied left to right,
+       ** not a number **     so there is no branch and no back-reference, and termination is
+                              guaranteed by length. `max_depth` bounds ENUMERATION, never
+                              EVALUATION. Becomes reachable the moment TREES arrive.
+
+**The other three are quantities that read zero. This one is a STRUCTURE that cannot be expressed**,
+which is why it needs a different repair: **not a value to recompute, but a refusal to install.**
+
+**AND THE RULING IS ALREADY WRITTEN, one level over, in `snaps._acyclic`:** *repair at the SPEC, not
+with a guard at evaluation — a world that cannot be evaluated is a malformed world, not a runtime
+case to handle.* **So the bound goes at construction and is not a runtime check to design** — the
+expensive half was already decided.
+
+## THE TRIGGER, AS A GREP RATHER THAN A NOTE TO SELF
+
+**`0a`'s trigger is *an atom that consumes past index 0* — checkable, and checked three times.** The
+objective wire gets the same treatment.
+
+> **TRIGGER: `summary.levels(rows)["advanced"] is True` on any game.** One level advancing gives the
+> progress stream a second value, **which is precisely what Q21's median threshold needs in order to
+> partition anything.**
+
+**Until it fires, wiring the producer to the consumer installs a selector that cannot discriminate**
+— and that is the failure shape the last two items established, **with the check available before the
+build for once.**
+
+**AND IT IS THE SAME TRIGGER AS FOUR OTHER PARKED ITEMS** — `score_objective`, the level series,
+`Budget`'s accrual, and `boundary()` at a level change. **Five items, one grep.**
+
+## AND THE BOARD HAS NO BUILDABLE ITEM
+
+**Stated plainly rather than replaced with something adjacent.** Everything remaining is behind one
+of two events: **a level advancing**, or **a decision about trees** that has not been asked for.
+
+**That is a real state and it is not a stall** — *an improvement that does not change contact changes
+nothing*, and the honest reading of today is that **the contact-changing work is gated on the
+ground, not on the code.**
+

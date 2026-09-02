@@ -312,8 +312,20 @@ exists** — when there is something to diagnose rather than a number with no su
 **The map, and every entry is a mechanism the framework names rather than a proxy:**
 
     INSTANTIATED       perceive · the bet · the bargain · minting · promotion · transfer
-    NOT INSTANTIATED   the objective layer · the second consumer for EXTRACT/RELATE/QUANTIFY
-                       · the description vocabulary · everything gated behind those
+                       · EXTRACT/RELATE/QUANTIFY and their consumer -- CORRECTED 2026-09-02
+    NOT INSTANTIATED   the WIRE from the composed objective to the bet · the SELECTOR that
+                       would pick among composed objectives · the description vocabulary
+                       · everything gated behind those
+
+**THE SECOND-CONSUMER ENTRY WAS FALSE AND WAS QUOTED BACK SEVERAL TIMES.** `grammar.py` declares
+`WANT : OBJ → PRED` and `WANT` is one of `_BET_ORDER`'s four nodes, **so every bet the agent makes
+already consumes an objective.** The chain `OBJECT → ATTR → PRED → OBJ` is built, typed, and
+composable end to end; `arc_atoms` even declares that its `OBJ` *is* `grammar.T.OBJ`.
+
+**What is absent is the WIRE and the SELECTOR, which is a different and smaller claim.** `tether`
+hand-builds the `WANT` from `env.objective()`'s single hardcoded string, so producer and consumer
+never meet. **And a map entry saying a thing does not exist is worse than one saying it is
+unfinished** — the first closes the question, and this one closed it for a week.
 
 ### The terminal condition
 
