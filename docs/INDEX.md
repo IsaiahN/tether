@@ -10768,3 +10768,88 @@ still leads nowhere, and now for a stated reason rather than an unexamined one.*
 `_overlap` and `_touching` are never invoked**, because §12.4's reach mechanism is `UNREACHED`.
 **Fifth latency — and the first that REMOVES possibilities rather than adding cost.**
 
+
+---
+
+# BUILT: THE TEMPORAL TYPE SPLIT — AND THE REFUSAL IS DEMONSTRATED
+
+**`OBJECT_BEFORE` added to `sensors.py`.** Sensors 6 and 7 are typed `OBJECT_BEFORE × OBJECT`;
+sensor 8 keeps `OBJECT × OBJECT`.
+
+    accepting(OBJECT, OBJECT)          before: overlap, delta, touching    after: touching
+    accepting(OBJECT_BEFORE, OBJECT)   before: --                          after: overlap, delta
+
+**Two sensors removed from the same-frame composition space, and nothing added.** `delta(x, y)` over
+two objects in one frame is now **ill-typed** rather than well-typed and meaningless.
+
+**THE WARRANT IS AT THE SITE, IN THE FORM THAT SEPARATES A REFUSAL FROM AN EXEMPTION:** §12.3 puts
+the distinction in its **prose column** and §12.2's whole in-type vocabulary is
+`("FRAME","OBJ") | ("OBJ","OBJ") | ("ATTR","ATTR")`, **which has no marker for time.** *This
+implements a distinction the corpus draws and cannot say.*
+
+**AND `overlap`'s BODY IS DECLARED WRONG RATHER THAN LEFT WRONG.** It returns congruence and is now
+typed cross-frame; **the mismatch is stated in the comment beside it**, with the reason the repair is
+deferred — *cross-frame cell IoU is what the tracker already computes, so it agrees with an existing
+quantity and unlocks nothing.*
+
+---
+
+# STATE AND STRUCTURE: THE BUILD HAS THE DISTINCTION, AND DOES NOT ENFORCE THE PAIRING
+
+## 1 · IT EXISTS, UNDER TWO NAMES, AND IT IS NOT A CONVENTION
+
+    slot_types()   "What KIND of quantity each slot holds"        -> THE STATE HALF
+    slot_owner()   "Which SUBJECT each slot is an attribute of"   -> THE STRUCTURAL HALF
+    contacts()     which objects touch, this frame                -> a second structural reading
+
+**All three carry the same sentence: *THE LOOP MAY NOT DERIVE THIS.*** And `slot_owner`'s docstring
+answers the *is it just a naming convention* question directly:
+
+> *"A slot name is `{object}.{attribute}` here, **and a loop that split on `.` would be reading domain
+> structure.** Grouping is that same split, so **the domain declares it and the loop only
+> compares.**"*
+
+**The `.` split happens inside the DOMAIN's method. That is the whole point of it being there.** So
+the structural half is **declared, not inferred** — and the build had the state–structure pair before
+either of us looked for it.
+
+## 2 · THE PAIRING IS NOT ENFORCED, AND THAT CLAIM ABOUT THE CODE IS FALSE
+
+**Checked, and it fails in both directions:**
+
+    _slot_types   "A world that declares no types gets {} and every operand check is
+                   SKIPPED -- which is REPORTED, not assumed"
+    _slot_owners  "A world that declares no owners gets {} and §12.4's trigger reports
+                   that it has NO VECTOR TO FORM"
+
+> **A SLOT CAN EXIST WITH NO DECLARED TYPE. The loop DEGRADES AND REPORTS; it does not REFUSE.**
+
+**And the *no type, no alphabet* half is wrong too, for a separate reason:** the coding alphabet
+comes from `_alphabets(env)` and the decomposition — **not from `slot_types`.** A slot has an
+alphabet whether or not a type was declared. **The two are independent and independently optional.**
+
+**So *the loop already enforces it at the boundary* is not true of this code.** It **records** the
+absence, which is the abstention discipline working correctly — **and is a different thing from
+enforcement.** *Recorded as a correction to the claim, not as a defect to repair: reporting an
+absence is the right behaviour and the pairing was never installed as a requirement.*
+
+## 3 · THE OPERATIONAL DEFINITION IS IN THE BUILD AND NOT IN THE DOCUMENT
+
+**`RECURSIVE_TRANSFORMATION`'s test is *can you have three of it*** — three joules yes, three
+networks no. **That is a linguistic test and nothing can apply it.**
+
+> **THE BUILD HAS ONE THE DOCUMENT LACKS:** **a STATE is what a slot's value is drawn from; a
+> STRUCTURE is which slots belong to one subject.** Both are **domain-declared strings**, both
+> comparable, both with an explicit absent-reading. **That is operational and it is running.**
+
+**WHICH INVERTS THE USUAL DIRECTION.** Twelve section checks this week found the corpus ahead; **this
+one finds the code holding the operational form of a distinction the corpus states philosophically.**
+**Third instance today of the corpus being behind the build** — and the first where what the code has
+and the document lacks is *the test itself*.
+
+**AND IT ANSWERS THE QUESTION THAT PROMPTED THE CHECK.** *A distinction the corpus draws and the
+build cannot express* was the timing ruling. **This is the opposite: a distinction the build
+expresses and the corpus states without a test.** **Found twice in one day, in both directions**, and
+that pair is worth more than either alone: **the corpus and the code drift apart in both directions,
+and only a diff run in both catches it.**
+

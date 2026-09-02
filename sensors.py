@@ -41,6 +41,20 @@ sys.dont_write_bytecode = True
 # *a slot's identity*. A sensor reads a thing, so it takes OBJECT -- and `arc_atoms`
 # now draws the same line, so all three files mean one thing by each word.
 FRAME, OBJECT = "FRAME", "OBJECT"
+# THE SAME SLOT, ONE FRAME EARLIER. `OBJ x OBJ` WAS A SPACE AND THE CODE MADE IT A TYPE, which
+# is `ATTR`'s error at this layer -- and the corpus makes the distinction without being able to
+# express it: §12.3 puts it in the PROSE column ("the slot is the *same* slot next frame" for 6,
+# "motion" for 7, "contact" for 8) and §12.2's whole in-type vocabulary is
+# `("FRAME","OBJ") | ("OBJ","OBJ") | ("ATTR","ATTR")`, which has no marker for time.
+#
+# So sensors 6 and 7 take a BEFORE/AFTER pair of ONE slot and sensor 8 takes TWO slots in ONE
+# frame -- same type, opposite operands -- and `delta(x, x')` over two same-frame objects
+# returned a position difference where motion was asked for, well-typed and unrefused.
+#
+# THIS IMPLEMENTS A DISTINCTION THE CORPUS DRAWS AND CANNOT SAY, which is what separates it
+# from an exemption. It adds no sensor and refuses compositions previously admitted -- the
+# `OBJECT`/`OBJ` split's standing, and that one removed 225 well-typed meaningless pipelines.
+OBJECT_BEFORE = "OBJECT_BEFORE"
 COLOUR, COUNT, POSITION, EXTENT = "COLOUR", "COUNT", "POSITION", "EXTENT"
 SHAPE, BOOL, DELTA, AXIS, RATIO, REGION = "SHAPE", "BOOL", "DELTA", "AXIS", "RATIO", "REGION"
 
@@ -247,8 +261,13 @@ def minimum_set() -> Registry:
         Sensor("position", _attr("row", int), (OBJECT,), POSITION, "prior", 1),
         Sensor("extent", _attr("h", int), (OBJECT,), EXTENT, "prior", 1),
         Sensor("shape", _shape, (OBJECT,), SHAPE, "prior", 1),
-        Sensor("overlap", _overlap, (OBJECT, OBJECT), RATIO, "prior", 2),
-        Sensor("delta", _delta, (OBJECT, OBJECT), DELTA, "prior", 2),
+        # 6 AND 7 ARE CROSS-FRAME BY §12.3's OWN PROSE. `overlap`'s BODY does not yet
+        # match its type -- it returns IoU over NORMALISED SHAPES, which is congruence and
+        # carries no position. The repair is deferred deliberately: cross-frame cell IoU is
+        # what the tracker already computes, so it agrees with an existing quantity and
+        # unlocks nothing. Typed correctly here so the mismatch is declared, not hidden.
+        Sensor("overlap", _overlap, (OBJECT_BEFORE, OBJECT), RATIO, "prior", 2),
+        Sensor("delta", _delta, (OBJECT_BEFORE, OBJECT), DELTA, "prior", 2),
         Sensor("touching", _touching, (OBJECT, OBJECT), BOOL, "prior", 2),
         Sensor("changed", _changed, (FRAME, FRAME), REGION, "prior", 2),
     ])
