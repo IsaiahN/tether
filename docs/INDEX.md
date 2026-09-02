@@ -10564,6 +10564,9 @@ diagnosis. **Recorded because the next person to size a run will read §22.1 and
     3  PER-GAME QUANTITY          seat-readable, must not be recorded, must never
                                   calibrate a parameter. `environment_files/` is
                                   gitignored, so STORAGE is covered and REASONING is not
+    4  A WRITTEN CAUTION          added 2026-09-02. Nothing consumes a warning, so
+       ** the clearest case **    nothing can fail on it. The other three at least
+                                  have a moment they would matter; this one has none
 
 **THE THIRD IS THE ONE THAT CANNOT BE MECHANISED EVEN IN PRINCIPLE.** *A seat that may read the
 harness can always reason from what it read.* **The gitignore enforces the half that was never the
@@ -11176,4 +11179,32 @@ was falsified by an unrelated question.
 
 **Which makes the repair the same one as the audit's second subject:** *run it on yourself* — **and
 the new half is that a caution needs the same check as a claim, because it IS one.**
+
+
+---
+
+# THE FOURTH UNMECHANISABLE CHECK, AND IT IS THE CLEAREST CASE OF THE PROPERTY
+
+**`[I]`: the other three proposals had a DOWNSTREAM that failed. A caution has no downstream at
+all.** `_overlap`'s *one line*, `by`'s *rows on disk*, `ties` on `spread` — **each died the moment
+someone reached for it.** **A warning is never reached for.**
+
+> **SO THE FAILURE NEVER ARRIVES, AND NOTHING CAN BE WATCHING FOR IT.** That is the property the
+> other three unmechanisable checks share, **and this is its cleanest instance** — the cost seat, the
+> commit-message check and the per-game rule all have a MOMENT they would matter. **A written caution
+> has none.**
+
+**WHICH MOVES THE DISCIPLINE FROM *CHECK IT BEFORE ACTING* TO *CHECK IT BEFORE WRITING*.** There is
+no acting. **And a discipline with no natural trigger has to have one installed, because nothing
+downstream will supply it.**
+
+## AND THE FORECLOSURE CHECK HAS THE SAME TRIGGER PROBLEM
+
+**Review is the wrong instrument for it.** *A gap invites the question; a correct argument answers it
+and closes it* — **and the one question that catches it, *what else was on the list*, is only askable
+by someone who has not read the justification.**
+
+**So it too must be asked at WRITING time.** **Same trigger problem, same repair** — and the pair is
+worth keeping together: **an underestimate exempts an ITEM from scrutiny; a caution and a good
+justification each exempt THEMSELVES.**
 
