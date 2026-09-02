@@ -10120,3 +10120,31 @@ arrangement. **Figure 12's *the arrangement is the substance* is this claim at t
 layer** — and *a vocabulary holding only ingredients can name a state and not a route to one* is the
 pairing stated as a failure mode.
 
+
+---
+
+# A VALUE THAT EXISTS IS NOT A VALUE THAT CROSSES — TWO INCIDENTS, ONE TENDENCY
+
+**Twice this week I called a build a publish, and the error is one thing.**
+
+**`_overlap`** — proposed as *one line* to unlock containment, intersection and coincidence. It is
+IoU over **normalised shapes**: congruence, no position. **The value existed and was not the value
+wanted.**
+
+**`by`** — said twice to be *one counter over rows already on disk*. `arc_holdout` uses
+`ledger.Ledger()` with **no path**, so the rows were in memory and the run discarded them. **The
+value existed and could not cross.**
+
+> **THE CHECK IS TWO QUESTIONS AND I SKIPPED A DIFFERENT ONE EACH TIME:** *is this the value I want*,
+> and *can anything read it*.
+
+**AND IT IS THE THIRD AUDIT QUESTION FROM THE OTHER SIDE.** *An instrument fed by the loop and read
+only by a test is indistinguishable, from outside, from one that does not exist.* **The tendency and
+the audit are the same fact — one is the error, the other is its detection** — which is why one entry
+beats two incidents: **the audit already existed and I was not running it on my own proposals.**
+
+**THE DIRECTION IS THE TELL.** Both mistakes made the work sound **smaller** than it was, **which is
+the direction that gets an item scheduled rather than examined.** A publish and a build differ by an
+order of magnitude, so mis-sorting one **mis-orders the whole board** — and both times the mis-sorted
+item went to the top of it.
+
