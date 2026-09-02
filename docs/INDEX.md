@@ -11135,3 +11135,45 @@ the grounds that *get it from the API and play locally are one path* — **true,
 expensive path to the same place**, which is `board()`'s shape again: **a defence of the right answer
 against the wrong alternative.**
 
+
+---
+
+# TWO SHAPES NAMED, EACH WITH TWO INSTANCES — AND NEITHER IS IN THE CORPUS
+
+## `[I]` A JUSTIFICATION THAT ESTABLISHES THE CONCLUSION AND FORECLOSES THE BETTER QUESTION
+
+    board()          defends `frame[-1]` against `frame[0]`     silent on the MIDDLE
+    arc_holdout hdr  defends NORMAL as "one path, not two"      silent on the CHEAPER path
+
+**Both defences are CORRECT. Both are aimed at the wrong alternative.** `frame[0]` really would be
+betting on a board the world has left; *get it from the API and play locally* really is one path.
+**And each answer, being right, stopped the question that would have found the better route.**
+
+> **THE TELL IS A DEFENCE AGAINST A NAMED WORSE OPTION.** *Not `[0]`.* *Not two paths.* **A
+> justification that names its alternative has drawn a boundary, and everything outside the pair is
+> now invisible** — which is why a reader inherits the foreclosure rather than the question.
+
+**AND IT IS DISTINGUISHABLE FROM A PLAIN GAP.** A gap has nothing written; **this has a good
+argument written, which is what makes it survive review.** The check is *what else was available*,
+and it is only askable by someone who has not read the justification.
+
+## `[I]` A WARNING IS THE SHAPE THAT GETS REPEATED WITHOUT CHECKING
+
+**Fourth site for the reachability error — and the first in a CAUTION rather than a proposal.**
+
+    "running the read created a scorecard on the API"     read a log line, not the branch
+    "a read is never free on the API"                     generalised from it, unverified
+
+> **NOBODY RE-VERIFIES A CAVEAT.** A proposal invites *is this worth it*; **a warning invites
+> agreement.** *It costs nothing to accept and looks like diligence*, so it propagates on the
+> strength of sounding careful — **the cheap-direction bias, inverted: a warning is
+> self-protecting because doubting it looks reckless.**
+
+**THE OTHER THREE INSTANCES WERE PROPOSALS AND WERE CAUGHT BY THE WORK.** `_overlap`'s *one line*,
+`by`'s *rows on disk*, `ties` on `spread` — **each failed when someone tried to use it.** **A warning
+is never used, so nothing tests it**, and this one survived from the moment it was written until it
+was falsified by an unrelated question.
+
+**Which makes the repair the same one as the audit's second subject:** *run it on yourself* — **and
+the new half is that a caution needs the same check as a claim, because it IS one.**
+
