@@ -9738,3 +9738,74 @@ structural findings: **typing excludes extractors from the transition bargain at
 `triggers_remote` is unwritten at any budget.** *That split is what makes the retraction survivable
 rather than total*, and it is also the limit on what a longer run can buy.
 
+
+---
+
+# `[I]` RANDOM WALK IS AN ATOM — AND THE CORPUS HAS THE ARGUMENT WITH A MEASUREMENT
+
+**Committed while both ruled-budget runs are still going, so the sharpened prediction below is
+pinned rather than fitted.**
+
+**The claim: for large or infinite action games, random walk is a real atom and a real strategy when
+paired with cue detection.** *Actors must be created with random walk natively. **Entropy always
+was.*** **Alone it is motion; paired with a detector every step is a sample of the relation space**
+— and it is **optimal under a stated condition: when the target configuration is invisible to you.**
+You cannot aim at what you cannot perceive. **It stops being best the moment the relation becomes
+readable.**
+
+> **WHICH REFRAMES THE WANDERING AS CORRECT RATHER THAN BROKEN.** What is missing is not direction.
+> **It is the detector that would make the walk pay**, and `touching` alone catches almost nothing.
+
+## CHECK 1 · Q20 HAS THE ARGUMENT, AND WITH BETTER EVIDENCE THAN THE CLAIM CARRIED
+
+> *"Uniform noise visits **884 distinct frames** on one game while the agent orbits **51 distinct
+> frames in 2,050 steps** on another. **You cannot compress what you never observed.**"*
+
+**That is random walk as a SUPERIOR SAMPLER, measured, 17× on distinct frames.** And beside it the
+self-criticism: *eight builds attacked the third factor for eight +0s while the FIRST factor was
+never touched — if `|R| ≈ 0` then no φ can mint, whatever atoms exist.*
+
+**BUT Q20 RULES THE *TRIGGERED* PROBE** — *the trigger is the agent's own prediction error and may
+be nothing else, never a score, never a step count.* **That is a conditional intervention, not a
+standing policy.**
+
+**AND THE STANDING POLICY ALREADY EXISTS, SEPARATELY, AS `draw`.** `tether` 959 and 997 call **the
+identical `self.drive.choose(self.actions, self.cycle, _where(before))`** and differ only in the
+label returned — `"probe"` against `"draw"`.
+
+> **ONE MECHANISM, TWO LABELS — AND THE LABEL IS WHY I READ IT AS A FAILURE STATE.** `draw` reads as
+> *nothing decided*; the truth is *the policy ran*. **So the STATUS is already the code's behaviour
+> and is unnamed**, which is the fourth form once more: not the corpus ahead or behind, but **a
+> correct mechanism carrying a name that misreports it.**
+
+**Same shape as `DIRECTED`'s `A6i` (`by == "discriminate"` against *bets with bound terms*), and it
+is the same field.** `by` now carries three values whose names imply a quality ordering the
+mechanism does not have.
+
+## CHECK 2 · ADMISSION BY DERIVATION IS ALREADY THE RULE — SEVENTEEN FOR SEVENTEEN
+
+**`bench pulls per primitive` is the MVS's specified instrument and it is a MEASUREMENT of what the
+agent needed.** But it is not the admission test.
+
+**§11's entry clause 1 is *the loop cannot run without it*** — **a derivation from the loop's
+structure, not a pull count** — and **§12.3's nine sensors were admitted by exactly that**:
+*Criterion unchanged: the loop cannot run without it.*
+
+> **SO RANDOM WALK NEEDS NO NEW RULE AND PASSES THE EXISTING ONE OUTRIGHT: without an action
+> selector the loop cannot take a step.** `Drive.choose` on the `draw` branch **is** that selector.
+> **`bench pulls` measures need after the fact; the entry rule admits before.** Two instruments,
+> two moments, and I had been treating the measurement as the gate.
+
+## AND THE PRE-REGISTRATION SHARPENS AND SPLITS — PINNED BEFORE THE RUNS RETURN
+
+**At 1000 steps on `g50t`, the walk will have had 25× the samples it had at 40.**
+
+    SOMETHING FIRES   random walk plus one published relation was enough, and the budget
+                      was the binding constraint
+    NOTHING FIRES     evidence about the DETECTOR rather than the budget -- because the
+                      sampling cannot be what was short
+
+**Two things tested at once and separable**, which the original two-row registration did not
+distinguish. **And it answers the standing worry about registrations whose branches do not exhaust
+the space: this one adds a row rather than reinterpreting the existing two.**
+
