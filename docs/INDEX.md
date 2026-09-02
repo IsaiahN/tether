@@ -10044,3 +10044,79 @@ again.
 40. **The claim was wrong in the cheap direction — it made the check sound free when it costs a
 short run — and it is the same error as *one line* for `overlap`.**
 
+
+---
+
+# `[I]` STATES AND STRUCTURES ARE A PAIR — AND THE PAIRING CLAIM FINDS A DEFECT IN THE SUMMARY TABLE
+
+**The claim, sharper than the document's:** they are pairwise the way a function and its domain are.
+**A state with no structure has no magnitude** — three of what, ordered how, varying across what?
+**A structure with no state is empty** — a network with nothing at the nodes, a gradient in no
+quantity. ***Neither exists without the other***, which is definitional rather than behavioural, and
+**stronger than *lockstep*.**
+
+**AND IT CORRECTS THE DOCUMENT'S STATEMENT OF THE SWAP.** *Structure becomes state at the next level*
+is close and slightly wrong. **A state-structure PAIR, once it stabilises, becomes the STATE HALF of
+a new pair**, and something else supplies the structure at that level. Molecules with their collision
+network become a fluid; **the fluid is a state and the flow field is its new structural partner.**
+**Which is why levels come in units: a level is a complete PAIR, not a lone quantity.**
+
+## CHECK 1 · THE ASYMMETRY HAS A REASON, AND THE CODE CARRIES IT
+
+**The worry: *mutually necessary, asymmetrically recursive* reads as a contradiction until said in
+one breath.**
+
+**AND THE DOCUMENT ALLOWS BOTH DIRECTIONS, WHICH DISSOLVES HALF OF IT:** *the same holds downward —
+every entity, examined finely enough, is an arrangement of smaller ones.* **So the DIRECTION is not
+asymmetric.** What is asymmetric is **the MECHANISM: the swap upward is driven by PERSISTENCE, and
+the swap downward by DECOMPOSITION.** Two different operations, and the document names both
+conditions.
+
+> **AND PERSISTENCE IS ONLY INFORMATIVE ABOUT AN ARRANGEMENT.** A structure that persists gains an
+> identity — there is something being held together. **A state that persists is the same state.**
+> Nothing is added, because there are no parts whose continued relation could be the news.
+
+**THE CODE IS THE SAME ASYMMETRY WITH THE SAME REASON.** `gamma.units()` is *the atoms, plus every
+SETTLED term as one unit* — **an atom is a unit by construction; a term becomes one by settling.**
+**Nothing promotes an atom, because an atom has nothing to settle.** So *structure becomes state by
+persisting, and a state does not* is **already instantiated**, and the reason is that settling is a
+predicate over compositions.
+
+## CHECK 2 · THE PAIRING HOLDS IN ALL FOUR DERIVATIONS — AND TWO ROWS OF THE TABLE ARE INCOMPLETE
+
+**The worry was the zeroth law: `SPECTRUM` and `NETWORK`, both STRUCTURAL, which under the pairing
+should be impossible.**
+
+**IT HOLDS, AND THE PROSE SUPPLIES WHAT THE TABLE OMITS.** *A spectrum makes **thermal state** a
+single ordered range... a network makes *in thermal contact with* a relation between **systems**.*
+**Thermal state is the state; systems are what the network relates.** The structures are what does
+the work; **the states are the operands, present and unlisted.**
+
+> **AND THE SAME DEFECT RUNS THE OTHER WAY, WHICH IS THE FINDING.** The **first law's** row is
+> `space, time` — **both STATES** — and its structural half is in the *additionally needs* column as
+> **homogeneity, a symmetry.** **So two of four rows draw from one column only, in opposite
+> directions, and in both cases the missing half is in the prose.**
+
+    zeroth   spectrum, network          BOTH STRUCTURES   -- state (thermal state) in the prose
+    first    space, time                BOTH STATES       -- structure (homogeneity) in the next column
+    second   network, gradient, space, energy             -- both columns, complete
+    third    time, gradient                               -- both columns, complete
+
+**THE PAIRING CLAIM IS CONFIRMED AND THE TABLE IS WHAT IS WRONG.** *Derives from* lists the operative
+members rather than the complete ingredients, **and a reader taking the table as the derivation gets
+a law that stands on one column.** **Corpus — recorded here, not fixed.**
+
+**AND IT IS THE CLAIM EARNING ITS KEEP ON FIRST USE:** it was offered as a sharpening and it
+**found something**, which is more than a restatement does.
+
+## AND THE FRAMEWORK'S OWN VERSION IS ALREADY LOAD-BEARING
+
+**A slot with no type has no alphabet, so no residual can be priced. A type with no slot holds
+nothing.** *The loop treats them as one thing* — and `slot_types` being **the domain's declaration
+rather than the loop's derivation** is that pairing enforced at the boundary.
+
+**And `space_exact` counts ARRANGEMENTS rather than sets** because a term is atoms **and** their
+arrangement. **Figure 12's *the arrangement is the substance* is this claim at the composition
+layer** — and *a vocabulary holding only ingredients can name a state and not a route to one* is the
+pairing stated as a failure mode.
+
