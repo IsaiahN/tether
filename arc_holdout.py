@@ -1,11 +1,19 @@
 """The holdout runner. SEAT-SIDE — the agent does not import this.
 
-One game, played LOCALLY. `arc_agi`'s `NORMAL` mode downloads once and hands back a
-`LocalEnvironmentWrapper`, so *get it from the API* and *play locally, fast* are one path and
-not two. No key is required: an anonymous one is fetched automatically, which keeps a run
-reproducible by anyone reading the repo rather than dependent on an account.
+One game, played LOCALLY, and `OFFLINE` BY DEFAULT. Stepping is a local
+`LocalEnvironmentWrapper` under every mode -- MEASURED at ~2,420 steps/s under both `NORMAL` and
+`OFFLINE`, identical within noise -- so the mode buys nothing at run time and costs two network
+calls at construction: an anonymous key and a fetch of the environment list. `OFFLINE` skips both
+and constructs in 0.02s against 1.31s.
 
-**NOT RUN BY `conform/check.py`.** It needs the network and it downloads content; the checkers
+**AND THE SCORECARD IS LOCAL IN BOTH.** `base.py`'s own comment is *"Local scorecard (NORMAL or
+OFFLINE)"*; the `session.post` path is `ONLINE`/`COMPETITION` only. **Nothing was ever posted, and
+a claim that it was is corrected here rather than left standing.**
+
+**A GAME NOT YET IN `environment_files/` NEEDS ONE `NORMAL` RUN TO FETCH IT.** Override with
+`OPERATION_MODE=normal`. That is the whole cost of the default, and it is one run per game ever.
+
+**NOT RUN BY `conform/check.py`.** It downloads content on first sight of a game; the checkers
 must stay offline and deterministic.
 
 WHAT IS AND IS NOT IN THIS FILE. A game IDENTIFIER is a public name and is here. Nothing about
@@ -40,6 +48,18 @@ from arc_world import ArcWorld
 sys.dont_write_bytecode = True
 
 
+def _mode():
+    """`OFFLINE` unless `OPERATION_MODE` says otherwise. The package reads that variable itself
+    and defaults to `NORMAL`; passing a mode explicitly overrides it, so the default is inverted
+    here and the variable still works."""
+    import os
+
+    from arc_agi.base import OperationMode
+    env = os.getenv("OPERATION_MODE", "").strip().lower()
+    ok = ("normal", "online", "offline", "competition")
+    return OperationMode(env) if env in ok else OperationMode.OFFLINE
+
+
 def play(game: str = "ls20", cycles: int = 40, library: str | None = None) -> dict:
     """Download one game, run the loop on it, and report where the chain stops.
 
@@ -54,9 +74,8 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None) -> di
     """
     logging.disable(logging.INFO)
     from arc_agi import Arcade
-    from arc_agi.base import OperationMode
 
-    arc = Arcade(operation_mode=OperationMode.NORMAL)
+    arc = Arcade(operation_mode=_mode())
     w = arc.make(game)
     if w is None:
         return {"error": f"{game} did not resolve"}
@@ -219,9 +238,8 @@ def controlled(game: str = "ls20", trials: int = 4) -> dict:
     """
     logging.disable(logging.INFO)
     from arc_agi import Arcade
-    from arc_agi.base import OperationMode
 
-    arc = Arcade(operation_mode=OperationMode.NORMAL)
+    arc = Arcade(operation_mode=_mode())
     w = arc.make(game)
     if w is None:
         return {"error": f"{game} did not resolve"}

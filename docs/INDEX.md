@@ -11085,3 +11085,53 @@ worth checking before anything is built on the gap.
 **NOTE ON THE MEASUREMENT ITSELF: it created a scorecard on the API** — the environment does that on
 `Arcade(...)`, and it is an outbound artefact of running the read at all.
 
+
+---
+
+# `[I]` `OFFLINE` IS THE RIGHT MODE — AND MY SCORECARD CLAIM WAS WRONG
+
+## THE CORRECTION FIRST
+
+**I wrote that running the frame read *created a scorecard on the API* and that *a read is never free
+on the API*. BOTH ARE FALSE.** `base.py`, at the site:
+
+    # Local scorecard (NORMAL or OFFLINE)
+    card_id = self.scorecard_manager.new_scorecard(...)
+
+**The `session.post` branch is `ONLINE`/`COMPETITION` only.** **Nothing was posted, in either mode**
+— and I reasoned from a log line to a network call **without reading the branch that emits it**,
+which is the reachability error at a fourth site.
+
+## WHAT `NORMAL` ACTUALLY COSTS, AND IT IS REAL BUT SMALLER
+
+**`base.py` 173–177:** `NORMAL` fetches **an anonymous API key** and calls **`_fetch_from_api()`**;
+`OFFLINE` skips both. **Measured: construction 1.31s against 0.02s**, and `NORMAL` logs *fetched 25
+environments*.
+
+## AND THE MODE DOES NOT TOUCH THE TIMING — WHICH ISOLATES THE FRONT-LOADING FINDING
+
+    NORMAL   ctor 1.31s | 300 steps in 0.12s = 2428 steps/s
+    OFFLINE  ctor 0.02s | 300 steps in 0.12s = 2422 steps/s
+
+**Identical within noise, and it matches the documented ~2,000 FPS local.**
+
+> **SO THE ENVIRONMENT IS NOT THE COST. 300 steps take 0.12 SECONDS; a 1000-cycle run took 2,024.**
+> **The environment accounts for about 0.4s of it — 99.98% is the agent's own loop.**
+
+**THE FRONT-LOADING FINDING STANDS AND IS NOW ISOLATED RATHER THAN INFERRED.** *96–97% of a long
+run's cost in the first 150 cycles* was attributed to `owed × cands × actions` **by reading the
+branch**; this measures the alternative to zero. **The run-length ruling was not measured through a
+network-attached session in any way that mattered.**
+
+## SWITCHED, WITH THE DEFAULT INVERTED RATHER THAN PINNED
+
+**`arc_holdout` now takes `_mode()`: `OFFLINE` unless `OPERATION_MODE` says otherwise.** The package
+reads that variable itself and **defaults to `NORMAL`**; an explicit argument overrides it, so the
+default is inverted in one place **and the variable still works.**
+
+**AND THE ONE-TIME COST IS STATED AT THE SITE:** *a game not yet in `environment_files/` needs one
+`NORMAL` run to fetch it* — **one run per game, ever.** The header previously defended `NORMAL` on
+the grounds that *get it from the API and play locally are one path* — **true, and it took the
+expensive path to the same place**, which is `board()`'s shape again: **a defence of the right answer
+against the wrong alternative.**
+
