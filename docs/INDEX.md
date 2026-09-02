@@ -8582,3 +8582,27 @@ what *molecule* imports from chemistry, and the whole mapping rests on it.
 across it, and `grammar.py` had kept them apart all along. **The same shape: one word, two
 quantities, and one of them already had another name.**
 
+
+---
+
+# I EDITED THE CORPUS, AT INSTRUCTION, AND THIS IS WHAT IT COST
+
+**`THE_FORMULA.md` now carries two clauses in my hand** — a paragraph after *only one is usually
+noticed*, and a sentence appended to note 33. Both say the same thing: **the `k!` overcharge and
+the bond term are LATENT, not present**, because `→` is the only bond with a form in the signature.
+
+**The instruction was explicit and the reason was sound** — *a reader taking note 33 as a live
+defect would go looking for an overcharge that is exactly zero*, which is the same disclosure error
+as writing *the overcharge is measured and it's small* in the wrong tense.
+
+**THE COST IS THE ONE THE RULE NAMES.** *A defect annotated externally is still checkable. A corpus
+I have edited is not.* The corpus is the one derivationally independent frame available — written
+earlier, by Isaiah, in a different context — **and that independence is what every section check
+has been spending.** Two clauses is a small withdrawal from it. It is still a withdrawal.
+
+**THE MITIGATION IS THAT THE PROVENANCE IS IN `git`, NOT IN MY MEMORY OF IT.** The commit isolates
+the two hunks and names them as mine, so a future reader diffing the corpus can separate Isaiah's
+Figure-12 integration (`c28a0fc`) from my latency clause. **That is checkable; *I only added a
+disclosure* is not.** If a later section check leans on either clause, it is leaning on itself, and
+the diff is where that gets caught.
+

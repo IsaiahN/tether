@@ -113,6 +113,12 @@ Read this first if you have not seen the notation. Every symbol below appears in
    sequence overcharges by log₂(k!) while the bond term undercharges. Both
    wrong, in opposite directions, and only one is usually noticed.
 
+   AND BOTH ARE ZERO TODAY. The signature slot × action → slot gives only → a
+   form, so |bonds| = 1 and there is no symmetric bond to spell: the bond term
+   is log₂(1) and the overcharge is log₂(1!). The errors are LATENT, not
+   present — and they go live together, with the coverage denominator, on the
+   day a second bond has a form.
+
    THE GUARDS — a product, not a checklist. Any factor at zero forces inertness:
 
      SUPPORT       |R⁺_s| > 0 for some slot s      before the search
@@ -402,7 +408,7 @@ To demonstrate the loop on a case, state each step explicitly and stop where the
 31. **Step 1 and the symbol for `R` — `R` is always a slice.** What cannot be perceived is residual that cannot be read, not residual that is absent. A low reading has three causes, and only two of them are about `R` stopping: the third is the permanent condition and its remedy is step 7 INWARD.
 
 32. **Step 3 — φ is a molecule and the code charges its bonds.** `|φ| = (k+1)·log₂(|atoms|+1) + (k-1)·log₂(|bonds|)`. Zero where one bond exists, rising as the bond vocabulary grows. The previous draft said *declare the code* and left the arrangement uncharged, so a formula recorded its ingredients and not its structure.
-33. **Step 3 — the arrangement is the substance.** Two candidates with an identical ingredient set are different terms. Under a symmetric bond `k` operands have `k!` spellings and one term, so a sequence-charging code overcharges by `log₂(k!)` while the bond term undercharges.
+33. **Step 3 — the arrangement is the substance.** Two candidates with an identical ingredient set are different terms. Under a symmetric bond `k` operands have `k!` spellings and one term, so a sequence-charging code overcharges by `log₂(k!)` while the bond term undercharges. **Both are latent.** `→` is the only bond with a form in the signature, so `|bonds| = 1` and no symmetric bond exists to spell — the overcharge is exactly zero, and note 32's bond term with it. Neither is a defect to go looking for today; they become live together.
 
 **Additions to the notes**
 
