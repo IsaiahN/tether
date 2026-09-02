@@ -977,7 +977,7 @@ class Agent:
                     for s in owed)
             if spread and max(spread.values()) > min(spread.values()):
                 top = max(spread.values())
-                self._ties[sum(1 for v in spread.values() if v == top)] += 1
+                self._ties[("spread", sum(1 for v in spread.values() if v == top))] += 1
                 pick = max(self.actions, key=lambda a: spread[a])
                 # WHAT THIS ACTION BUYS, stated before it is taken. Listing the values
                 # the candidates predict is TRUE AND UNFALSIFIABLE -- it spans the
@@ -1008,7 +1008,7 @@ class Agent:
         """Tied-at-top counts for the discriminate branch. `{1: n}` means the winner was
         alone every time and the selector is doing what it says; any mass at `>= 2` is
         `self.actions` order breaking a tie, which is arbitrary and stable."""
-        return {"tied_at_max": dict(sorted(self._ties.items())),
+        return {"tied_at_max": {f"{k}:{n}": c for (k, n), c in sorted(self._ties.items())},
                 "reads": ("1 = one action scored highest alone. >=2 = that many tied and "
                           "tuple order chose. A flat spread never reaches here -- the "
                           "`max > min` guard drops it to the uniform draw")}
@@ -1067,6 +1067,12 @@ class Agent:
                     sep[a] += 1          # this member finds THIS action distinctive
         if not sep or max(sep.values()) == 0 or max(sep.values()) == min(sep.values()):
             return None
+        # THE SAME ARGMAX AS `spread`'s, AND THIS IS THE ONE THAT FIRES. Measured on `g50t`:
+        # `discriminate:learned` 93 of 131 acts, `discriminate` 0. The first `ties` build
+        # instrumented `spread` -- the branch I had been naming -- and read empty, because it
+        # never runs. Both are counted now, keyed by which dict they came from.
+        top = max(sep.values())
+        self._ties[("sep", sum(1 for v in sep.values() if v == top))] += 1
         return max(self.actions, key=lambda a: sep[a])
 
     def _advertised(self) -> None:

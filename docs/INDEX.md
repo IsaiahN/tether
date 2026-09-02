@@ -10385,3 +10385,51 @@ exactly what makes it useless for a within-board claim.**
 claims**, where the instrument is fine and the question was doubled. **Seventh instance, first of
 this kind.**
 
+
+---
+
+# `g50t` ANSWERS: ROW 2 FIRED — `discriminate:learned`, AND MY INSTRUMENT WAS ON THE WRONG DICT
+
+    by     draw 15   probe 23   discriminate:learned 93        (131 acts over 150 cycles)
+    ties   {}  -- EMPTY
+    taken  ACTION2 94                                          advanced false
+    secs   1940
+
+**`discriminate` — the `spread` argmax I named all week — FIRED ZERO TIMES.** `ties` is empty because
+**that branch never runs on this board.** The lock is `_learned_split`, and **`discriminate:learned`
+93 against `ACTION2` 94 is the same event counted twice.**
+
+## THE MECHANISM IS THE ONE I DESCRIBED, AT A SITE I DID NOT INSTRUMENT
+
+    _learned_split, last line:   return max(self.actions, key=lambda a: sep[a])
+
+**Same greedy argmax, same `max` over a fixed-order tuple, no tie-break, no exploration** — **over
+`sep`, not `spread`.** So the shape of the diagnosis held and **the site was wrong.**
+
+> **THE PINNED ROW 2 CAUGHT IT AND THE INSTRUMENT DID NOT.** I registered *`_learned_split` returns a
+> stable action, different branch, same shape, fix is there instead* — **and then built the tie
+> counter on the branch I had been talking about.** *Read the mechanism before building the
+> instrument* was applied to `spread`'s guard **and not to the other branch I had myself named as a
+> candidate.**
+
+**THE ERROR IS INSTRUMENTING THE FAVOURED HYPOTHESIS.** Both branches were pinned as possible; only
+one was measured. **A registration that enumerates two causes and an instrument that covers one is
+worse than either alone** — it returns a confident empty reading. **`ties: {}` looked like a finding
+and was a blind spot.**
+
+**REPAIRED: both argmaxes counted, keyed by which dict they came from** — `spread:n` and `sep:n`.
+**The tie question is still unanswered** and needs one more run.
+
+## AND THE FRONT-LOADING IS CONFIRMED ON THE SECOND GAME, HARDER THAN THE FIRST
+
+    predicted   0.15 x 2024s = 304s
+    measured    1940s        = 6.4x the linear prediction
+
+**150 cycles cost 96% of what 1000 cycles cost.** Under comparable contention both times — the 1000s
+ran as a pair, the 150s ran as a pair. **Almost the entire cost of a 1000-cycle run is in its first
+150 cycles.**
+
+> **WHICH SETTLES THE RUN-LENGTH QUESTION FOR GOOD: THERE IS NO CHEAP SHORT RUN.** A 150-cycle probe
+> costs what a 1000-cycle answer costs, **so the only rational run length is the long one** — and
+> every short run this week paid nearly full price for a fraction of the evidence.
+
