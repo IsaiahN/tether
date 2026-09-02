@@ -9890,3 +9890,80 @@ almost entirely absent**, so the expected outcome is that the budget moves **the
 **the kind of thing the agent notices** — *which the precondition table and the affordance profile
 would show separately.*
 
+
+---
+
+# THE RULED-BUDGET RE-RUN: BOTH GAMES LOCK ONTO ONE ACTION, AND THE AGENT IS NOT WANDERING
+
+**1000 cycles each, §22.1's ruled budget. `g50t` 34 minutes, `ls20` 86.** Read against the three
+rows pinned before either returned.
+
+    game   taken                                          came_after  advanced  outstanding   library
+    g50t   A1 881  A2 94  A3 4  A4 8  A5 11   (88.3%)     {}          false     971 -> 2834   45 -> 127
+    ls20   A2 954  A1 34  A3 6  A4 4          (95.6%)     {}          false     741 -> 2680   67 -> 105
+
+**Both: one death, `blind` true at the last frame, one unobserved step, `sometimes` empty.**
+
+## ROW 2 FIRES, AND IT WAS `[I]`'s: THE ASYMMETRY WAS MINE
+
+**Registered:** *`ls20`'s readings mostly hold* — **or** *they move too: the constraint is not what
+it is thought to be, and the asymmetry was mine.*
+
+> **THEY MOVED, AND THEY MOVED THE SAME WAY.** The two games are structurally identical in every
+> reading taken: **lock onto one action, empty precondition table, no level advance, outstanding
+> near 2700–2800, one death.** ***`ls20` has a board constraint on actions and `g50t` does not*** **is
+> not distinguishable in any of this** — and the hypothesis was mine to test, not to confirm.
+
+**The between-game difference the experiment was built to find is invisible, because a THIRD factor
+dominates both boards.**
+
+## THE THIRD FACTOR, AND IT INVERTS A WEEK OF READING
+
+**`Drive.choose` is a uniform round-robin**: `sorted(actions)[(cycle * 7 + seed) % len(actions)]`.
+**Stride 7 against 4 or 5 actions is coprime to both, so it cycles every action evenly.** It cannot
+produce 954 of 998, or 881.
+
+> **SO THE AGENT IS NOT RANDOM-WALKING. IT LOCKS ON — 96% ONE ACTION ON `ls20`, 88% ON `g50t`.** I
+> have spent the week calling it a wanderer and reasoning from that. **It is the opposite failure.**
+
+**AND THE MECHANISM IS A GREEDY ARGMAX WITH NO TIE-BREAK AND NO EXPLORATION TERM.** Two branches
+select without the draw — `max(self.actions, key=lambda a: spread[a])` returning `discriminate`, and
+`_learned_split()` returning `discriminate:learned`. **`max` over a fixed-order tuple resolves every
+tie to the same element**, so a stable spread returns the same action indefinitely.
+
+**WHICH OF THE TWO, I CANNOT SAY.** The `by` field distinguishes them, the ledger wrote it on every
+row, **and my script did not print it.** *That is a gap in the measurement, not a finding* — and the
+confirmation is one counter over rows already on disk.
+
+## WHAT THIS DOES TO THE EMPTY PRECONDITION TABLE: CONFOUNDED, NOT EXPLAINED
+
+**`came_after` empty over 998 transitions is a real null and it is not the null I registered.** With
+one action taken 90%+ of the time, *the advertised set never changed* **is a statement about a very
+narrow slice of the state space** — `ACTION3` was taken **four times in a thousand steps** on
+`g50t` and **six** on `ls20`.
+
+**So *the board's action set is constant* is NOT established.** What is established: **it is constant
+over the states this policy reaches, and this policy reaches almost none of them.**
+
+## AND MY THIRD ROW'S PREMISE WAS WRONG TWICE OVER
+
+**Registered:** *if nothing fires, that is evidence about the DETECTOR rather than the budget,
+because the sampling cannot be what was short.*
+
+**The sampling WAS what was short.** Not in step count — **in variety.** The walk was not running,
+so 25× the steps bought 25× more of the same action. **Q20's 884-versus-51 reproduced in our own
+numbers from the other side: uniform noise would have spread over four or five actions; the agent
+spread over one.**
+
+> **AND THIS IS WHY THE RANDOM-WALK CORRECTION MATTERED AND WAS STILL NOT ENOUGH.** *It is one thing,
+> not a pairing* fixed the framing. **It did not check whether the walk was the policy in force —
+> and it was not, on either board.** *Read the mechanism before pinning the registration* was applied
+> to `play`'s signature and not to the branch that chooses the action.
+
+## WHAT DID MOVE, AND IT IS NOT NOTHING
+
+**`outstanding` 2.9× and 3.6×, `pe` 3.4× and 2.9×, `library` 2.8× and 1.6×, 104 and 74 mints.**
+**The loop does far more work at budget and still advances no level and still reads degree `0.0`.**
+So the budget was binding on the WORK and not on the OUTCOME — **which is a third thing neither row
+predicted, and the honest form of *what the re-run bought*.**
+
