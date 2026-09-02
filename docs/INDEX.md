@@ -10181,3 +10181,28 @@ it does not say whether `spread` is genuinely flat-topped, whether ties are bein
 order, or whether one action really does dominate the divergence.** Those are three different repairs
 and the counter separates none of them.
 
+
+---
+
+# TWO GENERAL FORMS, FROM THE `by` WAIT
+
+**`[I]`: A REGISTRATION WITH ONLY EXPECTED OUTCOMES IS A PREDICTION WEARING A TEST'S CLOTHES.**
+Five this session failed that way, **and the repair is a ROW rather than better foresight** — *the
+space I did not enumerate* is exactly what enumeration cannot reach. **The standing row is *the
+mechanism is not where I said*.** It costs one line and catches the class.
+
+**And pin what the reading CANNOT show in the same breath.** A dominant branch **names the site and
+not the cause**; stating the ceiling before the result arrives is what stops a reading overrunning
+its instrument.
+
+**`[I]`: THE AUDIT NEEDS A SECOND SUBJECT RATHER THAN A SECOND QUESTION.** *Fed by the loop and read
+only by a test* was framed outward, at the codebase, **and never framed as a question about a
+PROPOSAL.** **Read-past is a memory failure; authored-and-not-turned-around is a SCOPE failure** —
+and the worse kind, because **the author has no reason to doubt a check they just wrote.** *Run it on
+the codebase, and run it on anything about to be added to it.*
+
+**AND THE BIAS IS NOT IN THE ESTIMATE, IT IS IN WHAT THE ESTIMATE EXEMPTS YOU FROM.** *Harder than it
+looked* draws scrutiny; *one line* gets queued. **So a cheap-sounding estimate is self-protecting: it
+produces the conditions that hide it** — which is why both mis-sorted items went to the top of the
+board rather than into a queue where they would have been examined.
+
