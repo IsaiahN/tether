@@ -10148,3 +10148,36 @@ the direction that gets an item scheduled rather than examined.** A publish and 
 order of magnitude, so mis-sorting one **mis-orders the whole board** — and both times the mis-sorted
 item went to the top of it.
 
+
+---
+
+# PRE-REGISTERED: HOW THE `by` SPLIT READS, PINNED BEFORE IT RETURNS
+
+**Four outcomes, and the fourth is the one that says my inference was wrong.**
+
+    discriminate dominates          the greedy argmax over `spread` is the lock. `max` over a
+                                    fixed-order tuple resolves every tie to the same element,
+                                    and there is no exploration term. FIX IS IN THAT BRANCH
+
+    discriminate:learned dominates  `_learned_split()` returns a stable action and the loop
+                                    takes it. Different branch, same shape, and the fix is
+                                    there instead
+
+    draw / probe dominate           MY INFERENCE WAS WRONG. `Drive.choose` is provably uniform,
+                                    so a skew of 954-in-998 through it would mean the skew is
+                                    not where I placed it -- `self.actions` order, or
+                                    `_last_action` not being the action I think it records
+
+    no branch dominates             the lock-on is EMERGENT rather than from one site, which
+                                    is the worst case: no single fix, and the four-way split
+                                    would be the finding rather than a pointer
+
+**THE FOURTH ROW EXISTS BECAUSE FIVE REGISTRATIONS THIS SESSION FAILED TO EXHAUST THE SPACE**, and
+every one of those failed by having only the outcomes I expected. **A row for *the mechanism is not
+where I said* is the one that has been missing.**
+
+**AND WHAT THE SPLIT CANNOT SHOW:** *why* the argmax stays put. **A dominant branch names the site;
+it does not say whether `spread` is genuinely flat-topped, whether ties are being broken by tuple
+order, or whether one action really does dominate the divergence.** Those are three different repairs
+and the counter separates none of them.
+
