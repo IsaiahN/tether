@@ -10853,3 +10853,82 @@ expresses and the corpus states without a test.** **Found twice in one day, in b
 that pair is worth more than either alone: **the corpus and the code drift apart in both directions,
 and only a diff run in both catches it.**
 
+
+---
+
+# `[I]` THE SIX TERMS AGAINST THE CODE — THREE HOLD, THREE NEED CORRECTING
+
+**Checked each, none taken. And it goes in `INDEX` as a section, not a new document** — *a new
+document that nothing reads is the failure this session has found eleven times*, and this is a
+build-versus-corpus correspondence, which is what `INDEX` is for.
+
+| term | mapping | verdict |
+|---|---|---|
+| **SPACE** | the grid; `row`/`col` off `components` | **holds** |
+| **TIME** | `tether.history(slot)` — `[(state, action, value)]` per slot | **holds** |
+| **SPECTRUM** | `_alphabets` | **splits in two, and the build's split is the better one** |
+| **GRADIENT** | the residual | **holds for `R`, not for `outstanding`** |
+| **NETWORK** | `contacts` built, `Preconditions` empty | **holds, partial as posed** |
+| **ENERGY** | the action budget | **finiteness holds, conservation does not** |
+
+## SPECTRUM SPLITS, AND THE BUILD IS MORE CAREFUL THAN THE DOCUMENT
+
+**`_alphabets` returns `dict[str, int]` — a SIZE per slot.** Its docstring: *"the SIZE is the
+domain's."* **That is cardinality, not ordering.**
+
+**And the document is consistent with that**, in its own words: *"`SPECTRUM` supplies
+DISTINGUISHABILITY, and distinguishability is all counting requires."* **So the mapping holds for the
+counting half.**
+
+> **BUT THE ORDERING HALF LIVES SOMEWHERE ELSE AND IS NARROWER:** `arc_atoms` declares
+> **`COMPARABLE = (COLOUR, POSITION, EXTENT, DELTA, SHAPE)`** against **`ORDERED = (POSITION, EXTENT,
+> DELTA)`** — *order is meaningful only on these.* **A colour is countable and has no more-and-less.**
+
+**The document's *ordered range* would give colours a magnitude they do not have.** The build
+separates *how many* from *is it orderable*, **and the corpus does not.** *Fourth instance today of
+the build holding a distinction the corpus states more loosely.*
+
+## GRADIENT IS `R`, NOT `outstanding` — AND THE DIFFERENCE IS THE WHOLE POINT
+
+**`outstanding` is MONOTONE BY ADDITION** — it is the record of unexplained mass and *cannot unspend
+itself*. **An integral is not a gradient.**
+
+**The driving quantity is `SlotResidual.bits` per step**, which the bargain runs on: *a difference
+capable of driving directed change.* **`outstanding` is what the difference has left behind.**
+
+> **AND THAT PAIR IS THE DOCUMENT'S OWN STRUCTURE:** gradient drives, and what accumulates is the
+> remainder. **`pe_integral` and `outstanding` are the accumulation; `R` is the gradient.** Mapping
+> the term to the integral would make the loop appear to run on a quantity that only grows.
+
+## ENERGY: THE FINITENESS SURVIVES AND THE CONSERVATION DOES NOT
+
+    Budget.level_starts   left += per_level      GRANTED, by the seat
+    Budget.spend          left -= 1              CONSUMED
+
+**It is granted and consumed. Nothing transfers it and nothing conserves it.** *Transferred rather
+than created* fails outright — **the seat creates it at every level boundary.**
+
+> **BUT THE PROPERTY THE SECOND LAW'S DERIVATION USES IS FINITENESS, NOT CONSERVATION.** *"Finite
+> energy in a finite region means finitely many configurations, which is what makes the counting
+> terminate."* **Finite actions on a finite board is exactly that**, and it survives. **The half that
+> was doing the work is the half that holds** — which was the stated risk, and it lands on the right
+> side of it.
+
+**AND THE TWO-CURRENCY CLAIM NEEDS ITS REASON RESTATED.** *One is a length under a code and the other
+is a conserved quantity being spent* — **the second clause is wrong.** They do not add because
+**bits are a property of a DESCRIPTION and actions are a resource the SEAT grants**; one is measured
+off the term, the other is issued from outside the frame. **Different provenance, not different
+conservation.**
+
+## WHAT THE MAPPING BUYS, AND IT IS THE PART TO KEEP
+
+**`Preconditions` empty stops being a null and becomes a NAMED MISSING TERM.** *The `NETWORK` term at
+the action layer reads empty* is a statement about which step of the cycle is absent — **and the
+cycle says a network is what a flow propagates through, so an empty one means nothing is
+propagating.** *Which is the same reading as the chain-not-a-cycle falsifier, arriving from the term
+list instead of from Part 6.*
+
+**And the budget gains a role.** *A number in a config, mis-sized four times* becomes **the finite
+resource that makes the configuration count terminate** — with a stated reason it cannot be summed
+with bits, **and now the correct reason.**
+
