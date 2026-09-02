@@ -10206,3 +10206,38 @@ looked* draws scrutiny; *one line* gets queued. **So a cheap-sounding estimate i
 produces the conditions that hide it** — which is why both mis-sorted items went to the top of the
 board rather than into a queue where they would have been examined.
 
+
+---
+
+# PINNED: THE THREE REPAIRS `by` CANNOT SEPARATE, AND THE MEASUREMENT THAT CAN
+
+**Registered before the split returns, because a dominant branch names the site and not the cause.**
+
+| cause | symptom | repair |
+|---|---|---|
+| **flat-topped `spread`** | the values are genuinely tied and `max` picks first | **a tie-break — and the question becomes WHAT breaks it** |
+| **tuple order resolving ties** | same symptom, different cause: **equal-scoring actions always resolve the same way** because the ordering is stable and arbitrary | **shuffle the candidate order, or make the tie-break explicit** |
+| **one action genuinely dominating** | the spread is real and one action IS the best discriminator every step | **none on the selector. The finding would be about the BOARD** |
+
+> **THE FIRST TWO PRODUCE THE SAME `by` COUNTS AND THE SAME `taken` COUNTS.** They differ only in
+> whether `spread`'s values are equal *at the top* or equal *everywhere*, **which neither counter
+> records.** And the third needs no repair at all — **so one third of the outcome space is *do
+> nothing*, and the counter cannot reach it.**
+
+## THE DISCRIMINATOR IS `spread` ITSELF, AND IT IS A BUILD
+
+**`[I]`: print the values rather than the argmax.** *Flat* means all equal. *Tied-at-top* means
+several equal and one chosen. *Dominant* means one clearly higher. **One reading separates all three.**
+
+**AND THE AUDIT, TURNED ON THIS PROPOSAL RATHER THAN ON THE CODEBASE — WHICH IS THE SECOND SUBJECT,
+APPLIED:**
+
+- **Is it the value I want?** **Yes.** `spread` is the argmax's own input, so it is the quantity the
+  three causes disagree about.
+- **Can anything read it?** **NO.** `spread` is a local in the discriminate branch, written and
+  discarded every step. **No ledger field, no report entry.**
+
+> **SO IT IS A SMALL BUILD AND A SECOND RUN, NOT A FREE READ OFF THE ONE IN FLIGHT.** Said now
+> rather than after — *a cheap-sounding estimate is self-protecting*, and this is the third time this
+> week the same proposal shape has come up. **The run currently going cannot answer it.**
+
