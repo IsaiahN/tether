@@ -9684,3 +9684,57 @@ to accept.**
 sense, **composable on a grid** (*one extends in row, the other in column*). **One word, two
 relations**, and only one of them is gone.
 
+
+---
+
+# PRE-REGISTERED: THE RULED-BUDGET RE-RUN, WRITTEN BEFORE THE NUMBERS
+
+**Launched `g50t` and `ls20` at `cycles=1000`, §22.1's ruled budget, against the `cycles=40` every
+reading this week was taken at. THIS SECTION IS COMMITTED BEFORE EITHER RETURNS.**
+
+## IT IS AN EXPERIMENT, NOT A REPEAT, AND THE REASON IS `[I]`'s
+
+> *"You just happened to be testing on games with a board constraint on actions, like `ls20`. `g50t`
+> doesn't have that, so it's a good test."*
+
+**I have been treating two games as two samples of one thing, and they differ in the exact variable
+the budget question is about.** On a board that caps actions **board-side**, 40 steps may be a real
+fraction of what is available. **On an unconstrained one, 40 is nothing** — and its nulls are
+**uninformative rather than merely under-powered.**
+
+**Same 39 steps, two different meanings — and the empty precondition table is the clearest case.**
+If `ls20` constrains actions board-side, **its action set not changing may be a fact about the
+board.** On `g50t` the same emptiness is **an unfinished search.**
+
+> **SO `g50t` IS THE TEST AND `ls20` IS THE CONTROL.** If `ls20` barely moves at 25× the steps while
+> `g50t` moves, **that separates *the board is constrained* from *we did not look long enough* in one
+> comparison, which neither run alone can do.**
+
+**AND IT IS THE SHARPEST CASE YET FOR *PER GAME, NEVER POOLED*.** *Pooling a constrained board with
+an unconstrained one averages two different worlds* — **and every reading this week did exactly
+that**, including the ones I wrote the pooling rule beside.
+
+## THE PINNED EXPECTATIONS, AND BOTH BRANCHES ARE INFORMATIVE
+
+| expected | if it goes the other way |
+|---|---|
+| **`g50t`'s nulls move** — precondition edges appear, degree leaves `0.0`, or a level advances | **they do not: 1000 is still too few, and the finding is about the SEARCH rather than the budget** |
+| **`ls20`'s mostly hold** | **they move too: the constraint is not what it is thought to be, and the asymmetry was mine** |
+
+**NEITHER OUTCOME IS THE HEADLINE.** *A null carrying a satisfying causal story is harder to doubt
+than a bare one* — and **"the board constrains actions" is exactly such a story**, so it is the one
+to distrust rather than the number.
+
+## WHAT IS BEING READ, DECLARED IN ADVANCE
+
+    preconditions   taken / came_after / gone_after / sometimes
+    levels          the `advanced` flag -- the trigger five parked items wait on
+    residual        outstanding, pe_integral
+    library         size, mints
+    endings         death / cap / reset counts, and `blind`
+
+**AND WHAT THE RE-RUN CANNOT SETTLE, STATED NOW SO IT IS NOT CLAIMED LATER.** It cannot move the
+structural findings: **typing excludes extractors from the transition bargain at any run length, and
+`triggers_remote` is unwritten at any budget.** *That split is what makes the retraction survivable
+rather than total*, and it is also the limit on what a longer run can buy.
+
