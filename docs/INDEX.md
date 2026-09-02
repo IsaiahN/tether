@@ -10717,3 +10717,54 @@ while the search repeats itself; fixing the search buys nothing while there is n
 > is unblocked, ruled, and Tier 1.** The selector's turn comes when the re-run says whether it is
 > broken.
 
+
+---
+
+# RULED: `OBJ × OBJ` IS A SPACE, NOT A TYPE — THE `ATTR` ERROR, AT THE SENSOR REGISTRY
+
+**§12.2 declares the whole in-type vocabulary as `("FRAME","OBJ") | ("OBJ","OBJ") | ("ATTR","ATTR")`.
+Nothing in it marks time.** §12.3's table carries the distinction **in the prose column only**:
+
+    6  overlap(a,b)   OBJ x OBJ -> RATIO   "tracking -- the slot is the SAME slot NEXT FRAME"
+    7  delta(a,b)     OBJ x OBJ -> DELTA   "motion, and the contingency test for self"
+    8  touching(a,b)  OBJ x OBJ -> BOOL    "contact, the default causal hypothesis"
+
+**Six and seven are BEFORE/AFTER pairs of ONE slot. Eight is TWO slots in ONE frame.** *Same type,
+opposite operands.*
+
+## AND `arc_atoms` ALREADY CARRIES THE PRECEDENT, IN ITS OWN WORDS
+
+> *"`ATTR` IS A SPACE, NOT A TYPE, AND THE CODE MADE IT A TYPE ... `_relate` cited §11.2 and typed on
+> the space's NAME, which is correct about the space and wrong about the type: it made `above` — an
+> ORDER — apply to a colour."*
+
+**`OBJ × OBJ` is correct about the space — pairs of objects — and wrong about the type.** Identical
+shape, identical symptom: **a well-typed, meaningless composition that nothing refuses.** Feed two
+same-frame objects to `delta` and you get a position difference where motion was asked for.
+
+> **RULED: the type must carry the temporal relation, following the `ATTR` fix and the `OBJECT`/`OBJ`
+> split.** *Same-frame pair* and *before/after pair of one slot* are **two nodes**, not one.
+
+## WHAT THE RULING SETTLES, AND IT IS THE THING THAT WAS BLOCKING
+
+**`_overlap`'s target is now determined rather than chosen.** Under the ruling, sensor 6 is
+**cross-frame cell IoU** — *exactly what the tracker already computes and what §12.3 names.* **And
+shape congruence, which is what `_overlap` returns today, has no sensor slot at all**: it is neither
+6 nor 8, so it would be a **Tier 1 addition** and fails *the loop cannot run without it.*
+
+**The drift is explained rather than merely corrected.** *Same-frame is the only reading `OBJ × OBJ`
+can express, and congruence is the only non-vacuous thing available there* — **the type pushed the
+function.**
+
+**AND CONTAINMENT STAYS BLOCKED.** Bounding-box overlap is neither node. **The exit that led nowhere
+still leads nowhere, and now for a stated reason rather than an unexamined one.**
+
+## STANDING: A REFUSAL, NOT AN ADDITION — AND THE FIFTH LATENCY
+
+**It adds no atom and no sensor. It REFUSES compositions currently admitted**, which is the
+`OBJECT`/`OBJ` split's standing exactly — that one removed 225 well-typed meaningless pipelines.
+
+**And it is inert today.** `SENSORS.read` is called once in the repo, for `components`; **`_delta`,
+`_overlap` and `_touching` are never invoked**, because §12.4's reach mechanism is `UNREACHED`.
+**Fifth latency — and the first that REMOVES possibilities rather than adding cost.**
+
