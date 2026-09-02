@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import math
 import sys
+from collections import Counter
 from dataclasses import dataclass, field
 from functools import partial
 from itertools import islice
@@ -225,6 +226,11 @@ class Agent:
         self.phases = I.Phases()
         self.clocks = I.Clocks()
         self.pre = I.Preconditions()   # §16.8 sensor 2, fed by the delta
+        # HOW MANY ACTIONS TIE AT THE TOP OF `spread`, per discriminate call. The argmax
+        # names WHICH action was picked and never says whether anything else scored the
+        # same -- and a tie resolved by `self.actions` order is a different finding from one
+        # action genuinely discriminating best. `1` is genuine; `>= 2` is tuple order deciding.
+        self._ties: Counter = Counter()
         self.agency = I.Agency()       # §16.8 sensor 3, a per-step read
         self.term = I.Termination()    # 2d / §20.1, latching and asymmetric
         self.retro: list[dict] = []
@@ -970,6 +976,8 @@ class Agent:
                          if g is not NOT_RESOLVED})
                     for s in owed)
             if spread and max(spread.values()) > min(spread.values()):
+                top = max(spread.values())
+                self._ties[sum(1 for v in spread.values() if v == top)] += 1
                 pick = max(self.actions, key=lambda a: spread[a])
                 # WHAT THIS ACTION BUYS, stated before it is taken. Listing the values
                 # the candidates predict is TRUE AND UNFALSIFIABLE -- it spans the
@@ -995,6 +1003,15 @@ class Agent:
         if learned is not None:
             return learned, "discriminate:learned"
         return self.drive.choose(self.actions, self.cycle, _where(before)), "draw"
+
+    def ties(self) -> dict:
+        """Tied-at-top counts for the discriminate branch. `{1: n}` means the winner was
+        alone every time and the selector is doing what it says; any mass at `>= 2` is
+        `self.actions` order breaking a tie, which is arbitrary and stable."""
+        return {"tied_at_max": dict(sorted(self._ties.items())),
+                "reads": ("1 = one action scored highest alone. >=2 = that many tied and "
+                          "tuple order chose. A flat spread never reaches here -- the "
+                          "`max > min` guard drops it to the uniform draw")}
 
     def _learned_split(self) -> str | None:
         """§18.4's proposer half: perception ENTERS the proposal, it does not veto.

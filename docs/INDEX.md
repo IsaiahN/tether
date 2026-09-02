@@ -10241,3 +10241,43 @@ APPLIED:**
 > rather than after — *a cheap-sounding estimate is self-protecting*, and this is the third time this
 > week the same proposal shape has come up. **The run currently going cannot answer it.**
 
+
+---
+
+# BUILT: THE TIED-AT-TOP READING — AND TWO OF THE THREE CAUSES COLLAPSE INTO ONE
+
+**Reading the branch before building the measurement changed what the measurement is.**
+
+    if spread and max(spread.values()) > min(spread.values()):
+        pick = max(self.actions, key=lambda a: spread[a])
+
+**THE GUARD IS `max > min`, SO AN ALL-FLAT SPREAD NEVER REACHES THE ARGMAX.** It fails the guard and
+**falls through to the uniform draw.** *Flat-topped spread* as a cause of the lock-on **cannot
+happen** — the branch does not fire at all in that case.
+
+> **SO THE FIRST TWO CAUSES ARE NOT TWO.** *Values tied and `max` picks first* and *tuple order
+> resolving ties* are **one mechanism with two necessary conditions**: a tie AT THE TOP, and a stable
+> arbitrary ordering. **Neither alone produces it, and describing them as alternatives implies a
+> choice of repair that does not exist.**
+
+**WHICH LEAVES TWO OUTCOMES, NOT THREE:**
+
+    tied_at_max >= 2   several actions scored equal-highest and `self.actions` order chose.
+                       ARBITRARY AND STABLE -> a tie-break is the repair
+    tied_at_max == 1   one action scored highest alone, every time. The selector is doing
+                       what it says -> NO REPAIR, and the finding is about the board
+
+**And the *do nothing* outcome survives the collapse**, which is the row worth keeping explicit.
+
+## THE READING
+
+**`Agent.ties()`** — `{tied_at_max: n}` per discriminate call, published in the holdout report beside
+`preconditions`. **`1` is genuine dominance; any mass at `>= 2` is tuple order deciding.**
+
+**It is the argmax's own input, one aggregate over it, and it separates the two remaining causes in a
+single number.** The `by` counter names the branch; **this says whether that branch had a choice.**
+
+**NOT RUN IN PARALLEL.** The `by` measurement is compute-bound at 35 minutes and a second heavy run
+would halve both. **And the `ties` run supersedes it** — the report carries `by` too — so the next
+run answers both questions and this one is the last that will not.
+
