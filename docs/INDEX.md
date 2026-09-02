@@ -9296,3 +9296,96 @@ of two events: **a level advancing**, or **a decision about trees** that has not
 nothing*, and the honest reading of today is that **the contact-changing work is gated on the
 ground, not on the code.**
 
+
+---
+
+# `[I]` THE IMPROV FRAME, AND THE CUE CENSUS: HALF A LOOKUP, AND A TYPE NODE WITH NO PRODUCER
+
+**Isaiah's frame — Improv plus 20 Questions.** A Conductor knows a secret ending, may not speak or
+write, **judges and does not explain**, and every turn must end with an action. **That is RLVR, and
+the starved cue vocabulary is the firewall stated as a rule of play.**
+
+**Three corrections to my reading, all taken.** The Conductor need not want them to win — *the board
+is no more adversarial than a maze* — and **the adversarial stance is the MAKERS', which is Figure
+10's office: a ground with a reputation to protect is disqualified.** Cues are rationed **by type,
+not by count** — a limited alphabet with unlimited repetitions, **which explains a flat counter
+without appealing to the ground.** And **the shared-language objection was mine and was wrong**:
+*both speak in motions, actions and causality*, which is Figure 1's own line. **Charades settles it —
+no shared vocabulary, full communication, because the channel is action and the reading is causal.**
+So not thin-channel-versus-rich: **same channel, same language, more raw frame and fewer words.**
+
+## THE BLOCKER, RESTATED BETTER THAN WE HAD IT
+
+> **The Conductor is giving no *warmer*, and the game is unplayable without one.** Thumbs-down and
+> nothing else — counter flat, state *not finished* forever, **and a frame diff says something
+> changed without saying whether it was toward anything.**
+
+**And the corpus answers it.** Figure 5: *when nothing is scoring, the drive manufactures a gradient*
+— seek the gap that is large and compressible, **and it is built.** **A posed sub-objective is a
+self-made wrist tilt**, which reframes the objective layer entirely: **not to score better, but to
+have a warmer signal at all.** With Figure 5's own warning kept — *its own output is never a measure
+of success.*
+
+## SECTION CHECK 1 · IS THE CENSUS A LOOKUP? HALF OF IT IS, AND NOT THE HALF NAMED
+
+**`alphabet()` IS NOT IT.** It is the **coding range** — what a slot COULD take, declared by the
+domain for `correction_bits`: `2**(h*w)` for a shape, board dimensions for a delta. **Declared from
+the generator's shape, which is the kind of quantity the corpus says must never be used as a measured
+premise.** The census asks what the world ACTUALLY produced. **Different subjects.**
+
+**BUT §16.4's SEVEN ARE, AND THEY ARE BUILT.** `arc_percept.Affordances`:
+
+    blocks · passes · moves_when_touched · changes_on_touch · triggers_remote
+    terminates · consumed
+
+**That IS a cue alphabet, per object kind, learned by interaction** — and it is *cues rationed by
+type* as a data structure. **It even keeps unread apart from absent**: *on a board with no avatar
+those stay unread rather than false, and the profile records which it is.* **Fourteen for fourteen,
+and `triggers_remote` is the unlocking cue while `terminates` is the ending cue.**
+
+> **WHAT IS NOT BUILT IS THE TOPOLOGY.** `Affordances` records **which cues a kind has**. The five
+> shapes are about **how cues depend on each other** — independent, sequential, unlocking,
+> conditional, k-of-n. **Nothing reads relations BETWEEN cues.** The alphabet is a lookup; the
+> grammar over it is not.
+
+## SECTION CHECK 2 · k-OF-n IS NOT `ONE`'s GAP, AND THE TWO SHOULD NOT BE MERGED
+
+**Built: `all`, `any`, `none`. Q21 names four — ALL, SOME, ONE, NONE. So `ONE` is absent, as read.**
+
+    none  k = 0        any  k >= 1        all  k = n        ONE  k = 1 exactly
+
+**`ONE` IS NOT GENERAL k-OF-n.** `ONE` is a fixed threshold at one; k-of-n needs an **arbitrary**
+one. **Installing `ONE` would not deliver k-of-n**, so they are different gaps and merging them would
+hide that.
+
+**AND THEY DIFFER IN STANDING, WHICH IS THE PART THAT MATTERS:**
+
+- **`ONE` is a COMPLETENESS gap against a spec** — the corpus names four and the code has three.
+  **But it still fails the entry rule**: the loop runs without it and the agent has not minted a
+  crude version. **So it is not installable either, and *the corpus names it* is not an entry
+  clause.**
+- **k-of-n is OUTSIDE the spec.** Nothing names a counting quantifier, and **what it needs is
+  `COUNT`.**
+
+**AND `COUNT` IS A TYPE NODE WITH NO PRODUCER.** `sensors.py` 44 declares it beside COLOUR, POSITION
+and EXTENT; **`ATTRIBUTE_TYPE` has no key that yields it and no atom returns it.** A declared node in
+the type graph **with zero in-edges** — which is why no chain can ever reach a counting quantifier.
+
+> **AND §12.3 ALREADY RULED IT.** *`count` composes from components plus a colour filter* is listed
+> among the Tier 2 examples, with **the agent should have to reach for them, because reaching is the
+> only evidence the composition system works.** **So k-of-n is not a missing feature. It is the
+> §12.4 circle again, at a third site** — and the ruling that forbids installing `parity(POSITION)`
+> forbids installing `count` for exactly the same reason.
+
+**Second time this week the counting gap has surfaced from a different direction, and it is the same
+node both times.**
+
+## WHAT THE CENSUS WOULD COST, STATED AND NOT BUILT
+
+**All five topology readings are over frame-diff history, which every run already has** — no level
+advance required, which is what makes it the one item not behind that grep. **What it is not is
+free**: the k-of-n reading needs *which combinations were tried and what followed*, and **that is a
+record over ACTION SUBSETS, not over steps.** The two hidden variables are asymmetric — **how many
+cues exist is a count; how many of which are needed is invisible to any count**, and only shows in
+combinations attempted.
+
