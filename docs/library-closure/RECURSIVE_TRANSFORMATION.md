@@ -75,6 +75,46 @@ shape the quantities are in.
 would mean** — a value has no magnitude without an ordering, no direction without a gradient, no
 propagation without a pathway.
 
+## They are pairwise, and neither denotes alone
+
+**They are pairwise the way a function and its domain are.** You can name either alone and **neither
+means anything alone.** A state with no structure has no magnitude — *three of what, ordered how,
+varying across what?* A structure with no state is empty — *a network with nothing at the nodes, an
+ordering over nothing, a gradient in no quantity.*
+
+**Which is stronger than saying they move together, and different from it.** *Lockstep* is
+behavioural. **This is definitional.**
+
+**And it sharpens the swap.** *Structure becomes state at the next level* is close and slightly
+wrong: **a state–structure PAIR, once it stabilises, becomes the STATE HALF of a new pair**, and
+something else supplies the structure at that level. Molecules with their collision network become a
+fluid; the fluid is a state and **the flow field is its new structural partner.** **Which is why
+levels come in units — a level is a complete pair, not a lone quantity.**
+
+**The pairing is symmetric and the recursion is not.** *Neither without the other* holds both ways,
+**but the swap runs one direction: structure becomes the state half, and a state does not become a
+structure by persisting.** Mutually necessary, asymmetrically recursive — **and the asymmetry has a
+reason. Persistence is only informative about an ARRANGEMENT**: a structure that persists gains an
+identity, because there is something being held together; **a state that persists is the same
+state.**
+
+## The operational form, taken from the instantiation rather than from here
+
+**"Can you have three of it" is a test a reader can apply and a system cannot.** The Tether build
+supplies one that is running:
+
+> **A STATE is what a slot's value is drawn from. A STRUCTURE is which slots belong to one subject.**
+
+Both are **declared by the domain and compared by the loop, never derived by it** — `slot_types` and
+`slot_owner`, each carrying *the loop may not derive this*, **because a loop that inferred grouping
+from a slot's name would be reading domain structure rather than being given it.**
+
+**AND THE PAIRING IS NOT ENFORCED THERE, WHICH CORRECTS A CLAIM MADE FOR IT.** A slot may exist with
+no declared type: the loop **degrades and reports** — *every operand check is skipped, which is
+reported, not assumed* — rather than refusing. **The design is better than the claim was.** An
+absence recorded is a reading; an absence forbidden would make a partial declaration unusable, and
+partial declarations are what a new domain starts with.
+
 **Which is why the earlier question of whether a continuum belongs was hard to settle.** It is
 structural, **and it was being tested against laws that are about states.**
 
