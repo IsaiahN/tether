@@ -10281,3 +10281,39 @@ single number.** The `by` counter names the branch; **this says whether that bra
 would halve both. **And the `ties` run supersedes it** — the report carries `by` too — so the next
 run answers both questions and this one is the last that will not.
 
+
+---
+
+# THE COST IS FRONT-LOADED, AND EVERY RUN-LENGTH ESTIMATE THIS WEEK ASSUMED IT WAS NOT
+
+**`ls20` at 150 cycles ran 47 minutes and did not finish. `ls20` at 1000 cycles took 86.** So
+**15% of the cycles cost more than half the time**, and short runs are not cheap fractions of long
+ones.
+
+**THE MECHANISM IS IN THE BRANCH.** `owed` is largest **before any term binds**, and the discriminate
+branch loops **`actions × owed × cands`** every step. **The early cycles do the most work**, and they
+are exactly the ones a short run consists of.
+
+> **FOURTH INSTANCE OF THE CHEAP-DIRECTION BIAS, AND THE FIRST ABOUT MEASUREMENT RATHER THAN BUILD
+> COST.** `_overlap` and `by` were builds mis-sorted as publishes. **This is an INSTRUMENT mis-sized**
+> — and the same direction, which is what makes it the same tendency rather than a new one.
+
+**AND IT RETROSPECTIVELY EXPLAINS A SCHEDULING CHOICE.** *Run at 40 cycles* looked like prudence and
+was **near the expensive end of the curve** — so the cheap-looking runs this week were not
+proportionally cheap, and the 25× budget increase cost far less than 25×.
+
+## THE RUNS ARE LOCAL, WITH ONE OUTBOUND REQUEST AT SETUP
+
+**`arc_holdout`'s own docstring:** *One game, played **LOCALLY**. `arc_agi`'s `NORMAL` mode
+**downloads once** and hands back a `LocalEnvironmentWrapper` ... an anonymous key is fetched
+automatically.* **And `NOT RUN BY conform/check.py` — it needs the network, and the checkers must
+stay offline and deterministic.**
+
+**Checked: no `requests`/`httpx`/`urllib`/`http` anywhere in the repo's own files or in
+`arcengine`.** So **play is compute, not network** — consistent with 34.3 CPU minutes against 34.9
+wall — **and the front-loaded cost is a property of the loop rather than of a connection.**
+
+**The caveat worth stating: it is not air-gapped.** `arc.make` makes one outbound request, so **a run
+without egress fails at SETUP rather than degrading** — the right failure mode, and the reason the
+eight seats are deliberately excluded from that path.
+
