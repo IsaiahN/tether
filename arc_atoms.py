@@ -31,7 +31,7 @@ import sys
 from typing import Any
 
 from gamma import Atom, Ctx
-from sensors import COLOUR, DELTA, EXTENT, OBJECT, POSITION, SHAPE
+from sensors import COLOUR, DELTA, EXTENT, NOT_RESOLVED, OBJECT, POSITION, SHAPE
 
 sys.dont_write_bytecode = True
 
@@ -66,17 +66,30 @@ ATTRIBUTE_TYPE = {"colour": COLOUR, "row": POSITION, "col": POSITION,
 
 
 def _extract() -> list[Atom]:
-    """`OBJECT → COLOUR | POSITION | EXTENT`. One per sensor 2b already computes.
+    """`OBJECT → COLOUR | POSITION | EXTENT | DELTA | SHAPE`, one per key 2b computes.
 
-    **WHICH FIVE THESE ARE WAS NEVER DECIDED.** They are the object record's keys that happen
-    to hold an `int`; `cells` and `shape` hold frozensets and were skipped by the wrapping, not
-    by a rule. §12.3 admits NINE sensors on *the loop cannot run without it* and three of them
-    are reachable here -- colour, position, extent. **The ceiling on what can be represented is
-    an encoding accident**, and the next reader will assume five was chosen.
+    **EIGHT, NOT FIVE, AND THE OLD WARNING CAME TRUE.** It said *which five these are was never
+    decided ... the ceiling on what can be represented is an encoding accident, and the next
+    reader will assume five was chosen.* `shape` and the two DELTA keys were published later
+    and the count moved by exactly that route. **The warning was right and outlived its own
+    number**, which is why it is restated rather than deleted: the ceiling is still whatever
+    `_decomposed` happens to emit, and nothing here decides it.
+
+    **AND THESE ATOMS CANNOT EXTRACT IN THE LIVE LOOP -- MEASURED, NOT ARGUED.** `_decomposed`
+    already extracts, flattening every object to `name.attr -> int`, so a term is handed a
+    SCALAR and never an OBJECT. All eight were identity on a bare int; now all eight abstain
+    there, which is §12.2's rule and not a repair of this. **The gap is that §11.2's EXTRACT
+    space runs BEFORE the loop at a vocabulary the seat fixed** -- the agent cannot reach for
+    an attribute because attributes are computed on the way in.
     """
     def pick(key: str):
         def fn(o: Any, _c: Ctx) -> Any:
-            return o.get(key, 0) if isinstance(o, dict) else o
+            # §12.2: *a value or NOT_RESOLVED. Never a guess, never a default.* Both branches
+            # were guesses -- `o.get(key, 0)` asserted the attribute is zero, and returning a
+            # non-dict unchanged asserted the scalar IS the attribute.
+            if not isinstance(o, dict):
+                return NOT_RESOLVED
+            return o.get(key, NOT_RESOLVED)
         return fn
     return [Atom(k, pick(k), OBJECT, t) for k, t in ATTRIBUTE_TYPE.items()]
 

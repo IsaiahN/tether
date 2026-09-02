@@ -9029,3 +9029,97 @@ never-pulled atoms**. If abstention changes nothing, the pull counts do not move
 is inert; **if it changes something, it changes what a term is allowed to bet on, and that is
 contact.**
 
+
+---
+
+# BUILT: §12.2 ENFORCED AT THE EXTRACTOR. THE FALSIFIER READ NULL, AND THE NULL IS THE FINDING
+
+## TWO CORRECTIONS FIRST, BOTH MINE, BOTH FROM ASSERTING A CONSEQUENCE WITHOUT CHECKING IT
+
+**ONE -- THE BIRTH CLAIM WAS WRONG.** I wrote that on every birth `drow` extracts `0` and the agent
+cannot separate *did not move* from *was not there last frame*. **`arc_percept` 317 is `if attr in
+obj`**, so on a birth the slot `name.drow` is **absent from the state dict**, and `perceive` bets only
+over `[s for s in self.slots if s in before]`. **The perception layer was already abstaining
+correctly, exactly as its own comment at 288 says it should.** `pick`'s `o.get(key, 0)` needs a dict
+and never receives one.
+
+**TWO -- AND I DID IT AGAIN IN THE SAME BREATH.** I then wrote that eight atoms *could previously earn
+credit for predicting "no change" while reading nothing*. **The A/B refutes it: every published
+number is identical.** They earned nothing, because **nothing ever evaluated them.**
+
+> **BOTH ERRORS HAVE ONE SHAPE: READING A BRANCH WITHOUT CHECKING ITS REACHABILITY.** The law is
+> already written -- *read the things that produce conditions before the things that produce
+> results* -- and `_decomposed` is the producer I read last, after `pick`, after `sensors.py`, after
+> §12.2. **Twice in one item, and the second time was after naming the first.**
+
+## THE A/B, RUN AS A WORKTREE AT `HEAD` AGAINST THE WORKING TREE -- ONE VARIABLE
+
+    BEFORE  ls20  outstanding 741.131 | pe 1367.156 | library 67 | minted 39 | advanced False
+    AFTER   ls20  outstanding 741.131 | pe 1367.156 | library 67 | minted 39 | advanced False
+    BEFORE  g50t  outstanding 971.088 | pe 1397.375 | library 45 | minted 23 | advanced False
+    AFTER   g50t  outstanding 971.088 | pe 1397.375 | library 45 | minted 23 | advanced False
+
+**IDENTICAL TO THREE DECIMALS ON EVERY PUBLISHED QUANTITY.** The pre-registration said *inert if the
+pull counts do not move, contact if it changes what a term may bet on.* **It is inert, and the reason
+is structural rather than accidental.**
+
+## THE MECHANISM WORKS -- VERIFIED DIRECTLY, NOT INFERRED FROM THE NULL
+
+    extractor on an int (the live stream)  -> NOT_RESOLVED
+    extractor on a dict WITH the key       -> 5
+    extractor on a dict WITHOUT the key    -> NOT_RESOLVED
+    two-atom chain, first atom abstains    -> NOT_RESOLVED   (propagates, never becomes a value)
+
+**So this is not *the change did nothing*. It is *the change is correct and nothing reaches it*** --
+and those are different findings that a null alone cannot separate. **Checking the mechanism
+separately from its effect is what made the difference readable.**
+
+## AND THE REASON IS THE TYPE GRAPH, WHICH IS DOING ITS JOB
+
+    OBJECT -> COLOUR        colour
+    OBJECT -> POSITION      row col
+    OBJECT -> EXTENT        h w
+    OBJECT -> DELTA         drow dcol
+    OBJECT -> SHAPE         shape
+    COLOUR -> PRED          same other
+    POSITION -> PRED        above
+    PRED -> OBJ             all any none
+
+**Every extractor's `in_type` is `OBJECT`. The transition bargain enumerates `slot -> slot`.** A
+different node, so **an extractor can never be a candidate for a transition** -- not by accident, by
+typing. The atoms were never identity-on-an-int in the loop **because the loop never applied them.**
+
+> **THE CHAIN IS COMPLETE AND TYPED END TO END -- `OBJECT -> ATTR -> PRED -> OBJ` -- AND NOTHING
+> CONSUMES `OBJ`.** It terminates in an objective, and an objective has no reader.
+
+## WHICH IS THE GAP `CLAUDE.md` ALREADY NAMES, NOW MEASURED INSTEAD OF ASSERTED
+
+The instantiation map lists as NOT INSTANTIATED: *the objective layer* and **the second consumer for
+EXTRACT/RELATE/QUANTIFY.** **This run is that entry, arrived at from the other end.** Not *we have not
+built the consumer yet* but **a complete, correctly typed, three-space chain that produces objectives
+nobody reads**, and a measurement that is byte-identical because of it.
+
+**AND IT REPLACES THE DIAGNOSIS I GAVE AN HOUR AGO.** I said EXTRACT runs before the loop at a
+vocabulary the seat fixed, and that the agent cannot reach for an attribute because attributes are
+computed on the way in. **The first half is true and the second half is not the binding constraint.**
+`_decomposed` does flatten, **but the extractor atoms exist, are correctly typed, and compose into
+`PRED` and `OBJ`.** What stops them is not the flattening -- **it is that the far end of the chain
+has no consumer, so the chain is never enumerated for anything.**
+
+## THE THREE, BUILT AND KEPT
+
+    1  `pick`         BOTH branches were guesses. `o.get(key, 0)` asserted the attribute is zero;
+                      returning a non-dict unchanged asserted THE SCALAR IS THE ATTRIBUTE
+    2  `Term.apply`   short-circuits on NOT_RESOLVED, plus six consumers: `_predict` returns None
+                      and the slot is not bet on with a row saying so; three bargain sites charge
+                      unread AS UNEXPLAINED, the rule they already applied to `inapplicable`; two
+                      branching sites drop a candidate that cannot read, because it splits nothing
+    3  docstring      the old warning CAME TRUE -- *the ceiling is an encoding accident* predicted
+                      five going to eight by exactly the route it named -- so it is restated
+
+**KEPT ON THE RULE, NOT ON THE RESULT.** §12.2 is a constraint the architecture rests on, and the
+measurement says nothing currently exercises it. **Before this, `NOT_RESOLVED` had ONE consumer in the
+repo** -- `arc_world` 108, testing board readability. `sensors.py` returned it from eleven branches
+and **nothing downstream could receive one: a declared abstention with no path.** There is now a
+path, and it is empty.
+

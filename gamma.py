@@ -25,6 +25,8 @@ from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from typing import Any
 
+from sensors import NOT_RESOLVED
+
 sys.dont_write_bytecode = True
 
 PRIOR, MINTED, IMPORTED = "prior", "minted", "imported"
@@ -208,6 +210,11 @@ class Term:
             return value
         for a in self.atoms:
             value = a.fn(value, ctx)
+            # §12.2's non-reading PROPAGATES: *it lets "this instrument cannot see it" go up
+            # instead of becoming a wrong attribute.* Short-circuiting is the whole of it --
+            # feeding NOT_RESOLVED to the next atom is how a non-reading becomes a value.
+            if value is NOT_RESOLVED:
+                return NOT_RESOLVED
         return value
 
 

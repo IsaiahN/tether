@@ -31,7 +31,7 @@ from ledger import (
 )
 from priors import contact_first
 from probe import Drive
-from sensors import COMMENSURABLE, DELTA, OBJECT, POSITION
+from sensors import COMMENSURABLE, DELTA, NOT_RESOLVED, OBJECT, POSITION
 
 sys.dont_write_bytecode = True
 
@@ -371,11 +371,12 @@ class Agent:
         """
         return not term.operand or term.operand in state
 
-    def _predict(self, slot: str, state: dict[str, int], action: str) -> int:
+    def _predict(self, slot: str, state: dict[str, int], action: str) -> int | None:
+        """`None` is THE INSTRUMENT COULD NOT READ, and it is not a prediction of anything."""
         term = self.gamma.library[self.bound.get(slot, IDN)]
-        return term.apply(state[slot],
-                          Ctx(action=action,
-                              operands=self._ops(term, state))) % self.alphabet[slot]
+        got = term.apply(state[slot],
+                         Ctx(action=action, operands=self._ops(term, state)))
+        return None if got is NOT_RESOLVED else got % self.alphabet[slot]
 
     def _standing(self, slot: str) -> None:
         """HELD AND CITED ARE TWO ROWS, not one. A candidate may be held -- bound, and
@@ -453,6 +454,14 @@ class Agent:
         # `_present` only catches that at step boundaries. So the bet is over `before`.
         betting = [s for s in self.slots if s in before]
         pred = {s: self._predict(s, before, action) for s in betting}
+        # A SLOT THE BOUND TERM CANNOT READ IS NOT BET ON. §12.2's non-reading has to reach
+        # somewhere that acts on it, or it is a sentinel that propagates into a shrug.
+        for s in [s for s in betting if pred[s] is None]:
+            self.led.record(self.cycle, "PERCEIVE", s, "unread", of=(s,),
+                            bound=self.bound.get(s, NO_CHANGE),
+                            reads=("the bound term returned no reading, so no bet is made and "
+                                   "no prediction error is claimed on this slot"))
+        betting = [s for s in betting if pred[s] is not None]
         _, deg_before = self.env.objective()
         self.env.step(action)
         after = self.env.observe()
@@ -789,6 +798,9 @@ class Agent:
                 total += math.log2(self.alphabet[slot])   # inapplicable is unexplained
                 continue
             got = term.apply(state[slot], Ctx(action=action, operands=self._ops(term, state)))
+            if got is NOT_RESOLVED:
+                total += math.log2(self.alphabet[slot])   # unread is unexplained
+                continue
             total += correction_bits(got, actual, self.alphabet[slot])
         return total
 
@@ -857,7 +869,7 @@ class Agent:
                 continue
             got = term.apply(state[slot], Ctx(action=action,
                                               operands=self._ops(term, state)))
-            if got % self.alphabet[slot] != actual % self.alphabet[slot]:
+            if got is NOT_RESOLVED or got % self.alphabet[slot] != actual % self.alphabet[slot]:
                 out.append((state, action, actual))
         return out
 
@@ -884,7 +896,8 @@ class Agent:
             else:
                 got = term.apply(state[slot], Ctx(action=action,
                                                   operands=self._ops(term, state)))
-                wrong += got % self.alphabet[slot] != actual % self.alphabet[slot]
+                wrong += (got is NOT_RESOLVED
+                          or got % self.alphabet[slot] != actual % self.alphabet[slot])
             if cost + unit * wrong >= base:
                 return True          # `wrong` only grows; the rest of R adds nothing
         return False
@@ -946,8 +959,10 @@ class Agent:
             spread = {}
             for act in self.actions:
                 spread[act] = sum(
-                    len({t.apply(before[s], Ctx(action=act, operands=())) % self.alphabet[s]
-                         for t in cands})
+                    len({g % self.alphabet[s]
+                         for g in (t.apply(before[s], Ctx(action=act, operands=()))
+                                   for t in cands)
+                         if g is not NOT_RESOLVED})
                     for s in owed)
             if spread and max(spread.values()) > min(spread.values()):
                 pick = max(self.actions, key=lambda a: spread[a])
@@ -962,6 +977,8 @@ class Agent:
                     buckets: dict[int, int] = {}
                     for t in cands:
                         v = t.apply(before[s], Ctx(action=pick, operands=()))
+                        if v is NOT_RESOLVED:
+                            continue      # a candidate that cannot read splits nothing
                         buckets[v % self.alphabet[s]] = buckets.get(
                             v % self.alphabet[s], 0) + 1
                     self._disproof[s] = {
