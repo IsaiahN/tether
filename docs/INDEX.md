@@ -10354,3 +10354,34 @@ should hold near 2.5× at any length. **A gap that MOVES would say the driver is
 a finding about the cost model rather than about front-loading. **Two readings, two claims, and
 they were about to be run together.**
 
+
+---
+
+# `|owed|` IS ONE VARIABLE WITH TWO WAYS OF BEING LARGE — AND ONLY ONE FIX HELPS BOTH
+
+**`[I]`: front-loading and the between-board gap have the same cause.** `owed` is large **early**
+because nothing has bound yet, and large on a **slot-heavy** board because there is more to bind.
+**One variable, two symptoms, and the discriminate branch loops over it.**
+
+**THE QUALIFICATION, BECAUSE *THE FIX FOR ONE HELPS THE OTHER* IS TRUE OF ONLY ONE KIND OF FIX:**
+
+    early-largeness    A TRANSIENT. Shrinks as slots bind. A fix that speeds BINDING
+                       removes it and does nothing for a slot-heavy board
+    slot-heaviness     A CONSTANT of the board. 22 against 12. No amount of binding
+                       makes ls20 into g50t
+
+> **SO A FIX THAT SPEEDS CONVERGENCE HELPS THE TRANSIENT ONLY. A FIX THAT BOUNDS THE LOOP HELPS
+> BOTH** — and the two are not interchangeable, which is what *the same cause* would otherwise
+> suggest.
+
+## AND THE CONFOUND IS ONE LEVEL UP FROM THE USUAL ONE
+
+**`[I]`: *the comparison that separates two boards is blind to what they share.*** A ratio cancels
+every factor common to both, **which is exactly what makes it a good between-board instrument and
+exactly what makes it useless for a within-board claim.**
+
+**The `false_mint_rate` shape at a new site** — and the difference is worth marking: that one was
+**numerator and denominator moving together.** This one is **a single reading asked to carry two
+claims**, where the instrument is fine and the question was doubled. **Seventh instance, first of
+this kind.**
+
