@@ -9967,3 +9967,80 @@ spread over one.**
 So the budget was binding on the WORK and not on the OUTCOME — **which is a third thing neither row
 predicted, and the honest form of *what the re-run bought*.**
 
+
+---
+
+# `RECURSIVE_TRANSFORMATION` READ — AND IT NAMES OUR STATE AS ONE OF ITS OWN FALSIFIERS
+
+**Corpus, read and not edited.** Offered as *a proposed organizing principle, not a law*, and its own
+Part 6 calls the exercise **a coherence result, not a discovery.** Recorded at that standing.
+
+    relations → fields → gradients → flows → networks → new relations and fields
+
+## THE FALSIFIER IT LISTS IS OUR MEASURED CONDITION
+
+**Part 6, on what would break the cycle:** ***a flow that reshapes nothing, so the last step never
+feeds the first — which would make the sequence a chain rather than a cycle.***
+
+> **THAT IS THE AGENT AT THE RULED BUDGET.** It acts, and **what it can perceive afterwards is
+> identical to what it could perceive before** — one relation of roughly seventy. **The last step
+> does not feed the first, so there is no second turn.**
+
+## WHICH RESTATES THE COMPOSITION PROBLEM AND SAYS WHAT TO BUILD
+
+**The agent is stuck at the FIRST term.** One relation published means **almost no field**; no field
+means **no variation to take a gradient over**; and *a gradient is a difference capable of driving
+directed change — it makes energy available for work rather than merely present.*
+
+**AND THE DOC NAMES THE MEASUREMENT EXACTLY:** *a system at equilibrium may contain abundant energy
+while exhibiting no net macroscopic change.* **At 1000 cycles: `outstanding` 2834, library 127, 104
+mints — abundant activity — with `advanced: false` and degree `0.0`.** **Energy without a gradient.**
+
+> **SO *THE BOARD GIVES NO WARMER SIGNAL* WAS THE WRONG DIAGNOSIS.** *There is no gradient because
+> there is no field because there is one relation* is the right one. **Same fact, and only the second
+> form says what to build.**
+
+## AND IT RULES ON THE SHAPE QUESTION INDEPENDENTLY
+
+> ***Discrete symmetry — reflection, rotation by a right angle, permutation — requires no smoothness
+> at all. It holds on a grid, on a graph, on any set with structure. Available at every level.***
+
+**So 90° symmetry is exactly the kind a grid admits**, and the six relations blocked by *`shape` is a
+label* are **flattened by our accounting rather than by the medium.** **Third independent
+confirmation of the three-category split**, and it arrives from physics rather than from the
+relation vocabulary.
+
+## THREE PLACES IT AGREES WITH WHAT WE ALREADY HOLD, ARRIVED AT SEPARATELY
+
+| the doc | ours |
+|---|---|
+| *a structure that persists becomes an entity, and an entity has states* | `THE_FORMULA`: **a settled molecule becomes an atom for whatever composes over it** |
+| *the swap upward requires the arrangement to STABILISE — a structure that does not persist never becomes an entity, and the ladder stops there* | **a frame that cannot settle has one level, however large its library** — and this is the **third** independent statement of it |
+| *going up, the arrangement's internal detail is discarded and only what became a state survives* | Figure 4's membrane, and `R_T` as *the honest report of what the coarser description cannot hold* |
+
+**A LEVEL IS WHERE STRUCTURE STABILISED**, and *the number of levels is a fact about the world rather
+than a choice of description.* **Which is why our composite system having one level is a reading
+about the world-and-agent and not a parameter.**
+
+## AND THE NOISE ROW BEARS ON THE RANDOM-WALK RULING
+
+**The three-way split on apparent randomness** puts **statistical noise** as *the detail a
+coarse-graining discarded, reappearing as variance above* — **derived, and the companion of
+smoothness.** So an undirected draw is **not the absence of information: it is the level below
+showing through.** *Which is a better support for the random-walk claim than the one dropped* — and
+unlike *computational randomness is a very lossy compression*, **it names what the variance is a
+compression OF.**
+
+---
+
+# CORRECTION: THE ROWS ARE NOT ON DISK
+
+**I said twice that the `by` counter was *one counter over rows already on disk*. `arc_holdout` uses
+`ledger.Ledger()` with no path, so rows live in memory and the run discarded them.** **`by` IS
+written — `tether` 1699, on every ACT row — and nothing read it**, which is the third audit's shape
+again.
+
+**Published as a report field and re-measured at 150 cycles**, since the lock-on is visible by step
+40. **The claim was wrong in the cheap direction — it made the check sound free when it costs a
+short run — and it is the same error as *one line* for `overlap`.**
+

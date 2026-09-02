@@ -152,6 +152,12 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None) -> di
         "lambda": g.type_report(), "atoms": len(g.atoms),
         "unexpressible": arc_predict.unexpressible(),
         "events": dict(collections.Counter(r["event"] for r in rows)),
+        # WHICH BRANCH CHOSE THE ACTION. `by` is written on every ACT row and was read by
+        # nothing -- and the ruled-budget run could not say whether a 96%-one-action policy
+        # came from `discriminate`, `discriminate:learned` or the draw.
+        "by": dict(collections.Counter(
+            r["detail"]["by"] for r in rows
+            if isinstance(r.get("detail"), dict) and r["detail"].get("by"))),
         "habitat": hab.report() if hab else "no residual to seed from",
         "habitat_residuals": len(hab.residuals()) if hab else 0,
         # what the terms have DONE, per (term, slot), read from the ledger rather than
