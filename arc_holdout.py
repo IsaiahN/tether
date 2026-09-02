@@ -105,7 +105,19 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None) -> di
     was_terminal = ""
     for _ in range(cycles):
         state = env.observe()
-        ag.step()          # the world notes contact inside `step`, on its own before/after
+        # THE UNIT. `step` returns False when no action was proposed, and after the first
+        # GAME_OVER that is every cycle -- so a 1000-CYCLE run is a ~140-ACTION run followed
+        # by ~860 no-ops, and every reading this week was taken in cycles while the quantity
+        # that matters is actions. `Budget` has counted them since it was written and
+        # `spend()` was called only by `arc_check`: constructed, seeded, never consumed.
+        #
+        # COUNTING ONLY. What should happen when the budget is EXHAUSTED is a separate
+        # question -- `Budget.exhausted()` and `Termination`'s `cap` ending exist for it and
+        # neither is wired here. Deciding that would change what a run IS; this only makes
+        # the unit readable.
+        acted = ag.step()  # the world notes contact inside `step`, on its own before/after
+        if acted:
+            bud.spend()
         # §21.1's control: the state BEFORE the action, the action, and what it cost. A
         # repeat of the same state under a different action is the only re-run the loop gets.
         # The action is read AFTER the step -- it is chosen inside it, so reading it before
@@ -215,6 +227,8 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None) -> di
         # §21.2's number, published rather than inferred: *if that is 40%, someone should
         # see it rather than infer it.*
         "budget_to_deaths": (round(endings.get("death", 0) / cycles, 4) if cycles else 0.0),
+        # ACTIONS, NOT CYCLES -- the correction four of this session's findings collapse into.
+        "budget": bud.report(),
 
     }
 

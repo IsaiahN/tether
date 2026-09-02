@@ -11321,3 +11321,34 @@ that was already there covers the case it was written for.
 derived from them are retracted** — *the honest figure is over `by`: 93 of 131 on `g50t` (71%), 129
 of 152 on `ls20` (85%).*
 
+
+---
+
+# 1 · `spend()` IS WIRED — THE UNIT CORRECTION, COUNTING ONLY
+
+**SECTION CHECK: §22 RULES THE NUMBER AND NAMES NO CALL SITE.** *`MAX_ACTIONS` keeps its value and
+gains its provenance line — anchored, not tuned* — and the harness's own `MAX_ACTIONS` is a **loop
+bound enforced by `main()`**. **Neither says where a budget is decremented**, so the site is a build
+decision and the number is not.
+
+    acted = ag.step()
+    if acted:
+        bud.spend()
+
+**`step` returns False when no action was proposed, and after the first GAME_OVER that is every
+cycle.** So the call site is *where an action actually happened*, which is the one place the two
+readings can disagree — **and they no longer do: 6 cycles, `spent` 6, `by` summing to 6.** *Two
+independent counters over one event, agreeing by construction rather than by assumption.*
+
+**PUBLISHED: `budget` in the holdout report** — `per_level · levels · spent · left · accrued`.
+
+## AND WHAT IS DELIBERATELY NOT WIRED, BECAUSE IT IS A DESIGN QUESTION
+
+**`Budget.exhausted()` and `Termination`'s `cap` ending exist and neither is called here.** **What
+should happen when the budget runs out would change what a run IS** — whether a run ends at
+exhaustion, whether that counts as an ending, whether it is a `cap` in the §20.1 sense. **Recorded
+rather than decided.**
+
+**This commit makes the unit READABLE and changes no behaviour.** *The counter exists and is read;
+there is no new number yet, and nothing was re-run.*
+
