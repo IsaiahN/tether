@@ -12116,3 +12116,71 @@ ruled, `SHAPE` and the frame stack untouched.*
 **AND THE ATOM IS INERT UNTIL AN `OBJECT` FLOWS**, which is the same gate the eight extractors wait
 on. **Recorded rather than hidden**: it abstains on a scalar by construction, exactly as `pick` does.
 
+
+---
+
+# CORRECTION: I HAVE BEEN CALLING ENUMERATION "THE SEARCH", AND §15.3 USES THAT WORD FOR WHAT IT REPLACES
+
+**`[I]` describes attribute-first retrieval. IT EXISTS, IT IS SPECIFIED, AND IT IS BUILT.** My
+account — *the search enumerates chains by type and nothing consults what changed* — **was a
+description of one of two mechanisms, given as if it were the whole.**
+
+## §15.3 SPECIFIES IT, AND CONTRASTS IT WITH A SEARCH IN ITS OWN WORDS
+
+> *"**What you cannot do is ask for a primitive by name** — you get it by describing the gap it fits...
+> R, described: **arity · symmetry · scale** → the frame whose closure predicts it → one lookup.
+> **Matching is a ONE-PASS CHECK, NOT A SEARCH.**"*
+
+**And `retrieval.py` is 3c, BUILT, wired into `_library_fit`.** `characterise()` returns
+`{arity, varies, invariant, n}` — and its own comment: ***"WHICH TYPES VARIED, NOT WHICH SLOTS — and
+this is the key that CROSSES."***
+
+> **THAT IS `[I]`'s ACCOUNT, IN THE CODE.** *Which property changed* is `varies`, computed per
+> residual, **and it is what the library lookup is keyed against.**
+
+## TWO MECHANISMS, TWO JOBS — AND I NAMED ONE AFTER THE OTHER
+
+    RETRIEVAL       reuse an EXISTING library term, keyed by the characterised residual
+                    -- built, runs first, attribute-aware
+    ENUMERATION     MINT a new term by walking the type graph
+                    -- built, type-directed, consults nothing about what changed
+
+**Both are correct and neither is the other.** *My error was calling enumeration "the search" and
+reporting it as how candidates are produced* — **and §15.3 uses "search" for precisely the thing
+retrieval replaces**, so the word carried the opposite of what I meant.
+
+## KEYS 3 AND 4 ARE DELIBERATELY UNKEYED, WITH A REASON — NOT A GAP
+
+> *"The first two are properties of a TERM and are keyed here. **The last two are properties of a
+> term's BEHAVIOUR**, which needs the term applied to the residual's own frames — so they are left to
+> the bargain, which already evaluates every candidate. **Keying on all four would be the search
+> §15.3 says this replaces.**"*
+
+**I had *invariants and effect shape are unbuilt* filed as an omission. It is a stated decision with
+its reason at the site.**
+
+## AND `ATTRIBUTE_INDEX.json` IS A THIRD CASE NEITHER OF US LISTED
+
+**No consumer — confirmed, nothing reads it. And it is not *a specified consumer never written* nor
+*built ahead of a specification*. `retrieval.py` REFUSES the shape:**
+
+> *"NOTHING IS MATERIALISED, AND THAT IS A1... this indexes the LIBRARY, which is stored anyway, and
+> **keys it by a function computed on demand.** **A stored index over the closure would be a SECOND
+> PRODUCER OF REACH**, which is the design the corpus never asked for and the check was written to
+> catch."*
+
+**BUILT, AND THEN A DESIGN DECISION MADE IT UNNECESSARY.** *The key is computed rather than stored,
+by choice, citing A1.*
+
+## SO THE GATE IS MISNAMED, AND HERE IS THE NAME
+
+**NOT** *the atoms are stranded in the search.* **The extractors are unreachable IN ENUMERATION,
+which is the MINTING path** — enumeration walks the type graph and an `OBJECT`-typed atom has no edge
+from a slot's integer.
+
+**Retrieval does not reach them either, and for a different reason: it ORDERS LIBRARY TERMS, and an
+extractor is an ATOM, not a library term.** *Two mechanisms, two reasons, and one name was doing for
+both.*
+
+**The nine inert atoms stay filed where they were — the filing was right and the label was wrong.**
+
