@@ -216,6 +216,7 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None) -> di
         # from one that does not exist.
         "preconditions": ag.pre.report(),
         "ties": ag.ties(),
+        "members": ag.members(),
         "keys_carrying_two_colours": aff.report()["keys_carrying_two_colours"],
         "unobserved_steps": env.unobserved,
         # 18.3's family. DIAGNOSTIC-ONLY TODAY, and 18.4 names that as a measured failure:

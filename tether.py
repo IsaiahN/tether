@@ -231,6 +231,14 @@ class Agent:
         # same -- and a tie resolved by `self.actions` order is a different finding from one
         # action genuinely discriminating best. `1` is genuine; `>= 2` is tuple order deciding.
         self._ties: Counter = Counter()
+        # WHICH MEMBER, AND WHICH GATE DROPPED IT. `sep[a]` is bounded by the number of
+        # contingency members -- FOUR (§18.3's table order) -- and BOTH gates drop members, so
+        # the argmax is over a very small integer. `sep:1` at 84.5% is exactly what a 0/1 `sep`
+        # with ONE contributor produces, and that would make the family the finding rather than
+        # the selector. Three outcomes: one passing, several agreeing, several with one
+        # dominating -- and only the third warrants a selector repair.
+        self._members: Counter = Counter()
+        self._passes: Counter = Counter()
         self.agency = I.Agency()       # §16.8 sensor 3, a per-step read
         self.term = I.Termination()    # 2d / §20.1, latching and asymmetric
         self.retro: list[dict] = []
@@ -1023,6 +1031,20 @@ class Agent:
             return learned, "discriminate:learned"
         return self.drive.choose(self.actions, self.cycle, _where(before)), "draw"
 
+    def members(self) -> dict:
+        """Who passed the contingency gates, and which gate dropped the rest.
+
+        `sep[a]` is bounded by the member count, so ONE passing member makes `sep` 0/1 valued
+        and the argmax returns whatever that member found distinctive -- which would be the
+        family reporting faithfully rather than the selector failing. The gates are counted
+        apart because coverage and stability are different causes."""
+        return {"per_member": dict(sorted(self._members.items())),
+                "passed_per_call": dict(sorted(self._passes.items())),
+                "reads": ("passed_per_call {1: n} means one member contributed and the argmax "
+                          "had no competition. >=2 with agreement means the members are not "
+                          "independent. >=2 with one dominating is the only reading that makes "
+                          "the selector the subject")}
+
     def ties(self) -> dict:
         """Tied-at-top counts for the discriminate branch. `{1: n}` means the winner was
         alone every time and the selector is doing what it says; any mass at `>= 2` is
@@ -1068,13 +1090,26 @@ class Agent:
         if f is None:
             return None
         sep: dict[str, int] = dict.fromkeys(self.actions, 0)
-        for rec in f().values():
+        passed = 0
+        # `.items()`, NOT `.values()`: the member's NAME was being discarded, and "which member"
+        # is half the question. `arc_world.contingency` keys by `m.name` and nothing read it.
+        for name, rec in f().items():
             per_action, stable = rec["per_action"], rec["stable"]
             # TWO GATES, BOTH FROM THE START. Population alone is satisfied by ONE observation
             # per action, and four single values are trivially all-different -- so `sep` would
             # credit noise, which is a non-flat spread on nothing and worse than a flat one.
-            if not set(sep) <= set(per_action) or not stable:
+            #
+            # AND THEY ARE COUNTED SEPARATELY. One `or` cannot say WHICH gate fired, and
+            # coverage and stability are different causes with different repairs -- one number
+            # asked to carry two questions is the shape caught twice this week.
+            if not set(sep) <= set(per_action):
+                self._members[f"{name}:no_coverage"] += 1
                 continue
+            if not stable:
+                self._members[f"{name}:unstable"] += 1
+                continue
+            self._members[f"{name}:passed"] += 1
+            passed += 1
             vals = {a: v for a, v in per_action.items() if a in sep}
             for a, v in vals.items():
                 # DISTINCTIVE MEANS DISTINGUISHABLE FROM EVERY ALTERNATIVE, NOT FROM SOME.
@@ -1084,6 +1119,7 @@ class Agent:
                 # than a parameter that read wrong, which is why correcting it is not tuning.
                 if all(w != v for b, w in vals.items() if b != a):
                     sep[a] += 1          # this member finds THIS action distinctive
+        self._passes[passed] += 1
         if not sep or max(sep.values()) == 0 or max(sep.values()) == min(sep.values()):
             return None
         # THE SAME ARGMAX AS `spread`'s, AND THIS IS THE ONE THAT FIRES. Measured on `g50t`:

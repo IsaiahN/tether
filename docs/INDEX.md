@@ -12225,3 +12225,55 @@ question from the design side.*
 **AND NOTHING NEEDS RE-DECIDING.** *The filing was right and the label was wrong* — the nine atoms
 stay where they were, **and what changes is that the item behind them is two items.**
 
+
+---
+
+# SECTION CHECK: A SELF-MODEL *IS* PRICED AGAINST THE GROUND — SPECIFIED, BUILT, AND DELIBERATELY NOT CONSULTED
+
+**The question was *is a self-model priced against the ground, and if not should it be*. §18.3
+answers the first half in one sentence:**
+
+> *"So they built a **non-simulable family** — four self-hypotheses whose failure modes are
+> **independent**, **each priced by its own ground-facing residual and selected by EWMA**."*
+
+**Sixteen of seventeen. The corpus had the form.**
+
+## AND IT IS BUILT — WITH THE EWMA REMOVED FOR A STATED REASON
+
+    self_family.py  `_sum[name] / self._n`   the per-member ground-facing score
+                    "Redux used an EWMA at alpha = 0.3. The smoothing had no basis at the site
+                     and a mean needs no parameter, so the number went rather than acquiring
+                     a sentence."
+    selected()      "the best-PREDICTING member that has a self. Ties are not broken --
+                     inventing a tie-break would be a preference nobody asked for."
+
+**So the tiebreak `[I]` is reaching for — *not which member is most confident but which has been
+right* — EXISTS. It is `selected()`, and it is scored on the member's own ground-facing residual.**
+
+## AND `_learned_split` REFUSES IT, AT THE SITE, WITH THE REASON
+
+> ***"`contingency()`, NEVER `selected()`.** The question is *do any members separate these actions*
+> — an existential over members. **No member is chosen, so *what kind of thing I am* is never
+> consulted; only *what responded when I acted*.**"*
+
+> **SO THE MECHANISM THAT LOCKS ON DELIBERATELY DOES NOT USE THE PRICING.** *The family is priced,
+> the selector ignores the price by design, and both are stated.*
+
+**AND `selected()` HAS NO CONSUMER AT ALL** — `arc_holdout` 224 records it: *"Nothing reads
+`selected()` yet — the consumer is the proposer, which is its own item."* **Fourth instance of the
+third audit's shape, and this one is scored, correct, and read by nothing.**
+
+## SO THE OPEN QUESTION IS NARROWER THAN POSED
+
+**NOT *should a self-model be priced* — it is.** **The question is whether the ACTION CHOICE should
+consult the price**, and §18.3/§18.4 pull in opposite directions on it:
+
+    §18.4 says   perception must ENTER the proposal, not veto it -- which is why
+                 `_learned_split` exists at all
+    the site says using `selected()` would make the action depend on WHAT KIND OF THING I AM,
+                 which is the identity claim rather than the response
+
+**`[I]`'s pool answer stands and needs no member added.** *More voters on one evidence pool compound
+agreement, not evidence* — **and Figure 7's condition for a fifth is a residual the four do not
+predict, which nothing has shown.** **With four already priced, the question was never how many.**
+
