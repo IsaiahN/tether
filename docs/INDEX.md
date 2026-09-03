@@ -11967,3 +11967,45 @@ the note's whole point is that **nothing would catch the next one.**
 **FIFTH CORPUS-AHEAD RESULT THIS WEEK, and the first where the corpus's own MEASUREMENT — not its
 reasoning — is what decided a build question.**
 
+
+---
+
+# THE MEASUREMENT RECORD IS A SOURCE, AND THE SECTION CHECK HAS NOT BEEN TREATING IT AS ONE
+
+**`[I]`. Every previous corpus-ahead result was a RULE or a DEFINITION** — §12.3's Tier-2 row, Q21's
+pricing sentence, Figure 10's channel decay, §16.1's pairwise-edges budget, `OPERATORS.md`'s
+discriminating test.
+
+**This one was a RECORDED RUN.** *`5 bare + 9 positioned on a 3×3 board: binds, three steps run`* —
+**and it is what decided the question**, not the sentence around it.
+
+> **SO THE SECTION CHECK HAS BEEN SCOPED TO WHAT THE CORPUS ARGUES AND NOT TO WHAT IT MEASURED.**
+> Fifteen checks, and **the first that turned on a number in the corpus rather than a claim in it.**
+
+**AND THE CONSEQUENCE IS SPECIFIC: a measurement records a capability that no rule states.** *Nothing
+in §12.2 or §11.2 says `Ctx.action` must stay untyped.* **The only thing that says so is a run**, and
+a check reading only the prose would have found nothing and approved the deletion.
+
+**Which is the same shape as the two erasures found by reading code rather than docs** — the frame
+stack, the component list — **except the evidence here is the corpus's own, and it was skipped
+because of where it sat in the document rather than because it was hard to find.**
+
+---
+
+# BOARD, AS IT STANDS
+
+    RULED       structure enters by a side channel, not through the betting surface
+                -- `Ctx` already is one, `action` already flows down it, `FRAME` already
+                   declares a non-slot input type. The ruling cost a FILLER, not an architecture
+
+    THE ITEM    one typed field on `Ctx` · `action: Any` UNTOUCHED · the field declared
+                BEFORE-STATE at the site, so the next reader inherits the test and not
+                the exception. NOT BUILT -- no permission asked or given
+
+    OPEN        the cycle bound (arrives with trees, Isaiah's to take)
+                the exhaustion policy (changes what a run is; touches no-restart)
+                the lock-on cause (the only item wanting measurement, not a decision)
+
+**AND THE ITEM IS SMALLER THAN WHEN IT STARTED — third time today.** *Widen the slot* became *type
+one field*, **and both reductions came from reading rather than from deciding.**
+
