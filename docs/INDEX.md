@@ -12542,3 +12542,53 @@ path*, which is the reverse of the ordering just argued.
 frame** — and on `g50t`, a relation forming and breaking inside a nine-frame animation **is invisible
 to a member as well.** *Same erasure, fifth consumer.*
 
+
+---
+
+# FIGURE 7's CONDITION IS *THE RESIDUAL THE LAST ROOM SURFACED* — AND THAT IS UNMEETABLE FROM INSIDE
+
+**Checked, and the wording is stronger than either version we were using:**
+
+> **progress per handoff: `R = h² × S`** — *"the breeder's equation, applied to a chain of rooms:
+> **low ρ between rooms; the next room is picked against the residual the last one SURFACED.**"*
+
+**Two clauses, and both bind:**
+
+    low rho between rooms          the new member's failure mode must be uncorrelated with the
+                                   four -- §18.3's *non-simulable*, same requirement
+    against the residual the       the residual must have been SURFACED by the existing rooms,
+    last one SURFACED              not hypothesised about them
+
+> **SO IT IS NOT *A RESIDUAL THE FOUR DO NOT PREDICT*. IT IS *A RESIDUAL THE FOUR SURFACED*.** *Those
+> are different, and the second is much harder: the four must have PRODUCED the evidence.*
+
+## AND THEY CANNOT PRODUCE IT, BECAUSE NONE OF THEM READS A RELATION
+
+**All four compute egocentric signals. Nothing on their record names a relational shape** — so there
+is no surfaced relational residual to pick a fifth room against.
+
+**AND `outstanding` DOES NOT SUPPLY ONE EITHER.** *It is per-slot bits.* **It names slots, never
+relations** — so the unexplained mass the four leave behind **cannot be read as relational** however
+large it is.
+
+> **WHICH IS A FOURTH CIRCLE, AND THE SAME SHAPE AS §12.4's:** *a relational residual can only be
+> surfaced by something that reads relations, and nothing reads relations.* **The member is the thing
+> that would surface it and the surfacing is its own precondition.**
+
+## BUT THIS CIRCLE HAS A LEGITIMATE EXIT, WHICH §12.4's DID NOT
+
+**The four members receive BOTH GRIDS. So does the seat, from a run's recorded frames.**
+
+> **A RELATIONAL READING CAN BE COMPUTED OFFLINE, BY THE SEAT, OVER A RUN THAT ALREADY HAPPENED.**
+> *That is not a member, not an atom, and not a build in the loop — it is a MEASUREMENT.* **And it
+> either surfaces a relational residual or shows there is none.**
+
+**WHICH IS THE ANSWER TO *THE FIFTH MEMBER IS CHEAP*: it is cheap and its precondition is unmet, and
+the precondition is met by a measurement rather than by a build.** *Building it first would install a
+room chosen against a residual nobody surfaced — which is the one thing Figure 7's condition
+forbids.*
+
+**AND *CHEAP* IS THE WORD THAT SKIPPED REVIEW FOUR TIMES THIS WEEK.** `_overlap`'s *one line*, `by`'s
+*rows on disk*, `ties` on the wrong dict, short runs at 96% of the cost. **Fifth time the estimate
+was the thing to check rather than the item.**
+
