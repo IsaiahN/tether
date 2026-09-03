@@ -11607,3 +11607,52 @@ by your own method and you are not.**
 **RECORDED BEFORE ANYTHING IS FIXED, AS ASKED** — because *the pattern is the thing that would have
 found all three at once*, and a fix to any one of them removes the evidence for the other two.
 
+
+---
+
+# THE FOURTH SITE WAS ALREADY WRITTEN DOWN AND CALLED AN ACCIDENT
+
+**`[I]`.** Three places in this repo say the extractor ceiling was arbitrary:
+
+    arc_atoms 72    "the ceiling on what can be represented is an ENCODING ACCIDENT"
+    arc_atoms 76    "the ceiling is still whatever `_decomposed` HAPPENS TO EMIT"
+    arc_percept 311 "the composable set was decided by which sensors HAPPENED TO return integers"
+
+> **IT WAS NOT AN ACCIDENT. `_decomposed` returns `dict[str, int]`, so what it emits is integers by
+> its own signature — and *which sensors returned integers* was never a coincidence among sensors.
+> It was the slot dict, one level down.**
+
+**AND THE SECOND LINE IS MINE, WRITTEN YESTERDAY.** I rewrote that docstring, named `_decomposed` as
+the thing that sets the ceiling, **and called what it does *happens to emit*.** *The mechanism is in
+my own sentence and the word in front of it says there isn't one.*
+
+**Fourth site, and the first found by someone else reading my note back to me.**
+
+## THIRD INSTANCE OF THE FORECLOSING JUSTIFICATION, AND ITS SHARPEST
+
+    "act on the settled board, not one the world has already left"        -> frame stack
+    "a shape id is a LABEL, exactly like colour"                          -> offset frozenset
+    "the composable set was decided by which sensors returned integers"   -> the list, and the five
+
+**All three are CORRECT. None names what forced the choice.** **And here one hidden cause produced
+three separate sound-looking defences** — which is why the pattern is worse than a gap: **a gap
+produces silence, and this produced three good arguments pointing away from the same place.**
+
+## SO THE RULING ORDER INVERTS
+
+**Two items were in front of Isaiah — a collection type, and publishing `SHAPE`'s frozenset.**
+**Both are downstream of one signature.**
+
+    dict[str, int]   the constraint. Every slot is an integer
+      |- no collection type can enter a slot          -> COUNT unreachable, quantifiers degenerate
+      |- no frozenset can enter a slot                -> SHAPE published as a label
+      |- no frame stack can enter a slot              -> intermediate frames dropped
+
+> **`dict[str, int]` IS THE RULING, AND THE OTHER TWO ARE CONSEQUENCES OF IT.** Deciding either
+> alone treats a symptom, **and deciding the signature settles both without either being argued
+> separately.**
+
+**AND THE SIDE CHANNELS ARE THE EXISTENCE PROOF THAT IT IS A CHOICE.** `contacts`, `sensors`, `aff`
+and `objective` **already reach the loop with their structure intact.** *The loop can read a
+non-integer; it just cannot hold one in a slot.*
+
