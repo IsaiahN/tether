@@ -11438,3 +11438,66 @@ one*.** **Now the general reason is measured: FIVE OF THIRTEEN DECLARED TYPES HA
 ALL.** *So `closure` cannot extend past them, and depth caps at one on every branch that reaches
 them.* **The circle is not a property of the nine — it is a property of the type graph's shape.**
 
+
+---
+
+# THE `COUNT` CLAIM: SOURCE CONFIRMED, MY UNREACHABLE CLAIM FALSIFIED BY MY OWN NOTES
+
+## 1 · THE SOURCE IS §12.3 AND ONLY §12.3
+
+> *"Note what is not here: symmetry, containment, holes, counting-by-colour, alignment. All of them
+> compose from the nine — `inside` from position and extent, **`count` from components plus a colour
+> filter**, `symmetry` from shape plus a reflection. **They are Tier 2 and the agent should have to
+> reach for them.**"* — `ARC_AGENT` §12.3, lines 618–620.
+
+**Confirmed. It is §12.3's alone**, and any argument resting on the figures carrying it has no
+support.
+
+## 2 · `all`/`any`/`none` ARE NOT FOLDS
+
+    Atom("all",  lambda v, _c: int(bool(v)), PRED, OBJ)
+    Atom("any",  lambda v, _c: int(bool(v)), PRED, OBJ)
+    Atom("none", lambda v, _c: int(not v),   PRED, OBJ)
+
+**`PRED → OBJ`, one value in, one value out. No collection appears in the signature or the body.**
+
+> **AND `all` AND `any` ARE EXTENSIONALLY IDENTICAL — the same lambda under two names.** Which is
+> **correct on a singleton**, where *all of one* and *any of one* agree — **so the two atoms are
+> indistinguishable because the thing they quantify over is always exactly one.** *The quantifier
+> layer never quantifies.*
+
+## 3 · MY OWN RECORD CARRIED THE COUNTER-ARGUMENT, AND I QUOTED IT THIS MORNING
+
+    §12.3, row 1:  | `components(frame)` | `FRAME → [OBJ]` |      A LIST
+    sensors.py:    Sensor("components", _components, (FRAME,), OBJECT, ...)   NOT A LIST
+
+**`_components` genuinely returns `list[dict]`.** **§12.3 types it `[OBJ]`. The code declares
+`OBJECT`. The bracket was dropped at implementation.**
+
+> **I TRANSCRIBED THAT ROW, WITH THE BRACKET, INTO THIS FILE THIS MORNING** — and then computed
+> *declared but never produced* over a type system with **no collection type**, and concluded `COUNT`
+> was unreachable by construction. **The refutation was in the table I had already quoted.**
+
+**Third time today a law was in hand and not applied, and the first where the law was my own note.**
+*The count exists: `len()` of the list the perception layer already holds.*
+
+## SO THE GAP IS A THIRD THING — NEITHER A SENSOR NOR A REDUCE
+
+**Not a missing sensor**, and **not a missing fold beside `all`/`any`/`none`** — **the fold has
+nothing to fold over.** **The SOURCE type was erased, not the target.**
+
+    §12.3 has        FRAME -> [OBJ]      a type constructor
+    the code has     FRAME -> OBJECT     the constructor dropped
+
+**With no collection type, a reduce cannot be TYPED**, which is why the three quantifiers degenerated
+to truthiness on a single value. **The two facts are one fact.**
+
+**AND `OBJECT` IS AN `A6i` — THE THIRD IN THIS TYPE SYSTEM.** It means *a thing on the board* and
+*the list of things on the board*, and `components` returns the second while declaring the first.
+**After `ATTR` and after `OBJ × OBJ`.**
+
+> **AND THE ABSTENTION IS COVERING FOR IT.** A term typed `OBJECT → COLOUR` fed `components`' output
+> calls `pick` on a **list**, which is not a dict, **which now returns `NOT_RESOLVED`.** *The extractor
+> abstention built yesterday is what stops the list/object conflation producing garbage* — **silently,
+> and for the wrong reason.**
+
