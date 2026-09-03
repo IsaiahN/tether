@@ -11656,3 +11656,61 @@ produces silence, and this produced three good arguments pointing away from the 
 and `objective` **already reach the loop with their structure intact.** *The loop can read a
 non-integer; it just cannot hold one in a slot.*
 
+
+---
+
+# THE RECORD DIFFED AGAINST THE FIGURES — THREE RESULTS, AND THE GATING ONE FIRST
+
+**The thirteen figures are SVG, therefore TEXT.** *Twelve plus `Figure_recursive_transformation`,
+greppable, and the exhaustive check the corpus is small enough for is available and was never taken.*
+
+## 1 · FIGURE 12's PRICING DOES NOT DECIDE THE RULING — AND THE CHECK FOUND A CONTRADICTION
+
+**`alphabet()`'s DOCSTRING and its BODY disagree, in the same function:**
+
+    docstring   "A shape is a subset of its own bounding box, so the uniform code over what it
+                 could have been is `h*w` bits and the alphabet is `2**(h*w)`"
+    body        # THE COUNT OF LABELS, NOT THE SPACE OF SHAPES ... `2**(h*w)` priced the space
+                # of shapes that COULD exist, which is not what the slot holds
+                out[s] = max(2, len(_shapes))
+
+**The body is the newer one and it is right about the slot as it stands.** *The docstring describes
+the version it replaced and was never updated.*
+
+> **AND IT ANSWERS THE GATING QUESTION: THE PRICING FOLLOWS THE SLOT, IT DOES NOT CONSTRAIN IT.** *A
+> bond costs what it could have been* prices whatever is chosen — **so Figure 12 does not decide
+> widen-versus-project. It is not a lookup.**
+
+**WHAT IT DOES SUPPLY IS THE COST, MEASURED AND LARGE.** The removed comment states it: **`2**(h*w)`
+charged 4,096 bits for a full-board object.** **So a slot holding the frozenset makes a shape miss
+dominate every other residual by orders of magnitude** — *the pricing does not forbid widening; it
+makes the consequence visible and it is not small.*
+
+## 2 · EVERY CLAIM I SOURCED TO A FIGURE VERIFIES — FOURTEEN OF FOURTEEN
+
+*arrangement is the substance · never add an atom · throws away detail · the ground does not decay ·
+you have lost touch · agent-and-habitat · introduce never subtract · manufactures a gradient · no
+finite number arrives · arity · elimination · idempotent · Chaitin · permanent work* — **all present
+in the SVG text.**
+
+**Reported as a CLASS and not itemised, because the class being clean is the result.** *The worry was
+that being wrong once meant not knowing whether it was once. On my own figure citations it is zero.*
+
+## 3 · THE TRANSCRIPTION CLASS HAS A FOURTH `A6i`, AND IT SPANS THE CORPUS/CODE BOUNDARY
+
+    §12.3, all nine rows   `OBJ`      the thing on the board
+    grammar.T.OBJECT       "OBJECT"   "a slot's identity"      <- what §12.3 means
+    grammar.T.OBJ          "OBJ"      "a complete objective"   <- something else entirely
+
+> **THE CORPUS'S `OBJ` IS THE CODE'S `OBJECT`, AND THE CODE'S `OBJ` IS THE OBJECTIVE.** *Three
+> letters, two referents, across the boundary* — **so a reader transcribing §12.3 faithfully writes
+> `OBJ` and gets the objective.**
+
+**AND IT IS THE `[OBJ]` BRACKET'S OTHER HALF.** §12.3 row 1 is `FRAME → [OBJ]`, which **in the code's
+vocabulary reads as a list of OBJECTIVES.** Whoever implemented it **took the right referent and
+dropped the constructor** — *one row, two transcription hazards, and both fired.*
+
+**`arc_atoms` records the `OBJECT`/`OBJ` split as an INTERNAL discovery — 225 meaningless pipelines —
+and does not record that §12.3 uses `OBJ` for the other one.** **The note that would have prevented
+this transcription is the one place the collision is already written down.**
+
