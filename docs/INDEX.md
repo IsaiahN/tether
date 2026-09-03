@@ -11501,3 +11501,58 @@ to truthiness on a single value. **The two facts are one fact.**
 > abstention built yesterday is what stops the list/object conflation producing garbage* — **silently,
 > and for the wrong reason.**
 
+
+---
+
+# THE TYPE VOCABULARY AUDITED DIRECTLY — EIGHT DOUBLE MEANINGS, FIVE OF THEM NEW
+
+**Run deliberately rather than waiting for a fourth to surface**, which is the discipline the third
+audit established. **One pass, and it more than doubles the known set.**
+
+| type | one sense | the other | |
+|---|---|---|---|
+| `ATTR` | a composition SPACE | a type | ruled — `above(colour)` |
+| `OBJ × OBJ` | same-frame pair | before/after pair | ruled — split built |
+| `OBJECT` | a thing on the board | **the LIST of things** | found today — `components` |
+| **`SHAPE`** | **normalised offset frozenset** | **episode-local int id** | **NEW, and the biggest** |
+| **`POSITION`** | the `(row, col)` PAIR (§12.3) | a scalar coordinate (code) | **NEW** |
+| **`EXTENT`** | the `(h, w)` pair | a scalar | **NEW** |
+| **`DELTA`** | the `(drow, dcol)` pair | a scalar | **NEW** |
+| **`FRAME`** | a GRID (`_changed` calls `_grid`) | the RESPONSE (`arc_world._frame`) | **NEW, cross-boundary** |
+
+## `SHAPE` IS THE ONE THAT MATTERS, AND IT RETIRES YESTERDAY'S COST
+
+    shape_of(obj)              -> frozenset of normalised offsets      STRUCTURAL
+    state[f"{name}.shape"]     -> sid, an episode-local integer        A LABEL
+
+**§12.3's own wording for sensor 5 is *normalized offsets*. The frozenset IS the specified sensor.
+The published slot is an arbitrary integer** — recorded in `arc_percept`'s own comment as *"a LABEL,
+exactly like `colour`: arbitrary, comparable, never orderable, and valid only for the episode."*
+
+> **SO *`shape` IS A LABEL, AND THAT FLATTENS SYMMETRY, SIMILARITY, ROTATION, ROLLING, SPINNING AND
+> INTERLOCKING* IS NOT AN INHERENT LIMIT.** It is **a consequence of publishing the wrong one of two
+> quantities under one name.** **The structural version is computed on every frame and discarded** —
+> *the same shape as the frame stack, and the same shape as `components`' list.*
+
+**Three erasures, one pattern: the richer quantity is produced, the poorer one is published, and the
+type name covers both.**
+
+## AND `POSITION` REPRODUCES THE FAILURE THAT MOTIVATED THE `ATTR` SPLIT
+
+**`ORDERED = (POSITION, EXTENT, DELTA)` and `above` accepts `POSITION`.** **`row` and `col` are both
+`POSITION`.**
+
+> **SO `above(row, col)` IS WELL-TYPED AND MEANINGLESS** — a row compared against a column. **Exactly
+> `above(shape)`, which is the failure the `ATTR` split was built to stop.** *Fourth instance, in the
+> type the split left alone.*
+
+## WHAT THIS IS AND IS NOT
+
+**It is a READING, not a proposal.** *A collection type is a change to the type vocabulary, and the
+type vocabulary is Isaiah's.* **Nothing here is built and nothing is recommended.**
+
+**But the pattern is now stateable:** **each double meaning was found by a different question** —
+`ATTR` by ordering, `OBJ × OBJ` by timing, `OBJECT` by counting, `SHAPE` by the relation vocabulary,
+`POSITION` by this audit. **Five routes, one defect class, and the audit found in one pass what four
+separate investigations found in a week.**
+
