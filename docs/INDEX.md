@@ -9172,15 +9172,19 @@ regardless of how it was found.
 **So the bound is not in the corpus, exactly as read -- and it becomes necessary the moment trees
 arrive.** Same latency class as the other three, **and the first that is not a number.**
 
-**AND `snaps._acyclic` CARRIES THE RULING, one level over, in its own docstring:**
+**AND THE PLACEMENT IS RULED IN OUR OWN CODE — NOT IN THE CORPUS. CORRECTED 2026-09-03.**
+`snaps.py` is a tracked working file, **so the sentence below is ours**, and the version of this
+section that read *the corpus does have the ruling on where it belongs* was **wrong in both halves:
+the corpus has no bound AND no placement.** *When trees arrive that is a decision to take, not one to
+look up.* **`snaps._acyclic`'s docstring, ours:**
 
 > *"A `chain` slot reads its target's NEW value, so chain-to-chain would be a cycle inside one tick.
 > **Repair at the SPEC, not with a guard at evaluation -- a world that cannot be evaluated is a
 > malformed world, not a runtime case to handle.**"*
 
 **Transferred: refuse a cyclic composition AT CONSTRUCTION, never with a runtime guard.** The corpus
-does not have the bound and **does have the ruling on where it belongs**, which is the more expensive
-half.
+has **neither the bound nor the placement** — *see the correction above; the placement sentence is
+`snaps.py`'s and `snaps.py` is ours.*
 
 ## 3 · THE CONSUMER FOR `OBJ` IS BUILT, TYPED, AND IN EVERY BET
 
@@ -11814,4 +11818,53 @@ dated rulings.**
 label, correct for the accounting* — recorded as a decision, was a bug; and *count from components
 plus a colour filter* — attributed to figures that **do not mention counting at all.** **Both by
 accident. This one by looking, which was the point.**
+
+
+---
+
+# ISAIAH'S TO DECIDE — FOUR, AND NONE IS A LOOKUP
+
+**Consolidated so they are in one place rather than distributed across the sessions that found
+them.** *Each has been checked against the corpus and the corpus does not settle it.*
+
+## 1 · `dict[str, int]` — THE SLOT SIGNATURE
+
+**One constraint, four sites:** no collection in a slot (`COUNT` unreachable, quantifiers degenerate),
+no frozenset (`SHAPE` published as a label), no frame stack (up to nine frames dropped per action),
+integers only (the *encoding accident* that set the composable set).
+
+**The question is WIDEN or PROJECT**, and they are different architectures — `correction_bits` prices
+an integer against an alphabet, so **widening changes what the loop can price** and projection changes
+what each sensor must produce.
+
+**FIGURE 12 DOES NOT DECIDE IT** — checked. *A bond costs what it could have been* prices whatever is
+chosen. **What it supplies is the cost, measured: `2**(h*w)` charged 4,096 bits for a full-board
+object**, so a frozenset slot makes a shape miss dominate every other residual.
+
+**And the four side channels are the existence proof it is a choice**: `contacts`, `sensors`, `aff`,
+`objective` all reach the loop with structure intact. *The loop can read a non-integer; it cannot hold
+one in a slot.*
+
+## 2 · THE CYCLE BOUND — AND THE RECORD SAID THIS WAS SETTLED
+
+**The corpus has NO bound on cyclic composition and NO ruling on where one belongs.** *The placement
+sentence is `snaps.py`'s, which is ours, and the record attributed it to the corpus until today.*
+
+**Not live yet**: `Term.atoms` is a tuple, so a chain cannot close by construction. **It becomes a
+decision the day trees arrive**, and it arrives WITH them rather than after.
+
+## 3 · THE EXHAUSTION POLICY
+
+**`spend()` now counts. `Budget.exhausted()` and `Termination`'s `cap` are unwired.** **Deciding what
+happens at exhaustion changes what a run IS**, and it interacts with the **no-restart ruling** —
+*the seat restarting on the agent's behalf is the same purchase against the same resource.*
+
+## 4 · THE LOCK-ON CAUSE — OPEN, AND NO FIX PROPOSED
+
+**Ties are ruled out**: `sep:1` at 84.5% and 90%. **`discriminate` fires zero times on both boards.**
+**93 of 131 acts on `g50t` and 129 of 152 on `ls20` come from `_learned_split`, and what makes it
+return the same action is unexplained.**
+
+**No fix is on the board deliberately** — *the last three proposals were mis-sized in the same
+direction, and a cause comes first.*
 
