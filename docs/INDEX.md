@@ -11556,3 +11556,54 @@ type vocabulary is Isaiah's.* **Nothing here is built and nothing is recommended
 `POSITION` by this audit. **Five routes, one defect class, and the audit found in one pass what four
 separate investigations found in a week.**
 
+
+---
+
+# THE THREE ERASURES HAVE ONE CAUSE, AND IT NAMES WHERE THE FOURTH WOULD BE
+
+**The pattern:** *the richer quantity is produced, the poorer one is published, and the type name
+covers both.*
+
+    the frame STACK        -> one grid          `frame[-1]`, six to eight dropped on 39% of g50t
+    the component LIST     -> an object         `FRAME -> [OBJ]` typed as `FRAME -> OBJECT`
+    the offset FROZENSET   -> an integer id     §12.3's sensor 5, replaced by a label
+
+**Three, found by three unrelated routes — the identity question, the counting question, the relation
+vocabulary — in one day.**
+
+## AND THE CAUSE IS ONE LINE
+
+    def observe(self) -> dict[str, int]
+    def _decomposed(self) -> dict[str, int]
+    Decompose = Callable[[Any], dict[str, int]]
+
+> **THE SLOT DICT IS `dict[str, int]`. ANYTHING THAT MUST BECOME A SLOT MUST BECOME AN INTEGER.**
+> **That is not three erasures with a family resemblance — it is one constraint with three
+> instances.**
+
+**A frozenset cannot be an `int`, so it becomes `sid`. A list cannot be an `int`, so it becomes
+per-object scalar slots. A stack of grids cannot be an `int`, so it becomes the last grid and then
+scalars.** *Each loss is the shortest path from a structure to an integer.*
+
+## WHICH MAKES IT PREDICTIVE, AND THE PREDICTION HAS A CONTROL
+
+**The fourth erasure will be at whatever else has to pass through the slot dict.** **And the control
+is already in the code: everything published by a SIDE CHANNEL keeps its structure.**
+
+    contacts()   -> dict[str, list[str]]     STRUCTURE INTACT -- its own method
+    sensors()    -> Registry                 intact
+    aff.report() -> profiles, per kind       intact
+    objective()  -> (str, float)             intact
+
+**Four side channels, no erasure in any of them.** *The loop reads them directly and they never have
+to be integers.* **So the boundary is exact: pass through `observe()` and you are flattened; arrive
+by your own method and you are not.**
+
+> **AND IT EXPLAINS WHY THE THREE WERE HARD TO SEE.** Each looked like a local decision with a local
+> reason — *act on the settled board, not one the world has left* · *the composable set was decided
+> by which sensors returned integers* · *a shape id is a label, like colour.* **Three good local
+> reasons, one shared constraint, and none of the three mentions it.**
+
+**RECORDED BEFORE ANYTHING IS FIXED, AS ASKED** — because *the pattern is the thing that would have
+found all three at once*, and a fix to any one of them removes the evidence for the other two.
+
