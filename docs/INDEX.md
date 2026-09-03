@@ -11918,3 +11918,52 @@ only THAT there is one."* **So operands got a type after a real bug; `action` ne
 **FOURTH INDEPENDENT ROUTE TO THE TRUTH-SPACE CONSUMER**, and the first that reaches it without
 needing the slot dict to change at all.
 
+
+---
+
+# SECTION CHECK ON TYPING `Ctx` — THE CORPUS DOES NOT SPECIFY IT AND TWICE BEARS ON IT
+
+**§12.2 specifies `Sensor`, not `Ctx`. Nothing types `Ctx`'s fields.** *But two passages decide the
+item anyway, and neither was in hand.*
+
+## 1 · `Ctx.action: Any` IS A MEASURED CAPABILITY, NOT AN OVERSIGHT
+
+> ***"It can CARRY one.** `Ctx.action` is typed `Any`, so a compound action passes through the atoms
+> untouched. A world advertising five bare actions and one carrying `(x, y)` binds and runs...*
+> **`5 bare + 9 positioned on a 3x3 board: binds, three steps run`***
+
+**The corpus RAN it.** *Positioned actions work because `action` is untyped* — **so *type `Ctx`'s
+fields* would remove a capability the corpus records with a measurement behind it.**
+
+> **THE REFINEMENT: TYPE THE NEW FIELD, LEAVE `action` ALONE.** The proposal is right about the
+> hazard and wrong about the scope — **and this is the first repair this week that would have deleted
+> something recorded as working.**
+
+## 2 · AND `Ctx` HAS A RECORDED HAZARD ABOUT ADDING FIELDS AT ALL
+
+**`INDEX` 216, on the tautology guard** — *a φ that reads the after-state compresses perfectly and
+predicts nothing:*
+
+> *"Here there is no guard and none is needed: `Ctx(action, operands=...)` gives a term **only the
+> before-value, the action, and before-state operands.** The capability does not exist rather than
+> being blocked. **And nothing says so — a refactor adding the after-state to `Ctx` for a plausible
+> reason would silently delete it.**"*
+
+**THE TAUTOLOGY GUARD IS SATISFIED BY WHAT `Ctx` DOES NOT CONTAIN.** *Adding any field is the exact
+move that note warns about*, and **nothing checks it.**
+
+**THE PROPOSED FIELD IS SAFE, AND ONLY FOR A REASON THAT MUST BE STATED:** `contacts()` is
+**before-state** — frame-cached, invalidated on `step`, read before the action. **So it does not
+reach the outcome.** *But the safety is a property of that particular field, not of the change*, and
+the note's whole point is that **nothing would catch the next one.**
+
+## SO THE ITEM IS SMALLER AND HAS ONE PRECONDITION
+
+    NOT      "type Ctx's fields"            -- would delete the positioned-action capability
+    YES      add ONE typed field for the side channel, leave `action: Any` untouched
+    AND      state that the field is BEFORE-STATE, because the tautology guard is satisfied
+             by absence and a plausible-looking addition is exactly how it dies
+
+**FIFTH CORPUS-AHEAD RESULT THIS WEEK, and the first where the corpus's own MEASUREMENT — not its
+reasoning — is what decided a build question.**
+
