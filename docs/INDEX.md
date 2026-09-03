@@ -12382,3 +12382,59 @@ a relation, so the key cannot ask for one.**
 **Filed as three items with separate weight. One statement: the search can only look for what the
 perception records, and the perception records one relation.**
 
+
+---
+
+# `Objects` ALREADY COMPUTES THE FULL CROSS-FRAME PAIR MATRIX AND KEEPS ONE NAME
+
+    for obj in found:
+        best, score = None, 0.0
+        for name, old in self.tracked.items():
+            r = overlap(obj["cells"], old["cells"])      # EVERY new x EVERY tracked
+            if r > score or ...:
+                best, score = name, r
+
+> **`r` IS COMPUTED FOR EVERY PAIR OF (NEW OBJECT, TRACKED OBJECT) AND ONLY `best` SURVIVES.**
+> *`score` is a local, overwritten each comparison, and gone when the loop advances.* **A complete
+> N×M cross-frame overlap matrix, every frame, reduced to one name per object.**
+
+**AND `contacts()` DOES THE SAME SAME-FRAME:** `for i, a in enumerate(names): for b in names[i+1:]`
+— **a full pair matrix, kept for the frame, and dropped on `step`.**
+
+## SO ALL THREE TWO-PLACE SENSORS ARE COMPUTED AND ONLY ONE SURVIVES, AS SCALARS
+
+    touching   `contacts()`     FULL same-frame matrix    kept one frame, dropped on `step`
+    overlap    the matcher      FULL cross-frame matrix   discarded immediately, argmax name kept
+    delta      `delta_of`       per matched object        PUBLISHED, as `drow`/`dcol` scalars
+
+**One of three crosses, and it crosses flattened.** *The other two are computed in full and thrown
+away* — **which is the erasure pattern's fourth site, and the richest one yet: a matrix rather than a
+set or a stack.**
+
+## WHICH SIZES THE REQUEST — STEP TWO IS A STORE, NOT A COMPUTATION
+
+**`[I]`'s three ordered needs:** more than one relation published · a per-pair record surviving a
+frame · a key that can name a relational attribute.
+
+> **STEP TWO IS NOT A BUILD OF THE READING. THE READINGS EXIST.** *Both matrices are computed every
+> frame.* **What does not exist is anything that keeps one across a frame boundary** — so step two is
+> **a store, keyed by pair, updated where the matrix is already built.**
+
+**And step one is smaller than it looked for the same reason**: `contacts()` already publishes the
+same-frame matrix — **it is `slot_types` that cannot name a relation, not perception that cannot
+compute one.**
+
+**STEP THREE IS THE ONE THAT IS NEITHER.** `varies_types` maps varying SLOTS to slot types. **A
+relational attribute needs a slot-like identity for a PAIR, and nothing in the loop has one.** *That
+is the build, and the other two are a publish and a store.*
+
+## AND THE FABRICATION'S BLIND SPOT IS WORTH ITS OWN LINE
+
+**The cycle bound was mis-attributed to the corpus and at least existed as a decision.** **The
+predicate residual existed nowhere and was cited as a constraint on what could be built.**
+
+> **A CLAIM CARRIED ONLY IN CONVERSATION HAS NO RECORD TO CHECK AGAINST.** *The corpus catches false
+> claims about the corpus. Nothing catches a claim about a decision that was never recorded
+> anywhere* — **and the ruling sweep's stated limit was earlier-session attributions, which is a
+> narrower hole than the one that exists.**
+
