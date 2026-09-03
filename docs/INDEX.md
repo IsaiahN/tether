@@ -11714,3 +11714,53 @@ dropped the constructor** — *one row, two transcription hazards, and both fire
 and does not record that §12.3 uses `OBJ` for the other one.** **The note that would have prevented
 this transcription is the one place the collision is already written down.**
 
+
+---
+
+# THE LIBRARY-CITATION AUDIT: THE CLASS IS CLEAN, AND THE INSTRUMENT FAILED THREE TIMES IN FOUR
+
+## THE CITATIONS VERIFY — EVERY ONE
+
+    Contain  = To + So                ATOMS.md 229, and CHEMISTRY.md 92 states it too
+    Abut     = Contact + So           ATOMS.md 418
+    Layer    = Abut + Contr partial   ATOMS.md 419
+    Separate = Decompose + Co         ATOMS.md 413
+    Collide  = So + Ca                ATOMS.md, verbatim including the gloss
+    Melt / Freeze / Boil = Tmp + Ph   ATOMS.md, all three
+    "Merge and Abut differ only by whether the originals persist"
+                                      ATOMS.md 417-418: "the seam is gone; neither persists"
+                                      against "two meet and BOTH persist"
+
+**Reported as a class. Two classes checked, two clean — fourteen figure citations and eight library
+citations.**
+
+## AND THE INSTRUMENT PRODUCED THREE FALSE ABSENCES IN FOUR ATTEMPTS
+
+    grep -rlF "Contain = To + So"   -> "only in RELATIONS.md"   FALSE. The library writes
+                                                                 `| Contain | To + So |`
+    ls | tail -15                    -> "ATOMS.md doesn't exist" FALSE. I truncated the listing
+    grep "^| Abut |"                 -> "no row"                 FALSE. The row is `| **Abut** |`
+
+> **IN AN AUDIT WHOSE PURPOSE IS FINDING FALSE CLAIMS, MY INSTRUMENT'S FALSE-NEGATIVE RATE WAS THREE
+> IN FOUR** — and every one of the three would have been reported as *the library never said it*,
+> **which is the exact failure the audit was called to find.**
+
+**THE CAUSE IS ONE THING: THE LIBRARY'S FORMAT VARIES AND MY TESTS WERE EXACT.** Plain table rows,
+**bolded** table rows, prose, and `/`-separated pairs in `CHEMISTRY.md` — **four notations for one
+kind of claim**, and a string test matches one of them.
+
+## WHICH IS THE RESULT THAT MATTERS, AND IT IS ABOUT THE TWO KNOWN FAILURES
+
+**`[OBJ]` and *count from components* were both a source saying something the reader missed.** **My
+instrument for catching that class is demonstrably prone to missing** — *three times in four, in the
+run convened to catch it.*
+
+> **SO A CLEAN CLASS IS WEAKER EVIDENCE THAN IT LOOKS.** *Fourteen figure citations verified* used the
+> same kind of test on a source whose format is uniform, **which is why it held.** **On the library it
+> would have failed three times.** **The figure result stands; the method does not transfer.**
+
+**RECORDED AS A LIMIT ON THE AUDIT ITSELF, NOT AS A FINDING ABOUT THE LIBRARY.** *The remaining
+sources — `OPERATORS.md`'s other five, `NSM_GRAMMAR`, `TRAVERSAL`, `ADJACENCY`, the JSONs, and both
+documents Isaiah wrote this week — have NOT been checked*, and checking them with the instrument that
+just failed three times would produce a clean report and mean nothing.
+
