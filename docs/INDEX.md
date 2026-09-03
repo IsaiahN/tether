@@ -12009,3 +12009,54 @@ because of where it sat in the document rather than because it was hard to find.
 **AND THE ITEM IS SMALLER THAN WHEN IT STARTED — third time today.** *Widen the slot* became *type
 one field*, **and both reductions came from reading rather than from deciding.**
 
+
+---
+
+# THE BUILD STOPS AT A DESIGN QUESTION, AND THE QUESTION IS ONE NOBODY HAS ANSWERED
+
+**Instruction was BUILD. The field and its filler are buildable and I have not shipped them, because
+a field nothing reads is exactly the shape the third audit has been finding for two days** —
+*`agency`, `term`, `Budget`, `Preconditions`* — **and *never ship half a mechanism* is the rule that
+covers it.**
+
+## THE CONSUMER OF A COMPOSITION IS AN ATOM, AND THERE IS NO OTHER KIND
+
+**A composition is a `Term`, a `Term` is a chain of `Atom`s, and `Term.apply` is
+`value = a.fn(value, ctx)`.** *So "let a composition read the side channel" means "let an atom read
+it", and nothing else counts.*
+
+## AND A TWO-PLACE SENSOR HAS NO ATOM SHAPE — WHICH IS THE UNANSWERED QUESTION
+
+    ONE-PLACE   `colour(obj)` OBJ -> COLOUR     wrapped directly. `_extract` did this, eight times
+    TWO-PLACE   `touching(a,b)` OBJ x OBJ -> BOOL   ** no wrapping exists **
+
+> **`_extract` ANSWERED THE ONE-PLACE CASE AND NOBODY ANSWERED THE TWO-PLACE ONE.** An atom receives
+> **one value and a `Ctx`.** A two-place sensor needs a second operand, and the second operand is
+> **exactly what `Ctx` would carry** — *so the question is not whether the channel exists, it is what
+> shape a two-place sensor takes when it becomes an atom.*
+
+**THREE ANSWERS ARE AVAILABLE AND THEY ARE DIFFERENT ARCHITECTURES:**
+
+    A  a new Ctx field, resolved PER SLOT by the filler, and an atom that reads it
+       -- the operand pattern, and it costs ONE ATOM
+    B  `term.operand` names a side channel rather than a slot
+       -- reuses `operand_type`, costs no atom, and OVERLOADS `operand`: a fifth `A6i`
+    C  the second operand goes in `Ctx.operands` and the filler resolves non-slot sources
+       -- smallest, and `operands` elements are UNTYPED, which is the hazard already found
+
+**AND THE COST IS RECORDED AGAINST A: `INDEX` 231** — *the atom COUNT moves `space_estimate`,
+`coverage`, `λ`, `V`, and every number on this panel was measured under the current set.* **Adding an
+atom supersedes those readings.**
+
+**B's cost is the one this week has been about**: **four `A6i`s found, three by accident**, and B
+creates a fifth deliberately.
+
+## SO: NOT BUILT, AND THIS IS WHY
+
+**The ruled item — one typed field — is half of A.** *Shipping it alone installs a producer with no
+consumer, which is the defect class this session has spent two days measuring.*
+
+**And choosing between A, B and C is a design question**, which the standing instruction says to
+**record rather than proceed on.** **`_extract`'s precedent covers one-place sensors and says nothing
+about two.**
+
