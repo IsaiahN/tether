@@ -12328,3 +12328,57 @@ key, so one published relation caps everything downstream however large the libr
 
 **SECOND THING TODAY THAT TURNED OUT TO BE A PERCEPTION LIMIT WEARING A LIBRARY LABEL.**
 
+
+---
+
+# A PERCEPTION LIMIT WEARING ANOTHER LABEL — THREE INSTANCES, AND THE TEST
+
+**`[I]` called it two. It is three, and the third was already found today under its own heading.**
+
+    filed as      A LIBRARY gap -- "the library is not loaded", 2,700 entries unconsumed
+    actually      the RETRIEVAL KEY is built from `slot_types`, and a relation has no slot,
+                  so `varies_types` can never name one. Perception decides the key
+
+    filed as      AN ACCOUNTING ruling -- "`shape` is a label, correct for the accounting"
+    actually      `shape_of` returns the offset FROZENSET, §12.3's sensor 5 as specified,
+                  and the slot publishes an episode-local int. Computed and discarded
+
+    filed as      A TYPE-GRAPH gap -- "`COUNT` has no producer, so no chain reaches it"
+    actually      `_decomposed` returns `dict[str, int]`, so the component LIST cannot enter
+                  a slot. The collection was erased at perception
+
+> **THREE CAPABILITIES FILED AGAINST Γ, THE ACCOUNTING AND THE TYPE GRAPH, AND ALL THREE WERE
+> PERCEPTION.** *The loop's inputs are exactly what perception publishes, so a gap upstream of the
+> loop presents as a gap inside it.*
+
+**THE TEST, AND IT IS ONE QUESTION:** *before filing a gap against Γ, ask what perception hands it.*
+**Each of the three would have been caught by that question and none was asked it.**
+
+---
+
+# CORRECTED: THERE IS NO PREDICATE RESIDUAL — IT WAS NEVER GRANTED
+
+**`[I]` has cited it at least twice this week as *granted months ago and gated on a vacuity check*.
+CHECKED: it does not exist, under that name or as a channel.**
+
+    tether.py 101   TRANSITION, REWARD, BRACKET = "transition", "reward", "bracket"
+
+**Three channels, which is Figure 1's three — *transition · reward · bracket*.** **No predicate
+channel, no pair channel, and nothing in the corpus names one.** *So its state is not "gated"; it was
+never granted, and a decision has been cited that was never taken.*
+
+**Which is the middle class of the ruling audit, arriving from the other side** — *recorded as
+settled when nobody settled it* — **and this one was carried in conversation rather than in the
+record, which is why the ruling sweep did not catch it.**
+
+---
+
+# AND THREE ITEMS ARE ONE
+
+**The twenty unreachable relations · the 2,700-entry library with no consumer · the attribute index
+keyed by what the sensorium publishes.** **All downstream of one fact: `slot_types` has no entry for
+a relation, so the key cannot ask for one.**
+
+**Filed as three items with separate weight. One statement: the search can only look for what the
+perception records, and the perception records one relation.**
+
