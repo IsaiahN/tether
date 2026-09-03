@@ -12277,3 +12277,54 @@ consult the price**, and §18.3/§18.4 pull in opposite directions on it:
 agreement, not evidence* — **and Figure 7's condition for a fifth is a residual the four do not
 predict, which nothing has shown.** **With four already priced, the question was never how many.**
 
+
+---
+
+# THE FOURTH ROW IS REFUTED BY THE CODE, AND THE RETRIEVAL KEY CANNOT CARRY A RELATION
+
+## THE FOURTH ROW — ZERO MEMBERS PASSING — CANNOT PRODUCE THE LOCK-ON
+
+    if not sep or max(sep.values()) == 0 or max(sep.values()) == min(sep.values()):
+        return None
+
+**Zero members passing leaves every `sep[a]` at 0, so `max == 0` and the method returns `None`.**
+*`None` means no action was proposed by this branch, so `by` records `draw` — not
+`discriminate:learned`.*
+
+> **AND `discriminate:learned` FIRED 93 TIMES ON `g50t` AND 129 ON `ls20`.** **So members DID pass,
+> and `sep` was both non-zero and non-flat on every one of those calls.** **The guard already
+> excludes the empty case, and the argmax never runs over nothing.**
+
+**Refuted from the code before the run landed** — *and the row was worth adding, because ruling it
+out is a result and assuming it away was not.*
+
+## AND THE THREE READS
+
+**1 · `contacts()` IS RECOMPUTED PER FRAME AND DISCARDED.** `self._contacts = None` on `step`,
+rebuilt on demand, **and nothing persists.** *No two-place reading survives a frame.*
+
+**2 · NOTHING HOLDS A PER-PAIR RECORD.** `Affordances.seen` is keyed by KIND; `Preconditions` by
+ACTION pair; §12.4's grouping by `(type, value)`. **No structure anywhere is keyed by an object
+pair**, and the predicate residual appears nowhere in the records under that name — *so its state is
+not "gated", it is unrecorded.*
+
+**3 · THE FRAME STACK BITES, AT A SITE NOBODY HAD CONNECTED.** `contacts()` is computed from
+`_decompose.tracked`, which runs on `board()` — **which is `frame[-1]`.** *So contact is read once
+per response, on the settled frame.* **On `g50t`, 39% of responses carry seven or nine frames — so a
+relation that forms and breaks mid-animation is invisible.** **Per game: `ls20` has one frame per
+response and loses nothing this way.**
+
+## AND THE KEY CANNOT NAME A RELATION — BY CONSTRUCTION
+
+    varies = tuple(s for s in others if len({st.get(s) ...}) > 1)      iterates SLOTS
+    tv     = tuple(sorted(types[s] for s in varies if s in types))     maps slots -> SLOT TYPES
+
+> **THE KEY IS BUILT FROM SLOT TYPES. A RELATION IS BETWEEN TWO SLOTS AND HAS NO SLOT, SO IT HAS NO
+> ENTRY IN `slot_types`, SO `varies_types` CAN NEVER NAME ONE.**
+
+**Which is the stronger account `[I]` predicted.** *Not "the library is not loaded" but "the
+retrieval key cannot express what the library is indexed by"* — **and the perception decides the
+key, so one published relation caps everything downstream however large the library.**
+
+**SECOND THING TODAY THAT TURNED OUT TO BE A PERCEPTION LIMIT WEARING A LIBRARY LABEL.**
+
