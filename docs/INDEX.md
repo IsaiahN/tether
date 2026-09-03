@@ -12758,3 +12758,45 @@ where the project's claim sits, not about the family.*
 **AND NOTHING RECORDS A CUE.** *No structure anywhere holds "what changed when I arrived here"* — which
 is the second half of `[I]`'s tie-then-walk-and-track, **and the half the tie rate would schedule.**
 
+
+---
+
+# ONE MECHANISM WITH TWO ONSETS, NOT TWO MECHANISMS
+
+**`[I]`: *the lock-on is a different mechanism on the two boards.* The data already says otherwise.**
+
+    at  10 cycles   g50t  draw 8  probe 2  learned 0        ls20  draw 8  learned 2
+    at 150 cycles   g50t  draw 15 probe 23 learned 93       ls20  draw 21 learned 129 probe 2
+                          71% of acts                             85% of acts
+
+> **`discriminate:learned` DOMINATES ON BOTH BOARDS AT 150.** *It is the same mechanism.* **What
+> differs is WHEN the family comes online** — `ls20` has it firing by cycle 8, `g50t` not once in ten.
+
+**AND `Drive.choose` IS A UNIFORM ROUND-ROBIN**, so the skew cannot come from the draw. **On `g50t` at
+150, `taken` is `A1 881 / A2 94 / A3 4 / A4 8 / A5 11` and `learned` fired 93 times** — *the skew and
+the family's firing coincide on both boards.*
+
+**SO THE LOCK-ON IS THE FAMILY, ON BOTH, AND THE 10-CYCLE READS DO NOT SHOW IT BECAUSE THE FAMILY IS
+NOT YET FIRING.** *Not two causes — one cause with a different onset per board.*
+
+**WHICH IS WHY THE 10-CYCLE READ COULD NOT HAVE ANSWERED THE LOCK-ON**, and it answered a different
+and better question: **what the family does before it comes online**, which is *pass nothing, then
+pass and mark nothing, then mark and split.*
+
+## AND IT SHARPENS WHAT THE OFFLINE MEASUREMENT IS FOR
+
+**`[I]`: *the family surfaces almost nothing on `g50t`, so a residual the four surfaced has very
+little to work with — and that may itself be the finding.*** **Agreed, and now it is measurable
+rather than suspected.**
+
+    two marks in ten calls on `ls20`      four members
+    zero marks in ten calls on `g50t`     four members, none clearing coverage
+
+> **IF FIGURE 7's CONDITION IS *A RESIDUAL THE FOUR SURFACED*, AND THE FOUR SURFACE ALMOST NOTHING,
+> THEN THE CONDITION IS NOT MERELY UNMET — IT IS UNMEETABLE AT THIS RATE.** *A fifth room picked
+> against nothing is a room picked arbitrarily*, which is what the condition exists to forbid.
+
+**So the offline measurement has a second job it did not have an hour ago:** not only *does a
+relational residual exist*, but **can anything surface a residual at all on a board where the family
+clears coverage zero times in ten.**
+
