@@ -12919,3 +12919,64 @@ not recoverable from it.**
 **Recorded as a limit rather than left as an implication**, because *the figure labelled it* is
 exactly the kind of claim this session has twice found to be unsupported.
 
+
+---
+
+# RETRACTED: FIGURE 3's STATUS COLOURS ARE AN INSTANCE INSIDE A GENERAL FIGURE
+
+**`[I]` read the SVG's coordinates, attributed the colours to THIS build, and retracts it.** *Links
+1–3 stroked `#9c2b1f` and 4–5 `#b8b8b0` are real; the attribution is not.*
+
+> **`[I]`: *Figure 3's status row was assigned against a build from about a month ago — one that
+> predated this ground-up instantiation.*** **So *link 4 never reached* is a reading of a DIFFERENT
+> SYSTEM.**
+
+**AND THE CLASS IS NAMED BY FIGURE 4's OWN RULE:** *a recording carried upward looks like knowledge
+and is a description of one occasion.* **The status row is a RECORDING and it rode up inside a
+FIGURE** — *the metatheory is general, the colours are an instance, and one document carries both.*
+
+**Which makes the break site UNMEASURED rather than known** — *and Figure 3's own instruction is
+exactly that question: ask which link it currently stops at, and whether the answer was measured or
+assumed.* **It was assumed, from a stale label, in the message that quoted the warning.**
+
+---
+
+# AND THE CORPUS DOES SAY LINK 3 IS CONTINUOUS — SO THE MECHANISM IS RIGHT AND THE INPUT IS DEGENERATE
+
+**`[I]`'s account: *we are always — and I stress always — forming an opinion or objective, similar to
+a stock ticker.* A running valuation, not a goal constructed at a threshold.**
+
+**Q21, in the corpus's own words:** *"It returns a verdict **and a continuous degree** ... `R_goal =
+1 − degree(molecule)`, and it is **graded rather than binary, which is what makes progress measurable
+at all**."*
+
+**AND THE BUILD ALREADY IMPLEMENTS IT THAT WAY:**
+
+    tether 567   shortfall = round(1.0 - deg_after, 4)
+    tether 568   led.record(cycle, "PERCEIVE", "@objective", "bet", channel=REWARD,
+                            degree=deg_after, from_value=deg_before, actual=deg_after)
+
+> **THE TICKER EXISTS AND RUNS EVERY CYCLE, WITH A BEFORE/AFTER PAIR AND `1 − degree` AS THE
+> SHORTFALL.** *That is Q21's `R_goal`, per step, on the REWARD channel.*
+
+**SO THE FRAMING WAS WRONG AND THE MECHANISM IS RIGHT.** *I have been asking what BUILDS the goal.
+The valuation is built, continuous, and recorded* — **and it reads `levels_completed / win_levels`,
+which is `0.0` from first cycle to last.** **The ticker values one thing that never moves.**
+
+## AND `[I]`'s INTERNAL/EXTERNAL SPLIT LANDS ON TWO DIFFERENT FAULTS
+
+    EXTERNAL   the ground reading      PRESENT, continuous, and FLAT
+    INTERNAL   cost, risk, accumulated pressure   `Budget` counts actions and the valuation
+                                                  never reads it -- `spend()` wired this
+                                                  session, `exhausted()` still unwired
+
+> **PRESENT-BUT-FLAT AND PRESENT-BUT-UNREAD ARE DIFFERENT FAULTS AND I HAD ONE NAME FOR BOTH.** *A
+> human's valuation runs on both channels; this one has an external channel with no variance and an
+> internal channel with no reader.*
+
+## WHAT IS NOW OWED, AND IT IS FIGURE 3's OWN QUESTION
+
+**Which link does THIS build stop at, measured per link, with the colours treated as evidence about
+the previous instantiation and nothing else.** **Not run — and the previous answer was an assumption
+wearing a figure's authority.**
+
