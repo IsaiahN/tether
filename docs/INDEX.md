@@ -12800,3 +12800,79 @@ rather than suspected.**
 relational residual exist*, but **can anything surface a residual at all on a board where the family
 clears coverage zero times in ten.**
 
+
+---
+
+# THE CORPUS SPECIFIES THE ORDER TWICE, AND THE BUILD INVERTED IT — SIXTH CORPUS-AHEAD, AND THE LARGEST
+
+**`[I]`: *reasoning drives action, not the other way round. My feet don't tell me where to go.* And
+the placement for the four: *the only decision those four should make is which available action best
+carries out the next step of the strategy handed down to them.* CHECKED, AND THE CORPUS SAYS IT
+TWICE.**
+
+## FIGURE 1, IN ITS OWN TEXT
+
+> *"per-step loop (POMDP) — **perceive · plan · act · predict**"*
+
+**FOUR PHASES, AND `plan` IS SECOND. ACTION COMES AFTER A PLAN.**
+
+    ledger.STEPS = ("PERCEIVE", "ROUTE", "MINT", "ACCEPT", "SETTLE", "PROMOTE", "IMPORT", "REPEAT")
+
+> **THERE IS NO `PLAN` STEP.** *Eight steps, and the phase Figure 1 puts between perceiving and
+> acting is not among them.* **`ROUTE` is what stands where `plan` should be — and `route` sends a
+> residual to a repair, which is a question about the PAST.**
+
+## FIGURE 3, WHICH IS EVEN MORE EXPLICIT
+
+    3 · the objective   "it can say what would count as progress here, IN ITS OWN TERMS"
+                        ** what the search is FOR **
+    4 · planning        "a route to that objective, chosen under incomplete information"
+
+**And the chain's own rule:** *"Each link **consumes what the one above produces**, so effort spent
+above the break arrives at a step that cannot use it."*
+
+> **SO PLANNING CONSUMES AN OBJECTIVE. THAT IS THE STATED DEPENDENCY, NOT AN INFERENCE.**
+
+## WHAT OCCUPIES THE TWO LINKS TODAY
+
+    link 3  `env.objective()` -> ("ALL(BECOME(level, completed))", levels/win)
+            The GROUND'S win condition, restated. NOT "in its own terms", and never decomposed.
+            `selected()` -- the member that has been RIGHT -- has no consumer at all
+
+    link 4  `_learned_split` and the `spread` argmax: WHICH ACTION IS MOST DISTINCTIVE
+            An EXPLORATION criterion. It asks what is worth pressing to learn something and
+            never asks what the agent is bringing about
+
+> **AN EXPLORATION CRITERION SITS IN THE PLANNING SLOT, AND THE OBJECTIVE SLOT HOLDS A COPY OF THE
+> GROUND.** *Figure 3's link 3 is "what the search is FOR" and nothing in the loop answers it.*
+
+## AND IT EXPLAINS THE LOCK-ON WITHOUT ANY OF THE FIVE HYPOTHESES
+
+**If selection is *which action is most distinctive*, and one action stays most distinctive, the
+agent presses it forever** — **because nothing ever says *I have learned that, now do the thing*.**
+*The criterion cannot change, because nothing else is asking.*
+
+> **WHICH RETIRES TIES, COVERAGE, ONE-MEMBER-DOMINATING, THE FIFTH MEMBER AND THE `sep` SHAPE AS
+> EXPLANATIONS.** *All five are properties of a mechanism in the wrong position*, and the two-marks-in-
+> ten reading is that mechanism working correctly at a job that is not planning.
+
+## SIXTH CORPUS-AHEAD RESULT, AND THE FIRST ABOUT THE LOOP'S ORDER
+
+**The previous five were a rule, a definition, a budget, an instrument and a measurement.** **This one
+is the ORDER OF THE PHASES** — *and Figure 3 states the diagnostic consequence itself:* **"a reading
+taken below the break is not a weak reading. It is a reading of nothing."**
+
+**AND FIGURE 3 NAMES WHERE CHAINS BREAK, WHICH IS WHERE THIS ONE IS BROKEN:** *"Perception has obvious
+failures and obvious tests. Planning has obvious failures and obvious tests. **The link between them**
+— having terms for what a situation offers and being able to say what..."* — **link 2 into link 3, the
+middle, exactly as the figure predicts.**
+
+## WHAT IT DISPLACES, AND WHAT SURVIVES
+
+**DISPLACED: the fifth member, the tie-break, the offline relational measurement** — *that last was
+the precondition for a member in a mechanism that may be misplaced.* **Not run.**
+
+**SURVIVES: the `_touching` cache** — a real regression, repair confirmed at 13.5× with identical
+output. **And the `dict[str, int]` erasure**, which is about perception and sits above the break
+rather than below it.
+
