@@ -6,9 +6,13 @@ agent can currently read.**
 Every row is marked. **`P`** the agent perceives it today. **`C`** it is composable from what the
 agent has. **`—`** neither: no sensor produces it and nothing composes to it.
 
-**Counts and markings were revised after `_overlap` was read.** Six relations moved from composable
-to blocked, **and the three blockers named in Part 6 are different kinds of thing** — a missing
-sensor, a missing consumer, and a ruling of ours.
+**Counts and markings were revised twice.** After `_overlap` was read, six relations moved from
+composable to blocked. **After the type audit, the third blocker stopped being a ruling** — `shape`
+publishes a lossy stand-in for a structural quantity it already computes.
+
+**The three blockers named in Part 6 are different kinds of thing:** a missing sensor, a missing
+consumer, and an erasure. **None is a decision to revisit**, which is a change from what this
+document said.
 
 ---
 
@@ -87,9 +91,9 @@ bounding-box sensor rather than an unpublished one.
 | **perpendicular** | directions meet at a right angle | **C** — one extends in row, the other in column |
 | **concentric** | shared centre, different size | **C** — equal centroid, unequal extent |
 | **offset** | a fixed separation maintained | **C** — constant delta between positions |
-| **symmetric** | one is the other under reflection, rotation or translation | **—** needs `shape` compared under a transform |
-| **congruent** | same shape and size, after moving | **C** — equal shape ids |
-| **similar** | same shape, different size | **—** needs shape under scaling |
+| **symmetric** | one is the other under reflection, rotation or translation | **—** needs the offset frozenset, which is computed and unpublished |
+| **congruent** | same shape and size, after moving | **C** — equal shape ids, the one relation the label can carry |
+| **similar** | same shape, different size | **—** the same erasure, under scaling |
 
 **Alignment is `§12.3`'s other named Tier 2 example.** Same ruling, same route.
 
@@ -120,7 +124,7 @@ inputs exist and the comparisons do not.**
 |---|---|---|
 | **no relative motion** | deltas equal | **C** |
 | **translation** | relative position changes, orientation does not | **C** — delta differs, shape id constant |
-| **rotation** | relative orientation changes | **—** needs shape under rotation |
+| **rotation** | relative orientation changes | **—** the same erasure, under rotation |
 | **rolling** | contact maintained, no relative slip at the contact | **—** needs the rolling constraint, `v = Rω` |
 | **sliding** | contact maintained, tangential relative motion | **C** — touching persists and deltas differ |
 | **spinning** | rotation at the contact region | **—** |
@@ -128,10 +132,16 @@ inputs exist and the comparisons do not.**
 | **oscillating** | relative motion reverses periodically | **C** — delta sign alternates |
 
 **Four of eight are composable from delta and contact.** **The four that are not all need
-orientation**, which is the same gap as symmetry and similarity: **`shape` is a label, and a label
-cannot be compared under a transform.**
+orientation** — which is the same gap as symmetry and similarity, **and it is an erasure rather than
+a limit.**
 
-**Which is the cost of the shape ruling, arriving in a second place.**
+**Two quantities are computed under the name `shape` and the poorer one is published.**
+`shape_of(obj)` returns the normalised offset frozenset — **structural, and comparable under a
+transform.** The published slot carries an episode-local integer, **arbitrary and orderable by
+nothing.**
+
+**§12.3's sensor 5 specifies the frozenset.** So the four are blocked by a lossy stand-in **standing
+where the specified sensor should be**, and publishing the specified quantity is not a new sensor.
 
 ---
 
@@ -286,10 +296,33 @@ alignment, concentricity, congruence, collinearity and every ordering relation a
 away and unreachable.** Measured: 476 candidates offered, none beat the incumbent, the closest 25.9
 bits worse — **because they are not bets.**
 
-**And one is a ruling of ours.** `shape` is published as a label — *arbitrary, comparable, never
-orderable* — **which is correct for the accounting and flattens every relation that needs
-orientation.** Rotation, symmetry, similarity, rolling, spinning, interlocking. **Six named
-casualties, and the only blocker of the three that is a decision to revisit rather than a build.**
+**And one is an erasure, which this document previously recorded as a ruling.** Two quantities are
+computed under the name `shape`. **`shape_of(obj)` returns the normalised offset frozenset — §12.3's
+sensor 5 as specified.** The published slot carries an episode-local integer instead.
+
+**So *shape is a label, arbitrary and never orderable* is true of what is published and false of
+what is available.** Rotation, symmetry, similarity, rolling, spinning and interlocking **were never
+blocked by an accounting decision** — they are blocked by the richer quantity being computed every
+frame and discarded.
+
+**Which makes it a build and not a decision to revisit**, and the smallest of the three: **no new
+sensor, no entry rule, no exemption.**
+
+### And it is one of three erasures with the same shape
+
+**Found by three unrelated routes, and stated together they say where to look for a fourth.**
+
+| computed | published | found by |
+|---|---|---|
+| the frame stack, up to nine per response | one frame, `frame[-1]` | reading the ARC schema |
+| the component list, `FRAME → [OBJ]` | one object, typed `OBJECT` | asking why nothing can count |
+| the offset frozenset, `shape_of(obj)` | an episode-local integer | the deliberate type audit |
+
+**The richer quantity is produced, the poorer one is published, and one type name covers both.**
+
+**Which is why each looked like a limit rather than a loss.** A single frame, a single object and a
+label **are each a coherent thing to have** — nothing downstream fails, and the absence of the richer
+quantity is invisible from the name.
 
 ## The absent library terms split three ways, not two
 
@@ -299,12 +332,15 @@ whole list as a gap. It is three categories, and only one of them is.**
 | category | terms | status |
 |---|---|---|
 | **dropped by the medium** | `occlude` | correct. A 2D grid has no viewpoint and no depth, so there is no referent |
-| **flattened by our ruling** | `spin` · `interlock` · `symmetry` · `similarity` · `rotation` · `rolling` | a decision with a price. **Ninety-degree rotation survives the compression fine** — what removed these was `shape` being a label |
+| **blocked by an erasure** | `spin` · `interlock` · `symmetry` · `similarity` · `rotation` · `rolling` | **previously recorded here as a ruling with a price, and it is not one.** Ninety-degree rotation survives the compression fine, and the structural quantity is computed every frame — **the published stand-in is what removed these** |
 | **absent from the library** | `disjoint` · `intersect` · `adjacent` · `align` · `nest` · `concentric` · `collinear` · `perpendicular` · `congruent` · `offset` · `tangent` | the actual gap. All survive compression cleanly |
 
-**The middle category is the finding.** It is the only one of the three that anyone can act on,
-**and it is the same ruling that blocks the fifteen orientation relations above** — so the shape
-decision costs twice, once in the sensorium and once in the vocabulary.
+**The middle category is the finding, and it is smaller than recorded.** It was filed as *a decision
+with a price* — **the only one of the three anyone could act on by revisiting a choice.** There is no
+choice: the specified sensor is computed and a lossy stand-in is published in its place.
+
+**So it is the only one of the three that is a build**, and the same erasure blocks the orientation
+relations in Part 2 — **one cause, two sites, and neither is an accounting cost.**
 
 **And `perpendicular` sits across the line:** dropped in its three-dimensional sense, composable on
 a grid. **One word, two relations, and the compression took only one of them.**
