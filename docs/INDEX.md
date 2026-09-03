@@ -12482,3 +12482,63 @@ chosen to carry.*
 **And the second is free with the first**: *the store is keyed by pair and the score is what the pair
 reading IS.* **One store, two readings** — and the second was not on the board at all.
 
+
+---
+
+# THE MEMBERS DO NOT READ SLOTS — THEY RECEIVE BOTH BOARDS, AND THAT ANSWERS BOTH CHECKS
+
+## CHECK 1 · A MEMBER IS NOT GATED BY THE SLOT DICT AT ALL
+
+    arc_world.step:   was = self.board()          ...      now = self.board()
+    arc_world 290:    self.selves.observe(was, action, now)
+    SelfHypothesis:   def observe(self, _before, _action, _after) -> float
+
+> **`was` AND `now` ARE BOARDS — FULL GRIDS.** *A member receives the whole frame before and the
+> whole frame after, and never touches `observe()`'s `dict[str, int]`.*
+
+**SO THE STORE IS NOT NEEDED FOR A MEMBER TO READ A RELATION. THE MEMBER HAS THE RAW BOARD.** *It
+could compute containment, alignment, or any of the twenty, today, from what it is already handed.*
+
+> **AND THE FOUR ARE EGOCENTRIC BY CHOICE, NOT BY CONSTRAINT.** Each receives both grids and each
+> elects to compute a signal about the agent. **Nothing in the plumbing made them so** — which is a
+> different fact from *the members cannot see relations*, and I had it as the second.
+
+**FIFTH SIDE CHANNEL, and the widest one yet.** `contacts`, `sensors`, `aff`, `objective` — **and the
+self-family, which gets the grid itself.** *The erasure boundary holds: pass through `observe()` and
+you are flattened; arrive by your own method and you are not.*
+
+## CHECK 2 · COVERAGE IS OVER ACTIONS, NOT PAIRS — SO IT DEPENDS ON THE MEMBER'S SHAPE
+
+    _attribute(action, signal):  self._by_action.setdefault(str(action), []).append(signal)
+    contingency():               {a: mean(v) for a, v in self._by_action.items() if v}
+
+**The gate `set(sep) <= set(per_action)` asks: has this member recorded a signal under EVERY
+advertised action.** **It says nothing about pairs.**
+
+    an AGGREGATE relational member    signal every step -> passes coverage on the same terms
+                                      as the four. NOT droppable by construction
+    a PER-PAIR relational member       no signal where the pair does not exist -> coverage fails
+                                      on any action taken while it was absent. DROPPABLE
+
+**So the worry is right about one shape and wrong about the other**, and the difference is decidable
+before anything is built.
+
+## WHICH REORDERS THE ITEM AGAIN, AND IN THE OTHER DIRECTION
+
+**The store's three payments were: relational history, match confidence, and the fifth member's
+substrate.** **The third one falls away** — *a member needs no store to see a relation; it has the
+board.*
+
+    relational history   still needs the store -- for RETRIEVAL, which is keyed off slots
+    match confidence     still free with the store, and still unheld today
+    the fifth member     DOES NOT NEED IT. Figure 7's condition can be shown from the grids
+
+**So the store pays twice, not three times** — and *the member path is shorter than the retrieval
+path*, which is the reverse of the ordering just argued.
+
+## AND THE `frame[-1]` CAVEAT BITES HERE TOO, UNCHANGED
+
+**`was` and `now` are `board()`, which is `frame[-1]`.** **So a member also sees only the settled
+frame** — and on `g50t`, a relation forming and breaking inside a nine-frame animation **is invisible
+to a member as well.** *Same erasure, fifth consumer.*
+
