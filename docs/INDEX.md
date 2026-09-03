@@ -12184,3 +12184,44 @@ both.*
 
 **The nine inert atoms stay filed where they were — the filing was right and the label was wrong.**
 
+
+---
+
+# THE GATE IS TWO GATES, AND CLOSING EITHER LEAVES THE ATOMS STRANDED BY THE OTHER
+
+**Verified: `retrieval.retrieve(self.gamma.library, gap)` — it ranges over the LIBRARY, the settled
+terms. Never over atoms.**
+
+    GATE A -- ENUMERATION   an `OBJECT`-typed atom has NO EDGE from a slot's integer, so the
+                            type walk cannot reach it. This is the MINTING path
+    GATE B -- RETRIEVAL     ranges over `gamma.library`. An extractor is an ATOM and never
+                            enters the library, so the one-pass check cannot return it
+
+> **SAME NINE ATOMS, TWO INDEPENDENT REASONS** — *and closing one leaves them stranded by the other.*
+> **"Nine atoms behind one gate" was wrong as a count of causes.**
+
+**WHICH NAMES TWO DIFFERENT BUILDS, NEITHER OF WHICH WAS ON THE BOARD:**
+
+    for A   give enumeration an edge from a slot to an OBJECT -- or let chains START at an
+            OBJECT rather than at the slot's value
+    for B   let retrieval order ATOMS as well as library terms -- or admit atoms to what it
+            ranges over
+
+**Not *open the gate*. Two builds, and the item on the board was one thing.**
+
+## AND THREE THINGS WERE FILED WRONGLY, ALL UNDERSTATING WHAT EXISTS
+
+    retrieval itself   filed as ABSENT -- "nothing consults what changed"
+                       truth: BUILT, runs first, and `characterise` computes which types varied
+    keys 3 and 4       filed as UNBUILT
+                       truth: RULED AGAINST, with the reason at the site
+    ATTRIBUTE_INDEX    filed as a consumer never written
+                       truth: RULED AGAINST -- a stored index is a second producer of reach
+
+**Two are *ruled against* and one is *built*, so the shape is not identical** — **but the direction
+is: every one understated what the system already has.** *And the three were found in a single
+question from the design side.*
+
+**AND NOTHING NEEDS RE-DECIDING.** *The filing was right and the label was wrong* — the nine atoms
+stay where they were, **and what changes is that the item behind them is two items.**
+
