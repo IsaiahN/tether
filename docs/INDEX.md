@@ -12980,3 +12980,53 @@ which is `0.0` from first cycle to last.** **The ticker values one thing that ne
 the previous instantiation and nothing else.** **Not run — and the previous answer was an assumption
 wearing a figure's authority.**
 
+
+---
+
+# FIGURE 3 REPAIRED, AND THE INTERNAL CHANNEL IS LICENSED RATHER THAN CLOSED
+
+## THE FIGURE, READ FROM THE FILE
+
+    was   "measured, and failing"  ·  "never reached, so never assessed"      an INSTANCE
+    now   "reached, so its state can be read"  ·  "not reached, so not assessable"   GENERAL
+
+**And a sentence that was not there:** *"The break is drawn between three and four **as an
+illustration**. **Where a given chain stops is a reading, never a property of the chain.**"*
+
+> **THE INSTANCE IS OUT AND THE RULE IS IN ITS PLACE** — *and the new sentence states the very thing
+> the old labels caused me to get wrong.* **A reader can no longer inherit what I inherited.**
+
+*(The figures live outside the repo, so this is recorded rather than committed.)*
+
+## AND THE CORPUS LICENSES THE INTERNAL CHANNEL — WITH A CONSTRAINT ON HOW
+
+**The worry was that *a frame cannot score itself with a quantity it produces* closes it, since
+`spent` is the agent's own output. IT DOES NOT, AND `THE_FORMULA` SAYS WHY:**
+
+> *"**And a composition costs in two currencies, which do not add.** Length under the code prices the
+> description; **the action budget prices finding out whether it holds.** They are in different
+> units, so neither predicts the other and a frame holding one accounting will not notice the
+> shortfall."*
+
+> **PRICING IS NOT SCORING, AND THE BUDGET'S ROLE IS PRICING — STATED.** *A score claims how well the
+> agent is doing; a price says what an experiment cost.* **The rule forbids the first and the corpus
+> licenses the second by name.**
+
+**AND THE CONSTRAINT COMES WITH IT: *they do not add*.** *So the internal reading may not be folded
+into the ground reading* — **two channels, never one number**, which is the same law as *no
+aggregation across slots*, one level up.
+
+## WHICH MAPS ONTO THE WIRING EXACTLY
+
+    spend()        WIRED this session -- the price is measured
+    exhausted()    UNWIRED -- the thing that would ACT on the price
+    the valuation  reads the ground channel only
+
+> **SO THE LICENSED HALF IS THE UNWIRED HALF.** *The internal channel is not forbidden and not built*
+> — **and it is the only quantity on the board with variance that does not wait on a level
+> advance.**
+
+**AND IT STAYS A SEPARATE CHANNEL, NOT A SECOND TERM IN THE VALUATION** — which is what *do not add*
+requires, and what `REWARD` and `TRANSITION` already demonstrate: **the loop holds three channels
+apart and reads them apart.**
+
