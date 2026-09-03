@@ -12438,3 +12438,47 @@ predicate residual existed nowhere and was cited as a constraint on what could b
 > anywhere* — **and the ruling sweep's stated limit was earlier-session attributions, which is a
 > narrower hole than the one that exists.**
 
+
+---
+
+# MATCH CONFIDENCE EXISTS AND IS UNPUBLISHED — AND SENSOR 6's TYPE WAS CHOSEN FOR IT
+
+**`[I]`: the tracker knows how confident its matching was and never says.** *Checked, and it is
+sharper than that.*
+
+    best, score = None, 0.0
+    for name, old in self.tracked.items():
+        r = overlap(obj["cells"], old["cells"])
+        if r > score or ...:  best, score = name, r
+    if best is None or score == 0.0:      <- `score` IS read after the loop
+        ... shape fallback
+
+**`score` survives the loop and is used as a ZERO-CHECK — `score == 0.0` gates the shape fallback.
+Then it is dropped.** *So the magnitude is computed, consulted as a boolean, and discarded.*
+
+> **A MARGINAL MATCH AND A CERTAIN ONE ARE INDISTINGUISHABLE DOWNSTREAM**, and the number that
+> separates them existed a line earlier.
+
+## AND THE CORPUS CHOSE THE TYPE FOR EXACTLY THIS QUANTITY
+
+**`arc_percept.overlap`'s own docstring, quoting §12.3 sensor 6:**
+
+> *"**A RATIO and not a BOOL**, which is why tracking matches by MAXIMUM overlap and there is no
+> threshold to anchor. **A cutoff here would be the `EPS`/`WARM` mistake one layer out: a number
+> introduced where the specification says measurement.**"*
+
+**So the ratio exists so that tracking can take a MAXIMUM rather than apply a threshold** — and the
+argmax spends it. **Beyond *is it zero*, nothing keeps it.**
+
+**THE ZERO-CHECK IS NOT THE VIOLATION**: zero is not a tuned cutoff, and the docstring warns about
+tuned numbers. **What is lost is everything between zero and one** — *the quantity the type was
+chosen to carry.*
+
+## SO THE MATRIX WOULD GIVE TWO THINGS, NOT ONE
+
+    relational history   the pair readings surviving a frame -- `[I]`'s step two
+    match confidence     how well identity was established, which NOTHING has today
+
+**And the second is free with the first**: *the store is keyed by pair and the score is what the pair
+reading IS.* **One store, two readings** — and the second was not on the board at all.
+
