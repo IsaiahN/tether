@@ -11764,3 +11764,54 @@ sources — `OPERATORS.md`'s other five, `NSM_GRAMMAR`, `TRAVERSAL`, `ADJACENCY`
 documents Isaiah wrote this week — have NOT been checked*, and checking them with the instrument that
 just failed three times would produce a clean report and mean nothing.
 
+
+---
+
+# THE RULING AUDIT — ONE IN THE MIDDLE CLASS, AND IT IS MINE
+
+**Scoped as asked: everything recorded AS a ruling, checked by section-read rather than string
+match.** *The instrument that failed three-in-four was `grep` against varied formatting; this one is
+the section check, which has held fourteen times.*
+
+## MIDDLE CLASS — RECORDED AS RULED BY THE CORPUS, ACTUALLY RULED BY US
+
+**THE CYCLE BOUND'S PLACEMENT. One entry, and it is the only one the sweep found.**
+
+    what I wrote      "the corpus does not have the bound and DOES HAVE THE RULING ON WHERE IT
+                       BELONGS, which is the more expensive half"
+    what I cited      `snaps._acyclic`'s docstring -- *repair at the SPEC, not with a guard at
+                       evaluation; a world that cannot be evaluated is a malformed world*
+    what it is        `snaps.py` IS OUR CODE. Tracked, working, ours.
+
+> **SO THE PLACEMENT RULING IS OURS AND I ATTRIBUTED IT TO THE CORPUS** — and *the expensive half was
+> already decided* reads as inherited when it was **written here.**
+
+**WHICH MEANS THE CYCLE BOUND IS ENTIRELY UNRULED BY THE CORPUS: no bound, and no placement.** **When
+trees arrive, Isaiah is TAKING that decision, not inheriting one** — *and the record said the
+opposite.*
+
+## THIRD CLASS — OURS, AND ALREADY MARKED AS OURS
+
+**Three, and all three say so already, so they need nothing:**
+
+    the `OBJ x OBJ` split      "implements a distinction the corpus draws and CANNOT EXPRESS"
+    the prior entry rule       CLAUDE.md: "§11 SAID TO WRITE HERE AND WHICH WAS NEVER WRITTEN"
+    the `richer Tier 1` exit   cited as CLAUDE.md's, which is a working document
+
+**Recorded so the list is complete, not because anything is wrong with them.**
+
+## WHAT THE SWEEP DID AND DID NOT COVER
+
+**COVERED: every `RULED` heading and every ruling-attribution phrase in `INDEX`** — *already ruled ·
+already decided · the corpus rules · carries the ruling · corpus supplies* — **plus `CLAUDE.md`'s two
+dated rulings.**
+
+**NOT COVERED: eight earlier-session attributions** (`INDEX` 1889, 2115, 2228, 2793, 2816, 2838,
+5765, 8909). **They read correct in context and were not individually verified**, so the result is
+*one found in what was swept*, **not *one exists*.**
+
+**AND TWO KNOWN MEMBERS OF THIS CLASS WERE ALREADY CAUGHT AND ARE NOT RE-REPORTED:** *`shape` is a
+label, correct for the accounting* — recorded as a decision, was a bug; and *count from components
+plus a colour filter* — attributed to figures that **do not mention counting at all.** **Both by
+accident. This one by looking, which was the point.**
+
