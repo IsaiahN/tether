@@ -11868,3 +11868,53 @@ return the same action is unexplained.**
 **No fix is on the board deliberately** — *the last three proposals were mis-sized in the same
 direction, and a cause comes first.*
 
+
+---
+
+# CAN A COMPOSITION READ A SIDE CHANNEL? YES — IT ALREADY DOES, AND NOTHING FORBIDS MORE
+
+**`gamma.Ctx` IS the side channel, and its docstring says so in the first four words:**
+
+    class Ctx:
+        """What an atom may read. All before-state: there is no accessor to the outcome, so a
+        term that predicts by peeking is not constructible."""
+        action: Any = None
+        operands: tuple = ()      # other slots' values, in the term's binding order
+
+> **`action` IS ALREADY A NON-SLOT SOURCE.** It comes from the world, not from `state` — **and the
+> guard reads it**: *`f` when the action matches, IDENTITY otherwise.* **So a composition reading
+> something that is not a slot is not a new capability. It is the existing one, used once.**
+
+## AND §12.2 ALREADY DECLARES A NON-SLOT INPUT TYPE
+
+    in_types: tuple[str, ...]   # ("FRAME","OBJ") | ("OBJ","OBJ") | ("ATTR","ATTR")
+
+**`FRAME` is not a slot.** `components(frame)` reads the world directly, **and the corpus types it.**
+*So a non-slot source is specified, and `contacts()` would be another of the same kind rather than a
+new category.*
+
+## SO WHAT FORBIDS IT IS NEITHER A TYPE NOR A SIGNATURE
+
+**It is the absence of a case.** `Ctx` has two fields and **nothing constructs a third.**
+`_ops(term, state)` fills `operands` **from `state` only** — `(state[term.operand],)` — so the one
+generic slot for extra input is wired to the slot dict by its filler, **not by its type.**
+
+> **THE CHANNEL IS OPEN AND ONLY ONE THING IS PUT DOWN IT.**
+
+## THE ONE REAL OBSTACLE, AND IT IS NOT THE ONE EXPECTED
+
+**`Ctx` IS UNTYPED.** `action: Any`. `operands: tuple`, elements undeclared. **The type system
+describes the VALUE flowing through the chain — `in_type`, `out_type` — and says nothing about what
+`Ctx` carries.**
+
+**AND THAT GAP HAS ALREADY COST ONCE.** `Atom.operand_type` was added **after** `idn . recolour<o11.h>`
+bound a HEIGHT as a colour operator's operand and nothing refused it — *"what the operand must be, not
+only THAT there is one."* **So operands got a type after a real bug; `action` never did.**
+
+> **A `contacts()` operand would arrive UNCHECKED, into the field whose sibling needed a type added
+> after exactly that failure.** **That is the cost of the ruling, and it is a typing question rather
+> than an architectural one.**
+
+**FOURTH INDEPENDENT ROUTE TO THE TRUTH-SPACE CONSUMER**, and the first that reaches it without
+needing the slot dict to change at all.
+
