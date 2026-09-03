@@ -12876,3 +12876,46 @@ the precondition for a member in a mechanism that may be misplaced.* **Not run.*
 output. **And the `dict[str, int]` erasure**, which is about perception and sits above the break
 rather than below it.
 
+
+---
+
+# SHARPENING: THE NUMBERS SURVIVE, THE DIAGNOSIS DOES NOT
+
+**`[I]`: *every measurement of the selector is below the break, so they were readings of nothing.*
+That over-reaches, and the correct version preserves work that is sound.**
+
+    THE MEASUREMENTS ARE VALID ABOUT THE CODE
+      `by`: discriminate 0, learned 93 and 129        -- true, and it names the branch
+      `sep` shapes: (0,0,0,0) x8, (1,1,0,0) x2        -- true, and it refuted row 2
+      the tie trajectory: 100% early, 15.5% late      -- true, and it is a real trend
+      the gate split: value dropped 5 by coverage,    -- true, and one number would have
+                      3 by stability                      hidden it
+
+    THE DIAGNOSIS IS WHAT SITS BELOW THE BREAK
+      "the selector is broken"                        -- INVALID. It is not the thing that
+                                                         should be choosing
+      "the family underperforms"                      -- INVALID. It performs its own job
+      "a fifth member would help"                     -- INVALID. Wrong slot, not too few
+
+> **FIGURE 3's *A READING TAKEN BELOW THE BREAK IS A READING OF NOTHING* IS ABOUT DIAGNOSING A LINK
+> WHOSE INPUT NEVER ARRIVES.** *These readings diagnosed the MECHANISM, which is present and
+> measurable.* **What they cannot support is any claim about PLANNING — because no planning mechanism
+> exists to have measured.**
+
+**So the split is: what the code does is measured; what it means for the loop's capability is not.**
+*Keeping that line is what stops a correct retraction throwing away four working instruments.*
+
+## AND A LIMIT ON WHAT I CAN READ OFF FIGURE 3
+
+**The SVG carries TWO status labels — *"measured, and failing"* and *"never reached, so never
+assessed"* — and the text extraction FLATTENS the layout, so which label attaches to which link is
+not recoverable from it.**
+
+> **SO I CANNOT SAY WHETHER FIGURE 3 MARKS LINK 3 AS *NEVER REACHED*.** *If it does, the figure
+> predicted its own break site and labelled it.* **That would be the strongest form of the finding
+> and I am not asserting it from a flattened read** — the attribution needs the SVG's coordinates,
+> which is a different read from the one taken.
+
+**Recorded as a limit rather than left as an implication**, because *the figure labelled it* is
+exactly the kind of claim this session has twice found to be unsupported.
+
