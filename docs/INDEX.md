@@ -12641,3 +12641,61 @@ both.*
 changes no behaviour and I have not applied it, because the runs are 107 minutes in and killing them
 again spends more than the fix saves.**
 
+
+---
+
+# THE MEMBER COUNTERS, AT 10 CYCLES — AND THE TWO BOARDS DISAGREE COMPLETELY
+
+    g50t                              ls20
+    growth       no_cov 8             growth       no_cov 4  passed 4  unstable 2
+    toggle       no_cov 8             toggle       no_cov 6  passed 2  unstable 2
+    translation  no_cov 8             translation  no_cov 4  passed 2  unstable 4
+    value        no_cov 5 unstable 3  value        no_cov 6  passed 2  unstable 2
+    passed_per_call {0: 8}            passed_per_call {0: 6, 1: 2, 4: 2}
+    ties {}                           ties {sep:2 -> 2}
+    by  draw 8 probe 2                by  draw 8  discriminate:learned 2
+
+## ROW 1 IS REFUTED ON `ls20` — ALL FOUR MEMBERS PASS
+
+**`{4: 2}` — all four passed on two of ten calls, and each member passed at least twice.** *So "the
+family is one working member" is false on this board.*
+
+**AND ON `g50t` IT IS WORSE THAN ROW 1: ZERO PASS, EVER.** **Per game, never pooled — a pooled answer
+would say *some members sometimes pass* and that is true of neither board.**
+
+## AND THE ARITHMETIC EXPOSES A THIRD STATE NEITHER COUNTER WAS BUILT FOR
+
+    4 calls had >= 1 member passing        (1x2 + 4x2)
+    2 calls returned an action             (`discriminate:learned` 2)
+
+> **SO TWO CALLS HAD MEMBERS PASSING AND `sep` STILL FLAT** — `max == min`, caught by the guard, and
+> returned `None`. *Members passing is not sufficient; they must also disagree.*
+
+## AND EVERY FIRING CALL AT 10 CYCLES WAS A TIE
+
+**`ties: {sep:2 -> 2}` — both firings had TWO actions tied at the max, resolved by `self.actions`
+order.** **`sep:1` did not occur once.**
+
+    at 10 cycles    sep:1  0%     sep:2  100%
+    at 150 cycles   sep:1  84.5%  sep:2  15.5%
+
+> **THE TIE FRACTION FALLS AS THE EPISODE RUNS.** *Early `sep` is coarse — few members, small counts,
+> ties common. Later one action separates alone.* **So the 84.5% figure is an END-OF-EPISODE
+> property, and the tie-break's relevance is greatest exactly where the agent has least information.**
+
+**Which is a reading the 150-cycle run could not give**, because it reports totals and not a
+trajectory.
+
+## AND THE INSTRUMENT STILL DOES NOT COVER ROW 2
+
+**Row 2 was *several passing and agreeing → they are not independent*.** **`{4: 2}` says four passed;
+nothing says whether they picked the same action.** *I record the tie COUNT and not the `sep` vector.*
+
+> **SECOND TIME THE INSTRUMENT COVERS SOME ROWS OF ITS OWN REGISTRATION.** The first was `ties` on
+> `spread`. **This one is smaller — one row of three — and it is the same failure, caught by
+> arithmetic rather than by a null.**
+
+**TIMING: 101s for 10 cycles on `g50t`, 175s on `ls20` — 10 and 17.5 seconds per cycle**, against a
+pre-regression whole-episode average of 13s/cycle that was dominated by late cycles. **The `_touching`
+cache is worth having before anything longer.**
+
