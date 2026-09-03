@@ -31,7 +31,7 @@ import sys
 from typing import Any
 
 from gamma import Atom, Ctx
-from sensors import COLOUR, DELTA, EXTENT, NOT_RESOLVED, OBJECT, POSITION, SHAPE
+from sensors import BOOL, COLOUR, DELTA, EXTENT, NOT_RESOLVED, OBJECT, POSITION, SHAPE
 
 sys.dont_write_bytecode = True
 
@@ -94,6 +94,29 @@ def _extract() -> list[Atom]:
     return [Atom(k, pick(k), OBJECT, t) for k, t in ATTRIBUTE_TYPE.items()]
 
 
+def _contact() -> list[Atom]:
+    """§12.3 sensor 8 as an atom: `OBJECT → BOOL`, second operand from `Ctx`.
+
+    **THE TWO-PLACE CASE, WHICH `_extract` DID NOT COVER.** `touching(a, b)` is `OBJ x OBJ ->
+    BOOL` and an atom receives ONE value, so the second operand arrives through `Ctx.touching`
+    -- resolved per slot by the caller, exactly as `operands` is. The one-place sensors were
+    wrapped eight times and this shape had no answer until it was ruled.
+
+    **THE PRICE IS A RE-MEASUREMENT, NOT A LINE.** The atom COUNT moves `space_estimate`,
+    `coverage`, `λ` and `V`, and every number on the panel was taken under the previous set --
+    the false-mint rate, the exponent, chunk reuse, the transfer curve. **They are stale from
+    this commit**, and saying so here is the point of saying it at all.
+
+    It abstains on a non-OBJECT for the same reason `pick` does: the loop hands a SCALAR, and
+    a reading taken from the wrong kind of thing is a guess.
+    """
+    def touching(o: Any, c: Ctx) -> Any:
+        if not isinstance(o, dict):
+            return NOT_RESOLVED
+        return int(bool(c.touching))
+    return [Atom("touching", touching, OBJECT, BOOL)]
+
+
 def _relate() -> list[Atom]:
     """`ATTR → PRED`, reading a second ATTR as an operand.
 
@@ -134,4 +157,4 @@ def three_spaces(predict: list[Atom]) -> list[Atom]:
     PREDICT is passed in rather than built: it is the domain's atom set -- grid transforms at
     3d -- and inventing one here would be this file choosing what the agent may bet on.
     """
-    return list(predict) + _extract() + _relate() + _quantify()
+    return list(predict) + _extract() + _contact() + _relate() + _quantify()

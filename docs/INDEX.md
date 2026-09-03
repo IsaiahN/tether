@@ -12060,3 +12060,59 @@ consumer, which is the defect class this session has spent two days measuring.*
 **record rather than proceed on.** **`_extract`'s precedent covers one-place sensors and says nothing
 about two.**
 
+
+---
+
+# BUILT: `A` — THE TWO-PLACE SENSOR AS AN ATOM, VIA `Ctx`
+
+**Ruled A. B and C refused, and the reasons are recorded with the choice rather than only the
+choice.**
+
+    B  `term.operand` names a channel rather than a slot     REFUSED: a fifth `A6i`, made
+                                                             deliberately after four were found
+                                                             this week and each cost a build
+    C  the operand rides in `Ctx.operands`, untyped          REFUSED: that is the hazard
+                                                             `operand_type` was added to fix,
+                                                             after `idn . recolour<o11.h>` bound
+                                                             a HEIGHT as a colour operand and
+                                                             nothing refused it. Same failure,
+                                                             one field over
+
+## THE THREE PARTS, AND THE ATOM EXISTS WITH THE FIELD RATHER THAN AFTER IT
+
+    Ctx.touching: tuple[str, ...] = ()      the typed field
+    Agent._touching(slot)                   the filler, at all SIX Ctx sites in tether
+    Atom("touching", OBJECT -> BOOL)        the consumer -- §12.3 sensor 8, wrapped
+
+**Verified:** *on a dict with an empty ctx → `0`; on a dict with a filled ctx → `1`; on a scalar →
+`NOT_RESOLVED`.* **And `BOOL` is now producible by an atom, which it was not.**
+
+## WHAT IT COST, SAID AT THE SITE AND NOT DISCOVERED LATER
+
+**17 atoms → 18.** `INDEX` 231: *the atom COUNT moves `space_estimate`, `coverage`, `λ` and `V`, and
+every number on this panel was measured under the current set.*
+
+> **SO THE FALSE-MINT RATE, THE EXPONENT, CHUNK REUSE AND THE TRANSFER CURVE ARE STALE FROM THIS
+> COMMIT.** *The price is a re-measurement, not a line of code*, and it is written into `_contact`'s
+> own docstring so the next reader inherits it.
+
+## THE TWO CONSTRAINTS, HONOURED AND STATED WHERE THEY BIND
+
+**`action: Any` UNTOUCHED.** The corpus records the run — *5 bare + 9 positioned on a 3×3 board:
+binds, three steps run* — **and positioned actions work because it is untyped.** Typing it deletes a
+measured capability, and the field comment says so.
+
+**THE NEW FIELD IS BEFORE-STATE, AND THE TEST IS STATED RATHER THAN THE EXCEPTION.** `contacts()` is
+frame-cached and invalidated on `step`, so it cannot reach the outcome. **The comment gives the test
+— *any future field must pass this* — because `INDEX` 216 records that a plausible addition would
+delete the tautology guard silently, and nothing checks it.**
+
+## WHAT IT DOES NOT ADDRESS
+
+**`RELATIONS.md`'s three blockers are the acceptance test. This is the MISSING CONSUMER, and only
+it.** The **missing sensor** and the **erasure** stay open — *containment blocked for the reason
+ruled, `SHAPE` and the frame stack untouched.*
+
+**AND THE ATOM IS INERT UNTIL AN `OBJECT` FLOWS**, which is the same gate the eight extractors wait
+on. **Recorded rather than hidden**: it abstains on a scalar by construction, exactly as `pick` does.
+

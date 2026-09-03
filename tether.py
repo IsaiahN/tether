@@ -370,6 +370,19 @@ class Agent:
     def _ops(term: Term, state: dict[str, int]) -> tuple:
         return (state[term.operand],) if term.operand else ()
 
+    def _touching(self, slot: str) -> tuple[str, ...]:
+        """§12.3 sensor 8's second operand, resolved for one slot. Mirrors `_bindings`' read:
+        the domain owns both `slot_owner` and `contacts` and the loop only asks.
+
+        BEFORE-STATE. `contacts()` is frame-cached and invalidated on `step`, so this is the
+        contact set the action has not yet changed -- which is what keeps `Ctx` free of the
+        outcome and the tautology guard satisfied by absence."""
+        touch = getattr(self.env, "contacts", None)
+        owners = self._slot_owners(self.env)
+        if touch is None or not owners:
+            return ()
+        return tuple(sorted(touch().get(owners.get(slot), ()) or ()))
+
     @staticmethod
     def _applies(term: Term, state: dict[str, int]) -> bool:
         """Whether this term can be evaluated on this frame at all.
@@ -386,7 +399,8 @@ class Agent:
         """`None` is THE INSTRUMENT COULD NOT READ, and it is not a prediction of anything."""
         term = self.gamma.library[self.bound.get(slot, IDN)]
         got = term.apply(state[slot],
-                         Ctx(action=action, operands=self._ops(term, state)))
+                         Ctx(action=action, operands=self._ops(term, state),
+                             touching=self._touching(slot)))
         return None if got is NOT_RESOLVED else got % self.alphabet[slot]
 
     def _standing(self, slot: str) -> None:
@@ -808,7 +822,8 @@ class Agent:
             if not self._applies(term, state):
                 total += math.log2(self.alphabet[slot])   # inapplicable is unexplained
                 continue
-            got = term.apply(state[slot], Ctx(action=action, operands=self._ops(term, state)))
+            got = term.apply(state[slot], Ctx(action=action, operands=self._ops(term, state),
+                                              touching=self._touching(slot)))
             if got is NOT_RESOLVED:
                 total += math.log2(self.alphabet[slot])   # unread is unexplained
                 continue
@@ -879,7 +894,8 @@ class Agent:
                 out.append((state, action, actual))   # inapplicable is unexplained
                 continue
             got = term.apply(state[slot], Ctx(action=action,
-                                              operands=self._ops(term, state)))
+                                              operands=self._ops(term, state),
+                                              touching=self._touching(slot)))
             if got is NOT_RESOLVED or got % self.alphabet[slot] != actual % self.alphabet[slot]:
                 out.append((state, action, actual))
         return out
@@ -906,7 +922,8 @@ class Agent:
                 wrong += 1                            # inapplicable is unexplained
             else:
                 got = term.apply(state[slot], Ctx(action=action,
-                                                  operands=self._ops(term, state)))
+                                                  operands=self._ops(term, state),
+                                                  touching=self._touching(slot)))
                 wrong += (got is NOT_RESOLVED
                           or got % self.alphabet[slot] != actual % self.alphabet[slot])
             if cost + unit * wrong >= base:
@@ -971,7 +988,8 @@ class Agent:
             for act in self.actions:
                 spread[act] = sum(
                     len({g % self.alphabet[s]
-                         for g in (t.apply(before[s], Ctx(action=act, operands=()))
+                         for g in (t.apply(before[s], Ctx(action=act, operands=(),
+                                                           touching=self._touching(s)))
                                    for t in cands)
                          if g is not NOT_RESOLVED})
                     for s in owed)
@@ -989,7 +1007,8 @@ class Agent:
                 for s in owed:
                     buckets: dict[int, int] = {}
                     for t in cands:
-                        v = t.apply(before[s], Ctx(action=pick, operands=()))
+                        v = t.apply(before[s], Ctx(action=pick, operands=(),
+                                                   touching=self._touching(s)))
                         if v is NOT_RESOLVED:
                             continue      # a candidate that cannot read splits nothing
                         buckets[v % self.alphabet[s]] = buckets.get(

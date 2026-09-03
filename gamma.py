@@ -62,6 +62,21 @@ class Ctx:
 
     action: Any = None
     operands: tuple = ()          # other slots' values, in the term's binding order
+    # SENSOR 8's SECOND OPERAND, resolved PER SLOT by the caller. `_extract` wrapped the
+    # one-place sensors eight times and nothing wrapped a two-place one: an atom receives one
+    # value and a `Ctx`, so the second operand has to arrive here or not at all.
+    #
+    # **BEFORE-STATE, AND THAT IS THE TEST RATHER THAN AN EXCEPTION.** The tautology guard is
+    # satisfied by what `Ctx` does NOT contain -- *a term that reads the after-state compresses
+    # perfectly and predicts nothing*, and there is no guard because the capability is absent.
+    # `contacts()` is frame-cached and invalidated on `step`, so it is read before the action
+    # and cannot reach the outcome. **Any future field must pass that same test**; a plausible
+    # one that does not would delete the guard silently, which is the recorded hazard.
+    #
+    # `action` IS DELIBERATELY LEFT `Any`. `ARC_AGENT` §22 records a run -- *5 bare + 9
+    # positioned on a 3x3 board: binds, three steps run* -- and positioned actions pass through
+    # BECAUSE it is untyped. Typing it would delete a measured capability.
+    touching: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
