@@ -12592,3 +12592,52 @@ forbids.*
 *rows on disk*, `ties` on the wrong dict, short runs at 96% of the cost. **Fifth time the estimate
 was the thing to check rather than the item.**
 
+
+---
+
+# THE 107 MINUTES ARE MINE: `_touching` IS UNCACHED AND SITS IN FIVE HOT LOOPS
+
+**Not the counters — two `Counter` increments cannot cost 25 minutes, and the arithmetic said so.**
+
+    _touching(slot)  ->  _slot_owners(env)  ->  env.slot_owner()
+                                            ->  {s: s.rsplit(".", 1)[0] for s in self._decomposed()}
+
+**Every call rebuilds a dict over EVERY SLOT with a `rsplit` per slot — 120 slots on `g50t`.** *And
+`_decomposed()` is frame-cached, so the comprehension is the whole cost and it is paid in full each
+time.*
+
+## AND THE FIVE CALL SITES ARE INSIDE THE BARGAIN'S LOOPS
+
+    _left           834   inside `for state, action, actual in hist`   per history entry
+    _residual_obs   906   inside the history loop                      per history entry
+    _cannot_pay     934   inside `for state, ...`                      per history entry
+    branching      1000   inside `for act in self.actions` x `cands`   per action x candidate
+    branching      1019   inside `for s in owed` x `for t in cands`    per slot x candidate
+
+**`_left` and `_cannot_pay` are called PER CANDIDATE and each iterates the history**, so the total is
+**candidates × history × 120 string splits, per step.** *At depth 3 that is hundreds of candidates.*
+
+## AND THE HAZARD WAS WRITTEN DOWN AT THE FUNCTION I COPIED THE PATTERN FROM
+
+> **`arc_world.contacts()`:** *"**CACHED ON THE FRAME**, for the reason `_decomposed` is:
+> `_bindings` is called **per candidate**, and contact is 210 pairs on a 21-object board. Measured
+> density is ~12%, so the answer is small even where the computation is not."*
+
+**I quoted that comment earlier today — it is in this file — and then added an UNCACHED caller into
+the same class of loop.** *`contacts()` itself is cached; `slot_owner()` is not, and `_touching` calls
+both.*
+
+> **SIXTH INSTANCE OF A LAW IN HAND AND NOT APPLIED, AND THE FIRST WITH A MEASURED COST: 107 MINUTES
+> AGAINST 32.**
+
+## WHAT IT DOES AND DOES NOT CONTAMINATE
+
+    the member counts   UNAFFECTED. The counters are incremented per gate decision and the
+                        regression changes no decision, only the wall clock
+    the timing          CONTAMINATED. This pair cannot be compared against the 32/83-minute
+                        pair, and any front-loading or per-board timing read from it is void
+
+**THE FIX IS A CACHE, LIKE `contacts()`'s** — *frame-scoped, invalidated where `_contacts` is.* **It
+changes no behaviour and I have not applied it, because the runs are 107 minutes in and killing them
+again spends more than the fix saves.**
+
