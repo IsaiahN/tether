@@ -12699,3 +12699,62 @@ nothing says whether they picked the same action.** *I record the tie COUNT and 
 pre-regression whole-episode average of 13s/cycle that was dominated by late cycles. **The `_touching`
 cache is worth having before anything longer.**
 
+
+---
+
+# THE CACHE, THE `sep` VECTOR, AND TWO CHECKS — ROW 2 REFUTED AND A FIFTH STATE FOUND
+
+## THE CACHE: 175s -> 13s ON THE SAME WORK. 13.5x
+
+**`ls20`, 10 cycles, identical output.** *One per-step cache on `(owners, contacts)`, cleared at the
+top of `step` and at `retarget`.* **The regression diagnosis is confirmed by its repair.**
+
+## THE `sep` VECTOR ANSWERS ROW 2, AND REFUTES IT
+
+    sep_shapes   (0,0,0,0) x 8      (1,1,0,0) x 2
+    agreed       0
+    trajectory   cycles 0-5   passed 0   sep (0,0,0,0)
+                 cycles 6-7   passed 1   sep (0,0,0,0)   <- PASSED AND MARKED NOTHING
+                 cycles 8-9   passed 4   sep (1,1,0,0)
+
+> **ROW 2 WAS *SEVERAL PASSING AND AGREEING → THEY ARE NOT INDEPENDENT*. `agreed: 0`.** *No call put
+> its mass on one action while several passed.* **When four passed, two marks landed on two DIFFERENT
+> actions — a 1-1 split, which is disagreement, not unanimity.**
+
+**AND CYCLES 6-7 ARE A FIFTH STATE NOBODY LISTED: a member PASSED BOTH GATES AND MARKED NOTHING.**
+*`sep` all zeros with `passed: 1`* — the member cleared coverage and stability, **then found no action
+distinctive**, because `all(w != v for b, w in vals.items() if b != a)` failed for every action.
+
+> **SO THE FAMILY PRODUCES TWO MARKS IN TEN CALLS FROM FOUR MEMBERS.** *Not one dominating, not
+> agreeing, not tie-broken by an argmax that had a choice* — **barely marking at all.**
+
+**FOUR ROWS PINNED, AND THE ANSWER IS OUTSIDE ALL FOUR.** *Second time this session the space was not
+exhausted even with the unexpected row added* — **and this time the unexpected row was the one that
+fired: the mechanism was not where any of the three said.**
+
+## CHECK A · FOUR IS NAMED, NOT DERIVED — AND IS A MAGIC NUMBER
+
+**§18.3's whole warrant:** *"So they built a **non-simulable family** — **four** self-hypotheses whose
+failure modes are independent."*
+
+**That is a claim ABOUT the four, not a derivation OF four.** **Nothing in the corpus says the space
+has four regions**, and no section derives the count. *`ARC_BUILD_PLAN`'s "four regions" is about
+where the project's claim sits, not about the family.*
+
+> **SO `4` IS A LIST SOMEONE WROTE AND THEN VERIFIED WERE DISTINCT.** **`Q14` requires every constant
+> to carry mode and provenance. This one has provenance — Redux — and no mode**, and *independence of
+> failure modes is a property the four were CHECKED for, not a rule that produces four.*
+
+## CHECK B · HALF THE MEMORY EXISTS AND IS PUBLISHED
+
+    Drive.tried    `action -> set of distinct states it was drawn from`
+    _where(state)  passed on every `probe` and `draw` call
+    Drive.report() spreads `tried` into a ledger row
+
+> **SO *WHERE THE WALK WENT* IS RECORDED, PER ACTION, AND PUBLISHED.** *What is not recorded is the
+> SEQUENCE* — `tried` is a SET, so it holds which states an action was drawn from and **not the order,
+> not the path, and not what was encountered on the way.**
+
+**AND NOTHING RECORDS A CUE.** *No structure anywhere holds "what changed when I arrived here"* — which
+is the second half of `[I]`'s tie-then-walk-and-track, **and the half the tie rate would schedule.**
+

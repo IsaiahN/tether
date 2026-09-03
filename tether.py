@@ -239,6 +239,23 @@ class Agent:
         # dominating -- and only the third warrants a selector repair.
         self._members: Counter = Counter()
         self._passes: Counter = Counter()
+        # THE `sep` SHAPE PER CALL, NOT A TOTAL. `passed_per_call` says how many members
+        # contributed and cannot say whether they AGREED -- four passing and all marking the
+        # same action is unanimity, four marking four is total disagreement, and both read
+        # `{4: n}`. Sorted descending so the shape is comparable across boards with different
+        # action counts: `(4,0,0,0)` unanimous, `(1,1,1,1)` no separation, `(2,2,0,0)` split.
+        #
+        # A TRAJECTORY RATHER THAN A COUNTER, because the tie fraction MOVES: 100% ties at ten
+        # cycles against 15.5% at 150, so a total describes the end of an episode and hides
+        # that early ties are universal -- which is when the agent is choosing what to explore.
+        self._sep_log: list = []
+        # PER-STEP CACHE FOR `_touching`. `slot_owner()` rebuilds a dict with a `rsplit` per
+        # slot on every call, and `_touching` sits in five loops that run per candidate and
+        # per history entry -- so it was candidates x history x 120 splits per step, measured
+        # at 10s/cycle against a pre-regression whole-episode average of 13s dominated by LATE
+        # cycles. `contacts()` was already frame-cached for this exact reason, with the reason
+        # in its docstring, and I added an uncached caller into the same class of loop.
+        self._touch_cache: tuple | None = None
         self.agency = I.Agency()       # §16.8 sensor 3, a per-step read
         self.term = I.Termination()    # 2d / §20.1, latching and asymmetric
         self.retro: list[dict] = []
@@ -346,6 +363,7 @@ class Agent:
                             decay_half="boundary demotion, its own item -- credit without "
                                        "decay is the incumbency pathology (§21.4)")
         self._settled_at_level = set(self.settled)
+        self._touch_cache = None      # a new world invalidates owners and contact alike
         self.env, self.level = env, level
         self.slots = env.slots()
         self.actions = tuple(env.actions())       # a new level may advertise differently
@@ -385,11 +403,14 @@ class Agent:
         BEFORE-STATE. `contacts()` is frame-cached and invalidated on `step`, so this is the
         contact set the action has not yet changed -- which is what keeps `Ctx` free of the
         outcome and the tautology guard satisfied by absence."""
-        touch = getattr(self.env, "contacts", None)
-        owners = self._slot_owners(self.env)
-        if touch is None or not owners:
+        if self._touch_cache is None:
+            touch = getattr(self.env, "contacts", None)
+            self._touch_cache = (self._slot_owners(self.env),
+                                 touch() if touch is not None else None)
+        owners, adj = self._touch_cache
+        if adj is None or not owners:
             return ()
-        return tuple(sorted(touch().get(owners.get(slot), ()) or ()))
+        return tuple(sorted(adj.get(owners.get(slot), ()) or ()))
 
     @staticmethod
     def _applies(term: Term, state: dict[str, int]) -> bool:
@@ -1040,6 +1061,15 @@ class Agent:
         apart because coverage and stability are different causes."""
         return {"per_member": dict(sorted(self._members.items())),
                 "passed_per_call": dict(sorted(self._passes.items())),
+                # THE SHAPES, WITH THEIR COUNTS -- and `agreed` is row 2's field, which the
+                # first version of this instrument did not have: mass on ONE action while
+                # several members passed is unanimity, and unanimity decides nothing.
+                "sep_shapes": {str(k): v for k, v in sorted(
+                    Counter(e["sep"] for e in self._sep_log).items(),
+                    key=lambda kv: -kv[1])},
+                "agreed": sum(1 for e in self._sep_log
+                              if e["passed"] > 1 and sum(1 for v in e["sep"] if v) == 1),
+                "trajectory": [(e["cycle"], e["passed"], e["sep"]) for e in self._sep_log],
                 "reads": ("passed_per_call {1: n} means one member contributed and the argmax "
                           "had no competition. >=2 with agreement means the members are not "
                           "independent. >=2 with one dominating is the only reading that makes "
@@ -1120,6 +1150,8 @@ class Agent:
                 if all(w != v for b, w in vals.items() if b != a):
                     sep[a] += 1          # this member finds THIS action distinctive
         self._passes[passed] += 1
+        self._sep_log.append({"cycle": self.cycle, "passed": passed,
+                              "sep": tuple(sorted(sep.values(), reverse=True))})
         if not sep or max(sep.values()) == 0 or max(sep.values()) == min(sep.values()):
             return None
         # THE SAME ARGMAX AS `spread`'s, AND THIS IS THE ONE THAT FIRES. Measured on `g50t`:
@@ -1649,6 +1681,7 @@ class Agent:
 
     def step(self, action: str | None = None) -> bool:
         """One turn. Returns False if no action was proposed -- which is a legal outcome."""
+        self._touch_cache = None      # a new step is a new frame, so contact and owners go
         self._advertised()
         self._present()       # before the frame, so slots and frame cannot disagree
         # PER STEP, BECAUSE ONE SLOT TYPE'S RANGE IS NOT CONSTANT. A shape slot's alphabet is
