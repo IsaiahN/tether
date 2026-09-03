@@ -13030,3 +13030,49 @@ aggregation across slots*, one level up.
 requires, and what `REWARD` and `TRANSITION` already demonstrate: **the loop holds three channels
 apart and reads them apart.**
 
+
+---
+
+# THE LICENSED ITEM SPLITS: A PRICE CHANNEL IS WIRING, EXHAUSTION IS A DECISION
+
+**`[I]`: *reading the price is one thing, acting on it is another.* The split is right and it
+separates a build from a ruling.**
+
+    A PRICE CHANNEL     the valuation reads `spent`/`left` as a SEPARATE channel, never summed
+                        with the ground reading. WIRING -- the pattern exists as `REWARD` and
+                        `TRANSITION`, held apart and read apart
+    EXHAUSTION POLICY   what `exhausted()` firing should DO. A DECISION -- it changes what a
+                        run IS, and it interacts with the no-restart ruling: *the seat
+                        restarting on the agent's behalf is the same purchase against the same
+                        resource*
+
+**So the licensed half is itself two items, and only the first is buildable without a ruling.**
+
+## AND ONE SHARPENING TO WHY `spent` IS ADMISSIBLE AND `outstanding` IS NOT
+
+**`[I]` put it as *one is the agent grading itself, the other is what the ground charged*. The second
+half is not quite it — the agent spends the budget and the SEAT grants it, so the ground charges
+nothing.** *The real line is the UNIT.*
+
+    `spent`        counts ACTIONS. The action set is the world's, the budget is the seat's,
+                   and the count is of world-events. Nothing in it is frame-produced
+    `outstanding`  counts BITS under `correction_bits(pred, actual, alphabet)`, where `pred`
+                   is the FRAME'S OWN PREDICTION. The quantity is defined by the model being
+                   scored
+
+> **SO `outstanding` IS INADMISSIBLE AS A VALUATION INPUT FOR A PRECISE REASON: ITS UNIT IS
+> FRAME-PRODUCED.** *A better model makes `outstanding` smaller by changing what counts as a miss* —
+> **which is `false_mint_rate`'s defect exactly, one level up: a metric whose denominator the
+> mechanism moves.**
+
+**AND `outstanding` IS ALREADY USED FOR ROUTING — `_last_mass` picks the focal slot — WHICH IS NOT
+SCORING.** *Routing on a frame-produced quantity is choosing where to look; scoring on it is claiming
+how well you are doing.* **Same distinction as pricing versus scoring, at a different site, and the
+existing use is on the right side of it.**
+
+## STILL OWED, STILL NOT RUN
+
+**Figure 3's own question, per link, against THIS build** — *which link does it stop at, measured.*
+**The colours are now general, so nothing supplies an answer and the measurement is the only route
+to one.**
+
