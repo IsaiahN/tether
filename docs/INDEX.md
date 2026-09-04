@@ -13076,3 +13076,63 @@ existing use is on the right side of it.**
 **The colours are now general, so nothing supplies an answer and the measurement is the only route
 to one.**
 
+
+---
+
+# FIGURE 3's QUESTION, RUN AGAINST THIS BUILD — PER LINK, FROM MEASUREMENTS ALREADY TAKEN
+
+**A READING, NOT A PROPERTY** — the figure's own new sentence, and the discipline that its old labels
+cost. **No new run: every line below cites something measured this session.**
+
+    1 · PERCEPTION   "tell what is in front of it, and tell it apart from what was there before"
+        REACHED      120 slots on `g50t`; `Objects` threads identity by max overlap and falls
+                     back to `shape_of` when overlap is zero. Both halves present and running
+
+    2 · VOCABULARY   "terms for what things afford: moved, opened, joined, blocked"
+        THIN         `Affordances.SEVEN`, and `note` writes FIVE -- `triggers_remote` and
+                     `terminates` are never written, contact-local by construction.
+                     ONE relation of ~70 published. `COUNT` and `AXIS` have no producer
+
+    3 · OBJECTIVE    "say what would count as progress here, IN ITS OWN TERMS"
+        MECHANISM    the ticker runs every cycle -- `R_goal = 1 - degree` on the REWARD
+        PRESENT,     channel, before/after pair -- and reads `levels_completed / win_levels`,
+        INPUT        which is `0.0` first cycle to last. NOT in its own terms: it is the
+        BORROWED     ground's win condition restated, and never decomposed
+
+    4 · PLANNING     "a route to that objective, chosen under incomplete information"
+        SLOT HELD    no `PLAN` step in `ledger.STEPS`. `_learned_split` and the `spread`
+        BY SOMETHING argmax choose the MOST DISTINCTIVE action -- an exploration criterion.
+        ELSE         Measured: 2 marks in 10 calls from 4 members on `ls20`, 0 on `g50t`
+
+    5 · LEARN/CARRY  "name what worked, verify it, and carry it to the next problem"
+        UNASSESSABLE `advanced: false` on both boards at every length, so nothing has been
+                     carried ACROSS anything. Minting and settling run; transfer is untested
+
+## THE READING: THE BREAK IS BETWEEN 2 AND 3
+
+**Figure 3's rule is *each link consumes what the one above produces*.** **Link 3 must say what
+progress is IN ITS OWN TERMS, and its terms come from link 2** — **which holds one relation of
+seventy and five of seven affordances.**
+
+> **SO LINK 3's MECHANISM IS PRESENT AND ITS VOCABULARY IS TOO THIN TO PHRASE ANYTHING WITH.** *The
+> ticker did not fail; it was handed the only objective expressible with what link 2 supplies — the
+> ground's own, restated.*
+
+**AND THAT IS WHERE THE FIGURE SAYS CHAINS BREAK:** *"the link between them, having terms for what a
+situation offers and being able to say what would count as progress, has neither, so it attracts the
+least attention and the fewest instruments."*
+
+**AND IT AGREES WITH §11.2's INDEPENDENT READING — *the break is at link 2* — WHICH THIS SESSION
+SUPERSEDED ONCE AND NOW RECOVERS FOR A DIFFERENT REASON.** *§11.2 said the break was at link 2
+because EXTRACT was missing; EXTRACT turned out built. **The break is still there, and the cause is
+the relation vocabulary rather than the attribute one.***
+
+## WHAT THIS READING IS NOT
+
+**It is not a claim that links 4 and 5 are broken.** *A step whose input never arrives cannot be
+diagnosed, only its predecessor can* — **so the selector measurements and `advanced: false` are
+readings below the break and say nothing about planning or transfer.**
+
+**And it is not the figure's authority.** *The colours are general now.* **This is one reading, from
+this session's measurements, and it should be re-taken when link 2 changes.**
+
