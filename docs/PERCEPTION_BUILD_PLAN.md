@@ -116,6 +116,29 @@ attributes, because there is no self-object to reduce.
 and demotes when it stops. *The count was never the thing, and the demotion IS the switch detection —
 no separate alarm.*
 
+**AND `disembodied` IS NOT READ FROM AN ABSENCE.** *The whole-family-fails case already has a built
+reading and it is not this one:* **`SelfModelFamily.unmodeled()` — *"the completeness critic. **The
+whole family failing together is the signal**"* — true when `selected()` is `None` or when unexplained
+exceeds explained.
+
+> **`unmodeled` MAPS TO `unknown`, NEVER TO `disembodied`.** *`has_self() == False` across four members
+> says the detectors found nothing, which is not the claim that there is nothing* — **and §18.3 is the
+> case: `has_self: false` for 904 steps meant the detector was wrong, not that `ls20` had no self.**
+> **`unknown` is `NOT_RESOLVED` at the mode level** — null-not-absent, one level up, and the same
+> reason.
+
+**SO THE DISEMBODIED VERDICT NEEDS A POSITIVE CONJUNCT, AND THE BUILD HAS IT:** §16.2's own wording is
+***no slot correlates BUT THE BOARD CHANGES*** — *acting at a distance.* **The second half is the
+transition residual over the slot set, and it is what makes the reading causal rather than absential.**
+
+    unknown        the family found nothing, and nothing else is established
+    disembodied    the family found nothing AND the board moved -- something changed and
+                   nothing I track did it
+
+*`CLAUDE.md`: **prefer positive causal evidence over absential; absence of evidence resting on
+completeness never holds mid-episode.*** **A `disembodied` read off `all(not has_self())` alone is
+exactly the inference §18.3 refuted.**
+
 **The trajectory is a record, not a state machine:** `EMBODIED@0 → +DISEMBODIED@k → HYBRID (current)`,
 **transitions filed as causal events under the level** — *object_7 became controllable at step k*, *the
 avatar went inert at step m* — **the same class of event as an object appearing or vanishing.**
@@ -290,10 +313,19 @@ the MDL bargain prices candidates; `Budget` counts actions and `spend()` is wire
 *directionless alone*.** `THE_FORMULA` licenses it by name: *the action budget prices finding out
 whether it holds*, **in a currency that does not add to the description length.**
 
-**(b) The prediction-outcome gap already exists and the cascade half does not.** *Predicted five
-presses, one sufficed* requires reading the frames between — **which is Layer 1(b), and it is now the
-same case as an embodied locus behaving differently than commanded.** *Self-tracking-as-prediction,
-seen from the action side.*
+**(b) The action-scale case has TWO gates, not one, and they are different in kind.** *Predicted
+five presses, one sufficed* is the same case as an embodied locus behaving differently than commanded —
+*self-tracking-as-prediction, seen from the action side.* **But it splits:**
+
+    THE GAP          predicted action count against actual. NEEDS A MULTI-STEP PLAN, and there
+                     is no PLAN step in `ledger.STEPS`. Gated on LINK 4, not on P4
+    THE MECHANISM    slid or teleported -- what property was missed. NEEDS THE CASCADE, so
+                     gated on P4. And `ls20` carries one frame always, so on ls20 the
+                     mechanism half is UNAVAILABLE PERMANENTLY rather than pending
+
+**So *action-scale learning waits on P4* would be wrong in both directions**: the gap waits on
+something P4 does not supply, and the diagnosis never arrives on half the panel. **Seam 9's condition,
+reaching a second item.**
 
 > **SEAM 5 SETTLED: DISCOVERING A BOUND THROUGH PLAY IS EXPERIENCE; READING A GIVEN PARAMETER IS A
 > SEAT-READ.** *The same line as the hash — computed versus handed.* **`PER_LEVEL` and `MAX_ACTIONS`
@@ -313,6 +345,28 @@ parks unresolved residuals per level as `L{level}:{slot}`.
 
 **ABSENT.** The structural hash, the `hash_episode_level` stack, palette-swap aliasing, cross-game
 lookup.
+
+### CROSS-GAME SCENARIO LOOKUP IS A SEPARATE BUILD FROM TERM IMPORT, AND IS NOT ABSORBED BY THE HASH
+
+**The hash IDENTIFIES a game; the scenario lookup MATCHES A SITUATION ACROSS games.** *Different
+operations, and only the first is what P7's hash machinery does.*
+
+**THE MATCHING MECHANISM EXISTS AND IS AT THE WRONG SCOPE.** `retrieval.retrieve(library, gap)` is
+**one pass over the store ordered by fit** — *"not a search: no composition, no enumeration, no closure
+walked"* — **which is precisely *this obstacle is familiar, where have I seen this shape*.** What it
+lacks is **what it is handed**: one `library`, one game.
+
+**WHAT IT OWES, AND `retrieve` SUPPLIES NONE OF IT:**
+
+- **a scenario store to search.** `fits(t, gap, in_type, out_type)` is typed over TERMS. **A stored
+  play is not a term, so a scenario must present a gap-shaped face before it is searchable at all** —
+  that is the build, and it is not the hash's.
+- **an ordering across stores.** *Current game weighted highest; a wider search only when own
+  strategies are exhausted and confidence is low.* **SEAM 7 supplies the weighting with no bare
+  number** — provenance seeds the mode, performance updates it, and *open* is what a match from
+  another game starts as.
+- **import at low priority with provenance.** `origin: imported` is already a field. **Structural,
+  and the only part already built.**
 
 ### SEAM 6 SETTLED — THE BACKUP IS AN INSTRUMENT, AND THE ROUND TRIP IS LITERAL
 
@@ -399,9 +453,18 @@ reading of nothing until it moves.**
 
 > **AND ONE NEW ITEM IS UNGATED: LAYER 1(e), THE PER-LOCUS MODE.** Its detectors are built and fed;
 > **its loci already have a key in `slot_owner()`; it needs neither P0's ruling nor P4's stack.** *What
-> it owes is a consumer for a verdict nothing reads.* **So it can be taken at any point in the order,
-> and it is the cheapest contact-changing item in the set** — because it is the difference between the
-> agent measuring contingency and the agent concluding from it.
+> it owes is a consumer for a verdict nothing reads.* **So it can be taken at any point in the order.**
+
+**AND THE CONTACT CLAIM IS QUALIFIED, BECAUSE UNQUALIFIED IT CONTRADICTS SEAM 8.** **(e) changes
+contact by REDUCING WHAT IS TRACKED for a confirmed locus, never by selecting behaviour from the
+board-level composition** — *the per-locus drive is licensed as thin I/O; the board composition remains
+a finding.* **What gets changed is what is MEASURED, not what is CHOSEN.**
+
+> **AND THE REACH CLAIM IS STATED SO IT CAN BE READ, NOT ASSERTED.** *An improvement that does not
+> change contact changes nothing.* **The claim is that mass stops piling on the locus the agent is
+> driving, so `_last_mass`'s focal ordering points at what the agent did NOT cause.** **That is
+> checkable against the focal ordering before and after, and it should be measured** — *a contact claim
+> defended by argument is the failure mode the rule was written against.*
 
 ---
 
