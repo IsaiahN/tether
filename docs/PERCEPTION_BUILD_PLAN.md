@@ -139,6 +139,55 @@ transition residual over the slot set, and it is what makes the reading causal r
 completeness never holds mid-episode.*** **A `disembodied` read off `all(not has_self())` alone is
 exactly the inference §18.3 refuted.**
 
+### THE FIVE VALUES, EACH WITH A POSITIVE CONDITION — AND THEY DO NOT ALL LIVE AT ONE LEVEL
+
+**RULED 2026-09-04: the full set is a requirement, not a schedule.** *That `coupled_agency.py` is named
+in §16.2 and absent from the repo is a name written before its code and says nothing about whether the
+capability is needed.*
+
+    PER-LOCUS      unknown        the family found nothing here, and nothing else is established
+                   embodied       this locus's delta correlates with my action, holding FIRST-HAND
+                   disembodied    no locus correlates AND the board moved
+
+    BOARD-LEVEL    coupled        SEVERAL loci correlate TOGETHER -- not one avatar
+                   hybrid         the loci DISAGREE -- at least one embodied, at least one not
+
+> **THE SPLIT IS NOT COSMETIC: SEAM 8's CONSTRAINT REACHES `coupled` TOO.** *Board-level composes as a
+> reading, never an input.* **`coupled` and `hybrid` are BOTH compositions over several loci, so
+> NEITHER MAY GATE** — and the full-set ruling therefore extends the gating discipline rather than
+> relaxing it. **Only the three per-locus values drive anything, and they drive tracking, not
+> behaviour.**
+
+**AND `coupled`'s ESTABLISHING CONDITION TURNS ON ONE WORD, WHICH DECIDES WHETHER IT IS UNGATED.**
+§16.2's wording is bare — *several correlate* — and the ruling adds **together, not a single avatar**:
+
+    reading (i)   TOGETHER = simultaneously, under the same action. Reads off per-locus data
+                  alone. UNGATED, and consistent with "not a single avatar" being about CARDINALITY
+    reading (ii)  TOGETHER = with the same displacement. A JOINT measurement, which is Layer 4's
+                  `do the members move together or individually`. GATED ON P5's class key
+
+**(i) is the reading the wording supports and it keeps `coupled` in the ungated set.** *Flagged rather
+than assumed, because the two differ only where several loci move independently under one action.*
+
+### AND ONE MEMBER OF THE FAMILY HAS NO LOCUS TO INDEX, WHICH PER-LOCUS INDEXING ASSUMES AWAY
+
+**`ValueLatentSelf`: *"a NON-SPATIAL self … **there is no self-cell to point at — the self IS the
+value**."*** It tracks `_counts(board)` **keyed by colour, board-wide** — not per object.
+
+> **SO THE ONE MEMBER §18.3 ADDED BECAUSE A TRANSLATION-SHAPED FAMILY FAILED TOGETHER IS THE ONE THE
+> PER-LOCUS INDEX CANNOT HOLD** — *and it is the member that answers `ls20`, the board the family was
+> repaired for.* **Per-locus indexing assumes every self-hypothesis is about a locus, and one of four
+> is not.**
+
+**THE HOLE IS NOT A REASON TO DROP THE INDEX; IT IS AN ENTRY THE MODE NEEDS.** *A value-latent self is
+a self with a board-wide extent*, so it composes to a board reading without passing through a locus —
+**which the two board-level values already admit as a level.** *What it owes is an establishing
+condition of its own, and it does not have one yet.*
+
+**AND IT TOUCHES P5 FROM AN UNEXPECTED SIDE:** `ValueLatentSelf` keys its history on the **raw palette
+integer**, and P5 replaces that with an ID. **A coarse-graining under the detector that repaired the
+family is a change to what it reads**, and it is not in P5's dependency list today.
+
 **The trajectory is a record, not a state machine:** `EMBODIED@0 → +DISEMBODIED@k → HYBRID (current)`,
 **transitions filed as causal events under the level** — *object_7 became controllable at step k*, *the
 avatar went inert at step m* — **the same class of event as an object appearing or vanishing.**
@@ -233,6 +282,51 @@ colour-ID split is that same rule at a different site.**
 
 **SEAM 3 SETTLED: `GB1` is `Item1` until filled** — the band carries no significance, and **the fill
 is what carries strategy.** *Aliasing on position alone inherits nothing.*
+
+### THE MID-GAME COLOUR CHANGE — SPECIFIED 2026-09-04, AND IT SEPARATES THREE THINGS THE PLAN HAD AS ONE
+
+    IDENTITY     assigned at FIRST encounter, PERMANENT per object. `IV3` stays `IV3` for the
+                 rest of the game whatever happens to its colour
+    PLACEMENT    a band plus that band's RUNNING MAXIMUM. `IV3` moving into GB when `GB4` is
+                 highest is PLACED AT `GB5`. A SHARED, MONOTONIC sequence per band -- the next
+                 new GB colour is `GB6`, because `GB5` is taken
+    CHANGE-LIST  append-only, a standard attribute on every object. `GB5` is APPENDED to `IV3`;
+                 it does not replace the name. Carries whatever rode with the change -- which
+                 step, what else moved
+
+**THE SHARED MONOTONIC COUNTER CONFIRMS THE `SPECTRUM × TIME` DERIVATION RATHER THAN COMPLICATING IT.**
+*`TIME` is **the ordered succession of differences***, and **a shared per-band sequence IS a succession;
+a per-object index would have been a tally.** *The ruling picked the one that types.*
+
+**AND THE CHANGE-LIST IS THE MONOTONE-BY-ADDITION SHAPE, FOR THE THIRD TIME.** *`outstanding` is the
+dilution rule as a data structure — nothing leaves the confines*; `origin` is append-only provenance;
+**the change-list is the same shape at a third site.** *Native, not imported.*
+
+> **PROSPECTIVE `A6i`, AND THE COLLIDING ITEM IS P5: IDENTITY AND PLACEMENT SHARE A STRING FORM.**
+> **`IV3` is an identity; `IV3` was also a placement, at step 0.** *An object that leaves IV and returns
+> is `IV3` by identity and `IV7` by placement — **two quantities under one form, disagreeing on the same
+> object, in the same band**.* **AND IT IS NOT COSMETIC: it decides the band counter's reset
+> semantics** — *a per-play counter would mint a placement `GB1` next play that collides with an
+> existing object's IDENTITY `GB1`.* **Separate the namespaces and both problems close; leave them
+> shared and the reset question is undecidable.** **SEAM 10, below.**
+
+### RGB IS THE LIVE GROUPING KEY, WHICH CORRECTS ONE OF THE TWO FREEZE REASONS
+
+**The raw value is not kept merely to tell two blues apart at first encounter.** *When an object changes
+colour or a new one appears, placing it in the right band and deciding whether it joins an existing
+group is done by comparing its actual RGB against the values already recorded.* **RGB is the GROUPING
+key during play; the ID is the IDENTITY key across play.**
+
+    cache, this play      raw RGB, keyed to the colour ID. THE SUBSTRATE THE PLACEMENT RUNS OVER
+    durable              the identity, the change-list, and the groupings keyed to them
+
+> **SO `T_A` RUNS REPEATEDLY WITHIN A PLAY, AND MY SECOND FREEZE REASON WAS SCOPED WRONG.** *A
+> coarse-graining that recomputed would be re-deriving the level from a substrate it discarded* is
+> **true ACROSS plays and false WITHIN one** — the substrate is live in cache all play. **The
+> conclusion is unchanged and the mechanism is corrected: what is frozen is the IDENTITY, never the
+> placement OPERATION**, and the freeze is protected by the cache being dropped at `boundary` rather
+> than by the substrate being unavailable. *Which is also why aliasing works next play: by then the
+> substrate really is gone.*
 
 ---
 
@@ -331,9 +425,31 @@ reaching a second item.**
 > SEAT-READ.** *The same line as the hash — computed versus handed.* **`PER_LEVEL` and `MAX_ACTIONS`
 > stay seat-side and unread by the agent.**
 
-**AND THE LEARNED CEILING IS ALREADY IN THE LEDGER.** *The death point is `by` summing to the act
-count* — **~131 acts on `g50t`, ~152 on `ls20`, measured.** *A reading over data already recorded
-rather than a new instrument.*
+**AND THE DEATH POINT IS ALREADY IN THE LEDGER — AS A SEAT READING, WHICH REVISION 2 DID NOT SAY.**
+*`by` summing to the act count* — **~131 on `g50t`, ~152 on `ls20`.** **That is MY reading of the
+ledger, not the agent's memory**, and revision 2's phrasing invited the opposite.
+
+### THE CEILING ABSTENTION — RULED 2026-09-04, AND IT IS AN INSTRUMENT RATHER THAN A LOSS
+
+    KEPT, DURABLE   step counts, action counts, what-cost-what PER GAME. First-hand experience,
+                    how bets are sized, and the recall behind `strategy X took 40 steps there`
+    ABSTAINED       the single `MAX_ACTIONS` ceiling per level. NEVER SAVED AS A NUMBER
+
+**THE REASON IS NOT BOARD-SPECIFICITY.** *Keeping every count and never the ceiling leaves the agent
+knowing only the **RELATIVE** action cost of games and never the absolute budget of a level* — **which
+is itself the proof-of-learning property**, since it demonstrates the shape of effort was learned
+without the answer key. **And if it ever reconstructs the ceiling from relative data, EARNING the
+number is categorically different from being handed it.**
+
+> **SAME SHAPE AS CLAUSE 3 AND AS SEAM 6's BACKUP: WITHHOLDING IS WHAT CREATES THE MEASUREMENT.**
+> *Wipe Γ and see whether the win survives; withhold the absolute and see whether it is derived.*
+> **An abstention that makes a later claim checkable is an instrument, and this one has a falsifier:
+> if an absolute budget ever appears, provenance says whether it was derived or read.**
+
+**AND *RELATIVE COST ACROSS GAMES* IS NOT POOLING, WHICH THE NEXT READER WILL ASSUME IT IS.** *Pooling
+averages a metric across games and destroys the per-game reading.* **Comparing two games' costs keeps
+both intact and reads the relation between them** — the thing the no-pooling rule exists to protect,
+not the thing it forbids.
 
 ---
 
@@ -501,15 +617,47 @@ the stronger verdict, because it discriminates.**
 
 ---
 
+# THE THREE OPEN ITEMS, SETTLED 2026-09-04
+
+| item | ruling | lands |
+|---|---|---|
+| **mid-game colour change** | **identity permanent, placement re-numbered from the band's running maximum, change-list append-only** — and RGB stays cache-live as the grouping key | **P5**, Layer 3 |
+| **the learned ceiling** | **counts durable per game; the `MAX_ACTIONS` ceiling abstained and never saved as a number** — relative-only is the proof-of-learning property | **P6/P7**, Layer 6 |
+| **the mode values** | **all five built** — the absent `coupled_agency.py` is a name written before its code | **Layer 1(e)**, ungated |
+
+**And the two prior hooks are absorbed rather than dropped:** `Affordances.bindings` remains the
+conflation witness — *a key with two colours in it is a row carrying two things* — **and it is now the
+same object as a two-entry change-list**; and **`COLOUR` being `COMPARABLE` not `ORDERED` is what makes
+the change-list the right shape**, since *changed / to which placement* is recordable and *by how much*
+is not.
+
+---
+
+# SEAM 10 — THE BAND COUNTER'S RESET SEMANTICS, AND IT IS NOT A PREFERENCE
+
+**The counter advances within a play. Nothing says what it does ACROSS plays, and the change-list is
+durable, so a placement written this play is read next play.**
+
+    (i)  DURABLE PER GAME, keyed by the structure hash. Placements are stable across plays and
+         the change-list reads back meaningfully. The counter grows without bound
+    (ii) PER PLAY. The change-list holds a coordinate whose meaning did not survive, so each
+         entry must be STAMPED with the play or it cannot be read later
+
+**(ii) HAS A PRECEDENT IN THE BUILD:** `retarget` parks residuals as **`L{level}:{slot}`** — *a
+per-level namespace stamped into the key*, because the same problem arose one level down and was
+solved by stamping. **Two options and one of them is already instantiated.**
+
+> **AND EITHER WAY THE IDENTITY/PLACEMENT NAMESPACE MUST SEPARATE FIRST**, because under (ii) a fresh
+> placement `GB1` collides with an existing object's permanent identity `GB1`. **The `A6i` and the
+> reset question are the same defect seen from two sides.**
+
+---
+
 # STILL OPEN
 
-- **The mid-game colour-change attribute.** *Two hooks exist before anything is designed:*
-  **`Affordances.bindings` is the detector in embryo** — *"a key with two colours in it is a row
-  carrying two things"* — and **`COLOUR` is `COMPARABLE` not `ORDERED`, so the record can be
-  *changed / to which ID*, never *by how much*.**
-- **Whether the learned-ceiling abstention persists a summary to the library.**
-- **`coupled bodies` is NAMED AND UNBUILT.** §16.2 names the value and `coupled_agency.py` does not
-  exist in this repo. **An item, not a question.**
+**Nothing from the original three.** **SEAM 10** above, and **two conditions flagged at their layers**:
+`coupled`'s *together* under reading (i) or (ii), and **`ValueLatentSelf` having no locus to index and
+no establishing condition of its own.**
 
 ---
 
