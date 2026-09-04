@@ -158,16 +158,30 @@ capability is needed.*
 > relaxing it. **Only the three per-locus values drive anything, and they drive tracking, not
 > behaviour.**
 
-**AND `coupled`'s ESTABLISHING CONDITION TURNS ON ONE WORD, WHICH DECIDES WHETHER IT IS UNGATED.**
-§16.2's wording is bare — *several correlate* — and the ruling adds **together, not a single avatar**:
+### `coupled` IS THREE STATES, NOT A CHOSEN READING — RULED 2026-09-04
 
-    reading (i)   TOGETHER = simultaneously, under the same action. Reads off per-locus data
-                  alone. UNGATED, and consistent with "not a single avatar" being about CARDINALITY
-    reading (ii)  TOGETHER = with the same displacement. A JOINT measurement, which is Layer 4's
-                  `do the members move together or individually`. GATED ON P5's class key
+**The fork was real and NEITHER reading wins, because a public game mixes them.** *So the two readings
+become the two DISCRIMINATORS, and the classification is PER RELATIONSHIP rather than per game:*
 
-**(i) is the reading the wording supports and it keeps `coupled` in the ungated set.** *Flagged rather
-than assumed, because the two differ only where several loci move independently under one action.*
+    independent      moved this action, DIFFERENT displacements    coincidence, not coupled
+    coupled-rigid    moved this action, SAME displacement          one body
+    coupled-loose    moved together consistently, not identically  correlated, not rigid
+
+**Two comparisons, both over data already held:** *same action* is the per-locus contingency;
+*same displacement* is `delta_of`'s `(drow, dcol)` compared over the pair. **Nothing new is gated, and
+`coupled` stays in the ungated set.**
+
+> **AND THE THREE DO NOT CLASSIFY AT THE SAME RATE, WHICH THE PER-STEP REQUIREMENT MAKES MATTER.**
+> *`independent` and `coupled-rigid` are readable in ONE step; `coupled-loose` is **consistently, not
+> identically**, which needs a HISTORY.* **So loose cannot be a per-step verdict** — and it needs no new
+> machinery, because **rigid is `proven` per step and loose is `believed` from accumulation.** *The
+> confidence rule already carries the difference.*
+
+**AND THE LEVEL TABLE GAINS A THIRD ROW, BECAUSE A RELATIONSHIP IS NOT A LOCUS AND NOT THE BOARD:**
+
+    PER-LOCUS           unknown · embodied · disembodied          drive TRACKING
+    PER-RELATIONSHIP    independent · coupled-rigid · -loose      a READING over per-locus data
+    BOARD-LEVEL         coupled · hybrid                          compositions; Seam 8: NEITHER GATES
 
 ### AND ONE MEMBER OF THE FAMILY HAS NO LOCUS TO INDEX, WHICH PER-LOCUS INDEXING ASSUMES AWAY
 
@@ -181,12 +195,43 @@ value**."*** It tracks `_counts(board)` **keyed by colour, board-wide** — not 
 
 **THE HOLE IS NOT A REASON TO DROP THE INDEX; IT IS AN ENTRY THE MODE NEEDS.** *A value-latent self is
 a self with a board-wide extent*, so it composes to a board reading without passing through a locus —
-**which the two board-level values already admit as a level.** *What it owes is an establishing
-condition of its own, and it does not have one yet.*
+**which the two board-level values already admit as a level.**
 
-**AND IT TOUCHES P5 FROM AN UNEXPECTED SIDE:** `ValueLatentSelf` keys its history on the **raw palette
-integer**, and P5 replaces that with an ID. **A coarse-graining under the detector that repaired the
-family is a change to what it reads**, and it is not in P5's dependency list today.
+### THE WORKSHOP, AND TWO THINGS THE MEMBER'S CODE ALREADY SETTLES
+
+**DRAFTED CONDITION — input→value alignment, where embodied has input→locus alignment:** *concludes
+when an agent action produces a consistent, intended change in a board-wide value, and no single locus
+accounts for the change.*
+
+> **THE SECOND CONJUNCT IS ABSENTIAL AS WRITTEN, WHICH IS THE DEFECT JUST CORRECTED FOR
+> `disembodied`.** *"No single locus accounts for it"* **is not an absence — it is a RESIDUAL, and the
+> build computes residuals.** **State it positively: the value's change carries UNEXPLAINED MASS after
+> every locus's contribution is priced** — which is `outstanding`, monotone and per-slot, already
+> running. *An absence cannot be checked mid-episode; a residual can.*
+
+**AND THE INPUT→VALUE HALF IS ALREADY IMPLEMENTED.** `_attribute(action, cts[colour] − was)` is the
+per-action contingency on the value; `has_self()` is *"consistent AND meaningful: every nonzero step one
+way, and net travel of at least one unit per nonzero step."* **The condition's positive half is built;
+only the residual conjunct is missing.**
+
+### AND THE P5 KEY QUESTION IS SMALLER THAN IT LOOKS, BECAUSE THE MEMBER ALREADY SEARCHES
+
+**The member does NOT hold a stipulated value. It SELECTS one** — *the non-background series with the
+highest monotonicity*, `mono = |Σ sign(Δ)| / |nonzero|`, `best` updated every observation.
+
+> **SO THE WORKSHOP QUESTION IS NOT *WHICH VALUE PLAYS THE ROLE* — THE AGENT ALREADY ANSWERS THAT.**
+> **What P5 changes is only the SPACE THE EXISTING SELECTOR RUNS OVER**: palette integers today,
+> and after P5 whatever board-wide quantities are published. **The item is *widen the candidate set*,
+> not *identify the value*.**
+
+**AND THAT IS THE DOCTRINE LINE, NOT A CONVENIENCE.** *Naming the zoom-level for a given game would be
+encoding the answer* — **the monotonicity search IS the agent doing the identification, and it is the
+evidence the mechanism works.** *Hand it the value and there is nothing left to measure.*
+
+**WHAT REMAINS TO THE WORKSHOP:** the residual conjunct's exact form, and **what board-wide quantities
+P5 should publish into the candidate set** — *a perception question with an entry rule, which is the
+legitimate way to widen Tier 1.* **It must resolve before P5, because P5 changes what the member
+reads.**
 
 **The trajectory is a record, not a state machine:** `EMBODIED@0 → +DISEMBODIED@k → HYBRID (current)`,
 **transitions filed as causal events under the level** — *object_7 became controllable at step k*, *the
@@ -285,14 +330,22 @@ is what carries strategy.** *Aliasing on position alone inherits nothing.*
 
 ### THE MID-GAME COLOUR CHANGE — SPECIFIED 2026-09-04, AND IT SEPARATES THREE THINGS THE PLAN HAD AS ONE
 
-    IDENTITY     assigned at FIRST encounter, PERMANENT per object. `IV3` stays `IV3` for the
-                 rest of the game whatever happens to its colour
-    PLACEMENT    a band plus that band's RUNNING MAXIMUM. `IV3` moving into GB when `GB4` is
-                 highest is PLACED AT `GB5`. A SHARED, MONOTONIC sequence per band -- the next
-                 new GB colour is `GB6`, because `GB5` is taken
-    CHANGE-LIST  append-only, a standard attribute on every object. `GB5` is APPENDED to `IV3`;
-                 it does not replace the name. Carries whatever rode with the change -- which
-                 step, what else moved
+**RESOLVED AS POINTER-VERSUS-VALUE, WHICH IS A CHANGE FROM THE FIRST STATEMENT OF THE RULING.**
+*The identity was first given as `IV3` — a colour label made permanent. It is not a colour label at
+all.*
+
+    IDENTITY     A POINTER. a stable handle, assigned once, NEVER REUSED, and never a colour.
+                 `obj_7` is `obj_7` whatever happens to its colour
+    PLACEMENT    A VALUE. a band plus that band's RUNNING MAXIMUM -- a position ANOTHER object
+                 can hold at another time. `GB4` highest means the next arrival is PLACED AT
+                 `GB5`, and the one after is `GB6`. Shared and monotonic per band
+    CHANGE-LIST  append-only, a standard attribute on every object. the placements it has held
+                 over time, plus whatever rode with each change -- which step, what else moved
+
+> **AND THE POINTER ALREADY EXISTS: `slot_owner()` ASSIGNS IT.** *`{s: s.rsplit(".", 1)[0]}` is the
+> object handle, domain-declared, running today.* **So the split does not add a mechanism — it REMOVES
+> a responsibility from Layer 3**, which never needed to carry identity and only ever needed to produce
+> placements.
 
 **THE SHARED MONOTONIC COUNTER CONFIRMS THE `SPECTRUM × TIME` DERIVATION RATHER THAN COMPLICATING IT.**
 *`TIME` is **the ordered succession of differences***, and **a shared per-band sequence IS a succession;
@@ -302,13 +355,24 @@ a per-object index would have been a tally.** *The ruling picked the one that ty
 dilution rule as a data structure — nothing leaves the confines*; `origin` is append-only provenance;
 **the change-list is the same shape at a third site.** *Native, not imported.*
 
-> **PROSPECTIVE `A6i`, AND THE COLLIDING ITEM IS P5: IDENTITY AND PLACEMENT SHARE A STRING FORM.**
-> **`IV3` is an identity; `IV3` was also a placement, at step 0.** *An object that leaves IV and returns
-> is `IV3` by identity and `IV7` by placement — **two quantities under one form, disagreeing on the same
-> object, in the same band**.* **AND IT IS NOT COSMETIC: it decides the band counter's reset
-> semantics** — *a per-play counter would mint a placement `GB1` next play that collides with an
-> existing object's IDENTITY `GB1`.* **Separate the namespaces and both problems close; leave them
-> shared and the reset question is undecidable.** **SEAM 10, below.**
+**THE `A6i` IS CLOSED BY THE SPLIT** — *one label carrying two quantities, cured by one name per
+quantity, which is the same cure `ATTR` and `OBJ × OBJ` took.*
+
+> **BUT IT LEAVES A HOLE THE FIRST STATEMENT WAS FILLING, AND THE HOLE IS CROSS-PLAY.** *If the colour
+> ID is a placement and not an identity, **what carries an object's strategy from one play to the
+> next?*** **`slot_owner()`'s handle is a WITHIN-play tracker name** — `Objects.__call__` re-derives it
+> by max overlap each episode — **and Layer 7's hash identifies the GAME, not an object in it.**
+> *The original spec had the colour ID doing this job — "**strategies filed under `GB1` are still
+> reachable**" — and the split takes the job away without reassigning it.*
+
+**AND THE CORPUS ALREADY SPECIFIES THE ANSWER, ONE SCALE DOWN.** Layer 7: *a hash from **the game's own
+structure, the distinctive groupings and attributes, the shape of the game and not its colours**.*
+**Distinctive groupings and attributes are OBJECT-level content, so the same construction applies to an
+object: a cross-play object identity is a hash of ITS structure, not its colour.**
+
+> **Which is why the colour ID could never have carried it: filing by hue is the contamination the
+> hash rule exists to forbid, and it does not stop being contamination one level down.** *The game hash
+> and the object hash are one law at two scales, and only the first is written down.*
 
 ### RGB IS THE LIVE GROUPING KEY, WHICH CORRECTS ONE OF THE TWO FREEZE REASONS
 
@@ -633,31 +697,44 @@ is not.
 
 ---
 
-# SEAM 10 — THE BAND COUNTER'S RESET SEMANTICS, AND IT IS NOT A PREFERENCE
+# SEAM 10 -- SETTLED: PER-PLAY COUNTER, STAMPED WITH THE FULL `hash_episode_level`
 
-**The counter advances within a play. Nothing says what it does ACROSS plays, and the change-list is
-durable, so a placement written this play is read next play.**
+**Option (ii), with a richer stamp than the precedent.** *The counter resets each play; every placement
+carries the full `hash_episode_level` triple, both namespaces are separated, and the level component is
+what preserves the dilution.*
 
-    (i)  DURABLE PER GAME, keyed by the structure hash. Placements are stable across plays and
-         the change-list reads back meaningfully. The counter grows without bound
-    (ii) PER PLAY. The change-list holds a coordinate whose meaning did not survive, so each
-         entry must be STAMPED with the play or it cannot be read later
+    identity      a pointer. permanent, structural, never a colour
+    placement     `<band><n>` @ `hash_episode_level`. the counter is PER PLAY, and the stamp is
+                  what makes an entry readable after the counter that minted it has reset
 
-**(ii) HAS A PRECEDENT IN THE BUILD:** `retarget` parks residuals as **`L{level}:{slot}`** — *a
-per-level namespace stamped into the key*, because the same problem arose one level down and was
-solved by stamping. **Two options and one of them is already instantiated.**
+**THE STAMP IS THE DILUTION RULE MADE ADDRESSABLE.** Layer 7: *a later level uses an earlier one, but
+LOSSILY -- the earlier plays are residual the new level composes against, the way solute already in a
+container is not removed when more solvent is added.* **A level component in the key is what lets prior
+plays remain available AT REDUCED STRENGTH rather than being either overwritten or confused.** *Nothing
+leaves; the stamp is how what stayed is still reachable.*
 
-> **AND EITHER WAY THE IDENTITY/PLACEMENT NAMESPACE MUST SEPARATE FIRST**, because under (ii) a fresh
-> placement `GB1` collides with an existing object's permanent identity `GB1`. **The `A6i` and the
-> reset question are the same defect seen from two sides.**
+> **AND THE TWO STAMP FORMATS DIFFER ON PURPOSE -- DO NOT HARMONISE THEM.** `retarget` parks residuals
+> as **`L{level}:{slot}`**, level only; placements carry **hash, episode AND level.** *A residual's
+> lifetime ends at a LEVEL boundary; a placement's ends at an EPISODE boundary, because the palette
+> swaps on reset.* **One format over two lifetimes would be `A6i`'s inverse -- a single namespace
+> asserted where two exist** -- and it is the tidy-looking change a later reader is most likely to
+> make.
 
 ---
 
 # STILL OPEN
 
-**Nothing from the original three.** **SEAM 10** above, and **two conditions flagged at their layers**:
-`coupled`'s *together* under reading (i) or (ii), and **`ValueLatentSelf` having no locus to index and
-no establishing condition of its own.**
+**ONE ITEM, AND IT IS A WORKSHOP RATHER THAN A RULING: `ValueLatentSelf`'s residual conjunct, and which
+board-wide quantities P5 publishes into the candidate set it already searches.** *Downstream of P0-P3
+and runs in parallel; it must resolve before P5, because P5 changes what the member reads.*
+
+**CLOSED:** the three original items - the identity/placement `A6i`, by the pointer/value split -
+`coupled`, as three states classified per relationship - **SEAM 10**.
+
+**AND ONE CONSEQUENCE OF A CLOSURE IS ITSELF OPEN, RAISED AT LAYER 3:** **the pointer/value split takes
+cross-play object identity away from the colour ID and nothing has been assigned it.** *The corpus
+specifies the construction -- a hash of structure, not colour -- one scale up, and applying it one
+scale down is a reading rather than a ruling.* **It is not a new question; it is an unassigned job.**
 
 ---
 
