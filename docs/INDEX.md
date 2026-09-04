@@ -13211,3 +13211,43 @@ directionally.
 counting terminate* — **the half that was doing the work, now confirmed as energy's while the
 spending is the gradient's.**
 
+
+---
+
+# ONE QUALIFICATION: THE FROZENSET RESTORES STRUCTURE, AND DOES NOT RESTORE AN ORDERING
+
+**`[I]`: *publishing the frozenset restores both the structure and the ordering, because the ordering
+was what the label discarded.* THE FIRST HALF HOLDS. THE SECOND DOES NOT, AND THE DIFFERENCE MATTERS.**
+
+    Figure 13's spectrum   "ordering, so MORE AND LESS can be said"
+    a frozenset            HAS NO ORDER. It is a set of normalised offsets
+
+**What the frozenset restores is STRUCTURE — subset, overlap, comparison under a transform** — *which
+is what symmetry, similarity, rotation and congruence need.* **What it does not restore is a place on
+a scale.**
+
+> **AN ORDERING OVER SHAPES IS DERIVABLE FROM IT AND IS NOT IN IT.** *Cell count is a total order and
+> a derived scalar; containment is a PARTIAL order and not a scale.* **Neither arrives by publishing
+> the set — each is a further step, and which one is chosen is a decision.**
+
+**AND THE ALPHABET SHOWS IT.** *Under the frozenset, `SHAPE`'s alphabet would be `2**(h*w)` — the
+CARDINALITY of the space of shapes.* **Still a size, still not an ordering** — so publishing the
+structure does not by itself put `SHAPE` into `ORDERED`.
+
+## SO THEY ARE TWO ITEMS, TIGHTLY COUPLED
+
+    the erasure    the richer quantity is computed and the poorer published. Publishing the
+                   frozenset closes it, and the six blocked relations follow
+    the spectrum   `COLOUR` and `SHAPE` sit outside `ORDERED`, so no *more and less* can be
+                   said of them. Publishing the set does not change that; DERIVING a scalar
+                   from it would, and nothing has chosen one
+
+> **THE COUPLING IS REAL AND THE MERGE IS NOT:** *the erasure blocks the structural relations; the
+> missing spectrum blocks the ordered ones*, **and closing the first makes the second reachable
+> without making it true.**
+
+**AND `COLOUR` IS THE CASE THAT PROVES THEY SEPARATE.** *`COLOUR` has no erasure — the palette value is
+published whole* — **and it is still outside `ORDERED`, correctly, because a hue has no more-and-less.**
+**One type with the spectrum missing and nothing erased**, which a single merged item could not
+represent.
+
