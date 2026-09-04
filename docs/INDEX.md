@@ -13136,3 +13136,78 @@ readings below the break and say nothing about planning or transfer.**
 **And it is not the figure's authority.** *The colours are general now.* **This is one reading, from
 this session's measurements, and it should be re-taken when link 2 changes.**
 
+
+---
+
+# FIGURE 13 READ FRESH — IT CHANGES TWO ITEMS, RESTATES TWO, AND CORRECTS ONE OF MY OWN MAPPINGS
+
+**`Figure_13_The_Minimum_Viable_Set.svg`, new. Also updated since the last read: Figure 3 (recorded)
+and Figure 7 (17:47).** *And two files I had never seen: `Figure - Operators Table.svg` and `Figure -
+Symbols Table.svg`.*
+
+## CHANGES STANDING · 1 — `4` IS CONFIRMED NAMED, BY CONTRAST WITH A DERIVED SIX
+
+**Figure 13 derives its count and shows the method:** *"Each is indivisible: no arrangement of the
+other five yields it... And the set is minimal: remove one and something stops."* **With a
+per-member table of which law fails without it, and a refutation test: *derive a member from the
+other five, or derive one of the established laws without a member the table says it needs.***
+
+**And it records a rejected candidate with its reason:** *"A continuum was the seventh and was removed
+for failing exactly this... **A generating set must not contain what its own members produce.**"*
+
+> **SO THE CORPUS CONTAINS A WORKED DERIVATION OF A COUNT.** *§18.3's four has none* — **which
+> upgrades this morning's finding from *`4` has no mode* to *`4` has no mode in a corpus that
+> demonstrates, in the same set of figures, exactly what supplying one looks like.***
+
+## CHANGES STANDING · 2 — MY `SPECTRUM` MAPPING IS WRONG UNDER FIGURE 13's OWN DEFINITION
+
+    Figure 13     spectrum -- "ordering, so MORE AND LESS can be said"
+    what I mapped `_alphabets`, which returns a SIZE per slot -- CARDINALITY, not ordering
+
+**I justified that from `RECURSIVE_TRANSFORMATION`'s *`SPECTRUM` supplies distinguishability, and
+distinguishability is all counting requires.*** **Figure 13's definition is the ordering, and a size
+is not one.**
+
+> **THE BUILD'S SPECTRUM IS `ORDERED = (POSITION, EXTENT, DELTA)` — THREE OF EIGHT ATTRIBUTE TYPES.**
+> *`COLOUR` and `SHAPE` are `COMPARABLE` and not `ORDERED`* — **exactly the two the erasure findings
+> identified as labels.** **So the spectrum is absent on precisely the types where a structural
+> quantity was flattened to an id**, which is a connection neither mapping had.
+
+## RESTATES RATHER THAN CHANGES · FIGURE 6's WALL AND THE STATE/STRUCTURE PAIR
+
+**Figure 13 does derive the wall, explicitly:** *"The set is closed. The arrangements are not. **That
+gap is why import exists**... which is why the wall in Figure 6 is a wall at all."* **With the
+disjunction: *if arrangement were bounded you would exhaust it; if arranging could add a kind you
+would never need another frame.*** **A real derivation — and import's standing is not an open item on
+our board, so nothing here moves.**
+
+**And the pairing — *neither denotes anything alone* — is already recorded**, from
+`RECURSIVE_TRANSFORMATION`, and is now promoted into a figure. *Same claim, higher standing, no
+change to the erasure items.*
+
+## AND ONE MISATTRIBUTION TO CORRECT
+
+**`[I]` cites *a vocabulary of ingredients cannot state a route* as Figure 13's. IT IS FIGURE 12's** —
+*"a vocabulary holding only ingredients can name a state and not a route to one: a plan is a
+sequence, a goal is a comparison, progress is a subtraction, and each of those is a bond."*
+**Figure 13 says compositions are across kinds; it does not carry that line.** *And Figure 12's
+version is already recorded against link 3 this session, so the point stands and its source moves.*
+
+## AND THE PRICING RULING SHARPENS — THE BUDGET IS A GRADIENT, NOT ENERGY
+
+    Figure 13   energy    "conserved, finite, DIRECTIONLESS ALONE"
+    Figure 13   gradient  "a difference THAT CAN BE SPENT"
+
+**I mapped the action budget to ENERGY and reported that conservation fails.** **Under Figure 13 it is
+a GRADIENT** — *what makes a gradient a gradient is that it can be spent*, and the budget depletes
+directionally.
+
+> **WHICH IS WHY THE PRICING LICENCE HOLDS AND SHARPENS IT:** *`the action budget prices finding out`*
+> **is the gradient being spent to drive the search** — Figure 13's second- and third-law rows give
+> the gradient exactly that role: *no direction to drive the flow, and no remainder left after each
+> step.* **A price is a gradient spent; a score is a state read. The two kinds are the distinction.**
+
+**AND `energy`'s ROLE SURVIVES AS THE ONE I FOUND**: *finiteness in a finite region is what makes the
+counting terminate* — **the half that was doing the work, now confirmed as energy's while the
+spending is the gradient's.**
+
