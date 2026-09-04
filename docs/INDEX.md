@@ -13251,3 +13251,114 @@ published whole* — **and it is still outside `ORDERED`, correctly, because a h
 **One type with the spectrum missing and nothing erased**, which a single merged item could not
 represent.
 
+
+---
+
+# THE NINE SEAMS, ANSWERED — MY RESPONSES, AND ONE OBJECTION THAT WAS MINE TO LOSE
+
+## SEAM 1 · RECLASSIFIED — ACCEPTED, AND THE CORPUS ALREADY DREW THE LINE I FAILED TO APPLY
+
+**The reclassification is right, and it is stronger than the resolution argues, because `CLAUDE.md`
+390–396 already states the boundary in its own words.**
+
+> *"**Entering means entering Γ**; the five non-Γ homes are **POPULATED, not entered.** So the two
+> tests divide without overlapping and neither needs widening: **§23.2's *what to look at vs what to
+> do* governs loading the five; §11's two clauses govern entry into Γ.**"*
+
+**A reading order is *what to look at*. So §23.2 governs it, and §11 never applied.** *I wrote the
+entry-rule objection against a paragraph that says the objection does not apply — and I recorded that
+paragraph myself.* **Seventh instance of a law in hand and not applied**, and the same shape as
+`A6i`: the rule was available, cited nearby, and not run.
+
+**AND THE FALLBACK IS ALREADY BUILT.** `_last_mass` picks the focal slot by maximum unexplained
+mass — **`outstanding` used as an ordering, running today, and licensed as ROUTING rather than
+scoring.** *The fallback is not a new mechanism; it is the existing one given a second consumer* —
+which is the shape the doctrine prefers over an install.
+
+## SEAM 2 · HYBRID — COHERENT UNDER ONE READING ONLY, AND THE DOCUMENT DOES NOT SAY WHICH
+
+**Figure 13: *everything else is a composition ACROSS the two kinds, **never within one***. **Spectrum
+and network are BOTH structures.**
+
+> **SO A HYBRID READ AS ONE STRUCTURE WITH TWO ASPECTS IS A COMPOSITION WITHIN A KIND, WHICH FIGURE 13
+> FORBIDS.** *Read as TWO structures over TWO DIFFERENT STATES it is fine:* **the anchors are a
+> spectrum over WAVELENGTH; the placements are a network over ENCOUNTERED COLOURS.** *Different
+> states, different structures, nothing composed within a kind.*
+
+**The resolution holds under the second reading and not the first, and *hybrid* invites the first.**
+**Worth one sentence in the pipeline**, because the two readings are indistinguishable in the
+contents and only the wording separates them.
+
+**The gradient-mechanic case is flagged correctly** — and it is precisely the case where the two
+states would have to collapse into one, which is when the seam reopens.
+
+## SEAM 3 · CORRECTED — ACCEPTED, AND THE NEW CASE HAS TWO EXISTING HOOKS
+
+**`GB1` is `Item1` until filled** — I over-read the band as carrying significance it does not carry.
+**Accepted.**
+
+**On the mid-game colour change, two things already exist and should be read before anything is
+designed:**
+
+**(a) `Affordances.bindings` IS the detector in embryo.** *"WHICH COLOURS BOUND TO EACH KEY, THIS
+EPISODE… It is also the conflation witness — **a key with two colours in it is a row carrying two
+things**."* **It already records colour multiplicity per key and already flags it.**
+
+**(b) A colour delta cannot be a magnitude.** `COLOUR` is `COMPARABLE` and not `ORDERED`, **so
+`dcolour` has no *more and less* the way `drow` does.** *The record can be **changed / to which ID**,
+never **by how much*** — a constraint on the attribute's shape that holds before anyone designs it.
+
+## SEAM 4 · CLOSED — ACCEPTED, WITH ONE CONSEQUENCE WORTH PRICING
+
+**Change is the trigger; residual size is the salience filter. One event, two thresholds. Accepted.**
+
+**THE CONSEQUENCE IS CALL VOLUME, NOT FRAMING.** *§15.3's claim is that matching is a **one-pass
+check, not a search***, and the build's threshold — `R > 0` — is what holds retrieval to one pass
+**per residual**. **Firing on every settled change retrieves for events the model already predicts**,
+which is more passes over the same library for the same claim. **Not wrong. Priced.**
+
+## SEAM 5 · RESOLVED — ACCEPTED WITHOUT RESERVATION, AND THE QUANTITY IS ALREADY MEASURABLE
+
+**Discovering a bound through play is experience; reading a given parameter is a seat-read.** *The
+same line as the hash: computed versus handed.*
+
+**AND THE CEILING IS ALREADY IN THE LEDGER.** *The death point is `by` summing to the act count* —
+**~131 acts on `g50t`, ~152 on `ls20`, measured** — so the learned ceiling is a reading over data
+already recorded rather than a new instrument.
+
+## SEAM 6 · CLOSED — ACCEPTED, AND IT IS MY OPTION (ii), WHICH CLAUSE 3's TEXT DOES NOT SAY
+
+**The reframe resolves it, and the sentence doing the work is *re-proving the feat **with the store
+wiped** and rebuilt from fresh play*.** **That wipes the store — which was option (ii), extending the
+ablation to both homes.** *My objection was that the store survives the wipe; if it does not, the
+clause works.*
+
+> **BUT CLAUSE 3's TEXT SAYS *WIPE Γ*, AND THE STORE IS OUTSIDE Γ.** *The substance is settled and the
+> text is not*, and **the next reader wipes what the text names.** **`CLAUDE.md` is a working document
+> and the clause is repairable at source** — *which is the map-entry lesson exactly: an entry naming
+> one thing where two are meant closes the question for whoever reads it next.*
+
+## SEAM 7 · CLOSED — THE STRONGEST OF THE NINE, AND ITS UPDATE CLOCK IS ALREADY BUILT
+
+**Provenance seeds the mode; performance updates it. Derived rather than assigned — the same move as
+the structure hash.** **It does more than close the seam: it makes proven/believed/open computed
+corpus-wide, which was the hole.**
+
+**AND THE MECHANISM EXISTS.** `Standing.decay` runs on a **logical** clock —
+`rejections *= 0.5 ** (gap / REJECTION_HALFLIFE)`, attempts and generations, no wall clock — **so
+demotion already has a clock and a half-life**, and `settled_at` is the promotion side. *Wiring, not
+invention.*
+
+## SEAM 8 · CLOSED AS A TEST — ACCEPTED, AND THE TEST INHERITS SEAM 9's CONDITION
+
+**The story is the specification and the acceptance test. The pair-identity caveat is right** — *a
+pair has no slot, so its output has no bettable name, and that is the load-bearing step the shrink
+does not reach.*
+
+**ONE CONDITION CARRIES IN: the story includes animation, and `ls20` has none.** **So the acceptance
+test is per-game too** — *a build satisfying the story on `g50t` and showing nothing on `ls20` has
+PASSED, not failed.* **Seam 9's rule applied to the test rather than to the capability**, and without
+it the acceptance test would read a correct build as a failure.
+
+## SEAM 9 · ACKNOWLEDGED — nothing to add.
+
