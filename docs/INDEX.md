@@ -13475,3 +13475,89 @@ with isomerism behind it — ***the same ingredients under a different bond are 
 substance.*** **Band-position-bonded-to-network is a DIFFERENT TERM from band position**, which is
 exactly why the ordering does not travel into it and `above(green, blue)` cannot form.
 
+
+---
+
+# THE TWO LOOKUPS, RUN — ONE IS NOT A COLLISION, AND THE OTHER INVERTS
+
+## LOOKUP 1 · `transition` IS TAKEN, AND THAT IS THE FINDING RATHER THAN THE PROBLEM
+
+`tether.py:101` — `TRANSITION, REWARD, BRACKET = "transition", "reward", "bracket"` — **residual
+CHANNELS**, and `tether.py:535` files `SlotResidual(s, TRANSITION, pred[s], actual, bits)`:
+**predicted against actual on the per-slot across-step change.**
+
+> **THAT IS THE SAME QUANTITY.** The channel is named `transition` **because the across-step change is
+> what it reads.** So using the word for Layer 1's across-step quantity is **CONSISTENCY, NOT
+> COLLISION** — and `drift` would be the actual defect: **a second word for a thing already named,
+> which is worse than a collision, because two words for one quantity is how a reinvention hides
+> where no grep can see it.**
+
+**Tenth time the corpus had already named the instrument, and the first found by the check rather
+than by the damage.**
+
+**ONE GUARD, AND IT IS CHECKABLE:** the tracker's `transition` must be **the thing the `TRANSITION`
+channel reads.** If Layer 1 emits transitions that never reach a `SlotResidual`, there are two things
+called transition that never meet — **and THAT is when it becomes `A6i`.** *Acceptance condition on
+the name: one producer, one channel.*
+
+**`cascade` for the within-step quantity is unclaimed and stands.**
+
+## LOOKUP 2 · THE CORPUS DERIVES DISCRETENESS THE OTHER WAY, AND `GB1` NEEDS NO NETWORK
+
+**`RECURSIVE_TRANSFORMATION` Part 4 rejects the construction the derivation used, by name:**
+
+> ***"Not from `NETWORK`, though it is often claimed.** A network is discrete, and shrinking its
+> distances without bound is said to produce a continuum in the limit. **That construction presupposes
+> what it derives.**"*
+>
+> ***"A network describes discrete elements connected by relationships … so a network EXHIBITS
+> discreteness rather than PRODUCING it.** Three stones are three whether or not any relation holds
+> between them; **`SPECTRUM` supplies distinguishability, and distinguishability is all counting
+> requires.**"*
+
+**SO THE NETWORK CANNOT SUPPLY THE CUT — AND NOTHING NEEDS TO, BECAUSE THE SPECTRUM ALREADY SUPPLIES
+DISTINGUISHABILITY.** *The index is counting; counting requires distinguishability; a spectrum is what
+distinguishability is for.*
+
+**AND THE DIRECTION IS DISCRETE-BELOW, SMOOTH-ABOVE.** *"`NETWORK` and `CONTINUUM` are the same
+content at two levels … **Discrete below, smooth above, and the transform between them is lossy**"*;
+*"a continuum is **what a level looks like from the level above it**"*; the reals come *"by completion:
+**take a countable set and fill its gaps**."*
+
+> **THERE IS NO CUT, BECAUSE THE BAND WAS NEVER CONTINUOUS IN THE AGENT'S HANDS.** A continuum is *a
+> spectrum with NO GAPS REQUIRED* — **the requirement is ADDED, so the gaps were never removed.** The
+> agent only ever holds **encountered colours, a countable set.** *The continuum is a view from above,
+> and the agent does not need it.*
+
+### `GB1` IS `SPECTRUM x TIME`, WHICH IS A CELL ALREADY IN THE MATRIX
+
+- **the band is `SPECTRUM`** — *where*, ordered, physically real
+- **the index is `TIME`** — ***the ordered succession of differences***, which is what order-of-encounter
+  is
+
+**A STRUCTURE AGAINST A STATE. A legal cell in Figure 13's `EVERY PAIRING AVAILABLE` array, with no
+within-kind composition anywhere in it** — which is what the network was reached for and did not
+supply.
+
+### AND LAYER 3's SPLIT IS THE COARSE-GRAINING, SO THE LOSS IS THE MECHANISM RATHER THAN THE COST
+
+*"**Physical continua are not found. They are what remains after detail is discarded** … Water
+modelled as a field keeps density and velocity and discards ten to the twenty-three molecules …
+**what survives the loss is smooth.**"*
+
+**The raw RGB is the molecules; the band is the density.** **So *raw value cache-only, band ID
+durable* IS the lossy upward transform** — and **a new hue can alias onto `GB1` precisely BECAUSE the
+transform already discarded what would have told them apart.** *The split is derived, not stipulated.*
+
+**AND IT IS `R_T` A THIRD TIME:** `T_A` is colour → band, `T_E` is band → a colour, **the gap is the
+raw value that cannot come back** — *the same reason the ID transfers and the value does not.*
+
+### WHAT SURVIVES OF THE RULING AND WHAT DOES NOT
+
+- **SURVIVES:** the band is genuinely ordered; the index is order-of-encounter and **arbitrary**;
+  `above(GB1, GB2)` never forms **because the index is not a magnitude.** *Unchanged and correct.*
+- **SURVIVES:** frozen at placement, aliased on swap — **and it now has a second reason**, since a
+  coarse-graining that recomputed would be re-deriving the level from a substrate it discarded.
+- **DOES NOT:** *discreteness is a spectrum with gaps, cut by a network relation.* **The network
+  exhibits discreteness rather than producing it, and the cut presupposes what it derives.**
+
