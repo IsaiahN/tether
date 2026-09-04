@@ -13362,3 +13362,116 @@ it the acceptance test would read a correct build as a failure.
 
 ## SEAM 9 · ACKNOWLEDGED — nothing to add.
 
+
+---
+
+# THE THREE REOPENED SEAMS, RESOLVED — AND THE CORPUS ANSWERS ONE OF THE TWO OPEN ITEMS
+
+**All three accepted. Two are stronger than the resolution states because a specified mechanism
+already carries them, and the third answers an open item that was filed as a question.**
+
+## SEAM 6 · THE BACKUP AS INSTRUMENT — ACCEPTED, AND THE ROUND TRIP IS NOT AN ANALOGY
+
+**`R_T` IS ALREADY DEFINED AS THIS EXACT COMPUTATION.** `DECOMPOSITION.md:164`:
+
+    R_T  =  gap( x , (T_E . T_A)(x) )        x concrete
+
+**Wipe is `T_A`, rebuild is `T_E`, and the gap is what did not come back.** *Not a mapping onto a
+resembling mechanism — the same form, one scale up.*
+
+**AND THE RULING MATCHES THE ONE JUST MADE.** `R_T` is settled as **a reading, never a gate**
+(Figure 4 against Q19; `DECOMPOSITION` *Item 2 built — R_T is a reading*). **A verdict turned into a
+measurement is that ruling restated**, so the resolution is consistent with the mechanism by
+construction rather than by intention.
+
+> **AND THE THING THAT MADE `R_T` TOY-SHAPED IS ABSENT AT THIS SCALE.** `_round_trip` finds the
+> pre-image **by sweeping the domain** — `3.32e+13` on a 4x4 board, **the span overflows a float on
+> 64x64**. **At ablation scale the pre-image is not searched for, it is STORED.** *The backup **is**
+> the pre-image*, so the one computation that does not transfer is free here.
+
+**TWO CAUTIONS, BOTH BUILDABLE:**
+
+**(a) THE BACKUP IS HARNESS-SIDE AND THE AGENT MUST NEVER READ IT.** *The seat may read the harness;
+the agent may read only the frame.* **A frame that could read its own recall gap is scoring itself
+with a quantity it produced.** The proctor reads the comparison; the agent does not know a backup
+exists.
+
+**(b) KEY THE COMPARISON BY STRUCTURE, NOT BY ORDER — and this follows from the resolution's own
+second bullet.** *A cold start collects data differently; presentation order may differ.* **So a
+difference between backup and rebuild can be *recovered differently* rather than *not recovered*,
+and an order-keyed comparison reads the first as the second.** Compare by term content and lineage.
+**And the denominator is fixed by the backup being taken BEFORE the wipe** — which clause 3 already
+requires as *back up first; refuse to wipe if verification failed.*
+
+## SEAM 8 · THE PER-LOCUS MODE — ACCEPTED, AND §16.2 ALREADY RULES IT, INCLUDING OPEN ITEM 1
+
+**The broader definition of animation is conceded.** **And the mode design is already in the corpus,
+quoting `THE_MISSION` in §16.2:**
+
+> *"The ONLY legitimate distinction is topical I/O: is there an **avatar** my directional actions
+> translate, or do I act through a **click actuator** — and even that **BLENDS mid-game**, so it must
+> be detected **contingently per step, never used to label the game**."*
+
+**Embodied is `avatar`. Disembodied is `actuator`. Hybrid is *BLENDS mid-game*, already ruled. The
+per-step re-read is already required.** §16.2's four readings:
+
+    one slot's delta correlates with my action  ->  avatar
+    no slot correlates but the board changes    ->  actuator, acting at a distance
+    several correlate                           ->  COUPLED BODIES
+    and it may change mid-level, so re-read every step
+
+> **WHICH ANSWERS OPEN ITEM 1.** *Multiple avatars in a hybrid game* is **`coupled bodies`, a fourth
+> value already named** — not a question about how to track the set. **`coupled_agency.py` does not
+> exist in this repo**, so the value is *named and unbuilt*: **an item, not a question.**
+
+**AND ALL FOUR §18.3 HYPOTHESES ARE BUILT HERE.** `arc_self.family()` returns `TranslationSelf`,
+`GrowthEdgeSelf`, `ValueLatentSelf`, `RegionToggleSelf` **in §18.3's table order**, sharing one
+`Episode`. *The per-locus conclusion has its detectors already.*
+
+**THE ONE TENSION, AND THE SPLIT THAT RESOLVES IT.** *Never used to label the game* against a
+composed board mode carried on a recorded trajectory:
+
+- **PER-LOCUS DRIVES, AND THAT IS LICENSED.** *Thin I/O, detected contingently per step* is the one
+  legitimate distinction `CLAUDE.md` allows. A locus dropping to prediction-only is exactly that.
+- **BOARD-LEVEL COMPOSES AS A READING, NEVER AN INPUT.** **The same law as the skill map:** *the
+  moment it is available beforehand the mechanism has been handed its answer.* **A composed `HYBRID`
+  that selects behaviour is a type branch**; one that is read afterwards is a finding.
+- **A RECALLED TRAJECTORY IS ADMISSIBLE AS A PREDICTION AND FORBIDDEN AS A GATE** — which
+  proven/believed/open already enforces, since a recalled mode is **believed** and belief yields to
+  first-hand.
+
+> **AND ONE PROSPECTIVE `A6i`, FILED BECAUSE THE COLLIDING ITEM IS NAMEABLE.** **`animation` now
+> names two quantities.** §16.3: *"`frame[-1]` is what you bet against; **the whole stack** is what
+> you learn the mechanism from"* — **WITHIN-STEP** sub-frames carrying causal ordering *the endpoint
+> erases*. The new definition is **ACROSS-STEP** frame-to-frame change. **Both real, both wanted, one
+> word.** The nameable collision is **Layer 1's tracker**, which must decide whether *all change is
+> tracked* includes within-step ordering or only step endpoints. **Recorded while nothing is wrong,
+> per the rule's own condition.**
+
+## SEAM 2 · THE DERIVATIVE-JOIN — ACCEPTED, AND THE FIGURE STATES THE WARRANT MORE EXACTLY
+
+**My hybrid is withdrawn.** **But the matrix alone does not license the join, and the sentence under
+it does.**
+
+**The matrix is `space | time | energy` against `spectrum | gradient | network` — STATES against
+STRUCTURES, and there is no structure-against-structure cell.** *So on the matrix alone, spectrum
+joined to network is still a composition within a kind.*
+
+> **THE WARRANT IS THE LINE BELOW IT:** *"**And each composition becomes an atom for whatever
+> composes over it.** A settled composition enters the library as a term, and is then **an operand
+> like any other** … alongside the six and every link already made."*
+
+**So the derivative is not a structure composed with a structure — it is a SETTLED TERM, and a term
+is an operand.** *That is the mechanism, and it is stronger than the gloss because it also says
+WHEN.*
+
+**AND IT ANSWERS OPEN ITEM 2 WITHOUT A NEW RULING: FROZEN AT PLACEMENT.** **A composition becomes an
+operand only once SETTLED** — so a derivative recomputed on every palette swap was never an operand
+and could never have joined. *The reading proposed from Seam 3 is the one the figure requires.*
+
+**AND THE FIGURE SUPPLIES WHY THE JOIN CHANGES THE TERM:** *"a gradient over a network is a different
+term from a gradient over space, **because which structure it is bonded to is part of what it is**"*,
+with isomerism behind it — ***the same ingredients under a different bond are a different
+substance.*** **Band-position-bonded-to-network is a DIFFERENT TERM from band position**, which is
+exactly why the ordering does not travel into it and `above(green, blue)` cannot form.
+
