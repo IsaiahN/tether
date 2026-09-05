@@ -14782,3 +14782,33 @@ was priced against the wrong range.** *Stale from this commit, on top of the 18�
 > is smaller than the palette and UNDER-priced — collided — where it is larger.* **So the direction
 > depends on board size, which is a per-game reading and never pooled.** **The re-measure is owed, per
 > game, and pre-fix numbers must not be carried across it.**
+
+---
+
+# WHAT THE QUERY CHANGE WOULD ACTUALLY SURFACE — MEASURED, SO THE NEXT BUILD OPENS ON A NUMBER
+
+**The query is not `OBJECT -> OBJ`.** *An `OBJECT`-typed chain abstains immediately, because the loop
+hands a SCALAR and the extract atoms refuse it.* **The reachable query is the SLOT'S OWN TYPE to `OBJ`:**
+
+    POSITION -> OBJ   18 chains        EXTENT -> OBJ   18        DELTA -> OBJ   18
+    COLOUR   -> OBJ   15 chains        SHAPE  -> OBJ   15
+    val      -> val   15 chains        -- the current query
+
+**THE THREE-CHAIN GAP IS THE TYPE SYSTEM DISCRIMINATING, VISIBLE IN A COUNT.** *`above` accepts
+`ORDERED` only, so the COMPARABLE-only types lose its chains* — **the same split that decides which arm
+of the edge applies, showing up in how many objectives a slot can even form.**
+
+## SO THE CHANGE IS SMALL AND ITS COST IS KNOWN
+
+    ask     `enumerate_closure(slot_type, "OBJ")` ALONGSIDE `("val", "val")`
+    and     pass the matching in/out types to `retrieval.fits`, which pins `val,val` too
+    cost    the candidate space roughly DOUBLES, 15 -> ~33 per slot. `budget` is 4000 and the
+            measured maximum was 1884 yields, so the headroom is there
+
+**AND THE BARGAIN NEEDS NOTHING**: *a `val` term predicts directly, an `OBJ` term predicts through
+`objective_step`, and both are then priced by how well the prediction matched.* **They compete on the
+same residual ground, which is what `cost + left < base` was always for.**
+
+> **THIS IS CONSTRUCTION AGAINST DECISIONS ALREADY MADE.** *The rulings are done — P0, the fold, the
+> edge — and what remains is the query, the ladder, the seven phases and link 2.* **Recorded as a
+> number rather than a plan, so whoever takes it opens on a measurement.**
