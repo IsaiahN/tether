@@ -59,17 +59,26 @@ def as_index_grid(frame: Any) -> list[list[int]] | None:
     survives translation and recolour, and hands it the name it already had. The placement is
     re-taken; the identity never moved.
 
-    What image-mode adds is only the first step. Given real hue, a colour places itself on the
-    strip -- its wavelength says where it sits, with nothing to be told. The raw RGB stays in
-    cache, where it is the key that decides whether a new object joins an existing group; it
-    never goes durable, because the palette is the arrangement that will not survive. So the
-    strip comes alive and identity stays exactly where it was, with the shape.
+    AND THE STRIP IS STRUCK -- RULED 2026-09-05, AND THE REASON IS THE RULING AND NOT THE
+    FORMAT. An earlier version of this comment said the strip had no producer BECAUSE a frame
+    of indices carries no wavelength, and that hand real hue would bring it alive. Both are
+    wrong. **Colour is COMPARABLE and not ORDERED**, and a band position is a more-and-less --
+    so the strip is refused by the type ruling whatever the frame carries. Colour is a
+    SEPARATOR: grouping needs distinctness, never order, and a band answers *how do these hues
+    relate on a spectrum*, which is a question nothing here asks.
 
-    Given an index instead, the strip has no producer: an integer carries no wavelength, and
-    the mapping from index to hue lives in the renderer rather than in the frame. So
-    index-mode keeps the encounter order and drops the placement's spectral meaning -- which
-    costs nothing that carries, because filing under structure was already what made a
-    strategy reachable.
+    So image-mode does NOT bring the strip alive. It does the opposite: it takes a real image
+    and REMOVES everything except distinctness, distilling it to the same arbitrary integer
+    labels an index frame already carries. Adding a spectrum would be adding meaning; image-mode
+    subtracts until only *these are different* is left.
+
+    AND IT PROVES NOTHING THE SIMPLE PATH DOES NOT, which is what settles it rather than the
+    tidiness. The gradient machinery is already exercised on POSITION, EXTENT and DELTA -- the
+    types with real orderings. A colour band would test that same machinery on an ordering
+    colour must not have: redundant where it is not wrong, and wrong where it is not redundant.
+
+    The walk above stays because a road not taken is worth recording WITH THE REASON, and the
+    reason is this paragraph rather than the shape of the frame.
 
     AND THE SEAM IS THE POINT: both paths hand the next layer the same thing, a grid of
     distinct labels. Nothing downstream can tell which one ran, and that is the property the

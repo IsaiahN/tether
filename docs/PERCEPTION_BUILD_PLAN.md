@@ -264,7 +264,20 @@ conditions themselves consistent.**
 **DOES NOT EXIST.** `colour` is the raw palette integer, published as a durable slot value and used in
 `correction_bits`. **No ID, no band, no cache/durable split.**
 
-### `GB1` is `SPECTRUM × TIME` — a cell already in Figure 13's matrix
+### `GB1` IS AN ENCOUNTER PLACEMENT — THE SPECTRAL HALF IS STRUCK, 2026-09-05
+
+> **`SPECTRUM × TIME` WAS THE DERIVATION AND ONLY THE `TIME` HALF SURVIVES.** *Colour is `COMPARABLE`
+> and not `ORDERED`; a band position is a more-and-less; and colour is a SEPARATOR, so grouping needs
+> distinctness and never order.* **Struck rather than deferred, and the deciding reason is that it
+> proves nothing:** *the gradient machinery is already exercised on `POSITION`, `EXTENT` and `DELTA` —
+> the types with real orderings — so a colour band would test it on an ordering colour must not have.*
+>
+> **The road not taken is preserved in `as_index_grid`'s comment WITH THIS REASON**, repaired there
+> from the earlier one, which grounded it on the frame carrying indices — *the circumstance, not the
+> ruling.* **And image-mode does not restore it: image-mode SUBTRACTS to distinctness where a band
+> would ADD meaning.**
+
+### the derivation as it stood, kept for the `TIME` half
 
 - **the band is `SPECTRUM`** — *where*, ordered, physically real. **A subset of a spectrum is still a
   spectrum.**
@@ -581,7 +594,7 @@ summarises it.* **The order is unchanged across all three revisions.**
     P3  a relational key                 `slot_types` cannot name a pair. THE build of the
                                          three -- L5's cap and Figure 3's link 2
     P4  cascade: the frame stack         L1(b)+(d). TWO CONSUMERS, never a debounce. g50t only
-    P5  placements + classes             L3 and L4. `SPECTRUM x TIME`, identity/placement split,
+    P5  placements + classes             L3 and L4. ENCOUNTER placement, identity/placement split,
                                          `hash_episode_level` stamp.
                                          GATED ON THE `ValueLatentSelf` WORKSHOP -- below
     P6  the budget as a gradient channel L6(a). Wiring; the REWARD/TRANSITION pattern exists
@@ -607,8 +620,11 @@ of nothing until it moves.**
                           type-incoherent (`Ctx.group` follows the SLOT, not the chain)
     P4  cascade           NOT BUILT. `board()` still returns `frame[-1]`; the causality tracker
                           that would consume `cascade` does not exist
-    P5  placements        NOT BUILT, and M4 stands: the frame publishes colour INDICES, so the
-                          BAND has no producer and `SPECTRUM x TIME` survives as `TIME` alone
+    P5  placements        NOT BUILT, and it is the ENCOUNTER HALF ONLY. The spectral half is
+                          STRUCK 2026-09-05: colour is COMPARABLE not ORDERED, a band is a
+                          more-and-less, grouping needs distinctness never order. M4 is
+                          EXPLAINED rather than blocking -- no spectral input because there is
+                          no spectral question
     P6  budget gradient   AT ITS RULING. `Termination`: *the agent does not read the cap* --
                           Seam 5 -- so what remains is seat-side and is not agent capability
     P7  hash and store    BUILT to the fixture's limit. The signature is the transformation
@@ -708,7 +724,7 @@ layers above.**
 | | resolution |
 |---|---|
 | **1** reading pattern vs §11 | §11 never applied; §23.2 governs. `_last_mass` is the built fallback |
-| **2** `ROYGBIV` vs Figure 13 | `GB1` = `SPECTRUM × TIME`; the network supplies nothing |
+| **2** `ROYGBIV` vs Figure 13 | SPECTRAL HALF STRUCK 2026-09-05 -- `GB1` is the `TIME` half alone, an encounter placement |
 | **3** aliasing by position | `GB1` is `Item1` until filled — the fill carries the strategy |
 | **4** the lookup trigger | one event, two thresholds: change triggers, residual filters salience |
 | **5** the learned ceiling | discovered through play is experience; a given parameter is a seat-read |
@@ -732,6 +748,12 @@ fixture authored both sides, so it pays nothing and it is one game:*
                        the winner and the margin; 143 of 143 mint rows read `depth_exhausted`
                        and NO candidate paid, in either stream
     convergence        how fast the signature settles on a board richer than four patterns
+    image-mode         the adapter's image half against REAL near-colours: index frame ->
+                       render -> feed back -> segment -> SAME PARTITION. It is the
+                       generalization front-end -- distil a picture to distinct labels, the
+                       grouping-only format ARC indices already are -- and its one care is the
+                       distinctness threshold, which takes the adapter's own answer: when
+                       unsure SPLIT, never silently merge, and measure it rather than pick it
     collision rate     how often two real games share a signature. FIVE attribute types give
                        32 patterns and one game used four, so sharing is EXPECTED rather than
                        unlikely -- the report emits the digest beside the game name so that
