@@ -13720,3 +13720,55 @@ detector, and not two loci disagreeing.*
 
 **`by` names the member that carried it** — `{'o3': ['growth']}` — so the reading says WHICH
 hypothesis, not just that one held. **Nothing gates on any of it.**
+
+---
+
+# THE TRAJECTORY ENTANGLEMENT: FLAGGED, AND THE PROPOSED FIX REFUTED ON MEASUREMENT
+
+## THE FLAG IS RIGHT AND IS NOW IN THE CODE
+
+`mode()`'s docstring carries it: **read `board` per step; do not read the sequence.** *A streak is keyed
+on the tracker's name, so `the mode switched at step 7` is indistinguishable from `the tracker lost the
+object at step 7`.* **It will be read as the first, because that is the clean narrative beat.**
+
+## BUT `obj:` WOULD MAKE IT WORSE HERE, AND THE MEASUREMENT SAYS SO
+
+*The proposal was that the trajectory should key on the `obj:` frozenset, which is stable where
+max-overlap churns.* **Measured over 24 comparable steps on the fixture:**
+
+    steps where a NAME disappeared          3
+    steps where a SURVIVOR's SHAPE changed  6
+
+> **THE SHAPE CHURNS TWICE AS OFTEN AS THE NAME.** *`shape_of` is invariant under **translation and
+> recolour** — its own docstring says exactly that — and this board's motion is **shape change.***
+> **So keying on `hash(obj["shape"])` would double the churn it was proposed to remove.**
+
+**And the tell was in the reading all along:** the member carrying the verdict is **`growth`**, and a
+growing trail changes shape every step by definition. *The reasoning was plausible and the panel
+answered the other way.*
+
+## AND THE STRUCTURAL REASON IS SHARPER THAN EITHER KEY
+
+**There is no single stable identity to key a streak on, because a self-hypothesis IS a claim about
+what changes.**
+
+    TranslationSelf   the SHAPE is what stays still           -- position moves
+    GrowthEdgeSelf    the COLOUR is what stays still          -- shape grows
+    RegionToggleSelf  the REGION is what stays still          -- values alternate
+    ValueLatentSelf   nothing spatial stays still at all
+
+> **SO PICKING ONE IDENTITY MECHANISM FOR THE STREAK EMBEDS AN ASSUMPTION ABOUT WHICH MEMBER IS
+> RIGHT** — which is the thing the non-simulable family exists to avoid. **Each member already knows
+> its own invariant; a streak keyed per member on that member's invariant is the shape this wants**,
+> and that is a design question, not a repair.
+
+**Filed unbuilt, beside `0a`.** *The entanglement is real, the flag stands, and the fix is not
+established.*
+
+## ONE OBSERVATION, DELIBERATELY NOT PROMOTED TO A SEVENTH CHECK
+
+**`disembodied` written onto every locus was a rule ruled in design and violated in the first
+implementation** — *board facts must not overwrite per-locus readings*, agreed in the seam
+deliberation, broken in the code an hour later, caught by the run. **Recorded as evidence that a design
+ruling does not self-enforce, NOT as a standing check**: one site, and the register earns its keep by
+staying short. *Same count discipline that demoted check 6.*

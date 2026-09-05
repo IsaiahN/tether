@@ -337,6 +337,15 @@ class ArcWorld:
         THE BOARD VALUE NEVER GATES. It is composed after the fact and reported; the loop
         branches on nothing here. `coupled` is absent on purpose -- it needs the pair
         displacement comparison, which is a different reading.
+
+        **THE TRAJECTORY IS ENTANGLED WITH IDENTITY AND MUST NOT BE READ AS A MODE CHANGE.**
+        A streak is keyed on the tracker's name, so it dies when the name churns -- and *the
+        mode switched at step 7* is indistinguishable in this record from *the tracker lost
+        the object at step 7*. Measured on the fixture: names disappear on 3 of 24 steps and
+        SURVIVORS CHANGE SHAPE ON 6, so keying on `hash(shape)` instead would churn twice as
+        often. There is no single stable key, because a self-hypothesis IS a claim about what
+        changes: translation holds shape still, growth holds colour still. Read `board` per
+        step; do not read the sequence.
         """
         masks = self.locus_masks()
         per = self.selves.per_locus(masks)
