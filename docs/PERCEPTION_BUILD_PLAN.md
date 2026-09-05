@@ -656,7 +656,23 @@ of nothing until it moves.**
                           WOULD COMPOSE FROM IT IS STILL NOT BUILT, and the fixture returns ONE
                           frame per response, so the reading is `frames: 1` throughout -- which
                           is the per-game fact (`ls20`'s shape), not silence
-    P5  placements        NOT BUILT, and it is the ENCOUNTER HALF ONLY. The spectral half is
+    P5  placements        ENCOUNTER HALF BUILT. `{raw value: placement}` in the order met,
+                          per-object append-only change-lists, reset at `boundary` per Seam 10
+                          while `_shapes` is untouched (verified: placements 7 -> 0, shapes
+                          3 -> 3). Identity stays the pointer; a colour change APPENDS.
+                          MEASURED, 30 steps: 7 distinct values -- THE WHOLE PALETTE -- and
+                          ALL FIVE objects cycled through every placement 0..6. So on this
+                          fixture colour is not a stable class marker at all, and the
+                          mid-game colour change is not an edge case but the norm. Had
+                          identity been the colour label, every object would have been renamed
+                          seven times; the pointer/value split is what keeps `o0` as `o0`.
+                          THAT IS A FIXTURE PROPERTY, NOT AN ARC ONE -- `FakeWrapper` cycles
+                          the palette, and whether a real board does is unmeasured.
+                          CLASSES are still unbuilt: grouping objects BY placement is what
+                          Layer 4 owes, and on a board that reshuffles every step it would
+                          reshuffle too. NOT BUILT ALSO: aliasing on swap, which needs a reset
+                          with a palette rotation the fixture does not perform.
+                          THE STRUCK HALF, for the record: The spectral half is
                           STRUCK 2026-09-05: colour is COMPARABLE not ORDERED, a band is a
                           more-and-less, grouping needs distinctness never order. M4 is
                           EXPLAINED rather than blocking -- no spectral input because there is

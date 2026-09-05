@@ -342,6 +342,22 @@ class Objects:
         # `{name: (route, score)}` per frame: `overlap` with its IoU, `shape` where overlap was
         # zero and §12.3's sensor 5 carried identity across a move, `birth` where nothing did.
         self.matches: dict[str, tuple[str, float]] = {}
+        # THE ENCOUNTER HALF. `{raw value: placement}` in the order met, and per object the
+        # placements it has held. **The SPECTRAL half is struck** -- colour is COMPARABLE and
+        # not ORDERED, so there is no band and no more-and-less; a placement is the *n*th
+        # distinct thing met and nothing else.
+        #
+        # PER PLAY, per Seam 10: the counter resets at `boundary` and a placement is only
+        # readable beside the play that minted it. The raw value stays the live GROUPING key --
+        # deciding whether a new object joins an existing class needs the value, not the label.
+        self.placements: dict[int, int] = {}
+        self.changes: dict[str, list[int]] = {}
+
+    def boundary(self) -> None:
+        """Drop what was bound to THIS play. **`_shapes` is NOT dropped** -- it is the
+        structure table and is run-stable by design; placements are per play by Seam 10."""
+        self.placements = {}
+        self.changes = {}
 
     def __call__(self, board: Any) -> dict[str, int]:
         if not hasattr(self, "_shapes"):
@@ -378,6 +394,16 @@ class Objects:
                 route = "birth"
             claimed.add(best)
             self.matches[best] = (route, round(score, 4))
+            # IDENTITY IS THE POINTER AND PLACEMENT IS THE VALUE, so a colour change APPENDS
+            # rather than renames: `best` is the object for the rest of the play whatever it
+            # becomes, and the change-list is where what-it-has-been is kept. Append-only --
+            # nothing leaves, which is `outstanding`'s shape at a third site.
+            hue = obj.get("colour")
+            if hue is not None:
+                place = self.placements.setdefault(int(hue), len(self.placements))
+                held = self.changes.setdefault(best, [])
+                if not held or held[-1] != place:
+                    held.append(place)
             # SENSOR 7, AT THE ONE MOMENT BOTH FRAMES ARE IN HAND. A BIRTH GETS NO DELTA AND
             # NOT A ZERO: §12.2 requires a value or an explicit non-reading, and `0` would say
             # *it did not move* where the truth is *there was nothing to move from*. An absent

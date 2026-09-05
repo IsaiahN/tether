@@ -326,6 +326,15 @@ class ArcWorld:
         win = f.win_levels or 1
         return "ALL(BECOME(level, completed))", min(1.0, f.levels_completed / win)
 
+    def placements(self) -> dict:
+        """The encounter half, read: how many distinct values were met, and which objects
+        changed the placement they hold."""
+        d = self._decompose
+        changes = getattr(d, "changes", {}) or {}
+        return {"distinct": len(getattr(d, "placements", {}) or {}),
+                "multi": sorted(n for n, h in changes.items() if len(h) > 1),
+                "held": {n: list(h) for n, h in sorted(changes.items()) if len(h) > 1}}
+
     def contact_changes(self) -> dict:
         """WHICH RELATIONS CHANGED, and how certain the identity beneath them is.
 
@@ -518,6 +527,9 @@ class ArcWorld:
         """Drop what was bound to THIS episode. Colours permute on a refresh, so a colour
         identity is valid only for the episode it was read in."""
         self.selves.boundary()
+        b = getattr(self._decompose, "boundary", None)
+        if b is not None:
+            b()                    # placements are per play; `_shapes` is not touched
         self._mode_streak = {}
         self.aff.boundary()
 

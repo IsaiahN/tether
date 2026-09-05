@@ -513,6 +513,15 @@ class Agent:
     def _ops(term: Term, state: dict[str, int]) -> tuple:
         return (state[term.operand],) if term.operand else ()
 
+    def _narrate_placements(self) -> None:
+        """The encounter half's reading. **`multi` is the mid-game colour change, counted.**"""
+        fn = getattr(self.env, "placements", None)
+        if fn is None:
+            return
+        p = fn()
+        self.led.record(self.cycle, "PERCEIVE", "*", "placements",
+                        distinct=p["distinct"], changed=len(p["multi"]))
+
     def _narrate_matches(self) -> None:
         """The tracker's own certainty, per step. **Fixture-readable, and that is the point.**
 
@@ -2004,6 +2013,7 @@ class Agent:
         self._narrate_order()
         self._narrate_cascade()
         self._narrate_matches()
+        self._narrate_placements()
         self._advertised()
         self._present()       # before the frame, so slots and frame cannot disagree
         # PER STEP, BECAUSE ONE SLOT TYPE'S RANGE IS NOT CONSTANT. A shape slot's alphabet is
