@@ -53,6 +53,22 @@ rests on that comment.**
 > pair is the instruction** — *reading sensor 6's comment would have prevented the Tier-2 error; reading
 > the shape id's comment is what CAUSED the scope error.* **Neither half is safe alone.**
 
+> **AND CHECK 6 HAS A SECOND TRIGGER, WHICH IS NOT A CHECK BUT IS WHERE IT PAID MOST.** *Law 6's
+> stated triggers are a headline or a ruling — **filing an item as OPEN is neither**, and it is where
+> ten items were lost this session.* **Before filing something as needing a ruling, read the mechanism
+> that would carry it.**
+>
+>     operand typing            filed PARKED            -- the typing half was BUILT and wired
+>     the streak key            filed a DESIGN QUESTION -- each member declares it in its matcher
+>     `ValueLatentSelf`'s value filed to be CHOSEN      -- the member SELECTS it by monotonicity
+>     the mode's conditions     filed to be DRAFTED     -- `has_self` and `MIN_REPEAT` had them
+>     the selector              filed a RULING          -- the bargain, generic, already running
+>     the store key             filed a RULING          -- the trace, already accumulating
+>     P3's pair-slot explosion  filed a COST            -- the key crosses on TYPES, so no n-squared
+>
+> **Seven of the ten, and none needed a decision.** *The same law, at the point an item ENTERS the
+> queue rather than where a claim LEAVES it.*
+
 **7 · A SUMMARY RIDING ON VERIFIED FINDINGS INHERITS THEIR CREDIBILITY, NOT THEIR VERIFICATION.**
 *A milestone is a COMPOSITION of findings, and the composition can be false while every part is true* —
 so **check the sentence that assembles them, separately from the findings it assembles.**
