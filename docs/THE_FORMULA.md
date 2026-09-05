@@ -1,6 +1,6 @@
 # THE FORMULA
 
-The per-step cycle in compact form, with every symbol defined. This is the whole of the mechanism; the figures are its parts drawn out. Composition, which the loop names and does not define, is Figure 12.
+The per-step cycle in compact form, with every symbol defined. This is the whole of the mechanism; the figures are its parts drawn out. Composition, which the loop names and does not define, is Figure 12. What a frame is made of, which the loop assumes throughout, is Figure 13.
 
 **Why the ordering matters more than any single step.** Each step consumes what the one before produces. A diagnosis that cannot be traced to a step is probably vocabulary rather than a derivation, and a reading taken below a step whose input never arrived describes nothing.
 
@@ -38,6 +38,25 @@ Read this first if you have not seen the notation. Every symbol below appears in
 | **the habitat** | the field of contact | Everything in contact with the residual: actors, conditions, relations. Enumerated, never composed. |
 
 **Two words used throughout.** A **frame** is any bounded system with a library — an agent, a person, a discipline, a model. *A frame is a theory with a signature, not a coordinate system: frames differ in what they can express, not in how they label it, and there is no known transform between two of them.* A **seat** is a position in a checking arrangement, defined by what it can and cannot see rather than by who occupies it.
+
+---
+
+## THE SUBSTRATE
+
+Six terms, and no system functions without any of them.
+
+| kind | what it is | members |
+|---|---|---|
+| **states** | what a system is at a moment; it names what is being measured | `space` · `time` · `energy` |
+| **structures** | how those quantities are arranged; it decides what the measurement would mean | `spectrum` · `gradient` · `network` |
+
+**Neither kind denotes alone.** A state with no structure has no magnitude; a structure with no state is empty. And within a kind the members are distinct too — adjacency is not duration, an ordering is not a pathway, a pathway is not a direction — which is Figure 2's independence condition applied to the set itself.
+
+**Each is indivisible and the set is minimal.** No arrangement of the other five yields any one of them, and removing any one costs an established law its derivation. A continuum was the seventh and was removed for being derivable from the others.
+
+**Everything else is a composition across the two kinds, never within one** — and the derived quantities are what a turn leaves rather than members: `symmetry` what persisted and now constrains the next turn, `smoothness` the detail the crossing discarded, `chaos` the remainder compounding where the map amplifies.
+
+**Set out in full in Figure 13.**
 
 ---
 
@@ -112,12 +131,6 @@ Read this first if you have not seen the notation. Every symbol below appears in
    operands have k! spellings and one term, so a code charging for the
    sequence overcharges by log₂(k!) while the bond term undercharges. Both
    wrong, in opposite directions, and only one is usually noticed.
-
-   AND BOTH ARE ZERO TODAY. The signature slot × action → slot gives only → a
-   form, so |bonds| = 1 and there is no symmetric bond to spell: the bond term
-   is log₂(1) and the overcharge is log₂(1!). The errors are LATENT, not
-   present — and they go live together, with the coverage denominator, on the
-   day a second bond has a form.
 
    THE GUARDS — a product, not a checklist. Any factor at zero forces inertness:
 
@@ -303,6 +316,8 @@ Which is why the last line of step 8 is a boundary rather than a flourish: **det
 
 **Step 7 has two routes and they must not be confused.** Import is the only operator that adds a primitive. Instrumentation is the only thing that extends what can be represented at all. Neither can be deposited in mid-air: composition extends from the atoms you hold, instrumentation extends from a reading that already exists and fails to resolve.
 
+**And step 7 exists because the set of kinds is closed while the arrangements over it are not.** No amount of arranging produces a new kind, since composition only rearranges what is already held. Meanwhile the arrangements do not run out. So a frame can search without end and still not arrive: infinite effort inside a finite reach. If arrangement were bounded you would exhaust it and be finished; if arranging could add a kind you would never need another frame. Figure 13 sets out the substrate this rests on and Figure 6 the wall it produces.
+
 **And step 8 marks the boundary of the loop.** The loop composes and mints. Keeping the anchor reachable is somebody's job and it is not the loop's.
 
 ---
@@ -380,44 +395,46 @@ To demonstrate the loop on a case, state each step explicitly and stop where the
 
 **Corrections**
 
-1. **`R_T` composition order.** Was `R_T = |T_A ∘ T_E(x) − x|`, which reads as concretise-then-abstract and requires `x` abstract — the *reductive* law. The prose beside it describes the *extensive* one. Now `R_T = gap(x, (T_E ∘ T_A)(x))` with `x` concrete, which is what "send it up, bring it back down" means.
-2. **`R_T` is directional, not a metric difference.** `T_A`/`T_E` form a Galois connection, so `x ⊑ T_E(T_A(x))` always. The gap is non-negative by construction rather than by hope.
-3. **Step 5 renamed ECHO → SETTLE.** "Echo" was carrying two meanings in one body of work: the ground settling a term, and the cross-domain promotion test. SETTLE is what step 5 does; ECHO is reserved for the promotion grade in step 6.
-4. **`α` → `w`** for the private-versus-inherited weighting. `α` is standard for the abstraction map, which this framework also uses. `w_A`/`w_B` already existed elsewhere for the same quantity, so this is a consolidation.
-5. **Prohibitions scoped rather than absolute**, per the idealisation rule.
+1. **A substrate section.** Six terms in two kinds, indivisible and minimal, set out before the loop that assumes them. The loop has always used `space`, `time`, a gradient and a closure without stating what a frame is made of; Figure 13 states it and this records the pointer.
+2. **Step 7 gains its reason.** Import existed as a rule and not a derivation. The set of kinds is closed while the arrangements over it are not, so a frame searches without end inside a finite reach. That gap is why the wall in Figure 6 is a wall, and it is the first statement of why the loop needs an outside at all.
+3. **`R_T` composition order.** Was `R_T = |T_A ∘ T_E(x) − x|`, which reads as concretise-then-abstract and requires `x` abstract — the *reductive* law. The prose beside it describes the *extensive* one. Now `R_T = gap(x, (T_E ∘ T_A)(x))` with `x` concrete, which is what "send it up, bring it back down" means.
+4. **`R_T` is directional, not a metric difference.** `T_A`/`T_E` form a Galois connection, so `x ⊑ T_E(T_A(x))` always. The gap is non-negative by construction rather than by hope.
+5. **Step 5 renamed ECHO → SETTLE.** "Echo" was carrying two meanings in one body of work: the ground settling a term, and the cross-domain promotion test. SETTLE is what step 5 does; ECHO is reserved for the promotion grade in step 6.
+6. **`α` → `w`** for the private-versus-inherited weighting. `α` is standard for the abstraction map, which this framework also uses. `w_A`/`w_B` already existed elsewhere for the same quantity, so this is a consolidation.
+7. **Prohibitions scoped rather than absolute**, per the idealisation rule.
 
 **Additions to the loop**
 
-6. **Step 1 — the belief is the bet.** `b` is formed with `w` and is not the observation. Under partial observability a system that predicts from what it just saw has no model to be wrong.
-7. **Step 2 — the sorter must not be the composer.** The independence clause was in Figure 10 and not in the loop, and the loop is where it binds.
-8. **Step 2 — record why not the neighbouring bin.**
-9. **Step 3 — declare the code.** The bargain is not evaluable without one, and two implementations with different codes are not running the same test.
-10. **Step 3 — REACHABILITY has no negative.** UNREACHED at a budget is not unreachable.
-11. **Step 3 — SUPPORT at zero is an instruction.** Probe, uninformed, outcome back through the same residual. Previously the loop said a zero guard forces inertness and said nothing about the remedy.
-12. **Step 3 — pays is not closes**, and step 7 fires on the second.
-13. **Step 3 — the scalar guards defined.** `orthogonality(R,Γ) = H(R|Γ)`; the syntactic guards are proxies, zero in the same cases.
-14. **Step 4 — the stamp is a reification**, which is why a checker can read it without reading the machine.
-15. **Step 4 — the library is restructured, not only extended.** Nothing in the previous draft ever refactored `Γ`.
-16. **Step 5 — candidate may be held, not cited.**
-17. **Step 6 — shadow and echo separated**, with apophenia named.
-18. **Step 6 — `F`, the frame transform**, distinct from `T_A`/`T_E` and requiring a pose.
-19. **Step 7 — the malformed precondition.** Is there one fact here, or several? Split before searching; unbundle a union before searching again.
-20. **Step 7 — import adds no atom to the world.**
-21. **Step 8 — the seat above is instantiated on demand.** The stack is a meta-continuation; the tower is infinite in specification and finite in the run.
+8. **Step 1 — the belief is the bet.** `b` is formed with `w` and is not the observation. Under partial observability a system that predicts from what it just saw has no model to be wrong.
+9. **Step 2 — the sorter must not be the composer.** The independence clause was in Figure 10 and not in the loop, and the loop is where it binds.
+10. **Step 2 — record why not the neighbouring bin.**
+11. **Step 3 — declare the code.** The bargain is not evaluable without one, and two implementations with different codes are not running the same test.
+12. **Step 3 — REACHABILITY has no negative.** UNREACHED at a budget is not unreachable.
+13. **Step 3 — SUPPORT at zero is an instruction.** Probe, uninformed, outcome back through the same residual. Previously the loop said a zero guard forces inertness and said nothing about the remedy.
+14. **Step 3 — pays is not closes**, and step 7 fires on the second.
+15. **Step 3 — the scalar guards defined.** `orthogonality(R,Γ) = H(R|Γ)`; the syntactic guards are proxies, zero in the same cases.
+16. **Step 4 — the stamp is a reification**, which is why a checker can read it without reading the machine.
+17. **Step 4 — the library is restructured, not only extended.** Nothing in the previous draft ever refactored `Γ`.
+18. **Step 5 — candidate may be held, not cited.**
+19. **Step 6 — shadow and echo separated**, with apophenia named.
+20. **Step 6 — `F`, the frame transform**, distinct from `T_A`/`T_E` and requiring a pose.
+21. **Step 7 — the malformed precondition.** Is there one fact here, or several? Split before searching; unbundle a union before searching again.
+22. **Step 7 — import adds no atom to the world.**
+23. **Step 8 — the seat above is instantiated on demand.** The stack is a meta-continuation; the tower is infinite in specification and finite in the run.
 
-31. **Step 1 and the symbol for `R` — `R` is always a slice.** What cannot be perceived is residual that cannot be read, not residual that is absent. A low reading has three causes, and only two of them are about `R` stopping: the third is the permanent condition and its remedy is step 7 INWARD.
+33. **Step 1 and the symbol for `R` — `R` is always a slice.** What cannot be perceived is residual that cannot be read, not residual that is absent. A low reading has three causes, and only two of them are about `R` stopping: the third is the permanent condition and its remedy is step 7 INWARD.
 
-32. **Step 3 — φ is a molecule and the code charges its bonds.** `|φ| = (k+1)·log₂(|atoms|+1) + (k-1)·log₂(|bonds|)`. Zero where one bond exists, rising as the bond vocabulary grows. The previous draft said *declare the code* and left the arrangement uncharged, so a formula recorded its ingredients and not its structure.
-33. **Step 3 — the arrangement is the substance.** Two candidates with an identical ingredient set are different terms. Under a symmetric bond `k` operands have `k!` spellings and one term, so a sequence-charging code overcharges by `log₂(k!)` while the bond term undercharges. **Both are latent.** `→` is the only bond with a form in the signature, so `|bonds| = 1` and no symmetric bond exists to spell — the overcharge is exactly zero, and note 32's bond term with it. Neither is a defect to go looking for today; they become live together.
+34. **Step 3 — φ is a molecule and the code charges its bonds.** `|φ| = (k+1)·log₂(|atoms|+1) + (k-1)·log₂(|bonds|)`. Zero where one bond exists, rising as the bond vocabulary grows. The previous draft said *declare the code* and left the arrangement uncharged, so a formula recorded its ingredients and not its structure.
+35. **Step 3 — the arrangement is the substance.** Two candidates with an identical ingredient set are different terms. Under a symmetric bond `k` operands have `k!` spellings and one term, so a sequence-charging code overcharges by `log₂(k!)` while the bond term undercharges.
 
 **Additions to the notes**
 
-22. **The monotone surprise integral** as a structural defence against the undetectable stopping case.
-23. **The bill**, with `log₂ N` as the bit-rate of selection over `N` variants.
-24. **Requisite variety** — `closure(Γ)` has a lower bound the environment sets.
-25. **Typing beats size, quantified** — `λ`, the spectral radius of the type transfer matrix, against `V`.
-26. **"Why there is no regress"** as its own section, with three distinct answers and the branching argument that says why a transform must exist.
-27. **The correlated-agreement arithmetic** — `σ²(1+ρ)/2`, and twenty frames at `ρ = 0.9` worth 2.2.
-28. **"The loop applies to itself"** — self-application is required, self-validation is forbidden.
-29. **Frame defined against the coordinate-system reading**, in the two-words note.
-30. **`R` named as the aim**, not only the error signal.
+24. **The monotone surprise integral** as a structural defence against the undetectable stopping case.
+25. **The bill**, with `log₂ N` as the bit-rate of selection over `N` variants.
+26. **Requisite variety** — `closure(Γ)` has a lower bound the environment sets.
+27. **Typing beats size, quantified** — `λ`, the spectral radius of the type transfer matrix, against `V`.
+28. **"Why there is no regress"** as its own section, with three distinct answers and the branching argument that says why a transform must exist.
+29. **The correlated-agreement arithmetic** — `σ²(1+ρ)/2`, and twenty frames at `ρ = 0.9` worth 2.2.
+30. **"The loop applies to itself"** — self-application is required, self-validation is forbidden.
+31. **Frame defined against the coordinate-system reading**, in the two-words note.
+32. **`R` named as the aim**, not only the error signal.
