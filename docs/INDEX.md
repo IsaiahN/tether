@@ -14154,3 +14154,49 @@ scope is **how many there are**, and the second is a property of the board rathe
 **So the two rulings left are genuinely two, and the discipline that asked the question is the same one
 that answers it:** *do not file as one what has two lifetimes* — **check 5, at the level of rulings
 rather than of stamps.**
+
+---
+
+# THE SCOPE RULING'S CONSTRAINT IS ALREADY SATISFIED BY A LIVE MECHANISM — `touching` IS THE PRECEDENT
+
+**The trigger fired one last time: before filing scope as needing a ruling, read the mechanism that
+would carry it.**
+
+## ONLY TWO THINGS ENTER A TERM'S IDENTITY, AND `Ctx` IS NEITHER
+
+    Term.name = " . ".join(atom names)  +  <operand>  +  ?guard
+
+**`Ctx.touching` is not in the handle. `Ctx.action` is not, except through the guard.** And
+`Term.apply(value, ctx)` threads ONE `ctx` to every atom in the chain, unchanged.
+
+> **SO `Ctx` IS ALREADY A NON-BINDING CHANNEL.** *The stated constraint — a scope must survive the
+> membrane, so it cannot be a binding — **is satisfied by a mechanism that exists**, because `Ctx`
+> carries per-step data that never enters the term's identity and therefore crosses as VOCABULARY
+> rather than as an INSTANCE.*
+
+## AND `touching` IS ALREADY A QUANTIFIER IN EVERYTHING BUT NAME
+
+`Ctx.touching` is **a population** — a tuple of the objects in contact, resolved per slot by the
+caller — and `_contact`'s atom is `int(bool(c.touching))`. ***That is `SOME` over a population:
+is there ANY object touching me.***
+
+    grammar   SOME : (PRED,) -> OBJ     "holds for some in scope"
+    built     touching : OBJECT -> BOOL  `int(bool(c.touching))` -- SOME over the contact set
+
+**A population reaching an atom, reduced to a scalar, with the population NOT in the handle.** *The
+pattern is not hypothetical: it has one working instance, and it already transfers correctly.*
+
+## WHICH REDUCES THE RULING, THE WAY `grammar.py`'s READ REDUCED THE WIRE
+
+    ANSWERED BY CODE   how does a population reach an atom without becoming a binding
+                       -- through `Ctx`, resolved per step by the caller, absent from the handle
+    STILL THE RULING   WHICH population, and WHAT an atom may do with it
+                       -- `touching` gives one fixed population and one operation (non-emptiness).
+                          A quantifier needs the SCOPE to be nameable and the OPERATION to compose
+
+**So the session is not *invent a channel*. It is *what may a scope range over, and what reductions
+over it compose*** — **and `ONE`, which needs a count rather than a truthiness, is the case that
+decides whether `COUNT` comes with it.**
+
+*Filed as the state the ruling opens in, not as a proposal: which population and which reductions is
+the choice, and it is the proctor's.*
