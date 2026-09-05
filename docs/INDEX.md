@@ -14510,3 +14510,45 @@ bargain ranks it.*
 **One ruling. The edge. `OBJ → val`, and what it means for a composed objective to predict a slot
 value.** *Everything downstream of it — selection, pricing, minting, promotion, transfer — is built and
 generic and waiting.*
+
+---
+
+# *THE ENTIRE MACHINE IS BUILT EXCEPT ONE EDGE* IS FALSE — AND A SUMMARY IS WHAT A FUTURE SESSION INHERITS
+
+**The edge is the last RULING. It is not the last thing missing, and the difference is seven phases.**
+
+## MEASURED, NOT ASSERTED
+
+    slot types published    {POSITION: 2, EXTENT: 2, COLOUR: 1, SHAPE: 1}
+    relation-typed slots    []   -- ZERO
+
+**Link 2 is exactly where the chain-break table left it: one relation published, and `slot_types` has no
+entry for a relation, so the retrieval key can never name one.** *Nothing this session moved it.*
+
+## WHAT THIS SESSION BUILT, AND WHAT IT DID NOT
+
+    BUILT   M1 read order . M5 per-locus mode . the input adapter . `operand_type` on three
+            atoms . per-member streak keys . `Ctx.group` and the three quantifiers
+    NOT     P1 publish shape's frozenset . P2 the pair store . P3 THE RELATIONAL KEY --
+            "the load-bearing one" by the plan's own words . P4 the cascade . P5 placements
+            and classes . P6 the budget gradient . P7 hash, stack and backup
+    NOT     M2, the multi-step plan -- `ledger.STEPS` still has no PLAN step
+
+**Seven of eight phases, and the story proof's largest `MISSING`.**
+
+## AND THE SHARPEST FORM: THE EDGE JOINS THE COMPONENTS, IT DOES NOT FIX THE BREAK
+
+> **The break is at LINK 2 — the vocabulary — and the edge is between `OBJ` and `val`, which is
+> elsewhere.** *Even with the edge, the objectives composable are over a vocabulary that cannot name a
+> relation.*
+
+**What the fold bought and what it did not, stated so neither is over-read:**
+
+    BOUGHT       quantification over a group's shared ATTRIBUTE -- `all_same` over `drow`,
+                 which is ¶27's beat and was inexpressible as a term ten reads ago
+    NOT BOUGHT   relations BETWEEN objects as nameable, bettable things. That is P3, and
+                 `slot_types` publishing zero relation types is the measurement
+
+**A summary is the thing a future session inherits as fact.** *This one would have inherited "everything
+is built", opened on the edge, and found link 2 exactly where it was — which is the four-times mistake
+with a whole session's authority behind it.*
