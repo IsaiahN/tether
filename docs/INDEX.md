@@ -14010,3 +14010,24 @@ privileges one member's claim, which is what a non-simulable family exists to pr
 method twice. *`ruff` caught it as `F811`.* **The half-state was observable and was observed** —
 which is the fixtures-before-changes ordering paying by accident rather than by design, and a reason
 to make these scripts assert their own absence before inserting.
+
+---
+
+# FOUR ITEMS FILED AS OPEN THAT WERE READS — AND THE TRIGGER, NOT A SEVENTH CHECK
+
+    operand typing            filed PARKED           -- the typing half was BUILT and wired
+    the streak key            filed a DESIGN QUESTION -- each member declares it in its matcher
+    `ValueLatentSelf`'s value filed to be CHOSEN      -- the member SELECTS it by monotonicity
+    the mode's conditions     filed to be DRAFTED     -- `has_self` and `MIN_REPEAT` had them
+
+**Four items filed as needing a ruling or a design, each answered by code that already existed.**
+
+> **THE REMEDY IS LAW 6 AND THERE IS NO SEVENTH CHECK**, by the same count discipline that demoted
+> check 6 and refused to promote the `disembodied` bug: *you do not add a check that says apply the
+> check you have.*
+
+**WHAT IS NEW IS THE TRIGGER.** *Law 6's stated triggers are a headline or a ruling — **filing an item
+as OPEN is not among them**, and it is where all four were lost.* **So: before filing something as
+needing a ruling, read the mechanism that would carry it.** *The same law, at the point where an item
+enters the queue rather than where a claim leaves it* — and the four would have been caught by it,
+because in each case the answer was in the file the item names.
