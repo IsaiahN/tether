@@ -13821,3 +13821,60 @@ without noticing it was the named hazard.** Now it raises, `Registry.read` catch
 > violated in a first implementation.** *Three instances now — and it is still evidence that a ruling
 > does not self-enforce rather than a standing check, because the remedy is reading the file the rule
 > lives in, which is law 6 and already exists.*
+
+---
+
+# `0a` READ BEFORE THE SESSION, AND THE SESSION IS NOT WHAT I SAID IT WAS
+
+**The fourth step, run as preparation rather than as a check afterwards — and it overturned my own
+report from two rounds ago.**
+
+## `0a` HAS TWO HALVES. I CONFLATED THEM, AND ONE IS BUILT
+
+    ARITY half    `Term.operand` is `str | None`, `_ops` returns ONE value. PARKED, with a
+                  MEASURED reason: bindings per candidate 5 -> 65, per-mint work 925 ->
+                  12,025, "13x for zero capability until an atom consumes past index 0".
+                  Trigger: an atom that consumes past index 0. STILL UNFIRED
+    TYPING half   WHAT the operand must be. **BUILT AND WIRED.** `Atom.operand_type`,
+                  `Term._operand_fits` called at two sites, `retrieval.key_of` reads it,
+                  `SAME_AS_TARGET` for same-as-target. **Its trigger fired on a real board:**
+                  `idn . recolour<o11.h>` bound a HEIGHT as a colour operator's operand
+
+**`arc_atoms`' module note — *"Operand TYPING is `0a`'s and is parked"* — IS STALE.** *True when
+written; `gamma` and `tether` implemented it afterwards and the note was not revisited.* **Check 6,
+firing a second time, and this time BEFORE the design rested on it rather than three rounds after.**
+
+## SO P1 IS NOT BLOCKED ON A RULING, AND MY LAST REPORT WAS WRONG
+
+**I wrote that `same(v, c)` compares an extracted value to a raw slot int, and that no publish fixes
+it.** *The premise was that an extract atom runs first.* **It does not: `_extract`'s atoms abstain in
+the live loop because the loop hands a SCALAR** — which `arc_atoms` states plainly and which I quoted
+myself.
+
+> **`same` is applied to SLOT VALUES on both sides, and both are ints of a declared type. It already
+> works.** *What does not work is the EXTRACT space*, and that is blocked by the `dict[str, int]`
+> flattening — **which is P0's side channel, ALREADY RULED and simply not yet wired.** **A build, not a
+> ruling.**
+
+## AND ONE REAL GAP, WHICH IS THE TYPING HALF UNAPPLIED AT THREE ATOMS
+
+    translate   operand_type='@same'     declared
+    recolour    operand_type='COLOUR'    declared
+    same        operand_type=None        UNDECLARED
+    other       operand_type=None        UNDECLARED
+    above       operand_type=None        UNDECLARED
+
+**`_operand_fits`: *an undeclared type ADMITS — the check is absent, not passing*.** So **`above`
+accepts `POSITION|EXTENT|DELTA` as its INPUT and ANY type as its OPERAND.** *The `ATTR` split closed
+the input side; the operand side is exactly the same hazard, one argument over, and the mechanism that
+closes it was built afterwards and never applied here.*
+
+**`SAME_AS_TARGET` is the declaration these three want** — equality and order compared within a
+quantity, with `COMMENSURABLE`'s pinned `POSITION+DELTA` still passing. **Not shipped: it NARROWS, and
+*the narrowing costs no capability* is a measurement, not a claim.**
+
+## WHAT THE `0a` SESSION IS NOW
+
+**The ARITY half alone, and its trigger is a grep that has been checked three times and stayed
+unfired.** *An atom that consumes past index 0 does not exist.* **So the session is smaller than
+either of us thought, and P1, the extract space and the trajectory do not wait on it.**
