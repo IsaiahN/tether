@@ -15446,3 +15446,58 @@ load-by-key would find it missing and call it unfinished.**
 **`save` is still the seat's and out of the agent's reach**, exactly as its own docstring requires:
 *`play` calls it, the loop never does, and nothing in `tether.py` knows the path exists.* **The agent
 computes the key; the seat decides whether anything is written.**
+
+---
+
+# THE ENGINEERED-FIXTURE CONTEST: THE POSITIVE DIRECTION HOLDS, THE INVALIDATING ONE DOES NOT
+
+**Proposed as *the single test that could invalidate the objective machinery* before the freeze. The
+positive half is fine and the invalidating half is the direction it cannot support — which is the
+direction it was offered for.**
+
+## WHY A NULL ON AN ENGINEERED BOARD IS UNINTERPRETABLE
+
+**To make a board where an OBJECTIVE can pay, you must build in the thing an objective would capture —
+a residual a group quantification explains better than a per-slot predictor.** *That is designing the
+objective's win condition, which is designing the answer.*
+
+> `arc_check`'s own warning, about the fixture we already have: ***a synthetic solve proves wiring and
+> never capability — this fixture authored both sides.*** **An engineered payable fixture authors both
+> sides too.**
+
+    a PASS  reads as WIRING: the mechanism can fire when a payable residual exists
+    a NULL  cannot separate *the machinery cannot* from *I built the board wrong* --
+            and the board's author is the one reading the result
+
+**So it can license proceeding and it cannot invalidate**, which inverts the value it was offered for.
+*And `CLAUDE.md` names this exact failure: **before a null is read as a finding about a mechanism, state
+what property of the panel the mechanism would need in order to show, and confirm the panel has it.***
+**Here the property IS the answer, so confirming it is writing it.**
+
+## AND THERE IS A VERSION THAT IS INFORMATIVE, DERIVED FROM THE CONTEST'S OWN SHAPE
+
+**Build a board whose residual is explainable BOTH ways — by a value predictor AND by an objective —
+and read WHICH ONE THE BARGAIN PICKS.**
+
+    the question stops being   does anything pay          (needs a board built toward an answer)
+    and becomes                which of two payers wins   (both arms get the SAME board)
+
+> **THE BOARD NO LONGER HAS TO BE BUILT TOWARD THE OBJECTIVE, BECAUSE BOTH ARMS RUN ON IT.** *A
+> comparison is readable on a fixture in a way a pass/fail is not* — the seat's design biases both
+> candidates equally, so the margin is a fact about the bargain rather than about the board.
+
+**That is a real pre-freeze test.** *It still cannot confirm transfer — that needs a real board — but
+its NULL is interpretable, which the pass/fail version's is not.*
+
+---
+
+# AND ONE HABIT NOTE: EDIT SCRIPTS ARE NOT IDEMPOTENT ACROSS THEIR OWN SEQUENCE
+
+**Third instance.** *The `F811` double-insert on a re-run; the harmonise anchor; and now a second edit
+whose anchor the FIRST edit had already rewritten.* **The saved practice covers re-running a script; it
+does not cover one edit invalidating a later edit's anchor in the same run.**
+
+**Not a check — `conform/lint.py` owns the enforceable side, and an articulated check restating a
+mechanical one is the duplication refused twice already.** *Recorded so the fourth instance is expected
+rather than surprising: assert each anchor against the CURRENT text, not the text the script started
+from.*
