@@ -10,6 +10,12 @@ layer carries: **what exists today · what would change · what it depends on ·
 > a P5 gate.** *The reasoning for every settlement is in `docs/INDEX.md`; this document carries the
 > decisions.*
 
+> **WHAT DONE MEANS FOR THE WHOLE PIPELINE, BEFORE ANY PHASE IS READ.** *The build is finished when it
+> **represents everything `ARC GAMEPLAY - WHAT THE AGENT SEES.md` lays out and demonstrates what it left
+> out**, per game.* **The phase gates are not that test and cannot be summed into it** — *every phase
+> can pass its own gate and the pipeline still not meet the story*, the same way contact does not
+> aggregate over a week. **Eight greens is not done; the story is the bar.** See THE ACCEPTANCE TEST.
+
 ---
 
 # THE STANDING CHECKS
@@ -578,6 +584,26 @@ question with an entry rule, which is the legitimate way to widen Tier 1.*
 > **Naming the value for a game encodes the answer and destroys what the member exists to demonstrate.**
 > *The correct fix and the fatal fix produce the same behaviour on the target game and diverge only on
 > transfer* — **which is the firewall's own failure mode, one level down.**
+
+#### THE VERIFICATION, AND IT IS NOT "DOES THE MEMBER STILL WORK"
+
+**`ValueLatentSelf` worked BEFORE P5. It will work after P5 either way** — *naming the value also makes
+it work on `ls20`* — **so a builder checking the outcome gets a green light down both roads.** *That is
+`conform/lint.py`'s named silence: **witness the boundary, not the decision.*** **The decision is
+whether the member fires; the boundary is the candidate set and the selection trace.**
+
+**THREE READINGS, ALL CHEAP, AND THE GATE PASSES ONLY ON ALL THREE:**
+
+    1  the candidate set has MORE THAN ONE member at selection time
+       -- a selector over a set of one is supplying the answer with extra steps
+    2  the selected value DIFFERS ACROSS GAMES
+       -- per game, never pooled. one quantity winning everywhere is either a uniform
+          world or a set narrowed to the answer, and the second is the likely one
+    3  the selection is REVISABLE -- `best` can still move after it is first set
+       -- a `best` that never moves after step 1 had one candidate
+
+> **AND A CONTROL THAT EXAMINES NOTHING CANNOT DEMONSTRATE A CLEAN STATE.** *"Does it still work on
+> `ls20`" examines nothing about HOW it works*, which is the whole of what P5 can break.
 
 ---
 
