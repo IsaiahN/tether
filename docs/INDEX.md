@@ -14286,3 +14286,53 @@ per-member predicate fold, written in Python, at the loop level.**
 **The read went as far as a read goes.** *There is nothing beneath `Term.apply` taking one value and
 returning one* — no shared name, no stale comment, no further layer. **Seven reads, and this is the
 floor.**
+
+---
+
+# (b) IS FORCED — BUT BY §12.3, NOT BY "SEAT-WRITTEN IS CONTAMINATION"
+
+**The push is right that I stopped one step short, and wrong about which clause does the forcing. Both
+halves matter, because the wrong clause would forbid mechanisms the corpus licenses by name.**
+
+## CONCEDED: FRAMING IT AS *A QUESTION ABOUT THE BAR* WAS SHORT
+
+**The bar is not open.** *The deliverable is an agent that reasons its way through problems it was never
+told about, and can say how and why.* **Composition is the founding claim, and I handed back as a choice
+something the corpus settles.**
+
+## BUT SEAT-WRITTEN IS NOT CONTAMINATION, AND THE CORPUS SAYS SO BY NAME
+
+`CLAUDE.md` 398–399: ***what entered under `cannot run without it` is what the ablation stays BLIND
+to*** — and **`TRACKER blind (identity across frames is perception, not knowledge — wiping it makes the
+agent blind rather than untaught)`.**
+
+> **THE NINE SENSORS ARE SEAT-WRITTEN AND LICENSED. THE TRACKER IS SEAT-WRITTEN AND DELIBERATELY
+> ABLATION-BLIND.** *So "a fold written in Python is the lookup-table failure" over-reads: it would
+> condemn `components`, `touching` and `Objects` along with M5's fold.* **The line is PERCEIVE versus
+> ANSWER, not seat versus agent.**
+
+## SO ¶27 SPANS THE LINE, AND THAT IS THE REAL SHAPE
+
+    DETECTING co-movement          perception. licensed, built (M5), ablation-blind by the
+                                   same clause that covers the tracker
+    RECORDING IT AS A TERM         composition. bettable, mintable, carried with lineage
+
+**Only the second is at issue, and P0 already ruled this exact pattern** — *Layers 4 and 5 read the tree
+directly, and only their OUTPUTS become bettable.* **Which invites: leave the fold seat-side and publish
+its output.**
+
+## AND THAT IS WHERE §12.3 FORBIDS THE CHEAP ROUTE, WHICH IS THE ACTUAL FORCING
+
+**Publishing `all_move_together` as a sensor is a TIER-2 INSTALL.** *§12.3: containment, alignment,
+counting-by-colour and symmetry must be REACHED, **because reaching is the only evidence the composition
+system works.***
+
+    publish the fold's output as a sensor    TIER-2 INSTALL -- FORBIDDEN
+    let the agent compose the quantifier     needs a term that iterates -- (b)
+
+> **THERE IS NO THIRD OPTION, SO (b) IS FORCED — AND THE FORCING CLAUSE IS §12.3's TIER-2 RULE, NOT A
+> BAN ON SEAT-WRITTEN CODE.** *Which matters, because the wrong clause would also forbid the nine, and
+> §12.3 admits them in the same breath as it forbids a tenth.*
+
+**Quantification is the primitive in question. It is either a Tier-1 capability — a change to what a
+term is — or a Tier-2 install. The corpus permits the first and forbids the second.**
