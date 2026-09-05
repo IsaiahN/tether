@@ -141,6 +141,20 @@ class ArcWorld:
     def slots(self) -> list[str]:
         return self.read_order()[0]
 
+    def peers(self) -> dict[str, tuple[str, ...]]:
+        """`{slot: the SAME attribute on every OTHER object}`. **The loop may not derive this**
+        -- it would have to split the slot name, which is reading domain structure, the same
+        reason `slot_owner` is declared here.
+
+        This is the population a quantifier ranges over: *do all the objects agree on this
+        attribute*, which is the group question the loop could only ask one operand at a time.
+        """
+        by_attr: dict[str, list[str]] = {}
+        for s in self._decomposed():
+            by_attr.setdefault(s.rsplit(".", 1)[1], []).append(s)
+        return {s: tuple(x for x in group if x != s)
+                for group in by_attr.values() for s in group}
+
     def slot_types(self) -> dict[str, str]:
         """What KIND of quantity each slot holds. **The loop may not derive this.**
 

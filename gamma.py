@@ -77,6 +77,14 @@ class Ctx:
     # positioned on a 3x3 board: binds, three steps run* -- and positioned actions pass through
     # BECAUSE it is untyped. Typing it would delete a measured capability.
     touching: tuple[str, ...] = ()
+    # THE OUTER STREAM. The values THIS attribute takes on every OTHER object, so a term can
+    # quantify instead of comparing to one bound operand. Resolved per slot by the caller,
+    # exactly as `touching` is, and ABSENT FROM THE HANDLE -- which is what makes it survive
+    # the membrane: a binding is dropped on export, a population read is vocabulary.
+    #
+    # VALUES, NEVER SLOT NAMES. A name is an instance and would not mean anything on the next
+    # board; the values are what a quantifier ranges over.
+    group: tuple = ()
 
 
 @dataclass(frozen=True)

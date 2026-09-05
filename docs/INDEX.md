@@ -14379,3 +14379,59 @@ confirm the code sits on the axis; I cannot confirm the provenance.* **The corpu
 what makes a section check worth anything, and borrowing authority from a version I have not read would
 spend exactly that property.** *The code claim is checked. The historical claim is Isaiah's, and it is
 his to hold.*
+
+---
+
+# THE FOLD IS IN THE TERM: `Ctx.group`, THREE QUANTIFIERS, AND THE ROUND TRIP AGAINST DIRECT COMPUTATION
+
+**The ruling built. A term can now quantify over a population instead of comparing to one bound
+operand.**
+
+## THE OUTER STREAM REACHES A TERM WITHOUT BECOMING A BINDING
+
+    gamma.Ctx.group      the values THIS attribute takes on every OTHER object. VALUES, never
+                         slot names -- a name is an instance and would mean nothing next board
+    arc_world.peers()    the domain declares the population, for `slot_owner`'s reason: the
+                         loop deriving it would have to split the slot name
+    tether._group()      resolves it per slot, CACHED PER STEP -- `_touching`'s lesson applied
+                         at the same shape rather than after the regression
+
+**`group` is absent from `Term.name`, so it never enters the handle** — *which is what makes it
+survive the membrane: a binding is dropped on export, a population read is vocabulary.*
+
+## AND THE FOLD IS AN ATOM, SO THE AGENT COMPOSES THE GROUP CLAIM
+
+    all_same    ALL x in group . x == v      "the objects all agree on this attribute"
+    any_same    SOME x in group . x == v
+    none_same   NONE x in group . x == v     "each differs from me"
+
+**This is the per-member fold `_relate` cannot do.** *`same` compares one value to ONE bound operand;
+these compare it to EVERY member and fold.* **`ALL x . x == v` is a different claim from `x0 == v`, and
+it is what ¶27 asks: do the objects all move together, or does each respond on its own.**
+
+**AN EMPTY POPULATION IS `NOT_RESOLVED`, NOT VACUOUS TRUTH.** *`all_same` holding on a one-object board
+would be an absence read as a reading* — **check 3, at a fourth site.**
+
+> **AND NEITHER POLE IS PUBLISHED.** *The population arrives through `Ctx`; the fold is an ATOM.* **So
+> the agent REACHES the group claim rather than reading it off a sensor** — §12.3's requirement, and the
+> reason `all_move_together` could not simply be published.
+
+## THE ROUND TRIP: THE TERM-LEVEL FOLD AGAINST DIRECT COMPUTATION
+
+    over 25 steps, every `.drow` slot     agree 36   disagree 0   NOT_RESOLVED 7
+    and the 7 are exactly the frames with ONE object, where the population is empty
+
+    empty population -> NOT_RESOLVED      all agree -> 1      one differs -> 0
+    none agree (none_same) -> 1           some agree (any_same) -> 1
+
+**The term reproduces the Python computation exactly, including where it declines to answer.**
+
+## AND THE PANEL IS STALE FROM THIS COMMIT, WHICH `_contact` WARNED WOULD HAPPEN
+
+**18 atoms → 21.** *`_contact`'s own note: the atom COUNT moves `space_estimate`, `coverage`, `λ` and
+`V`, and every number on the panel was taken under the previous set.* **Said here because it is said
+there**: the false-mint rate, the exponent, chunk reuse and the transfer curve are measured under 18.
+
+**Still latent in the live loop**, for `operand_type`'s reason: these are `ATTR → PRED` and every
+`enumerate_closure` call passes `"val", "val"`. **The fold exists and the query has not changed yet** —
+which is the next layer, not this one.

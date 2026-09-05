@@ -157,6 +157,38 @@ def _relate() -> list[Atom]:
                  also_accepts=ORDERED[1:], operand_type=SAME_AS_TARGET)]
 
 
+def _over_group() -> list[Atom]:
+    """`ATTR → PRED`, quantified over the OUTER STREAM -- the same attribute on every other
+    object.
+
+    **THIS IS THE PER-MEMBER FOLD, WHICH `_relate` CANNOT DO.** `same` compares one value to
+    ONE bound operand; these compare it to EVERY member of a population and fold the results.
+    `ALL x . x == v` is a different claim from `x0 == v`, and it is the claim the group
+    question needs: *do the objects all agree on this attribute, or does each differ.*
+
+    **AN EMPTY POPULATION IS `NOT_RESOLVED`, NOT TRUE.** Vacuous truth would make `all_same`
+    hold on a board with one object, which is an absence read as a reading -- the same rule
+    as a locus with no changed cells getting no entry.
+
+    **AND NEITHER POLE IS PUBLISHED.** The population arrives through `Ctx` and the fold is an
+    ATOM, so the agent composes the group claim rather than reading one off a sensor -- which
+    is §12.3's requirement that alignment and counting be REACHED.
+    """
+    def fold(q):
+        def fn(v: Any, c: Ctx) -> Any:
+            if not c.group:
+                return NOT_RESOLVED
+            return int(q(x == v for x in c.group))
+        return fn
+
+    return [Atom("all_same", fold(all), COMPARABLE[0], PRED,
+                 also_accepts=COMPARABLE[1:]),
+            Atom("any_same", fold(any), COMPARABLE[0], PRED,
+                 also_accepts=COMPARABLE[1:]),
+            Atom("none_same", fold(lambda g: not any(g)), COMPARABLE[0], PRED,
+                 also_accepts=COMPARABLE[1:])]
+
+
 def _quantify() -> list[Atom]:
     """`PRED → OBJ`. What closes a statement back into something bettable."""
     return [Atom("all", lambda v, _c: int(bool(v)), PRED, OBJ),
@@ -170,4 +202,5 @@ def three_spaces(predict: list[Atom]) -> list[Atom]:
     PREDICT is passed in rather than built: it is the domain's atom set -- grid transforms at
     3d -- and inventing one here would be this file choosing what the agent may bet on.
     """
-    return list(predict) + _extract() + _contact() + _relate() + _quantify()
+    return (list(predict) + _extract() + _contact() + _relate() + _over_group()
+            + _quantify())
