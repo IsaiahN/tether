@@ -15412,3 +15412,37 @@ said would be needed.
 **Three latent ships passed lint and this one did not, and the line the linter draws is a real one.**
 *Data with no reader is a declaration waiting for a consumer; a function with no caller is a claim that
 something happens and nothing does.* **The checker knew the difference before I articulated it.**
+
+---
+
+# THE STORE, BUILT — PLAYS STACK UNDER THE COMPUTED KEY, AND THE EPISODE IS COUNTED NOT STUBBED
+
+## THE STORY'S BEAT, MEASURED
+
+    three plays of the same game, filed:   25a266e_1_1   25a266e_2_1   25a266e_3_1
+    on disk:                               the same three, and nothing else
+
+*"Play after play the same level stacks: `eec40c6_2_1`, `eec40c6_3_1`."* **The digest buckets, the
+level indexes within it, and the EPISODE is `1 + however many plays are already filed under that
+digest and level` — counted from the store, never from a process lifetime.**
+
+## AND THE FIRST ENCOUNTER IS ALWAYS COLD, WHICH IS THE DESIGN RATHER THAN A GAP
+
+> **The key is computed FROM the play, so it cannot be known before one.** *The story says the same
+> thing in its own voice: **`eec40c6`, never seen. First episode of level one.***
+
+**So loading by key needs a key from a PRIOR play** — which is why `library` stays an explicit path:
+*the seat carries the key forward between runs, and the report emits it for exactly that.* **Filing is
+keyed; loading is carried. Both stated at `play`'s docstring, because a reader expecting symmetric
+load-by-key would find it missing and call it unfinished.**
+
+## WHAT IS NOW END TO END, AND WHAT IS NOT
+
+    END TO END   the play produces a signature -> the signature digests to a bucket ->
+                 the episode counts from the store -> the library files under the key
+    NOT          load-by-key within one run, for the reason above; and the two per-game
+                 readings -- convergence speed, collision rate -- which need real boards
+
+**`save` is still the seat's and out of the agent's reach**, exactly as its own docstring requires:
+*`play` calls it, the loop never does, and nothing in `tether.py` knows the path exists.* **The agent
+computes the key; the seat decides whether anything is written.**

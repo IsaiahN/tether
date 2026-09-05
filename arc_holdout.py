@@ -60,7 +60,8 @@ def _mode():
     return OperationMode(env) if env in ok else OperationMode.OFFLINE
 
 
-def play(game: str = "ls20", cycles: int = 40, library: str | None = None) -> dict:
+def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
+         store: str | None = None) -> dict:
     """Download one game, run the loop on it, and report where the chain stops.
 
     **`library` IS §17.8's SWITCH, and the default is cold.** *State it, and make it switchable
@@ -71,6 +72,16 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None) -> di
 
     **THE SAVE IS THE SEAT's AND OUT OF THE AGENT's REACH** -- `play` calls it, the loop never
     does, and nothing in `tether.py` knows the path exists.
+
+    **`store` FILES BY THE KEY THE AGENT COMPUTED** -- `{digest}_{episode}_{level}`, the story's
+    shape -- and the EPISODE is counted from what is already filed under that digest and level,
+    so it is a real ordinal rather than a stub.
+
+    **THE FIRST ENCOUNTER IS ALWAYS COLD, AND THAT IS THE DESIGN RATHER THAN A GAP.** The key is
+    computed FROM the play, so it cannot be known before one: *`eec40c6`, never seen. First
+    episode of level one.* Loading by key needs a key from a PRIOR play, which is why `library`
+    stays an explicit path -- the seat carries the key forward between runs, and the report
+    emits it for exactly that.
     """
     logging.disable(logging.INFO)
     from arc_agi import Arcade
@@ -149,6 +160,20 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None) -> di
     g = ag.gamma
     saved = g.save(library) if library else None
 
+    # FILED UNDER WHAT THE AGENT COMPUTED. The digest buckets, the level indexes within it, and
+    # the episode is 1 + however many plays are already filed under that pair -- counted from
+    # the store, never from a process lifetime.
+    filed = None
+    if store:
+        d = Path(store)
+        d.mkdir(parents=True, exist_ok=True)
+        lvl = env.levels()[0] + 1
+        digest = ag.store_key(1, lvl).split("_")[0]
+        episode = 1 + len(list(d.glob(f"{digest}_*_{lvl}.json")))
+        key = ag.store_key(episode, lvl)
+        g.save(str(d / f"{key}.json"))
+        filed = key
+
     # §16.5. SEEDED FROM THE RESIDUAL, which is what Figure 11 says: *everything in contact
     # with the residual*, not with an arbitrary object. The slot carrying the most
     # unexplained mass names its object, and the cascade runs outward from there.
@@ -166,7 +191,7 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None) -> di
         # often two real games share one -- are read ACROSS RUNS, and a key that is never
         # emitted cannot be compared between them. `game` is the seat's label and the digest
         # is the agent's; printing both side by side is what makes the collision rate visible.
-        "store_key": ag.store_key(1, env.level() if hasattr(env, "level") else 1),
+        "store_key": ag.store_key(1, env.levels()[0] + 1), "filed": filed,
         "palette": palette, "slots": len(env.slots()), "blind": env.blind,
         "cycles": ag.cycle, "rows": len(rows), "gate": gate.check(rows)["verdict"],
         # §22.6: the stage code is the DIAGNOSIS. `stalls` over CLOSED segments, never
