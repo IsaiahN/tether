@@ -14683,3 +14683,45 @@ mechanisms.
     arms        ORDERED -> one unit along the attribute's ordering
                 COMPARABLE-only -> next-frame satisfaction
     unchanged   `75e4beb` stands: link 2 unmoved, seven phases unbuilt, no `PLAN` step
+
+---
+
+# THE STEP'S MODULUS IS THE PALETTE, NOT THE ATTRIBUTE'S RANGE — THE DELTA FIX NEVER REACHED POSITION OR EXTENT
+
+**Found by the glance the ruling asked for: *does the unit read match the attribute's ordering.* The
+unit is fine. The MODULUS it passes through is not.**
+
+## MEASURED, 4x4 BOARD, PALETTE 7
+
+    o0.row     POSITION   alphabet=7    true range 4 (board rows)
+    o0.col     POSITION   alphabet=7    true range 4 (board cols)
+    o0.h       EXTENT     alphabet=7    true range 4
+    o0.w       EXTENT     alphabet=7    true range 4
+    o0.colour  COLOUR     alphabet=7    correct -- it IS the palette
+
+**`arc_world.alphabet()`'s `else` branch hands `self._palette` to every non-shape, non-delta slot.**
+
+## AND THE DOCSTRING DESCRIBES THIS EXACT DEFECT — FOR THE DELTAS, WHICH IT FIXED
+
+> ***"AND THE DELTAS ARE FIXED HERE TOO. They were published against the palette**, so `drow = -5` and
+> `drow = 8` both read as 8 under `correction_bits`' modulo on a 13-colour board — a collision
+> introduced with the sensor and found while implementing this. **A displacement ranges over the board,
+> not the palette.**"*
+
+**`drow` and `dcol` got `2*h` and `2*w`. `row`, `col`, `h` and `w` did not.** *The same sentence
+applies to them verbatim — a POSITION ranges over the board, not the palette — and the fix stopped at
+the deltas.*
+
+## WHY IT SITS IN THE EDGE'S PATH
+
+**`_predict` ends `return got % self.alphabet[slot]`.** *The ORDERED arm's one-unit step passes through
+that modulus.* **On this fixture the alphabet is too LARGE (7 vs 4), which over-charges a miss; on an
+ARC board it is too SMALL — 64 rows under a ~16-colour palette means `row 3` and `row 19` collide**,
+which is the delta collision the docstring describes, at a different slot family.
+
+## NOT FIXED, BECAUSE IT MOVES EVERY BIT-COST ON THE PANEL
+
+*`correction_bits(a, b, alphabet)` charges `log2(alphabet)` per miss, so correcting position and extent
+changes the price of **every** position and extent miss ever measured.* **That is the false-mint rate,
+the exponent, chunk reuse and the transfer curve again — already stale from 18→21 atoms, and this would
+move them a second way.** **Reported for the ruling rather than repaired mid-build.**
