@@ -14336,3 +14336,46 @@ system works.***
 
 **Quantification is the primitive in question. It is either a Tier-1 capability — a change to what a
 term is — or a Tier-2 install. The corpus permits the first and forbids the second.**
+
+---
+
+# THE INNER/OUTER CHECK: THE CLAIM HOLDS IN THE CODE, AND THE AXIS IS SPLIT ACROSS THREE HOMES
+
+**Asked before treating the ruling as single, and answerable from the code.**
+
+## ALL FOUR MEMBERS WEIGH INNER AGAINST OUTER — UNIFORMLY
+
+    arc_self:108   TranslationSelf    self._attribute(action, 1.0 - res)
+    arc_self:153   GrowthEdgeSelf     self._attribute(action, 1.0 - res)
+    arc_self:206   ValueLatentSelf    self._attribute(action, cts[colour] - was)
+    arc_self:273   RegionToggleSelf   self._attribute(action, 1.0 - res)
+
+**Every member correlates its own signal with the action.** *There is no member that reads the outer
+stream without relating it to what the agent did* — **so the claim holds: the family is the weighting,
+uniformly, and no member sits off the axis.**
+
+**One member is closest to the outer pole and still on the axis.** `RegionToggleSelf` takes `_before`
+UNUSED — its predicate `g[t] == g[t-2]` is *a claim about the world's own history, agent-independent* —
+**and it then attributes that reading to the action.** *An outer-stream regularity wearing the
+weighting, which is the shape a `w_b`-only question would take if it were a member.*
+
+## BUT THE OUTER POLE IS NOT IN THE FAMILY, AND THAT IS THE PART THE CHECK ADDS
+
+**The two `w_b`-only questions — *are these linked*, *do these move together* — are NOT members.**
+*They are M5's per-relationship readings, in `arc_world.mode()` / `per_locus`.* **So the axis is
+coherent as a description and lives in THREE places in the code:**
+
+    the inner        `Ctx.action`, threaded unchanged to every atom by `Term.apply`
+    the weighting    `self_family` + `arc_self` -- the four members, `_attribute(action, ...)`
+    the outer fold   `arc_world` -- `per_locus`, the coupled/independent classification
+
+> **WHICH IS CONSISTENT WITH *M5 IS THE WEIGHTING IN THE WRONG PLACE*, AND ADDS THAT THE OUTER-POLE
+> READING IS IN A THIRD PLACE AGAIN.** *One axis, three homes, none of them a term.*
+
+## AND ONE BOUNDARY I CANNOT CHECK, STATED RATHER THAN NODDED THROUGH
+
+**I have no access to v1–4 and cannot verify that this is the frame they were built around.** *I can
+confirm the code sits on the axis; I cannot confirm the provenance.* **The corpus's independence is
+what makes a section check worth anything, and borrowing authority from a version I have not read would
+spend exactly that property.** *The code claim is checked. The historical claim is Isaiah's, and it is
+his to hold.*
