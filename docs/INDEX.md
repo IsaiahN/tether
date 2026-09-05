@@ -14935,3 +14935,47 @@ cause — the `dict[str, int]` boundary — so link 2 and the extract-space gap 
 break the chain-break table has named since the beginning. *The ruling was right and its premise —
 that this line opens the break — was not.* **Committed with the inertness stated, so the next reader
 does not inherit an opened break that is still shut.**
+
+---
+
+# P0's SIDE CHANNEL IS NOT A WIRING: THE TRACE STORES `dict[str, int]`, SO A TERM CAN BE BET AND NEVER PRICED
+
+**Checked before building, and the obstacle is one line of a type annotation.**
+
+    tether:260   self.trace: list[tuple[dict[str, int], str, dict[str, int]]]
+    tether:441   history() -> [(before, action, after[slot]) ...] -- all flattened
+
+> **THE HISTORY CANNOT SUPPLY A HISTORICAL OBJECT RECORD. The cells were dropped at `observe()`
+> and never stored.**
+
+## WHICH SPLITS THE SIDE CHANNEL IN TWO, AND ONLY ONE HALF IS A WIRING
+
+    THE BET       `_predict` has the LIVE decomposition. Supplying `Ctx.obj` here is a wiring
+    THE PRICING   `_left` and `_residual_obs` REPLAY history -- `for state, action, actual in
+                  hist` -- and there is no record to supply. Blocked
+
+**A term that can be BET but not PRICED can never pay, so it can never be minted.** *Supplying `obj`
+at the bet alone is half a mechanism, and the half that cannot mint.*
+
+## AND `Ctx.touching` ALREADY HAS THIS DEFECT, WHICH IS WHY IT IS WORTH SAYING NOW
+
+*`_left` passes `touching=self._touching(slot)` — **the CURRENT frame's contacts, replayed against a
+PAST state.*** **The operand is historical (`self._ops(term, state)`) and the contact set is not.**
+*`group=self._group(slot, state)` is correct, because its signature takes the state.* **So the
+codebase has this flaw once already, and adding `obj` naively would be the second instance.**
+
+## THE HONEST SHAPE, AND ITS COST
+
+**The trace must carry the object records beside the flattened state.** *`self.trace.append((before,
+action, after))` gains the records; `history()` yields them; `_left`, `_residual_obs` and `_predict`
+all pass `obj=` from the same source.* **That also repairs `touching`'s replay, because the records
+carry the cells contact is computed from.**
+
+    NOT a widening of the betting surface -- `observe()` still returns `dict[str, int]`,
+    so P0's constraining half holds. The TRACE is not the betting surface
+    IS a data-model change, and it keeps every frame's object records alive for the run
+
+> **SO *take P0's side channel, it is construction against a decision already made* IS NOT RIGHT.**
+> *The ruling said **side channel, outputs bettable**, and the PRICING PATH was never considered — a
+> term is bet from the live frame and priced from a history that no longer holds what it needs.*
+> **Reported, not taken: it is a change to what the loop remembers, and that is a decision.**
