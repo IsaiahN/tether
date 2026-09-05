@@ -396,6 +396,15 @@ class Agent:
     def _ops(term: Term, state: dict[str, int]) -> tuple:
         return (state[term.operand],) if term.operand else ()
 
+    def _narrate_order(self) -> None:
+        """Layer 2's whole output: the order was USED and is SAID, and nothing keeps it."""
+        ro = getattr(self.env, "read_order", None)
+        if ro is None:
+            return
+        order, pattern = ro()
+        self.led.record(self.cycle, "PERCEIVE", "*", "read_order",
+                        pattern=pattern, first=order[:3], n=len(order))
+
     def _touching(self, slot: str) -> tuple[str, ...]:
         """§12.3 sensor 8's second operand, resolved for one slot. Mirrors `_bindings`' read:
         the domain owns both `slot_owner` and `contacts` and the loop only asks.
@@ -1682,6 +1691,7 @@ class Agent:
     def step(self, action: str | None = None) -> bool:
         """One turn. Returns False if no action was proposed -- which is a legal outcome."""
         self._touch_cache = None      # a new step is a new frame, so contact and owners go
+        self._narrate_order()
         self._advertised()
         self._present()       # before the frame, so slots and frame cannot disagree
         # PER STEP, BECAUSE ONE SLOT TYPE'S RANGE IS NOT CONSTANT. A shape slot's alphabet is

@@ -13561,3 +13561,49 @@ raw value that cannot come back** — *the same reason the ID transfers and the 
 - **DOES NOT:** *discreteness is a spectrum with gaps, cut by a network relation.* **The network
   exhibits discreteness rather than producing it, and the cut presupposes what it derives.**
 
+
+---
+
+# THE FIRST BUILD: M1 SHIPPED, AND TWO FINDINGS THAT CHANGE P1
+
+## M1 · LAYER 2 IS BUILT, AND THE OLD ORDER WAS NOT MERELY "ARBITRARY"
+
+`ArcWorld.read_order()` sorts slots by their object's `(row, col)`, recomputed per frame;
+`_narrate_order` files one row per step; **no atom, no closure, nothing kept.** *Fires: 4 rows in 4
+steps on the ARC path, `pattern: raster`.*
+
+**AND THE MEASUREMENT SAYS WHAT IT COST, WHICH IS NOT WHAT THE PLAN ASSUMED.** *`components()` scans in
+raster order and `Objects` names arrivals `o0, o1, …`* — **so name order was a raster order that was
+correct AT BIRTH**, not an arbitrary one.
+
+    fixture, 2-3 objects      raster != name on 0 of 25 steps
+    constructed, 17 objects   DIVERGES: name gives `o0 o1 o10 o11 ... o2`, raster is correct
+
+> **THE NULL IS THE PANEL'S, NOT THE MECHANISM'S — AND THE PANEL PROPERTY IS NAMEABLE.** *Divergence
+> needs objects that move past each other **or** ten objects, because `o10` sorts between `o1` and
+> `o2`.* **The fixture has neither. `g50t` publishes 120 slots.** *Stated before the null was read, per
+> the rule that a null carrying a satisfying story is the one to distrust.*
+
+## FINDING 1 · P1's BOUNDING-BOX OVERLAP IS A TIER-2 INSTALL
+
+**The plan called it a Tier-1 repair on the belief that sensor 6 `overlap` is a same-frame
+`OBJ × OBJ` sensor computing the wrong quantity.** **It is cross-frame**, typed `(OBJECT_BEFORE,
+OBJECT)`, and `sensors.py` had already declared both the mismatch and the deferral: *"the repair is
+deferred deliberately: cross-frame cell IoU is what the tracker already computes… **unlocks nothing**."*
+
+> **The only same-frame `OBJECT × OBJECT` sensor in the nine is `touching`, a BOOL.** *So a same-frame
+> bounding-box relation is a **tenth sensor**, and §12.3 forbids it: containment must be REACHED.*
+> **Removed from P1. The frozenset publish stands alone.**
+
+## FINDING 2 · THE SHAPE-ID COMMENT IS FALSE ABOUT ITS OWN CODE
+
+`arc_percept:309` says the shape id is ***"a LABEL, exactly like `colour`… valid only for the episode it
+was assigned in."*** **`_shapes` is created once under a `hasattr` guard and is reset nowhere**, and
+`Objects()` is constructed once per run at `arc_holdout:89`. *`arc_world:242` reads `len(_shapes)` as the
+alphabet, and nothing calls a boundary on it.*
+
+> **SO THE ID IS RUN-STABLE, NOT EPISODE-SCOPED — AND THREE ROUNDS OF DESIGN REASONED FROM THE COMMENT.**
+> *The erasure is real and sits at a different boundary than documented: the id is an **encounter
+> index**, arbitrary across runs and across games, which is the placement/identity defect at run scope.*
+> **Standing check 2 fires, inverted: the comment claimed placement semantics the code does not
+> implement.**

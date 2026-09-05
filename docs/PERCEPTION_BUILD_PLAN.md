@@ -206,11 +206,20 @@ pointed here.**
 
 ## Layer 2 — The reading pattern
 
-**DOES NOT EXIST.** `slots()` returns `sorted(self._decomposed())` — **alphabetical**, stable,
-arbitrary, not perceptual.
+**BUILT 2026-09-04 (M1).** `ArcWorld.read_order()` returns `(order, pattern)` sorted by
+`(row, col)` off the tracked objects, recomputed per frame; `slots()` returns it; `Agent._narrate_order`
+files one `read_order` row per step. **It produces no atom, enters no closure, and leaves nothing
+behind.**
 
-**WHAT WOULD CHANGE.** A per-frame ordering over slots, recomputed each frame, narrated in the ledger,
-never settled as a term.
+**AND THE OLD ORDER WAS WORSE THAN "ARBITRARY", WHICH THIS PLAN SAID AND HAD BACKWARDS.**
+`components()` scans the grid in raster order and `Objects` names arrivals `o0, o1, …`, **so name order
+is a raster order that was correct AT BIRTH.** *It diverges two ways:* **after objects move past each
+other, and — with no motion at all — the moment there are ten objects**, because `o10` sorts between
+`o1` and `o2`. **Measured: 17 objects give `o0 · o1 · o10 · o11 … o2`, and `g50t` publishes 120 slots.**
+
+**ONLY THE RASTER PATTERN IS BUILT, AND THE OTHERS ARE REFUSED WITH A REASON.** *Layer-cake, spotted
+and marking need firing conditions nobody has measured* — **picking one is the invented number.** Name
+order remains the fallback where geometry is unreadable.
 
 > **§11 NEVER APPLIED.** `CLAUDE.md` 390–396: ***entering means entering Γ**; the five non-Γ homes are
 > **POPULATED, not entered** … §23.2's* what to look at vs what to do *governs loading the five; §11's
@@ -357,10 +366,20 @@ loci correlate together* **are one measurement read for two purposes** — a cla
     ABSENT    a causality tracker distinct from the attribute tracker
 
 **WHAT WOULD CHANGE.** The relation vocabulary is the item. `RELATIONS.md` marks **~30 relations as
-composable from what the agent already holds**, blocked by two things: **`overlap` computes shape
-congruence rather than spatial overlap** — and cell-IoU between distinct objects is identically zero
-under solidity, so bounding boxes are needed and are a Tier-1 addition — **and `slot_types` has no entry
-for a relation, so the retrieval key can never name one.**
+composable from what the agent already holds**, blocked by **`slot_types` having no entry for a
+relation, so the retrieval key can never name one.**
+
+> **AND THE BOUNDING-BOX ROUTE IS A TIER-2 INSTALL, WHICH THIS PLAN CALLED TIER 1 — CORRECTED
+> 2026-09-04.** *The claim rested on sensor 6 `overlap` being a same-frame `OBJ × OBJ` sensor computing
+> the wrong quantity.* **It is not same-frame.** `sensors.py` types it `(OBJECT_BEFORE, OBJECT)` and says
+> why: *"6 AND 7 ARE CROSS-FRAME BY §12.3's OWN PROSE… the repair is deferred deliberately: cross-frame
+> cell IoU is what the tracker already computes, so it agrees with an existing quantity and **unlocks
+> nothing**."*
+>
+> **The only same-frame `OBJECT × OBJECT` sensor in the nine is `touching`, and it is a BOOL.** *So a
+> same-frame bounding-box relation is a TENTH SENSOR* — **forbidden, because §12.3 says containment must
+> be REACHED and reaching is the only evidence the composition system works.** **P1 is the frozenset
+> publish alone.**
 
 **THE TRIGGER: ONE EVENT, TWO THRESHOLDS.** **Settled change is the TRIGGER; residual size is the
 SALIENCE FILTER.** *One named the firing, the other named the ranking.* **The consequence is call
@@ -528,10 +547,11 @@ summarises it.* **The order is unchanged across all three revisions.**
 
     P0  RULE `dict[str, int]`            gates L1(a), L4, L5. Nothing below moves first.
                                          NARROWED: side channel, not widening
-    P1  bounding-box overlap (Tier 1)    unblocks ~6 containment relations by COMPOSITION
-        + PUBLISH shape's frozenset      closes the erasure; the six orientation relations
+    P1  PUBLISH shape's frozenset        closes the erasure; the six orientation relations
                                          follow -- AND IT IS `obj:` INTRINSIC IDENTITY, which
-                                         is why cross-play identity is not new P7 scope
+                                         is why cross-play identity is not new P7 scope.
+                                         BBOX OVERLAP REMOVED: it is a TENTH SENSOR, not a
+                                         Tier-1 repair -- sensor 6 is CROSS-frame
     P2  a pair store                     write where the matrices already exist. Gives
                                          relational HISTORY and MATCH CONFIDENCE
     P3  a relational key                 `slot_types` cannot name a pair. THE build of the

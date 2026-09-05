@@ -109,8 +109,36 @@ class ArcWorld:
             self._read = {} if self.blind else dict(self._decompose(b))
         return self._read
 
+    def read_order(self) -> tuple[list[str], str]:
+        """Layer 2. The order slots are read in, RECOMPUTED PER FRAME and never settled.
+
+        `(row, col)` is the F-pattern's degenerate form on a dense grid: top sweep, second
+        sweep and left stem all collapse into raster order when every row is a sweep. The
+        CONDITIONED variants -- layer-cake, spotted, marking -- are deliberately not built:
+        their firing conditions are thresholds nobody has measured, and picking one here is
+        the invented number. Name order is the fallback where geometry is unreadable, which
+        is what the loop had for every slot until now.
+
+        SEAT-SIDE AND NEVER A TERM. §23.2 governs loading it; it produces no atom, enters no
+        closure, and leaves nothing behind -- a read-order for a frame not yet seen would be
+        a guess.
+        """
+        tracked = getattr(self._decompose, "tracked", {}) or {}
+        seen = False
+
+        def key(s: str) -> tuple:
+            nonlocal seen
+            o = tracked.get(s.rsplit(".", 1)[0])
+            if not isinstance(o, dict) or "row" not in o or "col" not in o:
+                return (1, 0, 0, s)
+            seen = True
+            return (0, int(o["row"]), int(o["col"]), s)
+
+        out = sorted(self._decomposed(), key=key)
+        return out, ("raster" if seen else "name")
+
     def slots(self) -> list[str]:
-        return sorted(self._decomposed())
+        return self.read_order()[0]
 
     def slot_types(self) -> dict[str, str]:
         """What KIND of quantity each slot holds. **The loop may not derive this.**
