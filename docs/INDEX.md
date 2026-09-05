@@ -15075,3 +15075,37 @@ still not ENUMERATED: the two queries start at `val` and at the slot's own type,
 > **WHICH MAKES `OBJECT → OBJ` A LEGITIMATE THIRD QUERY FOR THE FIRST TIME.** *I ruled it wrong two
 > rounds ago **because the chains abstained** — and they no longer do.* **153 chains, including every
 > `touching . *`. Measured cost owed before it goes in.**
+
+---
+
+# THE THIRD QUERY, MEASURED THEN ADDED — AND THE COST HAS A MULTIPLIER THIS PANEL CANNOT SHOW
+
+## THE A/B, 40 CYCLES, ONE VARIABLE
+
+    without `OBJECT -> OBJ`   0.63s    4,488 candidates over 143 mint rows
+    with it                   1.84s   26,367 candidates over 143 mint rows
+                              2.9x runtime, 5.9x candidates, ~184 per row against a 4,000 budget
+
+**And `depth_exhausted` on 143 of 143 either way — nothing pays with the third stream any more than
+without it.** *The fixture pays nothing regardless, which is what it is for.*
+
+## WHY IT GOES IN DESPITE AN UNMEASURED BENEFIT
+
+**Without it the side channel is unreachable.** *The extract atoms can RUN and nothing enumerates
+them: both other streams start at `val` and at the slot's own type, and an extract atom is
+`OBJECT → ATTR`.* **A wired-but-unreachable channel is half a mechanism**, and this is the half that
+makes it whole.
+
+**And the ruling that excluded it was correct when made.** *Two rounds ago every `OBJECT`-typed chain
+abstained on its first atom, because the loop handed a scalar.* **`Ctx.obj` changed the fact under the
+ruling, not the reasoning in it.**
+
+## THE COST CAVEAT, WHICH IS THE PART TO CARRY
+
+> **THE FIXTURE HAS 16 SLOTS AND MINT WORK SCALES WITH SLOTS x CANDIDATES.** *A 64x64 board measured
+> 43 objects on a structured layout — call it a few hundred slots — so the 2.9x compounds with a slot
+> count an order of magnitude larger, and **the real-board figure is UNMEASURED**.*
+
+**This is the `_touching` regression's shape**: *a cost that is fine on a small fixture and is found at
+length.* **Recorded at the site and here so it is watched on the first real run rather than discovered
+in it.**

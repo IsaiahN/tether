@@ -39,6 +39,7 @@ sys.dont_write_bytecode = True
 IDN = "idn"
 # THE EDGE'S TWO FACTS, named here so `_predict` reads constants rather than strings.
 OBJ_TYPE = "OBJ"
+OBJECT_TYPE = "OBJECT"
 ORDERED_TYPES = ("POSITION", "EXTENT", "DELTA")
 
 # anchor: how many reachable terms an experiment weighs before choosing. Bounded because
@@ -1476,6 +1477,16 @@ class Agent:
             stype = self.slot_types.get(slot)
             if stype:
                 streams.append((stype, OBJ_TYPE))
+            # THE THIRD STREAM, LEGITIMATE ONLY SINCE `Ctx.obj`. Ruled out two rounds ago
+            # because every `OBJECT`-typed chain abstained on its first atom -- the loop
+            # handed a scalar. The record is reassembled now, so they run, and the extract
+            # atoms are reachable for the first time.
+            #
+            # **MEASURED COST, 40 cycles on the fixture: 0.63s -> 1.84s and 4,488 -> 26,367
+            # candidates. 2.9x runtime, 5.9x candidates.** The fixture has 16 slots; mint work
+            # scales with SLOTS x CANDIDATES, so a board with 300 slots multiplies this again
+            # and the real-board figure is UNMEASURED. Watch it there before trusting it.
+            streams.append((OBJECT_TYPE, OBJ_TYPE))
             by_kind: dict[str, tuple] = {}
 
             for in_t, out_t in streams:
