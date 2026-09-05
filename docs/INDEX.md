@@ -14897,3 +14897,41 @@ object's attribute.** *So adding it crosses a layer the table may be drawing on 
 > exactly the class that has cost before, in this exact file.**
 
 **Reported, not taken.** *One line closes link 2 and the same line is how the 225 happened.*
+
+---
+
+# `BOOL` JOINS `COMPARABLE` — THE ENUMERATION IS CLEAN, AND THE LINE DOES NOT OPEN LINK 2
+
+## THE `x == x` CHECK: CLEAN, AND THE GUARD WAS ALREADY THERE
+
+**Fifteen new chains, all beginning `touching`, and NONE compares a value to itself.** *`same` reads
+`c.operands[0]`, which `_bindings` fills from `others = [s for s in self.slots if s != slot]` —
+**the slot itself is already excluded**.* **So `x == x` cannot arise: `same` was already `==` and never
+`=`, and the guard predates the question.**
+
+## BUT THE LINE IS INERT, AND THAT IS THE FINDING
+
+    POSITION -> OBJ   18 before, 18 after      ZERO new
+    COLOUR   -> OBJ   15 before, 15 after      ZERO new
+    OBJECT   -> OBJ   66 before, 153 after     -- and the loop NEVER ASKS FOR THIS
+
+**The loop's objective query starts at the SLOT'S OWN TYPE.** *All fifteen new chains are
+`OBJECT → OBJ`, so the query never surfaces one.*
+
+**AND THEY WOULD ABSTAIN ANYWAY.** `touching` is `OBJECT → BOOL`, the loop hands a scalar, and
+`touching(0, ctx)` measured **`NOT_RESOLVED`.**
+
+> **SO LINK 2's BLOCK WAS NEVER ONLY `BOOL`'s DEAD END. `touching` HAS TWO BLOCKERS AND THIS LINE
+> CLEARS THE SMALLER ONE.** *Its OUTPUT had no consumer — fixed. Its INPUT is `OBJECT` and the loop
+> hands `dict[str, int]` — **not fixed, and that is the flattening.***
+
+**AND THE TWO BLOCKS ARE ONE BLOCK.** *The eight extract atoms abstain for exactly this reason, in
+`_extract`'s own words.* **The relational vocabulary and the EXTRACT space are stopped by the same
+cause — the `dict[str, int]` boundary — so link 2 and the extract-space gap are not two items.**
+
+## WHAT THAT MEANS FOR THE QUEUE
+
+**P0's side channel is not one phase among seven. It is what link 2 is waiting on**, and link 2 is the
+break the chain-break table has named since the beginning. *The ruling was right and its premise —
+that this line opens the break — was not.* **Committed with the inertness stated, so the next reader
+does not inherit an opened break that is still shut.**

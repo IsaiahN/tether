@@ -53,7 +53,18 @@ OBJ = "OBJ"          # `OBJECT` is imported from `sensors`; this one is the obje
 # IMPORTED, NOT REDECLARED. `sensors.py` already carried §12.2's nine attribute types, and
 # the ATTR split declared four of them here a commit later -- two producers of one fact, with
 # identical strings, which is harmless exactly until one side changes.
-COMPARABLE = (COLOUR, POSITION, EXTENT, DELTA, SHAPE)   # equality is meaningful on all
+# BOOL IS THE PUREST MEMBER, NOT A STRANGER. Equality is meaningful on a truth -- do two
+# objects agree on contact -- and order is not: neither truth is MORE. That is exactly
+# `COLOUR`'s and `SHAPE`'s slot, so `BOOL` sits in `COMPARABLE` and out of `ORDERED`.
+#
+# **AND IT DOES NOT OPEN LINK 2, WHICH IS WHY IT IS SAID HERE.** It admits 15 chains, all
+# beginning `touching`, all typed `OBJECT -> OBJ` -- and the loop's objective query starts at
+# the SLOT'S OWN type, so it never asks for them. Measured: `POSITION -> OBJ` and
+# `COLOUR -> OBJ` gain ZERO. And `touching` abstains anyway: it is `OBJECT -> BOOL`, the loop
+# hands a scalar, and `touching(0, ctx)` is `NOT_RESOLVED` -- the SAME flattening that makes
+# the eight extract atoms abstain. **The relational vocabulary and the extract space are
+# blocked by one cause, not two.**
+COMPARABLE = (COLOUR, POSITION, EXTENT, DELTA, SHAPE, BOOL)   # equality is meaningful on all
 ORDERED = (POSITION, EXTENT, DELTA)       # order is meaningful only on these
 PRED, QUANT, VAL = "PRED", "QUANT", "val"
 
