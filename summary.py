@@ -364,6 +364,27 @@ def reached_and_failed(rows: list[dict]) -> dict:
 
 
 def report(rows: list[dict], gamma) -> dict:
+    """The panel.
+
+    **A DEBT IS OWED ON EVERY BIT-COUNT BELOW, AND IT IS OWED TWICE. Pay it before reading
+    these numbers against any taken before 2026-09-05.**
+
+    1 · THE ATOM SET MOVED, 18 -> 21. `_contact` states the consequence at its own site: the
+        atom COUNT moves `space_estimate`, `coverage`, `lambda` and `V`.
+    2 · THE MODULUS MOVED for POSITION and EXTENT. They were priced against the PALETTE and
+        are now priced against the BOARD, so `correction_bits`' `log2(alphabet)` changed for
+        every position and extent miss -- which is `cost_bits`, `left_bits`, `reduced_bits`
+        and everything computed over them here.
+
+    **AND THE SECOND IS NOT A UNIFORM SHIFT, WHICH IS THE PART THAT MISLEADS.** Position and
+    extent were OVER-priced where the board is smaller than the palette and UNDER-priced --
+    collided -- where it is larger. **The direction depends on BOARD SIZE, so it is a per-game
+    reading and pooling across games would hide it.**
+
+    **This is a GATE and not a note.** Carrying a pre-2026-09-05 number across it is the
+    stale-panel error, and the reason it is written here rather than in a document is that
+    this is where the panel is read.
+    """
     m, c = minted(rows, gamma), chains(gamma)
     return {
         "MINTED": m,
