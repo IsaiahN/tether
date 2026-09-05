@@ -287,6 +287,15 @@ class ArcWorld:
                 out[s] = 2 * h
             elif key == "dcol":
                 out[s] = 2 * w
+            elif key in ("row", "h"):
+                # THE DELTA FIX, EXTENDED TO WHERE IT STOPPED SHORT. The paragraph above says
+                # it for the deltas -- *a displacement ranges over the board, not the palette*
+                # -- and `row`, `col`, `h` and `w` fell through to the palette anyway. Same
+                # collision, different slot family: 64 rows under a 16-colour palette makes
+                # `row 3` and `row 19` read alike under `correction_bits`' modulo.
+                out[s] = h
+            elif key in ("col", "w"):
+                out[s] = w
             else:
                 out[s] = self._palette
         return out

@@ -37,6 +37,9 @@ from sensors import COMMENSURABLE, DELTA, NOT_RESOLVED, OBJECT, POSITION
 sys.dont_write_bytecode = True
 
 IDN = "idn"
+# THE EDGE'S TWO FACTS, named here so `_predict` reads constants rather than strings.
+OBJ_TYPE = "OBJ"
+ORDERED_TYPES = ("POSITION", "EXTENT", "DELTA")
 
 # anchor: how many reachable terms an experiment weighs before choosing. Bounded because
 # the choice is made every step and the closure grows; 200 covers depth 2 over the toy
@@ -141,6 +144,47 @@ def term_bits(k: int, alphabet: int, bonds: int = BONDS) -> float:
 def pays(cost: float, left: float, base: float) -> bool:
     """The bargain. Strict: a tie does not license a new term."""
     return cost + left < base
+
+
+def objective_step(evaluate, current: int, ordered: bool, alphabet: int) -> Any:
+    """THE EDGE: what a composed objective predicts about a slot value.
+
+    An objective is a TRUTH and a bet is a VALUE, so something has to say what wanting a
+    thing predicts about the slot. This is that rule, and it sits beside `pays` for `pays`'
+    reason: the bargain is seat-written and uniform because what a bet COSTS is not a move,
+    and what a bet MEANS is not a move either. A piece does not redefine winning.
+
+    UNIFORM OVER EVERY OBJECTIVE. It never asks what the objective is about -- it PROBES,
+    evaluating the objective at candidate values, which is a numerical gradient and assumes
+    nothing about the term's contents.
+
+    NEAREST IS THE TYPE'S, and that is the whole of the two arms:
+
+        ORDERED           step ONE UNIT toward the nearest satisfying value. There is a
+                          more-and-less, so there is a direction and a distance
+        COMPARABLE-only   return the satisfying value ITSELF -- next-frame satisfaction --
+                          because with no ordering every value is equidistant and "one step
+                          toward" names nothing
+
+    SATISFIED ALREADY -> the slot HOLDS. NOTHING SATISFIES -> NOT_RESOLVED, never a guess:
+    *the instrument could not read* rather than a value nobody has evidence for.
+    """
+    here = evaluate(current)
+    if here is None:
+        # THE OBJECTIVE COULD NOT BE READ HERE. Falsy is not the same claim as unreadable,
+        # and `NOT_RESOLVED` is falsy -- so testing it for truth would file *I cannot see*
+        # as *not satisfied* and send the probe hunting for a value to fix a gap nobody
+        # measured. Same rule as a null attribute, at the objective.
+        return NOT_RESOLVED
+    if here:
+        return current
+    hits = [v for v in range(alphabet) if v != current and evaluate(v)]
+    if not hits:
+        return NOT_RESOLVED
+    if not ordered:
+        return hits[0]
+    target = min(hits, key=lambda v: (abs(v - current), v))
+    return current + (1 if target > current else -1)
 
 
 @dataclass
@@ -453,13 +497,25 @@ class Agent:
         return not term.operand or term.operand in state
 
     def _predict(self, slot: str, state: dict[str, int], action: str) -> int | None:
-        """`None` is THE INSTRUMENT COULD NOT READ, and it is not a prediction of anything."""
+        """`None` is THE INSTRUMENT COULD NOT READ, and it is not a prediction of anything.
+
+        TWO ARMS, ONE RULE. A `val` term IS the prediction; an `OBJ` term is a WANT, and what
+        wanting predicts is `objective_step`'s. The type decides, and both facts it reads --
+        `out_type` and `slot_types` -- are already here.
+        """
         term = self.gamma.library[self.bound.get(slot, IDN)]
-        got = term.apply(state[slot],
-                         Ctx(action=action, operands=self._ops(term, state),
-                             touching=self._touching(slot),
-                             group=self._group(slot, state)))
-        return None if got is NOT_RESOLVED else got % self.alphabet[slot]
+        ctx = Ctx(action=action, operands=self._ops(term, state),
+                  touching=self._touching(slot), group=self._group(slot, state))
+        alphabet = self.alphabet[slot]
+        if getattr(term, "out_type", "val") == OBJ_TYPE:
+            ordered = self.slot_types.get(slot) in ORDERED_TYPES
+            def _sat(v: int) -> bool | None:
+                r = term.apply(v, ctx)
+                return None if r is NOT_RESOLVED else bool(r)
+            got = objective_step(_sat, state[slot], ordered, alphabet)
+        else:
+            got = term.apply(state[slot], ctx)
+        return None if got is NOT_RESOLVED else got % alphabet
 
     def _standing(self, slot: str) -> None:
         """HELD AND CITED ARE TWO ROWS, not one. A candidate may be held -- bound, and

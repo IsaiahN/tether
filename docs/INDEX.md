@@ -14725,3 +14725,60 @@ which is the delta collision the docstring describes, at a different slot family
 changes the price of **every** position and extent miss ever measured.* **That is the false-mint rate,
 the exponent, chunk reuse and the transfer curve again — already stale from 18→21 atoms, and this would
 move them a second way.** **Reported for the ruling rather than repaired mid-build.**
+
+---
+
+# THE EDGE, BUILT — AND THE MODULUS FIXED IN ITS PATH
+
+## `objective_step`, BESIDE `pays`, FOR `pays`' REASON
+
+**An objective is a TRUTH and a bet is a VALUE, so something has to say what wanting a thing predicts
+about the slot.** *Seat-written and uniform, because what a bet COSTS is not a move and what a bet
+MEANS is not a move either.*
+
+**It never asks what the objective is about — it PROBES**, evaluating the objective at candidate values.
+*A numerical gradient, assuming nothing about the term's contents.*
+
+    ORDERED           step ONE UNIT toward the nearest satisfying value
+    COMPARABLE-only   return the satisfying value ITSELF -- next-frame satisfaction, because
+                      with no ordering every value is equidistant and "one step" names nothing
+
+**VERIFIED, ALL SIX ARMS:**
+
+    ORDERED, at 2, satisfied at 5   -> 3        one step toward
+    ORDERED, at 8, satisfied at 5   -> 7        one step toward, other direction
+    already satisfied               -> 5        HOLDS
+    COMPARABLE, at 2, sat at 5      -> 5        the value itself
+    nothing satisfies               -> NOT_RESOLVED
+    unreadable at current           -> NOT_RESOLVED
+
+> **THE LAST ROW IS THE ONE I HAD WRONG IN THE FIRST DRAFT.** *`NOT_RESOLVED` is falsy, so testing the
+> objective for truth filed **I cannot see** as **not satisfied** and sent the probe hunting for a value
+> to close a gap nobody measured.* **Check 3, at a fifth site, caught before the commit.**
+
+## AND `_predict` GAINS ONE ARM, READING TWO FACTS IT ALREADY HELD
+
+**`term.out_type == OBJ` picks the arm; `slot_types[slot] in ORDERED` picks the branch.** *`state[slot]`
+is at the site and is never consumed, which is the whole of why shape (ii) was ruled.*
+
+**DORMANT UNTIL THE QUERY CHANGES.** *No `OBJ` term can be bound while `enumerate_closure` asks
+`"val","val"`* — **so the arm is verified by direct call rather than by a run**, and that is the honest
+state rather than a claim of live behaviour.
+
+## THE MODULUS, FIXED WHERE THE DELTA FIX STOPPED SHORT
+
+    before   row col h w   alphabet = 7 (palette)   on a 4x4 board
+    after    row col h w   alphabet = 4 (the board) -- colour stays 7, shape stays 2
+
+**The docstring's own sentence, applied to the families it missed:** *a displacement ranges over the
+board, not the palette* — **and so does a position, and so does an extent.**
+
+## THE PANEL CONSEQUENCE, OWED AND RECORDED
+
+**`correction_bits` charges `log2(alphabet)` per miss, so every position and extent miss ever measured
+was priced against the wrong range.** *Stale from this commit, on top of the 18→21 atom staleness.*
+
+> **AND THE CORRECTION IS NOT A UNIFORM SHIFT.** *Position and extent were OVER-priced where the board
+> is smaller than the palette and UNDER-priced — collided — where it is larger.* **So the direction
+> depends on board size, which is a per-game reading and never pooled.** **The re-measure is owed, per
+> game, and pre-fix numbers must not be carried across it.**
