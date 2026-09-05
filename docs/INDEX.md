@@ -13925,3 +13925,43 @@ that keeps being right about the wrong layer.**
 **The three-atom `operand_type` gap stands** and is independent of all of this — `same`, `other`,
 `above` declare none, and an undeclared type admits. **The streak-keying stands and is independent.**
 **And `0a`-the-session stays filed with its trigger unfired.**
+
+---
+
+# `operand_type` DECLARED ON THE THREE RELATE ATOMS — MEASURED FIRST, AND LATENT BY DESIGN
+
+## THE MEASUREMENT, TAKEN BEFORE THE DECLARATION
+
+    ordered (target, operand) pairs, 16-slot board      240
+      same type                                          40   17%   admitted
+      COMMENSURABLE (POSITION+DELTA), pinned table       32   13%   admitted
+      CROSS-TYPE                                        168   70%   REFUSED
+
+**Every refused pair compares two different attribute types** — `above(col:POSITION,
+colour:COLOUR)`, `above(col:POSITION, shape:SHAPE)`, `above(col:POSITION, h:EXTENT)`. **Well-typed and
+meaningless, which is the `ATTR` split's own hazard one argument over.** *The narrowing removes only
+that class, which is what makes it free.*
+
+## AND ONE THING THE MEASUREMENT FOUND THAT THE FIX DOES NOT CLOSE
+
+**`SAME_AS_TARGET` inherits `COMMENSURABLE`, whose warrant is `translate`'s AFFINE operation** — *a
+position plus its own displacement* — **and equality is not addition.** *32 pairs (13%) ride in on a
+table justified for a different operator.* **Recorded rather than edited: the table is a pinned
+exemption, and narrowing it from here would be logic widening what data should hold.**
+
+## IT IS LATENT IN THE LIVE LOOP AND LIVE IN THE CLOSURE, AND SAYING SO IS THE POINT
+
+    val -> val candidates at depth 3            15,  and ZERO contain same/other/above
+    closure OBJECT -> OBJ                       66
+    closure OBJECT -> PRED                      22
+    closure COLOUR -> PRED                       2
+
+> **THE COMPOSITION SPACE IS RICHLY POPULATED AND THE LOOP ASKS THE WRONG QUESTION.** *Layer 2 is not
+> "they cannot be enumerated" — it is **66 chains from OBJECT to OBJ exist, and every
+> `enumerate_closure` call passes `"val", "val"`.*** **A sharper statement than the one I filed last
+> round, and it makes the wire's shape clearer: the producer is built and enumerable; only the query
+> and the consumer are missing.**
+
+**So this declaration changes nothing observable today and is correct anyway** — it is the guard for
+the 66, which become reachable the moment the query changes. *A fix stated as closing a live hazard
+when it closes a latent one would be the vacuity failure at the report level.*

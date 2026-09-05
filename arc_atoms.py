@@ -30,7 +30,7 @@ from __future__ import annotations
 import sys
 from typing import Any
 
-from gamma import Atom, Ctx
+from gamma import SAME_AS_TARGET, Atom, Ctx
 from sensors import BOOL, COLOUR, DELTA, EXTENT, NOT_RESOLVED, OBJECT, POSITION, SHAPE
 
 sys.dont_write_bytecode = True
@@ -136,12 +136,25 @@ def _relate() -> list[Atom]:
     def above(v: Any, c: Ctx) -> Any:
         return int(bool(c.operands) and v > c.operands[0])
 
+    # `0a`'s TYPING HALF, APPLIED HERE AT LAST. `gamma.Atom.operand_type` and
+    # `_operand_fits` were built after these three and never reached them, and *an undeclared
+    # type ADMITS* -- so `above` took ORDERED as its INPUT and ANY type as its OPERAND. That
+    # is the `ATTR` split's own hazard one argument over: `above(col:POSITION, colour:COLOUR)`
+    # was well-typed and meaningless. Measured before declaring: of 240 ordered (target,
+    # operand) pairs on a 16-slot board, 168 (70%) are cross-type and are refused, and every
+    # refused pair compares two different attribute types.
+    #
+    # OPEN, AND SMALLER THAN THIS FIX. `SAME_AS_TARGET` inherits `COMMENSURABLE`, whose
+    # warrant is `translate`'s AFFINE operation -- *a position plus its own displacement* --
+    # and equality is not addition. 32 pairs (13%) ride in on a table justified for a
+    # different operator. Recorded rather than edited: the table is a pinned exemption, and
+    # narrowing it from here would be logic widening what data should hold.
     return [Atom("same", same, COMPARABLE[0], PRED, reads_operand=True,
-                 also_accepts=COMPARABLE[1:]),
+                 also_accepts=COMPARABLE[1:], operand_type=SAME_AS_TARGET),
             Atom("other", other, COMPARABLE[0], PRED, reads_operand=True,
-                 also_accepts=COMPARABLE[1:]),
+                 also_accepts=COMPARABLE[1:], operand_type=SAME_AS_TARGET),
             Atom("above", above, ORDERED[0], PRED, reads_operand=True,
-                 also_accepts=ORDERED[1:])]
+                 also_accepts=ORDERED[1:], operand_type=SAME_AS_TARGET)]
 
 
 def _quantify() -> list[Atom]:
