@@ -20,7 +20,7 @@ layer carries: **what exists today · what would change · what it depends on ·
 
 # THE STANDING CHECKS
 
-**Five, produced by this deliberation, each having caught something. They govern how the rest of this
+**Seven, produced by this deliberation, each having caught something. They govern how the rest of this
 document is read and how the build is written.**
 
 **1 · SEAT-ACCESS IS NOT AGENT-EXPERIENCE.** *Before writing "the agent knows X", name the code path
@@ -41,6 +41,19 @@ changes nothing* — so a claim that something changes contact names the reading
 
 **5 · ONE FORMAT OVER TWO LIFETIMES IS `A6i`'s INVERSE.** *A single namespace asserted where two
 exist.* **It is the tidy-looking change a later reader makes**, and Seam 10 is where it would land.
+
+**7 · A SUMMARY RIDING ON VERIFIED FINDINGS INHERITS THEIR CREDIBILITY, NOT THEIR VERIFICATION.**
+*A milestone is a COMPOSITION of findings, and the composition can be false while every part is true* —
+so **check the sentence that assembles them, separately from the findings it assembles.**
+
+    "the ruling got smaller"                    the channel existed; the ruling had not shrunk
+    "it repairs `touching` on the way through"   it would have ACTIVATED the defect, not repaired it
+    "every link is live except a payable board"  the atoms are runnable and NOT coherently reachable
+
+**Three sites, and the remedy is none of the others** — *not the estimate bias, not check 3's
+absence-as-fact, not law 6's unread comment.* **A true set of parts, a false summary, and the summary
+borrowing the parts' credibility.** *The third instance was caught inside the message that produced it,
+which is the test of a check worth having: it fires on itself.*
 
 **6 · A COMMENT'S CLAIM ABOUT SCOPE OR LIFETIME IS NOT THE CODE — VERIFY IT BEFORE DESIGN RESTS ON IT.**
 *One verified site: `arc_percept`'s shape id, documented as episode-scoped and reset nowhere, which
