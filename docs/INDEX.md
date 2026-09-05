@@ -14552,3 +14552,54 @@ entry for a relation, so the retrieval key can never name one.** *Nothing this s
 **A summary is the thing a future session inherits as fact.** *This one would have inherited "everything
 is built", opened on the edge, and found link 2 exactly where it was — which is the four-times mistake
 with a whole session's authority behind it.*
+
+---
+
+# THE EDGE'S TWO CHECKS: THE LADDER IS SPECIFIED BUT IS A DIFFERENT LADDER, AND THE GRADIENT NEEDS AN ORDERING
+
+## CHECK 1 · THE ESCALATION LADDER IS SPECIFIED, NOT BUILT — AND IT IS IN THE OTHER CURRENCY
+
+**`ARC_AGENT` §19.2, five priced rungs, cheapest first, each rung a ledger entry:**
+
+    1 re-rank      free        a different thousandth of the same space
+    2 more budget  linear      more of the same space
+    3 more lag     xk          causes displaced in time
+    4 more depth   x-lambda    deeper compositions
+    5 more arity   quartic     causes in another slot
+
+*`INDEX` and `ARC_BUILD_PLAN` both record it **open / not built**, and `conform/lint.py` already lints
+`UNREACHED` as reserved for after an escalation.*
+
+> **BUT IT IS NOT THE CANARY'S LADDER, AND THE TRIGGER IS THE TELL.** *§19.2 escalates a SEARCH THAT
+> FAILED — its prompt is a weak `BUDGET_SPENT`, and every rung buys **more search**.* **The canary
+> escalates a BET THAT PAID.** *Different trigger, and different currency: §19.2 spends yields, depth
+> and arity — the description-length side; the canary spends STEPS — the action side, which
+> `THE_FORMULA` says does not add to the description length.*
+
+**So the answer is neither *already built* nor *open*: the specified ladder is a different ladder in
+the other currency — and it is the TEMPLATE.** *Five rungs, cheapest first, each a ledger entry, a
+terminal claim that is only strong after all five.* **Take the form, not the content.**
+
+## CHECK 2 · A GRADIENT NEEDS AN ORDERING, AND TWO PUBLISHED TYPES DO NOT HAVE ONE
+
+    ORDERED      POSITION . EXTENT . DELTA        -- a gradient is definable
+    not ordered  COLOUR . SHAPE                   -- COMPARABLE only, no more-and-less
+    published    POSITION 2 . EXTENT 2 . COLOUR 1 . SHAPE 1   -- 4 of 6 slots admit one
+
+**Figure 13: a gradient is *a difference that can be spent*, and spectrum is *ordering, so more and
+less can be said*.** *No spectrum, no gradient.*
+
+> **SO CANDIDATE 4 DEGENERATES TO CANDIDATE 1 EXACTLY WHERE THERE IS NO ORDERING.** *On a COLOUR or
+> SHAPE objective there is no "one step toward" — only changed or not changed, which IS
+> next-frame satisfaction.* **The two are not merely strategy-mates: 4 REDUCES to 1 on the
+> COMPARABLE-not-ORDERED half, and the type system says which half a given objective is on.**
+
+**AND THIS IS M4 ARRIVING AT THE EDGE.** *A colour objective has no gradient for the same reason the
+band had no producer: an index carries no spectral position.* **The two findings meet, and neither was
+derived from the other.**
+
+## WHAT THAT LEAVES
+
+**The metric question answers itself on the ORDERED half** — *one step is one unit of the attribute's
+own ordering, which is what ORDERED means* — **and has no answer on the other half, which is the
+finding rather than a gap.** *The ladder needs building in the action currency, on §19.2's form.*
