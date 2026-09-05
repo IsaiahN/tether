@@ -725,7 +725,24 @@ layers above.**
 
 # STILL OPEN
 
-**ONE ITEM: the `ValueLatentSelf` workshop — the residual conjunct's exact form, and which board-wide
+**THREE THINGS NEED REAL BOARDS AND CANNOT BE READ ON THE FIXTURE — 2026-09-05.** *The synthetic
+fixture authored both sides, so it pays nothing and it is one game:*
+
+    the contest        does an objective ever out-predict a value bet. The mechanism records
+                       the winner and the margin; 143 of 143 mint rows read `depth_exhausted`
+                       and NO candidate paid, in either stream
+    convergence        how fast the signature settles on a board richer than four patterns
+    collision rate     how often two real games share a signature. FIVE attribute types give
+                       32 patterns and one game used four, so sharing is EXPECTED rather than
+                       unlikely -- the report emits the digest beside the game name so that
+                       this is readable across runs
+
+**AND ONE DESIGN QUESTION IS FILED, NOT RULED:** *`Ctx.group` follows the SLOT's attribute, so a chain
+that extracts a different one compares apples to oranges.* **The second site where `Ctx` is built before
+the chain runs and cannot know its runtime state** — the edge's consumed slot value was the first.
+**Two is a pair; a third would make it one ruling rather than three patches.**
+
+**AND ONE ITEM: the `ValueLatentSelf` workshop — the residual conjunct's exact form, and which board-wide
 quantities P5 publishes into the candidate set the member already searches.** *It does not touch P0–P3
 and does not delay the start; it must resolve before P5.*
 
