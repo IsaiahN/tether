@@ -42,6 +42,17 @@ changes nothing* — so a claim that something changes contact names the reading
 **5 · ONE FORMAT OVER TWO LIFETIMES IS `A6i`'s INVERSE.** *A single namespace asserted where two
 exist.* **It is the tidy-looking change a later reader makes**, and Seam 10 is where it would land.
 
+**6 · A COMMENT'S CLAIM ABOUT SCOPE OR LIFETIME IS NOT THE CODE — VERIFY IT BEFORE DESIGN RESTS ON IT.**
+*One verified site: `arc_percept`'s shape id, documented as episode-scoped and reset nowhere, which
+three rounds of design planned around.* **Recorded at one site rather than the two the others carry,
+because the colliding item is nameable — the frozenset publish is the next thing whose justification
+rests on that comment.**
+
+> **AND IT COMPLETES THE SIXTH LAW RATHER THAN ADDING TO IT.** *Assume it is already specified, and go
+> look* says **read the comment**; this says **then check it.** **The two pull opposite ways and the
+> pair is the instruction** — *reading sensor 6's comment would have prevented the Tier-2 error; reading
+> the shape id's comment is what CAUSED the scope error.* **Neither half is safe alone.**
+
 **7 · A SUMMARY RIDING ON VERIFIED FINDINGS INHERITS THEIR CREDIBILITY, NOT THEIR VERIFICATION.**
 *A milestone is a COMPOSITION of findings, and the composition can be false while every part is true* —
 so **check the sentence that assembles them, separately from the findings it assembles.**
@@ -54,17 +65,6 @@ so **check the sentence that assembles them, separately from the findings it ass
 absence-as-fact, not law 6's unread comment.* **A true set of parts, a false summary, and the summary
 borrowing the parts' credibility.** *The third instance was caught inside the message that produced it,
 which is the test of a check worth having: it fires on itself.*
-
-**6 · A COMMENT'S CLAIM ABOUT SCOPE OR LIFETIME IS NOT THE CODE — VERIFY IT BEFORE DESIGN RESTS ON IT.**
-*One verified site: `arc_percept`'s shape id, documented as episode-scoped and reset nowhere, which
-three rounds of design planned around.* **Recorded at one site rather than the two the others carry,
-because the colliding item is nameable — the frozenset publish is the next thing whose justification
-rests on that comment.**
-
-> **AND IT COMPLETES THE SIXTH LAW RATHER THAN ADDING TO IT.** *Assume it is already specified, and go
-> look* says **read the comment**; this says **then check it.** **The two pull opposite ways and the
-> pair is the instruction** — *reading sensor 6's comment would have prevented the Tier-2 error; reading
-> the shape id's comment is what CAUSED the scope error.* **Neither half is safe alone.**
 
 ---
 
