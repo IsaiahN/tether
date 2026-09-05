@@ -15028,3 +15028,50 @@ only operation it has**.* **Faithful for every consumer that exists.**
 
 **Isaiah's instinct was right and the route was different** — *not the observer retaining, but the
 flattening being reversible for exactly the eight attributes the extract atoms read.*
+
+---
+
+# THE SIDE CHANNEL, WIRED — THE RECORD IS REASSEMBLED, NOT STORED, AND `touching` KEEPS ITS ABSTENTION
+
+## ONE ASSEMBLER, SIX SITES, NOTHING STORED
+
+`tether._record(slot, state)` rebuilds the owner's record from the flattened state, using
+`slot_owner()` and a new `attribute_of()` — **domain-declared, because the loop splitting a slot name
+is what `slot_owner` exists to prevent.** *One function on purpose: two assemblers could drift, and a
+live/historical mismatch is exactly the defect `Ctx.touching` carries.*
+
+**MEASURED:** *reassembled `o0.col` gives `{row, col, h, w, colour, drow, dcol, shape}` and **agrees
+with the live record on every key**.*
+
+## THE EXTRACT ATOMS STOP ABSTAINING — WHICH `_extract`'s DOCSTRING SAID THEY COULD NOT
+
+    colour   live=6   replay=6          row  live=0  replay=0
+    h        live=1   replay=1          shape live=1 replay=1
+
+*The docstring's own words: **all eight abstained in the live loop because `_decomposed` hands a
+SCALAR**.* **They no longer do, and they work identically on a replayed state — which is what makes
+them PRICEABLE and therefore mintable.**
+
+## AND `touching` KEEPS ITS ABSTENTION EXACTLY WHERE IT MUST
+
+    touching  live=1   replay=NOT_RESOLVED
+
+> **WIRING THE RECORD WOULD HAVE ACTIVATED A LATENT DEFECT, NOT REPAIRED ONE.** *`touching` abstained
+> everywhere before, so the replay mismatch never fired; giving it a record would have made it return
+> **the live frame's contacts against a historical state**.* **Contact is computed from CELLS and the
+> state carries none, so a replayed frame cannot know it.**
+
+**SO `Ctx.touching` NOW DISTINGUISHES UNKNOWN FROM EMPTY:** *`None` is unknown and `()` is
+known-empty*, the three replay sites pass `None`, and the atom abstains on it. **`()` there would have
+filed *I cannot see* as *nothing was touching*, which is check 3 at a sixth site** — *and this one was
+about to be introduced by the fix rather than found in the code.*
+
+## THE RUN IS UNCHANGED, AND THAT IS EXPECTED
+
+*143 MINT rows, all `depth_exhausted`, no candidate paying.* **The extract atoms can now RUN and are
+still not ENUMERATED: the two queries start at `val` and at the slot's own type, and an extract atom is
+`OBJECT → ATTR`.**
+
+> **WHICH MAKES `OBJECT → OBJ` A LEGITIMATE THIRD QUERY FOR THE FIRST TIME.** *I ruled it wrong two
+> rounds ago **because the chains abstained** — and they no longer do.* **153 chains, including every
+> `touching . *`. Measured cost owed before it goes in.**

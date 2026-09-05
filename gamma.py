@@ -76,7 +76,11 @@ class Ctx:
     # `action` IS DELIBERATELY LEFT `Any`. `ARC_AGENT` §22 records a run -- *5 bare + 9
     # positioned on a 3x3 board: binds, three steps run* -- and positioned actions pass through
     # BECAUSE it is untyped. Typing it would delete a measured capability.
-    touching: tuple[str, ...] = ()
+    # `None` MEANS UNKNOWN AND `()` MEANS KNOWN-EMPTY, which are different claims. Contact
+    # is computed from cells and the loop's state carries none, so on a REPLAY of history
+    # there is no way to know what touched what -- and returning `()` there would file *I
+    # cannot see* as *nothing was touching*. The atom abstains on `None`.
+    touching: tuple[str, ...] | None = None
     # THE OUTER STREAM. The values THIS attribute takes on every OTHER object, so a term can
     # quantify instead of comparing to one bound operand. Resolved per slot by the caller,
     # exactly as `touching` is, and ABSENT FROM THE HANDLE -- which is what makes it survive
@@ -85,6 +89,11 @@ class Ctx:
     # VALUES, NEVER SLOT NAMES. A name is an instance and would not mean anything on the next
     # board; the values are what a quantifier ranges over.
     group: tuple = ()
+    # THE SLOT'S OWNER'S RECORD, REASSEMBLED FROM THE STATE. Not stored anywhere: the
+    # flattening scattered an object into `owner.attr` keys and never destroyed the values,
+    # so the record the OBJECT-typed atoms need is recoverable from the same `dict[str, int]`
+    # the loop already holds -- live at the bet, historical on replay, one assembler both.
+    obj: dict | None = None
 
 
 @dataclass(frozen=True)

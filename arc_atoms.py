@@ -94,13 +94,19 @@ def _extract() -> list[Atom]:
     an attribute because attributes are computed on the way in.
     """
     def pick(key: str):
-        def fn(o: Any, _c: Ctx) -> Any:
+        def fn(o: Any, c: Ctx) -> Any:
             # §12.2: *a value or NOT_RESOLVED. Never a guess, never a default.* Both branches
             # were guesses -- `o.get(key, 0)` asserted the attribute is zero, and returning a
             # non-dict unchanged asserted the scalar IS the attribute.
-            if not isinstance(o, dict):
+            #
+            # THE SCALAR CASE IS NO LONGER AN ABSTENTION. The docstring above records that all
+            # eight abstained in the live loop because `_decomposed` hands a SCALAR -- and the
+            # record is reassembled from that same state and arrives on `Ctx`, so the extract
+            # space can finally run. The abstention stays for a frame that supplies neither.
+            rec = o if isinstance(o, dict) else getattr(c, "obj", None)
+            if not isinstance(rec, dict):
                 return NOT_RESOLVED
-            return o.get(key, NOT_RESOLVED)
+            return rec.get(key, NOT_RESOLVED)
         return fn
     return [Atom(k, pick(k), OBJECT, t) for k, t in ATTRIBUTE_TYPE.items()]
 
@@ -122,7 +128,13 @@ def _contact() -> list[Atom]:
     a reading taken from the wrong kind of thing is a guess.
     """
     def touching(o: Any, c: Ctx) -> Any:
-        if not isinstance(o, dict):
+        rec = o if isinstance(o, dict) else getattr(c, "obj", None)
+        if not isinstance(rec, dict):
+            return NOT_RESOLVED
+        # UNKNOWN IS NOT EMPTY. Contact is computed from cells, the state carries none, so a
+        # replayed frame cannot say what touched what -- and `()` there would assert *nothing
+        # was touching* on evidence nobody has.
+        if c.touching is None:
             return NOT_RESOLVED
         return int(bool(c.touching))
     return [Atom("touching", touching, OBJECT, BOOL)]

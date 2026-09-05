@@ -141,6 +141,11 @@ class ArcWorld:
     def slots(self) -> list[str]:
         return self.read_order()[0]
 
+    def attribute_of(self) -> dict[str, str]:
+        """`{slot: which attribute it holds}`. **The loop may not derive this** -- it would
+        have to split the slot name, which is `slot_owner`'s reason, one field over."""
+        return {s: s.rsplit(".", 1)[1] for s in self._decomposed()}
+
     def peers(self) -> dict[str, tuple[str, ...]]:
         """`{slot: the SAME attribute on every OTHER object}`. **The loop may not derive this**
         -- it would have to split the slot name, which is reading domain structure, the same

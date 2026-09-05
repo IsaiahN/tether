@@ -303,6 +303,7 @@ class Agent:
         # PER-STEP, for `_touching`'s reason: `peers()` rebuilds a dict over every slot and
         # `_group` sits in the same per-candidate loops.
         self._peer_cache: dict | None = None
+        self._decomp_cache: tuple | None = None
         self.agency = I.Agency()       # §16.8 sensor 3, a per-step read
         self.term = I.Termination()    # 2d / §20.1, latching and asymmetric
         self.retro: list[dict] = []
@@ -412,6 +413,7 @@ class Agent:
         self._settled_at_level = set(self.settled)
         self._touch_cache = None      # a new world invalidates owners and contact alike
         self._peer_cache = None
+        self._decomp_cache = None
         self.env, self.level = env, level
         self.slots = env.slots()
         self.actions = tuple(env.actions())       # a new level may advertise differently
@@ -461,6 +463,29 @@ class Agent:
                                            if v == "embodied"),
                             n_locus=len(m["per_locus"]))
 
+    def _record(self, slot: str, state: dict) -> dict | None:
+        """The slot owner's object record, REASSEMBLED from `state`. One function, every site.
+
+        **NOTHING IS STORED.** `_decomposed` publishes exactly the keys `_extract` reads, so
+        the eight values a record is read FOR are in the flattened state already -- the
+        flattening scattered the object, it did not destroy it. And because history stores the
+        same shape, the same call works on a replayed state as on the live one.
+
+        ONE FUNCTION ON PURPOSE. Two assemblers could drift, and a live/historical mismatch is
+        exactly the defect `Ctx.touching` carries.
+        """
+        if self._decomp_cache is None:
+            own = getattr(self.env, "slot_owner", None)
+            att = getattr(self.env, "attribute_of", None)
+            self._decomp_cache = (own() if own else {}, att() if att else {})
+        owners, attrs = self._decomp_cache
+        mine = owners.get(slot)
+        if mine is None:
+            return None
+        rec = {attrs[s]: v for s, v in state.items()
+               if owners.get(s) == mine and s in attrs}
+        return rec or None
+
     def _group(self, slot: str, state: dict) -> tuple:
         """The outer stream for one slot: this attribute's values on the other objects."""
         if self._peer_cache is None:
@@ -505,7 +530,8 @@ class Agent:
         """
         term = self.gamma.library[self.bound.get(slot, IDN)]
         ctx = Ctx(action=action, operands=self._ops(term, state),
-                  touching=self._touching(slot), group=self._group(slot, state))
+                  touching=self._touching(slot), group=self._group(slot, state),
+                  obj=self._record(slot, state))
         alphabet = self.alphabet[slot]
         if getattr(term, "out_type", "val") == OBJ_TYPE:
             ordered = self.slot_types.get(slot) in ORDERED_TYPES
@@ -937,8 +963,9 @@ class Agent:
                 total += math.log2(self.alphabet[slot])   # inapplicable is unexplained
                 continue
             got = term.apply(state[slot], Ctx(action=action, operands=self._ops(term, state),
-                                              touching=self._touching(slot),
-                                              group=self._group(slot, state)))
+                                              touching=None,      # replay: contact unknown
+                                              group=self._group(slot, state),
+                                              obj=self._record(slot, state)))
             if got is NOT_RESOLVED:
                 total += math.log2(self.alphabet[slot])   # unread is unexplained
                 continue
@@ -1010,8 +1037,9 @@ class Agent:
                 continue
             got = term.apply(state[slot], Ctx(action=action,
                                               operands=self._ops(term, state),
-                                              touching=self._touching(slot),
-                                              group=self._group(slot, state)))
+                                              touching=None,      # replay: contact unknown
+                                              group=self._group(slot, state),
+                                              obj=self._record(slot, state)))
             if got is NOT_RESOLVED or got % self.alphabet[slot] != actual % self.alphabet[slot]:
                 out.append((state, action, actual))
         return out
@@ -1039,8 +1067,9 @@ class Agent:
             else:
                 got = term.apply(state[slot], Ctx(action=action,
                                                   operands=self._ops(term, state),
-                                                  touching=self._touching(slot),
-                                                  group=self._group(slot, state)))
+                                                  touching=None,  # replay: contact unknown
+                                                  group=self._group(slot, state),
+                                                  obj=self._record(slot, state)))
                 wrong += (got is NOT_RESOLVED
                           or got % self.alphabet[slot] != actual % self.alphabet[slot])
             if cost + unit * wrong >= base:
@@ -1107,7 +1136,8 @@ class Agent:
                     len({g % self.alphabet[s]
                          for g in (t.apply(before[s], Ctx(action=act, operands=(),
                                                            touching=self._touching(s),
-                                                           group=self._group(s, before)))
+                                                           group=self._group(s, before),
+                                                           obj=self._record(s, before)))
                                    for t in cands)
                          if g is not NOT_RESOLVED})
                     for s in owed)
@@ -1127,7 +1157,8 @@ class Agent:
                     for t in cands:
                         v = t.apply(before[s], Ctx(action=pick, operands=(),
                                                    touching=self._touching(s),
-                                                   group=self._group(s, before)))
+                                                   group=self._group(s, before),
+                                                   obj=self._record(s, before)))
                         if v is NOT_RESOLVED:
                             continue      # a candidate that cannot read splits nothing
                         buckets[v % self.alphabet[s]] = buckets.get(
@@ -1818,6 +1849,7 @@ class Agent:
         """One turn. Returns False if no action was proposed -- which is a legal outcome."""
         self._touch_cache = None      # a new step is a new frame, so contact and owners go
         self._peer_cache = None
+        self._decomp_cache = None
         self._narrate_order()
         self._advertised()
         self._present()       # before the frame, so slots and frame cannot disagree
