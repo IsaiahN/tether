@@ -14072,3 +14072,48 @@ composes with a probe only.*
 > **SO THE GRAMMAR CAN ALREADY EXPRESS *an objective-shaped hole* AND CONSTRAINS WHAT MAY STAND BESIDE
 > IT.** *The REPRESENTATION exists; the CHOOSING does not.* **Which is the cleanest possible statement
 > of what the selector ruling is about — not how to say it, only how to pick.**
+
+---
+
+# `_quantify` DOES NOT QUANTIFY — AND THE SELECTOR'S POPULATION IS NOT WHAT IT LOOKS LIKE
+
+**Checked before the ruling, because *what does the selector select over* is the layer beneath *how
+does it pick*.**
+
+## `all` AND `any` ARE THE SAME FUNCTION, MEASURED
+
+    v=  0  ->  all:0  any:0  none:1
+    v=  1  ->  all:1  any:1  none:0
+    v=  5  ->  all:1  any:1  none:0
+    v= -3  ->  all:1  any:1  none:0
+
+**`int(bool(v))` twice, under two names.** *And the closure splits 22 / 22 / 22 by final atom, with
+**every one of the 22 `all`-prefixes also carrying `any`.*** **So 22 of the 66 chains are duplicates by
+name: the population is 44 distinct behaviours, not 66.**
+
+## AND THE DEEPER READING IS THAT NONE OF THE 66 IS AN OBJECTIVE
+
+**An atom receives ONE value, one operand and a contact tuple. Quantification needs a SCOPE, and the
+atom interface has no way to receive a population.** *So `all` and `any` are truthiness and `none` is
+negation — three names over two operations, and no quantifier among them.*
+
+    grammar   ALL : (PRED,) -> OBJ    "holds for ALL IN SCOPE"     -- quantifies
+    arc_atoms all : PRED -> OBJ       `int(bool(v))`               -- reads one value
+
+> **THE SIXTH `A6i` IS SHARPER THAN INT-VERSUS-TERM. IT IS QUANTIFIER-VERSUS-TRUTHINESS.** *The wire
+> was filed as a translation between two representations of an objective. **One side has no objective
+> at all** — it has a truthiness about one slot.*
+
+## WHICH SETTLES ONE THIRD OF THE *WHAT-OVER* QUESTION BY INSPECTION
+
+**Selecting over COMPUTED VALUES is incoherent and does not need ruling:** *`int(bool(v))` yields 0 or
+1, so the value can be a **criterion** and never a **population**.* **The choice is chains or terms,
+and the int is a reading taken of a chain, never a thing to choose between.**
+
+**And the remaining two are not symmetric**, because the chain side currently produces nothing the
+grammar would call an objective. ***Select among composed objectives* has an EMPTY POPULATION until
+quantification exists** — and quantification needs a scope, which is `COUNT` with no producer, surfacing
+at the wire exactly as the quantifier-vocabulary mismatch predicted.
+
+**`ONE` has no atom for the same reason `ALL` has no real one.** *Three against four was the visible
+half; the invisible half is that the three are not quantifiers.*
