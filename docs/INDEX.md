@@ -14643,3 +14643,43 @@ differ in where the rule lives:*
 > rather than what the agent should conclude.* **An edge defining what a bet MEANS is the same kind of
 > thing.** *But it is a choice about where a rule lives, and this session has been wrong nine times
 > about what was obvious.* **Reported, not taken.**
+
+---
+
+# THE EDGE'S TWO CHECKS: THE SLOT IS `_predict`, AND THE PRECEDENT IS THREE LINES FROM IT
+
+## CHECK 1 · THE LOOP-RULE SLOT IS OCCUPIED, AND THE OCCUPANT IS THE EDGE'S OWN SITE
+
+`tether:455` — **`_predict(slot, state, action)`** — *"`None` is THE INSTRUMENT COULD NOT READ, and it
+is not a prediction of anything."*
+
+    term = self.gamma.library[self.bound.get(slot, IDN)]
+    got  = term.apply(state[slot], Ctx(...))
+    return None if got is NOT_RESOLVED else got % self.alphabet[slot]
+
+> **THAT IS ALREADY THE RULE THAT TURNS A TERM INTO A SLOT-VALUE PREDICTION.** *The edge is a second
+> ARM of it: when the bound term's `out_type` is `OBJ` rather than `val`, apply the gradient rule
+> instead of taking the value through.* **`state[slot]` is right there and is never consumed, which is
+> exactly what shape (ii) needs.**
+
+**AND THE BARGAIN HAS A NAME AND A HOME:** `tether:141` — **`def pays(cost, left, base)`** — *module
+level, seat-written, uniform, sitting beside `correction_bits`, `round_trip_gap` and `term_bits`.*
+**The edge belongs in that neighbourhood, applied from `_predict`.** *The precedent is not an analogy;
+it is three lines away.*
+
+## CHECK 2 · THE TYPE IS LEGIBLE AT THE POINT THE RULE RUNS, SO ONE RULE WITH TWO ARMS IS EXPRESSIBLE
+
+    term.out_type          says whether the bound thing is an OBJECTIVE or a PREDICTOR
+    self.slot_types[slot]  says ORDERED (gradient) or COMPARABLE-only (satisfaction)
+
+**Both are in hand inside `_predict`** — `slot_types` is already used by `_operand_fits` and by
+`characterise`. **So the type-decided branch is one rule reading two facts it already has**, not two
+mechanisms.
+
+## SO THE SHAPE IS CONFIRMED AND THE EDGE IS BUILDABLE AS RULED
+
+    home        a module-level rule beside `pays`, applied from `_predict`
+    input       the objective term, `state[slot]`, and `slot_types[slot]`
+    arms        ORDERED -> one unit along the attribute's ordering
+                COMPARABLE-only -> next-frame satisfaction
+    unchanged   `75e4beb` stands: link 2 unmoved, seven phases unbuilt, no `PLAN` step
