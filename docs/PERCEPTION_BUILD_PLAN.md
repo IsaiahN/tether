@@ -74,7 +74,19 @@ two real quantities was filed prospectively as `A6i` and ruled before it cost an
 `tether.py:535` files `SlotResidual(s, TRANSITION, pred[s], actual, bits)` on the per-slot across-step
 change.** *Same quantity, already named.* **THE ACCEPTANCE CONDITION ON THE NAME IS ONE PRODUCER, ONE
 CHANNEL** — if Layer 1 emits transitions that never reach a `SlotResidual`, two things called
-transition never meet **and it becomes `A6i` after all.** `cascade` is unclaimed.
+`cascade` is unclaimed.
+
+> **AND THE CASCADE IS NOT DEBOUNCED TODAY — IT IS DROPPED, WHICH LOOKS THE SAME AND IS NOT.**
+> `arc_world.board()` returns `self._frame.frame[-1]`, *"the settled board is `frame[-1]`"*, **so the
+> loop never receives the intermediate frames at all.** *A debounce coalesces a signal it receives; a
+> drop never receives one.* **The difference is invisible now and decisive at P4**, which is the phase
+> that starts reading the stack.
+
+**AND DEBOUNCE IS THE WRONG TOOL THERE, NOT THE RIGHT ONE.** §16.3: *"A moved, **then** B reacted.
+Within-step causal order, **which the endpoint erases**."* **A debounce that fires once at settle
+discards ordering — which is precisely what `frame[-1]` already does, so debouncing the cascade would
+reproduce the drop and make P4 pointless.** *The answer is not one trigger fired less often; it is TWO
+CONSUMERS, which is (d).*
 
 **(e) NEW — the per-locus mode, and its detectors are built while its consumer is not.**
 
@@ -171,11 +183,29 @@ become the two DISCRIMINATORS, and the classification is PER RELATIONSHIP rather
 *same displacement* is `delta_of`'s `(drow, dcol)` compared over the pair. **Nothing new is gated, and
 `coupled` stays in the ungated set.**
 
-> **AND THE THREE DO NOT CLASSIFY AT THE SAME RATE, WHICH THE PER-STEP REQUIREMENT MAKES MATTER.**
-> *`independent` and `coupled-rigid` are readable in ONE step; `coupled-loose` is **consistently, not
-> identically**, which needs a HISTORY.* **So loose cannot be a per-step verdict** — and it needs no new
-> machinery, because **rigid is `proven` per step and loose is `believed` from accumulation.** *The
-> confidence rule already carries the difference.*
+> **AND THE THREE DO NOT CLASSIFY AT THE SAME RATE.** *`independent` and `coupled-rigid` are readable
+> in ONE step; `coupled-loose` is **consistently, not identically**, which needs a HISTORY.* **Rigid is
+> `proven` per step; loose is `believed` from accumulation.**
+
+**AND THE ACCUMULATION SHAPE IS BUILT — BUT IT IS ORDINAL, AND A TRAILING WINDOW IS THE THING THIS SITE
+ALREADY REFUSED.** `SelfHypothesis.stable()`:
+
+> ***"ORDINAL, BECAUSE A THRESHOLD HERE WOULD MEASURE THE SAMPLE COUNT.** A running mean changes by
+> `(x − mean) / n`, which shrinks as `1/n` **whatever the data does** — so *change below epsilon* would
+> report **how many observations there are**, not whether the estimate settled … it is a RANKING rather
+> than a magnitude: **has this member stopped reordering the actions.** `MIN_REPEAT` is reused rather
+> than a second constant invented."*
+
+**A window sized by *however many steps it takes for belief to stabilise* is a magnitude test wearing a
+window's clothes, and this docstring is the recorded reason it was rejected AT THIS SITE.** *And
+`SelfModelFamily.mean` is the second refusal — a running mean with no recency weighting, Redux's EWMA
+at `alpha = 0.3` deleted because "the smoothing had no basis at the site and a mean needs no
+parameter."*
+
+> **SO `coupled-loose` IS: HAS THE PAIR'S CO-MOVEMENT RANKING STOPPED CHANGING** — ordinal, `MIN_REPEAT`
+> reused, **no new constant.** *And `Standing.decay`'s half-life is the wrong one of the build's two
+> shapes here: it prices a TERM's standing across generations, where this is a per-relationship reading
+> inside an episode.* **Two accumulation shapes exist and they are not interchangeable.**
 
 **AND THE LEVEL TABLE GAINS A THIRD ROW, BECAUSE A RELATIONSHIP IS NOT A LOCUS AND NOT THE BOARD:**
 
@@ -358,21 +388,38 @@ dilution rule as a data structure — nothing leaves the confines*; `origin` is 
 **THE `A6i` IS CLOSED BY THE SPLIT** — *one label carrying two quantities, cured by one name per
 quantity, which is the same cure `ATTR` and `OBJ × OBJ` took.*
 
-> **BUT IT LEAVES A HOLE THE FIRST STATEMENT WAS FILLING, AND THE HOLE IS CROSS-PLAY.** *If the colour
-> ID is a placement and not an identity, **what carries an object's strategy from one play to the
-> next?*** **`slot_owner()`'s handle is a WITHIN-play tracker name** — `Objects.__call__` re-derives it
-> by max overlap each episode — **and Layer 7's hash identifies the GAME, not an object in it.**
-> *The original spec had the colour ID doing this job — "**strategies filed under `GB1` are still
-> reachable**" — and the split takes the job away without reassigning it.*
+**AND THE JOB IT LEFT IS ASSIGNED: AN `obj:` STRUCTURE-HASH IN ITS OWN NAMESPACE.** *Three
+key-shapes that cannot collide because each is a different KIND of key:*
 
-**AND THE CORPUS ALREADY SPECIFIES THE ANSWER, ONE SCALE DOWN.** Layer 7: *a hash from **the game's own
-structure, the distinctive groupings and attributes, the shape of the game and not its colours**.*
-**Distinctive groupings and attributes are OBJECT-level content, so the same construction applies to an
-object: a cross-play object identity is a hash of ITS structure, not its colour.**
+    within-play handle    re-derived by max overlap each episode      `slot_owner()`'s name
+    placement             `<band><n>` @ `hash_episode_level`          a stamped VALUE
+    cross-play identity   `obj:` + hash(structure, NOT colour)        a structure-HASH
 
-> **Which is why the colour ID could never have carried it: filing by hue is the contamination the
-> hash rule exists to forbid, and it does not stop being contamination one level down.** *The game hash
-> and the object hash are one law at two scales, and only the first is written down.*
+**Colour excluded is what makes it survive the swap**, and it is the game hash's own construction one
+scale down — *filing by hue is the contamination the hash rule forbids, and it does not stop being
+contamination one level down.* **Reuses the game hash's prefix-collision check: two different objects
+must not hash alike, two views of one object across plays must.**
+
+> **AND THE CHECK INVERTS WHERE IT LANDS: THE INTRINSIC HALF IS ALREADY BUILT, AND IS BEING ERASED.**
+> `shape_of` returns `obj["shape"]`, a **frozenset of NORMALISED offsets** — *"normalized means relative
+> to the object's own top-left, so it is **POSITION-INDEPENDENT** — which is what makes it **identity
+> under translation as well as under recolour**."* **That is the cross-play key, computed every frame,
+> already colour-free and position-free, and documented as identity.**
+
+**WHAT DESTROYS IT IS THE PUBLICATION, AND `arc_percept` SAYS SO IN ITS OWN COMMENT:** *"SENSOR 5,
+PUBLISHED AS A **PER-EPISODE ID** … **the id is a LABEL, exactly like `colour`**: arbitrary,
+comparable, never orderable, and **valid only for the episode it was assigned in**."*
+
+> **SO THE SHAPE ID CARRIES THE COLOUR ID'S DEFECT EXACTLY, AND TAKES THE SAME CURE.** `sid` is
+> `self._shapes.setdefault(shape, len(self._shapes))` — **an encounter index, which is a PLACEMENT** —
+> and the frozenset behind it is the identity. *The pointer/value split applies verbatim at a second
+> site, and the code had already written the diagnosis.*
+
+**WHICH MOVES THE ITEM FROM P7 TO P1.** *`obj:` is not a hash to construct — it is `hash(obj["shape"])`,
+and what it needs is **P1's publish shape's frozenset**, already in the order.* **What genuinely remains
+for later is the DISAMBIGUATION half** — attribute profile and relations, for two objects of identical
+shape — **and that half is board-dependent where the intrinsic half is not, so the two have different
+stability and should not be one key without saying so.**
 
 ### RGB IS THE LIVE GROUPING KEY, WHICH CORRECTS ONE OF THE TWO FREEZE REASONS
 
@@ -724,17 +771,14 @@ leaves; the stamp is how what stayed is still reachable.*
 
 # STILL OPEN
 
-**ONE ITEM, AND IT IS A WORKSHOP RATHER THAN A RULING: `ValueLatentSelf`'s residual conjunct, and which
-board-wide quantities P5 publishes into the candidate set it already searches.** *Downstream of P0-P3
-and runs in parallel; it must resolve before P5, because P5 changes what the member reads.*
+**ONE ITEM, AND IT IS A WORKSHOP RATHER THAN A RULING: `ValueLatentSelf`'s residual conjunct, and
+which board-wide quantities P5 publishes into the candidate set it already searches.** *Downstream of
+P0-P3 and runs in parallel; it must resolve before P5, because P5 changes what the member reads.*
 
-**CLOSED:** the three original items - the identity/placement `A6i`, by the pointer/value split -
-`coupled`, as three states classified per relationship - **SEAM 10**.
-
-**AND ONE CONSEQUENCE OF A CLOSURE IS ITSELF OPEN, RAISED AT LAYER 3:** **the pointer/value split takes
-cross-play object identity away from the colour ID and nothing has been assigned it.** *The corpus
-specifies the construction -- a hash of structure, not colour -- one scale up, and applying it one
-scale down is a reading rather than a ruling.* **It is not a new question; it is an unassigned job.**
+**CLOSED:** the three original items - the identity/placement `A6i` - `coupled`, as three states
+classified per relationship, with `coupled-loose` ordinal on `MIN_REPEAT` - **SEAM 10** - the cascade's
+debounce question, answered by (d) rather than by a debounce - and **cross-play object identity**, which
+is `hash(obj["shape"])` and lands at **P1, not P7**.
 
 ---
 
