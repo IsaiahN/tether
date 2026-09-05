@@ -14979,3 +14979,52 @@ carry the cells contact is computed from.**
 > *The ruling said **side channel, outputs bettable**, and the PRICING PATH was never considered — a
 > term is bet from the live frame and priced from a history that no longer holds what it needs.*
 > **Reported, not taken: it is a change to what the loop remembers, and that is a decision.**
+
+---
+
+# THE OBSERVER RECOMPUTES — AND THE MEMORY RULING DISSOLVES ANYWAY, BY A THIRD ROUTE
+
+## PART 1 · RECOMPUTES. THERE IS NO RETAINED PER-FRAME HISTORY
+
+`arc_percept:381` — **`self.tracked = fresh`**, overwritten every frame. *And nothing accumulates
+per-frame object state anywhere:* `arc_world`'s appends build `peers()` and `contacts()` per call,
+`tether:699` appends the FLATTENED trace, and `self._frame = nxt` replaces the wrapper's frame — whose
+inner stack is the WITHIN-action cascade, not a cross-step history.
+
+**So it is case 3 as posed, and the memory ruling should stand. It does not, for a reason neither
+branch anticipated.**
+
+## THE RECORD DOES NOT NEED STORING, BECAUSE THE FLATTENED STATE ALREADY CARRIES IT
+
+**`_decomposed` publishes exactly the keys `_extract` reads** — `colour · row · col · h · w · drow ·
+dcol · shape` — *which is `ATTRIBUTE_TYPE`'s own key set.* **So `Ctx.obj` can be ASSEMBLED from
+`state` and `slot_owner()`:**
+
+    rec = {k: state[f"{owner}.{k}"] for k in ATTRIBUTE_TYPE if f"{owner}.{k}" in state}
+
+> **AND IT WORKS IDENTICALLY ON HISTORY, BECAUSE HISTORY STORES THE SAME SHAPE.** *The pricing path
+> replays `dict[str, int]`, and that is exactly what the reconstruction consumes.* **The obstacle was
+> that history could not supply a record; it can supply the eight values a record is read for.**
+
+## THE FOOTPRINT, OWED AND MEASURED — AND ALL OF IT AVOIDED
+
+    64x64 STRUCTURED, 43 objects       full 766 MB / no-cells 391 MB / scalars 12 MB   per 1000 steps
+    64x64 RANDOM NOISE, 3624 objects   full 3.1 GB / no-cells 2.2 GB / scalars 895 MB
+
+*The noise board is the pathological case and is reported beside the structured one so the number is
+not read as typical.* **None of it is spent: the reconstruction stores nothing.**
+
+## ONE FAITHFULNESS BOUNDARY, STATED
+
+**The reconstructed `shape` is the ID, not the frozenset.** *`_shapes` is content-keyed, so two ids are
+equal exactly when two shapes are — and `SHAPE` is `COMPARABLE` and not `ORDERED`, so **equality is the
+only operation it has**.* **Faithful for every consumer that exists.**
+
+> **AND INSUFFICIENT FOR THE ONES THAT DO NOT.** *`RELATIONS.md`'s rotation, symmetry and similarity
+> need the STRUCTURE, not a label* — **so those still want the frozenset published, which is P1, and
+> P1 is unaffected by this finding.**
+
+## SO: NO RULING. A WIRING.
+
+**Isaiah's instinct was right and the route was different** — *not the observer retaining, but the
+flattening being reversible for exactly the eight attributes the extract atoms read.*
