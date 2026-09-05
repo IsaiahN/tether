@@ -14242,3 +14242,47 @@ versus counting.** *`ONE`/`COUNT` is the second fork and only arises inside (b).
 
 **The `0a`-class framing was retired one round early.** *(a) is not `0a`-class and (b) is* — **and
 which one the ruling means is the first thing it settles.**
+
+---
+
+# THE STORY DECIDES (a) vs (b) — AND M5 IS THE PROOF, BUILT AT THE WRONG LEVEL
+
+**Checked against the story rather than argued, because the acceptance test is the arbiter.**
+
+## ¶27 IS LITERAL, AND EXISTENCE OVER A SET CANNOT EXPRESS IT
+
+> *"Do the `GB1` squares **all** move together, or does **each** respond on its own? A group that moves
+> as one is a different kind of thing from individuals that share a color."*
+
+**That is `ALL x . moved_together(x)` against `each` — a predicate applied PER MEMBER and folded.**
+*`int(bool(population))` cannot separate them: a non-empty set is non-empty either way.* **So (a) does
+not reach ¶27.**
+
+## AND I ALREADY BUILT ¶27 — IN `arc_world`, NOT IN A TERM
+
+**M5's `coupled-rigid` versus `independent` IS this beat**: *moved this action, same displacement*
+against *different displacements*, computed by `per_locus` masking the changed set per locus. **A
+per-member predicate fold, written in Python, at the loop level.**
+
+> **SO THE BEAT IS IMPLEMENTED AND INEXPRESSIBLE AT THE SAME TIME.** *The build exhibits it; no term
+> can state it.* **That is the seventh read's claim made concrete — the iteration exists at the wrong
+> level — and M5 is the working example, because I had to write the fold in the world when a term could
+> not carry it.**
+
+## WHICH SPLITS THE FORK ALONG A LINE THAT IS THE PROCTOR'S, NOT THE CODE'S
+
+    (a) + loop code   the agent SEES it. A fold in the world is PERCEPTION, licensed as thin I/O
+                      and as a reading. M5 runs today and satisfies the beat by EXHIBITING it
+    (b)               the agent SAYS it. `ALL x . P(x)` as a TERM -- bettable, mintable, and
+                      carried across games with its lineage
+
+**Both satisfy *the build represents the beat*. Only (b) satisfies *the agent composed it*.**
+
+> **AND THAT IS THE RULING, STATED AS A QUESTION ABOUT THE BAR RATHER THAN ABOUT THE CODE:** *does the
+> acceptance test mean the build EXHIBITS the story, or that the agent COMPOSES it?* **The code cannot
+> answer that and neither can I** — *a beat computed by seat-written Python is perceived; a beat
+> composed as a term is reasoned and transfers*, and which the story demands is the proctor's to say.
+
+**The read went as far as a read goes.** *There is nothing beneath `Term.apply` taking one value and
+returning one* — no shared name, no stale comment, no further layer. **Seven reads, and this is the
+floor.**
