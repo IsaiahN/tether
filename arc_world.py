@@ -325,6 +325,25 @@ class ArcWorld:
         win = f.win_levels or 1
         return "ALL(BECOME(level, completed))", min(1.0, f.levels_completed / win)
 
+    def cascade(self) -> tuple:
+        """THE WITHIN-STEP STACK -- every frame this action returned, oldest to newest.
+
+        `board()` returns `frame[-1]` and is right to: **the settled board is what the next
+        observation corroborates, so betting on `frame[0]` is betting on a board the world has
+        already left.** §16.3's point is that this is correct for the PREDICTION TARGET and
+        wrong as a general policy -- *the intermediate frames are free evidence about
+        MECHANISM, and nothing in the tree reads them.*
+
+        **TWO USES OF ONE FIELD: `frame[-1]` is what you bet against; the whole stack is what
+        you learn the mechanism from.** This is the second use, published. What the endpoint
+        erases is the WITHIN-STEP ORDER -- *A moved, THEN B reacted* -- and a single settled
+        board cannot say which.
+        """
+        f = self._frame
+        if f is None or f.is_empty():
+            return ()
+        return tuple(f.frame)
+
     def board(self) -> Any:
         """The SETTLED board, as a numpy ndarray.
 

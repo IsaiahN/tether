@@ -618,8 +618,13 @@ of nothing until it moves.**
                           UNMOVED, and `touching` is `OBJECT -> BOOL` reachable but the
                           `OBJECT -> OBJ` query that would enumerate it was WITHDRAWN as
                           type-incoherent (`Ctx.group` follows the SLOT, not the chain)
-    P4  cascade           NOT BUILT. `board()` still returns `frame[-1]`; the causality tracker
-                          that would consume `cascade` does not exist
+    P4  cascade           PUBLISHED AND NARRATED, not composed. `ArcWorld.cascade()` returns the
+                          WHOLE within-step stack while `board()` keeps `frame[-1]` -- two uses
+                          of one field, §16.3's split. `_narrate_cascade` records `frames` and
+                          the within-step change counts per step. THE CAUSALITY TRACKER THAT
+                          WOULD COMPOSE FROM IT IS STILL NOT BUILT, and the fixture returns ONE
+                          frame per response, so the reading is `frames: 1` throughout -- which
+                          is the per-game fact (`ls20`'s shape), not silence
     P5  placements        NOT BUILT, and it is the ENCOUNTER HALF ONLY. The spectral half is
                           STRUCK 2026-09-05: colour is COMPARABLE not ORDERED, a band is a
                           more-and-less, grouping needs distinctness never order. M4 is

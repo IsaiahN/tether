@@ -513,6 +513,33 @@ class Agent:
     def _ops(term: Term, state: dict[str, int]) -> tuple:
         return (state[term.operand],) if term.operand else ()
 
+    def _narrate_cascade(self) -> None:
+        """The cascade's shape, per step. **A one-frame response is a READING, not silence.**
+
+        §16.3's stack is the mechanism evidence the endpoint erases, and *how many frames came
+        back* is the first thing it says. **One frame means this board has no cascade** -- which
+        is a per-game capability fact, measured rather than assumed, and the reason Seam 9
+        conditions the animation claim: `g50t` carries 7 or 9 on 39% of responses and `ls20`
+        carries one, always.
+
+        THE ORDERING IS THE PAYLOAD WHEN THERE IS ONE. Consecutive sub-frames give *what
+        changed between them*, which is the within-step order -- and the causality tracker that
+        would COMPOSE from it is not built, so this publishes and records rather than explains.
+        """
+        casc = getattr(self.env, "cascade", None)
+        if casc is None:
+            return
+        frames = casc()
+        steps = []
+        for a, b in zip(frames, frames[1:], strict=False):
+            try:
+                steps.append(sum(1 for r, row in enumerate(a)
+                                 for c, v in enumerate(row) if b[r][c] != v))
+            except (TypeError, IndexError, KeyError):
+                return
+        self.led.record(self.cycle, "PERCEIVE", "*", "cascade",
+                        frames=len(frames), within_step=steps)
+
     def _narrate_order(self) -> None:
         """Layer 2's whole output: the order was USED and is SAID, and nothing keeps it."""
         ro = getattr(self.env, "read_order", None)
@@ -1948,6 +1975,7 @@ class Agent:
         self._peer_cache = None
         self._decomp_cache = None
         self._narrate_order()
+        self._narrate_cascade()
         self._advertised()
         self._present()       # before the frame, so slots and frame cannot disagree
         # PER STEP, BECAUSE ONE SLOT TYPE'S RANGE IS NOT CONSTANT. A shape slot's alphabet is
