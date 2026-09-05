@@ -15109,3 +15109,49 @@ ruling, not the reasoning in it.**
 **This is the `_touching` regression's shape**: *a cost that is fine on a small fixture and is found at
 length.* **Recorded at the site and here so it is watched on the first real run rather than discovered
 in it.**
+
+---
+
+# THE THIRD QUERY IS WITHDRAWN: IT WAS REACHABLE AND NOT TYPE-COHERENT, AND THE MILESTONE CLAIM IS FALSE
+
+**Checked *the whole producer-to-contest path is live end to end* rather than endorsing it — which is
+the aside-inherits-credibility hazard applied to a milestone — and it does not hold.**
+
+## THE DEFECT, MEASURED
+
+    slot            o0.row,  value 0
+    Ctx.group       (0,)     <- the other objects' ROW values, resolved for THE SLOT
+    o0's colour     6
+    chain           colour . all_same . all      ENUMERATED, and it ANSWERED 0
+
+> **IT COMPARED o0's COLOUR AGAINST A GROUP OF ROWS.** *`Ctx.group` is resolved for the SLOT'S
+> attribute; an extract atom changes which attribute the chain carries and the group does not follow.*
+> **Well-typed and meaningless — `above(shape)`'s family, at a site this build created.**
+
+**`operand_type` does not catch it: that guards the OPERAND BINDING, not `group`.**
+
+## AND THE TWO-STREAM FORM NEVER HAD THE HOLE
+
+*A chain starting at the SLOT'S OWN TYPE carries that attribute, so `Ctx.group` matches **by
+construction**.* **The incoherence arrives with `OBJECT` as a start type and with nothing else.**
+
+## WITHDRAWN, AND WHY THAT RATHER THAN LEFT IN
+
+**These chains are inert rather than dangerous** — they ignore the probed value, so `objective_step`
+returns *no change* or abstains, and *no change* cannot beat `idn` under a strict `cost + left < base`.
+**So no false mint.** *But they are 5.9x the search for chains that are mostly incoherent, and leaving a
+known-meaningless composition reachable is how `above(shape)` survived.*
+
+**What would restore it:** `group` keyed by the attribute the chain currently HOLDS — which `Ctx`
+cannot know, because it is built once, before the chain runs. **A design question, not a parameter.**
+
+## THE HONEST CORRECTION TO THE MILESTONE
+
+*"Every link is live except a payable board"* **is not true.** *The extract atoms are priceable and
+runnable; they are not COHERENTLY reachable, because the only query that reaches them mismatches the
+group.* **The path is live to the slot's own attribute and no further** — which is where the two-stream
+form already had it.
+
+> **AND THIS IS THE ASIDE-HAZARD AT ITS OWN GAME.** *The findings underneath were checked; the
+> milestone riding on them was not, and it was the false part.* **Two instances of the hazard last
+> round, and this is the third — the first one caught INSIDE the same message that produced it.**

@@ -1477,16 +1477,24 @@ class Agent:
             stype = self.slot_types.get(slot)
             if stype:
                 streams.append((stype, OBJ_TYPE))
-            # THE THIRD STREAM, LEGITIMATE ONLY SINCE `Ctx.obj`. Ruled out two rounds ago
-            # because every `OBJECT`-typed chain abstained on its first atom -- the loop
-            # handed a scalar. The record is reassembled now, so they run, and the extract
-            # atoms are reachable for the first time.
+            # THE THIRD STREAM IS WITHDRAWN, AND THE REASON IS A DEFECT IT INTRODUCED.
+            # `OBJECT -> OBJ` was legitimate once `Ctx.obj` stopped the extract atoms
+            # abstaining -- and it is NOT type-coherent, which the reachability check missed.
             #
-            # **MEASURED COST, 40 cycles on the fixture: 0.63s -> 1.84s and 4,488 -> 26,367
-            # candidates. 2.9x runtime, 5.9x candidates.** The fixture has 16 slots; mint work
-            # scales with SLOTS x CANDIDATES, so a board with 300 slots multiplies this again
-            # and the real-board figure is UNMEASURED. Watch it there before trusting it.
-            streams.append((OBJECT_TYPE, OBJ_TYPE))
+            # `Ctx.group` is resolved for THE SLOT'S attribute: on `o0.row` it holds the other
+            # objects' ROW values. An extract atom changes which attribute the chain carries,
+            # and the group does not follow -- so `colour . all_same . all` on `o0.row`
+            # compares o0's COLOUR against a group of ROWS. **Measured: colour 6 against
+            # `(0,)`, answered 0.** Well-typed and meaningless, which is `above(shape)`'s
+            # family at a site this build created.
+            #
+            # `operand_type` does not catch it: that guards the OPERAND BINDING, not `group`.
+            # The two-stream form has no such hole -- a chain starting at the slot's own type
+            # carries that attribute, so the group matches BY CONSTRUCTION.
+            #
+            # WHAT WOULD RESTORE IT: `group` keyed by the attribute the chain currently
+            # holds, which `Ctx` cannot know because it is built once, before the chain runs.
+            # That is a design question, not a parameter.
             by_kind: dict[str, tuple] = {}
 
             for in_t, out_t in streams:
