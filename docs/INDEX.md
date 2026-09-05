@@ -14435,3 +14435,42 @@ there**: the false-mint rate, the exponent, chunk reuse and the transfer curve a
 **Still latent in the live loop**, for `operand_type`'s reason: these are `ATTR → PRED` and every
 `enumerate_closure` call passes `"val", "val"`. **The fold exists and the query has not changed yet** —
 which is the next layer, not this one.
+
+---
+
+# THE QUERY IS NOT NEXT, AND THE TYPE GRAPH SAYS WHY: TWO COMPONENTS, NO PATH
+
+**Checked before treating the query change as free. The answer is structural rather than textual — a
+graph property, not a comment or a name.**
+
+## THE TYPE GRAPH IS TWO DISCONNECTED COMPONENTS
+
+    val       -> val                                          the PREDICT atoms. an ISLAND
+    OBJECT    -> BOOL, COLOUR, DELTA, EXTENT, POSITION, SHAPE
+    COLOUR / POSITION / EXTENT / DELTA / SHAPE  -> PRED
+    PRED      -> OBJ
+    OBJ       -> (nothing)                                    a SINK, out-degree ZERO
+
+**Types that can reach `val`: `val`, and nothing else.** *`PRED` cannot. `OBJ` cannot.* **And `val`
+cannot reach anything but itself.**
+
+> **SO THE BETTING LOOP AND THE COMPOSITION VOCABULARY ARE TWO COMPONENTS WITH NO PATH BETWEEN THEM,
+> IN EITHER DIRECTION.** *Changing the query from `"val","val"` to `"OBJECT","OBJ"` would enumerate the
+> second component and hand back results the loop cannot bet* — **because a bet is a slot-value
+> prediction and `OBJ` has no edge to `val`.**
+
+## WHICH IS `CLAUDE.md`'s WIRE, STATED AS A GRAPH PROPERTY
+
+***The WIRE from the composed objective to the bet*** **is literally a missing edge**, and the graph
+shows it as **`OBJ` with out-degree zero.** *Eight reads in, and the map's own entry turns out to be
+checkable by enumerating out-edges.*
+
+**So the query change is not a query parameter.** *It is the edge, and what the edge MEANS — what it is
+to bet an objective — is the semantic question the selector sits beside.* **Adding an `OBJ → val` atom
+would be answering it, which is not mine.**
+
+## AND IT EXPLAINS WHY THE QUANTIFIERS ARE LATENT IN A WAY THE QUERY COULD NOT FIX
+
+**`val -> val` chains: 15. Containing a quantifier: 0** — *and no query rewording changes that*, because
+`all_same` is `COMPARABLE → PRED` and `PRED` is in the other component. **The fold is built and sits
+where the loop cannot reach, and the reach is a missing edge rather than a missing question.**
