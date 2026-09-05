@@ -613,7 +613,17 @@ of nothing until it moves.**
                           shape table, verified to round-trip on replay. Unblocks congruence
                           via `overlap`; symmetry / rotation / similarity still need a REFLECT
                           or ROTATE that is not in the nine -- a Tier-2 question, unripe
-    P2  pair store        NOT BUILT. No consumer: nothing reads relational history
+    P2  pair store        MATCH-CONFIDENCE HALF BUILT. The matcher computed an overlap score
+                          for every (new x tracked) pair and kept only the winning name;
+                          `Objects.matches` now keeps `{name: (route, score)}` and
+                          `_narrate_matches` reads it per step. Fixture-readable NOW, which is
+                          the point -- a store whose only consumer is another unbuilt phase is
+                          silent with extra steps.
+                          MEASURED, 25 steps: overlap 41, birth 5, shape 0; weakest overlap per
+                          step min 0.0625, median 1.0 -- BIMODAL, mostly perfect and
+                          occasionally a 1-in-16 match taken as identity.
+                          THE RELATIONAL-HISTORY HALF IS NOT BUILT: *does keeping pair history
+                          improve prediction* means *does it PAY*, and the fixture pays nothing
     P3  relational key    NOT BUILT. `slot_types` publishes ZERO relation types. LINK 2 IS
                           UNMOVED, and `touching` is `OBJECT -> BOOL` reachable but the
                           `OBJECT -> OBJ` query that would enumerate it was WITHDRAWN as

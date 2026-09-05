@@ -325,6 +325,14 @@ class ArcWorld:
         win = f.win_levels or 1
         return "ALL(BECOME(level, completed))", min(1.0, f.levels_completed / win)
 
+    def matches(self) -> dict[str, tuple[str, float]]:
+        """How each object's identity was established this frame, and how certain it was.
+
+        The domain declares it because the tracker computes it: the loop cannot know that
+        `overlap` beat `shape` for a given name without re-running the matcher.
+        """
+        return dict(getattr(self._decompose, "matches", {}) or {})
+
     def cascade(self) -> tuple:
         """THE WITHIN-STEP STACK -- every frame this action returned, oldest to newest.
 

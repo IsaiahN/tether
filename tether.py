@@ -513,6 +513,31 @@ class Agent:
     def _ops(term: Term, state: dict[str, int]) -> tuple:
         return (state[term.operand],) if term.operand else ()
 
+    def _narrate_matches(self) -> None:
+        """The tracker's own certainty, per step. **Fixture-readable, and that is the point.**
+
+        A store whose only consumer is another unbuilt phase is silent with extra steps, so
+        this half of the pair store reads NOW: *how was identity established this frame, and
+        how certain was the match.* **`overlap` with a high IoU is a confident match; a low one
+        is marginal; `shape` means overlap was ZERO and sensor 5 carried the identity across a
+        move; `birth` means nothing carried it.**
+
+        WHAT THIS IS NOT: the relational-history half -- *does keeping pair history improve
+        prediction* -- which means *does it PAY*, and the fixture pays nothing. That half waits
+        on a payable board; this one does not.
+        """
+        fn = getattr(self.env, "matches", None)
+        if fn is None:
+            return
+        m = fn()
+        if not m:
+            return
+        by = Counter(r for r, _ in m.values())
+        scores = [s for r, s in m.values() if r == "overlap"]
+        self.led.record(self.cycle, "PERCEIVE", "*", "matches",
+                        routes=dict(sorted(by.items())), n=len(m),
+                        min_overlap=round(min(scores), 4) if scores else None)
+
     def _narrate_cascade(self) -> None:
         """The cascade's shape, per step. **A one-frame response is a READING, not silence.**
 
@@ -1976,6 +2001,7 @@ class Agent:
         self._decomp_cache = None
         self._narrate_order()
         self._narrate_cascade()
+        self._narrate_matches()
         self._advertised()
         self._present()       # before the frame, so slots and frame cannot disagree
         # PER STEP, BECAUSE ONE SLOT TYPE'S RANGE IS NOT CONSTANT. A shape slot's alphabet is

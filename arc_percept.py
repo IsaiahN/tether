@@ -336,6 +336,12 @@ class Objects:
     def __init__(self) -> None:
         self.tracked: dict[str, dict] = {}
         self._next = 0
+        # THE MATCH EVIDENCE, KEPT INSTEAD OF DISCARDED. The matcher computes an overlap score
+        # for every (new x tracked) pair and throws all of it away but the winning name -- so
+        # HOW an identity was established, and how certain the match was, were unreadable.
+        # `{name: (route, score)}` per frame: `overlap` with its IoU, `shape` where overlap was
+        # zero and §12.3's sensor 5 carried identity across a move, `birth` where nothing did.
+        self.matches: dict[str, tuple[str, float]] = {}
 
     def __call__(self, board: Any) -> dict[str, int]:
         if not hasattr(self, "_shapes"):
@@ -343,6 +349,7 @@ class Objects:
         found = components(board)
         claimed: set[str] = set()
         fresh: dict[str, dict] = {}
+        self.matches = {}
 
         # match each new component to the tracked object it overlaps most. Ties break on the
         # name so a run is reproducible; a zero-overlap component has no predecessor and is
@@ -364,10 +371,13 @@ class Objects:
                 # position-independent, so it carries identity across a move.
                 best = next((n for n, old in sorted(self.tracked.items())
                              if n not in claimed and shape_of(old) == shape_of(obj)), None)
+            route = "overlap" if best is not None and score > 0.0 else "shape"
             if best is None:
                 best = f"o{self._next}"
                 self._next += 1
+                route = "birth"
             claimed.add(best)
+            self.matches[best] = (route, round(score, 4))
             # SENSOR 7, AT THE ONE MOMENT BOTH FRAMES ARE IN HAND. A BIRTH GETS NO DELTA AND
             # NOT A ZERO: §12.2 requires a value or an explicit non-reading, and `0` would say
             # *it did not move* where the truth is *there was nothing to move from*. An absent
