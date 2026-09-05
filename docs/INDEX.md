@@ -15155,3 +15155,53 @@ form already had it.
 > **AND THIS IS THE ASIDE-HAZARD AT ITS OWN GAME.** *The findings underneath were checked; the
 > milestone riding on them was not, and it was the false part.* **Two instances of the hazard last
 > round, and this is the third — the first one caught INSIDE the same message that produced it.**
+
+---
+
+# P1 BUILT: THE STRUCTURE PUBLISHED BESIDE THE LABEL — AND IT UNBLOCKS ONE OF THE SIX, NOT SIX
+
+## THE STAND-IN IS INVERTIBLE, SO THE STRUCTURE NEEDS NO STORING
+
+`ArcWorld.shapes()` inverts `arc_percept`'s `_shapes` — *a table keyed BY the frozenset, built once per
+run and **reset nowhere**, which is the run-stability established when that comment was repaired.*
+**So an id from any frame maps to the same structure, and a REPLAYED id resolves exactly as a live one
+does.**
+
+    o1.shape: published id = 1   structure = [(0, 0)]...
+    structure equals the live frozenset                          True
+    the LABEL is still an int (group / equality unaffected)      True
+    replayed ids resolve to a stable structure across frames     True
+
+## BESIDE THE LABEL, NEVER IN PLACE OF IT
+
+**`shape` stays the published id and `structure` is a new key.** *Swapping the frozenset in would have
+compared a set against `Ctx.group`'s table of ints and read **False in silence*** — **check 5 at the
+one site where merging is tempting, because the two quantities name the same thing.**
+
+**AND NO ATOM WAS ADDED.** *`_extract` iterates `ATTRIBUTE_TYPE`, not the record's keys*, so the atom
+count is unmoved and **the panel gains no third staleness.**
+
+## WHAT IT UNBLOCKS, CHECKED RATHER THAN SUMMARISED
+
+`RELATIONS.md` groups six under *blocked by an erasure* — `spin · interlock · symmetry · similarity ·
+rotation · rolling` — *and the erasure is now closed.* **That is necessary and not sufficient for five
+of them.**
+
+    congruent-style EQUALITY   computable NOW: `overlap` is IoU over frozensets and is one
+                               of the nine, so identical structure reads 1.0
+    symmetry / rotation        need a REFLECT or ROTATE over the frozenset. Not in the nine,
+    similarity / spin          not an atom, and adding one is the Tier-2 question §12.3 forbids
+    interlock / rolling        answering by install
+
+> **SO THE PUBLISH IS THE PRECONDITION AND THE TRANSFORMS ARE A SEPARATE QUESTION.** *`RELATIONS.md`'s
+> own words are "**the published stand-in is what removed these**" — which says the erasure removed
+> them and not that publishing restores them.* **Recorded as an annotation, not a correction: the
+> corpus is right that it is an erasure and right that it is a build, and the build is larger than the
+> publish.**
+
+## AND NOTHING READS IT YET, WHICH IS SAID RATHER THAN GLOSSED
+
+**`structure` has no consumer today** — *the structural relations are unbuilt and `obj:` cross-play
+identity lands at P7.* **A publication with a verified round trip and no reader**, which is the same
+latent shape as `operand_type` and `BOOL`-in-`COMPARABLE`, and is stated here because check 7 is about
+exactly the sentence that would have left it out.

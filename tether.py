@@ -478,14 +478,26 @@ class Agent:
         if self._decomp_cache is None:
             own = getattr(self.env, "slot_owner", None)
             att = getattr(self.env, "attribute_of", None)
-            self._decomp_cache = (own() if own else {}, att() if att else {})
-        owners, attrs = self._decomp_cache
+            shp = getattr(self.env, "shapes", None)
+            self._decomp_cache = (own() if own else {}, att() if att else {},
+                                  shp() if shp else {})
+        owners, attrs, shapes = self._decomp_cache
         mine = owners.get(slot)
         if mine is None:
             return None
         rec = {attrs[s]: v for s, v in state.items()
                if owners.get(s) == mine and s in attrs}
-        return rec or None
+        if not rec:
+            return None
+        # THE STRUCTURE BESIDE THE LABEL, NEVER IN PLACE OF IT. `shape` stays the published
+        # id because that is what `Ctx.group` and every equality comparison hold; swapping in
+        # the frozenset would compare a set against a table of ints and read FALSE in silence.
+        # Two quantities, two keys -- check 5, at the one site where merging them is tempting
+        # because they name the same thing.
+        cells = shapes.get(rec.get("shape"))
+        if cells is not None:
+            rec["structure"] = cells
+        return rec
 
     def _group(self, slot: str, state: dict) -> tuple:
         """The outer stream for one slot: this attribute's values on the other objects."""

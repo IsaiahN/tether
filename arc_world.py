@@ -141,6 +141,21 @@ class ArcWorld:
     def slots(self) -> list[str]:
         return self.read_order()[0]
 
+    def shapes(self) -> dict[int, frozenset]:
+        """`{published shape id: the normalised offset frozenset it stands for}`.
+
+        **THE STAND-IN IS INVERTIBLE, WHICH IS WHY THE STRUCTURE NEEDS NO STORING.**
+        `arc_percept` assigns the id from a table keyed BY the frozenset, and that table is
+        reset nowhere and built once per run -- so an id from ANY frame maps to the same
+        structure, and a REPLAYED id resolves exactly as a live one does.
+
+        `RELATIONS.md`: *the structural quantity is computed every frame and the published
+        stand-in is what removed* `symmetry`, `similarity`, `rotation`, `spin`, `interlock`
+        and `rolling`. This is the structure put back beside the stand-in, not in place of it.
+        """
+        tbl = getattr(self._decompose, "_shapes", None) or {}
+        return {v: k for k, v in tbl.items()}
+
     def attribute_of(self) -> dict[str, str]:
         """`{slot: which attribute it holds}`. **The loop may not derive this** -- it would
         have to split the slot name, which is `slot_owner`'s reason, one field over."""
