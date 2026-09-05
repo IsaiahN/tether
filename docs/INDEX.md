@@ -14200,3 +14200,45 @@ decides whether `COUNT` comes with it.**
 
 *Filed as the state the ruling opens in, not as a proposal: which population and which reductions is
 the choice, and it is the proctor's.*
+
+---
+
+# THE SHRINKAGE IS HALF REAL — `touching` IS `SOME(exists)`, NOT `SOME(P)`
+
+**Tested because *the ruling got smaller* is a satisfying story, and a satisfying story is the one to
+distrust.**
+
+## WHAT SURVIVES THE TEST
+
+**`Ctx` carries a population outside the handle.** *Confirmed: `Term.name` is atom names plus
+`<operand>` plus `?guard`, and nothing else.* **The channel is real and the constraint is met.**
+
+## WHAT DOES NOT
+
+    touching   int(bool(c.touching))         =  EXISTS x . touching(me, x)
+    a quantifier                             =  ALL x . P(x)   -- P APPLIED TO EACH MEMBER
+
+**`touching` folds the RAW population. It never applies a predicate to a member.** *So it is existence
+over a set, not a quantifier over a predicate* — **and the precedent is narrower than "a quantifier in
+all but name".**
+
+**AND NOTHING CAN APPLY A CHAIN PER MEMBER.** *Every call in the loop is `term.apply(state[slot], …)` —
+**one slot's value in, one value out.*** `Term.apply` has no iteration and no fold.
+
+> **THE PER-MEMBER FOLD EXISTS AT THE LOOP LEVEL AND NOT AT THE TERM LEVEL.** *`tether` iterates slots
+> and folds the results; a TERM cannot.* **Which is the mechanical reason `PRED → OBJ` is a lie: the
+> atom advertises quantification while the only machinery that could perform it lives where the loop
+> iterates, outside any term.**
+
+## SO THE FORK IS EARLIER THAN `ONE` / `COUNT`
+
+    (a) RAW-POPULATION REDUCTION   an atom folds a population `Ctx` hands it. `touching` is the
+                                   working instance. A WIDENING, with a precedent
+    (b) PREDICATE OVER POPULATION  `ALL x . P(x)` needs a chain applied per member and folded.
+                                   NO term can iterate. A CHANGE TO WHAT A TERM IS
+
+**`ALL(exists)` versus `ALL(P)` decides whether a term can iterate, and it comes BEFORE truthiness
+versus counting.** *`ONE`/`COUNT` is the second fork and only arises inside (b).*
+
+**The `0a`-class framing was retired one round early.** *(a) is not `0a`-class and (b) is* — **and
+which one the ruling means is the first thing it settles.**
