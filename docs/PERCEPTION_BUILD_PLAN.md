@@ -5,18 +5,42 @@ layer carries: **what exists today · what would change · what it depends on ·
 
 **Validated against Figures 1–13, the Operators and Symbols tables, and `THE_FORMULA`.**
 
-> **REVISION 2, 2026-09-04. THE NINE SEAMS ARE SETTLED.** Each settlement is stated at the layer it
-> lands on, and the seam section now records **the resolution and what it changed** rather than
-> options. **Three settlements were grounded in mechanisms that already exist** — `R_T` for the
-> ablation round trip, `Standing.decay` for the confidence clock, §16.2 for the per-locus mode — and
-> **two lookups inverted a proposed derivation.** *The phase order is unchanged; what moved is what
-> each phase must contain.*
+> **REVISION 3, 2026-09-04 — THIS SUPERSEDES REVISIONS 1 AND 2 AND THE AMENDMENT TRAIL.** Ten seams
+> and three open items are settled and folded into the layers they touch; **one item remains and it is
+> a P5 gate.** *The reasoning for every settlement is in `docs/INDEX.md`; this document carries the
+> decisions.*
 
 ---
 
-## Where the chain breaks today
+# THE STANDING CHECKS
 
-**Measured 2026-09-03, per link, from this session's readings.** *A reading, not a property.*
+**Five, produced by this deliberation, each having caught something. They govern how the rest of this
+document is read and how the build is written.**
+
+**1 · SEAT-ACCESS IS NOT AGENT-EXPERIENCE.** *Before writing "the agent knows X", name the code path
+the agent reads X through.* **The ledger is the worst trap because it is full of true numbers.** Caught
+three times: `_last_mass`, the death-point ceiling, and the contact claim below.
+
+**2 · A VALUE PUBLISHED AS A PER-EPISODE LABEL IS A PLACEMENT, NOT AN IDENTITY.** *Check for the
+pointer/value split before publishing any new sensor.* **Proven at two sites** — the colour ID and
+sensor 5's shape ID — **so it is a check, not a lesson to re-learn at a third.**
+
+**3 · PREFER A RESIDUAL TO AN ABSENCE.** *"Nothing accounts for it" is not checkable mid-episode;
+"unexplained mass remains after every contribution is priced" is.* **Caught twice in two rounds** —
+`disembodied` and `ValueLatentSelf`'s second conjunct — **and §18.3 is the standing case: `has_self:
+false` for 904 steps meant the detector was wrong, not that there was no self.**
+
+**4 · A CONTACT CLAIM MUST BE READABLE, NOT ARGUED.** *An improvement that does not change contact
+changes nothing* — so a claim that something changes contact names the reading that would show it.
+
+**5 · ONE FORMAT OVER TWO LIFETIMES IS `A6i`'s INVERSE.** *A single namespace asserted where two
+exist.* **It is the tidy-looking change a later reader makes**, and Seam 10 is where it would land.
+
+---
+
+# Where the chain breaks today
+
+**Measured 2026-09-03, per link.** *A reading, not a property.*
 
     1 perception    REACHED     120 slots on g50t; identity by max overlap, shape_of fallback
     2 vocabulary    THIN        5 of 7 affordances written; ONE relation of ~70; COUNT and
@@ -29,438 +53,286 @@ layer carries: **what exists today · what would change · what it depends on ·
     5 learn/carry   UNASSESS-   advanced:false at every length, so nothing has crossed a level
                     ABLE
 
-**The pipeline's seven layers map onto this chain, and the break sits at the pipeline's Layer 5** —
-*a thin relation vocabulary caps everything the lookup can name*, which is the spec's own sentence
-and this build's measured state. **The settlements did not move it.**
+**The break sits at the pipeline's Layer 5** — *a thin relation vocabulary caps everything the lookup
+can name*, which is the spec's own sentence and this build's measured state. **Nothing settled here
+moved it.**
 
 ---
 
 ## Layer 1 — The frame as a change-tracked tree
 
-**EXISTS.** `arc_percept.components` is a flood-fill partition into connected same-colour regions,
-one dict per object with `cells · colour · row · col · h · w`. `Objects.__call__` tracks identity
-across frames by **maximum overlap**, falling back to `shape_of` when overlap is zero — *an object
-smaller than its own displacement has zero overlap with itself one frame later.* **Death only on
-evidence.** Change detection exists in three places: `delta_of` per object, `_advertised` for the
-action set, `_present` for the slot set.
+**EXISTS.** `arc_percept.components` is a flood-fill partition into connected same-colour regions, one
+dict per object with `cells · colour · row · col · h · w`. `Objects.__call__` tracks identity across
+frames by **maximum overlap**, falling back to `shape_of` when overlap is zero — *an object smaller
+than its own displacement has zero overlap with itself one frame later.* **Death only on evidence.**
+Change detection exists in three places: `delta_of` per object, `_advertised` for the action set,
+`_present` for the slot set.
 
-**WHAT CHANGES.** Five now, and the first is a ruling not a build.
+### (a) The tree is flattened at the boundary — a side channel, not a widening
 
-**(a) The tree is flattened at the boundary.** `observe()` returns `dict[str, int]`, so every object
-becomes `name.attr -> int` and the tree structure is gone by the time the loop sees it. **This is the
-`dict[str, int]` ruling, open.** *Four erasure sites depend on it: the frame stack, the component
-list, the offset frozenset, and the extractor ceiling.* **SEAM 8 settled the direction** — the tree
-enters by a side channel, Layers 4 and 5 read it directly, and **only their OUTPUTS need to become
-bettable.** *That shrinks (a) from a widening to a wiring.*
+`observe()` returns `dict[str, int]`, so every object becomes `name.attr -> int` and the tree is gone
+by the time the loop sees it. **Four erasure sites depend on the ruling: the frame stack, the component
+list, the offset frozenset, and the extractor ceiling.**
 
-**(b) `cascade` — the within-step chain — is discarded.** `board()` returns `frame[-1]`. **Measured:
-`g50t` carries 7 or 9 frames on 39% of responses; `ls20` carries one, always.** *So a relation forming
-and breaking mid-cascade is invisible — on one board and not the other.* **Per game, never pooled.**
+**THE DIRECTION IS SETTLED: the tree enters by a SIDE CHANNEL, Layers 4 and 5 read it directly, and
+only their OUTPUTS need to become bettable.** *That makes P0 a wiring decision rather than a widening
+of the betting surface.*
 
-**(c) The full pair matrices are computed and thrown away.** *The matcher computes overlap for every
-(new × tracked) pair and keeps one name; `contacts()` computes every same-frame pair and drops it on
-`step`.* **A store keyed by pair is a record written where a matrix already exists, not a
-computation.**
+### (b) The cascade is DROPPED, not debounced
 
-**(d) NEW — the two change quantities are named apart, and `animation` is retired.** *One word over
-two real quantities was filed prospectively as `A6i` and ruled before it cost anything.*
+`board()` returns `self._frame.frame[-1]` — *"the settled board is `frame[-1]`"* — **so the loop never
+receives the intermediate frames at all.** *A debounce coalesces a signal it receives; a drop never
+receives one.* **Same observable behaviour today, decisive difference at P4.**
+
+**Measured: `g50t` carries 7 or 9 frames on 39% of responses; `ls20` carries one, always.** *So a
+relation forming and breaking mid-cascade is invisible on one board and not the other.* **Per game,
+never pooled.**
+
+> **AND DEBOUNCE IS THE WRONG TOOL AT P4, NOT THE RIGHT ONE.** §16.3: *"A moved, **then** B reacted.
+> Within-step causal order, **which the endpoint erases**."* **A debounce firing once at settle
+> discards ordering — which is what `frame[-1]` already does, so debouncing the cascade would reproduce
+> the drop and make P4 pointless.** *The answer is TWO CONSUMERS, which is (d).*
+
+### (c) The full pair matrices are computed and thrown away
+
+*The matcher computes overlap for every (new × tracked) pair and keeps one name; `contacts()` computes
+every same-frame pair and drops it on `step`.* **A store keyed by pair is a record written where a
+matrix already exists, not a computation.**
+
+### (d) Two change quantities, two names, two consumers — `animation` is retired
 
     cascade      WITHIN-STEP. the sub-frame chain one action spurred. carries the causal
                  ORDERING the endpoint erases. CONSUMER: the causality tracker -- the WHY
     transition   ACROSS-STEP. the change between two settled boards. CONSUMER: the attribute
                  tracker -- the WHAT
 
-**`transition` is not a new word: `tether.py:101` already declares it as a residual channel and
-`tether.py:535` files `SlotResidual(s, TRANSITION, pred[s], actual, bits)` on the per-slot across-step
-change.** *Same quantity, already named.* **THE ACCEPTANCE CONDITION ON THE NAME IS ONE PRODUCER, ONE
-CHANNEL** — if Layer 1 emits transitions that never reach a `SlotResidual`, two things called
-`cascade` is unclaimed.
+**`transition` is not a new word.** `tether.py:101` declares it as a residual channel and `tether.py:535`
+files `SlotResidual(s, TRANSITION, pred[s], actual, bits)` on the per-slot across-step change — *the
+same quantity, already named.*
 
-> **AND THE CASCADE IS NOT DEBOUNCED TODAY — IT IS DROPPED, WHICH LOOKS THE SAME AND IS NOT.**
-> `arc_world.board()` returns `self._frame.frame[-1]`, *"the settled board is `frame[-1]`"*, **so the
-> loop never receives the intermediate frames at all.** *A debounce coalesces a signal it receives; a
-> drop never receives one.* **The difference is invisible now and decisive at P4**, which is the phase
-> that starts reading the stack.
+**ACCEPTANCE CONDITION ON THE NAME: ONE PRODUCER, ONE CHANNEL.** *If Layer 1 emits transitions that
+never reach a `SlotResidual`, two things called transition never meet and it becomes `A6i` after all.*
+**`cascade` is unclaimed.**
 
-**AND DEBOUNCE IS THE WRONG TOOL THERE, NOT THE RIGHT ONE.** §16.3: *"A moved, **then** B reacted.
-Within-step causal order, **which the endpoint erases**."* **A debounce that fires once at settle
-discards ordering — which is precisely what `frame[-1]` already does, so debouncing the cascade would
-reproduce the drop and make P4 pointless.** *The answer is not one trigger fired less often; it is TWO
-CONSUMERS, which is (d).*
+### (e) The per-locus mode — detectors built, verdict unread
 
-**(e) NEW — the per-locus mode, and its detectors are built while its consumer is not.**
-
-**§16.2 already rules the design, quoting `THE_MISSION`:** *is there an **avatar** my directional
-actions translate, or do I act through a **click actuator** — and even that **BLENDS mid-game**, so it
-must be detected **contingently per step, never used to label the game**.* **Four readings:**
-
-    one slot's delta correlates with my action  ->  avatar         (embodied)
-    no slot correlates but the board changes    ->  actuator       (disembodied)
-    several correlate                           ->  COUPLED BODIES
-    and it may change mid-level                 ->  re-read every step
+**§16.2 rules the design, quoting `THE_MISSION`:** *is there an **avatar** my directional actions
+translate, or do I act through a **click actuator** — and even that **BLENDS mid-game**, so it must be
+detected **contingently per step, never used to label the game***.
 
 **BUILT:** all four §18.3 hypotheses — `arc_self.family()` returns `TranslationSelf`, `GrowthEdgeSelf`,
 `ValueLatentSelf`, `RegionToggleSelf` in table order, fed at `arc_world:290`.
 
-> **NOT BUILT, AND THE GAP IS PRECISE: THE LOOP READS THE FAMILY'S MEASUREMENTS AND NOT ITS VERDICT.**
-> `_learned_split` consumes `contingency()` — `{member: {per_action, stable}}` — and **`tether.py`
-> contains zero references to `selected()` or `has_self()`.** *Nobody reads which hypothesis won, or
-> whether there is a self at all.* **And the family is ONE family over the WHOLE BOARD**, so a
-> per-locus index does not exist either.
+> **THE GAP: THE LOOP READS THE FAMILY'S MEASUREMENTS AND NOT ITS VERDICT.** `_learned_split` consumes
+> `contingency()` — `{member: {per_action, stable}}` — and **`tether.py` contains zero references to
+> `selected()` or `has_self()`.** *Nobody reads which hypothesis won, or whether there is a self at
+> all.* **And the family is ONE family over the WHOLE BOARD**, so no per-locus index exists.
 
-**What the mode owes:** per-locus indexing · a consumer for the verdict · composition to a board
-reading · the trajectory record. **An embodied locus drops to PREDICTION-ONLY** — the agent knows it
-moved left because it *chose* left, so what is tracked is the prediction and whether the locus *stops*
-responding. **A disembodied locus maps available actions to surroundings** through relations and
-attributes, because there is no self-object to reduce.
+**WHAT IT OWES:** per-locus indexing · a consumer for the verdict · composition to a board reading ·
+the trajectory record.
 
-**THREE CONSTRAINTS, AND THEY ARE WHAT KEEP IT LEGAL:**
+#### The values, and the three levels they live at
+
+    PER-LOCUS           unknown          the family found nothing here, nothing else established
+                        embodied         this locus's delta correlates with my action, FIRST-HAND
+                        disembodied      the family found nothing AND the board moved
+                                                                            these DRIVE TRACKING
+
+    PER-RELATIONSHIP    independent      moved this action, DIFFERENT displacements
+                        coupled-rigid    moved this action, SAME displacement
+                        coupled-loose    moved together consistently, not identically
+                                                        a READING over per-locus data
+
+    BOARD-LEVEL         coupled          several loci correlate together
+                        hybrid           the loci DISAGREE
+                                                        compositions -- NEITHER MAY GATE
+
+**`unknown` IS `unmodeled`, AND IT IS `NOT_RESOLVED` ONE LEVEL UP.** `SelfModelFamily.unmodeled()` is
+*"the completeness critic — **the whole family failing together is the signal**"*. **It never means
+`disembodied`**: check 3, and §18.3 is the case.
+
+**`disembodied` TAKES §16.2's OWN POSITIVE CONJUNCT** — *no slot correlates **but the board changes***,
+acting at a distance — **and the second half is the transition residual over the slot set.**
+
+**`coupled-loose` IS ORDINAL, AND A TRAILING WINDOW IS WHAT THIS SITE ALREADY REFUSED.**
+`SelfHypothesis.stable()`: *"**ORDINAL, BECAUSE A THRESHOLD HERE WOULD MEASURE THE SAMPLE COUNT.** A
+running mean changes by `(x − mean)/n`, which shrinks as `1/n` **whatever the data does** … it is a
+RANKING rather than a magnitude … `MIN_REPEAT` is reused rather than a second constant invented."*
+**So loose is *has the pair's co-movement ranking stopped reordering* — no new constant.** *And
+`Standing.decay`'s half-life is the other of the build's two accumulation shapes: it prices a TERM
+across generations, where this is a per-relationship reading inside an episode.* **Not
+interchangeable.**
+
+#### The constraints that keep it legal
 
 - **PER-LOCUS DRIVES, AND THAT IS LICENSED.** *Thin I/O, detected contingently per step* is the one
   legitimate distinction `CLAUDE.md` allows.
-- **BOARD-LEVEL COMPOSES AS A READING, NEVER AN INPUT.** **The skill-map law:** *the moment it is
-  available beforehand the mechanism has been handed its answer.* **A composed `HYBRID` that selects
-  behaviour is a type branch; one read afterwards is a finding.**
-- **A RECALLED TRAJECTORY PREDICTS AND NEVER GATES** — which proven/believed/open already enforces,
-  since a recalled mode is **believed** and belief yields to first-hand.
+- **BOARD-LEVEL COMPOSES AS A READING, NEVER AN INPUT.** *The moment it is available beforehand the
+  mechanism has been handed its answer.* **`coupled` and `hybrid` are both compositions, so neither
+  gates.**
+- **A RECALLED TRAJECTORY PREDICTS AND NEVER GATES** — a recalled mode is `believed`, and belief yields
+  to first-hand.
+- **NO THRESHOLD.** *Proven-embodied the moment alignment holds first-hand; demotes when it stops* —
+  **and the demotion IS the switch detection.**
 
-**NO THRESHOLD IS INTRODUCED.** A locus is **proven-embodied the moment alignment holds first-hand**
-and demotes when it stops. *The count was never the thing, and the demotion IS the switch detection —
-no separate alarm.*
+**The trajectory is a record:** `EMBODIED@0 → +DISEMBODIED@k → HYBRID (current)`, transitions filed as
+causal events under the level — *the same class of event as an object appearing or vanishing.*
 
-**AND `disembodied` IS NOT READ FROM AN ABSENCE.** *The whole-family-fails case already has a built
-reading and it is not this one:* **`SelfModelFamily.unmodeled()` — *"the completeness critic. **The
-whole family failing together is the signal**"* — true when `selected()` is `None` or when unexplained
-exceeds explained.
-
-> **`unmodeled` MAPS TO `unknown`, NEVER TO `disembodied`.** *`has_self() == False` across four members
-> says the detectors found nothing, which is not the claim that there is nothing* — **and §18.3 is the
-> case: `has_self: false` for 904 steps meant the detector was wrong, not that `ls20` had no self.**
-> **`unknown` is `NOT_RESOLVED` at the mode level** — null-not-absent, one level up, and the same
-> reason.
-
-**SO THE DISEMBODIED VERDICT NEEDS A POSITIVE CONJUNCT, AND THE BUILD HAS IT:** §16.2's own wording is
-***no slot correlates BUT THE BOARD CHANGES*** — *acting at a distance.* **The second half is the
-transition residual over the slot set, and it is what makes the reading causal rather than absential.**
-
-    unknown        the family found nothing, and nothing else is established
-    disembodied    the family found nothing AND the board moved -- something changed and
-                   nothing I track did it
-
-*`CLAUDE.md`: **prefer positive causal evidence over absential; absence of evidence resting on
-completeness never holds mid-episode.*** **A `disembodied` read off `all(not has_self())` alone is
-exactly the inference §18.3 refuted.**
-
-### THE FIVE VALUES, EACH WITH A POSITIVE CONDITION — AND THEY DO NOT ALL LIVE AT ONE LEVEL
-
-**RULED 2026-09-04: the full set is a requirement, not a schedule.** *That `coupled_agency.py` is named
-in §16.2 and absent from the repo is a name written before its code and says nothing about whether the
-capability is needed.*
-
-    PER-LOCUS      unknown        the family found nothing here, and nothing else is established
-                   embodied       this locus's delta correlates with my action, holding FIRST-HAND
-                   disembodied    no locus correlates AND the board moved
-
-    BOARD-LEVEL    coupled        SEVERAL loci correlate TOGETHER -- not one avatar
-                   hybrid         the loci DISAGREE -- at least one embodied, at least one not
-
-> **THE SPLIT IS NOT COSMETIC: SEAM 8's CONSTRAINT REACHES `coupled` TOO.** *Board-level composes as a
-> reading, never an input.* **`coupled` and `hybrid` are BOTH compositions over several loci, so
-> NEITHER MAY GATE** — and the full-set ruling therefore extends the gating discipline rather than
-> relaxing it. **Only the three per-locus values drive anything, and they drive tracking, not
-> behaviour.**
-
-### `coupled` IS THREE STATES, NOT A CHOSEN READING — RULED 2026-09-04
-
-**The fork was real and NEITHER reading wins, because a public game mixes them.** *So the two readings
-become the two DISCRIMINATORS, and the classification is PER RELATIONSHIP rather than per game:*
-
-    independent      moved this action, DIFFERENT displacements    coincidence, not coupled
-    coupled-rigid    moved this action, SAME displacement          one body
-    coupled-loose    moved together consistently, not identically  correlated, not rigid
-
-**Two comparisons, both over data already held:** *same action* is the per-locus contingency;
-*same displacement* is `delta_of`'s `(drow, dcol)` compared over the pair. **Nothing new is gated, and
-`coupled` stays in the ungated set.**
-
-> **AND THE THREE DO NOT CLASSIFY AT THE SAME RATE.** *`independent` and `coupled-rigid` are readable
-> in ONE step; `coupled-loose` is **consistently, not identically**, which needs a HISTORY.* **Rigid is
-> `proven` per step; loose is `believed` from accumulation.**
-
-**AND THE ACCUMULATION SHAPE IS BUILT — BUT IT IS ORDINAL, AND A TRAILING WINDOW IS THE THING THIS SITE
-ALREADY REFUSED.** `SelfHypothesis.stable()`:
-
-> ***"ORDINAL, BECAUSE A THRESHOLD HERE WOULD MEASURE THE SAMPLE COUNT.** A running mean changes by
-> `(x − mean) / n`, which shrinks as `1/n` **whatever the data does** — so *change below epsilon* would
-> report **how many observations there are**, not whether the estimate settled … it is a RANKING rather
-> than a magnitude: **has this member stopped reordering the actions.** `MIN_REPEAT` is reused rather
-> than a second constant invented."*
-
-**A window sized by *however many steps it takes for belief to stabilise* is a magnitude test wearing a
-window's clothes, and this docstring is the recorded reason it was rejected AT THIS SITE.** *And
-`SelfModelFamily.mean` is the second refusal — a running mean with no recency weighting, Redux's EWMA
-at `alpha = 0.3` deleted because "the smoothing had no basis at the site and a mean needs no
-parameter."*
-
-> **SO `coupled-loose` IS: HAS THE PAIR'S CO-MOVEMENT RANKING STOPPED CHANGING** — ordinal, `MIN_REPEAT`
-> reused, **no new constant.** *And `Standing.decay`'s half-life is the wrong one of the build's two
-> shapes here: it prices a TERM's standing across generations, where this is a per-relationship reading
-> inside an episode.* **Two accumulation shapes exist and they are not interchangeable.**
-
-**AND THE LEVEL TABLE GAINS A THIRD ROW, BECAUSE A RELATIONSHIP IS NOT A LOCUS AND NOT THE BOARD:**
-
-    PER-LOCUS           unknown · embodied · disembodied          drive TRACKING
-    PER-RELATIONSHIP    independent · coupled-rigid · -loose      a READING over per-locus data
-    BOARD-LEVEL         coupled · hybrid                          compositions; Seam 8: NEITHER GATES
-
-### AND ONE MEMBER OF THE FAMILY HAS NO LOCUS TO INDEX, WHICH PER-LOCUS INDEXING ASSUMES AWAY
+#### One member has no locus, and it is the one that answers `ls20`
 
 **`ValueLatentSelf`: *"a NON-SPATIAL self … **there is no self-cell to point at — the self IS the
-value**."*** It tracks `_counts(board)` **keyed by colour, board-wide** — not per object.
+value**."*** It tracks `_counts(board)` **keyed by colour, board-wide.**
 
-> **SO THE ONE MEMBER §18.3 ADDED BECAUSE A TRANSLATION-SHAPED FAMILY FAILED TOGETHER IS THE ONE THE
-> PER-LOCUS INDEX CANNOT HOLD** — *and it is the member that answers `ls20`, the board the family was
-> repaired for.* **Per-locus indexing assumes every self-hypothesis is about a locus, and one of four
-> is not.**
+> **So the member §18.3 added *because a translation-shaped family failed together* is the one a
+> per-locus index cannot hold — on the board the family was repaired for.** *A value-latent self is a
+> self with board-wide extent, so it composes to a board reading without passing through a locus.*
+> **Its establishing condition and its candidate set are the one open item — a P5 gate, below.**
 
-**THE HOLE IS NOT A REASON TO DROP THE INDEX; IT IS AN ENTRY THE MODE NEEDS.** *A value-latent self is
-a self with a board-wide extent*, so it composes to a board reading without passing through a locus —
-**which the two board-level values already admit as a level.**
-
-### THE WORKSHOP, AND TWO THINGS THE MEMBER'S CODE ALREADY SETTLES
-
-**DRAFTED CONDITION — input→value alignment, where embodied has input→locus alignment:** *concludes
-when an agent action produces a consistent, intended change in a board-wide value, and no single locus
-accounts for the change.*
-
-> **THE SECOND CONJUNCT IS ABSENTIAL AS WRITTEN, WHICH IS THE DEFECT JUST CORRECTED FOR
-> `disembodied`.** *"No single locus accounts for it"* **is not an absence — it is a RESIDUAL, and the
-> build computes residuals.** **State it positively: the value's change carries UNEXPLAINED MASS after
-> every locus's contribution is priced** — which is `outstanding`, monotone and per-slot, already
-> running. *An absence cannot be checked mid-episode; a residual can.*
-
-**AND THE INPUT→VALUE HALF IS ALREADY IMPLEMENTED.** `_attribute(action, cts[colour] − was)` is the
-per-action contingency on the value; `has_self()` is *"consistent AND meaningful: every nonzero step one
-way, and net travel of at least one unit per nonzero step."* **The condition's positive half is built;
-only the residual conjunct is missing.**
-
-### AND THE P5 KEY QUESTION IS SMALLER THAN IT LOOKS, BECAUSE THE MEMBER ALREADY SEARCHES
-
-**The member does NOT hold a stipulated value. It SELECTS one** — *the non-background series with the
-highest monotonicity*, `mono = |Σ sign(Δ)| / |nonzero|`, `best` updated every observation.
-
-> **SO THE WORKSHOP QUESTION IS NOT *WHICH VALUE PLAYS THE ROLE* — THE AGENT ALREADY ANSWERS THAT.**
-> **What P5 changes is only the SPACE THE EXISTING SELECTOR RUNS OVER**: palette integers today,
-> and after P5 whatever board-wide quantities are published. **The item is *widen the candidate set*,
-> not *identify the value*.**
-
-**AND THAT IS THE DOCTRINE LINE, NOT A CONVENIENCE.** *Naming the zoom-level for a given game would be
-encoding the answer* — **the monotonicity search IS the agent doing the identification, and it is the
-evidence the mechanism works.** *Hand it the value and there is nothing left to measure.*
-
-**WHAT REMAINS TO THE WORKSHOP:** the residual conjunct's exact form, and **what board-wide quantities
-P5 should publish into the candidate set** — *a perception question with an entry rule, which is the
-legitimate way to widen Tier 1.* **It must resolve before P5, because P5 changes what the member
-reads.**
-
-**The trajectory is a record, not a state machine:** `EMBODIED@0 → +DISEMBODIED@k → HYBRID (current)`,
-**transitions filed as causal events under the level** — *object_7 became controllable at step k*, *the
-avatar went inert at step m* — **the same class of event as an object appearing or vanishing.**
-
-**DEPENDS ON.** (a) is the gate for (c). **(d) and (e) are ungated** — (d) is a naming decision, and
-(e)'s loci already have a key in `slot_owner()`.
+**DEPENDS ON.** (a) gates (c). **(d) and (e) are ungated** — (d) is a naming decision; (e)'s loci
+already have a key in `slot_owner()`.
 
 **CORPUS.** Figure 13: *a state with no structure has no magnitude.* The slot dict holds states;
-`slot_types` and `slot_owner` are the structural half and are domain-declared, which is correct.
-**Figure 4's membrane licenses the flattening as a coarse-graining — provided the loss is measured,
-and `R_T` is the instrument for that and is not pointed here.**
+`slot_types` and `slot_owner` are the structural half, domain-declared. **Figure 4 licenses the
+flattening as a coarse-graining provided the loss is measured, and `R_T` is that instrument and is not
+pointed here.**
 
 ---
 
 ## Layer 2 — The reading pattern
 
-**DOES NOT EXIST.** Nothing orders the slot set. `slots()` returns `sorted(self._decomposed())` —
-**alphabetical by slot name**, which is stable, arbitrary, and not a perceptual order.
+**DOES NOT EXIST.** `slots()` returns `sorted(self._decomposed())` — **alphabetical**, stable,
+arbitrary, not perceptual.
 
-**WHAT WOULD CHANGE.** A per-frame ordering over slots, recomputed each frame, narrated in the
-ledger, never settled as a term.
+**WHAT WOULD CHANGE.** A per-frame ordering over slots, recomputed each frame, narrated in the ledger,
+never settled as a term.
 
-> **SEAM 1 SETTLED: §11 NEVER APPLIED.** `CLAUDE.md` 390–396 — ***entering means entering Γ**; the
-> five non-Γ homes are **POPULATED, not entered**… §23.2's* what to look at vs what to do *governs
-> loading the five; §11's two clauses govern entry into Γ.* **A reading order is *what to look at*, so
-> §23.2 governs it and the entry rule was never the test.**
+> **§11 NEVER APPLIED.** `CLAUDE.md` 390–396: ***entering means entering Γ**; the five non-Γ homes are
+> **POPULATED, not entered** … §23.2's* what to look at vs what to do *governs loading the five; §11's
+> two clauses govern entry into Γ.* **A reading order is *what to look at*.**
 
-**AND THE FALLBACK IS ALREADY BUILT.** `_last_mass` picks the focal slot by **maximum unexplained
-mass** — `outstanding` used as an ordering, running today, **licensed as ROUTING rather than
-scoring.** *Not a new mechanism; the existing one given a second consumer.*
+**THE FALLBACK IS BUILT.** `_last_mass` picks the focal slot by **maximum unexplained mass** —
+`outstanding` used as an ordering, **licensed as ROUTING rather than scoring.** *The existing mechanism
+given a second consumer.*
 
-**The abstraction rule stands as the design obligation:** *the same layout under the same conditions
-yields the same ordering every time.* **F by default, the others as conditioned fallbacks, the
-fallback conditions themselves consistent.**
+**The abstraction rule is the design obligation:** *the same layout under the same conditions yields
+the same ordering every time.* **F by default, the others as conditioned fallbacks, the fallback
+conditions themselves consistent.**
 
 ---
 
-## Layer 3 — Colour as order-of-encounter
+## Layer 3 — Colour, identity, and placement
 
-**DOES NOT EXIST.** `colour` is the raw palette integer, published as a durable slot value and used
-directly in `correction_bits`. **There is no ID, no band, no cache/durable split for it.**
+**DOES NOT EXIST.** `colour` is the raw palette integer, published as a durable slot value and used in
+`correction_bits`. **No ID, no band, no cache/durable split.**
 
-**WHAT WOULD CHANGE.** A colour-ID table per play: first encounter in a band gets `<band>1`, the raw
-value stays cache-only, the ID goes durable. **On reset with a palette swap, new hues alias onto
-existing IDs.**
-
-### `GB1` IS `SPECTRUM × TIME`, AND THAT IS A CELL ALREADY IN FIGURE 13'S MATRIX
+### `GB1` is `SPECTRUM × TIME` — a cell already in Figure 13's matrix
 
 - **the band is `SPECTRUM`** — *where*, ordered, physically real. **A subset of a spectrum is still a
-  spectrum**, so the visible band keeps the name.
-- **the index is `TIME`** — ***the ordered succession of differences***, which is exactly what
-  order-of-encounter is.
+  spectrum.**
+- **the index is `TIME`** — ***the ordered succession of differences***, which is what order-of-encounter
+  is. **The counter is SHARED and MONOTONIC per band, which is what makes it a succession rather than a
+  tally.**
 
-**A STRUCTURE AGAINST A STATE — a legal cell in `EVERY PAIRING AVAILABLE`, with no within-kind
-composition anywhere in it.** *The network is not involved and must not be:*
-`RECURSIVE_TRANSFORMATION` Part 4 — ***not from `NETWORK`, though it is often claimed***, the
-construction *presupposes what it derives*; a network **exhibits** discreteness rather than
-**producing** it; ***`SPECTRUM` supplies distinguishability, and distinguishability is all counting
-requires.***
+**A STRUCTURE AGAINST A STATE, with no within-kind composition.** *The network supplies nothing and must
+not:* `RECURSIVE_TRANSFORMATION` Part 4 — ***not from `NETWORK`, though it is often claimed***, the
+construction *presupposes what it derives*; a network **exhibits** discreteness rather than **producing**
+it; ***`SPECTRUM` supplies distinguishability, and distinguishability is all counting requires.***
 
-**THERE IS NO CUT, BECAUSE THE BAND WAS NEVER CONTINUOUS IN THE AGENT'S HANDS.** A continuum is *a
-spectrum with **no gaps required*** — **the requirement is ADDED, so the gaps were never removed.**
-The agent only ever holds **encountered colours, a countable set.**
+**THERE IS NO CUT: the band was never continuous in the agent's hands.** A continuum is *a spectrum with
+**no gaps required*** — **the requirement is ADDED, so the gaps were never removed.** *The agent holds
+encountered colours, a countable set.*
 
-### FROZEN AT PLACEMENT, FOR TWO REASONS
+**`above(GB1, GB2)` NEVER FORMS.** The band is ordered; **the index is arbitrary order-of-encounter, so
+it is not a magnitude.** *`COLOUR` stays `COMPARABLE` and not `ORDERED`.*
 
-**Figure 13:** *a settled composition enters the library as a term, and is then **an operand like any
-other**.* **A composition becomes an operand only once SETTLED**, so a derivative recomputed on every
-palette swap was never an operand and could never have joined. **And a coarse-graining that recomputed
-would be re-deriving the level from a substrate it discarded.**
+### Identity is a pointer; placement is a value
 
-### THE CACHE/DURABLE SPLIT IS THE COARSE-GRAINING, SO THE LOSS IS THE MECHANISM RATHER THAN THE COST
+    IDENTITY     A POINTER. a stable handle, assigned once, NEVER REUSED, and never a colour
+    PLACEMENT    A VALUE. `<band><n>` from the band's running maximum -- a position ANOTHER
+                 object can hold at another time. `GB4` highest means the next arrival is
+                 placed at `GB5`, and the one after is `GB6`
+    CHANGE-LIST  append-only, a standard attribute on every object: the placements it has held,
+                 plus whatever rode with each change -- which step, what else moved
 
-*"**Physical continua are not found. They are what remains after detail is discarded** … water
-modelled as a field keeps density and discards ten to the twenty-three molecules."* **The raw RGB is
-the molecules; the band is the density.** **So *raw value cache-only, band ID durable* IS the lossy
-upward transform — and a new hue aliases onto `GB1` PRECISELY BECAUSE the transform already discarded
-what would have told them apart.** *Derived, not stipulated.*
+**The within-play pointer already exists:** `slot_owner()`'s `{s: s.rsplit(".", 1)[0]}`, domain-declared,
+running today. **So the split REMOVES a responsibility from Layer 3**, which never needed to carry
+identity.
 
-**AND IT IS `R_T` A THIRD TIME:** `T_A` is colour → band, `T_E` is band → a colour, **the gap is the
-raw value that cannot come back.**
+**THE CHANGE-LIST IS THE MONOTONE-BY-ADDITION SHAPE FOR THE THIRD TIME** — after `outstanding` (*the
+dilution rule as a data structure*) and `origin`. **Native, not imported.** *And `COLOUR` being
+comparable-not-ordered is what makes it the right shape: **changed / to which placement** is recordable,
+**by how much** is not.*
 
-### WHAT THIS DOES NOT DO
+### Cross-play identity: two keys, different stability, and they must not merge
 
-**`above(GB1, GB2)` never forms.** The band is genuinely ordered; **the index is order-of-encounter
-and arbitrary**, so it is not a magnitude. **`COLOUR` stays `COMPARABLE` and not `ORDERED`**, and the
-erasure work is untouched.
+    obj: INTRINSIC        hash(obj["shape"])  -- the frozenset of NORMALISED offsets
+                          position-free, colour-free, STABLE. BUILT, and being erased
+    obj: DISAMBIGUATION   attribute profile + relations, for two objects of identical shape
+                          BOARD-DEPENDENT, so it is stable only while the board is
 
-**WHAT IS ALREADY THE RIGHT SHAPE.** `Affordances` already runs the cache/durable split with the rule
-stated: *"Drop the bindings, keep the table. **Vocabulary permanent, instances transient.**"* **The
-colour-ID split is that same rule at a different site.**
+> **CHECK 5 APPLIES: one key over two stability classes is a single namespace asserted where two
+> exist.** *State them as two keys or the disambiguation half silently destabilises the intrinsic one.*
 
-**SEAM 3 SETTLED: `GB1` is `Item1` until filled** — the band carries no significance, and **the fill
-is what carries strategy.** *Aliasing on position alone inherits nothing.*
+**THE INTRINSIC HALF IS BUILT AND DOCUMENTED AS IDENTITY.** `shape_of` returns `obj["shape"]` —
+*"normalized means relative to the object's own top-left, so it is **POSITION-INDEPENDENT** — which is
+what makes it **identity under translation as well as under recolour**."*
 
-### THE MID-GAME COLOUR CHANGE — SPECIFIED 2026-09-04, AND IT SEPARATES THREE THINGS THE PLAN HAD AS ONE
+**WHAT DESTROYS IT IS THE PUBLICATION, and `arc_percept` writes its own diagnosis:** *"SENSOR 5,
+PUBLISHED AS A **PER-EPISODE ID** … **the id is a LABEL, exactly like `colour`**: arbitrary, comparable,
+never orderable, and **valid only for the episode it was assigned in**."*
 
-**RESOLVED AS POINTER-VERSUS-VALUE, WHICH IS A CHANGE FROM THE FIRST STATEMENT OF THE RULING.**
-*The identity was first given as `IV3` — a colour label made permanent. It is not a colour label at
-all.*
+> **`sid = self._shapes.setdefault(shape, len(self._shapes))` IS AN ENCOUNTER INDEX — A PLACEMENT.**
+> *Check 2 at its second proven site, with the same cure.* **So `obj:` is `hash(obj["shape"])` and what
+> it needs is P1's *publish shape's frozenset*, already in the order** — *cross-play identity was never
+> new P7 scope; it is the shape-erasure fix seen from the identity side.*
 
-    IDENTITY     A POINTER. a stable handle, assigned once, NEVER REUSED, and never a colour.
-                 `obj_7` is `obj_7` whatever happens to its colour
-    PLACEMENT    A VALUE. a band plus that band's RUNNING MAXIMUM -- a position ANOTHER object
-                 can hold at another time. `GB4` highest means the next arrival is PLACED AT
-                 `GB5`, and the one after is `GB6`. Shared and monotonic per band
-    CHANGE-LIST  append-only, a standard attribute on every object. the placements it has held
-                 over time, plus whatever rode with each change -- which step, what else moved
+**And filing by hue could never have carried it:** *the contamination the hash rule forbids does not
+stop being contamination one level down.* **The game hash and the object hash are one law at two
+scales.**
 
-> **AND THE POINTER ALREADY EXISTS: `slot_owner()` ASSIGNS IT.** *`{s: s.rsplit(".", 1)[0]}` is the
-> object handle, domain-declared, running today.* **So the split does not add a mechanism — it REMOVES
-> a responsibility from Layer 3**, which never needed to carry identity and only ever needed to produce
-> placements.
+### RGB is the live grouping key, and the freeze is protected by the boundary drop
 
-**THE SHARED MONOTONIC COUNTER CONFIRMS THE `SPECTRUM × TIME` DERIVATION RATHER THAN COMPLICATING IT.**
-*`TIME` is **the ordered succession of differences***, and **a shared per-band sequence IS a succession;
-a per-object index would have been a tally.** *The ruling picked the one that types.*
+*When an object changes colour or a new one appears, placing it and deciding whether it joins an
+existing group is done by comparing its actual RGB against the values already recorded.*
 
-**AND THE CHANGE-LIST IS THE MONOTONE-BY-ADDITION SHAPE, FOR THE THIRD TIME.** *`outstanding` is the
-dilution rule as a data structure — nothing leaves the confines*; `origin` is append-only provenance;
-**the change-list is the same shape at a third site.** *Native, not imported.*
+    cache, this play   raw RGB, keyed to the placement. THE SUBSTRATE THE PLACEMENT RUNS OVER
+    durable            the identity, the change-list, and the groupings keyed to them
 
-**THE `A6i` IS CLOSED BY THE SPLIT** — *one label carrying two quantities, cured by one name per
-quantity, which is the same cure `ATTR` and `OBJ × OBJ` took.*
+**SO `T_A` RUNS REPEATEDLY WITHIN A PLAY.** *What is frozen is the IDENTITY, never the placement
+OPERATION* — **and the freeze is protected by the cache being dropped at `boundary`, which is also why
+aliasing works next play: by then the substrate really is gone.**
 
-**AND THE JOB IT LEFT IS ASSIGNED: AN `obj:` STRUCTURE-HASH IN ITS OWN NAMESPACE.** *Three
-key-shapes that cannot collide because each is a different KIND of key:*
+**THE SPLIT IS THE COARSE-GRAINING, SO THE LOSS IS THE MECHANISM RATHER THAN THE COST.** *"Physical
+continua are not found. They are what remains after detail is discarded"* — **the raw RGB is the
+molecules, the band is the density**, and **a new hue aliases onto a placement precisely because the
+transform already discarded what would have told them apart.** *`R_T` a third time: `T_A` is colour →
+band, `T_E` is band → a colour, the gap is the raw value that cannot come back.*
 
-    within-play handle    re-derived by max overlap each episode      `slot_owner()`'s name
-    placement             `<band><n>` @ `hash_episode_level`          a stamped VALUE
-    cross-play identity   `obj:` + hash(structure, NOT colour)        a structure-HASH
-
-**Colour excluded is what makes it survive the swap**, and it is the game hash's own construction one
-scale down — *filing by hue is the contamination the hash rule forbids, and it does not stop being
-contamination one level down.* **Reuses the game hash's prefix-collision check: two different objects
-must not hash alike, two views of one object across plays must.**
-
-> **AND THE CHECK INVERTS WHERE IT LANDS: THE INTRINSIC HALF IS ALREADY BUILT, AND IS BEING ERASED.**
-> `shape_of` returns `obj["shape"]`, a **frozenset of NORMALISED offsets** — *"normalized means relative
-> to the object's own top-left, so it is **POSITION-INDEPENDENT** — which is what makes it **identity
-> under translation as well as under recolour**."* **That is the cross-play key, computed every frame,
-> already colour-free and position-free, and documented as identity.**
-
-**WHAT DESTROYS IT IS THE PUBLICATION, AND `arc_percept` SAYS SO IN ITS OWN COMMENT:** *"SENSOR 5,
-PUBLISHED AS A **PER-EPISODE ID** … **the id is a LABEL, exactly like `colour`**: arbitrary,
-comparable, never orderable, and **valid only for the episode it was assigned in**."*
-
-> **SO THE SHAPE ID CARRIES THE COLOUR ID'S DEFECT EXACTLY, AND TAKES THE SAME CURE.** `sid` is
-> `self._shapes.setdefault(shape, len(self._shapes))` — **an encounter index, which is a PLACEMENT** —
-> and the frozenset behind it is the identity. *The pointer/value split applies verbatim at a second
-> site, and the code had already written the diagnosis.*
-
-**WHICH MOVES THE ITEM FROM P7 TO P1.** *`obj:` is not a hash to construct — it is `hash(obj["shape"])`,
-and what it needs is **P1's publish shape's frozenset**, already in the order.* **What genuinely remains
-for later is the DISAMBIGUATION half** — attribute profile and relations, for two objects of identical
-shape — **and that half is board-dependent where the intrinsic half is not, so the two have different
-stability and should not be one key without saying so.**
-
-### RGB IS THE LIVE GROUPING KEY, WHICH CORRECTS ONE OF THE TWO FREEZE REASONS
-
-**The raw value is not kept merely to tell two blues apart at first encounter.** *When an object changes
-colour or a new one appears, placing it in the right band and deciding whether it joins an existing
-group is done by comparing its actual RGB against the values already recorded.* **RGB is the GROUPING
-key during play; the ID is the IDENTITY key across play.**
-
-    cache, this play      raw RGB, keyed to the colour ID. THE SUBSTRATE THE PLACEMENT RUNS OVER
-    durable              the identity, the change-list, and the groupings keyed to them
-
-> **SO `T_A` RUNS REPEATEDLY WITHIN A PLAY, AND MY SECOND FREEZE REASON WAS SCOPED WRONG.** *A
-> coarse-graining that recomputed would be re-deriving the level from a substrate it discarded* is
-> **true ACROSS plays and false WITHIN one** — the substrate is live in cache all play. **The
-> conclusion is unchanged and the mechanism is corrected: what is frozen is the IDENTITY, never the
-> placement OPERATION**, and the freeze is protected by the cache being dropped at `boundary` rather
-> than by the substrate being unavailable. *Which is also why aliasing works next play: by then the
-> substrate really is gone.*
+**WHAT IS ALREADY THE RIGHT SHAPE.** `Affordances`: *"drop the bindings, keep the table. **Vocabulary
+permanent, instances transient**"* — **the same split at a different site**, and now known to be a
+coarse-graining rather than housekeeping. *`Affordances.bindings` is also the conflation witness — a key
+with two colours in it is a row carrying two things — which is the same object as a two-entry
+change-list.*
 
 ---
 
 ## Layer 4 — Objects, groups, subgroups
 
-**PARTIAL.** `slot_owner()` groups slots by object — `{s: s.rsplit(".", 1)[0]}`, domain-declared,
-*"a loop that split on `.` would be reading domain structure."* **That is grouping at one level only:
-slots into objects. There is no grouping of objects into classes, and no subgroup.**
+**PARTIAL.** `slot_owner()` groups slots into objects, domain-declared — *"a loop that split on `.`
+would be reading domain structure."* **One level only: no grouping of objects into classes, no
+subgroup.**
 
-**WHAT WOULD CHANGE.** Classes keyed by colour ID; subgroups by shape and orientation within a
-class; **and class behaviour as data — do the members move together or individually.**
+**WHAT WOULD CHANGE.** Classes keyed by placement; subgroups by shape and orientation within a class;
+**class behaviour as data — do the members move together or individually.**
 
-**DEPENDS ON.** Layer 3 for the class key. **And on §12.4's trigger, which already computes something
-adjacent**: *two slots with the same attribute vector and different residuals*, grouped by
-`(type, value)`. **That is a same-attribute grouping and it is built** — it groups by attribute
-vector rather than by colour class, and the machinery is the same.
+**DEPENDS ON.** Layer 3 for the class key. **And §12.4's trigger already computes something adjacent** —
+*two slots with the same attribute vector and different residuals*, grouped by `(type, value)`. **Built;
+it groups by attribute vector rather than by class, and the machinery is the same.**
 
-**AND IT NOW SHARES A CONSUMER WITH LAYER 1(e).** *Do the members move together or individually* and
-*several loci correlate with my action* **are the same measurement read for two purposes** — the first
-names a class, the second names `coupled bodies`. **One computation, two readings.**
+**IT SHARES A COMPUTATION WITH LAYER 1(e).** *Do the members move together or individually* and *several
+loci correlate together* **are one measurement read for two purposes** — a class, and `coupled-rigid`.
 
-**CORPUS.** Figure 13: *network — that entities relate, and influence travels.* A class whose members
-move together is a network reading. **The corpus has the term; the build has one grouping level.**
+**CORPUS.** Figure 13: *network — that entities relate, and influence travels.*
 
 ---
 
@@ -470,341 +342,315 @@ move together is a network reading. **The corpus has the term; the build has one
 
     BUILT     eight extractors (colour · row · col · h · w · drow · dcol · shape)
               NOT_RESOLVED as null-not-absent, at the sensor AND in `Term.apply`'s
-              propagation -- "the instrument could not see it" travels rather than
-              becoming a wrong attribute. THIS IS LAYER 5's OWN REQUIREMENT, ALREADY MET
+              propagation -- THIS IS LAYER 5's OWN REQUIREMENT, ALREADY MET
               retrieval keyed by the characterised residual (`retrieval.py`, 3c)
     THIN      ONE relation published: `touching`, via `contacts()`
-              `triggers_remote` and `terminates` declared and never written -- `note` is
-              contact-local and a remote trigger has no touching partner at the far end
+              `triggers_remote` and `terminates` declared and never written
               COUNT and AXIS declared with no producer; BOOL, RATIO, REGION produced and
               unconsumable
     ABSENT    a causality tracker distinct from the attribute tracker
 
 **WHAT WOULD CHANGE.** The relation vocabulary is the item. `RELATIONS.md` marks **~30 relations as
 composable from what the agent already holds**, blocked by two things: **`overlap` computes shape
-congruence rather than spatial overlap** (and cell-IoU between distinct objects is identically zero
-under solidity, so bounding boxes are needed and are a Tier-1 addition), **and `slot_types` has no
-entry for a relation, so the retrieval key can never name one.**
+congruence rather than spatial overlap** — and cell-IoU between distinct objects is identically zero
+under solidity, so bounding boxes are needed and are a Tier-1 addition — **and `slot_types` has no entry
+for a relation, so the retrieval key can never name one.**
 
-> **SEAM 4 SETTLED: ONE EVENT, TWO THRESHOLDS.** **Settled change is the TRIGGER; residual size is
-> the SALIENCE FILTER.** *The pipeline and the build were never describing different events — one
-> named the firing, the other named the ranking.*
+**THE TRIGGER: ONE EVENT, TWO THRESHOLDS.** **Settled change is the TRIGGER; residual size is the
+SALIENCE FILTER.** *One named the firing, the other named the ranking.* **The consequence is call
+volume, priced rather than objected to:** §15.3 claims matching is *a one-pass check, not a search*, and
+`R > 0` holds retrieval to one pass **per residual**.
 
-**THE CONSEQUENCE IS CALL VOLUME, AND IT IS PRICED RATHER THAN OBJECTED TO.** §15.3 claims matching is
-**a one-pass check, not a search**, and `R > 0` is what holds retrieval to one pass **per residual**.
-**Firing on every settled change retrieves for events the model already predicts.**
+**THE CAUSALITY TRACKER'S INPUT IS NAMED.** *`cascade` is what it consumes* — the within-step ordering —
+**which is why it is a tracker distinct from the attribute tracker rather than a second reading of one
+stream.** *Layer 1(e)'s mode transitions file to it, being causal events of the same class.*
 
-**AND THE CAUSALITY TRACKER NOW HAS ITS INPUT NAMED.** *Absent* above is answered by Layer 1(d):
-**`cascade` is what it consumes** — the within-step ordering — **which is why it is a tracker distinct
-from the attribute tracker rather than a second reading of the same stream.** *And Layer 1(e)'s mode
-transitions are filed to it, being causal events of the same class.*
-
-**CORPUS.** §12.3's nine, and the Tier-2 rule: *if it composes from the nine it should be minted, not
-installed.* **Containment and alignment both compose, so both are forbidden as installs.** *What
-breaks the circle legitimately is a richer Tier 1 — and `overlap` is Tier 1 and computes the wrong
-quantity.*
+**CORPUS.** §12.3's nine and the Tier-2 rule: *if it composes from the nine it should be minted, not
+installed.* **Containment and alignment both compose, so both are forbidden as installs.** *What breaks
+the circle legitimately is a richer Tier 1 — and `overlap` is Tier 1 and computes the wrong quantity.*
 
 ---
 
 ## Layer 6 — The action loop
 
-**LARGELY BUILT.** Bets are per slot per action; `R = |Γ(b,a) − o′|` is the transition residual;
-the MDL bargain prices candidates; `Budget` counts actions and `spend()` is wired.
-
-**WHAT CHANGES.** Two, and both are small.
+**LARGELY BUILT.** Bets are per slot per action; `R = |Γ(b,a) − o′|` is the transition residual; the MDL
+bargain prices candidates; `Budget` counts actions and `spend()` is wired.
 
 **(a) The budget is not read by anything.** `exhausted()` and `Termination`'s `cap` are unwired.
 **Figure 13 settles what it is: a GRADIENT — *a difference that can be spent* — not energy, which is
-*directionless alone*.** `THE_FORMULA` licenses it by name: *the action budget prices finding out
-whether it holds*, **in a currency that does not add to the description length.**
+*directionless alone*.** `THE_FORMULA`: *the action budget prices finding out whether it holds*, **in a
+currency that does not add to the description length.**
 
-**(b) The action-scale case has TWO gates, not one, and they are different in kind.** *Predicted
-five presses, one sufficed* is the same case as an embodied locus behaving differently than commanded —
-*self-tracking-as-prediction, seen from the action side.* **But it splits:**
+**(b) The action-scale case has TWO gates, different in kind.**
 
     THE GAP          predicted action count against actual. NEEDS A MULTI-STEP PLAN, and there
                      is no PLAN step in `ledger.STEPS`. Gated on LINK 4, not on P4
     THE MECHANISM    slid or teleported -- what property was missed. NEEDS THE CASCADE, so
-                     gated on P4. And `ls20` carries one frame always, so on ls20 the
-                     mechanism half is UNAVAILABLE PERMANENTLY rather than pending
+                     gated on P4. `ls20` carries one frame always, so there the mechanism half
+                     is UNAVAILABLE PERMANENTLY rather than pending
 
-**So *action-scale learning waits on P4* would be wrong in both directions**: the gap waits on
-something P4 does not supply, and the diagnosis never arrives on half the panel. **Seam 9's condition,
-reaching a second item.**
+*It is the same case as an embodied locus behaving differently than commanded —
+self-tracking-as-prediction, seen from the action side.*
 
-> **SEAM 5 SETTLED: DISCOVERING A BOUND THROUGH PLAY IS EXPERIENCE; READING A GIVEN PARAMETER IS A
-> SEAT-READ.** *The same line as the hash — computed versus handed.* **`PER_LEVEL` and `MAX_ACTIONS`
-> stay seat-side and unread by the agent.**
-
-**AND THE DEATH POINT IS ALREADY IN THE LEDGER — AS A SEAT READING, WHICH REVISION 2 DID NOT SAY.**
-*`by` summing to the act count* — **~131 on `g50t`, ~152 on `ls20`.** **That is MY reading of the
-ledger, not the agent's memory**, and revision 2's phrasing invited the opposite.
-
-### THE CEILING ABSTENTION — RULED 2026-09-04, AND IT IS AN INSTRUMENT RATHER THAN A LOSS
+### The ceiling abstention — an instrument rather than a loss
 
     KEPT, DURABLE   step counts, action counts, what-cost-what PER GAME. First-hand experience,
                     how bets are sized, and the recall behind `strategy X took 40 steps there`
     ABSTAINED       the single `MAX_ACTIONS` ceiling per level. NEVER SAVED AS A NUMBER
 
+**Discovering a bound through play is experience; reading a given parameter is a seat-read** — *computed
+versus handed, the same line as the hash.* **`PER_LEVEL` and `MAX_ACTIONS` stay seat-side and unread.**
+
 **THE REASON IS NOT BOARD-SPECIFICITY.** *Keeping every count and never the ceiling leaves the agent
 knowing only the **RELATIVE** action cost of games and never the absolute budget of a level* — **which
-is itself the proof-of-learning property**, since it demonstrates the shape of effort was learned
-without the answer key. **And if it ever reconstructs the ceiling from relative data, EARNING the
-number is categorically different from being handed it.**
+is the proof-of-learning property**, and **earning the number is categorically different from being
+handed it.**
 
-> **SAME SHAPE AS CLAUSE 3 AND AS SEAM 6's BACKUP: WITHHOLDING IS WHAT CREATES THE MEASUREMENT.**
-> *Wipe Γ and see whether the win survives; withhold the absolute and see whether it is derived.*
-> **An abstention that makes a later claim checkable is an instrument, and this one has a falsifier:
-> if an absolute budget ever appears, provenance says whether it was derived or read.**
+> **SAME SHAPE AS CLAUSE 3 AND SEAM 6's BACKUP: WITHHOLDING IS WHAT CREATES THE MEASUREMENT**, and it
+> carries a falsifier — **if an absolute budget ever appears, provenance says whether it was derived or
+> read.**
 
-**AND *RELATIVE COST ACROSS GAMES* IS NOT POOLING, WHICH THE NEXT READER WILL ASSUME IT IS.** *Pooling
-averages a metric across games and destroys the per-game reading.* **Comparing two games' costs keeps
-both intact and reads the relation between them** — the thing the no-pooling rule exists to protect,
-not the thing it forbids.
+**AND *RELATIVE COST ACROSS GAMES* IS NOT POOLING**, which the next reader will assume it is. *Pooling
+averages a metric across games and destroys the per-game reading; comparing two games' costs keeps both
+intact.*
+
+**THE DEATH POINT — `by` summing to the act count, ~131 on `g50t`, ~152 on `ls20` — IS A SEAT READING**,
+per check 1. *Not the agent's memory.*
 
 ---
 
 ## Layer 7 — Persistence, recall, import
 
-**PARTIAL.** `gamma.save(path)` / `load(path)` exist and are switchable, default cold. Terms carry
-`origin` — `prior | minted | imported` — **so provenance is a field and not a convention.** `retarget`
-parks unresolved residuals per level as `L{level}:{slot}`.
+**PARTIAL.** `gamma.save(path)` / `load(path)` exist, switchable, default cold. Terms carry `origin` —
+`prior | minted | imported` — **so provenance is a field, not a convention.** `retarget` parks unresolved
+residuals per level as `L{level}:{slot}`.
 
 **ABSENT.** The structural hash, the `hash_episode_level` stack, palette-swap aliasing, cross-game
 lookup.
 
-### CROSS-GAME SCENARIO LOOKUP IS A SEPARATE BUILD FROM TERM IMPORT, AND IS NOT ABSORBED BY THE HASH
-
-**The hash IDENTIFIES a game; the scenario lookup MATCHES A SITUATION ACROSS games.** *Different
-operations, and only the first is what P7's hash machinery does.*
-
-**THE MATCHING MECHANISM EXISTS AND IS AT THE WRONG SCOPE.** `retrieval.retrieve(library, gap)` is
-**one pass over the store ordered by fit** — *"not a search: no composition, no enumeration, no closure
-walked"* — **which is precisely *this obstacle is familiar, where have I seen this shape*.** What it
-lacks is **what it is handed**: one `library`, one game.
-
-**WHAT IT OWES, AND `retrieve` SUPPLIES NONE OF IT:**
-
-- **a scenario store to search.** `fits(t, gap, in_type, out_type)` is typed over TERMS. **A stored
-  play is not a term, so a scenario must present a gap-shaped face before it is searchable at all** —
-  that is the build, and it is not the hash's.
-- **an ordering across stores.** *Current game weighted highest; a wider search only when own
-  strategies are exhausted and confidence is low.* **SEAM 7 supplies the weighting with no bare
-  number** — provenance seeds the mode, performance updates it, and *open* is what a match from
-  another game starts as.
-- **import at low priority with provenance.** `origin: imported` is already a field. **Structural,
-  and the only part already built.**
-
-### SEAM 6 SETTLED — THE BACKUP IS AN INSTRUMENT, AND THE ROUND TRIP IS LITERAL
+### The ablation backup is an instrument, and the round trip is literal
 
 **`DECOMPOSITION.md:164` already defines the computation:**
 
     R_T  =  gap( x , (T_E . T_A)(x) )        x concrete
 
-**Wipe is `T_A`, rebuild is `T_E`, the gap is what did not come back.** *The same form, one scale up —
-and `R_T` is settled as **a reading, never a gate**, which is what turning a verdict into a
-measurement restates.*
+**Wipe is `T_A`, rebuild is `T_E`, the gap is what did not come back** — *the same form one scale up, and
+`R_T` is settled as **a reading, never a gate**, which is what turning a verdict into a measurement
+restates.*
 
-> **AND THE THING THAT MADE `R_T` TOY-SHAPED IS ABSENT AT THIS SCALE.** `_round_trip` finds the
-> pre-image **by sweeping the domain** — `3.32e+13` on a 4×4, **the span overflows a float on 64×64**.
-> **At ablation scale the pre-image is STORED, not searched: the backup IS the pre-image.**
+> **THE THING THAT MADE `R_T` TOY-SHAPED IS ABSENT AT THIS SCALE.** `_round_trip` finds the pre-image
+> **by sweeping the domain** — `3.32e+13` on a 4×4, **the span overflows a float on 64×64.** **At
+> ablation scale the pre-image is STORED, not searched: the backup IS the pre-image.**
 
-**WHAT THE BACKUP BUYS, AND NONE OF IT IS PROTECTION:** *reproduction* — where and when a failure
-happened, rather than only that the win did not survive; *same-shape-different-data, shown* — a cold
-start collects in a different order and the backup lets that be demonstrated rather than assumed; and
-*network effects, traceable* — how cold starts, presentation order and cross-game recall interact.
+**WHAT IT BUYS, AND NONE OF IT IS PROTECTION:** *reproduction* — where and when a failure happened rather
+than only that the win did not survive; *same-shape-different-data, shown* — a cold start collects in a
+different order and the backup lets that be demonstrated; *network effects, traceable* — how cold starts,
+presentation order and cross-game recall interact.
 
-**TWO CONSTRAINTS ON THE INSTRUMENT:**
+**TWO CONSTRAINTS:**
 
-- **THE BACKUP IS HARNESS-SIDE AND THE AGENT NEVER READS IT.** *The seat may read the harness; the
-  agent may read only the frame.* **A frame that could read its own recall gap is scoring itself with
-  a quantity it produced.**
-- **THE COMPARISON KEYS BY TERM CONTENT AND LINEAGE, NEVER BY ORDER.** *A cold start collects in a
-  different order*, so an order-keyed comparison reads **recovered differently** as **not recovered**.
-  **And the denominator is fixed by the backup being taken BEFORE the wipe** — clause 3's *back up
-  first; refuse to wipe if verification failed.*
+- **HARNESS-SIDE, AND THE AGENT NEVER READS IT.** *A frame that could read its own recall gap is scoring
+  itself with a quantity it produced.*
+- **KEYED BY TERM CONTENT AND LINEAGE, NEVER BY ORDER.** *A cold start collects in a different order*, so
+  an order-keyed comparison reads **recovered differently** as **not recovered**. **The denominator is
+  fixed by the backup being taken BEFORE the wipe** — clause 3's *back up first; refuse to wipe if
+  verification failed.*
 
-**ONE TEXT REPAIR OWED, IN A WORKING DOCUMENT.** **Clause 3 says *wipe Γ* and the store is outside Γ.**
-*The substance is settled and the text is not, and the next reader wipes what the text names.*
+**ONE TEXT REPAIR OWED IN A WORKING DOCUMENT:** **clause 3 says *wipe Γ* and the store is outside Γ.**
+*The next reader wipes what the text names.*
 
-### SEAM 7 SETTLED — THE MODE IS DERIVED, AND ITS CLOCK IS BUILT
+### Cross-game scenario lookup is a separate build from term import
 
-**Provenance seeds the mode; performance updates it.** *Derived rather than assigned — the same move
-as the structure hash*, and it makes **proven / believed / open computed corpus-wide**, which was the
-hole the weighting sat in.
+**The hash IDENTIFIES a game; the scenario lookup MATCHES A SITUATION ACROSS games.**
 
-**`Standing.decay` runs on a LOGICAL clock — `rejections *= 0.5 ** (gap / REJECTION_HALFLIFE)`,
-attempts and generations, no wall clock — so demotion already has a clock and a half-life**, and
-`settled_at` is the promotion side. **Wiring, not invention.**
+**THE MATCHING MECHANISM EXISTS AT THE WRONG SCOPE.** `retrieval.retrieve(library, gap)` is *one pass
+over the store ordered by fit — "not a search: no composition, no enumeration, no closure walked"* —
+**which is precisely *this obstacle is familiar, where have I seen this shape*.** *What it lacks is what
+it is handed: one library, one game.*
 
-**And the confidence rule is one rule everywhere:** *proven* when it holds first-hand now, *believed*
-when carried from a prior level or play, *open* when carried from a different game. **A composition
-takes the weakest of its parts**, so parts can be proven while the whole is believed — **which is what
-a per-locus mode composing to a board reading needs, and it needs nothing else.**
+- **a scenario store to search.** `fits(t, gap, in_type, out_type)` is typed over TERMS. **A stored play
+  is not a term, so a scenario must present a gap-shaped face before it is searchable at all.**
+- **an ordering across stores** — *current game weighted highest; a wider search only when own strategies
+  are exhausted and confidence is low.* **The mode supplies it with no bare number.**
+- **import at low priority with provenance** — `origin: imported` is a field. **The only part built.**
 
----
+### The mode is derived, and its clock is built
 
-# THE PHASE ORDER, AND WHY
+**Provenance seeds the mode; performance updates it** — *derived rather than assigned, the same move as
+the structure hash*, making **proven / believed / open computed corpus-wide.**
 
-**Dependency, not cost.** *Read the SPEC of each item before ordering a phase, not the row that
-summarises it.* **The order is unchanged from revision 1; the contents are not.**
+**`Standing.decay` runs on a LOGICAL clock — `rejections *= 0.5 ** (gap / REJECTION_HALFLIFE)`, attempts
+and generations, no wall clock** — and `settled_at` is the promotion side. **Wiring, not invention.**
 
-    P0  RULE `dict[str, int]`            gates L1(a), L4, L5. Nothing below moves first.
-                                         NARROWED by SEAM 8: side channel, not widening
-    P1  bounding-box overlap (Tier 1)    unblocks ~6 containment relations by COMPOSITION
-        + publish shape's frozenset      closes the erasure; the six orientation relations follow
-    P2  a pair store                     write where the matrices already exist. Gives
-                                         relational HISTORY and MATCH CONFIDENCE, which
-                                         nothing holds today
-    P3  a relational key                 `slot_types` cannot name a pair. THE build of the
-                                         three -- L5's cap and Figure 3's link 2
-    P4  cascade: the frame stack         L1(b)+(d). Same tracker, finer sampling. g50t only.
-                                         The naming split lands HERE, before the collision bites
-    P5  colour IDs + classes             L3 and L4. GB1 = SPECTRUM x TIME, frozen at placement
-    P6  the budget as a gradient channel L6(a). Wiring; the REWARD/TRANSITION pattern exists
-    P7  hash, stack, and the backup      L7. UNBLOCKED -- SEAM 6 settled, and the backup is
-                                         now part of the deliverable rather than a hazard
-
-**P1 through P4 are all Layer 1 and Layer 5 work: the break is there and everything below it is a
-reading of nothing until it moves.**
-
-## Where the settlements land, and the one item that is ungated
-
-- **P0 narrowed.** The tree is a side channel; Layers 4 and 5 read it directly and **only their
-  outputs become bettable.** *A smaller ruling than revision 1 posed.*
-- **P4 gained the naming split** — `cascade` to the causality tracker, `transition` to the attribute
-  tracker, **with `animation` retired.** *This is where the collision would have bitten.*
-- **P5 gained a derivation** rather than a stipulation, and **`role` is no longer undefined**, because
-  the fill carries the strategy and the band carries nothing.
-- **P7 is unblocked and gained the backup as its instrument.**
-
-> **AND ONE NEW ITEM IS UNGATED: LAYER 1(e), THE PER-LOCUS MODE.** Its detectors are built and fed;
-> **its loci already have a key in `slot_owner()`; it needs neither P0's ruling nor P4's stack.** *What
-> it owes is a consumer for a verdict nothing reads.* **So it can be taken at any point in the order.**
-
-**AND THE CONTACT CLAIM IS QUALIFIED, BECAUSE UNQUALIFIED IT CONTRADICTS SEAM 8.** **(e) changes
-contact by REDUCING WHAT IS TRACKED for a confirmed locus, never by selecting behaviour from the
-board-level composition** — *the per-locus drive is licensed as thin I/O; the board composition remains
-a finding.* **What gets changed is what is MEASURED, not what is CHOSEN.**
-
-> **AND THE REACH CLAIM IS STATED SO IT CAN BE READ, NOT ASSERTED.** *An improvement that does not
-> change contact changes nothing.* **The claim is that mass stops piling on the locus the agent is
-> driving, so `_last_mass`'s focal ordering points at what the agent did NOT cause.** **That is
-> checkable against the focal ordering before and after, and it should be measured** — *a contact claim
-> defended by argument is the failure mode the rule was written against.*
+**One rule everywhere:** *proven* when it holds first-hand now, *believed* when carried from a prior level
+or play, *open* when carried from a different game. **A composition takes the weakest of its parts.**
 
 ---
 
-# THE NINE SEAMS, SETTLED
+# SEAM 10 — The band counter's reset semantics
 
-**All nine resolved 2026-09-04. Recorded here as resolutions; the reasoning is in `INDEX.md`.**
+**The counter advances within a play. Nothing said what it did across plays, and the change-list is
+durable, so a placement written this play is read next play.**
 
-| | seam | resolution | what it changed |
-|---|---|---|---|
-| **1** | the reading pattern vs §11 | **§11 never applied** — a reading order is *what to look at*, so §23.2 governs; the five non-Γ homes are populated, not entered | Layer 2 admissible; `_last_mass` is the built fallback |
-| **2** | `ROYGBIV` vs Figure 13 | **`GB1` = `SPECTRUM × TIME`** — band is where, index is the ordered succession of differences. A legal matrix cell; the network supplies nothing | Layer 3 derived; `COLOUR` stays comparable-not-ordered |
-| **3** | aliasing inherits by position | **`GB1` is `Item1` until filled** — the band carries no significance, the fill carries the strategy | aliasing inherits nothing on position alone |
-| **4** | the lookup trigger | **one event, two thresholds** — settled change triggers, residual size filters salience | Layer 5's trigger reconciled; call volume priced |
-| **5** | the learned ceiling | **discovered through play is experience; a given parameter is a seat-read** | seat constants stay unread; the ceiling is already measurable |
-| **6** | the store vs clause 3 | **the store is wiped, and the backup makes the wipe MEASURABLE** — `R_T` at ablation scale | P7 unblocked; clause 3's text owes a repair |
-| **7** | cross-game weighting | **provenance seeds the mode, performance updates it** | no bare number; `Standing.decay` is the clock |
-| **8** | the tree the loop cannot hold | **side channel, outputs bettable** — plus the `cascade`/`transition` split and the per-locus mode | Layer 1 gained (d) and (e) |
-| **9** | unflagged rulings | **`animation` is per-game** — `ls20` has none | conditions the claim, and the acceptance test |
-
----
-
-# THE ACCEPTANCE TEST
-
-**The finished build must represent everything `ARC GAMEPLAY - WHAT THE AGENT SEES.md` lays out, and
-DEMONSTRATE what it left out.** *The story is the specification, and it is also the test.*
-
-**ONE CONDITION INHERITED FROM SEAM 9, AND IT IS LOAD-BEARING.** **The story includes animation and
-`ls20` has none, so the acceptance test is PER GAME.** *A build that satisfies the story on `g50t` and
-shows nothing on `ls20` has **PASSED**, not failed* — **firing only where the capability is present is
-the stronger verdict, because it discriminates.**
-
-**AND ONE STEP THE SHRINK DOES NOT REACH:** *a pair has no slot, so its output has no bettable name.*
-**That is P3, and it is the load-bearing one.**
-
----
-
-# THE THREE OPEN ITEMS, SETTLED 2026-09-04
-
-| item | ruling | lands |
-|---|---|---|
-| **mid-game colour change** | **identity permanent, placement re-numbered from the band's running maximum, change-list append-only** — and RGB stays cache-live as the grouping key | **P5**, Layer 3 |
-| **the learned ceiling** | **counts durable per game; the `MAX_ACTIONS` ceiling abstained and never saved as a number** — relative-only is the proof-of-learning property | **P6/P7**, Layer 6 |
-| **the mode values** | **all five built** — the absent `coupled_agency.py` is a name written before its code | **Layer 1(e)**, ungated |
-
-**And the two prior hooks are absorbed rather than dropped:** `Affordances.bindings` remains the
-conflation witness — *a key with two colours in it is a row carrying two things* — **and it is now the
-same object as a two-entry change-list**; and **`COLOUR` being `COMPARABLE` not `ORDERED` is what makes
-the change-list the right shape**, since *changed / to which placement* is recordable and *by how much*
-is not.
-
----
-
-# SEAM 10 -- SETTLED: PER-PLAY COUNTER, STAMPED WITH THE FULL `hash_episode_level`
-
-**Option (ii), with a richer stamp than the precedent.** *The counter resets each play; every placement
-carries the full `hash_episode_level` triple, both namespaces are separated, and the level component is
-what preserves the dilution.*
+**SETTLED: PER-PLAY COUNTER, STAMPED WITH THE FULL `hash_episode_level`.**
 
     identity      a pointer. permanent, structural, never a colour
     placement     `<band><n>` @ `hash_episode_level`. the counter is PER PLAY, and the stamp is
                   what makes an entry readable after the counter that minted it has reset
 
 **THE STAMP IS THE DILUTION RULE MADE ADDRESSABLE.** Layer 7: *a later level uses an earlier one, but
-LOSSILY -- the earlier plays are residual the new level composes against, the way solute already in a
-container is not removed when more solvent is added.* **A level component in the key is what lets prior
-plays remain available AT REDUCED STRENGTH rather than being either overwritten or confused.** *Nothing
-leaves; the stamp is how what stayed is still reachable.*
+LOSSILY — the earlier plays are residual the new level composes against, the way solute already in a
+container is not removed when more solvent is added.* **The level component is what lets prior plays
+remain available AT REDUCED STRENGTH rather than being either overwritten or confused.** *Nothing leaves;
+the stamp is how what stayed is still reachable.*
 
-> **AND THE TWO STAMP FORMATS DIFFER ON PURPOSE -- DO NOT HARMONISE THEM.** `retarget` parks residuals
-> as **`L{level}:{slot}`**, level only; placements carry **hash, episode AND level.** *A residual's
-> lifetime ends at a LEVEL boundary; a placement's ends at an EPISODE boundary, because the palette
-> swaps on reset.* **One format over two lifetimes would be `A6i`'s inverse -- a single namespace
-> asserted where two exist** -- and it is the tidy-looking change a later reader is most likely to
-> make.
+> **DO NOT HARMONISE THE TWO STAMP FORMATS — CHECK 5.** `retarget` parks residuals as **`L{level}:{slot}`**,
+> level only; placements carry **hash, episode AND level.** *A residual's lifetime ends at a LEVEL
+> boundary; a placement's ends at an EPISODE boundary, because the palette swaps on reset.* **One format
+> over two lifetimes is a single namespace asserted where two exist, and it is the tidy-looking change a
+> later reader makes.**
+
+**AND THE NAMESPACES SEPARATE FIRST.** *Under a per-play counter a fresh placement `GB1` would collide
+with an existing object's identity `GB1`* — **which the pointer/value split has already closed.**
+
+---
+
+# THE PHASE ORDER
+
+**Dependency, not cost.** *Read the SPEC of each item before ordering a phase, not the row that
+summarises it.* **The order is unchanged across all three revisions.**
+
+    P0  RULE `dict[str, int]`            gates L1(a), L4, L5. Nothing below moves first.
+                                         NARROWED: side channel, not widening
+    P1  bounding-box overlap (Tier 1)    unblocks ~6 containment relations by COMPOSITION
+        + PUBLISH shape's frozenset      closes the erasure; the six orientation relations
+                                         follow -- AND IT IS `obj:` INTRINSIC IDENTITY, which
+                                         is why cross-play identity is not new P7 scope
+    P2  a pair store                     write where the matrices already exist. Gives
+                                         relational HISTORY and MATCH CONFIDENCE
+    P3  a relational key                 `slot_types` cannot name a pair. THE build of the
+                                         three -- L5's cap and Figure 3's link 2
+    P4  cascade: the frame stack         L1(b)+(d). TWO CONSUMERS, never a debounce. g50t only
+    P5  placements + classes             L3 and L4. `SPECTRUM x TIME`, identity/placement split,
+                                         `hash_episode_level` stamp.
+                                         GATED ON THE `ValueLatentSelf` WORKSHOP -- below
+    P6  the budget as a gradient channel L6(a). Wiring; the REWARD/TRANSITION pattern exists
+    P7  hash, stack, and the backup      L7. The backup is the ablation's instrument.
+                                         `obj:` DISAMBIGUATION lands here, not the intrinsic half
+
+**P1 through P4 are Layer 1 and Layer 5 work: the break is there, and everything below it is a reading
+of nothing until it moves.**
+
+## The ungated item, and the contact claim stated so it can be read
+
+> **LAYER 1(e), THE PER-LOCUS MODE, IS UNGATED.** Its detectors are built and fed; its loci already have
+> a key in `slot_owner()`; **it needs neither P0's ruling nor P4's stack.** *What it owes is a consumer
+> for a verdict nothing reads.*
+
+**(e) CHANGES CONTACT BY REDUCING WHAT IS TRACKED for a confirmed locus, never by selecting behaviour
+from the board-level composition.** *The per-locus drive is licensed as thin I/O; the board composition
+remains a finding.* **What changes is what is MEASURED, not what is CHOSEN.**
+
+**THE READING THAT WOULD SHOW IT — check 4:** *mass stops piling on the locus the agent is driving, so
+`_last_mass`'s focal ordering points at what the agent did NOT cause.* **Checkable against the focal
+ordering before and after, and it is to be measured rather than argued.**
+
+## The `ValueLatentSelf` workshop — a P5 gate
+
+**IT BITES EXACTLY ONE PLACE.** *The member keys its history on the raw palette integer that P5 replaces,
+so if P5 lands without this settled, **the one detector that answers `ls20` breaks silently**.*
+
+**NEARLY SETTLED — THE RESIDUAL CONJUNCT.** The condition is *input→value alignment*, where embodied has
+*input→locus alignment*. **Its positive half is built:** `_attribute(action, cts[colour] − was)` is the
+per-action contingency, and `has_self()` is *"consistent AND meaningful: every nonzero step one way, and
+net travel of at least one unit per nonzero step."* **The second conjunct states positively as *the
+value's change carries unexplained mass after every locus's contribution is priced*** — `outstanding`,
+running. *Check 3.*
+
+**THE REAL PIECE — WHICH BOARD-WIDE QUANTITIES P5 PUBLISHES INTO THE CANDIDATE SET.** *A perception
+question with an entry rule, which is the legitimate way to widen Tier 1.*
+
+> **AND THE CONSTRAINT ON P5, STATED SO NOBODY WALKS INTO IT: WIDEN THE CANDIDATE SET, NEVER NAME THE
+> VALUE.** **The member SELECTS its value** — the non-background series with the highest monotonicity,
+> `mono = |Σ sign(Δ)| / |nonzero|`, updated every observation — **so the agent already answers *which
+> value*, and the monotonicity search IS the evidence the mechanism works.**
+>
+> **Naming the value for a game encodes the answer and destroys what the member exists to demonstrate.**
+> *The correct fix and the fatal fix produce the same behaviour on the target game and diverge only on
+> transfer* — **which is the firewall's own failure mode, one level down.**
+
+---
+
+# THE ACCEPTANCE TEST
+
+**The finished build must represent everything `ARC GAMEPLAY - WHAT THE AGENT SEES.md` lays out, and
+DEMONSTRATE what it left out.** *The story is the specification and the test.*
+
+**ONE CONDITION, AND IT IS LOAD-BEARING: the story includes animation and `ls20` has none, so the test
+is PER GAME.** *A build that satisfies the story on `g50t` and shows nothing on `ls20` has **PASSED**,
+not failed* — **firing only where the capability is present is the stronger verdict, because it
+discriminates.**
+
+**AND ONE STEP THE SHRINK DOES NOT REACH:** *a pair has no slot, so its output has no bettable name.*
+**That is P3, and it is the load-bearing one.**
+
+---
+
+# WHAT WAS SETTLED
+
+**Ten seams and three items, 2026-09-04. The reasoning is in `docs/INDEX.md`; the decisions are in the
+layers above.**
+
+| | resolution |
+|---|---|
+| **1** reading pattern vs §11 | §11 never applied; §23.2 governs. `_last_mass` is the built fallback |
+| **2** `ROYGBIV` vs Figure 13 | `GB1` = `SPECTRUM × TIME`; the network supplies nothing |
+| **3** aliasing by position | `GB1` is `Item1` until filled — the fill carries the strategy |
+| **4** the lookup trigger | one event, two thresholds: change triggers, residual filters salience |
+| **5** the learned ceiling | discovered through play is experience; a given parameter is a seat-read |
+| **6** the store vs clause 3 | the store is wiped, and the backup makes the wipe MEASURABLE |
+| **7** cross-game weighting | provenance seeds the mode, performance updates it |
+| **8** the tree the loop can't hold | side channel, outputs bettable; plus (d) and (e) |
+| **9** unflagged rulings | `animation` is per-game — `ls20` has none |
+| **10** the band counter | per-play, stamped `hash_episode_level`; do not harmonise the stamps |
+| **i** mid-game colour change | identity permanent, placement re-numbered, change-list append-only |
+| **ii** the learned ceiling | counts durable per game; the ceiling abstained and never saved |
+| **iii** the mode values | all five built, at three levels; only per-locus drives |
 
 ---
 
 # STILL OPEN
 
-**ONE ITEM, AND IT IS A WORKSHOP RATHER THAN A RULING: `ValueLatentSelf`'s residual conjunct, and
-which board-wide quantities P5 publishes into the candidate set it already searches.** *Downstream of
-P0-P3 and runs in parallel; it must resolve before P5, because P5 changes what the member reads.*
-
-**CLOSED:** the three original items - the identity/placement `A6i` - `coupled`, as three states
-classified per relationship, with `coupled-loose` ordinal on `MIN_REPEAT` - **SEAM 10** - the cascade's
-debounce question, answered by (d) rather than by a debounce - and **cross-play object identity**, which
-is `hash(obj["shape"])` and lands at **P1, not P7**.
+**ONE ITEM: the `ValueLatentSelf` workshop — the residual conjunct's exact form, and which board-wide
+quantities P5 publishes into the candidate set the member already searches.** *It does not touch P0–P3
+and does not delay the start; it must resolve before P5.*
 
 ---
 
-# WHAT IS ALREADY COMPLIANT, AND WORTH SAYING
+# WHAT IS ALREADY COMPLIANT
 
 **Null-not-absent** — `NOT_RESOLVED` at the sensor, propagating through `Term.apply`. **Layer 5's own
 requirement, built and measured.**
 
-**Provenance on import** — `origin: prior | minted | imported` is a field. **Figure 8's requirement,
-structural.**
+**Provenance on import** — `origin: prior | minted | imported`. **Figure 8's requirement, structural.**
 
-**Cache versus durable** — `Affordances`: *vocabulary permanent, instances transient*, dropped at
-`boundary`. **Layer 3's split, already running at a different site — and now known to be the lossy
-coarse-graining rather than a housekeeping convention.**
+**Cache versus durable** — `Affordances`: *vocabulary permanent, instances transient*. **Layer 3's split
+at a different site, and the lossy coarse-graining rather than housekeeping.**
 
-**Described, never composed** — the seat/agent line, and `slot_owner`'s *the loop may not derive
-this*. **Layer 2's discipline, already the house rule.**
+**Described, never composed** — the seat/agent line, and `slot_owner`'s *the loop may not derive this*.
+**Layer 2's discipline, already the house rule.**
 
-**The budget as a gradient** — Figure 13's *a difference that can be spent*, and `THE_FORMULA`'s two
-currencies that do not add. **Layer 6's framing, corpus-confirmed.**
+**The budget as a gradient** — Figure 13's *a difference that can be spent*. **Layer 6's framing,
+corpus-confirmed.**
 
-**The self-model family** — four hypotheses with independent failure modes, fed every step. **Layer
-1(e)'s detectors, built. Only the verdict goes unread.**
+**The self-model family** — four hypotheses with independent failure modes, fed every step. **Layer 1(e)'s
+detectors, built. Only the verdict goes unread.**
 
-**The confidence clock** — `Standing.decay` on a logical clock. **Layer 7's promotion and demotion,
-built.**
+**The accumulation shapes** — `stable()` ordinal on `MIN_REPEAT`, `Standing.decay` on a logical clock.
+**Two shapes, both built, not interchangeable.**
 
-**The round trip** — `round_trip_gap` / `_round_trip`, `R_T` as a reading. **Layer 7's ablation
-instrument, built at slot scale and free at ablation scale.**
+**The intrinsic object key** — `shape_of`'s normalised frozenset, position-free and colour-free.
+**Computed every frame; erased only at publication.**
+
+**The round trip** — `round_trip_gap` / `_round_trip`, `R_T` as a reading. **Built at slot scale and free
+at ablation scale.**
