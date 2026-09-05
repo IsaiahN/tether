@@ -13878,3 +13878,50 @@ quantity, with `COMMENSURABLE`'s pinned `POSITION+DELTA` still passing. **Not sh
 **The ARITY half alone, and its trigger is a grep that has been checked three times and stayed
 unfired.** *An atom that consumes past index 0 does not exist.* **So the session is smaller than
 either of us thought, and P1, the extract space and the trajectory do not wait on it.**
+
+---
+
+# THE SIDE CHANNEL IS NOT THE HEAD OF THE QUEUE. THREE BLOCKERS STACK, AND THE BOTTOM ONE IS NAMED IN `CLAUDE.md`
+
+**Checked before building, and the check found a layer beneath the one I was about to wire.**
+
+    1  the extract atoms ABSTAIN          the loop hands a SCALAR. this is the flattening,
+                                          and P0's side channel is its answer
+    2  they cannot be ENUMERATED          EVERY `enumerate_closure` call in the repo passes
+                                          `"val", "val"` -- tether x3, world, snaps. The
+                                          predict atoms are `val -> val`; the OTHER FIFTEEN
+                                          are not. **The live search cannot reach them**
+    3  their output cannot be BET         the chain ends at `OBJ`, and a bet is a predicted
+                                          SLOT VALUE. `tether:1674` takes `env.objective()`'s
+                                          NAME STRING and hand-builds `WANT(ALL(BECOME(name,
+                                          "satisfied")))` for the UTTERANCE, while the bet is
+                                          `BECOME(focal, pred)` from a `val -> val` term.
+                                          **Narrated and computed, never meeting**
+
+> **AND (3) IS `CLAUDE.md`'s OWN ENTRY, VERBATIM:** *NOT INSTANTIATED — **the WIRE from the composed
+> objective to the bet** · the SELECTOR that would pick among composed objectives.* **The map already
+> says this. I have been proposing builds two levels above it.**
+
+## SO WIRING THE SIDE CHANNEL WOULD SHIP A MECHANISM WHOSE CONSUMER DOES NOT EXIST
+
+*Extract atoms that can compute but cannot be enumerated, producing a type nothing bets.* **Half a
+mechanism, twice over** — and the reason to check first rather than build first.
+
+## AND THE PATTERN IN MY OWN REPORTS IS THE THING TO SAY OUT LOUD
+
+**Twice in two rounds I have named a blocker and the check has found a deeper one.**
+
+    round 1   "P1 is blocked on `0a`'s parked operand typing"   -> the typing half is BUILT
+    round 2   "wire P0's side channel, it unblocks the extract   -> enumeration and the bet-wire
+               space and P1 together"                              sit beneath it
+
+**The corrections came from reading the code, and both times the thing I asserted was one layer up
+from the thing that was true.** *So the next move should be chosen with the whole stack visible rather
+than from a third confident answer* — **the fault the section check exists to catch is exactly a plan
+that keeps being right about the wrong layer.**
+
+## WHAT THIS DOES NOT CHANGE
+
+**The three-atom `operand_type` gap stands** and is independent of all of this — `same`, `other`,
+`above` declare none, and an undeclared type admits. **The streak-keying stands and is independent.**
+**And `0a`-the-session stays filed with its trigger unfired.**
