@@ -14857,3 +14857,43 @@ not data.** *Recorded so the next reader does not mistake the cap for a finding.
 
 **demo 2.5s from 2.3s; the candidate space roughly doubled as predicted, and `budget` at 4,000 against
 a measured 1,884 maximum was not reached.**
+
+---
+
+# LINK 2, STATED MECHANICALLY: `touching` PRODUCES A TYPE NOTHING ACCEPTS
+
+## THE TYPE GRAPH HAS EXACTLY TWO DEAD ENDS, AND ONE IS DELIBERATE
+
+    produced by an atom     BOOL COLOUR DELTA EXTENT OBJ POSITION PRED SHAPE val
+    accepted by an atom     COLOUR DELTA EXTENT OBJECT POSITION PRED SHAPE val
+    PRODUCED, UNCONSUMED    BOOL  <- touching
+                            OBJ   <- all, any, none
+
+**`OBJ`'s dead end is CLOSED BY THE EDGE** — `objective_step` consumes it at `_predict`, outside the
+atom graph. *By design, and it is why the edge could not be an atom.*
+
+> **`BOOL`'s DEAD END IS CLOSED BY NOTHING.** *The ONE published relation produces a type no atom
+> accepts and no loop rule consumes.* **So `touching` cannot appear in any chain longer than itself —
+> which is link 2, mechanically, in one line of the graph.**
+
+**AND `OBJECT` IS ACCEPTED AND NEVER PRODUCED** — source-only, supplied by a loop that hands scalars,
+which is why the eight extract atoms abstain. *Three findings in one graph read: a source with no
+supply, a sink with no consumer, and a sink consumed off-graph.*
+
+## THE MINIMAL CANDIDATE FIX, AND THE OBJECTION TO IT — BOTH REAL
+
+**CANDIDATE: add `BOOL` to `COMPARABLE`.** *The tuple's own comment is **equality is meaningful on
+all**, and equality IS meaningful on a boolean.* **Then `touching . same → PRED → OBJ` composes, and
+the relational vocabulary joins the graph** — with `BOOL` staying out of `ORDERED`, exactly as `COLOUR`
+and `SHAPE` do, because a truth has no more-and-less either.
+
+**OBJECTION: `COMPARABLE` was drawn from §12.3's OBJECT-ATTRIBUTE types** — `OBJ → COLOUR`,
+`OBJ → POSITION`, `OBJ → EXTENT`, `OBJ → SHAPE` — **and `BOOL` is sensor 8's PAIR relation, not an
+object's attribute.** *So adding it crosses a layer the table may be drawing on purpose.*
+
+> **AND THE SCAR IS IN THIS FILE.** *`OBJECT` and `OBJ` were one constant once, and the closure composed
+> across the merged node: **225 pipelines at depth 4**, the first being `colour . same . all . colour`
+> — quantify to an objective, then read a colour off the objective.* **A type-table change here is
+> exactly the class that has cost before, in this exact file.**
+
+**Reported, not taken.** *One line closes link 2 and the same line is how the 225 happened.*
