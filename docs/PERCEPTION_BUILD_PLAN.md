@@ -591,6 +591,40 @@ summarises it.* **The order is unchanged across all three revisions.**
 **P1 through P4 are Layer 1 and Layer 5 work: the break is there, and everything below it is a reading
 of nothing until it moves.**
 
+## STATUS, 2026-09-05 — WHAT IS BUILT AND WHAT THE ROW STILL OWES
+
+    P0  side channel      BUILT.  `Ctx.obj` reassembled from the flattened state -- nothing
+                          stored, because `_decomposed` publishes exactly the keys `_extract`
+                          reads. The extract atoms no longer abstain
+    P1  frozenset publish BUILT.  `structure` beside `shape`, resolved through the RUN-STABLE
+                          shape table, verified to round-trip on replay. Unblocks congruence
+                          via `overlap`; symmetry / rotation / similarity still need a REFLECT
+                          or ROTATE that is not in the nine -- a Tier-2 question, unripe
+    P2  pair store        NOT BUILT. No consumer: nothing reads relational history
+    P3  relational key    NOT BUILT. `slot_types` publishes ZERO relation types. LINK 2 IS
+                          UNMOVED, and `touching` is `OBJECT -> BOOL` reachable but the
+                          `OBJECT -> OBJ` query that would enumerate it was WITHDRAWN as
+                          type-incoherent (`Ctx.group` follows the SLOT, not the chain)
+    P4  cascade           NOT BUILT. `board()` still returns `frame[-1]`; the causality tracker
+                          that would consume `cascade` does not exist
+    P5  placements        NOT BUILT, and M4 stands: the frame publishes colour INDICES, so the
+                          BAND has no producer and `SPECTRUM x TIME` survives as `TIME` alone
+    P6  budget gradient   AT ITS RULING. `Termination`: *the agent does not read the cap* --
+                          Seam 5 -- so what remains is seat-side and is not agent capability
+    P7  hash and store    BUILT to the fixture's limit. The signature is the transformation
+                          trace with every environment label stripped -- action anonymous,
+                          name-free, colour-free -- measured ACTION-INVARIANT across three
+                          different action sequences, and plays stack `_1_1 _2_1 _3_1`.
+                          The BACKUP is Seam 6's and is owed at 25/25, not now
+
+**ALSO BUILT, OUTSIDE THE PHASE ORDER:** *M1's read order · M5's per-locus mode with per-member streak
+invariants · the input adapter with its render round-trip · `operand_type` on the three relate atoms ·
+`Ctx.group` and the three quantifiers · the EDGE (`objective_step`) · the POSITION/EXTENT modulus fix ·
+the panel-debt gate at `summary.report`.*
+
+**AND THE PANEL IS STALE TWICE** — the atom count moved 18 to 21, and POSITION/EXTENT re-priced from the
+palette to the board. **`summary.report`'s docstring gates it.**
+
 ## The ungated item, and the contact claim stated so it can be read
 
 > **LAYER 1(e), THE PER-LOCUS MODE, IS UNGATED.** Its detectors are built and fed; its loci already have
