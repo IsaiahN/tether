@@ -214,10 +214,47 @@ def main() -> None:
           f"R_T={br[0]['detail']['mass'] if br else None}, "
           f"view={br[0]['detail'].get('view') if br else None}")
 
+    _adapter_round_trip()
+
     assert "RESET" not in acts, "RESET reached the loop: the farming path is open"
     assert verdict["verdict"] == "pass", verdict
     print("  A SYNTHETIC SOLVE PROVES WIRING AND NEVER CAPABILITY -- this fixture authored")
     print("  both sides, so it says nothing about perception, slot stability or ARC.")
+
+
+def _adapter_round_trip() -> None:
+    """Index -> render -> back -> segment. The generality proof, not a stub.
+
+    THE INVARIANT IS THE PARTITION, NOT THE INTEGERS. Labels are assigned in encounter order,
+    so a render whose hues are met in a different order yields different numbers for the same
+    grouping -- and asking the numbers to match would be asking a PLACEMENT to behave like an
+    IDENTITY, which is the defect this build spent a session separating.
+    """
+    grid = [[0, 0, 3, 3],
+            [0, 7, 7, 3],
+            [5, 5, 7, 1],
+            [5, 1, 1, 1]]
+    # a render nobody in the loop can see: index -> a distinct pixel, injective and arbitrary.
+    # ADVERSARIAL ON PURPOSE. 0 and 3 share a red channel, 7 and 5 share a green one, so an
+    # adapter that quantized on ONE channel would merge them and the partition would move.
+    # The first fixture had five distinct first channels and could not have caught that.
+    hue = {0: (12, 200, 9), 3: (12, 0, 40), 7: (7, 7, 250), 5: (99, 7, 99), 1: (0, 0, 0)}
+    image = [[hue[v] for v in row] for row in grid]
+
+    def partition(objs):
+        return sorted(sorted(o["cells"]) for o in objs)
+
+    direct = arc_percept.components(grid)
+    viaimg = arc_percept.components(image)
+    ok = partition(direct) == partition(viaimg)
+    print(f"  adapter round-trip  : {len(direct)} objects from the index frame, "
+          f"{len(viaimg)} from its render   same partition: {ok}")
+    assert ok, "image-mode segments a rendered board differently from the board"
+    try:
+        arc_percept.components([[]])
+        raise AssertionError("an unreadable frame read as 'no objects'")
+    except ValueError:
+        pass
 
 
 if __name__ == "__main__":

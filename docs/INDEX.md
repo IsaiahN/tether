@@ -13772,3 +13772,52 @@ implementation** — *board facts must not overwrite per-locus readings*, agreed
 deliberation, broken in the code an hour later, caught by the run. **Recorded as evidence that a design
 ruling does not self-enforce, NOT as a standing check**: one site, and the register earns its keep by
 staying short. *Same count discipline that demoted check 6.*
+
+---
+
+# THE INPUT ADAPTER, BUILT — WITH THE M4 COMMENT, AND TWO SELF-CAUGHT DEFECTS
+
+## ONE ADAPTER, TWO FRONT ENDS, DETECTED PER CALL
+
+`arc_percept.as_index_grid(frame)` sits **ahead of Layer 1**: an index-frame passes through, an image
+is quantized so **distinct pixels become distinct labels**, and `components()` reads the result either
+way. *Detected from the shape of what arrived — thin I/O, never a flag.*
+
+**EXACT EQUALITY, NO TOLERANCE.** *A colour-distance cutoff would be an invented number at the one
+place the whole pipeline's distinctness is decided* — **so a render that anti-aliases splits a region
+rather than silently merging two, which is the direction that fails loudly.**
+
+## THE M4 COMMENT LANDS WITH IT, AT THE SEAM IT DESCRIBES
+
+**Marked do-not-remove, opening with the line that explains its own length**, and placed at the adapter
+rather than at a colour-placement site that does not exist yet — *because its closing point IS the
+adapter's seam: both paths hand the next layer the same thing, and nothing downstream can tell which
+ran.*
+
+## THE PROOF IS THE PARTITION, NOT THE INTEGERS
+
+    index frame -> render -> back -> segment      5 objects both ways, SAME PARTITION
+
+> **ASKING THE LABELS TO MATCH WOULD BE ASKING A PLACEMENT TO BEHAVE LIKE AN IDENTITY.** *Labels are
+> assigned in encounter order, so a render met in a different order yields different numbers for the
+> same grouping.* **The partition is the content; the integers are the placement.** Check 2, arriving
+> a third time and this time before the mistake.
+
+## TWO DEFECTS CAUGHT IN MY OWN BUILD, BOTH BY THE RULES RATHER THAN BY THE RUN
+
+**1 · THE FIRST FIXTURE COULD NOT HAVE FAILED.** Its five hues had five distinct red channels, **so an
+adapter quantizing on ONE channel would have passed it.** *Reintroduce the defect, never disable the
+check:* the render is now adversarial — `0` and `3` share a red channel, `7` and `5` a green one — and
+**falsified: correct adapter → same partition `True`; channel-dropping adapter → `False`.** *A control
+that examines nothing cannot demonstrate a clean state, and the first one examined nothing.*
+
+**2 · `return []` ON AN UNREADABLE FRAME REINTRODUCED THE HAZARD `sensors.py` EXISTS TO PREVENT.**
+*"`components` returning `[]` is **indistinguishable from 'there are no objects'** — so a perception
+failure entered the loop as a FACT ABOUT THE WORLD."* **I wrote that line into the adapter's guard
+without noticing it was the named hazard.** Now it raises, `Registry.read` catches it into
+`NOT_RESOLVED`, and the harness asserts the failure stays a failure.
+
+> **Both are the same shape as `disembodied`-onto-every-locus last round: a rule held in the corpus,
+> violated in a first implementation.** *Three instances now — and it is still evidence that a ruling
+> does not self-enforce rather than a standing check, because the remedy is reading the file the rule
+> lives in, which is law 6 and already exists.*

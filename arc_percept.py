@@ -30,12 +30,88 @@ from typing import Any
 sys.dont_write_bytecode = True
 
 
+def as_index_grid(frame: Any) -> list[list[int]] | None:
+    """THE INPUT ADAPTER, AHEAD OF LAYER 1. Two front ends, one output.
+
+    An index-frame passes through; an image is quantized so that DISTINCT pixels become
+    DISTINCT labels. Everything below reads a grid of distinct-labeled cells and cannot tell
+    which ran. Detected per call from the shape of what arrived -- thin I/O, never a flag.
+
+    `None` where the frame is not readable as either. An empty grid would assert *no board*.
+
+    EXACT EQUALITY, AND NO TOLERANCE. Two pixels are the same label iff their channels are
+    equal. A colour-distance cutoff would be an invented number at the one place the whole
+    pipeline's distinctness is decided, and a render that anti-aliases will therefore split a
+    region rather than silently merge two -- which is the direction that fails loudly.
+
+    ---------------------------------------------------------------------------------------
+    DO NOT REMOVE. This comment is long because it is the only record of a capability the
+    build does not exercise: index-mode is what runs, and everything below describes the
+    image-mode path that the same adapter takes when hue exists. Trimmed as dead-code notes,
+    it takes the specification with it.
+
+    Walk the RGB case. The rainbow is an ordered strip, and you read it in adjacent pairs --
+    RO, OY, YG, GB, BI, IV -- so any hue falls between two anchors. A colour landing between
+    green and blue is a GB, and it is `GB1` if it is the first thing met there, `GB2` if it is
+    the second. The number is the ORDER IT WAS MET and never a rank: `GB2` is not more than
+    `GB1`, it is later. Next play the palette rotates and every hue is wrong, and the agent
+    does not go looking for the old ones -- it recognises the object by its SHAPE, which
+    survives translation and recolour, and hands it the name it already had. The placement is
+    re-taken; the identity never moved.
+
+    What image-mode adds is only the first step. Given real hue, a colour places itself on the
+    strip -- its wavelength says where it sits, with nothing to be told. The raw RGB stays in
+    cache, where it is the key that decides whether a new object joins an existing group; it
+    never goes durable, because the palette is the arrangement that will not survive. So the
+    strip comes alive and identity stays exactly where it was, with the shape.
+
+    Given an index instead, the strip has no producer: an integer carries no wavelength, and
+    the mapping from index to hue lives in the renderer rather than in the frame. So
+    index-mode keeps the encounter order and drops the placement's spectral meaning -- which
+    costs nothing that carries, because filing under structure was already what made a
+    strategy reachable.
+
+    AND THE SEAM IS THE POINT: both paths hand the next layer the same thing, a grid of
+    distinct labels. Nothing downstream can tell which one ran, and that is the property the
+    adapter exists to have. It is left legible here on purpose.
+    ---------------------------------------------------------------------------------------
+    """
+    try:
+        h = len(frame)
+        if h == 0 or len(frame[0]) == 0:
+            return None
+        probe = frame[0][0]
+    except (TypeError, ValueError, IndexError, KeyError):
+        return None
+    if not hasattr(probe, "__len__"):
+        try:
+            return [[int(v) for v in row] for row in frame]
+        except (TypeError, ValueError):
+            return None
+    seen: dict[tuple, int] = {}
+    out: list[list[int]] = []
+    for row in frame:
+        line = []
+        for px in row:
+            key = tuple(int(c) for c in px)
+            line.append(seen.setdefault(key, len(seen)))
+        out.append(line)
+    return out
+
+
 def components(board: Any) -> list[dict]:
     """§12.3 sensor 1. Connected same-symbol regions, 4-connectivity, flood fill.
 
     Returns one dict per object with its cells and the four sensors that make up a slot's
     predictable state: colour, position (top-left of the bounding box), extent.
     """
+    board = as_index_grid(board)
+    if board is None:
+        # NOT `[]`. `sensors.py` names this exact hazard: *`components` returning `[]` is
+        # indistinguishable from "there are no objects", so a perception failure enters the
+        # loop as a fact about the world.* Raising keeps it a failure -- `Registry.read`
+        # catches it into NOT_RESOLVED, which is the reading this deserves.
+        raise ValueError("frame is readable as neither an index grid nor an image")
     h, w = len(board), len(board[0])
     seen = [[False] * w for _ in range(h)]
     out: list[dict] = []
