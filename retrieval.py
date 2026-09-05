@@ -69,17 +69,30 @@ def key_of(term: Any) -> tuple:
     under *properties of its BEHAVIOUR*. **The grouping is what was wrong, not the reasoning
     about cost** -- `effect shape` genuinely requires running it; this does not.
 
-    **`Ctx` HAS TWO FIELDS.** An atom is `fn(v, c)` and `c` carries `action` and `operands` and
-    nothing else, so a term's dependency set is bounded at CONSTRUCTION: its own slot, its
-    operand slot, the action. **It cannot vary with a slot it has no accessor for**, and
-    `reads_operand` is *declared at construction, never inferred*. So the INVARIANT half is
-    read off the term in O(1) and the *would consume the work it exists to save* argument does
-    not reach it.
+    **`Ctx` HAD TWO FIELDS AND NOW HAS FIVE -- CORRECTED 2026-09-05, AND THE CORRECTION IS THE
+    POINT.** The original argument: *an atom is `fn(v, c)`, `c` carries `action` and `operands`
+    and nothing else, so a term's dependency set is bounded at CONSTRUCTION -- its own slot, its
+    operand slot, the action. It cannot vary with a slot it has no accessor for.* **`Ctx` now
+    carries `action`, `operands`, `touching`, `group` and `obj`**, and the last two are
+    accessors to OTHER SLOTS' VALUES: `group` hands a term every peer's value for its attribute,
+    `obj` hands it every attribute of its own owner.
 
-    **SOUND ONE WAY AND NOT THE OTHER, WHICH IS WHY IT IS A KEY AND NOT A PROOF.** Invariance
-    is exact -- no accessor, no dependence. *Varies* is an upper bound: a term that reads its
-    operand may still ignore it. **`fits` orders and excludes nothing, so an over-approximation
-    is the right shape**; a gate would need the exact set and would have to run the term.
+    **SO *no accessor, no dependence* IS FALSE, AND IT IS THE HALF THAT WAS EXACT.** `all_same`
+    varies with every peer slot; the eight extract atoms vary with their owner's other slots;
+    and `key_of` reports only `operand_type` for all of them.
+
+    **AND THE ERROR RUNS THE WRONG WAY.** The design says *varies* is an upper bound and
+    invariance exact, and calls the over-approximation the right shape because **`fits` orders
+    and excludes nothing.** What the new fields introduce is an UNDER-approximation of
+    dependence -- a claim of invariance that does not hold -- which the safety argument did not
+    cover.
+
+    **THE CONSEQUENCE IS BOUNDED AND SHOULD NOT BE OVERSTATED: `fits` only ORDERS.** A false
+    invariance mis-ranks a candidate; it loses none. **But the docstring's own warning now
+    binds harder than when it was written** -- *a gate would need the exact set and would have
+    to run the term* -- so **nothing may be gated on this key until the atoms declare which
+    `Ctx` fields they read**, the way `reads_operand` is declared at construction rather than
+    inferred. That declaration is the honest repair and it is not built.
     """
     # `operand_type` AND NOT `operand`. The first is declared at construction and is a TYPE,
     # so it survives `save` dropping the binding; the second is a slot name and does not. An

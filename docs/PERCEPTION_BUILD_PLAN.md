@@ -624,7 +624,14 @@ of nothing until it moves.**
                           occasionally a 1-in-16 match taken as identity.
                           THE RELATIONAL-HISTORY HALF IS NOT BUILT: *does keeping pair history
                           improve prediction* means *does it PAY*, and the fixture pays nothing
-    P3  relational key    NOT BUILT. `slot_types` publishes ZERO relation types. LINK 2 IS
+    P3  relational key    NOT BUILT, AND IT MUST NOT BE BUILT ON `key_of` UNTIL THE ATOMS
+                          DECLARE THEIR `Ctx` READS. `Ctx` went from two fields to five this
+                          session and `key_of`'s INVARIANCE claim -- *no accessor, no
+                          dependence*, the half the design calls EXACT -- is now false:
+                          `group` and `obj` are accessors to other slots' values. `fits` only
+                          ORDERS so nothing is lost, but its docstring's own warning binds:
+                          a GATE would need the exact set.
+                          `slot_types` publishes ZERO relation types. LINK 2 IS
                           UNMOVED, and `touching` is `OBJECT -> BOOL` reachable but the
                           `OBJECT -> OBJ` query that would enumerate it was WITHDRAWN as
                           type-incoherent (`Ctx.group` follows the SLOT, not the chain)
