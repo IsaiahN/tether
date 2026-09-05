@@ -15252,3 +15252,41 @@ it.** **So the firewall is intact and the recall the story describes simply does
 because the consumers all live behind one store whose KEY has not been ruled.* **The cheapest-phase
 question has no answer while that is true, and naming which design question unlocks it is the answer it
 does have.**
+
+---
+
+# THE TRACE IS THE INVARIANT AND IT ACCUMULATES — AND IT IS NOT HASHABLE RAW, FOR TWO NAMEABLE REASONS
+
+**The framing is confirmed: the store key was never a frame to choose. `Agent.trace` holds
+`(before, action, after)` per step and ACCUMULATES — 20 entries after 20 steps. The transformation
+record exists.**
+
+## AND HASHING IT RAW WOULD FAIL BOTH OF THE STORY'S OWN REQUIREMENTS
+
+    identities churn    4 object names (`o0..o3`) over 20 steps on a board holding ~2 at a
+                        time -- minted and abandoned by max-overlap. 32 distinct slot names
+    not colour-free     COLOUR-typed slots are in the trace (`o2.colour`, `o3.colour`) and
+                        their values are palette integers
+
+*The story requires **the shape of the game and not its colours**, and a key that survives a fresh
+tracker and a palette swap.* **Raw slot names fail the first; raw values fail the second.**
+
+## SO THE KEY IS A HASH OVER A DERIVED VIEW, AND THE CONSTRAINTS DETERMINE THE DERIVATION
+
+    name-free      talk in `slot_types`, never in slot names -- which is `characterise`'s own
+                   rule already: *a slot name is an instance and can only ever match at home*
+    colour-free    a COLOUR contributes WHETHER IT CHANGED, never WHAT IT IS
+
+**What survives both is the per-step pattern: under this action, these attribute TYPES changed.**
+*That is the transformation trace with the instances removed — and it is what the two stated
+constraints leave, rather than something chosen.*
+
+> **WHICH MAKES IT A READ AND A WIRING, AS FRAMED.** *The agent already logs it; the derivation is
+> forced by the requirements; nothing is invented.*
+
+## ONE SUB-QUESTION, SMALL AND FLAGGED RATHER THAN DECIDED
+
+**Does the ACTION's NAME enter the key?** *`ACTION1` is advertised by the environment — stable within a
+game and meaningless across games, so keying on it conflates two games that both advertise `ACTION1`.*
+**Keying on the action's EFFECT pattern instead of its name avoids that and is a different digest.**
+*Flagged because it is the one place the derivation is not forced by the two constraints.*
