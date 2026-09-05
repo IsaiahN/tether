@@ -14812,3 +14812,48 @@ same residual ground, which is what `cost + left < base` was always for.**
 > **THIS IS CONSTRUCTION AGAINST DECISIONS ALREADY MADE.** *The rulings are done — P0, the fold, the
 > edge — and what remains is the query, the ladder, the seven phases and link 2.* **Recorded as a
 > number rather than a plan, so whoever takes it opens on a measurement.**
+
+---
+
+# THE QUERY, BUILT AND RUN UNPINNED — THE MECHANISM RUNS AND THE FIXTURE CANNOT ASK THE QUESTION
+
+## WHAT WENT IN
+
+**Two streams, one bargain.** `enumerate_closure(slot_type, "OBJ")` alongside `("val", "val")`, with
+`retrieval.fits` given the matching in/out per stream. **The objective stream starts at the SLOT'S OWN
+TYPE, not at `OBJECT`** — the loop hands a scalar, so an `OBJECT`-typed chain abstains on its first
+atom.
+
+**And the contest is instrumented, per the addition:** `contest` records the best `left` from each
+stream, the `winner`, and the `margin` — *`None` where one stream fielded nobody, which is a different
+claim from losing.*
+
+## THE RUN, 40 CYCLES ON THE ARC FIXTURE
+
+    MINT rows                 144
+    verdicts                  depth_exhausted . 144 of 144
+    candidates seen           4,518   -- about 31 per row, which is 15 val + ~18 objective
+    candidates tried          24,408  -- with bindings and guards
+    contest                   EMPTY on every row: NO CANDIDATE PAID, IN EITHER STREAM
+
+**THE QUERY WORKS: ~31 candidates per slot against 15 before, which is the 15 + 18 the closure
+predicted.** *Both streams enumerate.*
+
+## AND THE CONTEST IS UNEXERCISED, WHICH IS A FACT ABOUT THE FIXTURE
+
+> **`depth_exhausted` on all 144 means the whole depth-3 space was searched and NOTHING PAID —
+> predictor or objective.** *This is not "objectives lost." **Nothing won.***
+
+**THE PANEL PROPERTY THE QUESTION NEEDS IS *at least one candidate pays*, AND THIS FIXTURE SUPPLIES
+ZERO.** *`arc_check` says of itself: **a synthetic solve proves wiring and never capability** — this
+fixture authored both sides.* **So the reading is about the board, and the question — does an objective
+ever out-predict a plain value bet — remains unasked rather than answered.**
+
+**AND THE CUT TALLY IS SATURATED, SO IT SAYS NOTHING.** *1,668 `not-novel` + 60 `bounded-out` = 1,728 =
+144 rows x the `cuts[:12]` cap exactly.* **Every row filled its record; the distribution is truncation,
+not data.** *Recorded so the next reader does not mistake the cap for a finding.*
+
+## COST
+
+**demo 2.5s from 2.3s; the candidate space roughly doubled as predicted, and `budget` at 4,000 against
+a measured 1,884 maximum was not reached.**

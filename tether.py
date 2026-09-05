@@ -1417,6 +1417,7 @@ class Agent:
         best: tuple[float, float, Term] | None = None
         stats: dict = {"seen": 0, "budget_spent": False, "depth_exhausted": True,
                        "units": self.gamma.alphabet, "estimate": 0}
+        by_kind: dict[str, tuple] = {}
         rank = 0
 
         if guards["support"]:
@@ -1425,47 +1426,91 @@ class Agent:
             # *otherwise loading makes the agent worse by drowning every search* -- and the
             # library is loaded by design as of the persistence ruling.
             gap = retrieval.characterise(robs, slot, list(self.alphabet), self.slot_types)
-            by_fit = partial(retrieval.fits, gap=gap, in_type="val", out_type="val")
             # HOISTED. `_bindings` depends on `slot` and `robs` and not on the candidate, and
             # it was being rebuilt identically for every one -- an owner map, a contact set and
             # a variance count per candidate. Computed once here; the ORDER is unchanged.
             operand_binds = self._bindings(slot, robs)
-            for cand in self.gamma.enumerate_closure("val", "val", self.cfg.max_depth,
-                                                     self.cfg.budget, stats, order=by_fit):
-                binds = operand_binds if cand.reads_operand else [None]
-                binds = [x for x in binds if self._operand_fits(cand, slot, x)]
-                for bind, g in ((b, g) for b in binds for g in self._guards(robs)):
-                    rank += 1
-                    term = Term(cand.atoms, operand=bind, guard=g)
-                    if self.gamma.is_atom(term) or term.name in self.gamma.library:
-                        cuts.append({"name": term.name, "rank": rank, "reversible": True,
-                                     "reason": "not-novel"})
-                        continue
-                    guards["novelty"] = True
-                    cost = term_bits(len(term), self.gamma.alphabet)
-                    # LET THE RESIDUAL SAY WHERE TO LOOK. Walking the whole history for
-                    # every candidate is exhaustive search; R already names the
-                    # observations that need fixing, and a term that cannot fix enough of
-                    # them is refused without the walk. 6.7x less work over the panel and
-                    # nothing lost, because the bound is necessary rather than plausible.
-                    if self._cannot_pay(term, slot, robs, cost, base):
-                        cuts.append({"name": term.name, "rank": rank, "reversible": True,
-                                     "reason": "bounded-out: cannot pay on R alone"})
-                        continue
-                    left = self._left(term, slot, hist)
-                    if not pays(cost, left, base):
-                        cuts.append({"name": term.name, "rank": rank, "reversible": True,
-                                     "reason": "does-not-pay"})
-                        continue
-                    guards["reachability"] = True
-                    if best is None or left < best[0]:
-                        best = (left, cost, term)
+
+            # TWO STREAMS, ONE BARGAIN. A `val` term IS a prediction; an OBJ term is a WANT,
+            # and `objective_step` turns it into one -- so both produce a predicted slot value
+            # and both are priced by how well it matched. **They compete on the same residual
+            # ground, which is what `cost + left < base` was always for**, and nothing about
+            # the bargain changes to let them.
+            #
+            # THE OBJECTIVE STREAM STARTS AT THE SLOT'S OWN TYPE, NOT AT `OBJECT`. The loop
+            # hands a SCALAR, so an `OBJECT`-typed chain abstains on its first atom -- which
+            # `_extract` states at its own site and which cost several rounds of calling this
+            # query `OBJECT -> OBJ`.
+            streams = [("val", "val")]
+            stype = self.slot_types.get(slot)
+            if stype:
+                streams.append((stype, OBJ_TYPE))
+            by_kind: dict[str, tuple] = {}
+
+            for in_t, out_t in streams:
+                kind = "predictor" if out_t == "val" else "objective"
+                by_fit = partial(retrieval.fits, gap=gap, in_type=in_t, out_type=out_t)
+                st: dict = {"seen": 0, "budget_spent": False, "depth_exhausted": True,
+                            "units": self.gamma.alphabet, "estimate": 0}
+                for cand in self.gamma.enumerate_closure(in_t, out_t, self.cfg.max_depth,
+                                                         self.cfg.budget, st, order=by_fit):
+                    binds = operand_binds if cand.reads_operand else [None]
+                    binds = [x for x in binds if self._operand_fits(cand, slot, x)]
+                    for bind, g in ((b, g) for b in binds for g in self._guards(robs)):
+                        rank += 1
+                        term = Term(cand.atoms, operand=bind, guard=g)
+                        if self.gamma.is_atom(term) or term.name in self.gamma.library:
+                            cuts.append({"name": term.name, "rank": rank, "reversible": True,
+                                         "reason": "not-novel"})
+                            continue
+                        guards["novelty"] = True
+                        cost = term_bits(len(term), self.gamma.alphabet)
+                        # LET THE RESIDUAL SAY WHERE TO LOOK. Walking the whole history for
+                        # every candidate is exhaustive search; R already names the
+                        # observations that need fixing, and a term that cannot fix enough of
+                        # them is refused without the walk. 6.7x less work over the panel and
+                        # nothing lost, because the bound is necessary rather than plausible.
+                        if self._cannot_pay(term, slot, robs, cost, base):
+                            cuts.append({"name": term.name, "rank": rank, "reversible": True,
+                                         "reason": "bounded-out: cannot pay on R alone"})
+                            continue
+                        left = self._left(term, slot, hist)
+                        if not pays(cost, left, base):
+                            cuts.append({"name": term.name, "rank": rank, "reversible": True,
+                                         "reason": "does-not-pay"})
+                            continue
+                        guards["reachability"] = True
+                        if kind not in by_kind or left < by_kind[kind][0]:
+                            by_kind[kind] = (left, cost, term)
+                        if best is None or left < best[0]:
+                            best = (left, cost, term)
+                    if best is not None and best[0] == 0.0:
+                        break
+                stats["seen"] += st["seen"]
+                stats["estimate"] += st["estimate"]
+                stats["budget_spent"] = stats["budget_spent"] or st["budget_spent"]
                 if best is not None and best[0] == 0.0:
                     break
+
+        # WHICH KIND WON THE SLOT, AND BY HOW MUCH. The residual alone buries the answer:
+        # *did an objective ever out-predict a plain value bet* is the question the two-stream
+        # query exists to ask, and a single `left` number cannot say which kind produced it.
+        # Same shape as `by` naming the carrying self-hypothesis -- the reading says WHICH,
+        # not only how well. `None` on either side means that stream fielded no payer, which
+        # is a different claim from losing.
+        contest = {k: round(v[0], 4) for k, v in sorted(by_kind.items())} if best else {}
+        if len(contest) == 2:
+            contest["winner"] = min(by_kind, key=lambda k: by_kind[k][0])
+            contest["margin"] = round(abs(by_kind["predictor"][0]
+                                          - by_kind["objective"][0]), 4)
+        elif contest:
+            contest["winner"] = next(iter(by_kind))
+            contest["margin"] = None      # unopposed: the other stream fielded nobody
 
         seen = stats["seen"]
         est = max(stats["estimate"], seen)
         detail = {"guards": guards, "candidates_seen": seen, "candidates_tried": rank,
+                  "contest": contest,
                   "code": CODE, "base_bits": round(base, 3), "cuts": cuts[:12],
                   "budget_exhausted": bool(stats["budget_spent"]),
                   "depth": self.cfg.max_depth, "units": stats["units"],
