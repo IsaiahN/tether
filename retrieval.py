@@ -30,7 +30,7 @@ from __future__ import annotations
 import sys
 from typing import Any
 
-from gamma import SAME_AS_TARGET
+from gamma import SAME_AS_TARGET, SLOT_REACHING
 
 sys.dont_write_bytecode = True
 
@@ -98,7 +98,11 @@ def key_of(term: Any) -> tuple:
     # so it survives `save` dropping the binding; the second is a slot name and does not. An
     # imported term keyed on `operand` scored as if unary on every gap, which is the shape of
     # the transfer column having no subject.
-    return (term.in_type, term.out_type, 2 if term.reads_operand else 1, term.operand_type)
+    reaches = tuple(sorted({f for a in getattr(term, "atoms", (term,))
+                            for f in getattr(a, "reads_ctx", ())
+                            if f in SLOT_REACHING and f != "operands"}))
+    return (term.in_type, term.out_type, 2 if term.reads_operand else 1,
+            term.operand_type, reaches)
 
 
 def fits(term: Any, gap: dict, in_type: str, out_type: str) -> int:
@@ -113,8 +117,15 @@ def fits(term: Any, gap: dict, in_type: str, out_type: str) -> int:
     nothing for it. **A unary term is invariant to every other slot**, so it scores where the
     gap has nothing else varying -- an invariance claim rather than an absence of one.
     """
-    t_in, t_out, arity, reads = key_of(term)
-    if reads is None:
+    t_in, t_out, arity, reads, reaches = key_of(term)
+    if reaches:
+        # DECLARED TO REACH OTHER SLOTS, SO IT CANNOT CLAIM INVARIANCE TO THEM. The old branch
+        # read `aimed = not gap["varies"]` -- *nothing else moved, so my not reading anything
+        # else is on target* -- which is exactly backwards for an atom holding `group` or
+        # `obj`: it reaches those slots, so it is aimed when they DO move. Over-approximating
+        # dependence is the direction the design calls safe.
+        aimed = bool(gap["varies"])
+    elif reads is None:
         aimed = not gap["varies"]
     elif reads == SAME_AS_TARGET:
         # THE TARGET'S TYPE, NOT "ANYTHING MOVED". The first version asked `bool(varies)` and

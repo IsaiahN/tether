@@ -371,6 +371,10 @@ def report(rows: list[dict], gamma) -> dict:
 
     1 · THE ATOM SET MOVED, 18 -> 21. `_contact` states the consequence at its own site: the
         atom COUNT moves `space_estimate`, `coverage`, `lambda` and `V`.
+    2b · `fits`' ORDERING MOVED. Atoms now declare `reads_ctx`, so `key_of` reports which
+        `Ctx` fields reach other slots and `fits` stops claiming invariance for the atoms
+        that read `group` or `obj`. Ordering decides WHICH closer is found first, so mints
+        can differ from any run taken before 2026-09-05.
     2 · THE MODULUS MOVED for POSITION and EXTENT. They were priced against the PALETTE and
         are now priced against the BOARD, so `correction_bits`' `log2(alphabet)` changed for
         every position and extent miss -- which is `cost_bits`, `left_bits`, `reduced_bits`

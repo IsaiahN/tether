@@ -48,6 +48,12 @@ NECESSARY, PROMOTED, ACCEPTED = "necessary", "promoted", "accepted"
 # string could express the first and not the second, and the second is the one that produced
 # the defect.
 SAME_AS_TARGET = "@same"
+# THE `Ctx` FIELDS THAT REACH ANOTHER SLOT'S VALUE. `action` does not; the rest do -- `operands`
+# reaches the bound slot, `group` every peer holding the same attribute, `obj` every attribute
+# of the term's own owner, and `touching` the positions of whatever is in contact. **An atom
+# declaring any of these cannot claim invariance to the other slots**, which is the whole of
+# what `key_of` was getting wrong.
+SLOT_REACHING = ("operands", "group", "obj", "touching")
 
 # anchor: specified, not grounded -- the formula requires demotion to be weighted and
 # clocked, so a halflife is specified; nothing measures THIS halflife. A refutation is
@@ -116,6 +122,15 @@ class Atom:
     # therefore accepts a SET, and duplicating atoms per type was the alternative: `units()`
     # dedups on name, so that would have put the type into the term's identity and its handle.
     also_accepts: tuple[str, ...] = ()
+    # WHICH `Ctx` FIELDS THIS ATOM READS -- DECLARED AT CONSTRUCTION, NEVER INFERRED, which is
+    # `reads_operand`'s rule and for `reads_operand`'s reason.
+    #
+    # **THE FIELD-COUNT ARGUMENT BROKE THE FIRST TIME A FIELD WAS ADDED.** `retrieval.key_of`
+    # derived a term's invariance from *`Ctx` has two fields, so it cannot vary with a slot it
+    # has no accessor for* -- and `touching`, `group` and `obj` were added, each an accessor to
+    # other slots' values, so the claim went false without the argument moving. A declaration
+    # survives the NEXT field too; a field count does not.
+    reads_ctx: tuple[str, ...] = ()
 
     @property
     def accepts(self) -> tuple[str, ...]:

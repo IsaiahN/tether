@@ -108,7 +108,10 @@ def _extract() -> list[Atom]:
                 return NOT_RESOLVED
             return rec.get(key, NOT_RESOLVED)
         return fn
-    return [Atom(k, pick(k), OBJECT, t) for k, t in ATTRIBUTE_TYPE.items()]
+    # `obj` -- the record carries EVERY attribute of the owner, so an extract atom varies
+    # with its owner's other slots and may not claim invariance to them.
+    return [Atom(k, pick(k), OBJECT, t, reads_ctx=("obj",))
+            for k, t in ATTRIBUTE_TYPE.items()]
 
 
 def _contact() -> list[Atom]:
@@ -137,7 +140,7 @@ def _contact() -> list[Atom]:
         if c.touching is None:
             return NOT_RESOLVED
         return int(bool(c.touching))
-    return [Atom("touching", touching, OBJECT, BOOL)]
+    return [Atom("touching", touching, OBJECT, BOOL, reads_ctx=("obj", "touching"))]
 
 
 def _relate() -> list[Atom]:
@@ -173,11 +176,14 @@ def _relate() -> list[Atom]:
     # different operator. Recorded rather than edited: the table is a pinned exemption, and
     # narrowing it from here would be logic widening what data should hold.
     return [Atom("same", same, COMPARABLE[0], PRED, reads_operand=True,
-                 also_accepts=COMPARABLE[1:], operand_type=SAME_AS_TARGET),
+                 also_accepts=COMPARABLE[1:], operand_type=SAME_AS_TARGET,
+                 reads_ctx=("operands",)),
             Atom("other", other, COMPARABLE[0], PRED, reads_operand=True,
-                 also_accepts=COMPARABLE[1:], operand_type=SAME_AS_TARGET),
+                 also_accepts=COMPARABLE[1:], operand_type=SAME_AS_TARGET,
+                 reads_ctx=("operands",)),
             Atom("above", above, ORDERED[0], PRED, reads_operand=True,
-                 also_accepts=ORDERED[1:], operand_type=SAME_AS_TARGET)]
+                 also_accepts=ORDERED[1:], operand_type=SAME_AS_TARGET,
+                 reads_ctx=("operands",))]
 
 
 def _over_group() -> list[Atom]:
@@ -204,12 +210,14 @@ def _over_group() -> list[Atom]:
             return int(q(x == v for x in c.group))
         return fn
 
+    # `group` -- every peer's value for this attribute. These vary with EVERY peer slot,
+    # which is the invariance `key_of` was claiming they had.
     return [Atom("all_same", fold(all), COMPARABLE[0], PRED,
-                 also_accepts=COMPARABLE[1:]),
+                 also_accepts=COMPARABLE[1:], reads_ctx=("group",)),
             Atom("any_same", fold(any), COMPARABLE[0], PRED,
-                 also_accepts=COMPARABLE[1:]),
+                 also_accepts=COMPARABLE[1:], reads_ctx=("group",)),
             Atom("none_same", fold(lambda g: not any(g)), COMPARABLE[0], PRED,
-                 also_accepts=COMPARABLE[1:])]
+                 also_accepts=COMPARABLE[1:], reads_ctx=("group",))]
 
 
 def _quantify() -> list[Atom]:

@@ -93,16 +93,16 @@ def predict() -> list[Atom]:
     precisely so that file does not choose what the agent may bet on. **The hole was left
     deliberately and had never been filled by any caller.**
     """
-    return [Atom("idn", _idn, "val", "val"),
+    return [Atom("idn", _idn, "val", "val"),                       # reads nothing
             # `v + operand` is meaningful only between commensurable quantities, so the
             # operand must be whatever the target is. A row plus a colour is arithmetic
             # that type-checks and means nothing.
             Atom("translate", _translate, "val", "val", reads_operand=True,
-                 operand_type=SAME_AS_TARGET),
+                 operand_type=SAME_AS_TARGET, reads_ctx=("operands",)),
             # `v -> operand` puts the operand IN the slot, so it must be a colour whatever
             # the target is. THIS IS THE DEFECT'S OWN SITE: `idn . recolour<o11.h>`.
             Atom("recolour", _recolour, "val", "val", reads_operand=True,
-                 operand_type=COLOUR)]
+                 operand_type=COLOUR, reads_ctx=("operands",))]
 
 
 def unexpressible() -> dict[str, str]:
