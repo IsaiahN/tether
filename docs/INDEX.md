@@ -15290,3 +15290,53 @@ constraints leave, rather than something chosen.*
 game and meaningless across games, so keying on it conflates two games that both advertise `ACTION1`.*
 **Keying on the action's EFFECT pattern instead of its name avoids that and is a different digest.**
 *Flagged because it is the one place the derivation is not forced by the two constraints.*
+
+---
+
+# THE SIGNATURE, BUILT — AND ACTION-INVARIANCE MEASURED RATHER THAN CLAIMED
+
+## `step_effect` AND `signature`: EVERY ENVIRONMENT LABEL STRIPPED
+
+*An input produced THESE ATTRIBUTE TYPES CHANGED.* **The action is anonymous** — not its name, and not
+a learned per-game role either, *because `ACTION1`'s meaning shifts within a level and across levels,
+so there is no stable per-game meaning to learn.* **Name-free** by `characterise`'s own rule;
+**colour-free** because a COLOUR contributes THAT it changed, never WHAT to.
+
+    play A, 20 steps ->  {[], [COLOUR], [COLOUR, EXTENT, SHAPE], [SHAPE]}
+    colour-free (types only, no values)      True
+    name-free   (no slot name appears)       True
+
+## THE PROPERTY THE CONSTRAINTS DID NOT SETTLE, TESTED PROPERLY
+
+**A == B and A == C looked like cross-play stability and proved nothing** — *both plays are
+deterministic, so identical action sequences producing identical signatures is a tautology.* **Check 7,
+caught before it was reported.**
+
+**So the plays were forced apart:**
+
+    base      the agent's own choices
+    random-1  seed 11  -> ACTION2 ACTION3 ACTION2 ACTION2 ACTION3 ACTION2 ...
+    random-2  seed 97  -> ACTION1 ACTION2 ACTION2 ACTION1 ACTION3 ACTION1 ...
+
+    all three signatures        [[], [COLOUR], [COLOUR, EXTENT, SHAPE], [SHAPE]]
+    random-1 == random-2        True
+    random-1 == base            True
+
+> **ACTION-INVARIANT ON THIS FIXTURE, WHICH IS THE PROPERTY THE KEY NEEDS AND THE TWO CONSTRAINTS DID
+> NOT GUARANTEE.** *Different action sequences, one identity.*
+
+## AND THE COLLISION CHECK IS LOAD-BEARING, NOT A FORMALITY
+
+**The signature's alphabet is small: five attribute types, so 32 possible effect-patterns, and this
+game uses FOUR.** *Two different games producing the same handful of patterns is not unlikely — it is
+expected.*
+
+**The story requires it anyway** — *checks the hash against durable storage and cache for a collision* —
+**and this measurement says the requirement is doing real work rather than guarding an improbability.**
+*Recorded before the store is built, because a collision check written as a formality is a check that
+gets dropped.*
+
+## SCOPE
+
+*One fixture, four patterns, 30 steps.* **Whether a richer board converges as fast, and how often two
+real games collide, is unmeasured** — and both are per-game readings.

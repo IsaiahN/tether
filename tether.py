@@ -433,6 +433,42 @@ class Agent:
 
     # -- step 1 -----------------------------------------------------------------------
 
+    def step_effect(self, before: dict, after: dict) -> frozenset:
+        """ONE STEP OF THE TRANSFORMATION TRACE, WITH EVERY ENVIRONMENT LABEL REMOVED.
+
+        *An input produced THESE ATTRIBUTE TYPES CHANGED* -- and nothing else survives:
+
+            the ACTION is anonymous     `ACTION1` is advertised by the environment, and it is
+                                        not stable even at home: its meaning shifts within a
+                                        level and across levels of one game. So it carries no
+                                        identity into the key -- not its name, and not a
+                                        learned per-game role either, because there is no
+                                        stable per-game meaning to learn
+            NAME-FREE                   types, never slot names. `characterise`'s own rule:
+                                        *a slot name is an instance and can only ever match
+                                        at home*
+            COLOUR-FREE                 a COLOUR contributes THAT it changed, never WHAT to
+
+        **The firewall, at the action layer.** The game string, the slot names, the colour
+        values and now the action name are all environment labels, all stripped. What is left
+        is how the game BEHAVED under the agent's own intervention.
+        """
+        types = self.slot_types
+        return frozenset(types[s] for s in after
+                         if s in before and s in types and after[s] != before[s])
+
+    def signature(self) -> frozenset:
+        """The game's identity: every effect-pattern this play produced, accumulated.
+
+        **COMPUTED, NEVER READ.** Derived from what the agent perceived under its own actions;
+        nothing from the environment's game string reaches it.
+
+        A SET AND NOT A SEQUENCE, because the agent's action ORDER is its own choice and two
+        plays of one game differ in it. Whether that is enough to make two plays agree is a
+        MEASUREMENT and not a claim -- see the run beside this build.
+        """
+        return frozenset(self.step_effect(b, a) for b, _, a in self.trace)
+
     def history(self, slot: str) -> list[tuple[dict[str, int], str, int]]:
         """(before-state, action, this slot's after-value) for every recorded step.
 
