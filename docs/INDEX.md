@@ -14474,3 +14474,39 @@ would be answering it, which is not mine.**
 **`val -> val` chains: 15. Containing a quantifier: 0** — *and no query rewording changes that*, because
 `all_same` is `COMPARABLE → PRED` and `PRED` is in the other component. **The fold is built and sits
 where the loop cannot reach, and the reach is a missing edge rather than a missing question.**
+
+---
+
+# THE SELECTOR IS THE BARGAIN, AND IT IS BUILT — SO THE RULING IS THE EDGE ALONE
+
+**Checked before accepting *the edge and the selector are one decision*. They are not: one is missing
+and the other is running.**
+
+## THE SELECTION MECHANISM EXISTS AND IS GENERIC OVER TERMS
+
+    tether        best: tuple[float, float, Term]   -- a best-candidate selection
+    tether:143    return cost + left < base         -- the MDL bargain, generic: it does not
+                                                       care what the term computes
+    tether        by_fit = partial(retrieval.fits, gap=gap, in_type="val", out_type="val")
+
+**So *the SELECTOR that would pick among composed objectives* is not a missing mechanism.** *The loop
+selects among candidate terms every step, by fit then by bargain, over a `Term` of any shape.*
+
+> **WHAT IS ABSENT IS THAT NO COMPOSED OBJECTIVE CAN ENTER IT.** *Three pins, and only one is a
+> mechanism:* **the closure query is `val,val`; the fit key is `val,val`; and `OBJ` has no edge to
+> `val`, so an objective could never be a bet in the first place.** **The third causes the other two.**
+
+## SO THE RULING IS THE EDGE, AND THE SELECTION FOLLOWS FROM IT
+
+**Tenth instance of the session's pattern: a thing filed as needing a build, already built, with an
+unreachable population.** *The selector does not need designing. It needs something to select.*
+
+**AND THE ONE HONEST CAVEAT IS INSIDE THE EDGE, NOT BESIDE IT.** *The bargain is generic in TYPE and its
+CRITERION is prediction — `cost + left < base` prices how much of a slot's residual a term explains.*
+**Whether an objective should be selected by that criterion is exactly the semantic question the edge
+decides**: *the edge says what an objective PREDICTS, and once it predicts something the existing
+bargain ranks it.*
+
+**One ruling. The edge. `OBJ → val`, and what it means for a composed objective to predict a slot
+value.** *Everything downstream of it — selection, pricing, minting, promotion, transfer — is built and
+generic and waiting.*
