@@ -14031,3 +14031,44 @@ as OPEN is not among them**, and it is where all four were lost.* **So: before f
 needing a ruling, read the mechanism that would carry it.** *The same law, at the point where an item
 enters the queue rather than where a claim leaves it* — and the four would have been caught by it,
 because in each case the answer was in the file the item names.
+
+---
+
+# `grammar.py` READ END TO END: THE SELECTOR IS A RULING, AND THE READ FOUND THE WIRE'S REAL DIFFICULTY
+
+## THE NEGATIVE, CONFIRMED RATHER THAN SKIMMED
+
+**225 lines, and `sort · max · min · rank · choose · select · prefer · best · score` occur ZERO
+times.** *It is a type checker and a constructor:* 13 `PRIMES`, 9 `HEADS`, 3 `TERMINALS`, `compose`
+raising `Ill` with a reason, `_check_terminal` enforcing `_BET_ORDER` and the probe rule.
+
+> **IT SAYS WHAT IS WELL-FORMED AND NEVER WHICH TO PREFER.** **So the selector is a genuine ruling —
+> the fifth filing was not a fifth read**, and the trigger paid by confirming rather than by
+> overturning. *Which is the outcome that gives the ruling the standing P0 had: checked, not assumed.*
+
+## BUT TWO `OBJ`s ARE NOT ONE `OBJ`, AND THAT IS THE WIRE'S ACTUAL DIFFICULTY
+
+    arc_atoms   Atom("all", lambda v, _c: int(bool(v)), PRED, OBJ)   -> produces an INT
+    grammar     _p("ALL", "Quantity", (T.PRED,), T.OBJ, ...)         -> produces a TERM
+
+**`arc_atoms` declares its `OBJ` IS `grammar.T.OBJ`, and at the level of the type NAME that is true.**
+*At the level of the VALUE it is not: one is a computed integer, the other a node in a syntax tree.*
+
+> **`A6i`, SIXTH INSTANCE — AND IT IS EXACTLY WHAT THE WIRE HAS TO CROSS.** *The wire is not "pass the
+> chain's result to `WANT`"*: the chain yields an int and `WANT` consumes a `T.OBJ` term. **The wire is
+> a TRANSLATION between a computed value and an utterance term, and calling both `OBJ` is what made it
+> look like a connection.**
+
+**And the two quantifier vocabularies differ in membership as well as in kind:** `all · any · none`
+against `ALL · SOME · ONE · NONE`. *`any` and `SOME` are one quantity under two names; `ONE` has no
+atom.* **Three against four, at the exact seam the wire joins.**
+
+## AND THE SHAPE A SELECTOR WOULD FILL IS ALREADY BUILT
+
+`is_hole` — ***"a bare type as a leaf: a template without content. **This is how a question is
+asked**."*** — and `_check_terminal` already rules what may accompany one: *DERIVE against a holed WANT
+composes with a probe only.*
+
+> **SO THE GRAMMAR CAN ALREADY EXPRESS *an objective-shaped hole* AND CONSTRAINS WHAT MAY STAND BESIDE
+> IT.** *The REPRESENTATION exists; the CHOOSING does not.* **Which is the cleanest possible statement
+> of what the selector ruling is about — not how to say it, only how to pick.**
