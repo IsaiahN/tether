@@ -14603,3 +14603,43 @@ derived from the other.**
 **The metric question answers itself on the ORDERED half** — *one step is one unit of the attribute's
 own ordering, which is what ORDERED means* — **and has no answer on the other half, which is the
 finding rather than a gap.** *The ladder needs building in the action currency, on §19.2's form.*
+
+---
+
+# NOT BUILDING THE LADDER YET: IT IS DOWNSTREAM OF AN UNBUILT EDGE, AND AN `OBJ -> val` ATOM CANNOT WORK
+
+## 1 · *THE ONE BUILD LEFT* IS THE SAME OVER-CLAIM CORRECTED TWO COMMITS AGO
+
+**`75e4beb` measured it: zero relation-typed slots, link 2 unmoved, seven of eight phases unbuilt
+including P3 — *the load-bearing one* — and no `PLAN` step in `ledger.STEPS`.** *None of that changed
+in the two commits since.* **The ladder is not the one build left; it is one build, and the phase queue
+behind it is still seven deep.**
+
+## 2 · THE LADDER ESCALATES A BET, AND THERE IS NO BET TO ESCALATE
+
+**The canary is: place the smallest bet, read the residual, escalate on confirmation.** *Steps 1 and 2
+need an objective to be BETTABLE — which is the edge, ruled and **not built**.* **Building the
+escalation policy first is an escalation over bets that cannot be placed** — half a mechanism, the
+pattern this session has refused nine times.
+
+## 3 · AND THE EDGE HAS A MECHANICAL OBSTACLE: AN ATOM CANNOT RECOVER THE SLOT VALUE
+
+`Term.apply` is `value = a.fn(value, ctx)` **left to right**. *By the time a chain reaches `OBJ`, the
+slot's own value has been consumed into a truth* — `all_same` returns 0/1 — **so an `OBJ → val` atom
+receives `0/1` and a `Ctx`, and the value it must step FROM is gone.**
+
+    ctx has     action . operands . touching . group
+    ctx lacks   THE SLOT'S OWN CURRENT VALUE, which is what "one step toward" steps from
+
+**So the edge cannot be a plain atom at the end of the chain.** *Two shapes are possible and they
+differ in where the rule lives:*
+
+    (i) a Ctx field    carry the slot's own value, and the edge is an atom like any other
+    (ii) a loop rule   the loop HAS `state[slot]`; the edge is a uniform rule applied to any
+                       agent-composed objective, the way THE BARGAIN is seat-written and generic
+
+> **(ii) HAS THE BARGAIN AS ITS PRECEDENT AND IS PROBABLY RIGHT** — *`cost + left < base` is
+> seat-written, uniform, and nobody calls it an encoded answer, because it defines what a BET COSTS
+> rather than what the agent should conclude.* **An edge defining what a bet MEANS is the same kind of
+> thing.** *But it is a choice about where a rule lives, and this session has been wrong nine times
+> about what was obvious.* **Reported, not taken.**
