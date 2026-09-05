@@ -13607,3 +13607,57 @@ alphabet, and nothing calls a boundary on it.*
 > index**, arbitrary across runs and across games, which is the placement/identity defect at run scope.*
 > **Standing check 2 fires, inverted: the comment claimed placement semantics the code does not
 > implement.**
+
+---
+
+# CHECK 6, THE COMMENT REPAIRED, AND WHY P1 IS BLOCKED
+
+## CHECK 6 IS RIGHT IN KIND, AND IT HAS ONE VERIFIED SITE, NOT FOUR
+
+**The proposed count does not survive checking, and the count is what separates a check from a
+caution.** *Of the four instances offered:*
+
+- **`arc_percept`'s shape id** — comment says *episode-scoped*, code resets nothing. **VERIFIED.**
+- **sensor 6 `overlap`** — the comment is ACCURATE and says so plainly: *"`overlap`'s BODY does not yet
+  match its type."* **The plan never read it.** That is **law 6**, not a lying comment.
+- **`animation`** — one WORD over two quantities. **`A6i`**, a different defect.
+- **the M4 comment** — not yet written.
+
+> **SO IT GOES UP AT ONE SITE, UNDER THE PROSPECTIVE CLAUSE, BECAUSE THE COLLIDING ITEM IS NAMEABLE:**
+> *the frozenset publish is the next thing whose justification rests on that comment.* **That condition
+> is what stops a register filling with near-misses until nobody reads it.**
+
+**AND ITS REAL VALUE IS THAT IT COMPLETES LAW 6 RATHER THAN ADDING TO IT.** *Go look* says **read the
+comment**; check 6 says **then check it.** **Reading sensor 6's comment would have PREVENTED the Tier-2
+error; reading the shape id's comment is what CAUSED the scope error.** *Neither half is safe alone.*
+
+## THE COMMENT IS REPAIRED AT SOURCE, WITH THE ACTUAL DEFECT NAMED
+
+`arc_percept` now records that `_shapes` is reset nowhere and `Objects()` is built once per run, **so
+the id is RUN-STABLE** — and that ***the real defect is that it is arbitrary across runs and across
+games***, assigned by arrival order rather than content. **The index is a PLACEMENT; the frozenset under
+it is the identity.**
+
+## P1 IS BLOCKED, AND NOT ON THE PUBLISH — ON `0a`'s PARKED OPERAND TYPING
+
+**Publishing the frozenset does not unblock the orientation relations, because the consumer cannot
+take it.** `_relate` implements `ATTR × ATTR → PRED` as **`ATTR × SLOTVALUE → PRED`**: `same(v, c)`
+compares the chain's extracted value `v` against `c.operands[0]`, and `_ops` returns
+**`(state[term.operand],)` — a RAW SLOT INT that went through no extraction.**
+
+> **`arc_atoms`' own module note has this parked and says so:** *"Operand TYPING is `0a`'s and is
+> parked… the second argument's type is unchecked, and saying so is cheaper than discovering it at
+> 3c."* **This is discovering it.**
+
+**So the chain `shape → same` compares a frozenset to an integer, and no amount of publishing fixes
+it.** *And the same hole means the eight extract atoms have no path to a bettable output even if they
+stopped abstaining: `_relate` is their only route to `PRED`, and `PRED → OBJ` is the only route to
+something the loop can bet.*
+
+    what P1 was thought to need   the frozenset reachable
+    what it actually needs        the frozenset reachable AND the operand extracted the same
+                                  way the value is -- which changes what a TERM MEANS
+
+**That second half is a design question, not a mechanical fix**, and it is `0a`'s. **Reported rather
+than improvised**, because inventing an operand semantics here is the fault the plan is written to
+prevent.

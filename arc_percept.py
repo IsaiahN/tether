@@ -306,13 +306,24 @@ class Objects:
 
         state: dict[str, int] = {}
         for name, obj in self.tracked.items():
-            # SENSOR 5, PUBLISHED AS A PER-EPISODE ID. A shape is a frozenset and a slot is
-            # an int, which is the whole of why it was never published -- *the composable set
-            # was decided by which sensors happened to return integers*. **The id is a LABEL,
-            # exactly like `colour`**: arbitrary, comparable, never orderable, and valid only
-            # for the episode it was assigned in. Measured cost of leaving it out: 43 of 43
-            # cell-changes on three boards moved no published attribute, and shape moved in
-            # every one.
+            # SENSOR 5, PUBLISHED AS AN ENCOUNTER INDEX. A shape is a frozenset and a slot
+            # is an int, which is the whole of why it was never published -- *the composable
+            # set was decided by which sensors happened to return integers*. **The id is a
+            # LABEL, exactly like `colour`**: arbitrary, comparable, never orderable.
+            # Measured cost of leaving it out: 43 of 43 cell-changes on three boards moved no
+            # published attribute, and shape moved in every one.
+            #
+            # ITS SCOPE, CORRECTED 2026-09-04 -- THE OLD TEXT SAID "valid only for the episode
+            # it was assigned in" AND THE CODE DOES NOT DO THAT. `_shapes` is created once
+            # under the `hasattr` guard above and is reset NOWHERE, and `Objects()` is built
+            # once per run, so **the id is RUN-STABLE**. Three rounds of design read the old
+            # claim and planned a durable replacement for a scope problem that was not there.
+            #
+            # **THE REAL DEFECT IS THAT IT IS ARBITRARY ACROSS RUNS AND ACROSS GAMES**, being
+            # assigned by ARRIVAL ORDER rather than by content: the same shape is `3` here and
+            # `11` in the next run, so it cannot key anything that must survive either. That
+            # is the placement-versus-identity split at run scope -- the index is a PLACEMENT,
+            # and the frozenset under it is the identity.
             sid = self._shapes.setdefault(obj["shape"], len(self._shapes))
             for attr in ("row", "col", "h", "w", "colour", "drow", "dcol"):
                 if attr in obj:
