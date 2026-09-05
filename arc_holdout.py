@@ -160,6 +160,13 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None) -> di
         hab = habitat.enumerate_from(objs, worst.split(".")[0], aff=aff)
     return {
         "game": game, "board": list(getattr(board, "shape", (len(board), len(board[0])))),
+        # THE KEY THE AGENT COMPUTED, beside the name the harness handed it. Reported rather
+        # than stored: `gamma.save`/`load` do not take it yet. It is here because the two
+        # unmeasured caveats -- how fast the signature converges on a richer board, and how
+        # often two real games share one -- are read ACROSS RUNS, and a key that is never
+        # emitted cannot be compared between them. `game` is the seat's label and the digest
+        # is the agent's; printing both side by side is what makes the collision rate visible.
+        "store_key": ag.store_key(1, env.level() if hasattr(env, "level") else 1),
         "palette": palette, "slots": len(env.slots()), "blind": env.blind,
         "cycles": ag.cycle, "rows": len(rows), "gate": gate.check(rows)["verdict"],
         # §22.6: the stage code is the DIAGNOSIS. `stalls` over CLOSED segments, never

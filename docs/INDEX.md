@@ -15340,3 +15340,75 @@ gets dropped.*
 
 *One fixture, four patterns, 30 steps.* **Whether a richer board converges as fast, and how often two
 real games collide, is unmeasured** — and both are per-game readings.
+
+---
+
+# THE STORE KEY, BUILT — AND THE TWO COLLISIONS SEPARATED, BECAUSE ONLY ONE IS DETECTABLE
+
+## THE STORY'S SHAPE, KEYED ON WHAT THE AGENT COMPUTED
+
+    play A, episode 1 level 1     25a266e_1_1        the story's `eec40c6_1_1`
+    play A, episode 2 level 1     25a266e_2_1
+    play A, episode 1 level 2     25a266e_1_2
+    play B, DIFFERENT actions     25a266e_1_1        same bucket
+
+**Same game, different action sequences, same bucket** — *which is the action-invariance measured last
+commit, now carried into the key.*
+
+## TWO COLLISIONS, AND KEEPING THEM APART IS THE POINT
+
+    HASH collision       two DIFFERENT signatures, one digest. RARE, and CHECKED --
+                         `_digests` holds digest -> signature and a mismatch RAISES
+    SIGNATURE collision  two different GAMES, one signature. EXPECTED, and UNDETECTABLE BY
+                         CONSTRUCTION -- five attribute types give 32 effect-patterns and one
+                         game used four
+
+> **SO THE SIGNATURE BUCKETS AND DOES NOT NAME.** *It identifies a game up to a 32-pattern equivalence
+> class; `episode` and `level` index within the bucket; and **two games in one bucket are not separated
+> by this key at all**.* **Written into the docstring because a key described as an identity would have
+> the next reader trust it to distinguish games it cannot.**
+
+**AND THE DETECTABLE ONE WAS FALSIFIED, NOT ASSERTED.** *A different signature was planted under a live
+digest and the call raised:* `digest collision on '25a266e': two distinct signatures`. **Reintroduce
+the defect, never disable the check — so the check is known to be able to fail.**
+
+## WHAT THIS DOES AND DOES NOT DELIVER
+
+**Delivers:** *a key computed from the agent's own tracking, carrying nothing the environment named —
+not the game string, not slot names, not colour values, not the action's name or its per-game role.*
+**The firewall is complete at every layer the key touches.**
+
+**Does not deliver:** *the store itself.* **`gamma.save`/`load` exist and nothing yet calls them with
+this key**, and the episode/level counters are the caller's. *A key with a verified shape and no store
+behind it — the same latent state as `structure`, said rather than glossed.*
+
+---
+
+# THE PROJECT'S OWN LINT REFUSED THE LATENT SHIP, AND IT WAS RIGHT
+
+**`store_key` went in with a verified shape and no caller, and the commit was blocked:**
+
+    ISOLATED   FAIL -- tether.py: `store_key`: defined and referenced nowhere in the package
+    7/8 seats clean, 1 found something
+
+> **THIS IS *NO ISOLATED CODE, NO SILENT CODE* ENFORCED, AND IT CAUGHT THE PATTERN I HAD BEEN
+> REPEATING.** *`operand_type`, `BOOL` in `COMPARABLE` and `structure` all shipped LATENT and all
+> passed — because each is DATA that existing code already reads.* **A new FUNCTION with no caller does
+> not pass, and the difference is exactly right: unread data is inert, an uncalled function is dead.**
+
+## THE CALLER IS THE INSTRUMENT THE UNMEASURED CAVEATS NEED
+
+**`arc_holdout`'s report now emits the key beside the harness's game name.** *Not a fig leaf: the two
+things left unmeasured — **how fast the signature converges on a richer board**, and **how often two
+real games share one** — are read ACROSS RUNS, and* **a key that is never emitted cannot be compared
+between them.**
+
+*`game` is the seat's label and the digest is the agent's.* **Printing both side by side is what makes
+the collision rate visible when real boards arrive** — which is the measurement the low-entropy finding
+said would be needed.
+
+## THE PATTERN WORTH KEEPING
+
+**Three latent ships passed lint and this one did not, and the line the linter draws is a real one.**
+*Data with no reader is a declaration waiting for a consumer; a function with no caller is a claim that
+something happens and nothing does.* **The checker knew the difference before I articulated it.**

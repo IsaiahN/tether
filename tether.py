@@ -7,6 +7,7 @@ optional.
 
 from __future__ import annotations
 
+import hashlib
 import math
 import sys
 from collections import Counter
@@ -305,6 +306,7 @@ class Agent:
         # `_group` sits in the same per-candidate loops.
         self._peer_cache: dict | None = None
         self._decomp_cache: tuple | None = None
+        self._digests: dict[str, frozenset] = {}
         self.agency = I.Agency()       # §16.8 sensor 3, a per-step read
         self.term = I.Termination()    # 2d / §20.1, latching and asymmetric
         self.retro: list[dict] = []
@@ -468,6 +470,34 @@ class Agent:
         MEASUREMENT and not a claim -- see the run beside this build.
         """
         return frozenset(self.step_effect(b, a) for b, _, a in self.trace)
+
+    def store_key(self, episode: int, level: int) -> str:
+        """`{digest}_{episode}_{level}` -- the story's shape, keyed on what the agent computed.
+
+        **TWO COLLISIONS, AND ONLY ONE IS DETECTABLE. Keeping them apart is the point.**
+
+            HASH collision       two DIFFERENT signatures, one digest. RARE, and CHECKED --
+                                 `_digests` holds digest -> signature and the mismatch raises
+            SIGNATURE collision  two different GAMES, one signature. EXPECTED, and UNDETECTABLE
+                                 BY CONSTRUCTION: five attribute types give 32 effect-patterns
+                                 and one game used four, so the space is small and sharing it
+                                 is the common case rather than the exception
+
+        **So the signature BUCKETS and does not NAME.** *It identifies a game up to a
+        32-pattern equivalence class; `episode` and `level` index within the bucket; and two
+        games in one bucket are not separated by this key at all.* **Stated because a key
+        described as an identity would have the next reader trust it to distinguish games it
+        cannot.**
+        """
+        sig = self.signature()
+        digest = hashlib.sha1(
+            repr(sorted(sorted(e) for e in sig)).encode()).hexdigest()[:7]
+        seen = self._digests.setdefault(digest, sig)
+        if seen != sig:
+            # THE DETECTABLE ONE. Never silent: a shared digest over different signatures is
+            # the prefix being too short, which is a fact about the prefix and fixable.
+            raise ValueError(f"digest collision on {digest!r}: two distinct signatures")
+        return f"{digest}_{episode}_{level}"
 
     def history(self, slot: str) -> list[tuple[dict[str, int], str, int]]:
         """(before-state, action, this slot's after-value) for every recorded step.
