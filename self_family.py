@@ -33,6 +33,7 @@ it cannot be read as a threshold.
 from __future__ import annotations
 
 import sys
+from typing import Any
 
 sys.dont_write_bytecode = True
 
@@ -67,6 +68,16 @@ class SelfHypothesis:
 
     def observe(self, _before, _action, _after) -> float:
         return 1.0
+
+    def identity_key(self, _obj: dict) -> Any:
+        """WHAT THIS MEMBER HOLDS STILL, for one object. `None` means it declares none.
+
+        A streak keyed on the tracker's name dies when the name churns, and a streak keyed on
+        any ONE invariant privileges one member's claim -- which is what a non-simulable
+        family exists not to do. **Each member already matches across time by something, in
+        its own code**, so this is read off rather than chosen.
+        """
+        return None
 
     def cells(self) -> tuple[set, set] | None:
         """`(changed, explained)` for this step, or None where the member has no cell

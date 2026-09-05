@@ -39,6 +39,7 @@ from __future__ import annotations
 
 import sys
 from collections import Counter
+from typing import Any
 
 import arc_percept as P
 from self_family import MIN_REPEAT, SelfHypothesis, SelfModelFamily
@@ -108,6 +109,10 @@ class TranslationSelf(SelfHypothesis):
         self._streak = self._streak + 1 if (1.0 - res) > res else 0
         return res
 
+    def identity_key(self, obj: dict) -> Any:
+        """SHAPE. `observe` matches by `{shape_of(o): o}` -- this is that key, per object."""
+        return obj.get("shape")
+
     def has_self(self) -> bool:
         return self._streak >= MIN_REPEAT
 
@@ -152,6 +157,10 @@ class GrowthEdgeSelf(SelfHypothesis):
         else:
             self._streak = 0
         return res
+
+    def identity_key(self, obj: dict) -> Any:
+        """COLOUR. `observe` tracks the most-gained colour; the shape is what grows."""
+        return obj.get("colour")
 
     def has_self(self) -> bool:
         return self._streak >= MIN_REPEAT and bool(self.frontier)
@@ -269,6 +278,11 @@ class RegionToggleSelf(SelfHypothesis):
                     self._streak = 0
         self._g2, self._g1 = self._g1, b
         return res
+
+    def identity_key(self, obj: dict) -> Any:
+        """POSITION. `observe` compares `b[r][c]` against `g2[r][c]` -- the same CELL across
+        time, so the cell set is what this member holds still."""
+        return frozenset(obj.get("cells", ()))
 
     def has_self(self) -> bool:
         return self._streak >= MIN_REPEAT and bool(self.region)

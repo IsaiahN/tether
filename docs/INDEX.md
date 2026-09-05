@@ -13965,3 +13965,48 @@ exemption, and narrowing it from here would be logic widening what data should h
 **So this declaration changes nothing observable today and is correct anyway** — it is the guard for
 the 66, which become reachable the moment the query changes. *A fix stated as closing a live hazard
 when it closes a latent one would be the vacuity failure at the report level.*
+
+---
+
+# THE STREAK KEYS PER MEMBER ON ITS OWN INVARIANT — READ OFF, NOT DESIGNED, AND A/B'd
+
+## EACH MEMBER ALREADY DECLARED ITS CROSS-TIME KEY, IN ITS OWN CODE
+
+    TranslationSelf   SHAPE      `old = {P.shape_of(o): o for o in P.components(a)}`
+    GrowthEdgeSelf    COLOUR     `self.colour, self.frontier = col, fresh`
+    RegionToggleSelf  POSITION   `b[r][c] == self._g2[r][c]` -- the same CELL across time
+    ValueLatentSelf   COLOUR     `self.hist.get(self.colour)`, board-wide
+
+**So `identity_key` is a read, not a design.** *The one thing that made this a design question — what
+does each member hold still — each member had already answered in the code that matches its own self
+across steps.* **The fourth step paying at a site where I had filed the item as unbuildable.**
+
+## THE A/B, 25 STEPS, THE ONLY DIFFERENCE BEING THE KEY
+
+    name-keyed        board flips:  7    dise embo embo embo embo embo dise embo ... dise ...
+    invariant-keyed   board flips:  1    dise x7 then embo x18
+
+> **THE SEVEN FLIPS WERE THE IDENTITY CHURN, NOT THE BOARD.** *Names died at steps 6, 13 and 20 —
+> measured last round — and the mode reported each as a switch back to `disembodied` while the new
+> name re-accumulated.* **Under invariant-keying the streak survives the rename and the mode settles
+> once.** **The trajectory is readable now; before it was an artifact of the tracker.**
+
+**And no single key would have done it.** *`hash(shape)` churns twice as often as the name on this
+board* — **the fix is not a better key, it is refusing to pick one**, because any single choice
+privileges one member's claim, which is what a non-simulable family exists to prevent.
+
+## TWO PROPERTIES UNTESTED, AND BOTH ARE PANEL GAPS
+
+- **NO STREAK RESET IN 25 STEPS, EITHER ARM.** *So demotion — which the design says IS the switch
+  detection — has no case on this fixture.* **The mode settling once is consistent with a correct
+  mechanism and with a sticky one, and this panel cannot separate them.**
+- **TWO LOCI SHARING A MEMBER'S KEY SHARE A STREAK** — two objects of one colour under `growth`.
+  *Right by that member's claim: growth's self IS a colour, so both are parts of one self.*
+  **Unexercised here, because the fixture's two loci differ in colour.**
+
+## AND ONE PROCESS HAZARD, MINE
+
+**The edit script was not idempotent and I re-ran it after a partial failure**, inserting the base
+method twice. *`ruff` caught it as `F811`.* **The half-state was observable and was observed** —
+which is the fixtures-before-changes ordering paying by accident rather than by design, and a reason
+to make these scripts assert their own absence before inserting.

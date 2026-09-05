@@ -61,7 +61,7 @@ class ArcWorld:
         # What it holds that is episode-scoped is dropped by `boundary()`, which the loop
         # calls at a level change -- see `tether.retarget`.
         self.selves = arc_self.family()
-        self._mode_streak: dict[str, dict[str, int]] = {}
+        self._mode_streak: dict[tuple, int] = {}
         # 16.4's profile table. Here for the same reason: it reads OBJECTS, and its per-episode
         # bindings drop through `boundary()` rather than living past a level change.
         self.aff = arc_percept.Affordances()
@@ -338,28 +338,46 @@ class ArcWorld:
         branches on nothing here. `coupled` is absent on purpose -- it needs the pair
         displacement comparison, which is a different reading.
 
-        **THE TRAJECTORY IS ENTANGLED WITH IDENTITY AND MUST NOT BE READ AS A MODE CHANGE.**
-        A streak is keyed on the tracker's name, so it dies when the name churns -- and *the
-        mode switched at step 7* is indistinguishable in this record from *the tracker lost
-        the object at step 7*. Measured on the fixture: names disappear on 3 of 24 steps and
-        SURVIVORS CHANGE SHAPE ON 6, so keying on `hash(shape)` instead would churn twice as
-        often. There is no single stable key, because a self-hypothesis IS a claim about what
-        changes: translation holds shape still, growth holds colour still. Read `board` per
-        step; do not read the sequence.
+        **THE TRAJECTORY WAS ENTANGLED WITH IDENTITY AND IS NOT ANY MORE -- FIXED 2026-09-04.**
+        The streak was keyed on the tracker's NAME, so it died when the name churned and *the
+        mode switched at step 7* was indistinguishable from *the tracker lost the object at
+        step 7*. **Measured A/B over 25 steps: name-keyed gives 7 board flips, invariant-keyed
+        gives 1.** No single key would have worked -- `hash(shape)` churns twice as often as
+        the name here -- because a self-hypothesis IS a claim about what changes. Each member
+        now keys its own streak on its OWN invariant, read off its own matching code.
+
+        **STILL UNTESTED ON THIS FIXTURE, AND BOTH ARE PANEL GAPS RATHER THAN CODE GAPS:**
+        no streak ever RESET in 25 steps, so demotion -- which is the switch detection -- has
+        no case here; and two loci sharing a member's key (two objects of one colour, under
+        `growth`) would share a streak, which is right by that member's claim and unexercised.
         """
         masks = self.locus_masks()
+        tracked = getattr(self._decompose, "tracked", {}) or {}
+        by_member = {m.name: m for m in self.selves.members}
+
+        def key(member: str, locus: str):
+            """PER MEMBER, ON THAT MEMBER'S OWN INVARIANT. The tracker's name churns and no
+            single invariant is neutral -- picking one would privilege one member's claim,
+            which is what the non-simulable family exists to prevent. Falls back to the name
+            where a member declares none."""
+            m, obj = by_member.get(member), tracked.get(locus)
+            k = m.identity_key(obj) if m is not None and isinstance(obj, dict) else None
+            return (member, k if k is not None else locus)
+
         per = self.selves.per_locus(masks)
         for locus, scored in per.items():
-            held = self._mode_streak.setdefault(locus, {})
             for name, res in scored.items():
-                held[name] = held.get(name, 0) + 1 if (1.0 - res) > res else 0
+                kk = key(name, locus)
+                self._mode_streak[kk] = (self._mode_streak.get(kk, 0) + 1
+                                         if (1.0 - res) > res else 0)
 
         # PER LOCUS THE ONLY VALUES ARE `embodied` AND `unknown`. `disembodied` is a claim
         # about the BOARD -- *no slot correlates but the board changes* -- so writing it onto
         # each locus was a board fact overwriting per-locus readings, and it made `hybrid`
         # unreachable: nothing could then disagree.
-        by = {locus: [n for n, k in self._mode_streak.get(locus, {}).items()
-                      if k >= arc_self.MIN_REPEAT] for locus in masks}
+        by = {locus: [n for n in by_member
+                      if self._mode_streak.get(key(n, locus), 0) >= arc_self.MIN_REPEAT]
+              for locus in masks}
         per_locus = {locus: ("embodied" if b else "unknown") for locus, b in by.items()}
 
         moved: set = set()
