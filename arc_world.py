@@ -61,6 +61,7 @@ class ArcWorld:
         # What it holds that is episode-scoped is dropped by `boundary()`, which the loop
         # calls at a level change -- see `tether.retarget`.
         self.selves = arc_self.family()
+        self._mode_streak: dict[str, dict[str, int]] = {}
         # 16.4's profile table. Here for the same reason: it reads OBJECTS, and its per-episode
         # bindings drop through `boundary()` rather than living past a level change.
         self.aff = arc_percept.Affordances()
@@ -318,6 +319,60 @@ class ArcWorld:
                 self.selves.observe(was, action, now)
             self.aff.note(was_objs, dict(self._decompose.tracked), mover=None)
 
+    def locus_masks(self) -> dict[str, set]:
+        """Each tracked object's cells. The mask a per-locus reading is taken through."""
+        tr = getattr(self._decompose, "tracked", {}) or {}
+        return {n: set(o["cells"]) for n, o in tr.items() if isinstance(o, dict)
+                and "cells" in o}
+
+    def mode(self) -> dict[str, Any]:
+        """§16.2's contingent read, PER LOCUS -- and the board reading is a FINDING.
+
+        `embodied` needs a member to explain more of this locus than it leaves unexplained,
+        held for `MIN_REPEAT` -- the same condition and the same constant `has_self` uses, not
+        a second one. `disembodied` needs the POSITIVE conjunct §16.2 states: no locus holds
+        AND the board moved. Everything else is `unknown`, which is `NOT_RESOLVED` at this
+        layer rather than a failure.
+
+        THE BOARD VALUE NEVER GATES. It is composed after the fact and reported; the loop
+        branches on nothing here. `coupled` is absent on purpose -- it needs the pair
+        displacement comparison, which is a different reading.
+        """
+        masks = self.locus_masks()
+        per = self.selves.per_locus(masks)
+        for locus, scored in per.items():
+            held = self._mode_streak.setdefault(locus, {})
+            for name, res in scored.items():
+                held[name] = held.get(name, 0) + 1 if (1.0 - res) > res else 0
+
+        # PER LOCUS THE ONLY VALUES ARE `embodied` AND `unknown`. `disembodied` is a claim
+        # about the BOARD -- *no slot correlates but the board changes* -- so writing it onto
+        # each locus was a board fact overwriting per-locus readings, and it made `hybrid`
+        # unreachable: nothing could then disagree.
+        by = {locus: [n for n, k in self._mode_streak.get(locus, {}).items()
+                      if k >= arc_self.MIN_REPEAT] for locus in masks}
+        per_locus = {locus: ("embodied" if b else "unknown") for locus, b in by.items()}
+
+        moved: set = set()
+        for m in self.selves.members:
+            moved |= m.changed
+        held_cells: set = set()
+        for locus, b in by.items():
+            if b:
+                held_cells |= masks.get(locus, set())
+        # CHANGE THE EMBODIED LOCI DO NOT COVER. That residue is what an actuator looks like,
+        # and it is what separates `hybrid` from `embodied` rather than a second detector.
+        outside = moved - held_cells
+        if not moved:
+            board = "unknown"
+        elif not held_cells:
+            board = "disembodied"
+        else:
+            board = "hybrid" if outside else "embodied"
+        return {"board": board, "per_locus": per_locus,
+                "by": {k: b for k, b in by.items() if b},
+                "outside": len(outside)}
+
     def contingency(self) -> dict[str, dict[str, float]]:
         """What each self-hypothesis MEASURED under each action. **Learned, never handed.**
 
@@ -337,6 +392,7 @@ class ArcWorld:
         """Drop what was bound to THIS episode. Colours permute on a refresh, so a colour
         identity is valid only for the episode it was read in."""
         self.selves.boundary()
+        self._mode_streak = {}
         self.aff.boundary()
 
     # -- read by the harness, never by the loop --------------------------------------------

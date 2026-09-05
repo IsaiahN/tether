@@ -404,6 +404,14 @@ class Agent:
         order, pattern = ro()
         self.led.record(self.cycle, "PERCEIVE", "*", "read_order",
                         pattern=pattern, first=order[:3], n=len(order))
+        md = getattr(self.env, "mode", None)
+        if md is not None:
+            m = md()
+            self.led.record(self.cycle, "PERCEIVE", "*", "mode",
+                            board=m["board"], by=m["by"],
+                            n_embodied=sum(1 for v in m["per_locus"].values()
+                                           if v == "embodied"),
+                            n_locus=len(m["per_locus"]))
 
     def _touching(self, slot: str) -> tuple[str, ...]:
         """§12.3 sensor 8's second operand, resolved for one slot. Mirrors `_bindings`' read:

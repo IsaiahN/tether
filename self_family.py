@@ -58,9 +58,20 @@ class SelfHypothesis:
         self._by_action: dict[str, list[float]] = {}
         self._order: tuple[str, ...] = ()   # its own ranking of the actions, last seen
         self._held = 0                      # how long that ranking has been unchanged
+        # THIS STEP'S CELL EVIDENCE, for per-locus attribution. `changed` is the denominator
+        # and `explained` the numerator the member already computes -- exposed rather than
+        # recomputed, because masking them per locus is N set-intersections where re-running
+        # the member per locus would be N segmentations.
+        self.changed: set = set()
+        self.explained: set = set()
 
     def observe(self, _before, _action, _after) -> float:
         return 1.0
+
+    def cells(self) -> tuple[set, set] | None:
+        """`(changed, explained)` for this step, or None where the member has no cell
+        evidence at all -- `ValueLatentSelf` is non-spatial and returns None here."""
+        return (self.changed, self.explained)
 
     def has_self(self) -> bool:
         return False
@@ -125,6 +136,33 @@ class SelfModelFamily:
         for."""
         live = [m for m in self.members if m.has_self()]
         return min(live, key=lambda m: self.mean(m.name)) if live else None
+
+    def per_locus(self, masks: dict[str, set]) -> dict[str, dict[str, float]]:
+        """`{locus: {member: residual}}`, by MASKING what each member already computed.
+
+        **A locus whose cells did not change gets NO ENTRY, never a residual of 1.0.** An
+        unchanged locus is not evidence against a hypothesis, it is no evidence -- and most
+        loci are unchanged most steps, so scoring them as `explained nothing` would swamp the
+        signal with absence. Same rule as `NOT_RESOLVED` one layer down.
+
+        The denominator is set by PERCEPTION (which cells the locus occupies) and not by the
+        member being scored, so masking does not let a member move its own denominator.
+        """
+        out: dict[str, dict[str, float]] = {}
+        for m in self.members:
+            ce = m.cells()
+            if ce is None:
+                continue                    # non-spatial: nothing to attribute
+            changed, explained = ce
+            if not changed:
+                continue
+            for locus, cells in masks.items():
+                seen = changed & cells
+                if not seen:
+                    continue                # no reading here, not a reading of zero
+                out.setdefault(locus, {})[m.name] = max(
+                    0.0, 1.0 - len(explained & seen) / len(seen))
+        return out
 
     def unmodeled(self) -> bool:
         """The completeness critic. **The whole family failing together is the signal.**"""

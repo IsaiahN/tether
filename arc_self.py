@@ -103,6 +103,7 @@ class TranslationSelf(SelfHypothesis):
             if prev is not None and prev["cells"] != o["cells"]:
                 explained |= (prev["cells"] | o["cells"]) & ch
         res = max(0.0, 1.0 - len(explained) / len(ch))
+        self.changed, self.explained = ch, explained
         self._attribute(action, 1.0 - res)
         self._streak = self._streak + 1 if (1.0 - res) > res else 0
         return res
@@ -142,6 +143,7 @@ class GrowthEdgeSelf(SelfHypothesis):
             return 1.0
         col = max(gained)[1]
         fresh = {(r, c) for (r, c) in ch if b[r][c] == col}
+        self.changed, self.explained = ch, fresh
         res = max(0.0, 1.0 - len(fresh) / len(ch))
         self._attribute(action, 1.0 - res)
         if (1.0 - res) > res:
@@ -207,6 +209,12 @@ class ValueLatentSelf(SelfHypothesis):
             self.colour = best
         return max(0.0, 1.0 - best_mono)
 
+    def cells(self) -> tuple[set, set] | None:
+        """NON-SPATIAL, SO THERE IS NOTHING TO MASK. §18.3 added this member because a
+        translation-shaped family failed together, and it is the one a per-locus index cannot
+        hold: the self IS the value, so it has no cells and stays board-level."""
+        return None
+
     def has_self(self) -> bool:
         """Consistent AND meaningful: every nonzero step one way, and net travel of at least
         one unit per nonzero step -- which count jitter does not sustain."""
@@ -251,6 +259,7 @@ class RegionToggleSelf(SelfHypothesis):
             back = {(r, c) for (r, c) in ch
                     if len(self._g2) == len(b) and b[r][c] == self._g2[r][c]}
             if ch:
+                self.changed, self.explained = ch, back
                 res = max(0.0, 1.0 - len(back) / len(ch))
                 self._attribute(action, 1.0 - res)
                 if (1.0 - res) > res and back:

@@ -13661,3 +13661,62 @@ something the loop can bet.*
 **That second half is a design question, not a mechanical fix**, and it is `0a`'s. **Reported rather
 than improvised**, because inventing an operand semantics here is the fault the plan is written to
 prevent.
+
+---
+
+# M5 BUILT: THE PER-LOCUS MODE, AND THE STRUCTURAL QUESTION HAD A UNIFORM ANSWER
+
+## THE LOCUS-RESTRICTED VIEW IS ONE OPERATION, AND IT INVERTS THE BUILD
+
+**Every cell-based member computes the same shape:** `res = 1 − |explained ∩ ch| / |ch|` over the
+CHANGED CELL SET. *`TranslationSelf`'s vacated-plus-arrived, `GrowthEdgeSelf`'s `fresh`,
+`RegionToggleSelf`'s `back` — three numerators, one denominator.*
+
+> **SO A LOCUS-RESTRICTED VIEW IS A MASK ON `ch`, NOT A RE-RUN OF THE MEMBER.** *Which inverts the
+> design in the useful direction:* **not N families each re-segmenting the board — one pass, then N
+> set intersections.** `TranslationSelf` calls `P.components` on both boards per `observe`, so the
+> naive version would have been N segmentations a step. **The `_touching` regression, avoided by
+> reading the members before copying them.**
+
+## AND `ValueLatentSelf` RETURNS `None` FROM `cells()`, WHICH IS THE HOLE MADE MECHANICAL
+
+*The self IS the value; it works on a colour histogram and has no cells.* **The member §18.3 added
+because a translation-shaped family failed together is the one a per-locus index cannot hold** — now
+stated in code rather than in a plan.
+
+## A LOCUS WITH NO CHANGED CELLS GETS NO ENTRY, NEVER A RESIDUAL OF 1.0
+
+**Most loci are unchanged most steps.** *Scoring them `explained nothing` would swamp the signal with
+absence* — **check 3, at a new site.** `per_locus` skips them, so the family's mean is over readings
+rather than over silence. **And the denominator is set by PERCEPTION, not by the member being scored**,
+so masking does not let a member move its own denominator.
+
+## THE COMPOSITION HAD A DEFECT THE RUN CAUGHT: `hybrid` WAS UNREACHABLE
+
+**The first version wrote `disembodied` onto every locus when none held.** *That is a BOARD fact
+overwriting per-locus readings — and it made `hybrid` impossible, because nothing could then disagree.*
+
+    PER LOCUS   embodied | unknown            -- the only two a locus can be
+    BOARD       unknown        nothing moved
+                disembodied    moved, and no locus holds
+                hybrid         a locus holds AND change remains OUTSIDE the held loci
+                embodied       a locus holds and covers the change
+
+**`hybrid` is now the RESIDUE**, which is what an actuator looks like beside an avatar — *not a second
+detector, and not two loci disagreeing.*
+
+## MEASURED, 25 STEPS ON THE SYNTHETIC FIXTURE
+
+    board values reached   unknown . disembodied . embodied
+    hybrid                 NOT REACHED. needs board change outside the embodied loci --
+                           an avatar AND an independent world-changer. the fixture has no
+                           such board, and that is the panel, not the mechanism
+    per-locus disagreement REACHED: `o3: embodied`, `o4: unknown` in the same step
+    the trajectory         REACHED WITHOUT BEING DESIGNED FOR: embodied at 2-6, back to
+                           `disembodied` at 7 -- the mode switching mid-run, which is the
+                           story beat, and it follows the LOCUS CHURNING (`o0` -> `o3`),
+                           because within-play identity is max-overlap and a streak dies
+                           with the name it was held under
+
+**`by` names the member that carried it** — `{'o3': ['growth']}` — so the reading says WHICH
+hypothesis, not just that one held. **Nothing gates on any of it.**
