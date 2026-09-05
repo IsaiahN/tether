@@ -14117,3 +14117,40 @@ at the wire exactly as the quantifier-vocabulary mismatch predicted.
 
 **`ONE` has no atom for the same reason `ALL` has no real one.** *Three against four was the visible
 half; the invisible half is that the three are not quantifiers.*
+
+---
+
+# ARITY AND SCOPE ARE NOT ONE RULING — AND MERGING THEM WOULD BREAK TRANSFER
+
+**Asked before treating them as separate sessions, which is the right question. The answer is that
+they are OPPOSITE in the property that decides transfer.**
+
+## A BOUND OPERAND IS AN INSTANCE, AND THE CODE SAYS SO TWICE
+
+    gamma:137   if self.operand: base = f"{base}<{self.operand}>"
+                -- THE BINDING IS IN THE HANDLE, so it is part of the term's identity
+    gamma:455   "operand and guard are DROPPED and the atom chain is KEPT"
+                -- so the binding does NOT cross. *Vocabulary permanent, instances transient*
+
+## AND A SCOPE MUST NOT BE AN INSTANCE, FOR THE SAME RULE READ THE OTHER WAY
+
+***`ALL` must mean the same thing on a board with 3 objects and a board with 17***, or it does not
+transfer. **So a scope has to SURVIVE the membrane, and a binding is DEFINED as the thing that does
+not.**
+
+> **PUT A POPULATION IN THE HANDLE AND THE MEMBRANE DROPS IT.** *A quantifier that loses its scope at
+> export is a quantifier that means nothing on the other side.* **They are not one ruling; they are the
+> two sides of the instance/vocabulary line.**
+
+## AND A SECOND, INDEPENDENT REASON: ARITY-N DOES NOT DELIVER QUANTIFICATION ANYWAY
+
+**`0a` wants arity N with a cap of 4.** *`ALL` over a board with 17 objects is inexpressible in 4 named
+operands* — **a 5-ary function is not a quantifier.** *Arity is **how many named slots a term reads**;
+scope is **how many there are**, and the second is a property of the board rather than of the term.*
+
+    ARITY   N NAMED bindings. IN the handle. DROPPED at the membrane. Bounded by a cap
+    SCOPE   an UNNAMED population. NOT in the handle. SURVIVES the membrane. Board-sized
+
+**So the two rulings left are genuinely two, and the discipline that asked the question is the same one
+that answers it:** *do not file as one what has two lifetimes* — **check 5, at the level of rulings
+rather than of stamps.**
