@@ -36,7 +36,8 @@ sys.dont_write_bytecode = True
 
 
 def characterise(robs: list, slot: str, slots: list[str],
-                 types: dict[str, str] | None = None) -> dict:
+                 types: dict[str, str] | None = None,
+                 relations: dict | None = None) -> dict:
     """THE GAP, DESCRIBED. `R`'s own structure, computed from the residual and nothing else.
 
     `arity` is how many slots the gap involves: a residual whose frames all hold one slot's
@@ -56,8 +57,19 @@ def characterise(robs: list, slot: str, slots: list[str],
     # RETRIEVAL KEY -- the one place the ruling had not reached, though the stored term has
     # obeyed it since `save` dropped the binding. Figure 9's form: arity and scale, no ids.
     tv = tuple(sorted(types[s] for s in varies if s in types)) if types else ()
+    # LINK 2's KEY, AND IT NEEDS NO SLOT. A relation is between two objects and `slot_types`
+    # can name neither the pair nor its type -- which is the break. But the key CROSSES on
+    # types rather than instances, so *a relation of this type changed* is sayable directly,
+    # and publishing a slot per pair (n-squared) is not the only route to saying it.
+    #
+    # `rel_confidence` rides with it because a relational CHANGE spans two frames and so rests
+    # on the tracker having matched both objects across them -- which P2 measured at a 0.0625
+    # overlap in the worst case. A relation on a thin match is a weaker claim, and this says so.
+    rel = relations or {}
     return {"arity": 1 + (1 if varies else 0), "varies": varies, "varies_types": tv,
             "target_type": (types or {}).get(slot),
+            "rel_types": tuple(rel.get("types", ())),
+            "rel_confidence": rel.get("confidence"),
             "invariant": invariant, "n": len(robs)}
 
 
@@ -136,8 +148,12 @@ def fits(term: Any, gap: dict, in_type: str, out_type: str) -> int:
         aimed = gap.get("target_type") in gap.get("varies_types", ())
     else:
         aimed = reads in gap.get("varies_types", ())
+    # A TERM THAT READS A RELATION, AGAINST A GAP WHERE ONE CHANGED. `touching` is the only
+    # relation an atom holds today and it declares `touching` in `reads_ctx`, so this is read
+    # off the declaration rather than off the atom's name.
+    relational = "touching" in reaches and gap.get("rel_types")
     return (2 * (t_in == in_type and t_out == out_type)
-            + (arity == gap["arity"]) + bool(aimed))
+            + (arity == gap["arity"]) + bool(aimed) + bool(relational))
 
 
 def retrieve(library: dict, gap: dict, in_type: str = "val",

@@ -1587,7 +1587,9 @@ class Agent:
             # §23.5: retrieval and the rank function are PREREQUISITES for a loaded library,
             # *otherwise loading makes the agent worse by drowning every search* -- and the
             # library is loaded by design as of the persistence ruling.
-            gap = retrieval.characterise(robs, slot, list(self.alphabet), self.slot_types)
+            rel = getattr(self.env, "contact_changes", None)
+            gap = retrieval.characterise(robs, slot, list(self.alphabet), self.slot_types,
+                                         relations=rel() if rel else None)
             # HOISTED. `_bindings` depends on `slot` and `robs` and not on the candidate, and
             # it was being rebuilt identically for every one -- an owner map, a contact set and
             # a variance count per candidate. Computed once here; the ORDER is unchanged.

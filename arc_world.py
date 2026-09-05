@@ -57,6 +57,7 @@ class ArcWorld:
         self._frame = self.w.reset()
         self._read: dict[str, int] | None = None
         self._contacts: dict[str, list[str]] | None = None
+        self._prev_contacts: dict[str, list[str]] | None = None
         # 18.3's family lives HERE because the members read BOARDS and the agent may not.
         # What it holds that is episode-scoped is dropped by `boundary()`, which the loop
         # calls at a level change -- see `tether.retarget`.
@@ -325,6 +326,33 @@ class ArcWorld:
         win = f.win_levels or 1
         return "ALL(BECOME(level, completed))", min(1.0, f.levels_completed / win)
 
+    def contact_changes(self) -> dict:
+        """WHICH RELATIONS CHANGED, and how certain the identity beneath them is.
+
+        **A RELATION IS NOT A SLOT, so a relational change cannot reach the retrieval key
+        through `slot_types`** -- which is what link 2's break amounts to. It does not need to:
+        the key crosses on TYPES, not on instances, so *a relation of this type changed* is
+        sayable without publishing a slot per pair. **That avoids the pair-slot explosion
+        entirely** -- no `o1~o2.touching`, no n-squared slots.
+
+        **AND IT CARRIES THE CONFIDENCE OF THE IDENTITY IT RESTS ON.** Contact CHANGED is a
+        claim about two frames, so it depends on the tracker having matched both objects
+        across them -- and P2's measurement says that match is sometimes a 0.0625 overlap.
+        **A relational change resting on a thin match is a weaker claim than one resting on a
+        1.0 match, and the number says which.**
+        """
+        prev, now = self._prev_contacts, self.contacts()
+        if prev is None:
+            return {"types": (), "n": 0, "confidence": None}
+        changed = {n for n in set(prev) | set(now)
+                   if sorted(prev.get(n, ())) != sorted(now.get(n, ()))}
+        if not changed:
+            return {"types": (), "n": 0, "confidence": None}
+        m = self.matches()
+        scores = [s for n in changed for r, s in (m.get(n, ("birth", 0.0)),) if r == "overlap"]
+        return {"types": (sensors.BOOL,), "n": len(changed),
+                "confidence": round(min(scores), 4) if scores else 0.0}
+
     def matches(self) -> dict[str, tuple[str, float]]:
         """How each object's identity was established this frame, and how certain it was.
 
@@ -373,6 +401,7 @@ class ArcWorld:
         if nxt is not None:
             self._frame = nxt
         self._read = None          # a new frame is a new decomposition
+        self._prev_contacts = self._contacts
         self._contacts = None      # and a new set of contacts
         now = self.board()
         self._decomposed()          # re-track before reading contact on the new frame

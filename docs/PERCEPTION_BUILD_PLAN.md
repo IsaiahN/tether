@@ -624,7 +624,21 @@ of nothing until it moves.**
                           occasionally a 1-in-16 match taken as identity.
                           THE RELATIONAL-HISTORY HALF IS NOT BUILT: *does keeping pair history
                           improve prediction* means *does it PAY*, and the fixture pays nothing
-    P3  relational key    NOT BUILT, AND IT MUST NOT BE BUILT ON `key_of` UNTIL THE ATOMS
+    P3  relational key    BUILT -- AND WITHOUT THE PAIR-SLOT EXPLOSION. A relation is not a
+                          slot, but the key CROSSES ON TYPES not instances, so *a relation of
+                          this type changed* is sayable without publishing `o1~o2.touching`
+                          and n-squared slots. `contact_changes()` reads it; `characterise`
+                          carries `rel_types` and `rel_confidence`; `fits` scores a term that
+                          DECLARES `touching` in `reads_ctx` against a gap where one changed.
+                          MEASURED, 30 steps: a relation changed on 9, and the identity
+                          confidence beneath those changes was 0.0625 and 0.9375 -- so one
+                          relational claim rests on a 1-in-16 match. `fits(touching)` is 4
+                          when a relation changed and 3 when none did; `fits(colour)` is 3
+                          either way.
+                          TERMS CAN FORM. They do not PAY -- the fixture pays nothing -- and
+                          some rest on thin identity, which `rel_confidence` is what makes
+                          readable.
+                          THE SUPERSEDED CONSTRAINT: it must not be built on `key_of` until
                           DECLARE THEIR `Ctx` READS. `Ctx` went from two fields to five this
                           session and `key_of`'s INVARIANCE claim -- *no accessor, no
                           dependence*, the half the design calls EXACT -- is now false:
