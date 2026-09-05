@@ -15205,3 +15205,50 @@ of them.**
 identity lands at P7.* **A publication with a verified round trip and no reader**, which is the same
 latent shape as `operand_type` and `BOOL`-in-`COMPARABLE`, and is stated here because check 7 is about
 exactly the sentence that would have left it out.
+
+---
+
+# THE CHEAPEST-PHASE READ: NO REMAINING PHASE HAS A LIVE CONSUMER, AND THE REASON IS STRUCTURAL
+
+**Asked which phase is cheapest before sequencing `obj:`. The answer is that the question's premise has
+expired — and two of the candidates lost their consumers to work already done.**
+
+    P2 pair store        consumer would be relational history / match confidence. NOTHING READS THEM
+    P3 relational key    needs relations published as SLOTS -- the pair-slot explosion. Large, not cheap
+    P4 cascade           consumer is the causality tracker. UNBUILT
+    P5 placements        consumer is Layer 4 classes (unbuilt) AND the band has no producer (M4)
+    P6 budget            `Termination`: **"THE AGENT DOES NOT READ THE CAP"** -- Seam 5's ruling,
+                         already honoured. What is left is SEAT-SIDE and is not agent capability
+    P7 hash + store      THE ONLY ITEM THAT CREATES CONSUMERS rather than needing one
+
+## AND `obj:`'s WAITING CONSUMER WAS SUPERSEDED BY OUR OWN FIX
+
+**The trajectory entanglement was closed by keying each member's streak on ITS OWN invariant** —
+`identity_key` on the three cell-based members, A/B'd 7 board flips to 1. *`obj:` was the proposed fix
+for that and is no longer needed for it.* **Its only remaining reader is P7's store.** *So `obj:` is
+latent, and sequencing it first would have given `structure` a reader that reads it for nothing.*
+
+## SO P7 IS THE UNBLOCKER, AND ITS KEY IS A DESIGN QUESTION RATHER THAN CONSTRUCTION
+
+**The store is what would give `structure`, `obj:` and the scenario query their readers.** *And the
+story's key — **a hash from the game's own structure** — is not computable as construction:*
+
+> **A hash over the current frame's shapes is not stable across frames**, because objects move, appear
+> and vanish. *The story computes it when a play ENDS, so the question is **what is invariant about a
+> game across its own frames** — the initial frame, the accumulated shape set, something else.*
+> **That is a design question, and picking one would be designing the identity the agent is supposed to
+> compute.**
+
+## AND `game=` TODAY IS A HANDED NAME, WHICH IS LICENSED AND IS NOT RECALL
+
+`arc_holdout` passes the harness's game string into `Gamma(game=...)`, where it becomes part of every
+term's handle. **`arc_holdout` says so at the top — *a game IDENTIFIER is a public name and is here*.**
+*That is PROVENANCE, which Figure 8 requires, and not a retrieval key* — **nothing looks a term up by
+it.** **So the firewall is intact and the recall the story describes simply does not exist yet.**
+
+## THE HONEST SHAPE OF THE QUEUE NOW
+
+**Every remaining item is latent, blocked, or a design question** — *not because the work stalled, but
+because the consumers all live behind one store whose KEY has not been ruled.* **The cheapest-phase
+question has no answer while that is true, and naming which design question unlocks it is the answer it
+does have.**
