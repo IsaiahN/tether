@@ -16774,3 +16774,39 @@ and the corresponding check re-run. **Two of the ten could not fail:**
 > **A CHECK THAT PASSES WHEN THE MECHANISM IS REMOVED IS NOT A WEAK CHECK, IT IS A CONTROL THAT
 > EXAMINES NOTHING** — and the only way either of these surfaced was breaking the code on purpose and
 > watching what the suite said. **Green was the same colour both times.**
+
+## THE OTHER FIVE FALSIFIED — THREE OF TEN CHECKS WERE DECORATIVE, AND ONE GATE IS REDUNDANT
+
+**Last tick broke five mechanisms and found two checks that could not fail. That base rate said to
+break the other five, and it found a third.**
+
+    CATCHES  check_trigger_is_the_residual_not_the_reward   (after rewriting)
+    CATCHES  check_route_is_learned          "routine names ('ACTION1',), learned route is ACTION2"
+    CATCHES  check_one_bargain               "bought a plan the bargain could not afford"
+    CATCHES  check_endings_stay_apart
+    CATCHES  check_chunking_reaches_the_bargain
+
+**THE THIRD DECORATIVE ONE, AND IT FAILED THE SAME WAY THE FIRST TWO DID — passing through a mechanism
+other than the one in its name.** It set the goal residual to zero and asserted no mint. **But a zero
+residual gives `unsat = 0`, so `base = 0`, so `pays` refuses whatever the trigger reads.** It was
+testing the bargain and calling it the trigger.
+
+> **AND THAT REVEALS A REDUNDANT GATE.** `_mint_routine`'s `if rg is None or rg <= 0.0: return` cannot
+> change any outcome — **a zero residual is unaffordable by construction.** It stays as a cheap early
+> exit and is now known to be one, rather than being mistaken for a guard that carries weight.
+
+**Rewritten to test standard 2's actual claim**: satisfy the REWARD channel completely (`degree = 1.0`)
+while the goal residual stays large, and assert the mint still fires. **A mint keyed on `degree` falls
+silent there; one keyed on the dense channel must not notice.** Falsified by injecting a `degree` gate:
+*"a satisfied reward channel suppressed the mint."*
+
+## AND MY OWN FALSIFICATION SCRIPTS FAILED SILENTLY, TWICE, FOR THE REASON I LINT REPO EDITS AGAINST
+
+**`str.replace` with no assertion did nothing and the script reported `MISSES`** — a false negative that
+looked exactly like a decorative check. **The repo edit scripts have asserted their anchors all
+session; the scripts that CHECK the repo did not.** Fixed, and the assertion immediately earned itself
+by catching an ambiguous anchor: `if not pays(cost, left, base):` matches **twice** in `tether.py`.
+
+**Ten of ten checks are now falsified — each one has been shown to fail when its mechanism is
+removed.** Three were decorative when written, and **none of the three would have been found by reading
+them.**

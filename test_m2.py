@@ -107,15 +107,23 @@ def check_can_gates_until():
 
 
 def check_trigger_is_the_residual_not_the_reward():
-    """DEFECT: minting on the sparse reward channel, which is absent most of a run."""
+    """DEFECT: the SPARSE reward channel gating the mint, when it is absent most of a run.
+
+    The first version set the goal residual to zero and asserted no mint -- which passes via
+    the BARGAIN, because a zero residual gives a zero base that nothing can afford. It said
+    nothing about which channel the trigger reads, and the `rg <= 0.0` early return it aimed at
+    turns out to be redundant with `pays` for the same reason.
+
+    So: satisfy the REWARD channel completely while the goal residual stays large. A mint keyed
+    on `degree` would fall silent; one keyed on the dense channel must not notice.
+    """
     ag = _agent()
     b = dict(ag.env.observe())
-    _wide(ag)
-    _, degree = ag.env.objective()
-    assert degree < 1.0, "fixture: the reward channel must be unsatisfied"
-    ag.goal_residual = lambda _s, _st: 0.0    # nothing left on the DENSE channel
+    slot = _wide(ag)
+    ag.env.objective = lambda: ("ALL(BECOME(level, completed))", 1.0)   # reward says: done
+    assert (ag.goal_residual(slot, b) or 0) > 0, "fixture: the dense channel must still owe"
     _mint(ag, b)
-    assert ag.routine is None, "minted with no goal residual -- the trigger is on the wrong channel"
+    assert ag.routine is not None, "a satisfied reward channel suppressed the mint"
 
 
 def check_route_is_learned():
