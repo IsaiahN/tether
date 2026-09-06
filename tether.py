@@ -530,6 +530,18 @@ class Agent:
         self.slot_types = self._slot_types(env)   # and may type them differently
         self.bound, self.trace = {}, []
         self._disc = {}               # the slots did not survive, so neither do their trends
+        # AND NEITHER DO THE REFUTATIONS, FOR THE REASON THIS METHOD'S OWN DOCSTRING GIVES:
+        # *slot names mean nothing across a boundary.* The reject key is
+        # `(slot, actions, guards)` and two of those three are slot names, which REGENERATE --
+        # `o1.dcol` on the next level is a different object. **A refutation surviving into that
+        # is §18.2's autoimmunity, rejecting something needed, on evidence about something
+        # else.**
+        #
+        # THE SETTLED SHELF IS A DIFFERENT CASE AND STAYS, because something already protects
+        # it: every guard is `CAN`-checked at mint, and a guard naming a dead slot reads
+        # `unknown`, which the mint refuses. **Checked rather than assumed** -- the shelf needs
+        # no rule here precisely because it has one already.
+        self.refuted, self.refuted_at = {}, {}
         self._disproof: dict[str, dict] = {}
         self._last_action: str | None = None   # what may have changed the gating
         self.owed_import, self.abstained = set(), {}

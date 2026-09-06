@@ -16564,3 +16564,32 @@ mimicry-resistant budget-free key. **The deviation recorded last tick is withdra
 **AND THE TICK'S LESSON REPEATS THE SESSION'S:** *the answer to too many instruments is never one more
 instrument — it is the next mechanism the framework names and the code does not have.* **Here the code
 already had it, and I wrote a worse one beside it rather than looking.**
+
+## A REFUTATION KEYED ON SLOT NAMES SURVIVED A BOUNDARY — AUTOIMMUNITY, CLOSED
+
+**Asked because last tick's repair added state, and *a repair can break the layer above*. The question
+nobody had put: Isaiah ruled that ROUTINES survive a level boundary — what about the EVIDENCE AGAINST
+them?**
+
+**`retarget`'s own docstring answers it:** *"the trace and the bindings do not [carry], because **slot
+names mean nothing across a boundary**."* **The reject key is `(slot, actions, guards)` and two of the
+three are slot names** — which regenerate, so `o1.dcol` on the next level is a different object.
+
+    before retarget   refuted=1  shelf=1  bound=3
+    after  retarget   refuted=1  shelf=1  bound=0      <- the key still named a dead slot
+
+> **A refutation surviving into that is §18.2's AUTOIMMUNITY — *rejecting something needed* — on
+> evidence about something else entirely.** Cleared, for the reason the docstring already gave.
+
+## AND THE SHELF IS THE OPPOSITE CASE, CHECKED RATHER THAN ASSUMED
+
+**A settled routine also carries slot names in its guards, and it correctly stays** — because
+something already protects it. **Measured: a shelf routine guarding a dead slot reads `CAN = unknown`,
+and the mint refuses on anything but `yes`.** The every-guard check added two ticks ago covers it.
+**The shelf needs no rule here precisely because it has one already** — and the only way to know that
+was to run it rather than reason about it.
+
+**M2's state is now swept end to end:** `_disc` cleared, `refuted`/`refuted_at` cleared, the held
+routine surviving and failing safe on an unadvertised action or an unreadable guard, and the settled
+shelf surviving under the `CAN` gate. **Four pieces of level-local state, four different correct
+answers, and only one of them was the one I had written.**
