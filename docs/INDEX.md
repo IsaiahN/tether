@@ -17114,3 +17114,50 @@ between handing over a decision and handing over an opinion.
 
 **The append-only routine shelf is recorded there too, as an asymmetry and not a task**: building its
 defeasance would add code that nothing runs, and the repo's own ISOLATED seat refuses that.
+
+---
+
+# THE NARRATION COULD NOT SAY THE ACT SPACE, AND MY CHECK FOR IT WAS THE FIFTH DECORATIVE ONE
+
+**Started by running the reporters against an agent that had exercised the ACT space** — the seats
+cover `demo`, `gate`, `tests` and `m2`, and **nothing had run `summary`, `speak` or `type_report`
+against a ledger containing `PLAN` rows.**
+
+**They all pass.** `speak.verify` reported `orphans: 0, traceable: True` across 2,502 rows — **and that
+reading was vacuous.**
+
+    PLAN rows: 2        sentences: 312, citing 312 distinct rows
+    PLAN rows cited by any sentence: 0 of 2
+
+> **`speak` IS THE AGENT'S ACCOUNT OF ITSELF, AND IT COULD NOT SAY A WORD ABOUT THE ACT SPACE.** Every
+> routine minted, run, exhausted or refused was invisible to the one instrument whose whole job is
+> saying why. **`orphans: 0` was true because there was nothing to orphan.**
+
+**A NEW SPACE WITH NO SENTENCES IS *legibility destroyed* AT THE LARGEST SCALE AVAILABLE** — not a
+change that made reasoning unreadable, but a whole region of reasoning that was never readable.
+
+## THE CHECK I WROTE FOR IT PASSED ON THE GAP
+
+`check_the_act_space_stays_narratable` asserted `orphans == 0` and stopped there. **Fifth decorative
+check tonight**, and it *falsified as MISSES* — corrupting a `PLAN` row changed nothing, because
+nothing read those rows. **The falsification is what exposed it, again.** It now asserts every `PLAN`
+row is CITED, and catches with *"the narration cannot say the ACT space: ['routine']"*.
+
+## SENTENCES FOR ALL FIVE ACT EVENTS
+
+    routine          what was committed to, its cost and left against the residual it owed,
+                     out of how many shapes, and that its route is observed rather than given
+    routine_end      the four endings SEPARATELY -- and `exhausted` says *the budget went and
+                     the guard never held, which refutes THE PLAN rather than the goal*
+    routine_cut      what it would have cost, and what it reaches of what is unsatisfied
+    routine_refused  the reason, in the reason's own words
+    reuse_install    that the sweep entered Gamma without asking the bargain, and what the
+                     bargain would have said
+
+**The distinctions the code keeps are now distinctions the agent can SAY** — refuted-plan versus
+refuted-goal, unreadable-guard versus false-guard, unrunnable-here versus wrong. *That is the whole
+point of keeping them apart in the first place.*
+
+**And a fourth false reading from my own checking scripts on the way here** — wrong signatures made
+three working reporters look broken. **Repo edit scripts assert their anchors; checking scripts still
+do not.**

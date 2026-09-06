@@ -33,7 +33,39 @@ def sentences(rows: list[dict]) -> list[tuple[list[int], str]]:
         seq, d, slot = r.get("seq"), r.get("detail", {}), r.get("slot")
         ev = r.get("event")
 
-        if ev == "route" and d.get("bin") != "held":
+        # THE ACT SPACE, WHICH THE NARRATION COULD NOT SAY. `speak` is the agent's account
+        # of itself and it cited 0 of 2 `PLAN` rows -- so every routine minted, run, exhausted
+        # or refused was invisible to the one instrument whose whole job is saying why.
+        # *A change that makes the agent better and its reasoning unreadable has destroyed the
+        # instrument*, and a new SPACE with no sentences is that at the largest scale available.
+        if ev == "routine":
+            out.append(([seq], f"On {slot} I committed to a plan: `{d.get('routine')}`. It "
+                               f"costs {_n(d.get('cost'))} bits and leaves {_n(d.get('left'))} "
+                               f"of the {_n(d.get('base'))} the goal residual owed, so the "
+                               f"bargain pays. I chose it from {d.get('considered')} shapes, "
+                               f"and its route is what I have observed my own actions do."))
+        elif ev == "routine_end":
+            why = {"done": "the guard I set held, so the plan finished",
+                   "exhausted": "I spent the whole budget and the guard never held, which "
+                                "refutes the plan rather than the goal",
+                   "blocked": "I could not read the guard, which is not the same as the "
+                              "guard being false",
+                   "unadvertised": "it named an action this level does not offer, so it "
+                                   "failed its guard rather than crashing"}
+            out.append(([seq], f"On {slot} the plan `{d.get('routine')}` ended: "
+                               f"{why.get(d.get('outcome'), d.get('outcome'))}."))
+        elif ev == "routine_cut":
+            out.append(([seq], f"On {slot} I considered `{d.get('routine')}` and refused it: "
+                               f"{_n(d.get('cost'))} bits of plan plus {_n(d.get('left'))} left "
+                               f"unreached is not worth the {_n(d.get('base'))} it owed. It "
+                               f"reaches {d.get('reach')} of {d.get('unsat')}."))
+        elif ev == "routine_refused":
+            out.append(([seq], f"On {slot} I formed no plan: {d.get('reason')}."))
+        elif ev == "reuse_install":
+            out.append(([seq], f"On {slot} the sweep put `{d.get('term')}` into my library "
+                               f"without asking the bargain. It would have said "
+                               f"{'yes' if d.get('would_pay') else 'no'}."))
+        elif ev == "route" and d.get("bin") != "held":
             out.append(([seq], f"On {slot} I was wrong, and I read it as "
                                f"{d.get('bin')} -- {d.get('why_not')}."))
         elif ev == "mint":

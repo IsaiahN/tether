@@ -293,6 +293,34 @@ def check_strategy_is_emitted_when_a_routine_drives():
     assert mix.get("strategy", 0) > 0, f"a routine drove and the mix says {mix}"
 
 
+def check_the_act_space_stays_narratable():
+    """DEFECT: a new ledger step that the whitebox narration cannot trace.
+
+    `speak.verify` is the legibility guarantee -- every sentence traces to a record -- and the
+    only seat that exercises it is `demo`, whose toy world **never mints a routine**. So the
+    `PLAN` step and every routine row have never been narrated by anything that gates a commit.
+    """
+    import json
+
+    import speak
+    ag = _agent()
+    _wide(ag)
+    for _ in range(8):
+        ag.step()
+    rows = [json.loads(json.dumps(r, default=str)) for r in ag.led.rows()]
+    plan = [r for r in rows if r.get("step") == "PLAN"]
+    assert plan, "fixture: no PLAN row was written"
+    said = speak.sentences(rows)
+    v = speak.verify(rows, said)
+    assert v["orphans"] == 0, f"{v['orphans']} sentences trace to no record: {v['examples'][:2]}"
+    assert v["traceable"], "the narration stopped being traceable with the ACT space present"
+    # ORPHANS ALONE IS VACUOUS HERE AND THE FIRST VERSION STOPPED THERE. `speak` cited 0 of 2
+    # PLAN rows, so there was nothing to orphan and the check passed on an unnarrated space.
+    cited = {i for s in said for i in s[0]}
+    missed = [r.get("event") for r in plan if r.get("seq") not in cited]
+    assert not missed, f"the narration cannot say the ACT space: {missed}"
+
+
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
 
 if __name__ == "__main__":
