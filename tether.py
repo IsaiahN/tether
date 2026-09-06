@@ -2063,11 +2063,42 @@ class Agent:
         # false wherever the objective is anything else, and speak.py renders the
         # utterance as the agent's account of itself. The frame supplies the shape; the
         # domain supplies the content.
-        name, deg = self.env.objective()
-        want = G.compose(G.WANT, G.compose("ALL", G.compose(
-            "BECOME", G.Leaf(G.T.OBJECT, name), G.Leaf(G.T.ATTR, "satisfied"))))
-
+        name, _deg = self.env.objective()
         bound = self.bound.get(focal)
+
+        # M2 ITEM 1 -- THE WIRE. The agent's OWN composed objective fills `WANT` when it has
+        # one. `grammar` declares `WANT : OBJ -> PRED`, and `arc_atoms` declares that its
+        # `OBJ` IS `grammar.T.OBJ` -- so a minted OBJ-typed term ALREADY IS the thing this
+        # node wants. **Producer and consumer were built to the same type and never met**,
+        # because this line took `env.objective()`'s single hardcoded string either way.
+        #
+        # NECESSARY AND NOT SUFFICIENT, and the spec says so at the site. `_utter` runs AFTER
+        # `choose()` and can only raise `Ill` to refuse, so the utterance is a VETO -- and it
+        # has never fired. **This changes what the agent SAYS it wants and what type-checks,
+        # not what it does.** Item 2 is the branch in `choose` that reads it.
+        #
+        # THE GROUND STAYS THE FALLBACK, AND THAT IS NOT A CONCESSION. Reading THAT the goal
+        # is levels-completed is reading THE GROUND, and the ground is the only metric -- an
+        # environment reporting its own win condition is not an answer. The fault would be
+        # reading WHICH ACTION advances it from anywhere but the agent's own model.
+        #
+        # AND THE HOLE IS NOT AVAILABLE AS THE FALLBACK, WHICH THE GRAMMAR SAYS AND I READ
+        # BEFORE WRITING. `_check_terminal` refuses a holed `WANT` unless the `DERIVE` is a
+        # probe -- so holing it whenever nothing is composed would refuse every step that has
+        # a `val` term bound, and the loop would stop BECAUSE the agent has a model.
+        mine = self.gamma.library.get(bound) if bound else None
+        if mine is not None and getattr(mine, "out_type", None) == OBJ_TYPE:
+            want_by, said = "composed", mine.name
+            want = G.compose(G.WANT, G.Leaf(G.T.OBJ, mine.name, tag="composed"))
+        else:
+            want_by, said = "ground", name
+            want = G.compose(G.WANT, G.compose("ALL", G.compose(
+                "BECOME", G.Leaf(G.T.OBJECT, name), G.Leaf(G.T.ATTR, "satisfied"))))
+        # WHOSE OBJECTIVE THIS STEP CARRIED, on its own row. The wire is invisible in
+        # `repr(bet)` unless a reader knows which shape means which, and *how often the
+        # agent's own composition fills the node* is the only thing item 1 can be measured by.
+        self.led.record(self.cycle, "PERCEIVE", focal, "want", by=want_by, objective=said)
+
         refs = [G.ref(pid, "perceive")] + ([G.ref(bound, "term")] if bound else [])
         ground = G.compose(G.GROUND, *refs)
 

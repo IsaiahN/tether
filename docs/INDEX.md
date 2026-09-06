@@ -16002,3 +16002,49 @@ sees an `OBJ` term.** *Item 2 is exactly the change that puts one there.*
 > BARGAIN PATH ALREADY PAID FOR.** *One function, every site* was the fix; `spread` is a fifth site
 > that did not need it yet. **A repair that names its own remaining callers is worth more than one that
 > just works.**
+
+---
+
+# `M2` ITEM 1 BUILT: THE WIRE — THE AGENT'S OWN COMPOSED OBJECTIVE FILLS `WANT`
+
+**`_utter` took `env.objective()`'s single hardcoded `"ALL(BECOME(level, completed))"` either way.**
+Now, when the focal slot's bound term is `OBJ`-typed, the `WANT` carries **that term** — the objective
+the agent composed and minted itself. `grammar` declares `WANT : OBJ -> PRED` and `arc_atoms` declares
+its `OBJ` **is** `grammar.T.OBJ`, **so producer and consumer were built to the same type and had never
+met.**
+
+## MEASURED, AND IT DISCRIMINATES RATHER THAN FIRING EVERYWHERE
+
+    two-arm board   composed 6 · ground 5      from cycle 5, once an OBJ term was bound, the
+                                               WANT names `above . all<o2.row>` -- the agent's own
+    demo panel      composed 0 · ground 16     the toy world composes no objective, so it falls
+                                               back to the ground, correctly and every step
+    refusals        0 on both
+
+**A mechanism firing where the thing is present and not where it is absent is the stronger verdict.**
+The utterance now reads
+`BET(WANT('above . all<o2.row>'), GROUND(...), DERIVE(..., BECOME('o2.col', 11)), PAY(...))` — **the
+agent stating an objective it composed, in the node the grammar reserved for one.**
+
+## TWO THINGS READ BEFORE WRITING, AND BOTH CHANGED THE BUILD
+
+**THE HOLE WAS NOT AVAILABLE AS THE FALLBACK.** `_check_terminal` refuses a holed `WANT` unless the
+`DERIVE` is a probe. **So holing it whenever nothing is composed would refuse every step with a `val`
+term bound — the loop stopping BECAUSE the agent has a model.** The obvious build was wrong and the
+grammar said so.
+
+**THE GROUND IS THE RIGHT FALLBACK AND THAT IS NOT A CONCESSION.** Reading THAT the goal is
+levels-completed is reading the ground, and *the ground is the only metric* — an environment reporting
+its own win condition is not an answer. The fault would be reading WHICH ACTION advances it.
+
+## WHAT IT DOES NOT DO, STATED AT THE SITE AND HERE
+
+> **`_utter` RUNS AFTER `choose()` AND CAN ONLY REFUSE. THE UTTERANCE IS A VETO AND IT HAS NEVER
+> FIRED.** So this changes **what the agent says it wants and what type-checks — not what it does.**
+> Item 1 was specified as necessary and not sufficient, and it is exactly that.
+
+**Item 2 is the branch in `choose` that reads it**, with its two guards already pinned in
+`STORY_PROOF`'s row: compose the ground-goal with forward prediction from the agent's OWN bound terms
+(`_predict` already takes the action as an argument), and route `spread` through `_value_of` — because
+item 2 is the change that first puts an `OBJ` term in `spread`'s path, where `t.apply` is called
+directly.
