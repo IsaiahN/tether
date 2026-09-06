@@ -352,6 +352,77 @@ def check_the_act_space_stays_narratable():
     assert not missed, f"the narration cannot say the ACT space: {missed}"
 
 
+def check_a_plan_that_succeeds_shelves_itself():
+    """DEFECT: `done` treated as any other ending. It is the ONLY path onto the chunk shelf.
+
+    The suite reached `exhausted`, `unadvertised`, `refused` and `cut` and had never once seen a
+    plan SUCCEED -- which is why every chunking check has to hand-plant `ag.routines`.
+    """
+    ag = _agent()
+    slot = _wide(ag)
+    b = dict(ag.env.observe())
+    ag.goal_residual = lambda _s, _st: 0.0     # the guard holds: the scope is satisfied
+    r = Rt.Until(slot, Rt.Act(ag.actions[1]), 3)
+    ag.routine, ag.routine_for = r, slot
+    n0 = len(ag.led.entries)
+    ag.choose(b)
+    row = next((e.detail for e in ag.led.entries[n0:] if e.event == "routine_end"), None)
+    assert row and row["outcome"] == Rt.DONE, f"ended {row and row['outcome']}, not done"
+    assert r in ag.routines, "a plan that achieved its guard was not shelved"
+    assert not ag.refuted, "success filed a refutation"
+
+
+def check_an_unreadable_guard_blocks_at_execution():
+    """DEFECT: a guard that cannot be read treated as one that is false -- check 3, at run time."""
+    ag = _agent()
+    slot = _wide(ag)
+    b = dict(ag.env.observe())
+    ag.routine = Rt.Until("no.such.slot", Rt.Act(ag.actions[1]), 3)
+    ag.routine_for = slot
+    n0 = len(ag.led.entries)
+    ag.choose(b)
+    row = next((e.detail for e in ag.led.entries[n0:] if e.event == "routine_end"), None)
+    assert row and row["outcome"] == Rt.BLOCKED, f"ended {row and row['outcome']}, not blocked"
+    assert not ag.refuted, "an unreadable guard was recorded as a refutation"
+
+
+def check_the_suite_reaches_the_hard_cases():
+    """BOTH EDGES OF THE ACT SPACE, in `conform/stateful.py`'s own form.
+
+    Its comment is the rule: *a line that can never fire is not a weaker check, it reads as
+    coverage that is not there.* **Measured before this existed: the suite reached `exhausted`
+    and `unadvertised` and never `done` or `blocked`** — so two of the four endings were
+    asserted nowhere, and no falsification would have said so, because each check that DID run
+    was falsifiable on its own.
+    """
+    import collections
+    import contextlib
+
+    import ledger
+    seen: collections.Counter = collections.Counter()
+    real = ledger.Ledger.record
+
+    def spy(self, cycle, step, slot, event, **d):
+        if event == "routine_end":
+            seen[d.get("outcome")] += 1
+        elif "routine" in event:
+            seen[event] += 1
+        return real(self, cycle, step, slot, event, **d)
+
+    ledger.Ledger.record = spy
+    try:
+        for fn in CHECKS:
+            if fn is check_the_suite_reaches_the_hard_cases:
+                continue
+            with contextlib.suppress(AssertionError):
+                fn()
+    finally:
+        ledger.Ledger.record = real
+    for case in (Rt.DONE, Rt.EXHAUSTED, Rt.BLOCKED, "unadvertised",
+                 "routine", "routine_cut", "routine_refused"):
+        assert seen[case] > 0, f"the M2 suite no longer reaches: {case}"
+
+
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
 
 if __name__ == "__main__":

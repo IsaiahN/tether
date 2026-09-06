@@ -17192,3 +17192,42 @@ now also asserts the row does not claim `status: refuted`. *Express-before-judge
 RECORD, and the check was only looking at the state.*
 
 **14/14 M2 checks, 9/9 seats.**
+
+---
+
+# THE SUITE HAD NEVER SEEN A PLAN SUCCEED — AND THE REPO ALREADY KNEW THE LESSON I KEEP RE-LEARNING
+
+**The last instrument that had never seen the ACT space is `conform/stateful.py`: zero routine
+references, and its 2–4 slot worlds cannot give a scope wide enough to mint one.** Recorded, not
+fixed — widening that generator is a change to the panel, and *a panel property must be measured
+before it is used as a premise*.
+
+## AND ITS OWN COMMENT IS THE RULE I HAVE REDISCOVERED SIX TIMES TONIGHT
+
+> *"A line that can never fire is not a weaker check, it reads as coverage that is not there."*
+
+**Written in this repo, before tonight, about a check that was removed for exactly the reason my six
+decorative checks each failed.** The lesson was not new to the project; **I kept re-encountering a
+known hazard.** What was missing was its companion question — `test_..._reaches_the_hard_cases` — which
+I had never asked of my own suite.
+
+## ASKED, AND THREE CASES WERE NEVER REACHED
+
+    reached      can 39 · routine 8 · routine_cut 1 · routine_refused 1
+                 end:exhausted 3 · end:unadvertised 1
+    NEVER        end:done · end:blocked · reuse_install
+
+> **`done` IS THE ONLY PATH ONTO THE CHUNK SHELF, AND THE SUITE HAD NEVER SEEN A PLAN SUCCEED.** Every
+> chunking check hand-plants `ag.routines` — **which I read as convenience and which was actually the
+> gap showing.** Two of the four endings were asserted nowhere, and **no falsification would have said
+> so**, because each check that DID run was falsifiable on its own.
+
+**Three checks added:** a plan that achieves its guard and is shelved (asserting `done`, the shelving,
+and that success files no refutation); an unreadable guard at execution ending `blocked` and refuting
+nothing — *check 3 at run time*; and `check_the_suite_reaches_the_hard_cases` in `stateful`'s own form.
+**Falsified by removing the success case: *"the M2 suite no longer reaches: done"*.**
+
+**`reuse_install` is left unreached ON PURPOSE** — it is a PREDICT-space event, exercised by the `demo`
+seat, and asserting it here would put a sweep case in an ACT-space suite.
+
+**17/17 M2 checks, 9/9 seats.**
