@@ -19,6 +19,7 @@ from typing import Any
 import grammar as G
 import instruments as I
 import retrieval
+import routine as Rt
 from gamma import SAME_AS_TARGET as G_SAME
 from gamma import Ctx, Gamma, Term
 from ledger import (
@@ -353,6 +354,11 @@ class Agent:
         # §13.4 wants goal hypotheses held AT ONCE and compared on a TREND, so the scalar has
         # to be kept per slot across steps -- a single reading cannot be shrinking.
         self._disc: dict[str, list[int]] = {}
+        # THE HELD ROUTINE, AS ITS REMAINDER. `advance` hands back what is left and what is
+        # left is a Routine, so a behaviour spanning cycles is ONE field -- no program counter,
+        # no index into a script, and the thing stored is inspectable as the object it is.
+        self.routine: Any = None
+        self.routine_for: str | None = None
         self._digests: dict[str, frozenset] = {}
         self.agency = I.Agency()       # §16.8 sensor 3, a per-step read
         self.term = I.Termination()    # 2d / §20.1, latching and asymmetric
@@ -1342,6 +1348,24 @@ class Agent:
         # the draw was always uninformed and always the default, which is why `fires`
         # counted 441 perturbations that changed no action. What it changes is who is
         # allowed to choose, and 26 of those 441 steps were being steered by the model.
+        # A HELD ROUTINE RUNS BEFORE ANYTHING ELSE IS CONSULTED, because that is what
+        # committing to a behaviour MEANS. A routine that re-decided every cycle against the
+        # branches would be a single-step chooser wearing a plan's name.
+        if self.routine is not None:
+            emit, rest = Rt.advance(self.routine, self._holds(before))
+            if emit not in (Rt.DONE, Rt.BLOCKED, Rt.EXHAUSTED) and emit in self.actions:
+                self.routine = rest
+                return emit, "routine"
+            # ENDED, AND THE FOUR ENDINGS ARE NOT ONE. `done` is the guard met; `exhausted` is
+            # the budget spent without it -- the routine's own bet REFUTED; `blocked` is a
+            # guard that could not be read; and an action this level does not advertise is a
+            # routine that survived a boundary into a world that cannot run it. **Isaiah ruled
+            # routines survive boundaries, and this is the other half of that ruling: it fails
+            # its guard rather than crashing.**
+            why = emit if emit in (Rt.DONE, Rt.BLOCKED, Rt.EXHAUSTED) else "unadvertised"
+            self.led.record(self.cycle, "ROUTE", self.routine_for or "*", "routine_end",
+                            outcome=why, routine=Rt.render(self.routine))
+            self.routine, self.routine_for = None, None
         if self.drive.bored():
             return self.drive.choose(self.actions, self.cycle, _where(before)), "probe"
         owed = [s for s in sorted(self.owed_import) if s in before]
@@ -1389,6 +1413,14 @@ class Agent:
         learned = self._learned_split()
         if learned is not None:
             return learned, "discriminate:learned"
+        if self.routine is None:
+            self._mint_routine(before)
+            if self.routine is not None:   # adopted now: run its first action this cycle
+                emit, rest = Rt.advance(self.routine, self._holds(before))
+                if emit not in (Rt.DONE, Rt.BLOCKED, Rt.EXHAUSTED) and emit in self.actions:
+                    self.routine = rest
+                    return emit, "routine"
+                self.routine, self.routine_for = None, None
         goal = self._goal_split(before)
         if goal is not None:
             return goal, "discriminate:goal"
@@ -1524,6 +1556,77 @@ class Agent:
                 if best is None or shrink > best[0]:
                     best = (shrink, slot)
         return best[1] if best else None
+
+    def _holds(self, state: dict[str, int]):
+        """`holds(guard) -> True | False | None` for `routine.advance`. A guard is a SLOT NAME,
+        and it holds when the objective bound there is satisfied.
+
+        **GUARD B, BY CONSTRUCTION AT A FIFTH SITE.** This goes through `_discrepancy`, which
+        goes through `objective_gap`, which probes the term via the same `Ctx` every other
+        consumer builds. `routine.py` cannot call `t.apply` -- it has no import for it -- so
+        the pricing bypass the two-arm board found cannot reappear in the ACT space.
+        """
+        def holds(guard: str) -> bool | None:
+            g = self._discrepancy(guard, state)
+            return None if not isinstance(g, int) else g == 0
+        return holds
+
+    def _mint_routine(self, before: dict[str, int]) -> None:
+        """§14.4: **a routine is minted when a goal residual no routine closes.**
+
+        THE TRIGGER IS THE DENSE CHANNEL, NEVER THE REWARD. `_route_reward` bins on `degree`,
+        which §11 measures as ABSENT for most of a run -- *`levels_completed` might not move
+        for five hundred actions.* **A routine trigger keyed there would fire almost never and
+        could not be told from a broken one**, which is the criterion error the selector
+        already had once.
+
+        EVERY PART COMES FROM THE AGENT, WHICH IS GUARD A AT EVERY CONSTRUCTOR:
+
+            the GOAL     `_goal_choice` -- the composed objective whose discrepancy is
+                         confidently shrinking. The agent minted it; the selector chose it
+            the GUARD    `CAN(P) == yes`, and ONLY yes. `unknown` is *nothing in my record
+                         says I can get there*, and committing to repeat on that is the loop
+                         that never ends
+            the ROUTE    the action THIS agent has observed moves THIS slot the wanted way --
+                         `_goal_split`, over `self.trace`. Never `act`, never the env
+            the BUDGET   the objective's own gap. A guard `g` units away needs at most `g`
+                         iterations, so the bound is DERIVED and not picked
+
+        AND THE PRICE IS THE ONE BARGAIN, NOT A SECOND ONE. `pays(cost, left, base)`, with the
+        action set as the alphabet where a term uses the slot's: **without the routine the
+        agent must name `g` actions itself, so `base` is what that costs; the routine costs
+        `term_bits` of its own length; and `left = 0` is the routine CLAIMING it closes the
+        gap.** That claim is what `exhausted` refutes -- which is why that ending is recorded
+        apart from `done` rather than folded into it.
+        """
+        slot = self._goal_choice()
+        if slot is None or slot not in before:
+            return
+        gap = self._discrepancy(slot, before)
+        if not isinstance(gap, int) or gap <= 0:
+            return
+        verdict = self.can(slot, before)
+        if verdict != YES:
+            self.led.record(self.cycle, "ROUTE", slot, "routine_refused",
+                            reason=f"CAN is {verdict}, and only yes commits")
+            return
+        act = self._goal_split(before)
+        if act is None:
+            return
+        cand = Rt.Until(slot, Rt.Act(act), gap)
+        n = max(len(self.actions), 2)
+        cost = term_bits(Rt.length(cand), n)
+        base = gap * math.log2(n)
+        if not pays(cost, 0.0, base):
+            self.led.record(self.cycle, "MINT", slot, "routine_cut",
+                            reason="does-not-pay", routine=Rt.render(cand),
+                            cost=round(cost, 4), base=round(base, 4))
+            return
+        self.routine, self.routine_for = cand, slot
+        self.led.record(self.cycle, "MINT", slot, "routine", verdict="pays",
+                        routine=Rt.render(cand), length=Rt.length(cand),
+                        cost=round(cost, 4), base=round(base, 4), gap=gap,
+                        route="learned: observed to move this slot the wanted way")
 
     def _goal_split(self, before: dict[str, int]) -> str | None:
         """M2 ITEM 2: pick an action because the agent's OWN model says it advances the

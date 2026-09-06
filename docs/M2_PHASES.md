@@ -27,11 +27,11 @@ satisfiable but unreachable is exactly the non-terminating loop standard 1 names
 ## THE PHASES
 
     P1  CAN(PRED) producer                     depends on: nothing        [x]
-    P2  the Routine algebra, all four          depends on: P1 (Until)     [ ]
-    P3  cross-step execution state             depends on: P2             [ ]
+    P2  the Routine algebra, all four          depends on: P1 (Until)     [x]
+    P3  cross-step execution state             depends on: P2             [x]
     P4  PLAN step in ledger.STEPS + gate.py    depends on: P3             [ ]
-    P5  mint trigger on the goal residual      depends on: P2, P3         [ ]
-    P6  routine pricing via `pays`             depends on: P2, P5         [ ]
+    P5  mint trigger on the goal residual      depends on: P2, P3         [x]
+    P6  routine pricing via `pays`             depends on: P2, P5         [x]
     P7  ACT chunking                           depends on: P5, P6         [ ]
 
 ### P1 · `CAN(PRED)` — the producer that does not exist
@@ -46,6 +46,14 @@ satisfiability is a necessary input, never sufficient.
 `Act(a) | Seq(R1,R2) | When(P,R) | Until(P,R)`. §14.3: **you cannot build it by chaining functions.**
 Owes all four. **`Until` must genuinely repeat-until-terminate** — a fixed-count loop wearing the name
 is the thing `Until` exists to replace, and *navigate* must be ONE bounded chunk.
+
+### CORRECTION — `P3`, `P5` AND `P6` ARE ONE MECHANISM, NOT THREE PHASES
+**Found by `conform/lint.py`'s ISOLATED seat, which failed `P2` for `advance` having no caller.**
+§14.4 mints a routine *when a goal residual no routine closes* — **so minting, pricing and
+executing are the same loop and none of them works alone**: a routine never adopted cannot be
+executed, an adoption with no executor does nothing, and an unpriced mint is not the one bargain.
+*The step-3 law says the dependency order falls out of the spec rather than the table, and here
+it says these three are one item.* Built and committed together.
 
 ### P3 · cross-step execution — the invasive one
 **No cross-step action state exists**: `step()` opens by clearing every cache. Owes an execution
