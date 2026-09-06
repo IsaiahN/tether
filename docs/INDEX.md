@@ -16947,3 +16947,38 @@ every board that mints anything, and there is **no reading to check the change a
 path does not fire unaided on any of the five fixtures. **A repair whose only evidence is the argument
 that motivated it is the shape this session has refused four times.** Recorded with the measurement, so
 the decision is takeable on evidence rather than on my say-so.
+
+## `unsat` IS A BOUND AND AN EXPECTATION UNDER ONE NAME — `A6i`, AND THE CHECK IS NOW A TRIPWIRE
+
+**Re-examining last tick's decision not to repair sharpened the finding into its right name.**
+
+    the BUDGET       `unsat` -- what the agent ALLOWS the loop to spend
+    the REACH        `budget x reach(body)` -- what it EXPECTS the loop to achieve
+
+**Both derived from `unsat`, so their ratio is 1 BY CONSTRUCTION** — `left` is identically zero for
+the plain candidate, and **the two-part bargain degenerates to `cost < base` in the ACT space.** That
+is not a tuning problem; it is one word carrying a bound and an expectation, which is `A6i` at the
+site that decides what the agent plans.
+
+> **A BOUND IS WHAT YOU WILL NOT EXCEED. AN EXPECTATION IS WHAT YOU THINK WILL HAPPEN.** The agent has
+> evidence for the second — `_goal_split` already measures how often an action moved the slot the
+> wanted way — and it is spending the first in that quantity's place.
+
+## THE CHECK THAT CONCEALED IT IS NOW THE ONE THAT WATCHES IT
+
+`check_chunking_reaches_the_bargain` keeps its arithmetic and gains a docstring saying **it is not a
+capability check** — it passes on a hand-built pair and falsifies against the arithmetic, which is
+precisely why breaking the mechanism never exposed it.
+
+**`check_composer_cannot_yet_win` is added beside it, and it asserts the LIMITATION**: at every
+residual tested, no composed shape beats the plain loop. **It FAILS THE DAY THAT IS FIXED** — verified
+by halving `reach`, which fires it with *"the plain loop no longer trivially reaches."*
+
+> **A KNOWN LIMITATION RECORDED AS A PASSING CHECK IS A TRIPWIRE, NOT AN ENDORSEMENT.** It cannot be
+> forgotten, and it cannot be quietly fixed without the suite saying so — which is the opposite of what
+> the decorative version did for four ticks.
+
+**THE REPAIR IS STILL NOT APPLIED, AND THE REASON IS NARROWER NOW.** Scaling reach by the measured rate
+would make `left` positive for the plain candidate, which could stop routines minting **at all** on
+constructed boards — a large behaviour change with no board to read it on, since the routine path does
+not fire unaided on any of the five. **Recorded, tripwired, and takeable on evidence.**

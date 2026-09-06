@@ -192,7 +192,13 @@ def check_endings_stay_apart():
 
 
 def check_chunking_reaches_the_bargain():
-    """DEFECT: chunking that shortens a number without changing what can be afforded."""
+    """The ARITHMETIC of chunking: a settled routine counts as one unit and that can flip `pays`.
+
+    **THIS IS NOT A CAPABILITY CHECK AND MUST NOT BE READ AS ONE.** It was, for four ticks: it
+    passes on a HAND-BUILT pair and says nothing about whether the agent's own composer ever
+    selects a chunk. It even falsifies correctly against the arithmetic, which is why breaking
+    the mechanism did not expose it. `check_composer_cannot_yet_win` is the honest companion.
+    """
     nav = Rt.Until("g1", Rt.Act("A"), 8)
     plan = Rt.Seq(nav, Rt.Seq(Rt.Act("B"), Rt.Until("g2", Rt.Act("A"), 8)))
     assert Rt.length(plan, (nav,)) < Rt.length(plan), "a settled routine did not count as one unit"
@@ -200,6 +206,34 @@ def check_chunking_reaches_the_bargain():
     assert not pays(term_bits(Rt.length(plan), n), 0.0, base)
     assert pays(term_bits(Rt.length(plan, (nav,)), n), 0.0, base), (
         "chunking changed the length and not what the bargain affords")
+
+
+def check_composer_cannot_yet_win():
+    """RECORDS A KNOWN LIMITATION AS A CHECK, so it cannot be forgotten or quietly fixed.
+
+    `budget` is derived as `unsat` and `reach(Until) = budget * reach(body)`, so the simplest
+    loop's reach EQUALS the residual and its `left` is identically zero. **Nothing the composer
+    offers can beat it; the chunked form only ties.** `unsat` is serving as both a BOUND (what
+    the agent allows) and an EXPECTATION (what it will achieve) -- `A6i`, and their ratio is 1
+    by construction.
+
+    **This check FAILS THE DAY THAT IS FIXED**, which is the point: it is a tripwire on a
+    recorded limitation, not an endorsement of it.
+    """
+    n = 3
+    for unsat in (5, 9, 14):
+        plain = Rt.Until("g", Rt.Act("A"), unsat)
+        best = term_bits(Rt.length(plain), n) + max(0.0, unsat - Rt.reach(plain)) * math.log2(n)
+        assert unsat - Rt.reach(plain) <= 0.0, "the plain loop no longer trivially reaches"
+        for rival, chunks in ((Rt.Until("g", Rt.Until("g2", Rt.Act("A"), 3), unsat),
+                               (Rt.Until("g2", Rt.Act("A"), 3),)),
+                              (Rt.Seq(plain, Rt.Act("A")), ()),
+                              (Rt.When("g2", plain), ())):
+            tot = (term_bits(Rt.length(rival, chunks), n)
+                   + max(0.0, unsat - Rt.reach(rival)) * math.log2(n))
+            assert tot >= best, (
+                f"a composed shape now BEATS the plain loop at unsat={unsat} -- "
+                "the limitation is fixed and this tripwire should be retired")
 
 
 def check_only_a_trial_refutes():
