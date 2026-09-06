@@ -1812,32 +1812,36 @@ class Agent:
                                        if k[0] == slot])
             return
         # `left` IS WHAT THE CANDIDATE CANNOT REACH, NOT ZERO. See `routine.reach`.
-        priced = [(term_bits(Rt.length(c, shelf), n)
-                   + max(0.0, unsat - Rt.reach(c)) * math.log2(n), c) for c in cands]
-        # WEIGHTED, NEVER BINARY -- §18.2: *strength-of-rejection, so the consumer
-        # DE-PRIORITISES; never a hard ban.* Refuted candidates sort last and are still reachable
-        # if nothing else pays, so a refutation lowers a routine's standing without removing it
-        # from the space. **And de-prioritising by ORDER rather than by a price penalty is what
-        # keeps this out of the bargain**: a penalty in bits would be a second currency, which
-        # §14.4 forbids and which the CE thread already collapsed on four times.
-        priced.sort(key=lambda p: p[0])
+        # THE BARGAIN IS TWO-PART AND STAYS TWO-PART ON THE ROW. These were folded into one
+        # number and handed to `pays` as `cost` with `left = 0` -- arithmetically identical and
+        # **unreadable**: the ledger then said `cost` for a quantity that was description PLUS
+        # residual, so no reader could see which half bought the term. *A change that makes the
+        # agent better and its reasoning unreadable has destroyed the instrument*, and the
+        # mislabelled row is `A6i` at the site a future reader would trust.
+        priced = [(term_bits(Rt.length(c, shelf), n),
+                   max(0.0, unsat - Rt.reach(c)) * math.log2(n), c) for c in cands]
+        # ORDERED BY WHAT THE BARGAIN SPENDS, `cost + left`, which is the correction the two-arm
+        # board already paid for once in the PREDICT space -- selecting on either half alone
+        # buys the most-explaining term at any price, or the cheapest term that explains nothing.
+        priced.sort(key=lambda p: p[0] + p[1])
         # EVERY GUARD OF EVERY CANDIDATE -- `M2_STANDARD` 3. A candidate whose guard this level
         # cannot reach is dropped rather than ending the search, because the composer now offers
         # many shapes and one unreachable guard is a fact about THAT shape. **A nested `Until`
         # whose guard nobody re-checked is the durable contamination the standard names**: it
         # looks like planning and loops on a condition this level cannot reach.
-        ok = [(c, r) for c, r in priced
+        ok = [(c, lf, r) for c, lf, r in priced
               if all(self.can(g, before) == YES for g in Rt.guards(r))]
         if not ok:
             self.led.record(self.cycle, "PLAN", slot, "routine_refused",
                             reason="no candidate's guards are all reachable here",
                             considered=len(priced))
             return
-        cost, cand = ok[0]
-        if not pays(cost, 0.0, base):      # `cost` already carries `left`; see `priced`
+        cost, left, cand = ok[0]
+        if not pays(cost, left, base):
             self.led.record(self.cycle, "PLAN", slot, "routine_cut",
                             reason="does-not-pay", routine=Rt.render(cand),
-                            cost=round(cost, 4), base=round(base, 4),
+                            cost=round(cost, 4), left=round(left, 4),
+                            base=round(base, 4), reach=Rt.reach(cand),
                             considered=len(priced), shelf=len(shelf))
             return
         self.routine, self.routine_for = cand, slot
@@ -1845,8 +1849,9 @@ class Agent:
                         routine=Rt.render(cand), length=Rt.length(cand),
                         units=Rt.length(cand, shelf),
                         chunked=Rt.length(cand) != Rt.length(cand, shelf),
-                        cost=round(cost, 4), base=round(base, 4), gap=gap,
-                        considered=len(priced), shelf=len(shelf),
+                        cost=round(cost, 4), left=round(left, 4),
+                        base=round(base, 4), gap=gap, reach=Rt.reach(cand),
+                        unsat=round(unsat, 4), considered=len(priced), shelf=len(shelf),
                         route="learned: observed to move this slot the wanted way")
 
     def _goal_split(self, before: dict[str, int]) -> str | None:

@@ -16650,3 +16650,35 @@ as over-built, which is the correct verdict and a weaker claim than the trace fi
 
 **MECHANISM-BUILT: the composer produces all four constructors, the route stays learned, and the price
 is honest about reach. CAPABILITY-OWED unchanged.**
+
+## THE TWO-PART BARGAIN WAS COLLAPSED INTO ONE NUMBER, AND THE ROW LIED ABOUT WHICH
+
+**Three defects from last tick, all mine, all in the pricing I had just repaired.**
+
+**ONE — `cost` on the ledger row was `cost + left`.** I folded the residual into the first element of
+`priced` and the row still said `cost`. **A mislabelled quantity at the site a future reader would
+trust, which is `A6i` on my own instrument.**
+
+**TWO — `pays(cost + left, 0.0, base)` is arithmetically identical and unreadable.** The bargain is
+two-part on purpose: *description* and *what it leaves unexplained*. Collapsed, **no reader can see
+which half bought the term.** *A change that makes the agent better and its reasoning unreadable has
+destroyed the instrument* — and this one did not even make it better, only shorter.
+
+**THREE — a stale comment describing behaviour that no longer existed.** The block reading *refuted
+candidates sort last and are still reachable if nothing else pays* sat above a plain sort; refutations
+are FILTERED OUT upstream now. **The exact failure this session keeps finding in other people's
+comments, written by me, one tick after finding it in `choose`'s docstring.**
+
+### THE ROW NOW CARRIES THE WHOLE DECISION
+
+    routine: cost=6.0 + left=0.0 = 6.0000  vs base=7.9248  -> pays
+             reach=5 against unsat=5.0
+
+**Both halves, and the two facts that explain the second**: `reach` is what the routine can address and
+`unsat` is what needs addressing, so a reader can see *why* `left` is zero rather than being told it.
+And the under-reaching case is legible for the same reason — a bare `ACTION2` reads `cost 4.00, left
+6.34`, and **the cheap half and the expensive half are both on the row.**
+
+**Ordered by `cost + left`, which is what `pays` spends** — the correction the two-arm board already
+paid for once in the PREDICT space, arriving in the ACT space by the same route: *selecting on either
+half alone buys the most-explaining term at any price, or the cheapest term that explains nothing.*
