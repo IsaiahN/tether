@@ -16682,3 +16682,51 @@ And the under-reaching case is legible for the same reason — a bare `ACTION2` 
 **Ordered by `cost + left`, which is what `pays` spends** — the correction the two-arm board already
 paid for once in the PREDICT space, arriving in the ACT space by the same route: *selecting on either
 half alone buys the most-explaining term at any price, or the cheapest term that explains nothing.*
+
+---
+
+# THE SHELF LOST ITS ADVERTISED-ACTION FILTER WHEN THE COMPOSER REPLACED IT — AND THE FULL SEVEN-POINT AUDIT
+
+**A systematic pass against `M2_STANDARD`'s seven, rather than another seam hunt — and it found one
+regression, at standard 3.**
+
+**The filter `set(Rt.actions(s)) <= set(self.actions)` existed on the hand-built candidate list and was
+dropped when `compose` replaced it.** Measured with a settled routine naming `ACTION9` on a level that
+advertises three others:
+
+    compose offered 10 candidates, 6 naming an UNADVERTISED action
+      until(o1.dcol/3) {ACTION9}
+      until(o1.dcol/5) {until(o1.dcol/3) {ACTION9}}      <- chunked: length 2, reach 15, left 0
+      when(o1.dcol) {until(o1.dcol/3) {ACTION9}}
+
+**The chunked one TIED the winner on total**, so which routine got minted was decided by sort order
+rather than by whether the level can run it. **The bargain picked a valid one by price, not by a
+guard.**
+
+> **A SETTLED ROUTINE'S ACTIONS ARE EVIDENCE FROM THE WORLD IT SETTLED IN.** The shelf survives a
+> boundary and its GUARDS are re-checked by `CAN` — verified three ticks ago — **and its ACTIONS had
+> nothing checking them.** `unadvertised` at execution was catching it a cycle too late: the plan was
+> minted and the cycle spent before anything noticed.
+
+**Restored, and verified on the agent's own path rather than on `compose` directly** — the first
+version of the check called `compose` and would have reported the bug as unfixed:
+
+    shelf routine this level CAN run     accepted, considered 14   minted names advertised actions
+    shelf routine it CANNOT run          rejected, considered  6   minted names advertised actions
+
+## AND THE SEVEN, MECHANICALLY, AGAINST THE CODE AS IT NOW STANDS
+
+    PASS  1  CAN before Until, at EVERY guard
+    PASS  2  the mint bins on the goal residual, never `degree`
+    PASS  3  route is one LEARNED action; shelf filtered to advertised
+    PASS  4  one bargain -- `pays` + `term_bits`, and no second currency anywhere
+    PASS  5  `Until` repeats AND terminates; not a fixed script
+    PASS  6  chunking reuses the term rule -- a settled routine counts as one unit
+    PASS  7  the four endings stay four, never collapsed
+    PASS     express-before-judge: only `EXHAUSTED` refutes
+    PASS     level-local state cleared at retarget
+
+**This is the first pass over all seven since the composer, `reach`, `R_goal` and `Standing` landed,
+and it is the artifact the freeze decision should read** — not because a passing audit is a capability
+reading, but because **it is the one thing that says the standard and the code still describe each
+other.**

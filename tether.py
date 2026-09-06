@@ -1785,7 +1785,19 @@ class Agent:
         # ones counting as one unit, and the cheapest that pays wins. **A shelf that is empty
         # leaves exactly the old behaviour**, which is what makes the chunk a shortcut rather
         # than a second mechanism.
-        shelf = tuple(self.routines)
+        # THE SHELF IS FILTERED TO WHAT THIS LEVEL CAN RUN, WHICH IS `M2_STANDARD` 3 AT THE
+        # CONSTRUCTOR I FORGOT. This filter existed before the composer replaced the hand-built
+        # candidate list and was dropped with it. **Measured: 6 of 10 candidates then named an
+        # action the level does not advertise**, and one of them -- the chunked
+        # `until(g/5) {until(g/3) {ACTION9}}` -- tied the winner on total, so validity was
+        # decided by sort order.
+        #
+        # A SETTLED ROUTINE'S ACTIONS ARE EVIDENCE FROM THE WORLD IT SETTLED IN. The shelf
+        # survives a boundary and its GUARDS are re-checked by `CAN`; its ACTIONS had nothing
+        # checking them. `unadvertised` at execution was catching it a cycle too late -- the
+        # plan was already minted and the cycle already spent.
+        shelf = tuple(r for r in self.routines
+                      if set(Rt.actions(r)) <= set(self.actions))
         # THE COMPOSER ENUMERATES SHAPES; THE ROUTE STAYS LEARNED, AND THE SPLIT IS GUARD A.
         # `compose` is handed exactly ONE action -- the one this agent's own trace says moves
         # this slot the wanted way -- because enumerating over every ADVERTISED action would let
