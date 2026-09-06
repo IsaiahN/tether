@@ -229,6 +229,21 @@ after the fact there is nothing to catch, because after the fact the reading is 
   stamp is therefore not evidence the rule was applied**, which is exactly what `3a`'s *all
   stamped `prior`* invites a reader to believe.
 
+  **AND THE SITE WHERE THE COLLISION IS GUARANTEED RATHER THAN POSSIBLE IS EDITING THE ROW
+  THAT HOLDS THE DEFINITION — 2026-09-05, THREE INSTANCES IN ONE SESSION, ALL MINE.** Each
+  time I repaired a row for staleness and introduced a wrong name in the same edit. **`M2` is
+  the multi-step plan; I wrote *`M2` is three items against built ends* into `STORY_PROOF`'s
+  `M2` row**, and the three items were link 3's gate. **The row said what `M2` was, in the
+  text I was editing.**
+
+  **The cause is one sentence and it is not carelessness: the summary gets written from THE
+  WORK JUST DONE rather than from THE DEFINITION THE ROW ALREADY HOLDS** — and the work just
+  done is precisely what makes the wrong summary feel earned. **So the writing side of `A6i`
+  is: when you edit a row, write its summary from the row's definition, not from what you
+  just finished.** The reading side is already step three; this is the same collision from
+  the other end, and it fires where step three cannot, because there is no separate spec to
+  consult — *you are editing it.*
+
   **So the trigger is *where a headline OR A RULING is about to be made*.** And the
   prospective half needs its own condition, because it is the harder case to justify at the
   time: **a cleared hazard is worth recording when the ITEM THAT WOULD COLLIDE WITH IT IS
