@@ -16810,3 +16810,48 @@ by catching an ambiguous anchor: `if not pays(cost, left, base):` matches **twic
 **Ten of ten checks are now falsified — each one has been shown to fail when its mechanism is
 removed.** Three were decorative when written, and **none of the three would have been found by reading
 them.**
+
+---
+
+# THE SWEEP ENTERS Γ WITHOUT CONSULTING `pays`, AND ALL THREE ENTRIES ON THE PANEL WOULD HAVE BEEN REFUSED
+
+**Returned to a defect deferred early tonight — `_reach` selecting on `left` alone — and the deferral's
+stated reason turned out to be wrong.** I wrote that *its consumer in `sweep` compares `found[0]`
+against a bare `left`, so correcting one side silently mismatches the other.* **Reading it: both sides
+are `left`, so that comparison was always consistent.** The real defect is one level over.
+
+> **`_install_reuse` calls `gamma.accept` DIRECTLY. `pays` is never consulted on this path**, and it
+> fires exactly when `_reach` returns a term NOT already in the library — so **a new term can enter Γ
+> on `left == 0.0` alone.** §14.4 says *one bargain*; this is the site where there are two.
+
+## MEASURED, AND I HAD IT BACKWARDS FIRST
+
+**A spy script reported the path was never called, and I was about to record it as an unexercised
+inconsistency.** The instrumentation said otherwise on its first run: **three installs on the demo
+panel**, and the spy was simply broken.
+
+    cycle 1  'take<driven>'      cost  6.340  left 0.000  base 5.6147  would_pay FALSE
+    cycle 1  'take<climb>'       cost  6.340  left 0.000  base 5.6147  would_pay FALSE
+    cycle 5  'dbl . dec . neg'   cost 12.680  left 0.000  base 8.4221  would_pay FALSE
+
+**Three of three would have been refused by the mint.** A term that closes a parked residual
+completely can still cost more than the residual is worth, and this path takes it anyway.
+
+**The costs are apples-to-apples, checked before the number was reported**: `len(Term)` is the atom
+count and `mint` uses `term_bits(len(term), alphabet)` identically, so `would_pay` asks the mint's own
+question.
+
+## INSTRUMENTED, NOT GATED — AND THE REASON CHANGED MID-TICK
+
+**The plan was to publish the reading rather than add the gate**, because a gate changes what enters Γ
+and there was no board to read the change on. **Then the reading arrived and showed the path firing
+three times with three refusals**, which is exactly the board that was missing. **The gate is now a
+decision that CAN be made on evidence — and it is Isaiah's**, because removing three terms from Γ
+changes the panel and the entry rule for a library is not a seat-level call.
+
+## AND THE GATE CAUGHT MY REGRESSION IMMEDIATELY
+
+The row went in as an `ACCEPT` and `demo.py` went from exit 0 to exit 1: **`chase: ROUTE after ACCEPT`,
+refused at seq 39.** The sweep runs inside the ROUTE phase and its own `pull` row is a ROUTE row.
+**The step is a fact about WHEN a row is written, not about what the event feels like** — and the
+ordering check found it in one run, on a change whose visible output was identical.

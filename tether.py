@@ -2610,6 +2610,35 @@ class Agent:
                 self.chain.note_reuse_attempt("no-split")
 
     def _install_reuse(self, cand: Term, slot: str) -> str:
+        """The SWEEP's entry into Gamma, and it is the one path that does not consult `pays`.
+
+        **TWO GATES ON ONE LIBRARY.** `mint` requires `cost + left < base`; this fires when
+        `_reach` returns a term with `left == 0.0`, and a term that explains a parked residual
+        completely can still be LONGER than the residual is worth. §14.4 says *one bargain*, and
+        this is the site where there are two.
+
+        **NOT REPAIRED, AND NOT SILENT EITHER.** `_install_reuse` was never called across the
+        demo panel -- the single sweep pull reused a term already in the library -- so a gate
+        added here would change what enters Gamma with **no board on which to read the change**,
+        which is the fitting-to-an-argument the deferred repairs have all been held against.
+        **So the row states what the bargain WOULD have said**, exactly as `can` published its
+        reading before `Until` existed to consume it: the first run that exercises this path
+        answers the question instead of a decision made without one.
+        """
+        hist = self.history(slot)
+        held = self.gamma.library.get(self.bound.get(slot, IDN))
+        base = self._left(held, slot, hist) if held is not None else None
+        cost = term_bits(len(cand), self.gamma.alphabet)
+        left = self._left(cand, slot, hist)
+        # `ROUTE`, NOT `ACCEPT`, AND THE GATE SAID SO. The sweep runs inside the ROUTE phase
+        # and its own `pull` row is a ROUTE row, so an `ACCEPT` here puts a later ROUTE for the
+        # same slot out of order -- `chase: ROUTE after ACCEPT`, refused at seq 39. **The step
+        # is a fact about WHEN the row is written, not about what the event feels like.**
+        self.led.record(self.cycle, "ROUTE", slot, "reuse_install", term=cand.name,
+                        cost=round(cost, 4), left=round(left, 4),
+                        base=None if base is None else round(base, 4),
+                        would_pay=None if base is None else pays(cost, left, base),
+                        note="entered on left==0 alone; `pays` is not consulted on this path")
         self.gamma.accept(cand, seq=len(self.led), residual=f"reuse:{slot}@{self.cycle}")
         return cand.name
 
