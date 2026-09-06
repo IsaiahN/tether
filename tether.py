@@ -41,6 +41,10 @@ sys.dont_write_bytecode = True
 IDN = "idn"
 # THE EDGE'S TWO FACTS, named here so `_predict` reads constants rather than strings.
 OBJ_TYPE = "OBJ"
+# `CAN`'s THREE OUTCOMES. Named rather than bare strings because `UNKNOWN` is the one that gets
+# quietly folded into `NO` -- they behave alike at the commit and are different claims on the
+# record, which is check 3 exactly.
+YES, NO, UNKNOWN = "yes", "no", "unknown"
 OBJECT_TYPE = "OBJECT"
 ORDERED_TYPES = ("POSITION", "EXTENT", "DELTA")
 
@@ -203,12 +207,24 @@ def objective_gap(evaluate, current: int, ordered: bool, alphabet: int) -> Any:
     value is equidistant -- so the gap is 1, which is *not satisfied* and says nothing more
     than it can support.
 
-    `None` IS UNREADABLE OR UNREACHABLE, and neither is a large gap: a big number would sort
-    below a small one and read as *nearly there*.
+    THREE OUTCOMES, NOT TWO, AND THE THIRD WAS COLLAPSED WHEN THIS WAS WRITTEN -- `A6i`, found
+    by `CAN`'s spec read the next day. `None` meant BOTH *I could not read the objective here*
+    and *nothing in the alphabet satisfies it*. **For a discrepancy series those collapse
+    harmlessly, because either way the trend breaks. For `CAN` they are OPPOSITE ANSWERS** --
+    unreadable is `unknown` and nothing-satisfies is a real `no`, and a `CAN` built on the
+    collapsed version would report *not achievable* for *I could not see*, which is check 3's
+    absence-as-fact at the one place a routine commits to looping.
+
+        NOT_RESOLVED   the objective could not be read here
+        None           nothing in the alphabet satisfies it -- a genuine negative
+        int            the distance, and zero exactly when satisfied
+
+    Neither non-integer is a large gap: a big number would sort below a small one and read as
+    *nearly there*.
     """
     here = evaluate(current)
     if here is None:
-        return None
+        return NOT_RESOLVED
     if here:
         return 0
     hits = [v for v in range(alphabet) if v != current and evaluate(v)]
@@ -1379,11 +1395,19 @@ class Agent:
         return self.drive.choose(self.actions, self.cycle, _where(before)), "draw"
 
     def _discrepancy(self, slot: str, state: dict[str, int]) -> int | None:
-        """How far this slot is from satisfying the objective bound to it. Zero iff satisfied."""
+        """How far this slot is from satisfying the objective bound to it. Zero iff satisfied.
+
+        NO OBJECTIVE HERE IS `NOT_RESOLVED`, NEVER `None`. `None` is reserved for *nothing in
+        the alphabet satisfies it*, which is a claim about an objective that EXISTS. A slot
+        holding a `val` term has no objective at all, and returning `None` for it made `CAN`
+        report `no` — **not achievable, about a goal nobody stated.** Caught by P1's own
+        verification run on `o1.col`, one level below the `A6i` this method was just repaired
+        for, and the same shape: *absent* filed as *false*.
+        """
         name = self.bound.get(slot)
         term = self.gamma.library.get(name) if name else None
         if term is None or getattr(term, "out_type", None) != OBJ_TYPE or slot not in state:
-            return None
+            return NOT_RESOLVED
         ctx = Ctx(action=self._last_action or "", operands=self._ops(term, state),
                   touching=self._touching(slot), group=self._group(slot, state),
                   obj=self._record(slot, state))
@@ -1394,14 +1418,80 @@ class Agent:
         return objective_gap(_sat, state[slot], self.slot_types.get(slot) in ORDERED_TYPES,
                              self.alphabet[slot])
 
+    def can(self, slot: str, state: dict[str, int]) -> str:
+        """`CAN(P)` — §14.3's affordance, and it is **ACHIEVABLE, not SATISFIABLE.**
+
+        THE TWO SOURCES DISAGREED AND THE DISAGREEMENT IS THE POINT. `grammar.py` glosses
+        `CAN` as *a relation is **achievable***; §14.3 calls it *the affordance that says the
+        guard is **satisfiable***. **Two quantities.** Satisfiable is logical — some value in
+        the alphabet makes `P` true. Achievable is evidential — this agent has grounds to
+        believe it can GET there. **`Until` needs the second**: a guard that is satisfiable and
+        unreachable is exactly the loop that never terminates.
+
+        THREE OUTCOMES, AND THE THIRD IS CHECK 3. *I have no evidence* is not *the guard is
+        false* — the same error as `disembodied`-by-absence, at the one place a routine commits
+        to repeating. **Only `no` is a claim about the world; `unknown` is a claim about the
+        record**, and `Until` may commit on neither.
+
+            `no`        nothing in the alphabet satisfies it. A real negative, and the only one
+            `yes`       POSITIVE CAUSAL EVIDENCE, never absential: it holds now, or it has held
+                        before, or an action of this agent's has been observed to move the slot
+                        toward it. *Prefer "I tried and something happened" over "I have never
+                        been there"*
+            `unknown`   satisfiable, and nothing in this agent's record says it can be reached
+        """
+        gap = self._discrepancy(slot, state)
+        if gap is NOT_RESOLVED:
+            return UNKNOWN                 # could not read the objective here
+        if gap is None:
+            return NO                      # nothing satisfies it -- the only real negative
+        if gap == 0 or 0 in self._disc.get(slot, ()):
+            return YES                     # holds now, or has held: reached, so reachable
+        name = self.bound.get(slot)
+        term = self.gamma.library.get(name) if name else None
+        if term is None:
+            return UNKNOWN
+        ordered = self.slot_types.get(slot) in ORDERED_TYPES
+        for a in self.actions:
+            moves = [aft[slot] - bef[slot] for bef, act, aft in self.trace
+                     if act == a and slot in bef and slot in aft]
+            if not moves:
+                continue                   # untried is not evidence either way
+            wanted = self._predict(slot, state, a)
+            if wanted is None or wanted == state[slot]:
+                continue
+            if not ordered:
+                if any(aft[slot] == wanted for _, act, aft in self.trace
+                       if act == a and slot in aft):
+                    return YES
+                continue
+            step = 1 if wanted > state[slot] else -1
+            if sum(1 for d in moves if d * step > 0) * 2 > len(moves):
+                return YES                 # this agent has moved it that way, mostly
+        return UNKNOWN
+
     def note_goals(self, state: dict[str, int]) -> None:
         """One discrepancy reading per goal hypothesis per step. Held, never aggregated."""
+        reach: dict[str, str] = {}
         for slot in self.slots:
             g = self._discrepancy(slot, state)
-            if g is None:
-                self._disc.pop(slot, None)   # unreadable breaks the trend; it does not extend it
+            if not isinstance(g, int):
+                # BOTH non-integer outcomes break the trend, and for the SAME reason here --
+                # a series needs a distance and neither is one. `CAN` is where they part.
+                self._disc.pop(slot, None)
             else:
                 self._disc.setdefault(slot, []).append(g)
+            if g is not NOT_RESOLVED:      # an OBJ term is bound and readable here
+                reach[slot] = self.can(slot, state)
+        # PUBLISHED EVERY STEP, BECAUSE P1 SHIPS BEFORE ITS CONSUMER. `Until` is what GATES on
+        # `CAN` and it does not exist yet, so without this row the producer would be code that
+        # runs and says nothing. The counts are the thing to watch: `no` is a claim about the
+        # world, `unknown` a claim about the record, and a board that is all `unknown` has told
+        # you the trace is too thin rather than that nothing is reachable.
+        if reach:
+            self.led.record(self.cycle, "PERCEIVE", "*", "can",
+                            **{k: sum(1 for v in reach.values() if v == k)
+                               for k in (YES, NO, UNKNOWN)})
 
     def _goal_choice(self) -> str | None:
         """M2 ITEM 3, THE SELECTOR. §13.4, quoted whole because the criterion is its wording:
