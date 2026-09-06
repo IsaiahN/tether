@@ -112,12 +112,13 @@ def check_can_gates_until():
     slot = _wide(ag)
     assert ag.can(slot, b) == YES, "fixture: the slot's own guard must stay reachable"
     dead = Rt.Until("no.such.slot", Rt.Act(ag.actions[0]), 3)
-    real_compose = Rt.compose
-    Rt.compose = lambda *_a, **_k: [Rt.Until(slot, dead, 5)]   # every candidate carries it
+    real_enum = Rt.enumerate_routines
+    # every candidate carries the unreachable nested guard
+    Rt.enumerate_routines = lambda *_a, **_k: [Rt.Until(slot, dead, 5)]
     try:
         rows = _mint(ag, b)
     finally:
-        Rt.compose = real_compose
+        Rt.enumerate_routines = real_enum
     assert ag.can("no.such.slot", b) != YES, "fixture: the nested guard must be unreachable"
     assert ag.routine is None, "committed to a plan whose nested guard is unreachable"
     assert any(e.detail.get("reason", "").startswith("no candidate") for e in rows), (

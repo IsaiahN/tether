@@ -17037,3 +17037,42 @@ original intact.
 **The re-falsification is the part that mattered**: a cache is exactly the thing that could make a
 check pass on stale state, so *the suite being fast is worth nothing unless it still fails when the
 code is wrong.*
+
+---
+
+# A SWEEP FOR UNWIRED MECHANISMS, DONE ON PURPOSE — AND MY THIRD SOURCE-SCANNING GUESS
+
+**Four instances of *built but not consulted* were found by accident tonight; this looked for them
+deliberately.** The lint's ISOLATED seat catches UNREFERENCED code — it cannot catch code referenced
+only by a **reporter**, which is what `rejection_of`, `contingency()`, the self-model verdict and the
+entire M2 suite each were.
+
+## THE ACT SPACE IS FULLY WIRED, WHICH IS THE ANSWER TO THE QUESTION ASKED
+
+**All 21 M2 mechanisms are read by a decision, none ledger-only.** `can`, `goal_residual`,
+`_discrepancy`, `note_goals`, `_goal_choice`, `_goal_split`, `_mint_routine`, `_holds`, `_rejection`,
+`_reject_key`, `_install_reuse`, and every function in `routine.py`.
+
+## AND THE FIRST VERSION OF THE SWEEP WAS WRONG IN THE USUAL WAY
+
+**It reported `NO CALLER` for eleven mechanisms I knew were called.** The pattern was
+`(?<![\w.])name\(` — a negative lookbehind excluding `.`, **which is exactly how a method is called.**
+`self.can(...)` matched nothing.
+
+> **THIRD TIME TONIGHT A SOURCE-SCANNING CHECK OF MINE RETURNED A GUESS** — after the seven-point grep
+> audit and the shelf check that called `compose` directly. *An exit code is a declaration where a
+> pattern match over stdout is a guess*, and I keep reaching for the pattern match. **The tell is
+> identical each time: the result contradicts something I already know, and the temptation is to
+> believe the tool.**
+
+## THE COLLISION THE SWEEP TRIPPED OVER, WHICH IS THE TICK'S REAL FIND
+
+`compose` matched 16 sites because **`routine.compose` and `grammar.compose` share a name in one
+codebase.** `grammar.compose` type-checks an utterance; the other enumerates routine shapes. **Two
+operations, one word — `A6i`, and mine, introduced eight ticks ago.**
+
+**Renamed `enumerate_routines`, for the one it parallels.** `gamma.enumerate_closure` walks type-valid
+pipelines over units; this walks type-valid routines over actions and guards — **and the shared name
+now says the shared discipline**, where `compose` said only that I had run out of words.
+
+    12/12 M2 checks pass   all five falsifications still CATCH   9/9 seats clean

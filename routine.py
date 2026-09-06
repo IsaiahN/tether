@@ -207,10 +207,17 @@ def render(r: Any) -> str:
     raise TypeError(f"not a routine: {r!r}")
 
 
-def compose(actions: tuple, guards: tuple, chunks: tuple = (), loop_budget: int = 1,
-            cap: int = 200) -> list:
+def enumerate_routines(actions: tuple, guards: tuple, chunks: tuple = (),
+                       loop_budget: int = 1, cap: int = 200) -> list:
     """Type-valid routines over the ACT space, **shortest first, capped by budget** -- the
     same discipline as `gamma.enumerate_closure` and deliberately not a second one.
+
+    **NAMED FOR THE ONE IT PARALLELS, AND IT WAS `compose` UNTIL A SWEEP TRIPPED OVER IT.**
+    `grammar.compose` type-checks an utterance; this enumerates routine SHAPES. Two
+    operations, one word, in one codebase -- `A6i`, and mine. **The rename also makes the
+    ACT space's relationship to the PREDICT space readable**: `enumerate_closure` walks
+    type-valid pipelines over units, this walks type-valid routines over actions and
+    guards, and the shared name says the shared discipline.
 
     **THE COMPOSER WAS A TEMPLATE.** `_mint_routine` built `Until(guard, Act(a), n)` and
     nothing else: `When` was constructed NOWHERE, and `Seq` only inside `advance` as a

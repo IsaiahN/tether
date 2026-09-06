@@ -1812,7 +1812,7 @@ class Agent:
         # it is the step floor the guard implies rather than a number picked.
         loop_budget = max(int(round(unsat)), 1)
         mine = tuple(s for s in sorted(self._disc) if s in before)
-        cands = Rt.compose((act,), mine or (slot,), shelf, loop_budget)
+        cands = Rt.enumerate_routines((act,), mine or (slot,), shelf, loop_budget)
         # WEIGHTED AND CLOCKED, per §18.2 via `gamma.Standing`: a refutation excludes only while
         # its decaying strength stands, so a failed shape leaves the running and returns.
         cands = [c for c in cands
