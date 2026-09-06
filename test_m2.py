@@ -9,6 +9,7 @@ have broken it at all**, so it could pass while the mechanism was wrong.
 catch it.** *Tests reach, not existence.*
 """
 
+import copy
 import math
 import sys
 
@@ -56,13 +57,30 @@ class _Two:
         return self._frame()
 
 
+_BUILT: dict = {}
+
+
 def _agent(cycles: int = 25):
-    env = ArcWorld(_Two(), arc_percept.Objects(),
-                   arc_atoms.three_spaces(arc_predict.predict()), palette=PALETTE)
-    ag = tether.Agent(env, gamma.Gamma(env.atoms(), game="m2test"), tether.Config())
-    for _ in range(cycles):
-        ag.step()
-    return ag
+    """A warmed agent, built ONCE per cycle count and handed out as a deep copy.
+
+    **THE SEAT COST 41s BEFORE THIS, AGAINST `test_gate.py`'s 195ms**, because every check ran
+    a fresh 25-cycle loop. *A hook people wait minutes for is a hook people disable.*
+
+    **AND THE OBVIOUS FIX WAS A FITTED NUMBER.** Ten cycles is usable and 9x faster -- but
+    fourteen and eighteen are NOT, and twenty-five is: usability oscillates with the board's
+    phase, so choosing ten because it happened to work is a constant fitted to the case that
+    prompted it. **Copying is structural instead** -- the cycle count the checks were written
+    against is preserved and the loop runs once, with `deepcopy` measured at 60x cheaper than
+    rebuilding.
+    """
+    if cycles not in _BUILT:
+        env = ArcWorld(_Two(), arc_percept.Objects(),
+                       arc_atoms.three_spaces(arc_predict.predict()), palette=PALETTE)
+        ag = tether.Agent(env, gamma.Gamma(env.atoms(), game="m2test"), tether.Config())
+        for _ in range(cycles):
+            ag.step()
+        _BUILT[cycles] = ag
+    return copy.deepcopy(_BUILT[cycles])
 
 
 def _wide(ag, slot="o1.dcol"):

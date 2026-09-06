@@ -17008,3 +17008,32 @@ pattern match over stdout is a guess* — and a suite outside the runner is not 
 self-model's verdict, `contingency()` before `_learned_split`, `rejection_of` outside `summary.py`, and
 now an entire test suite. **The pattern is not that things go unbuilt — it is that built things go
 unwired, and nothing in a passing run says so.**
+
+## AND ADDING THE SEAT COST 41 SECONDS A COMMIT — MEASURED, BECAUSE A REPAIR BREAKS THE LAYER ABOVE
+
+**The layer above a new seat is the commit workflow, and the first commit after it exceeded 120
+seconds.**
+
+    test_gate.py    195ms
+    test_m2.py    40,916ms      <- 200x, on every commit
+    demo.py        2,892ms
+
+**Every check ran a fresh 25-cycle loop.** *A hook people wait minutes for is a hook people disable*,
+and a disabled hook is worse than the six commits that never ran the suite at all.
+
+**THE OBVIOUS FIX WAS A FITTED NUMBER, AND THE MEASUREMENT SAID SO.** Ten cycles is usable and nine
+times faster — **and fourteen and eighteen are NOT usable, while twenty-five is.** Usability oscillates
+with the board's phase, so *choosing ten because it happened to work* is a constant fitted to the case
+that prompted it — **the improvised-metric error, in a test harness.**
+
+**Structural instead:** build the warmed agent ONCE at the cycle count the checks were written against
+and hand out `deepcopy`s, measured at **60x cheaper than rebuilding** with the copy usable and the
+original intact.
+
+    41.0s -> 8.5s      12/12 still pass
+    all five falsifications still CATCH
+    the seat still FAILs on a real break: `m2 FAIL, 8/9 seats clean, exit 1`
+
+**The re-falsification is the part that mattered**: a cache is exactly the thing that could make a
+check pass on stale state, so *the suite being fast is worth nothing unless it still fails when the
+code is wrong.*
