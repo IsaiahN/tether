@@ -1786,51 +1786,55 @@ class Agent:
         # leaves exactly the old behaviour**, which is what makes the chunk a shortcut rather
         # than a second mechanism.
         shelf = tuple(self.routines)
-        bodies = [Rt.Act(act)] + [s for s in shelf
-                                  if set(Rt.actions(s)) <= set(self.actions)]
-        # THE DEVIATION IS WITHDRAWN, AND `Standing` IS WHY. It excluded outright because
-        # de-prioritising is a no-op at one candidate -- true, and the wrong repair. **A weight
-        # that DECAYS excludes only while it stands**: one refutation puts the strength at 1.0
-        # and `REJECTION_HALFLIFE` brings it under the bar again, so the routine is out of the
-        # running for a while and then back in it. *Weighted, clocked, and never a hard ban* --
-        # all three, with no constant of mine anywhere in it.
-        bodies = [b for b in bodies
-                  if self._rejection(self._reject_key(slot, Rt.Until(slot, b, 1))) < 1.0]
-        if not bodies:
+        # THE COMPOSER ENUMERATES SHAPES; THE ROUTE STAYS LEARNED, AND THE SPLIT IS GUARD A.
+        # `compose` is handed exactly ONE action -- the one this agent's own trace says moves
+        # this slot the wanted way -- because enumerating over every ADVERTISED action would let
+        # a routine pick a move it has no evidence for. **That is `act` with more steps**, and it
+        # is the difference between composing a plan and guessing one.
+        #
+        # The guards offered are the agent's OWN objectives: slots it has composed something
+        # about. Every one is `CAN`-checked below, so an unreachable guard is refused rather
+        # than trusted.
+        # THE BUDGET IS THE UNSATISFIED COUNT -- `R_goal` is a fraction and cannot bound a loop,
+        # but `unsat` COUNTS members that must change, each needing at least one iteration, so
+        # it is the step floor the guard implies rather than a number picked.
+        loop_budget = max(int(round(unsat)), 1)
+        mine = tuple(s for s in sorted(self._disc) if s in before)
+        cands = Rt.compose((act,), mine or (slot,), shelf, loop_budget)
+        # WEIGHTED AND CLOCKED, per §18.2 via `gamma.Standing`: a refutation excludes only while
+        # its decaying strength stands, so a failed shape leaves the running and returns.
+        cands = [c for c in cands
+                 if self._rejection(self._reject_key(slot, c)) < 1.0]
+        if not cands:
             self.led.record(self.cycle, "PLAN", slot, "routine_refused",
                             reason="every rejection still stands and nothing has surprised",
                             strengths=[round(self._rejection(k), 3) for k in self.refuted
                                        if k[0] == slot])
             return
-        priced = []
-        for body in bodies:
-            # THE BUDGET IS THE UNSATISFIED COUNT, WHICH IS THE SAME QUANTITY ONE LEVEL
-            # OVER. `R_goal` is a fraction and cannot bound a loop, but `unsat` is a COUNT of
-            # members that have to change, and each needs at least one iteration -- so it is the
-            # step floor the guard implies, derived and not picked. It replaced `max(gap, 1)`,
-            # which came from the slot's distance and had nothing to do with the guard.
-            c = Rt.Until(slot, body, max(int(round(unsat)), 1))
-            priced.append((term_bits(Rt.length(c, shelf), n), c))
+        # `left` IS WHAT THE CANDIDATE CANNOT REACH, NOT ZERO. See `routine.reach`.
+        priced = [(term_bits(Rt.length(c, shelf), n)
+                   + max(0.0, unsat - Rt.reach(c)) * math.log2(n), c) for c in cands]
         # WEIGHTED, NEVER BINARY -- §18.2: *strength-of-rejection, so the consumer
         # DE-PRIORITISES; never a hard ban.* Refuted candidates sort last and are still reachable
         # if nothing else pays, so a refutation lowers a routine's standing without removing it
         # from the space. **And de-prioritising by ORDER rather than by a price penalty is what
         # keeps this out of the bargain**: a penalty in bits would be a second currency, which
         # §14.4 forbids and which the CE thread already collapsed on four times.
-        priced.sort(key=lambda p: (self._reject_key(slot, p[1]) in self.refuted, p[0]))
-        cost, cand = priced[0]
-        # EVERY GUARD, NOT JUST THE FIRST -- `M2_STANDARD` 3, and chunking is what makes it
-        # bite. The body may be a SETTLED routine carrying guards of its own, and *it reached
-        # `done` once* is evidence about the world it ran in, not about this one. **A nested
-        # `Until` whose guard nobody re-checked is the durable contamination the standard
-        # names**: it looks like planning and loops on a condition this level cannot reach.
-        unchecked = [g for g in Rt.guards(cand) if self.can(g, before) != YES]
-        if unchecked:
+        priced.sort(key=lambda p: p[0])
+        # EVERY GUARD OF EVERY CANDIDATE -- `M2_STANDARD` 3. A candidate whose guard this level
+        # cannot reach is dropped rather than ending the search, because the composer now offers
+        # many shapes and one unreachable guard is a fact about THAT shape. **A nested `Until`
+        # whose guard nobody re-checked is the durable contamination the standard names**: it
+        # looks like planning and loops on a condition this level cannot reach.
+        ok = [(c, r) for c, r in priced
+              if all(self.can(g, before) == YES for g in Rt.guards(r))]
+        if not ok:
             self.led.record(self.cycle, "PLAN", slot, "routine_refused",
-                            reason="a nested guard is not reachable here",
-                            guards=unchecked, routine=Rt.render(cand))
+                            reason="no candidate's guards are all reachable here",
+                            considered=len(priced))
             return
-        if not pays(cost, 0.0, base):
+        cost, cand = ok[0]
+        if not pays(cost, 0.0, base):      # `cost` already carries `left`; see `priced`
             self.led.record(self.cycle, "PLAN", slot, "routine_cut",
                             reason="does-not-pay", routine=Rt.render(cand),
                             cost=round(cost, 4), base=round(base, 4),

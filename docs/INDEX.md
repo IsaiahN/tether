@@ -16593,3 +16593,60 @@ was to run it rather than reason about it.
 routine surviving and failing safe on an unadvertised action or an unreadable guard, and the settled
 shelf surviving under the `CAN` gate. **Four pieces of level-local state, four different correct
 answers, and only one of them was the one I had written.**
+
+---
+
+# THE ACT SPACE HAD A TEMPLATE, NOT A COMPOSER — AND MAKING IT ONE EXPOSED A FALSE PRICE
+
+**Checked structurally rather than at a seam: WHICH CONSTRUCTORS DOES THE COMPOSER ACTUALLY
+PRODUCE?**
+
+    the loop constructed   Until(slot, body, budget)   -- one shape, every time
+    `When`                 NEVER constructed anywhere, in either file
+    `Seq`                  only inside `advance`, as a REMAINDER -- never as a composed plan
+
+**§14.4 says the ACT space composes by `Seq / When / Until`. It composed by one.** That is the
+defect `WANT` had — *the seat hand-building the single shape the agent was supposed to reach* — and
+the PREDICT space has had `enumerate_closure` for exactly this the whole time.
+
+`routine.compose` is the parallel, **shortest-first and capped, deliberately not a second
+discipline**. 3 actions × 2 guards yields 24 routines: `Act` 3, `Until` 6, `When` 6, `Seq` 9.
+
+## AND THE ROUTE STAYS LEARNED, WHICH IS THE WHOLE OF GUARD A HERE
+
+**`compose` is handed exactly ONE action** — the one this agent's own trace says moves this slot the
+wanted way. **Enumerating over every ADVERTISED action would let a routine pick a move it has no
+evidence for, which is `act` with more steps.** The composer enumerates SHAPES; the ROUTE is not its
+to choose.
+
+## THE FALSE PRICE IT EXPOSED, WHICH WAS MINE
+
+**The first wiring minted a bare `Act` — a one-step "routine".** `pays(cost, 0.0, base)` let **every**
+candidate claim it closed the entire residual, which was defensible only while the single shape on
+offer was an `Until` whose budget was derived to close it. **The moment a cheaper shape existed, the
+cheapest one won by asserting something false.**
+
+`routine.reach` counts what a candidate can actually address — one action does one, a sequence sums, a
+loop does its budget's worth — and `left` is the part of the residual it does NOT reach:
+
+    unsat = 5.0, base = 7.925
+    A1                                    len 1  reach  1  cost  4.00  left 6.34  total 10.34  no
+    A1 ; A2                               len 3  reach  2  cost  8.00  left 4.75  total 12.75  no
+    until(g/2) {A1}                       len 2  reach  2  cost  6.00  left 4.75  total 10.75  no
+    until(g/5) {A1}                       len 2  reach  5  cost  6.00  left 0.00  total  6.00  PAYS
+    until(g1/5) {A1} ; until(g2/5) {A1}   len 5  reach 10  cost 12.00  left 0.00  total 12.00  no
+
+> **THE BARGAIN NOW BUYS THE PLAN WHOSE REACH MATCHES THE RESIDUAL — refusing the under-reaching AND
+> the over-built.** That is the two-part MDL doing its job one level up, and it only appeared once
+> `left` stopped being asserted as zero. *A term that explains everything by saying nothing* is what
+> a bare `Act` claiming to close five members WAS.
+
+## ONE THING I NEARLY OVER-CLAIMED, CORRECTED BEFORE RECORDING
+
+The run shows the held routine changing from `until(o1.dcol/…)` to `until(o2.dcol/4)` at cycle 5, and
+**that is not a `Seq` executing** — it is a second routine minted for a DIFFERENT slot after the first
+ended. **No `Seq` has ever been minted.** The composer offers them and the bargain refuses them here
+as over-built, which is the correct verdict and a weaker claim than the trace first suggested.
+
+**MECHANISM-BUILT: the composer produces all four constructors, the route stays learned, and the price
+is honest about reach. CAPABILITY-OWED unchanged.**

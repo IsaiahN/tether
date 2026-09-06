@@ -205,3 +205,67 @@ def render(r: Any) -> str:
     if isinstance(r, Until):
         return f"until({r.guard}/{r.budget}) {{{render(r.body)}}}"
     raise TypeError(f"not a routine: {r!r}")
+
+
+def compose(actions: tuple, guards: tuple, chunks: tuple = (), loop_budget: int = 1,
+            cap: int = 200) -> list:
+    """Type-valid routines over the ACT space, **shortest first, capped by budget** -- the
+    same discipline as `gamma.enumerate_closure` and deliberately not a second one.
+
+    **THE COMPOSER WAS A TEMPLATE.** `_mint_routine` built `Until(guard, Act(a), n)` and
+    nothing else: `When` was constructed NOWHERE, and `Seq` only inside `advance` as a
+    remainder. **§14.4 says the ACT space composes by `Seq / When / Until` and it composed by
+    one** -- which is the defect `WANT` had, the seat hand-building the single shape the agent
+    was supposed to reach.
+
+    SHORTEST FIRST FOR `enumerate_closure`'s REASON: the bargain prices length, so a cheap
+    shape that pays should be found before an expensive one is built. And **capped**, because
+    the space is a product of actions x guards and grows without a bound of its own.
+
+    **NO NEW CONSTRUCTORS AND NO NEW TYPES.** This enumerates what §14.3 already declared,
+    over the actions the environment advertises and the guards the agent has objectives for.
+    A chunk enters as a unit exactly as a settled term does in `gamma.units`.
+    """
+    base = [Act(a) for a in actions] + list(chunks)
+    out = list(base)
+    for b in base:
+        for g in guards:
+            out.append(Until(g, b, loop_budget))
+            out.append(When(g, b))
+    for b in base:                       # depth 2 sequences, over primitives only
+        for c in base:
+            out.append(Seq(b, c))
+    seen, uniq = set(), []
+    for r in out:
+        k = render(r)
+        if k not in seen:
+            seen.add(k)
+            uniq.append(r)
+    uniq.sort(key=length)
+    return uniq[:cap]
+
+
+def reach(r: Any) -> int:
+    """How many members of a scope this routine can address before it ends.
+
+    **`left` IN THE BARGAIN, AND IT WAS BEING ASSERTED AS ZERO.** Every candidate was priced
+    with `pays(cost, 0.0, base)` -- *this routine closes the entire goal residual* -- which was
+    defensible only while the single shape on offer was an `Until` whose budget was derived to
+    close it. **The moment the composer offered a bare `Act`, the cheapest candidate claimed to
+    close a residual of five with one action, and won.**
+
+    So the reach is counted from the object: one action does one, a sequence does the sum, a
+    loop does its budget's worth, and a guard passes its body's through. **`left` is then the
+    part of the residual the candidate does NOT reach**, which is what the two-part bargain
+    means by it -- and pricing a plan against a residual it cannot close is exactly the *term
+    that explains everything by saying nothing* the bargain exists to refuse.
+    """
+    if isinstance(r, Act):
+        return 1
+    if isinstance(r, Seq):
+        return reach(r.first) + reach(r.then)
+    if isinstance(r, When):
+        return reach(r.body)
+    if isinstance(r, Until):
+        return max(r.budget, 0) * reach(r.body)
+    raise TypeError(f"not a routine: {r!r}")
