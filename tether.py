@@ -234,6 +234,35 @@ def objective_gap(evaluate, current: int, ordered: bool, alphabet: int) -> Any:
     return min(abs(v - current) for v in hits) if ordered else 1
 
 
+def objective_degree(evaluate, scope) -> float | None:
+    """`degree(molecule)` — **the fraction of the SCOPE that satisfies the objective.**
+
+    `DISCOVERY` Q21 answers *is `R_goal` measurable* and gives the measurement: a molecule is a
+    quantified typed objective evaluated across a scope, and it returns *a verdict **and a
+    continuous degree*** — `ALL -> fraction satisfied`, `NONE -> 1 - fraction satisfied`. **So
+    `R_goal = 1 - degree`, and it is graded rather than binary, which is what makes progress
+    measurable at all.**
+
+    THE FRACTION WAS ALREADY BEING COMPUTED AND THROWN AWAY. `arc_atoms._over_group`'s `fold` is
+    `int(q(x == v for x in c.group))` — the generator IS the per-member verdict and only the
+    quantifier's boolean survives. **This reads the same scope and keeps the fraction**, so it
+    adds no atom, no sensor and no prior: it is a specified quantity the code was discarding.
+
+    AND IT IS A THIRD READING OF AN OBJECTIVE, NOT A REPLACEMENT FOR EITHER. `objective_step`
+    says WHICH WAY to move a slot, `objective_gap` says HOW FAR that slot is, and this says HOW
+    MUCH OF THE POPULATION is unsatisfied. **The first two are about one slot and cannot be
+    wide; only this one ranges over a scope.**
+
+    `None` when the scope is empty — an absent population is not a satisfied one, which is
+    `_over_group`'s own rule for the boolean and holds for the fraction too.
+    """
+    vals = [evaluate(x) for x in scope]
+    seen = [v for v in vals if v is not None]
+    if not seen:
+        return None
+    return sum(1 for v in seen if v) / len(seen)
+
+
 @dataclass
 class Config:
     # anchor: grounded in the toy world's own falsifier. `world._ladder` is four atoms
@@ -1457,6 +1486,38 @@ class Agent:
         return objective_gap(_sat, state[slot], self.slot_types.get(slot) in ORDERED_TYPES,
                              self.alphabet[slot])
 
+    def goal_residual(self, slot: str, state: dict[str, int]) -> float | None:
+        """`R_goal = 1 - degree`, over the slot's peer group as the scope.
+
+        **THIS IS THE QUANTITY §14.4 PRICES THE ACT SPACE AGAINST, AND P5 WAS KEYED ON ANOTHER
+        ONE.** The trigger was `_discrepancy` — one slot's distance to its nearest satisfying
+        value — chosen after ruling out `degree` (the sparse reward channel) and never checked
+        against the corpus's own answer. `DISCOVERY` Q21 names a third quantity that is neither:
+        **the fraction of a SCOPE that fails the objective.**
+
+        **The difference is not a refinement, it is why the routine mint could never fire.** A
+        per-slot distance is bounded by how far that slot sits from a value that satisfies it,
+        and an objective minted to explain that slot is satisfied AT it — 86 readings across two
+        boards, every one 0 or 1. **A scope fraction is bounded by the population**, so an
+        objective true of one object in four reads 0.75 whatever any single slot is doing.
+        """
+        name = self.bound.get(slot)
+        term = self.gamma.library.get(name) if name else None
+        if term is None or getattr(term, "out_type", None) != OBJ_TYPE or slot not in state:
+            return None
+        group = self._group(slot, state)
+        if not group:
+            return None
+        ctx = Ctx(action=self._last_action or "", operands=self._ops(term, state),
+                  touching=self._touching(slot), group=group,
+                  obj=self._record(slot, state))
+
+        def _sat(v: int) -> bool | None:
+            r = term.apply(v, ctx)
+            return None if r is NOT_RESOLVED else bool(r)
+        deg = objective_degree(_sat, group)
+        return None if deg is None else 1.0 - deg
+
     def can(self, slot: str, state: dict[str, int]) -> str:
         """`CAN(P)` — §14.3's affordance, and it is **ACHIEVABLE, not SATISFIABLE.**
 
@@ -1610,8 +1671,15 @@ class Agent:
         if slot is None or slot not in before:
             return
         gap = self._discrepancy(slot, before)
-        if not isinstance(gap, int) or gap <= 0:
+        if not isinstance(gap, int):
             return
+        # §14.4: **a goal residual no routine closes.** `R_goal` is the trigger and the price;
+        # the GAP stays the budget, because a step count is what bounds a loop and a fraction is
+        # not. Two readings, two jobs, and neither doing the other's is the whole correction.
+        rg = self.goal_residual(slot, before)
+        if rg is None or rg <= 0.0:
+            return
+        unsat = rg * len(self._group(slot, before))
         verdict = self.can(slot, before)
         if verdict != YES:
             self.led.record(self.cycle, "PLAN", slot, "routine_refused",
@@ -1621,7 +1689,10 @@ class Agent:
         if act is None:
             return
         n = max(len(self.actions), 2)
-        base = gap * math.log2(n)
+        # WHAT NOT HAVING THE ROUTINE COSTS: naming an action for each unsatisfied member of the
+        # scope. Same shape as before -- a count times `log2(n)` -- with the count now taken
+        # from the goal residual instead of from one slot's distance.
+        base = unsat * math.log2(n)
         # THE BODY IS CHOSEN BY THE BARGAIN, NOT BY ME. Candidates are the learned single action
         # and every SETTLED routine this level can still run; each is priced with the settled
         # ones counting as one unit, and the cheapest that pays wins. **A shelf that is empty
@@ -1632,7 +1703,11 @@ class Agent:
                                   if set(Rt.actions(s)) <= set(self.actions)]
         priced = []
         for body in bodies:
-            c = Rt.Until(slot, body, gap)
+            # THE BUDGET STAYS THE GAP, WHICH IS THE STEP COUNT. `R_goal` is a fraction and
+            # cannot bound a loop; a distance can. `max(..., 1)` because a slot already at a
+            # satisfying value can still sit in an unsatisfied SCOPE -- one iteration is the
+            # floor for a routine that has something to do at all.
+            c = Rt.Until(slot, body, max(gap, 1))
             priced.append((term_bits(Rt.length(c, shelf), n), c))
         priced.sort(key=lambda p: p[0])
         cost, cand = priced[0]

@@ -16313,3 +16313,66 @@ pursue at all.*
 names can produce an objective the data does not satisfy. **Not to be answered by building one** — that
 is the encoded answer — **and it is what the `M2` capability reading is actually waiting on**, which is
 a sharper statement of *owed to a real board* than the report gave.
+
+---
+
+# `P5` AND `P6` WERE KEYED ON THE WRONG QUANTITY, AND THE CORPUS NAMES THE RIGHT ONE
+
+**Found by the sixth law applied to a word I used to make a design decision and never checked in both
+places: *goal residual*.** §14.4 says routines mint when *a goal residual no routine closes* and are
+priced against the *goal residual*. **I read that, ruled out `degree` (the sparse reward channel, and
+correctly), chose `_discrepancy`, and never asked whether the corpus had already answered it.**
+
+**`DISCOVERY` Q21 is titled *Is `R_goal` measurable?* and answers it:**
+
+> *A molecule is a quantified typed objective, evaluated across a **scope** of objects. It returns a
+> verdict **and a continuous degree** — `ALL -> fraction satisfied`, `NONE -> 1 - fraction satisfied`.*
+> **So `R_goal = 1 - degree(molecule)`, and it is graded rather than binary, which is what makes
+> progress measurable at all.**
+
+**A third quantity, neither of the two I weighed.** And the `molecule` `A6i` is already half-retired —
+`gamma.py` records the 2026-08-27 removal of the prior-term sense — so Q21's sense stands alone.
+**Checked before acting on it, not after.**
+
+## AND THE FRACTION WAS BEING COMPUTED AND THROWN AWAY
+
+`arc_atoms._over_group`'s fold is `int(q(x == v for x in c.group))`. **The generator IS the per-member
+verdict; only the quantifier's boolean survives.** So `objective_degree` adds no atom, no sensor and no
+prior — **it is a specified quantity the code was discarding**, which is the difference between a
+mechanism the framework names and one it does not have.
+
+**THREE READINGS OF AN OBJECTIVE, AND ONLY THE THIRD CAN BE WIDE:**
+
+    objective_step    which way to move a slot          one slot
+    objective_gap     how far that slot is              one slot -- and 86 readings across two
+                                                        boards were ALL 0 or 1
+    objective_degree  how much of the POPULATION fails  a scope, so bounded by the population
+
+**The gap was never going to be wide.** An objective minted to explain a slot is satisfied AT that
+slot; the nearest satisfying value is therefore adjacent. **`R_goal` is bounded by the scope instead,
+so an objective true of one object in four reads 0.75 whatever any single slot is doing.**
+
+## MEASURED, AND THE BLOCKER MOVED RATHER THAN CLEARED
+
+    gated   per-slot gap 1        ->   R_goal 0.5   over a scope of 2
+    far     per-slot gap 0        ->   R_goal 0.0   over a scope of 2
+
+**The minimal routine costs 6.000 bits, so the mint needs ~4 unsatisfied scope members to pay.** Both
+fixtures have scopes of 2, capping `unsat` at 2. **That is a statement about the POPULATION on those
+boards; before the correction it was a statement about the quantity, which could not exceed 1.**
+
+## AND A SEPARATE OBSERVATION, RECORDED RATHER THAN CHASED
+
+**A board with 7 objects and 64 slots composed NO objectives at all in 40 cycles** — `_disc` empty,
+selection `probe 32 / draw 4 / discriminate:learned 4`. **More population gives more scope and fewer
+objectives**, which is the cost caveat already on the record — *mint work scales with slots ×
+candidates, and the real-board figure is UNMEASURED* — showing up as a capability rather than a
+runtime. **Not chased with a fourth fixture: the answer to too many instruments is never one more
+instrument.**
+
+## STATUS, AGAINST THE DEFINITION AND NOT THE WORK
+
+**`M2` remains MECHANISM-BUILT and CAPABILITY-OWED.** What changed is that the trigger and the price
+now read the quantity §14.4 names, so *capability owed to a real board* is a claim about populations
+and search budget rather than about a quantity that could never be wide. **The end-to-end chain still
+has not fired. The freeze is Isaiah's.**
