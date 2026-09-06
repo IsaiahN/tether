@@ -16376,3 +16376,38 @@ instrument.**
 now read the quantity §14.4 names, so *capability owed to a real board* is a claim about populations
 and search budget rather than about a quantity that could never be wide. **The end-to-end chain still
 has not fired. The freeze is Isaiah's.**
+
+## CORRECTING LAST TICK: THE 7-OBJECT BOARD IS NOT A SCALE PROBLEM, AND THE NUMBER SAYS SO EXACTLY
+
+**I wrote that it was — *more population gives more scope and fewer objectives, the cost caveat showing
+up as a capability rather than a runtime*. That is a scale story attached to a real null, and it is
+wrong.** `budget_exhausted` is **0** on that board, so search was never the limiter.
+
+    many (7 objects, 64 slots)   102 mint rows   base_bits  max = mean = 2.807   pays 0
+    gated (2 objects, 24 slots)   93 mint rows   base_bits  max 38.459 mean 17.905   pays 3
+    far   (2 objects, 24 slots)   85 mint rows   base_bits  max 55.000 mean 26.902   pays 2
+
+> **`2.807` IS `log2(7)`.** Every mint call on that board had **exactly one unexplained observation, on
+> the alphabet-7 colour slot.** The cheapest term the cost function admits is `term_bits(1, ·)` ≈ 8.9
+> bits. **Nothing can pay against 2.807 at any depth, under any budget** — and `depth_exhausted` on 102
+> of 102 rows is that being reported correctly rather than a search falling short.
+
+**SO THE BARGAIN IS REFUSING, AND IT IS RIGHT TO: one observation is not evidence of a mechanism.** The
+board changes one cell per successful action and explains everything else with `idn` — `held` is 2438 of
+2578 route bins, 94.6%. **A world that is almost entirely predictable produces a residual too small to
+buy anything.**
+
+**THE ATTRIBUTION MATTERS BECAUSE IT POINTS SOMEWHERE DIFFERENT.** *Scale* would say: raise the budget,
+prune the search, the mechanism is starved. **Base** says: the mechanism is fine and the board has
+nothing to sell it. **The first is a build; the second is a fact about the habitat**, and only the
+second is what was measured.
+
+**AND IT IS THE THIRD STORY THIS PAIR OF TICKS HAS KILLED** — after *objectives bind to narrow slots*
+and *the objectives are loose*. **All three were plausible, all three were mine, and all three died to
+the next measurement rather than to an argument.** The pattern is stable enough to name: **a null on a
+board invites a cause, and the cause that arrives first is the one that fits my current picture of the
+system rather than the one the numbers carry.**
+
+**What this does NOT establish:** that scale is never the limiter. `many` has 64 slots and a thin
+residual at once, so the two are not separated here. **The cost caveat stands unread**, exactly as it
+was before I mis-cited it.
