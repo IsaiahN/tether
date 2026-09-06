@@ -359,6 +359,11 @@ class Agent:
         # no index into a script, and the thing stored is inspectable as the object it is.
         self.routine: Any = None
         self.routine_for: str | None = None
+        # SETTLED ROUTINES -- the ACT space's chunk shelf. A routine arrives here by reaching
+        # `done`, which is its guard MET, which is the ground paying. `exhausted` never settles:
+        # that ending is the routine's own claim refuted, and shelving it would make a failed
+        # plan into a cheap building block.
+        self.routines: list = []
         self._digests: dict[str, frozenset] = {}
         self.agency = I.Agency()       # §16.8 sensor 3, a per-step read
         self.term = I.Termination()    # 2d / §20.1, latching and asymmetric
@@ -1363,6 +1368,8 @@ class Agent:
             # routines survive boundaries, and this is the other half of that ruling: it fails
             # its guard rather than crashing.**
             why = emit if emit in (Rt.DONE, Rt.BLOCKED, Rt.EXHAUSTED) else "unadvertised"
+            if why == Rt.DONE and self.routine not in self.routines:
+                self.routines.append(self.routine)
             self.led.record(self.cycle, "PLAN", self.routine_for or "*", "routine_end",
                             outcome=why, routine=Rt.render(self.routine))
             self.routine, self.routine_for = None, None
@@ -1613,19 +1620,35 @@ class Agent:
         act = self._goal_split(before)
         if act is None:
             return
-        cand = Rt.Until(slot, Rt.Act(act), gap)
         n = max(len(self.actions), 2)
-        cost = term_bits(Rt.length(cand), n)
         base = gap * math.log2(n)
+        # THE BODY IS CHOSEN BY THE BARGAIN, NOT BY ME. Candidates are the learned single action
+        # and every SETTLED routine this level can still run; each is priced with the settled
+        # ones counting as one unit, and the cheapest that pays wins. **A shelf that is empty
+        # leaves exactly the old behaviour**, which is what makes the chunk a shortcut rather
+        # than a second mechanism.
+        shelf = tuple(self.routines)
+        bodies = [Rt.Act(act)] + [s for s in shelf
+                                  if set(Rt.actions(s)) <= set(self.actions)]
+        priced = []
+        for body in bodies:
+            c = Rt.Until(slot, body, gap)
+            priced.append((term_bits(Rt.length(c, shelf), n), c))
+        priced.sort(key=lambda p: p[0])
+        cost, cand = priced[0]
         if not pays(cost, 0.0, base):
             self.led.record(self.cycle, "PLAN", slot, "routine_cut",
                             reason="does-not-pay", routine=Rt.render(cand),
-                            cost=round(cost, 4), base=round(base, 4))
+                            cost=round(cost, 4), base=round(base, 4),
+                            considered=len(priced), shelf=len(shelf))
             return
         self.routine, self.routine_for = cand, slot
         self.led.record(self.cycle, "PLAN", slot, "routine", verdict="pays",
                         routine=Rt.render(cand), length=Rt.length(cand),
+                        units=Rt.length(cand, shelf),
+                        chunked=Rt.length(cand) != Rt.length(cand, shelf),
                         cost=round(cost, 4), base=round(base, 4), gap=gap,
+                        considered=len(priced), shelf=len(shelf),
                         route="learned: observed to move this slot the wanted way")
 
     def _goal_split(self, before: dict[str, int]) -> str | None:

@@ -139,20 +139,30 @@ def advance(r: Any, holds: Callable[[Any], bool | None]) -> tuple[str, Any]:
     raise TypeError(f"not a routine: {r!r}")
 
 
-def length(r: Any) -> int:
+def length(r: Any, chunks: tuple = ()) -> int:
     """How many constructors the routine is made of. **The cost side of the one bargain.**
 
     §14.4 prices all three spaces with `pays(cost, left, base)`, so a routine needs a length the
     way a term does -- and it is counted the same way, over the object rather than over its
     behaviour. **A loop counts once, not once per iteration**: `Until` is what makes *navigate*
     ONE chunk of depth 2, and charging it per iteration would price away the thing it exists for.
+
+    `chunks` IS ACT CHUNKING, AND IT IS `gamma.units()`'s RULE RATHER THAN A SECOND ONE. There:
+    *the atoms, plus every SETTLED term as one unit -- **only what the ground has paid for
+    becomes a shortcut.*** Here: a settled routine counts as ONE, so a composition that was too
+    long to pay becomes affordable **exactly when the ground has already paid for its parts**.
+    The closure does not change and no constructor is added; what changes is what a given budget
+    can reach. §14.4: *a settled routine becomes a callable step inside a bigger routine -- that
+    is stacking, and it is the same rule three times.*
     """
+    if r in chunks:
+        return 1
     if isinstance(r, Act):
         return 1
     if isinstance(r, Seq):
-        return 1 + length(r.first) + length(r.then)
+        return 1 + length(r.first, chunks) + length(r.then, chunks)
     if isinstance(r, (When, Until)):
-        return 1 + length(r.body)
+        return 1 + length(r.body, chunks)
     raise TypeError(f"not a routine: {r!r}")
 
 
