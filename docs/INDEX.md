@@ -16411,3 +16411,49 @@ system rather than the one the numbers carry.**
 **What this does NOT establish:** that scale is never the limiter. `many` has 64 slots and a thin
 residual at once, so the two are not separated here. **The cost caveat stands unread**, exactly as it
 was before I mis-cited it.
+
+---
+
+# FIVE BOARDS, AND THE CHAIN HAS NOT FIRED ON ANY — WITH A DIFFERENT REASON EACH TIME
+
+**Built to the preconditions the previous ticks MEASURED, not guessed: a scope with ≥4 unsatisfied
+members, and `base_bits` above ~9 so a term can pay at all.** The last one met both.
+
+    twoarm  OBJ minted, gap 0            the objective was SATISFIED -- nothing to pursue
+    gated   OBJ minted, gap 1, scope 2   R_goal 0.5, so unsat = 1. The mint needs ~4
+    far     OBJ minted, gap 0/1, scope 2 same ceiling
+    many    NO OBJ minted                base_bits = 2.807 = log2(7) -- one observation, and the
+                                         cheapest term costs ~8.9. Nothing could pay at any depth
+    both    NO OBJ minted                base_bits max 156.276, mean 29.908, and THREE TERMS PAID
+                                         -- all of them value predictors. The OBJ stream won nothing
+
+**THE LAST ROW IS THE INFORMATIVE ONE.** A board with a thick residual and a population of seven
+produced paying terms and **no objectives** — because a regular motion is explained directly and
+cheaply by a value predictor, and an objective has to go through `objective_step` to say the same
+thing for more. **Where the residual is rich enough to pay for something, the value arm wins it.**
+
+> **SO THE TWO CONDITIONS HAVE NOT CO-OCCURRED ON ANY BOARD BUILT: the residual that produces a
+> composed OBJECTIVE is irregular-and-small, and the population that gives one a WIDE SCOPE needs a
+> residual thick enough to pay — which is where the value arm takes it instead.**
+
+**STATED AS FIVE SYNTHETIC BOARDS AND NOT AS A LAW.** *A synthetic solve proves wiring and never
+capability*, and a synthetic NULL is no better: five fixtures I designed cannot establish that the
+conditions never co-occur, only that they did not here. **Whether they co-occur on a real board is
+exactly the capability question, and it is unread.**
+
+**AND NO SIXTH FIXTURE.** Each of the five answered a distinct question and four of them produced a
+correction; a sixth built to make the chain fire would be built toward the answer. **The line between
+a fixture that supplies CONDITIONS and one that supplies the OUTCOME is the whole of the firewall
+here, and the next fixture would be over it.**
+
+## THE BUILD IS COMPLETE; THE REMAINING QUESTION IS NOT A BUILD
+
+**All seven phases are built, verified and committed, and `P5`/`P6` were re-keyed onto the quantity
+`DISCOVERY` Q21 specifies.** Against `M2_STANDARD`'s definition every clause is **MECHANISM-BUILT**.
+**Capability is owed to a real board** — and the five boards say what such a board must supply, which
+is more than *owed* said before.
+
+**A future tick has no build target.** The three deferred repairs each wait on a condition that has not
+arrived: `_reach`'s currency needs its `sweep` consumer redesigned; the search-cost gate needs the
+work-to-yields ratio at real slot counts; Guard B's bypass is latent until an `OBJ` term reaches
+`spread`. **None of them is unblocked by anything a fixture can produce.**
