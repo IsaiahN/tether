@@ -16982,3 +16982,29 @@ by halving `reach`, which fires it with *"the plain loop no longer trivially rea
 would make `left` positive for the plain candidate, which could stop routines minting **at all** on
 constructed boards — a large behaviour change with no board to read it on, since the routine path does
 not fire unaided on any of the five. **Recorded, tripwired, and takeable on evidence.**
+
+---
+
+# THE M2 SUITE WAS OUTSIDE THE GATE FOR SIX COMMITS, EACH OF WHICH REPORTED `8/8 SEATS CLEAN`
+
+**`conform/check.py`'s `tests` seat runs `test_gate.py` and nothing else.** `test_m2.py` — twelve
+checks, each constructing the defect it guards against, each shown to fail when its mechanism is
+removed — **has been run only by hand, by me, on the ticks I remembered to.**
+
+> **A SUITE THAT NO SEAT RUNS IS A SUITE THAT ROTS**, and the reporting was worse than silence: every
+> commit since it was written said `8/8 seats clean` **without consulting it once.** The falsification
+> work of two whole ticks was worth exactly nothing against a regression arriving tomorrow.
+
+**Added as the `m2` seat, and the seat was then falsified like everything else** — with `Until`'s
+budget check deleted:
+
+    m2       FAIL
+    8/9 seats clean, 1 found something      exit 1
+
+**9/9 clean now, and a break in the ACT space stops a commit.** *An exit code is a declaration where a
+pattern match over stdout is a guess* — and a suite outside the runner is not even a guess.
+
+**This is the fourth instance tonight of a mechanism that exists and is not consulted**: the
+self-model's verdict, `contingency()` before `_learned_split`, `rejection_of` outside `summary.py`, and
+now an entire test suite. **The pattern is not that things go unbuilt — it is that built things go
+unwired, and nothing in a passing run says so.**

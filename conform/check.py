@@ -58,6 +58,12 @@ STAGES = (
      "the record is not well-formed", ROOT / "gate.py"),
     ("tests", [str(PY), "test_gate.py"],
      "the gate's own defect suite regressed", ROOT / "test_gate.py"),
+    # A SUITE THAT NO SEAT RUNS IS A SUITE THAT ROTS, and this one sat outside the gate for
+    # six commits while every one of them reported `8/8 seats clean`. The M2 checks each
+    # CONSTRUCT the defect they guard against and each has been shown to fail when its
+    # mechanism is removed -- which is worth exactly nothing if nothing runs them.
+    ("m2", [str(PY), "test_m2.py"],
+     "an M2_STANDARD mechanism regressed, or its tripwire fired", ROOT / "test_m2.py"),
 )
 
 # stderr from an interpreter that never reached the program. A backstop for the cases a
