@@ -1341,7 +1341,85 @@ class Agent:
         learned = self._learned_split()
         if learned is not None:
             return learned, "discriminate:learned"
+        goal = self._goal_split(before)
+        if goal is not None:
+            return goal, "discriminate:goal"
         return self.drive.choose(self.actions, self.cycle, _where(before)), "draw"
+
+    def _goal_split(self, before: dict[str, int]) -> str | None:
+        """M2 ITEM 2: pick an action because the agent's OWN model says it advances the
+        agent's OWN objective. **The first branch in `choose` that reads what the agent WANTS.**
+
+        `DOCTRINE_AUDIT` §1 said *nothing about Gamma, the bound terms, the residual, or the
+        objective ever enters action selection.* Gamma entered with `spread`, perception with
+        `_learned_split`; **the objective is the half that was still true, and this is it.**
+
+        THE ROUTE IS THE AGENT'S OWN, WHICH IS THE WHOLE PROHIBITION. Two halves, and neither
+        may come from anywhere else:
+
+            the GOAL     `_predict` on an OBJ-bound slot -- the objective the agent COMPOSED
+                         and minted, reaching this through item 1's wire. Routed through
+                         `_value_of`, so the objective is never scored as its own truth value
+            the ROUTE    `self.trace` -- what THIS AGENT observed ITS OWN actions do to THIS
+                         slot. Not a table, not `act`, not the env
+
+        **`act` IS WHAT THIS MUST NOT BECOME**, and the difference is provenance alone: *it has
+        never had to learn what pressing something does, because the primitive it was given
+        already knew.* An empty trace produces no preference here, which is what a closed-over
+        effect table can never do.
+
+        NEAREST IS THE TYPE'S, AND IT IS `objective_step`'s SPLIT REUSED RATHER THAN A SECOND
+        ONE INVENTED. `ORDERED` has a direction, so *toward* is the sign of the wanted step;
+        `COMPARABLE`-only has none, so *toward* can only be *did this action ever produce that
+        value*. **Two arms because the type system has two, not because two cases turned up.**
+
+        COVERAGE FIRST, AND THE CORPUS ORDERED IT. `ARC_BUILD_PLAN`: *coverage-first as a
+        PHASE, with goal pursuit gated on a complete action map -- the loop has no such
+        ordering.* It has one now, in the small: **a slot contributes only when every
+        advertised action appears in ITS OWN history**, so the branch cannot prefer an action
+        it has never tried, and it sits AFTER both discriminate branches, which are what build
+        the map.
+
+        VOTES, NEVER SUMMED MAGNITUDES -- `_learned_split`'s rule at a second site. Slots carry
+        different alphabets, so a distance on `col` and a distance on `colour` are not
+        commensurable and adding them is a category error. **One slot, one vote.**
+        """
+        votes: dict[str, int] = dict.fromkeys(self.actions, 0)
+        n_goals = 0
+        for s in self.slots:
+            if s not in before:
+                continue
+            name = self.bound.get(s)
+            term = self.gamma.library.get(name) if name else None
+            if term is None or getattr(term, "out_type", None) != OBJ_TYPE:
+                continue
+            hist: dict[str, list[tuple[int, int]]] = {}
+            for bef, act, aft in self.trace:
+                if s in bef and s in aft:
+                    hist.setdefault(act, []).append((bef[s], aft[s]))
+            if any(a not in hist for a in self.actions):
+                continue                      # the coverage gate: untried is not neutral
+            ordered = self.slot_types.get(s) in ORDERED_TYPES
+            n_goals += 1
+            for a in self.actions:
+                wanted = self._predict(s, before, a)
+                if wanted is None or wanted == before[s]:
+                    continue                  # unreadable, or the objective already holds
+                if ordered:
+                    step = 1 if wanted > before[s] else -1
+                    moved = sum(1 for b, f in hist[a] if (f - b) * step > 0)
+                    if moved * 2 > len(hist[a]):
+                        votes[a] += 1         # this action MOSTLY moved it the wanted way
+                elif any(f == wanted for _, f in hist[a]):
+                    votes[a] += 1             # unordered: it has produced that value
+        if not n_goals or max(votes.values()) == 0:
+            return None
+        top = max(votes.values())
+        tied = sum(1 for v in votes.values() if v == top)
+        self._ties[("goal", tied)] += 1
+        if tied == len(self.actions):
+            return None                       # nothing separates; the draw stays uninformed
+        return max(self.actions, key=lambda a: votes[a])
 
     def members(self) -> dict:
         """Who passed the contingency gates, and which gate dropped the rest.

@@ -16048,3 +16048,68 @@ its own win condition is not an answer. The fault would be reading WHICH ACTION 
 (`_predict` already takes the action as an argument), and route `spread` through `_value_of` — because
 item 2 is the change that first puts an `OBJ` term in `spread`'s path, where `t.apply` is called
 directly.
+
+---
+
+# `M2` ITEM 2 BUILT: THE OBJECTIVE REACHES ACTION SELECTION — AND THE FIRST THING IT SAYS IS THAT ITEM 3 IS NOT OPTIONAL
+
+**`discriminate:goal`, a third branch in `choose`, placed after both discriminate branches and before
+the draw.** `DOCTRINE_AUDIT` §1's surviving half — *the objective never enters action selection* — is
+closed.
+
+## AGAINST THE TWO GUARDS, WHICH IS WHAT THE REPORT IS FOR
+
+**GUARD A — the route is the agent's own, and both halves were checked separately.**
+
+    the GOAL    `_predict` on an OBJ-bound slot: the objective the agent COMPOSED and minted,
+                arriving through item 1's wire. Never `env.objective()`
+    the ROUTE   `self.trace` -- what THIS agent observed ITS OWN actions do to THIS slot.
+                Not a table, not `act`, not the env
+    the GATE    a slot contributes only when EVERY advertised action appears in its own
+                history, so the branch cannot prefer an action it has never tried.
+                **Coverage-first, which `ARC_BUILD_PLAN` specified and the loop lacked**
+
+**GUARD B — satisfied by construction, and `spread` is untouched.** The branch reads the objective
+only through `_predict` → `_value_of` → `objective_step`, so an `OBJ` term is never scored as its own
+truth value. **`spread` still enumerates `("val","val")` only, so this build does NOT activate the
+latent bypass** — it stays latent, and stays recorded, for whoever routes objectives through it.
+
+**And `objective_step`'s split is reused rather than a second one invented:** ORDERED has a direction,
+so *toward* is the sign of the wanted step; COMPARABLE-only has none, so *toward* can only be *did this
+action ever produce that value*. **Two arms because the type system has two.**
+
+## IT FIRES, AND FIRING IS NOT THE FINDING
+
+    two-arm board   NEVER fires -- `wanted == current`, the objective ALREADY HOLDS, so there
+                    is no pressure and no preference. Correct abstention
+    `gated` board   one action advances and two do nothing, nothing advertises which.
+                    `discriminate:goal` on 7 of 25 cycles, unique winner every time
+
+**AND IT PICKED THE ACTION THAT DOES NOTHING, 7 OF 7.** `ACTION1` is the only one that advances
+anything and the branch never chose it.
+
+**THE DIRECTION LOGIC IS NOT THE BUG — CHECKED BEFORE THE RESULT WAS READ AS A FINDING:**
+
+    o1.dcol  now=1  DELTA  term='none'
+      ACTION1: wanted=0 step=-1 deltas=[+1 x8]  toward 0/8
+      ACTION2: wanted=0 step=-1 deltas=[-1 x8]  toward 8/8   <- chosen
+      ACTION3: wanted=0 step=-1 deltas=[ 0 x8]  toward 0/8
+
+**The branch selected the action its own evidence supports, on 8/8, correctly.** What it pursued was
+`none_same` on `dcol` — **an objective satisfied by NOT MOVING.**
+
+## SO THE MECHANISM IS RIGHT AND THE OBJECTIVE IS NOT A GOAL, WHICH IS ITEM 3
+
+> **AN OBJECTIVE MINTED FROM A RESIDUAL DESCRIBES WHAT THE AGENT CAN PREDICT, NOT WHAT THE GROUND
+> REWARDS.** `none_same` on `dcol` bound because it explained the slot cheaply. **Pursuing an
+> explanation is not pursuing a goal**, and with no selector, *pursue the composed objective* means
+> *pursue whichever OBJ term happened to bind.*
+
+**Item 3 is therefore demonstrated necessary rather than asserted** — and the demonstration is worth
+more than the assertion, because *which* objective to pursue is now a question with a measured
+consequence attached to getting it wrong: **the agent optimises for standing still, with a correct
+mechanism and a full evidence trail.**
+
+**A SYNTHETIC SOLVE PROVES WIRING AND NEVER CAPABILITY.** `gated` shows the branch reads a composed
+objective, consults the agent's own trace, and selects on its own evidence. **It shows nothing about
+ARC**, and the thing it did show is that the wiring being right is not sufficient.
