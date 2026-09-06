@@ -16855,3 +16855,48 @@ The row went in as an `ACCEPT` and `demo.py` went from exit 0 to exit 1: **`chas
 refused at seq 39.** The sweep runs inside the ROUTE phase and its own `pull` row is a ROUTE row.
 **The step is a fact about WHEN a row is written, not about what the event feels like** — and the
 ordering check found it in one run, on a change whose visible output was identical.
+
+---
+
+# A ROUTINE DRIVEN THROUGH THE REAL LOOP, AND `STRATEGY` STOPS BEING AN HONEST ZERO
+
+**Every end-to-end check so far drove `_mint_routine` or `choose` DIRECTLY.** The real loop is
+`step()`, which wraps `choose` with `_utter`, `perceive`, `route`, `mint` and `settle` — **and a
+routine-driven action had never passed through it.**
+
+    8 steps through `step()`   all returned True
+    utterance refusals         0 -- a routine's action type-checks like any other
+    routine events             minted once, ended once
+    phase labels               probe 8 of 8
+
+**THE LAST LINE IS THE FINDING. A multi-step plan executed and every step was counted as an
+uninformed draw.**
+
+## AND THE CODE'S OWN COMMENT HAD ALREADY SAID WHAT TO DO
+
+> *STRATEGY arrives with routines and is 0 until then: **an honest zero, not a gap.***
+
+**Routines have arrived.** The rule at that site is *the phase is read off the site that CHOSE, never
+asserted alongside it* — and `by == "routine"` **is** the site that chose. So this is the stated rule
+applied, **not a new ruling**: `phase = STRATEGY if by == "routine" else …`.
+
+    with a routine driving   strategy 5, probe 3     -- STRATEGY emitted for the first time
+    the demo panel           strategy 0.0            -- unchanged, because no routine runs there
+
+**Inert where it does not apply, which is the property that makes it safe to land.**
+
+## TWO THINGS STATED RATHER THAN SLIPPED IN
+
+**IT MOVES A PUBLISHED METRIC.** `phases.report()` is §22.2's transfer instrument and its `STRATEGY`
+column has been structurally zero. It will not be on any run where a routine executes. **Flagged,
+because a metric that changes meaning without saying so is worse than one that never moved.**
+
+**AND THE `DIRECTED` DISAGREEMENT IS DELIBERATELY LEFT ALONE.** That one is `A6i` — `by ==
+"discriminate"` reads 9% where §22.2's *bets with bound terms* reads 37% on the same runs — **a dispute
+about which quantity the word names, with both readings defensible.** *A phase that is never emitted at
+all is a different thing from two defensible definitions*, and only the first is a gap. **Fixing both
+under one justification would have been the collapse this session keeps finding.**
+
+**`check_strategy_is_emitted_when_a_routine_drives` added and falsified** — with the old one-line label
+restored it reports `{'probe': 1.0, 'directed': 0.0, 'strategy': 0.0}`. **Eleven of eleven checks now
+falsified.**

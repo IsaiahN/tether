@@ -2820,8 +2820,22 @@ class Agent:
         # THE PHASE IS READ OFF THE SITE THAT CHOSE, never asserted alongside it. It
         # used to be `DIRECTED if a term is bound`, attached to an action drawn by the
         # identical mechanism either way -- a label the mechanism could not make.
-        # STRATEGY arrives with routines and is 0 until then: an honest zero, not a gap.
-        phase = I.DIRECTED if by == "discriminate" else I.PROBE
+        # STRATEGY ARRIVED WITH ROUTINES, WHICH IS WHAT THIS COMMENT PROMISED. It read *0
+        # until then: an honest zero, not a gap* -- and once a routine drives an action the
+        # zero stops being honest and becomes the gap it distinguished itself from. `by ==
+        # "routine"` IS the site that chose, so this is the stated rule applied, not a new one.
+        #
+        # **AND THE `DIRECTED` DISAGREEMENT IS DELIBERATELY LEFT ALONE.** That one is `A6i` --
+        # `by == "discriminate"` reads 9% where §22.2's *bets with bound terms* reads 37% on the
+        # same runs -- and it is a dispute about which quantity the word names, with both
+        # readings defensible. **A phase that is never emitted at all is a different thing from
+        # two defensible definitions**, and only the first is fixed here.
+        #
+        # THIS MOVES A PUBLISHED METRIC. `phases.report()` is §22.2's transfer instrument and
+        # its STRATEGY column has been structurally zero; it will not be on any run where a
+        # routine executes. Flagged rather than slipped in.
+        phase = (I.STRATEGY if by == "routine"
+                 else I.DIRECTED if by == "discriminate" else I.PROBE)
         self.phases.note(phase)
 
         try:

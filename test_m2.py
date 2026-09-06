@@ -225,6 +225,21 @@ def check_refutations_do_not_cross_a_boundary():
     assert not ag.refuted, "a refutation keyed on a dead slot name survived a boundary"
 
 
+def check_strategy_is_emitted_when_a_routine_drives():
+    """DEFECT: a multi-step plan executing and being counted as an uninformed probe.
+
+    §22.2 reads transfer off a THREE-phase mix, and `STRATEGY` was structurally zero because
+    nothing produced routines. Once one drives an action, a zero there is a gap rather than an
+    honest reading -- which is what `tether.py`'s own comment said would happen.
+    """
+    ag = _agent()
+    _wide(ag)
+    for _ in range(8):
+        ag.step()
+    mix = ag.phases.report()["total"]
+    assert mix.get("strategy", 0) > 0, f"a routine drove and the mix says {mix}"
+
+
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
 
 if __name__ == "__main__":
