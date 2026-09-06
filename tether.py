@@ -1636,6 +1636,17 @@ class Agent:
             priced.append((term_bits(Rt.length(c, shelf), n), c))
         priced.sort(key=lambda p: p[0])
         cost, cand = priced[0]
+        # EVERY GUARD, NOT JUST THE FIRST -- `M2_STANDARD` 3, and chunking is what makes it
+        # bite. The body may be a SETTLED routine carrying guards of its own, and *it reached
+        # `done` once* is evidence about the world it ran in, not about this one. **A nested
+        # `Until` whose guard nobody re-checked is the durable contamination the standard
+        # names**: it looks like planning and loops on a condition this level cannot reach.
+        unchecked = [g for g in Rt.guards(cand) if self.can(g, before) != YES]
+        if unchecked:
+            self.led.record(self.cycle, "PLAN", slot, "routine_refused",
+                            reason="a nested guard is not reachable here",
+                            guards=unchecked, routine=Rt.render(cand))
+            return
         if not pays(cost, 0.0, base):
             self.led.record(self.cycle, "PLAN", slot, "routine_cut",
                             reason="does-not-pay", routine=Rt.render(cand),

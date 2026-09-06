@@ -16197,3 +16197,72 @@ already holds.* Repaired at source.
 selection, which `DOCTRINE_AUDIT` §1 recorded as absent and which was the deepest structural gap; the
 three mechanisms are built, guarded and committed; and **the architecture is NOT complete end to end,
 because nothing yet plans more than one step.**
+
+---
+
+# `M2` — THE ACT SPACE, BUILT IN SEVEN PHASES. MECHANISM-BUILT; THE END-TO-END CHAIN HAS NOT FIRED
+
+**Reported against `M2_STANDARD.md`'s definition, not against the work just done — which is `A6i`'s
+writing side, installed today after it caught me three times.**
+
+> *`M2` is done when the agent forms and pursues a bounded multi-step behaviour whose route comes
+> from its own learned terms, priced against the dense goal residual, terminating safely — and NOT
+> when it takes a good single step, runs a fixed script, or reads its route from anywhere the
+> environment named.*
+
+    forms a bounded multi-step behaviour   `Until(guard, body, budget)`, budget DERIVED from the
+                                           objective's own gap                        MECHANISM ✓
+    pursues it                             `choose` runs the held routine before any branch;
+                                           four successive cycles, budget 4→3→2→1→0   MECHANISM ✓
+    route from its own learned terms       `_goal_split` over `self.trace`             MECHANISM ✓
+    priced against the dense goal residual `pays(cost, 0, gap·log2 n)`, one bargain    MECHANISM ✓
+    terminating safely                     `CAN == yes` at EVERY guard, derived budget,
+                                           `exhausted` kept apart from `done`          MECHANISM ✓
+    NOT a good single step                 `Until` genuinely repeats across cycles     ✓
+    NOT a fixed script                     navigate is 2 constructors at any distance  ✓
+    NOT a route the environment named      nothing reads `act` or the env              ✓
+
+## WHAT THE PHASES FOUND, AND FOUR OF THE SEVEN CHANGED THE BUILD
+
+**P1** — two conflations, both *absent filed as false*: `objective_gap` returned `None` for BOTH
+*could not read* and *nothing satisfies*, which for `CAN` are opposite answers; and `_discrepancy`
+returned `None` for *no objective bound at all*, so `CAN` reported `no` about a goal nobody stated.
+
+**P2** — the remainder is itself a routine, so cross-step execution is ONE field rather than a
+program counter. Three terminations, because `exhausted` folded into `done` reports a routine that
+ran out of budget as one that achieved its guard.
+
+**P3/P5/P6 are one mechanism, not three phases** — found by `conform/lint.py`'s ISOLATED seat failing
+`P2` for `advance` having no caller. §14.4 mints *when a goal residual no routine closes*, so
+minting, pricing and executing are the same loop.
+
+**P4 was not cosmetic.** Routine rows are written inside `choose`, before `_utter`'s PERCEIVE row for
+the same slot, and `gate.py` enforces order per `(cycle, slot)`. **Verified: `PERCEIVE` then `PLAN` is
+refused.** Any position but first makes a real board fail the gate the first time a routine mints.
+
+**P7 reaches the bargain**, which is the claim rather than that a number got smaller: at gap 9 and 10
+the plan is affordable **only because `nav` settled** — raw `pays=False`, chunked `pays=True`.
+
+**And standard 3 bit at the end**: with chunking the body can be a settled routine carrying its own
+guards, and *it reached `done` once* is evidence about the world it ran in, not this one. `CAN` is now
+checked at **every** guard, which is what `guards()` was written for.
+
+## WHAT IS OWED, AND IT IS NOT A DETAIL
+
+> **THE FULL CHAIN — agent composes an objective → selector picks it → `CAN` says yes → the mint pays
+> → the routine executes across cycles → it settles — HAS NEVER RUN END TO END.** Each mechanism is
+> verified; several were verified **by direct construction rather than by the loop reaching them.**
+
+    through the loop, from the agent's own state   `CAN` (23 rows), the goal branch, the
+                                                   selector's abstention
+    by direct construction                         cross-step execution, the pricing crossover,
+                                                   chunking, the `PLAN` ordering
+
+**The reason is measured and structural, not a shortfall of effort: no available fixture produces a
+goal residual wide enough to pay.** At three actions the bargain wants **gap ≥ 5**; `gated`'s
+objective has gap 1 and two-arm's has gap 0. **A gap of 1 does not justify a plan, and the bargain
+refusing it is correct.** What is needed is a board where the agent composes an objective with a wide,
+confidently-shrinking gap — **and which objective gets minted is the agent's, not mine to plant.**
+
+**So: `M2` is MECHANISM-BUILT against every clause of the definition, and CAPABILITY IS OWED TO A REAL
+BOARD.** The two are not collapsed. **The freeze is Isaiah's.**
