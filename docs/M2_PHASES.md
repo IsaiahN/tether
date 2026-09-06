@@ -29,7 +29,7 @@ satisfiable but unreachable is exactly the non-terminating loop standard 1 names
     P1  CAN(PRED) producer                     depends on: nothing        [x]
     P2  the Routine algebra, all four          depends on: P1 (Until)     [x]
     P3  cross-step execution state             depends on: P2             [x]
-    P4  PLAN step in ledger.STEPS + gate.py    depends on: P3             [ ]
+    P4  PLAN step in ledger.STEPS + gate.py    depends on: P3             [x]
     P5  mint trigger on the goal residual      depends on: P2, P3         [x]
     P6  routine pricing via `pays`             depends on: P2, P5         [x]
     P7  ACT chunking                           depends on: P5, P6         [ ]

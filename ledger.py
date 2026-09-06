@@ -15,7 +15,14 @@ from typing import Any
 sys.dont_write_bytecode = True
 
 # the eight loop steps. An entry that cannot name one is a defect, not a log line.
-STEPS = ("PERCEIVE", "ROUTE", "MINT", "ACCEPT", "SETTLE", "PROMOTE", "IMPORT", "REPEAT")
+# `PLAN` IS FIRST, AND THE WRITE ORDER DECIDED IT RATHER THAN A VIEW ABOUT COGNITION. The
+# routine rows are emitted inside `choose`, which runs BEFORE `_utter` writes the bet's PERCEIVE
+# row for the same slot -- and `gate.py` enforces non-decreasing step order per (cycle, slot).
+# Any later position makes a real board fail the gate the first time a routine mints.
+#
+# It also reads correctly: the plan is formed from what is understood so far, the bet is the
+# claim about what the planned action will do, and the residual comes back after it is taken.
+STEPS = ("PLAN", "PERCEIVE", "ROUTE", "MINT", "ACCEPT", "SETTLE", "PROMOTE", "IMPORT", "REPEAT")
 
 # the three modes. Every run declares one.
 GENERAL, SPECIFIED, GROUNDED = "general", "specified", "grounded"

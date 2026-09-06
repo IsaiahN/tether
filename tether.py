@@ -1363,7 +1363,7 @@ class Agent:
             # routines survive boundaries, and this is the other half of that ruling: it fails
             # its guard rather than crashing.**
             why = emit if emit in (Rt.DONE, Rt.BLOCKED, Rt.EXHAUSTED) else "unadvertised"
-            self.led.record(self.cycle, "ROUTE", self.routine_for or "*", "routine_end",
+            self.led.record(self.cycle, "PLAN", self.routine_for or "*", "routine_end",
                             outcome=why, routine=Rt.render(self.routine))
             self.routine, self.routine_for = None, None
         if self.drive.bored():
@@ -1607,7 +1607,7 @@ class Agent:
             return
         verdict = self.can(slot, before)
         if verdict != YES:
-            self.led.record(self.cycle, "ROUTE", slot, "routine_refused",
+            self.led.record(self.cycle, "PLAN", slot, "routine_refused",
                             reason=f"CAN is {verdict}, and only yes commits")
             return
         act = self._goal_split(before)
@@ -1618,12 +1618,12 @@ class Agent:
         cost = term_bits(Rt.length(cand), n)
         base = gap * math.log2(n)
         if not pays(cost, 0.0, base):
-            self.led.record(self.cycle, "MINT", slot, "routine_cut",
+            self.led.record(self.cycle, "PLAN", slot, "routine_cut",
                             reason="does-not-pay", routine=Rt.render(cand),
                             cost=round(cost, 4), base=round(base, 4))
             return
         self.routine, self.routine_for = cand, slot
-        self.led.record(self.cycle, "MINT", slot, "routine", verdict="pays",
+        self.led.record(self.cycle, "PLAN", slot, "routine", verdict="pays",
                         routine=Rt.render(cand), length=Rt.length(cand),
                         cost=round(cost, 4), base=round(base, 4), gap=gap,
                         route="learned: observed to move this slot the wanted way")

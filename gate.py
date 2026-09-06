@@ -33,7 +33,19 @@ IRREVERSIBLE_CUT = "irreversible-cut"
 UNREACHED_UNMEASURED = "unreached-unmeasured"
 UNDECLARED_DEATH = "undeclared-death"
 
-STEPS = ("PERCEIVE", "ROUTE", "MINT", "ACCEPT", "SETTLE", "PROMOTE", "IMPORT", "REPEAT")
+# KEPT IN STEP WITH `ledger.STEPS`, WHICH IS THE DUPLICATION AND NOT A CHOICE MADE HERE.
+# The gate is meant to be readable without importing the thing it checks, so the constant is
+# repeated on purpose -- and `PLAN` had to be added in both places or the gate rejects every
+# row the loop now writes. Two copies is the cost of that independence; drift between them is
+# the hazard it buys, so they are edited together or not at all.
+# `PLAN` IS FIRST, AND THE WRITE ORDER DECIDED IT RATHER THAN A VIEW ABOUT COGNITION. The
+# routine rows are emitted inside `choose`, which runs BEFORE `_utter` writes the bet's PERCEIVE
+# row for the same slot -- and `gate.py` enforces non-decreasing step order per (cycle, slot).
+# Any later position makes a real board fail the gate the first time a routine mints.
+#
+# It also reads correctly: the plan is formed from what is understood so far, the bet is the
+# claim about what the planned action will do, and the residual comes back after it is taken.
+STEPS = ("PLAN", "PERCEIVE", "ROUTE", "MINT", "ACCEPT", "SETTLE", "PROMOTE", "IMPORT", "REPEAT")
 MODES = ("general", "specified", "grounded")
 GUARDS = ("support", "reachability", "novelty")
 
