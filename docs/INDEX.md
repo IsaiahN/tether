@@ -16113,3 +16113,59 @@ mechanism and a full evidence trail.**
 **A SYNTHETIC SOLVE PROVES WIRING AND NEVER CAPABILITY.** `gated` shows the branch reads a composed
 objective, consults the agent's own trace, and selects on its own evidence. **It shows nothing about
 ARC**, and the thing it did show is that the wiring being right is not sufficient.
+
+---
+
+# `M2` ITEM 3 BUILT: THE SELECTOR — AND ITS CRITERION WAS SPECIFIED, DIFFERENTLY FROM THE ONE PROPOSED
+
+**The criterion handed to me was *pick the objective that advances the ground reward*. THE CORPUS RULES
+THAT OUT IN THE SAME PASSAGE IT SETS THE REAL ONE.** §11: *`levels_completed` might not move for five
+hundred actions. The reward channel is not merely sparse — it is **absent** for most of a run.* **A
+selector keyed to it would abstain forever and could not be told from a broken one.** The rule
+immediately below is the design:
+
+> *Learn the mechanics from the dense channel; **use the sparse channel only to select among goals.***
+
+**And §13.4 gives the mechanism in its own words, which is the criterion verbatim:**
+
+> *hold several goal hypotheses at once, express each as a **scalar discrepancy that is zero exactly
+> when satisfied**, and select the one whose discrepancy is **confidently shrinking under play**.*
+
+**Twelfth instance of *assume it is already specified, and go look* — and the first where the specified
+criterion CONTRADICTED the one I was asked to build.** `objective_gap` sits beside `objective_step` for
+its reason: the two things an objective says about a slot — which way to go, how far it is — are
+written once, uniformly, in the same place. `MIN_REPEAT` is reused for *confidently*, per its own note
+that *one observation is a coincidence*, and **flat is not shrinking.**
+
+## THE LOGIC FIRES, CHECKED DIRECTLY BECAUSE THE BOARDS CANNOT
+
+    [5, 4, 3]  shrinking, gap live      -> selects
+    [1, 0, 0]  shrinking, just arrived  -> selects
+    [3, 3, 3]  flat                     -> None
+    [1, 2, 3]  growing                  -> None
+    [0, 1, 0]  oscillating              -> None
+    [4, 3]     too short                -> None
+    a=[5,4,3] b=[9,7,3]                 -> b, the one shrinking more
+
+## AND THE BEHAVIOURAL NULL IS NOT INTERPRETABLE, WHICH IS THE POINT OF SAYING SO
+
+**`discriminate:goal` went 7 firings to 0 on the `gated` board.** *The agent no longer pursues standing
+still* is TRUE and **the account *the selector judged it a bad goal* is NOT SUPPORTED.** What is
+supported: **an oscillating discrepancy does not qualify as confidently shrinking, so nothing was
+selected, so nothing was pursued.**
+
+> **STATE WHAT PROPERTY THE PANEL WOULD NEED IN ORDER TO SHOW, AND CONFIRM IT HAS IT — AND NEITHER
+> BOARD DOES.**
+
+    two-arm   the only goal hypothesis reads `[0, 0, 0, 0, 0, 0, 0]` -- ALWAYS SATISFIED, so
+              there is no gap to shrink
+    gated     reads `[0, 0, 1, 0, 0, 1, ...]` -- BINARY, and on a binary discrepancy the only
+              windows that qualify as shrinking are those ending at 0, **which is exactly where
+              there is nothing left to pursue.** The selector and the branch cannot agree on
+              such a slot, structurally
+
+**The property required is an objective whose discrepancy EXCEEDS 1 AND DECREASES ACROSS CONSECUTIVE
+STEPS.** Neither fixture produces one, and no fixture can be built to produce one on demand — **which
+objective gets minted is the agent's, not mine.** So item 3's behavioural reading is owed to a board
+where the agent composes a wide ordered objective, and the null until then says nothing about the
+mechanism.

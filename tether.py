@@ -33,6 +33,7 @@ from ledger import (
 )
 from priors import contact_first
 from probe import Drive
+from self_family import MIN_REPEAT
 from sensors import COMMENSURABLE, DELTA, NOT_RESOLVED, OBJECT, POSITION
 
 sys.dont_write_bytecode = True
@@ -189,6 +190,33 @@ def objective_step(evaluate, current: int, ordered: bool, alphabet: int) -> Any:
     return current + (1 if target > current else -1)
 
 
+def objective_gap(evaluate, current: int, ordered: bool, alphabet: int) -> Any:
+    """§13.4's SCALAR DISCREPANCY: *zero exactly when satisfied.*
+
+    Beside `objective_step` and for its reason -- what a bet MEANS is not a move, so the two
+    things an objective says about a slot (**which way to go**, and **how far it is**) are
+    written once, uniformly, in the same place. It PROBES exactly as the step does and asks
+    nothing about the term's contents.
+
+    NEAREST IS THE TYPE'S, THE SAME TWO ARMS. `ORDERED` has a distance, so the gap is the
+    distance to the nearest satisfying value. `COMPARABLE`-only has none -- every unsatisfied
+    value is equidistant -- so the gap is 1, which is *not satisfied* and says nothing more
+    than it can support.
+
+    `None` IS UNREADABLE OR UNREACHABLE, and neither is a large gap: a big number would sort
+    below a small one and read as *nearly there*.
+    """
+    here = evaluate(current)
+    if here is None:
+        return None
+    if here:
+        return 0
+    hits = [v for v in range(alphabet) if v != current and evaluate(v)]
+    if not hits:
+        return None
+    return min(abs(v - current) for v in hits) if ordered else 1
+
+
 @dataclass
 class Config:
     # anchor: grounded in the toy world's own falsifier. `world._ladder` is four atoms
@@ -306,6 +334,9 @@ class Agent:
         # `_group` sits in the same per-candidate loops.
         self._peer_cache: dict | None = None
         self._decomp_cache: tuple | None = None
+        # §13.4 wants goal hypotheses held AT ONCE and compared on a TREND, so the scalar has
+        # to be kept per slot across steps -- a single reading cannot be shrinking.
+        self._disc: dict[str, list[int]] = {}
         self._digests: dict[str, frozenset] = {}
         self.agency = I.Agency()       # §16.8 sensor 3, a per-step read
         self.term = I.Termination()    # 2d / §20.1, latching and asymmetric
@@ -423,6 +454,7 @@ class Agent:
         self.alphabet = self._alphabets(env)      # a new level may value slots differently
         self.slot_types = self._slot_types(env)   # and may type them differently
         self.bound, self.trace = {}, []
+        self._disc = {}               # the slots did not survive, so neither do their trends
         self._disproof: dict[str, dict] = {}
         self._last_action: str | None = None   # what may have changed the gating
         self.owed_import, self.abstained = set(), {}
@@ -1346,6 +1378,63 @@ class Agent:
             return goal, "discriminate:goal"
         return self.drive.choose(self.actions, self.cycle, _where(before)), "draw"
 
+    def _discrepancy(self, slot: str, state: dict[str, int]) -> int | None:
+        """How far this slot is from satisfying the objective bound to it. Zero iff satisfied."""
+        name = self.bound.get(slot)
+        term = self.gamma.library.get(name) if name else None
+        if term is None or getattr(term, "out_type", None) != OBJ_TYPE or slot not in state:
+            return None
+        ctx = Ctx(action=self._last_action or "", operands=self._ops(term, state),
+                  touching=self._touching(slot), group=self._group(slot, state),
+                  obj=self._record(slot, state))
+
+        def _sat(v: int) -> bool | None:
+            r = term.apply(v, ctx)
+            return None if r is NOT_RESOLVED else bool(r)
+        return objective_gap(_sat, state[slot], self.slot_types.get(slot) in ORDERED_TYPES,
+                             self.alphabet[slot])
+
+    def note_goals(self, state: dict[str, int]) -> None:
+        """One discrepancy reading per goal hypothesis per step. Held, never aggregated."""
+        for slot in self.slots:
+            g = self._discrepancy(slot, state)
+            if g is None:
+                self._disc.pop(slot, None)   # unreadable breaks the trend; it does not extend it
+            else:
+                self._disc.setdefault(slot, []).append(g)
+
+    def _goal_choice(self) -> str | None:
+        """M2 ITEM 3, THE SELECTOR. §13.4, quoted whole because the criterion is its wording:
+
+        > *hold several goal hypotheses at once, express each as a scalar discrepancy that is
+        > zero exactly when satisfied, and select the one whose discrepancy is CONFIDENTLY
+        > SHRINKING UNDER PLAY.*
+
+        **AND THE CRITERION IS NOT *WHICH ONE ADVANCES THE GROUND REWARD*, WHICH THE CORPUS
+        RULES OUT IN THE SAME BREATH IT SETS THIS ONE.** §11: *`levels_completed` might not
+        move for five hundred actions -- the reward channel is not merely sparse, it is ABSENT
+        for most of a run.* **A selector keyed to it would abstain forever and could not be
+        told from one that was broken.** The rule above it is the whole design: *learn the
+        mechanics from the dense channel; use the sparse channel ONLY TO SELECT AMONG GOALS.*
+
+        CONFIDENTLY IS `MIN_REPEAT`, REUSED RATHER THAN A SECOND CONSTANT INVENTED, which is
+        the rule written at `MIN_REPEAT` itself: *one observation is a coincidence.* So a
+        hypothesis qualifies on `MIN_REPEAT` consecutive non-increasing readings carrying at
+        least one real decrease -- **flat is not shrinking**, and an objective that sits at a
+        constant gap is not making progress however long it sits there.
+        """
+        best: tuple[int, str] | None = None
+        for slot, series in sorted(self._disc.items()):
+            if len(series) < MIN_REPEAT + 1:
+                continue
+            window = series[-(MIN_REPEAT + 1):]
+            deltas = [b - a for a, b in zip(window, window[1:], strict=False)]
+            if all(d <= 0 for d in deltas) and any(d < 0 for d in deltas):
+                shrink = -sum(deltas)
+                if best is None or shrink > best[0]:
+                    best = (shrink, slot)
+        return best[1] if best else None
+
     def _goal_split(self, before: dict[str, int]) -> str | None:
         """M2 ITEM 2: pick an action because the agent's OWN model says it advances the
         agent's OWN objective. **The first branch in `choose` that reads what the agent WANTS.**
@@ -1384,9 +1473,16 @@ class Agent:
         different alphabets, so a distance on `col` and a distance on `colour` are not
         commensurable and adding them is a category error. **One slot, one vote.**
         """
+        # ITEM 3 GATES ITEM 2. Before the selector this ranged over EVERY OBJ-bound slot,
+        # which is *pursue whichever objective happened to bind* -- and it measurably chose to
+        # stand still, because `none_same` on a delta is satisfied by not moving. One selected
+        # hypothesis, chosen on a shrinking discrepancy, is what §13.4 asks for.
+        chosen = self._goal_choice()
+        if chosen is None:
+            return None
         votes: dict[str, int] = dict.fromkeys(self.actions, 0)
         n_goals = 0
-        for s in self.slots:
+        for s in [chosen]:
             if s not in before:
                 continue
             name = self.bound.get(s)
@@ -2214,6 +2310,11 @@ class Agent:
         # never fire. The declaration is still the domain's; only when it is read has moved.
         self.alphabet = self._alphabets(self.env)
         before = self.env.observe()
+        # ONE READING PER GOAL HYPOTHESIS, EVERY STEP, BEFORE ANYTHING ACTS ON IT. A trend
+        # needs a series, and a series only exists if the reading is unconditional -- taking
+        # it inside the branch that consumes it would record only the steps that already
+        # pursued something.
+        self.note_goals(before)
         if not self.slots:
             # NO SLOTS IS A STATE OF THE WORLD, NOT AN IMPOSSIBILITY. `max()` on an empty
             # sequence made a legal state fatal: `ls20` reaches GAME_OVER at cycle 130,
