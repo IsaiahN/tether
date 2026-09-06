@@ -383,6 +383,13 @@ class Agent:
         # §13.4 wants goal hypotheses held AT ONCE and compared on a TREND, so the scalar has
         # to be kept per slot across steps -- a single reading cannot be shrinking.
         self._disc: dict[str, list[int]] = {}
+        # THE WIDE AXIS, KEPT APART FROM THE NARROW ONE. `_disc` is `objective_gap` -- one
+        # slot's distance to its nearest satisfying value, measured 0-or-1 on 86 readings across
+        # two boards -- and `_res` is `R_goal`, the fraction of a SCOPE that fails. **The
+        # selector needs a discrepancy that can be wide to shrink THROUGH**; on a 0/1 gap the
+        # only qualifying window ends at 0, which is exactly where there is nothing left to
+        # pursue. Two quantities, two dicts, for the reason `refuted` and `refuted_at` are two.
+        self._res: dict[str, list[float]] = {}
         # THE HELD ROUTINE, AS ITS REMAINDER. `advance` hands back what is left and what is
         # left is a Routine, so a behaviour spanning cycles is ONE field -- no program counter,
         # no index into a script, and the thing stored is inspectable as the object it is.
@@ -529,7 +536,7 @@ class Agent:
         self.alphabet = self._alphabets(env)      # a new level may value slots differently
         self.slot_types = self._slot_types(env)   # and may type them differently
         self.bound, self.trace = {}, []
-        self._disc = {}               # the slots did not survive, so neither do their trends
+        self._disc, self._res = {}, {}   # the slots did not survive, nor do their trends
         # AND NEITHER DO THE REFUTATIONS, FOR THE REASON THIS METHOD'S OWN DOCSTRING GIVES:
         # *slot names mean nothing across a boundary.* The reject key is
         # `(slot, actions, guards)` and two of those three are slot names, which REGENERATE --
@@ -1637,6 +1644,11 @@ class Agent:
                 self._disc.pop(slot, None)
             else:
                 self._disc.setdefault(slot, []).append(g)
+            rg = self.goal_residual(slot, state)
+            if rg is None:
+                self._res.pop(slot, None)
+            else:
+                self._res.setdefault(slot, []).append(rg)
             if g is not NOT_RESOLVED:      # an OBJ term is bound and readable here
                 reach[slot] = self.can(slot, state)
         # PUBLISHED EVERY STEP, BECAUSE P1 SHIPS BEFORE ITS CONSUMER. `Until` is what GATES on
@@ -1669,8 +1681,8 @@ class Agent:
         least one real decrease -- **flat is not shrinking**, and an objective that sits at a
         constant gap is not making progress however long it sits there.
         """
-        best: tuple[int, str] | None = None
-        for slot, series in sorted(self._disc.items()):
+        best: tuple[float, str] | None = None
+        for slot, series in sorted(self._res.items()):
             if len(series) < MIN_REPEAT + 1:
                 continue
             window = series[-(MIN_REPEAT + 1):]

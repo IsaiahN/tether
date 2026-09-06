@@ -17281,3 +17281,58 @@ been instrument or repair, several of them repairing the previous tick's instrum
 > `M2_STANDARD`'s definition, the two open decisions are stated with their measurements where the
 > freeze will meet them, and **the next thing that changes contact is a ruling or a real board.**
 > Neither is mine.
+
+---
+
+# QUESTION ONE ANSWERED: THE MINT WAS ON THE WIDE AXIS, THE SELECTOR WAS NOT, AND THE FOLD NEVER BLOCKED ANYTHING
+
+**Three call sites, one question each, read against the code.**
+
+    the mint trigger and price   `rg = self.goal_residual(...)`, `unsat = rg x |scope|`,
+                                 `base = unsat x log2(n)`                      READS `degree` -- WIDE
+    the selector                 `for slot, series in sorted(self._disc.items())`, and `_disc`
+                                 is populated by `_discrepancy` -> `objective_gap`  READS `gap` -- NARROW
+    `_over_group`'s fold         `int(q(x == v for x in c.group))`, unchanged   STILL BOOLEAN
+
+## AND THE PREMISE ABOUT THE FOLD IS FALSE, WHICH CHANGES THE ANSWER
+
+**The question supposed that if the fold still discards the per-member verdict, `degree` is not
+available downstream to wire. It is available, and it is already being used.**
+
+`objective_degree` **does not read the atom's internals.** It evaluates the WHOLE TERM at each member
+of the scope — `term.apply(v, ctx)` per member, fraction true — so **the seat recovers the per-member
+verdict without the atom keeping it.** That is why the mint could be re-keyed onto `R_goal` two weeks
+of ticks ago while `_over_group` stayed exactly as it was. **Changing the fold is not required and
+would buy nothing; the quantity is already recoverable at the site that needs it.**
+
+## SO ④'s NULLS ARE NOT *MEASURED WRONG* — THE MINT ALREADY PRICES ON THE WIDE AXIS
+
+**This is the part that decides the freeze, and it is the opposite of the branch the question
+expected.** *If the mint still reads `gap`, ④ is expected* — **it does not.** The mint's trigger, its
+`unsat` count, its `base` and its `Until` budget all come from `R_goal`. **④'s five nulls were measured
+with the wide axis already in the pricing**, and each still has its own measured cause: already
+satisfied · scope 2 caps `unsat` at 1 against ~4 needed · `base_bits = log2(7)` against a cheapest term
+of 8.9 · and the value arm winning where the residual is rich.
+
+**The selector lagging is a real defect and a smaller one than the question allowed for.** Re-keyed to
+`_res`, a per-scope residual series kept beside `_disc` — two quantities, two dicts.
+
+## AND IT IS NOT READABLE ON THESE BOARDS, WHICH IS SAID RATHER THAN HIDDEN
+
+    gap values seen   {0: 33, 1: 16}
+    R_goal range      0.000 .. 0.500     TWO distinct values
+
+**With a scope of 2, `R_goal` is as narrow as the gap** — the two columns move together, `0 <-> 0.0`
+and `1 <-> 0.5`. **The re-key is a coherence fix, not a capability change**, and it earns its place the
+way the trigger/guard re-key did: *the selector was choosing on one axis while the mint priced on
+another*, which is the same defect one level over.
+
+**Two fixture corrections it forced, both honest:** `_wide` was injecting a shrinking series into
+`_disc` — **the wrong quantity** — and two checks kept passing while two silently stopped producing a
+routine. And setting only the target slot's series left the warm-up's real series on the others, so the
+selector correctly chose a **different** slot with a scope that cannot pay. *A helper that widens one
+slot must be the only hypothesis on offer.*
+
+**17/17 M2 checks, all five falsifications still catch, 9/9 seats.**
+
+**QUESTION TWO: the `reach` repair is NOT taken, `check_composer_cannot_yet_win` stays armed.**

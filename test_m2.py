@@ -113,7 +113,15 @@ def _wide(ag, slot="o1.dcol"):
     real = ag._group
     ag._group = lambda s, st: (tuple(list(real(s, st)) + [7, 8, 9, 11]) if s == slot
                                else real(s, st))
-    ag._disc[slot] = [3, 2, 1]
+    # A SHRINKING SERIES ON THE AXIS THE SELECTOR ACTUALLY READS. This set `_disc` (the
+    # per-slot gap) until the selector was re-keyed onto `_res` (the per-scope residual) --
+    # and the fixture kept passing on two checks and silently stopped producing a routine on
+    # two others, which is what a helper injecting the wrong quantity looks like.
+    # ONE goal hypothesis, on the axis the selector actually reads. Setting only this slot's
+    # series left the warm-up's real series on the others, and the selector correctly chose a
+    # DIFFERENT slot -- one with a scope of 2 that cannot pay. The helper's job is to isolate
+    # the widened slot, so it is the only hypothesis on offer.
+    ag._res = {slot: [0.9, 0.87, 0.84]}
     ag.routine = ag.routine_for = None
     ag.refuted, ag.refuted_at = {}, {}
     return slot
