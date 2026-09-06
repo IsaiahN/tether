@@ -16266,3 +16266,50 @@ confidently-shrinking gap — **and which objective gets minted is the agent's, 
 
 **So: `M2` is MECHANISM-BUILT against every clause of the definition, and CAPABILITY IS OWED TO A REAL
 BOARD.** The two are not collapsed. **The freeze is Isaiah's.**
+
+## THE ROUTINE MINT'S PRECONDITION IS OUT OF REACH, AND TWO EXPLANATIONS FOR IT ARE ALREADY DEAD
+
+**The heartbeat's task was *build the next unbuilt piece*, and all seven are built — so this tick went
+at the thing the `M2` report left owed: the full chain has never fired, and several mechanisms were
+verified by direct construction rather than by the loop reaching them.** A board was built where a
+WIDE gap is possible (a mover twelve columns from a marker, one action closing it) — **the world makes
+the gap available; which objective the agent composes about it stays the agent's.**
+
+    far    40 discrepancy readings, 2 goal hypotheses    gaps {0: 29, 1: 11}   >= 5: 0/40
+    gated  46 discrepancy readings, 2 goal hypotheses    gaps {0: 32, 1: 14}   >= 5: 0/46
+
+**Every gap ever observed is 0 or 1, and the bargain needs 5.** No routine can mint.
+
+### TWO STORIES WRITTEN AND KILLED BY THE NEXT MEASUREMENT, WHICH IS THE POINT
+
+**FIRST: *objectives bind to narrow slots, so the gap cannot be wide.*** Plausible, and it was about to
+be written. **Measured: `o1.dcol` has alphabet 32 (max gap 31), `o1.col` has 16, and ALL 24 slots have
+alphabet > 5.** A wide gap is representable everywhere. **Dead.**
+
+**SECOND: *the objectives are LOOSE — satisfied by most of the alphabet — so the nearest satisfying
+value is always adjacent.*** Also plausible, also about to be written. **Measured: `none` on `o1.dcol`
+is satisfied by 1 value out of 32 — three percent. It is TIGHT.** **Dead.**
+
+> **BOTH WERE SATISFYING CAUSAL STORIES FOR A REAL NULL, AND BOTH WERE FALSE.** *A null carrying a
+> satisfying causal story is harder to doubt than a bare one* — and the only reason neither shipped is
+> that the next measurement was taken before the sentence was written.
+
+### WHAT SURVIVES, LABELLED AS THE SURVIVING HYPOTHESIS AND NOT AS THE FINDING
+
+**The objective is TIGHT and the slot is SITTING ON IT.** ~70% of readings are gap 0 on both boards,
+and the other 30% are gap 1. **The bargain mints a predicate because it EXPLAINS the slot's behaviour,
+so the slot's own behaviour satisfies it** — and deviations are by the smallest possible amount.
+
+    what pursuit needs      an objective the data does NOT satisfy, by several units
+    what the mint produces  an objective the data DOES satisfy, because that is what paying means
+
+**If that is right, the routine mint is not blocked by a fixture, a parameter, or a threshold — it is
+blocked because an explanatory bargain cannot mint a goal.** *Which is item 2's finding — an objective
+minted from a residual is an explanation, not a goal — arriving a second time, from the other end, with
+a measured consequence: not just that pursuing it means standing still, but that there is nothing to
+pursue at all.*
+
+**THE TEST THAT WOULD DECIDE IT IS NOT A FIXTURE.** It is whether any mechanism the framework already
+names can produce an objective the data does not satisfy. **Not to be answered by building one** — that
+is the encoded answer — **and it is what the `M2` capability reading is actually waiting on**, which is
+a sharper statement of *owed to a real board* than the report gave.
