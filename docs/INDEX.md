@@ -16457,3 +16457,70 @@ is more than *owed* said before.
 arrived: `_reach`'s currency needs its `sweep` consumer redesigned; the search-cost gate needs the
 work-to-yields ratio at real slot counts; Guard B's bypass is latent until an `OBJ` term reaches
 `spread`. **None of them is unblocked by anything a fixture can produce.**
+
+---
+
+# RE-VERIFYING AFTER THE `R_goal` RE-KEY FOUND TWO DEFECTS, AND ONE WAS THE STANDARD'S OWN NAMED FAILURE
+
+**The tick began with *there is no build target*, which is an assertion. The law that applies is *a
+repair can break the layer above*: `P5`/`P6` were re-keyed onto `R_goal` AFTER the `P3`/`P6`/`P7`
+mechanism checks were run, so every one of those verifications was stale.** Re-running them found
+`P1`, `P2`, `P3` and `P7` intact — **and `P6` broken in two ways that only appeared when the whole
+path was driven rather than its parts.**
+
+## DEFECT 1 — MINT, EXHAUST, RE-MINT, FOREVER
+
+A routine that exhausted was released and **re-minted identically in the same cycle.** `M2_STANDARD`
+names this failure in its own words: ***it fails as a committed plan, repeatedly, and it looks like the
+agent planning while it is looping on a bad guard.***
+
+**§18.2 specifies the remedy — `falsified_ledger.py`, a first-class reject memory — and one of its four
+properties was already in the code.** *Express-before-judge: a refutation is recorded ONLY after the
+hypothesis actually ran a trial; "I failed to do X" must never be coded as "X is inert."* **That is
+exactly why `routine.py` keeps `EXHAUSTED` apart from `BLOCKED`** — a trial that ran its whole budget
+refutes; one that could not read its guard is a non-trial and says nothing.
+
+    express-before-judge   only `EXHAUSTED` refutes. `blocked` and `unadvertised` are non-trials
+    mimicry-resistant      the key is budget-FREE -- a routine differing only in its budget is the
+                           same hypothesis, and the budget moves every cycle
+    defeasible on surprise the refutation drops when `R_goal` RISES above where the plan failed
+    NOT BUILT              §18.2's other defeasance route, decay on a logical clock, needs a decay
+                           rate with no derivation available. **Named rather than invented**
+
+**AND ONE DELIBERATE DEVIATION, STATED RATHER THAN SLIPPED IN.** §18.2 says *weighted, never binary —
+the consumer DE-PRIORITISES, never a hard ban.* **Measured: de-prioritising is a no-op when there is
+one candidate**, and the observed consequence was the loop itself. So a standing refutation EXCLUDES.
+**It is not a hard ban because it is defeasible** — but it is not what the corpus says, and the reason
+is recorded at the site.
+
+## DEFECT 2 — THE TRIGGER AND THE GUARD READ DIFFERENT QUANTITIES
+
+**The deeper one, and it was invisible until the path ran.** After the re-key the trigger and the price
+read the SCOPE residual while **the guard and the budget still read the SLOT gap.** So a routine raised
+to close a population's residual terminated on one slot being satisfied, with a budget of
+`max(gap, 1) = 1`. **It could only ever exhaust.**
+
+> **A PLAN WHOSE SUCCESS CONDITION IS NOT THE THING THAT SUMMONED IT.** Trigger, price, guard and
+> budget now all read `R_goal`: the guard is *the scope is satisfied*, and the budget is `unsat` — a
+> COUNT of members that must change, each needing at least one iteration, so it is the step floor the
+> guard implies rather than a number picked.
+
+## THE CHAIN, END TO END, INCLUDING ITS FAILURE PATH
+
+    mints      until(o1.dcol/5) {ACTION2}   verdict pays, cost 6.000 vs base 7.925
+    runs       5 cycles, budget 5-4-3-2-1-0
+    exhausts   the guard never held -- the routine's own claim refuted
+    refutes    ('o1.dcol', ('ACTION2',), ('o1.dcol',))
+    refuses    "every candidate stands refuted here, and nothing has surprised"
+    falls to   discriminate:goal
+
+**Only the SCOPE was widened to get there — not the objective, the route, the price or the guard.**
+That is the ceiling the five boards measured, lifted by construction and nothing else, which is
+mechanism verification and **not** a capability reading.
+
+## AND THE LESSON THE TICK ITSELF TEACHES
+
+**A tick that began with *nothing left to build* produced two defects, one of them the exact failure the
+standard was written to prevent.** *Re-verification after a repair is not a no-op* — and the reason
+both hid is that each mechanism was checked ALONE and both defects live in the seam between them.
+**Parts verified separately are not a verified path.**

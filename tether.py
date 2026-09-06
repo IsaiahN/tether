@@ -393,6 +393,12 @@ class Agent:
         # that ending is the routine's own claim refuted, and shelving it would make a failed
         # plan into a cheap building block.
         self.routines: list = []
+        # THE REJECT MEMORY, §18.2's `falsified_ledger` at routine scale: `{key: R_goal when it
+        # was refuted}`. Without it the loop found by re-verification is: mint, exhaust, release,
+        # re-mint the identical routine in the same cycle, forever -- **which is the failure
+        # `M2_STANDARD` names in its own words, *looking like the agent planning while it is
+        # looping on a bad guard.***
+        self.refuted: dict[tuple, float] = {}
         self._digests: dict[str, frozenset] = {}
         self.agency = I.Agency()       # §16.8 sensor 3, a per-step read
         self.term = I.Termination()    # 2d / §20.1, latching and asymmetric
@@ -1399,6 +1405,17 @@ class Agent:
             why = emit if emit in (Rt.DONE, Rt.BLOCKED, Rt.EXHAUSTED) else "unadvertised"
             if why == Rt.DONE and self.routine not in self.routines:
                 self.routines.append(self.routine)
+            # EXPRESS-BEFORE-JUDGE, AND IT IS THE PROPERTY THE ENDINGS WERE ALREADY BUILT FOR.
+            # §18.2: *a refutation is recorded ONLY after the hypothesis actually ran a trial --
+            # "I failed to do X" must never be coded as "X is inert." A blocked or never-reached
+            # attempt is a non-trial.* **`exhausted` is a trial: the routine ran its whole budget
+            # and the guard never held. `blocked` and `unadvertised` are non-trials** -- one
+            # could not read its guard, the other was never runnable here -- and neither says
+            # anything about whether the routine works.
+            if why == Rt.EXHAUSTED and self.routine_for:
+                rg = self.goal_residual(self.routine_for, before)
+                self.refuted[self._reject_key(self.routine_for, self.routine)] = (
+                    1.0 if rg is None else rg)
             self.led.record(self.cycle, "PLAN", self.routine_for or "*", "routine_end",
                             outcome=why, routine=Rt.render(self.routine))
             self.routine, self.routine_for = None, None
@@ -1635,9 +1652,28 @@ class Agent:
         the pricing bypass the two-arm board found cannot reappear in the ACT space.
         """
         def holds(guard: str) -> bool | None:
-            g = self._discrepancy(guard, state)
-            return None if not isinstance(g, int) else g == 0
+            # THE GUARD READS `R_goal`, THE SAME QUANTITY THE MINT TRIGGERED AND PRICED ON.
+            # It read `_discrepancy` -- one slot's distance -- while the trigger and price read
+            # the SCOPE fraction, and the two disagree about what the routine is for. **A
+            # routine raised to close a population's residual, terminating when one slot is
+            # satisfied, is a plan whose success condition is not the thing that summoned it**;
+            # measured, it exhausted every time and was re-minted identically forever.
+            rg = self.goal_residual(guard, state)
+            return None if rg is None else rg <= 0.0
         return holds
+
+    @staticmethod
+    def _reject_key(slot: str, r) -> tuple:
+        """The identity a refutation is filed under. **BUDGET-FREE ON PURPOSE.**
+
+        §18.2's immune audit names **pathogen mimicry** -- *a dead idea re-tried under a slightly
+        different key* -- and calls the signature granularity a problem *left to the caller
+        rather than baked in*. Here the caller is this method, and the answer is that a routine
+        differing only in its budget is THE SAME HYPOTHESIS: the budget is derived from the gap
+        and moves every cycle, so keying on it would let one refuted routine return under a new
+        number every step.
+        """
+        return (slot, Rt.actions(r), Rt.guards(r))
 
     def _mint_routine(self, before: dict[str, int]) -> None:
         """§14.4: **a routine is minted when a goal residual no routine closes.**
@@ -1680,6 +1716,21 @@ class Agent:
         if rg is None or rg <= 0.0:
             return
         unsat = rg * len(self._group(slot, before))
+        # DEFEASIBLE ON SURPRISE -- §18.2's second route: *a fitness-conditional gate-drop
+        # where DECISIVE NEW SURPRISE reopens a refuted hypothesis.* The surprise here is the
+        # goal residual RISING above what it was when the routine was refuted: the world has got
+        # further from the objective than it was when the plan failed, so the plan's failure is
+        # no longer evidence about the situation it now faces.
+        #
+        # **THE OTHER ROUTE IS NOT BUILT AND IS NAMED RATHER THAN SKIPPED.** §18.2 wants decay on
+        # a LOGICAL clock as well, and a decay rate is a constant with no derivation available
+        # here -- so it is owed, not invented.
+        for key, was in [(k, w) for k, w in self.refuted.items()
+                         if k[0] == slot and (rg or 0.0) > w]:
+            del self.refuted[key]
+            self.led.record(self.cycle, "PLAN", slot, "refutation_dropped",
+                            reason="the goal residual rose above where the plan failed",
+                            was=round(was, 4), now=round(rg, 4))
         verdict = self.can(slot, before)
         if verdict != YES:
             self.led.record(self.cycle, "PLAN", slot, "routine_refused",
@@ -1701,15 +1752,38 @@ class Agent:
         shelf = tuple(self.routines)
         bodies = [Rt.Act(act)] + [s for s in shelf
                                   if set(Rt.actions(s)) <= set(self.actions)]
+        # AND A DEVIATION FROM §18.2, STATED RATHER THAN SLIPPED IN. The corpus says *weighted,
+        # never binary -- the consumer DE-PRIORITISES; never a hard ban*, and the sort below
+        # does that. **Measured: de-prioritising is a no-op when there is ONE candidate**, and
+        # the observed consequence was the loop this whole repair started from -- mint, exhaust,
+        # re-mint identically, forever. So a standing refutation EXCLUDES rather than demotes.
+        #
+        # **It is not a hard ban, because it is defeasible**: the refutation is dropped the
+        # moment the goal residual rises above where the plan failed. What is genuinely owed is
+        # §18.2's OTHER defeasance route -- decay on a logical clock -- which needs a decay rate
+        # I have no derivation for, so it is named rather than invented.
+        bodies = [b for b in bodies
+                  if self._reject_key(slot, Rt.Until(slot, b, 1)) not in self.refuted] or bodies[:0]
+        if not bodies:
+            self.led.record(self.cycle, "PLAN", slot, "routine_refused",
+                            reason="every candidate stands refuted here, and nothing has surprised")
+            return
         priced = []
         for body in bodies:
-            # THE BUDGET STAYS THE GAP, WHICH IS THE STEP COUNT. `R_goal` is a fraction and
-            # cannot bound a loop; a distance can. `max(..., 1)` because a slot already at a
-            # satisfying value can still sit in an unsatisfied SCOPE -- one iteration is the
-            # floor for a routine that has something to do at all.
-            c = Rt.Until(slot, body, max(gap, 1))
+            # THE BUDGET IS THE UNSATISFIED COUNT, WHICH IS THE SAME QUANTITY ONE LEVEL
+            # OVER. `R_goal` is a fraction and cannot bound a loop, but `unsat` is a COUNT of
+            # members that have to change, and each needs at least one iteration -- so it is the
+            # step floor the guard implies, derived and not picked. It replaced `max(gap, 1)`,
+            # which came from the slot's distance and had nothing to do with the guard.
+            c = Rt.Until(slot, body, max(int(round(unsat)), 1))
             priced.append((term_bits(Rt.length(c, shelf), n), c))
-        priced.sort(key=lambda p: p[0])
+        # WEIGHTED, NEVER BINARY -- §18.2: *strength-of-rejection, so the consumer
+        # DE-PRIORITISES; never a hard ban.* Refuted candidates sort last and are still reachable
+        # if nothing else pays, so a refutation lowers a routine's standing without removing it
+        # from the space. **And de-prioritising by ORDER rather than by a price penalty is what
+        # keeps this out of the bargain**: a penalty in bits would be a second currency, which
+        # §14.4 forbids and which the CE thread already collapsed on four times.
+        priced.sort(key=lambda p: (self._reject_key(slot, p[1]) in self.refuted, p[0]))
         cost, cand = priced[0]
         # EVERY GUARD, NOT JUST THE FIRST -- `M2_STANDARD` 3, and chunking is what makes it
         # bite. The body may be a SETTLED routine carrying guards of its own, and *it reached
