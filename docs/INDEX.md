@@ -16730,3 +16730,47 @@ version of the check called `compose` and would have reported the bug as unfixed
 and it is the artifact the freeze decision should read** — not because a passing audit is a capability
 reading, but because **it is the one thing that says the standard and the code still describe each
 other.**
+
+---
+
+# THE AUDIT I CALLED THE FREEZE ARTIFACT WAS A GREP, AND TWO OF ITS SUCCESSOR'S CHECKS COULD NOT FAIL
+
+**Last tick's seven-point audit matched SOURCE TEXT — `"Rt.guards(r)" in src`.** That is the corpus's
+own corollary inverted: *an exit code is a declaration where a pattern match over stdout is a guess.*
+**A rename would have broken it silently; a behaviour change would not have broken it at all** — so it
+could pass while the mechanism was wrong, and I called it *the one thing that says the standard and the
+code still describe each other.*
+
+**Replaced by `test_m2.py` in `test_gate.py`'s own form: ten checks, each CONSTRUCTING the defect it
+guards against.** *Tests reach, not existence.*
+
+## AND THEN THE CHECKS THEMSELVES WERE FALSIFIED, WHICH IS WHERE THE REAL FINDING WAS
+
+**Ten green on the first run is when a suite is least trustworthy.** Each mechanism was broken in turn
+and the corresponding check re-run. **Two of the ten could not fail:**
+
+    check_shelf_must_be_runnable_here   MISSES -- it asserted `if ag.routine is not None`, and the
+                                        bargain happens to prefer a valid candidate on price, so it
+                                        passed vacuously with the filter DELETED
+    check_can_gates_until               MISSES -- it patched `can` outright, which the SLOT-level
+                                        check refuses FIRST. It never reached the per-guard sweep,
+                                        so deleting that sweep changed nothing
+
+**Both were testing something other than what their names claimed.** Rewritten:
+
+    the shelf check   asserts on the ROW (`shelf == 0` when unrunnable, `1` when runnable), not on
+                      which candidate happened to win
+    the guard check   keeps the slot's own guard REACHABLE and hides an unreachable one in a NESTED
+                      position, so only the per-guard sweep can catch it
+
+**All five falsifications now catch:**
+
+    CATCHES  check_shelf_must_be_runnable_here     "an unrunnable shelf routine entered ... shelf=1"
+    CATCHES  check_refutations_do_not_cross_a_boundary
+    CATCHES  check_only_a_trial_refutes            "a non-trial was recorded as a refutation"
+    CATCHES  check_until_terminates                "ended A, not exhausted"
+    CATCHES  check_can_gates_until                 "refused, but not for the guard"
+
+> **A CHECK THAT PASSES WHEN THE MECHANISM IS REMOVED IS NOT A WEAK CHECK, IT IS A CONTROL THAT
+> EXAMINES NOTHING** — and the only way either of these surfaced was breaking the code on purpose and
+> watching what the suite said. **Green was the same colour both times.**
