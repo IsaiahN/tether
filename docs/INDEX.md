@@ -17076,3 +17076,41 @@ pipelines over units; this walks type-valid routines over actions and guards —
 now says the shared discipline**, where `compose` said only that I had run out of words.
 
     12/12 M2 checks pass   all five falsifications still CATCH   9/9 seats clean
+
+---
+
+# THE PHASE PLAN SAID SEVEN OF SEVEN DONE, AND ONE OF THEM CANNOT BE CHOSEN
+
+**`M2_PHASES.md` had every box ticked** — including `P7`, ACT chunking, which two ticks of measurement
+showed is **structurally unselectable**. **A stale working document, which is the exact failure I have
+repaired in other people's files three times tonight and in my own edits twice.**
+
+**`P7` is now `[~]`, and the distinction is the one the plan exists to keep.** It is BUILT —
+`length(r, chunks)` counts a settled routine as one unit and that flips `pays` on a constructed pair —
+and it **cannot be selected**, because `budget` is derived as `unsat` and `reach(Until) = budget ×
+reach(body)`, so the plain loop's `left` is identically zero and the chunked form only ever ties.
+`Seq` and `When` never win at all.
+
+> **A TICKED BOX FOR A MECHANISM THAT CANNOT BE CHOSEN IS *IS IT BUILT* ANSWERING YES WHILE *WHAT DOES
+> IT STILL OWE* ANSWERS EVERYTHING** — the distinction the step-3 law says matters most exactly where
+> the mechanism is finished.
+
+## AND THE TWO OPEN DECISIONS ARE NOW WHERE THE FREEZE WILL MEET THEM
+
+**Both were recorded in this trail across twenty-odd appends, which is not where a decision gets
+made.** Written into the phase plan with the measurement attached, because *a finding left as a note
+makes the next reader re-derive it*:
+
+    the `reach` repair   `unsat` is a BOUND and an EXPECTATION under one name -- ratio 1 by
+                         construction. Scaling by the rate `_goal_split` already measures could stop
+                         routines minting AT ALL, with no board to read it on
+    the sweep's gate     `_install_reuse` enters Gamma without `pays`. Three installs on the demo
+                         panel, three the mint would have refused. Adding the gate removes three
+                         terms and changes the panel
+
+**Neither is a seat call.** One changes what the agent plans, the other changes what is in Γ, and both
+now carry the reading that makes them **takeable rather than argued** — which is the difference
+between handing over a decision and handing over an opinion.
+
+**The append-only routine shelf is recorded there too, as an asymmetry and not a task**: building its
+defeasance would add code that nothing runs, and the repo's own ISOLATED seat refuses that.

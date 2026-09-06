@@ -32,7 +32,38 @@ satisfiable but unreachable is exactly the non-terminating loop standard 1 names
     P4  PLAN step in ledger.STEPS + gate.py    depends on: P3             [x]
     P5  mint trigger on the goal residual      depends on: P2, P3         [x]
     P6  routine pricing via `pays`             depends on: P2, P5         [x]
-    P7  ACT chunking                           depends on: P5, P6         [x]
+    P7  ACT chunking                           depends on: P5, P6         [~]
+
+**`[~]` IS NOT `[x]`, AND THE DIFFERENCE IS THE ONE THIS PLAN EXISTS TO KEEP.** `P7` is BUILT —
+`length(r, chunks)` counts a settled routine as one unit and that can flip `pays` — and it is
+**MEASURABLY UNSELECTABLE**: `budget` is derived as `unsat` and `reach(Until) = budget × reach(body)`,
+so the plain loop's reach equals the residual exactly, its `left` is identically zero, and **the
+chunked form only ever TIES.** `Seq` and `When` can never win at all.
+
+**A ticked box for a mechanism that cannot be chosen is the collapse this whole plan was written
+against** — *is it built* answering yes while *what does it still owe* answers everything.
+`check_composer_cannot_yet_win` is the tripwire; it fails the day this is fixed.
+
+## TWO DECISIONS ARE OPEN AND ARE ISAIAH'S, WITH THE MEASUREMENT ATTACHED
+
+**Neither is a seat call: both change what enters Γ or what the agent plans, and both now have the
+reading that makes them takeable rather than argued.**
+
+    THE `reach` REPAIR      `unsat` serves as a BOUND (what the agent allows) and an EXPECTATION
+                            (what it will achieve) -- `A6i`, ratio 1 by construction. Scaling reach
+                            by the rate `_goal_split` already measures would make `left` positive
+                            for the plain candidate -- **and could stop routines minting at all**,
+                            with no board to read the change on
+    THE SWEEP'S GATE        `_install_reuse` enters Gamma without consulting `pays`. Measured on the
+                            demo panel: **three installs, three that the mint would have refused**
+                            (`take<driven>` and `take<climb>` at 6.340 against a base of 5.615,
+                            `dbl . dec . neg` at 12.680 against 8.422). Adding the gate removes
+                            three terms from Gamma and changes the panel
+
+**And one asymmetry recorded rather than repaired:** `self.routines` is APPEND-ONLY. Terms have
+`gamma.refute` and *un-settle defeasibly*; a shelved routine has no demotion path. **Unexercised — no
+chunk has ever been selected — so building the defeasance would add code nothing runs**, which the
+repo's own ISOLATED seat refuses.
 
 ### P1 · `CAN(PRED)` — the producer that does not exist
 Declared `CAN : (PRED,) -> PRED` in `grammar.py`, **composed nowhere.** Owes: a producer returning
