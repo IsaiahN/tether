@@ -17247,3 +17247,37 @@ broke the file; the suite then ran in 215ms and reported success at the shell le
 after a 12s baseline is the tell**, and it is the same class as the four false readings from my
 checking scripts: **the tool answered, the answer was wrong, and only a number that made no sense gave
 it away.**
+
+---
+
+# A TICK THAT FOUND NOTHING, AND THE POINT AT WHICH MORE INSTRUMENTS COST MORE THAN THEY FIND
+
+**The vein is exhausted.** *Which instrument has never seen the ACT space* paid on three consecutive
+ticks and is now spent: `speak`, `summary`, `type_report`, `gate`, the nine seats and
+`conform/stateful` have all been checked against it.
+
+**AND MY OWN LEDGER OVER THOSE TICKS TURNED.** Tick 17's seat cost 41 seconds a commit; tick 22's
+coverage check cost 11 more and broke the file; **five heredoc escapes** mangled edits; **four false
+readings** came from my own checking scripts. *Figure 11: an improvement that does not change contact
+changes nothing* — **and nothing since the ACT space itself has changed contact.** Every tick since has
+been instrument or repair, several of them repairing the previous tick's instrument.
+
+## SO THIS TICK VERIFIED RATHER THAN BUILT, AND THE CLAIMS HOLD
+
+**The four the freeze rests on and the suite does not cover:**
+
+    the sweep's unpriced entry   3 installs, 3 the mint would refuse -- `take<driven>` and
+                                 `take<climb>` at 6.340 vs 5.615, `dbl . dec . neg` at
+                                 12.680 vs 8.422                                        HOLDS
+    the composer's four shapes   24 routines from 3 actions x 2 guards: Act 3, Until 6,
+                                 When 6, Seq 9                                          HOLDS
+    inert where it does not run  0 PLAN rows on the demo panel                          HOLDS
+    the four endings             done / blocked / exhausted / unadvertised, distinct     HOLDS
+
+**And `demo.py` reads correctly top to bottom** — the surface Isaiah sees first, after changes to
+`speak.py`, `ledger.STEPS` and the phase labels underneath it.
+
+> **THE ANSWER TO TOO MANY INSTRUMENTS IS NEVER ONE MORE INSTRUMENT.** The build is complete against
+> `M2_STANDARD`'s definition, the two open decisions are stated with their measurements where the
+> freeze will meet them, and **the next thing that changes contact is a ruling or a real board.**
+> Neither is mine.
