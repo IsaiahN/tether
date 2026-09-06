@@ -9,6 +9,8 @@ have broken it at all**, so it could pass while the mechanism was wrong.
 catch it.** *Tests reach, not existence.*
 """
 
+import collections
+import contextlib
 import copy
 import math
 import sys
@@ -55,6 +57,29 @@ class _Two:
         if "1" in getattr(act, "name", str(act)) and self.n < SIDE - 3:
             self.n += 1
         return self._frame()
+
+
+_SEEN: collections.Counter = collections.Counter()
+
+
+@contextlib.contextmanager
+def _watch():
+    """Count the ACT events the suite reaches, from the run it is already doing."""
+    import ledger
+    real = ledger.Ledger.record
+
+    def spy(self, cycle, step, slot, event, **d):
+        if event == "routine_end":
+            _SEEN[d.get("outcome")] += 1
+        elif "routine" in event:
+            _SEEN[event] += 1
+        return real(self, cycle, step, slot, event, **d)
+
+    ledger.Ledger.record = spy
+    try:
+        yield
+    finally:
+        ledger.Ledger.record = real
 
 
 _BUILT: dict = {}
@@ -391,33 +416,24 @@ def check_the_suite_reaches_the_hard_cases():
 
     Its comment is the rule: *a line that can never fire is not a weaker check, it reads as
     coverage that is not there.* **Measured before this existed: the suite reached `exhausted`
-    and `unadvertised` and never `done` or `blocked`** — so two of the four endings were
+    and `unadvertised` and never `done` or `blocked`** -- so two of the four endings were
     asserted nowhere, and no falsification would have said so, because each check that DID run
     was falsifiable on its own.
+
+    **IT OBSERVES THE RUN THAT ALREADY HAPPENS RATHER THAN REPEATING IT.** A first version
+    called every other check from inside itself and took the suite from 8.5s to 19.7s -- the
+    same cost mistake as putting the suite in a seat, one week smaller. `_watch()` installs a
+    ledger spy for the whole run; this reads what it saw, and only falls back to running the
+    others when called on its own.
     """
-    import collections
-    import contextlib
-
-    import ledger
-    seen: collections.Counter = collections.Counter()
-    real = ledger.Ledger.record
-
-    def spy(self, cycle, step, slot, event, **d):
-        if event == "routine_end":
-            seen[d.get("outcome")] += 1
-        elif "routine" in event:
-            seen[event] += 1
-        return real(self, cycle, step, slot, event, **d)
-
-    ledger.Ledger.record = spy
-    try:
-        for fn in CHECKS:
-            if fn is check_the_suite_reaches_the_hard_cases:
-                continue
-            with contextlib.suppress(AssertionError):
-                fn()
-    finally:
-        ledger.Ledger.record = real
+    seen = _SEEN
+    if not seen:                                  # standalone: no runner spy is installed
+        with _watch():
+            for fn in CHECKS:
+                if fn is not check_the_suite_reaches_the_hard_cases:
+                    with contextlib.suppress(AssertionError):
+                        fn()
+        seen = _SEEN
     for case in (Rt.DONE, Rt.EXHAUSTED, Rt.BLOCKED, "unadvertised",
                  "routine", "routine_cut", "routine_refused"):
         assert seen[case] > 0, f"the M2 suite no longer reaches: {case}"
@@ -426,13 +442,22 @@ def check_the_suite_reaches_the_hard_cases():
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
 
 if __name__ == "__main__":
-    bad = []
-    for fn in CHECKS:
-        try:
-            fn()
-        except AssertionError as exc:
-            bad.append(f"{fn.__name__}: {exc}")
+    # THE COVERAGE CHECK RUNS LAST AND WATCHES THE OTHERS, so the suite is not run twice.
+    # `_watch` counts what the ACT space actually reached during the ordinary pass.
+    bad: list[str] = []
+    coverage = check_the_suite_reaches_the_hard_cases
+    ordered = [f for f in CHECKS if f is not coverage] + [coverage]
+    with _watch():
+        for fn in ordered[:-1]:
+            try:
+                fn()
+            except AssertionError as exc:
+                bad.append(f"{fn.__name__}: {exc}")
+    try:
+        coverage()
+    except AssertionError as exc:
+        bad.append(f"{coverage.__name__}: {exc}")
     for line in bad:
         print("  FAIL", line)
-    print(f"\n  {len(CHECKS) - len(bad)}/{len(CHECKS)} M2 checks pass")
+    print(f"\n  {len(ordered) - len(bad)}/{len(ordered)} M2 checks pass")
     sys.exit(1 if bad else 0)

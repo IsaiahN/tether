@@ -17231,3 +17231,19 @@ nothing — *check 3 at run time*; and `check_the_suite_reaches_the_hard_cases` 
 seat, and asserting it here would put a sweep case in an ACT-space suite.
 
 **17/17 M2 checks, 9/9 seats.**
+
+## AND THE COVERAGE CHECK COST WHAT THE SEAT COST, ONE WEEK SMALLER
+
+**It ran every other check from inside itself: 8.5s → 19.7s.** The identical mistake to putting the
+suite in a seat without measuring — **an instrument that duplicates the work it observes.**
+
+**`_watch()` counts the ACT events during the pass the runner is already making**, and the coverage
+check reads what it saw, falling back to a self-run only when called standalone (which the
+falsification does). **19.7s → 12.0s, 17/17 passing, and the falsification still catches**
+*"the M2 suite no longer reaches: done"*.
+
+**FIFTH TIME A HEREDOC ESCAPE MANGLED AN EDIT.** `\n` inside an f-string became a real newline and
+broke the file; the suite then ran in 215ms and reported success at the shell level. **A 215ms "pass"
+after a 12s baseline is the tell**, and it is the same class as the four false readings from my
+checking scripts: **the tool answered, the answer was wrong, and only a number that made no sense gave
+it away.**
