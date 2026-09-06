@@ -262,8 +262,39 @@ def check_only_a_trial_refutes():
     slot = _wide(ag)
     ag.routine = Rt.Until(slot, Rt.Act("NOT_ADVERTISED"), 3)
     ag.routine_for = slot
+    n0 = len(ag.led.entries)
     ag.choose(b)                              # ends `unadvertised` -- a non-trial
     assert not ag.refuted, "a non-trial was recorded as a refutation"
+    rows = [e for e in ag.led.entries[n0:] if e.event == "routine_end"]
+    assert rows and rows[-1].detail.get("status") != "refuted", (
+        "a non-trial was RECORDED as a refutation even though none was filed")
+
+
+def check_a_refutation_is_a_row():
+    """DEFECT: a decision input that leaves no trace.
+
+    A TERM's demotion is a first-class event carrying `asked`, `ground_said`, `verdict` and
+    `rejections`. A routine's refutation was in-memory state only -- and it GATES FUTURE
+    MINTING, so `speak` could not say it, the gate could not check it, and express-before-judge
+    was unverifiable from the record.
+    """
+    ag = _agent()
+    slot = _wide(ag)
+    b = dict(ag.env.observe())
+    ag.routine = Rt.Until(slot, Rt.Act(ag.actions[1]), 1)
+    ag.routine_for = slot
+    n0 = len(ag.led.entries)
+    for _ in range(4):
+        if ag.routine is None:
+            break
+        ag.choose(b)
+    row = next((e.detail for e in ag.led.entries[n0:]
+                if e.event == "routine_end" and e.detail.get("outcome") == "exhausted"), None)
+    assert row is not None, "fixture: the routine did not exhaust"
+    assert ag.refuted, "fixture: nothing was refuted in memory"
+    for field in ("asked", "ground_said", "verdict", "rejections", "reopens_above"):
+        assert field in row, f"the refutation row omits {field!r}, which `demote` carries"
+    assert row["status"] == "refuted"
 
 
 def check_refutations_do_not_cross_a_boundary():

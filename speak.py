@@ -52,8 +52,12 @@ def sentences(rows: list[dict]) -> list[tuple[list[int], str]]:
                               "guard being false",
                    "unadvertised": "it named an action this level does not offer, so it "
                                    "failed its guard rather than crashing"}
+            tail = ("" if d.get("status") != "refuted" else
+                    f" I filed that against the plan at strength {_n(d.get('rejections'))}, "
+                    f"and it reopens if the goal residual rises above "
+                    f"{_n(d.get('reopens_above'))}.")
             out.append(([seq], f"On {slot} the plan `{d.get('routine')}` ended: "
-                               f"{why.get(d.get('outcome'), d.get('outcome'))}."))
+                               f"{why.get(d.get('outcome'), d.get('outcome'))}." + tail))
         elif ev == "routine_cut":
             out.append(([seq], f"On {slot} I considered `{d.get('routine')}` and refused it: "
                                f"{_n(d.get('cost'))} bits of plan plus {_n(d.get('left'))} left "

@@ -1437,13 +1437,26 @@ class Agent:
             # and the guard never held. `blocked` and `unadvertised` are non-trials** -- one
             # could not read its guard, the other was never runnable here -- and neither says
             # anything about whether the routine works.
+            #
+            # AND THE REFUTATION IS A ROW, WHICH IT WAS NOT. A TERM's demotion carries `asked`,
+            # `ground_said`, `verdict` and `rejections` -- **a first-class inspectable event** --
+            # while a routine's refutation was in-memory state that nothing recorded. It gates
+            # future minting, so it is **a decision input that left no trace**: `speak` could not
+            # say it, the gate could not check it, and express-before-judge was unverifiable
+            # from the record. Same fields as `demote`, so the two read alike.
+            extra: dict = {}
             if why == Rt.EXHAUSTED and self.routine_for:
                 rg = self.goal_residual(self.routine_for, before)
                 k = self._reject_key(self.routine_for, self.routine)
                 self.refuted.setdefault(k, Standing(last_tick=self.cycle)).refute(self.cycle)
                 self.refuted_at[k] = 1.0 if rg is None else rg
+                extra = {"asked": [Rt.render(self.routine), self.routine_for],
+                         "ground_said": False, "status": "refuted",
+                         "verdict": "spent its whole budget and the guard never held",
+                         "rejections": round(self._rejection(k), 3),
+                         "reopens_above": round(self.refuted_at[k], 4)}
             self.led.record(self.cycle, "PLAN", self.routine_for or "*", "routine_end",
-                            outcome=why, routine=Rt.render(self.routine))
+                            outcome=why, routine=Rt.render(self.routine), **extra)
             self.routine, self.routine_for = None, None
         if self.drive.bored():
             return self.drive.choose(self.actions, self.cycle, _where(before)), "probe"

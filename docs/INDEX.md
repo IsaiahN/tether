@@ -17161,3 +17161,34 @@ point of keeping them apart in the first place.*
 **And a fourth false reading from my own checking scripts on the way here** — wrong signatures made
 three working reporters look broken. **Repo edit scripts assert their anchors; checking scripts still
 do not.**
+
+---
+
+# A TERM'S DEMOTION IS AN INSPECTABLE EVENT; A ROUTINE'S REFUTATION WAS IN-MEMORY STATE
+
+**Following last tick's method — WHICH INSTRUMENT HAS NEVER SEEN THE ACT SPACE — to the one that
+validates the record itself.** `gate.py` has ten checks and `test_gate.py` covers them, and the ACT
+space's rows pass through validated for step order and nothing else. **Chasing what could be asserted
+found something better than a new gate check.**
+
+    a TERM demotion    a `demote` row carrying asked, ground_said, verdict, status, rejections
+    a ROUTINE refutation   nothing. In-memory: {'o1.dcol': 1.0}. In the record: absent
+
+> **AND IT GATES FUTURE MINTING.** A refuted routine is excluded while its decaying strength stands,
+> so this was **a decision input that left no trace** — `speak` could not say it, the gate could not
+> check it, and **express-before-judge was unverifiable from the record**, which is the one property
+> §18.2 puts first.
+
+**The refutation now carries `demote`'s own fields**, so the two read alike, plus `reopens_above` — the
+goal residual at which the surprise route lifts it. **The agent can say it:**
+
+> *"…which refutes the plan rather than the goal. **I filed that against the plan at strength 1, and it
+> reopens if the goal residual rises above 0.8333.**"*
+
+**Two checks, both falsified.** `check_a_refutation_is_a_row` demands every field `demote` carries and
+catches with *"the refutation row omits 'asked'"*. And `check_only_a_trial_refutes` was strengthened:
+it asserted the in-memory dict stayed empty on a non-trial, **which said nothing about the row** — it
+now also asserts the row does not claim `status: refuted`. *Express-before-judge is a claim about the
+RECORD, and the check was only looking at the state.*
+
+**14/14 M2 checks, 9/9 seats.**
