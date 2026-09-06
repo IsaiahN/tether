@@ -16900,3 +16900,50 @@ under one justification would have been the collapse this session keeps finding.
 **`check_strategy_is_emitted_when_a_routine_drives` added and falsified** — with the old one-line label
 restored it reports `{'probe': 1.0, 'directed': 0.0, 'strategy': 0.0}`. **Eleven of eleven checks now
 falsified.**
+
+---
+
+# THE COMPOSER AND ACT CHUNKING ARE BUILT AND STRUCTURALLY UNREACHABLE, AND ONE OF MY CHECKS CONCEALS IT
+
+**Started from an asymmetry — `self.routines` is APPEND-ONLY, with no demotion where terms have
+`gamma.refute` and *"un-settles the same way … defeasibly, never deleted."*** Chasing why a failing
+shelf routine caused no harm found the larger thing: **it was never selected, and it never can be.**
+
+    unsat  plain Until      chunked Until    Seq of two      When-guarded    bare Act
+      2    6.00             6.00 (tie)       10.00           8.00            5.58 *
+      5    6.00  <- wins    6.00 (tie)       10.00           8.00           10.34
+      9    6.00  <- wins    6.00 (tie)       10.00           8.00           16.68
+     14    6.00  <- wins    6.00 (tie)       10.00           8.00           24.60
+
+**`Until(g, Act(a), unsat)` is optimal or tied at every residual.** Nothing at length 2 can cost less,
+nothing shorter can reach, and **the chunked form only ever TIES — so it never wins, and ties break by
+enumeration order.** `Seq` and `When` can never win at all.
+
+> **THE CAUSE IS MINE AND IT IS FIVE TICKS OLD.** The budget is derived as `unsat`, so the simplest
+> loop's reach EXACTLY equals the residual and `left` is always zero. **`reach(Until) = budget ×
+> reach(body)` assumes every iteration succeeds** — which is the identical optimism to the `left = 0`
+> I corrected two ticks earlier, moved one level down and not noticed there.
+
+**So the composer enumerates 24 shapes that cannot win, and ACT chunking cannot be selected.** Both are
+*built* in the sense the audit checks and *unreachable* in the sense that matters — the pattern the
+corpus names: **a mechanism present and the capability absent.**
+
+## AND `check_chunking_reaches_the_bargain` IS DECORATIVE FOR A FOURTH TIME
+
+It asserts `length(plan, (nav,)) < length(plan)` and that a **hand-constructed** pair flips across
+`pays`. **It tests the arithmetic, not that the agent's own composer ever selects a chunk** — and it
+falsifies correctly against the arithmetic, which is why the falsification pass did not catch it.
+**Four of eleven checks have now been decorative, and this one passed a falsification.**
+
+## WHAT THE HONEST `reach` WOULD NEED, AND WHY IT IS NOT APPLIED HERE
+
+**The agent does not know that one iteration fixes one member.** It has evidence about the rate:
+`_goal_split` already computes how often an action moved the slot the wanted way. **A `reach` scaled by
+that measured rate would stop the simplest loop from trivially reaching the whole residual**, and the
+composer's other shapes would have something to win.
+
+**NOT APPLIED, AND THE REASON IS THE ONE THAT HAS HELD ALL SESSION.** It changes what gets minted on
+every board that mints anything, and there is **no reading to check the change against** — the routine
+path does not fire unaided on any of the five fixtures. **A repair whose only evidence is the argument
+that motivated it is the shape this session has refused four times.** Recorded with the measurement, so
+the decision is takeable on evidence rather than on my say-so.
