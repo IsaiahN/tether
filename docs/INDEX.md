@@ -16169,3 +16169,31 @@ STEPS.** Neither fixture produces one, and no fixture can be built to produce on
 objective gets minted is the agent's, not mine.** So item 3's behavioural reading is owed to a board
 where the agent composes a wide ordered objective, and the null until then says nothing about the
 mechanism.
+
+## `A6i` ON THE HEADLINE ITSELF: THE THREE ITEMS CLOSE LINK 3 AND ARE NOT `M2`
+
+**Checked because `A6i`'s trigger is *where a headline OR A RULING is about to be made*, and the
+headline about to be made was *M2 is done, the architecture is complete end to end.*** It is not.
+
+    ledger.STEPS   PERCEIVE ROUTE MINT ACCEPT SETTLE PROMOTE IMPORT REPEAT   -- NO PLAN STEP
+    routines       absent from the code entirely
+    STRATEGY       still at its honest structural zero, per `tether.py`'s own comment
+    `_goal_split`  chooses ONE action for the CURRENT step
+
+**`M2` IS THE MULTI-STEP PLAN** — `STORY_PROOF`'s *"it predicts five presses left to reach `x1,y1`"* —
+and **the loop still bets one step ahead**, which is the sentence the row was written to record. The
+three items are what was GATING it.
+
+> **LINK 3 IS CLOSED; `M2` IS NOW UNBLOCKED AND UNBUILT, WHERE BEFORE IT WAS BLOCKED AND UNBUILT.**
+> *A gate opening is not the thing behind it.*
+
+**And the drifted name was in MY OWN EDIT, two days into a thread about staleness.** I wrote *"`M2` is
+three items against built ends"* into the row I had just repaired for a stale gate. **Third time this
+session an edit of mine went wrong in the file it was repairing** — and the reason it kept happening is
+the same each time: *the summary is written from the work just done, not from the definition the row
+already holds.* Repaired at source.
+
+**What is true, stated at the strength the evidence carries:** the objective now enters action
+selection, which `DOCTRINE_AUDIT` §1 recorded as absent and which was the deepest structural gap; the
+three mechanisms are built, guarded and committed; and **the architecture is NOT complete end to end,
+because nothing yet plans more than one step.**

@@ -300,9 +300,21 @@ would have fallen in*:**
                                     *3 - the objective (measured: prediction closed, no goal
                                     composition built)*
 
-**`M2` IS THREE ITEMS AGAINST BUILT ENDS, AND ITEM 2 CARRIES TWO GUARDS.** *Written here rather than
-pointed at, because the row above said "two named wires" within a day of being repaired and that is the
-same staleness this table was just corrected for.*
+**THE THREE ITEMS BELOW CLOSE LINK 3. THEY ARE NOT `M2` — CORRECTED 2026-09-05, AT THE POINT THE
+HEADLINE WAS ABOUT TO BE MADE.** All three are built and committed, and calling that *`M2` done* is
+`A6i` on this table's own row: **`M2` is THE MULTI-STEP PLAN** — *"it predicts five presses"* — and
+`ledger.STEPS` is still `PERCEIVE · ROUTE · MINT · ACCEPT · SETTLE · PROMOTE · IMPORT · REPEAT` with
+**no PLAN step, no routines anywhere in the code, and `STRATEGY` still at its honest structural zero.**
+`_goal_split` chooses ONE action for the CURRENT step. **The loop still bets one step ahead, which is
+the exact sentence this row was written to record.**
+
+> **WHAT CHANGED IS THE GATE, AND THAT IS WORTH SAYING PLAINLY RATHER THAN INFLATING.** Link 3 — the
+> objective never entering action selection — is CLOSED. **`M2` is now unblocked and unbuilt**, where
+> before it was blocked and unbuilt. *A gate opening is not the thing behind it.*
+
+**THE THREE ITEMS, AND ITEM 2 CARRIES TWO GUARDS.** *Written here rather than pointed at, because the
+row above said "two named wires" within a day of being repaired and that is the same staleness this
+table was just corrected for.*
 
     1. THE WIRE       the composed objective fills `WANT`, replacing `env.objective()`'s hardcoded
                       `"ALL(BECOME(level, completed))"`. NECESSARY and NOT SUFFICIENT: `_utter` runs
