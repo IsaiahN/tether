@@ -16524,3 +16524,43 @@ mechanism verification and **not** a capability reading.
 standard was written to prevent.** *Re-verification after a repair is not a no-op* — and the reason
 both hid is that each mechanism was checked ALONE and both defects live in the seam between them.
 **Parts verified separately are not a verified path.**
+
+## AND I HAD REINVENTED `Standing`, WORSE — THE DEVIATION IS WITHDRAWN
+
+**Last tick I built a reject memory as a binary dict, recorded a deliberate deviation from §18.2's
+*weighted, never binary*, and called the logical-clock decay *owed, because a decay rate has no
+derivation available here*.** All three of those were wrong, and one grep would have said so.
+
+> **`gamma.Standing`'s OWN DOCSTRING IS §18.2's REQUIREMENT VERBATIM: *"A term's record against the
+> ground. Weighted, clocked, and never a hard ban."*** A decaying `rejections` float, `refute(tick)`,
+> `decay(tick)` on a logical clock, and `REJECTION_HALFLIFE = 8.0` anchored in `gamma`.
+
+**The decay rate was not underivable. It was defined, eight lines from a constant I had already read
+this session** — and `rejection_of()` even exposes the decayed value, **consumed only by `summary.py`.
+Built and unread**, the same shape as the self-model verdict and the `contingency()` claim.
+
+**The class is reused; the registry is not** — a routine is not a term and `gamma.standing` is keyed by
+library name. **Two dicts, not one**, for the reason `shape` and `structure` are two keys: the STRENGTH
+decays on the clock, the SURPRISE THRESHOLD is `R_goal` at refutation, and merging them would make one
+defeasance route unreadable.
+
+### MEASURED, AND MY FIRST WRITE-UP OF IT WAS ALSO WRONG
+
+**I wrote *one refutation excludes for ~8 cycles* and the measurement refuted it in the same breath:**
+a strength of exactly 1.0 falls under the bar after a single cycle of decay.
+
+    one refutation                    excluded 1 cycle, then eligible again
+    refuted every 6 cycles, 5 times   1, 6, 8, 9, 10 cycles -- strength 1.000 -> 2.283
+
+**So it is SELF-LIMITING rather than banned**: one failure costs a cycle, five cost twenty-two, the
+escalation flattens as decay balances accumulation, and **a routine that stops failing decays back into
+the running by itself.** That is closer to *weighted, clocked, never a hard ban* than the exclusion I
+wrote, and it needed no threshold of mine — only the bar at one un-decayed refutation.
+
+**ALL FOUR OF §18.2's PROPERTIES NOW HOLD**: express-before-judge (only `EXHAUSTED` refutes),
+weighted-not-binary, defeasible **two** ways (this clock **and** rising surprise), and a
+mimicry-resistant budget-free key. **The deviation recorded last tick is withdrawn.**
+
+**AND THE TICK'S LESSON REPEATS THE SESSION'S:** *the answer to too many instruments is never one more
+instrument — it is the next mechanism the framework names and the code does not have.* **Here the code
+already had it, and I wrote a worse one beside it rather than looking.**

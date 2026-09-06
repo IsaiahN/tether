@@ -21,7 +21,7 @@ import instruments as I
 import retrieval
 import routine as Rt
 from gamma import SAME_AS_TARGET as G_SAME
-from gamma import Ctx, Gamma, Term
+from gamma import Ctx, Gamma, Standing, Term
 from ledger import (
     ADVANCE,
     CHANNEL_CLOSED,
@@ -393,12 +393,25 @@ class Agent:
         # that ending is the routine's own claim refuted, and shelving it would make a failed
         # plan into a cheap building block.
         self.routines: list = []
-        # THE REJECT MEMORY, §18.2's `falsified_ledger` at routine scale: `{key: R_goal when it
-        # was refuted}`. Without it the loop found by re-verification is: mint, exhaust, release,
-        # re-mint the identical routine in the same cycle, forever -- **which is the failure
-        # `M2_STANDARD` names in its own words, *looking like the agent planning while it is
-        # looping on a bad guard.***
-        self.refuted: dict[tuple, float] = {}
+        # THE REJECT MEMORY, §18.2's `falsified_ledger` at routine scale. Without it the loop
+        # found by re-verification is: mint, exhaust, release, re-mint the identical routine in
+        # the same cycle, forever -- **the failure `M2_STANDARD` names in its own words,
+        # *looking like the agent planning while it is looping on a bad guard.***
+        #
+        # **AND IT REUSES `Standing`, WHICH IS THE MECHANISM ALREADY BUILT FOR THIS.** Its own
+        # docstring is §18.2's requirement verbatim -- *a term's record against the ground:
+        # weighted, clocked, and never a hard ban* -- with a decaying `rejections` float and
+        # `REJECTION_HALFLIFE` anchored in `gamma`. **I built a binary dict beside it and called
+        # the decay rate underivable, one tick after noting the corpus asks for weighted.** The
+        # class is reused; the registry is not, because a routine is not a term and `gamma.
+        # standing` is keyed by library name.
+        #
+        # TWO QUANTITIES, TWO DICTS, for the reason `shape` and `structure` are two keys: the
+        # STRENGTH decays on the logical clock, and the SURPRISE THRESHOLD is the goal residual
+        # at the moment of refutation. Merging them would make one of the two defeasance routes
+        # unreadable.
+        self.refuted: dict[tuple, Standing] = {}
+        self.refuted_at: dict[tuple, float] = {}
         self._digests: dict[str, frozenset] = {}
         self.agency = I.Agency()       # §16.8 sensor 3, a per-step read
         self.term = I.Termination()    # 2d / §20.1, latching and asymmetric
@@ -1414,8 +1427,9 @@ class Agent:
             # anything about whether the routine works.
             if why == Rt.EXHAUSTED and self.routine_for:
                 rg = self.goal_residual(self.routine_for, before)
-                self.refuted[self._reject_key(self.routine_for, self.routine)] = (
-                    1.0 if rg is None else rg)
+                k = self._reject_key(self.routine_for, self.routine)
+                self.refuted.setdefault(k, Standing(last_tick=self.cycle)).refute(self.cycle)
+                self.refuted_at[k] = 1.0 if rg is None else rg
             self.led.record(self.cycle, "PLAN", self.routine_for or "*", "routine_end",
                             outcome=why, routine=Rt.render(self.routine))
             self.routine, self.routine_for = None, None
@@ -1662,6 +1676,15 @@ class Agent:
             return None if rg is None else rg <= 0.0
         return holds
 
+    def _rejection(self, key: tuple) -> float:
+        """The decayed strength of rejection. `Standing.decay` on the LOGICAL clock -- cycles,
+        never wall time -- which is §18.2's first defeasance route and was already built."""
+        st = self.refuted.get(key)
+        if st is None:
+            return 0.0
+        st.decay(self.cycle)
+        return st.rejections
+
     @staticmethod
     def _reject_key(slot: str, r) -> tuple:
         """The identity a refutation is filed under. **BUDGET-FREE ON PURPOSE.**
@@ -1725,9 +1748,10 @@ class Agent:
         # **THE OTHER ROUTE IS NOT BUILT AND IS NAMED RATHER THAN SKIPPED.** §18.2 wants decay on
         # a LOGICAL clock as well, and a decay rate is a constant with no derivation available
         # here -- so it is owed, not invented.
-        for key, was in [(k, w) for k, w in self.refuted.items()
+        for key, was in [(k, w) for k, w in self.refuted_at.items()
                          if k[0] == slot and (rg or 0.0) > w]:
-            del self.refuted[key]
+            self.refuted.pop(key, None)
+            del self.refuted_at[key]
             self.led.record(self.cycle, "PLAN", slot, "refutation_dropped",
                             reason="the goal residual rose above where the plan failed",
                             was=round(was, 4), now=round(rg, 4))
@@ -1752,21 +1776,19 @@ class Agent:
         shelf = tuple(self.routines)
         bodies = [Rt.Act(act)] + [s for s in shelf
                                   if set(Rt.actions(s)) <= set(self.actions)]
-        # AND A DEVIATION FROM §18.2, STATED RATHER THAN SLIPPED IN. The corpus says *weighted,
-        # never binary -- the consumer DE-PRIORITISES; never a hard ban*, and the sort below
-        # does that. **Measured: de-prioritising is a no-op when there is ONE candidate**, and
-        # the observed consequence was the loop this whole repair started from -- mint, exhaust,
-        # re-mint identically, forever. So a standing refutation EXCLUDES rather than demotes.
-        #
-        # **It is not a hard ban, because it is defeasible**: the refutation is dropped the
-        # moment the goal residual rises above where the plan failed. What is genuinely owed is
-        # §18.2's OTHER defeasance route -- decay on a logical clock -- which needs a decay rate
-        # I have no derivation for, so it is named rather than invented.
+        # THE DEVIATION IS WITHDRAWN, AND `Standing` IS WHY. It excluded outright because
+        # de-prioritising is a no-op at one candidate -- true, and the wrong repair. **A weight
+        # that DECAYS excludes only while it stands**: one refutation puts the strength at 1.0
+        # and `REJECTION_HALFLIFE` brings it under the bar again, so the routine is out of the
+        # running for a while and then back in it. *Weighted, clocked, and never a hard ban* --
+        # all three, with no constant of mine anywhere in it.
         bodies = [b for b in bodies
-                  if self._reject_key(slot, Rt.Until(slot, b, 1)) not in self.refuted] or bodies[:0]
+                  if self._rejection(self._reject_key(slot, Rt.Until(slot, b, 1))) < 1.0]
         if not bodies:
             self.led.record(self.cycle, "PLAN", slot, "routine_refused",
-                            reason="every candidate stands refuted here, and nothing has surprised")
+                            reason="every rejection still stands and nothing has surprised",
+                            strengths=[round(self._rejection(k), 3) for k in self.refuted
+                                       if k[0] == slot])
             return
         priced = []
         for body in bodies:
