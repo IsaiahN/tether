@@ -315,6 +315,31 @@ link 4. With link 2 measured-and-failing and link 3 never reached, zero levels c
 *the machinery is broken* from *the agent cannot express the objective*. **Run for it when link 3
 exists** — when there is something to diagnose rather than a number with no subject.
 
+**AND A VALUATION TAKEN BELOW THE BREAK IS THE SAME RULE IN A REGISTER IT WAS NOT WRITTEN FOR —
+2026-09-05.** *A number with no subject* was filed against MEASUREMENTS. **It governs PRICING
+identically, and pricing is the harder case, because a valuation chain generates its own subject as
+it goes and therefore never reads empty the way a null does.**
+
+Three chains priced the objective-versus-predictor tie — a certainty-equivalence calculation, a
+bandit import, a composed `φ_r ∥ φ_g` — and **each was internally coherent and had no subject.** The
+tie is real and structural: `term_bits` reads length and alphabet, so the bargain prices HOW LONG and
+never WHAT KIND. **But the entire downstream that would make the tie matter is absent.** It costs no
+actions (`mint` re-reads the trace); its candidate cost is uncounted (`Config.budget` gates yields at
+~20x remove from the work); it drives no different action (`choose` reads `self.bound` at none of its
+four exits, and `discriminate` enumerates a hardcoded `("val","val")` closure — blind to `OBJ` by
+construction); and there is no execution to commit to, because **`M2` is unbuilt: `ledger.STEPS` has
+no PLAN step and no phase creates one.**
+
+> **THE ERROR WAS NEVER WHICH MOMENT WAS PRICED. IT WAS BUILDING A VALUATION BEFORE THE THING VALUED
+> EXISTED.** Moving the moment — forming the bet, then executing it — would have been a third chain
+> over a fourth absence. **Build the subject before pricing it, and the ordering falls out: `M2`
+> first.**
+
+**AND THE TELL IS THAT EACH CHAIN CORRECTED THE LAST AND ALL THREE WERE WRONG THE SAME WAY.** *A null
+carrying a satisfying causal story is harder to doubt than a bare one* — a VALUATION carrying one is
+harder still, because the story is the deliverable rather than an explanation attached to it. **Ask
+what makes the decision, and find it in the code, before asking what it should cost.**
+
 **The map, and every entry is a mechanism the framework names rather than a proxy:**
 
     INSTANTIATED       perceive · the bet · the bargain · minting · promotion · transfer

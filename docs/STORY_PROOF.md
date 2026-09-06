@@ -294,8 +294,44 @@ would have fallen in*:**
                                     all, or only an index? If only an index, the band has no
                                     producer and Layer 3 is `TIME` alone
     M3  the scenario store          belongs at P7. The gap-shaped face is the build, not the store
-    M2  the multi-step plan         Figure 3's link 4. DOWNSTREAM OF THE BREAK -- cannot be
-                                    scheduled ahead of P3, and the story needs it
+    M2  the multi-step plan         Figure 3's link 4. **THE P3 GATE HAS LIFTED -- P3 IS BUILT
+                                    (2026-09-05).** The remaining gate is LINK 3, THE OBJECTIVE,
+                                    which this table predates: `_link()`'s own terminal string is
+                                    *3 - the objective (measured: prediction closed, no goal
+                                    composition built)*
+
+**`M2` IS THREE ITEMS AGAINST BUILT ENDS, AND ITEM 2 CARRIES TWO GUARDS.** *Written here rather than
+pointed at, because the row above said "two named wires" within a day of being repaired and that is the
+same staleness this table was just corrected for.*
+
+    1. THE WIRE       the composed objective fills `WANT`, replacing `env.objective()`'s hardcoded
+                      `"ALL(BECOME(level, completed))"`. NECESSARY and NOT SUFFICIENT: `_utter` runs
+                      AFTER `choose()` and can only raise `G.Ill` to refuse, so the utterance is a
+                      veto -- and `utterances refused: 0`. **The wire alone changes what type-checks
+                      and not what the agent does**
+    2. THE GOAL-      a third exit in `choose()`. **The path is BUILT: `discriminate` reads a Gamma
+       READING        closure, `discriminate:learned` reads the self-model's contingency and fires on
+       BRANCH         93 of 131 acts. What no branch reads is the BOUND TERM or the OBJECTIVE.** So
+                      this is a third INPUT to a working path, not a new channel
+    3. THE SELECTOR   picks among composed objectives. Forced last -- a selector with one candidate is
+                      untestable, and *you cannot tell a composer from a lookup table*
+
+**GUARD A — THE PRECEDENT SHOWS THE SHAPE, NOT THE CLEANLINESS.** `discriminate:learned` is clean
+because `contingency()` is the agent's OWN MEASUREMENT. **A goal-reading branch reads something the
+agent did not measure, so it does not inherit that.** The split: reading THAT the goal is
+levels-completed is **the ground, and legitimate** — an environment reporting its win condition is not
+an answer. Reading **WHICH ACTION advances it**, from anywhere but the agent's own learned model, **is
+`act` with a different name** — *a hardcoded procedure that pre-answers a question the agent should ask
+is a fault even when correct.* **Clean iff it composes the ground-goal with forward prediction from the
+agent's OWN bound terms**, for which `_predict(slot, state, action)` already takes the action as an
+argument.
+
+**GUARD B — IT ACTIVATES A LATENT DEFECT, AND THE FIX IS ALREADY WRITTEN.** `choose`'s `spread` calls
+`t.apply(before[s], Ctx(...))` **directly** — the identical bypass the two-arm board found in the
+pricing path, where an `OBJ` term was scored as its own truth value against the slot's alphabet. **It is
+harmless only because `spread` enumerates a hardcoded `("val","val")` closure and never sees one. Item 2
+is the change that puts one there.** Route `spread` through `_value_of`: *one function, every site*, and
+this is the fifth site, named before it existed rather than after it broke.
 
 > **M1 AND M5 ARE THE TWO THAT MOVE.** *Both are ungated, both have their inputs built, and both were
 > lost the same way — settled at their layer, never carried into the table.* **That is the phase table

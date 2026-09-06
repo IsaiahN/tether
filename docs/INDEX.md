@@ -15501,3 +15501,504 @@ does not cover one edit invalidating a later edit's anchor in the same run.**
 mechanical one is the duplication refused twice already.** *Recorded so the fourth instance is expected
 rather than surprising: assert each anchor against the CURRENT text, not the text the script started
 from.*
+
+---
+
+# THE TWO-ARM TEST, RUN — AND THE BARGAIN PRICES *HOW LONG*, NEVER *WHAT KIND*
+
+**The board.** `A` is one cell, `B` a domino one column ahead; both advance one column a step. So a
+VALUE PREDICTOR (`+1` on the column) and an OBJECTIVE over the peer group (*be one behind B*) each
+predict `A`'s next column exactly, every step. **Both arms get the same board**, which is the whole
+point of the design — the margin is then a fact about the bargain rather than about the fixture.
+
+## The reading
+
+    o1.col   translate . recolour<o2.col>    depth 2   left 0.0   cost 13.3783   base 15.2290
+             objective 13.3783 · predictor 13.3783 · margin 0.0 · winner TIE
+
+    o2.col   above . all<o2.row>             depth 2   left 0.0   cost 13.3783   base 15.2290
+             objective 13.3783 · unopposed
+
+**A TIE TO THE BIT, AND IT IS STRUCTURAL RATHER THAN A COINCIDENCE OF THIS BOARD.**
+`term_bits(k, alphabet) = (k+1)·log2(alphabet+1) + (k−1)·log2(bonds)` **reads LENGTH and ALPHABET and
+nothing else** — atom identity contributes zero. So two terms of equal depth cost the same whatever
+they are built from, and when both also drive `left` to zero their totals are *identical*.
+
+> **THE TWO ARMS ARE SEPARABLE ONLY WHEN THEIR DEPTHS DIFFER**, and then by the whole 4.4594 bits
+> between a two-atom term and a three-atom one. There is no intermediate resolution. **The bargain
+> has no opinion about objectives at all** — it prices description length, and an objective is not a
+> longer or shorter KIND of thing.
+
+**The tie is published as `winner: "tie"`, not broken.** Ruling that an objective outranks a predictor
+at equal cost would answer the question the two streams exist to ASK — *agency is the goal, not a
+means*. Whatever breaks it has to earn its way in.
+
+## Three defects the board found first, and none of them were in the framework
+
+**It took three repairs to get a reading at all, and every one was in MY instrumentation of the
+bargain.** Recorded because the failure signature was the same each time: **the objective arm looked
+like it had lost a fair contest.**
+
+1. **THE CROSS-STREAM `break` MADE THE CONTEST A FALLBACK CHAIN.** `("val","val")` runs first, so a
+   predictor at `left = 0.0` ended the search and the objective stream was **never asked** — while
+   `contest` recorded `margin: None`, whose own comment reads *the other stream fielded nobody*.
+   **Never-asked and fielded-nobody are different claims, and the first was being written as the
+   second.**
+
+2. **THE EDGE WAS IN THE BET AND NOT IN THE PRICE, so an objective could not pay ON ANY BOARD.**
+   `_predict` routed `OBJ` terms through `objective_step`; `_left`, `_residual_obs` and `_cannot_pay`
+   called `term.apply` directly. **A `WANT` was BET through the edge and PRICED as its own truth
+   value** — 0 or 1 against a slot whose alphabet is 14. On this board `any_same . all` predicts the
+   true next value exactly and priced as *unexplained* on every step. Fixed by `_value_of`: **one
+   function, four callers**, for `_record`'s reason — *a bet and a price that disagree about what a
+   term MEANS is not a disagreement any test names.*
+
+3. **SELECTION AND REPORTING USED `left` WHERE THE BARGAIN SPENDS `cost + left`.** Both the held term
+   (`best`) and the published `contest` compared explanation alone — *buy the most-explaining term at
+   any price* — and the bargain's entire content is that explanation is bought WITH description.
+   **This one decided the headline**: under it both arms tied at `0.0` and `min` returned whichever
+   key `by_kind` held first, which is stream order. **`winner=predictor` was the dict remembering who
+   arrived.**
+
+   **THE CURRENCY WAS NEVER MINE TO PICK, AND THE SIXTH LAW FOUND IT IN ONE GREP.** `pays` is
+   `cost + left < base` and its docstring already called the strictness a feature; `ARC_BUILD_PLAN`
+   §16.8 quotes the same line. **Read, not designed — tenth instance.**
+
+**And the stopping bound went with it.** `best[0] == 0.0` was never necessary: enumeration is ordered
+by *retrieval fit*, not by cost, so a term that explains everything says nothing about what a later,
+SHORTER one totals — `cost 5, left 0` loses to `cost 1, left 0.5`. Under the corrected currency the
+old test is also **dead** — cost is strictly positive, so a total of exactly `0.0` cannot occur, and
+**the break would have gone silent rather than wrong.** Replaced with the floor `term_bits(1, alphabet)`:
+`term_bits` is monotone in `k`, so nothing remaining can beat an incumbent already at or under the
+cheapest term the cost function admits. **Necessary, like `_cannot_pay`'s bound.**
+
+## What is still owed
+
+**`_reach` carries defect 3 and is NOT fixed here.** It selects among candidates of differing length on
+`left` alone, same one-line error — **but its consumer in `sweep` compares `found[0]` against a bare
+`left`, so correcting the currency in one place silently mismatches the other.** Not a one-line fix,
+and it changes chunk-reuse behaviour across the panel with no reading to check it against. **Recorded,
+not repaired: fix what the test reads, record what it does not.**
+
+## And the reading this does NOT license
+
+**A synthetic solve proves wiring and never capability.** What the two-arm board establishes is that
+**both arms now run, are priced in the same currency, and tie when they should** — the contest is a
+contest. *Whether an objective ever out-predicts a value bet on a board nobody built for it is a
+question for a real board*, and this fixture cannot answer it. **Its null is interpretable, which is
+the whole reason it was worth running; its positive would not have been.**
+
+---
+
+# THE SELF-MODEL-PRICED SEARCH: THE COUPLING IS THE BUILD, BUT THE CURRENCY CLAIM IS FALSE AND IT IS AN `A6i`
+
+**Three things were asked. The first two are answerable from the code, and the second dissolves the
+chain rather than the ruling.**
+
+## ONE — IS IT ALREADY BUILT? NO, AND NEITHER IS THE SCALAR
+
+**There is no `w_a`/`w_b` in the code, anywhere.** In the corpus it is a *descriptive axis label* for
+inner-versus-outer, and INDEX's own inner/outer check already returned the verdict: **"one axis, three
+homes, NONE OF THEM A TERM."** The four members each run `_attribute(action, signal)`; that is the
+weighting, and it is per-member and per-action, never a scalar either half of a rate could be read off.
+
+**And the family's verdict is unread — which `PERCEPTION_BUILD_PLAN` states in the sentence that
+declares the family built:** *"Layer 1(e)'s detectors, built. **Only the verdict goes unread.**"*
+Confirmed at the call sites:
+
+    selected() · unmodeled() · mean()   called ONLY inside `self_family.py`, by `report()`
+    mode() / per_locus                  reaches `tether` at ONE site: `led.record(... "mode" ...)`
+    agency.report()                     read only by `arc_check.py`, never by the loop
+    cfg.budget                          a fixed dataclass default; never set dynamically
+
+**So both run at a fixed rate regardless of self-model state. It is the build, not a wiring** — and
+the read was worth doing, because *a self-model-priced search is exactly the kind of thing that turns
+out already half-present.* Here it is not half-present. It is absent, and the corpus said so first.
+
+## TWO — THE COST IS NOT PAID IN ACTIONS, AND THAT IS THE THIRD SENSE OF `BUDGET`
+
+> **`Config.budget` CAPS CLOSURE YIELDS IN `enumerate_closure`. IT IS A CANDIDATE CAP, NOT AN ACTION
+> CAP.** `mint` re-reads `hist`; it does not act. `_reach`'s own docstring already says it —
+> *"No actions are spent — it re-reads evidence already on the trace — so it is search cost, never
+> budget."*
+
+**Preferring objectives spends ZERO actions.** So there is no self-currency outlay, nothing for an
+exchange rate to price, and the trade the chain corrected itself into — *certain actions for uncertain
+bits* — has no left-hand side. **The first cut was right that there is one currency and wrong about
+which one**: not bits, and not actions. **Candidates** — which the framework does not price at all.
+
+**AND THIS IS `A6i` FIRING ON THE ITEM IT WAS REGISTERED AGAINST.** `CLAUDE.md` pre-registered
+**`BUDGET`** with two senses — a loadable prior shape of cognitive bounds in `ARC_AGENT` §12.1, and
+the harness cap in §22.1 — and filed it *checked and clear*. **`Config.budget` is a THIRD sense**, and
+it is the one this argument loaded. *The prospective half needs the item that would collide with it to
+be nameable*; the collision arrived from a direction the register did not enumerate, and the register
+still caught it, because the word was already flagged as carrying more than one quantity.
+
+### The measured rate, this board only, no pooling
+
+    units 22 · max_depth 3 · cfg.budget 4000
+
+    ('val','val')                    40 pipelines
+    (POSITION|DELTA|EXTENT, OBJ)     18      x0.450 of the predictor stream   total x1.450
+    (COLOUR|SHAPE, OBJ)              15      x0.375                           total x1.375
+
+    actual, 11 cycles: candidates_seen 1029 · tried 21553 · budget_exhausted 0
+
+**THE `2.9x` IN THE PREMISE IS A MEASUREMENT OF A DIFFERENT MECHANISM.** It is the `OBJECT → OBJ`
+**third query** — *2.9x runtime, 5.9x candidates* — and that stream was **WITHDRAWN as type-incoherent**
+(`colour . all_same . all` comparing a colour against a group of rows). **Pricing a stream that is not
+running.** The two-stream form costs 1.4x, and nothing exhausts.
+
+## THREE — THE ρ DIRECTION HAS A COUNTEREXAMPLE, AND A PRIOR OBJECTION THAT BITES FIRST
+
+**PRIOR: `unknown` IS AN ABSTENTION AND CANNOT BE A DENOMINATOR.** Per locus, `mode()` yields only
+`embodied` and `unknown` — `disembodied` is a BOARD claim, by the repair that made `hybrid` reachable
+at all. So the per-locus axis is **evidence-versus-no-evidence, not agency-versus-no-agency**, and
+scaling a spend by it divides by *I have no reading here* while reading it as *the world is in control*.
+**Null-not-absent, one level up.**
+
+**THE COUNTEREXAMPLE, AND IT IS A SIGN FLIP RATHER THAN A MAGNITUDE.** The argument prices a probe by
+its **information yield per action** — more control, better probe, probe more. Price it instead by
+**marginal information over what the ordinary trace already supplies** and the sign reverses: under high
+agency every ordinary action already produces a legible effect, so an extra probe adds little; under low
+agency the trace is confounded by the world's own motion, and probes are what separate the agent's
+effect from the drift. **Both readings are coherent and they disagree in direction**, so the
+identification is under-determined by the argument as given. *Which of the two a probe is worth is a
+measurement, not a derivation* — which is the same verdict the chain reached about the rate, applied one
+level up to its own sign.
+
+## WHAT SURVIVES, AND WHEN THE QUESTION GOES LIVE
+
+**The tie is untouched. The bargain prices HOW LONG and never WHAT KIND, and nothing here changes that.**
+What dissolves is the resolution, not the problem.
+
+> **NOTHING NEEDS TO BREAK THE TIE TODAY, BECAUSE THE TIE COSTS NOTHING TODAY.** The objective stream is
+> 1.4x of a budget that **has never bound** — `budget_exhausted` is zero here and was zero over twelve
+> worlds, and `Config.budget`'s own anchor says *"it bounds the wrong quantity."*
+
+**It becomes a live question exactly when the search cost binds** — a real board where slots × candidates
+drives `budget_exhausted` above zero, which the cost caveat already flags as **UNMEASURED** at
+`43 objects → a few hundred slots`. **That is a contact question and it reads on the first real run.**
+Until then a rate would be fitted to a cost nobody is paying.
+
+## CORRECTING MY OWN ENTRY: THE TRIGGER I NAMED IS ON THE QUANTITY THE ANCHOR CALLS WRONG
+
+**I wrote *it reads on the first real run* and pinned it to `budget_exhausted > 0`. That gate is on
+YIELDS, and `Config.budget`'s own anchor says the work is yields × operand bindings.** Measured on the
+two-arm board, per mint call:
+
+    yields  (the gated quantity, capped at 4000)   max     58   mean    44.7
+    work    (yields x operand bindings)            max  1,928   mean   937.1
+    ratio                                          max   33.2x  mean   20.3x
+
+**So the gate fires at 4,000 yields — roughly 81,000 units of actual work at this board's mean ratio.**
+It trails the cost it is supposed to announce by about twenty to one, which is why it read zero here
+and zero over twelve worlds **while the anchor recorded max tried 4,206 against max yields 1,884.**
+*The bound never binds and the work exceeded it* is one sentence describing both halves, and I quoted
+it and then pinned a trigger to the half it says is wrong.
+
+> **A GATE ON THE WRONG QUANTITY IS NOT A CONSERVATIVE GATE, IT IS A GATE THAT CANNOT FIRE.** Same
+> shape as §12.4's permanent `UNREACHED`: a mechanism whose trigger is unreachable reports *nothing
+> happened* forever, and *nothing happened* is indistinguishable from *the instrument is pointed
+> elsewhere.*
+
+**The correction, and it does not change the finding.** *The tie costs nothing that is currently
+COUNTED* is the defensible claim; **the tie costs nothing** is not, because the quantity that would
+hurt on a real board is `candidates_tried` and nothing gates it. **The trade the chain was reaching for
+is not absent — it is UNMEASURED, which is a different verdict and a weaker one than the one I wrote.**
+*A null carrying a satisfying causal story is harder to doubt than a bare one*, and mine carried one:
+*there is no cost, so there is no ruling* closed the question more neatly than the evidence closes it.
+
+**What the first real board should therefore read is `candidates_tried`, not `budget_exhausted`.**
+Recorded rather than repaired: pointing the gate at the work is a change to what `enumerate_closure`
+bounds, and *the panel property must be measured before it is used as a premise* — the ratio is 20.3x
+on ONE board with 16 slots, and it scales with operand bindings, which scale with slot count. **One
+board is not a ratio.**
+
+## AND A PUBLISHED NULL IS RETRACTED BY DEFECT 2, WHICH NOTHING ABOVE SAID OUT LOUD
+
+**`PERCEPTION_BUILD_PLAN`'s STILL OPEN carried *143 of 143 mint rows read `depth_exhausted` and NO
+candidate paid, IN EITHER STREAM*.** That was measured while the edge was wired into `_predict` and not
+into `_left` / `_cannot_pay` / `_residual_obs` — **so the objective stream could not pay on any board,
+and its failure to pay is not a reading of the contest.**
+
+> **A STREAM THAT CANNOT PAY FAILING TO PAY IS NOT EVIDENCE.** The predictor half of that null still
+> stands; the objective half carries nothing and is struck at the source.
+
+**This is *state what property the panel would need in order to show* — one level in.** The rule is
+usually applied to the WORLD: `M = 7` is prime, the ladder is flat, four slots make echo accidental.
+**Here the missing property was in the MACHINE**: the panel could have been perfect and the null would
+have read identically, because the arm being tested was disconnected from the quantity that decides.
+**Same law, and the harder instance, because a broken instrument leaves no trace in its own output.**
+
+**Third time a recorded null has been withdrawn, and the family is now stable enough to name:** the
+`false_mint_rate` withdrawal was a DENOMINATOR the mechanism moved; the §12.4 *cannot fire* withdrawal
+was ONE PANEL read as a fact about a mechanism; this one is AN ARM NOT CONNECTED. **Three different
+ways for a null to be about the instrument rather than the world.**
+
+---
+
+# DOES A WON GOAL-BET DRIVE A DIFFERENT ACTION THAN A WON GUESS-BET? NO — AND MOMENT TWO IS `M2`, WHICH IS UNBUILT RATHER THAN UNPRICED
+
+**Read before building, and the answer is the first branch — but for a stronger reason than the branch
+was framed with.** Not *the same action because both predict the same value*. **The won bet's KIND
+cannot reach the action at all.**
+
+## DIRECTLY: THE ACTION PATH NEVER READS THE BOUND TERM
+
+`choose()` has four exits and none consults `self.bound`:
+
+    probe                  `drive.bored()` -> `drive.choose(...)`, an uninformed draw
+    discriminate           spread over a FRESHLY ENUMERATED `("val","val")` closure at
+                           depth 2 -- **hardcoded**, so the branch is blind to `OBJ` BY
+                           CONSTRUCTION rather than by accident
+    discriminate:learned   `contingency()`, *what responded when I acted* -- a measurement,
+                           and the docstring insists on `contingency()` NEVER `selected()`
+    draw                   `drive.choose(...)`, an uninformed draw
+
+**`self.bound` is read at 23 sites in `tether.py` and ZERO of them fall between `choose` and
+`_learned_split`.** A clean gap over the entire action path.
+
+**AND `_predict` IS DOWNSTREAM, NOT UPSTREAM.** It takes `action` as an ARGUMENT, from
+`perceive(action)`. The bet is a prediction *about* the action already chosen; it is scored against
+what happens and it drives minting. **It is never an input to choosing.** *The loop is a chain, not a
+cycle.*
+
+## INDIRECTLY: ONE CHANNEL EXISTS, AND THE TIE IS EXACTLY WHAT CLOSES IT
+
+**Stated because a flat negative here would be the same over-closing as last round.** There IS a path
+from the bound term to the action: `bored()` reads whether any slot carried live mass, mass is
+residual, and residual is what the bound term FAILED to predict. **So prediction ACCURACY gates which
+branch fires** — a term that explains everything makes the agent bored and draws a probe.
+
+> **THAT PATH CARRIES ACCURACY, NEVER KIND.** And a tie *is* the two arms predicting identically — same
+> mass, same boredom, same owed set, same branch, same action. **The one channel that could have
+> carried a difference is closed by the very fact of the tie.**
+
+## THE CORPUS SAID IT, AND IT OUTLIVED THE CODE IT WAS WRITTEN AGAINST
+
+`DOCTRINE_AUDIT` §1: ***"Nothing about Γ, the bound terms, the residual, or the objective ever enters
+action selection. There is no branch anywhere that selects an action because a term predicts it will
+help."*** **Eleventh instance of *assume it is already specified, and go look.***
+
+**But the citation alone would have been unsound.** That was written against `tether.py:511` — a
+`drive.choose` one-liner — and `choose` has since grown BOTH discriminate branches. **The re-read is
+what establishes the claim survived the change**, and *familiarity actively suppresses this*: quoting
+the audit feels like evidence of having checked it.
+
+## SO MOMENT TWO DOES NOT EXIST YET, AND IT IS ALREADY NAMED TWICE
+
+**A won bet becoming the strategy the agent acts on is `M2`.** `STORY_PROOF`: *"needs multi-step
+planning. `ledger.STEPS` has **no PLAN step** and **no phase creates one**"* — and `M2` is filed
+**DOWNSTREAM OF THE BREAK, cannot be reached.** INDEX again from the other side: *STRATEGY at an honest
+structural zero until routines exist.*
+
+> **MOMENT TWO IS NOT UNPRICED. IT IS UNBUILT.** There is no execution trade because there is no
+> execution — the won bet is scored and spent on minting, never on acting. **A rebuild at moment two
+> would be a third chain over a mechanism that does not exist**, which is the same error as the first
+> two with the moment moved rather than the method fixed.
+
+**THE TIE GOES ALL THE WAY DOWN.** Moment one: no action trade, candidate cost uncounted. Moment two:
+no divergence, because kind never reaches the action, and no execution, because `M2` is unbuilt. **The
+CE frame acquires a subject when routines exist — not before, and the ordering is `M2` first.**
+
+## AND THE REPAIR CHANGED THE LAYER ABOVE, WHICH THE GATE'S 16 CHECKS DID NOT SEE
+
+**Checked because *a repair can break the layer above* is one of the seven, and a selection-rule change
+alters which term wins on EVERY board, not only the fixture it was read on.** `demo.py` at HEAD against
+`demo.py` with the three repairs, one variable being all three together:
+
+    cycles 16 · library 17 (8 prior) · still owed ['opaque'] · stopped at link 2      IDENTICAL
+
+    opaque bound        HEAD  `take . inc . act`   3 atoms
+                       AFTER  `inc . inc`          2 atoms
+
+    settled by ground   HEAD  dec.neg · take.inc.act · take.inc<climb> · take.inc<driven>
+                              · take.take.inc<driven>                                    5
+                       AFTER  act.inc · dec.neg · take.inc<climb> · take.inc<driven>     4
+
+**THE SHORTENING IS THE CURRENCY CHANGE'S OWN SIGNATURE and is attributable by mechanism** — pricing on
+`cost + left` instead of `left` is exactly *prefer the shorter term at equal explanation*, and the
+bound term went from three atoms to two. **That half is the repair working, not the repair leaking.**
+
+**THE 5 → 4 IS NOT ATTRIBUTED AND IS NOT CLAIMED EITHER WAY.** Three repairs went in together and this
+run does not separate them; the settled SET changed composition rather than shrinking uniformly
+(`act . inc` appears, two others leave); and `still owed`, `stopped at link` and the library size are
+unchanged. **On a synthetic panel whose own caveat reads *a synthetic solve proves wiring and never
+capability*, four-versus-five settled terms is not a reading of better or worse.**
+
+> **RECORDED RATHER THAN RESOLVED, AND THE POINT IS THAT IT WAS INVISIBLE.** `demo.py` ran, ruff
+> passed, and the gate's 16 checks passed **before and after** — none of them reads which term binds.
+> *The tests reach, they do not witness the decision*, and a selection rule is exactly a decision.
+> **Whoever next changes what `mint` selects on should diff the bound map, because nothing in the
+> suite will.**
+
+---
+
+# WHAT BLOCKS `M2`: NOT LINK 2 ANY MORE, AND `_link()` CARRIES TWO QUANTITIES UNDER ONE LABEL
+
+**Asked directly, and answering it required correcting two things that would have sent the answer
+wrong.**
+
+## THE STALE GATE
+
+`STORY_PROOF` files `M2` as *cannot be scheduled ahead of P3*. **P3 was built on 2026-09-05** — the
+relational key, link 2's break named without the pair-slot explosion. **That gate has lifted**, and the
+table still said it had not. Repaired at source; the table predates the build it gates on.
+
+## THE `A6i`, AND IT IS LOAD-BEARING FOR EXACTLY THIS QUESTION
+
+**`_link()` returns `"2 - vocabulary"` whenever `owed_import` is non-empty — one slot unreached at
+budget.** That is **not** Figure 3's link-2 break, which is *EXTRACT missing, so no attribute is
+representable at all*. **One toy slot failing to find a term at depth 3 within budget, and the
+vocabulary being unable to express attributes, are two quantities under one label** — and the label is
+what a reader consults to decide where the chain stops.
+
+> **THE DEMO PRINTS `stopped at link 2` AND CLAUDE.md's MAP SAYS EXTRACT/RELATE/QUANTIFY ARE
+> INSTANTIATED. BOTH ARE CORRECT.** They are not talking about the same link 2. **The terminal string
+> the same function returns once nothing is owed is the real one:** *3 — the objective (measured:
+> prediction closed, no goal composition built).*
+
+## SO `M2` IS GATED ON LINK 3, AND LINK 3 IS TWO WIRES
+
+**Neither is a research problem; both are connections between things that already exist.**
+
+    THE WIRE      `env.objective()` returns a HARDCODED STRING -- `"ALL(BECOME(level, completed))"`.
+                  `tether` hand-builds the `WANT` from it and composes it into `bet_t`, which is
+                  **the agent's account of ITSELF** -- the utterance. **The objective is NARRATED,
+                  never pursued.** Meanwhile `grammar.py` declares `WANT : OBJ -> PRED`, `WANT` is one
+                  of `_BET_ORDER`'s four nodes, and `OBJECT -> ATTR -> PRED -> OBJ` is built, typed
+                  and composable end to end. **Every bet already consumes an objective. The COMPOSED
+                  one never reaches it.** Producer and consumer both exist, unconnected
+
+    THE SELECTOR  nothing picks among composed objectives. With the wire in, many compose and no rule
+                  chooses -- which is the second half of `CLAUDE.md`'s map entry, and the half that
+                  cannot be built before the first makes candidates exist
+
+**`CLAUDE.md`'s map already names both, and `M2` is its *everything gated behind those*.** The map
+entry is right; what was missing is that `M2` is the concrete thing behind it, and that `STORY_PROOF`
+pointed at a gate which has since lifted.
+
+**AND THE ORDERING IS THE WIRE FIRST, WHICH IS NOT A PREFERENCE.** A selector with one candidate is
+untestable, and *an agent handed every prior never mints — you cannot tell a composer from a lookup
+table.* **The wire makes candidates; the selector becomes measurable the moment there is more than
+one.**
+
+## CORRECTING THE ENTRY ABOVE: THE UTTERANCE IS A VETO, NOT NARRATION — AND `M2` NEEDS THREE THINGS, NOT TWO
+
+**I wrote *the objective is NARRATED, never pursued*, and called `bet_t` the agent's account of itself.
+The conclusion was right and the mechanism was wrong, which made the proposed wire incoherent** — it
+read as *connect the composed objective to `bet_t` instead of the utterance*, and **`bet_t` IS the
+utterance.**
+
+    tether.py:3      "an action is proposed by an utterance that type-checks and passes the
+                     gate, or there is no action"
+    tether.py:2136   action, by = self.choose(before)          <- the action is CHOSEN here
+    tether.py:2145   bid, utts = self._utter(action, before, focal)
+                     except G.Ill -> record "refused", return False   <- and only VETOED here
+
+**So the utterance is a TYPE GATE placed downstream of an action that was already selected.** It can
+refuse a step; it cannot pick one. **And `utterances refused: 0` on the panel — the gate has never
+fired**, so today it constrains nothing at all.
+
+> **WHICH MEANS THE WIRE ALONE BUYS NOTHING BEHAVIOURAL.** Filling `WANT` with a composed objective
+> instead of `env.objective()`'s hardcoded string changes **what type-checks**. `choose()` runs first
+> and reads none of it — four exits, zero reads of `self.bound`, `discriminate` on a hardcoded
+> `("val","val")` closure. **The agent would compose a real objective, narrate it, type-check against
+> it, and take exactly the same action.**
+
+**THE THIRD THING IS THE ONE NOBODY IN THIS THREAD NAMED, AND IT IS THE ACTUAL PURSUIT MECHANISM:**
+
+    1. THE WIRE        the composed objective fills `WANT`, replacing the hardcoded string.
+                       NECESSARY -- it is what makes composed objectives exist as candidates
+    2. THE ACTION      a branch in `choose()` that selects an action BECAUSE the objective says it
+       CHANNEL         helps. **`DOCTRINE_AUDIT` §1: *there is no branch anywhere that selects an
+                       action because a term predicts it will help.*** Without this, 1 and 3 change
+                       narration and typing only
+    3. THE SELECTOR    picks among composed objectives. Forced last: a selector with one candidate
+                       is untestable
+
+**AND THE ORDER IS 1 → 2 → 3, WITH 2 CARRYING THE PROHIBITION.** *`act` arrived knowing what each
+action does, and that is the encoded answer with a measurement already against it* — `choose`'s
+discriminate branch reads 0/96 without `act` and 80 of 82 flat on `ls20`. **The action channel must be
+built from what the agent LEARNED, and the corpus already names the legitimate route:**
+*`SelfHypothesis.contingency()` already separates the actions on `ls20` and is consumed by nothing —
+§18.4's proposer half, still owed.*
+
+**So `M2` is nearer than *unbuilt* and further than *one wire*: three items, all against built ends,
+and the middle one is the one that makes pursuit real rather than well-typed.**
+
+## AND ITEM 2 PARTLY EXISTS — I QUOTED A STALE DOCSTRING, WHICH IS THE FOURTH TIME THIS THREAD
+
+**`choose()`'s docstring says `SelfHypothesis.contingency()` *is consumed by nothing* and calls §18.4's
+proposer half *still owed*. `_learned_split`, forty lines below and CALLED BY `choose`, opens *"§18.4's
+proposer half"* and consumes exactly it** — `f = getattr(self.env, "contingency", None)`, then
+`f().items()`. **`discriminate:learned` fires on 93 of 131 acts.**
+
+> **TWO DOCSTRINGS IN ONE FILE DISAGREEING ABOUT WHETHER A MECHANISM EXISTS, AND I QUOTED THE STALE
+> ONE.** Fourth instance in this thread of trusting a comment over the code, and the one that would
+> have shaped the build — *"the never-existed bridge from understanding to choice"* describes a bridge
+> that carries 71% of acts. **Repaired at source.**
+
+**THE GAP RESTATED, AND IT IS NARROWER AND MORE TRACTABLE:**
+
+    EXISTS, live      `discriminate`          picks the action maximising `spread` over a Gamma
+                                              closure -- a model-derived quantity
+    EXISTS, live      `discriminate:learned`  picks from the self-model's LEARNED contingency,
+                                              93 of 131 acts. §18.4's proposer half, BUILT
+    ABSENT            nothing reads the BOUND TERM or the OBJECTIVE. **No branch selects an
+                      action because it ADVANCES A GOAL**
+
+**So `M2`'s item 2 is not *build an action channel*. It is *extend an action path that already has two
+model-informed branches to read a third thing — what the agent WANTS*.** The shape is present; the
+input is missing. **Which is the pattern named three times over: *is it built* is the wrong question to
+ask a row, and *what does it still owe* is the right one — and the two differ most where the mechanism
+is finished.**
+
+**AND `DOCTRINE_AUDIT` §1 IS NOW HALF TRUE, WHICH IS WORSE THAN FALSE FOR A CITATION.** *Nothing about
+Γ, the bound terms, the residual, or the objective ever enters action selection* was written against a
+`drive.choose` one-liner. **Γ enters (`discriminate`). Perception enters (`discriminate:learned`). The
+bound terms and the objective still do not.** Corpus doc — annotated here, not edited.
+
+## TWO CONDITIONS ON `M2`'s ITEM 2, BOTH DERIVED FROM THINGS ALREADY FIXED OR ALREADY RULED
+
+**Recorded before the build, because the first is a prohibition that does NOT transfer automatically
+and the second is a defect this session already repaired once.**
+
+### THE PRECEDENT IS CONDITIONAL, NOT INHERITED BY CONSTRUCTION
+
+`discriminate:learned` is clean because **`contingency()` is the agent's OWN MEASUREMENT** — what it
+observed its actions do. **A goal-reading branch reads something the agent did not measure**: the
+objective, which today comes from `env.objective()`'s hardcoded `"ALL(BECOME(level, completed))"`.
+
+**The split that decides it, and it is not the same line as `discriminate:learned`'s:**
+
+    LEGITIMATE   reading THAT the goal is levels-completed. That is the GROUND, and the ground is
+                 the only metric -- an environment reporting its own win condition is not an answer
+    A FAULT      reading WHICH ACTION advances it, from anywhere but the agent's own learned model.
+                 *A hardcoded procedure that pre-answers a question the agent should ask is a FAULT,
+                 EVEN WHEN IT IS CORRECT*
+
+> **SO ITEM 2 IS CLEAN IFF IT COMPOSES TWO THINGS THE AGENT ALREADY HAS SEPARATELY** — the objective
+> from the ground, and the forward prediction from its OWN bound terms. **It is not clean because it
+> sits next to a branch that is.** The precedent shows the SHAPE is buildable; it does not discharge
+> the prohibition, and *`act` arrived knowing what each action does* is the failure this exact branch
+> is closest to.
+
+**And the machinery for the legitimate form exists:** `_predict(slot, state, action)` **takes the
+action as an argument**, so *what would happen if I did X* is already answerable from learned terms.
+
+### AND `choose`'s `spread` WOULD REPRODUCE DEFECT 2 THE MOMENT AN `OBJ` TERM REACHES IT
+
+**`spread` calls `t.apply(before[s], Ctx(action=act, ...))` DIRECTLY.** That is the identical bypass the
+two-arm board found in the pricing path — `_left`, `_cannot_pay` and `_residual_obs` all called
+`term.apply` while only `_predict` routed `OBJ` terms through `objective_step`, **so a `WANT` was
+priced as its own truth value against the slot's alphabet.**
+
+**It is harmless TODAY only because `spread` enumerates a hardcoded `("val","val")` closure and never
+sees an `OBJ` term.** *Item 2 is exactly the change that puts one there.*
+
+> **ROUTE `spread` THROUGH `_value_of` WHEN ITEM 2 LANDS, OR THE ACTION PATH REPRODUCES A DEFECT THE
+> BARGAIN PATH ALREADY PAID FOR.** *One function, every site* was the fix; `spread` is a fifth site
+> that did not need it yet. **A repair that names its own remaining callers is worth more than one that
+> just works.**

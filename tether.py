@@ -661,6 +661,30 @@ class Agent:
         """
         return not term.operand or term.operand in state
 
+    def _value_of(self, term: Term, slot: str, state: dict[str, int], ctx: Ctx):
+        """A term's PREDICTED SLOT VALUE -- the edge from a term to a number, in one place.
+
+        **IT WAS IN `_predict` ONLY, AND THAT MADE AN OBJECTIVE UNPRICEABLE.** `_predict` is
+        the BET; `_left`, `_residual_obs` and `_cannot_pay` are the PRICE, and all three called
+        `term.apply` directly. So a `WANT` was BET through `objective_step` and PRICED as its
+        own truth value -- 0 or 1 against a slot whose alphabet is 14. **The objective arm
+        could never pay, on any board**, and the failure presented as *the other stream fielded
+        nobody*, which reads as a fair contest lost.
+
+        Measured on the two-arm board: `any_same . all` on `o1.col` predicts the true next
+        value EXACTLY and priced as unexplained on every step.
+
+        One function, four callers, for `_record`'s reason -- a bet and a price that disagree
+        about what a term MEANS is not a disagreement any test names.
+        """
+        if getattr(term, "out_type", "val") == OBJ_TYPE:
+            ordered = self.slot_types.get(slot) in ORDERED_TYPES
+            def _sat(v: int) -> bool | None:
+                r = term.apply(v, ctx)
+                return None if r is NOT_RESOLVED else bool(r)
+            return objective_step(_sat, state[slot], ordered, self.alphabet[slot])
+        return term.apply(state[slot], ctx)
+
     def _predict(self, slot: str, state: dict[str, int], action: str) -> int | None:
         """`None` is THE INSTRUMENT COULD NOT READ, and it is not a prediction of anything.
 
@@ -672,16 +696,8 @@ class Agent:
         ctx = Ctx(action=action, operands=self._ops(term, state),
                   touching=self._touching(slot), group=self._group(slot, state),
                   obj=self._record(slot, state))
-        alphabet = self.alphabet[slot]
-        if getattr(term, "out_type", "val") == OBJ_TYPE:
-            ordered = self.slot_types.get(slot) in ORDERED_TYPES
-            def _sat(v: int) -> bool | None:
-                r = term.apply(v, ctx)
-                return None if r is NOT_RESOLVED else bool(r)
-            got = objective_step(_sat, state[slot], ordered, alphabet)
-        else:
-            got = term.apply(state[slot], ctx)
-        return None if got is NOT_RESOLVED else got % alphabet
+        got = self._value_of(term, slot, state, ctx)
+        return None if got is NOT_RESOLVED else got % self.alphabet[slot]
 
     def _standing(self, slot: str) -> None:
         """HELD AND CITED ARE TWO ROWS, not one. A candidate may be held -- bound, and
@@ -1102,10 +1118,11 @@ class Agent:
             if not self._applies(term, state):
                 total += math.log2(self.alphabet[slot])   # inapplicable is unexplained
                 continue
-            got = term.apply(state[slot], Ctx(action=action, operands=self._ops(term, state),
-                                              touching=None,      # replay: contact unknown
-                                              group=self._group(slot, state),
-                                              obj=self._record(slot, state)))
+            got = self._value_of(term, slot, state,
+                                 Ctx(action=action, operands=self._ops(term, state),
+                                     touching=None,      # replay: contact unknown
+                                     group=self._group(slot, state),
+                                     obj=self._record(slot, state)))
             if got is NOT_RESOLVED:
                 total += math.log2(self.alphabet[slot])   # unread is unexplained
                 continue
@@ -1175,11 +1192,11 @@ class Agent:
             if not self._applies(term, state):
                 out.append((state, action, actual))   # inapplicable is unexplained
                 continue
-            got = term.apply(state[slot], Ctx(action=action,
-                                              operands=self._ops(term, state),
-                                              touching=None,      # replay: contact unknown
-                                              group=self._group(slot, state),
-                                              obj=self._record(slot, state)))
+            got = self._value_of(term, slot, state,
+                                 Ctx(action=action, operands=self._ops(term, state),
+                                     touching=None,      # replay: contact unknown
+                                     group=self._group(slot, state),
+                                     obj=self._record(slot, state)))
             if got is NOT_RESOLVED or got % self.alphabet[slot] != actual % self.alphabet[slot]:
                 out.append((state, action, actual))
         return out
@@ -1205,11 +1222,11 @@ class Agent:
             if not self._applies(term, state):
                 wrong += 1                            # inapplicable is unexplained
             else:
-                got = term.apply(state[slot], Ctx(action=action,
-                                                  operands=self._ops(term, state),
-                                                  touching=None,  # replay: contact unknown
-                                                  group=self._group(slot, state),
-                                                  obj=self._record(slot, state)))
+                got = self._value_of(term, slot, state,
+                                     Ctx(action=action, operands=self._ops(term, state),
+                                         touching=None,  # replay: contact unknown
+                                         group=self._group(slot, state),
+                                         obj=self._record(slot, state)))
                 wrong += (got is NOT_RESOLVED
                           or got % self.alphabet[slot] != actual % self.alphabet[slot])
             if cost + unit * wrong >= base:
@@ -1254,9 +1271,22 @@ class Agent:
         twice by me -- and each time the proposed fix was an atom that reads `c.action`,
         which is the encoded answer with a name and a measurement already against it.**
 
-        **WHAT WOULD MOVE IT LEGITIMATELY is a LEARNED contingency becoming bindable** --
-        `SelfHypothesis.contingency()` already separates the actions on `ls20` and is
-        consumed by nothing. That is §18.4's proposer half, still owed.
+        **WHAT MOVED IT LEGITIMATELY WAS A LEARNED CONTINGENCY BECOMING BINDABLE, AND IT IS
+        BUILT -- CORRECTED 2026-09-05.** This said `contingency()` *is consumed by nothing* and
+        called §18.4's proposer half *still owed*, while `_learned_split` -- forty lines below,
+        called by this method -- opens *"§18.4's proposer half"* and consumes exactly it.
+        **Two docstrings in one file disagreeing about whether a mechanism exists**, and the
+        stale one is the one a reader meets first. `discriminate:learned` fires on 93 of 131
+        acts.
+
+        **SO THE GAP IS NARROWER THAN THIS DOCSTRING IMPLIED, AND NAMING IT NARROWLY IS THE
+        POINT.** Two branches here already choose on model-derived quantities -- `spread` over
+        a Gamma closure, and the self-model's learned contingency. **What no branch reads is
+        the BOUND TERM or the OBJECTIVE**: nothing selects an action because it ADVANCES A
+        GOAL. `DOCTRINE_AUDIT` §1's blanket form -- *nothing about Gamma, the bound terms, the
+        residual, or the objective ever enters action selection* -- was written against a
+        `drive.choose` one-liner and is now half true. **The surviving half is the objective,
+        and that is `M2`'s middle item.**
         """
         # SUPPORT AT ZERO REFUSES THE MODEL THE WHEEL. `bored()` means no slot carried
         # live mass: the model explains everything it can currently see, and an action
@@ -1585,7 +1615,7 @@ class Agent:
         robs = self._residual_obs(slot, held, hist)
         guards = {"support": base > 0.0, "reachability": False, "novelty": False}
         cuts: list[dict] = []
-        best: tuple[float, float, Term] | None = None
+        best: tuple[float, float, float, Term] | None = None
         stats: dict = {"seen": 0, "budget_spent": False, "depth_exhausted": True,
                        "units": self.gamma.alphabet, "estimate": 0}
         by_kind: dict[str, tuple] = {}
@@ -1671,17 +1701,48 @@ class Agent:
                                          "reason": "does-not-pay"})
                             continue
                         guards["reachability"] = True
-                        if kind not in by_kind or left < by_kind[kind][0]:
-                            by_kind[kind] = (left, cost, term)
-                        if best is None or left < best[0]:
-                            best = (left, cost, term)
-                    if best is not None and best[0] == 0.0:
+                        # `cost + left`, WHICH IS WHAT `pays` SPENDS. This compared `left`
+                        # alone -- *buy the most-explaining term at any price* -- and the
+                        # bargain's whole content is that explanation is bought WITH
+                        # description. The currency was never mine to pick: `pays` is
+                        # `cost + left < base` and its docstring already called the strictness
+                        # a feature. Read, not designed.
+                        #
+                        # It decided a reading. On the two-arm board both arms field a term at
+                        # `left = 0.0`, so under the old comparison they TIED at 0.0 and the
+                        # winner fell to `by_kind` insertion order -- which is stream order,
+                        # which is `("val","val")` first. **`winner=predictor` was the dict
+                        # remembering who arrived, not the bargain preferring anyone.**
+                        total = cost + left
+                        if kind not in by_kind or total < by_kind[kind][0]:
+                            by_kind[kind] = (total, left, cost, term)
+                        if best is None or total < best[0]:
+                            best = (total, left, cost, term)
+                    # AND THE STOPPING BOUND HAS TO BE NECESSARY, WHICH `left == 0.0` WAS NOT.
+                    # Enumeration is ordered by retrieval fit, not by cost, so a term that
+                    # explains everything says nothing about what a LATER, SHORTER one totals:
+                    # `cost 5, left 0` loses to `cost 1, left 0.5`. Under the corrected currency
+                    # the old test is also dead -- cost is strictly positive, so a total of
+                    # exactly 0.0 cannot occur, and the break would have gone silent rather
+                    # than wrong.
+                    #
+                    # The floor is the cheapest term the cost function admits, `k = 1`, and
+                    # `term_bits` is monotone in `k`. Nothing remaining can beat an incumbent
+                    # already at or under it. Necessary, like `_cannot_pay`'s bound.
+                    if best is not None and best[0] <= term_bits(1, self.gamma.alphabet):
                         break
                 stats["seen"] += st["seen"]
                 stats["estimate"] += st["estimate"]
                 stats["budget_spent"] = stats["budget_spent"] or st["budget_spent"]
-                if best is not None and best[0] == 0.0:
-                    break
+                # NO BREAK ACROSS STREAMS. There was one, and it made the contest a FALLBACK
+                # CHAIN rather than a contest: `("val","val")` runs first, so a predictor that
+                # explained perfectly ENDED THE SEARCH and the objective stream was never
+                # asked -- while `contest` recorded `margin: None`, whose own comment reads
+                # *the other stream fielded nobody*. **Never-asked and fielded-nobody are
+                # different claims, and the first was being written as the second.**
+                #
+                # The INNER break stays: within one stream, a bound on that stream's own
+                # search skips nobody who was going to be asked.
 
         # WHICH KIND WON THE SLOT, AND BY HOW MUCH. The residual alone buries the answer:
         # *did an objective ever out-predict a plain value bet* is the question the two-stream
@@ -1689,11 +1750,33 @@ class Agent:
         # Same shape as `by` naming the carrying self-hypothesis -- the reading says WHICH,
         # not only how well. `None` on either side means that stream fielded no payer, which
         # is a different claim from losing.
+        # REPORTED IN THE CURRENCY THAT DECIDED IT. This published `left`, so two arms that
+        # both explained perfectly printed `0.0` and `0.0` with a `margin` of `0.0` -- a tie
+        # on the readout that was not a tie in the bargain, because their COSTS differed and
+        # cost is half of what `pays` spends. A contest reported in a quantity other than the
+        # one it was decided by is not a reading of the contest.
         contest = {k: round(v[0], 4) for k, v in sorted(by_kind.items())} if best else {}
         if len(contest) == 2:
-            contest["winner"] = min(by_kind, key=lambda k: by_kind[k][0])
             contest["margin"] = round(abs(by_kind["predictor"][0]
                                           - by_kind["objective"][0]), 4)
+            # A TIE IS A READING, AND NAMING A WINNER ERASES IT. `term_bits(k, alphabet)` is a
+            # function of LENGTH and ALPHABET and of nothing else, so two terms of equal depth
+            # cost the same to the bit whatever atoms they are built from. When both arms also
+            # drive `left` to zero the totals are IDENTICAL, `min` returns whichever key the
+            # dict holds first, and `by_kind` fills in stream order -- so `winner` reported
+            # `predictor` as a preference the bargain never expressed.
+            #
+            # Measured, two-arm board, `o1.col`: `translate . recolour<o2.col>` against an
+            # objective, both depth 2, both `left = 0.0`, both 13.3783 against a base of
+            # 15.2290. **The bargain prices HOW LONG, never WHAT KIND** -- the two arms are
+            # separable only when their depths differ, and then by the whole 4.4594 bits
+            # between a two-atom term and a three-atom one.
+            #
+            # NOT BROKEN HERE, AND DELIBERATELY. Ruling that an objective outranks a predictor
+            # at equal cost answers the question the two streams exist to ASK. The tie is
+            # published as a tie; whatever breaks it has to earn its way in.
+            contest["winner"] = ("tie" if contest["margin"] == 0.0
+                                 else min(by_kind, key=lambda k: by_kind[k][0]))
         elif contest:
             contest["winner"] = next(iter(by_kind))
             contest["margin"] = None      # unopposed: the other stream fielded nobody
@@ -1736,7 +1819,7 @@ class Agent:
             self.led.record(self.cycle, "MINT", slot, "park", of=(slot,), **detail)
             return
 
-        left, cost, term = best
+        _total, left, cost, term = best
         detail["explained"], detail["overclaimed"] = self.explain(slot, base - left)
         self.gamma.accept(term, seq=len(self.led), residual=f"{slot}@{self.cycle}")
         self.bound[slot] = term.name

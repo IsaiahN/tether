@@ -809,12 +809,25 @@ layers above.**
 
 # STILL OPEN
 
-**THREE THINGS NEED REAL BOARDS AND CANNOT BE READ ON THE FIXTURE — 2026-09-05.** *The synthetic
-fixture authored both sides, so it pays nothing and it is one game:*
+**FIVE THINGS NEED REAL BOARDS AND CANNOT BE READ ON THE FIXTURE — 2026-09-05.** *The synthetic
+fixture authored both sides, so it pays nothing and it is one game.* **The count said THREE over four
+rows; it is repaired here rather than noted, this being a working document.**
 
-    the contest        does an objective ever out-predict a value bet. The mechanism records
-                       the winner and the margin; 143 of 143 mint rows read `depth_exhausted`
-                       and NO candidate paid, in either stream
+    the contest        does an objective ever out-predict a value bet. **THE 143-of-143 NULL
+                       PREVIOUSLY RECORDED HERE IS VOID, NOT WEAK.** It read `depth_exhausted`
+                       with NO candidate paying in either stream -- and the objective stream
+                       COULD NOT PAY ON ANY BOARD at the time, because the edge was wired into
+                       `_predict` and not into `_left`/`_cannot_pay`/`_residual_obs`, so a
+                       `WANT` was priced as its own truth value against the slot's alphabet.
+                       **A stream that cannot pay failing to pay is not evidence about the
+                       contest.** The predictor half of that null still stands; the objective
+                       half carries nothing.
+                       **Re-measured after the repair, on the two-arm fixture:** both arms pay,
+                       both at `left = 0.0` and depth 2, and they TIE to the bit -- 13.3783
+                       against a base of 15.2290. `term_bits` reads LENGTH and ALPHABET only,
+                       so **the bargain prices HOW LONG and never WHAT KIND**, and the arms
+                       separate only when their depths differ. What a real board owes is
+                       whether an objective ever wins on DEPTH, which the fixture cannot ask
     convergence        how fast the signature settles on a board richer than four patterns
     image-mode         the adapter's image half against REAL near-colours: index frame ->
                        render -> feed back -> segment -> SAME PARTITION. It is the
@@ -826,6 +839,23 @@ fixture authored both sides, so it pays nothing and it is one game:*
                        32 patterns and one game used four, so sharing is EXPECTED rather than
                        unlikely -- the report emits the digest beside the game name so that
                        this is readable across runs
+    the search cost    **READ `candidates_tried`, NOT `budget_exhausted`.** The gate is on
+                       closure YIELDS; the work is yields x operand bindings, and
+                       `Config.budget`'s own anchor says the declared bound never binds while
+                       the work exceeds it. Measured per mint call on the two-arm fixture:
+                       yields max 58 against a cap of 4,000, work max 1,928, ratio 20.3x mean
+                       and 33.2x max -- **so the gate fires at roughly 81,000 units of actual
+                       work and trails the cost it announces by about twenty to one.** That is
+                       why it reads zero here and read zero over twelve worlds.
+                       **What the run owes is the RATIO AT REAL SLOT COUNTS**, because bindings
+                       scale with slots and 20.3x is ONE board with 16 slots -- a point, not a
+                       curve. **Repair the gate after that reading and not before**: pointing it
+                       at the work changes what `enumerate_closure` bounds, and fitting that to
+                       a one-board ratio is the error the no-pooling rule forbids.
+                       **This is what makes the objective/predictor tie a live question.** The
+                       tie costs nothing that is currently COUNTED -- which is not the same
+                       claim as costing nothing, and the stronger claim was written first
+                       because *a null with a story is harder to doubt than a bare one*
 
 **AND ONE DESIGN QUESTION IS FILED, NOT RULED:** *`Ctx.group` follows the SLOT's attribute, so a chain
 that extracts a different one compares apples to oranges.* **The second site where `Ctx` is built before
