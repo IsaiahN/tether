@@ -18324,3 +18324,45 @@ refutation with `reopens_above`.
 unaided on `tr87` and `CAN` says yes; **no routine has been minted from a slot the agent chose
 itself**, and the single gate between those two facts is `_goal_split`. **`done` remains 0 and
 `levels_completed` remains 0.**
+
+## SWEEP 8g — CLASSIFYING THE BLOCKER, AND AN INCONSISTENCY THAT IS NOT ONE
+
+Sweep 8e leaves `CAN` saying **yes** and `_goal_split` saying **None** on the same slot at the same
+instant. **If both read the same evidence, one of them is wrong** — which would be the first
+`wrong-given-the-input` finding of the window and worth a candidate fix.
+
+**They do not.** `can` reaches `yes` by three disjuncts and its docstring names all three: *it holds
+now, or it has held before, or an action of this agent's has been observed to move the slot toward
+it.*
+
+    route 1   gap == 0, or 0 in self._disc[slot]     reached before, so reachable
+    route 2   unordered: some action landed `wanted`  action evidence
+    route 3   ordered:   some action moved it that    action evidence
+              way in a majority of its attempts
+
+**`_goal_split` needs what routes 2 and 3 supply. Route 1 supplies none of it.** *This slot has been
+at zero* is evidence the guard is ACHIEVABLE and says nothing about WHICH ACTION gets there — and
+`can`'s own opening paragraph is about exactly this distinction: **achievable, not satisfiable**, two
+quantities that were found disagreeing between `grammar.py` and §14.3.
+
+> **SO `CAN` yes WITH `_goal_split` None IS THE BUILD ANSWERING TWO DIFFERENT QUESTIONS CORRECTLY.**
+> The guard is reachable on the record; no action in the trace is known to reach it. **The route
+> requirement is strictly stronger than the guard requirement, and it should be** — `Until` commits
+> to repeating an ACTION, so an affordance is not enough to license one.
+
+**CLASSIFIED CORRECT-GIVEN-THE-INPUT. NO CANDIDATE FIX.** And the classification is read off the code
+rather than argued from the outcome, which is the difference between this and the three valuation
+chains: **the disjunct that fired is identifiable, and it is the one that carries no action
+evidence.**
+
+### WHAT THE BLOCKER ACTUALLY REQUIRES, STATED WITHOUT PROPOSING IT
+
+Routes 2 and 3 and `_goal_split` all need the same thing: **a trace in which some action has been
+observed to move THIS slot in a consistent direction.** `phase: probe 1.0` on every board at every
+depth in this window means action choice is uninformed, so that evidence accumulates only by
+coincidence — and `sb26` at two actions is where coincidence is cheapest.
+
+**That is a statement about the loop's action policy and it is Isaiah's to rule on, not mine.** It is
+recorded here because *the question to ask of a change is whether the agent can now reach something
+it could not* — **and this is the first time the window can name what the agent would need to reach
+in order to mint from its own choice**, rather than observing that it does not.
