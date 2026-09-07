@@ -17759,11 +17759,16 @@ an inconsistency and is not. `can` reaches `yes` by three disjuncts — *holds n
 `_goal_split` needs.** The disjunct that fires on `tr87` is the second. **CORRECT-GIVEN-THE-INPUT,
 NO CANDIDATE FIX, and read off the code rather than inferred from the outcome.**
 
-**Q9 · `tu93` calls `_goal_choice` in cycles 0–5 and not once in 6–9.** Every other board is asked on
-every cycle it runs. **CAUSE UNESTABLISHED AND NOT GUESSED** — a branch answering first and a level
-boundary clearing the slots are both consistent with what was recorded. **Behaviour note, no
-candidate fix.** What would settle it is one line the wrapper lacks: record `by` and `retarget`
-alongside each call.
+**Q9 · `tu93` calls `_goal_choice` in cycles 0–5 and not once in 6–9.** **Behaviour note, no
+candidate fix.**
+
+> **MECHANISM SETTLED BY SWEEP 14, WITHOUT THE WRAPPER THIS ROW ASKED FOR.** The goal branch is
+> FOURTH of seven in `choose` and is reached only if `bored()`, `discriminate` and
+> `discriminate:learned` all decline. **Measured 48 of 48 on three boards: skipped exactly when
+> `choose` returns something other than `draw`.** *A branch answering first* was one of the two
+> guesses this row refused to choose between, and it is the right one. **`tu93`'s particular branch
+> is still unnamed** — that needs a ~700s run — but the row's premise is also corrected: **it is not
+> true that every other board is asked on every cycle.** `lf52` skips 9 of 16.
 
 **Q10 · `tr87` refuses its own routine by 0.97 bits.** `until(o54.dcol/3) {ACTION2}` costs 6.9658
 against a `base` of 6.00. **CORRECT REFUSAL, NO CANDIDATE FIX** — describing a routine must be
@@ -18985,3 +18990,64 @@ three sweeps of counting could only bound.**
 measurement or the verdict; it changes the DENOMINATOR the verdict sits in, from *46% of growth,
 remainder unaudited* to **46% of growth, remainder gated twice.** No new candidate fix, and the
 pricing question held apart in `S4` is untouched by any of this.
+
+## SWEEP 14 — `Q9`'s MECHANISM, AND THE GOAL BRANCH IS FOURTH OF SEVEN
+
+`Q9` filed *why `tu93` stops calling `_goal_choice` after cycle 5* as unestablished and named a
+wrapper as the way to settle it. **The code settles the mechanism without one.** `choose`'s branch
+order, in sequence:
+
+    1  if self.drive.bored()          ->  "probe"
+    2                                 ->  "discriminate"
+    3  self._learned_split()          ->  "discriminate:learned"
+    4  self._mint_routine(before)         <-- THE GOAL BRANCH, tether.py:1516
+    5                                 ->  "routine"
+    6                                 ->  "discriminate:goal"
+    7                                 ->  "draw"
+
+**`_goal_choice` is reached only if the three branches above it decline.** Not being asked and being
+asked-and-declining are different events, and the window has been reading them as one.
+
+### CONFIRMED ON THREE BOARDS, 48 CYCLES, WITH `choose`'s OWN RETURN AS THE ARBITER
+
+    board   consulted   skipped   what `choose` returned when it skipped
+    ------------------------------------------------------------------------
+    lf52     7 of 16     9        probe x9
+    sb26    13 of 16     3        probe x3
+    wa30     8 of 16     8        probe x1 · discriminate:learned x7
+    ------------------------------------------------------------------------
+    TOTAL   28 of 48    20
+
+**SKIPPED ⟺ `choose` RETURNED SOMETHING OTHER THAN `draw`; CONSULTED ⟺ IT RETURNED `draw`. 48 of
+48.** No exception on any board.
+
+> **SO 42% OF CYCLES NEVER CONSULT THE GOAL BRANCH AT ALL.** *The trigger declines* has been this
+> window's account of nine boards. **On these three, four cycles in ten never put the question**, and
+> `drive.bored()` firing first is the commonest reason — 13 of the 20 skips.
+
+**AND TWO BRANCHES HAVE NEVER BEEN OBSERVED TO FIRE**: `"routine"` and `"discriminate:goal"`, zero of
+48 cycles, on boards where no routine is adopted unaided. **Recorded with the denominator** — three
+boards at sixteen cycles is not a claim that they cannot fire.
+
+### MY STRUCTURAL HYPOTHESIS WAS RIGHT ABOUT THE SHAPE AND WRONG ABOUT THE BRANCHES
+
+I read the code and named `discriminate` and `discriminate:learned` as the branches that would
+pre-empt the goal. **`bored()` is above both and I missed it**, so the probe's classifier labelled 13
+skips *no branch above* when the branch above was branch 1. **The `choose returned` column is ground
+truth and the classifier column was a partial reimplementation of the thing being measured** — the
+same defect as classifying whole series where the mechanism reads a tail, in a new place.
+
+**IT COST NOTHING ONLY BECAUSE THE ARBITER COLUMN WAS RECORDED ALONGSIDE IT.** A probe that had
+reported only my classification would have said *skipped for no reason I can see* on 13 of 20 and
+read as a mystery. **Recording the mechanism's own answer next to my reading of it is what made the
+gap visible**, and it is cheap enough to be the default.
+
+### CLASSIFICATION — BEHAVIOUR NOTE, NO CANDIDATE FIX
+
+`drive.bored()` returning a probe is the drive doing its job, and a branch order is a design, not a
+defect. **What changes is an account, not a verdict:** the trigger's silence is partly *never asked*
+rather than *asked and declined*, and those need separating wherever the window has pooled them.
+
+**`Q9` MOVES FROM UNESTABLISHED TO PARTLY ESTABLISHED.** The MECHANISM is settled — an earlier branch
+returns. **`tu93`'s particular branch is still unidentified**, and naming it needs a `tu93` run at
+~700 seconds. **The general law was the cheaper half and it is the half that generalises.**
