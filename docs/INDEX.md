@@ -17527,6 +17527,24 @@ first**, so every reading in this window is intact and was taken by replicating 
 **CANDIDATE FIX (NOT APPLIED):** the counter should key on a single type, or the `mode` row should not
 reuse the field name `by`.
 
+### S3 · four of the eight gates in `_mint_routine` return with no ledger row
+
+    1. slot is None / not in before      SILENT       5. CAN != yes        row  routine_refused
+    2. gap is not an int                 SILENT       7. no candidate      row  routine_refused
+    3. R_goal is None or <= 0            SILENT       8. guards unreachable row routine_refused
+    6. _goal_split returns None          SILENT       9. does not pay      row  routine_cut
+
+**CLASSIFIED SYSTEM, AND IT IS NOT GAME-GATED AT ALL** — it is a property of the code present on every
+board, so the cross-game census that `S1` needed does not apply here. **The proof of harm is a
+measurement it already cost:** sweep 7 read `rows written 0` across thirty-seven `_mint_routine`
+entries and **could not tell gate 1 from gate 6 from the ledger**, which is why sweeps 8 and 8c had to
+build wrappers to find out. `CLAUDE.md`'s *nothing silent* broken at four sites, measured rather than
+argued.
+
+**CANDIDATE FIX (NOT APPLIED):** a `routine_refused` row at each of the four carrying that gate's own
+reason. **The four row-writing gates already show the shape to copy**, so this adds no vocabulary —
+it extends an existing row to the branches that currently return in silence.
+
 ## LOG 2 — GAME QUIRKS · behaviours, not defects
 
 **Q1 · Six games supply only a positioned click.** The build drops it and surfaces no action. **Correct
@@ -17536,6 +17554,11 @@ handled right and the crash beneath it is not*.
 **Q2 · `ka59` and `sp80` mint no objective in six cycles.** Not an error and not yet a finding: six
 cycles is below what any selection needs, and `COND2` holds on both (base means 13.91 and 14.10).
 **Logged as unmeasured, NOT as "these boards produce no objectives."**
+
+> **RESOLVED AT 14 AND 16 CYCLES, AND IT SPLITS — 2026-09-07.** `ka59` writes a `can` row on **5 of
+> 14** cycles: objectives bind there and six cycles was simply too few. `sp80` writes **0 of 16**:
+> the board does bind four terms and not one of them is an objective. **The caution was right and
+> the two boards were not one case.** `ka59` leaves this log; `sp80` becomes `Q6`.**
 
 **Q3 · Action counts vary 1–7 across the set**, and surfaced counts run one below advertised on most
 games. **A property of the habitat, recorded so the next reading of `spread` or `discriminate` has the
@@ -17657,7 +17680,7 @@ thin board look like a failing condition.
 `sk48` 216.9s and `bp35` 152.4s (capped) at 276 and 1146 slots; `m0r0` 2.8s and `sp80` 2.2s at 42 and
 48. **Consistent with `_record`'s `calls x slots`, measured across nineteen boards.**
 
-## LOG 2 (CONTINUED) — TWO MORE QUIRKS, NEITHER A DEFECT
+## LOG 2 (CONTINUED) — Q4 THROUGH Q9, NOT ONE OF THEM A DEFECT
 
 **Q4 · `su15` mints nothing in six cycles.** 168 slots, 1 surfaced action, `base` rows `n = 0`, library
 unchanged at 21, cost flat at ~0.08s. **No slot carried live mass, so the agent probed instead of
@@ -17667,6 +17690,30 @@ minting** — which is `choose`'s stated safety property, *support at zero refus
 **Q5 · `wa30` attempts 57 mints and buys none.** Mean base 3.42 against a ~8.9 cheapest term. **The
 bargain refusing where the residual is too thin**, exactly as on the `many` fixture. **Correct given
 the input. NO CANDIDATE FIX.**
+
+**Q6 · `sk48`, `sp80` and `wa30` bind no readable objective in sixteen cycles.** `can` rows = 0 on
+all three, and `_discrepancy` returns `NOT_RESOLVED` — its documented outcome when no OBJ term is
+bound and readable. **`wa30` binds nothing at all; `sp80` binds four terms and none is an
+objective.** **CORRECT-GIVEN-THE-INPUT, NO CANDIDATE FIX.** `CLAUDE.md`'s map already lists *the WIRE
+from the composed objective to the bet* as NOT INSTANTIATED and records that `tether` hand-builds the
+`WANT` from `env.objective()`'s single hardcoded string. **These three are that sentence measured on
+a board — a fix here would be a fix for a mechanism that is absent by design.**
+
+**Q7 · `dc22` reads an objective on 1 cycle of 13.** Neither the `sb26` shape (steady) nor the `sp80`
+shape (never). **A third shape, recorded with NO ACCOUNT OFFERED and no candidate fix** — a
+satisfying story about a single board is what the null-with-a-causal-story rule exists to stop.
+
+**Q8 · `CAN` returns `yes` while `_goal_split` returns `None`, same slot, same instant.** Looks like
+an inconsistency and is not. `can` reaches `yes` by three disjuncts — *holds now* · *has held before*
+· *an action has been observed to move it that way* — and **only the third is the evidence
+`_goal_split` needs.** The disjunct that fires on `tr87` is the second. **CORRECT-GIVEN-THE-INPUT,
+NO CANDIDATE FIX, and read off the code rather than inferred from the outcome.**
+
+**Q9 · `tu93` calls `_goal_choice` in cycles 0–5 and not once in 6–9.** Every other board is asked on
+every cycle it runs. **CAUSE UNESTABLISHED AND NOT GUESSED** — a branch answering first and a level
+boundary clearing the slots are both consistent with what was recorded. **Behaviour note, no
+candidate fix.** What would settle it is one line the wrapper lacks: record `by` and `retarget`
+alongside each call.
 
 ## SWEEP 3 — DEPTH WHERE THE WALL ALLOWS · WHY NO ROUTINE FIRES, AND IT IS NOT THE WALL
 
@@ -18366,3 +18413,64 @@ coincidence — and `sb26` at two actions is where coincidence is cheapest.
 recorded here because *the question to ask of a change is whether the agent can now reach something
 it could not* — **and this is the first time the window can name what the agent would need to reach
 in order to mint from its own choice**, rather than observing that it does not.
+
+## LOG 3 (CONTINUED) — THE `calls x slots` MODEL IS REFUTED ACROSS BOARDS, AND `mint` IS THE WALL
+
+**The `ls20` localization does not transfer, and one pair kills it.** `bet` rows times slot count per
+cycle — the quantity the `_record` model says the cost tracks:
+
+    board   slots   bet rows   bet*slots/cycle    ACTUAL s/cycle
+    lf52     480      7584        227,520             0.90
+    tr87     520      4066        264,290            88.92
+
+**A 16% difference in the predictor against a 99x difference in the cost.** And the whole set
+anti-correlates as readily as it correlates: `bp35` carries the largest product in the set at
+2,257,025 and costs 25.05 s/cycle, while `ar25` at 12,264 — 184x smaller — costs 18.93.
+
+> **THE ORIGINAL PROFILE IS NOT WRONG; ITS SCOPE WAS ONE BOARD.** *916,212 calls x 168 slots =
+> 153.9M lookups against 153.3M measured, ratio 0.996* is a sound internal accounting **of what
+> `_record` does on `ls20`**, and it was read as a model of the wall. **A ratio of 0.996 on a single
+> board is a fit, and the thing it fits is itself** — the same shape as a repair validated on the
+> case that prompted it, one level up.
+
+### PROFILED ON BOTH ENDS, AND THE COMMON TERM IS `mint`
+
+    lf52, 10 cycles, 480 slots            ar25, 4 cycles, 112 slots
+    32.8s total                           24.2s total
+      _record   tot 11.25  cum 21.00        mint         cum 20.67   <- 86% of the run
+      _cannot_pay          cum 14.31        _cannot_pay  cum 17.04
+      mint                 cum 17.87        _record   tot  4.99  cum  8.90
+      _left     tot  0.18  cum  9.60        objective_step       cum  8.29
+                                            _sat                 cum  6.20
+                                            gamma.apply          cum  4.78
+
+**`mint` -> `_cannot_pay` is the wall on BOTH boards. What differs is where `_cannot_pay` spends.**
+On `lf52` it is almost entirely `_record`'s slot scan; on `ar25` it spreads across `_record`,
+`objective_step`, `_sat` and `gamma.apply`. **`_cannot_pay` runs 5,297 times per cycle on `lf52` and
+40,835 on `ar25` — 7.7x more, with 4x FEWER slots.** The driver is **how many candidates `mint`
+prices**, not how many slots exist.
+
+**AND THAT IS THE ANSWER TO *WHICH FUNCTION GROWS WITH HISTORY*.** The candidate space grows with the
+library, and the library grows with every mint: `ar25` enters `mint` 73 times in 4 cycles against
+`lf52`'s 9 in 10. **The per-cycle curves show it directly, on both boards:**
+
+    lf52   0.73 2.06 2.25 2.76 4.06 6.11 2.80 3.87 4.14 4.29     first half 2.37s -> second 4.24s
+    ar25   0.17 2.30 9.64 12.52                                  first half 1.23s -> second 11.08s
+
+### `_left` STAYS REFUTED, AND THE PROFILE SAYS WHY MORE PRECISELY THAN THE TRACE LENGTH DID
+
+`_left` shows `tottime 0.177s` against `cumtime 9.600s` on `lf52`. **It walks nothing itself** — its
+9.6 seconds are `_cannot_pay`'s and `_record`'s, reached through it. **The earlier refutation stood on
+the trace being 8 long after 8 cycles, which is an argument about the input; this is the same verdict
+from the timing, which is an argument about the work.** Two independent grounds, same answer.
+
+**NO CANDIDATE FIX, AND DELIBERATELY NOT.** The cost is `mint` pricing a candidate space that grows
+as the agent learns — **which is the mechanism working, not a defect in it.** A fix here would be a
+performance change to the one loop the whole instrument reads, and **`CLAUDE.md` is explicit that a
+change making the agent better while making its reasoning unreadable is a loss.** Profiled, recorded,
+not patched.
+
+**AND IT BOUNDS EVERY READING IN THIS WINDOW, WHICH IS THE POINT OF LOGGING IT.** Cost per cycle
+roughly triples over ten cycles on `lf52` and grows 60-fold over four on `ar25`, so **depth is bought
+against a rising price on every board** — and `runs are 40 cycles against a ruled 1000` is a statement
+about this curve, not about patience.
