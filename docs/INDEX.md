@@ -17336,3 +17336,24 @@ slot must be the only hypothesis on offer.*
 **17/17 M2 checks, all five falsifications still catch, 9/9 seats.**
 
 **QUESTION TWO: the `reach` repair is NOT taken, `check_composer_cannot_yet_win` stays armed.**
+
+---
+
+# THE FREEZE — `arc-freeze-01`
+
+    commit   2d16a6d88ff8bb8ef705a7cdde04d4752ee99821
+    tag      arc-freeze-01
+    state    17/17 M2 checks · 9/9 seats · working tree clean
+
+**Immutable for the duration of the run.** A bug found mid-run is a note against this tag and a later
+commit — never a hotfix. *A soft freeze reopens the contamination path: the seat seeing a real game and
+building toward what it sees.*
+
+**Precondition confirmed before the tag:** the ARC run does **not** read the panel to make any in-run
+decision. `tether`, `gamma`, `routine` and `arc_world` do not import `summary`; its one caller is
+`arc_holdout.py`, inside an end-of-run result dict, and nothing feeds it back. **The three-way panel
+debt stays filed.**
+
+**The read is unpinned**, against `levels_completed` and the three conditions the five synthetic boards
+named: scope wider than 2 · residual rich enough to pay for a term at all · residual a value predictor
+cannot explain more cheaply.
