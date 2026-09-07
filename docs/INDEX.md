@@ -17759,3 +17759,40 @@ two sit still, and *neither satisfies `all(d <= 0) and any(d < 0)`.*
 `ls20`: **6 cycles in 13.0s, 13 cycles in 411.5s.** Cycles 7–13 cost ~398 seconds between them.
 **Consistent with `_record`'s `calls x slots` and with the growth already profiled** — and it is why
 `ls20` could not be taken past 13 while `sb26` reached 44 at a quarter the slot count.
+
+## SWEEP 5 — RESIDUAL SHAPE ON EVERY OBJECTIVE-BINDING GAME, AND A CORRECTION TO SWEEP 3/4
+
+**Seven games bind objectives; all seven were read at eight cycles, classifying each residual series.**
+
+    SHAPES ACROSS 14 SERIES     FLAT 6 · OSCILLATING 3 · too-short 5 · SHRINKING 0
+
+    ar25   o13.h    [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]          FLAT
+    lf52   o59.w    [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]          FLAT
+    ls20   o16.w    [0.85, 0.85, 0.85, 0.85]                FLAT
+    tu93   o69.col  [0.971, 0.971, 0.971, 0.971, 0.971]     FLAT
+    bp35   o192.w   [1.0, 1.0, 1.0, 1.0, 1.0]               FLAT
+    sb26   o20.w    [0.077, 0.0, 0.077]                     OSCILLATING
+    tr87   o54.dcol [0.031, 0.031, 0.016, 0.047, 0.046, 0.016]   OSCILLATING
+
+**NOT ONE SERIES SHRINKS ACROSS ITS WHOLE LENGTH, ON ANY BOARD.** The blocker recorded at n = 3 now
+holds at **n = 7 games and 9 classifiable series, unanimously.**
+
+### AND `tr87` FIRED THE SELECTOR — WHICH REFUTES *THE SELECTOR NEVER SELECTS*
+
+    tr87   selector = o54.dcol
+
+**`_goal_choice` reads only the LAST `MIN_REPEAT + 1` readings, not the series.** On `tr87` the tail is
+`[0.047, 0.046, 0.016]` → deltas `[-0.001, -0.030]` → **all non-increasing with a real decrease, so it
+qualifies.**
+
+> **A GLOBALLY OSCILLATING SERIES CAN HAVE A LOCALLY SHRINKING WINDOW, AND THE SELECTOR READS THE
+> WINDOW.** Sweeps 3 and 4 said *`selector=None` on all three*, which was true of those three boards
+> and **was becoming a claim about the mechanism.** A fourth board fires it.
+
+**And my `classify` helper is what nearly hid it** — it classified whole series where the mechanism
+reads a tail. **An instrument whose window does not match the mechanism's window reports a different
+quantity**, which is the `A6i` shape in a reading rather than in code.
+
+**WHETHER A ROUTINE MINTED ON `tr87` IS THE NEXT QUESTION AND IS RUNNING** — the selector selecting is
+necessary and not sufficient; `CAN`, the bargain and the guard check all still stand between it and a
+minted routine.
