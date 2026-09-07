@@ -116,7 +116,7 @@ itself.** The window's contribution is that the reason is now named per board ra
 
     no objective binds        sk48 · sp80 · wa30      the missing WIRE, already named unbuilt
     _goal_split finds no      tr87 unaided, and       the trace carries no action-to-slot
-      learned route           5 boards under override   evidence under phase: probe 1.0
+      learned route           5 boards under override   evidence -- see S5 on the phase metric
     the trigger declines      the other 9 boards      correct on a non-shrinking residual
 
 **One uniform loop, no type branching between them** — the loop reporting a difference in the
@@ -357,8 +357,11 @@ by a real timeline, and available before the run that could refute it.
 1. **S4's interpretation.** The measurement is unambiguous; whether it is a defect turns on the
    pricing question the docstring set up.
 2. **The action policy.** `_goal_split` needs a trace where some action is observed to move a slot
-   consistently. `phase: probe 1.0` accumulates that only by coincidence. This is the one change that
-   would plausibly move contact rather than instrumentation — and it is a ruling, not a repair.
+   consistently, and the loop's undirected picks accumulate that only by coincidence. This is the one
+   change that would plausibly move contact rather than instrumentation — and it is a ruling, not a
+   repair. **`phase: probe 1.0` is NOT the evidence for it** — sweep 15 shows that metric files
+   `discriminate:learned` under `PROBE`, so it reads 1.0 on `wa30` where 7 of 16 cycles were learned
+   splits. **The per-board `choose` returns are the evidence; the phase metric is not.**
 3. **The four candidate fixes in LOG 1**, none applied, all with the reintroduce-the-defect test
    available.
 

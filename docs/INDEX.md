@@ -17595,6 +17595,33 @@ cheaper than derivation, nineteen refusals may be nineteen correct admissions at
 **The measurement is unambiguous and its interpretation is Isaiah's** — which is exactly the shape
 the docstring set up.
 
+### S5 · `by == "discriminate"` excludes its own namespaced variants by exact match
+
+    tether.py:2862   DIRECTED if by == "discriminate" else PROBE
+
+`choose` returns `discriminate`, **`discriminate:learned`** and **`discriminate:goal`**. The exact
+match admits the first and files the other two under `PROBE`. **On `wa30`, 7 of 16 cycles were
+`discriminate:learned` and `phases.report()` returned `directed 0.0`.**
+
+**WRONG-GIVEN-THE-INPUT, DEMONSTRATED RATHER THAN ASSERTED.** `Phases`' own docstring calls it *the
+action mix over time*; the game supplied seven learned splits and the reported mix contains none.
+**Structural — the exact match is on every board — but it only BITES where a namespaced variant
+fires, which is 1 of 3 boards measured.** Recorded that way rather than as a blanket rate.
+
+**CANDIDATE FIX (NOT APPLIED):** match the family, `by.startswith("discriminate")`, so a namespaced
+variant cannot fall out of its own class. **The reintroduce-the-defect test is available** — `wa30`
+at 16 cycles moves from `directed 0.0` to `directed ~0.44`.
+
+**HELD APART, AND IT IS WHY THIS IS NOT FILED AS SETTLED:** whether `discriminate:learned` SHOULD
+count as DIRECTED is the same dispute the line's own comment already records for `discriminate` —
+*`by == "discriminate"` reads 9% where §22.2's bets with bound terms reads 37%*. **The build flags
+that ambiguity and is silent on this one, which is evidence the exclusion is accidental and not
+proof.** The measurement is certain; the intent is Isaiah's.
+
+**AND `draw` IS NOT PART OF THIS.** `draw` and `probe` are byte-identical calls to
+`self.drive.choose`, so both are undirected picks and both belong in `PROBE`. **That half was checked
+and is correct.**
+
 ## LOG 2 — GAME QUIRKS · behaviours, not defects
 
 **Q1 · Six games supply only a positioned click.** The build drops it and surfaces no action. **Correct
@@ -19051,3 +19078,63 @@ rather than *asked and declined*, and those need separating wherever the window 
 **`Q9` MOVES FROM UNESTABLISHED TO PARTLY ESTABLISHED.** The MECHANISM is settled — an earlier branch
 returns. **`tu93`'s particular branch is still unidentified**, and naming it needs a `tu93` run at
 ~700 seconds. **The general law was the cheaper half and it is the half that generalises.**
+
+## SWEEP 15 — WHAT `phase: probe 1.0` COUNTS, AND ONE CITATION THIS WINDOW LEANED ON
+
+Sweep 14 measured `choose` returning `draw` on 28 of 48 cycles. **This window has quoted `phase:
+probe 1.0` on every board.** Both cannot describe the same quantity, so the metric was read.
+
+    tether.py:2862   phase = (STRATEGY if by == "routine"
+                              else DIRECTED if by == "discriminate"
+                              else PROBE)
+
+**`PROBE` is the ELSE branch and the `DIRECTED` test is an EXACT string match**, while `choose`
+returns seven values. Measured against the build's own `phases.report()`:
+
+    board   choose returned                              phases.report()
+    ------------------------------------------------------------------------------
+    wa30    draw 8 · probe 1 · discriminate:learned 7    probe 1.0  directed 0.0
+    sb26    draw 13 · probe 3                            probe 1.0  directed 0.0
+    lf52    draw 7 · probe 9                             probe 1.0  directed 0.0
+
+### THE ALARM I NEARLY FILED WAS WRONG, AND CHECKING IT IS WHAT LEFT A REAL FINDING
+
+**`draw` counts as PROBE and that looked like the defect** — 28 of 48 cycles filed under a label
+they did not return. **It is correct.** `tether.py:1469` and `tether.py:1526` are byte-identical
+calls — `self.drive.choose(self.actions, self.cycle, _where(before))` — differing only in the label.
+**`draw` and `probe` are the same undirected drive pick arriving by different routes**, so counting
+both as PROBE is the metric measuring what it says it measures.
+
+> **HAD I FILED ON THE FIRST READ IT WOULD HAVE BEEN A SYSTEM ERROR AGAINST A CORRECT METRIC**, with
+> a table of real numbers under it. **The check that stopped it was reading the two return sites
+> rather than the two labels** — and *a candidate fix for a non-error is worse than no note.*
+
+### THE REAL DEFECT IS NARROWER AND IT IS `discriminate:learned`
+
+`_learned_split` is §18.4's proposer half — *this picks an action* — so its return is a DIRECTED
+choice and not a drive pick. **`by == "discriminate"` excludes it by exact match**, and on `wa30`
+**7 of 16 cycles were learned splits reported as 0.0 DIRECTED.** `discriminate:goal` would be
+excluded identically and has never been observed to fire.
+
+**AND THE BUILD FLAGS A DIFFERENT `A6i` ABOUT THIS EXACT LINE WHILE BEING SILENT ON THIS ONE.** The
+comment above it records *`by == "discriminate"` reads 9% where §22.2's bets with bound terms reads
+37%* and calls that dispute defensible on both readings. **It says nothing about namespaced variants
+falling out of the exact match** — and that asymmetry is evidence the exclusion is unintended,
+**not proof of it.**
+
+### THE CITATION, CORRECTED WHERE IT IS LOAD-BEARING
+
+*Under `phase: probe 1.0` the trace carries no observed action-to-slot effect* is the premise this
+window attached to `_goal_split` returning `None`.
+
+    lf52 · sb26     SOUND      every cycle was a genuine drive pick
+    wa30            UNSOUND    7 of 16 cycles were learned splits
+
+**The blanket form — *`phase: probe 1.0` on every game, at every depth, in this whole window* — is
+the statement that fails.** The per-board measurements do not: `_goal_split` returns `None` whether
+or not the phase metric is read correctly, so **the CONCLUSION survives and the REASON offered for it
+was partly unsupported.**
+
+> **AND THAT IS THE SHAPE THIS WINDOW KEEPS PRODUCING.** A measurement stands, a satisfying account
+> is attached to it, and the account is what fails. **Fourth instance: the `tr87` selector, the
+> action-count hypothesis, the cost-wall truncation, and now this.**
