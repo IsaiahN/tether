@@ -17667,3 +17667,46 @@ minting** — which is `choose`'s stated safety property, *support at zero refus
 **Q5 · `wa30` attempts 57 mints and buys none.** Mean base 3.42 against a ~8.9 cheapest term. **The
 bargain refusing where the residual is too thin**, exactly as on the `many` fixture. **Correct given
 the input. NO CANDIDATE FIX.**
+
+## SWEEP 3 — DEPTH WHERE THE WALL ALLOWS · WHY NO ROUTINE FIRES, AND IT IS NOT THE WALL
+
+**`sb26` to 44 cycles, `lf52` to 25. Both cheap enough to go deep; both bind objectives; both have
+wide residuals.** `selector=None` at every checkpoint of both, and **no routine event anywhere.**
+
+**THE SELECTOR'S CRITERION IS `all(d <= 0) and any(d < 0)` OVER `MIN_REPEAT` DELTAS. REAL BOARDS GIVE
+NEITHER:**
+
+    sb26   o20.w   [0.231, 0.0,   0.231, 0.0  ]      PERIOD-2 OSCILLATION
+           o26.col [0.885, 0.115, 0.885, 0.115]      deltas alternate sign
+           o26.w   [0.923, 0.0,   0.923, 0.0  ]      -> fails `all(d <= 0)`
+
+    lf52   o59.w   [1.0, 1.0, 1.0, 1.0]  for 25 cycles   FLAT AT MAXIMUM
+                                                          -> fails `any(d < 0)`
+
+> **THE ROUTINE DOES NOT FAIL TO FIRE BECAUSE OF THE COST WALL. It fails because the goal residual on
+> a real board does not TREND** — it alternates or it sits still, and *flat is not shrinking* is the
+> rule I deliberately wrote into `_goal_choice`. **The mechanism is doing exactly what §13.4
+> specifies, on input that never satisfies it.**
+
+**CLASSIFIED: CORRECT-GIVEN-THE-INPUT. NO CANDIDATE FIX.** A selector that fired on an oscillating or
+flat residual would be selecting on noise, which is the thing *confidently* is in the criterion to
+prevent.
+
+### AND THE AIRING OF A FIFTH CAUSAL STORY, KILLED BY ITS OWN TEST
+
+**`probe.choose` is `(cycle * 7 + seed) % len(actions)`, and `sb26` surfaces 2 actions — so the action
+alternates with period 2, and a period-2 residual looked like the agent's own sweep aliased into its
+reading.** The prediction: a game with an ODD action count should show a different period.
+
+**`lf52` surfaces 5 and is FLAT.** Not period-5, not oscillating at all. **The story is refuted — the
+fifth this line of work has written and had killed by the measurement it predicted.** *The measured
+fact stands and is broader than the story: real residuals do not trend, by more than one route.*
+
+### DEPTH CHANGES THE CONTEST, WHICH QUALIFIES SWEEP 2's 88%
+
+    sb26 at  6 cycles   {objective 1, tie 1}
+    sb26 at 44 cycles   {objective 3, tie 10, predictor 1}
+
+**Fourteen contests, and the predictor took ONE.** Sweep 2's *the value arm takes 88% of contests* is a
+**six-cycle** figure. **At depth, on this board, it inverts** — and the honest statement of the
+generalisation question is now that it is **depth-dependent and was read at one depth.**
