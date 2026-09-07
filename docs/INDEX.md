@@ -17908,3 +17908,106 @@ a finding.
 `lf52`'s 12.2s for fourteen. Same cost wall as sweep 5 (`_record` scanning the flattened state per
 call), read here at a board size that makes it the binding constraint on how deep any in-loop
 measurement can go. **No fix; the freeze holds.**
+
+## SWEEP 8 — WHAT IS BEHIND THE GATE, AND THE MECHANISM RUNS
+
+**Seventy-four calls established WHERE the chain stops and nothing about what it stops SHORT OF.**
+`_goal_choice` is the first of nine gates in `_mint_routine`; the eight behind it had never once been
+entered on a real board, so the closure searched ended at the first door. **A null read at the first
+gate cannot say whether the second would have held.**
+
+`scratchpad/behind.py` hands `_mint_routine` a slot the real gate declined — **the bound slot
+carrying the largest last residual, arbitrary on purpose and not a candidate fix** — and reads which
+gate catches next. Frozen files untouched; every wrapper is in the scratchpad.
+
+> **A SYNTHETIC SOLVE PROVES WIRING AND NEVER CAPABILITY.** Everything below is a statement about
+> whether the machinery is connected. **The agent reached none of it**: across sweeps 7 and 8 the
+> real `_goal_choice` has now been asked **100 times on five boards and returned a slot zero
+> times.** Every routine named here was minted from a slot I supplied.
+
+### FIRST, THE SHAPE OF THE PATH — FOUR OF THE EIGHT GATES ARE SILENT
+
+`_mint_routine` can stop at eight places. **Four write a ledger row and four return with nothing**:
+
+    1. slot is None / not in before      SILENT
+    2. gap is not an int                 SILENT
+    3. R_goal is None or <= 0            SILENT
+    5. CAN != yes                        row  routine_refused
+    6. _goal_split returns None          SILENT
+    7. no candidate survives rejection   row  routine_refused
+    8. no candidate's guards reachable   row  routine_refused
+    9. the bargain does not pay          row  routine_cut
+
+**That is the *nothing silent* rule broken at four sites, and it is measured rather than argued:**
+sweep 7 read `rows written 0` on thirty-seven entries and **could not tell gate 1 from gate 6 with
+the ledger alone.** The in-loop wrapper was necessary *because* of this, which is the cost of a
+silent return stated as a fact rather than a principle. **SYSTEM-LEVEL, structural, present on every
+board.** Candidate fix: a `routine_refused` row at each of the four, carrying the gate's own reason.
+**Not applied — the freeze holds.**
+
+### THEN THE READING, AND THE TWO BOARDS DISAGREE
+
+    board   slots  actions   overrides   gate 3 R_goal>0   gate 5 _goal_split   rows minted
+    lf52     480      5          10          5 of 10       None 5 of 5              0
+    sb26     216      2          10          5 of 10       action 5 of 5            3
+
+**Only gates 3 and 5 are read here, and that is a correction to my own instrument.** The counters for
+gates 2 and 4 are **not per-entry**: `can` calls `_discrepancy` internally and the guard filter calls
+`can` once per guard per candidate, so `can` reads 25 on `sb26` against 5 on `lf52` — which looks
+like a far more permissive `CAN` and **is nothing of the kind**, it is `sb26` reaching a guard filter
+`lf52` never got to. `goal_residual` and `_goal_split` have exactly one call site inside the path;
+those two are per-entry and are the only ones quoted. **Checked against the call sites, not assumed
+from the wrapper.**
+
+**`lf52` STOPS AT GATE 6 AND IT STOPS SILENTLY, 10 FOR 10.** Five entries die at `R_goal <= 0`, five
+more at `_goal_split` returning `None` — *the action THIS agent has observed moves THIS slot the
+wanted way* — and **not one of the ten leaves a row.**
+
+> **SO OPENING THE FIRST GATE BUYS NOTHING ON `lf52`, AND THAT RETIRES A REPAIR NOBODY HAD COSTED
+> YET.** The sweep-7 wording — *the chain stops at `_goal_choice`* — is true and invites the reading
+> that the trigger is THE blocker. **On this board it is the first of two**, and both are null for
+> the same underlying reason: under `phase: probe 1.0` the trace carries neither a confidently
+> shrinking residual nor an observed action-to-slot effect. **One repair, two gates, still nothing.**
+
+### AND ON `sb26` THE WHOLE CHAIN RUNS, WITH THE BARGAIN DISCRIMINATING
+
+Gate 6 passes, the composer returns 4 to 8 candidates, and **the bargain refuses two and pays
+three.** The rows in full:
+
+    routine_cut   ACTION5                       cost 3.1699  left 1.0  base  2.0  reach  1
+    routine_cut   until(o20.w/3)  {ACTION5}     cost 4.7549  left 0.0  base  3.0  reach  3
+    routine       until(o20.w/23) {ACTION5}     cost 4.7549  left 0.0  base 23.0  reach 23
+    routine       until(o26.col/24){ACTION5}    cost 4.7549  left 0.0  base 24.0  reach 24
+    routine       until(o20.w/24) {ACTION5}     cost 4.7549  left 0.0  base 24.0  reach 24
+
+**THE DESCRIPTION COST IS FLAT AT 4.7549 ACROSS ALL FOUR `until` SHAPES AND THE VERDICT IS NOT.**
+`term_bits` reads length and alphabet only — by design — so `until(.../3)` and `until(.../24)` cost
+the same to *say*; what moves is `base`, the price of naming those actions yourself. **The crossover
+falls out of the arithmetic**: at `n = 2` a two-symbol routine costs 4.75 bits, so it pays from
+`unsat` of 5 upward and not below. Refused at base 2.0 and 3.0, paid at 23.0 and 24.0. **No constant,
+no threshold, nothing fitted.**
+
+**The bare `ACTION5` row is the two-part bargain earning the repair it cost pre-freeze**: `cost 3.17`
+with `left 1.0` is *cheap to say and does not finish the job*, and `cost + left = 4.17` against
+`base 2.0` refuses it. **Folded into one number that row would have read `cost 4.17` and no reader
+could have seen which half killed it.**
+
+### THE SPLIT, AND IT IS NOT TO BE COLLAPSED
+
+**MECHANISM — BUILT, and now measured end to end on a real board rather than synthetically:** `CAN`,
+`_goal_split`'s learned route, the shelf filter, `enumerate_routines`, the rejection filter, `reach`,
+the two-part bargain, and every ledger row M2 declared. **Handed a slot, the chain produces a priced,
+guarded, budget-bounded routine from real perception.**
+
+**CAPABILITY — OWED, and unchanged by any of the above.** The trigger is null on 100 real calls
+across five boards, and on `lf52` the gate behind it is null too. **The agent cannot yet reach its
+own machinery.**
+
+**CLASSIFICATION.** The silent-gate defect is **SYSTEM** — structural, four sites, every board. The
+`_goal_split` null is **NOT system and NOT yet a quirk**: it holds on `lf52` and fails to hold on
+`sb26`, so it is board-dependent and the dependency is unidentified. **The visible difference is the
+action count — 5 against 2 — and a probe policy spreads its evidence over every advertised action,
+so a 2-action board reaches `_goal_split`'s threshold sooner.** That is a story and it is being
+treated as one: **pre-registered before the wider read, and the instrument is `_goal_split`'s literal
+return rather than a label standing in for it, which is the half `B17` says pre-registration does not
+protect.** Fifteen boards running.
