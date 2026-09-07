@@ -115,9 +115,24 @@ refuted`, `rejections`, and `reopens_above` pinned to the goal residual at the m
 itself.** The window's contribution is that the reason is now named per board rather than pooled.
 
     no objective binds        sk48 · sp80 · wa30      the missing WIRE, already named unbuilt
-    _goal_split finds no      tr87 unaided, and       the trace carries no action-to-slot
-      learned route           5 boards under override   evidence -- see S5 on the phase metric
+    _goal_split finds no      bp35 · dc22 · ls20 ·    coverage 55% or unanimity 17%, NEVER a
+      learned route           tu93 · lf52               verdict that nothing works -- see below
     the trigger declines      the other 9 boards      correct on a non-shrinking residual
+
+**THE SECOND ROW WAS RESTATED AFTER THE EXIT CENSUS — SWEEP 21.** It read *the trace carries no
+action-to-slot evidence*, and that is not what the function reports. Across **29 OBJ-bound calls on
+8 boards**, `_goal_split` exits by:
+
+    A  coverage     16 of 29  55%   I have not seen every action on this slot yet
+    B  no votes      0 of 29   0%   nothing moves it the wanted way   <- NEVER OBSERVED
+    C  unanimity     5 of 29  17%   all of them do, identically; the draw stays uninformed
+    PASS             8 of 29  28%   a route is returned
+
+**`B` has never fired.** The function fails from ignorance or from indistinguishability and **has not
+once returned a genuine negative.** And it **passes on 4 of the 8 boards where it is reached** —
+`sb26` 5 times, `ka59`, `ar25` and `re86` once each — so *the blocker* overstates it. **Those 29
+calls were reached by SUPPLYING a slot, which keeps this a wiring reading**; the capability position
+is unchanged.
 
 **One uniform loop, no type branching between them** — the loop reporting a difference in the
 habitat rather than in itself.
