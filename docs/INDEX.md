@@ -19775,7 +19775,12 @@ impose a unit: **single actions, one per cycle.** Structurally it is the same sh
 
 **BUT *CRYSTALLIZED* CARRIES *UNJUSTIFIED* IN THE CONCEPT'S USE OF IT, AND THAT HALF IS FALSE.**
 
-### 2 · *both sources ask for unpointed-when-clueless* — REFUTED, AND BY THE CORPUS
+### 2 · *both sources ask for unpointed-when-clueless* — REFUTED ON Q18, AND **CORRECTED BY SWEEP 25**
+
+> **SCOPE ERROR, CORRECTED AT SOURCE.** The refutation below cites `Q18`, which is about coverage of
+> the ACTION ALPHABET. **The concept is about configurations and sequences, which is `Q20`'s
+> territory — and `Q20` prescribes *random perturbation as an experiment*, with a measured receipt.**
+> Everything below is right about `Q18` and **wrong as a verdict on the concept.** See sweep 25.
 
 **FIRST, THE FRAMEWORK CITATION DOES NOT EXIST.** `NOVEL + zero reward → explore the unmapped region`
 **appears nowhere in the corpus.** What is there:
@@ -19837,3 +19842,68 @@ pursuit never begins, silently.**
 **IT DOES NOT BITE ON THE CURRENT PUBLIC SET — max surfaced is 6** (`ar25`). **But advertised reaches
 7**, and the gap between advertised and surfaced is a harness property, not a guarantee. **Filed as
 `S6`.**
+
+## SWEEP 25 — `DISCOVERY` Q20 CORRECTS SWEEP 24: THE CORPUS DOES PRESCRIBE RANDOM, AT A DIFFERENT LEVEL
+
+Sweep 24 refuted the stepping-rule concept by citing Q18's coverage-first. **Isaiah pointed at Q20,
+which I had not read, and it prescribes the opposite for the case the concept is about.**
+
+> **Q20 — What happens when SUPPORT is zero?** *"The remedy: **random perturbation as an
+> experiment**."* With receipts: ***"uniform noise visits 884 distinct frames on one game while the
+> agent orbits 51 distinct frames in 2,050 steps. You cannot compress what you never observed."***
+>
+>     ✗ random action selection **to score** is Goodhart — buys wins, proves nothing
+>     ✓ random perturbation as an **experiment whose outcome is consumed by the residual**
+
+**THE TWO ANSWERS ARE NOT IN CONFLICT — THEY ARE OVER DIFFERENT SPACES, AND I COLLAPSED THEM.**
+
+    Q18   coverage over the ACTION ALPHABET      systematic. try every action, learn your effects
+    Q20   coverage over the STATE SPACE          random. you cannot compress what you never observed
+
+**The concept was about configurations and sequences — Q20's territory — and I answered it with
+Q18.** Sweep 24's *the corpus prescribes the opposite* is **correct for the action alphabet and wrong
+as stated**; the concept has explicit corpus support at Q20, with a measured receipt behind it.
+
+### AND THE BUILD IMPLEMENTS Q20's TRIGGER AND CLOSED LOOP BUT NOT ITS REMEDY
+
+    bored()      "SUPPORT at zero ON THIS STEP: no slot carried live mass"        TRIGGER   built
+    note_step()  "a probe that shakes something loose ... suppresses the next     LOOP      built
+                  probe until the agent has explained what it found"
+    the draw     sorted(actions)[(cycle*7 + seed) % len(actions)]                 REMEDY    NOT random
+
+**Q20 asks for random perturbation. The perturbation is a deterministic rotation.** The trigger is
+the agent's own liveness rather than a score, exactly as Q20 requires, and the closed loop is there —
+**the randomness is the one part of Q20's three that is absent.**
+
+### AND `never_live`'s DOCSTRING ALREADY STATES THE CONCEPT'S CORE POINT
+
+> *"**AND THE DENOMINATOR IS OVER ACTIONS WHILE THE THING REQUIRED MAY BE A SEQUENCE**, so this
+> cannot mean `nothing I can do changes anything`. It means the narrow thing: **no SINGLE action,
+> from the states occupied, changed anything**."*
+
+**The build knew.** The limitation the concept names is written into the function that would
+otherwise over-claim from it, and it is written as a bound on the VERDICT rather than as a defect in
+the walk. **Neither the concept nor sweep 24 had read it** — and it is the fourth time this window
+that the answer was already in the source.
+
+### WHAT IS ACTUALLY OPEN, AND IT IS MEASURABLE
+
+**Q20's receipt compares uniform noise to a GOAL-DIRECTED agent orbiting 51 frames. It does not
+compare noise to a ROTATION.** So *the rotation fails Q20's state-coverage goal* is **not
+established** — the comparison Q20 makes is against a different policy.
+
+**THE MEASUREMENT THAT WOULD SETTLE IT:** distinct frames visited under the rotation versus under a
+uniform random draw, same board, same step budget. **That is a reading, and the freeze forbids
+changing the walk to take it** — but it can be taken beside the build without touching it, because a
+random draw over `self.actions` is not a build change when it runs in a scratchpad harness.
+
+**AND MY OWN `lf52` DATA IS A Q20 SYMPTOM, WHICH I DID NOT RECOGNISE AS ONE.** 3 of 354 persistent
+slots ever change under the full rotation. **That is `you cannot compress what you never observed`,
+measured, and Q20 is the section that names it.**
+
+### CLASSIFICATION UNCHANGED, SCOPE CORRECTED
+
+**`S6` stands** — the `gcd(7, n)` coprimality dependence is a real latent defect regardless of which
+Q applies. **Sweep 24's point 1 stands** (the rule is a designed selection) **and its point 3 stands**
+(no board shows the stepping rule blocking). **Point 2 is corrected: refuted on Q18, supported on
+Q20, and the concept was about Q20.**
