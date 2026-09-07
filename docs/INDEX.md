@@ -19565,3 +19565,78 @@ same shape that has failed seven times in this window, declined an eighth time.
 neutral*, `C` is *nothing separates; the draw stays uninformed*. **The build is right at both, and the
 census's contribution is to say which one actually fires** — 55% and 17%, where the window had been
 attributing the whole to a mechanism that fires 0%.
+
+## SWEEP 22 — THE CONCEPT-CHECK, AND THE WITHDRAWAL IS RIGHT FOR REASONS TWO OF ITS THREE ARE NOT
+
+`[I]` withdrew the action-policy directive and asked for three points to be confirmed. **Checked
+against the code. One half-holds, one fails, one holds — and the withdrawal is correct independently
+of all three, which is the thing worth keeping.**
+
+### 1 · *`_goal_split`'s route is the REACHABILITY path* — HALF
+
+**The PROPERTY holds and the IDENTITY does not, and they were joined in one sentence.**
+
+    walked, not handed     TRUE   `_goal_split` reads `self.trace` and nothing else. No env read,
+                                  no handed action model. `Q8` enforces the stronger half: `CAN`'s
+                                  *has-held-before* disjunct is not route evidence
+    it IS `closure(Γ)`     FALSE  REACHABILITY is a MINT guard over TERMS -- initialised at
+                                  `tether.py:2246`, set at `2333` when a candidate TERM passes
+                                  `pays`. The separate verdict at `1207` is a closure over SENSOR
+                                  chains. `_goal_split` returns an ACTION LABEL from votes over
+                                  transitions
+
+**Unchanged from sweep 18.** The restatement adds the property, which is true and was true before;
+**it does not repair the identity.**
+
+### 2 · *`probe`'s walk is `NOVEL → explore the unmapped region`* — NO, AND THE PREMISE ABOVE IT ALSO FAILS
+
+    probe.py   pick = sorted(actions)[(cycle * 7 + self._seed) % len(actions)]
+
+**No novelty term. No unmapped region.** Sweep 20 read the sequence off a real `lf52` trace —
+`ACTION1 · ACTION3 · ACTION7 · ACTION2 · ACTION4`, repeating — which is `(cycle*7) mod 5` over the
+sorted list, exactly.
+
+> **AND *THE GAMES ARE CHANCE, A RANDOM WALK* IS THE PREMISE THIS RESTS ON.** The GAMES may be. **The
+> AGENT'S WALK IS NOT A RANDOM WALK AND CONTAINS NO CHANCE AT ALL** — it is a deterministic rotation,
+> and `INDEX` already records *the loop is deterministic, so repetition is not sampling.*
+
+**THE DIFFERENCE IS NOT PEDANTIC, BECAUSE THE TWO HAVE OPPOSITE COVERAGE PROPERTIES.** A random walk
+covers `n` actions only in expectation and can miss one indefinitely; **`gcd(7, n) = 1` makes the
+rotation cover all `n` in exactly `n` cycles, guaranteed.** The build's walk is *better* than the
+concept credits it for — and it is also **structurally unable to repeat an action twice running**
+until it wraps, so an effect requiring consecutive repetition is one this walk cannot sample and a
+random one could. **Neither is a defect. Both are properties a *random walk* framing hides.**
+
+### 3 · *C is the `ties()` discipline, A is coverage, B has never fired* — YES
+
+    C   `tied == len(self.actions)` -> None, and `self._ties[("goal", tied)] += 1` is incremented
+        on the line above it, so it IS the same instrument. `ties()`: *any mass at >= 2 is
+        `self.actions` order breaking a tie, which is arbitrary and stable*
+    A   the coverage gate, *untried is not neutral*
+    B   0 of 29 calls on 8 boards -- no genuine nothing-works negative observed
+
+**All three confirmed.** This is the one that carries the withdrawal.
+
+### THE CAVEAT ON `A`, WHICH THE WITHDRAWAL'S REASONING NEEDS AND DOES NOT HAVE
+
+**`A` is 55% of exits and it is CONFOUNDED WITH RUN LENGTH.** Coverage needs every advertised action
+observed on the chosen slot; `ar25` has 6 actions and got 8 cycles, `bp35` has 3 and got 6. **The cost
+wall caps these runs.**
+
+> **SO *THE WALK CORRECTLY CANNOT REACH A ROUTE* IS ESTABLISHED FOR `C` AND NOT FOR `A`.** On a `C`
+> board the map is complete and unanimous — a finished discovery of an indistinguishable world. **On
+> an `A` board the walk simply has not finished**, and *existence is not reachability* is the wrong
+> reading of an unfinished sweep. **17% of exits support the withdrawal's account; 55% are silent on
+> it.**
+
+### THE WITHDRAWAL IS STILL CORRECT, AND FOR A REASON THAT SURVIVES ALL OF THE ABOVE
+
+**No coupling is missing.** Sweep 17 watched the map fill, sweep 21 measured it returning a route on
+8 of 29 calls, and `B` never fires. **A directive to build the accumulation is aimed at a mechanism
+that runs.** That holds whether or not `_goal_split` is `closure(Γ)` and whether or not the walk is
+novelty-driven — **which is why the withdrawal stands while two of its three supports do not.**
+
+> **AND THAT IS THE ENTIRE VALUE OF CHECKING A CONCEPT AGAINST CODE RATHER THAN AGAINST ITSELF.** A
+> right conclusion resting on two false mappings **will be re-derived wrongly by the next reader**,
+> who inherits the mapping and not the conclusion. **The mappings are recorded here as false so the
+> conclusion can be reached from what is true.**
