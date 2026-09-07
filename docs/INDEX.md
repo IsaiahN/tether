@@ -19443,3 +19443,63 @@ then did not carry it forward.**
 > attached to my own readings. **This one was used to argue against a ruling**, and it was wrong in
 > the direction that made the argument sound stronger. **The correction is owed upward, not just
 > recorded.**
+
+## SWEEP 20 — THE THREE EXITS CENSUSED, AND WHY `sb26` DISCRIMINATES AND `lf52` DOES NOT
+
+Sweep 19's third exit was one board and one call — the n = 1 failure sweep 19 was itself written to
+correct. **Censused, with the agreement assertion `votes.py` lacked:**
+
+    board   actions   OBJ-bound calls   A coverage   B no votes   C unanimity   PASS
+    ---------------------------------------------------------------------------------
+    lf52       5             5              4            0             1          0
+    sb26       2             5              0            0             0          5
+    ---------------------------------------------------------------------------------
+    derivation and build agree on every call
+
+**`B` — *no action qualifies* — has never fired.** The exit I attributed `lf52`'s `None` to in sweep
+18 has **zero instances on either board.** Sweep 19 withdrew that claim; the census confirms the
+withdrawal was not merely a technicality.
+
+### AND THE HABITAT READING UNDERNEATH IT, WITH A CONTROL
+
+`drift.py` dumps `(cycle, action, before, after)` per slot from `self.trace` — a plain run, nothing
+wrapped, nothing overridden.
+
+    lf52   slots present in every trace entry   354      of which ever change:  3
+           and both changes occur at cycle 0, the reset-to-first-action transition
+           o59.w -- the goal slot -- is INTERMITTENT and therefore not in that 354
+
+    sb26   slots present in every trace entry   156      of which ever change:  2
+           ACTION5  ->  +2, +2, +2, +2, +2, +2, +2        ACTION7  ->  0 x7
+           ACTION5  ->  -1, -1, -1, -1, -1, -1, -1        ACTION7  ->  0 x7
+
+> **IT IS NOT HOW MUCH THE WORLD MOVES. IT IS WHETHER THE MOVEMENT SEPARATES THE ACTIONS.** Both
+> boards are nearly static in their persistent structure — 3 of 354 and 2 of 156. **`sb26`'s movement
+> is perfectly action-discriminating**: `ACTION5` moves, `ACTION7` never does, seven observations each
+> with no exception. **`lf52`'s goal slot moves identically under all five.**
+
+**THAT IS THE WHOLE OF THE `_goal_split` OUTCOME ON BOTH BOARDS, WITH NO MECHANISM MISSING.** `sb26`
+returns `ACTION5` on 5 of 5 because the world distinguishes its two actions cleanly. `lf52` returns
+`None` because the world does not distinguish its five on the slot in question — **and the build
+declining to pick one of five identical candidates is the `ties()` discipline, not a gap.**
+
+### AND THE ACTION ROTATION IS NOW CONFIRMED FROM THE TRACE, NOT ONLY FROM ARITHMETIC
+
+    lf52 trace   ACTION1 · ACTION3 · ACTION7 · ACTION2 · ACTION4 · ACTION1 · ACTION3 · ...
+
+Sorted actions are `[ACTION1, ACTION2, ACTION3, ACTION4, ACTION7]` and `(cycle*7) mod 5` gives
+indices `0, 2, 4, 1, 3`. **The observed sequence is that sequence.** Sweep 18 refuted *the walk
+accumulates only by coincidence* from `gcd(7, n) = 1`; **this is the same refutation read off a real
+trace.**
+
+### THE CAVEAT THAT BOUNDS ALL OF IT
+
+**`common` is slots present in EVERY trace entry, so objects that appear or vanish are excluded by
+construction — and those are exactly the ones most likely to be changing.** `o59.w` is intermittent
+and is not in `lf52`'s 354. **So *3 of 354 ever change* is a statement about PERSISTENT structure and
+understates movement.** It is reported with its denominator rather than as *the board is static*.
+
+**CLASSIFICATION — HABITAT READING, NO CANDIDATE FIX ANYWHERE IN IT.** Neither board's behaviour is a
+defect: one world separates its actions and the other does not, and the build reports each
+faithfully. **n = 2 with a control, which is what sweep 19 said this window owes before a reading
+like this is written down.**
