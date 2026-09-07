@@ -17770,6 +17770,18 @@ against a `base` of 6.00. **CORRECT REFUSAL, NO CANDIDATE FIX** — describing a
 cheaper than naming the actions by hand, and here it is not. **A bargain that paid would be the
 defect.**
 
+**Q11 · seven of nine residual series never reach the trigger's minimum length.** `_goal_choice`
+needs `MIN_REPEAT + 1 = 3` consecutive readings; on `ka59`, `dc22`, `ar25`, `bp35` and `re86` the
+series run 0, 1 or 2 across seven to fourteen cycles. **SCOPE NOTE, NO CANDIDATE FIX — the build is
+correct at both ends**: `note_goals` pops a slot when its objective stops being readable, *a series
+needs a distance*, and `MIN_REPEAT`'s rule is *one observation is a coincidence*. **Two readings is
+what these boards supply.**
+
+**It carries the falsifier sweep 9 named.** `ka59`'s `o14.dcol` runs `[1.0, 0.0]` — large, full-width,
+monotonically down — **and stops one reading short of readable.** Sweep 10c has the table. **A
+threshold change to admit it would be tuning a constant until a board passes**, which is the encoded
+answer in a fix's clothes, and it is why this row carries no candidate.
+
 **The reason is worth the row**: `base` is `R_goal x scope x log2(n)`, and `tr87`'s `R_goal` sits at
 0.0–0.062 because its objective is nearly satisfied. **The near-zero residual is what lets the
 trigger read a shrinking tail AND what leaves nothing for the routine to buy.** Sweep 9 has the
@@ -18646,3 +18658,62 @@ board that surfaces at least one action, binds a readable objective, supplies a 
 accepts, **and** supplies one large enough for the bargain to pay. **The first three are satisfied
 somewhere in the seventeen. The fourth has not been observed with the third**, which is sweep 9's
 open falsifier and is being read now.
+
+## SWEEP 10c — THE FALSIFIER EXISTS, AND IT IS TWO READINGS LONG
+
+Sweep 9 claimed **no board supplies a residual both large and monotonically shrinking**, and named
+that board as its falsifier. The five objective-binding boards it had never read were measured, with
+`_res` reported as an EXACT length rather than a tail — **the window error this project has already
+made twice is reading a truncated view as a whole series, so `n` here is `len(v)`, not a slice.**
+
+    board  slot          n   min     max     series                     shape
+    ---------------------------------------------------------------------------------
+    ka59   o14.dcol      2   0.000   1.000   [1.0, 0.0]                 LARGE AND DECREASING
+    ka59   o14.col       2   0.857   0.857   [0.857, 0.857]             flat
+    ka59   o14.w         2   0.857   0.857   [0.857, 0.857]             flat
+    ar25   o13.drow      2   0.462   0.615   [0.462, 0.615]             INCREASING
+    ar25   o13.h         7   1.000   1.000   [1.0 x7]                   flat at maximum
+    bp35   o192.w        5   1.000   1.000   [1.0 x5]                   flat at maximum
+    re86   o24.dcol      2   1.000   1.000   [1.0, 1.0]                 flat
+    re86   o27.colour    1   1.000   1.000   [1.0]                      single reading
+    dc22   --            0     --      --    _res empty                 popped
+
+**THE FALSIFIER IS `ka59`'s `o14.dcol` AND IT IS REAL: `[1.0, 0.0]`, THE FULL WIDTH OF THE RANGE,
+MONOTONICALLY DOWN.** The trigger needs `MIN_REPEAT + 1 = 3` consecutive readings. **It has two.**
+
+> **SO SWEEP 9's CLAIM SURVIVES AND ITS REASON DOES NOT.** *No board supplies a residual both large
+> and shrinking* is false — one does. **What is true is that no board supplies one LONG ENOUGH TO
+> READ**, and that is a different constraint with a different remedy. **A claim that survives for a
+> reason it did not state is not confirmed; it is unexamined**, and the falsifier being named in
+> advance is the only thing that made the difference visible.
+
+### THE BINDING PRECONDITION IS LENGTH, AND FIVE SWEEPS ATTRIBUTED IT TO SHAPE
+
+**Two of nine slots reach `n >= 3`, across seven to fourteen cycles per board. Both are flat at 1.0.**
+
+Sweeps 3, 4 and 5 read shape — *one board alternates, two sit still* — on `sb26`, `lf52` and `ls20`,
+where the series were long enough to have a shape at all. **On these five boards the more basic fact
+is that there is no series to have one.** `_goal_choice` skips at its first line, `len(series) <
+MIN_REPEAT + 1`, and never reaches the delta test the last five sweeps have been discussing.
+
+**AND THE TWO LONG SERIES ARE THE TWO THAT NEVER MOVE** — `ar25`'s `o13.h` at 1.0 seven times and
+`bp35`'s `o192.w` at 1.0 five times. **The correlation is recorded and the cause is NOT claimed.**
+`note_goals` pops a slot whenever `goal_residual` returns `None`, so a slot survives in `_res` exactly
+as long as its objective stays readable — **whether movement and readability are related here is
+unestablished, and the story that writes itself is the one to distrust.**
+
+### CLASSIFICATION — BEHAVIOUR NOTE, NO CANDIDATE FIX
+
+`note_goals`'s pop is documented and correct in its own words: *both non-integer outcomes break the
+trend, and for the same reason — a series needs a distance and neither is one.* **A series that
+resets when its subject becomes unreadable is right.** `MIN_REPEAT` is the one surviving constant in
+`self_family.py` and its rule is *one observation is a coincidence*, which is also right.
+
+**The build is correct at both ends and the boards supply two readings. That is a habitat fact and
+there is nothing here to fix** — and a candidate fix aimed at either end would be tuning a threshold
+to make a board pass, which is the encoded answer wearing a fix's clothes.
+
+**WHAT IT CHANGES IS WHERE THE NEXT QUESTION POINTS.** *Why does the residual not trend* has been the
+standing question since sweep 3. **On five of ten objective-binding boards the prior question is why
+the objective stops being readable after two cycles** — and that one has never been asked, because
+the series it produces were being read as flat rather than as absent.
