@@ -17715,6 +17715,17 @@ boundary clearing the slots are both consistent with what was recorded. **Behavi
 candidate fix.** What would settle it is one line the wrapper lacks: record `by` and `retarget`
 alongside each call.
 
+**Q10 · `tr87` refuses its own routine by 0.97 bits.** `until(o54.dcol/3) {ACTION2}` costs 6.9658
+against a `base` of 6.00. **CORRECT REFUSAL, NO CANDIDATE FIX** — describing a routine must be
+cheaper than naming the actions by hand, and here it is not. **A bargain that paid would be the
+defect.**
+
+**The reason is worth the row**: `base` is `R_goal x scope x log2(n)`, and `tr87`'s `R_goal` sits at
+0.0–0.062 because its objective is nearly satisfied. **The near-zero residual is what lets the
+trigger read a shrinking tail AND what leaves nothing for the routine to buy.** Sweep 9 has the
+five-board table; recorded here as a refusal handled right, **not as a tension in the design** —
+nothing forbids a residual both large and shrinking, and no board measured has supplied one.
+
 ## SWEEP 3 — DEPTH WHERE THE WALL ALLOWS · WHY NO ROUTINE FIRES, AND IT IS NOT THE WALL
 
 **`sb26` to 44 cycles, `lf52` to 25. Both cheap enough to go deep; both bind objectives; both have
@@ -18474,3 +18485,71 @@ not patched.
 roughly triples over ten cycles on `lf52` and grows 60-fold over four on `ar25`, so **depth is bought
 against a rising price on every board** — and `runs are 40 cycles against a ruled 1000` is a statement
 about this curve, not about patience.
+
+## SWEEP 9 — `R_goal` RANGE PER BOARD, AND THE TWO GATES WANT OPPOSITE THINGS
+
+**No new run.** Every number here was already on disk and none of it had been put side by side.
+
+    board   R_goal values observed          shape                     trigger fires?
+    ----------------------------------------------------------------------------------
+    tr87    0.0 · 0.016 · 0.031 · 0.062     near zero, small drift    YES  2 of 9
+    sb26    0.0 <-> 0.923                   oscillating, full width   no
+    tu93    0.044 · 0.971                   flat, two levels          no
+    ls20    0.85 · 1.0                      flat                      no
+    lf52    1.0                             flat at maximum           no
+
+**`tr87` IS THE THIRD SHAPE AND IT IS THE ONLY ONE THE TRIGGER CAN READ.** Sweep 4 recorded two —
+*one board alternates, two sit still* — and stopped there because the third had not been measured
+from inside the loop. `o54.dcol` runs `[0.047, 0.046, 0.016]`: deltas `[-0.001, -0.030]`, **all
+non-increasing with a real decrease**, which is exactly `§13.4`'s condition. `sb26` moves far more and
+qualifies never, because `[0.923, 0.0, 0.923]` alternates and a decrease is always answered.
+
+> **AMPLITUDE IS NOT THE PROPERTY. MONOTONICITY OVER THE LAST THREE IS.** `sb26` swings the full width
+> of the range and fails; `tr87` drifts by 0.03 and passes. **A mechanism keyed on shape rather than
+> size, doing exactly that.**
+
+### AND THE BARGAIN'S SEVEN ROWS ACROSS FIVE BOARDS ARE PERFECTLY ORDERLY
+
+    board  routine                        cost    left    base    verdict
+    ---------------------------------------------------------------------
+    sb26   ACTION5                       3.1699   1.0      2.00   cut
+    ka59   ACTION1                       4.6439   0.0      2.00   cut
+    sb26   until(o20.w/3)   {ACTION5}    4.7549   0.0      3.00   cut
+    tr87   until(o54.dcol/3){ACTION2}    6.9658   0.0      6.00   cut
+    sb26   until(o20.w/23)  {ACTION5}    4.7549   0.0     23.00   PAYS
+    ar25   until(o13.drow/13){ACTION1}   8.4221   0.0     33.60   PAYS
+    re86   until(o24.dcol/24){ACTION3}   7.7549   0.0     55.73   PAYS
+
+**`cost + left < base` on every row, with no exception and no threshold anywhere in it.** `base` is
+`unsat x log2(n)` and `unsat` is `R_goal x scope`, so **the bargain's verdict is a reading of the
+residual's SIZE.**
+
+### THE TWO GATES WANT OPPOSITE THINGS, ON EVERY BOARD MEASURED
+
+**The trigger needs the residual to be SHRINKING. The bargain needs it to be LARGE.** On the five
+boards read, no board supplies both:
+
+    lf52 · ls20 · tu93   large residual, flat        base would be huge, trigger never opens
+    sb26                 large residual, alternating base 23 and it PAID -- but on an overridden slot
+    tr87                 shrinking residual, tiny    trigger opens, base 6.00 against cost 6.97,
+                                                       refused by 0.97 bits
+
+**`tr87` IS THE CASE THAT SHOWS THE SHAPE OF IT.** Its residual drifts down because it is already near
+zero — the objective is nearly satisfied — and **near-zero residual is precisely what makes `unsat`
+small and `base` small.** The property that opens the gate is the property that empties the purse.
+
+> **CLASSIFIED: NOT AN ERROR, AND NO CANDIDATE FIX.** On every one of the seven rows the build did the
+> right thing — it declined to spend 6.97 bits describing a routine that saves 6.00. **A bargain that
+> paid there would be the defect.** This is a note about what the habitat supplies, not about what the
+> build does with it.
+
+**AND IT IS FIVE BOARDS, NOT A STRUCTURAL PROOF, WHICH IS THE DIFFERENCE THAT MATTERS HERE.** Nothing
+in the mechanism forbids a residual that is both large and monotonically shrinking; the bargain would
+pay handsomely on one. **The claim is that no board measured has supplied one** — and the falsifier is
+exactly that board. **Until it is found this is a reading of five habitats, and stating it as a
+tension in the design would be the causal story the null rule warns against**, dressed as an
+observation because the numbers are real.
+
+**WHAT IT DOES NOT EXPLAIN, HELD APART:** `tr87`'s refusal is the trigger reaching the bargain and
+losing there. **The other four boards never reach it**, and their blocker is `_goal_split` or the
+trigger itself. **One board's arithmetic is not the set's account.**
