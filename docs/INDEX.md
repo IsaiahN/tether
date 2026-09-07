@@ -17826,3 +17826,36 @@ depth reached — because the goal residual on a real board does not trend, and 
 reads does not either at the moments it is read.
 
 **`tr87` also cost 1,733 seconds for ten cycles at 384 slots**, the steepest wall measured.
+
+## SWEEP 6 — THE LOOP'S OWN SELECTOR CALLS, OBSERVED FROM OUTSIDE THE FROZEN BUILD
+
+**The last two readings sampled the wrong window — once in length, once in time. This one wraps
+`_goal_choice` and `_mint_routine` so every call the LOOP makes is recorded**, with the frozen files
+untouched and the wrapper living in the harness.
+
+    sb26, 20 cycles, 50.9s
+      the LOOP called `_goal_choice`  32 times   ->  non-None on 0
+      `_mint_routine` entered         16 times   ->  rows written 0
+
+**Two calls per cycle — one from `_mint_routine`, one from `_goal_split`'s gate — and every one of the
+thirty-two returned `None`.** `_mint_routine` is entered every cycle and returns at its first line
+each time, which is why no `routine`, `routine_cut` or `routine_refused` row exists anywhere.
+
+**AND THE WINDOWS THE MECHANISM ACTUALLY READ ARE ON THE RECORD:**
+
+    cycle  7   o20.w [0.077, 0.0, 0.077]   o26.col [0.115, 0.0]     o26.w [0.885]
+    cycle  9   o20.w [0.077, 0.0, 0.077]   o26.col [0.0, 0.115, 0.0]  o26.w [0.885, 0.0, 0.885]
+    cycle 10   o20.w [0.0, 0.077, 0.0]     o26.col [0.115, 0.0, 0.115] o26.w [0.0, 0.885, 0.0]
+
+**Every window is an alternation**, so every one fails `all(d <= 0)`. *No transient qualifying tail
+exists at any moment the mechanism looks* — which is what my post-hoc probe on `tr87` wrongly
+suggested there was.
+
+> **THE CHAIN STOPS AT `_goal_choice`, MEASURED FROM INSIDE THE LOOP RATHER THAN AROUND IT.** Not the
+> cost wall, not `CAN`, not the bargain, not the guard check — **the first gate, on every call, on
+> every board read.**
+
+**CLASSIFIED CORRECT-GIVEN-THE-INPUT, NO CANDIDATE FIX.** `confidently shrinking` is §13.4's own
+wording and an alternating residual is not shrinking. **The mechanism is right and the input never
+satisfies it**, which is a finding about what real boards supply under an uninformed action policy —
+`phase: probe 1.0` on every game, at every depth, in this whole window.
