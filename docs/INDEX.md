@@ -18164,6 +18164,11 @@ call site, so the trajectory is the agent's own and any row that appears was ear
 the only thing that can settle whether the trigger has a board, and it is deliberately not being
 guessed at here.**
 
+> **ANSWERED IN SWEEP 8e, AND IN THE DIRECTION THE WITHDRAWN HEADLINE POINTED.** `OVERRODE 0`, and
+> the real `_goal_choice` opened on 2 of 9 gate evaluations. **The withdrawal was still correct**:
+> the claim was unsupported by the evidence offered for it, and a right conclusion resting on a
+> confounded measurement is not a finding. **The unaided run is what made it one.**
+
 ## SWEEP 8d — GATE 0 NAMED, AND IT IS THE MISSING WIRE ARRIVING AS A MEASUREMENT
 
 **No override at either call site.** Nothing is injected, so every number below is the agent's own
@@ -18225,3 +18230,97 @@ ground reading is below the break; **this says how far below, per board.** On `s
 break is three gates earlier and there is no objective to have a residual about. **Two boards, two
 depths, one uniform loop and no type branching between them — which is the loop reporting a real
 difference in the habitat rather than a difference in itself.**
+
+## SWEEP 8e — `tr87` UNAIDED: THE TRIGGER FIRES, AND `_goal_split` IS THE BLOCKER
+
+**`OVERRODE 0`.** The override is disabled at source; nothing is injected at either call site. Ten
+cycles, 1818 seconds, the agent's own trajectory throughout.
+
+    asked inside mint            11
+    REAL _goal_choice non-null    4        <- 2 at the gate, 2 at _goal_split's own call
+    no live residual slot         2
+    3. goal_residual  positive    2
+    4. can            yes         2
+    5. _goal_split    STOP None   2
+
+**THE GATE OPENED ON 2 OF 9 REAL EVALUATIONS AND NOTHING SYNTHETIC IS ANYWHERE IN THAT NUMBER.**
+Sweep 8c withdrew *the trigger fires, it has a board* because the override perturbs the trajectory it
+measures. **The unaided run settles it in the same direction, and now it is earned:** `_goal_choice`
+is not dead. It has a board.
+
+> **AND THE NO-POOLING LAW SAID THIS WOULD BE THE SHAPE.** *Firing nowhere across many games is
+> broken; firing only where the skill is present is CORRECT, and it is the stronger verdict because
+> it discriminates.* A gate keyed on a confidently shrinking residual **should** stay shut where
+> nothing shrinks. Sixteen boards shut and one open is a mechanism reading its input.
+
+**AND THE REST OF THE CHAIN THEN ANSWERS, ON A SLOT THE AGENT CHOSE ITSELF:** `goal_residual`
+positive 2 of 2, `CAN` **yes** 2 of 2 — **and `_goal_split` returns `None` 2 of 2.**
+
+> **SO THE BLOCKER IS `_goal_split`, ON REAL SLOTS, NOT ONLY ON SUPPLIED ONES.** The override sweeps
+> found gate 6 stopping five boards and that was a wiring reading. **This is the same gate stopping
+> the agent's own choice**, and it is the first time a blocker in this project has been located
+> without handing the machinery anything. *The action THIS agent has observed moves THIS slot the
+> wanted way* — under `phase: probe 1.0` the trace does not carry one.
+
+## SWEEP 8f — THE OBJECTIVE MAP, FROM A ROW THAT NEEDED NO INSTRUMENT
+
+`can` rows per board, plain runs, no wrapper of any kind:
+
+    HAS A READABLE OBJECTIVE          NONE, AND ACTIONS ARE ADVERTISED
+    lf52   14 of 16 cycles            sk48    0 of  6
+    sb26   11 of 16                   sp80    0 of 16
+    ls20    9 of 11                   wa30    0 of 16
+    tu93    7 of 10
+    ar25    6 of  8                   EXCLUDED, NO SURFACED ACTION
+    tr87    6 of  8                   ft09 · lp85 · tn36 · vc33
+    ka59    5 of 14
+    bp35    4 of  6
+    re86    3 of  9
+    dc22    1 of 13
+
+**THE THREE BOARDS WITH NO `can` ROW ARE EXACTLY THE THREE WHERE SWEEP 8c'S OVERRIDE COULD NOT FIRE.**
+`sk48`, `sp80`, `wa30` — identified there by a wrapper counting live residual slots, identified here
+by a ledger row the build has always written. **Two instruments, no shared code, same partition.**
+
+> **AN INDEPENDENT MEASUREMENT REPRODUCING A PARTITION IS WORTH MORE THAN EITHER READING ALONE**, and
+> the cheaper one came second. The whole map costs a plain run and a `grep`; four sweeps of wrappers
+> preceded it. *Assume it is already specified, and go look* — **tenth instance, and the specified
+> instrument was again the better one.**
+
+**`dc22` at 1 of 13 is the interesting row and is not being explained.** An objective is readable on
+one cycle in thirteen, which is neither the `sb26` pattern nor the `sp80` one. **Recorded as a third
+shape with no account offered** — a satisfying story about it would be exactly what the null-with-a-
+causal-story rule warns against.
+
+### THE INSTRUMENT ERROR IN THIS SWEEP, CAUGHT BEFORE PUBLICATION
+
+The map script also printed a `maxdisc` column. **It is garbage**: the `awk` selected on `NF >= 8`,
+which matched the `rows: {...}` summary line as well as the table, so it reported cycle counts as
+discrepancy maxima — `wa30` came out at 16 on a board where `_disc` is provably 0 at every entry.
+**The `can` column comes from a targeted `grep` for a named key and is sound; the `maxdisc` column
+came from a loose field filter and is dropped.**
+
+> **A COLUMN THAT AGREES WITH NOTHING IS SAFER THAN ONE THAT AGREES WITH THE STORY.** `maxdisc`
+> contradicted a result established two sweeps earlier and that is the only reason it was checked.
+> **Had it read plausibly it would have shipped**, which is the argument for selecting on a named
+> key rather than on a shape whenever both are available.
+
+## WHERE THE WINDOW LEAVES THE BUILD
+
+**THREE BLOCKERS, LOCATED, EACH ON A DIFFERENT BOARD SET, ONE UNIFORM LOOP AND NO TYPE BRANCHING:**
+
+    no objective binds        sk48 · sp80 · wa30      the missing WIRE, already named unbuilt
+    _goal_split finds no      tr87 unaided, and       the trace carries no action-to-slot
+      learned route           5 boards under override   evidence under phase: probe 1.0
+    the trigger declines      the other 9 boards      correct behaviour on a non-shrinking
+                                                        residual
+
+**MECHANISM — BUILT AND MEASURED ON REAL BOARDS.** Handed a slot, the chain composes, prices, guards
+and executes: 5 routines minted and 4 cut across 5 boards; `advance` decrementing a budget across
+cycles; `blocked` and `exhausted` both occurring and recorded apart; `exhausted` firing §18.2's
+refutation with `reopens_above`.
+
+**CAPABILITY — ONE STEP FURTHER THAN THE WINDOW OPENED WITH, AND NAMED PRECISELY.** The trigger fires
+unaided on `tr87` and `CAN` says yes; **no routine has been minted from a slot the agent chose
+itself**, and the single gate between those two facts is `_goal_split`. **`done` remains 0 and
+`levels_completed` remains 0.**
