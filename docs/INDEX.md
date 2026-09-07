@@ -19640,3 +19640,103 @@ novelty-driven — **which is why the withdrawal stands while two of its three s
 > right conclusion resting on two false mappings **will be re-derived wrongly by the next reader**,
 > who inherits the mapping and not the conclusion. **The mappings are recorded here as false so the
 > conclusion can be reached from what is true.**
+
+## SWEEP 23 — `outputs are not generators` READ IN FULL, AGAINST THE WINDOW'S DATA
+
+**Treated as CORPUS** — Isaiah's, written earlier and in a different context. **Defects and gaps are
+recorded here; the file is not edited.** Read after the window's measurements were taken, which is
+the order that makes the comparison worth anything.
+
+### WHERE THE DATA CONFIRMS IT, AND ONE CONFIRMATION IS INSIDE ITS OWN SYSTEM
+
+**§7 — *importing an axis is unfired in every system now operating.*** `Agent.resolve()` computes the
+sensor closure and returns a verdict. Measured:
+
+    lf52 · sb26 · wa30 · ar25      closure=4   composable=0   verdict=unreached
+
+**Identical on every board, so structural rather than habitat.** No chain from `OBJECT` exceeds length
+one, so the mechanism that would reach for a new primitive **has nothing to compose**, and `CLAUDE.md`
+already records the circle from the other side. **The article's frontier claim is measured, in the
+article's own system, and it holds.**
+
+**§6 — *the priors are labelled and their provenance recorded.*** Sweep 13: `gamma.accept` stamps
+`reuse:{slot}@{cycle}` against `{slot}@{cycle}`, and those are the only two entry paths in the repo.
+**Provenance is recorded and separable. Confirmed.**
+
+**§5 — *the recognizer only recognizes what its primitives can represent.*** `NOT_RESOLVED` is that
+sentence as a return value, and `goal_residual` uses it. **Confirmed as a mechanism.**
+
+### WHERE THE BUILD DOES NOT MATCH THE SPECIFICATION — §4's WALK
+
+**§4 specifies *a random walk, unguided contact with reality that samples configurations no hypothesis
+pointed at.*** The build's walk is
+
+    probe.py   pick = sorted(actions)[(cycle * 7 + self._seed) % len(actions)]
+
+**and it differs on three axes, none of them pedantic:**
+
+    not random          deterministic; the loop contains no chance at all
+    not unguided        a fixed cyclic subsequence. It CANNOT repeat an action twice running
+                        until it wraps, so action SEQUENCES -- which are configurations -- are
+                        systematically undersampled, and a random walk would reach them
+    not unpointed       the draw is from `self.actions`, the list the HARNESS ADVERTISED
+
+> **THE THIRD IS THE ONE THAT BITES, AND IT IS THE ARTICLE'S OWN ARGUMENT ARRIVING IN A CHANNEL THE
+> ARTICLE DOES NOT NAME.** §5: *every instrument is a crystallized hypothesis about what is worth
+> measuring, and the hypothesis comes from human awareness.* **The advertised action list is exactly
+> that, in the ACTION channel** — a crystallized hypothesis about what is worth DOING, handed by the
+> harness. **The walk cannot step outside it, so it cannot sample a configuration no hypothesis
+> pointed at. The article makes this argument for sensors and not for actions.**
+
+**AND THE WINDOW'S DATA SHOWS THE ALPHABET BINDING RATHER THAN THE SAMPLING.** On `lf52` the rotation
+exhausts all five advertised actions every five cycles — `gcd(7,5)=1`, confirmed off a real trace —
+and **3 of 354 persistent slots ever change, both at cycle 0.** The walk is not failing to sample. **It
+has completely sampled its given alphabet and the world barely responds.**
+
+### WHERE THE ARTICLE'S DEEPEST LIMIT IS REAL AND IS NOT WHAT IS BITING
+
+**§5's representation limit is not the current constraint, and reaching for it would misdiagnose.**
+Sweep 12: **15,001 of 15,304 `goal_residual` calls fail because NOTHING IS BOUND to the slot** — not
+because a primitive cannot express it. **98% of the failure is one level shallower and more mundane
+than the article's deepest layer.** The representation limit is real, measured `unreached`, and **it
+is not why the agent does not pursue.**
+
+### A THIRD REQUIREMENT THE TWO-PART FORMULA DOES NOT NAME
+
+**§4: *discovery under consequence = a random walk plus a model that can be surprised.*** Both are
+present and both work. `lf52` still yields no route — **because all five actions move the goal slot
+identically.** `sb26`'s two are perfectly separable and it returns a route on 5 of 5.
+
+> **THE WORLD MUST DISCRIMINATE THE ACTIONS, AND THAT IS NEITHER THE WALK NOR THE RECOGNIZER.** The
+> formula is necessary and, on these boards, not sufficient. **What the agent discovers on `lf52` is
+> that the world is unanimous** — a real discovery, correctly reported, and a null. **The article
+> frames discovery as finding structure and does not discuss discovering its absence**, which is what
+> a walk over an indistinguishable world correctly produces.
+
+### AND THE BAR §4 SETS RECONTEXTUALISES THIS ENTIRE WINDOW
+
+**§4: *general intelligence is not reliable success on the novel... it is the right kind of failure:
+making progress through search-and-adaptation rather than confabulation. The bar is whether failure
+accumulates traction, not whether the answer arrives.***
+
+**Measured against that bar rather than against `levels_completed`, the window reads differently:**
+
+    refuses to confabulate    B never fires in 29 calls -- no guessed route
+                              unanimity returns None rather than letting tuple order pick
+                              the coverage gate refuses on untried actions
+                              NOT_RESOLVED where a primitive cannot read
+    accumulates traction      `_goal_split` coverage climbing 1 -> 2 -> 3 -> 4 -> 5
+                              `exhausted` refuting a shape with `reopens_above`
+                              `outstanding` monotone against the actual
+
+**THE NOT-CONFABULATING HALF IS DEMONSTRATED THOROUGHLY. THE TRACTION HALF IS PARTIAL** — coverage
+climbs, and a slot that re-blocks at the same gate on the next cycle has gained nothing. **Both halves
+are said because the bar has two, and quoting only the first would be the window scoring itself.**
+
+### WHAT THIS DOES NOT LICENSE
+
+**None of the above is a capability reading.** `done` 0, `levels_completed` 0, and no routine minted
+from a slot the agent chose. **The article's bar is a bar on the KIND of failure, and passing it is not
+the terminal condition** — `CLAUDE.md` clause 1 is *it wins*, and clause 3 is a post-mastery test.
+**Reading the article's bar as the goal would substitute a criterion the frame produces for the
+ground**, which is the one substitution the doctrine forbids outright.
