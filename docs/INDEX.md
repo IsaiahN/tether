@@ -17795,6 +17795,14 @@ trigger read a shrinking tail AND what leaves nothing for the routine to buy.** 
 five-board table; recorded here as a refusal handled right, **not as a tension in the design** —
 nothing forbids a residual both large and shrinking, and no board measured has supplied one.
 
+**Q12 · an objective is bound and readable on 0.35% of slot-cycles.** 54 of 15,304 `goal_residual`
+calls across five boards; 98% of calls find nothing bound at all, and of the 303 bound slot-cycles
+only 54 carry an objective. **CROSS-BOARD ON 5 OF 5, SO NOT A GAME QUIRK — AND NOT AN ERROR EITHER.**
+`NOT_RESOLVED` on an unbound slot is the documented outcome and the build is right everywhere. **The
+rarity is the WIRE that `CLAUDE.md` lists as NOT INSTANTIATED, measured**: an objective binds where
+`env.objective()`'s single hardcoded string fits, and 0.35% is what that looks like on real boards.
+**NO CANDIDATE FIX** — it would be a fix for a mechanism absent by design. Sweep 12 has the census.
+
 ## SWEEP 3 — DEPTH WHERE THE WALL ALLOWS · WHY NO ROUTINE FIRES, AND IT IS NOT THE WALL
 
 **`sb26` to 44 cycles, `lf52` to 25. Both cheap enough to go deep; both bind objectives; both have
@@ -18863,3 +18871,60 @@ result with no max-length column at all.** It was caught by `grep`-ing the probe
 **before reading the output** — seventh of this family and the second caught by verifying the
 instrument rather than by distrusting the number. **`CLAUDE.md` already says to use the edit tools
 rather than heredocs for this; the rule was written after five of these and this is the sixth.**
+
+## SWEEP 12 — THE BINDING CENSUS ACROSS FIVE BOARDS, AND WHAT ORDERS THE BOARDS IS NOT WHAT I EXPECTED
+
+Sweep 11b measured this on `ka59` alone, which the classification rule makes a quirk until shown
+across games. **Four more boards, no override anywhere, and the classifier agrees with the build on
+all 15,304 calls.**
+
+    board   calls   nothing bound   bound, not OBJ   READABLE   OBJ share    how far the chain gets
+    ---------------------------------------------------------------------------------------------
+    sb26     3394        3339             25            30        55%        3 routines minted
+    lf52     7552        7486             52            14        21%        gate 6, _goal_split
+    ka59     1642        1560             72            10        12%        the bargain, 1 cut
+    wa30     1590        1563             27             0         0%        gate 0
+    sp80     1126        1053             73             0         0%        gate 0
+    ---------------------------------------------------------------------------------------------
+    TOTAL   15304       15001            249            54        17.8% of bound slot-cycles
+
+**THE ZERO IS EXACT AND THE ORDERING IS NOT.** Both 0% boards are precisely the gate-0 boards, and
+every non-zero board gets past gate 0 — **that correspondence is perfect on 5 of 5.** But the share
+does NOT order the rest: `ka59` at 12% reaches the bargain and `lf52` at 21% does not get past
+`_goal_split`. **A monotone reading was available and is false**, which is worth more than the
+correspondence, because the monotone version is the one that would have been written from the top
+three rows alone.
+
+**AND OBJECTIVES ARE RARE IN ABSOLUTE TERMS, WHICH THE PERCENTAGES HIDE.** 54 readable calls in
+15,304 — **0.35%.** Distinct slots carrying an objective: `ka59` 4, `sb26` 3, `lf52` **1 out of 480**,
+`wa30` 0, `sp80` 0. **`lf52`'s single objective slot is `o59.w`, and it is the same one sweep 3 read
+as flat at 1.0 for 31 cycles** — one objective, on one slot, for the whole run.
+
+### THREE OF `goal_residual`'s FIVE None-EXITS HAVE NEVER FIRED
+
+    1a. no term bound to the slot        15001
+    2.  bound term is not an OBJ           249
+    3.  slot absent from observed state       0
+    4.  peer group is empty                   0
+    5.  objective_degree returned None        0
+
+**Two exits carry 100% of the Nones across five boards and 15,304 calls.** The slot never vanishes
+from the state, the peer group is never empty, and `objective_degree` never fails to resolve.
+
+> **THAT IS A LEGIBILITY READING, NOT A DEAD-CODE CLAIM.** Three guards are correct and have never
+> been observed to bind **on these five boards at these depths** — the denominator is stated because
+> *never fired* and *cannot fire* are different sentences, and only the first is measured. **What it
+> does establish is that every account this window has given of unreadability had to be one of two
+> conditions, and both are about BINDING.**
+
+### CLASSIFICATION — SYSTEM-SCOPE, AND EXPLICITLY NOT AN ERROR
+
+**Cross-board on 5 of 5, so not a game quirk.** But the build's response is right everywhere: a slot
+with nothing bound has no objective to read, and `NOT_RESOLVED` is the documented outcome. **The rare
+binding is the measured consequence of the WIRE `CLAUDE.md` already lists as NOT INSTANTIATED** —
+`tether` hand-builds the `WANT` from `env.objective()`'s single hardcoded string, **so an objective
+binds exactly where that one string happens to fit, and 0.35% is what that looks like on real
+boards.**
+
+**NO CANDIDATE FIX. A candidate fix here would be a fix for a mechanism that is absent by design**,
+and the count is the first quantity this project has that says how absent.
