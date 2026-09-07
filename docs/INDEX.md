@@ -17728,3 +17728,34 @@ refuses it.
 
 **And `lf52` is flat at 1.0 for all 31 cycles** — the objective is satisfied by no member of a 59-wide
 scope, ever. `selector=None` throughout, no routine, `levels 0`.
+
+## SWEEP 4 — A THIRD DEEP BOARD · THE RESIDUAL DOES NOT TREND, n = 3, TWO SHAPES
+
+    sb26   44 cycles   [0.923, 0.0, 0.923, 0.0]        OSCILLATING, period 2
+    lf52   31 cycles   [1.0, 1.0, 1.0, 1.0]            FLAT at maximum
+    ls20   13 cycles   [0.85, 0.85, 0.85, 0.85]        FLAT
+                       [1.0, 1.0, 1.0, 1.0]
+
+**`selector=None` on all three, at every checkpoint, and no routine event on any of them.** The
+blocker was recorded at n = 2 and is now n = 3 **with the two shapes holding** — one board alternates,
+two sit still, and *neither satisfies `all(d <= 0) and any(d < 0)`.*
+
+**`ls20`'s objectives sit at 0.85 and 1.0 and never move.** The objective is not merely unsatisfied —
+**it is never approached**, across thirteen cycles and 411 seconds.
+
+### AND DEPTH HAS NO CONSISTENT DIRECTION ON THE CONTEST — THREE BOARDS, THREE TRAJECTORIES
+
+    sb26    6 cycles {obj 1, tie 1}          ->  44 cycles {obj 3, tie 10, pred 1}   improves
+    lf52    6 cycles {pred 1}                ->  31 cycles {pred 5}                  unchanged
+    ls20    6 cycles {obj 1, pred 2}         ->  13 cycles {obj 1, pred 14}          worsens
+
+> **`ls20`'s objective share goes 1-in-3 to 1-in-15 as it goes deeper, while `sb26`'s goes the other
+> way.** *Depth is not a variable that moves the contest in a direction* — **the board is**, and this
+> is the no-pooling rule landing for the fourth time in this window, now on depth rather than on
+> games.
+
+### THE WALL, THIRD MEASUREMENT
+
+`ls20`: **6 cycles in 13.0s, 13 cycles in 411.5s.** Cycles 7–13 cost ~398 seconds between them.
+**Consistent with `_record`'s `calls x slots` and with the growth already profiled** — and it is why
+`ls20` could not be taken past 13 while `sb26` reached 44 at a quarter the slot count.
