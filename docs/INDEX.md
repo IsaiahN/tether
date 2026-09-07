@@ -17605,8 +17605,11 @@ match admits the first and files the other two under `PROBE`. **On `wa30`, 7 of 
 
 **WRONG-GIVEN-THE-INPUT, DEMONSTRATED RATHER THAN ASSERTED.** `Phases`' own docstring calls it *the
 action mix over time*; the game supplied seven learned splits and the reported mix contains none.
-**Structural — the exact match is on every board — but it only BITES where a namespaced variant
-fires, which is 1 of 3 boards measured.** Recorded that way rather than as a blanket rate.
+
+**CENSUS COMPLETE — SWEEP 16: 6 OF 10 BOARDS, 33 OF 125 CYCLES.** The variant fires at 17%–54% of
+cycles on `dc22`, `sp80`, `ka59`, `wa30`, `ls20` and `bp35`, and reads `DIRECTED 0.0` on every one.
+**The metric overstates `PROBE` by 26 points across the set.** This is a system error by the census
+rule, not a quirk awaiting proof.
 
 **CANDIDATE FIX (NOT APPLIED):** match the family, `by.startswith("discriminate")`, so a namespaced
 variant cannot fall out of its own class. **The reintroduce-the-defect test is available** — `wa30`
@@ -19153,3 +19156,64 @@ was partly unsupported.**
 > **AND THAT IS THE SHAPE THIS WINDOW KEEPS PRODUCING.** A measurement stands, a satisfying account
 > is attached to it, and the account is what fails. **Fourth instance: the `tr87` selector, the
 > action-count hypothesis, the cost-wall truncation, and now this.**
+
+## SWEEP 16 — THE `discriminate:learned` CENSUS, AND A MECHANISM THE METRIC HAS BEEN HIDING
+
+`S5` stood at *1 of 3 boards measured*, which the classification rule leaves short of a system error.
+**Ten boards, 125 cycles, `choose`'s own return recorded beside the build's `phases.report()`.**
+
+    board   cycles   draw   probe   discriminate:learned   reported DIRECTED
+    -------------------------------------------------------------------------
+    dc22      13       6      0            7   (54%)             0.0
+    sp80      16       8      0            8   (50%)             0.0
+    ka59      14       7      0            7   (50%)             0.0
+    wa30      16       8      1            7   (44%)             0.0
+    ls20      11       8      0            3   (27%)             0.0
+    bp35       6       5      0            1   (17%)             0.0
+    -------------------------------------------------------------------------
+    ar25       8       8      0            0                     0.0
+    re86       9       9      0            0                     0.0
+    sb26      16      13      3            0                     0.0
+    lf52      16       7      9            0                     0.0
+    -------------------------------------------------------------------------
+    TOTAL    125      79     13           33                     0.0 everywhere
+
+**`discriminate:learned` FIRES ON 6 OF 10 BOARDS, AT 17% TO 54% OF CYCLES, AND IS REPORTED AS ZERO ON
+ALL TEN.** `S5` is cross-board and is a **SYSTEM error by the census**, not a quirk pending proof.
+
+### THE MAGNITUDE, WHICH ONLY THE CENSUS COULD GIVE
+
+    genuinely undirected   draw 79 + probe 13  =  92 of 125   74%
+    directed               discriminate:learned  =  33 of 125   26%
+    -------------------------------------------------------------------
+    phases.report() says   PROBE 1.0 · DIRECTED 0.0 on every board
+
+**The metric overstates `PROBE` by 26 points across 125 cycles.** `draw` belongs in `PROBE` and that
+half is right; **the whole of the error is the 26% that should read `DIRECTED`.**
+
+> **AND `_learned_split` FIRING IS A MECHANISM-FIRES READING THIS WINDOW NEVER RECORDED.** §18.4's
+> proposer half — *this picks an action; it forbids none* — **is running on six boards and choosing
+> half the actions on three of them.** The window's account of a uniformly undirected policy was
+> reading an instrument that cannot express the alternative. **The mechanism was working the whole
+> time and the metric had no column for it.**
+
+### AND SWEEP 14'S ACCOUNT OF THE SKIPS IS CORRECTED BY ITS OWN WIDENING
+
+Sweep 14 measured three boards and wrote *`drive.bored()` firing first is the commonest reason, 13 of
+20 skips.* **At ten boards it is not.** Skips are cycles where `choose` returned anything but `draw`:
+
+    discriminate:learned   33 of 46 skips   72%
+    probe (bored)          13 of 46 skips   28%
+
+**`bored()` is the minority pre-empt and `discriminate:learned` is the majority one.** Sweep 14's
+sentence was true of `lf52`, `sb26` and `wa30` — where 13 of the set's 13 probe returns happen to
+live — and false of the set. **`lf52` alone holds 9 of those 13.**
+
+> **FIFTH INSTANCE OF THE SHAPE, AND THIS ONE WAS THREE BOARDS OLD.** A measurement stands, an
+> account is attached, the account is what fails on widening. **The tell each time is that the
+> account was stated without the denominator that would bound it** — *commonest reason* is a claim
+> about a population, and it was made on three boards.
+
+**CLASSIFICATION UNCHANGED IN KIND.** `S5` is a system error with the family-match candidate fix, now
+carrying its census. **The `bored()` correction is a behaviour note about my own reading and carries
+no fix at all** — the branch order is a design and it did what it says.
