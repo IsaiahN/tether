@@ -17614,3 +17614,56 @@ runs of the same game at the same depth are the same run.**
 
 **The window is therefore spent widening the game set** — `n = 19` on *does the objective win
 generalise* instead of `n = 5`, which is the question the sample was drawn to answer.
+
+## SWEEP 2 — ALL 19 PLAYABLE GAMES, SIX CYCLES · THE OBJECTIVE WIN RECURS
+
+    CONTESTS ACROSS THE PUBLIC SET   predictor 36 · tie 2 · objective 3   (41 total)
+    games where an objective WON     ls20 · sb26 · tu93                   (3 of 19)
+    games binding any objective      7 of 19
+    levels_completed > 0             none
+    any routine event                none
+
+### SO IT IS NOT AN `ls20` QUIRK — AND SWEEP 1'S CORRECTION IS ITSELF CORRECTED
+
+**Sweep 1 said the win did not generalise, on five games and ten contests. At nineteen games it
+RECURS: three independent boards, `ls20`, `sb26` and `tu93`, none of which shares a slot count, a
+scope or an action set with the others.** *An objective can out-predict a value bet on real structure,
+and it does so on more than one board.*
+
+**And the value arm takes 88% of contests (36 of 41).** **Both halves are the reading**: the capability
+is real and it is rare, and neither number is the headline without the other.
+
+> **THE FIVE-GAME SAMPLE WAS TOO SMALL TO ANSWER THE QUESTION IT WAS DRAWN FOR**, and it answered
+> confidently in the wrong direction. *One board's positive is not a rate; one small sample's null is
+> not one either.*
+
+### `COND 2` — AND I USED THE WRONG STATISTIC IN SWEEP 1
+
+    means   3.42 .. 15.53      eight of twenty fall BELOW the ~8.9 cheapest term
+    maxima  20.44 .. 36.00     on every one of the eighteen games that mints at all
+
+**Sweep 1 said *COND 2 holds everywhere* off five means. The condition is *residual rich enough to pay
+for a term AT ALL*, which is a per-ROW question — and every game that attempts a mint has rows at
+20–36 bits.** **The mean is not the statistic the condition is about**, and reading it as one made a
+thin board look like a failing condition.
+
+### SCOPE IS FAR WIDER THAN ANY FIXTURE COULD SUPPLY
+
+`bp35` 191 · `tu93` 68 · `tr87` 65 · `lf52` 59 · `dc22` 39 · `sb26` 26 · `re86` 24 · `ls20` 20.
+**The synthetic ceiling was 2.**
+
+### THE WALL, PER GAME — IT TRACKS SLOT COUNT
+
+`sk48` 216.9s and `bp35` 152.4s (capped) at 276 and 1146 slots; `m0r0` 2.8s and `sp80` 2.2s at 42 and
+48. **Consistent with `_record`'s `calls x slots`, measured across nineteen boards.**
+
+## LOG 2 (CONTINUED) — TWO MORE QUIRKS, NEITHER A DEFECT
+
+**Q4 · `su15` mints nothing in six cycles.** 168 slots, 1 surfaced action, `base` rows `n = 0`, library
+unchanged at 21, cost flat at ~0.08s. **No slot carried live mass, so the agent probed instead of
+minting** — which is `choose`'s stated safety property, *support at zero refuses the model the wheel*.
+**Correct given the input. NO CANDIDATE FIX.**
+
+**Q5 · `wa30` attempts 57 mints and buys none.** Mean base 3.42 against a ~8.9 cheapest term. **The
+bargain refusing where the residual is too thin**, exactly as on the `many` fixture. **Correct given
+the input. NO CANDIDATE FIX.**
