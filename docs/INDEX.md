@@ -17446,3 +17446,97 @@ repairing `play`.
 **And every error is classified before it is logged as a fix** — across all/most games is a SYSTEM
 error, one game only is a GAME QUIRK until *wrong-given-the-input* is shown. **A candidate fix for a
 non-error is worse than no note.**
+
+## SWEEP 1 — FIVE GAMES, SIX CYCLES, AGAINST `arc-freeze-01`
+
+    game   slots  adv  surf  scope  base(mean/max)  contests          R_max  objs  secs
+    ls20    120    4     4     20    14.78 / 27.86  {obj 1, pred 2}   1.0     2    13.0
+    vc33     66    1     0      -        -          -                  -      -   ERROR
+    ar25     78    7     6     13    12.15 / 28.00  {pred 6}          1.0     1    33.6
+    ka59     84    5     4      -    13.91 / 28.00  {}                 -      0     6.9
+    sp80     48    6     5      -    14.10 / 36.00  {pred 1}           -      0     2.2
+
+### THE HEADLINE IS CORRECTED: THE OBJECTIVE WIN DOES **NOT** GENERALISE
+
+**One win, on one game, out of ten contests across the sample.** `ar25` ran six contests and the
+predictor took all six; `sp80` ran one and the predictor took it; `ka59` ran none. **On this sample
+*an objective can out-predict a value bet* is an `ls20` result, not a general one.**
+
+> **THAT IS THE QUESTION THE WINDOW WAS OPENED TO ASK, AND IT ANSWERED AGAINST THE HOPEFUL READING.**
+> The prior tick reported the win at full strength and correctly; **five games say it does not carry**,
+> and one board's positive is exactly the thing the no-pooling rule exists to stop being a rate.
+
+### THE CONDITIONS, PER GAME
+
+**COND 2 holds everywhere** — base means 12.15–14.78, maxima 27.86–36.00, all far above a ~8.9
+cheapest term. **The residual on real boards is rich, uniformly.**
+
+**COND 1 is only ASKABLE where an objective bound at all** — `ls20` 20 and `ar25` 13, both wide.
+**`ka59` and `sp80` minted no objective in six cycles**, so their scope column is *unmeasured*, not
+zero. **Two of five real boards produce no objective at all at this depth.**
+
+**COND 3 fails on three of four games that ran a contest.**
+
+### `levels_completed` IS 0 ON ALL FIVE · NO ROUTINE ANYWHERE · `phase: probe 1.0` EVERYWHERE
+
+**Capability-pursues stays blocked, uniformly.** That is the wall confirmed per-build, exactly as
+predicted, and it is not a per-game failure.
+
+## LOG 1 — SYSTEM ERRORS · defects wrong regardless of the game
+
+### S1 · `probe.choose` divides by zero when no action is surfaced
+
+    vc33  advertised=1  surfaced=0  ->  ZeroDivisionError at probe.py:112
+          pick = sorted(actions)[(cycle * 7 + self._seed) % len(actions)]
+
+**CLASSIFIED SYSTEM, NOT QUIRK — AND THE CENSUS IS WHY.** It appeared on one game of five, which the
+brief says to treat as a quirk until *wrong-given-the-input* is shown. **So the whole set was
+measured**, and the result is a clean class:
+
+    games advertising exactly 1 action:  6 of 25   ft09 · lp85 · r11l · s5i5 · tn36 · vc33
+    of those, surfacing 0 actions:       6 of 6
+    games advertising >= 2 surfacing 0:  0
+
+**Advertising one action predicts surfacing none, perfectly.** `CLAUDE.md` already names this class —
+*"the six games where the adapter surfaces no action; they advertise a positioned click and the adapter
+drops it, because the loop cannot supply a position"* — and **the census independently returns exactly
+those six.**
+
+**THE TWO LAYERS SPLIT, AND ONLY ONE IS A DEFECT:**
+
+- **The adapter dropping the click is CORRECT-GIVEN-THE-INPUT.** The loop cannot supply a position; the
+  drop is documented, ruled and right. **That is the quirk, handled.**
+- **`probe.choose` crashing on the resulting empty tuple is WRONG-GIVEN-THE-INPUT.** `tether.py`'s own
+  first line says *an action is proposed by an utterance that type-checks and passes the gate, **or
+  there is no action***, and `step()` returning `False` is that legal outcome. **The loop never reaches
+  it — it dies one layer down instead.**
+
+**CANDIDATE FIX (NOT APPLIED):** where `self.actions` is empty, take the existing no-action outcome
+rather than calling `drive.choose`. **The behaviour to preserve is the ABSTENTION the corpus already
+describes, not a new one** — and verifying it needs a before/after read, which needs Isaiah.
+
+**SCOPE OF THE DEFECT: 6 of 25 public games, 24%.** *By the cross-game test this is not a one-game
+error at all — it is a system error gated by a game property, and the property holds on a quarter of
+the set.*
+
+### S2 · `arc_holdout.play` crashes assembling its report
+
+`dict(Counter(r["detail"]["by"]))` at line 221 — **`by` is a string on action rows and a dict on the
+`mode` row.** `A6i` in the ledger's detail schema, present regardless of game. **The loop completes
+first**, so every reading in this window is intact and was taken by replicating `play`'s setup.
+**CANDIDATE FIX (NOT APPLIED):** the counter should key on a single type, or the `mode` row should not
+reuse the field name `by`.
+
+## LOG 2 — GAME QUIRKS · behaviours, not defects
+
+**Q1 · Six games supply only a positioned click.** The build drops it and surfaces no action. **Correct
+given the input; NO CANDIDATE FIX.** The defect it exposes is `S1`, logged separately — *the quirk is
+handled right and the crash beneath it is not*.
+
+**Q2 · `ka59` and `sp80` mint no objective in six cycles.** Not an error and not yet a finding: six
+cycles is below what any selection needs, and `COND2` holds on both (base means 13.91 and 14.10).
+**Logged as unmeasured, NOT as "these boards produce no objectives."**
+
+**Q3 · Action counts vary 1–7 across the set**, and surfaced counts run one below advertised on most
+games. **A property of the habitat, recorded so the next reading of `spread` or `discriminate` has the
+denominator in front of it.**
