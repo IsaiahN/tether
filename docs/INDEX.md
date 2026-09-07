@@ -17782,11 +17782,12 @@ monotonically down — **and stops one reading short of readable.** Sweep 10c ha
 threshold change to admit it would be tuning a constant until a board passes**, which is the encoded
 answer in a fix's clothes, and it is why this row carries no candidate.
 
-> **CORRECTED BY SWEEP 11b — *two readings is what these boards supply* IS FALSE FOR THIS SLOT.**
-> `o14.dcol` binds an objective at `c12` and reads at `c12` and `c13`, **and the run ends at `c13`.**
-> The series was still growing at the cap. **The habitat did not supply two; fourteen cycles did**,
-> and the cap is `LOG 3`'s wall. The rest of `Q11` stands — seven of nine series are short — but
-> **this slot's shortness is my instrument's, not the board's.**
+> **SWEEP 11b CORRECTED THIS AND SWEEP 11c WITHDREW THE CORRECTION. `Q11` STANDS AS WRITTEN.**
+> `o14.dcol` reads at `c12` and `c13` and the 14-cycle run ends there, which looked like a cap
+> truncating a growing series. **At 26 cycles the slot is ABSENT from `_res` and the trigger has
+> still fired zero times.** The binding did not survive; the cap was not the reason. **Two readings
+> is what this board supplies, and the intervening correction was a satisfying story about my own
+> instrument.**
 
 **The reason is worth the row**: `base` is `R_goal x scope x log2(n)`, and `tr87`'s `R_goal` sits at
 0.0–0.062 because its objective is nearly satisfied. **The near-zero residual is what lets the
@@ -18808,3 +18809,57 @@ one**, and every null in this window that rests on a short series inherits that 
 has a decidable case on a second board. **If it unbinds again, `Q11`'s conclusion is right for the
 wrong reason and the reason is the one that matters.** Either way the answer is the board's, not the
 cap's. **Not guessed here.**
+
+## SWEEP 11c — `ka59` AT 26 CYCLES, AND MY OWN CORRECTION IS THE THING REFUTED
+
+Sweep 11b said the falsifier's series was cut off by the cap rather than by the board, and named the
+run that would settle it. **It ran.**
+
+    ka59, 14 cycles    can rows  5 of 14   _res: o14.dcol n=2 [1.0, 0.0]   trigger 0 of 14 calls
+    ka59, 26 cycles    can rows 17 of 26   _res: o14.dcol ABSENT           trigger 0 of 14 calls
+                                            three slots survive, each n=1
+
+**TWELVE MORE CYCLES, 1327 SECONDS, AND THE TRIGGER FIRED ZERO TIMES.** `o14.dcol` is not merely
+short at 26 cycles — **it is gone from `_res` entirely**, having unbound rather than continued.
+
+> **SO `Q11` WAS RIGHT AND SWEEP 11b's CORRECTION TO IT WAS WRONG.** I wrote *the cost wall is
+> bounding what can be concluded — `ka59` needed one more cycle*. **It got twelve and produced
+> nothing.** The series stopped at two because the binding did not survive, which is what `Q11` said
+> the habitat supplies. **The correction was the error, and it is withdrawn.**
+
+**AND THE TELL WAS THAT IT MADE THE WALL THE VILLAIN OF A QUESTION THE WALL WAS NOT IN.** A cap
+truncating a series is a satisfying story — it indicts an instrument rather than the world, it was
+supported by a real timeline, and **it was available before the run that could refute it.** *A null
+carrying a satisfying causal story is harder to doubt than a bare one*, and this was the same shape
+with a correction's face on.
+
+### AND READABILITY IMPROVES WITH DEPTH WHILE THE TRIGGER DOES NOT
+
+**`can` rows go from 5 of 14 to 17 of 26** — 36% of cycles to 65%. **Objectives become readable MORE
+often at depth and the trigger still never fires**, which separates two things this window has been
+treating as one: *an objective is readable* and *its residual is readable as a series*. **`ka59`
+supplies the first at 65% and the second never.**
+
+**AND `lf52` IS THE OPPOSITE BOARD, ALREADY MEASURED IN SWEEP 3** — flat at 1.0 for all 31 cycles, so
+its series is 31 long and the trigger declines on shape. **Two boards, two reasons, both correct:
+`lf52` accumulates a series that does not shrink; `ka59` never accumulates one.** No candidate fix
+for either.
+
+### THE INSTRUMENT LIMITATION, STATED RATHER THAN CHASED
+
+`rshape.py` reads `ag._res` **at the end of the run**, which is the series IN PROGRESS, never the
+longest reached. **So *the series got shorter between 14 and 26 cycles* is NOT a claim this
+measurement can make** — a slot may have run to five and been popped at cycle 20. What the
+measurement does support is the decisive half: **`_goal_choice` returned non-None zero times at both
+depths**, and that reading does not depend on the end state at all.
+
+**AND THE INSTRUMENT TO CLOSE IT WAS NOT BUILT, DELIBERATELY.** *The answer to too many instruments
+is never one more instrument* — the question it would settle is secondary to one already answered,
+and `lf52` answers the general form of it from sweep 3.
+
+**A PATCH TO ADD IT WAS ATTEMPTED AND FAILED SILENTLY, AND THE FAILURE IS THE ENTRY.** A heredoc edit
+reported nothing, the run launched anyway, and **the probe would have produced an ordinary-looking
+result with no max-length column at all.** It was caught by `grep`-ing the probe for the patch
+**before reading the output** — seventh of this family and the second caught by verifying the
+instrument rather than by distrusting the number. **`CLAUDE.md` already says to use the edit tools
+rather than heredocs for this; the rule was written after five of these and this is the sixth.**
