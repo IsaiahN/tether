@@ -17782,6 +17782,12 @@ monotonically down — **and stops one reading short of readable.** Sweep 10c ha
 threshold change to admit it would be tuning a constant until a board passes**, which is the encoded
 answer in a fix's clothes, and it is why this row carries no candidate.
 
+> **CORRECTED BY SWEEP 11b — *two readings is what these boards supply* IS FALSE FOR THIS SLOT.**
+> `o14.dcol` binds an objective at `c12` and reads at `c12` and `c13`, **and the run ends at `c13`.**
+> The series was still growing at the cap. **The habitat did not supply two; fourteen cycles did**,
+> and the cap is `LOG 3`'s wall. The rest of `Q11` stands — seven of nine series are short — but
+> **this slot's shortness is my instrument's, not the board's.**
+
 **The reason is worth the row**: `base` is `R_goal x scope x log2(n)`, and `tr87`'s `R_goal` sits at
 0.0–0.062 because its objective is nearly satisfied. **The near-zero residual is what lets the
 trigger read a shrinking tail AND what leaves nothing for the routine to buy.** Sweep 9 has the
@@ -18717,3 +18723,88 @@ to make a board pass, which is the encoded answer wearing a fix's clothes.
 standing question since sweep 3. **On five of ten objective-binding boards the prior question is why
 the objective stops being readable after two cycles** — and that one has never been asked, because
 the series it produces were being read as flat rather than as absent.
+
+## SWEEP 11a — `S4` AND `LOG 3` ARE PLAUSIBLY THE SAME FACT
+
+**Library at construction is 21, measured rather than assumed.** Against the five boards `S4` read:
+
+    board   library end   growth   reuse installs   reuse share of growth
+    ---------------------------------------------------------------------
+    lf52        25           4           3                75%
+    wa30        29           8           5                63%
+    sp80        32          11           5                45%
+    dc22        28           7           4                57%
+    ar25        37          16           4                25%
+    ---------------------------------------------------------------------
+    TOTAL                   46          21                46%
+
+**Forty-six percent of all library growth on these boards entered through `_install_reuse`** — the
+path `S4` shows admitting 19 of 21 terms the bargain would have refused.
+
+**AND `LOG 3` LOCATED THE WALL IN `mint` PRICING A CANDIDATE SPACE THAT GROWS WITH THE LIBRARY.**
+`_cannot_pay` runs 5,297 times per cycle on `lf52` at library 25 and 40,835 on `ar25` at library 37 —
+**7.7x the work for 1.5x the library**, which is the shape composition over a term set produces.
+
+> **SO THE TWO LOGGED ITEMS MAY BE ONE: TERMS ENTER WITHOUT A BARGAIN, THE LIBRARY GROWS, AND THE
+> COST WALL IS `mint` PRICING WHAT GREW.** Each link is measured. **The composition of them is not**,
+> and it is stated as a hypothesis on purpose.
+
+**WHAT WOULD SETTLE IT AND HAS NOT BEEN RUN:** the counterfactual — the same boards with the reuse
+path gated by `pays` — **is a build change and the freeze forbids it.** It is exactly the experiment
+`S4`'s candidate fix would enable, and `would_pay` is already on every row, so **the before is
+recorded and only the after is missing.**
+
+**WHAT IS NOT CLAIMED, AND IT IS THE HALF THAT WOULD BE EASY TO OVERSTATE:** the other 54% of growth
+came through `mint`, `promote` and `import`, **and none of those paths has been audited for pricing
+in this window.** *46% of growth is reuse* is the measurement; *46% of growth is unbargained* would
+be a different and unsupported claim. **The remaining paths are presumed bargained because `mint`
+consults `pays` — presumed, not read.**
+
+## SWEEP 11b — WHY THE OBJECTIVE IS UNREADABLE, AND `Q11`'s ACCOUNT WAS WRONG
+
+Sweep 10c named this the prior question and it had never been asked. `goal_residual` returns `None`
+by five exits; `scratchpad/why_none.py` records which one fires, per slot per cycle, **classifying
+only the cheap predicates and letting the build's own return arbitrate.** The consistency was
+asserted rather than assumed: **the classifier and the build agree on every one of 1,642 calls.**
+
+    ka59, 14 cycles, 120 slots, 1642 goal_residual calls
+      1560   1a. no term bound to the slot            95.0%
+        72   2.  bound term is not an OBJ              4.4%
+        10   READABLE                                  0.6%
+         0   slot absent · empty group · degree None
+
+**NOT ONE CALL FAILED FOR A REASON THE LAST FIVE SWEEPS WERE DISCUSSING.** The slot never vanishes,
+the peer group is never empty, `objective_degree` never returns `None`. **The objective is unreadable
+because nothing is bound, and where something is bound it is usually not an objective:** of the 82
+calls with a term bound, **10 are objectives and 72 are not.**
+
+> **THE BOTTLENECK IS AT BINDING, UPSTREAM OF THE RESIDUAL ENTIRELY.** *Why does the residual not
+> trend* has been the standing question since sweep 3 and it presumes a residual. **The measurement
+> says there is rarely one to have an opinion about**, and this is the same root as sweep 8d's gate 0
+> — `sk48`, `sp80` and `wa30` at zero OBJ bindings, `ka59` at ten. **A continuum, not two
+> categories**, and both ends are `CLAUDE.md`'s named-unbuilt WIRE showing through.
+
+### AND `o14.dcol`'s TIMELINE RETIRES WHAT `Q11` SAID ABOUT IT
+
+    c2 - c6    no term bound
+    c7 - c10   a term bound, and it is NOT an OBJ
+    c11        no term bound
+    c12        READABLE   ->  1.0
+    c13        READABLE   ->  0.0        <- the run ends here, at cycle 14 of 14
+
+**THE FALSIFIER'S SERIES IS TWO LONG BECAUSE THE RUN STOPPED, NOT BECAUSE THE BOARD SUPPLIED TWO.**
+The objective bound at `c12` and the series was still growing when the cap hit.
+
+> **`Q11` SAID *two readings is what these boards supply* AND THAT IS FALSE FOR THIS SLOT.** It is
+> what fourteen cycles allowed. **The correction matters because the two accounts point opposite
+> ways:** a habitat that supplies two readings is a fact about ARC, and **a run that stops at two is
+> a fact about my cap** — which `LOG 3`'s wall set.
+
+**SO THE COST WALL IS NOT ONLY BOUNDING DEPTH, IT IS BOUNDING WHAT CAN BE CONCLUDED.** `ka59` needed
+one more cycle to produce a third reading and a decidable trigger. **The wall is why it did not get
+one**, and every null in this window that rests on a short series inherits that caveat.
+
+**RUNNING: `ka59` to 26 cycles.** If `o14.dcol` stays bound and the series reaches three, the trigger
+has a decidable case on a second board. **If it unbinds again, `Q11`'s conclusion is right for the
+wrong reason and the reason is the one that matters.** Either way the answer is the board's, not the
+cap's. **Not guessed here.**
