@@ -18063,3 +18063,97 @@ unconditionally; the `verdict` string is EXHAUSTED's extra payload, not the term
 > reports nothing when it excludes the answer.** The fix is in the probe: no key list, print the
 > detail dict whole. **A checking script that narrows its own view has to justify the narrowing the
 > way a denominator does.**
+
+## SWEEP 8c — SEVENTEEN BOARDS: ONE HYPOTHESIS RETIRED, ONE NEW STOPPING POINT, ONE HEADLINE WITHDRAWN
+
+    board  actions  slots   asked  overrode   gate 6 passes   rows written
+    ------------------------------------------------------------------------
+    sb26      2      216      14      10        5 of 5        routine 3 · cut 2
+    ka59      4      120       8       2        1 of 1        cut 1
+    tr87      4      520      12       6        1 of 5        cut 1
+    re86      5      200      10       4        1 of 2        routine 1
+    ar25      6      112      14      12        1 of 6        routine 1
+    ------------------------------------------------------------------------
+    bp35      3     1534       8       6        0 of 3        —
+    dc22      4      320       7       2        0 of 1        —
+    ls20      4      168      14      12        0 of 6        —
+    tu93      4      552       9       6        0 of 3        —
+    lf52      5      480      12      10        0 of 5        —
+    ------------------------------------------------------------------------
+    sk48      5      410       6       0        never reached  —
+    sp80      5       72       8       0        never reached  —
+    wa30      5      104       8       0        never reached  —
+    ------------------------------------------------------------------------
+    ft09      0      390       1       0        EXCLUDED
+    lp85      0      240       1       0        EXCLUDED
+    tn36      0      528       1       0        EXCLUDED
+    vc33      0       66       1       0        EXCLUDED
+
+### THE PRE-REGISTERED HYPOTHESIS IS FALSIFIED BY A HELD CONSTANT
+
+The story written down before the run: `_goal_split` passes where actions are few, because a probe
+policy spreads its evidence over every advertised action. **At four actions held fixed across five
+boards, gate 6 passes on two and fails on three** — `ka59` and `tr87` against `dc22`, `ls20`, `tu93`.
+And the ends contradict the direction outright: **six actions passes, three actions never does.**
+
+> **THE HYPOTHESIS COULD BE RETIRED ONLY BECAUSE IT WAS WRITTEN DOWN FIRST.** Arrived at afterwards
+> it would have found `sb26` at two actions passing and `lf52` at five failing, and stopped there.
+
+### THE EXCLUSION IS DATA, AND THE INSTRUMENT ALREADY PRINTED IT
+
+**Four boards surface zero actions** — `ft09`, `lp85`, `tn36`, `vc33` — halting in 0.0s with one call
+and nothing to hand. `CLAUDE.md` specifies this exemption: *excluded on a checkable fact — no
+SURFACED action — never on judgement.* **`actions=0` is a field the probe prints**, so the exclusion
+is pinnable rather than argued. What those boards contain stays unestablished and **the exclusion
+expires the moment positioned actions are supplied.**
+
+### A THIRD STOPPING POINT, UPSTREAM OF EVERY GATE SO FAR NAMED — AND UNPERTURBED
+
+On `sk48`, `sp80` and `wa30` **the override could not fire at all**: 6 of 6, 8 of 8, 8 of 8 entries
+found no slot both carrying a reading in `self._res` and present in `before`. **These boards
+advertise actions and the residual record still has nothing live to offer the mint path.** Upstream
+of the trigger, upstream of `CAN`, upstream of everything sweeps 7 and 8 examined.
+
+**AND IT IS THE ONE READING IN THIS SWEEP WITH NO SYNTHETIC INPUT ANYWHERE IN IT.** Zero overrides
+means zero intervention, so these three trajectories are the agent's own. **A clean capability
+reading, and it went unseen for two sweeps because both read boards where it happened not to bite.**
+
+    gate 0   no live residual slot exists          sk48 · sp80 · wa30
+    gate 6   _goal_split finds no learned route    bp35 · dc22 · ls20 · tu93 · lf52
+    through  the chain runs end to end             sb26 · ka59 · tr87 · re86 · ar25
+
+**Five of thirteen non-excluded boards run the whole chain when handed a slot** — five routines
+minted, four cut. The sweep-8 mechanism reading held at n = 1; it holds at n = 5.
+
+### THE HEADLINE I ALMOST FILED, AND THE TWO INSTRUMENT DEFECTS THAT KILLED IT
+
+The run reported **`tr87`: real `_goal_choice` returned a slot 4 times of 12** — against a standing
+record of zero on 100 calls. It was drafted as *the trigger fires, it has a board.* **Both halves of
+that are unsupported and the record already said why.**
+
+**FIRST: THE OVERRIDE PERTURBS THE TRAJECTORY IT MEASURES.** From the first supplied slot the agent
+executes routines it would never have had, takes different actions, and accumulates a different
+`_res`. **The real trigger qualifying at cycle 7 of an intervened run says nothing about cycle 7 of
+an unaided one.** A synthetic input does not stay in the gate it was injected at — **it becomes the
+history every later reading is taken from.**
+
+**SECOND: `_goal_choice` HAS TWO CALL SITES INSIDE THE MINT PATH, NOT ONE.** `tether.py:1766` is the
+gate; `tether.py:1936` is inside `_goal_split`, which `_mint_routine` calls at 1800. The `in_mint`
+flag spans both, so `asked` conflates them and **`_goal_split` was never handed a real `None` in any
+override run — it was handed my override a second time.** Same family as the `can` and `_discrepancy`
+conflation caught one sweep ago: **a flag that spans a dynamic extent counts every call site in it,
+and I checked the call sites for three functions and not for the fourth.**
+
+> **AND THE RECORD HAD ALREADY ADJUDICATED THIS EXACT BOARD.** *The `tr87` selector firing was mine,
+> not the loop's* — sweep 5 read `selector = o54.dcol` post-hoc, sweep 6 showed the loop's own calls
+> were `None` throughout, and the entry closes: *it fires in my probe, not in the mechanism, and the
+> difference is the whole claim.* **I was one commit from filing the same wrong finding about the
+> same board with a different probe.** The sixth law paid: the instrument was checked against the
+> corpus before the claim went in, not after.
+
+### WHAT IS ACTUALLY PENDING
+
+**`tr87`, 24 cycles, override disabled at source, counters live.** No synthetic slot enters at either
+call site, so the trajectory is the agent's own and any row that appears was earned. **That run is
+the only thing that can settle whether the trigger has a board, and it is deliberately not being
+guessed at here.**
