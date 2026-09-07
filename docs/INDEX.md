@@ -17853,6 +17853,13 @@ rarity is the WIRE that `CLAUDE.md` lists as NOT INSTANTIATED, measured**: an ob
 `env.objective()`'s single hardcoded string fits, and 0.35% is what that looks like on real boards.
 **NO CANDIDATE FIX** — it would be a fix for a mechanism absent by design. Sweep 12 has the census.
 
+**Q13 · `_goal_split` declines a route on unanimity — 5 calls, 3 boards.** Where every advertised
+action votes, `tied == len(self.actions)` and the function returns `None` rather than letting tuple
+order pick. **CROSS-BOARD, SO A SCOPE NOTE AND NOT A ONE-GAME ODDITY — AND CORRECT-GIVEN-THE-INPUT,
+NO CANDIDATE FIX.** A routine built on an arbitrary member of a five-way tie commits to repeating an
+action chosen by position in a list. **Sweep 21 has the census; `B`, the genuine negative, is 0 of
+29.**
+
 ## SWEEP 3 — DEPTH WHERE THE WALL ALLOWS · WHY NO ROUTINE FIRES, AND IT IS NOT THE WALL
 
 **`sb26` to 44 cycles, `lf52` to 25. Both cheap enough to go deep; both bind objectives; both have
@@ -19503,3 +19510,58 @@ understates movement.** It is reported with its denominator rather than as *the 
 defect: one world separates its actions and the other does not, and the build reports each
 faithfully. **n = 2 with a control, which is what sweep 19 said this window owes before a reading
 like this is written down.**
+
+## SWEEP 21 — THE EXIT CENSUS COMPLETE: `_goal_split` NEVER RETURNS A GENUINE NEGATIVE
+
+Eight boards, 29 OBJ-bound calls, **derivation and build agreeing on every one.**
+
+    board  actions  calls   A coverage   B no votes   C unanimity   PASS
+    ---------------------------------------------------------------------
+    lf52      5        5         4            0            1          0
+    sb26      2        5         0            0            0          5
+    ka59      4        1         0            0            0          1
+    dc22      4        1         1            0            0          0
+    ls20      4        6         3            0            3          0
+    ar25      6        6         5            0            0          1
+    re86      5        2         1            0            0          1
+    bp35      3        3         2            0            1          0
+    ---------------------------------------------------------------------
+    TOTAL             29        16            0            5          8
+                               55%           0%           17%        28%
+
+### `B` IS ZERO ON EVERY BOARD, AND THAT IS THE FINDING
+
+**`max(votes) == 0` — *not one action moves this slot toward the objective* — has fired 0 times in 29
+calls across 8 boards.** Sweep 18 attributed `lf52`'s `None` to exactly this exit. **It has no
+instances anywhere in the public set as measured.**
+
+> **`_goal_split` FAILS FROM IGNORANCE OR FROM INDISTINGUISHABILITY, NEVER FROM A VERDICT THAT
+> NOTHING WORKS.** `A` is *I have not seen every action on this slot yet*; `C` is *all of them do the
+> same thing here*. **Neither is the negative I claimed, and the negative I claimed is not a state
+> this function has been observed to reach.**
+
+### AND THE MECHANISM PASSES MORE OFTEN THAN THIS WINDOW HAS RECORDED
+
+**8 of 29 calls return a route, on 4 of 8 boards** — `sb26` 5, and one each on `ka59`, `ar25`,
+`re86`. The window's standing account has been *`_goal_split` is the blocker*; **it clears on half
+the boards where it is reached.**
+
+**HELD APART AND IT MATTERS HERE MORE THAN ANYWHERE:** these 29 calls were reached by SUPPLYING a
+slot. **This is a wiring reading. The agent chose none of these slots**, and the capability position
+is unchanged — `done` 0, `levels_completed` 0.
+
+### `C` UNANIMITY IS NOT AN `lf52` QUIRK
+
+**5 calls on 3 boards** — `lf52` 1, `ls20` 3, `bp35` 1. **Cross-board, so it is a scope note rather
+than a one-game oddity**, and it is the build declining to let `self.actions` order pick a route.
+
+**NO STORY ABOUT ACTION COUNT IS OFFERED.** `ls20` has 4 actions and 3 unanimities; `sb26` has 2 and
+none; `ar25` has 6 and none. **A tidy account is available and is not supported by eight rows** — the
+same shape that has failed seven times in this window, declined an eighth time.
+
+### CLASSIFICATION
+
+**`A` and `C` are both CORRECT-GIVEN-THE-INPUT with NO CANDIDATE FIX.** `A` is *untried is not
+neutral*, `C` is *nothing separates; the draw stays uninformed*. **The build is right at both, and the
+census's contribution is to say which one actually fires** — 55% and 17%, where the window had been
+attributing the whole to a mechanism that fires 0%.
