@@ -17859,3 +17859,31 @@ suggested there was.
 wording and an alternating residual is not shrinking. **The mechanism is right and the input never
 satisfies it**, which is a finding about what real boards supply under an uninformed action policy —
 `phase: probe 1.0` on every game, at every depth, in this whole window.
+
+## SWEEP 7 — THE IN-LOOP MEASUREMENT WIDENED FROM ONE BOARD TO THREE
+
+**The only reading taken at the mechanism's own sampling points stood at n = 1. Repeated on two more
+objective-binding boards:**
+
+    board   cycles   seconds   LOOP calls to `_goal_choice`   non-None   mint entered   rows written
+    sb26      20       50.9              32                      0            16             0
+    lf52      14       12.2              14                      0             7             0
+    ls20      13      412.6              16                      0             8             0
+
+    TOTAL                                62                      0            31             0
+
+**Sixty-two calls the LOOP made, across three boards, and not one returned a slot.** `_mint_routine`
+was entered thirty-one times and wrote nothing on every one — **which is why no `routine`,
+`routine_cut` or `routine_refused` row exists on any board in this window.**
+
+> **THE CHAIN STOPS AT `_goal_choice` ON EVERY CALL THE MECHANISM MAKES, ON EVERY BOARD SO FAR
+> MEASURED FROM INSIDE.** The result recorded at n = 1 holds at n = 3, and it is the mechanism's own
+> sampling rather than mine — which is the distinction the last two ticks were spent learning.
+
+**`_goal_choice` is called TWICE per cycle on `sb26` and `ls20` and ONCE on `lf52`** — the second call
+comes from `_goal_split`'s gate, which is only reached when the branches above it decline. **Recorded
+because it says the goal branch IS being consulted, not skipped**: the loop asks, and the answer is
+`None`.
+
+**CLASSIFIED CORRECT-GIVEN-THE-INPUT, NO CANDIDATE FIX** — unchanged from sweep 6 and now on three
+boards. `tu93` is still running and will be added when it lands.
