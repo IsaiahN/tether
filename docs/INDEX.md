@@ -18163,3 +18163,65 @@ and I checked the call sites for three functions and not for the fourth.**
 call site, so the trajectory is the agent's own and any row that appears was earned. **That run is
 the only thing that can settle whether the trigger has a board, and it is deliberately not being
 guessed at here.**
+
+## SWEEP 8d — GATE 0 NAMED, AND IT IS THE MISSING WIRE ARRIVING AS A MEASUREMENT
+
+**No override at either call site.** Nothing is injected, so every number below is the agent's own
+trajectory. At each `_mint_routine` entry: what the residual record holds, what the state offers, and
+what has an objective at all.
+
+    board  cyc   _res   _disc   bound   before   `can` rows / 16 cycles
+    ------------------------------------------------------------------
+    sb26    5      1      1       1      216
+    sb26    7      3      3       5      216
+    sb26   14      3      3       6      216            11
+    ------------------------------------------------------------------
+    sp80    2      0      0       4       72
+    sp80    8      0      0       4       72             0
+    ------------------------------------------------------------------
+    wa30    0      0      0       0       72
+    wa30    8      0      0       0      104             0
+
+**`_res` TRACKS `_disc` ONE FOR ONE ON `sb26` — 1, 3, 3 — AND BOTH ARE ZERO EVERYWHERE ELSE.** The
+two boards fail differently at first sight and identically underneath:
+
+    wa30    bound = 0        nothing binds to any slot at all
+    sp80    bound = 4        four terms bind and NOT ONE OF THEM IS AN OBJECTIVE
+
+`note_goals` pops a slot from `_disc` and `_res` whenever `_discrepancy` returns a non-integer, and
+`NOT_RESOLVED` is *no OBJ term is bound and readable here*. **So gate 0 has one cause, not two: the
+agent has no objective on these boards.** `_discrepancy` returning `NOT_RESOLVED` is the mechanism
+reporting correctly — **there is nothing wrong in the path; there is nothing in it.**
+
+### THE DISCRIMINATOR WAS ALREADY A LEDGER ROW AND NO SWEEP HAD READ IT
+
+`note_goals` writes a `can` row **only when at least one slot has an OBJ term bound and readable.**
+
+    sb26   can rows  11 of 16 cycles
+    sp80   can rows   0
+    wa30   can rows   0
+
+**That separates the boards with no probe, no wrapper and no override — from the ledger alone.** Four
+sweeps built instruments to find where the objective chain breaks and **the row that answers it was
+being written every cycle the whole time.** *Assume it is already specified, and go look* — and the
+tell was there too: `can`'s own docstring says *the counts are the thing to watch*, in a row that was
+never counted.
+
+### IT IS NOT AN ERROR AND GETS NO CANDIDATE FIX
+
+`CLAUDE.md`'s map lists **the WIRE from the composed objective to the bet** and **the SELECTOR that
+would pick among composed objectives** as NOT INSTANTIATED, and records that `tether` hand-builds the
+`WANT` from `env.objective()`'s single hardcoded string, **so producer and consumer never meet.**
+
+> **`sp80` AND `wa30` ARE THAT SENTENCE MEASURED ON A BOARD.** Where the one hardcoded string
+> happens to bind, an objective exists and the whole M2 chain runs; where it does not, there is no
+> objective, and every gate downstream is dead for want of a subject rather than from a defect.
+> **A candidate fix here would be a fix for a non-error** — the mechanism is absent by design and
+> already named as absent.
+
+**AND IT SHARPENS `levels_completed` BEING UNREADABLE, WHICH WAS ARGUED AND IS NOW COUNTED.** The
+ground reading is below the break; **this says how far below, per board.** On `sb26` the break is at
+`_goal_choice`, with objectives present and the chain intact behind it. On `sp80` and `wa30` the
+break is three gates earlier and there is no objective to have a residual about. **Two boards, two
+depths, one uniform loop and no type branching between them — which is the loop reporting a real
+difference in the habitat rather than a difference in itself.**
