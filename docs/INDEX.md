@@ -19280,3 +19280,92 @@ it fails to move it.** A routine committing to repeat on that would be the loop 
 
 **NO FIX. The gate is the discipline, not an obstacle to it** — and a board advertising five actions
 simply owes five observations on one slot before the question can be answered at all.
+
+## SWEEP 18 — THE REACHABILITY DIRECTIVE, CHECKED AGAINST THE CODE. THREE CLAIMS, NONE HOLDS
+
+`[I]` posed a ruling conditional on three claims and asked for them to be confirmed. **They were
+checked against the build rather than against how well they read. All three fail, and the argument
+they carry is nonetheless right — which is why the failure is worth this much space.**
+
+### CLAIM 1 · *`_goal_split`'s route is the REACHABILITY path, `closure(Γ)·atoms(Γ)`* — FALSE
+
+`REACHABILITY` is a **MINT guard over TERMS**. `tether.py:2246` initialises
+`guards = {"support":…, "reachability": False, "novelty": False}` and **2333 sets it when a candidate
+TERM passes `pays`.** The separate reachability verdict at `1207` is `reg().closure((OBJECT,),
+max_depth)` — **chains of SENSORS.** Both range over composition in Γ.
+
+**`_goal_split` returns an ACTION LABEL** — `ACTION5` — chosen by votes over `self.trace`'s
+`(before, action, after)` transitions. **Different space, different objects, different question.** One
+asks *can this term be built from my atoms*; the other asks *which of the environment's buttons moved
+this slot the way I want.* **The analogy is good and the identity is not there.**
+
+### CLAIM 2 · *`probe`'s walk is Figure 5's `NOVEL → explore the unmapped region`* — FALSE, AND BETTER THAN FALSE
+
+    probe.py   pick = sorted(actions)[(cycle * 7 + self._seed) % len(actions)]
+
+Its own docstring: ***"A draw over the labels the environment advertised, and nothing else."*** **There
+is no novelty term, no unmapped region, no coverage target.** It is a deterministic rotation.
+
+**AND THE ROTATION IS A COMPLETE SWEEP, WHICH REFUTES THE PREMISE MORE SHARPLY THAN ITS ABSENCE
+WOULD.** `gcd(7, n) = 1` for every action count in the public set:
+
+    n=2  [0,1]          n=3  [0,1,2]        n=4  [0,3,2,1]
+    n=5  [0,2,4,1,3]    n=6  [0,1,2,3,4,5]      all n distinct in n cycles
+
+**Every action is visited within `n` cycles, guaranteed.** The directive's premise — *`probe`
+accumulates that evidence only by coincidence* — **is false: it accumulates by construction, on a
+schedule, with a bounded completion time.**
+
+### CLAIM 3 · *the missing coupling is the walk accumulating into the reachable set* — FALSE, AND MEASURED SO
+
+**Sweep 17 measured the accumulation working.** `_goal_split` builds `hist` from `self.trace` on every
+call — *which action produced which transition on this slot* — and the coverage climbs:
+
+    lf52, 5 actions   in_hist 1 -> 2 -> 3 -> 4 -> 5   over trace 2 -> 6   COVERAGE COMPLETES
+    sb26, 2 actions   in_hist 2 / 2 on every call      returns ACTION5 5 of 5
+
+**The `1,2,3,4,5` climb is the `(cycle*7) mod 5` sweep arriving exactly on schedule.** The map is
+built, it is read, and on `sb26` it produces a route on every call. **There is no missing coupling.**
+
+### SO WHAT DOES BLOCK, AND IT IS NEITHER THE WALK NOR THE ACCUMULATION
+
+    binding    an objective is bound and readable on 0.35% of slot-cycles   sweep 12
+               so the trigger rarely has a series to read at all            sweep 10c
+    the vote   lf52 at COMPLETE 5/5 coverage still returns None             sweep 17
+
+**The second is the one the directive cannot absorb.** On `lf52` the agent has observed **all five
+actions** on `o59.w` and `max(votes) == 0`: **not one of them mostly moves that slot toward the
+objective.** Sweep 3 read the same board as flat at 1.0 for 31 cycles — *satisfied by no member of a
+59-wide scope, ever.*
+
+> **THAT IS A COMPLETE MAP RETURNING A TRUE NEGATIVE, NOT AN ABSENT MAP.** The agent walked, the
+> recognizer recorded, the map filled, and the map says **nothing I can do advances this goal here.**
+> **Building a coupling to produce a map that already exists would install a mechanism whose absence
+> was never the blocker** — and the reading afterwards would be unchanged, because the vote gate
+> would return the same negative over the same evidence.
+
+### WHAT THE DIRECTIVE GETS RIGHT, AND IT IS THE PART THAT MATTERS MOST
+
+**The shredded-books constraint is correct and the build already satisfies it.** `_goal_split` reads
+`self.trace` and nothing else — the agent's own transitions under real consequence. **No environment
+read, no handed action model, no `act`.** The forbidden shortcut is already forbidden, and `Q8`
+enforces the stronger half: `CAN`'s *has-held-before* disjunct is explicitly not the
+*action-observed-to-move-it* evidence `_goal_split` requires.
+
+**So the ruling's constraint is met and its diagnosis is not supported.** Those are separable and
+both are worth saying.
+
+### AND THE DIRECTIVE'S OWN WARNING APPLIES TO THE DIRECTIVE
+
+It closes by naming the trap: *the corresponding trap here is making `probe` the villain.* **It then
+makes `probe` the villain** — *accumulates that evidence only by coincidence* — and the walk is a
+guaranteed complete sweep. **The warning was correctly stated and pointed at the conclusion the
+document reached.**
+
+> **SIXTH INSTANCE OF THE WINDOW'S RECURRING SHAPE, AND THE FIRST THAT ARRIVED FROM OUTSIDE THE
+> SEAT.** A real measurement, a coherent account attached, the account failing on the check. **The
+> five before it were mine.** The tell is identical each time: **the account was never checked
+> against the thing it described**, and here it was checkable in four greps.
+
+**NOTHING BUILT. NOTHING ACTED ON. THE TAG IS INTACT.** This is a verification, and what it owes back
+is a corrected question rather than a mechanism.
