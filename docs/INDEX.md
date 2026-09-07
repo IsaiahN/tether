@@ -19217,3 +19217,66 @@ live — and false of the set. **`lf52` alone holds 9 of those 13.**
 **CLASSIFICATION UNCHANGED IN KIND.** `S5` is a system error with the family-match candidate fix, now
 carrying its census. **The `bored()` correction is a behaviour note about my own reading and carries
 no fix at all** — the branch order is a design and it did what it says.
+
+## SWEEP 17 — WHICH GATE INSIDE `_goal_split` REJECTS, AND SWEEP 8c's HYPOTHESIS GETS ITS MECHANISM
+
+Sweep 16 left a sharper puzzle than it closed: **if `_learned_split` finds a learned action on 6 of
+10 boards, *the trace carries no learned evidence* cannot be why `_goal_split` returns `None`.**
+
+**FIRST, THEY DO NOT READ THE SAME THING, AND I HAD ASSUMED THEY DID.** `_learned_split` reads
+`self.env.contingency()` — per-member response records from perception. `_goal_split` reads
+`self.trace` — this agent's own transitions. **Two sources, and the window has been treating one
+function's success as evidence about the other's input.**
+
+**BOTH CARRY AN EVERY-ADVERTISED-ACTION COVERAGE GATE, AND THAT IS WHERE THEY DIVIDE:**
+`_learned_split` needs one member, any member, to carry full coverage — an existential.
+`_goal_split` needs **the one chosen slot** to carry it. **Strictly the harder gate.**
+
+### MEASURED, WITH RAW COUNTS RATHER THAN A REIMPLEMENTED CONDITION
+
+    board  actions   slot       in_hist / actions   trace   returned
+    ------------------------------------------------------------------
+    lf52      5      o59.w           1 / 5            2      None
+    lf52      5      o59.w           2 / 5            3      None
+    lf52      5      o59.w           3 / 5            4      None
+    lf52      5      o59.w           4 / 5            5      None
+    lf52      5      o59.w           5 / 5            6      None      <- coverage COMPLETE
+    ------------------------------------------------------------------
+    sb26      2      o20.w           2 / 2            5      ACTION5
+    sb26      2      o26.col         2 / 2            6      ACTION5
+    sb26      2      o26.w           2 / 2            7      ACTION5
+    sb26      2      o26.w           2 / 2           15      ACTION5
+    sb26      2      o26.w           2 / 2           17      ACTION5
+    ------------------------------------------------------------------
+    wa30      5      --              no OBJ-bound call at all
+
+**THE COVERAGE GATE IS THE DOMINANT REJECTION AND IT IS CLOCKED BY ACTION COUNT.** `in_hist` climbs
+one per trace entry on `lf52` and the gate opens only at the fifth. `sb26` advertises **two** actions,
+clears coverage on its first OBJ-bound call, and **returns an action 5 of 5.**
+
+**AND THE ONE `lf52` CALL WITH COMPLETE COVERAGE STILL RETURNED `None`** — so the VOTE gate bites too,
+and the two are not the same rejection. **4 of 5 coverage, 1 of 5 votes.**
+
+### WHICH GIVES SWEEP 8c's FALSIFIED HYPOTHESIS ITS MECHANISM
+
+Sweep 8c pre-registered *`_goal_split` passes where actions are few* and falsified it on a held
+constant — four actions passing on two boards and failing on three. **The falsification stands and
+the mechanism it was groping at is now identified:** `_goal_split` needs every advertised action
+observed **on one slot**, so a 2-action board clears in two trace entries and a 6-action board needs
+six on the same slot.
+
+> **ACTION COUNT IS GENUINELY PART OF THE MECHANISM AND IS NOT SUFFICIENT TO PREDICT IT** — the gate
+> is *coverage of n actions on the CHOSEN slot*, confounded by trace length and by which slot the
+> trigger picks. **The hypothesis was directionally right and stated as something checkable that it
+> was not.** Falsifying it as written was correct; **the structure underneath it was worth finding
+> and only the falsification made room to look.**
+
+### CLASSIFICATION — CORRECT-GIVEN-THE-INPUT, NO CANDIDATE FIX
+
+The gate's own comment is *the coverage gate: untried is not neutral*, and that is `CLAUDE.md`'s
+standing rule in code — *prefer positive causal evidence over absential; absence of evidence resting
+on completeness never holds mid-episode.* **An action never tried on this slot is not evidence that
+it fails to move it.** A routine committing to repeat on that would be the loop that never ends.
+
+**NO FIX. The gate is the discipline, not an obstacle to it** — and a board advertising five actions
+simply owes five observations on one slot before the question can be answered at all.
