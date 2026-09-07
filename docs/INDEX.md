@@ -17540,3 +17540,54 @@ cycles is below what any selection needs, and `COND2` holds on both (base means 
 **Q3 · Action counts vary 1–7 across the set**, and surfaced counts run one below advertised on most
 games. **A property of the habitat, recorded so the next reading of `spread` or `discriminate` has the
 denominator in front of it.**
+
+## LOG 3 — THE COST WALL, PROFILED · and the `_left` candidate is REFUTED
+
+**`cProfile`, eight cycles of `ls20`, 112.2s, 234.9M calls. PROFILED, NEVER PATCHED.**
+
+    ncalls    tottime   cumtime  function
+    916,212    37.82     69.78   tether.py:720  _record
+    153.3M     32.17     32.17   {method 'get' of 'dict' objects}
+    8.6M        5.72     10.82   gamma.py:253   apply
+    79,893      1.72     42.77   tether.py:1240 _left
+    71          1.58    101.69   tether.py:2241 mint
+
+### THE CANDIDATE IS REFUTED, AND ONE NUMBER DOES IT
+
+> **`trace length after 8 cycles: 8`.** The history the candidate blamed is **eight entries long**.
+> `_left` walks it 79,893 times for 1.72s of its own time. **The history walk is not the wall**, and
+> the story I attached to the curve last tick was wrong — *the fourth causal story this line of work
+> has written and had killed by the next measurement.*
+
+### THE ACTUAL CAUSE, AND THE ARITHMETIC CLOSES TO 0.4%
+
+**`_record` reassembles the owner's record by scanning the ENTIRE flattened state on every call:**
+
+    rec = {attrs[s]: v for s, v in state.items() if owners.get(s) == mine and s in attrs}
+
+    916,212 calls x 168 slots  =  153,923,616 dict lookups
+    profile measured              153,322,627
+    ratio                                0.996
+
+**The 153M `dict.get` calls ARE `_record`'s comprehension**, and together the two lines are **70 of the
+112 seconds**. The cost is `calls x slots`, and both grow with the board.
+
+### AND IT IS A TRADE I MADE THIS SESSION, NOW MEASURED FROM THE OTHER SIDE
+
+`_record`'s own docstring records the reasoning: ***NOTHING IS STORED*** — the record is recoverable
+from the `dict[str, int]` the loop already holds, and the measured footprint avoided was *766 MB per
+1000 steps structured, 3.1 GB noise.* **That was memory-for-compute, taken on a 16-slot fixture.** On a
+168-slot board the compute side is the wall. **The trade was recorded, the fixture could not price it,
+and a real board just did.**
+
+### CLASSIFICATION AND CANDIDATE FIX
+
+**SYSTEM, not quirk** — it is per-build, hits every game, and scales with slot count: `sp80` at 48
+slots ran 6 cycles in 2.2s where `ls20` at 168 took 13.0s and `ar25` 33.6s.
+
+**CANDIDATE FIX (NOT APPLIED):** build every owner's record **once per state** and index by owner,
+rather than reassembling per call — the state is already iterated once per step, and `_decomp_cache`
+already holds `owners`/`attrs`. **The property to preserve is the docstring's: nothing stored ACROSS
+steps.** A per-step index is not persistence. **Verifying it needs identical-output-faster, read
+before and after, which needs Isaiah** — an unattended change that merely runs longer cannot be told
+from one that changed behaviour.
