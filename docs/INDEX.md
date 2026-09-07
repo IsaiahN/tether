@@ -17357,3 +17357,69 @@ debt stays filed.**
 **The read is unpinned**, against `levels_completed` and the three conditions the five synthetic boards
 named: scope wider than 2 · residual rich enough to pay for a term at all · residual a value predictor
 cannot explain more cheaply.
+
+---
+
+# THE FIRST REAL BOARD — `ls20`, OFFLINE, COLD, AGAINST `arc-freeze-01`
+
+## ① THE THREE CONDITIONS ARE SUPPLIED. THIS IS ESTABLISHED
+
+    COND 1  scope wider than 2      max scope 20            synthetic capped at 2
+    COND 2  residual rich enough    base_bits mean 13.499, max 24.0, n=35
+                                    cheapest term ~8.9 · `many` was 2.807
+    COND 3  value arm undercuts it? contest n=2 -> winners {objective: 1, predictor: 1}
+
+**AN OBJECTIVE WON A CONTEST.** On five synthetic boards an objective never won — it tied once and
+otherwise fielded nobody. `R_goal` reached **1.0** where synthetic maxed at 0.5. Objectives minted on
+real structure: `o20.w -> none`, `o16.w -> above . all<o20.w>`. Two mints, two paid.
+
+**④'s prediction is confirmed: the five nulls were about the boards, not the mechanism.**
+
+## ② WHAT IS NOT ESTABLISHED, HELD APART ON PURPOSE
+
+**`levels_completed: 0`.** *An objective winning a contest is the mechanism working; a level completing
+is the capability paying.* **The first is measured, the second is not**, and they are different claims.
+
+**No routine fired — and at 5 cycles that is not a reading.** The selector needs `MIN_REPEAT + 1`
+residual readings; there were 4. `phase: probe 1.0`.
+
+## ③ AND THE LONGER RUN CANNOT BE TAKEN — THE COST CAVEAT, MEASURED AT LAST
+
+**Two runs (30 and 200 cycles) were launched and neither completed.** That is not a stall to wait
+out; it is the reading:
+
+    cycle  0    0.12s   units=21  lib=21   elapsed    0.1s
+    cycle  1    0.68s   units=21  lib=25   elapsed    0.8s
+    cycle  3    2.25s   units=21  lib=26   elapsed    4.2s
+    cycle  5    7.73s   units=22  lib=28   elapsed   15.2s
+    cycle 10   69.95s   units=23  lib=37   elapsed  212.6s
+
+**A ~580x increase in ten cycles, while `units` moved 21 -> 23.** The closure is NOT widening, so the
+cost is not the unit set.
+
+> **THE FOUR CYCLE-QUESTIONS ARE UNREADABLE ON THIS BUILD AT THIS COST.** Does a routine fire · does it
+> pursue and satisfy or refute · does `levels_completed` move · does the objective win reliably — **all
+> four need cycles past `MIN_REPEAT + 1` with a shrinking residual, and cycle 10 already costs 70
+> seconds with the curve still climbing.**
+
+**CANDIDATE CAUSE, LABELLED AS A CANDIDATE.** `_left` walks the slot's **whole history** for every
+candidate — `for state, action, actual in hist` — and history grows every cycle, across 120–168 slots.
+**Not confirmed**, and this session's record on causal stories attached to real measurements is three
+written and three killed by the next measurement.
+
+**This is the cost caveat coming due**: *mint work scales with slots x candidates, and the real-board
+figure is UNMEASURED.* It is measured now, and it carries a third factor the caveat did not name —
+**history length**.
+
+## RECORDED AGAINST THE TAG, NOT FIXED
+
+**Two bugs and one blocker, all against `arc-freeze-01`:**
+
+1. **`arc_holdout.play` crashes at line 221** — `dict(Counter(r["detail"]["by"]))` — because **`by` is
+   a string on action rows and a dict on the `mode` row.** `A6i` in the ledger's detail schema. **The
+   loop completed; only report assembly died**, so the run's validity stands and the ledger was read
+   directly with `play`'s setup replicated exactly.
+2. **The cost curve above**, which bounds what any run of this build can read.
+
+**No build file was touched. The freeze held through its first real bug**, which is what a freeze is
+for.
