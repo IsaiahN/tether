@@ -17710,3 +17710,21 @@ fact stands and is broader than the story: real residuals do not trend, by more 
 **Fourteen contests, and the predictor took ONE.** Sweep 2's *the value arm takes 88% of contests* is a
 **six-cycle** figure. **At depth, on this board, it inverts** — and the honest statement of the
 generalisation question is now that it is **depth-dependent and was read at one depth.**
+
+### AND THE SECOND DEEP BOARD SAYS DEPTH DOES NOT UNIFORMLY INVERT IT
+
+**`lf52` completed at cycle 31 (its cap, 251.3s): `{predictor: 5}` — the objective won none.**
+
+    sb26  44 cycles   objective 3 · tie 10 · predictor 1     objective-favouring
+    lf52  31 cycles   predictor 5                            predictor-only
+
+**So the inversion is `sb26`'s, not depth's.** The entry above hedged it as *on this board* and **the
+hedge was load-bearing** — one deep board showing an inversion is one board, and the second deep board
+refuses it.
+
+> **THE CONTEST OUTCOME IS PER-BOARD AT DEPTH AS WELL AS AT SIX CYCLES.** Neither *the value arm takes
+> 88%* nor *at depth it inverts* is a property of the mechanism; **both are properties of the board
+> they were read on**, which is the no-pooling rule arriving for the third time in this window.
+
+**And `lf52` is flat at 1.0 for all 31 cycles** — the objective is satisfied by no member of a 59-wide
+scope, ever. `selector=None` throughout, no routine, `levels 0`.
