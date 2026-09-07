@@ -17924,6 +17924,12 @@ gate catches next. Frozen files untouched; every wrapper is in the scratchpad.
 > whether the machinery is connected. **The agent reached none of it**: across sweeps 7 and 8 the
 > real `_goal_choice` has now been asked **100 times on five boards and returned a slot zero
 > times.** Every routine named here was minted from a slot I supplied.
+>
+> **THE 100 IS INVOCATIONS, NOT GATE EVALUATIONS — corrected from sweep 8c.** `_goal_choice` has two
+> call sites in the mint path, `tether.py:1766` and `tether.py:1936` inside `_goal_split`, and
+> neither this counter nor sweep 7's separates them. **The zero survives the correction** — zero
+> non-null is zero at either site — **but the denominator names calls to a function, not decisions
+> at a gate**, and it must not be quoted as the latter.
 
 ### FIRST, THE SHAPE OF THE PATH — FOUR OF THE EIGHT GATES ARE SILENT
 
