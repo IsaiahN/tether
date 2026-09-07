@@ -18553,3 +18553,46 @@ observation because the numbers are real.
 **WHAT IT DOES NOT EXPLAIN, HELD APART:** `tr87`'s refusal is the trigger reaching the bargain and
 losing there. **The other four boards never reach it**, and their blocker is `_goal_split` or the
 trigger itself. **One board's arithmetic is not the set's account.**
+
+## SWEEP 10a — THE FIVE-GAME SAMPLE, CHECKED AS A PANEL RATHER THAN USED AS ONE
+
+**The standing brief reads the sample and expects `routine-fires` unreadable everywhere, *the wall
+confirmed per-build, not a per-game failure*.** `CLAUDE.md` requires the other question first:
+*before a null is read as a finding about a mechanism, state what property of the panel the mechanism
+would need in order to show, and confirm the panel has it.* **The sample has now been measured
+board by board, so the check can finally be run on it.**
+
+    game    surfaced actions   binds an objective   can a routine fire here at all?
+    -----------------------------------------------------------------------------
+    ls20          4            yes, can 9 of 11     reaches gate 6, stops there
+    ar25          6            yes, can 6 of  8     reaches the bargain
+    ka59          4            yes, can 5 of 14     reaches the bargain
+    -----------------------------------------------------------------------------
+    vc33          0            --                   NO. nothing acts
+    sp80          5            no,  can 0 of 16     NO. no objective exists
+
+**TWO OF THE FIVE CANNOT PRODUCE A ROUTINE FOR REASONS THAT HAVE NOTHING TO DO WITH ROUTINES.** `vc33`
+surfaces no action, so the loop cannot act; `sp80` binds four terms and not one is an objective, so
+there is no subject for a residual. **Neither is the cost wall and neither is per-build.**
+
+> **SO THE SAMPLE'S NULL IS A NULL ON THREE BOARDS, NOT FIVE**, and *the wall confirmed per-build* is
+> the correct account on `ls20`, `ar25` and `ka59` and **the wrong account on the other two.** The
+> expectation is not wrong about the wall — it is wrong about what this panel can isolate.
+
+**AND IT IS THE THIRD TIME THIS EXACT SHAPE HAS APPEARED**, which is why it is being written down
+rather than noted. `CLAUDE.md` already records three: *`M = 7` is prime so no coarsening can preserve
+arithmetic · the ladder is flat so the carried-cold gap has nowhere to open · four independent slots
+make echo nearly accidental.* **Three nulls, three worlds structurally unable to reward the thing
+tested, and none of it visible in the result.** This is a fourth, and the only difference is that the
+panel property was measurable in advance and simply had not been measured.
+
+**NO CANDIDATE FIX AND NOTHING TO FIX.** The build's response on both boards is correct: `vc33` is
+`Q1`, the adapter dropping a positioned click it cannot supply; `sp80` is `Q6`, `NOT_RESOLVED` where
+no OBJ term is bound. **The note is about the SAMPLE, and the sample is the proctor's instrument, not
+the agent's behaviour.**
+
+**WHAT A PANEL WOULD NEED IN ORDER TO SHOW A ROUTINE FIRING UNAIDED — stated so it is checkable:** a
+board that surfaces at least one action, binds a readable objective, supplies a residual the trigger
+accepts, **and** supplies one large enough for the bargain to pay. **The first three are satisfied
+somewhere in the seventeen. The fourth has not been observed with the third**, which is sweep 9's
+open falsifier and is being read now.
