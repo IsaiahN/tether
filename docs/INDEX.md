@@ -17545,6 +17545,56 @@ argued.
 reason. **The four row-writing gates already show the shape to copy**, so this adds no vocabulary —
 it extends an existing row to the branches that currently return in silence.
 
+### S4 · `_install_reuse` admits into Γ what the bargain would refuse — 19 of 21
+
+**THE BUILD ASKED THIS QUESTION ITSELF AND DEFERRED IT FOR WANT OF A BOARD.** `_install_reuse`'s
+docstring: *"`_install_reuse` was never called across the demo panel ... So the row states what the
+bargain WOULD have said ... **the first run that exercises this path answers the question instead of
+a decision made without one.**"* **The path is exercised on 13 of 17 public boards. The run has
+happened.**
+
+    board   installs   would_pay=False        cost        base
+    -----------------------------------------------------------------
+    lf52       3          2 of 3            8.9189      3.32 – 12.00
+    wa30       5          5 of 5            8.92–13.38  3.91 –  7.00
+    sp80       5          5 of 5            8.9189      3.32 –  7.00
+    ar25       4          3 of 4            8.9189      7.00 – 12.00
+    dc22       4          4 of 4            8.9189      7.00
+    -----------------------------------------------------------------
+    TOTAL     21         19 of 21  (90.5%)
+
+**THE SPLIT IS PERFECTLY CLEAN AND IT IS ARITHMETIC, NOT NOISE.** Both `would_pay=True` rows carry
+`base = 12.00` against `cost = 8.9189`; **every one of the nineteen refusals carries `base <= 7.00`,
+below the same cost.** `left` is `0.0` on all twenty-one, which is the condition this path enters on.
+
+> **AND `8.9189` IS THE `~8.9 CHEAPEST TERM` THE THREE CONDITIONS ARE READ AGAINST.** `COND 2` asks
+> whether the residual is rich enough to buy the cheapest thing sayable. **On nineteen of these it is
+> not — `base` runs 3.32 to 7.00 — and the term enters anyway**, because this path tests `left == 0`
+> and never asks the question `COND 2` exists to ask.
+
+**CLASSIFIED SYSTEM, AND THE CENSUS IS 5 OF 5 BOARDS.** Not game-gated: every board that exercises the
+path shows it, and the constraint being violated is the project's own — §14.4's **one bargain**, which
+the docstring names in its own words as *the site where there are two.* **This is not me finding a
+deviation; it is the build declaring one and asking for the data to decide it.**
+
+**CANDIDATE FIX (NOT APPLIED), AND IT IS THE ONE THE DOCSTRING ALREADY NAMES:** consult `pays` on this
+path as `mint` does. **The stated blocker was *no board on which to read the change* — that blocker is
+now removed, twenty-one times over**, and the `would_pay` field means the before/after is already
+recorded rather than needing a second instrument.
+
+**WHY IT MATTERS BEYOND THE COUNT — IT REACHES THE ABLATION CLAUSE.** Terminal condition 3 wipes what
+entered Γ under *promoted from crude* and stays blind to what entered under *cannot run without it*.
+**A third entry path that consults no bargain is a category that partition does not name.** The
+mitigation is already in the code and is worth recording as such: `gamma.accept(cand, ...,
+residual=f"reuse:{slot}@{self.cycle}")` stamps these entries distinctly, **so the ablation CAN
+separate them — the provenance survives even though the pricing did not.**
+
+**HELD APART, BECAUSE IT IS THE HALF THAT COULD MAKE THIS A NON-ERROR:** whether a REUSED term should
+be priced at full `term_bits` at all is a design question, not a measurement. If reuse is properly
+cheaper than derivation, nineteen refusals may be nineteen correct admissions at a wrong price.
+**The measurement is unambiguous and its interpretation is Isaiah's** — which is exactly the shape
+the docstring set up.
+
 ## LOG 2 — GAME QUIRKS · behaviours, not defects
 
 **Q1 · Six games supply only a positioned click.** The build drops it and surfaces no action. **Correct
