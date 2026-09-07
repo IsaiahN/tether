@@ -215,7 +215,10 @@ residual=f"reuse:{slot}@{self.cycle}")` stamps these distinctly, so the ablation
 **The provenance survived even though the pricing did not.**
 
 **And it may be the same fact as the cost wall.** Library baseline is 21, measured. Across those five
-boards, growth was 46 and **21 of it — 46% — entered through this path.** LOG 3 locates the wall in
+boards, growth was 46 and **21 of it — 46% — entered through this path.** The other 54% enters through
+`mint`, which is gated twice: `_cannot_pay` then `pays`. **Sweep 13's census makes that exhaustive —
+one mutation of `gamma.library` in the whole repo, two loop callers, and `_install_reuse` is the only
+unbargained one.** LOG 3 locates the wall in
 `mint` pricing a candidate space that grows with the library. Each link is measured; **the
 composition of them is a hypothesis, and the counterfactual is a build change the freeze forbids.**
 
@@ -341,8 +344,10 @@ by a real timeline, and available before the run that could refute it.
 - **Whether reuse should be priced at full `term_bits`.** §5's held-apart half.
 - **Why `tu93` stops calling `_goal_choice` after cycle 5.** Q9, cause unestablished on purpose.
 - **Why `dc22` reads an objective on exactly one cycle of thirteen.** Q7, no account offered.
-- **Whether the other 54% of library growth is bargained.** `mint` consults `pays`, so it is
-  presumed — presumed, not read.
+- ~~**Whether the other 54% of library growth is bargained.**~~ **ANSWERED — sweep 13.** One
+  mutation site, two loop callers; `mint` is gated by `_cannot_pay` and then `pays`. **`promote` and
+  `import` enter no terms at all, so the three-way split named above was wrong** — it listed loop
+  phases where entry points were meant.
 - **Whether the three never-fired `None`-exits can fire.** Five boards is the denominator.
 
 ---

@@ -18928,3 +18928,60 @@ boards.**
 
 **NO CANDIDATE FIX. A candidate fix here would be a fix for a mechanism that is absent by design**,
 and the count is the first quantity this project has that says how absent.
+
+## SWEEP 13 — THE ENTRY CENSUS: `_install_reuse` IS THE ONLY UNBARGAINED WAY INTO Γ
+
+`FREEZE_READ` §10 listed *whether the other 54% of library growth is bargained* as **presumed, not
+read.** It is now read, and the census is exhaustive rather than sampled.
+
+    every mutation of the library, whole repo     gamma.py:334   self.library[term.name] = term
+    ------------------------------------------------------------------------------------------
+    callers of gamma.accept in the loop           tether.py:2454   mint
+                                                  tether.py:2667   _install_reuse
+    callers outside the loop                      demo.py:73       labelled "injected by the
+                                                                   demo, not by the loop"
+
+**ONE MUTATION SITE, REACHED BY TWO LOOP PATHS.** No term enters `gamma.library` by any other route —
+not `promote`, not `import`, not a rebind. **The claim is structural, not statistical.**
+
+    mint            line 2324  _cannot_pay(term, slot, robs, cost, base)     -> skip
+                    line 2329  if not pays(cost, left, base): continue       -> skip
+                    line 2350  best = (total, left, cost, term)              DOUBLE-GATED
+    ------------------------------------------------------------------------------------------
+    _install_reuse  line 2572  if best is None or left < best[0]             left ALONE
+                    line 2665  would_pay=... pays(cost, left, base)          A ROW FIELD, NOT A GATE
+
+**`mint` is gated twice and `_install_reuse` is gated on `left == 0` alone**, with `pays` called on
+that path only to fill a ledger field. **§14.4's *one bargain* has exactly one exception in the whole
+build, and `S4` is it.**
+
+### WHICH CORRECTS `FREEZE_READ` — I NAMED THREE PATHS AND THERE ARE TWO
+
+The report says *the other 54% of growth came through `mint`, `promote` and `import`*. **`promote`
+and `import` do not enter terms into Γ at all.** So the split is not three-way and it is not
+partially unaudited:
+
+    46% of library growth   _install_reuse    UNBARGAINED, and 19 of 21 would have been refused
+    54% of library growth   mint              DOUBLE-GATED
+
+> **THIS MAKES `S4` SMALLER AND SHARPER AT THE SAME TIME.** Smaller, because the unbargained
+> territory is bounded — it is one function, not an unaudited majority. **Sharper, because 46% is now
+> the whole of it rather than a floor**, and *the remaining paths are presumed bargained* is retired
+> as a caveat rather than left standing.
+
+**AND IT WAS A GUESS DRESSED AS AN INVENTORY.** *`mint`, `promote` and `import`* reads like a list of
+paths and was a list of loop PHASES — the phase names substituted for the entry points, and neither
+had been looked up. **`ledger.STEPS` has a `PROMOTE` and an `IMPORT`, so the sentence was true about
+the loop and false about Γ**, which is `A6i` at the exact site the corpus warns about: one word, two
+quantities, and the wrong one to hand.
+
+**THE FIX FOR THE DOCUMENT IS MADE AT SOURCE; THE FIX FOR THE HABIT IS THE CENSUS ITSELF.** *Assume
+it is already specified, and go look* — **one `grep` for library mutations answers exhaustively what
+three sweeps of counting could only bound.**
+
+### CLASSIFICATION — UNCHANGED, AND THAT IS THE POINT
+
+**`S4` stays a system error with the candidate fix the docstring names.** Nothing here changes the
+measurement or the verdict; it changes the DENOMINATOR the verdict sits in, from *46% of growth,
+remainder unaudited* to **46% of growth, remainder gated twice.** No new candidate fix, and the
+pricing question held apart in `S4` is untouched by any of this.
