@@ -17622,6 +17622,21 @@ proof.** The measurement is certain; the intent is Isaiah's.
 `self.drive.choose`, so both are undirected picks and both belong in `PROBE`. **That half was checked
 and is correct.**
 
+**AND NOTHING IS LOST, WHICH IS THE QUALIFIER THAT SETS THIS APART FROM A LEGIBILITY FAILURE.** The
+`repeat` row carries **`phase=phase, by=by` on the SAME ROW** (`tether.py:2942`). **The raw
+`discriminate:learned` sits beside the derived `probe`**, so the disagreement is visible in the
+ledger without any instrument at all, and `phases.report()` can be recomputed from records already
+written.
+
+> **SO `S5` IS A REPORTING DEFECT AND NOT A DESTRUCTION OF EVIDENCE**, which is the distinction
+> `CLAUDE.md` draws when it says a change that makes reasoning unreadable has destroyed the
+> instrument. **This one did not.** The derived quantity is wrong; the input to it is on the same
+> line.
+
+**AND THAT INDICTS MY READING RATHER THAN THE BUILD'S RECORD-KEEPING.** I quoted `phase: probe 1.0`
+across this whole window **while `by` was on the same row saying otherwise.** *Assume it is already
+specified, and go look* — the column that refutes the citation was never more than one field away.
+
 ## LOG 2 — GAME QUIRKS · behaviours, not defects
 
 **Q1 · Six games supply only a positioned click.** The build drops it and surfaces no action. **Correct
