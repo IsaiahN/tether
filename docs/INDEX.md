@@ -19332,14 +19332,18 @@ built, it is read, and on `sb26` it produces a route on every call. **There is n
     binding    an objective is bound and readable on 0.35% of slot-cycles   sweep 12
                so the trigger rarely has a series to read at all            sweep 10c
     the vote   lf52 at COMPLETE 5/5 coverage still returns None             sweep 17
+               ** and the ACCOUNT of that None below is WRONG -- see sweep 19 **
 
 **The second is the one the directive cannot absorb.** On `lf52` the agent has observed **all five
 actions** on `o59.w` and `max(votes) == 0`: **not one of them mostly moves that slot toward the
 objective.** Sweep 3 read the same board as flat at 1.0 for 31 cycles — *satisfied by no member of a
 59-wide scope, ever.*
 
-> **THAT IS A COMPLETE MAP RETURNING A TRUE NEGATIVE, NOT AN ABSENT MAP.** The agent walked, the
-> recognizer recorded, the map filled, and the map says **nothing I can do advances this goal here.**
+> **WITHDRAWN BY SWEEP 19 — THE MAP SAYS THE OPPOSITE.** All five actions move `o59.w` by −1 and the
+> objective wants −1, so **every one of them votes** and the `None` comes from `tied ==
+> len(self.actions)`, an exit this entry had not read. **Not a true negative — a unanimous map that
+> cannot discriminate.** The conclusion that no coupling repairs it survives; **this sentence does
+> not.**
 > **Building a coupling to produce a map that already exists would install a mechanism whose absence
 > was never the blocker** — and the reading afterwards would be unchanged, because the vote gate
 > would return the same negative over the same evidence.
@@ -19369,3 +19373,73 @@ document reached.**
 
 **NOTHING BUILT. NOTHING ACTED ON. THE TAG IS INTACT.** This is a verification, and what it owes back
 is a corrected question rather than a mechanism.
+
+## SWEEP 19 — AUDITING MY OWN SWEEP-18 CLAIM, WHICH IS FALSE AND INVERTS
+
+Sweep 18 pushed back on a build ruling partly on this: *on `lf52` at complete 5-of-5 coverage,
+`max(votes) == 0` — not one action mostly moves that slot toward the objective.* **That is n = 1 and
+it was used to argue against a directive, so it was audited.** It does not survive.
+
+    lf52  c6  o59.w  ordered=True  ->  None
+        ACTION1   wanted=57  now=58  deltas=[-1]
+        ACTION2   wanted=57  now=58  deltas=[-1]
+        ACTION3   wanted=57  now=58  deltas=[-1]
+        ACTION4   wanted=57  now=58  deltas=[-1]
+        ACTION7   wanted=57  now=58  deltas=[-1]
+
+`step = -1` because `wanted < now`; each `delta * step = +1 > 0`; `moved * 2 > len(hist[a])` is
+`2 > 1`. **Every one of the five gets a vote.** `max(votes)` is **1, not 0.**
+
+### THE PROBE DISAGREED WITH THE BUILD AND THAT IS WHAT EXPOSED IT
+
+The reconstruction predicted a returned action; the function returned `None`. **A probe disagreeing
+with the thing it measures invalidates the reading**, so the function's tail was read — the twelve
+lines never opened:
+
+    if not n_goals or max(votes.values()) == 0:   return None
+    top  = max(votes.values())
+    tied = sum(1 for v in votes.values() if v == top)
+    if tied == len(self.actions):                 return None   # nothing separates;
+                                                                # the draw stays uninformed
+    return max(self.actions, key=lambda a: votes[a])
+
+**`tied == 5 == len(self.actions)`.** The `None` is the THIRD exit, not the vote gate.
+
+> **SO THE READING INVERTS.** Not *no action moves this slot toward the objective* — **every action
+> does, identically.** All five change `o59.w` by −1 and the objective wants −1. **The map is
+> complete, informative and UNANIMOUS, and unanimity decides nothing** — which is the build's own
+> words elsewhere: *mass on ONE action while several members passed is unanimity, and unanimity
+> decides nothing.*
+
+**`sb26` is the control and it confirms the arithmetic:** `ACTION5` votes, `ACTION7` hits
+`wanted == now` and abstains, `tied = 1 != 2`, and the function returns `ACTION5` on all five calls.
+
+### WHICH MAKES A THIRD BLOCKER, NAMED BY NEITHER SIDE
+
+    the directive said    the map is not accumulating          FALSE -- sweep 17 watched it fill
+    sweep 18 said         the map says nothing helps           FALSE -- everything helps
+    the measurement says  the map cannot DISCRIMINATE          all n actions tie, so no route
+                                                               is distinguished and the gate
+                                                               refuses to pick arbitrarily
+
+**CORRECT-GIVEN-THE-INPUT, NO CANDIDATE FIX.** Returning an arbitrary member of a five-way tie would
+be `self.actions` order deciding a route — the same arbitrariness `ties()` exists to expose. **A
+routine built on it would commit to repeating an action chosen by tuple position.**
+
+**AND IT PARTLY REHABILITATES THE DIRECTIVE'S INSTINCT WHILE STILL REFUTING ITS MECHANISM.** *The
+walk is not producing what goal-pursuit needs* is, on this board, **true in a way neither of us
+stated**: the walk produced a complete map that does not separate the actions. **That is not an
+accumulation failure and no coupling would repair it** — more observation of five actions that all
+do the same thing yields five actions that all do the same thing.
+
+### THE INSTRUMENT LESSON, AND IT IS THE ONE I ALREADY HAD
+
+`why_none.py` asserts classifier-versus-build agreement and passed on 1,642 calls. **`votes.py` did
+not carry that assertion**, and the disagreement surfaced only because enough raw data was printed to
+notice by eye. **The assertion is the thing that makes a reconstruction safe, and I wrote it once and
+then did not carry it forward.**
+
+> **SEVENTH INSTANCE OF THIS WINDOW'S SHAPE, AND THE MOST COSTLY.** The six before were accounts
+> attached to my own readings. **This one was used to argue against a ruling**, and it was wrong in
+> the direction that made the argument sound stronger. **The correction is owed upward, not just
+> recorded.**
