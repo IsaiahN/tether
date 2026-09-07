@@ -18011,3 +18011,55 @@ so a 2-action board reaches `_goal_split`'s threshold sooner.** That is a story 
 treated as one: **pre-registered before the wider read, and the instrument is `_goal_split`'s literal
 return rather than a label standing in for it, which is the half `B17` says pre-registration does not
 protect.** Fifteen boards running.
+
+## SWEEP 8b — THE EXECUTION HALF RUNS, AND `done` NEVER HAPPENS
+
+Sweep 8 read the chain up to the `routine` row. **What a minted routine then DOES had never been
+observed on a real board either** — `advance`, the cross-step state, and the three terminations were
+verified synthetically in `test_m2.py` and nowhere else. Same override, `sb26`, 45 cycles.
+
+    Rt.advance called                    75 times
+    rows                                 routine_cut 2 · routine 4 · routine_end 2
+    levels                               0 -> 0
+    routines held at the end             0
+
+**THE BUDGET DECREMENTS ONE PER CYCLE AND THE REST IS A ROUTINE**, which is `M2` P3 — cross-step
+execution state — running on real perception rather than a fixture:
+
+    c7   mint    until(o20.w/23) {ACTION5}
+         advance until(o20.w/23) -> emit ACTION5, rest until(o20.w/22)
+         advance until(o20.w/22) -> emit ACTION5, rest until(o20.w/21)      ... eight cycles
+    c15  end     until(o20.w/15)   outcome BLOCKED, 15 of 23 budget unspent
+    c15  mint    until(o26.col/24) {ACTION5}                                 same cycle, no gap
+    c41  end     until(o20.w/0)    outcome EXHAUSTED — "spent its whole budget and
+                                   the guard never held"
+
+**BOTH NON-COMPLETING TERMINATIONS OCCUR AND ARE RECORDED APART, WHICH IS THE THING `M2` SAID THEY
+MUST BE.** `blocked` is the guard going unreadable mid-run — the `Until` refusing to keep iterating
+on a guard it cannot evaluate, which is exactly what P1's `CAN` producer exists to make safe. And
+`exhausted` carries its whole §18.2 payload: `status: refuted`, `rejections`, and `reopens_above`
+pinned to the goal residual at the moment of failure. **The defeasible rejection is not a fixture
+behaviour; it fired here.**
+
+> **AND `done` IS ZERO IN FORTY-FIVE CYCLES.** Every routine that ended, ended by blocking or by
+> exhausting. **No routine has ever reached its guard on a real board.** That is a CAPABILITY
+> reading and it is not softened by the mechanism working: `levels 0 -> 0`, and the plans were built
+> on a slot I handed the agent in the first place.
+
+### THE INSTRUMENT ERROR THAT ALMOST BECAME A SYSTEM DEFECT
+
+The first pass printed routine rows through a hand-picked key list — `routine`, `reason`, `verdict`,
+`cost`, `left`, `base` — and `outcome` was not on it. The `c15` row came out as
+`{'routine': 'until(o20.w/15) {ACTION5}'}` while `c41` showed a `verdict` string, and **the obvious
+reading was that `routine_end` names its termination sometimes and not others** — a legibility defect
+at the exact site `M2` promised `done`/`blocked`/`exhausted` would be recorded apart.
+
+**The row says `outcome: 'blocked'` and always did.** `tether.py:1465` writes `outcome=why`
+unconditionally; the `verdict` string is EXHAUSTED's extra payload, not the termination.
+
+> **I READ AN ABSENCE IN MY VIEW AS AN ABSENCE IN THE ROW.** The near-miss is the sixth of its
+> family this window and the first caught BEFORE the finding was written, by reading the write site
+> instead of the output. **A filter is an instrument, and a hand-picked key list is a filter that
+> reports nothing when it excludes the answer.** The fix is in the probe: no key list, print the
+> detail dict whole. **A checking script that narrows its own view has to justify the narrowing the
+> way a denominator does.**
