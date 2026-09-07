@@ -17591,3 +17591,26 @@ already holds `owners`/`attrs`. **The property to preserve is the docstring's: n
 steps.** A per-step index is not persistence. **Verifying it needs identical-output-faster, read
 before and after, which needs Isaiah** — an unattended change that merely runs longer cannot be told
 from one that changed behaviour.
+
+## THE LOOP IS DETERMINISTIC, SO REPETITION IS NOT SAMPLING
+
+**The brief asks for the five-game sample run REPEATEDLY. Measured before spending the window on it:**
+
+    ls20   two identical runs -> identical on every condition, and 11.8s vs 11.8s
+    ka59   two identical runs -> identical on every condition, and  6.8s vs  6.8s
+
+**`drive.choose` is a deterministic sweep on `cycle` and a fixed seed — no RNG, no wall clock —** and
+`probe.py` says so in its own docstring: *deterministic in the cycle so a run is reproducible.* **Two
+runs of the same game at the same depth are the same run.**
+
+> **SO REPEATING THE SAMPLE PRODUCES NO NEW INFORMATION, AND N STAYS 1 HOWEVER MANY TIMES IT IS RUN.**
+> Reporting five repeats as five readings would be **a sample size manufactured out of one measurement**
+> — the same error as pooling a rate across games, arriving from the other direction.
+
+**WHAT DOES WIDEN THE READ, AND NEITHER TOUCHES THE BUILD:**
+
+    more GAMES    the sample was 5 of 25; 19 of 25 are playable, the other 6 hit `S1`
+    more DEPTH    a different cycle count is a different run, where the wall allows
+
+**The window is therefore spent widening the game set** — `n = 19` on *does the objective win
+generalise* instead of `n = 5`, which is the question the sample was drawn to answer.
