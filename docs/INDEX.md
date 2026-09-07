@@ -17423,3 +17423,26 @@ figure is UNMEASURED.* It is measured now, and it carries a third factor the cav
 
 **No build file was touched. The freeze held through its first real bug**, which is what a freeze is
 for.
+
+---
+
+# THE UNATTENDED MULTI-GAME READ — SAMPLE DECLARED BEFORE THE FIRST RUN
+
+**Five of twenty-five, public set only. The private/OOD set stays untouched.**
+
+    ls20 · vc33 · ar25 · ka59 · sp80
+
+**CHOSEN WITHOUT USING WHAT THE CORPUS SAYS ABOUT THEM.** The brief asks for variety in scope and
+structure, and **that cannot be known a priori without reading the games** — which is seat-access to
+game mechanics. Worse, `ARC_AGENT` already names how §12.4's trigger fires across `ls20`, `sk48` and
+`g50t`, and **the skill map is a reading, never an input**: picking a sample BY that map is the map
+arriving beforehand, one level up from the agent. **So the five are spread across the set by name
+alone, and the variety they actually supply is MEASURED and reported rather than assumed.**
+
+**The freeze is absolute for the window.** No build file touched, no fix applied, `arc-freeze-01`
+immutable. Every finding is a note; the ledger is read by replicating `play`'s setup, never by
+repairing `play`.
+
+**And every error is classified before it is logged as a fix** — across all/most games is a SYSTEM
+error, one game only is a GAME QUIRK until *wrong-given-the-input* is shown. **A candidate fix for a
+non-error is worse than no note.**
