@@ -17869,8 +17869,9 @@ objective-binding boards:**
     sb26      20       50.9              32                      0            16             0
     lf52      14       12.2              14                      0             7             0
     ls20      13      412.6              16                      0             8             0
+    tu93      10      726.6              12                      0             6             0
 
-    TOTAL                                62                      0            31             0
+    TOTAL                                74                      0            37             0
 
 **Sixty-two calls the LOOP made, across three boards, and not one returned a slot.** `_mint_routine`
 was entered thirty-one times and wrote nothing on every one — **which is why no `routine`,
@@ -17885,5 +17886,25 @@ comes from `_goal_split`'s gate, which is only reached when the branches above i
 because it says the goal branch IS being consulted, not skipped**: the loop asks, and the answer is
 `None`.
 
-**CLASSIFIED CORRECT-GIVEN-THE-INPUT, NO CANDIDATE FIX** — unchanged from sweep 6 and now on three
-boards. `tu93` is still running and will be added when it lands.
+**CLASSIFIED CORRECT-GIVEN-THE-INPUT, NO CANDIDATE FIX** — unchanged from sweep 6 and now on four
+boards.
+
+### `tu93` LANDED, AND IT ADDS ONE FACT THE OTHER THREE DID NOT CARRY
+
+**Seventy-four calls, four boards, zero slots returned.** The reading is unchanged and the fourth
+board was not needed to establish it. What `tu93` adds is elsewhere: **all twelve calls fall in
+cycles 0–5, and cycles 6–9 called `_goal_choice` not once.** The other three boards are asked on
+every cycle they run; this is the first board where the loop STOPS ASKING.
+
+**THE CAUSE IS UNESTABLISHED AND IS NOT BEING GUESSED.** A branch above the goal gate could be
+answering first, or a level boundary could have cleared the slots — the harness records neither, and
+the last printed window is still accumulating (`o69.col` at three readings, `o67.w` at two), which
+rules out nothing. *A null carrying a satisfying causal story is harder to doubt than a bare one*,
+and the story here would be free to invent. **What would settle it is one line the wrapper does not
+have: record `by` and `retarget` alongside each call.** Filed as the next in-loop instrument, not as
+a finding.
+
+**AND IT IS THE SLOWEST BOARD IN THE WINDOW BY A FACTOR OF SIXTY** — 726.6s for ten cycles against
+`lf52`'s 12.2s for fourteen. Same cost wall as sweep 5 (`_record` scanning the flattened state per
+call), read here at a board size that makes it the binding constraint on how deep any in-loop
+measurement can go. **No fix; the freeze holds.**
