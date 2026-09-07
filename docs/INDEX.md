@@ -17640,6 +17640,28 @@ written.
 across this whole window **while `by` was on the same row saying otherwise.** *Assume it is already
 specified, and go look* — the column that refutes the citation was never more than one field away.
 
+### S6 · the probe rotation's coverage depends on an unstated coprimality condition
+
+    probe.py   pick = sorted(actions)[(cycle * 7 + self._seed) % len(actions)]
+
+**Coverage of all `n` actions requires `gcd(7, n) == 1`.** At `n = 7` the rotation returns **one
+action for every cycle of the run**; at `n = 14`, two.
+
+**CLASSIFIED SYSTEM AND LATENT.** It is a property of the code on every board, and **it does not bite
+on the public set as measured — maximum SURFACED actions is 6.** But **advertised reaches 7**, and
+surfaced-below-advertised is a harness behaviour rather than a guarantee. **The failure would be
+silent**: `Drive.trials()` would show one action with observations and the rest with none, and
+`DISCOVERY` Q18's *only once the map is complete does goal pursuit begin* would hold forever.
+
+**CANDIDATE FIX (NOT APPLIED):** draw with a step chosen coprime to `n`, or index a per-run
+permutation, so coverage does not depend on a constant's relationship to the action count. **The
+reintroduce-the-defect test is available and cheap** — a synthetic 7-action set, then check
+`Drive.trials()` for 7 distinct entries.
+
+**AND IT IS THE DOCUMENTED WEAKNESS IN ITS OWN RIGHT.** `CLAUDE.md`: *I have a documented weakness for
+invented metrics and magic numbers.* **The `7` is one, and its correctness is conditional on a fact
+about the habitat that nothing checks.**
+
 ## LOG 2 — GAME QUIRKS · behaviours, not defects
 
 **Q1 · Six games supply only a positioned click.** The build drops it and surfaces no action. **Correct
@@ -19740,3 +19762,78 @@ from a slot the agent chose. **The article's bar is a bar on the KIND of failure
 the terminal condition** — `CLAUDE.md` clause 1 is *it wins*, and clause 3 is a post-mastery test.
 **Reading the article's bar as the goal would substitute a criterion the frame produces for the
 ground**, which is the one substitution the doctrine forbids outright.
+
+## SWEEP 24 — THE STEPPING-RULE CONCEPT: REFUTED BY `DISCOVERY` Q18, AND A REAL DEFECT UNDERNEATH IT
+
+Three points were put for confirmation. **One is a correct description and a wrong criticism, one is
+refuted by the corpus, one is unsupported by the data — and checking them found `S6`.**
+
+### 1 · *the stepping rule is a crystallized hypothesis* — TRUE AS A DESCRIPTION
+
+`(cycle*7 + seed) % len(actions)` is a designed selection the agent cannot see outside, and it does
+impose a unit: **single actions, one per cycle.** Structurally it is the same shape §5 names.
+
+**BUT *CRYSTALLIZED* CARRIES *UNJUSTIFIED* IN THE CONCEPT'S USE OF IT, AND THAT HALF IS FALSE.**
+
+### 2 · *both sources ask for unpointed-when-clueless* — REFUTED, AND BY THE CORPUS
+
+**FIRST, THE FRAMEWORK CITATION DOES NOT EXIST.** `NOVEL + zero reward → explore the unmapped region`
+**appears nowhere in the corpus.** What is there:
+
+    Figure 5            the SUPPORT / pricing figure -- *a term must have mass*, `|R|`
+    NOVEL               `boundary.py`'s TRANSFERRED / NOVEL / GONE partition, by tracked id
+    NOVELTY             a MINT guard -- `NOT_NOVEL` is *everything that fits is already held*
+
+**None is an exploration instruction.** Third framework citation in a row quoted as verbatim that is
+not in the source — after `_goal_split`-is-REACHABILITY and `probe`-is-Figure-5's-walk.
+
+**SECOND, AND DECISIVELY: THE CORPUS PRESCRIBES THE OPPOSITE, FOR THE CLUELESS CASE SPECIFICALLY.**
+`DISCOVERY` Q18, *Learn your own effects before pursuing goals?*:
+
+> *Before it will navigate anywhere it runs **coverage-first**: try every action until the action-map
+> is known, then **re-probe** any action still unmapped from a different cell each time — because an
+> action can look inert merely from having been tried twice against a wall. **Inert is a verdict
+> earned by trials, never assumed early.** Only once the map is complete does goal pursuit begin.*
+
+**THE ROTATION IS THE CORPUS'S OWN PRESCRIPTION, NOT A HANDED ORDER THE AGENT HAS NO GROUNDS FOR.**
+And Q18 gives the reason the concept needs to answer and does not: **random sampling makes *inert* a
+probabilistic verdict** — an action may go undrawn indefinitely — where **coverage-first guarantees
+the verdict is earned.** *Inert is a verdict earned by trials* is precisely what an unpointed walk
+cannot promise.
+
+**AND THE BUILD IMPLEMENTS Q18's REFINEMENT.** `Drive.tried` is `dict[str, set]` — *action → distinct
+states it was drawn from* — and `earned = sum(1 for seen in self.tried.values() if len(seen) > 1)`
+counts actions tried in more than one state. **The re-probe-from-a-different-cell requirement is
+built and counted.**
+
+> **THE ARTICLE'S §4 WALK AND Q18's COVERAGE ARE AT DIFFERENT LEVELS AND DO NOT CONFLICT.** §4's
+> random walk is about **discovering unconceived structure in the world**; Q18 is about **learning
+> your own action effects**. The concept collapses them and inherits §4's *random* into a question
+> the corpus answers with *systematic*.
+
+### 3 · *a board where the stepping rule forecloses a route* — NONE IN THE DATA
+
+**`B` never fires: 0 of 29 calls on 8 boards.** Every failure is `A` coverage or `C` unanimity, and
+neither is a foreclosed sequence.
+
+**AND REPETITION IS NOT FORECLOSED WHERE IT MATTERS.** The routine algebra expresses it —
+`until(o20.w/23) {ACTION5}` — and `sb26` **executed 8 consecutive `ACTION5` steps.** So the walk does
+not repeat and **routine execution does**. The concept's cost is real and is confined to the walk;
+the plan space reaches what the walk cannot sample.
+
+### AND THE DEFECT THE CHECK TURNED UP, WHICH NEITHER SIDE NAMED
+
+    n    gcd(7,n)   distinct actions the rotation EVER reaches
+    5        1          5
+    6        1          6
+    7        7          1     <-- COLLAPSES TO ONE ACTION, FOREVER
+    14       7          2
+
+**The rotation's coverage depends on an unstated condition — `gcd(7, len(actions)) == 1` — and the
+`7` is a magic number.** At seven surfaced actions the walk draws **the same action every cycle for
+the whole run**, and Q18's *try every action until the action-map is known* **never completes, so goal
+pursuit never begins, silently.**
+
+**IT DOES NOT BITE ON THE CURRENT PUBLIC SET — max surfaced is 6** (`ar25`). **But advertised reaches
+7**, and the gap between advertised and surfaced is a harness property, not a guarantee. **Filed as
+`S6`.**
