@@ -17796,3 +17796,33 @@ quantity**, which is the `A6i` shape in a reading rather than in code.
 **WHETHER A ROUTINE MINTED ON `tr87` IS THE NEXT QUESTION AND IS RUNNING** — the selector selecting is
 necessary and not sufficient; `CAN`, the bargain and the guard check all still stand between it and a
 minted routine.
+
+### AND THE `tr87` SELECTOR FIRING WAS MINE, NOT THE LOOP'S — CORRECTED IN THE SAME WINDOW
+
+**`routine_events: {}` on `tr87` across ten cycles. Not one `routine`, `routine_cut` or
+`routine_refused` row.**
+
+> **THAT IS DECISIVE, AND IT IS STRONGER THAN A NULL.** `_mint_routine` records a refusal when `CAN`
+> is not `yes`, a cut when the bargain declines, and a mint when it pays. **The complete absence of all
+> three means it returned at its FIRST line every time — `slot = self._goal_choice()` was `None` on
+> every call the LOOP made.**
+
+**My `selector=o54.dcol` was a POST-HOC probe, taken after the run, at an instant the loop never
+sampled.** The series moved on: at cycle 9 the tail is `[0.016, 0.062, 0.016]` → deltas
+`[+0.046, -0.046]` → fails `all(d <= 0)`.
+
+**So the correction to the correction:** *the selector qualifies TRANSIENTLY, at instants between the
+loop's own calls, and never at one.* Sweep 5 said *a fourth board fires it* — **it fires in my probe,
+not in the mechanism**, and the difference is the whole claim.
+
+**AN INSTRUMENT THAT SAMPLES AT A DIFFERENT MOMENT THAN THE MECHANISM MEASURES A DIFFERENT THING** —
+the same defect as classifying whole series where the mechanism reads a tail, one tick later and in
+time rather than in length. **Both were mine, both in the reading, neither in the build.**
+
+### THE STANDING RESULT, UNCHANGED AND NOW BETTER EVIDENCED
+
+**No routine has minted on any board.** The chain stops at `_goal_choice`, on every game, at every
+depth reached — because the goal residual on a real board does not trend, and the tail the selector
+reads does not either at the moments it is read.
+
+**`tr87` also cost 1,733 seconds for ten cycles at 384 slots**, the steepest wall measured.
