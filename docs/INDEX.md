@@ -19907,3 +19907,60 @@ measured, and Q20 is the section that names it.**
 Q applies. **Sweep 24's point 1 stands** (the rule is a designed selection) **and its point 3 stands**
 (no board shows the stepping rule blocking). **Point 2 is corrected: refuted on Q18, supported on
 Q20, and the concept was about Q20.**
+
+## SWEEP 26 — EXPLORABILITY IS ALREADY A PER-LEVEL VERDICT, AND I SAID IT WAS UNREAD. IT IS NOT
+
+**CORRECTION FIRST.** Last turn I wrote that `never_live` is *consulted nowhere in `tether.py`*.
+**That is false.** `tether.py:2903` consults it and writes a row:
+
+    if self.drive.never_live(len(self.actions)) and not self._said_never_live:
+        # NAMED, AND THE REMEDY IS NOT BUILT.
+        self.led.record(self.cycle, "IMPORT", "@instrument", "unreached",
+                        observations=..., trials=self.drive.trials(), slots=...,
+                        verdict="no SINGLE action, each drawn from at least two "
+                                "distinct states, changed any slot",
+                        scope="single actions, from the states occupied -- this does not "
+                              "exclude a SEQUENCE, because the denominator is over actions",
+                        remedy="step 7 INWARD: a slot set that reaches what moves")
+
+**My grep matched comment lines and I read the absence of a hit as absence of a call.** Same defect
+as the `outcome` key-filter in sweep 8b: **a narrowed view reported as a property of the thing
+viewed.** Eighth of that family.
+
+**WHAT SURVIVES THE CORRECTION:** it is a **REPORT, not a GATE**. `DISCOVERY` Q18's *only once the map
+is complete does goal pursuit begin* describes a PHASE, and `choose`'s branch order has no
+map-completeness check. **The gating exists per-slot inside `_goal_split`'s coverage gate, not
+globally as a phase.** That half of the finding stands and the "unread" half was wrong.
+
+### AND THE VERDICT IS PER-LEVEL, WHICH ANSWERS THE TRANSITORY CASE ALREADY
+
+**`retarget` constructs a fresh `Drive()`** — `tether.py:560`, inside `retarget` which begins at 462.
+So **`never_live` is a per-LEVEL verdict, not a per-run one**: a level that never responds is recorded
+as unreached, and the next level starts the determination over. **The *it could change between game
+states* concern is already handled, and the mechanism is the drive being rebuilt at the boundary.**
+
+### HOW EARLY THE VERDICT CAN HONESTLY BE TAKEN — IT IS DERIVED, NOT PICKED
+
+`never_live` requires `earned >= n_actions` where `earned` counts actions drawn from **at least two
+distinct states**. **The earliest sound verdict is therefore `2n` draws** — ten cycles on a five-action
+board — and the reason is in the docstring rather than in a constant:
+
+> *an action earns `inert` at TWO distinct states, never one. One state cannot separate a dead action
+> from a positional artefact; two is the smallest number that can. **Not tuned — the smallest with the
+> property.***
+
+**SO *ASCERTAIN IT FROM THE FIRST FEW FRAMES* IS NOT AVAILABLE AND THE BUILD SAYS WHY.** One frame
+cannot distinguish a dead action from an action tried against a wall. **`2n` is the floor, and it is
+the answer to *how early* rather than a limitation to be removed.**
+
+### AND THE BUILD ALREADY BOUNDS THE VERDICT THE WAY THE SEQUENCE QUESTION REQUIRES
+
+The row carries `scope="single actions, from the states occupied -- this does not exclude a SEQUENCE,
+because the denominator is over actions"`. **The explorability verdict does not claim the board is
+unexplorable. It claims no single action moved anything**, which is the narrow, checkable half —
+and the wide claim is explicitly refused.
+
+**WHAT IS UNBUILT IS NAMED IN THE ROW ITSELF:** `remedy="step 7 INWARD: a slot set that reaches what
+moves"`. **The build records that the world may be moving where its slots cannot see, and that the
+instrument to look elsewhere does not exist.** That is `CHANNEL_CLOSED` about the interface, and it
+is the honest form of *this game may not be explorable*.
