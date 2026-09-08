@@ -106,6 +106,19 @@ ADMITTED = {
                 "pay at depth 3 and can be built; row-mean of own cells; `middle` is preschool",
     "touching_n": "handed-2026-09-08: `touching` folded a POPULATION to a bit and Ctx.touching "
                   "already carried the names; HOW MANY neighbours, not whether any",
+    # SEVEN ON THE `SHAPE` ARROWS. These entered on the DEPTH justification -- sweep 39's
+    # leave-one-out priced each at +18 given all the others -- and NOT because the machinery
+    # named them. That distinction is the whole reason the stamp exists: `rotate`, `reflect`,
+    # `holes`, `parity` and `count` were named by `unexpressible()` or §12.4, and these were
+    # named by a measurement I ran. **A future ablation must be able to tell those apart.**
+    "bbox_area": "handed-2026-09-08 ON DEPTH: +18 leave-one-out; the box a shape occupies",
+    "perimeter": "handed-2026-09-08 ON DEPTH: +18; exposed edges, correct on concave shapes",
+    "corners": "handed-2026-09-08 ON DEPTH: +18; convex corner count",
+    "orbit_size": "handed-2026-09-08 ON DEPTH: +18; |dihedral orbit|, 1 = fully symmetric",
+    "canonical": "handed-2026-09-08 ON DEPTH: +15; least of the 8 dihedral images, which is "
+                 "what makes two differently-oriented copies of one shape comparable",
+    "symmetric": "handed-2026-09-08 ON DEPTH: +15; mirror symmetry as a predicate",
+    "is_square": "handed-2026-09-08 ON DEPTH: +15; filled and equal-sided",
     "holes": "handed-2026-09-08: §12.4's own INWARD example `holes(shape)`; SHAPE reached "
              "only SHAPE and PRED so no chain measured a shape; Isaiah's own preschool case, "
              "squares and pegs",
@@ -283,6 +296,86 @@ def _shape_facts() -> list[Atom]:
             Atom("touching_n", _touch_n, OBJECT, EXTENT, reads_ctx=("obj", "touching"))]
 
 
+def _shape_more() -> list[Atom]:
+    """Six more readings of a cell set. **All measured on the shape itself, none on the board.**
+
+    `holes` opened `SHAPE -> EXTENT` and these ride it. Sweep 39's leave-one-out priced each at
+    `+18` GIVEN all the others -- they do not share, because the closure counts CHAINS and two
+    atoms on one arrow are two chains. My own note calling them *semantics on an arrow that
+    already exists, worth nothing structurally* was wrong, and measured so.
+    """
+    def _bbox(v: Any, _c: Ctx) -> Any:
+        if not isinstance(v, frozenset) or not v:
+            return NOT_RESOLVED
+        rs = [r for r, _ in v]
+        cs = [c for _, c in v]
+        return (max(rs) - min(rs) + 1) * (max(cs) - min(cs) + 1)
+
+    def _perimeter(v: Any, _c: Ctx) -> Any:
+        # EXPOSED EDGES, not the bounding-box outline: a cell contributes one edge per
+        # neighbour it does NOT have, which counts the boundary of a concave shape correctly.
+        if not isinstance(v, frozenset) or not v:
+            return NOT_RESOLVED
+        return sum(1 for r, c in v
+                   for nb in ((r+1, c), (r-1, c), (r, c+1), (r, c-1)) if nb not in v)
+
+    def _corners(v: Any, _c: Ctx) -> Any:
+        # A CONVEX CORNER is a cell with two orthogonal neighbours missing.
+        if not isinstance(v, frozenset) or not v:
+            return NOT_RESOLVED
+        n = 0
+        for r, c in v:
+            up, dn = (r-1, c) in v, (r+1, c) in v
+            lf, rt = (r, c-1) in v, (r, c+1) in v
+            n += sum(1 for a, b in ((up, lf), (up, rt), (dn, lf), (dn, rt)) if not a and not b)
+        return n
+
+    def _dihedral(v: frozenset) -> list:
+        out, cur = [], v
+        for _ in range(4):
+            m = max(r for r, _ in cur)
+            cur = frozenset((c, m - r) for r, c in cur)
+            out.append(cur)
+            mc = max(c for _, c in cur)
+            out.append(frozenset((r, mc - c) for r, c in cur))
+        return out
+
+    def _canonical(v: Any, _c: Ctx) -> Any:
+        # THE LEAST OF THE EIGHT DIHEDRAL IMAGES -- a shape's identity under rotate/reflect,
+        # which is what makes two differently-oriented copies comparable at all.
+        if not isinstance(v, frozenset) or not v:
+            return NOT_RESOLVED
+        return min(_dihedral(v), key=lambda f: sorted(f))
+
+    def _orbit(v: Any, _c: Ctx) -> Any:
+        if not isinstance(v, frozenset) or not v:
+            return NOT_RESOLVED
+        return len(set(_dihedral(v)))
+
+    def _symmetric(v: Any, _c: Ctx) -> Any:
+        if not isinstance(v, frozenset) or not v:
+            return NOT_RESOLVED
+        m = max(c for _, c in v)
+        return frozenset((r, m - c) for r, c in v) == v
+
+    def _is_square(v: Any, _c: Ctx) -> Any:
+        if not isinstance(v, frozenset) or not v:
+            return NOT_RESOLVED
+        rs = [r for r, _ in v]
+        cs = [c for _, c in v]
+        h = max(rs) - min(rs) + 1
+        w = max(cs) - min(cs) + 1
+        return h == w and len(v) == h * w
+
+    return [Atom("bbox_area", _bbox, SHAPE, EXTENT),
+            Atom("perimeter", _perimeter, SHAPE, EXTENT),
+            Atom("corners", _corners, SHAPE, EXTENT),
+            Atom("orbit_size", _orbit, SHAPE, EXTENT),
+            Atom("canonical", _canonical, SHAPE, SHAPE),
+            Atom("symmetric", _symmetric, SHAPE, BOOL),
+            Atom("is_square", _is_square, SHAPE, BOOL)]
+
+
 def _contact() -> list[Atom]:
     """§12.3 sensor 8 as an atom: `OBJECT → BOOL`, second operand from `Ctx`.
 
@@ -426,5 +519,5 @@ def three_spaces(predict: list[Atom]) -> list[Atom]:
     PREDICT is passed in rather than built: it is the domain's atom set -- grid transforms at
     3d -- and inventing one here would be this file choosing what the agent may bet on.
     """
-    return (list(predict) + _extract() + _transform() + _shape_facts() + _contact()
-            + _relate() + _over_group() + _quantify())
+    return (list(predict) + _extract() + _transform() + _shape_facts() + _shape_more()
+            + _contact() + _relate() + _over_group() + _quantify())
