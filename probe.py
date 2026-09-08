@@ -19,6 +19,7 @@ observation and is judged under the unchanged bargain.
 
 from __future__ import annotations
 
+import math
 import sys
 import zlib
 
@@ -109,7 +110,21 @@ class Drive:
         `where` is the state it was drawn from, and it is what makes a trial a trial."""
         if self.bored():
             self.fires += 1
-        pick = sorted(actions)[(cycle * 7 + self._seed) % len(actions)]
+        # S6: THE STRIDE MUST BE COPRIME TO THE ACTION COUNT OR THE SWEEP IS NOT A SWEEP.
+        # A fixed 7 visits every action in `n` cycles only when `gcd(7, n) == 1`. At seven
+        # advertised actions it returns THE SAME ACTION EVERY CYCLE FOR THE WHOLE RUN, and
+        # `Q18`'s *try every action until the action-map is known* would never complete --
+        # silently, because `trials()` would show one action with observations and the rest
+        # with none. Advertised counts reach 7 on the public set even though surfaced ones
+        # stop at 6, so the constant's correctness rested on a fact nothing checked.
+        #
+        # IDENTICAL WHERE 7 ALREADY WORKS: `gcd(7, n) == 1` for every `n <= 6`, so this
+        # returns 7 and the draw is unchanged on every board measured. Among `n` consecutive
+        # integers one is always `== 1 (mod n)` and therefore coprime to it, so the search
+        # terminates for every `n`.
+        stride = next(k for k in range(7, 7 + len(actions))
+                      if math.gcd(k, len(actions)) == 1)
+        pick = sorted(actions)[(cycle * stride + self._seed) % len(actions)]
         self.tried.setdefault(pick, set()).add(where)
         return pick
 
