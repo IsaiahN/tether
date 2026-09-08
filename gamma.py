@@ -534,6 +534,30 @@ class Gamma:
                 "reads": ("composition crosses, binding does not. A refused row is an "
                           "INCOMPATIBLE registry, not a small library")}
 
+    @staticmethod
+    def length(t: Term, units: tuple = ()) -> int:
+        """How many units the term costs to say. **`routine.length`'s rule, for terms.**
+
+        THE ASYMMETRY THIS CLOSES WAS MEASURED, NOT REASONED. `routine.length(r, chunks)`
+        counts a settled routine as ONE -- *only what the ground has paid for becomes a
+        shortcut* -- and the term side priced raw atoms, so `mint` and `_install_reuse`
+        charged the DERIVATION price for something already derived. The rule was stated once
+        and implemented on one of the two spaces it governs.
+
+        **THE KEY IS THE ATOM SEQUENCE**, which is `units()`'s own rule one method down: *the
+        chunk IS the atom sequence and the operand has no business in the key*, because the
+        binding is re-decided per slot at mint.
+
+        `units` DEFAULTS TO EMPTY, so `length(t)` is the raw atom count and every caller that
+        has no settled set to offer keeps exactly the price it had.
+        """
+        if any(t.atoms == u.atoms for u in units):
+            return 1
+        n = len(t.atoms)
+        if t.operand_term is not None:
+            n += Gamma.length(t.operand_term, units)
+        return n
+
     def units(self) -> list[Term]:
         """What the search composes FROM: the atoms, plus every SETTLED term as one unit.
 

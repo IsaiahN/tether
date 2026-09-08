@@ -2285,6 +2285,8 @@ class Agent:
         held = self.gamma.library[self.bound.get(slot, IDN)]
         base = self._accumulated(slot, held)
         robs = self._residual_obs(slot, held, hist)
+        # HOISTED, because `units()` rebuilds a list and the pricing runs once per candidate.
+        _units = tuple(self.gamma.units())
         guards = {"support": base > 0.0, "reachability": False, "novelty": False}
         cuts: list[dict] = []
         best: tuple[float, float, float, Term] | None = None
@@ -2357,7 +2359,11 @@ class Agent:
                                          "reason": "not-novel"})
                             continue
                         guards["novelty"] = True
-                        cost = term_bits(len(term), self.gamma.alphabet)
+                        # PRICED IN UNITS, so a settled sub-composition costs what the
+                        # ground already paid for it. `routine.length`'s rule, applied to
+                        # the space it was always stated over.
+                        cost = term_bits(self.gamma.length(term, _units),
+                                         self.gamma.alphabet)
                         # LET THE RESIDUAL SAY WHERE TO LOOK. Walking the whole history for
                         # every candidate is exhaustive search; R already names the
                         # observations that need fixing, and a term that cannot fix enough of
@@ -2695,7 +2701,11 @@ class Agent:
         hist = self.history(slot)
         held = self.gamma.library.get(self.bound.get(slot, IDN))
         base = self._left(held, slot, hist) if held is not None else None
-        cost = term_bits(len(cand), self.gamma.alphabet)
+        # THE REUSE PATH PRICED A REUSE AT DERIVATION COST, which is the one place the
+        # asymmetry was load-bearing: 19 of 21 installs read `would_pay=False` against a
+        # cost that charged for work the ground had already bought.
+        cost = term_bits(self.gamma.length(cand, tuple(self.gamma.units())),
+                         self.gamma.alphabet)
         left = self._left(cand, slot, hist)
         # `ROUTE`, NOT `ACCEPT`, AND THE GATE SAID SO. The sweep runs inside the ROUTE phase
         # and its own `pull` row is a ROUTE row, so an `ACCEPT` here puts a later ROUTE for the
