@@ -98,6 +98,10 @@ ADMITTED = {
     "count": "handed-2026-09-08: named by §12.4's own INWARD example "
              "`ratio(count(colour=a), count(colour=b))`; every group fold ends at PRED so no "
              "chain yields a cardinality; counting precedes school",
+    "area": "handed-2026-09-08: `h`/`w` are the BOUNDING BOX and nothing counted cells, so a "
+            "sparse cross and its enclosing square were indistinguishable on every extent "
+            "atom; not derivable -- `count` folds a peer group, not a cell set; `how big` is "
+            "preschool. Sweep 38 priced it +18 at depth 3, which almost nothing else does",
     "holes": "handed-2026-09-08: §12.4's own INWARD example `holes(shape)`; SHAPE reached "
              "only SHAPE and PRED so no chain measured a shape; Isaiah's own preschool case, "
              "squares and pegs",
@@ -229,8 +233,23 @@ def _shape_facts() -> list[Atom]:
     def _parity(v: Any, _c: Ctx) -> Any:
         return NOT_RESOLVED if not isinstance(v, int) else bool(v % 2)
 
+    def _area(o: Any, c: Ctx) -> Any:
+        rec = o if isinstance(o, dict) else getattr(c, "obj", None)
+        if not isinstance(rec, dict) or "cells" not in rec:
+            return NOT_RESOLVED
+        return len(rec["cells"])
+
     return [Atom("holes", _holes, SHAPE, EXTENT),
-            Atom("parity", _parity, POSITION, BOOL)]
+            Atom("parity", _parity, POSITION, BOOL),
+            # `h` AND `w` ARE THE BOUNDING BOX. Nothing counted the CELLS, so a sparse cross
+            # and the solid square that encloses it read identically on every extent atom the
+            # set had -- and *how big* is the first quantity a child compares.
+            #
+            # AND IT ENTERS AT `OBJECT`, WHICH IS WHY IT PAYS NOW. Sweep 38 priced 34
+            # candidates: the depth-3 payers are exactly the `OBJECT`-entry atoms, because a
+            # chain starting one arrow in cannot reach `OBJ` inside three. +18 at depth 3
+            # where every atom handed before it added none.
+            Atom("area", _area, OBJECT, EXTENT, reads_ctx=("obj",))]
 
 
 def _contact() -> list[Atom]:
