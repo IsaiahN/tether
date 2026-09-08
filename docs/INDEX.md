@@ -19964,3 +19964,99 @@ and the wide claim is explicitly refused.
 moves"`. **The build records that the world may be moving where its slots cannot see, and that the
 instrument to look elsewhere does not exist.** That is `CHANNEL_CLOSED` about the interface, and it
 is the honest form of *this game may not be explorable*.
+
+## SWEEP 27 — THE GAP INVENTORY, READ AFTERWARDS; AND SEARCH EFFECTIVENESS IS A VOCABULARY QUESTION
+
+**Read as a READING, per `CLAUDE.md:490` — a skill map is a reading and never an input.** The list is
+spent on judging what the build lacks, not handed to the agent as a classifier.
+
+### THE INVENTORY, EACH ROW CHECKED AGAINST CODE
+
+    BUILT
+      causal structure learning from intervention   the `discriminate` branch, firing on 6 of
+                                                    10 boards, 33 of 125 cycles
+      disambiguating intervention                   `_disproof` = {live, splits,
+                                                    refuted_at_least, by} -- literally *act to
+                                                    separate hypotheses*, recorded per call
+      same/different as a first-class relation      `same` · `other` · `touching` · `above`,
+                                                    OBJECT/val -> BOOL atoms
+
+    PARTIAL
+      conservation / reversibility                  `round_trip_gap` -- *send it up, bring it
+                                                    back, charge what came back wrong*.
+                                                    Reversibility as a COST, not an inference
+      abstract rule learning / variable binding     `all_same` · `any_same` · `none_same` over
+                                                    a group. Expresses *all same*; cannot
+                                                    express a POSITIONAL pattern like ABA
+      near-decomposability / hierarchy              `arc_percept.Objects()` gives objects.
+                                                    No nesting, no sub-object structure
+      psychological essentialism                    a term can bind a predicate to a colour
+                                                    VALUE; there is no ROLE concept -- nothing
+                                                    says *this colour functions as a key*
+
+    ABSENT
+      mental rotation & symmetry detection          PREDICT is `idn` · `translate` · `recolour`.
+                                                    Its docstring: *the two of the corpus's six
+                                                    that the per-slot signature admits*
+      structure mapping & systematicity             nothing aligns two panels. The agent sees
+                                                    one frame and has no cross-panel object
+      backward chaining / goal decomposition        `_goal_split` is FORWARD -- which action
+                                                    moves this slot the wanted way. Routines are
+                                                    forward. Nothing regresses from a goal state
+      transitivity as an inference                  `above` COMPARES; nothing chains comparisons
+      insight / reframing                           minting is incremental by bargain; there is
+                                                    no mechanism that reframes a search
+      level-2 perspective taking                    absent, and CORRECTLY -- there are no agents
+                                                    in an ARC frame to model
+
+**THE THREE ABSENCES THAT MATTER ARE ROTATION, STRUCTURE MAPPING AND BACKWARD CHAINING**, and each is
+absent for a stated structural reason rather than by oversight: **the per-slot `val -> val`
+signature** forbids the first, **one-frame perception** forbids the second, and **the route being
+defined as *an action observed to move this slot*** forbids the third.
+
+### AND SEARCH EFFECTIVENESS IS NOT A SEARCH QUESTION — THE SEARCH IS ALREADY EXHAUSTIVE
+
+`Config` states it and the measurement is in the anchor:
+
+    max_depth = 3    grounded in the toy world's own falsifier -- `world._ladder` is four
+                     atoms deep, PAST this depth, so it is unreachable in atoms and reachable
+                     in units once chunking settles. Depth 3 is what makes the chunking claim
+                     falsifiable
+    budget = 4000    *Measured over 12 worlds: max yields 1884, max tried 4206, and
+                     `budget_exhausted` reported zero times. So the depth-3 space is
+                     EXHAUSTIVE here and the declared bound never binds*
+
+> **THE SEARCH FINDS EVERYTHING REACHABLE IN THREE ATOMS, EVERY TIME.** So *make the search more
+> effective* has no purchase on the search: **there is no better search over the same space.**
+> Effectiveness is bounded by **what is IN the space** — the atom set and the streams — and both are
+> measured.
+
+**THE STREAMS, MEASURED:**
+
+    ("val", "val")            always queued
+    (slot_type, OBJ_TYPE)     queued when the slot has a type
+    ("OBJECT", OBJ_TYPE)      WITHDRAWN -- type-incoherent. `Ctx.group` is resolved for the
+                              slot's attribute, so `colour . all_same . all` on `o0.row`
+                              compares o0's COLOUR against a group of ROWS.
+                              **Measured: colour 6 against `(0,)`, answered 0**
+
+    sensor closure            closure=4  composable=0  verdict=unreached, on every board
+
+**SO THE SPACE IS NARROW FOR TWO RECORDED REASONS AND NEITHER IS THE SEARCH PROCEDURE.** One stream
+was withdrawn for producing well-typed meaningless terms; the sensor closure has no chain longer than
+one.
+
+### WHICH IS THE ARTICLE'S §7, ARRIVING AS A MEASUREMENT
+
+> *"The real import is not a new term in the existing space. **It is a new dimension of the space.**
+> Importing a term extends what can be said; importing an axis extends what can be perceived at
+> all."*
+
+**An exhaustive search over a fixed vocabulary is exactly *a new term in the existing space*, done
+perfectly.** The build does that part completely — `budget_exhausted` has never fired. **What it
+cannot do is the second, and `composable=0` is that stated as a number.**
+
+**AND THE DOCTRINE ALREADY RULES ON THE REMEDY.** `CLAUDE.md`: *what breaks the circle legitimately is
+a RICHER TIER 1 — a perception question with its own entry rule — never a Tier 2 exemption.* **Adding
+sensors is forbidden; enriching what Tier 1 perceives is the named legitimate move**, and rotation and
+structure-mapping are perception questions rather than sensor additions.
