@@ -2832,6 +2832,20 @@ class Agent:
             self._last_action = None
             self.cycle += 1
             return False
+        # THE SAME OUTCOME ONE FIELD OVER, and it is the fix for a CRASH rather than a
+        # silence. `drive.choose` indexes `sorted(actions)[... % len(actions)]` and divides
+        # by zero on an empty tuple, so six of twenty-five public games died at cycle 0 --
+        # every game that advertises exactly one action and surfaces none. `tether`'s own
+        # first line already names the legal outcome: *an action is proposed ... OR THERE IS
+        # NO ACTION*, and the loop never reached it because it died one layer down.
+        if not self.actions:
+            self.led.record(self.cycle, "ROUTE", "@loop", "no_action",
+                            actions=0, cause=CHANNEL_CLOSED,
+                            reads="the environment surfaced no action; what that MEANS is "
+                                  "not read here")
+            self._last_action = None
+            self.cycle += 1
+            return False
         # ATTEND TO WHAT OWES MOST. R+_s is defined and already measured; picking
         # slots[0] made the phase histogram a function of alphabetical order, so
         # renaming a slot moved an instrument. Ties break on owing, then on name, which
