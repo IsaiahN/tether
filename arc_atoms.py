@@ -119,6 +119,19 @@ ADMITTED = {
                  "what makes two differently-oriented copies of one shape comparable",
     "symmetric": "handed-2026-09-08 ON DEPTH: +15; mirror symmetry as a predicate",
     "is_square": "handed-2026-09-08 ON DEPTH: +15; filled and equal-sided",
+    # NINE MORE ON DEPTH. The four ORDERED ones are typed on `ORDERED` and not `COMPARABLE`
+    # deliberately: `is_max` over colours would compare two arbitrary palette indices, which
+    # is the `above(colour)` error the relate atoms already paid for once.
+    "rank_in": "handed-2026-09-08 ON DEPTH; how many peers fall below this value",
+    "is_max": "handed-2026-09-08 ON DEPTH; ORDERED only",
+    "is_min": "handed-2026-09-08 ON DEPTH; ORDERED only",
+    "sum_group": "handed-2026-09-08 ON DEPTH; the population total",
+    "distinct": "handed-2026-09-08 ON DEPTH; how many values the population holds",
+    "is_mode": "handed-2026-09-08 ON DEPTH; is this the commonest value",
+    "aligned": "handed-2026-09-08 ON DEPTH; does any peer share this exact value",
+    "abs_delta": "handed-2026-09-08 ON DEPTH; a delta's MAGNITUDE -- `moved 3 left` and `moved "
+                 "3 right` shared no reading before it",
+    "sign": "handed-2026-09-08 ON DEPTH; a delta's DIRECTION as a truth",
     "holes": "handed-2026-09-08: §12.4's own INWARD example `holes(shape)`; SHAPE reached "
              "only SHAPE and PRED so no chain measured a shape; Isaiah's own preschool case, "
              "squares and pegs",
@@ -506,6 +519,74 @@ def _over_group() -> list[Atom]:
                  also_accepts=COMPARABLE[1:], reads_ctx=("group",))]
 
 
+def _group_more() -> list[Atom]:
+    """Seven more folds over the outer stream, and two readings of a delta.
+
+    **THE TYPE SPLIT IS THE POINT.** `distinct`, `is_mode` and `aligned` need only EQUALITY, so
+    they take `COMPARABLE`. `rank_in`, `is_max`, `is_min` and `sum_group` need ORDER, so they
+    take `ORDERED` -- and declaring them on `COMPARABLE` would let `is_max` compare two colours,
+    which is the `above(colour)` error the relate atoms already paid for once.
+    """
+    def _g(c: Ctx) -> tuple:
+        return getattr(c, "group", ()) or ()
+
+    def _rank(v: Any, c: Ctx) -> Any:
+        g = _g(c)
+        return NOT_RESOLVED if not g else sum(1 for x in g if x < v)
+
+    def _distinct(_v: Any, c: Ctx) -> Any:
+        g = _g(c)
+        return NOT_RESOLVED if not g else len(set(g))
+
+    def _is_mode(v: Any, c: Ctx) -> Any:
+        g = _g(c)
+        if not g:
+            return NOT_RESOLVED
+        return sum(1 for x in g if x == v) >= max(sum(1 for x in g if x == y) for y in set(g))
+
+    def _is_max(v: Any, c: Ctx) -> Any:
+        g = _g(c)
+        return NOT_RESOLVED if not g else v >= max(g)
+
+    def _is_min(v: Any, c: Ctx) -> Any:
+        g = _g(c)
+        return NOT_RESOLVED if not g else v <= min(g)
+
+    def _sum(_v: Any, c: Ctx) -> Any:
+        g = _g(c)
+        return NOT_RESOLVED if not g else sum(g)
+
+    def _aligned(v: Any, c: Ctx) -> Any:
+        g = _g(c)
+        return NOT_RESOLVED if not g else v in g
+
+    def _abs(v: Any, _c: Ctx) -> Any:
+        return NOT_RESOLVED if not isinstance(v, int) else abs(v)
+
+    def _sign(v: Any, _c: Ctx) -> Any:
+        return NOT_RESOLVED if not isinstance(v, int) else v > 0
+
+    return [Atom("rank_in", _rank, ORDERED[0], EXTENT,
+                 also_accepts=ORDERED[1:], reads_ctx=("group",)),
+            Atom("is_max", _is_max, ORDERED[0], BOOL,
+                 also_accepts=ORDERED[1:], reads_ctx=("group",)),
+            Atom("is_min", _is_min, ORDERED[0], BOOL,
+                 also_accepts=ORDERED[1:], reads_ctx=("group",)),
+            Atom("sum_group", _sum, ORDERED[0], EXTENT,
+                 also_accepts=ORDERED[1:], reads_ctx=("group",)),
+            Atom("distinct", _distinct, COMPARABLE[0], EXTENT,
+                 also_accepts=COMPARABLE[1:], reads_ctx=("group",)),
+            Atom("is_mode", _is_mode, COMPARABLE[0], BOOL,
+                 also_accepts=COMPARABLE[1:], reads_ctx=("group",)),
+            Atom("aligned", _aligned, COMPARABLE[0], BOOL,
+                 also_accepts=COMPARABLE[1:], reads_ctx=("group",)),
+            # A DELTA IS SIGNED MOTION. Its MAGNITUDE is an extent and its DIRECTION is a
+            # truth, and neither was reachable: `drow` handed a signed int to atoms that
+            # compare it, so `moved 3 left` and `moved 3 right` shared no reading.
+            Atom("abs_delta", _abs, DELTA, EXTENT),
+            Atom("sign", _sign, DELTA, BOOL)]
+
+
 def _quantify() -> list[Atom]:
     """`PRED → OBJ`. What closes a statement back into something bettable."""
     return [Atom("all", lambda v, _c: int(bool(v)), PRED, OBJ),
@@ -520,4 +601,4 @@ def three_spaces(predict: list[Atom]) -> list[Atom]:
     3d -- and inventing one here would be this file choosing what the agent may bet on.
     """
     return (list(predict) + _extract() + _transform() + _shape_facts() + _shape_more()
-            + _contact() + _relate() + _over_group() + _quantify())
+            + _contact() + _relate() + _over_group() + _group_more() + _quantify())
