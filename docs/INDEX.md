@@ -20607,3 +20607,72 @@ priced by the same bargain* — **already reachable.** Checked one by one:
 
 **AND IT SHARPENS THE ATOM LIST FROM FIVE TO SEVEN**, with `count` the one that is not a plain
 addition: it needs the group fold to produce a VALUE, which is the missing arrow sweep 34 named.
+
+## SWEEP 36 — Q1 ANSWERED: THE GROUP IS NOT FIREWALL-FORECLOSED, AND SWEEP 34 WAS HALF WRONG
+
+**Q1: is a group derived from PERCEIVED SHARED ATTRIBUTES distinguishable from one derived from SLOT
+NAMES?** **Yes — and the build already declares both halves and the loop already holds them.**
+
+    arc_world.slot_types()   "What KIND of quantity each slot holds. The loop may not derive this...
+                              the domain declares, the loop compares."
+                             -> {slot: COLOUR | POSITION | EXTENT | SHAPE | BOOL | DELTA}
+    arc_world.slot_owner()   "Which SUBJECT each slot is an attribute of. The loop may not derive
+                              this... Grouping is that same split, so the domain declares it and
+                              the loop only compares."
+                             -> {slot: object}
+    the state                before: dict[str, int]   -> the observed VALUE
+
+**The loop HOLDS both.** `tether.py:329` keeps `slot_types`; `732` reads `slot_owner`; `1118` says
+*the vector is an object's slots and `slot_owner` supplies the grouping.*
+
+> **SO THE FIREWALL FORBIDS THE LOOP *DERIVING* A GROUPING BY SPLITTING A NAME. IT DOES NOT FORBID
+> THE LOOP *COMPOSING* ONE FROM DECLARED FACTS.** With type, owner and value in hand, every grouping
+> Q29 asks for is a dict comprehension over things the domain already handed across the membrane:
+>
+>     all colour-slots        {s for s in slots if slot_types[s] == COLOUR}
+>     all slots of o0         {s for s in slots if slot_owner[s] == "o0"}
+>     all blue objects        {slot_owner[s] for s in slots
+>                              if slot_types[s] == COLOUR and before[s] == 3}
+>
+> **None of those splits a name. None reads the naming convention. All three are the membrane
+> working as designed** — the domain declared, the loop compared.
+
+### WHICH MAKES SWEEP 34's SECOND HALF WRONG
+
+Sweep 34 wrote *the agent does not construct groups **and is not permitted to***. **The first half is
+true and the second is false.** `peers()` is ONE grouping composed from those same two declarations;
+**nothing makes it the only one.** The constraint is on the SOURCE of the grouping, not on the NUMBER
+of groupings.
+
+**SO THE SIX ARE NOT FORECLOSED BY DOCTRINE.** Group-to-group relations, centroids, rank mapping,
+regrouping by predicate, symmetry axes, group-scoped rules — **absent because no mechanism composes
+an alternative grouping, which is a CODE gap.** `§6a` moves out of DOCTRINE and into TYPING.
+
+**WHAT REMAINS GENUINELY DOCTRINAL IS SMALLER AND SHOULD BE STATED AS SUCH:** a grouping composed by
+the loop is still a grouping the loop CHOSE, and *which* grouping to form is a decision the bargain
+would have to price. **That is a design question about what pays, not a firewall question about what
+may be read.**
+
+## SWEEP 36b — TWO CITATIONS WITHDRAWN, AND ONE DOWNSTREAM ITEM MARKED
+
+**`composable=0` IS WITHDRAWN AS EVIDENCE FOR THE FRONTIER CLAIM.** Sweep 23 recorded it as *the
+article's frontier claim measured, in the article's own system, and it holds.* **Sweep 31 showed it is
+a typing artefact** — the registry's inputs are `FRAME`, `OBJECT`, `OBJECT_BEFORE` and nothing else,
+so no chain can exceed length one **regardless of what the agent knows or does.** The frontier claim
+may still be true; **this number is not evidence for it**, and it must be re-measured after the
+registry consumes attribute types.
+
+**AND `max_depth = 3` / `budget_exhausted` NEVER FIRING IS THE SAME SHAPE.** Sweep 27 read the
+exhaustive search as a fact about the search. **It is a fact about the graph** — three arrows, so a
+depth-3 bound cannot bind. **Two readings taken as measurements of the agent that are properties of
+the type graph**, which is the `ls20`-profile-fitting-itself error one level up.
+
+**AND ONE DOWNSTREAM ITEM RESTS ON THE REFUTED WALL ACCOUNT.** Sweep 11a linked `S4` to `LOG 3`:
+*46% of library growth entered through `_install_reuse`, and `LOG 3` locates the wall in `mint`
+pricing a candidate space that grows with the library.* **The second half is the refuted account.**
+The 46% measurement stands; **the link to the wall is suspended** until the wall's cause is
+re-established on a second board.
+
+**THE WALL'S CAUSE IS CURRENTLY UNKNOWN.** Not *a growing candidate space* — that is contradicted by
+calls flat at 7801 while cost rose 60% — and not anything else. **Stated as unknown rather than
+replaced with a second guess.**
