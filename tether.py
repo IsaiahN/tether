@@ -1763,17 +1763,33 @@ class Agent:
         gap.** That claim is what `exhausted` refutes -- which is why that ending is recorded
         apart from `done` rather than folded into it.
         """
+        # S3: FOUR OF THE EIGHT GATES HERE RETURNED IN SILENCE, and the cost was measured
+        # rather than argued -- sweep 7 read `rows written 0` across thirty-seven entries of
+        # this function and could not tell gate 1 from gate 6, so two later sweeps had to
+        # wrap it from outside to find out. Each now says which gate and why, in the shape
+        # the four row-writing gates already use.
         slot = self._goal_choice()
         if slot is None or slot not in before:
+            self.led.record(self.cycle, "PLAN", slot or "*", "routine_refused",
+                            reason="no objective is confidently shrinking"
+                                   if slot is None else
+                                   "the selected objective's slot is not in this frame")
             return
         gap = self._discrepancy(slot, before)
         if not isinstance(gap, int):
+            self.led.record(self.cycle, "PLAN", slot, "routine_refused",
+                            reason=f"the discrepancy is not a distance: {gap!r}")
             return
         # §14.4: **a goal residual no routine closes.** `R_goal` is the trigger and the price;
         # the GAP stays the budget, because a step count is what bounds a loop and a fraction is
         # not. Two readings, two jobs, and neither doing the other's is the whole correction.
         rg = self.goal_residual(slot, before)
         if rg is None or rg <= 0.0:
+            self.led.record(self.cycle, "PLAN", slot, "routine_refused",
+                            reason="no goal residual to close"
+                                   if rg is None else
+                                   "the objective already holds across its whole scope",
+                            r_goal=rg)
             return
         unsat = rg * len(self._group(slot, before))
         # DEFEASIBLE ON SURPRISE -- §18.2's second route: *a fitness-conditional gate-drop
@@ -1799,6 +1815,9 @@ class Agent:
             return
         act = self._goal_split(before)
         if act is None:
+            self.led.record(self.cycle, "PLAN", slot, "routine_refused",
+                            reason="no action this agent has observed moves this slot the "
+                                   "wanted way -- coverage incomplete, or every action ties")
             return
         n = max(len(self.actions), 2)
         # WHAT NOT HAVING THE ROUTINE COSTS: naming an action for each unsatisfied member of the
