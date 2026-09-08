@@ -20492,3 +20492,82 @@ board agrees or refuses.
 **AND ONE CORRECTION OWED IN A WORKING FILE:** `CLAUDE.md` carries the prohibition this window
 attributed to §12.4 for four sweeps. **§12.4 forbids nothing** — it lists `holes(shape)` as the
 INWARD, mintable remedy. **`CLAUDE.md` is repairable at source and that repair is owed.**
+
+## SWEEP 34 — Q23–Q32: ONE CLAIM FALSE, TWO MISLABELLED, AND THE GROUP CONSTRUCTOR IS THE REAL FIND
+
+### Q23 IS FALSE ABOUT THE BUILD
+
+It claims a striped square is *one token with a single colour attribute — usually the dominant or
+average*. **The flood fill is colour-homogeneous:**
+
+    hue = int(board[r0][c0])
+    ... if int(board[rr][cc]) == hue: expand
+
+**A stripe of a different colour is a DIFFERENT OBJECT.** The engine does not average anything and
+does not see a blob — **it sees the stripes as separate objects.** What survives is the residue: the
+ARRANGEMENT of those stripe-objects is a group question, **which makes Q23 an instance of Q29 rather
+than a texture gap.**
+
+### Q26 AND Q32 ARE MISLABELLED — THEY ARE ATOM GAPS, NOT LEVEL GAPS
+
+Both are declared level-gaps on the reasoning that perimeter and hole-count cannot be derived *from
+pairwise containment*. **They are not derived from containment at all.** An object carries
+`"shape": frozenset((r - r0_, c - c0_) for r, c in cells)` — **the literal cell set** — and perimeter
+and enclosed-region count are both computable from it directly.
+
+    perimeter   SHAPE -> EXTENT     same class as `holes`
+    hole count  SHAPE -> EXTENT     IS `holes`
+
+**Two more atoms for the same layer, and the taxonomy's own reasoning about why they are hard is
+about a mechanism the build would not use.**
+
+### TWO ARE RESTATEMENTS
+
+    Q27  rank-order across groups   = Q17 (group -> element) + Q12 (group-to-group)
+    Q30  symmetry axes compared     = Q25 (geometric aggregate) + Q12
+
+### THREE ARE GENUINE ADDITIONS
+
+**Q24 · TRANSITIVE DEPTH.** *Object A is 2 layers deep; B is 3* needs a fold over a chain of
+relations. **Every relation atom ends at `PRED`, a boolean, and nothing folds a relation chain into a
+count.** Distinct from every group gap recorded — **this is recursion over a relation, not
+aggregation over a collection.** NEW.
+
+**Q28 · NO SEQUENCE TYPE.** `_group` returns `tuple(state[p] for p in peers)` — **ordered by peer
+iteration, not by position.** So there is no positional index, and no permutation operator over a
+row. *Reverse the top row and compare* has nothing to stand on. NEW.
+
+**Q25 SHARPENS Q17 INTO ITS GENERAL FORM.** Sweep 29 found no `group -> element`. Centroids need
+`group -> scalar`. **The general fact is that the ONLY fold over a group produces `PRED`** — so
+neither selection nor aggregation exists, and both are the same missing arrow.
+
+### AND Q29 IS THE FIND, AND IT IS DEEPER THAN STATED — THE AGENT CANNOT FORM A GROUP
+
+    arc_world.peers()
+      """{slot: the SAME attribute on every OTHER object}. **The loop may not derive this**
+         -- it would have to split the slot name, which is reading domain structure."""
+
+**THE GROUP IS HANDED BY THE ENVIRONMENT, IS THE ONE FIXED PARTITION *same attribute, every other
+object*, AND THE LOOP IS FORBIDDEN FROM DERIVING IT.** Not an oversight — **a firewall consequence.**
+Forming a group by predicate would mean reading domain structure, which is exactly what the membrane
+exists to stop.
+
+> **SO EVERY GROUP-LEVEL GAP IN THIS WINDOW IS DOWNSTREAM OF ONE FACT.** `Q12` group-to-group, `Q25`
+> centroids, `Q27` rank mapping, `Q29` regrouping, `Q30` axes, `Q31` group-scoped rules — **six rows,
+> one cause: the agent does not construct groups and is not permitted to.** The partition is a
+> perception output, and the composer receives it.
+
+**AND `Q31` COLLAPSES INTO IT.** *A red square means add-1 in Group A and subtract-1 in Group B*
+requires binding a rule to a group. **With no group constructor there is no group to bind to**, so it
+is not a separate gap.
+
+### WHICH CHANGES THE POST-FREEZE QUEUE'S SHAPE
+
+**The group-level entries are not six items. They are one**, and it sits against the firewall rather
+than against the type system — **which makes it a doctrine question and not only a code one.** A
+group constructor the loop can drive is the loop reading domain structure, and **that is the exact
+thing `peers()` was declared in `arc_world` to prevent.**
+
+**TWO MORE ATOMS FOR THE VOCABULARY LIST** — `perimeter` and the already-listed `holes`, both
+`SHAPE -> EXTENT`, both computable from the cell set. **The atom list grows; the level list
+consolidates.**
