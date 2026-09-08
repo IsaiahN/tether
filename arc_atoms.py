@@ -76,6 +76,28 @@ ATTRIBUTE_TYPE = {"colour": COLOUR, "row": POSITION, "col": POSITION,
                   "shape": SHAPE}
 
 
+# THE ADMITTING CLAUSE, PER ATOM, RECORDED WHERE THE ATOM IS DECLARED.
+#
+# `CLAUDE.md`'s entry rule had two clauses -- *the loop cannot run without it*, or *the agent
+# minted a crude version and we are promoting it* -- and neither admits a primitive the loop
+# RUNS without and cannot EXPRESS. Isaiah ruled a third, 2026-09-08: an atom may be handed
+# when the agent's own machinery perceived and named the gap, when the primitive is
+# fundamental enough that no in-run derivation is plausible, and when a human competitor
+# would arrive already holding it.
+#
+# **THE STAMP IS WHAT PRESERVES THE COMPOSITION CLAIM UNDER THE CONCESSION.** The claim is not
+# that the agent invented `rotate`; it is that the agent COMPOSED WITH `rotate`. Those are
+# different claims and only a record of which atoms were handed keeps them separable -- the
+# ablation partitions by WHICH CLAUSE ADMITTED A THING, and that cannot be reconstructed from
+# an origin stamp afterwards, because `prior` marks every atom alike.
+ADMITTED = {
+    "rotate": "handed-2026-09-08: named by `arc_predict.unexpressible()` as `couples row and "
+              "col`; no chain of the 21 yields it; mental rotation is preschool",
+    "reflect": "handed-2026-09-08: named by `arc_predict.unexpressible()` as `needs the board "
+               "extent`; no chain of the 21 yields it; mirror symmetry is preschool",
+}
+
+
 def _extract() -> list[Atom]:
     """`OBJECT → COLOUR | POSITION | EXTENT | DELTA | SHAPE`, one per key 2b computes.
 
@@ -112,6 +134,41 @@ def _extract() -> list[Atom]:
     # with its owner's other slots and may not claim invariance to them.
     return [Atom(k, pick(k), OBJECT, t, reads_ctx=("obj",))
             for k, t in ATTRIBUTE_TYPE.items()]
+
+
+def _transform() -> list[Atom]:
+    """`SHAPE → SHAPE`, and the build named these two gaps itself.
+
+    `arc_predict.unexpressible()` reports *the four the signature cannot carry, with the
+    reason* -- and two of the four are these, by name:
+
+        rotate    "couples row and col; an atom returns one slot's value"
+        reflect   "needs the board extent; `Ctx` has no accessor and the board is not a slot"
+
+    **BOTH REASONS ARE ABOUT `val -> val` AND BOTH DISSOLVE AT `SHAPE`.** A shape IS the cell
+    set -- `frozenset((r - r0, c - c0) for r, c in cells)` -- so it carries both coordinates
+    and there is nothing to couple, and it is already normalised to its own origin so no
+    board extent is needed. **The obstacle the build recorded is the obstacle at the
+    signature it recorded it for.**
+
+    AND THEY ARE THE FIRST `SHAPE -> SHAPE` ATOMS, so the OBJECT component of the type graph
+    gains its first cycle: `rotate . reflect . rotate` is a chain, and `max_depth` binds on
+    something for the first time rather than matching the graph exactly.
+    """
+    def _rot(v: Any, _c: Ctx) -> Any:
+        if not isinstance(v, frozenset) or not v:
+            return NOT_RESOLVED
+        m = max(r for r, _ in v)
+        return frozenset((c, m - r) for r, c in v)
+
+    def _ref(v: Any, _c: Ctx) -> Any:
+        if not isinstance(v, frozenset) or not v:
+            return NOT_RESOLVED
+        m = max(c for _, c in v)
+        return frozenset((r, m - c) for r, c in v)
+
+    return [Atom("rotate", _rot, SHAPE, SHAPE),
+            Atom("reflect", _ref, SHAPE, SHAPE)]
 
 
 def _contact() -> list[Atom]:
@@ -233,5 +290,5 @@ def three_spaces(predict: list[Atom]) -> list[Atom]:
     PREDICT is passed in rather than built: it is the domain's atom set -- grid transforms at
     3d -- and inventing one here would be this file choosing what the agent may bet on.
     """
-    return (list(predict) + _extract() + _contact() + _relate() + _over_group()
-            + _quantify())
+    return (list(predict) + _extract() + _transform() + _contact() + _relate()
+            + _over_group() + _quantify())
