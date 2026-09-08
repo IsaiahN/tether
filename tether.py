@@ -2892,8 +2892,15 @@ class Agent:
         # THIS MOVES A PUBLISHED METRIC. `phases.report()` is §22.2's transfer instrument and
         # its STRATEGY column has been structurally zero; it will not be on any run where a
         # routine executes. Flagged rather than slipped in.
+        # S5: THE FAMILY, NOT THE EXACT STRING. `choose` returns `discriminate`,
+        # `discriminate:learned` and `discriminate:goal`, and an `==` admitted only the first
+        # -- so a LEARNED split, which §18.4's proposer picks deliberately, was filed under
+        # PROBE. Measured across ten boards: `discriminate:learned` fires on six of them, 33
+        # of 125 cycles, and `phases.report()` read `directed 0.0` on every one. `draw` stays
+        # in PROBE and is not part of this: it and `probe` are byte-identical calls to
+        # `drive.choose`, so both really are undirected picks.
         phase = (I.STRATEGY if by == "routine"
-                 else I.DIRECTED if by == "discriminate" else I.PROBE)
+                 else I.DIRECTED if by.startswith("discriminate") else I.PROBE)
         self.phases.note(phase)
 
         try:
