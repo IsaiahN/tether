@@ -218,9 +218,16 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
         # WHICH BRANCH CHOSE THE ACTION. `by` is written on every ACT row and was read by
         # nothing -- and the ruled-budget run could not say whether a 96%-one-action policy
         # came from `discriminate`, `discriminate:learned` or the draw.
+        # SELECTED BY EVENT, because `by` names two quantities. The `repeat` row's `by` is
+        # the branch that chose the action -- a string, and what the line above means. The
+        # `mode` row's `by` is the mode detector's per-locus DICT, and counting it raised
+        # `unhashable type` here, after the loop, so every run's report died at assembly.
+        # THE COLLISION IS NOT REPAIRED, ONLY NAVIGATED: three rows still write `by` and two
+        # of them write different types. Renaming one is a ledger change with its own readers.
         "by": dict(collections.Counter(
             r["detail"]["by"] for r in rows
-            if isinstance(r.get("detail"), dict) and r["detail"].get("by"))),
+            if r.get("event") == "repeat"
+            and isinstance(r.get("detail"), dict) and r["detail"].get("by"))),
         "habitat": hab.report() if hab else "no residual to seed from",
         "habitat_residuals": len(hab.residuals()) if hab else 0,
         # what the terms have DONE, per (term, slot), read from the ledger rather than
