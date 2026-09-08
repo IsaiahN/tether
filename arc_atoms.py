@@ -102,6 +102,10 @@ ADMITTED = {
             "sparse cross and its enclosing square were indistinguishable on every extent "
             "atom; not derivable -- `count` folds a peer group, not a cell set; `how big` is "
             "preschool. Sweep 38 priced it +18 at depth 3, which almost nothing else does",
+    "centroid": "handed-2026-09-08: OBJECT-entry, one of only three candidates of 34 that both "
+                "pay at depth 3 and can be built; row-mean of own cells; `middle` is preschool",
+    "touching_n": "handed-2026-09-08: `touching` folded a POPULATION to a bit and Ctx.touching "
+                  "already carried the names; HOW MANY neighbours, not whether any",
     "holes": "handed-2026-09-08: §12.4's own INWARD example `holes(shape)`; SHAPE reached "
              "only SHAPE and PRED so no chain measured a shape; Isaiah's own preschool case, "
              "squares and pegs",
@@ -233,6 +237,29 @@ def _shape_facts() -> list[Atom]:
     def _parity(v: Any, _c: Ctx) -> Any:
         return NOT_RESOLVED if not isinstance(v, int) else bool(v % 2)
 
+    def _centroid(o: Any, c: Ctx) -> Any:
+        """Mean ROW of the object's own cells. **One coordinate, because a slot holds one.**
+
+        `_group` is a single attribute column, so a two-coordinate centroid has nowhere to
+        live -- and returning the row half is a reading rather than a stand-in for the pair.
+        """
+        rec = o if isinstance(o, dict) else getattr(c, "obj", None)
+        if not isinstance(rec, dict) or not rec.get("cells"):
+            return NOT_RESOLVED
+        rows = [r for r, _ in rec["cells"]]
+        return sum(rows) // len(rows)
+
+    def _touch_n(o: Any, c: Ctx) -> Any:
+        """HOW MANY are in contact, where `touching` said only WHETHER any were.
+
+        `Ctx.touching` is a tuple of slot NAMES, so the population is already there and the
+        existing atom was folding it to a bit.
+        """
+        rec = o if isinstance(o, dict) else getattr(c, "obj", None)
+        if not isinstance(rec, dict) or c.touching is None:
+            return NOT_RESOLVED
+        return len(c.touching)
+
     def _area(o: Any, c: Ctx) -> Any:
         rec = o if isinstance(o, dict) else getattr(c, "obj", None)
         if not isinstance(rec, dict) or "cells" not in rec:
@@ -249,7 +276,11 @@ def _shape_facts() -> list[Atom]:
             # candidates: the depth-3 payers are exactly the `OBJECT`-entry atoms, because a
             # chain starting one arrow in cannot reach `OBJ` inside three. +18 at depth 3
             # where every atom handed before it added none.
-            Atom("area", _area, OBJECT, EXTENT, reads_ctx=("obj",))]
+            Atom("area", _area, OBJECT, EXTENT, reads_ctx=("obj",)),
+            # THE OTHER TWO `OBJECT`-ENTRY ATOMS, and entry is what makes them pay at depth 3:
+            # sweep 39 found seven candidates paying there and only three buildable.
+            Atom("centroid", _centroid, OBJECT, POSITION, reads_ctx=("obj",)),
+            Atom("touching_n", _touch_n, OBJECT, EXTENT, reads_ctx=("obj", "touching"))]
 
 
 def _contact() -> list[Atom]:
