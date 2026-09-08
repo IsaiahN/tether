@@ -20723,3 +20723,66 @@ time*. **The framework already answers it, and neither reading is the one implem
 **THE FIX ORDER INVERTS.** Unit-aware pricing first, `pays` second — and until the cost is right,
 `would_pay` is measuring the wrong comparison. **Not ruled here; the shape of the question is what
 changed, and it changed before the ruling rather than after.**
+
+## SWEEP 38 — THIRTY-FOUR CANDIDATE ATOMS, PRICED BY CLOSURE BEFORE ANY IS BUILT
+
+**Ranked by measurement, not by intuition, because the intuitive ranking was wrong twice.** Type
+signatures are all the closure needs, so a candidate can be priced before it is implemented.
+
+    BASELINE (26 atoms)   OBJECT->OBJ  depth3=153  depth4=393
+
+    RANK  d3    d4    atom          signature            level      buildable
+    ------------------------------------------------------------------------------------
+     1   +51  +131   exactly_one   PRED -> OBJ          early      yes
+     1   +51  +131   at_least_k    PRED -> OBJ          early      yes, operand-read
+     3   +18   +51   centroid      OBJECT -> POSITION   mid        yes, mean of own cells
+     4   +18   +36   area          OBJECT -> EXTENT     PRESCHOOL  yes, cells not bbox
+     4   +18   +36   touching_n    OBJECT -> EXTENT     preschool  yes
+     6   +18   +36   distance      OBJECT -> EXTENT     mid        NO -- needs two objects
+     7   +15   +33   inside        OBJECT -> BOOL       PRESCHOOL  NO -- needs a Ctx accessor
+     8    +0  +153   not/and/or    PRED -> PRED         secondary  yes -- G1, DOUBLES depth 4
+    11    +0   +36   sum_group     EXTENT -> EXTENT     early      yes
+    11    +0   +36   abs_delta     DELTA -> EXTENT      primary    yes
+    13    +0   +30   is_max/is_min EXTENT -> BOOL       early      yes
+    15    +0   +30   sign          DELTA -> BOOL        primary    yes
+    16    +0   +30   monotone      EXTENT -> BOOL       secondary  yes
+    17    +0   +18   perimeter · bbox_area · density · corners · orbit_size · rank_in ·
+                     distinct                            — ALL on the SHAPE/COLOUR->EXTENT arrow
+                                                           `holes`/`count` already opened
+    24    +0   +15   symmetric · is_square · is_mode · canonical · periodic · fixpoint
+    ------------------------------------------------------------------------------------
+    DEAD  +0    +0   multiply      val -> val           primary    contributes NOTHING
+    DEAD  +0    +0   modulo        val -> val           primary    contributes NOTHING
+    DEAD  +0    +0   ratio         EXTENT -> RATIO      primary    RATIO is ORPHANED
+
+### THE RANKING IS POSITION IN THE TYPE GRAPH, NOT COGNITIVE LEVEL
+
+**`exactly_one` is early-primary arithmetic and beats every graduate-level candidate by 3x.**
+`PRED -> OBJ` is the FINAL arrow, so a fourth quantifier gives every chain that already reaches
+`PRED` a new exit — **+51 at depth 3 is a third of the entire current closure, from one atom.**
+
+**AND THE SET IS MISSING A QUANTIFIER IT SHOULD OBVIOUSLY HAVE.** `all`, `any`, `none` are
+`∀`, `∃`, `¬∃`. **There is no `∃!`** — *exactly one* — which is the quantifier half of ARC's
+commonest question, *which one is different.*
+
+**THE DEPTH-3 PAYERS ARE EXACTLY THE `OBJECT`-ENTRY ATOMS**, confirmed across all 34: anything
+starting one arrow in needs depth 4 to reach `OBJ`. **`area` is preschool, buildable, and pays at
+the depth the loop runs** — and `h`/`w` are the BOUNDING BOX, so cell count is genuinely absent.
+
+**AND `val -> val` CONTRIBUTES ZERO.** `multiply` and `modulo` price at `+0/+0` because the `val`
+track is DISJOINT from the `OBJECT->OBJ` track — sweep 32 said so and this prices it. **Arithmetic
+is not what this closure is short of.**
+
+**`ratio` STAYS DEAD UNTIL `RATIO` HAS A CONSUMER**, which makes §12.4's `ratio(count, count)` a
+THREE-part item and not a two-part one.
+
+### WHAT I WOULD BUILD, IN ORDER
+
+    1  exactly_one    +51/+131  the missing quantifier, the largest single gain measured
+    2  area           +18/+36   preschool, pays at the running depth, distinct from bbox
+    3  centroid       +18/+51   best depth-4 of the OBJECT-entry atoms
+    4  not/and/or     +0/+153   G1's boolean algebra -- doubles depth 4, worthless at depth 3
+
+**AND THE SEVENTEEN AT `+0/+18` OR LESS ARE SEMANTICS ON ARROWS THAT ALREADY EXIST.** Worth having
+eventually, worth nothing structurally, and **the honest reason to add any of them is that a board
+needed it — which is the reason the entry rule exists to refuse.**
