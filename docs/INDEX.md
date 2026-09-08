@@ -20263,3 +20263,68 @@ shortcut past composition.**
 
 **AND ADDING ALL FIVE LEAVES THE THREE LEVEL-GAPS EXACTLY AS THEY ARE**, which is sweep 29's result
 and is why the two halves of the request need separate rulings.
+
+## SWEEP 31 — §12.4 FORBIDS NOTHING, AND THE BLOCKER IS THE SENSOR REGISTRY'S TYPING
+
+**Isaiah asked where §12.4 is. Reading it instead of `CLAUDE.md`'s summary of it changes the whole
+question.** `ARC_AGENT.md:624`, *How the agent invents a sensor*:
+
+> **INWARD, and mintable:** compose a new sensor from existing ones that *does* split them.
+> `parity(position)`, `ratio(count(colour=a), count(colour=b))`, **`holes(shape)`**. *Inside the
+> closure, priced by the same bargain.*
+
+**§12.4 LISTS THESE AS THE REMEDY, NOT AS A PROHIBITION.** It says they are composable from the nine
+and priced by the bargain. **There is nothing in §12.4 to amend on this point.**
+
+**THE PROHIBITION IS `CLAUDE.md`'s, AND ITS OWN WORDING SAYS SO** — *which are §12.4's own examples of
+what the agent must compose, and **this rule** forbids installing them.* **`this rule` is the entry
+rule in `CLAUDE.md`, which is a WORKING document and repairable at source.** I have been citing the
+prohibition as §12.4's for this entire window. **It is not.**
+
+### AND THE ACTUAL BLOCKER IS TYPING, WHICH NEITHER DOCUMENT NAMES
+
+    components  (FRAME,)                -> OBJECT
+    colour      (OBJECT,)               -> COLOUR
+    position    (OBJECT,)               -> POSITION
+    extent      (OBJECT,)               -> EXTENT
+    shape       (OBJECT,)               -> SHAPE
+    overlap     (OBJECT_BEFORE, OBJECT) -> RATIO
+    delta       (OBJECT_BEFORE, OBJECT) -> DELTA
+    touching    (OBJECT, OBJECT)        -> BOOL
+    changed     (FRAME, FRAME)          -> REGION
+
+**EVERY OUTPUT IS A TERMINAL ATTRIBUTE TYPE AND NOT ONE SENSOR ACCEPTS AN ATTRIBUTE TYPE AS INPUT.**
+Inputs are `FRAME`, `OBJECT`, `OBJECT_BEFORE` and nothing else. **So the longest chain is
+`FRAME -> OBJECT -> attr`, and from `OBJECT` there are exactly four of length one** — which is
+`closure=4 · composable=0 · verdict=unreached`, measured on every board and now explained.
+
+**`holes(shape)` IS `SHAPE -> EXTENT`. FOR §12.4's INWARD BRANCH TO REACH IT, SOMETHING MUST CONSUME
+`SHAPE`. NOTHING DOES.** §12.4 assumed the nine composed; **the registry as built makes composition
+impossible by typing**, and that gap has been read all window as a prohibition.
+
+### WHICH MAKES INSTALLING `holes` THE WRONG FIX, BY §12.4's OWN CRITERION
+
+§12.4: **"it gives the selection criterion for the nine: not *which priors are true* but WHICH SMALL
+SET HAS THE LARGEST CLOSURE."**
+
+**The nine as built have a closure of four and a composable count of zero.** By §12.4's own criterion
+**the set was optimised for attribute COVERAGE and not for CLOSURE**, and that is a registry defect
+rather than a rule to relax.
+
+> **SO THE TWO FIXES ARE NOT THE SAME SIZE OF THING.** Installing `holes` hands the agent §12.4's own
+> worked example and buys one term. **Adding a sensor that ACCEPTS an attribute type opens the
+> closure and lets the agent compose `holes`, `parity` and everything else of that shape ITSELF** —
+> which is what §12.4 said should happen and what the reach mechanism was built to detect.
+
+**AND IT NEEDS NO EXEMPTION.** `CLAUDE.md`: *what breaks the circle legitimately is a RICHER TIER 1 —
+a perception question with its own entry rule — never a Tier 2 exemption.* **A sensor consuming an
+attribute type is not a new reading of the grid.** It is an operator over readings already taken,
+which is Tier 1 made richer, **and it is the named legitimate exit rather than a relaxation of
+anything.**
+
+### THE CORRECTION OWED
+
+**I attributed the prohibition to §12.4 across sweeps 27, 28, 29 and 30 without opening
+`ARC_AGENT.md:624`.** `CLAUDE.md` characterises §12.4 accurately and I read the characterisation as
+the section. **Ninth instance of *assume it is already specified, and go look* this window, and the
+first where the misread ran for four sweeps.**
