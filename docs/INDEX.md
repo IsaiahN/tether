@@ -20328,3 +20328,83 @@ anything.**
 `ARC_AGENT.md:624`.** `CLAUDE.md` characterises §12.4 accurately and I read the characterisation as
 the section. **Ninth instance of *assume it is already specified, and go look* this window, and the
 first where the misread ran for four sweeps.**
+
+## SWEEP 32 — THE TYPE GRAPH IS A THREE-ARROW DAG, AND CHUNKING DEEPENS ARROWS RATHER THAN ADDING THEM
+
+Isaiah objects that `FRAME -> OBJECT -> attr` cannot express a chain like *Game -> Desire ->
+Frustration -> Urgency -> Choice -> Commitment -> Action -> Habit -> ... -> WIN*, with branching and a
+cycle back to Choice. **He is right, and the reason is sharper than the sensor registry.**
+
+### FIRST, A FALSE FINDING I CAUGHT BEFORE WRITING IT
+
+Scanning `in_type` alone gave **five terminal types** — `BOOL`, `DELTA`, `EXTENT`, `OBJ`, `SHAPE` — and
+the conclusion that four of five `OBJECT -> attr` arrows are dead ends. **False.** The relation atoms
+declare `also_accepts=COMPARABLE[1:]` where `COMPARABLE = (COLOUR, POSITION, EXTENT, DELTA, SHAPE,
+BOOL)`. **All six attribute types are consumed.** Reading `in_type` without `also_accepts` is the
+narrowed-view error again; **tenth instance, caught by checking one field before asserting.**
+
+### THE ACTUAL GRAPH
+
+    OBJECT  ->  COLOUR · POSITION · EXTENT · DELTA · SHAPE · BOOL
+       all six  ->  PRED
+            PRED  ->  OBJ        TERMINAL -- nothing consumes OBJ
+
+**Exactly three arrows on every path, one terminal, and no back-edge.** `max_depth = 3` matches the
+graph's depth exactly — **which is why the bound has never bound and `budget_exhausted` has never
+fired.** The declared limits are not limiting anything; **the graph is.**
+
+### AND CHUNKING DOES NOT REACH THIS, WHICH IS THE POINT
+
+`gamma.units()`: *the atoms, plus every SETTLED term as one unit… a settled 3-atom term makes depth 3
+reach 9 atoms.* **True, and it multiplies ATOMS PER ARROW.** A chunk has the same in-type and out-type
+as the term it wraps, so:
+
+    without chunks   OBJECT -> attr -> PRED -> OBJ     3 arrows,  3 atoms
+    with chunks      OBJECT -> attr -> PRED -> OBJ     3 arrows,  9 atoms, then 27
+
+> **THE SHAPE NEVER CHANGES. CHUNKING BUYS DEPTH INSIDE THREE ARROWS AND CANNOT ADD A FOURTH**, because
+> a unit inherits the types of what it wraps. **Isaiah's chain needs ARROWS, and chunking supplies
+> ATOMS.**
+
+**AND THE LADDER IS MEASURABLY CLIMBING, WHICH STRENGTHENS THE POINT RATHER THAN SOFTENING IT:**
+
+    ar25   settled 2   CHUNKS 2   units 23 = 21 atoms + 2
+           'above . none<o12.col>?ACTION7' · 'translate . recolour<o2.dcol>'
+    sb26   settled 4   CHUNKS 4   units 25 = 21 atoms + 4
+           'above . none<o0.h>?ACTION5' · 'translate . translate<o1.shape>?ACTION5'
+           'above . all<o0.h>?ACTION5'   · 'recolour . translate<o11.colour>?ACTION7'
+
+**Six chunks across two boards, settled by the ground, unaided.** The mechanism is not dormant — **it
+works.** And `above . none` has the signature `POSITION -> OBJ`: **the chunk inherits its endpoints,
+`OBJ` is terminal, so the chunk is terminal too.** More atoms reachable, same three arrows, same
+ending.
+
+### WHAT HIS CHAIN ACTUALLY REQUIRES, STATED STRUCTURALLY
+
+    depth        ~14 levels          chunking addresses this and only this
+    every node   output AND input    the build has it -- all six attributes are consumed
+    branching    one type, many      the build has it -- six atoms consume COLOUR
+                 consumers
+    A CYCLE      Reset -> Choice     THE BUILD HAS NOTHING. `PRED -> OBJ` and OBJ terminates.
+                                     There is no arrow from a late type back to an early one
+
+**THE MISSING THING IS A BACK-EDGE, AND IT IS ONE ARROW.** Something consuming `PRED` or `OBJ` and
+returning an `OBJECT` or an attribute. **That single addition makes the graph cyclic**, and a cyclic
+type graph is what a chain of unbounded length requires.
+
+**AND IT WOULD MAKE `max_depth` DO ITS JOB FOR THE FIRST TIME.** On an acyclic 3-deep graph the bound
+is decoration; **on a cyclic graph it is the only thing that terminates the closure.** The depth bound
+was designed for a graph the build does not yet have.
+
+> **SO THIS IS COMPLETING THE DESIGN RATHER THAN RELAXING IT.** `Config`'s anchor says depth 3 is
+> *what makes the chunking claim falsifiable* — a claim about reaching FURTHER THAN THREE ATOMS. **The
+> mechanism for that is built and measured. What is absent is a graph in which going further means
+> anything**, and one back-edge is the difference.
+
+### AND IT REFRAMES THE ATOM REQUEST ONE LAST TIME
+
+**`holes(SHAPE) -> EXTENT` adds no arrow.** `SHAPE` is already consumed and `EXTENT` is already
+consumed; the new atom sits inside the existing `OBJECT -> attr` layer and every chain through it is
+still three arrows long. **Same for `parity`, `rotate`, `reflect` and `inside`.**
+
+**FIVE ATOMS WOULD ENRICH ONE LAYER OF A THREE-LAYER DAG. NONE OF THEM LENGTHENS A CHAIN.**
