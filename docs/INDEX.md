@@ -20571,3 +20571,39 @@ thing `peers()` was declared in `arc_world` to prevent.**
 **TWO MORE ATOMS FOR THE VOCABULARY LIST** — `perimeter` and the already-listed `holes`, both
 `SHAPE -> EXTENT`, both computable from the cell set. **The atom list grows; the level list
 consolidates.**
+
+## SWEEP 35 — FIVE GAPS THE LIBRARY ITSELF SUGGESTS, AND ALL THREE OF §12.4's EXAMPLES ARE UNREACHABLE
+
+Not from the taxonomy — from reading the atom set and the sensor registry against each other.
+
+**G1 · NO BOOLEAN ALGEBRA.** There is no `PRED -> PRED` atom. `all`/`any`/`none` are QUANTIFIERS
+(`PRED -> OBJ`), not connectives. **An objective is always ONE predicate quantified**, so *all objects
+are red AND square* has no form. **A chain has no branch and `PRED` has no conjunction** — two
+separate reasons the same thing cannot be said.
+
+**G2 · NO CARDINALITY.** No `count` atom exists. **`sensors.py:58` declares a `COUNT` type and
+nothing produces or consumes it** — a type string with neither a producer nor a consumer.
+
+**G3 · NO ARITHMETIC BEYOND `translate`.** No ratio, product, divide or modulo anywhere.
+
+**G4 · TWO ORPHANED SENSOR TYPES.** `RATIO` and `REGION` are produced by `overlap` and `changed`
+and **consumed by no atom.** Two sensors compute readings the composer cannot touch.
+
+**G5 · NO LITERALS.** `Term.operand` is *which slot fills operand 0* — a SLOT, never a constant. A
+rule keyed to a specific value needs a slot that happens to hold it.
+
+### AND THE FINDING THAT TIES §12.4 TO ALL OF IT
+
+§12.4 gives three worked examples of INWARD composition and presents them as *inside the closure,
+priced by the same bargain* — **already reachable.** Checked one by one:
+
+    parity(position)             parity ABSENT
+    ratio(count(a), count(b))    count ABSENT · ratio ABSENT · RATIO orphaned
+    holes(shape)                 holes ABSENT
+
+> **NONE OF THE THREE IS REACHABLE, AND THE MIDDLE ONE NEEDS TWO PRIMITIVES THAT EXIST NOWHERE** —
+> not in the sensor set, not in the atom set. **The section describes a closure the build does not
+> have**, which is the same finding as sweep 31's typing result arriving from the vocabulary side.
+
+**AND IT SHARPENS THE ATOM LIST FROM FIVE TO SEVEN**, with `count` the one that is not a plain
+addition: it needs the group fold to produce a VALUE, which is the missing arrow sweep 34 named.
