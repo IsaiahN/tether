@@ -98,6 +98,15 @@ ADMITTED = {
     "count": "handed-2026-09-08: named by §12.4's own INWARD example "
              "`ratio(count(colour=a), count(colour=b))`; every group fold ends at PRED so no "
              "chain yields a cardinality; counting precedes school",
+    "holes": "handed-2026-09-08: §12.4's own INWARD example `holes(shape)`; SHAPE reached "
+             "only SHAPE and PRED so no chain measured a shape; Isaiah's own preschool case, "
+             "squares and pegs",
+    "parity": "handed-2026-09-08: §12.4's own INWARD example `parity(position)`; no modulo "
+              "exists anywhere in the atom set; odd-and-even precedes school",
+    "inside": "handed-2026-09-08: named by Isaiah as the preschool case (pegs in holes) and "
+              "NOT derivable from `touching` -- a ring touches its interior and its exterior "
+              "identically. THE ONLY CANDIDATE THAT ADDS REACH AT max_depth=3: +15 chains "
+              "where every other atom handed today adds none",
 }
 
 
@@ -172,6 +181,56 @@ def _transform() -> list[Atom]:
 
     return [Atom("rotate", _rot, SHAPE, SHAPE),
             Atom("reflect", _ref, SHAPE, SHAPE)]
+
+
+def _shape_facts() -> list[Atom]:
+    """`SHAPE → EXTENT`, and the first arrow that takes a shape to a QUANTITY.
+
+    `rotate`/`reflect` map SHAPE to SHAPE and the COMPARABLE relations map it to PRED, so a
+    shape could be transformed or compared and never MEASURED. §12.4's own INWARD example is
+    `holes(shape)`.
+
+    BOTH READ THE CELL SET, which is what makes them atoms rather than sensors: a shape IS
+    `frozenset((r - r0, c - c0) for r, c in cells)`, so the interior and the boundary are both
+    already in hand and neither needs the board.
+    """
+    def _holes(v: Any, _c: Ctx) -> Any:
+        if not isinstance(v, frozenset) or not v:
+            return NOT_RESOLVED
+        rs = [r for r, _ in v]
+        cs = [c for _, c in v]
+        # flood the COMPLEMENT from outside the bounding box; whatever the flood misses is
+        # enclosed. A one-cell margin is what lets the outside connect around the shape.
+        lo_r, hi_r, lo_c, hi_c = min(rs) - 1, max(rs) + 1, min(cs) - 1, max(cs) + 1
+        seen, stack = set(), [(lo_r, lo_c)]
+        while stack:
+            r, c = stack.pop()
+            if (r, c) in seen or (r, c) in v:
+                continue
+            if not (lo_r <= r <= hi_r and lo_c <= c <= hi_c):
+                continue
+            seen.add((r, c))
+            stack += [(r + 1, c), (r - 1, c), (r, c + 1), (r, c - 1)]
+        inner = [(r, c) for r in range(lo_r, hi_r + 1) for c in range(lo_c, hi_c + 1)
+                 if (r, c) not in v and (r, c) not in seen]
+        # count the enclosed REGIONS, not the enclosed cells: a figure-eight is two.
+        regions, left = 0, set(inner)
+        while left:
+            regions += 1
+            stack = [left.pop()]
+            while stack:
+                r, c = stack.pop()
+                for nb in ((r + 1, c), (r - 1, c), (r, c + 1), (r, c - 1)):
+                    if nb in left:
+                        left.discard(nb)
+                        stack.append(nb)
+        return regions
+
+    def _parity(v: Any, _c: Ctx) -> Any:
+        return NOT_RESOLVED if not isinstance(v, int) else bool(v % 2)
+
+    return [Atom("holes", _holes, SHAPE, EXTENT),
+            Atom("parity", _parity, POSITION, BOOL)]
 
 
 def _contact() -> list[Atom]:
@@ -317,5 +376,5 @@ def three_spaces(predict: list[Atom]) -> list[Atom]:
     PREDICT is passed in rather than built: it is the domain's atom set -- grid transforms at
     3d -- and inventing one here would be this file choosing what the agent may bet on.
     """
-    return (list(predict) + _extract() + _transform() + _contact() + _relate()
-            + _over_group() + _quantify())
+    return (list(predict) + _extract() + _transform() + _shape_facts() + _contact()
+            + _relate() + _over_group() + _quantify())
