@@ -637,7 +637,30 @@ class Agent:
 
     @staticmethod
     def _ops(term: Term, state: dict[str, int]) -> tuple:
-        return (state[term.operand],) if term.operand else ()
+        """The operand's value, and §4's whole mechanism sits in the middle three lines.
+
+        THE BRANCH GETS THE RAW SLOT VALUE AS ITS OWN OPERAND, and a bare `Ctx` was the first
+        version -- which made the branch INERT. Every `val -> val` atom is identity without an
+        operand (`_translate` is `v + c.operands[0] if c.operands else v`), so a branch with
+        nothing bound returned exactly what it was given and the tree computed nothing. Caught
+        by evaluating it rather than by reading it.
+
+        IT STILL CANNOT RECURSE, and that bound is now structural rather than incidental: the
+        branch's operand is a VALUE, never a term, so there is no second branch to descend
+        into. Binary tree, depth one, by construction.
+
+        AND AN UNREADABLE BRANCH FALLS BACK TO NO OPERAND, which is not a new failure mode:
+        `_translate` is `v + c.operands[0] if c.operands else v`, so an empty tuple is
+        already the identity every operand-reading atom takes when nothing is bound.
+        """
+        if not term.operand:
+            return ()
+        value = state[term.operand]
+        if term.operand_term is not None:
+            value = term.operand_term.apply(value, Ctx(operands=(value,)))
+            if value is NOT_RESOLVED:
+                return ()
+        return (value,)
 
     def _narrate_placements(self) -> None:
         """The encounter half's reading. **`multi` is the mid-game colour change, counted.**"""

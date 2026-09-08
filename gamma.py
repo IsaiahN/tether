@@ -162,12 +162,24 @@ class Term:
     # DELIBERATE and documented one method away, and the justification was written without
     # reading it. **The guard works where `_ops` supplies operands, which is bets.**
     guard: str | None = None
+    # §4: THE OPERAND MAY BE COMPUTED, WHICH IS WHAT MAKES THIS A TREE. `operand` names the
+    # slot; this transforms that slot's value before it fills operand 0. A chain has no
+    # branch and still has none -- what it gains is a SECOND chain feeding its one operand,
+    # so `f<g(s)>` joins two computed values where `f<s>` could only join a computation with
+    # a reading. That was the whole of §4's absence and G1's other face.
+    #
+    # BESIDE `operand` RATHER THAN WIDENING IT, deliberately: ten sites read `.operand` and
+    # every one still gets a slot name. The census said only `_ops` is the mechanism, and
+    # only `_ops` changes.
+    operand_term: Term | None = None
 
     @property
     def name(self) -> str:
         base = " . ".join(a.name for a in self.atoms)
         if self.operand:
-            base = f"{base}<{self.operand}>"
+            inner = (f"{self.operand_term.name}({self.operand})"
+                     if self.operand_term is not None else self.operand)
+            base = f"{base}<{inner}>"
         return f"{base}?{self.guard}" if self.guard else base
 
     @property
@@ -245,7 +257,9 @@ class Term:
         return None
 
     def __len__(self) -> int:
-        return len(self.atoms)
+        # THE SUBTREE COUNTS, because `term_bits(len(t))` is what prices it and a tree that
+        # priced only its trunk would buy its operand branch for nothing.
+        return len(self.atoms) + (len(self.operand_term) if self.operand_term else 0)
 
     def __repr__(self) -> str:
         return f"Term({self.name})"
