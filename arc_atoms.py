@@ -95,6 +95,9 @@ ADMITTED = {
               "col`; no chain of the 21 yields it; mental rotation is preschool",
     "reflect": "handed-2026-09-08: named by `arc_predict.unexpressible()` as `needs the board "
                "extent`; no chain of the 21 yields it; mirror symmetry is preschool",
+    "count": "handed-2026-09-08: named by §12.4's own INWARD example "
+             "`ratio(count(colour=a), count(colour=b))`; every group fold ends at PRED so no "
+             "chain yields a cardinality; counting precedes school",
 }
 
 
@@ -243,6 +246,19 @@ def _relate() -> list[Atom]:
                  reads_ctx=("operands",))]
 
 
+def _count(v: Any, c: Ctx) -> Any:
+    """How many peers share this value. **A cardinality, not a truth.**
+
+    `NOT_RESOLVED` WHERE THERE IS NO POPULATION, never 0: an empty group is *I cannot see the
+    others*, and returning zero would make a missing reading indistinguishable from a real
+    count of none -- §12.2's rule at the one place a fold is tempted to default.
+    """
+    g = getattr(c, "group", ())
+    if not g:
+        return NOT_RESOLVED
+    return sum(1 for x in g if x == v)
+
+
 def _over_group() -> list[Atom]:
     """`ATTR → PRED`, quantified over the OUTER STREAM -- the same attribute on every other
     object.
@@ -274,6 +290,17 @@ def _over_group() -> list[Atom]:
             Atom("any_same", fold(any), COMPARABLE[0], PRED,
                  also_accepts=COMPARABLE[1:], reads_ctx=("group",)),
             Atom("none_same", fold(lambda g: not any(g)), COMPARABLE[0], PRED,
+                 also_accepts=COMPARABLE[1:], reads_ctx=("group",)),
+            # THE FIRST GROUP FOLD THAT DOES NOT END AT `PRED`, and that is the point of it.
+            # The three above collapse a population to a truth, so everything a group knows
+            # arrives as one bit and the group is gone. `count` returns HOW MANY, which is
+            # the `group -> value` arrow whose absence explained four separate gaps at once:
+            # no ranking, no cardinality, no ratio, no aggregate.
+            #
+            # §12.4's own INWARD example is `ratio(count(colour=a), count(colour=b))` -- the
+            # one of its three worked examples that needed TWO primitives existing nowhere.
+            # This is the first of them.
+            Atom("count", _count, COMPARABLE[0], EXTENT,
                  also_accepts=COMPARABLE[1:], reads_ctx=("group",))]
 
 
