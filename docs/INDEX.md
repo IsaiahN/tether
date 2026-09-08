@@ -20193,3 +20193,73 @@ scalar**, and no atom at any type repairs that. **The answer is LEVEL-GAP, and i
 **WHICH IS THE USEFUL FORM OF THE WHOLE BATCH.** These read as questions to ask of pixels; **the ones
 that turned out to matter were answerable from the type map**, and that is the difference between a
 classifier and a perception question. **A classifier needs the frame. A gap does not.**
+
+## SWEEP 30 — COMPOSITION IS DEMONSTRATED ON REAL BOARDS, WHICH FALSIFIES §12.4's PREMISE
+
+Isaiah proposes amending §12.4 on the grounds that the composition system has grown and the original
+concern — proving composition works — is abated. **Measured rather than accepted:**
+
+    board   library   term lengths          composed (len > 1)
+    ---------------------------------------------------------------------------------
+    ar25      37      {1: 25, 2: 11, 3: 1}   12   incl. ONE AT DEPTH 3
+    sb26      28      {1: 21, 2: 7}           7
+    lf52      25      {1: 24, 2: 1}           1
+    ---------------------------------------------------------------------------------
+    TOTAL                                    20 composed terms across three boards
+
+**And they are real compositions, minted by the ordinary bargain and paid for:**
+
+    above . none<o0.h>?ACTION5          a RELATE atom composed with a QUANTIFY fold
+    recolour . translate<o10.colour>    two PREDICT atoms chained
+    translate . recolour<o6.dcol>       chained across attribute types
+    translate . translate<o1.shape>     self-chained
+
+### §12.4's PREMISE IS *reaching is the only evidence the composition system works*, AND IT IS FALSE
+
+**Twenty multi-atom terms, one at depth 3, on three boards, priced by `pays` and entered through
+`mint`.** The composition system is demonstrated **without any sensor having been reached**, so the
+sentence the circle rests on no longer holds.
+
+**AND `composable=0` IS NOT COUNTER-EVIDENCE, WHICH IS THE SECOND HALF.** The sensor closure returning
+`composable=0 · verdict=unreached` on every board is **a TYPE fact about the sensor registry** — the
+nine all terminate at attribute types, so no chain from `OBJECT` exceeds length one. **It is not a
+statement about whether the composer functions**, and the composer demonstrably does, on the term
+closure, at depth 3.
+
+> **SO THE CIRCLE'S PREMISE IS FALSE TWICE OVER: composition IS evidenced, and the empty sensor
+> closure was never evidence against it.** The prohibition was protecting a proof that has since been
+> supplied by a different closure.
+
+### WHAT THIS DOES AND DOES NOT LICENSE
+
+**IT SUPPORTS AMENDING §12.4. IT DOES NOT ITSELF ADMIT ANY ATOM.** `CLAUDE.md`'s entry rule has two
+clauses — *the loop cannot run without it*, or *the agent minted a crude version and we are promoting
+it* — and **none of the five candidate atoms satisfies either.** The loop RUNS without `holes`; it
+cannot EXPRESS it. **That is a third clause, and writing it is the amendment.**
+
+**AND THE ADMITTING CLAUSE MUST BE RECORDED PER ATOM AT ENTRY**, because `CLAUDE.md` states the
+deferred half becomes unrunnable otherwise: *the partition is by which clause admitted a thing, and
+that cannot be reconstructed later from a `prior` stamp.*
+
+### THE FIVE ATOMS, AND THE THREE THINGS THAT ARE NOT ATOMS
+
+    ATOMS -- compose normally in the existing chain
+      holes        SHAPE    -> EXTENT     §12.4's own example
+      parity       POSITION -> BOOL       §12.4's other named example
+      rotate       SHAPE    -> SHAPE      PREDICT admits 2 of the corpus's 6; this is one of the 4
+      reflect      SHAPE    -> SHAPE      likewise
+      inside       OBJECT   -> BOOL       not derivable from `touching`: a ring touches its
+                                          interior and its exterior identically
+
+    NOT ATOMS -- no vocabulary addition reaches these
+      ranking            needs `group -> element`; every group atom folds to PRED
+      joint attributes   `_group` is ONE attribute column; collinearity needs row AND col
+      group-to-group     PRED is a scalar; there is no second collection to relate
+
+**ALL FIVE ATOMS ARE GENUINELY PRIMITIVE — none is composable from the current twenty-one.** Nothing
+decomposes a `SHAPE`, nothing does arithmetic mod 2, nothing operates on `SHAPE` at all, and
+containment is not reachable from contact. **So adding them is a vocabulary extension and not a
+shortcut past composition.**
+
+**AND ADDING ALL FIVE LEAVES THE THREE LEVEL-GAPS EXACTLY AS THEY ARE**, which is sweep 29's result
+and is why the two halves of the request need separate rulings.
