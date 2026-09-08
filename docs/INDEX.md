@@ -20676,3 +20676,50 @@ re-established on a second board.
 **THE WALL'S CAUSE IS CURRENTLY UNKNOWN.** Not *a growing candidate space* — that is contradicted by
 calls flat at 7801 while cost rose 60% — and not anything else. **Stated as unknown rather than
 replaced with a second guess.**
+
+## SWEEP 37 — §3a IS BLOCKED ON §2's HELD DECISION, AND S4's QUESTION CHANGED SHAPE
+
+### §3a CANNOT BE DONE WITHOUT ADDING A SENSOR, AND THE QUEUE SEPARATED THEM
+
+**The closure code is already general and correct.** `Registry.closure` extends a chain by
+`accepting(chain[-1].out_type)` — *a sensor's output can feed another's input, which is what makes
+the registry a closure rather than a list.* **The enumeration is right. `accepting` reads only
+`self._by_name`, which is the nine, and there is no other feed.**
+
+> **SO `composable=0` HAS EXACTLY ONE CAUSE AND ONE REMEDY: a sensor that ACCEPTS an attribute type.
+> There is no typing change that opens the closure**, because the typing is already general — the
+> registry's CONTENTS are the whole limit.
+
+**AND THAT IS §2's HELD DECISION, NOT A SEPARATE ITEM.** The queue filed §3a under TYPING and §2
+under VOCABULARY. **In the sensor registry they are the same act:** adding a sensor that consumes an
+attribute type is adding a sensor, which is what the entry rule addresses and what §2 is held for
+until §4 is ruled.
+
+**SO THE RE-MEASURE CANNOT HAPPEN YET EITHER.** `composable=0` and `budget_exhausted`-never-firing
+stay **withdrawn and unsupported**, and they cannot be re-read until a sensor consuming an attribute
+type exists. **Reported rather than built through**, which is census-before-fix producing the outcome
+it exists for: the fix was not what the queue assumed.
+
+### AND S4's QUESTION IS NOT THE ONE EITHER SIDE POSED
+
+`[I]` framed it as *is reuse cheaper than derivation, or is a description the same length the second
+time*. **The framework already answers it, and neither reading is the one implemented:**
+
+    routine.py:151   "the atoms, plus every SETTLED term as one unit -- **only what the ground has
+                      paid for becomes a shortcut**... a settled routine counts as ONE... exactly
+                      when the ground has already paid for its parts"
+
+**A reuse-is-cheaper clause exists and is explicit. Look at where it is implemented:**
+
+    routines         term_bits(Rt.length(c, shelf), n)     CHUNK-AWARE -- a settled unit counts 1
+    mint             term_bits(len(term), alphabet)        `len(Term)` is `len(self.atoms)`
+    _install_reuse   term_bits(len(cand), alphabet)        ATOM COUNT, on the REUSE path
+
+> **THE RULE IS IMPLEMENTED FOR ROUTINES AND NOT FOR TERMS**, and `_install_reuse` charges the
+> DERIVATION price for a REUSE. **So the nineteen refusals may be an artefact of an overstated cost**,
+> and `LOG 1`'s candidate fix would make it worse: consulting `pays` with an inflated cost refuses
+> MORE, not better.
+
+**THE FIX ORDER INVERTS.** Unit-aware pricing first, `pays` second — and until the cost is right,
+`would_pay` is measuring the wrong comparison. **Not ruled here; the shape of the question is what
+changed, and it changed before the ruling rather than after.**
