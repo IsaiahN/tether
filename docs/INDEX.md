@@ -20060,3 +20060,71 @@ cannot do is the second, and `composable=0` is that stated as a number.**
 a RICHER TIER 1 — a perception question with its own entry rule — never a Tier 2 exemption.* **Adding
 sensors is forbidden; enriching what Tier 1 perceives is the named legitimate move**, and rotation and
 structure-mapping are perception questions rather than sensor additions.
+
+## SWEEP 28 — THE PERCEPTION BATCH: FOUR REAL ADDITIONS, AND ONE IS THE DOCTRINE'S OWN EXAMPLE
+
+**The classifier framing is set aside** — as classifiers these have the same no-variance problem as
+Q1/Q5/Q6, since every ARC frame is grid-snapped, orthographic and sparse. **Read instead as *can the
+agent perceive this*, which is the permitted Tier 1 question.**
+
+### THE FOUR THAT NAME A REAL GAP
+
+**Q8 · CONTAINMENT.** `_relate` supplies `touching` (contact), `same`, `other`, `above`. **There is no
+`inside` and no `contains`.** Containment is topological and is not derivable from contact — a ring
+touches what it encloses and what it merely abuts identically. **A genuine missing relational
+primitive, and the first document's overlap section named it too.**
+
+**Q9 · NEGATIVE SPACE — AND THIS IS `holes(SHAPE)`.** `CLAUDE.md` names it verbatim:
+
+> *what would extend it is `parity(POSITION)` or **`holes(SHAPE)`**, which are §12.4's own examples of
+> what the agent must compose, and this rule forbids installing them.*
+
+**So Q9 is not a candidate for building — it is the exact object the doctrine uses to state the
+circle.** The perception question is real, it is already the canonical example, and **the doctrine's
+answer is that the agent must reach it, which is why the circle stands.**
+
+**Q11 · PARTONOMY — AND IT SHARPENS A ROW I WROTE TOO WEAKLY.** Sweep 27 said *objects exist, no
+hierarchy.* **The stronger fact: `arc_percept.Objects()` yields ONE decomposition and no alternative
+parse is representable.** It is not that hierarchy is missing on top of a stable parse — **there is no
+mechanism for the same pixels to be twelve tokens on one reading and one object on another.**
+Ambiguity is not expressible, so it cannot be resolved by evidence.
+
+**Q12 · AND THIS ONE IS NEW — THE GROUP LEVEL HAS NO BINARY RELATION.**
+
+    _group(slot, state)   "the outer stream for one slot: this attribute's values on the
+                          other objects"  -- ONE attribute, flattened across peers
+    all_same / any_same / none_same        reads_ctx=("group",) -- folds over that ONE tuple
+
+**A group is a column of values, not a collection with structure, and every group atom is a FOLD over
+a single group.** So *these two clusters mirror each other* is not expressible — **and the reason is
+not that symmetry is missing. It is that there is no relation between two groups at all.** The build
+has attributes, objects, and one peer group; **it has no binary predicate at the group level.**
+
+> **THAT IS A LEVEL GAP RATHER THAN AN ATOM GAP, AND NEITHER DOCUMENT NOR I HAD NAMED IT.** Adding a
+> symmetry atom would not reach it. **`RELATE` operates on objects and `QUANTIFY` folds one group;
+> nothing relates a group to a group**, which is the shape *structure mapping* needs and is why that
+> row reads ABSENT rather than PARTIAL.
+
+### THE THREE THAT DO NOT ADD
+
+**Q10 · ORIENTATION** — useful only as a gap MARKER, and sweep 27 already carries it: there is no
+rotation atom and no orientation attribute, so orientation is not perceivable at all. **As a
+classifier it has zero variance — every ARC frame is cardinal by construction.**
+
+**Q13 · VISUAL NOISE** — **no gap and no variance.** ARC frames are sparse discrete grids; there are
+no particles to filter, so perceptual constancy has nothing to do here.
+
+**Q14 · TEMPORAL REVERSIBILITY** — **already built, and in a stronger form.** `round_trip_gap` is
+`R_T`: *send it up, bring it back, charge what came back wrong*, with the extensive law holding by
+construction rather than by hope. **Reversibility as a priced quantity beats reversibility as a
+classification.**
+
+### WHAT THE BATCH IS WORTH
+
+**Two additions to the inventory** — containment, and the group-level binary relation. **One row
+sharpened** — partonomy, from *no hierarchy* to *no alternative parse*. **One confirmation that the
+doctrine already owns the question** — `holes(SHAPE)`.
+
+**AND THE GROUP-LEVEL FINDING IS THE ONE TO CARRY**, because it explains three ABSENT rows at once
+rather than adding a fourth: **structure mapping, local symmetry, and ABA-style variable binding all
+need a relation between two collections, and the build's `QUANTIFY` folds exactly one.**
