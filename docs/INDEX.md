@@ -20128,3 +20128,68 @@ doctrine already owns the question** — `holes(SHAPE)`.
 **AND THE GROUP-LEVEL FINDING IS THE ONE TO CARRY**, because it explains three ABSENT rows at once
 rather than adding a fourth: **structure mapping, local symmetry, and ABA-style variable binding all
 need a relation between two collections, and the build's `QUANTIFY` folds exactly one.**
+
+## SWEEP 29 — Q17 AND Q18 FIND WHAT SWEEP 28 MISSED, AND THE TYPE MAP STATES IT IN ONE LINE
+
+**Two of the four are restatements and two add.** Said plainly because counting a restatement as an
+addition is how an inventory inflates.
+
+    Q15  containment              RESTATES Q8 -- and gives the reason I gave: a ring touches
+                                  its interior and its exterior identically
+    Q16  group-to-group           RESTATES Q12, sharpened to set-equality across two groups
+    Q17  role-based correspondence  ADDS -- see below
+    Q18  holistic arrangement     SHARPENS Q12 decisively -- see below
+
+### Q17 · THERE IS NO SELECTION OVER A GROUP, AND THAT IS NOT Q12
+
+*The largest object in set A maps to the smallest in set B* needs **`group -> element`**. The full
+type map:
+
+    all_same · any_same · none_same    COLOUR   -> PRED     reads=('group',)
+    all · any · none                   PRED     -> OBJ      reads=()
+
+**Every group-reading atom folds to `PRED`. Nothing returns an element, an index, or a rank.**
+*Largest* is not expressible at all — **and this is a DIFFERENT gap from the missing group-to-group
+relation.** Even with a binary group predicate, *the largest in this group* would still have no
+term.
+
+### Q18 · A GROUP IS ONE ATTRIBUTE COLUMN, WHICH KILLS HOLISTIC GEOMETRY BY CONSTRUCTION
+
+`_group(slot, state)` returns *this attribute's values on the other objects* — **a single column.**
+So **collinearity, equidistance and convex hull are not merely missing atoms:** each needs `row` and
+`col` **jointly** across peers, and a group holds one attribute at a time with nothing to zip two.
+
+**SWEEP 28 SAID *no binary relation between groups*. THAT WAS TOO NARROW.** The gap is one level
+lower: **there is no joint structure over peers at all**, so even a single group cannot carry a
+position.
+
+### AND THE TYPE MAP STATES ALL OF IT IN ONE LINE
+
+    OBJECT  ->  ATTR  ->  PRED  ->  OBJ
+                          ^^^^
+              every path funnels through a BOOLEAN before it can compose further
+
+**Once a chain reaches `PRED` the group is gone.** That single fact is why four rows read ABSENT:
+
+    no ranking                 needs group -> element; every group atom ends at PRED
+    no joint attributes        each atom takes ONE attribute; PRED cannot carry a pair
+    no group-to-group          PRED is already a scalar; there is no second group to relate
+    no holistic geometry       collinearity needs row AND col across peers, jointly
+
+> **SO IT IS ONE GAP WITH FOUR FACES, NOT FOUR GAPS.** The composition grammar narrows monotonically
+> — object to attribute to boolean to objective — and **structure lives in the part that is discarded
+> at the third arrow.** No atom addition reaches it, because the loss is in the type chain rather
+> than in the vocabulary.
+
+### THE TIEBREAKER IS ANSWERABLE WITHOUT PIXELS, WHICH IS ITSELF THE ANSWER
+
+*Does adding rotate unlock every spatial comparison, or are you left comparing two collections?*
+
+**For this habitat it is decidable from the type system and needs no frame.** Rotation is an atom at
+`val -> val` or `SHAPE -> SHAPE` and would compose normally. **The level gap is `PRED` being a
+scalar**, and no atom at any type repairs that. **The answer is LEVEL-GAP, and it was available from
+`arc_atoms.py` rather than from a screenshot.**
+
+**WHICH IS THE USEFUL FORM OF THE WHOLE BATCH.** These read as questions to ask of pixels; **the ones
+that turned out to matter were answerable from the type map**, and that is the difference between a
+classifier and a perception question. **A classifier needs the frame. A gap does not.**
