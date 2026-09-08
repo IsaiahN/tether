@@ -20786,3 +20786,59 @@ THREE-part item and not a two-part one.
 **AND THE SEVENTEEN AT `+0/+18` OR LESS ARE SEMANTICS ON ARROWS THAT ALREADY EXIST.** Worth having
 eventually, worth nothing structurally, and **the honest reason to add any of them is that a board
 needed it — which is the reason the entry rule exists to refuse.**
+
+## SWEEP 39 — ALL 34 CANDIDATES CHECKED FOR BUILDABILITY, AND NINE FAIL THE SECOND TEST
+
+Sweep 38 priced them. **Price is not admission**, and two failed a semantic check after ranking
+first — so all 34 were checked against what an atom actually receives: a typed value and a `Ctx`
+carrying `action`, `operands`, `group`, `obj`, `touching`.
+
+### NOT BUILDABLE AS AN ATOM — five
+
+    exactly_one   PRED -> OBJ    `objective_degree` folds PER MEMBER, so a PRED->OBJ atom sees
+    at_least_k    PRED -> OBJ      one member's truth and never the scope's count
+    inside        OBJECT -> BOOL  needs a SECOND object's cells; `Ctx` carries only the focal
+    distance      OBJECT -> EXTENT  `obj`, and `touching` gives NAMES, not records
+    fixpoint      SHAPE -> SHAPE  apply-until-stable needs a FUNCTION argument; an atom takes
+                                  a value and a `Ctx`
+
+**THESE ARE THE TWO HIGHEST-PRICED CANDIDATES ON THE BOARD AND THE BEST DEPTH-3 PAYER**, and none
+of the three can be built. `+51`, `+51` and `+15` at depth 3, all uncashable.
+
+### NOT MEANINGFUL — two, and it is `Q28` confirmed
+
+    monotone   `is the group sorted`     `_group` is ordered by PEER-CACHE ITERATION, not by
+    periodic   `does the group repeat`     position, so neither question has a referent
+
+**A sequence predicate over a bag is not a hard atom, it is a meaningless one.**
+
+### BUILDABLE AND WORTH NOTHING — three
+
+    multiply · modulo   `val -> val`, and that track is DISJOINT from `OBJECT -> OBJ`   +0/+0
+    ratio               `EXTENT -> RATIO`, and RATIO has no consumer                     +0/+0
+
+### BUILDABLE AND NON-ZERO — twenty-four, of which THREE pay at the running depth
+
+    area        OBJECT -> EXTENT    +18/+36   BUILT
+    centroid    OBJECT -> POSITION  +18/+51   buildable, mean of own cells
+    touching_n  OBJECT -> EXTENT    +18/+36   buildable -- `Ctx.touching` is a TUPLE OF NAMES,
+                                              so `len()` is a real population count
+
+**SEVEN CANDIDATES PAY AT DEPTH 3 AND ONLY THREE CAN BE BUILT.** `inside` and `distance` need a
+second object, and the two quantifiers need a scope count. **The depth-3 frontier is three atoms
+wide and one of them is already in.**
+
+### AND §4's TREE IS WHAT MAKES THE BOOLEAN ALGEBRA BUILDABLE AT ALL
+
+`and_op` and `or_op` are `PRED -> PRED` reading a second predicate. **An operand was a slot's raw
+VALUE until this pass**, so a second predicate could not arrive — and `operand_term` is exactly the
+thing that lets a computed predicate fill operand 0. **The largest structural prize on the board
+(+153 at depth 4) became buildable because of a change made for a different reason.**
+
+### THE RULE THIS PASS ESTABLISHES
+
+> **A CLOSURE PRICE RANKS CANDIDATES AND DOES NOT ADMIT THEM.** The price is a fact about the type
+> graph; buildability is a fact about what an atom receives; and they disagreed on **nine of
+> thirty-four**, including the top two. **Pricing first was still right** — it is cheap, it ranked
+> 34 candidates in one run, and it is what made the disagreement visible instead of discovering it
+> one implementation at a time.
