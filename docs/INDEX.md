@@ -19554,7 +19554,11 @@ Eight boards, 29 OBJ-bound calls, **derivation and build agreeing on every one.*
 ### `B` IS ZERO ON EVERY BOARD, AND THAT IS THE FINDING
 
 **`max(votes) == 0` — *not one action moves this slot toward the objective* — has fired 0 times in 29
-calls across 8 boards.** Sweep 18 attributed `lf52`'s `None` to exactly this exit. **It has no
+calls across 8 boards.**
+
+> **SCOPED TO OVERRIDE RUNS BY SWEEP 33.** All twenty-nine supplied the slot. **On `tr87` unaided the
+> agent's own trigger produces `B` on 2 of 4 calls** — the override picked a slot something acts on,
+> and the instrument selected the population it measured. Sweep 18 attributed `lf52`'s `None` to exactly this exit. **It has no
 instances anywhere in the public set as measured.**
 
 > **`_goal_split` FAILS FROM IGNORANCE OR FROM INDISTINGUISHABILITY, NEVER FROM A VERDICT THAT
@@ -20408,3 +20412,83 @@ consumed; the new atom sits inside the existing `OBJECT -> attr` layer and every
 still three arrows long. **Same for `parity`, `rotate`, `reflect` and `inside`.**
 
 **FIVE ATOMS WOULD ENRICH ONE LAYER OF A THREE-LAYER DAG. NONE OF THEM LENGTHENS A CHAIN.**
+
+## SWEEP 33 — `tr87` UNAIDED: `B` FIRES, AND SWEEP 21's HEADLINE WAS AN OVERRIDE ARTEFACT
+
+**The run launched to settle which exit blocks when the agent picks its OWN slot has landed.**
+
+    tr87 unaided   12 cycles · 4 actions · 4 OBJ-bound calls
+                   A coverage 2 · B no votes 2 · C unanimity 0
+                   derivation and build agree on every call
+
+**`B` FIRES, TWO OF FOUR.** Sweep 21 read *`B` has never fired — 0 of 29 calls on 8 boards* and made
+it the headline. **All twenty-nine were reached by SUPPLYING a slot.** On the agent's own choice, the
+genuine negative is half of what blocks.
+
+> **THE OVERRIDE PICKED *THE BOUND SLOT WITH THE LARGEST LAST RESIDUAL*, AND THAT IS A SLOT SOMETHING
+> ACTS ON.** The agent's own trigger picks *the objective whose discrepancy is confidently
+> shrinking* — **a different slot, and on `tr87` one where no action moves it toward the
+> objective.** The instrument selected the population it then measured.
+
+**AND IT PARTIALLY VINDICATES A CLAIM I WITHDREW.** Sweep 18 said *a complete map returning a true
+negative*; sweep 19 withdrew it because `lf52`'s `None` was unanimity, not `B`. **The withdrawal was
+correct for that instance and the phenomenon is real** — `B` fires on `tr87` unaided. **A specific
+claim can be false while the general one it was reaching for is true, and only measuring both
+separates them.**
+
+**CORRECTED AT SOURCE.** Sweep 21's *`B` never fires* is scoped to override runs.
+
+## THE POST-FREEZE QUEUE — everything this window leaves owed, with its evidence
+
+**LOG 1, system errors with candidate fixes already written:**
+
+    S1  probe.choose divides by zero on an empty action tuple. 6 of 25 games.
+        GATES EVERY ZERO-ACTION GAME, which is what an IQ item is
+    S2  arc_holdout.play crashes assembling its report -- `by` is a str on action rows and a
+        dict on the mode row
+    S3  four of eight gates in `_mint_routine` return with no ledger row
+    S4  `_install_reuse` admits 19 of 21 terms the bargain would refuse.
+        HELD: whether reuse should be priced at full `term_bits` is Isaiah's call
+    S5  `by == "discriminate"` excludes its namespaced variants by exact match.
+        6 of 10 boards; `directed` reads 0.0 where the true share is 26%
+    S6  probe rotation coverage requires gcd(7, n) == 1; collapses to ONE action at n = 7.
+        Latent -- max SURFACED is 6, and advertised reaches 7
+
+**VOCABULARY — the five atoms, all implementable:**
+
+    holes    SHAPE -> EXTENT      SHAPE is a frozenset of normalised (row,col) offsets,
+    parity   POSITION -> BOOL     so all five are computable from what perception already
+    rotate   SHAPE -> SHAPE       yields. `rotate`/`reflect` are the FIRST CYCLE in the
+    reflect  SHAPE -> SHAPE       OBJECT component -- `max_depth` starts binding
+    inside   OBJECT -> BOOL
+
+    **An entry clause must be WRITTEN** -- none satisfies either existing clause -- **and stamped
+    PER ATOM AT ENTRY**, because the ablation partition cannot be rebuilt from a `prior` stamp.
+
+**TYPING — two distinct fixes:**
+
+    sensors   no sensor consumes an attribute type, so §12.4's INWARD branch cannot run and
+              `composable=0` is an artefact rather than a verdict
+    atoms     the OBJECT component is an acyclic three-arrow DAG terminating at OBJ
+
+**STRUCTURE — the largest item, and it should be ruled on BEFORE the atoms:**
+
+    Term is a linear chain with one operand slot; the target structures are DAGs with joins
+    (`+` over two COMPUTED values), alternatives (`∥`) and two arrow kinds (`->` vs `=>`).
+    **The act space already has the tree algebra the concept space needs** -- `Seq`/`When`/
+    `Until` -- and `When` has no else, so `∥` is absent on BOTH sides.
+    THE FIVE ATOMS DO NOT BEAR ON THIS AT ALL.
+
+**LEVEL GAPS no atom reaches:** ranking (`group -> element`), joint attributes (`_group` is one
+column), group-to-group relations.
+
+**UNCONSUMED READINGS:** `never_live` computes an explorability verdict per level and **nothing reads
+it**; the `unreached` row names its own remedy as unbuilt.
+
+**AND ONE MEASUREMENT OWED BEFORE IT CAN BE WRITTEN DOWN:** the cost wall's per-call cost rose 60% at
+FLAT call count on `lf52`. **One board is not enough** and it stays out of `LOG 3` until a second
+board agrees or refuses.
+
+**AND ONE CORRECTION OWED IN A WORKING FILE:** `CLAUDE.md` carries the prohibition this window
+attributed to §12.4 for four sweeps. **§12.4 forbids nothing** — it lists `holes(shape)` as the
+INWARD, mintable remedy. **`CLAUDE.md` is repairable at source and that repair is owed.**
