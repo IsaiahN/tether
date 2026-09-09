@@ -21302,3 +21302,295 @@ recorded **six chunks settling unaided on real boards**, which is ~7x.
                    suspended. Item 3 filed
     building       STOPS HERE, per the instruction. No further vocabulary, no `inside`, no
                    G4 orphan work, no `max_depth` change
+
+## THE FREEZE — `arc-freeze-02`, 2026-09-08, FOR THE UNATTENDED RUN WINDOW
+
+    tag        arc-freeze-02
+    hash       67ceacd23e6ac11adca961e8755b84fdaf5dcf70
+    seats      9/9 clean at the tagged commit -- ruff · lint · kernel · stateful ·
+               shipped · demo · gate · tests · m2
+
+**BUILD STATE AT THE TAG.** 48 atoms; the `BINDABLE` two-arm filter at `_library_fit`; the six
+mechanicals `S1`-`S6`; the reach circle measured INTACT (`closure=4`, `composable=0`, `UNREACHED`
+at depths 2-5); §4's producer filed unbuilt.
+
+**THE FREEZE IS HARD AND IT IS ON BUILD FILES.** No build file edited, no hotfix, no re-run with a
+tweak, for the whole window. **Documentation commits continue** — they are the deliverable — so
+`HEAD` moves past the tag while the BUILD does not. **Any defect found during a run is recorded
+against this tag with a candidate fix and applied only after the window closes.**
+
+**THE RULE THAT GOVERNS THE WINDOW.** Errors in the code may be recorded; **shaping toward what a
+game shows may not.** Any note whose reasoning runs from *what a board contains* to *what the build
+should do* is the contamination the freeze exists to prevent. **A candidate fix justified by *this
+board would then solve* is a lookup table written one observation at a time.**
+
+**AND EVERY ERROR IS CLASSIFIED BEFORE A CANDIDATE FIX IS WRITTEN.** System error — wrong
+regardless of game, across boards — gets a candidate fix. Game quirk — one board — gets
+investigated, and **if the build's response is correct-given-the-input (abstains, refuses,
+`NOT_RESOLVED`) it is a quirk handled RIGHT and gets a behaviour note, not a fix.** Only
+wrong-given-the-input is a defect. **A candidate fix for a non-error is worse than no note: it
+sends Isaiah to repair something that is working.**
+
+### THE PANEL, AND ITS LIMITS ARE KNOWN BEFORE THE FIRST RUN RATHER THAN AFTER
+
+The five are `ls20`, `ar25`, `ka59`, `vc33`, `sp80` — the same five as the last window, which
+already checked what the panel can show:
+
+    ls20    4 actions,  objective on  9 of 11 cycles    reaches gate 6
+    ar25    6 actions,  objective on  6 of  8           reaches the bargain
+    ka59    4 actions,  objective on  5 of 14           reaches the bargain
+    vc33    0 actions   --                              NO. nothing acts
+    sp80    5 actions,  objective on  0 of 16           NO. no objective exists
+
+> **TWO OF THE FIVE CANNOT PRODUCE A ROUTINE FOR REASONS THAT HAVE NOTHING TO DO WITH ROUTINES,
+> SO THE ROUTINE DENOMINATOR IS THREE.** `vc33` is in `NO_SURFACED_ACTION` — the adapter drops its
+> positioned click — and `sp80` surfaces no objective at all. **A null on either is a null about
+> the panel, not about the mechanism**, and reporting `0 of 5` would be the exact error the
+> corpus names: reading a null from a world structurally unable to reward the thing tested.
+
+**AND THE COST SERIES IS TAKEN SEQUENTIALLY, NEVER CONCURRENTLY.** Two runs on one machine contend
+for CPU and **both deliverables here are per-cycle COST**, so a parallel run would confound the
+quantity it was launched to measure. One game at a time.
+
+**STOPPING IS A WALL-CLOCK CAP AND IS DECLARED AS A SEAT DECISION, NOT A METRIC.** Each run is
+capped in seconds and the reading is *cycles reached within the cap* plus the curve — never a
+threshold on a quantity the build produces. **The curve is the reading; grinding past it adds
+cost and no information.**
+
+## THE RUN WINDOW, FIRST PASS — `arc-freeze-02` @ `67ceacd`, DEPTH-6 SWEEP OF THE FIVE
+
+**Raw observation. Classification follows in the second pass; nothing here is a fix.**
+
+    game   wall     cyc  mints  lib  contest      routine            gate     cost ratio
+    ls20    94.7s    6      1    53  objective 1  routine_refused 6  refuse   326.8x
+    ar25   167.6s    6      1    53  predictor 1  routine_refused 6  refuse   758.2x
+    ka59    68.3s    6      0    50  --           routine_refused 6  refuse   330.5x
+    vc33     0.1s    0      0    48  --           --                 pass     -- nothing ran
+    sp80    23.9s    6      1    54  predictor 1  routine_refused 6  refuse   238.1x
+
+    mint verdicts   ls20 depth_exhausted 46 · pays 1     ar25 depth_exhausted 143 · pays 1
+                    ka59 depth_exhausted 60              sp80 depth_exhausted 44 · pays 1
+    scope widths    3 on EVERY mint of EVERY board
+    by (repeat)     draw 6 on all four -- no directed, no strategy, anywhere
+    chunk_reuse     0 on all five
+    base_bits       3.459 .. 36.0 across the panel
+
+### THE FIRST READING IS THAT `vc33` REPORTED ITSELF CORRECTLY
+
+`levels: {"verdict": "no_cycles", "reads": "nothing ran"}` and `gate: pass`. **The board that
+surfaces no action says so, in a row, and does not manufacture a null.** The panel note held: it
+is not evidence about any mechanism, and it is the only `pass` on the sweep because it is the only
+ledger with nothing in it to misorder.
+
+### `E1` — SYSTEM ERROR: THE GATE REFUSES EVERY REAL BOARD'S LEDGER, AND THE SEAT CANNOT SEE IT
+
+    verdict  refuse    check steps    token step-order    seq 5
+    note     "*: PLAN after PERCEIVE"
+    row      step=PLAN  event=routine_refused  reason="no objective is confidently shrinking"
+
+**`step()` opens with four narrators** — `_narrate_order`, `_narrate_cascade`, `_narrate_matches`,
+`_narrate_placements` at `tether.py:2849-2852` — **before `_present()` and before
+`env.observe()`. They stamp `PERCEIVE`, which is `STEPS[1]`.** The `PLAN` row is `STEPS[0]` and is
+emitted later, from `_mint_routine` inside `choose()`. **So on any board where narration emits, a
+PLAN row lands after a PERCEIVE row and the gate is CORRECT to refuse.**
+
+    ls20 cycle 0   seq 0 PERCEIVE read_order · 1 mode · 2 cascade · 3 matches · 4 placements
+                   seq 5 PLAN routine_refused          <- refused here
+    demo cycle 0   seq 0 PLAN routine_refused          <- correct, and it is why the seat passes
+
+**`demo.jsonl` CONTAINS ZERO NARRATION ROWS.** The `gate` conformance seat validates a ledger that
+**structurally cannot contain the rows that break it** — the toy world never reaches the four
+narrators. **Nine seats green and every real board refused, simultaneously, for a year of this
+build's life as far as anything here records.**
+
+**CLASSIFICATION: SYSTEM ERROR.** Across four of four boards that ran; independent of what any
+board contains; **wrong-given-the-input** — the ledger violates the build's OWN declared step
+order and the gate's rule is right. **Nothing about this reasoning runs from what a board contains
+to what the build should do.**
+
+**CANDIDATE FIXES, BOTH RECORDED, NEITHER APPLIED, AND THE CHOICE IS NOT THE SEAT'S:**
+
+    (a) stamp the four narrators PLAN rather than PERCEIVE. They run BEFORE `_present()` and
+        BEFORE `env.observe()`, so PERCEIVE is a phase they PRECEDE -- arguably the stamp was
+        always wrong. Smallest change; no call moves
+    (b) move the four calls to after the PLAN phase. Risk: narration describes the pre-action
+        frame, so moving it may change WHAT IT NARRATES, which is a behaviour change wearing an
+        ordering fix's clothes
+
+**AND A SECOND FINDING THAT OUTLIVES THE FIX: the `gate` seat's coverage is bounded by the toy
+world's vocabulary.** Any row only a real board can emit is unreachable by that seat. **A repair
+to `E1` leaves that gap exactly where it is.**
+
+### THE MECHANISMS THAT FIRED, AND THEY ARE FIRES AND NOT CAPABILITY
+
+    an objective WON a contest      ls20, 1 of 1 contested mints. The arm that the last window
+                                    could not confirm ever wins, wins here
+    the predictor won               ar25 and sp80, 1 each -- so both arms are live across the
+                                    panel and the contest is not decorative
+    the bargain paid                3 of 4 boards produced `pays 1`
+    the refusal is legible          `no objective is confidently shrinking`, 6 of 6 cycles, all
+                                    four boards -- S3's rows doing exactly their job
+    the space is exhaustive         `depth_exhausted` on every board, `budget_spent` on none
+
+**AND `levels.advanced` IS FALSE ON ALL FIVE, `levels_completed` 0, `chunk_reuse` 0 EVERYWHERE.**
+The build's own report says it: *"ONE level means no differences and the verdict is UNREACHED — no
+level advanced, so no contribution reading exists. **That is a statement about the run, not a null
+about the library.**"*
+
+> **NOTHING HERE IS CAPABILITY.** Every line above is a mechanism firing with a readable record.
+> **`by` is `draw` six times out of six on every board that acted** — the agent probed and never
+> pursued. **Repeated mechanism-fires do not accrete into *it works*.**
+
+### THE COST CURVE, WHICH IS THE READING AND NOT AN OBSTACLE
+
+    ls20   0.101 5.627 11.471 19.968 23.435 33.010     first->last  326.8x over 6 cycles
+    ar25   0.065 8.134 31.682 37.593 40.772 49.281                  758.2x
+    ka59   0.062 3.530 10.037 15.856 18.200 20.489                  330.5x
+    sp80   0.033 1.524  2.858  5.343  6.217  7.856                  238.1x
+
+**PER-CYCLE COST RISES MONOTONICALLY ON ALL FOUR, AND THE RISE IS 240x-760x WITHIN SIX CYCLES.**
+The shape is the same on every board while the magnitude is not, which is what a per-build wall
+looks like rather than a per-board one.
+
+### THE MATCHED PAIR, WHICH SETTLES THE `negate` EXPOSURE QUESTION
+
+    ls20 baseline  atoms=45  bound=10  OBJ-bound=3  ['o16.w','o20.col','o20.w']
+    ls20 +negate   atoms=46  bound=10  OBJ-bound=3  ['o16.w','o20.col','o20.w']
+
+**IDENTICAL.** The fixture's 2->0 objective collapse **did not reproduce on a real board at 25
+cycles.** The `BINDABLE` filter stands on the CONTRACT — `_predict` declares two arms and
+`_library_fit` was admitting a third — and its measured EXPOSURE on this board is **nil**. **N=1,
+so the claim is *did not reproduce on `ls20`*, never *does not occur on real boards*.**
+
+### DETERMINISM — AND IT MEANS "RUN IT REPEATEDLY" HAD NOTHING TO SHOW
+
+Two identical `ka59` runs differ on **one key**, and inside it only the random handle suffixes:
+`ka59_R_term_04034029` against `ka59_R_term_9d781cfb` — **same term, same atoms, same origin, same
+admitted, same residual.** `handle()`'s own docstring: *a mnemonic, never a key.*
+
+**`Drive()` is constructed with NO seed at both sites and `choose` is deterministic in the cycle,
+so there is no seed the seat can vary without editing a build file — which the freeze forbids.**
+**Run-to-run variance is ZERO BY CONSTRUCTION**, and executing *run it many times* literally would
+have produced N identical reports and a *variance is low* line that measured nothing.
+
+> **SO THE AXIS MOVED FROM REPETITION TO DEPTH**, which is the only axis the seat can vary from
+> outside the build — and it attacks a standing weakness directly: **every null last window was
+> read at ~4% of the ruled budget.** Complete sweeps at 6, then 12, then 24, sequentially, so a
+> window that ends early still leaves a COMPLETE reading at some depth.
+
+### INSTRUMENT ERRORS, MINE, THIS WINDOW
+
+**`I1` · A SCRATCHPAD FILE NAMED `queue.py` SHADOWED THE STDLIB.** Python puts the script's
+directory on `sys.path[0]`, so `urllib3`'s `import queue` **executed my measurement script** — its
+output appeared inside an unrelated log immediately before the crash. **It fires only on the
+game-loading path, which is every Phase 3 run**, so it would have contaminated every log in the
+window. Renamed; the scratchpad swept for other stdlib collisions, none.
+
+**`I2` · I READ A GATE REFUSAL OFF ROWS I BUILT MYSELF AND GOT THE WRONG REASON.** My capture
+stored `{cycle, step, slot, event, detail}` with **no `mode` key**, so `gate.check` answered
+`no-mode` — **a property of my dicts, not of the build.** The real token is `step-order`. **The
+fix was to wrap `gate.check` itself so the rows examined are exactly the ones `play()` passes** —
+intercept at the call the build makes, never reconstruct its inputs.
+
+**`I3` · I CONFOUNDED MY OWN COST SERIES AFTER WRITING THE RULE AGAINST IT.** The freeze note says
+two runs contend and both deliverables are per-cycle cost — then I ran the determinism check
+alongside the tail of the matched pair. **Cycles 6/11/16 predate the overlap and stand; cycles
+16-25 are contended and are not read.** Every sweep since runs sequentially on an idle machine.
+
+## THE DEPTH-12 SWEEP — AND THE DEPTH AXIS OVERTURNED A NULL ON ALL FOUR BOARDS
+
+**The window could not vary the seed, so it varied the depth. That decision is what produced the
+finding, and the finding is that SIX CYCLES IS NOT A READING.**
+
+    game   wall      cyc  mints  lib   contest                    routine_refused
+    ls20    529.6s   12     7     59   objective 1 · predictor 6        8
+    ar25   1101.9s   12    23     75   predictor 23                     9
+    ka59    345.8s   12     9     59   predictor 5 · OBJECTIVE 4        7
+    vc33      0.1s    0     0     48   --                               --
+    sp80    133.6s   12     6     59   predictor 6                      8
+
+### `F1` — THE AGENT IS NOT A PURE PROBER, AND AT DEPTH 6 IT LOOKS LIKE ONE
+
+    by (repeat)   depth 6          depth 12
+    ls20          draw 6           draw 8 · discriminate:learned 4
+    ar25          draw 6           draw 9 · discriminate:learned 3
+    ka59          draw 6           draw 7 · discriminate:learned 5
+    sp80          draw 6           draw 8 · discriminate:learned 4
+
+**AT SIX CYCLES THE MIX IS 100% PROBE ON EVERY BOARD. AT TWELVE IT IS DIRECTED ON 3-5 OF 12, ON
+EVERY BOARD.** `discriminate:learned` maps to `DIRECTED` through S5's phase family, so this is the
+agent choosing an action from a LEARNED split rather than drawing one.
+
+> **THE NULL WAS THE INSTRUMENT'S, NOT THE BUILD'S.** *The agent only probes* is what a six-cycle
+> read says, it is false at twelve, and **nothing in the six-cycle output distinguishes the two.**
+> The corpus's own warning, in the register it was filed under: *every null this week was read at
+> 4% of the budget.* **This is that, demonstrated rather than argued.**
+
+**AND S5 IS THE REASON IT IS VISIBLE AT ALL.** `discriminate:learned` is excluded by exact match
+under the pre-S5 `by == "discriminate"`. **The same runs under the old counter read
+`directed: 0` on all four boards** — a fix measured this morning as *6 of 10 boards* is the
+difference between reading *pure probe* and *directed on four of four*.
+
+### `F2` — `ka59` IS THE SHARPEST CASE AND IT IS A NULL TURNING POSITIVE
+
+    ka59   depth 6    mints 0    contest {}                     no contest occurred AT ALL
+           depth 12   mints 9    contest predictor 5 · OBJECTIVE 4
+
+**At six cycles `ka59` contributes NOTHING to any contest question** — a board with no contested
+mint is not evidence that the objective arm loses; **it is not evidence about the contest at
+all.** At twelve it contests nine times and **the objective arm wins four of them.**
+
+**SO THE OBJECTIVE ARM WINS ON TWO OF FOUR BOARDS AT DEPTH 12** — `ls20` 1 of 7, `ka59` 4 of 9 —
+against zero-of-one and one-of-one readings at depth 6. **The last window's open question, *does
+an objective ever WIN a contest*, is answered YES with a denominator.**
+
+### `F3` — COST IS SPIKY, NOT MONOTONIC, AND SIX CYCLES HID THAT TOO
+
+    ls20   0.087 5.373 11.047 19.579 22.529 34.136 40.519 40.966 [110.672] 50.340 67.930 125.481
+    ar25   0.065 8.102 31.979 37.796 40.748 49.164 61.931 60.640  78.801 [430.906] 86.108 215.492
+    ka59   0.063 3.527 10.664 16.010 18.111 20.216 25.237 35.060  31.934 [ 77.408] 31.934  75.498
+    sp80   0.034 1.544  2.861  5.329  6.193  7.843  9.034 13.062  10.925  21.810  21.617  33.210
+
+**THE FIRST SIX CYCLES RISE MONOTONICALLY ON ALL FOUR AND THE NEXT SIX DO NOT.** Three boards show
+a large SPIKE followed by a DROP — `ar25` goes 78.8 -> **430.9** -> 86.1, a 5.5x excursion that
+falls back. **A smooth-growth account of the wall is a six-cycle artefact.**
+
+**RECORDED AS A SHAPE, NOT A CAUSE.** An episodic spike-and-fall is consistent with something
+firing on some cycles and not others — **and naming which mechanism would be a guess, which is
+what §8 already refuses.** The growing-closure account stays refuted; the cause stays UNKNOWN and
+is not replaced with a second guess. **Ratios over 12 cycles: 976x - 3315x.**
+
+### `F4` — SCOPE WIDTH IS 3 ON EVERY MINT OF EVERY BOARD AT BOTH DEPTHS
+
+    depth 6    ls20 {3: 47}   ar25 {3: 144}   ka59 {3: 60}   sp80 {3: 45}
+    depth 12   ls20 {3: 127}  ar25 {3: 360}   ka59 {3: 150}  sp80 {3: 110}
+
+**887 mints across four boards and two depths, and the guard scope is 3 every single time.** Not a
+distribution — a constant. **Recorded as an observation with a denominator and NOT as a defect:
+whether 3 is correct is a question about `_guards`, and nothing here shows it is wrong.**
+
+### `F5` — ACTIONS TIE AT MAX AND TUPLE ORDER CHOOSES
+
+    ls20  tied_at_max {sep:1 -> 2,  sep:2 -> 2}      ka59  {sep:2 -> 5}
+    ar25  {sep:2 -> 2,  sep:4 -> 1}                  sp80  {sep:2 -> 3,  sep:3 -> 1}
+
+The build's own gloss: *1 = one action scored highest alone; >=2 = that many tied and tuple order
+chose.* **Ties at the action selector on all four boards** — **the same SHAPE as the
+objective/predictor price tie**, one level down: equal scores, and position in a tuple decides.
+**Reported because it is measured; not filed as a defect, because whether a tie there should be
+broken is the same open question one level up, and that one is Isaiah's.**
+
+### WHAT DID NOT CHANGE WITH DEPTH, WHICH IS THE HALF THAT KEEPS CAPABILITY HONEST
+
+    routine_refused    7-9 of 12 cycles, all four boards, ONE reason throughout:
+                       "no objective is confidently shrinking"
+    routines fired     ZERO
+    levels advanced    ZERO
+    chunk_reuse        ZERO on every board at every depth
+    gate               refuse on all four, `step-order`, `E1` unchanged
+
+> **MECHANISM FIRES MOVED WITH DEPTH; CAPABILITY DID NOT MOVE AT ALL.** More minting, more
+> contests, directed action appearing — **and not one routine, not one level, not one chunk
+> reused.** The M2 blocker is the same single sentence at six cycles and at twelve, on every
+> board. **Depth bought mechanism and bought no capability, and those two readings must not be
+> summed.**
