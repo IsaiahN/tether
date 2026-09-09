@@ -23548,3 +23548,104 @@ answer to the agent's problem.**
     CAPABILITY  UNCHANGED, and now with a measured ceiling: on 6 of 24 games the agent is
                 handed no action at all, and on 12 more the only positioned action is removed
                 before it is offered. Levels: 0
+
+## THE RANDOM-WALK BASELINE, BUILT AND RUN — AND IT CORRECTS MY OWN HEADLINE
+
+**Isaiah: *"it was bothering me because even with random walk you guys would have gotten 1 level
+passed at least."*** That is a claim about the HABITAT, and it is the only kind of statement that
+separates *the agent is worse than random* from *nobody clears a level in the actions available.*
+
+**IT DID NOT EXIST.** `controlled()` resets the bench and takes ONE step per trial; nothing in the
+repo ever played a policy out. **And it was never expensive: `arc_holdout`'s own header measures
+stepping at ~2,420 steps/s** — the 35-minute runs are agent reasoning, not the world. The whole
+sweep below took under two minutes.
+
+### 16 PUBLIC BOARDS x 3 SEEDS x 2 ARMS, AND EVERY LEVEL COUNT IS ZERO
+
+    ARM S  uniform over exactly what `arc_world.actions()` hands the agent
+    ARM P  uniform over simple + ACTION6 at a uniform random (x, y)
+
+    game    S live_steps          P live_steps         levels
+    ls20    134 128 131           134 128 131          0
+    ka59     99  99  99            99  99  99          0
+    sp80     19  29  17            19  29  15          0
+    g50t    129 129 129           129 129 129          0
+    tr87    127 127 127           127 127 127          0
+    tu93     49  49  49            49  49  49          0
+    re86     99  99  99            99  99  99          0
+    wa30    199 199 199           199 199 199          0
+    sk48    252 253 252           299 292 313          0
+    sb26    115 134 124           190 190 173          0
+    su15   1200 1200 1200          86  63  79          0
+    dc22    127 127 127           126 126 127          0
+    ar25     73  77  73            94 101  87          0
+    ft09      0   0   0           464 379 654          0
+    vc33      0   0   0            49  49  49          0
+    tn36      0   0   0            60  60  60          0
+
+**PER GAME, NEVER POOLED.** Extended to 1200 actions on the four boards that hit the first
+ceiling; still zero.
+
+### SO MY OWN HEADLINE WAS TOO STRONG AND IS CORRECTED HERE
+
+**I wrote *the agent is worse than random.*** That is true of the POLICY SHAPE and false of the
+OUTCOME, and the two were not separated:
+
+    POLICY SHAPE   the agent presses one button 19 of 24. The `draw` arm spreads 2/2/1/2
+                   over four. On distribution the agent IS worse than its own random half
+    OUTCOME        random clears ZERO levels on all sixteen boards at up to 1200 actions.
+                   On levels the two are INDISTINGUISHABLE
+
+> **THE DEGENERATE POLICY IS REAL AND IT IS NOT THE EXPLANATION FOR THE ZERO.** Fixing the
+> one-button branch would make the agent behave like the random arm, and **the random arm scores
+> zero too.** Those are two findings and summing them would have produced a repair aimed at the
+> wrong one.
+
+### THREE HABITAT FACTS NOBODY HAD MEASURED, AND EACH CHANGES HOW A ZERO READS
+
+**1 · EPISODE LENGTH IS PER-BOARD AND SOMETIMES TINY.** `sp80` ends in **17-29 actions**. Every
+`sp80` reading this week was taken at 24 or 48 cycles — **spanning a death, then no-ops**, because
+`step` returns False forever after the first `GAME_OVER` and `play()` deliberately does not
+restart. *The runs were long enough to fail and not long enough to succeed.*
+
+**2 · SOME ENDINGS ARE CAPS, NOT DEATHS, AND THE SEED SPREAD SEPARATES THEM.**
+
+    IDENTICAL across seeds AND arms -> policy-independent -> a CAP
+      ka59 99 · g50t 129 · tr87 127 · tu93 49 · re86 99 · wa30 199 · dc22 127
+      vc33 49 · tn36 60
+    VARIES with the seed -> policy-dependent -> a real DEATH
+      ls20 · sp80 · sb26 · ar25 · su15(P) · sk48(P)
+
+**A cap and a death are different worlds and the ledger records one word for both.**
+
+**3 · ON THREE BOARDS THE AGENT'S ACTION SET IS EMPTY, MEASURED RATHER THAN INFERRED.** `ft09`,
+`vc33`, `tn36` under ARM S take **zero steps** — the walk cannot move because the pool is empty.
+Arm P moves freely on all three. **These are ACTION6-only boards, and arm S is exactly what the
+agent gets.** The six-game exclusion in `CLAUDE.md` was written from the symptom; this is the
+cause, and three of the six are now confirmed empirically.
+
+> **AND `su15` IS THE SHARPEST CASE.** It declares `[6, 7]`; the filter strips `ACTION6` and
+> `ACTION7` is **UNDO**. So the agent is handed a single action whose job is to take moves back.
+> **Arm S runs 1200 steps without the episode ever ending** — it cannot die and it cannot
+> progress. *An action set that is not empty and is not capable of anything.*
+
+### WHAT THIS DOES NOT ESTABLISH, STATED BECAUSE THE ZERO IS THE WHOLE READING
+
+**`levels_completed` HAS A WORKING WRITE PATH** — `arcengine/base_game.py:414` does `self._score
++= 1`, surfaced at 244 as `levels_completed`, gated on `_next_level`. **So the zero is a real zero
+and not a dead field.**
+
+**BUT IT IS A MECHANISM CHECK, NOT A POSITIVE CONTROL.** *A control that examines nothing cannot
+demonstrate a clean state* — and **I have never observed this counter non-zero in any run, mine or
+the agent's.** A true positive control means driving a board to a level advance, which requires
+knowing how a board is solved. **That is the one thing I may not learn**, so this abstention is
+permanent from the seat and is recorded rather than closed: *I cannot build the instrument that
+would settle it from what I am allowed to hold, and this is the closure I searched.*
+
+**AND IT DOES NOT SHOW THAT NO POLICY CLEARS A LEVEL.** Uniform random is one policy. Sixteen
+boards say uniform random does not; they say nothing about a policy that does anything else.
+
+    MECHANISM   the baseline exists, is cheap, and is per-game
+    CAPABILITY  the agent's zero is no longer evidence about the agent. It is the same zero
+                a random policy gets, in rooms that are 17 to 1200 actions long, three of
+                which hand the agent nothing to press
