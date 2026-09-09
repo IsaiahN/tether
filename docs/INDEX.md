@@ -21236,3 +21236,69 @@ owed, and it is made. **The verdict half was not owed and has been withdrawn.**
     §8  COST WALL    the matched pair arrived -- see the arm comparison; the growing-closure
                      account is refuted twice, once matched-pair, and the cause stays UNKNOWN
                      rather than replaced with a second guess
+
+## SWEEP 42 — §4's PRODUCER IS FILED, NOT BUILT: THE SPECIFIED DESIGN CANNOT DELIVER THE
+## PRIZE IT IS JUSTIFIED BY
+
+**The instruction was *build it if and only if it is clean without a held decision; if it needs a
+ruling, file it and do not decide it.*** It needs one, and the blocker is not the semantics — those
+are clean — but a **structural contradiction between the specified design and its stated purpose.**
+
+### THE SEMANTICS ARE CLEAN AND ARE NOT THE PROBLEM
+
+    type check    two checks where there is one: `operand_term.in_type` must accept the bound
+                  slot's type, and `operand_term.out_type` must satisfy `operand_type`. An
+                  end-to-end type requirement, not a judgement
+    pricing       ALREADY HANDLED. `Gamma.length` recurses into `operand_term` and counts a
+                  settled term as ONE unit, so the tree does not inherit the overcharge
+    site          `tether.py:2364` -- extend `binds` from slot names to (slot, settled term)
+                  pairs and pass `operand_term=` to the `Term` constructor
+
+### THE CONTRADICTION, AND IT IS MEASURED RATHER THAN ARGUED
+
+**A SETTLED TERM CAN ONLY EVER BE `val` OR `OBJ`.** There are exactly two `gamma.accept` call
+sites — `mint`, whose streams are `("val","val")` and `(stype, OBJ)` and nothing else, and the
+reuse path, whose candidates come from `_library_fit` and are now filtered to the same two by the
+`BINDABLE` guard. **Measured on a warmed agent: settled out_types = `['val']`.**
+
+**`both` and `either` declare `operand_type = PRED`.** No settled term can carry `out_type` PRED,
+**so the producer bounded by the settled library cannot supply their operand, ever.**
+
+> **THE JUSTIFICATION WAS *the tree is dormant and `and_op`/`or_op` — the largest structural
+> prize — stay unreachable.* THE SPECIFIED DESIGN DOES NOT REACH THEM.** Built exactly as
+> described, `both`/`either` remain the identity on every input. **The producer would be real
+> work that leaves the stated blocker exactly where it is.**
+
+### THE TWO THINGS THAT WOULD ACTUALLY UNBLOCK THEM, AND BOTH ARE RULINGS
+
+    (a) admit a PRED stream to `mint`, so PRED terms can be accepted and settle. Changes what
+        the bargain prices and what may bind -- the same two-arm contract just enforced at
+        `_library_fit` would need a third arm, deliberately this time
+    (b) draw operand branches from the LIBRARY rather than the SETTLED library. DIRECT DOCTRINE
+        CONFLICT: `gamma.units()` holds that only what the ground has PAID FOR becomes a
+        shortcut, and an unsettled term is precisely what the ground has not paid for
+
+**(b) is refused on the doctrine as written. (a) is a real design decision and it is Isaiah's.**
+
+### AND A SECOND, INDEPENDENT REASON TO FILE RATHER THAN BUILD IN THIS WINDOW
+
+**The producer multiplies the mint's inner loop by the size of the settled library.** Measured on
+the fixture: 24 slots, 1 settled term, `binds` 24 -> 47, a **2.0x** inner loop. The last window
+recorded **six chunks settling unaided on real boards**, which is ~7x.
+
+> **SO IT MAKES COST GROW WITH THE SETTLED LIBRARY, WHICH GROWS WITH CYCLES — AND PHASE 3
+> MEASURES WHY COST GROWS WITH CYCLES.** Shipping it immediately before that freeze would
+> introduce a new cycle-dependent cost term into the exact measurement designed to isolate one,
+> and §8's series would no longer be comparable to the last window's. **Even if (a) were ruled
+> tomorrow, the sequencing question stands on its own.**
+
+### DISPOSITION
+
+    §4 producer    FILED, NOT BUILT. Needs ruling (a) to serve its purpose, and a separate
+                   sequencing call about landing a cycle-dependent cost term before a
+                   cost-wall measurement
+    Phase 1        COMPLETE. Items 1 and 2 done at 846f174 with the OPPOSITE result to the
+                   relay's premise -- the reach circle is INTACT and the citations stay
+                   suspended. Item 3 filed
+    building       STOPS HERE, per the instruction. No further vocabulary, no `inside`, no
+                   G4 orphan work, no `max_depth` change
