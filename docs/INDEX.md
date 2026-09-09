@@ -22668,3 +22668,75 @@ half was never settled, because the first implementation smuggled an answer that
 
 **NO CANDIDATE FIX. CLASSIFICATION UNCHANGED: system error, wrong regardless of board** — the
 argument never mentions a board — **and now with a start date.**
+
+## `E2`'s ALTERNATIVE READERS — A SURVEY, NOT A RULING. THE BUILD HAS ONE WORKING SOURCE
+
+**Isaiah's honest input before choosing: *what are the alternative readers?*** Surveyed from the
+code rather than proposed. **Two mechanisms in this build DO get per-action variation, and both do
+it the same way.**
+
+    can()          tether.py:1679   for a in self.actions: moves = [... for bef, act, aft in
+                                    self.trace if act == a ...]
+    _goal_split()  tether.py:2036   hist.setdefault(act, []).append((bef[s], aft[s]))
+                                    then per-action votes over hist[a]
+
+**NEITHER GOES THROUGH `Ctx(action=...)`. BOTH READ `self.trace`** — the empirical record of
+`(before, action, after)` — **filtered by `act == a`.** That is the build's one demonstrated source
+of action-dependence, and it is demonstrated twice.
+
+### THE THREE CANDIDATE READERS, WITH WHAT IS KNOWN ABOUT EACH
+
+    (A) THE TRACE, filtered by action
+        what `can` and `_goal_split` both already use. Empirical: what has this action been
+        OBSERVED to do to this slot. Populated today, working today, in two places.
+        KNOWN COST: it needs the action TRIED on that slot. Both consumers carry an explicit
+        coverage gate -- `can`: *untried is not evidence either way*; `_goal_split`:
+        `if any(a not in hist for a in self.actions): continue`. Last window measured
+        `_goal_split`'s coverage exit at 55%, so this is the DOMINANT failure mode of the
+        only working source
+
+    (B) GUARDED TERMS -- attach guards to the spread's candidates
+        mechanically sound: it makes `ctx.action` meaningful, which is the ONLY thing that
+        ever has. BUT A GUARD IS A FILTER, not a prediction: `?ACTION1` says *this term
+        applies under ACTION1*, so a spread over guarded candidates counts HOW MANY TERMS
+        APPLY per action, not HOW MUCH EACH ACTION WOULD REVEAL. **A different quantity than
+        the block's own comment describes**
+
+    (C) `_predict` on the BOUND term
+        already refused, and by Isaiah's own objection: for `owed` slots the bound term is
+        frequently `idn`, which is constant in action, so it reproduces `E2`'s defect at a
+        new site
+
+> **SO THE MENU IS SHORTER THAN IT LOOKS. (A) IS THE ONLY READER THIS BUILD HAS EVER MADE WORK**,
+> (B) works mechanically while measuring something else, and (C) is known-degenerate on exactly
+> the population the discriminator targets. **The ruling stays Isaiah's; this is the input he
+> asked for and nothing more.**
+
+**AND THE HONEST CAVEAT ON (A):** the trace-based readers are gated on coverage, and coverage is
+their dominant failure. **A discriminating probe built on (A) would inherit that** — it could only
+discriminate among actions it had already tried, which is a real tension with the purpose of a
+probe. **That tension is a design question and is not resolved here.**
+
+---
+
+## `E1c` — REFERENCED-BUT-UNREACHABLE IS A CATEGORY NO SEAT DETECTS
+
+**Named on its own because it is not about `discriminate`.** `cbb091e` added
+`_ties[("spread", ...)]` bookkeeping to a branch that cannot be entered. Nothing flagged it.
+
+    conform/lint.py ISOLATED   catches code NOTHING REFERENCES.  The spread block IS referenced
+                               -- `choose` calls it every cycle. It is merely never TAKEN
+    every other seat           passes, because a branch that never runs never fails
+
+> **A DEAD BRANCH THAT LOOKS ALIVE ACCRUES MAINTENANCE, AND THE MAINTENANCE MAKES IT LOOK MORE
+> ALIVE.** An edit to unreachable code is indistinguishable from an edit to live code in every
+> record the project keeps. **`_ties[("spread", ...)]` is structurally always zero and nothing
+> says so.**
+
+**SAME FAMILY AS `E1b`** — a fixture that structurally cannot contain the rows that would fail —
+**and the shape is one sentence: CHECKS THAT PASS BECAUSE THEY CANNOT SEE THE THING.** `E1b` is a
+seat blind to rows only real boards emit; `E1c` is a seat blind to branches nothing enters.
+
+**NO CANDIDATE FIX.** A reachability checker is a new seat, and whether the project wants one is a
+decision. **What is recorded is the CATEGORY and the two instances**, so the next unreachable
+branch is found by looking rather than by accident.
