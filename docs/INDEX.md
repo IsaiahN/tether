@@ -22549,3 +22549,67 @@ docstring — which is board-independent — and on nothing observed here.
 
 **ONE BOARD, ONE DEPTH.** 39 misses, three objects. Whether other boards produce static-dimension
 shape churn is unmeasured.
+
+## `E1` REWRITTEN — THE LOOP DISAGREES WITH `ledger.STEPS` IN SIX PLACES, NOT ONE
+
+**The deferral was right and the reason is now measured.** I held `E1` back because `F14` moves
+planning earlier and might obsolete it. `F14` has landed. **`E1` survives — and the post-fix
+transcript shows the violation set is six shapes, not the one `gate.check` reports.**
+
+    ka59 x 24                              sp80 x 3
+      ROUTE    -> PERCEIVE   25              ROUTE    -> PERCEIVE    4
+      ACCEPT   -> MINT       18              PERCEIVE -> PLAN        3
+      PROMOTE  -> PERCEIVE   16              ACCEPT   -> MINT        2
+      PERCEIVE -> PLAN        9              ACCEPT   -> PERCEIVE    1
+      MINT     -> PERCEIVE    6              MINT     -> PERCEIVE    1
+      ACCEPT   -> PERCEIVE    1
+      75 violations, 6 shapes                11 violations, 5 shapes
+
+**FIVE SHAPES ARE COMMON TO BOTH BOARDS** and the count scales with run length. **SYSTEM ERROR:
+wrong regardless of game, present across boards.**
+
+    causing events   bet 24 · park 16 · indistinct 16 · routine_refused 8 · indistinct 6
+                     · mint 2 · indistinct 1 · indistinct 1
+
+### `E1`'s ORIGINAL DIAGNOSIS WAS THE SMALLEST CATEGORY, AND ONLY LOOKED LIKE THE WHOLE
+
+**`PERCEIVE -> PLAN` is 9 of 75 on `ka59` and 3 of 11 on `sp80`.** The gate reports it because it
+occurs EARLIEST IN A CYCLE, not because it is the largest — `gate.check` returns the FIRST
+violation and stops.
+
+> **SO RESTAMPING THE FOUR NARRATORS WOULD HAVE MOVED THE GATE TO `ROUTE -> PERCEIVE` AT seq 96
+> AND IT WOULD STILL REFUSE.** The fix would have read as wrong, or been followed by five more,
+> chased one at a time. **The sequencing decision — *see whether the violation survives `F14`
+> before touching narration* — is vindicated by measurement rather than by taste.**
+
+### AND THIS IS A FINDING `gate.check` STRUCTURALLY COULD NOT PRODUCE
+
+**A checker that returns the first violation cannot report a distribution.** It answers *is the
+ledger well-ordered* correctly and cannot answer *how many ways is it not*. The extent was
+invisible for as long as the primary stream had nowhere to go — **and it took one pass over the
+transcript to see, on a defect that has been in every real run this build has ever made.**
+
+### WHAT IS ACTUALLY WRONG IS A RULING, AND THE THREE CANDIDATES ARE DIFFERENT ANIMALS
+
+    (a) the LOOP's order is wrong           six separate changes to when things happen
+    (b) `ledger.STEPS` is a wrong MODEL     the nine-step sequence describes a loop that does
+                                            not run in that order, so the declaration is the
+                                            defect and the loop is fine
+    (c) individual ROWS are mis-stamped     e.g. `bet` claiming PERCEIVE while emitted after
+                                            routing; `park` claiming MINT after ACCEPT
+
+**(b) IS THE ONE THE MEASUREMENT MAKES LIVE, AND IT WAS NOT ON THE ORIGINAL LIST.** Six
+independent disagreements across two boards is what a wrong MODEL looks like; one mis-stamped
+family is what a wrong STAMP looks like. **Which it is decides whether this is a doc-shaped repair
+or six behavioural ones, and it is Isaiah's.**
+
+**NO CANDIDATE FIX IS WRITTEN.** The two I filed against the original `E1` — restamp the narrators,
+or move their calls — **address 9 of 75 and are withdrawn as insufficient rather than wrong.**
+
+### CLASSIFICATION AND COLUMNS
+
+    CLASSIFICATION   system error. Board-independent, six shapes, both boards, wrong-given-the-
+                     input against the build's OWN declared order
+    MECHANISM        the gate is right to refuse and has been right on every real run
+    CAPABILITY       none. The agent plays identically; this is the RECORD disagreeing with its
+                     own schema, and no action of the agent depends on it
