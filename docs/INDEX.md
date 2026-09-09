@@ -23984,3 +23984,35 @@ have produced it.
     MECHANISM   the collapse located at two sites and classified as correct-given-the-input
     CAPABILITY  none. No action differs, and the agent cannot see this distinction even in
                 principle from inside one run
+
+### `I12` — THE GENERATOR STOPPED REPRODUCING THE ARTIFACT, AND MY OWN CRON WOULD HAVE SHIPPED THE REGRESSION
+
+**I hand-edited cells INSIDE the `create_file` paste instead of editing `mksheets.py`.** The paste
+is a transport; I used it as an edit site. **So the generator silently fell behind the published
+sheet** — and the sync cron's own step 3 says *"run mksheets.py, read workbook3.csv FROM DISK"*,
+which would have **published a regression over content the reviewer had already read.**
+
+    checked 6 known hand-edits    6 of 6 MISSING from the generator
+    swept 8 more phrases          1 more REGRESSED (F19's routine_cut detail)
+
+> **THE AUTOMATION WOULD HAVE CAUSED IT, AND THE INSTRUCTION IS STILL RIGHT.** *Never rebuild the
+> CSV from memory* is correct precisely BECAUSE the generator is meant to be the source of truth.
+> **Hand-editing the paste is what broke that premise, not the instruction** — and an instruction
+> that is right for a reason that has quietly stopped holding is the most dangerous kind.
+
+**AND `F19`'s REGRESSION IS `I9`'s SECOND VICTIM, FOUND SEVEN HOURS LATE.** The patch that was meant
+to restore `F19`'s detailed record used a leading `"` that sits MID-LITERAL in the source, so it
+matched nothing and reported success — **the same wrong-anchor shape as `I9`, from the same batch.**
+The detailed text existed only in the paste, was published five times, and **was never in the
+generator at all.** `I9` was filed as one silent no-op; it was two, and I closed it after finding
+the first.
+
+**RULE FROM HERE: every cell change goes into `mksheets.py`, and the publish reads from disk.**
+
+> **A GENERATOR THAT DOES NOT REPRODUCE ITS ARTIFACT IS WORSE THAN NO GENERATOR, BECAUSE IT LOOKS
+> LIKE ONE.** Same family as the gate seat validating a ledger it cannot break, and as
+> `controlled()` never playing an episode: **a mechanism that is trusted for a property it no longer
+> has.** Third instance this week, and the first where the mechanism was mine.
+
+    MECHANISM   generator reconciled to the artifact, 7 cells restored, every edit asserted
+    CAPABILITY  none. No build file touched
