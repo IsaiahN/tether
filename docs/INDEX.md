@@ -22254,8 +22254,9 @@ of them on the count**, because *never fired* is absential. Both now have positi
 ### THE CHAIN, AND EVERY LINK IS MEASURED
 
     1  `choose` picks `discriminate` only if `owed` is non-empty AND max(spread) > min(spread)
-    2  MEASURED, sp80 @ 12: `owed` NON-EMPTY on 10 of 12 cycles, `owed_import` reaching 11.
-       Condition 1 is satisfied -- the block is condition 2
+    2  MEASURED ON BOTH BOARDS @ 12: `owed` NON-EMPTY on 10 of 12 cycles on EACH, with
+       `owed_import` reaching 11 on sp80 and 15 on ka59. Condition 1 is satisfied on both
+       -- the block is condition 2
     3  spread[act] = distinct outcomes of `t.apply(before[s], Ctx(action=act, ...))` over
        `cands = enumerate_closure("val","val", 2, budget)`
     4  MEASURED: that closure yields SEVEN candidates and ALL SEVEN have `guard=None`
@@ -22300,7 +22301,8 @@ the premise was true when written and the build moved under it.
 
 **So `discriminate:goal` is starved by the SAME selector as `routine`, at the same moments** — and
 doubly, since it also sits after `discriminate:learned` in `choose()` and is reached only on
-fall-through cycles. **MEASURED, sp80 @ 12: `_goal_split` returned `None` 8 of 8 times.**
+fall-through cycles. **MEASURED ON BOTH BOARDS: `_goal_split` returned `None` 8 of 8 times on sp80 and 7 of 7 on
+ka59 — which is each board's frozen `draw` count, so it refused on EVERY cycle it was reached.**
 
 > **THE CALL-SITE MOVE THE DEMAND-DRIVEN SHAPE IMPLIES WOULD UNBLOCK TWO EXITS, NOT ONE.** That is
 > a material addition to `F14`'s analysis and it was found by reading the second `_goal_choice`
