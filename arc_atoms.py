@@ -132,6 +132,13 @@ ADMITTED = {
     "abs_delta": "handed-2026-09-08 ON DEPTH; a delta's MAGNITUDE -- `moved 3 left` and `moved "
                  "3 right` shared no reading before it",
     "sign": "handed-2026-09-08 ON DEPTH; a delta's DIRECTION as a truth",
+    # G1'S GAP, AND THE ONLY THREE HERE NAMED BY A STRUCTURAL ABSENCE RATHER THAN BY A PRICE:
+    # the set held ∀, ∃ and ¬∃ and no connectives, so an objective was always ONE predicate
+    # quantified. `both`/`either` are buildable only because §4's operand_term lets a COMPUTED
+    # predicate fill operand 0 -- an operand was a slot's raw value until this pass.
+    "negate": "handed-2026-09-08: PRED -> PRED; the set had quantifiers and no connectives",
+    "both": "handed-2026-09-08: conjunction of two predicates; needs §4's computed operand",
+    "either": "handed-2026-09-08: disjunction of two predicates; needs §4's computed operand",
     "holes": "handed-2026-09-08: §12.4's own INWARD example `holes(shape)`; SHAPE reached "
              "only SHAPE and PRED so no chain measured a shape; Isaiah's own preschool case, "
              "squares and pegs",
@@ -587,6 +594,43 @@ def _group_more() -> list[Atom]:
             Atom("sign", _sign, DELTA, BOOL)]
 
 
+def _connect() -> list[Atom]:
+    """`PRED → PRED`. **G1's gap: the set had quantifiers and no connectives.**
+
+    `all`/`any`/`none` are the QUANTIFIERS -- ∀, ∃, ¬∃ -- and they close a predicate into an
+    objective. Nothing joined two predicates, so **an objective was always ONE predicate
+    quantified** and *all objects are red AND square* had no form at all.
+
+    **AND `both`/`either` ARE BUILDABLE ONLY BECAUSE OF §4's TREE.** They read a SECOND
+    predicate, and until this pass an operand was a slot's raw VALUE -- so a computed predicate
+    could not arrive. `Term.operand_term` is exactly what lets one fill operand 0. The largest
+    structural item on the board became reachable through a change made for another reason.
+
+    NOT_RESOLVED PROPAGATES rather than being coerced: an unreadable half makes the conjunction
+    unreadable, because *this instrument cannot see it* is not *this is false*.
+    """
+    def _negate(v: Any, _c: Ctx) -> Any:
+        return NOT_RESOLVED if v is NOT_RESOLVED else int(not v)
+
+    def _both(v: Any, c: Ctx) -> Any:
+        if v is NOT_RESOLVED or not c.operands:
+            return NOT_RESOLVED if v is NOT_RESOLVED else v
+        o = c.operands[0]
+        return NOT_RESOLVED if o is NOT_RESOLVED else int(bool(v) and bool(o))
+
+    def _either(v: Any, c: Ctx) -> Any:
+        if v is NOT_RESOLVED or not c.operands:
+            return NOT_RESOLVED if v is NOT_RESOLVED else v
+        o = c.operands[0]
+        return NOT_RESOLVED if o is NOT_RESOLVED else int(bool(v) or bool(o))
+
+    return [Atom("negate", _negate, PRED, PRED),
+            Atom("both", _both, PRED, PRED, reads_operand=True,
+                 operand_type=PRED, reads_ctx=("operands",)),
+            Atom("either", _either, PRED, PRED, reads_operand=True,
+                 operand_type=PRED, reads_ctx=("operands",))]
+
+
 def _quantify() -> list[Atom]:
     """`PRED → OBJ`. What closes a statement back into something bettable."""
     return [Atom("all", lambda v, _c: int(bool(v)), PRED, OBJ),
@@ -601,4 +645,5 @@ def three_spaces(predict: list[Atom]) -> list[Atom]:
     3d -- and inventing one here would be this file choosing what the agent may bet on.
     """
     return (list(predict) + _extract() + _transform() + _shape_facts() + _shape_more()
-            + _contact() + _relate() + _over_group() + _group_more() + _quantify())
+            + _contact() + _relate() + _over_group() + _group_more() + _connect()
+            + _quantify())
