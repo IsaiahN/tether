@@ -396,6 +396,10 @@ class Agent:
         # only qualifying window ends at 0, which is exactly where there is nothing left to
         # pursue. Two quantities, two dicts, for the reason `refuted` and `refuted_at` are two.
         self._res: dict[str, list[float]] = {}
+        # WHICH CYCLE FORMATION WAS LAST ATTEMPTED ON. System 2 now deliberates beside System 1
+        # as well as at the fall-through, so without this a cycle reaching both sites would
+        # refuse twice and write the gate's reason twice.
+        self._planned = -1
         # THE HELD ROUTINE, AS ITS REMAINDER. `advance` hands back what is left and what is
         # left is a Routine, so a behaviour spanning cycles is ONE field -- no program counter,
         # no index into a script, and the thing stored is inspectable as the object it is.
@@ -1499,6 +1503,24 @@ class Agent:
             self.led.record(self.cycle, "PLAN", self.routine_for or "*", "routine_end",
                             outcome=why, routine=Rt.render(self.routine), **extra)
             self.routine, self.routine_for = None, None
+        # SYSTEM 2 RUNS BESIDE SYSTEM 1, NOT BEHIND IT -- Isaiah, 2026-09-09.
+        # Formation used to sit ONLY at the fall-through, so `discriminate:learned` returning
+        # first foreclosed it: `_mint_routine` was last called at cycle 11 on `ka59` and 7 on
+        # `ls20`, while a qualifying series arrived at 14 and 18. **The asking window shut
+        # before the supply opened**, and every refusal in between was correct.
+        #
+        # DEMAND-DRIVEN, WHICH IS WHAT MAKES IT AFFORDABLE HERE. The watcher is `_goal_choice`,
+        # a pure read over `_res` measured at 1.2us against an 87.6s cycle -- five parts per
+        # billion to run every cycle -- and it gates the composer, which fired 2 of 24 on both
+        # boards rather than 24 of 24. Deliberating every turn ON the acting path is the
+        # expensive shape; this is not that.
+        #
+        # IT DOES NOT TAKE THE TURN. A routine formed here runs from the held-routine branch
+        # ABOVE on the next cycle, which is the precedence execution already implements.
+        if (self.routine is None and self._planned != self.cycle
+                and self._goal_choice() is not None):
+            self._planned = self.cycle
+            self._mint_routine(before)
         if self.drive.bored():
             return self.drive.choose(self.actions, self.cycle, _where(before)), "probe"
         owed = [s for s in sorted(self.owed_import) if s in before]
@@ -1546,7 +1568,12 @@ class Agent:
         learned = self._learned_split()
         if learned is not None:
             return learned, "discriminate:learned"
-        if self.routine is None:
+        # THE FALL-THROUGH ATTEMPT STAYS, AND IS NOT REDUNDANT. Here System 1 has no opinion --
+        # the alternative is a blind draw -- so a routine formed now may take the turn at once.
+        # The guard is only against attempting TWICE in one cycle, which would refuse twice and
+        # write the gate's reason twice.
+        if self.routine is None and self._planned != self.cycle:
+            self._planned = self.cycle
             self._mint_routine(before)
             if self.routine is not None:   # adopted now: run its first action this cycle
                 emit, rest = Rt.advance(self.routine, self._holds(before))
