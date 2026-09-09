@@ -22493,3 +22493,59 @@ were introduced to keep apart.
                         curve measured across a full run with a denominator
     CAPABILITY OWED     unchanged. The transcript is INSTRUMENTATION: not one action differs
                         and the agent does not know it exists
+
+## `F25` — THE `h`/`w` CHECK: THE SHAPE IDS ARE NOT LABEL CHURN. THE PRICE STILL IS
+
+**The owed check, run against the existing `ka59 x 24` transcript — no new run.** For every cycle
+where a shape ID moved, did that object's `h` or `w` move too?
+
+    shape misses WITH a dimension change   o13: 15 · o14: 14        total 29 of 39
+    shape misses with h and w BOTH STATIC  o1:  10                  total 10 of 39
+
+    shape-ID trajectories
+      o13   [10 12 14 16 20 22 24 26 28 30 32 34 36 38 40]   revisits=False
+      o14   [13 15 17 21 23 25 27 29 31 33 35 37 39 41]      revisits=False
+      o1    [ 9 11  9  1  9 11 18 19 18 19]                  revisits=TRUE
+
+### THE HYPOTHESIS IS REFUTED, AND THE REVISITS ARE WHAT REFUTE IT
+
+**`o13` and `o14` change dimensions on EVERY miss and their IDs never repeat.** `o13`'s width runs
+64, 63, 62, 61, 60, 59...; `o14`'s runs 1, 2, 3, 4... **Two objects genuinely resizing every cycle,
+each new size a genuinely new shape, each new shape correctly taking a new index.** The climb is
+the table doing its job.
+
+**`o1` holds `h=21, w=18` throughout and its ID REVISITS — 9, 11, 9, 1, 9, 11, 18, 19, 18, 19.** A
+relabelling defect keeps MINTING; it does not return to 1 and to 9. **Revisiting is positive
+evidence that the encounter table is matching correctly** — same pattern, same index — and is what
+a fixed-size object with an alternating interior looks like.
+
+> **SO *the surprise is the ID counter, not the world* IS DEAD.** All 39 misses are consistent with
+> real events: 29 objects genuinely resizing, 10 an object genuinely alternating. **The hypothesis
+> was mine and Isaiah's both, and the check that killed it cost one pass over a file already on
+> disk.**
+
+### WHAT SURVIVES IS NARROWER AND IS STILL THE THING `F22` RULES ON
+
+**The PRICE of a genuine surprise grows with the catalogue.** Per-miss shape mass ran 3.1699 ->
+5.3219 as `len(_shapes)` ran 9 -> 40, identical within each cycle. **The events are not getting
+more surprising; the charge for them rose 68%.**
+
+    ESTABLISHED     the price scales with the counter
+    REFUTED         the occurrences are bookkeeping
+    THEREFORE       `F22` is purely a PRICING question, which is the cleanest form it could take
+
+**AND THAT SHARPENS THE RULING RATHER THAN SETTLING IT.** With the events genuine, the question is
+only *what alphabet prices a shape miss*: the **space of possible shapes** (`2**(h*w)`, the
+docstring — fixed, board-derived) or the **catalogue of seen shapes** (`len(_shapes)`, the code —
+growing). **Still Isaiah's, still no candidate fix.**
+
+### AND THE THING THIS BOARD INVITES, REFUSED IN WRITING
+
+`ka59` has two objects whose width changes by one every cycle, monotonically. **That is why its
+shape channel is busy, and it is a fact about the BOARD.** Any reasoning from *this board resizes
+objects constantly* to *therefore the shape alphabet should be X* is **shaping toward what a game
+shows, and is forbidden.** The pricing question stands on the code's own disagreement with its
+docstring — which is board-independent — and on nothing observed here.
+
+**ONE BOARD, ONE DEPTH.** 39 misses, three objects. Whether other boards produce static-dimension
+shape churn is unmeasured.
