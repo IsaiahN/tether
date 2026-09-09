@@ -23378,3 +23378,72 @@ ruling, which they should see before it is acted on.**
 
     MECHANISM   nothing changed. Four file reads, no run, no edit. An A/B was CANCELLED
     CAPABILITY  none
+
+### CORRECTION TO THE ENTRY ABOVE — I DID NOT MISREAD THE SITE, AND THE STORY THAT SAID I DID WAS TOO GOOD
+
+**I wrote, one entry above: *"I went to the method and stopped one level short."* That is false and
+it is worth correcting rather than quietly dropping, because it is the failure mode the corpus names
+— a satisfying causal story fitting the window's established pattern, and therefore harder to doubt
+than a bare account.** Four of the last five findings were *documented-and-deliberate at the site*,
+so *he missed the site comment again* wrote itself.
+
+**`F22`'s OWN RECORD, `INDEX:22447`, READ BOTH AND CLASSIFIED IT CORRECTLY:**
+
+> *"AND THE DOCSTRING DIRECTLY ABOVE THAT LINE DEFENDS A DIFFERENT COMPUTATION... **The line
+> defends a computation the code does not perform.** `A6i` family: two quantities under one name,
+> **with a comment protecting the wrong one.**"*
+
+**And the seat position filed in the workbook was `NO POSITION - comment and code disagree`.** The
+site was read, the disagreement was recorded, the family was named, and no side was taken. **The
+withdrawal above is right about the CODE and wrong about the CAUSE.**
+
+### WHERE IT ACTUALLY WENT WRONG, AND IT IS A HANDOFF RATHER THAN A READING
+
+**The record contains the resolution in FOUR places and the workbook row carried NONE of them:**
+
+    INDEX:7835    "2**(h*w) is a sound UPPER BOUND and a vast overestimate... 4,096 bits"
+    INDEX:7855    "a shape slot holds an ID and an id is a label... 2**(h*w) priced the space
+                   of shapes that COULD exist, which is not what the slot holds"
+    INDEX:11673   "alphabet()'s DOCSTRING and its BODY disagree... THE BODY IS THE NEWER ONE
+                   AND IT IS RIGHT ABOUT THE SLOT AS IT STANDS. The docstring describes the
+                   version it replaced and was never updated."
+    INDEX:22447   F22 itself: "the line defends a computation the code does not perform"
+
+**`INDEX:11673` IS A DECIDED QUESTION AND SAYS SO IN THOSE WORDS.** The workbook row said only
+*the docstring defends `2**(h*w)`* and *the comment above that line describes a different
+calculation than the one running* — **both true, both neutral, and neither carrying the ruling the
+file had already made.** So the reviewer met an OPEN question that was CLOSED, ruled the plausible
+way — *the documented intent is the spec, the code has drifted* — and Isaiah's policy turned that
+ruling into arm A.
+
+> **THE DEFECT IS IN THE HANDOFF: A SUMMARY THAT PRESERVED THE FACTS AND DROPPED THE VERDICT.**
+> That is `A6i`'s writing side in a form it was not written for — not *the summary was written from
+> the wrong definition*, but **the summary was written from the OBSERVATION and not from the
+> CONCLUSION the file already held.** A reader given only the observation must re-derive, and
+> re-derivation is where a coin gets flipped.
+
+**AND *ASSUME IT IS ALREADY SPECIFIED, AND GO LOOK* FIRES HERE TOO, AT ME, ONE LEVEL UP.** I did
+not search `INDEX` for `alphabet()` before writing the withdrawal above — **I searched the CODE,
+found two comments, and reconstructed a history the file already recorded at line 11673.** The
+tenth instance of the law, and **the first where the already-specified answer was in the WORKING
+document I own**, which is worse than the corpus cases: I had appended to this file six times today.
+
+### WHAT STANDS FROM THE ENTRY ABOVE, AND WHAT DOES NOT
+
+    STANDS      the code is right and the docstring is stale
+    STANDS      arm A would install 2**(h*w) -- the superseded computation -- and is CANCELLED
+    STANDS      the surviving question is whether `_shapes` SETTLES, unmeasured, three readings
+                pre-registered, recoverable from rows already being saved
+    WITHDRAWN   "I went to the method and stopped one level short." I went to the site, read
+                both, named the family, and took no position
+    WITHDRAWN   "the second where the reviewer and I missed the same site comment together."
+                I did not miss it. The reviewer ruled against a comment my own row had
+                already flagged as protecting the wrong computation
+    NEW         the failure is a HANDOFF: four recordings of the resolution, none in the row
+
+**AND THE REPAIR IS TO THE ROW, NOT TO ANYONE'S READING.** A workbook row that reports a
+disagreement without reporting that the file has already settled it **invites exactly one wrong
+ruling per reader.**
+
+    MECHANISM   nothing changed. The A/B stays cancelled for the reason given above
+    CAPABILITY  none
