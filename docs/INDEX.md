@@ -23805,3 +23805,61 @@ barrier 1 leaves barrier 2 standing and vice versa; that holds. **This is a diff
     MECHANISM   the pays condition reduced to one inequality; the bootstrap shown not to be
                 structurally binding; F28 shown to move F20's bar by ~4%
     CAPABILITY  none. No action differs, and no board has been shown to clear the bar
+
+## `available_actions` IS **FIXED WITHIN A LEVEL** ON TEN BOARDS — AND IT CORRECTS BOTH OF US
+
+**The reviewer's `F26-ACTIONS`:** *"the environment PUBLISHES available\_actions in every frame's
+metadata, per action taken... **It is a PER-FRAME CHANGING SET, not a fixed list.**"* Their second
+consequence rests on it — *if the available set shifts mid-game, draw freezing at 7 and 8 looks
+different.*
+
+**MEASURED, full episodes, one seed each:**
+
+    ls20  136 frames  1 set  (1,2,3,4)          sk48  301 frames  1 set  (1,2,3,4,6,7)
+    ka59  101 frames  1 set  (1,2,3,4,6)        ar25   96 frames  1 set  (1,2,3,4,5,6,7)
+    sp80   21 frames  1 set  (1,2,3,4,5,6)      su15   88 frames  1 set  (6,7)
+    g50t  131 frames  1 set  (1,2,3,4,5)        ft09  400 frames  1 set  (6,)
+    wa30  201 frames  1 set  (1,2,3,4,5)        dc22  128 frames  1 set  (1,2,3,4,6)
+
+    VARIES on 0 of 10.
+
+### THE DISTINCTION IS THE FINDING, AND IT IS `A6i`-SHAPED
+
+> **PUBLISHED per frame and CHANGING per frame are two different claims.** The docs support the
+> first — the set is in every frame's metadata, which is exactly why it is legitimate to read. **The
+> consequence was drawn from the second, and the second is false on every board measured.**
+
+**One phrase, two quantities, and the true half licenses the false half without anyone noticing.**
+Same family as `A6i`, arriving in a reviewer's reading of an external document rather than in the
+code — which is a site the register did not have.
+
+### SO IT CORRECTS MY OWN `F28` TOO, AND IN THE DIRECTION THAT COSTS ME A FINDING
+
+**`F28`'s second half:** *"`self.actions` has exactly two write sites, `__init__` and the level
+boundary. A change in availability WITHIN a level is invisible to the agent."* **The code reading
+is exact and the CONSEQUENCE is empty**: nothing changes within a level, so **the once-per-level
+read is exactly the right sampling rate for the observed regime.**
+
+**AND IT MAKES THE DESIGN LOOK DELIBERATE RATHER THAN LUCKY.** `tether.py:545`'s comment is *"a new
+level may advertise differently"* — **the write site is placed at precisely the boundary where the
+set could move, and nowhere else, which is what a correct sampling rate looks like.**
+
+    F28 SECOND HALF   DOWNGRADED from a perception gap to a THEORETICAL one. Not withdrawn --
+                      the code fact stands and a board that varied mid-level would be missed --
+                      but it costs nothing on any board measured, and I filed it as if it did
+    F28 FIRST HALF    UNCHANGED. The ACTION6 filter is measured and its effects stand
+
+### WHAT THIS DOES NOT SHOW, AND THE GAP IS STRUCTURAL RATHER THAN A SAMPLING CHOICE
+
+**EVERY FRAME MEASURED IS LEVEL 0.** No walk has ever cleared a level, so **the one transition where
+the set is expected to move — and the one place the agent re-reads it — has never been observed.**
+
+> **THAT IS NOT FIXABLE BY RUNNING MORE.** Reaching level 1 is the thing nothing has done, so the
+> across-level behaviour of `available_actions` is **unmeasurable from here** by the same closure
+> that blocks the `levels_completed` positive control. **The sampling rate is confirmed correct in
+> the regime we can reach and untested in the one it was written for.**
+
+    MECHANISM   the premise behind F26-ACTIONS consequence (2) is refuted on ten boards;
+                F28's second half downgraded to theoretical; the once-per-level read shown
+                to be the right rate for level 0
+    CAPABILITY  none. No action differs. This REMOVES a suspected gap rather than adding one
