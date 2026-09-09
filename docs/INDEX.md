@@ -22320,3 +22320,80 @@ ka59 — which is each board's frozen `draw` count, so it refused on EVERY cycle
 
 **THREE ZEROS, THREE POSITIVE CAUSES, AND ONE OF THEM IS A DEFECT.** *A bound reporting back*
 rather than *I have never been there*, which is the difference the register asks for.
+
+## `F19` — THE FIRST COMPOSED ROUTINE, AND THE BARGAIN CORRECTLY REFUSED IT BY 0.97 BITS
+
+**`F14`'s fix carried the ACT space from gate 1 to gate 8.** `ka59` @ 24, post-fix:
+
+    cycle 23   slot o13.w   event routine_cut   reason "does-not-pay"
+    routine    until(o13.w/3) {ACTION1}
+    cost 6.9658    left 0.0    base 6.0    reach 3    considered 8    shelf 0
+
+`pays(cost, left, base)` is `cost + left < base` -> `6.9658 + 0.0 < 6.0` -> **False, by 0.9658
+bits.**
+
+### WHAT EACH NUMBER SAYS, AND `left = 0.0` IS THE ONE THAT MATTERS
+
+    left  0.0      THE ROUTINE CLAIMS IT CLOSES THE GAP COMPLETELY. Not a partial remedy that
+                   fell short -- a complete one that was too expensive to WRITE DOWN
+    base  6.0      what naming the actions oneself costs: `unsat * log2(n)`, and with 4 actions
+                   on this board that is 3 unsatisfied scope members x 2 bits
+    cost  6.9658   the routine's own description length
+    considered 8   EIGHT candidates were enumerated, priced, and filtered for reachable guards
+                   before this one was chosen as the cheapest that qualified
+    shelf 0        NO SETTLED ROUTINE EXISTS, so `Rt.length(cand, shelf)` gets no chunking
+                   discount and the routine pays FULL ATOM LENGTH
+
+> **THIS IS NOT A DEFECT AND NO CANDIDATE FIX IS WRITTEN.** The bargain refused a plan that costs
+> more to describe than the actions it saves. **That is the bargain doing exactly its job**, and
+> the margin being under one bit does not make the refusal wrong -- **`pays` is strict, and a
+> near-miss is a miss.** Lowering the routine's cost or inflating `base` to make it pay would be
+> encoding the answer.
+
+### `F20` — AND THERE IS A BOOTSTRAP THE NUMBERS NAME WITHOUT ANYONE ARGUING FOR IT
+
+**`shelf 0` is not incidental.** Routine pricing is unit-aware: `Rt.length(cand, shelf)` counts a
+SETTLED routine as one unit, exactly as term chunking does. **The shelf is empty because no
+routine has ever settled, and no routine can settle until one is adopted, and none is adopted
+because the first one must pay FULL LENGTH with no discount.**
+
+**Stated at its real strength: one board, one occurrence, 0.97 bits.** It is not established that
+the first routine is generally near-miss, and **a single margin is not a distribution.** What is
+established is that the mechanism reached the bargain and the bargain read it.
+
+### `F21` — THE OTHER QUALIFYING CYCLE SUGGESTS THE WATCHER MAY FIRE ON COMPLETION, NOT PROGRESS
+
+    cycle 13   routine_refused   "the objective already holds across its whole scope"
+
+That gate is `rg <= 0.0` -- **the goal residual had already reached zero.** The watcher's
+criterion is three consecutive non-increasing readings with a real decrease, and on this cycle it
+was first satisfied **at the moment the objective completed.**
+
+> **SO THE DETECTOR MAY BE WAKING EXACTLY TOO LATE**: a residual that falls to zero satisfies
+> *confidently shrinking* on the step it arrives. **ONE BOARD, ONE OCCURRENCE -- this is a
+> suspicion with a denominator of one, not a finding**, and it is recorded as such because the
+> alternative reading is equally live: the objective may simply have been closed by ordinary play
+> between two asks.
+
+### THE VERIFICATION IS SURGICAL, WHICH IS WHAT MAKES IT AN INTENDED CHANGE
+
+                        BEFORE (arc-freeze-02)                AFTER
+    routine_events      {routine_refused: 7}                  {routine_refused: 8, routine_cut: 1}
+    by                  {draw: 7, discriminate:learned: 17}   IDENTICAL
+    contest_winners     {predictor: 7, objective: 13}         IDENTICAL
+    mints               20                                    IDENTICAL
+
+**Action selection, minting and contest outcomes are byte-identical to the frozen baseline.** Only
+the formation path differs. **The agent played the same twenty-four moves.**
+
+### THE TWO COLUMNS, AND THEY DISAGREE HERE ON PURPOSE
+
+    MECHANISM FIRES     gate 1 -> gate 8 traversed for the first time · 8 candidate routines
+                        enumerated, priced and guard-checked · the first composed routine in the
+                        project's measured history · `routine_cut` emitted with its full price
+    CAPABILITY OWED     ZERO routines adopted · ZERO routines run · ZERO levels · `by` unchanged.
+                        **The board saw nothing.**
+
+**THE WIRING DEFECT IS FIXED AND THE CAPABILITY IT UNBLOCKS IS NOW BLOCKED ONE GATE FURTHER
+ALONG, ON PRICE.** That is a real advance in the record and **no change in play**, and reporting
+it as anything else would be the inflation the two-column rule exists to prevent.
