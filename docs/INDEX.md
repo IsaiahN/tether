@@ -22942,7 +22942,7 @@ A/B'd; it is the case the escalation clause was written for.**
 
 ## `E1` REWRITTEN IS FALSE — THE SIX SHAPES WERE MY KEYING, AND THE CENSUS FINDS ONE
 
-**`I5` · I RE-IMPLEMENTED `gate._steps`'s KEYING INSTEAD OF CALLING IT, AND KEYED PER CYCLE
+**`I8` · I RE-IMPLEMENTED `gate._steps`'s KEYING INSTEAD OF CALLING IT, AND KEYED PER CYCLE
 WHERE THE GATE KEYS PER (CYCLE, SLOT).** The published violation set — *75 on `ka59`, 11 on
 `sp80`, six shapes, five common to both boards* — **is an artifact of that key.**
 
@@ -22963,7 +22963,7 @@ order is per (cycle, slot): the loop runs one chain per slot and the chains are 
 a cycle, so slot A minting does not constrain slot B's routing."* **Ten of my eleven were slot A's
 step compared against slot B's — comparisons the build declines to make on purpose.**
 
-### `I5` IS `I2` ONE LEVEL UP, AND THE LAW ALREADY COVERED IT
+### `I8` IS `I2` ONE LEVEL UP, AND THE LAW ALREADY COVERED IT
 
 `I2` was *I read a gate refusal off rows I built myself*, and its remedy was **wrap the call the
 build makes; never reconstruct its inputs.** I obeyed it: `e1census.py` wraps `transcript._capture`,
@@ -22978,9 +22978,17 @@ while copying.
 
 **`I2`'s rule reaches the CHECK, not only the INPUTS**, and that is the widening this instance buys.
 
-**AND THE ID IS NOT A COUNT.** `INDEX` numbers `I1`–`I4`; the window reported more than four, so
-this is `I5` **by unused ID and not by tally**, and the reviewer's *eight* is neither confirmed nor
-adopted by numbering this one fifth.
+**AND THE ID WAS NEARLY A SECOND `A6i`, CAUGHT AT THE POINT OF DAMAGE.** `INDEX` numbers only
+`I1`–`I4` in prose, so I wrote this one `I5` — **and the workbook already carries `I5`, `I6` and
+`I7`** (the `ctx.action` spelling, the wrong workbook id, the duplicate reviewer file). **One
+label, two errors, in the register whose whole job is telling errors apart.** Corrected to `I8`
+before it shipped, and it is the third instance of *check what a name means in BOTH places you are
+using it* — this time between a document and a spreadsheet rather than between two documents.
+
+**AND IT DOES NOT SETTLE THE COUNT.** Eight logged now happens to equal the reviewer's *eight*,
+and **that is a coincidence of totals, not a reconciliation of sets** — their split is *six caught
+before the finding shipped, two only by contradiction*, which I have never mapped onto mine. The
+discrepancy row stays open.
 
 ### THE CENSUS THE RULING WAS MADE CONTINGENT ON — ONE SHAPE, BOTH BOARDS, STABLE
 
