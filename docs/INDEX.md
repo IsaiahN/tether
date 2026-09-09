@@ -23925,3 +23925,62 @@ two measurements rather than a repetition of one.**
                 F26's 71% independently reproduced at 1000 cycles on two other boards
     CAPABILITY  none. And one probe was stopped mid-run rather than finished, which is the
                 correct response to finding the answer already written down
+
+## `F29` — A CAP AND A DEATH ARRIVE AS ONE WORD, AND IT IS **NOT A DEFECT**
+
+**Filed at the reviewer's request:** *"caps-vs-deaths separable by seed spread is a distinction THE
+LEDGER COLLAPSES INTO ONE WORD — that is its own finding and I would file it."* **It is, and the
+classification is the part worth writing down.**
+
+### THE MEASUREMENT THAT MADE IT VISIBLE
+
+    IDENTICAL live_steps across seeds AND arms -> policy-independent -> a CAP
+      ka59 99 · g50t 129 · tr87 127 · tu93 49 · re86 99 · wa30 199 · dc22 127
+      vc33 49 · tn36 60
+    VARIES with the seed -> policy-dependent -> a real DEATH
+      ls20 · sp80 · sb26 · ar25 · su15(P) · sk48(P)
+
+**Nine boards end on a count. Six end on a mistake. They are different worlds** — a cap says *time
+is up*, a death says *you did something*. **Only the second is a signal about the agent's play.**
+
+### THE COLLAPSE, AT ITS TWO SITES
+
+    arc_world.py:538  terminal()  GameState.WIN -> "advance"; GameState.GAME_OVER -> "death"
+    tether.py:517     record(..., "ending", how=how, to_level=level,
+                             consumed_by="nothing yet -- boundary demotion is a separate item")
+
+**`how` is the only discriminator on the ending row, and `terminal()` maps both endings onto
+`death` because `GameState.GAME_OVER` is the only state the world reports for either.**
+
+### CLASSIFIED: **NOT A DEFECT**, AND THIS IS WHY
+
+**The window rule: only *wrong-given-the-input* is a defect.** The input is a single frame carrying
+`GameState.GAME_OVER`. **The world does not distinguish a cap from a loss** — there is no second
+state, no reason code, no counter on the frame. **So the build receives one thing and records one
+word, which is correct-given-the-input.**
+
+> **THE DISTINCTION IS NOT IN THE FRAME. IT IS IN THE VARIANCE ACROSS SEEDS**, and a single run has
+> no variance to read. **The build could not have recorded what it was never told.**
+
+**AND THAT MAKES IT A BOUNDARY RATHER THAN A BUG, WHICH IS THE SHARPER STATEMENT:** the cap/death
+split is visible **only to the SEAT**, because only the seat runs the same board under different
+policies. **The agent plays one deterministic run and has no access to the comparison** — `Drive()`
+takes no seed, so it cannot even generate the variance that carries the signal.
+
+    NOT a candidate fix. A behaviour note, and a limit on what any single run can report.
+
+### WHAT IT COSTS, WHICH IS REAL AND IS ABOUT READINGS RATHER THAN PLAY
+
+**Every `endings={'death': N}` in a report is `caps + losses` and nobody can split it.** `sp80`'s
+`death: 1` at 30 cycles and `ka59`'s cap at exactly 99 are the same token. **So *the agent died* has
+been read off runs where the agent simply ran out of moves**, and the two invite opposite responses:
+a cap says *the room was too short for the reading*, a loss says *the play was wrong.*
+
+**AND THE ENDING ROW IS CONSUMED BY NOTHING** — its own field says so — so the collapse has cost
+nothing downstream **yet**. It costs on the READING side only, which is where it has already cost:
+`F27`'s habitat map exists because the seat could compare seeds, and no reader of a single run could
+have produced it.
+
+    MECHANISM   the collapse located at two sites and classified as correct-given-the-input
+    CAPABILITY  none. No action differs, and the agent cannot see this distinction even in
+                principle from inside one run
