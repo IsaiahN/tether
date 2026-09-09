@@ -22551,7 +22551,8 @@ docstring — which is board-independent — and on nothing observed here.
 **ONE BOARD, ONE DEPTH.** 39 misses, three objects. Whether other boards produce static-dimension
 shape churn is unmeasured.
 
-## `E1` REWRITTEN — THE LOOP DISAGREES WITH `ledger.STEPS` IN SIX PLACES, NOT ONE
+## `E1` REWRITTEN — FALSE, superseded at the end of this file. The six shapes were a keying
+## error in my census, not a property of the loop. Corrected count: ONE shape, both boards.
 
 **The deferral was right and the reason is now measured.** I held `E1` back because `F14` moves
 planning earlier and might obsolete it. `F14` has landed. **`E1` survives — and the post-fix
@@ -22938,3 +22939,119 @@ already has.** Seeding the shelf hands the agent a routine it never earned. **So
 A/B'd; it is the case the escalation clause was written for.**
 
 **`E1` and `F22` are NOT in that category and are now A/Bs rather than rulings**, per the policy.
+
+## `E1` REWRITTEN IS FALSE — THE SIX SHAPES WERE MY KEYING, AND THE CENSUS FINDS ONE
+
+**`I5` · I RE-IMPLEMENTED `gate._steps`'s KEYING INSTEAD OF CALLING IT, AND KEYED PER CYCLE
+WHERE THE GATE KEYS PER (CYCLE, SLOT).** The published violation set — *75 on `ka59`, 11 on
+`sp80`, six shapes, five common to both boards* — **is an artifact of that key.**
+
+**REPRODUCED EXACTLY, WHICH IS WHY IT IS AN ERROR AND NOT A DISAGREEMENT.** Same run, same rows,
+three keys:
+
+    sp80 x 3, 483 rows
+      (cycle, slot)   THE GATE'S       3 violations   1 shape
+      cycle only      MINE, WRONG     11 violations   5 shapes
+      global                          13 violations   6 shapes
+
+**The cycle-only row is the published finding to the shape and to the count** — `PERCEIVE->PLAN` 3,
+`ROUTE->PERCEIVE` 4, `ACCEPT->MINT` 2, `ACCEPT->PERCEIVE` 1, `MINT->PERCEIVE` 1. **Not similar.
+Identical.**
+
+**AND `gate._steps` SAYS WHY IN ITS OWN DOCSTRING, IN THE FILE I WAS RE-IMPLEMENTING:** *"The
+order is per (cycle, slot): the loop runs one chain per slot and the chains are independent within
+a cycle, so slot A minting does not constrain slot B's routing."* **Ten of my eleven were slot A's
+step compared against slot B's — comparisons the build declines to make on purpose.**
+
+### `I5` IS `I2` ONE LEVEL UP, AND THE LAW ALREADY COVERED IT
+
+`I2` was *I read a gate refusal off rows I built myself*, and its remedy was **wrap the call the
+build makes; never reconstruct its inputs.** I obeyed it: `e1census.py` wraps `transcript._capture`,
+which wraps the ledger the build made. **The rows were the build's. The CHECK was mine** — I
+rewrote the four lines of `_steps` to get every violation instead of the first, and changed the key
+while copying.
+
+> **THE REASON TO REBUILD IT WAS SOUND AND IS UNCHANGED: `gate.check` returns the first violation
+> and stops, so it cannot report a distribution.** The error was rebuilding the ENUMERATION and the
+> KEY together. **The key was never the part that needed changing** — and a checker copied to widen
+> one property silently carries every other property it had, in whatever state the copy left them.
+
+**`I2`'s rule reaches the CHECK, not only the INPUTS**, and that is the widening this instance buys.
+
+**AND THE ID IS NOT A COUNT.** `INDEX` numbers `I1`–`I4`; the window reported more than four, so
+this is `I5` **by unused ID and not by tally**, and the reviewer's *eight* is neither confirmed nor
+adopted by numbering this one fifth.
+
+### THE CENSUS THE RULING WAS MADE CONTINGENT ON — ONE SHAPE, BOTH BOARDS, STABLE
+
+    sp80 x 3   483 rows   3 violations   1 shape
+    ka59 x 3   750 rows   3 violations   1 shape
+
+      PERCEIVE -> PLAN     placements -> routine_refused     slot='*'     seq 4 -> 5
+      once per cycle, every cycle, both boards, adjacent
+
+**THE ORIGINAL DIAGNOSIS WAS RIGHT AND I WITHDREW IT ON A BAD MEASUREMENT.** `E1` opened as
+`PERCEIVE -> PLAN`; the rewrite called that *the smallest category, and only looked like the whole*
+at 9 of 75. **It was the whole.** And the rewrite's confident line — *restamping would have moved
+the gate to `ROUTE -> PERCEIVE` at seq 96 and it would still refuse* — **is false. `ROUTE ->
+PERCEIVE` is not a violation.**
+
+### AND THE CAUSE IS A FOURTH ANIMAL, NOT ONE OF THE THREE CANDIDATES
+
+`slot = self._goal_choice()` returns `None` every cycle on both boards — F19's barrier 1 — and the
+refusal is recorded on **`slot or "*"`**. So gate 1's own refusal lands on the **wildcard chain**,
+which is not a slot: it is a shared bucket that **`placements` has already written a `PERCEIVE` row
+into earlier in the same cycle.**
+
+    (a) the LOOP's order is wrong          no. On a real slot the order is correct
+    (b) `ledger.STEPS` is a wrong MODEL    no. Six disagreements was the artifact
+    (c) individual ROWS are mis-stamped    no. Both rows name the work they do
+    (d) `*` IS A SHARED CHAIN              <-- this. Two steps' rows meet in one bucket that
+                                           the per-slot rule was never meant to order
+
+**AND `ledger.STEPS` ALREADY ARGUES (a) AND (b) SHUT, IN THE COMMENT ABOVE THE DECLARATION:**
+*"`PLAN` IS FIRST, AND THE WRITE ORDER DECIDED IT... The routine rows are emitted inside `choose`,
+which runs BEFORE `_utter` writes the bet's PERCEIVE row for the same slot... Any later position
+makes a real board fail the gate the first time a routine mints."* **The declaration is not
+naive about the loop's order. It was placed against exactly this constraint** — and it is correct
+for every routine row that carries a real slot.
+
+### THE A/B RAN, THE ARMS SEPARATED, AND THE READING IS STILL NOT AVAILABLE
+
+    ARM B   keep PLAN first        sp80 3 violations    ka59 3 violations
+    ARM A   PERCEIVE first         sp80 0 violations    ka59 0 violations
+
+**AND THE PANEL CHECK, PRE-REGISTERED BEFORE THE ARMS WERE READ, REFUSES THE ZERO.**
+
+    PLAN rows, sp80 x 3    3, all slot='*', all routine_refused
+    PLAN rows, ka59 x 3    3, all slot='*', all routine_refused
+    on a REAL slot         0 of 6
+
+**Arm A's zero is a zero over a population that contains none of the case arm A endangers.** The
+declaration's comment names the hazard as *a routine row on a real slot, before that slot's
+PERCEIVE row*; gate 1 refuses at its FIRST check every cycle, so `_goal_choice()` never returns a
+slot, so the six real-slot `routine_refused` sites and the whole minting path below them never
+execute. **Zero of six.**
+
+> *Before a null is read as a finding about a mechanism, state what property of the panel the
+> mechanism would need in order to show, and confirm the panel has it.* **Stated first, checked
+> second, and the panel does not have it.** `ka59 @ 24` is the one board measured to reach pricing
+> at all (F19: one priced candidate), so that is the panel property and that run is where the arm
+> becomes refutable.
+
+**`E1` AND `F19` ARE THE SAME BLOCKAGE SEEN FROM TWO SIDES.** Barrier 1 is why the agent never
+plans; it is ALSO why the only PLAN row ever written is the refusal, on the wildcard, colliding
+with perception. **One mechanism, two findings, and neither was filed as the other.**
+
+### WHAT CONTAINED THIS, AND IT WAS NOT ME
+
+The reviewer ruled *(b), repair the declaration* — from the six-shape spread, which was mine and
+was wrong. **It cost nothing because the same reviewer refused to let the ruling stand on it:**
+*"My wrong-model ruling was made from the SHAPE of the data and not from the census, so it is a
+reasonable read and not a determined one... Census first, ruling after."* **A ruling made
+explicitly contingent on evidence not yet taken is the only reason a false measurement did not
+become a committed repair.**
+
+    MECHANISM   nothing changed. No build file edited; the A/B ran over captured rows with the
+                two orderings applied at read time, which is why either arm remains free
+    CAPABILITY  none. Not one action differs. The agent does not read `ledger.STEPS`
