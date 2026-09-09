@@ -23159,3 +23159,53 @@ slot `S`:
 on `ka59 @ 24`, and pricing is downstream of `_goal_choice()` returning a slot — **so at least one
 real-slot `PLAN` row should exist.** That is an inference from a different run's event stream, not
 a reading of this one, and it is the assumption most likely to be wrong.
+
+### `E1b` WAS RIGHT FOR THE WRONG REASON — AND IT IS STILL **ONE** INSTANCE, NOT TWO
+
+**`demo.jsonl`, 531 rows, and the wildcard bucket is half-populated:**
+
+    slot "*"   9 rows   ALL ('PLAN', 'routine_refused')
+                        ZERO PERCEIVE rows on "*"
+
+**THE GATE SEAT IS GREEN BECAUSE THE TOY WORLD WRITES ONLY ONE OF THE TWO COLLIDING MEANINGS.**
+The collision needs `PERCEIVE`-on-`*` AND `PLAN`-on-`*` in one cycle; the toy world emits the
+degenerate `PLAN` row and never the frame-perception rows.
+
+**AND THE REASON IS STRUCTURAL AND NAMEABLE, WHICH IS WHAT MAKES THIS EVIDENCE RATHER THAN AN
+OBSERVATION.** All four emitters are `arc_world`-only methods — `read_order` (114), `placements`
+(329), `matches` (365), `cascade` (373) — and every call site is guarded:
+
+    tether.py:677   fn = getattr(self.env, "placements", None)
+                    if fn is None: return
+
+**The toy env does not implement them, so the guard returns and the row is never written.** The
+seat cannot fail this check on any input it is capable of producing.
+
+### THE CORRECTION IS TO `E1b`'s EVIDENCE, AND `E1b`'s CLAIM SURVIVES IT
+
+`E1b` was filed as *`demo.jsonl` contains zero **narration** rows, so the gate seat validates a
+ledger structurally incapable of containing the rows that break it.* **The narration rows were the
+causing events of the six-shape finding — which is withdrawn — so `E1b`'s stated instance was
+derived from an artifact.**
+
+> **THE CLAIM IS UNCHANGED AND BETTER SUPPORTED: the seat validates a ledger that cannot contain
+> the rows that break it.** Only the identity of those rows changes — **from `bet`/`park`/
+> `indistinct` to the four frame-perception emitters** — and the new version is the stronger one,
+> because the absence has a mechanism (`getattr` on an env that lacks the method) rather than
+> being a fact about one fixture's contents.
+
+### AND IT IS THE SAME INSTANCE. IT DOES NOT ADVANCE THE COUNT.
+
+The reviewer's threshold is explicit: *"A third instance makes it a pattern worth a seat; two does
+not"*, with `E1c` withdrawn leaving **one**. **This is that one instance re-evidenced, not a
+second** — one seat, one gap, one cause, described correctly instead of incorrectly.
+
+> **AND THE TEMPTATION TO COUNT IT TWICE IS EXACTLY WHAT THE THRESHOLD IS VULNERABLE TO.** A
+> criterion that fires on a COUNT is corrupted by re-describing one thing in two vocabularies —
+> **and the re-description here is genuinely an improvement, which is what would make the
+> double-count feel earned.** Same shape as `A6i`'s writing side: *the summary gets written from
+> the work just done rather than from the definition the row already holds.* **`E1b` is still at
+> one, and the seat is still not to be built.**
+
+    MECHANISM   nothing changed. One file read, one grep, no run, no edit
+    CAPABILITY  none
