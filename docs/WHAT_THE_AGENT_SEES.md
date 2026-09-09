@@ -123,11 +123,27 @@ shape of your gap and a liability when you walk it in registry order.
 worth the pass.** One event, two thresholds. The agent does not retrieve for everything that moves; it
 retrieves for what moved and mattered.
 
-**It sizes the bet against a budget it is spending and cannot see the end of.** It knows what things
-have cost — *this strategy took forty steps in that game, and half that here* — and it has no number
-for how many actions a level allows. **That absence is on purpose.** It can compare effort across games
-and it cannot look up the answer, so if it ever works out the ceiling, working it out is the
+**It spends a budget it cannot see the end of, and — CORRECTED 2026-09-09 — it does not yet READ
+that budget.** It has no number for how many actions a level allows. **That absence is on purpose.**
+It cannot look up the answer, so if it ever works out the ceiling, working it out is the
 demonstration. Being told would have proved nothing.
+
+> **THE ORIGINAL SAID *it sizes the bet against a budget it is spending*, AND THAT IS NOT BUILT.**
+> The action budget is spent and counted **by the seat** — `arc_holdout.play` calls `bud.spend()`
+> per acted step — and **`tether.py` contains no read of it**, so nothing the agent decides is
+> sized against it. `Budget.exhausted()` and `Termination`'s `cap` ending exist and neither is
+> wired to the loop. **The deliberate absence is the CEILING; the spend counter is a different
+> thing and the agent is blind to both.**
+>
+> **AND `budget` IS TWO QUANTITIES, WHICH IS WHY THE SENTENCE READ AS TRUE.** `Config.budget` is
+> the CLOSURE-YIELD cap inside `enumerate_closure`; `arc_run.Budget` is the ACTION budget. The
+> loop reads the first constantly and the second never. **`CLAUDE.md` already registers this pair
+> under `A6i`**, filed prospectively as *checked and clear* — and this is the collision arriving
+> in a sentence about capability rather than in code.
+>
+> **NO GAMEPLAY CONSEQUENCE.** The agent never read it, so nothing it does changes. **This is a
+> documentation correction, made so a later reader does not build on a capability that was never
+> there** — which is the only damage an overstatement of this kind can do.
 
 ## Moving, and being surprised
 
