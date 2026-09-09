@@ -22613,3 +22613,58 @@ or move their calls — **address 9 of 75 and are withdrawn as insufficient rath
     MECHANISM        the gate is right to refuse and has been right on every real run
     CAPABILITY       none. The agent plays identically; this is the RECORD disagreeing with its
                      own schema, and no action of the agent depends on it
+
+## `E2`'s CENSUS — `discriminate` WAS NEVER FUNCTIONAL, AND THAT IS NEITHER REPAIR NOR RETIREMENT
+
+**Isaiah's question: *did anything ever consume `discriminate`'s output meaningfully, or has it
+been dead since guards landed* — a census to separate REPAIR from RETIREMENT.** The history
+answers it, and returns a third thing.
+
+    discriminate's spread block committed   ba483e1   2026-08-24
+    Term.guard -- the ctx.action read       d5b8b45   2026-08-29    FIVE DAYS LATER
+    atoms ever declaring reads_ctx action   0 commits, whole history
+    historical readers of `ctx.action`      EXACTLY ONE, and it is the guard
+    spread block edited after guards        cbb091e
+
+**FROM `ba483e1` TO `d5b8b45` NOTHING IN THE CODEBASE READ `ctx.action` AT ALL.** The discriminator
+was committed constructing `Ctx(action=act, ...)` **five days before anything anywhere could read
+that field.** After `d5b8b45` exactly one thing reads it — the guard — and the discriminator
+enumerates candidates from `enumerate_closure`, which yields `guard=None`.
+
+> **SO `spread[act]` COULD NEVER HAVE VARIED WITH `act`, AT ANY POINT IN THIS PROJECT'S HISTORY.**
+> Not *broken by a later change*. Not *superseded*. **Written against a premise that was false on
+> the day it was written and has been false every day since.**
+
+### WHY THAT IS A THIRD VERDICT AND NOT ONE OF THE TWO OFFERED
+
+    REPAIR      restores a mechanism to a working state it once had.  THERE IS NO SUCH STATE
+    RETIREMENT  removes a mechanism the architecture moved past.      THE ARCHITECTURE NEVER
+                                                                      PASSED IT -- guards ARRIVED
+                                                                      and simply do not reach it
+    ACTUAL      a mechanism whose premise was never true. Building it is not repair, it is
+                writing it for the first time, against a design decision nobody has taken
+
+**AND THE PREMISE IS NAMEABLE:** *applying a `val -> val` term under different actions yields
+different values.* Nothing has ever made that so. **Guards later made action-dependence possible
+for GUARDED terms, which is a different object than the one the discriminator builds.**
+
+### `cbb091e` MAINTAINED IT WHILE IT WAS NON-FUNCTIONAL
+
+The spread block was edited after guards landed — *the tied-at-top reading* — adding
+`self._ties[("spread", ...)]` bookkeeping **to a branch that cannot be entered.** The `_ties`
+counter for `spread` is therefore structurally always zero.
+
+> **THAT IS THE COST OF A DEAD BRANCH THAT LOOKS ALIVE: it accrues maintenance.** Nothing flagged
+> it, because a branch that never runs never fails — **`conform/lint.py`'s ISOLATED check catches
+> code nothing REFERENCES, and this is referenced; it is merely unreachable in practice.**
+
+### WHAT THIS CHANGES ABOUT THE FORK, AND THE RULING IS STILL ISAIAH'S
+
+The two candidate fixes filed under `E2` — attach guards to the spread's candidates, or price
+through `_predict` on the bound term — **are both now correctly described as BUILDING the
+mechanism, not fixing it.** That reframes the decision: it is not *how do we repair this*, it is
+*do we want an action-discriminating probe at all, and if so what should it read* — and the second
+half was never settled, because the first implementation smuggled an answer that could not run.
+
+**NO CANDIDATE FIX. CLASSIFICATION UNCHANGED: system error, wrong regardless of board** — the
+argument never mentions a board — **and now with a start date.**
