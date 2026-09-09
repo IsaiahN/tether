@@ -22397,3 +22397,99 @@ the formation path differs. **The agent played the same twenty-four moves.**
 **THE WIRING DEFECT IS FIXED AND THE CAPABILITY IT UNBLOCKS IS NOW BLOCKED ONE GATE FURTHER
 ALONG, ON PRICE.** That is a real advance in the record and **no change in play**, and reporting
 it as anything else would be the inflation the two-column rule exists to prevent.
+
+## THE TRANSCRIPT — THE PRIMARY STREAM READ FOR THE FIRST TIME, AND WHAT IT SHOWED
+
+**`transcript.py` captures the `Ledger` OBJECT and calls its own `rows()`.** Artifacts live outside
+the repo. `ka59 x 24` is **7213 rows, 2.6MB**; `sp80 x 3` is 483 rows.
+
+### `I4` CLOSED — MY OWN ALARM, RAISED AND KILLED BY A FALSIFIABLE CHECK
+
+I flagged `predicted 0 / actual 7 / mass 0.0 / cause slice_too_small` as surprise being suppressed,
+on **5 of 6 slots**. **`_cause` is reached ONLY when `bits == 0.0`** — its first branch returns
+`GENUINE` for any positive mass — so it **classifies an already-zero reading and suppresses
+nothing.** `SLICE_TOO_SMALL` fires on `len(self.trace) < 2`: *nothing has been held out yet, so
+nothing held.*
+
+**The ratio was cycle 0 of a THREE-cycle run, two thirds of which is warm-up.** `F1` — *six cycles
+is not a reading* — committed at three, **on the tool built to prevent reconstruction errors.**
+
+    STANDING CHECK, stated before the run:  slice_too_small must be ABSENT from cycles 2..23
+    MEASURED on ka59 x 24:                  0 occurrences at cycle >= 2
+
+**The check passed and the suspicion is dead with a stated failure condition rather than by
+argument.** A tool that removes one error class does not remove the others: **a raw stream still
+needs a window long enough to be a rate rather than a snapshot.**
+
+### `F22` — THE SHAPE CHANNEL'S PRICE IS THE AGENT'S OWN CATALOGUE. ISAIAH'S READ, CONFIRMED
+
+`arc_world.py:291` — `out[s] = max(2, len(getattr(self._decompose, "_shapes", ()) or ()))`. **The
+shape alphabet is the size of the ENCOUNTER TABLE.**
+
+    per-miss shape mass, in run order:  3.1699 3.4594 3.585 3.8074 4.0 4.1699 4.2479 4.4594
+                                        4.585 4.7004 4.8074 4.9069 5.0 5.0875 5.1699 5.2479 5.3219
+    which are log2 of:                  9 11 12 14 16 18 19 22 24 26 28 30 32 34 36 38 40
+
+**Identical WITHIN each cycle across every shape slot**, so it is a per-cycle table size and not a
+per-slot property. **The same event costs 68% more at cycle 22 than at cycle 0.**
+
+    attribute  misses     mass    share of all surprise
+      dcol         26   182.000   21.2%
+      w            29   174.000   20.3%
+      shape        39   172.970   20.2%
+      col          20   120.000   14.0%
+      row          17   102.000   11.9%
+      drow         14    98.000   11.4%
+      colour        2     8.000    0.9%
+      TOTAL       147   856.970
+
+**AND THE DOCSTRING DIRECTLY ABOVE THAT LINE DEFENDS A DIFFERENT COMPUTATION.** It states the
+alphabet is `2**(h*w)`, *"derived from two attributes already published, nothing tuned"*, changing
+*"when the object resizes"* — and closes *"the next reader will find that and take it for a defect
+without this line beside it."* **The line defends a computation the code does not perform.** `A6i`
+family: two quantities under one name, with a comment protecting the wrong one.
+
+> **THE CLAIM AT ITS REAL WIDTH, WHICH IS NARROWER THAN *A FIFTH OF SURPRISE IS BOOKKEEPING*.**
+> Shape is 20.2% of total surprise and its **per-event PRICE** is set by the catalogue. **Whether
+> the 39 MISSES are real shape changes is not established** — a climbing ID is equally consistent
+> with a genuinely new shape being minted. **The price scales with the counter; the occurrence
+> count is unread.** The check that would settle it: do `h`/`w` move on the cycles the shape ID
+> moves? **NOT RUN.**
+
+**CLASSIFICATION: system-level, wrong regardless of board — and WHICH SIDE IS WRONG IS A RULING.**
+Repairing the comment to match the code and repairing the code to match the comment are different
+changes with different consequences. **No candidate fix written.**
+
+### `F23` — THE LOOP DOES NOT RECORD WHAT IT PRESSED
+
+    record() calls passing an action as a value : 0
+    "field": "ACTIONn" anywhere in the stream   : 0
+    ACT(NEED(...)) inside utterance TEXT        : one per cycle
+
+**The EXIT is emitted at cycle level** — `repeat` carries `by` and `phase`, which is what `S5`'s
+family match made countable. **The ACTION is not.** It exists only as a substring of a rendered
+grammar term.
+
+> **SO A READER CAN SEE A PREDICTION MISS AND CANNOT SEE WHICH BUTTON PRECEDED IT — HALF THE
+> LOOP.** Regex-extracting it from the utterance would be **parsing a rendering**, which is the one
+> reconstruction this tool exists to refuse. **Reported, not patched**, and per the brief a loop
+> whose own stream does not record what it did is the more valuable finding than the transcript.
+
+**And nothing else was missing.** Everything the brief asked for was already emitted — **the
+agent's emission is complete; the stream simply had nowhere to go.**
+
+### `F24` — THE THREE-WAY CAUSE DISTINCTION COLLAPSES TO TWO AFTER WARM-UP
+
+From cycle 2, `mass 0.0, cause genuine` covers **both real zero surprise and nothing-happened**.
+`SLICE_TOO_SMALL` is structurally unreachable past the warm-up and `CHANNEL_CLOSED` needs
+`slot in owed_import`, so **the default for a quiet slot is `GENUINE`.** Observed, not classified:
+whether a zero-with-nothing-to-explain SHOULD read `genuine` is the same question the three causes
+were introduced to keep apart.
+
+### THE TWO COLUMNS
+
+    MECHANISM FIRES     the primary stream is readable outside the loop for the first time ·
+                        a stated falsifiable check passed on 24 cycles · the shape price
+                        curve measured across a full run with a denominator
+    CAPABILITY OWED     unchanged. The transcript is INSTRUMENTATION: not one action differs
+                        and the agent does not know it exists
