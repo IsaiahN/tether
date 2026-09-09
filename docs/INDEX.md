@@ -23063,3 +23063,51 @@ become a committed repair.**
     MECHANISM   nothing changed. No build file edited; the A/B ran over captured rows with the
                 two orderings applied at read time, which is why either arm remains free
     CAPABILITY  none. Not one action differs. The agent does not read `ledger.STEPS`
+
+### `E1`'s CAUSE NAMED EXACTLY — `"*"` IS TWO THINGS, AND THIS ONE IS `A6i` IN THE BUILD
+
+**Every writer of the wildcard slot, and the partition is clean:**
+
+    LITERAL "*"  -- six sites, ALL `PERCEIVE`
+      tether.py:681   placements      tether.py:742   read_order
+      tether.py:705   matches         tether.py:747   mode
+      tether.py:733   cascade         tether.py:1721  can
+
+    `x or "*"`   -- two sites, BOTH `PLAN`, and both only when `x` is None
+      tether.py:1503  routine_end     `self.routine_for or "*"`
+      tether.py:1834  routine_refused `slot or "*"`
+
+**`"*"` IS NOT A SLOT. It is the FRAME-WIDE bucket**, and perception's six uses are correct and
+deliberate: placements, matches, cascade, read order and mode are observations about the whole
+frame, which has no object to hang them on. **Nothing is wrong with any of those six.**
+
+**THE TWO `PLAN` SITES DO NOT MEAN THAT.** They reach `"*"` **by degradation** — `slot or "*"`
+is *we had nothing to put here*, written at a site whose slot is `None` precisely because the
+selector refused. **Same string, two quantities, and `gate._steps` orders them as one chain
+because a chain is exactly what a shared key makes.**
+
+> **THAT IS `A6i`, AND IT IS IN THE BUILD RATHER THAN IN MY INSTRUMENT.** *Two legitimate
+> quantities under one word is well-formed code, well-formed docs and a well-formed measurement.*
+> **Both readings of `"*"` are defensible; the collision is invisible at either write site**, and
+> visible only where a checker keys on the value they share.
+
+### AND IT REFRAMES WHAT ARM A WOULD ACTUALLY DO
+
+Swapping `PLAN` and `PERCEIVE` in the declaration **does not resolve the collision — it reorders
+it into legality.** The degenerate `PLAN` row would sit after the frame's `PERCEIVE` rows and the
+gate would fall silent, **with the two meanings of `"*"` still sharing a chain.** The next row
+type that lands in that bucket re-opens it.
+
+**SO THE THREE-WAY QUESTION HAS A FOURTH ANSWER AND IT IS THE CHEAPEST ONE.** Not *the loop is
+wrong*, not *the declaration is wrong*, not *the rows are mis-stamped*: **a fallback value
+collides with a populated bucket.** The row IS honestly stamped `PLAN`; the loop IS in a sensible
+order; the declaration IS correct for every real slot. **What is wrong is that `None` was spelled
+with a string that already meant something.**
+
+**NO FIX IS WRITTEN AND NONE IS PROPOSED YET.** The depth-24 run is still the gate on this: if a
+real-slot `PLAN` row appears there, arm A acquires the hazard `ledger.STEPS`' comment warns of,
+and the wildcard reading gains a second instance. **If none appears, `E1` and `F19` collapse into
+one blockage and the wildcard collision is the whole of `E1`.**
+
+    MECHANISM   nothing changed. Two greps, no run, no edit
+    CAPABILITY  none
