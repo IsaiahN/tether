@@ -23738,3 +23738,70 @@ to what the build should do.
                 on 2 of 4 boards
     CAPABILITY  none. No action differs. The agent's depth sits in the transient of every
                 curve read this week, which is a fact about the READINGS
+
+## `F20` STEP 1, THE ANALYTIC HALF — THE BOOTSTRAP IS **NOT STRUCTURALLY BINDING**
+
+**Isaiah ruled the sequence: step 1 is a MEASUREMENT — *does any board offer a residual larger than
+the full-length routine cost* — and step 2 happens only if step 1 is negative.** Half of it is
+answerable from the code at no run cost, and that half is the one that decides whether step 2 is
+ever needed.
+
+### THE CONDITION, REDUCED
+
+    base  = unsat * log2(n)                              tether.py:1887
+    cost  = (k+1)*log2(n+1) + (k-1)*log2(max(BONDS,1))   term_bits, 154
+    BONDS = 1  ->  log2(BONDS) = 0, so the second term VANISHES
+    pays  = cost + left < base                           strict, 158
+
+**So for a routine that fully reaches (`left = 0`):**
+
+> **`pays` iff `unsat > (k+1) * log2(n+1) / log2(n)`.**
+
+**Minimum `unsat` for a k-step routine to pay, by action count `n`:**
+
+      n     k=1    k=2    k=3    k=4
+      2    3.17   4.75   6.34   7.92
+      3    2.52   3.79   5.05   6.31
+      4    2.32   3.48   4.64   5.80
+      5    2.23   3.34   4.45   5.57
+      6    2.17   3.26   4.34   5.43
+
+### THE ANSWER TO STEP 1'S FIRST HALF: **NO, IT IS NOT IMPOSSIBLE**
+
+**`ka59` needed `unsat > 3.483` for its 2-step candidate at `n = 4` and had `unsat = 3.00` — short
+by 0.483 unsat units, which is the 0.9658 bits already on the record.** A 2-step routine pays
+whenever the unsatisfied gap reaches ~3.5 slot-units. **That is not an extreme requirement, and
+nothing in the bargain forbids it.**
+
+> **SO THE BOOTSTRAP IS REAL AND NOT BINDING, WHICH IS EXACTLY THE OUTCOME ISAIAH SAID WOULD
+> DISSOLVE THE QUESTION FOR FREE.** *If such a board exists the bootstrap is real but NOT BINDING,
+> nothing changes.* **What is now established is that no such board is RULED OUT by the
+> arithmetic**; what is not established is that one OCCURS.
+
+**AND THE SECOND HALF STAYS A MEASUREMENT, WITH A HONEST NOTE ON ITS COST.** Sampling `unsat` at
+moments when gate 1 passes requires reaching pricing, and pricing was reached **once in three
+board-runs of 24 cycles** — barrier 1, upstream, exactly as Isaiah's standing caveat says. **A
+distribution of `unsat` is therefore expensive to collect and that is a fact about barrier 1 rather
+than about this question.**
+
+### AND A COUPLING NOBODY HAD: `F28`'s FILTER MOVES `F20`'s THRESHOLD
+
+**The threshold FALLS as `n` rises** — `3.48` at `n=4`, `3.26` at `n=6` for `k=2` — because `base`
+scales with `log2(n)` while `cost` scales with `log2(n+1)`, and the ratio approaches 1. **More
+available actions make a routine RELATIVELY CHEAPER to justify.**
+
+**`F28`'s filter removes `ACTION6`, so it LOWERS `n`, so it RAISES the threshold.** On `ka59`,
+which declares five actions and delivers four, the `k=2` threshold moves `3.34 -> 3.48`.
+
+> **AND IT WOULD NOT HAVE CHANGED THE OUTCOME, WHICH IS WHY THIS IS RECORDED AS A COUPLING RATHER
+> THAN A CAUSE.** `ka59`'s observed `unsat` was **3.00**, below both thresholds. **The filter costs
+> about 4% on the bar and the shortfall was 14%.** Naming it as an explanation would be exactly the
+> over-claim the window keeps catching.
+
+**AND IT DOES NOT CONTRADICT *THE BARRIERS DO NOT COMPOSE*.** Isaiah's claim is that removing
+barrier 1 leaves barrier 2 standing and vice versa; that holds. **This is a different relation —
+`F28` MODULATES `F20`'s threshold without being upstream of it** — and it is small.
+
+    MECHANISM   the pays condition reduced to one inequality; the bootstrap shown not to be
+                structurally binding; F28 shown to move F20's bar by ~4%
+    CAPABILITY  none. No action differs, and no board has been shown to clear the bar
