@@ -21159,3 +21159,80 @@ looping on a guard it could not verify.**
 silent; `routine_refused` carrying a per-gate reason is what turned a silent no-op into a legible
 failure inside one run. **An instrument built this session paid on a defect introduced this
 session, which is the only kind of evidence that a legibility change was worth making.**
+
+## SWEEP 41 — THE REACH CIRCLE IS INTACT, AND THE ATTEMPT TO READ IT AS BROKEN IS `A6i`
+## COMMITTED WHILE EDITING THE PASSAGE THAT RECORDS `A6i`
+
+**The post-freeze queue was checked item by item against the code rather than recited, and the
+headline that fell out was wrong.** I measured `accepting(ATTR)` across the 48-atom set — `SHAPE`
+19, `DELTA` 16, `POSITION` 15, `EXTENT` 14, `COLOUR` 9, `BOOL` 9 — read it against `CLAUDE.md`'s
+*"`accepting(...)` is empty on every one"*, and reported **the condition making reach impossible
+is lifted on six of eight types.** It is not lifted at all.
+
+    sensors : 9   components colour position extent shape overlap delta touching changed
+    SENSORS accepting an attribute type            NONE -- empty on every one
+    closure((OBJECT,), depth 2 | 3 | 4 | 5)        4 chains, composable=0, UNREACHED
+
+**`accepting` IS `Registry.accepting()`, A METHOD ON THE SENSOR REGISTRY.** `resolve()` closes
+over `env.sensors()` and **never over Γ**. The atoms live in Γ. **Two registries, one word, and
+the sentence reads correctly under either** — which is the definition of the unlintable case.
+
+### AND THE PASSAGE BEING EDITED ALREADY SAID THE CONCLUSION WAS IMPOSSIBLE
+
+*What breaks the circle legitimately is a RICHER TIER 1 — a perception question with its own
+entry rule — **never a Tier 2 exemption.*** **Atoms ARE tier 2.** Twenty-four of them could not
+have lifted this verdict by construction, and **the sentence saying so is two lines above the one
+I was rewriting.**
+
+> **THIS IS THE FOURTH `A6i` INSTANCE AND THE FIRST COMMITTED INSIDE THE RULE'S OWN TEXT.** The
+> writing side says *when you edit a row, write its summary from the row's DEFINITION, not from
+> what you just finished* — and what I had just finished was measuring atoms. **The definition
+> was in the paragraph under the cursor.**
+
+**THE COST WAS NEARLY A RUN AND A FALSE RESTORATION.** The next action was going to be re-running
+`resolve()` to see the verdict flip, and the two citations suspended on `composable=0` were going
+to be reported as restorable. **The measurement that would have refuted it — four chains,
+composable zero — takes under a second and reads the registry the mechanism actually reads.**
+
+### WHAT IS ACTUALLY TRUE, AND IT IS THE SMALLER CLAIM
+
+    SPENT       the PROHIBITION. `parity` and `holes` are installed under the 2026-09-05 entry
+                clause, with `ADMITTED` stamps naming which clause admitted each
+    UNCHANGED   the VERDICT. `composable=0` is now MEASURED rather than inherited, and the two
+                suspended citations stay suspended
+    OWED        a SENSOR accepting an attribute type -- which is `3a`, a PERCEPTION question,
+                and the atoms' entry clause admits atoms and says nothing about sensors
+
+**A reader meeting *this rule forbids installing them* and finding both atoms in `arc_atoms`
+would read a stale prohibition as evidence of a breach** — that is the repair that was genuinely
+owed, and it is made. **The verdict half was not owed and has been withdrawn.**
+
+### THE QUEUE, CHECKED AGAINST THE CODE
+
+    §1  MECHANICAL   ALL SIX BUILT -- S1 no_action · S2 repeat filter · S3 routine_refused ·
+                     S4 pays on reuse · S5 family match · S6 coprime stride
+    §2  VOCABULARY   6 of 7. `inside` absent -- needs a Ctx containment accessor, which makes
+                     it a perception question rather than a vocabulary one
+    §3a TYPING       UNCHANGED and now confirmed by measurement, not inherited
+    §3b TYPING       LANDED AS PREDICTED. `rotate`/`reflect` made the SHAPE component cyclic;
+                     SHAPE->OBJ is 15 / 291 / 3000 at depths 2 / 3 / 4, so `max_depth = 3`
+                     truncates a 10x larger space and is a live constraint rather than
+                     decoration. Whether 3 is still right is a question that did not exist
+                     before, and `budget_exhausted` may now be reachable
+    §4  STRUCTURE    HALF BUILT -- field, evaluation and length recursion in; NO PRODUCER.
+                     Blocks `both`/`either`. The doc said rule on this BEFORE the atoms and
+                     the atoms landed first
+    §5  G1           partially closed -- `negate` real, `both`/`either` identity
+        G2           `count` built; the COUNT type still consumed by 0 atoms
+        G3           partial -- abs_delta, sign, sum_group, parity; no ratio/product/divide
+        G4           WORSE THAN FILED: FOUR orphans, not two. RATIO, REGION, COUNT and AXIS
+                     are each consumed by ZERO atoms
+        G5           unchanged
+    §6  DOCTRINE     open, Isaiah's -- with 6a's premise corrected: `slot_types` and
+                     `slot_owner` are both declared across the membrane, so COMPOSING a
+                     grouping is legal and only DERIVING one by name-splitting is forbidden
+    §7  OWED         the §12.4 misattribution is already repaired; a DIFFERENT staleness had
+                     replaced it in the same passage, and that is what this sweep fixed
+    §8  COST WALL    the matched pair arrived -- see the arm comparison; the growing-closure
+                     account is refuted twice, once matched-pair, and the cause stays UNKNOWN
+                     rather than replaced with a second guess

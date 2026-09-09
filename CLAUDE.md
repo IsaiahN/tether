@@ -442,6 +442,48 @@ Not "it improved". Five clauses, each checkable:
    > measure.** **What breaks the circle legitimately is a RICHER TIER 1** — a perception
    > question with its own entry rule — **never a Tier 2 exemption.**
 
+   **THE PROHIBITION IS SPENT AND THE CIRCLE IS NOT BROKEN — AND THOSE ARE TWO STATEMENTS,
+   WHICH IS THE WHOLE OF WHY THIS ENTRY EXISTS. ISAIAH, 2026-09-05.** *This rule forbids
+   installing them* was true until an entry clause was written. **The clause: an atom may be
+   handed when the agent's own machinery perceived and named the gap, when the primitive is
+   fundamental enough that no in-run derivation is plausible, and when a human competitor would
+   arrive already holding it — stamped `prior` at entry, in the same commit, so the ablation can
+   still separate what was GIVEN from what was REACHED.** **It admits ATOMS and says nothing
+   about SENSORS, so it lifts the prohibition and leaves the verdict exactly where it was.**
+
+   **`parity(POSITION)` AND `holes(SHAPE)` ARE THEREFORE INSTALLED, AND SAYING SO HERE IS THE
+   POINT OF THIS ENTRY.** A reader meeting *this rule forbids installing them* and then finding
+   both in `arc_atoms` would read a **stale prohibition as evidence of a breach.** Every atom
+   admitted under the clause carries an `ADMITTED` stamp naming **which clause admitted it** —
+   and the stamps distinguish the ones the machinery named (`rotate` and `reflect` by
+   `arc_predict.unexpressible()`; `count`, `holes`, `parity` by §12.4's own worked examples;
+   `inside` by Isaiah) from the ones **a measurement I ran** named, which are stamped `ON
+   DEPTH`. **That partition is the ablation's, and it cannot be rebuilt from a `prior` stamp
+   afterwards, which is why it is written at entry rather than reconstructed.**
+
+   **AND THE VERDICT ABOVE IS UNCHANGED AND WAS RE-MEASURED TO CONFIRM IT — 2026-09-08.**
+   `closure((OBJECT,), d)` is **4 chains, `composable=0`, `UNREACHED` at every depth from 2 to
+   5**, and no sensor accepts an attribute type. **The twenty-four atoms did not touch it and
+   could not have.**
+
+   **THE ATTEMPT TO READ IT AS BROKEN IS THE ENTRY WORTH KEEPING, BECAUSE IT IS `A6i` COMMITTED
+   WHILE EDITING THE PASSAGE THAT RECORDS `A6i`.** I measured `accepting(ATTR)` over **Γ's
+   ATOMS** — `SHAPE` 19, `DELTA` 16, `POSITION` 15 — and wrote it into a sentence whose subject
+   is **THE NINE SENSORS**. `accepting` is `Registry.accepting()`, a method on the SENSOR
+   registry; `resolve()` closes over `env.sensors()` and **never over Γ**. **Two registries, one
+   word, and the sentence reads correctly under either.**
+
+   > **AND THE PASSAGE ABOVE ALREADY SAID THE CONCLUSION WAS IMPOSSIBLE.** *What breaks the
+   > circle legitimately is a RICHER TIER 1 — a perception question — **never a Tier 2
+   > exemption***. **Atoms ARE tier 2.** Installing them could not lift this verdict by
+   > construction, and the paragraph being edited says so two lines up. **Step three would have
+   > cost one grep; reading the thing I was editing would have cost nothing.**
+
+   **SO THE TWO SUSPENDED CITATIONS STAY SUSPENDED, AND `composable=0` IS NOW MEASURED RATHER
+   THAN INHERITED.** What would lift this is a sensor accepting an attribute type — **which is
+   `3a`, a perception question, and forbidden until it has an entry rule of its own.** The
+   atoms' entry clause admits ATOMS and says nothing about sensors.
+
    **AND THE ABSTENTION IS THE DELIVERABLE, NOT THE BLOCKAGE.** *I cannot tell these apart, I
    cannot build an instrument that would from what I hold, and here is the closure I searched*
    — **the alignment claim at the perception level, carrying a denominator rather than
