@@ -23447,3 +23447,104 @@ ruling per reader.**
 
     MECHANISM   nothing changed. The A/B stays cancelled for the reason given above
     CAPABILITY  none
+
+## `E1` CLOSED BY ARM C, AND A CONTACT FINDING UNDERNEATH IT — ISAIAH, 2026-09-09
+
+### ARM C CONFIRMED AT DEPTH 24. PREDICTED 0, MEASURED 0.
+
+    ka59 x 24, 7213 rows
+      ARM B  keep PLAN first        7 violations, all slot='*'
+      ARM A  PERCEIVE first         2 violations, both REAL slots
+      ARM C  PLAN first + split *   0 violations      <-- DERIVED AS 0, MEASURED 0
+
+**Clean at depth 3 on `sp80` and `ka59`, and clean at depth 24.** The derivation was written before
+the run with its failure conditions named and none fired. **`E1` resolves to: separate the
+degenerate key, leave the declaration alone.**
+
+### THE CONTACT FINDING, AND IT IS ISAIAH'S OBSERVATION MADE COUNTABLE
+
+**Isaiah: *`available_actions` tells you what's available AND lets you know what an action caused
+as an effect. If `ACTION6` is only available it's like a touchscreen actuator situation, or a
+hybrid.*** Both halves check out, and the first is bigger than *the agent cannot aim.*
+
+**`arc_world.actions()` filters to `is_simple()`, so `ACTION6` — the only positioned action — never
+reaches the agent. Counted across the declared action sets:**
+
+    ACTION6-ONLY  [6]        ft09 lp85 r11l s5i5 tn36 vc33                6 games
+                             -> the filter returns an EMPTY TUPLE. The agent is handed
+                                NO ACTIONS AT ALL. It cannot act, not merely cannot aim
+
+    HYBRID        contains 6 ar25 bp35 cd82 dc22 ka59 lf52 m0r0 sb26      12 games
+                             sc25 sk48 sp80 su15
+                             -> the pointer is stripped and the simple actions remain.
+                                `su15` = [6,7] leaves exactly ONE action; `sb26` = [5,6,7]
+                                leaves two
+
+    NO ACTION6               g50t ls20 re86 tr87 tu93 wa30                6 games
+                             -> unaffected
+
+    UNRESOLVED               cn04                                        1 game
+
+**18 of 24 games are touched by one filter, and 6 of 24 are rendered completely unactable by it.**
+
+**AND `ka59`'s RUN CONFIRMS THE FILTER EMPIRICALLY, WHICH IS NOT AN INFERENCE FROM THE DECLARATION:**
+`ka59` declares `[1,2,3,4,6]` — five actions — and the ledger records the agent pressing **exactly
+four distinct actions across 24 cycles.** `ACTION6` stripped, measured from the agent's own rows.
+
+> **THIS IS WHY THE SIX-GAME EXCLUSION IN `CLAUDE.md` EXISTS, AND NOW IT HAS A CAUSE RATHER THAN A
+> SYMPTOM.** The standing text says the detector-family test must exclude *the six games where the
+> adapter surfaces no action* — **it is these six, and they are ACTION6-only.** The exclusion was
+> written from the observation; this is the declaration that produces it.
+
+### THE SECOND HALF — THE AVAILABILITY CHANNEL IS NOT SAMPLED WITHIN A LEVEL
+
+**`self.actions` has exactly two write sites:**
+
+    tether.py:328   __init__          "asked for, never imported"
+    tether.py:545   the level boundary "a new level may advertise differently"
+
+**Nowhere else.** So if the available set changes *within* a level — which is Isaiah's point, that
+availability is itself an effect signal — **the agent cannot see it.** It reads the set once per
+level and treats it as constant until the world is replaced.
+
+**THAT IS A PERCEPTION GAP AND IT IS THE LEGITIMATE KIND TO WIDEN.** The doctrine's own line:
+*widening PERCEPTION is legitimate where installing TIER 2 is not*, because one changes contact and
+the other substitutes the habitat. **A channel the world is already broadcasting, that the loop
+samples at the wrong rate, is not an answer being encoded — it is a sense the agent does not have.**
+
+**NOT PROPOSED AS A BUILD CHANGE HERE.** Naming it is the deliverable; the freeze is Isaiah's, and
+`ACTION6` is §17.1's arity question and `2c`'s to answer, which is a larger door than this note.
+
+### DOES ANYTHING ACTUALLY MOVE? MEASURED, AND THE ANSWER IS QUALIFIED
+
+    ka59 x 24, from the agent's own rows
+      positional readings (row/col/drow/dcol)    1406 across 24 cycles
+      readings where the value CHANGED              81   (5.8%)
+      distinct positional slots that ever moved      12
+      exits taken                       draw 7, discriminate:learned 17
+      levels reached                                  0
+
+**ESTABLISHED: things move.** 81 positional changes over 12 distinct slots is not a static board.
+
+**NOT ESTABLISHED: that the AGENT moves them.** Per-action change rate ranges **0.043 to 0.127**
+across the four actions — a threefold spread that is *suggestive of differential effect and
+underpowered to show it*: 24 cycles over 4 actions is about six presses each, and no repeat
+structure was measured. **A spread that size on that denominator is exactly the reading `F1/F2`
+was filed against.**
+
+> **AND WHAT WOULD SETTLE IT IS NOT MORE CYCLES BUT A DIFFERENT QUESTION — whether the SAME action
+> produces a CONSISTENT effect** — which the saved rows can now answer without a run, because the
+> capture is on disk.
+
+**WHAT IS DELIBERATELY NOT COMPUTED, AND THE OMISSION IS LOAD-BEARING.** `moving.py` reports
+**whether** displacement depends on the action and never **which action produces which
+displacement**, and prints no per-action effect table. ***`act` arrived knowing what each action
+does, and that was the fault.*** A seat-side button-to-effect table is the encoded answer in its
+most direct form — one copy-paste from becoming a prior, and the ablation clause could not tell us
+it had happened. **The dependence is a statistic about the agent's situation; the mapping is the
+answer to the agent's problem.**
+
+    MECHANISM   E1 closed by arm C, confirmed at depth 24
+    CAPABILITY  UNCHANGED, and now with a measured ceiling: on 6 of 24 games the agent is
+                handed no action at all, and on 12 more the only positioned action is removed
+                before it is offered. Levels: 0
