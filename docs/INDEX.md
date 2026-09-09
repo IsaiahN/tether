@@ -23863,3 +23863,65 @@ the set is expected to move — and the one place the agent re-reads it — has 
                 F28's second half downgraded to theoretical; the once-per-level read shown
                 to be the right rate for level 0
     CAPABILITY  none. No action differs. This REMOVES a suspected gap rather than adding one
+
+## THE CORPSE QUESTION WAS ANSWERED IN THIS FILE AT LINE 11253, AND I RAN IT TWICE ANYWAY
+
+**The reviewer's candidate (2):** *"game-over accepts only RESET; if it dies at cycle 3 and fires 45
+invalid actions into a corpse, every reading past that point is noise."* **`INDEX:11253`, written
+earlier by me:**
+
+> *"**After the episode ends, `step()` proposes no action every cycle.** No ACT row, so no `by`"*
+> … **"131 actions in 1000 cycles. 867 dead ones."**
+
+**CANDIDATE (2) IS REFUTED AND WAS ALREADY REFUTED, MEASURED AT THE RULED BUDGET ON TWO BOARDS.**
+The agent does not fire into a corpse; it proposes nothing and the loop no-ops. **The run in flight
+was killed rather than finished** — it was a third board for a question with an answer.
+
+**ELEVENTH INSTANCE OF *ASSUME IT IS ALREADY SPECIFIED, AND GO LOOK*, AND THE SECOND TODAY IN THE
+FILE I OWN.** `F22` was the tenth. **Both times I searched the CODE and reconstructed a history the
+INDEX already held**, and both times the entry was thousands of lines back in a file I had appended
+to a dozen times the same day.
+
+> **AND THE TELL WAS AVAILABLE BEFORE THE RUN.** `arc_holdout`'s comment says *"a 1000-CYCLE run is
+> a ~140-ACTION run followed by ~860 no-ops"* — **I QUOTED THAT LINE in the entry where I said the
+> question was unchecked.** The comment is the finding, compressed. I read it as background and then
+> built an instrument to discover it.
+
+### AND MY OWN BUDGET "CORRECTION" WAS ITSELF AN `A6i`, MADE WHILE CORRECTING SOMETHING ELSE
+
+**I wrote, one entry above: *"The budget is `per_level: 500`, not 1000… the proportion I've used in
+three reports is wrong."* THAT IS WRONG, AND IT IS TWO QUANTITIES UNDER ONE WORD:**
+
+    MAX_ACTIONS = 1000   ARC_AGENT 22.1's RULED CEILING, anchored: "humans complete a level in
+                         under 500 actions, so this is the 2x ceiling"
+    PER_LEVEL   = 500    arc_run.Budget's PER-LEVEL ACCRUAL. `left += per_level`, unspent
+                         carries forward, so it is not a flat cap either
+
+**They are not the same quantity and neither corrects the other — 1000 was DERIVED AS 2x THE 500.**
+So the earlier reports quoting *a ruled 1000* were right, and my correction of them was the error.
+
+> **THE SHAPE IS THE WRITING SIDE OF `A6i`, COMMITTED INSIDE A CORRECTION.** *The summary gets
+> written from THE WORK JUST DONE rather than from THE DEFINITION.* I had just read one report line
+> saying `per_level: 500` and wrote a correction from it, without asking what the other number had
+> meant. **A correction feels like the careful move, which is exactly why it does not trigger the
+> check.**
+
+### WHAT SURVIVES FROM THE TWO RUNS, AND IT IS NOT NOTHING
+
+    sp80 x30   30 world-steps across 30 cycles, budget.spent = 30
+               -> one action per cycle, ALL LANDING, up to the death
+               -> the reviewer's candidate (1) closed FOR THE AGENT and not only for the
+                  random arm: the harness is not swallowing the agent's actions
+    the death  step 29 of 30 -- the LAST step, so that run had no post-death cycles at all
+               and its clean reading was a null over an empty population
+
+**AND AN INDEPENDENT REPRODUCTION I DID NOT PLAN.** `INDEX:11264`'s retraction gives the honest
+lock-on figure as **93 of 131 acts from `discriminate:learned` — 71%** on `g50t`/`ls20` at 1000
+cycles. **My `F26` measured 17 of 24 on `ka59` — 71%.** *Different boards, different depths,
+different instrument, same number.* **That is `F26`'s strongest support and it is a coincidence of
+two measurements rather than a repetition of one.**
+
+    MECHANISM   candidate (2) refuted from the record; candidate (1) closed by measurement;
+                F26's 71% independently reproduced at 1000 cycles on two other boards
+    CAPABILITY  none. And one probe was stopped mid-run rather than finished, which is the
+                correct response to finding the answer already written down
