@@ -21594,3 +21594,106 @@ broken is the same open question one level up, and that one is Isaiah's.**
 > reused.** The M2 blocker is the same single sentence at six cycles and at twelve, on every
 > board. **Depth bought mechanism and bought no capability, and those two readings must not be
 > summed.**
+
+## THE DEPTH-24 SWEEP, AND THE M2 BLOCKER WALKED TO ITS BOTTOM — NO DEFECT AT ANY LEVEL
+
+    game   wall      cyc  mints  lib   contest                  routine_refused
+    ls20   3945.6s   24    21     74   objective 7 · predictor 14      8
+    ka59   2032.1s   24    20     70   OBJECTIVE 13 · predictor 7      7
+    ar25   5542.2s   24    49    101   objective 7 · predictor 42      9
+    sp80    540.4s   24     9     62   predictor 9                     8
+    vc33      0.1s    0     0     48   --                              --
+
+### `F6` — THE OBJECTIVE ARM'S SHARE GROWS WITH DEPTH, AND ONE BOARD'S ZERO IS PERMANENT
+
+    objective wins / contests      depth 6    depth 12     depth 24
+    ka59                           0 / 0      4 / 9        13 / 20   -- MAJORITY
+    ls20                           1 / 1      1 / 7          7 / 21
+    ar25                           0 / 1      0 / 23         7 / 49   -- FIRST WIN AT 24
+    sp80                           0 / 1      0 / 6          0 /  9   -- ZERO AT EVERY DEPTH
+
+**`ar25` READ *THE OBJECTIVE ARM NEVER WINS* AT DEPTH 12, ON A DENOMINATOR OF 23.** That is a
+respectable-looking null with a real sample, and it is wrong. **It wins seven times at 24.**
+
+**AND `sp80`'s ZERO IS THE CONTROL THAT MAKES THE OTHERS READABLE.** Zero at 6, 12 and 24, against
+the panel note *objective on 0 of 16*. **A board with no objective never wins an objective
+contest, which is the build being RIGHT** — game quirk, correct-given-the-input, **behaviour note
+and no candidate fix.** Its value is that it separates *the mechanism does not work* from *this
+board does not offer the thing*, and without it the other three readings would be uninterpretable.
+
+### `F7` — `routine_refused` EQUALS `draw`, EXACTLY, TWELVE TIMES OUT OF TWELVE
+
+    board   depth 6      depth 12     depth 24        draw at each depth
+    ls20    6 = 6        8 = 8        8 = 8           6 · 8 · 8
+    ar25    6 = 6        9 = 9        9 = 9           6 · 9 · 9
+    ka59    6 = 6        7 = 7        7 = 7           6 · 7 · 7
+    sp80    6 = 6        8 = 8        8 = 8           6 · 8 · 8
+
+**`draw` FREEZES WITH DEPTH AND EVERY EXTRA CYCLE GOES TO `discriminate:learned`.** The control
+flow says why: `choose` returns `discriminate:learned` **before** reaching `_mint_routine`, so a
+routine is attempted **exactly on the cycles that fall through to a draw.**
+
+> **I NEARLY FILED THIS AS THE STRUCTURAL OBSTACLE AND THE CODE REFUSED IT.** `choose`'s first
+> branch is commented *A HELD ROUTINE RUNS BEFORE ANYTHING ELSE IS CONSULTED* — **execution is
+> not preempted, only FORMATION is.** And formation ordering is **not the binding constraint
+> today**, because every attempt refuses anyway at gate 1. **It would become one the moment gate
+> 1 passed** — recorded for then, not filed as a cause now.
+
+### `F8` — THE M2 BLOCKER, WALKED TO THE BOTTOM: FOUR LEVELS, NO DEFECT AT ANY OF THEM
+
+Gate 1 of 8 refuses on every board at every depth, always the same sentence.
+
+    1  routine_refused    "no objective is confidently shrinking"  -- `_goal_choice()` -> None
+    2  the criterion      >= MIN_REPEAT+1 = 3 readings, all non-increasing, at least one real
+                          decrease. `MIN_REPEAT` REUSED rather than a second constant invented
+    3  the data           ka59 @ 12: 120 SLOTS -> 2 with any series -> 1 with >= 3 -> FLAT
+                          o13.w = [0.071, 0.071, 0.071]
+    4  the supply         `_res[slot]` appends only while `goal_residual` is non-None and POPS
+                          THE WHOLE SERIES the moment it reads None -- deliberate: *a series
+                          needs a distance*. A residual exists only for OBJ-BOUND slots
+
+**EVERY LEVEL IS CORRECT-GIVEN-THE-INPUT.** The selector refuses a flat series because *flat is
+not shrinking*, which is its specification quoted from §13.4. **There is no defect here and no
+candidate fix is written**, which is the point: *a candidate fix for a non-error is worse than no
+note.*
+
+> **THE BLOCKER IS SUPPLY, NOT CRITERION.** M2 needs one slot to stay OBJ-bound for three
+> consecutive steps with a falling residual. **On `ka59` two slots ever carried a series at all,
+> out of a hundred and twenty.** Loosening `MIN_REPEAT` would not help — the one qualifying
+> series is FLAT, so no threshold on shrinking admits it, and moving a derived constant to make
+> a mechanism fire is the shaping this window forbids.
+
+**AND THE SUPPLY IS WHAT THE PRICE TIE DECIDES, WHICH IS A STRUCTURAL LINK AND NOT A PROPOSAL.**
+A slot bound to a `val` term yields NO goal residual; only an `OBJ` binding does. **So the count
+of slots that can ever feed `_goal_choice` is the count the objective/predictor contest
+produces** — and that contest is decided at an exact price tie the bargain cannot break, which is
+Isaiah's held ruling. **Stated as a chain in the code; the ruling is not taken here.**
+
+### `F9` — COST, THE THIRD MATCHED READING FOR §8
+
+    ls20    6 ->   94.7s      12 ->  529.6s      24 -> 3945.6s
+    ka59    6 ->   68.3s      12 ->  345.8s      24 -> 2032.1s
+    ar25    6 ->  167.6s      12 -> 1101.9s      24 -> 5542.2s
+    sp80    6 ->   23.9s      12 ->  133.6s      24 ->  540.4s
+
+**WALL TIME RISES ~5.6x - 7.5x PER DOUBLING OF CYCLES, ON ALL FOUR BOARDS.** A doubling that costs
+~6x is superlinear in cycles — **and the per-cycle series is SPIKY rather than smooth**, so the
+aggregate hides an episodic shape the depth-12 series showed directly.
+
+**THE ACCOUNT STAYS REFUSED AND UNREPLACED.** Three independent readings now contradict *the wall
+is a growing candidate space* — `lf52`'s flat 7801 calls at +60% cost, the matched `negate` pair
+flat at ~1.2x, and this depth series. **Cause UNKNOWN. Naming one from a spike shape would be the
+second guess §8 exists to refuse.**
+
+### THE TWO COLUMNS, HELD APART
+
+    MECHANISM FIRES     minting scales with depth (1 -> 49 on ar25) · both contest arms win
+                        across the panel · the objective arm takes the MAJORITY on ka59 at 24 ·
+                        directed action appears and grows (0 -> 17 on ka59) · refusals are
+                        legible at every gate · `vc33` reports "nothing ran" rather than a null
+    CAPABILITY OWED     ZERO routines formed · ZERO levels advanced · ZERO chunk reuse · at
+                        EVERY depth on EVERY board. `levels_completed` is 0
+
+**DEPTH BOUGHT MECHANISM AND BOUGHT NO CAPABILITY.** Twelve board-depth readings, and the
+capability column is unchanged in all twelve. **They are not summed, and repeated mechanism-fires
+still do not accrete into *it works*.**
