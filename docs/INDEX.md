@@ -23111,3 +23111,51 @@ one blockage and the wildcard collision is the whole of `E1`.**
 
     MECHANISM   nothing changed. Two greps, no run, no edit
     CAPABILITY  none
+
+### PRE-REGISTERED BEFORE THE DEPTH-24 RESULT — AND IT PREDICTS **NEITHER ARM IS CLEAN**
+
+**Written while `ka59 @ 24` is still running, with the arms unread.** The prediction is a
+DERIVATION rather than a guess, which is why it is worth pinning: if it is right the A/B is
+already decided, and if it is wrong the wildcard diagnosis is wrong with it.
+
+**THE ORDERING IS CONFIRMED IN THE CODE, NOT TAKEN FROM THE COMMENT** — `choose` is called at
+`tether.py:2948` and `_utter` at `tether.py:2978`, same function, in that order. So for any REAL
+slot `S`:
+
+    choose   emits the PLAN row for S        seq N
+    _utter   emits the PERCEIVE bet row for S seq M > N
+
+**Feed that through both arms:**
+
+    ARM B   PLAN=0, PERCEIVE=1     0 then 1   ascending    LEGAL
+    ARM A   PERCEIVE=0, PLAN=1     1 then 0   descending   VIOLATION
+
+**AND THE WILDCARD RUNS THE OTHER WAY, WHICH IS THE WHOLE POINT:**
+
+    on "*"  placements(PERCEIVE) precedes routine_refused(PLAN)
+    ARM B   1 then 0   descending   VIOLATION      <- the 3-per-3-cycles already measured
+    ARM A   0 then 1   ascending    LEGAL
+
+> **SO NO ORDERING OF `PLAN` AND `PERCEIVE` IS LEGAL, AND THAT IS NOT A DILEMMA — IT IS THE
+> WILDCARD DIAGNOSIS STATED AS A PREDICTION.** The two `PLAN` meanings need OPPOSITE placements
+> because they are two different things, and a single declaration can only hold one. **A
+> declaration cannot separate what a shared key has already merged.**
+
+**THE PREDICTION, in the form that can fail:**
+
+    ARM A at ka59 x 24 shows violations > 0, all on REAL slots, none on "*"
+    ARM B at ka59 x 24 shows 24 violations, all on "*", none on a real slot
+
+**WHAT REFUTES IT:**
+
+    arm A reads ZERO despite real-slot PLAN rows existing  -> the derivation is wrong
+    arm A's violations land on "*"                          -> something else is ordering them
+    NO real-slot PLAN row appears at all                    -> the panel STILL cannot show it,
+                                                               E1 collapses into F19, and this
+                                                               pre-registration is unresolved
+                                                               rather than confirmed
+
+**THE THIRD BRANCH IS LIVE AND IS NOT THE EXPECTED ONE.** `F19` measured **one** priced candidate
+on `ka59 @ 24`, and pricing is downstream of `_goal_choice()` returning a slot — **so at least one
+real-slot `PLAN` row should exist.** That is an inference from a different run's event stream, not
+a reading of this one, and it is the assumption most likely to be wrong.
