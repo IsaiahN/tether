@@ -23296,3 +23296,85 @@ that is Isaiah's, and the measured half at depth 24 is not back.
 
     MECHANISM   the A/B is decided: both declared arms lose, and a third is clean at depth 3
     CAPABILITY  none. Not one action differs, on any arm
+
+## `F22` WITHDRAWN AS FILED — TWO COMMENTS ARE "DIRECTLY ABOVE" IT AND THEY DISAGREE
+
+**`F22`'s own record says: *"The docstring directly above defends `2**(h*w)` and warns a reader
+might take the code for a defect without it."* Both halves are true and the conclusion is
+backwards.** The docstring is directly above the **METHOD**. There is a second comment directly
+above the **LINE**, it is later, and **it argues explicitly against the docstring and implements
+the other answer.**
+
+    arc_world.py:265-281   the METHOD docstring   derives 2**(h*w)
+    arc_world.py:293-305   the LINE comment       derives len(_shapes), and says why the
+                                                  docstring's derivation is wrong
+    arc_world.py:306       the code               implements the LINE comment
+
+**THE LINE COMMENT, WHICH NEITHER THE REVIEWER NOR I READ:**
+
+> *"THE COUNT OF LABELS, NOT THE SPACE OF SHAPES. The slot holds an ID, and an id is a label --
+> arbitrary, comparable, never orderable -- so its alphabet is the number of labels, exactly as
+> `colour`'s is the palette. `2**(h*w)` priced the space of shapes that COULD exist, which is not
+> what the slot holds, and charged 4,096 bits for a full-board object."*
+
+**AND IT DOES NOT DUCK THE GROWTH — IT NAMES IT AND DEFENDS IT:**
+
+> *"IT GROWS WITH OBSERVATION, AND THAT IS STATED RATHER THAN AVOIDED. Being wrong costs more as
+> the world turns out to be richer -- a fact about the world, not a metric drifting, and colour's
+> would do the same on a board that revealed new colours."*
+
+**AND IT PRE-EMPTS THE EXACT CORPUS LAW I WOULD HAVE CITED AGAINST IT:** *"Different from `lib ok
+here / lib`, which was a RATIO whose denominator the mechanism itself moved."* **The site
+distinguishes itself from the self-measuring-denominator case by name.**
+
+### SO THE RULING WAS MADE AGAINST A SUPERSEDED COMMENT, AND ARM A IS THE WRONG ARM
+
+The reviewer ruled *the docstring is right, the code is wrong.* **The docstring is the OLDER
+position.** Running arm A would install `2**(h*w)` — **charging 378 bits per miss on a 21x18
+object and 4,096 on a full-board one**, which is the number the site comment cites as the reason it
+was abandoned. **The A/B would have implemented the position the code already argues against, and
+`F25` had already cleared the only other reading.**
+
+> **CLASSIFICATION CHANGES: not *the code is wrong* but *the DOCSTRING IS STALE*.** A documentation
+> defect in a working file, where two layers of a decision were both left in place and the older
+> one sits where a reader meets it first.
+
+**FOURTH INSTANCE THIS WINDOW OF A DEFECT THAT WAS DOCUMENTED-AND-DELIBERATE AT ITS SITE**, after
+`E2` (*"DISCRIMINATE READING ZERO IS THE DESIGNED STATE"*), the `_bindings` citation, and `E1c`.
+**And the second where the reviewer and I missed the same site comment together.** The check that
+catches it is already written: ***go to the write site — ask which LINE assigned the value, never
+which MECHANISM explains it.*** I went to the method and stopped one level short.
+
+### WHAT SURVIVES IS THE FAILURE MODE THE CODE NAMES AGAINST ITSELF, AND IT IS UNMEASURED
+
+> *"**The failure mode to WATCH is unbounded growth**: if the shape count never settles, the cost
+> of a shape miss never settles either."*
+
+**THE TABLE IS MONOTONE BY CONSTRUCTION, WHICH IS HALF THE HAZARD ALREADY ESTABLISHED:**
+
+    arc_percept.py:448   sid = self._shapes.setdefault(obj["shape"], len(self._shapes))
+    arc_percept.py:356   "**`_shapes` is NOT dropped** -- it is the structure table and is
+                         run-stable by design"
+    arc_percept.py:438   "created once under the `hasattr` guard and is reset NOWHERE"
+
+**`setdefault`, never deleted, never reset.** So it grows or it plateaus; it can never shrink.
+**Whether it PLATEAUS is the whole question, and nobody has measured it** — `F22`'s own reading saw
+it run **9 → 40 across 24 cycles** and stopped there, which shows growth and says nothing about
+settling.
+
+**IT IS MEASURABLE FROM ROWS ALREADY BEING SAVED AND COSTS NO RUN.** Per-miss shape mass is
+`log2(len(_shapes))`, so `2**mass` recovers the table size at every miss, and the series either
+flattens or it does not.
+
+    PRE-REGISTERED, before the series is read:
+      plateaus within the run   -> the site comment is right and F22 closes with nothing owed
+      still climbing at the end -> the failure mode the code named against itself is REAL,
+                                   and that is F22's actual finding rather than the alphabet
+      climbing but decelerating -> unresolved at this depth; needs a longer board, not a ruling
+
+**NO REPAIR APPLIED.** The stale docstring is a working-file defect and would normally be repaired
+at source — **held because `arc-freeze-02` is Isaiah's and because this reverses a reviewer
+ruling, which they should see before it is acted on.**
+
+    MECHANISM   nothing changed. Four file reads, no run, no edit. An A/B was CANCELLED
+    CAPABILITY  none
