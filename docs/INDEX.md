@@ -22743,3 +22743,87 @@ seat blind to rows only real boards emit; `E1c` is a seat blind to branches noth
 **NO CANDIDATE FIX.** A reachability checker is a new seat, and whether the project wants one is a
 decision. **What is recorded is the CATEGORY and the two instances**, so the next unreachable
 branch is found by looking rather than by accident.
+
+## `E2` IS WITHDRAWN — IT IS THE DESIGNED STATE, AND THE BUILD SAYS SO IN THE METHOD I ANALYSED
+
+**Isaiah held his lean overnight *against the framework, because the corpus may already answer
+it*. It does, and it answers something larger: `E2` is not a defect and never was.**
+
+`tether.py:1420`, inside `choose` — **the method whose exits, branches and line numbers I read
+repeatedly:**
+
+> **DISCRIMINATE READING ZERO ON ARC IS THE DESIGNED STATE, NOT A DEFECT. Read this before
+> proposing an atom against it.**
+>
+>     spread distinguishes the actions, WITH `act`     33/96   (34%)
+>     spread distinguishes the actions, WITHOUT `act`   0/96   ( 0%)
+>
+> *`choose`'s discriminate branch is a property of the atom set, not a model the agent built. It
+> has never had to learn what pressing something does, because the primitive it was given already
+> knew.* **That is the thing the action world has to take away**, and the ARC set has no `act` for
+> exactly that reason.
+>
+> **So a flat spread is the honest reading of an agent that has not learned what its actions do.**
+> Measured here: **80 of 82 eligible steps on `ls20`**, the toy panel's 0/96 reproduced on a real
+> board. **It was read as a defect three times — twice by me — and each time the proposed fix was
+> an atom that reads `c.action`, which is the encoded answer with a name and a measurement already
+> against it.**
+
+**I AM THE FOURTH READER TO CALL IT A DEFECT.** The warning is in the docstring of the function.
+
+### THE ONE THING I DID NOT DO, AND IT IS WHY THIS COST NOTHING
+
+**Neither candidate I filed was an atom that reads `c.action`.** I proposed attaching guards, or
+pricing through `_predict` — and refused to write either as a fix. **The discipline held where the
+classification did not**, which is the only reason a wrong classification did not become an
+encoded answer.
+
+### THE CENSUS IS FALSE, AND THE CAUSE IS A ONE-SPELLING GREP
+
+I claimed **`spread[act]` could never have varied with `act` at any point in this project's
+history.** It is wrong.
+
+    I searched   `ctx.action`   -- the parameter name in `gamma.Term.apply`
+    the atoms use `c.action`    -- the lambda's own parameter name in world.py / snaps.py
+    d3e69cc      the INITIAL COMMIT already contains an action-reading atom
+    af1bd1f      a commit titled "discriminate: 0 is the designed state, stated at the site"
+
+**ONE FIELD, TWO SPELLINGS, AND I BUILT A HISTORICAL CLAIM ON ONE OF THEM.** `A6i`'s shape at the
+level of a grep: the same quantity under two names, and a search that reads clean while covering
+half the ground. **`discriminate` was functional from the first commit in the world that has
+`act`, and reads zero on ARC because ARC deliberately has none.**
+
+### `E1c` IS WITHDRAWN TOO — THE BRANCH IS NOT UNREACHABLE
+
+I recorded `_ties[("spread", ...)]` as *structurally always zero* in a branch that *cannot be
+entered*. **The branch is entered in the toy world 34% of the time.** `cbb091e` was maintaining
+LIVE code. **The instance is void.**
+
+**THE CATEGORY SURVIVES AND IS DOWNGRADED HONESTLY.** *Referenced-but-unreachable is undetected by
+any seat* remains a true statement about the seats — but it now has **one instance (`E1b`), not
+two**, and a pair is not a pattern. **A category named on a false instance is worth less than no
+category**, and saying so is cheaper than letting it accrue.
+
+### WHAT SURVIVES OF `E2`, STATED NARROWLY
+
+    SURVIVES     the mechanism: on the ARC atom set, `spread[act]` is constant in `act`, so the
+                 branch cannot be taken. Measured by me, and measured by `ARC_AGENT` first at
+                 80 of 82 eligible steps on `ls20`
+    WITHDRAWN    the classification. NOT a system error. NOT wrong-given-the-input. The zero is
+                 the designed state and the design is deliberate
+    WITHDRAWN    the census headline. It was functional from commit one in the toy world
+    UNCHANGED    `discriminate:goal`'s zero, which is `F14`'s selector and a separate fact
+
+### AND THE READER SURVEY IS NOW ANSWERED BY THE CORPUS RATHER THAN BY ME
+
+Isaiah's fork — *build it on the trace for disambiguation-after-coverage, or accept first contact
+is the walk's job* — **has a corpus answer that precedes the question.** The corpus does not ask
+what a discriminating probe should READ; it says **the agent should not be handed action knowledge
+at all**, and that the flat spread IS the honest reading of an agent that has not yet learned what
+its actions do. **Learning them from the trace is what `can` and `_goal_split` already do**, which
+is survey option (A) — **and (A) is not an alternative reader for `discriminate`, it is what
+replaces needing one.**
+
+> **THE SIXTH LAW, EXACTLY AS WRITTEN: *assume it is already specified, and go look.* Isaiah's
+> instinct to hold the ruling against the framework was right, and the framework did not merely
+> inform the ruling — it dissolved the question.**
