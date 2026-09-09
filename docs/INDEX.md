@@ -23649,3 +23649,92 @@ boards say uniform random does not; they say nothing about a policy that does an
     CAPABILITY  the agent's zero is no longer evidence about the agent. It is the same zero
                 a random policy gets, in rooms that are 17 to 1200 actions long, three of
                 which hand the agent nothing to press
+
+## `F26` REFUTED IN ITS STRONG FORM BY ITS OWN PRE-REGISTERED TEST, AND `F22`'s RESIDUE CLOSED
+
+### THE TIE CENSUS — THE GUARD WORKS, AND MY HYPOTHESIS WAS WRONG
+
+    ka59 x 24
+      ties at the top of `sep`   1 winner: 12 · 2 tied: 5 · all 4 tied: 7
+      by-branch                  discriminate:learned 17 · draw 7
+
+**THE SEVEN ALL-TIED CYCLES ARE EXACTLY THE SEVEN DRAW CYCLES.** When nothing separates, the guard
+returns `None`, the branch abstains, and the random walk runs. **That is the designed behaviour and
+it is wired correctly**, which no reading before today had checked.
+
+**PRE-REGISTERED, AND THE ONE THAT FIRED IS THE ONE AGAINST ME:**
+
+    ties of 1 dominate   -> a real separation                          <-- THIS. 12 of 17
+    ties of >1 dominate  -> a tie-break wearing a decision's clothes    -- REFUTED
+
+**So `the 17/17 ACTION1 is a stable tie-break` is dead.** Twelve times the discriminator uniquely
+separated, and each time it named the same action. **That is a preference, not an artifact.**
+
+**WHAT SURVIVES IS SMALLER AND IS STILL REAL:** **5 of 24 cycles resolve a TWO-WAY tie by
+`self.actions` order** — the *arbitrary and stable* hazard the code flags twice in its own
+comments. Minor, and it is not the cause of the 79%.
+
+> **THE 79% IS THEREFORE MOSTLY A GENUINE, REPEATED CONCLUSION AND NOT A BUG.** `_learned_split`
+> keeps finding the same action most separating and is right by its own measure. **Whether that
+> measure is the right one is a different question and not one the seat can settle** — which is
+> the honest end of this thread rather than a fix.
+
+**AND THE VALUE OF THE PRE-REGISTRATION IS THAT IT COST NOTHING TO BE WRONG.** The hypothesis was
+written with its refuter named, the counter already existed and had never been read, and the whole
+test was one run against state the build was already keeping.
+
+### `F22`'s SURVIVING QUESTION, ANSWERED WITHOUT THE AGENT
+
+**The code poses it against itself:** *"The failure mode to WATCH is unbounded growth: if the shape
+count never settles, the cost of a shape miss never settles either."*
+
+**FIRST, RECOVERED FROM THE AGENT'S OWN ROWS AT NO RUN COST** — per-miss shape mass is
+`log2(len(_shapes))`, so `2**mass` gives the table size:
+
+    ka59 x24, cycle -> table:  9 11 12 14 16 16 18 19 22 24 26 28 28 30 32 34 36 38 40
+
+**Monotone, ~+1.7 per cycle, LINEAR, no deceleration, still climbing at the last cycle.** Price per
+miss `3.17 -> 5.32` bits, +68%, still rising when the run ended.
+
+**THEN THE FULL EPISODE, MEASURED WITHOUT THE AGENT** — `_shapes` is built by `arc_percept.Objects()`
+from BOARDS via `setdefault` and nothing in the loop touches it, so a random policy carrying the
+same tracker populates it the same way and a whole episode costs a second:
+
+    board   live   0 / 25 / 50 / 75 / 100%        last-quarter gain
+    ka59    100    9  65  107  110  111           +1
+    g50t    130    12 49   85   86   88           +2
+    ls20    135    15 62   75   81   87           +6
+    wa30    200    8  62  106  123  138           +15
+
+**PER GAME, NEVER POOLED.** It saturates on `ka59` and `g50t`, partially on `ls20`, **and does not
+on `wa30`.**
+
+> **THE SHARP PART IS THE COMPARISON, NOT EITHER SERIES.** At 24 cycles `ka59`'s table stands at 40
+> and is climbing linearly; the full episode reaches ~111 and flattens. **THE AGENT'S RUNS SIT
+> ENTIRELY IN THE PRE-SATURATION LIMB.** Every price-drift reading this week was taken from the
+> transient, and *the price is still rising* is a true statement about the first quarter of a curve
+> that levels off.
+
+**WHAT THIS SHARES WITH THE AGENT AND WHAT IT DOES NOT, STATED BECAUSE IT IS NOT THE AGENT'S
+SERIES.** Which shapes are met depends on which boards are visited, which depends on the policy.
+**It answers the weaker and sufficient question — does the board's vocabulary saturate within an
+episode at all** — and the direction that matters holds: a vocabulary that does not saturate under
+a policy reaching the end of the episode cannot saturate for the agent either.
+
+### CLASSIFICATION FOR BOTH, UNDER THE WINDOW'S RULE
+
+    F26   NOT A DEFECT in its strong form. The abstention path is correct on 7 of 7.
+          The 2-way order tie-break is a SYSTEM error -- board-independent, wrong-given-
+          the-input in the sense that a tie is being reported as a decision -- but it is
+          5 of 24 and is not the cause of anything measured. BEHAVIOUR NOTE, no fix.
+    F22   NOT A DEFECT. The growth is stated and defended at the site, and it SATURATES
+          on two of four boards measured. `wa30` not saturating at 200 steps is a
+          per-board fact and is recorded as one, NOT generalised.
+
+**NO CANDIDATE FIX IS WRITTEN FOR EITHER**, and neither reasoning runs from what a board contains
+to what the build should do.
+
+    MECHANISM   the abstention guard is correct and now measured; the shape table saturates
+                on 2 of 4 boards
+    CAPABILITY  none. No action differs. The agent's depth sits in the transient of every
+                curve read this week, which is a fact about the READINGS
