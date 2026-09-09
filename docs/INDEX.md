@@ -22096,3 +22096,152 @@ register prefers a bound reporting back to an absence of evidence.
 `drive.bored()`, and it fired **3 times in 247 actions**. **The agent almost always carries live
 prediction error on a real board**, which is the density guard reporting a healthy signal and the
 opposite of the toy-world condition `probe.py` was written against.
+
+## `F14` REPLICATES ON A SECOND BOARD, AND THE GAP IS WIDER THERE
+
+    board   last `_mint_routine` call   first qualifying cycle   gap
+    ka59              11                        14               3 cycles
+    ls20               7                        18              11 cycles
+
+    ls20, depth 24
+    _mint_routine called at cycles : [0, 1, 2, 3, 4, 5, 6, 7]
+    _goal_choice asked at cycles   : [0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7]
+    _goal_choice ever returned     : NEVER -- None every time
+    a series QUALIFIED at cycles   : [(18, 'o20.w'), (19, 'o20.w')]
+
+**TWO BOARDS, BOTH QUALIFY AFTER THE ASKING WINDOW SHUTS.** `ls20` closes its window at cycle 7 --
+eight consecutive calls and then nothing -- and carries a qualifying series from cycle 18. **Eleven
+cycles of qualification that nothing consulted.**
+
+**AND THE CALL COUNT IS THE FROZEN `draw` COUNT ON BOTH BOARDS**: 7 on `ka59`, 8 on `ls20`, which
+is `F4`'s equality seen from the other end for a second time. **`F14` is no longer a mechanism
+observed once.**
+
+**`sp80` STILL CANNOT TEST IT** and that is not a gap in the panel: it has no objective at any
+depth, so no series can ever qualify there, and a null on it would be `Q2` wearing a new hat.
+
+### ISAIAH'S RULING — SYSTEM 1 AND SYSTEM 2 IN PARALLEL, 2026-09-09
+
+> *"This sounds like a system 1 system 2 problem. both should be running in parallel"*
+
+**IT DISSOLVES THE TRADE THE SEAT POSED RATHER THAN PICKING A SIDE OF IT.** The either/or was *leave
+formation as a fallback* against *consider a plan every cycle, paying mint cost x cycle count on
+the exact mechanism §8 is characterising.* **The expensive thing is not considering a plan; it is
+considering one SYNCHRONOUSLY, on the acting path.**
+
+    System 1   the learned single-step split. 140 of 247 actions. Fast, cheap, reliable
+    System 2   deliberate plan formation. Slow, expensive, strategic
+    today      branches of ONE chain, so System 1 firing forecloses System 2 being consulted
+
+**AND EXECUTION ALREADY IMPLEMENTS THE RIGHT PRECEDENCE.** `choose`'s first branch is commented *A
+HELD ROUTINE RUNS BEFORE ANYTHING ELSE IS CONSULTED* — **that is System 2's OUTPUT correctly
+preempting System 1, built and working.** Only FORMATION is wired as a fallback. **The asymmetry is
+the finding: execution knows the ordering, formation inherited it.**
+
+### THE SEAM IS ALREADY AT THE RIGHT CUT, WHICH MAKES THIS SMALLER THAN EITHER FRAMING
+
+`_mint_routine` is eight gates. **Gate 1 IS the watcher** — `slot = self._goal_choice()`, returning
+before touching anything else when it is `None`. **Gates 2-8 are the composer** — `_discrepancy`,
+`can`, `_goal_split`, `enumerate_routines`, pricing, adoption.
+
+> **SO THE DEMAND-DRIVEN SPLIT IS NOT A DECOMPOSITION. IT ALREADY EXISTS.** What is wired wrong is
+> only WHERE THE SEQUENCE IS CALLED FROM — inside `choose()`'s fall-through, after
+> `discriminate:learned` has returned. **Same shape as everything else this session: the mechanism
+> is built correctly and wired to the wrong consumer.**
+
+### AND THE COST OBJECTION INVERTS, WHICH IS THE PART THAT CHANGES THE DECISION
+
+**`note_goals(before)` ALREADY RUNS UNCONDITIONALLY EVERY CYCLE**, inside `step()` and BEFORE
+`choose()`, looping every slot calling `_discrepancy` and `goal_residual`. **That is the expensive
+data-gathering, and it is already paid whether or not anything reads the result.**
+
+`_goal_choice()` is a **pure read over `_res`** — sorts a 2-3 entry dict, slices three floats, two
+subtractions, two comparisons. **No writes, no side effects, no dependency but `_res` and
+`MIN_REPEAT`.**
+
+    marginal cost of watching every cycle, ka59 @ 24   17 extra scans (7 -> 24)
+    marginal cost of watching every cycle, ls20 @ 24   16 extra scans (8 -> 24)
+    composer firings under demand-driven, both boards  2 of 24 -- NOT 24 of 24
+
+**THE SEAT ARGUED THE CHEAP REPAIR MULTIPLIES MINT COST BY CYCLE COUNT. THE CODE SAYS THE MINT
+FIRES TWICE.**
+
+**HELD AS UNTRUSTED UNTIL MEASURED, AND THE REASON IS THIS AUTHOR'S OWN RECORD.** *It reads as
+derived and turns out to be wrong* is how `_bindings` survived a correct citation, and how the tie
+was attributed to `mint` when the binding was in `_library_fit`. **Same author, same shape, twice.**
+The measurement is running.
+
+**AND THE GENERALISATION LIMIT IS FLAGGED IN ADVANCE RATHER THAN AFTER.** `_goal_choice` scales
+with `|_res|`, which is **2-3 on every board this window produced.** *Cheap at 3 says little about
+cheap at 300*, and a ratio fitted on one board's shape is what the `ls20` cost profile already cost
+us once. **So the scaling is being measured directly as a microbenchmark of the pure function**,
+which is a property of the code rather than of a board — and it shows what the watcher WOULD cost
+if a large `_res` occurred, never that one does.
+
+## `F16` — THE WATCHING HALF IS FREE, MEASURED; AND THE REASON I GAVE FOR IT WAS WRONG
+
+**Isaiah asked for a measurement rather than an argument, and the argument turned out to be right
+in its conclusion and wrong in its premise.** Idle machine, `ka59` at depth 24, nothing else
+running:
+
+    _goal_choice  (WATCHER)       calls=14   median=    1.2 us   total=   0.03 ms
+    note_goals    (already paid)  calls=24   median=  941.0 us   total=  18.81 ms
+    step          (whole cycle)   calls=24   median=   87.6 s    total=   2343 s
+
+**THE WATCHER IS 1.2 MICROSECONDS AGAINST AN 87.6-SECOND CYCLE.** Calling it every cycle instead
+of 14 of 24 costs **+0.012 ms across a 2343-second run — about five parts per billion.**
+
+### THE CORRECTION, AND IT IS THE THIRD TIME THIS SESSION
+
+**I wrote that `note_goals` is *the expensive data-gathering, already being paid*. IT IS NOT
+EXPENSIVE.** 941 us median, 18.81 ms total, **0.001% of the run.** The 2343 seconds are in the
+mint's closure enumeration at `tether.py:2974`, not in residual bookkeeping.
+
+> *Already paid* was true. **Expensive was asserted and never measured**, and it was doing real
+> work in the argument — it is why the watcher sounded free. **The conclusion survives and is
+> SAFER than the reasoning implied**: the precondition is not a large cost being amortised, it is
+> a small cost already incurred.
+
+**SAME SHAPE AS `_bindings` SURVIVING A CORRECT CITATION AND THE TIE BEING ATTRIBUTED TO `mint`.**
+Three instances, one author, one session: **a structural story that reads as derived, with a
+magnitude inside it that nobody measured.**
+
+### `F17` — CHEAP AT 3 AND CHEAP AT 1000, SO THE CAVEAT IS A BOUND RATHER THAN A DISCLAIMER
+
+`_goal_choice` is a PURE function of `_res` — reads nothing else, writes nothing — so its cost
+curve is a property of the CODE and is measurable without a board that happens to produce a large
+`_res`.
+
+    |_res|      median _goal_choice      us per entry
+         3            2.30 us               0.767
+        30           25.90 us               0.863
+       300          242.05 us               0.807
+      1000          838.90 us               0.839
+
+**LINEAR AT ~0.84 us PER ENTRY ACROSS THREE ORDERS OF MAGNITUDE.** At 1000 slots carrying residual
+series the watcher costs 839 us — **still 0.001% of an 87-second cycle.**
+
+**IT DOES NOT SHOW THAT A LARGE `_res` OCCURS.** Nothing in this window produced one above 3. **It
+bounds the cost if one did**, which is the difference between a measurement and a ratio fitted to
+one board's shape — the error the `ls20` cost profile already cost us once.
+
+### `F18` — `_goal_choice` HAS TWO CALL SITES, WHICH THE COST MEASUREMENT SURFACED BY ACCIDENT
+
+**14 calls for 7 `_mint_routine` invocations.** `tether.py:1805` is gate 1; **`tether.py:1989` is a
+second, separate consultation.** Both sit inside the same starved path, so **it changes nothing
+about `F14`** — the asking window is shut at the same cycles either way.
+
+**RECORDED AS AN OBSERVATION AND NOT AS A DEFECT.** A second call may be deliberate and its site
+has not been read. **It is worth reading before anything is rewired**, because a call-site move
+that assumes one consumer would leave the other where it is.
+
+### WHAT THE MEASUREMENT SETTLES FOR THE DEMAND-DRIVEN SHAPE
+
+    the seam            ALREADY at the right cut -- gate 1 is the watcher, gates 2-8 the composer
+    the watcher's cost  FREE. 5 parts per billion to run it every cycle instead of 14 of 24
+    the scaling         linear, ~0.84us/entry, still free at 1000 entries
+    the composer        fires 2 of 24 on BOTH boards under demand-driven, not 24 of 24
+    what remains        a CALL-SITE MOVE, and the second call site at 1989 read first
+
+**NOTHING BUILT. THE FREEZE IS INTACT AND THE ENGINEERING QUESTION STAYS ISAIAH'S** — this window
+priced the shape he named and did not aim anything at the loop.
