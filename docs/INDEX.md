@@ -22868,3 +22868,73 @@ reconstruction from a rendering, which is what `I2` cost and what `transcript.py
     MECHANISM   the primary stream can now line up WHAT WAS PRESSED against WHAT CHANGED,
                 which is the one question it was built to answer and could not
     CAPABILITY  none. Not one action differs; the agent does not read this row
+
+## `F19` CLOSED AND `F20` CONFIRMED — TWO INDEPENDENT BARRIERS, AND NEITHER IS THE ONE I MEASURED
+
+### THE MARGIN DISTRIBUTION, n=3, AND THE PRE-REGISTERED READING THAT FIRED
+
+    sp80 @ 24    0 priced candidates
+    ka59 @ 24    1 priced candidate   cost 6.9658  left 0.0  base 6.0  MARGIN -0.9658  shelf 0
+    ls20 @ 24    0 priced candidates
+    ar25         CUT -- ~5500s for one more point on a question the reviewer had reframed,
+                 against an explicit LIGHT CYCLES constraint
+
+**THE THREE READINGS WERE WRITTEN BEFORE THE RUN AND THE THIRD IS THE ONE THAT LANDED:**
+
+    clustered near zero      -> a pricing question
+    wildly negative          -> structurally unaffordable
+    NONE PRICED AT ALL       -> a reading about the SELECTOR, not the bargain   <-- THIS
+
+**TWO OF THREE BOARDS NEVER REACHED PRICING AT ALL.** The bargain was consulted **once, on one
+board, in the whole panel.** A margin distribution over n=1 is not a distribution, and the reason
+it is n=1 is the finding: **gate 1 is where routines die, not the bargain.**
+
+### `F20` CONFIRMED BY CODE READING RATHER THAN BY RUN — THE SHELF IS A CLOSED LOOP
+
+**The reviewer moved this finding and was right.** Four lines settle it:
+
+    tether.py:412   self.routines: list = []
+    tether.py:1476  if why == Rt.DONE and self.routine not in self.routines:
+                        self.routines.append(self.routine)          THE ONLY WRITE
+    tether.py:1904  shelf = tuple(r for r in self.routines if actions <= self.actions)
+    tether.py:1938  priced = [(term_bits(Rt.length(c, shelf), n), ...)]
+
+**`self.routines` has ONE write site and its condition is `why == Rt.DONE`** — a routine reaches
+the shelf only by having RUN TO COMPLETION. To run it must be ADOPTED; to be adopted it must PAY;
+and it is priced against a shelf that is empty until something has already been adopted.
+
+> **adopted -> runs -> DONE -> shelf -> discount -> cheaper to adopt.** Nothing enters that cycle
+> from outside. **THE FIRST ROUTINE MUST PAY FULL ATOM LENGTH, ALWAYS, ON EVERY BOARD.**
+
+**AND THE CODE SAYS SO ONE LINE ABOVE, AS A SAFETY PROPERTY:** *"A shelf that is empty leaves
+exactly the old behaviour, which is what makes the chunk a shortcut rather than a second
+mechanism."* **True, deliberate, and unremarked as the reason a first adoption can never benefit.**
+
+**CLASSIFICATION: NOT A DEFECT.** `DONE`-gating is §18.2's *express-before-judge*; unit pricing is
+the chunking claim made falsifiable. **Two correct mechanisms produce a locked door where they
+meet** — this window's through-line for the fifth time.
+
+### SO THE FOURTEEN ZEROS HAVE TWO CAUSES, NOT ONE, AND THEY ARE INDEPENDENT
+
+    BARRIER 1   the SELECTOR. 2 of 3 boards never produced a priced candidate at depth 24.
+                Gate 1 is where routines die
+    BARRIER 2   the SHELF. When pricing IS reached, the first routine is priced without the
+                discount that only a completed routine creates
+
+**THESE DO NOT COMPOSE INTO ONE STORY AND MUST NOT BE SUMMED.** Barrier 1 says the question rarely
+gets asked; barrier 2 says the answer is structurally harder the first time. **Removing either
+leaves the other.**
+
+**AND THE HONEST BOUND ON BARRIER 2:** it explains why adoption is HARDER than it looks; it does
+NOT prove the bar is unclearable. `ka59` missed by **0.97 bits at full length**, so a board
+offering a larger residual could clear it unaided. **What is established is the mechanism; what is
+not is whether any board offers a base big enough.**
+
+### AND THE ESCALATION CLAUSE FIRES ON `F20`, WHICH IS WHY IT GOES BACK
+
+Isaiah's new policy is *test and learn, A/B both arms, light cycles* — and it escalates on one
+condition: **a branch that would change what the agent is HANDED rather than how it prices what it
+already has.** Seeding the shelf hands the agent a routine it never earned. **So `F20` cannot be
+A/B'd; it is the case the escalation clause was written for.**
+
+**`E1` and `F22` are NOT in that category and are now A/Bs rather than rulings**, per the policy.
