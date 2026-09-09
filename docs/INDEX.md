@@ -23209,3 +23209,90 @@ second** — one seat, one gap, one cause, described correctly instead of incorr
 
     MECHANISM   nothing changed. One file read, one grep, no run, no edit
     CAPABILITY  none
+
+## `E1`'s A/B IS DECIDED AND **BOTH ARMS LOSE** — THE PRE-REGISTRATION HELD
+
+### THE DEPTH-24 RESULT, AGAINST A PREDICTION WRITTEN WITH THE ARMS UNREAD
+
+    ka59 x 24, 7213 rows
+
+    ARM B  keep PLAN first     7 violations, ALL slot='*'
+                                 6x placements -> routine_refused
+                                 1x can        -> routine_refused
+    ARM A  PERCEIVE first      2 violations, ALL on REAL slots
+                                 1x routine_refused -> bet   slot='o14.dcol'
+                                 1x routine_cut     -> bet   slot='o13.w'
+
+    PANEL  9 PLAN rows: 7 on '*', 2 on real slots, at cycles 13 and 23
+
+**THE PANEL PROPERTY ARRIVED**, which is what made the arms readable at all — and the inference
+it rested on was the one flagged as *most likely to be wrong*: `F19` measured one priced candidate
+on this board, pricing is downstream of the selector returning a slot, **so a real-slot `PLAN` row
+had to exist.** It does, twice.
+
+**AND CYCLES 13 AND 23 ARE AN INDEPENDENT CROSS-CHECK I DID NOT PLAN.** `F14`'s verification note
+says the fixed selector *"reaches cycles 13 and 23"* — **measured on a different run, by a
+different instrument, for a different purpose, and it names the same two cycles.**
+
+### THE LOAD-BEARING HALF CONFIRMED; THE COUNT HALF WAS WRONG
+
+    predicted   arm A > 0, all on REAL slots, none on '*'      CONFIRMED  2, both real
+    predicted   arm B all on '*', none on a real slot          CONFIRMED  7, all '*'
+    predicted   NO ORDERING IS LEGAL                           CONFIRMED
+    predicted   arm B shows 24 violations, one per cycle       WRONG      it is 7
+    refuters    three named                                    none fired
+
+**THE COUNT ERROR IS MINE AND IT IS THE SAME SHAPE AS EVERYTHING ELSE THIS WINDOW.** I read
+`F14`'s headline — *the selector is now CONSULTED every cycle* — as *a `PLAN` row is WRITTEN every
+cycle.* **Two quantities, and only the first is what `F14` established.**
+
+**THE MECHANISM, TRACED AFTERWARDS: `_mint_routine` HAS TWO CALL SITES AND ONLY ONE PRE-CHECKS.**
+
+    tether.py:1521   F14's parallel path   guarded by `self._goal_choice() is not None`
+                                           -> enters with a REAL slot -> real-slot PLAN row
+    tether.py:1575   the fall-through      NO pre-check
+                                           -> `_goal_choice()` returns None inside
+                                           -> `slot or "*"` -> wildcard PLAN row
+
+`self._planned` allows at most one per cycle, so **24 cycles produce 9 rows, not 24**: 2 where the
+selector returned a slot, 7 where the fall-through was reached with nothing, and **15 where an
+early exit returned before line 1575 and no `PLAN` row was written at all.** And 7 wildcard rows
+against `F14`'s *"draw freezes at 7 on `ka59`"* is the same number from the same cause.
+
+### SO THE A/B RESOLVED THE QUESTION BY ELIMINATING BOTH ARMS
+
+**This is a third outcome the policy did not enumerate, and it is not an escalation.** The arms
+SEPARATED cleanly — 7 versus 2, on disjoint populations — so the escalation clause (*only if an
+A/B cannot separate the arms*) does not fire. **They separated, and neither is clean.**
+
+> **NO ORDERING OF `PLAN` AND `PERCEIVE` CAN BE LEGAL, BECAUSE THE TWO `PLAN` MEANINGS NEED
+> OPPOSITE PLACEMENTS.** On a real slot `choose` writes `PLAN` before `_utter` writes `PERCEIVE`;
+> on `"*"` perception writes first and the degenerate refusal lands after. **A declaration holds
+> one order. The rows need two.**
+
+**AND THAT IS THE WILDCARD DIAGNOSIS SURVIVING A TEST THAT COULD HAVE KILLED IT** — not restated,
+tested: *the shared key is the defect* predicts exactly this pattern, and *the declaration is the
+defect* predicts arm A comes back clean. **Arm A did not come back clean.**
+
+### ARM C — SEPARATE THE KEY, KEEP THE DECLARATION — AND IT IS CLEAN
+
+Applied at READ time by re-keying the two degenerate sites off perception's bucket, so **no build
+file is touched and all three arms stay free:**
+
+    sp80 x 3    B 3 violations    A 0    C 0
+    ka59 x 3    B 3 violations    A 0    C 0
+
+**AT DEPTH 24 ARM C IS DERIVED AND NOT YET MEASURED, AND THE DERIVATION IS STATED SO IT CAN FAIL:**
+separating the keys removes the 7; the 2 exist only under arm A's ordering, which C does not use;
+and no NEW violation is constructible because the `?noslot` chain holds at most one row per cycle
+under the `self._planned` guard, while removing rows from `*` can only remove constraints.
+**Predicted 0. A confirming run is in flight, and this time it SAVES THE ROWS** — the capture was
+always the slow half and the arms are microseconds, so every arm after this one is a read rather
+than 35 minutes.
+
+**NO BUILD CHANGE IS PROPOSED YET.** Arm C is a one-line sentinel change at two sites and it does
+not alter what the agent is handed — but it is a change to what the gate accepts under a freeze
+that is Isaiah's, and the measured half at depth 24 is not back.
+
+    MECHANISM   the A/B is decided: both declared arms lose, and a third is clean at depth 3
+    CAPABILITY  none. Not one action differs, on any arm
