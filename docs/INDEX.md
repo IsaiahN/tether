@@ -21697,3 +21697,203 @@ second guess §8 exists to refuse.**
 **DEPTH BOUGHT MECHANISM AND BOUGHT NO CAPABILITY.** Twelve board-depth readings, and the
 capability column is unchanged in all twelve. **They are not summed, and repeated mechanism-fires
 still do not accrete into *it works*.**
+
+## PHASE 4, SECOND PASS — THE REFINED CLASSIFICATION. `arc-freeze-02` @ `67ceacd`
+
+**The first pass recorded what happened. This one says what KIND of thing each observation is,
+because that is the distinction the window exists to make.** Four kinds, and the boundary between
+the last two is where a window like this usually goes wrong: **a candidate fix for a non-error is
+worse than no note.**
+
+    FINDING          measured, with a denominator, and it survives across boards
+    QUIRK            one board, and the build's response is CORRECT-GIVEN-THE-INPUT.
+                     Behaviour note. NO candidate fix
+    ERROR            wrong regardless of board. Candidate fix written, NOT applied
+    INSTRUMENT       the reading was wrong, not the build. Mine
+
+**THE PANEL: 5 games x 4 depths (6 · 12 · 24 · 48), offline, cold, sequential.** `vc33` surfaces
+no action and `sp80` surfaces no objective, both established BEFORE the window, so the routine
+denominator is 3 and the objective-contest denominator is 3.
+
+---
+
+### ERRORS — ONE, AND THE SEATS CANNOT SEE IT
+
+**`E1` · THE GATE REFUSES EVERY REAL BOARD'S LEDGER.** `refuse / steps / step-order`, note
+`"*: PLAN after PERCEIVE"`. `step()` opens with four narrators at `tether.py:2849-2852` —
+`_narrate_order`, `_narrate_cascade`, `_narrate_matches`, `_narrate_placements` — **before
+`_present()` and before `env.observe()`**, and they stamp `PERCEIVE`, which is `STEPS[1]`. The
+`PLAN` row from `_mint_routine` arrives later. **4 of 4 boards that ran, every depth.**
+
+**WHY IT IS AN ERROR AND NOT A QUIRK:** wrong regardless of board; independent of what any board
+contains; **wrong-given-the-input**, because the ledger violates the build's OWN declared step
+order and the gate's rule is right to refuse it.
+
+    candidate (a)   stamp the four narrators PLAN rather than PERCEIVE. They run BEFORE
+                    perception, so PERCEIVE may always have been the wrong stamp. No call moves
+    candidate (b)   move the four calls after the PLAN phase. RISK: narration describes the
+                    pre-action frame, so this may change WHAT IT NARRATES -- a behaviour change
+                    wearing an ordering fix's clothes
+
+**NEITHER APPLIED. AND THE CHOICE BETWEEN THEM IS NOT THE SEAT'S**, because (b) is only an
+ordering fix if narration's content does not depend on when it runs, and that is unmeasured.
+
+**`E1b` · THE SEAT'S COVERAGE IS BOUNDED BY THE TOY WORLD'S VOCABULARY, AND THIS OUTLIVES THE
+FIX.** `demo.jsonl` contains **zero** narration rows — the toy world never reaches those four
+methods — so the `gate` seat validates a ledger **structurally incapable of containing the rows
+that break it.** Nine seats green and every real board refusing, simultaneously. **Repairing `E1`
+leaves this exactly where it is**, and it is the more general defect of the two.
+
+---
+
+### QUIRKS — TWO, BOTH THE BUILD BEING RIGHT, NEITHER GETS A FIX
+
+**`Q1` · `vc33` RUNS NOTHING AND SAYS SO.** `levels: {"verdict": "no_cycles", "reads": "nothing
+ran"}`, `gate: pass`, 0.1s at every depth. The adapter drops its positioned click, so no action
+surfaces. **The build reports an absence as an absence instead of manufacturing a null**, and it
+is the only `pass` on the panel because it is the only ledger with nothing in it to misorder.
+
+**`Q2` · `sp80` NEVER WINS AN OBJECTIVE CONTEST, AT ANY DEPTH.** 0 of 1, 0 of 6, 0 of 9 at depths
+6/12/24 against a panel note of *objective on 0 of 16*. **A board with no objective cannot lose an
+objective contest — it never has one.** Correct-given-the-input.
+
+> **`Q2` IS THE CONTROL THAT MAKES `F1` READABLE, WHICH IS WHY A QUIRK EARNS ITS PLACE IN THE
+> RECORD.** Without a board that offers nothing, *the objective arm wins on some boards* cannot be
+> separated from *the objective arm wins where the thing exists.* **The zero is doing work.**
+
+---
+
+### FINDINGS — SEVEN, EACH WITH A DENOMINATOR
+
+**`F1` · SIX CYCLES IS NOT A READING, AND THE NULL IT PRODUCES LOOKS RESPECTABLE.**
+
+    by (repeat)   depth 6     depth 12                     depth 24
+    ls20          draw 6      draw 8 · learned 4           draw 8 · learned 14 · probe 2
+    ar25          draw 6      draw 9 · learned 3           draw 9 · learned 14 · probe 1
+    ka59          draw 6      draw 7 · learned 5           draw 7 · learned 17
+    sp80          draw 6      draw 8 · learned 4           draw 8 · learned 16
+
+**100% probe on every board at depth 6; directed on 3-5 of 12 and 14-17 of 24.** 4 of 4 boards.
+**Nothing in the six-cycle output distinguishes *the agent only probes* from *the agent has not
+learned a split yet*.**
+
+**`F2` · A NULL WITH A DENOMINATOR OF 23 WAS STILL WRONG.**
+
+    objective wins / contests    d6      d12       d24
+    ka59                         0/0     4/9       13/20   -- majority
+    ls20                         1/1     1/7        7/21
+    ar25                         0/1     0/23       7/49   -- FIRST WIN AT 24
+    sp80                         0/1     0/6        0/9    -- Q2
+
+**`ar25` read *the objective arm never wins* at depth 12 on 23 contests.** That is a real sample,
+not a thin one, and it is wrong. **The last window's open question — does an objective ever WIN —
+is YES, on 3 of 3 boards that offer one.**
+
+**`F3` · S5 IS WHY `F1` IS VISIBLE AT ALL.** `discriminate:learned` is excluded by exact match
+under the pre-S5 `by == "discriminate"`. **The identical runs under the old counter read
+`directed: 0` on all four boards at every depth.** A fix measured this morning as *6 of 10 boards*
+is the difference between *pure probe* and *directed on four of four*. **An instrument repair
+changed a conclusion about the agent, which is what the legibility doctrine claims and rarely
+gets to demonstrate.**
+
+**`F4` · `routine_refused` EQUALS `draw`, EXACTLY, 12 OF 12.** `choose` returns
+`discriminate:learned` **before** reaching `_mint_routine`, so formation is attempted exactly on
+cycles that fall through to a draw — and `draw` FREEZES with depth while learned actions absorb
+every extra cycle.
+
+> **NOT FILED AS THE OBSTACLE, BECAUSE THE CODE REFUSED THAT READING.** `choose`'s first branch is
+> commented *A HELD ROUTINE RUNS BEFORE ANYTHING ELSE IS CONSULTED* — **execution is not
+> preempted, only FORMATION is** — and formation ordering is not the binding constraint while
+> every attempt refuses at gate 1 anyway. **It becomes one the moment gate 1 passes.** Recorded
+> for then.
+
+**`F5` · THE M2 BLOCKER IS SUPPLY, NOT CRITERION — FOUR LEVELS, NO DEFECT AT ANY.**
+
+    1 refusal     "no objective is confidently shrinking", gate 1 of 8, every board every depth
+    2 criterion   >= 3 readings, non-increasing, one real decrease. MIN_REPEAT REUSED
+    3 data        ka59 @ 12: 120 SLOTS -> 2 with any series -> 1 with >= 3 -> FLAT
+                  o13.w = [0.071, 0.071, 0.071]
+    4 supply      `_res` appends only while `goal_residual` is non-None and POPS the series on
+                  any None. Only OBJ-bound slots ever avoid that
+
+**NO CANDIDATE FIX IS WRITTEN AND THAT IS THE FINDING.** The selector refuses a flat series
+because *flat is not shrinking*, which is §13.4 quoted. **Loosening `MIN_REPEAT` could not help —
+the one qualifying series is FLAT, so no threshold on shrinking admits it** — and moving a derived
+constant to make a mechanism fire is precisely the shaping this window forbids.
+
+**AND THE SUPPLY IS WHAT THE PRICE TIE DECIDES.** A `val`-bound slot yields no goal residual; only
+an `OBJ` binding does. **So the population that can ever feed `_goal_choice` is the population the
+objective/predictor contest produces**, and that contest is settled at an exact tie the bargain
+cannot break. **Stated as a chain in the code. The ruling is Isaiah's and is not taken here.**
+
+**`F6` · SCOPE WIDTH IS 3 ON EVERY MINT.** 887 mints, 4 boards, 3 depths, constant. Not a
+distribution. **Observation with a denominator; NOT a defect, because nothing measured shows 3 is
+wrong.**
+
+**`F7` · COST — THE THIRD AND FOURTH INDEPENDENT REFUTATIONS OF THE GROWING-CLOSURE ACCOUNT.**
+
+    wall   d6      d12      d24        per-doubling
+    ls20    94.7   529.6   3945.6      5.6x · 7.5x
+    ka59    68.3   345.8   2032.1      5.1x · 5.9x
+    ar25   167.6  1101.9   5542.2      6.6x · 5.0x
+    sp80    23.9   133.6    540.4      5.6x · 4.0x
+
+Superlinear in cycles, ~5-7x per doubling, **and the per-cycle series is SPIKY rather than smooth**
+— `ar25` goes 78.8 -> **430.9** -> 86.1 at depth 12, a 5.5x excursion that falls back. **The
+aggregate hides an episodic shape.** With `lf52`'s flat 7801 calls at +60% cost and the matched
+`negate` pair flat at ~1.2x, that is **four independent readings against *the wall is a growing
+candidate space*.** **Cause UNKNOWN and deliberately not replaced with a second guess.**
+
+---
+
+### INSTRUMENT ERRORS — THREE, ALL MINE
+
+**`I1` · A SCRATCHPAD `queue.py` SHADOWED THE STDLIB AND EXECUTED DURING AN UNRELATED IMPORT.**
+`sys.path[0]` is the script's directory, so `urllib3`'s `import queue` ran my measurement script;
+its output appeared inside another log immediately before the crash. **It fires only on the
+game-loading path — which is every Phase 3 run — so it would have contaminated the whole window.**
+
+**`I2` · I READ A GATE REFUSAL OFF ROWS I BUILT MYSELF AND GOT THE WRONG REASON.** My capture
+omitted the `mode` key, so `gate.check` answered `no-mode` — **a property of my dicts, not of the
+build.** The real token is `step-order`. **The fix generalises: wrap the call the build MAKES,
+never reconstruct its inputs.**
+
+**`I3` · I CONFOUNDED MY OWN COST SERIES AFTER WRITING THE RULE AGAINST IT.** The freeze note says
+two runs contend and both deliverables are per-cycle cost; I then ran the determinism check beside
+the matched pair's tail. **Cycles 6/11/16 predate the overlap and stand; 16-25 are contended and
+are not read.** Every sweep since ran sequentially on an idle machine.
+
+> **THE LOG IS THE REASON TO BELIEVE THE REST.** Two of the three would have produced a confident
+> wrong statement — `no-mode` names an innocent subsystem, and a contaminated cost series is
+> exactly §8's open question. **A window that reports its own lying checks is one to believe about
+> the checks that did not lie.**
+
+---
+
+### THE DESIGN DECISION THIS WINDOW TOOK, STATED SO IT CAN BE OVERRULED
+
+**The brief said run REPEATEDLY so run-to-run variance is visible. There is no variance.**
+`Drive()` takes no seed at either construction site and `choose` is deterministic in the cycle, so
+**nothing the seat can reach without editing a build file makes two runs differ** — and the freeze
+forbids editing. Measured: two `ka59` runs differ on one key, and inside it only random handle
+suffixes — same term, atoms, origin, admitted, residual. `handle()`'s own docstring: *a mnemonic,
+never a key.*
+
+> **SO REPETITION WAS SPENT ON DEPTH INSTEAD**, the only axis reachable from outside the build —
+> and it is what produced `F1` and `F2`. **Executing the brief literally would have yielded N
+> identical reports and a *variance is low* line measuring nothing.** The substitution is recorded
+> as a decision, not slipped in.
+
+---
+
+### THE TWO COLUMNS, AND THEY ARE NOT SUMMED
+
+    MECHANISM FIRES     minting scales 1 -> 49 · both contest arms win across the panel · the
+                        objective arm takes the MAJORITY on ka59 at 24 · directed action appears
+                        and grows 0 -> 17 · every refusal names its gate · vc33 reports an
+                        absence as an absence
+    CAPABILITY OWED     ZERO routines formed · ZERO levels advanced · ZERO chunk reuse ·
+                        `levels_completed` 0 -- in ALL TWELVE board-depth readings
+
+**DEPTH BOUGHT MECHANISM AND BOUGHT NO CAPABILITY.** Twelve readings, and the capability column is
+unchanged in every one. **Repeated mechanism-fires do not accrete into *it works*.**
