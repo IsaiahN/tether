@@ -22245,3 +22245,76 @@ that assumes one consumer would leave the other where it is.
 
 **NOTHING BUILT. THE FREEZE IS INTACT AND THE ENGINEERING QUESTION STAYS ISAIAH'S** — this window
 priced the shape he named and did not aim anything at the loop.
+
+## `E2` — SYSTEM ERROR: `discriminate` CANNOT FIRE, AND THE CAUSE IS PROVABLE RATHER THAN STATISTICAL
+
+**`F15` recorded three of `choose()`'s six exits at zero across 247 actions and REFUSED to file two
+of them on the count**, because *never fired* is absential. Both now have positive causes.
+
+### THE CHAIN, AND EVERY LINK IS MEASURED
+
+    1  `choose` picks `discriminate` only if `owed` is non-empty AND max(spread) > min(spread)
+    2  MEASURED, sp80 @ 12: `owed` NON-EMPTY on 10 of 12 cycles, `owed_import` reaching 11.
+       Condition 1 is satisfied -- the block is condition 2
+    3  spread[act] = distinct outcomes of `t.apply(before[s], Ctx(action=act, ...))` over
+       `cands = enumerate_closure("val","val", 2, budget)`
+    4  MEASURED: that closure yields SEVEN candidates and ALL SEVEN have `guard=None`
+    5  `gamma.py:270` -- `if self.guard is not None and ctx.action != self.guard` -- is the
+       ONLY place term application consults `ctx.action`
+    6  MEASURED: ZERO of 48 atoms declare `reads_ctx` containing "action", and applying
+       `idn`/`translate`/`recolour` under five different actions returns identical values
+
+> **THEREFORE `spread[act]` IS CONSTANT ACROSS ACTIONS, `max == min` ALWAYS, AND THE GUARD IS
+> NEVER TRUE.** Not *does not fire on these boards* — **cannot fire, on any board, by
+> construction.**
+
+### CLASSIFICATION: SYSTEM ERROR, AND IT IS THE STRONGEST IN THE WINDOW
+
+**Wrong regardless of board** — the argument never mentions a board. **Across boards** — 0 of 247
+actions, 5 boards, 4 depths. **Wrong-given-the-input** — the mechanism selects the most
+informative action by computing a quantity that is **provably constant in the variable it selects
+over.** *Which action reveals most* is asked with a function that ignores the action.
+
+**AND THE DEEPER FACT IS WHERE ACTION-DEPENDENCE ACTUALLY LIVES.** Measured on a warmed agent,
+`_predict` varies with the action on **1 of 24 slots** — `o1.col`, bound to
+`translate . recolour<o2.col>**?ACTION1**`. **The suffix is a GUARD.** So in this build
+action-dependence enters through term GUARDS and through nothing else. **`discriminate` enumerates
+UNGUARDED candidates, so it is reading the one term shape that cannot carry the signal it is
+looking for.**
+
+    candidate (a)   attach guards to the spread's candidates -- use the action-dependence
+                    mechanism the build already has
+    candidate (b)   compute the spread through `_predict` on the BOUND term, which IS guarded
+                    and is already the action-aware path `can` and `_goal_split` use
+
+**NEITHER APPLIED, AND THE CHOICE IS NOT THE SEAT'S.** (b) changes what is being measured — the
+bound term rather than a candidate pool — and (a) changes how many candidates the spread walks,
+which is a cost question on the mechanism §8 is characterising. **And a third possibility is not a
+fix at all: the discriminator may predate guards becoming the action mechanism**, in which case
+the premise was true when written and the build moved under it.
+
+### `E2b` — `discriminate:goal`'s ZERO IS `F14`'s ZERO, NOT A SECOND FACT
+
+`tether.py:1989` sits inside `_goal_split` and its comment is explicit: **ITEM 3 GATES ITEM 2.**
+`_goal_split` calls `_goal_choice()` first and returns `None` when it does.
+
+**So `discriminate:goal` is starved by the SAME selector as `routine`, at the same moments** — and
+doubly, since it also sits after `discriminate:learned` in `choose()` and is reached only on
+fall-through cycles. **MEASURED, sp80 @ 12: `_goal_split` returned `None` 8 of 8 times.**
+
+> **THE CALL-SITE MOVE THE DEMAND-DRIVEN SHAPE IMPLIES WOULD UNBLOCK TWO EXITS, NOT ONE.** That is
+> a material addition to `F14`'s analysis and it was found by reading the second `_goal_choice`
+> call site that the COST measurement surfaced by accident.
+
+### SO THE EXIT CENSUS NOW READS
+
+    discriminate:learned   140 actions   fires
+    draw                   104 actions   fires -- the LAST-RESORT exit, not the probe path
+    probe                    3 actions   fires -- `drive.bored()`, rare because live prediction
+                                         error is almost always present on a real board
+    routine                  0           F14: the asking window shuts before supply opens
+    discriminate:goal        0           E2b: same selector, same moments
+    discriminate             0           E2: CANNOT fire -- constant in its own free variable
+
+**THREE ZEROS, THREE POSITIVE CAUSES, AND ONE OF THEM IS A DEFECT.** *A bound reporting back*
+rather than *I have never been there*, which is the difference the register asks for.
