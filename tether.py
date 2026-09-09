@@ -42,6 +42,12 @@ sys.dont_write_bytecode = True
 IDN = "idn"
 # THE EDGE'S TWO FACTS, named here so `_predict` reads constants rather than strings.
 OBJ_TYPE = "OBJ"
+# WHAT MAY BIND A SLOT. `_predict`'s two arms are the whole contract -- a `val` term is the
+# prediction, an `OBJ` term is the want -- so a third out_type is a state the dispatch cannot
+# read, and `_discrepancy` answers NOT_RESOLVED for the rest of the run. `mint` honours this by
+# construction (its streams ARE these two); the retrieval path did not, and was satisfied by
+# accident until an atom carrying a third type reached it.
+BINDABLE = ("val", OBJ_TYPE)
 # `CAN`'s THREE OUTCOMES. Named rather than bare strings because `UNKNOWN` is the one that gets
 # quietly folded into `NO` -- they behave alike at the commit and are different claims on the
 # record, which is check 3 exactly.
@@ -1102,6 +1108,11 @@ class Agent:
             # are exactly the loaded ones, and a cold run adds nothing. Typed by
             # `_operand_fits`, which is the same filter the mint uses.
             for cand in self._rebindings(self.gamma.library[n], slot):
+                # BEFORE `_explains`, and separately from it: may this BIND is a type question
+                # and does it EXPLAIN is a behavioural one. Folding the first into the second
+                # would put two quantities under one name at the site that decides both.
+                if getattr(cand, "out_type", "val") not in BINDABLE:
+                    continue
                 if not self._explains(cand, slot, hist):
                     continue
                 held, n = n, (n if cand.name == n
