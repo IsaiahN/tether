@@ -24016,3 +24016,73 @@ the first.
 
     MECHANISM   generator reconciled to the artifact, 7 cells restored, every edit asserted
     CAPABILITY  none. No build file touched
+
+## `F20` STEP 1's MEASURED HALF, AND A CHAIN I HAD TO CORRECT MID-BUILD
+
+### THE REFRAME THAT MADE IT CHEAP, AND IT WAS A MISREADING OF THE QUESTION
+
+Isaiah: *"find whether any board offers a residual larger than the full-length routine cost."* **I
+read that as needing gate 1 to pass** — one occurrence in three 24-cycle board-runs — and priced it
+as expensive. **It asks about the RESIDUAL, which exists on every slot every cycle whether the
+selector looks at it or not.** `unsat = goal_residual x |group| = the count of peers failing the
+objective`.
+
+### `sp80` READS ZERO, AND THE ZERO IS ATTRIBUTED RATHER THAN BARE
+
+    sp80 x20   1414 slot-readings, ALL path A: no OBJ-typed term bound
+               bound slots 0 -> 4 -> 6 -> 8 of 72 by cycle 18
+               library 48 -> 61
+               OBJ-bound: 0 IN EVERY CYCLE
+
+**And the instrument is the build's own three lines, not a reconstruction of them** — `name =
+bound.get(s)` / `term = library.get(name)` / `if term is None or out_type != OBJ_TYPE` is byte-
+identical to `tether.py:2024-2026`. `I2`'s rule at the strongest available level.
+
+### THEN THE CHAIN I BUILT ON IT, AND THE LINK THAT WAS WRONG
+
+**I wrote: *objective arm wins -> OBJ term bound -> `_goal_choice()` has candidates -> pricing
+reached*, and the middle link is false.** `_goal_choice` (1725) iterates **`self._res`** and requires
+`len(series) >= MIN_REPEAT+1`, non-increasing deltas, and at least one real decrease. **IT DOES NOT
+TEST OBJ BINDINGS AT ALL.** The `OBJ` test I had matched byte-for-byte is in the goal-VOTE path — a
+different consumer — and I let identical code stand in for identical purpose.
+
+> **CAUGHT BY READING `_goal_choice` INSTEAD OF ASSUMING IT.** Third chain today with one bad link,
+> and the same shape each time: internally coherent, fitted the day's pattern, and one step never
+> checked. **The clean story is the tell.**
+
+### WHERE THE OBJ REQUIREMENT ACTUALLY BITES, AND THE GATE CENSUS THAT SHOWS IT
+
+`_mint_routine`'s gates in order: **(1)** `_goal_choice()` returns a slot · **(2)** slot in frame ·
+**(3)** `_discrepancy` is an int · **(4)** `goal_residual` is not None AND > 0 — **this is the one
+that needs an OBJ binding.**
+
+    ka59 x24, all nine routine-gate rows
+      7x  routine_refused  '*'         "no objective is confidently shrinking"     GATE 1
+      1x  routine_refused  o14.dcol    "the objective already holds across its scope"  GATE 4
+      1x  routine_cut      o13.w       "does-not-pay"                              THE BARGAIN
+
+**BARRIER 1 IS GATE 1 AND IT IS THE SHRINKING-SERIES TEST, NOT THE BINDING.** Seven of nine.
+
+**AND THE `o14.dcol` ROW IS A POSITIVE CONTROL I DID NOT HAVE TO RUN.** *The objective already
+holds across its whole scope* is reachable ONLY if `goal_residual` returned a NUMBER — so **`ka59`
+demonstrably has OBJ bindings**, `sp80`'s zero is a real per-board difference, and my probe is
+sound. **The 35-minute confirmation run is redundant; the answer was in nine rows already on disk.**
+
+    SO sp80's ZERO-OBJ IS REAL AND IS NOT THE CAUSE OF BARRIER 1. It is a PARALLEL blockage
+    that would refuse at gate 4 if gate 1 ever passed there -- and gate 1 refuses first.
+
+### STEP 1's MEASURED HALF SO FAR: NEGATIVE ON TWO SAMPLES
+
+The only two `unsat` values any board has produced:
+
+    ka59 cycle 13   unsat = 0        the objective already held
+    ka59 cycle 23   unsat = 3.00     base 6.0 / log2(4)
+
+**Threshold for that candidate (k=2, n=4) is 3.483. Both below.** So step 1 is **NEGATIVE on n=2**,
+which is not a distribution and is exactly the denominator `F19` was closed on. **The analytic half
+stands unchanged — nothing rules such a board out — and the measured half has two points and needs
+boards that reach gate 4.**
+
+    MECHANISM   barrier 1 relocated to gate 1 by census; sp80's zero-OBJ placed as parallel
+                rather than causal; a redundant 35-minute run identified
+    CAPABILITY  none. No action differs
