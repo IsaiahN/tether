@@ -22827,3 +22827,44 @@ replaces needing one.**
 > **THE SIXTH LAW, EXACTLY AS WRITTEN: *assume it is already specified, and go look.* Isaiah's
 > instinct to hold the ruling against the framework was right, and the framework did not merely
 > inform the ruling — it dissolved the question.**
+
+## `F23` CLOSED — THE LOOP NOW RECORDS WHAT IT PRESSED
+
+**Isaiah ruled this one closed regardless of the others: *a hole in the record rather than in the
+agent, which makes it cheap and unambiguous to fix.*** One field on an existing row.
+
+    tether.py:3052   action=action,   on the REPEAT row, beside `by` and `phase`
+
+**`action` is bound at line 2948** — `if action is None: action, by = self.choose(before)` — and in
+scope at the record call, so nothing new is computed and nothing is derived. **The loop already
+held the value; it simply never wrote it down.**
+
+    BEFORE   "level": 0, "phase": "probe", "by": "draw", "stage": "MINT_UNFIRED", ...
+    AFTER    "level": 0, "action": "ACTION1", "phase": "probe", "by": "draw", ...
+
+### VERIFIED AS AN INTENDED CHANGE AND NOTHING ELSE
+
+    sp80 x 3 rows BEFORE   483
+    sp80 x 3 rows AFTER    483        purely additive: one field, no row added or removed
+    seats                  9/9 clean
+    F23's own check        `"action": "ACTIONn"` now appears ONCE PER CYCLE as a value.
+                           Before: zero occurrences outside a rendered utterance string
+
+**AND THE SECOND HALF OF THE BRIEF NEEDED NOTHING.** Isaiah asked for the action, the exit that
+chose it, **and — if the build already emits it — what the agent expected that action to do.** The
+exit was already on the row (`by`, `phase`, which is what `S5`'s family match made countable), and
+**the expectation is already emitted per slot on every `bet` row as `predicted`.** So one field
+closes it and nothing was added that the build did not already hold — **which was the standing
+condition: a gap in what the agent emits is a finding to report, never an emitter to invent.**
+
+### WHY THIS ONE WAS CLEAN WHEN THE OTHER FOUR ARE NOT
+
+**No ruling was needed because there is no second interpretation.** `E1` has three candidate
+diagnoses and `F22` has two; this had one — the value exists, it is in scope, and it was not
+written. **The only design question it could have raised is answered by the transcript tool's own
+rule**: parsing `ACT(NEED('b0','ACTION1'))` to recover a value the loop is holding would be
+reconstruction from a rendering, which is what `I2` cost and what `transcript.py` exists to refuse.
+
+    MECHANISM   the primary stream can now line up WHAT WAS PRESSED against WHAT CHANGED,
+                which is the one question it was built to answer and could not
+    CAPABILITY  none. Not one action differs; the agent does not read this row

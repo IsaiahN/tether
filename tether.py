@@ -3050,6 +3050,13 @@ class Agent:
                         # records the BOUNDARY; nothing said which level a given cycle was in,
                         # so the four columns had no way to be segmented.
                         level=self.level,
+                        # THE ACTION, BESIDE THE EXIT THAT CHOSE IT. `by` said WHICH BRANCH
+                        # picked, and nothing said WHAT WAS PRESSED -- so a reader could see a
+                        # prediction miss and not what preceded it, which is half the loop.
+                        # It was reachable only as a substring of the `ACT(NEED(...))` utterance,
+                        # and parsing a rendering to recover a value the loop already holds is
+                        # the reconstruction `transcript.py` exists to refuse.
+                        action=action,
                         phase=phase, by=by, stage=self.chain.seg.stage(),
                         gamma_size=len(self.gamma.library), owed=sorted(self.owed_import),
                         admissions=self.gamma.admissions())
