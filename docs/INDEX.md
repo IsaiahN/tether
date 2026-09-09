@@ -20842,3 +20842,320 @@ thing that lets a computed predicate fill operand 0. **The largest structural pr
 > thirty-four**, including the top two. **Pricing first was still right** — it is cheap, it ranked
 > 34 candidates in one run, and it is what made the disagreement visible instead of discovering it
 > one implementation at a time.
+
+## SWEEP 40 — THE CONNECTIVES DID NOT BREAK THE SEAT. A `PRED -> PRED` PRODUCER DID, AND IT IS
+## `CAN`'s SIGNATURE
+
+**Four readings, and the first three were wrong the same way.** `negate`/`both`/`either` went in,
+M2 fell to 10/17, and I read it as (1) *nothing binds an objective — a real regression in the
+connectives*, then (2) *`both`/`either` are identities, so the closure floods with duplicates*,
+then (3) *the binding is knife-edge and any atom would do this.* **All three are properties of
+the THING ADDED. The cause is a property of the ARROW it lands on** — and the tell is that
+`negate` alone, a complete non-identity atom, breaks the identical seven checks.
+
+**SAME SHAPE AS THE SWEEPS 38/39 ERROR, ONE LEVEL UP.** There I priced the wrong stream; here I
+diagnosed the wrong object three times running. **Both times I reasoned about the thing
+introduced instead of the mechanism that reads it.**
+
+### WHAT ACTUALLY HAPPENS
+
+    fixture slot `o1.dcol`   bound to                out_type   gap            can
+    ----------------------------------------------------------------------------------
+    45 atoms                 none                    OBJ        1              yes
+    45 + negate              recolour<o0.colour>     val        NOT_RESOLVED   unknown
+
+`_wide` hardcodes `o1.dcol` and ASSERTS `can(slot) == YES` as a precondition. With a
+`PRED -> PRED` atom in, the warm-up binds a PREDICTOR there instead of an OBJECTIVE,
+`_discrepancy` cannot read a `val` term as a want, and **seven checks fail on the fixture's
+setup rather than on their own claims.**
+
+### FOUR MATCHED CONTROLS, AND THEY SEPARATE EVERY ALTERNATIVE
+
+    45 (baseline)                     qualifying slots: 2   ['o1.dcol', 'o2.dcol']
+    45 + negate     PRED   -> PRED    qualifying slots: 0   []
+    45 + dupA       OBJECT -> EXTENT  qualifying slots: 2       a different arrow
+    45 + dupP       COLOUR -> PRED    qualifying slots: 2       MORE PRED, no self-loop
+    45 + dupS       SHAPE  -> SHAPE   qualifying slots: 2       a self-loop, wrong arrow
+    45 - area / holes / parity /
+         rank_in / sign / count       qualifying slots: 2   ...every one
+
+**Not atom count. Not PRED population. Not self-loops in general.** `rotate`, `reflect` and
+`canonical` are already `SHAPE -> SHAPE` self-loops **in the baseline that gives 2.**
+**Specifically a self-loop on `PRED -> PRED`** — and `all`/`any`/`none` are the ONLY OBJ
+producers and all three are `PRED -> OBJ`, so that is **the sole arrow into the terminal.**
+
+### THE PRICE TIE IS EXACT, NOT APPROXIMATE, AND IT IS WHY REORDERING DECIDES ANYTHING
+
+`term_bits(k, a, bonds) = (k+1)*log2(a+1) + (k-1)*log2(bonds)`. Both competitors are **k = 1**:
+
+    none                  PRED -> OBJ    k=1    (k+1)*log2(a+1)
+    recolour<o0.colour>   val  -> val    k=1    (k+1)*log2(a+1)      IDENTICAL
+
+`pays` is strict — *a tie does not license a new term* — so **the winner is whichever was
+enumerated first.**
+
+**AND THE ARCHITECTURE SAYS SO IN ITS OWN WORDS.** `self.bound: dict[str, str]` is **one term
+name per slot, and there is no separate objective store.** `_predict`'s docstring: *"TWO ARMS,
+ONE RULE. A `val` term IS the prediction; an `OBJ` term is a WANT... The type decides."* **So a
+slot is either PREDICTED or WANTED, never both, and an exactly-equal price picks which.** The
+objective bindings were never won on merit; two slots held them on enumeration order.
+
+**WHAT IS NOT ESTABLISHED IS THE MECHANISM INSIDE `mint`.** The space is `depth_exhausted`, not
+`budget_spent`, so the candidates are all SEEN both ways — why the `val` term is then TAKEN
+first is unread. **The controls establish WHICH ARROW, not WHY.** Recorded as measured effect
+plus named ignorance, because this is the fourth story in a row and three were wrong.
+
+### THE CONSEQUENCE FOR `M2` ITEM 1, AND IT ARRIVED BEFORE THE BUILD RATHER THAN AFTER
+
+`M2_STANDARD` #1: *`CAN(PRED)` is declared in `grammar.py` with NO PRODUCER, and `Until` needs
+it.* **`grammar.py:62` declares `CAN : PRED -> PRED`** — the exact arrow just measured.
+
+> **IF `CAN`'s PRODUCER IS AN ATOM IN THE SEARCH CLOSURE, IT LANDS ON THE ONE ARROW WITH A
+> MEASURED COST OF EVERY OBJECTIVE BINDING ON THE BOARD.** Whether it must be an atom is open —
+> `Agent.can(slot, state)` already exists and could answer it instead. **That is the decision;
+> this sweep supplies its price, not its answer.**
+
+### AND `CAN` IS A LIVE `A6i` COLLISION, CHECKED AT THE POINT A RULING WAS ABOUT TO BE MADE
+
+    CAN   grammar.py:62   PRED -> PRED, a Modality production   NO PRODUCER ANYWHERE
+    can   tether.py       (slot, state) -> yes | no | unknown   BUILT, three-valued, evidential
+
+**Two quantities, one word, and `M2_STANDARD` #1 names the first while `test_m2`'s fixtures
+assert on the second.** `Agent.can`'s own docstring already records that its two sources
+disagreed — *achievable* vs *satisfiable* — so this is that same seam one level out. Caught by
+step three firing on schedule; **it would have gone into the record as *`CAN` is built*
+otherwise.**
+
+### `both`/`either` ARE A HALF-MECHANISM, SEPARATELY AND CERTAINLY
+
+**Both routes to operand 0 are closed, so they are the identity on every input, always.**
+
+    _operand_fits   operand_type=PRED, and PRED is not a slot type -- slots carry
+                    COLOUR/DELTA/EXTENT/POSITION/SHAPE. Every raw binding is refused.
+    operand_term    §4's tree has NO PRODUCER. Nothing constructs one; `tether.py:659`
+                    is its only reader.
+
+**They are the ONLY operand-readers in the set whose type no slot can supply** — `translate`,
+`same`, `other`, `above` take `@same` (resolves to the target's own type) and `recolour` takes
+`COLOUR`, all real slot types.
+
+**AND THE `ADMITTED` STAMP HAD ALREADY SAID SO**: *"needs §4's computed operand"*, written at
+entry, in the same commit. **The blocker was recorded and then not read as a gate** — step
+three exactly: *is it built* is the wrong question, *what does it still owe* is the right one,
+**and the two differ most where the mechanism is finished.** §4's field, evaluation and length
+recursion are built. **§4 owes a producer.**
+
+### LAW SIX FIRED ON MY OWN SWEEP 38, AND THE SPECIFIED ONE WAS AGAIN THE BETTER ONE
+
+Sweep 38: *"the set is missing a quantifier it should obviously have... there is no exists-unique."*
+**`grammar.py` declares `ONE : PRED -> OBJ`, *holds for exactly one*, and `NOT : PRED -> PRED`,
+*negation*.** Both were in the `PRIMES` table the whole time. **I designed a ranking where a
+search was specified.**
+
+**AND THE CORRECTION TO THAT CORRECTION IS THE PART WORTH KEEPING.** `PRIMES` is **not** a
+specification of the atom set: `arc_atoms`' own header says `grammar.py` *composes utterances*
+and is *"wired for SPEAKING and not for SEARCHING"*, while the mint enumerates `gamma`'s
+closure. **Two registers that share type nodes and nothing else.** What survives is narrower and
+still useful: **`NOT` and `ONE` have declared counterparts in the description vocabulary, and
+`both`/`either` have none** — there is no `AND`/`OR` prime. **A second, independent reason to
+withdraw them, and it cost one grep.**
+
+### DISPOSITION
+
+    negate         WITHDRAWN -- legitimate atom, but its arrow costs every objective binding
+                   and the mechanism is unread. Blocked on the tie, which is Isaiah's.
+    both, either   WITHDRAWN -- half a mechanism; both operand routes closed. Blocked on §4's
+                   producer, and unnamed in the description vocabulary.
+    verified       `git checkout -- arc_atoms.py`; 45 atoms; ruff clean, 16/16 gate,
+                   17/17 M2 -- identical to `0d4809d`, not merely green.
+    owed           the same read on a REAL public board. The fixture is `_Two()`, and a
+                   synthetic result proves wiring and never capability. IN FLIGHT.
+
+### DISPOSITION SUPERSEDED — ISAIAH RULED RESTORE, 2026-09-08
+
+**The withdrawal above was the seat's call and it was overruled.** All three connectives are back
+in `arc_atoms.py` at 48 atoms / 28 stamps. **The measurements in this sweep are unchanged and
+none of them is retracted** — what changed is the disposition, not the reading.
+
+    negate         RESTORED. Its arrow still costs every objective binding on the fixture
+                   board; that is a measured fact and it is now a fact about the SHIPPED set.
+    both, either   RESTORED. Still the identity on every input -- both operand routes closed.
+                   Unblocks when §4 gets a producer, and NOT before.
+    consequence    THE M2 SEAT IS RED AND THAT IS THE STATE OF THE REPO. Seven checks fail
+                   on `_wide`'s hardcoded `o1.dcol` losing its objective, not on their own
+                   claims. Ruff and the 16 gate checks pass.
+
+**A RED SEAT IS NOT A COSMETIC COST AND SAYING SO IS THE SEAT'S JOB.** `m2` is one of the nine
+conformance seats, so **while it is red no later change can be verified against it** — every
+subsequent edit reads as *still 10/17* whether it broke something or not. **That is a checker
+gone silent by being permanently loud**, which is the failure mode the seven named cases in
+`conform/lint.py` are all instances of.
+
+### THE THREE WAYS OUT, AND ONLY ONE OF THEM IS THE SEAT'S TO TAKE
+
+    (a) leave it red          honest, and it disables the instrument for everything after
+    (b) repair `_wide` to     WRONG ORDER. `fixtures before changes` -- this is a fixture
+        ESTABLISH its         edited to accommodate a code change, and the only order with
+        precondition          an observable half-state is the other one
+    (c) break the tie so an   THE ACTUAL FIX, AND IT IS ISAIAH'S. `term_bits` prices HOW
+        OBJ term beats a      LONG and never WHAT KIND, so a want and a prediction of equal
+        `val` term at equal   length are indistinguishable to the bargain
+        price
+
+**AND (c) IS NOW TAKEABLE WHERE IT WAS NOT.** `CLAUDE.md` withdrew three valuation chains for
+this exact tie because each *"was internally coherent and had no subject"*, and prescribed
+*"Build the subject before pricing it, and the ordering falls out: `M2` first."* **`M2` is what
+supplied the subject** — the tie now drives `can`, `can` gates `Until`, and `Until` is the ACT
+space. **The precondition the ruling named has been met. The ruling itself has not been taken,
+and this sweep does not take it.**
+
+### AND AN INSTRUMENT DEFECT CAUGHT BEFORE IT REPORTED, WHICH IS THE ONLY REASON IT COUNTS
+
+`real.py` chose its two arms by **dropping names from whatever `arc_atoms.py` held**. After the
+revert the file held 45 atoms and no `negate`, so `drop=(negate,both,either)` and
+`drop=(both,either)` were **the same set** — two identical arms, printing two rows, reporting a
+difference of zero. **It would have read as *the tie does not reproduce on a real board*, which
+is the conclusion I was looking for.**
+
+**A NULL WITH A SATISFYING STORY, ARRIVING BY A ROUTE NOTHING WOULD HAVE QUESTIONED.** The fix is
+the general one: **an arm must be CONSTRUCTED, never selected out of ambient state.** `negate` is
+now built in the harness itself, so the comparison holds whatever the file contains — and the
+run prints `atoms=` per arm so the two conditions are visible in the output rather than trusted.
+
+### SWEEP 40's CAUSE WAS THE WRONG SUBSYSTEM — CORRECTED AT SOURCE, 2026-09-08
+
+**Sweep 40 attributed the seven failures to the objective/predictor PRICE TIE IN `mint`. That is
+wrong, and the trace says so in one line: `o1.dcol` HAS NO `mint` EVENT ON EITHER ARM.** It was
+never bound by minting. Every reading in sweep 40 stands — the tie is exact, `bound` is one field,
+the controls isolate `PRED -> PRED` — **but none of them is the cause.**
+
+    cycle 1  ROUTE  pull    term=none                  ->  ACCEPT rebind  (45 atoms)
+    cycle 1  ROUTE  pull    term=negate                ->  ACCEPT rebind  (48 atoms)
+    cycle 2  ROUTE  pull    term=recolour<o0.colour>   ->  ACCEPT rebind  (48 atoms)
+
+**`_library_fit` PULLED `negate` ITSELF AND BOUND IT TO A SLOT.** `negate`'s `out_type` is `PRED`
+— neither a prediction nor a want. The slot became unreadable, fell to a `val` term next cycle,
+and stayed a predictor for the rest of the run.
+
+### THE DEFECT, AND IT IS A MISSING FILTER RATHER THAN A PRICING QUESTION
+
+**`mint` HONOURS A TWO-ARM CONTRACT AND THE RETRIEVAL PATH DOES NOT.** `mint`'s streams are
+exactly `("val","val")` and `(stype, OBJ)`, so it can only ever produce those two kinds.
+`_library_fit` filters on `_explains` alone — **a BEHAVIOURAL test with no type check** — so any
+library term that happens to reproduce a slot's history may bind it.
+
+**`_predict` states the contract it is violating**: *"TWO ARMS, ONE RULE. A `val` term IS the
+prediction; an `OBJ` term is a WANT... The type decides."* **Two arms and no third**, so a
+`PRED`-typed binding is a silent state the dispatch cannot read: `_discrepancy` returns
+`NOT_RESOLVED` permanently.
+
+**IT WAS SATISFIED BY ACCIDENT, NEVER ENFORCED.** At 45 atoms every binding is already `OBJ` or
+`val` — **two `OBJ`, one `val`** — because no atom reachable by the retrieval path happened to
+carry another type. The first one that did, broke it.
+
+### THE REPAIR, VERIFIED IN BOTH DIRECTIONS BEFORE BEING PROPOSED
+
+Apply the mint's own contract at the second bind site: a term may bind a slot only if its
+`out_type` is `val` or `OBJ`. **One call site** — `_explains` is called from `_library_fit` and
+nowhere else.
+
+    48 atoms, filter ON    17/17        the seven failures go
+    45 atoms, filter ON    IDENTICAL    same bindings, same out_types, same counts
+    45 atoms, filter OFF   {OBJ: 2, val: 1}
+
+**No new rule, no new currency, no type branching** — it is the existing type system applied at
+the site that was skipping it. **And it leaves Isaiah's tie ruling untouched**, which is the
+point: the tie is still published as a tie and still unbroken.
+
+### WHY THE WRONG SUBSYSTEM WON, AND IT IS NOT THE SAME ERROR AS THE OTHER THREE
+
+The first three readings were wrong about the OBJECT (the atom, not the arrow). **This one was
+wrong about the SITE, and it lost to a better story rather than to a worse look.** `mint`'s tie
+is **documented, measured in a comment, and carries a doctrine ruling** — *"NOT BROKEN HERE, AND
+DELIBERATELY"* — while the missing filter is undocumented and has no ruling attached.
+
+> **A DOCUMENTED NEAR-MISS OUTCOMPETES AN UNDOCUMENTED ACTUAL CAUSE, BECAUSE THE DOCUMENTATION
+> SUPPLIES A READY-MADE STORY WITH PROVENANCE.** It read as derived rather than guessed — the
+> same reason `_bindings`' wrong implementation survived a correct citation. **And the cost here
+> was specific: it would have aimed the repair at Isaiah's pricing ruling — the expensive,
+> deferred, judgement-laden fix — instead of at a missing type filter that is a no-op on the
+> baseline.**
+
+**THE CHECK THAT CAUGHT IT WAS *GO TO THE WRITE SITE*, and it is the same one that caught the
+`outcome` key-filter error earlier this session.** Asking *which line assigned this value*
+rather than *which mechanism explains it*. **The second question has many good answers and the
+first has exactly one.**
+
+### THE FILTER IS APPLIED — ISAIAH RULED, 2026-09-08. 9/9 SEATS CLEAN AT 48 ATOMS
+
+**Two edits, one call site, and the rule is one that was already written.**
+
+    tether.py   BINDABLE = ("val", OBJ_TYPE)          declared beside OBJ_TYPE
+    tether.py   `_library_fit`: skip a candidate whose out_type is not BINDABLE,
+                BEFORE `_explains` and separately from it
+
+**BEFORE `_explains` AND NOT INSIDE IT, DELIBERATELY.** *May this BIND* is a type question and
+*does it EXPLAIN* is a behavioural one. Folding the first into the second would put two
+quantities under one name **at the site that decides both** — `A6i` manufactured on purpose.
+
+### VERIFIED IN BOTH DIRECTIONS, AND THE SECOND RESULT IS STRONGER THAN THE ONE ASKED FOR
+
+    45 atoms, filter on    {OBJ: 2, val: 1}   IDENTICAL to filter off -- a strict no-op
+    48 atoms, filter on    {OBJ: 2, val: 1}   IDENTICAL TO THE 45-ATOM BASELINE
+    48 atoms, filter off   {}                 nothing bound an objective
+    seats                  9/9 clean -- ruff · lint · kernel · stateful · shipped ·
+                           demo · gate · tests · m2
+
+**THE 48-ATOM ROW IS THE ONE THAT MATTERS AND IT WAS NOT THE TARGET.** The ask was *restore
+17/17*; what the filter actually restores is **ADDITIVITY** — three new atoms now change no
+binding at all. **An added atom should be inert on the bindings unless it wins on merit, and
+before this one could displace an objective by accident.**
+
+### THE SIBLING SITE WAS CHECKED AND NEEDS NOTHING, WHICH IS WHY THIS IS A WHOLE REPAIR
+
+`self.bound` is written at three places. **A fix at one of three is half a mechanism**, so each
+was read:
+
+    mint (2503)     streams are exactly ("val","val") and (stype, OBJ) -- correct BY
+                    CONSTRUCTION, it cannot produce a third type
+    sweep (2653)    re-runs a NEWLY ACCEPTED term, which came from `mint`; and `_reach`
+                    enumerates ("val","val") only. Safe by provenance
+    rebind (2956)   fed by `_library_fit` -- THE ONE UNGUARDED PATH
+
+**And the trace already said so before the code was read**: the pull that bound `negate` carried
+`via=None`, which is `_library_fit`'s row. The sweep's rows carry `via="direct"` or `"chunk"`.
+
+### WHAT IS FIXED AND WHAT IS UNTOUCHED, BECAUSE THEY ARE DIFFERENT QUESTIONS
+
+    FIXED       a term of a third type may no longer bind a slot. The two-arm contract
+                `_predict` states is now ENFORCED rather than satisfied by accident
+    UNTOUCHED   the objective/predictor PRICE TIE. Still exact, still published as a tie,
+                still unbroken. `term_bits` still prices HOW LONG and never WHAT KIND, and
+                whatever breaks that still has to earn its way in
+
+**The tie remains Isaiah's and remains open. It was never the cause, and the repair did not
+quietly settle it.**
+
+### THE GAMEPLAY READING, KEPT ON THE RECORD BECAUSE THE SAFE HALF IS THE FINDING
+
+Measured on the fixture, both arms, 8 steps:
+
+    45 atoms   probe .848   directed .000   strategy .152    Until(o1.dcol, Act(ACTION2), 5)
+    48 atoms   probe 1.00   directed .000   strategy .000    no routine at all
+
+**The agent stops pursuing and reverts to pure uninformed probing** — it still acts every cycle,
+and every action is a probe draw rather than a step toward anything. **Durable within the run**:
+the bad binding persists, so the slot never recovers.
+
+**AND THE FAILURE WAS SAFE, WHICH IS THE HALF WORTH KEEPING.** With no readable objective
+`_discrepancy` returned `NOT_RESOLVED`, `can` returned `unknown` — *a claim about the record, not
+about the world* — `Until` refused to commit, and `mint` declined with a STATED reason: *"the
+discrepancy is not a distance: NOT_RESOLVED"*. **Check 3 held under a real defect**: it abstained
+rather than reading no-evidence as false, on precisely the axis `M2_STANDARD` warned would be
+durable if it went wrong. **The agent went blind and refused to plan on blindness, instead of
+looping on a guard it could not verify.**
+
+**AND S3 FROM THIS MORNING IS WHY IT WAS DIAGNOSABLE AT ALL.** Before S3 those four gates were
+silent; `routine_refused` carrying a per-gate reason is what turned a silent no-op into a legible
+failure inside one run. **An instrument built this session paid on a defect introduced this
+session, which is the only kind of evidence that a legibility change was worth making.**

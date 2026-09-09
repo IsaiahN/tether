@@ -169,7 +169,31 @@ fired **0 of 25 steps on `ls20`, 25 of 25 on `sk48`, 7 of 25 on `g50t`** — one
 is the worse case, because a null presents as caution and needs no defence.** And the tell
 is the explanation: *objects that look alike behave alike* was true of `ls20` and general in
 its wording. **A null carrying a satisfying causal story is harder to doubt than a bare
-one**, so the story is the thing to distrust, not the number. And *read the things that produce conditions before the things that produce
+one**, so the story is the thing to distrust, not the number.
+
+**AND THE SAME MECHANISM POINTS AT CAUSES, NOT ONLY AT FINDINGS — 2026-09-08.** *Credibility
+borrowed from something adjacent* is what makes a null hard to doubt, and it makes a SUSPECT hard
+to doubt in exactly the same way. **THE BEST-DOCUMENTED CANDIDATE IS THE MOST ATTRACTIVE SUSPECT
+REGARDLESS OF GUILT.** Seven M2 checks fell when a `PRED → PRED` atom entered, and the cause was
+filed as `mint`'s objective/predictor price tie — **which is measured, commented at its own site,
+and carries a standing ruling** (*"NOT BROKEN HERE, AND DELIBERATELY"*). The actual cause was
+`_library_fit` binding a `PRED`-typed term to a slot with **no type filter at all**: undocumented,
+unruled, and presenting as nothing. **The trace refuted the tie in one line — the slot has no
+`mint` event on either arm** — and the tie had simply looked more like an explanation, because a
+documented mechanism reads as DERIVED rather than guessed. Same failure as `_bindings`, where a
+correct citation carried a wrong implementation past a status of *built*.
+
+**AND THE COST IS THE SHARP PART, BECAUSE IT IS NOT SYMMETRIC.** The documented suspect is
+documented precisely because it is *hard, deferred, and judgement-laden* — so misattribution
+routes a repair at the expensive open question instead of at the cheap inert one. **It would have
+spent Isaiah's withheld pricing ruling on a defect fixed by six lines that are provably a no-op on
+the baseline.**
+
+> **THE CHECK IS *GO TO THE WRITE SITE*: ask which LINE assigned the value, never which MECHANISM
+> explains it.** The second question has many good answers and the first has exactly one. It is
+> the same check that caught the `outcome` key-filter error, and it costs one grep.
+
+And *read the things that produce conditions before the things that produce
 results* — a generator, a config, a plan, a fixture. **They do not announce themselves,
 and a condition is invisible in the results it conditions.** `SNAPS_PLAN` was the shortest
 document in the set, was never opened, and four of its ten sections overturned a published
