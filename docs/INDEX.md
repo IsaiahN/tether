@@ -21830,7 +21830,10 @@ cannot break. **Stated as a chain in the code. The ruling is Isaiah's and is not
 distribution. **Observation with a denominator; NOT a defect, because nothing measured shows 3 is
 wrong.**
 
-**`F7` · COST — THE THIRD AND FOURTH INDEPENDENT REFUTATIONS OF THE GROWING-CLOSURE ACCOUNT.**
+**`F7` · COST — SUPERSEDED BY `F10`, AND THE HEADLINE BELOW IS THE ERROR `F10` CORRECTS.**
+**READ `F10` FIRST.** The claim of *four independent refutations* put three different
+denominators under one phrase; the depth series below does not refute the account, it
+SUPPORTS it once the quantity is named. The measurements are unchanged and correct.
 
     wall   d6      d12      d24        per-doubling
     ls20    94.7   529.6   3945.6      5.6x · 7.5x
@@ -21897,3 +21900,99 @@ never a key.*
 
 **DEPTH BOUGHT MECHANISM AND BOUGHT NO CAPABILITY.** Twelve readings, and the capability column is
 unchanged in every one. **Repeated mechanism-fires do not accrete into *it works*.**
+
+## DEPTH 48 — THE TIE IS OBSERVED, AND `F7`'s "FOUR REFUTATIONS" WAS `A6i` IN MY OWN WRITE-UP
+
+    game   depth  wall      lib  mints  contest                                  by                        rt
+    ka59      48  9185.2s    97    47   predictor 10 · objective 35 · TIE 2      draw 7 · learned 41       7
+    sp80      48   886.1s    63    10   predictor 10                             draw 9 · learned 22       9
+
+### `F10` — THE GROWING-CANDIDATE-SPACE ACCOUNT IS SUPPORTED, NOT REFUTED, AND `F7` SAID THE OPPOSITE
+
+**I wrote *four independent readings against the wall is a growing candidate space*. THREE OF
+THEM MEASURE DIFFERENT QUANTITIES AND THE PHRASE WAS CARRYING ALL THREE.**
+
+    lf52          `_cannot_pay` CALL COUNT flat at 7801, cost +60%   -> refutes cost ~ CALLS
+    negate pair   45 vs 46 ATOMS, cost flat at ~1.2x                 -> refutes cost ~ ATOM COUNT
+    depth series  cost tracks LIBRARY growth                         -> SUPPORTS cost ~ UNITS
+
+**`enumerate_closure` runs over `units()` — atoms PLUS every settled term — so the space a mint
+searches grows with the LIBRARY, which is neither the call count nor the atom count.** The first
+two readings are correct and refute what they measured. **Neither one touches the third.**
+
+**AND THE DEPTH SERIES IS A NEAR-CONTROLLED EXPERIMENT, WHICH IS WHY IT CAN CARRY THIS:**
+
+    board   doubling    d(library)   wall ratio
+    sp80    24 -> 48        +1         1.64x     cycles doubled, library did NOT grow
+    ka59    24 -> 48       +27         4.52x     cycles doubled, library grew hard
+    ls20    12 -> 24       +15         7.45x
+    ar25    12 -> 24       +26         5.03x
+    sp80    12 -> 24        +3         4.04x
+    sp80     6 -> 12        +5         5.59x
+
+> **`sp80` FROM 24 TO 48 IS THE READING THAT MATTERS: THE CYCLE COUNT DOUBLED, THE LIBRARY GREW BY
+> ONE, AND COST ROSE 1.64x — NEARLY LINEAR.** The same doubling on `ka59`, with +27 library, cost
+> 4.52x. **That separates the two contributions about as far as an unmodified build allows:
+> doubling cycles alone is cheap; doubling cycles while the library grows is not.**
+
+**STATED AT ITS ACTUAL STRENGTH.** Eleven doublings across four boards, and the direction agrees
+every time — **but this is CORRELATIONAL and within-board.** `sp80` stopped minting and stopped
+growing simultaneously, so *board runs out of things to mint* and *library stops growing* are not
+separated here. **The cause is better-supported than it was and is still not established.**
+
+### AND THE ERROR IS THE SAME FAMILY THIS WINDOW KEEPS PRODUCING
+
+**`A6i`, fifth instance, and the first in a document I wrote rather than one I read.** *Candidate
+space* is a phrase, not a quantity, and it stood for CALLS, ATOMS and UNITS in three consecutive
+paragraphs of the same section. **Each reading was correct; the aggregation was not.** The
+register's own rule: *check what a name means in both places you are using it, before pinning a
+shape to it* — **and a summary sentence is a place.**
+
+**`F7` IS MARKED SUPERSEDED AT SOURCE RATHER THAN LEFT STANDING**, because `INDEX` is a working
+document and a wrong headline that a later section quietly corrects is how a false claim survives.
+
+### `F11` — THE PRICE TIE IS OBSERVED, PUBLISHED AS A TIE, FOR THE FIRST TIME
+
+**`ka59` at depth 48: `{'predictor': 10, 'objective': 35, 'tie': 2}`.**
+
+`mint`'s own comment promised it: *A TIE IS A READING, AND NAMING A WINNER ERASES IT ... the tie is
+published as a tie; whatever breaks it has to earn its way in.* **It had never been seen in a
+run.** Two of forty-seven contests on one board at one depth — **rare, real, and now carrying a
+denominator instead of an argument.**
+
+**THIS IS THE MECHANISM THE HELD PRICING RULING IS ABOUT**, and it is no longer hypothetical:
+`term_bits` prices HOW LONG and never WHAT KIND, so two terms of equal depth cost the same to the
+bit and the bargain expresses no preference. **The ruling stays Isaiah's. What changed is that the
+thing being ruled on has now been observed rather than derived.**
+
+### `F12` — THE OBJECTIVE ARM'S SHARE RISES MONOTONICALLY WITH DEPTH, ACROSS FOUR DEPTHS
+
+    ka59   objective / contests    0/0      4/9 (44%)    13/20 (65%)    35/47 (74%)
+    sp80                           0/1      0/6          0/9            0/10
+
+**Four depths, and `ka59` climbs at every one.** `sp80` is zero at all four — **the control holds
+across the whole series**, which is what lets the `ka59` climb be read as the arm winning rather
+than as a counter drifting.
+
+### `F13` — `draw` IS FROZEN AT 7 ON `ka59` ACROSS ALL FOUR DEPTHS, AND SO IS `routine_refused`
+
+    ka59    depth  6     draw 6                     routine_refused 6
+            depth 12     draw 7 · learned 5         routine_refused 7
+            depth 24     draw 7 · learned 17        routine_refused 7
+            depth 48     draw 7 · learned 41        routine_refused 7
+
+**Forty-eight cycles: seven draws and forty-one learned actions.** The agent stops drawing after
+~7 cycles and **never attempts another routine for the remaining forty-one**, because `choose`
+returns `discriminate:learned` before reaching `_mint_routine`. **`F4` confirmed at four depths on
+a frozen count, which is a stronger form than the equality alone.**
+
+### CAPABILITY, AT THE DEEPEST RUN THE WINDOW COULD AFFORD
+
+    routines formed     ZERO          levels advanced   ZERO
+    chunk reuse         ZERO          levels_completed  ZERO
+
+**Fourteen board-depth readings now, out to 48 cycles, and the capability column has not moved
+once.** Minting quadrupled, the objective arm went from never winning to winning 74%, directed
+action went from 0 to 41 of 48 — **and not one routine formed.** The blocker is `F5`'s, unchanged
+and still not a defect: **gate 1 refuses because the supply of objective-bound slots carrying a
+three-step shrinking series is empty, not because the criterion is wrong.**
