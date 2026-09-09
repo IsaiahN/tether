@@ -21807,6 +21807,11 @@ every extra cycle.
 > every attempt refuses at gate 1 anyway. **It becomes one the moment gate 1 passes.** Recorded
 > for then.
 
+**`F5` · REFINED BY `F14` — READ BOTH. Supply is empty at every asking moment,
+which is true and is NOT why M2 does not fire: the supply arrives later and
+nothing asks. The four levels below are correct and the conclusion drawn from
+them was too narrow.**
+
 **`F5` · THE M2 BLOCKER IS SUPPLY, NOT CRITERION — FOUR LEVELS, NO DEFECT AT ANY.**
 
     1 refusal     "no objective is confidently shrinking", gate 1 of 8, every board every depth
@@ -21996,3 +22001,98 @@ once.** Minting quadrupled, the objective arm went from never winning to winning
 action went from 0 to 41 of 48 — **and not one routine formed.** The blocker is `F5`'s, unchanged
 and still not a defect: **gate 1 refuses because the supply of objective-bound slots carrying a
 three-step shrinking series is empty, not because the criterion is wrong.**
+
+## `F14` — THE ASKING WINDOW CLOSES BEFORE THE SUPPLY OPENS. `F5` IS REFINED BY ITS OWN FALSIFIER
+
+**`F5` said the M2 blocker is SUPPLY, not criterion. I ran the measurement that could refute it,
+and it did — not by showing the criterion wrong, but by showing that BOTH readings were answers
+to the wrong question.**
+
+    board ka59, depth 24
+    _mint_routine called at cycles : [0, 1, 2, 3, 4, 5, 11]        SEVEN calls, last at 11
+    _goal_choice asked at cycles   : [0,0,1,1,2,2,3,3,4,4,5,5,11,11]
+    _goal_choice ever returned     : NEVER -- None every time
+    a series QUALIFIED at cycles   : [(14, 'o14.dcol'), (24, 'o13.w')]
+    first qualifying cycle 14   >   last ask cycle 11
+
+**THE SELECTOR WAS CORRECT EVERY TIME IT WAS ASKED.** At cycles 0-11 no series qualified, and it
+returned `None` fourteen times out of fourteen, which is exactly its specification. **A series
+first qualified at cycle 14 — three cycles after the last thing that could consult it.**
+
+> **SO EVERY REFUSAL WAS RIGHT AND THE CONCLUSION DRAWN FROM THEM WAS WRONG.** *Gate 1 refuses
+> because supply is empty* is TRUE at every asking moment and FALSE as an account of why M2 does
+> not fire. **Supply arrives. Nothing asks.**
+
+### WHY, AND IT IS `F4` BECOMING THE BINDING CONSTRAINT EXACTLY AS FILED
+
+`_goal_choice` is called **only** from `_mint_routine`. `choose()` reaches `_mint_routine` **only**
+on cycles that fall through to a draw, because `discriminate:learned` returns first. **And `draw`
+freezes** — 7 on `ka59` at every depth from 6 to 48, against 41 learned actions at depth 48.
+
+    seven calls to `_mint_routine`, and SEVEN is the frozen `draw` count on this board.
+    F4's equality was the same fact seen from the other end.
+
+**`F4` WAS RECORDED AS *NOT THE BINDING CONSTRAINT TODAY, BECAUSE EVERY ATTEMPT REFUSES AT GATE 1
+ANYWAY — IT BECOMES ONE THE MOMENT GATE 1 PASSES.*** That moment is measured: **gate 1 would have
+passed at cycle 14, and by cycle 14 the question had stopped being asked.** The note was written
+before the measurement that vindicated it, which is the only order in which it counts.
+
+### WHAT THIS IS, AND WHAT IT IS NOT — CLASSIFIED BEFORE ANY FIX IS WRITTEN
+
+**IT IS NOT A DEFECT AND NO CANDIDATE FIX IS WRITTEN.** Nothing is wrong-given-the-input at any
+level: the selector refuses correctly, `_mint_routine` runs where `choose` puts it, and `choose`'s
+ordering is deliberate and commented. **A repair would be a DESIGN CHANGE — re-ask on learned
+cycles, or re-ask periodically — and both change what the agent DOES, not what it gets right.**
+
+**AND THE CHEAPEST-LOOKING FIX IS THE ONE MOST WORTH REFUSING.** *Call `_mint_routine` on every
+cycle* would make routines reachable and would also **multiply the mint's cost by the cycle count
+on exactly the mechanism §8 is trying to characterise.** A change that makes a mechanism fire and
+a measurement unreadable in the same edit.
+
+> **THE HELD QUESTION, STATED FOR ISAIAH:** *should a learned single-step split preempt FORMING a
+> plan?* `choose` already answers the harder version — a HELD routine runs before anything else,
+> commented and deliberate — **so the ordering was reasoned about for execution and inherited for
+> formation.** `M2_STANDARD` does not settle it. **Not the seat's to take.**
+
+### THE DENOMINATOR, STATED HONESTLY
+
+**ONE BOARD.** `ka59` at depth 24. A second board is running. **`sp80` cannot test this at all** —
+it has no objective at any depth, so no series can ever qualify there, and a null on it would be
+`Q2` wearing a new hat. **Until the second board reports, this is a mechanism observed once.**
+
+### AND THE INSTRUMENT DESERVES ITS OWN LINE, BECAUSE IT WAS BUILT TO REFUTE ME
+
+`rescensus2.py` was written to print **`F5 IS WRONG and the refusal is a DEFECT`** if it found a
+qualifying series. It found one. **The finding arrived through a check aimed at my own
+conclusion**, and the register's rule is why it was aimed there: *falsify a signal before trusting
+it; prefer positive causal evidence over absential.* **`F5` rested on a single census at one
+depth, and one census is a coincidence.**
+
+---
+
+## `F15` — AN EXIT CENSUS OF `choose()`: THREE OF SIX EXITS NEVER FIRED IN 247 ACTIONS
+
+    exit                    actions   runs it fired in
+    discriminate:learned      140          10
+    draw                      104          14
+    probe                       3           2
+    routine                     0           0     <== never
+    discriminate                0           0     <== never
+    discriminate:goal           0           0     <== never
+
+**17 runs · 5 boards · 4 depths · 247 actions.** `routine`'s zero is `F5`/`F14`. **The other two
+are unexplained and are NOT filed on the count**, because *never fired* is absential and the
+register prefers a bound reporting back to an absence of evidence.
+
+    discriminate        needs `owed_import` non-empty AND max(spread) > min(spread).
+                        `depth_exhausted` is the DOMINANT mint verdict on every board and is
+                        exactly what populates `owed_import` -- so condition 1 is probably
+                        satisfied and condition 2 probably fails: a UNIFORM spread across
+                        actions. MEASUREMENT WRITTEN, NOT YET RUN
+    discriminate:goal   needs `_goal_split` to return non-None
+
+**AND `draw` IS NOT THE PROBE PATH, WHICH I HAD BEEN READING IT AS THROUGHOUT.** `draw` is the
+**last-resort** exit — nothing had an opinion. `probe` is the deliberate boredom perturbation,
+`drive.bored()`, and it fired **3 times in 247 actions**. **The agent almost always carries live
+prediction error on a real board**, which is the density guard reporting a healthy signal and the
+opposite of the toy-world condition `probe.py` was written against.
