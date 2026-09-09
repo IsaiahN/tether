@@ -22246,7 +22246,8 @@ that assumes one consumer would leave the other where it is.
 **NOTHING BUILT. THE FREEZE IS INTACT AND THE ENGINEERING QUESTION STAYS ISAIAH'S** — this window
 priced the shape he named and did not aim anything at the loop.
 
-## `E2` — SYSTEM ERROR: `discriminate` CANNOT FIRE, AND THE CAUSE IS PROVABLE RATHER THAN STATISTICAL
+## `E2` — WITHDRAWN. SEE *`E2` IS WITHDRAWN* BELOW: THE ZERO IS THE DESIGNED STATE AND
+## `tether.py:1420` SAYS SO. The MECHANISM below is right; the CLASSIFICATION is wrong.
 
 **`F15` recorded three of `choose()`'s six exits at zero across 247 actions and REFUSED to file two
 of them on the count**, because *never fired* is absential. Both now have positive causes.
@@ -22614,7 +22615,8 @@ or move their calls — **address 9 of 75 and are withdrawn as insufficient rath
     CAPABILITY       none. The agent plays identically; this is the RECORD disagreeing with its
                      own schema, and no action of the agent depends on it
 
-## `E2`'s CENSUS — `discriminate` WAS NEVER FUNCTIONAL, AND THAT IS NEITHER REPAIR NOR RETIREMENT
+## `E2`'s CENSUS — FALSE, superseded below. It searched `ctx.action` while the toy atoms use
+## `c.action`, so it missed an action-reading atom present since the INITIAL COMMIT.
 
 **Isaiah's question: *did anything ever consume `discriminate`'s output meaningfully, or has it
 been dead since guards landed* — a census to separate REPAIR from RETIREMENT.** The history
@@ -22719,7 +22721,8 @@ probe. **That tension is a design question and is not resolved here.**
 
 ---
 
-## `E1c` — REFERENCED-BUT-UNREACHABLE IS A CATEGORY NO SEAT DETECTS
+## `E1c` — INSTANCE WITHDRAWN below (the branch IS entered in the toy world, 34%).
+## The CATEGORY survives with ONE instance, `E1b`, and one instance is not a pattern.
 
 **Named on its own because it is not about `discriminate`.** `cbb091e` added
 `_ties[("spread", ...)]` bookkeeping to a branch that cannot be entered. Nothing flagged it.
