@@ -439,6 +439,25 @@ no PLAN step and no phase creates one.**
 > over a fourth absence. **Build the subject before pricing it, and the ordering falls out: `M2`
 > first.**
 
+**AND THE FIRST CLAUSE OF THAT EVIDENCE IS NOW FALSE — `F42`, 2026-09-10, AND THE RULING ABOVE
+SURVIVES IT.** `ledger.STEPS` **has a `PLAN` step in both copies** (`ledger.py:25`, `gate.py:48`,
+entered at `19100fe`), `tether.py` writes `PLAN` rows at **eleven** sites, and `routine.py` —
+`Act`/`Seq`/`When`/`Until` with `advance` — entered at `96aa861`, **both before `arc-freeze-02`.**
+So *there is no execution to commit to* is stale, and with it the fourth absence.
+
+> **THE CONCLUSION IS SATISFIED, NOT OVERTURNED.** *Build the subject before pricing it* was the
+> right order and the subject was then built. **What must not be read from this is `M2 DONE`** —
+> `M2_STANDARD`'s clause 7 exists for that exact headline. **MECHANISM: each of the seven has a
+> site. CAPABILITY: routines adopted 0 and `chunk_reuse` 0 across all fourteen board-depth
+> readings.** A mechanism never once exercised to completion has not met *forms and pursues a
+> bounded multi-step behaviour*.
+
+**AND IT IS THE SECOND-CONSUMER ENTRY AGAIN, FIFTEEN LINES BELOW WHERE THAT IS DIAGNOSED.** *A map
+entry saying a thing does not exist is worse than one saying it is unfinished — the first closes the
+question.* **This one closed it in the passage that names the failure**, and it closed the same
+question: what `M2` may be built on top of. **The diagnosis does not immunise the file that carries
+it.**
+
 **AND THE TELL IS THAT EACH CHAIN CORRECTED THE LAST AND ALL THREE WERE WRONG THE SAME WAY.** *A null
 carrying a satisfying causal story is harder to doubt than a bare one* — a VALUATION carrying one is
 harder still, because the story is the deliverable rather than an explanation attached to it. **Ask

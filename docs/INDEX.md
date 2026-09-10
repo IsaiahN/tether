@@ -26783,3 +26783,111 @@ put them.
 
     MECHANISM   the freeze's scope corrected; the substrate named
     CAPABILITY  none yet -- and the freeze lifting is what makes the queued items reachable
+
+---
+
+## `F42` — `CLAUDE.md`'s `M2`-UNBUILT ENTRY IS STALE, AND IT IS THE PREMISE OF A LIVE ORDERING RULING
+
+**Found by reading the SPEC before ordering the queue** — the third step, applied to the six
+queued build items rather than to a phase. `CLAUDE.md:434` states, as the fourth of four
+absences under the valuation entry:
+
+> *there is no execution to commit to, because **`M2` is unbuilt: `ledger.STEPS` has no PLAN
+> step and no phase creates one.***
+
+**CLAUSE 1 IS FALSE AT BOTH WRITE SITES.** `ledger.py:25` and `gate.py:48` each carry
+`STEPS = ("PLAN", "PERCEIVE", ...)`, and `tether.py` writes `PLAN` rows at **eleven** sites
+(1503, 1834, 1841, 1849, 1869, 1874, 1879, 1926, 1952, 1958, 1965). It entered at `19100fe`,
+*"M2 P4: the PLAN step, first — and the write order decided its position"*.
+
+**CLAUSE 2 I AM NOT RESOLVING, AND SAYING SO IS THE POINT.** *Phase* has two senses here:
+`I.Phases` (`instruments.py:165`) is the ACTION MIX — `PROBE`/`DIRECTED`/`STRATEGY` — while
+`ARC_BUILD_PLAN`'s phases are build phases. **`A6i`, named rather than resolved**, because the
+clause reads correctly under either and the first clause already settles the entry.
+
+**AND `routine.py` PREDATES THE FREEZE**, entering at `96aa861` — *"M2 P3+P5+P6: routines are
+minted, priced and executed — one mechanism, not three phases"*. `git diff arc-freeze-02 --
+'*.py'` touches only `tether.py` and `transcript.py`, so **the fourteen board-depth readings
+were taken WITH routines available**, not before them.
+
+### THE SEVEN OF `M2_STANDARD`, EACH READ AT ITS SITE RATHER THAN FROM A ROW
+
+    1  CAN before Until      BUILT -- `can()` tether.py:1645, gating every routine at 1950
+    2  mint on the residual  BUILT -- `_discrepancy`, and tether.py:1802 states it in terms:
+                             "THE TRIGGER IS THE DENSE CHANNEL, NEVER THE REWARD"
+    3  the route is learned  `can()` calls `self._predict`; both route through `_discrepancy`
+    4  one bargain           tether.py:1938-1939 -- `term_bits` and the same `pays`, no new
+                             currency, no routine-specific cost
+    5  a real repeat         routine.py:136 rebuilds `Until(guard, body, budget - 1)`, so it
+                             repeats-until-terminate rather than counting to a fixed N
+    6  chunking reused       `Rt.length(cand, shelf)` at 1938 and 1967-1968 -- the term
+                             mechanism generalised, not a second one
+    7  the headline          this entry is written against the DEFINITION, below
+
+### WHAT IS **NOT** CLAIMED, AND CHECK 7 IS WHY THE LINE IS DRAWN HERE
+
+**`M2` IS NOT REPORTED DONE.** `M2_STANDARD`'s split may not be collapsed, and the two halves
+disagree:
+
+    MECHANISM    each of the seven has a site, and the sites do what they say
+    CAPABILITY   ZERO on the same runs -- routines adopted 0 and chunk_reuse 0 in ALL FOURTEEN
+                 board-depth readings out to 48 cycles. "Forms and pursues a bounded multi-step
+                 behaviour" is the standard, and a mechanism that has never once been exercised
+                 to completion on a board has not met it
+
+**So the correction is *the evidence cited for the absence is stale*, NEVER *the absence is
+closed*.** Clause 7 exists for exactly the sentence I am declining to write.
+
+### THE ORDERING RULING'S PREMISE MOVED AND ITS CONCLUSION DID NOT
+
+*Build the subject before pricing it, and the ordering falls out: `M2` first* was derived from
+**there is no execution to commit to.** There is. **The ruling is therefore SATISFIED rather
+than overturned** — the subject exists, so pricing it is no longer a valuation over an absence,
+and `F32`'s acceptance change is unblocked on the ordering as well as on the freeze.
+
+**AND THE STALENESS IS THE UNDER-CLAIM DIRECTION, WHICH `I25` SAYS IS THE HARDER ONE.** A map
+entry saying a thing does not exist **closes the question** — `CLAUDE.md` says so itself, four
+lines below, about the second-consumer entry that *closed it for a week*. **The same file
+carries the diagnosis and the instance, fifteen lines apart.**
+
+    MECHANISM   the M2 map corrected at source; the seven read at their sites
+    CAPABILITY  none -- and the zero it reports is the same zero, unmoved
+
+## `I32` — I WAS ONE GREP FROM INDICTING `Until` AS UNSAFE, AND THE SITE CARRIES ITS OWN REFUTATION
+
+**The drafted sentence**, and it was three words from the commit: *`CAN` is declared at
+`grammar.py:62` with **exactly one occurrence codebase-wide** and no producer, so `Until` ships
+without its first guard — and `routine.py:78` says a budget does not make that safe, it makes it
+**silent**.*
+
+**The occurrence count was right and the conclusion was wrong.** One grep of `Rt.` in `tether`:
+
+    tether.py:1950   if all(self.can(g, before) == YES for g in Rt.guards(r))
+
+**Every routine is gated on `CAN` for EVERY guard before it is accepted**, and the refusal is
+recorded at 1952. `A6i`: **`CAN` is a declared grammar node** (`grammar.py:62`, `CAN : PRED →
+PRED`) **and `can()` is the agent's reachability method** (`tether.py:1645`) — and no producer
+builds the node, so *composed nowhere* is TRUE of the node and irrelevant to the guard.
+
+**AND THE DOCSTRING AT THE SITE NAMES THE COLLISION ITSELF**, which is what makes this `I23`'s
+shape rather than a fresh one: *"THE TWO SOURCES DISAGREED AND THE DISAGREEMENT IS THE POINT.
+`grammar.py` glosses `CAN` as **achievable**; §14.3 calls it **satisfiable**. Two quantities."*
+It then resolves it — `Until` needs the evidential one — and implements three-valued
+`yes`/`no`/`unknown` with `unknown` a claim about the record rather than the world, which is
+Check 3 satisfied at the one place a routine commits to repeating.
+
+> **THE SITE I WAS ABOUT TO INDICT HAD ALREADY ANSWERED THE INDICTMENT, IN ITS OWN DOCSTRING,
+> AT LENGTH.** Same as `I23`, refuted by a comment three lines below the field.
+
+### AND A SECOND NEAR-MISS INSIDE IT, WHICH IS `I24` IN ITS ZERO FORM
+
+`grep -c "has no PLAN step" CLAUDE.md` returned **0**, and I read it as *the file has moved since
+session start and my copy is the stale one*. **It is a LINE WRAP** — the sentence spans 434-435.
+`I24`'s rule is *a grep's count is not evidence until you have read what it matched*, and it was
+filed against a total that looked **supportive**. **A ZERO is the same hazard and reads as
+safer**, because it presents as an absence rather than a finding — and this zero came with a
+tidy causal story attached, which is the tell the null rule already names.
+
+    MECHANISM   two near-misses caught before publication, both by the grep-before-explaining
+                trigger, which is now four for four this session
+    CAPABILITY  none
