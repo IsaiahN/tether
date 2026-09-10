@@ -24665,3 +24665,31 @@ Chicago, or change the routine to UTC — **is not applied**: it changes shared 
     MECHANISM   a false-positive watchdog identified and stopped; two duplicates cleared;
                 the timezone mismatch located and NOT unilaterally repaired
     CAPABILITY  none. No build file touched
+
+### `F30`'s THIRD USE — A WEAK HIT ON `F28`, RECORDED AS WEAK
+
+**`F30` committed me to trying the figures on EVERY open ruling, not only where I am stuck.** Third
+try, on `F28` — §17.1's **arity** question, whether the positioned action should reach the agent.
+
+    grep `arity`   Figure 8 (substring only, no standalone use) and Figure 9
+
+**Figure 9, in the panel on describing the residual: *"R, described — arity · symmetry · scale."***
+Alongside *"R's own predicates name the habitat that holds `φ*`"* and *"describe it before you go
+looking, or any frame you pick will seem to fit."*
+
+**SO ARITY IS ONE OF THREE DESCRIPTORS OF A RESIDUAL, and the instruction is to describe before
+searching.** Applied to `F28`: the arity mismatch — a world offering a 2-arity action where the loop
+supplies 1-arity — **is a describable property of the residual and the figure says to describe it.**
+
+> **THAT IS NOT A RULING AND I AM NOT DRESSING IT AS ONE.** It does not say whether to supply the
+> pointer, which is the actual question and is `2c`'s. **Compare the first two uses**, which named a
+> lever (*the description, not the threshold*) and an axis (*valence is residual-relative*). **This
+> one restates that arity matters, which `F28` already says in its own title.**
+
+**RECORDED BECAUSE IT IS WEAK.** Two strong hits and a third reported as strong would make the
+tiebreaker look like a tool that always agrees with me. **A frame that answers every question is not
+independent of the questioner** — and the honest tally after three uses is **two decisive, one
+thin.**
+
+    MECHANISM   nothing. A tiebreaker consulted and returning little, reported as little
+    CAPABILITY  none
