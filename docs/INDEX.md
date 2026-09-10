@@ -25459,3 +25459,67 @@ to prefer it rather than a stylistic one.
     MECHANISM   none. A false positive stopped before publication; one cold measurement
                 independently confirmed by a six-hour-old run
     CAPABILITY  none
+
+---
+
+## §8's WALL QUESTION IS ANSWERED, WAS ANSWERED AT 21:45, AND I FILED IT AS NEEDING INSTRUMENTATION THAT DOES NOT EXIST
+
+`F33`, published tonight and still in the sheet:
+
+> *"Per-cycle timing is not in the ledger ... a per-cycle curve needs instrumentation that does
+> not exist."*
+
+**`sweep.py` built it. It ran on SIXTEEN boards at 21:45–22:46, and the curve is in
+`sweep1.jsonl` and `sweep_rest.jsonl`.** The field is `cost_curve`, from `per_cycle`.
+
+**VERIFIED RATHER THAN ASSUMED — the entries are per-cycle DURATIONS, not cumulative:** they sum
+to the run's own `seconds`. `ls20` 0.09+0.51+0.93+2.24+2.83+6.36 = **12.96 against 13.0**;
+`ka59` = **6.86 against 6.9**. That check is what separates this from the `base_bits` near-miss an
+hour ago.
+
+    per-cycle seconds, depth 6            c1     c2     c3     c4     c5     c6    ratio
+    ls20                                0.09   0.51   0.93   2.24   2.83   6.36     70x
+    ka59                                0.10   0.23   0.76   1.29   1.78   2.71     28x
+    ar25                                0.07   0.66   2.52   3.32   4.96  22.03    319x
+    sp80                                0.03   0.15   0.21   0.45   0.57   0.79     26x
+
+> **THE WALL IS INSIDE THE RUN, NOT AT THE END OF IT.** By cycle six a single cycle already costs
+> 26–319 times cycle one, **and the curve is per board** — `sp80` is still under a second where
+> `ar25` is at twenty-two. Per game, never pooled. **This is why a 24-cycle run takes 35 minutes:
+> the late cycles, not the count.**
+
+### RUN-TO-RUN VARIANCE, MEASURED RATHER THAN ARGUED
+
+`rep_a` and `rep_b` are the same two boards run twice. **Every substantive field is identical** —
+`COND1_scope_max` 20/20 and 0/0, `mints_paid` 3/3 and 0/0, `levels_completed` 0, `routine_events`
+`{}`. **Only the clock differs**, in the third decimal: `ls20` 6.03 vs 6.016 on the last cycle.
+
+    THE AGENT IS DETERMINISTIC AND THE CLOCK IS NOISY -- which is sharper than F1/F2's
+    "variance is ZERO by construction", because it is now a measurement rather than an
+    argument from Drive() taking no seed
+
+### THREE MORE CONFIRMATIONS, EACH FROM A DIFFERENT INSTRUMENT THAN THE ONE THAT FIRST FOUND IT
+
+    routine_events {} on ALL 24 runs across 16 boards       the capability zero, full public set
+    vc33 ran 0 of 6 cycles in 0.0 seconds                   F28's empty action pool, direct
+    ka59 COND1_scope_max = 0 at depth 6                     F36's "_res first populates at
+                                                            cycle 9" -- at depth 6 it has not
+
+### AND THE COUNT IS NOW THREE IN ONE SESSION
+
+    F20 step 1   filed as needing "more boards REACHING GATE 4"   -- it needed neither
+    the probe    filed as needing "a build change the freeze forbids" -- I18, already built
+    SS8's wall   filed as needing "instrumentation that does not exist" -- built at 21:45
+
+**Same shape every time: a capability I already had, described as absent.** `I11` and `I13` were
+re-deriving facts the record held; **these three are re-deriving TOOLS**, and the phrase that
+keeps appearing in my own writing is *needs X, which does not exist.*
+
+> **THE TRIGGER THAT WOULD CATCH IT IS NOT THE GREP I ALREADY HAVE.** *Grep the record before
+> explaining a mechanism* fires on causal claims. **These are CAPABILITY claims — "this cannot be
+> measured" — and nothing checks those.** Filed as the observation, not as a rule: `ALIGN-1` is
+> open and I am not adding to `CLAUDE.md` while it is.
+
+    MECHANISM   none. SS8's wall question answered from files already on disk; run-to-run
+                determinism measured; three findings independently confirmed
+    CAPABILITY  none. routine_events is empty on all 16 public boards at depth 6
