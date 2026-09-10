@@ -28123,3 +28123,78 @@ scheduling accident.
     CAPABILITY  none -- no run, nothing reaches the agent, both boards still read zero levels
     OPEN        THREE PARTS, and now the CUT RULE with it -- anchored or balanced is a reader-
                 facing choice and belongs in the same ruling
+
+---
+
+## `F56` — THE REVIEWER'S THIRD READ: THREE PATHS ARE EXERCISED ONLY IN THE TOY WORLD, AND ONE OF THEM IS PROMOTION
+
+**`E1b`'s unexamined half, and the last of the three reads the reviewer named first.** `E1b` says the
+seat is green because the toy world **OMITS** the rows that break the gate. The other half is what
+it **ADDS** — paths validated there and never reached on a real board. `E1c` was one instance
+(`_ties[('spread',...)]`, entered 34% of the time in the toy world, never on ARC). **This is the
+census, with a denominator.**
+
+**METHOD:** every `(step, event)` pair in `runs/demo.jsonl` against every pair in ka59 x24 + ls20
+x20. **531 toy rows / 22 distinct pairs against 15,375 ARC rows / 27 distinct pairs.**
+
+    EXERCISED IN THE TOY WORLD, NEVER ON ARC          3
+        PROMOTE / promote     toy 1    arc 0
+        ACCEPT  / retro       toy 1    arc 0
+        MINT    / probe       toy 4    arc 0
+
+    ON ARC, NEVER IN THE TOY WORLD                    8
+        PERCEIVE / read_order, placements, matches, cascade, mode, can, present
+        PLAN     / routine_cut
+
+**THE EIGHT CONFIRM AND EXTEND `E1b`**, which named four of them; `mode`, `can`, `present` and
+`routine_cut` are new to the list.
+
+### THE THREE ARE THE FINDING, AND ONE IS A LOOP STEP
+
+**AND THE FIRST READING WOULD HAVE BEEN FALSE, WHICH IS WHY THE EVENT BREAKDOWN WAS TAKEN.**
+`PROMOTE` **the step** fires **184 times on ARC** — `cite` 121, `hold` 63. It is the `promote`
+**event** that never fires. *"PROMOTE never fires on a real board"* was one keystroke away and is
+wrong.
+
+    (step, event)              TOY    ARC          (step, event)         TOY    ARC
+    ACCEPT / accept              5     36          MINT / mint            5     36
+    ACCEPT / rebind              5     12          MINT / park           21    615
+    ACCEPT / retro               1      0          MINT / probe           4      0
+    PROMOTE / cite              24    121          PROMOTE / hold        16     63
+    PROMOTE / promote            1      0
+
+**AND THE THREE ARE ONE CHAIN, NOT THREE COINCIDENCES.** `_promote` is **"Step 6: what step 1 stood
+on, and what the sweep earned"** and it writes `primitive=True` with the verdict *"closed a residual
+recorded before it existed, on a slot it was not minted for."* What populates `self._promotions` is
+the **retro** path — `ACCEPT/retro`, *"minted here; it explains a residual parked elsewhere"*,
+charged to the origin's chain because *"the sweep is not the target slot's per-step loop running a
+second time."*
+
+> **SO THE CHAIN IS retro → _promotions → promote, AND IT HAS NEVER COMPLETED ON A REAL BOARD.**
+> `CLAUDE.md`'s instantiation map lists **"promotion · transfer"** among INSTANTIATED. Both live in
+> this chain. **The mechanism has a site and fires in the toy world; the capability on ARC is zero
+> across 44 cycles on two boards** — MECHANISM FIRES and CAPABILITY PURSUES, at the one place the
+> map does not currently distinguish them.
+
+**AND `MINT/probe` HAS A SITE AND A REASON.** `tether.py:1525` — `if self.drive.bored(): return
+self.drive.choose(...), "probe"`. The `by` census: **`probe` 4 toy / 0 ARC**, bare `discriminate` 3
+/ 0, against `discriminate:learned` 0 / 29 and `composed` 0 / 8. **The bored branch never fires on
+ARC**, so the toy world validates a mint path the real boards never enter. Why the drive is never
+bored there is NOT explained here — the site is named and the cause is owed, not guessed.
+
+### SCOPE, AND IT RUNS THE RIGHT WAY
+
+**The volume asymmetry works AGAINST the toy-only finding and FOR the ARC-only one.** 531 rows
+against 15,375: finding a path present in the small sample and absent from the large one is strong,
+and the three are robust. **The ARC-only side carries a volume confound at low counts** —
+`routine_cut` at n=1 and `present` at n=13 could be absent from 531 toy rows by chance — though the
+`PERCEIVE` group is structural, being `arc_world`-only methods behind `getattr` guards, which `E1b`
+established. **Stated because the two halves of this census do not have the same evidential
+strength and reporting them as one list would imply they do.**
+
+    MECHANISM   the toy-only path census run with a denominator; the promote/retro chain read at
+                its site; the probe branch located at tether.py:1525
+    CAPABILITY  none -- no run, nothing reaches the agent, both boards still read zero levels
+    OPEN        why drive.bored() never fires on ARC -- named, not guessed; and whether the
+                instantiation map should distinguish promotion-the-mechanism from promotion-
+                on-a-real-board, which is Isaiah's file
