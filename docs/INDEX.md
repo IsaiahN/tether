@@ -27246,3 +27246,45 @@ OPTIONS or describes the WORLD's reversibility**, and the proposal as written do
     MECHANISM   the gate question answered from the objects that exist
     CAPABILITY  none -- and Gate A's counter still reads zero, which is the whole point
     OPEN        the phi-hat / no-scorer collision, for Isaiah
+
+---
+
+## `I36` — THE CHECK CAUGHT A REAL DRIFT, AND IT IS THE FIFTH INSTANCE OF THE SAME ERROR
+
+**`verify_publish.py` fired on a live publish and it was right.**
+
+    published 116108 chars   generator 115899   DIVERGES at 93638, in or just after ALIGN-2
+    published ...didnotfalsealarm ANDITISNOW3HOURLY173RATHERTHANHOURLY the1220runfailedonafiveh...
+    generator ...didnotfalsealarm thefalsealarmshavestoppedbothduplicateswerecleared...
+
+**I typed the watchdog's 3-hourly note into the `create_file` paste and never patched it into
+`mksheets.py`.** That is `I12` / `I14` / `I15` / `I31` a **fifth time**, committed in the same
+session that logged the fourth.
+
+### WHAT IS DIFFERENT THIS TIME, AND IT IS THE ONLY THING THAT MATTERS
+
+The previous four were caught by **a person re-reading a paste**, or by **a patch anchor happening
+to fail**. This one was caught by **an instrument, on the run it was built for, against a subject
+that is not me** — the generator's file versus the artifact the reviewer reads.
+
+> **`I33` said the check DETECTS a bad publish and does not PREVENT one, and that relaxing the
+> read-every-line discipline would become a decision takeable on EVIDENCE rather than on my
+> preference for cheaper publishes. This is the first datum in that evidence, and it points the
+> other way from convenience: the discipline did NOT stop this, and the check did.**
+
+**THE REPAIR WENT INTO THE GENERATOR, NOT THE SHEET.** The published artifact was CORRECT and the
+generator was BEHIND, so the next regeneration would have silently reverted a true sentence — the
+exact regression `I31` describes, arriving from the direction that looks harmless. Re-verified
+after the patch: **116108 chars on both sides, and the sole remaining divergence is the freshness
+stamp (13:30 published against 13:42 regenerated), which is supposed to move.**
+
+### AND THE HONEST SIZING, BECAUSE THE INSTRUMENT WORKING IS NOT THE HEADLINE
+
+**Five instances means the discipline does not install.** Writing the rule down failed (`I15`),
+running the rule failed (`I31`), and doing both while actively narrating the rule failed here.
+**What worked is a program that compares two files.** `CLAUDE.md`'s standing sentence — *where a
+coupling keeps drifting, install the check rather than being careful again* — now has its
+demonstration rather than its argument.
+
+    MECHANISM   the publish check caught its first real drift and the generator was repaired
+    CAPABILITY  none -- and nothing about this reaches the agent
