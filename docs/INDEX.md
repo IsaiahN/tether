@@ -28692,3 +28692,43 @@ residuals, not about the gate** — and it is why the reject-arm number cannot b
                 that move: it fixes the uniform half and does something board-specific to the
                 other. Whether the confidence quantity is meant to be a THIRD thing is
                 Isaiah's, and it is now a question with numbers under it
+
+---
+
+## `F65` — THE DISPLAYED CHUNK IS NOT THE READ CHUNK, AND THAT BREAKS HAND-ASSEMBLY SILENTLY
+
+**Caught at a seam check before publishing, not after.** Reading part A in 25,000-byte chunks to
+paste: chunk 1's **displayed** text ended at `"...so the boundary is"`, chunk 2's began
+`"rows away - so..."`. **Those do not join.**
+
+    byte 25000 (authoritative, via od)   "...the planner permanently th"
+    chunk 2 begins                       "rows away - so one measurement"   -- joins correctly
+    chunk 1 DISPLAY ended                "...so the boundary is"            -- ~1,100 chars early
+
+**So the chunks were contiguous and the DISPLAY was truncated**, with no marker saying so. Pasting
+what I was shown would have dropped ~1,100 characters out of the middle of `F51` — and it would
+have looked like a clean read.
+
+### THE DIAGNOSTIC WAS ALSO WRONG, TWICE, AND BOTH ARE UNIT ERRORS
+
+First I checked the seam with a Python string index and got an 8-character disagreement, which I
+attributed to CRLF. **`file` says plain ASCII, no CRLF** — the disagreement was that I had searched
+for `"so the boundary is"` and found its FIRST occurrence, in the `SPLIT` row at byte 6,892, while
+the one I was looking at was `F51`'s. **A substring is not the thing it names** — `I35`'s family, a
+fourth instance. Settled only by `od -c` on a byte range, which has no coordinate ambiguity.
+
+> **THIS IS `I42` WITH A DIFFERENT CAUSE AND THE SAME CONSEQUENCE.** `I42` was context leaking INTO
+> the paste; this is the source silently leaking OUT of it. **Both defeat *read every line from
+> disk*, because both happen at the point where bytes become a message rather than where they are
+> fetched.** The practice governs the fetch; nothing governs the display.
+
+**AND THE PREVIOUS PUBLISHES WERE NOT AFFECTED** — stated because the alarming reading is available
+and is wrong. `verify_publish` read the last two publishes at **81,210/81,210 and 80,746/80,746,
+exact**, so no span was dropped then. The truncation is size- or call-dependent, not constant.
+
+    MECHANISM   the seam checked against byte offsets rather than against a string search, and
+                the truncation confirmed by od on a fixed byte range
+    CAPABILITY  none -- this is the publish transport, nothing reaches the agent
+    FIX         chunk small enough that the display is whole, and treat verify_publish as the
+                thing that decides -- it is the only check whose subject is neither my memory
+                nor my screen
