@@ -29081,3 +29081,57 @@ to CWD**, so the runner is CWD-dependent and says nothing about it.
     MECHANISM   one runner, seven quantities, one trace; smoke-tested at depth 3 before the
                 batch was launched
     CAPABILITY  not claimed and not yet readable -- the batch is in flight
+
+---
+
+## F74 — `I46`: A KEY THAT NAMES NO FIELD, AND A CATCH WHOSE REASON WAS WRONG
+
+`protocol.py` keyed accepted mints on `detail["accepted"]`. **That field is on ZERO rows** —
+confirmed at the write site (`tether.py:2650-2663` writes `verdict`, `closes`, `term`,
+`term_bits`, `left_bits`, and no `accepted`) and confirmed again by counting it in a saved trace.
+So the runner read `mints_accepted 0` on every board it would ever touch. Fixed by keying the
+EVENT: `tether.py:2663` writes `"mint"`, `2618` `"park"`, `3112` `"probe"`.
+
+**AND THE REASON I GAVE FOR CATCHING IT WAS WRONG, WHICH IS THE PART WORTH KEEPING.** I called
+the zero implausible *"against `gamma_size` 48 → 57 — nine terms entered the library, so mints
+must have been accepted."* **That inference is false: gamma has more than one entry path.** The
+sp80 trace settles it —
+
+    sp80 x4     MINT rows: park 23, mint 0, and every park verdict is depth_exhausted
+                ACCEPT rows: rebind 5, accept 0
+                reuse_install 5        gamma_size 48 -> 52 -> 53 -> 53
+
+**The library grew by FIVE with nothing minted at all.** `mints_accepted 0` is the *correct*
+reading for sp80 at depth 4, and the key was still wrong. **A right catch on a wrong premise** —
+and `I38`'s own warning is that a satisfying causal story is the thing to distrust, which I
+applied to nulls and not to my own catch.
+
+> **SO TWO CLAIMS THAT LOOK LIKE ONE ARE NOW SEPARATED IN THE INSTRUMENT.** *The agent minted
+> nothing* and *the library did not grow* are **different facts on this board**, and without
+> `park_why` and `reuse_installs` the first would have been published as the second. Both fields
+> added before the batch, for that reason and not for completeness.
+
+**AND THE PARK VERDICT IS A READING IN ITSELF: 23 of 23 are `depth_exhausted`.** `F47` established
+the rule — *before any claim about the term search, ask WHICH STOP FIRED* — because
+`enumerate_closure` records `budget_spent` against `depth_exhausted` and its own docstring says
+they are not the same claim. On sp80 at this depth the stop is **depth**, every time.
+
+**TWO THINGS THE RUNNER NOW DOES THAT IT DID NOT.** It persists the ledger per game
+(`protocol_<game>_x<n>.jsonl`) — `F50` and `F56` were both possible *only* because rows were on
+disk, and a runner that discards its trace makes every later question a re-run. And it reports
+`park_why` and `reuse_installs` beside the mint count.
+
+**THE BATCH WAS STOPPED AND RELAUNCHED RATHER THAN LEFT TO FINISH.** `ka59` had completed under
+the bad key; four boards would have inherited it. Killing cost 251s of spent work and bought a
+correct, re-readable batch — and `ka59`'s other six quantities reproduced two prior measurements
+exactly, so nothing about that run is in doubt except the one field.
+
+    ka59 x10    levels 0 · cost 0.063 -> 82.176 (1304x) · total 251.6s against F64's 247s
+                arms {draw 6, discriminate:learned 4} · plan {routine_refused 6}
+                bindings 11 · OBJ-typed 2 · FIRST OBJ BIND AT CYCLE 8, which is F36's
+                figure exactly, from a different run and a different instrument
+                reach 49 · gamma 57 · routine_ends 0
+
+    MECHANISM   the key is fixed, the trace is saved, and the two fields that separate
+                "minted nothing" from "grew nothing" exist
+    CAPABILITY  levels_completed 0 on every reading so far, and the batch is re-running
