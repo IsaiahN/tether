@@ -25179,3 +25179,75 @@ applied earlier under ruling.**
     CAPABILITY  none
     OWED        CODE_AUDIT.md, Isaiah's, 28KB, never cited. Read it before trusting any
                 summary of what the audit found
+
+---
+
+## THE UNCITED AUDIT HAS ZERO LIVE FINDINGS — AND THAT REFUTES THE CENSUS THAT FOUND IT
+
+`CODE_AUDIT.md` — Isaiah's, 2026-08-24, 657 lines, **cited zero times in 1.59MB of `INDEX`** —
+recorded as owed last heartbeat and read now. **Every item that reads live is closed, and the
+checks are at the write sites rather than in the record.**
+
+    audit said                              measured now
+    ------------------------------------    ---------------------------------------------
+    "tether writes no cite rows at all"     tether.py:894 writes them; 72 measured on
+    A5/B5 VACUOUS, discipline unobservable  ka59 tonight
+    A7 "Not decided here"                   DECIDED -- keyed `shortfall`, not `mass`,
+                                            at tether.py:982-992 and INDEX:208
+    B5 "a live defect ... Not fixed here"   FIXED at tether.py:3003-3007
+    "6/8 seats clean"                       9 seats exist
+
+### THE DOCUMENT SUPERSEDES ITSELF, AND THAT IS THE TRAP IN IT
+
+`A7` appears **twice**: *"Not decided here"* at line ~400, and **`A7 · renamed, and the reader
+moved with it`** at line 464. **It is a chronological log, not a findings list** — earlier
+sections state open questions that later sections close, in the same file.
+
+> **READ TOP-DOWN AND STOPPED AT THE FIRST STATEMENT, IT HANDS YOU A LIVE ARCHITECTURAL QUESTION
+> THAT VIOLATES A HARD RULE.** *No aggregation across slots* is `CLAUDE.md`'s, and `A7` reads as
+> the reward channel breaking it. **I was one grep from writing exactly that.**
+
+The trigger is what stopped it — *before writing a causal explanation, grep the record for the
+mechanism's identifier* — and it returned `INDEX:208` (*"recorded as `shortfall`; per objective,
+never per slot, **which is why A7 was right to refuse `mass`**"*) and the site's own comment.
+
+**AND THE SITE ARGUES FURTHER THAN THE AUDIT DID**, which is how you tell a decision from a
+transcription: *"Per-slot reporting would not repair this. Dividing a global score by slot
+MANUFACTURES a slice rather than finding one, which is the same defect installed deliberately, so
+the contract keeps returning one scalar."* That rejects the audit's own option 1 **with a reason
+the audit did not have.**
+
+**AND `A7`'s `hit / len(slots)` IS TOY-ENV ONLY.** `snaps.py:344` and `world.py:207` compute it;
+`arc_world.py:324` returns `levels_completed / win_levels`. The document's title says so —
+*"Root code and **toyworld**"* — and the scope does not carry to ARC.
+
+### `I17` — THE CENSUS MEASURED THE WRONG THING, AND I PUBLISHED ITS CONCLUSION
+
+Last heartbeat I filed `CODE_AUDIT` as *"the only genuinely unread input the census found"* and
+*"read it before trusting any summary of what the audit found."* **The first half is true and the
+implication is refuted.**
+
+> **UNCITED IS NOT UNABSORBED.** The audit's findings were absorbed into **the code** — at the
+> write sites, in comments that name the defect being repaired — rather than into `INDEX`.
+> `B5`'s fix says it outright: *"It used to be `@probe` always, so a slot parked at no_support
+> could never be matched to the probe."* **That is the audit's finding, quoted at the line that
+> closed it.**
+
+**So a citation census over `INDEX` is blind to the STRONGEST form of absorption: a finding fixed
+and documented where it was found.** The proxy misses exactly the best case — the same shape as
+every instrument error this window, a check that reads clean while covering half the ground.
+
+    EIGHTH self-correction of the session, and the first against a census rather than a number
+
+### WHAT THE READ ACTUALLY YIELDED, STATED SMALL
+
+    NOTHING LIVE      no candidate fix, no defect, no owed measurement
+    ONE METHOD        `C1` -- "every word in every string literal counts as a reference" --
+                      is why the checker went quiet, and it is the seventh silence
+    ONE CORRECTION    the census's proxy, above
+
+**The owed item is discharged and it cost one read.** *Assume it is already specified, and go
+look* paid here by finding that it HAD been — three times, in three places I had not looked.
+
+    MECHANISM   none. Three audit items confirmed closed at their write sites
+    CAPABILITY  none
