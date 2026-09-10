@@ -28392,3 +28392,64 @@ verified exact twenty minutes ago; the only content it lacks is this instrument-
 `F58` measured one added row at **2.6% of what it costs to deliver it**. The three reads the
 reviewer named first are all answered and all live. Generator regenerated at **A 101,740 /
 B 103,331**, both markers left DIFFERING, so the next cycle publishes without re-deriving anything.
+
+---
+
+## `F59` — TWO CORPUS DOCUMENTS ARE LIVE ONLY IN THE WORKING TREE, AND THE COMMITTED VERSIONS ARE WELL-FORMED, WHICH IS WHY NOTHING ANNOUNCES IT
+
+**Found by the state check, not by looking for it.** `git status` carries two modified files and
+both are CORPUS:
+
+    docs/THE_FORMULA.md          committed 4c377ac  2026-09-05 17:14   34,654 bytes
+                                 working tree      2026-09-10 10:49   43,175 bytes
+    docs/WHAT_THE_AGENT_SEES.md  committed ad7f4c3  2026-09-09 09:23   16,246 bytes
+                                 working tree      2026-09-10 08:58   18,133 bytes
+
+**The contents are already read and already annotated** — the `THE_FORMULA` diff is exactly the
+33–41 revision list `F52` covered, and the `WHAT_THE_AGENT_SEES` addition is the reach/refusal
+material `F47` covered. **Nothing in the diff is new, and that is stated so this is not mistaken
+for fresh input.**
+
+### THE SHAPE IS WORSE THAN `F35`'s AND THE DIFFERENCE IS THE WHOLE FINDING
+
+`F35` recorded `outputs are not generators.md` as **UNTRACKED** — *"an uncommitted corpus document
+is invisible to every later check."* An untracked file **announces itself**: `git show` finds
+nothing, and the absence is the signal.
+
+**A tracked file with uncommitted modifications does the opposite.** `git show
+HEAD:docs/THE_FORMULA.md` returns a **complete, well-formed, five-day-old document** with no
+marker of any kind — checked, and the committed version carries **zero** of items 40 and 41 and
+none of the header `F52` annotated as stale. **Two versions under one path, and the older one reads
+as authoritative.**
+
+### AND IT HAS A NAMED VICTIM, WHICH IS WHY IT IS A FINDING AND NOT A TIDINESS NOTE
+
+`F45` established the independence method the corpus checks now run on: *a figure is upstream of
+the boards ALWAYS, and upstream of the code ONLY WHERE ITS DATE SAYS SO.* **Run that on
+`THE_FORMULA` and `git log` answers 2026-09-05** — five days before the content it now holds was
+written, and before this seat's 2026-09-10 answers.
+
+> **SO THE GIT DATE WOULD REVERSE `F51` AND `F52`'s CONCLUSION.** Both **declined** to file
+> convergence, on `I37`'s ground: the artefacts post-date my answers, so agreement is not
+> independent derivation. **A later reader taking the commit date instead of the mtime gets
+> 09-05 and files the convergence I refused to claim** — `I37`'s error in its git-date form, and
+> the uncommitted state pre-installs it rather than requiring a mistake.
+
+**AND `I37` CUTS BOTH WAYS HERE, WHICH IS THE HONEST STATEMENT.** mtime is not derivation order
+either. **Neither timestamp establishes what Isaiah had read**; what the uncommitted state removes
+is the *cheaper, more authoritative-looking* number's correctness, so the trap is that a reader
+reaching for git — the better instrument — gets the worse answer.
+
+### CLASSIFICATION
+
+**NOT A DEFECT, NO CANDIDATE FIX, AND NOT MINE TO REPAIR.** No build file is involved, nothing is
+wrong-given-the-input, and the action is **committing Isaiah's own drafts**, which is his exactly
+as `F35` recorded. **The corpus is annotate-only from this seat** — and editing or committing it is
+what spends the derivational independence the whole check runs on.
+
+    MECHANISM   the committed-versus-working gap measured on both files, in bytes and dates,
+                and the committed version confirmed well-formed rather than assumed
+    CAPABILITY  none -- no run, nothing reaches the agent, both boards still read zero levels
+    OWED        Isaiah's, and it is one command: commit the two corpus files, or say they are
+                deliberately held. Flagged because the stale version is the one every
+                git-based check will read, and it does not look stale
