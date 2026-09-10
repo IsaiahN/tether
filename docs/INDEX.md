@@ -24934,3 +24934,44 @@ the silent-refusal count; **the fire-rate is a confirmation of a comment, and is
                 shown ambiguous across two upstream states on two boards; the ledger's
                 gate-1 under-reporting quantified and its reconstruction recorded
     CAPABILITY  none. No board reaches a level, and nothing here was applied to the build
+
+---
+
+## THE REVIEWER'S `F26` RESIDUE, ANSWERED FROM THE SAME ROWS — AND IT NARROWS
+
+The reviewer filed a residue rather than letting it die with the refutation: *"`_learned_split`
+keeps finding the same action most separating and is right BY ITS OWN MEASURE — whether that
+measure is the right one is a different question."* Tonight's census bears on it directly.
+
+    ka59 x24   by=discriminate:learned  17 of 24    draw 7
+    ls20 x20   by=discriminate:learned  12 of 20    draw 8
+
+`_learned_split` returns `None` only when `max(sep) == min(sep)`, so the draw cycles are exactly
+where it abstained — the same correspondence the reviewer already called decisive.
+
+### THE PRE-EMPTION IS REAL AND IT IS INERT, WHICH IS TWO CLAIMS
+
+`_mint_routine` has two call sites and **`_learned_split` sits between them.** On the 15 `ka59` /
+10 `ls20` cycles where it had an opinion and no PLAN row exists, it returned at 1569 and the
+unguarded fall-through at 1575 was never reached.
+
+**But site 1521 runs BEFORE it**, so whenever gate 1 *passes* the planner runs regardless — the
+fall-through is only a **second attempt in the same cycle.** And the second attempt could only
+have repeated the first:
+
+    _res STABLE within every multi-call cycle, all three boards
+    ka59 9 cycles   ls20 10 cycles   sp80 8 cycles   -- 0 inconsistencies
+    in res_slots or in the returned slot
+
+> **SO THE SILENT REFUSALS ARE MISSING DUPLICATES, NOT MISSING FACTS.** That is what keeps the
+> ledger gap off the candidate-fix list — and it is measured rather than argued, which is the
+> difference between this and the causal stories the register warns about.
+
+**AND IT NARROWS THE REVIEWER'S QUESTION RATHER THAN WIDENING IT.** If the separation measure is
+wrong, it is wrong **at the point of acting** — not at the point of suppressing planning, because
+the suppression costs nothing. Whether separation is the right objective is untouched by this and
+remains theirs.
+
+    MECHANISM   _learned_split's opinion rate measured per board; the pre-emption located
+                between the two call sites and shown inert by a stability measurement
+    CAPABILITY  none
