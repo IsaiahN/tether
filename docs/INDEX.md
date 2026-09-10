@@ -28569,3 +28569,46 @@ downstream of something that has never completed on a real board.**
 **AND THE PRE-COMMIT HOOK REJECTED MY OWN FIXTURE**, on `I001` and a module-level rebinding.
 Fixed rather than exempted. **`F37`'s durable half doing its job**: *the hook runs whether or not
 anyone remembers to write it down.*
+
+---
+
+## `F62` — THE REUSE REJECT ARMS NOW EMIT THE BARGAIN'S VERDICT, AND THE ACCEPT HALF WAS ALREADY ON RECORD
+
+**`F32`'s ruling — *the residual never fully closes, so `left == 0.0` is wrong* — could not be taken,
+and the reason is a half-measured funnel.** `_install_reuse` computes `cost` and `would_pay` on the
+**accept** branch; `note_reuse_attempt` bumped a counter on the two **reject** arms and emitted
+nothing. So the counterfactual existed only for candidates that were already IN.
+
+**BUILT:** both reject arms now write `ROUTE/reuse_refused` carrying `term_bits`, `left_bits`,
+`base_bits` and `would_pay` — the same fields `_install_reuse` already computes, so the two arms
+pool without re-derivation. Ruff clean, nine seats, demo 531 → 532 rows, purely additive
+(`afc4ea8`).
+
+**FIRST DATUM, ON THE TOY WORLD, AND IT RUNS THE RULING'S WAY:** the single refusal reads
+`would_pay` **TRUE** — `cost 9.5098 + left 5.6147 = 15.12` against `base 16.8441`. **The one bargain
+would have accepted a candidate the zero-remainder gate refused.** n=1, and stated as n=1.
+
+### AND THE OTHER HALF WAS ALREADY MEASURED — FOURTH RECORD-SEARCH HIT TODAY
+
+`INDEX:17556` carries the accept arm across **five boards**: **19 of 21 `would_pay=FALSE`**, and the
+split is arithmetic rather than noise — every refusal has `base <= 7.00` against `cost 8.9189`, and
+both `True` rows carry `base = 12.00`. It even records the candidate fix and states that its stated
+blocker, *no board on which to read the change*, **was already removed twenty-one times over.**
+
+> **SO THE SWAP MOVES THE FUNNEL IN BOTH DIRECTIONS AND ONLY ONE WAS KNOWN.** Replacing
+> `left == 0.0` with `pays` would **remove 19 of 21 currently admitted** and **add an unmeasured
+> share of the 42 `did-not-pay`**. Taking the ruling on the accept half alone would have been a
+> check covering half the ground — this window's most-logged shape — and the direction of the net
+> effect was genuinely unknown.
+
+    MECHANISM   both reject arms emit; the row fires and carries every field
+    CAPABILITY  none -- no gate change proposed, nothing reaches the agent, both boards
+                still read zero levels. This is the PRECONDITION for the ruled change
+    IN FLIGHT   sp80 x30, where F32 measured 90 attempts / 42 did-not-pay / 48 no-split
+
+**PRE-REGISTERED BEFORE THE RUN, and written here while it is still going**, because a null on this
+is easy to over-read: **`would_pay` TRUE on a decent share of `did-not-pay`** → the swap admits more
+than it loses and the ruling's direction is measured; **FALSE on nearly all** → the swap would CLOSE
+the funnel against the 19-of-21, and the ruling needs a quantity that is not the bargain, which is a
+harder build; **no rows at all** → sp80 x30 no longer reproduces `F32`'s funnel, and *that* is the
+finding rather than anything about the bargain.
