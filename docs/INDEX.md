@@ -27487,3 +27487,96 @@ that says *no problem here* is the one to re-derive.
     OPEN        the price of a unary operator, which is the corpus's open item and Isaiah's;
                 and negate's LEVEL -- PRED->PRED negates inside a bet, and the fifth bin
                 wants the refusal of a settled library term
+
+---
+
+## `F49` — THE WORKBOOK OUTGREW ITS TRANSPORT, AND `I33` HAD RAISED THIS EXACT REMEDY AND DECLINED IT
+
+**The publish path carries the whole CSV inline in a single message.** At **164,976 chars** that
+payload no longer fits, and the publish was cut mid-paste. Not a preference and not a content
+decision: **one file could no longer be published at all.**
+
+**`I33` NAMED THE REMEDY AND REFUSED TO TAKE IT**, in the entry where it raised the cost:
+
+> *"the structural answers — splitting the workbook, or triggering on content rather than on HEAD —
+> change the artifact the reviewer reads, so they are raised here and not taken."*
+
+**The transport has now taken it, and that is a different provenance from choosing it.** The
+decision I declined to make on judgement was made for me by a limit, which is the only reason the
+reviewer's read surface changed without their agreeing to it first.
+
+### WHAT WAS BUILT, AND THE CUT IS DERIVED RATHER THAN LISTED
+
+`mksheets.py` emits **`workbook3a.csv` (87,942)** and **`workbook3b.csv` (79,755)** alongside the
+full `workbook3.csv`. The boundary is found by walking the ranked rows accumulating serialised
+width and cutting where `PART_MAX` runs out — **the same discipline as `_rank`, and for the same
+reason: a hand-maintained boundary is one more coupling that drifts, and this session has eight
+instances of that shape.** An assertion refuses to write if either part still exceeds the budget,
+because **three parts is a decision and not a regeneration.**
+
+    Tether Workbook Sheet      1YiHwxTAYHITksPSZQCqBFSMIZTtG6YekoxC8IT8_os0   38,467
+        header, RUN STATUS, SPLIT, CAPABILITY, F48 -> F32          19 rows
+    Tether Workbook Archive    1V-lfE1HM47HzGp3B6RAhcMvrXjp0Hz1_e0vPl62nXns   35,595
+        header, SPLIT, F31 -> F10, ALIGN, E*, F1/F2, PROTOCOL, log 23 rows
+
+**`RUN STATUS` is still row 2 of the file the watchdog polls**, so the staleness routine is
+untouched. **Part B is titled `Tether Workbook Archive` deliberately — it does NOT contain the
+string `Tether Workbook Sheet`**, so the sync protocol's title search cannot mistake it for the
+duplicate that search exists to catch. Confirmed: the search returns exactly one *Sheet*.
+
+**A generated `SPLIT` row sits in BOTH files** and says the boundary is where the budget ran out
+and is **not a claim about the content on either side of it** — because a reader meeting a cut
+between `F32` and `F31` will otherwise read significance into it. It also states that both files
+carry the same freshness stamp, **so a stamp that differs between them means one of the two
+publishes failed** — which is the only check a reader can run from their side.
+
+### VERIFIED, AND ON THE HIGHEST-RISK PUBLISH THIS WINDOW
+
+`verify_publish.py` run on both, against the artifacts read back by id:
+
+    part A   published 68,721   generator 68,721   MATCHES
+    part B   published 62,217   generator 62,217   MATCHES
+
+**This publish was 168KB retyped by hand across two messages**, which is the largest surface a
+transcription error has ever had here, and the check is what makes that statement worth anything.
+**Its usage note is updated at the source: verifying ONE part is a check that covers half the
+ground**, this window's recurring shape, and the file now says so rather than leaving it to be
+re-derived.
+
+    MECHANISM   two artifacts, a derived cut, both verified against the generator
+    CAPABILITY  none -- no run, no contact change, nothing reaches the agent
+    OPEN        the SHEET SYNC procedure still describes ONE file and one previous-id trash;
+                it is the proctor's text and is annotated here rather than edited
+
+### `I39` — I PASSED A PARAMETER FROM A DIFFERENT TOOL'S SCHEMA, AND IT COST A WHOLE 88KB MESSAGE
+
+The first part-A publish was rejected: `Unknown name "description": Cannot find field`. **Drive's
+`create_file` has no `description`; the `Artifact` tool does**, and I wrote one out of habit.
+
+**The cost is the point rather than the mistake.** On any ordinary call this is a free retry. Here
+the retry meant **re-emitting 88KB of hand-typed CSV**, so a schema slip that normally costs
+nothing cost an entire message — **the same slip is priced by the payload it is attached to, not by
+its own size.** Caught immediately by the API, which is the cheapest possible detection and the
+reason it is one line rather than an investigation.
+
+### AND THE FIGURE RE-SAVES WERE CHECKED IN THE DIRECTION I COULD NOT HAVE NOTICED
+
+Isaiah re-saved **Figures 5, 6 and the Operators table with new viewBoxes** (all 09:44; Figures 8
+and 12 at 09:31 are the earlier content amendments). **No element in any of the three falls outside
+its new viewBox** — Fig 5 `x:[180,1900] y:[62,2646]` in `0 0 2400 2706`, Fig 6 `x:[170,2160]
+y:[62,2580]` in `0 0 2640 2640`, Operators `x:[180,1400] y:[62,2125]` in `0 0 2400 2185`, zero
+outside on each.
+
+**THE RISK THAT MATTERED RAN THE OTHER WAY.** I read the figures from the **SVG source**, never
+from the rendering — so a viewBox that was too tight would mean **I had been quoting text no human
+reader can see**, and every finding resting on it would be a reading of a document nobody else
+holds. That is now ruled out for these three. `F40`'s Fig 5 basis (`bargain, not a threshold` ×1,
+`remains unexplained` ×2), `F47`'s Fig 6 material (`SEARCH` ×8, `UNREACH` ×2) and `F48`'s Operators
+item (`atom slot` present, the price left open) all survive at the source. **No conclusion moves.**
+
+**ONE EXTRACTION DEFECT, MINE.** The SVGs carry embedded **C2PA provenance as base64**, and my
+first re-check stripped tags naively and read that blob as figure text — which is why a `SEARCHED`
+probe read 0 before I extracted `<text>`/`<tspan>` contents properly. **It does not touch `F45`'s
+census**: those counts were word-bounded and a base64 run is one unbroken token, so `\bcache\b`
+cannot match inside it. **Checked rather than assumed, because a null over a polluted population is
+`I22` again.**
