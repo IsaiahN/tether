@@ -536,6 +536,50 @@ Not "it improved". Five clauses, each checkable:
    > measure.** **What breaks the circle legitimately is a RICHER TIER 1** — a perception
    > question with its own entry rule — **never a Tier 2 exemption.**
 
+   **AND THE NINE ARE NOT CLOSED FOREVER — THEY ARE CLOSED TO BEING *HANDED* ONE. ISAIAH,
+   2026-09-10, AND I HAD THE PROHIBITION'S SHAPE WRONG.** Asked plainly whether the agent ever
+   gets a tenth sense, I described the nine as closed permanently. **His correction: *"can it
+   not? consider evolution — epigenetics becoming lineage genetics."*** An epigenetic reading is
+   ACQUIRED and PROVISIONAL, it changes what the organism responds to within its lifetime, and
+   what crosses into the germ line is **what survived long enough to be paid for.** That is
+   Figure 4's membrane already — only METHODS cross up, only head starts come down, and a
+   recording carried upward looks like knowledge and is a description of one occasion.
+
+   **THE LICENCE, IN HIS WORDS — *"the repeated need of that recipe or sensor, that if applicable
+   in DIFFERENT SITUATIONS yields better results than composition."* TWO CLAUSES AND BOTH BIND:**
+
+   - **REPEATED DEMAND ACROSS DIFFERENT SITUATIONS.** One occasion is a recording and Figure 4
+     already refuses those; *across situations* is what makes it a METHOD rather than an
+     instance, and a method is the thing allowed to cross.
+   - **BETTER THAN COMPOSITION.** A sense is earned only where composing CANNOT get there. If the
+     reading is buildable from the nine, **building it IS the answer** and a sense would be the
+     shortcut that abandons the claim.
+
+   **THE ORIGINAL PROHIBITION SURVIVES INTACT UNDER THIS, WHICH IS WHY IT IS AN ENTRY AND NOT A
+   REPEAL: it forbids REACHING for a sense, and this is not reaching — it is exhausting
+   composition first and finding a floor.** And he named the precedent rather than arguing from
+   analogy: *"it is like when we took a term out of the library and enshrined it because it could
+   not work in there."* Same shape — repeated demand, composition unable to hold it, promotion to
+   a level where it can, **and it has already happened once in this project, deliberately.**
+
+   > **SO THE LADDER IS `composition → atom → sensor`, AND EVERY STEP IS LICENSED BY THE SAME
+   > THING: THE LEVEL BELOW TRIED AND COULD NOT.** Never by usefulness.
+
+   **AND IT TAKES `phi-hat` OFF THE DESK RATHER THAN RULING ON IT: NOT RIPE, rather than
+   forbidden.** The threshold exists, it is the right threshold, and nothing has approached it —
+   demand for a reversibility reading has **never occurred once** (no bin asks for it, which is
+   `F47`), so the demand side reads ZERO; and composition over the nine has never been ATTEMPTED
+   for it, so the better-than-composition side is untested. **Both clauses unmet, so there is
+   nothing to rule on.**
+
+   **AND THE THING THAT WOULD MAKE ANY OF THIS LIVE IS A ZERO ALREADY MEASURED.**
+   `retro → _promotions → promote` writes `primitive=True` on *"a residual recorded before it
+   existed, on a slot it was not minted for"* — **that chain IS the enshrinement mechanism.** It
+   is built, it fires in the toy world, and `F56` measured it as **never once completing on a
+   real board.** So the machinery for earning a promotion exists and has never crossed anything,
+   which is why no candidate has ever reached the threshold — **and why this question could not
+   have been asked honestly before now.**
+
    **THE PROHIBITION IS SPENT AND THE CIRCLE IS NOT BROKEN — AND THOSE ARE TWO STATEMENTS,
    WHICH IS THE WHOLE OF WHY THIS ENTRY EXISTS. ISAIAH, 2026-09-05.** *This rule forbids
    installing them* was true until an entry clause was written. **The clause: an atom may be

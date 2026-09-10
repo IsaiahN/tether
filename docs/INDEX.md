@@ -28939,3 +28939,83 @@ recurs is the first thing to check for recursion rather than the last.
     MECHANISM    nothing built; the corpus was correctly never edited, so the withdrawal
                  costs a row's correction and no repair
     CAPABILITY   none -- corpus reading, levels_completed 0
+
+### AND EVERY LINE ABOVE THIS IS WRONG — CORRECTED THE SAME HOUR, BY READING THE FILE I HAD NOT READ
+
+**I wrote `F70` from a one-line clarification and then ran the sheet-sync step that says READ THE
+REVIEWER FILE BY ID.** The debate Isaiah's line refers to was sitting in it, and it is not the
+debate I invented.
+
+**THE ACTUAL DEBATE, in the reviewer's own row `F52-DEFECTS-FIXED`:** they repaired both defects —
+renumbered the second list `R1–R9`, restated the count as *"Nine changes … two are corrections;
+seven are additions"* — and then flagged their own repair as unsafe: *"I have restated it because
+the list is short and static now, and that is a bet on the list not growing again — which is
+exactly the bet that just lost. **FLAGGED RATHER THAN SOLVED.**"*
+
+**THAT is the open item, and *the corpus is recursive even on itself* closes it in the opposite
+direction from my reading.** It does not say the numbering dissolves into levels. It says **the
+corpus's own laws apply to the corpus** — so `I41`'s law, which the reviewer had already restated
+in general form as *a hand-maintained count is a claim with no mechanism behind it*, **governs
+`THE_FORMULA`'s own header count.** The durable form is to generate the count or state none. The
+defects were real, the repair was real, and what was open was whether the repair holds.
+
+> **SO `F52` IS NOT WITHDRAWN AND NEITHER IS ITS `A6i` CALL.** The reviewer's fix confirms both:
+> the header explicitly now says *"a bare item 34 is ambiguous between the two lists"* — which is
+> `A6i` stated by the person who repaired it.
+
+**THE ERROR IS EXACTLY `I27`'s TRIGGER, FAILING ON THE ONE INPUT SHAPE IT DOES NOT COVER.** The
+rule is *before writing a causal explanation of a mechanism's behaviour, grep the record.* I did
+grep the record — for the CORPUS. **A one-line message from Isaiah does not read as a mechanism
+needing a lookup; it reads as an answer that arrives complete.** It was a pointer into a document
+I had not opened, and the protocol I was mid-way through names that document in its second step.
+
+> **THE TRIGGER EXTENDS, AND THIS IS THE ONLY DURABLE PART:** *a clarification that names a DEBATE
+> is a pointer, not a ruling — find the debate before deciding what was clarified.* Isaiah's line
+> said *"a debate you two have had"*, naming a party whose position I had not read. **The
+> instruction to read it was three steps above me in the same heartbeat.**
+
+    WITHDRAWN    F70 as first written, in full
+    STANDS       F52's two defects, the A6i classification, the reviewer's repair
+    OPEN         whether a restated count holds -- the reviewer flagged it, and the
+                 recursion answers it: generate the count or state none
+    CAPABILITY   none -- levels_completed 0
+
+---
+
+## F71 — THE THIRD PART, TAKEN; AND THE BOUNDARY IS A KIND RATHER THAN A LIMIT
+
+`F69` named the decision and this cycle forced it. Part A went **1,555 over** — and what pushed it
+over was **reviewer-facing content**: the `_gap_key` answer they were blocked on, and the rewritten
+stamp rule they asked for. **Cutting that is cutting what the sheet is for.**
+
+**ONE COMPACTION WAS LEGITIMATE AND IT WAS NOT ENOUGH.** RUN STATUS still carried a four-build
+narration from two cycles ago; compacting it executes last cycle's standing *rewrite-each-cycle*
+rule rather than dodging this one, and it freed 768 of the 1,555. **A third shave in one session
+would have been `F58`'s ratchet in decision form**, so the decision was taken.
+
+    A  Tether Workbook Sheet     RUN STATUS .. F36    100,878   23 rows
+    B  Tether Workbook Archive   F35 .. PROTOCOL       73,957   26 rows
+    C  Tether Workbook Log       the log alone         36,886    2 rows
+
+**THE BOUNDARY IS THE INSTRUMENT-ERROR LOG, AND THAT IS THE POINT.** `F49`'s cut was wherever the
+transport limit fell, and the SPLIT row has always said so. This one is **33,443 chars, a third of
+part B, and the one row that grows every cycle by construction** — so it was the row pushing the
+other two against the budget. The three now divide by **what they are**: status and new findings,
+older findings, the log.
+
+**AND THE ANCHOR MOVED `F35` → `F36` IN THE SAME CHANGE** — one row, deliberately, recorded, which
+is exactly what the SPLIT row has always said happens when a part overflows. That is the first
+time that clause has ever fired.
+
+> **COMPACTING THE LOG WAS THE OTHER CANDIDATE AND IT WAS REFUSED ON `F69`'s OWN GROUND: the `I`
+> series has no second home.** `INDEX` cites I-numbers constantly and nowhere reproduces their
+> text. **Splitting costs a file; compacting would have cost the entries** — and the entries are
+> the thing the reviewer says makes the rest believable.
+
+**THE ASSERTION NOW COVERS THREE AND STILL REFUSES TO WRITE**, and every part has real headroom for
+the first time since the split: 3,122 · 30,043 · 67,114.
+
+    MECHANISM   three-way cut derived from a row id and a row KIND; sizes predicted before
+                the open and asserted against what was written; four budget failures this
+                session left no half-written artifact
+    CAPABILITY  none -- transport, levels_completed 0
