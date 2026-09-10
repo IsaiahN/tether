@@ -28612,3 +28612,38 @@ than it loses and the ruling's direction is measured; **FALSE on nearly all** �
 the funnel against the 19-of-21, and the ruling needs a quantity that is not the bargain, which is a
 harder build; **no rows at all** → sp80 x30 no longer reproduces `F32`'s funnel, and *that* is the
 finding rather than anything about the bargain.
+
+---
+
+## `F63` — THE TWO OWED INSTRUMENT FIELDS, AND BOTH TURN A RECONSTRUCTION INTO A READING
+
+**Both were filed `OWED, NOT PROPOSED` in the same window and both are one field on a row that
+already exists.** Landed together (`6c1ff8c`), nine seats, demo **532 rows unchanged** — additive
+fields, no new rows.
+
+**`reach`, beside `gamma_size` on the `REPEAT` row.** `F50`'s whole measurement replayed `units()`
+from `SETTLE` rows to put the reach and library series side by side. **The replay was sound** — it
+agreed with `F44`'s independently derived cumulative counts at both boards, which was the only
+cross-check available from outside the build — **and it was still a reconstruction of a value the
+loop holds in a variable.** The corpus claim it exists to test is *reach is DERIVED and can fall
+while the record only grows*, and no reader could check that against a number the ledger did not
+carry. **Visible directly on the first run: library 8 → 15 while reach 8 → 10.**
+
+**`any_live`, and `F57` is why it matters more than it looks.** `Drive.report()` carries it and
+reached the ledger at **exactly one site — inside `if by == "probe"`.** So the state that would
+explain the probe branch's silence was written **only when that branch spoke**: 4 rows in the toy
+world, **0 on every ARC board measured.** *An instrument placed where it can only ever confirm.* It
+is now on a row written every cycle regardless of which branch ran, and it varies on demo.
+
+> **THE SHAPE THE TWO SHARE IS THE KEEPER, AND IT IS NOT *WE WERE MISSING TWO FIELDS*.** Each was
+> readable **on the arm where the answer was already known** and unreadable on the arm in question —
+> `reach` only by replaying a derivation, `any_live` only when the silent branch was not silent.
+> **That is `F62`'s defect too**, one layer down: `would_pay` computed on the accept arm and not the
+> reject one. **Three instruments, one placement error**, and in every case the passing path was
+> correct.
+
+    MECHANISM   both fields land on all 16 REPEAT rows and both VARY; row count unchanged
+    CAPABILITY  none -- no run, nothing reaches the agent, both boards still read zero levels
+    WHAT IT BUYS  F50's series becomes a reading rather than a replay, and F57's unanswerable
+                  question -- is the drive ever bored on ARC -- becomes answerable on the
+                  next board run rather than never
