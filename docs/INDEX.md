@@ -28647,3 +28647,48 @@ is now on a row written every cycle regardless of which branch ran, and it varie
     WHAT IT BUYS  F50's series becomes a reading rather than a replay, and F57's unanswerable
                   question -- is the drive ever bored on ARC -- becomes answerable on the
                   next board run rather than never
+
+---
+
+## `F64` — THE ONE BARGAIN OPENS ONE BOARD'S FUNNEL AND CLOSES THE OTHER'S, AND ONLY THE ACCEPT ARM IS UNIFORM
+
+**`F62`'s instrument read on two real boards, per game, never pooled.** The pre-registration named
+three outcomes and **the answer is none of them cleanly — it is board-dependent, which the
+pre-registration did not anticipate.**
+
+    sp80 x10   81s     REJECT  did-not-pay 13 ->  9 WOULD PAY,  4 not      ACCEPT 5 -> 0 pay
+                               no-split      7 ->  0            (7)
+    ka59 x10  247s     REJECT  did-not-pay 20 ->  1 WOULD PAY, 19 not      ACCEPT 2 -> 0 pay
+                               no-split     36 ->  0           (36)
+
+**SWITCHING `left == 0.0` TO `pays` MOVES THE TWO BOARDS IN OPPOSITE DIRECTIONS:** sp80 gains 9 and
+loses 5, **net +4**; ka59 gains 1 and loses 2, **net −1**. **Had I run only sp80 I would have
+reported *the ruling's direction is measured* as a general claim, and it is not one.** The per-game
+rule is what caught it, and this is the clearest case this window of why it exists.
+
+### WHAT IS UNIFORM, AND IT IS THE HALF THAT MATTERS
+
+**EVERY CURRENT ACCEPT WOULD BE REFUSED, ON BOTH BOARDS — 5 of 5 and 2 of 2.** That reproduces
+`INDEX:17556`'s **19 of 21 across five boards**, on different runs, at a different depth, through a
+different instrument. **And sp80's arm reproduces it exactly: the record says *sp80 5 installs, 5 of
+5 `would_pay=False`* and this run measures 5 and 5.** An independent reproduction of a prior
+measurement, which is the strongest check available from here.
+
+> **SO THE TWO ARMS CARRY DIFFERENT VERDICTS AND MUST NOT BE POOLED INTO ONE.** *The zero-remainder
+> gate admits terms the bargain refuses* is **SYSTEM** — board-independent, 7 of 7 here and 19 of 21
+> on record, and the arithmetic is stated: `base` below the ~8.9-bit cheapest sayable term while the
+> term enters anyway. *The zero-remainder gate refuses terms the bargain would take* is **REAL ON
+> ONE BOARD AND NEARLY ABSENT ON THE OTHER** — 69% against 5%.
+
+**AND THE MECHANISM UNDER THE SPLIT IS VISIBLE IN THE SLACK.** sp80's median `base − cost − left` is
+**−2.42**; ka59's is **−11.23**. ka59's residuals are simply small relative to what a term costs, so
+almost nothing there clears the bargain either way. **That is a fact about the two boards'
+residuals, not about the gate** — and it is why the reject-arm number cannot be generalised.
+
+    MECHANISM   both arms measured on two boards; sp80's accept arm reproduces the record exactly
+    CAPABILITY  none -- levels_completed 0 on both, no gate change made, nothing reaches the agent
+    CLASSIFIED  accept arm SYSTEM; reject arm BOARD-DEPENDENT and reported per game
+    OPEN        the ruling said the forward move is accept-on-confidence. `pays` alone is NOT
+                that move: it fixes the uniform half and does something board-specific to the
+                other. Whether the confidence quantity is meant to be a THIRD thing is
+                Isaiah's, and it is now a question with numbers under it
