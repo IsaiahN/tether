@@ -27862,3 +27862,66 @@ deadline Sept 30.
 **AND THE GENERATOR IS NOT IN GIT.** `mksheets.py` and `verify_publish.py` live only in the
 scratchpad, which is session-scoped. `I41` names this as the condition under all three of this
 session's instrument findings, and it is the cheapest thing on the list to change.
+
+---
+
+## `F52` — `THE_FORMULA` GAINED ITEMS 40 AND 41, AND CARRIES TWO NUMBERING DEFECTS THAT ARE ANNOTATED RATHER THAN FIXED
+
+**`mtime 10:49`, after the 08:58 version `F47` read; 566 lines, 43,175 bytes.** The revision list
+ran 33–39 then; it runs **33–41** now. **Items 40 and 41 are the same material Figure 5 gained
+(`F51`)**, which is the two artefacts agreeing rather than two findings.
+
+**ITEM 40 STATES `F51`'s READING IN THE CORPUS'S OWN WORDS** — *"the candidates are enumerable —
+every bound, predicting term — and they rank by the same shrinking test the selector runs, read with
+the opposite sign."* So the population is not my inference from the figure: it is the text.
+
+**ITEM 41 ADDS A CLAUSE THE FIGURE DOES NOT HAVE, AND IT IS AN ASSIGNMENT.** After naming the
+direction limit — a sought-for SHAPE is a preference, unbound, predicting nothing, accruing no
+residual — it closes: ***"Every check in this loop runs on the mechanism and none on the direction of
+the question… what remains is a seat's office, not the loop's."*** **That is the one sentence in
+either artefact addressed to this seat rather than to the build**, and it is why `F39`'s
+commit-a-prediction-before-the-run is named as the working instance rather than as a nicety.
+
+### `F48` IS NOT ONLY UNCHANGED — THE CORPUS NOW STATES ITS OPEN ITEM EXPLICITLY
+
+Item 33: *"`¬` … is not an eighth bond, so it does not enter `|bonds|` in the price, and **what a
+unary operator costs is left open rather than invented**."* `F48` said the build answered that price
+silently by making `negate` an `Atom`, and measured the answer as probably fatal. **The corpus now
+says in terms that the price was deliberately not set.** Unchanged, still Isaiah's, and no longer
+inferable-only.
+
+**AND THE BUILD'S `BONDS = 1` IS THE CORPUS'S OWN STATED CASE, NOT A DEFECT.** The earlier list's
+item 34 gives `|φ| = (k+1)·log₂(|atoms|+1) + (k-1)·log₂(|bonds|)` — **`term_bits` verbatim** — and
+says *"Zero where one bond exists, rising as the bond vocabulary grows."* `tether.py:97` sets
+`BONDS = 1`, which zeroes the second term exactly as specified. **Stated because `F48`'s whole
+arithmetic rests on `term_bits`**, and a reader meeting a zeroed term might otherwise read it as a
+missing charge.
+
+### TWO DEFECTS, RECORDED HERE BECAUSE `THE_FORMULA` IS CORPUS
+
+**ONE: ITEM NUMBERS 33, 34 AND 35 ARE USED TWICE, FOR DIFFERENT CONTENT.**
+
+    511  33. R is always a slice          535  33. Negation added to the operator set
+    513  34. φ is a molecule, bonds       538  34. A fifth bin at ROUTE
+    514  35. the arrangement is substance 540  35. The refuting term pays the same bargain
+
+**One identifier, two referents — `A6i` in the corpus**, and it bites immediately because both this
+record and the workbook cite these by number. **Every citation of 33/34/35 is ambiguous until the
+list is named**, so this record now cites them as *the earlier list* or *CHANGES IN THIS REVISION*.
+
+**TWO: THE HEADER COUNT IS STALE.** *"Seven changes… Two are corrections; five are additions"* —
+**against nine numbered items**, 33 through 41. **It was correct for 33–39 and went stale when 40 and
+41 were appended**, which is `I41`'s shape exactly: a narration of a count that the count's own
+growth silently falsifies. Counted rather than eyeballed, and my first count was wrong — a regex that
+matched only `40.` and `41.` returned 2, and 2 against a visibly longer list is the implausible
+reading that forced the recount.
+
+> **NOT FIXED. `CLAUDE.md`'s table puts `THE_FORMULA` outside the seat** — recorded in `INDEX`, left
+> for Isaiah. **A corpus I have edited is no longer derivationally independent, and the section check
+> runs on that independence.** Both are one-line repairs and neither is mine to make.
+
+    MECHANISM   the revision read; items 40-41 matched to F51; F48's open item now explicit;
+                two corpus numbering defects annotated
+    CAPABILITY  none -- corpus read, no run, nothing reaches the agent
+    OPEN        the unary operator's price, now stated as open BY THE CORPUS; and the two
+                numbering defects, which are Isaiah's to repair or leave
