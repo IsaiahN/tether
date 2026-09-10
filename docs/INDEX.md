@@ -24513,3 +24513,57 @@ are in tension by construction**, and `ka59`'s cycle-13 refusal is that tension 
     MECHANISM   the refusal surface enumerated at 8 sites; a published "in order" list
                 corrected from a prefix to the whole; a prediction narrowed before the run
     CAPABILITY  none
+
+## `ls20`'s REFUSAL MEASURED — MY PREDICTION REFUTED BY THE REFUTER I NAMED
+
+    ls20 x 20, 8162 rows, 10 routine-gate rows
+      8x  routine_refused  '*'      "no objective is confidently shrinking"   1834 SELECTOR
+      2x  routine_refused  o20.w    "no action this agent has observed moves
+                                     this slot the wanted way -- coverage
+                                     incomplete, or every action ties"        1879
+
+**PREDICTED `1849` (the objective already holds). MEASURED `1879`.** And `1879` is one of the four
+sites I had **not considered** when I framed this as *"gates 2-4"* — **the enumeration done while
+waiting is the only reason the answer has a name.** The refuter I wrote was *any refusal at 1874,
+1879, 1926 or 1952 means the tension story is not what stops `ls20`.* **It fired.**
+
+> **THE SELECTOR-VERSUS-RESIDUAL TENSION IS REAL AND IS NOT WHAT STOPS `ls20`.** `ka59`'s cycle-13
+> refusal is still that tension; it is one board's mechanism and I was about to make it two.
+
+### AND THE OBVIOUS CHAIN TO `F26` DOES NOT SURVIVE ITS OWN CHECK
+
+**The tempting story: the agent presses one button 79% of the time, so other actions are untried,
+so the coverage gate starves.** `_goal_split`'s gate is *"the coverage gate: untried is not
+neutral"* — one untried action skips the slot entirely.
+
+    ls20 x20 actions          ACTION1 14, ACTION2 2, ACTION3 2, ACTION4 2
+    first appearance          ACTION1 c0, ACTION4 c1, ACTION3 c2, ACTION2 c3
+    o20.w present in          19 of 20 cycles
+    actions pressed WHILE
+      o20.w was present       all FOUR -- 13/2/2/2
+    never pressed with it     NONE
+
+**GLOBAL coverage is complete by cycle 3, and per-slot coverage is complete too.** So the
+*coverage-incomplete* half of `1879` is ruled out, **on a proxy** — I measured *`o20.w` named in any
+row that cycle*, where the code builds `hist` from `s in bef and s in aft`. **Close, not identical,
+and stated as a proxy rather than as the thing.**
+
+### WHAT IS LEFT IS THE VOTE, AND IT IS NOT MEASURED
+
+`_goal_split` returns `None` on three routes and `1879` names two of them in one string. With
+coverage ruled out, the survivors are **`max(votes) == 0`** — no action cleared its own bar — or
+**every action ties.** **Which one is UNMEASURED.**
+
+**AND THE BAR IS A MAJORITY OVER EACH ACTION'S OWN HISTORY:** `moved * 2 > len(hist[a])`. **ACTION1
+carries 13 observations on this slot and the others carry 2 each**, so ACTION1 must have moved it
+the wanted way at least 7 times while ACTION2 needs 2 of 2. **That asymmetry is a plausible route
+from `F26` to this refusal and it is NOT established** — a vote census is one read of rows already
+on disk, and it has not been run.
+
+> **I HAVE NOW HAD THE `F26` -> PLANNING LINK IN HAND TWICE TONIGHT AND BOTH TIMES THE CHECK KILLED
+> IT.** The first was the coverage gate, ruled out above. **The second is the majority bar, and I am
+> recording it as a hypothesis with its test named rather than as the connection I was looking for.**
+
+    MECHANISM   ls20's refusal located at 1879; the coverage half ruled out on a proxy;
+                the vote half named, unmeasured, with the read that would settle it
+    CAPABILITY  none
