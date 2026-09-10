@@ -28732,3 +28732,46 @@ exact**, so no span was dropped then. The truncation is size- or call-dependent,
     FIX         chunk small enough that the display is whole, and treat verify_publish as the
                 thing that decides -- it is the only check whose subject is neither my memory
                 nor my screen
+
+---
+
+## `F66` — THE CUT IS ANCHORED, AND THE THING THAT FORCED IT WAS A TWO-CHARACTER CHANGE
+
+**`F55` filed the anchored-versus-balanced cut as reader-facing and declined to choose. Taken now,
+because this cycle measured what the balanced cut costs.**
+
+**Adding ONE 2.7KB log entry to part B moved the boundary and migrated a row from B into A**, so
+both files needed republishing for a change that touched one of them. `F55` predicted exactly that:
+*a stable-looking two-file layout that silently reshuffles is worse than one that is openly
+ordered*, and *had the cut been anchored, part B would have been byte-identical and needed no
+republish at all.*
+
+**ANCHORED AT `F35`, WHICH IS THE CURRENT BOUNDARY**, so the switch itself reshuffles nothing for
+the reader. The budget assertion is unchanged and still fires on overflow — at which point
+re-anchoring is a **deliberate act with a number behind it**, which is the whole difference from a
+boundary that moves on its own.
+
+### AND ANCHORING ALONE DID NOT DECOUPLE THEM — A DERIVED COUNT CROSSED THE CUT
+
+**Part A's status cell carried *the instrument-error log now stands at 42*, a count DEFINED by a row
+in part B.** So `I43` changed part A by two characters and forced a full republish of a file whose
+content had not otherwise moved. **The anchored cut fixes row migration and cannot fix a
+cross-part data dependency** — different mechanism, same symptom, and it would have kept the double
+publishes going.
+
+**Removed: the count is stated in the row where it is derived and nowhere else.** `I41`'s check now
+asserts **two** narration sites rather than three — **a decoupling, not a relaxation**: it still
+asserts the exact number of sites, and the number genuinely fell.
+
+> **THE GENERAL SHAPE, WHICH IS WORTH MORE THAN THE TRANSPORT FIX.** A derived value is safe where
+> it is derived and a coupling everywhere else. `I41` installed the derivation to stop the count
+> drifting — correctly — and the SAME mechanism, read across a file boundary, became the reason two
+> artefacts could never move independently. **A fix that removes a drift can install a dependency,
+> and nothing in the drift check can see it.**
+
+    MECHANISM   the boundary is a row id; the budget assertion still gates overflow; the
+                cross-part narration is gone and the check tracks the real site count
+    CAPABILITY  none -- transport only, nothing reaches the agent, levels_completed 0
+    AND ONE MORE I35: p70's idempotence guard was `"ANCHOR" not in s` and it matched I31's own
+                text about A PATCH ANCHOR FAILING. Fourth instance of a bare substring standing
+                in for the thing it names, and the funniest placement it has found yet
