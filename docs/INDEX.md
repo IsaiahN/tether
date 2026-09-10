@@ -24192,3 +24192,58 @@ moving a derived constant to make a mechanism fire is the shaping this window fo
     MECHANISM   an ls20 run converted from discovery to test; two claims demoted from new
                 to reproduced; one open question already answered in the file
     CAPABILITY  none
+
+## THE FIGURES AS TIEBREAKER — ISAIAH, 2026-09-09 — AND FIGURE 9 DECIDES TWO OPEN ITEMS
+
+**Standing instruction: *if either of you are ever in doubt about a ruling, look to the corpus
+figures for the tiebreaker in addition to your tests and research.*** Fifteen SVGs on the desktop,
+**greppable text**, and the exhaustive check the corpus is small enough for is cheap.
+
+**Applied at once to the sharpest live doubt — whether `MIN_REPEAT`'s shrinking bar is the right
+test, which I had parked as above my seat.** `shrink` appears in **exactly one figure**, and it is
+the one about when composition stops working.
+
+### HIT 1 — `_goal_choice` IS A FILTER HANDING A VERDICT, WHICH FIGURE 9 FORBIDS BY NAME
+
+> **"Use filters for the budget and witnesses for the verdict. Never let a filter hand you a
+> verdict."**
+
+**`_goal_choice` filters `_res` by a shape test — 3+ readings, non-increasing, one real decrease —
+and its NULL becomes the verdict *no plan this cycle*.** That is a filter handing a verdict, in the
+figure's own words.
+
+**AND IT CONVERGES WITH THE REGISTER FROM THE OTHER SIDE.** *Prefer positive causal evidence over
+absential; absence of evidence resting on completeness never holds mid-episode.* **`_goal_choice`'s
+`None` is absential** — *no series I have qualifies* — and `_res` is itself a filtered population.
+**Two independent frames, one conclusion, and neither was written with the other in view.**
+
+### HIT 2 — THE FIX DIRECTION, WHICH THE RECORD ONLY GAVE NEGATIVELY
+
+> **"Nobody chooses. The gap does, and the gap is only as good as its description."**
+> **"Describing the residual is the expensive part."**
+
+`INDEX:21824` says what NOT to do: *loosening `MIN_REPEAT` could not help — the one qualifying
+series is FLAT — and moving a derived constant to make a mechanism fire is shaping.* **Figure 9
+supplies the positive half: the threshold is not the lever. THE DESCRIPTION OF THE RESIDUAL IS.**
+
+### HIT 3 — AND IT ENDORSES TONIGHT'S SPLIT, THEN SAYS TO KEEP SPLITTING
+
+> **"Disagreements that do not shrink with effort, where each rule keeps working well on a
+> different subset, are not one hard question but several well-formed ones. Split it rather than
+> search."**
+
+**That is gate 1 exactly.** `sp80` refuses with an empty `_res`; `ka59` refuses with a populated
+one — *each rule working well on a different subset.* **The figure says this is not one hard
+question, and the next move is to split further rather than search for a single cause.**
+
+> **THE TIEBREAKER DID WHAT A TIEBREAKER IS FOR: it moved an item I had parked as A RULING into a
+> DIRECTION I can act on without deciding anything.** *Do not touch the constant* was already
+> ruled; *the description is the lever* is what I could not get from tests, and it is not mine to
+> implement under the freeze either — but it is now a named direction rather than an open question.
+
+**NOTHING IS PROPOSED AND NOTHING IS APPLIED.** The figures are the corpus and are read, never
+edited; this is a reading recorded in the working file.
+
+    MECHANISM   a standing tiebreaker exercised for the first time; one parked ruling
+                converted to a direction; tonight's split independently endorsed
+    CAPABILITY  none
