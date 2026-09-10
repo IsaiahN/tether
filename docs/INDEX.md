@@ -26411,3 +26411,36 @@ which makes it a smaller ruling than I filed.
 
     MECHANISM   §7 marked superseded; F41's candidate space corrected to the settled library
     CAPABILITY  none
+
+---
+
+## `I27` — THE GREP FIRED **BEFORE** THE WORK FOR THE FIRST TIME, AND CANCELLED IT
+
+`F41b` measured the OPERAND gate and I flagged its scope explicitly: *it never checks an atom's
+`accepts` against the TARGET — a different gate in a different place.* Leaving a half I had myself
+named is the shape this window keeps logging, so the input-type gate looked like the next
+measurement. **Grepped the record first, including `docs/` — which is exactly what `I26` caught me
+skipping — and the measurement is unnecessary.**
+
+    INDEX:14822   "Two streams, one bargain. `enumerate_closure(slot_type, "OBJ")` alongside
+                  ("val","val")"                    -- the build runs this chain at every mint
+    F36           OBJ-typed terms MEASURED BOUND: ka59 cycle 8 `above . none<o1.h>`,
+                  ls20 cycle 1 `none`               -- so the slot_type -> OBJ stream YIELDS
+
+**AND THE DISTINCTION I NEARLY GLOSSED IS THE LOAD-BEARING PART.** *Minting happens* would **not**
+have proved it — `enumerate_closure` runs **two** streams, and every mint could have ridden the
+`("val","val")` one. **What proves the typed stream yields is `F36`'s bound OBJ terms**, which is a
+different fact in a different row.
+
+**And `both`/`either` need no second explanation:** `PRED` is produced by the compare atoms, so
+their INPUT is suppliable and only their OPERAND is not. `F41` is complete as filed — one gate,
+not two.
+
+> **THIS IS THE FIRST TIME THE TRIGGER FIRED BEFORE THE WORK RATHER THAN AFTER IT.** `I11`, `I18`,
+> `I19`, `I23`, `F40` and `I26` all caught a claim already investigated or already drafted — the
+> lookup arrived once the explanation existed and felt earned. **Here it arrived at the point of
+> deciding whether to measure at all, and cancelled the measurement.** That is what the step was
+> written to do, and six instances of it working late are what it took.
+
+    MECHANISM   none. A measurement retired before it ran
+    CAPABILITY  none
