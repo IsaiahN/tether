@@ -26259,3 +26259,48 @@ non-PRED types and is never `None`, so the admit-on-undeclared path never opens.
     FILED, NOT BUILT -- which is what item 3 instructs when a ruling is needed
     MECHANISM   field, renderer, pricer, applier BUILT; producer ABSENT; both/either inert
     CAPABILITY  none, and zero on every public board -- measured, not inferred
+
+---
+
+## `F41b` — `both`/`either` ARE THE ONLY OPERAND-INERT ATOMS, AND THIS CENSUS MEASURES ONE GATE
+
+`F41` found two inert atoms. The obvious next question is whether they are the only ones. Measured
+cold on five boards, **calling the real `tether.Agent._operand_fits`** through a shim carrying
+`slot_types` — `I8` was a census that re-implemented the build's own predicate and keyed it
+differently, so the predicate is borrowed rather than rewritten.
+
+**48 atoms; 7 declare an `operand_type`.** Admitted (target, bind) pairs:
+
+    board  slots   translate   recolour   same/other/above   both   either
+    ka59      84     1876        1162          1876            0      0
+    ls20     120     3880        2380          3880            0      0
+    sp80      48      592         376           592            0      0
+    g50t      84     1876        1162          1876            0      0
+    wa30      72     1368         852          1368            0      0
+
+**`both` and `either` are the only zeros, on every board.** Every other operand-declaring atom
+admits 20–27% of all pairs.
+
+### AND THE ARITHMETIC REPRODUCES THE MECHANISM, WHICH IS HOW THE CENSUS CHECKS ITSELF
+
+ka59 has POSITION 28, COLOUR 14, EXTENT 28, SHAPE 14. `recolour` wants COLOUR, so it should admit
+`14 × 83 = 1162` — **measured 1162.** The `@same` atoms resolve `want` against the TARGET, so they
+should admit `Σ n(n−1) = 28·27 + 14·13 + 28·27 + 14·13 = 1876` — **measured 1876.** The counts are
+derivable from slot-type multiplicities alone, so the census is reproducing the gate rather than
+reporting noise.
+
+> ### THE SCOPE LIMIT, STATED BECAUSE IT IS EXACTLY THE PATTERN THIS WINDOW KEEPS LOGGING
+>
+> **This measures ONE gate.** `_operand_fits` compares an atom's `operand_type` against the BIND
+> slot's type. **It never checks the atom's `accepts` against the TARGET** — which is why
+> `above` (accepts POSITION/EXTENT/DELTA) and `same` (accepts six types) admit the *identical*
+> 1876. That is correct: the input-type filter is a different gate in a different place.
+>
+> **So "only two are inert" is a claim about OPERAND admissibility, not about reachability.** An
+> atom can clear this gate and still never run because nothing supplies its input type — which is
+> what the standing `composable=0` / `UNREACHED` verdict already says about the sensor→atom
+> direction. **A check that reads clean while covering half the ground is the shape of every
+> instrument error logged this window; naming the half is the only defence.**
+
+    MECHANISM   F41's pair confirmed unique on the operand gate; census self-checked by arithmetic
+    CAPABILITY  none
