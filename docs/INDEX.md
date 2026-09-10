@@ -26943,3 +26943,81 @@ shortcut `I31` is about.
 
     MECHANISM   a publish-verification check installed, passing, with a negative control
     CAPABILITY  none -- and this is instrumentation, which changes no contact
+
+---
+
+## `I34` — THE CHECK DESTROYED THE ARTIFACT WHEN IT FIRED, AND THE ORDER WAS LATENT FROM THE FIRST ASSERTION
+
+**Validating `F43`'s new count-drift check, I ran a negative control against the LIVE OUTPUT PATH
+and it truncated `workbook3.csv` to a 257-byte header.** The probe was careless. **The probe is
+not the defect.**
+
+`mksheets.py` opened the CSV for writing, wrote the header row, and **only then** ran every
+assertion — so **any** failing check left a header-only file where the artifact was. That was
+true from the moment the FIRST assertion was added (the headline-vs-Record check, which has
+already fired for real once), and nothing had ever exercised it, **because a check that has
+never failed has never shown you what it does when it fails.**
+
+> **`CLAUDE.md`'s first named silence is exactly this — *fixtures before changes, the only order
+> with an observable half-state*.** Here the order was inverted at the write site.
+
+**FIXED:** all validation hoisted above the open. **Re-run of the negative control: the assertion
+fires AND the artifact is intact at 132,008 bytes, 36 lines — both arms confirmed rather than
+one.** And it is `ALIGN-2`'s ruling in another register: *a watchdog that cries dead on a live
+sheet is worse than no watchdog*, and a check that corrupts what it protects is the same sentence
+at the write site.
+
+### THE PATTERN ACROSS `I33` AND `I34` IS ONE THING, AND IT IS THE KEEPER
+
+I built an instrument and **both defects were in how it behaves WHEN IT FAILS rather than when it
+passes** — a comparison that would have cried drift on a correct publish, and a write order that
+truncated on any refusal. **The passing path was right both times.** Neither would have been found
+by USING the check; both were found by deliberately making it fail, **which is the only way the
+failure path is ever executed.**
+
+    MECHANISM   validation hoisted above the write; both arms of the check exercised
+    CAPABILITY  none
+
+## `I35` — AN IDEMPOTENCE GUARD MATCHED ITS OWN ANNOTATION
+
+`p46.py` opened with `assert "I34" not in s` and refused to run: **`p45` had written the literal
+`I34` into a COMMENT in that same file minutes earlier.** A patch that had never been applied read
+as already-applied. Anchored on distinctive prose instead.
+
+**Third substring-match error of the session** — `I24`'s census (`traction` inside `subtraction`),
+`I32`'s zero-form (a line-wrapped grep), and this. **The family is one sentence: a bare substring
+is not the thing it names**, and the guard was checking for a token that my own documentation of
+the fix would inevitably contain.
+
+## THE WORKBOOK IS REORDERED — REVIEWER REQUEST, 2026-09-10
+
+> *"the reads are the expensive part, not the searches … if the proctor kept the status row and
+> new findings near the top, I could read a slice rather than the whole sheet."*
+
+`RUN STATUS` was already row 2. **What was not near the top was anything NEW** — rows sat in
+append order, so `F42` landed at line 18 and a slice read reached the status and then months-old
+findings.
+
+    1    RUN STATUS      the headline and what changed
+    2    CAPABILITY      the ground actually tracked -- levels, routines, chunk reuse
+    3+   F-findings, HIGHEST NUMBER FIRST
+    ..   the lettered rows (ALIGN, E*, PROTOCOL, F1/F2)
+    last I1-I34          ~18KB, the largest row, so a slice never pays for it
+
+**THE ORDER IS DERIVED FROM THE ROW ID, NOT LISTED**, and that is the design choice: a
+hand-maintained order is one more coupling that drifts, and this session has six instances of
+that shape. A new `F44` rises by construction. A permutation assertion guards it — same multiset
+of rows before and after, because a reorder that silently dropped a row would be the worst
+version of this change. **Measured: a 5-line slice is 24KB against 135KB for the sheet.**
+
+## AND A NUMBERING COLLISION I CREATED MYSELF, RECORDED BEFORE IT SPREADS
+
+**`INDEX` filed the publish-verification check as `F43`; the workbook filed the same thing as
+`I33`.** One event, two ids, in the two records that are supposed to agree — and I wrote both
+within an hour. **The workbook's is right and `INDEX`'s is wrong**: it is an instrument error,
+not a finding about the build, and the I-log is where instrument errors live. `F43` in `INDEX`
+should be read as `I33`; the id is left standing because ids are append-only, which is the
+convention the reviewer adopted explicitly for `E1c`.
+
+    MECHANISM   the sheet reordered on request; the collision recorded rather than quietly renamed
+    CAPABILITY  none -- and none of this is contact
