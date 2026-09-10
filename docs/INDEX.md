@@ -24146,3 +24146,49 @@ while being careful about the previous wrong statement.**
     MECHANISM   gate 1's refusal decomposed into Z and A/B/C; sp80 measured at Z on 36 of 36;
                 the sp80 zero-OBJ finding re-attached to barrier 1 through _res's builder
     CAPABILITY  none. No action differs
+
+### PRE-REGISTERED FROM THE RECORD, AND `I13`: THE `_res`/OBJ LINK WAS ALREADY WRITTEN DOWN
+
+**Written with the `ls20` run in flight and unread.** The record predicts its answer:
+
+    INDEX:22113   "`ls20` closes its window at cycle 7 ... and carries a QUALIFYING SERIES
+                   from cycle 18. Eleven cycles of qualification that nothing consulted."
+
+**A qualifying series is exactly what `_goal_choice` searches for, so `_res` MUST be populated on
+`ls20`.** Prediction: **`ls20` is NOT a `Z` board**; `_res` non-empty, and `QUALIFIES` appears at or
+after cycle 18. **Refuter: if it reads `Z` on every call, this measurement and `INDEX:22113`
+contradict and one of them is wrong.**
+
+### `I13` — I RE-DERIVED THE `OBJ` -> `_res` LINK THAT WAS ALREADY IN THIS FILE
+
+    INDEX:21829   "A `val`-bound slot yields no goal residual; only an OBJ binding does. So the
+                   POPULATION THAT CAN EVER FEED `_goal_choice` is the population the price
+                   tie decides."
+
+**That is tonight's correction-of-a-correction, recorded earlier and better.** I traced it through
+`_res`'s builder and presented it as new. **Twelfth instance of *assume it is already specified, and
+go look*, third today, and all three in the working file I own.**
+
+> **AND THE CORRECTION ITSELF WAS STILL RIGHT AND STILL WORTH MAKING** — I had written a false
+> statement and reversed it. **What is `I13` is the framing: presented as a discovery when the file
+> held it, which inflates a repair into a finding.**
+
+### WHAT IS ACTUALLY NEW TONIGHT, STATED NARROWLY
+
+    NEW        sp80 measured at Z on 36 of 36 calls -- `_res` EMPTY, A/B/C never evaluated.
+               No prior entry measures the empty case
+    NEW        the gate census over ka59's NINE routine-gate rows, locating barrier 1 at
+               gate 1 by refusal reason rather than by inference
+    NOT NEW    OBJ bindings gate the `_goal_choice` population        INDEX:21829
+    NOT NEW    ls20 carries a qualifying series from cycle 18          INDEX:22113
+    NOT NEW    the selector refuses a FLAT series, and no MIN_REPEAT   INDEX:21824-21827
+               threshold admits it, so loosening it is shaping
+
+**AND `INDEX:21824` IS THE SHARPER VERSION OF MY OWN OPEN QUESTION.** I left *whether three
+consecutive decreases is the right bar* as a question above my seat. **The record already answers
+the tempting half: the one qualifying series is FLAT, so no threshold on shrinking admits it, and
+moving a derived constant to make a mechanism fire is the shaping this window forbids.**
+
+    MECHANISM   an ls20 run converted from discovery to test; two claims demoted from new
+                to reproduced; one open question already answered in the file
+    CAPABILITY  none
