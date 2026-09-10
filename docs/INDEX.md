@@ -24430,3 +24430,42 @@ nothing* is quoted in `CLAUDE.md` as settled; **the figure it comes from marks i
     MECHANISM   the tiebreaker used a second time, on a question both parties had closed;
                 one residue given an axis; the mapping's stretch recorded
     CAPABILITY  none. Nothing proposed, nothing applied
+
+### CORRECTION — "`ls20` CLEARS GATE 1 SIX TIMES" COUNTED CALLS, NOT CYCLES
+
+    calls to `_goal_choice`          40   = 3 PER CYCLE, from three call sites
+    calls that RETURNED a slot        6
+    DISTINCT CYCLES with a return     2   -- cycles 17 and 18 only
+    slot returned                     `o20.w`, all six times
+
+**Three call sites, all consulting the same selector in the same cycle:** the `F14` parallel guard
+(1521), `_mint_routine`'s own top (1833), and the goal-vote path (2016). **Three calls for ONE
+decision is one decision.**
+
+> **I PUBLISHED THE FLATTERING READING WITHOUT CHECKING IT.** *Six times* makes `ls20` sound like a
+> board that repeatedly clears the gate; **two cycles out of twenty** is what happened, and **both
+> name the same slot.** `A6i`'s shape on a count: *passes* meaning call-returns and *passes* meaning
+> cycle-decisions, and I took the larger without asking which I had.
+
+### AND IT NARROWS THE THREE-PROFILE CLAIM — `ls20` AND `ka59` MATCH AT GATE 1
+
+    sp80   `_res` EMPTY 36/36        gate 1 NEVER passes            genuinely distinct
+    ls20   gate 1 passes 2 cycles    0 priced candidates
+    ka59   gate 1 passes 2 cycles    1 priced candidate, refused by the bargain
+
+**`ls20` and `ka59` have the SAME gate-1 profile — two passing cycles each.** They diverge
+DOWNSTREAM, not at the selector. **So it is two gate-1 profiles, not three**, and the third
+distinction lives further along.
+
+> **THE HEADLINE SURVIVES AND ITS EVIDENCE SHRINKS.** *There is no single barrier 1* still holds —
+> `sp80` never reaches the test at all while the other two do — but **the claim that three boards
+> fail in three DIFFERENT PLACES is now supported at gate 1 by ONE board rather than by three.**
+> Where `ls20` and `ka59` diverge is still unmeasured and is what the run in flight is for.
+
+**FIFTH CORRECTION TODAY, AND THE FIRST THAT IS A PLAIN MISREADING OF MY OWN OUTPUT** rather than a
+chain with a bad link. **Caught by asking what a number counted before quoting it again** — the
+same check that `A6i` names, applied to my own instrument's units.
+
+    MECHANISM   one published count corrected; the three-profile claim narrowed to two at
+                gate 1 with the divergence relocated downstream
+    CAPABILITY  none
