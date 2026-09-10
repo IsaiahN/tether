@@ -25354,3 +25354,55 @@ distribution over boards.
     MECHANISM   none. A read-only probe, launched; the ceiling half already stands from
                 the cold measurement and this is the REACHED half
     CAPABILITY  none
+
+---
+
+## `I18` — I REBUILT MY OWN PROBE, AND THE ORIGINAL WAS SIX HOURS OLD
+
+An hour ago I corrected myself with *"I had the technique in hand."* **The truth is stronger and
+worse: I had the finished tool.**
+
+    18:05   unsat.py       "F20 STEP 1, the measured half ... unsat = goal_residual(slot) *
+                            len(_group(slot))  ...  pays <=> unsat > (k+1)*log2(n+1)/log2(n)"
+    18:13   unsat2.py      the ATTRIBUTION probe -- which of goal_residual's three None paths
+    23:48   unsat_census.py  ME, REBUILDING unsat.py FROM SCRATCH
+
+Same quantity, same threshold formula, same purpose. **And `unsat.py`'s own docstring already
+carried the correction I published as a finding tonight:** *"I first read that as needing gate 1
+to pass... It does not. The residual exists on every slot on every cycle whether or not the
+selector ever looks at it."*
+
+**FOUND BY LOOKING AT A DIRECTORY LISTING WHILE WAITING FOR A RUN** — the same way the third
+sixth-law instance was found. **A trigger tied to the run would have missed it again.**
+
+### WHAT WAS ALREADY MEASURED, AND WHAT GENUINELY WAS NOT
+
+    unsat_sp80.json   18:12   sp80 x20: slot map EMPTY on all 20 cycles
+    unsat2_sp80.json  18:19   sp80 x20: 72 slots, 4-8 BOUND, ZERO OBJ-bound, and
+                              A_no_OBJ_binding on all 72 slots every cycle
+    unsat2_ka59.out   18:20   ZERO BYTES -- the run never completed
+
+> **SO `F36`'s sp80 HALF WAS DIRECTLY MEASURED AT 18:19 AND I RE-DERIVED IT TONIGHT FROM ROWS.**
+> Same answer — route A, no `OBJ` binding, every slot every cycle — reached twice by two
+> instruments. **The agreement is worth something; the second derivation was not.**
+
+**AND THE GAP IS REAL: `ka59` AND `ls20` VALUES WERE NEVER RUN.** The 0-byte `.out` is the whole
+of it. **So the work in flight is the right work — only the tool was duplicated.**
+
+### ONE DIFFERENCE, STATED SO THE DUPLICATION IS SIZED HONESTLY RATHER THAN INFLATED
+
+`unsat.py` **enumerates the slots itself** and calls `self.goal_residual(slot, before)` in a loop.
+`unsat_census.py` **wraps the method**, so it sees exactly the calls the loop makes.
+
+**That is `I2`'s rule — *wrap the call the build makes; never rebuild its inputs* — and the rebuild
+is on the right side of it.** Enumeration gives the fuller population; wrapping gives what the
+build actually asked. **Both are defensible and they answer slightly different framings**, so the
+new probe is not waste — but that is a consolation discovered afterwards, not a reason, and it
+does not buy back the lookup I did not do.
+
+    NINTH correction was "the technique was in hand"; this is the same correction with the
+    real magnitude. I18 joins I11 and I13 -- re-deriving what was already held -- and it is
+    the first where what I re-derived was MY OWN TOOL rather than a fact in the record
+
+    MECHANISM   none. The ka59/ls20 census is still running; nothing here anticipates it
+    CAPABILITY  none
