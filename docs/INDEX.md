@@ -28512,3 +28512,60 @@ hold the repaired file**, and I do not hold it.
     OWED        Isaiah's, unchanged from F59: commit the corpus, or say it is held. AND ONE
                 SMALL THING OWED TO THE REVIEWER: send the repaired THE_FORMULA, or the seat
                 cannot re-point its citations and will keep reporting the defects as live
+
+---
+
+## `F61` — THE FAILED-PATH CATALOGUE IS BUILT, AND THE DESIGN STEP WAS A CORPUS SEARCH FOR THE THIRD TIME TODAY
+
+**Isaiah, 2026-09-10: *it seems that you guys have done a lot of measurement, it's time to build
+and test.*** The `THE-BAR` ruling had already named the item — *catalogue and save the failed
+paths, the salient attributes and the interactions, so each replay retrieves past information and
+cuts the problem down* — and nothing did it.
+
+**I WAS ABOUT TO DESIGN ONE. THE GREP CANCELLED THE DESIGN.** `ARC_AGENT` §15.3 specifies
+**retrieval keyed by the characterised residual**, `INDEX:396` records it as *specified and a
+decomposition*, and **`retrieval.py` already implements it** — `characterise → key_of → fits →
+retrieve`, called from `tether.py` at two sites. **`CLAUDE.md`'s own list names *retrieval keyed by
+residual shape* as one of the nine.** The design step is a search of the corpus, not a design, and
+this is the third instance this session after `I27` and `F42`.
+
+### WHAT WAS ACTUALLY MISSING, AND THE CODE NAMES IT ITSELF
+
+`retrieval.py` states three principles: **key on TYPES not instances · ORDER, never exclude ·
+the key CROSSES**. **The routine path violates all three**, and `boundary()`'s own comment gives
+the cause: *"the reject key is `(slot, actions, guards)` and two of those three are slot names,
+which REGENERATE."* **So the routine path was given the term path's key.**
+
+    _gap_key            the name-free half of the gap characterise already returns --
+                        arity, varies_types, target_type, rel_types. Drops varies/invariant
+                        (slot names) and n (a moving count), for _reject_key's own two reasons
+    _characterise_gap   abstains on no history -- M2_STANDARD check 3
+    the write site      files under the gap key ALONGSIDE the instance key: `k` says this exact
+                        plan on this exact slot is spent and dies with the slot; `gk` says a plan
+                        of this SHAPE did not close a gap of this SHAPE, and is the half that crosses
+    boundary()          self.paths is NOT cleared -- the autoimmunity argument is entirely about
+                        slot names and this key holds none. Clearing it is the mirror error
+    the read site       ORDERS candidates by prior failures of that shape and EXCLUDES NOTHING
+
+    MECHANISM   8/8 in check_paths.py, each with a negative control: the key matches across
+                renamed slots, DISCRIMINATES on a different shape (so it is not a constant),
+                abstains on no evidence, is absent from the boundary clear, drops no candidate.
+                Nine seats clean, ruff clean, demo 531 rows UNCHANGED
+    CAPABILITY  NOT CLAIMED, AND IT CANNOT BE YET
+
+### THE CAPABILITY HALF IS A ZERO WITH A MECHANISM UNDER IT
+
+**`routine_end` rows across every run held on disk: ZERO.** The catalogue's only write site is
+`Rt.EXHAUSTED` on an **adopted** routine, and routines adopted reads 0 across all fourteen
+board-depth readings. **So this is `F56`'s promotion chain exactly: a mechanism with a site,
+downstream of something that has never completed on a real board.**
+
+> **THAT IS NOT A REASON NOT TO HAVE BUILT IT — IT IS THE ORDERING RESULT, AND IT WAS ONLY
+> VISIBLE FROM BUILDING.** The catalogue is correct and inert, and **what would make it live is
+> upstream of it.** The next build is `F32`'s confidence acceptance, which is RULED, is about an
+> accept condition measured too strict (90 reuse attempts, 90 failures on `left == 0.0`), and is
+> testable on a board — unlike this one.
+
+**AND THE PRE-COMMIT HOOK REJECTED MY OWN FIXTURE**, on `I001` and a module-level rebinding.
+Fixed rather than exempted. **`F37`'s durable half doing its job**: *the hook runs whether or not
+anyone remembers to write it down.*
