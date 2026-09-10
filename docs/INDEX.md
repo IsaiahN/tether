@@ -29135,3 +29135,99 @@ exactly, so nothing about that run is in doubt except the one field.
     MECHANISM   the key is fixed, the trace is saved, and the two fields that separate
                 "minted nothing" from "grew nothing" exist
     CAPABILITY  levels_completed 0 on every reading so far, and the batch is re-running
+
+---
+
+## F75 — PROTOCOL's FIRST BATCH: 10 × 5, AND NO ROUTINE IS EVER CUT ON ANY BOARD
+
+The loop that has read NOT STARTED all window has run once. Ten cycles, five public boards,
+offline and cold, one runner, one trace per board saved to disk.
+
+**WHAT IS UNIFORM — and uniform across five boards is a different claim from uniform across two:**
+
+    levels_completed      0      0      0      0      0
+    routine_cut           0      0      0      0      0
+    routine_end           0      0      0      0      0
+    routine_refused       6      8      8      8      8
+    PLAN events        only routine_refused, on every board
+    PROMOTE/promote       0      0      0      0      0
+    ACCEPT/retro          0      0      0      0      0
+
+**NO ROUTINE IS EVER CUT.** `_mint_routine` runs 38 times across the batch and refuses every
+time — `F19`'s eight-site refusal surface, reproduced at PROTOCOL's own unit on all five public
+boards rather than the three it was measured on. **`routine_cut` 0 means the agent never got as
+far as HAVING a plan to price**, so `F20`'s shelf bootstrap is not even reached here.
+
+**AND `F56`'s TWO STRONGEST TOY-ONLY CLAIMS REPRODUCE ON FIVE BOARDS.** `PROMOTE/promote` and
+`ACCEPT/retro` are zero everywhere — the `retro → _promotions → promote` chain still has never
+completed on a real board, now measured on 5 rather than 2.
+
+**WHAT VARIES, AND IT IS PER GAME AND NEVER POOLED:**
+
+    board    mint  park  reuse  bind  OBJ  reach  gamma   cost      arms
+    ka59        7   113      2    11    2     49     57   246.6s    draw 6, learned 4
+    ls20        6    89      4    13    2     50     58   334.4s    draw 8, learned 2
+    sp80        3    85      5     8    0     49     56    78.0s    draw 8, learned 2
+    g50t        2   149      0    18    0     49     50   182.2s    draw 8, probe 2
+    wa30        0   113      0    34    0     48     48    29.8s    draw 8, probe 1, learned 1
+
+**REACH MOVES 0–2 UNITS ON EVERY BOARD** off a 48-atom baseline while gamma reaches 48–58 —
+`F44`/`F50`'s asymmetry reproduced across all five, at a depth where the library is barely
+started.
+
+**`wa30` IS THE BOARD WHERE NOTHING ENTERS AT ALL.** Zero mints, zero reuse-installs, zero
+accepts, **34 rebinds**, gamma unchanged at 48, reach unchanged at 48. Ten cycles of pure
+re-binding over the atom set. It is also the only board whose park verdicts are not uniform —
+`depth_exhausted` 53 **and `no_support` 60**, where every other board is 100% `depth_exhausted`.
+
+> **AND A HYPOTHESIS I HELD AND DID NOT PUBLISH IS REFUTED BY THE CORRECTED KEY.** Under `I46`'s
+> bad key `ka59` read `mints 0`, and I had drafted *"PROTOCOL's 10-cycle unit sits below the depth
+> where minting begins."* **It is 7 on ka59 and non-zero on four of five.** Minting is well under
+> way at ten cycles. The draft died with the key that produced it.
+
+    MECHANISM   minting fires on 4 of 5 · reuse-install on 3 of 5 · rebinding on 5 of 5
+                · promote-as-hold/cite on 4 of 5
+    CAPABILITY  ZERO on all five: no level, no routine cut, no routine completed.
+                Mechanism-fires do not accrete into this column.
+
+---
+
+## F76 — `F56`'s TOY-ONLY LIST IS 2 OF 3, AND THE REFUTATION CAME FROM THE BOARDS IT NEVER MEASURED
+
+`F56` censused every `(step, event)` pair in `demo.jsonl` against **ka59 x24 + ls20 x20** and
+named three paths as exercised in the toy world and never on ARC: `PROMOTE/promote`,
+`ACCEPT/retro`, and **`MINT/probe`**.
+
+**`MINT/probe` FIRES ON ARC.** Measured across five boards:
+
+    ka59  0     ls20  0     sp80  0     g50t  2     wa30  8
+
+**ka59 and ls20 read 0, exactly as `F56` recorded — the finding reproduces on its own population
+and fails outside it.** `g50t` and `wa30` are two of the three boards `F56` never looked at.
+
+> **THIS IS THE OVER-CLAIMED NULL, WITH A DENOMINATOR THIS TIME.** `CLAUDE.md` states the hazard
+> in its own words — *§12.4's trigger fires 0 of 25 on `ls20`, 25 of 25 on `sk48`, 7 of 25 on
+> `g50t`; one panel, and "the trigger cannot fire" was drafted as a fact about the mechanism* —
+> and adds that **over-claiming a null is the worse case, because a null presents as caution and
+> needs no defence.** `F56` was cautious, carried a denominator, and stated its population. It
+> still generalised two boards to ARC.
+
+**THE OTHER TWO SURVIVE AND ARE NOW BETTER SUPPORTED**, which is the honest split: `promote` and
+`retro` are 0 on all five. So the census was right about the chain it was really about — the
+enshrinement path — and wrong about the one path that was not part of that chain.
+
+**AND IT UNLOCKS WHAT `F57` RECORDED AS UNMEASURABLE.** `F57`: *"Drive.report() carries any_live,
+probe_n, probe_misses, bored, and reaches the ledger at exactly ONE site, tether.py:3008, INSIDE
+`if by == 'probe'`. So the state that would explain the branch's silence is written only when the
+branch speaks: TOY 4 rows, ka59 0, ls20 0."* **It speaks on g50t and wa30, so the state is on
+disk:**
+
+    g50t c1  any_live True  probe_n 2  probe_misses 1  bored False
+    wa30 c3  any_live True  probe_n 4  probe_misses 3  bored False
+
+**`bored` reads FALSE on every probe row.** `F57` was right that the stronger claim could not be
+checked from ka59 and ls20; it can be checked on the boards where the branch fires, and it does
+not say what *the drive is never bored* would predict.
+
+    MECHANISM   the probe branch and its drive-state row both fire on ARC
+    CAPABILITY  unchanged -- levels_completed 0 on all five
