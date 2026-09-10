@@ -25310,3 +25310,47 @@ n=2 is a limit of the instrument and closing it needs a build change, which the 
 
     MECHANISM      F20 step 1's ceiling half answered on 5 boards, cold, with no run
     CAPABILITY     none
+
+---
+
+## THE INSTRUMENT I HAD BEEN USING ALL SESSION WAS THE ANSWER, AND I FILED IT AS BLOCKED
+
+Last heartbeat, closing `F20` step 1's measured half:
+
+> *"That needs `goal_residual` IN THE LEDGER (five call sites, no record), which is a build
+> change — post-freeze queue, not a run."*
+
+**Wrong, and wrong by a route worth naming.** `gate1.py` has wrapped `_goal_choice` all session —
+`tether.Agent._goal_choice = gc`, restored in a `finally`. **The same monkeypatch reads
+`goal_residual` in flight without touching a build file.** No ledger change, no emitter, no
+commit to `tether.py`.
+
+> **THE ERROR IS A ONE-STEP INFERENCE THAT SKIPPED THE INSTRUMENT:** *the value is not recorded*
+> → *recording it needs a build change*. **True of the ledger and false of the question** — a
+> probe does not record it, it READS it. I had the technique in hand, in a file I wrote, and
+> described the blocked path instead.
+
+**NINTH self-correction of the session, and structurally the same as `F20`'s own defect** — that
+row's *what would settle it* cell contradicted its Record cell. **Twice now on the same finding I
+have described a route as unavailable while holding the thing that opens it.**
+
+### PRE-REGISTERED, AND COMMITTED BEFORE THE RUN RETURNS
+
+`unsat_census.py` wraps `goal_residual` on `ls20 x20` and `ka59 x24`, logging per call: cycle,
+slot, `rg`, `|group|`, `unsat = rg × |group|`, `n`.
+
+    max unsat >  threshold on some board  ->  STEP 1 POSITIVE. The bootstrap is real and not
+                                              binding, nothing changes, the question dissolves
+    max unsat <= threshold everywhere     ->  STEP 1 NEGATIVE AT THIS DEPTH, and Isaiah's step 2
+                                              becomes live -- but only as far as the depth
+                                              reached, never as a general claim
+
+**AND THE DENOMINATOR IS SMALL AND I AM SAYING SO FIRST.** `goal_residual` returns `None` without
+an `OBJ`-typed bound term, so readings exist **only where `_res` is populated** — `F36` measured
+that as 0–3 slots from cycle 9 on `ka59` and cycle 2 on `ls20`. **So this is TENS of readings, not
+thousands.** It is an order of magnitude past the `n=2` on record and it is still not a
+distribution over boards.
+
+    MECHANISM   none. A read-only probe, launched; the ceiling half already stands from
+                the cold measurement and this is the REACHED half
+    CAPABILITY  none
