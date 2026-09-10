@@ -25741,3 +25741,50 @@ purse was never full, one where it was full and the key only turned on the way o
     MECHANISM   none new. A general finding I re-derived on one board, plus a depth
                 reconciliation the record could not have had at eight cycles
     CAPABILITY  none
+
+---
+
+## PRE-REGISTERING THE `ka59` READ, BECAUSE THREE PRIOR MEASUREMENTS ALREADY CONSTRAIN IT
+
+`ls20` came back positive and its value was partly that it **reproduced `F19`'s gate-1 cycles from
+the residual series**. `ka59` can be a sharper test than that, because the record pins **three
+specific values** in advance — and the census measures them by a different route.
+
+    PREDICTION 1   first reading at CYCLE 9
+                   source: F36, "_res first populated at cycle 9", measured from rows
+
+    PREDICTION 2   a reading with unsat = 0 at CYCLE 13
+                   source: F19's refusal at 1849, "the objective already holds across its
+                   whole scope", and F20's "ka59 cycle 13 unsat=0"
+
+    PREDICTION 3   a reading with unsat = 3.00 at CYCLE 23, slot o13.w
+                   source: F20, the one priced candidate on record, refused by 0.9658 bits
+                   against a 3.483 threshold
+
+**ANY DISAGREEMENT IS A FINDING ABOUT THE RECORD, NOT A NUMBER TO RECONCILE.** These came from
+three different instruments — a rows census, a ledger read, and the routine_cut row — and the
+probe wraps `goal_residual` directly. **If the census says something else, one of those four is
+wrong and the disagreement locates which.**
+
+### AND THE ACTUALLY OPEN QUESTION IS SEPARATE FROM ALL THREE
+
+**What is `max unsat` on `ka59`?** Nothing in the record constrains it. The two values on record —
+0 and 3.00 — are the two moments the SELECTOR happened to look, and `ls20` has just demonstrated
+that **the selector looks at the worst possible time**: `o20.w` was at 20–21 for fifteen cycles
+and the gate opened only after it fell to 3.0.
+
+> **SO THE RECORDED 3.00 IS A SAMPLE FROM THE GATE, NOT FROM THE BOARD** — and `F20`'s
+> *"BOTH BELOW"* was computed over a population of two that the gate selected. **On `ls20` that
+> same population-of-two would have read 3.0 and 3.0 and missed a fifteen-cycle run at 21.0.**
+
+    PRE-REGISTERED READING OF max unsat, and it does not change F20's answer either way:
+      > 3.483 on ka59   -> the ls20 result replicates: the gate samples the wrong moments
+      <= 3.483 on ka59  -> ka59 genuinely has no payable window, and ls20 is the existential
+                           witness on its own. STEP 1 STAYS POSITIVE -- one board settles it
+
+**Committed before the run returns.** `ka59` has been running 32 minutes; the cost curve says its
+late cycles are where the time goes, so this is written now rather than after.
+
+    MECHANISM   none. A pre-registration, and three predictions that make the read a test
+                of the record rather than an isolated number
+    CAPABILITY  none
