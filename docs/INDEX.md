@@ -27021,3 +27021,122 @@ convention the reviewer adopted explicitly for `E1c`.
 
     MECHANISM   the sheet reordered on request; the collision recorded rather than quietly renamed
     CAPABILITY  none -- and none of this is contact
+
+---
+
+## `F44` — THE STORE IS THREE TIERS, THE LIBRARY IS APPEND-ONLY, AND ONE GATE HAS NO NAME
+
+**Asked by Isaiah as four code questions, answered from the code rather than from intent.** Every
+claim below sits at a write site or is measured from rows already on disk. No run.
+
+### THERE IS NO CACHE IN THE EVICTION SENSE, AND THERE ARE FOUR STORES RATHER THAN TWO
+
+`_touch_cache` / `_peer_cache` / `_decomp_cache` are per-frame perception memos, cleared on every
+step. They are not a tier. The real structure:
+
+    self.bound        slot -> ONE term name. What `_predict` actually reads
+    units()           atoms + settled terms, CHAIN-DEDUPED. What the search composes FROM
+    gamma.library     every term ever accepted. APPEND-ONLY
+    self.routines     the routine shelf -- a FOURTH store, and not Gamma at all
+
+**THE LIBRARY HAS ZERO DELETIONS.** No `del`, `.pop`, `.remove` or `.clear` anywhere in
+`gamma.py`, and nothing outside it mutates the stores. **So eviction only ever happens from
+`bound`**, and it has four triggers, none of them age:
+
+    capacity     `bound[slot] = name` is one entry per slot; a new binding overwrites
+    the world    the slot departed -- tether.py:2214
+    a dangle     the bound term's OPERAND slot departed, so `_ops` would fault; the orphan
+                 sweep at 2222 unbinds and marks `owed_import`
+    wrongness    tether.py:2783 -- and ONLY on refutation of a SETTLED term
+
+**The last one is deliberate and the site says why**: a candidate that mispredicts is NOT unbound,
+because *"unbinding there would stop any term ever accumulating the evidence it needs to settle."*
+
+**Derived entries go rather than dangle** — that is the orphan sweep. **But it checks `.operand`
+only, one level**, and is complete today solely because `operand_term` has zero producers (`F41`).
+**If a producer ever lands, the sweep is one level short.** Recorded now, while nothing is wrong.
+
+**RE-ADMISSION IS FREE AND MINTING IS NOT.** `refute()` sets `settled_at = None` and increments
+`rejections`, which decay at `REJECTION_HALFLIFE = 8.0` ticks — *"not deleted, and the rejection
+decays, so it can settle again if it starts paying."* Re-binding an already-minted term goes
+through the reuse sweep, **which is the one path that never calls `pays`**. So the bargain prices
+first entry and prices nothing afterwards.
+
+### SETTLED AND LIVE ARE DIFFERENT, AND THE GATE BETWEEN LIBRARY AND BOUND HAS NO NAME
+
+`_predict` reads `library[self.bound.get(slot, IDN)]` — **prediction runs off the BOUND term
+regardless of settledness**, and `_standing`'s docstring states it outright: *"A candidate may be
+held — bound, and driving the bet, which is the only way it ever accumulates the held-out evidence
+that settles it."* Two independent gates:
+
+    candidate -> settled   `is_settled`, held-out payment. NAMED, and countable from SETTLE rows
+    library   -> bound     accept / rebind / reuse. NO single named predicate, no count, no row
+
+**The second is the gate barrier 1 actually sits on, and it is the one with no name.**
+
+### THE LOAD-BEARING ANSWER: SOMETHING IS PAID FOR AND STRUCTURALLY CANNOT ADD REACH
+
+`units()` dedups on the ATOM SEQUENCE with the operand binding stripped, and its own comment says
+why — two settled terms differing only in binding were inflating the space count and the
+`coverage` denominator. **So a term that mints, pays the bargain and settles, but whose chain
+already exists as a unit, CAN NEVER ADD REACH.** Not *has not* — cannot, by construction.
+
+    ka59 x24    19 settled -> 12 distinct chains    7 structurally inert for reach
+    ls20 x20    13 settled ->  8 distinct chains    5 structurally inert for reach
+
+**Narrower than unusable**: those terms still predict if bound. They are unusable *as composition
+units*, which is exactly the quantity a reach metric measures.
+
+### DELTA-UNITS / DELTA-GAMMA IS COMPUTABLE, AND THE PREDICTED READING WAS HALF WRONG
+
+Computable from `gamma_size` on every REPEAT row plus `settle`/`demote` SETTLE rows; `units()` is
+a pure function of the settled set. **Isaiah predicted near zero and flat, with the numerator the
+problem. Measured, per game, never pooled:**
+
+    ka59 x24    library +22    units added to the closure 4 (peak 5)    0.18
+    ls20 x20    library +21    units added to the closure 6 (peak 6)    0.29
+
+**Not near zero and not flat — the numerator moves on both boards.** What it is NOT is monotone:
+ka59 runs `...4,5,4,3,5,5,4,4,5,5,4` and ls20 dips 4 -> 2 at cycle 15. **THE COMPOSABLE SET CAN
+SHRINK WHILE THE LIBRARY CANNOT**, because refutation unsettles. No existing instrument shows
+that, and it is the asymmetry the metric would surface.
+
+**AND THE CHURN DIFFERS SHARPLY PER BOARD AND IS UNEXPLAINED: ka59 19 settles against 14 demotes,
+ls20 13 against 4.** Recorded as open, not narrated — I have no mechanism for it yet.
+
+### `F32` IS CLOSE TO THIS AND NOT IDENTICAL, WHICH IS THE PART WORTH NOT COLLAPSING
+
+*Ninety reuse attempts, ninety failures* restated as *the library grew while reach did not* is
+nearly right and drops a distinction. **Those 90 are the reuse path, gated on `left == 0.0`, which
+never calls `pays` — and none of them ever entered the library.** The library growth (+22, +21)
+came from MINTING, and reach did move. **Reuse failing and reach stalling are separate ledgers.**
+
+### AND THE TWO BARRIERS ARE GENUINELY SEPARATE — THE PROPOSED COLLAPSE DOES NOT HOLD
+
+The offered read was that *few goals reach pricing* and *the first plan cannot afford itself* are
+one thing: the settled set grows and the live set does not. **The code says otherwise.**
+
+- **Barrier 1** is measured (`F36`) as *no OBJ-TYPED term is bound* — a TYPE condition on the
+  binding gate.
+- **Barrier 2** is `self.routines` (tether.py:412, sole write at 1476 gated on `Rt.DONE`) — **a
+  fourth store, not Gamma and not `units()`.** Nothing about settled-versus-live reaches it.
+
+**Collapsing them would lose the fact that barrier 2 lives in a store the vocabulary does not
+cover.** What the reframe DOES earn is the unnamed gate above, which is real and cheap to
+instrument.
+
+> **AND THE A6i TO REFUSE HERE, BECAUSE IT IS ONE WORD AND TWO CLOSURES.**
+> `Gamma.enumerate_closure` over `units()` is the TERM closure and it is the one growing.
+> `closure((OBJECT,), d)` over SENSORS via `Registry.accepting()` is the PERCEPTION closure, and
+> it reads `composable=0` / `UNREACHED`. **Different registries — the heartbeat says so itself.**
+> A reach metric that pooled them would read growth in one and call it the other.
+
+**CLASSIFICATION: NOT A DEFECT, NO CANDIDATE FIX.** The dedup is deliberate, documented at its
+site, and was installed to repair a real inflation of the coverage denominator — correct-given-
+its-purpose. This is a BEHAVIOUR NOTE plus a reading.
+
+    MECHANISM   the store mapped at its write sites; the unnamed gate named as unnamed
+    CAPABILITY  none -- no run, no contact change, and both boards still read zero levels
+    OPEN        ka59's settle/demote churn; |bound| per cycle, which is the direct instrument
+                for the unnamed gate. Both are reads over rows already on disk, and both are
+                awaiting Isaiah's pick rather than started
