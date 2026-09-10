@@ -3163,6 +3163,23 @@ class Agent:
                         action=action,
                         phase=phase, by=by, stage=self.chain.seg.stage(),
                         gamma_size=len(self.gamma.library), owed=sorted(self.owed_import),
+                        # REACH BESIDE THE LIBRARY, because the pair is the reading and one
+                        # of them was a RECONSTRUCTION. `F50` replayed `units()` from SETTLE
+                        # rows to put the two series side by side -- the count agreed with an
+                        # independently derived one at both boards, so the reconstruction was
+                        # sound, and it was still a reconstruction of a value the loop holds.
+                        # The figure's sentence is *reach is DERIVED and can fall while the
+                        # record only grows*, and a reader cannot check that against a number
+                        # the ledger does not carry.
+                        reach=len(self.gamma.units()),
+                        # AND `any_live`, WHICH `F57` FOUND UNREACHABLE WHERE IT MATTERS.
+                        # `Drive.report()` carries it and reaches the ledger at ONE site,
+                        # inside `if by == "probe"` -- so the state explaining the probe
+                        # branch's silence is written only when the branch speaks, and reads
+                        # 4 rows in the toy world against 0 on every ARC board. **An
+                        # instrument placed where it can only ever confirm.** Here it is on a
+                        # row that exists every cycle regardless of which branch ran.
+                        any_live=self.drive.live,
                         admissions=self.gamma.admissions())
         return True
 
