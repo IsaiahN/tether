@@ -24247,3 +24247,42 @@ edited; this is a reading recorded in the working file.
     MECHANISM   a standing tiebreaker exercised for the first time; one parked ruling
                 converted to a direction; tonight's split independently endorsed
     CAPABILITY  none
+
+### `I14` — I COMMITTED `I12` AGAIN, IN THE SESSION THAT LOGGED IT
+
+**`I12` was: hand-editing cells in the publish paste instead of the generator, so `mksheets.py`
+silently becomes a regression.** I wrote it up, reconciled seven cells, added asserts, and stated
+the rule: **the paste is a transport, never an edit site.**
+
+**Then, four rows later, I put `I13`'s text into the paste and not into `mksheets.py`.**
+
+    caught by     re-reading the paste after publishing, not by any check
+    would have    the next `mksheets.py` run reverts I13 out of the sheet
+    cost          zero this time. Only because I happened to re-read
+
+> **A RULE WRITTEN AND BROKEN WITHIN HOURS IS THE CLEAREST AVAILABLE EVIDENCE THAT THE REGISTER IS
+> NOT SELF-ENFORCING.** `I12`'s entry ends *"every cell change goes into `mksheets.py`"* — a
+> resolution, not a step. **It has no trigger, which is the exact defect the sixth law had until
+> today**, and I fixed that one while leaving this one.
+
+**AND THE TRIGGER IS AVAILABLE AND IS THE SAME SHAPE:** the moment is **composing a `create_file`
+call**. Everything in that paste must already exist in the generator; if I am typing prose into the
+tool call, the edit is in the wrong place. **Not filed into `CLAUDE.md` — `ALIGN-1` is open and
+this is exactly the kind of unilateral register edit that opened it.**
+
+### AND A DUPLICATE SHEET EXISTED, CAUGHT BY THE CHECK BUILT FOR IT
+
+    title search returned TWO files
+      1unEawG8  00:43:35  22189 bytes   the publish I had just verified
+      1OuJ70dm  00:21:48  20098 bytes   STALE, and not created by any step I can account for
+
+**Trashed; exactly one now carries the title.** The trash call on the *previous* file had returned
+`caller does not have permission` and then `entity not found` — **an error that looked like a
+failure and was not**, which is the same class as the empty-title-search false alarm already
+written into the sync cron.
+
+> **THE CHECK EARNED ITS PLACE.** *Search by title as CONFIRMATION ONLY* was written after `I6` and
+> `I7`, and it is the step that found this. **Every other verification I ran that turn passed.**
+
+    MECHANISM   I14 logged, generator reconciled, one duplicate cleared
+    CAPABILITY  none. No build file touched
