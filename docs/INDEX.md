@@ -25788,3 +25788,66 @@ late cycles are where the time goes, so this is written now rather than after.
     MECHANISM   none. A pre-registration, and three predictions that make the read a test
                 of the record rather than an isolated number
     CAPABILITY  none
+
+---
+
+## THE `ka59` READ: THREE PREDICTIONS CONFIRMED, AND `F20`'s *BOTH BELOW* IS A SELECTION ARTIFACT
+
+Pre-registered at `1a0dc81`, one minute before the run returned. **All three hold, to the slot.**
+
+    P1  first reading at cycle 9                     ->  9                          CONFIRMED
+    P2  a reading with unsat 0 at cycle 13           ->  o14.dcol rg 0.0 unsat 0.0  CONFIRMED
+    P3  unsat 3.00 at cycle 23 on o13.w              ->  o13.w rg 0.2143 unsat 3.0  CONFIRMED
+
+**Four instruments now agree** — a rows census (`F36`), a ledger read (`F19`), a `routine_cut` row
+(`F20`), and a wrapper on `goal_residual`. **The record is sound where it is checkable.**
+
+### AND THE POPULATION IT WAS SAMPLED FROM IS NOT
+
+    ka59, per-cycle MAX unsat, threshold 3.483
+    c9   c10  c11  c12  c13  c14  c15  c16  c17  c18  c19  c20  c21  c22  c23
+    1.0  14   14   14   12   12   14   14   12   14   14   12   12   12   12
+
+**Fourteen consecutive cycles with a payable slot at 3.4–4x the bar.** 24 of 43 readings clear the
+two-step threshold; 26 of 43 clear the one-step.
+
+**`F20` recorded exactly two values — 0 and 3.00 — and concluded *BOTH BELOW*.** Those two are the
+two moments the SELECTOR looked. **The population is 43 and more than half of it is above.**
+
+> **AND THE SELECTOR DID NOT MERELY PICK THE WRONG CYCLES — IT PICKED THE WRONG SLOT INSIDE THE
+> RIGHT CYCLE.**
+>
+>     cycle 13   gate took o14.dcol at unsat 0.0   while o14.col and o14.w sat at 12.0
+>     cycle 23   gate took o13.w    at unsat 3.0   while o14.w sat at 12.0
+>
+> **At both moments a payable slot was present in the same cycle.**
+
+### WHY, AND IT IS BY CONSTRUCTION RATHER THAN BY BAD LUCK
+
+`_goal_choice` requires three readings with all deltas ≤ 0 and one < 0, then picks
+**`shrink = -sum(deltas)`, largest wins.** `o14.w` sits flat at 0.8571 — zero deltas — so it
+**fails the entry test and is never a candidate at all.** `o14.dcol` collapsing to 0.0 has the
+largest possible shrink and wins.
+
+**So the flat-large slot is not chosen badly; it is not offered.** And the winner is the slot whose
+residual has just gone to **zero** — the one slot with nothing left to plan for. That is why 1849
+fires: *"the objective already holds across its whole scope."*
+
+    THE RECORD SAID: no board supplies BOTH a large residual and a shrinking one (INDEX:18688)
+    ka59 SAYS:      one board supplies both, IN THE SAME CYCLE, on different slots --
+                    and the selector's entry test excludes the large one by construction
+
+**That is a strictly stronger statement than the record's, and it is the first time the conflict
+has been shown WITHIN a cycle rather than across boards.**
+
+### WHAT DOES NOT CHANGE, STATED BECAUSE THE RESULT IS LOUD
+
+`F20` step 1's ANSWER is unaffected — it was already POSITIVE on `ls20`, the question is
+existential, and `ka59` replicates rather than decides. **No fix is proposed.** `INDEX:21824` rules
+that moving `MIN_REPEAT` to make this fire is shaping, and that ruling covers `shrink` as a
+selector too. **Per board, never pooled** — `ls20` and `ka59` show the same structure and are
+reported separately.
+
+    MECHANISM   gate 1's selection effect measured at the SLOT level on ka59; F20's
+                two-value population identified as gate-selected out of 43
+    CAPABILITY  none. ka59 still completes zero levels and adopts zero routines
