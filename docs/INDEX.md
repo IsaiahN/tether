@@ -27925,3 +27925,63 @@ reading that forced the recount.
     CAPABILITY  none -- corpus read, no run, nothing reaches the agent
     OPEN        the unary operator's price, now stated as open BY THE CORPUS; and the two
                 numbering defects, which are Isaiah's to repair or leave
+
+---
+
+## `F53` — THE TRANSPORT IS VERIFIED END TO END, AND THE TWO-PART SPLIT IS ONE CYCLE FROM NEEDING A RULING
+
+**THE OWED VERIFICATION IS DISCHARGED AND IT IS GREEN ON BOTH PARTS.** The live publish read back
+by id against the generator's saved output:
+
+    part A   published 71,975   generator 71,975   MATCHES
+    part B   published 70,404   generator 70,404   MATCHES
+
+**182KB of hand transcription across two messages, exact.** That is the first end-to-end evidence
+that the two-part transport `F49` was forced into is sound, and it is the datum `I33` said would
+have to accumulate before the read-every-line discipline could be relaxed — **it does not license
+relaxing it**, because the check still runs AFTER the publish and this is one green run of a
+two-part publish, not a series.
+
+### THE BUDGET FIRED AGAIN, AND THE RAISE IS THE LAST ONE THAT SHOULD HAPPEN UNRULED
+
+Adding `F51` and `F52` put part B at **96,549 against a 96,000 budget**, so the assertion refused
+to write — **the second real firing in two cycles**, and both times nothing was written, which is
+`I40`'s fix holding.
+
+**RAISED TO 98,000 ON EVIDENCE RATHER THAN COMFORT, AND THE BRACKET GENUINELY MOVED.** Known-good
+was 90,937; the verification above makes it **92,094**, so 96,549 is 4.8% above a proven size and
+far from the known-bad 164,976. **Still an assumption — the true cap is unmeasured** — but a
+smaller extrapolation than the previous raise, and that raise was itself vindicated by this
+verification.
+
+> **AND IT IS THE LAST RAISE THAT SHOULD HAPPEN WITHOUT A RULING.** The workbook grows every cycle
+> and the assertion has now fired twice in two. **THREE PARTS CHANGES WHAT THE REVIEWER READS**,
+> which is precisely why `I33` declined to split at all and why `F49` recorded the eventual split as
+> *forced rather than chosen*. **A third part would be chosen, and by me, at a moment when nobody
+> is available to disagree.** Filed, not taken.
+
+**AND THE GROWTH IS CONCENTRATED IN ONE ROW.** The instrument-error log is the single largest cell
+in the workbook and gains an entry most cycles; it is a seat process that nothing in the build
+reads, and `F49`'s split already puts it in the Archive. **Naming where the growth is is a reading;
+trimming it is content deletion and is not the seat's.**
+
+### THIS CYCLE DID NOT PUBLISH, AND THAT IS A DEVIATION FROM THE SYNC CADENCE
+
+The sheet is **two findings behind** (`F51`, `F52`) and the generator is patched, regenerated and
+correct on disk at A 94,988 / B 96,549. **Both sync conditions are left DIFFERING on purpose** —
+`runstatus.txt` carries the `F52` headline against a `F50` `runstatus_synced.txt`, and
+`sheet_synced_at` holds `031bff2` against HEAD — **so the next heartbeat publishes without needing
+to re-derive anything.**
+
+**WHY: Isaiah's standing instruction to pause near a session limit so state is saved rather than
+lost mid-write.** A publish now costs ~190KB of transcription across two messages, and the two
+findings it would carry are readings of documents Isaiah and the reviewer already hold. **The
+published sheet is verified correct as it stands**, so the cost of waiting one cycle is two rows,
+and the cost of being cut off mid-publish is a cycle of reconstruction. **Stated as a deviation
+rather than folded into the report**, because a cadence I quietly skip once is a cadence.
+
+    MECHANISM   the publish transport verified end to end on both parts; the budget raised on a
+                moved bracket; the generator carries F51 and F52 and is regenerated
+    CAPABILITY  none -- no run, nothing reaches the agent, both boards still read zero levels
+    OPEN        THREE PARTS, which is Isaiah's: the two-part budget has fired twice in two cycles
+                and the next raise has no evidence left to stand on
