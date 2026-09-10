@@ -25054,3 +25054,57 @@ proxy metric the register names as my documented weakness.**
     CAPABILITY  none
     OWED        the document is UNTRACKED. That is Isaiah's to commit or leave; flagged
                 because an uncommitted corpus document is invisible to every later check
+
+---
+
+## THE `Z` ROUTE IS SEPARATED, AND IT IS THE SAME ROUTE ON ALL THREE BOARDS
+
+Recorded as owed when the onset axis was published: *goal_residual returns `None` by THREE routes
+and only `sp80`'s is separated.* **Now measured on the other two, from rows already on disk.**
+
+`goal_residual` (tether.py:1613) returns `None` when there is **no `OBJ`-typed bound term**, when
+**the slot is absent from state**, or when **the peer group is empty.** The question was which.
+
+### THE CLASSIFIER IS NAME-BASED AND EVERY LINK IS AT ITS WRITE SITE
+
+    gamma.py:194        out_type = self.atoms[-1].out_type      -- the LAST atom is outermost
+    gamma.py:178        name = " . ".join(a.name for a in atoms) -- so the last NAME is outermost
+    arc_atoms.py:636-8  only `all`, `any`, `none` produce OBJ
+    grep                no other atom shadows those three names
+
+**So a term is `OBJ`-typed iff its chain's last name is one of the three.** `above . all<o20.w>`
+is `OBJ`; `translate . recolour<o0.col>` is not. **I read the rendering backwards on the first
+pass** — `above` looked outermost — and `atoms[0].accepts` being the INPUT type is what settled it.
+
+### AND THE ANSWER IS A ONE-CYCLE LAG ON BOTH BOARDS
+
+`accept` (tether.py:2541) and `rebind` (tether.py:2994) both write `self.bound`, so both are
+binding events. First `OBJ`-typed one per board, against the `_res` onset:
+
+    ka59   first OBJ-typed ACCEPT  cycle 8   slot o13.w   above . none<o1.h>
+           _res first populated    cycle 9                             lag 1
+    ls20   first OBJ-typed REBIND  cycle 1   slot o20.w   none
+           _res first populated    cycle 2                             lag 1
+
+**AND NON-`OBJ` BINDINGS EXISTED FROM CYCLE 1 ON BOTH BOARDS.** So the `Z` state was never
+*nothing is bound* — it is **nothing of the right TYPE is bound.** Route 1, measured, on `ka59`
+and `ls20`; and `sp80` was already measured there (*no `OBJ`-typed term is ever bound, 8 of 72
+slots bound and none `OBJ`*).
+
+> **THREE BOARDS, ONE ROUTE.** The onset axis is *time to the first `OBJ`-typed binding*, plus a
+> fixed one-cycle lag for the next perception pass. The other two routes never fire — and they
+> could not have fired for every slot at once, which is the reasoning I would have shipped if the
+> rows had not settled it.
+
+### THE SLOT THAT GETS IT FIRST IS THE SLOT THAT LATER GOES DEEPEST, AND THAT IS MECHANICAL
+
+`ka59`'s first `OBJ`-typed slot is **`o13.w`** — the slot refused by the bargain at cycle 23.
+`ls20`'s is **`o20.w`** — the slot that passes gate 1 at 17 and 18. **Not a coincidence and not a
+finding about the boards:** `MIN_REPEAT = 2`, so `_goal_choice` needs three readings, and **the
+earliest-bound slot is simply the first to accumulate them.** The selector's choice of slot is
+decided by binding ORDER, not by anything about the slot.
+
+    MECHANISM   the Z route separated to route 1 on all three boards; the onset axis given a
+                mechanism (first OBJ binding + one cycle); slot selection explained by
+                binding order rather than by slot properties
+    CAPABILITY  none. No run, nothing applied, no board reaches a level
