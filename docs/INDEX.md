@@ -27985,3 +27985,85 @@ rather than folded into the report**, because a cadence I quietly skip once is a
     CAPABILITY  none -- no run, nothing reaches the agent, both boards still read zero levels
     OPEN        THREE PARTS, which is Isaiah's: the two-part budget has fired twice in two cycles
                 and the next raise has no evidence left to stand on
+
+---
+
+## `F54` — THREE NEW REVIEWER ROWS, AND THE `φ̂` SPLIT LANDS ON A STRICTER PROHIBITION THAN THE ONE IT ESCAPES
+
+**The reviewer file grew to 14,573 bytes with three rows I had not seen** — `F48-CONFIRMED`,
+`F46-PHIHAT`, `F45-INDEPENDENCE`. **Two now carry `Needs Isaiah`**, which is the first time this
+window that the reviewer has raised a ruling of their own rather than answering one.
+
+### `F46-PHIHAT` — THEY ACCEPT THE COLLISION AND OFFER A SEPARATION. THE CODE SAYS IT IS WORSE, NOT BETTER
+
+*"You caught a collision in my own proposal and I missed it. I checked RAC against the SHAPING axis
+… I never checked it against the PROPOSER rule. Two axes, and my check covered one."* **Their
+candidate: the paper's construction is a PRECEDENCE ESTIMATOR — which of two states came first,
+trained on trajectories with no reference to candidate actions — and THAT HALF IS PERCEPTION. The
+RAC wrapper is what turns it into a gate over options, and the wrapper is SEPARABLE.** So a version
+that *"estimates reversibility and EMITS IT AS A READING THE AGENT CAN BIND"* might satisfy both
+rules. Filed as a candidate, not a ruling.
+
+**THE SEPARATION IS SOUND ON THE PROPOSER RULE AND IT LANDS ON THE TIER-1 PROHIBITION, WHICH IS
+STRICTER. CHECKED AT THE SITE.** What the agent binds are **slots**, and `arc_world.slots()` is
+`read_order()[0]` — the domain's own decomposition, `{object}.{attribute}`, typed through
+`arc_atoms.ATTRIBUTE_TYPE` by `slot_types()`. `sensors()` is declared in terms: *"the typed
+registry. `atoms()` declares Γ's vocabulary; **this declares perception's**."*
+
+    a reversibility estimate emitted as a BINDABLE READING is either
+      a new SLOT    -- a new attribute the world decomposes, i.e. the habitat, or
+      a new SENSOR  -- perception's registry, which sensors() says is exactly what it is
+    EITHER WAY IT IS TIER 1. It is not a term and it is not an atom.
+
+**And `CLAUDE.md`'s standing rule is unambiguous there:** *SENSORs beyond the nine are not wiped but
+**FORBIDDEN**, because §12.3 says the agent must reach for them and reaching is the only evidence the
+composition system works.* **The atoms' entry clause does not reach it either** — it *"admits ATOMS
+and says nothing about SENSORS"*, in its own words.
+
+> **SO THE PROPOSAL IMPROVES ON ONE AXIS AND FAILS A HARDER ONE, WHICH IS THE SAME SHAPE AS THE
+> ORIGINAL COLLISION.** Their first check covered the shaping axis and missed the proposer rule;
+> this one clears the proposer rule and meets the tier-1 rule. **Two checks, three axes.** Not filed
+> as a defeat of the idea — filed because a candidate that moves from a soft prohibition to a hard
+> one should be known to have done so before anyone builds it.
+
+**AND THE TENSION UNDER IT IS REAL AND IS ISAIAH'S.** `FIGURES-FOR-YOU` says capability is a
+property of agent-and-habitat and that **`F28` is the only CONTACT finding on the board**. A new
+bindable reading is *precisely* a contact change — the one category that moves capability at all —
+**and it is the category `CLAUDE.md` most tightly forbids.** The prohibition exists so that reaching
+is the evidence; the contact rule says nothing else counts. **Both are load-bearing and they point
+opposite ways here.** Not the seat's to resolve, and stated rather than split.
+
+### `F48-CONFIRMED` — ACCEPTED, AND THE CORPUS EDIT IS OWED BY THEM
+
+*"Confirmed, and the number is worse than I guessed. I said roughly 5.6 bits; you measured 5.615
+against ls20 median slack of 2.77."* They keep the scope note as **the part that must travel with
+the finding** — the measurement establishes the INCREMENT and the SLACK DISTRIBUTION, never that no
+negated term can ever pay. **And they put `I38` above the result**, adopting *a null that says no
+problem here is the one to re-run* as a standing rule on their side.
+
+**THE CORPUS EDIT IS THEIRS AND IS NOW RECORDED AS OWED BY THEM**: the Operators table will be
+amended so the open unary price *"records that a choice has been made and measured against, rather
+than reading as an undecided footnote."* **`F52` already found that the amendment landed** — the
+revision list's item 33 now says the cost is *left open rather than invented*. **The edit they owed
+is done; the row saying it is owed is one cycle stale.**
+
+### `F45-INDEPENDENCE` — THEY CORRECT A CLAIM THEY MADE TO ISAIAH, AND IT FORMALISES `F51`'s CAUTION
+
+*"I called the corpus tiebreaker a FIREWALL because the figures predate the boards and are provably
+upstream. **That holds for the BOARDS. It does NOT hold for the CODE, and I stated it as though it
+did.** CORRECT FORM: a figure is upstream of the boards always, and upstream of the code **ONLY
+WHERE ITS DATE SAYS SO**."*
+
+**THAT IS THE RULE `F51` APPLIED WITHOUT HAVING IT.** `F51` declined to file the Figure 5 / `F39`
+match as convergence because the figure was amended at 10:42, after my answers — `I37`'s ground.
+**The reviewer has now stated the general form of exactly that caution, from their own side, about
+their own claim.** `F40`'s tiebreaker survives it (Figure 5 predates the reuse gate); the
+settled-axis reading does not. **This is the one place today where two frames reached the same
+method independently, and it is a method rather than a finding — which is the kind that transfers.**
+
+    MECHANISM   three reviewer rows read; the phi-hat separation checked at the site and found
+                to meet a stricter rule than the one it escapes
+    CAPABILITY  none -- no run, nothing reaches the agent, both boards still read zero levels
+    OPEN        TWO NEW ISAIAH-OWED RULINGS, both raised by the reviewer: phi-hat placement,
+                now sharpened to a TIER-1 question rather than a proposer-rule one; and what
+                Figures 12 and 13 may be used for at all
