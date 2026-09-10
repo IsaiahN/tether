@@ -26304,3 +26304,52 @@ reporting noise.
 
     MECHANISM   F41's pair confirmed unique on the operand gate; census self-checked by arithmetic
     CAPABILITY  none
+
+---
+
+## `I25` — `F37` REPAIRED THE INSTANCE AND LEFT THE CLASS, AND THE SIBLING UNDERSTATES A FINDING
+
+`WINDOW_REPORT.md` §10 read *"`ls20` at depth 24 … **until it reports, `F14` is a mechanism
+observed once**."* **It reported.** `INDEX:22106` records the replication with a wider gap —
+`ka59` 11→14, `ls20` 7→18, eleven cycles of qualification that nothing consulted — and closes with
+***"`F14` is no longer a mechanism observed once."*** Nothing has been running for hours; the
+process list is empty.
+
+### THE SHAPE, WHICH IS NOT "A DOCUMENT WENT STALE"
+
+`F37` found a false freeze claim in this document, repaired it at source, and **did not sweep the
+document for siblings.** Its commit message — *"my own status report carried a false freeze claim
+for seventeen hours"* — reads as though the document were then sound. **A repair scoped to the
+INSTANCE leaves the CLASS**, and the class is *every timestamped claim in a document nobody
+re-reads.*
+
+> **AND THE SIBLING FAILED IN THE HARDER DIRECTION TO NOTICE.** The freeze claim was **too
+> strong** — it read as a breach, which is exactly what makes someone check it. This one is **too
+> weak**: a reader consulting the status report downgrades `F14` to `n=1` when the record holds it
+> at two boards. **A stale over-claim provokes a check; a stale under-claim is simply believed.**
+> Both were in one document, seventeen hours and four sections apart, and only the loud one was
+> found.
+
+    THE CHECK IS CHEAP AND I DID NOT RUN IT: when a staleness defect is found in a document,
+    grep that document for its OTHER dated or conditional claims -- "still", "until", "at last
+    check", "so far". Not a new law; the existing one is `fixtures before changes` read at
+    document scope. NOT filed into CLAUDE.md while ALIGN-1 is open
+
+### REPAIRED AT SOURCE, AND §11 ADDED
+
+`WINDOW_REPORT` is a WORKING document, so both are repairs rather than annotations. §10 now
+carries what the run returned; **§11 is the handoff** — the five open rulings in **dependency
+order read from each item's spec**, per step three, with two orderings that the rows do not state:
+
+    ALIGN-1 is the QUEUE HEAD and its cost ACCUMULATES -- three register entries are held
+    back behind it (F30's tiebreaker, I14/I15's paste-vs-generator trigger, I24's census
+    discipline), and every heartbeat adds another
+
+    F41(c) IS PRIOR TO (a) AND (b) -- "installed or reached" dissolves both if the answer is
+    `reached`. And `reached` routes F41 behind 3a indefinitely, because 12.4's verdict is a
+    standing UNREACHED with composable=0 and only a perception question lifts it
+
+**§11 carries the HEAD it is true at**, which is the one thing §10 lacked.
+
+    MECHANISM   a stale under-claim found and repaired; the handoff ordered by dependency
+    CAPABILITY  none

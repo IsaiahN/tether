@@ -248,7 +248,75 @@ have produced N identical reports and a *variance is low* line measuring nothing
 
 ---
 
-## 10 · STILL RUNNING
+## 10 · IT REPORTED, AND THIS SECTION WAS STALE IN THE OPPOSITE DIRECTION
 
-`ls20` at depth 24 under the `F14` timing harness — the second board for the headline finding.
-~3700s of ~3950s at last check. **Until it reports, `F14` is a mechanism observed once.**
+**AS WRITTEN:** *“`ls20` at depth 24 under the `F14` timing harness — ~3700s of ~3950s at last
+check. **Until it reports, `F14` is a mechanism observed once**.”*
+
+**IT REPORTED, AND `F14` REPLICATED WITH A WIDER GAP** (`INDEX:22106`):
+
+    board   last `_mint_routine` call   first qualifying cycle   gap
+    ka59              11                        14               3 cycles
+    ls20               7                        18              11 cycles
+
+`ls20` closes its asking window at cycle 7 — eight consecutive calls, then nothing — and carries a
+qualifying series from cycle 18. **Eleven cycles of qualification that nothing consulted.** The
+call count is the frozen `draw` count on both boards, 7 and 8, which is `F4`'s equality from the
+other end. INDEX's own line: ***“`F14` is no longer a mechanism observed once.”***
+
+> **THIS IS THE SECOND STALE CLAIM IN THIS DOCUMENT AND `F37` REPAIRED ONLY THE FIRST.** That
+> repair was correct and locally complete, and its commit message — *“my own status report carried
+> a false freeze claim”* — reads as though the document were then sound. **A repair scoped to the
+> INSTANCE leaves the CLASS**, and the class here is *every timestamped claim in a document nobody
+> re-reads.*
+>
+> **AND THIS ONE FAILED IN THE HARDER DIRECTION TO NOTICE: it UNDERSTATES a finding.** The false
+> freeze claim was too strong and read as a breach; this hedge is too weak, and a reader consulting
+> the status report would downgrade `F14` to `n=1` when the record holds it at two boards. **A
+> stale over-claim provokes a check. A stale under-claim is simply believed.**
+
+---
+
+## 11 · WHAT IS OWED TO ISAIAH, IN DEPENDENCY ORDER
+
+**TRUE AT `34d9166`, AND THE STAMP IS THE POINT** — §10 above is what an unstamped status claim
+becomes. Ordered by what unblocks what, read from each item's SPEC rather than from the row that
+summarises it, because build tables group by cost and the dependency order falls out of neither.
+
+**1 · `ALIGN-1` — the queue head, and its cost ACCUMULATES.** My unilateral `CLAUDE.md` edit
+(`2c3307f`): revert or keep. It is one commit and trivially reversible, but while it is open I am
+holding back **three** register entries that are otherwise ready — `F30`'s figures-tiebreaker
+instruction, `I14`/`I15`'s paste-vs-generator trigger, and `I24`'s census-discipline sentence.
+**Every heartbeat adds another withheld rule.** This is the only open item whose cost grows.
+
+**2 · `F41(c)` BEFORE `F41(a)` AND `(b)`, AND THE ROW DOES NOT SAY SO.** The item reads as one
+question; the spec has an order. **(c) is *installed or reached*, and it is LOGICALLY PRIOR** — if
+the answer is *reached*, (a) *which predicate fills operand 0* and (b) *where the producer sits*
+both dissolve, because the agent composes it rather than me. **AND (c) HAS A CONSEQUENCE WORTH
+KNOWING BEFORE RULING:** §12.4's reach verdict is a standing `UNREACHED` at every depth 2–5 with
+`composable=0`, and what would lift it is `3a`, a perception question forbidden until it has an
+entry rule of its own. **So answering *reached* does not defer `F41` by a week — it routes it
+behind `3a` indefinitely.** That is derived from the record, not a recommendation.
+
+**3 · `ALIGN-2` — independent, cheap, asymmetric.** The watchdog timezone: stamp Chicago, or move
+the routine to UTC. Nothing depends on it. But while it is off, **nothing detects this sheet going
+stale if the local session ends** — which is the failure it was built for, and which §10 above is
+an instance of in a different artifact.
+
+**4 · `F32` — better posed by `F40`, and its EVIDENCE is what is blocked.** Not *should partial
+explanation advance the chain* but *this one path uses a different gate from every other, the
+corpus specifies a single bargain, the build knows it and deferred the repair for a stated reason,
+and the divergence lets terms IN as well as keeping them out.* The 42 rejected candidates'
+`cost`/`left`/`base` are **not on disk** — the reject arms bump counters and write no row — so the
+measurement that would inform this needs a build change and sits on the post-freeze queue.
+
+**5 · THE BAR QUESTION — no further seat input is possible, and that is now established.** Does
+*failure accumulates traction* bear on terminal clause 1, *it wins*? `I24` closed the one avenue I
+had: `traction` and `win` are **zero** across all fifteen figures under word boundaries. **The
+tiebreaker cannot reach it.** Also still owed: `docs/outputs are not generators.md` is
+**untracked**, and an uncommitted corpus document is invisible to every later check.
+
+    NOTHING IN THIS SECTION IS A RECOMMENDATION. The ordering is a dependency reading; the
+    rulings are Isaiah's, and 2's consequence is stated precisely so it is not discovered
+    afterwards. If this section is read at a HEAD later than 34d9166, treat it the way §10
+    should have been treated: check it before believing it
