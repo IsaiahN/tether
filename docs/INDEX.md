@@ -24839,3 +24839,98 @@ Counter key.
     MECHANISM   reuse's accept condition located at `left == 0.0`; 42 strict improvements
                 discarded on one board; the funnel label corrected
     CAPABILITY  none. But this is the most specific statement yet of what stops the loop
+
+---
+
+## THE GATE-1 CENSUS COMPLETED: THREE PROFILES COLLAPSE INTO ONE AXIS WITH THREE ONSETS
+
+`F19`'s last owed measurement — the split of `ka59`'s gate-1 refusals between an **empty `_res`**
+and a **populated `_res` failing the shape test** — recorded as owed in `9f124cd` and explicitly
+*not extrapolated from `sp80`*. It is now measured, and it did not confirm the profile story.
+
+    ka59 x24    41 calls    Z (_res EMPTY) 21 of 41     first populated CYCLE 9
+    ls20 x20    40 calls    Z              6  of 40     first populated CYCLE 2
+    sp80 x20    36 calls    Z              36 of 36     first populated NEVER
+
+**`ka59` IS MIXED, WHICH IS THE FINDING.** It is `Z` for the first nine cycles and `A`/`C` after.
+So `sp80`'s empty `_res` is not a *different profile* from `ka59`'s populated one — **it is the
+same state that `ka59` leaves at cycle 9 and `sp80` never leaves.** One axis, three onsets:
+
+    ls20 (2)  <  ka59 (9)  <  sp80 (never)
+
+**AND THE AXIS IS *TIME TO FIRST READABLE GOAL RESIDUAL*, NOT *TIME TO FIRST OBJ BINDING*.**
+`goal_residual` (tether.py:1613) returns `None` by **three** routes — no `OBJ`-typed bound term,
+the slot absent from state, or an empty peer group — and `_res` is popped on any of them
+(1708-1712). Only `sp80` has the route separated (zero `OBJ` bindings, measured under E1).
+`ka59` and `ls20`'s `Z` route is **not** separated, and the axis is stated on the readable
+residual for that reason.
+
+### THE REFUSAL MESSAGE COVERS BOTH STATES, AND TWO BOARDS PROVE IT INDEPENDENTLY
+
+Site 1834 writes *"no objective is confidently shrinking"*. It is emitted from **both** sides of
+the boundary:
+
+    ka59  cycle 0-5   res_slots=0   "no objective is confidently shrinking"
+    ka59  cycle 11    res_slots=2   "no objective is confidently shrinking"   <-- SAME MESSAGE
+    ls20  cycle 0-1   res_slots=0   "no objective is confidently shrinking"
+    ls20  cycle 2-7   res_slots=1-2 "no objective is confidently shrinking"   <-- SAME MESSAGE
+
+**`ka59` is the only board that crosses the boundary mid-run, which is why it can demonstrate the
+ambiguity rather than argue it** — and `ls20` then replicates it on a second board. *Two distinct
+upstream states, one refusal string, nothing in the row telling them apart.* Predicted from the
+call-site read, then confirmed against rows already on disk.
+
+### THE DENOMINATOR WAS WRONG, AND THE LEDGER UNDER-REPORTS GATE 1
+
+`_mint_routine` has two call sites and **only 1575 is unguarded**. 1521 pre-checks
+`_goal_choice() is not None`; 1575 is a **fall-through** reached only when `_learned_split()`
+returned `None`. A `routine_refused` row is written **only from inside `_mint_routine`** — so a
+gate-1 refusal at 1521's guard leaves **no PLAN row at all**.
+
+    ka59   gate 1 refused on 22 of 24 cycles    recorded on 7    15 SILENT
+    ls20   gate 1 refused on 18 of 20 cycles    recorded on 8    10 SILENT
+
+Every silent cycle on both boards carries `by = discriminate:learned` — measured, not assumed:
+
+    ka59   NO PLAN row + discriminate:learned   15     PLAN row + draw   7    PLAN row + d:l   2
+    ls20   NO PLAN row + discriminate:learned   10     PLAN row + draw   8    PLAN row + d:l   2
+
+**Perfect correlation, and it is structural rather than incidental**: `_goal_choice` is called
+**3x** on a cycle that reaches the fall-through, **1x** on a cycle where System 1 answered first,
+**2x** on a gate-1 pass at 1521. Measured `ka59` `{3:8, 1:15, 2:1}` = 41 calls.
+
+### CLASSIFIED: NOT A DEFECT, NOT A GAME QUIRK, AND NOT A CANDIDATE FIX
+
+The routing is **correct and deliberate** — tether.py:1512 says *"DEMAND-DRIVEN, WHICH IS WHAT
+MAKES IT AFFORDABLE HERE"* and explains the precedence in its own comment. Nothing is
+wrong-given-the-input. What is incomplete is the **record**, and it is board-independent rather
+than a quirk of either board.
+
+**It is also RECOVERABLE, which is what keeps it off the candidate-fix list.** `by` is on the
+`REPEAT` row (tether.py:3060); a routine held would read `by = routine`; so **`by =
+discriminate:learned` with no PLAN row entails a gate-1 refusal at 1521's guard.** The join is the
+reconstruction, recorded here so the next reader needs no run.
+
+    A candidate fix for a non-error is worse than no note. This is a BEHAVIOUR NOTE with a
+    reconstruction attached, not a fix.
+
+### SEVENTH CORRECTION: "THREE CALLS PER CYCLE" IS NOT A RATE
+
+`F19`'s published correction (1) reads *"`_goal_choice` is called THREE times per cycle from three
+sites, so six returns are TWO decisions."* **The rate is wrong** — it is 3 only on cycles reaching
+the fall-through, and 41 calls over 24 cycles is 1.7. **The conclusion it supported survives and is
+now directly verified rather than inferred**: `ls20` returned on cycles **17 and 18**, three calls
+each, all six returning. Six returns, two decisions.
+
+### AND THE HEADLINE NUMBER WAS ALREADY IN THE SOURCE
+
+`tether.py:1514` reads *"it gates the composer, which fired **2 of 24 on both boards** rather than
+24 of 24."* My independent measurement returns exactly that — `ka59` cycles 13 and 23, `ls20`
+cycles 17 and 18. **The sixth law again, and this time the grep ran BEFORE the entry was written
+rather than after.** What is new here is the `Z` split, the onset axis, the message ambiguity and
+the silent-refusal count; **the fire-rate is a confirmation of a comment, and is not a discovery.**
+
+    MECHANISM   gate 1's refusal surface mapped per board and per cycle; the 1834 message
+                shown ambiguous across two upstream states on two boards; the ledger's
+                gate-1 under-reporting quantified and its reconstruction recorded
+    CAPABILITY  none. No board reaches a level, and nothing here was applied to the build
