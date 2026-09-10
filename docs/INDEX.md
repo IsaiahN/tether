@@ -25692,3 +25692,52 @@ the opportunity.**
     MECHANISM   gate 1's refusal on ls20 derived from the residual series and matching the
                 log exactly; the payable window measured at 15 cycles, not 18
     CAPABILITY  none
+
+---
+
+## `I19` — I QUOTED THE LINE AND DID NOT READ THE PARAGRAPH SIX LINES BELOW IT
+
+An hour ago I published *"the selector opens exactly when the opportunity closes"* as a finding,
+and cited `INDEX:18688` in the same entry. **Six lines under the line I quoted:**
+
+> ### THE TWO GATES WANT OPPOSITE THINGS, ON EVERY BOARD MEASURED
+> **The trigger needs the residual to be SHRINKING. The bargain needs it to be LARGE.** On the
+> five boards read, no board supplies both.
+> ...
+> **The property that opens the gate is the property that empties the purse.**
+
+**Same finding, stated earlier, on FIVE boards where mine was one, with the mechanism named and a
+worked case (`tr87`).** And `INDEX:17981` carries the shape census — *FLAT 6 · OSCILLATING 3 ·
+too-short 5 · **SHRINKING 0*** across 14 series on 7 games — which is the same fact one level up.
+
+> **THE GREP FIRED AND I STILL MISSED IT.** I searched `FLAT`, got 18688, **quoted that one line
+> in my own commit**, and never read down. **The trigger catches *did you look*; it does not catch
+> *did you read what you found*.** This is the sixth law's reading half — *citing a file feels
+> like evidence of having read it* — and it is the fourth instance tonight.
+
+### WHAT THE RUN GENUINELY ADDS, AND IT IS A DEPTH RECONCILIATION
+
+`INDEX:18688` says of `ls20`: **"trigger never opens."** My census says it opens **twice, at cycles
+17 and 18.** Both are correct, and the difference is depth:
+
+    SWEEP 5 read all seven objective-binding games at EIGHT cycles
+    ls20's residual sits flat at 1.0 through cycle 16 and collapses at 17
+
+**At depth 8 the trigger genuinely never opens. The collapse that opens it is nine cycles past
+where the record looked.** So the line is not wrong — it is `F1/F2`'s standing lesson applied to
+the record's own reading: **short runs produce confident wrong readings, and this one was
+confidently RIGHT about depth 8 and wrong as a general claim.**
+
+    RECORD, depth 8    the trigger never opens
+    CENSUS, depth 20   it opens once, on a STEP DOWN, after unsat falls 21.0 -> 3.0,
+                       which is from six times payable to below the 3.483 bar
+
+**AND THAT REFINES *the property that opens the gate empties the purse* RATHER THAN REPEATING
+IT.** The record derived it from `tr87`, where the residual was **always tiny** and drifted. `ls20`
+is the other case: **the residual was maximal and the purse was full for fifteen cycles**, and the
+gate opened on the single event that emptied it. **Two routes to the same trap — one where the
+purse was never full, one where it was full and the key only turned on the way out.**
+
+    MECHANISM   none new. A general finding I re-derived on one board, plus a depth
+                reconciliation the record could not have had at eight cycles
+    CAPABILITY  none
