@@ -25251,3 +25251,62 @@ look* paid here by finding that it HAD been — three times, in three places I h
 
     MECHANISM   none. Three audit items confirmed closed at their write sites
     CAPABILITY  none
+
+---
+
+## `F20` STEP 1's CEILING, MEASURED COLD ON FIVE BOARDS — AND GATE 4 WAS NEVER NEEDED
+
+Isaiah ruled step 1 first: *does any board offer a residual LARGER than the full-length routine
+cost.* My published measurement is **n=2**, both from `ka59`'s two gate-1 passes, and the row's
+own *Evidence That Would Settle It* reads **"more boards REACHING GATE 4."**
+
+**THAT WAS WRONG, AND THE SAME ROW ALREADY SAID SO.** Its Record cell reads *"`unsat` exists on
+every slot every cycle — so the question never needed gate 1 to pass."* **Two cells of one row
+disagreeing**, which is the `F22` handoff shape and the audit's self-supersession, now committed
+in my own writing.
+
+### THE CEILING IS A DECOMPOSITION PROPERTY, SO IT COSTS NOTHING
+
+`unsat = goal_residual(slot) × |group|` and `goal_residual = 1 − degree ∈ [0,1]`, so
+**`unsat ≤ |group|` always.** `_group` (tether.py:788) reads `env.peers()`, and `peers()`
+(arc_world.py:165) groups slots by **attribute** — pure decomposition, no bound terms, no agent.
+So the ceiling is readable from a `reset()` frame, offline, with no run.
+
+    game    objs  slots   n   |group|  |  k=1 thr   frac  |  k=2 thr   frac
+    ka59      14     84   4        13  |    2.322  17.9%  |    3.483  26.8%
+    ls20      20    120   4        19  |    2.322  12.2%  |    3.483  18.3%
+    sp80       8     48   5         7  |    2.227  31.8%  |    3.340  47.7%
+    g50t      14     84   5        13  |    2.227  17.1%  |    3.340  25.7%
+    wa30      12     72   5        11  |    2.227  20.2%  |    3.340  30.4%
+
+**Group size is UNIFORM within a board** — `13x84` means all 84 slots have group 13 — because
+every object carries every attribute, so the group is always *objects − 1*.
+
+> **THE NECESSARY CONDITION IS MET WITH MARGIN ON EVERY PUBLIC BOARD.** A two-step routine needs
+> only **18–48% of a slot's peers to disagree with the objective**; a one-step needs 12–32%.
+> **The bootstrap is REAL AND NOT BINDING — now measured on five boards rather than derived from
+> the arithmetic**, which is the outcome Isaiah said would dissolve the question for free.
+
+### AND `ka59`'s ONE REAL READING BECOMES LEGIBLE
+
+The recorded near-miss was *0.9658 bits*, which says nothing to a reader. Against the ceiling:
+
+    ka59 cycle 23   unsat 3.00 of a ceiling of 13   =  23.1% of peers disagreeing
+    threshold                             3.483/13  =  26.8% needed
+
+**It missed by 3.7 percentage points of peer disagreement — about half of one peer.**
+
+### WHAT THIS DOES NOT ESTABLISH, STATED BECAUSE THE CEILING IS SEDUCTIVE
+
+**A ceiling is a NECESSARY condition, not a sufficient one.** It shows the threshold is
+REACHABLE; it does not show it is REACHED. **The only two real `unsat` readings any board has
+produced are still `ka59`'s 0 and 3.00**, and nothing here adds a third. What would add one is
+per-slot `unsat` in the ledger — `goal_residual` has **five call sites and no `record`**, so the
+n=2 is a limit of the instrument and closing it needs a build change, which the freeze forbids.
+
+    NOT MEASURED   `env.read()` returned 0 slots in this probe, so nothing here rests on
+                   state; the group figures come from `peers()` alone and are stated as
+                   the ceiling, never as an observation of what any slot actually was
+
+    MECHANISM      F20 step 1's ceiling half answered on 5 boards, cold, with no run
+    CAPABILITY     none
