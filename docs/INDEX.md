@@ -26189,3 +26189,73 @@ All three are rules already carried in `CLAUDE.md` and none is about the accepta
 
     MECHANISM   none. A closed avenue and a corrected census
     CAPABILITY  none
+
+---
+
+## `F41` — PHASE 1 ITEM 3 EXAMINED RATHER THAN DISMISSED: THE `operand_term` PRODUCER NEEDS A RULING
+
+The heartbeat's item 3 says *build §4's `operand_term` producer **only if clean without a held
+decision** — if it needs a ruling, FILE IT and stop building.* **I have been answering it by
+CATEGORY for several heartbeats — "a build item, the freeze forbids it" — which is not the
+question asked.** The question is whether it needs a ruling. It does. Filing it.
+
+### WHAT IS BUILT, AND IT IS EVERYTHING EXCEPT THE PRODUCER
+
+Ten occurrences of `operand_term`, all read rather than counted (`I24` was one heartbeat ago):
+
+    gamma.py:174        the FIELD           operand_term: Term | None = None
+    gamma.py:180-181    the RENDERER        inner = f"{operand_term.name}({operand})"
+    gamma.py:262        the LENGTH          + len(self.operand_term)
+    gamma.py:557-558    the PRICER          Gamma.length recurses into it
+    tether.py:669-670   the APPLIER         value = term.operand_term.apply(...)
+    arc_atoms 137, 606  two COMMENTS naming what it unlocks
+
+**ZERO producers.** Every `Term(...)` construction site passes a raw `operand=` and none passes
+`operand_term=` — gamma.py:344, snaps.py:461, tether.py:1076. **So the applier's branch is dead
+by construction.**
+
+### AND THE CONSEQUENCE IS THAT TWO ADMITTED ATOMS ARE UNREACHABLE
+
+`both` and `either` were **admitted under the entry clause on 2026-09-08**, stamped as *"G1's
+gap: the set had quantifiers and no connectives"* — `arc_atoms.py:606` calls it **"the largest
+structural item on the board."** Both declare `operand_type=PRED`.
+
+**MEASURED COLD ON FIVE PUBLIC BOARDS, no agent, no run** — `env.slot_types()` at `reset()`:
+
+    ka59  84 slots   ls20 120   sp80 48   g50t 84   wa30 72
+    types on every board: POSITION, COLOUR, EXTENT, SHAPE      untyped: 0     PRED slots: 0
+
+`COMMENSURABLE` is `{frozenset((POSITION, DELTA))}` and nothing else, so `PRED` matches only
+`PRED`. **`_operand_fits` therefore refuses every candidate**: `want=PRED`, `got` is one of four
+non-PRED types and is never `None`, so the admit-on-undeclared path never opens.
+
+> **CLASSIFICATION: NOT A DEFECT, AND THE FILTER IS THE PART WORKING.** `_operand_fits` is `0a`'s
+> typing half, built after `idn . recolour<o11.h>` bound a HEIGHT as a colour operand. Its refusal
+> here is exactly its stated job — *"it refuses a binding that cannot mean anything."* **Had it
+> admitted, `_both` would have computed `int(bool(v) and bool(o))` on a raw width of 21 and
+> silently read it as TRUE.** The type filter is what stops a silent coercion, and it stops it on
+> every board.
+
+### THE RULING IT NEEDS, STATED AS PRECISELY AS I CAN
+
+**One decision is already made and is NOT in question:** cost. `Gamma.length` recurses into
+`operand_term`, so a computed operand is priced at its own length — the bargain already covers it.
+
+**Two are open, and the first is the one that touches doctrine:**
+
+1. **WHICH predicate fills operand 0.** The candidate space is Γ's `PRED`-producing terms, so the
+   producer is a SEARCH, and how it ranks is a design choice. **This is where shaping enters:** a
+   selection rule tuned so a particular conjunction forms is *"a lookup table written one
+   observation at a time."* The rule needs a principle, and the principle is Isaiah's.
+2. **WHERE it sits.** `_rebindings` yields typed re-bindings over SLOTS; a producer needs a
+   parallel path yielding terms with `operand_term` set. Structural, and downstream of (1).
+
+    AND A THIRD QUESTION UNDERNEATH BOTH, WHICH IS WHY I WILL NOT GUESS AT IT: whether the
+    producer should be INSTALLED at all, or REACHED. CLAUDE.md -- "residue is the agent's to
+    close ... prefer the agent deriving it crudely to me installing it cleanly." `both`/`either`
+    entered as ATOMS under the clause; a composer that fills their operand is a different kind
+    of thing, and §12.4's reach mechanism is the standing alternative
+
+    FILED, NOT BUILT -- which is what item 3 instructs when a ruling is needed
+    MECHANISM   field, renderer, pricer, applier BUILT; producer ABSENT; both/either inert
+    CAPABILITY  none, and zero on every public board -- measured, not inferred
