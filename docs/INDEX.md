@@ -26667,3 +26667,119 @@ post-freeze queue.
 
     MECHANISM   six rulings absorbed; two acted on; three build items filed
     CAPABILITY  none yet -- and the two items that could change it are build work
+
+---
+
+## `I31` — `I15`'s RULE VIOLATED TWICE MORE, UNDETECTED, AND FOUND BY A PATCH ANCHOR FAILING
+
+**Found while writing the rulings into the generator, minutes after filing the rule against this
+into `CLAUDE.md`.** A `sub()` assertion refused an anchor I was certain existed:
+
+    MISSING "AND A THIRD, I24's census-discipline sentence - THREE REGISTER ENTRIES"
+
+**It is in the PUBLISHED sheet and in neither `mksheets.py` nor `workbook3.csv`.** Measured both
+ways, and a second cell fails identically:
+
+    "THREE REGISTER ENTRIES ARE NOW HELD..."   generator 0   csv 0   published sheet YES
+    "INDEPENDENT BUT ASYMMETRIC..."            generator 0   csv 0   published sheet YES
+
+**So I typed both into a `create_file` paste.** That is `I12` / `I14` / `I15` — **a fourth and
+fifth instance** — and the next regenerate-and-publish, which is the one I was preparing, **would
+have silently reverted both.**
+
+### THE CAUSE IS A SHORTCUT I INTRODUCED FOR CONTEXT, AND IT IS THE WHOLE MECHANISM
+
+The sync protocol says *read `workbook3.csv` FROM DISK*. I have been reading only the **changed**
+lines from disk — identified by comparing line sizes against the previous publish — and
+**reproducing the unchanged ones from context.** That is efficient and it is exactly what lets a
+hand-edit survive: a line I typed once persists in context and gets re-typed every publish, while
+the generator never learns about it, and the size comparison cannot see it because the line I am
+comparing against is *my own earlier paste* rather than the file.
+
+> **THE OPTIMISATION IS THE DEFECT. Comparing this publish against my last publish measures
+> nothing** — both sides are me. The only comparison with a subject is **the file on disk against
+> what I am about to send.**
+
+    THE PRACTICE CHANGES: read EVERY line from disk on every publish, not only the changed ones.
+    It costs context and buys the only guarantee available, and I had traded exactly that away
+
+**AND THE ASSERTING `sub()` IS WHAT SURFACED IT** — not by design, since it exists to catch
+ambiguous anchors, but a patch script that refuses to guess is why this was found at all rather
+than reverted silently on the next publish. **`I9` is the reason that assertion exists: a
+`str.replace` with a wrong anchor that matched nothing, changed nothing, and reported success.**
+The guard written for one failure caught a different one two dozen entries later.
+
+    WHAT THE TWO CELLS SAID, so nothing is lost: ALIGN-1 carried "three register entries are
+    now held behind this one ruling", and ALIGN-2 carried "independent but asymmetric --
+    nothing depends on it, and while it is off nothing detects the sheet going stale". BOTH
+    ARE NOW SUPERSEDED BY THE RULINGS ANYWAY -- the entries are released and the watchdog is
+    fixed -- so the revert would have cost nothing THIS time. That is luck, not a defence
+
+    MECHANISM   paste-vs-generator violated twice more; the publish practice corrected
+    CAPABILITY  none
+
+---
+
+# THE FREEZE IS A SHAPING GUARD, AND THE AGENT TOKENIZES OBJECTS — ISAIAH, 2026-09-10
+
+## THE FREEZE POLICY, CORRECTED AT ITS ROOT
+
+> *"Unfreeze and refreeze whenever testing needs to be done on cycles — it is mainly to prevent
+> either of you trying to build towards the games or solve the games. That is this new
+> architecture's job."*
+
+**I had been treating the freeze as a blanket prohibition on building, and it is not.** It is a
+**guard against SHAPING**, and its scope is exactly the thing `CLAUDE.md` calls the unforgivable
+failure. **Unfreeze to build, refreeze to test on cycles, repeat.**
+
+    WHAT IS PERMITTED   building the mechanisms the framework NAMES and the code lacks
+    WHAT IS FORBIDDEN   building toward a GAME, or toward solving one -- unchanged, and it is
+                        the whole reason the freeze exists
+    WHOSE JOB           solving the games is THE ARCHITECTURE'S, not mine and not the proctor's
+
+> **AND THIS RETIRES A BLOCKER I RAISED ONE HEARTBEAT AGO AS THE LAST OPEN QUESTION.** I wrote
+> that the queued build items and `PROTOCOL`'s 10×5 loop were *in the wrong order unless the freeze
+> lifts.* **They were never in the wrong order — I had the freeze's scope wrong.** `F32`'s
+> confidence acceptance and the failed-path catalogue are buildable now, and neither reasons from
+> what a board contains, which is the test that actually matters.
+
+**THE CLASSIFICATION RULE IS UNCHANGED AND STILL BINDS EVERY LINE OF IT:** system error across
+boards → candidate fix; one board only and the build abstains correctly → behaviour note, never a
+fix. **A candidate fix justified by *this board would then solve* is a lookup table written one
+observation at a time**, and that is forbidden whether the freeze is on or off.
+
+## THE FRAMING — OBJECTS, NOT WORDS, AND THE COMPARISON IS MEASURABLE
+
+> *"It tokenizes objects and their relationships where an LLM tokenizes words — so the
+> developmental scales built for PRE-LINGUISTIC INFANTS are a better fit than anything built for
+> language models. That is a measurable comparison rather than a rhetorical one."*
+
+**The build already says this in its own shapes, and I had never named it.** What the agent's
+vocabulary is actually made of, measured this window:
+
+    the unit          a SLOT -- one object's one attribute, `o13.w`, never a word
+    the types         POSITION · COLOUR · EXTENT · SHAPE, four, on all five public boards
+    the relations     `same` · `other` · `above` -- object against object, and `env.peers()`
+                      groups by ATTRIBUTE, which is pure decomposition with no agent state
+    the quantifiers   `all` · `any` · `none` close a predicate into something bettable
+    what is absent    no lexicon, no corpus, no pretraining, and `discriminate` reading zero on
+                      ARC is the DESIGNED state (`E2`) -- it must learn what its buttons do
+
+**So the object-and-relation substrate is not an analogy, it is the type system**, and `F41`'s
+ruling sharpens it further: `both`/`either` are derivative because the connectives belong one level
+**above** the primitives, in strategy logic — which is where a pre-linguistic account would also
+put them.
+
+    HELD OPEN, DELIBERATELY, PENDING THE PROCTOR'S RESEARCH. Isaiah's claim is that this is
+    MEASURABLE rather than rhetorical, and the measurement is not mine to invent -- inventing
+    one here would be failure mode 4, an invented metric, dressed as a framing. So this entry
+    records the FRAME and the substrate it maps onto, and stops there
+
+    AND ONE THING IT ALREADY DOES: it says why `levels_completed` reads the way it does without
+    excusing it. A pre-linguistic scale does not ask for the whole task on day one -- but
+    `CLAUDE.md` clause 1 still does, and the BAR ruling settled that traction is the MECHANISM
+    and level completion the READOUT. The frame explains the shape of progress; it does not
+    move the bar, and it must not be used to
+
+    MECHANISM   the freeze's scope corrected; the substrate named
+    CAPABILITY  none yet -- and the freeze lifting is what makes the queued items reachable
