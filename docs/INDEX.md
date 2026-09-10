@@ -25523,3 +25523,59 @@ keeps appearing in my own writing is *needs X, which does not exist.*
     MECHANISM   none. SS8's wall question answered from files already on disk; run-to-run
                 determinism measured; three findings independently confirmed
     CAPABILITY  none. routine_events is empty on all 16 public boards at depth 6
+
+---
+
+## MY `F20` CEILING IS RESET-FRAME AND FIVE-BOARD, AND THE LIVE NUMBERS ARE BIGGER IN BOTH DIRECTIONS
+
+`sweep.py` collected **both factors of `unsat`** at 21:45 — `rgs` from `ag._res[s][-1]` and
+`scopes` from `len(ag._group(s, b))`, **same loop, same slots** — and reports only `max` of each,
+never the product. So the boards were half-measured six hours before I measured the other half
+cold.
+
+### TWO WAYS MY PUBLISHED CEILING IS UNDERSTATED
+
+    ls20     cold group 19   LIVE scope max 20     the reset frame is not the run
+    bp35     never measured  LIVE scope max 191    I measured five boards; sixteen exist
+
+**`_group` is read per cycle from the live decomposition, and objects come and go** — so a
+reset-frame count is a snapshot, not a constant. I published *"group size is UNIFORM within a
+board ... always objects-minus-one"* from one frame. **True of that frame; `ls20` is already 20 by
+depth 6.**
+
+**AND THE FIVE-BOARD TABLE MISSED THE INTERESTING BOARDS ENTIRELY.** My range was 7–19. The live
+set runs **bp35 191, tu93 68, tr87 65, lf52 59, dc22 39** — so the fraction of peers that must
+disagree is not 18–48% everywhere. **On `bp35` a two-step routine needs 3.34 of 191 — under two
+percent.**
+
+    The error is CONSERVATIVE in both directions, which is the safe way to be wrong and
+    is still stated as if fixed and complete. It was neither.
+
+### AND THE RESIDUAL DOES REACH ITS CEILING — ON SIX BOARDS
+
+`R_goal_max = 1.0` on **ls20, ar25, bp35, cn04, lf52, re86**. Nine others read `None` — no goal
+residual at all at depth 6, which is `F36`'s route 1 confirmed again on a much wider set (`ka59`
+among them, consistent with its cycle-9 onset).
+
+> **AND I STILL CANNOT CALL `F20` STEP 1 FROM THIS.** `max(rg)` and `max(scope)` may be
+> **different slots**, so their product is an upper bound and not an observation. **That pairing
+> is exactly what the running census forms**, and it is now the reason to wait rather than a
+> preference. **The temptation here is large — 1.0 × 191 — and it is the same shape as the
+> `base_bits` near-miss: two real numbers that were never multiplied together by anything.**
+
+### `sweep.py` IMPLEMENTS THE COST WALL AND MY OWN PROBE DOES NOT
+
+    if time.time() - t0 > 150:      # the cost wall: stop, do not fix
+        out["stopped_early_at_cycle"] = i + 1
+
+**It fired on `bp35` and `sk48`, both at cycle 6** — the two most expensive boards (152.4s,
+216.9s), which is the wall curve predicting its own stop.
+
+**`unsat_census.py` has NO wall stop and NO incremental write.** It dumps its JSON only after both
+boards finish, so **it cannot be stopped at the wall without losing everything measured so far** —
+which is precisely what the heartbeat's *stop at the cost wall rather than grinding* asks for.
+**Recorded as a limitation of the instrument I built two heartbeats ago, and the fix is obvious
+and not applied mid-flight.**
+
+    MECHANISM   none. The ceiling correction is against my own published table
+    CAPABILITY  none
