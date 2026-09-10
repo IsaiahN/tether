@@ -29231,3 +29231,40 @@ not say what *the drive is never bored* would predict.
 
     MECHANISM   the probe branch and its drive-state row both fire on ARC
     CAPABILITY  unchanged -- levels_completed 0 on all five
+
+---
+
+## F77 — THE ANCHOR LOSES GROUND, AND THE ARITHMETIC SAYS SO RATHER THAN THE NEXT OVERFLOW
+
+`F71` took the third part and moved the anchor `F35 → F36`. **One batch later the anchor has moved
+again, `F36 → F37`, and part A is back to 157 chars of headroom.** Both moves were deliberate and
+recorded, which is what the SPLIT row promises — but two moves in one session is a rate, and the
+rate is the finding.
+
+    an anchor move sheds ONE row        ~4,500 chars
+    a cycle's findings cost             ~8,000 chars (F75 + F76 were 3,952 over on their own)
+    net per cycle                       the anchor LOSES about 3,500
+
+**So the anchor is not a solution to growth, it is a way of paying for about half of one cycle's
+worth.** Part A holds *the status row and the newest findings*, and findings arrive faster than
+shedding one old row can absorb. **Three more cycles at this rate and the anchor has walked
+through F37, F38, F39 and part A is still full.**
+
+**WHAT THIS IS NOT.** It is not an argument for a fourth part — that would be `F58`'s ratchet with
+a bigger number, and `F71` already refused the shave-again version of it. It is not an argument for
+raising `PART_MAX`. **And it is not urgent this cycle**: A fits, all three parts emit, the
+assertion passed before anything was written.
+
+**WHAT IT ACTUALLY SAYS is that part A's contents need a rule, and it does not have one.** Parts B
+and C divide by KIND — older findings, the log. **Part A divides by RECENCY, which is not a
+property that stops accumulating.** The other two are stable because *older findings* and *the log*
+are categories; *newest findings* is a window that only ever slides.
+
+> **THE CANDIDATE, RAISED AND NOT TAKEN, because it changes what the reviewer reads and that is
+> theirs and Isaiah's:** a finding that is CLOSED and has been read could move to the Archive on
+> the same principle the log moved — divide by kind, not by date. `F76` closing `F56` is exactly
+> such a case. **I am not doing it silently and I am not doing it this cycle.**
+
+    MECHANISM   the budget assertion fired before any write, for the fifth time this session,
+                and the anchor move was one row and recorded in the SPLIT row's own history
+    CAPABILITY  none -- transport, levels_completed 0
