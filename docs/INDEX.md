@@ -24733,3 +24733,60 @@ times at 6/12/24/48, and a per-cycle curve would need instrumentation that does 
     NOT ANSWERED §8's wall question, which needs per-cycle timing the rows do not carry
     MECHANISM    explain absorbs at a rate that flattens outstanding while integral climbs
     CAPABILITY   none. MINTED_UNUSED is the build saying the terms are not consumed
+
+## THE BUILD'S OWN LADDER SAYS THE FAILURE IS ARCHITECTURAL, AND NAMES THE RUNG
+
+**`instruments.py` defines a seven-rung chain and marks exactly one of them as an indictment:**
+
+    DIED_PRE_DIFF   implementation -- the diff never ran
+    RESIDUAL_EMPTY  library -- wrong grain, nothing to explain
+    MINT_UNFIRED    gate calibration -- residual there, no mint
+    REUSE_UNWIRED   reuse never ATTEMPTED -- "A READING, NOT A VERDICT"
+    MINTED_UNUSED   "ARCHITECTURE -- the only code that indicts"      <- BOTH BOARDS
+    USED_NOCLEAR    drive layer -- reused, nothing cleared
+    CLEARED         the loop fired once
+
+    INDICTS = MINTED_UNUSED     # and nothing else
+
+**`ka59` and `ls20` both report `MINTED_UNUSED` on every cycle from the moment minting starts.**
+
+### AND THE CONDITION IS SHARPER THAN "THE LIBRARY IS NOT CONSUMED"
+
+    if not reuse_attempted:  return REUSE_UNWIRED
+    if not reused:           return MINTED_UNUSED
+
+**Reuse IS attempted. It never succeeds.** That is a different and much more specific claim than
+*nothing consumes the terms* — the consumer exists, runs, and comes back empty every time.
+
+### THE FUNNEL SAYS WHY, AND IT IS TWO CAUSES IN EQUAL MEASURE
+
+    sp80 x30 reuse_funnel
+      rescan                          90    NOT an attempt -- listed in NOT_ATTEMPTS
+      no-eligible-target:none-stale    1    NOT an attempt
+      did-not-pay                     42    ATTEMPT, refused by the bargain
+      no-split                        48    ATTEMPT, no split found
+
+**90 real attempts, 90 failures, 47% / 53%.** And `NOT_ATTEMPTS` is a pinned table rather than a
+prefix match — *exemptions as data, not logic* — so the attempt/non-attempt split is auditable
+rather than inferred.
+
+> **`did-not-pay` AT 42 IS WORTH SEPARATING FROM `F19`.** `F19` closed with *the bargain is not the
+> blocker*, and that was about ROUTINE pricing at 1958. **This is the REUSE bargain, a different
+> site, and there it refuses 42 of 90.** No contradiction — and the two must not be pooled into one
+> claim about "the bargain".
+
+### AND THE LADDER'S SUMMARY INSTRUMENT DOES NOT RUN ON THIS PATH, WHICH IT SAYS ITSELF
+
+    last_stage   None
+    stalls       {}
+    stage_reads  "UNCOMPUTED on this path -- `close()` is never called, so `None` here means
+                  the instrument did not run, NOT that nothing stalled"
+
+**`stalls: {}` is not *no stalls*. It is *not measured*, and the report says so in the field next to
+it.** That is the behaviour every other check this window failed at: **a null that names its own
+cause.** The per-cycle `stage` I read from `repeat` rows is computed live and is unaffected.
+
+    MECHANISM   the failure located at the one rung the build calls architectural, and the
+                90 attempts split 42 bargain / 48 no-split
+    CAPABILITY  none. But this is the first reading tonight that comes with the build's own
+                verdict attached rather than mine
