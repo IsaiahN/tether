@@ -26054,3 +26054,82 @@ admitted as ATOMS, none unhandled.** Checked at the write site, not inferred fro
 
     MECHANISM   nothing found unread; entry-clause partition verified complete at its site
     CAPABILITY  none
+
+---
+
+## `F40` / `I23` — THE CORPUS PRICES A REMAINDER, AND `F32`'s FRAMING WAS ONE-SIDED
+
+Following through on `F30`'s closing commitment — *use the figures on every open ruling, not only
+when stuck* — applied to `F32`, which I had called my sharpest open question and parked as
+above my seat.
+
+### THE FIGURES, BY TERM CENSUS RATHER THAN BY READING ONE AND FINDING WHAT I WANTED
+
+`partial`, `fully`, `wholly`, `left over` — **zero across all fifteen.** `remainder` — **five, all
+in Figure 13.** So the search was directed by the census, not by the conclusion.
+
+**FIGURE 5, THE MINT PIPELINE, STATES THE ACCEPTANCE TEST ITSELF:**
+
+> *"The acceptance test is a bargain, not a threshold. A new term is worth having when stating it,
+> **plus what remains unexplained after it**, costs less than what was unexplained before."*
+
+**That is `pays(cost, left, base)` verbatim — and the clause *what remains unexplained after it*
+is vacuous unless `left` can be non-zero.** The same figure names the other end as a failure:
+*"a term that explains everything by saying nothing fails this, **and so does a term that explains
+one occasion perfectly**."*
+
+**FIGURE 13 MAKES THE REMAINDER CONSTITUTIVE:** *"because each turn leaves a remainder (the
+residual) that re-enters the next"*; *"every turn begins from a remainder the last one left."* And
+in its **minimality argument** — a table of what breaks when a member is removed — *"no remainder
+left after each step"* appears as a **failure condition**, alongside *"no finite operations to
+leave a remainder."* Polarity checked in context rather than read off the grep.
+
+### AND THE BUILD SAYS IT FIRST, AT THE SITE, CITING THE CORPUS
+
+`_install_reuse`'s docstring (tether.py:2723):
+
+> **"TWO GATES ON ONE LIBRARY.** `mint` requires `cost + left < base`; this fires when `_reach`
+> returns a term with `left == 0.0` … **§14.4 says *one bargain*, and this is the site where there
+> are two."**
+
+Verified at the site: `if left == 0.0:` gates `explain`, the `pull` row, `note_reused`,
+`note_cleared` and `_install_reuse`; the reject arms are `elif left < base: note_reuse_attempt
+("did-not-pay")` and `else: … ("no-split")`, and `note_reuse_attempt` (instruments.py) **bumps
+counters and writes no ledger row.** So the 42 rejected candidates' `cost`/`left`/`base` are **not
+on disk**, and that half of `F32` is not answerable without a build change.
+
+> ### `I23` — AND THE FINDING I WAS ONE STEP FROM PUBLISHING WAS WRONG IN BOTH HALVES
+>
+> I had the sentence drafted: *`would_pay` is recorded only inside `_install_reuse`, i.e. only on
+> the accept branch where `left == 0.0` makes the answer near-automatic — the counterfactual is
+> recorded exactly where it is uninformative.* **Both halves false, and the refutation is a
+> comment three lines below the field:**
+>
+> *"the asymmetry was load-bearing: **19 of 21 installs read `would_pay=False`** against a cost
+> that charged for work the ground had already bought."*
+>
+> **Not uninformative — informative 19 times in 21.** And not an oversight: the docstring says
+> the row *"states what the bargain WOULD have said, exactly as `can` published its reading before
+> `Until` existed to consume it: the first run that exercises this path answers the question
+> instead of a decision made without one."* **A pre-registered counterfactual, deliberately
+> placed.** Caught by the grep-before-explaining trigger — third time this session, same shape as
+> `I22`'s `_present` near-miss.
+
+### WHAT ACTUALLY CORRECTS `F32`, AND IT IS MY FRAMING RATHER THAN THE CODE
+
+I filed the finding as **42 strict improvements discarded for not fully closing.** **The build
+flags the OPPOSITE direction as the live concern:** *"a term that explains a parked residual
+completely can still be **LONGER than the residual is worth**"* — so `left == 0.0` can **admit**
+what the bargain would refuse, and 19 of 21 installs measured exactly that. **The two-gate
+divergence cuts both ways and I published one side of it.**
+
+    AND NO CANDIDATE FIX, BECAUSE THE DEFERRAL IS ALREADY REASONED AT THE SITE: "`_install_reuse`
+    was never called across the demo panel ... a gate added here would change what enters Gamma
+    with NO BOARD ON WHICH TO READ THE CHANGE, which is the fitting-to-an-argument the deferred
+    repairs have all been held against." That is CLAUDE.md's own rule, applied by the build,
+    in advance. Proposing the repair would re-derive a documented deferral -- I13/I19's error
+
+    OWED, NOT PROPOSED   cost/left/base at the two reject arms, so the 42 become readable.
+                         A build change; post-freeze queue, not applied
+    MECHANISM   corpus reading + F32's framing corrected; two-gate divergence is bidirectional
+    CAPABILITY  none
