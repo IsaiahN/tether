@@ -28268,3 +28268,51 @@ report. **Two different claims, and `F56` should have said the first.**
     CAPABILITY  none -- no run, nothing reaches the agent, both boards still read zero levels
     OPEN        any_live on the REPEAT row, owed alongside F50's reach field; and whether the
                 drive is ever bored on ARC, which no current instrument can answer
+
+---
+
+## `F58` — 88% OF A PUBLISH IS RE-TRANSMISSION, AND THAT IS `F55`'s RULING WITH A RATIO BEHIND IT
+
+**Measured on the publish that was about to go out**, row by row, generator against the two live
+files:
+
+    total payload              200,803 chars across 47 rows
+    rows ADDED                 F56 only          5,192 chars
+    rows CHANGED (not new)     RUN STATUS
+    changed bytes              24,223
+    RE-TRANSMITTED UNCHANGED   176,580 chars  =  87.9% of the publish
+
+**One new row. Two hundred thousand characters.** `F55` said the transport had become the binding
+constraint and filed three parts plus the cut rule as Isaiah's; this is the same claim with the
+denominator it was missing. **The cost is not that publishing is large — it is that publishing is
+large IRRESPECTIVE OF WHAT CHANGED**, because `create_file` replaces a whole document and the
+workbook is one document.
+
+> **AND THE RATIO ONLY GETS WORSE**, because the numerator is fixed at roughly one finding per cycle
+> while the denominator grows by that finding forever. **At forty-seven rows a new finding is 2.6%
+> of what it costs to deliver it.**
+
+### THIS CYCLE STOPPED BEFORE WRITING ANYTHING
+
+**Nothing is half-published.** The live pair is the verified publish from 18:07 and is internally
+coherent. The generator carries `F56` — with `F57`'s correction inside it, per `CLAUDE.md`'s rule
+that a correction goes into the row carrying the error — is regenerated at **A 101,740 / B 101,270**,
+and `runstatus.txt` now carries the `F56` headline against an unchanged `runstatus_synced.txt`, **so
+the next cycle publishes without re-deriving anything.**
+
+**AND THE BUDGET RAISE THAT PRECEDED THIS STOP IS THE PART TO SCRUTINISE.** `PART_MAX` went to
+102,000 — the third raise in one session, each argued from the last verified publish. **That is an
+argument that renews itself forever**, and naming it is why the site now carries a pre-registered
+stop: **a two-way split's floor is total/2, and when that floor exceeds a size that has actually
+failed, three parts is FORCED rather than chosen.** Today's floor is 101,270 against known-good
+99,820 and known-bad 164,976 — inside the bracket, so the raise is a measurement.
+
+**The distinction that resolves the ratchet, and I had been conflating it:** the **BUDGET** is a
+prediction about whether a payload survives, and predictions are measured. The **CUT RULE** —
+anchored against balanced — is reader-facing and is Isaiah's. **A budget refusal is not a proxy for
+the policy question.**
+
+    MECHANISM   the publish decomposed into new against re-transmitted, per row
+    CAPABILITY  none -- no run, nothing reaches the agent, both boards still read zero levels
+    OPEN        unchanged and now quantified: three parts, the cut rule, and whether a
+                whole-document transport is the right one for an append-mostly artefact
