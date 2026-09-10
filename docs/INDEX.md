@@ -25902,3 +25902,62 @@ rolling-window derivation holds — which is why it reproduced `F19`'s cycles 17
 
     MECHANISM   F39 corrected: exclusion is by LENGTH and by SHAPE, not by a comparison
     CAPABILITY  none
+
+---
+
+## `I21` — I FLAGGED `F36`'s MECHANISM AS AN ERROR, MEASURED IT, AND THE CONCLUSION HELD
+
+Applying `I20`'s pop rule to the neighbouring row, `F36`'s Seat Response reads:
+
+> *"`MIN_REPEAT=2` so `_goal_choice` needs three readings, and the earliest-bound slot is
+> **simply the first to accumulate them**."*
+
+**I opened the heartbeat calling that necessary-not-sufficient — a gap resets the count, so
+earliest-bound cannot imply first-to-three.** Then I measured it instead of publishing it.
+
+### THE PREMISE CHECKS OUT AT ITS WRITE SITE
+
+`note_goals` (tether.py:1697) iterates **`for slot in self.slots`** — every slot, every step. So
+`goal_residual` is called on all of them each cycle, and **a slot absent from the census at cycle
+`C` returned `None` at `C`.** Gaps in the census ARE pops; `I20`'s reading of them is sound.
+
+### AND THE CLAIM HOLDS ON BOTH BOARDS
+
+Deduped per `(cycle, slot)` — site 1847 re-reads the chosen slot — walking each series the way
+`_res` does, resetting the run on every gap:
+
+    ka59   o13.w     n=10  c9..23   pops 5 [13,14,15,16,19]   3-consec first at 11
+           o14.dcol  n=11  c10..23  pops 3 [14,17,20]         3-consec first at 12
+           o14.col   n=10  c12..22  pops 1 [16]               3-consec first at 14
+           o14.w     n=10  c12..23  pops 2 [16,19]            3-consec first at 14
+    ls20   o20.w     n=18  c2..19   pops 0                    3-consec first at 4
+           o16.w     n=15  c4..19   pops 1 [15]               3-consec first at 6
+           o20.col   n= 2  c18..19  pops 0                    never
+
+**Earliest OBJ-bound is first to three consecutive on both: `o13.w` (bound c8, qualifies c11) and
+`o20.w` (bound c1, qualifies c4).** `F36`'s conclusion is correct.
+
+> **WHAT IS INCOMPLETE IS THE WORD *SIMPLY*, AND IT IS INVISIBLE ON ONE BOARD.** `ls20`'s `o20.w`
+> has **zero pops**, so there accumulation really is monotone and *first to accumulate* is the
+> whole mechanism. **`ka59`'s `o13.w` was popped FIVE times and still won** — not by accumulating
+> uninterrupted but by starting **seven cycles ahead of any rival**. The head start carries it,
+> not the accumulation.
+
+### AND THE SHARPER THING, WHICH I WAS NOT LOOKING FOR
+
+**First-to-three is not what wins a gate-1 pass.** `o13.w` qualifies at cycle 11; the ka59 gate-1
+passes are at **13 and 23**, and the slot chosen at **13 is `o14.dcol`** — because `o13.w` had
+just been popped at 13. It wins at 23 only after rebuilding four consecutive readings (20–23)
+following its pop at 19. **Eligibility is re-evaluated every cycle against the pop history, so
+`first to qualify` and `slot at a gate-1 pass` are different events that happen to agree on which
+slot goes deepest.**
+
+    THE HONEST SIZING, AND IT RUNS AGAINST ME IN THE OTHER DIRECTION FOR ONCE. I18/I19/I20
+    were errors published and then caught. This was an error FLAGGED and then not found --
+    I over-claimed a defect in my own record, and the measurement corrected me DOWNWARD.
+    Same failure shape as over-claiming a null: a satisfying causal story (`I20` says pops
+    reset the count, therefore the neighbouring row must be wrong) is harder to doubt than
+    a bare claim, and the story was mine and one row old
+
+    MECHANISM   F36's conclusion measured and upheld; the word `simply` is incomplete on ka59
+    CAPABILITY  none
