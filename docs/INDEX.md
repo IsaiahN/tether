@@ -27580,3 +27580,76 @@ probe read 0 before I extracted `<text>`/`<tspan>` contents properly. **It does 
 census**: those counts were word-bounded and a base64 run is one unbroken token, so `\bcache\b`
 cannot match inside it. **Checked rather than assumed, because a null over a polluted population is
 `I22` again.**
+
+---
+
+## `F50` — REACH AND LIBRARY AS PARALLEL PER-CYCLE SERIES: THE FIGURE'S CLAIM INSTANTIATED AT THE CYCLE, AND A SHARPER NUMBER UNDER IT
+
+**The reviewer's read #2 of the three they named first**, run from rows already on disk, no run.
+`FIGURES-FOR-YOU`: *"reach is DERIVED and can fall while the record only grows."* `F44` measured
+the ratio per board and mentioned non-monotonicity in passing; **the ask was for the two series
+SIDE BY SIDE per cycle**, which is where a divergence is visible rather than inferred.
+
+**METHOD, and it is reconstruction rather than instrumentation.** `REACH = 48 atoms + distinct
+settled chains`, with the chain taken as the term name with every `<binding>` stripped — which is
+`units()`'s own dedup rule. Library is `detail.gamma_size` on `REPEAT` rows; the settled set is
+built by replaying `SETTLE` rows (`event: settle` adds, `event: demote` removes). Per game, never
+pooled.
+
+### THE TWO SERIES, ka59 x24
+
+    cyc  library  settled  chains  REACH    cyc  library  settled  chains  REACH
+      0       48        0       0     48     12       59        5       4     52
+      7       52        0       0     48     13       60        5       4     52
+      8       53        1       1     49     14       62        6       5     53
+      9       57        1       1     49     15       62        5       4     52   reach FELL
+     10       57        5       4     52     16       65        4       3     51   reach FELL
+     11       59        5       4     52     ...
+                                             19       68        5       4     52   reach FELL
+                                             21       69        7       5     53
+                                             23       70        5       4     52   reach FELL
+
+    library 48 -> 70 (+22, MONOTONE)      reach 48 -> 52 (+4)      ratio 0.18
+    ls20: library 48 -> 69 (+21, MONOTONE) reach 48 -> 54 (+6)     ratio 0.29, one fall at c14
+
+**FOUR CYCLES WHERE THE LIBRARY STRICTLY GREW AND THE REACH STRICTLY FELL IN THE SAME CYCLE** —
+ka59 at 16 (`+3 / -1`), 19 (`+2 / -1`), 23 (`+1 / -1`), and ls20 at 14 (`+2 / -2`). That is the
+figure's sentence as an event with a cycle number on it, rather than as an endpoint ratio. The
+ratio `0.18 / 0.29` was already `F44`'s; **what is new is that the derived quantity moves against
+its own source inside a single step.**
+
+### AND ka59 ENDS BELOW ITS OWN PEAK, WHICH NO ENDPOINT READING SHOWS
+
+Reach peaks at **53 (cycle 14)** and finishes at **52 (cycle 23)** — so across nine further cycles
+and **eight further library additions the agent ends able to compose with FEWER units than it held
+at cycle 14.** ls20 does not do this: it finishes at its peak, 54.
+
+**Both boards read zero levels, and the two get there differently.** This is the reviewer's own
+churn hypothesis confirmed on the quantity it was about: *"19 settles against 14 demotes on ka59
+versus 13/4 on ls20 may be two failure modes under one flat capability number."* **Measured:
+exactly 19/14 and 13/4** — a 74% demote rate against 31% — and the falling reach is what that rate
+buys.
+
+### THE NUMBER THAT SHARPENS `F44` RATHER THAN REPEATING IT
+
+    ka59   12 distinct chains EVER settled        peak held SIMULTANEOUSLY: 5
+    ls20    8 distinct chains EVER settled        peak held SIMULTANEOUSLY: 6
+
+**`F44`'s `19 -> 12 distinct (7 inert)` is a CUMULATIVE count, and the composable set the agent
+actually holds never exceeded FIVE on ka59.** Twelve different chains earned settlement; the agent
+was never in a position to compose with more than five of them at once, because demotion had
+already taken the others back. **So the reach available to composition is smaller than the
+cumulative figure suggests, and `F44`'s inert-fraction and this are two different subtractions
+stacked on the same set** — dedup removes chains that were never distinct, churn removes chains
+that are not *currently* held.
+
+**STATED AS A LIMIT BECAUSE IT IS ONE.** This is a RECONSTRUCTION of `units()` from ledger rows,
+not a reading of `units()` itself — there is no `reach` field in the ledger. It agrees with `F44`'s
+independently-derived cumulative counts (12 and 8) at both boards, which is the only cross-check
+available from outside the build. **A `reach` value on the `REPEAT` row would make this a reading
+instead of a reconstruction; that is a build change and it is owed, not proposed.**
+
+    MECHANISM   the derived-quantity-falls claim measured per cycle, four instances, two boards
+    CAPABILITY  none -- no run, no contact change, both boards still read zero levels
+    OPEN        reach on the REPEAT row, so this stops being a reconstruction; and the reviewer's
+                remaining named read, the toy world's INTRODUCED actors (E1b's unexamined half)
