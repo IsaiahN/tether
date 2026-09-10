@@ -24086,3 +24086,63 @@ boards that reach gate 4.**
     MECHANISM   barrier 1 relocated to gate 1 by census; sp80's zero-OBJ placed as parallel
                 rather than causal; a redundant 35-minute run identified
     CAPABILITY  none. No action differs
+
+## GATE 1 REFUSES FOR TWO DIFFERENT REASONS, AND I OVER-CORRECTED MYSELF GETTING HERE
+
+### THE PATH I HAD NOT TRACED
+
+`_goal_choice` (1746) iterates `self._res` and tests three things per slot: **A** enough readings
+(`>= MIN_REPEAT+1`), **B** all deltas non-increasing, **C** at least one real decrease.
+
+**But `_res` is BUILT at 1708-1712 and the builder is `goal_residual`:**
+
+    rg = self.goal_residual(slot, state)
+    if rg is None:  self._res.pop(slot, None)          # the series is DESTROYED
+    else:           self._res.setdefault(slot, []).append(rg)
+
+**`goal_residual` returns None when no OBJ-typed term is bound. So there is a step ZERO —
+`_res` EMPTY, nothing to iterate — and it is gated by exactly the bindings I had just ruled out.**
+
+### MEASURED, sp80 x 20
+
+    36 calls to _goal_choice
+    Z  _res EMPTY on 36 of 36
+    per-slot outcomes: {}          A/B/C never evaluated, because there was nothing to evaluate
+    returned a slot on 0 calls
+
+### SO GATE 1'S ONE MESSAGE COVERS TWO DIFFERENT WORLDS
+
+    sp80   `_res` is EMPTY. Gate 1 refuses for lack of ANY series, caused by zero OBJ
+           bindings -- measured, 36 of 36
+    ka59   `_res` is POPULATED. It must be: gate 1 RETURNED a slot at cycles 13 and 23,
+           which is unreachable from an empty dict, and the o14.dcol gate-4 refusal proves
+           a binding existed. There gate 1 refuses for lack of a SHRINKING series
+
+**`no objective is confidently shrinking` is printed in both cases**, and the two are
+distinguishable only by whether `_res` is empty — **which nothing records.** *A refusal reason
+that covers a missing population and a failing test is `F29`'s shape one level up.*
+
+**AND THE SPLIT OF `ka59`'s SEVEN REFUSALS IS UNMEASURED.** It has bindings and it reached gate 1
+twice, so its `_res` is populated at least sometimes; whether the seven refusals were `Z` or
+`A`/`B`/`C` needs the same probe at that depth and has not been run. **Stated rather than assumed
+from the sp80 result.**
+
+### THE CORRECTION, AND IT IS A CORRECTION OF A CORRECTION
+
+**One entry above I wrote:** *"sp80's zero-OBJ is REAL and is NOT the cause of barrier 1. It would
+refuse at gate 4, and gate 1 refuses first."* **The first sentence is right, the second is wrong,
+and the conclusion inverts.** With no OBJ bindings, `_res` is never populated, **so gate 1 refuses
+BECAUSE of the missing bindings** — through the builder, not through the test.
+
+> **THE ERROR WAS PRECISION MISTAKEN FOR COMPLETENESS.** I had just caught myself assuming two
+> identical-looking checks did the same job, and corrected it by reading `_goal_choice` closely.
+> **Reading the CONSUMER closely is what let me stop before reading the PRODUCER at all.** The
+> careful half of the move supplied the confidence for the incomplete half.
+
+**FOURTH CHAIN CORRECTION TODAY AND THE FIRST THAT CORRECTS A CORRECTION.** Filed as its own entry
+rather than folded into the last one: **an over-correction is a wrong statement, and it was made
+while being careful about the previous wrong statement.**
+
+    MECHANISM   gate 1's refusal decomposed into Z and A/B/C; sp80 measured at Z on 36 of 36;
+                the sp80 zero-OBJ finding re-attached to barrier 1 through _res's builder
+    CAPABILITY  none. No action differs
