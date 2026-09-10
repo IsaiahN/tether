@@ -28365,3 +28365,30 @@ either way. **What caught it both times is a program comparing two files.**
     CAPABILITY  none -- no run, nothing reaches the agent, both boards still read zero levels
     OPEN        nothing new. The three parts question and the cut rule are unchanged and
                 still Isaiah's
+
+### THE FOURTH RAISE, AND THE STOP WAS RE-CHECKED RATHER THAN ASSUMED
+
+`I42`'s log entry pushed part B to **103,331 against a `PART_MAX` of 102,000** and the assertion
+fired. **The pre-registered stop was evaluated before the budget was touched**, which is the only
+thing that distinguishes this from the ratchet `F58` names:
+
+    two-way floor (total/2)     101,842
+    known-good                  101,740   part A, published and verified at 18:47
+    known-bad                   164,976   the publish cut mid-paste
+    needed for part B           103,331
+
+**The floor does not exceed a size that has actually failed** — 101,842 against 164,976 — so three
+parts is **not yet FORCED**, and by the rule written at the site it would therefore be **CHOSEN**,
+which is Isaiah's. `PART_MAX` raised to 104,000: 103,331 is **1.6% above a size verified good
+twenty minutes earlier** and sits well inside the bracket, so the raise is a measurement rather
+than an argument.
+
+**AND THE ROW-ID BUMP CARRIED ALL THREE NARRATIONS, WHICH IS `I41` PAYING OFF A SECOND TIME.**
+`I1-I41` → `I1-I42` propagated to *at 42* · *Forty-two times* · *FORTY-TWO* with **one edit and no
+hand-written count anywhere** — the failure `I41` was written against cannot recur by construction.
+
+**NOT PUBLISHED THIS CYCLE, AND THE REASON IS `F58`'s OWN NUMBER.** The live pair was published and
+verified exact twenty minutes ago; the only content it lacks is this instrument-log entry, and
+`F58` measured one added row at **2.6% of what it costs to deliver it**. The three reads the
+reviewer named first are all answered and all live. Generator regenerated at **A 101,740 /
+B 103,331**, both markers left DIFFERING, so the next cycle publishes without re-deriving anything.
