@@ -25108,3 +25108,74 @@ decided by binding ORDER, not by anything about the slot.
                 mechanism (first OBJ binding + one cycle); slot selection explained by
                 binding order rather than by slot properties
     CAPABILITY  none. No run, nothing applied, no board reaches a level
+
+---
+
+## MY OWN STATUS REPORT CARRIED A FALSE FREEZE CLAIM FOR SEVENTEEN HOURS
+
+Found by a census with a different purpose: **which documents does the record never cite.** Five
+came back at zero — `CODE_AUDIT`, `POST_FREEZE_QUEUE`, `WHAT_THE_AGENT_SEES`, `WINDOW_REPORT`, and
+`FALSE_MINT` (which has five, case-insensitively). **Four of the five are mine, so the census
+found less than it looked like** — an uncited document written by the record's own author is not
+an unread input. **`CODE_AUDIT.md` is the exception**: Isaiah's, 2026-08-24, 28KB, committed in
+`7803785`, **cited zero times in 1.59MB of `INDEX`.** Recorded, not yet read.
+
+### THE FIND WAS INCIDENTAL AND IT IS THE FREEZE CLAIM ITSELF
+
+`WINDOW_REPORT.md` opens with the guarantee in its strongest, most checkable form:
+
+    "git diff arc-freeze-02 -- '*.py' is empty. No build file was touched after the freeze,
+     and that was checked at every commit rather than asserted once."
+
+**It is not empty. It is 139 insertions across two files.**
+
+    git diff --stat arc-freeze-02 -- '*.py'
+      tether.py       36 +
+      transcript.py  104 +
+      2 files changed, 139 insertions(+), 1 deletion(-)
+
+### IT WAS TRUE WHEN WRITTEN, AND THAT IS THE WHOLE OF THE CLASSIFICATION
+
+Checked rather than assumed: **none of the three commits is an ancestor of `72b8a3c`**, the HEAD
+the report names, and `git diff arc-freeze-02 72b8a3c -- '*.py'` is **empty**. The report was
+accurate at 05:41 and went stale at 10:51.
+
+    c009007  10:51  the F14 fix, under Isaiah's ruling, named in the code at its own site
+    1c6fb2e  10:53  transcript.py -- a read-only renderer that wraps the ledger, adds no emitter
+    92bd9c5  12:18  the F23 fix -- action=action on the REPEAT row, 483 rows before and after
+
+**All three are sanctioned, recorded against their findings, and applied BEFORE the fix was
+published — not a breach.** So this is a **staleness repair on a working document**, repaired at
+source per the table, and **not** an instrument error.
+
+### THE CLAUSE WORTH KEEPING IS THE ONE THAT INDICTS ITSELF
+
+*"checked at every commit rather than asserted once."* **The checking stopped when the document
+stopped being updated.** A check recorded as continuous, in a document nobody maintains, **becomes
+an assertion again** — which is the exact failure that sentence exists to name, performed by the
+sentence.
+
+> **AND THE DURABLE HALF OF THE SAME PARAGRAPH SURVIVED UNTOUCHED**: *9/9 seats clean at every
+> commit, enforced by the pre-commit hook rather than by me.* **That one is still true and still
+> checked, because the hook runs whether or not anyone remembers to write it down.** Two claims,
+> one paragraph, seventeen hours apart in durability — and the difference is whether a mechanism
+> or a person was doing the checking.
+
+### AND IT IS `ALIGN-2` FROM THE OTHER END
+
+I built a watchdog whose whole job was to catch **the sheet going stale while still claiming to be
+current** — and it was my own **status report** that did exactly that, for seventeen hours, with
+the freeze guarantee in it. **The watchdog watched the artifact I was updating every ten minutes
+and nothing watched the one I wrote once.**
+
+### A TIGHTENING OWED TO MY OWN HEARTBEAT REPORTS
+
+Every report this session has ended *"nothing applied to the build."* **True of this session and
+readable as the stronger claim** — that no build change exists since the freeze. It does. The
+precise form, used from here: **nothing applied in this session; three sanctioned fixes were
+applied earlier under ruling.**
+
+    MECHANISM   none -- documentation. A false claim in a working document repaired at source
+    CAPABILITY  none
+    OWED        CODE_AUDIT.md, Isaiah's, 28KB, never cited. Read it before trusting any
+                summary of what the audit found

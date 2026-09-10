@@ -2,11 +2,34 @@
 
 **Build frozen at `arc-freeze-02`.** Tag object `46349f36`, **commit `67ceacd`** — two different
 hashes for one word, noted because it is exactly the collision this window kept finding.
-`HEAD` is `72b8a3c`; every commit since the tag is documentation.
 
-**`git diff arc-freeze-02 -- '*.py'` is empty.** No build file was touched after the freeze, and
-that was checked at every commit rather than asserted once. **9/9 conformance seats clean at every
-commit**, enforced by the pre-commit hook rather than by me.
+> **THIS REPORT IS A SNAPSHOT AT `72b8a3c` (2026-09-09 05:41) AND THE PARAGRAPH BELOW WENT STALE
+> FIVE HOURS LATER.** It is repaired rather than rewritten, because the original sentence and what
+> replaced it are the finding. **A status report is a claim with a timestamp, and this one carried
+> its strongest claim without one.**
+
+**AS WRITTEN, AND TRUE AT `72b8a3c`:** *“`git diff arc-freeze-02 -- '*.py'` is empty. No build file
+was touched after the freeze, and that was checked at every commit rather than asserted once.”*
+
+**AS OF `fcb87bd`, THAT SENTENCE IS FALSE, AND THE REASON IS SANCTIONED RATHER THAN A BREACH.**
+The diff is **139 insertions across two files**, from **three commits, each applied under a ruling
+and each recorded against its finding before it was made:**
+
+    c009007  09-09 10:51  System 2 beside System 1 -- the F14 fix, Isaiah's ruling, named
+                          in the code comment at its own site
+    1c6fb2e  09-09 10:53  transcript.py, a new READ-ONLY renderer; it wraps the ledger and
+                          adds no emitter
+    92bd9c5  09-09 12:18  the F23 fix -- `action=action` on the REPEAT row, purely additive,
+                          483 rows before and after
+
+**AND THE STALE CLAUSE IS THE ONE WORTH KEEPING VISIBLE: *checked at every commit rather than
+asserted once*.** The checking stopped when this document stopped being updated — so **a check
+recorded as continuous, in a document no longer maintained, silently becomes an assertion again.**
+That is the exact failure the sentence was written to avoid, performed by the sentence.
+
+**9/9 conformance seats clean at every commit**, enforced by the pre-commit hook rather than by me
+— and that half is still true and still checked, because the hook runs whether or not anyone
+writes it down. **The durable check is the one nothing has to remember.**
 
 ---
 
