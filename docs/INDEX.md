@@ -27426,3 +27426,64 @@ cardinality every reachability claim is stated against.**
     CAPABILITY  none -- no run, no contact change, both boards still read zero levels
     OPEN        negate's level; whether a negated term can ever pay; and FIGURES-FOR-YOU,
                 which is not yet on disk and which the reviewer says would REORDER THE QUEUE
+
+---
+
+## `F48` — THE NEGATE PRICE TEST: THE REVIEWER WAS RIGHT, AND THE FIFTH BIN ALONE WOULD NOT PRODUCE A NEGATED TERM
+
+**The reviewer's second check on `F47`, run.** Their hypothesis: the build silently priced `¬` as an
+atom slot, which charges `log₂(|atoms|+1)` — *which concept* — for something carrying about one bit
+of *flip it*, so **even once demand exists a negated term may never pay.**
+
+**Confirmed, on real accepted mints, per board, never pooled.**
+
+    one extra atom at gamma.alphabet = 48  ->  log2(49) = 5.615 bits
+
+    ka59 x24   20 accepted mints   pay today 20/20   would still pay with +1 atom  10/20
+               slack (base - cost - left):  min 0.77   median 6.77   max 24.77
+    ls20 x20   16 accepted mints   pay today 16/16   would still pay with +1 atom   4/16
+               slack:                       min 0.17   median 2.77   max 55.16
+
+**So adding one atom to a term that mints today would push HALF of ka59's mints and THREE QUARTERS
+of ls20's below the bargain.** The median slack on ls20 is 2.77 bits against a 5.615-bit step: the
+margin simply is not there.
+
+> **THE BUILD ITEM CHANGES SHAPE. The fifth ROUTE bin is NECESSARY AND NOT SUFFICIENT.** Build only
+> the bin and negated terms would be demanded, composed, and then refused at the bargain — a
+> mechanism that fires and never lands, which is the shape this window keeps finding. **Two
+> independent causes of the zero, and I had found one.**
+
+**AND THE CORPUS'S OPEN ITEM IS NOT DECORATIVE.** The Operators table leaves `¬`'s price open — *an
+atom slot, nothing, or the choice of what to negate.* **The build already chose the first, silently,
+by making `negate` an `Atom`. This measurement says that choice is probably fatal**, which makes the
+open item the live question rather than a footnote. **Not the seat's to rule.**
+
+**SCOPE, STATED BECAUSE IT IS NARROWER THAN THE HEADLINE.** This measures adding ONE ATOM to terms
+that actually minted. A negated term need not be *an existing term plus negate* — it could be a
+different, shorter composition. What the measurement establishes is the INCREMENT and the SLACK
+DISTRIBUTION it must fit inside: any negated term costs 5.615 bits more than its unnegated
+counterpart, and that margin is unavailable on most mints these boards produced.
+
+### `I38` — TWO KEYING ERRORS IN THIS MEASUREMENT, BOTH CAUGHT BEFORE IT WAS REPORTED
+
+**FIRST, THE WRONG ALPHABET AND THE WRONG BARGAIN.** I ran the test with `n=4` and the bar
+`unsat > term_bits(k,n)/log₂(n)`, which is `F20`'s **ROUTINE** derivation — and it returned a clean
+null: 24/43 and 32/37 clearing the bar either way, negation apparently free. **`negate` is a TERM
+atom and the term path prices against `self.gamma.alphabet` = `len(self.atoms)` = 48**, verified at
+`tether.py:2403` and `2745`. **Two quantities under one parameter name, `alphabet`** — `A6i` at the
+call site, and the reassuring answer came from the wrong one.
+
+**SECOND, THE FIELD NAMES.** I read `cost` / `left` / `base` from the MINT rows and got **0 rows
+carrying cost** against 20 accepted mints. The keys are `term_bits` / `left_bits` / `base_bits`.
+**A zero that is implausible against a known count is the cheap version of this error** — 20 mints
+cannot have 0 costs — which is why it survived about four seconds.
+
+**Both caught before publication, both by checking the site rather than trusting the number** — and
+the first is the one that matters, because **it returned the answer I would have preferred.** A null
+that says *no problem here* is the one to re-derive.
+
+    MECHANISM   the reviewer's price hypothesis confirmed on real mint rows, per board
+    CAPABILITY  none -- no run, no contact change, and nothing reaches the agent
+    OPEN        the price of a unary operator, which is the corpus's open item and Isaiah's;
+                and negate's LEVEL -- PRED->PRED negates inside a bet, and the fifth bin
+                wants the refusal of a settled library term
