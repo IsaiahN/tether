@@ -27526,9 +27526,11 @@ duplicate that search exists to catch. Confirmed: the search returns exactly one
 
 **A generated `SPLIT` row sits in BOTH files** and says the boundary is where the budget ran out
 and is **not a claim about the content on either side of it** — because a reader meeting a cut
-between `F32` and `F31` will otherwise read significance into it. It also states that both files
-carry the same freshness stamp, **so a stamp that differs between them means one of the two
-publishes failed** — which is the only check a reader can run from their side.
+between `F32` and `F31` will otherwise read significance into it. It ALSO stated that both files carry
+the same freshness stamp, **so a stamp that differs between them means one of the two publishes
+failed** — *"the only check a reader can run from their side."* **THAT WAS FALSE AND IS REPAIRED
+AT SOURCE: there is ONE stamp, in part A. See `F68`.** The reader's check is now that both parts
+name the same HEAD, which the `Freeze #` column already carries in every row of both files.
 
 ### VERIFIED, AND ON THE HIGHEST-RISK PUBLISH THIS WINDOW
 
@@ -28775,3 +28777,165 @@ asserts the exact number of sites, and the number genuinely fell.
     AND ONE MORE I35: p70's idempotence guard was `"ANCHOR" not in s` and it matched I31's own
                 text about A PATCH ANCHOR FAILING. Fourth instance of a bare substring standing
                 in for the thing it names, and the funniest placement it has found yet
+
+---
+
+## F67 — AN APPEND LANDED MID-LOG, AND THE GUARD THAT PASSED IS THE FINDING
+
+`I43` was appended to the sheet's instrument-error log by `p69`, anchored on
+`"which is exactly why none was noticed."` — **the tail of `I41`, and the end of the log on the
+day that sentence was written.** `I42` had since been appended past it. Measured in the artifact
+that went live: `I40` at byte 88,893 · `I41` at 91,039 · **`I43` at 93,707** · `I42` at 95,818.
+
+**IT REACHED THE REVIEWER, AND NOT COSMETICALLY.** `I43`'s own text opens *"THIS IS `I42` WITH THE
+CAUSE REVERSED"* and now stands **before `I42` is introduced** — a forward reference to an entry
+the reader has not met.
+
+**THE GUARD ASSERTS PRESENT AND UNIQUE, AND NEITHER SAYS LAST.** `sub()` checks `a in t` and
+`t.count(a) == 1`. Both were true and both stayed true: the anchor did not move, **what follows it
+did.** A uniqueness assertion is structurally blind to an append, because uniqueness is a claim
+about how many times a string occurs and says nothing about whether anything was added after it.
+That is why this passed where `I9`'s wrong-anchor and `I35`'s self-matching guard both fired —
+**it is the first of the family where the anchor was entirely correct.**
+
+**THE FIX IS NOT A BETTER ANCHOR, WHICH IS `I41`'S RULING ONE LEVEL ALONG.** The count stopped
+drifting when it was DERIVED from the row id rather than hand-written. The append point is the
+same shape, so it is now taken from the log cell's terminator — and that terminator is `<<NWORD>>`,
+**the derived-count placeholder `I41` itself installed**, which is the one landmark in the cell
+that adding an entry cannot move.
+
+> **AND THE CHECK I WROTE TO VERIFY THE MOVE COMMITTED `I35` INSIDE THE PATCH THAT FIXES IT.**
+> `r"I4[0-3] [A-Z]"` returned FIVE matches, the fifth being `I42 WITH THE CAUSE REVERSED` **inside
+> `I43`'s own text** — a bare substring standing in for the thing it names, **fifth instance**, in
+> the assertion guarding the entry about exactly this. Re-anchored on the four headlines, which are
+> unique and are the openers.
+
+    MECHANISM   the append is derived from the cell terminator; the order assertion is over
+                headlines and ran green on the generator before anything was written
+    CAPABILITY  none -- the workbook is transport, nothing reaches the agent, levels_completed 0
+
+---
+
+## F68 — THE ONE CROSS-FILE CHECK THE REVIEWER WAS GIVEN CANNOT RUN
+
+`INDEX:27530` states that the two published files *"carry the same freshness stamp, **so a stamp
+that differs between them means one of the two publishes failed*** — which is the only check a
+reader can run from their side." The generated `SPLIT` row says it too, in both files.
+
+**MEASURED: `workbook3a.csv` carries one stamp and `workbook3b.csv` carries ZERO.** `grep -o 'as of
+[0-9:]* UTC'` returns `as of 21:22 UTC` on A and nothing on B. At the write site there is exactly
+**one `<<STAMP>>` placeholder** — `mksheets.py:34`, inside the `RUN STATUS` Status cell, which is
+part A — and `mksheets.py:871` is the substitution function, not a second site. **So there has
+never been a second stamp and nothing can ever differ.**
+
+**THIS IS `I41` IN PROSE THE REVIEWER READS.** `I41` was a checker that matched nothing while this
+sheet cited it as working; this is a check that *the reviewer* was told to run, that has no second
+operand, asserted in the artifact and in the record. **The failure mode is the worse one of the
+two: a checker matching nothing is silent, and a reader running this one finds one stamp, no
+comparison, and no way to tell an unrunnable check from a passing one.**
+
+**FOUND BY ASKING WHICH PART ACTUALLY NEEDED REPUBLISHING** after `F67`'s fix — part B's content
+changed and part A's diff was the stamp alone, so the question *"does a stamp-only divergence
+break the reviewer's check"* had to be answered before the cheaper publish could be taken. **The
+anchored cut is what raised it**: under the balanced cut both files always republished together
+and the question could not arise.
+
+    MECHANISM   the claim is removed from the SPLIT row and from INDEX rather than a second
+                stamp installed -- what the check was for is what verify_publish now does
+                against the generator, with a subject that is not the reader
+    CAPABILITY  none -- transport only, levels_completed 0
+
+---
+
+## F69 — THE TWO-PART CUT HAS RUN OUT OF ROW GRANULARITY, AND THE ANCHOR CANNOT FIX IT
+
+One cycle after `F58`'s ratchet was stopped by compacting `RUN STATUS` — which freed ~5,500 chars
+and let me write *"the transport question is resolved and it did not need a third part"* — **`F67`
+and `F68` consumed the entire margin in a single cycle.**
+
+    part A   103,902 against PART_MAX 104,000      98 chars free
+    part B   101,352                            2,648 chars free
+
+**THE ANCHORED CUT CANNOT REBALANCE THIS, AND THAT IS A PROPERTY OF THE DESIGN RATHER THAN A
+FAULT IN IT.** An anchored cut moves whole rows and only at the boundary, so the sole row available
+to shed is `F35` at **4,721 chars** — larger than part B's 2,648 of headroom. **There is no valid
+two-way cut at the next entry.** The balanced cut could have found one; that flexibility is exactly
+what `F55` traded away to stop rows migrating under the reader, and the trade is still right.
+
+**SO THE NEXT CYCLE TAKES A DECISION, AND THE ASSERTION SAYS SO IN THOSE WORDS.** Three candidates,
+and the third is the one the record already validated:
+
+- **a third part** — changes what the reviewer reads, which is why `F49` refused to choose it and
+  the transport limit chose it instead
+- **compacting the 33,443-char `I1-I43` row** — a third of part B, grown by accretion, **the same
+  shape and the same remedy as `RUN STATUS` last cycle**, and it frees part B enough that the
+  anchor can then move `F35` and relieve part A. Two moves, one decision
+- **a fifth budget raise** — `F58`'s ratchet, refused
+
+> **AND THE COMPACTION REMEDY IS NOT FREE THE SECOND TIME.** `RUN STATUS` was safe to compact
+> because the narrative it held is in this file, committed. **The `I` series has no second home** —
+> `INDEX` cites `I` numbers constantly and nowhere reproduces their text. Compacting it would be a
+> real loss unless the entries are moved here first, **which is the work the decision actually
+> costs** and is why it is a decision rather than a regeneration.
+
+**AND THE CORRECTION TO THE STALE HEADROOM CLAIM DID NOT FIT INSIDE THE BUDGET IT DESCRIBED.**
+Writing the honest version of this into the `RUN STATUS` Outstanding cell pushed part A to 104,383
+— **383 over.** The sheet now carries the six-line version and this carries the analysis, which is
+the right division: `INDEX` is the record and has no transport limit, the sheet is the reviewer's
+surface and does.
+
+> **CAUGHT BY READING FROM DISK BEFORE PUBLISHING, IN THE CELL THAT ALREADY RECORDS BEING CAUGHT
+> THAT WAY.** The Outstanding cell still read *"both parts now sit near 98,000 with about 5,500
+> chars of headroom"* while part A stood at 103,877 with 123 — and its own sibling cell says the
+> stale-sibling defect was *"caught by reading part A from disk before publishing, which is the
+> practice earning its keep again."* **Same cell, same defect, same catch, one cycle later.** The
+> practice works and does not install: it caught this because the publish path forces a read, not
+> because anything checked the claim.
+
+    MECHANISM   the budget assertion fired before any write, three times, and no artifact was
+                left half-written -- I34's hoisted validation under three real failures
+    CAPABILITY  none -- transport only, levels_completed 0
+
+---
+
+## F70 — THE CORPUS IS RECURSIVE ON ITSELF, AND BOTH OF `F52`'s "DEFECTS" WERE FLAT-READING
+
+**Isaiah, 2026-09-10:** *"the corpus is recursive even on itself, so that will help close a debate
+you two have had about item 2, etc."*
+
+`F52` filed two defects against `THE_FORMULA` and **the recursion dissolves both.** They were
+recorded, not repaired — the corpus rule held — so nothing has to be un-edited; what has to be
+withdrawn is the finding.
+
+**ITEM 2 — the "stale" header count.** `F52` read *"Seven changes … two are corrections; five are
+additions"* against **nine** numbered items (33–41) and called the header stale, *"`I41`'s shape
+exactly: a narration of a count that the count's own growth silently falsifies."* **Under recursion
+the header counts the changes AT ITS OWN LEVEL.** Items 40–41 are a further revision — a deeper
+level — so they do not falsify a header scoped to the level above them. **The count was never a
+running total, and reading it as one is what made it look stale.**
+
+**ITEM 1 — the "duplicate" item numbers.** `F52` found 33, 34, 35 carrying different content in the
+base list and in *CHANGES IN THIS REVISION*, and filed it as **`A6i` in the corpus** — one
+identifier, two referents. **Recursion is exactly one identifier at two levels**, which is the
+structure rather than a collision. A self-revising list reuses its indices by construction.
+
+> **AND `A6i` IS THE WRONG INSTRUMENT HERE, WHICH IS THE PART THAT TRANSFERS.** `A6i` is *two
+> legitimate quantities under one word* — a collision between things that were never meant to be
+> the same. **Recursion is one thing appearing at two levels, which is what a recursive structure
+> IS.** Applying `A6i` to it converts a feature into a defect, and it does so convincingly because
+> the surface reading — same number, different content — is identical in both cases. **The
+> discriminator is whether the two referents sit at different LEVELS of one structure or in two
+> unrelated places**, and `F52` never asked.
+
+**WHAT THIS CORRECTS ABOUT THE READING, NOT ONLY THE FINDING.** I read a self-referential document
+as a flat list twice in one row, and the flat reading is what manufactured both defects. **The
+corpus documents describe the loop they are part of** — `Figure 13`'s remainder re-entering the
+next turn, `THE_FORMULA` revising a list that includes its own revision rule — so a numbering that
+recurs is the first thing to check for recursion rather than the last.
+
+    WITHDRAWN    both defects in F52's Outstanding cell, and the A6i classification with them
+    KEPT         F52's substantive reading -- items 40-41 are the same material Figure 5
+                 gained, the two artefacts agreeing; and item 41's assignment to this seat
+    MECHANISM    nothing built; the corpus was correctly never edited, so the withdrawal
+                 costs a row's correction and no repair
+    CAPABILITY   none -- corpus reading, levels_completed 0
