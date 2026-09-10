@@ -24790,3 +24790,52 @@ cause.** The per-cycle `stage` I read from `repeat` rows is computed live and is
                 90 attempts split 42 bargain / 48 no-split
     CAPABILITY  none. But this is the first reading tonight that comes with the build's own
                 verdict attached rather than mine
+
+## REUSE IS ALL-OR-NOTHING, AND `did-not-pay` DOES NOT MEAN WHAT ITS NAME SAYS
+
+**CORRECTION FIRST.** One entry above I wrote *"`did-not-pay` 42 — ATTEMPT, refused by the
+bargain"* and *"the REUSE bargain refuses 42 of 90."* **Both are wrong. `pays` is never called on
+this path**, and `_install_reuse`'s own docstring says so: *"the SWEEP's entry into Gamma, and it is
+the one path that does not consult `pays`."*
+
+### WHAT THE THREE BRANCHES ACTUALLY ARE
+
+    base = _left(incumbent, slot, hist)     what the CURRENT binding leaves unexplained
+    left = _left(candidate, slot, hist)     what the CANDIDATE leaves, minimised over binds
+
+    left == 0.0   SUCCESS -- explain, `pull` row, note_reused, note_cleared, rebind
+    left < base   "did-not-pay"   the candidate BEATS the incumbent and does not reach zero
+    else          "no-split"      the candidate is no better than the incumbent
+
+> **SO REUSE IS ALL-OR-NOTHING. A term that explains STRICTLY MORE than what is currently bound,
+> but not everything, is discarded** — and `did-not-pay` is the label on the discard. **42 of 90
+> attempts on `sp80` were strict improvements thrown away.**
+
+**AND THE LABEL IS `A6i` IN THE FUNNEL.** *did-not-pay* reads as *the bargain refused it*; it means
+*it improved and did not fully close*. **Nothing was priced.** The name imports a mechanism that is
+explicitly not on this path, and I read the name and wrote the mechanism — **within one hour of the
+funnel being the sharpest finding I had.**
+
+### THIS IS THE ARCHITECTURE INDICTMENT MADE CONCRETE
+
+`MINTED_UNUSED` is the only rung the build calls architectural. **Here is why it never leaves it:**
+the sweep accepts a reused term only on `left == 0.0`, so **partial explanation cannot advance the
+chain** — `note_reused()` and `note_cleared()` are both inside the `left == 0.0` branch.
+
+    42 of 90   candidate strictly better than the incumbent, DISCARDED
+    48 of 90   candidate no better -- a genuine miss
+    0  of 90   accepted
+
+**The 48 are the mechanism working. The 42 are the architecture.**
+
+### AND THE TRIGGER WORKED THIS TIME
+
+`CLAUDE.md`'s new step — **before writing a causal explanation of a mechanism's behaviour, grep the
+record for that mechanism's identifier** — is what caught this. I wrote it tonight, **failed to run
+it twice (`I14`, `I15`), and ran it here.** One read of `tether.py:2640-2721` instead of trusting a
+Counter key.
+
+    SIXTH correction today, and the first caught BEFORE the claim propagated past one entry
+    MECHANISM   reuse's accept condition located at `left == 0.0`; 42 strict improvements
+                discarded on one board; the funnel label corrected
+    CAPABILITY  none. But this is the most specific statement yet of what stops the loop
