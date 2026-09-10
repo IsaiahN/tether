@@ -25961,3 +25961,39 @@ slot goes deepest.**
 
     MECHANISM   F36's conclusion measured and upheld; the word `simply` is incomplete on ka59
     CAPABILITY  none
+
+---
+
+## `I21b` — THE GENERATOR HARDCODED ITS OWN FRESHNESS CLAIM, WHICH IS `F37` INSIDE THE TOOL THAT PUBLISHES IT
+
+Found while patching `F36`'s row for `I21`. `mksheets.py` line 23 carried **`as of 06:37 UTC`**
+and line 24 **`HEAD 9804e0c`** as string literals, baked in by `p20`/`p21`/`p22` at patch time.
+
+> **SO EVERY REGENERATION REPUBLISHED A FROZEN STAMP.** The sheet's currency claim was correct
+> only when a patch script happened to overwrite it, and silently stale otherwise — a claim
+> maintained by **a person remembering**, not by a mechanism.
+
+**That is `F37`'s own finding, committed inside the instrument that publishes the claim.** `F37`
+says it in the sentence I wrote there:
+
+> *"Two claims, one paragraph, seventeen hours apart in durability, and the difference is whether
+> a MECHANISM or a PERSON was doing the checking."*
+
+### THE REPAIR, AND WHY IT IS PLACEHOLDERS RATHER THAN A FRESHER LITERAL
+
+`_STAMP` and `_HEAD` are computed at generation time — `datetime.now(utc)` and `git rev-parse
+--short HEAD` — and the row text carries `<<STAMP>>` / `<<HEAD>>`, substituted at `writerow`.
+**Placeholders survive in the source, so a future patch editing that prose cannot re-freeze
+them**; replacing the literal with a newer literal would have fixed the reading and left the
+mechanism exactly as fragile.
+
+    VERIFIED   0 placeholders survive into the CSV; renders `as of 06:54 UTC`, `HEAD 1f037cc`
+               33 lines, 32 rows, 17 columns on every row
+
+    THE CHECK THAT WOULD HAVE CAUGHT IT EARLIER is the one already written for `SNAPS_PLAN`:
+    read the things that produce CONDITIONS before the things that produce RESULTS. The
+    generator is a condition-producer, and a frozen stamp is invisible in the sheet it
+    stamps -- the row reads perfectly well at any hour
+
+    MECHANISM   generator computes its own stamp and HEAD; scratchpad tool, no build file
+    CAPABILITY  none
