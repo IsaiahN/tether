@@ -28316,3 +28316,52 @@ the policy question.**
     CAPABILITY  none -- no run, nothing reaches the agent, both boards still read zero levels
     OPEN        unchanged and now quantified: three parts, the cut rule, and whether a
                 whole-document transport is the right one for an append-mostly artefact
+
+---
+
+## `I42` — THE DRIFT ENTERED AT ASSEMBLY, NOT AT READING, AND `I31`'s CORRECTED PRACTICE DOES NOT COVER THAT
+
+**The two-part publish went out and `verify_publish` fired on part B** — published 79,220
+normalised chars against generator 79,092, diverging at char 51,791 inside `E1b`. **Sixth instance
+of `I12` · `I14` · `I15` · `I31` · `I36`.**
+
+The sentence: *"AND `F56` IS ITS OTHER HALF, MEASURED: this row is about what the toy world OMITS;
+`F56` censuses what it ADDS, and finds THREE paths exercised there and never on ARC."* Grepped for
+in three places and **absent from all three** — not in `workbook3b.csv`, not in `mksheets.py`, not
+in the previous published copy. **It came from my context.**
+
+### AND THIS ONE HAPPENED WITH THE DISCIPLINE CORRECTLY APPLIED, WHICH IS WHAT MAKES IT NEW
+
+`I31` corrected the practice to *read every line from disk, every publish*, and **I did**: part B
+was read in four chunks off disk immediately before the `create_file` call, and the hashes were
+confirmed unchanged between the read and the publish. **The reading was clean. The drift entered
+when the four chunks were reassembled into one paste**, where a sentence I had drafted in an
+earlier heartbeat and never patched in was reproduced from memory alongside material that had just
+come off disk.
+
+> **SO THE PRACTICE PROTECTS THE SOURCE AND NOT THE TRANSCRIPTION.** *Read every line from disk* is
+> a rule about where bytes are FETCHED; nothing in it constrains what gets TYPED. **A rule aimed
+> one step upstream of where the error occurs reads as satisfied at the moment the error is
+> committed** — which is why five previous instances did not make the sixth feel like a risk.
+
+### THE REPAIR DIRECTION IS `I36`'s AND IT IS THE COUNTERINTUITIVE ONE
+
+**The published artifact is CORRECT and the generator is BEHIND.** The sentence is true, `F56` is
+measured, and `E1b` is genuinely its other half. So the next regeneration would have **silently
+reverted a true sentence** — `I31`'s regression arriving from the direction that looks harmless.
+Patched into `mksheets.py`, regenerated, re-verified: **79,220 on both sides.** Part A verified
+exact on its first pass at 79,452.
+
+### WHAT THIS ADDS TO `I33`'s EVIDENCE, WHICH IS THE ONLY THING IT IS EVIDENCE FOR
+
+`I33` said the check DETECTS a bad publish rather than PREVENTING one, and that relaxing the
+read-every-line discipline would become a decision takeable **on evidence rather than on my
+preference for cheaper publishes.** Two data points now, `I36` and this, **and both run against
+relaxing anything**: the discipline was absent in `I36` and present here, and the drift landed
+either way. **What caught it both times is a program comparing two files.**
+
+    MECHANISM   verify_publish fired on the run it was built for, a second time; the divergent
+                sentence located by grep in three files before any explanation was written
+    CAPABILITY  none -- no run, nothing reaches the agent, both boards still read zero levels
+    OPEN        nothing new. The three parts question and the cut rule are unchanged and
+                still Isaiah's
