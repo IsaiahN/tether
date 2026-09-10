@@ -26545,3 +26545,125 @@ The sweep found three other kinds, now written into a new §11b:
     carry the HEAD they are true at
     MECHANISM   handoff completed; scope stated
     CAPABILITY  none
+
+---
+
+# ALL SIX RULINGS ANSWERED — AND `I30`, THE MISREADING THAT PUT TWO OF THEM IN THE WRONG QUEUE
+
+## `I30` — "ALIGNMENT" MEANT ALIGN WITH THE SEAT. I READ IT AS WAIT FOR ISAIAH
+
+Isaiah's instruction was *do not act alone without consulting the seat for **alignment**, and the
+corpus is the tiebreaker.* **I read `alignment` as `escalation`.** `ALIGN-1` and `ALIGN-2` were
+therefore filed as *awaiting Isaiah* when they were the proctor's to take, and I built an entire
+cost model on top of the misreading — **`ALIGN-1` as the QUEUE HEAD whose cost accumulates, three
+register entries held behind it, one more added each heartbeat.**
+
+> **`A6i` AT THE HIGHEST LEVEL IT HAS REACHED: one word, two quantities, and the word was in the
+> INSTRUCTION rather than in the code.** Every prior instance — `molecule`, `DIRECTED`, `BUDGET`,
+> `PRIOR` — was a term inside the system. This one governed **who decides**, so getting it wrong
+> did not corrupt a measurement; it stalled a queue and manufactured a scarcity that was never
+> there. **The three withheld rules were withheld for nothing.**
+
+**And the tell was available the whole time:** the same sentence names the corpus as the
+tiebreaker. A tiebreaker is what you consult when a decision is YOURS and you are stuck — it makes
+no sense in an instruction to defer. **I quoted that clause repeatedly (`F30`, `F35`, `F40`, `I24`)
+while reading the first half as its opposite.**
+
+---
+
+## 1 & 3 · `ALIGN-1` AND `ALIGN-2` — RESOLVED, AND BOTH ACTED ON
+
+**`ALIGN-1`: the sixth-law trigger STAYS.** Ruled on `I27` — it fired **before the work** and
+cancelled a measurement the record had already answered. Seven instances, counted rather than
+asserted: `I11` · `I13` · `I18` · `I19` · `I23` · `I26` · `I27`; six after the draft, one before.
+**The commit stands.**
+
+**THE THREE WITHHELD ENTRIES ARE RELEASED AND FILED** into `CLAUDE.md` beside the trigger they
+extend — the figures-tiebreaker with its three census disciplines (`F30`/`F40`/`I24`), the
+corrections-go-into-the-generator rule with its *correct the row that carries the error* clause
+(`I12`/`I14`/`I15`), and *a grep's count is not evidence until you have read what it matched*
+(`I22`/`F40`/`I24`/`I28`/`I29`). **The accruing cost is stopped.**
+
+**`ALIGN-2`: FIXED, NOT LEFT OFF.** *A watchdog that cries dead on a live sheet is worse than no
+watchdog.* Routine `trig_01ACv7vkDg91TnZUKsvc47KH` moved to **UTC on both sides** and re-enabled;
+next fire 10:17 UTC. **UTC rather than stamping Chicago — fewer moving parts, and it keeps ONE
+timezone in a record that is UTC throughout**, which is the `A6i` this incident was made of. The
+prompt now carries the bug's own history at the top, and the format was corrected too (`as of
+HH:MM UTC`, which the generator emits and the old prompt did not expect).
+
+## 2 · `F41` — REACHED, AND THE ATOMS ARE DERIVATIVE BY DESIGN
+
+**Isaiah's ruling is stronger than my measurement.** `both`/`either` want objects, strategies or
+recipes as operands and are **derivable from `+` and `||`** — a meta-question one level above the
+primitives. If they earn nothing, the capability **embeds elsewhere**: in strategy logic, or in
+however the agent decides what to do. `all`/`random` named as a possible substitute.
+
+**So `F41(c)` resolves to REACHED, and (a) and (b) do not arise** — no producer, no ranking, and
+therefore nothing to shape. **My measurement agrees from the other side:** zero `PRED` slots on
+five boards means the operand they want does not exist at the slot level, **and the ruling says it
+should not.**
+
+> **RECORDED SO A FUTURE READER DOES NOT RE-OPEN THIS AS A GAP: `both` and `either` are
+> DERIVATIVE-NOT-PRIMITIVE, and their inertness is BY DESIGN rather than by omission.** The
+> `arc_atoms` stamp cannot say so — it is a build file under freeze — so it says so here, and in
+> the workbook row.
+
+## 4 · `F32` — ALL-OR-NOTHING IS WRONG, AND IT BECOMES A BUILD QUESTION
+
+**Isaiah: the residual NEVER fully closes — the corpus would have told you that.** That kills
+`left == 0.0` outright and converges with `F40` exactly: Figure 5's *"stating it, plus what remains
+unexplained after it"* is **vacuous under a rule that only accepts a zero remainder**, and Figure
+13 lists *"no remainder left after each step"* as a failure condition. **The 42 discarded
+improvements were real progress thrown away for not being total.**
+
+**FORWARD MOVE, AND IT IS A BUILD ITEM: accept on a decent amount of CONFIDENCE.** One hard
+constraint carried from `F20`'s step-2 conditions — **the confidence quantity must be derivable
+from the agent's OWN TRACE, not a constant.** A fixed threshold is the shaping move `INDEX:21824`
+rules out. Price it against **the same one bargain** (§14.4), and **stamp its provenance** so the
+ablation can still separate it.
+
+## 5 · THE BAR — MECHANISM AND READOUT, NOT A CONFLICT
+
+**Traction is the MECHANISM; level completion is the READOUT.** *Catalogue and save the failed
+paths, the salient attributes and the interactions, so each replay retrieves past information and
+cuts the problem down. That is how it accumulates traction — and the RLVR that the system is
+working is level-completion iterations.* **`CLAUDE.md`'s terminal clause 1 stands unchanged**, and
+the corpus document's bar is **how you get there**. Category confusion, closed.
+
+> **AND IT NAMES A BUILD ITEM NOTHING CURRENTLY DOES: SAVING FAILED PATHS.** The agent has a
+> rejection memory for routines (`_mint_routine` site 1926); it does **not** catalogue failed
+> strategies with their salient attributes for retrieval on replay. **That is the traction
+> mechanism named, and it is missing.**
+
+## 6 · `F28` — NOT YET, AND WATCH FOR ABUSE
+
+**Undo is real and so is reset; the question is WHEN the agent is robust enough to know when to use
+it and what it does.** Two operational constraints: **monitor the logs for overuse** — an agent
+that reverses more than it advances is idling, not planning, and that has a measurable signature to
+watch from the first run where undo is available; and **it is a sign of higher-level thinking but
+should not be necessary**, so a board requiring undo to clear is not the target case.
+
+**The seat-side note is not the problem; handing it to the agent before it can EARN the
+understanding is.** Record stays where it is, nothing reaches the agent, overuse monitor to the
+post-freeze queue.
+
+---
+
+    THE QUEUE IS CLEAR. Nothing is waiting on Isaiah.
+
+    DONE NOW          three register entries filed · ALIGN-2 fixed and re-enabled ·
+                      F41's atoms recorded derivative-by-design
+    POST-FREEZE       F32's confidence acceptance (trace-derived, one bargain, provenance) ·
+                      the FAILED-PATH CATALOGUE · F28's undo-overuse monitor ·
+                      and the three already queued: F40's cost/left/base, F31's `wanted`,
+                      F10's second board
+    STANDING          PROTOCOL's 10x5 loop, unstarted, deadline Sept 30
+
+    AND THE ONE THING I CANNOT DO FROM HERE: the freeze is still hard and every item above the
+    line is a BUILD change. The proctor's own sequencing says F32's acceptance change and the
+    failed-path catalogue are the two that would plausibly move `levels_completed` off zero
+    BEFORE the 10x5 loop runs -- so the loop and the builds are in the wrong order unless the
+    freeze lifts. That is the live question and it is the only one left
+
+    MECHANISM   six rulings absorbed; two acted on; three build items filed
+    CAPABILITY  none yet -- and the two items that could change it are build work

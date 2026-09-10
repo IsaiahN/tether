@@ -322,6 +322,47 @@ after the fact there is nothing to catch, because after the fact the reading is 
   and the grep happened only because there was waiting time. **A trigger tied to the run
   would have missed it; a trigger tied to the EXPLANATION would have caught all three.**
 
+  **RULED KEEP — the proctor, 2026-09-10, and the deciding evidence is `I27`.** Seven
+  instances since it was written: `I11` · `I13` · `I18` · `I19` · `I23` · `I26` · `I27`, and
+  counted rather than asserted. **Six caught a claim already investigated or already drafted.
+  `I27` fired BEFORE THE WORK and cancelled a measurement that the record had already
+  answered** — the input-type gate, settled by `INDEX:14822` plus `F36`. **That is the
+  difference between a rule that installed and a rule that was written down**, which is
+  `I15`'s standing complaint answered with a case.
+
+  **AND `I26` NAMES THE ONE SCOPE ERROR TO AVOID: the RECORD is not only `INDEX`.** For `F41`
+  I grepped `operand_term` across `*.py` and never across `docs/`, and `WINDOW_REPORT` §7 was
+  carrying a constraint that made the ruling smaller than I filed it.
+
+- **THE FIGURES ARE A TIEBREAKER, AND THE SEARCH IS A TERM CENSUS FIRST.** Isaiah's standing
+  instruction; `F30` exercised it and `F40` made it repeatable. **Census the term across all
+  fifteen BEFORE reading any one of them**, so the search is directed by the count and not by
+  the conclusion — `shrink` appears in exactly one figure; `remainder` in exactly one. **Three
+  disciplines, each learned by failing it once:** check POLARITY IN CONTEXT, because a
+  minimality argument's list of failure conditions reads like an endorsement (`F40`); use WORD
+  BOUNDARIES, because `traction` read 6 and is `subtraction` and `abstraction`, `win` read 4
+  and is `narrowing` and `following`, and the most authoritative-looking hit sat in the
+  OPERATORS TABLE (`I24`); and read the GENUINE hits before reporting a null, or the closure
+  is unsearched. **A tiebreaker that cannot reach a question is a CLOSED avenue, which is worth
+  more than an untried one.**
+
+- **CORRECTIONS GO INTO THE GENERATOR, NEVER INTO THE PASTE.** `I12` · `I14` · `I15` — the same
+  error three times, the third within minutes of writing the trigger down. A hand-edit to a
+  published artefact makes its generator a silent REGRESSION, and the next regenerate-and-publish
+  reverts content the reader has already seen. **And the correction goes into the ROW THAT
+  CARRIES THE ERROR, not only into a new row**: a fresh entry saying *that was wrong* leaves the
+  wrong claim standing where it is actually read (`F32`, `F41`, `F26`). **Where a coupling keeps
+  drifting, install the check rather than being careful again** — the sheet's headline-vs-Record
+  assertion caught its target on the very next publish, having been missed by hand three times.
+
+- **A GREP'S COUNT IS NOT EVIDENCE UNTIL YOU HAVE READ WHAT IT MATCHED**, and a total that looks
+  supportive is exactly when the check gets skipped. Three censuses, three different failures:
+  the wrong POPULATION (`grep -r` sweeping `.venv`, `I22`), POLARITY (`F40`), WORD BOUNDARIES
+  (`I24`). **A zero is the most convincing kind of wrong** — `I28` had *the findings rest on three
+  of five boards* drafted before reading the matches, and all five had agent runs under a notation
+  the pattern did not cover. **Prefer a completeness check with a DENOMINATOR to an error hunt,
+  which has no bottom** (`I29`).
+
 **And the reason they are steps and not laws eight and nine: `B17`.** *Pre-registration does
 not protect a reading if the instrument measures something else.* The phase sweep pinned its
 expected shape in advance, correctly, derived from an independent measurement — **and pinned
