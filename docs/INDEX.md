@@ -24693,3 +24693,43 @@ thin.**
 
     MECHANISM   nothing. A tiebreaker consulted and returning little, reported as little
     CAPABILITY  none
+
+## THE SURPRISE CURVE, FROM ROWS ALREADY ON DISK — AND IT IS NOT §8's COST CURVE
+
+**Read from `repeat` rows, no run.** Every cycle carries `integral` (surprise against the actual,
+monotone) and `outstanding` (what no term explains).
+
+    ka59 x24   integral  44.3 -> 857.0    outstanding  44.3 -> 463.0    explained 394.0  (46%)
+    ls20 x20   integral  29.5 -> 816.6    outstanding  29.5 -> 547.6    explained 269.0  (33%)
+
+    stage        MINT_UNFIRED while outstanding TRACKS integral exactly
+                 then MINTED_UNUSED once terms start explaining
+    gamma_size   48 -> 69 on both
+
+### THE SHAPE IS THE READING, AND THE MECHANISM IS VISIBLE IN IT
+
+**Outstanding equals integral exactly until minting fires** — nothing explained, so every unit of
+surprise is outstanding. **Then it diverges, and then it PLATEAUS**: `ka59` sits at 441-477 from
+cycle 12 onward while integral climbs 636 -> 857; `ls20` sits at 547-568 from cycle 14 while
+integral climbs 643 -> 817.
+
+> **SO EXPLANATION KEEPS PACE AFTER A LAG.** Total surprise grows roughly linearly and unexplained
+> surprise stops growing. **That is `explain` working, measured on the agent's own monotone record**
+> — and `outstanding` is monotone-by-addition, so a plateau is real absorption rather than
+> forgetting.
+
+**AND THE STAGE LABEL IS THE NIGHT'S STORY IN ONE FIELD.** `MINTED_UNUSED`, on both boards, from the
+moment minting starts. **The chain's own segment stage says the library grows and is not consumed.**
+`gamma_size` 48 -> 69 agrees.
+
+### WHAT THIS IS NOT, STATED BECAUSE THE HEARTBEAT ASKS FOR SOMETHING ELSE
+
+**The standing ask is *the per-cycle COST series for §8's wall question* — compute, wall time, where
+the run gets expensive.** This is the SURPRISE series. **They are different quantities and I am not
+filing one as the other.** Per-cycle timing is not in the ledger; `F10`'s readings are whole-run wall
+times at 6/12/24/48, and a per-cycle curve would need instrumentation that does not exist.
+
+    ANSWERED     the surprise curve, both boards, from data already held
+    NOT ANSWERED §8's wall question, which needs per-cycle timing the rows do not carry
+    MECHANISM    explain absorbs at a rate that flattens outstanding while integral climbs
+    CAPABILITY   none. MINTED_UNUSED is the build saying the terms are not consumed
