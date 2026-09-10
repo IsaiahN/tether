@@ -25997,3 +25997,60 @@ mechanism exactly as fragile.
 
     MECHANISM   generator computes its own stamp and HEAD; scratchpad tool, no build file
     CAPABILITY  none
+
+---
+
+## `I22` — THE CONDITION-PRODUCER CENSUS FOUND NOTHING UNREAD, WHICH IS `F38` ON A SECOND POPULATION
+
+`F37`'s citation census ran over **documents**. The law it came from names a different
+population — *"read the things that produce CONDITIONS before the things that produce results —
+a generator, a config, a plan, a fixture."* **That census had not been run.** Ran it.
+
+    tracked non-code, non-doc     3 files (.claude/settings.json, .gitignore, pyproject.toml)
+    tracked .py at INDEX cites 0  2 files -- arc_screen.py (150 lines), arc_predict.py (115)
+
+### BOTH ARE ABSORBED, AND NEITHER WAS FOUND BY LOOKING FOR THE FILENAME
+
+**`arc_screen.py`** is §18.3's independence measurement and the home of `NO_SURFACED_ACTION`, the
+six-game exemption table CLAUDE.md carries as a standing rule. Cited **zero** times by name —
+and its findings are in the record under **their own** names: `all_pairs_readable` and
+`separable_here` once each, `uninformative` four times, at `INDEX:4871` and `INDEX:4951`, with
+three commits behind it. The entry there is complete down to its own residual: *"four of six
+pairs are comfortable; two are not, and the requirement is discharged only as far as the thin
+ones allow."*
+
+**`arc_predict.py`**'s `unexpressible()` is cited **zero** times in INDEX and once in CLAUDE.md —
+and it is quoted **verbatim** in `arc_atoms.py:94` and `:96`, inside the `ADMITTED` stamps.
+**That is the ablation partition**, so the most load-bearing absorption in the file is the one
+the census is blindest to.
+
+> **THIS IS `F38`'s RULE HOLDING ON AN INDEPENDENT POPULATION — CODE RATHER THAN DOCS.** *Uncited
+> is not unabsorbed*, and the proxy misses **exactly the best case** both times. It adds no new
+> rule; it removes the instrument I was about to build to replace the one that already failed
+> this way once.
+
+### AND ONE THING WAS VERIFIED RATHER THAN ASSUMED, BECAUSE IT LOOKED LIKE A GAP
+
+`unexpressible()` names **FOUR** — `appear`, `vanish`, `reflect`, `rotate` — and CLAUDE.md's
+entry clause admits **two** of them as atoms. **A reader meeting that arithmetic has a fair
+question: what happened to the other two?** The docstring answers it, and the answer is checkable:
+
+> *"existence is not a slot value; the slot SET changes and `_present` sees it"*
+
+**`_present` (tether.py:2198) does exactly that** — re-reads `self.env.slots()` every step,
+diffs it, and records a `PERCEIVE`/`present` row carrying `gone` and `came`, plus the orphaned
+bindings whose operand departed. **So the partition is coherent: two handled as EVENTS, two
+admitted as ATOMS, none unhandled.** Checked at the write site, not inferred from the table.
+
+    THE NEAR-MISS IS THE PART WORTH KEEPING. My first grep for `_present` returned only
+    `.venv` hits -- fontTools and pydantic -- and I was one step from reading that as DOES
+    NOT EXIST, which would have filed `appear`/`vanish` as an unhandled gap in the entry
+    clause. It exists, in tether.py, 2198. The fix was `git grep` instead of `grep -r`:
+    scope the sweep to the TRACKED population
+
+    Same family as `I5` (searched one spelling of a field name) and the reviewer's note that
+    A TOTAL ZERO IS THE MOST CONVINCING KIND OF WRONG. A zero from a sweep over the wrong
+    population reads identically to a zero from a sweep over the right one
+
+    MECHANISM   nothing found unread; entry-clause partition verified complete at its site
+    CAPABILITY  none
