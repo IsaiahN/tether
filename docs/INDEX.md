@@ -25579,3 +25579,61 @@ and not applied mid-flight.**
 
     MECHANISM   none. The ceiling correction is against my own published table
     CAPABILITY  none
+
+---
+
+## `F20` STEP 1 IS **POSITIVE**, MEASURED, AND THE QUESTION DISSOLVES AS ISAIAH SAID IT WOULD
+
+The pre-registration, committed at `352b18d` before the run returned:
+
+> *max unsat > threshold on some board -> **STEP 1 POSITIVE**. The bootstrap is real and not
+> binding, nothing changes, the question dissolves.*
+
+**`ls20` clears it by six times over.**
+
+    37 readings with a residual, cycles 2..19, three distinct slots
+    n=4    thresholds   k=1  2.322    k=2  3.483
+    MAX unsat 21.0   cycle 12   slot o20.w   (rg 1.0 x group 21)
+    ABOVE k=1: 37 of 37          ABOVE k=2: 32 of 37
+    slots: o20.w 20 readings, o16.w 15, o20.col 2
+
+**AND IT IS A GENUINE PER-SLOT PRODUCT, WHICH IS THE WHOLE REASON THE CENSUS EXISTED.** `rg` and
+`gsize` are recorded on the SAME call, so `unsat = rg x gsize` is one slot at one cycle — not
+`max(rg) x max(scope)` from two different slots, which is the bound I refused to publish an hour
+ago and the `base_bits` trap that nearly fired twice.
+
+**ISAIAH'S QUESTION IS EXISTENTIAL** — *"find whether ANY board offers a residual larger than the
+full-length routine cost"* — **so one board settles it.** `ls20` does.
+
+    RULED OUTCOME, applied: the bootstrap is REAL and NOT BINDING. Nothing changes.
+    STEP 2 DOES NOT BECOME LIVE -- no repricing of the first plan, no accounting change,
+    no provenance stamp needed, because step 1 did not come back negative.
+
+### AND THE GROUP GREW AGAIN, WHICH CLOSES THE CEILING CORRECTION
+
+    reset frame (cold, tonight)      19
+    depth 6 (sweep, 21:45)           20
+    cycle 12 (this census)           21
+
+**Three readings, three values, one board.** My published *"uniform within a board, always
+objects-minus-one"* was a snapshot and is now measured as moving. **The correction I filed an hour
+ago is confirmed by the run rather than argued.**
+
+### THE SHARP PART IS NOT THE NUMBER — IT IS THAT `ls20` NEVER PRICED A ROUTINE
+
+`F19` measured `ls20` at **ZERO priced candidates**: it passes gate 1 twice and refuses at 1879,
+the coverage/vote gate. **But `o20.w` carried `unsat` of 20.0 from cycle 2** — an affordable plan,
+by a factor of six, sitting there for eighteen cycles.
+
+> **THE BARGAIN WOULD HAVE PAID AND THE AGENT NEVER REACHED IT.** And `F31` established that the
+> 1879 refusal is CORRECT — every action moves `o20.w` the same way, so there is no differential
+> lever. **So the plan was affordable and the agent declined for a sound reason that has nothing
+> to do with cost.** *The bargain is not the blocker* was already the finding; this is the
+> strongest form of it yet, because now the money was demonstrably on the table.
+
+    ONE BOARD. ka59 is still running and this is not pooled with it. Per game, never
+    pooled -- and the existential question does not need a second board anyway
+
+    MECHANISM   F20 step 1 answered POSITIVE against a pre-registration, on a genuine
+                per-slot product rather than a product of maxima
+    CAPABILITY  none. ls20 still completes zero levels and adopts zero routines
