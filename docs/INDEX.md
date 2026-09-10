@@ -28453,3 +28453,62 @@ what spends the derivational independence the whole check runs on.
     OWED        Isaiah's, and it is one command: commit the two corpus files, or say they are
                 deliberately held. Flagged because the stale version is the one every
                 git-based check will read, and it does not look stale
+
+### `F59` CONTINUED — IT IS THREE VERSIONS, NOT TWO, AND THE THIRD IS THE REPAIRED ONE
+
+**Written minutes after `F59` and extending it rather than correcting it.** The reviewer file moved
+and carries `F52-DEFECTS-FIXED`: **both corpus defects I annotated are repaired.** The revision
+list is renumbered **R1–R9**, the header now reads *"Nine changes … two are corrections; seven are
+additions"*, and it carries an explicit disambiguation note.
+
+**MY COPY IS NOT THAT FILE.** Measured rather than assumed:
+
+    R-numbering present          0
+    "Nine changes"               0
+    "Seven changes"              1     <- "two are corrections; five are additions"
+    "Cite these as R-numbers"    0
+    items 33-41 present         12
+
+    committed 4c377ac 09-05 17:14   34,654   no revision list at all
+    working tree     09-10 10:49   43,175   items 33-41, "Seven changes", both defects LIVE
+    the repaired one   not held    n/a      R1-R9, "Nine changes", defects CLOSED
+
+> **SO `F59`'s *two versions under one path* is three, and the seat holds the middle one.** The
+> reviewer has closed `F52`'s defects; **from where this seat sits they are still open**, and
+> reporting either state without naming the version would be wrong from the other side.
+
+## `F60` — THE RENUMBERING PROTECTED THE LIST MY CITATIONS DO NOT USE, AND MOVED THE ONE THEY DO
+
+**The reviewer's reasoning is explicit and it is sound in form:** *"Renumbering the NEW list rather
+than the old one is deliberate: the old numbers are cited in the record and in this sheet already,
+so moving them would break existing citations to fix a collision the new list created."*
+
+**CHECKED AGAINST THE ACTUAL CITATIONS, WHICH ONLY THIS SEAT HOLDS.** `THE_FORMULA` carries two
+items numbered `33`, which is the collision:
+
+    earlier list, 33   "Step 1 and the symbol for R -- R is always a slice"
+    revision list, 33  "Negation added to the symbols, and to the operator set"
+
+**`INDEX`'s live citation is `revision list's item 33 now says the cost is left open rather than
+invented`** — the unary-operator price, which is the **NEW** list's 33. `F52` cited the new list
+again for items **40 and 41**. **Every live citation this seat holds points into the list that was
+renumbered**, and none into the list that was preserved.
+
+> **THE PROTECTION RAN THE WRONG WAY, AND THE ASSUMPTION UNDER IT WAS CHECKABLE.** *The old numbers
+> are cited already* is true of the sheet's older rows and false of `INDEX`'s live ones. **A repair
+> chose between two options on a premise about where citations point, and the premise was never
+> looked up** — which is the sixth law from the other side: *assume it is already specified, and go
+> look*, where the thing specified is someone else's record.
+
+**NOT A COMPLAINT AND NOT A REQUEST TO REVERT.** The collision is real, the repair is correct, and
+**renumbering something was going to break something** — there is no option that breaks nothing.
+What is recorded is that the choice was made on a fact that could have been read, and that the
+seat's citations are the ones now dangling. **`INDEX`'s three citations are mine to repair once I
+hold the repaired file**, and I do not hold it.
+
+    MECHANISM   the three-version state measured on my own disk; the citation direction checked
+                against INDEX rather than reasoned about
+    CAPABILITY  none -- no run, nothing reaches the agent, both boards still read zero levels
+    OWED        Isaiah's, unchanged from F59: commit the corpus, or say it is held. AND ONE
+                SMALL THING OWED TO THE REVIEWER: send the repaired THE_FORMULA, or the seat
+                cannot re-point its citations and will keep reporting the defects as live
