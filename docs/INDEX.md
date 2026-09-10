@@ -26444,3 +26444,53 @@ not two.
 
     MECHANISM   none. A measurement retired before it ran
     CAPABILITY  none
+
+---
+
+## `I28` — A FALSE DENOMINATOR CONCERN, KILLED BY ITS OWN CHECK, THAT FOUND A REAL POOLING ERROR
+
+**THE CONCERN WAS WRONG.** The heartbeat says *the 5 public games*, and the findings I keep citing
+name three, so I went looking for a missing denominator. Grepped `g50t x` / `at depth` and got
+**zero on `g50t` and `wa30`** — and was drafting *"the per-board findings rest on three of five."*
+
+**THEN I READ WHAT THE COUNT MATCHED**, which is `I24`'s rule invoked while running the check
+rather than after publishing:
+
+    INDEX:10626   g50t  by: discriminate:learned 93 · probe 23 · draw 15   ACTION2 94   1940s
+    INDEX:12663   gate 1 on g50t -- "ZERO PASS, EVER"
+    INDEX:18332   wa30 -- the override could not fire, 8 of 8 entries
+    INDEX:19199   wa30  16  8  1  7 (44%)  0.0
+
+**All five public games have agent-run readings.** My pattern was too narrow for the notation the
+record actually uses. **The denominator claim was false and never shipped.**
+
+### AND THE FALSE LEAD FOUND A REAL ERROR IN A ROW I PUBLISHED
+
+`F26`'s Seat Response, live in the workbook, reads:
+
+> *"INDEX:11264's retraction gives 93 of 131 acts from `discriminate:learned` at 1000 cycles on
+> **`g50t`/`ls20`** = 71%."*
+
+**VERIFIED AT THE CITED LINE.** `INDEX:11264` retracts *"96% on `ls20`, 88% on `g50t`"* and gives
+the honest figure as ***"93 of 131 acts … 71%, not 88%"*** — **which corrects `g50t` ALONE.** The
+census two pages earlier gives the other board separately:
+
+    ls20   discriminate:learned 128 · draw 20 · probe 2   = 128 of 150 = 85.3%
+    g50t   discriminate:learned  93 · probe 23 · draw 15  =  93 of 131 = 71.0%
+
+> **SO ONE GAME'S FIGURE WAS LABELLED AS TWO, WHICH IS THE POOLING RULE'S OWN FAILURE MODE.**
+> CLAUDE.md: *no pooling across games — every game tests a different skill.* This is not an
+> average, which is why it slipped: it is a single board's number wearing two boards' names.
+>
+> **AND IT INFLATES A CORROBORATION CLAIM.** `F26` calls 71% on `ka59` at 24 cycles *"an unplanned
+> reproduction — different boards, depths and instrument, same number."* **That holds against
+> `g50t` and against `g50t` only.** `ls20` is 85%. A one-board coincidence stated as two-board is
+> exactly the inflation the pooling rule exists to prevent.
+
+    CORRECTED IN F26's OWN ROW, not only here -- the wrong figure is read where it sits
+    THE SHAPE WORTH KEEPING: the concern that started this was UNFOUNDED, and chasing it read
+    lines I would not otherwise have opened. A false lead is not a wasted one when the check
+    that kills it is a READ rather than a second grep
+
+    MECHANISM   F26's per-game attribution corrected; all five boards confirmed run
+    CAPABILITY  none
