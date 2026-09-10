@@ -27288,3 +27288,141 @@ demonstration rather than its argument.
 
     MECHANISM   the publish check caught its first real drift and the generator was repaired
     CAPABILITY  none -- and nothing about this reaches the agent
+
+---
+
+## `I37` — I USED FILE MTIME AS EVIDENCE OF DERIVATION ORDER, AND IT IS NOT THAT
+
+**I claimed independent convergence between the corpus amendments and my `F44` measurements, on the
+strength of file timestamps: figures at 08:49-08:50, `THE_FORMULA` at 08:58, my answers at ~13:00.**
+The reviewer corrected it before it entered the record, and they are right.
+
+    mtime records WHEN BYTES WERE WRITTEN.
+    It does not record WHAT THE AUTHOR HAD READ.
+
+**A file written at 08:49 can be a save of work drafted later in a conversation, an export, or a copy
+— and none of that is visible in the stat.** Worse, the inference runs the wrong way round on
+purpose: I wanted the convergence to be real, and the timestamp was the only evidence that made it
+so. **An author's first-person account of their own process beats a filesystem timestamp, always.**
+
+**AND MY CONFIRMING CHECK FAILED ON POPULATION, WHICH IS `I22` AGAIN.** The reviewer quotes an
+amendment note — *"Supporting measurement, held apart from the claim: 7 of 19 and 5 of 13 ... One
+instantiation does not establish the general claim — it is what prompted looking for it"* — and I
+grepped the figures and both docs for it and got ZERO. **The companion document is still incoming**
+(`FIGURES-FOR-YOU`: *"a companion doc Isaiah is sending"*), so the target was never in the population
+I searched. **A zero over a population that excludes the target is not a null**, and I nearly let it
+stand as counter-evidence against a first-person account.
+
+**The sheet settles it directly** — `FIGURES-UPDATED`: *"YOUR CODE IS WHY SEVERAL OF THESE ARE
+STATEABLE: monotonic library with derived reach came from your Q1/Q2 answers, and F32 plus F40
+forced the remainder clause."*
+
+    MECHANISM   a false independence claim caught before it entered the record
+    CAPABILITY  none
+
+## `F47` — THE CORPUS REVISION, CARVED PER CLAIM, AND WHAT THE CODE SAYS BACK
+
+**Five figures amended (5, 6, 8, 12, Operators), plus `THE_FORMULA` and `WHAT_THE_AGENT_SEES`. Read
+in full.** Seven numbered changes; the load-bearing ones are negation as an eighth operator, a fifth
+`REFUTED` bin at ROUTE, a third question `SEARCHED` at step 7, and *settling is necessary and not
+sufficient*.
+
+### THE CONVERGENCE CLAIM, CARVED — AND TWO THIRDS OF IT WITHDRAWN
+
+**Filed per claim rather than as one finding, at the reviewer's instruction, because recording all
+three as independent would inflate ONE measurement into THREE agreeing sources.**
+
+    the library only grows and the reach can fall
+        GENUINELY INDEPENDENT. Isaiah and the reviewer reached it from the theory side --
+        arguing through cascade and oscillation to `nothing is ever removed` -- BEFORE the
+        questions came to the seat. The code already had it. Two derivations, neither from
+        the other. THIS is the strong kind and it keeps its standing.
+
+    settling is necessary and not sufficient
+    some terms are paid for and add nothing composable
+        TRANSMISSION, NOT CONVERGENCE. Both are the same claim and both came from the seat's
+        own Q1d answer. The amendment says so at its own site. WITHDRAWN as independent
+        evidence; they remain true and they corroborate nothing.
+
+> **The reviewer's sentence is the one to keep: *I would rather lose two-thirds of that finding than
+> have it inherit credibility it did not earn.*** Which is `F45`'s discipline applied by the other
+> seat, to my claim, one cycle after I applied it to my own.
+
+### THE NEGATION FINDING — THE OPERATOR IS PRESENT AND THE DEMAND IS ABSENT
+
+The corpus adds `¬` as an eighth operator and says *a vocabulary that cannot refuse can only
+accumulate.* **This build has negation and has never used it.**
+
+    arc_atoms.py:627   Atom("negate", _negate, PRED, PRED)   stamped handed-2026-09-08
+    reads_operand FALSE -- so F41's blockage does NOT touch it, unlike both/either
+    9 atoms produce PRED; 6 consume it, including all three quantifiers that close a bet
+    `same -> negate -> all` is a type-valid chain the closure admits TODAY
+    occurrences in ka59 x24, ls20 x20, demo.jsonl:  ZERO
+
+**So the gap is not the operator, it is the DEMAND.** `tether.py:105` defines exactly four bins —
+`HELD, NOVEL, REBIND, MECHANISM` — and every one sorts the residual by what is MISSING. **No bin
+sorts by what is WRONG, so nothing ever asks for a refusal and the operator starves.** The corpus
+predicted the consequence correctly and named the wrong cause for this build; the fifth bin is
+genuinely absent and `¬` genuinely is not.
+
+**REVIEWER SECONDED IT AND ADDED TWO CHECKS I HAVE NOT RUN:**
+
+- **Does `negate` reach the right LEVEL?** `PRED → PRED` gives `¬same(x,y)` — negation *inside* a
+  bet. The fifth bin wants `¬ψ` where ψ is a SETTLED LIBRARY TERM. Those are the same mechanism only
+  if ψ produces a `PRED`, and that is to be confirmed at the site rather than assumed.
+- **THE PRICE MAY BE A SECOND, INDEPENDENT REASON FOR ZERO.** The build silently picked the
+  atom-slot option, so `term_bits` charges negation `log₂(|atoms|+1)` — the cost of WHICH CONCEPT —
+  where negation carries roughly one bit of FLIP IT. **On a 48-atom alphabet that is ~5.6 bits for
+  one bit of content.** So even once demand exists a negated term may never pay. **Testable:
+  construct one and read whether the bargain clears.** If it does not, the corpus item is not closed
+  by the build — the build has an answer that does not work.
+
+### `SEARCHED` APPLIED TO A VERDICT I HAD BEEN REPEATING, AND IT SURVIVES
+
+Figure 6's third question plus Figure 8's correction — *importing against a budget limit adds an atom
+that was not needed* — could have unseated the standing `composable=0 / UNREACHED` reading.
+
+**Checked at the site.** `sensors.py:137` walks `while frontier and depth <= max_depth` and returns
+everything: **no budget, no early stop, exhaustive at depth.** So that UNREACHED is genuine
+depth-exhaustion, `SEARCHED` does not apply, and the verdict holds.
+
+**AND THE SPLIT IS THE YIELD:** `Gamma.enumerate_closure` DOES carry a budget and records
+`budget_spent` versus `depth_exhausted`, its own docstring saying they are not the same claim. **So
+`SEARCHED` is LIVE for the term closure and INERT for the sensor closure** — the two-closures A6i
+again, now with a rule attached: **before any *we need an atom* claim about terms, ask which stop
+fired.**
+
+### A CARDINALITY THE REVIEWER ASKED FOR, AND IT IS WRONG THREE WAYS
+
+They flagged a transcription reading *9 relations × 4 quantifiers = 25*, noted 9×4 is 36, and asked
+for the registry count. **Counted:**
+
+    relations   6   attr -> PRED     same, other, above, all_same, any_same, none_same
+    connectives 3   PRED -> PRED     negate, both, either   (both/either INERT per F41)
+    quantifiers 3   PRED -> OBJ      all, any, none
+
+**AND THE FOURTH QUANTIFIER IS DECLARED AND UNIMPLEMENTED.** `grammar.py:63-66` declares `ALL`,
+`SOME`, `ONE`, `NONE`; `arc_atoms._quantify()` returns `all`, `any`, `none`. **`ONE` — *holds for
+exactly one* — has no producer.** F41's shape a third time.
+
+So **25 is wrong, 36 is wrong**, and the live figure is **6 × 3 = 18** bare relation→quantifier
+chains, or 27 if connectives are counted among the relations. **Recorded because it is the
+cardinality every reachability claim is stated against.**
+
+### WHAT THE REVISION CHANGES IN HOW THE WORK IS READ
+
+- **Reach, not Γ, is the progress reading.** *A system measuring its own progress by terms minted is
+  counting the denominator.* `gamma_size` growth has been reported as mechanism-fires all window.
+- **The failed-path catalogue has a better shape than the one queued.** *An agent that can only
+  accumulate can be corrected and cannot carry the correction* — and the answer is a refusal that
+  **pays the same bargain and persists as a term**, not a rejection-memory bolted onto site 1926.
+  **The reviewer seconds this as the version worth building.**
+- **`¬`'s price is an open corpus item the build has already answered silently**, by making it an
+  atom. Open in the corpus, decided in the code, and possibly decided wrong — see the bargain test
+  above.
+
+    MECHANISM   the revision read in full; four code checks run; one verdict survived a test
+                that could have unseated it
+    CAPABILITY  none -- no run, no contact change, both boards still read zero levels
+    OPEN        negate's level; whether a negated term can ever pay; and FIGURES-FOR-YOU,
+                which is not yet on disk and which the reviewer says would REORDER THE QUEUE
