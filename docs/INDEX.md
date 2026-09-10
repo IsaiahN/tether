@@ -27775,3 +27775,90 @@ under all three, and it is the cheapest thing on this list to change.
     CAPABILITY  none -- generator only, nothing reaches the agent
     OPEN        mksheets.py and verify_publish.py are not in git. Three instrument repairs this
                 session have no history behind them, and a fourth would have none either
+
+---
+
+## `F51` — FIGURE 5 GREW AFTER I READ IT, AND ITS NEW SECTION NAMES A POPULATION `F39` HAS ALREADY MEASURED
+
+**`20,335 → 23,069 bytes, viewBox height 2706 → 3176, mtime 10:42` — after the 09:44 version `F47`
+read.** This is added content, not the re-crop `F49` checked. All text still sits inside the box
+(`y:[62,3116]` in `0 0 2400 3176`). **I cannot say exactly which block is new**: I did not keep the
+earlier bytes, so the boundary is inferred from the size delta and stated as an inference.
+
+### THE NEW SECTION, AND WHAT THE CODE SAYS BACK
+
+*"WHICH TERM IS THE WRONG ONE, AND WHY THE ANSWER IS PARTLY OUTSIDE THIS PIPELINE."* Two mechanical
+claims and one limit:
+
+    ENUMERABLE   every term currently bound and generating a prediction is a candidate
+    RANKED       "a term whose residual PERSISTS AND DOES NOT TREND DOWN ... the same shrinking
+                 test the selector already runs, READ WITH THE OPPOSITE SIGN"
+    THE LIMIT    the term most worth refusing may not be in the library at all -- a sought-for
+                 SHAPE is held as a PREFERENCE, is not bound, predicts nothing, accrues no
+                 residual, so nothing in the pipeline can see it
+
+**THE RANKING IS A POPULATION THIS RECORD HAS ALREADY MEASURED, AND IT COSTS NOTHING TO STATE.**
+`F39`: `_goal_choice` needs three consecutive readings with all deltas ≤ 0 and one < 0, and ka59's
+`o14.w` **carries unsat 12.0 on all ten of its readings, perfectly flat — "IT CAN NEVER QUALIFY AT
+ANY DEPTH."** That slot is permanently invisible to the selector and is **exactly** what the figure
+says to point a refusal at. **The selector's permanently-excluded set IS the refuter's candidate
+set — one measurement, two readings, opposite signs.** ls20's `o20.w`, flat at 20–21 for fifteen
+consecutive cycles, is the same shape on the other board.
+
+**AND `F49`/`F50`'s ORDERING FALLS OUT OF IT.** The figure: *"Nothing leaves the library. What falls
+is the reach."* `F50` measured that per cycle today — four cycles where the library grew and reach
+fell in the same step.
+
+> **NOT FILED AS CONVERGENCE, AND `I37` IS WHY.** Figure 5 was amended at 10:42, after my answers;
+> mtime records when bytes were written, never what the author had read, and **the author's account
+> settles direction, not my inference.** What is stated here is only that the mechanism the figure
+> names has a measured population in this record — true whichever way the derivation ran.
+
+### WHAT IT DOES NOT CHANGE
+
+**`F48` STANDS.** The figure prices a refusal at *"the same bargain"* and says it *"requires an
+operator for negation, which the seven bonds do not contain."* That is precisely the arithmetic
+`F48` measured as prohibitive — one extra atom at 5.615 bits against a median slack of 2.77 on
+ls20. **The corpus asks for the operator and leaves its price open; the build answered the price
+silently and the answer looks fatal.** Unchanged and still Isaiah's.
+
+**AND THE LIMIT IS AIMED AT THE SEAT AS MUCH AS THE AGENT.** *"A frame can refuse the right kind of
+thing and still aim the refusal at the outcome it did not want rather than at the belief it holds."*
+The figure's remedy is a discipline rather than a branch — **write down what an answer would look
+like, bind it, let it accrue a residual** — and it names the practice that already does this:
+*"committing a prediction before a run is this, already working."* `F39` is that, executed: three
+predictions on ka59 committed one minute before the result, all three holding to the slot.
+
+    MECHANISM   the amended figure read in full; its ranking mechanism matched to a measured
+                population; F48 checked against it and unchanged
+    CAPABILITY  none -- corpus read, no run, nothing reaches the agent
+    OPEN        the price of the unary operator, still the corpus's own open item; and whether
+                this amendment is downstream of the seat's answers, which only Isaiah can say
+
+---
+
+## WHERE THE WINDOW IS — session state, 2026-09-10 ~15:55 UTC
+
+**Written because the session may end at a rate limit and the next reader needs the state rather
+than a reconstruction.**
+
+    HEAD              031bff2   9/9 seats clean   no build file touched this session
+    PUBLISHED         Tether Workbook Sheet     1v444_PJwBW2BpQ2s5cBKRyy164JwA5nvAV4B8I7mHtQ
+                      Tether Workbook Archive   1AdaYkw_EtJwr6w1Gx8iGJ51nTx1Qbr_aDw0BHP3xPog
+                      both stamped 15:35 UTC, both verified by id, both predecessors trashed
+    MARKERS           scratchpad/sheet_synced_at.txt = 031bff2; runstatus{,_synced}.txt = the F50
+                      headline; sheet_id.txt carries both ids; workbook3{a,b}.published.csv saved
+
+**THE SHEET IS ONE COMMIT BEHIND HEAD AND THAT IS DELIBERATE** — `F51` is committed after the
+publish, so the sheet narrates `031bff2`. Next cycle regenerates and carries `F51`.
+
+**OWED, IN ORDER.** (1) `verify_publish.py` has NOT been run against this publish — it was run green
+on the previous one, both parts. Run it on both ids before trusting the transcription. (2) The
+reviewer's third named read: the toy world's INTRODUCED actors, `E1b`'s unexamined half. (3) The
+build queue, unblocked by the freeze re-scoping: `F32`'s trace-derived confidence acceptance, the
+failed-path catalogue, `F28`'s undo-overuse monitor. (4) `PROTOCOL`'s 10×5 loop, unstarted,
+deadline Sept 30.
+
+**AND THE GENERATOR IS NOT IN GIT.** `mksheets.py` and `verify_publish.py` live only in the
+scratchpad, which is session-scoped. `I41` names this as the condition under all three of this
+session's instrument findings, and it is the cheapest thing on the list to change.
