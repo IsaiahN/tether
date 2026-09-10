@@ -2798,10 +2798,31 @@ class Agent:
                                         "novelty": False},
                                 note="minted here; it explains a residual parked elsewhere",
                                 was=out["was"], via=how, cross_level=cross)
-            elif left < base:
-                self.chain.note_reuse_attempt("did-not-pay")
             else:
-                self.chain.note_reuse_attempt("no-split")
+                # THE TWO REJECT ARMS WROTE NO ROW, AND THAT IS WHY THE ACCEPTANCE RULING
+                # CANNOT BE TAKEN YET. `F40` filed it as owed: `note_reuse_attempt` bumps a
+                # counter and emits nothing, so the 42 `did-not-pay` candidates' `cost`,
+                # `left` and `base` are NOT ON DISK. The ruling on this gate -- *the residual
+                # never fully closes, so `left == 0.0` is wrong* -- needs to know which
+                # direction the one bargain actually moves the funnel, and **`would_pay` is
+                # measured only on the ACCEPT arm**, where it reads False 19 times in 21.
+                #
+                # SO THE COUNTERFACTUAL IS COMPUTED ON THE SIDE THAT IS ALREADY IN, AND NOT
+                # ON THE SIDE THAT IS OUT. Reading one arm and ruling on both is the shape
+                # this window keeps logging -- a check that covers half the ground. Same
+                # fields as `_install_reuse` computes, so the two arms read alike and a
+                # future census can pool them without re-deriving anything.
+                why = "did-not-pay" if left < base else "no-split"
+                self.chain.note_reuse_attempt(why)
+                cost = term_bits(self.gamma.length(cand, tuple(self.gamma.units())),
+                                 self.gamma.alphabet)
+                self.led.record(self.cycle, "ROUTE", slot, "reuse_refused",
+                                reason=why, term=cand.name, held=tkey,
+                                term_bits=round(cost, 4), left_bits=round(left, 4),
+                                base_bits=round(base, 4),
+                                would_pay=pays(cost, left, base), via=how, cross_level=cross,
+                                reads="what the ONE bargain would have said on a candidate "
+                                      "the zero-remainder gate refused")
 
     def _install_reuse(self, cand: Term, slot: str) -> str:
         """The SWEEP's entry into Gamma, and it is the one path that does not consult `pays`.
