@@ -24618,3 +24618,50 @@ the planning failure, third check that killed it.*
                 not depend on it
     MECHANISM   the refusal classified NOT A DEFECT by the window's own rule
     CAPABILITY  none, and now with a reason: on this slot there is nothing to be capable OF
+
+## `I16` / `ALIGN-2` — THE WATCHDOG I BUILT WAS RAISING A FALSE ALARM EVERY HOUR FOR SEVEN HOURS
+
+**The unaccounted duplicate sheets are mine.** A cloud routine created at 18:48 via `/schedule`:
+
+    trig_01ACv7vkDg91TnZUKsvc47KH   "17 * * * *"   enabled=True   last fired 01:17:38
+    "Tether workbook staleness watchdog"
+
+**ITS JOB WAS TO MAKE A SILENT FAILURE ANNOUNCE ITSELF** — if the local session dies, the sheet
+freezes while still claiming to be current, and a reviewer polling it cannot tell frozen from idle.
+
+### THE BUG IS A TIMEZONE MISMATCH I WROTE INTO IT
+
+Its prompt: *"its Status cell ends with 'as of HH:MM' in 24-hour **America/Chicago** time"*, and it
+computes age against `TZ=America/Chicago date +%H:%M`. **I have been stamping UTC** — `as of 02:15`.
+
+    Chicago 21:15  vs  stamp 02:15  ->  age computed as ~19 HOURS
+    threshold 90 minutes -> STALE -> republish
+
+**So it fired on every run it ever made.**
+
+### TWO CONSEQUENCES, AND THE SECOND IS THE SERIOUS ONE
+
+    1  a DUPLICATE sheet the reviewer could read -- found at 00:21 and 01:21, both cleared
+    2  it rewrites row 2 to "STALE: local session ended -- nothing here is current"
+       ON A SHEET THAT IS LIVE AND CURRENT
+
+**A watchdog built to detect a false quiet was itself generating a false alarm**, and the alarm it
+writes is the most misleading sentence available: it tells the reviewer to distrust a sheet that is
+accurate. **Same shape as every check this window has caught in the build — and this one was mine,
+running unattended, against the artifact the review loop depends on.**
+
+### DISABLED, NOT DELETED AND NOT FIXED
+
+**`enabled: false`, one reversible flag.** It is my own malfunctioning automation producing artefacts
+a reviewer might act on, so **stopping it is a repair rather than a drastic move.** The FIX — stamp
+Chicago, or change the routine to UTC — **is not applied**: it changes shared instrumentation, and
+`ALIGN-1` is open on precisely that question. **Filed as `ALIGN-2`.**
+
+> **AND THE DUPLICATES WERE FOUND BY THE ONLY CHECK THAT COULD FIND THEM.** *Search by title as
+> CONFIRMATION ONLY*, written after `I6` and `I7`. **Both times every other verification passed** —
+> create returned success, `get_file_metadata` showed a healthy file, the trash call reported done.
+> **The duplicate is invisible to every check that looks at the file you just made.**
+
+    MECHANISM   a false-positive watchdog identified and stopped; two duplicates cleared;
+                the timezone mismatch located and NOT unilaterally repaired
+    CAPABILITY  none. No build file touched
