@@ -28067,3 +28067,59 @@ method independently, and it is a method rather than a finding — which is the 
     OPEN        TWO NEW ISAIAH-OWED RULINGS, both raised by the reviewer: phi-hat placement,
                 now sharpened to a TIER-1 question rather than a proposer-rule one; and what
                 Figures 12 and 13 may be used for at all
+
+---
+
+## `F55` — THE SHEET CAN NO LONGER BE KEPT CURRENT THROUGH THIS TRANSPORT, AND THE BALANCED CUT CHURNS THE READER'S ARCHIVE
+
+**Two cycles running, the publish budget has fired; this cycle it fired twice.** And a full publish
+is now **~196KB across two messages** — because part B changed too, so it is never one message any
+more. **`F53` filed three parts as Isaiah's decision. This entry is the evidence that makes it
+urgent rather than filed**, and the second half is a defect in the split I built.
+
+### THE CUT MOVES ROWS BETWEEN THE READER'S TWO FILES EVERY TIME CONTENT GROWS
+
+`F51` and `F52` went into part A, so the balanced cut pushed **`F34` and `F33` out of the Sheet and
+into the Archive.** Nothing about those two findings changed. **A reader who knows where `F33` lives
+is wrong after any cycle that adds enough bytes above it.**
+
+**THAT IS A DEFECT IN MY OWN DESIGN AND `F49` PROMISED THE OPPOSITE.** The `SPLIT` row tells the
+reader the boundary *"is not a claim about the content on either side of it"* — true — but it does
+not say the boundary MOVES, and a stable-looking two-file layout that silently reshuffles is worse
+than one that is openly ordered. **The cut is derived from cumulative size, which is stable in the
+generator and unstable for the reader**, and I optimised for the wrong stability.
+
+**IT ALSO DOUBLES THE PUBLISH COST IN THE COMMON CASE.** Had the cut been anchored — part A carries
+down to a fixed finding id, part B everything older — **part B would have been byte-identical and
+needed no republish at all**, and this cycle would have cost ~100KB rather than ~196KB. That is not
+a small saving on a transport that is already the binding constraint.
+
+> **SO IF THREE PARTS IS RULED, THE CUT RULE IS PART OF THE RULING AND NOT AN IMPLEMENTATION
+> DETAIL.** An anchored boundary migrates one row when a part overflows, predictably and rarely; a
+> balanced boundary reshuffles whenever anything above it grows. **I would not choose between them
+> unasked** — the first split was forced and this would be chosen, which is `F53`'s distinction and
+> the reason it is filed.
+
+### THIS CYCLE STOPS WITHOUT PUBLISHING, AND THE STATE IS CONSISTENT
+
+**Nothing is half-published.** The live pair is internally coherent — the Sheet ends at `F33`, the
+Archive begins at `F32`, `F33` and `F34` appear exactly once — and both were verified exact earlier
+today. The generator is patched, regenerated and correct on disk at **A 99,820 / B 96,549**. Both
+sync conditions are left DIFFERING so the next cycle publishes without re-deriving anything.
+
+**AND THE PUBLISH ORDER IS RECORDED BECAUSE IT IS NOT OBVIOUS: B BEFORE A.** Publishing A first
+would remove `F33` and `F34` from the live Sheet before they exist in the live Archive — **two rows
+absent from the reviewer's view between the two calls.** B first duplicates them briefly instead,
+which is benign and self-correcting. **A rule about ordering that only matters when the cut has
+moved, which is exactly the case that now arises every cycle.**
+
+**WHAT IS OWED TO THE REVIEWER IS IN GIT AND NOT IN THE SHEET.** `F54` answers all three of their
+new rows, including the `φ̂` separation landing on the tier-1 prohibition. **They cannot see it until
+the next publish**, and that gap is the direct cost of the transport problem rather than a
+scheduling accident.
+
+    MECHANISM   the balanced cut measured as churning two rows between the reader's files; the
+                publish cost measured at ~196KB because both parts move together
+    CAPABILITY  none -- no run, nothing reaches the agent, both boards still read zero levels
+    OPEN        THREE PARTS, and now the CUT RULE with it -- anchored or balanced is a reader-
+                facing choice and belongs in the same ruling
