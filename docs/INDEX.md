@@ -25851,3 +25851,54 @@ reported separately.
     MECHANISM   gate 1's selection effect measured at the SLOT level on ka59; F20's
                 two-value population identified as gate-selected out of 43
     CAPABILITY  none. ka59 still completes zero levels and adopts zero routines
+
+---
+
+## `I20` — I RECONSTRUCTED `_res` AS A CONTINUOUS SERIES, AND `_res` IS POPPED ON EVERY `None`
+
+`F39`, published one heartbeat ago, says the selector **"picked the WRONG SLOT INSIDE THE RIGHT
+CYCLE."** **That is wrong, and the rule that makes it wrong is in my own `F19` row:**
+
+> *"`_res` is BUILT at 1708-1712 from `goal_residual` and POPPED when it returns `None`."*
+
+**I wrote that. Then I treated each slot's census readings as one unbroken series.** A single
+missing cycle does not leave a gap — **it deletes the whole history**, and the slot must rebuild
+three consecutive readings before it is eligible again.
+
+### CAUGHT BY TESTING THE CLAIM ON A SECOND BOARD RATHER THAN ACCEPTING IT
+
+`ls20`'s `o16.w` appeared to qualify at cycle 16 with `unsat` 15.0 — **a gate-1 pass that `F19`
+does not record.** Two of my own instruments disagreeing, so I went to a third: the `ls20` PLAN
+rows. **Cycle 16 has none, and `REPEAT.by` is `discriminate:learned`.** `o16.w` has no reading at
+cycle 15 — the pop fires, the series restarts, and at cycle 16 it holds **one** entry, not three.
+**It never qualifies. `F19` was right and my derivation was wrong.**
+
+### WHAT THIS COSTS `F39`, STATED EXACTLY
+
+    ka59 c13   o14.col and o14.w had TWO readings each (both begin at c12)   EXCLUDED BY LENGTH
+    ka59 c23   o14.w had FOUR consecutive readings, all unsat 12.0, FLAT     EXCLUDED BY SHAPE
+    ka59       o13.w has gaps at 13,14,15,16,19 -- FIVE pops in 15 cycles
+
+**So the payable slots were not chosen-against; they were NOT CANDIDATES.** "Wrong slot inside the
+right cycle" implies a comparison that never happened.
+
+> **THE CONCLUSION SURVIVES AND IS STRONGER, WHICH IS WHY THIS IS A CORRECTION AND NOT A
+> WITHDRAWAL.** `F39`'s claim is that the selector's population excludes the payable slots BY
+> CONSTRUCTION. **There are now TWO exclusion mechanisms rather than one:** the shape test drops
+> flat-large slots (`INDEX:18688`'s finding), and **the pop rule additionally requires three
+> CONSECUTIVE readings**, which any single `None` destroys. `ka59`'s `o14.w` carries `unsat` 12.0
+> on all ten of its readings and is perfectly flat — **it can never qualify at any depth.**
+
+### AND THE `ls20` DERIVATION IS UNAFFECTED, CHECKED RATHER THAN ASSUMED
+
+`o20.w` has readings at **every cycle 2 through 19, no gaps**, so its series is continuous and the
+rolling-window derivation holds — which is why it reproduced `F19`'s cycles 17 and 18 exactly.
+**The finding it carried — the gate opens on the collapse — stands.**
+
+    AND THE DUPLICATE CALLS TURNED OUT TO BE AN INSTRUMENT: exactly two (cycle, slot) pairs
+    are read twice per board, and they are exactly the gate-1 passes -- because site 1847
+    inside `_mint_routine` re-reads the chosen slot. The census can identify a gate-1 pass
+    without ever seeing a PLAN row
+
+    MECHANISM   F39 corrected: exclusion is by LENGTH and by SHAPE, not by a comparison
+    CAPABILITY  none
