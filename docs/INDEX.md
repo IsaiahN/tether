@@ -24975,3 +24975,82 @@ remains theirs.
     MECHANISM   _learned_split's opinion rate measured per board; the pre-emption located
                 between the two call sites and shown inert by a stability measurement
     CAPABILITY  none
+
+---
+
+## A CORPUS DOCUMENT THAT WAS NEVER COMMITTED AND NEVER READ — `outputs are not generators.md`
+
+**Untracked in `docs/`, dated 2026-09-07, 91 lines, Isaiah's.** It has sat in the worktree through
+every heartbeat of this window and appears in no commit, so it is invisible to `git log`, to any
+future reader, and to every check that has been run against the corpus.
+
+**IT IS CORPUS AND TAKES THE CORPUS SIDE OF THE TABLE** — written earlier, by Isaiah, in a
+different context, in `PHILOSOPHY`'s register. `CLAUDE.md`: *a document appearing later needs a
+side.* Annotated here, not edited, and **not committed** — committing his untracked draft is his
+call, not mine.
+
+### THE FIRST HIT IS A CONVERGENCE ON THE §12.4 CIRCLE, AND IT IS THE STRONG KIND
+
+    "A built agent cannot be surprised along an axis its type system cannot express."
+    "The real import is not a new term in the existing space. It is a NEW DIMENSION of the
+     space. Importing a term extends what can be SAID; importing an axis extends what can
+     be PERCEIVED AT ALL."
+
+**A SENSOR IS AN AXIS. AN ATOM IS A TERM.** `CLAUDE.md` reached exactly this split from the code —
+*what breaks the circle legitimately is a RICHER TIER 1, a perception question, never a Tier 2
+exemption; atoms ARE tier 2* — and this document reaches it from first principles, in different
+vocabulary, **written before the measurement and with no view of it.**
+
+> **SO THE `composable=0` VERDICT IS NOT A DEFECT AND NOT A BUG TO EXEMPT — IT IS THE FRONTIER,
+> AND THE CORPUS SAYS SO IN ITS OWN CLOSING SECTION:** *"Neither has shown an agent that grows its
+> own representation in response to an anomaly it could not express. That is the frontier."*
+> **`UNREACHED` is the field's open problem, and what Tether has that the field does not is that
+> the verdict is MEASURED rather than unknown.** That is the abstention-as-deliverable clause,
+> arrived at independently.
+
+**Two derivationally independent frames, one conclusion, neither written with the other in view** —
+the same shape as `F30`'s first hit, and the reason the corpus is worth keeping unedited.
+
+### THE SECOND HIT RETROACTIVELY STATES THE ATOMS' ENTRY CLAUSE
+
+    "the priors are labeled and their provenance recorded, added because the task required
+     them, marked as what they are, so a later reader can see exactly what was assumed and
+     what was earned. Proof of provenance does not remove the priors. It makes them auditable."
+
+That is the `ADMITTED` stamp and the *recorded AS ENTRIES HAPPEN* precondition, written out as a
+discipline before the clause existed. **It also states the limit the clause does not remove**:
+*declaring the primitives does not make them neutral; it makes the choice visible.*
+
+### THE THIRD HIT CONFIRMS `F27` RATHER THAN THREATENING IT
+
+    "A walk with no model has no anomalies, only noise... Discovery under consequence =
+     a random walk PLUS a model that can be surprised."
+
+`F27` measured the walk alone at **zero levels on 16 boards to 1200 actions.** The corpus says the
+walk alone discovers nothing **by construction** — so that zero is the expected reading, not a
+damning one, and it independently supports `F27`'s conclusion that the zero stopped separating the
+agent from random.
+
+### AND ONE THING I AM FILING RATHER THAN RESOLVING, BECAUSE IT IS A BAR AND BARS ARE ISAIAH'S
+
+    "General intelligence is not reliable success on the novel... It is the RIGHT KIND OF
+     FAILURE... The bar is whether failure accumulates traction, not whether the answer arrives."
+
+`CLAUDE.md`'s terminal condition clause 1 is **"It wins — the whole task."** Those are different
+bars, and I am not going to reconcile them myself.
+
+**WHAT I WILL SAY IS WHAT IT DOES *NOT* LICENSE, BECAUSE THAT PART IS ALREADY RULED.** It does not
+license reading `F33`'s plateau as a score. `outstanding` is **frame-internal** — the agent
+computes it — and *a frame cannot score itself with a quantity it produces.* The document's
+"traction" is a claim about **the shape of failure**, search versus confabulation, which
+`CLAUDE.md` already covers under the whitebox clause. **Read as a number it becomes exactly the
+proxy metric the register names as my documented weakness.**
+
+> **THE QUESTION FOR ISAIAH, AND IT IS ONE SENTENCE:** does §4's *right kind of failure* bar bear
+> on the terminal condition's clause 1, or is it a statement about general intelligence in the
+> field rather than about Tether's own acceptance test?
+
+    MECHANISM   none -- a corpus reading. Nothing proposed, nothing applied, nothing edited
+    CAPABILITY  none
+    OWED        the document is UNTRACKED. That is Isaiah's to commit or leave; flagged
+                because an uncommitted corpus document is invisible to every later check
