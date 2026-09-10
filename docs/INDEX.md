@@ -24286,3 +24286,60 @@ written into the sync cron.
 
     MECHANISM   I14 logged, generator reconciled, one duplicate cleared
     CAPABILITY  none. No build file touched
+
+## `ls20` PASSES GATE 1 SIX TIMES — SO "BARRIER 1 IS GATE 1" DOES NOT GENERALISE
+
+### THE PRE-REGISTRATION HELD, AND IT WAS THE SMALLER HALF
+
+    ls20 x 20, 40 calls to `_goal_choice`
+      Z  `_res` EMPTY            6 of 40   only cycles 0-2, before any series exists
+      A  too few readings       20
+      C  FLAT, no real decrease  37        <- dominant
+      B  not non-increasing       2
+      QUALIFIES                   6
+      RETURNED A SLOT on 6 calls, `o20.w` at cycle 17
+
+**Predicted from `INDEX:22113` with the run unread: NOT a `Z` board, `_res` populated, `QUALIFIES`
+present. All three hold.** One discrepancy recorded rather than smoothed: the record says *"carries
+a qualifying series from cycle 18"* and I measure a returned slot at **cycle 17** — one cycle,
+different depth or indexing, **not an exact reproduction and not claimed as one.**
+
+**AND `C` DOMINATES, WHICH `INDEX:21824` ALREADY NAMED:** *the one qualifying series is FLAT, so no
+threshold on shrinking admits it.* **37 of 65 slot-outcomes are flat.** The record had the
+mechanism; this is its distribution.
+
+### THE FINDING I DID NOT PREDICT, AND IT BREAKS MY OWN HEADLINE
+
+**`_goal_choice` RETURNED A SLOT ON SIX OF FORTY CALLS — gate 1 PASSED — and `F19` measured `ls20`
+at ZERO priced candidates.** So on `ls20` the refusal happens at **gate 2, 3 or 4**, downstream of
+the selector.
+
+> **"BARRIER 1 IS GATE 1" WAS DERIVED FROM `ka59`'s SEVEN-OF-NINE AND IT DOES NOT GENERALISE.**
+> `ls20` clears gate 1 repeatedly and still never prices a routine. **One board's gate census is a
+> fact about that board**, and I stated it as the location of the barrier.
+
+### THREE BOARDS, THREE PROFILES — AND FIGURE 9 SAID SO BEFORE THE THIRD ARRIVED
+
+    sp80   `_res` EMPTY on 36 of 36. No OBJ bindings, no goals tracked at all
+    ls20   `_res` populated, mostly FLAT, gate 1 PASSES 6 times, refused DOWNSTREAM
+    ka59   `_res` populated, gate 1 passes twice in 24, reaches the bargain once
+
+**No two share a failure point.** Figure 9, read before this run landed: *"Disagreements that do not
+shrink with effort, where each rule keeps working well on a different subset, are not one hard
+question but several well-formed ones. **Split it rather than search.**"*
+
+> **THE TIEBREAKER PREDICTED THE SHAPE OF A RESULT THAT HAD NOT ARRIVED.** I read it as endorsing a
+> two-way split; the third board made it three, and the figure's instruction is the same either
+> way. **That is what a derivationally independent frame is worth — it was not written from this
+> data and it anticipated it.**
+
+### WHAT IS OWED, STATED NARROWLY
+
+**Which of gates 2-4 refuses `ls20`'s six passes is UNMEASURED.** `routine_refused` carries a
+`reason` and `ls20`'s rows are not saved. **One run with the rows kept settles it**, and per
+`F27`'s repricing that is agent-reasoning time rather than world time. **Not started; recorded as
+owed rather than assumed from `ka59`'s reasons.**
+
+    MECHANISM   ls20 classified; "barrier 1 is gate 1" demoted from general to per-board;
+                three boards now have three distinct failure points
+    CAPABILITY  none. No action differs, and no board priced a routine
