@@ -27715,3 +27715,63 @@ here — which is the claim the negative control exists to check rather than to 
     OPEN        nothing on this entry. The standing question it sharpens: a repair installed at
                 ONE SITE is not a rule, and nothing in this project currently checks that a
                 newly added assertion sits above the writes it guards
+
+---
+
+### `I41` — THE COUNT ASSERTION HAS BEEN MATCHING NOTHING, AND THE SHEET CITED IT AS WORKING
+
+**Installed after the FIFTH count drift**, keyed on `at (\d+) against 8`, to bind the
+instrument-error narration to the row id where the count is defined. **That phrase appears in ZERO
+cells.** The narration was later rephrased to *"the instrument-error sets, at 40, and the reviewer
+has closed the comparison"* — dropping `against 8` — and the check was silently disarmed. **It has
+passed every regeneration since by matching nothing.**
+
+**AND THE SHEET CITES IT AS WORKING**, in the log row's own Outstanding cell: *"That check does not
+cover this one, and the honest statement is that a coupling was fixed, not a class."* **The coupling
+was not fixed either.** A claim about what a checker covers, made about a checker that covers
+nothing — which is `F22`'s shape at one more level up, a row reporting a verdict the file does not
+support.
+
+**IT IS WORSE THAN VACUOUS, BECAUSE THE PATTERN CAN FALSE-FIRE.** The only surviving `against 8` in
+the data is **`against 88,000`**, from `I40`'s own text about part sizes. Preceded by `at` it would
+have matched and asserted `89771 == 40` on prose that has nothing to do with the count. **A check
+that matches nothing it was written for and can match something it was not is worse than no check**
+— the absence is silent and the false positive would have been blamed on the data.
+
+### THE FIX IS NOT A BETTER REGEX
+
+`CLAUDE.md`: *where a coupling keeps drifting, install the check; where no check can cover it,
+remove the coupling.* **The count is DEFINED by the row id, so the three narrations are now DERIVED
+from it** — digits, capitalised word, upper-case word — exactly as the row ORDER is derived from the
+row id rather than listed. **A derived count cannot drift**, and this entry proved it in passing:
+moving to `I1-I41` took ONE edit where the previous two entries each took four.
+
+What survives as a check is **presence**: three placeholders must be found before anything is
+written, so typing a literal count back in fires. **It does NOT catch a new hand-written count
+somewhere else, and saying so is the whole point of the entry** — an overstated check is the defect
+being recorded.
+
+    ARM 1  row id -> I1-I41   all three narrations follow: 41 / Forty-one / FORTY-ONE
+    ARM 2  literal typed back in   presence check fires, exit 1
+           md5 of workbook3.csv, workbook3a.csv, workbook3b.csv ALL UNCHANGED
+
+### WHAT IS NOT CLAIMED
+
+**Whether the assertion ever matched is not recoverable.** `mksheets.py` lives in the scratchpad and
+is not in git, so there is no history to read — the rephrasing that disarmed it cannot be dated.
+Stated rather than guessed, because *"it worked and then broke"* and *"it never worked"* are
+different failures and I cannot separate them from here.
+
+**AND THIS IS THE THIRD INSTANCE IN ONE SESSION OF ONE SHAPE.** `I40`: `I34`'s ordering rule did not
+reach a newly added assertion. `I35`'s anchoring fix did not reach a newly written guard, and failed
+again inside `p58`. Now a checker keyed on a phrase that a later edit removed. **Every one is a
+repair that was installed at a SITE and never became a RULE** — and in each case the original fix is
+still present and still correct, which is exactly why none of them was noticed. **The generator is
+not in git, so none of these three is visible to any later check either**; that is one condition
+under all three, and it is the cheapest thing on this list to change.
+
+    MECHANISM   a silent checker found, the coupling removed rather than the regex repaired,
+                both arms measured against the live output path
+    CAPABILITY  none -- generator only, nothing reaches the agent
+    OPEN        mksheets.py and verify_publish.py are not in git. Three instrument repairs this
+                session have no history behind them, and a fourth would have none either
