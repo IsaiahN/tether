@@ -26494,3 +26494,54 @@ census two pages earlier gives the other board separately:
 
     MECHANISM   F26's per-game attribution corrected; all five boards confirmed run
     CAPABILITY  none
+
+---
+
+## `I29` — THE HANDOFF I BUILT WAS INCOMPLETE, AND IT IS `F22`'s SHAPE PERFORMED BY MY OWN §11
+
+Four consecutive entries had been audits of my own prose, so instead of hunting a fifth I ran a
+different check: **is the handoff COMPLETE?** `I26` showed items can be silently dropped, which
+makes that a demonstrated risk rather than a hypothetical one. Swept every `OPEN` / `OWED` /
+`AWAITING` / `HOLD` marker in the **published** sheet — the artefact Isaiah actually reads — and
+classified each against §11's five.
+
+### THE MISS: A SIXTH RULING, AND IT IS THE ENCODE-THE-ANSWER BOUNDARY
+
+`F28`'s own Outstanding cell, read rather than summarised:
+
+> *"I recorded `ACTION7`-is-undo in the SEAT's records; nothing reads it and it never reaches the
+> agent, but the reviewer is right that it is borderline and **IT IS ISAIAH'S TO RULE**."*
+
+**§11 listed five rulings and omitted this one** — and it is not a minor sixth. The reviewer's hard
+line is that **availability is legitimate to read and DIRECTIONAL SEMANTICS must never reach the
+agent**; whether a seat-side note recording what an action *does* sits inside or outside that line
+is the unforgivable-failure boundary, not a nicety.
+
+### AND THE TITLE OVERREACHES, WHICH IS THE SAME DEFECT I CRITICISED IN §7
+
+**§11 lists RULINGS OWED TO ISAIAH. A returning reader takes it as EVERYTHING OPEN.** It is not.
+The sweep found three other kinds, now written into a new §11b:
+
+    OWED TO THE REVIEWER   F34 is separation the right measure · E1b needs a third instance ·
+                           I1-I28 my 28 against their 8, not reconciled as sets
+    OWED MEASUREMENTS      F40 cost/left/base at the reject arms · F31 which 1879 route fired
+                           (explicitly NOT needed for the verdict) · F10 a board separating
+                           library growth from run length -- all post-freeze, none a ruling
+    STANDING               PROTOCOL's 10x5 loop, not started, deadline Sept 30
+
+> **THAT IS `F22`'s FINDING PERFORMED BY MY OWN HANDOFF.** `F22`: *"a row that reports a
+> disagreement without reporting that the file has settled it invites exactly one wrong ruling per
+> reader."* Here: **a section that reports one CATEGORY under a title a reader takes as TOTAL.**
+> Two heartbeats ago `I26` found §7 stale and duplicated; §11 replaced it and was incomplete.
+> **Both handoffs were flawed, in different ways, and the second was written while criticising the
+> first.**
+
+    THE CHECK THAT FOUND IT IS NOT A PROSE AUDIT and that is why it worked: it read the
+    PUBLISHED artefact for open markers and matched them against my list, rather than
+    re-reading my own sentences for errors. A completeness check has a denominator; an
+    error hunt does not
+
+    REPAIRED AT SOURCE: §11 gains the sixth ruling, §11b states what §11 is NOT, and both
+    carry the HEAD they are true at
+    MECHANISM   handoff completed; scope stated
+    CAPABILITY  none

@@ -331,7 +331,38 @@ had: `traction` and `win` are **zero** across all fifteen figures under word bou
 tiebreaker cannot reach it.** Also still owed: `docs/outputs are not generators.md` is
 **untracked**, and an uncommitted corpus document is invisible to every later check.
 
-    NOTHING IN THIS SECTION IS A RECOMMENDATION. The ordering is a dependency reading; the
-    rulings are Isaiah's, and 2's consequence is stated precisely so it is not discovered
-    afterwards. If this section is read at a HEAD later than 34d9166, treat it the way §10
-    should have been treated: check it before believing it
+**6 · `F28`'s `ACTION7`-is-undo — A SIXTH RULING, AND §11 OMITTED IT UNTIL `I29`.** `F28`'s own
+Outstanding cell says it outright: *"I recorded `ACTION7`-is-undo in the SEAT's records; nothing
+reads it and it never reaches the agent, but the reviewer is right that it is borderline and **it
+is Isaiah's to rule**."* **This is the encode-the-answer boundary, not a nicety** — the reviewer's
+hard line is that availability is legitimate to read and DIRECTIONAL SEMANTICS must never reach the
+agent, and this sits on the edge of it. Independent of the other five.
+
+---
+
+## 11b · AND WHAT §11 IS *NOT* — SCOPE STATED, BECAUSE THE TITLE OVERREACHES
+
+**§11 lists RULINGS OWED TO ISAIAH. A returning reader takes it as everything that is open, and it
+is not.** That is `F22`'s handoff shape performed by my own handoff. The rest, by kind:
+
+    OWED TO THE REVIEWER, not Isaiah
+      F34      is maximum SEPARATION the right measure for choosing an action -- their question,
+               narrowed by F34 and untouched by it
+      E1b      HOLD at one instance; a THIRD genuine instance would settle the category
+      I1-I28   my 28 against their 8, STILL NOT RECONCILED AS SETS
+
+    OWED MEASUREMENTS, all deferred to the post-freeze queue -- none is a ruling
+      F40      cost/left/base at the two reject arms, so the 42 discarded candidates become
+               readable. The reject arms bump counters and write no row
+      F31      which of the two 1879 routes fired on ls20 -- needs `wanted`, not logged.
+               EXPLICITLY not needed for the verdict, which holds on either route
+      F10      a board that keeps minting while cycles are held fixed, to separate library
+               growth from run length
+
+    STANDING, and yours to time
+      PROTOCOL the 10-cycle x 5-game loop has NOT started; deadline Sept 30
+
+    NOTHING IN §11 OR §11b IS A RECOMMENDATION. The ordering is a dependency reading; the
+    rulings are Isaiah's, and item 2's consequence is stated precisely so it is not discovered
+    afterwards. If these sections are read at a HEAD later than a7d50fa, treat them the way §10
+    should have been treated: check before believing
