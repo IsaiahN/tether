@@ -24469,3 +24469,47 @@ same check that `A6i` names, applied to my own instrument's units.
     MECHANISM   one published count corrected; the three-profile claim narrowed to two at
                 gate 1 with the divergence relocated downstream
     CAPABILITY  none
+
+### THE ROUTINE GATE HAS SEVEN REFUSAL SITES, NOT FOUR — AND I PUBLISHED "THE GATES IN ORDER"
+
+**Enumerated from every `routine_refused` call site rather than from the first few I happened to
+read:**
+
+    1834  `slot or "*"`  no objective is confidently shrinking / the selected objective's
+                         slot is not in this frame                        SELECTOR
+    1841  the discrepancy is not a distance: {gap!r}                      DISTANCE
+    1849  no goal residual to close / the objective already holds
+          across its whole scope                                          RESIDUAL
+    1874  CAN is {verdict}, and only yes commits                          REACHABILITY
+    1879  no action this agent has observed moves this slot the wanted
+          way -- coverage incomplete, or every action ties                COVERAGE
+    1926  every rejection still stands and nothing has surprised          REJECTION MEMORY
+    1952  no candidate's guards are all reachable here                    GUARDS
+    1958  does-not-pay                                                    THE BARGAIN
+
+**I wrote *"`_mint_routine`'s gates in order: (1)…(4)"* into `INDEX` and into the workbook, from a
+partial read.** There are **seven refusal sites plus the bargain.** The four I named are real and
+are the first four; **calling them *the gates* made a prefix look like the list.**
+
+> **AND IT IS THE SAME ERROR AS THE COUNT ONE, TWENTY MINUTES APART.** *Six passes* took the larger
+> of two readings without checking which; *four gates* took the first of a list without checking
+> for more. **Both were one grep from correct, and both were published.**
+
+### SO THE PRE-REGISTRATION IS WORTH LESS THAN I THOUGHT, AND IS STILL WORTH MAKING
+
+**`_goal_choice` returns the slot with the LARGEST TOTAL SHRINK** — `shrink = -sum(deltas)`,
+`shrink > best[0]`. **The most-shrunk objective is the one most likely to have finished shrinking**,
+and `1849` refuses exactly that: *the objective already holds across its whole scope.* **Those two
+are in tension by construction**, and `ka59`'s cycle-13 refusal is that tension firing.
+
+    PREDICTED for ls20's two passing cycles, with four more gates now in play than I had:
+      1849 RESIDUAL   the tension above -- and ka59 already shows this exact refusal
+      1874 REACHABILITY / 1879 COVERAGE / 1926 REJECTION / 1952 GUARDS  all live and
+                      none of them considered when I framed this as "gates 2-4"
+
+**REFUTER: any refusal at 1874, 1879, 1926 or 1952 means the tension story is not what stops
+`ls20`, and the selector-versus-residual reading is not the explanation.**
+
+    MECHANISM   the refusal surface enumerated at 8 sites; a published "in order" list
+                corrected from a prefix to the whole; a prediction narrowed before the run
+    CAPABILITY  none
