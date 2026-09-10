@@ -26891,3 +26891,55 @@ tidy causal story attached, which is the tell the null rule already names.
     MECHANISM   two near-misses caught before publication, both by the grep-before-explaining
                 trigger, which is now four for four this session
     CAPABILITY  none
+
+---
+
+## `F43` — THE PASTE-VS-GENERATOR COUPLING GETS A CHECK, AND THE CHECK'S FIRST RUN FOUND A DEFECT IN THE CHECK
+
+**`I31` corrected the PRACTICE to *read every line from disk, every publish*, and a practice is
+the thing `CLAUDE.md` says to stop relying on**: *where a coupling keeps drifting, install the
+check rather than being careful again.* Four instances — `I12`, `I14`, `I15`, `I31` — say this
+coupling drifts, and the fourth happened minutes after the third was written down.
+
+**AND THE DISCIPLINE HAS A SECOND COST THAT MADE IT WORTH REPLACING RATHER THAN JUST
+SUPPLEMENTING:** reading all 36 lines back is ~130KB of context per publish, every ten minutes.
+
+### THE CHECK HAS A SUBJECT, WHICH IS THE ENTIRE POINT
+
+`I31`'s finding was that **comparing this publish against my last publish measures nothing,
+because both sides are me.** `scratchpad/verify_publish.py` compares **the file the generator
+wrote** against **the artifact the reviewer reads** — two different objects, neither of them my
+context. Run after the publish, it exits non-zero on any divergence.
+
+    FIRST RUN, this publish:  published 100285 chars   generator 100285 chars  (normalised)
+                              PUBLISHED MATCHES THE GENERATOR
+    NEGATIVE CONTROL:         previous publish vs current CSV -> row count and content differ,
+                              correctly, so the check is not vacuously green
+
+### AND THE FIRST VERSION WAS WRONG IN THIS WINDOW'S RECURRING SHAPE
+
+The per-row version reported **`CELL COUNT 23 vs 17`** on three rows. **That is the PARSER, not
+drift.** Drive returns the sheet as a markdown table, and three cells contain literal pipes —
+the RUN STATUS headline's own separators, `F20`'s `|group|`, `F41`'s `+ and ||` — so splitting
+the rendered table on `|` cannot recover the cells.
+
+> **A per-row report that cannot tell its own parse failure from a real difference is a check
+> that reads clean while covering half the ground**, which is `F41b`, `I17`, `I22` and `I24`'s
+> shape arriving in the instrument built to stop them. Caught only because the NEGATIVE CONTROL
+> was run first and its output was READ rather than counted — `I24`'s rule, applied to my own
+> checker.
+
+Comparing the normalised **whole document** has no cell boundaries to get wrong. The cost is
+stated in the file rather than left for a reader to find: a divergence is located by character
+offset and the nearest preceding row id, not by row.
+
+### WHAT THIS DOES NOT LICENSE YET
+
+**The read-every-line discipline STAYS.** The check runs AFTER the publish, so it DETECTS a bad
+publish and does not PREVENT one. **And it has run exactly once.** What it changes is that
+relaxing the discipline later becomes a decision takeable on evidence — a run of green checks —
+rather than on my preference for cheaper publishes, which is the reasoning that produced the
+shortcut `I31` is about.
+
+    MECHANISM   a publish-verification check installed, passing, with a negative control
+    CAPABILITY  none -- and this is instrumentation, which changes no contact
