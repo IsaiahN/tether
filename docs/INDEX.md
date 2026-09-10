@@ -26133,3 +26133,59 @@ divergence cuts both ways and I published one side of it.**
                          A build change; post-freeze queue, not applied
     MECHANISM   corpus reading + F32's framing corrected; two-gate divergence is bidirectional
     CAPABILITY  none
+
+---
+
+## `I24` — THE TIEBREAKER DOES NOT REACH THE BAR QUESTION, AND THE CENSUS THAT SAID IT DID WAS COUNTING SUBSTRINGS
+
+`F30` closed with *"I will use it on every open ruling from here."* Four remain: `ALIGN-1`,
+`ALIGN-2`, `F32` and the **bar question**. Three are process questions the figures cannot rule on;
+the bar question is a question **about the corpus**, so it was the one remaining candidate.
+
+**PRECONDITION STATED FIRST, per the panel law** — *before a null is read as a finding, state what
+the panel would need in order to show.* The figures would need something on what counts as
+success, or on failing-well versus arriving.
+
+### THE CENSUS SAID YES. THE CENSUS WAS WRONG, AND IT IS THE WHOLE ENTRY
+
+    unbounded    traction 6   win 4        -- looks like the corpus discusses both
+    \btraction\b ZERO         \bwin\b ZERO -- across all fifteen figures
+
+    what actually matched:  subtraction x4 · abstraction x2 · narrowing x3 · following x1
+
+**Every apparent hit was a substring — `sub·traction`, `abs·traction`, `narro·win·g`,
+`follo·win·g`.** And the most authoritative-looking hit was the worst: **`traction` in the
+OPERATORS TABLE**, which reads as the corpus defining the term, and is `subtraction` — a defined
+operator whose entry is about progress being a subtraction.
+
+> **HAD I READ THOSE SIX, I WOULD HAVE BUILT A CORPUS READING OF THE BAR QUESTION ON ZERO
+> OCCURRENCES OF ITS OWN KEY WORD** — and `win` reading 4 across three separate figures would have
+> made it look corroborated.
+
+**CLAUDE.md ALREADY CARRIES ONE INSTANCE OF EXACTLY THIS** — *"grep `arity` — Figure 8 (substring
+only, no standalone use)"* — recorded at `INDEX:24674`. I did not consult it before running the
+census, which is step six failing on a line already in the file.
+
+### AND THE FOUR GENUINE HITS WERE READ, SO THE NULL IS CHECKED RATHER THAN ASSERTED
+
+`\bsuccess\b` 3 and `\bsolved\b` 1 are real. **None bears on the bar question:** Figure 4's is the
+membrane rule (*"never the recording of a particular success … repeats a past success and cannot
+produce a new one"*), Figure 5's is frame-cannot-score-itself (*"its own output is never a measure
+of success"*), Figure 11's is *"a managed ecosystem is permanent work rather than a solved state."*
+All three are rules already carried in `CLAUDE.md` and none is about the acceptance bar.
+
+    VERDICT   the tiebreaker DOES NOT REACH this question. The bar question stays Isaiah's,
+              and the figures avenue is now CLOSED rather than untried -- which is the
+              useful half: an abstention counts only when it names the closure it searched
+
+    F30's COMMITMENT IS NOW DISCHARGED. Four open rulings, one answered by the figures (F32,
+    via F40), three outside their reach -- two by kind, one by measurement
+
+    AND IT IS THE THIRD CENSUS-DISCIPLINE CATCH IN THREE HEARTBEATS, EACH A DIFFERENT FAILURE:
+    I22 needed the right POPULATION (git grep, not grep -r over .venv); F40 needed POLARITY
+    IN CONTEXT (a failure-mode list reads like an endorsement); this needed WORD BOUNDARIES.
+    The family is one sentence: A GREP'S COUNT IS NOT EVIDENCE UNTIL YOU HAVE READ WHAT IT
+    MATCHED -- and a total that looks supportive is exactly when the check gets skipped
+
+    MECHANISM   none. A closed avenue and a corrected census
+    CAPABILITY  none
