@@ -189,3 +189,46 @@ board is not enough** and it stays out of `LOG 3` until a second board agrees or
 
 **`levels_completed` is 0 and `done` is 0.** Everything above is mechanism, and the capability
 position is unchanged.
+
+---
+
+## 10 · QUEUED BY THE 2026-09-10 RULINGS — SIX ITEMS, AND THE FIRST TWO ARE THE ONES THAT COULD MOVE THE READOUT
+
+**Every item here is a BUILD change and the freeze is hard, so none is started.** The proctor's own
+sequencing puts the first two BEFORE `PROTOCOL`'s 10×5 loop, which is the live scheduling question.
+
+**1 · CONFIDENCE-BASED ACCEPTANCE FOR THE REUSE SWEEP — `F32`, ruled.** `left == 0.0` is wrong: *the
+residual never fully closes.* Forty-two strict improvements were discarded on `sp80` alone for not
+being total. **Accept on a decent amount of confidence, with three constraints that are not
+negotiable:** the confidence quantity must be **derivable from the agent's OWN TRACE and not a
+constant** (a fixed threshold is `INDEX:21824`'s shaping move); it is priced against **the same one
+bargain**, §14.4, not a second gate; and it carries a **provenance stamp** so the ablation can still
+separate confidence-accepted terms from `pays`-accepted ones. **And the reject arms currently write
+no ledger row** — `note_reuse_attempt` bumps counters only — so `cost`/`left`/`base` must land there
+too or the change cannot be read.
+
+**2 · THE FAILED-PATH CATALOGUE — named by the BAR ruling, and NOTHING CURRENTLY DOES IT.** *Catalogue
+and save the failed paths, the salient attributes and the interactions, so each replay retrieves past
+information and cuts the problem down.* The agent has a **rejection memory for routines**
+(`_mint_routine` site 1926) and that is all — it is per-routine, not per-strategy, and it carries no
+attributes and no retrieval. **This is the traction mechanism itself**, and traction is what produces
+the level-completion readout rather than a substitute for it.
+
+**3 · UNDO-OVERUSE MONITOR — `F28`, ruled.** From the first run where undo is available: **an agent
+that reverses more than it advances is idling, not planning**, and that has a measurable signature.
+Watch it in the logs. Undo *should not be necessary* — a board requiring it to clear is not the
+target case — and nothing about what `ACTION7` does reaches the agent.
+
+**4 · `cost`/`left`/`base` AT THE TWO REJECT ARMS — `F40`.** Subsumed by item 1's third clause but
+listed separately because it is readable on its own: without it the 42 are permanently unmeasurable.
+
+**5 · `wanted` IN THE LEDGER — `F31`.** Would settle which of `1879`'s two routes fired on `ls20`.
+**Explicitly not needed for the verdict**, which holds on either route. Lowest value here.
+
+**6 · A SECOND BOARD SEPARATING LIBRARY GROWTH FROM RUN LENGTH — `F10`.** `sp80` stopped minting and
+stopped growing simultaneously, and `F27` adds a third candidate cause. Do not build on `F10` until
+this exists.
+
+    NOT QUEUED, AND DELIBERATELY: F41's operand_term producer. RULED REACHED -- both/either are
+    derivative of `+` and `||`, the capability embeds in strategy logic, and there is no producer
+    to write. Recorded here only so it is not re-opened as an omission
