@@ -25637,3 +25637,58 @@ by a factor of six, sitting there for eighteen cycles.
     MECHANISM   F20 step 1 answered POSITIVE against a pre-registration, on a genuine
                 per-slot product rather than a product of maxima
     CAPABILITY  none. ls20 still completes zero levels and adopts zero routines
+
+---
+
+## THE SELECTOR OPENS EXACTLY WHEN THE OPPORTUNITY CLOSES
+
+`ls20`'s `o20.w`, every reading, from the pre-registered census:
+
+    cycle   2  3  4  5  6  7  8  9 10 11 | 12 13 14 15 16 | 17 17 18 18 19
+    rg    1.0 ................... 1.0    | 1.0 ...... 1.0 | 0.1429 .......
+    unsat  20 ................... 20     |  21 ....... 21 |    3.0 .......
+                                                            ^ threshold is 3.483
+
+**Fifteen consecutive cycles at the residual's MAXIMUM**, `unsat` 20 then 21 — **six times the
+6.966-bit cost of a two-step routine.** Then it collapses to 3.0, which is **below the 3.483
+threshold**, and stays there.
+
+### THE ROLLING GATE-1 TEST, COMPUTED OVER THE ACTUAL SERIES
+
+`_goal_choice` needs three readings, all deltas ≤ 0, at least one < 0.
+
+    windows ending cycles 4..16   [1.0, 1.0, 1.0]      deltas [0.0, 0.0]      -
+    window  ending cycle 17       [1.0, 1.0, 0.1429]   deltas [0.0, -0.8571]  QUALIFIES
+    window  ending cycle 17       [1.0, 0.1429, 0.1429] deltas [-0.8571, 0.0] QUALIFIES
+    windows ending cycles 18, 19  [0.1429 x3]          deltas [0.0, 0.0]      -
+
+**That is EXACTLY `F19`'s two gate-1 passes at cycles 17 and 18, derived from the residual series
+rather than observed in the log.** Two instruments, one answer.
+
+> **A MAXIMAL, UNMOVING RESIDUAL PRODUCES ZERO DELTAS, SO THE SELECTOR CANNOT SEE IT — AND THE
+> ONLY THING THAT MAKES IT VISIBLE IS THE RESIDUAL FALLING.** By the time the filter admits the
+> slot, `unsat` has gone from 21.0 to 3.0: **from six times payable to below the bar.** The gate
+> opens on the collapse of the thing it was gating for.
+
+**AND THE RECORD ALREADY HELD THE CLASS.** `INDEX:18688` — *"lf52 · ls20 · tu93: large residual,
+flat — base would be huge, trigger never opens"* — names this board. **What is new is the
+quantity and the mechanism**: the trigger DOES open, once, and only after the residual has fallen
+below what it would have paid for. `INDEX:17981`'s census — *FLAT 6 · OSCILLATING 3 · too-short 5
+· SHRINKING 0* — is the same fact one level up.
+
+**NO FIX IS PROPOSED AND NONE IS IMPLIED.** `INDEX:21824` already rules that loosening
+`MIN_REPEAT` cannot help and that moving a derived constant to make a mechanism fire is shaping.
+**This is a property of a shrinking filter over a residual, stated per game and not pooled** — and
+`ka59`'s cycle-13 refusal at 1849, *"the objective already holds across its whole scope"*, is the
+same shape from the other end: **the gate reaching a slot whose residual is already gone.**
+
+### CORRECTING MY OWN COMMIT FROM AN HOUR AGO
+
+`bb7a3ad` says the affordable plan sat there *"for eighteen cycles."* **It is fifteen.** The
+readings span cycles 2–19, which is eighteen distinct cycles, but **payability ends at cycle 16**
+— from 17 onward `unsat` is 3.0 and below the bar. **I read the span of the series as the span of
+the opportunity.**
+
+    MECHANISM   gate 1's refusal on ls20 derived from the residual series and matching the
+                log exactly; the payable window measured at 15 cycles, not 18
+    CAPABILITY  none
