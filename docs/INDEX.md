@@ -24375,3 +24375,58 @@ that opened it. **Second time tonight I have had a rule ready and declined to in
     MECHANISM   generator reconciled a third time; I15 logged; the trigger's insufficiency
                 measured rather than asserted
     CAPABILITY  none. No build file touched
+
+## `F30`'s SECOND USE — FIGURE 11 SPEAKS TO `F26`'s RESIDUE, WHICH BOTH OF US CALLED UNSETTLEABLE
+
+**The residue, filed by the reviewer and agreed by me:** *`_learned_split` keeps finding the same
+action most separating and is right BY ITS OWN MEASURE — whether that measure is the right one is a
+different question, and not one the seat can settle.* **`F30` committed me to trying the figures on
+every open ruling rather than only when stuck.** `choose` appears in two figures; Figure 9 was read
+last time, so this is Figure 11.
+
+### THE HIT
+
+> **"An actor's valence is relative to the residual, not a property it carries. The same actor is a
+> benefactor to one residual and a malfactor to another... NO STANDING LIST OF GOOD ACTORS SURVIVES
+> A CHANGE OF RESIDUAL."**
+
+**`_learned_split` computes `sep[a]` from `contingency()` — what responded when I acted — and it
+never references the residual being closed.** So it produces exactly what the figure forbids: **a
+standing ranking of actions, independent of what is currently being explained.**
+
+**AND IT PREDICTS THE MEASURED BEHAVIOUR.** A residual-independent measure yields a stable
+preference by construction, which is `F26`'s **12 of 17 unique separations all naming the same
+action** and `INDEX:11264`'s **71% at ruled budget on two other boards.** *The 79% is not a
+malfunction of the measure; it is what that measure is FOR.*
+
+### THE STRETCH IN THE MAPPING, NAMED RATHER THAN HIDDEN
+
+**Figure 11's "actors" are things in the habitat — *what acts on it, and what it acts on*.** An
+agent's ACTION is arguably an actor on the residual, and arguably a different category. **The
+reading holds only under that mapping and I am not claiming it is airtight** — it is a tiebreaker's
+answer, offered as a direction, and the figure is corpus rather than a spec of this code.
+
+> **WHAT IT DOES NOT DO IS PROPOSE A FIX.** *Make the measure residual-relative* is a design change
+> to how the agent selects, which is neither mine to make nor safe to make under the freeze. **The
+> tiebreaker converted "the seat cannot settle it" into "here is the axis it is wrong on" — the
+> same yield as its first use, on a question filed as closed to the seat.**
+
+### AND TWO MORE LINES THAT BEAR, ONE OF THEM ON TONIGHT'S THREE-BOARD RESULT
+
+> **"The habitat is enumerated, never composed. List everything in contact with the residual, then
+> what is in contact with those, and outward until the cascade stops mattering."**
+
+**That is *per game, never pooled* from the corpus side** — each board is a different habitat, so
+the enumeration is per board. **Tonight's three-profile result is what enumeration looks like when
+it is actually done**, and the pooled claim it replaced is what composition looks like.
+
+> **"How to read the claims here... the isolation law and the capability claim fit cases already
+> known and HAVE NOT BEEN TESTED FORWARD, so they can still come back wrong: an agent-only
+> improvement that moved the ground would refute the capability claim."**
+
+**The figure states its own falsifier.** *An improvement that does not change contact changes
+nothing* is quoted in `CLAUDE.md` as settled; **the figure it comes from marks it untested.**
+
+    MECHANISM   the tiebreaker used a second time, on a question both parties had closed;
+                one residue given an axis; the mapping's stretch recorded
+    CAPABILITY  none. Nothing proposed, nothing applied
