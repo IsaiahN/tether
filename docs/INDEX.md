@@ -28198,3 +28198,73 @@ strength and reporting them as one list would imply they do.**
     OPEN        why drive.bored() never fires on ARC -- named, not guessed; and whether the
                 instantiation map should distinguish promotion-the-mechanism from promotion-
                 on-a-real-board, which is Isaiah's file
+
+---
+
+## `F57` — THE PROBE STATE IS RECORDED ONLY ON THE ROW THAT EXISTS WHEN IT FIRES, SO `F56`'s OWED QUESTION IS UNANSWERABLE FROM THE LEDGER
+
+**`F56` left one item named and owed rather than guessed: why `drive.bored()` never fires on ARC.**
+Answered as far as the record allows, and the answer is that **it cannot be answered from the
+record** — which is a sharper result than the explanation would have been.
+
+### WHAT IS MEASURED, AND IT IS POSITIVE RATHER THAN ABSENTIAL
+
+`probe.py:66` — `bored()` is `self.n > 0 and not self.live`, and `live` is set by `note_step`,
+*"whether SOME slot carried live mass — a predicate over slots, never an average across them."*
+`tether.py:1524` — `if self.drive.bored(): return self.drive.choose(...), "probe"`.
+
+**THE BRANCH MEASURABLY NEVER FIRES ON ARC.** `by` is recorded on every cycle and takes other
+values throughout — `discriminate:learned` 29, `ground` 36, `draw` 15, `composed` 8, **`probe` 0**
+across ka59 x24 and ls20 x20. That is a field present and taking a different value, not a missing
+row, so it clears the absential bar `CLAUDE.md` sets.
+
+### AND WHY IT NEVER FIRES IS NOT RECORDED ANYWHERE
+
+`Drive.report()` carries exactly the quantities that would explain it — `any_live`, `probe_n`,
+`probe_misses`, `probe_fires`, `bored`, `starving`. **It reaches the ledger at ONE site:
+`tether.py:3008`, inside `if by == "probe"`.** Confirmed by sweeping every `.report()` consumer;
+the calls in `arc_check.py` and `arc_holdout.py` are other objects.
+
+    rows carrying probe_n / any_live      TOY 4      ka59 0      ls20 0
+
+> **SO THE STATE THAT WOULD EXPLAIN THE BRANCH'S SILENCE IS WRITTEN ONLY WHEN THE BRANCH SPEAKS.**
+> On any board where the probe never fires — which is every ARC board measured — the quantity is
+> unreachable. **The instrument is not broken; it is placed where it can only ever confirm.**
+
+**AND THE TOY ROWS PROVE THE QUANTITY IS INFORMATIVE WHEN IT IS REACHABLE**, which is what stops
+this being a complaint about a useless field: cycle 13 reads `any_live False, bored True,
+probe_misses 10 of 14`; cycle 14 reads `any_live True, bored False, 11 of 15`. **It varies, it is
+legible, and it is recorded four times in 531 toy rows and zero times in 15,375 ARC rows.**
+
+### THE ANALOGY TO `F40` WAS CHECKED RATHER THAN ASSERTED, AND IT HOLDS ONLY HALFWAY
+
+This looks like `would_pay` — a counterfactual recorded on the branch where it seems least
+informative — and `F40` nearly published exactly that reading and **was wrong**: the docstring three
+lines below showed the placement was a deliberate pre-registered counterfactual, informative 19
+times in 21. **So the site was read before the analogy was used.** `_promote`'s neighbourhood
+carries no such defence: **nothing at `3008` claims the placement is deliberate**, and unlike
+`would_pay` — which is recorded and merely unsurprising — this field is **absent** in the case of
+interest. Recorded and uninformative is not the same as unrecorded, and only the second makes a
+question unanswerable.
+
+### CLASSIFICATION
+
+**NOT A DEFECT, AND NO CANDIDATE FIX.** Nothing here is wrong-given-the-input: the build takes the
+branch it should, records what that branch produces, and abstains correctly everywhere else. **This
+is an INSTRUMENT gap, not a behaviour error**, and the window rule is explicit that a candidate fix
+for a non-error is worse than no note.
+
+**OWED, NOT PROPOSED:** `any_live` on the `REPEAT` row, beside `gamma_size` — one field, per cycle,
+on a row that already exists. That would make the question a reading instead of an unknown, and it
+is the same shape as `F50`'s owed `reach` field. **Both are build changes and both wait.**
+
+**WHAT IS STILL NOT CLAIMED.** *The probe branch never fires* is measured. ***The drive is never
+bored*** **is NOT** — `bored()` is also evaluated at `probe.py:111` inside `choose`, which the draw
+branch reaches, and `fires` counts those; but `fires` is visible only through the same unreachable
+report. **Two different claims, and `F56` should have said the first.**
+
+    MECHANISM   the branch's silence measured from a recorded field; the explaining state shown
+                unreachable on ARC by a single-site sweep
+    CAPABILITY  none -- no run, nothing reaches the agent, both boards still read zero levels
+    OPEN        any_live on the REPEAT row, owed alongside F50's reach field; and whether the
+                drive is ever bored on ARC, which no current instrument can answer
