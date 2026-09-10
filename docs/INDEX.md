@@ -29019,3 +29019,65 @@ the first time since the split: 3,122 · 30,043 · 67,114.
                 the open and asserted against what was written; four budget failures this
                 session left no half-written artifact
     CAPABILITY  none -- transport, levels_completed 0
+
+---
+
+## F72 — PHASE 3 STARTED: PROTOCOL's BATCH IS RUNNING, AND THE RUNNER IS ONE RUN RATHER THAN SEVEN
+
+`PROTOCOL`'s 10 × 5 loop has been listed as NOT STARTED for the whole window against a Sept 30
+deadline, and it was the only queued item that reads on the agent rather than on the workbook.
+Started.
+
+**ONE RUNNER READING SEVEN QUANTITIES, AND THAT IS THE DESIGN DECISION.** Every runner in the
+scratchpad reads ONE thing; the heartbeat's Phase 3 names seven. Reading them from seven separate
+runs would put them on **seven different traces** — which is the pooling error one level down,
+since the RUN is the unit all seven describe. `scratchpad/protocol.py` reads them from one run:
+levels_completed · the per-cycle cost series · contest arms (`REPEAT.by`) · the PLAN refusal
+surface · mints accepted · bindings and OBJ-typed bindings · routine fires/ends/refusals · plus
+`reach` and `any_live`.
+
+**`F63`'s TWO OWED FIELDS ARE READ DIRECTLY FOR THE FIRST TIME.** `reach` and `any_live` were
+built two cycles ago and every prior use was a RECONSTRUCTION from side effects (`F50`'s method
+note says so explicitly). The smoke run reads `reach 48`, `any_live True` off the REPEAT row —
+the field doing the job it was added for.
+
+    smoke, sp80 x3   levels 0 · cost 0.039 → 3.307 (84.8x in three cycles) · arms {draw: 3}
+                     · plan {routine_refused: 3} · mints 0 · bindings 5 · OBJ-typed 0
+                     · reach 48 · gamma 53
+
+**PER GAME, NEVER POOLED** — one dict per board, nothing averaged. The cost wall is `sweep.py`'s
+150s applied per cycle, and a run that stops there has still answered §8 for that board.
+
+---
+
+## F73 — TWO INSTRUMENT ERRORS, AND THE FIRST IS A MARKER I KEPT AND THEN DID NOT READ
+
+**`I44` — A STALE ID FROM CONTEXT WHERE THE MARKER FILE HELD THE LIVE ONE.** Trashing the previous
+Archive I passed `1dO6bD…`, an id from earlier in the same session that had **already been trashed
+hours before**. Drive refused it. The live id was `1DtTw2M5…` and it was sitting in
+`sheet_id.txt`, which exists for exactly this.
+
+> **THIS IS `I31`'s MECHANISM IN A NEW PLACE.** `I31` was *comparing this publish against my last
+> publish measures nothing — both sides are me*, and the fix was to read from disk rather than
+> context. **The marker file is that fix, for ids.** I wrote it, updated it every cycle, and then
+> reached past it. **A record kept and not consulted is worth what an absent one is** — and the
+> tell is that keeping it felt like the discipline.
+
+**It cost one refused call and nothing else, and the reason is luck rather than care:** trashing is
+id-addressed, so a stale id names an already-trashed file. **The same slip against a REUSED id
+trashes something live**, and nothing in the call distinguishes the two.
+
+**`I45` — AN EMPTY GAME LIST THAT MEANS *WRONG DIRECTORY* READS AS *NO BOARDS INSTALLED*.**
+`protocol.py` run from the scratchpad returns `Game sp80 not found. Available games: []`, then
+crashes on `NoneType.reset()`. Run from the repo root it works. **The environment scan is relative
+to CWD**, so the runner is CWD-dependent and says nothing about it.
+
+> **THE HAZARD IS THE SHAPE OF THE ZERO, WHICH IS THIS WINDOW'S RECURRING ONE.** *Available games:
+> `[]`* is a **plausible, alarming, and entirely wrong** reading — it invites *the boards are gone*
+> when the fact is *you are one directory across*. `I38`'s rule is that a null which says NO
+> PROBLEM HERE is the one to re-derive; **this is its mirror — a null that says CATASTROPHE, and
+> it wants re-deriving for the same reason.** Both are answers arriving with a story attached.
+
+    MECHANISM   one runner, seven quantities, one trace; smoke-tested at depth 3 before the
+                batch was launched
+    CAPABILITY  not claimed and not yet readable -- the batch is in flight
