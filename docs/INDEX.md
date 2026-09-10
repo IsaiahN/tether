@@ -25406,3 +25406,56 @@ does not buy back the lookup I did not do.
 
     MECHANISM   none. The ka59/ls20 census is still running; nothing here anticipates it
     CAPABILITY  none
+
+---
+
+## A SECOND CENSUS OF MINE MEASURED THE WRONG THING — AND THEN NEARLY HANDED ME A FALSE POSITIVE
+
+`I18` was found in a 0-byte output file, so I ran that check systematically: **which probes did I
+write that produced nothing.** Two halves, and only one is an instrument.
+
+**THE BAD HALF, SAID PLAINLY RATHER THAN MINED.** *"`.py` files with no output sharing their
+stem"* returned **~280 names** — because **almost every probe prints to stdout and writes no file
+at all.** The normal case reads as abandonment. **That is `I17`'s failure exactly, one heartbeat
+later and again mine**: a proxy blind to the ordinary case. **Two censuses in a row measuring the
+wrong quantity is the finding; the 280 names are not.**
+
+**THE GOOD HALF IS FOUR FILES.** `corpse45.out` (`I11`, killed mid-run), `unsat2_ka59.out`
+(`I18`), and two unknowns — `ls20_200.txt` and `ls20_30.txt`, **ls20 runs at depth 200 and 30 that
+never completed.** `ls20_5.txt` at depth 5 did.
+
+### AND `ls20_5.txt` IS THE THREE-CONDITIONS READ THE HEARTBEAT ASKS FOR, FROM 19:58
+
+    COND1_scope        max 20, 4 readings
+    COND2_base_bits    max 24.0, mean 13.499, n 35
+    COND3_contest      n 2 -- objective 1, predictor 1
+    objectives_bound   o20.w "none"; o16.w "above . all<o20.w>"
+    mints 2 · pays 2 · phase probe 1.0 · levels_completed 0
+
+**`COND1_scope` max 20 INDEPENDENTLY CONFIRMS TONIGHT'S COLD MEASUREMENT** — `peers()` gave
+`ls20` a group of 19, and 19 peers plus the slot itself is a scope of 20. Two instruments, one
+number, and the cold one needed no run.
+
+### THE NEAR-MISS, AND IT IS THE `did-not-pay` TRAP FIRING A SECOND TIME ON ONE FINDING
+
+`base = unsat × log2(n)` at tether.py:1887. `ls20` has `n=4`, so `log2(n) = 2`, so **a max
+`base_bits` of 24.0 reads as `unsat = 12.0` against a k=2 threshold of 3.483.** That is `F20`
+step 1 answered POSITIVE, with margin, in a file six hours old.
+
+**IT IS NOT.** `base_bits` is recorded at **tether.py:2504 and 2534 — the MINT / park path**, the
+TERM bargain. The routine bargain at 1887 records its own quantity under the key `base`
+(1961, 1970). **Two different bargains, two different `base`s, and `board.py` filters on
+`base_bits`.**
+
+> **SO THE INFERENCE WAS: READ THE NAME, WRITE THE MECHANISM — the exact shape of the
+> `did-not-pay` error, on the SAME finding, within one session.** Caught by going to the write
+> site, which cost one grep. **The name matched, the arithmetic worked, and the quantity was
+> somebody else's.**
+
+**`F20` STEP 1 REMAINS OPEN AND THE PRE-REGISTRATION IS UNTOUCHED.** The running census measures
+`unsat` directly rather than deriving it from a field with a similar name, which is now the reason
+to prefer it rather than a stylistic one.
+
+    MECHANISM   none. A false positive stopped before publication; one cold measurement
+                independently confirmed by a six-hour-old run
+    CAPABILITY  none
