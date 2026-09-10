@@ -24567,3 +24567,54 @@ on disk, and it has not been run.
     MECHANISM   ls20's refusal located at 1879; the coverage half ruled out on a proxy;
                 the vote half named, unmeasured, with the read that would settle it
     CAPABILITY  none
+
+## `ls20` CLOSED — THE REFUSAL IS **CORRECT**, AND THE FACT UNDER IT IS ABOUT CONTACT
+
+**The vote census, from rows already on disk, no run:**
+
+    o20.w transitions per action, ls20 x 20
+      ACTION1   n=13   moved 7   up=0  down=7    7*2=14 > 13   clears its bar
+      ACTION2   n= 2   moved 2   up=0  down=2    2*2= 4 >  2   clears
+      ACTION3   n= 2   moved 2   up=0  down=2    clears
+      ACTION4   n= 2   moved 2   up=0  down=2    clears
+
+**EVERY ACTION MOVES `o20.w` THE SAME WAY. DOWN, ALWAYS, NEVER UP.**
+
+### SO `1879` IS RIGHT WHICHEVER WAY THE OBJECTIVE WANTS IT
+
+`_goal_split` needs `wanted = _predict(s, before, a)`, which is agent-internal and not in the
+ledger, **so I cannot read the wanted direction from rows.** I do not need to:
+
+    wanted UP    -> no action has EVER moved it that way -> `max(votes) == 0` -> refuse
+    wanted DOWN  -> ALL FOUR clear their bar -> `tied == len(actions)` -> refuse
+
+**Both are named in `1879`'s own message — *coverage incomplete, or every action ties* — and both
+are the build ABSTAINING WITH CAUSE.** *Which* of the two is unmeasured and **does not change the
+verdict.**
+
+> **CLASSIFICATION: NOT A DEFECT. A GAME QUIRK HANDLED RIGHT.** The window rule: *if the build's
+> response is correct-given-the-input — abstains, refuses, NOT_RESOLVED — it is a quirk handled
+> right and gets a BEHAVIOUR NOTE, not a fix.* **Nothing separates the actions on this slot, and
+> the build declines to invent a preference.** Behaviour note. No candidate fix.
+
+### AND THE FACT UNDERNEATH IS A CONTACT FACT, NOT A REASONING ONE
+
+**`o20.w` moves in one direction regardless of which button is pressed.** The agent has **no
+differential lever on that slot at all** — pressing anything does the same thing, and pressing
+nothing is the only other option.
+
+**Figure 11: *capability is a property of agent-and-habitat, never of the agent alone.*** This is
+that, measured on one slot: **no improvement to the selector, the bargain, or the shelf changes what
+`o20.w` responds to, because it responds to everything identically.**
+
+**AND IT KILLS THE `F26` LINK FOR THE THIRD TIME TONIGHT.** The story was: one button 79% of the
+time starves the vote. **Refuted — `ACTION1` clears its own majority bar at 7 of 13, and so do the
+other three at 2 of 2.** The 79% policy costs nothing here. *Third attempt at connecting `F26` to
+the planning failure, third check that killed it.*
+
+    STATUS      ls20's two gate-1 passes are ACCOUNTED FOR and correctly refused
+    OPEN        which of the two 1879 routes fired -- needs `wanted`, which is not logged.
+                Would settle it: one run wrapping `_goal_split`. NOT run; the verdict does
+                not depend on it
+    MECHANISM   the refusal classified NOT A DEFECT by the window's own rule
+    CAPABILITY  none, and now with a reason: on this slot there is nothing to be capable OF
