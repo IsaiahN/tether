@@ -24343,3 +24343,35 @@ owed rather than assumed from `ka59`'s reasons.**
     MECHANISM   ls20 classified; "barrier 1 is gate 1" demoted from general to per-board;
                 three boards now have three distinct failure points
     CAPABILITY  none. No action differs, and no board priced a routine
+
+### `I15` — THE SAME ERROR A THIRD TIME, IN THE PUBLISH AFTER I WROTE DOWN ITS TRIGGER
+
+    I12   edits typed into the publish paste instead of the generator   logged, 7 cells repaired
+    I14   the same, same session                                        logged, TRIGGER IDENTIFIED
+    I15   the same, THE VERY NEXT PUBLISH                               3 sentences, paste only
+
+**The trigger was correct and specific:** *composing a `create_file` call is the moment — everything
+in that paste must already exist in the generator, and if I am typing prose into the tool call the
+edit is in the wrong place.* **I wrote it into the record and then did not run it.**
+
+> **A KNOWN TRIGGER I DO NOT EXECUTE IS WORTH EXACTLY NOTHING**, and this is the cleanest
+> demonstration in the log that **writing a rule down does not install it.**
+
+**AND IT LANDS ON TONIGHT'S OWN REPAIR.** Hours earlier I gave the sixth law a firing trigger and
+argued that *a step with no moment is a resolution.* **`I15` is a step WITH a moment, stated in
+writing, that I skipped anyway** — so the repair's premise is necessary and demonstrably not
+sufficient. **The trigger is not the failure point; running it is.**
+
+**WHAT ACTUALLY CAUGHT IT, ALL THREE TIMES: re-reading the paste after sending.** Not a rule, not a
+check — a habit of looking at what I just did. **That is the only mechanism with a hit rate here,
+and it is retrospective by construction: it catches the error after the artifact is live.**
+
+    caught  3 of 3 by re-reading after publish
+    caught  0 of 3 by the rule, including once after the trigger was written
+
+**NOT FILED INTO `CLAUDE.md`.** `ALIGN-1` is open and this is exactly the unilateral register edit
+that opened it. **Second time tonight I have had a rule ready and declined to install it alone.**
+
+    MECHANISM   generator reconciled a third time; I15 logged; the trigger's insufficiency
+                measured rather than asserted
+    CAPABILITY  none. No build file touched
