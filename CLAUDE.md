@@ -386,7 +386,17 @@ reads as something that will be enforced, and it will not be.
 - **Falsify a signal before trusting it.** Prefer positive causal evidence ("I tried and
   a bound stopped me") over absential ("I have never been there"). Absence of evidence
   resting on completeness never holds mid-episode.
-- **Wait for permission before building.** Isaiah says when.
+- **PERMISSION IS BETWEEN THE SEAT, THE REVIEWER AND THE CORPUS FIGURES — Isaiah, 2026-09-10.**
+  *"Do not wait on my permission again. That was what the alignment thing was about."* This line
+  read **"wait for permission before building; Isaiah says when"** and that is now superseded:
+  align with the reviewer, use the figures as the tiebreaker, and go. **It is `I30` from his side**
+  — the same `A6i` that made *alignment* read as *escalation*, corrected at the level of who
+  decides. **And the tell that a diagnosis is not an installation: `I30` was diagnosed that morning
+  and I deferred again in the same session**, having written the diagnosis down in between.
+
+  **THE SHEET IS THE PERMISSION CHANNEL, NOT A REPORT** — *"keep the spreadsheet updated so the
+  reviewer can align and sign off or correspond with you."* So `F58`'s cost-per-row argument does
+  not license skipping a publish, and it had been used to do exactly that one cycle earlier.
 
 ### My known failure modes
 
