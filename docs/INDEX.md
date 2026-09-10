@@ -27140,3 +27140,109 @@ its-purpose. This is a BEHAVIOUR NOTE plus a reading.
     OPEN        ka59's settle/demote churn; |bound| per cycle, which is the direct instrument
                 for the unnamed gate. Both are reads over rows already on disk, and both are
                 awaiting Isaiah's pick rather than started
+
+---
+
+## `F45` — THE INDEPENDENCE CHECK FAILS IN TWO DIRECTIONS, AND IT PARTLY UNDERCUTS `F44`
+
+**The reviewer attached a check to their own question and it binds them equally:** *"if the cache
+was built AFTER or FROM the Tether figures, say so — then it is not independent evidence and the
+whole mapping is worth less. I want this mapping to be wrong if it is wrong."* **Answered by
+measurement, and it does not come back clean.**
+
+### THE FRAME IS NOT FROM THE CORPUS AT ALL
+
+Term census across all fifteen figures, word-bounded, over the VISIBLE text with tags stripped:
+
+    cache 0    evict 0    eviction 0    tier 0    capacity 0    prune 0    forget 0
+
+**AND THE CENSUS WAS RE-TESTED AGAINST ITS OWN FAILURE MODE**, because SVG text splits across
+`<tspan>` elements and stripping tags can MANUFACTURE a zero. Re-run with all whitespace removed
+so split words re-join: **`discard` reads 0 stripped and 1 joined — a split-hidden hit the first
+pass would have published as a null.** Both surviving near-hits were then READ rather than
+counted: `stale` (Figure 10) is *"stale percepts, dropped transients"* — the ground's channel
+decaying, not a store; `discard` (Figure 13) is *"the detail a crossing discards reappears above
+it as noise"* — abstraction, not eviction.
+
+> **So there is no cache concept in the corpus.** The two-tier framing is the reviewer's, and the
+> first result of the mapping was to refute its premise: no eviction store exists, and the library
+> has zero deletions.
+
+### WHERE THE MAPPING OVERLAPS THE CORPUS, THE CODE IS DOWNSTREAM — SO IT IS NOT CORROBORATION
+
+    library   16 hits / 7 figures      closure  22 hits      reach  15 hits
+    nine figures dated 2026-08-19  |  gamma.py entered 2026-08-22, self.bound the same day
+
+**The code postdates those figures by three days.** `F44`'s structural description of
+library/closure/reach is therefore a report on an IMPLEMENTATION OF the figures, not independent
+evidence FOR them. **That is worth strictly less than `F40`'s corpus tiebreaker**, which reached a
+question the code could not, from a document written before the boards.
+
+### AND IT RUNS BACKWARDS ON THE ONE AXIS THE QUESTION WAS ABOUT
+
+`settled` and `settle` appear in **exactly two figures — 12 (2026-09-01) and 13 (2026-09-03).**
+`class Standing` and `units()` entered **2026-08-23.**
+
+> **ON THE SETTLED-VERSUS-LIVE AXIS THE FIGURES ARE DOWNSTREAM OF THE CODE.** So Figures 12 and 13
+> cannot serve as independent corroboration of the settle mechanism either — the contamination
+> points the other way, and I did not expect that direction.
+
+### WHAT SURVIVES, AND IT IS THE HALF THAT WAS MEASURED
+
+The **measurements** in `F44` are independent of both: 7-of-19 and 5-of-13 structurally inert,
+Δunits/ΔΓ at 0.18 and 0.29, the non-monotone composable set, ka59's churn. **Those are readings of
+run rows and would read the same whatever the design lineage.** The STRUCTURAL MAPPING is what
+loses standing; the READINGS do not.
+
+**FILED AS ITS OWN ROW RATHER THAN FOLDED INTO `F44` ON PURPOSE** — a finding that qualifies
+another must not hide inside it, which is `F22`'s failure mode: a row that reports an observation
+and drops the verdict invites exactly one wrong ruling per reader.
+
+    MECHANISM   a census with its own failure mode tested first, and one split-hidden hit caught
+    CAPABILITY  none
+
+## `F46` — THE UNDO GATES: THE CODE AGREES WITH THE REVIEWER'S `NO`, ON A HARDER REASON
+
+**Isaiah routed undo/reset to the seat and the reviewer to align on.** Their two gates: **A**
+means-end, a kept multi-step routine run to `DONE` (instrumented as *routines adopted*, reading
+zero on every board-depth reading); **B** reversal learning. **Their open question: can A be
+waived if B passes cleanly? Their position is NO, and they asked for my read of the code against
+their read of the literature.**
+
+**THE CODE AGREES, AND GIVES A STRONGER REASON THAN THEIRS.** Their argument is that reversal
+without means-end yields an agent that updates and cannot act on the update. The code's version:
+**there is no object that can hold *the thing to undo*.**
+
+- `self.routines` has its **sole** write at `tether.py:1476`, gated on `why == Rt.DONE`. Routines
+  are the **only** multi-step object in the build.
+- Everything else selects ONE action at a time through `choose` / `_learned_split` — which returns
+  ACTION1 on 100% of its non-abstaining cycles (`F26`).
+- The agent **does** hold `self.trace`, the `(before, action, after)` triples `can()` reads. **So
+  it has a RECORD.** What it has no representation of, absent an adopted routine, is an
+  **INTENTION**.
+
+> **Undo granted on `B` alone would have a record to revert AGAINST and no intention to revert
+> TOWARD.** That is Gate A's content stated in the code's own objects, and it is why *routines
+> adopted* is the right instrument for it.
+
+### AND ONE OBJECTION TO THE DELIVERY MECHANISM, WHICH IS WHAT THEY ASKED FOR
+
+Their proposal is Grinsztajn et al (NeurIPS 2021): a self-supervised reversibility estimate `φ̂`
+trained on temporal precedence in the agent's own trajectories, gating undo by RAC-style rejection
+sampling at `β ≈ 0.2–0.4`.
+
+**Clean on the SHAPING axis and I agree with them there** — no board knowledge, no environment
+access, justification sourced from the literature rather than from watching these boards, which is
+exactly the test Isaiah's ruling names. **It collides on a DIFFERENT axis:** `CLAUDE.md`'s hard
+rule permits a local proposer that *"proposes, never scores, never promotes."* **A rejection-
+sampling gate at `β` SCORES, and it sits in the decision path.**
+
+**Raised before it is built rather than after, and it is Isaiah's to rule, not ours.** Two
+readings are available and I do not think the seat should pick: `φ̂` is a PERCEPTION-side estimate
+of the world rather than a valuation of a candidate, or it is a learned scorer in the decision
+path and the rule bites. **The distinction that would settle it is whether `φ̂` ranks the agent's
+OPTIONS or describes the WORLD's reversibility**, and the proposal as written does both.
+
+    MECHANISM   the gate question answered from the objects that exist
+    CAPABILITY  none -- and Gate A's counter still reads zero, which is the whole point
+    OPEN        the phi-hat / no-scorer collision, for Isaiah
