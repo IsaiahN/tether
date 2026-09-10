@@ -298,6 +298,30 @@ after the fact there is nothing to catch, because after the fact the reading is 
   last edit of the session. **There is no state recording how completely a file was read,
   so *I have read this* is a memory of an act rather than a claim that can be checked.**
 
+  **AND IT NOW HAS A TRIGGER, WHICH IS THE ONLY THING IT WAS MISSING — 2026-09-09, THREE
+  INSTANCES IN ONE SESSION.** Every other step names the moment it fires; this one named
+  only its psychology, and a step with no moment is a resolution. **The moment is: BEFORE
+  WRITING A CAUSAL EXPLANATION OF A MECHANISM'S BEHAVIOUR, grep the record for that
+  mechanism's identifier.** One grep.
+
+  **NOT *before investigating* — before EXPLAINING.** Investigating is what produces the
+  urge to explain, and by the time the explanation exists it feels earned, which is exactly
+  when the lookup stops seeming necessary. **All three instances had already done the
+  investigation well; each was one grep from finding the answer written down.**
+
+      the alphabet's two comments   INDEX had the resolution in FOUR places, and 11673
+                                    states it as DECIDED
+      does the agent act after      INDEX:11253 -- "131 actions in 1000 cycles, 867 dead
+      GAME_OVER                     ones" -- and I QUOTED the harness comment carrying the
+                                    answer in the entry where I called it unchecked
+      why gate 1's population       INDEX:21829 -- "only an OBJ binding does ... the
+      is empty                      population that can ever feed `_goal_choice`"
+
+  **AND THE THIRD IS THE ONE THAT PROVES THE TRIGGER IS RIGHT: I FOUND IT BY LOOKING WHILE
+  A RUN WAS STILL IN FLIGHT** — the explanation was written, the confirming run was going,
+  and the grep happened only because there was waiting time. **A trigger tied to the run
+  would have missed it; a trigger tied to the EXPLANATION would have caught all three.**
+
 **And the reason they are steps and not laws eight and nine: `B17`.** *Pre-registration does
 not protect a reading if the instrument measures something else.* The phase sweep pinned its
 expected shape in advance, correctly, derived from an independent measurement — **and pinned
