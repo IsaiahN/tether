@@ -199,23 +199,38 @@ predate the overlap and stand; **16–25 are contended and are not read.**
 
 ---
 
-## 7 · HELD FOR YOU — nothing here was decided
+## 7 · HELD FOR YOU — **SUPERSEDED BY §11, AND TWO OF THESE ARE CLOSED**
 
-1. **Should a learned single-step split preempt FORMING a plan?** (`F14`.) `choose` already answers
-   the harder version deliberately for execution — a held routine runs before anything else — and
-   **formation appears to have inherited that ordering rather than been given it.** The
-   cheapest-looking repair, calling `_mint_routine` every cycle, would make routines reachable
-   **and multiply the mint's cost by the cycle count on the exact mechanism §8 is characterising.**
-2. **The objective/predictor price tie** — now observed, `F11`. Still unbroken, still published as
-   a tie.
-3. **§4's producer** — needs a PRED stream admitted to `mint` to serve its purpose. The
-   alternative, drawing operands from the library rather than the settled library, conflicts with
-   `gamma.units()`.
-4. **`E1`'s two candidate fixes** — (a) or (b).
-5. **S4's pricing question** — whether a reused term should be priced at full `term_bits`.
-6. **§6 doctrine** — with 6a's premise corrected: `slot_types` and `slot_owner` are both declared
-   across the membrane, so **composing** a grouping is legal; only **deriving** one by
-   name-splitting is forbidden.
+> **THIS SECTION IS THE HANDOFF, AND I WROTE A SECOND ONE AT §11 WITHOUT READING IT** (`I26`). It
+> is kept rather than deleted, with each item marked, because *which of these went stale and how*
+> is the finding. **§11 is current; this is the audit trail.**
+
+1. **~~Should a learned single-step split preempt FORMING a plan?~~ (`F14`) — CLOSED, RULED AND
+   APPLIED.** `c009007` put System 1 and System 2 in parallel under Isaiah's ruling. **And the
+   cost objection stated in this very item was measured and refuted**: the watcher runs at 1.2 µs
+   against an 87.6 s cycle. `F34` then measured the pre-emption as **inert** — the second attempt
+   would have returned the identical refusal, so *nothing is lost except the log line*.
+2. **The objective/predictor price tie** (`F11`) — **OPEN, BUT NO LONGER "still unbroken, still
+   published as a tie" AS IF NOTHING HAPPENED.** `CLAUDE.md` now carries the deeper ruling: three
+   valuation chains were built, each internally coherent, **each with no subject** — *the error was
+   never which moment was priced, it was building a valuation before the thing valued existed.*
+   **`M2` first.**
+3. **§4's producer** — **NOW `F41`, FILED WITH A THREE-PART RULING** — *and this item carries a
+   constraint `F41` did not.* **Verified at the site:** `gamma.units()` returns the atoms **plus
+   every SETTLED term**, on the rule *"only what the ground has paid for becomes a shortcut."* So
+   drawing operands from **the library** rather than **the settled library** conflicts with it, and
+   `F41`'s candidate space — *"Γ's `PRED`-producing terms"* — **is stated one word too wide.**
+4. **~~`E1`'s two candidate fixes — (a) or (b)~~ — CLOSED, AND THE ANSWER WAS NEITHER.** Arm C, 0
+   violations at depth 24; **both declared arms were eliminated by measurement** on disjoint
+   populations. An item offering a binary choice where the measured answer is *neither* is the
+   worst shape a stale open-item can take.
+5. **S4's pricing question** — **OPEN, AND NOW CARRYING EVIDENCE IT LACKED.** Whether a reused term
+   should be priced at full `term_bits`: `_install_reuse`'s own comment measures **19 of 21
+   installs at `would_pay=False` against a cost that charged for work the ground had already
+   bought.**
+6. **§6 doctrine** — unchanged, and the 6a premise correction stands: `slot_types` and `slot_owner`
+   are both declared across the membrane, so **composing** a grouping is legal; only **deriving**
+   one by name-splitting is forbidden.
 
 ---
 

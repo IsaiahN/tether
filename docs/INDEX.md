@@ -26353,3 +26353,61 @@ order read from each item's spec**, per step three, with two orderings that the 
 
     MECHANISM   a stale under-claim found and repaired; the handoff ordered by dependency
     CAPABILITY  none
+
+---
+
+## `I26` — THE STALENESS SWEEP FOUND THAT §11 DUPLICATES §7, AND `F41` IS ONE WORD TOO WIDE
+
+`I25` ended by naming a check and **not running it**: *when a staleness defect is found in a
+document, grep that document for its other dated or conditional claims.* That is `I15`'s failure
+verbatim — a trigger written down and not executed — so I ran it this heartbeat. It found three
+things, and the first is against the section I wrote one heartbeat ago.
+
+### THE SWEEP: `still` · `until` · `at last check` · `currently` · `pending` · `awaiting`
+
+Seven hits in `WINDOW_REPORT`. Four are durable rules or the `I25` repair quoting itself. The
+remaining path led to **§7, titled "HELD FOR YOU — nothing here was decided"** — a six-item
+handoff list.
+
+> **I WROTE §11 AS *THE* HANDOFF INTO A DOCUMENT THAT ALREADY HAD ONE, FOUR SECTIONS ABOVE.** The
+> sixth law at document scope — *assume it is already specified, and go look* — failed **inside the
+> heartbeat whose entire purpose was executing a document-scope staleness check.** §7 is now marked
+> superseded and kept as the audit trail, because which items went stale and how is the finding.
+
+### TWO OF §7's SIX ARE CLOSED, AND ONE CLOSED IN THE WORST SHAPE
+
+    item 1  F14's pre-emption question   RULED AND APPLIED at c009007 -- and the cost objection
+                                         stated IN THE ITEM was measured and refuted, 1.2us
+                                         against an 87.6s cycle. F34 then measured the
+                                         pre-emption INERT
+    item 4  "E1's two candidate fixes    CLOSED, AND THE ANSWER WAS NEITHER. Arm C, 0 violations
+             -- (a) or (b)"              at depth 24; both declared arms eliminated by
+                                         measurement on disjoint populations
+
+**An item offering a binary choice where the measured answer is *neither* is the worst shape a
+stale open-item takes** — it does not read as stale, it reads as a decision waiting to be made,
+and a reader can pick one.
+
+### AND ITEM 3 CORRECTS `F41`, WHICH I FILED TWO HEARTBEATS AGO
+
+§7 item 3 is §4's producer — now `F41` — and it carries a constraint `F41` does not:
+
+> *"the alternative, drawing operands from the library rather than the **settled** library,
+> conflicts with `gamma.units()`."*
+
+**VERIFIED AT THE SITE rather than repeated:** `Gamma.units()` returns the atoms **plus every
+SETTLED term**, on its own stated rule — ***"Only what the ground has paid for becomes a
+shortcut."***
+
+**So `F41`'s candidate space is one word too wide.** I wrote *"the candidate space is Γ's
+`PRED`-producing terms"*; the constraint narrows it to the **settled** `PRED`-producing terms.
+`F41`'s ruling questions are unchanged in kind, and (1) is now bounded rather than open-ended —
+which makes it a smaller ruling than I filed.
+
+    FOURTH INSTANCE OF THE SAME MISS. I19, I23, F40 and now this: a causal account of a
+    mechanism written without grepping the record for it. For F41 I grepped `operand_term`
+    across *.py and never across docs/ -- the trigger says GREP THE RECORD, and I scoped it
+    to the code. The record is not only INDEX
+
+    MECHANISM   §7 marked superseded; F41's candidate space corrected to the settled library
+    CAPABILITY  none
