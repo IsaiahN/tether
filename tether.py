@@ -429,6 +429,16 @@ class Agent:
         # unreadable.
         self.refuted: dict[tuple, Standing] = {}
         self.refuted_at: dict[tuple, float] = {}
+        # THE FAILED-PATH CATALOGUE, AND IT IS THE SAME KEY THE TERM PATH ALREADY USES.
+        # Isaiah's BAR ruling: *catalogue and save the failed paths, the salient attributes and
+        # the interactions, so each replay retrieves past information and cuts the problem down.*
+        # `refuted` above cannot be that, and the boundary comment says why in its own words --
+        # the reject key is `(slot, actions, guards)` and two of those three REGENERATE, so it
+        # is cleared at every level and nothing crosses. §15.3's retrieval is already built for
+        # TERMS (`retrieval.characterise` -> `fits` -> `retrieve`, keyed on TYPES, ordering and
+        # never excluding). **This gives the routine path that key.** Not a second mechanism:
+        # `_gap_key` is the name-free half of the gap `characterise` already returns.
+        self.paths: dict[tuple, dict] = {}
         self._digests: dict[str, frozenset] = {}
         self.agency = I.Agency()       # §16.8 sensor 3, a per-step read
         self.term = I.Termination()    # 2d / §20.1, latching and asymmetric
@@ -559,6 +569,13 @@ class Agent:
         # `unknown`, which the mint refuses. **Checked rather than assumed** -- the shelf needs
         # no rule here precisely because it has one already.
         self.refuted, self.refuted_at = {}, {}
+        # AND `self.paths` IS A THIRD CASE AND STAYS, FOR THE REASON THIS BLOCK JUST GAVE.
+        # The autoimmunity argument above is entirely about SLOT NAMES regenerating. `_gap_key`
+        # holds none -- arity, the TYPES that varied, the target's TYPE, the relation types --
+        # so the evidence it carries is about a KIND of situation and not about `o1.dcol`.
+        # **Clearing it would be the mirror error**: discarding evidence that does cross, on a
+        # rule written for evidence that does not. `retrieval.key_of`'s own note is the same
+        # ruling one level down -- *vocabulary permanent, instances transient.*
         self._disproof: dict[str, dict] = {}
         self._last_action: str | None = None   # what may have changed the gating
         self.owed_import, self.abstained = set(), {}
@@ -1495,11 +1512,26 @@ class Agent:
                 k = self._reject_key(self.routine_for, self.routine)
                 self.refuted.setdefault(k, Standing(last_tick=self.cycle)).refute(self.cycle)
                 self.refuted_at[k] = 1.0 if rg is None else rg
+                # AND FILED A SECOND TIME UNDER THE SHAPE OF THE GAP IT FAILED AGAINST. The two
+                # keys answer different questions and neither replaces the other: `k` says *this
+                # exact plan, on this exact slot, is spent* and dies at the boundary with the
+                # slot; `gk` says *a plan of this shape did not close a gap of this shape* and
+                # is the only half that can still be true next level.
                 extra = {"asked": [Rt.render(self.routine), self.routine_for],
                          "ground_said": False, "status": "refuted",
                          "verdict": "spent its whole budget and the guard never held",
                          "rejections": round(self._rejection(k), 3),
                          "reopens_above": round(self.refuted_at[k], 4)}
+                gap = self._characterise_gap(self.routine_for)
+                if gap is not None:
+                    gk = (self._gap_key(gap), Rt.actions(self.routine),
+                          Rt.guards(self.routine))
+                    rec = self.paths.setdefault(gk, {"failed": 0, "first_cycle": self.cycle})
+                    rec["failed"] += 1
+                    rec["last_cycle"] = self.cycle
+                    extra["gap"] = {k2: v for k2, v in gap.items()
+                                    if k2 not in ("varies", "invariant")}
+                    extra["shape_failed"] = rec["failed"]
             self.led.record(self.cycle, "PLAN", self.routine_for or "*", "routine_end",
                             outcome=why, routine=Rt.render(self.routine), **extra)
             self.routine, self.routine_for = None, None
@@ -1796,6 +1828,36 @@ class Agent:
         """
         return (slot, Rt.actions(r), Rt.guards(r))
 
+    @staticmethod
+    def _gap_key(gap: dict) -> tuple:
+        """THE NAME-FREE HALF of a characterised gap. What a failure is filed under so it can
+        be read on a board where every slot has a different name.
+
+        **The fields dropped are dropped for two different reasons and both are `_reject_key`'s
+        own.** `varies` and `invariant` hold SLOT NAMES -- the exact thing that makes the
+        instance key uncrossable -- and `n` is a running count of observed frames, which moves
+        every step, so keying on it would let one shape return under a new number exactly as a
+        budget-keyed routine would. **What survives is what `retrieval.fits` already scores
+        on**, which is the point: the routine path is being given the term path's key, not a
+        second one invented beside it.
+        """
+        return (gap.get("arity"), gap.get("varies_types", ()),
+                gap.get("target_type"), gap.get("rel_types", ()))
+
+    def _characterise_gap(self, slot: str) -> dict | None:
+        """The gap at a slot, or None when there is nothing to describe.
+
+        **ABSTAINS ON NO EVIDENCE, which is `M2_STANDARD`'s check 3.** No history is *I cannot
+        describe this*, never *the gap is empty* -- and an empty description would key every
+        failure under one shape and make the catalogue say the opposite of what it saw.
+        """
+        hist = self.history(slot)
+        if not hist:
+            return None
+        rel = getattr(self.env, "contact_changes", None)
+        return retrieval.characterise(hist, slot, list(self.alphabet), self.slot_types,
+                                      relations=rel() if rel else None)
+
     def _mint_routine(self, before: dict[str, int]) -> None:
         """§14.4: **a routine is minted when a goal residual no routine closes.**
 
@@ -1928,6 +1990,27 @@ class Agent:
                             strengths=[round(self._rejection(k), 3) for k in self.refuted
                                        if k[0] == slot])
             return
+        # RETRIEVAL, AND IT ORDERS RATHER THAN EXCLUDES -- `retrieval.py`'s own standing rule,
+        # *order, never exclude*, whose docstring records `_cannot_pay` as having LOST A CLOSING
+        # TERM by filtering. So a shape that failed ten times is still tried; it is tried LAST.
+        # **THIS IS THE HALF THAT CUTS THE PROBLEM DOWN** -- the exclusion above is the same-slot
+        # ban, which dies at the boundary; this is what a replay retrieves.
+        gap = self._characterise_gap(slot)
+        if gap is not None and self.paths:
+            gkey = self._gap_key(gap)
+            # STABLE ORDER: `sorted` is stable, so candidates with equal failure counts keep the
+            # composer's ordering exactly. A gap shape never seen scores 0 for every candidate
+            # and the order is UNCHANGED -- check 3, no evidence changes nothing.
+            scored = [(self.paths.get((gkey, Rt.actions(c), Rt.guards(c)), {}).get("failed", 0),
+                       c) for c in cands]
+            if any(f for f, _ in scored):
+                cands = [c for _, c in sorted(scored, key=lambda p: p[0])]
+                self.led.record(self.cycle, "PLAN", slot, "paths_retrieved",
+                                reason="a plan of this shape failed against a gap of this shape",
+                                gap={k2: v for k2, v in gap.items()
+                                     if k2 not in ("varies", "invariant")},
+                                deprioritised=sum(1 for f, _ in scored if f),
+                                considered=len(cands))
         # `left` IS WHAT THE CANDIDATE CANNOT REACH, NOT ZERO. See `routine.reach`.
         # THE BARGAIN IS TWO-PART AND STAYS TWO-PART ON THE ROW. These were folded into one
         # number and handed to `pays` as `cost` with `left = 0` -- arithmetically identical and
