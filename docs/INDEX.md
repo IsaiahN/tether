@@ -27653,3 +27653,65 @@ instead of a reconstruction; that is a build change and it is owed, not proposed
     CAPABILITY  none -- no run, no contact change, both boards still read zero levels
     OPEN        reach on the REPEAT row, so this stops being a reconstruction; and the reviewer's
                 remaining named read, the toy world's INTRODUCED actors (E1b's unexamined half)
+
+---
+
+### `I40` — I PUT A CHECK AFTER THE WRITES IT GUARDS, IN THE PATCH WRITTEN TO HONOUR `I34`
+
+**`I34` is one cycle old and says exactly this.** *"`mksheets.py` opened the CSV for writing, wrote
+the header row, and ONLY THEN ran every assertion, so ANY failing check left a header-only file
+where the artifact was."* It was fixed by hoisting all validation above the open, and `CLAUDE.md`'s
+first named silence — *fixtures before changes, the only order with an observable half-state* — was
+quoted at the fix.
+
+**`F49`'s split patch then added a NEW assertion, the part-size budget, and placed it AFTER two
+`_emit()` calls.**
+
+```
+_sa, _sb = _emit(_pa, _a), _emit(_pb, _b)      # both parts WRITTEN
+assert _sa <= PART_MAX and _sb <= PART_MAX     # then checked
+_full = _emit(p, ROWS)                         # never reached
+```
+
+**IT FIRED FOR REAL ON THE FIRST REGENERATION THAT NEEDED IT** — `F49` + `F50` + `I39` pushed part
+B to 89,771 against 88,000 — and left precisely the half-state `I34` names: **both parts rewritten,
+`workbook3.csv` stale at the previous generation.** Not destructive, because the parts written were
+complete and correct and merely oversized. **That is luck rather than design: the ORDER is what
+`I34` is about, not the damage** — and the damage differed only because this assertion happens to
+compute its quantity from the write's own return value.
+
+**THE TELL IS THAT THE HOISTED BLOCK IS STILL THERE AND STILL CORRECT.** The generator carries a
+seven-line comment above the row-level checks explaining why they must precede the open. I did not
+undo it. **I added a new check somewhere else and never asked whether the rule reached it** — so
+the fix was preserved as an artefact and lost as a rule, which is the shape that makes a repaired
+defect recur without the repair ever being touched.
+
+### FIXED, AND THE CUT RULE CHANGED WITH IT
+
+The parts are now **sized without being written**, the budget is asserted, and only then is anything
+opened; a second assertion checks the predicted sizes against what was actually written, so a
+divergence between the two paths cannot pass silently.
+
+**AND THE GREEDY CUT WAS ARBITRARY, WHICH IS WHY IT FAILED ON THE WRONG QUANTITY.** Filling part A
+to the budget and dumping the remainder into B makes **B the overflow bin**, so B fails first and
+fails on a number nothing was choosing. **The cut now minimises `max(A, B)`** — the quantity the
+budget is actually about — so the assertion fires exactly when a two-way split genuinely cannot fit,
+which is the condition that makes three parts a real decision instead of an artifact of the packing
+order. Balanced, the same content reads **A 88,664 / B 88,797**, 133 chars apart, against the
+greedy `87,690 / 89,771`.
+
+### BOTH ARMS CONFIRMED, NOT ONE
+
+    positive   PART_MAX 92000   A 88,664   B 88,797   full 175,972 written
+    negative   PART_MAX 40000   assertion fires, exit 1
+               md5 of workbook3.csv, workbook3a.csv, workbook3b.csv ALL UNCHANGED
+
+**Run against the LIVE output path rather than a copy**, because `I34` was found by a probe aimed
+at the live path and would have been invisible to one aimed at a duplicate. **Safe by construction
+here — which is the claim the negative control exists to check rather than to assert.**
+
+    MECHANISM   the budget check moved above the writes; the cut balanced; both arms measured
+    CAPABILITY  none -- generator only, nothing reaches the agent
+    OPEN        nothing on this entry. The standing question it sharpens: a repair installed at
+                ONE SITE is not a rule, and nothing in this project currently checks that a
+                newly added assertion sits above the writes it guards
