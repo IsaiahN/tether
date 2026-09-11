@@ -30982,3 +30982,48 @@ will be read under the same conditions.
     MECHANISM   part A published and verified exact; 8 of 8 recent publishes exact;
                 pubstate A line advanced; sheet_synced_at.txt -> da17641
     CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
+
+---
+
+## `I58` — a hand-typed count in a DIFFERENT row went stale the moment I appended to this one
+
+**Appending `I55`–`I57` to the sheet's log moved the row id to `I1-I57` and the two DERIVED
+narrations followed correctly** — `I41`'s mechanism doing exactly its job. **The defect was
+somewhere the mechanism does not reach.** The SPLIT row read *four stale blocks that
+**fifty-four** instrument entries of careful reading had left sitting there* — a number typed
+by hand, correct on the day it was written, and **falsified by this very edit.**
+
+    assert _found == 2      counts PLACEHOLDER SITES
+                            a literal typed into PROSE is invisible to it
+
+**AND THE LOG CELL ALREADY STATES THAT LIMIT IN TERMS** — *the count assertion I installed
+catches the COUNT and cannot see the PROSE*. **The instance landed in a different row from the
+one carrying the diagnosis**, which is the map-file shape again: the warning and the breach in
+one artifact, and the warning immunising nothing.
+
+**FIXED BY `I41`'s OWN RULE — generate it or state none — and *none* was the right half**,
+because the sentence never needed a number. *Every prior cycle of careful reading* says the
+same thing and cannot go stale. **It shrinks part A by twelve chars rather than growing it, so
+`F99`'s blocker is untouched.**
+
+### the count had silently re-coupled the three parts
+
+**The SPLIT row is generated into ALL THREE files, so a count *about the log* lived in the two
+parts that do not contain it.** A log-only change could then only be published by republishing
+A and B as well — **the exact coupling the anchored cut exists to remove**, reintroduced by one
+hand-typed word and invisible because it looked like prose.
+
+> **Removing the number is what dissolved it**, and the census confirms it: no log count
+> survives anywhere in A or B. The parts can move separately again.
+
+**AND THE FIRST DRAFT OF THIS ENTRY SAID *the three parts now have to move together*** —
+written from the work just done rather than from the state after it. That is precisely the
+failure `CLAUDE.md` names for editing a row, **committed inside the entry recording a staleness
+defect**, and caught only by re-reading the draft against the regenerated files.
+
+**FOUND BY A CHECK THAT DID NOT EXIST LAST CYCLE:** censusing every spelled count across all
+three regenerated parts before freezing anything. Nothing was published wrongly.
+
+    MECHANISM   SPLIT's hand-typed count removed; I55-I58 in the sheet's log; row id I1-I58;
+                A 103,988 / B 103,930 / C 58,280, budget passes; B and C frozen
+    CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
