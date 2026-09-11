@@ -394,6 +394,21 @@ reads as something that will be enforced, and it will not be.
   decides. **And the tell that a diagnosis is not an installation: `I30` was diagnosed that morning
   and I deferred again in the same session**, having written the diagnosis down in between.
 
+  **AND THE FREEZE IS A SHAPING GUARD, NOT A BUILD BAN — Isaiah, 2026-09-10, AND THIS FILE DID
+  NOT CARRY IT.** *"Unfreeze and refreeze whenever testing needs to be done on cycles — it is
+  mainly to prevent either of you trying to build towards the games or solve the games. That is
+  this new architecture's job."* **Unfreeze to build, refreeze to test on cycles, repeat.** So
+  building a mechanism the framework NAMES is permitted whether the freeze is on or off; building
+  toward a BOARD is forbidden either way, and that prohibition never depended on the freeze.
+
+  **IT IS FILED HERE BECAUSE THE LOOKUP KEPT FAILING WHERE IT IS ACTUALLY MADE.** The ruling was
+  in `INDEX:26723` and in the published sheet's PROTOCOL row and **zero times in this file** —
+  and this file is what gets consulted when the question is *may I build*. **Three instances now,
+  and the third is the one that reached Isaiah**: asked directly whether the protocol work builds
+  toward anything, I answered that the freeze blocks building and that lifting it was his —
+  **forty minutes after publishing the row that says it does not.** `I30`'s shape at the level of
+  scope rather than of who decides, and the record had already recorded me making it twice.
+
   **THE SHEET IS THE PERMISSION CHANNEL, NOT A REPORT** — *"keep the spreadsheet updated so the
   reviewer can align and sign off or correspond with you."* So `F58`'s cost-per-row argument does
   not license skipping a publish, and it had been used to do exactly that one cycle earlier.
