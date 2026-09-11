@@ -30727,3 +30727,64 @@ the next budget test and it may well be the one that meets the fourth-part condi
     MECHANISM   15-figure census with every genuine hit read; w located and measured absent from
                 the build; 6 confidence sites read at source and all perception-side
     CAPABILITY  none -- corpus and code reading. levels_completed 0, routine_cut 0, since F80
+
+---
+
+## `F99` — the fourth-part condition has arrived, measured, and it is not mine to take
+
+**THE SPLIT ROW'S CORRECTED CONDITION IS *THE BUDGET REFUSING AGAINST FINDINGS ALONE, AFTER THE
+SCAFFOLDING IS EXHAUSTED*. That happened this cycle.** Folding `F98`'s evidence into `F64`'s row —
+where the confidence question lives — put part A at **105,239 against 104,000, over by 1,239.**
+
+**AND UNLIKE THE LAST THREE REFUSALS, THERE WAS NOTHING STALE BEHIND IT.** The previous pass cut
+1,338 chars and every one was superseded: two arguments the reviewer had accepted **that cycle**,
+and an enumeration of defects they had repaired. **Nothing has been resolved since — no new
+reviewer row — so `F96`'s generator produced nothing, and the refusal is against findings.**
+
+    A  105,239 with F98 folded in       over by 1,239
+    anchor move                          F42 weighs 4,659; B is 103,942 -> 108,601. NOT ADMISSIBLE
+    scaffolding found this pass          NONE -- the previous pass took it
+
+### the bind worth naming: the escalation is itself content, and the channel is what is full
+
+**The decision belongs to the reviewer and Isaiah, the sheet is how it reaches them, and the sheet
+is the thing that has run out of room.** So the escalation had to be paid for like any other
+content. **It was, and the trade is stated rather than hidden:** `F98`'s fold was backed out (its
+full text is here, so nothing is lost but immediacy) and RUN STATUS's recap of two rulings already
+filed in `CLAUDE.md` was compressed. **A now sits at 103,841 with 159 chars, enough for a pointer
+and not for the finding.**
+
+> **THE PRIORITY IS STATED SO IT CAN BE DISAGREED WITH: a decision that unblocks the channel
+> outranks one finding's evidence travelling a cycle earlier.** That is a judgement, not a rule,
+> and it is the reason `F98` is not in the sheet tonight.
+
+### the two options, both already on the record and neither mine
+
+**`F77`'s candidate, raised and not taken:** a finding that is **CLOSED and has been read** moves
+to the Archive on the same principle the log moved — **divide by kind, not by date**. `F77` says in
+terms that this *changes what you read and that is yours and Isaiah's*, which is why it was raised
+and left.
+
+**A FOURTH PART**, which the assertion's own message calls *a decision, not a regeneration*, and
+which `F58`'s ratchet and `F71`'s refusal both bear on.
+
+**I am not choosing between them and I am not choosing neither.** What I can say is which the
+measurement favours: **part A divides by RECENCY and the other two divide by KIND** — `F77`'s own
+diagnosis — so a fourth part created by date inherits the same unbounded window, while moving
+closed-and-read findings by kind does not. **That is an argument, not a ruling.**
+
+### what is NOT claimed
+
+**Not that the workbook is out of room in general** — part C holds the log alone at 53,359 and has
+roughly 50,000 free. **The constraint is the KIND division, not the total**, and putting findings
+into a file titled `Log` would break the very property that makes a row's location predictable.
+Saying so is what stops *there is space over there* being offered as an answer.
+
+**And not that this refutes `F96`.** `F96` said resolution generates scaffolding at the same moment
+it generates findings; this cycle produced a finding with **no** accompanying resolution, which is
+exactly the case `F96` said would eventually meet the condition. **One instance each way, and I am
+still not fitting a rate.**
+
+    MECHANISM   fourth-part condition met and measured; anchor proved inadmissible; the
+                escalation paid for out of a compressed recap and stated as a trade
+    CAPABILITY  none. levels_completed 0, routine_cut 0, unchanged since F80
