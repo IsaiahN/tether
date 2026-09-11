@@ -31372,3 +31372,52 @@ the closure named, and no claim in either direction.
                 reconstruction attempted against it and NOT reproduced, cause unfound
     CAPABILITY  none -- rows already held, no run. levels_completed 0, routine_cut 0,
                 unchanged since F80
+
+---
+
+## `I61` — the stamp gate refused a PASSING check, and the cost of that refusal is now a number
+
+**The wait is discharged and it cost 17 minutes.** `10:48Z` regenerated part A to an age of **89
+minutes** at the `12:17Z` watchdog fire. **The assertion PASSED** — 89 is inside 90 — and I
+refused it anyway, because the watchdog computes `age = (its own date -u) − stamp` **at its own
+runtime**, so a cron firing two minutes late turns 89 into 91 and republishes a STALE banner over
+a current sheet. `10:57Z` gave 80 minutes, which tolerates ten minutes of jitter, and that is the
+copy that went out.
+
+> **The entry is not that the wait was right — it is that its price is now measured rather than
+> asserted.** `ALIGN-2`'s ruling is that a watchdog crying dead on a live sheet is worse than no
+> watchdog, and the trade was stated in `pubstate.txt` **before** the wait: ~10 minutes against
+> the one failure the reviewer explicitly relies on not happening. **It cost 17, and the
+> prediction that one publish would serve both corrections and the stamp HELD.**
+
+**Fifteenth consecutive content-exact verify: 81,274 / 81,274**, snapshot `5d54e2f0` unchanged
+from freeze through a nine-chunk read to verify. All nine chunks read continuously, **the FIRST
+confirmed present rather than the seams merely joining** (`I57`), predecessor trashed **after**
+the content check (`F87`). `F102`'s and `F105`'s corrections both confirmed present in the
+published copy.
+
+**ALL THREE PARTS ARE SYNCED FOR THE FIRST TIME SINCE 09:13Z**, and `sheet_synced_at.txt` is at
+`31cd750`.
+
+### and the freeze discipline is now a control with a denominator, not an assertion
+
+**Every commit of this window was checked, not sampled: eight of eight touch `docs/INDEX.md` and
+nothing else.**
+
+    b621825  dfd3846  6111182  6977c55  f6f6524  b8f1a1b  353728c  31cd750
+
+**`git diff arc-freeze-02..HEAD -- '*.py'` returns `check_paths.py`, `tether.py`,
+`transcript.py`** — all three predating this window, and `F42` already records the last two.
+**The window added none of them.**
+
+> **`A CONTROL THAT EXAMINES NOTHING CANNOT DEMONSTRATE A CLEAN STATE`, and *I committed docs
+> only* had been running on memory of the act rather than on a count.** It came back clean, which
+> is the outcome that makes the check look unnecessary and is exactly when it is worth having
+> run.
+
+**Two corpus documents remain uncommitted** — `THE_FORMULA.md`, `WHAT_THE_AGENT_SEES.md` — which
+is `F85`'s recorded state and Isaiah's to close. **Unchanged, not forgotten.**
+
+    MECHANISM   15th consecutive exact verify; all three parts synced; freeze discipline
+                checked at 8/8 commits rather than assumed
+    CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
