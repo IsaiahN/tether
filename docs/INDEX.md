@@ -32555,3 +32555,47 @@ hashes were taken first and checked after rather than assumed.
 > stage by EXPLICIT PATH — never `-A` over a directory.** First instance of this shape, and the
 > threshold for installing a check instead of being careful again is three. **So this is a rule
 > written down, which this log's own history says is the weaker half** (`I15`).
+
+---
+
+## `I69` — I told Isaiah Phase 3 was not started, twice, and I had published the cell that says it ran
+
+**Phase 3 was executed 2026-09-10 on all five public boards** — depth 10 in **two** batches and
+depth 25 — and the readings are in the record in the shape the heartbeat asks for. **`F80` is the
+depth-25 protocol run with the 150s cost wall ARMED AND REACHED**, per game never pooled, carrying
+cycles, stop reason, per-cycle cost and `cost_total`, with `routine_cut` **0 at every depth
+reached**. **Fifteen traces sit on disk and postdate the last build-file commit by five hours**, so
+they are valid against HEAD and nothing is owed a re-run.
+
+### the refutation was mine, and published
+
+**`F78` — a row in part A — says batch 2 is BYTE-IDENTICAL to batch 1**, and that batches 3 and 4
+*"would emit two more identical copies and answer nothing"*, because there is no run-to-run
+variance at fixed parameters. **I had already reasoned about Phase 3's repetition clause in depth,
+written the panel-law argument for why it cannot deliver what it asks, and sent it to the
+reviewer** — then reported the phase had not begun. **`I27` exactly: the answer was written down,
+by me, in a cell I published.**
+
+### the justification is what made it survive two cycles
+
+**I attached a CORRECT doctrinal argument — *a ground reading taken below the break has no
+subject* — to a FALSE premise**, and called it *"a held position rather than an omission"*, which
+is **defending** it rather than merely asserting it.
+
+> *A null carrying a satisfying causal story is harder to doubt than a bare one* — **and this story
+> was doctrinally impeccable, which is worse. The quality of the argument is what stopped me
+> checking the premise.**
+
+### third instance today of one shape
+
+**`F41`'s standing warning is that I had been answering ITEM 3 by CATEGORY** — *"a build item, the
+freeze forbids it"* — rather than on its merits. **I applied that lesson to item 3 this cycle and
+did not sweep its sibling**, so Phase 3 got the category answer instead. That is `I25` — repaired
+the instance, left the class — which is **also `I66`'s finding from this morning and `I65`'s from
+an hour before it.**
+
+### what it changes for Isaiah, which is the point rather than the error
+
+**The heartbeat's ordered list is EXHAUSTED for this build, not blocked:** items 1 and 2 done at
+`846f174`; item 3 **ruled REACHED**; Phase 2 tagged `arc-freeze-02`; Phase 3 run with its readings
+recorded. **The window is waiting on three rulings and on nothing of mine.**
