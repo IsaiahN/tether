@@ -31135,3 +31135,73 @@ a property."*
     MECHANISM   F99 and the I57 response written into part C; A verified stamp-only against its
                 published copy; C frozen c1ff35f3 (61,031); B frozen 522f14b6 and still BEHIND
     CAPABILITY  none -- record and transport. levels_completed 0, routine_cut 0, unchanged since F80
+
+---
+
+## `F102` — four items the published digest calls OWED are built, and three are exercised on real boards
+
+**Found by the routine freeze-diff check, which read THREE files where `F42` records two.** Six
+commits touch `*.py` since `arc-freeze-02`: `F37`'s three from 09-09, and **three from 09-10**
+(`c074234` 14:14, `afc4ea8` 14:44, `6c1ff8c` 15:04) landed under Isaiah's shaping-guard ruling.
+**Not a breach, and not mine** — they predate this window.
+
+**Verified at the write sites, never from the commit messages:**
+
+    reach on the REPEAT row                     tether.py:3174    BUILT
+    any_live on the REPEAT row                  tether.py:3182    BUILT
+    term_bits/left_bits/base_bits + would_pay
+      at BOTH reuse reject arms                 tether.py:2819    BUILT
+    the failed-path catalogue (_gap_key)        5 sites           BUILT
+
+**AND THEY ARE NOT MERELY PRESENT — THEY HAVE RUN.** `reuse_refused` rows on every depth-25
+board trace: ka59 168, ls20 108, sp80 80, g50t 285, wa30 137; `any_live` on all five.
+
+> **THE DEFECT IS IN MY DIGEST, PUBLISHED 35 MINUTES EARLIER.** The RUN STATUS cell lists
+> *THREE OWED INSTRUMENT FIELDS* and the catalogue as *which F35 named and nothing does*.
+> **All four are done.**
+
+**The cause is the writing-side `A6i`, and it is exact: I wrote the owed-list FROM THE PREVIOUS
+OWED-LIST rather than from the build.** `CLAUDE.md` states it for a row's definition — *write
+its summary from the row's definition, not from what you just finished* — and a to-do list is
+the case where copying forward is most natural and most wrong, because **the list's only job is
+to be current.** Third instance of the class after `F42` and `F89`.
+
+**AND THE CHECK NEARLY FAILED THE SAME WAY `I38` DID:** I grepped `cost=`/`left=`/`base=` at the
+reject arm, got one hit, and was a step from filing that field as still owed. **The keys are
+`term_bits`/`left_bits`/`base_bits` — which `I38` records verbatim.** Caught by reading the site
+rather than trusting the count.
+
+---
+
+## `F103` — both arms of the one bargain, measured; the ACCEPT arm is 0 of 21 on five boards
+
+**`F40` filed this as owed and `F32`'s ruling was waiting on it:** *`would_pay` is measured only
+on the ACCEPT arm, where it reads False 19 times in 21 — the counterfactual is computed on the
+side that is already IN, and not on the side that is OUT.* **`F102` establishes the reject arm
+now carries it**, so both arms are readable. **No run — rows already on disk.** Per board,
+never pooled, depth 25:
+
+    board   REJECT n    would_pay True        ACCEPT n   True
+    ka59    168         13   ( 7.7%)          2          0
+    ls20    108         22   (20.4%)          5          0
+    sp80     80         32   (40.0%)          5          0
+    g50t    285         10   ( 3.5%)          0          0
+    wa30    137         10   ( 7.3%)          9          0
+
+**THE ACCEPT ARM IS 0 OF 21 ACROSS ALL FIVE BOARDS.** Every term the zero-remainder gate
+admitted, the one bargain would have refused — **SYSTEM, board-independent**, and a fifth
+independent population reproducing `INDEX:17556`'s 19-of-21 and `F64`'s 5-of-5 and 2-of-2.
+
+**THE REJECT ARM SPANS 3.5% TO 40% AND IS BOARD-DEPENDENT**, which is `F64`'s central finding
+holding at depth 25 on five boards where it was measured at depth 10 on two. **The two arms
+carry different verdicts and must not be pooled into one sentence.**
+
+**CLASSIFIED: NOT A DEFECT, NO CANDIDATE FIX.** This measures a gate the record already rules
+on; the forward move is `F32`'s confidence acceptance, which is a build item with three stated
+constraints, and nothing here reasons from what a board contains.
+
+    MECHANISM   four items built and firing in volume; both bargain arms readable for the
+                first time; 0-of-21 reproduced on a fifth population
+    CAPABILITY  none -- no run, rows already held. levels_completed 0, routine_cut 0,
+                unchanged since F80. The catalogue's own capability is still zero: F56
+                measures routine_end at 0 on every real board
