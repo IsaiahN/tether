@@ -1,7 +1,23 @@
 # THE POST-FREEZE QUEUE — for review before anything is lifted
 
-**Status.** `arc-freeze-01` intact. 92 commits since the tag, all documentation, no build file
-differing. Nothing below has been applied.
+**Status — DERIVED, NOT COPIED (`I67`).** The current freeze tag is **`arc-freeze-02`**, and
+**git is the authority; this line is a dated reading, never a standing claim.** Re-derive it with:
+
+    git rev-list --count arc-freeze-02..HEAD
+    git diff --name-only arc-freeze-02..HEAD | grep -v '^docs/'
+
+**As of 2026-09-11: 175 commits since the tag, and 5 non-`docs/` paths differ** —
+`.gitignore`, `CLAUDE.md`, `check_paths.py`, `tether.py`, `transcript.py`. **That is NOT a breach and is not recorded as one:** `CLAUDE.md` is a
+working file by its own terms, and the rest are instrument work the record carries as built and
+verified (`F102`) under Isaiah's ruling that *the freeze is a shaping guard, not a build ban —
+unfreeze to build, refreeze to test on cycles.*
+
+> **THE LINE THIS REPLACES SAID `arc-freeze-01` INTACT, 92 COMMITS, NO BUILD FILE DIFFERING.**
+> All three were false — the tag had moved, the count against that tag was 254, and build files
+> did differ. **It is the line a reader consults to confirm the freeze held**, and it asserted a
+> clean state while examining nothing, which is the corollary `CLAUDE.md` names in terms.
+
+**Nothing below has been applied.**
 
 **How to read it.** Four kinds of item, and they are not the same size of decision:
 

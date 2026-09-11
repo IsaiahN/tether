@@ -32475,3 +32475,46 @@ in full, which is how both real ones surfaced.
 > **Caught BEFORE the publish round rather than after, which is the only reason it cost nothing —
 > both would have gone out at 16:55Z.** `I58`'s check earning its keep on the row that motivated
 > it.
+
+---
+
+## `I67` — the line a reader consults to confirm the freeze held asserted a clean state and examined nothing
+
+**`POST_FREEZE_QUEUE.md` opened with:** *"`arc-freeze-01` intact. 92 commits since the tag, all
+documentation, no build file differing."*
+
+**Measured, all three false:** the live tag is **`arc-freeze-02`**; the count against
+`arc-freeze-01` is **254**, not 92; and **build files do differ** — five non-`docs/` paths against
+`arc-freeze-02`.
+
+> **It is the worst sentence in the repository to carry a stale claim, because it is what a reader
+> checks INSTEAD OF checking git.** `CLAUDE.md`'s corollary names it exactly — *a control that
+> examines nothing cannot demonstrate a clean state.*
+
+### no breach is alleged, and establishing that mattered more than the defect
+
+The differing paths are `.gitignore`, **`CLAUDE.md` — a working file by its own terms** — and
+`check_paths.py`, `tether.py`, `transcript.py`, which are **instrument work the record carries as
+built and verified (`F102`)** under Isaiah's ruling that *the freeze is a shaping guard, not a
+build ban — unfreeze to build, refreeze to test on cycles.*
+
+**I checked that before characterising it.** *"Build files differ from the freeze tag"* reads as an
+accusation, the alarming reading was available, and it was wrong.
+
+### the fix is `I53`'s model, and the document needed a side before it could be repaired
+
+**Name where the authority lives rather than copy it.** The line now carries the two git commands
+that produce it plus a **dated** reading, so a stale copy cannot masquerade as a standing claim.
+
+**`POST_FREEZE_QUEUE.md` is named in NEITHER of `CLAUDE.md`'s two tables**, and the rule says a
+document appearing later needs one — *is this a working document is answerable only against a
+written split.* It is my own staging output, written for Isaiah's review and derivationally
+dependent on me, **so it carries none of the corpus's independence**: WORKING, repaired at source.
+The placement is recorded because the rule asks for a written split rather than a fresh judgement
+each time.
+
+### and the first patch anchor matched zero, in the document where I was fixing staleness
+
+The source wraps *"no build file / differing"* across a line break and my anchor was built from the
+rendered text — **`I55`, and `I34`'s order held: the assert fired and nothing was written.** The
+`rsub` helper built for exactly this, after three instances, took the second attempt in one pass.
