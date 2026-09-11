@@ -31701,6 +31701,74 @@ rather than after.**
 
 ---
 
+## `F110` — the reviewer's third option survives the check, in a narrower form, and half the row has no home at all
+
+**`F107` collapsed `F99` to one question and the reviewer says the one question is the wrong one.
+They are right, and their proposed check is the one that decides it.** Their move is `I53`'s
+ruling one level up — *the fix is REMOVAL RATHER THAN CORRECTION, and a duplicate is retired to a
+POINTER* — applied to resolved findings rather than to a duplicate id file. **Compaction IN PLACE
+rather than migration, which is why `F107` does not kill it: nothing moves, so the Archive having
+no room to receive a row is irrelevant.**
+
+### the check they asked for, run
+
+    part A   21 of 21 F-rows have a FULL entry in INDEX
+    part B   11 of 23        missing: F10 F27 F28 F31 F32 F33 F34 F35 F36 F37 F38 F39
+    INDEX carries F14..F109 with gaps; nothing below F14
+
+**So the premise holds where the crisis is and fails where they aimed it.** Part A — 47 characters
+free, the part actually being squeezed — is **fully duplicated**. Part B, the part they proposed
+compacting, is **the only home for twelve of its rows**, which is the log's situation exactly.
+
+### and the answer is neither of their two branches
+
+They offered: INDEX holds them, or INDEX only recounts them. **Measured, it is a third thing —
+INDEX holds a LARGER, INDEPENDENT account.**
+
+    INDEX entry vs sheet Record cell:  2x to 12x larger, median ~3.5x
+    verbatim overlap (40-char shingles): 0/36 to 27/37, median around a quarter
+
+**The row's own wording is not preserved anywhere.** What INDEX holds is my narrative of the
+finding; what the sheet holds is the distillation written for them. Two accounts, not a copy.
+
+### the measurement they did not ask for, and it is the one that decides the shape
+
+**THE RECORD CELL — the only column with an INDEX twin — IS 30.3% OF AN F-ROW.**
+
+    The Record            49,268   30.3%   has an INDEX twin
+    CORRESPONDENCE        85,888   52.7%   Seat Response, Outstanding, Evidence, Resolved,
+                                           the two position columns -- NO twin anywhere
+    everything else       ~17,000   17%
+
+> **Half of every F-row is the EXCHANGE, and the exchange exists in the sheet and nowhere else.**
+> Their own responses live in `Seat Response` — 19.7% of the bulk on its own — and reach `INDEX`
+> only where I have quoted them into a narrative. **A row reduced to *ID, headline, status,
+> pointer* would delete their side of the correspondence.**
+
+### what survives, and it is smaller than proposed and still worth taking
+
+**Compact THE RECORD CELL to a pointer, on resolved rows that have an INDEX entry, keeping every
+correspondence column.** That frees about 30% of a row rather than 95%, and **all 21 of part A's
+F-rows qualify** — which is where the budget is actually binding. **The twelve orphan B-rows want
+the log's treatment first** (migrate, then they become compactable), and that is cheap and already
+rehearsed.
+
+**WHAT IS ISAIAH'S AND IS UNCHANGED BY ANY OF THIS:** whether a resolved finding reduced to a
+pointer plus its correspondence is still a record he is content for a stranger to read. The
+reviewer said that judgement is not theirs to take and it is not mine either.
+
+**AND THEIR SECOND-ORDER POINT IS ACCEPTED AS REPORTED RATHER THAN VERIFIED:** they say they have
+opened the Archive three times this window and found one item addressed to them. **I cannot check
+someone's reading habits and am not going to pretend the sheet tells me** — it is their report of
+their own use, which is exactly the kind of evidence I have no better source for.
+
+    MECHANISM   the deciding check run (32 of 44); INDEX measured as a different account rather
+                than a copy; the correspondence columns measured as homeless at 52.7%
+    CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
+
+
+---
+
 ## the early instrument log — MIGRATED FROM THE WORKBOOK, 2026-09-11
 
 **These 30 entries existed in FULL in exactly one place: the published workbook's log
