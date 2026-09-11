@@ -32352,3 +32352,86 @@ if that is ruled in, the twelve are ready.
 
 **Last Updated.** 2026-09-09
 
+---
+
+## `I62` — the entry the record cited four times and never wrote
+
+**`I62` is cited in this file in four places** — inside `I63`'s own body (*"`I61` and `I62` were
+appended…"*), in the order table, in the delivery note, and in `F113`'s headline (*"they
+reproduced `I62` on their own sheet"*) — **and it has no entry.** The content exists, in the
+workbook's log cell, and nowhere here.
+
+> **THAT IS `F68`/`F77`'s SHAPE — a citation with nothing on the other end — AND IT IS THE EXACT
+> DEFECT THE REVIEWER RAISED ABOUT `F99` THE SAME DAY.** I answered that one at length (`F101`),
+> quoted their formulation back in `F113`, and was carrying an instance of it in the other
+> register while I wrote.
+
+**THE ENTRY, SO THE CITATIONS RESOLVE:** the log cell's garbage collection worked. Thirty entries
+(`I1`–`I40`) were migrated to this file and the cell became a **sliding window** rather than the
+whole log, taking the Record cell from 48,712 to 27,626 and its headroom from **zero to 20,391**.
+That is what made `I61` deliverable after `F106` had refused it.
+
+**AND THE INTUITION THAT PROMPTED THE WHOLE THING WAS WRONG IN A MEASURABLE WAY.** Isaiah asked
+whether old logs could be cleaned. **Cleaning the OLD ones frees almost nothing:** `I1`–`I20` is
+3,258 chars at 162 each, against `I41`–`I60`'s 25,418 at 1,270 each. The log did not grow by
+accumulating — **it grew because the entries got seven times longer.** What made room was moving
+the RECENT bulk out; what made that safe was giving it a durable home first.
+
+**THE TWO REGISTERS NOW AGREE ENTRY-FOR-ENTRY, AND THE SPLIT COST NOTHING THE REVIEWER HOLDS.**
+The sheet's `I62` cell had carried BOTH halves — the collection and the misordered append — while
+this file split them. `I62` keeps the **collection** half in both, which is what the reviewer cited
+and what they reproduced on their own file; the append half becomes `I63` in both. **What they
+cited did not move**, which is the only thing that made the split takeable rather than tidying.
+
+---
+
+## `I64` — a column named `Last Updated` that was a hand-written constant, two days stale on every row
+
+**`D = "2026-09-09"` in the generator, appended to every row at both write sites.** Not per-row,
+not derived: **one literal, on all 58 rows of all three parts**, while rows were being edited
+continuously. `I41`'s disease at the one place it is most legible — **a date column that does not
+move is worse than no date column**, because it reads as a freshness signal.
+
+**IT HAD ALREADY PROPAGATED INTO THE DURABLE RECORD:** the twelve rows `F112` migrated carry
+`**Last Updated.** 2026-09-09` here, so the stale value is now in both registers.
+
+**THE FIX IS NOT TO SET IT TO TODAY.** There is no per-row change tracking, so *last updated* is
+**unbuildable** — deriving it to the generation date would claim every row changed today, which is
+false in a new way. `I41`'s ruling is **generate it or state none**, and what is generable is the
+date the part was GENERATED. **So the header is renamed to the quantity that can be derived:
+`Part Published`.**
+
+> **AND THAT IS A SIGNAL THE READER ACTUALLY NEEDS NOW, WHICH IS WHY IT IS A RENAME AND NOT A
+> DELETION.** Under the anchored cut the three parts move SEPARATELY and divergence is the normal
+> case — the SPLIT row says so in terms. A per-part publish date is the second thing after
+> `Freeze #` that a stranger can check without knowing what changed.
+
+**Found by reading the last cell of the frozen part C before publishing it** — the same practice,
+on the same row, for the fifth time.
+
+---
+
+## `I65` — the derivation I published as installed lives in a patch script, not in the pipeline
+
+**`I62`'s closing sentence, published:** *"the cell is now ASSEMBLED from a sorted entry list, so
+ORDER IS DERIVED rather than maintained … and a derived order cannot drift."*
+
+**The generator holds a static concatenated string literal.** `mksheets.py` contains **zero**
+references to `log_entries.json`; the assembly happened once, inside `scratchpad/fix_order.py`, and
+what landed in the generator was its OUTPUT. So the order cannot drift **on its own**, and the next
+hand-append can land mid-list exactly as `F67` and `I63` both did. **The artifact is derived; the
+PROCESS is not.**
+
+> **THIS IS THE THIRD-INSTANCE SHAPE THE LOG KEEPS NAMING — *a repair installed at a site that
+> never became a rule* — and here the repair was ANNOUNCED as the rule.** `I15`'s standing
+> complaint is about rules written down instead of mechanisms installed; this is the harder
+> version, **a mechanism that exists, ran once, and is not in the path.**
+
+**AND THE ENTRY LIST IS SPLIT ACROSS TWO REGISTERS:** `log_entries.json` holds `I1`–`I60`, while
+`I61` and `I62` exist only inline in the patch script and in the generator's literal. `I52`/`I53`'s
+shape — **two homes for one quantity, and the one that reads like the authority is incomplete.**
+
+**FIXED BY MAKING THE CLAIM TRUE RATHER THAN WITHDRAWING IT:** the entries are consolidated into
+`log_entries.json` as the single register, and `mksheets.py` builds the cell from it at generation
+time, sorted, with the sequence asserted before anything is written. **Then the published sentence
+describes what the pipeline does.**
