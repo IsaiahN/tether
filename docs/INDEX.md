@@ -30181,3 +30181,62 @@ real edit rather than a test.**
     MECHANISM   anchor F41->F42 by the recorded procedure; ~4,000 chars of superseded
                 scaffolding shed while GAINING a row; A and B staged and frozen
     CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
+
+---
+
+## `F91` — I re-froze the snapshot mid-read, which is `I51` with me as the writer
+
+**PART B IS PUBLISHED AT THE NEW ANCHOR AND VERIFIED EXACT — 80,570 / 80,570**, id
+`1VpYWf-4D5PpzogHoi9-gm-3QC18zVL07qolWZduzxgA`. Content verified **before** the predecessor was
+trashed, per `F87`.
+
+**B WENT FIRST DELIBERATELY, AND THE ORDER IS THE WHOLE POINT.** The anchor moved `F41` → `F42`,
+so `F41` leaves part A and enters part B. Publishing A first would have left **`F41` in no
+published file at all** — the `F39`/`F40` gap I opened once before. Publishing B first leaves it
+in **both**. Overlap costs nothing; a gap costs a finding.
+
+### the instrument error: I became the writer `I51` could not name
+
+**The B1/B2 seam did not join.** B1 ended `...NOT UNINFORMATI` and B2 began `ll as keeping them
+out.'` — B2 starting *earlier* in the row than B1 ended.
+
+**CAUSE, AND IT IS MINE: I read B1 from the frozen snapshot, then RE-FROZE after editing the
+SPLIT row.** That edit grew SPLIT by 708 bytes and shifted every byte offset in the file, so B1
+came from the old copy and B2–B7 from the new.
+
+> **`I51` is the entry where the artifact moved mid-read and I wrote *I CANNOT NAME THE
+> WRITER*.** The `pub/` snapshot was built so that could not happen again — **and this cycle the
+> writer was me, re-freezing between chunk 1 and chunk 2 of my own read.** The fix protects
+> against an *external* writer and says nothing about the reader editing the source mid-read.
+
+**CAUGHT BY THE SEAM CHECK, WHICH IS THE ONLY THING THAT COULD HAVE CAUGHT IT** — every chunk
+was internally valid, the hashes I checked were valid *at the time I checked them*, and
+`verify_publish` would have failed only *after* a bad publish. Repaired by re-reading B1 from
+the current copy and taking bytes `12901-15000` as an explicit range rather than matching a
+substring (`I43`).
+
+**THE RULE THAT FOLLOWS: a re-freeze invalidates every chunk already read.** Either finish the
+read before editing, or restart the read after re-freezing. There is no partial credit, because
+the offsets move under everything.
+
+## `F92` — a staged part A ages, and the stamp deadline is now a hard ordering constraint
+
+**Freezing part A LOCKS ITS FRESHNESS STAMP.** The staged copy carries `04:43Z`; the watchdog
+fires at `06:17Z`, which is **94 minutes — over its 90-minute threshold.**
+
+> **So part A cannot be published from a stale freeze.** It must be **regenerated for a fresh
+> stamp, re-frozen, and then read** — and by `F91` that re-freeze means the read starts over.
+> **B and C carry no stamp (`F68`) and are safe to publish from an old freeze.**
+
+Written into `pubstate.txt` as an instruction to the next cycle rather than as a note.
+
+### and the skip was defeated by the SPLIT row, which is structural
+
+`F81`'s per-part skip saved a republish exactly once. This cycle **all three parts changed,
+because recording the anchor move belongs in the SPLIT row and SPLIT is generated into all
+three.** That is not a defect — the reviewer's map of where rows live has to be correct in
+every file they might open — but it means **the skip can never survive an anchor move.**
+
+    MECHANISM   B published at the new anchor and verified exact; A and C behind, both
+                reasons recorded per part
+    CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
