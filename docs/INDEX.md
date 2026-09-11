@@ -31205,3 +31205,55 @@ constraints, and nothing here reasons from what a board contains.
     CAPABILITY  none -- no run, rows already held. levels_completed 0, routine_cut 0,
                 unchanged since F80. The catalogue's own capability is still zero: F56
                 measures routine_end at 0 on every real board
+
+---
+
+## `F104` — `F64`'s board-dependence does not survive depth: the gains side scales and the losses side does not
+
+**`F64` is the row that made `pays` *not the whole move*:** switching `left == 0.0` to `pays`
+*"MOVES THE TWO BOARDS IN OPPOSITE DIRECTIONS — sp80 net +4; ka59 net −1."* `F102` established
+the reject arm now carries `would_pay` natively, so that calculation is takeable on **five
+boards at the cost wall**, from rows already on disk. **No run.**
+
+**THE INSTRUMENT IS CONFIRMED BEFORE THE FINDING IS READ.** Computed at depth 10 with the
+native field, it reproduces `F64` **exactly** on both boards `F64` measured — ka59 gains 1 /
+losses 2 / net −1, sp80 gains 9 / losses 5 / net +4. **A different instrument reaching identical
+numbers is the strongest cross-check available here**, and it means depth is the only variable
+left in the comparison below.
+
+    board   depth 10  gains loss  net      depth 25  gains loss  net
+    ka59              1     2     -1                 13    2     +11
+    ls20             13     4     +9                 22    5     +17
+    sp80              9     5     +4                 32    5     +27
+    g50t              0     0      0                 10    0     +10
+    wa30              0     0      0                 10    9      +1
+
+> **THE GAINS SIDE SCALES WITH DEPTH AND THE LOSSES SIDE DOES NOT.** Gains go 1→13, 13→22,
+> 9→32, 0→10, 0→10. Losses go 2→2, 4→5, 5→5, 0→0, and **only wa30 moves at all (0→9)**, which is
+> also the only board whose net stays near zero. **All five are net positive at the ceiling.**
+
+**SO `F64`'s OPPOSITE DIRECTIONS IS A DEPTH-10 ARTEFACT.** ka59 was the negative case and it is
+`+11` at the wall. `F64` was right about what it measured and right to refuse to generalise it;
+what it could not see is that its own two-board split sits in the shallow limb of a curve — the
+same shape `F22` found for the shape table and `F1`/`F2` names as the standing lesson.
+
+### what this does NOT establish, and the limit is structural rather than cautious
+
+**The counterfactual is computed PER CANDIDATE AGAINST THE CURRENT TRAJECTORY, so summing it is
+not a simulation.** Admitting a term changes what is bound, which changes later residuals, which
+changes which candidates are ever generated. **`net +11` means *eleven more of the candidates
+actually seen would have been admitted*, never *eleven more terms would be in the library*.**
+Same scope as `F64`'s own, and it is why this is evidence for a ruling rather than a result.
+
+**AND IT DOES NOT MAKE `pays` SUFFICIENT.** Isaiah's `F32` ruling is *accept on confidence,
+derived from the agent's own trace, priced against the same one bargain, provenance-stamped*,
+and that is untouched. **What is removed is `F64`'s specific reason for doubting the direction** —
+the fear that the fix helps one board and hurts another. At the wall it helps all five.
+
+**CLASSIFIED: NOT A DEFECT, NO CANDIDATE FIX.** It measures a gate the record already rules on,
+per game and never pooled, and nothing in it reasons from what a board contains.
+
+    MECHANISM   F64's calculation reproduced exactly at depth 10 and extended to five boards at
+                the cost wall; gains scale with depth, losses do not; all five net positive
+    CAPABILITY  none -- no run, rows already held. levels_completed 0, routine_cut 0,
+                unchanged since F80
