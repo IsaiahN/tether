@@ -29605,3 +29605,64 @@ mechanism built and unused, exactly as `F77`'s archive candidate was.
                 hashed, so the next cycle publishes without re-reading a moving file
     CAPABILITY  none -- transport, levels_completed 0. THE SHEET IS UNPUBLISHED THIS CYCLE
                 and the reviewer's two answers are written, frozen and waiting.
+
+---
+
+## `F82` — the three-part publish completed, and `F81`'s deferral was wrong in the row that answered it
+
+**ALL THREE PARTS ARE PUBLISHED AND THE CYCLE FINISHED, WHICH IS THE FIRST TIME IN FOUR.**
+
+    A  Tether Workbook Sheet     1DQCpbj9uQhT9xWyHTvq0AVewPXLsv7Qmm_i5jZggJyU   verify_publish  80,509 / 80,509   EXACT
+    B  Tether Workbook Archive   1dCWtXKr15jjwvxuXDMGLwCR5XugfChtRv4nyq_i_cNc   verify_publish  76,906 / 76,906   EXACT
+    C  Tether Workbook Log       1FTU2JieYF_3fN57BICUvIDZjKqa5k4tl55vs_3Xrq64   metadata only -- see `I47`
+
+**AND THE GAP I OPENED MID-CYCLE IS CLOSED.** Moving the anchor to `F41` published part A
+ending at `F41` while part B still began at `F38`, so **`F39` and `F40` were invisible to the
+reviewer** between the two calls. Stated at the time rather than discovered afterwards, and
+closed before reporting.
+
+**THE `I51` SNAPSHOT HELD, MEASURED RATHER THAN ASSUMED.** All three `pub/` hashes are
+byte-identical before the first chunk read and after the last verify —
+`797ce56a` · `d48a6df1` · `a39addfd`. **The race that produced `I51` had no opportunity this
+cycle**, which is what a frozen read is for and is the first cycle that can say so.
+
+### `F81` filed a ruling as owed, and the ruling was already in the row it cited
+
+`F81` closed with *"publishing fewer files changes the guarantee the SPLIT row makes to the
+reviewer — that the three are always written at the same moment. **That is theirs and
+Isaiah's.**"*
+
+**THE GUARANTEE HAD ALREADY BEEN WITHDRAWN, IN THE RECORD CELL OF THAT SAME ROW:** *"with
+the cut ANCHORED a change confined to one file republishes ONLY that file, so divergence is
+now the NORMAL case rather than a fault."* **Two halves of one row saying opposite things,
+and I quoted the stale half as the reason to defer.**
+
+> **SO THE PER-PART SKIP NEEDS NO RULING AND NEVER DID.** What was stale was one sentence in
+> the plain-terms cell, and it is repaired there rather than annotated — `CLAUDE.md`'s rule
+> that a correction goes into the row that carries the error.
+
+**THIS IS `I50`'s FAMILY A FOURTH TIME — deferring for a permission the record had already
+given.** `I30` was *who decides*; `I50` was *what is permitted*; this is **what I had already
+told the reviewer.** And the tell is the same each time: the deferral quoted a real source
+and quoted the half of it that had been superseded.
+
+**AND IT IS `A6i`'s WRITING SIDE, WHICH IS THE PART THAT FIRES WHERE STEP THREE CANNOT.**
+`CLAUDE.md`: *when you edit a row, write its summary from the row's definition, not from what
+you just finished.* **`F81` was written from the cycle's work — three failed publishes — and
+the plain-terms cell it read back was the one that matched that experience.** There is no
+separate spec to consult, because the row IS the spec.
+
+### two couplings repaired in the generator, both of the kind no check can see
+
+- **SPLIT's plain-terms guarantee** — now states that one-file republishes are normal and
+  says explicitly that an earlier version claimed otherwise.
+- **RUN STATUS's forward pointer** — *"for the reason the next sentence gives"* where the
+  reason was **two sentences on**. A pointer naming a POSITION rather than a THING breaks the
+  moment anything is inserted between them, and something was.
+
+**Regenerated: A 102,187 · B 99,271 · C 45,030.** Part A is under the 104,000 budget, so
+**the `F41` anchor survives this edit** — but all three parts changed, because SPLIT is
+carried in each, so the skip `F81` built still has nothing to skip.
+
+    MECHANISM   three parts published, two verified exact, one weak; markers updated to bd7f95d
+    CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
