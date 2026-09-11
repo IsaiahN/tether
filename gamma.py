@@ -534,6 +534,9 @@ class Gamma:
                 "reads": ("composition crosses, binding does not. A refused row is an "
                           "INCOMPATIBLE registry, not a small library")}
 
+    # P5's single-slot memo: (the units tuple, the frozenset of its atom sequences).
+    _UNIT_SET: tuple = ((), frozenset())
+
     @staticmethod
     def length(t: Term, units: tuple = ()) -> int:
         """How many units the term costs to say. **`routine.length`'s rule, for terms.**
@@ -551,8 +554,24 @@ class Gamma:
         `units` DEFAULTS TO EMPTY, so `length(t)` is the raw atom count and every caller that
         has no settled set to offer keeps exactly the price it had.
         """
-        if any(t.atoms == u.atoms for u in units):
-            return 1
+        # P5: THE SCAN ANSWERED `False` 110.7M TIMES BY WALKING A LIST. `any(t.atoms ==
+        # u.atoms for u in units)` ran the whole unit set per candidate -- 19% of wall on a
+        # nine-cycle ls20 run, and `units` is HOISTED per mint, so it is the same object for
+        # every one of them.
+        #
+        # EXACTLY EQUIVALENT, and `Atom` is what makes it so: `@dataclass(frozen=True)`
+        # generates `__eq__` and `__hash__` from the same fields, so set membership and the
+        # `==` scan cannot disagree. Checked at the declaration, not assumed from hashability.
+        #
+        # ONE SLOT, NEVER A DICT -- `units` is a fresh tuple per mint, so an id-keyed map
+        # would grow without bound. The recursion below passes the same object, so it hits.
+        if units:
+            cached = Gamma._UNIT_SET
+            if cached[0] is not units:
+                cached = (units, frozenset(u.atoms for u in units))
+                Gamma._UNIT_SET = cached
+            if t.atoms in cached[1]:
+                return 1
         n = len(t.atoms)
         if t.operand_term is not None:
             n += Gamma.length(t.operand_term, units)
