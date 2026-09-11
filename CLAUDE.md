@@ -492,9 +492,25 @@ what makes the decision, and find it in the code, before asking what it should c
 
     INSTANTIATED       perceive · the bet · the bargain · minting · promotion · transfer
                        · EXTRACT/RELATE/QUANTIFY and their consumer -- CORRECTED 2026-09-02
-    NOT INSTANTIATED   the WIRE from the composed objective to the bet · the SELECTOR that
-                       would pick among composed objectives · the description vocabulary
-                       · everything gated behind those
+    NOT INSTANTIATED   the SELECTOR that would pick among composed objectives · the
+                       description vocabulary · everything gated behind those
+
+**AND THE `WIRE` CAME OFF THIS LINE ON 2026-09-11, BECAUSE IT IS BUILT AND IT FIRES.**
+`tether.py:2940` carries an `M2 ITEM 1 -- THE WIRE` block that fills `WANT` from the agent's
+own composed `OBJ`-typed term, entered at `c7206d7` on 2026-09-05 — **before `arc-freeze-02`,
+so no breach.** Measured on sixteen traces: `by=composed` fires **3 of 17 cycles on ka59 at
+depth 25, 1 of 10 at depth 10, and zero on the other four boards.** Per game, never pooled.
+
+**THE SELECTOR HALF IS CORRECT AND NOW MEASURED RATHER THAN ASSERTED: `choose()` reads
+`self.bound` ZERO times.** The wire's own site says why that matters — `_utter` runs AFTER
+`choose()` and can only raise `Ill` to refuse, so it changes **what the agent SAYS it wants
+and what type-checks, not what it does.**
+
+> **AND THE STALENESS IS `F42`'s SHAPE ON THE SAME MAP, WHICH IS `I25` EXACTLY: repaired the
+> instance and left the class.** `F42` fixed the `M2` clause fifteen lines up and did not
+> sweep its siblings. This file's own warning is what it cost — *a map entry saying a thing
+> does not exist is worse than one saying it is unfinished; the first closes the question* —
+> and it closed this one for six days while the mechanism sat built and firing.
 
 **THE SECOND-CONSUMER ENTRY WAS FALSE AND WAS QUOTED BACK SEVERAL TIMES.** `grammar.py` declares
 `WANT : OBJ → PRED` and `WANT` is one of `_BET_ORDER`'s four nodes, **so every bet the agent makes

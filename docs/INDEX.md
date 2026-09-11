@@ -30008,3 +30008,101 @@ being checked.**
     MECHANISM   part A published and verified exact; 3 of 3 recent publishes exact;
                 B and C skipped; verify-before-trash corrected in pubstate.txt
     CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
+
+---
+
+## `F88` — the per-part skip and the watchdog's threshold are coupled, and nobody set them together
+
+**NO REPUBLISH THIS CYCLE: part A differs from what is published ONLY by the freshness stamp**,
+B and C are byte-identical. `HEAD` moved (`41e1c9f` → `30fff1f`) but no part's *content* did —
+the per-part hash is the authority and the HEAD marker is only a proxy.
+
+**AND CHECKING THAT SURFACED A DATED FALSE ALARM.** `F68` established that part A is the **only**
+part carrying the stamp. The cloud watchdog reads that stamp and republishes a **STALE** banner
+over a live sheet if it is older than 90 minutes.
+
+    published stamp   04:02 UTC
+    next watchdog     06:17 UTC   (17 */3 * * *, confirmed from the routine)
+    age at that fire  135 min  >  90 min threshold  ->  FALSE ALARM ON A CURRENT SHEET
+
+> **SO PART A HAS A LIVENESS OBLIGATION THAT IS INDEPENDENT OF ITS CONTENT, AND `F81`'s SKIP
+> CANNOT COVER IT.** The skip is correct for B and C, which carry no stamp. For A it is in
+> direct tension with the watchdog: skip honestly and the stamp freezes; republish for the
+> stamp and the skip never applies to A.
+
+**THE COUPLING WAS INVISIBLE BECAUSE THE OLD REGIME MASKED IT.** Under always-republish, A went
+out every cycle and the stamp could never age. `F81`'s skip changed the publish cadence and
+**nobody re-checked a threshold that had been calibrated against the old one.** That is
+`ALIGN-2`'s failure mode arriving from a new direction — not a timezone bug this time, but a
+threshold made wrong by a change somewhere else.
+
+**PRE-REGISTERED RATHER THAN IMPROVISED, and written into `pubstate.txt` before it fires: if no
+content change has republished part A by 05:45 UTC, republish it for the stamp alone.** Stated
+in advance so the next cycle inherits a trigger rather than a judgement call.
+
+**NOT WIDENING THE THRESHOLD, and the reason is that it is not a free parameter.** The watchdog
+exists to announce a dead session; the threshold is detection latency, which is what the reviewer
+actually relies on. Raising it to fit my cadence trades their signal for my convenience — the
+same trade `I33` named and refused. **Raised in the sheet rather than taken here.**
+
+## `F89` — the WIRE is built, it FIRES, and the map said it did not exist
+
+**`CLAUDE.md`'s instantiation map listed *the WIRE from the composed objective to the bet* under
+NOT INSTANTIATED. IT IS BUILT.** `tether.py:2940` carries an `M2 ITEM 1 -- THE WIRE` block
+filling `WANT` from the agent's own composed `OBJ`-typed term, entered at **`c7206d7`,
+2026-09-05 — an ancestor of `arc-freeze-02`, so no freeze breach.**
+
+**AND IT FIRES. Measured across all sixteen traces on disk, per game, never pooled:**
+
+    ka59  depth 25   by=composed  3 of 17 cycles      objectives named:
+    ka59  depth 10   by=composed  1 of 10               c9  o13.w    above . none<o1.h>
+    ls20 / sp80 / g50t / wa30      0 at every depth      c10 o14.dcol above . all<o10.drow>?ACTION1
+                                                          c11 o14.dcol above . all<o10.drow>?ACTION1
+
+**THE SELECTOR HALF OF THE MAP ENTRY IS CORRECT AND IS NOW MEASURED: `choose()` reads
+`self.bound` ZERO times.** The wire's own site states the consequence — `_utter` runs AFTER
+`choose()` and can only raise `Ill`, so it changes **what the agent SAYS it wants and what
+type-checks, not what it does.** MECHANISM fires; CAPABILITY unchanged.
+
+### why four boards read zero, and it is not a defect
+
+The wire is gated on `self.bound.get(focal)` — the **focal** slot, not any slot. So it needs the
+intersection of two independent selections: *which slot is focal* and *which slot carries an
+OBJ-typed binding*. **`F36` measured the binding side and nobody had measured the focal side.**
+
+    ls20   OBJ-bound from cycle 1 on o20.w   ->   o20.w is NEVER focal   ->   wire unreachable
+    ka59   OBJ-bound from cycle 8 on o13.w   ->   o13.w IS focal twice   ->   wire fires
+
+**CLASSIFIED: NOT A DEFECT, NO CANDIDATE FIX.** The build is correct-given-the-input — with no
+OBJ binding on the focal slot there is no composed objective to utter, and it falls back to the
+ground, which is the only metric. A behaviour note with the mechanism named, per board.
+
+### and the staleness is `I25`'s exact finding, on the map `F42` had just repaired
+
+**`F42` corrected the `M2` clause FIFTEEN LINES ABOVE this entry and did not sweep its
+siblings.** The file's own warning is what that cost: *a map entry saying a thing does not exist
+is worse than one saying it is unfinished — the first closes the question.* **It closed this one
+for six days while the mechanism sat built and firing.**
+
+**Repaired at source per the working-file rule.**
+
+### two instrument errors inside this measurement, both caught before publishing
+
+**FIRST — `I46` again: I keyed `want_by`, which is the LOCAL VARIABLE.** The ledger keys are
+`by` and `objective` on a `PERCEIVE`/`want` row. My first pass read **zero across all sixteen
+traces** and would have published *the wire never fires*.
+
+**SECOND — MY OWN CONFIRMING GREP PRINTED A FALSE NEGATIVE.** Constructed to check whether
+`want_by` reaches `record()`, it required `record` on the same line as `want_by=` and so could
+never match `by=want_by`. **It printed `NOT passed to any record() call` about a line I had
+already seen two lines above.** The first grep carried the answer; the second was built to
+confirm and was incapable of it.
+
+> **The zero was reassuring in the direction I was already arguing** — a NOT INSTANTIATED entry
+> being right — which is `I38`'s rule exactly, and it is why the site was read rather than the
+> count trusted.
+
+    MECHANISM   wire built pre-freeze and firing 4x on ka59; choose() reads self.bound 0 times;
+                CLAUDE.md map repaired at source
+    CAPABILITY  none -- the wire is a veto that has never fired. levels_completed 0,
+                routine_cut 0, unchanged since F80
