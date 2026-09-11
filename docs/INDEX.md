@@ -31308,3 +31308,67 @@ routine ADOPTION rather than `routine_end` considered on its own.
                 including the toy world -- no positive control anywhere
     CAPABILITY  none, and blocked upstream at routine adoption. levels_completed 0,
                 routine_cut 0, unchanged since F80
+
+---
+
+## `I60` — I could not reproduce `reach` from the ledger, and the first reading of that was *`F50` is wrong*
+
+**`F50` closed with an owed item:** *a reach value on the REPEAT row would make this a READING
+instead of a RECONSTRUCTION; that is OWED, NOT PROPOSED.* **`F102` found it built**, so the check
+`F50` asked for is now possible. **I ran it and it did not come out.**
+
+**FIRST, WHAT IS ESTABLISHED AND SOLID:** the direct field reproduces `F80`'s published reach
+**exactly on all five boards** — 49 / 51 / 51 / 51 / 49. So `F80`'s numbers are direct readings
+rather than reconstructions, which was not previously stated.
+
+**THEN THE FAILURE.** Reimplementing `F50`'s stated method — 48 atoms plus distinct settled
+chains, chain = term name with bindings stripped, settled set replayed from SETTLE rows:
+
+    board   reconstructed   direct   delta
+    ka59               51       49      +2
+    ls20               50       51      -1
+    sp80               53       51      +2
+    g50t               51       51       0
+    wa30               48       49      -1
+
+**Four of five disagree, in BOTH directions.** My first reading was *`F50`'s method is wrong*,
+and I had begun drafting it.
+
+### three candidate causes, all raised and all refuted
+
+**READING `units()` RATHER THAN THE PROSE STOPPED THE FIRST DRAFT** — `I8`'s shape exactly, a
+census re-implementing the build's own predicate from a description.
+
+    1  units() skips settled terms of len <= 1   -> REFUTED: every settled chain here is
+                                                   multi-atom, the clause changes nothing
+    2  end-of-file vs the last REPEAT row        -> REFUTED: identical numbers either way
+    3  a third SETTLE event -- `credit` at
+       gamma.py:542, which my replay ignored     -> REFUTED: zero `credit` rows in all five
+                                                   traces; only settle and demote appear
+
+**AND `settled_terms` IS A DERIVED PROPERTY** (`gamma.py:454`) off `settled_at`, written at 418
+and cleared at 293 — so the ledger's SETTLE rows are a *narration* of that state rather than its
+definition, and a replay of them is not guaranteed to reconstruct it.
+
+> **I AM NOT PUBLISHING A FOURTH STORY.** The record's own warning is that a null carrying a
+> satisfying causal account is harder to doubt than a bare one, so the bare one is what this is:
+> **the reconstruction and the reading disagree, the cause is unfound, and I cannot say whether
+> the fault is in my replay or in `F50`'s method.**
+
+### what this changes about `F50`, which is narrower than it sounds
+
+**`F50` is NOT refuted.** Its numbers were cross-checked when published, against `F44`'s
+independently-derived cumulative counts, and that check still stands. **What changes is its
+status against the better instrument: attempted, not reproduced.** Its qualitative claims — the
+library grows monotonically while reach does not, four cycles where reach fell as the library
+grew, ka59 ending below its own peak — **rest on the reconstruction and are now owed a re-read
+from the direct field**, which is takeable on any board-depth trace and is NOT done here.
+
+**CLASSIFIED: an instrument error of MINE, caught before publishing.** No build defect, no board
+quirk, no candidate fix. **The abstention is the deliverable** — three explanations searched,
+the closure named, and no claim in either direction.
+
+    MECHANISM   F80's reach confirmed as a direct reading on all five boards; F50's
+                reconstruction attempted against it and NOT reproduced, cause unfound
+    CAPABILITY  none -- rows already held, no run. levels_completed 0, routine_cut 0,
+                unchanged since F80
