@@ -31557,3 +31557,57 @@ in part A that most needs to stay in front of the reviewer, and the filter propo
     MECHANISM   F99's move-by-kind measured VOID (70 free against a 3,739 minimum); F106's
                 split measured viable at I41 and priced in entries rather than characters
     CAPABILITY  none -- transport arithmetic. levels_completed 0, routine_cut 0, since F80
+
+---
+
+## `F108` — the watchdog fires, and the jitter I refused a publish on is now a number
+
+**I have budgeted every publish this window against a cloud routine I had never confirmed was
+running.** *Read the things that produce conditions before the things that produce results* — and
+a watchdog is the purest case: **if it were disabled, the entire stamp discipline would have been
+protecting against nothing, and nothing in the sheet or the repo would ever have said so.**
+
+**IT IS RUNNING.** `trig_01ACv7vkDg91TnZUKsvc47KH`, enabled, `17 */3 * * *`, next fire
+`12:17:00Z`. **Seventeen runs on record and every scheduled slot in the covered window is
+present** — so the discipline is protecting against something real.
+
+### and the run timestamps carry the quantity I had only argued about
+
+**`last_run_at` reads null on the routine, so the fires had to come from the run list** — the
+scheduled minute is `:17`, and what each run actually started at is the jitter.
+
+    min       18s
+    median    41s
+    max      232s   = 3m52s
+    over 60s   5 of 17
+    over 120s  2 of 17
+
+**The watchdog computes `age = (its own date -u) − stamp` AT ITS RUNTIME**, so:
+
+    age at fire  =  (age against the SCHEDULED time)  +  jitter
+
+> **DERIVED THRESHOLD, replacing a judgement: to stay under 90 at the fire, the age computed
+> against the schedule must be ≤ 86 minutes.** I had been using *"ten minutes of jitter
+> tolerance"*, invented on the spot and never checked against anything.
+
+### it decides the 10:48Z refusal, and decides it the way I guessed
+
+`I61` records refusing a copy whose assertion **passed** at 89 minutes, on the argument that *a
+cron firing two minutes late turns 89 into 91*. That argument had no measurement behind it.
+
+    the 10:48Z copy   89 min against schedule  ->  up to 92.9 at the fire   FALSE ALARM
+    the 10:57Z copy   80 min against schedule  ->  up to 83.9 at the fire   safe, 6 spare
+
+**Both calls were right and neither was evidenced.** The guessed *two minutes* was under the
+observed worst case by nearly a factor of two, and **the refusal survives on the measurement more
+comfortably than on the reasoning that produced it** — which is the only reason this is worth an
+entry rather than a footnote. `I61` said its price was *a number rather than a feeling*; the
+threshold it was paid against was still a feeling.
+
+**NOT WIDENING THE 90-MINUTE THRESHOLD, and this does not license it.** That number is detection
+latency and is the reviewer's, not mine — `I33`'s refusal stands. What changed is only **my own
+side of the arithmetic**, which was the guessed half.
+
+    MECHANISM   watchdog confirmed live (17/17 scheduled fires); jitter measured at max 3m52s
+                over 17; the stamp gate's safe age derived at 86 min, replacing a guess
+    CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
