@@ -30240,3 +30240,75 @@ every file they might open — but it means **the skip can never survive an anch
     MECHANISM   B published at the new anchor and verified exact; A and C behind, both
                 reasons recorded per part
     CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
+
+---
+
+## `F93` — all three parts current at the new anchor, and a second id register had been drifting unread
+
+**THE ANCHOR MOVE IS CLOSED.** `F41` → `F42` was taken last cycle and left part A still ending
+at `F41`, so `F41` briefly sat in **both** published files — an overlap rather than a gap, and
+that is why B went first. **This cycle republished A and C, and the three parts now divide
+exactly as the `SPLIT` row promises**: A `RUN STATUS…F42`, B `F41…PROTOCOL`, C the log alone.
+
+    A  192mlfGZ…  8a90ee88  CONTENT-EXACT 76,995 / 76,995   ends at F42, carries F89
+    B  1VpYWf-4…  b2e77af0  verify_publish 80,570 / 80,570  unchanged, skipped
+    C  1hWsdo0V…  223db09e  STRUCTURAL ONLY -- see below     SPLIT row only
+
+**PART A IS THE FOURTH CONSECUTIVE EXACT VERIFY**, and `F87`'s corrected order held for the
+first time under a real read: the published copy was fetched, compared, and **only then** was
+the predecessor trashed.
+
+### the create response's `fileSize` is a placeholder, and the protocol is NOT defective
+
+Both `create_file` calls this cycle returned **`"fileSize":"1"`**. Sheets conversion is
+asynchronous, so the create response reports a pre-conversion placeholder rather than a size.
+
+**I drafted this as a defect in the sync procedure's step 4(a) — *the `fileSize > 1000` gate
+would read a false failure* — and it is false.** That gate calls `get_file_metadata`, which was
+measured at **21,129** for part C moments after the create returned `1`. **The protocol does the
+right thing; the hazard is reading the CREATE response's size as if it were the gate.**
+
+> **ONE CALL SEPARATED A REAL FINDING FROM A FABRICATED DEFECT IN ISAIAH'S OWN TEXT.** The
+> write-site check — *ask which line assigned the value, not which mechanism explains it* —
+> applied to a procedure rather than to code. A corpus-adjacent document is exactly where an
+> invented defect is most expensive, because it is annotated rather than repaired.
+
+### `I53` — a SECOND copy of the three Drive ids, drifted, and nothing read it
+
+`sheet_id.txt` held its own copy of the ids and their status. Measured against `pubstate.txt`,
+the stated per-part authority:
+
+    sheet_id.txt   B = 1c_2SzU_LR1f…    all three marked CURRENT
+    pubstate.txt   B = 1VpYWf-4D5Pp…    A BEHIND, C BEHIND      <- the live Archive
+
+**Two authorities for one quantity, disagreeing on both the id and the state.** Nothing reads
+`sheet_id.txt` — the sync procedure names only `sheet_synced_at.txt` and `runstatus_synced.txt`
+— so it was maintained solely by my remembering to, and I had not.
+
+**This is `I52` at the ID REGISTER rather than at the trigger**, and it is `I44` inverted: `I44`
+was a stale id taken from CONTEXT while the live one sat in a FILE; here **the file itself was
+the stale one**, which is worse, because a file reads as the authority precisely when context
+feels unreliable.
+
+**RETIRED TO A POINTER RATHER THAN DELETED.** A missing file reads as *never existed*; a file
+saying *the authority is `pubstate.txt`* redirects. Same reasoning as the map-entry rule — the
+entry that closes a question is worse than the one that redirects it.
+
+> **AND THE FIX IS REMOVAL, NOT CORRECTION.** Re-typing the right id into a second register
+> leaves two registers and buys one cycle. The duplicate left the confines.
+
+### `I47` fires a second time, and the bracket tightens
+
+Part C's published copy came back **INLINE** — `read_file_content` auto-persists only above a
+size threshold, so C never reached disk and a byte-exact compare would have put my context on
+both sides of it. `I47` recorded C at **37,108** inline and A at **103,853** persisted; the
+bracket is now **inline at ~48,000 rendered chars, persisted at ~99,800**.
+
+**So C is verified STRUCTURALLY and is recorded as such**: two content rows, and the `SPLIT`
+row carrying the corrected anchor, which is the one thing C was behind on. **Not claimed as
+exact.** `I47`'s shape is unchanged and still has no fix from this side: *the ground covered is
+decided by a size threshold in a tool that knows nothing about publishing.*
+
+    MECHANISM   3 parts current at one anchor for the first time; A exact 76,995/76,995;
+                content-before-trash held; duplicate id register removed
+    CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
