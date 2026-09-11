@@ -16,3 +16,10 @@ docs/example
 # seat may read them, the agent may read only the frame.
 environment_files/
 recordings/
+
+# PROTOCOL run traces -- one ledger dump per (batch, board, depth), ~1MB each.
+# Written by scratchpad/protocol.py so a finding can be re-read without re-running.
+# They are RUN OUTPUT, not source: regenerable, large, and `runs/` is already ignored
+# for the same reason. Kept out of the repo root's sight rather than deleted, because
+# F75/F76 cite them by name.
+protocol_*.jsonl

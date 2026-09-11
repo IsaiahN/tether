@@ -29313,3 +29313,54 @@ candidate was raised and not taken. Raised here, not taken.
 
     MECHANISM   verify_publish ran and read exact on the one part it could reach
     CAPABILITY  none -- transport, levels_completed 0
+
+---
+
+## F78 — BATCH 2 IS BYTE-IDENTICAL TO BATCH 1, SO THE PANEL CANNOT SHOW WHAT THE REPEAT WAS FOR
+
+PROTOCOL batch 2 ran: 10 cycles x the same five public boards, offline and cold.
+**Every trace is byte-identical to batch 1's.**
+
+    board   trace bytes   b1 vs b2
+    ka59      1,110,040   BYTE-IDENTICAL
+    ls20      1,323,659   BYTE-IDENTICAL
+    sp80        681,314   BYTE-IDENTICAL
+    g50t      1,219,966   BYTE-IDENTICAL
+    wa30        822,873   BYTE-IDENTICAL
+
+Not *the same summary numbers* — the same LEDGER ROWS, `cmp` clean on all five. Wall-clock
+differs (240.6 vs 246.6s on ka59, 324.8 vs 334.4 on ls20) and nothing else does.
+
+**THE HEARTBEAT ASKS FOR THE ONE THING THIS PANEL CANNOT PRODUCE.** Phase 3 says run the
+five public games *"REPEATEDLY so run-to-run variance is visible."* **There is no run-to-run
+variance at fixed parameters, so batches 3 and 4 as specified would emit two more identical
+copies and answer nothing.** This is the panel law firing on my own protocol: *before a null
+is read as a finding about a mechanism, state what property of the panel the mechanism would
+need in order to show, and confirm the panel has it.* I ran the repeat before asking.
+
+**SCOPE, AND THE HALF IS NAMED BECAUSE THE WIDER CLAIM IS THE TEMPTING ONE.** What is
+measured is that **THE LEDGER is deterministic** given (board, cycles) — not that the build
+is. `gamma.py:246` draws an **unseeded** `random.choices` handle for a term name, and it does
+not reach the trace, so it cannot be excluded as a source of divergence somewhere the record
+does not look. And the *random-looking* arm is not random: `probe.py:127` picks
+`sorted(actions)[(cycle * stride + self._seed) % len(actions)]` with `self._seed` a `crc32`
+of a string — **a deterministic index, not a draw.**
+
+**WHAT IT DOES NOT RETROACTIVELY BREAK, CHECKED WITH A DENOMINATOR RATHER THAN HUNTED.**
+Every reproduction claim in this record varied a parameter: `INDEX:24305` says in terms
+*"different depth or indexing, not an exact reproduction and not claimed as one"*;
+`INDEX:26486` *"different boards, depths and instrument, same number"*; `F64`'s sp80 arm is
+*"different run, different depth, different instrument"*; `F76` measured at 10 against `F56`'s
+24 and 20. **None rests on repeating at the same parameters, so none is vacuous.** The
+exposure was forward, not backward.
+
+**NO CANDIDATE FIX, AND THE REASON IS WHOSE QUESTION IT IS.** What batches 3 and 4 should be
+instead — different depths, different boards, a varied seed — is a change to the heartbeat's
+own instruction, and inventing a replacement panel here is the shape `F77`'s candidate was
+raised and not taken for. **Raised, not taken.** What is established is only that repeating
+at fixed parameters is not one of the options.
+
+    MECHANISM   batch 2 ran clean on all five boards; the tag change kept batch 1's traces
+                intact, hashes confirmed identical before and after
+    CAPABILITY  none -- levels_completed 0, routine_cut 0, routine_end 0 on all five,
+                necessarily, because the rows are the same rows
