@@ -29956,3 +29956,55 @@ regenerating**, which `pubstate.txt` now says in terms.
     MECHANISM   3 automations enumerated and timed; I51's exclusion repaired; sheet edits
                 staged; A 99,996 with the F85 row added rather than shed
     CAPABILITY  none -- levels_completed 0, routine_cut 0, unchanged since F80
+
+---
+
+## `F87` — the deferred publish landed exact, and the verify order was wrong in a way that had never been tested
+
+**THE STAGED PART A IS PUBLISHED AND VERIFIED: 78,007 / 78,007 normalised chars**, id
+`1uUUT0pp3xVoZL9RwhRDZAJew8IBB98KL13iaP_GIrMI`, `pub/workbook3a.csv` unchanged at `bd07980f`
+from staging through read, publish and verify. **B and C skipped again** — byte-identical to
+what is published, so two of three files were never touched.
+
+**THE DEFERRAL WAS THE RIGHT CALL AND THE EVIDENCE IS THE CLEAN VERIFY.** `F86` stopped three
+of seven chunks in because `I42` locates reassembly drift at the tail of a long session. This
+cycle read all seven in one continuous stretch and the paste came out exact on the first
+attempt — the third consecutive exact verify, after `79,729` and `77,177`.
+
+> **AND THE RE-READ EARNED ITS COST WITHOUT FINDING ANYTHING.** Chunks 1–3 were already in
+> context from the previous turn; I re-read chunk 3 from disk anyway and it matched byte for
+> byte. **A check that confirms the thing it doubted is not a wasted check** — it is the only
+> way the doubt gets retired, and `I42` is specifically about text that crosses a boundary.
+
+### the order defect, found by nearly acting on a false alarm
+
+**I read my own emitted paste, thought I saw `F76` through `F56` duplicated at the chunk 2/3
+join, and was about to treat the publish as broken.** It was not: the boundary falls *inside*
+`F76`'s Record cell, so the rows appear once. **`verify_publish` settled it in one line.**
+
+**THE REAL FINDING IS WHAT THAT NEAR-MISS EXPOSED IN THE PROTOCOL'S ORDER.** The sync steps
+say: metadata check → trash predecessor → title search. **`fileSize` cannot see a duplicated
+or dropped block** — 43,506 was perfectly plausible for both the correct file and the
+corrupted one I briefly believed I had sent.
+
+> **So the trash step sat between a check that cannot detect content damage and the check that
+> can.** Had the paste actually been wrong, the predecessor — the only copy of what the
+> reviewer had been reading — would already have been in the bin.
+
+**CORRECTED IN PRACTICE THIS CYCLE AND WRITTEN INTO `pubstate.txt`: verify the CONTENT before
+trashing, not the metadata alone.** It costs nothing — the read was happening regardless — and
+it moves the irreversible step to after the only check that could veto it.
+
+**CLASSIFIED: a system error in MY procedure, not in the build and not a board quirk.** It is
+`I34`'s law at the transport layer — *fixtures before changes, the only order with an
+observable half-state* — and, like `I34`, it was latent from the first day the order was
+written and had never fired because no publish had ever been wrong.
+
+**AND IT IS THE THIRD TIME AN INSTRUMENT HAS CAUGHT ME MID-ALARM RATHER THAN MID-ERROR** —
+`I49` (the CR count), `F85` (two probes reading zero on markdown bold), and now this.
+**All three would have shipped a false claim, and none of them was a defect in the thing
+being checked.**
+
+    MECHANISM   part A published and verified exact; 3 of 3 recent publishes exact;
+                B and C skipped; verify-before-trash corrected in pubstate.txt
+    CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
