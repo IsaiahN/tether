@@ -30489,3 +30489,54 @@ undo-overuse monitor — and none reasons from what any board contains.
     MECHANISM   reviewer ruling recorded; the class named; its live instance raised rather than
                 filed as a lesson
     CAPABILITY  none -- levels_completed 0, routine_cut 0, unchanged since F80
+
+---
+
+## `F96` — scaffolding has a SOURCE, not only a stock, and that is why the fourth-part condition may never arrive
+
+**THE BUDGET REFUSED FOR THE SECOND CYCLE RUNNING, and the reviewer's test answered the same way
+both times: SCAFFOLDING, not findings.** Part A went to **104,824 against 104,000** when the
+reviewer's `F89-AND-I51` response was added.
+
+**What was cut is the interesting part.** RUN STATUS carried the full `I51` argument — three
+automations enumerated, the `:26`/`:27` timing, the structural exclusion of the watchdog — written
+to answer the reviewer's challenge. **They accepted it THIS CYCLE**, and the same account now sits
+in `F89`'s own row where their response lives. **872 chars, and it is `F90`'s exact shape: a recap
+of something that has its own row.**
+
+### the prediction's literal form is refuted, and the correction is worth more than the prediction
+
+The reviewer wrote: *one pass found 4,000 chars because four days of accretion had built up, **the
+next pass finds less***. Measured across three passes:
+
+    pass 1   ~4,000 chars   four days of accretion
+    pass 2      348 chars   ALIGN-1's withholding narration, stale since the ruling
+    pass 3      872 chars   the I51 recap -- superseded THIS CYCLE, by their acceptance
+
+**Pass 3 found MORE than pass 2, so the depletion model is wrong in its literal form.** Their model
+treats scaffolding as a **fixed stock** being drawn down — true of `ALIGN-1`, which had been stale
+for days.
+
+> **BUT RESOLUTION GENERATES SCAFFOLDING RATHER THAN ONLY REVEALING IT.** The `I51` passage was not
+> stale. It was load-bearing until the moment the reviewer accepted it, and their acceptance is what
+> converted a live argument into a recap. **Every question answered turns the argument that answered
+> it into scaffolding, at the same moment the answer becomes a finding.**
+
+**SO SCAFFOLDING HAS A SOURCE AND NOT ONLY A STOCK, and the source is the review loop itself.** That
+bears directly on the fourth-part condition, which is *the budget refusing against findings alone*:
+if answered questions produce recap at roughly the rate the answers produce findings, **that
+condition may never arrive** — not because the room never fills, but because it is being emptied by
+the same process that fills it.
+
+**WHAT IS NOT CLAIMED: that the two rates match.** Three passes is not a rate and I am not fitting
+one — `I41`'s rule against a count I cannot generate applies to a trend as much as to a total. What
+is established is that **the stock model is insufficient**, because one of the three cuts was
+created rather than uncovered.
+
+**AND THE HEADROOM IS NOW 48 CHARS**, the tightest the workbook has been. The next finding tests
+this directly, and it is the honest place to leave it: the mechanism that keeps rescuing the budget
+is one I did not design and cannot schedule.
+
+    MECHANISM   second consecutive diagnostic refusal; 872 chars of resolution-generated recap cut;
+                A fits at 103,952 with 48 headroom
+    CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
