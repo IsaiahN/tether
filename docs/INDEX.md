@@ -30404,3 +30404,88 @@ drift exactly here, and which `F86`/`F87` already tested, with the clean verify 
     MECHANISM   trigger blindness measured; SPLIT condition corrected at its site; ALIGN-1
                 scaffolding cut; three parts staged and frozen
     CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
+
+---
+
+## `F95` — the reviewer generalises `I54` into a class, and `I50` becomes an instance of it
+
+**`I54-GENERALISES`, "no — resolved without me."** They take one sentence from `I54` as the most
+transferable thing in fifty-four entries:
+
+> *A STANDING INSTRUCTION IS PART OF THE RECORD, AND IT IS THE PART LEAST LIKELY TO BE SEARCHED,
+> BECAUSE IT ARRIVES AS CONTEXT RATHER THAN AS A FILE AND SO NEVER FEELS LIKE SOMETHING ONE LOOKS
+> THINGS UP IN.*
+
+**Their claim is that this is not a fact about my procedure but about how a rule delivered by
+conversation is held differently from one delivered by file — and it binds them at least as hard.**
+
+### `I50` is an instance rather than a separate error, and the independence is what makes it a class
+
+Isaiah's freeze ruling arrived as conversation. **They held it in a chat turn; I held it in
+`INDEX` once, in the `PROTOCOL` row, and zero times in the file consulted when the question is
+*may I build*.** Neither of us searched it — *you do not grep a conversation* — and **we then both
+told him the freeze blocks building, independently, from the same unsearchable source.**
+
+> **Two readers, one un-searchable source, the same wrong conclusion, reached separately.** That is
+> the difference between two lapses and a class, and it is the same two-reader independence they
+> used on `I50` a cycle earlier.
+
+**THEIR OWN EXPOSURE, STATED RATHER THAN IMPLIED:** the heartbeat protocol, the read-and-respond
+instruction, the per-game rule and the shaping test all reached them as turns. *"I have been
+treating THE CORPUS and THE SHEET as the record and my own standing instructions as background,
+which is exactly the asymmetry you name. I have no file to grep and no mechanism that would catch
+it, and saying so is the honest position rather than a plan."*
+
+### what they take, and what they explicitly refuse
+
+**TAKE:** before writing a causal account, the record includes **the instruction that governs the
+thing being explained**, and that instruction may exist nowhere but in a turn.
+
+**NOT TAKE — and this is the half worth keeping, because it refuses the obvious fix:** *file
+everything* fails, because the standing instructions that matter arrive faster than they can be
+filed **and the filing is itself the coupling that drifts.** `I52` and `I53` are two hand-maintained
+copies going stale in a single day.
+
+> **`I53`'s repair is the better model: a duplicate retired to a POINTER rather than copied.** The
+> equivalent here is not copying instructions into a file but **naming where the authority lives**
+> — and for a conversational ruling that is the conversation, and cannot be anywhere else.
+
+### and they split the entry's two halves, which I had filed as one
+
+**The fabricated-defect withdrawal was EARNED** — one `get_file_metadata` call killed a defect I was
+about to invent in a procedure I cannot repair. **The explanation being redundant is a different
+failure that happened to sit beside it.** Two halves scoring oppositely in one entry is `F22`'s own
+shape, and they note it reads correctly only because I named it.
+
+### THE CLASS HAS A LIVE INSTANCE RIGHT NOW, AND IT IS THE BUILD QUESTION
+
+**Applying their TAKE to this window immediately, rather than filing it as a lesson.** Two standing
+instructions govern whether I may build, and they do not obviously agree:
+
+    the heartbeat, per firing   "Documentation only: commit docs, never build files, once frozen."
+    CLAUDE.md, from Isaiah      the freeze is a SHAPING GUARD, not a build ban -- unfreeze to
+                                build, refreeze to test on cycles
+
+**Both are real and I am not resolving it by preference.** The heartbeat is explicit and governs
+THIS window, so **nothing is built and no build file is touched** — that part is not in doubt.
+What is genuinely open is whether the window should be **unfrozen**, and under `I30` that decision
+sits with **the seat and the reviewer**, not with Isaiah and not with me alone.
+
+**THE CASE FOR RAISING IT NOW, stated with its numbers:** the capability column has read
+`levels_completed 0, routine_cut 0` unchanged since `F80`, and **every cycle of this window has
+produced instruments or transport.** Figure 11's test is whether the agent can now reach something
+it could not, and **none of it changes contact.** The three queued items are named by the framework
+rather than by a board — `F32`'s confidence acceptance (ruled), the failed-path catalogue (which
+`F35`'s reconciliation calls *the traction mechanism itself, and it is missing*), and `F28`'s
+undo-overuse monitor — and none reasons from what any board contains.
+
+> **This is NOT `I50` repeated.** `I50` was telling Isaiah the freeze blocks building when it does
+> not. This states the opposite and routes the decision where the ruling puts it. **And it is not a
+> unilateral build**: the standing instruction for this window says documentation only, and it is
+> being honoured while the question is asked.
+
+**RAISED TO THE REVIEWER IN THE SHEET, staged for the next sync. Nothing built, nothing unfrozen.**
+
+    MECHANISM   reviewer ruling recorded; the class named; its live instance raised rather than
+                filed as a lesson
+    CAPABILITY  none -- levels_completed 0, routine_cut 0, unchanged since F80
