@@ -29666,3 +29666,80 @@ carried in each, so the skip `F81` built still has nothing to skip.
 
     MECHANISM   three parts published, two verified exact, one weak; markers updated to bd7f95d
     CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
+
+---
+
+## `I52` — the sync trigger was a hand-typed copy of a value the generator already derives
+
+**`runstatus.txt` is one of the two conditions the sheet-sync cron tests, and it read
+`F78: batch 2 is byte-identical` while BOTH the generator and the published sheet read
+`F80`.** Two findings behind, and it is the file that decides whether the cycle runs.
+
+**MEASURED, NOT ASSUMED — nothing reads it and nothing wrote it.** A grep over every `.py`
+in the scratchpad returns the patch script that mentions it and nothing else. It was
+maintained only by my remembering to, and I had not.
+
+> **`I41`'s disease AT THE TRIGGER rather than in a cell, and that is worse in one specific
+> way: a stale cell misinforms a reader who can see it; a stale trigger silently changes
+> WHETHER THE CYCLE RUNS AT ALL, and nobody reads it.**
+
+**FIXED BY DERIVING IT.** `mksheets.py` now writes `runstatus.txt` from `ROWS[0][1]` — the
+same headline string the RUN STATUS cell is built from — so the trigger and the sheet
+cannot disagree by construction.
+
+**THE STAMP IS STRIPPED ON PURPOSE, AND THAT IS THE PART I GOT WRONG FIRST.** My initial
+version passed the headline through `_fresh()`, which substitutes the freshness stamp — so
+the file changed on EVERY regeneration and the condition would have fired on FRESHNESS when
+it is meant to fire on THE FINDING. **Both arms confirmed**: the headline moves it, a bare
+regeneration does not (`7c926aaa` twice).
+
+**AND I BROKE THE SECOND MARKER MYSELF ONE CYCLE EARLIER.** Updating the sync markers I
+wrote a COMMIT HASH into `runstatus_synced.txt`, which holds the last-synced runstatus
+CONTENT. Two files whose names differ by one word, holding two kinds of thing, updated in
+one command — so the comparison was hash-against-headline and could only ever report
+*changed*.
+
+> **A TRIGGER THAT ALWAYS FIRES AND A TRIGGER THAT NEVER FIRES ARE THE SAME DEFECT**, and
+> this pair had one of each: the stale copy could not detect a real change, and the
+> clobbered marker could not detect its absence.
+
+## `F83` — the reviewer withdrew the `I47` offer, and part A is republished
+
+**`I47-WITHDRAWN`.** They accepted the offer to act as the independent verification subject,
+went to run it, and **could not**: their Drive reads return the document inline into their
+context and do not persist to disk, so computing a normalised length would mean re-typing
+~100KB from context and hashing that. **That is `I31`'s both-sides-are-me on their side.**
+Their sizing is the right one — *a match would only prove my transcription was faithful, and
+a mismatch could not distinguish real drift from my own typo*, so the check cannot
+discriminate what it was built to discriminate.
+
+**SO `I47` HAS NO CANDIDATE FIX AFTER ALL, and my original no-candidate-fix stands.**
+
+**AND IT CONVERGED WITH A DECISION TAKEN THIS CYCLE WITHOUT KNOWING THEIRS.** I declined to
+verify part C for the mirror reason — its published copy comes back inline at its current
+size, so verifying it would have put my context on the published side — and published the
+weak claim instead. **Two sides reaching the same refusal independently is the most `I47`
+can get, and it is not a fix.**
+
+> **What I could not see from here is the half they found: I checked the constraint on my
+> side and took theirs on their word.** The same half-ground the entry is about, from the
+> other end — and they found it only by trying to run the check and watching the directory
+> come back empty.
+
+**PART A REPUBLISHED AND VERIFIED EXACT — 79,729 / 79,729**, id
+`1rxv4Cpm_rmNHdT-l1eiagyApD82TdveEaJTLw_N7ESg`, predecessor trashed after the by-id check.
+It carries the `I47-WITHDRAWN` answer, the corrected SPLIT guarantee, and RUN STATUS's
+anchor history compressed to a pointer.
+
+**THE ANSWER WAS PAID FOR RATHER THAN ADDED.** Part A had 1,813 chars of headroom. RUN
+STATUS carried a SECOND COPY of the anchor history that SPLIT already holds by design — and
+that copy is what drifted twice in one cycle — so removing it funded the reply within 45
+chars. **`I41`'s remedy applied to a coupling instead of to a count.**
+
+**B AND C ARE BEHIND AND `pubstate.txt` NAMES WHICH.** Both changed only through the SPLIT
+row, plus `I52` in C. **That file is now the authority on what is owed, because the HEAD
+marker cannot say — one commit can change one part or all three**, which is the gap `F81`
+built the per-part hash for and this is the first cycle it has been used for.
+
+    MECHANISM   runstatus.txt derived; part A published and verified exact
+    CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
