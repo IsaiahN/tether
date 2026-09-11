@@ -31611,3 +31611,142 @@ side of the arithmetic**, which was the guessed half.
     MECHANISM   watchdog confirmed live (17/17 scheduled fires); jitter measured at max 3m52s
                 over 17; the stamp gate's safe age derived at 86 min, replacing a guess
     CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
+
+---
+
+## `F109` — the log is garbage-collected, and the intuition that prompted it was measurably wrong
+
+**Isaiah asked whether old logs could be cleaned to keep things moving. The answer is yes, and
+not the way it sounds.**
+
+**CLEANING THE OLD ENTRIES FREES ALMOST NOTHING.** Measured on the live cell:
+
+    delete I1-I20    frees  3,258   6.7%     162 chars per entry
+    delete I21-I40   frees 20,011  41.1%   1,000 chars per entry
+    delete I41-I60   frees 25,418  52.2%   1,270 chars per entry
+
+> **The log did not grow by accumulating. It grew because my entries got seven times longer.**
+> The weight is at the HEAD, so the intuition points at the cheapest third of the file.
+
+### what actually blocked it, and it was a premise rather than a size
+
+The `SPLIT` row refused compaction on a stated reason: *the I series has no second home, the
+record cites I-numbers constantly and nowhere reproduces them.* **That was checkable and it was
+true — 30 of 60 entries existed in full in exactly one place, the published workbook.** `INDEX`
+cites `I41` **thirty times** and reproduced it **zero**. **A citation is not a home.**
+
+**AND MY FIRST CENSUS OF THAT GOT IT WRONG IN THE SAFE-LOOKING DIRECTION.** I matched
+`^## \`In\`` with backticks; `INDEX` writes `## I50 — …` without them. It reported **28 of 61
+missing** when the real figure is 30 — `I24`'s rule firing on my own check for the second time
+today, and the corrected number made the migration *larger*, not smaller.
+
+### the fix is a sliding window over a durable record
+
+**30 orphan entries migrated to `INDEX` verbatim, with a coverage check: 60 entries, 48,628 of
+48,712 characters, remainder the opener and inter-entry whitespace.** Then the workbook cell was
+cut to `I41` onward with a header saying where the rest live.
+
+    log Record cell   48,712  ->  27,626     headroom 0 -> 21,086
+    part C            67,718  ->  46,640
+    parts A and B     unchanged -- the log lives in C alone, so GC touched one part
+
+> **`I61` IS THE PROOF.** It was withdrawn from the sheet last cycle because the cell was full.
+> It is back, with `I62` beside it. **The entry that could not be delivered is delivered.**
+
+**AND THE STORE IS NOW BOUNDED RATHER THAN APPEND-ONLY, WHICH IS THE PART THAT LASTS.** Entries
+leave the workbook as they gain a home in `INDEX`; the record loses nothing; the cell can never
+walk into Sheets' silent-empty limit again. `F106`'s `CELL_MAX` stays at the measured 48,712 and
+now has real margin under it rather than zero.
+
+**WHAT THIS DOES NOT DO: it does not touch `F99`.** That is parts A and B against the FILE budget
+— A has 47 characters free, B has 103 — and the log was never in either. **The fourth-part
+question is exactly where `F107` left it.**
+
+    MECHANISM   30 entries given a durable home; log cell 48,712 -> 27,626; I61 restored and
+                I62 added; the store is bounded rather than append-only
+    CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
+
+
+---
+
+## the early instrument log — MIGRATED FROM THE WORKBOOK, 2026-09-11
+
+**These 30 entries existed in FULL in exactly one place: the published workbook's log
+cell.** `INDEX` cited them constantly — `I41` is referenced 30 times, `I15` 16 times — and
+reproduced none of them. **A citation is not a home**, and the `SPLIT` row refused to compact the
+log for precisely that reason.
+
+**So the refusal was correct and its premise is now removed.** The text below is lifted verbatim
+from the published cell, entry by entry, with a coverage check: 60 entries, 48,628 of 48,712
+characters, the remainder being the opener and inter-entry whitespace. **Nothing is summarised
+and nothing is dropped.**
+
+> **WHAT THIS UNBLOCKS, AND IT IS THE POINT RATHER THAN THE TIDYING.** The workbook's log cell is
+> at Sheets' per-cell ceiling (`F106`) and every new entry is refused. With the entries held here
+> the cell becomes a SLIDING WINDOW over a durable record instead of an append-only store — old
+> entries leave the workbook as they gain a home, and the record loses nothing.
+
+**AND THE INTUITION IT CORRECTS, MEASURED:** *clean the old logs* frees almost nothing. `I1`–`I20`
+is **3,258 characters, 6.7% of the cell**, at 162 per entry. The weight is at the head —
+`I41`–`I60` is **25,418, 52%**, at 1,270 per entry. **The log did not grow by accumulating; it
+grew by my entries getting seven times longer.**
+
+**`I1`** — scratchpad queue.py shadowed the stdlib inside urllib3's import.
+
+**`I2`** — a gate refusal read off rows I built myself returned no-mode; real token step-order.
+
+**`I3`** — cost series confounded by my own concurrent run.
+
+**`I4`** — slice_too_small alarm at cycle 0 of a 3-cycle run.
+
+**`I5`** — E2's census searched one spelling of a field name.
+
+**`I6`** — trashed the wrong workbook id, leaving a 90-minute duplicate the proctor read.
+
+**`I7`** — created a duplicate Reviewer Responses and read it for 90 minutes while the real one was being written.
+
+**`I8`** — (NEW) E1's census re-implemented gate._steps and keyed per cycle where the gate keys per (cycle, slot) - ten of eleven violations were cross-slot comparisons the build declines to make on purpose. I8 nearly shipped as a SECOND I5: INDEX numbers only I1-I4 in prose, so the collision with this sheet's I5 was caught at the point of damage.
+
+**`I9`** — a str.replace with a wrong anchor matched nothing, changed nothing and reported success - two cells stayed stale and one row was labelled WITHDRAWN while its body still argued the withdrawn case.
+
+**`I10`** — I 'corrected' the action budget from 1000 to 500 and declared three earlier reports wrong, but MAX_ACTIONS=1000 is 22.1's ruled ceiling and PER_LEVEL=500 is Budget's per-level accrual - two quantities, and 1000 was DERIVED as 2x the 500, so the reports were right and the correction was the error. A6i committed INSIDE a correction, the shape that never triggers the check because correcting feels like the careful move.
+
+**`I11`** — a probe re-derived what INDEX:11253 already held, and I had QUOTED the harness comment containing the answer in the same entry where I called it unchecked.
+
+**`I12`** — I hand-edited six cells in the publish paste instead of the generator, so mksheets.py silently became a REGRESSION and the sync cron's own regenerate-and-publish step would have reverted content the reviewer had already read.
+
+**`I13`** — I re-derived the OBJ -> _res link that INDEX:21829 already stated, and presented a repair as a discovery.
+
+**`I14`** — I committed I12 AGAIN in the same session that logged it - I13's text went into the publish paste and not into mksheets.py, caught only because I re-read the paste afterwards.
+
+**`I15`** — I DID IT A THIRD TIME, in the very next publish, minutes after writing down the trigger that would have caught it: three sentences went into the paste and not the generator. The trigger was correct and I did not run it. A known trigger I do not execute is worth exactly nothing, and this is now the clearest evidence in the log that writing a rule down does not install it. I16-I24, AND THE COUNT IN THIS ROW SAT AT FIFTEEN WHILE THE LOG REACHED TWENTY-FOUR - F37's staleness shape in the very row the heartbeat asks me to MAINTAIN.
+
+**`I17`** — a citation census read 'uncited' as 'unabsorbed' - refuted by CODE_AUDIT (F38).
+
+**`I23`** — I was one step from publishing 'would_pay is recorded only where it cannot be informative' - 19 of 21 installs read False, and a comment three lines below the field says so.
+
+**`I33`** — THE CHECK I BUILT TO CATCH I31 HAD A DEFECT, AND ITS OWN NEGATIVE CONTROL CAUGHT IT. I31 corrected the PRACTICE to read every line from disk every publish, and a practice is what CLAUDE.md says to stop relying on - where a coupling keeps drifting, INSTALL THE CHECK rather than being careful again, and four instances (I12, I14, I15, I31) say this one drifts. So scratchpad/verify_publish.py now compares THE FILE THE GENERATOR WROTE against THE ARTIFACT THE REVIEWER READS - two different objects, neither of them my context, which is the subject I31 said the old comparison lacked. FIRST RUN GREEN: 100285 normalised chars on both sides. THE DEFECT: the per-row version reported CELL COUNT 23 vs 17 on three rows, and that was THE PARSER, NOT DRIFT - Drive returns the sheet as a markdown table and three cells contain literal pipes (the RUN STATUS headline's own separators, F20's |group|, F41's + and ||), so splitting the rendered table on the pipe cannot recover the cells. Comparing the normalised WHOLE DOCUMENT has no cell boundaries to get wrong. AND IT FAILS IN ALIGN-2'S DIRECTION RATHER THAN THE REASSURING ONE: a broken parser here would have cried DRIFT on a correct publish every ten minutes, which is the watchdog crying dead on a live sheet - the same instrument error as I16, rebuilt inside the instrument meant to stop a different one. Caught before it was ever trusted, because I ran the case I knew should FAIL before the case I wanted to PASS, and READ the output rather than counting it (I24's rule, on my own instrument). WHAT IT DOES NOT LICENSE: the read-every-line discipline STAYS. The check runs AFTER the publish, so it DETECTS a bad publish and does not PREVENT one, and it has run once. Relaxing the discipline later becomes a decision takeable on EVIDENCE - a run of green checks - rather than on my preference for cheaper publishes, which is the exact reasoning that produced the shortcut I31 is about. AND A COST I AM RAISING RATHER THAN ABSORBING: the sync trigger is HEAD-based, so every docs commit forces a full ~130KB republish, and I generate docs commits every heartbeat. The trigger and the cost are mismatched, and the structural answers - splitting the workbook, or triggering on content rather than on HEAD - change the artifact the reviewer reads, so they are raised here and not taken.
+
+**`I38`** — TWO KEYING ERRORS IN THE NEGATE PRICE TEST, BOTH CAUGHT BEFORE IT WAS REPORTED, AND THE FIRST IS THE DANGEROUS ONE. I ran the test with n=4 and the bar unsat > term_bits(k,n)/log2(n), which is F20's ROUTINE derivation, and it returned a clean null: 24/43 and 32/37 clearing the bar either way, negation apparently FREE. negate is a TERM atom and the term path prices against self.gamma.alphabet = len(self.atoms) = 48, verified at tether.py:2403 and 2745. TWO QUANTITIES UNDER ONE PARAMETER NAME, 'alphabet' - A6i at the call site, and the reassuring answer came from the wrong one. SECOND: I read cost/left/base from the MINT rows and got 0 rows carrying cost against 20 accepted mints; the keys are term_bits/left_bits/base_bits, and a zero that is implausible against a known count is the cheap version of this error. BOTH CAUGHT BY CHECKING THE SITE RATHER THAN TRUSTING THE NUMBER - and the first matters most because IT RETURNED THE ANSWER I WOULD HAVE PREFERRED. A null that says NO PROBLEM HERE is the one to re-derive.
+
+**`I39`** — A PARAMETER FROM A DIFFERENT TOOL'S SCHEMA, AND THE COST CAME ENTIRELY FROM WHAT IT WAS ATTACHED TO. A publish was rejected for 'Unknown name description: Cannot find field' - Drive's create_file has no such parameter and the Artifact tool does, and I wrote one out of habit. ON ANY ORDINARY CALL THIS IS A FREE RETRY. Here the retry meant re-emitting 88KB of hand-typed CSV, so a slip that normally costs nothing cost an entire message: THE SAME ERROR IS PRICED BY THE PAYLOAD IT IS ATTACHED TO RATHER THAN BY ITS OWN SIZE, which is not a property of the error and is why it is logged against the transport rather than against my care. Caught immediately by the API, the cheapest possible detection, which is why it is one entry and not an investigation.
+
+**`I40`** — I PUT A CHECK AFTER THE WRITES IT GUARDS, IN THE PATCH WRITTEN TO HONOUR I34. I34 is one cycle old and says exactly this - the generator opened the CSV, wrote the header, and only THEN asserted, so any failing check left a header-only file where the artifact was; it was fixed by hoisting all validation above the open. F49's split patch then added a NEW assertion, the part-size budget, AFTER two emit calls. IT FIRED FOR REAL on the first regeneration that needed it - F49 plus F50 plus I39 pushed part B to 89,771 against 88,000 - and left precisely the half-state I34 names: both parts rewritten, the full CSV stale at the previous generation. NOT DESTRUCTIVE, because the parts written were complete and merely oversized, AND THAT IS LUCK RATHER THAN DESIGN: the ORDER is what I34 is about, not the damage. THE TELL IS THAT THE HOISTED BLOCK IS STILL THERE AND STILL CORRECT - the generator carries a seven-line comment above the row-level checks explaining why they must precede the open, and I did not undo it. I added a new check somewhere else and never asked whether the rule reached it, so THE FIX WAS PRESERVED AS AN ARTEFACT AND LOST AS A RULE, which is the shape that makes a repaired defect recur without the repair ever being touched. FIXED: the parts are SIZED without being written, the budget is asserted, and only then is anything opened, with a second assertion checking predicted sizes against what was actually written. AND THE GREEDY CUT WAS ARBITRARY, WHICH IS WHY IT FAILED ON THE WRONG QUANTITY - filling A to the budget makes B the overflow bin, so B fails first on a number nothing was choosing. The cut now minimises max(A,B), the quantity the budget is actually about, so the assertion fires exactly when a two-way split genuinely cannot fit. BOTH ARMS CONFIRMED, NOT ONE: positive at 92000 gives A 88,664 and B 88,797, 133 chars apart against the greedy 87,690/89,771; negative at 40000 fires the assertion and leaves the md5 of all three artifacts UNCHANGED - run against the LIVE output path, because I34 was found by a probe aimed at the live path and would have been invisible to one aimed at a duplicate.
+
+**`I41`** — THE COUNT ASSERTION HAS BEEN MATCHING NOTHING, AND THIS ROW CITED IT AS WORKING. Installed after the FIFTH count drift and keyed on 'at N against 8', to bind this narration to the row id where the count is DEFINED. THAT PHRASE IS IN ZERO CELLS - the narration was later rephrased to 'at 40, and the reviewer has closed the comparison', dropping 'against 8', and the check was silently disarmed. It passed every regeneration since by matching nothing, while THE OUTSTANDING CELL OF THIS VERY ROW said 'that check does not cover this one, and the honest statement is that a coupling was fixed, not a class' - the coupling was not fixed either, which is F22's shape one level up: a row reporting a verdict the file does not support. AND IT IS WORSE THAN VACUOUS BECAUSE THE PATTERN CAN FALSE-FIRE: the only surviving 'against 8' in the data is 'against 88,000' from I40's own text about part sizes, and preceded by 'at' it would have asserted 89771 == 40 on prose with nothing to do with the count. A check that matches nothing it was written for and can match something it was not is WORSE THAN NO CHECK - the absence is silent and the false positive would have been blamed on the data. THE FIX IS NOT A BETTER REGEX: the count is DEFINED by the row id, so all three narrations are now DERIVED from it - digits, capitalised word, upper-case word - exactly as the row ORDER is derived rather than listed, and a derived count cannot drift. It proved itself in passing: moving to I1-I41 took ONE edit where the previous two entries each took four. What survives as a check is PRESENCE - three placeholders must be found before anything is written - and it does NOT catch a new hand-written count elsewhere, which is said because AN OVERSTATED CHECK IS THE DEFECT BEING RECORDED. Both arms: bumping the row id propagates to all three narrations, and typing a literal back in fires the check with all three artifacts unchanged. WHAT IS NOT CLAIMED: whether the assertion ever matched is NOT RECOVERABLE - mksheets.py lives in the scratchpad and is not in git, so the rephrasing that disarmed it cannot be dated, and 'it worked and then broke' and 'it never worked' are different failures I cannot separate from here. AND THIS IS THE THIRD INSTANCE IN ONE SESSION OF ONE SHAPE: I34's ordering rule did not reach a newly added assertion (I40); I35's anchoring fix did not reach a newly written guard and failed again in the same session; and now a checker keyed on a phrase a later edit removed. EVERY ONE IS A REPAIR INSTALLED AT A SITE THAT NEVER BECAME A RULE, and in each case the original fix is still present and still correct, which is exactly why none was noticed.
+
+**`I43`** — THE DISPLAYED CHUNK IS NOT THE READ CHUNK - and it is F65 in the record, TWO IDENTIFIERS FOR ONE EVENT, said here rather than left to trip a reader. Reading part A in 25,000-byte chunks to paste: chunk 1's DISPLAYED text ended at 'so the boundary is' and chunk 2's began 'rows away - so...', which DO NOT JOIN. Settled with od on a fixed byte range: byte 25000 is '...the planner permanently th' and chunk 2 begins 'rows away', so THE CHUNKS WERE CONTIGUOUS AND THE DISPLAY WAS TRUNCATED - about 1,100 characters, with no marker saying so. Pasting what I was shown would have dropped a span out of the middle of F51 AND LOOKED LIKE A CLEAN READ. THIS IS I42 WITH THE CAUSE REVERSED: I42 was context leaking INTO the paste, this is the source leaking OUT of it. Both defeat 'read every line from disk', because both happen where bytes become a MESSAGE rather than where they are FETCHED - the practice governs the fetch and nothing governs the display. AND MY OWN DIAGNOSTIC WAS WRONG TWICE, both unit errors: a Python string index disagreed by 8 and I blamed CRLF, which `file` refuted; the real cause was that I had searched for 'so the boundary is' and found its FIRST occurrence, in the SPLIT row at byte 6,892, rather than F51's - I35's family, a fourth instance, A BARE SUBSTRING IS NOT THE THING IT NAMES. Only od on a byte range has no coordinate ambiguity. WHAT IS NOT CLAIMED: the previous publishes were fine - verify_publish read them at 81,210/81,210 and 80,746/80,746, exact - so the truncation is size- or call-dependent rather than constant, and the alarming reading is available and wrong. FIXED BY CHUNKING SMALL ENOUGH THAT THE DISPLAY IS WHOLE, with an explicit end marker printed after each chunk so a truncation ANNOUNCES ITSELF instead of being silent - which is the difference between a practice and a check, again. AND THE COST OF THE CATCH IS WORTH STATING: I stopped a ready, verified publish to investigate this, and ISAIAH'S CORRECTION WAS THAT THE ORDER WAS WRONG - publish, then fix the method. Deferring on a technicality is I30's shape at the level of what gets handed over.
+
+**`I44`** — A STALE DRIVE ID TAKEN FROM CONTEXT WHILE THE LIVE ONE SAT IN A FILE. I trashed by an id I remembered rather than the one in sheet_id.txt, and Drive refused it. It cost exactly one call BECAUSE TRASHING IS ID-ADDRESSED - had the operation been title-addressed it would have been I6 again. The cheap outcome is a property of the API, not of my care.
+
+**`I45`** — protocol.py IS CWD-DEPENDENT and prints 'Available games: []' before dying. THE ZERO MEANS WRONG DIRECTORY AND READS AS NO BOARDS INSTALLED - I38 mirrored, a zero that is implausible against a known count, and this one arrives with a tidy story attached.
+
+**`I46`** — I KEYED detail['accepted'], A FIELD ON ZERO ROWS. The MINT rows carry event 'mint' with verdict 'pays'; there is no accepted field anywhere. Caught by noticing mints 0 against a library that grew 48 to 57 - a number checked against another number in its own output. AND THE REASON I GAVE FOR CHECKING WAS ITSELF WRONG, which is the part worth keeping: I said a library cannot grow without minting, and it can - sp80 grew by 5 via reuse_install with 0 mints and 23 parks, all depth_exhausted. GAMMA HAS MORE THAN ONE ENTRY PATH, so 'minted nothing' and 'grew nothing' are different claims. park_why and reuse_installs were added to the runner so they can never be confused again.
+
+**`I48`** — MY OWN LOG-APPEND ANCHOR ATE THE SENTENCE IT ANCHORED ON. The patch matched 'what gets handed over.' and replaced it with the new entries without re-emitting it, so I43 shipped to disk reading 'at the level of  I44 A STALE DRIVE ID'. AN ANCHOR THAT INCLUDES TEXT YOU MEAN TO KEEP MUST RE-EMIT IT, and sub()'s present-and-unique guard cannot see that - the same blind spot as F67, where the guard could not see LAST. Caught by reading part C from disk before publishing.
+
+**`I49`** — od -An -c PIPED THROUGH tr AND grep COUNTED 4,040 CR BYTES. The real count is 25: Python reads 25 CR, 25 LF, 25 CRLF - ordinary line terminators, nothing embedded. I had already drafted the alarming reading, that my own patch had injected carriage returns into published cells. I24's rule applied to my own instrument, and here THE COUNTING METHOD WAS THE DEFECT rather than the population or the polarity.
+
+**`I53`** — A SECOND COPY OF THE THREE DRIVE IDS, DRIFTED, AND NOTHING READ IT. sheet_id.txt held its own copy of the ids and their status; measured against pubstate.txt, the stated per-part authority, it carried B=1c_2SzU_LR1f while the live Archive is 1VpYWf-4D5Pp, and marked all three parts CURRENT while the authority had A and C BEHIND. TWO AUTHORITIES FOR ONE QUANTITY, DISAGREEING ON BOTH THE ID AND THE STATE. Nothing reads it - the sync procedure names only sheet_synced_at.txt and runstatus_synced.txt - so it was maintained solely by my remembering to, and I had not. THIS IS I52 AT THE ID REGISTER RATHER THAN AT THE TRIGGER, AND IT IS I44 INVERTED: I44 was a stale id taken from CONTEXT while the live one sat in a FILE, and here THE FILE ITSELF WAS THE STALE ONE, which is worse, because a file reads as the authority precisely when context feels unreliable. THE FIX IS REMOVAL RATHER THAN CORRECTION - re-typing the right id leaves two registers and buys one cycle - so the duplicate is retired to a POINTER at pubstate.txt rather than deleted, because a missing file reads as never existed where a redirect does not. AND ONE DEFECT WAS WITHDRAWN BEFORE IT SHIPPED IN THE SAME CYCLE: create_file returned fileSize 1 on both publishes, Sheets conversion being asynchronous, and I drafted that the sync procedure's fileSize > 1000 gate would read a false failure. IT WOULD NOT - that gate calls get_file_metadata, which read 21,129 on part C moments after the create returned 1. One call separated a real finding from a FABRICATED DEFECT IN THE PROCTOR'S OWN PROCEDURE, which is the most expensive place to invent one, because that text is annotated from outside and never repaired.
+
+**`I54`** — I EXPLAINED A MECHANISM THE PROCEDURE ALREADY DOCUMENTS, IN THE ENTRY WHERE I CONGRATULATED MYSELF FOR CHECKING IT. Having measured that create_file returns fileSize 1 before Sheets conversion completes, I wrote the cause up from scratch. STEP 4(a) OF THE SYNC PROCEDURE SAYS IT VERBATIM - 'fileSize: 1 in the create response is stale metadata, not a failure' - and that text was in front of me, because the procedure is restated in full every time the cycle fires. The standing trigger is BEFORE WRITING A CAUSAL EXPLANATION OF A MECHANISM'S BEHAVIOUR, GREP THE RECORD, and its stated scope failure is that THE RECORD IS NOT ONLY INDEX. It is not only the docs either: A STANDING INSTRUCTION IS PART OF THE RECORD, and it is the part least likely to be searched, because it arrives as context rather than as a file and so never feels like something one LOOKS THINGS UP IN. WHAT SURVIVES OF THE ENTRY IS THE HALF THAT WAS NOT LOOKED UP: I had drafted the placeholder as a DEFECT in that gate and killed it by calling get_file_metadata, which read 21,129. So the withdrawal was earned and the explanation was redundant, which is the two halves of one entry scoring oppositely.
