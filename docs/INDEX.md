@@ -29743,3 +29743,55 @@ built the per-part hash for and this is the first cycle it has been used for.
 
     MECHANISM   runstatus.txt derived; part A published and verified exact
     CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
+
+---
+
+## `F84` — all three parts published and current, and a HEAD hash that was invalidating part A every commit
+
+**THE FULL THREE-PART SYNC COMPLETED, AND TWO OF THREE VERIFIED EXACT.**
+
+    A  Tether Workbook Sheet     1rxv4Cpm_rmNHdT-l1eiagyApD82TdveEaJTLw_N7ESg   79,729 / 79,729   EXACT
+    B  Tether Workbook Archive   1c_2SzU_LR1fzfwAPNL89AvfKaN0D4E1BJ5RIJoivwjw   77,177 / 77,177   EXACT
+    C  Tether Workbook Log       16Qj5t18ju4nwUwADggjqTncL1ja2gHXuNoQ7kC7LG7Q   metadata only -- `I47`
+
+Each predecessor trashed by id after its by-id check; one title match per title. **All three
+`pub/` hashes unchanged across every read, publish and verify** — the `I51` snapshot holding
+for the second cycle running.
+
+### the HEAD hash was a coupling that invalidated part A on every commit
+
+Part A's content differed from the published copy **only by the HEAD hash and the freshness
+stamp** — no finding had changed. `<<HEAD>>` is substituted into RUN STATUS, so **every docs
+commit made part A stale by seven characters**, and a full ~100KB republish was the only way
+to clear it.
+
+**REMOVED, AND `F37` HAD ALREADY NAMED WHICH HALF TO KEEP.** That entry measured two claims
+in one paragraph seventeen hours apart in durability and drew the rule: *the difference is
+whether a MECHANISM or a PERSON was doing the checking.* **`9/9 seats clean on every commit`
+survives without maintenance because the pre-commit hook runs whether or not anyone writes it
+down. The commit hash does not.** The Freeze # column is what a stranger checks instead.
+
+> **It is `F77`'s ratchet in a second home nobody had named** — not the anchor walking, but a
+> generated value making its own file stale on a schedule nothing chose.
+
+### and the build-file count in that same cell was wrong, which matters more
+
+The cell said *the only build files touched are `tether.py` plus a new `check_paths.py`
+fixture*. **There are THREE since `arc-freeze-02`** — `check_paths.py`, `tether.py`,
+`transcript.py`, 356 insertions. `transcript.py` is **sanctioned and `F37` records it**: a
+read-only renderer over the ledger adding no emitter, entered at `1c6fb2e` under a ruling.
+
+**So the omission hid no breach — but the cell whose job is letting the reviewer check the
+freeze themselves named two of three, and an UNDER-count is `I25`'s harder direction: a stale
+over-claim provokes a check, a stale under-claim is simply believed.**
+
+### the reviewer withdrew `I47`, and part C stays unverified
+
+Their Drive reads also land inline rather than on disk, so their check would have compared
+their own transcription against itself. **`I47` has no candidate fix from either side.** Part
+C's published copy comes back inline at ~47KB, so verifying it would put my context on the
+published side — declined again, weak claim published again, and now measured twice rather
+than predicted once.
+
+    MECHANISM   3 parts published, 2 verified exact; HEAD coupling removed; markers at 63ac8e7
+    CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
