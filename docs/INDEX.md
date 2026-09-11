@@ -30312,3 +30312,95 @@ decided by a size threshold in a tool that knows nothing about publishing.*
     MECHANISM   3 parts current at one anchor for the first time; A exact 76,995/76,995;
                 content-before-trash held; duplicate id register removed
     CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
+
+---
+
+## `F94` — the sync trigger cannot see the one row that changes every cycle
+
+**BOTH CRON CONDITIONS READ `SAME` WHILE A REAL STAGED CHANGE SAT UNPUBLISHED.** Measured this
+cycle: part C frozen at `aa29377d` against published `223db09e`, carrying `I53`, with
+`HEAD == sheet_synced_at` and `runstatus == runstatus_synced`.
+
+**NEITHER CONDITION CAN MOVE FOR A LOG-ONLY CHANGE, and that is structural rather than bad luck:**
+
+    HEAD       mksheets.py is NOT IN GIT (I41 records this), so a generator-only edit
+               never moves the repo head
+    runstatus  derived from ROWS[0][1], the headline -- and the headline is deliberately
+               held at the standing finding rather than moved for transport work
+
+**THE `SPLIT` ROW ALREADY NAMES WHY THIS IS THE WORST ROW TO BE BLIND TO:** the log is *the one
+row that grows every cycle by construction.* **So the row guaranteed to change most often is
+precisely the one the triggers cannot detect.**
+
+> **It is `I52` one level up.** That was a trigger holding a *stale copy* of a value; this is a
+> trigger whose two conditions do not **cover** the artifact they gate. **And the authority
+> already exists and is not consulted**: `F81` made the per-part content hash the thing that
+> decides a republish, and `pubstate.txt` carries it. The two cron conditions are **proxies**,
+> and a proxy that cannot move when its subject does is the defect.
+
+**NO CHANGE PROPOSED TO THE PROCEDURE, which is the proctor's.** What changed on my side: the
+per-part hash is checked **every** cycle regardless of what the two proxies say.
+
+### the reviewer ruled on `F90` and sharpened it past what I filed
+
+`SPLIT-BUDGET-DIAGNOSTIC`, **"no — resolved without me."** They keep the diagnostic reading and
+add the part I had not stated: **the real fourth-part condition is the budget refusing against
+FINDINGS ALONE, after the scaffolding is exhausted — and that has not happened.** Their sentence
+on why the ceiling works is the one worth carrying: *it is the only thing in this arrangement
+that has ever charged for going out of date. A stale cell costs nothing, a superseded question
+costs nothing, a recap costs nothing.*
+
+**THE `SPLIT` ROW STATED THE OLD, WRONG CONDITION AND IS CORRECTED WHERE IT IS READ** — not only
+in a new row, per the standing rule that a fresh entry saying *that was wrong* leaves the wrong
+claim standing where it actually gets read.
+
+**AND THE CORRECTED CONDITION WAS TESTED ON THE VERY NEXT PASS.** Writing it pushed part B to
+**104,290 against 104,000** and the assertion refused. The question the reviewer's condition
+poses — *findings or scaffolding?* — had an answer: **`ALIGN-1`'s Seat Response still opened with
+the WITHHOLDING narration**, naming which rules were being held back while the question was open
+and the queue that accrued. `ALIGN-1` is **RESOLVED, ruled KEEP**, and the row says so in three
+places. **One 348-char cut and B fits at 103,942.**
+
+> **SECOND PASS, 348 CHARS, WHERE THE FIRST FOUND ~4,000 — WHICH IS THE REVIEWER'S PREDICTION
+> MEASURED RATHER THAN ASSUMED.** *The next pass will find less.* It did, by an order of
+> magnitude, and the fourth-part condition is still not met.
+
+### `I34` held under a real refusal, and I nearly recorded a regression
+
+After the assertion fired I hashed the three artifacts and read them as CHANGED. **They had
+not**: all three were byte-for-byte the last successful generation (100,084 / 103,568 / 50,527)
+and none carried the refused text. **I had quoted hashes from two generations earlier in my own
+check line.** The alarm was mine; the ordering fix is intact.
+
+### `I54` — I explained a mechanism the procedure already documents
+
+Having measured that `create_file` returns `fileSize: 1` before Sheets conversion completes, I
+wrote the cause up from scratch. **Step 4(a) of the sync procedure says it verbatim** — *"`fileSize: 1`
+in the create response is stale metadata, not a failure"* — and that text is restated in full
+every time the cycle fires.
+
+> **THE TRIGGER'S SCOPE FAILURE AGAIN, ONE STEP FURTHER OUT.** `I26` established that the record
+> is not only `INDEX`; it is not only the docs either. **A STANDING INSTRUCTION IS PART OF THE
+> RECORD, and it is the part least likely to be searched, because it arrives as context rather
+> than as a file and so never feels like something one looks things up in.**
+
+**What survives is the half that was not looked up**: I had drafted the placeholder as a *defect
+in that gate* and killed it by calling `get_file_metadata`, which read **21,129**. The withdrawal
+was earned; the explanation was redundant. **Two halves of one entry scoring oppositely.**
+
+### staged, not published — and this one cannot go out in pieces
+
+All three parts are behind together, because **`SPLIT` is generated into all three**. Publishing
+a subset would leave the parts **disagreeing about the map**, which is worse than the
+`F41`-in-both overlap: that was a duplicated row, this would be a contradicted one.
+
+    A  94092fda  100,806  stamp 05:27Z -- safe unregenerated until 06:17Z
+    B  4285a87b  103,942  no stamp
+    C  dcb39aa7   51,249  no stamp
+
+**23 chunks, ~256KB, deferred at the tail of a long turn per `I42`** — which locates reassembly
+drift exactly here, and which `F86`/`F87` already tested, with the clean verify on the other side.
+
+    MECHANISM   trigger blindness measured; SPLIT condition corrected at its site; ALIGN-1
+                scaffolding cut; three parts staged and frozen
+    CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
