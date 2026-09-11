@@ -30106,3 +30106,78 @@ confirm and was incapable of it.
                 CLAUDE.md map repaired at source
     CAPABILITY  none -- the wire is a veto that has never fired. levels_completed 0,
                 routine_cut 0, unchanged since F80
+
+---
+
+## `F90` — the budget refused five times, and every cut it forced was scaffolding a ruling had already closed
+
+**`F89` would not fit.** Part A went to 106,062 against a 104,000 budget and the assertion
+refused to write — five times across this cycle, each artifact byte-identical after the refusal
+as before it. **And the anchor had nowhere to go: measured at every position, NO cut was
+admissible** (F42 put B over by 1,537; F41 put A over by 2,062; F40 worse).
+
+**That is the SPLIT row's stated fourth-part condition, and I did not escalate it, because it
+was not true.** What was actually over budget was **my own superseded prose**, and the trims
+that closed the gap were all one kind of thing:
+
+    F41  three open questions its OWN RULING says "do not arise"      (~1,050)
+    F20  Isaiah's STEP 2 instructions, beside a cell saying
+         "STEP 2 DOES NOT BECOME LIVE"                                  (~350)
+    F27  the reviewer's three candidates enumerated TWICE in one row    (~630)
+    RUN  recaps of F75-F80, each of which has its own row three lines
+         below; and two answers already delivered last cycle          (~2,000)
+
+> **FOUR CUTS, ONE SHAPE: a cell carrying the scaffolding of a question that has since been
+> answered.** None of it was wrong. All of it was superseded, and none of it would have been
+> found by looking for errors — **the budget is what forced anyone to look at all.**
+
+**SO THE REFUSAL WAS DIAGNOSTIC RATHER THAN MERELY OBSTRUCTIVE**, and that reframes `F77`. It
+read the anchor's walk as a ratchet that only ever loses ground. **It loses ground against NEW
+content and it never once charged for the SUPERSEDED content sitting beside it** — this cycle
+shed ~4,000 chars and gained a row.
+
+**AND THE NEAR-MISS IS THE ENTRY: I was one step from escalating the fourth part.** The
+assertion's own message says *a FOURTH part, which is a decision, not a regeneration* — and
+that decision belongs to Isaiah and the reviewer. **Raising it would have asked two people to
+rule on a structural change that four edits to my own stale prose dissolved.** `I50`'s family:
+handing away something that was mine to do.
+
+> **The test that separates them, and it is checkable rather than a feeling: is the part full
+> of CONTENT, or full of SCAFFOLDING?** I only knew which after trimming. **So the rule is trim
+> first and escalate second** — the escalation is honest only once the cheap cut is exhausted,
+> and here it never got close.
+
+### the anchor did move, and it moved by the procedure the SPLIT row promises
+
+**`F41` → `F42`: part A now ends at `F42` and `F41` lives in part B.** Deliberate, by the
+fewest rows that fit, and recorded — which is what that row has always said happens. **It was
+only possible because `F41` had been trimmed first**: at its old width B would have gone over
+by 1,537.
+
+    part A   98,047   headroom 5,953   (was 767 before this cycle)
+    part B  103,613   headroom   387
+    part C  46,948    untouched -- SKIPS
+
+**A AND B ARE STAGED, NOT PUBLISHED.** `pub/` frozen at `b42b568a` / `106f7c2d`. `F87`
+established that deferring a publish at the tail of a long turn produces the clean verify, and
+this turn ran five budget refusals deep. **The `F88` stamp deadline (05:45Z) has ~65 minutes of
+margin, so nothing is at risk.**
+
+### one instrument error, and it broke the file rather than a claim
+
+**A trim dropped the leading `"` that opens a CSV cell**, leaving a bare line of prose in
+`mksheets.py` and a `SyntaxError` about octal literals. **Caught at import, nothing written,
+artifacts byte-identical.** Repaired by restoring one character.
+
+**It is `I34`'s order holding under real pressure rather than in a drill**: five separate
+refusals this cycle — three budget assertions, one headline-vs-Record assertion, one syntax
+error — **and the three artifacts came through every one of them unchanged.**
+
+**AND THE HEADLINE CHECK EARNED ITS KEEP AGAIN:** it refused the regeneration because the
+headline promised `F89` while the Record cell never narrated it. **That check was installed
+after the coupling drifted by hand three times, and this is the second time it has fired on a
+real edit rather than a test.**
+
+    MECHANISM   anchor F41->F42 by the recorded procedure; ~4,000 chars of superseded
+                scaffolding shed while GAINING a row; A and B staged and frozen
+    CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
