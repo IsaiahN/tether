@@ -32643,3 +32643,35 @@ modified it. Normalised the stamp and re-ran.
 
 > Small, and recorded because **it is the same disease as the finding — a number that moves by
 > construction, read as though it moves for a reason.**
+
+---
+
+## `I71` — I measured headroom with an instrument that is not the one enforcing the budget
+
+Part A read **103,828** from the generator and **103,803** from a `python -c` of my own, and I
+could not account for the 25.
+
+**The cause is CRLF.** `_width` builds each row through `csv.writer`, whose default terminator is
+`
+` and counts **2**; `io.open(...).read()` in text mode collapses each to **1**. Part A has
+**25 lines**. **That is `I49`'s family and literally `I49`'s number** — 25 line terminators,
+misread once as content.
+
+### the consequence, which is why it is an entry rather than a shrug
+
+I was sizing an insertion against `PART_MAX`, and **the assertion that REFUSES a publish is
+computed in the `csv.writer` measure.** Sizing against the text-mode number would have reported
+**197 free where the gate sees 172** — a 25-character licence that does not exist, and at **15
+free** that is the difference between fitting and a refused regeneration.
+
+> **TWO MEASURES OF ONE QUANTITY, AND I USED THE ONE THAT DOES NOT ENFORCE.** `A6i` at the level of
+> units rather than of names. **The resolution is not a new number: read the budget in the measure
+> the assertion uses — bytes — and treat `_width` as the authority rather than any convenience
+> typed at a prompt.**
+
+**Nothing was actually mis-sized.** The fit calculation had used the byte figure, so the decision
+was correct; it was the **later** check that used the wrong instrument and made a correct decision
+look doubtful.
+
+**And chasing it was right.** The rule is *go to the write site and ask which LINE assigned the
+value*, and the alternative was to publish on a number I could not account for.
