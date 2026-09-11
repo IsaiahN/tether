@@ -386,6 +386,15 @@ class Agent:
         # `_group` sits in the same per-candidate loops.
         self._peer_cache: dict | None = None
         self._decomp_cache: tuple | None = None
+        # P2. `_record` and `_group` read (slot, state) and NOTHING ELSE -- not the term --
+        # while the pricing loop rebuilds a `Ctx` per candidate. Measured: 1,144,007 calls
+        # for at most ~235 distinct answers on a six-cycle ls20 run, `_record` 24% of wall.
+        #
+        # KEYED ON `id(state)` AND THE STATE IS HELD IN THE VALUE, which is what makes the
+        # key exact rather than probabilistic: a live reference cannot have its id reused,
+        # so `cached is state` either hits the same object or misses. Invalidated at the two
+        # sites the other frame caches use -- a new world and a new step.
+        self._frame_cache: dict = {}
         # §13.4 wants goal hypotheses held AT ONCE and compared on a TREND, so the scalar has
         # to be kept per slot across steps -- a single reading cannot be shrinking.
         self._disc: dict[str, list[int]] = {}
@@ -550,6 +559,7 @@ class Agent:
         self._touch_cache = None      # a new world invalidates owners and contact alike
         self._peer_cache = None
         self._decomp_cache = None
+        self._frame_cache = {}
         self.env, self.level = env, level
         self.slots = env.slots()
         self.actions = tuple(env.actions())       # a new level may advertise differently
@@ -778,6 +788,10 @@ class Agent:
         ONE FUNCTION ON PURPOSE. Two assemblers could drift, and a live/historical mismatch is
         exactly the defect `Ctx.touching` carries.
         """
+        key = ("rec", slot, id(state))
+        hit = self._frame_cache.get(key)
+        if hit is not None and hit[0] is state:
+            return hit[1]
         if self._decomp_cache is None:
             own = getattr(self.env, "slot_owner", None)
             att = getattr(self.env, "attribute_of", None)
@@ -787,10 +801,12 @@ class Agent:
         owners, attrs, shapes = self._decomp_cache
         mine = owners.get(slot)
         if mine is None:
+            self._frame_cache[key] = (state, None)
             return None
         rec = {attrs[s]: v for s, v in state.items()
                if owners.get(s) == mine and s in attrs}
         if not rec:
+            self._frame_cache[key] = (state, None)
             return None
         # THE STRUCTURE BESIDE THE LABEL, NEVER IN PLACE OF IT. `shape` stays the published
         # id because that is what `Ctx.group` and every equality comparison hold; swapping in
@@ -800,14 +816,24 @@ class Agent:
         cells = shapes.get(rec.get("shape"))
         if cells is not None:
             rec["structure"] = cells
+        # SHARED, AND EVERY CONSUMER IS READ-ONLY -- checked rather than assumed: the eight
+        # `_extract` atoms, `_area`, `_centroid` and `_touch_n` all `.get`/index and none
+        # assigns. A mutating consumer would make this a defect, not a speedup.
+        self._frame_cache[key] = (state, rec)
         return rec
 
     def _group(self, slot: str, state: dict) -> tuple:
         """The outer stream for one slot: this attribute's values on the other objects."""
+        key = ("grp", slot, id(state))
+        hit = self._frame_cache.get(key)
+        if hit is not None and hit[0] is state:
+            return hit[1]
         if self._peer_cache is None:
             fn = getattr(self.env, "peers", None)
             self._peer_cache = fn() if fn is not None else {}
-        return tuple(state[p] for p in self._peer_cache.get(slot, ()) if p in state)
+        out = tuple(state[p] for p in self._peer_cache.get(slot, ()) if p in state)
+        self._frame_cache[key] = (state, out)
+        return out
 
     def _touching(self, slot: str) -> tuple[str, ...]:
         """§12.3 sensor 8's second operand, resolved for one slot. Mirrors `_bindings`' read:
@@ -3017,6 +3043,7 @@ class Agent:
         self._touch_cache = None      # a new step is a new frame, so contact and owners go
         self._peer_cache = None
         self._decomp_cache = None
+        self._frame_cache = {}
         self._narrate_order()
         self._narrate_cascade()
         self._narrate_matches()
