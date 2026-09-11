@@ -31769,6 +31769,73 @@ their own use, which is exactly the kind of evidence I have no better source for
 
 ---
 
+## `F111` — the revert is done, and `F85`'s own census was wrong in two of its three items
+
+**Isaiah ruled: revert the edits, keep separate notes, and check who originated the file.** The
+revert is executed. **But the list of three came from `F85`, which is mine, and reading each one
+at its site before touching it found two of the three are not what that census said.**
+
+### the originator test cannot discriminate here, and that is the first thing to report
+
+Isaiah's test is *check who originated the file — if it is not the proctor or the LLM then it is
+mine.* **Mechanically applied, it returns nothing usable:**
+
+    every commit author        Isaiah Nwukor  -- I commit under his git identity
+    Claude co-author trailer   645 of 648 commits carry it
+
+**The repo was built by agent sessions committing as him, so neither field separates his writing
+from mine.** The reviewer proposed running the predicate over the whole document population, and
+**it cannot be run as stated.** Recorded rather than worked around, because a test that returns
+*everything is his* is `I41`'s disease — a check that matches everything is as useless as one that
+matches nothing.
+
+### what each of the three actually is, read at the file rather than taken from the census
+
+    52d495a   ALREADY GONE.  His own uncommitted rewrite removed the latency clause. Nothing to
+              revert in the file; the commit stands in history and the text is not in the corpus.
+    c28a0fc   NOT REVERTED, AND FLAGGED. Its own commit message is "Figure 12 integrated", and
+              52d495a's INDEX note -- written by me, the same day -- calls it "ISAIAH'S Figure-12
+              integration". So this is very likely HIS content that I transcribed, not my claim.
+              Reverting it would delete his material under a ruling meant to protect it.
+    ad7f4c3   REVERTED. Unambiguously mine: my correction plus a 17-line blockquote in my own
+              voice. This is the one the reviewer flags as mattering most -- it corrected a corpus
+              claim TO MATCH WHAT I HAD JUST MEASURED IN THE CODE, which is the move that makes a
+              later code-against-corpus check two mirrors.
+
+> **`F85` said *THE_FORMULA has TWO seat edits*. One was already reverted by its author and the
+> other is probably his.** The census was built by listing commits that touched the files; it
+> never asked what was IN them. **`I24`'s rule at the level of a census I had already published
+> and a reviewer had already relayed to Isaiah.**
+
+### how the revert was done, because the danger was named in advance
+
+The reviewer's warning is the governing constraint: *a revert that also discarded his uncommitted
+changes would be the worst possible outcome of a ruling meant to protect them.* **Both files carry
+his unsaved work — 138 insertions in `THE_FORMULA` alone.**
+
+    1. full backup of both files taken BEFORE anything was read
+    2. surgical text replacement, NOT git revert -- nothing rewinds, one region changes
+    3. assertions: paragraph anchor unique, blockquote bounded, restored text present,
+       my markers absent, and EXACTLY ONE contiguous region differs -- proven, not trusted
+    4. verified after: THE_FORMULA byte-identical; his 138 insertions untouched
+
+**One assertion fired on the first run and nothing was written** — my own check compared against
+the changed region and the common-prefix trim lands mid-word (`**It s|izes` against `**It
+s|pends`). The guard was imprecise, the region was right, and `I34`'s order meant the file was
+never opened.
+
+**NOT COMMITTED, DELIBERATELY.** The revert sits in the worktree beside his unsaved changes, and
+committing that file would fold his draft into a commit. **`F35` already ruled that committing his
+draft is his call**, and a revert that quietly took that decision would repeat the original error
+in a new register.
+
+    MECHANISM   ad7f4c3 reverted surgically with the backup and the one-region proof; c28a0fc
+                flagged rather than removed; the originator test reported as non-discriminating
+    CAPABILITY  none -- this is the record. levels_completed 0, routine_cut 0, since F80
+
+
+---
+
 ## the early instrument log — MIGRATED FROM THE WORKBOOK, 2026-09-11
 
 **These 30 entries existed in FULL in exactly one place: the published workbook's log
