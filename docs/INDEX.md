@@ -29557,3 +29557,51 @@ reason about timing.
 
     MECHANISM   publish reads and verification now run against a hashed frozen copy
     CAPABILITY  none -- transport, levels_completed 0
+
+---
+
+## F81 — THE SPLIT FIXED THE PER-FILE LIMIT AND THE **TOTAL** IS NOW THE BINDING ONE
+
+`F49` split the workbook because one payload no longer fit. `F71` took a third part.
+`F77` measured the anchor losing ground, `F79` and `F80` watched it move three times in two
+cycles, and this cycle the window collapsed to a single admissible position. **Every one of
+those is about a PART. The quantity that now binds is the SUM.**
+
+    read  245,355 bytes from the snapshot
+    emit  245,355 bytes back out, by hand, in three calls
+    ----
+          ~490KB moved to change three files
+
+**THREE CONSECUTIVE SYNC CYCLES HAVE SPENT THE WHOLE WORKING TURN ON THE PUBLISH AND NOT
+FINISHED IT.** That is not a budget problem — the tokens exist. It is that a full three-part
+republish plus the read that must precede it no longer leaves room in a cycle for anything
+else, **and the findings that make the sheet worth publishing are produced by the work the
+publish is displacing.**
+
+> **AND IT IS `F58`'s RATCHET WEARING A DIFFERENT NUMBER.** Each individual step was correct
+> and cheap: split at the limit, take a third part, move the anchor one row. **The sum of
+> correct local decisions is a transport that consumes the cycle.** `F77` said the anchor pays
+> for half a cycle's growth; this says what the other half has been costing all along and
+> nobody was measuring.
+
+**THE FIX IS ALREADY IMPLIED BY `F68` AND WAS NEVER TAKEN.** The anchored cut means **each
+part's content determines its own republish** — that is `F68`'s stated benefit, and it has
+been used only to explain why divergent stamps are normal. **It was never used to SKIP a
+part.** Nothing tracks which bytes were last published, so every cycle republishes all three
+whether or not they changed. `pubstate.txt` now records a per-part md5 of the snapshot last
+successfully published; a part whose hash is unchanged needs neither reading nor emitting.
+
+**WHAT THAT WOULD HAVE SAVED THIS CYCLE IS HONESTLY SMALL, AND SAYING SO IS THE POINT: all
+three parts genuinely changed.** The saving is on the TYPICAL cycle, not this one — and I am
+recording it having just spent a cycle where it would not have helped, because that is when
+the claim is least flattering and most checkable.
+
+**NOT TAKEN, AND THE REASON IS THE USUAL ONE.** Publishing fewer files changes the guarantee
+the SPLIT row makes to the reviewer — that the three are always written at the same moment.
+**That is a change to what they can rely on, so it is theirs and Isaiah's.** Raised with the
+mechanism built and unused, exactly as `F77`'s archive candidate was.
+
+    MECHANISM   pubstate.txt records per-part published hashes; the snapshot is frozen and
+                hashed, so the next cycle publishes without re-reading a moving file
+    CAPABILITY  none -- transport, levels_completed 0. THE SHEET IS UNPUBLISHED THIS CYCLE
+                and the reviewer's two answers are written, frozen and waiting.
