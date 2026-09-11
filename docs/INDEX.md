@@ -30664,7 +30664,11 @@ stripped so `tspan`-split words rejoin (`F45`'s manufactured-zero lesson):
     belief     4    confident 1    certain   0
     sure       0 bounded / 43 joined  -- measure, pressure, ensure. I24's hazard, not a hit.
 
-**`confidence` IS NOT A CORPUS WORD.** And the two genuine hits were READ rather than counted:
+**`confidence` IS NOT A FIGURES WORD — AND `F100` CORRECTS THE SCOPE OF THIS SENTENCE, WHICH
+SAID *CORPUS*.** The census population was the fifteen SVGs; the corpus is the figures **plus**
+Isaiah's theory documents, which is `F85`'s own finding committed here a week after recording
+it. **§13.4 says *confidently shrinking* and the build implements it.** Read the correction
+before using this entry. And the two genuine hits were READ rather than counted:
 `confident` is Figure 4 warning against *"navigating by dead reckoning: confident about a position
 nobody checked"* — a caution, not a quantity. `belief` is the Symbols Table's `b`, *what the system
 takes to be the case before it acts*.
@@ -30836,4 +30840,98 @@ reviewer when the fourth-part decision does.
 
     MECHANISM   edit.py installed and tested on three arms; the positive case reproduces the
                 failure it fixes; artifacts unchanged
+    CAPABILITY  none -- tooling. levels_completed 0, routine_cut 0, unchanged since F80
+
+---
+
+## `F100` — `F98` censused the FIGURES and said CORPUS, and the build already has the confidence quantity Isaiah's ruling forbids
+
+**CAUGHT BEFORE PUBLISHING, BY A TRACE ROW.** Checking whether `routine_refused` records *which*
+of the eight refusal sites fired, the sample read
+`reason="no objective is confidently shrinking"` — **and `F98`'s census never searched
+`confidently`.** `\bconfident\b` does not match it.
+
+### two errors, and the second is the one that matters
+
+**ONE — A SPELLING GAP, WHICH IS `I24` AGAIN.** `F98` searched `confidence | certainty | credence`.
+The build carries **`confidently` 4, `certain` 4, `confident` 2** on top of `confidence` 5. So
+*"confidence occurs six times and every one is TRACKER IDENTITY confidence"* is **false**:
+`tether.py:1761, 1771, 1873, 1897` are all `_goal_choice`, the **selector**, not the tracker.
+
+**TWO — THE SCOPE WORD, AND IT IS `F85`'s FINDING COMMITTED BY ME.** `F98` censused **the fifteen
+figures** and wrote *"confidence is NOT a corpus word."* `F85` established one week ago that
+**CORPUS is two populations under one word** — the figures, and Isaiah's theory documents — and
+that every edit I made fell in the gap between the two senses. **I then used the narrow sense to
+make a claim in the wide one.**
+
+    figures         confidence 0, confidently 0, certainty 0   -- F98's census, still correct
+    documents       ARC_AGENT 5, DISCOVERY 4, THE_FORMULA 2, WHAT_THE_AGENT_SEES 1
+    ARC_AGENT §13.4 "select the one whose discrepancy is CONFIDENTLY SHRINKING UNDER PLAY"
+
+### and the corrected reading is SHARPER than the one it replaces
+
+`tether.py:1757` quotes §13.4 whole *"because the criterion is its wording"*, and then states the
+implementation in its own words:
+
+> ***CONFIDENTLY IS `MIN_REPEAT`, REUSED RATHER THAN A SECOND CONSTANT INVENTED.***
+
+**So the build already has a confidence quantity at the selector, and it is a FIXED CONSTANT.**
+Isaiah's `F32` ruling requires the opposite: the confidence quantity must be **derivable from the
+agent's own trace and not a constant, since a fixed threshold is `INDEX:21824`'s shaping move.**
+
+> **`F64`'s question is therefore better posed than either `F98` or I had it.** Not *is confidence
+> a third thing* — **the build has had a confidence notion at exactly this site all along, it is
+> `MIN_REPEAT`, and it is the fixed-constant form the ruling rules out.** The forward move is not
+> inventing a quantity but **replacing a constant with a trace-derived one at a site that already
+> exists.**
+
+**AND `F98`'s A6i WARNING SURVIVES AND CHANGES TARGET.** The collision is not *acceptance
+confidence versus tracker confidence*; it is **three senses** — tracker identity (IoU),
+`_goal_choice`'s `MIN_REPEAT`, and whatever `F32`'s acceptance change would introduce. **Filed
+before the build, which is still the valuable half.**
+
+**WHAT SURVIVES OF `F98` UNTOUCHED:** the figures census itself (0 across all fifteen, both
+spellings, re-run); `w` located in the Symbols Table and measured absent from the build; and Figure
+5's remedy of folding a preference back into one bargain. **What fails is one word in one sentence,
+and it is the word `F85` is about.**
+
+**THE STAGED SHEET POINTER CARRIED THE WRONG CLAIM AND IS REPLACED BEFORE PUBLISHING** — it read
+*"confidence is NOT a corpus word, 0 of fifteen."* That is the same catch as the part-C staleness:
+**found by reading what was about to go out, not after.**
+
+    MECHANISM   F98 corrected at source; three senses of one word located across tracker,
+                selector and a proposed third; the ruling's own constraint matched to the site
+    CAPABILITY  none. levels_completed 0, routine_cut 0, unchanged since F80
+
+---
+
+## `I56` — the guard checked the ANCHOR and not the RESULT, and it fired on its own first use
+
+**`I55`'s helper was installed this cycle and used once.** The anchor matched correctly; **the
+replacement was malformed** — it opened a new string literal where the surrounding one was still
+open, leaving `mksheets.py` unparseable.
+
+    "...rather than an argument. "F98 and F100 in docs/INDEX.md ...
+                                 ^ opens a literal; the enclosing one was still open
+
+**THE ARTIFACTS SURVIVED, AND NOT BY LUCK:** the generator refused at import, before touching any
+file, which is `I34`'s hoisted-validation order holding under a failure it was not written for.
+All three CSVs byte-identical throughout.
+
+> **THE SHAPE IS `I34`'s FAMILY: A CHECK THAT GUARDS ONE THING AND NOT THE ADJACENT ONE.** `rsub`
+> verified that the span it was replacing was unique and present — the failure `I55` was built for
+> — **and said nothing about whether the file it produced was valid.** A guard can be exactly right
+> about its own question and leave the next question open.
+
+**FIXED IN THE HELPER RATHER THAN IN THE HABIT:** `rsub` now `ast.parse`s the result and refuses
+rather than returning it. **Both arms tested, and the negative case reproduces today's failure
+exactly** — a stray opening quote, refused with *"replacement leaves invalid Python (unterminated
+string literal)"*.
+
+**TWO HELPERS, TWO CYCLES, AND THE SECOND EXISTS BECAUSE THE FIRST WAS USED.** That is the only
+way this defect could have been found: `I33`/`I34` say a check's failure path is executed only when
+something makes it fail, and here the instrument's **first real use** supplied the case.
+
+    MECHANISM   edit.rsub now validates its own output; malformed-replacement arm reproduces the
+                live failure; artifacts byte-identical through the whole incident
     CAPABILITY  none -- tooling. levels_completed 0, routine_cut 0, unchanged since F80
