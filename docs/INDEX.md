@@ -31917,3 +31917,389 @@ grew by my entries getting seven times longer.**
 **`I53`** — A SECOND COPY OF THE THREE DRIVE IDS, DRIFTED, AND NOTHING READ IT. sheet_id.txt held its own copy of the ids and their status; measured against pubstate.txt, the stated per-part authority, it carried B=1c_2SzU_LR1f while the live Archive is 1VpYWf-4D5Pp, and marked all three parts CURRENT while the authority had A and C BEHIND. TWO AUTHORITIES FOR ONE QUANTITY, DISAGREEING ON BOTH THE ID AND THE STATE. Nothing reads it - the sync procedure names only sheet_synced_at.txt and runstatus_synced.txt - so it was maintained solely by my remembering to, and I had not. THIS IS I52 AT THE ID REGISTER RATHER THAN AT THE TRIGGER, AND IT IS I44 INVERTED: I44 was a stale id taken from CONTEXT while the live one sat in a FILE, and here THE FILE ITSELF WAS THE STALE ONE, which is worse, because a file reads as the authority precisely when context feels unreliable. THE FIX IS REMOVAL RATHER THAN CORRECTION - re-typing the right id leaves two registers and buys one cycle - so the duplicate is retired to a POINTER at pubstate.txt rather than deleted, because a missing file reads as never existed where a redirect does not. AND ONE DEFECT WAS WITHDRAWN BEFORE IT SHIPPED IN THE SAME CYCLE: create_file returned fileSize 1 on both publishes, Sheets conversion being asynchronous, and I drafted that the sync procedure's fileSize > 1000 gate would read a false failure. IT WOULD NOT - that gate calls get_file_metadata, which read 21,129 on part C moments after the create returned 1. One call separated a real finding from a FABRICATED DEFECT IN THE PROCTOR'S OWN PROCEDURE, which is the most expensive place to invent one, because that text is annotated from outside and never repaired.
 
 **`I54`** — I EXPLAINED A MECHANISM THE PROCEDURE ALREADY DOCUMENTS, IN THE ENTRY WHERE I CONGRATULATED MYSELF FOR CHECKING IT. Having measured that create_file returns fileSize 1 before Sheets conversion completes, I wrote the cause up from scratch. STEP 4(a) OF THE SYNC PROCEDURE SAYS IT VERBATIM - 'fileSize: 1 in the create response is stale metadata, not a failure' - and that text was in front of me, because the procedure is restated in full every time the cycle fires. The standing trigger is BEFORE WRITING A CAUSAL EXPLANATION OF A MECHANISM'S BEHAVIOUR, GREP THE RECORD, and its stated scope failure is that THE RECORD IS NOT ONLY INDEX. It is not only the docs either: A STANDING INSTRUCTION IS PART OF THE RECORD, and it is the part least likely to be searched, because it arrives as context rather than as a file and so never feels like something one LOOKS THINGS UP IN. WHAT SURVIVES OF THE ENTRY IS THE HALF THAT WAS NOT LOOKED UP: I had drafted the placeholder as a DEFECT in that gate and killed it by calling get_file_metadata, which read 21,129. So the withdrawal was earned and the explanation was redundant, which is the two halves of one entry scoring oppositely.
+
+---
+
+## `F112` — twelve findings had one copy, and today proved what that costs
+
+**`F110` ran the reviewer's check and reported part B at 11 of 23. The other twelve were the
+finding and I filed them as an argument about compaction.** They are `F10`, `F27`, `F28`,
+`F31`–`F39`: **44,138 characters existing in exactly one place, a Google Sheet.**
+
+> **THE HAZARD IS NOT HYPOTHETICAL AND THE PROOF IS SIX HOURS OLD.** `F106` is a sheet cell that
+> published **EMPTY** — `create_file` returned success, `fileSize` read plausibly, the content
+> snippet showed real rows, and the entire 61-entry log body was gone. **The only thing that saved
+> it was `F87`'s ordering: verify content BEFORE trashing the predecessor.** Twelve single-copy
+> findings sat behind one procedural step all day.
+
+**MIGRATED, AND THE JUSTIFICATION IS DURABILITY RATHER THAN COMPACTION.** This is the same
+argument that carried `F109`'s log migration and it stands on its own: *a citation is not a home*,
+and neither is a Drive file. **Nothing is compacted, nothing in the sheet changes, and Isaiah's
+ruling on whether a resolved finding may be reduced to a pointer is untouched.**
+
+**THE WHOLE ROW WENT, NOT THE RECORD CELL** — `F110` measured the correspondence columns at
+**52.7% of an F-row with no twin anywhere**, the reviewer's own responses 19.7% of that. Migrating
+only the Record cell would have preserved the third that was **least** at risk, which is the shape
+of every half-covering check this window has logged.
+
+    12 rows, 47,581 chars written; all twelve verified present in INDEX afterwards
+    parts A, B and C unchanged and still verified at ded97239 / a9f3c466 / f02cb704
+
+**AND IT IS THE PRECONDITION THE COMPACTION OPTION NEEDED, WHICH IS A CONSEQUENCE RATHER THAN THE
+REASON.** `F110` said the twelve *want the log's treatment first*. If Isaiah rules compaction in,
+they are ready; if he rules it out, the single-copy risk was worth removing anyway. **A
+justification that survives either ruling is the only kind that should be acted on while a ruling
+is outstanding.**
+
+    MECHANISM   12 single-copy findings given a durable home, whole-row; coverage verified
+    CAPABILITY  none -- the record. levels_completed 0, routine_cut 0, unchanged since F80
+
+
+---
+
+## the twelve part-B findings — MIGRATED FROM PART B, 2026-09-11
+
+**12 findings existed in exactly one place: the published Archive sheet.**
+`F110` ran the check the reviewer named and found part B is **11 of 23** — the rest are here.
+These twelve are not. **44,138 characters with no second copy.**
+
+> **THE JUSTIFICATION IS DURABILITY, NOT COMPACTION, AND TODAY SUPPLIED THE PROOF.** `F106` is a
+> sheet cell that published **EMPTY** while `create_file` returned success, `fileSize` read
+> plausibly and the content snippet showed real rows. **The only reason nothing was lost is that
+> `F87` verifies content BEFORE trashing the predecessor.** A single-copy finding behind that
+> ordering is one procedural slip from gone.
+
+**THE WHOLE ROW IS MIGRATED, NOT THE RECORD CELL.** `F110` measured the correspondence columns —
+`Seat Response`, `Outstanding`, `Evidence`, `Resolved`, the two position columns — at **52.7% of
+an F-row with no twin anywhere**, and the reviewer's own side of the exchange is 19.7% of it.
+Taking only the Record cell would have migrated the third that was least at risk.
+
+**NOTHING IS COMPACTED AND NOTHING IN THE SHEET CHANGES.** Whether a resolved finding may be
+reduced to a pointer is Isaiah's, unchanged, and stated in `F110`. This removes the single-copy
+risk and does nothing else — though it is also the precondition the compaction option needs, so
+if that is ruled in, the twelve are ready.
+
+### `F39` — MEASURED, then CORRECTED (I20) - the payable slots are excluded by LENGTH and by SHAPE, and were never candidates
+
+**The Record.** THE CENSUS: a read-only wrapper on goal_residual, recording cycle, slot, rg, |group| and unsat = rg x |group| per call. Pre-registered before each board returned. ls20 x20: 37 readings, cycles 2-19, MAX unsat 21.0 at cycle 12 on o20.w (rg 1.0 x group 21); 32 of 37 above the two-step threshold of 3.483, 37 of 37 above the one-step 2.322. ka59 x24: 43 readings, cycles 9-23, MAX 14.0 at cycle 10 on o14.dcol; 24 of 43 above two-step. THREE PREDICTIONS ON ka59 WERE COMMITTED ONE MINUTE BEFORE THE RESULT AND ALL THREE HELD TO THE SLOT - first reading cycle 9, unsat 0.0 at cycle 13 on o14.dcol, unsat 3.00 at cycle 23 on o13.w. Four instruments agree: a rows census, a ledger read, a routine_cut row, and this wrapper. THE POPULATION IS THE FINDING. ka59's per-cycle MAX unsat: c9 1.0, then c10-c23 all between 12.0 and 14.0 - FOURTEEN CONSECUTIVE CYCLES with a payable slot at 3.4-4x the bar. ls20's o20.w sat at 20-21 for FIFTEEN consecutive cycles then collapsed to 3.0, below the bar. CORRECTED ONE HEARTBEAT AFTER PUBLICATION - I20. I FIRST WROTE 'the selector picked the WRONG SLOT INSIDE THE RIGHT CYCLE' and that is WRONG: it implies a comparison that never happened. The payable slots were NOT CANDIDATES. The rule I missed is in F19's own row - _res is BUILT at 1708-1712 and POPPED whenever goal_residual returns None, so a single missing cycle DELETES the whole history and the slot must rebuild THREE CONSECUTIVE readings before it is eligible. I had written that rule myself and then treated each slot's readings as one unbroken series. WHAT ACTUALLY EXCLUDED THEM, and there are TWO mechanisms rather than one: ka59 cycle 13 - o14.col and o14.w had TWO readings each (both begin at c12), EXCLUDED BY LENGTH; ka59 cycle 23 - o14.w had FOUR consecutive readings all at unsat 12.0 and perfectly FLAT, EXCLUDED BY SHAPE. o13.w has gaps at 13, 14, 15, 16 and 19 - FIVE pops in fifteen cycles. SO THE CONCLUSION SURVIVES AND IS STRONGER: _goal_choice needs three CONSECUTIVE readings with all deltas <= 0 and one < 0, then picks max shrink; a flat-large slot has ZERO deltas and fails the shape test, AND any slot that loses its residual for one cycle fails the length test. ka59's o14.w carries unsat 12.0 on all ten of its readings and is perfectly flat - IT CAN NEVER QUALIFY AT ANY DEPTH. The winner is whichever residual collapsed hardest - which is maximal exactly when the residual has gone to zero, the one slot with nothing left to plan for. That is why 1849 fires with 'the objective already holds across its whole scope'.
+
+**In Plain Terms.** The measurement came back and validated the notes exactly - three numbers predicted in advance, three hits, down to which object each concerned. But those notes were built from two observations and there were forty-three, more than half of them describing a plan worth several times its price, available on fourteen turns in a row. The agent never saw them because it only considers goals that are getting better and prefers the one improving fastest. A goal sitting wide open and not moving is not a candidate at all, so the one it picks is the one that just finished resolving itself - which is why it keeps concluding there is nothing to do.
+
+**From the Agent's Side.** Nothing changes in play. Both boards still complete zero levels and adopt zero routines. What changes is where the question sits: not the price of plans, not the threshold, but what the agent is asked to notice about a gap.
+
+**Cycle #.** 20 x 1, 24 x 1
+
+**Freeze #.** arc-freeze-02
+
+**Outstanding Issues.** NO CANDIDATE FIX, AND THE PROHIBITION IS THE RECORD'S OWN. INDEX:21824 rules that moving a derived constant to make a mechanism fire is shaping toward the answer; that covers `shrink` as a selector exactly as it covers MIN_REPEAT as a threshold. This is a BEHAVIOUR NOTE with the mechanism named, per board, never pooled.
+
+**Resolved Issues.** F20 step 1 answered, and the two-value population under it identified as gate-selected.
+
+**Seat Read.** Y
+
+**Seat Position.** REPORTING - measured against a pre-registration
+
+**Evidence That Would Settle It.** Whether a shrinking filter is the right entry test for a residual is a DESIGN question and Isaiah's, not the seat's. What the seat can add is that the record already ruled the cheap version of it out as shaping.
+
+**Seat Response.** I20 FIRST, BECAUSE THIS ROW SHIPPED WITH AN ERROR: 'wrong slot inside the right cycle' was wrong and is corrected in the Record cell - the payable slots were never candidates, excluded by LENGTH at cycle 13 and by SHAPE at cycle 23. CAUGHT BY TESTING THE CLAIM ON A SECOND BOARD rather than accepting it: ls20's o16.w appeared to qualify at cycle 16, which F19 does not record; ls20's PLAN rows have nothing at cycle 16; o16.w has no reading at cycle 15 so the pop fires and it holds ONE entry. Two of my instruments disagreed and the third sided against me. THE ls20 DERIVATION IS UNAFFECTED and that was CHECKED not assumed - o20.w has readings at every cycle 2 through 19 with no gaps. AND THE DUPLICATE CALLS TURNED OUT TO BE AN INSTRUMENT: exactly two (cycle, slot) pairs are read twice per board and they are exactly the gate-1 passes, because site 1847 inside _mint_routine re-reads the chosen slot - so the census can identify a gate-1 pass without ever seeing a PLAN row. AND IT IS STRICTLY STRONGER THAN THE RECORD'S OWN VERSION, WHICH I RE-DERIVED AND SHOULD NOT HAVE. INDEX:18688 already states it across five boards - 'the trigger needs the residual SHRINKING, the bargain needs it LARGE ... the property that opens the gate is the property that empties the purse' - and I published the same finding an hour earlier while QUOTING the line six above it (I19). What ka59 adds is that the conflict appears WITHIN A SINGLE CYCLE on different slots, where the record had it across boards; and a depth reconciliation - INDEX:18688 read ls20 at EIGHT cycles and says 'the trigger never opens', which is true at depth 8 and wrong as a general claim, since the collapse that opens it is at cycle 17.
+
+**Last Updated.** 2026-09-09
+
+### `F38` — CLOSED - the uncited audit has ZERO live findings, and that refutes the census
+
+**The Record.** CODE_AUDIT.md: Isaiah's, 2026-08-24, 657 lines, cited ZERO times in 1.59MB of INDEX, recorded as owed by F37 and read now. EVERY LIVE-READING ITEM IS CLOSED, each verified at its write site rather than taken from the document: (1) 'tether writes no cite rows at all' - FALSE, tether.py:894 writes them and 72 were measured on ka59 tonight, so A5/B5's VACUOUS verdicts are historical; (2) A7 'Not decided here' - DECIDED, the reward channel is keyed shortfall rather than mass, at tether.py:982-992 and INDEX:208 ('recorded as shortfall; per objective, never per slot, WHICH IS WHY A7 WAS RIGHT TO REFUSE mass'); (3) B5 'a live defect the panel reached... Not fixed here' - FIXED at tether.py:3003-3007; (4) its board line reads '6/8 seats clean' and NINE seats exist. THE DOCUMENT SUPERSEDES ITSELF, WHICH IS THE TRAP: A7 appears as 'Not decided here' at line ~400 and as 'A7 - renamed, and the reader moved with it' at line 464. IT IS A CHRONOLOGICAL LOG, NOT A FINDINGS LIST. Read top-down and stopped at the first statement, it hands a reader a LIVE ARCHITECTURAL QUESTION THAT VIOLATES A HARD RULE - CLAUDE.md's 'no aggregation across slots; averaging is how a live signal disappears'. I WAS ONE GREP FROM PUBLISHING THAT, and the grep-before-explaining trigger is what stopped it. AND THE SITE ARGUES FURTHER THAN THE AUDIT DID, which is how a DECISION reads differently from a TRANSCRIPTION: 'Per-slot reporting would not repair this. Dividing a global score by slot MANUFACTURES a slice rather than finding one, which is the same defect installed deliberately, so the contract keeps returning one scalar' - that rejects the audit's own option 1 with a reason the audit did not have. AND A7's hit/len(slots) IS TOY-ENV ONLY: snaps.py:344 and world.py:207 compute it; arc_world.py:324 returns levels_completed/win_levels. The document's own title says 'Root code and TOYWORLD' and the scope does not carry to ARC.
+
+**In Plain Terms.** I read the one document nobody had ever referenced, expecting to find unfinished business. There is none - everything in it was already fixed, and the fixes are written into the code itself rather than into the notes. The document also contradicts itself as it goes: it is a diary, so a question it leaves open on one page is settled forty pages later.
+
+**From the Agent's Side.** No gameplay consequence; this is a corpus read. Nothing proposed, applied or edited.
+
+**Cycle #.** n/a - corpus read
+
+**Freeze #.** arc-freeze-02
+
+**Outstanding Issues.** NOTHING OUTSTANDING. No candidate fix, no defect, no owed measurement came out of it. One method note kept: the audit's own C1 - 'every word in every string literal counts as a reference' - is why its checker went quiet, and that is the seventh silence.
+
+**Resolved Issues.** F37's owed item is discharged, at the cost of one read.
+
+**Seat Read.** Y
+
+**Seat Position.** CLOSED - read, and empty of live findings
+
+**Evidence That Would Settle It.** Nothing. Each of the four items was checked at its write site rather than inferred from the document.
+
+**Seat Response.** I17 - AND IT IS AGAINST MY OWN CENSUS, NOT A NUMBER. Last heartbeat I filed this document as 'the only genuinely unread input the census found' and 'read it before trusting any summary of what the audit found'. The first half is true and THE IMPLICATION IS REFUTED. UNCITED IS NOT UNABSORBED: the audit's findings were absorbed into the CODE - at the write sites, in comments that name the defect being repaired. B5's fix says it outright at tether.py:3005 - 'It used to be @probe always, so a slot parked at no_support could never be matched to the probe' - which is the audit's finding QUOTED AT THE LINE THAT CLOSED IT. So a citation census over INDEX is BLIND TO THE STRONGEST FORM OF ABSORPTION: a finding fixed and documented where it was found. The proxy misses exactly the best case, which is the same shape as every instrument error this window - a check that reads clean while covering half the ground. EIGHTH self-correction of the session, and the first against a CENSUS rather than a number.
+
+**Last Updated.** 2026-09-09
+
+### `F37` — REPAIRED AT SOURCE - a false freeze claim in my own status report
+
+**The Record.** FOUND BY A CENSUS WITH A DIFFERENT PURPOSE: which documents does the record never cite. Five at ZERO - CODE_AUDIT, POST_FREEZE_QUEUE, WHAT_THE_AGENT_SEES, WINDOW_REPORT, FALSE_MINT (five case-insensitively). FOUR OF FIVE ARE MINE, so the census found less than it looked like - an uncited document written by the record's own author is not an unread input, and saying so is the honest sizing. THE EXCEPTION: CODE_AUDIT.md, Isaiah's, 2026-08-24, 28KB, committed 7803785, cited ZERO times in 1.59MB of INDEX. Recorded as OWED, not yet read. THE INCIDENTAL FIND IS THE FREEZE GUARANTEE. WINDOW_REPORT.md's opening: 'git diff arc-freeze-02 -- *.py is empty. No build file was touched after the freeze, and that was checked at every commit rather than asserted once.' MEASURED: 139 insertions, two files - tether.py +36, transcript.py +104. WAS IT FALSE WHEN WRITTEN? CHECKED, NOT ASSUMED: none of the three .py commits is an ancestor of 72b8a3c (the HEAD the report names), and git diff arc-freeze-02 72b8a3c -- *.py IS EMPTY. True at 05:41, stale from 10:51. THE THREE ARE SANCTIONED AND RECORDED: c009007 10:51 the F14 fix under Isaiah's ruling, named in the code comment at its own site; 1c6fb2e 10:53 transcript.py, a READ-ONLY renderer that wraps the ledger and adds no emitter; 92bd9c5 12:18 the F23 fix, action=action on the REPEAT row, purely additive at 483 rows before and after. Each was applied under a ruling and recorded against its finding BEFORE publication. CLASSIFICATION: a STALENESS REPAIR on a WORKING document - repaired at source per CLAUDE.md's table - and NOT a freeze breach, NOT an instrument error.
+
+**In Plain Terms.** I went looking for documents nobody had read, and mostly found my own. One of them was the status report I wrote yesterday morning, whose headline promise - that not a line of the build had changed since the freeze - stopped being true five hours later. The changes were all approved and all written down; the report simply never got updated.
+
+**From the Agent's Side.** No gameplay consequence; this is documentation. And the tightening it forces: 'nothing applied to the build' is true of a SESSION and reads as the stronger claim that no build change exists since the freeze. Three do.
+
+**Cycle #.** n/a - document census
+
+**Freeze #.** arc-freeze-02
+
+**Outstanding Issues.** DISCHARGED - see F38. CODE_AUDIT.md is READ and has ZERO live findings, which REFUTES the implication this row carried. 'The only genuinely unread input' was true of the filename and false of the content: the audit's findings were absorbed into the CODE, at the write sites, in comments naming the defect being repaired. UNCITED IS NOT UNABSORBED.
+
+**Resolved Issues.** The claim is repaired at source rather than annotated, because WINDOW_REPORT is a working document and a finding left as a note makes the next reader re-derive it.
+
+**Seat Read.** Y
+
+**Seat Position.** REPAIRED - the finding is against my own record
+
+**Evidence That Would Settle It.** Nothing needs settling. The classification turned on one checkable fact - whether the commits predate the report - and it was checked.
+
+**Seat Response.** THE CLAUSE WORTH KEEPING IS THE ONE THAT INDICTS ITSELF: 'checked at every commit rather than asserted once.' THE CHECKING STOPPED WHEN THE DOCUMENT STOPPED BEING UPDATED - so a check recorded as CONTINUOUS, in a document nobody maintains, becomes an ASSERTION again, which is the exact failure that sentence exists to name, performed by the sentence. AND THE DURABLE HALF OF THE SAME PARAGRAPH SURVIVED UNTOUCHED: '9/9 seats clean at every commit, enforced by the pre-commit hook rather than by me' is still true and still checked, BECAUSE THE HOOK RUNS WHETHER OR NOT ANYONE REMEMBERS TO WRITE IT DOWN. Two claims, one paragraph, seventeen hours apart in durability, and the difference is whether a MECHANISM or a PERSON was doing the checking. AND IT IS ALIGN-2 FROM THE OTHER END: I built a watchdog to catch the SHEET going stale while claiming to be current, and it was my own STATUS REPORT that did exactly that. The watchdog watched the artifact I update every ten minutes; nothing watched the one I wrote once.
+
+**Last Updated.** 2026-09-09
+
+### `F36` — CLOSED - the Z route separated, and it is one route on all three boards
+
+**The Record.** F19's last owed item, recorded when the onset axis was published and explicitly NOT extrapolated. goal_residual (tether.py:1613) returns None by THREE routes: no OBJ-typed bound term, the slot absent from state, or an empty peer group. Only sp80's was separated. MEASURED NOW ON THE OTHER TWO, FROM ROWS ALREADY ON DISK, NO RUN. THE CLASSIFIER IS NAME-BASED AND EVERY LINK SITS AT ITS WRITE SITE: gamma.py:194 out_type = self.atoms[-1].out_type, so the LAST atom is outermost; gamma.py:178 renders the name as ' . '.join(a.name for a in atoms), so the last NAME is outermost; arc_atoms.py:636-638 declares that only all, any and none produce OBJ; and a grep confirms no other atom shadows those three names. So a term is OBJ-typed iff its chain's last name is one of the three - 'above . all<o20.w>' is OBJ, 'translate . recolour<o0.col>' is not. I READ THE RENDERING BACKWARDS ON THE FIRST PASS - 'above' looked outermost - and atoms[0].accepts being the INPUT type is what settled it. BINDING EVENTS: accept (tether.py:2541) and rebind (tether.py:2994) both write self.bound. FIRST OBJ-TYPED ONE PER BOARD AGAINST THE _res ONSET: ka59 accept at cycle 8, slot o13.w, term 'above . none<o1.h>', _res populates at cycle 9 - LAG 1. ls20 rebind at cycle 1, slot o20.w, term 'none', _res populates at cycle 2 - LAG 1. AND NON-OBJ BINDINGS EXISTED FROM CYCLE 1 ON BOTH BOARDS. So the Z state was never 'nothing is bound' - it is 'nothing of the right TYPE is bound'. ROUTE 1, on all three boards; sp80 was already measured there (no OBJ-typed term ever bound, 8 of 72 slots bound and none OBJ). The other two routes never fire - and they could not have fired for every slot at once, which is the REASONING I would have shipped if the rows had not settled it.
+
+**In Plain Terms.** There were three possible reasons the agent had no goal to work on, and I only knew which applied on one of three boards. It is the same reason on all three: the agent had things bound the whole time, just never the KIND of thing that counts as a goal. The moment the first goal-shaped one appears, it starts tracking one turn later - on both boards I could check, exactly one turn.
+
+**From the Agent's Side.** No gameplay consequence; this is instrumentation. The onset axis now has a mechanism rather than a description, and no board reaches a level.
+
+**Cycle #.** 24 x 1, 20 x 1 (no run - rows already held)
+
+**Freeze #.** arc-freeze-02
+
+**Outstanding Issues.** NOTHING OUTSTANDING on this row. The classification is name-based rather than a read of the live object's out_type - sound by the four measured links above, and stated as what it is.
+
+**Resolved Issues.** F19's last outstanding item. The onset ordering ls20 (2) < ka59 (9) < sp80 (never) is now TIME TO THE FIRST OBJ-TYPED BINDING plus one cycle.
+
+**Seat Read.** Y
+
+**Seat Position.** CLOSED - measured, not extrapolated
+
+**Evidence That Would Settle It.** Nothing. The question is answered on every board that has rows.
+
+**Seat Response.** AND THE SLOT SELECTION FELL OUT OF IT, WHICH I WAS NOT LOOKING FOR. The slot that receives the first OBJ-typed term is the slot that later goes DEEPEST on both boards - o13.w reaches the bargain on ka59 at cycle 23, o20.w passes gate 1 on ls20 at 17 and 18. NOT a coincidence and NOT a fact about the boards: MIN_REPEAT=2 so _goal_choice needs three readings, and the earliest-bound slot is the first to accumulate them. The selector's choice of slot is decided by BINDING ORDER, not by anything about the slot. AND THE WORD 'SIMPLY' IS INCOMPLETE - I21. I flagged this mechanism as an error after I20 and MEASURED IT RATHER THAN PUBLISHING IT, and the conclusion HOLDS on both boards: o13.w bound c8 qualifies c11, o20.w bound c1 qualifies c4. But accumulation is only monotone on ls20, where o20.w has ZERO pops. ka59's o13.w was POPPED FIVE TIMES (13,14,15,16,19) and won on a SEVEN-CYCLE HEAD START rather than on uninterrupted accumulation. AND FIRST-TO-QUALIFY IS NOT WHAT WINS A GATE-1 PASS: o13.w qualifies at 11, is popped at 13, and cycle 13's pass goes to o14.dcol; o13.w takes cycle 23 only after rebuilding four consecutive readings at 20-23. Eligibility is re-evaluated every cycle against the pop history, so 'first to qualify' and 'slot at a gate-1 pass' are different events that agree here on which slot goes deepest.
+
+**Last Updated.** 2026-09-09
+
+### `F35` — CORPUS READING - an uncommitted document that converges on the tier-1/tier-2 split
+
+**The Record.** docs/outputs are not generators.md: UNTRACKED in docs/, dated 2026-09-07, 91 lines, Isaiah's. Invisible to git log, to any future reader, and to every check ever run against the corpus. TAKES THE CORPUS SIDE of CLAUDE.md's table - written earlier, by Isaiah, in a different context, in PHILOSOPHY's register - so it is ANNOTATED HERE AND NOT EDITED, and NOT COMMITTED: committing his untracked draft is his call. HIT ONE, AND IT IS THE STRONG KIND: 'a built agent cannot be surprised along an axis its type system cannot express' and 'the real import is not a new term in the existing space. It is a NEW DIMENSION of the space. Importing a term extends what can be SAID; importing an axis extends what can be PERCEIVED AT ALL.' A SENSOR IS AN AXIS, AN ATOM IS A TERM. CLAUDE.md reached that split from the code - a richer TIER 1 breaks the circle, never a tier-2 exemption, and atoms ARE tier 2 - and this document reaches it from first principles, written BEFORE the measurement with no view of it. So the re-measured composable=0 / UNREACHED verdict is NOT a defect: the document's closing section names it as the field's open frontier - 'neither has shown an agent that grows its own representation in response to an anomaly it could not express.' HIT TWO: it states the atoms' entry clause as a discipline before that clause existed - priors labeled, provenance recorded, added because the task required them - and states its limit, that declaring primitives makes the choice VISIBLE rather than NEUTRAL. HIT THREE: it confirms F27 rather than threatening it - 'a walk with no model has no anomalies, only noise' - so random's zero levels is the expected reading by construction.
+
+**In Plain Terms.** A document Isaiah wrote on 7 September has been sitting in the project folder ever since, never saved into the project history and never read by me. It argues from first principles to the same place this week's measurements landed: giving the agent new words can never let it notice a kind of thing it has no sense for; only a new sense can. Two completely separate routes to one conclusion, and neither was written with the other in view - which is the strongest form of agreement available here.
+
+**From the Agent's Side.** No gameplay consequence; this is a corpus reading. Nothing proposed, applied or edited.
+
+**Cycle #.** n/a - corpus reading
+
+**Freeze #.** arc-freeze-02
+
+**Outstanding Issues.** ONE QUESTION FOR ISAIAH, filed rather than resolved because it is a BAR: the document says 'the bar is whether failure accumulates traction, not whether the answer arrives'; CLAUDE.md's terminal condition clause 1 is 'It wins - the whole task.' Different bars. Does the right-kind-of-failure bar bear on clause 1, or is it a claim about general intelligence in the field rather than about Tether's own acceptance test? ALSO OWED: the document is UNTRACKED. His to commit or leave - flagged because an uncommitted corpus document is invisible to every later check.
+
+**Resolved Issues.** The verdict I re-measured this window now has an independent derivation. Two frames, one conclusion, neither written with the other in view.
+
+**Seat Read.** Y
+
+**Proctor Read.** Y
+
+**Seat Position.** READING - and the bar is now RECONCILED
+
+**Proctor Position.** mechanism vs readout, not a conflict
+
+**Evidence That Would Settle It.** RECONCILED 2026-09-10, AND IT WAS CATEGORY CONFUSION. TRACTION IS THE MECHANISM; LEVEL COMPLETION IS THE READOUT. Isaiah: catalogue and save the failed paths, the salient attributes and the interactions, so each replay retrieves past information and cuts the problem down - that is how it accumulates traction, and the RLVR that the system is working is level-completion iterations. So CLAUDE.md's terminal clause 1 - IT WINS, THE WHOLE TASK - STANDS UNCHANGED, and the corpus document's bar is HOW YOU GET THERE rather than a substitute for it. The two were never in conflict. AND IT NAMES A BUILD ITEM NOTHING CURRENTLY DOES: SAVING FAILED PATHS. The agent has a rejection memory for ROUTINES at _mint_routine site 1926 and that is all - per-routine, no attributes, no retrieval on replay. THAT IS THE TRACTION MECHANISM ITSELF AND IT IS MISSING. Queued.
+
+**Seat Response.** AND I AM STATING WHAT IT DOES NOT LICENSE BEFORE ANYONE ASKS, because this is the shape my documented failure mode takes. It does NOT license reading F33's outstanding-plateau as a score. outstanding is FRAME-INTERNAL - the agent computes it - and a frame cannot score itself with a quantity it produces. The document's 'traction' is a claim about the SHAPE of failure, search versus confabulation, which CLAUDE.md already covers under the whitebox clause. Read as a number it becomes an invented proxy metric, which is failure mode 4 on my own list. SECOND USE OF THE CORPUS-AS-TIEBREAKER after F30, and the first on a prose document rather than a figure.
+
+**Last Updated.** 2026-09-09
+
+### `F34` — ANSWERS THE REVIEWER'S F26 RESIDUE - and NARROWS it rather than widening it
+
+**The Record.** REVIEWER FILED AS RESIDUE: '_learned_split keeps finding the same action most separating and is right BY ITS OWN MEASURE - whether that measure is the right one is a different question.' TONIGHT'S CENSUS BEARS ON IT DIRECTLY. HOW OFTEN IT HAS AN OPINION, measured from REPEAT.by: ka59 by=discriminate:learned on 17 of 24 cycles, draw on 7; ls20 12 of 20, draw on 8. It returns None only when max(sep)==min(sep), so the draw cycles are exactly where it abstained - which is the same 7-of-7 correspondence the reviewer already called decisive. THE PRE-EMPTION IS REAL: _mint_routine has two call sites and _learned_split sits BETWEEN them. On the 15 ka59 / 10 ls20 cycles where it had an opinion and no PLAN row exists, it returned at 1569 and the unguarded fall-through at 1575 was never reached, so the planner was not entered and no refusal was recorded. BUT IT COSTS NOTHING BUT THE LOG LINE, AND THAT IS MEASURED RATHER THAN ARGUED: site 1521 runs BEFORE _learned_split, so whenever gate 1 PASSES the planner runs regardless - the fall-through is only a SECOND attempt in the same cycle. And _goal_choice is a pure read over _res, which was measured STABLE WITHIN EVERY MULTI-CALL CYCLE on all three boards (27 cycles, 0 inconsistencies in res_slots or in the returned slot). So the second attempt would have returned the identical refusal. NOTHING IS LOST EXCEPT THE RECORD.
+
+**In Plain Terms.** The reviewer left open whether the shortcut that keeps picking the same button is using the right measure. Tonight's count shows it has an opinion about two thirds of the time, and that when it does, it skips a second attempt at planning that same turn. But that second attempt would have reached exactly the same answer as the first - measured, on every turn where both happened - so skipping it changes nothing except that the refusal goes unwritten.
+
+**From the Agent's Side.** No gameplay consequence; this is instrumentation. The shortcut is not suppressing plans - it is suppressing a duplicate refusal.
+
+**Cycle #.** 24 x 1, 20 x 1, 30 x 1
+
+**Freeze #.** arc-freeze-02
+
+**Outstanding Issues.** STILL OPEN AND UNTOUCHED BY THIS: whether separation is the right measure. That is the reviewer's question and this does not answer it - it only removes one reason to think it urgent.
+
+**Resolved Issues.** The residue is narrowed: the pre-emption is inert, so if the measure is wrong it is wrong at the point of ACTING, not at the point of suppressing planning.
+
+**Seat Read.** Y
+
+**Seat Position.** REPORTING - narrows the reviewer's residue
+
+**Evidence That Would Settle It.** Whether maximum separation is the right objective for choosing an action. Unchanged by this row.
+
+**Seat Response.** AND THIS IS WHY THE LEDGER GAP IS NOT A DEFECT. A silent refusal that would have been identical to a recorded one is a missing duplicate, not a missing fact - and the join over REPEAT.by recovers even that. Filed as a behaviour note with a reconstruction, and NO candidate fix, per the window rule that a fix for a non-error is worse than no note.
+
+**Last Updated.** 2026-09-09
+
+### `F33` — ANSWERED - the surprise curve; and it is NOT the wall question
+
+**The Record.** Read from repeat rows ALREADY ON DISK, no run. Every cycle carries integral (surprise against the actual, monotone) and outstanding (what no term explains). ka59 x24: integral 44.3 -> 857.0, outstanding 44.3 -> 463.0, explained 394.0 (46%). ls20 x20: integral 29.5 -> 816.6, outstanding 29.5 -> 547.6, explained 269.0 (33%). gamma_size 48 -> 69 on both. THE SHAPE IS THE READING: outstanding EQUALS integral exactly until minting fires - nothing explained, so every unit of surprise is outstanding - then it diverges and then it PLATEAUS. ka59 sits at 441-477 from cycle 12 while integral climbs 636 -> 857; ls20 sits at 547-568 from cycle 14 while integral climbs 643 -> 817. SO EXPLANATION KEEPS PACE AFTER A LAG: total surprise grows roughly linearly and UNEXPLAINED surprise stops growing. That is explain working, measured on the agent's own monotone record - and outstanding is monotone-by-addition, so a plateau is real absorption rather than forgetting.
+
+**In Plain Terms.** Using only data already recorded, the agent's total accumulated surprise keeps climbing while the portion it cannot account for stops climbing. After a slow start it is absorbing new surprise about as fast as it arrives. That is the explaining machinery working - and it is measured on a record the agent cannot quietly reduce.
+
+**From the Agent's Side.** No gameplay consequence; this is instrumentation. And the same rows carry the stage label MINTED_UNUSED on both boards from the moment minting starts - the build saying the library grows and is not consumed.
+
+**Cycle #.** 24 x 1, 20 x 1 (no run - rows already held)
+
+**Freeze #.** arc-freeze-02
+
+**Outstanding Issues.** SECTION 8's WALL QUESTION IS ANSWERED AND THIS ROW WAS WRONG ABOUT IT. I wrote that a per-cycle curve 'needs instrumentation that does not exist'. sweep.py had already built it - the field is cost_curve - and F80 then answered the question outright at depth 25. It was never in the LEDGER and never needed to be. THE ORIGINAL POINT STANDS: this row is the SURPRISE series and NOT the cost series, different quantities, and I am not filing one as the other.
+
+**Resolved Issues.** A real curve produced from data already held, at zero cost and zero risk to the freeze.
+
+**Seat Read.** Y
+
+**Seat Position.** REPORTING
+
+**Evidence That Would Settle It.** SUPERSEDED. The wall question is answered by sweep.py's cost_curve and it touches no build file. Writing here that it 'would require touching the build' was the THIRD time this session I filed a capability I already had as impossible - after 'more boards reaching gate 4' and 'a build change the freeze forbids'.
+
+**Seat Response.** Filed deliberately with its NOT-answer attached, because the heartbeat asks for the cost curve and this row would otherwise read as though it delivered one.
+
+**Last Updated.** 2026-09-09
+
+### `F32` — RULED - all-or-nothing is WRONG, and it becomes a BUILD question
+
+**The Record.** instruments.py defines a SEVEN-RUNG chain and marks exactly ONE as an indictment: DIED_PRE_DIFF (implementation), RESIDUAL_EMPTY (library), MINT_UNFIRED (gate calibration), REUSE_UNWIRED (a reading, not a verdict), MINTED_UNUSED (ARCHITECTURE - the only code that indicts), USED_NOCLEAR (drive layer), CLEARED. The source reads INDICTS = MINTED_UNUSED and nothing else. ka59 AND ls20 BOTH REPORT MINTED_UNUSED on every cycle from the moment minting starts. AND THE CONDITION IS SHARPER THAN the library is not consumed: the code reads if not reuse_attempted -> REUSE_UNWIRED, then if not reused -> MINTED_UNUSED. REUSE IS ATTEMPTED AND NEVER SUCCEEDS - the consumer exists, runs, and comes back empty every time. THE FUNNEL, sp80 x30: rescan 90 (NOT an attempt), no-eligible-target 1 (NOT an attempt), did-not-pay 42, no-split 48 - so 90 real attempts, 90 failures. NOT_ATTEMPTS is a PINNED TABLE rather than a prefix match (exemptions as data, not logic), so the split is auditable. AND THE ACCEPT CONDITION IS WHY IT NEVER LEAVES THE RUNG: the sweep accepts only on left == 0.0, and note_reused and note_cleared are BOTH inside that branch - so 42 STRICT IMPROVEMENTS WERE DISCARDED because they did not fully close. REUSE IS ALL-OR-NOTHING.
+
+**In Plain Terms.** The build has its own seven-step diagnosis of where a learning loop breaks, and only one of the seven is labelled a fault in the design rather than a tuning problem. Both boards sit on exactly that one. The specific reason: the part that reuses what was learned does run, and it only accepts an explanation that accounts for something completely - so forty-two times it found a genuinely better explanation and threw it away for being incomplete.
+
+**From the Agent's Side.** This is the most specific statement yet of what stops the loop. It is not a tuning value and not a board quirk - partial explanation cannot advance the chain at all.
+
+**Cycle #.** 30 x 1 (sp80), 24 x 1, 20 x 1
+
+**Freeze #.** arc-freeze-02
+
+**Outstanding Issues.** NOT CLASSIFIED as a defect and NO candidate fix proposed. Whether all-or-nothing acceptance is wrong is a DESIGN question about the bargain, not an error in the code - and it is above my seat.
+
+**Resolved Issues.** The rung is named by the build itself rather than by me, and the funnel is auditable.
+
+**Seat Read.** Y
+
+**Proctor Read.** Y
+
+**Seat Position.** REPORTING - and now RULED
+
+**Proctor Position.** all-or-nothing is WRONG
+
+**Evidence That Would Settle It.** RULED 2026-09-10, AND THE CORPUS WOULD HAVE SAID SO: THE RESIDUAL NEVER FULLY CLOSES. That kills left == 0.0 outright and converges with F40 exactly - Figure 5's 'stating it, PLUS WHAT REMAINS UNEXPLAINED AFTER IT' is VACUOUS under a rule that only accepts a zero remainder, and Figure 13 lists 'no remainder left after each step' as a FAILURE CONDITION. The 42 discarded improvements were real progress thrown away for not being total. THE FORWARD MOVE IS A BUILD ITEM, NOT A RULING: accept on a decent amount of CONFIDENCE, with three constraints that are not negotiable - the confidence quantity must be DERIVABLE FROM THE AGENT'S OWN TRACE and not a constant, since a fixed threshold is INDEX:21824's shaping move; it is priced against THE SAME ONE BARGAIN, 14.4, not a second gate; and it carries a PROVENANCE STAMP so the ablation can still separate confidence-accepted terms from pays-accepted ones. AND THE REJECT ARMS WRITE NO ROW today, so cost/left/base must land there too or the change cannot be read. Queued, not started - the freeze is hard.
+
+**Seat Response.** F40 CORRECTS THIS ROW'S FRAMING, AND THE CORRECTION IS MINE NOT THE CODE'S. I filed the finding as '42 STRICT IMPROVEMENTS DISCARDED for not fully closing'. THE BUILD FLAGS THE OPPOSITE DIRECTION AS THE LIVE CONCERN - _install_reuse's docstring: 'a term that explains a parked residual completely can still be LONGER than the residual is worth', so left==0.0 can ADMIT what the bargain would REFUSE, and 19 of 21 installs measured would_pay=FALSE. THE TWO-GATE DIVERGENCE CUTS BOTH WAYS AND I PUBLISHED ONE SIDE. The build also names it first and cites the corpus: 'TWO GATES ON ONE LIBRARY ... 14.4 says one bargain, and this is the site where there are two.' AND NO CANDIDATE FIX: the deferral is reasoned at the site on CLAUDE.md's own grounds - a gate added there changes what enters Gamma 'with NO BOARD ON WHICH TO READ THE CHANGE'. AND THE LABEL did-not-pay IS AN A6i SITE, CORRECTED AFTER I PUBLISHED IT WRONG. I filed 42 of 90 as refused by the bargain. IT IS NOT: pays() IS NEVER CALLED ON THIS PATH - _install_reuse's own docstring says the sweep is the one path that does not consult pays. did-not-pay means the candidate IMPROVED and did not reach zero. The name imports a mechanism that is explicitly not there, and I read the name and wrote the mechanism - within an hour of the funnel being my sharpest finding. It must NOT be pooled with F19's routine bargain at 1958: different site, different claim. Caught by CLAUDE.md's new grep-the-record step.
+
+**Last Updated.** 2026-09-09
+
+### `F31` — CLOSED - NOT A DEFECT, a quirk handled right
+
+**The Record.** ls20's TWO gate-1 passes (cycles 17 and 18, slot o20.w) refuse at tether.py:1879 - 'no action this agent has observed moves this slot the wanted way - coverage incomplete, or every action ties'. VOTE CENSUS from saved rows, no run: o20.w transitions per action are ACTION1 n=13 moved 7 all DOWN (7*2=14>13, clears its bar), ACTION2/3/4 n=2 moved 2 all DOWN (clears). EVERY ACTION MOVES o20.w THE SAME WAY, DOWN, NEVER UP. `wanted` is agent-internal and not in the ledger so the direction cannot be read - and does not need to be: if wanted is UP no action has ever moved it that way and max(votes)==0; if wanted is DOWN all four clear their bar and tied==len(actions). BOTH routes are named in 1879's own message and BOTH are the build abstaining with cause. THE COVERAGE HALF IS SEPARATELY RULED OUT: all four actions were pressed, first appearing by cycle 3, and all four were pressed WHILE o20.w was present in 19 of 20 cycles - measured on a PROXY (slot named in any row that cycle) rather than the code's exact s-in-bef-and-aft, and stated as a proxy.
+
+**In Plain Terms.** Every button does the same thing to the object the agent picked. So either nothing has ever moved it the way it wants, or everything has and there is no reason to prefer any button. Both end the same way, and in both the agent correctly says it has no basis to choose instead of picking at random.
+
+**From the Agent's Side.** On this slot there is nothing to be capable of. The agent has no differential lever on it, so no improvement to the selector, the bargain or the shelf changes what it responds to.
+
+**Cycle #.** 20 x 1 board
+
+**Freeze #.** arc-freeze-02
+
+**Outstanding Issues.** OPEN and not needed for the verdict: which of the two 1879 routes fired. Needs `wanted`, which is not logged; one run wrapping _goal_split would settle it.
+
+**Resolved Issues.** CLASSIFIED under the window rule: the build's response is correct-given-the-input (abstains), so this is a QUIRK HANDLED RIGHT and gets a behaviour note, NOT a candidate fix.
+
+**Seat Read.** Y
+
+**Seat Position.** CLOSED - not a defect
+
+**Evidence That Would Settle It.** Nothing further is needed. The verdict holds on either route, and both routes are correct behaviour.
+
+**Seat Response.** AND IT KILLED THE F26 LINK FOR THE THIRD TIME TONIGHT. The story was that the 79% one-button policy starves the vote. Refuted: ACTION1 clears its own majority at 7 of 13 and the other three at 2 of 2, so the policy costs nothing here. Three attempts at connecting F26 to the planning failure, three checks that killed it - recorded because a link I keep reaching for and keep failing to establish is worth more as a repeated null than as an unstated hunch.
+
+**Last Updated.** 2026-09-09
+
+### `F28` — OPEN - NEW, and it is 2c's door
+
+**The Record.** THE ADAPTER STRIPS THE ONLY POSITIONED ACTION. arc_world.actions() filters to is_simple(), so ACTION6 - which carries x,y - never reaches the agent. Its docstring: advertising it here without the position would be advertising an action the loop cannot actually take. MEASURED rather than inferred: on ft09, vc33 and tn36 the agent's arm takes ZERO steps because the pool is empty, while the pointer arm moves freely (464/379/654, 49, 60). ka59 declares five actions and the ledger records the agent pressing exactly four. su15 declares [6,7]; the filter strips ACTION6 and ACTION7 is UNDO, so the agent gets ONE action whose job is taking moves back - and it runs 1200 steps without the episode ever ending. SECOND HALF: self.actions has exactly two write sites, __init__ at 328 and the level boundary at 545. A change in availability WITHIN a level is invisible to the agent, and Isaiah's point is that availability is itself an effect signal.
+
+**In Plain Terms.** The only control that takes a position is hidden from the agent on purpose, because the system cannot supply a position yet. On three boards that leaves it with no buttons at all. On one it leaves it with only undo. And it reads the list of what it can do once per level, so if the world changes what is available mid-level it never notices.
+
+**From the Agent's Side.** This is a contact limit, not a reasoning limit. Whatever the agent does to the world it does by pressing undirected buttons and watching. A plan made of undirected presses has much less to be about.
+
+**Cycle #.** 16 boards
+
+**Freeze #.** arc-freeze-02
+
+**Outstanding Issues.** NOT PROPOSED AS A BUILD CHANGE. ACTION6 is 17.1's arity question and 2c's to answer, a larger door than a note. AND THE REVIEWER'S HARD LINE IS ACCEPTED IN FULL: availability is legitimate to read; the DIRECTIONAL SEMANTICS (ACTION1=up etc) must NEVER reach the agent. Noting my own exposure - I recorded ACTION7-is-undo in the SEAT's records; nothing reads it and it never reaches the agent, but the reviewer is right that it is borderline and it is Isaiah's to rule. AND I29 PROMOTED THAT SENTENCE TO WHERE RULINGS ARE ACTUALLY READ: it is now ruling SIX in WINDOW_REPORT section 11, which listed five and omitted it. It is not a minor sixth - the reviewer's hard line is that availability is legitimate to read and DIRECTIONAL SEMANTICS must never reach the agent, so whether a seat-side note recording what an action DOES sits inside or outside that line is the encode-the-answer boundary itself. A ruling that lives only in a row's Outstanding cell is a ruling nobody is being asked to make. AND THE SECOND HALF IS NOW DOWNGRADED: available_actions measured FIXED within a level on ten boards, 21-400 frames each, varies on 0 of 10. So the once-per-level read is the RIGHT sampling rate for the observed regime and the perception gap is theoretical, not live. Every frame measured is level 0, and no walk has ever cleared a level, so the across-level behaviour is unmeasurable from here.
+
+**Resolved Issues.** This is the CAUSE behind CLAUDE.md's standing six-game exclusion, which was written from the symptom. Three of the six are now confirmed empirically.
+
+**Seat Read.** Y
+
+**Seat Position.** NAMED, not proposed
+
+**Evidence That Would Settle It.** Whether supplying a position changes what the agent can reach. The pointer arm acts on boards where the agent cannot act at all. AND THE ACTION7 RULING LANDED 2026-09-10: NOT YET, AND WATCH FOR ABUSE. Undo is real and so is reset; the question is WHEN the agent is smart or robust enough to know when to use it and understand what it does. TWO OPERATIONAL CONSTRAINTS: monitor the logs for OVERUSE from the first run where undo is available - an agent that reverses more than it advances is IDLING, NOT PLANNING, and that has a measurable signature; and it is a sign of higher-level thinking but SHOULD NOT BE NECESSARY, so a board requiring undo to clear is not the target case. THE SEAT-SIDE NOTE IS NOT THE PROBLEM - handing it to the agent before it can EARN the understanding is. The record stays where it is, nothing reaches the agent, and the overuse monitor is queued.
+
+**Seat Response.** My earlier count of 6 unactable / 18 touched was over DECLARATIONS in environment_files, not the live set. On ka59 at depth 6 the live set is CONSTANT (1,2,3,4,6). Corrected.
+
+**Last Updated.** 2026-09-09
+
+### `F27` — ACCEPTED - premise refuted, and all 3 candidates now settled
+
+**The Record.** RANDOM-WALK BASELINE, BUILT BECAUSE IT DID NOT EXIST. controlled() resets the bench and takes ONE step per trial; nothing in the repo ever played a policy out. 16 public boards x 3 seeds x 2 arms (simple-only = exactly what the agent gets; simple+ACTION6 at uniform random x,y). ZERO levels everywhere, extended to 1200 actions on the four boards that hit the first ceiling. Per game, never pooled. THREE HABITAT FACTS: (1) episode length is per-board and sometimes tiny - sp80 ends in 17-29 actions, and every sp80 reading this week was taken at 24 or 48 cycles, spanning a death and then no-ops. (2) Some endings are CAPS not deaths, separable by seed spread - identical across seeds means policy-independent (ka59 99, tu93 49, wa30 199, dc22 127, g50t 129, tr87 127, re86 99, vc33 49, tn36 60); varying means a real death (ls20, sp80, sb26, ar25). The ledger records one word for both. (3) Stepping is ~2,420/s by the harness's own header, so the whole sweep took under two minutes - the 35-minute runs are agent reasoning, not the world.
+
+**In Plain Terms.** I built the random player and ran it on sixteen boards. It never cleared a level either. What it bought was a map of the rooms: some end after a fixed number of moves no matter what you do, some end because you made a mistake, and one ends after about twenty moves - and we have been running the agent for twenty-four turns there and reading the result as a failure to learn.
+
+**From the Agent's Side.** The agent's zero is no longer evidence about the agent. It is the same zero a random policy gets, in rooms 17 to 1200 actions long. Both named barriers were derived from readings taken inside those rooms, and at least one room was over before the reading finished.
+
+**Cycle #.** 16 boards x 3 seeds x 2 arms
+
+**Freeze #.** arc-freeze-02
+
+**Outstanding Issues.** YOUR THREE CANDIDATES ARE ALL SETTLED AND THE VERDICTS ARE IN THE SEAT RESPONSE CELL RATHER THAN TWICE IN THIS ROW. What belongs here is MY OWN HEADLINE CORRECTED: the agent is worse than random on POLICY SHAPE and indistinguishable on OUTCOME.
+
+**Resolved Issues.** The baseline exists, is cheap, and is per-game.
+
+**Seat Read.** Y
+
+**Seat Position.** OPEN - and it reframes every null this week
+
+**Evidence That Would Settle It.** levels_completed has a working write path (arcengine/base_game.py:414, _score += 1) so the zero is real and not a dead field. BUT I have never observed it non-zero in any run, and a positive control needs knowing how a board is solved, which I may not learn. Permanent seat-side abstention with its closure named.
+
+**Seat Response.** REVIEWER ACCEPTED the refutation of their own premise and named the real yield: the HABITAT MAP is bigger than the baseline it was built for, and 'nothing in the repo had ever played a policy out - a benchmark harness that never played an episode is the deepest instance this week of a check that cannot see the thing.' ALL THREE OF THEIR CANDIDATES NOW SETTLED: (3) confirmed and bounded - budget alone does not explain it. (1) CLOSED for the agent, not just the random arm - sp80 x30 issued 30 world-steps in 30 cycles with budget.spent=30, one action per cycle, all landing. (2) REFUTED, and it was already refuted at INDEX:11253 - 131 actions in 1000 cycles, 867 dead ones; step() proposes no action after the episode ends. I ran a probe for it anyway and killed it mid-run on finding the answer written down.
+
+**Last Updated.** 2026-09-09
+
+### `F10` — OPEN
+
+**The Record.** Cost tracks UNITS (atoms + settled terms), not call count and not atom count. sp80 24->48: cycles doubled, library +1, wall 1.64x. ka59 24->48: library +27, wall 4.52x. Eleven doublings across four boards, direction agrees every time.
+
+**In Plain Terms.** How expensive a run gets tracks how big the agent's library has grown, not how many turns it took. The board that stopped learning also stopped getting slower.
+
+**From the Agent's Side.** No gameplay consequence directly. This is why long runs get expensive.
+
+**Cycle #.** 6/12/24/48
+
+**Freeze #.** arc-freeze-02
+
+**Outstanding Issues.** DO NOT BUILD ON IT until a second board separates library growth from run length. sp80 stopped minting and stopped growing simultaneously - and F27 adds a THIRD candidate cause: sp80's episode ends in 17-29 actions, so a 48-cycle run there is mostly no-ops. Three quantities under one curve.
+
+**Resolved Issues.** Corrected my own claim of four refutations - three readings measured three different quantities under one phrase.
+
+**Seat Read.** Y
+
+**Proctor Read.** Y
+
+**Seat Position.** AGREED - correlational, not established
+
+**Proctor Position.** ACCEPTED
+
+**Evidence That Would Settle It.** A board that keeps minting while cycles are held fixed, or vice versa.
+
+**Seat Response.** Reviewer accepted the correction and independently flagged the same confound.
+
+**Last Updated.** 2026-09-09
+
