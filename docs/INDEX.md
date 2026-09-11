@@ -32728,3 +32728,21 @@ available and guessing a base URL is not either.
     MECHANISM   built, seat-side, 9/9 seats clean, three refusal arms fired
     CAPABILITY  ZERO -- no session has been played online, and the question
                 "are the levels actually moving" is UNANSWERED until the key exists
+
+### and it cannot reach the sheet, which is `F99`'s condition firing a FIFTH time
+
+**Part A has 15 bytes free.** A minimal narration of this finding is 105 characters; swapping the
+`F89` headline for an `F114` one frees 12 more. **Refused by 78.** The installed headline check
+makes that arithmetic binding rather than optional — a headline promising `F114` that the Record
+cell never narrates is exactly what it fires on.
+
+> **AND IT IS NOT DISPLACED TO PART C, DELIBERATELY.** `F99` and `F104` both went there, each
+> flagged as the condition demonstrating itself. A fourth would stop being an exception and
+> become the operative structure — **a general overflow bin, which is neither of the two options
+> Isaiah and the reviewer hold.** Taking it silently is deciding the fourth-part question by
+> attrition, which is the one move refused all window.
+
+**So it is reported to Isaiah directly instead**, he being present, and the account lives here.
+**`<<HEAD>>` resolves into ZERO cells**, so the commit that added the runner moves the sync
+trigger and changes nothing the sheet carries: the trigger is right and the sheet has nothing to
+take. **The first finding this window that the budget has kept from the reviewer entirely.**
