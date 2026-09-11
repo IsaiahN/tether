@@ -30788,3 +30788,52 @@ still not fitting a rate.**
     MECHANISM   fourth-part condition met and measured; anchor proved inadmissible; the
                 escalation paid for out of a compressed recap and stated as a trade
     CAPABILITY  none. levels_completed 0, routine_cut 0, unchanged since F80
+
+---
+
+## `I55` — three patch anchors failed the same way in one session, and this one became a CHECK rather than a note
+
+**All three built the anchor by copying the PUBLISHED CSV.** `mksheets.py` stores that prose as
+line-wrapped Python concatenation, so the source carries `... FIGURES "` newline `" TIEBREAKER ...`
+where the CSV carries a plain space. **The literal never matches.**
+
+    F52's enumeration cut      anchor 0x    nothing written
+    F98's fold into F64        anchor 0x    nothing written
+    F98's fold, second attempt anchor 0x    nothing written  (the tail spanned a break too)
+
+**THE COST WAS ZERO EVERY TIME AND THAT IS THE POINT** — `I9`'s assert-present-and-unique guard
+caught all three, which is exactly what it was installed for after a `str.replace` matched nothing
+and reported success. **What the guard cannot do is stop me making the mistake**, and three
+instances of one shape is where `CLAUDE.md` says to install the check rather than be careful again.
+
+### the check does not ask me to stop copying from the CSV
+
+**That is the thing I will keep doing** — the CSV is what I read, and `I54`'s whole finding is that
+a rule aimed at where I *should* look does not install. `scratchpad/edit.py` makes the copy WORK
+instead: every gap between words matches either a plain space **or** a source line break.
+
+    _SEP = r'(?:\s+|"\s*\n\s*")+'
+    pattern = _SEP.join(re.escape(w) for w in rendered.split())
+
+**BOTH ARMS TESTED, AND THE POSITIVE CASE REPRODUCES THE DEFECT** rather than demonstrating the
+fix on a friendly input:
+
+    positive    the exact anchor from the CSV -- plain find() NOT FOUND, rsub MATCHED
+    negative    an anchor that is absent      -- refused, "matched 0 times"
+    ambiguous   an anchor that is everywhere  -- refused, "matched 2982 times"
+
+**Artifacts byte-identical throughout**, because `rsub` returns a string and writes nothing —
+`I34`'s ordering honoured by construction rather than by hoisting.
+
+> **THIS IS THE FIRST INSTRUMENT ERROR THIS SESSION THAT PRODUCED AN INSTALLED CHECK RATHER THAN A
+> RULE WRITTEN DOWN**, which is `I15`'s standing complaint answered with a mechanism instead of a
+> resolution. **`I15` is the entry that says a known trigger I do not execute is worth exactly
+> nothing**; a helper that makes the wrong habit produce the right result needs no execution.
+
+**AND IT CANNOT REACH THE SHEET'S LOG ROW THIS CYCLE — part A has 32 chars.** `F99`'s condition
+biting immediately, on the very next entry after it was declared. Recorded here; it reaches the
+reviewer when the fourth-part decision does.
+
+    MECHANISM   edit.py installed and tested on three arms; the positive case reproduces the
+                failure it fixes; artifacts unchanged
+    CAPABILITY  none -- tooling. levels_completed 0, routine_cut 0, unchanged since F80
