@@ -31464,7 +31464,20 @@ three artifacts byte-identical.
 part C regenerates to `e25e27cc` — **exactly the published copy** — so all three parts are
 current and **nothing is owed on transport.**
 
-**HEADROOM: 1,288 characters. `I61` needed 1,401.** The log is full.
+**HEADROOM: ZERO THAT ANYTHING HAS VERIFIED — and the first draft of this entry said 1,288.**
+That number is the distance to Google's **documented** 50,000, and what is **measured** is a
+band: **48,712 publishes correctly** (the live copy, content-verified) and **50,114 publishes
+empty**. The threshold is somewhere in between and nothing has probed it. **So `CELL_MAX` now
+sits at 48,712, the highest value demonstrated to work, rather than at the documented figure** —
+a gate set at 50,000 passes 1,288 characters nothing has ever verified, and the failure mode in
+that band is silent and total. `I41`: *an overstated check is the defect being recorded*,
+committed inside the check written to record one. **It costs nothing operationally: the log is
+full under either number.**
+
+**AND THE RISK IS CONFINED TO THAT ONE CELL, WHICH IS NOW COUNTED RATHER THAN ASSUMED.** Census
+of all three published parts: **1,037 cells, six above 5,000 characters**, and after the log's
+Record cell at 48,712 the next largest is **7,090** — a factor of seven below the limit. Nothing
+else is near it.
 
 > **THIS IS `F99`'s CONDITION IN A HARDER REGISTER, AND THE DIFFERENCE IS WHO ENFORCES IT.**
 > `PART_MAX` is a number I chose and can reason about; **50,000 is enforced by Sheets, silently,
