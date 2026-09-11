@@ -32854,3 +32854,72 @@ has paid for becomes a shortcut* — **has never fired on a real board.** Same s
                 10,176 exhaustive cases on P3. 16.7 -> 7.9 s/cycle at six.
     CAPABILITY  NONE. levels_completed unmoved, settled 0, chunk_reuse 0.
                 A faster search that finds nothing finds nothing faster.
+
+---
+
+## `F116` — the scorecard was posted, the zero is no longer local, and I overwrote the record of it
+
+**`F114` said every `levels_completed` so far is a LOCAL reading and the online runner had never
+been run.** It has now been run. **The server answered.**
+
+    card 3ef75a23-b3d7-4684-b471-bb49aa271cd3   opened 20:24:54Z, closed 22:38Z
+    environment ls20-9607627b
+
+      actions             38
+      levels_completed     0      of level_count 7
+      resets               0
+      completed        false
+
+**THE ZERO IS SERVER-CONFIRMED.** It is not this repo's arithmetic about its own run: it is what
+`three.arcprize.org` recorded, on a card this seat opened and closed, against an environment the
+server named. **That question — *are the levels actually moving* — is answered, and the answer is
+no.** `F114`'s capability row read ZERO for want of a key; it now reads zero for having been
+measured, which is a different and much stronger claim.
+
+### the run could never have finished, and that is the speed finding in its practical form
+
+**Launched with `cycles=400`.** At the pre-optimisation curve — roughly `1.5 x N²` seconds
+cumulative — **400 cycles is about 67 hours.** It ran 2h13m and reached **38 actions**, which is
+**210 seconds per action**. `F115`'s curve is not an offline artefact; it is what made a single
+online game unfinishable.
+
+> **AND THE SESSION WAS RUNNING CODE FIVE COMMITS STALE.** Python loaded `tether` before `P1`, so
+> nothing that landed today was in it. **Its wall-clock is the old curve and its result stands on
+> its own** — which is why it was stopped and relaunched rather than left to accumulate a number
+> nobody could attribute.
+
+### `I72` — I OVERWROTE THE ONLY COPY OF THE RESULT, AND `F87` ALREADY NAMES THE RULE
+
+**`POST /api/scorecard/close` returned 200 with the full record. I then wrote a `GET`'s body over
+the same file without checking its status**, and the `GET` was a 404 carrying
+`{"error": "SERVER_ERROR", "message": "card_id ... not found"}`. **Close is NOT idempotent** — a
+closed card reads `not found` — so the body cannot be re-fetched. **The fields above survive only
+because a probe had printed them; the `runs` array was truncated by that probe's own output limit
+and is gone.**
+
+**`F87` IS EXACTLY THIS RULE AND IT IS ABOUT SHEETS**: *verify the CONTENT before trashing the
+predecessor.* **I have applied it correctly on twenty-five consecutive publishes and did not
+recognise it wearing an HTTP response instead of a Drive file.** The generalisation is one line:
+
+> **A WRITE THAT REPLACES THE ONLY COPY MUST READ THE STATUS OF WHAT IT IS WRITING, WHATEVER
+> TRANSPORT IT ARRIVED ON.** `r.status_code` was available, unexamined, on the line above.
+
+**AND THE 404s BEFORE IT WERE TRANSIENT, WHICH IS THE SECOND HALF.** Both close paths — the
+package's and the documented direct POST — returned 404 twice, and the third attempt returned 200
+with the record. **I had a standing explanation ready** — *the package's close path is what fails,
+not the API*, filed earlier this window — **and it was the wrong one here, because the direct POST
+failed too.** A documented suspect read as derived rather than guessed, for the second time in two
+days.
+
+### what is running now
+
+**Card `ae7de83e-111d-462e-9e15-a16c15e8d5f8`, opened 22:40:16Z** — the optimised tree at
+`9aea372`, **40 cycles**, `stop_on_end=True`, which post-`P5` should terminate rather than run for
+three days. **The refusal arm fired first and correctly**: the relaunch without `OPERATION_MODE`
+was refused with *under any other mode the scorecard is LOCAL*, rather than quietly producing a
+local number.
+
+    MECHANISM   a scorecard opened, played, and CLOSED against the live server;
+                three refusal arms exercised; the first posted card in the project
+    CAPABILITY  levels_completed 0 of 7, SERVER-CONFIRMED, 38 actions.
+                The number did not move. It is now a measurement rather than an absence.
