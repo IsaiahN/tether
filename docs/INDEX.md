@@ -31421,3 +31421,65 @@ is `F85`'s recorded state and Isaiah's to close. **Unchanged, not forgotten.**
     MECHANISM   15th consecutive exact verify; all three parts synced; freeze discipline
                 checked at 8/8 commits rather than assumed
     CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
+
+---
+
+## `F106` — an oversized cell publishes as EMPTY, and every check in the chain passed except the last one
+
+**The log row's entire 61-entry body published as blank, and nothing before the content check
+could see it.** `I61` took the log's `Record` cell to **50,114 characters against Google Sheets'
+50,000-character per-cell limit.** Sheets does not truncate an oversized cell — **it drops it to
+empty** — and the file still converts, still has a plausible `fileSize`, and still shows real
+rows in its snippet.
+
+    create_file        returned an id, no error
+    fileSize 8,740     > 1000, so the metadata gate PASSED -- against 28,092 for the copy it
+                       would have replaced, and I read that gap as conversion lag
+    contentSnippet     showed the SPLIT row in full, because SPLIT is under the limit
+    content check      | I1-I61 | LOGGED -- ... |  | Sixty-one times ...
+                                              ^^ the Record column, empty
+
+> **`F87`'s ordering is the only reason this is recoverable.** Verify the CONTENT before
+> trashing the predecessor — installed after a near-miss where nothing was actually wrong, and
+> **this is the first time it has caught a publish that genuinely was.** The broken copy is
+> trashed; `1JCSwTCc` stays live and is correct at `I1-I60`.
+
+### the guard existed one level up and nobody asked whether it reached this level
+
+`PART_MAX` guards the **file** at 104,000 and has fired, deliberately, many times. **Nothing
+guarded the cell.** And the cell it needed to guard is the one the `SPLIT` row already names as
+*the one row that grows every cycle by construction* — so this was not bad luck, it was the only
+place this could have happened and it was reachable from the first day the log got its own file.
+
+**`I40`'s shape exactly: a repair preserved as an artefact and lost as a rule.** The budget
+reasoning was right, was commented, and was never asked whether it covered a second dimension.
+
+**INSTALLED:** `CELL_MAX` in the generator, hoisted above the open per `I34`. **Negative arm run
+against the live output path**, not a copy: it fires on `('I1-I61', 2, 50114)` and leaves all
+three artifacts byte-identical.
+
+### what is withdrawn, and what that costs
+
+**`I61` is withdrawn from the sheet and stays in this record.** The generator emits again and
+part C regenerates to `e25e27cc` — **exactly the published copy** — so all three parts are
+current and **nothing is owed on transport.**
+
+**HEADROOM: 1,288 characters. `I61` needed 1,401.** The log is full.
+
+> **THIS IS `F99`'s CONDITION IN A HARDER REGISTER, AND THE DIFFERENCE IS WHO ENFORCES IT.**
+> `PART_MAX` is a number I chose and can reason about; **50,000 is enforced by Sheets, silently,
+> and pays no attention to my reasoning.** The `SPLIT` row already records that compacting the
+> log was refused because the I series has no second home. **So the log needs one, and that is a
+> decision about what the reviewer reads — theirs and Isaiah's. Raised, not taken.**
+
+### one thing I got wrong inside this, and it is the reason the finding nearly shipped
+
+**I read `fileSize` 8,740 against the predecessor's 28,092 and reached for conversion lag** —
+`I53` and `I54` both record that `create_file` returns stale size metadata, so a small number had
+an established innocent explanation **and I had two log entries supporting it.** That is the
+best-documented-suspect failure: **a plausible cause with citations behind it, reached for before
+the one check that could distinguish them.** The content check settled it in one call.
+
+    MECHANISM   CELL_MAX installed and its negative arm confirmed on the live path; broken
+                copy trashed, predecessor intact and correct; all three parts current
+    CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
