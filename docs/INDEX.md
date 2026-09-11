@@ -32518,3 +32518,40 @@ each time.
 The source wraps *"no build file / differing"* across a line break and my anchor was built from the
 rendered text — **`I55`, and `I34`'s order held: the assert fired and nothing was written.** The
 `rsub` helper built for exactly this, after three instances, took the second attempt in one pass.
+
+---
+
+## `I68` — I widened a commit path by one directory and it swallowed Isaiah's uncommitted work
+
+**Every docs commit this session named ONE file** — `git add -A docs/INDEX.md`. This cycle touched
+two docs, so I wrote **`git add -A docs/`**, and it staged **four**: my two, plus
+`THE_FORMULA.md` carrying **138 of Isaiah's uncommitted insertions** and `WHAT_THE_AGENT_SEES.md`
+carrying the `ad7f4c3` revert. **Both were being held out deliberately, and that intent is recorded
+in `pubstate.txt`.**
+
+**The commit message described two files and the commit contained four**, with his work attributed
+under a message about my own finding.
+
+> **THE SAFETY WAS NEVER A RULE — IT WAS A NARROW PATH.** Nothing checked that held-out files
+> stayed out. The earlier commits were safe because they named a single file, which is *incidental
+> rather than designed*, **so the protection evaporated the moment the path widened and nothing
+> announced that it had.** A wildcard over state I had deliberately shaped, and I supplied no
+> discrimination to a command that has none of its own.
+
+### the catch was incidental, and that is the half not to dress up
+
+**`git` printed a CRLF line-ending warning that happened to NAME the two files**, and that is the
+only reason I ran `git show --stat`. **No practice of mine fired.** Had those files carried native
+line endings the commit would have stood, and **the first symptom would have been Isaiah finding
+his own work inside my history.**
+
+### repaired non-destructively, and verified as such
+
+`reset --soft` → unstage the two → recommit, with **all four files confirmed byte-identical before
+and after.** A repair meant to protect his work must not be the thing that destroys it, so the
+hashes were taken first and checked after rather than assumed.
+
+> **THE RULE, RECORDED RATHER THAN INSTALLED: while any file is deliberately held out of commits,
+> stage by EXPLICIT PATH — never `-A` over a directory.** First instance of this shape, and the
+> threshold for installing a check instead of being careful again is three. **So this is a rule
+> written down, which this log's own history says is the weaker half** (`I15`).
