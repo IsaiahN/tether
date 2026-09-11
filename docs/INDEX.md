@@ -31669,6 +31669,38 @@ question is exactly where `F107` left it.**
 
 ---
 
+## `I63` — the GC append landed mid-list, which is `F67` again, and the fix is derivation not a better anchor
+
+**`I61` and `I62` were appended by anchoring on the HEADER sentence of the rebuilt cell**
+(*"WHAT REMAINS BELOW is I41 onward."*), so they landed **between `I41` and `I42`** — measured on
+the generated artifact, not inferred: the order read `…41, 61, 62, 42, 43…`.
+
+**`F67` IS THE SAME DEFECT AND ITS OWN FIX NAMES THE REMEDY I DID NOT USE** — *the append point is
+taken from the log cell terminator, the one landmark in that cell that adding an entry cannot
+move.* I had that ruling, in this record, about this exact cell, and anchored on prose instead.
+
+> **Caught by reading the frozen copy before publishing — the fourth time that practice has paid
+> on this row.** Nothing was published misordered.
+
+**THE DURABLE FIX IS NOT A BETTER ANCHOR.** The cell is now **ASSEMBLED from a sorted entry
+list**, so ordering is DERIVED rather than maintained, with an assertion over the sequence that
+runs before anything is written. **`I41`'s ruling moved from the COUNT to the ORDER** — a derived
+order cannot drift, and that is the same answer that stopped the count drifting after five
+instances of patching it by hand.
+
+    order on the artifact   I41 I42 ... I61 I62   sorted, asserted
+    cell                    28,321 / 48,712       headroom 20,391
+
+**AND THE COST IS REAL AND WAS PAID:** re-freezing part C invalidated the three chunks already
+read (`F91`), so the read restarts. **That is the correct price for catching it before the paste
+rather than after.**
+
+    MECHANISM   log cell order derived and asserted; F67's class closed rather than its instance
+    CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
+
+
+---
+
 ## the early instrument log — MIGRATED FROM THE WORKBOOK, 2026-09-11
 
 **These 30 entries existed in FULL in exactly one place: the published workbook's log
