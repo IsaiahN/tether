@@ -30540,3 +30540,79 @@ is one I did not design and cannot schedule.
     MECHANISM   second consecutive diagnostic refusal; 872 chars of resolution-generated recap cut;
                 A fits at 103,952 with 48 headroom
     CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
+
+---
+
+## `F97` — RUN STATUS's open-items list is incomplete, and the cell's own governing rule forbids the list existing at all
+
+**A COMPLETENESS CHECK WITH A DENOMINATOR, WHICH IS `I29`'s METHOD AND `I29`'s SUBJECT.** `I29`
+found `WINDOW_REPORT` section 11 listing one category under a title a reader takes as total.
+**RUN STATUS's `WHAT REMAINS OPEN` replaced that handoff, and it has the same defect.**
+
+**Swept all 58 published rows across the three parts for live open-markers, then READ every
+match rather than reporting the count** — the raw sweep returns 41 of 58, and that total is
+`I24`'s hazard exactly: most matches are rhetorical (*"left open rather than invented"*) or
+historical (*"RULED"*, *"CLOSED"*).
+
+### eleven live items are missing, sorted by the addressee the row itself names
+
+    TO ISAIAH -- listed: F45 (Figures 12/13), F85 (keep or revert)
+      MISSING   F48   what a unary operator costs -- "NOT THE SEAT'S TO RULE"
+      MISSING   F46   phi-hat vs the proposer rule, and the contact-vs-forbidden tension
+      MISSING   F64   whether CONFIDENCE is a third quantity -- "is his"
+      MISSING   F35   the untracked corpus document -- "his call" to commit or leave
+      MISSING   CAPABILITY  the pre-linguistic framing, "HELD OPEN PENDING THE PROCTOR'S RESEARCH"
+
+    TO ME -- listed: F32, the failed-path catalogue, F28's monitor, the _gap_key test
+      MISSING   F50   a reach value on the REPEAT row -- "OWED, NOT PROPOSED"
+      MISSING   F56   any_live on the REPEAT row -- "OWED, NOT PROPOSED"
+      MISSING   F40   cost/left/base at the two reject arms -- "OWED, NOT PROPOSED"
+
+    TO YOU -- listed: the unfreeze question
+      MISSING   F34   whether SEPARATION is the right measure -- "that is the reviewer's question"
+      MISSING   F77   moving closed-and-read findings to the Archive -- "yours and Isaiah"
+      MISSING   SPLIT the fourth-part decision -- "yours and Isaiah's rather than mine"
+
+**AND THE OMISSION GOT WORSE WHEN I MADE THE SECTION BETTER.** Adding the `TO YOU` heading this
+cycle turned two addressees into three and made the list read more like a complete handoff —
+**while leaving three of the reviewer's own open items out of the heading addressed to them.**
+
+### the sharper half: the cell's opening rule forbids the section
+
+RUN STATUS opens with its own governing sentence:
+
+> *THIS CELL IS REWRITTEN EACH CYCLE, NOT APPENDED TO: it carries where the window is NOW and
+> **nothing that has its own row below.***
+
+**`WHAT REMAINS OPEN` names `F85`, `F32`, `F64`, `F35`, `F28` and `F45` — every one of which has
+its own row.** So the section violates the rule stated eight lines above it, and has since it was
+written.
+
+> **TWO RULES IN ONE CELL, AND THEY CANNOT BOTH HOLD.** Either the section should not exist, or
+> the opening sentence is a description of what the cell USED to be. **The section is the useful
+> half** — a reviewer needs the open set without reading 58 rows — **so the opening rule is the
+> stale one**, and it has been quietly licensing an incomplete list by making a complete one
+> look like a violation.
+
+**CLASSIFICATION: a defect in MY prose, not in the build and not a board quirk.** No candidate
+fix to any build file; nothing measured about the agent.
+
+### what is NOT claimed
+
+**Not that the eleven were hidden.** Every one sits in its own row's Outstanding or Seat Response
+cell, where it has always been readable — the defect is in the DIGEST, and a reader who works
+through all 58 rows was never misled. **What the digest changes is what a reader who trusts it
+concludes**, which is `F22`'s standing shape.
+
+**And `F31` is deliberately excluded from the eleven** — *"OPEN and not needed for the verdict"* —
+because a row that marks its own item as unnecessary is not an omission when a digest leaves it
+out. Counting it would inflate the finding by one.
+
+**THE FIX IS NOT STAGED THIS CYCLE AND THE REASON IS MEASURED: part A has 48 chars of headroom.**
+Eleven items plus a corrected opening rule is roughly 1,500 chars, so this edit **is** the test
+`F96` said was coming — and it should be made with the budget's answer read honestly rather than
+squeezed in tonight.
+
+    MECHANISM   58-row sweep with every match read; 11 live items missing from a 3-addressee
+                digest; the cell's opening rule found to forbid its own useful section
+    CAPABILITY  none -- this is the record. levels_completed 0, routine_cut 0, unchanged since F80
