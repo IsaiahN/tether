@@ -31496,3 +31496,64 @@ the one check that could distinguish them.** The content check settled it in one
     MECHANISM   CELL_MAX installed and its negative arm confirmed on the live path; broken
                 copy trashed, predecessor intact and correct; all three parts current
     CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
+
+---
+
+## `F107` — one of the two offered options is arithmetically impossible, and the decision was being asked without the numbers
+
+**`F101`'s lesson applied to my own open questions: I have asked the reviewer for two decisions
+and sent neither the arithmetic.** This supplies it. **Neither decision is taken here.**
+
+### first, the two walls are DIFFERENT and I had been letting them blur
+
+    F99   the FILE budget on parts A and B     PART_MAX 104,000, mine, reasoned about
+    F106  the CELL limit on part C's log row   enforced by Sheets, silent, not mine
+
+They have separate causes and separate remedies, and `F77`'s move-by-kind was only ever
+addressed at the first.
+
+### `F99` — move-by-kind is VOID, and it is not close
+
+**Part B has 70 characters free. The smallest closed-and-read row in part A is 3,739.**
+
+    part A   103,986 / 104,000      free  14
+    part B   103,930 / 104,000      free  70
+
+    closed and read, in A:  F56 F52 F51 F50 F48 F47 F46 F44
+    total if all moved:     37,018 chars leaving A
+    smallest single row:     3,739  against 70 free in B
+
+> **`F77`'s remedy requires a destination and there isn't one.** Every candidate row is fifty
+> times larger than the space that would receive it. **So the choice as I framed it has one live
+> arm, and the remaining option for part A is a fourth part** — which is still a decision, still
+> the reviewer's and Isaiah's, and still not taken. **What is removed is the illusion that there
+> were two.** `F78`'s shape: an option void by construction, and neither of us had checked.
+
+### `F106` — splitting the log row IS viable, with real margin
+
+Best balance falls at **`I41`: 23,294 / 25,418**, worst half **23,294 characters under the gate**.
+
+**BUT CHARACTER-HEADROOM OVERSTATES ENTRY-HEADROOM, BECAUSE THE ENTRIES ARE GETTING LONGER:**
+
+    I1-I20     3,258 chars over 20 entries  ->    162 per entry
+    I21-I40   20,011 chars over 20 entries  ->  1,000 per entry
+    I41-I61   25,418 chars over 21 entries  ->  1,210 per entry
+
+**The last ten average 1,274 characters, so 23,294 buys about EIGHTEEN more entries, not a
+reprieve.** Stated because *23,294 characters* reads as ample and *eighteen entries* does not,
+and at recent rates that is days rather than weeks.
+
+### the instrument error, caught by reading what the filter matched
+
+**My first pass keyed `closed and read` as *both read columns are `Y`* and returned NINE rows —
+including `CAPABILITY`, whose Status column reads `OPEN` in the same row.** It is the single row
+in part A that most needs to stay in front of the reviewer, and the filter proposed archiving it.
+
+> **A proxy for a property, where the property is written down one column over.** `I24`'s rule —
+> a count is not evidence until you have read what it matched — and it changed the candidate set
+> 9 to 8 **and did not change the verdict**, which is the honest sizing: the error was real and
+> the conclusion did not depend on it.
+
+    MECHANISM   F99's move-by-kind measured VOID (70 free against a 3,739 minimum); F106's
+                split measured viable at I41 and priced in entries rather than characters
+    CAPABILITY  none -- transport arithmetic. levels_completed 0, routine_cut 0, since F80
