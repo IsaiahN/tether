@@ -32599,3 +32599,47 @@ an hour before it.**
 **The heartbeat's ordered list is EXHAUSTED for this build, not blocked:** items 1 and 2 done at
 `846f174`; item 3 **ruled REACHED**; Phase 2 tagged `arc-freeze-02`; Phase 3 run with its readings
 recorded. **The window is waiting on three rulings and on nothing of mine.**
+
+---
+
+## `I70` — the log preamble's own statistics were hand-written and went stale every cycle by construction
+
+**Found by the completeness check `I29` asks for, not by an error hunt.** Denominator: **45
+module-level assignments** in `mksheets.py`, of which **8 are literals**, and all eight were **read
+rather than counted** (`I24`). Six are legitimate declarations — column headers, number words,
+`PART_MAX`, the deliberately-anchored `ANCHOR`, `LOG_PREFIX`, and `CELL_MAX` whose measured
+provenance is commented at its site. **One was `I64`'s class.**
+
+The preamble said *"I1-I20 is 3,258 chars, 6.7 percent, at 162 per entry; I41-I60 is 25,418, 52
+percent, at 1,270 per entry."* **Measured:** the per-entry averages are **exact** and the char
+counts within 20 — but the **percentages read 5.2 and 40.9 against 6.7 and 52**, because their
+denominator is the *whole log*, which grows every time an entry is added.
+
+> **THAT IS THE WORST VERSION OF `I64`: not occasionally stale but stale BY CONSTRUCTION, once per
+> cycle, forever.**
+
+**The fix splits, because the two halves earn differently.** The averages carry the argument — old
+entries are short, recent ones **eight** times longer, so deleting the oldest frees almost nothing
+— and are now **derived from the register**. The percentages carry nothing the argument needs, so
+they are **removed** rather than derived: `I41`'s *generate it or state none*, with **none** the
+right half for the third time. The hand-written *"seven times longer"* was also wrong by rounding
+at 7.84, and is derived now too.
+
+### the first guard covered one direction, and only the negative arm could have found it
+
+I asserted the placeholder was not left **unfilled**. **Removing it from the prose entirely makes
+`.replace()` a SILENT NO-OP** — the assertion passes trivially, the sentence quietly loses its
+statistics, **and the artifact is written.** I ran that arm and it did exactly that.
+
+`I56`'s shape, and this log's standing observation that **the defect sits in the FAILURE path while
+the passing path is correct.** Now asserts **presence before the fill and the value after it**;
+both arms fire, all three artifacts byte-identical through both refusals.
+
+### and the identity check was itself the wrong instrument
+
+I compared **raw md5s across a regeneration**, and part A carries the freshness stamp, so it
+changes on every generation **by design** (`F92`). It reported part A modified when nothing had
+modified it. Normalised the stamp and re-ran.
+
+> Small, and recorded because **it is the same disease as the finding — a number that moves by
+> construction, read as though it moves for a reason.**
