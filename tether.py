@@ -192,13 +192,28 @@ def objective_step(evaluate, current: int, ordered: bool, alphabet: int) -> Any:
         return NOT_RESOLVED
     if here:
         return current
-    hits = [v for v in range(alphabet) if v != current and evaluate(v)]
-    if not hits:
-        return NOT_RESOLVED
+    # P3: THE SAME ANSWER, ASKED AS A FIRST-MATCH. Both arms took ONE element out of a
+    # fully-built list -- `hits[0]` and `min(key=(abs(v-current), v))` -- so the probe ran
+    # the whole alphabet to answer a question the first hit settles. `evaluate` is `_sat`
+    # over `term.apply`, which is pure, so calling it fewer times changes nothing but time.
+    #
+    # THE ORDER IS THE OLD KEY MADE INTO A WALK, not a new preference: at distance `d`,
+    # `current - d` is the smaller `v` and therefore sorted first under `(abs, v)`. A
+    # `current` outside the alphabet reduces to the one-sided walk the key already gave it.
     if not ordered:
-        return hits[0]
-    target = min(hits, key=lambda v: (abs(v - current), v))
-    return current + (1 if target > current else -1)
+        for v in range(alphabet):
+            if v != current and evaluate(v):
+                return v
+        return NOT_RESOLVED
+    # ONE STEP TOWARD THE NEAREST, WHICH IS THE ARM'S WHOLE CONTENT -- `lo < current` and
+    # `hi > current` by construction, so the step is the sign and nothing is recomputed.
+    for d in range(1, alphabet + abs(current) + 1):
+        lo, hi = current - d, current + d
+        if 0 <= lo < alphabet and evaluate(lo):
+            return current - 1
+        if 0 <= hi < alphabet and evaluate(hi):
+            return current + 1
+    return NOT_RESOLVED
 
 
 def objective_gap(evaluate, current: int, ordered: bool, alphabet: int) -> Any:
