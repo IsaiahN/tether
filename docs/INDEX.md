@@ -29795,3 +29795,90 @@ than predicted once.
 
     MECHANISM   3 parts published, 2 verified exact; HEAD coupling removed; markers at 63ac8e7
     CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
+
+---
+
+## `F85` — "the corpus" is two populations under one word, and I have edited three documents I later called uneditable
+
+**FOUND BY A STATE CHECK, NOT A HUNT:** `git status` showed **two corpus documents with
+uncommitted modifications** — `THE_FORMULA.md` and `WHAT_THE_AGENT_SEES.md`. Neither is mine
+to edit and I had not touched them this window, so the corpus had moved and that is the thing
+to read.
+
+### first half: the record cites passages the committed corpus does not contain
+
+Four probes, whitespace-normalised, worktree against `HEAD`:
+
+    "can only accumulate"                          worktree 1   committed 0   <- F47 cites it
+    "no way to compose a refusal"                  worktree 1   committed 0
+    "bought reach and a term that bought nothing"  worktree 1   committed 0
+    "left open rather than invented"               worktree 1   committed 0   <- F52 quotes it verbatim
+
+**`THE_FORMULA.md`'s committed version is `4c377ac`, 2026-09-05 — five days stale, and it
+contains none of the revision list `F47` and `F52` were written against.**
+
+> **TWO OF THOSE PROBES FIRST READ `worktree=0`, AND THAT WAS MY GREP BREAKING ON MARKDOWN
+> BOLD RATHER THAN THE FILE.** I could see the text in the diff. `I24`'s rule — a zero is the
+> most convincing kind of wrong — applied to my own instrument *during* the check rather than
+> after publishing, which is the only reason the finding is the right size.
+
+**THE LIVE RISK IS LOSS, NOT ONLY INVISIBILITY: a `git checkout -- docs/` or a stash destroys
+Isaiah's edits with no backup, because they have never been committed.** Flagged loudly and
+**NOT committed** — `F35` already ruled that committing his draft is his call.
+
+### second half: the boundary CLAUDE.md predicted would get fuzzy, and it did
+
+`CLAUDE.md`'s CORPUS row names **seven files**. It mentions `THE_FORMULA.md` **zero** times,
+`WHAT_THE_AGENT_SEES.md` **zero**, `CODE_AUDIT.md` **zero** — and the file predicts this in
+its own words: *a document appearing later needs a side, and "is this a working document" is
+answerable only against a written split.*
+
+**CENSUS — 11 documents, every content-modifying commit READ rather than counted** (adds,
+renames and tracking commits separated out, because my first probe could not tell adding a
+file from editing one):
+
+    TABLE-NAMED, annotate-only by written rule
+      BUILD_PLAN.md     e75623b  +16 -0   MINE -- a dated READING written INTO the corpus
+      DISCOVERY.md      d436c05  +1  -1   mechanical `main` -> `core` rename. CLEARED, and
+                                          said so the breach count is not inflated by it
+      other five                  none
+    NOT IN THE TABLE, no side ever assigned
+      THE_FORMULA.md    52d495a, c28a0fc  MINE, two content edits
+      WHAT_THE_AGENT_SEES.md  ad7f4c3     MINE, "one overstatement corrected at source"
+      CODE_AUDIT.md               none    F38 treated it as corpus
+      outputs are not generators.md       committed by me at c2c9cc6, after F35 said
+                                          committing his untracked draft is his call
+
+**THE SHARPEST INSTANCE IS `F52`, PUBLISHED TO THE REVIEWER: *"RECORDED HERE BECAUSE
+THE_FORMULA IS CORPUS AND THE SEAT DOES NOT EDIT IT."* I had already edited it twice.** The
+row states a restraint as the reason for its own form, and the restraint was not exercised.
+
+### the cause, and it is `I30`'s shape at the level of governance
+
+**"The corpus" is TWO POPULATIONS UNDER ONE WORD.** In `CLAUDE.md`'s table it is *a list of
+seven files*. In `F30`, `F35`, `F40`, `F45` and `F52` it is *Isaiah's theory documents plus
+the fifteen figures* — the thing the tiebreaker reads. **Every one of my edits falls in the
+gap between the two senses**, which is why none of them felt like a breach at the time: each
+was to a document outside the list and inside the idea.
+
+`A6i`, and like `I30` the word sits in the **governance** rather than in the code — so it
+corrupted no measurement and instead spent the property the whole check runs on: `§8.4`'s
+*interpreter derivationally independent of the thing being explained.*
+
+> **AND THE DAMAGE IS SPECIFIC RATHER THAN GENERAL.** `ad7f4c3` corrected a corpus claim **to
+> match what I had just measured in the code**. That is precisely the move that makes a later
+> code-against-corpus check two mirrors — and it is the one edit of the three that changed a
+> claim rather than appending a reading.
+
+**MY POSITION, DERIVED RATHER THAN DEFERRED:** all three unsided documents pass the corpus
+test **by the rule's own stated reason** — written by Isaiah, earlier, in the theory register.
+So the defensible reading is that all three are CORPUS, and all three of my edits were outside
+my lane. **What is genuinely Isaiah's is narrower: whether to KEEP those edits or revert them**
+— because a revert is itself a corpus edit, and because two of the three may well be correct.
+
+**NOTHING REVERTED, NOTHING COMMITTED, NOTHING FIXED.** Every edit is dated, attributed and
+reversible, which is the whole of what makes this recoverable.
+
+    MECHANISM   census over 11 documents with a denominator; 4 cited passages confirmed
+                absent from the committed corpus; 4 seat content-edits identified
+    CAPABILITY  none -- this is the record, not the agent. levels_completed 0 since F80
