@@ -30608,10 +30608,39 @@ concludes**, which is `F22`'s standing shape.
 because a row that marks its own item as unnecessary is not an omission when a digest leaves it
 out. Counting it would inflate the finding by one.
 
-**THE FIX IS NOT STAGED THIS CYCLE AND THE REASON IS MEASURED: part A has 48 chars of headroom.**
-Eleven items plus a corrected opening rule is roughly 1,500 chars, so this edit **is** the test
-`F96` said was coming — and it should be made with the budget's answer read honestly rather than
-squeezed in tonight.
+**THE FIX IS STAGED, AND THE BUDGET'S ANSWER IS THE MEASUREMENT `F96` PREDICTED.** Writing the
+eleven items plus the corrected opening rule put part A at **105,377 against 104,000 — over by
+1,377**, and the anchor could not absorb it: `F42` weighs 4,659 and part B sits at 103,942, so
+moving it makes B **108,601**. **No admissible anchor move, so the fit had to come from scaffolding
+or not at all.**
+
+**THREE CUTS, 1,338 CHARS, AND THE LARGEST WAS CREATED BY THIS CYCLE'S OWN RESOLUTION:**
+
+    744   RUN STATUS's I47/I50 arguments -- the reviewer ACCEPTED both THIS CYCLE, and their
+          acceptance now sits in F89's row and the log's. Load-bearing until they agreed.
+    554   F52's enumeration of two corpus defects THE REVIEWER HAS SINCE REPAIRED
+     40   RUN STATUS's F89 recap, whose row three below carries the detail and their response
+
+> **SCAFFOLDING 1,338 AGAINST AN ADDITION OF 1,377 — within 39 chars.** That is `F96`'s mechanism
+> measured rather than argued: **resolution generated almost exactly as much room as the new
+> finding needed.** ONE INSTANCE, AND I AM NOT FITTING A RATE — `I41`'s rule against a number I
+> cannot generate applies here as much as to a count.
+
+**THE LAST 116 CAME FROM MY OWN ADDITION AND THAT IS NOT SHAVING, ON A STATED PRINCIPLE:** the
+sentence admitting that adding the `TO YOU` heading made the section read more complete while
+omitting three of the reviewer's items is **self-assessment, not an open item**. A digest whose job
+is to carry what is open does not carry the story of why it was incomplete; that belongs here.
+
+**FINAL: part A 103,940, HEADROOM 60.** The margin is now small enough that the next finding
+probably does meet the fourth-part condition, and that is worth saying in advance rather than
+discovering it.
+
+### and a guard fired on my own patch, correctly
+
+My first attempt at the `F52` cut anchored on text **reconstructed from the published CSV**, and the
+generator stores it as concatenated Python literals with different line breaks. **The `assert`
+matched zero and refused; nothing was written.** `I9`'s guard catching exactly what it was installed
+for — a `str.replace` that would otherwise have matched nothing and reported success.
 
     MECHANISM   58-row sweep with every match read; 11 live items missing from a 3-addressee
                 digest; the cell's opening rule found to forbid its own useful section
