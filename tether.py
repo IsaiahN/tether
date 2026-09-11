@@ -2408,6 +2408,12 @@ class Agent:
         robs = self._residual_obs(slot, held, hist)
         # HOISTED, because `units()` rebuilds a list and the pricing runs once per candidate.
         _units = tuple(self.gamma.units())
+        # THE CHEAPEST TERM THE COST FUNCTION ADMITS. `pays` is `cost + left < base`,
+        # `_left` is a sum of non-negative bits, and `term_bits` is monotone in `k` with
+        # `length() >= 1` -- so `floor >= base` proves NO term pays, at any depth, under
+        # any binding, before a candidate is enumerated. Same lemma as the inner break
+        # 170 lines down, applied as a precondition instead of a stopping rule.
+        floor = term_bits(1, self.gamma.alphabet)
         guards = {"support": base > 0.0, "reachability": False, "novelty": False}
         cuts: list[dict] = []
         best: tuple[float, float, float, Term] | None = None
@@ -2416,7 +2422,7 @@ class Agent:
         by_kind: dict[str, tuple] = {}
         rank = 0
 
-        if guards["support"]:
+        if guards["support"] and base > floor:
             # THE GAP IS ALREADY CHARACTERISED FOR RETRIEVAL; the search gets the same key.
             # §23.5: retrieval and the rank function are PREREQUISITES for a loaded library,
             # *otherwise loading makes the agent worse by drowning every search* -- and the
@@ -2595,6 +2601,23 @@ class Agent:
             # depth does not contain one" are different claims and only one is strong.
             if not guards["support"]:
                 detail["verdict"] = "no_support"
+            elif base <= floor:
+                # A THIRD WORD, BECAUSE THE OTHER TWO BOTH MISREPORT IT. `no_support` says
+                # the residual is empty and it is not; `depth_exhausted` says the space was
+                # searched and it was not -- and it sends the next reader at DEPTH, the one
+                # remedy that provably cannot help. This is not an abstention from an
+                # incomplete search: nothing was searched because the arithmetic closed it.
+                #
+                # AND IT IS A WAIT, NOT A FAILURE. `base` grows with the slot's history, so
+                # a residual under the floor crosses it once the ground has shown enough to
+                # be worth a term -- measured on `ls20`: o10.col 6.00 at hist 2, 12.00 at
+                # hist 3, and the search ran. Nothing is given up, only deferred to when it
+                # could have succeeded.
+                detail["verdict"] = "under_floor"
+                detail["note"] = ("the residual is smaller than the cheapest term the cost "
+                                  "function admits, so no term pays AT ANY DEPTH. Proved, "
+                                  "not searched -- check base_bits against floor_bits")
+                detail["floor_bits"] = round(floor, 3)
             elif stats["budget_spent"]:
                 detail["verdict"] = "budget_spent"
                 detail["note"] = (f"stopped early; coverage {detail['coverage']:.4f}. "
@@ -2606,9 +2629,16 @@ class Agent:
                 detail["verdict"] = "depth_exhausted"
                 detail["note"] = ("the whole space at this depth was seen and none paid; "
                                   "not at this depth, NOT unreachable")
+            detail["base_bits"] = round(base, 3)
             if detail["verdict"] == "no_support":
                 self._starved.add(slot)
-            if detail["verdict"] in ("budget_spent", "depth_exhausted"):
+            # `under_floor` OWES LIKE THE OTHER TWO, and the write site at `accept` is what
+            # decides it: *the slot keeps owing until something closes R* -- a fact about the
+            # SLOT, not about the search. Its residual is unclosed, so it owes. Leaving it out
+            # dropped five of six slots from the retro sweep's target list on a six-cycle run,
+            # which is a capability loss wearing a speedup's clothes. The search is skipped;
+            # the debt is not.
+            if detail["verdict"] in ("budget_spent", "depth_exhausted", "under_floor"):
                 self.owed_import.add(slot)
                 self.abstained[slot] = {"depth": self.cfg.max_depth, "candidates": seen,
                                         "coverage": detail["coverage"],
@@ -2705,7 +2735,17 @@ class Agent:
         def stale(rec: dict) -> bool:
             """`depth_exhausted` is not permanent. It means 'the whole space AT THIS UNIT
             SET', so a settled chunk that adds a unit retracts it."""
-            return (rec.get("verdict") != "depth_exhausted"
+            # BOTH EXHAUSTED WORDS, because `stale` reads the verdict STRING and P1 added
+            # one. Renaming a park verdict silently made five slots always-eligible on a
+            # six-cycle run -- a behaviour change smuggled in by a word, at a site 150 lines
+            # from the rename. P1's warrant is arithmetic and reaches the SEARCH only.
+            #
+            # OPEN, AND NOT SETTLED HERE: `under_floor` retracts on `base` growing, not on
+            # `units_now` -- `base` climbs with the slot's history every cycle while units
+            # sit at the atom floor. Under this line it is never retracted. That is the
+            # baseline's behaviour preserved exactly, which is the point; whether it is the
+            # RIGHT condition is a separate question and a separate change.
+            return (rec.get("verdict") not in ("depth_exhausted", "under_floor")
                     or units_now > rec.get("units_then", 0))
 
         eligible = [t for t in targets if stale(t[3]) and t[2]]
