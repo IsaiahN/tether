@@ -32746,3 +32746,111 @@ cell never narrates is exactly what it fires on.
 **`<<HEAD>>` resolves into ZERO cells**, so the commit that added the runner moves the sync
 trigger and changes nothing the sheet carries: the trigger is right and the sheet has nothing to
 take. **The first finding this window that the budget has kept from the reviewer entirely.**
+
+---
+
+## `F115` — four bounds the loop already owned, and the thing they cannot fix
+
+**Isaiah's target: five seconds or less per turn.** Measured on `ls20`, offline, per game and
+never pooled. **The denominator question dissolves on this board — every cycle produces exactly
+one world action, 9 of 9 — so seconds-per-cycle and seconds-per-action are the same number.**
+
+    baseline   100.4s / 6 cycles   16.7 s/cycle
+    P1          79.1                13.2
+    P2          60.1                10.0
+    P3          47.5                 7.9      -53%
+    P4 (9cyc)  129.8 -> 121.9       13.5 at nine
+
+### the four, and what makes each one free
+
+**None of them changes a decision, and each was verified rather than argued** — a ledger-row
+diff of every run, plus an exhaustive check where the input space admitted one.
+
+**`P1` — do not search a space the arithmetic has already closed.** `pays` is
+`cost + left < base`; `_left` sums non-negative bits; `term_bits` is monotone in `k` and
+`length()` floors at 1. **So `term_bits(1, A) >= base` proves no term pays, at any depth, under
+any binding.** That is the mint loop's own inner-break lemma, applied as a precondition instead
+of a stopping rule. **8 of 23 mint calls on a four-cycle run were provably hopeless before a
+single candidate was enumerated.**
+
+> **A THIRD VERDICT WORD, NOT A WIDENED `support`.** `no_support` says the residual is empty and
+> it is not; `depth_exhausted` says the space was searched and it was not — **and it sends the
+> next reader at DEPTH, the one remedy that provably cannot help.** `under_floor` is a WAIT:
+> `base` grows with history and crosses the floor, measured on `o10.col` at 6.00/hist 2 and
+> 12.00/hist 3, where the search then ran. Nothing is given up, only deferred to when it could
+> have succeeded.
+
+**`P2` — the object record is a function of `(slot, state)`, not of the candidate.** `_record`
+and `_group` read the frame and nothing about the term. **1,144,007 calls for at most ~235
+distinct answers; `_record` alone 24% of wall.** Cached at the two sites the three existing frame
+caches already use. Keyed on `id(state)` **with the state held in the value**, which makes the key
+exact rather than probabilistic — a live reference cannot have its id reused.
+
+**`P3` — `objective_step` asked a first-match question by building the whole list.** Both arms
+took one element out of a fully-built `hits`, so the probe evaluated the entire alphabet — ~33
+`term.apply` calls on ARC — to answer what the first hit settles. **The order is the old `min`
+key made into a walk, not a new preference.**
+
+**`P4` — `_reach` had no bound of any kind.** It is **323,400 of 333,000 `_left` calls** on a
+nine-cycle run against `mint`'s 2,193, enumerating the full closure against every operand
+binding and walking the whole history for each.
+
+### and `P4`'s first half is not a performance matter at all
+
+**`_operand_fits` is already ruled at its own site** — *a NECESSARY CONDITION, NOT A PREFERENCE;
+it refuses a binding that cannot mean anything, a row plus a colour* — and *the narrowing costs no
+capability*. **`mint` calls it. `_reach` never did, and `_reach` picks by `left` ALONE**, so an
+ill-typed binding could win there.
+
+    slot o10.dcol, a delta-column
+      before   translate<o0.colour>             left 21.0   <- a COLOUR as the operand
+      after    translate . translate<o14.row>   left 28.0
+
+**All 32 differing rows are `ROUTE/reuse_refused` on both sides** — the reuse is refused either
+way, so no capability moved and only the named candidate went from meaningless to coherent.
+**That is `_operand_fits`' own promise, checked.**
+
+### two instrument errors, and the first was mine at the top of the session
+
+**THE 59.5 s/cycle FIGURE I REPORTED WAS PROFILER OVERHEAD.** I compared a `cProfile` run against
+an unprofiled one and read the ratio as the agent's cost. The true baseline is **16.7**, not 59.5,
+and the first improvement claim I made from it — 4.5x — was **17%**. `cProfile` inflates this
+workload about fourfold because it is function-call dense. *Same shape as the two-action
+comparison Isaiah caught: a rate read off two populations that were never comparable.*
+
+**AND THE FIRST `P1` DRAFT DROPPED FIVE OF SIX SLOTS FROM THE RETRO SWEEP.** `under_floor` skipped
+`owed_import.add(slot)`. **`accept`'s write site rules it** — *the slot keeps owing until something
+closes R*, a fact about the SLOT, not about the search. **A capability loss wearing a speedup's
+clothes, and the row diff is the only thing that caught it.** Then the rename leaked a second
+time: `stale()` discriminates on the **verdict STRING**, 150 lines away, and the new word silently
+made those same slots always-eligible. **Two behaviour changes smuggled in by one word.**
+
+### THE THING THE FOUR CANNOT FIX, AND IT IS THE REAL FINDING
+
+**The cost is a CURVE, and a six-cycle mean hid it.**
+
+    cycle    0     1     2     3     4     5     6     7     8     9
+    secs  1.07  1.18  4.25 10.29 13.19 19.33 20.53 22.38 39.64 27.84
+
+**A constant-factor win does not touch a curve — it moves where the curve crosses 5 seconds.**
+2.1x buys about two cycles.
+
+**AND NOTHING SETTLES. NOT ONCE, ON A REAL BOARD.**
+
+    4 cycles · 23 mint calls · library 52 -> 53 · atoms 52 · SETTLED 0
+
+`units()` is atoms + **settled** terms, and `length()` returns 1 only for a unit. **With zero
+settled, `units()` is permanently the 52-atom floor, no composition is ever cheap, and every mint
+re-prices the same space from scratch forever.** The corpus's own shortcut — *only what the ground
+has paid for becomes a shortcut* — **has never fired on a real board.** Same shape as `F56`, and
+`chunk_reuse` reading 0 across all fourteen board-depth readings.
+
+> **SO THE FIVE-SECOND TARGET HAS TWO HALVES AND ONLY ONE OF THEM IS A PERFORMANCE QUESTION.**
+> The constant is seat work and four of them are done. **The curve is a capability question**: the
+> mechanism designed to stop the agent re-deriving everything has never once engaged, and no
+> amount of making the re-derivation faster is the same as it not happening.
+
+    MECHANISM   four bounds landed, 9/9 seats clean, every run row-diffed,
+                10,176 exhaustive cases on P3. 16.7 -> 7.9 s/cycle at six.
+    CAPABILITY  NONE. levels_completed unmoved, settled 0, chunk_reuse 0.
+                A faster search that finds nothing finds nothing faster.
