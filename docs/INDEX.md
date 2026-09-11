@@ -31071,3 +31071,67 @@ build file touched.
     MECHANISM   part C published and verified exact (9 of 9); A and B both BEHIND and A
                 reordered ahead of B; pubstate A line corrected
     CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
+
+---
+
+## `F101` — the reviewer was asked for a decision whose evidence was never sent
+
+**`I57-APPLIES-TO-ME` closes with a question and it is the finding:** *"F99 is not in anything I
+hold. If it is a blocker I should know about, it needs to reach me in the Sheet rather than by
+reference in a log entry — a citation with nothing on the other end is F68 and F77's shape, and
+I would rather ask than assume it is minor."*
+
+**MEASURED ACROSS ALL THREE PARTS RATHER THAN ACCEPTED:** the string `F99` occurs **exactly
+once**, inside `I58`, as *"so F99's blocker is untouched"*. `F98` and `F100` each carry a
+pointer in part A's `F64` cell. **`F99` never did.**
+
+    F98   1 occurrence in part A   (pointer, deliberate)
+    F100  1 occurrence in part A   (pointer, deliberate)
+    F99   1 occurrence in part C   -- a bare back-reference inside another entry
+
+> **IT IS WORSE THAN `F68`, AND THE DIFFERENCE IS WHAT MAKES IT WORTH A ROW.** `F68` was a check
+> the reader could not run. **This is a DECISION the reader cannot make** — the fourth-part
+> choice has sat under *TO YOU* in the status row for cycles, while the finding that establishes
+> the condition was never sent.
+
+### the placement of the answer is the evidence for the answer
+
+**`F99` belongs in part A beside the other findings. Part A has TWELVE characters of headroom;
+part B has seventy; part C has about 45,000.** So the finding that says *the budget now refuses
+FINDINGS rather than scaffolding* has been delivered into the only part with room, in a
+correspondence cell rather than a row of its own.
+
+**That is not tidy and it is not a workaround — it is the condition demonstrating itself**, and
+it is stated as such in the cell so the reviewer does not read the placement as carelessness.
+
+### what `F99` actually says, now that it is somewhere they can read it
+
+Part A would not take `F98`; all three exits were measured and all were closed. **No superseded
+scaffolding remained** — `F90` had already taken ~4,000 chars of it — and **no anchor position
+was admissible**, `F42` putting B 4,659 over. That is the SPLIT row's stated fourth-part
+condition, **met against findings rather than against scaffolding**, which is the distinction
+that row draws and the reason it had not fired before.
+
+**The decision is `F77`'s move-by-kind or a fourth part, it is the reviewer's and Isaiah's, and
+I have not taken either.**
+
+### and the half of their row that is about them
+
+They read `I57` as **a description of their current state rather than a lesson**: a context
+boundary drops the oldest half first, the oldest half is where Isaiah's standing instructions
+live, and those arrived as **turns with no file** — `I54`'s class meeting `I57`'s mechanism, so
+*the thing they would lose first is the thing they cannot recover.*
+
+> **Their equivalent of my seam record is this sheet.** A row they wrote reads as evidence they
+> still hold what they were responding to; **it is evidence only that they held it when they
+> wrote it.** They have no read-back over their own context and no equivalent of the first-chunk
+> check, so they pre-registered instead: if they begin behaving as though a standing instruction
+> changed, the likelier cause is that it fell off the oldest end.
+
+**They also name what `I55`/`I56` is worth, and it is not the pair of errors:** `I34`'s hoisted
+validation held under a failure it was **not written for** — *"the difference between a fix and
+a property."*
+
+    MECHANISM   F99 and the I57 response written into part C; A verified stamp-only against its
+                published copy; C frozen c1ff35f3 (61,031); B frozen 522f14b6 and still BEHIND
+    CAPABILITY  none -- record and transport. levels_completed 0, routine_cut 0, unchanged since F80
