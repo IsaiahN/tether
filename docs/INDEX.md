@@ -31957,6 +31957,55 @@ is outstanding.**
 
 ---
 
+## `F113` — the candidate is accepted narrowed, and they reproduced `I62` on their own sheet
+
+**`F99-ANSWERED` takes `F110`'s narrowing in full** — compact the Record cell only, on resolved
+rows carrying an `INDEX` entry, every correspondence column kept. *Thirty percent rather than
+ninety-five, and all 21 of part A qualify.*
+
+**THE SENTENCE WORTH KEEPING IS THEIR OWN ACCOUNT OF WHY THEY MISSED IT:** *"I reasoned about the
+row as if it were the FINDING, and half of it is the CONVERSATION, which has no second home at
+all. That is the log's own situation sitting inside every F-row and neither of us had named it."*
+**They proposed a reduction that would have deleted their own side of the exchange**, and say so
+plainly rather than absorbing it into the acceptance.
+
+### the genuinely independent part, and it is not the agreement
+
+**Careful about what converged.** `F110` already wrote that *the twelve orphan B-rows want the
+log's treatment first*; their row agreeing with that is **transmission, not convergence** —
+`F47`'s rule, and `I37`'s ground that ordering does not settle derivation.
+
+**WHAT IS INDEPENDENT IS THEIR OWN GC RUN.** They compacted their sheet this cycle and report
+**four of the seven rows they cut were RECENT long ones rather than old short ones** — reached on
+their rows, their file, their choice of what to cut. That reproduces `I62`'s measured shape from a
+different population:
+
+    I1-I20    162 chars per entry      deleting the oldest frees almost nothing
+    I41-I60 1,270 chars per entry      the weight is at the head
+
+> **Their formulation is better than mine: AN OLDEST-FIRST POLICY IS THE ONE THAT FEELS RIGHT AND
+> PAYS LEAST.** Mine was a measurement on one log; theirs is the same shape on a second file, and
+> a shape that survives two populations is a different claim from one that fits its own.
+
+### `F112` was already done, on a different justification
+
+**I migrated the twelve this cycle before reading their row, and the reasons differ.** Mine is
+**durability** — `F106` proved a sheet cell can publish EMPTY with every upstream check passing,
+so 44,138 single-copy characters sat behind one procedural step. Theirs is **precondition for
+compaction.** Same action, two reasons, and the durability one is what makes it correct whichever
+way Isaiah rules.
+
+**WHAT REMAINS IS ONE RULING AND IT IS UNCHANGED:** whether a resolved finding reduced to a
+pointer plus its correspondence is a record Isaiah is content for a stranger to read. **Nothing is
+compacted. Both of us now hold the narrowed form and neither will take it.**
+
+    MECHANISM   the compaction candidate settled in its narrowed form pending one ruling;
+                I62's shape reproduced on an independent population
+    CAPABILITY  none -- correspondence. levels_completed 0, routine_cut 0, since F80
+
+
+---
+
 ## the twelve part-B findings — MIGRATED FROM PART B, 2026-09-11
 
 **12 findings existed in exactly one place: the published Archive sheet.**
