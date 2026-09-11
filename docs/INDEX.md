@@ -29268,3 +29268,48 @@ are categories; *newest findings* is a window that only ever slides.
     MECHANISM   the budget assertion fired before any write, for the fifth time this session,
                 and the anchor move was one row and recorded in the SPLIT row's own history
     CAPABILITY  none -- transport, levels_completed 0
+
+---
+
+## I47 — THE VERIFY CHECK'S COVERAGE IS SET BY THE TRANSPORT, NOT BY WHAT IT CHECKS
+
+All three parts republished this cycle. **`verify_publish.py` ran on part A and read
+80,993 / 80,993 normalised chars — exact. It could not run on part C, and the reason is
+the finding.**
+
+`verify_publish` needs the published copy ON DISK. It gets there only when
+`read_file_content`'s result is large enough to be auto-persisted to a tool-results file.
+**Part A is 103,853 bytes and persisted. Part C is 37,108 and came back INLINE — into my
+context.**
+
+> **AND ROUTING IT TO DISK THROUGH ME DESTROYS THE THING THE CHECK IS FOR.** `I31`'s whole
+> finding is *comparing this publish against my last publish measures nothing — BOTH SIDES
+> ARE ME*, and `I33` built the instrument specifically to have a subject that is neither my
+> context nor my care. **Re-typing the published bytes out of context and onto disk puts my
+> context back on the published side**, and the failure it would then be blind to is exactly
+> `I42`'s: a sentence I "correct" toward what I believe it says. **A check whose subject I
+> supply is not a weaker check, it is the check `I33` already refused.**
+
+`download_file_content` was tried as the way round it and returns base64 — which is 4/3 the
+size and would have to be typed by me too, so it moves the defect rather than removing it.
+
+**THE SHAPE IS THIS WINDOW'S, AND IT IS WORSE THAN THE USUAL VERSION.** The recurring
+complaint is *a check that reads clean while covering half the ground*. Here the ground it
+covers is **decided by a size threshold in a tool that knows nothing about publishing** —
+so coverage moves on its own, with no edit, no decision and no signal. **Part C shrinking or
+part A growing changes what is verified, silently.** `I41` is the same disease: a checker
+disarmed by a rephrase nobody connected to the check.
+
+**WHAT IS CLAIMED ABOUT PART C, AND IT IS LESS THAN VERIFICATION.** `fileSize` 16,975
+against the previous copy's 16,928; title search returns exactly one `Tether Workbook Log`;
+both rows present with the right ids. **Those are plausibility, not equality.** Part C was
+read off disk in three chunks with explicit end markers (`I43`'s fix) and the seams join —
+which is the practice, and `I42` is the entry proving the practice does not cover assembly.
+
+**NO CANDIDATE FIX PROPOSED.** The obvious one — have the generator emit a hash the sheet
+carries, so a stranger can check a part against its own content — **changes what the
+reviewer reads**, and that is theirs and Isaiah's on the same grounds `F77`'s archive
+candidate was raised and not taken. Raised here, not taken.
+
+    MECHANISM   verify_publish ran and read exact on the one part it could reach
+    CAPABILITY  none -- transport, levels_completed 0
