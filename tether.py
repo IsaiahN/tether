@@ -1333,10 +1333,21 @@ class Agent:
         self._outstanding[slot] = have - took
         return round(took, 3), round(max(0.0, bits - have), 3)
 
-    def _left(self, term: Term, slot: str, hist) -> float:
-        """What the term leaves unexplained across the slot's history, in bits."""
+    def _left(self, term: Term, slot: str, hist, ceiling: float | None = None) -> float:
+        """What the term leaves unexplained across the slot's history, in bits.
+
+        `ceiling` IS AN EXACT ABORT, NOT AN APPROXIMATION. Every term added here is
+        non-negative -- `log2(alphabet)` or `correction_bits` -- so a running total that
+        has reached the incumbent's can only grow past it. The caller compares with a
+        STRICT `<`, so a candidate that returns an aborted total is one that could not
+        have won. The winner is bit-identical; only the losers stop early.
+
+        Default `None` leaves every existing caller walking the full history.
+        """
         total = 0.0
         for state, action, actual in hist:
+            if ceiling is not None and total >= ceiling:
+                return total
             if not self._applies(term, state):
                 total += math.log2(self.alphabet[slot])   # inapplicable is unexplained
                 continue
@@ -2750,8 +2761,19 @@ class Agent:
         for cand in self.gamma.enumerate_closure("val", "val", self.cfg.max_depth,
                                                  self.cfg.budget):
             for bind in [None] + [s2 for s2 in slots if s2 != slot]:
+                # `_operand_fits` IS ALREADY RULED AND THIS SITE NEVER CALLED IT. Its own
+                # docstring: *a NECESSARY CONDITION, NOT A PREFERENCE -- it refuses a
+                # binding that cannot mean anything, a row plus a colour*, and *the
+                # narrowing costs no capability*. `mint` applies it; `_reach` scored those
+                # bindings and picks by `left` ALONE, so one could win here. This is the
+                # existing ruling applied at the site that lacked it, not a new decision.
+                if not self._operand_fits(cand, slot, bind):
+                    continue
                 t = Term(cand.atoms, operand=bind)
-                left = self._left(t, slot, hist)
+                # BRANCH AND BOUND, and `_reach` had no bound of any kind -- 323,400 of
+                # 333,000 `_left` calls on a nine-cycle ls20 run against `mint`'s 2,193,
+                # each walking the whole history. The incumbent is the ceiling.
+                left = self._left(t, slot, hist, ceiling=best[0] if best else None)
                 if best is None or left < best[0]:
                     best = (left, t)
                 if left == 0.0:
