@@ -32435,3 +32435,43 @@ shape — **two homes for one quantity, and the one that reads like the authorit
 `log_entries.json` as the single register, and `mksheets.py` builds the cell from it at generation
 time, sorted, with the sequence asserted before anything is written. **Then the published sentence
 describes what the pipeline does.**
+
+---
+
+## `I66` — `I58` removed the count from that row and left the size, one clause away
+
+**The pre-freeze census caught `SPLIT` saying the log *"is 33,443 chars"* against an actual
+31,219** — a present-tense hand-written size, stale, and generated into **all three parts**.
+
+> **THAT IS EXACTLY WHAT `I58` DIAGNOSED AND FIXED.** A quantity about the LOG living in the two
+> files that do not contain it **re-couples the three parts the anchored cut exists to keep
+> independent** — a change to the log could only be published by republishing the two parts that
+> do not hold it. `I58` removed the ENTRY COUNT for precisely that reason and closed with *"the
+> census confirms it: no log count survives anywhere in A or B."* **True of counts, false of
+> sizes — and the size was the next clause.**
+
+**Repaired the instance and left the class** (`I25`), with the class close enough to touch. **The
+fix is removal again, not derivation:** deriving the size would re-couple the parts, which is the
+thing being prevented, and the REASON the log got its own file — *it is the one row that grows
+every cycle by construction* — survives without a number and cannot go stale.
+
+### a second stale claim in the same pass, and it is separated because it is a different failure
+
+**`F110`'s answer said *"PART B IS 11 OF 23 and is the ONLY home for F10, F27, F28 and F31 through
+F39."*** `F112` migrated **exactly those twelve** to this file the same cycle. **My own action
+falsified it**, and the retraction sat only at the END of the cell, inside `F113`.
+
+Corrected where the claim is **made**, not only where it was later withdrawn — **a durability
+claim a reader meets first and sees retracted last is one they may act on in between.**
+
+### the instrument was wrong before it was right, and the hit count concealed it
+
+**My first census keyed on upper-case spelled numbers and returned 132 hits in part A** — almost
+all prose emphasis (*THE ONE THING THAT MOVED*, *FOUR ITEMS*), **not one of them an asserted
+count.** `I24` on my own instrument: **the total told me nothing until I read the matches.**
+Narrowing to numbers *adjacent to the words that name the log* returned a set small enough to read
+in full, which is how both real ones surfaced.
+
+> **Caught BEFORE the publish round rather than after, which is the only reason it cost nothing —
+> both would have gone out at 16:55Z.** `I58`'s check earning its keep on the row that motivated
+> it.
