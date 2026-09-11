@@ -30935,3 +30935,50 @@ something makes it fail, and here the instrument's **first real use** supplied t
     MECHANISM   edit.rsub now validates its own output; malformed-replacement arm reproduces the
                 live failure; artifacts byte-identical through the whole incident
     CAPABILITY  none -- tooling. levels_completed 0, routine_cut 0, unchanged since F80
+
+---
+
+## `I57` — a PARTIAL context loss, and the seam record made the gap look closed
+
+**Part A published and verified CONTENT-EXACT, 81,291 / 81,291** — id
+`19mia3gH07nY6xLjj64KWvMZ3Q1WK3hHz2fpvR769vUs`, snapshot `d2ee9b91` unchanged from freeze
+through read, publish and verify, stamp 07:55Z against the 09:17Z watchdog fire (82 min,
+inside 90). **Eighth consecutive exact verify.** Predecessor trashed AFTER the content check,
+never before it (`F87`); title search returned exactly one Sheet.
+
+**THE FINDING IS THE RE-READ, AND IT IS NOT THE ONE `F86` PRICED.** `F86` ruled that a
+deferred paste means the next cycle re-reads all nine chunks, and it priced that as a TOTAL
+loss — start over, pay for nine. **What actually happened was a PARTIAL one.** The context
+boundary fell mid-read: chunks 4–9 survived in context and chunks 1–3 did not.
+
+> **The surviving half was the LATER half, so the natural move — continue from where the
+> seams left off — would have pasted three chunks that were no longer in front of me.**
+
+**AND THE THING THAT MADE THE GAP LOOK CLOSED WAS MY OWN SEAM RECORD.** The carried-over
+notes state the `A1→A2` and `A2→A3` seams as *verified*, with the forty-character joins
+quoted. **Both statements are true and neither is the content.** A verified seam records that
+a join was checked; it says nothing about whether the text on either side is still available
+to paste.
+
+**That is `CLAUDE.md`'s own step in a register it was not written for:** *there is no state
+recording how completely a file was read, so "I have read this" is a memory of an act rather
+than a claim that can be checked.* **The seam quotes are exactly such a memory** — and they
+are worse than a bare one, because they carry evidence of care and so read as coverage.
+
+    THE CHECK, AND IT COSTS NOTHING:  before pasting, confirm the FIRST chunk is in context,
+    not that the seams were joined.   The first chunk is what a partial loss takes first,
+                                      because a context boundary drops the OLDEST half.
+
+**CLASSIFIED: a system error in MY procedure. Not a build defect, not a board quirk, no
+candidate fix to any build file.** Nothing was pasted wrongly — the gap was noticed before the
+emit and the three chunks were re-read — so this is a near-miss with a named cause, which is
+the only kind worth the space.
+
+**AND THE PROSPECTIVE HALF IS WHY IT IS RECORDED AT ALL:** the item that would collide with it
+is nameable. **`F99` holds the next publish** — part A generated at 104,000 with zero
+headroom — so the next emit is already the one that needs a structural decision first, and it
+will be read under the same conditions.
+
+    MECHANISM   part A published and verified exact; 8 of 8 recent publishes exact;
+                pubstate A line advanced; sheet_synced_at.txt -> da17641
+    CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
