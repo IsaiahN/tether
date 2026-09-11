@@ -29882,3 +29882,77 @@ reversible, which is the whole of what makes this recoverable.
     MECHANISM   census over 11 documents with a denominator; 4 cited passages confirmed
                 absent from the committed corpus; 4 seat content-edits identified
     CAPABILITY  none -- this is the record, not the agent. levels_completed 0 since F80
+
+---
+
+## `F86` — the reviewer named a writer I had excluded unsoundly; the candidate is refuted and the exclusion is now honest
+
+**`I51-CANDIDATE-WRITER`, and their reasoning is right where their candidate is wrong.** `I51`
+closed with *"I CANNOT NAME THE WRITER — no command between the two reads invokes the generator
+and no background task was running."* They pushed on exactly the load-bearing word:
+
+> ***"No command between the two reads" excludes commands YOU ran; a cron is by construction
+> not one, and "no background task was running" is a claim about what you could observe rather
+> than about what fired.***
+
+**That is correct and the exclusion was unsound as written, whatever caused the event.**
+
+**MEASURED — all three automations, which had never been enumerated in one place:**
+
+    sheet-sync cron   de3dec95   3,13,23,33,43,53 * * * *     session-only
+    heartbeat cron    c28cc0b0   every 30 minutes             session-only
+    cloud watchdog    trig_01AC…  17 */3 * * *   last fired 2026-09-11T03:17:18Z
+
+**NONE fires at :26 or :27**, which is the window `I51` records (stamp 02:26 → 02:27). And the
+watchdog **cannot be the writer at all**: it runs in a cloud environment with `Bash` and Drive
+only, no repo source, no access to this machine's disk — so it can never touch
+`workbook3a.csv`.
+
+**AND BOTH LOCAL CRONS ARE SESSION-ONLY, which is the part that matters for the general
+case:** they deliver a *prompt* to this session rather than executing code, so the only path by
+which either could regenerate the artifact is **me running the generator inside a turn one of
+them started.** Whether the seven-chunk read spanned a cron-driven turn boundary is **not
+recorded anywhere**, so that path is now **named rather than excluded by a sentence that could
+not cover it.**
+
+> **The writer is still unnamed. The difference is that the exclusion no longer claims more
+> than it checked** — which is the reviewer's own `I47` shape turned on my prose: coverage
+> decided by something that knows nothing about the check.
+
+### and the `I50` scope correction, which is theirs and is better than what I filed
+
+They held the same reading of the freeze, carried it **longer**, and relayed Isaiah's reframe
+to me in `FREEZE-REFRAME`. So it was **shared, not mine alone**.
+
+**A misreading two independent readers make from one text is a defect in WHERE THE RULING
+LIVED, not in either reader's care** — and that it caught both of us is the strongest evidence
+for the structural half `I50` already carried: the ruling was in `INDEX` once, in the
+`PROTOCOL` row, and **zero times in `CLAUDE.md`**. Refiled under **placement** rather than
+under care.
+
+### the cycle's sheet work, staged and not published
+
+`F85`, the three reviewer answers and a correction to `F52` **in the row that carries it** are
+written into the generator. `F52` had said *"RECORDED HERE BECAUSE THE_FORMULA IS CORPUS AND
+THE SEAT DOES NOT EDIT IT"* — corrected where the reviewer reads it, not only in a new entry.
+
+**RUN STATUS had re-accreted paragraph recaps of `F75`, `F76`, `F77`, `F78` and `F80` — every
+one of which has its own row three lines below.** Deleting that duplication **paid for the
+entire cycle's additions and then some: part A went 103,233 → 99,996 while GAINING the `F85`
+row.** Headroom 767 → 4,004, so **the fourth-part decision is not live**, and what bought the
+room was removing a duplication rather than moving the cut.
+
+**Measured, every cut tried: `F41` is still the only admissible anchor.**
+
+**B AND C SKIP THIS CYCLE — the first time `F81`'s per-part mechanism has actually saved a
+republish.** Their content is byte-identical to what is published, so only A needs to move.
+
+**A IS STAGED, NOT PUBLISHED, AND THAT IS A DELIBERATE STOP.** `pub/workbook3a.csv` is frozen
+at `bd07980f`, three of seven chunks read. `I42` locates reassembly drift precisely here — at
+the tail of a long session, assembling a large paste — and a wrong paste costs a full extra
+republish plus a false record. **The next cycle publishes from the frozen copy without
+regenerating**, which `pubstate.txt` now says in terms.
+
+    MECHANISM   3 automations enumerated and timed; I51's exclusion repaired; sheet edits
+                staged; A 99,996 with the F85 row added rather than shed
+    CAPABILITY  none -- levels_completed 0, routine_cut 0, unchanged since F80
