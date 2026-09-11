@@ -29449,3 +29449,75 @@ begun writing *the ruling is recorded nowhere the record greps.* A case-insensit
     CAPABILITY  none -- and the unblocking is real: the next build item needs no ruling.
                 Not started this cycle, because the depth-25 run is measuring a COST CURVE
                 and a concurrent run confounds it (I3)
+
+---
+
+## F80 — THE WALL FIRES ON THREE OF FIVE, ROUTINE_CUT IS STILL 0 AT EVERY DEPTH REACHED, AND `F75`'s wa30 CLAIM WAS A DEPTH ARTIFACT
+
+PROTOCOL run to depth 25 with the 150s cost wall armed — the first run of this window that
+**reaches** the wall. Per game, never pooled.
+
+    board  cycles  stopped              last cycle   cost_total
+    ka59       17  cost wall at c16         152.1s        889.5s
+    ls20       13  cost wall at c12         173.2s        704.1s
+    g50t       23  cost wall at c22         195.9s       1247.0s
+    sp80       25  --                        45.4s        598.8s
+    wa30       25  --                        94.9s        453.3s
+
+**THE WALL IS A PROPERTY OF THE BOARD.** Three boards hit it between cycles 12 and 22; two run
+the full 25. `sp80`'s curve PLATEAUS at 40-45s from cycle 13 onward while ka59's and ls20's climb
+to it. **§8's wall question is answered, per board, and the 10-cycle batches could never have
+answered it** — every one of them reported `stopped=null`.
+
+**AND DEPTH-25 STRICTLY SUBSUMES DEPTH-10.** The first N rows of each depth-25 trace are
+BYTE-IDENTICAL to the whole depth-10 trace, on all five boards. **So determinism extends across
+depth**, batches 1 and 2 are contained in this run, and `F78`'s conclusion is now constructive
+rather than inferred: **depth is the only axis that produces a row the shallower run did not
+already have.**
+
+**WHAT DID NOT MOVE, AND IT IS THE HEADLINE.** `routine_cut` **0** and `routine_end` **0** on all
+five at every depth reached. Planning ATTEMPTS are near-flat in depth:
+
+    routine_refused   ka59 6->8   ls20 8->8   sp80 8->8   g50t 8->11   wa30 8->8
+
+**Between three and fifteen extra cycles per board bought at most three more planning attempts
+and zero plans.** `F75` read `routine_cut 0` at ten cycles; it now holds **to the cost wall**,
+which is as deep as this panel goes.
+
+**AND THE REACH NUMBER IS THE SHARPEST IT HAS EVER BEEN.** Off a 48-atom baseline, at the deepest
+reachable depth on every public board:
+
+    reach     49   51   51   51   49        (gain of 1 to 3 units)
+    gamma     65   62   62   61   64
+
+**`ka59` gained EIGHT library entries between cycle 10 and cycle 17 and ZERO reach.** `F44`/`F50`'s
+asymmetry, measured at the ceiling rather than at an arbitrary depth.
+
+> **`F75`'s wa30 SENTENCE IS REFUTED BY DEPTH, AND IT IS MINE.** I published *"wa30 IS THE BOARD
+> WHERE NOTHING ENTERS: 0 mints, 0 reuse-installs, 0 accepts, gamma unchanged at 48."* At 25
+> cycles wa30 reads **7 mints, 9 reuse-installs, 62 bindings, gamma 64** — the largest reuse
+> count of any board. **"Nothing enters" was a reading of the first ten cycles stated as a
+> property of the board**, which is `F1/F2`'s standing lesson committed again. Second time this
+> window a shallow reading shipped as a property: `F76` was the POPULATION axis, this is the
+> DEPTH axis. The generator is corrected; the row is not left to stand.
+
+**WHAT SURVIVES ON wa30 IS NARROWER AND BETTER CHARACTERISED.** It is still the only board whose
+park verdicts split, and the split's shape is now visible: `no_support` 60 -> **73** while
+`depth_exhausted` 53 -> **356**. **The no_support parks are an early-run phenomenon and nearly
+constant in depth**; the growth is all depth_exhausted. Still one board, so still a quirk handled
+right, and still no candidate fix.
+
+**AND THE LEARNED ARM TAKES OVER WITH DEPTH ON EVERY BOARD** — `discriminate:learned` sp80 2->17,
+wa30 1->15, g50t 0->8, ka59 4->10, ls20 2->5. That is `F1/F2`'s directed-action onset reproduced
+across the full public set at the ceiling.
+
+**ONE CROSS-BOARD READING REFUSED.** `sp80` carries gamma 62 at ~45s/cycle and `ka59` gamma 65 at
+152s/cycle, which looks like it refutes `F10`'s *cost tracks units*. **It does not — `F10` is a
+WITHIN-board claim and that comparison is across boards.** Within each board the relation holds:
+ka59 +8 gamma for ~2x cost, sp80 +6 for ~2x. **Reading the cross-board gap as a refutation would
+have been the pooling error with a finding attached.**
+
+    MECHANISM   the cost wall fires and is per-board; the learned arm rises with depth on 5/5;
+                depth-25 reproduces depth-10 byte-exactly on 5/5
+    CAPABILITY  ZERO on all five at the ceiling: levels_completed 0, routine_cut 0,
+                routine_end 0, reach +1 to +3. Mechanism-fires do not accrete into this column.
