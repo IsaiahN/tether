@@ -29521,3 +29521,39 @@ have been the pooling error with a finding attached.**
                 depth-25 reproduces depth-10 byte-exactly on 5/5
     CAPABILITY  ZERO on all five at the ceiling: levels_completed 0, routine_cut 0,
                 routine_end 0, reach +1 to +3. Mechanism-fires do not accrete into this column.
+
+---
+
+## I51 — THE ARTIFACT WAS REGENERATED BETWEEN CHUNK 1 AND CHUNK 7 OF THE SAME READ
+
+Reading part A for publish, chunk 1 hashed `7e1f4318…` with the stamp at **02:26**. Six chunks
+later the same file hashed `4809f455…` with the stamp at **02:27**. Same size, 101,722 both
+times — so nothing inserted or deleted, and the only generated variable is the freshness stamp.
+
+**THE READ WAS RACING A WRITER AND NOTHING SAID SO.** Every multi-chunk read this session has
+had the same exposure; it has never corrupted a publish only because the sole per-generation
+difference is a timestamp near byte 300. **A single content edit landing mid-read would have
+produced a paste assembled from two different files, and every seam would still have joined**,
+because the seams are checked against the neighbouring chunk rather than against a fixed
+version.
+
+> **`I43` IS THE SAME FAMILY FROM THE OTHER SIDE.** That was the DISPLAY not matching the
+> source; this is the SOURCE not matching itself between two reads. Both defeat *read every line
+> from disk*, and for the same reason: **the practice names WHERE bytes come from and says
+> nothing about WHEN.**
+
+**FIXED BY MAKING THE READ ATOMIC RATHER THAN BY BEING CAREFUL.** The generator's output is
+copied to `pub/` and hashed before any chunk is read; every chunk, the publish and
+`verify_publish` all run against that frozen copy. A regeneration during a publish now changes
+the live files and cannot touch the snapshot, and the snapshot's hash is recorded before the
+first chunk rather than inferred after the last.
+
+**WHAT IS NOT CLAIMED: I CANNOT NAME THE WRITER.** No command between the two reads invokes the
+generator, no background task was running, and the mtimes place the write at 02:27:05 with
+`mksheets.py` itself touched at 02:27:04. **So the honest statement is that the artifact moved
+and I do not know what moved it** — which is exactly why the answer is a snapshot rather than an
+explanation. An unexplained writer is a reason to stop reading live files, not a reason to
+reason about timing.
+
+    MECHANISM   publish reads and verification now run against a hashed frozen copy
+    CAPABILITY  none -- transport, levels_completed 0
