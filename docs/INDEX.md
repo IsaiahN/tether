@@ -30645,3 +30645,85 @@ for — a `str.replace` that would otherwise have matched nothing and reported s
     MECHANISM   58-row sweep with every match read; 11 live items missing from a 3-addressee
                 digest; the cell's opening rule found to forbid its own useful section
     CAPABILITY  none -- this is the record. levels_completed 0, routine_cut 0, unchanged since F80
+
+---
+
+## `F98` — the corpus never says "confidence", and the build already uses the word for something else
+
+**THE FIGURES TIEBREAKER, RUN ON `F64`'s OPEN ITEM — the first time it has been used there, and
+`F30`'s standing commitment discharged.** `F30` closed by promising to use the figures *on every
+open ruling, not only when stuck*. `F64` asks a question that has been open since Isaiah's `F32`
+ruling: **is the CONFIDENCE quantity meant to be a THIRD thing — neither the zero-remainder test
+nor the bargain?**
+
+**CENSUS FIRST, ACROSS ALL FIFTEEN, BEFORE READING ANY ONE**, word-bounded, and with whitespace
+stripped so `tspan`-split words rejoin (`F45`'s manufactured-zero lesson):
+
+    confidence 0    certainty 0    credence 0    probability 0    likelihood 0
+    doubt      0    trust     0    warrant   0    conviction  0    believe    0
+    belief     4    confident 1    certain   0
+    sure       0 bounded / 43 joined  -- measure, pressure, ensure. I24's hazard, not a hit.
+
+**`confidence` IS NOT A CORPUS WORD.** And the two genuine hits were READ rather than counted:
+`confident` is Figure 4 warning against *"navigating by dead reckoning: confident about a position
+nobody checked"* — a caution, not a quantity. `belief` is the Symbols Table's `b`, *what the system
+takes to be the case before it acts*.
+
+### the corpus DOES name a learnable quantity, and it is at a different site
+
+The Symbols Table gives `b` a companion: **`w` the weighting — *how far the belief leans on private
+history versus inherited prior. w_A + w_B = 1, and **w is learnable from the outcomes of past
+weightings**.*** Two frames with identical architecture diverge because their histories and their
+`w` diverge.
+
+> **`w` HAS EXACTLY THE SHAPE ISAIAH'S RULING REQUIRES — derived from the agent's own outcomes,
+> not a constant — AND IT SITS AT BELIEF FORMATION RATHER THAN TERM ACCEPTANCE.** That is the
+> scope line and it must travel with the finding: a quantity of the right shape at the wrong site
+> is not the answer, it is a precedent for the answer's form.
+
+**AND `w` DOES NOT EXIST IN THE BUILD.** Zero occurrences of `w_A`, `w_B` or `weighting` outside
+one unrelated `priors.py` docstring about fast-and-frugal cue ordering.
+
+### the live half: the word is already taken, at a perception site
+
+**`confidence` occurs SIX times in the build, and every one is TRACKER IDENTITY CONFIDENCE** — how
+certain the object match was across two frames, by IoU overlap:
+
+    arc_world.py:347-363   "AND IT CARRIES THE CONFIDENCE OF THE IDENTITY IT RESTS ON" --
+                           a relational change resting on a 0.0625 overlap is a weaker claim
+                           than one resting on 1.0, "and the number says which"
+    tether.py:702          "the tracker's own certainty, per step" -- overlap high = confident
+                           match, low = marginal, shape = zero overlap, birth = nothing carried
+    retrieval.py:72        rel_confidence, carried into the retrieval key
+
+> **SO "ACCEPT ON CONFIDENCE" WOULD PUT A SECOND QUANTITY UNDER A WORD THAT ALREADY NAMES A
+> PERCEPTION READING — AND BOTH ARE *DERIVED FROM THE AGENT'S OWN TRACE*, which is the exact
+> phrase the ruling uses.** The collision is live rather than academic.
+
+**THIS IS `A6i` FILED PROSPECTIVELY, WHICH CLAUDE.md NAMES AS THE RARER AND MORE VALUABLE KIND** —
+the `BUDGET` case, *recorded while nothing was wrong*, and it made a later split takeable instead
+of a guess one ruling later. **The item that would collide with it is nameable in advance: it is
+`F32`'s acceptance change, the one build item Isaiah has already ruled the direction of.**
+
+### and the corpus's own remedy argues against a third quantity
+
+Figure 5, in the passage `F51` already read: a preference that is *"unbound, predicting nothing,
+accruing no residual"* is invisible to every check — and the remedy is **a discipline rather than a
+branch**: *make the sought-for shape an ORDINARY TERM. Write down what an answer would look like,
+bind it, and let it accrue a residual like anything else. **Then the preference is refusable by the
+same test as everything else.***
+
+**The corpus's instinct in exactly this shape of problem is to FOLD BACK INTO THE ONE BARGAIN
+rather than add a second gate.** That is evidence on `F64`'s question, in a direction.
+
+**WHAT IS NOT CLAIMED, AND `F30`'s OWN SENTENCE IS THE LIMIT: the figures supply evidence for the
+ruling, never the ruling.** This does not decide whether confidence is a third quantity; it says
+the corpus has no word for it, has a learnable quantity of the right shape at a different site,
+and reaches for the one-bargain remedy when a preference cannot be seen. **Isaiah's to rule.**
+
+**NOT IN THE SHEET THIS CYCLE: part A has 60 chars of headroom.** Recorded here; the sheet edit is
+the next budget test and it may well be the one that meets the fourth-part condition.
+
+    MECHANISM   15-figure census with every genuine hit read; w located and measured absent from
+                the build; 6 confidence sites read at source and all perception-side
+    CAPABILITY  none -- corpus and code reading. levels_completed 0, routine_cut 0, since F80
