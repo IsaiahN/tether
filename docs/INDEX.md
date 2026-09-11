@@ -31257,3 +31257,54 @@ per game and never pooled, and nothing in it reasons from what a board contains.
                 the cost wall; gains scale with depth, losses do not; all five net positive
     CAPABILITY  none -- no run, rows already held. levels_completed 0, routine_cut 0,
                 unchanged since F80
+
+---
+
+## `F105` — the failed-path catalogue has never executed ANYWHERE, toy or ARC, and that is a stronger claim than `F102` made
+
+**`F102` established the catalogue is BUILT and said its capability is zero, citing `F56`'s
+`routine_end` at zero on every real board.** That is true and it is not the sharpest available
+statement. **Censused across all eleven traces — five boards at depth 10, five at depth 25, and
+the toy world:**
+
+    file                        paths_retrieved  shape_failed  routine_cut  routine_refused
+    all ten ARC board traces                  0             0            0          6 to 11
+    runs/demo.jsonl  (TOY)                    0             0            0                9
+
+**ZERO IN THE TOY WORLD TOO, and that is the finding.** `F56`'s three toy-only paths —
+`PROMOTE/promote`, `ACCEPT/retro`, `MINT/probe` — at least fire *somewhere*, which is what makes
+them *validated only in the toy world*. **This one fires nowhere.** Neither its success path nor
+its failure path has ever been executed in any world, so it has **no positive control at all.**
+
+### the chain is verified end to end, and it is blocked at step one
+
+**Read at the sites rather than inferred.** `self.paths` has exactly **one** write (`tether.py:1529`)
+and one read (`1999`/`2004`). The write sits inside the `routine_end` block, whose `extra` dict is
+splatted into `led.record(..., "routine_end", **extra)` at `1535` — **so if it fired it would
+emit**, and `shape_failed` would be on a `PLAN` row.
+
+    routine adopted (routine_cut)  ->  runs  ->  refuted (routine_end)
+      ->  self.paths populated  ->  a later replay retrieves (paths_retrieved)
+
+**`routine_cut` is 0 on all eleven traces**, so the chain never reaches its first step. **This is
+downstream of the barrier `F75` already named** — *the agent never got as far as having a plan to
+price* — and the catalogue is one more thing stacked behind it.
+
+> **SO `F35`'s RECONCILIATION CALLS THIS *THE TRACTION MECHANISM ITSELF AND IT IS MISSING*, and
+> the correction is narrower AND worse: it is not missing, it is BUILT AND NEVER ONCE RUN.**
+> A mechanism absent is a gap; a mechanism present and unexercised is a gap that looks closed.
+
+**CLASSIFIED: NOT A DEFECT, NO CANDIDATE FIX.** The build is correct-given-the-input — with no
+routine ever adopted there is no failed path to catalogue, and retrieval over an empty store
+correctly leaves the candidate order unchanged, which the read site's own comment states as
+*check 3, no evidence changes nothing*. **A behaviour note with the mechanism named**, per game
+and never pooled, and nothing here reasons from what a board contains.
+
+**AND IT SHARPENS `F102` RATHER THAN CORRECTING IT.** `F102`'s claim stands; what changes is
+**scope** — *zero on every real board* becomes *zero in every world* — and the **gate**, which is
+routine ADOPTION rather than `routine_end` considered on its own.
+
+    MECHANISM   built, chain verified at all three sites, and executed 0 times in 11 traces
+                including the toy world -- no positive control anywhere
+    CAPABILITY  none, and blocked upstream at routine adoption. levels_completed 0,
+                routine_cut 0, unchanged since F80
