@@ -32652,7 +32652,8 @@ Part A read **103,828** from the generator and **103,803** from a `python -c` of
 could not account for the 25.
 
 **The cause is CRLF.** `_width` builds each row through `csv.writer`, whose default terminator is
-`
+`
+
 ` and counts **2**; `io.open(...).read()` in text mode collapses each to **1**. Part A has
 **25 lines**. **That is `I49`'s family and literally `I49`'s number** — 25 line terminators,
 misread once as content.
@@ -32675,3 +32676,55 @@ look doubtful.
 
 **And chasing it was right.** The rule is *go to the write site and ask which LINE assigned the
 value*, and the alternative was to publish on a number I could not account for.
+
+---
+
+## `F114` — the online scorecard has never once been posted, so every zero is a LOCAL reading
+
+**Isaiah's instruction: build a separate, slower way to run ONE session on `ls20` with the agent
+against the ONLINE scorecard, because *"zero is illogical at this point."*** The premise is right
+and the record already half-states it.
+
+**`arc_holdout`'s own header says it:** *"the `session.post` path is `ONLINE`/`COMPETITION` only.
+**Nothing was ever posted**, and a claim that it was is corrected here rather than left
+standing."* The runner is `OFFLINE` by default, and `arc_world.py:555` reads `levels_completed`
+**off the frame** — which under a local wrapper is a number this repo computes.
+
+> **SO THE GROUND METRIC HAS NEVER BEEN CHECKED AGAINST AN AUTHORITY OUTSIDE THIS REPO.** `F27`
+> established the zero is not distinguishable from random; it did not establish that the zero is
+> what the *server* would report. Those are different claims and only the first was measured.
+
+### what already existed, found before building anything
+
+`OperationMode` already carries `ONLINE`/`COMPETITION`; `_mode()` already accepts them;
+`arc_base_url` already defaults to **`https://three.arcprize.org`**; and `base.py` already
+implements `POST /api/scorecard/open`, `/close` and `GET /api/scorecard/{id}` under
+`X-API-Key`. **The path was complete and unexercised.** What was missing was two things: nothing
+opened a scorecard around a play, and `play()` built its own `Arcade` so a scorecard opened
+elsewhere could not record the game.
+
+### what was built
+
+**`arc_holdout.play(..., arc=None)`** — one optional injected `Arcade`, default unchanged, the
+`controlled()` construction site untouched. `make()` creates the scorecard on whichever `Arcade`
+it is called on, so the runner must own it.
+
+**`arc_online.py`** — seat-side, one session, one game. It reports the **server's**
+`levels_completed` beside the local one, never summed and never averaged.
+
+> **IT REFUSES RATHER THAN FALLS BACK, AND THAT IS THE WHOLE DESIGN.** A LOCAL scorecard reported
+> as an ONLINE one is worse than no reading — it is `F87`/`F106`'s shape, a check that passes
+> because of something it does not control, and it would make a zero look confirmed by an
+> independent party when nothing independent happened. **Three refusal arms, all exercised:** no
+> `ARC_API_KEY`; `OPERATION_MODE` unset; `OPERATION_MODE=offline` with a key present — the
+> silent-local case. It also refuses to PRINT a result if no scorecard id exists after the play,
+> because the run having happened is not the same as its result being server-confirmed.
+
+### what is NOT claimed
+
+**It has not been run.** `ARC_API_KEY` is absent and is Isaiah's to supply; inventing one is not
+available and guessing a base URL is not either.
+
+    MECHANISM   built, seat-side, 9/9 seats clean, three refusal arms fired
+    CAPABILITY  ZERO -- no session has been played online, and the question
+                "are the levels actually moving" is UNANSWERED until the key exists

@@ -61,7 +61,7 @@ def _mode():
 
 
 def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
-         store: str | None = None) -> dict:
+         store: str | None = None, arc=None) -> dict:
     """Download one game, run the loop on it, and report where the chain stops.
 
     **`library` IS §17.8's SWITCH, and the default is cold.** *State it, and make it switchable
@@ -86,7 +86,9 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
     logging.disable(logging.INFO)
     from arc_agi import Arcade
 
-    arc = Arcade(operation_mode=_mode())
+    # `arc` injected: the SCORECARD belongs to whichever Arcade calls make(), so an online
+    # runner must own it. Default is unchanged.
+    arc = arc or Arcade(operation_mode=_mode())
     w = arc.make(game)
     if w is None:
         return {"error": f"{game} did not resolve"}
