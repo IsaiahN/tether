@@ -29364,3 +29364,47 @@ at fixed parameters is not one of the options.
                 intact, hashes confirmed identical before and after
     CAPABILITY  none -- levels_completed 0, routine_cut 0, routine_end 0 on all five,
                 necessarily, because the rows are the same rows
+
+---
+
+## F79 — THE ANCHOR MOVED TWO ROWS, AND F77's PREDICTION LANDED IN ONE CYCLE RATHER THAN THREE
+
+`F77` measured the anchor as losing ~3,500 chars a cycle and wrote: *"three more cycles at
+this rate and it has walked through F37, F38, F39."* **It named those exact rows and it took
+ONE cycle.** Adding `F78`, the missing `F77` row and four log entries put part A **6,344 over**
+the 104,000 budget; the assertion refused to write and the three artifacts were byte-identical
+after the refusal as before it (`I34`, sixth firing).
+
+    anchor F37 -> F38    part A 106,312   STILL OVER
+    anchor F37 -> F39    part A 103,257   fits
+
+**So one row was not a choice, and the SPLIT row's promise of *one row, once, recorded* is the
+half that broke.** Repaired in the same edit, both halves: the history sentence AND the forward
+promise, which now reads *by the fewest rows that fit, which is not always one.* **Repairing
+only the history would have been `I25` exactly — the instance fixed, the class left standing** —
+and the forward promise is the half a reader acts on.
+
+**THREE DEFECTS CAUGHT BY READING FROM DISK BEFORE PUBLISHING, AND ALL THREE WERE MINE.**
+
+- **`F77` WAS CITED AND HAD NO ROW.** RUN STATUS said *"F77 has the arithmetic"* and the SPLIT
+  row cited it too, pointing the reviewer at a row that was never added. **`F68`'s class — a
+  reference with nothing on the other end** — and it had been live for a full cycle. The row is
+  added rather than the citations removed.
+- **`I48` — MY LOG-APPEND ANCHOR ATE THE SENTENCE IT ANCHORED ON.** The patch matched
+  `"what gets handed over.",` and replaced it with the new entries, so `I43` shipped to disk
+  reading *"...at the level of  I44 A STALE DRIVE ID"*. **An anchor that INCLUDES text you mean
+  to keep must re-emit it, and `sub()`'s present-and-unique guard cannot see that** — the same
+  blind spot as `F67`, where the guard could not see *last*.
+- **`I49` — `od -An -c | tr ' ' '\n' | grep -c '\r'` COUNTED 4,040 CR BYTES. THE REAL COUNT IS
+  25.** Python reads 25 CR, 25 LF, 25 CRLF: ordinary line terminators, nothing embedded. I had
+  already drafted the alarming reading — that my own patch had injected carriage returns into
+  published cells. **`I24`'s rule applied to my own instrument: a count is not evidence until
+  you have read what it matched**, and here the counting METHOD was the defect.
+
+**AND THE PUBLISH ITSELF VERIFIED.** Part A 80,509 / 80,509 and part B 67,958 / 67,958,
+exact, against a subject that is not my context. **Part C could not be checked and that is
+`I47`, unchanged.**
+
+    MECHANISM   budget assertion fired before any write; two parts verified exact; three
+                defects caught pre-publish by the read-from-disk discipline
+    CAPABILITY  none -- transport, levels_completed 0
