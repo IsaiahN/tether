@@ -31027,3 +31027,47 @@ three regenerated parts before freezing anything. Nothing was published wrongly.
     MECHANISM   SPLIT's hand-typed count removed; I55-I58 in the sheet's log; row id I1-I58;
                 A 103,988 / B 103,930 / C 58,280, budget passes; B and C frozen
     CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
+
+---
+
+## `I59` — I published the parts in the order the GENERATOR was fixed in, not the order the PUBLISHED state required
+
+**Part C published and verified CONTENT-EXACT, 46,148 / 46,148** — id `1erMUe3I…`, ninth
+consecutive exact verify, predecessor trashed after the content check, title search returned
+exactly one file per title. **The publish is clean. The ORDERING was not.**
+
+**`I58` removed SPLIT's hand-typed *fifty-four instrument entries* and concluded that the parts
+*can move separately again*. That is true of the GENERATOR and false of the SHEET** — the
+decoupling only becomes real once the fix is *published*, and it had not been.
+
+    published A (d2ee9b91)   "four stale blocks that FIFTY-FOUR instrument entries..."
+    published C (ddf48a86)   row id I1-I58, count FIFTY-EIGHT
+                             -> two published parts disagreeing, live, right now
+
+**So the correct order was A and B FIRST — shedding the stale count — and C last.** I did the
+reverse, on the strength of a decoupling that existed only in the source. Part B carries the
+same SPLIT row and is **inferred** to say *fifty-four* too; that is reasoning from the
+generator's structure and its published md5 predating the edit, **not read**, and it is marked
+as such.
+
+> **THIS IS `I58`'s OWN FIRST-DRAFT ERROR ONE STEP OVER.** That draft described the state
+> before the fix as though it persisted; this describes the state after the fix as though it
+> had already shipped. **Same axis, opposite direction, and both are reasoning about the
+> artifacts from the source rather than from what is live.**
+
+**SEVERITY IS LOW AND SAYING SO IS PART OF THE RECORD:** the number is four behind in a
+sentence whose point is not the number, and no finding depends on it. **What makes it worth an
+entry is that it is the exact defect `I58` records, now live in the published surface, put
+there by the publish that recorded it.**
+
+**NOT A NEW CHECK — the existing one applied to the right operand.** `pubstate.txt` is already
+the per-part authority and already tracks BEHIND/CURRENT. **I marked A CURRENT because its
+content matched what I had just generated**, and the authority's question is whether it matches
+what is PUBLISHED. Corrected at source; A is marked BEHIND and moved ahead of B in the queue.
+
+**CLASSIFIED: a system error in my procedure, not a build defect and not a board quirk.** No
+build file touched.
+
+    MECHANISM   part C published and verified exact (9 of 9); A and B both BEHIND and A
+                reordered ahead of B; pubstate A line corrected
+    CAPABILITY  none -- transport. levels_completed 0, routine_cut 0, unchanged since F80
