@@ -33231,3 +33231,91 @@ by Isaiah. **Reached on five boards at depth 25: `count` 5 times with 2 mints on
     CAPABILITY  none, and one published ruling refuted. The agent reaches 9 of 48
                 declared atoms, mints 8, and 39 are never composed into a single
                 candidate chain on any of the five boards.
+
+---
+
+## `F120` — P6: the sixth bound, and the one where the profile refuted my candidate before I built it
+
+**The target is Isaiah's direct instruction — the reasoning cycle under five seconds per turn.**
+`F115` spent five bounds and left the real shape unaddressed: the *mean* was 6.5 s/cycle on `ls20`
+at six, and the **curve** ran 0.98s at cycle 0 against 29.1s at cycle 8. A sixth bound had to come
+from whatever dominates LATE, which the mean cannot see.
+
+### the candidate I named, and the profile killing it
+
+**I read the code first and proposed the wrong thing.** `_mint`'s triple nest re-evaluates
+`self._guards(robs)` once per bind per candidate, and `robs` is loop-invariant across that walk —
+a textbook hoist, twelve lines below a correct one (`_units`, line 2462). **It is not in the top
+14 of the profile anywhere.** Correct, and worth nothing.
+
+    ncalls    tottime   cumtime   site
+         95     13.13    404.09   tether.py:2456  mint
+    2606205     14.32    335.97   tether.py:1437  _cannot_pay
+    3204985     20.55    297.30   tether.py:163   objective_step
+   51117109     25.47    276.58   tether.py:899   _sat
+   52103929     58.02    252.47   gamma.py:267    apply
+
+**87% of the run is inside `_cannot_pay` and its own body is 14 seconds of it.** `_sat` per
+`objective_step` is **16** — so the average objective evaluation walks the entire alphabet, and
+the walk that runs to the end is the one returning `NOT_RESOLVED`. **Most of the time is spent
+proving that no value satisfies the objective.**
+
+> **READ FOR RANKING ONLY.** The seconds above are profiled and are not comparable to any
+> unprofiled baseline. That confusion already cost a published 4.5× that was really 17%.
+
+### the bound, which the arm states about itself
+
+`objective_step`'s ORDERED arm can return exactly four things — `current`, `current - 1`,
+`current + 1`, `NOT_RESOLVED` — which is *step ONE UNIT toward the nearest*, its own docstring.
+**`_cannot_pay` does not want the value. It wants `got % alpha != actual % alpha`.** So when
+`actual` is none of those three, every outcome counts wrong and the walk is skipped.
+
+**Necessary rather than plausible, which is `_cannot_pay`'s own standard**: it cannot drop a term
+that would have matched. COMPARABLE-only slots are exempt — that arm returns the satisfying value
+itself, so any value in the alphabet is reachable and there is no range to test. Placed at the
+consumer, not inside `_value_of`, so the bet's value path is untouched.
+
+### the diff, which is what makes it a bound and not a hypothesis
+
+Ten cycles, five public boards, both arms unprofiled under one script. **Per game, never pooled.**
+
+    board   rows   ledger        base s   P6 s     x     mean s/cycle (P6)
+    ls20    3807   IDENTICAL      124.7   37.8   3.30    3.78
+    ka59    2920   IDENTICAL       85.4   52.9   1.61    5.29
+    g50t    2991   IDENTICAL       52.9   22.5   2.35    2.25
+    sp80    1854   IDENTICAL       30.9   13.9   2.22    1.39
+    wa30    2434   IDENTICAL        9.5    9.7   0.98    0.97
+
+**Every ledger row byte-identical on all five**, same md5 per board — which is the claim the change
+made about itself. `ruff` clean, `demo` end to end, 16 gate checks, 17/17 `test_m2`, 9/9 commit
+seats. **The baseline arm independently reproduces `F115`'s 6.5 s/cycle at six cycles on `ls20`**
+(6.36), which is the only cross-check available from here; at that depth P6 reads **1.97**.
+
+**AND THE CURVE IS BENT, NOT REMOVED.** Four of five boards are under five seconds per cycle at
+depth 10; `ka59` at 5.29 is not. On `ls20` the mean is 3.78 and **cycle 8 still costs 10.7s**, so
+*the mean is under target* and *every cycle is under target* are different claims and only the
+first is true.
+
+### THE VARIATION IS UNEXPLAINED, AND MY FIRST EXPLANATION WAS REFUTED
+
+I predicted, before the sweep, that a board showing no gain would be one whose slots are mostly
+COMPARABLE. `wa30` showed no gain. **The ORDERED share is 67% on all five boards** — identical,
+`POSITION` and `EXTENT` on every one — so that account is false. **Baseline cost does not predict
+it either**: `ka59` is the second most expensive board and has the smallest gain of the four that
+gained.
+
+> **AND I AM NOT REPLACING IT WITH A SECOND STORY.** *A null carrying a satisfying causal story is
+> harder to doubt than a bare one*, and I had just had one turn out false. What is established is
+> the exactness on five boards and the range 0.98×–3.30×.
+
+**THE QUANTITY THAT WOULD EXPLAIN IT IS NOT READABLE, AND THAT IS THE FINDING UNDER THE FINDING.**
+`bounded-out: cannot pay on R alone` occurs **ZERO times across all five traces**. The reason is
+`tether.py:2666` — `"cuts": cuts[:12]` — and `not-novel` fills that window (936 recorded on
+`ls20`). **So the bound doing most of the work in the loop is invisible in the record of the loop**,
+and no per-board reading of it can be taken from rows already on disk. `F44`'s shape again: a gate
+that decides the most and has no row.
+
+    MECHANISM   a sixth necessary bound, exact on five boards by full ledger diff
+    CAPABILITY  none, and none claimed. levels_completed 0, routine_cut 0, unchanged.
+                A cycle that is cheaper is not a cycle that reaches further -- Figure 11's
+                test is contact, and this changes none.
