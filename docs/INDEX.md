@@ -33485,3 +33485,61 @@ remaining cost actually is.
                 own measurement
     CAPABILITY  unchanged. levels 0, routine_cut 0. Four of five boards under five seconds a
                 cycle, ka59 at 5.29 still over, exactly as F120 left it
+
+---
+
+## `F123` — `_goal_choice` returns a slot for the first time on record, and the next gate refuses it
+
+**The refusal surface was censused per site for the first time**, from rows already on disk, five
+public boards at depth 25. `F75` counted 38 refusals and `F19` named an eight-site surface; neither
+said WHICH site fires. **Per game, never pooled:**
+
+    board   refusals   site
+    ka59        7      "no objective is confidently shrinking"        (gate 1, _goal_choice -> None)
+                1      "the objective already holds across its whole scope"   (gate 3, r_goal 0.0)
+    ls20        8      gate 1
+    sp80        8      gate 1
+    g50t       11      gate 1
+    wa30        8      gate 1
+
+**42 of 43 are gate 1. Five of the seven row-writing sites are never reached at all** — so the
+"refusal surface" is not eight gates each catching some of the traffic; it is ONE gate catching
+essentially all of it, and the picture of a broad surface was wrong.
+
+### the cause was already in the record, and the grep is why this entry is short
+
+**`CLAUDE.md`'s step six names this exact question as one of its own three instances** — *why gate
+1's population is empty*, answered at `INDEX:21829`. Checked before writing any explanation:
+`_res` appends only while `goal_residual` is non-None and POPS the series on any None, so **only
+`OBJ`-bound slots ever survive to feed the selector**; the one series that qualifies on length is
+FLAT, and *flat is not shrinking* is §13.4 quoted. `INDEX:18051` measured the loop's own calls —
+**74 across four boards, non-None on 0** — and wrote *no candidate fix, and that is the finding.*
+
+> **NOTHING ABOVE IS NEW, AND THAT IS THE POINT.** The investigation was done, the cause is
+> recorded, and the ruling is Isaiah's because it turns on the objective/predictor price tie. One
+> grep replaced a re-derivation I had already started.
+
+### what IS new, and it is one row
+
+**The published zero was measured on `sb26`, `lf52`, `ls20` and `tu93`. `ka59` is not in that
+population and neither is depth 25.**
+
+    ka59, depth 25, cycle 13:   _goal_choice returned o14.dcol     <- FIRST non-None ON RECORD
+                                gate 3 refused it, r_goal = 0.0
+
+**So the selector CAN return a slot.** It has now done so once, in 43 opportunities across five
+boards, on a board and a depth the zero never covered — **`F76`'s shape again: a zero that
+reproduces on its own population and fails just outside it.**
+
+**AND THE NEXT GATE IS THE INTERESTING HALF.** `r_goal = 0.0` is *the objective already holds
+across its whole scope* — so on the one occasion the agent selected an objective to plan toward,
+**that objective was already satisfied and there was nothing to close.** The chain still stops
+before a routine exists; it now stops one gate later than the record said.
+
+    MECHANISM   the refusal surface censused per site for the first time: 42 of 43 at gate 1,
+                five of seven sites never reached
+    CAPABILITY  unchanged and not claimed. routine_cut 0, levels 0. One non-None selection is
+                not a plan, and the objective it named was already satisfied.
+
+**NO CANDIDATE FIX, AND THE STANDING REASON HOLDS**: loosening `MIN_REPEAT` cannot admit a flat
+series, and moving a derived constant to make a mechanism fire is the shaping this window forbids.
