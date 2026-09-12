@@ -33543,3 +33543,66 @@ before a routine exists; it now stops one gate later than the record said.
 
 **NO CANDIDATE FIX, AND THE STANDING REASON HOLDS**: loosening `MIN_REPEAT` cannot admit a flat
 series, and moving a derived constant to make a mechanism fire is the shaping this window forbids.
+
+---
+
+## `F124` — `any` is not unexplained: it is `all`'s identical twin, always second, and a tie writes no row
+
+**`F119` left exactly one item unexplained** — `SOME` has a producer (`any`), is type-identical to
+`all` and `none`, and reads REACHED **0** while those two mint. That was the one residue in the
+audit, and it is now closed with a mechanism at every link.
+
+### four measurements, and none of them is the one I expected
+
+    1  the closure yields `any` EXACTLY as often as `all` and `none`
+       POSITION 560/560/560 · COLOUR 285/285/285 · EXTENT 518/518/518 · SHAPE 1000/1000/1000
+       -- so ENUMERATION is not the cause, and `budget_spent` is False on all four
+
+    2  `all` and `any` ARE THE SAME FUNCTION
+       arc_atoms.py:636-638 -- both are `int(bool(v))`; `none` alone differs, `int(not v)`
+       identical output on every input tried: v = 0, 1, 5, -3
+
+    3  `all` ALWAYS ENUMERATES FIRST
+       order is "all, any, none" on 73 of 73 prefixes at depth 3, without exception
+
+    4  A TIE DOES NOT DISPLACE, AND A PAYING NON-BEST CANDIDATE WRITES NO ROW
+       the mint loop takes `total < best[0]` -- strictly less -- and the cut list is appended
+       only on not-novel / bounded-out / does-not-pay. A candidate that PAYS and merely fails
+       to beat the incumbent is recorded NOWHERE
+
+**Chain it together: `X . any` is enumerated, computes a value identical to `X . all`, arrives
+second, ties, does not displace, pays, and leaves no trace.** It cannot win on any board at any
+depth — **it is structurally dominated by its own twin**, and the ledger cannot show it losing.
+
+### THE CORRECTION IS TO MY OWN INSTRUMENT, AND IT IS A SCOPE ERROR
+
+`F119`'s REACHED column counted **atoms appearing in a LEDGER ROW** — `detail.term` or
+`detail.bound`. I read it as *the closure produced a chain containing this atom*. **Those are two
+different quantities**, and for `any` they differ by everything: the closure reaches it 2,363 times
+across four slot types at depth 3 and the ledger records it zero times.
+
+> **So `F119`'s "39 NEVER REACHED AT ALL" needs the same caution.** What was measured is *never
+> appeared in a row*, which for an atom that pays-and-ties is not the same as *never composed*.
+> The headline claim — **the gap is REACH rather than vocabulary** — is unaffected for the atoms
+> that are never enumerated, and I have not re-derived which of the 39 those are. **Stated as a
+> known limit rather than repaired, because repairing it means re-running the audit against the
+> closure rather than the ledger, and that is a different instrument.**
+
+### and the sixth category: INERT BY DUPLICATION, which is NOT a defect
+
+`F119` gave the reviewer five categories of inertness. **This is a sixth, and it is structural
+rather than broken.** `PRED` carries ONE truth value, not a per-member vector — the group work is
+already done one level down by `all_same` / `any_same` / `none_same` at the relate layer. **Over a
+single truth, *all hold* and *some hold* are the same statement**, so `all` and `any` coinciding is
+what the type forces, and `none` differing is what negation forces.
+
+**The genuine ALL/SOME distinction exists in this build and lives at the RELATE layer, not the
+quantifier layer.** So of the corpus's four declared quantifiers: `ALL` and `NONE` are distinct
+functions; `SOME` is a copy of `ALL` **because at `PRED` there is nothing left to quantify over**;
+and `ONE` has no producer at all (`F47`). **Two of four are not distinct, for two different
+reasons, and only one of those is an omission.**
+
+    MECHANISM   F119's one unexplained item closed, every link measured; one scope error in my
+                own audit instrument found and stated
+    CAPABILITY  unchanged. levels 0, routine_cut 0. Nothing built, nothing proposed --
+                `any` losing every tie costs the agent nothing it would otherwise have had.
