@@ -33319,3 +33319,95 @@ that decides the most and has no row.
     CAPABILITY  none, and none claimed. levels_completed 0, routine_cut 0, unchanged.
                 A cycle that is cheaper is not a cycle that reaches further -- Figure 11's
                 test is contact, and this changes none.
+
+---
+
+## `F121` — the reviewer's system 0 / 1 / 2 ladder is already built, two rungs of it are running, and the third is blocked on the headline zero
+
+**Isaiah relayed what the reviewer is drafting: *the agent should start random and then jump into
+strategy — it is like a system 0 to the system 1 system 2*.** Their file has not moved
+(`modifiedTime` 2026-09-12T02:32:05Z, and `System 0` / `System 2` read **0** in the copy on disk),
+so this is answered against the record rather than against their row.
+
+**THE STEP THAT PAID: grep before explaining.** The framing has a name in the build already —
+`instruments.py:165`, `I.Phases`, whose docstring is *"The action mix over time. The composition
+test that needs no win."*
+
+    PROBE     by in (draw, probe)             tether.py:3203 -- "byte-identical calls to
+                                              `drive.choose`, so both really are undirected picks"
+    DIRECTED  by.startswith("discriminate")   the learned arm
+    STRATEGY  by == "routine"                 a routine executing
+
+`probe_share_trend` per level is already the instrument for *does it stop being random*. **Nothing
+needed inventing, which is the point: an improvised metric here would have been fitted to the
+question that prompted it.**
+
+### measured, per game, never pooled — quintiles of each depth-25 run, PROBE/DIRECTED/STRATEGY
+
+    ka59  n=17   100/0/0   100/0/0   0/100/0    33/67/0   0/100/0    whole run  7/10/0
+    ls20  n=13   100/0/0   100/0/0   100/0/0    33/67/0   0/100/0    whole run  8/ 5/0
+    sp80  n=25   100/0/0    60/40/0  0/100/0     0/100/0  0/100/0    whole run  8/17/0
+    g50t  n=23   100/0/0   100/0/0   100/0/0    20/80/0   20/80/0    whole run 15/ 8/0
+    wa30  n=25   100/0/0    80/20/0  0/100/0    20/80/0   0/100/0    whole run 10/15/0
+
+**THE FIRST TRANSITION IS REAL AND HAPPENS ON ALL FIVE: every board opens at 100% undirected and
+closes 80-100% directed.** That is `F1`/`F2`'s directed-action onset, read through the phase
+instrument instead of through `discriminate:learned` counts.
+
+> **AND IT IS A READING RATHER THAN A RECONSTRUCTION, WHICH `F50` IS THE REASON TO CHECK.** The
+> phase column is derived by applying `tether.py:3203`'s rule to `by` from the ledger. Checked
+> against the build's own `phases.report()` on a fresh `sp80` run: **`0.8/0.2/0.0` both ways, 10 of
+> 10 cycles carrying a `by` row.** The two agree, so the depth-25 table stands as a reading.
+
+### the second transition has never fired, and the site says why in its own comment
+
+**`STRATEGY` is `by == "routine"`, and no routine has ever executed on a real board** — `F75`'s
+`_mint_routine` runs 38 times across a batch and refuses 38 times; `routine_cut` is 0 at every
+depth out to the cost wall (`F80`). The write site states the consequence before any of this was
+asked:
+
+> *"`phases.report()` is §22.2's transfer instrument and its STRATEGY column has been structurally
+> zero; it will not be on any run where a routine executes."*
+
+**So system 2 is not missing an instrument and does not need one built. It is blocked on the zero
+this record has been carrying since `F75`** — and the reviewer's framing gives that zero a second
+reading: not only *no plan was ever kept*, but *the ladder stops on its last rung*.
+
+### two things the framing must carry with it
+
+**`DIRECTED` IS AN `A6i` THE SITE DELIBERATELY LEFT STANDING.** `by == "discriminate"` reads **9%**
+where `ARC_AGENT` §22.2's *bets with bound terms* reads **37%** on the same runs. The comment calls
+it *"a dispute about which quantity the word names, with both readings defensible"* and fixes only
+the phase that was never emitted at all. **A number quoted for "system 1" has to say which of the
+two it is.**
+
+**AND `by == "composed"` FALLS INTO `PROBE`.** The wire (`F89`) fires when the agent names an
+objective it built itself, and `composed` is neither `discriminate*` nor `routine`, so the rule
+files it as undirected. **Three of `ka59`'s seventeen cycles are counted as random while the agent
+was stating its own goal.** Reported, not fixed — the binning is the site's rule and changing it
+moves a published metric.
+
+### the figures reach this with a NULL, which is a closed avenue rather than an untried one
+
+Census across all fifteen, whitespace-joined so `tspan` splits re-join: **`strategy` 0,
+`strategic` 0.** `random` appears in exactly one figure and `directed` in three. Both were READ
+rather than counted, and both are other senses — Figure 13's randomness is *a remainder compounding
+through a chain that amplifies*, and its directedness is a property of a **gradient**. Neither is an
+action policy. **The tiebreaker cannot reach this question, and that is worth recording.**
+
+### and the census itself was wrong twice before it was right
+
+    pass 1   globbed `docs/figures/*.svg`     matched ZERO files -- every count was over an
+                                              EMPTY POPULATION and read as a clean null
+    pass 2   `grep -rn` across the repo       swept `.venv`, returning hypothesis's
+                                              `SEARCH_STRATEGY` constants as hits
+    pass 3   the real directory, .venv pruned the table above
+
+**Both failures are `I22` — the wrong population — and the first is the dangerous one**, because an
+empty population returns exactly the zeros a null wants to see. The figures are not in the repo at
+all; they are in the `Desktop/figures` working directory, fifteen of them.
+
+    MECHANISM   nothing built. The ladder, its instrument and its per-level trend already exist
+    CAPABILITY  unchanged: levels 0, routine_cut 0. What changes is that the reviewer's framing
+                now has measured rungs -- 0 -> 1 confirmed on five boards, 1 -> 2 blocked on a
+                zero the record already carries, with a named mechanism rather than an absence
