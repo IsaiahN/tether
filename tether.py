@@ -1454,6 +1454,8 @@ class Agent:
         for state, action, actual in robs:
             if not self._applies(term, state):
                 wrong += 1                            # inapplicable is unexplained
+            elif self._out_of_step_range(term, slot, state, actual):
+                wrong += 1                            # P6: no reachable value equals `actual`
             else:
                 got = self._value_of(term, slot, state,
                                      Ctx(action=action, operands=self._ops(term, state),
@@ -1465,6 +1467,25 @@ class Agent:
             if cost + unit * wrong >= base:
                 return True          # `wrong` only grows; the rest of R adds nothing
         return False
+
+    def _out_of_step_range(self, term: Term, slot: str, state: dict, actual: int) -> bool:
+        """P6: `_cannot_pay` needs a BOOLEAN and `objective_step` computes a VALUE.
+
+        The ORDERED arm returns only `current`, `current - 1`, `current + 1` or
+        `NOT_RESOLVED` -- *step ONE UNIT toward the nearest*, its own docstring. When `actual`
+        is none of those three, every outcome counts wrong, so the alphabet walk that proves
+        it is skipped. Necessary, not plausible: it cannot drop a term that would have matched.
+
+        COMPARABLE-only is exempt -- that arm returns the satisfying value itself, so any
+        value in the alphabet is reachable and there is no range to test.
+        """
+        if getattr(term, "out_type", "val") != OBJ_TYPE:
+            return False
+        if self.slot_types.get(slot) not in ORDERED_TYPES:
+            return False
+        alpha = self.alphabet[slot]
+        cur = state[slot]
+        return actual % alpha not in (cur % alpha, (cur - 1) % alpha, (cur + 1) % alpha)
 
     def _accumulated(self, slot: str, term: Term) -> float:
         """|R| over the slot's whole history. Accumulated, because the model cost is paid
