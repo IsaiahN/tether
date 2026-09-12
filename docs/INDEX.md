@@ -33107,3 +33107,127 @@ is where the number is decided. **That gate still has no predicate, no row and n
                 read-only, nothing changed, and it agrees with the ledger's settle count
     CAPABILITY  none. And one of my own published claims is WITHDRAWN: settling is
                 not absent, it is reached by 2.5% of residuals and refuses almost nobody.
+
+---
+
+## `F119` — the declared-vs-produced audit: the agent reaches 9 of its 48 atoms, and one admitted atom has no producer at all
+
+**Isaiah asked whether the agent can do everything `WHAT_THE_AGENT_SEES` says it can. The
+reviewer designed the census and I ran it.** Population: the declared vocabulary — the atom
+registry, `grammar.PRIMES`, the quantifiers, the connectives, the nine sensors, and the
+`ADMITTED` table. Evidence: the five public boards at depth 25, which `F80` established
+strictly subsume depth 10 byte-for-byte. **Per game, never pooled. No fixes proposed.**
+
+**THREE QUESTIONS PER ITEM RATHER THAN ONE, WHICH IS THE WHOLE DESIGN:** is it DECLARED; does
+it have a PRODUCER; has it ever OCCURRED. *`negate` has a producer and no occurrences; `ONE`
+has no producer at all; `both` has a producer and a ruling saying it should not fire. A single
+present-or-absent column merges all three, and that merge is why this class keeps being
+rediscovered rather than closed.*
+
+### the instrument was wrong twice, and each correction changed the answer
+
+    pass 1   substring search over raw JSON rows     `h` and `w` matched EVERY row;
+                                                     `same` matched inside `all_same`
+    pass 2   structural parse of the term name       counted `reuse_refused` rows as BINDINGS,
+                                                     because `detail.term` appears on refusals
+    pass 3   separated by EVENT                      the table below
+
+**Pass 1 is `I24` verbatim** — and the file's own words for it are *`traction` read 6 and is
+`subtraction`.* **Pass 2 is subtler and is the one worth keeping**: a term the loop CONSIDERED
+and REFUSED read identically to one it ACCEPTED, so the column said *occurred* where the honest
+reading is *was offered and turned away*. **Term names are structured — `atom . atom<operand>?GUARD`
+— so parsing them is word-boundary-correct by construction rather than by a regex I would have to
+get right.** Two unexplained residues were chased to ground rather than waved off: `no_change`
+(2,676 on `g50t`) is a `bound` SENTINEL and not an atom, and the extract atoms read zero because
+they are never used as a chain link, which was checked structurally rather than inferred.
+
+### the atoms
+
+    48 declared          9 ever reached by the search          8 ever minted
+                        39 NEVER REACHED AT ALL                1 reached, never minted (`idn`)
+
+    minted, per board          REACHED  MINTED  BOUND   boards
+      recolour                    1542      90    377   all five
+      translate                   1443     121    349   all five
+      all                          139      16     24   ka59, ls20, g50t
+      above                        124      18     27   ka59, ls20
+      none                          51       6     19   ka59
+      either                        53       4      5   g50t
+      same                          53       4      5   g50t
+      count                          5       2      0   ka59
+
+**THE ZERO THAT MATTERS IS THE MIDDLE COLUMN: exactly one atom is reached and never minted, and
+it is `idn`, the identity.** So the 39 are not being out-competed — **they never enter the
+contest.** The search does not reach them.
+
+### the quantifiers are three different failures under one heading
+
+    ALL     declared    producer `all`      reached 139   minted 16
+    NONE    declared    producer `none`     reached  51   minted  6
+    SOME    declared    producer `any`      reached   0   minted  0   <- produced, never reached
+    ONE     declared    NO PRODUCER          --           --          <- F47, confirmed
+
+**`SOME` is the new one and it is the reviewer's point made by the data.** `any` is in the
+registry, is `PRED -> OBJ`, and is type-identical to `all` and `none` — both of which mint.
+**It is reached zero times on all five boards, and nothing in the record explains why.** A
+present-or-absent column would have filed it beside `ONE` and lost the distinction.
+
+### and a published ruling is REFUTED
+
+**`F41` ruled `both` and `either` INERT BY DESIGN, and Isaiah ruled them derivative rather than
+primitive.** Measured:
+
+    both      reached 0                                       consistent with the ruling
+    either    reached 53, MINTED 4, BOUND 5, on g50t           THE RULING FAILS HERE
+
+**`same . either . all<o17.dcol>` is minted on `g50t` at cycle 17** — read at the row rather than
+counted, because the first reading had it as a refusal. **`F41` is `F76`'s shape again: a claim
+generalised from the boards it happened to measure.** It holds for `both` and fails for `either`.
+
+### THE SINGLE STRONGEST FINDING: `inside` IS ADMITTED AND HAS NO PRODUCER
+
+**The `ADMITTED` table is the record of what was deliberately handed to the agent** — 28 entries,
+each stamped with the clause that admitted it, written at entry precisely so the ablation can
+separate GIVEN from REACHED. **27 of the 28 are in the live registry. `inside` is not.**
+
+> `"inside": "handed-2026-09-08: named by Isaiah as the preschool case (pegs in holes) and NOT
+> derivable from ..."`
+
+**Nothing anywhere in the code constructs it.** It is declared, stamped, justified by Isaiah
+personally, and absent. **That is the audit's target class found in the one table whose whole
+purpose is to record admissions truthfully**, and it is the only instance in that table.
+
+### the reviewer asked for two categories of inertness; the data needs five
+
+    INERT BY RULING     `both`       ruled derivative rather than primitive; reads 0. CORRECT.
+    INERT BY OMISSION   `ONE`        declared with no producer anywhere
+                        `inside`     ADMITTED with no producer anywhere
+    INERT BY TYPE       the extract  `col`/`colour`/`row`/`shape`/`h`/`w`/`dcol`/`drow`/`area`/
+                        atoms        `centroid`/`touching`/`touching_n` are `OBJECT -> ATTR`, and
+                                     the loop hands a SCALAR because the slot ALREADY IS an
+                                     attribute. Structurally unreachable, not omitted
+    INERT BY DEMAND     `negate`     producer exists, chain is type-valid, and no route bin ever
+                                     asks for a refusal (F47)
+    UNEXPLAINED         `any`        produced, type-identical to two atoms that mint, reached zero
+
+**Only the second is a defect. The first is the rule working, the third and fourth are the build
+behaving as its own sites describe, and the fifth is a question.** Collapsing them is exactly what
+made this class invisible three times.
+
+### and the entry clause has bought almost nothing measurable
+
+**Six atoms were admitted under the deliberate clause** — `rotate` and `reflect` named by
+`arc_predict.unexpressible()`, `count`, `holes` and `parity` by §12.4's worked examples, `inside`
+by Isaiah. **Reached on five boards at depth 25: `count` 5 times with 2 mints on one board.
+`rotate` 0, `reflect` 0, `holes` 0, `parity` 0, `inside` unbuilt.**
+
+> **STATED AS A READING AND NOT AS AN ARGUMENT AGAINST THE CLAUSE.** The clause's justification was
+> never *it will help on a board* — that reason is the forbidden one. **What this measures is
+> REACH, and reach is a property of the search rather than of the atoms.** `F118` put the root at
+> binding; this is the same gate seen from the vocabulary side.
+
+    MECHANISM   the declared population censused three ways for the first time; two
+                instrument errors caught and corrected before the table was believed
+    CAPABILITY  none, and one published ruling refuted. The agent reaches 9 of 48
+                declared atoms, mints 8, and 39 are never composed into a single
+                candidate chain on any of the five boards.
