@@ -33411,3 +33411,77 @@ all; they are in the `Desktop/figures` working directory, fifteen of them.
     CAPABILITY  unchanged: levels 0, routine_cut 0. What changes is that the reviewer's framing
                 now has measured rungs -- 0 -> 1 confirmed on five boards, 1 -> 2 blocked on a
                 zero the record already carries, with a named mechanism rather than an absence
+
+---
+
+## `F122` — P7 built, measured, WITHDRAWN: the profile ranks by time SPENT, not by time REMOVABLE
+
+**`ka59` is the one board still over the five-second target (5.29 s/cycle at depth 10) and the one
+where `P6` gained least (1.61x against `ls20`'s 3.30x).** Those are plausibly the same fact, and
+the `F120` profile was taken on `ls20`, so a `ka59` profile was the cheap way at both.
+
+**IT POINTED SOMEWHERE THE `ls20` PROFILE DID NOT.** Post-`P6`, `_cannot_pay` has fallen from 87%
+of cumulative time to 60%, and what surfaces underneath is `Term.name`:
+
+    ncalls     tottime  cumtime   site
+    4493937      4.657   12.271   gamma.py:176  Term.name       (a plain @property)
+    4495256      5.179    7.622   {method 'join' of 'str'}      (called from it)
+    6519711      3.483    4.899   <string>:28 __hash__
+
+**`name` rebuilds its string on every read** — `" . ".join(...)` plus two f-strings — and the mint
+loop reads it two to three times per candidate (`tether.py:2557-2578`). `Term` is
+`@dataclass(frozen=True)` with no `__slots__`, so the value is a pure function of immutable fields
+and `cached_property` writes straight into `__dict__` without touching the frozen `__setattr__`.
+
+**Checked before trusting it:** name stable across reads, `hash` intact, `__eq__` intact, set
+membership intact, `ruff` clean.
+
+### the diff says the change is SOUND and the clock says it is WORTHLESS
+
+Ten cycles, five public boards, both arms unprofiled under one script. **Per game, never pooled.**
+
+    board   rows   ledger        base(P6) s   P7 s   ratio
+    ls20    3807   IDENTICAL         35.3     36.6   0.96   slower
+    ka59    2920   IDENTICAL         49.2     51.3   0.96   slower
+    sp80    1854   IDENTICAL         13.0     12.7   1.02
+    g50t    2991   IDENTICAL         22.4     21.8   1.03
+    wa30    2434   IDENTICAL          9.6      9.8   0.98
+
+**Every ledger row byte-identical on all five, so the caching is correct.** Three of five slower,
+two faster, all inside ~4%.
+
+> **READ AS NO MEASURABLE EFFECT RATHER THAN AS A REGRESSION, AND THE DENOMINATOR FOR THAT IS
+> ALREADY ON RECORD.** `F78` measured wall-clock varying 240.6 against 246.6s on `ka59` — 2.5% —
+> with BYTE-IDENTICAL ledgers. A 4% spread that changes sign across boards is not above that
+> floor. **Calling it a 4% regression would be the over-claim in the other direction**, and the
+> honest verdict is that it does nothing.
+
+**WITHDRAWN. `gamma.py` reverted to HEAD, `ruff` clean, nothing shipped.**
+
+### the class this makes, and it now has two instances
+
+**`F120`'s `_guards` hoist was correct and absent from the profile.** This one is correct and
+*present* in the profile — second-largest cumulative entry after the `_cannot_pay` chain — and
+still buys nothing. So the two failures are opposite halves of one rule:
+
+> **A PROFILE RANKS BY TIME SPENT IN A CALL, NOT BY TIME THAT WOULD BE SAVED BY REMOVING IT.**
+> `name` costs 12.3 profiled seconds and almost none of it is *removable*, because the Terms are
+> constructed fresh and read a couple of times each — so the `__dict__` write costs about what the
+> join saves. **The profile could not have told me that. Only the diff could.**
+
+**AND IT IS WHY `P1`-`P6` EACH GOT A DIFF BEFORE A HEADLINE.** Six bounds shipped and two
+candidates died, and the two that died are the ones that would have shipped on a profile reading
+alone. The discipline is not *read the profile more carefully* — it is that **the profile proposes
+and the diff disposes**, which is the proposer rule one level up from where `CLAUDE.md` states it.
+
+### what this does NOT license
+
+**It is not evidence that `ka59` cannot be brought under target**, and not a reason to stop. What
+it establishes is that the next candidate must come from somewhere other than the next line of the
+profile — and that `_cannot_pay`'s chain, still 60% of cumulative time on `ka59`, is where the
+remaining cost actually is.
+
+    MECHANISM   nothing shipped; one candidate built, verified correct, and withdrawn on its
+                own measurement
+    CAPABILITY  unchanged. levels 0, routine_cut 0. Four of five boards under five seconds a
+                cycle, ka59 at 5.29 still over, exactly as F120 left it
