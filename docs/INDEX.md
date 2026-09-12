@@ -32923,3 +32923,108 @@ local number.
                 three refusal arms exercised; the first posted card in the project
     CAPABILITY  levels_completed 0 of 7, SERVER-CONFIRMED, 38 actions.
                 The number did not move. It is now a measurement rather than an absence.
+
+---
+
+## `F117` — the reviewer answered, `F27` is reopened against me, and my online runs were the arm that cannot discriminate
+
+**30,255 new characters, seven rows, pulled 2026-09-11 23:28Z** against a baseline marker of
+13:25Z. The sync triggers did not see it — `F94`'s known blindness — and the cheap
+`get_file_metadata` check is what caught it.
+
+### `F27` is reopened, and it is my most-cited refutation of Isaiah
+
+**`F27` measured uniform random at ZERO levels on 16 boards, three seeds, two arms, to 1,200
+actions, and titled its row PREMISE REFUTED.** Isaiah's premise was that random clears level 1.
+**Three independent published sources now say he was right:**
+
+    arXiv 2512.24156   random solves 3 levels across the PUBLIC games, 4,000 interactions
+    arXiv 2605.25931   taxonomy of all 25 public games -- TEN solvable in ONE BLIND STEP,
+                       eight by repeated single action, five with ACTION6, two with coordinates
+    Kaggle sample      the competition's OWN reference random policy scores NON-ZERO on the
+                       PRIVATE OOD set, through the official scorer
+
+**The third is the strongest and it is Isaiah's**: the other two are research reimplementations
+and could differ in harness or version; the official sample cannot, and the set it scores on is
+the held-out one.
+
+> **BUDGET DOES NOT EXPLAIN THE GAP.** Ten games are ONE BLIND STEP, and no budget between 1,200
+> and 4,000 separates one step from zero. **So `F27`'s zero is the ANOMALY rather than the
+> baseline**, and the verdict I published — PREMISE REFUTED — is itself refuted.
+
+**AND `F27`'s OWN CELL PREDICTED THIS, WHICH IS THE PART THAT SHOULD HAVE FIRED:** *a positive
+control needs knowing how a board is solved, which I may not learn. Permanent seat-side abstention
+with its closure named.* **The taxonomy opens that closure.** The control is runnable today.
+
+### the reviewer's own hypothesis died the same cycle, and they named its refuter in advance
+
+They proposed that clearing a level may REQUIRE a positioned action, with `F28` stripping the only
+one — *and that the hypothesis dies if any board is clearable simple-only.* **Eighteen of
+twenty-five are.** Filed because **the refuter was named before the evidence arrived**, which is
+the practice working rather than a lucky escape.
+
+### Isaiah is the positive control, and that is a better design than the random arm
+
+**`SCORECARD-REVISED` retires the reviewer's own proposal.** They wanted random run first to prove
+the transport sound. Isaiah: *"the online version will VISUALLY tell me everything I need to know.
+I already know how ls20 works from beginning to end."* **A person who knows the game can separate
+nothing-is-landing, landing-but-flailing, and near-solution-and-stalling BY LOOKING** — which
+tests harness, action pool and agent at once, where a counter tests only the counter.
+
+> **AND IT MAKES THE SHAPING CONSTRAINT LOAD-BEARING RATHER THAN A CAUTION**, because the
+> diagnostic channel now runs through the one person who knows the answers. **The line:
+> SYMPTOMS MAY COME DOWN, SOLUTIONS MAY NOT.** *It is not acting · actions are not landing · it
+> repeats one button · it stops where a player would still have options · the display showed a
+> completion* — facts about the AGENT. *The door is at Y · it needs to do X here* — facts about
+> the BOARD, and `INDEX:21824` already rules those out. **A replay we have all watched is the most
+> persuasive possible vehicle for exactly that, because it will feel like diagnosis and arrive as
+> a head start.**
+
+### AND MY TWO ONLINE RUNS WERE THE ARM THEY SAY CANNOT DISCRIMINATE
+
+**The design is Isaiah watching. I ran the agent alone, twice, with nobody watching.** The
+reviewer's sentence, written before I did it: *"THE AGENT ALONE WOULD NOT DISCRIMINATE: a zero
+would be exactly as ambiguous as every zero we already have."*
+
+**`F116`'s reading stands and is smaller than I filed it.** 38 actions and 0 of 7 levels is
+server-confirmed and it is still a bare counter — the thing `F116` claimed it had stopped being.
+**A number with an external subject is not the same as a number that discriminates**, and I
+collapsed those two.
+
+**TWO OF THEIR FOUR PRE-CONDITIONS ARE NOW ANSWERED, BOTH CHEAPLY:**
+
+    arc_agi       0.9.9 -- NOT the 0.9.8 the null-coordinate crash-win was reported
+                  against. NOT verified absent in 0.9.9; only the version is named.
+    action pool   FOUR. `is_simple()` at arc_world.py:262 strips ACTION6 and withholds
+                  RESET, and `arc_online` reaches the world through the same `ArcWorld`.
+                  SAME POOL ONLINE AND LOCAL -- so there is no online/local difference
+                  for `F28` to explain, which is a null with a denominator.
+
+### the staged plan, against what this session actually did
+
+    STAGE 0   validation run -- Isaiah WATCHES ls20 online          SKIPPED
+    STAGE 1   profile before touching anything                      done
+    STAGE 2   every UNREACHED carries which stop fired              done -- `under_floor`
+    STAGE 3   cut against the profile, cheapest first               done -- P1 through P5
+    GUARD     paired run; reach and settled must match              done, and EXCEEDED
+
+**The guard asked that reach and settled sets match. `F115` diffed EVERY LEDGER ROW**, which is
+strictly stronger and is the reason each of the five could be called decision-preserving rather
+than argued to be.
+
+**STAGE 0 IS THE ONE THAT MAKES THE REST MEAN ANYTHING** — *nothing below is worth doing until we
+know the harness reads a win; if it does not, every timing we optimise against is a timing of a
+machine whose output we cannot read.* **I did 1, 2 and 3 first.**
+
+> **AND THEIR STAGE-1 PRIOR LOOKS REFUTED AND IS NOT, WHICH IS `F44`'s TWO-CLOSURES `A6i` AGAIN.**
+> They expected `closure()` — unbounded, no budget — to dominate. I measured
+> `Gamma.enumerate_closure` at **0.26%**. **Different registries, one word**: theirs is
+> `sensors.py:137`, the PERCEPTION closure. **And the unbounded thing I did find was `_reach`,
+> with no bound of any kind — 323,400 of 333,000 `_left` calls.** The prior was right about the
+> shape and pointed at a different function.
+
+    MECHANISM   reviewer response pulled and read in full; version and action pool named;
+                two of four pre-conditions closed
+    CAPABILITY  none, and one reading REDUCED: F116's server-confirmed zero is the
+                agent-alone arm, which by the agreed design cannot discriminate.
+                STAGE 0 is owed and it is Isaiah's to run, because he is the control.
