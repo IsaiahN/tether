@@ -32839,6 +32839,12 @@ made those same slots always-eligible. **Two behaviour changes smuggled in by on
 
     4 cycles · 23 mint calls · library 52 -> 53 · atoms 52 · SETTLED 0
 
+> **THIS CLAIM IS WITHDRAWN BY `F118`, AND THE NUMBERS ABOVE ARE CORRECT.** Twelve cycles give
+> **four settles**, the first at cycle 4 — so the zero is a reading of cycles 0–3 stated as a
+> property of the mechanism. **The panel could not have shown otherwise and I did not ask what
+> it would take.** What survives is the CURVE and the fact that `units()` grows far slower than
+> the library; what does not is *never*.
+
 `units()` is atoms + **settled** terms, and `length()` returns 1 only for a unit. **With zero
 settled, `units()` is permanently the 52-atom floor, no composition is ever cheap, and every mint
 re-prices the same space from scratch forever.** The corpus's own shortcut — *only what the ground
@@ -33028,3 +33034,76 @@ machine whose output we cannot read.* **I did 1, 2 and 3 first.**
     CAPABILITY  none, and one reading REDUCED: F116's server-confirmed zero is the
                 agent-alone arm, which by the agreed design cannot discriminate.
                 STAGE 0 is owed and it is Isaiah's to run, because he is the control.
+
+---
+
+## `F118` — settling is STARVED, not blocked, and my own *nothing settles* was four cycles read as a law
+
+**`R2` asked which it was. Measured read-only on `ls20`, twelve cycles, counting WHICH GATE
+rejects** — a mechanism that never reaches the last gate is starved; one that reaches it and
+turns away is blocked.
+
+    zero-mass residuals            1866      the only path to settling
+      gate1  no binding at all     1819      97.5%
+      gate2  bound term is not a
+             candidate (an atom)     31
+      gate3  minted THIS cycle        1
+      gate4  already settled         11
+      SETTLES                         4
+
+    what is bound when mass is zero:   atom 31, composed 16
+    refute arm: 100 with mass, 45 bound, and only 2 were refutations OF A SETTLED TERM
+
+**THE SETTLE PATH IS REACHED BY 2.5% OF RESIDUALS AND TURNS NOBODY AWAY.** Every gate after the
+first is small, and the last one passes four of five candidates that reach it. **Nothing about
+settling is broken. The slots are not bound.**
+
+### and it lands exactly where `F44` said it would, on the gate `F44` said had no count
+
+`F44`: *`library -> bound` has NO named predicate, NO count and NO row, and it is the gate
+barrier 1 actually sits on.* **It has a count now: 1,819 of 1,866.** Two instruments, built for
+different questions, arriving at the same site — and `F44` got there from the write sites while
+this got there from the run.
+
+> **AND THE SECOND NUMBER SHARPENS IT: OF THE 47 SLOTS THAT ARE BOUND, 31 HOLD AN ATOM.** An atom
+> is not in `self.candidates`, so it can never settle by construction — which is correct and is
+> why gate 2 is a diagnosis rather than a defect. **The composable half is 16.**
+
+### THE WITHDRAWAL, AND IT IS MINE AGAINST A ROW I PUBLISHED TWICE TODAY
+
+**`F115` says NOTHING SETTLES, NOT ONCE, ON A REAL BOARD — 0 settled terms in 23 mint calls.**
+The arithmetic is right and the sentence is wrong. **That reading was taken at FOUR cycles, and
+the first settle lands at cycle 4.** Twelve cycles give four.
+
+**IT IS THE OVER-CLAIMED NULL, IN THE FORM CLAUDE.md NAMES IN ITS OWN WORDS** — *§12.4's trigger
+fires 0 of 25 on `ls20`, 25 of 25 on `sk48`; one panel, and THE TRIGGER CANNOT FIRE was drafted
+as a fact about the mechanism.* **And the file adds the half that applies here: over-claiming a
+null is the WORSE case, because a null presents as caution and needs no defence.**
+
+> **AND THE TELL WAS THE STORY, EXACTLY AS THE LAW SAYS.** *`units()` is the atom floor forever,
+> so every mint re-prices the same space* is a satisfying causal account, it explains the curve,
+> and it is the thing that stopped me asking **what would this panel have to do to show a settle
+> at all**. `F76` is the same error and its own closing line is the remedy: *the defence against
+> that is not more care — it is more boards.* Here it was not more boards. **It was four more
+> cycles of the board I already had.**
+
+**THE CURVE IS UNAFFECTED AND IS STILL THE FINDING.** 0.98s at cycle 0 against 29.1s at cycle 8
+is a separate measurement and it stands. What changes is the CAUSE I attached to it: not that
+the shortcut mechanism is dead, but that **the composable set grows far slower than the library**,
+which is `F44` and `F50` measured again from a third direction.
+
+### what this makes runnable, and what it does not
+
+**IT DOES NOT MAKE A SPEEDUP AVAILABLE.** Binding more slots would raise the settle count and
+would also raise the work per cycle; whether that is wanted is a capability question and it is
+not the seat's.
+
+**WHAT IT DOES IS RETIRE `R2` AS ASKED AND REPLACE IT WITH A NARROWER ONE**: the population that
+could ever settle is the 16 composed bindings, not the 1,866 residuals, and `F44`'s unnamed gate
+is where the number is decided. **That gate still has no predicate, no row and no verdict word**
+— which is the one thing here that is a defect rather than a reading.
+
+    MECHANISM   the settle path instrumented gate-by-gate for the first time;
+                read-only, nothing changed, and it agrees with the ledger's settle count
+    CAPABILITY  none. And one of my own published claims is WITHDRAWN: settling is
+                not absent, it is reached by 2.5% of residuals and refuses almost nobody.
