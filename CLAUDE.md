@@ -114,6 +114,40 @@ solve proves wiring and never capability.*
 once; solving 20 of 30 shows nothing. Judge by whether the reasoning is sound and the
 code is actually running, not by the number.
 
+### THE GROUND-FOCUS SEAT — the discipline made a check, 2026-09-12
+
+**This whole section was prose, and prose did not bind.** `F80` through `F125` were 45
+findings with the ground unchanged at `levels 0`, and each looked reasonable alone. The
+drift to frame-internal proxies — closure counts, atoms reached, the workbook, the sync —
+was visible only in the sum, and nothing computed the sum. That is the seventh iteration's
+decoherence, and it is failure mode 1 and 4 running together. **The FOUR STEPS passage
+already said why the words were not enough: a discipline that does not install something
+that fires "reads as something that will be enforced, and it will not be."** So it is now a
+seat, in `conform/focus.py`, wired to the `commit-msg` hook — *install the check rather than
+being careful again.*
+
+**Every commit classifies what it moved, with a trailer, and the hook refuses one that does
+not:**
+
+    Focus: GROUND               levels_completed or traction on the board moved
+    Focus: CONTACT -- <claim>   the agent can now reach X it could not (Figure 11); claim checkable
+    Focus: INSTRUMENT           a measurement, the record, tooling. Not contact.
+
+**Past `STALL` consecutive INSTRUMENT commits since the last CONTACT/GROUND, the next
+instrument commit is refused** — reclassify it as CONTACT with a claim, or escalate to the
+reviewer and write `escalated`. It forces a confrontation, not a ban: the instruments were a
+real prerequisite once (*the ratio reads differently for a sequence*), so blocking outright
+would be wrong. **`STALL` is a DECLARED CONVENTION the seat authors (Figure 10) and the
+reviewer moves — not a derived constant, not claimed correct, only visible and movable.** The
+per-turn streak is surfaced by `check.py` so the sum is never invisible again.
+
+**Why it cannot be gamed, and the one honesty condition:** the agent classifies its own
+commits, so the risk is declaring everything CONTACT. `CONTACT` requires a checkable claim
+the reviewer can refute, and a false CONTACT is the worst instrument error, not a clever
+escape. `GROUND` reads `levels_completed`, which is server-external and cannot be faked. **A
+gate is itself an instrument, so this stays exactly one seat and this one section** — its own
+installing commit is `INSTRUMENT` under its own rule.
+
 ### Nothing silent
 
 No isolated code. No silent code. No code without reason. Legible beats silent,
@@ -739,3 +773,4 @@ written at all.
     .venv/Scripts/python.exe gate.py runs/demo.jsonl
     .venv/Scripts/python.exe test_gate.py         # the gate's 8 checks, one defect each
     .venv/Scripts/python.exe -m ruff check .
+    .venv/Scripts/python.exe conform/focus.py --streak   # instrument-since-contact streak

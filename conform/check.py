@@ -105,11 +105,21 @@ def main(argv: list[str]) -> int:
                for name, cmd, why, needs in STAGES]
     bad = [r for r in results if r[1] != "ok"]
 
+    # THE GROUND-FOCUS LINE. Deliberately NOT a seat in STAGES: it must never make this
+    # process exit non-zero, because pre-commit runs before the commit that would clear the
+    # streak exists, so a blocking focus seat here would deadlock. It only ever reports. The
+    # block lives in the commit-msg hook. See conform/focus.py and CLAUDE.md.
+    foc = subprocess.run([str(PY), str(HERE / "focus.py"), "--streak"],
+                         cwd=ROOT, capture_output=True, text=True)
+    focus_line = (foc.stdout or foc.stderr).strip()
+
     if "--hook" in argv:
         if not bad:
             line = f"check: {len(results)}/{len(results)} seats clean"
         else:
             line = "check: " + " | ".join(f"{n} {s}" for n, s, _d, _w in bad)
+        if focus_line:
+            line = f"{line} | {focus_line}"
         print(json.dumps({"systemMessage": line}))
         return 0                      # report, never block the turn from ending
 
@@ -132,6 +142,8 @@ def main(argv: list[str]) -> int:
         n = sum(1 for _n, s, _d, _w in results if s == state)
         if n:
             print(f"  {n} stage(s) reported {state}: {note}")
+    if focus_line:
+        print(f"  {focus_line}")
     return 1 if bad else 0
 
 
