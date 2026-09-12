@@ -33157,8 +33157,14 @@ they are never used as a chain link, which was checked structurally rather than 
       count                          5       2      0   ka59
 
 **THE ZERO THAT MATTERS IS THE MIDDLE COLUMN: exactly one atom is reached and never minted, and
-it is `idn`, the identity.** So the 39 are not being out-competed — **they never enter the
-contest.** The search does not reach them.
+it is `idn`, the identity.**
+
+> **AND THE SENTENCE THAT STOOD HERE IS REFUTED BY `F125`, CORRECTED AT SOURCE RATHER THAN LEFT
+> FOR A LATER ROW.** It read *the 39 are not being out-competed — they never enter the contest;
+> the search does not reach them.* **Measured against the CLOSURE at the loop's own parameters,
+> the search composes 34 of the 48.** So 25 of those 39 DO enter the contest and are lost after
+> it — the opposite of what this said. **Only 14 are genuinely never composed, and they are the
+> extract atoms this entry already classified INERT BY TYPE.**
 
 ### the quantifiers are three different failures under one heading
 
@@ -33606,3 +33612,74 @@ reasons, and only one of those is an omission.**
                 own audit instrument found and stated
     CAPABILITY  unchanged. levels 0, routine_cut 0. Nothing built, nothing proposed --
                 `any` losing every tie costs the agent nothing it would otherwise have had.
+
+---
+
+## `F125` — the closure composes 34 of 48, so `F119`'s "they never enter the contest" is wrong for 25 of them
+
+**`F124` ended by stating a limit in my own instrument and declining to repair it**: `F119`'s
+REACHED column counted LEDGER ROWS, and *no row* is not *never composed* for any atom that pays and
+ties. I said repairing it meant auditing against the closure instead of the ledger. **That is one
+query, it has now been run, and it overturns `F119`'s strongest sentence.**
+
+### measured at the loop's own parameters, not mine
+
+`Config.max_depth = 3`, `Config.budget = 4000`, over the five streams `_mint` actually enumerates —
+`("val","val")` plus `(slot_type, OBJ)` for the four slot types the boards carry.
+
+    stream            chains   budget_spent   depth_exhausted
+    val -> val            15       False           True
+    POSITION -> OBJ      219       False           True
+    COLOUR -> OBJ        126       False           True
+    EXTENT -> OBJ        204       False           True
+    SHAPE -> OBJ         291       False           True
+                         ---
+                         855
+
+**`budget_spent` is False and `depth_exhausted` True on every stream, so this is the COMPLETE
+closure rather than a truncated one** — the distinction `F47` established and the reason the
+numbers below can be read as a fact about the space rather than about a cutoff.
+
+    atoms declared                        48
+    atoms the CLOSURE composes            34
+    atoms the closure NEVER composes      14
+    atoms reaching a LEDGER ROW (F119)     9
+
+### the correction, and it is to the sentence I was proudest of
+
+`F119` read: **"the 39 are not out-competed, THEY NEVER ENTER THE CONTEST, and the gap is REACH
+rather than vocabulary."** Against the closure:
+
+    14  never composed      abs_delta, area, centroid, col, colour, dcol, drow, h,
+                            row, shape, sign, touching, touching_n, w
+    25  COMPOSED, and never surviving to a row
+     9  composed and reaching a row
+
+**So 25 of the 39 DO enter the contest.** They are composed into candidate chains and then lost —
+and `F124` names the two ways that happens without leaving a trace: a candidate that PAYS without
+beating the incumbent writes no row at all, and a candidate that is CUT writes one only if it lands
+inside `cuts[:12]`.
+
+> **THE GAP IS NOT REACH FOR THOSE 25. IT IS WHAT HAPPENS AFTER REACH, AND THE LEDGER CANNOT SHOW
+> IT.** `F119`'s headline survives only for the 14 — and those 14 are precisely the extract atoms
+> it had already classified INERT BY TYPE (`OBJECT -> ATTR` handed a scalar), plus `sign` and
+> `abs_delta`. **So the category `F119` got right accounts for essentially all of the genuine
+> never-composed set, and the claim it built on top of that category is the part that fails.**
+
+### why this is the third instrument-scope error in two days, and they are one error
+
+`F119` pass 1 substring-searched raw JSON (`I24`). Pass 2 counted refusals as bindings. `F124`
+found REACHED counting rows. **This one is the same mistake one level up: I measured the artefact
+the loop WRITES and reported it as a property of the space the loop SEARCHES.** The ledger is a
+record of what survived, not of what was tried — and every one of these four errors is a version of
+reading the survivors and calling it the population.
+
+**AND THE PROBE THAT PRODUCED THIS NEARLY REPEATED IT.** My first closure query used depth 4 and a
+budget of 100,000 — neither the loop's — and an earlier one used the `val -> OBJ` stream, which
+`_mint` never enumerates and which yields **zero** chains. **Three population errors inside one
+investigation, two caught before they were believed and one caught by reading `Config`.**
+
+    MECHANISM   F119's reach claim re-measured against the closure and REFUTED for 25 of 39;
+                F119 repaired at source where the wrong sentence is read
+    CAPABILITY  unchanged. levels 0, routine_cut 0. No candidate fix: what this changes is
+                WHERE to look for the 25 -- at pricing and at cuts[:12], not at reach.
