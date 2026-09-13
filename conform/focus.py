@@ -1,23 +1,27 @@
 """focus: the ground is the only metric, made into a check that fires.
 
-Every commit declares what it moved, with a trailer:
+Every commit names which LEVEL its subject sits at. This is the reviewer's axis (2026-09-12),
+and it REPLACES the earlier contact/instrument one because that one was too coarse: it filed a
+measurement ABOUT THE AGENT (legitimate) in the same bucket as channel plumbing (the drift). The
+separating line is the SUBJECT, not the register:
 
-    Focus: GROUND               levels_completed or traction on the board moved
-    Focus: CONTACT -- <claim>   the agent can now reach X it could not; the claim is checkable
-    Focus: INSTRUMENT           a measurement, the record, tooling. Not contact.
+    Focus: L1 <agent facet>   the agent -- what it perceives, binds, composes, does
+    Focus: L2 <what>          the record OF the agent -- censuses, corpus reads, meta-findings
+    Focus: L3 <what>          the record OF THE RECORD -- the workbook, the splits, the publish path
+
+Keep everything at L1. L2/L3 is allowed only where it states a law that transfers off this
+project -- and it is COUNTED, because the drift that removed the last agent was accumulation away
+from L1: never invisible, just never counted (reviewer, 2026-09-12). A note after the level is
+required, so a bare level cannot be rubber-stamped.
 
 Two jobs, and only one of them blocks:
 
-    python focus.py --streak     report the instrument-since-contact streak. NEVER exits non-zero.
+    python focus.py --streak     report the non-L1 streak. NEVER exits non-zero.
     python focus.py --msg FILE   enforce against an incoming commit message. Exits 1 to block.
 
 The block lives here and not in check.py on purpose: pre-commit runs BEFORE the commit that
 would clear the streak exists, so a blocking seat there cannot be cleared and deadlocks. The
-commit-msg hook sees the incoming classification, so it can.
-
-Why this exists: F80..F125 were 45 findings with the ground unchanged at levels 0, and each
-looked reasonable alone. The drift was visible only in the sum, and nothing computed the sum.
-This computes it. See CLAUDE.md 'THE GROUND-FOCUS SEAT'.
+commit-msg hook sees the incoming classification, so it can. See CLAUDE.md 'THE GROUND-FOCUS SEAT'.
 """
 
 from __future__ import annotations
@@ -32,26 +36,27 @@ sys.dont_write_bytecode = True
 ROOT = Path(__file__).parent.parent
 
 # anchor: a DECLARED CONVENTION, not a measurement -- the seat authors it (Figure 10) and the
-# reviewer moves it. Set so a short instrument run passes and a stall is caught long before the
+# reviewer moves it. Set so a short off-agent run passes and a stall is caught long before the
 # 45 that prompted this. It is not claimed correct; it is claimed visible and movable.
 STALL = 5
 
-_TRAILER = re.compile(r"^Focus:\s*(GROUND|CONTACT|INSTRUMENT)\b(.*)$", re.M | re.I)
+_TRAILER = re.compile(r"^Focus:\s*L([123])\b(.*)$", re.M | re.I)
 _EXEMPT = re.compile(r"^(Merge|Revert|fixup!|squash!|amend!)\b")
 
 
-def classify(msg: str) -> tuple[str | None, str]:
-    """(kind, claim). kind is None when there is no trailer -- the pre-convention state."""
+def classify(msg: str) -> tuple[int | None, str]:
+    """(level, note). level is 1/2/3, or None when there is no trailer -- the pre-convention
+    state, which is also the legacy boundary the streak stops at."""
     m = _TRAILER.search(msg)
     if not m:
         return None, ""
-    return m.group(1).upper(), m.group(2).strip(" -:—\t")
+    return int(m.group(1)), m.group(2).strip(" -:—\t")
 
 
 def streak() -> int:
-    """Consecutive most-recent commits marked INSTRUMENT, counted back until the first
-    CONTACT/GROUND or the first commit with no trailer at all -- which is the legacy boundary,
-    so the 677 pre-convention commits do not count and the streak starts clean."""
+    """Consecutive most-recent commits at L2 or L3, counted back until the first L1 or the first
+    commit with no level at all -- the legacy boundary, so pre-convention commits do not count and
+    the streak starts clean."""
     out = subprocess.run(
         ["git", "log", "-n", "80", "--format=%B%x1e"],
         cwd=ROOT, capture_output=True, text=True,
@@ -60,8 +65,8 @@ def streak() -> int:
     for entry in out.split("\x1e"):
         if not entry.strip():
             continue
-        kind, _claim = classify(entry)
-        if kind is None or kind in ("CONTACT", "GROUND"):
+        level, _note = classify(entry)
+        if level is None or level == 1:
             break
         n += 1
     return n
@@ -72,29 +77,27 @@ def enforce(path: str) -> int:
     first = next((ln for ln in msg.splitlines() if ln.strip()), "")
     if _EXEMPT.match(first):
         return 0
-    kind, claim = classify(msg)
-    if kind is None:
-        print("FOCUS: commit has no `Focus:` trailer. Add exactly one:\n"
-              "  Focus: GROUND               (levels/traction on the board moved)\n"
-              "  Focus: CONTACT -- <claim>   (the agent can now reach X it could not)\n"
-              "  Focus: INSTRUMENT           (measurement, record, tooling; not contact)")
+    level, note = classify(msg)
+    if level is None:
+        print("FOCUS: commit has no `Focus:` level trailer. Add exactly one, with a note:\n"
+              "  Focus: L1 <agent facet>   the agent -- perceives, binds, composes, does\n"
+              "  Focus: L2 <what>          the record OF the agent -- censuses, corpus reads\n"
+              "  Focus: L3 <what>          the record OF THE RECORD -- workbook, publish path")
         return 1
-    if kind == "CONTACT" and not claim:
-        print("FOCUS: CONTACT needs a checkable claim after it -- name what the agent can now "
-              "reach that it could not. A CONTACT with no claim is an INSTRUMENT wearing the "
-              "word.")
+    if not note:
+        print(f"FOCUS: L{level} needs a note after it -- name the subject in a few words. "
+              f"A bare level cannot be rubber-stamped.")
         return 1
-    if kind in ("CONTACT", "GROUND"):
+    if level == 1:
         return 0
-    # INSTRUMENT: allowed until the streak reaches the stall, then it must be cleared or escalated.
+    # L2/L3: off the agent. Allowed until the streak reaches the stall, then cleared or escalated.
     s = streak()
     if s >= STALL and not re.search(r"escalat", msg, re.I):
-        print(f"FOCUS: {s} instrument-only commits since the last CONTACT or GROUND, and the "
-              f"ground is unchanged at the binding-starvation break.\n"
-              f"The answer to too many instruments is the next mechanism the framework names, "
-              f"not one more instrument.\n"
-              f"Either reclassify this commit as `Focus: CONTACT -- <claim>`, or escalate to the "
-              f"reviewer through the workbook and write 'escalated' in the message.")
+        print(f"FOCUS: {s} commits off the agent (L2/L3) since the last L1, and the ground is "
+              f"unchanged at the binding-starvation break.\n"
+              f"The drift that removed the last agent was accumulation away from L1. Either move "
+              f"this commit to L1 -- the agent: what it perceives, binds, composes, does -- or "
+              f"escalate to the reviewer through the workbook and write 'escalated' in the msg.")
         return 1
     return 0
 
@@ -105,8 +108,8 @@ def main(argv: list[str]) -> int:
         return enforce(argv[i + 1])
     # --streak, and the default: report, never block.
     s = streak()
-    mark = "  <-- STALL, next instrument commit is refused" if s >= STALL else ""
-    print(f"focus: instrument-only streak {s} since last contact (stall {STALL}){mark}")
+    mark = "  <-- STALL, next off-agent commit is refused" if s >= STALL else ""
+    print(f"focus: {s} commits off the agent (L2/L3) since last L1 (stall {STALL}){mark}")
     return 0
 
 

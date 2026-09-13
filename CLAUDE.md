@@ -126,27 +126,32 @@ that fires "reads as something that will be enforced, and it will not be."** So 
 seat, in `conform/focus.py`, wired to the `commit-msg` hook — *install the check rather than
 being careful again.*
 
-**Every commit classifies what it moved, with a trailer, and the hook refuses one that does
-not:**
+**Every commit names which LEVEL its subject sits at, and the hook refuses one that does not.
+The axis is the reviewer's (2026-09-12): the SUBJECT, not the register.**
 
-    Focus: GROUND               levels_completed or traction on the board moved
-    Focus: CONTACT -- <claim>   the agent can now reach X it could not (Figure 11); claim checkable
-    Focus: INSTRUMENT           a measurement, the record, tooling. Not contact.
+    Focus: L1 <agent facet>   the agent -- what it perceives, binds, composes, does
+    Focus: L2 <what>          the record OF the agent -- censuses, corpus reads, meta-findings
+    Focus: L3 <what>          the record OF THE RECORD -- the workbook, the splits, the publish path
 
-**Past `STALL` consecutive INSTRUMENT commits since the last CONTACT/GROUND, the next
-instrument commit is refused** — reclassify it as CONTACT with a claim, or escalate to the
-reviewer and write `escalated`. It forces a confrontation, not a ban: the instruments were a
-real prerequisite once (*the ratio reads differently for a sequence*), so blocking outright
-would be wrong. **`STALL` is a DECLARED CONVENTION the seat authors (Figure 10) and the
-reviewer moves — not a derived constant, not claimed correct, only visible and movable.** The
-per-turn streak is surfaced by `check.py` so the sum is never invisible again.
+**This REPLACED an earlier GROUND/CONTACT/INSTRUMENT axis, which was too coarse: it filed a
+measurement ABOUT THE AGENT — like locating the binding-starvation root, the most valuable
+finding of the window — in the same bucket as channel plumbing.** The separating line is the
+subject. **Keep everything at L1. L2/L3 is admitted only where it states a law that transfers
+off this project, and it is COUNTED**, because the drift that removed the last agent was
+accumulation away from L1: never invisible, just never counted.
 
-**Why it cannot be gamed, and the one honesty condition:** the agent classifies its own
-commits, so the risk is declaring everything CONTACT. `CONTACT` requires a checkable claim
-the reviewer can refute, and a false CONTACT is the worst instrument error, not a clever
-escape. `GROUND` reads `levels_completed`, which is server-external and cannot be faked. **A
-gate is itself an instrument, so this stays exactly one seat and this one section** — its own
-installing commit is `INSTRUMENT` under its own rule.
+**Past `STALL` consecutive L2/L3 commits since the last L1, the next off-agent commit is
+refused** — move it to L1, or escalate to the reviewer and write `escalated`. It forces a
+confrontation, not a ban. **`STALL` is a DECLARED CONVENTION the seat authors (Figure 10) and
+the reviewer moves — not a derived constant, not claimed correct, only visible and movable.**
+The per-turn streak is surfaced by `check.py` so the sum is never invisible again. A note after
+the level is required, so a bare level cannot be rubber-stamped. **A gate is itself L3, so this
+stays exactly one seat and this one section** — its own commits are `L3` under its own rule.
+
+**The reviewer's sift ruled the record itself (2026-09-12): the transport programme — the
+workbook splits, the publish path, the freshness stamps — was real work correctly done, is
+finished, and is NOT to be GC'd, extended, or added to.** It is drift's overhead, not its cause,
+and the fix is the level rule at write time, not a cleanup afterwards.
 
 ### Nothing silent
 
@@ -773,4 +778,4 @@ written at all.
     .venv/Scripts/python.exe gate.py runs/demo.jsonl
     .venv/Scripts/python.exe test_gate.py         # the gate's 8 checks, one defect each
     .venv/Scripts/python.exe -m ruff check .
-    .venv/Scripts/python.exe conform/focus.py --streak   # instrument-since-contact streak
+    .venv/Scripts/python.exe conform/focus.py --streak   # commits off the agent (L2/L3) since last L1
