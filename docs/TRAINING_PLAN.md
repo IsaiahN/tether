@@ -18,12 +18,13 @@ and can say *how* and *why* in a readable string of atoms and operators. The met
 ground: **levels completed per game (RLVR)**, per game, never pooled. Enough level completions
 is a win. Traction is the mechanism; level completion is the readout.
 
-**The ablation gate (terminal condition, clause 3):** 25/25 means **all twenty-five public
-games each carried to a `WIN` game status** — not 25 levels on one board, not 25 steps. Only at
-25/25 do we back up Γ, wipe it, and re-run: if the win survives, the agent composed it; if it
-disappears, the library was carrying the answer. Below 25/25 the wipe has no interpretable
-subject. The wipe half is deferred and un-runnable until then; the *recording* of what admitted
-each term must happen as entries occur, because it cannot be reconstructed later.
+**The ablation gate (terminal condition, clause 3), refined 2026-09-13:** back up Γ, wipe, and
+re-run — if the win survives, the agent composed it; if it disappears, the library was carrying
+the answer. **Ablation is not all-or-nothing at 25/25: it is interpretable per game the moment
+that game is won** (wipe, re-run *that* game, see if the win holds). **25/25 — all twenty-five
+public games each carried to a `WIN` game status** — is the *full* ablation across the set, not
+the threshold for any ablation at all. The *recording* of what admitted each term must still
+happen as entries occur (proctor-side; see §11), because it cannot be reconstructed later.
 
 ---
 
@@ -253,3 +254,51 @@ two uses; the line is whether it decides what the agent is given.
 
 The break is at binding; System 0 is the lever most likely to unblock both binding and the
 promotion that persistence then carries. The generator rests on that, not the other way round.
+
+---
+
+## 11. Refinements — the library model (reviewer + Isaiah, 2026-09-13)
+
+**Ablation is per-game, not only 25/25.** Interpretable the moment the agent wins a game: wipe,
+re-run *that* game, see if the win survives. 25/25 is the full ablation across the set. (Corrects
+the earlier "no interpretable subject below 25/25", which was too strict.)
+
+**Provenance is split — the agent operates provenance-free; the proctor keeps the mint record.**
+The agent's operational library carries the composition (the atom string) but **not** where it
+came from, so selection is driven by perceiving the situation, never by knowing an origin.
+Separately, and **out of the agent's reach**, the proctor keeps a mint-provenance log
+(`game_etc_mint`) for reading RL/training results and running the ablation. This satisfies the
+doctrine's *import must be provenanced* (the record exists, proctor-side) and its *record the
+admitting clause as entries happen* (the proctor log is that record), while denying the agent
+provenance as a crutch. Figure 8's *convergent and import look identical in the contents* is
+handled exactly here: identical in the AGENT's contents, separated in the PROCTOR's record.
+
+**Selection among many is the proof.** With a large, game-agnostic settled/unsettled library, the
+agent *choosing* the right composition from many — driven by perception of a novel situation — is
+itself evidence of understanding rather than lookup, **provided it generalizes (transfer)**. The
+proctor-side provenance is what confirms the pick was not a stored answer for that game.
+
+**The library is symmetric: one breadth counter, two directions.** A population prunes by killing;
+one agent cannot kill, so refutation-in-cache is the single-agent substitute for a body dying. It
+is the same counter as promotion, run with the opposite sign:
+
+- **Promotion** — a term paid across many *unrelated* situations → becomes primitive.
+- **Demotion** — a term failed across many *unrelated* situations → loses standing.
+
+Neither fires on a single occasion, which is exactly the rule that stops one board shaping
+anything. **Refutations live in a cache and consolidate only on repeated cross-situation demand.**
+The agent does not refute or permanently attribute/add to the shared library on a game-to-game
+basis. **This is a BUILD ITEM: the framework specifies refutation but says nothing about how a
+refusal accumulates** — and the demotion threshold, like promotion's and like the System-0 switch,
+must be **state-derived (how many independent situations demanded it), never a tuned constant.**
+
+**Transfer learning IS the goal, not a hazard.** Figure 8's indistinguishability is what transfer
+looks like — methods learned in training generalizing to the private set. The ambition is to prove
+it in a **white-box, CPU-only** architecture, with every decision a readable string of atoms and
+operators and the proctor's provenance record keeping it honest.
+
+**Implementation implications (to build, not yet built):**
+- Persistence `save` splits into an agent-facing library (composition, provenance-light) and a
+  proctor-side mint log (game + origin + handle), the latter out of the agent's reach.
+- Refutation consolidates **across** games through a cache with a **state-derived** demotion
+  threshold — the symmetric twin of promotion's breadth counter — rather than within one run.
