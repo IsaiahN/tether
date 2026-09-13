@@ -576,6 +576,12 @@ Not "it improved". Five clauses, each checkable:
    mints, and you cannot tell a composer from a lookup table* — and a composer/lookup
    distinction needs something composed. **Run it at 25/25, not before.**
 
+   **AND 25/25 MEANS 25 PUBLIC GAMES EACH AT A `WIN` GAME STATUS — Isaiah, 2026-09-13.** Not 25
+   levels on one board, not 25 steps: the ablation gate is the agent carrying **all twenty-five
+   public games to a WIN terminal state.** Below that the wipe has no interpretable subject, and
+   nothing in the current work — the binding diagnosis, the focus seat — comes near it, so the
+   wipe/ablation half stays deferred and un-runnable until the public set is swept.
+
    Back up Γ, verify the backup, wipe Γ, re-run. *If the win survives,
    the agent composed it. If the win disappears, the library was carrying the answer and
    the agent was retrieving, not reasoning.* The sharpest clause and a runnable
