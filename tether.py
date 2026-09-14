@@ -2898,7 +2898,15 @@ class Agent:
                 if found is not None and found[0] < left:
                     left, cand, how = found[0], found[1], "chunk"
             cross = tkey != slot
-            if left == 0.0:
+            # F32 RULED (all-or-nothing is WRONG): the residual never fully closes, so
+            # `left == 0.0` discarded 42 strict improvements AND admitted 19/21 full-closures
+            # that do not pay. THE FIX IS THE ONE BARGAIN (14.4), not a second gate: accept when
+            # the candidate PAYS -- `cost + left < base` -- read off the trace (cost/left/base),
+            # never a constant. The provenance rides in the residual stamp (`:partial`/`:closed`)
+            # so the ablation separates a bargain-accepted partial from a full closure.
+            cost = term_bits(self.gamma.length(cand, tuple(self.gamma.units())),
+                             self.gamma.alphabet)
+            if pays(cost, left, base):
                 self.explain(slot, base - left)
                 # THE SWEEP IS A PULL AND EMITTED NO PULL ROW. `reused()` counts `pull` rows
                 # and this is the only path that RE-BINDS, so every reuse it found was
@@ -2908,11 +2916,11 @@ class Agent:
                                 rebound=True, via="sweep",
                                 origin=(self.gamma.stamps.get(tkey) or {}).get("origin"),
                                 reads="a library entry reached for BY THE SWEEP")
-                self.chain.note_reuse_attempt(f"closed:{how}")
+                self.chain.note_reuse_attempt(f"{'partial' if left > 0.0 else 'closed'}:{how}")
                 self.chain.note_reused()
                 self.chain.note_cleared()
                 name = (cand.name if cand.name in self.gamma.library
-                        else self._install_reuse(cand, slot))
+                        else self._install_reuse(cand, slot, partial=left > 0.0))
                 # 3d: COUNT REUSE WHERE THE FUNNEL ALREADY DETECTS IT. The bind sites are
                 # once-per-term by construction -- a rebind picks a DIFFERENT term, since
                 # `_library_fit` excludes the incumbent -- so counting there reads 1 forever.
@@ -2963,33 +2971,32 @@ class Agent:
                 # this window keeps logging -- a check that covers half the ground. Same
                 # fields as `_install_reuse` computes, so the two arms read alike and a
                 # future census can pool them without re-deriving anything.
+                # F32: the label is now ACCURATE -- the gate IS `pays`, so did-not-pay means the
+                # candidate improved (`left < base`) but cost made the bargain refuse it
+                # (`cost + left >= base`), and no-split means it reached nothing. The A6i misnomer
+                # (did-not-pay when pays was never consulted) is gone with the zero-remainder gate.
                 why = "did-not-pay" if left < base else "no-split"
                 self.chain.note_reuse_attempt(why)
-                cost = term_bits(self.gamma.length(cand, tuple(self.gamma.units())),
-                                 self.gamma.alphabet)
                 self.led.record(self.cycle, "ROUTE", slot, "reuse_refused",
                                 reason=why, term=cand.name, held=tkey,
                                 term_bits=round(cost, 4), left_bits=round(left, 4),
                                 base_bits=round(base, 4),
                                 would_pay=pays(cost, left, base), via=how, cross_level=cross,
-                                reads="what the ONE bargain would have said on a candidate "
-                                      "the zero-remainder gate refused")
+                                reads="the ONE bargain refused this candidate: cost+left >= base")
 
-    def _install_reuse(self, cand: Term, slot: str) -> str:
-        """The SWEEP's entry into Gamma, and it is the one path that does not consult `pays`.
+    def _install_reuse(self, cand: Term, slot: str, partial: bool = False) -> str:
+        """The SWEEP's entry into Gamma. **F32 RULED: it now consults THE ONE BARGAIN.**
 
-        **TWO GATES ON ONE LIBRARY.** `mint` requires `cost + left < base`; this fires when
-        `_reach` returns a term with `left == 0.0`, and a term that explains a parked residual
-        completely can still be LONGER than the residual is worth. §14.4 says *one bargain*, and
-        this is the site where there are two.
+        **ONE GATE ON ONE LIBRARY (was two).** `mint` requires `cost + left < base`, and the
+        caller now gates this path on the same `pays()` rather than on `left == 0.0`. §14.4 said
+        *one bargain*; this was the site where there were two, and the second is gone. A term that
+        closes a residual completely but is longer than the residual is worth no longer enters
+        (19/21 such installs read `would_pay=False`); a strict improvement that pays but leaves a
+        remainder now does (42 were discarded under the old gate).
 
-        **NOT REPAIRED, AND NOT SILENT EITHER.** `_install_reuse` was never called across the
-        demo panel -- the single sweep pull reused a term already in the library -- so a gate
-        added here would change what enters Gamma with **no board on which to read the change**,
-        which is the fitting-to-an-argument the deferred repairs have all been held against.
-        **So the row states what the bargain WOULD have said**, exactly as `can` published its
-        reading before `Until` existed to consume it: the first run that exercises this path
-        answers the question instead of a decision made without one.
+        **PROVENANCE (F32 constraint 3).** `partial` records whether the bargain accepted a
+        remainder-leaving term (`left > 0`) or a full closure, and it rides into the stamp so the
+        ablation separates a bargain-accepted partial from a full closure.
         """
         hist = self.history(slot)
         held = self.gamma.library.get(self.bound.get(slot, IDN))
@@ -3008,8 +3015,11 @@ class Agent:
                         cost=round(cost, 4), left=round(left, 4),
                         base=None if base is None else round(base, 4),
                         would_pay=None if base is None else pays(cost, left, base),
-                        note="entered on left==0 alone; `pays` is not consulted on this path")
-        self.gamma.accept(cand, seq=len(self.led), residual=f"reuse:{slot}@{self.cycle}")
+                        partial=partial,
+                        note="F32: entered on the ONE bargain (cost+left<base); "
+                             + ("partial -- a remainder remains" if partial else "full closure"))
+        stamp = "partial" if partial else "closed"
+        self.gamma.accept(cand, seq=len(self.led), residual=f"reuse:{slot}@{self.cycle}:{stamp}")
         return cand.name
 
     def settle(self, res: dict[str, SlotResidual]) -> None:
