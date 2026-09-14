@@ -61,7 +61,8 @@ def _mode():
 
 
 def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
-         store: str | None = None, arc=None) -> dict:
+         store: str | None = None, arc=None, stop_on_end: bool = False,
+         system0: bool = False) -> dict:
     """Download one game, run the loop on it, and report where the chain stops.
 
     **`library` IS §17.8's SWITCH, and the default is cold.** *State it, and make it switchable
@@ -102,7 +103,8 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
     env = ArcWorld(w, arc_percept.Objects(), arc_atoms.three_spaces(arc_predict.predict()),
                    palette=palette, name=game)
     led = ledger.Ledger()
-    ag = tether.Agent(env, gamma.Gamma(env.atoms(), game=game), tether.Config(), led)
+    ag = tether.Agent(env, gamma.Gamma(env.atoms(), game=game),
+                      tether.Config(system0=system0), led)
     loaded = ag.gamma.load(library) if library and Path(library).exists() else None
     # Q25 needs the set BEFORE play and there is exactly one moment it exists
     inherited = ({summary._chain(t) for t in ag.gamma.library.values()} if loaded else set())
@@ -157,6 +159,11 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
             # against the same resource as the agent doing it. The controlled experiment
             # is a SEPARATE seat measurement with no Gamma in it -- see `controlled()`.
         was_terminal = end
+        # `cycles` is a CAP, not the unit. play() otherwise runs the full count and every
+        # cycle after the first GAME_OVER is a no-op, so ONE GAME start-to-finish needs
+        # the loop to stop where the game does. Default False leaves every caller as it was.
+        if stop_on_end and end:
+            break
 
     rows = led.rows()
     g = ag.gamma
@@ -195,6 +202,7 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
         # is the agent's; printing both side by side is what makes the collision rate visible.
         "store_key": ag.store_key(1, env.levels()[0] + 1), "filed": filed,
         "palette": palette, "slots": len(env.slots()), "blind": env.blind,
+        "binding": ag.binding_stats(),   # System-0 A/B DV: binding density, action tally, switch
         "cycles": ag.cycle, "rows": len(rows), "gate": gate.check(rows)["verdict"],
         # §22.6: the stage code is the DIAGNOSIS. `stalls` over CLOSED segments, never
         # `seg.stage()` -- the live segment is whatever is currently open, and a fresh one

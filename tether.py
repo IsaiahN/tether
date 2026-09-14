@@ -298,6 +298,9 @@ class Config:
     # and the declared bound never binds -- while the work exceeded it.
     budget: int = 4000
     mode: str = SPECIFIED
+    # SYSTEM 0 (Isaiah, 2026-09-14): motor babbling before means-end -- draw variously until
+    # the action-effect map has coverage, then hand to strategy. Off by default; the A/B toggles.
+    system0: bool = False
 
 
 @dataclass
@@ -353,6 +356,7 @@ class Agent:
         self.led = led if led is not None else Ledger(mode=self.cfg.mode)
         self.slots = env.slots()
         self.bound: dict[str, str] = {}
+        self._acts: Counter = Counter()   # System-0 instrument: concrete actions taken per cycle
         # the whole before-state is kept, because an operand is another slot's past value
         self.trace: list[tuple[dict[str, int], str, dict[str, int]]] = []
         self.owed_import: set[str] = set()
@@ -1670,6 +1674,13 @@ class Agent:
                         "refuted_at_least": len(cands) - max(buckets.values()),
                         "by": f"any outcome on {s} after {pick}"}
                 return pick, "discriminate"
+        # SYSTEM 0 -- Isaiah: start random, then jump to strategy. While the agent lacks the
+        # contingency evidence to be strategic -- a surfaced action not yet tried at >=2 distinct
+        # states, probe.py's `never_live` anchor -- draw variously INSTEAD of exploiting the
+        # learned arm, so it generates the (before, action, after) evidence binding needs. The
+        # switch is state-derived (coverage), never a cycle constant. Off unless Config.system0.
+        if self.cfg.system0 and self._system0_active():
+            return self.drive.choose(self.actions, self.cycle, _where(before)), "system0"
         learned = self._learned_split()
         if learned is not None:
             return learned, "discriminate:learned"
@@ -1690,6 +1701,22 @@ class Agent:
         if goal is not None:
             return goal, "discriminate:goal"
         return self.drive.choose(self.actions, self.cycle, _where(before)), "draw"
+
+    def _system0_active(self) -> bool:
+        """System-0 exploration runs until the action-effect map has coverage: every surfaced
+        action tried at >=2 distinct states (probe.py's `never_live` anchor -- the smallest that
+        separates a dead action from a positional artefact). State-derived; no cycle constant.
+        Once every action is covered, this returns False and the learned arm resumes."""
+        return any(len(self.drive.tried.get(a, ())) < 2 for a in self.actions)
+
+    def binding_stats(self) -> dict:
+        """The System-0 A/B instrument. Binding density = slots bound to a non-IDN term over all
+        slots -- F118's quantity, per game, board-independent by definition. Plus the concrete
+        action tally (did the agent act variously) and the switch state."""
+        bound = [s for s in self.slots if self.bound.get(s, IDN) != IDN]
+        return {"bound_slots": len(bound), "total_slots": len(self.slots),
+                "binding_density": round(len(bound) / max(1, len(self.slots)), 4),
+                "acts": dict(self._acts), "system0": self.cfg.system0}
 
     def _discrepancy(self, slot: str, state: dict[str, int]) -> int | None:
         """How far this slot is from satisfying the objective bound to it. Zero iff satisfied.
@@ -3175,6 +3202,7 @@ class Agent:
         self._disproof = {}
         if action is None:
             action, by = self.choose(before)
+        self._acts[action] += 1   # System-0 instrument: the concrete action distribution
         # THE PHASE IS READ OFF THE SITE THAT CHOSE, never asserted alongside it. It
         # used to be `DIRECTED if a term is bound`, attached to an action drawn by the
         # identical mechanism either way -- a label the mechanism could not make.
