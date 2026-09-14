@@ -152,9 +152,25 @@ public-game-specific recipe.
 
 ### Stage 1 — a generated / situational curriculum, NOT the 25 games as answers
 
-Build a task generator over the **same substrate the agent already perceives**: objects,
-attributes (position, colour, extent, shape), relations (same, other, above), the seven actions,
-the same partial observability. Thousands of tasks; none an ARC game fed as an answer.
+**THERE MAY BE NO GENERATOR TO BUILD — THE CURRICULUM ALREADY EXISTS (reviewer + Isaiah,
+2026-09-14). See `SELF_GRADED_CURRICULUM.md`.** The library-closure is itself a curriculum: hold
+out a random subset of its 2,205 composites ACROSS TIERS and have the composer re-derive them from
+the remainder, grading by the recipe (the recipe is the receipt — *did it rebuild this composite* is
+mechanically checkable). No board, no generator, no answer key in the contaminating sense — **the
+library is the ground.** The contamination defence is Isaiah's: randomise the split and let fitness
+select, so no one chose what to withhold and nothing about the boards can leak; fitness is
+re-derivation inside the held-out library, NEVER performance on the target games. It runs over the
+library-closure's OWN domain-general vocabulary (the composer core is generic — `Gamma` takes any
+typed atom list), disjoint from ARC, so it cannot contaminate the claim. It is FAST (no board/API),
+so the accumulation the flywheel needs is affordable here, and it is the only direct measure of the
+parts-bin thesis: does re-derivation cost per composite FALL as the bin grows. This is the
+preferred Stage 1 — the generator below is the fallback if the three code-checks in
+`SELF_GRADED_CURRICULUM.md` fail.
+
+The generator fallback: build a task generator over the **same substrate the agent already
+perceives**: objects, attributes (position, colour, extent, shape), relations (same, other, above),
+the seven actions, the same partial observability. Thousands of tasks; none an ARC game fed as an
+answer.
 
 - **Legitimate because no board knowledge enters** — the generator is built from the agent's own
   type system (the code's stated intent), not from watching what these boards need. **Every
