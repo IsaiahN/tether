@@ -190,6 +190,46 @@ search fails, derive *which* commitment caused it and learn a term that forbids 
 ROUTE bin, negation, and the failed-path catalogue, three pieces of one mechanism the framework
 specifies and has never run.
 
+**THE ASYMMETRY, AND IT REPRIORITISES THIS WHOLE PLAN (Isaiah, 2026-09-14).** Pretraining is mainly
+there to negate the combinatorial explosion of ways things go **wrong**, more than to name the
+right answers — and the two are not the same size. **The right answers are a thin set; the wrong
+ones are almost everything.** A prior that says where *not* to look prunes vastly more than one
+that says where to look, *and it cannot carry the answer* — it only shrinks the space. That is the
+**safe** form of a prior (which is exactly why F133's positive what-to-do channel was over the line
+and a negative prior is not): the aisles aren't removed, they're marked dead. **So the what-not-to-
+do half is not the second blade of the scissors — it is the load-bearing one.** The qualification:
+*not here* narrows, it never proposes, so a generator is still needed — but generation already
+exists and is cheap (minting + the closure walk). **What is missing is the thing that stops the
+generator producing the same dead candidates forever: 174 bets a cycle, 99% failing, and nothing
+remembering they failed.** That makes the **refutation cache the highest-value unbuilt mechanism in
+the project**, and it is the direct attack on the reach-failure metric — the composer becoming a
+librarian by marking aisles dead. Build it before the accumulation runs, not after: it is also what
+makes them affordable. See `LIBRARY_VS_COMPOSER.md`.
+
+**THE ONE PROPERTY THAT DECIDES PRUNE-OR-BLOAT (reviewer, 2026-09-14).** The refutation must be
+keyed on something that **generalises**, not on the candidate that failed. *This exact term failed
+here* prunes one candidate — a lookup table that grows as fast as the search does, which against
+174 bets a cycle is the explosion wearing a cache's clothes. *This shape of composition fails under
+these conditions* prunes an aisle — and **that** is what makes it a negative prior. The design is
+already half-answered: the failed-path catalogue (`_gap_key`) keys on the **characterised residual
+— types, not instances** (arity, `varies_types`, `target_type`, `rel_types`), and `rel_types`
+crosses on type rather than pair. **The refutation cache must obey the same rule**, or the two
+mechanisms disagree about what a failure is. Not a check to add and not a thing to measure — the one
+property that decides whether it prunes or bloats.
+
+**AND THE FAILURE MODE, WRITTEN DOWN BEFORE THE NUMBERS ARRIVE (reviewer, 2026-09-14).** A key
+coarse enough to prune an aisle can prune an aisle that **had a door in it**. `_gap_key` was
+designed for *retrieval*, where too-wide is survivable — a slightly-too-wide retrieval still cuts
+the problem down. As a *refusal* key, too-wide **silently removes reachable terms**, and nothing
+downstream reports a term that was never generated. This is not a reason to narrow the key; it is
+the one way the mechanism goes wrong *quietly*. The symptom reads as success: **reach-failure
+falls, and reach falls with it.** So the guard — the paired-run guard the plan already requires for
+speedups, applied here — is: **reach-failure down is only good if reach HOLDS.** Measure successful
+reach (reach − reach_failed), not reach-failure alone; a pruned door shows up as successful reach
+falling while a working cache shows reach-failure falling with successful reach held. Record a
+distinct `reach_pruned` event where the cache skips, so the believed-dead are never confused with
+the genuinely-searched.
+
 ### Stage 4 — test on a fresh public board, cold
 
 After the curriculum, run a public board the agent has not trained on. **Success is not that it

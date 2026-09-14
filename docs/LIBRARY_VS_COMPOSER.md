@@ -26,13 +26,29 @@ So the viable alternative is to use reinforcement learning to pre-train the mapp
 
 Because ultimately, the composer was always meant to be the librarian who was sorting the data, and retrieving it in a specific manner in the first place.   
 
+## The asymmetry — pretraining negates the wrong far more than it names the right
+
+*Isaiah, 2026-09-14.*
+
+Pretraining is mainly there to negate the combinatorial explosion of ways things can go **wrong**, more than to tell you the right answers. And the two are not the same size.
+
+**The right answers are a thin set. The wrong ones are almost everything.** So a prior that tells you where **not** to look prunes vastly more than a prior that tells you where to look — and it does it without committing you to a particular answer. Knowing the door isn't on three walls leaves you a wall to search; being told where the door is leaves you nothing to find.
+
+Which is also why it's the **safe** form. A negative prior can't hand over the solution — it can only shrink the space the composer still has to work in. That is the composer becoming a librarian: **the aisles aren't removed, they're marked dead.**
+
+And this project has it exactly backwards right now. F133 built the what-to-do half and it was over the line — precisely because a positive prior carries the answer. The what-not-to-do half — refutation cache, demotion, conflict-driven clause learning — is still unbuilt, and it is not merely the second blade of the scissors. **It is the blade that was always going to do the work.**
+
+One qualification: pure negative pruning has a limit. *Not here* narrows; it never proposes. You still need something that **generates** candidates — and in this architecture that is minting and the closure walk, which already exist and are cheap. **So the honest split: generation is already there and cheap; what's missing is the thing that stops it generating the same dead candidates forever** — 174 bets a cycle, 99% failing, and nothing remembering that they failed. That makes the refutation cache the highest-value unbuilt mechanism in the project.
+
 ---
 
 *Seat's note on how this frames the build: the pre-RL baseline (174 composition-bets/cycle at 99%
 reach-failure, `runs/PRE_RL_BASELINE_ls20.json`) is the composer that is not yet a librarian —
 enumerating the shelves because it has not learned where things are. "Did the RL teach retrieval"
-is therefore `reach-failure falls, bets/cycle falls` — the composer becoming the librarian. The
-what-to-do half of the curriculum is the valued transformations; the what-NOT-to-do half is
-refutation/demotion (the symmetric counter) and conflict-driven clause learning — the pruning that
-makes "winners carry forward" mean something, and it is unbuilt. See `TRAINING_PLAN.md`,
-`DEMAND_LOG.md`, and the memory note `composer-is-the-librarian`.*
+is therefore `reach-failure falls, bets/cycle falls` — the composer becoming the librarian. And
+those two numbers are exactly what the refutation cache attacks: 174 bets a cycle at 99% failure is
+the composer re-generating dead candidates because nothing remembers they failed. So the
+what-NOT-to-do half (refutation cache, demotion, conflict-driven clause learning) is not the second
+blade of the scissors — it is the load-bearing one, the safe form of a prior (it cannot carry the
+answer), and the direct fix for the reach-failure metric. It is the next build. See
+`TRAINING_PLAN.md`, `DEMAND_LOG.md`, and the memory note `composer-is-the-librarian`.*
