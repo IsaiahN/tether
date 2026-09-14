@@ -247,9 +247,12 @@ class ArcWorld:
     def actions(self) -> tuple[str, ...]:
         """What the FRAME advertises, re-read every call.
 
-        SIMPLE ACTIONS ONLY. `ACTION6` is complex and carries `x, y` -- a POSITIONED
-        action, which is §17.1's arity question and 2c's to answer. Advertising it here
-        without the position would be advertising an action the loop cannot actually take.
+        F28 (reviewer-steered 2026-09-14): `ACTION6` -- the one POSITIONED action, `ComplexAction`
+        carrying `x, y` -- is now advertised, because the loop CAN supply a position: the coordinate
+        check passed (the agent perceives object positions via `components`, so it chooses the
+        goal-object's position). Advertising a positioned action was only illegitimate while the
+        loop could not position it; `step(action, x, y)` now can. Only the DIRECTIONAL SEMANTICS
+        must never reach the agent (F28's hard line) -- availability is legitimate to read.
 
         AND RESET IS WITHHELD, which `is_simple()` would otherwise let through. §21.2:
         `ResetGate` bans THE AGENT CALLING RESET, because a self-inflicted restart is the
@@ -259,8 +262,9 @@ class ArcWorld:
         """
         return tuple(GameAction.from_id(i).name
                      for i in (self._frame.available_actions or ())
-                     if GameAction.from_id(i).is_simple()
-                     and GameAction.from_id(i) is not GameAction.RESET)
+                     if GameAction.from_id(i) is not GameAction.RESET
+                     and (GameAction.from_id(i).is_simple()
+                          or GameAction.from_id(i) is GameAction.ACTION6))
 
     def alphabet(self) -> dict[str, int]:
         """PER SLOT, AND FOR SOME SLOTS PER STEP. `_alphabets` has always accepted a dict --
@@ -402,8 +406,14 @@ class ArcWorld:
     def observe(self) -> dict[str, int]:
         return dict(self._decomposed())
 
-    def step(self, action: str) -> None:
+    def step(self, action: str, x: int | None = None, y: int | None = None) -> None:
         act = GameAction[action]
+        # F28: a positioned (complex) action carries a coordinate the agent chose from perception.
+        # x = column, y = row (screen convention over the row/col grid), each 0-63. Simple actions
+        # ignore the coordinate. A complex action with no coordinate would be a position the loop
+        # has no basis for, so the caller only supplies ACTION6 when it has a goal-object to target.
+        if act.is_complex() and x is not None and y is not None:
+            act.set_data({"x": int(x), "y": int(y)})
         was = self.board()
         was_objs = {k: dict(v) for k, v in self._decompose.tracked.items()}
         nxt = self.w.step(act)

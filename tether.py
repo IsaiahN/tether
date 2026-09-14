@@ -989,7 +989,20 @@ class Agent:
             return CHANNEL_CLOSED
         return GENUINE
 
-    def perceive(self, action: str) -> dict[str, SlotResidual]:
+    def _action6_coord(self, slot: str | None, before: dict[str, int]) -> tuple[int, int] | None:
+        """F28: the coordinate for a positioned action, chosen from PERCEPTION -- the object of the
+        given slot, at its own perceived row/col. Returns (x=col, y=row) or None when the object has
+        no position slots (no spatial basis, so the action stays unpositioned rather than noise)."""
+        if not slot:
+            return None
+        obj = slot.rsplit(".", 1)[0] if "." in slot else slot
+        col, row = before.get(f"{obj}.col"), before.get(f"{obj}.row")
+        if col is None or row is None:
+            return None
+        return int(col), int(row)
+
+    def perceive(self, action: str,
+                 coord: tuple[int, int] | None = None) -> dict[str, SlotResidual]:
         before = self.env.observe()
         # A BET CAN ONLY BE MADE ON A SLOT THAT WAS THERE. With perception the slot set can
         # move WITHIN a step -- an object dies between the bet and the reading -- and
@@ -1005,7 +1018,10 @@ class Agent:
                                    "no prediction error is claimed on this slot"))
         betting = [s for s in betting if pred[s] is not None]
         _, deg_before = self.env.objective()
-        self.env.step(action)
+        if coord is not None:
+            self.env.step(action, coord[0], coord[1])   # F28: positioned, coord from perception
+        else:
+            self.env.step(action)
         after = self.env.observe()
         name, deg_after = self.env.objective()
 
@@ -3255,7 +3271,12 @@ class Agent:
                             heads=[a.head for a in term.args if hasattr(a, "head")])
 
         self._last_action = action
-        res = self.perceive(action)
+        # F28: a positioned action needs a position, and the agent chooses it from PERCEPTION --
+        # the focal object's own row/col, which are perceived slots. No spatial basis (the focal
+        # object has no position slots) means ACTION6 would be noise, so the coordinate is None and
+        # the world leaves the action unpositioned rather than emitting a baseless one.
+        coord = self._action6_coord(focal, before) if action == "ACTION6" else None
+        res = self.perceive(action, coord)
         for slot, b, fit, _why in self.route(res):
             if b == REBIND and fit:
                 self.bound[slot] = fit
