@@ -325,3 +325,89 @@ next game **only on a FULL WIN** of the current one.
   library accretes across games (settled / unsettled / cache), so the Nth game is approached with
   everything the first N−1 left behind — transfer *within* the public set, and the rehearsal for
   transfer to the private set.
+
+---
+
+## 13. The per-game reverse-engineering loop (Isaiah, 2026-09-14; reward boundary confirmed)
+
+**CONFIRMED (Isaiah): the RL reward VERIFIES each chunk's effect — ground-checkable against the
+frames — and never scores reproduction of the human's action string.** The reverse-engineered
+answers are exam, dense verifiable reward, and diagnostic; the agent discovers its own
+compositions. This is the one seam the architecture forbids crossing, and the confirmation is
+explicit.
+
+**The loop, per game, as the diagnostician:**
+
+1. **Ingest the human-panel replay** (gif / jsonl / frames / actions), proctor-side, out of the
+   agent's reach.
+2. **Chunk the actions** into ~5–10-action segments (adjustable), each a candidate multi-step
+   routine large enough to house planning.
+3. **Reverse-engineer each chunk, "pretending to be the agent" — using the agent's own perception
+   and vocabulary, not mine:** (a) the perceptual cues — objects/groups, attributes, relations —
+   the agent's pipeline would read from the before/after frames; (b) the library derivation path —
+   the atoms/recipes/chains/molecules **and the operator/bond**, because isomers prove an
+   ingredient set alone does not fix the molecule (`Melt`/`Freeze`/`Boil` are all `Tmp + Ph`).
+4. **Run the real agent across all levels of that one game. Rigorous RLVR:** the agent's
+   settled / refuted / unsettled library is verified against the reverse-engineered answers —
+   reward = **did it achieve each chunk's effect** (ground-checkable), never *did it reproduce the
+   actions.*
+5. **Provenance split:** the library entry records the granular scenario — relations, attributes,
+   cues (from `RELATIONS.md` etc.) — and the **game of origin goes proctor-only, out of the
+   library.** The library stays game-agnostic.
+6. **Refutation cache:** failures accumulate; permanent demotion only on repeated cross-situation
+   demand (the symmetric counter, §11).
+7. **Milestones, not solve-or-nothing (reviewer, 2026-09-14):** the agent has never once formed a
+   plan, so gating on a win means stalling on game one with no signal. The ladder: **`routine_cut`
+   non-zero (a plan committed) — the FIRST real milestone and the near-term target** → plan
+   completes → level cleared → full-game win (the per-game ablation proof). Reward and track every
+   rung; the early target is the first plan, not the win. On graduation (the agent solves the game
+   on its own library) → archive that game's reverse-engineered answers → keep the library → next
+   game. *Open for Isaiah: whether advancement to the next game triggers at an early rung or at
+   full-win — §12 said full-win; the reviewer's point is that early progress must be
+   milestone-driven.*
+
+### The chunk → library mapping pipeline (from the library-closure indexes)
+
+Perceive a change → normalize its attribute (17 clusters, `ATTRIBUTE_CLUSTERS`) →
+`ATTRIBUTE_INDEX` lights up candidate `DOMAIN|Atom`s → `ATTRIBUTE_REACH` gates on whether the
+sensor stack can perceive it → `WORKING_SET` gives the entry points (61 domain roots, ~200 Set-A
+atoms, ~200 Set-B level-2 composites) → a recipe in `ATOMS.md` is the aim point, tagged with the
+operator (`OPERATORS.md`: seven bonds + negation). Composition is **61 shallow domain-local trees**
+(74% within-domain), bridged by the 285-edge domain adjacency graph (`ADJACENCY_EDGES`).
+
+### The hard perceptual-reach gate
+
+`ATTRIBUTE_REACH` grounds **only 11 atoms today**; ~1,749 unlock with a single scalar-emitting
+sensor. **THE KEY IS WRITTEN ONLY IN WHAT THE AGENT PERCEIVES TODAY (reviewer, 2026-09-14):** the
+five attributes and one relation, full stop. A reward that references a cue the agent cannot
+perceive is constant no matter what the agent does — no gradient, teaches nothing. **And a chunk
+that cannot be written in current perception is THE FINDING, recorded as inexpressible — never a
+reason to add perception.** The moment the key reaches for a relation to make a chunk work, the key
+is deciding what the agent gets, which is the thing the plan forbids.
+
+**But the gap is logged, not discarded (Isaiah, 2026-09-14).** When a chunk won't fit current
+perception, record it as inexpressible **with what it would need** (which attribute, relation, or
+sensor). Those gaps accumulate across games into a **demand-ranked list**, and a perception change
+is earned by **cross-game demand** — the same breadth counter as promotion and demotion, now on a
+third axis. One game never decides a perception change; repeated demand across many games earns it,
+which is the tenth-sense licence (*repeated demand across different situations*) applied to
+perception. So the answer key stays inside today's perception, and the accumulated demand list is
+how we later know what perception is worth building — never one game reaching for it.
+
+### Relations and arity (`NSM_GRAMMAR.md`)
+
+Chunks will involve two-object relations (`contains`, `blocks`, `touches`) that the current atom
+signature — one slot in, one out — cannot bet on. NSM grammar is the spec'd route: a **frame holds
+the arity, the atom fills a slot**, and the seven operators are NSM's connective family. Relevant,
+but a **spec, not built**; it flags `TRUE`, `CAN`, `KIND` as zero-atom gaps — `TRUE` the sharpest,
+since the whole loop turns on *the ground settled it* and no atom names it.
+
+### Reference
+
+`docs/library-closure/` is the ~2,700-atom visible set the agent reaches for (not loaded):
+`ATOMS.md` (master list), `WORKING_SET.json` (the composer's working vocabulary), plus
+`OPERATORS` / `RELATIONS` / `CHEMISTRY` / `ADJACENCY` / `ATTRIBUTES` / `ATTRIBUTE_REACH` /
+`ATTRIBUTE_CLUSTERS` / `CATEGORIES` / `ENTRY_CATEGORIES` / `COMPOSITE_REACH` / `TRAVERSAL` /
+`NSM_GRAMMAR`, and the `ATTRIBUTE_*` / `ADJACENCY_EDGES` / `CHEMISTRY_INSTANCES` / `ATOM_RANKING`
+JSON indexes. `PERCEPTION_PIPELINE_general.md` and `ARC GAMEPLAY - WHAT THE AGENT SEES.md` specify
+the seven-layer perception the "pretend to be the agent" step must use.
