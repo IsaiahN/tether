@@ -46,9 +46,22 @@ def load_replay(path: str) -> list[dict]:
     return steps
 
 
+def _actors(objs: list[dict]) -> list[dict]:
+    """Drop the background: the single largest component (the board field is one connected
+    same-colour region and swamps the diff). What remains are the actor objects -- the things
+    that move and change. A reading, not a rule: if a game has no dominant field this keeps
+    everything but the biggest, which is the honest default."""
+    if not objs:
+        return []
+    big = max(objs, key=lambda o: len(o["shape"]))
+    return [o for o in objs if o is not big]
+
+
 def _match(before: list[dict], after: list[dict]) -> list[dict]:
     """Match objects across two frames by shape then nearest position; report per-object effect
-    in the frozen vocabulary. Colour is compared only as SAME/DIFFERENT (a distinctness id)."""
+    in the frozen vocabulary. Colour is compared only as SAME/DIFFERENT (a distinctness id).
+    Background excluded first."""
+    before, after = _actors(before), _actors(after)
     effects = []
     used = set()
     for b in before:
@@ -106,12 +119,28 @@ def analyse(path: str) -> dict:
             "levels": max((s["level"] or 0) for s in steps), "chunks": out}
 
 
+def _summary(res: dict) -> dict:
+    """Per-level effect tally over actor objects -- the shape of the answer key."""
+    per_level: dict = {}
+    for c in res["chunks"]:
+        lv = per_level.setdefault(c["level"], {"chunks": 0, "actions": 0, "effects": {}})
+        lv["chunks"] += 1
+        lv["actions"] += c["n_actions"]
+        for e in c["effects"]:
+            lv["effects"][e["kind"]] = lv["effects"].get(e["kind"], 0) + 1
+    return per_level
+
+
 if __name__ == "__main__":
     res = analyse(sys.argv[1] if len(sys.argv) > 1 else "replays/ls20_human.ndjson")
     print(f"steps={res['n_steps']} chunks={res['n_chunks']} levels={res['levels']}")
-    for c in res["chunks"][:6]:
+    print("=== per-level effect tally (actors only) ===")
+    for lv, d in sorted(_summary(res).items(), key=lambda kv: (kv[0] is None, kv[0])):
+        print(f"  L{lv}: {d['chunks']} chunks, {d['actions']} actions, effects={d['effects']}")
+    print("=== first chunks ===")
+    for c in res["chunks"][:5]:
         eff = {}
         for e in c["effects"]:
             eff[e["kind"]] = eff.get(e["kind"], 0) + 1
-        print(f"  L{c['level']} acts={c['actions']} obj {c['n_obj_before']}->{c['n_obj_after']} "
-              f"effects={eff}{' [ENDS LEVEL]' if c['ends_level'] else ''}")
+        print(f"  L{c['level']} acts={c['actions']} effects={eff}"
+              f"{' [ENDS LEVEL]' if c['ends_level'] else ''}")
