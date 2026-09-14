@@ -133,6 +133,96 @@ def _uniform(deltas: list[tuple]) -> tuple | None:
     return deltas[0] if deltas and len(set(deltas)) == 1 else None
 
 
+# The frozen vocabulary the composition may name (VOCABULARY_FROZEN.md, arc_atoms sha 3f85bced).
+# ACTION-AGNOSTIC: nothing here names an action -- a composition is what makes a transformation
+# possible (attributes/relations), never the button that triggers it (Isaiah, 2026-09-14).
+FROZEN_EXTRACTORS = frozenset({"colour", "row", "col", "h", "w", "drow", "dcol", "shape"})
+FROZEN_RELATIONS = frozenset({"touching", "above"})   # arity-2 relations the agent can bet on today
+
+
+def _touch(b: dict, o: dict) -> bool:
+    """4-adjacency between two objects' absolute cells -- the frozen `touching` relation."""
+    bc = b["cells"]
+    for (r, c) in o["cells"]:
+        if (r + 1, c) in bc or (r - 1, c) in bc or (r, c + 1) in bc or (r, c - 1) in bc:
+            return True
+    return False
+
+
+def _referent(o: dict, colour: int, others: list[dict]) -> str | None:
+    """For a recolour, name the frozen relation to an object that already holds the new colour --
+    `touching` or `above`. Returns the relation name, or None if no such referent (which makes the
+    recolour RULE inexpressible in the frozen set: the key does not invent the missing relation)."""
+    for x in others:
+        if x is o or x["colour"] != colour:
+            continue
+        if _touch(o, x):
+            return "same(colour, touching)"
+        if x["row"] < o["row"] and not (x["col"] + x["w"] <= o["col"]
+                                         or o["col"] + o["w"] <= x["col"]):
+            return "same(colour, above)"
+    return None
+
+
+def _compose(before: list[dict], after: list[dict]) -> dict:
+    """Reverse-engineer a chunk's before->after transformation into a COMPOSITION over the frozen
+    vocabulary -- action-agnostic -- and a per-statement expressibility verdict. A statement that
+    cannot be written in the frozen set is a gap (with what it would need), never a reason to add
+    perception. This is the answer key's derivation layer; the effect signature is its verification
+    layer."""
+    ba, aa = _actors(before), _actors(after)
+    # reuse the same size-conserved matching the signature uses, but keep the object refs
+    pairs = sorted((( _cost(b, a), bi, ai) for bi, b in enumerate(ba) for ai, a in enumerate(aa)),
+                   key=lambda t: t[0])
+    ub, ua = set(range(len(ba))), set(range(len(aa)))
+    stmts, gaps = [], []
+    matched = []
+    for _c, bi, ai in pairs:
+        if bi not in ub or ai not in ua:
+            continue
+        cb, ca = len(ba[bi]["cells"]), len(aa[ai]["cells"])
+        if min(cb, ca) < SIZE_KEEP * max(cb, ca):
+            continue
+        ub.discard(bi)
+        ua.discard(ai)
+        matched.append((ba[bi], aa[ai]))
+    for b, a in matched:
+        if a["row"] != b["row"] or a["col"] != b["col"]:
+            stmts.append({"op": "translate", "attrs": ["row", "col"],
+                          "delta": [a["row"] - b["row"], a["col"] - b["col"]], "expressible": True})
+        if a["h"] != b["h"] or a["w"] != b["w"]:
+            stmts.append({"op": "rescale", "attrs": ["h", "w"],
+                          "delta": [a["h"] - b["h"], a["w"] - b["w"]], "expressible": True})
+        elif len(a["cells"]) != len(b["cells"]) or a["shape"] != b["shape"]:
+            stmts.append({"op": "reshape", "attrs": ["shape"], "expressible": True})
+        if a["colour"] != b["colour"]:
+            ref = _referent(a, a["colour"], [o for o in aa if o is not a])
+            if ref:
+                stmts.append({"op": "recolour", "attrs": ["colour"], "rule": ref,
+                              "expressible": True})
+            else:
+                stmts.append({"op": "recolour", "attrs": ["colour"], "rule": None,
+                              "expressible": False})
+                gaps.append({"gap": "recolour rule references no touching/above object of the new "
+                             "colour -- the referent is a relation not in the frozen set",
+                             "fix?": "a colour-source relation (nearest-same, contains, or a "
+                             "global palette map) -- re-derived at threshold, not taken here"})
+    # population change -- count is frozen, but the TRIGGER (why things spawn/die) is usually not
+    n_van, n_app = len(ub), len(ua)
+    if n_van or n_app:
+        stmts.append({"op": "population", "attrs": ["count"], "vanished": n_van,
+                      "appeared": n_app, "expressible": True,
+                      "note": "count change is frozen; the spawn/death TRIGGER is not modelled"})
+        if n_van + n_app >= 3:
+            gaps.append({"gap": "systematic spawn/death within the chunk -- the trigger is a "
+                         "conditional/event the one-in-one-out atom signature cannot bet on",
+                         "fix?": "arity>=2 event relation (NSM frame holds arity) -- re-derived "
+                         "at threshold"})
+    return {"statements": stmts, "gaps": gaps,
+            "expressible": all(s["expressible"] for s in stmts) and not gaps,
+            "n_matched": len(matched)}
+
+
 def chunk_replay(steps: list[dict], size: int = CHUNK) -> list[dict]:
     """Chunk by action, never across a level boundary."""
     chunks, cur = [], []
@@ -154,23 +244,41 @@ def analyse(path: str) -> dict:
     for c in chunks:
         i0, i1 = c["idx"][0], c["idx"][-1]
         before, after = perceived[i0], perceived[i1]
-        acts = [steps[i]["action_id"] for i in c["idx"]]
         eff = _match(before, after)
+        # ACTION-AGNOSTIC: the chunk is a WINDOW OF FRAMES, not a sequence of actions. Frame
+        # indices are proctor window markers; the answer key's content -- signature + composition
+        # -- names no action (Isaiah, 2026-09-14).
         out.append({"level": c["level"], "ends_level": c["ends_level"],
-                    "n_actions": len(c["idx"]), "actions": acts,
+                    "frames": [i0, i1], "n_frames": len(c["idx"]),
                     "n_obj_before": len(before), "n_obj_after": len(after),
-                    "effects": eff, "signature": _signature(eff)})
+                    "signature": _signature(eff), "composition": _compose(before, after)})
     return {"game": path, "n_steps": len(steps), "n_chunks": len(chunks),
             "levels": max((s["level"] or 0) for s in steps), "chunks": out}
+
+
+def answer_key(path: str) -> dict:
+    """The per-game answer key (TRAINING_PLAN.md §13): every chunk's ground-checkable EFFECT
+    (verification) and action-agnostic COMPOSITION (the reasoning that makes it possible), plus the
+    inexpressibility gaps for the demand log. Proctor-side -- written under replays/, out of the
+    agent's reach; never fed to the agent as a target."""
+    res = analyse(path)
+    gaps = [{"level": c["level"], "frames": c["frames"], **g}
+            for c in res["chunks"] for g in c["composition"]["gaps"]]
+    expressible = sum(1 for c in res["chunks"] if c["composition"]["expressible"])
+    return {"game": res["game"], "n_chunks": res["n_chunks"], "levels": res["levels"],
+            "expressible_chunks": expressible,
+            "inexpressible_chunks": res["n_chunks"] - expressible,
+            "n_gaps": len(gaps), "gaps": gaps, "chunks": res["chunks"]}
 
 
 def _summary(res: dict) -> dict:
     """Per-level effect tally over actor objects -- the shape of the answer key."""
     per_level: dict = {}
     for c in res["chunks"]:
-        lv = per_level.setdefault(c["level"], {"chunks": 0, "actions": 0, "sig": {}})
+        lv = per_level.setdefault(c["level"], {"chunks": 0, "frames": 0, "sig": {}, "inexpr": 0})
         lv["chunks"] += 1
-        lv["actions"] += c["n_actions"]
+        lv["frames"] += c["n_frames"]
+        lv["inexpr"] += 0 if c["composition"]["expressible"] else 1
         for k, v in c["signature"].items():
             if k == "uniform_translate":
                 continue
@@ -179,13 +287,25 @@ def _summary(res: dict) -> dict:
 
 
 if __name__ == "__main__":
-    res = analyse(sys.argv[1] if len(sys.argv) > 1 else "replays/ls20_human.ndjson")
-    print(f"steps={res['n_steps']} chunks={res['n_chunks']} levels={res['levels']}")
-    print("=== per-level net-effect signature (actors only) ===")
-    for lv, d in sorted(_summary(res).items(), key=lambda kv: (kv[0] is None, kv[0])):
-        print(f"  L{lv}: {d['chunks']} chunks, {d['actions']} actions, {d['sig']}")
-    print("=== first chunks (net signature) ===")
-    for c in res["chunks"][:8]:
-        s = c["signature"]
-        print(f"  L{c['level']} acts={c['n_actions']} {s}"
-              f"{' [ENDS LEVEL]' if c['ends_level'] else ''}")
+    import json as _json
+    game_path = sys.argv[1] if len(sys.argv) > 1 else "replays/ls20_human.ndjson"
+    key = answer_key(game_path)
+    print(f"chunks={key['n_chunks']} levels={key['levels']} "
+          f"expressible={key['expressible_chunks']} inexpressible={key['inexpressible_chunks']} "
+          f"gaps={key['n_gaps']}")
+    print("=== per-level (signature + inexpressible chunk count) ===")
+    per_lv = sorted(_summary({"chunks": key["chunks"]}).items(),
+                    key=lambda kv: (kv[0] is None, kv[0]))
+    for lv, d in per_lv:
+        print(f"  L{lv}: {d['chunks']} chunks ({d['inexpr']} inexpr), "
+              f"{d['frames']} frames, {d['sig']}")
+    print("=== first chunks (composition) ===")
+    for c in key["chunks"][:6]:
+        comp = c["composition"]
+        ops = [s["op"] for s in comp["statements"]]
+        print(f"  L{c['level']} frames{c['frames']} expressible={comp['expressible']} ops={ops}")
+    if len(sys.argv) > 2 and sys.argv[2] == "--write":
+        out = f"replays/{game_path.split('/')[-1].split('_')[0]}_answer_key.json"
+        with open(out, "w", encoding="utf-8") as fh:
+            _json.dump(key, fh, indent=1, default=str)
+        print(f"WROTE {out} (proctor-side, out of the agent's reach)")

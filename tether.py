@@ -160,6 +160,20 @@ def pays(cost: float, left: float, base: float) -> bool:
     return cost + left < base
 
 
+# The slot-attribute -> effect-type map for the §13 goal-selection channel. A slot is
+# `o<N>.<attr>`; its attribute says which TRANSFORMATION a goal on it pursues. Action-agnostic
+# (Isaiah, 2026-09-14): an effect type names a transformation, never a button.
+_EFFECT_OF_ATTR = {"row": "translate", "col": "translate", "drow": "translate", "dcol": "translate",
+                   "h": "rescale", "w": "rescale", "shape": "reshape", "colour": "recolour"}
+
+
+def _effect_of_slot(slot: str) -> str | None:
+    """Which effect type a goal on this slot pursues, or None if the attribute is not one the
+    answer key names. Reads the attribute after the dot; unknown attributes select nothing."""
+    attr = slot.rsplit(".", 1)[-1] if "." in slot else slot
+    return _EFFECT_OF_ATTR.get(attr)
+
+
 def objective_step(evaluate, current: int, ordered: bool, alphabet: int) -> Any:
     """THE EDGE: what a composed objective predicts about a slot value.
 
@@ -1874,7 +1888,14 @@ class Agent:
         least one real decrease -- **flat is not shrinking**, and an objective that sits at a
         constant gap is not making progress however long it sits there.
         """
+        # THE SPARSE CHANNEL, WHEN THE PROCTOR SET IT (TRAINING_PLAN.md §13). Empty in normal play
+        # and under ablation, so this collapses to the pure dense-channel selector below. When set,
+        # it names the level's valued effect TYPES and SELECTS among the agent's own shrinking goals
+        # -- it supplies no goal, so a candidate that is not already shrinking under play never
+        # qualifies. §11: the sparse channel only selects among goals the dense channel produced.
+        valued = getattr(self.env, "valued_effects", lambda: frozenset())()
         best: tuple[float, str] | None = None
+        best_valued: tuple[float, str] | None = None
         for slot, series in sorted(self._res.items()):
             if len(series) < MIN_REPEAT + 1:
                 continue
@@ -1884,7 +1905,11 @@ class Agent:
                 shrink = -sum(deltas)
                 if best is None or shrink > best[0]:
                     best = (shrink, slot)
-        return best[1] if best else None
+                if valued and _effect_of_slot(slot) in valued \
+                        and (best_valued is None or shrink > best_valued[0]):
+                    best_valued = (shrink, slot)
+        chosen = best_valued or best
+        return chosen[1] if chosen else None
 
     def _holds(self, state: dict[str, int]):
         """`holds(guard) -> True | False | None` for `routine.advance`. A guard is a SLOT NAME,

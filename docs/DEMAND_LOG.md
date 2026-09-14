@@ -69,9 +69,26 @@ reverse-engineering map is built.
 
 ### chunk-inexpressible (human-replay chunks that won't fit the frozen vocabulary)
 
-- *(empty — populated by the ls20 reverse-engineering map once the milestone precondition is read:
-  a 400-cycle ls20 probe is running to confirm whether a routine ever commits under budget, i.e.
-  whether the answer-key / goal-selection line has a subject before the map is built.)*
+From the ls20 answer key (`reverse_engineer.answer_key`, 72 chunks, 49 inexpressible). Two
+gap-shapes, aggregated — ls20 is **1 game** regardless of chunk count; the chunk count sizes the
+demand, the game count crosses the threshold.
+
+- **[CI-1] recolour referent is a relation not in the frozen set**
+  `games:` ls20 (1) · `size:` 124 chunks · `gap:` a recolour whose new colour matches no
+  `touching` or `above` object — the rule that sets the colour references a relation the frozen set
+  (touching, above) does not contain, so the transformation cannot be written in current
+  perception. · `fix?:` (hypothesis, not ranked) a colour-source relation — nearest-same, contains,
+  or a global palette map; re-derived from all instances at threshold, not taken here. · `status:`
+  1 game, held.
+
+- **[CI-2] systematic spawn/death trigger is arity ≥ 2**
+  `games:` ls20 (1) · `size:` 31 chunks · `gap:` ≥3 objects appear/vanish within a chunk on a
+  trigger (a conditional/event) the one-slot-in-one-slot-out atom signature cannot bet on —
+  population count is frozen but the trigger is not. · `fix?:` (hypothesis, not ranked) an arity-≥2
+  event relation (NSM frame holds the arity); re-derived at threshold. · `status:` 1 game, held.
+
+  Note: CI-1/CI-2 and BR-1's perception tail are DIFFERENT gap-shapes and not pooled. All at 1
+  game — nothing near the cross-game threshold, so no perception is added. Correct state.
 
 ---
 
