@@ -56,6 +56,18 @@ Which is why the promotion zero mattered so much and why ten firings is a real r
 
 **The flywheel's failure mode, before the numbers arrive (reviewer, 2026-09-14).** Working: promotions rise, the unit count rises, refutations **retract as it does**, and mint cost per term falls. Broken in the way that mimics success: promotions rise, refutations **never retract**, and the cache slowly forbids the aisles the growing parts bin just made affordable — reach-failure falls (because fewer bets get made) while reach falls with it. Same tell as before (reach-failure down, reach down), now with a mechanism under it: a refutation that does not retract on unit growth strangles the flywheel it was meant to serve. The paired run is still the check; what is new is that it names the line of code that produces the failure — the `units_now > units_then` retraction. (Note this is a *second* failure mode distinct from the one already measured: the gap-shape key lost doors *within* a unit level even though it retracted correctly; the composition-keyed cache must avoid both — a fine-enough key AND a retraction that fires on every new unit.)
 
+## The SAT precedent — and why there are THREE organs, not two halves
+
+*Reviewer, 2026-09-14, marked as SAT practice rather than anything measured here.*
+
+**Conflict-driven clause learning is exactly re-derivation stocking a parts bin.** When a search dies, derive a clause **already entailed** by the original set — nothing added, just made explicit — and every later branch gets it cheaply. That is the flywheel, found independently in the 1990s, and it is the single technique that beat this class of explosion in practice. So the refutation cache is not a guess; it is what the industry converged on.
+
+**And it comes with a counterintuitive finding: more parts is NOT monotonically better.** Solvers delete learned clauses aggressively, and they have to — a clause database that only grows makes every step slower, and past a point the solver spends more time consulting the bin than the bin saves. Deletion policy is among the most tuned parts of a modern solver; solvers that keep everything lose to solvers that forget.
+
+**Which splits demotion off as its own organ.** Refutation prunes the **search**; demotion prunes the **bin**. Different organs, not two halves of one thing. Without the second, promotion stocks parts faster than they are used, lookup cost rises with bin size, and the flywheel eventually runs **backwards** — and the failure looks like health: promotions rising, library growing, everything reading as accumulation working, while cost per cycle climbs because every mint consults a bigger bin. That is the 174-bets shape returning with a better story attached. The curve already shows the sensitivity — **0.98s at cycle 0 against 29.1s at cycle 8, cause named as closure enumeration scaling with library size.** A bin that only grows is that curve, permanently.
+
+**The open question, not the answer: what retires a part?** Promotion has a condition; demotion does not yet, and the symmetric counter prunes terms that are WRONG, not parts that are UNUSED. A part that is never wrong and never used is the case neither mechanism catches, and it costs lookup forever. The SAT answer is activity-based — a clause used in recent conflicts is kept, an inactive one deleted — and tether has no usage/activity signal on a part yet. So the three organs are: **promotion** (stock the bin), **refutation** (prune the search — CDCL), **demotion** (prune the bin — deletion policy, and the underspecified one).
+
 ---
 
 *Seat's note on how this frames the build: the pre-RL baseline (174 composition-bets/cycle at 99%

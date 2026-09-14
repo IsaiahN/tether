@@ -147,3 +147,40 @@ is affordable here where it is not on a board; and it is the ONLY way to measure
 thesis directly — does re-derivation cost per composite FALL as the bin grows. Flat = the parts are
 not compounding and the thesis has a problem, found in a sandbox rather than on the board. It does
 not replace the ARC work; it pays down the combinatorial bill where it cannot contaminate the claim.
+
+## The consequence that strengthens the thesis (reviewer, 2026-09-14)
+
+Running the composer over the closure's own vocabulary is not just cleaner on contamination — it is
+a **transfer test in the strongest available form.** If mint, the bargain, settle and promote run
+**unchanged over a vocabulary with no spatial content at all** (Echo, Identity, Catalyst — no
+row/col/shape anywhere), the architecture is doing something **general rather than ARC-shaped.**
+That is the transfer claim — the whole point of a domain-agnostic Tether — tested not against a
+different board but against a **different domain**. `gamma.py` importing nothing from `arc` is the
+code fact that makes it possible: the composer is domain-agnostic by construction, which nothing had
+needed to establish until now.
+
+**The two remaining checks are genuinely fatal if they fail** (machine-readable `in_type`/`out_type`
+on closure atoms; atom-chain — not prose — recipes on composites), and they gate everything. They
+are checked before the harness is built.
+
+## Built and measured (reviewer-steered, 2026-09-14): the closure is not viable as a curriculum
+
+The reviewer overruled my decline ("declining the only test and calling the decline support is the
+satisfying-story shape; the sandbox is a HABITAT not an instrument; build it and SEE"). Built
+`self_graded.py` — a compounding-capable set-Re-Pair over the composite recipes with a random
+train/heldout split, growing the parts bin from TRAIN and measuring the cost to express HELD-OUT
+composites as the bin grows. Compounding is by construction (a promoted part can itself be merged
+again), so a flat result is not a harness artefact.
+
+RESULT: held-out cost 151→151 / 152→150 / 156→153 across three seeds — **FLAT** (0–1.3% down), and
+the bin **stops growing at 5–10 promotions**. Cause, measured not asserted: of 424 co-occurring atom
+pairs across 197 composites, only **11 (3%) appear in ≥2 composites** — the corpus has almost no
+reusable multi-atom parts, so there is nothing to compound. This is "61 shallow independent trees"
+made concrete.
+
+READING: this refutes the CURRICULUM PROPOSAL's hidden assumption — that the closure has the reuse
+structure a re-derivation curriculum needs. It does not. It leaves the flywheel THESIS untouched
+(the thesis needs a deep-reuse substrate like SAT; the closure is not one). Building it was the
+right call — measured rather than declined — and the measurement closes the closure-as-curriculum
+line. Testing whether the flywheel compounds in a DEEP-reuse substrate needs a different one (a
+generated deep-composition curriculum over the agent's own substrate, or the board at scale).
