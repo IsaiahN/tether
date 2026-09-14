@@ -85,3 +85,29 @@ KEEP only if: named chains settle AND bets/cyc stays under 2× AND reach HOLDS w
 "(or a typing)" was the SEAT's phrase (my boundary doc), NOT the reviewer's. The reviewer's GO covered
 the boundary resolution (Figure 6), not an implementation scope; the scoping judgement is the seat's.
 The typed predictor stream is a seat scoping decision inside the reviewer's boundary ruling.
+
+## OUTCOME 2026-09-14: the typed stream was built and REFUTED at a THIRD layer — the novelty gate
+
+Built the typed predictor stream `(stype, stype)` + the partner atoms + the group-coherence guard
+(no group-reading atom in the typed stream). Result: partner is NOW enumerated as a value-predictor
+(instrumented: 609 EXTENT + 135 SHAPE + 12 POSITION + 6 DELTA partner terms/6cyc in the typed
+streams) — the wiring works — but STILL zero settle/reach events. Verified cause, layer by layer:
+
+- **Bare `partner<operand>`** (len 1 — the primary "my attr = my partner's attr" predictor) is cut
+  by `is_atom` as NOT-NOVEL. `is_atom = len(term)==1 and name in registry` — it IGNORES the operand
+  binding, so `partner_extent<o1.w>` is treated as the un-novel bare atom. This hits same/other/above
+  identically: a relation atom only ever settles when COMPOSED into an objective, never as a bare
+  bound prediction.
+- **Composed partner** (len 2-3) reaches `_cannot_pay` and is **100% bounded-out** (552 len-2, 8544
+  len-3, all) — it does not fit enough of the residual.
+
+So the typed relational vocabulary is walled off from PREDICTION by at least THREE independent
+mechanisms: (1) no relation→value atom; (2) the untyped predictor stream; (3) the novelty gate cutting
+the bare value-predictor, with composed forms failing to fit R. Reverted (inert-with-cost, pure
+denominator growth). This is the reviewer's "circling one structural fact" hypothesis, seen from the
+build side: RELATIONS → OBJECTIVES ONLY is enforced at multiple layers.
+
+To make relation→value actually PREDICT would require changing `is_atom`'s novelty definition (a bound
+operand-reading atom counts as novel) — CENTRAL, affecting every operand-reading atom's behaviour —
+on the UNCONFIRMED premise that residuals are partner-equality-shaped, which the 100%-bounded-out
+composed partners weakly argue against. Fork for alignment; not a unilateral change.
