@@ -150,6 +150,14 @@ instruments extend what can be REPRESENTED.
   MEASURED rather than argued — outcome 1.** Structurally absent and load-bearing (not "not ripe").
   HELD for Isaiah's composition-vs-import ruling; reviewer holding with the seat, not ruling.
 
+  **CORRECTION (reviewer, 2026-09-14 Doc 22:32): cross-game demand is NOT the gate for this, and OP-1
+  should not be read as "outcome 1 licenses the build."** Cross-game demand via the demand log gates
+  PERCEPTION changes. This resolved to COMPOSITION (Figure 6), so the demand log does not apply — the
+  gate is **legitimacy (the figures) + effect (it moves reach while reach-failure falls)**, which the
+  reviewer ruled GO. The three-board walk keeps its value for a DIFFERENT question — **generality: is
+  this THE wall or a wall on vc33** — and that check runs AFTER the build, not as its licence. OP-1 is
+  retained as generality evidence and as the structural proof; it is not the licensing gate.
+
   Note: OP-1 is distinct from BR (binding refusal), CI (chunk inexpressibility), and PC (positioned-
   action productivity) — not pooled. It is the first entry to cross with three games AND a structural
   proof under it, which is why the reviewer weighted it above the 1-game and 2-game entries above.
