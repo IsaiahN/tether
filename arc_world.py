@@ -409,14 +409,15 @@ class ArcWorld:
     def step(self, action: str, x: int | None = None, y: int | None = None) -> None:
         act = GameAction[action]
         # F28: a positioned (complex) action carries a coordinate the agent chose from perception.
-        # x = column, y = row (screen convention over the row/col grid), each 0-63. Simple actions
-        # ignore the coordinate. A complex action with no coordinate would be a position the loop
-        # has no basis for, so the caller only supplies ACTION6 when it has a goal-object to target.
-        if act.is_complex() and x is not None and y is not None:
-            act.set_data({"x": int(x), "y": int(y)})
+        # x = column, y = row (screen convention over the row/col grid), each 0-63. The wrapper
+        # takes the coordinate as `data` and builds `ActionInput(id=action, data=data or {})` --
+        # `GameAction.set_data` is NOT read on this path, so the coordinate MUST go through `data`
+        # or the game receives an empty dict (a no-op or a KeyError on `data['x']`).
+        data = ({"x": int(x), "y": int(y)}
+                if act.is_complex() and x is not None and y is not None else None)
         was = self.board()
         was_objs = {k: dict(v) for k, v in self._decompose.tracked.items()}
-        nxt = self.w.step(act)
+        nxt = self.w.step(act, data=data) if data is not None else self.w.step(act)
         if nxt is not None:
             self._frame = nxt
         self._read = None          # a new frame is a new decomposition
