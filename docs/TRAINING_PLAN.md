@@ -317,10 +317,11 @@ next game **only on a FULL WIN** of the current one.
 - **The replay jsonl/gif are NOT committed to git** (gitignored under `replays/`) and are kept
   **out of the agent's reach** — the seat reads the answer set, the agent reads only the frame.
   Same firewall as `environment_files/`.
-- **The public set** (source of record: https://arcprize.org/tasks?v=3): 21 slugs extracted —
-  `ar25 bp35 cd82 cn04 dc22 ft09 ka59 lf52 lp85 ls20 re86 sb26 sc25 sk48 sp80 su15 tn36 tr87 tu93
-  vc33 wa30` — with ~101 human-panel replays at `arcprize.org/replay/<uuid>`. The 25/25 ablation
-  gate is these public games each carried to WIN.
+- **The public set — 25 games** (source: the "ARC 3 public set replay -list" sheet, and
+  https://arcprize.org/tasks?v=3): `ar25 bp35 cd82 cn04 dc22 ft09 g50t ka59 lf52 lp85 ls20 m0r0
+  r11l re86 s5i5 sb26 sc25 sk48 sp80 su15 tn36 tr87 tu93 vc33 wa30`, all cached in
+  `environment_files/`, human panel 100% on every one, ~101 replays at `arcprize.org/replay/<uuid>`.
+  The 25/25 ablation gate is these games each carried to WIN.
 - **Why one-at-a-time with carry-forward:** it is the single-agent substitute for generations. The
   library accretes across games (settled / unsettled / cache), so the Nth game is approached with
   everything the first N−1 left behind — transfer *within* the public set, and the rehearsal for
@@ -329,6 +330,15 @@ next game **only on a FULL WIN** of the current one.
 ---
 
 ## 13. The per-game reverse-engineering loop (Isaiah, 2026-09-14; reward boundary confirmed)
+
+**WHAT THE REVERSE-ENGINEERING IS FOR (Isaiah, 2026-09-14): NOT how to win the game — how to
+EXPLAIN the derivation, the arrival process, the composition.** The answer key is an account of
+*how a solution's steps map onto library derivations* (which atoms/bonds compose the observed
+transformation), so the agent's own compositions can be verified by effect against it. It is never
+a winning strategy to feed. The answer set is the **Human Panel Replays** (the panel solved 100% of
+all 25 public games): the index is the "ARC 3 public set replay -list" sheet, the per-game replays
+are `arcprize.org/replay/<uuid>` (jsonl + gif), gitignored under `replays/` and out of the agent's
+reach.
 
 **CONFIRMED (Isaiah): the RL reward VERIFIES each chunk's effect — ground-checkable against the
 frames — and never scores reproduction of the human's action string.** The reverse-engineered
