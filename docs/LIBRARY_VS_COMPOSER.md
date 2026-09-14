@@ -40,6 +40,20 @@ And this project has it exactly backwards right now. F133 built the what-to-do h
 
 One qualification: pure negative pruning has a limit. *Not here* narrows; it never proposes. You still need something that **generates** candidates — and in this architecture that is minting and the closure walk, which already exist and are cheap. **So the honest split: generation is already there and cheap; what's missing is the thing that stops it generating the same dead candidates forever** — 174 bets a cycle, 99% failing, and nothing remembering that they failed. That makes the refutation cache the highest-value unbuilt mechanism in the project.
 
+## The library is a parts bin, not a lookup table — and promotion stocks it
+
+*Isaiah, 2026-09-14. The piece that makes the two halves one mechanism.*
+
+The minting process is made cheaper by the reusable parts in the library. That is the nuance beyond "composer as librarian," and it's the thing I kept missing.
+
+The library isn't a lookup table the composer searches. It's the **parts bin the composer builds from**. A new term isn't *found* in it — it's *assembled* out of it. So a well-sorted, well-stocked library doesn't just make retrieval cheap; it makes **invention** cheap, because the pieces are already paid for.
+
+And that's precisely what promotion is buying. A term that pays repeatedly becomes primitive — and every later composition that uses it pays **nothing** for the part it's made of. The compounding, with the interest paid in reduced minting cost rather than in recall.
+
+Which is why the promotion zero mattered so much and why ten firings is a real result. Without it, every mint starts from atoms. With it, mints start from whatever the ground has already settled. That's the difference between building a machine from raw metal and building it from components.
+
+**The correction to "composer-as-librarian":** the librarian framing — sorted storage and its user — is one direction of value. The other — **the library as accumulated capital the composer spends down on new work** — is the direction that makes a small library workable at all. The argument was never that a tiny library *contains* what's needed. It's that a tiny library **of the right parts** makes the needed thing **cheap to build**. It isn't holding answers, it's holding parts. That is a better statement of the thesis, because it explains *why* the library can be small.
+
 ---
 
 *Seat's note on how this frames the build: the pre-RL baseline (174 composition-bets/cycle at 99%
@@ -50,5 +64,16 @@ those two numbers are exactly what the refutation cache attacks: 174 bets a cycl
 the composer re-generating dead candidates because nothing remembers they failed. So the
 what-NOT-to-do half (refutation cache, demotion, conflict-driven clause learning) is not the second
 blade of the scissors — it is the load-bearing one, the safe form of a prior (it cannot carry the
-answer), and the direct fix for the reach-failure metric. It is the next build. See
-`TRAINING_PLAN.md`, `DEMAND_LOG.md`, and the memory note `composer-is-the-librarian`.*
+answer), and the direct fix for the reach-failure metric.
+
+The parts-bin half is already in the cost function: `mint` prices a candidate as
+`term_bits(gamma.length(term, units), alphabet)` — its length in UNITS, and a settled term is one
+unit — so a composition built from a promoted part is priced as if that part were a single atom.
+`PRICED IN UNITS, so a settled sub-composition costs what the ground already paid for it` is the
+comment at the site. That is why F135 unblocking promotion (2→10, verified) is load-bearing rather
+than cosmetic: each promotion lowers the price of everything later built on it — the flywheel
+(promotion stocks the bin → mints start from components → more clear the bargain → more settle →
+more promote). And it re-frames the door-loss: as the bin grows a unit, the same gap-shape gets
+cheaper to build and its closure re-opens — which is exactly the `units_now > units_then`
+invalidation. The two halves are coupled through the unit count. See `TRAINING_PLAN.md`,
+`DEMAND_LOG.md`, and the memory note `composer-is-the-librarian`.*
