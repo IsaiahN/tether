@@ -6,47 +6,25 @@ combinatorial bill, and why the composer — not the library — is the thing.*
 ---
 
 ## Why this works:
+Everything comes down to **libraries vs composers**. 
 
-Everything coming back to **libraries vs composers**.
+If libraries were all that were needed, a dictionary could solve arc, or a physical library would be sentient. Human writing is the compression of human thought patterns into words and sentences. 
 
-If libraries were all that were needed, a dictionary could solve arc, or a physical library would
-be sentient. What made LLMS effective and powerful was the compression/tokenization of the
-"compression of human brain patterns/thoughts into words and sentences".
+LLMs tokenize the words and compressed thought patterns into a retrieval geometry, and forcibly extract meaning, allowing them to gain context and resynthesize text into a relevant form still recognizable, legible and meaningful for humans. 
 
-LLMs tokenizes the words and compressed brain patterns into a retrieval geometry, and forcibly
-extracts meaning, allowing it to resynthesize into a form still recognizable, legible and
-meaningful for the human.
+Again the library is not the solution alone, because a LLM even with a larger training set, had to be RL'd into learning math, and other tasks through RLHF or the "harness". But what I have understood is that your library can be very tiny, provided that the agent has been pre-trained on the expected compositions & refutations in general, instead of blind brute-forcing learning (that makes pre-training pay a portion of the bill, but its still coming from an outside source/frame that actually paid the bill in collecting the initial dataset).
 
-Again the library is not the solution alone, because a LLM even with a larger training set, had to
-be RL'd into learning math, and other tasks through RLHF or the "harness". But what I have
-understood is that your library can be very tiny, but it requires that the agent has been
-pre-trained on the expected compositions & refutations in general, instead of blind brute-forcing
-learning (that makes pre-training pay a portion of the bill, but its still coming from an outside
-source/frame that actually paid the bill in collecting the initial dataset).
+The blind brute-force method is the expensive way to **"pay the bill"**, and must be heavily compressed as a result. Evolution/natural selection makes this faster by having diversification of many species, with variation in large populations and letting the **"winners carry the solution forward" via lineage compression** in DNA for the environment selection pressures they are pitted against. (evolution pays the bill/tests in body count).
 
-The blind brute-force method is the expensive way to **"pay the bill"**, and must be heavily
-compressed as a result. Evolution/natural selection makes this faster by having diversification of
-many species, with variation in large populations and letting the **"winners carry the solution
-forward" via lineage compression** in DNA for the environment selection pressures they are pitted
-against. (evolution pays the bill/tests in body count).
+On the individual level, **paying the bill** means learning a curriculum of what to do and not to do (similar to school), and aligning your own proprioception, reification, adaptation, and reasoning to that corpus, so you can respond in like kind. This is what tether does, but with objects instead of words and in a transparent manner.
 
-On the individual level, **paying the bill** means learning a curriculum of what to do and not to
-do (similar to school), and aligning your own proprioception, reification, adaptation, and
-reasoning to that corpus, so you can respond in like kind. This is what tether does, but with
-objects instead of words and in a transparent manner.
+This is why it is possible to **"start cold"** but it will literally take an equivalency to generations of hard won learning with agents (to pay down the combinatorial explosion problem). 
 
-This is why it is possible to **"start cold"** but it will literally take an equivalency to
-generations of hard won learning with agents (to pay down the combinatorial explosion problem).
+So the viable alternative is to use reinforcement learning to pre-train the mappings, and allow composition and refutation to settle relevant mappings in the library. 
 
-So the viable alternative is to use reinforcement learning to pre-train the mappings, and allow
-composition and refutation to settle relevant mappings in the library.
+**The organization and categorization of the library is what the composer does.** The lookup and reachability of that library depends on the composer and their compositions. **No neural networks or GPUs are required for this process.**
 
-**The organization and categorization of the library is what the composer does.** The lookup and
-reachability of that library depends on the composer and their compositions. **No neural networks
-or GPUs are required for this process.**
-
-Because ultimately, the composer was always meant to be the librarian who was sorting the data, and
-retrieving it in a specific manner in the first place.
+Because ultimately, the composer was always meant to be the librarian who was sorting the data, and retrieving it in a specific manner in the first place.   
 
 ---
 
