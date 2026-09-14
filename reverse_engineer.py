@@ -57,36 +57,80 @@ def _actors(objs: list[dict]) -> list[dict]:
     return [o for o in objs if o is not big]
 
 
+# anchor: two objects are "the same object" across a chunk only if the smaller keeps at least
+# this fraction of the larger's cells -- SIZE is what an object conserves under movement, where
+# position is not. A projectile stays ~4 cells wherever it flies; a region that contracts loses
+# cells gradually and stays above the floor; a genuinely new object has no size-mate. 0.5 is a
+# declared floor, not derived, adjustable -- it is the identity gate, and position only breaks
+# ties among the pairs that pass it.
+SIZE_KEEP = 0.5
+
+
+def _cost(b: dict, a: dict) -> float:
+    """How unlike a before-object and an after-object are, in the frozen attributes only. SIZE
+    difference dominates (the conserved identity); position drift is a light tiebreak, so a
+    far-moving object of the same size still matches. Does NOT require shape or colour to match
+    -- a contraction changes shape and a recolour changes colour, and matching on either mis-reads
+    those as vanish+appear (the F129b defect, and the too-tight position cutoff after it)."""
+    cb, ca = len(b["cells"]), len(a["cells"])
+    return abs(ca - cb) + 0.1 * (abs(a["row"] - b["row"]) + abs(a["col"] - b["col"])
+                                 + abs(a["h"] - b["h"]) + abs(a["w"] - b["w"]))
+
+
 def _match(before: list[dict], after: list[dict]) -> list[dict]:
-    """Match objects across two frames by shape then nearest position; report per-object effect
-    in the frozen vocabulary. Colour is compared only as SAME/DIFFERENT (a distinctness id).
-    Background excluded first."""
+    """Match actor objects across two frames on conserved SIZE (position as tiebreak), then report
+    each matched pair's change as attribute DELTAS (drow, dcol, dh, dw, dcells) plus a relative
+    colour verdict (same/different -- never a literal). A pair failing the SIZE_KEEP gate is not
+    one object: the before vanished, the after appeared. Background (largest component) dropped."""
     before, after = _actors(before), _actors(after)
+    pairs = sorted((( _cost(b, a), bi, ai)
+                    for bi, b in enumerate(before) for ai, a in enumerate(after)),
+                   key=lambda t: t[0])
+    ub, ua = set(range(len(before))), set(range(len(after)))
     effects = []
-    used = set()
-    for b in before:
-        cand = [(i, a) for i, a in enumerate(after) if i not in used and a["shape"] == b["shape"]]
-        cand.sort(key=lambda ia: abs(ia[1]["row"] - b["row"]) + abs(ia[1]["col"] - b["col"]))
-        if cand:
-            i, a = cand[0]
-            used.add(i)
-            drow, dcol = a["row"] - b["row"], a["col"] - b["col"]
-            if drow or dcol:
-                effects.append({"kind": "move", "drow": drow, "dcol": dcol,
-                                "shape": len(b["shape"])})
-        else:
-            # shape not found in after: recolour (same cells, diff colour), reshape, or vanish
-            same_pos = [a for a in after if a["row"] == b["row"] and a["col"] == b["col"]]
-            if same_pos:
-                effects.append({"kind": "recolour_or_reshape", "at": (b["row"], b["col"])})
-            else:
-                effects.append({"kind": "vanish", "at": (b["row"], b["col"]),
-                                "shape": len(b["shape"])})
-    for i, a in enumerate(after):
-        if i not in used and not any(a["shape"] == b["shape"] and a["row"] == b["row"]
-                                     and a["col"] == b["col"] for b in before):
-            effects.append({"kind": "appear", "at": (a["row"], a["col"]), "shape": len(a["shape"])})
+    for _cst, bi, ai in pairs:
+        if bi not in ub or ai not in ua:
+            continue
+        cb, ca = len(before[bi]["cells"]), len(after[ai]["cells"])
+        if min(cb, ca) < SIZE_KEEP * max(cb, ca):
+            continue
+        ub.discard(bi)
+        ua.discard(ai)
+        b, a = before[bi], after[ai]
+        drow, dcol = a["row"] - b["row"], a["col"] - b["col"]
+        dh, dw = a["h"] - b["h"], a["w"] - b["w"]
+        dcells = len(a["cells"]) - len(b["cells"])
+        recol = a["colour"] != b["colour"]
+        if drow or dcol or dh or dw or dcells or recol:
+            effects.append({"kind": "change", "drow": drow, "dcol": dcol,
+                            "dh": dh, "dw": dw, "dcells": dcells,
+                            "recolour": recol, "shape": len(b["cells"])})
+    for bi in ub:
+        effects.append({"kind": "vanish", "at": (before[bi]["row"], before[bi]["col"]),
+                        "shape": len(before[bi]["cells"])})
+    for ai in ua:
+        effects.append({"kind": "appear", "at": (after[ai]["row"], after[ai]["col"]),
+                        "shape": len(after[ai]["cells"])})
     return effects
+
+
+def _signature(effects: list[dict]) -> dict:
+    """The chunk's net effect as one compact, ground-checkable signature in frozen attributes.
+    This is the answer-key layer the RL goal-selection reads -- an EFFECT, not a derivation."""
+    ch = [e for e in effects if e["kind"] == "change"]
+    return {"moved": sum(1 for e in ch if e["drow"] or e["dcol"]),
+            "resized": sum(1 for e in ch if e["dh"] or e["dw"] or e["dcells"]),
+            "recoloured": sum(1 for e in ch if e["recolour"]),
+            "vanished": sum(1 for e in effects if e["kind"] == "vanish"),
+            "appeared": sum(1 for e in effects if e["kind"] == "appear"),
+            # the net translation, if the movers agree on one -- a translate is the cheapest
+            # thing to express, so it is worth naming when it is present and uniform.
+            "uniform_translate": _uniform([(e["drow"], e["dcol"]) for e in ch
+                                           if e["drow"] or e["dcol"]])}
+
+
+def _uniform(deltas: list[tuple]) -> tuple | None:
+    return deltas[0] if deltas and len(set(deltas)) == 1 else None
 
 
 def chunk_replay(steps: list[dict], size: int = CHUNK) -> list[dict]:
@@ -111,10 +155,11 @@ def analyse(path: str) -> dict:
         i0, i1 = c["idx"][0], c["idx"][-1]
         before, after = perceived[i0], perceived[i1]
         acts = [steps[i]["action_id"] for i in c["idx"]]
+        eff = _match(before, after)
         out.append({"level": c["level"], "ends_level": c["ends_level"],
                     "n_actions": len(c["idx"]), "actions": acts,
                     "n_obj_before": len(before), "n_obj_after": len(after),
-                    "effects": _match(before, after)})
+                    "effects": eff, "signature": _signature(eff)})
     return {"game": path, "n_steps": len(steps), "n_chunks": len(chunks),
             "levels": max((s["level"] or 0) for s in steps), "chunks": out}
 
@@ -123,24 +168,24 @@ def _summary(res: dict) -> dict:
     """Per-level effect tally over actor objects -- the shape of the answer key."""
     per_level: dict = {}
     for c in res["chunks"]:
-        lv = per_level.setdefault(c["level"], {"chunks": 0, "actions": 0, "effects": {}})
+        lv = per_level.setdefault(c["level"], {"chunks": 0, "actions": 0, "sig": {}})
         lv["chunks"] += 1
         lv["actions"] += c["n_actions"]
-        for e in c["effects"]:
-            lv["effects"][e["kind"]] = lv["effects"].get(e["kind"], 0) + 1
+        for k, v in c["signature"].items():
+            if k == "uniform_translate":
+                continue
+            lv["sig"][k] = lv["sig"].get(k, 0) + v
     return per_level
 
 
 if __name__ == "__main__":
     res = analyse(sys.argv[1] if len(sys.argv) > 1 else "replays/ls20_human.ndjson")
     print(f"steps={res['n_steps']} chunks={res['n_chunks']} levels={res['levels']}")
-    print("=== per-level effect tally (actors only) ===")
+    print("=== per-level net-effect signature (actors only) ===")
     for lv, d in sorted(_summary(res).items(), key=lambda kv: (kv[0] is None, kv[0])):
-        print(f"  L{lv}: {d['chunks']} chunks, {d['actions']} actions, effects={d['effects']}")
-    print("=== first chunks ===")
-    for c in res["chunks"][:5]:
-        eff = {}
-        for e in c["effects"]:
-            eff[e["kind"]] = eff.get(e["kind"], 0) + 1
-        print(f"  L{c['level']} acts={c['actions']} effects={eff}"
+        print(f"  L{lv}: {d['chunks']} chunks, {d['actions']} actions, {d['sig']}")
+    print("=== first chunks (net signature) ===")
+    for c in res["chunks"][:8]:
+        s = c["signature"]
+        print(f"  L{c['level']} acts={c['n_actions']} {s}"
               f"{' [ENDS LEVEL]' if c['ends_level'] else ''}")
