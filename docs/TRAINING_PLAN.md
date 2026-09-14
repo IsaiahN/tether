@@ -302,3 +302,26 @@ operators and the proctor's provenance record keeping it honest.
   proctor-side mint log (game + origin + handle), the latter out of the agent's reach.
 - Refutation consolidates **across** games through a cache with a **state-derived** demotion
   threshold — the symmetric twin of promotion's breadth counter — rather than within one run.
+
+---
+
+## 12. The training loop — one game at a time (Isaiah, 2026-09-13)
+
+Run RL + training on a **single game** until the agent has produced its **settled list, unsettled
+list, and refutation cache** for that game. **Persistence carries those forward.** Advance to the
+next game **only on a FULL WIN** of the current one.
+
+- **Answer set per game = the human-panel replay** — `arcprize.org/replay/<uuid>`, plus its jsonl
+  and gif. Used strictly per §3's bright line: exam and diagnostic (expressibility, distance,
+  positive control), **never a training target; present the situation, never the winning actions.**
+- **The replay jsonl/gif are NOT committed to git** (gitignored under `replays/`) and are kept
+  **out of the agent's reach** — the seat reads the answer set, the agent reads only the frame.
+  Same firewall as `environment_files/`.
+- **The public set** (source of record: https://arcprize.org/tasks?v=3): 21 slugs extracted —
+  `ar25 bp35 cd82 cn04 dc22 ft09 ka59 lf52 lp85 ls20 re86 sb26 sc25 sk48 sp80 su15 tn36 tr87 tu93
+  vc33 wa30` — with ~101 human-panel replays at `arcprize.org/replay/<uuid>`. The 25/25 ablation
+  gate is these public games each carried to WIN.
+- **Why one-at-a-time with carry-forward:** it is the single-agent substitute for generations. The
+  library accretes across games (settled / unsettled / cache), so the Nth game is approached with
+  everything the first N−1 left behind — transfer *within* the public set, and the rehearsal for
+  transfer to the private set.

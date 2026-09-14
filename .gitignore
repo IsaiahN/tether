@@ -6,6 +6,7 @@ __pycache__/
 .ruff_cache/
 runs/
 docs/deps.svg
+.env
 
 # working documents -- local only, not published
 docs/example
@@ -23,3 +24,8 @@ recordings/
 # for the same reason. Kept out of the repo root's sight rather than deleted, because
 # F75/F76 cite them by name.
 protocol_*.jsonl
+
+# Human-panel replays -- the ANSWER SET (arcprize.org/replay/<uuid>): jsonl + gif per game.
+# Out of git (large, not ours to redistribute) AND out of the agent's reach -- the seat reads
+# the answer set, the agent reads only the frame. Same firewall as environment_files/.
+replays/
