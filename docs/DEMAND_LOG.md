@@ -120,3 +120,36 @@ job: accumulating evidence with the question left open, so that when a gap-shape
 enough games, the fix is derived from the full evidence rather than rubber-stamped from the first
 instance. PC-1 crossing from 1 to 2 games is the mechanism working as designed — a contact change
 (F28) turned a previously-invisible gap into counted, cross-game evidence.
+
+### relation-to-value operator gap (a two-place relation has no way to hand you its far end's VALUE)
+
+**This is an OPERATOR/composition-path gap, not a perception gap (reviewer, 2026-09-14, Doc 21:47).**
+Filed here because the reviewer ruled it earns the log's first real-weight, cross-game entry — but
+it is governed by composition-vs-import (Isaiah's call), NOT the tenth-sense licence: nothing is
+unrepresented (both objects and both values are already slots; the operand mechanism already carries
+the related object into Ctx). What is missing is a PATH — a dereference operator that returns the
+far end's value — not a reading. Figure 6's line: composition explores what OPERATORS reach;
+instruments extend what can be REPRESENTED.
+
+- **[OP-1] `relation → value` is structurally absent AND cross-game demanded — the reviewer's outcome 1, measured on THREE boards**
+  `games:` vc33, sp80, ls20 (**3**) · `structural (game-independent, from the atom registry):` of 45
+  non-PREDICT atoms, every value-typed OUT reads the focal object's own attribute (ctx-self), a unary
+  transform, or a whole-population fold (→EXTENT only: count/rank_in/sum_group/distinct). ZERO atoms
+  dereference a SPECIFIC related object to yield its value. The 5 operand-reading (arity-2) atoms —
+  same/other/above/both/either — all output PRED; touching outputs BOOL. So `relation → value` is
+  absent on EVERY board identically (the atom set is shared) — reachability does not vary per game. ·
+  `demand (per-board, 40 cycles each):` **100% of reach-failures on all three boards are arity-2 with
+  a value target** — vc33 207/208, sp80 294/295, ls20 786/786. The conservative cut that excludes
+  EXTENT (where the group-folds could already pay) — targets NO existing atom can produce from a
+  relation (SHAPE/POSITION/DELTA/COLOUR) — is still **62% (vc33), 82% (sp80), 77% (ls20)**. And the
+  demand is real, not a firing artefact: arity-1 reaches SUCCEED (3, 3, 8 across boards) while arity-2
+  value reaches succeed at ~0–2% (0/207, 6/300, 0/786). · `fix?:` (hypothesis, not ranked) a
+  dereference OPERATOR — apply an extractor to the object at the far end of a relation, returning its
+  value; shaping-safe because it names no relation, no object, no value (it says the path exists,
+  contains no answer). Re-derived at ruling, not taken here. · `status:` **3 games, cross-game demand
+  MEASURED rather than argued — outcome 1.** Structurally absent and load-bearing (not "not ripe").
+  HELD for Isaiah's composition-vs-import ruling; reviewer holding with the seat, not ruling.
+
+  Note: OP-1 is distinct from BR (binding refusal), CI (chunk inexpressibility), and PC (positioned-
+  action productivity) — not pooled. It is the first entry to cross with three games AND a structural
+  proof under it, which is why the reviewer weighted it above the 1-game and 2-game entries above.
