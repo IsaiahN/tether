@@ -41,13 +41,20 @@ reverse-engineering map is built.
 
 ### binding-refused (agent's own residuals, no frozen term pays)
 
-- **[BR-1] ls20 — 164 slots the bargain refuses**
-  `games:` ls20 (1) · `chunks/size:` 164 refused slots (persistence run, 4 plays, fixed point at
-  12/176 bound) · `gap:` the frozen 8-attribute vocabulary composes no term that compresses these
-  residuals — did-not-pay/no-split persist across plays; the agent finds candidates and the MDL
-  bargain says no. Perception is too coarse to make these residuals payable. · `fix?:` (hypothesis,
-  not ranked) unknown attribute/relation; the residual shapes on these slots would name it if
-  clustered — deferred to when the threshold fires. · `status:` 1 game, held.
+- **[BR-1] ls20 — refused slots, CORRECTED: mostly a pricing artefact, not perception**
+  `games:` ls20 (1) · `chunks/size:` did-not-pay 160, no-split 753 (250-cycle stream) ·
+  `gap:` **PARTLY WITHDRAWN as perception demand (reviewer, 2026-09-14).** Measured the did-not-pay
+  overage (cost+left − base) on disk: median 4.23 bits, **73% within one atom-cost (5.6 bits) of
+  paying, 34% within F48's 2.77-bit median slack, and some NEGATIVE** (would pay under `pays()` but
+  were refused/relabeled). So the majority of did-not-pay is the **strict all-or-nothing acceptance
+  gate (`pays: cost+left < base`) refusing near-paying terms — a PRICING BUILD ITEM, not a
+  perception gap** (F48: one atom = 5.6 bits vs 2.77 median slack). Only the far-over tail (~27%
+  beyond one atom, up to 16.65 bits over) is a candidate perception-reach gap, and even that is not
+  filed until the pricing fix is tried, because a corrected gate moves the denominator. · `fix?:`
+  (hypothesis, not ranked) two separable: (a) BUILD — partial-credit / staged acceptance so a term
+  that compresses most of a residual is not refused all-or-nothing; (b) PERCEPTION — only for the
+  residual tail that stays refused after (a). · `status:` reclassified — the pricing half is a build
+  item, not perception demand; the perception half is HELD pending the pricing fix. 1 game.
 
 - **[BR-2] sp80 — 64 slots, zero binding, agent goes inert**
   `games:` sp80 (1) · `chunks/size:` 64 slots, 0 bound all 4 plays · `gap:` distinct from BR-1 —

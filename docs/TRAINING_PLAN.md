@@ -346,6 +346,38 @@ answers are exam, dense verifiable reward, and diagnostic; the agent discovers i
 compositions. This is the one seam the architecture forbids crossing, and the confirmation is
 explicit.
 
+**ACTION-AGNOSTIC — the training substrate is the COMPOSITION, never the action (Isaiah,
+2026-09-14, two rulings, both binding):**
+
+- **RL trains on the REASONING/COMPOSITIONS — the atoms / molecules / attributes / relations that
+  make each move (or multi-move) possible — never on the actions.** Actions are doubly irrelevant:
+  not the reward target (that is the effect) AND not the training substrate (that is the
+  composition). The answer key describes the before→after TRANSFORMATION as a composition of frozen
+  attributes/relations + operator; the human's button presses are chunk-window markers only, never
+  mapped, rewarded, or learned.
+- **ACTIONS MUST NOT BE BAKED IN — action-mapping happens AFTER RL, is trivial, and must stay
+  agnostic.** The agent's brute-force enumeration baked actions into the composition space (PREDICT:
+  `slot × action → slot`), which is the trap to avoid: the reach failure and bets/cycle explosion
+  are partly that the closure enumerates over actions. RL trains the RELATE space (composing the
+  goal-transformation from attributes/relations — *what* to achieve), and the `which button
+  achieves it` mapping (PREDICT) is a trivial post-RL lookup, kept out of the trained content
+  entirely. Nothing in the answer key, the reward, or the curriculum may reference an action.
+
+**Pre-RL baseline preserved (reviewer, 2026-09-14):** the cold-loop numbers are the cleanest
+baseline the project has, and guided RL must MOVE them: `runs/PRE_RL_BASELINE_ls20.json` —
+reach-failure **98.7%** (2,789/2,825), **174 bets/cycle**, 1 routine committed (cycle 65). If
+training teaches retrieval, reach-failure and bets/cycle FALL; if they don't move, the RL didn't
+teach it, measured against a number taken before anything was trained.
+
+**Acceptance gate is partly a pricing artefact, not perception (reviewer, 2026-09-14):** before
+filing did-not-pay as perception demand, measured the did-not-pay overage (`cost+left − base`) on
+disk — median 4.23 bits, **73% within one atom-cost (5.6) of paying**, some negative (would pay but
+refused/relabeled). The strict all-or-nothing gate (`pays: cost+left < base`) refuses near-paying
+terms, so the majority of did-not-pay is a **pricing BUILD ITEM** (partial-credit / staged
+acceptance), not a perception gap (F48: one atom = 5.6 bits vs 2.77 median slack). `DEMAND_LOG.md`
+BR-1 corrected accordingly; the perception tail is held until the pricing fix is tried, because a
+corrected gate moves the denominator.
+
 **The loop, per game, as the diagnostician:**
 
 1. **Ingest the human-panel replay** (gif / jsonl / frames / actions), proctor-side, out of the
