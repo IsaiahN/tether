@@ -90,11 +90,33 @@ demand, the game count crosses the threshold.
   Note: CI-1/CI-2 and BR-1's perception tail are DIFFERENT gap-shapes and not pooled. All at 1
   game — nothing near the cross-game threshold, so no perception is added. Correct state.
 
+### positioned-action-coordinate (a positioned action needs a PRODUCTIVE coordinate)
+
+- **[PC-1] the productive coordinate is not perceivable — the focal-object heuristic misses it**
+  `games:` ft09, su15 (**2**) · `size:` measured after F28/F144 (the positioned action now lands its
+  coordinate): on games where ACTION6 is the arm, the agent chooses the coordinate = the focal
+  object's position, which works where objects overlap interactive cells (vc33 full loop, tn36 alive)
+  but is INERT where the interactive region is sparse — ft09 (board responds 1/20, bound 0, reach 0)
+  and su15 (loop never engages, bound 0). · `gap:` the agent perceives object positions but NOT which
+  board regions are INTERACTIVE (respond to a positioned action), so it cannot choose a productive
+  coordinate where interactive cells are not at objects — the action fires and nothing happens. ·
+  `fix?:` (hypothesis, not ranked) a perception of interactive/affordance regions — where a positioned
+  action would have an effect — re-derived from all instances at threshold. · `status:` **2 games**,
+  held. First cross-game gap in the log; still below whatever the state-derived threshold is, so no
+  perception is added — but it is the first to accumulate past one game, and it came from a contact
+  change (F28) making a previously-unmeasurable gap measurable.
+
+  Note: PC-1 is a gap about POSITIONED-ACTION productivity, distinct from BR (binding refusal) and CI
+  (chunk inexpressibility) — not pooled. Its two games agree on the gap-shape (productive coordinate
+  not perceivable); the fix is one hypothesis, re-derived from both at threshold.
+
 ---
 
 ## What earns nothing yet, and why that is the correct state
 
-Two games, two different gaps, each at 1 game. Nothing is near the cross-game threshold. No
-perception is added. This is the log doing its job: accumulating evidence with the question left
-open, so that when a gap-shape does repeat across games, the fix is derived from the full evidence
-rather than rubber-stamped from the first instance.
+Several gaps, mostly at 1 game; PC-1 is the first at **2 games** (ft09 + su15). Nothing is confirmed
+past the state-derived cross-game threshold, so no perception is added. This is the log doing its
+job: accumulating evidence with the question left open, so that when a gap-shape does repeat across
+enough games, the fix is derived from the full evidence rather than rubber-stamped from the first
+instance. PC-1 crossing from 1 to 2 games is the mechanism working as designed — a contact change
+(F28) turned a previously-invisible gap into counted, cross-game evidence.
