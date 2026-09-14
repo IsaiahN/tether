@@ -69,13 +69,6 @@ class ArcWorld:
         # HOW MANY STEPS NOBODY OBSERVED. A skipped read that is not counted is the silent
         # half of an abstention -- the flag says WHY, this says HOW MUCH.
         self.unobserved = 0
-        # THE GOAL-SELECTION SPARSE CHANNEL (TRAINING_PLAN.md §13). Empty by default, so normal
-        # play and the ablation are UNCHANGED. The proctor's RLVR driver sets it per level from
-        # the human replay's answer key -- the effect TYPES that constitute progress on this
-        # level (translate/rescale/reshape/recolour/population). §11: the sparse channel ONLY
-        # SELECTS AMONG GOALS the agent already holds; it names no object, no composition, no
-        # ACTION, and settles nothing. A set here is the corrected design's "valued milestone".
-        self._valued: frozenset = frozenset()
 
     # -- the eight -----------------------------------------------------------------------
 
@@ -332,17 +325,6 @@ class ArcWorld:
         f = self._frame
         win = f.win_levels or 1
         return "ALL(BECOME(level, completed))", min(1.0, f.levels_completed / win)
-
-    def valued_effects(self) -> frozenset:
-        """The sparse-channel goal-selection signal (TRAINING_PLAN.md §13): the effect TYPES that
-        constitute progress on the current level, set by the proctor's RLVR driver from the human
-        replay's answer key. Empty unless training set it -- the agent reads THIS, never the answer
-        key file (the firewall). It selects among the agent's own goals; it supplies none."""
-        return self._valued
-
-    def set_valued(self, effects) -> None:
-        """Proctor-side (the RLVR driver). Names the level's valued effect TYPES, nothing more."""
-        self._valued = frozenset(effects)
 
     def placements(self) -> dict:
         """The encounter half, read: how many distinct values were met, and which objects

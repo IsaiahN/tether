@@ -62,8 +62,7 @@ def _mode():
 
 def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
          store: str | None = None, arc=None, stop_on_end: bool = False,
-         system0: bool = False, led_path: str | None = None,
-         valued_by_level: dict | None = None) -> dict:
+         system0: bool = False, led_path: str | None = None) -> dict:
     """Download one game, run the loop on it, and report where the chain stops.
 
     **`library` IS §17.8's SWITCH, and the default is cold.** *State it, and make it switchable
@@ -121,11 +120,6 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
     was_terminal = ""
     for _ in range(cycles):
         state = env.observe()
-        # RLVR goal-selection channel (TRAINING_PLAN.md §13): the proctor names this level's valued
-        # effect types from the human answer key, through the env's sanctioned sparse channel. The
-        # agent reads `valued_effects()`, never the answer key. Off (None) leaves play unchanged.
-        if valued_by_level is not None:
-            env.set_valued(valued_by_level.get(env.levels()[0], frozenset()))
         # THE UNIT. `step` returns False when no action was proposed, and after the first
         # GAME_OVER that is every cycle -- so a 1000-CYCLE run is a ~140-ACTION run followed
         # by ~860 no-ops, and every reading this week was taken in cycles while the quantity
