@@ -394,6 +394,21 @@ which is the tenth-sense licence (*repeated demand across different situations*)
 perception. So the answer key stays inside today's perception, and the accumulated demand list is
 how we later know what perception is worth building — never one game reaching for it.
 
+**Two nuances that make the tally earn something rather than just accumulate (Isaiah, 2026-09-14):**
+
+- **Count games, not chunks.** Eleven chunks in one game is *one game* demanding a cue; six games
+  demanding the same cue is what crosses the threshold. The chunk count is useful for *sizing* the
+  demand; the **game count** is the unit that earns a change — the per-game-not-pooled rule applied
+  to demand.
+- **Gap and fix are SEPARATE FIELDS: the gap is evidence, the fix is a hypothesis.** *"This chunk
+  needs a relation between two objects"* is the gap — the evidence that accumulates, and the thing
+  the list **ranks on**. *"This needs `touching()`"* is a per-instance fix hypothesis, logged in
+  its own field and **never ranked on**. Separate fields keep the question open: the gap
+  accumulates across games, and when the game-count threshold fires, the fix is **re-derived from
+  all the accumulated instances, not taken from the first one.** So the ranked list is a build
+  queue, but its specification is derived from the full evidence at the moment it is earned —
+  never rubber-stamped from game one's guess.
+
 ### Relations and arity (`NSM_GRAMMAR.md`)
 
 Chunks will involve two-object relations (`contains`, `blocks`, `touches`) that the current atom
