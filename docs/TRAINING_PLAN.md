@@ -473,6 +473,44 @@ atoms, ~200 Set-B level-2 composites) → a recipe in `ATOMS.md` is the aim poin
 operator (`OPERATORS.md`: seven bonds + negation). Composition is **61 shallow domain-local trees**
 (74% within-domain), bridged by the 285-edge domain adjacency graph (`ADJACENCY_EDGES`).
 
+### IT IS A MAPPING JOB, NOT A SEARCH — and the cue system that makes it one (Isaiah, 2026-09-15)
+
+**This whole thing is a MAPPING job: map the human-panel INTENT to a library composition per game.
+Every other route is a combinatorial explosion — a fool's errand at best, a Sisyphus problem at
+worst. The seat/agent does NOT "figure out" anything except HOW TO MATCH a library composition to
+the panel's intent (never the action).** Corollaries, all binding:
+
+- **Map only into the closure.** Whatever a delta maps to must be REACHABLE/FINDABLE in
+  `docs/library-closure` — nothing invented — and COMPOSABLE with `OPERATORS.md`'s operators. Do NOT
+  map to the agent's ~45 gamma atoms; those are its concrete instantiations, not the map.
+- **Deltas are ATTRIBUTE CHANGES, not atoms.** There are ~2,000 closure atoms/derivatives; the delta
+  is a change in an object's attribute, and the change is what lights candidate atoms.
+- **The full-attribute MutationObserver.** Each object/slot carries the FULL attribute+relation set
+  (~100, from `RELATIONS.md`/`ATTRIBUTES.md`), initialised NULL at frame 0, and is updated in real
+  time from frame 1 by a mutation-observer. This yields dense data from the start, and EVERY FRAME
+  COMPOUNDS the cue + relational vector — the opposite of the agent's current 8-attribute reading,
+  which is why its search is undirected (`RELATIONS.md` Part 6).
+- **Attributes are DETECTORS, not a taxonomy (`ATTRIBUTES.md`).** Each atom carries attributes-to-
+  check plus a boolean CONDITION that confirms it (`Solidity` ⟺ `overlapArea==0`; `Movement` ⟺
+  `position(t2)!=position(t1)`). An attribute CHANGE re-fires the conditions that reference it; the
+  atoms whose condition CONFIRMS are the ones that light up. That is "what atoms to search for or
+  mint" — a check against the board, not a lookup handed to the agent.
+- **Lit atoms → molecules via ADJACENCY.** The `ADJACENCY_EDGES` graphs are EXAMPLES of the
+  atom→molecule compositions the lit cues map to.
+
+### CHUNKING IS THE RL TRAINING METHOD, WITH OFFSET AUGMENTATION (Isaiah, 2026-09-15)
+
+**Chunking is not just windowing for the answer key — it is how the created agent is RL-trained.**
+The agent RLs against the generated relations/compositions derived from the human panel, so it
+learns to make similar decisions IN GENERAL after enough epochs (not memorising steps). Chunking
+cuts the winning path into multi-step PIECES **so multi-step planning and causality are observable
+within a piece** — learning step-by-step includes no causality or planning.
+
+**OFFSET, to overcome chunking in the wrong place:** create an offset for the same game so the chunk
+boundaries differ — the self-supervised move of removing a word from a sentence (masked-LM). A cut
+that splits a plan in one pass is intact in an offset pass. (`protocol_b2_*` / `protocol_d25_*` jsonl
+are chunk/offset protocols.)
+
 ### The hard perceptual-reach gate
 
 `ATTRIBUTE_REACH` grounds **only 11 atoms today**; ~1,749 unlock with a single scalar-emitting

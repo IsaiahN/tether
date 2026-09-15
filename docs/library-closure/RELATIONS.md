@@ -390,6 +390,20 @@ the first place.**
 visits one configuration repeatedly; **fixing the search does nothing while the reading is a
 thirtieth built.**
 
+### THE SCHEMA THIS DOCUMENT IS FOR — the full-attribute MutationObserver (Isaiah, 2026-09-15)
+
+**This is the reading, built as intended, and it turns undirected search into a MAPPING.** Each
+object/slot carries the FULL attribute+relation set (~100, all of the above), **initialised NULL at
+frame 0** and updated in real time from frame 1 onward by a mutation-observer over this vocabulary.
+So from the first frame the agent holds dense cue + relational data, and **every subsequent frame
+COMPOUNDS it.** The delta — an attribute CHANGE — is the cue: it re-fires the atom DETECTORS
+(`ATTRIBUTES.md`: each atom is attributes-to-check + a boolean condition) that reference the changed
+attribute, and the atoms whose condition CONFIRMS light up. Those atoms map to their molecules via
+the `ADJACENCY` graphs and compose via `OPERATORS.md`. **Everything mapped is reachable/findable in
+the closure — nothing invented, and never the agent's own gamma atoms.** This is the MAPPING job the
+whole architecture reduces to; any route that searches the composition space instead is the
+combinatorial explosion this avoids. Full statement: `docs/TRAINING_PLAN.md` §13.
+
 ## What the relation graph would add, and does not exist
 
 **This document lists relations. It does not say which composes from which.**
