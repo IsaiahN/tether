@@ -141,3 +141,22 @@ what it holds. Everything before was the seat's; this one holds for him.
 
 NEXT (seat, sanctioned): the equality-shape read across more boards (the public set), to bound the
 harm. A read/measurement, not the central change.
+
+## PRE-REG: ls20 payoff probe (reviewer 04:36) — success is the WALL MOVING, not settling
+
+vc33 proved settles do NOT imply the wall moves (settle +10, reach-failure flat 208->208). So the
+payoff must be measured directly, and the success condition is pre-registered BEFORE the numbers:
+
+  SUCCESS  = reach-failure FALLS on ls20 while reach HOLDS (the standing guard) -- the only reading
+             that distinguishes a capability from a bigger library.
+  REFUTED  = partner fires and terms settle but reach-failure stays at baseline (ls20: reach 794,
+             fail 786, ok 8) -- equality capability real and reachable but does NOT explain the
+             residuals actually failing. A genuine, disappointing result; better found here.
+
+NARROW version tested (answers the reviewer's packet question): the novelty relaxation is gated on
+the atom's OUT_TYPE being a VALUE type (COLOUR/POSITION/EXTENT/DELTA/SHAPE), so bound partner_* become
+novel but bound same/other/above (PRED out) do NOT. Cleanly separable at the site. This is the version
+Isaiah should rule on IF it buys the payoff -- it gets the equality capability without unlocking the
+predicate vocabulary that cost +22% and moved nothing on vc33.
+
+Persistence condition: cold (no library/store), revert, md5-confirm library byte-identical.
