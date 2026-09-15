@@ -529,6 +529,41 @@ def _isolated(src: str, others: tuple[str, ...] = (),
     return out, seen
 
 
+# THE BETTING PATH -- where the agent composes and bets -- and the CUE modules it must not import.
+# §12.3 forbids `aligned`/`symmetry`/`containment` etc. as COMPOSABLE TERMS; the relation sensors
+# are admitted only as CUES (they narrow retrieval, they are not operands). The guarantee is that
+# the betting path never imports them, so a cue can never reach the closure. This was a property of
+# the code; the reviewer asked (2026-09-15) that it be a CHECK, so one import cannot break §12.3.
+_BETTING_PATH = {"tether.py", "gamma.py", "arc_atoms.py"}
+_CUE_MODULES = {"relations", "observer"}
+
+
+@rule("CUE_BOUNDARY",
+      "§12.3 + reviewer 2026-09-15: the betting path may not import the cue modules. A cue NARROWS "
+      "retrieval; a TERM is composed over. A cue module reaching the closure makes aligned "
+      "composable-WITHOUT-reaching, and reaching is the only evidence the composition system works "
+      "-- so the ablation loses its evidence with nothing failing. Structure, not convention: the "
+      "covert-grant failure, installed as a check.",
+      "import relations\n",
+      "import gamma\n",
+      n_bad=1, n_ok=1, n_found=1, crossfile=True,
+      bad_name="tether.py", ok_name="tether.py")
+def _cue_boundary(src: str, _others: tuple[str, ...] = (),
+                  _scan: Any = None, name: str = "") -> tuple[list[str], int]:
+    """A cue module imported into the betting path is §12.3's covert grant. Fires only on the
+    betting-path files, so a cue module importing another is untouched; the DIRECTION is the point.
+    """
+    if name not in _BETTING_PATH:
+        return [], 0
+    hits: list[str] = []
+    for node in ast.walk(ast.parse(src)):
+        if isinstance(node, ast.Import):
+            hits += [a.name for a in node.names if a.name in _CUE_MODULES]
+        elif isinstance(node, ast.ImportFrom) and node.module in _CUE_MODULES:
+            hits.append(node.module)
+    return [f"betting path imports cue module `{h}` -- §12.3 boundary broken" for h in hits], 1
+
+
 def _scan(files: tuple[tuple[str, str], ...]) -> tuple[dict, dict, set]:
     """(per-module reference counts, per-module imports, registry prefixes).
 
