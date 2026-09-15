@@ -36,6 +36,11 @@ def load_replay(path: str) -> list[dict]:
         if frame is None:
             continue
         grid = frame[-1] if frame and isinstance(frame[0], list) else frame
+        # A board-less frame (empty grid) is a transition, not a state -- perception raises on
+        # it (`as_index_grid` returns None). Skip it: it carries no objects to read. cn04 has one
+        # at frame 390 of 779, and it crashed the whole game's answer key.
+        if not grid or not grid[0]:
+            continue
         ai = d.get("action_input") or {}
         steps.append({"action_id": ai.get("id"),
                       "xy": (ai.get("data") or {}),
