@@ -160,3 +160,90 @@ Isaiah should rule on IF it buys the payoff -- it gets the equality capability w
 predicate vocabulary that cost +22% and moved nothing on vc33.
 
 Persistence condition: cold (no library/store), revert, md5-confirm library byte-identical.
+
+## REPRODUCIBILITY: the exact probe diff (reviewer note 2026-09-15)
+
+The is_atom cost/payoff probes (vc33 wide, ls20/sk48 narrow) were run build-measure-revert, so
+the code is NOT in HEAD. The exact diff that ran is recorded here so a later reader finds code
+behind the results. WIDE version: the gamma is_atom relaxation drops the `out_type in VALUE`
+clause (bound same/other/above also become novel). NARROW version is exactly the diff below.
+
+```diff
+diff --git a/arc_atoms.py b/arc_atoms.py
+index 506d8cc..b7d0fe5 100644
+--- a/arc_atoms.py
++++ b/arc_atoms.py
+@@ -468,6 +468,16 @@ def _relate() -> list[Atom]:
+                  reads_ctx=("operands",))]
+ 
+ 
++
++def _dereference() -> list[Atom]:
++    """PROBE (2026-09-15, reverted): relation->value dereference operators."""
++    def deref(v: Any, c: Ctx) -> Any:
++        return c.operands[0] if c.operands else v
++    return [Atom(f"partner_{t.lower()}", deref, t, t, reads_operand=True,
++                 operand_type=SAME_AS_TARGET, reads_ctx=("operands",))
++            for t in (COLOUR, POSITION, EXTENT, DELTA, SHAPE)]
++
++
+ def _count(v: Any, c: Ctx) -> Any:
+     """How many peers share this value. **A cardinality, not a truth.**
+ 
+@@ -645,5 +655,5 @@ def three_spaces(predict: list[Atom]) -> list[Atom]:
+     3d -- and inventing one here would be this file choosing what the agent may bet on.
+     """
+     return (list(predict) + _extract() + _transform() + _shape_facts() + _shape_more()
+-            + _contact() + _relate() + _over_group() + _group_more() + _connect()
+-            + _quantify())
++            + _contact() + _relate() + _dereference() + _over_group() + _group_more()
++            + _connect() + _quantify())
+diff --git a/gamma.py b/gamma.py
+index 1338611..8dbc349 100644
+--- a/gamma.py
++++ b/gamma.py
+@@ -461,8 +461,11 @@ class Gamma:
+         return len(self.atoms)
+ 
+     def is_atom(self, term: Term) -> bool:
+-        """NOVEL is relative to atoms, not to the world."""
+-        return len(term) == 1 and term.atoms[0].name in self._by_name
++        """PROBE 2026-09-15 (reverted): NARROW relaxation, value-out bound operand atoms novel."""
++        a = term.atoms[0]
++        if len(term) == 1 and getattr(a, "reads_operand", False) and            getattr(term, "operand", None) is not None and            a.out_type in ("COLOUR", "POSITION", "EXTENT", "DELTA", "SHAPE"):
++            return False
++        return len(term) == 1 and a.name in self._by_name
+ 
+     # -- persistence: Â§17.8's decision, made rather than defaulted -------------------------
+ 
+diff --git a/tether.py b/tether.py
+index 5366a44..153cb15 100644
+--- a/tether.py
++++ b/tether.py
+@@ -2565,6 +2565,7 @@ class Agent:
+             stype = self.slot_types.get(slot)
+             if stype:
+                 streams.append((stype, OBJ_TYPE))
++                streams.append((stype, stype))  # PROBE 2026-09-15
+             # THE THIRD STREAM IS WITHDRAWN, AND THE REASON IS A DEFECT IT INTRODUCED.
+             # `OBJECT -> OBJ` was legitimate once `Ctx.obj` stopped the extract atoms
+             # abstaining -- and it is NOT type-coherent, which the reachability check missed.
+@@ -2586,12 +2587,16 @@ class Agent:
+             by_kind: dict[str, tuple] = {}
+ 
+             for in_t, out_t in streams:
+-                kind = "predictor" if out_t == "val" else "objective"
++                kind = "objective" if out_t == OBJ_TYPE else "predictor"
++                typed_pred = out_t not in ("val", OBJ_TYPE)
+                 by_fit = partial(retrieval.fits, gap=gap, in_type=in_t, out_type=out_t)
+                 st: dict = {"seen": 0, "budget_spent": False, "depth_exhausted": True,
+                             "units": self.gamma.alphabet, "estimate": 0}
+                 for cand in self.gamma.enumerate_closure(in_t, out_t, self.cfg.max_depth,
+                                                          self.cfg.budget, st, order=by_fit):
++                    if typed_pred and any("group" in (getattr(a, "reads_ctx", ()) or ())
++                                          for a in cand.atoms):
++                        continue
+                     binds = operand_binds if cand.reads_operand else [None]
+                     binds = [x for x in binds if self._operand_fits(cand, slot, x)]
+                     for bind, g in ((b, g) for b in binds for g in self._guards(robs)):
+```
