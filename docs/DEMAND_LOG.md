@@ -69,6 +69,15 @@ reverse-engineering map is built.
 
 ### chunk-inexpressible (human-replay chunks that won't fit the frozen vocabulary)
 
+**CORRECTED FRAMING (Isaiah, 2026-09-15): these are MAPPING gaps, not vocabulary gaps.** The
+primitives derive from the ARC human prior set, which is exhaustive by construction, so anything a
+human solver did is expressible in principle. A human-replay chunk that "won't fit" means the
+MAPPING is incomplete (the pipeline failed to find the closure composition), NOT that the vocabulary
+lacks it. The response is to repair the mapping into the closure, never to conclude a perception/
+vocabulary gap or reach for a new sensor. See `TRAINING_PLAN.md` §13 (Expressibility is closed) and
+memory `expressibility-closed-provenance-required`. The entries below are retained as mapping-gap
+evidence, re-read under that framing.
+
 From the ls20 answer key (`reverse_engineer.answer_key`, 72 chunks, 49 inexpressible). Two
 gap-shapes, aggregated — ls20 is **1 game** regardless of chunk count; the chunk count sizes the
 demand, the game count crosses the threshold.

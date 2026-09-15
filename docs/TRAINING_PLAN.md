@@ -498,6 +498,32 @@ the panel's intent (never the action).** Corollaries, all binding:
 - **Lit atoms → molecules via ADJACENCY.** The `ADJACENCY_EDGES` graphs are EXAMPLES of the
   atom→molecule compositions the lit cues map to.
 
+### EXPRESSIBILITY IS CLOSED, AND PROVENANCE IS WHY THIS IS THE ONLY METHOD (Isaiah, 2026-09-15)
+
+**FOUNDATIONAL, and it corrects how expressibility has been treated here.** The primitives were
+derived from the ARC human PRIOR SET, which is **exhaustive by construction**. The priors are
+complete and the primitives derive from them, so **anything a human solver does is expressible in
+principle.** Isaiah deliberately included substrate a machine would not need — human-only redundancy
+— because that is what gets LOST in the abstraction/transformation of concepts.
+
+**So an "inexpressible chunk" is NOT a finding for anything a human DID.** The `expressible`/`gaps`
+verdicts (`reverse_engineer.py`), the `chunk-inexpressible` entries (`DEMAND_LOG.md`), and the
+blocked markings (`RELATIONS.md`) read expressibility as open — and for a human-panel chunk it is
+CLOSED. If a human solved it on the grid it is expressible on the grid; a chunk the pipeline cannot
+express is a **MAPPING GAP (the mapping is incomplete), not a vocabulary gap.** Repair the mapping;
+do not conclude a gap. (The whole is_atom / composition-wall line treated expressibility as the open
+question — it never was; the open question is the MAPPING and its provenance.)
+
+**PROVENANCE IS UNRECOVERABLE FROM PROJECTIONS, which is why you cannot build cold.** You cannot tell
+how "green" was composed — RGB, CMYK, or otherwise — from the output; no one can. The projection is
+lossy about how it was made, so the AUDIT TRAIL / PROVENANCE is REQUIRED to carry the composition
+path (Figure 8: convergent derivation and adopted import are identical in the contents; only
+provenance separates them). Evolution recovers provenance by paying in BODIES and CENTURIES — the
+winners literally being the encoded answers — which we cannot afford with one agent and no time.
+**So there is exactly ONE way to derive the provenance path and teach the agent the pattern:
+reverse-engineer it from the human panel and MAP it.** This is why persistence is ON, the library is
+not wiped, and cold/from-scratch is a fool's errand.
+
 ### CHUNKING IS THE RL TRAINING METHOD, WITH OFFSET AUGMENTATION (Isaiah, 2026-09-15)
 
 **Chunking is not just windowing for the answer key — it is how the created agent is RL-trained.**
