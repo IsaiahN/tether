@@ -8,6 +8,19 @@ Nothing here is new vocabulary: every relation is composable from the frozen 8 +
 (`RELATIONS.md` Part 1-2), so this is GROUNDING what the set already expresses, not extending it.
 Provenance: sensor, 2026-09-15, Isaiah-authorised, composable-from-frozen-set.
 
+§12.3 AND THE CUE/TERM LINE (reviewer, 2026-09-15) — DO NOT ERASE. §12.3 forbids INSTALLING
+`alignment`, `symmetry`, `containment`, `holes`, `counting-by-colour` as COMPOSABLE TERMS: the
+agent should have to REACH for them, and reaching is the only evidence the composition system
+works. `aligned` is on that list by name; `parallel`/`perpendicular`/`concentric`/`collinear` are
+the same family. These are admitted here ONLY as CUES: a reading that NARROWS RETRIEVAL (which atoms
+are relevant to this mutation), never an OPERAND the agent composes over. The distinction is
+enforced at the wiring, not here: nothing in the betting path (`tether`/`gamma`/`arc_atoms`) imports
+this module, so these values reach the mapping/retrieval and never the closure. Wiring any of these
+as a composable term violates §12.3 and removes the ablation's evidence — the agent would compose
+fluently over things it never reached for, invisibly. If a consumer ever makes a relation bettable
+it must supply a CUE (narrow the search), never a TERM (an operand); Isaiah's schema is the cue
+reading, the delta infers what to SEARCH for.
+
 An object is the `arc_percept.components` record: `row col h w colour shape cells`. `shape` is the
 normalised offset frozenset (the structural id). Dynamic relations take the before-state too.
 """
