@@ -111,3 +111,33 @@ To make relation→value actually PREDICT would require changing `is_atom`'s nov
 operand-reading atom counts as novel) — CENTRAL, affecting every operand-reading atom's behaviour —
 on the UNCONFIRMED premise that residuals are partner-equality-shaped, which the 100%-bounded-out
 composed partners weakly argue against. Fork for alignment; not a unilateral change.
+
+## THE FINDING (reviewer, 2026-09-15): RELATIONS → OBJECTIVES ONLY, enforced ~5 ways
+
+Not one defect with one fix, and not unrelated failures: ~5 distinct MECHANISMS reading ONE STANCE
+— prediction is val-only, relations exit through objectives, the objective outlet is starved. This
+is why no single lever moves the ground (the three-layer build showed it prospectively: each fix
+revealed the next). PROGRESS IS NOW "HOW MANY ENFORCERS REMAIN," NOT "WHICH LEVER." The ~5:
+(1) no relation→value atom; (2) untyped predictor stream; (3) the novelty gate blind to binding
+(is_atom ignores the operand — the sharpest); (4) OBJ-binding starved (F36); (5) objective gaps
+degenerate 0/1 (arity-1 consumer) / unary operand socket (0a).
+
+Premise (equality-shape) is CONFIRMED PER-GAME, not weak: ls20 27% real, vc33 0% does not dilute it
+(averaging would be the pooling error). Real where the skill is present, absent where it isn't — the
+genuine-capability-gap pattern.
+
+## THE FORK RESOLVED (reviewer, 2026-09-15)
+
+The deciding asymmetry: the EVIDENCE is per-game, the is_atom CHANGE is GLOBAL — it alters every
+operand-reading atom on every board. On vc33 (premise 0%) it buys pure denominator (bound
+same/other/above become novel, enumerate, fail to fit, cost cycles). So the question is whether a
+global change pays where the premise holds by more than it costs where it does not — which needs
+MORE BOARDS to BOUND THE HARM (not to strengthen ls20). Run over the public set the ablation needs
+anyway = work taken earlier.
+
+is_atom CHANGE ITSELF: PARKED FOR ISAIAH. It is a change in REACH (a term becoming mintable that
+could not be before), which is his standing carve-out — what the agent is HANDED, not how it prices
+what it holds. Everything before was the seat's; this one holds for him.
+
+NEXT (seat, sanctioned): the equality-shape read across more boards (the public set), to bound the
+harm. A read/measurement, not the central change.
