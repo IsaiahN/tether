@@ -597,6 +597,24 @@ the trained pattern, off-line; at runtime the agent forms its own objectives fro
 run path (CUE_BOUNDARY plus that rule is the firewall). The key that touches a live `_goal_choice` is
 F134 and forbidden.
 
+**AND WHY REDUCIBILITY IS A RUN QUESTION, NOT A MAPPING ONE (F176, 2026-09-17).** The reviewer's next
+read — are the 28 flat objectives REDUCIBLE (some composition would shrink them) — was run as
+"does the answer key change the attribute each flat objective targets," and it came back CONFOUNDED:
+the human panel changes all 8 object attributes on 23 of 25 games (7 on the other 2), so every
+objective attribute is trivially in the set and the measure reads ~100% by base rate. That is the
+THIRD instance of one ceiling — CI-2's adjacency, chunk-recurrence, now this: **the answer key is
+coarse (9 atoms, 8 attributes) and the agent's objectives are fine-grained (a specific object, a
+specific value in a direction).** But the deeper reason the key cannot answer it: **the agent forms
+its OWN objectives at runtime (the F134 firewall), so their reducibility is not a fact about the
+HUMAN's solution** — the human solved via their goals, the agent holds its own. Reducibility is
+therefore a RUN question, and the run already partly answers it: of the `_goal_choice` outcomes, 12
+returned-slot (reducible AND found), 8 diverging (residual worsening under action — mis-formed
+objective or wrong action-model, unconfounded), and 28 flat (ambiguous: reducible-but-unfound vs no
+observed action moves it). Disambiguating the flat needs a run-based coverage test (does any observed
+action move the slot), or the training itself. **So the scope question — curriculum lever vs
+refinement of the wrong thing — is settled by the RUN, not the mapping; the mapping side has reached
+its measurement ceiling here.**
+
 ### The hard perceptual-reach gate
 
 `ATTRIBUTE_REACH` grounds **only 11 atoms today**; ~1,749 unlock with a single scalar-emitting
