@@ -100,7 +100,14 @@ demand, the game count crosses the threshold.
   object — a **global palette / positional source** outside the object set. Fix candidate: a palette
   reading (colour as a function of position/step), NOT an object-relation. · `status:` **object-source
   portion resolved and built as a cue; residual is novel/palette colour, still 23 games but 1/10th the
-  size — a distinct demand, re-derived, not the one first logged.**
+  size — a distinct demand, re-derived, not the one first logged.** **RESIDUAL CHARACTERISED (F171):**
+  of the 1575 novel recolours, 1534 use a colour SEEN EARLIER in the game and only **41 a truly
+  never-seen (external) colour**. The 1534 is BASE-RATE CONFOUNDED — the palette is ~10 colours, so
+  "seen earlier" is near-universal by mid-game and does NOT establish palette-memory as the rule
+  (same confound as CI-2's adjacency). So the residual is a **palette/positional recolour rule** (the
+  colour is a game colour not currently on an object), not expressible as an object-relation; the
+  truly-external part is tiny (41 events). Real but small; the exact rule (which palette colour) is
+  beyond an object-source cue and is not chased on 41 events.
 
 - **[CI-2] systematic spawn/death trigger is arity ≥ 2**
   `games:` **24 (MEASURED, F168 `demand.py`)** · `size:` 869 chunks · `gap:` ≥3 objects appear/vanish
