@@ -615,6 +615,23 @@ action move the slot), or the training itself. **So the scope question — curri
 refinement of the wrong thing — is settled by the RUN, not the mapping; the mapping side has reached
 its measurement ceiling here.**
 
+**STANDING PROPERTY OF THE KEY, AND A PARTIAL CORRECTION (F177, 2026-09-17, reviewer-elevated).** The
+three confounds share one cause, worth stating ONCE so a fourth does not cost a cycle: **the answer
+key's ATTRIBUTE-COMPARISON layer is coarse (9 atoms, 8 attributes), so any attribute-level comparison
+against it saturates by construction** (CI-2 adjacency, chunk-recurrence, reducibility). BUT the
+reviewer's next question — if the key is too coarse to READ reducibility, is it fine enough to TRAIN?
+— checked at the write site, PARTIALLY corrects the "ceiling": **the STATEMENT layer under the
+attribute derivation records specific DELTAS** — `translate delta [-30,0]`, `rescale delta [0,-6]`.
+So the curriculum carries VALUES, not just attribute types; the confounded read used `to_closure`'s
+`attrs` and dropped the delta. **Fine enough to train the ACTION-PATTERN** ("a slot has a gap of this
+magnitude, this action closes it" — the agent's own scalar-residual granularity; the dominant flat
+objective `w` has its `rescale` delta). What it does NOT carry: relational targets (`w of o5 became
+w of o3`), stable object identity, or a scalar for `reshape`/`recolour` — but the relational STRUCTURE
+of an objective is the agent's to form from perception (the firewall), not the curriculum's to supply.
+**So a training run is not pre-confounded at the value level: "nothing in the signal to learn from" is
+ruled out for the value-level action-pattern.** The ceiling is on READING fine-grained run behaviour
+FROM the key, not on the key's fitness as a training target.
+
 ### The hard perceptual-reach gate
 
 `ATTRIBUTE_REACH` grounds **only 11 atoms today**; ~1,749 unlock with a single scalar-emitting
