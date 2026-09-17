@@ -495,8 +495,14 @@ the panel's intent (never the action).** Corollaries, all binding:
   `position(t2)!=position(t1)`). An attribute CHANGE re-fires the conditions that reference it; the
   atoms whose condition CONFIRMS are the ones that light up. That is "what atoms to search for or
   mint" — a check against the board, not a lookup handed to the agent.
-- **Lit atoms → molecules via ADJACENCY.** The `ADJACENCY_EDGES` graphs are EXAMPLES of the
-  atom→molecule compositions the lit cues map to.
+- **Lit atoms → molecules via the RECIPES, not `ADJACENCY_EDGES`** (measured 2026-09-17, F162).
+  `ADJACENCY_EDGES.json` is a 61-node DOMAIN graph (Acoustic, Aesthetic, Economic…) and its own
+  header (`ADJACENCY.md`) says it is *derived from* the recipes — an edge is one domain's recipe
+  naming another domain's ingredient. None of the ARC atoms (Translate, Deform, Construct…) are
+  nodes, so it cannot compose them. The atom→molecule composition IS the RECIPE structure
+  (`ATOMS.md`; machine-readable in `WORKING_SET.json` `set_b_level2`, e.g. `Orbit = Rotate +
+  Translate`): a molecule is CANDIDATE when the lit atoms cover its recipe's ingredients. The
+  domain graph is a coarse example of the SHAPE of composition, not the source for it.
 
 ### EXPRESSIBILITY IS CLOSED, AND PROVENANCE IS WHY THIS IS THE ONLY METHOD (Isaiah, 2026-09-15)
 
