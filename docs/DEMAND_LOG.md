@@ -108,7 +108,13 @@ demand, the game count crosses the threshold.
   cannot bet on — population count is frozen but the trigger is not. · `fix?:` (hypothesis, not
   ranked) an arity-≥2 event relation (NSM frame holds the arity); re-derived at threshold. ·
   `status:` **24 games — cross-game demand MET; escalated. Was recorded "1 game / ls20" before the
-  full reverse-engineering.**
+  full reverse-engineering. NOT shown to be artifact, unlike CI-1 (F170).** The CI-1-style test was
+  attempted — is the trigger a composable ADJACENCY correlate? — and it is CONFOUNDED: 97% of
+  spawn/death events are adjacent to another object, but so are **93% of ALL objects** (base rate),
+  so adjacency does not discriminate the trigger. A suspiciously-high number that beat CI-1's 92% was
+  the tell (the reviewer's own guard). So CI-2 STAYS a real candidate for the arity-2 remote/
+  conditional trigger — the parked is_atom/NSM fork — not a thin-cue artifact a reading dissolves.
+  A discriminating test would need the trigger measured against its base rate, not a raw correlate.
 
   Note: CI-1/CI-2 and BR-1's perception tail are DIFFERENT gap-shapes and not pooled. **The "all at 1
   game, nothing near threshold, correct state" reading is FALSIFIED by measurement:** CI-1 at 25 and
