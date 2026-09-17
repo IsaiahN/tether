@@ -229,22 +229,27 @@ def _compose(before: list[dict], after: list[dict]) -> dict:
             "n_matched": len(matched)}
 
 
-def chunk_replay(steps: list[dict], size: int = CHUNK) -> list[dict]:
-    """Chunk by action, never across a level boundary."""
+def chunk_replay(steps: list[dict], size: int = CHUNK, offset: int = 0) -> list[dict]:
+    """Chunk by action, never across a level boundary. `offset` (0..size-1) SHORTENS THE FIRST
+    chunk by that many steps, so every later boundary shifts -- the masked-LM augmentation
+    (TRAINING_PLAN.md §13): a plan split by one pass's boundary is intact in an offset pass. A level
+    boundary always cuts regardless of offset (never chunk across it)."""
+    off = offset % size
     chunks, cur = [], []
     for i, s in enumerate(steps):
         cur.append(i)
         level_boundary = (i + 1 < len(steps) and steps[i + 1]["level"] != s["level"])
-        if len(cur) >= size or level_boundary or i == len(steps) - 1:
+        target = size - off if (not chunks and off) else size
+        if len(cur) >= target or level_boundary or i == len(steps) - 1:
             chunks.append({"idx": cur[:], "level": s["level"],
                            "ends_level": level_boundary})
             cur = []
     return chunks
 
 
-def analyse(path: str) -> dict:
+def analyse(path: str, offset: int = 0) -> dict:
     steps = load_replay(path)
-    chunks = chunk_replay(steps)
+    chunks = chunk_replay(steps, offset=offset)
     perceived = [arc_percept.components(s["grid"]) for s in steps]
     out = []
     for c in chunks:
@@ -262,12 +267,13 @@ def analyse(path: str) -> dict:
             "levels": max((s["level"] or 0) for s in steps), "chunks": out}
 
 
-def answer_key(path: str) -> dict:
+def answer_key(path: str, offset: int = 0) -> dict:
     """The per-game answer key (TRAINING_PLAN.md §13): every chunk's ground-checkable EFFECT
     (verification) and action-agnostic COMPOSITION (the reasoning that makes it possible), plus the
     inexpressibility gaps for the demand log. Proctor-side -- written under replays/, out of the
-    agent's reach; never fed to the agent as a target."""
-    res = analyse(path)
+    agent's reach; never fed to the agent as a target. `offset` shifts the chunk boundaries for the
+    masked-LM augmentation -- a plan a cut splits in one pass is intact in an offset pass."""
+    res = analyse(path, offset=offset)
     gaps = [{"level": c["level"], "frames": c["frames"], **g}
             for c in res["chunks"] for g in c["composition"]["gaps"]]
     expressible = sum(1 for c in res["chunks"] if c["composition"]["expressible"])
