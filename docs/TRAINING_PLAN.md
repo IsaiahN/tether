@@ -582,6 +582,21 @@ return a slot, let a routine form, and let chunks compound. The lever is objecti
 pretraining), one level up from routine mechanics. Diagnosis only; the fix is training plus possibly
 the M2/OBJ-binding path in the betting loop, which is a scope call not yet ruled.
 
+**CORRECTED ONE LEVEL DEEPER (F174, 2026-09-17): NOT binding starvation — objectives bound but not
+SHRINKING.** F173 read the refusal as OBJ-binding starvation (F36); the reviewer flagged that the
+string `no objective is confidently shrinking` does not distinguish *zero objectives bound* from
+*objectives bound and none shrinking*, and a run splits them. Measured (`_goal_choice` instrumented,
+ls20 offline, 51 None-returns): **28 are bound-LONG-but-FLAT (55%)** — objectives ARE bound, tracked
+with a long-enough series, residual flat; only **7 are zero-bound starvation (14%)**; 8 diverging, 8
+warmup; and `_goal_choice` DID return a slot 12 times. So the agent forms objectives and cannot make
+them shrink — it cannot find actions that reduce a goal it holds. **By the criterion, that means the
+curriculum is aimed correctly:** chunking-as-RL trains exactly the pattern "form an objective, act so
+it shrinks." **F134 FIREWALL (binding, per the reviewer):** the answer keys shape the LEARNER only —
+the trained pattern, off-line; at runtime the agent forms its own objectives from what it perceives
+(`_goal_choice` reads `self._res`, never a key), and no answer-key artifact is ever loaded into the
+run path (CUE_BOUNDARY plus that rule is the firewall). The key that touches a live `_goal_choice` is
+F134 and forbidden.
+
 ### The hard perceptual-reach gate
 
 `ATTRIBUTE_REACH` grounds **only 11 atoms today**; ~1,749 unlock with a single scalar-emitting
