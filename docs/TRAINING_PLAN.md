@@ -503,6 +503,16 @@ the panel's intent (never the action).** Corollaries, all binding:
   (`ATOMS.md`; machine-readable in `WORKING_SET.json` `set_b_level2`, e.g. `Orbit = Rotate +
   Translate`): a molecule is CANDIDATE when the lit atoms cover its recipe's ingredients. The
   domain graph is a coarse example of the SHAPE of composition, not the source for it.
+- **MEASURED (F165, 2026-09-17): the emergent-molecule layer is INERT on ARC — 0 molecules fire
+  across all 25 games.** The only per-object multi-atom co-occurrences that occur anywhere are
+  `Recolour+Translate` (15165), `Recolour+Scale` (4907), `Deform+Recolour` (1248): a geometric
+  change WITH a recolour, which is a CONJUNCTION the atom list already states, not a named molecule.
+  No object ever does two composable GEOMETRIC things (`Rotate+Translate` = `Orbit` never occurs;
+  `Deform` pairs only with `Recolour`). So the atom-conjunction `closure_derivation` (F160–F162) is
+  the COMPLETE answer for ARC, and resolving `Deform → Rotate/Reflect` would NOT unlock molecules —
+  there is no geometric co-occurrence to compose, so that perception question is not the blocker it
+  looked like. The composer (F163/F164) is structurally correct and correctly stays silent; the
+  molecule layer is proven-out infrastructure that this corpus does not exercise.
 
 ### EXPRESSIBILITY IS CLOSED, AND PROVENANCE IS WHY THIS IS THE ONLY METHOD (Isaiah, 2026-09-15)
 
