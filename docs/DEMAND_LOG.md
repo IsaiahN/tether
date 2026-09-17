@@ -26,8 +26,14 @@ relation `touching`. `VOCABULARY_FROZEN.md` is the dated frozen set.
 ## The threshold
 
 Not yet set as a constant, and it must not be a tuned one — state-derived (how many independent
-games demanded the same gap-shape), like promotion's and demotion's counters. Placeholder reading:
-nothing is near earning a change; every gap below stands at **1 game**.
+games demanded the same gap-shape), like promotion's and demotion's counters. The placeholder
+reading ("nothing is near earning a change; every gap stands at 1 game") is **FALSIFIED by
+measurement (F168, `demand.py`, all 25 games):** the two chunk-inexpressible gap-shapes stand at
+**25 games** (relational recolour referent) and **24 games** (arity-≥2 spawn/death trigger). That is
+not 1 game — it crosses any reasonable cross-game threshold, so the "nothing is earned" state is no
+longer the correct one. **What to add is Isaiah's carve-out** (a perception change; the tenth-sense
+licence's *repeated demand across different situations* clause is now MET for two specific gaps).
+The demand log's job — accumulate the cross-game evidence — is done; the ruling is escalated.
 
 ---
 
@@ -83,21 +89,27 @@ gap-shapes, aggregated — ls20 is **1 game** regardless of chunk count; the chu
 demand, the game count crosses the threshold.
 
 - **[CI-1] recolour referent is a relation not in the frozen set**
-  `games:` ls20 (1) · `size:` 124 chunks · `gap:` a recolour whose new colour matches no
-  `touching` or `above` object — the rule that sets the colour references a relation the frozen set
-  (touching, above) does not contain, so the transformation cannot be written in current
-  perception. · `fix?:` (hypothesis, not ranked) a colour-source relation — nearest-same, contains,
-  or a global palette map; re-derived from all instances at threshold, not taken here. · `status:`
-  1 game, held.
+  `games:` **25 (MEASURED, F168 `demand.py`, all games)** · `size:` 6931 chunks · `gap:` a recolour
+  whose new colour matches no `touching` or `above` object — the rule that sets the colour references
+  a relation the frozen set (touching, above) does not contain, so the transformation cannot be
+  written in current perception. · `fix?:` (hypothesis, not ranked) a colour-source relation —
+  nearest-same, contains, or a global palette map; re-derived from all instances at threshold, not
+  taken here. · `status:` **25 games — cross-game demand MET; escalated to Isaiah (perception change
+  is his carve-out). Was recorded "1 game / ls20" before the other 24 games were reverse-engineered.**
 
 - **[CI-2] systematic spawn/death trigger is arity ≥ 2**
-  `games:` ls20 (1) · `size:` 31 chunks · `gap:` ≥3 objects appear/vanish within a chunk on a
-  trigger (a conditional/event) the one-slot-in-one-slot-out atom signature cannot bet on —
-  population count is frozen but the trigger is not. · `fix?:` (hypothesis, not ranked) an arity-≥2
-  event relation (NSM frame holds the arity); re-derived at threshold. · `status:` 1 game, held.
+  `games:` **24 (MEASURED, F168 `demand.py`)** · `size:` 869 chunks · `gap:` ≥3 objects appear/vanish
+  within a chunk on a trigger (a conditional/event) the one-slot-in-one-slot-out atom signature
+  cannot bet on — population count is frozen but the trigger is not. · `fix?:` (hypothesis, not
+  ranked) an arity-≥2 event relation (NSM frame holds the arity); re-derived at threshold. ·
+  `status:` **24 games — cross-game demand MET; escalated. Was recorded "1 game / ls20" before the
+  full reverse-engineering.**
 
-  Note: CI-1/CI-2 and BR-1's perception tail are DIFFERENT gap-shapes and not pooled. All at 1
-  game — nothing near the cross-game threshold, so no perception is added. Correct state.
+  Note: CI-1/CI-2 and BR-1's perception tail are DIFFERENT gap-shapes and not pooled. **The "all at 1
+  game, nothing near threshold, correct state" reading is FALSIFIED by measurement:** CI-1 at 25 and
+  CI-2 at 24 games both cross any reasonable threshold. This is the demand log doing its one job —
+  the single-game hand-count read "nothing earns a change," the 25-game measurement says two gaps do,
+  and the ruling on what to add is Isaiah's (a perception change is his carve-out, not the seat's).
 
 ### positioned-action-coordinate (a positioned action needs a PRODUCTIVE coordinate)
 
