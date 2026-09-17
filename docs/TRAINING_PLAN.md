@@ -632,6 +632,36 @@ of an objective is the agent's to form from perception (the firewall), not the c
 ruled out for the value-level action-pattern.** The ceiling is on READING fine-grained run behaviour
 FROM the key, not on the key's fitness as a training target.
 
+**THE GENERALIZATION LEVEL, NAMED BEFORE THE RUN (F178, 2026-09-17, reviewer-requested).** The
+reviewer's pre-registration, applied to the REPRESENTATION rather than the metric: a delta is a
+specific value from a specific board (`delta [-30,0]`), and what the training generalizes it to
+decides whether a flat result is interpretable at all — *memorize `-30`* transfers nowhere,
+*abstract to "translate changes `row`"* is back at the saturated attribute granularity, and only
+the middle both generalizes and carries enough to close a specific residual. **NAMED: the target
+level is `action → (attribute, direction, magnitude AS A FUNCTION OF THE OBSERVED GAP)` — a
+policy, not a constant and not a type.** And the reason it is the right level is not the reviewer's
+say-so but the architecture's: **the agent's residual IS a signed gap on an attribute**, so a
+policy expressed in `gap → (op, gap-closing direction, f(gap))` is written in the residual's own
+currency and plugs straight into the M2 selector — *memorize `-30`* cannot close a residual of
+`-12`, and *"changes `row`"* names neither the sign nor the size, so neither can shrink an
+arbitrary residual, which is the agent's whole job. **THE PRE-REGISTERED TEST that makes *did not
+learn* and *learned the wrong abstraction* distinguishable after: hold out the gap MAGNITUDE (a
+never-seen value) and read whether the residual closes** — a memorizer fails off its trained
+value, an attribute-abstractor touches the right attribute with wrong sign/size, and only the
+policy closes a novel gap proportionally.
+
+**AND THE SPLIT IS PRE-REGISTERED WHERE THE REVIEWER POINTED (F178).** The policy level is clean
+for the SCALAR ops — `translate`/`rescale`, and `w` alone is 46 of 69 flat objectives with its
+`rescale` delta, so the level fits where the failure concentrates. It does NOT fit `reshape` (12
+of 69, ~17%, no scalar) or `recolour` (carries a referent or a gap, not a delta): those have no
+magnitude to scale, so their generalization target is a DIFFERENT one — `action → (attribute,
+TARGET-BY-REFERENT)`, i.e. *become the named referent* / *close to the named target*, not a
+gap-proportional move. **So a partially-successful run is pre-committed to split exactly there**:
+scalar ops closing and non-scalar lagging is *the weakest-signal op behaving as predicted*, not a
+new mystery — named beforehand so it is not discovered as a surprise. **This NAMES the level; it
+does not build or run the training — that remains the gated question owed to Isaiah and the
+reviewer.**
+
 ### The hard perceptual-reach gate
 
 `ATTRIBUTE_REACH` grounds **only 11 atoms today**; ~1,749 unlock with a single scalar-emitting
