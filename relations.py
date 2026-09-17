@@ -92,6 +92,22 @@ def offset(a: dict, b: dict) -> tuple[int, int]:
     return b["row"] - a["row"], b["col"] - a["col"]
 
 
+# -- COLOUR-SOURCE (composable, resolves the CI-1 recolour-referent demand -- F169) ----------
+
+def colour_source(a: dict, others: list[dict]) -> dict | None:
+    """Where a's colour comes from, as a composable reading: the NEAREST other object holding the
+    same colour (Chebyshev on boxes), or None when NO object holds it -- a novel colour, sourced
+    from a palette outside the object set. Measured (F169): resolves ~92% of the recolours the
+    frozen touching/above referent could not, so the CI-1 'perception demand' was mostly a thin-cue
+    artifact; only the ~8% novel remain. A CUE (narrows retrieval), never a term the agent bets."""
+    same = [o for o in others if o["colour"] == a["colour"]]
+    if not same:
+        return None
+    nearest = min(same, key=lambda o: _cheby(a, o))
+    d = _cheby(a, nearest)
+    return {"present_elsewhere": True, "nearest_dist": d, "touching_source": d == 0}
+
+
 # -- DYNAMIC (needs the before-state of each object) -----------------------------------------
 
 def _delta(before: dict, after: dict) -> tuple[int, int]:

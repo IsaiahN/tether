@@ -88,14 +88,19 @@ From the ls20 answer key (`reverse_engineer.answer_key`, 72 chunks, 49 inexpress
 gap-shapes, aggregated — ls20 is **1 game** regardless of chunk count; the chunk count sizes the
 demand, the game count crosses the threshold.
 
-- **[CI-1] recolour referent is a relation not in the frozen set**
-  `games:` **25 (MEASURED, F168 `demand.py`, all games)** · `size:` 6931 chunks · `gap:` a recolour
-  whose new colour matches no `touching` or `above` object — the rule that sets the colour references
-  a relation the frozen set (touching, above) does not contain, so the transformation cannot be
-  written in current perception. · `fix?:` (hypothesis, not ranked) a colour-source relation —
-  nearest-same, contains, or a global palette map; re-derived from all instances at threshold, not
-  taken here. · `status:` **25 games — cross-game demand MET; escalated to Isaiah (perception change
-  is his carve-out). Was recorded "1 game / ls20" before the other 24 games were reverse-engineered.**
+- **[CI-1] recolour referent is a relation not in the frozen set — 90% RESOLVED (F169), residual re-derived**
+  `games:` **23** · `size:` **678 chunks (was 6931 at F168)** · `gap:` a recolour whose new colour
+  matches no `touching`/`above` object. **RESOLVED for ~90% of instances (F169):** the colour was on
+  the board, just not touching/above — a **composable colour-source cue** (`relations.colour_source`:
+  the nearest object holding the colour) now names it, wired into the observer's cue vector and the
+  mapping's referent. Measured: 19409 of 20984 previously-failing recolours resolve by nearest-same;
+  the touching/above "perception demand" was a **thin-cue artifact**, not a sense (licence clause 2:
+  buildable from the nine → building it IS the answer). · `fix?:` (hypothesis, not ranked) the
+  RESIDUAL is a **different, narrower gap**: 1575 recolours (678 chunks, 23 games) use a colour on NO
+  object — a **global palette / positional source** outside the object set. Fix candidate: a palette
+  reading (colour as a function of position/step), NOT an object-relation. · `status:` **object-source
+  portion resolved and built as a cue; residual is novel/palette colour, still 23 games but 1/10th the
+  size — a distinct demand, re-derived, not the one first logged.**
 
 - **[CI-2] systematic spawn/death trigger is arity ≥ 2**
   `games:` **24 (MEASURED, F168 `demand.py`)** · `size:` 869 chunks · `gap:` ≥3 objects appear/vanish

@@ -28,9 +28,15 @@ def _obj_vector(o: dict) -> dict:
 
 
 def _frame_vector(objs: list[dict]) -> dict:
-    """The full cue vector for one frame: every object's attributes and every ordered pair's
-    composable relations. What each object 'carries', filled from what the frame supplies."""
-    per_obj = {i: _obj_vector(o) for i, o in enumerate(objs)}
+    """The full cue vector for one frame: every object's attributes and colour-source reading, and
+    every ordered pair's composable relations. What each object 'carries', filled from the frame --
+    the cue vector IS the agent's distinction horizon, so a reading it lacks is a distinction it
+    cannot make (F169: the colour-source reading is why the recolour gap was mostly artifact)."""
+    per_obj = {}
+    for i, o in enumerate(objs):
+        vec = _obj_vector(o)
+        vec["colour_source"] = relations.colour_source(o, [x for j, x in enumerate(objs) if j != i])
+        per_obj[i] = vec
     per_pair = {}
     for i, a in enumerate(objs):
         for j, b in enumerate(objs):

@@ -167,6 +167,12 @@ def _referent(o: dict, colour: int, others: list[dict]) -> str | None:
         if x["row"] < o["row"] and not (x["col"] + x["w"] <= o["col"]
                                          or o["col"] + o["w"] <= x["col"]):
             return "same(colour, above)"
+    # WIDENED (F169): the frozen touching/above referent missed the colour source in ~92% of the
+    # recolours it could not name -- measured: the colour is on the board, just not touching/above.
+    # A composable colour-source relation (the nearest object holding the colour) names it. Only a
+    # colour on NO object (novel/palette source) stays inexpressible. Thin-cue artifact, not a sense
+    if any(x["colour"] == colour for x in others):
+        return "same(colour, nearest)"
     return None
 
 
