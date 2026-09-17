@@ -569,6 +569,19 @@ atom-pair recurrence reads 100% (base-rate confounded — 9 atoms make every pai
 reuse is over BOUND TERMS with operands, a granularity the answer keys do not carry. The compounding
 question lives at the agent-run level, not the mapping level.
 
+**AND THE CHUNK-COMPOUNDING BLOCKER, NAMED AT THE AGENT-RUN LEVEL (F173, 2026-09-17): objective
+SELECTION, not routine mechanics.** A run (ledger monkeypatched for the refusal reason, ls20 offline)
+shows chunks do not compound because ROUTINES are proposed and refused every time — 13 refusals, and
+of the 10 that are not the loop correctly declining (3 are "objective already holds"), **8 are one
+gate: "no objective is confidently shrinking" — `_goal_choice()` returns None.** So routines are not
+broken; they are starved of a goal to plan toward. This is F36's OBJ-binding starvation and the M2
+WIRE (composed-OBJ→WANT firing 3/17 on ka59), now measured as the DIRECT cause of flat chunk reuse.
+**The mapping lands here squarely: the answer keys ARE the objective compositions (the WANT)**, so
+teaching the agent to form confident objectives from the human panel is what would make `_goal_choice`
+return a slot, let a routine form, and let chunks compound. The lever is objective FORMATION (the
+pretraining), one level up from routine mechanics. Diagnosis only; the fix is training plus possibly
+the M2/OBJ-binding path in the betting loop, which is a scope call not yet ruled.
+
 ### The hard perceptual-reach gate
 
 `ATTRIBUTE_REACH` grounds **only 11 atoms today**; ~1,749 unlock with a single scalar-emitting
