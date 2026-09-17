@@ -535,7 +535,7 @@ def _isolated(src: str, others: tuple[str, ...] = (),
 # the betting path never imports them, so a cue can never reach the closure. This was a property of
 # the code; the reviewer asked (2026-09-15) that it be a CHECK, so one import cannot break §12.3.
 _BETTING_PATH = {"tether.py", "gamma.py", "arc_atoms.py"}
-_CUE_MODULES = {"relations", "observer", "mapping"}
+_CUE_MODULES = {"relations", "observer", "mapping", "detectors"}
 
 
 @rule("CUE_BOUNDARY",

@@ -105,10 +105,11 @@ def _match(before: list[dict], after: list[dict]) -> list[dict]:
         drow, dcol = a["row"] - b["row"], a["col"] - b["col"]
         dh, dw = a["h"] - b["h"], a["w"] - b["w"]
         dcells = len(a["cells"]) - len(b["cells"])
+        dshape = a["shape"] != b["shape"]  # shape id changed: a pure rotate/reflect
         recol = a["colour"] != b["colour"]
-        if drow or dcol or dh or dw or dcells or recol:
+        if drow or dcol or dh or dw or dcells or dshape or recol:
             effects.append({"kind": "change", "drow": drow, "dcol": dcol,
-                            "dh": dh, "dw": dw, "dcells": dcells,
+                            "dh": dh, "dw": dw, "dcells": dcells, "dshape": dshape,
                             "recolour": recol, "shape": len(b["cells"])})
     for bi in ub:
         effects.append({"kind": "vanish", "at": (before[bi]["row"], before[bi]["col"]),
