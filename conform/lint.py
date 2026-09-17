@@ -564,6 +564,40 @@ def _cue_boundary(src: str, _others: tuple[str, ...] = (),
     return [f"betting path imports cue module `{h}` -- §12.3 boundary broken" for h in hits], 1
 
 
+_KEY_MODULES = {"reverse_engineer"}            # the answer-key PRODUCER (`mapping` is a cue)
+_KEY_ARTIFACTS = ("closure_keys", "_human.ndjson")         # answer-key FILE paths
+
+
+@rule("KEY_BOUNDARY",
+      "F134 + reviewer 2026-09-17: the betting path may not import the answer-key producer "
+      "(`reverse_engineer`) nor name an answer-key file. Isaiah's law -- a solution may TEST our "
+      "instruments and MEASURE how far the agent got; it may never DECIDE what the agent is given. "
+      "The key shapes the LEARNER off-line, never the live run: `_goal_choice` reads `self._res`, "
+      "never a key. `mapping` is already caught by CUE_BOUNDARY; this closes the last channel -- "
+      "F134 turned from a remembered convention into a check.",
+      "import reverse_engineer\n",
+      "import gamma\n",
+      n_bad=1, n_ok=1, n_found=1, crossfile=True,
+      bad_name="tether.py", ok_name="tether.py")
+def _key_boundary(src: str, _others: tuple[str, ...] = (),
+                  _scan: Any = None, name: str = "") -> tuple[list[str], int]:
+    """An answer-key artifact reaching the betting path is F134's covert channel: the human
+    solution deciding what the agent pursues on a live board, which is the thing the benchmark
+    measures. Fires only on betting-path files -- the DIRECTION is the point, as in CUE_BOUNDARY.
+    """
+    if name not in _BETTING_PATH:
+        return [], 0
+    hits: list[str] = []
+    for node in ast.walk(ast.parse(src)):
+        if isinstance(node, ast.Import):
+            hits += [a.name for a in node.names if a.name in _KEY_MODULES]
+        elif isinstance(node, ast.ImportFrom) and node.module in _KEY_MODULES:
+            hits.append(node.module)
+        elif isinstance(node, ast.Constant) and isinstance(node.value, str):
+            hits += [art for art in _KEY_ARTIFACTS if art in node.value]
+    return [f"betting path names answer-key artifact `{h}` -- F134 broken" for h in hits], 1
+
+
 def _scan(files: tuple[tuple[str, str], ...]) -> tuple[dict, dict, set]:
     """(per-module reference counts, per-module imports, registry prefixes).
 
