@@ -247,3 +247,36 @@ index 5366a44..153cb15 100644
                      binds = [x for x in binds if self._operand_fits(cand, slot, x)]
                      for bind, g in ((b, g) for b in binds for g in self._guards(robs)):
 ```
+
+## PART (C) REVIEW (F166, 2026-09-17): reusable instruments, and the census does NOT refute this wall
+
+Reviewing this whole reverted line (partner / dereference / typed-stream / is_atom) for what
+survives, per Isaiah's part (c). Three findings:
+
+1. **The probes are ONE coherent refuted line, not scattered failures.** Every one was a
+   COLD-DERIVATION attempt — give the AGENT arity-2 relation→value prediction so it can express the
+   residual itself — and every one hit the same `RELATIONS → OBJECTIVES ONLY, ~5 enforcers` wall.
+   The mapping programme (F160–F165) is the OTHER approach Isaiah redirected to: reverse-engineer
+   the human panel's composition instead of deriving it cold. The is_atom fork belongs to the cold
+   approach; the mapping approach does not ask the agent to cold-derive arity-2 at all.
+
+2. **REUSABLE INSTRUMENTS that outlived the reversions** (the point of part (c)):
+   - the **pre-registration discipline** — baseline before build, success/refute/ABORT registered
+     before the numbers, per-board never pooled. It caught every inert-with-cost case and is now the
+     standing diagnostic ("was every move load-bearing against something that could refuse it").
+   - the **typed-walk reachability enumerator** — enumerate the typed closure under a hypothetical
+     predictor stream, offline, no wiring; it priced the fix (EXTENT 87, SHAPE 45) before a line was
+     built. Reusable for any "what would this typing reach" question.
+   - the **enforcer-count stance** — "how many enforcers remain," not "which lever," once a wall is
+     shown to be several mechanisms reading one stance. It predicted each next layer prospectively.
+
+3. **THE GUARD — the census does NOT refute the arity-2 wall, and it was tempting to think it did.**
+   F165 measured that ARC EFFECTS are per-object atom conjunctions (Recolour+Translate…), never an
+   arity-2 relation→value chain. It is TEMPTING to read that as "the human composition is
+   non-relational, so the 5-enforcer wall guards a path ARC never needs." That read is WRONG: the
+   census measures EFFECTS, not RULES. "Each object takes its partner's colour" is an arity-2
+   RELATIONAL rule whose EFFECT is a per-object `Recolour` — indistinguishable at the effect level.
+   So the census cannot say whether ARC rules are relational; it says only that the effect-level
+   composition is conjunctions. The arity-2 wall and the is_atom fork stay exactly where they were,
+   PARKED FOR ISAIAH — the census neither moves nor dissolves them. (Recorded precisely because the
+   conflation reads as a satisfying result and needs no defence — the tell to distrust.)
