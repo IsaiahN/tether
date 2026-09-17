@@ -662,6 +662,22 @@ new mystery — named beforehand so it is not discovered as a surprise. **This N
 does not build or run the training — that remains the gated question owed to Isaiah and the
 reviewer.**
 
+**AND THE CURRICULUM CARRIES THE ACTION BUT NOT YET THE STATE (F179, 2026-09-17), CHECKED AT THE
+WRITE SITE.** F178's named level is a policy `gap → (op, direction, magnitude)` — its INPUT is the
+gap. `_compose` (`reverse_engineer.py:202-207`) records the DELTA (`a.row - b.row`, `a.h - b.h`)
+and drops the before-object `b`, so the answer-key artifact carries the ACTION (the delta = the
+policy's output) without the STATE (the gap = the policy's input). **So the curriculum as-derived
+can train the delta, but not a magnitude that is a function of the gap** — the input feature is
+absent from the statement. **It is NOT lost:** `analyse` keeps `"frames": [i0, i1]` per chunk and
+`perceived[i0]` re-derives the before-state, so the gap is reconstructable from the retained frame
+indices at build time. **So the watermark law does NOT force the recording now** — reconstructable
+later, unlike a provenance stamp — and carrying it early edges toward the gated training build. The
+increment therefore NAMES the requirement and defers the recording, exactly as F178 named the level
+and deferred the run: **to train F178's policy, the training builder must re-derive the gap from the
+retained frames and pair it with the delta as `(gap, op, delta)`; the delta alone underdetermines
+`f(gap)` wherever a human closes a gap over more than one chunk.** Pre-run trainability check:
+passed for the action, with that one named addition owed at build time — and the build stays gated.
+
 ### The hard perceptual-reach gate
 
 `ATTRIBUTE_REACH` grounds **only 11 atoms today**; ~1,749 unlock with a single scalar-emitting
