@@ -553,6 +553,22 @@ boundaries differ — the self-supervised move of removing a word from a sentenc
 that splits a plan in one pass is intact in an offset pass. (`protocol_b2_*` / `protocol_d25_*` jsonl
 are chunk/offset protocols.)
 
+**WHAT THIS IS FOR, MEASURED AT THE GROUND (F172, 2026-09-17): the flywheel FIRES but does not
+COMPOUND, and that is what the chunking curriculum must fix.** A current-code run — `arc_holdout ls20`,
+OFFLINE, the real game, 40 cycles — shows `promote: 10`, `settle: 24`, `mint: 24`, `reuse_install: 12`,
+`pull: 21`, 13 reuse closures, `none-stale` only 1. **So the standing "flywheel never turns / echo
+never fires / 0 promotions / REUSE_UNWIRED / units sit at the atom floor" claims (INDEX and elsewhere)
+are FALSE on current code** — they were diagnosed from reading and stale/board-specific funnels, and
+the run refutes them. **But it does not compound:** `chunk_reuse: 2` (the reach read's own "failure
+signature" is chunk reuse of zero), `unreached_rate` flat at ~0.67 across the run (it "should FALL"),
+effective depth flat, `advanced: False`. So the accurate problem is **"turns but does not compound,"**
+which is a TRAINING problem this chunking curriculum is the lever for — not a dormant mechanism to
+wake. **AND THE REUSE AFFORDANCE CANNOT BE MEASURED FROM THE ANSWER KEYS** (F172): their composition is
+coarse closure-atom conjunctions (9 atoms), so full-chunk recurrence reads 14% (too strict) and
+atom-pair recurrence reads 100% (base-rate confounded — 9 atoms make every pair recur); the agent's
+reuse is over BOUND TERMS with operands, a granularity the answer keys do not carry. The compounding
+question lives at the agent-run level, not the mapping level.
+
 ### The hard perceptual-reach gate
 
 `ATTRIBUTE_REACH` grounds **only 11 atoms today**; ~1,749 unlock with a single scalar-emitting
