@@ -828,3 +828,25 @@ graded per game and never pooled.**
   across 25 games bloats ~25× worse than ls20 alone and drowns the search long before game 25.
   F180 (the work-bound) killed the per-frame explosion; the reuse fix (policy-level abstraction) is
   the next prerequisite. THEN the per-game §13 loop + the noise-annealing curriculum across all 25.
+
+### 14.8 Reviewer refinements (reviewer, 2026-09-18)
+
+- **The metric level is MEASURED, not chosen (Q1).** Run the saturation experiment one level up:
+  distinct compositions over the 19, cross-game overlap, **against a base-rate null** (19 atoms make
+  short compositions recur by chance — report vs random pairing or it saturates like the 93%
+  adjacency confound). High overlap over null → compositions are the level; near-null → drop to
+  F178's op+direction+magnitude-function (already the pre-registered training level). **The level
+  is Isaiah's to confirm once the measurement returns — the maker must not hold the criterion.**
+- **The schedule's PATIENCE must be anchored (Q2).** "Coherence rises as shapes settle" is clean
+  (settling is a measured event). "Noise floor where convergence stops improving" is NOT — *stops
+  improving* hides a patience (rounds of no gain, what counts as gain), a tuned constant wearing a
+  curve's clothes (INDEX:21824). Anchor it to something the run measured — e.g. the rounds the
+  previous phase took to settle — so the ANCHOR lint can check it; or pre-register and declare it.
+- **HOLD GAMES BACK FROM THE GRADE (Q3) — the design-loop firewall.** The reward/required-set
+  firewall is sound (reward = ground's effect-check; required set = only the grade). But one level
+  up: if convergence-to-required drives which ARCHITECTURAL changes get kept, the answer key is
+  selecting *what the agent IS*, fitting the build to 25 known games — invisible until the private
+  set. **Fix, and it happens NOW before the number drives decisions: train on all 25 (the library
+  is game-agnostic), but compute convergence on a SUBSET only, and keep the rest SEALED until the
+  architecture is frozen.** The held-out games are the internal private-set proxy — they make
+  "game 26 is just more of the same game" evidenced rather than hoped.
