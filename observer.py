@@ -41,19 +41,24 @@ def _frame_vector(objs: list[dict]) -> dict:
     the cue vector IS the agent's distinction horizon, so a reading it lacks is a distinction it
     cannot make (F169: the colour-source reading is why the recolour gap was mostly artifact)."""
     per_obj = {}
+    loci: dict = {i: set() for i in range(len(objs))}  # object -> the primitives firing ON it
     lit: list[dict] = list(detectors.light_frame(objs))
     for i, o in enumerate(objs):
         vec = _obj_vector(o)
         vec["colour_source"] = relations.colour_source(o, [x for j, x in enumerate(objs) if j != i])
         per_obj[i] = vec
-        lit += detectors.light_static(o)
+        for d in detectors.light_static(o):
+            lit.append(d)
+            loci[i].add(d["atom"])
     per_pair = {}
     for i, a in enumerate(objs):
         for j, b in enumerate(objs):
             if i != j:
                 per_pair[(i, j)] = {**relations.read_pair(a, b), **sensors_heavy.relation(a, b)}
-                lit += detectors.light_relation(a, b)
-    return {"objects": per_obj, "pairs": per_pair, "lit": lit}
+                for d in detectors.light_relation(a, b):
+                    lit.append(d)
+                    loci[i].add(d["atom"])  # a relational primitive fires on the subject object
+    return {"objects": per_obj, "pairs": per_pair, "lit": lit, "loci": loci}
 
 
 # A `_match` "change" effect's delta keys -> the attribute that MUTATED. This is the cue: the
@@ -99,9 +104,24 @@ def observe(steps: list[dict]) -> list[dict]:
     for t, objs in enumerate(frames):
         vec = _frame_vector(objs)
         muts = {"attributes": {}, "appeared": 0, "vanished": 0}
+        loci = vec.pop("loci")
         if prev_objs is not None:
             # `_match` pairs on actor-filtered lists, so its bi/ai index those -- filter to match.
-            muts = _mutations(_match(prev_objs, objs), _actors(prev_objs), _actors(objs))
+            actors_after = _actors(objs)
+            effects = _match(prev_objs, objs)
+            muts = _mutations(effects, _actors(prev_objs), actors_after)
+            # fold the mutation primitives onto the object they fired on (by identity, so the
+            # actor-index aliasing cannot misattribute), enriching the co-occurrence signal.
+            id_to_i = {id(o): i for i, o in enumerate(objs)}
+            for e in effects:
+                if e.get("kind") == "change":
+                    i = id_to_i.get(id(actors_after[e["ai"]]))
+                    if i is not None:
+                        for d in detectors.light_object(e):
+                            loci[i].add(d["atom"])
+        # a locus with >=2 primitives co-firing is a COMPOSITION OPPORTUNITY: the agent composes
+        # what is co-present and tests whether it fits, rather than being handed the composite.
+        vec["cooccur"] = {i: sorted(s) for i, s in loci.items() if len(s) >= 2}
         out.append({"frame": t, "n_objects": len(objs), "cue": vec, "mutations": muts})
         prev_objs = objs
     return out
@@ -112,15 +132,24 @@ def summarise(obs: list[dict]) -> dict:
     and which attributes/relations mutate at all (the cues that ever fire on this game)."""
     fired: dict = {}
     lit: dict = {}
+    cooccur_loci = 0
+    total_loci = 0
+    combos: dict = {}
     for f in obs:
         for k, n in f["mutations"]["attributes"].items():
             fired[k] = fired.get(k, 0) + n
         for d in f["cue"].get("lit", []):
             lit[d["atom"]] = lit.get(d["atom"], 0) + 1
+        total_loci += f["n_objects"]
+        for prims in f["cue"].get("cooccur", {}).values():
+            cooccur_loci += 1
+            combos["+".join(prims)] = combos.get("+".join(prims), 0) + 1
     return {"frames": len(obs),
             "max_objects": max((f["n_objects"] for f in obs), default=0),
             "attributes_that_mutate": fired,
             "primitive_atoms_lit": lit,
+            "cooccur_loci": cooccur_loci, "total_object_loci": total_loci,
+            "cooccur_combos": combos,
             "total_appeared": sum(f["mutations"]["appeared"] for f in obs),
             "total_vanished": sum(f["mutations"]["vanished"] for f in obs)}
 
