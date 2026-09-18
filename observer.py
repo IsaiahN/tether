@@ -15,6 +15,7 @@ import sys
 
 import arc_percept
 import relations
+import sensors_heavy
 from reverse_engineer import _match
 
 sys.dont_write_bytecode = True
@@ -23,8 +24,12 @@ _ATTRS = ("row", "col", "h", "w", "colour", "shape")
 
 
 def _obj_vector(o: dict) -> dict:
-    """The per-object attribute reading — the frozen 8 (shape as its structural id)."""
-    return {a: o[a] for a in _ATTRS}
+    """The per-object attribute reading — the frozen 8 PLUS the heavy scalar/state sensors, so the
+    vector names the encodings the 2,700 closure atoms need (was 9 atoms searchable, now 2,222)."""
+    vec = {a: o[a] for a in _ATTRS}
+    vec.update(sensors_heavy.scalar(o))
+    vec.update(sensors_heavy.state(o))
+    return vec
 
 
 def _frame_vector(objs: list[dict]) -> dict:
@@ -41,7 +46,7 @@ def _frame_vector(objs: list[dict]) -> dict:
     for i, a in enumerate(objs):
         for j, b in enumerate(objs):
             if i != j:
-                per_pair[(i, j)] = relations.read_pair(a, b)
+                per_pair[(i, j)] = {**relations.read_pair(a, b), **sensors_heavy.relation(a, b)}
     return {"objects": per_obj, "pairs": per_pair}
 
 
