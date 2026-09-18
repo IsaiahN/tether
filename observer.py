@@ -25,7 +25,9 @@ _ATTRS = ("row", "col", "h", "w", "colour", "shape")
 
 def _obj_vector(o: dict) -> dict:
     """The per-object attribute reading — the frozen 8 PLUS the heavy scalar/state sensors, so the
-    vector names the encodings the 2,700 closure atoms need (was 9 atoms searchable, now 2,222)."""
+    vector emits the STATIC encodings that 1,355 of the 2,700 closure atoms read from one
+    frame (was the frozen 6). 867 also need a per-object TEMPORAL encoding the observer does not
+    yet emit; 478 touch BEHAVIOURAL/RULE (unbuilt). Encodings computed != condition evaluated."""
     vec = {a: o[a] for a in _ATTRS}
     vec.update(sensors_heavy.scalar(o))
     vec.update(sensors_heavy.state(o))

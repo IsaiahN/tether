@@ -16,10 +16,11 @@ sys.dont_write_bytecode = True
 # encodings actually computed here from a single frame (no history)
 STATIC = {"POSITION", "EXTENT", "COLOUR", "SHAPE", "SCALAR", "SCALAR_DEFAULT", "COUNT",
           "RELATION", "STATE"}
-# computed from the frame history the loop already carries
+# the frame history the loop carries, but NOT yet emitted per object -- 867 atoms need this
+# on top of STATIC and cannot be reached until the observer emits a per-object temporal delta.
 TEMPORAL = {"TEMPORAL", "EVENT"}
-# NOT yet built: BEHAVIOURAL (415 atoms -- needs the agent's action/goal stream, not the
-# board) and RULE (69 -- a board rule to infer). Named so the gap is visible, not hidden.
+# NOT built: 478 atoms touch BEHAVIOURAL (the agent's own action/goal stream, not the board)
+# or RULE (a board rule to infer). Named so the gap is visible, not hidden.
 UNBUILT = {"BEHAVIOURAL", "RULE"}
 
 
