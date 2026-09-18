@@ -14,6 +14,7 @@ from __future__ import annotations
 import sys
 
 import arc_percept
+import detectors
 import relations
 import sensors_heavy
 from reverse_engineer import _actors, _match
@@ -40,16 +41,19 @@ def _frame_vector(objs: list[dict]) -> dict:
     the cue vector IS the agent's distinction horizon, so a reading it lacks is a distinction it
     cannot make (F169: the colour-source reading is why the recolour gap was mostly artifact)."""
     per_obj = {}
+    lit: list[dict] = []
     for i, o in enumerate(objs):
         vec = _obj_vector(o)
         vec["colour_source"] = relations.colour_source(o, [x for j, x in enumerate(objs) if j != i])
         per_obj[i] = vec
+        lit += detectors.light_static(o)
     per_pair = {}
     for i, a in enumerate(objs):
         for j, b in enumerate(objs):
             if i != j:
                 per_pair[(i, j)] = {**relations.read_pair(a, b), **sensors_heavy.relation(a, b)}
-    return {"objects": per_obj, "pairs": per_pair}
+                lit += detectors.light_relation(a, b)
+    return {"objects": per_obj, "pairs": per_pair, "lit": lit}
 
 
 # A `_match` "change" effect's delta keys -> the attribute that MUTATED. This is the cue: the
@@ -107,12 +111,16 @@ def summarise(obs: list[dict]) -> dict:
     """A compact read of what the observer saw — how many frames, how much the cue vector compounds,
     and which attributes/relations mutate at all (the cues that ever fire on this game)."""
     fired: dict = {}
+    lit: dict = {}
     for f in obs:
         for k, n in f["mutations"]["attributes"].items():
             fired[k] = fired.get(k, 0) + n
+        for d in f["cue"].get("lit", []):
+            lit[d["atom"]] = lit.get(d["atom"], 0) + 1
     return {"frames": len(obs),
             "max_objects": max((f["n_objects"] for f in obs), default=0),
             "attributes_that_mutate": fired,
+            "primitive_atoms_lit": lit,
             "total_appeared": sum(f["mutations"]["appeared"] for f in obs),
             "total_vanished": sum(f["mutations"]["vanished"] for f in obs)}
 

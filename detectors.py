@@ -17,6 +17,8 @@ from __future__ import annotations
 
 import sys
 
+import sensors_heavy
+
 sys.dont_write_bytecode = True
 
 # Per-object change effect keys (reverse_engineer._match): drow dcol dh dw dcells recolour.
@@ -45,6 +47,32 @@ POPULATION_ATOMS = {
     "Separate":  ("Decompose + Co",          lambda van, app: van and app and app > van),
     "Merge":     ("Amalgamate + Med miscible", lambda van, app: van and app and van > app),
 }
+
+
+# Tier-1 PRIMITIVE detectors the heavy sensors now confirm -- the condition is the closure atom's
+# OWN (ATOMS.md/ATTRIBUTES.md), wired to sensors_heavy, nothing invented. `So` "two things cannot
+# occupy one place" reads at the object as a solid fills its box; `To` "inside/outside/holes";
+# `Contain` "a thing held inside a boundary"; `Adj` "two things co-occurring in space".
+STATIC_ATOMS = {
+    "Solidity": ("So",      lambda o: bool(sensors_heavy.state(o)["solid"])),
+    "Topology": ("To",      lambda o: sensors_heavy.scalar(o)["holes"] > 0),
+}
+RELATION_ATOMS = {
+    "Contain":   ("To + So", lambda r: bool(r["contains"])),
+    "Adjacency": ("Adj",     lambda r: r["contactPoints"] > 0),
+}
+
+
+def light_static(o: dict) -> list[dict]:
+    """The per-object primitive atoms the heavy sensors confirm on one object (a solid fills its
+    box; a topology carries holes) -- corpus-stated conditions wired to sensors_heavy."""
+    return [{"atom": a, "recipe": r} for a, (r, cond) in STATIC_ATOMS.items() if cond(o)]
+
+
+def light_relation(a: dict, b: dict) -> list[dict]:
+    """The per-pair primitive atoms the heavy relation confirms (a holds b inside; a touches b)."""
+    rel = sensors_heavy.relation(a, b)
+    return [{"atom": at, "recipe": rc} for at, (rc, cond) in RELATION_ATOMS.items() if cond(rel)]
 
 
 def light_object(effect: dict) -> list[dict]:
