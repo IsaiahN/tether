@@ -850,3 +850,24 @@ graded per game and never pooled.**
   is game-agnostic), but compute convergence on a SUBSET only, and keep the rest SEALED until the
   architecture is frozen.** The held-out games are the internal private-set proxy — they make
   "game 26 is just more of the same game" evidenced rather than hoped.
+
+### 14.9 THE POLICY TRANSFERS — #2 measured across all 25 (F182, 2026-09-18)
+
+The crux §14 rests on — does anything pretraining can teach survive a game boundary? Measured,
+three layers, each against a base-rate null:
+
+- **Alphabet (19 op+direction atoms): GIVEN** (the frozen vocabulary), saturated, universal across
+  all 25 — not learned (reviewer's point: saturation is a domain fact, not a training achievement).
+- **Compositions (2-op / 3-op / whole-chunk): recur AT OR BELOW base rate** across 25 (overlap 20.9
+  vs null 24.3; 17.6 vs 22.4; 1.0 vs 1.0) — game-local, re-composed per game. Correct, not bloat.
+- **POLICY (gap-closure-to-referent): TRANSFERS.** Fraction of transformations closing a FULL gap
+  to a referent object (after-value == another object's value), all 25 vs a frequency-preserving
+  null (random other object in the after-frame): **row 88%/5%, col 81%/4%, h 64%/12%, w 44%/6%**;
+  per-game position medians 67–75%. Magnitude IS a consistent function of the gap.
+
+**So the transferable target is ATOM + POLICY, policy = gap-closure-to-referent (position primary,
+size the weaker signal).** The reviewer's failure mode — a grading level whose only non-trivial
+half is empty — is refuted decisively. **Caveats:** size is weaker and a FLOOR (some games scale to
+canonical/grid targets the object-only referent test misses); this confirms magnitude TRACKS a gap,
+not the exact functional form (full closure vs a consistent fraction — the training run reads that).
+The grading LEVEL is Isaiah's to lock; the number is in hand.
