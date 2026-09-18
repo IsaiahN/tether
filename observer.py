@@ -119,6 +119,11 @@ def observe(steps: list[dict]) -> list[dict]:
                     if i is not None:
                         for d in detectors.light_object(e):
                             loci[i].add(d["atom"])
+            # Animacy (An): "motion without contact indicates an agent" -- moved (Translate) with
+            # nothing touching it (no Adjacency). The corpus condition, read off the loci.
+            for s in loci.values():
+                if "Translate" in s and "Adjacency" not in s:
+                    s.add("Animacy")
         # a locus with >=2 primitives co-firing is a COMPOSITION OPPORTUNITY: the agent composes
         # what is co-present and tests whether it fits, rather than being handed the composite.
         vec["cooccur"] = {i: sorted(s) for i, s in loci.items() if len(s) >= 2}

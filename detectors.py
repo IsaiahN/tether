@@ -50,11 +50,26 @@ POPULATION_ATOMS = {
 
 
 # Tier-1 PRIMITIVE detectors the heavy sensors now confirm -- the condition is the closure atom's
-# OWN (ATOMS.md/ATTRIBUTES.md), wired to sensors_heavy, nothing invented. `So` "two things cannot
-# occupy one place" reads at the object as a solid fills its box; `To` "inside/outside/holes";
-# `Contain` "a thing held inside a boundary"; `Adj` "two things co-occurring in space".
+# OWN (ATOMS.md/ATTRIBUTES.md), wired to sensors_heavy, nothing invented. `To` "inside/outside/
+# holes"; `Sym` "unchanged under reflection"; `Contain` "a thing held inside a boundary"; `Adj`
+# "two things co-occurring in space"; `So` (frame-level, light_frame) "two cannot occupy one place".
+def _symmetric(o: dict) -> bool:
+    """Sym: a cell set unchanged under reflection across its own axis (the checkable case of
+    'unchanged under reflection, rotation or translation')."""
+    cells = {tuple(c) for c in o.get("cells", [])}
+    if not cells:
+        return False
+    rs = [r for r, _ in cells]
+    cs = [c for _, c in cells]
+    r0, r1, c0, c1 = min(rs), max(rs), min(cs), max(cs)
+    horiz = {(r0 + r1 - r, c) for r, c in cells}
+    vert = {(r, c0 + c1 - c) for r, c in cells}
+    return cells in (horiz, vert)
+
+
 STATIC_ATOMS = {
     "Topology": ("To",      lambda o: sensors_heavy.scalar(o)["holes"] > 0),
+    "Symmetry": ("Sym",     _symmetric),
 }
 RELATION_ATOMS = {
     "Contain":   ("To + So", lambda r: bool(r["contains"])),
