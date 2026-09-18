@@ -678,6 +678,29 @@ retained frames and pair it with the delta as `(gap, op, delta)`; the delta alon
 `f(gap)` wherever a human closes a gap over more than one chunk.** Pre-run trainability check:
 passed for the action, with that one named addition owed at build time — and the build stays gated.
 
+**THE REPLAY-ENV PRETRAINING RUNS, THE AGENT LEARNS, AND THE LIBRARY BLOATS (F180/F181,
+2026-09-18).** Built a replay-env that feeds ls20's human solution frames to the agent's own
+`perceive → bet → settle → mint` loop, so the agent EARNS compositions from watching the human
+solve (never installed). It hit the mint search's combinatorial explosion (profiled: `mint` 99% of
+runtime, ~2×/step on 166 dense operands) — a runaway `Config.budget` could not bound because it
+caps YIELDS while the work is yields × operand-binds. **F180 fixed that**: `work_budget` caps the
+total priced candidates per mint, anchored to the toy's measured exhaustion (~13,298) as
+`max_depth` is anchored to its ladder — the toy (few operands) and a dense frame (166) separate on
+the work axis, so one bound serves both. The exponential died; the run terminates.
+
+**But the run then revealed a SECOND, structural limit (F181): the library has no eviction.**
+`refute` demotes defeasibly — *"not deleted, so it can settle again"* — and nothing removes a term,
+so the library grows **monotonically**. Over 101 frames the agent minted 126 and settled only 26
+(21%); the library went 48 → 174 and was heading for ~900 across the full 547, and per-frame time
+climbed 7s → 31s → 72s+ as the loaded library drowned each search (§23.5's named failure). **So the
+pretraining EARNS real compositions (26 held-out-verified) but over-mints on the rich human
+trajectory, and with no eviction the bloat makes the full trajectory infeasible even after F180.**
+The library was built for short runs (toy, 40-cycle games); the long human trajectory is its first
+sustained load, and it needs growth control — GC of long-unsettled candidates, a mint gate, or
+§23.5's retrieval/ranking scaled to the load — before the full run. The defeasible-not-deleted rule
+is deliberate, so this is a design question, not a bug: what may be evicted without losing a term
+that would have settled later.
+
 ### The hard perceptual-reach gate
 
 `ATTRIBUTE_REACH` grounds **only 11 atoms today**; ~1,749 unlock with a single scalar-emitting
