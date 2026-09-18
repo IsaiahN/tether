@@ -752,3 +752,79 @@ since the whole loop turns on *the ground settled it* and no atom names it.
 `NSM_GRAMMAR`, and the `ATTRIBUTE_*` / `ADJACENCY_EDGES` / `CHEMISTRY_INSTANCES` / `ATOM_RANKING`
 JSON indexes. `PERCEPTION_PIPELINE_general.md` and `ARC GAMEPLAY - WHAT THE AGENT SEES.md` specify
 the seven-layer perception the "pretend to be the agent" step must use.
+
+---
+
+## 14. The convergence-training programme (Isaiah, 2026-09-18 — approved for the plan)
+
+**The deliverable SHIFTS: from "does the agent mint and settle" to "does the agent's rederived
+library CONVERGE to the proctor's reverse-engineered required set." Convergence is the target,
+graded per game and never pooled.**
+
+### 14.1 The metric — rederived vs required, provenance-tagged
+- **PROCTOR** (the rubric): my reverse-engineered human answer key per game — the compositions and
+  routes the human solution actually uses, and the hidden pattern traces per chunk and strategy.
+- **AGENT**: what the agent rederives via RL.
+- **Bloat / reuse** = `|AGENT library| / |PROCTOR required|`. The gap is a REUSE failure. Target =
+  convergence (AGENT count and shape → PROCTOR). ls20: agent minted 126 against a small required
+  set — a ~6× reuse failure at the instance level.
+- **Provenance is mandatory** (import must be provenanced): you cannot grade adherence without
+  telling given from rederived. Every atom / composition / route carries its tag.
+
+### 14.2 The level matters, and op+direction SATURATES (measured 2026-09-18)
+- Global union of op+direction shapes across all 25 games: **19 — the same 19 as ls20 alone**
+  (per-game 5–19, sum 444, overlap 23×). Every game draws from the same tiny, fully-shared
+  alphabet of atomic op+direction moves.
+- **So 19 is the shared FOUNDATION, not the convergence target** — it saturates (any agent doing
+  all ops in both directions hits it). Transfer lives one level up: the COMPOSITIONS over the 19
+  (chunk-molecules: which ops combine; and F178's gap-relative MAGNITUDE: how far each moves). The
+  convergence metric must be at the composition+magnitude level. **[Open for the reviewer: pin the
+  exact level so it neither saturates (op+direction=19) nor memorizes (exact-delta=302).]**
+
+### 14.3 The RL — policy traces, not instances
+- RLVR over compositions. Reward the REUSABLE trace (composition + gap-relative magnitude, F178),
+  verified by the ground achieving each chunk's effect — never the exact-delta instance.
+- Memorizing instances (the 302-level) transfers to nothing (the model-collapse trap). Learning
+  the shared compositions over the 19-atom alphabet transfers across instances AND games, and
+  stays legible (the agent can say which trace it used).
+- **The bloat is a REUSE failure, not over-minting — F181's mint-gate is WITHDRAWN as the fix.**
+  The agent binds too specifically (object × guard × exact-delta), so it re-derives instead of
+  retrieving. The fix is policy-level abstraction/retrieval so the library converges.
+
+### 14.4 The training set — all 25, chunkified, offset-augmented
+- Rederive all 25 human replays into answer keys (done: the 25-game rubric). Chunkify each with
+  OFFSET augmentation (the masked-LM idea — vary the cut, average the arbitrariness).
+- **One GAME-AGNOSTIC library carried across all 25** (§13 step 5: game-of-origin proctor-only).
+
+### 14.5 The curriculum — noise-annealing, random → coherent-all-games (Isaiah's hunches)
+- **Sequential training would DEFORM the shapes**: defeasible demotion means a later game can
+  actively un-settle an earlier game's composition. So NOT game-by-game.
+- **Phase 1 — random shuffle of all 25's chunks.** No game or temporal structure, so only the
+  shapes that recur EVERYWHERE pay off; the shared compositions settle hard as invariants before
+  any game applies pressure. ("Save the shape properly.")
+- **Phase 2 — anneal toward coherence.** Order chunks toward coherent strategies to teach chaining
+  — the routine/strategy level the shuffle can't reach. The spacing dial IS this annealing:
+  random-dense → coherent-wider.
+- **Phase 3 — coherence with a NOISE FLOOR.** Keep out-of-context chunks (real compositions from
+  other games) mixed in so the agent never overfits the exact strategy sequence — dropout for the
+  compositional level, and what makes the private set reachable. **"Noise" = out-of-context real
+  chunks, never garbage** (un-settleable noise only wastes searches).
+- **The schedule is STATE-DERIVED, not tuned** (magic-number discipline): increase coherence as the
+  shared shapes settle; set the noise floor where convergence stops improving. The metric that
+  grades the agent paces its training.
+
+### 14.6 The end state — all 25 as ONE game (Isaiah, 2026-09-18)
+- Anneal toward all 25 playing coherently, interleaved — one library that produces each game's
+  coherent strategy on demand. The agent never sees a game label, so **game-boundary-blindness
+  FALLS OUT**: it perceives whatever board is in front of it and composes from the one shared
+  library, with no "which game is this" switch.
+- **This IS the transfer goal, stated exactly.** If the agent treats all 25 as one game, then game
+  26 — the private set — is "just more of the same game": playing the private distribution as a
+  human would. Convergence to all games is not mushing them together; it is one library rich enough
+  to reason any board, including unseen ones.
+
+### 14.7 Prerequisite ordering
+- **Growth control (the reuse/abstraction fix) lands BEFORE the 25-game run** — a shared library
+  across 25 games bloats ~25× worse than ls20 alone and drowns the search long before game 25.
+  F180 (the work-bound) killed the per-frame explosion; the reuse fix (policy-level abstraction) is
+  the next prerequisite. THEN the per-game §13 loop + the noise-annealing curriculum across all 25.
