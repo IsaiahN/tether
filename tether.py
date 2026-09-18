@@ -297,6 +297,13 @@ class Config:
     # and `budget_exhausted` reported zero times. So the depth-3 space is exhaustive here
     # and the declared bound never binds -- while the work exceeded it.
     budget: int = 4000
+    # anchor: grounded in the toy world's own exhaustion, as `max_depth` is grounded in its
+    # ladder. The toy's depth-3 search over its few operands prices ~13,298 candidates before
+    # it finds `dbl.neg.inc.wrap` (measured); this sits just above so the falsifier is never
+    # truncated. `budget` bounds YIELDS and the work is yields x operand-binds, so on a dense
+    # frame (166 operands) the walk grows unbounded per step -- this bounds THAT axis, which
+    # the runaway `budget` cannot.
+    work_budget: int = 15000
     mode: str = SPECIFIED
     # SYSTEM 0 (Isaiah, 2026-09-14): motor babbling before means-end -- draw variously until
     # the action-effect map has coverage, then hand to strategy. Off by default; the A/B toggles.
@@ -2592,6 +2599,9 @@ class Agent:
                             "units": self.gamma.alphabet, "estimate": 0}
                 for cand in self.gamma.enumerate_closure(in_t, out_t, self.cfg.max_depth,
                                                          self.cfg.budget, st, order=by_fit):
+                    if rank >= self.cfg.work_budget:
+                        st["budget_spent"] = True
+                        break
                     binds = operand_binds if cand.reads_operand else [None]
                     binds = [x for x in binds if self._operand_fits(cand, slot, x)]
                     for bind, g in ((b, g) for b in binds for g in self._guards(robs)):
