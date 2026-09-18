@@ -16,7 +16,7 @@ import sys
 import arc_percept
 import relations
 import sensors_heavy
-from reverse_engineer import _match
+from reverse_engineer import _actors, _match
 
 sys.dont_write_bytecode = True
 
@@ -54,21 +54,28 @@ def _frame_vector(objs: list[dict]) -> dict:
 
 # A `_match` "change" effect's delta keys -> the attribute that MUTATED. This is the cue: the
 # mutation names which attribute changed, so the mapping looks up that attribute's atoms, not the
-# whole space.
+# whole space. The frozen 6 are `_match`'s deltas; the heavy ones come from sensors_heavy.temporal.
 _MUT_ATTR = {"drow": "position", "dcol": "position", "dh": "extent", "dw": "extent",
              "dcells": "shape", "recolour": "colour"}
+_HEAVY_MUT = {"dArea": "area", "dCells": "occupiedCells", "dDensity": "density", "dHoles": "holes",
+              "dPerimeter": "perimeter", "dGirth": "girth", "dSolid": "solidity",
+              "dOrientation": "orientation", "velocity": "velocity"}
 
 
-def _mutations(effects: list[dict]) -> dict:
+def _mutations(effects: list[dict], before: list[dict], after: list[dict]) -> dict:
     """The mutations one frame->next fired, read off `_match`'s size-tracked effects: which
-    attributes changed on the objects that persisted, and how many appeared / vanished."""
+    attributes changed on the objects that persisted, and how many appeared / vanished. Both the
+    frozen deltas AND the heavy ones (density, holes, solidity, velocity...) fire a directed cue."""
     changed: dict = {}
     appeared = vanished = 0
     for e in effects:
         if e["kind"] == "change":
             for dk, attr in _MUT_ATTR.items():
-                v = e.get(dk)
-                if v:  # non-zero delta, or True for recolour
+                if e.get(dk):  # non-zero delta, or True for recolour
+                    changed[attr] = changed.get(attr, 0) + 1
+            heavy = sensors_heavy.temporal(before[e["bi"]], after[e["ai"]])
+            for dk, attr in _HEAVY_MUT.items():
+                if heavy.get(dk):
                     changed[attr] = changed.get(attr, 0) + 1
         elif e["kind"] == "appear":
             appeared += 1
@@ -89,7 +96,8 @@ def observe(steps: list[dict]) -> list[dict]:
         vec = _frame_vector(objs)
         muts = {"attributes": {}, "appeared": 0, "vanished": 0}
         if prev_objs is not None:
-            muts = _mutations(_match(prev_objs, objs))
+            # `_match` pairs on actor-filtered lists, so its bi/ai index those -- filter to match.
+            muts = _mutations(_match(prev_objs, objs), _actors(prev_objs), _actors(objs))
         out.append({"frame": t, "n_objects": len(objs), "cue": vec, "mutations": muts})
         prev_objs = objs
     return out

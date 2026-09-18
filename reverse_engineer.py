@@ -110,7 +110,8 @@ def _match(before: list[dict], after: list[dict]) -> list[dict]:
         if drow or dcol or dh or dw or dcells or dshape or recol:
             effects.append({"kind": "change", "drow": drow, "dcol": dcol,
                             "dh": dh, "dw": dw, "dcells": dcells, "dshape": dshape,
-                            "recolour": recol, "shape": len(b["cells"])})
+                            "recolour": recol, "shape": len(b["cells"]),
+                            "bi": bi, "ai": ai})
     for bi in ub:
         effects.append({"kind": "vanish", "at": (before[bi]["row"], before[bi]["col"]),
                         "shape": len(before[bi]["cells"])})

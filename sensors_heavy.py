@@ -83,3 +83,22 @@ def state(o: dict) -> dict:
         "shapeClass": o.get("shape", 0),
         "singleCell": int(cells == 1),
     }
+
+
+def temporal(before: dict, after: dict) -> dict:
+    """TEMPORAL/EVENT: how one matched object's heavy attributes moved frame->frame -- 867 atoms.
+    The frozen 6's deltas are `_match`'s already; these are the heavy ones, so a directed cue can
+    fire on a density/holes/solidity change, not only on position/extent/shape/colour."""
+    sb, sa = scalar(before), scalar(after)
+    tb, ta = state(before), state(after)
+    return {
+        "dArea": sa["area"] - sb["area"],
+        "dCells": sa["occupiedCells"] - sb["occupiedCells"],
+        "dDensity": round(sa["density"] - sb["density"], 3),
+        "dHoles": sa["holes"] - sb["holes"],
+        "dPerimeter": sa["perimeter"] - sb["perimeter"],
+        "dGirth": sa["girth"] - sb["girth"],
+        "dSolid": ta["solid"] - tb["solid"],
+        "dOrientation": ta["orientation"] - tb["orientation"],
+        "velocity": max(abs(after["row"] - before["row"]), abs(after["col"] - before["col"])),
+    }
