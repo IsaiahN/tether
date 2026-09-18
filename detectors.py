@@ -54,7 +54,6 @@ POPULATION_ATOMS = {
 # occupy one place" reads at the object as a solid fills its box; `To` "inside/outside/holes";
 # `Contain` "a thing held inside a boundary"; `Adj` "two things co-occurring in space".
 STATIC_ATOMS = {
-    "Solidity": ("So",      lambda o: bool(sensors_heavy.state(o)["solid"])),
     "Topology": ("To",      lambda o: sensors_heavy.scalar(o)["holes"] > 0),
 }
 RELATION_ATOMS = {
@@ -64,8 +63,8 @@ RELATION_ATOMS = {
 
 
 def light_static(o: dict) -> list[dict]:
-    """The per-object primitive atoms the heavy sensors confirm on one object (a solid fills its
-    box; a topology carries holes) -- corpus-stated conditions wired to sensors_heavy."""
+    """The per-object primitive atoms the heavy sensors confirm on one object (a topology carries
+    holes) -- corpus-stated conditions wired to sensors_heavy."""
     return [{"atom": a, "recipe": r} for a, (r, cond) in STATIC_ATOMS.items() if cond(o)]
 
 
@@ -73,6 +72,16 @@ def light_relation(a: dict, b: dict) -> list[dict]:
     """The per-pair primitive atoms the heavy relation confirms (a holds b inside; a touches b)."""
     rel = sensors_heavy.relation(a, b)
     return [{"atom": at, "recipe": rc} for at, (rc, cond) in RELATION_ATOMS.items() if cond(rel)]
+
+
+def light_frame(objs: list[dict]) -> list[dict]:
+    """Frame-level primitive atoms: Solidity (So) holds when no two objects occupy one place --
+    ATTRIBUTES.md's verbatim condition, `overlapArea == 0` for every pair."""
+    for i, a in enumerate(objs):
+        for b in objs[i + 1:]:
+            if sensors_heavy.relation(a, b)["overlapArea"] > 0:
+                return []
+    return [{"atom": "Solidity", "recipe": "So"}]
 
 
 def light_object(effect: dict) -> list[dict]:

@@ -41,7 +41,7 @@ def _frame_vector(objs: list[dict]) -> dict:
     the cue vector IS the agent's distinction horizon, so a reading it lacks is a distinction it
     cannot make (F169: the colour-source reading is why the recolour gap was mostly artifact)."""
     per_obj = {}
-    lit: list[dict] = []
+    lit: list[dict] = list(detectors.light_frame(objs))
     for i, o in enumerate(objs):
         vec = _obj_vector(o)
         vec["colour_source"] = relations.colour_source(o, [x for j, x in enumerate(objs) if j != i])
