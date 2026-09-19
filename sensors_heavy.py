@@ -24,6 +24,29 @@ TEMPORAL = {"TEMPORAL", "EVENT"}
 UNBUILT = {"BEHAVIOURAL", "RULE"}
 
 
+def _holes(o: dict) -> int:
+    """ENCLOSED holes -- interior background surrounded by the object, NOT bbox-minus-cells (which
+    counts concavity: an L-shape has no hole). Flood-fill background from the bbox border; whatever
+    it cannot reach is enclosed."""
+    cells = {tuple(c) for c in o["cells"]}
+    if not cells:
+        return 0
+    rs = [r for r, _ in cells]
+    cs = [c for _, c in cells]
+    r0, r1, c0, c1 = min(rs), max(rs), min(cs), max(cs)
+    seen: set = set()
+    stack = [(r, c) for r in range(r0, r1 + 1) for c in range(c0, c1 + 1)
+             if (r, c) not in cells and (r in (r0, r1) or c in (c0, c1))]
+    seen.update(stack)
+    while stack:
+        r, c = stack.pop()
+        for nr, nc in ((r + 1, c), (r - 1, c), (r, c + 1), (r, c - 1)):
+            if r0 <= nr <= r1 and c0 <= nc <= c1 and (nr, nc) not in cells and (nr, nc) not in seen:
+                seen.add((nr, nc))
+                stack.append((nr, nc))
+    return (r1 - r0 + 1) * (c1 - c0 + 1) - len(cells) - len(seen)
+
+
 def scalar(o: dict) -> dict:
     """SCALAR/EXTENT/COUNT/COLOUR: ordinal magnitudes an object carries -- 699+ atoms.
     A scalar is a scalar; these are every magnitude the grid exposes per object."""
@@ -35,7 +58,7 @@ def scalar(o: dict) -> dict:
         "density": round(cells / area, 3) if area else 0.0,
         "perimeter": 2 * (h + w), "extent": max(h, w), "girth": min(h, w),
         "aspect": round(max(h, w) / max(min(h, w), 1), 3),
-        "colour": o["colour"], "holes": max(area - cells, 0),
+        "colour": o["colour"], "holes": _holes(o),
         "boundingBox": area, "parts": cells, "magnitude": cells,
     }
 
