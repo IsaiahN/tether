@@ -64,6 +64,9 @@ STAGES = (
     # mechanism is removed -- which is worth exactly nothing if nothing runs them.
     ("m2", [str(PY), "test_m2.py"],
      "an M2_STANDARD mechanism regressed, or its tripwire fired", ROOT / "test_m2.py"),
+    ("percept", [str(PY), "test_perception.py"],
+     "a perception detector regressed (Contain/Topology/perimeter/background)",
+     ROOT / "test_perception.py"),
 )
 
 # stderr from an interpreter that never reached the program. A backstop for the cases a
