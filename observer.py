@@ -102,23 +102,20 @@ def observe(steps: list[dict]) -> list[dict]:
     out = []
     prev_objs = None
     for t, objs in enumerate(frames):
-        vec = _frame_vector(objs)
+        # detectors read the ACTORS, not the background field (the largest component), so a
+        # relation like Adjacency is object-to-object, not everything-touches-the-field.
+        actors = _actors(objs)
+        vec = _frame_vector(actors)
         muts = {"attributes": {}, "appeared": 0, "vanished": 0}
         loci = vec.pop("loci")
         if prev_objs is not None:
-            # `_match` pairs on actor-filtered lists, so its bi/ai index those -- filter to match.
-            actors_after = _actors(objs)
+            # `_match` pairs on actor-filtered lists; its ai indexes `_actors(objs)` == `actors`.
             effects = _match(prev_objs, objs)
-            muts = _mutations(effects, _actors(prev_objs), actors_after)
-            # fold the mutation primitives onto the object they fired on (by identity, so the
-            # actor-index aliasing cannot misattribute), enriching the co-occurrence signal.
-            id_to_i = {id(o): i for i, o in enumerate(objs)}
+            muts = _mutations(effects, _actors(prev_objs), actors)
             for e in effects:
                 if e.get("kind") == "change":
-                    i = id_to_i.get(id(actors_after[e["ai"]]))
-                    if i is not None:
-                        for d in detectors.light_object(e):
-                            loci[i].add(d["atom"])
+                    for d in detectors.light_object(e):
+                        loci[e["ai"]].add(d["atom"])
             # Animacy (An): "motion without contact indicates an agent" -- moved (Translate) with
             # nothing touching it (no Adjacency). The corpus condition, read off the loci.
             for s in loci.values():
@@ -127,7 +124,7 @@ def observe(steps: list[dict]) -> list[dict]:
         # a locus with >=2 primitives co-firing is a COMPOSITION OPPORTUNITY: the agent composes
         # what is co-present and tests whether it fits, rather than being handed the composite.
         vec["cooccur"] = {i: sorted(s) for i, s in loci.items() if len(s) >= 2}
-        out.append({"frame": t, "n_objects": len(objs), "cue": vec, "mutations": muts})
+        out.append({"frame": t, "n_objects": len(actors), "cue": vec, "mutations": muts})
         prev_objs = objs
     return out
 

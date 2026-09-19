@@ -61,11 +61,15 @@ def relation(a: dict, b: dict) -> dict:
     # bounding-box gap (0 = touching/overlapping)
     dr = max(0, max(br - (ar + ah), ar - (br + bh)))
     dc = max(0, max(bc - (ac + aw), ac - (bc + bw)))
+    # spatial containment: a is a hollow container, b's box sits inside a's, and they are disjoint
+    # (b in a's hole). The old cell-superset test never fired -- distinct objects share no cells.
+    a_holes = ah * aw - len(ca)
+    b_in_a = ar <= br and ac <= bc and ar + ah >= br + bh and ac + aw >= bc + bw
     return {
         "overlapArea": len(inter),
         "contactPoints": 0 if inter else (1 if dr == 0 and dc <= 1 or dc == 0 and dr <= 1 else 0),
         "distance": max(abs((ar + ah / 2) - (br + bh / 2)), abs((ac + aw / 2) - (bc + bw / 2))),
-        "contains": int(ca >= cb and len(ca) > len(cb)),
+        "contains": int(a_holes > 0 and b_in_a and not inter and len(ca) > len(cb)),
         "alignedRow": int(ar == br), "alignedCol": int(ac == bc),
         "larger": int(len(ca) > len(cb)), "sameColour": int(a["colour"] == b["colour"]),
         "sameShape": int(a.get("shape") == b.get("shape")),
