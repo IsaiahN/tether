@@ -41,6 +41,15 @@ def test_perimeter_is_true_edge():
     assert sensors_heavy.scalar(ring)["perimeter"] == 16, "ring outer 12 + inner hole 4"
 
 
+def test_adjacency_is_true_cell_contact():
+    """contactPoints was a bbox-gap test -- it false-fired on objects touching only diagonally."""
+    board = [[3, 3, 0], [0, 0, 4]]  # obj3 and obj4 boxes abut; cells only meet at a diagonal
+    a, b = _obj(board, 3), _obj(board, 4)
+    assert sensors_heavy.relation(a, b)["contactPoints"] == 0, "diagonal touch is not adjacency"
+    touch = [[3, 4]]  # now genuinely 4-adjacent
+    assert sensors_heavy.relation(_obj(touch, 3), _obj(touch, 4))["contactPoints"] > 0
+
+
 def test_background_is_not_an_object():
     """detectors read raw components once -- the background field lit Adjacency for everything."""
     field = [[1, 1, 1, 1], [1, 2, 2, 1], [1, 2, 2, 1], [1, 1, 1, 1]]  # colour 1 = the field
