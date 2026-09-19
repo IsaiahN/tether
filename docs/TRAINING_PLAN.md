@@ -871,3 +871,32 @@ half is empty — is refuted decisively. **Caveats:** size is weaker and a FLOOR
 canonical/grid targets the object-only referent test misses); this confirms magnitude TRACKS a gap,
 not the exact functional form (full closure vs a consistent fraction — the training run reads that).
 The grading LEVEL is Isaiah's to lock; the number is in hand.
+
+### 14.10 The SYNTHETIC path — generate scenes beyond the 25, for the full 2700 (2026-09-18)
+
+§14.4-14.6 order the **25 real games'** chunks. But the public set is a slice; the private set has
+DIFFERENT domains (COMPOSITE_REACH: 61 nearly-independent trees, 74% in-domain), so covering the
+25's compositions teaches little about the rest. Isaiah's concern this session: *"the public set
+only has a few examples and I need the agent to know a lot of things"* / *"all 2700 need to be
+understandable"* / *"maybe make new games?"*.
+
+- **The synthesizer is built (`synth.py`, proctor-side, lint-guarded out of the betting path).**
+  `synthesize(targets)` / `synthesize_pair(target)` place objects (over a background field larger
+  than them, so `_actors` keeps them) so the forward pipeline reads a target composition back;
+  `roundtrip` verifies. Covers the achievable static + mutation primitives; round-trip verified.
+- **It is the INVERSE of the detector pipeline**, and it earned its keep first as a DIAGNOSTIC:
+  synthesizing one target per scene caught six perception bugs the sparse public games hid (Contain,
+  background-as-object, Topology-concavity, perimeter-bbox, Adjacency-bbox, plus the pre-answering
+  co-occurrence threshold). A generated curriculum is a continuous perception-correctness harness,
+  not only a training surface. See memory `generator-roundtrip-audit`.
+- **Doctrine keeps it honest:** generate from the GENERAL library, never toward a public/private
+  board; the agent still perceives with its nine sensors and must COMPOSE the primitives (they are
+  never handed to it — that would violate the nine-sensor rule). Each generated scene's known target
+  IS a verifiable reward (self-graded), so it cannot contaminate — no board answer is used.
+
+**OPEN — Isaiah's / the reviewer's design, deliberately not decided in the synthesizer core:**
+sampling (which compositions, weighted by corpus demand or uniformly across the 61 domains),
+the annealing schedule for the synthetic stream (the §14.5 hunches applied to generated rather than
+replayed chunks, and how the two streams interleave), and where the synthetic path sits relative to
+the 25-game run (before, as broad pre-training? mixed in as the §14.5 noise floor?). The core any
+of these needs is built; the schedule is the fork.
