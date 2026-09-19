@@ -121,9 +121,10 @@ def observe(steps: list[dict]) -> list[dict]:
             for s in loci.values():
                 if "Translate" in s and "Adjacency" not in s:
                     s.add("Animacy")
-        # a locus with >=2 primitives co-firing is a COMPOSITION OPPORTUNITY: the agent composes
-        # what is co-present and tests whether it fits, rather than being handed the composite.
-        vec["cooccur"] = {i: sorted(s) for i, s in loci.items() if len(s) >= 2}
+        # The primitives present ON each locus -- PERCEPTION, emitted raw. WHICH loci are worth
+        # composing at is the AGENT's question; a proctor-side >=2 "opportunity" threshold would
+        # pre-answer it (a fault), and it saturated anyway. The agent reads this and judges.
+        vec["loci"] = {i: sorted(s) for i, s in loci.items() if s}
         out.append({"frame": t, "n_objects": len(actors), "cue": vec, "mutations": muts})
         prev_objs = objs
     return out
@@ -134,24 +135,19 @@ def summarise(obs: list[dict]) -> dict:
     and which attributes/relations mutate at all (the cues that ever fire on this game)."""
     fired: dict = {}
     lit: dict = {}
-    cooccur_loci = 0
-    total_loci = 0
-    combos: dict = {}
+    combos: dict = {}  # diagnostic: which primitive combinations appear on a locus, and how often
     for f in obs:
         for k, n in f["mutations"]["attributes"].items():
             fired[k] = fired.get(k, 0) + n
         for d in f["cue"].get("lit", []):
             lit[d["atom"]] = lit.get(d["atom"], 0) + 1
-        total_loci += f["n_objects"]
-        for prims in f["cue"].get("cooccur", {}).values():
-            cooccur_loci += 1
+        for prims in f["cue"].get("loci", {}).values():
             combos["+".join(prims)] = combos.get("+".join(prims), 0) + 1
     return {"frames": len(obs),
             "max_objects": max((f["n_objects"] for f in obs), default=0),
             "attributes_that_mutate": fired,
             "primitive_atoms_lit": lit,
-            "cooccur_loci": cooccur_loci, "total_object_loci": total_loci,
-            "cooccur_combos": combos,
+            "locus_combos": combos,
             "total_appeared": sum(f["mutations"]["appeared"] for f in obs),
             "total_vanished": sum(f["mutations"]["vanished"] for f in obs)}
 
