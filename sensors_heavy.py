@@ -47,6 +47,16 @@ def _holes(o: dict) -> int:
     return (r1 - r0 + 1) * (c1 - c0 + 1) - len(cells) - len(seen)
 
 
+def _perimeter(o: dict) -> int:
+    """True cell-edge perimeter -- each cell edge with no in-object neighbour. The bbox perimeter
+    2*(h+w) undercounts holes and concavity (a ring's inner boundary is real perimeter)."""
+    cs = {tuple(c) for c in o["cells"]}
+    p = 0
+    for r, c in cs:
+        p += sum((nr, nc) not in cs for nr, nc in ((r + 1, c), (r - 1, c), (r, c + 1), (r, c - 1)))
+    return p
+
+
 def scalar(o: dict) -> dict:
     """SCALAR/EXTENT/COUNT/COLOUR: ordinal magnitudes an object carries -- 699+ atoms.
     A scalar is a scalar; these are every magnitude the grid exposes per object."""
@@ -56,7 +66,7 @@ def scalar(o: dict) -> dict:
     return {
         "height": h, "width": w, "area": area, "occupiedCells": cells,
         "density": round(cells / area, 3) if area else 0.0,
-        "perimeter": 2 * (h + w), "extent": max(h, w), "girth": min(h, w),
+        "perimeter": _perimeter(o), "extent": max(h, w), "girth": min(h, w),
         "aspect": round(max(h, w) / max(min(h, w), 1), 3),
         "colour": o["colour"], "holes": _holes(o),
         "boundingBox": area, "parts": cells, "magnitude": cells,
