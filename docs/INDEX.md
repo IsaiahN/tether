@@ -36479,3 +36479,50 @@ all.** Three hits is three hits: **above a zero null, and small.**
                 depth, with a per-board cross-game null
     CAPABILITY  none. The agent achieves 3 of 71 human chunk effects on one board of four and
                 none of 177 on the others
+
+## F176 — THE ENTRY STAMP CHECKED AGAINST THE REVIEWER'S CONCERN: NO ATOM IS MISCERTIFIED, AND THE GAP IS PROSPECTIVE
+
+**The reviewer, taking the LOAD/MINT correction one level down:** *"the entry stamp you built needs
+this distinction or it certifies the wrong thing. A clause naming `tier-1, inherited` on an atom
+whose function someone wrote today is a true statement about the name and a false one about the
+atom."* **Checked rather than assumed.**
+
+    stamped atoms                                    28
+    prefixes                                         ALL "handed-2026-09-08"
+                                                     12 plain · 16 "ON DEPTH" variants
+    stamps claiming inheritance / corpus supply      NONE
+    stamped atoms sharing a NAME with the library    2   rotate · reflect
+
+**NO ATOM IS MISCERTIFIED TODAY.** Every stamp says *handed* — the seat gave it — which is exactly
+true, because **every Γ atom's body is Python a seat wrote.** The stamp never claimed otherwise, so
+the failure the reviewer described has not occurred.
+
+### and the one colliding case gets it right, which is the part worth keeping
+
+`rotate` and `reflect` are the only two stamped names the library also holds — as COMPOSITES,
+`Rotate = Ge + Gs` and `Reflect = Ge + Chirality`. **Our stamps say *"named by
+`arc_predict.unexpressible()`"* — OUR machinery found the gap.** They do not claim corpus lineage.
+
+> **THAT IS FIGURE 8's DISTINCTION HOLDING AT THE ONE PLACE IT COULD HAVE SLIPPED.** *Convergent
+> derivation and adopted import are indistinguishable in the contents; only the record of where each
+> came from separates them.* **Same concept, two independent derivations, and the stamp records
+> ours as derived rather than adopted.** Nobody designed that case; it is what the stamp does when
+> the collision happens to arrive.
+
+### so the reviewer's concern is real and not yet live
+
+**It bites the moment a corpus atom is loaded with an authored body** — which `F174` shows is
+currently two atoms and neither is loaded. **The requirement, recorded now so it is not
+reconstructed later:** a stamp for a loaded atom must name **both** provenances separately — where
+the NAME came from and where the BEHAVIOUR came from — because *tier-1, inherited* would be true of
+one and false of the other, and **the ablation partition reads the stamp, not the atom.**
+
+**And the reviewer's framing is the better one and I want it recorded in their words:** the
+LOAD/MINT line sits at **is the BEHAVIOUR in the corpus**, not *is the name*. **A name inherited
+with an authored body is a mint wearing a load's provenance — the worse kind, because the stamp says
+inherited and the content is not.**
+
+    MECHANISM   nothing built. A concern raised by the reviewer checked against 28 stamps and
+                found prospective; the requirement for a future load recorded at entry-time
+                rather than reconstructed after
+    CAPABILITY  none
