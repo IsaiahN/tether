@@ -36210,3 +36210,57 @@ half-done** — the point of a denominator is that it is complete.
     MECHANISM   nothing built. The corpus scan finished; one tempting cross-vocabulary link
                 measured and refused at the definition site
     CAPABILITY  none
+
+## F171 — VALIDATING `COMPOSITE_REACH`'s "NO CORE" AGAINST ITS OWN TABLE. The lesson holds; the ruling is 1.62x overstated
+
+**Isaiah, 2026-09-20: *"take any rulings in there with a grain of salt, validated if true —
+rulings are weak, lessons learned are strong."*** Applied immediately, because `F169` relayed
+`COMPOSITE_REACH.md`'s headline to the reviewer as settled and told them to stop searching.
+
+**THE HEADLINE IS A RULING. THE SET-COVER TABLE THREE LINES UNDER IT IS DATA.** Marginals, computed
+from the file's own rows:
+
+    segment        atoms added   composites added   MARGINAL per atom
+      0 ->  10          10              72               7.20
+     10 ->  20          10              53               5.30
+     20 ->  30          10              55               5.50
+     30 ->  60          30             150               5.00
+     60 -> 100          40             130               3.25
+    100 -> 200         100             488               4.88
+    200 -> 300         100             472               4.72
+    300 -> 477         177             602               3.40
+
+    first 60 picks 5.50/atom · last 177 picks 3.40/atom · ratio 1.62x
+
+### what validates and what does not
+
+**SUPPORTED — *no knee, no plateau*.** The marginal never collapses; there is no cliff anywhere in
+the curve. **SUPPORTED EXACTLY — *about five composites per atom from the first pick to the
+sixtieth*.** It is 5.50 over the first 60, and the file claims nothing about the range beyond.
+
+**OVERSTATED — *NO CORE*.** The first 60 picks are **1.62x** more productive per atom than the last
+177. **That is a real ordering.** It does not license *there is no privileged subset* or *there is
+only how many you load*, which is what `F169` said and what I relayed.
+
+> **THE CORRECTED READING: there is no SMALL SUFFICIENT core — 200 atoms buy 43%, so no handful
+> covers the library — but atoms are NOT interchangeable, and `ATOM_RANKING.json` (477 ranked by
+> `uses`) is the ordering.** Two different claims, and the file's headline states the stronger one
+> while its table supports the weaker.
+
+### why this instance is worth the entry
+
+**It is the same error as the four before it and the evidence was closer than any of them — three
+lines above the sentence I quoted, in the file I was reading, in the paragraph I copied.** Not a
+different population, not a synonym, not a stale row: **a conclusion relayed without multiplying out
+the table printed beneath it.**
+
+**AND IT CAME FROM THE CORPUS, WHICH IS THE PART TO REMEMBER.** The provenance hierarchy puts the
+corpus above the reviewer and far above a seat — **and that is about RULINGS being trustworthy
+relative to each other, not about a ruling outranking its own data.** A corpus ruling is still a
+ruling. **Its measurements are the strong part; its conclusions are what a careful author wrote once
+and nobody re-derived.**
+
+    MECHANISM   nothing built. One relayed conclusion corrected against the table in the same
+                file, and a correction sent to the reviewer who acted on it
+    CAPABILITY  none -- but "load more, order does not matter" becomes "load more, and
+                ATOM_RANKING orders it", which is a different build
