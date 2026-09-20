@@ -35651,3 +35651,56 @@ chasing built-but-never-wired all session, caught by the check rather than by my
                 "decided, recorded, and not done" items to produce a number
     CAPABILITY  none claimed. The instrument exists; the reading is at the noise floor and is
                 filed as such
+
+## F161 — THE PRETRAINING RUN DID HAPPEN. ITS INSTRUMENT WAS NEVER COMMITTED, SO ITS NUMBERS CANNOT BE CHECKED
+
+**I told the reviewer item 3 was *built, never executed*. That is wrong and the correction is worse
+than the original.**
+
+`TRAINING_PLAN` §14 reports the replay-env pretraining as having RUN: *"over 101 frames the agent
+minted 126 and settled only 26 (21%); the library went 48 → 174 ... per-frame time climbed 7s → 31s
+→ 72s+."* **Those are results, not a plan.** So it executed.
+
+    git log --all -S'replay_env'        NOTHING, on any branch
+
+    commit                                          what it contained
+    b57fe1f  F178 the generalization level          docs/TRAINING_PLAN.md   30 lines, NO CODE
+    01bc696  F179 the curriculum carries the action docs/TRAINING_PLAN.md   16 lines, NO CODE
+    4fa44ee  F180 work_budget bounds mint's work    tether.py               10 lines  <-- the only
+                                                                                          code
+    3187616  F181 the replay-env runs and bloats    docs/TRAINING_PLAN.md   23 lines, NO CODE
+
+> **THE REPLAY-ENV WAS BUILT, RUN, REPORTED, AND NEVER COMMITTED.** `F180`'s `work_budget` — the fix
+> it forced — is in `tether.py:343` and is real. **The thing that produced the numbers is not in the
+> repository.** It cannot be re-run, extended to the full 547 frames, or checked.
+
+### this is a THIRD variant of the class, and it is the worst one
+
+    closure_map      BUILT and never WIRED           F157 -- reachable only through a dead module
+    spacing sweep    DECIDED and never BUILT         F159 -- no rung parameter exists
+    replay-env       RUN, REPORTED, never COMMITTED  this -- the numbers stand in the plan as
+                                                     fact and the instrument is gone
+
+**The first two announce themselves — a module nothing imports, a parameter that does not exist.
+This one does not.** `§14`'s paragraph reads as a settled empirical result, it is cited as the
+reason the 25-game run needs growth control first, **and no one reading it would know there is
+nothing behind it to re-run.** *A thing marked done in the channel and not done in the world* — the
+reviewer's phrase for their own `seed 1618` receipt — **with the additional twist that here the work
+genuinely was done.**
+
+### what actually follows for item 3
+
+**NOT "go run it."** The run's own finding is that it cannot complete: no eviction, library
+monotone, per-frame cost 7s → 72s over 101 of 547 frames. **Rebuilding the replay-env to re-hit the
+same wall would cost the rebuild and buy the same sentence.**
+
+**What item 3 needs is the growth control §14.7 already names as the prerequisite** — and that is
+unbuilt too. **So item 3 is not "a run nobody launched", it is a run BLOCKED ON AN UNBUILT
+PREREQUISITE, whose instrument would have to be rebuilt first because it was never committed.**
+Three layers, and the ledger said one.
+
+    MECHANISM   nothing built. My own answer to the reviewer's item 3 corrected from
+                "never executed" to "executed, unreproducible, and blocked behind an
+                unbuilt prerequisite"
+    CAPABILITY  none -- but §14's pretraining paragraph should be read as UNCHECKABLE rather
+                than as measured, and it is load-bearing for the 25-game ordering
