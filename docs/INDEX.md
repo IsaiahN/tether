@@ -36157,3 +36157,56 @@ whole `library-closure/` directory was cited constantly and read in two files.**
                 read; one of them refutes the "find the right small set" framing outright
     CAPABILITY  none -- but the load question changes unit from tier/encoding to DOMAIN, and
                 the "no core" result means the next proposal cannot be small AND sufficient
+
+## F170 — THE REST OF THE UNREAD CORPUS, AND A FIFTH SYNONYM TRAP DECLINED AT THE WRITE SITE
+
+**Finished the scan `F169` started. Two things worth keeping and one worth NOT doing.**
+
+### `ENTRY_CATEGORIES.md` records tonight's failure mode, in the corpus, before tonight
+
+Its closing passage, about a duplicate-meaning entry it had just found:
+
+> ***"And no grep finds it.** The other two kinds share a string. This one shares nothing but
+> MEANING, which makes it the case that survives every mechanical check."*
+> ***"It was found by accident**, by a traversal that was not looking for it. **How many more exist
+> is unknown and probably not small."***
+
+**That is `F169`'s process point already written down by the corpus author, about the same corpus,
+and it is in one of the files nothing cites.** The warning and the instance of the warning are the
+same document.
+
+### the arity line, and why I am NOT taking it
+
+The same file asks which of its six tagging axes are derivable rather than judged, and answers:
+***"`Arity` is — it can be read off a recipe's operand count."***
+
+**That looked like the supply side of this session's one robust finding** — arity-2 gaps met at
+0–5.5%. Measured the library's side:
+
+    LIBRARY recipes by ingredient count    2 ing: 360 · 3 ing: 568 · 4 ing: 390 · 5 ing: 2
+                                           1320 distinct named recipes
+
+> **AND THE CONNECTION DOES NOT HOLD. `retrieval.characterise` defines Γ's arity as
+> `1 + (1 if varies else 0)` — HOW MANY SLOTS THE RESIDUAL SPANS.** The library's arity is HOW MANY
+> INGREDIENTS A RECIPE HAS. **A four-ingredient recipe can describe a single-slot change, and a
+> two-slot residual can want a one-ingredient term.** Two quantities, one word.
+
+**Fifth synonym trap of the session, and the first one declined BEFORE it reached a claim** — by
+going to `characterise` and reading the definition rather than reasoning from the word. **The
+previous four cost a table, a verification, a structural conclusion and a published paragraph.**
+This one cost one grep, which is what the check is supposed to cost.
+
+### and the other three files, briefly, so the scan is closed
+
+    TRAVERSAL.md               a refined domain path, mean 2.11 hops -- and its own headline is
+                               "one of them says my graph is built at the wrong level"
+    CATEGORIES.md              61 domains, six super-categories, 2694 entries, recomputed
+    CHEMISTRY_INSTANCES.json   isomers · catalysts · cycles · functional_groups
+    RECURSIVE_TRANSFORMATION   "a proposed organizing principle. NOT a law, and not offered as one"
+
+**None of the four bears on a live question, and saying so closes the scan rather than leaving it
+half-done** — the point of a denominator is that it is complete.
+
+    MECHANISM   nothing built. The corpus scan finished; one tempting cross-vocabulary link
+                measured and refused at the definition site
+    CAPABILITY  none
