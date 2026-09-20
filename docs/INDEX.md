@@ -35501,3 +35501,63 @@ re-measuring.
                 and found to terminate in a vocabulary the agent does not hold
     CAPABILITY  none -- but the 2700 question moves off "who may connect these" and onto
                 "what would make the two alphabets meet", which is a different build
+
+## F158 — THE FIFTEEN ARE A LOAD, NOT A MINT. AND Γ SHARES ZERO ATOMS WITH THE LIBRARY'S FOUNDATIONAL TIER
+
+**The reviewer's question: are the fifteen recipe primitives PRESENT in the corpus library, or novel
+to `OP_CLOSURE`? *"Those are opposite rulings and the difference is a grep."*** Run, word-bounded,
+and the matches READ rather than counted:
+
+    Ct Co Frac Ge Gs Chirality Rep Bind Contact Consumed Decompose
+    Amalgamate  Med-miscible  Featural-identity  Scale        15 of 15 IN ATOMS.md
+
+**VERDICT: LOAD, NOT MINT.** And not marginally — `ATOMS.md` §*TIER 1 — the foundational atoms*
+carries them in its own table, under the heading ***"These are not composed. They are where
+composition starts."***
+
+    Co  Cohesion     objects move as connected, bounded wholes
+    Ct  Continuity   objects travel connected, unobstructed paths
+    Ge  Geometry     points, lines, angles, handedness
+    Gs  Gestalt      grouping by proximity, similarity, common fate
+
+**`closure_map`'s recipes are VERBATIM from that file** — `Translate | Ct + Co`, `Rotate | Ge + Gs`,
+`Recolour | Co + Featural identity`. Nothing was authored for `OP_CLOSURE`; it quotes the corpus.
+
+### and the disjunction is far wider than fifteen primitives
+
+    tier                                     distinct names    in Gamma
+    TIER 1  the foundational atoms                 182            0
+    TIER 2  one step from the priors               190            2   Rotate · Reflect
+    TIER 3                                         190            0
+    TIER 4                                         159            0
+    TIER 5                                          42            0
+
+> **Γ SHARES NOT ONE ATOM WITH THE FOUNDATIONAL TIER, AND EXACTLY TWO WITH TIER 2 — AND BOTH OF
+> THOSE TWO ARE COMPOSITES OF TIER-1 ATOMS Γ DOES NOT HOLD.** `Rotate = Ge + Gs` and
+> `Reflect = Ge + Chirality` are in the running build; `Ge`, `Gs` and `Chirality` are not.
+> **The build holds two composites and none of the primitives they are made from.**
+
+**SO THE 2700 WERE NEVER A WIRING PROBLEM AT ANY LEVEL.** `F157` found the recipe primitives absent;
+this finds the whole tier structure absent. **Γ's 45 and the corpus library meet at two names.**
+*Making the 2700 reachable* is not an import, a firewall rescope, or a module split — **it is loading
+a vocabulary the running build almost entirely does not have**, and Isaiah's *the 45 are a deliberate
+subset* is the standing frame for that.
+
+### which settles the reviewer's option (b) before it is run
+
+Their framing: *"map each recipe down to existing Γ atoms" is self-defeating if it succeeds — if
+`Translate = Ct + Co` can be rewritten in the 45, the 45 already express what the recipe means.*
+
+**It cannot succeed. `Ct` and `Co` are Continuity and Cohesion — TIER-1 PERCEPTUAL PRINCIPLES about
+what an object IS across frames, and Γ's 45 are extractors, relations and quantifiers over attribute
+VALUES.** Different kinds of thing, and Γ holds no Tier-1 atom of any domain. **By the reviewer's own
+test that makes the primitives load-bearing rather than redundant.**
+
+    CAVEAT ON THE DENOMINATORS: tiers 1-5 parse cleanly. TIER 6 parses to 4522 "names" and is
+    clearly over-matching prose, so it is excluded rather than cited. The claim rests on
+    tiers 1-5 and on the ZERO in tier 1, which is a count of a small explicit table.
+
+    MECHANISM   nothing built. One grep answered an either/or the reviewer could not rule
+                without it, and the answer is the cheaper of the two rulings
+    CAPABILITY  none -- but the 2700 question stops being "who may connect these" and becomes
+                "load which tier, under which clause", which is Isaiah's frontload ruling
