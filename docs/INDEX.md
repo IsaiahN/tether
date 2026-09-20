@@ -34167,3 +34167,40 @@ terms the mint would have accepted.
 
     MECHANISM   located: one line, and an asymmetry between two acceptance tests
     CAPABILITY  unchanged. Nothing built, nothing admitted, and the deciding measurement named
+
+### `F134` continued — the deciding measurement, answered on ONE path and deliberately not carried to the other
+
+**`F134` named it: how many refused terms would PAY the bargain while leaving residue.** The
+counterfactual is already computed and logged — `would_pay=pays(cost, left, base)` on every
+`reuse_refused` row — so the "assume it is already specified, go look" law pays again and nothing
+needed building.
+
+    ls20   reuse_refused 48    would_pay False 48/48    no-split 37 · did-not-pay 11
+    vc33   reuse_refused 11    would_pay False 11/11    no-split 10 · did-not-pay  1
+    tn36   reuse_refused  2    would_pay False  2/2     no-split  0 · did-not-pay  2
+
+**61 of 61 would not have paid.** And the split of WHY is the informative half, read off the site
+that assigns it — `why = "did-not-pay" if left < base else "no-split"`:
+
+    no-split      47 of 61   the term reached NOTHING: `left >= base`, no reduction at all
+    did-not-pay   14 of 61   it improved the residual and cost more than it saved
+
+> **SO ON THIS PATH EXACTNESS IS NOT WHAT REFUSES. FIT IS.** Three quarters of the refused terms
+> do not touch the residual, and relaxing the zero-leftover rule to the bargain would admit none
+> of them. For the reuse sweep, `F134`'s fork closes: exactness costs nothing.
+
+### and the source warns against the generalisation I was about to make
+
+The comment above that line: *"`would_pay` is measured only on the ACCEPT arm… **SO THE
+COUNTERFACTUAL IS COMPUTED ON THE SIDE THAT IS ALREADY IN, AND NOT ON THE SIDE THAT IS OUT.
+Reading one arm and ruling on both is the shape this window keeps logging — a check that covers
+half the ground.**"*
+
+**`reuse_refused` is the reuse sweep (61 events). `reach_failed` is `_library_fit` (200 events).
+Different paths, different populations, and no `would_pay` is recorded on the second.** So the
+fork is ANSWERED for the sweep and OPEN for retrieval, and saying otherwise would be the seventh
+instance of the session's one error — this time against a warning written at the site.
+
+    MECHANISM   unchanged, nothing built; the counterfactual already existed
+    CAPABILITY  unchanged. F134's fork: closed on the reuse path, open on the retrieval path,
+                and what would close it is the same counterfactual logged at `_library_fit`
