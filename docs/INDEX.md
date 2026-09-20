@@ -35449,3 +35449,55 @@ either arm. **`F144`'s conclusion is untouched — both arms saturate, which is 
                 labelled so
     CAPABILITY  none -- legibility, not contact. It makes a future one-action refusal
                 readable rather than making any refusal different
+
+## F157 — THE WIRE IS RULED AND THE WIRE IS EMPTY: `closure_map` AND Γ ARE DISJOINT VOCABULARIES
+
+**Two rulings arrived (01:48 and 10:57) and both say PROCEED. I checked what `to_closure` would
+actually hand the agent before importing it, and the answer is: nothing it can use.**
+
+    OP_CLOSURE / DEFORM / POPULATION target atoms       2 of 10 exist in Gamma
+        Rotate -> rotate · Reflect -> reflect           YES
+        Translate · Scale · Recolour · Deform           absent
+        Construct · Erase · Separate · Merge            absent
+
+    recipe primitives across all three tables           0 of 15 exist in Gamma
+        Ct · Co · Frac · Ge · Gs · Chirality · Rep · Bind · Contact · Consumed ·
+        Decompose · Amalgamate · Med miscible · Featural identity · Scale
+
+**Γ holds 45 atoms and NOT ONE of the fifteen recipe primitives is among them.** So importing
+`to_closure` into the betting path would tell the agent *this mutation is `Translate = Ct + Co`* —
+**a name it does not hold, defined in terms it does not hold.**
+
+> **THE 2700 WERE NEVER BLOCKED BY `CUE_BOUNDARY`. THEY ARE BLOCKED BY A VOCABULARY DISJUNCTION**,
+> and the firewall question that consumed multiple seats, two reviewer rulings and an entire night
+> was a debate about PERMISSION TO CONNECT TWO THINGS THAT DO NOT SHARE AN ALPHABET. The permission
+> was the cheap half and it was the half everyone worked on.
+
+**`closure_map`'s own header says what it is and I read past it four times tonight:** *"the op is
+the agent's own perceived transformation; the closure atom is the library concept it instantiates.
+This is a VOCABULARY ALIGNMENT (two names for one concept)."* **It aligns the NAME. The RECIPE side
+lands in the library's primitives, and the library's primitives are not Γ's.**
+
+### what this does and does not establish
+
+**ESTABLISHED, and it is a measurement not a reading:** `to_closure`'s output is expressed in a
+vocabulary disjoint from the composition surface, so the import alone cannot make the 2700 reachable.
+**Wiring it now would be the built-but-never-wired failure in its most expensive form — wired,
+green, and inert**, with a ruling behind it saying it was allowed.
+
+**NOT ESTABLISHED:** whether the 2700 ATTRIBUTES (as opposed to these recipe primitives) have some
+other route in; whether `to_closure` has an intended consumer other than the betting path; whether
+the right bridge is admitting the fifteen primitives as atoms, or mapping each recipe down to
+existing Γ atoms, or something else. **Three candidate bridges and I am not choosing one from here.**
+
+### and a stale entry found on the way
+
+`F130` reported Γ's arity-2 atoms as including **`recolour` and `translate`**, from a set of 48.
+**The measured set is 45 and contains neither.** Either the atom set changed under it or the entry
+was wrong when written; either way `F130`'s supply-side table should not be quoted again without
+re-measuring.
+
+    MECHANISM   nothing wired, deliberately. The ruled-and-permitted wire measured before use
+                and found to terminate in a vocabulary the agent does not hold
+    CAPABILITY  none -- but the 2700 question moves off "who may connect these" and onto
+                "what would make the two alphabets meet", which is a different build
