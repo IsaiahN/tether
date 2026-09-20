@@ -59,6 +59,13 @@ moved* is older than a day gets an explicit status chase, not a silent carry-for
 | **`F130`'s supply-side table is stale** | It reports Γ holding `recolour` and `translate` among 48 atoms. Measured today: **45 atoms, neither present.** Do not quote it again without re-measuring. |
 | **Forward-binding seal** | Ready to install; largely moot under the Phase 2 ruling. Revisit only if the reviewer wants the 25 split as well. |
 
+## MEASURED CONSTRAINTS THAT BOUND OPEN WORK — added 2026-09-20
+
+| constraint | reading | what it bounds |
+|---|---|---|
+| **Mint cost vs library size** | 0.16 s/cycle at library 48 (atoms only) → ~40 s/cycle at 69. **Slots flat at 320–392, so frame density is not the driver; library size is.** **Saturating, not exponential** — per-term growth falls ~0.27 → ~0.06, matching `work_budget`'s own comment at `tether.py:343`. | **Every long run.** A 5-rung full-tape sweep is ~10h; the windowed version ~5h. This is what displaced the sweep on 09-18 and it has not gone away — it is now a number instead of an adjective. |
+| **The replay tape is the worst case for mint cost, by construction** | The agent never controls the board, so it is wrong nearly every step and mints near the maximum rate. | **Not a defect** — it is the pedagogical point of watching. But the feeder hits the wall before a live board does, so tape budgets do not transfer to live-board budgets. |
+
 ## FLAGGED BY THE REVIEWER ABOUT THEMSELVES
 
 | item | state |
@@ -88,9 +95,9 @@ noticing. Answers below are from evidence, and where I do not know I say so rath
 
 | # | item | verdict |
 |---|---|---|
-| **1** | **Spacing sweep** (ladder 1/2/4/8/16, pre-registered 09-18) | **NEVER BUILT, NEVER RAN.** No spacing/rung parameter exists anywhere in the code — the only `ladder` hits are an unrelated lint fixture and an `arc_screen` comment. No run artifacts. **The pre-registration is live and the build is not started.** |
+| **1** | **Spacing sweep** (ladder 1/2/4/8/16, pre-registered 09-18) | **BUILT 2026-09-20 AND A SWEEP IS IN FLIGHT** — `feeder.py`, commits `18f83f2` (dial) and `3f938cb` (cost). Was: *never built, never ran; no spacing/rung parameter anywhere in the code.* **Isaiah ruled it PRIORITY 0 the same day.** Spacing = block length of preserved coherence, so `s=1` is random-dense and large `s` is coherent-wider — §14.5's annealing in one parameter. Library carries via §17.8's existing `play(library=...)`; **no new mechanism was needed.** Population equality asserted in code: all rungs the identical frame set, distinct orderings. **Deviation declared to the reviewer: ladder scaled to the window (`1/2/4/8` on an 8-chunk window, where `s=8` IS full coherence), not truncated.** |
 | **2** | **§13 step 4** | **UNKNOWN TO ME — not touched this session and I have no evidence either way.** Flagging rather than asserting; it needs a look before anyone calls it parked. |
-| **3** | **Pretraining run** | **HALF.** `work_budget` IS in (`tether.py:343`, default 15000, consumed at :2748), so F180's fix landed. **No pretraining run has been executed or reported** — every commit since 09-18 is this session's findings. Built, never run. |
+| **3** | **Pretraining run** | **NOW RUNNING — it is item 1's sweep, and it is committed this time rather than run and lost.** Previously: **HALF.** `work_budget` IS in (`tether.py:343`, default 15000, consumed at :2748), so F180's fix landed. **No pretraining run has been executed or reported** — every commit since 09-18 is this session's findings. Built, never run. |
 | **4** | **`chunk_reuse` vs `reuse_install`** | **CONFIRMED AND HARDENED, measured tonight on four boards at 60 cycles.** `reuse_install` 12 · 9 · 4 · 4 — term-level reuse works everywhere. **`routine_cut` 0 · 0 · 0 · 0 — procedure-level reuse has never once fired.** Not 2; zero. And the refusal side is stark: ls20 installs 12 against **792** `reuse_refused`. **Your molecule question is not just unanswered, it is measured at zero with a denominator.** |
 | **5** | **The `_explains` cause (F130)** | **READ, and superseded TWICE.** `F133` corrected F130's attribution the same night (*the arity split is real, the supply story is not*), and `F157` today found F130's supply table stale — it reports Γ holding `recolour`/`translate` among 48 atoms; the measured set is **45 and holds neither**. **Do not cite F130's supply side again.** |
 | **6** | **Arm B** | **LIVE AND UNRESOLVED. Still default OFF.** `F137` decomposed it into two distinct effects (ls20 gains from the binding itself, tn36 from arity-2 reuse and it costs a goal slot), and every depth run in `F153`'s panel was taken under it. **It is the one arm never settled, and I did not resolve it.** |
