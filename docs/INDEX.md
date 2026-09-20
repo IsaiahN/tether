@@ -37297,3 +37297,59 @@ real defect is `refused` non-empty, or `carried_in` of zero.
     MECHANISM   none changed. The per-rung log already reports `carried_in` separately from
                 `minted`, so the distinction is visible without any edit
     CAPABILITY  none -- it protects the reading of a result that does not exist yet
+
+## F191 (INDEX series) — THE SPACING SWEEP, RUNG 1 OF 4: watching moves the library and does not move the ground. 53 mints, 4 compositions carried, probe EXACTLY at baseline
+
+**The first rung of Isaiah's PRIORITY 0 ladder. The curve is the finding and this is one point of
+four — recorded now because it is a real reading, not because it concludes anything.**
+
+    spacing 1 (random-dense)   8 chunks   64 frames   64 cycles   42.8 min
+    atoms 48 -> library 101    minted 53   settled 16   promotions 16   carried_in 0
+    PROBE (dc22 live, 25 cycles, rlvr's scorer)   9 / 150 = 6.0%
+
+**`9/150` IS THE ESTABLISHED `dc22` BASELINE TO THE DIGIT** (`INDEX` 36538, 36597: *dc22 9/150
+6.0%* against a 0–1/71 null). Not *within* ±2 run variance — identical.
+
+### the control that had to be run first, because the null has a trivial explanation
+
+**If the probe's library carried nothing, `9/150` is the baseline re-run and says nothing about
+training.** `probe()` copies the library and `play(library=...)` loads it, and `F190` established
+that load keeps compositions and drops bindings — so *how much actually crossed* is the question
+the reading turns on.
+
+    53 saved rows -> 6 distinct chains -> CARRIED 4    refused []
+    translate.recolour x29 · recolour x10 · translate.translate x6 ·
+    translate x5 · above.none x2 · above.all x1
+
+**Four new multi-atom compositions reached the probe, and nothing was refused.** So the agent went
+in holding `translate.recolour`, `translate.translate`, `above.none`, `above.all` — **and scored
+what it scores knowing none of them.**
+
+**`F190`'s pre-registration held exactly**: carry is distinct compositions, a small fraction of
+mints; `refused` empty; `carried_in` non-zero. The mechanism is working and the result is a null.
+
+### what this is, stated at its size
+
+**Internal activity is real and large: 53 mints, 16 settled, 16 promotions from 64 frames of
+watching.** Contact change: **zero.** That is Figure 11's warning arriving with numbers on it —
+*an improvement that does not change contact changes nothing, however much it improves* — and it is
+the exact failure mode a mint count would have hidden. **Had I reported `library 48 -> 101` as the
+result, this would have read as a success.**
+
+### what it is NOT, and the restraint is pre-registered rather than retrofitted
+
+- **NOT the sweep's verdict.** Both the reviewer's pre-registration and Isaiah's framing say the
+  SHAPE across rungs is the witness. *Both a real capability and a marker-follower read as
+  performance fell on two sample points* — and this is one.
+- **NOT evidence the ladder fails.** `spacing 1` is the DENSE end, the one Isaiah calls the case
+  where *the agent barely has to reason.* **The pressure he describes is at the WIDE rungs**, so a
+  flat easy end is the expected place for nothing to happen.
+- **NOT a statement about 25-game training.** Eight chunks of one game is the mechanism's first
+  exercise, not a curriculum.
+
+    BOUNDARY    one board, one 8-chunk window, offset 0, one run per rung, single seed 1618.
+                dc22 counts carry +/-2 run variance -- but the comparison here is an exact
+                match to baseline, which variance does not explain away in either direction
+    MECHANISM   the ladder runs end to end and the rungs are comparable. That was rung 1's job
+    CAPABILITY  none at this rung. 4 compositions earned by watching bought 0 ground
+    COST        42.8 min/rung, so the 4-rung ladder is ~3h; later rungs start hot
