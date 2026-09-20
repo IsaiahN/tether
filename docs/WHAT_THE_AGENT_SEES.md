@@ -112,6 +112,13 @@ relations keyed to those names, the attribute deltas, and every term it minted w
 that term came from. **Everything except the raw values** — because the raw values are the arrangement
 that will not survive, and the structure is the part that will.
 
+**And a third split runs across both, which is the one that decides what it can actually do.** A term
+it has paid for is not the same as a term it can build on. **The library only ever grows and nothing is
+ever deleted from it** — a term that stops paying loses its standing and keeps its place, so the agent
+can always tell *never had it* from *had it and gave it up*. What moves in both directions is the
+**reach**: what it can currently compose over. So the library growing is not the agent getting further,
+and it is the reach that decides what the next bet can even consider.
+
 ## The first bet
 
 **All of that happens before a single move.** Then the agent looks up: given the shape of what it could
@@ -123,27 +130,11 @@ shape of your gap and a liability when you walk it in registry order.
 worth the pass.** One event, two thresholds. The agent does not retrieve for everything that moves; it
 retrieves for what moved and mattered.
 
-**It spends a budget it cannot see the end of, and — CORRECTED 2026-09-09 — it does not yet READ
-that budget.** It has no number for how many actions a level allows. **That absence is on purpose.**
-It cannot look up the answer, so if it ever works out the ceiling, working it out is the
+**It sizes the bet against a budget it is spending and cannot see the end of.** It knows what things
+have cost — *this strategy took forty steps in that game, and half that here* — and it has no number
+for how many actions a level allows. **That absence is on purpose.** It can compare effort across games
+and it cannot look up the answer, so if it ever works out the ceiling, working it out is the
 demonstration. Being told would have proved nothing.
-
-> **THE ORIGINAL SAID *it sizes the bet against a budget it is spending*, AND THAT IS NOT BUILT.**
-> The action budget is spent and counted **by the seat** — `arc_holdout.play` calls `bud.spend()`
-> per acted step — and **`tether.py` contains no read of it**, so nothing the agent decides is
-> sized against it. `Budget.exhausted()` and `Termination`'s `cap` ending exist and neither is
-> wired to the loop. **The deliberate absence is the CEILING; the spend counter is a different
-> thing and the agent is blind to both.**
->
-> **AND `budget` IS TWO QUANTITIES, WHICH IS WHY THE SENTENCE READ AS TRUE.** `Config.budget` is
-> the CLOSURE-YIELD cap inside `enumerate_closure`; `arc_run.Budget` is the ACTION budget. The
-> loop reads the first constantly and the second never. **`CLAUDE.md` already registers this pair
-> under `A6i`**, filed prospectively as *checked and clear* — and this is the collision arriving
-> in a sentence about capability rather than in code.
->
-> **NO GAMEPLAY CONSEQUENCE.** The agent never read it, so nothing it does changes. **This is a
-> documentation correction, made so a later reader does not build on a capability that was never
-> there** — which is the only damage an overstatement of this kind can do.
 
 ## Moving, and being surprised
 
@@ -192,6 +183,30 @@ before it is asked again*, and it can describe what is missing in terms of what 
 than what it would be called. What it cannot do is name the missing piece, because naming it would mean
 already having it. **And the verdict only counts because it names the closure it searched.** An
 abstention over a room it never sealed is a shrug, and this one is not.
+
+**It can say that something is false, and it does.** The draft of this section said it could not —
+*there is no way to compose a refusal, because the operators it holds all join two things and none of
+them negates one* — and that is wrong twice over. `¬` is the eighth operator and is not a bond;
+`grammar.py` declares `NOT : PRED → PRED`, and `negate` is an atom the agent holds. **Measured on
+`ls20`: it mints 3, settles 3 with the ground agreeing, is cited 6 times and drives 9 bets.** Zero on
+the other boards, which is the per-game reading rather than an absence.
+
+**What it cannot do is be ASKED for one.** The residual is sorted into four bins — held, novel,
+rebinding, mechanism — and all four sort the gap by what is MISSING. None sorts it by what is WRONG.
+So a refusal can be composed and is never DEMANDED: the agent arrives at one the way it arrives at any
+term, and nothing in the loop says *a term you hold is false, and a refusal is owed.*
+
+**Which is a narrower gap than the draft claimed and a stranger one.** The vocabulary is present and
+the demand is absent, so the capability exists without an occasion. Refutation still mostly happens as
+a term quietly losing standing — the machinery doing something *to* a term rather than the agent
+stating it — and that half of the draft stands: **a correction that leaves no term behind is one the
+next play inherits the consequence of and not the reason for.**
+
+**And some of what it paid for it can never build on.** Terms that settle but whose shape already exists
+in the library are real, and they predict when bound, and they add nothing to what can be composed. The
+agent has no way to notice this from the inside: **from where it sits, a term that bought reach and a
+term that bought nothing look identical**, because both are settled and both are in the library. Only a
+reading that counts the reach rather than the library tells them apart.
 
 ## The game is lost
 

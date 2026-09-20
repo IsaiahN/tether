@@ -16,7 +16,7 @@ Read this first if you have not seen the notation. Every symbol below appears in
 |---|---|---|
 | **Γ** | the library | Everything the system can currently express: its primitives, and everything it can build by combining them. Read *gamma*. |
 | **atoms(Γ)** | the primitives | The terms in the library that were not built from anything else. The floor of what it can say. |
-| **closure(Γ)** | the reach | Everything expressible by combining the primitives, at any depth. What the system could say if it searched forever. |
+| **closure(Γ)** | the reach | Everything expressible by combining the primitives, at any depth. What the system could say if it searched forever. **The library only grows; the reach is derived from it and can fall** — see step 3's refuting term. |
 | **b** | the belief | What the system takes to be the case before it acts. Formed from its own history and from what it inherited, mixed by `w`. Not the observation. |
 | **w** | the weighting | How far the belief leans on private encounter history versus inherited prior. `w_A + w_B = 1`, and `w` is learnable from the outcomes of past weightings. **Two frames with identical architecture diverge because their histories and their `w` diverge — that is the pose, and it is what makes them non-identical for a stateable reason.** |
 | **a** | the action | What it does. |
@@ -28,7 +28,8 @@ Read this first if you have not seen the notation. Every symbol below appears in
 | **φ** | a candidate term | A new predicate the system is considering adding to the library. Read *phi*. |
 | **\|φ\|** | its cost | How much it costs to state `φ`, under a **declared code**. Also written `cost(φ)`. |
 | **\|R\|φ\|** | the leftover | How much residual remains once `φ` explains what it can. Also written `left(R,φ)`. **May be greater than zero.** |
-| **bond** | the joint | The typed relation between two operands. Seven of them, and which one holds is not recoverable from the operands, so a term that names only its ingredients has recorded half of itself. |
+| **bond** | the joint | The typed relation between two operands. Seven of them — the binary operators — and which one holds is not recoverable from the operands, so a term that names only its ingredients has recorded half of itself. |
+| **¬** | negation | The one operator that acts on a single operand: *this does not hold*. Not a bond, because it joins nothing, so it does not enter `\|bonds\|` in the price below. **A vocabulary without it can say what is missing from an arrangement and cannot say that an arrangement is wrong.** |
 | **molecule** | a bonded arrangement | Any composition of atoms and the bonds between them. A chain is the degenerate case: one bond type, no branching. Nothing about a chain is a different kind of object. |
 | **T_A** | going up | Abstraction. Detail is thrown away, which is what makes the result reusable. *(≡ `α` in abstract interpretation.)* |
 | **T_E** | coming back | Concretisation. Putting an abstract result back into a specific situation. *(≡ `γ`.)* |
@@ -98,6 +99,38 @@ Six terms, and no system functions without any of them.
      BROKEN · rebinding  the model is right and attached to the wrong thing.
                          Re-fit the binding. Do not mint.
      BROKEN · mechanism  the model itself is wrong. A mint is owed.
+     REFUTED             a term the library holds is false. A mint is owed, and
+                         what it owes is a refusal rather than an explanation.
+
+   The first four sort R by what is MISSING. The fifth sorts it by what is
+   WRONG, and no arrangement of the other four reaches it: a term that is
+   confidently predicting the opposite of what happens is not an unmodelled
+   gap, a mis-attachment, or a broken mechanism. It is a claim to be refused.
+
+   WHICH TERM IS THE WRONG ONE. The candidates are ENUMERABLE rather than
+   intuited: every term currently bound and generating a prediction is a
+   candidate. And they rank by a quantity already recorded - the term whose
+   residual PERSISTS AND DOES NOT TREND DOWN is the one to point the refusal
+   at, which is the same shrinking test the selector runs at step 3, read
+   with the opposite sign. The selector asks which residual is improving;
+   this asks which one keeps being wrong and is not.
+
+   AND THE TERM MOST WORTH REFUSING MAY NOT BE IN THE LIBRARY AT ALL. A
+   frame searching for an answer of a particular SHAPE holds that shape as a
+   PREFERENCE rather than as a term. It is not bound, it predicts nothing,
+   and it accrues no residual, so nothing in this loop can see it. EVERY
+   CHECK HERE RUNS ON THE MECHANISM AND NONE RUNS ON THE DIRECTION OF THE
+   QUESTION - so a frame can route correctly, refuse the right KIND of
+   thing, and still aim the refusal at the outcome it did not want rather
+   than at the belief it holds.
+
+   THE REMEDY IS A DISCIPLINE, NOT A BIN. Make the sought-for shape an
+   ORDINARY TERM: write down what an answer would look like, bind it, and
+   let it accrue a residual like anything else. Then the preference enters
+   the machinery and is refusable by the same test. Committing a prediction
+   before a run is this, already working. What is left over is a seat's
+   office and not the loop's - a frame cannot certify its own completeness,
+   so the direction of the question is checked from outside or not at all.
 
    Record why not the neighbouring bin. A bin without its discriminator is
    a label, not a diagnosis.
@@ -125,6 +158,10 @@ Six terms, and no system functions without any of them.
    bond exists and rises as the vocabulary of bonds grows. A bond that costs
    nothing is a bond that carries nothing, which is a formula recording its
    ingredients and not its arrangement.
+
+   |bonds| COUNTS WAYS TO JOIN k OPERANDS. Negation is not one of them, so
+   admitting it does not raise this term. What a unary operator costs is open:
+   an atom slot, nothing, or the choice of what to negate.
 
    AND THE ARRANGEMENT IS THE SUBSTANCE. Two candidates with an identical
    ingredient set are not variants of one thing. Under a symmetric bond k
@@ -158,6 +195,23 @@ Six terms, and no system functions without any of them.
    accepting and the slot still owes. Step 7 fires on failure to CLOSE R,
    never on failure to PAY.
 
+   A REFUTING TERM PAYS THE SAME BARGAIN. Against the REFUTED bin the candidate
+   is ¬ψ for some ψ already held. Stating the refusal, plus what remains
+   unexplained after it, costs less than what was unexplained before — the same
+   inequality, the same code, the same guards.
+
+   WHAT IT REMOVES IS NOT A TERM. ψ keeps its place in the library and loses its
+   standing to be composed over. NOTHING IS EVER DELETED, and the reach falls
+   because something was ADDED that refuses, never because anything was struck
+   out. Which is what makes the fall safe to compute: a term is reachable if it
+   is derivable under everything currently held, so what happens to terms built
+   on ψ follows from derivation rather than being stipulated. And ψ cannot cycle
+   in and out, because ¬ψ never leaves: ψ is composable again only if something
+   new is minted, which is growth.
+
+   A LIBRARY THAT DELETED WOULD HAVE NEITHER PROPERTY, and could not tell
+   never-held from held-and-given-up.
+
 4. ACCEPT
    Γ ← Γ ∪ {φ}, stamped with where it came from and when.
 
@@ -181,6 +235,13 @@ Six terms, and no system functions without any of them.
    Until the ground settles it, a term is CANDIDATE: it may be held and it
    may not be cited. An unsettled term used as evidence in a later bet is how
    a wrong term compounds.
+
+   SETTLING IS NECESSARY AND IT IS NOT SUFFICIENT. A term is settled when the
+   ground pays for it. A term is USABLE when something can compose over it, and
+   that is a fact about how it composes rather than about what it paid. So a
+   system can hold terms it purchased and cannot use, and a library that grows
+   is not a reach that grows. Nothing composes over what was never admitted as
+   a part — and admitting it does not guarantee anything composes over it.
 
 6. PROMOTE
    Generators cross upward; playback never does.
@@ -223,8 +284,18 @@ Six terms, and no system functions without any of them.
    the split lands on a union rather than a partition, unbundle before
    searching again.
 
-   THEN it is two questions, not one, and their instruments are opposed.
-   Never read one against the other.
+   THEN it is three questions, not one. The first two are opposed and must
+   never be read against each other. The third moves nothing and is checked
+   before either, because it is the cheapest and the other two assume its
+   answer.
+
+   SEARCHED   Is it in here and unfound?
+              The closure does not change. Same atoms, same wall, more of the
+              space actually visited. UNREACHED is not unreachable, and an
+              exhausted budget is a fact about the budget. Distribute the
+              search and keep the searchers independent: searchers drawing on
+              the same evidence are one searcher wearing many names.
+              Fails by spending budget on a region already swept.
 
    INWARD   Is our representation adequate to hold it?
             Extend the instrument. An instrument is improved from a worse one
@@ -246,12 +317,27 @@ Six terms, and no system functions without any of them.
    is depth and some is genuine absence, and from inside the frame the two
    look the same.
 
+   AND THE TWO DO NOT ISSUE THE SAME INSTRUCTION. Underivable-in-principle:
+   go outside. Unreachable-at-this-budget: the term is already in the closure
+   and was not found, so the remedy is more search, not another atom.
+   IMPORTING AGAINST A BUDGET LIMIT ADDS AN ATOM THAT WAS NOT NEEDED, and a
+   wrong atom costs more than starting from primitives. Which is why SEARCHED
+   is asked first.
+
 8. REPEAT
    The residual drives the next cycle.
    ┌──────────────────────────────────────────────────────────────────┐
-   │  Γ is now larger by whatever was accepted, so the prediction at   │
-   │  step 1 is different, so R is different. Return to 1.             │
+   │  The REACH is now different — larger by whatever was accepted and │
+   │  composable, smaller by whatever a refusal removed the standing   │
+   │  of — so the prediction at step 1 is different, so R is           │
+   │  different. Return to 1.                                         │
    └──────────────────────────────────────────────────────────────────┘
+
+   IT IS THE REACH THAT DRIVES THE LOOP, NOT THE LIBRARY. Γ can grow while the
+   reach does not move: a term that pays, settles, and composes with nothing
+   enlarges the library and changes no prediction. So a loop that stops when Γ
+   stops growing stops at the wrong place, and a system measuring its own
+   progress by terms minted is counting the denominator.
 
    Nothing here maintains the ground. The ground does not decay; the channel
    to it does, and keeping that channel open is a seat's office, not the
@@ -438,3 +524,43 @@ To demonstrate the loop on a case, state each step explicitly and stop where the
 30. **"The loop applies to itself"** — self-application is required, self-validation is forbidden.
 31. **Frame defined against the coordinate-system reading**, in the two-words note.
 32. **`R` named as the aim**, not only the error signal.
+
+---
+
+## CHANGES IN THIS REVISION
+
+Seven changes, all following from the amended figures. **Two are corrections; five are additions to
+places the loop was silent rather than wrong.**
+
+33. **Negation added to the symbols, and to the operator set.** The seven bonds are the binary
+    operators; `¬` is the one that acts on a single operand. It is not an eighth bond, so it does not
+    enter `|bonds|` in the price, and what a unary operator costs is left open rather than invented.
+34. **A fifth bin at ROUTE.** The four bins sort `R` by what is *missing*. `REFUTED` sorts it by what
+    is *wrong*, and no arrangement of the other four reaches it.
+35. **The refuting term pays the same bargain, and removes nothing.** `ψ` keeps its place and loses
+    its standing to be composed over. **Nothing is ever deleted**, and the reach falls because
+    something was added rather than because anything was struck out.
+36. **Which is what makes the fall computable.** Reachability under everything currently held answers
+    the dependency question by derivation instead of stipulation, and a refused term cannot cycle back
+    without new growth. A library that deleted would have neither property.
+37. **Settling is necessary and not sufficient**, at SETTLE. A term can be paid for and composable
+    with nothing. A library that grows is not a reach that grows.
+38. **A third question at step 7: SEARCHED.** Same atoms, same wall, more of the space visited. Asked
+    first because it is cheapest and because the other two assume its answer. Independence of the
+    searchers is the parameter, not their number.
+39. **Step 8 is driven by the reach, not by `Γ`.** A loop that stops when the library stops growing
+    stops at the wrong place, and a system measuring progress by terms minted is counting the
+    denominator.
+
+40. **Which term is the wrong one, at ROUTE.** The fifth bin named the residual and not the
+    candidate. The candidates are enumerable — every bound, predicting term — and they rank by the
+    same shrinking test the selector runs, read with the opposite sign.
+41. **And the direction limit, stated because it is a limit.** The term most worth refusing may not
+    be in the library: a frame's sought-for SHAPE is a preference, not a term, so it is unbound,
+    predicts nothing, and accrues no residual. **Every check in this loop runs on the mechanism and
+    none on the direction of the question.** The remedy is a discipline — bind the sought-for shape
+    as an ordinary term — and what remains is a seat's office, not the loop's.
+
+**And one correction carried in from Figure 8.** Underivable-in-principle and unreachable-at-this-
+budget do not issue the same instruction. Importing against a budget limit adds an atom that was not
+needed, and a wrong atom costs more than starting from primitives.
