@@ -829,6 +829,34 @@ graded per game and never pooled.**
   F180 (the work-bound) killed the per-frame explosion; the reuse fix (policy-level abstraction) is
   the next prerequisite. THEN the per-game §13 loop + the noise-annealing curriculum across all 25.
 
+- **THE MINT COST IS THE GROWTH-CONTROL PREREQUISITE, AND IT IS NOW MEASURED RATHER THAN ASSERTED
+  (2026-09-20).** `0.16` s/cycle at library 48 (atoms only) rising to `~40` at 69, with **slots flat
+  at 320–392 throughout — so frame density is not the driver, library size is.** It **saturates**
+  rather than exploding (per-term growth `~0.27 → ~0.06`), which is `work_budget`'s cap at
+  `tether.py:343` doing its job. **This is the concrete form of the bloat this section predicts,
+  and it confirms the ordering: growth control before the 25-game run.**
+
+### 14.7b "PHASE 2" MEANS THREE DIFFERENT THINGS — read this before ordering anything (2026-09-20)
+
+**`A6i`. Two of the three were fused in the seat's own ledger until today, in the direction that
+breaks a validation.** This plan previously referenced **none** of them outside §14.5.
+
+| sense | what it is | authority |
+|---|---|---|
+| **Phase 2 (curriculum)** | anneal toward coherence — the middle rung of §14.5's schedule | §14.5 above |
+| **Phase 2 (held-out)** | **`arc-interactive`'s 249 games — the VALIDATION set.** Genuinely unexposed: no answer keys, no measurements, no design decisions taken against them | reviewer ruling 2026-09-20 11:17 |
+| **Phase 2 (guide harvest)** | GameFAQs retro walkthroughs — **a TRAINING SOURCE**, runs after Phase 1 | `PHASE2_GUIDE_CURRICULUM.md` |
+
+- **Grade convergence on the 25; VALIDATE on the 249**, which the architecture has never seen.
+  That moves the held-out sense from *later* to **before the architecture freezes**.
+- **The seal on a subset of the 25 is withdrawn and cannot be rebuilt** — every one of the 25 is
+  exposed, and you cannot retroactively un-see a board. **Seed 1618 was withdrawn with it**; the
+  identical number survives as `feeder.SHUFFLE_SEED`, an unrelated quantity.
+- **OPEN, and it is a different question from exposure:** nobody has checked whether the 249 are a
+  good PROXY for the private set — they are community games, not ARC's. Isaiah's cluster analysis
+  is the instrument. **Unexposed is what the seal needed; representative is what INTERPRETING the
+  result will need.**
+
 ### 14.8 Reviewer refinements (reviewer, 2026-09-18)
 
 - **The metric level is MEASURED, not chosen (Q1).** Run the saturation experiment one level up:

@@ -71,6 +71,9 @@ sys.dont_write_bytecode = True
 # better than another. Declared once and never searched: a seed picked by trying several is a
 # fitted constant wearing a seed's clothes. THE FALSIFIER: if a rung's reading moves when this
 # changes, the reading was seed noise and the sweep owes a result across seeds, not one seed.
+# A6i, RECORDED WHILE NOTHING IS WRONG because the colliding item is nameable: 1618 was ALSO the
+# held-out-selection seed the reviewer WITHDREW on 2026-09-20 with the subset seal. Different
+# quantity, same number, and no code reads both. Do not read this as that seed.
 SHUFFLE_SEED = 1618
 
 

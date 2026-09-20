@@ -55,9 +55,26 @@ moved* is older than a day gets an explicit status chase, not a silent carry-for
 
 | item | state |
 |---|---|
-| **Phase 2 re-prioritisation** | The reviewer's ruling promotes `PHASE2_GUIDE_CURRICULUM` from *extra curriculum, later* to **the internal private-set proxy**, which must run **before** the architecture freezes. The plan still files it as later. **Owed: update `TRAINING_PLAN` §14.7's ordering.** |
+| **Phase 2 re-prioritisation** | **THIS ROW WAS WRONG AND IS CORRECTED IN PLACE, 2026-09-20 — `A6i`, THREE SENSES OF "PHASE 2".** It read: *the ruling promotes `PHASE2_GUIDE_CURRICULUM` … owed: update `TRAINING_PLAN` §14.7's ordering.* **Both halves are false.** The reviewer's 11:17 ruling names **`arc-interactive`'s 249 games** — *"no answer keys built, no measurements taken, no design decision made against them"*. `PHASE2_GUIDE_CURRICULUM.md` is **GameFAQs retro-game walkthroughs: a TRAINING SOURCE, not a held-out set**, and it contains no 249 games. **And §14.7 orders neither** — `TRAINING_PLAN.md` has zero references to the 249, to `arc-interactive`, or to the guide curriculum. **The error direction is the dangerous one: acting on this row would validate on a training source and destroy the validation.** **Owed, restated: give `TRAINING_PLAN` a pointer to BOTH Phase 2s under distinguishing names.** |
 | **`F130`'s supply-side table is stale** | It reports Γ holding `recolour` and `translate` among 48 atoms. Measured today: **45 atoms, neither present.** Do not quote it again without re-measuring. |
 | **Forward-binding seal** | Ready to install; largely moot under the Phase 2 ruling. Revisit only if the reviewer wants the 25 split as well. |
+
+## NAME COLLISIONS LIVE IN THIS PROJECT — `A6i`, added 2026-09-20
+
+**"PHASE 2" CARRIES THREE LEGITIMATE SENSES AND THEY ARE NOT INTERCHANGEABLE.** Two of them were
+fused in this very ledger until today, in the direction that breaks a validation.
+
+| sense | what it is | where |
+|---|---|---|
+| **Phase 2 (curriculum)** | anneal toward coherence — the middle rung of the noise-annealing schedule | `TRAINING_PLAN` §14.5 |
+| **Phase 2 (held-out)** | **`arc-interactive`'s 249 games — the VALIDATION set**, genuinely unexposed | reviewer ruling 2026-09-20 11:17 |
+| **Phase 2 (guide harvest)** | GameFAQs retro walkthroughs — **a TRAINING SOURCE**, runs after Phase 1 | `docs/PHASE2_GUIDE_CURRICULUM.md` |
+
+**`SEED 1618` IS A SECOND COLLISION, AND IT IS RECORDED WHILE NOTHING IS WRONG — the prospective
+case, because the colliding item is nameable.** It was the **withdrawn** held-out-selection seed
+(withdrawn 09-20 11:17 with the subset seal). It is ALSO `feeder.SHUFFLE_SEED`, the curriculum
+shuffle — a different quantity that happens to reuse the number. **Checked and clear: no code
+reads both.** Named here so the next reader does not take a live seed for a withdrawn one.
 
 ## MEASURED CONSTRAINTS THAT BOUND OPEN WORK — added 2026-09-20
 
@@ -103,7 +120,7 @@ noticing. Answers below are from evidence, and where I do not know I say so rath
 | **6** | **Arm B** | **LIVE AND UNRESOLVED. Still default OFF.** `F137` decomposed it into two distinct effects (ls20 gains from the binding itself, tn36 from arity-2 reuse and it costs a goal slot), and every depth run in `F153`'s panel was taken under it. **It is the one arm never settled, and I did not resolve it.** |
 | **7** | **Composition-overlap base rate — how was the null built?** | **I DO NOT KNOW.** It predates this seat and I have not reconstructed it. **You are right that it is the one number in that finding nobody outside can check, and I am not going to assert a construction I did not verify.** Needs the original run or a rebuild. |
 | **8** | **`_library_fit` absolute vs comparative** | **OPEN, genuinely, not urgent.** Arm D is off and nothing waits on it. |
-| **9** | **Phase 2 re-prioritisation** | **I OWN IT.** Your 11:17 ruling makes Phase 2 the held-out set, which moves it from *later* to *before the architecture freezes*. `TRAINING_PLAN` §14.7 still orders it as later. **Mine to update.** |
+| **9** | **Phase 2 re-prioritisation** | **I OWN IT — and my answer here was wrong; see the corrected row under HELD BY THE SEAT.** Your 11:17 ruling makes **`arc-interactive`'s 249** the held-out set. I answered as though that ruling moved `PHASE2_GUIDE_CURRICULUM` (walkthrough harvest — a training source), and as though §14.7 ordered it. **§14.7 mentions neither.** |
 
 **AND THE ITEM THAT SUPERSEDES THE ONE YOU THINK IS CLOSED: `F157`.** You ruled the wire in bounds
 twice. **Measured before importing: `closure_map`'s recipe primitives are 0 of 15 present in Γ and
