@@ -34646,3 +34646,53 @@ identifier BEFORE investigating it, not before explaining it.** I grepped `_expl
     MECHANISM   unchanged. `split_refused` stands and is the one durable addition
     CAPABILITY  unchanged. F31's verdict is confirmed, its open question closed, and its
                 structural reason supplied
+
+---
+
+## `F143` — the failed-path catalogue is built, wired, fixture-verified, and STRUCTURALLY UNREACHABLE
+
+**`F142`'s lesson applied immediately and paid twice.** The POST-FREEZE queue lists *the
+FAILED-PATH CATALOGUE* as a build item and records it as **missing** — *"the agent has a rejection
+memory for routines; it does NOT catalogue failed strategies… that is the traction mechanism
+named, and it is missing."* **I grepped the identifier before investigating and it is not
+missing.**
+
+    tether.py:502    "THE FAILED-PATH CATALOGUE … Isaiah's BAR ruling: catalogue and save the
+                      failed paths, the salient attributes and the interactions"
+    tether.py:1707   `self.paths.setdefault(gk, {...}); rec["failed"] += 1`      the WRITE
+    tether.py:2235   candidates scored by `.get("failed", 0)`                     the READ
+    check_paths.py   8/8 PASS, four claims each with a negative control
+
+**Built, wired at both ends, and fixture-verified. The queue entry is stale.**
+
+### and it cannot fire
+
+`check_paths.py` says so itself — *"CAPABILITY is owed to a real board and is NOT claimed here."*
+The write site sits inside the branch for a routine that **"spent its whole budget and the guard
+never held"**, so **it requires an ADOPTED routine.**
+
+    routines adopted across every run measured this session     1
+    `routine_cut` at every depth, throughout the record         0
+
+**So `self.paths` is empty on a real board, and the scoring at 2235 is guarded by `if gap is not
+None and self.paths:` — a branch whose condition can never be met.** Mechanism complete at every
+site; capability structurally zero.
+
+> **WHICH REVISES THE SEQUENCING THE QUEUE CARRIES.** A prior judgement named the catalogue as one
+> of the two items *"that would plausibly move `levels_completed` off zero"*. **It cannot move
+> anything while its input is an exhausted routine and gate 3 abstains — correctly — before one is
+> ever adopted.** The catalogue is not blocked on the freeze. It is blocked on `_goal_split`
+> having something to choose between.
+
+### the same shape as everything else tonight, and now countable
+
+    negate            built, fires, and no bin ever DEMANDS a refusal
+    relation channel  built, supplies 110/134 rows, and two atoms can consume it
+    the catalogue     built, verified, and its input never arrives
+
+**Three mechanisms complete at every site with capability gated upstream.** That is what "built
+but never wired" turns out to mean here — not an unconnected wire, but **a connected wire with no
+current**, and only a per-mechanism capability reading distinguishes them.
+
+    MECHANISM   already complete; the queue entry saying otherwise is corrected
+    CAPABILITY  zero and structurally so. Nothing to build here until routines adopt
