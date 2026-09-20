@@ -35970,3 +35970,59 @@ value that is computed and discarded stops being discarded.**
 
     MECHANISM   nothing yet -- this entry exists so the verdict precedes the number
     CAPABILITY  none yet
+
+## F167 — `F166` RUN AND REFUTED. Built, measured, reverted — and the one number that could have been spun is n=1
+
+**The pre-registration said REFUTED if slots roughly double and `reach_failed` stays flat, and said
+I expected exactly that. Built it — three edits, `sensors_heavy.temporal`'s seven integer deltas
+carried as slots — and ran it A/B on ls20 at 12 cycles.**
+
+    ls20, 12 cycles        slots   reach   reach_failed   mint   bet
+      baseline              173     134        127          5    1990
+      F166                  320     199        185          5    3595
+
+    the PRE-REGISTERED metric        arity-1            arity-2
+      baseline                       7/7   (100%)       0/127  (0.0%)
+      F166                          13/13  (100%)       1/186  (0.5%)
+
+### the honest call on 0 -> 1
+
+**My own SUCCESS condition was *"reach_failed FALLS, or arity-2 met RISES, on at least one board."*
+Arity-2 went from 0 to 1. A literal reading passes.**
+
+> **IT DOES NOT PASS. One hit in 186 is n=1 and not separable from noise**, and calling it a rise
+> would be the over-claim the pre-registration exists to stop — **by the one person with a reason to
+> want it.** `reach_failed` did not fall either: it ROSE, 127 → 185, and its RATE is flat (94.8% →
+> 93.0%). **The wording of a success condition is not the condition; a single event is not a trend.**
+
+### and it is worse than inert, which the pre-registration did not anticipate
+
+**`conform/check.py`'s `m2` seat FAILED — clean before the edit, failing after, verified by stashing:**
+
+    check_strategy_is_emitted_when_a_routine_drives
+        the mix became  probe 0.97 · directed 0.03 · strategy 0.00
+    check_the_act_space_stays_narratable
+        the ACT space leaked ['split_refused']
+
+**Seven extra slots per object did not merely add readings — they pushed the agent to 97% PROBING.**
+More unknowns, so it explores instead of acting, and `strategy` goes to zero. **Work rose 81%
+(1990 → 3595 bets) for one arity-2 hit.**
+
+**THE SEAT REFUSED THE COMMIT AND WAS RIGHT TO.** `M2_STANDARD`'s tripwire caught a behavioural
+regression that none of my own three planned measurements would have — I was watching slots, reach
+and arity, and the thing that broke was the action mix.
+
+### REVERTED
+
+Working tree clean, 10/10 seats. **Fourth vocabulary widening in this record to be built, measured
+and reverted** — after the heavy scalars, the five `partner` atoms, and the typed predictor stream.
+**The prior stated in `F166` held.**
+
+> **AND THE PATTERN IS NOW WORTH MORE THAN THE FOURTH INSTANCE.** Every widening has been inert or
+> harmful, on four independent attempts, by four different routes. **That is no longer a series of
+> null results — it is evidence about the shape of the wall**, and the next proposal to widen
+> perception should have to say why it is not the fifth.
+
+    MECHANISM   built, A/B measured, reverted. A pre-registration that named its expected
+                verdict and got it, and a literal success condition refused on n=1
+    CAPABILITY  none. The agent can reach nothing it could not, and probes instead of acting
