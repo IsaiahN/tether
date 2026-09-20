@@ -59,6 +59,51 @@ moved* is older than a day gets an explicit status chase, not a silent carry-for
 | **`F130`'s supply-side table is stale** | It reports Γ holding `recolour` and `translate` among 48 atoms. Measured today: **45 atoms, neither present.** Do not quote it again without re-measuring. |
 | **Forward-binding seal** | Ready to install; largely moot under the Phase 2 ruling. Revisit only if the reviewer wants the 25 split as well. |
 
+## PRIORITY 0 — THE SPACING SWEEP. LIVE RESULTS, updated 2026-09-20 as rungs land
+
+**Isaiah ruled it top priority in training. Built `18f83f2`, running since 14:27.**
+
+| rung | spacing | minted | settled | carried_in | PROBE (dc22 live) | mins |
+|---|---|---|---|---|---|---|
+| 1 | 1 (random-dense) | 53 | 16 | 0 | **9/150 = 6.0%** | 42.8 |
+| 2 | 2 | — | — | *predicted 4* | in flight | — |
+| 3 | 4 | — | — | — | — | — |
+| 4 | 8 (coherent) | — | — | — | — | — |
+
+**RUNG 1's PROBE IS THE ESTABLISHED `dc22` BASELINE TO THE DIGIT.** Not within ±2 variance —
+identical. **And the null survived its trivial explanation**: 4 new compositions did reach the
+probe (`refused []`), so this is not a plumbing failure. **53 mints, 16 settled, 16 promotions,
+contact change ZERO** — Figure 11 with numbers, and the failure a mint count hides.
+
+**NOT THE VERDICT. One point is not a curve, and `spacing 1` is the DENSE end where Isaiah says
+the agent barely has to reason.** The pressure is at the wide rungs.
+
+### the standing prediction, so a flat curve cannot be explained away afterwards
+
+**The rung ladder BARELY ACCUMULATES**, because carrying Γ between rungs goes through §17.8's
+save/load and that keeps distinct compositions while dropping bindings. Measured: a 101-term
+library carried **4**. **So rung 4 ends near `48 + 16–24` terms, and four rungs may not accumulate
+enough material for a widening gap to bite on — a property of THE SCHEDULE, not of the agent.**
+
+**The POOLED 25-game tape (`002dfbc`, built, NOT RUN) has no rung boundary — one continuous Γ,
+nothing saved or loaded — so accumulation actually happens there.** That is an argument for the
+pooled tape independent of the curriculum argument, and it is where I expect the informative run.
+
+## GATE FINDINGS FROM TONIGHT — `F187`–`F189`, and one is a live correction to this brief
+
+| finding | state |
+|---|---|
+| **Gate 1 opens on `ls20` ALONE** | Four boards: `ls20` 1–2 qualifying slots; **`vc33`, `ka59`, `tn36` all ZERO.** `tn36`'s run had landed nine hours before the brief's *may still be in flight*. |
+| **WHY: the residual does not move** | `tn36`'s only slot reads `(88, 5, 88)` on **all 57 rows** — the agent acts 59 cycles and the satisfied count never changes by one object. `MIN_REPEAT=2` needs three readings with a real decrease, so a constant series **cannot** qualify. **Live, not stale** (`resolved == scope` recomputed each step). **A CONTACT reading, not a selector one.** |
+| **Movement is NECESSARY, not SUFFICIENT** | `vc33`/`ka59` have moving slots and still never qualify. `vc33` is 61% flat + **39% `too_short`** — the series is POPPED before three readings accumulate. Two failures, one symptom. |
+| **Gate 3's `all_tied` is genuinely SATURATED** | `n_actions=4, vacuous=False`, votes `{1.0,1.0,1.0,1.0}`. A closed question stayed closed under a test that could have voided it. **`ls20` only, 9 rows, one run.** |
+| **"19 of 38 survivors already hold" is UNSOURCED** | The figure appears **nowhere in `docs/`**. Measured overlap: **one slot, one run.** The brief carries a quantity with nothing behind it. |
+
+**DEFERRED ON PURPOSE, named so it is not read as an oversight:** a reason-code on `goal_residual`'s
+five `None` exits would close the `vc33` question. There is no BIND row, so no artifact can say
+which fires. **Not built tonight** — *you cannot diagnose your way to a composer*, and the sweep
+keeps the CPU.
+
 ## NAME COLLISIONS LIVE IN THIS PROJECT — `A6i`, added 2026-09-20
 
 **"PHASE 2" CARRIES THREE LEGITIMATE SENSES AND THEY ARE NOT INTERCHANGEABLE.** Two of them were
