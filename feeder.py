@@ -266,8 +266,14 @@ def probe(game: str, library: str, cycles: int = 25) -> dict:
             seen.append(now)
 
     arc_holdout.play(game=game, cycles=cycles, library=tmp, on_frame=tap)
-    key = reverse_engineer.answer_key(f"replays/{game}_human.ndjson")
-    hit, tot, _ = rlvr._rate(seen, key)
+    # COMPONENTS, NOT BOARDS. `_rate` scores over segmented objects and `against_null` converts
+    # before calling it; passing raw boards here read as a plausible call and is a different
+    # quantity. Caught by reading the only existing caller rather than the callee's signature.
+    objs = [arc_percept.components(b) for b in seen]
+    kp = Path(f"replays/{game}_answer_key.json")
+    key = (json.loads(kp.read_text(encoding="utf-8")) if kp.exists()
+           else reverse_engineer.answer_key(f"replays/{game}_human.ndjson"))
+    hit, tot, _ = rlvr._rate(objs, key)
     Path(tmp).unlink(missing_ok=True)
     return {"probe": game, "hit": hit, "of": tot,
             "pct": round(100 * hit / tot, 1) if tot else 0.0}
