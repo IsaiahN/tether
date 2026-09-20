@@ -142,7 +142,8 @@ ALL_GAMES = tuple(sorted(
 
 
 def pooled_order(games=ALL_GAMES, offset: int = 0, spacing: int = 1, skip: int = 0,
-                 take: int | None = None, seed: int = SHUFFLE_SEED) -> list[dict]:
+                 take: int | None = None,
+                 seed: int = SHUFFLE_SEED) -> tuple[list[dict], int]:
     """S14.5 PHASE 1: every game's chunks in ONE pool, block-shuffled TOGETHER.
 
     This is the thing the single-game dial cannot express. Phase 1's point is that *no game or
@@ -153,7 +154,12 @@ def pooled_order(games=ALL_GAMES, offset: int = 0, spacing: int = 1, skip: int =
     end state, all 25 interleaved as ONE game. So the same dial spans phase 1 to phase 3.
 
     Returns the frames already in order, each tagged with the game it came from -- the tape needs
-    the tag to keep mint provenance right, see `watch_many`.
+    the tag to keep mint provenance right, see `watch_many`) -- AND THE BLOCK COUNT, because the
+    dial can be INERT and nothing else shows it. Blocks are cut per game, so at `take=1` every
+    game is one chunk and therefore one block WHATEVER `spacing` says: measured, `spacing=1` and
+    `spacing=4` give byte-identical tapes at `take=1`. A pooled ladder run that way yields four
+    identical rungs, which reads as *the dial has no effect* when it means *the dial was never
+    connected*. **A pooled ladder needs `take >= 2`, and `take >= 8` to span 1/2/4/8.**
     """
     blocks = []
     for g in games:
@@ -164,7 +170,7 @@ def pooled_order(games=ALL_GAMES, offset: int = 0, spacing: int = 1, skip: int =
             blocks.append([dict(steps[j], _game=g)
                            for c in chunks[i:i + spacing] for j in c["idx"]])
     random.Random(seed).shuffle(blocks)
-    return [f for b in blocks for f in b]
+    return [f for b in blocks for f in b], len(blocks)
 
 
 def watch_many(games=ALL_GAMES, cycles: int | None = None, offset: int = 0, spacing: int = 1,
@@ -181,7 +187,7 @@ def watch_many(games=ALL_GAMES, cycles: int | None = None, offset: int = 0, spac
     would mark almost everything imported. Pooled runs therefore do not carry a library file yet;
     resolving that is a ruling about what cross-game means inside one pooled run, not a patch.
     """
-    frames = pooled_order(games, offset=offset, spacing=spacing, skip=skip, take=take)
+    frames, nblocks = pooled_order(games, offset=offset, spacing=spacing, skip=skip, take=take)
     tape = ReplayTape(frames, list(range(len(frames))))
     fr = tape.reset()
     # the palette is READ across the whole pooled tape -- a per-game palette would make the
@@ -202,7 +208,8 @@ def watch_many(games=ALL_GAMES, cycles: int | None = None, offset: int = 0, spac
 
     mints = collections.Counter(h.split("_", 1)[0] for h in g.handles.values())
     return {"games": len(games), "spacing": spacing, "offset": offset,
-            "take_per_game": take, "frames": len(frames),
+            "take_per_game": take, "frames": len(frames), "blocks": nblocks,
+            "dial_inert": nblocks == len(games),
             "cycles": cycles if cycles is not None else len(frames),
             "palette": palette, "switches": sum(1 for a, b in zip(seen_order, seen_order[1:],
                                                               strict=False) if a != b),

@@ -37492,3 +37492,54 @@ that chance adjacency is negligible, and a block boundary there usually crosses 
                 per rung. dc22 counts carry +/-2 -- but both probes are EXACT baseline matches
     MECHANISM   the ladder runs, the rungs are comparable, and the carry behaves as predicted
     CAPABILITY  none at either rung
+
+## F194 (INDEX series) — THE POOLED DIAL IS INERT AT `take=1`, AND A POOLED LADDER IS NOT AFFORDABLE. Both found by measuring the panel before running it
+
+**`F193` found the single-game ladder's "random" end was only `4/7` scrambled — by measuring the
+tape instead of trusting the generator. Applying the same check to the pooled tape BEFORE spending
+three hours on it found something worse.**
+
+    take=1  spacing=1  ->  blocks 25   frames  199   24 game-switches   median 20   mean 483
+    take=1  spacing=4  ->  blocks 25   frames  199   24 game-switches   median 20   mean 483
+                           ^^^^^^^^^^ BYTE-IDENTICAL TAPES
+
+**Blocks are cut PER GAME, so at `take=1` each game is one chunk and therefore one block WHATEVER
+`spacing` says.** A pooled ladder run that way yields **four identical rungs** — which reads as
+*the dial has no effect* when it means **the dial was never connected.** That is a false conclusion
+about the agent produced entirely by the schedule, and it is the exact shape of `F181` and the
+population errors: a number that is real and answers a question nobody asked.
+
+**PUBLISHED RATHER THAN REMEMBERED.** `pooled_order` now returns the block count and `watch_many`
+reports `blocks` and `dial_inert`. It catches the non-obvious case too: `take=2, spacing=4` is also
+inert, because 2 chunks in blocks of 4 is still one block per game.
+
+    take=1  spacing 1/4  ->  blocks  25 /  25     INERT
+    take=2  spacing 1/4  ->  blocks  50 /  25     inert at 4
+    take=8  spacing 1/4  ->  blocks 200 /  50     live
+
+### and the cost conclusion, which is the one that binds
+
+**A pooled ladder spanning `1/2/4/8` needs `take >= 8` — 1,525 frames.** At the measured saturating
+cost (`F185`, ~40 s/cycle at the ceiling) that is **~17 h per rung, ~68 h for four.** **NOT
+AFFORDABLE**, and the reviewer's own conditions include eleven days total.
+
+**What IS affordable is ONE POINT: `take=1, spacing=1`, 199 frames, ~2–3 h** — phase 1 at its
+maximum shuffle, which is the phase `§14.5` runs first.
+
+### the pooled tape is a far harsher habitat than the single-game one, and that is measured
+
+    single-game dc22 window   median 8 cells changed    mean 13     0-4/63 discontinuities
+    pooled 25-game tape       median 20 cells changed   mean 483    24/198 game switches (12%)
+
+**Every ~8 frames the board is replaced wholesale.** That IS `§14.5` phase 1 as written — *no game
+or temporal structure survives, so only shapes recurring EVERYWHERE pay off.* **But it is an open
+question, and I am naming it before the run rather than after, whether that leaves enough
+continuity for any prediction to form at all.** A curriculum can be too hard to learn from, and
+the mean of 483 changed cells is the number to hold against a null.
+
+    BOUNDARY    tape properties only, no agent. offset 0, seed 1618, dc22 for the single-game
+                comparison
+    MECHANISM   `blocks` and `dial_inert` now published, so an inert dial cannot be mistaken
+                for an ineffective one
+    CAPABILITY  none -- it prevents a false negative and retires an unaffordable plan before
+                it was scheduled
