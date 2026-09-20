@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import math
+import os
 import sys
 from collections import Counter
 from dataclasses import dataclass, field
@@ -48,6 +49,25 @@ OBJ_TYPE = "OBJ"
 # construction (its streams ARE these two); the retrieval path did not, and was satisfied by
 # accident until an atom carrying a third type reached it.
 BINDABLE = ("val", OBJ_TYPE)
+
+# F127's arm B. Seat-side and off unless asked for, so the default build is byte-identical.
+_TYPED_BIND = bool(os.environ.get("TETHER_TYPED_BIND"))
+
+
+def _head_accepts(cand: Any, slot_type: str | None) -> bool:
+    """Does the candidate's HEAD atom accept what the slot actually holds?
+
+    Three channels, and missing one is how this class of measurement keeps going wrong:
+    `in_type`, `also_accepts`, and `val` as the universal. An untyped slot is not a mismatch.
+    """
+    if slot_type is None:
+        return True
+    head = getattr(cand, "atoms", None)
+    if not head:
+        return True
+    a = head[0]
+    return (a.in_type in ("val", slot_type)
+            or slot_type in (getattr(a, "also_accepts", ()) or ()))
 # `CAN`'s THREE OUTCOMES. Named rather than bare strings because `UNKNOWN` is the one that gets
 # quietly folded into `NO` -- they behave alike at the commit and are different claims on the
 # record, which is check 3 exactly.
@@ -1210,6 +1230,18 @@ class Agent:
                 # and does it EXPLAIN is a behavioural one. Folding the first into the second
                 # would put two quantities under one name at the site that decides both.
                 if getattr(cand, "out_type", "val") not in BINDABLE:
+                    continue
+                # F127 EXPERIMENT, SEAT-SIDE SWITCH, DEFAULT OFF. The line above filters the OUT
+                # type and nothing filters the IN type against the slot's, so `none` -- a
+                # zero-test typed `PRED` -- binds to an EXTENT slot and reads `int(not width)`,
+                # unsatisfiable because a width is never 0. 354 of 424 measured mismatches are
+                # that one atom. The comment two lines up already says binding is a type
+                # question; it checks the wrong end.
+                #
+                # NOT ON BY DEFAULT because removing 354 bindings changes every board and the
+                # replacement is unmeasured -- those slots may simply lose their objective. An
+                # env switch so the two arms are one build and the comparison is real.
+                if _TYPED_BIND and not _head_accepts(cand, self.slot_types.get(slot)):
                     continue
                 if not self._explains(cand, slot, hist):
                     continue
