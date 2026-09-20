@@ -35925,3 +35925,48 @@ COMPUTED AND DISCARDED IN THE SAME FUNCTION.** No import graph shows it and no l
                 located, and their proposed fix corrected by one level
     CAPABILITY  none -- but the 56 stop being a semantic question or a perception build and
                 become "stop aggregating a value that is already computed"
+
+## F166 — PRE-REGISTRATION: carrying `temporal()`'s eight deltas as slots. Written BEFORE the build
+
+**`F165` found eight non-positional cross-frame deltas computed every frame and summed to a count
+before anything could bind them. This is the probe that carries them instead, and its verdict is
+fixed here so it cannot be fitted afterwards.**
+
+### the change, three edits, and the precedent is exact
+
+    arc_percept.py:412-415   "SENSOR 7, AT THE ONE MOMENT BOTH FRAMES ARE IN HAND" -- where
+                             drow/dcol are computed from `prev`. The eight go here
+    arc_percept.py:449       the slot-emission tuple ("row","col","h","w","colour","drow","dcol")
+    arc_atoms.py:74          ATTRIBUTE_TYPE, "declared once so they cannot drift apart"
+
+**`drow`/`dcol` are the precedent and they are the same shape**: a cross-frame difference computed
+where both frames are in hand and emitted as a slot. Nothing new is sensed — `sensors_heavy.temporal`
+already returns all eight.
+
+### WHAT WOULD MAKE THIS A GAIN, AND WHAT WOULD MAKE IT DENOMINATOR GROWTH
+
+    SUCCESS    reach_failed FALLS, or arity-2 met RISES, on at least one board
+               -- the agent reaches for something it could not describe before
+    REFUTED    slots roughly DOUBLE and reach_failed is flat
+               -- more readings, same reach. THE FORMULA step 8: "Gamma can grow while the
+               reach does not move, and a system measuring progress by terms minted is
+               COUNTING THE DENOMINATOR"
+
+**The expected cost is stated in advance: ~8 extra attributes per object, so ls20's slots and tn36's
+712 roughly DOUBLE.** F181's bloat is the standing warning — the library drowned at 48 → 174 terms
+with per-frame cost 7s → 72s — **so cycle time is recorded as part of the verdict, not as an
+excuse.**
+
+**AND THE HONEST PRIOR: I expect REFUTED.** Every vocabulary widening measured in this record has
+been inert — the heavy scalars (`F130`), the five `partner` atoms, the typed predictor stream — and
+each was refused for adding readings without moving reach. **Saying so first is what makes the
+success case worth anything.**
+
+### what this is not
+
+**Not the 2700 load.** These are Γ-native deltas the observer already computes, not library atoms.
+**Not a perception change** — no new sensor, no new clause, nothing reaches for a tenth sense. **A
+value that is computed and discarded stops being discarded.**
+
+    MECHANISM   nothing yet -- this entry exists so the verdict precedes the number
+    CAPABILITY  none yet
