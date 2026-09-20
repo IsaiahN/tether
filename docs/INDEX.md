@@ -35269,3 +35269,82 @@ the run's age before reading any zero from an archived ledger.**
     MECHANISM   nothing built. First depth-matched panel; three of my own causes excluded;
                 two archived-ledger artifacts caught
     CAPABILITY  none. The honest output is a smaller claim set than the night started with
+
+## F154 — THE FIGURE CENSUS IS 49% BASE64, `cue` IS ABSENT FROM THE CORPUS, AND FIGURE 4 NOT FIGURE 12 GOVERNS THE BLOCKED ADJUDICATION
+
+**The CUE_BOUNDARY ruling has been pending ~2h and the figures are the standing tiebreaker
+(Isaiah), so I ran it rather than waiting. It returned three things, and the first is about the
+instrument.**
+
+### 1 · THE TIEBREAKER'S OWN TEXT IS HALF METADATA
+
+    TOTAL extracted 125,642 chars      base64-like 61,472      48.9%
+
+**Eight of the fifteen figures carry an identical 7,684-char C2PA metadata block**, and a naive
+text extraction pulls it in. Any SUBSTRING census over the figures is running against a denominator
+that is half noise, and this sits on top of the substring hazard `I24` already records.
+
+**IT COST ME A CORRECT ZERO AND NEARLY A WRONG FINDING.** A word-bounded grep read `cue` = 0. I
+distrusted the zero — correctly, since raw-SVG grep misses words split across `tspan` — re-ran with
+joined tspans and got **`cue` = 2**. Both were false: **`rescue`** in Figure 3, and **base64** in
+Figure 5.
+
+> **SO THE FIRST CENSUS WAS RIGHT AND THE VERIFICATION WAS WRONG.** *A zero is the most convincing
+> kind of wrong* cuts both ways — I applied the doubt correctly and the looser instrument I reached
+> for to resolve it was the dirtier one. **The recipe, for the next seat: join `tspan`s, strip
+> `[A-Za-z0-9+/=]{24,}` runs, THEN word-bound.** All three, in that order.
+
+### 2 · `cue` AND `retrieval` DO NOT APPEAR IN THE CORPUS FIGURES
+
+    cue         0      retrieval   0      operator   17 (4 figures)      narrow   5
+
+**`CUE_BOUNDARY`'s central concept has no corpus-figure basis at all.** Its rule text turns on *a cue
+NARROWS RETRIEVAL*, and neither `cue` nor `retrieval` is a term the figures use. **That is a CLOSED
+AVENUE, which the doctrine holds is worth more than an untried one:** the reviewer's ruling cannot
+lean on the figures for the *cue* half of the question, and should know that before writing it.
+
+### 3 · FIGURE 12 ANSWERS THE QUESTION AS POSED, AND THE ANSWER IS "NO"
+
+> **"a bond is a binary operator … the operators divide by arity"** · Negation *"takes a term and
+> yields a term, and joins nothing. It is a unary operator."*
+
+**An operator is TERM → TERM.** The four in question are not:
+
+    detectors.py:37-40   "Translate": lambda e: _pos(e) and not (_ext(e) or _shp(e))
+                         effect-dict -> BOOL. A predicate over an observed mutation
+    closure_map.py:30    "translate": {"atom": "Translate", "recipe": "Ct + Co"}
+                         a NAME -> NAME+RECIPE lookup table
+
+**Neither is term → term, so neither is an operator under Figure 12's test.** The question as posed
+resolves NO.
+
+### 4 · BUT THE QUESTION IS POSED AGAINST THE WRONG FIGURE, AND THAT IS THE USEFUL PART
+
+**Figure 4's membrane is what actually governs what may cross: *only METHODS cross; a binding is a
+RECORDING, a composition is a METHOD.*** Applied:
+
+    OP_CLOSURE's recipes      "Translate = Ct + Co" is HOW THE LIBRARY BUILDS A CONCEPT.
+                              A method. Keyed on the AGENT'S OWN perceived op
+    map_answer_key            reads a HUMAN REPLAY -- what happened on one occasion.
+    molecule_key              A recording. Figure 4 refuses these
+
+> **SO THE LINE FALLS EXACTLY WHERE THE MODULE SPLIT ALREADY PUT IT**, which is a check on the split
+> rather than a new proposal: `closure_map` holds methods, `mapping` holds the replay readers, and
+> the firewall wants drawing on **the input's provenance**, not on a filename. **And this is the
+> ALPHABET/ROUTE objection answered from the corpus rather than from my preference** — a recipe is
+> what a term MEANS, which every competitor holds; a solved trace is which term WINS HERE, which is
+> the answer.
+
+### 5 · NOT ACTED ON, AND THE REASON IS TONIGHT'S OWN RECORD
+
+**I am not touching `CUE_BOUNDARY` on this reading.** `F150`, `F151` and `F152` were each a
+confident conclusion refuted by the next measurement, all within three hours — **and a figure
+reading is softer evidence than a measurement, not harder.** The asymmetry decides it: waiting costs
+a wire that is not going anywhere; wrongly opening a firewall voids the ablation SILENTLY, with
+nothing failing to tell us. **Presented to the reviewer as a resolution with citations. Theirs to
+take.**
+
+    MECHANISM   nothing built. The census instrument's own defect quantified and a recipe
+                recorded; one closed avenue established; the pending ruling given a
+                corpus-grounded resolution it can accept or refuse
+    CAPABILITY  none
