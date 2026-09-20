@@ -17,7 +17,11 @@ import arc_percept
 import detectors
 import relations
 import sensors_heavy
-from reverse_engineer import _actors, _match
+
+# THE OBSERVER NO LONGER IMPORTS THE ANSWER-KEY READER. `framepair` imports nothing, so no
+# runtime path from here reaches a replay -- the reviewer's source test, satisfied by the
+# import graph rather than by anyone's care.
+from framepair import actors, match
 
 sys.dont_write_bytecode = True
 
@@ -61,9 +65,9 @@ def _frame_vector(objs: list[dict]) -> dict:
     return {"objects": per_obj, "pairs": per_pair, "lit": lit, "loci": loci}
 
 
-# A `_match` "change" effect's delta keys -> the attribute that MUTATED. This is the cue: the
+# A `match` "change" effect's delta keys -> the attribute that MUTATED. This is the cue: the
 # mutation names which attribute changed, so the mapping looks up that attribute's atoms, not the
-# whole space. The frozen 6 are `_match`'s deltas; the heavy ones come from sensors_heavy.temporal.
+# whole space. The frozen 6 are `match`'s deltas; the heavy ones come from sensors_heavy.temporal.
 _MUT_ATTR = {"drow": "position", "dcol": "position", "dh": "extent", "dw": "extent",
              "dcells": "shape", "recolour": "colour"}
 _HEAVY_MUT = {"dArea": "area", "dCells": "occupiedCells", "dDensity": "density", "dHoles": "holes",
@@ -72,7 +76,7 @@ _HEAVY_MUT = {"dArea": "area", "dCells": "occupiedCells", "dDensity": "density",
 
 
 def _mutations(effects: list[dict], before: list[dict], after: list[dict]) -> dict:
-    """The mutations one frame->next fired, read off `_match`'s size-tracked effects: which
+    """The mutations one frame->next fired, read off `match`'s size-tracked effects: which
     attributes changed on the objects that persisted, and how many appeared / vanished. Both the
     frozen deltas AND the heavy ones (density, holes, solidity, velocity...) fire a directed cue."""
     changed: dict = {}
@@ -95,7 +99,7 @@ def _mutations(effects: list[dict], before: list[dict], after: list[dict]) -> di
 
 def observe(steps: list[dict]) -> list[dict]:
     """Run the observer across a replay's frames. Objects are tracked frame-to-frame by the
-    size-conserved matching the answer key uses (`_match`), so a mutation is a change in the SAME
+    size-conserved matching the answer key uses (`match`), so a mutation is a change in the SAME
     object. Returns, per frame, the full cue vector (attributes + composable relations) and the
     mutations that fired — the directed cues the mapping follows."""
     frames = [arc_percept.components(s["grid"]) for s in steps]
@@ -104,14 +108,14 @@ def observe(steps: list[dict]) -> list[dict]:
     for t, objs in enumerate(frames):
         # detectors read the ACTORS, not the background field (the largest component), so a
         # relation like Adjacency is object-to-object, not everything-touches-the-field.
-        actors = _actors(objs)
-        vec = _frame_vector(actors)
+        acts = actors(objs)
+        vec = _frame_vector(acts)
         muts = {"attributes": {}, "appeared": 0, "vanished": 0}
         loci = vec.pop("loci")
         if prev_objs is not None:
-            # `_match` pairs on actor-filtered lists; its ai indexes `_actors(objs)` == `actors`.
-            effects = _match(prev_objs, objs)
-            muts = _mutations(effects, _actors(prev_objs), actors)
+            # `match` pairs on actor-filtered lists; its ai indexes `actors(objs)` == `acts`.
+            effects = match(prev_objs, objs)
+            muts = _mutations(effects, actors(prev_objs), acts)
             for e in effects:
                 if e.get("kind") == "change":
                     for d in detectors.light_object(e):
@@ -125,7 +129,7 @@ def observe(steps: list[dict]) -> list[dict]:
         # composing at is the AGENT's question; a proctor-side >=2 "opportunity" threshold would
         # pre-answer it (a fault), and it saturated anyway. The agent reads this and judges.
         vec["loci"] = {i: sorted(s) for i, s in loci.items() if s}
-        out.append({"frame": t, "n_objects": len(actors), "cue": vec, "mutations": muts})
+        out.append({"frame": t, "n_objects": len(acts), "cue": vec, "mutations": muts})
         prev_objs = objs
     return out
 

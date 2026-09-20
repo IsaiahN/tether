@@ -17,6 +17,12 @@ import sys
 
 import arc_percept
 
+# THE FRAME-PAIR READING LIVES IN `framepair.py` (reviewer ruling, 2026-09-20). These four
+# were never replay-bound -- pure functions over perceived object dicts -- and housing them
+# HERE cost `observer.py` an import of this module, so anything importing the observer
+# pulled an ANSWER-KEY READER transitively. Aliased so every existing call site is unchanged.
+from framepair import SIZE_KEEP, actors, cost, match
+
 # anchor: Isaiah's ~5-10-action window (2026-09-14), midpoint 8 -- a declared convention, not
 # derived, adjustable; big enough to house a multi-step routine past max_depth 3.
 CHUNK = 8
@@ -50,75 +56,6 @@ def load_replay(path: str) -> list[dict]:
                       "avail": d.get("available_actions")})
     return steps
 
-
-def _actors(objs: list[dict]) -> list[dict]:
-    """Drop the background: the single largest component (the board field is one connected
-    same-colour region and swamps the diff). What remains are the actor objects -- the things
-    that move and change. A reading, not a rule: if a game has no dominant field this keeps
-    everything but the biggest, which is the honest default."""
-    if not objs:
-        return []
-    big = max(objs, key=lambda o: len(o["shape"]))
-    return [o for o in objs if o is not big]
-
-
-# anchor: two objects are "the same object" across a chunk only if the smaller keeps at least
-# this fraction of the larger's cells -- SIZE is what an object conserves under movement, where
-# position is not. A projectile stays ~4 cells wherever it flies; a region that contracts loses
-# cells gradually and stays above the floor; a genuinely new object has no size-mate. 0.5 is a
-# declared floor, not derived, adjustable -- it is the identity gate, and position only breaks
-# ties among the pairs that pass it.
-SIZE_KEEP = 0.5
-
-
-def _cost(b: dict, a: dict) -> float:
-    """How unlike a before-object and an after-object are, in the frozen attributes only. SIZE
-    difference dominates (the conserved identity); position drift is a light tiebreak, so a
-    far-moving object of the same size still matches. Does NOT require shape or colour to match
-    -- a contraction changes shape and a recolour changes colour, and matching on either mis-reads
-    those as vanish+appear (the F129b defect, and the too-tight position cutoff after it)."""
-    cb, ca = len(b["cells"]), len(a["cells"])
-    return abs(ca - cb) + 0.1 * (abs(a["row"] - b["row"]) + abs(a["col"] - b["col"])
-                                 + abs(a["h"] - b["h"]) + abs(a["w"] - b["w"]))
-
-
-def _match(before: list[dict], after: list[dict]) -> list[dict]:
-    """Match actor objects across two frames on conserved SIZE (position as tiebreak), then report
-    each matched pair's change as attribute DELTAS (drow, dcol, dh, dw, dcells) plus a relative
-    colour verdict (same/different -- never a literal). A pair failing the SIZE_KEEP gate is not
-    one object: the before vanished, the after appeared. Background (largest component) dropped."""
-    before, after = _actors(before), _actors(after)
-    pairs = sorted((( _cost(b, a), bi, ai)
-                    for bi, b in enumerate(before) for ai, a in enumerate(after)),
-                   key=lambda t: t[0])
-    ub, ua = set(range(len(before))), set(range(len(after)))
-    effects = []
-    for _cst, bi, ai in pairs:
-        if bi not in ub or ai not in ua:
-            continue
-        cb, ca = len(before[bi]["cells"]), len(after[ai]["cells"])
-        if min(cb, ca) < SIZE_KEEP * max(cb, ca):
-            continue
-        ub.discard(bi)
-        ua.discard(ai)
-        b, a = before[bi], after[ai]
-        drow, dcol = a["row"] - b["row"], a["col"] - b["col"]
-        dh, dw = a["h"] - b["h"], a["w"] - b["w"]
-        dcells = len(a["cells"]) - len(b["cells"])
-        dshape = a["shape"] != b["shape"]  # shape id changed: a pure rotate/reflect
-        recol = a["colour"] != b["colour"]
-        if drow or dcol or dh or dw or dcells or dshape or recol:
-            effects.append({"kind": "change", "drow": drow, "dcol": dcol,
-                            "dh": dh, "dw": dw, "dcells": dcells, "dshape": dshape,
-                            "recolour": recol, "shape": len(b["cells"]),
-                            "bi": bi, "ai": ai})
-    for bi in ub:
-        effects.append({"kind": "vanish", "at": (before[bi]["row"], before[bi]["col"]),
-                        "shape": len(before[bi]["cells"])})
-    for ai in ua:
-        effects.append({"kind": "appear", "at": (after[ai]["row"], after[ai]["col"]),
-                        "shape": len(after[ai]["cells"])})
-    return effects
 
 
 def _signature(effects: list[dict]) -> dict:
@@ -183,9 +120,9 @@ def _compose(before: list[dict], after: list[dict]) -> dict:
     cannot be written in the frozen set is a gap (with what it would need), never a reason to add
     perception. This is the answer key's derivation layer; the effect signature is its verification
     layer."""
-    ba, aa = _actors(before), _actors(after)
+    ba, aa = actors(before), actors(after)
     # reuse the same size-conserved matching the signature uses, but keep the object refs
-    pairs = sorted((( _cost(b, a), bi, ai) for bi, b in enumerate(ba) for ai, a in enumerate(aa)),
+    pairs = sorted((( cost(b, a), bi, ai) for bi, b in enumerate(ba) for ai, a in enumerate(aa)),
                    key=lambda t: t[0])
     ub, ua = set(range(len(ba))), set(range(len(aa)))
     stmts, gaps = [], []
@@ -262,7 +199,7 @@ def analyse(path: str, offset: int = 0) -> dict:
     for c in chunks:
         i0, i1 = c["idx"][0], c["idx"][-1]
         before, after = perceived[i0], perceived[i1]
-        eff = _match(before, after)
+        eff = match(before, after)
         # ACTION-AGNOSTIC: the chunk is a WINDOW OF FRAMES, not a sequence of actions. Frame
         # indices are proctor window markers; the answer key's content -- signature + composition
         # -- names no action (Isaiah, 2026-09-14).
