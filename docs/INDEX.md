@@ -37595,3 +37595,58 @@ of the 120 things this board's human does, and more watching did not add a secon
     MECHANISM   probe() now reports distinct / of_distinct
     CAPABILITY  none -- it retires "maybe the probe cannot move" and replaces a flat rate with
                 a countable thing that has to change for the sweep to mean anything
+
+## F196 (INDEX series) — NO BOARD IS CEILING-LIMITED, so the nineteen zeros are real. But the raw rate MIXES capability with the key's repetition structure
+
+**`F195` left this owed in its own boundary line: *other boards may genuinely be ceiling-limited —
+unchecked, and that check is owed before any other board's null is read.* Tonight's whole 25-board
+panel was read without it.**
+
+### the check, and it comes back clean
+
+Computed from the answer keys with **no agent**: a chunk is scoreable only if its span fits in the
+boards a probe sees (`_windows` returns nothing when `span >= len(objs)`).
+
+    all 25 boards:  max span = 7, on every one
+    at 26 boards (25 cycles): 100.0% of non-trivial chunks REACHABLE, on every one
+
+**No board is ceiling-limited. The nineteen zeros in the panel are genuine nulls, not artifacts of
+a probe that could not reach.** That is the strongest thing this check could have returned and it
+is now established rather than assumed.
+
+### but the same pass found a confound in the metric the panel was read with
+
+    game   hits  chunks  distinct  chunks/sig   raw rate
+    dc22      9     150       120      1.25       6.0%
+    sp80      5      61        31      1.97       8.2%
+    ls20      3      71        63      1.13       4.2%
+    m0r0      3     123        58      2.12       2.4%
+    sk48      2      88        88      1.00       2.3%
+    wa30      1     200       184      1.09       0.5%
+
+**`hit/total` counts CHUNKS, and a board where signatures recur hands several chunks to a single
+acquired signature.** `sk48`'s key repeats nothing (88/88); `m0r0`'s repeats twice over (2.12).
+**So the same one-signature capability reads as a different rate depending on the board's
+repetition structure** — and `dc22` and `sp80` are measured to match **the same single signature**,
+yet read `6.0%` and `8.2%`.
+
+**THE HONEST LIMIT OF THIS, because the tempting version is wrong: REPETITION DOES NOT PREDICT THE
+RATE.** `m0r0` has the HIGHEST repetition on the panel and one of the lowest rates. **So this is a
+CONFOUND in the metric, not an explanation of the partition** — it says the rates are not strictly
+comparable across boards, not that repetition is what produced them.
+
+### what it does and does not do to "only sp80 and dc22 clear the null"
+
+**Does not overturn it.** The null itself is a cross-game rate computed the same way, so the
+comparison is not obviously biased in either direction.
+
+**Does qualify it:** `8.2%` vs `6.0%` is not evidence that `sp80` is the better board for the
+agent. Both are **one acquired signature**, and the gap is their keys' repetition. **The comparable
+denominator is DISTINCT EFFECTS** — `1/31` on `sp80` against `1/120` on `dc22` — which `F195` added
+to `probe()` and which no panel reading has yet used.
+
+    BOUNDARY    answer keys only, no agent. The distinct-effect counts for ls20/m0r0/sk48/wa30
+                are NOT known -- only dc22 and sp80 have been measured at one signature each,
+                so "one distinct effect everywhere" is NOT claimed
+    MECHANISM   none -- an owed check discharged and a confound named
+    CAPABILITY  none. It converts nineteen zeros from "possibly unreachable" to "real"
