@@ -34877,3 +34877,51 @@ objective-carrying slots against ls20's 5.
     MECHANISM   unchanged, nothing built
     CAPABILITY  unchanged. The session's scope is now bounded: one board deeply, two shallowly,
                 and the deep one is atypical on the measure that drove the work
+
+---
+
+## `F148` — gate 1 fails three different ways on three boards, and `Q11` covers one of them
+
+**`F147` named the honest next question: why gate 1 never opens on vc33 and tn36. Grepping
+`_goal_choice` BEFORE measuring — `F142`'s corrected trigger — found `Q11` had answered it:**
+
+> *`_goal_choice` needs `MIN_REPEAT + 1 = 3` consecutive readings… the series run 0, 1 or 2.
+> **Two readings is what these boards supply.** SCOPE NOTE, NO CANDIDATE FIX.*
+
+**Confirmed with the `goal_series` row rather than re-derived** — which is the `F144` distinction,
+a prediction meeting a measurement:
+
+    board   series-length histogram        too_short   gate 1
+    ls20    {1:19, 2:19, 3:101}            38          OPENS, 8 qualified
+    vc33    {1:37, 2:36, 3:21}             73          never -- Q11 exactly
+    tn36    {1:1,  2:1,  3:39}              2          never -- AND Q11 DOES NOT APPLY
+
+### tn36 is a third case Q11 does not cover
+
+**39 of 41 tn36 series reach the full window, and every single one is FLAT** — all deltas exactly
+zero, 39 of 39. The length condition is satisfied; the *non-increasing with at least one real
+decrease* condition is not, because nothing decreases at all.
+
+    ls20   series reach length, some shrink              -> gate 1 opens
+    vc33   series never reach length                     -> Q11
+    tn36   series reach length and are 100% FLAT         -> a third failure
+
+**So the one gate fails for three distinct reasons across three boards**, and `Q11`'s *two
+readings is what these boards supply* is a vc33-shaped statement. On tn36 the readings are plentiful
+and motionless.
+
+### and tn36's flatness is `F136`'s state, now dominant rather than incidental
+
+`F136` recorded `R_goal` as LIVE AND INSENSITIVE on ls20 — recomputed every cycle over moving
+values while the satisfier count holds. **On tn36 that is not one slot's quirk; it is every
+full-window series.** The scope fraction never moves on a board with 712 slots of which 707 never
+change.
+
+> **WHICH MEANS *WHY DOES GATE 1 NOT OPEN* HAS NO SINGLE ANSWER, AND ANY FIX AIMED AT ONE CAUSE
+> MISSES TWO.** Lengthening the series helps vc33 and does nothing for tn36. Loosening the decrease
+> condition does the reverse. **`Q11`'s refusal to tune `MIN_REPEAT` — *tuning a constant until a
+> board passes is the encoded answer in a fix's clothes* — now has a second board behind it.**
+
+    MECHANISM   unchanged, nothing built
+    CAPABILITY  unchanged. Q11 confirmed on vc33, extended by a third failure mode on tn36, and
+                the no-fix ruling strengthened rather than challenged
