@@ -33805,3 +33805,52 @@ defect class as live and unrepaired, with a prior instance.
     CAPABILITY  unchanged. NO FIX APPLIED: removing 354 bindings changes behaviour on every
                 board and I have no reading of what replaces them. An unsatisfiable objective
                 is worse than none, but that is an argument and not a measurement
+
+---
+
+## `F128` — EXTENT has been ruled on four times and I reported it as a void; Isaiah remembered, the record had the number
+
+**`F127`'s companion, and the correction is to my own reporting rather than to any mechanism.** I
+published *EXTENT is accepted by ZERO atoms, so `h` and `w` are mapped, read every frame, and
+TERMINAL*, and drew the consequence that typing heavy scalars EXTENT would **multiply a dead
+population**. Both false, and the record had already settled the question in four places.
+
+### what the record says, each entry a decision with its reason
+
+    5858   build 2b, 2026-08-27. POSITION and EXTENT are TWO-DIMENSIONAL and the loop takes one
+           int per slot, so an object contributes row/col/h/w/colour as separate axes -- "the
+           only encoding in which a `translate` atom acts on a slot sensibly"
+    6724   closure OBJECT -> {PRED,OBJ} at depth 3, before and after a type-tightening:
+           `above` on POSITION or EXTENT  16 -> 16. EXTENT-accepting terms COUNTED, and
+           deliberately preserved while `above` on a COLOUR went 4 -> 0
+    7524   `(EXTENT, DELTA)` was in the commensurability table and was REMOVED before it was
+           ever read -- "height plus a row-displacement has nothing behind it but both being
+           cell counts." A pinned exclusion, which is what a pinned table buys
+    10905  `COMPARABLE = (COLOUR, POSITION, EXTENT, DELTA, SHAPE)` against
+           `ORDERED = (POSITION, EXTENT, DELTA)` -- EXTENT is declared in both, explicitly
+
+> **`above` ON EXTENT = 16 IS A PRIOR MEASUREMENT OF THE EXACT QUANTITY I REPORTED AS ZERO.** The
+> refutation was in the record, measured, before I ran anything. **One grep.**
+
+### the two independent catches, and that they were independent is the point
+
+**The reviewer** caught it from a banked number — *size gap-closure runs 44-64% against a 6-12%
+null, so what is closing those gaps if nothing accepts EXTENT?* **Isaiah** caught it from memory
+of the history — *extents were a thing before, it came up as a problem and wasn't.*
+
+**Neither re-examined my census.** Both ranged an independent reading against it, from different
+frames, and arrived at the same place. That is Figure 2 working exactly as drawn, and it is worth
+recording that the seat's own measurement was the least reliable of the three.
+
+### the mechanical cause, and it is the fifth of its kind this session
+
+`a.in_type == T` only. EXTENT arrives through `also_accepts` -- the group folds are declared
+`Atom("all_same", fold(all), COMPARABLE[0], PRED, also_accepts=COMPARABLE[1:])`, and EXTENT is
+`COMPARABLE[2]`. **14 atoms accept it.** The same session's other four: substring matching,
+refusals-as-occurrences, chain-position blindness, and `val` counted as a mismatch rather than as
+the universal type. **Every one is a population read through one channel when it has several.**
+
+    MECHANISM   unchanged. Nothing was wrong with EXTENT and nothing is repaired here
+    CAPABILITY  unchanged. What moves is the wire's cost estimate: typing heavy scalars EXTENT
+                gives them 14 consumers on arrival rather than none, so the gate is
+                `ATTRIBUTE_TYPE`'s 8 entries and not a missing consumer class
