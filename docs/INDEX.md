@@ -34595,3 +34595,54 @@ site I had already read twice.
     CAPABILITY  unchanged. The escalated question is now single-branch: a finer vote, or nothing.
                 What "finer" means is still not the seat's to pick -- degree of movement, margin,
                 or confidence are three different quantities and the corpus may already price one
+
+---
+
+## `F142` — `F31` had already closed gate 3 on 2026-09-09, and I re-derived it over four ticks
+
+**The most expensive instance of this session's one error, and the only one that cost ticks rather
+than a claim.**
+
+`F31`, 2026-09-09, CLOSED — not a defect, a quirk handled right:
+
+> *ls20's TWO gate-1 passes (cycles 17 and 18, slot o20.w) refuse at 1879… VOTE CENSUS: o20.w
+> transitions per action are ACTION1 n=13 moved 7 all DOWN (7*2=14>13, clears its bar), ACTION2/3/4
+> n=2 moved 2 all DOWN (clears). **EVERY ACTION MOVES o20.w THE SAME WAY, DOWN, NEVER UP.**
+> `wanted` is agent-internal and not in the ledger… if wanted is UP no action has ever moved it
+> that way and `max(votes)==0`; if wanted is DOWN all four clear their bar and
+> `tied==len(actions)`. **BOTH routes are named in 1879's own message and BOTH are the build
+> abstaining with cause.** THE COVERAGE HALF IS SEPARATELY RULED OUT…*
+
+**That is F138, F139, F140 and F141 in one paragraph, nine days earlier.** Same slot, same census,
+same monotone-DOWN finding, same two routes, same coverage elimination, same verdict — *the agent
+correctly says it has no basis to choose instead of picking at random.*
+
+### what I actually added, and it is one line of the row
+
+`F31`'s Outstanding: *"OPEN and not needed for the verdict: which of the two 1879 routes fired.
+**Needs `wanted`, which is not logged; one run wrapping `_goal_split` would settle it.**"*
+
+**Settled: it is `all_tied`, 9 of 9, so the DOWN route.** All four actions clear their bar and the
+tie is structural. Published rather than wrapped — `split_refused` at three exits — which also
+makes it readable on every future run instead of once.
+
+**And one thing `F31` did not state: WHY the tie is structural.** The vote is binary per action per
+goal and §13.4 fixes the goal count at one, so any two actions that both pass tie BY CONSTRUCTION.
+`F31` observed the tie; this says it cannot be otherwise.
+
+### the cost, recorded because it is the point
+
+**Four ticks of measurement to reproduce a closed entry.** Every earlier instance tonight cost a
+claim and was caught before or shortly after publication. This one cost WORK — and the trigger
+that would have caught it is the one already written down: **grep the record for the mechanism's
+identifier BEFORE investigating it, not before explaining it.** I grepped `_explains`, `fits`,
+`F32` and `objective_degree`, and never `_goal_split` or `wanted`.
+
+> **THE RECORD'S OWN TRIGGER SAYS *BEFORE WRITING A CAUSAL EXPLANATION*. THAT IS TOO LATE FOR
+> THIS CLASS.** By the time I wanted to explain gate 3 I had already spent three ticks measuring
+> it. **For a named mechanism the grep belongs before the FIRST measurement**, and the cheap
+> version is: grep the identifier the moment the mechanism becomes the subject.
+
+    MECHANISM   unchanged. `split_refused` stands and is the one durable addition
+    CAPABILITY  unchanged. F31's verdict is confirmed, its open question closed, and its
+                structural reason supplied
