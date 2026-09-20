@@ -36871,3 +36871,61 @@ boundary until now.
     CAPABILITY  none. But the curriculum now has a TARGET SET (the ~94 cross-board signatures,
                 11 of them on 4+ boards) rather than a description, and the agent's one
                 learned pattern is located in it: right family, 2-board tier
+
+## F183 (INDEX series) — WHAT HAPPENED TO THE SPACING SWEEP: a detector-bug cascade took the evening, and its stated prerequisite never existed
+
+**Isaiah, on the annealing curriculum: *"yes this was the plan, what happened there?"* Traced from
+the record rather than reconstructed.**
+
+### the proximate cause — the window was spent, and not on nothing
+
+Ruled unblocked **09-18 10:46** (*"do not pick a spacing, SWEEP it"*), pre-registered the same day.
+What the seat committed after that:
+
+    09-18 17:59-18:40   the heavy sensors reach the observer's cue vector
+    09-18 19:23-21:37   FOUR DETECTOR BUGS, surfaced by the generator prototype --
+                        Topology counted concavity as holes · perimeter was the bbox ·
+                        Adjacency was bbox-gap not cell contact · Solidity's condition
+    09-18 21:22         regression guards for those four
+    09-18 23:21-01:50   the composition->board synthesizer
+    09-19 07:51         the Phase 2 plan file
+
+**That is the generator round-trip audit working exactly as intended** — four real perception
+defects the public games had hidden. **It was worth the evening. The sweep was simply never returned
+to**, and nothing tracked that it had not been.
+
+### the structural cause, which matters more — THE PREREQUISITE DOES NOT EXIST
+
+The reviewer's spec: *"The sweep needs three things and YOU ALREADY HAVE TWO OF THEM. A spacing
+parameter on the CURRICULUM BUILDER — checkpoints every N chunks."*
+
+    grep for a curriculum builder      self_graded.py -- the LIBRARY-CLOSURE curriculum, a
+                                       sandbox parts-bin instrument, "found in a sandbox, not
+                                       on the board". Not a chunk-sequence feeder
+                                       synth.py -- its own line 10 says it provides something
+                                       "that any such curriculum would need". A PIECE of one
+    what feeds chunks to the agent     NOTHING. `chunk_replay` makes chunks; `map_chunk` maps
+                                       one; no module sequences them into training
+
+> **THERE IS NO CURRICULUM BUILDER FOR A SPACING PARAMETER TO ATTACH TO.** *You already have two of
+> them* was not true, and neither side checked it — **the same premise-unverified shape as the three
+> load rulings and the `seed 1618` receipt.**
+
+**AND THE NEAREST THING THAT EVER EXISTED WAS THE REPLAY-ENV** — the one that fed replay frames to
+the agent's loop, **built, run, reported into `§14`, and never committed (`F161`).**
+
+### so the reviewer's three items are TWO items and one missing artifact
+
+    #2  step-4 verifier        BUILT TONIGHT (rlvr.py) -- it needed no feeder, it scores a
+                               finished trajectory
+    #1  spacing sweep          needs the chunk-sequence feeder.  ABSENT
+    #3  pretraining run        IS the feeder being run.          ABSENT (uncommitted)
+
+**One absent artifact explains both unbuilt items**, which is why "nobody got to it" kept sounding
+sufficient and was not. **A thing that was never committed leaves no evidence of its own absence** —
+`§14` still reads as though the run is repeatable.
+
+    MECHANISM   nothing built. The sweep's history traced and its blocker identified as a
+                missing prerequisite rather than a missing decision
+    CAPABILITY  none -- but items 1 and 3 collapse into ONE build, the chunk-sequence feeder,
+                and that is a smaller and better-defined thing than two separate stalls
