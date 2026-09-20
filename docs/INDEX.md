@@ -36929,3 +36929,127 @@ sufficient and was not. **A thing that was never committed leaves no evidence of
                 missing prerequisite rather than a missing decision
     CAPABILITY  none -- but items 1 and 3 collapse into ONE build, the chunk-sequence feeder,
                 and that is a smaller and better-defined thing than two separate stalls
+
+## F184 (INDEX series) — THE CHUNK-SEQUENCE FEEDER IS BUILT, AND THE REVIEWER'S PRE-REGISTRATION RETIRED MY DESIGN BEFORE I COMMITTED IT
+
+**Pre-registered before the first run, per `F166`'s discipline:** the feeder works iff it runs
+end-to-end with nothing added to `_BETTING_PATH`, the agent mints while watching a trajectory it
+did not choose, and `coherent`/`shuffled` produce DIFFERENT runs — if identical, the dial is inert.
+**Declared expected verdict: it runs and the dial moves, but this is a WIRING reading, not a
+capability one.** That is what happened, and the capability half stayed unclaimed.
+
+**THE DESIGN IS A TAPE BEHIND THE EXISTING WORLD.** `ArcWorld` already takes a `wrapper` with
+`reset()`/`step()`, so replay frames substitute for the live game and every perception path is
+unchanged. A parallel env would have been a second implementation of the thing under test.
+
+**The agent WATCHES: `step()` advances the tape whatever action is passed**, so it predicts, is
+wrong, and mints against a trajectory it did not choose. `§13`'s *pretending to be the agent* from
+the other side.
+
+### the reviewer's ledger v3 landed mid-build and improved the artifact
+
+**Isaiah ruled the sweep PRIORITY 0 the same day.** Their pre-registration — ladder `1/2/4/8/16`,
+library CARRIES across rungs, **witness is the TRANSFER CLIFF not the rise**, ramp upward only —
+**retired my binary `coherent`/`shuffled` before it was committed.** Those are the two ENDS of one
+dial: spacing is the block length of preserved coherence, so `s=1` is random-dense and large `s` is
+coherent-wider. **`§14.5` in one parameter, in the plan's own words.**
+
+**AND THE LIBRARY SWITCH WAS ALREADY BUILT — `§17.8`'s `play(library=...)`.** Carrying Γ across
+rungs needed no new mechanism. **Sixth law, again: the instrument was already specified, and the
+lookup cost one grep.** One hazard it hides: **`play` SAVES after a run**, so probing the training
+path would fold probe experience back into training and the next rung would inherit it. The probe
+runs against a copy.
+
+### the population error, ninth instance, caught by the dial rather than by care
+
+First reading was **coherent 3 mints, shuffled 28**, at 20 cycles — a 9× effect. **It is 20 cycles
+of a coherent tape reading the game's OPENING against 20 of a shuffled one reading a random chunk
+MID-GAME.** Different CONTENT wearing ORDERING's clothes. **Withdrawn before it was filed.**
+
+**The fix is structural rather than a resolution to be careful: a contiguous `skip`/`take` window
+gives every rung the IDENTICAL frame set — asserted in code, 128 frames / 16 chunks, 5 of 5
+orderings distinct.** Contiguous rather than strided on purpose: a strided sample leaves
+neighbouring chunks non-adjacent, so a wide rung stops being coherent and the dial stops meaning
+what it says.
+
+    MECHANISM   feeder.py -- ReplayTape, chunk_order(spacing/skip/take), watch, probe, sweep.
+                CUE_BOUNDARY PASS, 10/10 seats, commits 18f83f2 and 3f938cb
+    CAPABILITY  UNCLAIMED and deliberately so. A sweep is in flight; no rung has landed. Mint
+                count is frame-internal and is not evidence -- the ground reading is the probe
+
+## F185 (INDEX series) — THE MINT COST IS SATURATING, NOT EXPONENTIAL, AND THE LIBRARY IS THE DRIVER
+
+**The reviewer recorded the sweep as displaced on 09-18 by the mint cost problem. It is still the
+binding constraint, and it was an adjective in the record until tonight.**
+
+**Measured PER CYCLE, because a cycles grid cannot separate cost-per-step from
+cost-as-the-library-grows** — and that distinction is exactly what decides whether the
+pre-registered *library CARRIES across rungs* is runnable at all.
+
+    library  48 (atoms only)    0.16 s/cycle
+    library  55                 5.14
+    library  60                22.52
+    library  69               ~40
+
+**SLOTS HELD FLAT AT 320–392 THROUGHOUT, so frame density is not the driver — library size is.**
+21 terms costs ~250×.
+
+### two points read as exponential and I nearly filed that
+
+`10 → 20` cycles cost `82s → 438s`, a 5.3× for a 2×. **On two points that is an exponential and the
+sweep is impossible.** The per-cycle curve shows the growth RATE falling — **~0.27/term early,
+~0.06/term by library 69** — which is what `work_budget`'s own comment at `tether.py:343` predicts:
+it bounds the *yields × operand-binds* axis, so cost climbs to a CEILING. **Saturating, not
+exploding, and that is the difference between infeasible and merely slow.**
+
+**Go to the write site, not to the mechanism that explains it.** The explanation was sitting in the
+comment on the constant.
+
+### the tape is the worst case for this BY CONSTRUCTION, and that is not a defect
+
+The agent never controls the board, so it is wrong nearly every step and **mints at close to the
+maximum rate.** That IS the pedagogical point of watching. **Consequence that does transfer: tape
+budgets do not transfer to live-board budgets**, and the feeder hits the wall before a live board
+would.
+
+    MECHANISM   no change to the agent. A constraint that governs every long run, quantified
+    CAPABILITY  none -- but it makes the sweep schedulable instead of open-ended: ~5h windowed,
+                ~10h full-tape, and each rung is written as it lands so a partial ladder survives
+
+## F186 (INDEX series) — "PHASE 2" CARRIES THREE SENSES, TWO WERE FUSED IN MY OWN LEDGER, AND THE FUSION BREAKS A VALIDATION
+
+**`A6i`, and the ledger I keep for Isaiah was the thing carrying it.**
+
+    Phase 2 (curriculum)      anneal toward coherence              TRAINING_PLAN 14.5
+    Phase 2 (held-out)        arc-interactive's 249 games          reviewer 09-20 11:17
+                              THE VALIDATION SET, unexposed
+    Phase 2 (guide harvest)   GameFAQs retro walkthroughs          PHASE2_GUIDE_CURRICULUM.md
+                              A TRAINING SOURCE
+
+My row read *the reviewer's ruling promotes `PHASE2_GUIDE_CURRICULUM` to the internal private-set
+proxy; owed, update `§14.7`'s ordering.* **Both halves false.** The ruling names the 249 — *"no
+answer keys built, no measurements taken, no design decision made against them."* The guide
+curriculum is walkthrough harvesting and contains **no 249 games**.
+
+**THE ERROR DIRECTION IS THE DANGEROUS ONE: acting on the row would have validated on a TRAINING
+SOURCE**, destroying the validation the ruling exists to create.
+
+**And `§14.7` orders NEITHER.** `TRAINING_PLAN.md` had **zero** references to the 249, to
+`arc-interactive`, or to the guide curriculum. **So the owed work was never *change the ordering* —
+it was that the master plan had no pointer to the held-out set at all.** `§14.7b` now names all
+three.
+
+**Cause is `A6i`'s writing side precisely: the row was written from THE RULING I HAD JUST READ
+rather than from WHAT `§14.7` SAYS.** Corrected in both rows that carry the error, never in a fresh
+row — a new entry leaves the wrong claim standing where it is actually read.
+
+### the prospective half, recorded while nothing is wrong
+
+**`1618` is the withdrawn held-out-selection seed AND `feeder.SHUFFLE_SEED`.** Different
+quantities, same number, **no code reads both — checked and clear.** Filed because `A6i`'s
+prospective clause applies: a cleared hazard is worth recording when the colliding item is
+nameable, and a reader meeting `1618` in `feeder.py` could take a live seed for a withdrawn one.
+
+    MECHANISM   TRAINING_PLAN 14.7b added; two LEDGER rows corrected in place; the seed
+                collision recorded at its site
+    CAPABILITY  none -- it removes a trap that would have silently invalidated the validation
