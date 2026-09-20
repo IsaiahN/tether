@@ -36264,3 +36264,56 @@ and nobody re-derived.**
                 file, and a correction sent to the reviewer who acted on it
     CAPABILITY  none -- but "load more, order does not matter" becomes "load more, and
                 ATOM_RANKING orders it", which is a different build
+
+## F172 — VALIDATING `ATTRIBUTE_REACH`'s "2700 OF 2700": it SURVIVES, it is scoped, and 65% sits behind ONE named capability
+
+**Second application of Isaiah's rule. `F164` leaned on *"2,700 of 2,700 atoms are reachable, zero
+exceptions"* to say the bridge already exists, and `F171` had just shown a corpus headline
+overstating its own table. So this one got checked too — and it holds.**
+
+### it is not the vacuous claim I half-expected
+
+**The file names its own exclusion, in a sentence I had not read:** *"What cannot be shown is a state
+only the entity can report. **Faith** and **belief-as-felt** have no pixel."* And the line it draws
+is **not** physical-versus-abstract but ***"measurable from outside versus reportable only from
+inside."***
+
+**And the drop is accounted for rather than asserted.** 75 mentions of the `selfReport` family, 74
+atoms naming one, each shown keeping an observable alternative — `Valence` drops `selfReport` and
+keeps `physiologicalSignals`; `Insight` keeps `problemSolving`, `reactionTime`. ***"Zero atoms are
+orphaned by the drop"***, with the table to check it against.
+
+> **SO THE RULING SURVIVES VALIDATION, AND THE PART I WAS SUSPICIOUS OF IS SOMETHING IT NEVER
+> CLAIMED.** *Reachable* means EXPRESSIBLE as an integer per object — it was never *useful on an ARC
+> grid*. **`F164`'s Hadley-cell objection is an objection to MY encoding-fit filter, not to this
+> file**, and I should not have let the two blur.
+
+### the "what it costs" the title promises is the tier table, and a keyword grep missed it
+
+    tier   atoms   share   what it needs
+      0      11      0%    reachable today
+      1   1,749     65%    A SENSOR THAT EMITS AN INTEGER PER OBJECT
+      2     122      5%    the ATTR split -- comparable versus orderable
+      3     749     28%    objects in the loop, and the predicate residual
+      4      69      3%    a frame-level regularity
+
+**I grepped `cost|lose|caveat|honest` and found only the title, and was one step from reporting a
+file that promises a cost and never states one. The cost IS stated — as a REQUIREMENTS column.**
+Sixth instance tonight of the same class: **searching for a word instead of the thing.**
+
+### and the fact worth carrying forward
+
+**65% of the library — 1,749 atoms — sits behind ONE capability: an integer per object.** Not
+fifteen primitives, not a tier choice, not a firewall. **`SCALAR` is 4,983 of the attribute mentions
+(63%), and the file's own point is that *a magnitude is one integer per object, the same shape as
+`colour`* — which the loop already has.**
+
+**AND IT DOES NOT CONTRADICT `F167`, THOUGH IT LOOKS LIKE IT MIGHT.** I added seven integers per
+object and measured them inert. **That tested the CARRYING half — slots — and not the atom half:
+the library atoms that would read those integers were never loaded.** Carrying integers is
+necessary and not sufficient, and `F167` measured exactly the necessary half alone.
+
+    MECHANISM   nothing built. A corpus ruling validated and found sound; one of my own
+                objections re-scoped to the filter it actually indicts
+    CAPABILITY  none -- but the 2700 route now reads: one capability gates 65%, and the
+                build already has the shape of it
