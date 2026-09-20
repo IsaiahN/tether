@@ -37352,4 +37352,25 @@ result, this would have read as a success.**
                 match to baseline, which variance does not explain away in either direction
     MECHANISM   the ladder runs end to end and the rungs are comparable. That was rung 1's job
     CAPABILITY  none at this rung. 4 compositions earned by watching bought 0 ground
-    COST        42.8 min/rung, so the 4-rung ladder is ~3h; later rungs start hot
+    COST        42.8 min/rung, so the 4-rung ladder is ~3h
+
+### A FALSIFIABLE PREDICTION FOR RUNG 2, WRITTEN BEFORE IT LANDS
+
+**`F190` plus rung 1 together imply something the pre-registration did not anticipate, and it is
+checkable on the very next row.** Rung 2 does not inherit rung 1's library of 101. It builds a
+fresh Γ and LOADS, and the load keeps distinct compositions only — so it starts from **48 atoms +
+4 = 52**, not 101.
+
+    PREDICTED, rung 2:  carried_in = 4        (exactly rung 1's four multi-atom compositions)
+                        library starts at 52, not 101
+    FALSIFIER:          carried_in materially above 4 means F190's account of the carry is
+                        wrong and the whole reading of rung 1 needs revisiting
+
+**AND THE CONSEQUENCE IS STRUCTURAL: THE LADDER ACCUMULATES LINEARLY AND SLOWLY, NOT
+GEOMETRICALLY.** At ~4–6 distinct new compositions per rung, rung 4 ends near `48 + ~16–24`, not in
+the hundreds. **So *the library CARRIES across rungs* is true and buys much less compounding than
+the phrase suggests** — which bears directly on the reviewer's own condition that *a library
+compounds only through reuse.* **Four rungs may simply not be enough accumulation for a widening
+gap to have anything to bite on**, and that is a property of the schedule rather than of the agent.
+
+**Stated now so it cannot be produced as an explanation after a flat curve.**
