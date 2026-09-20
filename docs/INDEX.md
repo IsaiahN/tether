@@ -36563,6 +36563,12 @@ measured and nearly zero — **0/71 ten times, 1/71 twice**, so a single hit is 
 is about 1 in 6 boards showing one. **`dc22`'s 9 is roughly nine times the largest null observed.**
 `sk48`'s 2 and `ls20`'s 3 sit just above it and are not separable from noise on their own.
 
+> **THE NULL CLAIM IS CORRECTED BY `F178`, WHICH COMPLETED THE PANEL TO 25.** *Nearly zero* was a
+> summary of twelve draws; with twenty-four the null reaches **3/71 (4.2%)**. So *nine times the
+> largest null* was true of the largest null KNOWN THEN. **`ls20`'s 3/71 is exactly AT the ceiling
+> and `sk48`'s 2/88 is below it — neither is distinguishable from chance.** `dc22` survives, and
+> `sp80` (8.2%, unmeasured here) joins it.
+
 > **SO THE AGENT DOES REPRODUCE HUMAN CHUNK EFFECTS, ON ONE BOARD OF TWELVE, AT 6%.** Not zero, not
 > a fluke, and not the board anyone was looking at.
 
@@ -36580,3 +36586,63 @@ writing before any of the last three findings were taken.
                 refuted; the first above-null capability reading recorded with its null
     CAPABILITY  measured, small, real: dc22 9/150 against a 0-1/71 null. Twelve boards, 12
                 cycles, 13 frames -- about 1.2% of the ruled budget
+
+## F178 — ALL 25 BOARDS. SIX SCORE, TWO CLEAR THE NULL, AND `ls20` SITS EXACTLY ON IT
+
+**The full public set, 12 cycles and 13 agent frames each, one measure, each against a cross-game
+null. `F177`'s twelve-board reading is superseded by its own method.**
+
+    board    achieved          rate
+    sp80      5/61             8.2%
+    dc22      9/150            6.0%
+    ls20      3/71             4.2%
+    m0r0      3/123            2.4%
+    sk48      2/88             2.3%
+    wa30      1/200            0.5%
+    ...and NINETEEN boards at ZERO
+
+### THE NULL IS A DISTRIBUTION, AND THAT IS THE FINDING
+
+**24 cross-game comparisons, same trajectory scored against a key it has no business hitting:**
+
+    0 hits : 19 times     0.0%
+    1 hit  :  4 times     1.4%
+    3 hits :  1 time      4.2%   <-- m0r0's trajectory against the ls20 key
+                          MAX NULL RATE OBSERVED: 4.2%
+
+**`F177` said *"the null is measured and nearly zero — a single hit is noise"* and called `dc22`'s 9
+*roughly nine times the largest null*. That was true of the largest null KNOWN THEN, which was 1.
+With twelve more samples the null reached 3.**
+
+### so the honest verdict, against a null that reaches 4.2%
+
+    sp80   8.2%   CLEARS IT
+    dc22   6.0%   CLEARS IT
+    ls20   4.2%   EXACTLY AT THE CEILING -- not distinguishable from chance
+    m0r0   2.4%   BELOW -- and its own null was 3/71, i.e. it scored no better on its own
+                  key than a foreign trajectory scored on ls20's
+    sk48   2.3%   BELOW
+    wa30   0.5%   within the common null
+
+> **TWO BOARDS OF TWENTY-FIVE CLEAR THE NULL. `ls20` IS NOT ONE OF THEM.** The board that carried
+> this session's entire framing — four instruments, twelve hours, five refuted hypotheses about what
+> made it special — **scores exactly at the noise ceiling.**
+
+### and the error is the same one, aimed at the control instead of the signal
+
+**I treated the null as A NUMBER when it is a DISTRIBUTION.** Every discipline I applied tonight went
+to the measured side — depth-matching, per-game, denominators, pre-registration — **and the control
+got a single sample and a confident adjective.** *Nearly zero* was a summary of 12 draws from a
+distribution whose tail I had not seen.
+
+**It is the population error for the sixth time and the first time on a CONTROL**, which is the
+variant worth keeping: **a null quoted as a scalar is a distribution with its variance hidden**, and
+it reads as more authoritative than the signal precisely because it is supposed to be boring.
+
+**WHAT SURVIVES:** `sp80` and `dc22` reproduce human chunk effects above anything chance produced in
+24 tries. **Two of twenty-five, at ~1.2% of the ruled budget.** That is the first capability claim of
+this session that its own control does not eat.
+
+    MECHANISM   nothing built. The panel completed to all 25; the null characterised as a
+                distribution; F177's headline and ls20's standing both corrected
+    CAPABILITY  measured: 2 of 25 boards above a 4.2% noise ceiling, at 12 cycles
