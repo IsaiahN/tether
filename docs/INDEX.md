@@ -37757,3 +37757,59 @@ cells changed per transition against 13, 12% of transitions replacing the board 
 three rungs of watching did not add another. **Any claim that the pooled curriculum worked has to
 survive that test, and the test needs a probe the pooled path does not yet have.** Owed before the
 result is interpreted, not after.
+
+## F199 (INDEX series) — THE FALLING `settled` IS §14.5's PHASE 1 MECHANISM, MEASURED AND IN THE PREDICTED DIRECTION. It is also not sufficient
+
+**`F197` filed `settled 16 -> 10 -> 4` as the one finding it could not explain and could not
+attribute to the schedule. It is explained, it was predicted in the plan's own words, and finding
+that cost one grep.**
+
+### the write site says what settling IS, and it is RECURRENCE
+
+`tether.py:3226` is the only site that settles:
+
+    born = self.candidates.get(name)
+    if born is None or born >= self.cycle or self.gamma.is_settled(name):
+        continue
+    self.gamma.settle(name)
+
+and its own comment states the question: *does this term predict a transition it was never fitted
+to, and `r.mass == 0.0` on a cycle LATER than the one it was minted on IS the answer.*
+
+**So a term settles only when the situation it was minted for RECURS later and it gets that
+recurrence right. `settled` is a recurrence counter wearing a confidence name.**
+
+### and `§14.5` predicts exactly the direction measured, in its own words
+
+> **Phase 1 — random shuffle.** *No game or temporal structure, so only the shapes that recur
+> EVERYWHERE pay off; the shared compositions **settle hard** as invariants before any game applies
+> pressure.*
+
+**`settle hard` is the plan's phrase, and settling is the recurrence test. So shuffling should
+settle MORE and coherence should settle LESS, which is precisely the ladder:**
+
+    spacing 1 (most shuffled)   settled 16
+    spacing 2                   settled 10
+    spacing 4                   settled  4
+
+**A coherent order is the human's solve moving forward and not returning; a shuffled order puts
+unrelated chunks next to each other, so a term born early meets more later material it was not
+fitted to.** `§14.5`'s phase 1 rationale is a claim about recurrence, and this is that claim
+measured — **at miniature scale, on one game's 8 chunks rather than all 25's, which is the part
+that is NOT the plan's phase 1.**
+
+### AND IT IS NOT SUFFICIENT, WHICH IS THE HALF THAT MATTERS
+
+**The rung that settled FOUR TIMES more scored exactly the same: `9/150`, the same single signature,
+at every rung.** So phase 1's mechanism fired in the predicted direction **and bought no ground.**
+
+**`§14.5` treats settling as the payoff of phase 1 — *save the shape properly* — and on this
+evidence settling hard is necessary at best.** That is a claim about the PLAN, not about the agent,
+and it is the first time tonight the plan itself has been the thing a measurement bears on.
+
+    BOUNDARY    3 rungs, one board, 8 chunks, offset 0, seed 1618. The recurrence MECHANISM is
+                read from the write site, not measured -- the pooled run's ledger carries
+                SETTLE rows with cycle numbers and can test it directly
+    MECHANISM   none changed. F197's open item closed by one grep at the write site
+    CAPABILITY  none -- and the point is that a 4x swing in the plan's own payoff quantity
+                moved the ground by zero
