@@ -33743,3 +33743,65 @@ alone. Isaiah's to settle if it ever costs something.
     MECHANISM   unchanged. No code moved, and the repair that was about to be made was wrong
     CAPABILITY  unchanged. What moved is the STATUS of two banked results: both stand, and
                 §16.5 stays closed rather than reopening
+
+---
+
+## `F127` — one type hole explains gate 1 on three boards: `none` is a zero-test, and nothing checks what it is bound to
+
+**`_goal_choice` refuses on 178 of 215 routine attempts and the standing account was *an
+oscillating discrepancy is not shrinking*.** Measured per game with `R_goal`'s counts now
+published (`80edda4`), the account is board-specific and so is its rival — **and both are the
+same defect meeting two different types.**
+
+### the per-game reading, which is why neither account generalised
+
+    ls20   o16.w 3/20, o20.w 0/20      FLAT       0 of 10 cycles qualified
+    vc33   o0.w 9<->11, o11.dcol 0<->11 MOVES     0 of  9 cycles qualified
+    tn36   o1.w 0/88, o88.col 1/88     FLAT       0 of 10 cycles qualified
+
+**Zero qualifying cycles on all three, by two different failures.** Flat fails *at least one real
+decrease*; oscillating fails *non-increasing*. The criterion wants a monotone shrink and no
+residual has ever presented as one.
+
+### the mechanism, and it is one atom
+
+    Atom("none", lambda v, _c: int(not v), PRED, OBJ)     in_type PRED, also_accepts ()
+
+**`none` is a ZERO-TEST, not a quantifier over a group.** Bound as the HEAD of a term it receives
+the slot's raw value, and then:
+
+    EXTENT    a width is never 0  ->  satisfied 0/N forever, R_goal pinned at 1.0
+    DELTA     a delta is often 0  ->  satisfied 0/N or N/N, binary oscillation
+    POSITION  row/col can be 0    ->  mostly pinned, occasionally satisfiable
+
+**So the flat boards and the oscillating board are ONE defect read through the slot's type.** It
+is only a defect at the head: `above . none<o0.col>` is correct — `none` there receives `above`'s
+`PRED` output, which is what it is typed for.
+
+### the population, and the first count of it was wrong
+
+    typed bets with a known head atom                          7572
+      head accepts the slot type (`val` counted as universal)   7148   94.4%
+      GENUINE type mismatch                                      424    5.6%
+
+      none   PRED     -> EXTENT    251        above  POSITION -> SHAPE   63
+      none   PRED     -> DELTA      55        all    PRED     -> DELTA    7
+      none   PRED     -> POSITION   48
+
+**354 of 424 are `none`.** My first pass read 85% because it counted `val` heads as mismatches,
+and `val` is the UNIVERSAL type — the default in `getattr(cand, "out_type", "val")`. **Fifth
+instance this session of reading a population wrong, and the third that inflated a number in my
+own favour.**
+
+### where the hole is, and it is one line
+
+`_library_fit` filters candidates on the OUT type — `if getattr(cand, "out_type", "val") not in
+BINDABLE: continue` — and **never on the IN type against the slot's attribute type**. The comment
+immediately above it reads *"may this BIND is a type question and does it EXPLAIN is a
+behavioural one"*, so the intent is present and it checks the wrong end. `CLAUDE.md` records this
+defect class as live and unrepaired, with a prior instance.
+
+    MECHANISM   located, one atom and one missing filter, measured across three boards
+    CAPABILITY  unchanged. NO FIX APPLIED: removing 354 bindings changes behaviour on every
+                board and I have no reading of what replaces them. An unsatisfiable objective
+                is worse than none, but that is an argument and not a measurement
