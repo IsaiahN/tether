@@ -34444,3 +34444,44 @@ the discriminating 26 or the dead 150. **Not theorising past that.**
     MECHANISM   unchanged; a depth reading, no code touched
     CAPABILITY  unchanged. One finding hardened, one withdrawn, and the blocker relocated with
                 its cause deliberately left open
+
+---
+
+## `F140` — gate 3's cause is DIRECTION, and the slot it refuses is the one whose objective is improving
+
+**`F139` left gate 3's cause open and named the measurement: which slots reach it, and are they in
+the discriminating 26 or the dead 150. Run at 59 cycles:**
+
+    slots reaching gate 3:   o20.w  x7   class = DISCRIMINATING   23 distinct values seen
+    gate-1 refusals:         6
+
+**EXACTLY ONE SLOT EVER REACHES GATE 3**, and it is neither dead nor undifferentiated. Coverage is
+complete, the four actions differ in their effect on it, and it has taken 23 distinct values.
+
+**So the refusal is neither cause the message names.** *Coverage incomplete* — no. *Every action
+ties* — no, they discriminate. What is left is the clause in the middle that neither branch
+covers: **the wanted WAY. Direction.**
+
+### and it sits oddly against the same slot's own residual
+
+`o20.w` under arm B is bound to `above . none<o16.w>` and its `R_goal` runs **0.45 -> 0.35 -> 0.30
+-> 0.25 -> 0.15**, satisfied 11 -> 17 of 20. **The objective is being SATISFIED while no action is
+creditable for moving the slot toward it.**
+
+> **THESE ARE NOT CONTRADICTORY AND THE DIFFERENCE IS THE POINT.** `R_goal` is a SCOPE FRACTION —
+> how many of the peer group satisfy the objective. `_goal_split` asks about THIS SLOT's movement.
+> **A scope fraction can improve because the GROUP changed rather than because the bound slot
+> moved the wanted way.**
+
+**NOT ASSERTED.** That is the reading the two quantities suggest, and it is exactly the kind of
+causal story this session has had wrong twice at this gate. **The measurement that would settle
+it: did `o20.w`'s own value move toward satisfaction across those cycles, or did the satisfying
+membership of the group change around it?** Both are in the ledger — the slot's values are in the
+`bet` rows and the counts are on `goal_series`.
+
+**Filed with the question open rather than answered**, because the last two explanations offered
+for gate 3 were both wrong and both were offered before this measurement existed.
+
+    MECHANISM   unchanged; gate 3's population is one slot and it is a discriminating one
+    CAPABILITY  unchanged. Cause narrowed from two named branches to a third the message does
+                not name, with the deciding measurement identified and not yet run
