@@ -37171,3 +37171,63 @@ never reached anyway (`F187`: gate 1 never opens there), so the question may not
     MECHANISM   none added -- an existing field read for a purpose it was not built for
     CAPABILITY  none. A closed question stayed closed under a test that could have reopened
                 it, which is worth more than a fourth re-derivation of why it is closed
+
+## F189 (INDEX series) — GATE 1 IS NOT REFUSING, THE RESIDUAL IS NOT MOVING: `tn36`'s only slot reads `(88, 5, 88)` on all 57 rows
+
+**`F187` established that gate 1 opens on `ls20` alone. This is why, and it is not a selector
+question.** `MIN_REPEAT = 2`, so the criterion needs **three consecutive readings**, non-increasing,
+with one real decrease. **A slot whose residual never changes cannot satisfy that by construction —
+flat is not shrinking, which is §13.4 quoted.**
+
+### the decisive row was already published, and it is `counts` rather than the series
+
+The `goal_series` row carries `counts` per slot — `(resolved, satisfied, scope)` — and its own
+comment says why: *the RATIO cannot separate never-recomputed from correctly-static from
+live-and-insensitive.* **So the three-way question this finding turns on has a published
+discriminator and needed no new run.**
+
+    board   slots   pinned   moving      pinned = (resolved, satisfied, scope) never once changes
+    tn36      1       1        0
+    vc33      3       2        1
+    ls20      5       2        3
+    ka59      1       0        1
+
+**`tn36` IS TOTAL: one slot, one distinct tuple `(88, 5, 88)`, 57 rows.** The agent acts for 59
+cycles and **the satisfied count never moves by a single object.** Residual pinned at `0.943`
+every reading. **And it is LIVE, not stale — `resolved == scope == 88` is recomputed each step, so
+this is *live-and-insensitive*, the third case, not a cache.**
+
+**`ls20` is the mirror and it is the same quantity:** its qualifying windows come from exactly the
+slots that move — `o20.w` takes 7 distinct tuples, `o16.w` 4 — while its pinned slots (`o2.shape`,
+`o20.col`) never can.
+
+### movement is NECESSARY AND NOT SUFFICIENT, and saying so is the finding
+
+**`vc33` and `ka59` each have a moving slot and gate 1 still never opens.** So *the residual is
+pinned* explains `tn36` completely and explains neither of those.
+
+**The discriminator is the WINDOW.** A slot can move across a run and never move within three
+consecutive readings. `vc33`'s windows are **61% flat and 39% `too_short`** — and `too_short` is
+the series being POPPED (`_res.pop` fires whenever `goal_residual` returns None), so the run keeps
+resetting the series before three readings accumulate. **Two different failures wearing one
+symptom:** `tn36` never moves; `vc33` moves too slowly or is interrupted before the window closes.
+
+### why this matters more than the selector repair the brief implied
+
+**A pinned residual is a CONTACT reading, not a selector reading.** Figure 11: *capability is a
+property of agent-and-habitat.* **Nothing done to `_goal_choice` can make a constant series
+shrink** — loosening `MIN_REPEAT` cannot help, which is what `INDEX` already said about flatness
+and is now measured across four boards instead of argued from one.
+
+**It is also the chain-not-cycle problem with a number on it:** *acting reshapes nothing
+perceivable, so the last step never feeds the first.* On `tn36` that is literal — `5 / 88`, 57
+times.
+
+    BOUNDARY    one run per board, 59 cycles, offset 0. `counts` entered 09-19 20:52 and every
+                long_* run read here postdates it (02:14-05:28 on 09-20), so the constancy is
+                a reading and not a missing instrument
+    MECHANISM   none added. An existing published field read for the question it was built for
+    CAPABILITY  none -- and it REMOVES a repair: the selector-level fix the brief implied
+                cannot move a pinned series, so gate 1 on tn36 is a perception/contact item
+    OPEN        why vc33's series is popped so often -- `goal_residual` returning None is the
+                write site, and that is the next thing to go to
