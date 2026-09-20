@@ -34112,3 +34112,58 @@ FUNCTION CONSUMES THIS QUANTITY, AND WHAT DOES IT READ?**
     MECHANISM   unchanged. F130's measurement stands; its attribution is withdrawn
     CAPABILITY  unchanged. The next question is `_explains` on multi-slot residuals, and it is
                 not a vocabulary question at all
+
+---
+
+## `F134` — the arity split lands on an ASYMMETRY the record already half-names: mint prices leftover, retrieval forbids it
+
+**`F133` moved the cause to `_explains`. It is one line, and the record already carries both halves
+of what follows.**
+
+    def _explains(self, term, slot, hist) -> bool:
+        return bool(hist) and self._left(term, slot, hist) == 0.0
+
+**Retrieval requires the leftover to be EXACTLY ZERO.** The mint does not: step 3's bargain is
+`cost(φ) + left(R,φ) < cost(R)`, and THE FORMULA's symbol table says of `|R|φ|` outright — *may be
+greater than zero.* **Two acceptance tests for one library, and the reuse side is strictly the
+harder one.**
+
+### which is why an arity-2 residual is where it bites
+
+An arity-1 gap has only the target slot moving, so a term can account for the whole history. An
+arity-2 gap has a second slot moving and the term must still land the target EXACTLY, on every
+frame. Not a vocabulary shortage — **a threshold that multi-slot histories rarely clear.**
+
+    ls20  arity 1  7/7      arity 2  0/127
+    vc33  arity 1  3/4      arity 2  0/51
+    tn36  arity 1  3/3      arity 2  1/22
+
+### and the record already said the ranking could not matter
+
+> `INDEX:6767` — *the standing finding is that `_explains` is `retrieve()`'s only consumer and
+> **the ranking feeds a decision it cannot change.***
+
+**So arm C was predictably inert and one grep would have said so before the run.** `retrieve`
+orders; `_explains` decides; ordering cannot move a binary exact test. Recorded as a process
+failure, not just a result: the run was cheap and the grep was cheaper.
+
+> `INDEX:5457` names the collision class from the other side — *the two rulings collide without
+> either being wrong… **together they produce a quantity that cannot be non-zero**, and nothing in
+> either ruling says so.* **Same shape here: *retrieval tests exactly* and *the bargain prices
+> leftover* are each ruled correct, and their product is a reuse path that can only fire on
+> single-slot histories.**
+
+### THE FORK, AND IT IS NOT MINE
+
+**Should reuse be decided by the BARGAIN rather than by exactness?** Retrieval is not minting — it
+is asking whether a held term is worth binding here — and the corpus prices that question in step
+3 rather than thresholding it. But `_explains`'s exactness is ruled correct in the record and I am
+not overturning a standing ruling on an inference.
+
+**What would decide it is a measurement I can run and have not:** how many of the 199 unmet
+arity-2 gaps have a library term that PAYS the bargain while leaving residue. If that number is
+zero the exactness costs nothing and the fork closes. If it is large, the reuse path is refusing
+terms the mint would have accepted.
+
+    MECHANISM   located: one line, and an asymmetry between two acceptance tests
+    CAPABILITY  unchanged. Nothing built, nothing admitted, and the deciding measurement named
