@@ -35047,10 +35047,24 @@ the same way as the strong evidence, which is an INTERVENTION and not a correlat
 cost a goal slot.** Same board, same panel, one switch. **That is the test the cross-board table
 cannot be, and it was sitting in the record while `F149` filed the question as open.**
 
+> **THIS EVIDENCE IS VOID — `F151`, twenty-five minutes later, and the correction goes here because
+> this is the row that carries it.** **tn36 is a ONE-ACTION board** (`ACTION6`, 59 presses, and
+> `INDEX:17496` lists it among the six), and `_goal_split` provably returns `None` on every path when
+> `len(self.actions) == 1`. **Its gate 1 is blocked upstream for reasons that have nothing to do with
+> arity, so raising arity-2 reuse there could not have moved it whatever arity does.**
+>
+> **WHAT SURVIVES IS THE `ls20` HALF, AND IT IS UNCONFOUNDED:** 0 of 1042 arity-2 gaps met, gate 1
+> opened 8 times, on the only board in the panel that supplies more than one action. **So arity-2
+> reuse is NOT NECESSARY for gate 1 — that much is proven.** The stronger claim below, that crossing
+> the wall would not HELP, is **UNPROVEN rather than false**: the only board where the reuse rose is
+> a board where the gate cannot open regardless.
+
 > **SO THE TWO CLAIMS COME APART, AND THEY HAVE BEEN QUOTED AS ONE SINCE THE `vc33` reading.** *The
 > arity-2 wall is real* — 7 of 121, falling with depth — **is TRUE and is not the same statement as**
-> *crossing it would open the goal chain*, **which is measured false on the only board where the
-> reuse actually rose.** The standing note `composition-wall-is-arity` carries both under one
+> *crossing it would open the goal chain*. **CORRECTED BY `F151`: the second is UNPROVEN, not
+> measured false.** What is proven is that arity-2 reuse is **not NECESSARY** for gate 1, by the
+> `ls20` existence proof (0/1042 met, 8 qualifications). The "measured false" reading rested on the
+> tn36 intervention, and tn36 is a one-action board whose gate 1 cannot open regardless. The standing note `composition-wall-is-arity` carries both under one
 > heading and licenses "NSM/arity is the next build" from the first; **the second is what would
 > justify that ordering, and it is the half that just failed.**
 
@@ -35067,3 +35081,57 @@ of it**, so the goal chain needs its own cause, and `tn36`'s flatness is still u
                 the reach/reach_failed pairing established as the measure for "met"
     CAPABILITY  none -- but the ordering argument for the next build lost its stated warrant,
                 which is a change to what gets built rather than to what the agent can do
+
+## F151 — MY THREE-BOARD PANEL IS ONE BOARD WITH FOUR ACTIONS AND TWO WITH ONE, AND `_goal_split` CANNOT RETURN AN ACTION ON A ONE-ACTION BOARD
+
+**Every panel claim tonight — `F146`, `F147`, `F148`, `F150` — was made across three boards without
+ever stating how many actions each supplies. Measured from the three runs on disk:**
+
+    board   distinct actions taken           gate 1
+    ls20    4    ACTION1 18 · 2 · 2 · 3      OPENS, 8 times
+    vc33    1    ACTION6 40                  never
+    tn36    1    ACTION6 59                  never
+
+**The only board that opens gate 1 is the only board with more than one action.** `INDEX:17496`
+already records the class — *games advertising exactly 1 action: 6 of 25 — `ft09` · `lp85` · `r11l`
+· `s5i5` · `tn36` · `vc33`* — and I selected two of them without noticing.
+
+> **THIS IS *READ THE THINGS THAT PRODUCE CONDITIONS BEFORE THE THINGS THAT PRODUCE RESULTS*, and
+> the action count is as pure a CONDITION as exists.** It is invisible in every result it conditions,
+> which is the law's own wording. `F147` caught the panel being chosen by a default argument and
+> stopped there; **the defaulted panel then had a second defect the first audit did not look for.**
+
+### and at the write site it is a proof, not a measurement
+
+`_goal_split` with `len(self.actions) == 1` has **no path that returns an action**:
+
+    max(votes.values()) == 0        ->  split_refused why=no_action_voted    return None
+    top = max(...); tied = 1
+    tied == len(self.actions)       ->  split_refused why=all_tied           return None
+
+**Both exits refuse. A one-action board cannot produce a plan from this gate under any perception,
+any vocabulary, any arity, any depth** — the tie test compares the winner against the field and the
+field is the winner. **That is six of the twenty-five public games, by construction.**
+
+**AND IT DOES NOT MAKE THE GATE WRONG.** *Nothing separates; the draw stays uninformed* is the
+correct thing to say when there is nothing to separate. It makes the gate UNTESTABLE there, which is
+a statement about the panel.
+
+### what this does to `F150`, which I committed twenty-five minutes ago
+
+**`F150`'s strong evidence was an INTERVENTION on tn36** — arm B raising arity-2 reuse sevenfold
+while gate-1 qualification stayed at zero. **tn36 is a one-action board, and its residual series are
+100% flat because nothing it can do moves the world.** So the intervention cannot isolate arity's
+effect on gate 1: the gate is blocked upstream for a reason that has nothing to do with arity.
+**That evidence is VOID, and it was the half I called strong.**
+
+**WHAT SURVIVES IS CLEANER AND SMALLER, and it is unconfounded because it sits on the board that can
+act:** `ls20` meets **0 of 1042** arity-2 gaps and opens gate 1 **eight times**. **So arity-2 reuse is
+not NECESSARY for gate 1** — an existence proof on the only board where the question is askable.
+**What is now unproven is the stronger claim `F150` made**, that raising arity-2 reuse does not help;
+the only board where the reuse rose is a board where the gate cannot open regardless.
+
+    MECHANISM   nothing built. A panel condition established and applied backwards over four
+                findings; one gate proven structurally silent on 6 of 25 games
+    CAPABILITY  none -- but two of three boards leave the measurement population for gate
+                questions, which changes what the remaining readings mean
