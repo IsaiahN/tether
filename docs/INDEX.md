@@ -34741,3 +34741,49 @@ slots discriminating on ls20, 0 of 96 on vc33, 0 of 712 on tn36) is where that w
     MECHANISM   arm E built, switched, default OFF, and it stays off -- it changes nothing
     CAPABILITY  unchanged. The escalated gate-3 question is now CLOSED with both branches
                 measured, and the remaining question is about the board rather than the agent
+
+---
+
+## `F145` — the habitat census by the VOTE's measure, and a hypothesis of mine at n=1
+
+**`F144` left gate 3 needing a slot where actions differ, and pointed at `F138`'s census. That
+census used the WRONG MEASURE** — it asked whether actions differ in making the slot MOVE. The
+vote asks whether they differ in moving it the WANTED WAY. Re-censused by the vote's own measure,
+ls20 at 59 cycles, 176 slots:
+
+    never move                   150
+    move ONE WAY only             13     no `wanted` can discriminate: every action pushes
+                                         the same direction, so all rates saturate
+    move BOTH ways                13     o2.shape, o10.col, o10.row, o11.col, o11.row, o16.shape
+
+**Two measures, one word — `discriminating` — and they disagree.** `F138`/`F139` counted 26
+slots as discriminating; by the measure the vote actually reads, only 13 admit a directional
+preference at all. **Eighth instance of the session's one error, caught this time by asking which
+function consumes the quantity before running the census.**
+
+### and my hypothesis is 7/8 true with a counter-instance
+
+    slots that ever carried an R_goal     o16.w · o2.shape · o20.col · o20.dcol · o20.w
+      of those BOTH-way                   o2.shape, o20.dcol
+      of those ONE-way                    o16.w, o20.col, o20.w
+    slots that QUALIFIED as shrinking     o20.w x7  ·  o20.dcol x1
+    both-way slots never given an objective   11 of 13
+
+**The reading I was forming — *the selector picks slots where no directional preference can
+exist* — is 7 of 8 and has one counter-instance: `o20.dcol` is BOTH-way, qualified, was chosen,
+and refused anyway.**
+
+> **SO IT IS NOT RULED, AND N=1 ON THE CASE THAT WOULD RULE IT.** Either a both-way slot also fails
+> for its own reason, or one instance is noise. **Stating it at n=1 and stopping**, because a
+> satisfying story at n=1 is precisely what the session has been punished for, and this one is
+> satisfying.
+
+### what would settle it
+
+More instances of a BOTH-way slot being chosen — which needs either depth beyond 59 cycles or the
+other boards, where the both-way population differs. **vc33 and tn36 had ZERO discriminating slots
+at 12 cycles by the looser measure, so they are the harder test rather than the easier one.**
+
+    MECHANISM   unchanged, nothing built
+    CAPABILITY  unchanged. The census is corrected to the measure the vote reads, and the one
+                hypothesis it suggests is recorded UNRULED at n=1
