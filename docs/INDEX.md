@@ -37889,3 +37889,37 @@ showing** (`carried_in` ~4–7 per rung; the dial spanning `4 -> 0` discontinuit
                 withdrawn (my own contention). NOTHING here is measured at a non-zero offset
     MECHANISM   the ladder exists, runs, and is honest about what it cannot show
     CAPABILITY  ZERO at every rung, on a verified instrument
+
+## F201 (INDEX series) — SEVEN OF THE 25 REPLAYS HAVE NO LEVEL DATA AT ALL, and it killed the pooled run at cycle 15
+
+**A data fact worth recording independently of the bug it caused**, because anything that reads
+`levels_completed` off a replay will meet it.
+
+    ar25  cd82  lp85  sb26  sc25  tu93  vc33     `level: null` in 100% of steps
+                                                 (578, 137, 423, 154, 217, 379, 308)
+
+The key is PRESENT and holds `None`. **So `step.get("level", 0)` returns `None`** — a default only
+applies to a MISSING key — and `arc_world.objective()` divides by it:
+
+    min(1.0, f.levels_completed / win)   ->  TypeError: NoneType / int
+
+### the part that matters more than the patch
+
+**`dc22` DOES record levels. That is why four single-game rungs passed and the pooled tape died at
+cycle 15.** The ladder could not have found this at any depth, any spacing, or any window size,
+**because the defect lives in data `dc22` does not contain.**
+
+**That is the argument for the pooled tape in miniature, arriving as a bug rather than a result:
+it puts the agent in front of material one board never supplies.** The first cross-game run found
+a cross-game defect within fifteen cycles.
+
+**And it is a live caution for the GROUND metric.** `levels_completed` is link 4 and the terminal
+condition's clause 1. **On seven of twenty-five boards the replays cannot report it** — which says
+nothing about the live games, and everything about what a replay-derived level reading could
+silently be.
+
+    BOUNDARY    the 25 human replays as recorded. Says nothing about the live API, which is
+                where the ladder's probe reads levels from
+    MECHANISM   `or 0` at the site, with the reason recorded -- `get(..., 0)` reads as
+                already-defensive and will otherwise be reintroduced
+    CAPABILITY  none. It unblocks the pooled run, which had reached cycle 15 of 199
