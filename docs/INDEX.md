@@ -37374,3 +37374,29 @@ compounds only through reuse.* **Four rungs may simply not be enough accumulatio
 gap to have anything to bite on**, and that is a property of the schedule rather than of the agent.
 
 **Stated now so it cannot be produced as an explanation after a flat curve.**
+
+## F192 (INDEX series) — the pooled tape's PROVENANCE ROTATION verified, including the half that could have silently rewritten history
+
+**Shipped on a smoke run that minted ZERO terms, so `by_origin` came back empty and the mechanism
+was untested.** `002dfbc` claims that rotating `gamma.game` as the pooled tape crosses games stamps
+each term with the game it was earned on. Tested directly rather than left as a claim:
+
+    handle(dc22) -> dc22_TR_chain_a02ac633     the prefix tracks the rotating label
+    handle(sp80) -> sp80_TR_chain_aa12e8b9
+
+    _install while game='sp80'  -> sp80_TR_chain_ad231e92
+    _install while game='ls20'  -> ls20_TT_chain_97abe970
+    re-seen  while game='wa30'  -> sp80_TR_chain_ad231e92     STILL sp80
+
+**The third line is the one worth running.** `handles` is keyed by the COMPOSITION name, which is
+game-independent, so a naive implementation would relabel a term every time another game re-derived
+it — **and in a pooled tape that re-derivation is the common case, so provenance would drift toward
+whichever game was last on screen.** `setdefault` holds it: *the prefix is BIRTH, never USE.*
+
+**So `by_origin` in `watch_many` reports where a composition was FIRST earned**, which is §13 step
+5's game-of-origin and is not reconstructible after the fact.
+
+    BOUNDARY    the naming and install paths, exercised directly. Not an end-to-end pooled run
+                with mints -- that is still owed and costs CPU the sweep is using
+    MECHANISM   none changed; a shipped claim moved from asserted to checked
+    CAPABILITY  none. It protects a reading the pooled run has not yet produced
