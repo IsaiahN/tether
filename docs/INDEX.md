@@ -35704,3 +35704,57 @@ Three layers, and the ledger said one.
                 unbuilt prerequisite"
     CAPABILITY  none -- but §14's pretraining paragraph should be read as UNCHECKABLE rather
                 than as measured, and it is load-bearing for the 25-game ordering
+
+## F162 — THE LOAD PLAN IS SPECIFIED IN THE CORPUS, AND THE MISSING PIECE IS AN ATTRIBUTE-NAME CORRESPONDENCE
+
+**The reviewer ruled LOAD and left one question: WHICH TIER. The corpus answers it —
+`ATTRIBUTE_REACH.json` is the file, and I had not opened it.** It rewrites *"every atom's
+attributes into grid-expressible form, with what each requires to be reachable"*, for all 2700.
+
+    encoding            tier  status, in the file's own words
+    POSITION EXTENT           "built: five integer atoms today"
+    COLOUR COUNT          0
+    SCALAR SCALAR_DEFAULT 1   "needs the sensor to emit it"
+    TEMPORAL              1   "a difference across frames; history() ALREADY CARRIES the frames"
+    EVENT                 1   "changed (sensor 9) computes it"
+    STATE                 1   "a discrete condition; an integer with no order"
+    SHAPE                 2   "needs the ATTR split"
+    RELATION BEHAVIOURAL  3   "needs objects in the loop and the predicate residual"
+    RULE                  4   "a regularity over frames, not a property of an object"
+
+    atoms by reachability tier    0: 11    1: 1749    2: 122    3: 749    4: 69
+
+**ELEVEN ATOMS ARE EXPRESSIBLE WITH WHAT IS BUILT TODAY, and one of them is `HUMAN|Movement`** —
+which `ATOMS.md` calls *"a keystone and it is not derived"*, one of the six semantic primes the
+grammar lacks, and which `INDEX:196` names as the reason `STRATEGY` is a structural zero. **It reads
+one attribute, `position`, in an encoding the file marks BUILT.**
+
+### and the concrete missing piece, which is NOT permission and NOT a tier choice
+
+Γ's `ATTRIBUTE_TYPE` — F130's named gate, what a slot may carry — holds **eight** entries:
+
+    colour COLOUR · row col POSITION · h w EXTENT · drow dcol DELTA · shape SHAPE
+
+The library names **5040 distinct attributes** (`ATTRIBUTE_INDEX.json`). Matching the two by NAME:
+
+    atoms whose attribute name is already carried by a slot:  3 of 2700
+
+> **READ THIS AS A NAME RESULT AND NOTHING MORE.** The library says `position`; Γ says `row` and
+> `col`. **Those are plainly the same quantity under two names**, so `3/2700` is NOT an
+> expressibility finding and must not be quoted as one — that is the synonym error I made one
+> measurement earlier, arriving from the other side.
+
+**What it DOES establish: there is no attribute-name correspondence between the library and Γ, and
+a bridge needs one before any tier can be loaded.** Not a ruling, not a firewall, not a tier
+choice — **a table mapping library attribute names onto the slots the agent carries.** It does not
+exist, and every route to the 2700 runs through it.
+
+**AND THAT IS ISAIAH'S OWN THESIS ARRIVING AS A WORK ITEM:** *"you don't blindly search the
+composition space, you MAP intent and actions to library compositions."* The mapping job is not
+metaphorical here — it is a missing correspondence table with 8 entries on one side and 5040 on the
+other.
+
+    MECHANISM   nothing built. The reviewer's "which tier" answered from a corpus file nobody
+                had opened; the load's actual precondition identified and measured
+    CAPABILITY  none -- but the 2700 route now has a named first step that is neither a
+                permission nor a judgement call
