@@ -1,0 +1,890 @@
+{
+ "computed_over": [
+  "budget_ls20_stream.jsonl",
+  "demo.jsonl",
+  "distinct_off.jsonl",
+  "distinct_on.jsonl",
+  "f32_stream.jsonl",
+  "ft09_wall.jsonl",
+  "instr.jsonl",
+  "instr2.jsonl",
+  "instr3.jsonl",
+  "instr4.jsonl",
+  "instr5.jsonl",
+  "ka59_wall.jsonl",
+  "ls20_deref.jsonl",
+  "ls20_probe.jsonl",
+  "ls20_wall.jsonl",
+  "p0.jsonl",
+  "p1.jsonl",
+  "sk48_probe.jsonl",
+  "sk48_wall.jsonl",
+  "smoke.jsonl",
+  "smoke_deref.jsonl",
+  "smoke_typed.jsonl",
+  "sp80_deref.jsonl",
+  "sp80_wall.jsonl",
+  "su15_wall.jsonl",
+  "tn36_wall.jsonl",
+  "vc33_deref.jsonl",
+  "vc33_probe.jsonl",
+  "vc33_wall.jsonl"
+ ],
+ "items": {
+  "ALL": {
+   "producer": false,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "BECAUSE": {
+   "producer": false,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "BECOME": {
+   "producer": false,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "BE_AT": {
+   "producer": false,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "CAN": {
+   "producer": false,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "CHANGED": {
+   "producer": false,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "DERIVE": {
+   "producer": false,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "EXIST": {
+   "producer": false,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "GROUND": {
+   "producer": false,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "NEED": {
+   "producer": false,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "NONE": {
+   "producer": false,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "NOT": {
+   "producer": false,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "ONE": {
+   "producer": false,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "OTHER": {
+   "producer": false,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "PAY": {
+   "producer": false,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "SAME": {
+   "producer": false,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "SEE": {
+   "producer": false,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "SETTLE": {
+   "producer": false,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "SOME": {
+   "producer": false,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "STAND": {
+   "producer": false,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "TOUCH": {
+   "producer": false,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "WANT": {
+   "producer": false,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "above": {
+   "producer": true,
+   "offered": true,
+   "occurred": [
+    "accepted",
+    "bound",
+    "cited",
+    "minted",
+    "promoted",
+    "settled"
+   ],
+   "positions": [
+    "head",
+    "mid"
+   ],
+   "sources": [
+    "budget_ls20_stream",
+    "distinct_off",
+    "distinct_on",
+    "f32_stream",
+    "instr",
+    "instr2",
+    "instr3",
+    "instr4",
+    "instr5",
+    "ls20_deref",
+    "ls20_probe",
+    "ls20_wall",
+    "smoke_deref",
+    "smoke_typed",
+    "vc33_deref",
+    "vc33_probe",
+    "vc33_wall"
+   ]
+  },
+  "abs_delta": {
+   "producer": true,
+   "offered": true,
+   "occurred": [
+    "accepted",
+    "bound",
+    "cited",
+    "minted",
+    "settled"
+   ],
+   "positions": [
+    "head"
+   ],
+   "sources": [
+    "smoke_typed",
+    "vc33_deref",
+    "vc33_probe",
+    "vc33_wall"
+   ]
+  },
+  "aligned": {
+   "producer": true,
+   "offered": true,
+   "occurred": [
+    "accepted",
+    "bound",
+    "cited",
+    "minted",
+    "settled"
+   ],
+   "positions": [
+    "head"
+   ],
+   "sources": [
+    "ka59_wall"
+   ]
+  },
+  "all": {
+   "producer": true,
+   "offered": true,
+   "occurred": [
+    "accepted",
+    "bound",
+    "cited",
+    "minted",
+    "promoted",
+    "settled"
+   ],
+   "positions": [
+    "sole",
+    "tail"
+   ],
+   "sources": [
+    "budget_ls20_stream",
+    "distinct_off",
+    "distinct_on",
+    "f32_stream",
+    "ka59_wall",
+    "ls20_deref",
+    "ls20_probe",
+    "ls20_wall",
+    "sk48_probe",
+    "sk48_wall",
+    "smoke_typed",
+    "vc33_deref",
+    "vc33_probe",
+    "vc33_wall"
+   ]
+  },
+  "all_same": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "any": {
+   "producer": true,
+   "offered": true,
+   "occurred": [
+    "accepted",
+    "bound",
+    "cited",
+    "minted",
+    "promoted",
+    "settled"
+   ],
+   "positions": [
+    "tail"
+   ],
+   "sources": [
+    "budget_ls20_stream",
+    "distinct_off",
+    "f32_stream",
+    "ka59_wall",
+    "ls20_deref",
+    "ls20_probe",
+    "ls20_wall",
+    "vc33_deref",
+    "vc33_probe",
+    "vc33_wall"
+   ]
+  },
+  "any_same": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "area": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "bbox_area": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "both": {
+   "producer": true,
+   "offered": true,
+   "occurred": [
+    "accepted",
+    "bound",
+    "cited",
+    "minted",
+    "promoted",
+    "settled"
+   ],
+   "positions": [
+    "mid"
+   ],
+   "sources": [
+    "budget_ls20_stream",
+    "f32_stream",
+    "ls20_deref",
+    "ls20_probe",
+    "ls20_wall"
+   ]
+  },
+  "canonical": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "centroid": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "changed": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "col": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "colour": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "components": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "corners": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "count": {
+   "producer": true,
+   "offered": true,
+   "occurred": [
+    "accepted",
+    "bound",
+    "cited",
+    "minted",
+    "settled"
+   ],
+   "positions": [
+    "head"
+   ],
+   "sources": [
+    "ka59_wall"
+   ]
+  },
+  "dcol": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "delta": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "distinct": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "drow": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "either": {
+   "producer": true,
+   "offered": true,
+   "occurred": [
+    "accepted",
+    "bound",
+    "cited",
+    "minted",
+    "promoted",
+    "settled"
+   ],
+   "positions": [
+    "mid"
+   ],
+   "sources": [
+    "ka59_wall"
+   ]
+  },
+  "extent": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "h": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "holes": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "idn": {
+   "producer": true,
+   "offered": true,
+   "occurred": [
+    "bound"
+   ],
+   "positions": [
+    "sole"
+   ],
+   "sources": [
+    "budget_ls20_stream",
+    "distinct_off",
+    "f32_stream",
+    "ls20_deref",
+    "ls20_probe",
+    "ls20_wall",
+    "p0",
+    "p1",
+    "sk48_probe",
+    "sk48_wall"
+   ]
+  },
+  "is_max": {
+   "producer": true,
+   "offered": true,
+   "occurred": [
+    "accepted",
+    "bound",
+    "cited",
+    "minted",
+    "settled"
+   ],
+   "positions": [
+    "head"
+   ],
+   "sources": [
+    "budget_ls20_stream"
+   ]
+  },
+  "is_min": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "is_mode": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "is_square": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "negate": {
+   "producer": true,
+   "offered": true,
+   "occurred": [
+    "accepted",
+    "bound",
+    "cited",
+    "minted",
+    "promoted",
+    "settled"
+   ],
+   "positions": [
+    "mid"
+   ],
+   "sources": [
+    "budget_ls20_stream",
+    "distinct_off",
+    "f32_stream",
+    "ls20_deref",
+    "ls20_probe",
+    "ls20_wall"
+   ]
+  },
+  "none": {
+   "producer": true,
+   "offered": true,
+   "occurred": [
+    "accepted",
+    "bound",
+    "cited",
+    "minted",
+    "promoted",
+    "settled"
+   ],
+   "positions": [
+    "sole",
+    "tail"
+   ],
+   "sources": [
+    "budget_ls20_stream",
+    "distinct_off",
+    "distinct_on",
+    "f32_stream",
+    "instr",
+    "instr2",
+    "instr3",
+    "instr4",
+    "instr5",
+    "ka59_wall",
+    "ls20_deref",
+    "ls20_probe",
+    "ls20_wall",
+    "sk48_wall",
+    "smoke_deref",
+    "smoke_typed",
+    "tn36_wall",
+    "vc33_deref",
+    "vc33_probe",
+    "vc33_wall"
+   ]
+  },
+  "none_same": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "orbit_size": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "other": {
+   "producer": true,
+   "offered": true,
+   "occurred": [
+    "accepted",
+    "bound",
+    "cited",
+    "minted",
+    "settled"
+   ],
+   "positions": [
+    "head",
+    "mid"
+   ],
+   "sources": [
+    "ka59_wall",
+    "sk48_wall",
+    "vc33_deref",
+    "vc33_probe",
+    "vc33_wall"
+   ]
+  },
+  "overlap": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "parity": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "perimeter": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "position": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "rank_in": {
+   "producer": true,
+   "offered": true,
+   "occurred": [
+    "accepted",
+    "bound",
+    "cited",
+    "minted",
+    "settled"
+   ],
+   "positions": [
+    "head"
+   ],
+   "sources": [
+    "budget_ls20_stream",
+    "distinct_off",
+    "f32_stream",
+    "ls20_deref",
+    "ls20_probe",
+    "ls20_wall"
+   ]
+  },
+  "recolour": {
+   "producer": true,
+   "offered": true,
+   "occurred": [
+    "accepted",
+    "bound",
+    "cited",
+    "minted",
+    "promoted",
+    "settled"
+   ],
+   "positions": [
+    "head",
+    "mid",
+    "sole",
+    "tail"
+   ],
+   "sources": [
+    "budget_ls20_stream",
+    "distinct_off",
+    "distinct_on",
+    "f32_stream",
+    "instr",
+    "instr2",
+    "instr3",
+    "instr4",
+    "instr5",
+    "ka59_wall",
+    "ls20_deref",
+    "ls20_probe",
+    "ls20_wall",
+    "sk48_probe",
+    "sk48_wall",
+    "smoke_deref",
+    "smoke_typed",
+    "sp80_deref",
+    "sp80_wall",
+    "tn36_wall",
+    "vc33_deref",
+    "vc33_probe",
+    "vc33_wall"
+   ]
+  },
+  "reflect": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "rotate": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "row": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "same": {
+   "producer": true,
+   "offered": true,
+   "occurred": [
+    "accepted",
+    "bound",
+    "cited",
+    "minted",
+    "promoted",
+    "settled"
+   ],
+   "positions": [
+    "head",
+    "mid"
+   ],
+   "sources": [
+    "budget_ls20_stream",
+    "ka59_wall",
+    "smoke_typed",
+    "vc33_deref",
+    "vc33_probe",
+    "vc33_wall"
+   ]
+  },
+  "shape": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "sign": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "sum_group": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "symmetric": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "touching": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "touching_n": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "translate": {
+   "producer": true,
+   "offered": true,
+   "occurred": [
+    "accepted",
+    "bound",
+    "cited",
+    "minted",
+    "promoted",
+    "settled"
+   ],
+   "positions": [
+    "head",
+    "mid",
+    "sole",
+    "tail"
+   ],
+   "sources": [
+    "budget_ls20_stream",
+    "distinct_off",
+    "distinct_on",
+    "f32_stream",
+    "instr",
+    "instr2",
+    "instr3",
+    "instr4",
+    "instr5",
+    "ka59_wall",
+    "ls20_deref",
+    "ls20_probe",
+    "ls20_wall",
+    "sk48_probe",
+    "sk48_wall",
+    "smoke_deref",
+    "smoke_typed",
+    "sp80_deref",
+    "sp80_wall",
+    "tn36_wall",
+    "vc33_deref",
+    "vc33_probe",
+    "vc33_wall"
+   ]
+  },
+  "w": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  }
+ }
+}
