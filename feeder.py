@@ -49,6 +49,7 @@ import random
 import shutil
 import sys
 import tempfile
+import time
 from pathlib import Path
 from typing import Any
 
@@ -205,16 +206,25 @@ def sweep(game: str = "dc22", rungs=(1, 2, 4, 8, 16), cycles: int | None = None,
     """
     path = store or str(Path(tempfile.gettempdir()) / f"sweep_{game}_{offset}.json")
     Path(path).unlink(missing_ok=True)
+    # EACH RUNG IS WRITTEN AS IT LANDS. A rung costs hours at the measured mint cost, so a
+    # sweep that only reports at the end reports nothing at all if it is interrupted -- and a
+    # partial ladder is still a curve, which is the witness.
+    trail = Path(f"{path}.rungs.ndjson")
+    trail.unlink(missing_ok=True)
     rows = []
     for s in sorted(rungs):
+        t0 = time.time()
         row = watch(game, cycles=cycles, offset=offset, spacing=s,
                     skip=skip, take=take, library=path)
         if on:
             row.update(probe(on, path))
+        row["secs"] = round(time.time() - t0, 1)
         rows.append(row)
+        with trail.open("a", encoding="utf-8") as fh:
+            print(json.dumps(row), file=fh)
     return {"sweep": game, "probe_on": on, "offset": offset,
             "window": {"skip": skip, "take": take}, "rungs": sorted(rungs),
-            "carried": path, "rows": rows,
+            "carried": path, "trail": str(trail), "rows": rows,
             "reads": ("the witness is the SHAPE across rungs, not any endpoint: gradual "
                       "degradation reads as capability, flat-then-cliff as a marker-follower")}
 
