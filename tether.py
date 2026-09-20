@@ -2343,7 +2343,16 @@ class Agent:
             for bef, act, aft in self.trace:
                 if s in bef and s in aft:
                     hist.setdefault(act, []).append((bef[s], aft[s]))
-            if any(a not in hist for a in self.actions):
+            missing = [a for a in self.actions if a not in hist]
+            if missing:
+                # FIVE EXITS, ONE MESSAGE. `_mint_routine` reports every `None` from here as
+                # "coverage incomplete, OR every action ties" and the code has more ways out
+                # than that names. This one reads `self.trace`, NOT the ledger -- which is why
+                # a `bet`-row census read coverage as COMPLETE while this gate was refusing on
+                # it. Publish which exit fired, the same move `goal_series` was.
+                self.led.record(self.cycle, "PLAN", s, "split_refused",
+                                why="coverage", untried=sorted(missing),
+                                tried=sorted(hist), trace_len=len(self.trace))
                 continue                      # the coverage gate: untried is not neutral
             ordered = self.slot_types.get(s) in ORDERED_TYPES
             n_goals += 1
@@ -2359,11 +2368,17 @@ class Agent:
                 elif any(f == wanted for _, f in hist[a]):
                     votes[a] += 1             # unordered: it has produced that value
         if not n_goals or max(votes.values()) == 0:
+            self.led.record(self.cycle, "PLAN", chosen,
+                            "split_refused",
+                            why="no_goal_read" if not n_goals else "no_action_voted",
+                            votes=dict(votes))
             return None
         top = max(votes.values())
         tied = sum(1 for v in votes.values() if v == top)
         self._ties[("goal", tied)] += 1
         if tied == len(self.actions):
+            self.led.record(self.cycle, "PLAN", chosen, "split_refused",
+                            why="all_tied", votes=dict(votes))
             return None                       # nothing separates; the draw stays uninformed
         return max(self.actions, key=lambda a: votes[a])
 

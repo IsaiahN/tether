@@ -34521,3 +34521,48 @@ falsifier before being believed.
     MECHANISM   unchanged. The measurement refuted my own prior reading in the same entry
     CAPABILITY  unchanged. Gate 3 may be CORRECT, which would make it a habitat reading and not
                 a blocker -- and settling that needs the wanted direction logged
+
+---
+
+## `F141` — gate 3 answered: it is `all_tied`, it is CORRECT, and the vote cannot discriminate with one goal
+
+**Three explanations were offered for gate 3 tonight and two were wrong. This one is measured.**
+`_goal_split` has FIVE ways to return `None` and `_mint_routine` reports every one of them as the
+same string — *coverage incomplete, OR every action ties.* Publishing which exit fires settles it,
+the same move `goal_series` was.
+
+    25 cycles, ls20, arm B
+      split_refused exits    {'all_tied': 9}          ZERO coverage exits
+      votes at every one     ACTION1 1 · ACTION2 1 · ACTION3 1 · ACTION4 1
+      routine_refused        7 gate 3 · 6 gate 1
+
+**COVERAGE WAS NEVER THE PROBLEM.** Every action passes the *mostly moved it the wanted way* test,
+each scores exactly one, and the gate hits `tied == len(self.actions)` — *nothing separates; the
+draw stays uninformed.* **It declines on purpose and it is right to.**
+
+### and the structural part, which is why this is a finding rather than a shrug
+
+```
+if moved * 2 > len(hist[a]):
+    votes[a] += 1        # binary, one vote per ACTION per GOAL
+```
+
+**The vote is BINARY per action per goal.** With ONE goal slot the maximum score is 1, so **any two
+actions that both pass are tied by construction**. The mechanism can only discriminate when some
+action FAILS the majority test — and on ls20 none does.
+
+> **SO GATE 3 IS NOT A DEFECT AND NOT A BLOCKER IN THE USUAL SENSE. It is a correct abstention
+> whose resolution needs either MORE GOALS (so votes can differ) or a FINER VOTE (so degree of
+> movement separates actions that all pass).** Which of those is right is a design question, and
+> both would be changes to how the agent chooses rather than repairs to something broken.
+
+### a caution carried forward
+
+An earlier bet-row census read coverage as COMPLETE and I nearly used it to explain this gate.
+**It was the right answer by luck: `hist` is built from `self.trace`, not from `bet` rows, and
+they are different populations.** The exit row reads the quantity the gate reads, which is
+`I71`'s rule and the reason this attempt landed where three earlier ones did not.
+
+    MECHANISM   `split_refused` published at three exits; gate 3's cause now readable per event
+    CAPABILITY  unchanged, and the blocker is reclassified: a correct abstention, not a fault.
+                Still no routine adopted on any board
