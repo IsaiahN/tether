@@ -37650,3 +37650,59 @@ to `probe()` and which no panel reading has yet used.
                 so "one distinct effect everywhere" is NOT claimed
     MECHANISM   none -- an owed check discharged and a confound named
     CAPABILITY  none. It converts nineteen zeros from "possibly unreachable" to "real"
+
+## F197 (INDEX series) — RUNG 3: the probe is flat three times while EVERY internal quantity falls monotonically. And I contaminated my own timing column
+
+    rung  spacing  blocks  minted  settled  promotions  carried_in   PROBE         mins
+     1      1        8       53      16        16           0        9/150 6.0%    42.8
+     2      2        4       43      10         7           4        9/150 6.0%    63.7
+     3      4        2       38       4         5           6        9/150 6.0%    54.2
+
+### three points, and the two halves point opposite ways
+
+**THE GROUND IS FLAT AND EXACT.** `9/150` three times — the established `dc22` baseline to the
+digit. By `F195` that is not a rate hovering: it is **the same single signature, still the only one
+the agent holds.** Three rungs of watching have not bought a second distinct effect.
+
+**EVERY INTERNAL QUANTITY FALLS MONOTONICALLY as coherence rises**, and `settled` is the sharp one:
+
+    minted      53 -> 43 -> 38       -28%
+    settled     16 -> 10 ->  4       -75%
+    promotions  16 ->  7 ->  5       -69%
+
+**`settled` is the ground-confirmed count, so its collapse is the one that matters** — the agent is
+not merely minting less, it is having less of what it mints survive contact.
+
+**AND THE ACCUMULATION PREDICTION HOLDS A THIRD TIME:** `carried_in` `0 → 4 → 6`. Slow, linear,
+exactly the shape `d92c7ea` pre-registered. Rung 4 should carry ~7–9.
+
+### the shape against the pre-registered signatures
+
+The reviewer's failure signature: *a real capability degrades GRADUALLY; a marker-follower holds
+flat then drops off a CLIFF.* **The PROBE does neither — it is flat AT BASELINE throughout, which
+is the third case neither signature covers: there is no capability present to degrade OR to
+cliff.** The gradual degradation is entirely in the frame-internal quantities, which are exactly
+what Figure 11 says not to read as capability.
+
+### AND THE TIMING COLUMN IS CONTAMINATED BY ME — declared rather than left to be inferred
+
+**At 20:56 I told the reviewer I had *deliberately not started a second measurement alongside the
+sweep* because *it would contaminate the per-rung `secs`.* I then ran six measurement scripts
+during rungs 2 and 3.** The provenance check, the tape-transition measurement, the pooled-tape
+panel check, the probe-ceiling check, the 25-board reachability pass, the repetition pass.
+
+**Cost is now non-monotone — `42.8 → 63.7 → 54.2` — and I cannot cleanly attribute that.** Each
+script was seconds to ~a minute against 50–64 minute rungs, so the contamination is small (~2–3%)
+and does NOT explain an 18% swing. **But I cannot prove which part is contention and which is the
+run, which is precisely the state I said I was avoiding.**
+
+**`secs` is therefore withdrawn as a reading for rungs 2 and 3.** `F193`'s library-integral account
+was built on rung 2's number and does not survive rung 3 anyway: rung 3 started HIGHER (54 vs 52),
+ended LOWER (92 vs 95), and ran FASTER. **The account was wrong independently of the contamination,
+and the contamination means I cannot now repair it from this data.**
+
+    BOUNDARY    3 of 4 rungs, one board, 8-chunk window, offset 0, seed 1618, one run each.
+                `secs` unusable for rungs 2-3. The probe and library columns are unaffected --
+                CPU contention changes how long a cycle takes, never what it computes
+    MECHANISM   the ladder runs and the carry prediction has held three times
+    CAPABILITY  none at any rung, and by distinct effect the agent is at 1/120 throughout
