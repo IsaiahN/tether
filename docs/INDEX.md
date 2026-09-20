@@ -36526,3 +36526,57 @@ inherited and the content is not.**
                 found prospective; the requirement for a future load recorded at entry-time
                 rather than reconstructed after
     CAPABILITY  none
+
+## F177 — THE PANEL AT TWELVE BOARDS REFUTES "ls20 IS THE ONE THAT WORKS". THREE SCORE, AND dc22 BEATS IT
+
+**`F175` read four boards and said *nothing has separated `ls20` from the rest by a property other
+than being `ls20`*, with four instruments agreeing. `F153` had already said why that was
+unresolvable: n=4 with one positive case cannot identify a cause. THE FIX WAS MORE BOARDS, NOT A
+FIFTH HYPOTHESIS.** Eight more, alphabetical so the selection is outcome-blind, same depth:
+
+    board   achieved            cross-game null
+    dc22     9/150   6.0%        ls20 0/71
+    ls20     3/71    4.2%        vc33 0/39
+    sk48     2/88    2.3%        ls20 0/71
+    ar25     0/73                ls20 1/71
+    bp35     0/82                ls20 1/71
+    cd82     0/17                ls20 0/71
+    cn04     0/98                ls20 0/71
+    g50t     0/73                ls20 0/71
+    lf52     0/153               ls20 0/71
+    vc33     0/39                ls20 0/71
+    tn36     0/33                ls20 0/71
+    ka59     0/105               ls20 0/71
+
+**THREE OF TWELVE SCORE, AND `ls20` IS NOT THE BEST ONE.** `dc22` achieves **9** chunk effects to
+`ls20`'s 3, at a higher rate over twice the denominator.
+
+### what this kills and what it establishes
+
+**KILLED: *`ls20` is the only board where anything works*.** That reading survived four independent
+instruments and twelve hours, **and it was an artifact of a four-board panel whose positive case
+happened to be the default argument of `arc_holdout.play`.** `F147` caught the default-argument
+selection; **it took until now to pay for it.**
+
+**ESTABLISHED, and it is the first positive capability reading of this session:** the null is
+measured and nearly zero — **0/71 ten times, 1/71 twice**, so a single hit is noise and the base rate
+is about 1 in 6 boards showing one. **`dc22`'s 9 is roughly nine times the largest null observed.**
+`sk48`'s 2 and `ls20`'s 3 sit just above it and are not separable from noise on their own.
+
+> **SO THE AGENT DOES REPRODUCE HUMAN CHUNK EFFECTS, ON ONE BOARD OF TWELVE, AT 6%.** Not zero, not
+> a fluke, and not the board anyone was looking at.
+
+### the methodological point, which is worth more than the number
+
+**Five single-variable causes were proposed and refuted this session — arity, action supply, slot
+population, goal-slot count, and implicitly *being `ls20`*.** Every one was read off a four-board
+panel. **Tripling the panel cost twenty minutes of background compute and refuted the sixth before
+it was proposed.**
+
+**The cheap move was never a better hypothesis. It was a bigger denominator**, and `F153` said so in
+writing before any of the last three findings were taken.
+
+    MECHANISM   nothing built. The step-4 panel tripled; the session's most durable framing
+                refuted; the first above-null capability reading recorded with its null
+    CAPABILITY  measured, small, real: dc22 9/150 against a 0-1/71 null. Twelve boards, 12
+                cycles, 13 frames -- about 1.2% of the ruled budget
