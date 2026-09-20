@@ -35199,6 +35199,13 @@ are ever eligible at all.**
 > OBJ-BOUND POPULATION — AND THAT POPULATION IS SET BY THE OBJECTIVE/PREDICTOR PRICE TIE, WHICH IS
 > ISAIAH'S WITHHELD RULING.** The thread routes onto an escalation that has been open all night
 > rather than onto a new cause.
+>
+> > **THE SLOT-COUNT HALF IS REFUTED — `F153`, and the correction belongs here.** At matched depth
+> > **`vc33` has THREE goal slots and qualifies ZERO**, so the population SIZE is not the
+> > discriminator either. This was the third single-variable cause I proposed in three hours and the
+> > third refuted by the next board. **What survives is only the pointer to `INDEX:21829`'s chain,
+> > which is not contradicted by the panel and is not confirmed by it.** The panel is n=4 with every
+> > condition confounded; it can exclude causes and cannot identify one.
 
 **REPORTED, NOT PRICED.** The standing instruction on that tie is explicit and nothing here touches
 it. What this adds is that the tie now has a measured consequence with a denominator — three boards,
@@ -35208,3 +35215,57 @@ three populations, one qualifier — where before it was a chain nobody had coun
                 two of my own findings corrected, one in the row that carries it
     CAPABILITY  none. The gate-1 thread is closed as a seat question and handed to a standing
                 escalation, which is a smaller and more honest place than where it started
+
+## F153 — THE FIRST DEPTH-MATCHED PANEL, AND I HAVE NOW REFUTED THREE OF MY OWN DISCRIMINATORS IN ONE HOUR
+
+**ka59 finished. Every board read at 60 cycles, one measure, paired the same way.** Until now the
+panel mixed a 25-cycle ls20 with a 40-cycle vc33 and read them as comparable.
+
+    board  cyc acts  goal-cycles    slots  qual  gate3   arity1   arity2
+    ls20    60   4     54  (90%)      5      8    n/a      7/8    0/1282
+    ka59    60   5      6  (10%)      1      0      0      6/8    5/1106
+    vc33    60   1     35  (58%)      3      0      0      3/4     6/273
+    tn36    60   1     57  (95%)      1      0      0      2/3     7/127
+
+### the one reading that survives everything
+
+**ARITY-1 75–88%, ARITY-2 0.0–5.5%, ON FOUR BOARDS AT MATCHED DEPTH BY ONE MEASURE.** `ls20`'s
+denominator is now **1282** and its numerator is still zero. This has survived every correction
+tonight and is the only claim I would defend without qualification.
+
+### and no single panel variable explains qualification
+
+**`ls20` qualifies. The other three do not. Nothing separates them cleanly:**
+
+    not ACTION COUNT      ka59 has FIVE actions and qualifies 0          (refutes F151)
+    not SLOT COUNT        vc33 has THREE goal slots and qualifies 0      (refutes F152)
+    not GOAL-CYCLE RATE   tn36 has a goal 95% of cycles and qualifies 0
+    not ARITY-2 REUSE     ls20 has the LEAST of any board and qualifies  (refutes F150)
+
+> **I HAVE PROPOSED THREE DISCRIMINATORS IN THREE HOURS AND REFUTED ALL THREE WITH THE NEXT
+> MEASUREMENT.** F150 said arity, F151 said action supply, F152 said the goal-slot population. **Each
+> was a single variable read off a four-board panel in which every variable is confounded with every
+> other**, and each looked convincing for exactly as long as it took to measure the next board.
+> **THE PATTERN IS THE FINDING AND THE FOURTH CANDIDATE IS NOT WORTH PROPOSING.** n=4, four
+> co-varying conditions, one positive case — this panel cannot identify a cause and no amount of
+> care in choosing the variable will change that.
+
+**What it CAN do is what it just did: refute.** Three named causes are now excluded on evidence,
+which is worth more than a fourth guess, and `INDEX:21829`'s chain — the OBJ-bound population is set
+by the objective/predictor price tie — remains the only account not contradicted by anything here.
+**It is also not confirmed by anything here. Reported, not priced.**
+
+### two instrumentation-age traps, both caught before publication
+
+    vc33_probe.jsonl   predates `goal_series` (8c2e942, 09-19 20:52)  -> 0 rows BY CONSTRUCTION,
+                       and I had it one step from being read as "vc33 never forms a goal"
+    long_ls20.jsonl    finished 02:14; `split_refused` landed 02:37   -> its gate-3 zero is
+                       ABSENT INSTRUMENTATION, not a measured zero. Marked n/a above
+
+**A ROW THAT DID NOT EXIST WHEN THE RUN RAN READS EXACTLY LIKE A ROW THAT NEVER FIRED**, and the only
+thing separating them is the commit time against the file mtime. **Check the instrument's age against
+the run's age before reading any zero from an archived ledger.**
+
+    MECHANISM   nothing built. First depth-matched panel; three of my own causes excluded;
+                two archived-ledger artifacts caught
+    CAPABILITY  none. The honest output is a smaller claim set than the night started with
