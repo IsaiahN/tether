@@ -37229,5 +37229,18 @@ times.
     MECHANISM   none added. An existing published field read for the question it was built for
     CAPABILITY  none -- and it REMOVES a repair: the selector-level fix the brief implied
                 cannot move a pinned series, so gate 1 on tn36 is a perception/contact item
-    OPEN        why vc33's series is popped so often -- `goal_residual` returning None is the
-                write site, and that is the next thing to go to
+    OPEN        why vc33's series is popped so often. Went to the write site: `goal_residual`
+                has FIVE None exits -- no OBJ term bound to the slot, wrong out_type, slot
+                absent from state, empty group, or `objective_degree` unresolved. WHICH ONE
+                FIRES IS NOT RECORDABLE FROM ANY ARTIFACT: there is no BIND row (the ledger's
+                step kinds on vc33 are PERCEIVE/ROUTE/MINT/PROMOTE/SETTLE/REPEAT/ACCEPT/PLAN/
+                IMPORT and nothing else), so the binding is never published
+
+**AND THE INSTRUMENT THAT WOULD SETTLE IT IS DELIBERATELY NOT BUILT TONIGHT.** A reason-code on
+those five exits is the obvious move and it has two successful precedents — `goal_series` and
+`split_refused` each settled a question inference could not. **It is still the wrong thing to build
+right now.** The reviewer's own reading of the day: *twelve hours of measurement has produced a
+clean account of what is NOT there and no agent that is better at anything*, and Isaiah ruled the
+spacing sweep PRIORITY 0 — *you cannot diagnose your way to a composer.* **So this is filed as a
+named, cheap, ready item rather than done**, and the record says why it was deferred so the next
+seat does not read the gap as an oversight.
