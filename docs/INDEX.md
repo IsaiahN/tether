@@ -37923,3 +37923,44 @@ silently be.
     MECHANISM   `or 0` at the site, with the reason recorded -- `get(..., 0)` reads as
                 already-defensive and will otherwise be reintroduced
     CAPABILITY  none. It unblocks the pooled run, which had reached cycle 15 of 199
+
+## F202 (INDEX series) — the "routine proposals up 5–10x" I sent the reviewer is WRONG. Pinning the denominator deflates it to ~1.5x, and the population error is the cause
+
+**I flagged it as unverified when I sent it and said I would pin it. Pinning it refutes it.**
+
+    quantity           pooled (35 cycles)   baseline                        ratio
+    reuse_install      32  -> 0.91/cycle    ls20 12 / 60 cycles = 0.20      4.5x
+    routine_refused    35  -> 1.00/cycle    F75  6-8 / 10 cycles = 0.6-0.8  1.3-1.7x
+
+**`F75`'s own first line is the denominator: *Ten cycles, five public boards.*** The
+`routine_refused 6 · 8 · 8 · 8 · 8` row I compared against is **ten cycles per board**, and I read
+it as though it shared the 60-cycle denominator of the `reuse_install 12 · 9 · 4 · 4` row — which
+comes from a **different batch** recorded in a different place.
+
+**TWO ROWS, TWO BATCHES, TWO DENOMINATORS, AND I GAVE THEM ONE.** That is the population error
+again: *reading a quantity without establishing which population produced it.*
+
+### what it costs the claim, which is most of it
+
+I told the reviewer **the pooled curriculum provokes 5–10x more attempts at procedure-level
+structure** — *the lever doing exactly what it was supposed to do.* **At the true denominator it is
+~1.5x.** The curriculum provokes modestly more routine proposals, not dramatically more.
+
+**The structural half is untouched and is the part that mattered:** `routine_cut` is **0**, routines
+are refused at MINT, and **a schedule cannot reach past a refusal surface.** That argument never
+depended on the multiplier.
+
+**The term-level figure survives with its denominator now pinned: `4.5x`, and the install:refuse
+ratio improves from `1:66` to `1:41`.**
+
+### why this one is worth an entry rather than a quiet fix
+
+**The flag did not save me.** I wrote *indicative, not measured* and sent the number anyway, and a
+reader takes `5–10x` and drops the caveat — I have done it to my own notes twice tonight. **A
+hedge on a wrong number propagates the number.** The lesson is not *flag harder*; it is **do not
+send a ratio until both denominators are pinned**, which cost one grep and could have happened
+before the post rather than forty minutes after it.
+
+    BOUNDARY    pooled run still at 42 of 199 cycles; all pooled figures remain partial
+    MECHANISM   none. A published comparison corrected at its source
+    CAPABILITY  none
