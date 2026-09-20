@@ -36008,6 +36008,13 @@ Arity-2 went from 0 to 1. A literal reading passes.**
 More unknowns, so it explores instead of acting, and `strategy` goes to zero. **Work rose 81%
 (1990 → 3595 bets) for one arity-2 hit.**
 
+> **THIS PARAGRAPH IS WITHDRAWN — `F168`, one tick later.** **0.97 is the BASELINE** (`INDEX:393`:
+> probe share 0.84–0.99 at every level and every DS), **and it is not the agent's mix at all** — it
+> is a TOY FIXTURE's over eight steps, quoted from an assertion message beside the real ls20 table.
+> The `m2` seat caught a fixture whose assumptions the change invalidated, not a behavioural
+> regression. **The work cost (+81%) and the n=1 arity result are real and the revert stands; the
+> regression claim never had a measurement behind it.**
+
 **THE SEAT REFUSED THE COMMIT AND WAS RIGHT TO.** `M2_STANDARD`'s tripwire caught a behavioural
 regression that none of my own three planned measurements would have — I was watching slots, reach
 and arity, and the thing that broke was the action mix.
@@ -36026,3 +36033,59 @@ and reverted** — after the heavy scalars, the five `partner` atoms, and the ty
     MECHANISM   built, A/B measured, reverted. A pre-registration that named its expected
                 verdict and got it, and a literal success condition refused on n=1
     CAPABILITY  none. The agent can reach nothing it could not, and probes instead of acting
+
+## F168 — `F167`'s SECOND HALF IS WITHDRAWN. THE MIX I QUOTED WAS A TOY FIXTURE'S, NOT THE AGENT'S
+
+**`F167` reported that the widening was *worse than inert* because it *"pushed the agent to 97%
+PROBING"*. That is wrong twice over and the entry is one tick old.**
+
+**FIRST — 0.97 IS THE BASELINE.** `INDEX:393`, swept 2026-08-26 over 6 DS x 12 seeds x 5 levels:
+**"PROBE share is 0.84–0.99 at every level and every DS."** I read a number as a change without
+checking what it normally reads. **The baseline was in the record and one grep away** — and the same
+entry even predicts the direction: *"`DIRECTED` requires a slot to OWE, so a library that explains
+more produces fewer owing slots ... and a RISING probe-label share."*
+
+**SECOND, AND WORSE — IT IS NOT THE AGENT'S MIX AT ALL.**
+
+    test_m2.py:345  check_strategy_is_emitted_when_a_routine_drives
+                        ag = _agent();  _wide(ag);  for _ in range(8): ag.step()
+                        mix = ag.phases.report()["total"]
+
+**That is a TOY AGENT over EIGHT STEPS.** I quoted it as the agent's behaviour on `ls20`, in the
+same entry where I tabulated the real ls20 run beside it. **Two populations, one paragraph, and I
+did not say which was which because I had not noticed they were different.**
+
+### the fixture is coupled to the slot population, and its own comment says so
+
+`_wide(ag, slot="o1.dcol")` monkeypatches `_group` **for one named slot** to inject a shrinking
+series. **`F166` added seven slots per object, so the population that helper reaches into moved** and
+the routine stopped driving. The helper's own docstring records this exact fragility:
+
+> *"This set `_disc` (the per-slot gap) until the selector was re-keyed onto `_res` — and the
+> fixture kept passing on two checks and SILENTLY STOPPED PRODUCING A ROUTINE on two others, which
+> is what a helper injecting the wrong quantity looks like."*
+
+> **SO THE `m2` SEAT DID NOT CATCH A BEHAVIOURAL REGRESSION. IT CAUGHT A FIXTURE WHOSE ASSUMPTIONS
+> THE CHANGE INVALIDATED** — and it cannot tell those apart. **Any future perception change will trip
+> it the same way**, which makes it a false alarm on correct work: the mirror of *a checker goes
+> silent*, and not in the seven places `lint.py` enumerates.
+
+### what of `F167` survives
+
+    SURVIVES   slots 173 -> 320 · bets 1990 -> 3595 · reach_failed 127 -> 185 · arity-2
+               0/127 -> 1/186.  All measured on the real ls20 run. REFUTED stands, on n=1
+               and a cost, which was the pre-registered verdict and the stated prior
+    WITHDRAWN  "worse than inert", "pushed the agent to 97% probing", and "the seat caught a
+               behavioural regression". The revert was still correct -- for the cost, not for
+               a regression that was never measured
+
+**AND THE CLASS IS NOW NAMED, BECAUSE IT IS THE FOURTH TONIGHT.** Three synonym traps, then this:
+**a number read without establishing WHICH POPULATION PRODUCED IT.** The doctrine line is verbatim —
+*before any census ask which function consumes this quantity and what it reads* — and I applied it
+to `reach` at the write site this morning and not to a mix printed in an assertion message.
+**A number in a FAILURE MESSAGE arrives with no provenance and reads as authoritative**, which is
+the variant worth keeping.
+
+    MECHANISM   nothing built. One published claim withdrawn; the m2 fixture's coupling to the
+                slot population recorded so the next perception change is not blocked by it
+    CAPABILITY  none
