@@ -62,7 +62,7 @@ def _mode():
 
 def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
          store: str | None = None, arc=None, stop_on_end: bool = False,
-         system0: bool = False, led_path: str | None = None) -> dict:
+         system0: bool = False, led_path: str | None = None, on_frame=None) -> dict:
     """Download one game, run the loop on it, and report where the chain stops.
 
     **`library` IS §17.8's SWITCH, and the default is cold.** *State it, and make it switchable
@@ -102,6 +102,7 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
 
     env = ArcWorld(w, arc_percept.Objects(), arc_atoms.three_spaces(arc_predict.predict()),
                    palette=palette, name=game)
+    env.on_frame = on_frame     # seat-side tap for §13 step 4's verifier; None on a normal run
     led = ledger.Ledger(led_path)  # a path streams every row to jsonl as it is recorded
     ag = tether.Agent(env, gamma.Gamma(env.atoms(), game=game),
                       tether.Config(system0=system0), led)

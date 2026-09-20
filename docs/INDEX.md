@@ -35609,3 +35609,45 @@ it.**
                 the missing piece named and its three feasibility checks passed
     CAPABILITY  none -- but step 4 is the per-game training loop, so this is the join between
                 the answer key and the agent that the whole §13 programme rests on
+
+## F160 — §13 STEP 4 IS BUILT AND RUNS. FIRST READING: 4/71 AGAINST A CROSS-GAME NULL OF 0/33 AND 1/39
+
+**`F159` found step 4 missing its joining piece. It is built.** `rlvr.py`, seat-side, plus a
+seat-side frame tap (`ArcWorld.on_frame`, default `None`, and an `on_frame=` passthrough on
+`arc_holdout.play`). **Nothing in `_BETTING_PATH` changed.**
+
+    ls20, 25 cycles, 26 agent frames
+      achieved   4/71 non-trivial chunks
+      null       vc33 1/39      tn36 0/33
+
+**THE NULL IS BUILT INTO THE CALL AND THE CLI CANNOT PRINT A BARE RATE.** *The same trajectory
+scored against ANOTHER GAME'S key* — because the signature counts HOW MANY objects moved, not which
+or where, so a collision is cheap and `4/71` alone says nothing.
+
+> **THE READING: above null in direction, and FAR too small to call a capability.** Four hits
+> against one and zero is not a difference this panel can resolve. **It is a working instrument
+> with its first number, not evidence the agent achieves anything.**
+
+### three things the build had to get right, and each was specified rather than chosen
+
+- **The comparison uses the key's OWN function.** `reverse_engineer._signature` applied to both
+  sides — the human chunk and the agent's window. **No metric invented here**, and if the meaning
+  of an effect changes, both sides move together. *Assume it is already specified, and go look*,
+  applied before writing a scorer rather than after.
+- **The all-zero chunk is dropped from both sides.** ls20's key contains exactly one, and the first
+  run matched it — **a free hit any inert agent collects.** The headline was `5/72` before that was
+  taken out; it is `4/71` after. **The trivial row is why the raw number was wrong.**
+- **`KEY_BOUNDARY` holds by placement.** Read post-hoc, seat-side, by a module the betting path
+  does not import. Post-hoc verification is permitted; pre-hoc selection is the encoded answer.
+
+### and the lint caught me building the very thing I spent the night hunting
+
+I wrote `score()`, then wrote `against_null()` which did not call it. **`ISOLATED` failed the
+commit: *`score`: defined and referenced nowhere*.** Dead code, written by the seat that has been
+chasing built-but-never-wired all session, caught by the check rather than by my attention.
+**Folded its diagnostic rows into the live path and deleted it.**
+
+    MECHANISM   step 4's verifier BUILT, RUN, and green -- the first of the reviewer's three
+                "decided, recorded, and not done" items to produce a number
+    CAPABILITY  none claimed. The instrument exists; the reading is at the noise floor and is
+                filed as such

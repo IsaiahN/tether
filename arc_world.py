@@ -54,6 +54,11 @@ class ArcWorld:
         # would be a magic constant wearing an adapter's clothes.
         self._palette = int(palette)
         self._name = name
+        # SEAT-SIDE FRAME TAP, default None. §13 step 4's verifier scores the agent's achieved
+        # effect against the human chunk's, and the boards exist only here -- `detail.frames` in
+        # the ledger is a COUNT, so an archived run cannot be scored. The agent never reads this
+        # and nothing in the loop sets it; `rlvr.py` attaches it for the duration of one run.
+        self.on_frame: Any = None
         self._frame = self.w.reset()
         self._read: dict[str, int] | None = None
         self._contacts: dict[str, list[str]] | None = None
@@ -424,6 +429,8 @@ class ArcWorld:
         self._prev_contacts = self._contacts
         self._contacts = None      # and a new set of contacts
         now = self.board()
+        if self.on_frame is not None:
+            self.on_frame(was, action, now)
         self._decomposed()          # re-track before reading contact on the new frame
         # BOTH READERS ABSTAIN ON A BLIND FRAME, AND ONLY ONE OF THEM USED TO. When `blind`,
         # `_decomposed` never calls the tracker, so `tracked` KEEPS ITS LAST READABLE STATE --
