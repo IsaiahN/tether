@@ -593,24 +593,75 @@ Not "it improved". Five clauses, each checkable:
    on a game** — the moment one enters for that reason we have encoded an answer, and the
    ablation clause cannot tell us we did.*
 
-   **THE RULE SPLITS IN TWO, AND ONLY ONE HALF IS LIVE.** The **LOAD side binds today**:
-   *SENSORs beyond the nine are forbidden, because §12.3 says the agent must reach for them
-   and reaching is the only evidence the composition system works* — a constraint on `3a`
-   regardless of when any wipe happens.
+   **THE RULE SPLIT IN TWO AND THE LOAD SIDE IS NOW SUPERSEDED — ISAIAH, 2026-09-19.** This
+   row read: *SENSORs beyond the nine are forbidden, because §12.3 says the agent must reach
+   for them and reaching is the only evidence the composition system works.* **The Kaggle
+   constraints force the human priors to be TRAINED IN, and they are "the 2700 AND THE
+   SENSORS/INSTRUMENTS."** So the load side does not bind: the instruments are frontload.
 
-   **AND THE CIRCLE THIS CREATES IS THE DESIGN, RULED 2026-08-31 AND NOT TO BE RELAXED.**
-   §12.4's remedy is built and its verdict is a permanent `UNREACHED`: the nine all terminate
-   at an attribute type — `accepting(COLOUR|POSITION|EXTENT|SHAPE|RATIO|DELTA|BOOL|REGION)` is
-   empty on every one — so a chain from an OBJECT is one step and novelty refuses a bare
-   sensor. **What would extend it is `parity(POSITION)` or `holes(SHAPE)`, which are §12.4's
-   own examples of what the agent must compose, and this rule forbids installing them.** So
-   the reach mechanism cannot reach.
+   **AND THE REASON IS NOT AN EXEMPTION, IT IS THAT THE EVIDENCE MOVED. *THE NOVEL COMPOSITION
+   HAPPENS IN THE OOD TESTING.*** Reaching-for-a-sensor is a quantity the frame produces, used
+   to score the frame — the proxy this file warns about everywhere else. The ground is the
+   private set. **Instruments sit on the TRAINING side and the measurement sits on the TEST
+   side, separated by a distribution neither the agent nor we can see, so admitting an
+   instrument cannot manufacture a pass. Only composing can.**
 
-   > **THAT IS NOT A BUG TO EXEMPT.** *Reaching is the only evidence the composition system
-   > works* is precisely the sentence that makes the circle correct: **admit Tier 2 to make
-   > reaching possible and the thing it enables IS the evidence, so there is nothing left to
-   > measure.** **What breaks the circle legitimately is a RICHER TIER 1** — a perception
-   > question with its own entry rule — **never a Tier 2 exemption.**
+   **AND THE BUDGET IS WHAT SETTLES IT RATHER THAN THE PRINCIPLE.** Cold start is VALID and
+   Isaiah has already demonstrated it in general (Ouroboros v1–v4); it is not the open question
+   and this competition is not where it gets re-asked. **Three ways to pay the bill — evolution's
+   bodies and time, a PARALLEL POPULATION splitting it by numbers, or inheriting from something
+   that already paid. WE HAVE ONE AGENT, so two of the three are unavailable.** Frontloading is
+   the substitute for population size, and refusing it selects the evolutionary timescale with a
+   population of one.
+
+   **AND A VOCABULARY CANNOT BE AN ANSWER, WHICH IS THE HALF EVERY SEAT HERE HAS GOT WRONG.**
+   *No library can contain the answers on its own; if it could there would be no minting, no
+   composer.* 2700 attributes are what the agent can SAY — the answer is a composition over
+   them, and Figure 13 is explicit that the set is closed while the arrangements are not.
+   **Handing the alphabet does not hand the sentence.** §11 already carves out the category the
+   ablation is deliberately blind to — what entered because the loop cannot run without it —
+   and an inherited vocabulary IS that category rather than a loophole in it.
+
+   **AND WITHHOLDING IT MAKES THE MEASUREMENT UNREADABLE, WHICH IS THE WORSE FAILURE BECAUSE IT
+   PRESENTS AS CAUTION.** With a starved vocabulary a null on composition cannot separate
+   *cannot compose* from *had nothing to compose with*. That is this file's own base-rate law
+   applied to the vocabulary instead of the data. **The reviewer has made it standing: any null
+   reported on a composition capability must state the vocabulary it was measured against.**
+
+   > **WHAT REMAINS FORBIDDEN IS NARROW AND UNCHANGED: an ANSWER KEY deciding what the agent
+   > pursues on a live board.** `F134` / `KEY_BOUNDARY`, untouched by any of this. And the
+   > firewall that carries the composition claim is not ours to maintain — **Kaggle never shows
+   > us the games, one submission a day, a scalar back.**
+
+   **THE MEASUREMENT THIS ROW CARRIES IS TRUE AND RE-MEASURED; THE CIRCLE IT CONCLUDED IS
+   DISSOLVED.** The reading stands, run again 2026-09-19 rather than quoted: the nine all
+   terminate at an attribute type — `accepting(COLOUR|POSITION|EXTENT|SHAPE|DELTA|BOOL|REGION)`
+   is **empty on every one** — so a chain from an OBJECT is one step deep and stops. **That is
+   why the 2700 are out of reach, and it is arity in the perception layer rather than vocabulary
+   or search budget: you cannot compose a chain when nothing accepts the output of step one.**
+
+   **WHAT IS OVERTURNED IS THE CONCLUSION.** This row read *the circle is the design, ruled
+   2026-08-31 and not to be relaxed* — admit Tier 2 and the thing it enables IS the evidence, so
+   nothing is left to measure. **That argument holds only while REACHING is the evidence, and
+   it no longer is** (above): the evidence is OOD composition, so an instrument on the training
+   side cannot consume the measurement on the test side. **Not a Tier 2 exemption — the circle's
+   premise was withdrawn, and `parity(POSITION)` and `holes(SHAPE)` were in fact installed under
+   the atoms' entry clause on 2026-09-05 while this row still said they were forbidden.**
+
+   > **AND THE ENTRY RULE FOR AN INSTRUMENT WAS ALREADY WRITTEN — FIGURE 6, AND I NEARLY ASKED
+   > FOR ONE TO BE AUTHORED.** *An instrument is not built from a description; it is improved
+   > from a worse instrument already returning something… the question is whether anything, at
+   > any resolution, is already returning something that **fails to resolve**.* **So the test is
+   > checkable rather than a judgement: point at the existing reading that fails to resolve.**
+   > Isaiah's *"builds off existing stuff"* is that clause, and the diamond is the argument —
+   > isotope ratios worked **because a trace existed**, not because a better tool was made.
+   >
+   > **AND AN INSTRUMENT IS NOT A CONCESSION: every useful one LOWERS THE AGENT'S DISTINCTION
+   > HORIZON** — makes things distinguishable, measurable, understandable. **Composition is the
+   > tool that renders brand-new things into terms the agent already holds**, so a richer
+   > vocabulary makes MORE of the unknown reachable. An adult meeting an unfamiliar animal says
+   > *like a cross between a lizard and a bird* — a new thing, **zero new words**, and what is
+   > theirs is the arrangement.
 
    **AND THE NINE ARE NOT CLOSED FOREVER — THEY ARE CLOSED TO BEING *HANDED* ONE. ISAIAH,
    2026-09-10, AND I HAD THE PROHIBITION'S SHAPE WRONG.** Asked plainly whether the agent ever
@@ -692,11 +743,24 @@ Not "it improved". Five clauses, each checkable:
    > exemption***. **Atoms ARE tier 2.** Installing them could not lift this verdict by
    > construction, and the paragraph being edited says so two lines up. **Step three would have
    > cost one grep; reading the thing I was editing would have cost nothing.**
+   >
+   > **THE QUOTE ABOVE IS A RECORD OF WHAT THE PASSAGE SAID, NOT CURRENT DOCTRINE — the circle
+   > it cites was dissolved 2026-09-19 (above).** The `A6i` lesson is what this entry is for and
+   > it is untouched; only the doctrine being quoted has moved. **Kept rather than deleted,
+   > because an error entry whose evidence is edited away stops being evidence.**
 
    **SO THE TWO SUSPENDED CITATIONS STAY SUSPENDED, AND `composable=0` IS NOW MEASURED RATHER
    THAN INHERITED.** What would lift this is a sensor accepting an attribute type — **which is
-   `3a`, a perception question, and forbidden until it has an entry rule of its own.** The
-   atoms' entry clause admits ATOMS and says nothing about sensors.
+   `3a`.**
+
+   > **AND `3a` IS NO LONGER FORBIDDEN — SUPERSEDED BY ISAIAH, 2026-09-19.** This row read
+   > *forbidden until it has an entry rule of its own*, and both halves have moved: the
+   > instruments are **frontload** (the load side, above), and **the entry rule was already
+   > written in Figure 6** — *an instrument is improved from a worse instrument already
+   > returning something; the question is whether anything, at any resolution, is already
+   > returning something that fails to resolve.* **`composable=0` is exactly such a reading, so
+   > the condition is met and pointed at rather than argued.** The atoms' entry clause still
+   > admits only ATOMS; what admits a sensor is Figure 6, which nobody had to author.
 
    **AND THE ABSTENTION IS THE DELIVERABLE, NOT THE BLOCKAGE.** *I cannot tell these apart, I
    cannot build an instrument that would from what I hold, and here is the closure I searched*
@@ -719,8 +783,11 @@ Not "it improved". Five clauses, each checkable:
    under *promoted from crude* is what it wipes.** Ruled 2026-08-27: TRACKER blind (identity
    across frames is perception, not knowledge — wiping it makes the agent blind rather than
    untaught); BUDGET's cognitive bounds wiped, its termination caps never being priors at all;
-   and **SENSORs beyond the nine are not wiped but FORBIDDEN**, because §12.3 says they must be
-   reached and *reaching is the only evidence the composition system works.*
+   and **SENSORs beyond the nine are NOT WIPED and NO LONGER FORBIDDEN — superseded by Isaiah,
+   2026-09-19**, above: the instruments are frontload, and novel composition is measured at OOD.
+   **They stay UNWIPED for the reason TRACKER does** — wiping perception makes the agent blind
+   rather than untaught — and the ablation's subject is what the agent COMPOSED, which is
+   exactly what makes that test readable.
 4. **Not fed** — no answer encoded anywhere. Every correction must generalise; a fix
    that helps one case is an answer wearing a fix's clothes.
 5. **Time to learn** — and the budget is not the excuse.

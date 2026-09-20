@@ -1876,6 +1876,29 @@ class Agent:
             self.led.record(self.cycle, "PERCEIVE", "*", "can",
                             **{k: sum(1 for v in reach.values() if v == k)
                                for k in (YES, NO, UNKNOWN)})
+        # AND THE SERIES ITSELF, BECAUSE `R_goal` IS THE ONE QUANTITY THE CHAIN TURNS ON AND WAS
+        # THE ONLY ONE NOT WRITTEN DOWN. `_goal_choice` selects over `self._res` and nothing
+        # published it, so *the mechanism is right and the input never satisfies it* was a claim
+        # the ledger could not check -- and three sweeps had to wrap this function from outside to
+        # read what it already held. A checker reads the ledger, not the machine.
+        #
+        # THE WINDOW, NOT ONLY THE VALUE, because the criterion is a TREND: `_goal_choice` wants
+        # `MIN_REPEAT + 1` non-increasing readings carrying one real decrease, and a bare current
+        # value cannot be read against that. `qualifies` is the criterion's own verdict per slot,
+        # so a gate-1 refusal traces to the series that produced it instead of being inferred.
+        if self._res:
+            w = MIN_REPEAT + 1
+            def _deltas(ser: list[float]) -> list[float]:
+                return [b - a for a, b in zip(ser[-w:], ser[-w + 1:], strict=False)]
+            self.led.record(
+                self.cycle, "PERCEIVE", "*", "goal_series",
+                series={k: [round(float(v), 4) for v in ser[-w:]]
+                        for k, ser in sorted(self._res.items())},
+                qualifies=sorted(k for k, ser in self._res.items()
+                                 if len(ser) >= w and all(d <= 0 for d in _deltas(ser))
+                                 and any(d < 0 for d in _deltas(ser))),
+                satisfied=sorted(k for k, ser in self._res.items() if ser and ser[-1] <= 0),
+                too_short=sorted(k for k, ser in self._res.items() if len(ser) < w))
 
     def _goal_choice(self) -> str | None:
         """M2 ITEM 3, THE SELECTOR. §13.4, quoted whole because the criterion is its wording:
