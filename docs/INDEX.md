@@ -34261,3 +34261,51 @@ zero-remainder rule taken alone.
     CAPABILITY  unchanged, and the negative is the finding: what `_library_fit` needs is a test
                 that admits partial fits WITHOUT discarding lateral ones, which is neither of
                 the two tests the build currently has
+
+---
+
+## `F136` — arm D's collapse has a named cause, and it gives the objective/predictor tie a SUBJECT for the first time
+
+**`F135` recorded that arm D starved the goal channel. The mechanism is exact, and it is a
+standing open question rather than a new defect.**
+
+    vc33 arm A   11 distinct bound terms   `no_change`, `translate<o2.shape>`, `none`,
+                                           `above . none<o0.col>`   -- OBJ-typed among them
+    vc33 arm D    4 distinct bound terms   `no_change` and three `translate<...>`
+                                           -- NO OBJ-TYPED TERM AT ALL
+
+### why a predictive bargain cannot keep an objective
+
+**`pays(cost, left, base)` scores `left`, which is PREDICTION ERROR.** An `OBJ`-typed term is not
+predicting the slot — it states what is WANTED — so as a predictor it carries large leftover by
+construction. **Under exactness both kinds could pass; under the bargain a `translate` that
+actually predicts wins every time.** Arm D did not lose objectives by accident; it ran a
+competition objectives cannot enter.
+
+### which is `CLAUDE.md`'s own open question, and the precondition it named is now met
+
+> *Three chains priced the objective-versus-predictor tie… **each was internally coherent and had
+> no subject.** The tie is real and structural: `term_bits` reads length and alphabet, so the
+> bargain prices **HOW LONG** and never **WHAT KIND**.*
+
+**Its ruling was BUILD THE SUBJECT BEFORE PRICING IT** — the three valuation chains were refused
+because nothing downstream made the tie matter.
+
+> **ARM D IS THAT SUBJECT.** For the first time the tie DECIDES something measurable: with the
+> bargain governing retrieval, OBJ-typed terms go from 11 distinct bindings to none and the goal
+> channel reads zero rows on vc33. **The question stops being hypothetical and becomes a reading.**
+
+### and this seat is not the one to price it
+
+`CLAUDE.md` records the pricing as **Isaiah's withheld ruling**, and records that misattributing a
+cause to this tie would have *spent that ruling on a defect fixed by six lines*. **So: reported,
+not priced.** What is new is only that the precondition is satisfied — there is now a measurement
+in which the tie has consequences, which there was not when the three chains were refused.
+
+**AND IT EXPLAINS WHY ARM D MUST STAY OFF FOR A REASON BEYOND ITS SCORE.** Shipping it would
+settle the objective/predictor question by default, in favour of predictors, without anyone
+ruling on it. **A default is a ruling nobody made.**
+
+    MECHANISM   located: the bargain scores prediction error, and an objective is not a
+                prediction. No new defect -- a documented structural tie, now with a subject
+    CAPABILITY  unchanged. Arm D stays off, and the reason is now doctrinal as well as measured
