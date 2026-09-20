@@ -84,7 +84,12 @@ class _Frame:
     def __init__(self, step: dict) -> None:
         self.frame = [step["grid"]]
         self.available_actions = step.get("avail") or ()
-        self.levels_completed = step.get("level", 0)
+        # `or 0`, NOT `get("level", 0)`. SEVEN of the 25 replays -- ar25, cd82, lp85, sb26,
+        # sc25, tu93, vc33 -- carry `level: null` in EVERY step, so the key EXISTS and the
+        # default never applies. `get` handed None straight to `objective()`, which divides by
+        # it. dc22 records levels, which is why four single-game rungs passed and the pooled
+        # tape died at cycle 15: a defect only a tape spanning games could reach.
+        self.levels_completed = step.get("level") or 0
         self.win_levels = 0
 
     def is_empty(self) -> bool:
