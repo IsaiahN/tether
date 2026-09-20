@@ -37141,3 +37141,33 @@ dropped out of the table entirely instead of reading zero. **Both guards agree.*
     MECHANISM   no change. A standing work item retired as mis-specified before anything was
                 built against it
     CAPABILITY  none, and that is the result: the fix the brief implied was worth 1 instance
+
+## F188 (INDEX series) — GATE 3'S `all_tied` IS GENUINELY SATURATED, NOT VACUOUS: the check that could have reopened a closed question confirms it instead
+
+**`F156` added `vacuous = len(self.actions) < 2` to the tie exit tonight.** It was added so an
+abstention names the closure it searched, and it has a second use nobody stated: **if `all_tied`
+were firing with fewer than two actions, *every action moves the slot the wanted way* would be
+VACUOUSLY true and gate 3's closure (`F141`/`F144`) would rest on an artifact.** That is a live way
+for a closed question to be wrong, so it was worth one read.
+
+    why='all_tied'   vacuous=False   n_actions=4   x9
+    votes {ACTION1: 1.0, ACTION2: 1.0, ACTION3: 1.0, ACTION4: 1.0}
+
+**FOUR REAL ACTIONS, ALL AT 1.0. The saturation is real and the brief's account stands.**
+
+### the artifact that could answer it is exactly one, and finding that out was the work
+
+**`vacuous` entered at `04cb687`, 2026-09-20 06:24.** Every `long_*` run predates it —
+`long_ls20` 02:14, `long_vc33` 03:46, `long_tn36` 05:08, `long_ka59` 05:28. **Reading those for
+`vacuous` would have returned nothing and read as *never vacuous*, which is the same string a
+never-fired instrument produces.** `closure_ls20` (06:20, written from the working tree minutes
+before the commit) is the only artifact carrying the field, and it is `ls20` only.
+
+**SO THE CONFIRMATION IS NARROW AND SAYS SO: nine occurrences, one board, one run.** The other
+three boards cannot be checked for this without a fresh run, and on `vc33`/`tn36`/`ka59` gate 3 is
+never reached anyway (`F187`: gate 1 never opens there), so the question may not even arise.
+
+    BOUNDARY    ls20, 9 rows, one run. The field does not exist in any other artifact
+    MECHANISM   none added -- an existing field read for a purpose it was not built for
+    CAPABILITY  none. A closed question stayed closed under a test that could have reopened
+                it, which is worth more than a fourth re-derivation of why it is closed
