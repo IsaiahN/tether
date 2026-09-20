@@ -34309,3 +34309,40 @@ ruling on it. **A default is a ruling nobody made.**
     MECHANISM   located: the bargain scores prediction error, and an objective is not a
                 prediction. No new defect -- a documented structural tie, now with a subject
     CAPABILITY  unchanged. Arm D stays off, and the reason is now doctrinal as well as measured
+
+---
+
+## `F137` — arm C retired: inert in combination as well as alone, and arm B splits into two effects
+
+**`F131` held arm C off "so that when relational atoms are admitted the improvement can be
+attributed."** No relational atoms were admitted (`F132` refused them), but arm B is an
+improvement, so the combination is the experiment arm C was being held for. It has run.
+
+    ls20   arm B    arity1 6/7   arity2 0/129   qualified 5/8
+           arm B+C  arity1 6/7   arity2 0/129   qualified 5/8
+    tn36   arm B    arity1 2/3   arity2 7/31    qualified 0/9
+           arm B+C  arity1 2/3   arity2 7/29    qualified 0/8
+
+**IDENTICAL.** Arm C contributes nothing on top of a working intervention, which is what `F131`
+predicted from the count — the relational bonus can reach two atoms of forty-eight, and
+`_explains` is a binary test ranking cannot move.
+
+> **SO ARM C IS RETIRED RATHER THAN HELD.** It is correct-by-parity with two sibling call sites
+> and it changes no reading, alone or combined. Keeping it as a pending option would imply an
+> open question that has been answered twice.
+
+### and arm B was two effects reported as one
+
+    ls20   arity1 7/7 -> 6/7     arity2 0/127 -> 0/129    qualified 0 -> 5
+    tn36   arity1 3/3 -> 2/3     arity2 1/22  -> 7/31     qualified 0 -> 0, loses o88.col
+
+**ls20's gain is NOT arity-2 reuse** — that stays at zero. It comes from the binding itself:
+`none` forced out of the head position into `above . none<o16.w>`, which then yields the monotone
+shrink. **tn36's change IS arity-2 reuse, sevenfold, and it costs the objective slot.**
+
+**Two different mechanisms under one switch, and I had been reporting them as one result.** The
+per-game law caught it again — pooling these two boards would have produced "arm B improves
+arity-2 reuse and gate-1 qualification", which is true of neither board.
+
+    MECHANISM   arm C closed out; arm B's effect decomposed per board
+    CAPABILITY  unchanged. Arms B and D remain off and the two escalated questions are unmoved
