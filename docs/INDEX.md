@@ -33683,3 +33683,63 @@ investigation, two caught before they were believed and one caught by reading `C
                 F119 repaired at source where the wrong sentence is read
     CAPABILITY  unchanged. levels 0, routine_cut 0. No candidate fix: what this changes is
                 WHERE to look for the 25 -- at pricing and at cuts[:12], not at reach.
+
+---
+
+## `F126` — the adjacency fix has no unfixed twin, and the contact graph predates the broken predicate by four hours
+
+**The reviewer's ruling (2026-09-19, 00:26) named two banked results sitting on top of the
+09-18 Adjacency repair: CI-2's 97%-against-93%, and the contact-graph reading (1-hop 13%, full
+100%, CONNECTED) that closed §16.5's cascade.** The argument was sound in shape — a bbox-gap
+predicate is MORE permissive than true cell contact, so the graph would read more connected
+than it is, and the cascade might narrow after all. **Both results stand, and neither needed a
+re-run to establish it.**
+
+### four implementations of contact, and only one was ever wrong
+
+    arc_percept.touching        TRUE 4-adjacency. §12.3 sensor 8. Correct since it was written
+    reverse_engineer._touch     TRUE 4-adjacency over absolute cells. Independent, correct
+    sensors_heavy contactPoints bbox-gap -> FIXED at d7fd78b, 09-18 21:37
+    relations.adjacent          `_cheby(a,b) <= 1`, and it is NOT the same defect -- see below
+
+### the dating settles the reviewer's question without a measurement
+
+**`contactPoints` first enters `sensors_heavy.py` at `16fe8da`, 09-18 17:59. The contact graph
+was measured and posted at 09-18 13:22.** The file did not exist. The only contact predicates
+available at 13:22 were `arc_percept.touching` and `relations.adjacent`, and both were correct
+against their specifications. **So the broken predicate could not have been used**, and the
+same dating covers CI-2.
+
+> **A fact about which code existed beats a re-run**, and it is cheaper. The re-run would have
+> produced a number and left the question of WHICH predicate produced the original unanswered.
+
+### I called `relations.adjacent` the unfixed twin and the corpus refuted it
+
+Three defects claimed, and `RELATIONS.md` — the corpus, consulted before the repair rather than
+after — kills two outright:
+
+    adjacent   next to, possibly sharing a boundary   -- contact or distance one
+    disjoint   no points in common                    -- the negation of contact
+
+**`_cheby <= 1` IS "contact or distance one".** So `adjacent` firing at distance one is the
+definition, not a bug; firing on diagonal-only contact likewise; and `adjacent AND disjoint`
+both true is **near but not touching**, a legitimate reading rather than a contradiction in the
+cue vector. **I was one commit from "fixing" correct code against my own intuition of what the
+English word ought to mean** — which is `A6i` with the two senses being the corpus's and mine.
+
+### what survives is an ambiguity in the corpus, and it is annotated rather than repaired
+
+The `disjoint` row carries **two phrasings that disagree**, and a case separates them: two
+objects whose bounding boxes overlap while sharing no cells (interlocking combs).
+
+    "no points in common"      -> disjoint TRUE
+    "the negation of contact"  -> disjoint FALSE   (sensor 8 says they touch)
+    relations.disjoint          -> FALSE           (follows the second phrasing)
+
+**The code is consistent with one of the two readings the corpus licenses, so there is nothing
+to repair here and nothing to rule from this seat.** `RELATIONS.md` is corpus: recorded, left
+alone. Isaiah's to settle if it ever costs something.
+
+    MECHANISM   unchanged. No code moved, and the repair that was about to be made was wrong
+    CAPABILITY  unchanged. What moved is the STATUS of two banked results: both stand, and
+                §16.5 stays closed rather than reopening
