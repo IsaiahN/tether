@@ -102,6 +102,17 @@ class Sensor:
     out_type: str
     origin: str          # prior | minted | imported
     cost: int            # READS per call. No unit shared with bits -- see the module note.
+    admitted: str        # WHICH CLAUSE let it in. No default, so it cannot be forgotten.
+    # `origin` IS NOT THIS, AND CONFLATING THEM IS `A6i`. `prior` is a CONSTRUCTION stamp -- it
+    # means *no mint record* and every sensor built here carries it, so it is not evidence that
+    # any entry rule was applied. `admitted` is the rule. Two quantities, and the corpus already
+    # records them colliding under one word.
+    #
+    # AND IT IS RECORDED AT ENTRY BECAUSE IT CANNOT BE RECORDED LATER (reviewer, 2026-09-20).
+    # Provenance is a fact about the TRAVERSAL, and the traversal is not recoverable from what it
+    # produced -- not by a better instrument, not with more compute. The information is not
+    # degraded afterwards; it was never in the object. The ablation partition -- wipe composed,
+    # keep inherited -- needs *which is which*, and which-is-which is a fact about entry.
 
 
 class Registry:
@@ -119,6 +130,11 @@ class Registry:
     def add(self, s: Sensor) -> None:
         if s.name in self._by_name:
             raise ValueError(f"two sensors named {s.name}")
+        if not s.admitted.strip():
+            raise ValueError(
+                f"sensor {s.name!r} names no admitting clause. A sensor enters under a stated "
+                f"rule or not at all -- the ablation partition is a fact about entry and cannot "
+                f"be reconstructed from the term afterwards.")
         self._by_name[s.name] = s
 
     # THE DEBT BOOKED HERE IS PAID. `producing` / `accepting` are what make a registry more
@@ -250,24 +266,49 @@ def minimum_set() -> Registry:
 
     **Which is why these are admissible under the entry rule** -- they enter under clause one,
     so the ablation stays blind to them and wiping them would test blindness rather than
-    composition. **Tier 2 is deliberately absent**: §12.3 says symmetry, containment, holes,
-    counting-by-colour and alignment must be REACHED, *because reaching is the only evidence
-    the composition system works*, and the 2026-08-27 ruling makes loading them forbidden
-    rather than merely ungenerous.
+    composition.
+
+    **TIER 2 IS ABSENT HERE AND IS NO LONGER FORBIDDEN -- SUPERSEDED BY ISAIAH, 2026-09-19.**
+    This docstring read: *§12.3 says symmetry, containment, holes, counting-by-colour and
+    alignment must be REACHED, because reaching is the only evidence the composition system
+    works, and the 2026-08-27 ruling makes loading them forbidden.* **The Kaggle constraints
+    force the human priors to be trained in, and those are the 2700 AND THE INSTRUMENTS.**
+
+    **The premise is what moved, not the rule's wording: THE NOVEL COMPOSITION HAPPENS IN THE
+    OOD TESTING**, so reaching-for-a-sensor was a frame-internal proxy and the ground is the
+    private set. An instrument sits on the training side; the measurement sits on the test side.
+
+    **WHAT ADMITS ONE IS FIGURE 6, WHICH WAS ALREADY WRITTEN**: *an instrument is not built from
+    a description; it is improved from a worse instrument already returning something -- the
+    question is whether anything, at any resolution, is already returning something that FAILS
+    TO RESOLVE.* Checkable rather than argued: point at the reading that fails to resolve.
+
+    **AND ANY SENSOR ADMITTED THAT WAY CARRIES ITS CLAUSE IN `admitted`, AT ENTRY.** The nine
+    below enter under clause one; nothing enters unstamped, because the registry refuses it.
     """
+    CL1 = "clause-1: the loop cannot run without it -- §12.3's nine"
     return Registry([
-        Sensor("components", _components, (FRAME,), OBJECT, "prior", 1),
-        Sensor("colour", _attr("colour", int), (OBJECT,), COLOUR, "prior", 1),
-        Sensor("position", _attr("row", int), (OBJECT,), POSITION, "prior", 1),
-        Sensor("extent", _attr("h", int), (OBJECT,), EXTENT, "prior", 1),
-        Sensor("shape", _shape, (OBJECT,), SHAPE, "prior", 1),
+        Sensor("components", _components, (FRAME,), OBJECT, "prior", 1,
+                CL1),
+        Sensor("colour", _attr("colour", int), (OBJECT,), COLOUR, "prior", 1,
+                CL1),
+        Sensor("position", _attr("row", int), (OBJECT,), POSITION, "prior", 1,
+                CL1),
+        Sensor("extent", _attr("h", int), (OBJECT,), EXTENT, "prior", 1,
+                CL1),
+        Sensor("shape", _shape, (OBJECT,), SHAPE, "prior", 1,
+                CL1),
         # 6 AND 7 ARE CROSS-FRAME BY §12.3's OWN PROSE. `overlap`'s BODY does not yet
         # match its type -- it returns IoU over NORMALISED SHAPES, which is congruence and
         # carries no position. The repair is deferred deliberately: cross-frame cell IoU is
         # what the tracker already computes, so it agrees with an existing quantity and
         # unlocks nothing. Typed correctly here so the mismatch is declared, not hidden.
-        Sensor("overlap", _overlap, (OBJECT_BEFORE, OBJECT), RATIO, "prior", 2),
-        Sensor("delta", _delta, (OBJECT_BEFORE, OBJECT), DELTA, "prior", 2),
-        Sensor("touching", _touching, (OBJECT, OBJECT), BOOL, "prior", 2),
-        Sensor("changed", _changed, (FRAME, FRAME), REGION, "prior", 2),
+        Sensor("overlap", _overlap, (OBJECT_BEFORE, OBJECT), RATIO, "prior", 2,
+                CL1),
+        Sensor("delta", _delta, (OBJECT_BEFORE, OBJECT), DELTA, "prior", 2,
+                CL1),
+        Sensor("touching", _touching, (OBJECT, OBJECT), BOOL, "prior", 2,
+                CL1),
+        Sensor("changed", _changed, (FRAME, FRAME), REGION, "prior", 2,
+                CL1),
     ])
