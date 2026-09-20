@@ -174,7 +174,8 @@ def pooled_order(games=ALL_GAMES, offset: int = 0, spacing: int = 1, skip: int =
 
 
 def watch_many(games=ALL_GAMES, cycles: int | None = None, offset: int = 0, spacing: int = 1,
-               skip: int = 0, take: int | None = 4, led_path: str | None = None) -> dict:
+               skip: int = 0, take: int | None = 4, led_path: str | None = None,
+               on: str | None = None, store: str | None = None) -> dict:
     """Watch a POOLED tape across games. One library, no game label reaching the agent.
 
     PROVENANCE IS KEPT BY ROTATING `gamma.game` AS THE TAPE CROSSES GAMES. `Gamma` reads
@@ -206,6 +207,15 @@ def watch_many(games=ALL_GAMES, cycles: int | None = None, offset: int = 0, spac
         seen_order.append(g.game)
         ag.step()
 
+    # A GROUND READING, OR THIS RUN REPORTS ONLY FRAME-INTERNAL COUNTS. `library 48 -> 101`
+    # would have read as success at rung 1 and the probe is what refused it. `on` probes a live
+    # board with the pooled library, scored by rlvr's scorer -- same instrument, same baseline,
+    # so a pooled result is directly comparable to the ladder's 9/150.
+    ground = {}
+    if on:
+        path = store or str(Path(tempfile.gettempdir()) / "pooled_lib.json")
+        g.save(path)
+        ground = probe(on, path)
     mints = collections.Counter(h.split("_", 1)[0] for h in g.handles.values())
     return {"games": len(games), "spacing": spacing, "offset": offset,
             "take_per_game": take, "frames": len(frames), "blocks": nblocks,
@@ -215,7 +225,7 @@ def watch_many(games=ALL_GAMES, cycles: int | None = None, offset: int = 0, spac
                                                               strict=False) if a != b),
             "atoms": base, "library": len(g.library), "minted": len(g.library) - base,
             "settled": len(g.settled_terms), "by_origin": dict(mints.most_common(8)),
-            "fr": fr is not None}
+            "fr": fr is not None, **ground}
 
 
 def watch(game: str = "dc22", cycles: int | None = None, offset: int = 0, spacing: int = 1,

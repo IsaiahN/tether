@@ -37706,3 +37706,54 @@ and the contamination means I cannot now repair it from this data.**
                 CPU contention changes how long a cycle takes, never what it computes
     MECHANISM   the ladder runs and the carry prediction has held three times
     CAPABILITY  none at any rung, and by distinct effect the agent is at 1/120 throughout
+
+## F198 (INDEX series) — PRE-REGISTRATION for the pooled 25-game run, written before it is launched
+
+**Because pre-registration has paid three times tonight** (`F190`'s carry held at rungs 2, 3 and
+predicts rung 4) **and cost me nothing when it failed** (`F193`'s discriminator was refuted and the
+refutation was the finding). The pooled run is ~2–3 h and this costs minutes.
+
+**CONFIG, fixed:** all 25 games, `spacing=1`, `take=1` (199 frames), whole tape, one continuous Γ,
+ledger ON. `dial_inert=True` is EXPECTED and correct here — at `take=1` spacing cannot vary, and
+this is one point at phase 1's maximum shuffle, **not a ladder** (`F194`: a pooled ladder needs
+`take>=8` and costs ~68 h).
+
+### the fork `F197` sets up, and both arms are stated
+
+**`settled` fell `16 → 10 → 4` as coherence ROSE on the single-game ladder.** The pooled tape is the
+extreme random end — maximum shuffle, and far harsher than anything the ladder reached (mean 483
+cells changed per transition against 13, 12% of transitions replacing the board wholesale).
+
+- **ARM A — the trend extends.** Shuffle favours settling, so pooled settles MORE than rung 1's 16.
+  **Reading: the random-dense end is where the ground confirms compositions, which is `§14.5` phase
+  1's own claim** — *only shapes recurring EVERYWHERE pay off.*
+- **ARM B — the trend breaks and settling COLLAPSES toward zero.** The tape is too discontinuous for
+  anything to recur enough to be confirmed. **Reading: the curriculum is too hard to learn from,
+  which `F194` already flagged as open and which would make phase 1 as specified unrunnable at
+  this harshness.**
+
+**These are opposite and both are consistent with what I know now. I am not predicting which.**
+
+### what I AM predicting, so the run has a falsifier
+
+1. **`dial_inert: true`** in the output — a check on `F194`'s instrument, not on the agent.
+2. **`by_origin` non-empty and spread across several games**, not concentrated in one. Concentration
+   in whichever game the tape ends on would mean `F192`'s provenance check missed something.
+3. ~~**The probe is NOT run here** (`watch_many` has no probe), so there is no ground reading.~~
+   **FIXED BEFORE LAUNCH RATHER THAN NOTED AFTER.** Writing this pre-registration is what found
+   it: the pooled run would have reported library counts and nothing else, which is the exact
+   Figure 11 trap that `library 48 -> 101` was at rung 1 and that the probe refused. `watch_many`
+   now takes `on=` and probes a live board with the pooled library, **through the same `rlvr`
+   scorer against the same `dc22` baseline, so a pooled result is directly comparable to the
+   ladder's `9/150`.**
+
+   **This is the pre-registration paying for itself before the run started.** The gap was
+   invisible while the pooled run was a plan and obvious the moment I had to write down what its
+   output would license.
+
+### the one thing that would make this run a success
+
+**A SECOND DISTINCT EFFECT.** `F195`: the agent holds exactly 1 of `dc22`'s 120 signatures and
+three rungs of watching did not add another. **Any claim that the pooled curriculum worked has to
+survive that test, and the test needs a probe the pooled path does not yet have.** Owed before the
+result is interpreted, not after.
