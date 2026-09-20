@@ -34346,3 +34346,49 @@ arity-2 reuse and gate-1 qualification", which is true of neither board.
 
     MECHANISM   arm C closed out; arm B's effect decomposed per board
     CAPABILITY  unchanged. Arms B and D remain off and the two escalated questions are unmoved
+
+---
+
+## `F138` — gate 3 is not coverage, it is UNDIFFERENTIATED evidence — and the reading is taken at 1.2% of budget, which is the headline
+
+**Arm B pushes five attempts past gate 1 to gate 3, whose refusal names two causes in one string:**
+*no action this agent has observed moves this slot the wanted way — coverage incomplete, OR every
+action ties.* Two states, one message, and the ledger separates them.
+
+### on the goal slots, coverage is COMPLETE and every action works
+
+    ls20  o20.w   ACTION1 5/5 moved · ACTION2 2/2 · ACTION3 2/2 · ACTION4 1/1
+          o16.w   ACTION1 5/5 · ACTION2 2/2 · ACTION3 2/2 · ACTION4 2/2
+
+All four actions observed on the slot, and **every one moves it.** So the refusal is not *coverage
+incomplete*. It is the other branch — **the trace gives no PREFERENCE, because nothing
+discriminates when everything works.**
+
+### and board-wide the population is dominated by slots that never move
+
+    ls20   168 slots    16 discriminating     6 undifferentiated    146 never move   87%
+    vc33    96 slots     0 discriminating     6 undifferentiated     90 never move   94%
+    tn36   712 slots     0 discriminating     5 undifferentiated    707 never move   99%
+
+**Zero discriminating slots on two of three boards.**
+
+### THE CAVEAT IS THE FINDING'S BOUNDARY AND IT IS LARGER THAN THE FINDING
+
+**These are 12-cycle runs. The ruled action budget is 1000, so this is 1.2% of it** — and the
+agent is in `phase: probe` with 8 of 12 actions chosen `by: draw`. **A standing caution already
+records that every null in an earlier window was read at 4% of budget; this is thinner still.**
+
+> **SO WHAT IS MEASURED IS: at 1.2% of budget, under random action selection, the trace cannot
+> discriminate actions on two of three boards.** That is entirely consistent with *too early to
+> tell* and does NOT establish that the boards are undifferentiated. **State the property the
+> panel would need in order to show, and confirm it has it** — a discriminating trace needs enough
+> actions per slot to separate them, and four actions over eleven transitions cannot.
+
+**What would make this readable is a longer run, and that is the next thing rather than any
+repair.** Reporting it now because the SHAPE — coverage complete, preference absent — is what gate
+3 turns on, and because the boundary is worth recording before anyone reads the percentages as a
+fact about the habitat.
+
+    MECHANISM   gate 3's two causes separated; it is the second, not the first
+    CAPABILITY  unchanged. And the reading is bounded at 1.2% of budget, which is stated here
+                rather than discovered later
