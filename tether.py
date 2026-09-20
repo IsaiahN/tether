@@ -255,7 +255,7 @@ def objective_gap(evaluate, current: int, ordered: bool, alphabet: int) -> Any:
     return min(abs(v - current) for v in hits) if ordered else 1
 
 
-def objective_degree(evaluate, scope) -> float | None:
+def objective_degree(evaluate, scope, counts: dict | None = None) -> float | None:
     """`degree(molecule)` — **the fraction of the SCOPE that satisfies the objective.**
 
     `DISCOVERY` Q21 answers *is `R_goal` measurable* and gives the measurement: a molecule is a
@@ -279,6 +279,15 @@ def objective_degree(evaluate, scope) -> float | None:
     """
     vals = [evaluate(x) for x in scope]
     seen = [v for v in vals if v is not None]
+    # THE COUNTS ARE THE ONLY THING THAT SEPARATES THREE STATES A FLAT SERIES CANNOT (2026-09-20).
+    # A constant `R_goal` reads identically whether the residual is never recomputed, correctly
+    # static, or LIVE AND INSENSITIVE -- recomputed each cycle over moving values while the
+    # satisfier count does not move. Measured on ls20: the agent drove `o20.w` from 40 to 27 and
+    # the series held 0.7143 to four places. A ratio hides that; a numerator and a denominator
+    # do not. Optional out-param so no caller's signature changes.
+    if counts is not None:
+        counts.update(scope=len(vals), resolved=len(seen),
+                      satisfied=sum(1 for v in seen if v))
     if not seen:
         return None
     return sum(1 for v in seen if v) / len(seen)
@@ -1765,7 +1774,8 @@ class Agent:
         return objective_gap(_sat, state[slot], self.slot_types.get(slot) in ORDERED_TYPES,
                              self.alphabet[slot])
 
-    def goal_residual(self, slot: str, state: dict[str, int]) -> float | None:
+    def goal_residual(self, slot: str, state: dict[str, int],
+                      counts: dict | None = None) -> float | None:
         """`R_goal = 1 - degree`, over the slot's peer group as the scope.
 
         **THIS IS THE QUANTITY §14.4 PRICES THE ACT SPACE AGAINST, AND P5 WAS KEYED ON ANOTHER
@@ -1794,7 +1804,7 @@ class Agent:
         def _sat(v: int) -> bool | None:
             r = term.apply(v, ctx)
             return None if r is NOT_RESOLVED else bool(r)
-        deg = objective_degree(_sat, group)
+        deg = objective_degree(_sat, group, counts)
         return None if deg is None else 1.0 - deg
 
     def can(self, slot: str, state: dict[str, int]) -> str:
@@ -1852,6 +1862,7 @@ class Agent:
     def note_goals(self, state: dict[str, int]) -> None:
         """One discrepancy reading per goal hypothesis per step. Held, never aggregated."""
         reach: dict[str, str] = {}
+        counts: dict[str, dict] = {}
         for slot in self.slots:
             g = self._discrepancy(slot, state)
             if not isinstance(g, int):
@@ -1860,11 +1871,13 @@ class Agent:
                 self._disc.pop(slot, None)
             else:
                 self._disc.setdefault(slot, []).append(g)
-            rg = self.goal_residual(slot, state)
+            cnt: dict = {}
+            rg = self.goal_residual(slot, state, cnt)
             if rg is None:
                 self._res.pop(slot, None)
             else:
                 self._res.setdefault(slot, []).append(rg)
+                counts[slot] = cnt
             if g is not NOT_RESOLVED:      # an OBJ term is bound and readable here
                 reach[slot] = self.can(slot, state)
         # PUBLISHED EVERY STEP, BECAUSE P1 SHIPS BEFORE ITS CONSUMER. `Until` is what GATES on
@@ -1898,7 +1911,10 @@ class Agent:
                                  if len(ser) >= w and all(d <= 0 for d in _deltas(ser))
                                  and any(d < 0 for d in _deltas(ser))),
                 satisfied=sorted(k for k, ser in self._res.items() if ser and ser[-1] <= 0),
-                too_short=sorted(k for k, ser in self._res.items() if len(ser) < w))
+                too_short=sorted(k for k, ser in self._res.items() if len(ser) < w),
+                # the numerator and the denominator, because the RATIO cannot separate
+                # never-recomputed from correctly-static from live-and-insensitive
+                counts=counts)
 
     def _goal_choice(self) -> str | None:
         """M2 ITEM 3, THE SELECTOR. §13.4, quoted whole because the criterion is its wording:
