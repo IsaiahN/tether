@@ -36436,3 +36436,46 @@ is what has been batching them.
     MECHANISM   nothing built. A ruling tested for executability before execution and found
                 to order an unloadable population; the true loadable set measured at two
     CAPABILITY  none -- and the library-load route has no remaining unexamined branch
+
+## F175 — THE STEP-4 VERIFIER ON FOUR BOARDS AT MATCHED DEPTH: ls20 3/71, EVERYTHING ELSE ZERO, EVERY NULL ZERO
+
+**`F160` built the verifier and read one board. One board is not a reading, and I had said so twice
+without acting on it.** Four boards, 12 cycles each, 13 agent frames each, same measure, each against
+a cross-game null:
+
+    board    achieved    cross-game null
+    ls20      3/71        vc33  0/39
+    vc33      0/39        ls20  0/71
+    tn36      0/33        ls20  0/71
+    ka59      0/105       ls20  0/71
+
+**THE DEPTH MATCH IS THE POINT AND IT COST A SECOND RUN.** The first three came back at 12 cycles
+while `F160`'s ls20 reading was at 25 — **half the trajectory, half the windows to search** — so
+comparing them would have been `F146`'s error repeated with the boards swapped. Re-ran ls20 at 12:
+**4/71 becomes 3/71.**
+
+### what the panel says
+
+**`ls20` is the only board where the agent reproduces ANY human chunk effect. The other three
+reproduce none of 177 chunks combined.** And **every cross-game null is exactly zero** — 0/71 three
+times, 0/39 once — so the three hits on `ls20` are not signature collisions.
+
+**`ka59`'s 0/105 is the strongest single zero in the panel**, being the largest denominator, and it
+is the board with five actions. **So this does not track action count** — which is `F151`'s corpse,
+and worth saying because the temptation to re-animate it is exactly what the panel invites.
+
+**IT DOES TRACK THE SAME SPLIT AS EVERY OTHER GATE READING TONIGHT:** `ls20` works a little, the
+other three do nothing, and nothing measured tonight has separated `ls20` from the rest by a
+property other than *being `ls20`*. **Four independent instruments now agree on that partition and
+none explains it.**
+
+### the boundary, stated
+
+**12 cycles, 13 frames, ~1.2% of the ruled 1000-action budget.** `ls20` read 4/71 at 25 cycles and
+3/71 at 12, so **depth buys roughly one hit per thirteen frames on the one board that scores at
+all.** Three hits is three hits: **above a zero null, and small.**
+
+    MECHANISM   nothing built. F160's instrument extended from one board to four at matched
+                depth, with a per-board cross-game null
+    CAPABILITY  none. The agent achieves 3 of 71 human chunk effects on one board of four and
+                none of 177 on the others
