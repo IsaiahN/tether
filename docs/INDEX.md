@@ -36304,7 +36304,13 @@ Sixth instance tonight of the same class: **searching for a word instead of the 
 ### and the fact worth carrying forward
 
 **65% of the library — 1,749 atoms — sits behind ONE capability: an integer per object.** Not
-fifteen primitives, not a tier choice, not a firewall. **`SCALAR` is 4,983 of the attribute mentions
+fifteen primitives, not a tier choice, not a firewall.
+
+> **WRONG, AND MEASURED WRONG ONE TICK LATER — `F173`.** `sensors_heavy` already emits 18 integers
+> per object, and tier-1 coverage is **15 of 1,749 (0.9%)**, not 65%. The file's adjacent note says
+> which reading was right — *"needs the sensor to emit **IT**"*, the atom's own attribute — so tier 1
+> is 1,749 atoms each needing its particular attribute emitted, not one switch. **I quoted the
+> sentence and missed the pronoun in the line beside it.** **`SCALAR` is 4,983 of the attribute mentions
 (63%), and the file's own point is that *a magnitude is one integer per object, the same shape as
 `colour`* — which the loop already has.**
 
@@ -36317,3 +36323,58 @@ necessary and not sufficient, and `F167` measured exactly the necessary half alo
                 objections re-scoped to the filter it actually indicts
     CAPABILITY  none -- but the 2700 route now reads: one capability gates 65%, and the
                 build already has the shape of it
+
+## F173 — "65% BEHIND ONE CAPABILITY" IS WRONG. IT IS 15 OF 1,749, AND THE FILE'S OWN WORDING SAID SO
+
+**`F172`, one tick old, read tier 1's requirement — *"a sensor that emits an integer per object"* —
+as ONE capability gating 1,749 atoms. Measured it instead of repeating it.**
+
+    sensors_heavy emits 18 keys per object  (scalar 14 + state 4)
+
+    TIER-1 atoms                          1,749
+      ALL attributes already emitted          2
+      SOME attributes emitted                13
+      NONE                                1,734
+
+**Coverage is 15 of 1,749 — 0.9%.**
+
+**AND THE NAME MATCHES ARE REAL, WHICH IS WHAT MAKES THE NUMBER TRUSTWORTHY.** The keys that land
+are `parts`, `area`, `density`, `boundingBox`, `occupiedCells`, `holes`, `singleCell` — **library
+attribute names, not names anyone would invent for a grid.** `sensors_heavy` was written against
+this vocabulary, so this is not a coincidental-string count; it is a real overlap that is simply
+tiny.
+
+### the file's own wording already said which reading was right
+
+`ATTRIBUTE_REACH`'s encodings table: **SCALAR, tier 1, *"one integer per object — same shape as
+colour; NEEDS THE SENSOR TO EMIT IT."*** **`IT` is the atom's own attribute.** Tier 1 is not one
+switch serving 1,749 atoms; it is **1,749 atoms each needing its particular attribute emitted**, and
+eighteen are.
+
+> **SEVENTH INSTANCE TONIGHT OF ONE ERROR, AND I WAS WARNED BY THE SAME SENTENCE I QUOTED.** I read
+> *a sensor that emits an integer per object* as a capability when the adjacent note says *needs the
+> sensor to emit **it***. **Not a different file, not a stale row — the pronoun in the line beside
+> the one I used.**
+
+### what this settles about the 2700 route, sombrely
+
+**Not permission. Not a firewall. Not a tier choice. Not one capability.** The route needs
+**per-attribute emission at a scale of thousands**, and the one measured attempt — `F166`/`F167`,
+seven attributes added — **was inert and cost 81% more work.** Scaling that route by two orders of
+magnitude is not supported by anything measured.
+
+**What remains standing is `COMPOSITE_REACH`'s domain locality** (74% of ingredient references stay
+in-domain, 61 nearly independent trees). **If a domain's ~10 atoms and ~40 composites are nearly
+self-contained, the honest unit is ONE DOMAIN, end to end, measured** — not a tier, not a rank
+prefix, and not 1,749 attributes.
+
+### and the honest note about the rate
+
+**Seven instances of one class in one session is not a declining error rate.** What HAS declined is
+detection latency — `F171` caught `F169` inside twenty minutes, this caught `F172` inside fifteen,
+both by measuring rather than re-reading. **That is worth less than not making them, and it is the
+true thing to say rather than that the discipline is working.**
+
+    MECHANISM   nothing built. My own one-tick-old headline measured and cut from 65% to 0.9%
+    CAPABILITY  none -- and the 2700 route's remaining live option is one DOMAIN end to end,
+                which is the only unit the corpus measured as nearly self-contained
