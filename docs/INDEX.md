@@ -34009,3 +34009,57 @@ experiment, not a silent precondition of it.
 
     MECHANISM   arm C built, default off; the omission located and the channel proven live
     CAPABILITY  unchanged, and the null is the finding: ranking was never the constraint
+
+---
+
+## `F132` — the corpus refuses `F130`'s wire: the relations are COMPOSABLE AND UNCOMPOSED, and the parts are already in Γ
+
+**`F130` concluded the 2700 wire was the ten arity-2 relations. Checked against the corpus before
+admitting any, and it is not licensed.** Fifth repair this session stopped by reading the corpus
+first.
+
+    RELATIONS.md, per row     all eight STATIC marked C -- COMPOSABLE from what the agent has.
+                              Only `touching` is P, the one published relation
+    RELATIONS.md, summary     the same eleven listed "absent from the library -- the actual gap.
+                              All survive compression cleanly"
+
+**Both true and not in tension: composable IN PRINCIPLE, absent IN FACT.** Which makes them things
+the agent must REACH for — and handing one is exactly *installing what the agent should compose*,
+the move the reach rule forbids regardless of how the frontload ruling widened the sensors.
+
+### and the ingredients are present, which closes the escape
+
+    concentric    needs centroid, extent    centroid IN Γ
+    collinear     needs row, col            both IN Γ
+    congruent     needs shape               IN Γ
+    offset        needs drow, dcol          both IN Γ
+    perpendicular needs h, w                both IN Γ
+    adjacent      needs touching            IN Γ
+
+**So admitting them is both FORBIDDEN and UNNECESSARY.** The agent holds the parts and does not
+build the relations.
+
+### which moves the question off vocabulary entirely
+
+`F130` measured the demand (arity-2, met 0-4.5%) and `F131` proved the ranking side ready. This
+says the SUPPLY side is not missing atoms either. **What is left is the composition path for
+arity-2 itself** — an atom is `fn(v, ctx)` over ONE slot's value, so a two-object relation has to
+arrive through an OPERAND, and operand binding is where that either happens or does not.
+
+> **`CLAUDE.md` already flags the suspect: `_bindings` "violates it by returning every slot".** Not
+> asserted here — the next measurement is whether arity-2 candidates are ENUMERATED and lost, or
+> never enumerated, which is `F125`'s distinction applied to the operand path rather than the atom
+> set. **That distinction has been the difference between a reach problem and a pricing problem
+> twice already.**
+
+### the three redirections, recorded together because the pattern is the finding
+
+    scalars as sensors    stopped: sensor-chain depth is not the composition surface
+    scalars into Γ        stopped: arity-1 demand is already met 75-100%
+    relations into Γ      stopped: corpus marks them C, and the parts are present
+
+**Each looked like the wire and each was refused by a measurement or the corpus.** The consistent
+error is reaching for VOCABULARY when the readings say the constraint is elsewhere.
+
+    MECHANISM   unchanged, and nothing admitted -- which is the outcome
+    CAPABILITY  unchanged. What moves is where to look next: the operand path, not the library
