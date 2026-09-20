@@ -36697,3 +36697,49 @@ the bug it fixes* is the shape worth having in the record.
     MECHANISM   nothing shipped. The one-tick-old null fix measured and found to understate a
                 known ceiling 6x; the pooled ceiling (4.2%, 37 draws) established as the bound
     CAPABILITY  unchanged: sp80 and dc22 clear a 4.2% pooled ceiling; ls20, m0r0 and sk48 do not
+
+## F180 — dc22 AT DEPTH: THE EFFECT IS REAL, IT SATURATES AT 11/150, AND THE NULL STAYED AT ZERO WHILE THE WINDOWS DOUBLED
+
+**NAMING NOTE FIRST, because `F161` found the collision and this is where it lands: `TRAINING_PLAN`
+carries a SEPARATE `F178`–`F182` series from commit messages. This is `INDEX`'s F180 and is not
+that one.** Cite by file.
+
+**Pre-registered before the run: *if the effect is real, deeper raises the hit count; if it is an
+artifact of short windows, it stays flat or the rate falls.*** Both halves fired, in order.
+
+    depth     frames   achieved      rate    null draws (ar25 · ls20 · sk48 · wa30)
+     12 cyc     13      9/150        6.0%    0/73 · 0/71 · 0/88 · 0/200
+     30 cyc     31     11/150        7.3%    0/73 · 0/71 · 0/88 · 0/200
+     60 cyc     61     11/150        7.3%    0/73 · 0/71 · 0/88 · 0/200
+
+**RISES 9 → 11, THEN SATURATES.** Doubling the frames from 31 to 61 bought nothing.
+
+### the control is the part worth keeping, and it is the first one tonight that got HARDER
+
+**Window count roughly quintupled across the series, and every one of twelve null draws stayed at
+EXACTLY ZERO.**
+
+> **If these hits were artifacts of having more windows to collide against, the nulls would have
+> risen with them** — more windows is more chances to coincidentally match a foreign key. **They did
+> not move at all.** The signal grew and then held while its own control was handed five times the
+> opportunity and produced nothing.
+
+**Every prior version of this went the other way tonight:** `F167`'s 0→1 on a doubled slot count,
+`F177`'s *nearly zero* null, `F178`'s 4.2% ceiling eating `ls20`, `F179`'s five-draw ceiling nearly
+un-refuting it. **This is the first claim where tightening the control left the claim standing.**
+
+### and the saturation is a limit, not a footnote
+
+**The agent reproduces a FIXED SET of 11 chunk effects on `dc22` and no more, however long it runs.**
+139 of 150 chunks are never achieved at any depth tested. **That is not "it is learning slowly" — at
+61 frames it has stopped**, and `dc22`'s cap is 127 actions, so it is not an episode boundary either.
+
+**`sp80` CANNOT BE TESTED THIS WAY and that is recorded rather than attempted:** `INDEX:32301` has it
+ending in **17–29 actions**, a real death varying by seed. **Its 5/61 at 12 cycles already spans
+nearly its whole episode**, so there is no depth to add — only a death and then no-ops.
+
+    MECHANISM   nothing built. A pre-registered depth test run to saturation with the null
+                re-sampled at every depth
+    CAPABILITY  MEASURED AND BOUNDED: 11 of 150 human chunk effects on dc22, saturating by 31
+                frames, against a null that stays at zero under 5x the windows. The first
+                capability claim this session that survived every control applied to it
