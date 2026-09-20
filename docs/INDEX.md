@@ -37053,3 +37053,65 @@ nameable, and a reader meeting `1618` in `feeder.py` could take a live seed for 
     MECHANISM   TRAINING_PLAN 14.7b added; two LEDGER rows corrected in place; the seed
                 collision recorded at its site
     CAPABILITY  none -- it removes a trap that would have silently invalidated the validation
+
+## F187 (INDEX series) — GATE 1'S SURVIVORS ARE NOT VACUOUS, THEY ARE NEARLY ABSENT, AND THE FIGURE THE BRIEF CARRIES HAS NO SOURCE
+
+**The standing brief says: *19 of 38 gate-1 survivors are objectives that ALREADY HOLD — a series
+`[2,1,0]` passes "confidently shrinking" then dies at the holds-gate.* Measured, it is none of
+that.**
+
+### the claim was checkable without a single new run, because the row was already published
+
+`_record_goal_series` publishes **`qualifies`** (gate 1's own verdict per slot) and **`satisfied`**
+(`ser[-1] <= 0`) every step. **So *survivors that already hold* is literally `qualifies ∩
+satisfied`, and it has been in the ledger the whole time.** No run needed — which is the point of
+the row's own comment: *a checker reads the ledger, not the machine.*
+
+**PER GAME, DISTINCT SLOTS — never qualify-events. A slot qualifying on ten rows is ONE survivor,
+not ten, and counting the events first is `F181`'s error repeated; I made it, caught it on the
+denominator, and re-ran.**
+
+    runs/armBC_ls20     8 rows   qualifying 1   also-satisfied 0
+    runs/armB_ls20      8 rows   qualifying 1   also-satisfied 0
+    runs/armE_ls20     19 rows   qualifying 1   also-satisfied 0
+    runs/closure_ls20  19 rows   qualifying 1   also-satisfied 0
+    runs/gs_ls20       22 rows   qualifying 1   also-satisfied 0
+    runs/split_ls20    19 rows   qualifying 1   also-satisfied 0
+    runs/long_ls20     54 rows   qualifying 2   also-satisfied 1
+    runs/long_vc33     35 rows   qualifying 0   also-satisfied 0
+    runs/armB_vc33      7 rows   qualifying 0   also-satisfied 0
+    runs/armC_vc33      9 rows   qualifying 0   also-satisfied 0
+    runs/gs2_vc33       9 rows   qualifying 0   also-satisfied 0
+    runs/long_ka59      6 rows   qualifying 0   also-satisfied 0
+
+**THE OVERLAP IS ONE SLOT IN ONE RUN, NOT HALF OF THEM.** And `19 of 38` **appears nowhere in
+`docs/`** — not the ratio, not the counts. **A quantity with no source, carried as a standing work
+item across seat rotations.** Same shape the reviewer named this morning about their own receipts:
+*a thing marked done in the channel and not done in the world.*
+
+### the real reading is the one underneath, and it is a different defect
+
+**Gate 1 does not have vacuous survivors. It has almost no survivors at all: 0–2 distinct slots per
+run, and ZERO on every `vc33` and `ka59` artifact.** Fixing *already-holds* would therefore have
+been a repair worth **one instance in one run** — an improvement that changes no contact, built on
+a premise nobody had checked.
+
+### and it puts a small crack in the record's own account
+
+`INDEX` diagnoses gate 1's emptiness as supply: *only an `OBJ` binding yields a goal residual*, so
+the feeding population is whatever the objective/predictor price tie produces — **Isaiah's open
+ruling, correctly not taken there.** That chain stands.
+
+**But the same entry says *the one qualifying series is FLAT*, and `qualifies` is BY CONSTRUCTION
+non-flat — it requires `all(d <= 0)` AND `any(d < 0)`.** It is non-empty in **eight** committed
+`ls20` artifacts. **So on `ls20` gate 1 does produce genuine shrinking survivors**, and *nothing
+qualifies* is either stale or was scoped to one run that the entry does not name. **Not filed as a
+refutation — filed as a population the entry does not state**, which is the thing that makes it
+uncheckable either way.
+
+    BOUNDARY    committed run artifacts only, 8-54 goal_series rows each, mostly ls20; these
+                are short runs and several may predate the row. This does not refute a
+                measurement taken elsewhere -- it says no committed artifact reproduces it
+    MECHANISM   no change. A standing work item retired as mis-specified before anything was
+                built against it
+    CAPABILITY  none, and that is the result: the fix the brief implied was worth 1 instance
