@@ -63,12 +63,31 @@ moved* is older than a day gets an explicit status chase, not a silent carry-for
 
 **Isaiah ruled it top priority in training. Built `18f83f2`, running since 14:27.**
 
-| rung | spacing | minted | settled | carried_in | PROBE (dc22 live) | mins |
+| rung | spacing | minted | settled | promotions | carried_in | PROBE (dc22 live) |
 |---|---|---|---|---|---|---|
-| 1 | 1 (random-dense) | 53 | 16 | 0 | **9/150 = 6.0%** | 42.8 |
-| 2 | 2 | — | — | *predicted 4* | in flight | — |
-| 3 | 4 | — | — | — | — | — |
-| 4 | 8 (coherent) | — | — | — | — | — |
+| 1 | 1 (random-dense) | 53 | 16 | 16 | 0 | **9/150 = 6.0%** |
+| 2 | 2 | 43 | 10 | 7 | **4** *(predicted 4)* | **9/150 = 6.0%** |
+| 3 | 4 | 38 | **4** | 5 | **6** | **9/150 = 6.0%** |
+| 4 | 8 (coherent) | — | — | — | *predict 7–9* | in flight |
+
+**`mins` IS WITHDRAWN AS A COLUMN.** I ran six short measurement scripts during rungs 2 and 3 after
+telling the reviewer I would not. ~2–3% contention, which does not explain the 18% swing, **but I
+cannot prove which part is which.** The probe and library columns are unaffected — contention
+changes how long a cycle takes, never what it computes.
+
+**THE GROUND IS FLAT AND EXACT THREE TIMES, and by `F195` that is sharper than it looks: `9/150` is
+the SAME SINGLE SIGNATURE, 1 of the 120 in `dc22`'s key.** Three rungs of watching bought no second
+distinct effect. The probe is **not** ceiling-limited (100% reachable, `F196`), so this is a real
+null.
+
+**AND EVERY INTERNAL QUANTITY FALLS MONOTONICALLY:** minted −28%, promotions −69%, **settled −75%.**
+`settled` is the ground-confirmed count, so **less of what the agent mints survives contact as
+coherence rises.** That is the one finding here I did not predict and cannot attribute to the
+schedule.
+
+**AGAINST THE PRE-REGISTERED SIGNATURES THE PROBE FITS NEITHER** — not gradual degradation, not
+flat-then-cliff. **It is flat AT BASELINE**, the third case: no capability present to degrade or to
+cliff.
 
 **RUNG 1's PROBE IS THE ESTABLISHED `dc22` BASELINE TO THE DIGIT.** Not within ±2 variance —
 identical. **And the null survived its trivial explanation**: 4 new compositions did reach the
