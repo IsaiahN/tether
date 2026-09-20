@@ -34485,3 +34485,39 @@ for gate 3 were both wrong and both were offered before this measurement existed
     MECHANISM   unchanged; gate 3's population is one slot and it is a discriminating one
     CAPABILITY  unchanged. Cause narrowed from two named branches to a third the message does
                 not name, with the deciding measurement identified and not yet run
+
+### `F140` continued — the slot moved, not the group, and every action moves it ONE WAY ONLY
+
+**`F140` named the deciding measurement and it ran.** `o20.w` over 59 cycles:
+
+    value       37 36 35 34 33 32 31 30 29 28 ... 27 26 25 24 23 22     STRICTLY MONOTONE
+    satisfied   11 13 14 15 15 15 17 17 18 ... 19 18   of 20, then 21
+    peers       only 4 of 22 `.w` slots changed value at all
+
+**THE SLOT MOVED. THE GROUP DID NOT.** My suggested reading in `F140` — *a scope fraction can
+improve because the group changed around it* — is REFUTED by its own measurement.
+
+### and the direction split is the thing
+
+    ACTION1  down 7, same 36        ACTION2  down 2        ACTION3  down 2        ACTION4  down 11
+
+**Every action that moves it moves it DOWN. Not one observation of it going UP, in 59 cycles.**
+And they differ sharply — ACTION4 moves it every time, ACTION1 one time in six — so a preference
+plainly exists in the trace.
+
+> **SO GATE 3 IS PROBABLY CORRECT AND SAYING SOMETHING WORTH HEARING: the wanted way is UP, and
+> the action set cannot produce it.** *No action this agent has observed moves this slot the
+> wanted way* would then be TRUE, precise, and a fact about the habitat rather than a defect.
+
+**NOT ASSERTED — the wanted direction is not in the ledger.** `objective_step` computes it and
+nothing logs it. Two readings remain: the wanted direction is UP and the gate is correct, or it is
+DOWN and `_goal_split` is failing to credit actions that plainly qualify. **One row would
+separate them, and that is the third time this gate has needed a quantity nobody publishes.**
+
+**Third explanation offered for gate 3 and the third to be tested rather than asserted** — the
+first two were wrong, this one is unresolved, and the difference is that this one names its own
+falsifier before being believed.
+
+    MECHANISM   unchanged. The measurement refuted my own prior reading in the same entry
+    CAPABILITY  unchanged. Gate 3 may be CORRECT, which would make it a habitat reading and not
+                a blocker -- and settling that needs the wanted direction logged
