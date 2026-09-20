@@ -35744,10 +35744,14 @@ The library names **5040 distinct attributes** (`ATTRIBUTE_INDEX.json`). Matchin
 > expressibility finding and must not be quoted as one — that is the synonym error I made one
 > measurement earlier, arriving from the other side.
 
-**What it DOES establish: there is no attribute-name correspondence between the library and Γ, and
-a bridge needs one before any tier can be loaded.** Not a ruling, not a firewall, not a tier
-choice — **a table mapping library attribute names onto the slots the agent carries.** It does not
-exist, and every route to the 2700 runs through it.
+**What it DOES establish: there is no attribute-name correspondence between the library and Γ.**
+
+> **AND THE CONSEQUENCE I DREW FROM IT IS WITHDRAWN — `F163`, one tick later.** I wrote that *every
+> route to the 2700 runs through* a 5040-row attribute table. **It does not: four of Γ's five slot
+> types ARE library encoding names, so the correspondence exists at the level binding actually uses,
+> and the loadable set brackets at 9-65 atoms turning on ONE identification.** I flagged the `3/2700`
+> as a name result and then reasoned from it anyway, which is the caveat being noted rather than
+> obeyed.
 
 **AND THAT IS ISAIAH'S OWN THESIS ARRIVING AS A WORK ITEM:** *"you don't blindly search the
 composition space, you MAP intent and actions to library compositions."* The mapping job is not
@@ -35758,3 +35762,56 @@ other.
                 had opened; the load's actual precondition identified and measured
     CAPABILITY  none -- but the 2700 route now has a named first step that is neither a
                 permission nor a judgement call
+
+## F163 — THE BRIDGE IS ONE IDENTIFICATION WIDE, NOT 5040. `F162` OVERSTATED IT AND THIS IS THE CORRECTION
+
+**`F162` said there is no attribute-name correspondence between the library and Γ, 8 entries against
+5040, and that every route to the 2700 runs through building one. THE ENCODING LEVEL WAS ALREADY
+ALIGNED AND I DID NOT CHECK IT.**
+
+    Gamma slot TYPES    COLOUR  EXTENT  POSITION  SHAPE  DELTA
+    library ENCODINGS   COLOUR  EXTENT  POSITION  SHAPE  + COUNT SCALAR SCALAR_DEFAULT
+                                                           TEMPORAL EVENT STATE RELATION
+                                                           BEHAVIOURAL RULE
+
+    SHARED, BY NAME: COLOUR · EXTENT · POSITION · SHAPE     Gamma-only: DELTA
+
+**Four of Γ's five slot types ARE library encoding names.** The correspondence `F162` called missing
+exists at the level that matters for binding; what is missing is only the attribute-name layer
+BELOW it, and that layer does not have to be built to load an atom whose encodings already fit.
+
+### so the loadable set is bounded, and it is small
+
+    atoms whose encodings fit Gamma's four shared types        9 of 2700
+    atoms that fit IF Gamma's DELTA counts as library TEMPORAL  65 of 2700
+        of those 65 -- tier 0: 7    tier 1: 47    tier 2: 11
+
+**The 65 include `HUMAN|Movement` and `HUMAN|Continuity`** — two of the fifteen the wire needed, and
+`Movement` is the keystone `ATOMS.md` calls *not derived* and `INDEX:196` blames for `STRATEGY`
+being a structural zero.
+
+> **AND THE WHOLE SPREAD TURNS ON ONE IDENTIFICATION, WHICH IS A DECISION RATHER THAN A TABLE.** Γ's
+> `DELTA` is `drow`/`dcol` — a POSITIONAL difference across frames. The library's `TEMPORAL` is *"a
+> difference across frames"* generally. **So `DELTA` is a special case of `TEMPORAL`, not a synonym
+> for it** — the library's temporal atoms may want differences in extent, colour or count, which Γ
+> carries no slot for.
+>
+> **9 is the floor and 65 is the ceiling, and what separates them is whether cross-frame difference
+> is generalised beyond position.** One question, checkable, instead of `F162`'s 5040.
+
+### what I got wrong and why it is the same error twice in one session
+
+**`F162` measured a NAME overlap (3 of 2700), said so, and then reasoned from it anyway** — I wrote
+*every route to the 2700 runs through* the attribute-name table, which is a conclusion the name
+measurement cannot support. **The encoding level was one query away and I did not run it before
+drawing the consequence.**
+
+That is the synonym trap for the third time tonight, and the third variant: first I trusted a
+synonym table I invented, then I distrusted a correct name-zero, and now I drew a structural
+conclusion from a name-mismatch **while explicitly noting it was only a name result.** *Noting the
+caveat is not the same as obeying it.*
+
+    MECHANISM   nothing built. F162's bridge claim cut from "build a 5040-row correspondence"
+                to "settle one identification", with the loadable set bracketed 9-65
+    CAPABILITY  none -- but the first load is now a bounded, named set containing the keystone
+                atom, rather than a programme
