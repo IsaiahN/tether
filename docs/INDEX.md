@@ -36738,8 +36738,74 @@ un-refuting it. **This is the first claim where tightening the control left the 
 ending in **17–29 actions**, a real death varying by seed. **Its 5/61 at 12 cycles already spans
 nearly its whole episode**, so there is no depth to add — only a death and then no-ops.
 
+> **AND `F181` DECOMPOSES THIS ONE TICK LATER.** The 11 hits are **ONE SIGNATURE** matched nine
+> times — `{moved 2, resized 2}` — so `11/150` counts occurrences of one thing as eleven things.
+> **By distinct effect the reading is 1 of 120.** Every control here was sound and all of them
+> controlled a rate whose denominator counted the wrong population. **A correct control over a wrong
+> denominator produces a well-defended wrong number.**
+
     MECHANISM   nothing built. A pre-registered depth test run to saturation with the null
                 re-sampled at every depth
-    CAPABILITY  MEASURED AND BOUNDED: 11 of 150 human chunk effects on dc22, saturating by 31
-                frames, against a null that stays at zero under 5x the windows. The first
-                capability claim this session that survived every control applied to it
+    CAPABILITY  CORRECTED BY F181 -- not 11 of 150 effects but ONE signature of 120, hit 9 of
+                the 10 times it recurs, against a null that stays at zero under 5x the windows
+
+## F181 — dc22's 11/150 IS ONE SIGNATURE MATCHED NINE TIMES. BY DISTINCT EFFECT IT IS 1 OF 120
+
+**`F180` called `11/150` the one claim I would defend without qualification. Taking it apart from the
+inside deflates it by an order of magnitude, and the arithmetic was never wrong — the DENOMINATOR
+was.**
+
+### the three checks, in the order they were run
+
+**1 · SEARCHABILITY — clean, and it could only have helped me.** `windows_searched == 0` for **0 of
+150**: every chunk had windows to match against, so there is no hidden inflation and `11/150` stands
+as stated. **I ran this one because the error would have made my claim BIGGER.**
+
+**2 · SPAN — dead as an explanation.** 145 of 150 chunks are span-7; among those the hit rate is
+10/145 = 6.9%, indistinguishable from the overall 7.3%.
+
+**3 · MAGNITUDE — refuted my own hypothesis, and pointed at the real thing.** I predicted a gradient,
+smaller signatures being mechanically easier to match exactly. **It is a SPIKE:**
+
+    magnitude  3 :  0/11     0.0%        magnitude 3 is SMALLER and scores ZERO
+    magnitude  4 :  9/10    90.0%
+    magnitude  6 through 34 : 0 at EVERY value
+
+### and the spike is one signature
+
+    DISTINCT signatures among the hits: 1
+      x9   {moved: 2, resized: 2, recoloured: 0, vanished: 0, appeared: 0}
+
+**Nine hits, one pattern. The agent matches no other effect on the board.**
+
+    dc22 key      150 non-trivial chunk INSTANCES
+                  120 DISTINCT effect signatures
+    the matched one is rank 2 of 120 by recurrence, appearing 9 times
+
+    by chunk instance :  9-11 / 150  =  6.7%
+    by DISTINCT effect:      1 / 120 =   0.8%
+
+> **`11 of 150` COUNTS OCCURRENCES OF ONE THING AS ELEVEN THINGS.** The claim is about CAPABILITY, so
+> the denominator has to be distinct effects — **and by that denominator the agent reproduces ONE of
+> 120, having matched the second most recurrent pattern in the key.**
+
+**EIGHTH INSTANCE OF THE POPULATION ERROR, AND THIS ONE WAS IN MY OWN HEADLINE METRIC.** Every
+control I applied was sound — the pooled null, the depth series, the searchability check — **and all
+of them were controls on a rate whose denominator counted the wrong population.** A correct control
+over a wrong denominator produces a well-defended wrong number.
+
+### what actually survives
+
+**`dc22`: the agent reliably reproduces ONE effect signature — two objects moved and two resized —
+wherever it recurs, 9 of the 10 times it appears, and nothing else among 119 other patterns.** The
+null still reads zero on every draw, so **that one pattern is real and not chance.** It is a much
+smaller and much more specific claim: **not *reproduces 7% of human chunks* but *has learned exactly
+one thing, and does it almost every time it applies.***
+
+**AND A RUN-TO-RUN VARIANCE WORTH RECORDING:** the same board at 30 cycles read **11** achieved
+earlier and **9** here. The agent is not deterministic across runs, so single-run counts carry
+roughly ±2 at this depth, which no reading tonight has stated.
+
+    MECHANISM   nothing built. My own defended claim decomposed; the denominator corrected
+                from chunk instances to distinct effects; run variance measured at +/-2
+    CAPABILITY  ONE effect signature of 120 on dc22, hit 9/10 times it occurs, null zero
