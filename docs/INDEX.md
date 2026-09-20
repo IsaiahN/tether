@@ -36378,3 +36378,61 @@ true thing to say rather than that the discipline is working.**
     MECHANISM   nothing built. My own one-tick-old headline measured and cut from 65% to 0.9%
     CAPABILITY  none -- and the 2700 route's remaining live option is one DOMAIN end to end,
                 which is the only unit the corpus measured as nearly self-contained
+
+## F174 — THE LOAD-ORDER RULING IS NOT EXECUTABLE. ZERO OF THE TOP 15 CAN BE LOADED, AND THE WHOLE LOADABLE SET IS TWO
+
+**The reviewer ruled: *"`ATOM_RANKING.json` is the load order. Load down it."* Measured before
+executing, and it cannot be executed as stated.**
+
+    TOP 15 BY uses -- attributes, and whether anything emits them
+      45 Identity        [continuity]                               0/1
+      44 Flow            [velocityField]                            0/1
+      43 Network         [adjacencyMatrix, interactions]            0/2
+      42 Lived Meaning   [situation, valence]                       0/2
+      38 Memory Trace    [neuralActivity, synapticWeight, ...]      0/3
+      25 Presence        [responseToBodyThreat]                     0/1
+      23 Boundary        [touchOwnership, rubberHandIllusion]       0/2
+                                            ... fully loadable in the top 15: ZERO
+
+**AND THE REASON IS IN `WORKING_SET`'s OWN CAUTION:** *"`uses` counts how many other entries name
+this one as an ingredient."* **That measures centrality IN THE LIBRARY'S CONCEPTUAL WEB, not
+loadability and not grid-relevance.** So the TOP of the ranking is the LEAST grid-expressible part
+of it — `Identity`, `Lived Meaning`, `Presence`, `rubberHandIllusion`. **Loading down it starts with
+*the persistent sense of self across time*.**
+
+### the constructive half: the loadable set is TWO
+
+    FULLY LOADABLE, of 2700:
+      HUMAN|Cohesion   tier1  attrs [parts]                        rank 189/477, uses 6
+      HUMAN|Solidity   tier1  attrs [boundingBox, occupiedCells]   rank 129/477, uses 8
+
+**Both TIER-1 FOUNDATIONAL — `Co` and `So` from the *"these are not composed, they are where
+composition starts"* table — both HUMAN, both MID-RANKED.** Loading down `uses` reaches the first of
+them at pick 129.
+
+> **AND EVEN THESE TWO ARE NOT FREE. The corpus gives each a NAME, an ATTRIBUTE and a GLOSS — it
+> does not give a FUNCTION.** *Cohesion: objects move as connected, bounded wholes*, reading
+> `parts`. **What integer that computes is not in any corpus file, so admitting it means authoring
+> a body** — which is the LOAD/MINT line the reviewer drew, arriving one level below where it was
+> drawn. **A name inherited plus a function I invent is not a load.**
+
+### so the 2700 thread closes here, and it closes on a measurement
+
+Not permission (`CUE_BOUNDARY`, ruled twice, spent). Not a firewall. Not a tier. Not one capability
+(`F173`, 15 of 1,749). **Not an ordering either: the ordering is real but it orders things that
+cannot be loaded, and the set that can is two atoms whose bodies nobody has written.**
+
+### AND A PROCESS FAULT THAT IS MINE
+
+**This is the THIRD ruling made without a measurement I had already taken** — the nine atoms, the
+eight deltas, now the load order. **Each time the reviewer ruled soundly on a premise my last commit
+had refuted, and each time the gap was my POSTING LAG: commit, then post twenty to thirty minutes
+later.**
+
+**The fix is not that they rule more slowly. It is that a measurement which REFUTES A PREMISE THEY
+ARE HOLDING gets posted before the next one is taken** — separately from the findings digest, which
+is what has been batching them.
+
+    MECHANISM   nothing built. A ruling tested for executability before execution and found
+                to order an unloadable population; the true loadable set measured at two
+    CAPABILITY  none -- and the library-load route has no remaining unexamined branch
