@@ -33906,3 +33906,58 @@ A wider typed vocabulary is what turns tn36's fallback into ls20's replacement.
     MECHANISM   the filter is built, switched, and measured on three boards
     CAPABILITY  ls20 gate 1 opens for the first time and the break moves one link to
                 action-coverage. NO ROUTINE ADOPTED on any board. Default stays OFF
+
+---
+
+## `F130` — the wall is ARITY, measured per board, and it relocates the 2700 wire off the scalars
+
+**Figure 6 wants an instrument pointed at a reading that FAILS TO RESOLVE, and the agent has been
+recording exactly that all along.** `_library_fit` writes a `reach` row carrying the CHARACTERISED
+GAP before it reads the library, then `pull` or `reach_failed`. Pairing them gives the demand the
+library could not meet — the agent's own description of what it needed and did not get.
+
+    ls20   arity 1:  7 met,   0 unmet = 100.0%      arity 2: 0 met, 127 unmet = 0.0%
+    vc33   arity 1:  3 met,   1 unmet =  75.0%      arity 2: 0 met,  51 unmet = 0.0%
+    tn36   arity 1:  3 met,   0 unmet = 100.0%      arity 2: 1 met,  21 unmet = 4.5%
+
+**PER GAME AND IT REPLICATES ON ALL THREE.** Arity-1 demand is met 75-100%; arity-2 demand is met
+0-4.5%. Not a pooled artifact — three independent boards, same split.
+
+**This independently replicates a standing finding measured on vc33 alone** (*the 98% reach-failure
+is arity-2 gaps failing against an arity-1 vocabulary*), which had never been checked elsewhere.
+
+### the supply side, and it is where the wire actually goes
+
+    Gamma            48 atoms, of which arity-2 (reads_operand):  7
+                     above, both, either, other, recolour, same, translate
+    relations.py     11 arity-2 relations, computed every frame, feeding the OBSERVER
+                     STATIC   adjacent aligned concentric congruent disjoint offset
+                              parallel perpendicular
+                     DYNAMIC  no_relative_motion sliding translation
+    in Gamma         ONE of the eleven -- `aligned`
+
+**TEN ARITY-2 RELATIONS ARE ALREADY COMPUTED AND NEVER REACH THE COMPOSITION SURFACE.**
+
+### what this does to the plan, and it is a redirection rather than a confirmation
+
+The brief said to widen the typed vocabulary with the 13 unmapped heavy SCALARS — area, perimeter,
+density, girth and the rest. **Those are arity-1. The measured demand they would serve is already
+met at 75-100%.** Adding them would enlarge the half that is not failing and leave 199 unmet
+arity-2 demands untouched: `Γ` grows, the reach does not, which is step 8's own warning.
+
+> **SO THE 2700 WIRE IS THE RELATIONS, NOT THE SCALARS** — and the Figure 6 entry is satisfiable
+> with data rather than judgement: the reading that fails to resolve is 199 gaps the agent
+> described itself, in its own ledger, and the instrument that would resolve them is computed
+> every frame one module away.
+
+### what is NOT claimed
+
+**That admitting the ten would MEET those gaps.** Demand is arity-2 and supply is arity-1-heavy;
+whether these particular ten match those particular descriptions is unmeasured, and the gap
+records carry an `invariant` list that has not been read against the relations' signatures. That
+is the next measurement and it is cheap.
+
+    MECHANISM   the demand population is now readable from the ledger by pairing `reach` with
+                `pull`/`reach_failed`. No code added -- the rows were already there
+    CAPABILITY  unchanged. What moves is WHICH vocabulary the wire should carry, from the 13
+                arity-1 scalars to the 10 arity-2 relations, on a measured split
