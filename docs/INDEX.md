@@ -35561,3 +35561,51 @@ test that makes the primitives load-bearing rather than redundant.**
                 without it, and the answer is the cheaper of the two rulings
     CAPABILITY  none -- but the 2700 question stops being "who may connect these" and becomes
                 "load which tier, under which clause", which is Isaiah's frontload ruling
+
+## F159 — §13 STEP 4 IS NOT BUILT: TWO OF THREE PARTS EXIST AND THE JOINING PIECE DOES NOT
+
+**The reviewer's status item 2 was the one I answered UNKNOWN. Resolved.** §13 step 4 is *"run the
+real agent across all levels of that one game, rigorous RLVR: reward = did it achieve each chunk's
+effect, ground-checkable, never did it reproduce the actions."*
+
+    the answer key      reverse_engineer.answer_key(path)     BUILT, and replays/ holds all 25
+                                                              *_human.ndjson plus a prebuilt
+                                                              ls20_answer_key.json
+    the agent run       arc_holdout.play(game, cycles)        BUILT
+    THE VERIFIER        scores achieved-effect per chunk      ABSENT
+
+**`answer_key` has exactly two callers: `demand.py` (a demand-log analysis) and `mapping.py` (which
+nothing imports). Nothing anywhere compares an agent run against a chunk's effect.** There is no
+RLVR scorer.
+
+> **SO ALL THREE OF THE REVIEWER'S FLAGGED ITEMS ARE ONE SHAPE, AND IT IS NOT LAZINESS — IT IS THAT
+> THE CHEAP JOINING STEP HAS NO OWNER.** Spacing sweep: never built at all. Step 4: both expensive
+> halves built, the join missing. Pretraining run: `work_budget` built, **never executed**. **Each
+> has its hard part done. Each is one small piece short of producing a number, and that piece is
+> what nobody did.**
+
+### the design, with feasibility established rather than assumed
+
+- **Frames are NOT in the ledger.** `detail.frames` is a COUNT (`cascade` rows read `frames = 1`),
+  so a verifier cannot be written against archived runs. **It must capture in-process.**
+- **The capture point is already clean:** `ArcWorld.board()` (`arc_world.py:404`) returns
+  `self._frame.frame[-1]` and `step()` advances it, so an optional seat-side `on_frame` hook is a
+  few lines and touches nothing in `_BETTING_PATH` (`tether` · `gamma` · `arc_atoms`).
+- **THE SCORING FUNCTION IS ALREADY SPECIFIED AND MUST NOT BE INVENTED.**
+  `reverse_engineer._signature` is *"the chunk's net effect as one compact, ground-checkable
+  signature in frozen attributes."* **Use that exact function on both sides** — the human chunk and
+  the agent's own window — so the comparison carries no metric of mine. *Assume it is already
+  specified, and go look*, applied before writing a scorer rather than after.
+- **`KEY_BOUNDARY` is satisfied by placement, not by care.** The verifier is seat-side like
+  `arc_holdout`, reads the key POST-HOC, and the betting path never imports it. **Post-hoc
+  verification is permitted; pre-hoc selection is the encoded answer.**
+
+**NOT BUILT IN THIS TICK, DELIBERATELY.** The design is settled and the feasibility checks are done,
+but writing the scorer without room to run it against `ls20` would ship half a mechanism — and
+half-cooked data is worth nothing. **It is the next build and it has no open question in front of
+it.**
+
+    MECHANISM   nothing built. One UNKNOWN on the reviewer's list resolved to NOT BUILT, with
+                the missing piece named and its three feasibility checks passed
+    CAPABILITY  none -- but step 4 is the per-game training loop, so this is the join between
+                the answer key and the agent that the whole §13 programme rests on
