@@ -35414,3 +35414,38 @@ ready to install the moment they pick; what is not mine is which games go in it.
                 measured false; a replacement proxy identified from Isaiah's own proposal
     CAPABILITY  none -- but the number that would have driven architecture is now known to
                 have no clean panel behind it, which changes what the next decision may cite
+
+## F156 — THE ABSTENTION NOW NAMES THE CLOSURE IT SEARCHED
+
+**The constraint table's own wording: *reach must be total — only a sealed room can be searched to
+the end, so an abstention counts only when it names the closure it searched.*** `split_refused`
+published `votes` and never the SIZE of the action set, and `F151` proved why that matters: with one
+action the tie test compares the winner against a field of itself, so `all_tied` fires by
+construction and reads **identically to a genuine four-way tie**. That is the failure this file names
+as the one abstention cannot afford — *a false abstention indistinguishable from an honest one.*
+
+**All three exits now carry `n_actions`; the tie exit also carries `vacuous`.** No code reads `why`
+(three write sites, zero consumers), so nothing downstream moves.
+
+    ls20, arm B, 25 cycles    split_refused 9    why=all_tied  n_actions=4  vacuous=False  x9
+                              rows missing n_actions: 0
+
+**AND THE `vacuous` BRANCH IS UNOBSERVED, WHICH IS THE HONEST STATUS.** On `tn36` and `vc33` — the
+two one-action boards measured — gate 1 never opens, `_goal_split` is never entered, and **no
+refusal row fires at all.** So the branch guards a state that is possible BY CONSTRUCTION (`F151`)
+and has not been seen to occur. **The substantive half is `n_actions` on every exit.** Calling this
+*a false abstention fixed on 6 of 25 games* would be the satisfying causal story this file warns
+about, and it is not what was measured.
+
+### and a false alarm caught, which is why the check is recorded
+
+The verification rows read `votes {ACTION1: 1.0, ...}` — FLOATS, and `F144` tabulated arm B as
+`{ACTION1: 1}` against arm E as `{ACTION1: 1.0}`. I had *arm E is on by default* half-written.
+**It is not:** `tether.py:2335` is `dict.fromkeys(self.actions, 0.0)`, so `+= 1` yields `1.0` under
+either arm. **`F144`'s conclusion is untouched — both arms saturate, which is WHY they tie — but the
+`1` versus `1.0` presentation never discriminated them and must not be read as if it did.**
+
+    MECHANISM   three refusal rows name their closure; one guarded branch unobserved and
+                labelled so
+    CAPABILITY  none -- legibility, not contact. It makes a future one-action refusal
+                readable rather than making any refusal different

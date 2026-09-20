@@ -2354,7 +2354,8 @@ class Agent:
                 # it. Publish which exit fired, the same move `goal_series` was.
                 self.led.record(self.cycle, "PLAN", s, "split_refused",
                                 why="coverage", untried=sorted(missing),
-                                tried=sorted(hist), trace_len=len(self.trace))
+                                tried=sorted(hist), trace_len=len(self.trace),
+                                n_actions=len(self.actions))
                 continue                      # the coverage gate: untried is not neutral
             ordered = self.slot_types.get(s) in ORDERED_TYPES
             n_goals += 1
@@ -2385,14 +2386,22 @@ class Agent:
             self.led.record(self.cycle, "PLAN", chosen,
                             "split_refused",
                             why="no_goal_read" if not n_goals else "no_action_voted",
-                            votes=dict(votes))
+                            votes=dict(votes), n_actions=len(self.actions))
             return None
         top = max(votes.values())
         tied = sum(1 for v in votes.values() if v == top)
         self._ties[("goal", tied)] += 1
         if tied == len(self.actions):
+            # AN ABSTENTION COUNTS ONLY WHEN IT NAMES THE CLOSURE IT SEARCHED, and this one did
+            # not. With ONE action the tie test compares the winner against a field of itself, so
+            # `all_tied` fires by construction and reads identically to a real tie among four --
+            # a FALSE ABSTENTION indistinguishable from an honest one, on 6 of the 25 games
+            # (F151). `n_actions` is the closure; `vacuous` is the verdict, published rather than
+            # left to be re-derived from it.
             self.led.record(self.cycle, "PLAN", chosen, "split_refused",
-                            why="all_tied", votes=dict(votes))
+                            why="all_tied", votes=dict(votes),
+                            n_actions=len(self.actions),
+                            vacuous=len(self.actions) < 2)
             return None                       # nothing separates; the draw stays uninformed
         return max(self.actions, key=lambda a: votes[a])
 
