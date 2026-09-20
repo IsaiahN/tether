@@ -128,6 +128,44 @@ enough material for a widening gap to bite on — a property of THE SCHEDULE, no
 nothing saved or loaded — so accumulation actually happens there.** That is an argument for the
 pooled tape independent of the curriculum argument, and it is where I expect the informative run.
 
+## IF THE SEAT ROTATES — WHAT IS LIVE vs WHAT IS SETTLED. Written 2026-09-20 against a KNOWN failure
+
+**This section exists because of a documented, costly mistake and not as housekeeping.** The
+reviewer's own post-mortem on how PRIORITY 0 was lost: *"the seat rotated 09-19 23:26 and MY
+HANDOFF LISTED IT AS SETTLED PRE-REGISTRATION RATHER THAN AS OUTSTANDING WORK. The new seat
+inherited a brief that never named it live."* And: ***a pre-registration is not a task. It became
+invisible the moment it stopped being anyone's next action.***
+
+### LIVE — outstanding work. NONE of this is settled
+
+| item | state |
+|---|---|
+| **Pooled 25-game run** | **IN FLIGHT**, launched 18:20, ~3 h, 199 frames. Its bar is fixed: **a SECOND DISTINCT EFFECT**. No library count may be offered in its place. Result goes to `/tmp/claude/pooled25.json`, ledger alongside. |
+| **Phase 3, the noise floor** | **NOT BUILT.** §14.5 specifies it; `pooled_order` makes it reachable and does not do it as a floor held at a rate. |
+| **OFFSET AUGMENTATION** | Wired everywhere, **never run at a non-zero offset. EVERY reading in this whole session is at offset 0 — one arbitrary cut.** |
+| **`goal_residual`'s five `None` exits** | A reason-code would close `F189`'s open item. Cheap, named, **deliberately deferred** — *you cannot diagnose your way to a composer.* |
+| **A pooled SPACING ladder** | Needs `take>=8` = 1,525 frames = **~68 h. NOT AFFORDABLE** at current mint cost (`F194`). |
+| **Phase 2 (the 249)** | The VALIDATION set, before the architecture freezes. Not the guide curriculum — see the collisions section. |
+| **Distinct-effect counts off dc22/sp80** | Unknown for `ls20`/`m0r0`/`sk48`/`wa30`. *One distinct effect everywhere* is **NOT** claimed. |
+
+### SETTLED — do not re-derive
+
+`F200` the spacing sweep, complete and flat · `F196` probe ceiling 100% on all 25 boards, so the
+nineteen zeros are real · `F190` what the carry carries, verified 4/4 · `F192` provenance rotation ·
+`F201` the `level: null` bug, fixed · `F188` gate 3's tie is genuinely saturated.
+
+### RETRACTED — do not quote these, they are wrong
+
+- **`F193`'s mechanical-vs-substantive fork** — the trend was the CARRY, not spacing.
+- **`F193`'s library-integral cost account** — refuted by rung 3.
+- **`F199`'s §14.5 `settle hard` reading** — `settled` is not monotone (`16→10→4→9`).
+- **"19 of 38 gate-1 survivors already hold"** — unsourced; measured overlap is 1 slot in 1 run.
+- **the `secs` column, rungs 2–3** — contaminated by my own measurement runs.
+
+**Three of those five are mine from tonight, and all three came from giving a cause to three
+agreeing points.** That is the brief's own warning — *three boards agreeing at shallow depth meant
+equally under-sampled* — and it is now the most reliable way I have found to be wrong here.
+
 ## GATE FINDINGS FROM TONIGHT — `F187`–`F189`, and one is a live correction to this brief
 
 | finding | state |
