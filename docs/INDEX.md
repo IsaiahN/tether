@@ -36089,3 +36089,71 @@ the variant worth keeping.
     MECHANISM   nothing built. One published claim withdrawn; the m2 fixture's coupling to the
                 slot population recorded so the next perception change is not blocked by it
     CAPABILITY  none
+
+## F169 — A SYSTEMATIC SCAN OF THE CORPUS: FOUR NEVER-CITED FILES ANSWER QUESTIONS I DECLARED OPEN TONIGHT
+
+**Isaiah asked whether `ATTRIBUTE_REACH.json` — found by accident this morning — was a one-off.**
+It is not. Scanned all 24 files in `docs/library-closure/` against every citation in `INDEX`,
+`CLAUDE.md`, every doc and every `.py`:
+
+    NEVER CITED BY FILENAME, ANYWHERE     ATOM_RANKING.json · CHEMISTRY_INSTANCES.json
+                                          ENTRY_CATEGORIES.md · ATTRIBUTE_REACH.md
+                                          COMPOSITE_REACH.md · TRAVERSAL.md · CATEGORIES.md
+                                          ATTRIBUTE_CLUSTERS.md/.json · RECURSIVE_TRANSFORMATION.md
+
+**Four of them bear directly on questions this session left open, and one of them refutes the shape
+of the whole exercise.**
+
+### `COMPOSITE_REACH.md` — THERE IS NO CORE, AND THE SEARCH FOR ONE WAS THE WRONG SEARCH
+
+    atoms    composites reachable    share
+      10            72                3%
+     200           948               43%
+     477         2,022               92%
+
+> ***"About five composites unlocked per atom added, from the first pick to the sixtieth. NO KNEE,
+> NO PLATEAU, NO CORE."*** — and the file's own verdict: ***"a real structural finding and it is not
+> the one anyone wanted."***
+
+**The reviewer and I spent four exchanges hunting the right small set to load — fifteen primitives,
+then nine, then a 9-65 bracket. The corpus had already measured that no such set exists.** Coverage
+is LINEAR in atoms added. **There is no privileged subset; there is only how many you load.**
+
+**AND IT NAMES THE REAL SELECTION UNIT: *composition is LOCAL — 74% of ingredient references stay
+inside their own domain … sixty-one nearly independent little trees, each about ten atoms and forty
+composites.*** So loading atoms buys you THAT DOMAIN's composites. **`ATMOSPHERIC|Global
+circulation` would have bought atmospheric composites** — which is `F164`'s Hadley-cell objection
+derived from measurement instead of from my incredulity. **The unit is the DOMAIN, not the tier and
+not the encoding.** The file even ranks domain self-sufficiency: `Tabula Rasa` and `Adversarial` at
+100% (*"raw values and the opponent's model need nothing borrowed"*), `Mechanical` lowest at 45%.
+
+### `ATTRIBUTE_CLUSTERS.md` — `F162`'s 5040 WAS ALREADY REDUCED TO ~80
+
+*"It clusters, mechanically, in three passes, and the result is a decision list of about eighty
+rather than 5,076 judgements."* **`F162` called the attribute correspondence a 5040-row table and
+`F163` cut it on the encoding argument. The corpus had cut it a third way, by clustering, and
+neither of us looked.**
+
+### the other two
+
+`ATTRIBUTE_REACH.md` is the ARGUMENT behind the json I used — *"2,700 of 2,700 atoms are reachable,
+zero exceptions"*, resting on *"a scalar is a scalar … temperature is not probable but it is
+possible — turn an object from grey to red."* **`ATOM_RANKING.json` is 477 atoms ranked by `uses`**,
+which is the selection ordering I said was a judgement nobody had made.
+
+### the process point, and it is the one worth keeping
+
+**I did not find `ATTRIBUTE_REACH.json` by method. I tripped over it while chasing something else**,
+and the scan shows it sat beside nine other unopened files, several answering live questions.
+**The law is *assume it is already specified, and go look*, and its recorded failure mode is that
+familiarity suppresses it** — *citing a file feels like evidence of having read it.* **Tonight the
+whole `library-closure/` directory was cited constantly and read in two files.**
+
+> **THE CHEAP CHECK THAT WOULD HAVE CAUGHT IT: list the corpus directory and count citations per
+> file BEFORE opening any of them.** One command. It does not depend on guessing which file is
+> relevant, which is the guess that kept failing.
+
+    MECHANISM   nothing built. Nine unopened corpus files identified by a citation scan; four
+                read; one of them refutes the "find the right small set" framing outright
+    CAPABILITY  none -- but the load question changes unit from tier/encoding to DOMAIN, and
+                the "no core" result means the next proposal cannot be small AND sufficient
