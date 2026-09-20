@@ -55,6 +55,9 @@ _TYPED_BIND = bool(os.environ.get("TETHER_TYPED_BIND"))
 # F130 arm C: supply `_library_fit`'s retrieval the relation channel its two
 # sibling call sites already pass. Seat-side, off by default.
 _REL_GAP = bool(os.environ.get("TETHER_REL_GAP"))
+# F32 arm D: decide reuse by the ONE BARGAIN rather than by a zero remainder,
+# which Isaiah ruled out. Seat-side, off by default.
+_BARGAIN_FIT = bool(os.environ.get("TETHER_BARGAIN_FIT"))
 
 
 def _head_accepts(cand: Any, slot_type: str | None) -> bool:
@@ -1215,6 +1218,8 @@ class Agent:
         # NOT ON BY DEFAULT: `retrieve` returns every name ordered by fit, so this is a RANKING
         # change, not an exclusion, and whether ranking is what the wall is made of is unmeasured.
         # The supply side may simply be thin -- 7 arity-2 atoms of 48.
+        _base = (self._left(self.gamma.library[self.bound.get(slot, IDN)], slot, hist)
+                 if _BARGAIN_FIT else 0.0)
         _rel = getattr(self.env, "contact_changes", None) if _REL_GAP else None
         gap = retrieval.characterise(hist, slot, list(self.alphabet), self.slot_types,
                                      relations=_rel() if _rel else None)
@@ -1258,7 +1263,24 @@ class Agent:
                 # env switch so the two arms are one build and the comparison is real.
                 if _TYPED_BIND and not _head_accepts(cand, self.slot_types.get(slot)):
                     continue
-                if not self._explains(cand, slot, hist):
+                # F32 ARM D, SEAT-SIDE SWITCH, DEFAULT OFF. `_explains` is `_left(...) == 0.0`,
+                # and ISAIAH RULED THAT OUT: *the residual NEVER fully closes -- the corpus would
+                # have told you that. That kills `left == 0.0` outright.* Figure 5's "stating it,
+                # PLUS WHAT REMAINS UNEXPLAINED AFTER IT" is vacuous under a zero-remainder rule,
+                # and Figure 13 lists "no remainder left after each step" as a FAILURE condition.
+                #
+                # THE REPAIR EXISTS AND DID NOT REACH HERE. The reuse sweep cites F32 at its own
+                # site and accepts on the ONE BARGAIN instead; this path kept the old test. So
+                # retrieval refuses every partial improvement, which is what 200 `reach_failed`
+                # rows are, and the arity-2 split follows -- a multi-slot history rarely closes
+                # to zero. Same baseline as the sweep: what the currently bound term leaves.
+                if _BARGAIN_FIT:
+                    _left = self._left(cand, slot, hist)
+                    _cost = term_bits(self.gamma.length(cand, tuple(self.gamma.units())),
+                                      self.gamma.alphabet)
+                    if not pays(_cost, _left, _base):
+                        continue
+                elif not self._explains(cand, slot, hist):
                     continue
                 held, n = n, (n if cand.name == n
                               else (cand.name if cand.name in self.gamma.library

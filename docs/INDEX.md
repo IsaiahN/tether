@@ -34204,3 +34204,60 @@ instance of the session's one error — this time against a warning written at t
     MECHANISM   unchanged, nothing built; the counterfactual already existed
     CAPABILITY  unchanged. F134's fork: closed on the reuse path, open on the retrieval path,
                 and what would close it is the same counterfactual logged at `_library_fit`
+
+---
+
+## `F135` — arm D: the bargain at retrieval opens arity-2, closes arity-1, and starves the rest. Absolute and comparative are not interchangeable
+
+**`F134` posed a fork and `F32` had already ruled it — by ISAIAH, the top of the hierarchy:** *the
+residual NEVER fully closes, the corpus would have told you that. **That kills `left == 0.0`
+outright.*** Figure 5's *"stating it, PLUS what remains unexplained after it"* is vacuous under a
+zero-remainder rule, and Figure 13 lists *"no remainder left after each step"* as a failure
+condition.
+
+**And the repair exists: the reuse sweep cites `F32` at its own site and accepts on the one
+bargain. `_library_fit` kept `_explains`, which is `_left(...) == 0.0`.** It read as an unfinished
+repair, so arm D applies the sweep's test at the retrieval site with the sweep's own baseline.
+
+### measured, and it is a net harm
+
+    ls20   arity1 7/7 -> 0/7    arity2 0/127 -> 8/70    mints 5 -> 1   goal rows 10 -> 5, qual 0
+    vc33   arity1 3/4 -> 0/4    arity2 0/51  -> 5/41    mints 6 -> 0   goal rows  9 -> 0, qual 0
+
+**The first arity-2 reuses ever recorded, and arity-1 reuse goes to zero on both boards**, with
+minting and the goal channel collapsing behind it.
+
+### why, and it is the part worth keeping
+
+**`_explains` is an ABSOLUTE test — does this term account for the history.** `pays(cost, left,
+base)` is a **COMPARATIVE** one — does it beat what is already bound, since `base` is the
+incumbent's leftover. **They answer different questions and are not substitutable.**
+
+So the arity-1 collapse is the bargain correctly refusing LATERAL REBINDS: on those gaps the
+incumbent already explains, nothing improves on it, and `_explains` had been admitting alternates
+that merely also explained. **Arguably correct in isolation — and the downstream says the loop was
+relying on them**, because mints and the goal channel go with them.
+
+> **SO `F32`'s RULING IS NOT WRONG AND MY TRANSPLANT OF IT WAS.** Isaiah killed `left == 0.0` as an
+> ACCEPTANCE rule for a candidate improvement. `_library_fit` is not asking that question; it is
+> asking which held term fits this slot. **Reading a ruling's conclusion without its subject is
+> `A6i` at the level of what a test is FOR**, and it is the same error as citing `accepting()` on
+> two registries.
+
+### what the arms have established, together
+
+    arm B  in-type filter        ls20 gate-1 0->5 with the first monotone shrink; tn36 loses an
+                                 objective. Correct and insufficient -- needs vocabulary
+    arm C  relation channel      inert: `_explains` is retrieve()'s only consumer and ranking
+                                 cannot move a binary test (the record said so before the run)
+    arm D  bargain at retrieval  opens arity-2, closes arity-1, starves mints and the goal
+                                 channel. Absolute vs comparative
+
+**Three interventions at three different points on one path, each measured, none shipped.** The
+arity-2 wall is now bounded from both sides: it is not supply, not ranking, and not the
+zero-remainder rule taken alone.
+
+    MECHANISM   arm D built and switched, default OFF, and it stays off
+    CAPABILITY  unchanged, and the negative is the finding: what `_library_fit` needs is a test
+                that admits partial fits WITHOUT discarding lateral ones, which is neither of
+                the two tests the build currently has
