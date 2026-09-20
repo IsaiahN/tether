@@ -34997,3 +34997,73 @@ story this file warns is harder to doubt than a bare null.**
                 closed-looking finding reopened as a split
     CAPABILITY  none. The tiebreaker did what a tiebreaker is for -- it turned a blocked
                 question into a direction without deciding anything
+
+## F150 — THE ARITY WALL IS REAL AND IT IS NOT WHAT BLOCKS GATE 1. TWO PROBLEMS, LONG CONFLATED
+
+**`F149` filed a DIRECTION: whether a residual describable only in arity-1 terms is what makes
+`tn36`'s 39/39 series flat. It is REFUTED, and the refuting evidence was already on disk.**
+
+### the write site first, because I nearly published the denominator as the numerator
+
+Censusing `reach` rows by `detail.gap.arity` on `runs/long_tn36.jsonl` gives **arity-2: 121**, and
+read as successes that says tn36 reuses arity-2 constantly. **`tether.py:1233` says otherwise in its
+own words** — *"the gap, cited BEFORE the library is read."*
+
+> **`reach` IS THE DENOMINATOR. It is emitted BEFORE retrieval runs**, so it counts gaps DESCRIBED
+> and reached for, never gaps met. `reach_failed` is the other end and carries NO arity, so the
+> per-arity split exists only by PAIRING each `reach` with its outcome.
+
+Paired by `(cycle, slot)` over `seq` order — **0 dangling, 0 unresolved**, so the pairing is total
+rather than approximate:
+
+    arity 1    met 2 of 3
+    arity 2    met 7 of 121
+
+**That reproduces `F146`'s table exactly and independently**, which is what makes the next line
+readable rather than a second guess. **And it adds one fact depth alone could give: at 49 cycles it
+was 7/89, at 55 cycles it is 7/121. THIRTY-TWO MORE ARITY-2 GAPS DESCRIBED AND NOT ONE MORE MET.**
+The rate is falling because the numerator is frozen, which is the opposite of a wall being worn
+down.
+
+### the correlation runs BACKWARDS across the panel
+
+    board   arity-2 met        gate 1 qualified
+    ls20    0/1042   0.0%      8
+    vc33    6/273    2.2%      0
+    tn36    7/121    5.8%      0
+
+**The only board that ever opens gate 1 is the one with ZERO arity-2 reuse.** If arity-2 composition
+were what un-flattens a residual series, `ls20` should be the worst of the three and it is the only
+one that works.
+
+**n = 3 and these are different boards, so on its own this is weak.** It is filed because it points
+the same way as the strong evidence, which is an INTERVENTION and not a correlation.
+
+### the strong evidence is `INDEX:34341`, within one board, and it was already recorded
+
+    tn36   arm B off -> on    arity2 1/22 -> 7/31    qualified 0 -> 0, AND LOSES o88.col
+
+**Arm B raised tn36's arity-2 reuse SEVENFOLD and gate-1 qualification did not move off zero — it
+cost a goal slot.** Same board, same panel, one switch. **That is the test the cross-board table
+cannot be, and it was sitting in the record while `F149` filed the question as open.**
+
+> **SO THE TWO CLAIMS COME APART, AND THEY HAVE BEEN QUOTED AS ONE SINCE THE `vc33` reading.** *The
+> arity-2 wall is real* — 7 of 121, falling with depth — **is TRUE and is not the same statement as**
+> *crossing it would open the goal chain*, **which is measured false on the only board where the
+> reuse actually rose.** The standing note `composition-wall-is-arity` carries both under one
+> heading and licenses "NSM/arity is the next build" from the first; **the second is what would
+> justify that ordering, and it is the half that just failed.**
+
+**THIS IS FIGURE 9's SPLIT EXECUTED RATHER THAN QUOTED.** `F149` recorded *"split it rather than
+search"* and then left one question open. The split is: **the composition wall and the gate-1
+blockage are two well-formed problems**, and work aimed at the first should stop being justified by
+the second.
+
+**WHAT IS NOT CLAIMED.** Nothing here says the arity wall is unimportant or that it should not be
+worked — it is the largest measured gap in the build. It says only that **gate 1 is not downstream
+of it**, so the goal chain needs its own cause, and `tn36`'s flatness is still unexplained.
+
+    MECHANISM   nothing built. One direction refuted on existing data; one conflation split;
+                the reach/reach_failed pairing established as the measure for "met"
+    CAPABILITY  none -- but the ordering argument for the next build lost its stated warrant,
+                which is a change to what gets built rather than to what the agent can do
