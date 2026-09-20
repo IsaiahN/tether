@@ -37244,3 +37244,56 @@ clean account of what is NOT there and no agent that is better at anything*, and
 spacing sweep PRIORITY 0 — *you cannot diagnose your way to a composer.* **So this is filed as a
 named, cheap, ready item rather than done**, and the record says why it was deferred so the next
 seat does not read the gap as an oversight.
+
+## F190 (INDEX series) — WHAT CARRIES ACROSS A RUNG IS THREE COMPOSITIONS, NOT TWENTY TERMS, AND THAT IS CORRECT. Filed BEFORE the sweep lands so the reading is pre-registered
+
+**Checked because the whole ladder rests on it.** The reviewer's pre-registration says *library
+CARRIES across rungs — Γ is the agent's only memory; wiping it is a different experiment, not a
+cleaner one.* **If the save/load round-trip lost terms, every rung would start near-cold and the
+curve would mean nothing** — and it would look exactly like a real result.
+
+    run minted        20 terms  (library 48 -> 68)
+    file on disk      20 rows
+    fresh Gamma       48, load -> 51.  CARRIED: 3
+
+**Three of twenty. Read cold that is a broken carry, and it is not one.**
+
+    load report   loaded 3   already_held 17   refused []
+
+**`refused` is EMPTY, which is the discriminator.** `Gamma.load` refuses loudly on an incompatible
+registry and is silent on a duplicate, so the two failure modes are distinguishable and this is the
+second. The accounting closes exactly:
+
+    20 saved rows  ->  5 DISTINCT ATOM CHAINS   x10 recolour · x4 translate ·
+                                                x3 translate.translate · x2 above.none · x1 above.all
+    minus 2 that a fresh Gamma already holds as bare atoms (`recolour`, `translate`: verified
+    present, not inferred from the arithmetic)
+    = 3 genuinely new compositions
+
+### the design is `THE COMPOSITION CROSSES AND THE BINDING DOES NOT`, and the SAVE already drops the binding
+
+`operands present on saved rows: 0`. **The operand and guard are gone before the file is written**,
+so this is not a load-side loss at all. `load`'s own docstring states the rule — *vocabulary
+permanent, instances transient* — and gives the cross-game reason: `translate<o11.row>` names a
+slot another game does not have.
+
+**AND IT IS STILL RIGHT FOR SAME-GAME RUNGS, WHICH IS THE CASE THE MECHANISM WAS NOT WRITTEN FOR.**
+§17.8's load was built for CROSS-GAME transfer; the sweep uses it for SAME-GAME continuation, where
+the slots do exist and the bindings could have been kept. **Figure 4 settles it anyway: only
+METHODS cross, and *a recording carried upward looks like knowledge and is a description of one
+occasion.* A composition is a method; `translate<o11.row>` is a recording.** So the narrow carry is
+the correct carry, not a limitation to be repaired.
+
+### why this is filed now rather than after the sweep
+
+**A small `carried_in` on rung 2 is the single most likely thing to be misread as a bug in the
+ladder**, and the honest moment to say what it should look like is before the number exists.
+**Pre-registered: rung-to-rung carry is DISTINCT COMPOSITIONS, expected to be a small fraction of
+terms minted, and a carry far below the mint count is the mechanism working.** What would be a
+real defect is `refused` non-empty, or `carried_in` of zero.
+
+    BOUNDARY    one saved library, dc22, 20 terms, one round-trip. Says nothing about how much
+                carries at rung-4 volumes
+    MECHANISM   none changed. The per-rung log already reports `carried_in` separately from
+                `minted`, so the distinction is visible without any edit
+    CAPABILITY  none -- it protects the reading of a result that does not exist yet
