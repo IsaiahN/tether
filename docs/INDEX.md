@@ -34787,3 +34787,46 @@ at 12 cycles by the looser measure, so they are the harder test rather than the 
     MECHANISM   unchanged, nothing built
     CAPABILITY  unchanged. The census is corrected to the measure the vote reads, and the one
                 hypothesis it suggests is recorded UNRULED at n=1
+
+---
+
+## `F146` — vc33 at depth corrects the session's most confident reading: arity-2 is NOT never-met
+
+**The brief carried *arity-2 gaps are never met* as THE ONE ROBUST READING, replicated on three
+boards and hardened to 0/1042 on ls20. vc33 at 59 cycles refuses it.**
+
+    vc33 @ 12 cycles    arity1 3/4     arity2 0/51
+    vc33 @ 59 cycles    arity1 3/4     arity2 6/273        <- SIX, not zero
+    ls20 @ 59 cycles    arity1 7/8     arity2 0/1042       <- ls20's zero DOES hold
+
+**So the wall is BOARD-DEPENDENT and ls20 is the extreme case, not the representative one.** The
+split is still enormous — 2.2% against 75% — but *never* was wrong, and it was wrong in the
+direction of the tidier claim.
+
+**PER GAME, NEVER POOLED, ONE MORE TIME.** Three boards at 12 cycles all read zero and I generalised
+across them; depth separated them. **A quantity that agrees across boards at shallow depth is not
+thereby a board-independent quantity** — it may only mean the boards were equally under-sampled.
+
+### and gate 1 never opens on vc33 at all
+
+    PLAN, 59 cycles     routine_refused 45     split_refused 0     QUALIFIED 0
+
+**Zero slots ever qualified as confidently shrinking on vc33, so gate 3 is never reached.** Arm
+B's gate-1 opening is an ls20 result and does not transfer — which the 12-cycle reading also said,
+and depth confirms rather than overturns.
+
+    slots: never-move 90 · one-way 2 · BOTH-way 4
+    R_goal carried by: o0.w, o11.col, o11.dcol      qualified: none
+
+### what this costs and what it leaves
+
+**Costs:** the headline claim of the session, which was in the heartbeat brief as settled. It is
+now *arity-2 is met at 0-2.2% against arity-1 at 75-100%, and the rate is board-specific.*
+
+**Leaves:** the split itself, which is still the largest and most replicated asymmetry measured,
+and the observation that ls20 and vc33 fail at DIFFERENT gates — ls20 reaches gate 3 and abstains,
+vc33 never clears gate 1. **Two boards, two different stopping points, one agent.**
+
+    MECHANISM   unchanged, nothing built
+    CAPABILITY  unchanged. A headline corrected downward and a per-board difference recorded
+                that pooling would have hidden
