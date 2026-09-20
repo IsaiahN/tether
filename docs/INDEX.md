@@ -35348,3 +35348,69 @@ take.**
                 recorded; one closed avenue established; the pending ruling given a
                 corpus-grounded resolution it can accept or refuse
     CAPABILITY  none
+
+## F155 — §14.8 Q3's DESIGN-LOOP SEAL IS UNBUILT, AND IT CANNOT BE CONSTITUTED FROM THE 25
+
+**The training plan carries a reviewer instruction from 2026-09-18 with an explicit urgency marker,
+and two days later nothing implements it:**
+
+> *"if convergence-to-required drives which ARCHITECTURAL changes get kept, the answer key is
+> selecting **what the agent IS**, fitting the build to 25 known games — invisible until the private
+> set. Fix, and **it happens NOW before the number drives decisions**: train on all 25, but compute
+> convergence on a SUBSET only, and keep the rest SEALED until the architecture is frozen."*
+
+**Grepped before building: `arc_holdout.py` is the RUNNER, `tether.py:3228`'s `held_out_cycle` is a
+temporal holdout inside a run, and every `held-out` in `docs/` is held-out PAYMENT. No seal, and no
+split ever declared.**
+
+**AND I AM THE INSTANCE OF THE PROBLEM IT NAMES.** Tonight `ls20` · `vc33` · `tn36` · `ka59` decided
+arm retirements, a build ordering and three causal stories. Four of twenty-five, in the design loop,
+with no seal, two days after the instruction.
+
+### the split cannot be made clean, and both candidate rules fail
+
+**A split chosen by looking at the games is the encoding move in a fix's clothes, so the rule has to
+be outcome-blind. Two are available and neither works:**
+
+    rule                         what it seals                        why it fails
+    stable hash of the game id   ar25 bp35 g50t lf52 lp85 re86        g50t has 139 INDEX
+    (clean, reproducible)        s5i5 tu93                            mentions and lf52 95 --
+                                                                      MORE exposed than vc33 (76)
+                                                                      or tn36 (69). Sealing what
+                                                                      is already spent
+    least record exposure        s5i5 (5) · lp85 (8) · re86 (19)      s5i5 and lp85 are two of
+                                 bp35 (21)                            the six ACTION6-ONLY boards.
+                                                                      They are unexposed BECAUSE
+                                                                      the agent barely acts there
+                                                                      -- outcome-correlated, and
+                                                                      it seals the degenerate ones
+
+**Every one of the 25 carries record exposure.** `ls20` 447, `ka59` 313, `sp80` 174, `g50t` 139 —
+**there is no uncontaminated subset left to seal**, and the second rule's failure is the sharper
+one: *unexposed* and *degenerate* are the same set here, so the cleanest-looking seal is the least
+representative.
+
+### what is actually available, and one of them is Isaiah's
+
+1. **FORWARD-BINDING ONLY.** Past exposure does not leave the confines — **this is the DILUTION RULE
+   exactly: nothing inside the cup reduces it, and adding water is the only move from inside.** A
+   seal declared now cannot clean history; it can stop future architectural decisions citing the
+   sealed games. That is worth having and it is strictly smaller than what Q3 asked for.
+2. **THE CLEAN PROXY IS NOT A SUBSET OF THE 25 — IT IS PHASE 2, AND ISAIAH ALREADY PROPOSED IT.**
+   *"We can also test the agent's moxie against game walkthroughs OUTSIDE the 25 set later on to see
+   how well it can compose."* **Those games have zero record exposure, which is the property Q3
+   needs and no subset of the 25 still has.** It reclassifies `PHASE2_GUIDE_CURRICULUM` from *extra
+   curriculum* to **the internal private-set proxy**, which is a larger role than it was filed under.
+
+### NOT DECLARED UNILATERALLY, AND THE REASON IS A CHANGE IN THE INSTRUCTION'S PREMISE
+
+The instruction says to declare a split, so declaring one is within it. **But it assumed a clean
+subset exists, and the measurement above says none does.** That turns the task from EXECUTE into
+REPORT BACK: the reviewer chose the mechanism against a premise that has since been measured false,
+and picking a split now would be me resolving that on their behalf. **The forward-binding seal is
+ready to install the moment they pick; what is not mine is which games go in it.**
+
+    MECHANISM   nothing built, deliberately. A named prerequisite found unbuilt; its premise
+                measured false; a replacement proxy identified from Isaiah's own proposal
+    CAPABILITY  none -- but the number that would have driven architecture is now known to
+                have no clean panel behind it, which changes what the next decision may cite
