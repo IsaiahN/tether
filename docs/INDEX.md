@@ -35815,3 +35815,63 @@ caveat is not the same as obeying it.*
                 to "settle one identification", with the loadable set bracketed 9-65
     CAPABILITY  none -- but the first load is now a bounded, named set containing the keystone
                 atom, rather than a programme
+
+## F164 — Γ AND THE LIBRARY ARE DISJOINT BY PURPOSE, NOT BY LOADING FAILURE. THE WORKING SET IS ALREADY CHOSEN AND IT IS NOT A GRID VOCABULARY
+
+**`F163` bracketed the loadable set at 9-65 by ENCODING FIT. Reading the nine shows that test is
+nearly vacuous:**
+
+    HUMAN|Movement                  attrs [position]                        Gamma has row col drow dcol
+    RAW DATA|Adjacency              attrs [positions]                       Gamma has touching touching_n
+    HEAT|Volume                     attrs [dimensions]                      Gamma has h w area bbox_area
+    EMBODIMENT|Self orient          attrs [headOrientation, gravityVector]
+    ATMOSPHERIC|Global circulation  attrs [HadleyCell, FerrelCell, PolarCell]
+
+**Encoding-fit says only *these attributes are integers that are positioned or sized*, which is true
+of almost anything once rewritten into grid-expressible form. It would load Hadley cells.** Three of
+the nine duplicate what Γ already reads and two have no referent on a grid at all. **Selection is not
+an encoding question and my bracket was measuring the wrong property.**
+
+### and the corpus had already made the selection
+
+`WORKING_SET.json` — *"Working vocabulary for a composing agent. Not an irreducible set — measured,
+none exists."*
+
+    set_a_atoms   200 of 585   "the atom vocabulary, every domain root guaranteed present"
+    set_b_level2  200          "composites other entries actually reach for -- a composer's leverage"
+    roots          61          "the bottom node of each of the 61 trees"
+    finding                    "61 SHALLOW INDEPENDENT TREES, not one deep tree"
+
+**But read what is in it.** `set_a`'s two most-used atoms are `Character|Identity` — *"the persistent
+sense of self across time, the who that endures"*, 45 uses — and `Phenomenological|Lived Meaning` —
+*"the significance a situation has for the experiencer, prior to interpretation"*, 42 uses. The 61
+roots open with `Acoustic|Echo`, *"the reflection of a sound wave off a surface."*
+
+> **THE LIBRARY IS A MODEL OF HUMAN CONCEPTUAL PRIORS ACROSS 61 DOMAINS. Γ'S 45 ARE ARC-GRID
+> PERCEPTION ATOMS. THEY ARE DISJOINT BECAUSE THEY ARE ABOUT DIFFERENT THINGS** — not because
+> something failed to load, and not because a firewall blocked them.
+
+**THIS BEARS ON THE QUESTION THE REVIEWER PUT TO ISAIAH** — *zero overlap with tier 1 is hard to
+reconcile with "a deliberate subset."* **The evidence says Γ is not a subset of this library in
+either direction: it is a different vocabulary for a different job.** Isaiah's *the 45 are a
+deliberate subset* may have been about a different set, or about the ARC-expressible part of the
+closure. **Evidence offered, not a ruling taken — it is his.**
+
+### which puts "make all 2700 reachable" back on its own feet
+
+It is not plumbing and not permission. **It is: give the agent a human-conceptual vocabulary so a
+novel board can be RENDERED in terms it holds** — Isaiah's own account of what composition is for,
+and his *human priors are exhaustive, so anything a human does is expressible.* **The 2700 IS that
+closure; Γ is the perception side.**
+
+**And the bridge between them already exists and is not a table I have to build:**
+`ATTRIBUTE_REACH.json` is precisely *"every atom's attributes rewritten into grid-expressible form,
+with what each requires to be reachable"* — **2700 of 2700, `atoms_with_no_attribute_left: 0`,
+`reachable_at_100_percent: yes`.** What is missing is a LOADER that turns those rewritten attributes
+into Γ atoms, and a selection that is about relevance rather than encoding.
+
+    MECHANISM   nothing built. The 9-65 bracket withdrawn as measuring encoding rather than
+                relevance; the corpus's own working set located; the disjunction re-read as
+                purpose rather than failure
+    CAPABILITY  none -- but "load the library" stops meaning "import a module" and starts
+                meaning "build the loader over a rewrite the corpus already did"
