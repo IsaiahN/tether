@@ -813,6 +813,46 @@ graded per game and never pooled.**
   shared shapes settle; set the noise floor where convergence stops improving. The metric that
   grades the agent paces its training.
 
+### 14.5b THE CURRICULUM IS BUILT — `feeder.py`, 2026-09-20. Read this before re-planning §14.5
+
+**§14.5 above describes a schedule that now EXISTS in code.** Recorded here because a plan that
+does not say so invites the next seat to rebuild it, and because the implementation answered two
+questions the plan left open.
+
+- **ONE DIAL, `spacing` = the block length of preserved coherence.** Chunks are shuffled in blocks
+  of `s`, so `s=1` is phase 1 (random-dense) and large `s` is phase 2 (coherent-wider). **Shuffled
+  by CHUNK, never by frame** — a shuffled frame sequence destroys the within-chunk transitions that
+  are the thing being learned.
+- **`chunk_order` is one game; `pooled_order` is all 25 in ONE shuffle,** which is what phase 1
+  actually requires — chunks from DIFFERENT games adjacent, so only shapes recurring everywhere
+  pay. At `spacing >= chunks-per-game` each game becomes one block and the shuffle is game-level,
+  which is **§14.6's end state on the same dial.**
+- **The tape sits BEHIND `ArcWorld` as a `wrapper`**, so every perception path is unchanged. The
+  agent WATCHES: `step()` advances regardless of the action, so it predicts, is wrong, and mints
+  against a trajectory it did not choose.
+- **`offset` is wired through** (§14.4's augmentation), and **no reading yet exists at a non-zero
+  offset.** Every number tonight is one arbitrary cut.
+
+**TWO THINGS THE PLAN DID NOT ANTICIPATE, BOTH MEASURED:**
+
+**1. A RUNG-BASED LADDER BARELY ACCUMULATES.** Carrying Γ between rungs goes through §17.8's
+save/load, which **keeps distinct compositions and drops bindings** — correct by Figure 4 (methods
+cross, recordings do not), but it means rung *n+1* inherits a handful of compositions, not the
+previous library. Measured: a 101-term library carried **4**. **So a 4-rung ladder ends near
+`48 + 16–24` terms.** The POOLED run has no such boundary — one continuous Γ, nothing saved or
+loaded — **so accumulation is a reason to prefer the pooled tape over a rung ladder**, independent
+of the curriculum argument.
+
+**2. THE TAPE IS THE WORST CASE FOR MINT COST, BY CONSTRUCTION.** The agent never controls the
+board, so it is wrong nearly every step and mints near the maximum rate. **Cost is driven by
+library size (slots flat at 320–392) and SATURATES rather than exploding** — `0.16` s/cycle at
+library 48, `~40` at 69. **Budget ~40 min per 64 frames.** Tape budgets do not transfer to
+live-board budgets.
+
+**STATUS: phase 1 and phase 2 are expressible and running. PHASE 3 — the noise floor — IS NOT
+BUILT.** It needs out-of-context real chunks mixed into a coherent order, which `pooled_order`
+makes reachable (it already interleaves games) but does not yet do as a *floor* held at a set rate.
+
 ### 14.6 The end state — all 25 as ONE game (Isaiah, 2026-09-18)
 - Anneal toward all 25 playing coherently, interleaved — one library that produces each game's
   coherent strategy on demand. The agent never sees a game label, so **game-boundary-blindness
