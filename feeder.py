@@ -44,6 +44,7 @@ not being told the answer; being handed the derivation would be.
 
 from __future__ import annotations
 
+import collections
 import json
 import random
 import shutil
@@ -134,6 +135,80 @@ def chunk_order(game: str, offset: int = 0, spacing: int = 1, skip: int = 0,
     blocks = [chunks[i:i + spacing] for i in range(0, len(chunks), spacing)]
     random.Random(seed).shuffle(blocks)
     return steps, [i for b in blocks for c in b for i in c["idx"]], len(chunks)
+
+
+ALL_GAMES = tuple(sorted(
+    x.name[:-len("_human.ndjson")] for x in Path("replays").glob("*_human.ndjson")))
+
+
+def pooled_order(games=ALL_GAMES, offset: int = 0, spacing: int = 1, skip: int = 0,
+                 take: int | None = None, seed: int = SHUFFLE_SEED) -> list[dict]:
+    """S14.5 PHASE 1: every game's chunks in ONE pool, block-shuffled TOGETHER.
+
+    This is the thing the single-game dial cannot express. Phase 1's point is that *no game or
+    temporal structure survives, so only the shapes that recur EVERYWHERE pay off* -- which needs
+    chunks from different games adjacent to each other, not one game reordered.
+
+    At `spacing >= chunks-per-game` each game is one block and the shuffle is game-level: S14.6's
+    end state, all 25 interleaved as ONE game. So the same dial spans phase 1 to phase 3.
+
+    Returns the frames already in order, each tagged with the game it came from -- the tape needs
+    the tag to keep mint provenance right, see `watch_many`.
+    """
+    blocks = []
+    for g in games:
+        steps = reverse_engineer.load_replay(f"replays/{g}_human.ndjson")
+        chunks = reverse_engineer.chunk_replay(steps, offset=offset)
+        chunks = chunks[skip:] if take is None else chunks[skip:skip + take]
+        for i in range(0, len(chunks), spacing):
+            blocks.append([dict(steps[j], _game=g)
+                           for c in chunks[i:i + spacing] for j in c["idx"]])
+    random.Random(seed).shuffle(blocks)
+    return [f for b in blocks for f in b]
+
+
+def watch_many(games=ALL_GAMES, cycles: int | None = None, offset: int = 0, spacing: int = 1,
+               skip: int = 0, take: int | None = 4, led_path: str | None = None) -> dict:
+    """Watch a POOLED tape across games. One library, no game label reaching the agent.
+
+    PROVENANCE IS KEPT BY ROTATING `gamma.game` AS THE TAPE CROSSES GAMES. `Gamma` reads
+    `self.game` AT MINT TIME (`term.handle(self.game)`), so a term minted while watching `dc22`
+    frames is stamped `dc22` -- which is S13 step 5's *game-of-origin, proctor-only*, and it is
+    not reconstructible afterwards. The agent never reads it; only the handle carries it.
+
+    KNOWN OPEN POINT, recorded rather than silently decided: `Gamma.load` marks a term IMPORTED
+    when its stored game differs from `self.game`. With a rotating label a RELOADED pooled library
+    would mark almost everything imported. Pooled runs therefore do not carry a library file yet;
+    resolving that is a ruling about what cross-game means inside one pooled run, not a patch.
+    """
+    frames = pooled_order(games, offset=offset, spacing=spacing, skip=skip, take=take)
+    tape = ReplayTape(frames, list(range(len(frames))))
+    fr = tape.reset()
+    # the palette is READ across the whole pooled tape -- a per-game palette would make the
+    # agent's colour alphabet change under it mid-run, which is a habitat change, not a curriculum
+    palette = max(int(v) for f in frames for row in f["grid"] for v in row) + 1
+
+    env = ArcWorld(tape, arc_percept.Objects(),
+                   arc_atoms.three_spaces(arc_predict.predict()),
+                   palette=palette, name="pooled")
+    g = gamma.Gamma(env.atoms(), game=frames[0]["_game"])
+    base = len(g.library)
+    ag = tether.Agent(env, g, tether.Config(), ledger.Ledger(led_path))
+    seen_order = []
+    for i in range(cycles if cycles is not None else len(frames)):
+        g.game = frames[min(i, len(frames) - 1)]["_game"]
+        seen_order.append(g.game)
+        ag.step()
+
+    mints = collections.Counter(h.split("_", 1)[0] for h in g.handles.values())
+    return {"games": len(games), "spacing": spacing, "offset": offset,
+            "take_per_game": take, "frames": len(frames),
+            "cycles": cycles if cycles is not None else len(frames),
+            "palette": palette, "switches": sum(1 for a, b in zip(seen_order, seen_order[1:],
+                                                              strict=False) if a != b),
+            "atoms": base, "library": len(g.library), "minted": len(g.library) - base,
+            "settled": len(g.settled_terms), "by_origin": dict(mints.most_common(8)),
+            "fr": fr is not None}
 
 
 def watch(game: str = "dc22", cycles: int | None = None, offset: int = 0, spacing: int = 1,
@@ -233,6 +308,15 @@ def sweep(game: str = "dc22", rungs=(1, 2, 4, 8, 16), cycles: int | None = None,
 
 
 if __name__ == "__main__":
-    g = sys.argv[1] if len(sys.argv) > 1 else "dc22"
-    n = int(sys.argv[2]) if len(sys.argv) > 2 else 0
-    print(json.dumps(sweep(g, cycles=n or None), indent=1))
+    # two entry points because there are two curricula: one game's order (the ladder), and all
+    # 25 pooled (S14.5 phase 1). Same dial, different tape.
+    mode = sys.argv[1] if len(sys.argv) > 1 else "sweep"
+    if mode == "pooled":
+        n = int(sys.argv[2]) if len(sys.argv) > 2 else 40
+        sp = int(sys.argv[3]) if len(sys.argv) > 3 else 1
+        tk = int(sys.argv[4]) if len(sys.argv) > 4 else 4
+        print(json.dumps(watch_many(cycles=n, spacing=sp, take=tk), indent=1))
+    else:
+        g = sys.argv[2] if len(sys.argv) > 2 else "dc22"
+        n = int(sys.argv[3]) if len(sys.argv) > 3 else 0
+        print(json.dumps(sweep(g, cycles=n or None), indent=1))
