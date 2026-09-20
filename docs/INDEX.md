@@ -37451,6 +37451,43 @@ fall is in PREDICTION ERRORS, the substantive one predicts it is in what the age
 `4fac076` routes a per-rung ledger — **not for this sweep, which was already in flight, but the
 pooled run will carry it.**
 
+### THE MECHANICAL ACCOUNT'S PREMISE, TESTED ON THE TAPE WITH NO AGENT — and it is too weak
+
+**A panel property must be measured before it is used as a premise, never asserted from the shape
+of the generator.** The mechanical reading claims a coherent tape is more PREDICTABLE frame to
+frame. **That is a property of the tape, so it needs no run.** Same 8 chunks, same 64 frames, only
+the order differing:
+
+    spacing   boundary-crossings   mean cells changed   MEDIAN
+      1            4 / 63                13.4            8.0
+      2            3 / 63                14.6            8.0
+      4            1 / 63                12.9            8.0
+      8            0 / 63                10.6            8.0
+
+**THE MEDIAN TRANSITION IS IDENTICAL AT 8.0 ACROSS EVERY ORDER.** The mean moves only because a
+handful of boundary crossings are outliers. **So in its frame-to-frame form the mechanical account
+is quantitatively dead**: rung 1 has FOUR discontinuous transitions and rung 2 has THREE, and one
+fewer discontinuity cannot produce ten fewer mints and nine fewer promotions.
+
+**WHAT IS NOT REFUTED, AND THE DISTINCTION IS THE POINT:** a *scrambled-CONTEXT* form, where
+predictions formed on one chunk are carried into an unrelated one. That is not a frame-to-frame
+quantity and this measurement does not reach it. **The narrow form is dead; the broad form is
+untouched.**
+
+### AND THE WINDOW IS TOO SMALL FOR THE DIAL TO HAVE ITS RANGE — found while measuring something else
+
+**At `spacing 1` with 8 blocks there should be 7 boundary crossings. There are FOUR.** Three of the
+seven blocks happened to land next to their original neighbours, because a shuffle of 8 items
+preserves a lot of adjacency by chance.
+
+**So the "random-dense" end of this ladder is not very random**, and the distance between rung 1
+and rung 4 is `4 → 0` discontinuities rather than `7 → 0`. **The dial's range is compressed at this
+window size, independently of anything about the agent** — which is a second, mechanical reason
+this particular ladder may be unable to show either signature, alongside `carried_in = 4`.
+
+**The pooled 25-game tape does not have this problem**: 25 games x N chunks shuffles enough items
+that chance adjacency is negligible, and a block boundary there usually crosses a GAME boundary.
+
     BOUNDARY    2 of 4 rungs, one board, one 8-chunk window, offset 0, single seed, one run
                 per rung. dc22 counts carry +/-2 -- but both probes are EXACT baseline matches
     MECHANISM   the ladder runs, the rungs are comparable, and the carry behaves as predicted
