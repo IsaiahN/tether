@@ -34392,3 +34392,55 @@ fact about the habitat.
     MECHANISM   gate 3's two causes separated; it is the second, not the first
     CAPABILITY  unchanged. And the reading is bounded at 1.2% of budget, which is stated here
                 rather than discovered later
+
+---
+
+## `F139` — depth splits the session's findings in two: the arity wall HARDENS, the gate-3 explanation DISSOLVES
+
+**`F138` was filed with its boundary stated — every reading at 12 cycles, 1.2% of the ruled
+budget — and said a longer run was the next thing rather than any repair. It ran. 47 cycles of
+ls20 under arm B, ~4x the depth, and it separates what survives from what was an artifact.**
+
+    quantity                    12-cycle       47-cycle
+    arity-1 gaps met             6/7            7/8
+    arity-2 gaps met             0/129          0/1042
+    mints                        6              32
+    discriminating slots         16             26
+    UNDIFFERENTIATED slots        6              0
+    dead slots                   146            150
+    gate-1 qualified             5/8            8/44
+
+### what HARDENS
+
+**Arity-2: 0 of 1042.** An eightfold increase in opportunity and still not one. The split is not a
+small-sample effect; it is the most robust reading of the session, replicated across three boards
+at 12 cycles and now against a thousand attempts on one.
+
+### what DISSOLVES, and it is the finding I had just filed
+
+**`F138` said gate 3 fails on UNDIFFERENTIATED evidence — every action moves the slot, so nothing
+discriminates. At 47 cycles the undifferentiated set is EMPTY**: those six slots resolved into the
+discriminating set (16 -> 26) once enough transitions accumulated. **The explanation was a depth
+artifact, exactly as the caveat said it might be.**
+
+> **THE CAVEAT IS WHAT MADE THIS CHEAP.** `F138` was filed with *at 1.2% of budget, under random
+> action selection* attached to every number and the boundary stated before the finding. So this
+> is an update rather than a retraction, and the reviewer was told the same thing in the same
+> terms before the run. **A finding filed with its boundary can be corrected by depth; one filed
+> without it has to be withdrawn.**
+
+### and the break has genuinely moved down the chain
+
+    12-cycle   gate 1: 6    gate 3: 5
+    47-cycle   gate 1: 6    gate 3: 7    + 1 "the objective already holds"
+
+**Gate 3 is now the DOMINANT refusal**, which is arm B's effect surviving depth. Still no routine
+adopted.
+
+**So gate 3 is the live blocker and its cause is now UNKNOWN** — not coverage (complete), not
+undifferentiated (dissolved). The next measurement is which slots reach it and whether they sit in
+the discriminating 26 or the dead 150. **Not theorising past that.**
+
+    MECHANISM   unchanged; a depth reading, no code touched
+    CAPABILITY  unchanged. One finding hardened, one withdrawn, and the blocker relocated with
+                its cause deliberately left open
