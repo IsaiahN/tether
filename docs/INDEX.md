@@ -34830,3 +34830,50 @@ vc33 never clears gate 1. **Two boards, two different stopping points, one agent
     MECHANISM   unchanged, nothing built
     CAPABILITY  unchanged. A headline corrected downward and a per-board difference recorded
                 that pooling would have hidden
+
+---
+
+## `F147` — the three boards at depth, and the one I investigated is the outlier
+
+**`F146` corrected *arity-2 is never met* to *board-dependent*. tn36 completes the set and the
+spread is wider than that correction implied.**
+
+    board   cycles   arity-1 met      arity-2 met        gate 1 qualified   gate 3 reached
+    ls20    59       7/8    88%       0/1042    0.0%     8                  yes -- all_tied
+    vc33    59       3/4    75%       6/273     2.2%     0                  never
+    tn36    40       2/3    67%       7/89      7.9%     0                  never
+
+### two of three boards never open gate 1
+
+**Gate 3 — which I spent five findings and two arms characterising — is reached on ONE board of
+three.** On vc33 and tn36 the agent never gets past *no objective is confidently shrinking*, so
+the entire gate-3 analysis describes an ls20 phenomenon.
+
+    R_goal-carrying slots     ls20 5 · vc33 3 · tn36 1
+    BOTH-way slots            ls20 13 · vc33 4 · tn36 2
+    never-moving slots        ls20 150/176 · vc33 90/96 · tn36 707/712
+
+### and ls20 is the outlier on the quantity the session was built around
+
+**ls20 is the only board reading EXACTLY zero on arity-2, across the largest sample (1042).** The
+other two are non-zero and tn36 is nearly 8%. **I chose ls20 because it was first in the list, not
+because it was representative** — and it turns out to be the extreme case on the measure the whole
+investigation rests on, and the only one that reaches the gate the investigation ended at.
+
+> **THIS IS THE PANEL-SELECTION FAULT THE CORPUS NAMES, COMMITTED BY DEFAULT RATHER THAN BY
+> CHOICE.** *Read the things that produce conditions before the things that produce results.* I
+> never asked which board to work on; ls20 was the default argument in `arc_holdout.play` and every
+> deep run inherited it.
+
+### what survives
+
+**The arity-1 / arity-2 asymmetry**, on all three boards and at every depth — 67-88% against
+0-7.9%. That is the finding, and it is now stated with its spread rather than as a zero.
+
+**What does NOT survive is any claim that the gate-3 story is general.** It is one board's, and the
+other two stop earlier for a reason nothing tonight examined: gate 1 never opening, with 1-3
+objective-carrying slots against ls20's 5.
+
+    MECHANISM   unchanged, nothing built
+    CAPABILITY  unchanged. The session's scope is now bounded: one board deeply, two shallowly,
+                and the deep one is atypical on the measure that drove the work
