@@ -33854,3 +33854,55 @@ the universal type. **Every one is a population read through one channel when it
     CAPABILITY  unchanged. What moves is the wire's cost estimate: typing heavy scalars EXTENT
                 gives them 14 consumers on arrival rather than none, so the gate is
                 `ATTRIBUTE_TYPE`'s 8 entries and not a missing consumer class
+
+---
+
+## `F129` — the in-type filter is CORRECT AND INSUFFICIENT, and what limits it is vocabulary
+
+**Arm B measured on three boards, 12 cycles each, against arm A on the same build** (`TETHER_TYPED_BIND`, default off, so the two arms differ by one condition).
+
+    ls20   qualified 0 -> 5     slots unchanged                      IMPROVED
+    vc33   qualified 0 -> 0     slots unchanged                      NEUTRAL
+    tn36   qualified 0 -> 0     o88.col LOSES its objective          COST
+
+### where it works, it works for a stateable reason
+
+    ls20  o20.w   arm A  `none`                  0/20, pinned at 1.0
+                  arm B  `above . none<o16.w>`   0.45 0.35 0.30 0.25 0.15, sat 11 -> 17 of 20
+
+**The filter did not remove `none`; it forced it into its correct position** — `above` as head
+(accepts EXTENT via `also_accepts`), `none` as tail receiving the `PRED` it is typed for. **A
+monotone shrink, the first in any reading this session**, and gate-1 refusals go 8/8 to 6/11 with
+five attempts reaching gate 3 for the first time.
+
+### where it costs, it costs for the same stateable reason
+
+    tn36  o88.col arm A  `none` x10                              1/88 satisfied
+                  arm B  `no_change` x9 + `translate.translate.translate<o31.row>` x2
+
+**`no_change` is not `OBJ`-typed, so `goal_residual` returns `None` and the slot leaves `_res`.**
+The filter correctly refuses `none`-on-POSITION and **the library has no type-correct objective to
+put there**, so the slot falls back to the persistence default.
+
+### and the intervention is NARROW, which is the reassurance worth recording
+
+    ls20 top bindings   arm A  no_change 1885, recolour<o7.colour> 23, recolour<o0.colour> 14
+                        arm B  no_change 1887, recolour<o7.colour> 23, recolour<o0.colour> 14
+
+**Essentially identical.** 424 of 7572 bets were mismatched and the filter touches those; it is not
+a broad disturbance of what the agent bets.
+
+### THE TWO THREADS MEET HERE
+
+**What limits the filter is not the filter. It is that the library sometimes holds no type-correct
+objective for a slot** — and that is a VOCABULARY question, which is what the 2700 wire supplies.
+A wider typed vocabulary is what turns tn36's fallback into ls20's replacement.
+
+> **SO THE FILTER SHOULD NOT SHIP BEFORE THE VOCABULARY.** On its own it trades an unsatisfiable
+> objective for no objective, which is an improvement in honesty and not in capability. Shipped
+> after, it is the thing that makes a wider vocabulary reach the goal channel instead of widening
+> the population of type errors.
+
+    MECHANISM   the filter is built, switched, and measured on three boards
+    CAPABILITY  ls20 gate 1 opens for the first time and the break moves one link to
+                action-coverage. NO ROUTINE ADOPTED on any board. Default stays OFF
