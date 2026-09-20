@@ -36809,3 +36809,65 @@ roughly ±2 at this depth, which no reading tonight has stated.
     MECHANISM   nothing built. My own defended claim decomposed; the denominator corrected
                 from chunk instances to distinct effects; run variance measured at +/-2
     CAPABILITY  ONE effect signature of 120 on dc22, hit 9/10 times it occurs, null zero
+
+## F182 (INDEX series) — 94% OF EFFECT SIGNATURES ARE GAME-LOCAL, AND THE AGENT LEARNED A 2-BOARD ONE FROM THE RIGHT FAMILY
+
+**Isaiah, asked whether the chunking plan was finished, and then named its purpose: *the shuffle is
+so the agent would not transform and learn and unlearn stuff, or associate a recipe with one game.*
+§14.5 states the same rationale — *sequential training would DEFORM the shapes: defeasible demotion
+means a later game can actively un-settle an earlier game's composition.* This measures what the
+shuffle is FOR.**
+
+All 25 answer keys are now cached, so the cross-board question is finally cheap:
+
+    distinct non-trivial signatures across 25 boards     1,468
+      on 1 board only                                    1,374   (94%)
+      on 2 boards                                           65
+      on 3 boards                                           18
+      on 4 boards                                            7
+      on 5 boards                                            2
+      on 7 boards                                            2
+                                     THE ENTIRE CROSS-BOARD SET IS ~94 OF 1,468 -- SIX PERCENT
+
+**THE INVARIANTS, such as they are:**
+
+    7 boards   {moved 4, resized 2}
+    7 boards   {moved 3, resized 2}
+    5 boards   {moved 3, resized 4}        5 boards  {moved 4, resized 3, recoloured 2, appeared 1}
+    4 boards   {moved 4, resized 4}        4 boards  {moved 4, resized 3}
+
+### and the agent's one learned pattern sits in that family at the wrong tier
+
+`F181`'s matched signature is **`{moved 2, resized 2}` — the same MOVED+RESIZED family as every top
+invariant, and it appears on 2 boards.** So the agent did not learn something alien; **it learned a
+member of the dominant family at the 2-board tier instead of the 7-board one.**
+
+> **THAT IS THE SYMPTOM OF THE MISSING SHUFFLE, STATED AS A MEASUREMENT.** §14.5's Phase 1 exists so
+> *"only the shapes that recur EVERYWHERE pay off; the shared compositions settle hard as invariants
+> before any game applies pressure."* **The agent has one shape and it recurs on 2 of 25.** Trained
+> against a shuffle it would have had four more-recurrent shapes competing for the same slot.
+
+### what is and is not built, answering the question as asked
+
+    §14.4 rederive all 25 into answer keys      DONE -- and cached tonight, as a side effect
+    §14.4 chunkify with OFFSET augmentation     NEVER RUN. `chunk_replay(steps, size, offset)`,
+                                                `analyse(path, offset)` and `answer_key(path,
+                                                offset)` all take it; NO caller ever passes a
+                                                non-zero value and no artifact exists
+    §14.5 shuffle -> anneal -> noise floor      NOT BUILT -- and it is the SAME ITEM as the
+                                                reviewer's status #1, since §14.5 says "the
+                                                spacing dial IS this annealing"
+
+### the caveat that applies to every reading tonight, and it is Isaiah's question's doing
+
+**Every measurement this session was taken at OFFSET = 0 — one arbitrary cut of every replay.** A
+chunk's signature is DEFINED by where the cut falls, and offset augmentation exists precisely
+because the cut is arbitrary. **So `1 of 120`, `94% game-local`, and the invariant table above are
+all statements about ONE CUTTING of the 25, not about the 25.** Nothing tonight carried that
+boundary until now.
+
+    MECHANISM   nothing built. The cross-board signature census -- the quantity the shuffle
+                curriculum is supposed to move -- measured for the first time
+    CAPABILITY  none. But the curriculum now has a TARGET SET (the ~94 cross-board signatures,
+                11 of them on 4+ boards) rather than a description, and the agent's one
+                learned pattern is located in it: right family, 2-board tier
