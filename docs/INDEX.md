@@ -35875,3 +35875,53 @@ into Γ atoms, and a selection that is about relevance rather than encoding.
                 purpose rather than failure
     CAPABILITY  none -- but "load the library" stops meaning "import a module" and starts
                 meaning "build the loader over a rewrite the corpus already did"
+
+## F165 — THE OBSERVER READ, ANSWERED: IT ALREADY COMPUTES EIGHT NON-POSITIONAL CROSS-FRAME DELTAS, AND AGGREGATES THEM AWAY BEFORE ANYTHING COULD CARRY THEM
+
+**The reviewer's reframe was better than my question.** I asked whether Γ's `DELTA` *means* the
+library's `TEMPORAL`. They asked the empirical one underneath: **does the observer already emit
+cross-frame differences for non-positional attributes?** One read settles it.
+
+**IT DOES.** `sensors_heavy.temporal(before, after)` — *"TEMPORAL/EVENT: how one matched object's
+heavy attributes moved frame->frame — 867 atoms"* — returns nine, eight of them non-positional:
+
+    dArea  dCells  dDensity  dHoles  dPerimeter  dGirth  dSolid  dOrientation  | velocity
+
+Its own docstring states the intent: *"the frozen 6's deltas are `_match`'s already; these are the
+HEAVY ones, so a directed cue can fire on a density/holes/solidity change, not only on
+position/extent/shape/colour."* **And it is called — `observer.py:89`, every persisting object,
+every frame.** The perception exists and runs.
+
+### and here is the part the yes/no would have missed
+
+    observer.py:90-92     for dk, attr in _HEAVY_MUT.items():
+                              if heavy.get(dk):
+                                  changed[attr] = changed.get(attr, 0) + 1
+
+**The per-object DELTA VALUE is computed and immediately reduced to a per-attribute COUNT.** The cue
+vector carries *"density changed on 3 objects"*; it does not carry *"o5's density fell by 0.2"*.
+
+> **SO THE REVIEWER'S FIX — *add the slots the observer is already filling* — IS RIGHT IN DIRECTION
+> AND OFF BY ONE LAYER.** The observer fills COUNTS. **The per-object values exist one layer down,
+> in `temporal()`'s return, and are discarded at the summing line.** A slot cannot be filled from a
+> count; it needs the value, and the value is thrown away three lines after it is computed.
+>
+> **Which makes this cheaper than a perception change, not dearer: nothing has to be sensed that is
+> not already sensed. A return value has to stop being aggregated.**
+
+**So the 56 do not need the `DELTA`/`TEMPORAL` identification, and they do not need new perception
+either.** They need `temporal()`'s eight non-positional deltas carried per object rather than
+counted. **The encoding is genuinely present, exactly as the reviewer predicted — it is present one
+level below where either of us looked.**
+
+### the standing warning this belongs to
+
+867 atoms' worth of perception, computed every frame on every changed object since the sensor was
+written, **and summed to a tally before anything could bind it.** That is built-but-never-wired in
+its quietest form yet: **not an unimported module and not an absent parameter, but a VALUE
+COMPUTED AND DISCARDED IN THE SAME FUNCTION.** No import graph shows it and no lint can see it.
+
+    MECHANISM   nothing built. The reviewer's empirical question answered YES with the layer
+                located, and their proposed fix corrected by one level
+    CAPABILITY  none -- but the 56 stop being a semantic question or a perception build and
+                become "stop aggregating a value that is already computed"
