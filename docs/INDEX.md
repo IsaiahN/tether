@@ -37400,3 +37400,58 @@ whichever game was last on screen.** `setdefault` holds it: *the prefix is BIRTH
                 with mints -- that is still owed and costs CPU the sweep is using
     MECHANISM   none changed; a shipped claim moved from asserted to checked
     CAPABILITY  none. It protects a reading the pooled run has not yet produced
+
+## F193 (INDEX series) — SPACING SWEEP RUNG 2: the carry prediction lands exactly, the probe does not move, and my cost discriminator was wrong in a way neither branch allowed
+
+    rung  spacing  minted  settled  promotions  carried_in  PROBE        mins
+     1      1        53      16        16           0       9/150 6.0%   42.8
+     2      2        43      10         7           4       9/150 6.0%   63.7
+
+### the prediction that held
+
+**`carried_in = 4`, exactly as pre-registered in `d92c7ea` before the row existed.** `F190`'s
+account of the carry is confirmed on a live rung: what crosses a rung boundary is **distinct
+compositions**, and the 101-term library of rung 1 handed rung 2 four terms. **The ladder's
+accumulation limit is measured now, not argued** — and the consequence stands: four rungs end near
+`48 + 16–24`.
+
+### the prediction that did not, and both branches were wrong
+
+I wrote: *similar `minted` + slower ⇒ the starting-library effect; substantially more `minted` ⇒
+the ordering changed the surprise rate.* **The row is FEWER mints and 49% SLOWER. Neither branch
+allowed that.**
+
+**What survives is that COST TRACKS THE LIBRARY-SIZE INTEGRAL OVER THE RUN, NOT THE MINT COUNT.**
+Rung 2 ran `52 → 95` where rung 1 ran `48 → 101`; it started four terms higher and **stayed higher
+for most of its cycles**, and `F185` measured cost as convex in library size. **A cheaper-minting
+rung can cost more, which is not obvious and is now recorded.**
+
+**The discriminator was posed over the wrong variable** — mints, which is what I had been watching
+— when the cost curve had already been measured against library SIZE. `F185` was four hours old.
+
+### the probe has not moved, twice
+
+**`9/150 = 6.0%` at both rungs, which is the established `dc22` baseline to the digit.** Two points,
+both exactly at baseline, with real internal activity behind each.
+
+### and a trend worth naming at two points, with BOTH readings kept
+
+**Every internal quantity FALLS as coherence rises:** mints `53 → 43`, settled `16 → 10`,
+promotions `16 → 7`. Two competing accounts and **I am not picking between them on two points**:
+
+- **MECHANICAL** — a more coherent tape is more PREDICTABLE frame to frame, since consecutive
+  frames are adjacent in the human's solve. Fewer prediction errors, so fewer mints. This says
+  nothing about reasoning.
+- **SUBSTANTIVE** — the coherent end is the WIDE end, the one Isaiah says applies the pressure that
+  *forces it to FIND the path rather than follow it.* On that reading the agent is doing LESS where
+  more is demanded, which would be the failure the sweep exists to detect.
+
+**The two are separable and the instrument is already wired:** the mechanical account predicts the
+fall is in PREDICTION ERRORS, the substantive one predicts it is in what the agent does with them.
+`4fac076` routes a per-rung ledger — **not for this sweep, which was already in flight, but the
+pooled run will carry it.**
+
+    BOUNDARY    2 of 4 rungs, one board, one 8-chunk window, offset 0, single seed, one run
+                per rung. dc22 counts carry +/-2 -- but both probes are EXACT baseline matches
+    MECHANISM   the ladder runs, the rungs are comparable, and the carry behaves as predicted
+    CAPABILITY  none at either rung
