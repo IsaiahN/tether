@@ -34566,3 +34566,32 @@ they are different populations.** The exit row reads the quantity the gate reads
     MECHANISM   `split_refused` published at three exits; gate 3's cause now readable per event
     CAPABILITY  unchanged, and the blocker is reclassified: a correct abstention, not a fault.
                 Still no routine adopted on any board
+
+### `F141` continued — one of the two resolutions is already refused, so the fork is single-branch
+
+**`F141` left gate 3 with two possible resolutions: MORE GOALS so votes can differ, or a FINER
+VOTE so degree separates actions that all pass. One grep removes the first.**
+
+`_goal_split` reads `for s in [chosen]:` — a one-element list, and the comment above it says why:
+
+> *…which is **pursue whichever objective happened to bind** — and it MEASURABLY CHOSE TO STAND
+> STILL, because `none_same` on a delta is satisfied by not moving. **One selected hypothesis,
+> chosen on a shrinking discrepancy, is what §13.4 asks for.***
+
+**So multi-goal was TRIED, measurably misbehaved, and was replaced on §13.4's authority.** It is
+not an untried option; it is a reverted one. The single-element list is the shape of a deliberate
+narrowing rather than a vestige.
+
+> **THEREFORE THE ONLY RESOLUTION CONSISTENT WITH THE CORPUS IS A FINER VOTE.** With one goal
+> fixed by §13.4 and the vote binary per action per goal, the tie is structural — so what has to
+> change is the vote's GRANULARITY, not the number of goals it ranges over.
+
+**And that narrowing is the corpus's, not mine.** I escalated a two-branch design question and one
+branch was already closed in the record, with a measurement behind it. **Eighth time tonight the
+record held an answer I was about to ask for** — and the cheapest one yet, at a single grep of the
+site I had already read twice.
+
+    MECHANISM   unchanged, nothing built
+    CAPABILITY  unchanged. The escalated question is now single-branch: a finer vote, or nothing.
+                What "finer" means is still not the seat's to pick -- degree of movement, margin,
+                or confidence are three different quantities and the corpus may already price one
