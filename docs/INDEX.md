@@ -34925,3 +34925,75 @@ change.
     MECHANISM   unchanged, nothing built
     CAPABILITY  unchanged. Q11 confirmed on vc33, extended by a third failure mode on tn36, and
                 the no-fix ruling strengthened rather than challenged
+
+## F149 — FIGURE 9 ANSWERS BOTH OF TONIGHT'S OPEN ITEMS, AND `INDEX:24208` HAD ALREADY READ IT
+
+**The reviewer disclosed (2026-09-20) that they had made four rulings today by reasoning past a
+figure sitting on disk, one of them *"Figure 9's filter-versus-verdict line, which forbade advice I
+had already given you."*** They did not say which advice. Rather than wait, the census ran:
+`filter` and `verdict`, word-bounded, across all fifteen — **Figure 9 is the only figure carrying
+both**, which confirms the pointer.
+
+> **"Use filters for the budget and witnesses for the verdict. Never let a filter hand you a
+> verdict."**
+
+### IT REFUTES THE QUESTION I PUT TO THE REVIEWER TWENTY MINUTES EARLIER
+
+I posted a BLOCKER asking whether `ISOLATED` should grow a transitive pass keyed on the betting
+path. **That question is malformed and Figure 9 says why: A LINT RULE OVER THE IMPORT GRAPH IS A
+FILTER.** I spent the tick trying to make it yield the verdict *is this module reachable by the
+agent*, and the measurement had already produced the figure's own failure case:
+
+    root definition                  modules  unreached  what went wrong
+    hand-listed entry points (8)     81       44         noise -- 25 are environment_files/*
+                                                         loaded dynamically
+    a `__main__` guard = an entry    56        1         `mapping.py` HAS one, so it is a root,
+                                                         so `closure_map.py` reads REACHED while
+                                                         the agent cannot touch it
+
+**The second is a filter handing a verdict, and the verdict was false.** A dead module
+self-certifies and launders everything downstream of it.
+
+> **SO THERE IS NO ROOT SET TO CHOOSE, AND THAT IS WHY BOTH CANDIDATES FAILED. The static graph is
+> legitimate for the BUDGET — which modules are worth inspecting. The verdict *the agent reaches
+> this* needs a WITNESS: a run in which it actually does.** The problem dissolves rather than
+> resolving, and question (b) of the blocker is withdrawn by me rather than ruled by the reviewer.
+
+**NOT BUILT, DELIBERATELY.** A runtime witness is an INSTRUMENT, it changes no contact, and the
+streak sits at 4 off-agent. *The answer to too many instruments is never one more instrument.* It
+is recorded as the named next instrument, to be built when it serves the wire rather than instead
+of it.
+
+### HIT 3 OF `INDEX:24208` IS `F148`, AND THAT ENTRY IS NINE DAYS OLD
+
+The trigger fired before the explanation and found the line already read, by a prior seat, on
+2026-09-09:
+
+> **"Disagreements that do not shrink with effort, where each rule keeps working well on a
+> different subset, are not one hard question but several well-formed ones. Split it rather than
+> search."**
+
+**`F148` reported three boards failing gate 1 three different ways and read it as a dead end** —
+*any fix aimed at one cause misses two.* **Figure 9 says that reading is correct and names the move
+I did not make: the three are several well-formed questions, and the next step is to split further,
+never to search for a single cause.** The prior seat applied this with TWO subsets (`sp80` empty
+`_res`, `ka59` populated); tonight's three are separated by MECHANISM — `ls20` opens, `vc33`
+`too_short`, `tn36` full-window and 100% flat — **so the split Figure 9 asked for is already done
+and was never named as such.**
+
+### HIT 2 IS THE DIRECTION, AND IT IS NOT MINE
+
+> **"The threshold is not the lever. THE DESCRIPTION OF THE RESIDUAL IS."**
+
+Recorded by the prior seat, cited here rather than re-derived. It bears on `tn36` directly: 39 of
+39 full-window series are flat, and `INDEX:21824`'s refusal to move `MIN_REPEAT` already forbids
+the threshold half. **What is NOT established, and is filed as a direction rather than a finding:
+whether a residual describable only in arity-1 terms is what makes those series flat.** The arity
+measurement (0–7.9% of arity-2 gaps met) and the flatness measurement are both real; **the link
+between them is inferred and unmeasured, and stating it as a finding would be the satisfying causal
+story this file warns is harder to doubt than a bare null.**
+
+    MECHANISM   nothing built. One published question withdrawn on a corpus reading; one
+                closed-looking finding reopened as a split
+    CAPABILITY  none. The tiebreaker did what a tiebreaker is for -- it turned a blocked
+                question into a direction without deciding anything
