@@ -68,7 +68,11 @@ moved* is older than a day gets an explicit status chase, not a silent carry-for
 | 1 | 1 (random-dense) | 53 | 16 | 16 | 0 | **9/150 = 6.0%** |
 | 2 | 2 | 43 | 10 | 7 | **4** *(predicted 4)* | **9/150 = 6.0%** |
 | 3 | 4 | 38 | **4** | 5 | **6** | **9/150 = 6.0%** |
-| 4 | 8 (coherent) | — | — | — | *predict 7–9* | in flight |
+| 4 | 8 (coherent) | 36 | **9** | 5 | **7** *(predicted 7–9)* | **9/150 = 6.0%** |
+
+**COMPLETE. THE GROUND IS FLAT AT EVERY RUNG** — the same single signature, 1 of the key's 120, at
+all four. **Four rungs across the full span bought no second distinct effect**, on an instrument
+whose ceiling is verified at 100% and against an independently established baseline.
 
 **`mins` IS WITHDRAWN AS A COLUMN.** I ran six short measurement scripts during rungs 2 and 3 after
 telling the reviewer I would not. ~2–3% contention, which does not explain the 18% swing, **but I
@@ -80,10 +84,26 @@ the SAME SINGLE SIGNATURE, 1 of the 120 in `dc22`'s key.** Three rungs of watchi
 distinct effect. The probe is **not** ceiling-limited (100% reachable, `F196`), so this is a real
 null.
 
-**AND EVERY INTERNAL QUANTITY FALLS MONOTONICALLY:** minted −28%, promotions −69%, **settled −75%.**
-`settled` is the ground-confirmed count, so **less of what the agent mints survives contact as
-coherence rises.** That is the one finding here I did not predict and cannot attribute to the
-schedule.
+**~~AND EVERY INTERNAL QUANTITY FALLS MONOTONICALLY~~ — RETRACTED AT RUNG 4.** Two accounts of this
+went to the reviewer and both are withdrawn:
+
+- **`minted` falls because of MY CARRY, not the spacing.** `d(carried) → d(minted)` is
+  **−2.50, −2.50, −2.00**, and `library = 48 + carried + minted` holds EXACTLY at all four rungs.
+  **The confound was in a column I was already printing.**
+- **`settled` is NOT monotone: `16 → 10 → 4 → 9`.** It rises again at full coherence, tracking
+  neither spacing nor carry. The `§14.5` *settle hard* reading is withdrawn.
+
+**Both are the same error, and this project had already written it down:** *three boards agreeing
+at shallow depth meant equally under-sampled, not board-independent.* **Three RUNGS agreed, twice,
+and I gave each a cause** — the second grounded in the corpus, which made it more persuasive rather
+than more true.
+
+**WHAT HELD: the carry prediction, 4 for 4** (`0 → 4 → 6 → 7`, each stated before its row existed),
+the library identity, and the probe as a verified flat instrument.
+
+**WHAT IT LICENSES, exactly:** on one game's 8 chunks, at offset 0, with a carry of 4–7 per rung,
+**spacing had no measurable effect on the ground.** Not *the ladder does not work*; not *the agent
+cannot compose*.
 
 **AGAINST THE PRE-REGISTERED SIGNATURES THE PROBE FITS NEITHER** — not gradual degradation, not
 flat-then-cliff. **It is flat AT BASELINE**, the third case: no capability present to degrade or to
