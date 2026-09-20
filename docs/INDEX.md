@@ -33961,3 +33961,51 @@ is the next measurement and it is cheap.
                 `pull`/`reach_failed`. No code added -- the rows were already there
     CAPABILITY  unchanged. What moves is WHICH vocabulary the wire should carry, from the 13
                 arity-1 scalars to the 10 arity-2 relations, on a measured split
+
+---
+
+## `F131` — arm C refuted: the relational channel was unwired, wiring it changes nothing, and that LOCATES the wall as supply
+
+**`F130` left one question: would relational vocabulary meet the 199 unmet arity-2 gaps.** Arm C
+answers a narrower one first and comes back negative, usefully.
+
+### the omission was real and is now measured
+
+`retrieval.characterise` takes a `relations` channel whose own comment names this break — *a
+relation is between two objects and `slot_types` can name neither the pair nor its type, WHICH IS
+THE BREAK* — and `arc_world.contact_changes` was built to feed it, saying so in its docstring.
+
+**Two call sites in `tether.py` supply it. `_library_fit`'s — the retrieval that actually binds —
+did not**, so `rel_types` was always `()` there and `fits()`'s `relational` term was always 0.
+Built for the break, and absent at the break. One line, with two siblings doing it correctly.
+
+### supplying it changes nothing, on two boards
+
+    ls20   arm A  arity1 7/7   arity2 0/127   qualified 0/10
+           arm C  arity1 7/7   arity2 0/107   qualified 0/9
+    vc33   arm A  arity1 3/4   arity2 0/51    qualified 0/9
+           arm C  arity1 3/4   arity2 0/51    qualified 0/9
+
+### and the reason is countable, so the null is located rather than bare
+
+    reach rows carrying a non-empty `rel_types`   110 of 134   -- the channel WORKS
+    atoms declaring `touching` in `reads_ctx`       2 of 48    -- `touching`, `touching_n`
+
+`fits()` grants the relational bonus only to a term that declares `touching` in `reads_ctx`.
+**So the channel now delivers relational information to a ranking function that can apply it to
+two atoms out of forty-eight.**
+
+> **THE WALL IS SUPPLY, NOT RANKING.** The retrieval side is correct and ready; there is
+> essentially nothing to rank. `relations.py` computes ELEVEN arity-2 relations every frame and
+> one is in Γ. **That is the thing to change, and `F130`'s open question is now half-answered:
+> the ranking machinery will not waste the vocabulary when it arrives.**
+
+### why arm C stays OFF despite being a correctness fix
+
+It restores parity with two sibling sites and costs nothing measured. **It is held off so that
+when relational atoms are admitted, the improvement can be attributed** — turning both on at once
+would make the atoms and the ranking indistinguishable. Arm C becomes the second arm of that
+experiment, not a silent precondition of it.
+
+    MECHANISM   arm C built, default off; the omission located and the channel proven live
+    CAPABILITY  unchanged, and the null is the finding: ranking was never the constraint

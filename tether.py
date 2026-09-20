@@ -52,6 +52,9 @@ BINDABLE = ("val", OBJ_TYPE)
 
 # F127's arm B. Seat-side and off unless asked for, so the default build is byte-identical.
 _TYPED_BIND = bool(os.environ.get("TETHER_TYPED_BIND"))
+# F130 arm C: supply `_library_fit`'s retrieval the relation channel its two
+# sibling call sites already pass. Seat-side, off by default.
+_REL_GAP = bool(os.environ.get("TETHER_REL_GAP"))
 
 
 def _head_accepts(cand: Any, slot_type: str | None) -> bool:
@@ -1202,7 +1205,19 @@ class Agent:
         hist = self.history(slot)
         if not hist:
             return None
-        gap = retrieval.characterise(hist, slot, list(self.alphabet), self.slot_types)
+        # F130 ARM C, SEAT-SIDE SWITCH, DEFAULT OFF. `characterise` takes a `relations` channel
+        # built for exactly this break -- its own comment: *a relation is between two objects and
+        # `slot_types` can name neither the pair nor its type, WHICH IS THE BREAK*. Two sibling
+        # sites supply it with this same idiom; THIS one, the retrieval that actually binds, does
+        # not, so `rel_types` is always empty here and `fits()`'s `relational` term is always 0.
+        # Measured: arity-2 gaps are met 0-4.5% on three boards against 75-100% for arity-1.
+        #
+        # NOT ON BY DEFAULT: `retrieve` returns every name ordered by fit, so this is a RANKING
+        # change, not an exclusion, and whether ranking is what the wall is made of is unmeasured.
+        # The supply side may simply be thin -- 7 arity-2 atoms of 48.
+        _rel = getattr(self.env, "contact_changes", None) if _REL_GAP else None
+        gap = retrieval.characterise(hist, slot, list(self.alphabet), self.slot_types,
+                                     relations=_rel() if _rel else None)
         # THE GAP IS CITED BEFORE THE PULL, AND THE ROW IS WHAT PROVES IT. §15.3: *a retrieval
         # requires a characterised residual, so it is a derivation step: it cites the gap, it
         # lands in the ledger, and the gate can check that the citation preceded the pull.*
