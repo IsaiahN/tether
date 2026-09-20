@@ -1,0 +1,225 @@
+"""The chunk-sequence feeder and the spacing sweep: the agent watches a human replay, in an
+order the seat chooses.
+
+SEAT-SIDE. The agent does not import this, exactly as it does not import `arc_holdout`.
+
+WHY IT EXISTS. F183 traced both of the reviewer's unbuilt items to ONE absent artifact. The
+spacing sweep needs a spacing parameter on a curriculum builder and there was no curriculum
+builder; the pretraining run IS this thing being run, and the version that produced §14's numbers
+was never committed. TRAINING_PLAN §14.4 wants all 25 chunkified WITH OFFSET AUGMENTATION and
+§14.5 wants them shuffled then annealed -- neither is expressible without something that puts
+chunks in an order and plays them.
+
+THE DESIGN IS A TAPE BEHIND THE EXISTING WORLD, NOT A SECOND WORLD. `ArcWorld` already takes a
+`wrapper` it calls `reset()`/`step()` on, so a tape that yields replay frames substitutes for the
+live game and EVERY perception path stays identical -- same segmentation, same slots, same atoms.
+A parallel env would have been a second implementation of the thing under test.
+
+AND THE AGENT DOES NOT ACT HERE, WHICH IS THE POINT. `step()` advances the tape whatever action is
+passed, so the agent predicts, is wrong, and mints against a trajectory it did not choose. That is
+§13's *pretending to be the agent* from the other side: it EARNS the composition from watching,
+and nothing is installed.
+
+SPACING IS THE ONE DIAL, AND IT IS THE REVIEWER'S PRE-REGISTERED LADDER 1/2/4/8/16. Chunks are
+shuffled IN BLOCKS OF `spacing`, so s=1 is random-dense -- no game or temporal structure survives
+and only shapes that recur everywhere can pay off -- and a large s is coherent-wider. That is
+§14.5's annealing in a single parameter, in the plan's own words: *the spacing dial IS this
+annealing*. EVERY RUNG SEES THE IDENTICAL FRAME SET and only the order differs, which is what
+makes a difference across rungs readable as ordering rather than as content.
+
+THE WITNESS IS THE TRANSFER CLIFF, NEVER THE RISE -- pre-registered 09-18, failure signature named
+in advance: a real capability degrades GRADUALLY as spacing widens; a marker-follower holds flat
+then drops off a CLIFF at roughly its trained spacing. THE CURVE IS THE FINDING, NOT THE
+ENDPOINTS. So the library carries across rungs, the ramp only goes upward, and the per-rung
+library state is logged so a later rise is interpretable rather than confounded.
+
+THE LIBRARY SWITCH IS §17.8's AND WAS ALREADY BUILT -- `arc_holdout.play(library=...)`, load
+before and save after. Carrying Γ across rungs needed no new mechanism, only the existing one
+pointed at a rung loop.
+
+KEY_BOUNDARY: the tape carries FRAMES, which are what the world showed. It never reads the answer
+key's compositions or effects -- `rlvr` does that, afterwards, to score. Watching a human play is
+not being told the answer; being handed the derivation would be.
+"""
+
+from __future__ import annotations
+
+import json
+import random
+import shutil
+import sys
+import tempfile
+from pathlib import Path
+from typing import Any
+
+import arc_atoms
+import arc_holdout
+import arc_percept
+import arc_predict
+import gamma
+import ledger
+import reverse_engineer
+import rlvr
+import tether
+from arc_world import ArcWorld
+
+sys.dont_write_bytecode = True
+
+# anchor: ARBITRARY BY REQUIREMENT, AND THAT IS THE ANCHOR -- the seed's only job is to make the
+# curriculum a condition someone else can restate, so any fixed value serves and no value is
+# better than another. Declared once and never searched: a seed picked by trying several is a
+# fitted constant wearing a seed's clothes. THE FALSIFIER: if a rung's reading moves when this
+# changes, the reading was seed noise and the sweep owes a result across seeds, not one seed.
+SHUFFLE_SEED = 1618
+
+
+class _Frame:
+    """What `ArcWorld` reads off a frame. Replay steps carry the same fields under other names."""
+
+    def __init__(self, step: dict) -> None:
+        self.frame = [step["grid"]]
+        self.available_actions = step.get("avail") or ()
+        self.levels_completed = step.get("level", 0)
+        self.win_levels = 0
+
+    def is_empty(self) -> bool:
+        return not self.frame or not self.frame[0]
+
+
+class ReplayTape:
+    """A `wrapper` that plays recorded frames instead of stepping a game."""
+
+    def __init__(self, steps: list[dict], order: list[int]) -> None:
+        self._steps = steps
+        self._order = order
+        self._i = 0
+
+    def reset(self) -> _Frame:
+        self._i = 0
+        return _Frame(self._steps[self._order[0]])
+
+    def step(self, _action: Any = None, **_data: Any) -> _Frame:
+        # the action is IGNORED and that is deliberate -- see the module docstring. `data=` is
+        # the positioned click's coordinate; a tape has none to honour, the human's own is
+        # already in the recorded frame.
+        self._i = min(self._i + 1, len(self._order) - 1)
+        return _Frame(self._steps[self._order[self._i]])
+
+
+def chunk_order(game: str, offset: int = 0, spacing: int = 1, skip: int = 0,
+                take: int | None = None,
+                seed: int = SHUFFLE_SEED) -> tuple[list[dict], list[int], int]:
+    """The frame sequence for one game, cut at `offset` and coherent in blocks of `spacing`.
+
+    Shuffled BY CHUNK, never by frame: a shuffled frame sequence would destroy the within-chunk
+    transitions that ARE the thing being learned. `spacing >= len(chunks)` is one block, which is
+    the human's own order -- so full coherence is a rung on the same dial, not a separate mode.
+
+    `skip`/`take` cut a window of CONTIGUOUS chunks, and contiguity is not a convenience: a
+    strided sample would leave neighbouring chunks non-adjacent in the human's trajectory, so a
+    wide-spacing rung would no longer be coherent and the dial would stop meaning what it says.
+    The window is the same for every rung, which is what keeps the frame set identical across
+    the ladder. Its cost is a declared boundary -- one cut of one game -- and `offset` is the
+    existing answer to that, never a claim that the window is representative.
+    """
+    if spacing < 1:
+        raise ValueError(f"spacing is a block length and must be >= 1, not {spacing}")
+    steps = reverse_engineer.load_replay(f"replays/{game}_human.ndjson")
+    chunks = reverse_engineer.chunk_replay(steps, offset=offset)
+    chunks = chunks[skip:] if take is None else chunks[skip:skip + take]
+    blocks = [chunks[i:i + spacing] for i in range(0, len(chunks), spacing)]
+    random.Random(seed).shuffle(blocks)
+    return steps, [i for b in blocks for c in b for i in c["idx"]], len(chunks)
+
+
+def watch(game: str = "dc22", cycles: int | None = None, offset: int = 0, spacing: int = 1,
+          skip: int = 0, take: int | None = None,
+          library: str | None = None, led_path: str | None = None) -> dict:
+    """Run the agent over a replay tape. `cycles=None` walks the WHOLE tape exactly once.
+
+    The default is the whole tape because a prefix makes rungs incomparable: 20 cycles of a
+    coherent tape is the game's opening and 20 of a shuffled one is a random chunk mid-game --
+    a difference in CONTENT wearing a difference in ORDER's clothes.
+    """
+    steps, seq, n_chunks = chunk_order(game, offset=offset, spacing=spacing,
+                                       skip=skip, take=take)
+    tape = ReplayTape(steps, seq)
+    fr = tape.reset()
+    board = fr.frame[-1]
+    palette = int(max(int(v) for row in board for v in row)) + 1
+
+    env = ArcWorld(tape, arc_percept.Objects(),
+                   arc_atoms.three_spaces(arc_predict.predict()),
+                   palette=palette, name=game)
+    g = gamma.Gamma(env.atoms(), game=game)
+    base = len(g.library)
+    if library and Path(library).exists():
+        g.load(library)
+    carried = len(g.library)
+    ag = tether.Agent(env, g, tether.Config(), ledger.Ledger(led_path))
+    for _ in range(cycles if cycles is not None else len(seq)):
+        ag.step()
+    if library:
+        g.save(library)
+
+    return {"game": game, "offset": offset, "spacing": spacing,
+            "chunks": n_chunks, "blocks": -(-n_chunks // spacing),
+            "frames": len(seq), "cycles": cycles if cycles is not None else len(seq),
+            "atoms": base, "carried_in": carried - base,
+            "library": len(g.library), "minted": len(g.library) - carried,
+            "settled": len(g.settled_terms), "promotions": len(g.primitives)}
+
+
+def probe(game: str, library: str, cycles: int = 25) -> dict:
+    """Score a CARRIED library on a live board, with `rlvr`'s scorer and no new metric.
+
+    Against a COPY: `play` saves after the run, so probing the training path would fold probe
+    experience back into training and the next rung would inherit it.
+    """
+    tmp = f"{library}.probe"
+    shutil.copyfile(library, tmp)
+    seen: list = []
+
+    def tap(was, _action, now):
+        if not seen and was is not None:
+            seen.append(was)
+        if now is not None:
+            seen.append(now)
+
+    arc_holdout.play(game=game, cycles=cycles, library=tmp, on_frame=tap)
+    key = reverse_engineer.answer_key(f"replays/{game}_human.ndjson")
+    hit, tot, _ = rlvr._rate(seen, key)
+    Path(tmp).unlink(missing_ok=True)
+    return {"probe": game, "hit": hit, "of": tot,
+            "pct": round(100 * hit / tot, 1) if tot else 0.0}
+
+
+def sweep(game: str = "dc22", rungs=(1, 2, 4, 8, 16), cycles: int | None = None,
+          offset: int = 0, skip: int = 0, take: int | None = None,
+          on: str | None = None, store: str | None = None) -> dict:
+    """The spacing sweep. PRIORITY 0 -- Isaiah 2026-09-20; pre-registered by the reviewer 09-18.
+
+    RAMP UPWARD ONLY, so a regression is unambiguous. ONE library across every rung, because
+    gamma is the agent's only memory and wiping it between rungs is a different experiment
+    rather than a cleaner one.
+    """
+    path = store or str(Path(tempfile.gettempdir()) / f"sweep_{game}_{offset}.json")
+    Path(path).unlink(missing_ok=True)
+    rows = []
+    for s in sorted(rungs):
+        row = watch(game, cycles=cycles, offset=offset, spacing=s,
+                    skip=skip, take=take, library=path)
+        if on:
+            row.update(probe(on, path))
+        rows.append(row)
+    return {"sweep": game, "probe_on": on, "offset": offset,
+            "window": {"skip": skip, "take": take}, "rungs": sorted(rungs),
+            "carried": path, "rows": rows,
+            "reads": ("the witness is the SHAPE across rungs, not any endpoint: gradual "
+                      "degradation reads as capability, flat-then-cliff as a marker-follower")}
+
+
+if __name__ == "__main__":
+    g = sys.argv[1] if len(sys.argv) > 1 else "dc22"
+    n = int(sys.argv[2]) if len(sys.argv) > 2 else 0
+    print(json.dumps(sweep(g, cycles=n or None), indent=1))
