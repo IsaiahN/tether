@@ -58,6 +58,8 @@ _REL_GAP = bool(os.environ.get("TETHER_REL_GAP"))
 # F32 arm D: decide reuse by the ONE BARGAIN rather than by a zero remainder,
 # which Isaiah ruled out. Seat-side, off by default.
 _BARGAIN_FIT = bool(os.environ.get("TETHER_BARGAIN_FIT"))
+# F141 arm E: vote by the movement RATE rather than a majority flag. Seat-side, off.
+_FINE_VOTE = bool(os.environ.get("TETHER_FINE_VOTE"))
 
 
 def _head_accepts(cand: Any, slot_type: str | None) -> bool:
@@ -2330,7 +2332,7 @@ class Agent:
         chosen = self._goal_choice()
         if chosen is None:
             return None
-        votes: dict[str, int] = dict.fromkeys(self.actions, 0)
+        votes: dict[str, float] = dict.fromkeys(self.actions, 0.0)
         n_goals = 0
         for s in [chosen]:
             if s not in before:
@@ -2363,7 +2365,19 @@ class Agent:
                 if ordered:
                     step = 1 if wanted > before[s] else -1
                     moved = sum(1 for b, f in hist[a] if (f - b) * step > 0)
-                    if moved * 2 > len(hist[a]):
+                    if _FINE_VOTE:
+                        # F141 ARM E, SEAT-SIDE SWITCH, DEFAULT OFF. The binary vote is why gate 3
+                        # ties: with ONE goal (fixed by §13.4, and multi-goal is a REVERTED option
+                        # -- it measurably chose to stand still) any two actions that both clear
+                        # the majority bar score 1 and tie BY CONSTRUCTION. Measured `all_tied`
+                        # 9/9.
+                        #
+                        # THE SAME QUANTITY, UN-THRESHOLDED. `moved / len(hist[a])` is what the
+                        # majority test already computes; this stops rounding it to a flag. NO NEW
+                        # CONSTANT and nothing borrowed -- F32's confidence is a ruling about
+                        # ACCEPTANCE and transplanting it here would be F135's error again.
+                        votes[a] += moved / len(hist[a])
+                    elif moved * 2 > len(hist[a]):
                         votes[a] += 1         # this action MOSTLY moved it the wanted way
                 elif any(f == wanted for _, f in hist[a]):
                     votes[a] += 1             # unordered: it has produced that value

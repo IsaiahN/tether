@@ -34696,3 +34696,48 @@ current**, and only a per-mechanism capability reading distinguishes them.
 
     MECHANISM   already complete; the queue entry saying otherwise is corrected
     CAPABILITY  zero and structurally so. Nothing to build here until routines adopt
+
+---
+
+## `F144` — arm E refutes the finer vote too, and `F31`'s "nothing to be capable of" is now tested rather than asserted
+
+**`F141` left one corpus-consistent resolution for gate 3: a FINER VOTE, since multi-goal is a
+reverted option. Arm E implements it — the same quantity un-thresholded, `moved / len(hist[a])`
+instead of `moved * 2 > len(hist[a])`. No new constant, nothing borrowed.**
+
+    arm B (binary)   votes {ACTION1: 1,   ACTION2: 1,   ACTION3: 1,   ACTION4: 1}     all_tied
+    arm E (rate)     votes {ACTION1: 1.0, ACTION2: 1.0, ACTION3: 1.0, ACTION4: 1.0}   all_tied
+
+**STILL TIED, AND THE RATES ARE SATURATED.** Every action moves the slot the wanted way EVERY time
+it is tried — `moved == len(hist[a])` for all four. The binary test was not coarsening a real
+difference; **there is no difference to coarsen.**
+
+> **SO BOTH RESOLUTIONS ARE CLOSED.** More goals: reverted, §13.4, and it measurably chose to
+> stand still. A finer vote: implemented and inert. **Gate 3's abstention is not a voting problem
+> and cannot be fixed by changing how the agent chooses.**
+
+### and `F31` said so, which makes this a confirmation rather than a rediscovery
+
+> *From the Agent's Side: **On this slot there is nothing to be capable of. The agent has no
+> differential lever on it, so no improvement to the selector, the bargain or the shelf changes
+> what it responds to.***
+
+**`F31` asserted it; arm E is the test.** An improvement to the selector was built and changed
+nothing, which is the prediction meeting a measurement rather than a second derivation of it —
+the distinction `F142` was written to enforce, applied one tick later.
+
+**AND IT REVISES THE READING OF ARM B's VOTES.** `F141` reported `{1,1,1,1}` as *four actions
+clearing a majority bar*. They are not near the bar; **they are at the ceiling.** The binary
+encoding hid a saturation, which is the same shape as every other reading this session where a
+threshold stood in for a quantity.
+
+### what this leaves
+
+Gate 3 is a correct abstention on a slot where the evidence genuinely does not discriminate, and
+no change to the vote can alter that. **What WOULD change it is a slot where the actions differ —
+which is a HABITAT question, not a mechanism one**, and `F138`'s board-wide census (16 of 168
+slots discriminating on ls20, 0 of 96 on vc33, 0 of 712 on tn36) is where that would be read.
+
+    MECHANISM   arm E built, switched, default OFF, and it stays off -- it changes nothing
+    CAPABILITY  unchanged. The escalated gate-3 question is now CLOSED with both branches
+                measured, and the remaining question is about the board rather than the agent
