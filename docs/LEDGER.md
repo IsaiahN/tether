@@ -39,7 +39,7 @@ moved* is older than a day gets an explicit status chase, not a silent carry-for
 | item | opened | last moved | state |
 |---|---|---|---|
 | **`_library_fit`: absolute vs comparative** | 2026-09-20 early | not since | Neither test admits a partial improvement without discarding lateral rebinds. Escalated, unmoved, **not urgent** — arm D is off and nothing waits on it. |
-| **The 2700 bridge** | **2026-09-20, NEW (`F157`)** | today | **This replaces the CUE_BOUNDARY question as the live blocker.** `closure_map`'s recipe primitives are **0 of 15** present in Γ; its target atoms **2 of 10**. Three candidate bridges — admit the fifteen as atoms · map each recipe down to existing Γ atoms · something else — **and choosing among them is a vocabulary-admission decision, not the seat's.** |
+| **The 2700 bridge** | **2026-09-20 (`F157`)** | **MOVED by `F158`** | **The reviewer's either/or is answered: LOAD, not mint.** All 15 recipe primitives are in `ATOMS.md` **TIER 1 — the foundational atoms**, under *"These are not composed. They are where composition starts"*; `closure_map`'s recipes quote the corpus verbatim. **And the gap is wider than fifteen: Γ shares ZERO atoms with tier 1 and exactly TWO with tier 2 (`Rotate`, `Reflect`) — both composites of tier-1 atoms Γ lacks.** Their option (b) is settled before running: `Ct`/`Co` are perceptual principles, Γ's 45 are attribute extractors, so (b) cannot succeed and the primitives are load-bearing by their own test. **What remains theirs: WHICH TIER TO LOAD and under which clause.** |
 | **Are the 249 Phase-2 games REPRESENTATIVE?** | 2026-09-20 (their own caveat) | today | Their ruling settles *unexposed*; it explicitly does not settle *representative*. They name Isaiah's cluster analysis as the instrument and call the check cheap. **Open, and it decides what a Phase 2 pass is worth.** |
 
 ## RULED — CLOSED, AND RECORDED SO THEY ARE NOT RE-LITIGATED
@@ -71,6 +71,13 @@ moved* is older than a day gets an explicit status chase, not a silent carry-for
 
     2026-09-20 11:2x    channel read with the CORRECTED query. Found two rulings the old query
                         had hidden (01:48, 10:57) plus the 11:17 seal ruling.
+    2026-09-20 12:0x    corrected query again. 11:43 status request answered; 11:58 bridge
+                        either/or answered by F158 (LOAD). Reviewer holds: which tier to load.
+                        THEIR STANDING FLAG: items 1/2/3 -- spacing sweep never built, no
+                        pretraining run ever executed, step 4 unknown. "Three things
+                        pre-registered or ruled as unblocked, none of them run. That is the
+                        same shape as the wire -- decided, recorded, and not done -- and it
+                        is now the largest thing on either ledger." SEAT AGREES.
 
 ---
 
