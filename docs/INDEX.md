@@ -37436,6 +37436,13 @@ both exactly at baseline, with real internal activity behind each.
 
 ### and a trend worth naming at two points, with BOTH readings kept
 
+> **RETRACTED AT RUNG 4 — `F200`. THE TREND IS THE CARRY, NOT THE SPACING.** Across all four rungs
+> `d(minted)/d(carried_in)` is **-2.50, -2.50, -2.00**: each composition carried into a rung
+> removes ~2.3 mints, and `library = 48 + carried + minted` holds exactly at every rung. **The
+> decline I offered two readings of is an artifact of the ladder's own carry.** Both readings
+> below are void — there was no spacing effect for them to explain. **Two points made a slope and
+> I named a cause for it; the confound was in a column I was already printing.**
+
 **Every internal quantity FALLS as coherence rises:** mints `53 → 43`, settled `16 → 10`,
 promotions `16 → 7`. Two competing accounts and **I am not picking between them on two points**:
 
@@ -37760,6 +37767,19 @@ result is interpreted, not after.
 
 ## F199 (INDEX series) — THE FALLING `settled` IS §14.5's PHASE 1 MECHANISM, MEASURED AND IN THE PREDICTED DIRECTION. It is also not sufficient
 
+> **HEADLINE REFUTED BY RUNG 4, THE VERY NEXT POINT — `F200`.** `settled` is **NOT monotone**:
+> `16 -> 10 -> 4 -> 9`. It falls for three rungs and then RISES at full coherence. **So it does not
+> track shuffling and the `§14.5` reading below does not hold.** The write-site finding — that
+> settling requires RECURRENCE (`tether.py:3226`, a term must predict a LATER transition it was not
+> fitted to) — **is unaffected and is the part worth keeping.** What is withdrawn is the claim that
+> the ladder measured `§14.5`'s phase 1 prediction.
+>
+> **AND THE FAILURE MODE IS THE ONE THIS BRIEF WARNS ABOUT IN ITS OWN WORDS:** *three boards
+> agreeing at shallow depth meant equally under-sampled, not board-independent.* **Here it was
+> three RUNGS agreeing, and I wrote a causal account grounded in the corpus on top of them.**
+> Grounding the story in `§14.5` made it MORE convincing, not more true — *a null carrying a
+> satisfying causal story is harder to doubt than a bare one*, and this was a TREND carrying one.
+
 **`F197` filed `settled 16 -> 10 -> 4` as the one finding it could not explain and could not
 attribute to the schedule. It is explained, it was predicted in the plan's own words, and finding
 that cost one grep.**
@@ -37813,3 +37833,59 @@ and it is the first time tonight the plan itself has been the thing a measuremen
     MECHANISM   none changed. F197's open item closed by one grep at the write site
     CAPABILITY  none -- and the point is that a 4x swing in the plan's own payoff quantity
                 moved the ground by zero
+
+## F200 (INDEX series) — THE SPACING SWEEP IS COMPLETE. Four rungs, the ground FLAT at every one, and the only monotone trend is my own carry
+
+**Isaiah's PRIORITY 0, run end to end. `18f83f2` built it; this is what it says.**
+
+    rung  spacing  blocks  carried_in  minted  library  settled  promotions   PROBE
+     1      1        8         0         53      101      16        16        9/150  6.0%
+     2      2        4         4         43       95      10         7        9/150  6.0%
+     3      4        2         6         38       92       4         5        9/150  6.0%
+     4      8        1         7         36       91       9         5        9/150  6.0%
+
+### the ground answer, which is the answer
+
+**`9/150` AT EVERY RUNG. Identical to the established `dc22` baseline, and by `F195` it is the same
+SINGLE signature — 1 of the key's 120 — at all four.** Four rungs of watching a human solve, across
+the full span from random-dense to fully coherent, **did not buy a second distinct effect.**
+
+The instrument is not the excuse: the probe's ceiling is **100%** (`F196`, every chunk reachable at
+25 cycles), the carry is real and verified (`F190`, `refused []`), and the baseline is independently
+established. **This is a clean null.**
+
+### and the fourth point killed two accounts I had built on three
+
+**`minted` falls monotonically — and it is THE CARRY, not the spacing.**
+
+    d(carried) -> d(minted):   +4 -> -10     +2 -> -5      +1 -> -2
+                     ratio:     -2.50        -2.50         -2.00
+
+**Each composition carried into a rung removes ~2.3 mints**, and `library = 48 + carried + minted`
+holds EXACTLY at all four rungs. **The confound was in a column I was already printing.**
+
+**`settled` is NOT monotone: `16 -> 10 -> 4 -> 9`.** It rises again at full coherence, so it tracks
+neither spacing nor carry. `F199`'s `§14.5` account is withdrawn.
+
+**Both retractions are the same error and this brief names it exactly:** *three boards agreeing at
+shallow depth meant equally under-sampled, not board-independent.* **Three RUNGS agreed, twice, and
+I gave each a cause** — one of them grounded in the corpus, which made it more persuasive rather
+than more true.
+
+### what survives, and what the ladder was actually good for
+
+    HELD 4/4   the carry prediction. carried_in 0 -> 4 -> 6 -> 7, predicted before each row
+    HELD       library = 48 + carried + minted, exact at every rung
+    HELD       the probe: same instrument, verified ceiling, real baseline, flat
+    WITHDRAWN  every causal account of an internal trend. None survives four points
+
+**As a MECHANISM test the ladder passed: rungs comparable, carry predicted four times, ground
+measured against a verified control.** As a CAPABILITY test it returned a flat null, **with two
+schedule defects named in advance that would have prevented either pre-registered signature from
+showing** (`carried_in` ~4–7 per rung; the dial spanning `4 -> 0` discontinuities rather than
+`7 -> 0`).
+
+    BOUNDARY    one board, one 8-chunk window, offset 0, seed 1618, one run per rung. `secs`
+                withdrawn (my own contention). NOTHING here is measured at a non-zero offset
+    MECHANISM   the ladder exists, runs, and is honest about what it cannot show
+    CAPABILITY  ZERO at every rung, on a verified instrument
