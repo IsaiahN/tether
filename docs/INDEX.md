@@ -37109,9 +37109,35 @@ qualifies* is either stale or was scoped to one run that the entry does not name
 refutation — filed as a population the entry does not state**, which is the thing that makes it
 uncheckable either way.
 
-    BOUNDARY    committed run artifacts only, 8-54 goal_series rows each, mostly ls20; these
-                are short runs and several may predate the row. This does not refute a
-                measurement taken elsewhere -- it says no committed artifact reproduces it
+    BOUNDARY    committed run artifacts only, 8-54 goal_series rows each, mostly ls20. This
+                does not refute a measurement taken elsewhere -- it says no committed
+                artifact reproduces it
+
+### `tn36` ANSWERS THE BRIEF'S OPEN QUESTION, AND IT LANDS ON THE `vc33` SIDE
+
+The brief carries *tn36: 60-cycle run may still be in flight*. **It is not in flight — it landed
+2026-09-20 05:08, 23.8 MB, 59 cycles.** Stale by nine hours.
+
+    long_tn36   57 goal_series rows   distinct qualifying 0   distinct satisfied 0
+
+**So gate 1 opens on `ls20` ALONE.** Four boards read: `ls20` 1–2 survivors, **`vc33`, `ka59` and
+`tn36` all flat zero.** That agrees with the brief's own shape — *vc33: gate 1 NEVER opens* — and
+extends it to a third board, which is the thing that makes *ls20 is the exception* a reading rather
+than a pair.
+
+**AND IT IS THE RIGHT KIND OF PATTERN, NOT A BUG SIGNATURE.** Per game, never pooled: a mechanism
+firing on one board and not others is a mechanism DISCRIMINATING. What it discriminates on is not
+established here, and `ls20` sitting exactly ON the 4.2% null all evening is a caution against
+reading its survivors as the healthy case.
+
+**INSTRUMENT AGE CHECKED, AND IT IS THE RULE THAT SAYS TO — *a row that did not exist when the run
+ran reads exactly like a row that never fired*.** The zeros above are the load-bearing part, so:
+`qualifies` entered the `goal_series` row at **`8c2e942`, 2026-09-19 20:52**, and every artifact
+read here was written AFTER it — `armB_vc33` 09-19 22:59, `gs2_vc33` 09-19 22:14, `long_ls20`
+09-20 02:14, `long_vc33` 09-20 03:46, `long_ka59` 09-20 05:28. **The instrument was present when
+each ran, so a zero is a zero.** Second guard, independently: the reader SKIPS rows where
+`qualifies` is absent rather than counting them as empty, so a pre-instrument file would have
+dropped out of the table entirely instead of reading zero. **Both guards agree.**
     MECHANISM   no change. A standing work item retired as mis-specified before anything was
                 built against it
     CAPABILITY  none, and that is the result: the fix the brief implied was worth 1 instance
