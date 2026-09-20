@@ -34063,3 +34063,52 @@ error is reaching for VOCABULARY when the readings say the constraint is elsewhe
 
     MECHANISM   unchanged, and nothing admitted -- which is the outcome
     CAPABILITY  unchanged. What moves is where to look next: the operand path, not the library
+
+---
+
+## `F133` — correcting `F130` at the row that carries it: the arity split is real and my CAUSE was wrong
+
+**`F130` reported the wall as arity and attributed it to supply — *Gamma holds 48 atoms of which
+seven are arity-2*. That is the wrong population.** `key_of` returns `2 if term.reads_operand
+else 1`, so the arity the enforcing code scores is a TERM's, not an ATOM's:
+
+    minted / accepted / settled / promoted terms carrying an operand
+        ls20  5/5 mint, 5/5 accept, 4/4 settle       vc33  6/6, 6/6, 7/7      tn36  3/3, 3/3
+
+**EVERY TERM THE LIBRARY HOLDS IS ARITY-2.** There is no arity-1-heavy supply. `I71` exactly: I
+read the quantity in a measure that does not enforce — the atom registry — while retrieval scores
+terms. **Sixth instance this session of one error.**
+
+### what survives, and it is the measurement rather than the explanation
+
+    ls20   arity 1  7/7 met      arity 2  0/127 met
+    vc33   arity 1  3/4          arity 2  0/51
+    tn36   arity 1  3/3          arity 2  1/22
+
+**The split is real and replicates.** What is refuted is *the library lacks arity-2 vocabulary*.
+
+### and it relocates the cause, because retrieval is not where it happens
+
+`fits` ORDERS and never excludes — *a zero score still comes back* — and `_library_fit` iterates
+every library name. So `reach_failed` does not mean nothing was OFFERED. **It means nothing
+EXPLAINED.** With every term arity-2 and every failing gap arity-2, `arity == gap["arity"]`
+scores +1 on all of them and discriminates nothing.
+
+> **SO THE ARITY SPLIT IS A PROPERTY OF THE RESIDUAL, NOT OF THE LIBRARY.** An arity-1 gap is one
+> where only the target slot varies; an arity-2 gap has another slot moving too, and a term must
+> predict the target correctly WHILE that happens. **Harder to explain, and the split says so.**
+> `_explains` is where it is decided, and nothing about vocabulary changes it.
+
+### the pattern, now six deep, and the check that would have caught all six
+
+    substring matching · refusals-as-occurrences · chain-position · in_type without
+    also_accepts · `val` read as a mismatch rather than the universal · ATOM arity where
+    the code scores TERM arity
+
+**Every one is a population measured through a channel the enforcing code does not use.** The
+check is `I71`'s and it is one question asked before the census rather than after: **WHICH
+FUNCTION CONSUMES THIS QUANTITY, AND WHAT DOES IT READ?**
+
+    MECHANISM   unchanged. F130's measurement stands; its attribution is withdrawn
+    CAPABILITY  unchanged. The next question is `_explains` on multi-slot residuals, and it is
+                not a vocabulary question at all
