@@ -35092,7 +35092,16 @@ ever stating how many actions each supplies. Measured from the three runs on dis
     vc33    1    ACTION6 40                  never
     tn36    1    ACTION6 59                  never
 
-**The only board that opens gate 1 is the only board with more than one action.** `INDEX:17496`
+**The only board that opens gate 1 is the only board with more than one action.**
+
+> **THAT CORRELATION IS REFUTED — `F152`, forty minutes later, and the correction goes here because
+> this is the row that carries it.** **`ka59` supplies FIVE actions and qualifies ZERO.** The action
+> count is not the discriminator; the number of slots that ever become GOAL slots is (ls20 3, ka59 1,
+> tn36 1). **The instinct that a panel condition was missing was right and the condition named here
+> is the wrong one.** What survives below is the PROOF — `_goal_split` cannot return an action when
+> `len(self.actions) == 1` — which stands untouched, because it was never evidence about gate 1.
+
+`INDEX:17496`
 already records the class — *games advertising exactly 1 action: 6 of 25 — `ft09` · `lp85` · `r11l`
 · `s5i5` · `tn36` · `vc33`* — and I selected two of them without noticing.
 
@@ -35135,3 +35144,67 @@ the only board where the reuse rose is a board where the gate cannot open regard
                 findings; one gate proven structurally silent on 6 of 25 games
     CAPABILITY  none -- but two of three boards leave the measurement population for gate
                 questions, which changes what the remaining readings mean
+
+## F152 — THE "N OF N FLAT" READINGS ARE ONE SLOT RE-READ, AND THE DISCRIMINATOR IS THE GOAL-SLOT POPULATION, WHICH `INDEX:21829` ALREADY NAMED
+
+**`tn36` finished at 60 cycles. Reading it out corrected two of my own findings from the last hour,
+and the second correction lands on an escalation that was already standing.**
+
+### 1 · `F148`'s "39 of 39 FLAT" IS n = 1
+
+    tn36    goal_series rows 57    DISTINCT slots ever seen: 1    o1.w, all 57
+    ka59    goal_series rows  6    DISTINCT slots ever seen: 1    o14.col, all 6
+    ls20    goal_series rows 19    DISTINCT slots ever seen: 3    o16.w · o20.w · o2.shape
+
+**All 55 of tn36's full-window flat series are ONE SLOT, `o1.w`, re-read once per cycle and stuck at
+R_goal 0.9432.** Not fifty-five series. `F148` reported 39/39 and `F150`/`F151` repeated the shape,
+and it is **a rolling window counted per cycle, not a population.** `INDEX:32033` warns about this
+exact move in its own words — *"I had written that rule myself and then treated each slot's readings
+as one unbroken series"* — and I made it again four findings running.
+
+**AND THE LEVEL MATTERS AS MUCH AS THE COUNT.** `ka59`'s one slot shows BOTH states under the one
+word *flat*: **flat at 0.0** at cycle 12 (the objective already holds — nothing left to shrink) and
+**flat at 0.8571** at cycle 15 (stuck unsatisfied), with R_goal RISING between them. tn36's is flat
+at 0.9432 — stuck, never satisfied. **Opposite diagnoses, one label**, and the question was parked
+three findings ago as unanswerable without a run.
+
+### 2 · `F151`'s ACTION-COUNT STORY IS WRONG, AND `ka59` IS THE REFUTATION
+
+    board   actions   distinct goal slots   qualified
+    ls20    4         3                     o20.w x7
+    ka59    5         1                     0
+    tn36    1         1                     0
+
+**`ka59` supplies FIVE actions and qualifies ZERO.** So *more than one action* is not what separates
+the boards — `F151` had the right instinct that a panel condition was missing and named the wrong
+condition. **The correction goes into `F151`'s own row as well as here.**
+
+**What survives of `F151` is the part that is a proof rather than a correlation:** `_goal_split`
+still cannot return an action when `len(self.actions) == 1`, on 6 of 25 games, by construction. That
+is unaffected — it was never evidence about gate 1, which sits upstream of it.
+
+### 3 · THE DISCRIMINATOR IS THE GOAL-SLOT POPULATION, AND THE CHAIN WAS ALREADY WRITTEN
+
+> **`INDEX:21829`:** *"A `val`-bound slot yields no goal residual; only an `OBJ` binding does. **So
+> the population that can ever feed `_goal_choice` is the population the objective/predictor contest
+> produces**, and that contest is settled at an exact tie the bargain cannot break. Stated as a chain
+> in the code. The ruling is Isaiah's and is not taken here."*
+
+**The chain was stated without a count. The count is above: 1, 1, and 3, and only the 3 qualifies.**
+That is *publish the quantity the decision turns on* applied to the one quantity this thread never
+measured — I measured arity, actions, series length and flatness before measuring **how many slots
+are ever eligible at all.**
+
+> **SO GATE 1 IS NOT STARVED BY ARITY (`F150`), NOR BY ACTION SUPPLY (`F151`), BUT BY THE SIZE OF THE
+> OBJ-BOUND POPULATION — AND THAT POPULATION IS SET BY THE OBJECTIVE/PREDICTOR PRICE TIE, WHICH IS
+> ISAIAH'S WITHHELD RULING.** The thread routes onto an escalation that has been open all night
+> rather than onto a new cause.
+
+**REPORTED, NOT PRICED.** The standing instruction on that tie is explicit and nothing here touches
+it. What this adds is that the tie now has a measured consequence with a denominator — three boards,
+three populations, one qualifier — where before it was a chain nobody had counted.
+
+    MECHANISM   nothing built. tn36 read out complete at 60 cycles; ka59 read at 33 in flight;
+                two of my own findings corrected, one in the row that carries it
+    CAPABILITY  none. The gate-1 thread is closed as a seat question and handed to a standing
+                escalation, which is a smaller and more honest place than where it started
