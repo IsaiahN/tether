@@ -96,3 +96,41 @@ twice. **Measured before importing: `closure_map`'s recipe primitives are 0 of 1
 its target atoms 2 of 10.** The wire is permitted and empty — importing it would hand the agent
 *`Translate = Ct + Co`* in a vocabulary it does not hold. **The 2700 blocker was never
 `CUE_BOUNDARY`; it is a vocabulary disjunction, and that is now the live question in your column.**
+
+---
+
+# THE REFUSED / PARKED REGISTER
+
+**Isaiah, 2026-09-20: *"create a list of stuff you guys refused due to reasons like proxy numbers
+etc. I'd want to know in case it was a genuinely good idea and it needed to be reviewed and
+resurfaced to me."***
+
+**SURFACING RULE, HIS: NOT in heartbeat updates. Only when he is corresponding directly, every few
+hours or so.** It is not a limiting list and nothing here is being re-argued — it exists so a good
+idea killed for a procedural reason can be found again.
+
+**WHY THIS REGISTER IS NOT REDUNDANT WITH THE RECORD.** A refusal is written at the moment it is
+made, filed under the thing it refused, and then it is structurally invisible: nobody greps for what
+is absent. **`CLAUDE.md`'s own warning is that a map entry saying a thing does not exist closes the
+question** — and a refusal is exactly that entry.
+
+### ranked by how likely I think the refusal was WRONG
+
+| what was refused | why it was refused | why it might deserve another look |
+|---|---|---|
+| **ARM D — the bargain at retrieval** (`_library_fit` accepting on `pays()` instead of exact `_explains`) | Net harm: arity-1 reuse 7/7 → 0/7, mints 5 → 1, goal rows 10 → 5. **And a second reason: shipping it would settle the objective/predictor tie BY DEFAULT in favour of predictors, with nobody ruling on it.** | **IT IS THE ONLY THING THAT HAS EVER MOVED ARITY-2 OFF ZERO — 0/127 → 8/70 on ls20, 0/51 → 5/41 on vc33. The first arity-2 reuses ever recorded.** Arity-2 is the largest measured gap in the build (0.0–5.5%, four boards). The refusal was right on the evidence and it killed the only demonstrated lever. **If the tie were ruled, arm D becomes a live proposal again rather than a default.** |
+| **The `is_atom` novelty relaxation** (narrow or wide) | Pre-registered refutation: partner fired but the wall did not move. ls20 reach-failure flat at 802; sk48 3857 vs a 3839 floor. Recommendation to Isaiah was **do not**. | **The reviewer later reframed its own evidence: partner settled 70 on sk48 and was DEMOTED 53 times — the ground refusing terms that had paid the bargain. They called that "the loop working," the first validation of demotion at volume.** So the probe produced a real positive about the architecture while failing its stated target, and the do-not rests only on the target. |
+| **The five `partner_<T>` atoms + the typed predictor stream** (relation→value dereference) | Built twice, inert twice, reverted both times: zero partner events on vc33, byte-identical aggregates on ls20, +15–31% wall cost for no capability. Pure denominator growth. | **`F157` changes the frame under this.** The 2700 are now known to be blocked by a **vocabulary disjunction** — Γ holds none of the 15 closure recipe primitives. The partner work was an attempt at exactly this class of bridge and was judged only on whether the wall moved. **One of the three candidate bridges is "admit the primitives as atoms," which is what partner was.** |
+| **The 13 heavy scalars typed `EXTENT`** | **This is the PROXY-NUMBER refusal, and the clearest one.** `EXTENT` is accepted by ZERO atoms, so typing 13 attributes into it would multiply a dead population: "chains 4 → 18" with reach unmoved. THE FORMULA step 8 — *a system measuring progress by terms minted is counting the denominator.* | **The refusal was of the WIRING, not of the attributes.** `EXTENT` having no consumer was itself flagged as possibly an oversight rather than a decision (`is_max`/`is_min`/`rank_in` accept POSITION and are exactly the shape that would apply to a magnitude). **If EXTENT gains a consumer, the scalars stop being a dead population.** That question was put to the reviewer and never answered. |
+| **Option (c) — emit deltas without the op label** | Refused BY THE REVIEWER as *"the withholding reflex Isaiah diagnosed, wearing a new costume"* — the 19 names are already frontloaded, so making the agent re-derive them proves nothing and costs the diagnostic. | **I still think (c) was the interesting build and I said so before it was refused.** The refusal is doctrinally correct on frontloading. Recording it because *it was the option the seat would have chosen*, and that disagreement should be visible rather than settled silently. |
+
+### refused and I believe correctly — recorded so nobody re-derives them
+
+| what | why, and why it stays refused |
+|---|---|
+| **Tuning `MIN_REPEAT`** so gate 1 opens | *Tuning a constant until a board passes is the encoded answer in a fix's clothes.* Now has two boards behind it from opposite directions (vc33 too-short, tn36 flat). **Stays refused.** |
+| **More goal slots** to break gate 3's tie | A REVERTED option — §13.4 records that it measurably chose to stand still. |
+| **Arm E — the finer vote** | Not merely inert: the votes are SATURATED at 1.0, so there is no difference for a finer measure to resolve. Genuinely dead. |
+| **Arm C — the relation channel** | Correct-by-parity with two sibling sites and changes no reading, alone or combined. Retired rather than held. |
+| **A transitive `ISOLATED` reachability rule** | No outcome-blind root set exists: hand-listed roots give 44 false positives, `__main__` guards launder the one real case. **And Figure 9 says why it was malformed — a lint rule is a filter and cannot hand a verdict.** |
+| **Sealing a subset of the 25** | Measured: every one of the 25 is exposed, and the least-exposed are the degenerate one-action boards. Superseded by the Phase 2 ruling. |
