@@ -280,10 +280,24 @@ def probe(game: str, library: str, cycles: int = 25) -> dict:
     kp = Path(f"replays/{game}_answer_key.json")
     key = (json.loads(kp.read_text(encoding="utf-8")) if kp.exists()
            else reverse_engineer.answer_key(f"replays/{game}_human.ndjson"))
-    hit, tot, _ = rlvr._rate(objs, key)
+    hit, tot, rows = rlvr._rate(objs, key)
     Path(tmp).unlink(missing_ok=True)
+
+    # DISTINCT EFFECTS, because hit/tot is quantised in lumps and hides what moved. dc22's 150
+    # non-trivial chunks carry 120 DISTINCT signatures and the agent matches exactly ONE -- the
+    # second-commonest, which covers 9 chunks. So 9/150 is 1/120 by effect, and the probe cannot
+    # read anything but 9 until a SECOND signature is acquired. `hit` flat at exactly 9 is
+    # therefore not insensitivity: it is "still one signature, still the same one".
+    # `_rate` appends one row per NON-TRIVIAL chunk in key order, so the two zip.
+    nt = [c for c in key["chunks"]
+          if any(c["signature"][k] for k in ("moved", "resized", "recoloured",
+                                             "vanished", "appeared"))]
+    got = {json.dumps(c["signature"], sort_keys=True)
+           for c, r in zip(nt, rows, strict=False) if r["achieved"]}
+    allsig = {json.dumps(c["signature"], sort_keys=True) for c in nt}
     return {"probe": game, "hit": hit, "of": tot,
-            "pct": round(100 * hit / tot, 1) if tot else 0.0}
+            "pct": round(100 * hit / tot, 1) if tot else 0.0,
+            "distinct": len(got), "of_distinct": len(allsig)}
 
 
 def sweep(game: str = "dc22", rungs=(1, 2, 4, 8, 16), cycles: int | None = None,

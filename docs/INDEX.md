@@ -37543,3 +37543,55 @@ the mean of 483 changed cells is the number to hold against a null.
                 for an ineffective one
     CAPABILITY  none -- it prevents a false negative and retires an unaffordable plan before
                 it was scheduled
+
+## F195 (INDEX series) — THE PROBE IS NOT CEILING-LIMITED, AND `9/150` IS REALLY `1 OF 120`. Flat-at-exactly-9 means "still one signature, still the same one"
+
+**Two rungs read `9/150` to the digit and I had not checked whether the instrument CAN read
+anything else.** That is the panel rule turned on my own probe: *before a null is read as a finding
+about a mechanism, state what property the panel would need in order to show, and confirm it has
+it.*
+
+### the ceiling is 100%, so the flatness is not range
+
+`_rate` scores a chunk only if a window of its span fits in the boards seen, and `_windows` returns
+nothing when `span >= len(objs)`. A 25-cycle probe sees ~26 boards, so a long chunk would be
+UNREACHABLE however good the agent is.
+
+    span distribution of the 150 non-trivial chunks:  {2:1, 3:1, 4:1, 5:2, 7:145}
+    boards 26 (25 cycles) -> 150 of 150 reachable -> CEILING 100%
+
+**145 of 150 chunks have span 7, so 20 windows fit and every chunk is scoreable. `9/150` is a
+genuine 6% with 94% headroom.**
+
+### but the denominator is the wrong one, and the right one is brutal
+
+    150 non-trivial chunks carry 120 DISTINCT SIGNATURES
+    the agent matches EXACTLY ONE of them
+    that one is the second-commonest and covers 9 chunks
+
+**So `9/150 = 6.0%` is `1/120 = 0.83%` by distinct effect**, which confirms the earlier
+*1 of 120* reading against a fresh computation rather than by quotation.
+
+**AND IT EXPLAINS WHY THE PROBE REPEATS EXACTLY 9 RATHER THAN DRIFTING.** The measure is QUANTISED
+IN LUMPS: acquiring a signature adds however many chunks share it, and with 120 distinct across 150
+most are singletons. **`hit` is pinned at 9 for as long as the agent holds one signature — the same
+one. It is not insensitivity, and it is not variance absorbing a change.** The smallest possible
+movement is `+1/150`.
+
+**So the sweep's readout should be DISTINCT EFFECTS ACQUIRED, not the percentage** — and `probe()`
+now publishes `distinct` and `of_distinct` alongside `hit`. *Publish the quantity the decision
+turns on rather than reconstructing it from adjacent rows.*
+
+### what this does to the two flat rungs
+
+**It makes them a sharper negative, not a softer one.** The agent watched 64 frames twice, minted
+96 terms between them, carried 4 compositions — **and never acquired a second distinct effect.**
+Previously that read as *the rate did not move*; it now reads as **the agent produces exactly one
+of the 120 things this board's human does, and more watching did not add a second.**
+
+    BOUNDARY    dc22's key only, computed from the answer key with NO agent involved. Other
+                boards have different span distributions and may well BE ceiling-limited --
+                unchecked, and that check is owed before any other board's null is read
+    MECHANISM   probe() now reports distinct / of_distinct
+    CAPABILITY  none -- it retires "maybe the probe cannot move" and replaces a flat rate with
+                a countable thing that has to change for the sweep to mean anything
