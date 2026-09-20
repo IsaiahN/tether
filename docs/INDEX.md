@@ -36646,3 +36646,54 @@ this session that its own control does not eat.
     MECHANISM   nothing built. The panel completed to all 25; the null characterised as a
                 distribution; F177's headline and ls20's standing both corrected
     CAPABILITY  measured: 2 of 25 boards above a 4.2% noise ceiling, at 12 cycles
+
+## F179 — THE NULL FIX IS STILL WRONG: A PER-CALL CEILING FROM FIVE DRAWS UNDERSTATES A KNOWN ONE BY 6x
+
+**`F178` cost a published claim because the null was one draw. The fix — sample a declared
+five-board panel per call — ran, and it returned a MORE OPTIMISTIC null than the data already in
+hand.**
+
+    re-check with the new instrument     rate    its own ceiling   verdict
+      sp80                               8.2%        0.7%          CLEARS
+      dc22                               6.0%        0.0%          CLEARS
+      ls20                               4.2%        0.7%          CLEARS   <-- wrong
+
+**`ls20` "clears" a 0.7% ceiling. `F178` measured the null reaching 4.2% one tick earlier.**
+
+### the two nulls sample different axes and only one found the tail
+
+    F178          24 draws, MANY TRAJECTORIES against ONE key (ls20's)   -> max 3/71 = 4.2%
+    the new call   4-5 draws, ONE trajectory against FIVE keys           -> max 1/150 = 0.7%
+
+**The draw that sets the real ceiling is `m0r0`'s trajectory against `ls20`'s key, and it is not in
+the new panel.** Pooling every cross-game draw taken tonight:
+
+    POOLED: 37 draws, 7 nonzero
+      4.23%   3/71    m0r0 x ls20     <-- the ceiling
+      1.41%   1/71    x4
+      0.67%   1/150   x2
+
+    sp80 8.2%  CLEARS        dc22 6.0%  CLEARS
+    ls20 4.2%  does NOT      m0r0 2.4%  does NOT      sk48 2.3%  does NOT
+
+### so the verdict stands where `F178` put it, and the INSTRUMENT is what was wrong twice
+
+**`sp80` and `dc22` clear. `ls20` does not.** That is unchanged. **What changed is that I nearly
+un-refuted `ls20` with a fix I had just built to prevent exactly that.**
+
+> **A PER-CALL CEILING IS A LOCAL MAXIMUM PRESENTED AS A BOUND.** Five draws cannot find a tail that
+> took twenty-four to hit once, and the instrument reported its own small sample's max as *the*
+> ceiling with a boolean verdict attached. **The boolean is what makes it dangerous — it converts a
+> four-draw estimate into a yes.**
+>
+> **THE CEILING MUST BE POOLED ACROSS EVERY DRAW EVER TAKEN, not recomputed per call.** A control's
+> sample is cumulative evidence about the same distribution; throwing it away each run is the
+> population error a third time, now inside the fix for the second.
+
+**SEVENTH INSTANCE, AND THE SHORTEST LOOP YET — one tick from defect to correction, and the defect
+was in the correction.** Recorded rather than quietly re-fixed, because *the fix that reintroduces
+the bug it fixes* is the shape worth having in the record.
+
+    MECHANISM   nothing shipped. The one-tick-old null fix measured and found to understate a
+                known ceiling 6x; the pooled ceiling (4.2%, 37 draws) established as the bound
+    CAPABILITY  unchanged: sp80 and dc22 clear a 4.2% pooled ceiling; ls20, m0r0 and sk48 do not

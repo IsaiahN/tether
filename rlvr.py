@@ -83,13 +83,33 @@ def _rate(objs: list, key: dict) -> tuple[int, int, list]:
     return hit, tot, rows
 
 
-def against_null(game: str = "ls20", cycles: int = 25, others=("vc33", "tn36")) -> dict:
-    """The reading and its base rate in one call, because the reading is unreadable alone.
+# A DECLARED PANEL, not a chosen one: five games spanning the alphabet, fixed here so the null
+# sample cannot be picked per reading. The seat authors it and the reviewer moves it.
+NULL_PANEL = ("ar25", "dc22", "ls20", "sk48", "wa30")
+
+# THE POOLED CEILING, AND IT IS NOT RECOMPUTED PER CALL -- F179. A per-call ceiling from five
+# draws is a LOCAL MAXIMUM PRESENTED AS A BOUND: the first version of this returned 0.7% and
+# passed `ls20`, one tick after 24 draws had measured the null reaching 4.2%. A control's samples
+# are cumulative evidence about one distribution, so the bound is the max over EVERY draw taken,
+# recorded here and raised only by a run that beats it.
+#   37 draws, 7 nonzero.  max = 3/71 on m0r0's trajectory against the ls20 key.
+POOLED_NULL_CEILING = 3 / 71
+
+
+def against_null(game: str = "ls20", cycles: int = 25, others=NULL_PANEL) -> dict:
+    """The reading and its base-rate DISTRIBUTION, because a scalar null hides its own variance.
 
     THE NULL IS CROSS-GAME: the same trajectory scored against ANOTHER game's key. The signature
     counts HOW MANY objects moved, not which or where, so collisions are cheap -- and the only way
     to know whether a hit means anything is to ask how often this trajectory hits a key it has no
     business hitting. Per game, never pooled.
+
+    AND IT IS SAMPLED SEVERAL TIMES, WHICH F178 COST. One null draw read 0/71 and the word
+    *nearly zero* went into a published claim; twenty-four draws later the null reached 3/71 and
+    two of the three boards called scorers were at or below it. **A null quoted as one number is a
+    distribution with its variance hidden, and it reads as more authoritative than the signal
+    because it is supposed to be boring.** So this returns every draw and the MAX, and the verdict
+    is against the max rather than the mean -- the ceiling is what a claim has to clear.
     """
     boards, report = _boards(game, cycles)
     objs = [arc_percept.components(b) for b in boards]
@@ -101,8 +121,16 @@ def against_null(game: str = "ls20", cycles: int = 25, others=("vc33", "tn36")) 
 
     hit, tot, rows = _rate(objs, key_for(game))
     nulls = {g: _rate(objs, key_for(g))[:2] for g in others if g != game}
+    rates = {g: (h / t if t else 0.0) for g, (h, t) in nulls.items()}
+    # the bound is the POOLED max, never this call's -- see POOLED_NULL_CEILING
+    ceiling = max([POOLED_NULL_CEILING, *rates.values()])
+    mine = hit / tot if tot else 0.0
     return {"game": game, "cycles": cycles, "agent_frames": len(boards),
-            "achieved": f"{hit}/{tot}", "null": {g: f"{h}/{t}" for g, (h, t) in nulls.items()},
+            "achieved": f"{hit}/{tot}", "rate": round(100 * mine, 1),
+            "null_draws": {g: f"{h}/{t}" for g, (h, t) in nulls.items()},
+            "this_call_max_pct": round(100 * max(rates.values(), default=0.0), 1),
+            "pooled_ceiling_pct": round(100 * ceiling, 1),
+            "clears_null": mine > ceiling,
             "levels_completed": report.get("levels_completed"),
             "reads": ("EXACT signature match against every same-span window of the agent's own "
                       "trajectory, all-zero chunks dropped from both sides. The null is the SAME "
@@ -117,5 +145,8 @@ if __name__ == "__main__":
     n = int(sys.argv[2]) if len(sys.argv) > 2 else 25
     r = against_null(g, n)
     print(json.dumps({k: v for k, v in r.items() if k != "rows"}, indent=1))
+    print(f'  VERDICT: {r["rate"]}% against a POOLED null ceiling of {r["pooled_ceiling_pct"]}% '
+          f'(this run of {len(r["null_draws"])} draws maxed at {r["this_call_max_pct"]}%) -- '
+          f'{"CLEARS" if r["clears_null"] else "DOES NOT CLEAR"}')
     for row in [x for x in r["rows"] if x["achieved"]]:
         print("  ACHIEVED", row)
