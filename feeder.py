@@ -281,7 +281,8 @@ def probe(game: str, library: str, cycles: int = 25) -> dict:
 
 def sweep(game: str = "dc22", rungs=(1, 2, 4, 8, 16), cycles: int | None = None,
           offset: int = 0, skip: int = 0, take: int | None = None,
-          on: str | None = None, store: str | None = None) -> dict:
+          on: str | None = None, store: str | None = None,
+          led_dir: str | None = None) -> dict:
     """The spacing sweep. PRIORITY 0 -- Isaiah 2026-09-20; pre-registered by the reviewer 09-18.
 
     RAMP UPWARD ONLY, so a regression is unambiguous. ONE library across every rung, because
@@ -298,8 +299,15 @@ def sweep(game: str = "dc22", rungs=(1, 2, 4, 8, 16), cycles: int | None = None,
     rows = []
     for s in sorted(rungs):
         t0 = time.time()
+        # A LEDGER PER RUNG, because the summary counts cannot answer the question the
+        # reviewer's own conditions turn on -- did PROCEDURE-level reuse fire? `routine_cut` is
+        # measured at zero on four boards and the ladder is meant to be what forces it. Without
+        # a ledger a rung reports minted/settled and nothing about reuse. Routing an existing
+        # recorder to a file, not a new instrument.
+        led = f"{led_dir}/rung_{game}_s{s}.jsonl" if led_dir else None
         row = watch(game, cycles=cycles, offset=offset, spacing=s,
-                    skip=skip, take=take, library=path)
+                    skip=skip, take=take, library=path, led_path=led)
+        row["ledger"] = led
         if on:
             row.update(probe(on, path))
         row["secs"] = round(time.time() - t0, 1)
