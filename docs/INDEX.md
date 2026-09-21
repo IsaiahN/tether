@@ -40151,7 +40151,7 @@ way. **And the library grew by 94 of which 93 were DUPLICATES and exactly ONE wa
     MECHANISM   none changed. A run killed on evidence
     CAPABILITY  none
 
-## F232 (INDEX series) — THE LIBRARY SORTS THE SEARCH AND NEVER REPLACES IT. Search-before-mint is loop step 7, and it is unbuilt — so ARM F treats the symptom and I am saying so
+## F232 (INDEX series) — **WRONG, SEE `F234`. Search-before-mint IS built: `mint` is called only where `route` binned `MECHANISM`, which is *retrieval returned nothing*. The reading below is retained because the `atoms(Γ)` refutation in it stands and because an error entry whose evidence is deleted stops being evidence.** ~~THE LIBRARY SORTS THE SEARCH AND NEVER REPLACES IT.~~ Search-before-mint is loop step 7, and it is unbuilt — so ARM F treats the symptom and I am saying so
 
 **Isaiah, via the reviewer: *"adding a duplicate is a symptom of the found thing never being searched
 for in the first place — a deeper usage-of-terms problem."* The write site confirms it exactly.**
@@ -40275,3 +40275,63 @@ explains the residual.** `F232` located the gap — `_library_fit` is never call
                 `stats["seen"]` and was not captured
     MECHANISM   none changed
     CAPABILITY  none -- it redirects the repair from the install site to the search site
+
+## F234 (INDEX series) — `F232` IS WRONG: search-before-mint IS BUILT. The defect is that retrieval HITS 2–6% against a library that already holds the recipe 94% of the time
+
+**I told the reviewer the library sorts the closure walk and never short-circuits it, and that loop
+step 7 was unbuilt. Both false. The exit is at the mint call site and I did not read it before
+claiming it was absent.**
+
+    tether.py 3562   for slot, b, fit, _why in self.route(res):
+                         if b == REBIND and fit:
+                             self.bound[slot] = fit        # the library WAS searched, and HIT
+                         elif b == MECHANISM:
+                             self.mint(slot)               # mint ONLY when retrieval MISSED
+
+**`mint` is called only for slots `route` binned `MECHANISM`, which is exactly *`_library_fit`
+returned nothing*. Search-before-mint is the loop as written AND as implemented.**
+
+### SO THE DEFECT IS NOT A MISSING SEARCH. IT IS A SEARCH THAT MISSES
+
+**ROUTE bins, trained arm, 25 cycles each, denominators on the row:**
+
+    board   n       held     mechanism -> mint    REBINDING (retrieval HIT)   novel
+    dc22   7945    94.0%          5.7%                    0.1%               0.2%
+    ls20   4277    88.8%         10.8%                    0.2%               0.2%
+    m0r0   1772    70.5%         28.6%                    0.6%               0.3%
+    sk48   8935    72.1%         26.0%                    1.7%               0.3%
+
+**Among the slots that actually ask — `rebinding` + `mechanism` — retrieval succeeds
+9 of 460 on `dc22` (2.0%) and 148 of 2,468 on `sk48` (6.0%).**
+
+> **THE LIBRARY HOLDS THE RECIPE 94% OF THE TIME AND RETRIEVAL SAYS NO 94–98% OF THE TIME.** The
+> agent asks its own library, is told nothing is there, and re-derives the thing that is there.
+> **That is Isaiah's *the found thing was never searched for* — except it WAS searched for, and
+> the search failed to recognise it.**
+
+### which relocates the repair for the third time today, and I am recording the sequence
+
+    F229    "94% of mints are duplicates"                       CORRECT, and still is
+    F232    "search-before-mint is unbuilt"                     WRONG -- it is built
+    arm F   skip the duplicate INSTALL after the walk           treats a symptom of a symptom
+    F233    "the cost is the closure WALK"                      holds, and the walk runs because
+                                                                retrieval returned nothing
+    F234    retrieval is asked and misses                       <- the actual site
+
+**Arm F is not the fix and neither is adding a search.** The fix is in `_library_fit` / `retrieval`
+— **why does a term whose chain is already held fail to be offered for a new slot?** `_rebindings`
+exists and is called, so the rebinding machinery is present and is producing 0.1–1.7%.
+
+**AND THAT IS THE ESCALATED `_library_fit` QUESTION ARRIVING FROM A NEW DIRECTION** — *absolute vs
+comparative, neither admits partial without discarding lateral*. It has been on the escalated list
+as a design question. **It now has a number attached: 2–6% hit rate.**
+
+    BOUNDARY    four boards, trained arm only, 25 cycles each, ROUTE rows counted from the
+                published `bin` field. `held` means the slot is bound and its term predicted --
+                those slots never ask, so the hit rate is computed over `rebinding + mechanism`
+                and that denominator is stated per board. WHY retrieval misses is NOT measured
+                here -- `_explains`, the fit ordering and `_rebindings` are three candidate sites
+                and this entry does not separate them
+    MECHANISM   none changed
+    CAPABILITY  none -- it retires two wrong repair targets and puts a measured rate on the
+                escalated one
