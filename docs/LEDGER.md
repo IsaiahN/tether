@@ -156,6 +156,32 @@ invisible the moment it stopped being anyone's next action.***
 | **Phase 2 (the 249)** | The VALIDATION set, before the architecture freezes. Not the guide curriculum — see the collisions section. |
 | **Distinct-effect counts off dc22/sp80** | Unknown for `ls20`/`m0r0`/`sk48`/`wa30`. *One distinct effect everywhere* is **NOT** claimed. |
 
+### UNCOMMITTED WORK SITTING IN THE TREE — NOT MINE, FLAGGED 2026-09-21
+
+**Found by checking `git status` at session end rather than trusting it at session start.** Neither
+item is this seat's and **neither has been committed, verified or run by me.**
+
+| item | state |
+|---|---|
+| `arc_online.py` | **MODIFIED, uncommitted, `+88/-21`.** Adds `CARD_FILE`, `CLOSE_FILE` and `_close_direct` — closing a scorecard by the DOCUMENTED `POST /api/scorecard/close` because *the wrapper's own close 404s from a fresh Arcade where this succeeds.* Last touched 09-20 09:07. |
+| `close_card.py` | **UNTRACKED SINCE 2026-09-11 — TEN DAYS.** 34 lines, the CLI recovery path, and it CALLS `arc_online._load_env()`. |
+
+**THEY ARE A MATCHED PAIR AND ONE OF THEM IS NOT IN GIT AT ALL.** Together they are the recovery
+mechanism for an interrupted ONLINE run, and the docstring states why it matters: **the API has no
+list endpoint, so a scorecard id that was never written down is unreachable.** An interrupted
+competition run currently has exactly one way back, and it is a file git does not know about.
+
+**Both pass `ruff`. I did NOT run them** — `close_card.py` closes a live scorecard, and running it
+to "check" would spend the thing it exists to recover.
+
+**AND THE PROJECT HAS ALREADY PAID FOR THIS ONCE:** commit `45a2304`, a prior seat, titled
+*"correcting a false claim that sat uncommitted all session."* **Same failure, different file, and
+two more instances were still sitting there while that commit was written.**
+
+> **NOT COMMITTED BY ME, DELIBERATELY.** Committing code I have not read in full, cannot run
+> safely, and did not write is worse than leaving it visible. **What the seat owes is that it
+> cannot be missed** — which is this row. Isaiah's or the next seat's to land.
+
 ### SETTLED — do not re-derive
 
 `F200` the spacing sweep, complete and flat · `F196` probe ceiling 100% on all 25 boards, so the
