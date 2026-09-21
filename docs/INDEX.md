@@ -40335,3 +40335,66 @@ as a design question. **It now has a number attached: 2–6% hit rate.**
     MECHANISM   none changed
     CAPABILITY  none -- it retires two wrong repair targets and puts a measured rate on the
                 escalated one
+
+## F235 (INDEX series) — THE RETRIEVAL INDEX EXISTS, IS 849 KB, AND `retrieval.py` NEVER OPENS IT. *"A change in an attribute lights up the atoms that depend on it"* is built and unused
+
+**Isaiah: *"read through the library-closure folder — all those files were meant to help you with the
+search, retrieval, and settled/unsettled and the storage."* They do, and the code does not read
+them.**
+
+### what is in the folder, measured, with its own stated purpose
+
+    ATTRIBUTE_INDEX.json     849 KB   "Attribute -> candidate atoms. A CHANGE IN AN ATTRIBUTE
+                                       LIGHTS UP THE ATOMS THAT DEPEND ON IT. Three indexes:
+                                       raw name, semantic cluster, encoding"
+    ATTRIBUTE_REACH.json     585 KB   every atom's attributes in grid-expressible form, with
+                                       WHAT EACH REQUIRES TO BE REACHABLE. 2,700 atoms
+    ATTRIBUTE_CLUSTERS.json  121 KB   4,924 attribute forms clustered to head words
+    ADJACENCY_EDGES.json      16 KB   285 weighted edges, 61 domains, ONE component
+    ATOM_RANKING.json         46 KB   477 atoms ranked by uses
+    WORKING_SET.json          95 KB   the composing agent's working vocabulary
+    CHEMISTRY_INSTANCES.json  30 KB   34 isomer families, CATALYSTS, cycles
+
+**And `ADJACENCY.md` states the retrieval strategy the graph was measured FOR:** small-world,
+clustering 1.7x chance, mean hop 2.11, *"exactly the structure a HOP-AND-TRAVERSE strategy needs —
+dense local neighbourhoods make *what is one hop away* meaningful; short global paths make reach
+into a distant tree cheap."* **`TRAVERSAL.md` then measures two candidate paths through it.**
+
+### WHAT THE CODE ACTUALLY DOES
+
+    composer.py       reads ATOMS.md
+    mapping.py        reads ATOMS.md
+    self_graded.py    reads WORKING_SET.json
+    sensors_heavy.py  reads ATTRIBUTE_REACH
+    retrieval.py      imports `sys`, `typing`, and `gamma`.  NOTHING ELSE.
+
+**`retrieval.fits` scores a term against a gap on: 2 points for the type signature, 1 for arity, 1
+for an `aimed` boolean, 1 for relational.** Measured on the real library: the top-scoring bucket
+holds 5-6 of 66 terms. **There is NO ATTRIBUTE CONTENT in the key at all** — nothing about WHICH
+attribute changed, which is the one thing `ATTRIBUTE_INDEX` was built to answer.
+
+> **SO THE AGENT ASKS *do I have something for this gap* USING A FOUR-POINT KEY OF TYPES AND
+> ARITIES, WHILE AN 849 KB INDEX FROM THE GAP'S OWN ATTRIBUTES TO THE ATOMS THAT DEPEND ON THEM
+> SITS UNOPENED.** That is the 2–6% hit rate (`F234`), and it is the whole of *how do we fix
+> search*.
+
+### and the folder answers the other two halves of Isaiah's sentence as well
+
+**SETTLED / UNSETTLED — partly built and correctly.** `gamma.units()` already implements the
+figures' rule: *"the atoms, plus every SETTLED term as one unit"*, deduping on the emitted chain
+and not the instance, because *"the chunk IS the atom sequence and the operand has no business in
+the key."* **So the compose side follows the figures. The retrieval side does not consult `settled`
+at all (`F229`), and the LIBRARY STORE keys on chain+operand+guard while `units()` keys on the
+chain — one project, two keys.**
+
+**STORAGE — `CHEMISTRY_INSTANCES.json` holds 34 measured isomer families**, which is Figure 12's
+*same ingredients, different bond, different substance*. **The library has one bond, so it cannot
+represent an isomer at all** — and it stores 137 copies of one recipe instead.
+
+    BOUNDARY    a READ of seven index files' headers and four code files' imports. I have NOT
+                verified that `ATTRIBUTE_INDEX`'s atom names join to this agent's 48-atom set --
+                it is built over the 2,700 closure and the agent holds 48, so the JOIN IS THE
+                FIRST THING TO CHECK and it may not be one-to-one. Nothing is built here
+    MECHANISM   none changed
+    CAPABILITY  none -- it names the fix Isaiah asked for and shows it is specified and
+                unwired rather than undesigned
