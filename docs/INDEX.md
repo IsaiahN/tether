@@ -40734,3 +40734,54 @@ would have read as a modest regression instead of as a trade whose sides are bot
                 instrument's own wrapper on both arms equally
     MECHANISM   arm H, default OFF
     CAPABILITY  on dc22 only: hit 2.5% -> 7.5%, mints 12 -> 0. The ground was not probed here
+
+## F241 (INDEX series) — THREE BOARDS, THREE BEHAVIOURS, and `m0r0` CONTRADICTS THE PRE-REGISTRATION. The arms diverge, so every count after the first changed binding measures two different runs
+
+**Completing `F240`'s stated boundary — two boards is not a rate. The third board does not agree
+with either of the first two.**
+
+    board  arm    hit        hit%   mints   guard-unreachable    library   retr    mint    TOTAL
+    dc22   base    9 / 360   2.5%     12      5  (41.7%)            85     56.1   108.8   164.9
+    dc22   armH   21 / 280   7.5%      0      0                     82     99.3    88.9   188.2
+    ls20   base    9 / 343   2.6%     13      4  (30.8%)            85     40.3   106.6   146.9
+    ls20   armH    9 / 343   2.6%     13      4  (30.8%)            85     83.2   108.4   191.6
+    m0r0   base   11 / 404   2.7%     11      3  (27.3%)            82     19.1   116.0   135.1
+    m0r0   armH   18 / 389   4.6%      9      5  (55.6%)            90     41.4   114.1   155.5
+
+### the pre-registration said the guard-unreachable share falls toward zero. On `m0r0` IT ROSE
+
+**`27.3% -> 55.6%`, and the absolute count rose `3 -> 5`.** Library rose `82 -> 90` rather than
+falling. **Hit rate DID rise, `2.7% -> 4.6%`.** So the arm helped the quantity it was aimed at and
+moved the diagnostic quantity the wrong way on the same board.
+
+### and the reason is a caveat that applies to EVERY arm comparison in this file
+
+**Once an arm changes one binding, the trajectories diverge and every later count is measured on a
+different run.** `m0r0`'s five guard-unreachable mints under arm H are not the same five events as
+the baseline's three — they are whatever the diverged run later minted.
+
+> **SO "guard-unreachable share" IS ONLY A MATCHED QUANTITY UP TO THE FIRST DIVERGENCE.** After
+> that it is two populations being compared as if they were one. **This is the same structure as
+> `F236`'s System 0 preemption — and there I caught it, and here I pre-registered a metric that has
+> it.** The metric was fine on `dc22` (share to zero, mints to zero: an endpoint, not a rate) and it
+> is not fine as a general readout.
+
+### what survives across three boards
+
+    hit rate         ROSE on 2 of 3  (dc22 3x, m0r0 1.7x), unchanged on ls20
+    total time       ROSE on 3 of 3  (+14%, +30%, +15%)
+    retrieval time   ROUGHLY DOUBLED on 3 of 3 -- 56->99, 40->83, 19->41
+    mint time        fell only where mints fell: -18% dc22, +2% ls20, -2% m0r0
+    binding density  4.37->4.69 dc22, identical ls20, IDENTICAL m0r0 (0.1667 both)
+
+**The cost conclusion is the one thing all three boards agree on, and it is negative: retrieval time
+roughly doubles everywhere, and only `dc22` saved enough mint time to notice.** `m0r0` is the board
+where the ratio looked most favourable going in — retrieval `19s` against mint `116s` — **and even
+there the arm cost 20 seconds and saved two.**
+
+    BOUNDARY    THREE boards of four, 20 cycles, one trained library, arm D OFF. `sk48` and both
+                H+D cells are still running. Every per-board row is a matched pair only up to the
+                first divergence, which is the caveat this entry exists to record. Timings are
+                wall clock with the instrument's wrapper on both arms equally
+    MECHANISM   none changed; arm H remains default OFF
+    CAPABILITY  hit rate up on two boards of three. No cost reduction anywhere, which was the job
