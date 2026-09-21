@@ -41266,6 +41266,9 @@ flight, and the question goes up with it.
 
 ## F249 (INDEX series) — ARM H IS DEAD, AND IT WAS NEVER ALIVE: `sk48`'s −48% WAS THE SPLIT IDENTITY. All seven boards now cost, and the phase-1 projection FLIPS SIGN
 
+> **TWO NUMBERS IN THIS ENTRY ARE MEASURED ON THE PRE-`F250` BUILD AND ARE RELABELLED, NOT WITHDRAWN — the reviewer caught this and I had not.** Every timing below was taken with the matcher fix AND THE UNBOUNDED OVERLAY, in which nothing ever dies. **`sk48` base −57% (54.64 → 23.25 s/cycle): the matcher fix is the likely cause — unbounded limbo should make a board SLOWER, not faster — but it is UNCONFIRMED on the bounded build and a re-measure is owed.** **The `33.1 h` projection is WITHDRAWN** until the seven-board re-baseline lands. **The arm H verdict itself stands**: both arms were measured on the same build, so the comparison survives an error that scales both together, which is the same argument `F245` made for its own relative figure.
+
+
 **The reviewer's pre-registration, in their words: *if `sk48`'s −48% disappears with correct
 identity, arm H's mint-load rule goes with it.* It disappeared.**
 
@@ -41419,3 +41422,75 @@ headline instead of asking the question I had written down forty minutes earlier
                 as it did before the overlay
     CAPABILITY  it RESTORES the boards to a runnable state, and it REMOVES a claimed capability
                 that was not real. Net against the matcher fix alone: small and mixed
+
+## F251 (INDEX series) — CONTACT-SEEKING SYSTEM 0 IS BUILT, and it is no longer `F236`'s null — but ONLY where a positioned action exists, and that bound is the finding
+
+**Isaiah, 2026-09-21: *I said RANDOM, but more accurately what humans do is TRY TO MAKE CONTACT.
+What happens if this touches or interacts with another thing? CONTACT is usually the main mode,
+and pure randomness is when all else is in progress and all contact points have been explored.***
+**He put this AHEAD of phase-1 testing: if contact-seeking is efficient it SHORTENS phase 1.**
+
+### what `F236` found, and what it left
+
+`F236`: System 0's switch is state-derived and correct and **fired on all four boards** — and
+`system0` and `draw` were **byte-identical calls to `drive.choose`**. *Testing §5 needs a different
+POLICY, not a different switch.* **This is the different policy.**
+
+### the three pieces, and none of them is a number
+
+**CONTACT TYPES, not the boolean.** `RELATIONS.md` 1.1: *contact subdivides by dimension, and the
+subdivision carries information the boolean does not* — point affords pivoting, edge sliding, face
+pushing; *a grid makes these countable, and the agent has no atom that returns it.* Now counted, as
+`arc_percept.contact_kind`, on `touching`'s own 4-adjacency. **Measured on `sk48`, 80 frames:
+face 6,146 · edge 9,060 · point 2,892 · none 268,290** — all three kinds occur, so the population
+is not vacuous.
+
+**KEYED BY KIND OF SITUATION.** A contact point is `(kind, the two shape ids sorted)` — **never
+object names**, which churn every frame and would leave everything permanently unexplored.
+`_gap_key` and `paths` settled this once: *vocabulary permanent, instances transient.*
+
+**AND RE-OPENING NEEDED NO MACHINERY, WHICH IS THE PART I EXPECTED TO HAVE TO BUILD.** Isaiah: *new
+states introduce new items or change the state of something, in which case the rules of that
+contact might need to be re-examined.* **A changed kind or a changed shape IS A DIFFERENT KEY**, so
+it is unexplored by construction — no expiry rule, no frame budget, nothing to tune.
+
+**THE SWITCH** is now the unexplored-contact count, with the old action-effect coverage kept as its
+first clause.
+
+### the manipulation check — both arms on the SAME code state, which the reviewer made a condition
+
+    sk48, 10 cycles          ACTION6 taken   coords issued   distinct targets   contacts seen
+      draw                         1              1                1                 0
+      system0                      4              4                2                 3
+
+    ls20, 10 cycles          action distribution BYTE-IDENTICAL, coords 0 in both arms
+
+**On `sk48` the policy genuinely differs. `F236`'s null is closed.**
+
+### AND THE BOUND IS THE HONEST HALF: IT CAN ONLY AIM WHERE `ACTION6` IS SURFACED
+
+**`ls20` surfaces `ACTION1-4` and no positioned action, so contact-seeking has nothing to aim
+with and the two arms take byte-identical actions.** The harness reports `IDENTICAL: False` there
+**and that is driven by an internal counter — `contacts_seen` 10 against 0 — not by behaviour.**
+**Reporting two boards as differing would be false; one board differs.**
+
+> **`focal` IS WHY THE AIM HAD TO BE BUILT AT ALL.** It is chosen by residual mass — the right
+> subject for a BET and the wrong one for going to touch something — and `_action6_coord` followed
+> it. **A System 0 that cannot point at what it has not touched is a draw wearing a label, which is
+> exactly what `F236` measured.**
+
+### NO GROUND CLAIM, AND THE NUMBER THAT SAYS SO IS `minted`
+
+**`minted` is IDENTICAL in both arms on both boards — 10 on `sk48`, 21 on `ls20`.** Ten cycles,
+default OFF, one A/B. **The mechanism differs; nothing downstream has been shown to.**
+
+    BOUNDARY    two boards, 10 cycles, one seed, both arms on the same code state (bounded
+                overlay + matcher fix + ruling (b)). `contact_kind` is SEAT-SIDE and not an
+                atom -- 16.5's *you do not invent the list, you read it off the world* -- so
+                the agent composes with none of it. Six of the 25 games surface no positioned
+                action at all, and on those this is inert BY CONSTRUCTION
+    MECHANISM   `contact_kind` + `contact_points` + `_contact_keys`/`_contact_target`, and the
+                System-0 branch now AIMS the positioned action. Default OFF (`Config.system0`)
+    CAPABILITY  CONTACT, on one board, in the sense that the agent now directs a positioned
+                action at an object BECAUSE it has not touched it. Whether that buys anything
+                is unmeasured and the A/B against the same-state baseline is owed

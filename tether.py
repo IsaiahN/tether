@@ -448,6 +448,9 @@ class Agent:
         self._gamma_read: dict = {}
         self._held_chains: set[str] = set()
         self._shape_cache: tuple = (-1, None)
+        self._contact_seen: set = set()
+        self._contact_pick = None
+        self._s0_target: str | None = None
         self.alphabet = self._alphabets(env)
         self.slot_types = self._slot_types(env)
         self.cfg = cfg if cfg is not None else Config()
@@ -711,6 +714,12 @@ class Agent:
         self._gamma_read: dict = {}   # did action selection consult Gamma this cycle
         self._held_chains: set[str] = set()   # recipes in the library, per mint call
         self._shape_cache: tuple = (-1, None)   # (cycle, decoder) -- Ctx is built per candidate
+        # SYSTEM 0's contact memory is NOT cleared here. The keys are (kind, shape, shape)
+        # -- a KIND of situation, which is what `paths` and `_disproof` survive a boundary
+        # for. Clearing it would discard evidence that DOES cross, on a rule written for
+        # evidence that does not.
+        self._contact_pick = None
+        self._s0_target = None
         self.candidates = {}
         # a new level is a new instrument: the verdict was about the OLD slot set
         self._said_never_live = False
@@ -1919,7 +1928,22 @@ class Agent:
         # learned arm, so it generates the (before, action, after) evidence binding needs. The
         # switch is state-derived (coverage), never a cycle constant. Off unless Config.system0.
         if self.cfg.system0 and self._system0_active():
-            return self.drive.choose(self.actions, self.cycle, _where(before)), "system0"
+            target, why = self._contact_target(before)
+            self._s0_target = target
+            act = self.drive.choose(self.actions, self.cycle, _where(before))
+            # A TARGET IS ONLY REACHABLE THROUGH THE POSITIONED ACTION. Where ACTION6 is
+            # surfaced and something is worth touching, take it; otherwise the target is
+            # unaimable and the drawn action stands, which is the honest fall-through.
+            if target is not None and "ACTION6" in self.actions:
+                act = "ACTION6"
+            if self._contact_pick is not None:
+                self._contact_seen.add(self._contact_pick)
+            self.led.record(self.cycle, "MINT", target or "@contact", "system0",
+                            why=why, target=target, action=act,
+                            unexplored=len([k for k in self._contact_keys(before)
+                                            if k not in self._contact_seen]),
+                            seen=len(self._contact_seen))
+            return act, "system0"
         learned = self._learned_split()
         if learned is not None:
             return learned, "discriminate:learned"
@@ -1941,12 +1965,65 @@ class Agent:
             return goal, "discriminate:goal"
         return self.drive.choose(self.actions, self.cycle, _where(before)), "draw"
 
+    # -- SYSTEM 0, CONTACT-SEEKING. Isaiah, 2026-09-21: *I said RANDOM, but more accurately
+    # what humans do is: TRY TO MAKE CONTACT. What happens if this touches or interacts with
+    # another thing? The more of that is done, the faster the contact clarifies relationship
+    # mapping. So CONTACT is the main mode, and pure randomness is for when reasoning is in
+    # progress and all contact points have been explored.*
+    #
+    # `F236` measured the old System 0 as BYTE-IDENTICAL to the uniform draw -- the switch was
+    # right and the POLICY was the same call. This is the different policy.
+
+    def _contact_keys(self, before: dict) -> dict:
+        """`{key: (a, b)}` for this frame's contact points, keyed by KIND OF SITUATION rather
+        than by object name -- `(contact kind, the two shape ids sorted)`. Names churn every
+        frame and would leave everything permanently unexplored; `_gap_key` and `paths` settled
+        that once already -- *vocabulary permanent, instances transient.*
+
+        AND RE-OPENING NEEDS NO MACHINERY. Isaiah: *new states of a board introduce new items
+        or change the state of something, in which case the rules of how that contact works
+        might need to be re-examined.* A changed kind or shape IS A DIFFERENT KEY, so it is
+        unexplored by construction rather than by an expiry rule nobody could justify.
+        """
+        fn = getattr(self.env, "contact_points", None)
+        if fn is None:
+            return {}
+        out = {}
+        for a, b, kind in fn():
+            sa, sb = before.get(a + ".shape"), before.get(b + ".shape")
+            if sa is None or sb is None:
+                continue        # an unreadable participant is not a contact point to try
+            out.setdefault((kind,) + tuple(sorted((int(sa), int(sb)))), (a, b))
+        return out
+
+    def _contact_target(self, before: dict):
+        """The object to aim at, and why. Isaiah's ordering: an untried contact is the main
+        mode; an object touching NOTHING is the next thing to go and make contact with; the
+        uniform draw is last."""
+        keys = self._contact_keys(before)
+        unexplored = [k for k in keys if k not in self._contact_seen]
+        if unexplored:
+            k = min(unexplored)          # deterministic, so a run is reproducible
+            self._contact_pick = k
+            return keys[k][0], "untried-contact"
+        touching = {n for pair in keys.values() for n in pair}
+        owners = sorted({x.rsplit(".", 1)[0] for x in before if "." in x} - touching)
+        self._contact_pick = None
+        if owners:
+            return owners[self.cycle % len(owners)], "seek-contact"
+        return None, "all-contacts-explored"
+
     def _system0_active(self) -> bool:
-        """System-0 exploration runs until the action-effect map has coverage: every surfaced
-        action tried at >=2 distinct states (probe.py's `never_live` anchor -- the smallest that
-        separates a dead action from a positional artefact). State-derived; no cycle constant.
-        Once every action is covered, this returns False and the learned arm resumes."""
-        return any(len(self.drive.tried.get(a, ())) < 2 for a in self.actions)
+        """UNEXPLORED CONTACT COUNT, with the action-effect coverage it replaces kept as the
+        first clause. State-derived; no cycle constant and no budget.
+
+        The old test was coverage alone -- every surfaced action tried at >=2 distinct states,
+        probe.py's `never_live` anchor. That says nothing about whether the agent has found out
+        what touches what, which is the thing System 0 is now for."""
+        if any(len(self.drive.tried.get(a, ())) < 2 for a in self.actions):
+            return True
+        return bool([k for k in self._contact_keys(self.env.observe())
+                     if k not in self._contact_seen])
 
     def binding_stats(self) -> dict:
         """The System-0 A/B instrument. Binding density = slots bound to a non-IDN term over all
@@ -3686,7 +3763,11 @@ class Agent:
         # the focal object's own row/col, which are perceived slots. No spatial basis (the focal
         # object has no position slots) means ACTION6 would be noise, so the coordinate is None and
         # the world leaves the action unpositioned rather than emitting a baseless one.
-        coord = self._action6_coord(focal, before) if action == "ACTION6" else None
+        # SYSTEM 0 AIMS. `focal` is chosen by residual mass, which is the right subject for a
+        # BET and the wrong one for going to touch something: contact-seeking has to point at
+        # what it has not touched, or it is a draw wearing a label -- which is `F236`.
+        aim = self._s0_target if (by == "system0" and self._s0_target) else focal
+        coord = self._action6_coord(aim, before) if action == "ACTION6" else None
         res = self.perceive(action, coord)
         for slot, b, fit, _why in self.route(res):
             if b == REBIND and fit:

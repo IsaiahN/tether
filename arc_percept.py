@@ -204,6 +204,37 @@ def touching(a: dict, b: dict) -> bool:
                for dr, dc in ((1, 0), (-1, 0), (0, 1), (0, -1)))
 
 
+def contact_kind(a: dict, b: dict) -> str | None:
+    """RELATIONS.md 1.1: contact SUBDIVIDES BY DIMENSION, and the subdivision carries
+    information the boolean does not.
+
+        point contact   corner to corner      pivoting; minimal constraint
+        edge contact    one cell face shared  sliding along; one axis constrained
+        face contact    a run of shared faces pushing; two axes constrained
+
+    *A grid makes these countable -- the number of shared cell-faces is an integer, and the
+    agent has no atom that returns it.* This counts it.
+
+    SEAT-SIDE AND NOT AN ATOM. §16.5: *you do not invent the list, you read it off the
+    world.* System 0 needs the contact list to know what it has not tried; that is reading
+    the world, not a term the agent composes with. It shares `touching`'s 4-adjacency for
+    the reason `touching` gives -- 8 here and 4 there would be a different relation under
+    the same name -- so `face`/`edge` count SHARED FACES and `point` is diagonal-only.
+    """
+    cells, other = a["cells"], b["cells"]
+    faces = sum(1 for r, c in cells
+                for dr, dc in ((1, 0), (-1, 0), (0, 1), (0, -1))
+                if (r + dr, c + dc) in other)
+    if faces >= 2:
+        return "face"
+    if faces == 1:
+        return "edge"
+    if any((r + dr, c + dc) in other
+           for r, c in cells for dr, dc in ((1, 1), (1, -1), (-1, 1), (-1, -1))):
+        return "point"
+    return None
+
+
 def kind_of(obj: dict) -> tuple:
     """What counts as the same KIND. **SHAPE, with a HOLE where the colour was.**
 

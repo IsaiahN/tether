@@ -225,6 +225,25 @@ class ArcWorld:
             self._contacts = out
         return self._contacts
 
+    def contact_points(self) -> list[tuple[str, str, str]]:
+        """`(a, b, kind)` for every touching pair this frame, kind from RELATIONS.md 1.1.
+
+        **The loop may not derive this** -- the same rule as `contacts()`, §16.5: *you do not
+        invent the list, you read it off the world.* System 0 needs contact TYPES rather than
+        the boolean, because *the subdivision carries information the boolean does not*: a
+        point contact affords pivoting, an edge sliding, a face pushing. Trying one is not
+        trying the others.
+        """
+        tr = self._decompose.tracked
+        names = sorted(tr)
+        out = []
+        for i, a in enumerate(names):
+            for b in names[i + 1:]:
+                k = arc_percept.contact_kind(tr[a], tr[b])
+                if k is not None:
+                    out.append((a, b, k))
+        return out
+
     def slot_owner(self) -> dict[str, str]:
         """Which SUBJECT each slot is an attribute of. **The loop may not derive this.**
 
