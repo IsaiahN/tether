@@ -38015,3 +38015,76 @@ it to the reviewer as a headline.
     BOUNDARY    one pooled run, offset 0, seed 1618. The ladder's gross counts are gone
     MECHANISM   none changed. A reported quantity re-identified, and a headline withdrawn
     CAPABILITY  none -- and the withdrawal removes a false one
+
+## F203 (INDEX series) — THE POOLED 25-GAME RUN: 281 terms minted, library 48 → 329, and the ground is EXACTLY where it started
+
+**WRITTEN LATE AND THE LATENESS IS PART OF THE ENTRY — see the recording failure at the end.
+`F204` was filed before this, and its correction is folded in here rather than appended, so this
+row never states the claim I withdrew.**
+
+**§14.5 phase 1 proper — all 25 games' chunks in one shuffle, one continuous Γ, 199 frames.** Read
+against `F198`'s pre-registration, in the order it fixed, before the numbers existed.
+
+### THE BAR — not met, and it was fixed in advance
+
+    probe dc22   9/150 = 6.0%      DISTINCT EFFECTS 1 of 120      SECOND EFFECT: NO
+
+**Identical to the four-rung ladder and to the untrained baseline. The same single signature.**
+**281 terms minted and the agent produces exactly one of the 120 things `dc22`'s human does.**
+
+### Figure 11 at the largest amplitude this project has produced
+
+    atoms 48  ->  library 329      minted 281      contact change  ZERO
+
+**`library 48 → 329` is the number this run would have been reported with** — a sevenfold library
+on a 25-game curriculum — **and it is exactly the quantity the proctor rules call not-evidence.
+The probe is the only reason it reads as a null.** Two hours before launch the pooled path had no
+probe at all; `F198` found that by writing down what the output would LICENSE, not by testing.
+
+### settling: the honest version, which is NOT the one I first reported
+
+    settle events  89        demote events  84        net  5
+
+**`watch_many` returns only the net, and I read it as an activity count and called it ARM B.**
+`F204` has the full correction. **Confirmation happens 89 times; what fails is that it does not
+STICK.** And the ladder's gross counts are **unrecoverable** — it ran before the ledger was wired —
+so **no ladder-vs-pooled settling comparison is available, and `§14.5` phase 1's premise is neither
+confirmed nor refuted here.**
+
+### the lever, over 199 cycles, denominators pinned
+
+    reuse_install     203 / 199 = 1.020 /cyc   vs ls20 12/60 = 0.200      x5.10
+    reuse_refused    5884 / 199 = 29.57 /cyc   vs ls20 792/60 = 13.20     x2.24
+    routine_refused   166 / 199 = 0.834 /cyc   vs F75 7/10   = 0.700      x1.19
+    routine_cut         0 / 199 = 0                                        ZERO
+
+**`routine_cut` is ZERO across 199 cycles**, six times deeper than the partial. Routines are
+proposed and refused at MINT, so **a schedule cannot reach past a refusal surface.**
+
+### PREDICTIONS, both held
+
+    dial_inert = True at take=1                                 HELD
+    by_origin SPREAD, not concentrated -- 24 OF 25 GAMES        HELD
+
+**The second nearly reported my own instrument as a finding:** the field was capped at
+`most_common(8)` and said *8 games*; the truth, recovered from the saved library, is **24 of 25**.
+
+### THE RECORDING FAILURE, which is the part with a lesson
+
+**This entry did not exist for over an hour, and a commit message described it in full.** The
+append was chained as `ruff check && echo && cat >> docs/INDEX.md`. **`ruff` failed on a line-length
+error in an unrelated comment, so the `cat` never ran** — and `git add docs/INDEX.md feeder.py`
+committed only `feeder.py` while the message narrated an INDEX entry that was never written.
+`F204` then referenced an `F203` that did not exist.
+
+**It is the reviewer's own failure mode exactly — *a thing marked done in the channel and not done
+in the world* — reached by a shell idiom rather than by inattention.**
+
+> **THE RULE: never chain a file WRITE behind a CHECK with `&&`.** A failing check silently skips
+> the write and leaves a commit message as the only record. **Run the check as its own command, as
+> the brief already requires for `conform/check.py`, and for the same reason.**
+
+    BOUNDARY    ONE run. offset 0, seed 1618, take=1 -- 199 frames, ~8 frames per game, a thin
+                slice of each. A second run at offset 4 is in flight to test exactly this
+    MECHANISM   phase 1 runs end to end
+    CAPABILITY  ZERO. 281 mints, 24 games of provenance, one distinct effect
