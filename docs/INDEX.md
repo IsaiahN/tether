@@ -38145,3 +38145,69 @@ read.** The ambiguity changes what the defect MEANS, not whether it is present.
                 entry's point
     MECHANISM   none changed
     CAPABILITY  none -- it puts a caution under the one place the reviewer says is left
+
+## F206 (INDEX series) — `routine_cut` IS A REFUSAL COUNTER, NOT A SUCCESS COUNTER, and the block is one gate earlier: GUARD REACHABILITY
+
+**The reviewer asked, after withdrawing `used == 1`: *would `routine_cut` have the same denominator
+problem? I will not make this mistake twice in one night.* It does, and it is a different one.**
+
+### the write site has THREE exits and the record cites the middle one
+
+`tether.py` ~2265–2290:
+
+    ok = [(c, lf, r) for c, lf, r in priced
+          if all(self.can(g, before) == YES for g in Rt.guards(r))]
+    if not ok:
+        record "routine_refused"   reason="no candidate's guards are all reachable here"
+        return
+    cost, left, cand = ok[0]
+    if not pays(cost, left, base):
+        record "routine_cut"       reason="does-not-pay"          <- A REFUSAL
+        return
+    self.routine = cand
+    record "routine"  verdict="pays"                              <- THE SUCCESS
+
+**`routine_cut` records a routine that was PRICED AND REJECTED. The success event is `routine`.**
+
+### measured, and nobody had counted the success event
+
+    pooled run, 199 cycles     routine 0    routine_cut 0    routine_refused 166
+    runs/long_ls20             routine 0    routine_cut 0    routine_refused  14
+    runs/long_vc33             routine 0    routine_cut 0    routine_refused  45
+
+**`routine_cut == 0` because NOTHING EVER REACHES PRICING.** The first gate catches every
+candidate, every time, on three independent runs.
+
+### so the standing citation is right in its conclusion and wrong in its evidence
+
+The brief and the reviewer's ledger both carry *`routine_cut` 0 · 0 · 0 · 0 — procedure-level reuse
+has never once fired.* **The conclusion is true. The counter cited cannot show it** — a refusal
+counter downstream of a gate that never opens reads zero whether the mechanism is broken, perfect,
+or absent. **It is `used == 1`'s failure in a different shape: a number that cannot vary, read as
+though it had.**
+
+**The counter that DOES show it is `routine_refused`, and it names the cause in its own reason
+string:** *no candidate's guards are all reachable here.*
+
+### WHAT THIS LOCALISES, and it is the sharpest localisation this session produced
+
+**The block is not pricing. Not the bargain. Not reuse. Not the shelf.** It is
+`self.can(g, before) == YES` over `Rt.guards(r)` — **§14.3's affordance, and its own docstring says
+`CAN` is ACHIEVABLE, not SATISFIABLE.**
+
+**Every routine candidate has at least one guard the agent cannot reach.** That is why no plan is
+ever priced, why `routine_cut` is zero, and why procedure-level structure never forms.
+
+**And it joins `F189` rather than standing alone.** `F189`: `tn36`'s residual reads `(88, 5, 88)`
+for 57 straight rows — the agent acts and the satisfied count never moves. **A guard is a claim
+about what the agent can ACHIEVE. If acting changes nothing measurable, no guard is reachable.**
+Same suspect, reached from two unrelated directions: **a contact problem, not a composition one.**
+
+    BOUNDARY    three runs -- one pooled at 199 cycles, ls20 and vc33 at ~59. `can()` returning
+                non-YES is READ FROM THE GATE, not yet measured per guard: WHICH guards fail and
+                whether they read NO or UNKNOWN is the next measurement and is NOT taken here.
+                That distinction matters -- `no` is a claim about the world, `unknown` about the
+                record, and the PERCEIVE/can row already publishes both
+    MECHANISM   none changed. A counter re-identified and the block moved one gate earlier
+    CAPABILITY  none -- but it retires `routine_cut` as evidence and replaces it with a gate
+                that has a reason string and a published per-guard breakdown nobody has read
