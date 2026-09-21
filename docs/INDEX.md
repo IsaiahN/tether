@@ -40120,9 +40120,95 @@ not the cost and this account is wrong.** The two are separable and the measurem
 nowhere near zero in the control — **this comparison has a non-zero baseline, which is the check
 that failed three times this session.**
 
+### WITHDRAWN — THE EVIDENCE I KILLED THE RUN ON WAS CONFOUNDED, AND THE CONCLUSION SURVIVES ON BETTER
+
+**Isaiah asked what the evidence was. Checking it to answer him showed it does not support the
+claim.** The slow interval sat on heavier frames:
+
+    cycles 26-57 (37 s/cycle)   median 56 objects/frame   max  79
+    cycles 57-70 (94 s/cycle)   median 72 objects/frame   max 354
+
+**Board size rose and cost rose, on 13 cycles containing one 354-object frame. Board size and
+library growth are not separable there, so *diverging, not saturating* is WITHDRAWN as filed.**
+
+**THE CONTROLLED MEASUREMENT RE-ESTABLISHES IT BY A DIFFERENT ROUTE, and this one holds the
+confound still:**
+
+    cycle 10   25.65 s   library 105   chains 49   dupes  56   slots 510
+    cycle 20   56.87 s   library 199   chains 50   dupes 149   slots 320
+
+**Cost rose 2.2x WHILE SLOTS FELL 1.6x.** Board size cannot be the driver when it moves the other
+way. **And the library grew by 94 of which 93 were DUPLICATES and exactly ONE was a new recipe.**
+
+> **THE CONCLUSION STANDS AND THE FIRST EVIDENCE FOR IT DID NOT.** Recorded this way round on
+> purpose: a right answer reached on confounded evidence is not a right answer yet, and the run was
+> killed before the controlled reading existed.
+
     BOUNDARY    the rate series is THREE intervals from ONE run, and the first two were measured
                 while a profiler contended -- only the 57-70 interval is clean, and it is 13
                 cycles. The divergence claim rests on that interval plus the monotone trend; it
                 is not a fitted curve and no exponent is claimed
     MECHANISM   none changed. A run killed on evidence
+    CAPABILITY  none
+
+## F232 (INDEX series) — THE LIBRARY SORTS THE SEARCH AND NEVER REPLACES IT. Search-before-mint is loop step 7, and it is unbuilt — so ARM F treats the symptom and I am saying so
+
+**Isaiah, via the reviewer: *"adding a duplicate is a symptom of the found thing never being searched
+for in the first place — a deeper usage-of-terms problem."* The write site confirms it exactly.**
+
+### the reviewer's hypothesis is DEAD, as they asked me to report either way
+
+> *The formula writes the novelty guard as `φ ∉ atoms(Γ)`. If the code implements that literally, a
+> composition HELD but not SETTLED passes novelty every time it is re-derived.*
+
+    tether.py ~2848    if self.gamma.is_atom(term) or term.name in self.gamma.library:
+
+**It tests the FULL LIBRARY, not `atoms(Γ)`.** A held-but-unsettled composition does not pass
+novelty by that route. **Hypothesis refuted; the settled/unsettled blindness is real but is not
+what produces the duplicates.**
+
+### WHAT DOES PRODUCE THEM, AND IT IS THE ORDERING
+
+    _library_fit is called at 1502 and 1508  -- the BET path
+    _library_fit is NOT called from `mint`
+    inside `mint`, retrieval appears ONCE, as `by_fit`:
+        by_fit = partial(retrieval.fits, gap=gap, ...)
+        self.gamma.enumerate_closure(in_t, out_t, depth, budget, st, ORDER=by_fit)
+
+> **THE LIBRARY IS USED TO SORT THE CLOSURE WALK. IT IS NEVER USED TO SHORT-CIRCUIT IT.** `mint`
+> enumerates the whole space every time and lets the library decide the ORDER of the enumeration.
+> **There is no exit that says *the library already explains this, stop*.**
+
+**And the corpus specifies that exit.** Loop step 7: *SEARCHED — is it in here and unfound? … **Asked
+FIRST — it is cheapest and the other two assume its answer.*** Figure 5's third guard: *is it
+actually new? It is not already in the library*, with the outcome *nothing new here — the machinery
+worked; the answer was already known.*
+
+**So search-before-mint is the loop's own ordering, unbuilt — not a policy anyone would be
+installing.** The reviewer is right that my design-edge worry dissolves on this half. It survives on
+the other half: **ranking retrieval by `settled` IS a preference and stays the agent's.**
+
+### AND ARM F TREATS THE SYMPTOM — STATED BEFORE ITS RESULTS ARRIVE
+
+**`a18a7cf`'s arm F skips a candidate whose recipe is held. It does that AFTER the closure walk has
+already produced the candidate.** So:
+
+    what arm F cuts        library BLOAT -- the duplicate entry is never installed
+    what arm F does NOT    the ENUMERATION -- the walk runs in full either way
+
+**If per-cycle cost is the walk, arm F cannot flatten the curve by itself.** The reason it may still
+flatten it is indirect and worth stating: **the walk prices against `gamma.units()` and enumerates
+over the library, so a smaller library makes a cheaper walk.** That is a real mechanism and it is
+not the one the corpus names.
+
+> **SO ARM F IS A PARTIAL AND THE PRE-REGISTERED FALSIFIER IS THE RIGHT TEST OF IT.** If the cost
+> curve flattens and the duplicate rate falls, the indirect mechanism carried it. **If the duplicate
+> rate falls and the curve does NOT flatten, the cost is the WALK and search-before-mint is the
+> build that matters.** Either way the next build is named in advance.
+
+    BOUNDARY    a READ of three call sites plus the corpus's step 7 and Figure 5. The claim that
+                `mint` never short-circuits is from grepping `_library_fit` and reading the one
+                retrieval use inside `mint`; I did not trace every path into `enumerate_closure`.
+                Arm F's effect on cost is UNMEASURED at filing -- the controlled run is in flight
+    MECHANISM   none changed here. Arm F shipped separately and is default OFF
     CAPABILITY  none
