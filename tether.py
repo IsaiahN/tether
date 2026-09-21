@@ -79,6 +79,17 @@ _RECIPE_DEDUP = bool(os.environ.get("TETHER_RECIPE_DEDUP"))
 # every term, applied to loaded ones only. DEFAULT OFF like every other arm.
 _REBIND_HELD = bool(os.environ.get("TETHER_REBIND_HELD"))
 
+# ARM H -- THE GUARD AXIS IN RETRIEVAL. Reviewer ruling 2026-09-21, and it is the generation half
+# of F238. `mint` walks (operand x GUARD) via `_guards(robs)`; `_rebindings` varies only the
+# operand and inherits the held guard, so 31-42% of what mint installs is a Term retrieval can
+# never produce -- no admission rule can accept a candidate that was never offered (F239: cost,
+# left and base are identical in both paths, so generation is the whole of the gap).
+# BOUNDED AS MINT IS: guards come from `_guards(robs)` -- None first, then ONLY the actions
+# appearing in that residual's own observations -- never the full action set on every lookup.
+# The playbook's lookup fires on a SETTLED CHANGE and that event carries the action that produced
+# it, so handing retrieval the observation is giving it the event it was specified to key on.
+_GUARD_AXIS = bool(os.environ.get("TETHER_GUARD_AXIS"))
+
 
 def _head_accepts(cand: Any, slot_type: str | None) -> bool:
     """Does the candidate's HEAD atom accept what the slot actually holds?
@@ -1215,16 +1226,26 @@ class Agent:
 
     # -- step 2 -----------------------------------------------------------------------
 
-    def _rebindings(self, term: Term, slot: str):
+    def _rebindings(self, term: Term, slot: str, guards=None):
         """The term as held, then -- only if it arrived unbound and reads an operand -- the
         typed re-bindings of it. **Composition crosses, binding does not**, so a loaded term
-        has to be re-bound at the destination or it is the identity here."""
+        has to be re-bound at the destination or it is the identity here.
+
+        ARM H adds the GUARD axis, which `mint` has always walked and this has not."""
         yield term
+        gs = tuple(guards) if (_GUARD_AXIS and guards) else (term.guard,)
         if not term.reads_operand or (term.operand and not _REBIND_HELD):
+            # A TERM WITH NO OPERAND STILL TAKES A GUARD, and mint gives it one: its `binds` is
+            # `[None]` there and the guard loop runs anyway. Without this the axis would reach
+            # only operand-readers, which is not the population F238 measured.
+            for g in gs:
+                if g != term.guard:
+                    yield Term(term.atoms, operand=term.operand, guard=g)
             return
         for b in self.slots:
             if b != slot and self._operand_fits(term, slot, b):
-                yield Term(term.atoms, operand=b, guard=term.guard)
+                for g in gs:
+                    yield Term(term.atoms, operand=b, guard=g)
 
     def _library_fit(self, slot: str, exclude: str | None) -> str | None:
         """3c / §15.3: ask for the term by DESCRIBING THE GAP, not by walking the registry.
@@ -1251,6 +1272,12 @@ class Agent:
         # The supply side may simply be thin -- 7 arity-2 atoms of 48.
         _base = (self._left(self.gamma.library[self.bound.get(slot, IDN)], slot, hist)
                  if _BARGAIN_FIT else 0.0)
+        # ARM H's pool, computed ONCE per lookup and never per candidate -- `_residual_obs` walks
+        # the history and `_guards` is a filter over it, so doing it inside the candidate loop
+        # would pay for it on every library term. Same two calls mint makes, same order.
+        _guard_pool = (self._guards(self._residual_obs(
+            slot, self.gamma.library[self.bound.get(slot, IDN)], hist))
+            if _GUARD_AXIS else None)
         _rel = getattr(self.env, "contact_changes", None) if _REL_GAP else None
         gap = retrieval.characterise(hist, slot, list(self.alphabet), self.slot_types,
                                      relations=_rel() if _rel else None)
@@ -1276,7 +1303,7 @@ class Agent:
             # ONLY IMPORTS PAY THIS. Every term made here carries its binding, so the candidates
             # are exactly the loaded ones, and a cold run adds nothing. Typed by
             # `_operand_fits`, which is the same filter the mint uses.
-            for cand in self._rebindings(self.gamma.library[n], slot):
+            for cand in self._rebindings(self.gamma.library[n], slot, _guard_pool):
                 # BEFORE `_explains`, and separately from it: may this BIND is a type question
                 # and does it EXPLAIN is a behavioural one. Folding the first into the second
                 # would put two quantities under one name at the site that decides both.
