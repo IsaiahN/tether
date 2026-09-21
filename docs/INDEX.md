@@ -38404,6 +38404,12 @@ unlucky in the slot it guards.
 
 ### TURNOVER IS BOARD-SPECIFIC, NOT UNIVERSAL — measured across five runs, and it qualifies the above
 
+> **WITHDRAWN BY `F211`. The table below mixes LIVE-AGENT runs (`long_*`) with a TAPE run
+> (`ar25`) — two different frame populations — and the "some boards are zero" reading is an
+> artifact of that mixture.** Measured uniformly over the human replay frames, **ALL 25 boards
+> lose objects; `ls20` reads 32 changes with 17 departures, not zero.** `F209`'s CORE claim is
+> strengthened by the correction; this narrowing of it was the error.
+
 **The figures above are `ar25` only, which the boundary line said. Closing that from ledgers that
 already existed, no new run:**
 
@@ -38516,3 +38522,64 @@ scoped to the wrong moment.**
     MECHANISM   none changed
     CAPABILITY  none -- it converts "routines die" into "a time-scoped gap in a protection that
                 was explicitly reasoned about", which is a repairable thing rather than a null
+
+## F211 (INDEX series) — ALL 25 BOARDS LOSE OBJECTS. `F209`'s "board-specific, some are zero" addendum mixed LIVE-AGENT runs with a TAPE run, and is withdrawn
+
+**Measured in the perception layer with no agent: `arc_percept.Objects()` driven over each game's
+own replay frames, 64 frames per board, coherent order.** Turnover is a property of the SEGMENTER,
+so this needs no betting loop and cost minutes where an agent sweep would cost hours.
+
+    game  changes gone/chg max        game  changes gone/chg max
+    ar25     18     1.11     6        s5i5     16     2.06     7
+    bp35     50     7.70    73        sb26     59     0.61     5
+    cd82     19     1.26     4        sc25     17     1.88    12
+    cn04     13     1.08     4        sk48     51     2.25    10
+    dc22      5     1.60     3        sp80     16     1.44     8
+    ft09      9     6.67    39        su15     19     2.00    14
+    g50t     16     1.06     6        tn36     12     2.08    14
+    ka59     24     0.88     3        tr87     40     0.82     8
+    lf52     28     2.89    10        tu93     18     2.94    41
+    lp85      7     5.29    20        vc33     34     1.68    19
+    ls20     32     1.00     5        wa30     20     1.35     2
+    m0r0     27     0.70     2        re86     40     1.90    14
+    r11l     39     5.13    24
+
+    boards where NO object ever departs in 64 frames:  0 of 25
+
+**Every board loses objects. Worst single change: `bp35` 73, `tu93` 41, `ft09` 39.**
+
+### and it refutes my own addendum, which I had already sent the reviewer
+
+`F209`'s addendum read **`ls20` 0 departures, `tn36` 0** and concluded *turnover is board-specific;
+a guard's lifetime is a property of the BOARD.* **Here `ls20` reads 32 changes with 17 departures.**
+
+**THE TWO MEASURE DIFFERENT FRAME POPULATIONS AND I PUT THEM IN ONE TABLE.**
+
+    addendum's ls20 / tn36 / ka59 / vc33   from `long_*` ledgers = LIVE AGENT runs,
+                                           frames the AGENT's own actions produced
+    addendum's ar25                        from a TAPE run, frames the HUMAN produced
+    this sweep                             uniformly the HUMAN's replay frames
+
+**A live agent that mostly fails to act sees a nearly static board; the human's trajectory moves
+objects constantly.** Of course they differ. **The comparison was never like-for-like, and the
+"some boards are zero" narrowing is an artifact of the mixture.**
+
+**Population error, and the worst-sited one tonight: committed in an entry whose own text says
+*per game, never pooled* and whose commit message warns against giving a cause to agreeing
+points.** The care was spent on the conclusion and none on whether the rows came from the same
+kind of run.
+
+### what this does to F209 and F210
+
+**`F209`'s CORE CLAIM IS STRENGTHENED, not weakened.** *A routine's guard is addressed to an
+identity shorter-lived than the plan* — on the tape population, where every routine so far has
+formed, **that holds on all 25 boards with no exceptions.** The narrowing was the error; the
+original was right.
+
+**`F210` is untouched.** The mint-time scope argument does not depend on which boards churn.
+
+    BOUNDARY    64 frames per board, coherent order, HUMAN REPLAY FRAMES ONLY. It says nothing
+                about the live-board population -- and the live-board figures that DO exist
+                (`long_*`) are the ones I just mis-joined, so they stand only for themselves
+    MECHANISM   none changed. A perception-layer property measured without the agent
+    CAPABILITY  none -- it removes a false narrowing I had already published
