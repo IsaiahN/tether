@@ -38148,6 +38148,13 @@ read.** The ambiguity changes what the defect MEANS, not whether it is present.
 
 ## F206 (INDEX series) — `routine_cut` IS A REFUSAL COUNTER, NOT A SUCCESS COUNTER, and the block is one gate earlier: GUARD REACHABILITY
 
+> **THE LOCALISATION IS WITHDRAWN — `F213`. `routine_refused` has SEVEN write sites and I read
+> one.** The guard-reachability gate fires **0 of 640** refusals across both populations: it is
+> never reached. Measured, the block is **gate 1 live (89%: *no objective is confidently
+> shrinking*)** and **slot turnover on tapes (63%: *the selected objective's slot is not in this
+> frame*)**. **The counter analysis below stands in full; only the "where is the block" answer is
+> wrong.**
+
 **The reviewer asked, after withdrawing `used == 1`: *would `routine_cut` have the same denominator
 problem? I will not make this mistake twice in one night.* It does, and it is a different one.**
 
@@ -38641,3 +38648,71 @@ not is produce a plan at all.**
     CAPABILITY  the FEEDER, built tonight for S14.5's curriculum, turns out to be the only
                 condition under which procedure formation has EVER occurred. That was not why
                 it was built
+
+## F213 (INDEX series) — `routine_refused` HAS SEVEN WRITE SITES AND I READ ONE. The block is NOT guard reachability, and slot turnover appears TWICE
+
+**`F206` located the routine block at `all(self.can(g, before) == YES ...)`. That gate is never
+reached. It fires ZERO times in 640 refusals across both populations.**
+
+I found the site by grepping `routine_cut` and reading the block around it — **and stopped at the
+first `routine_refused` I saw, which is the last of seven.** The `reason` string was on every row
+the whole time.
+
+    grep -n '"routine_refused"' tether.py  ->  2168, 2175, 2183, 2208, 2213, 2260, 2307
+
+### the measured distribution, per population, tagged before comparing
+
+    LIVE (17 ledgers, 236 refusals)
+      89.4%   no objective is confidently shrinking                        <- GATE 1
+      10.2%   no action this agent has observed moves this slot the wanted way
+       0.4%   the objective already holds across its whole scope
+
+    TAPE (4 ledgers, 404 refusals)
+      62.9%   the selected objective's slot is not in this frame           <- SLOT TURNOVER
+      29.0%   no objective is confidently shrinking
+       4.5%   the objective already holds across its whole scope
+       3.7%   no action ... moves this slot the wanted way
+
+    "no candidate's guards are all reachable here"  ->  0 of 640, BOTH populations
+
+### what the two populations actually say, and it explains `F212`
+
+**LIVE: gate 1 is the wall. 89% of refusals are *no objective is confidently shrinking*** — which
+is precisely what the brief has said all along (*vc33: gate 1 NEVER opens*), now measured across 17
+ledgers rather than argued from two.
+
+**TAPE: gate 1 opens FAR more often — only 29% of refusals stop there.** What replaces it as the
+dominant blocker is **the selected objective's slot is not in this frame: 63%.**
+
+> **THAT IS SLOT TURNOVER, AND IT IS THE SAME MECHANISM `F209` FOUND KILLING FORMED ROUTINES.** It
+> appears TWICE in the chain: it blocks 63% of tape attempts BEFORE a plan exists, and it unbinds
+> the guard of the plans that do form.
+
+**And it explains `F212` without the story I refused to tell.** Routines form on tapes because gate
+1 opens there; they do not form live because gate 1 does not. **The mechanism is measured now, not
+guessed** — and it is not *the agent mints more on a tape*, which is the account I declined to
+publish.
+
+### what survives of F206, and what does not
+
+**SURVIVES:** `routine_cut` is a REFUSAL counter, not a success counter; the success event is
+`routine`; `routine_cut == 0` cannot distinguish broken from perfect from absent. **All still true
+and all still the reason that counter must not be cited.**
+
+**WITHDRAWN:** *the block is guard reachability, `can(guard) == YES` is never true for any
+candidate.* **The gate is never reached, so nothing is known about whether it would pass.**
+
+### the lesson, and it is this session's own rule failing at the last step
+
+**I applied *go to the write site* and stopped at the first site I found.** The rule as I have been
+running it says *find the line that assigns the value*; **it needs the plural — find EVERY line
+that assigns it, then measure which one fires.** One `grep -n` with the event name would have shown
+seven, and the `reason` field was published on every row precisely so this question needs no
+inference.
+
+    BOUNDARY    640 refusal rows, 21 ledgers, unmatched on board/depth/date between populations.
+                The 0-of-640 for guard reachability is a strong null but it is a null about a
+                gate that is DOWNSTREAM of the ones that fire -- it says unreached, not passing
+    MECHANISM   none changed. F206 corrected in its own row
+    CAPABILITY  none -- but the live/tape difference now has a measured mechanism instead of an
+                unexplained correlation
