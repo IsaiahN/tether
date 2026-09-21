@@ -40916,3 +40916,61 @@ be the answer.** Left open rather than asserted.
     MECHANISM   none changed
     CAPABILITY  none. It sizes the second erasure and finds it smaller than the first on two
                 boards and unmeasured on a third
+
+## F244 (INDEX series) — THE COST CONCLUSION IS REVERSED ON THE HEAVY BOARD. `sk48`: hit 6.5% → 22.8%, mints halved, TOTAL TIME −48%, and retrieval time FELL
+
+**`F240`/`F241` reported *net slower on all boards* as the one thing every board agreed on. That was
+three LIGHT boards generalised. The fourth board is the heavy one and it reverses the sign.**
+
+    board  arm    hit          hit%    mints   retrieval    mint      TOTAL      vs base
+    dc22   base     9 / 360     2.5%     12      56.1s    108.8s     164.9s
+    dc22   H       21 / 280     7.5%      0      99.3s     88.9s     188.2s      +14%
+    dc22   H+D      6 / 386     1.6%      0     427.4s     88.4s     515.8s     +213%
+    ls20   base     9 / 343     2.6%     13      40.3s    106.6s     146.9s
+    ls20   H        9 / 343     2.6%     13      83.2s    108.4s     191.6s      +30%
+    ls20   H+D     24 / 304     7.9%      0     186.4s     70.5s     256.9s      +75%
+    m0r0   base    11 / 404     2.7%     11      19.1s    116.0s     135.1s
+    m0r0   H       18 / 389     4.6%      9      41.4s    114.1s     155.5s      +15%
+    sk48   base   123 / 1902    6.5%     41     449.0s    643.8s    1092.8s
+    sk48   H      320 / 1404   22.8%     20     389.3s    181.0s     570.3s      -48%
+
+### `sk48` is the only board where retrieval time FALLS, and that is the mechanism
+
+**Everywhere else arm H roughly doubles retrieval time because the candidate stream is 86% larger.
+On `sk48` retrieval time DROPS `449 -> 389`** — because the hit rate went `6.5% -> 22.8%` and a
+lookup that succeeds early stops walking the library. **The extra candidates pay for themselves
+when they are found.**
+
+> **SO ARM H'S COST EFFECT SCALES WITH BOARD WEIGHT AND CHANGES SIGN.** On light boards the extra
+> generation costs more than the avoided mints save. **On the heavy board it saves 522 seconds.**
+> `sk48` carries 63 objects per frame median against `dc22`'s 40 and `m0r0`'s 10.
+
+**AND THAT IS THE CASE THAT MATTERS FOR PHASE 1**, because the full tape is dominated by heavy
+boards — `wa30` 1,565 frames, `lf52` 1,212, `dc22` 1,193, `re86` 1,072 — and the cost model that
+killed the first full run was built on per-cycle time at exactly that weight.
+
+### and the H+D cell is board-dependent in the opposite direction on each board
+
+    ls20   H alone INERT (2.6%)  ->  H+D 7.9%, mints 13 -> 0     the bargain rescues it
+    dc22   H alone 7.5%          ->  H+D 1.6%, WORSE than base   the bargain breaks it
+
+**`F240` said the generation and test halves are not independent. This shows they interact with
+OPPOSITE sign on two boards.** On `ls20` the guarded variants exist and only the bargain will admit
+them; on `dc22` the bargain refuses variants that `_explains` was accepting. **There is no
+combination that is right on both.**
+
+### what I got wrong and how
+
+**I generalised a cost conclusion from three boards that share a property — all light — and reported
+it as what all boards agree on.** The heavy board was still running when I wrote it. **`F241`
+already carried the warning in its own boundary (*"1 of 2 is not a rate"*) and I applied that to the
+hit rate and not to the cost.**
+
+    BOUNDARY    four boards, 20 cycles, one trained library. The H+D cells exist on TWO boards
+                only. Timings are wall clock, instrument wrapper on all arms equally, nothing
+                else running. `sk48`'s -48% is ONE board -- it is the only heavy board measured,
+                so "scales with weight" is a two-point trend over a 6x object-count range, not a
+                fitted relationship
+    MECHANISM   none changed; arms D and H remain default OFF
+    CAPABILITY  sk48 hit 6.5% -> 22.8% with mints halved and time nearly halved. That is the
+                first change tonight that improves capability and cost together
