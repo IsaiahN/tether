@@ -38583,3 +38583,61 @@ original was right.
                 (`long_*`) are the ones I just mis-joined, so they stand only for themselves
     MECHANISM   none changed. A perception-layer property measured without the agent
     CAPABILITY  none -- it removes a false narrowing I had already published
+
+## F212 (INDEX series) — EVERY ROUTINE THIS PROJECT HAS EVER FORMED CAME FROM WATCHING. Zero from playing, across 17 live ledgers
+
+**Populations tagged BEFORE comparing, which is the thing `F211` caught me failing to do one tick
+earlier.** A ledger written by `arc_holdout.play` is a LIVE board; one written by
+`feeder.watch`/`watch_many` is a TAPE. They are not the same experiment and the tag is a fact about
+which function wrote the file, not a judgement.
+
+    TAPE (watching a human)    4 ledgers    routine 3    routine_refused 404
+    LIVE (playing the board)  17 ledgers    routine 0    routine_refused 272
+
+    pooled25            routine 0   refused 166        long_ka59    0 /   9
+    pooled25_off4       routine 1   refused 188        long_ls20    0 /  14
+    coherent_ar25       routine 1   refused  26        long_tn36    0 /  60
+    guard_probe         routine 1   refused  24        long_vc33    0 /  45
+                                                       + 13 more arm/closure/split
+                                                         ledgers, all routine 0
+
+**Seventeen live ledgers spanning every arm, five boards and the whole arm A–E series: `routine 0`
+on every one. Three routines exist and all three came from a tape.**
+
+### the denominator, stated because `F202` cost a claim for want of one
+
+**`routine_refused` is the attempt counter** — a candidate set was assembled and every guard failed
+reachability. **The TAPE population attempted MORE (404 against 272) and produced all three.** So
+this is not *the tape simply ran longer*: normalised on attempts, live is `0/272` and tape is
+`3/404`.
+
+**It is still THREE.** A rate built on three events is not a rate, and I am not offering one.
+
+### and §14 predicted exactly this, before the feeder existed
+
+The lost replay-env is described in `§14` as feeding *the human solution frames to the agent's own
+perceive → bet → settle → mint loop, so the agent EARNS compositions from watching the human solve.*
+
+**This is the first measurement of that claim, and it is the first thing tonight that came out
+POSITIVE.** Everything else the feeder produced was a null: the ground never moved at any rung, at
+either pooled cut, or on either tape. **The one thing watching demonstrably does that playing does
+not is produce a plan at all.**
+
+### what it does NOT say
+
+- **NOT that the routines were useful.** All three died within 1–3 cycles with `exit=unbound`
+  (`F209`), and the ground reading never moved (`F203`, `F207`).
+- **NOT that the populations are matched.** Different boards, depths, dates and code versions. The
+  live ledgers are older and some predate instruments the tape runs carry.
+- **NOT a cause.** Why watching produces plans and playing does not is unexplained here, and the
+  obvious story — *the agent is wrong more often on a tape so it mints more material* — is exactly
+  the kind of satisfying account that cost three retractions tonight. **Recorded without it.**
+
+    BOUNDARY    3 routine events total. 4 tape ledgers vs 17 live, unmatched on board, depth and
+                date. `routine_refused` used as the attempt denominator, which is itself a
+                counter -- and this session's own lesson is to read the write site before
+                trusting one. I did: it is the `not ok` exit of `_mint_routine`'s guard gate
+    MECHANISM   none changed
+    CAPABILITY  the FEEDER, built tonight for S14.5's curriculum, turns out to be the only
+                condition under which procedure formation has EVER occurred. That was not why
+                it was built
