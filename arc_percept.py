@@ -360,6 +360,9 @@ class Objects:
         self.changes = {}
 
     def __call__(self, board: Any) -> dict[str, int]:
+        # AT CALL TIME, NOT AT IMPORT: `sensors` imports THIS module, so a module-level
+        # import is a cycle. By the time any board is decomposed `sensors` is fully loaded.
+        from sensors import NOT_RESOLVED
         if not hasattr(self, "_shapes"):
             self._shapes: dict = {}
         found = components(board)
@@ -476,17 +479,29 @@ class Objects:
             # `11` in the next run, so it cannot key anything that must survive either. That
             # is the placement-versus-identity split at run scope -- the index is a PLACEMENT,
             # and the frozenset under it is the identity.
-            # A COVERED OBJECT PUBLISHES NOTHING, AND THAT IS THE NON-READING §12.2 SPECIFIES
-            # -- *a value or an explicit non-reading, never a guess, never a default.* Every
-            # attribute here is computed from cells that include hidden ones, so publishing
-            # any of them asserts a reading of what nobody can see. Absence is what the
-            # record layer already treats as the non-reading: `pick` is
-            # `rec.get(key, NOT_RESOLVED)`.
-            if obj.get("covered"):
-                continue
-            sid = self._shapes.setdefault(obj["shape"], len(self._shapes))
+            # A COVERED OBJECT PUBLISHES `NOT_RESOLVED`, NOT NOTHING -- *NULL, NOT ABSENT*.
+            # Every attribute here is computed over a cell set that includes the hidden
+            # cells, so publishing a value asserts a reading of what nobody can see. But
+            # OMITTING the key says something else and something false: `env.slots()` is
+            # this dict's keys, so an omitted key means THE OBJECT IS GONE and `_present`
+            # pops its bindings.
+            #
+            # The corpus draws the line three times and the seat had to be told: Layer 5 of
+            # PERCEPTION_PIPELINE -- *where an attribute cannot be read it is NULL, NOT
+            # ABSENT; null records "the instrument could not see it here", which is a
+            # different claim from "the thing is not there"*; WHAT_THE_AGENT_SEES says it in
+            # those words; TRAINING_PLAN initialises the schema null. §12.2 is the same line
+            # one layer down. **The slot leaves the set when the OBJECT is gone -- departed,
+            # fragmented, merged -- never when it is merely unreadable.**
+            #
+            # Suspension then needs nothing: `_predict` already returns None on
+            # NOT_RESOLVED, so a covered slot is not bet on, no residual is claimed, and
+            # `refute` never fires. Judgement resumes when the values come back.
+            covered = bool(obj.get("covered"))
             for attr in ("row", "col", "h", "w", "colour", "drow", "dcol"):
                 if attr in obj:
-                    state[f"{name}.{attr}"] = int(obj[attr])
-            state[f"{name}.shape"] = sid
+                    state[f"{name}.{attr}"] = NOT_RESOLVED if covered else int(obj[attr])
+            state[f"{name}.shape"] = (
+                NOT_RESOLVED if covered
+                else self._shapes.setdefault(obj["shape"], len(self._shapes)))
         return state

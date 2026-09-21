@@ -818,7 +818,15 @@ class Agent:
         if term.operand_term is not None:
             value = term.operand_term.apply(value, Ctx(operands=(value,)))
             if value is NOT_RESOLVED:
-                return ()
+                # `None`, NOT `()` -- RULED 2026-09-21. The docstring above argued an
+                # unreadable branch may fall back to "no operand" because that is the
+                # identity every operand-reading atom already takes. But the identity is
+                # a CLAIM: `_translate` returning `v` asserts no translation happened,
+                # where the truth is that nobody could tell. 12.2 forbids exactly that --
+                # *a value or an explicit non-reading, never a guess, never a default.*
+                # `()` means NO OPERAND; `None` means AN OPERAND THAT CANNOT BE READ, and
+                # every evaluating caller turns it into NOT_RESOLVED or unexplained.
+                return None
         return (value,)
 
     def _narrate_placements(self) -> None:
@@ -1017,7 +1025,18 @@ class Agent:
         `out_type` and `slot_types` -- are already here.
         """
         term = self.gamma.library[self.bound.get(slot, IDN)]
-        ctx = Ctx(action=action, operands=self._ops(term, state),
+        # AND AN UNREADABLE OPERAND IS AN INAPPLICABLE TERM -- `_applies` already says so
+        # ("cannot be applied where that operand did not exist"), and a COVERED object is
+        # absent for exactly that reason. `_left` and `_residual_obs` consult it and the
+        # three evaluating callers did not. None here is the documented non-reading, and
+        # NOT an empty operand tuple, which would make `_translate` return `v` unchanged
+        # and thereby assert no translation happened.
+        if not self._applies(term, state):
+            return None
+        ops = self._ops(term, state)
+        if ops is None:
+            return None
+        ctx = Ctx(action=action, operands=ops,
                   touching=self._touching(slot), group=self._group(slot, state),
                   obj=self._record(slot, state), shapes=self._shapes_now())
         got = self._value_of(term, slot, state, ctx)
@@ -1533,8 +1552,12 @@ class Agent:
             if not self._applies(term, state):
                 total += math.log2(self.alphabet[slot])   # inapplicable is unexplained
                 continue
+            ops = self._ops(term, state)
+            if ops is None:
+                total += math.log2(self.alphabet[slot])   # unreadable operand, unexplained
+                continue
             got = self._value_of(term, slot, state,
-                                 Ctx(action=action, operands=self._ops(term, state),
+                                 Ctx(action=action, operands=ops,
                                      touching=None,      # replay: contact unknown
                                      group=self._group(slot, state),
                                      obj=self._record(slot, state),
@@ -1621,8 +1644,12 @@ class Agent:
             if not self._applies(term, state):
                 out.append((state, action, actual))   # inapplicable is unexplained
                 continue
+            ops = self._ops(term, state)
+            if ops is None:
+                out.append((state, action, actual))   # unreadable operand, unexplained
+                continue
             got = self._value_of(term, slot, state,
-                                 Ctx(action=action, operands=self._ops(term, state),
+                                 Ctx(action=action, operands=ops,
                                      touching=None,      # replay: contact unknown
                                      group=self._group(slot, state),
                                      obj=self._record(slot, state),
@@ -1653,6 +1680,8 @@ class Agent:
                 wrong += 1                            # inapplicable is unexplained
             elif self._out_of_step_range(term, slot, state, actual):
                 wrong += 1                            # P6: no reachable value equals `actual`
+            elif self._ops(term, state) is None:
+                wrong += 1                            # unreadable operand is unexplained
             else:
                 got = self._value_of(term, slot, state,
                                      Ctx(action=action, operands=self._ops(term, state),
@@ -1940,9 +1969,13 @@ class Agent:
         """
         name = self.bound.get(slot)
         term = self.gamma.library.get(name) if name else None
-        if term is None or getattr(term, "out_type", None) != OBJ_TYPE or slot not in state:
+        if (term is None or getattr(term, "out_type", None) != OBJ_TYPE
+                or slot not in state or not self._applies(term, state)):
             return NOT_RESOLVED
-        ctx = Ctx(action=self._last_action or "", operands=self._ops(term, state),
+        ops = self._ops(term, state)
+        if ops is None:
+            return NOT_RESOLVED
+        ctx = Ctx(action=self._last_action or "", operands=ops,
                   touching=self._touching(slot), group=self._group(slot, state),
                   obj=self._record(slot, state), shapes=self._shapes_now())
 
@@ -1992,7 +2025,14 @@ class Agent:
         if not group:
             _why(why, "empty-group")
             return None
-        ctx = Ctx(action=self._last_action or "", operands=self._ops(term, state),
+        if not self._applies(term, state):
+            _why(why, "operand-unreadable")
+            return None
+        ops = self._ops(term, state)
+        if ops is None:
+            _why(why, "operand-unreadable")
+            return None
+        ctx = Ctx(action=self._last_action or "", operands=ops,
                   touching=self._touching(slot), group=group,
                   obj=self._record(slot, state))
 
@@ -3440,7 +3480,13 @@ class Agent:
 
     def _utter(self, action: str, before: dict[str, int], focal: str) -> tuple[str, list]:
         see = [G.compose(G.SEE, G.Leaf(G.T.OBJECT, s), G.Leaf(G.T.REGION, s),
-                         G.Leaf(G.T.ATTR, before[s])) for s in self.slots]
+                         G.Leaf(G.T.ATTR, before[s])) for s in self.slots if s in before]
+        # OVER THE SLOTS THAT HAVE A VALUE, WHICH IS `perceive`'s OWN IDIOM: *the slot
+        # set can move WITHIN a step, so the bet is over `before`.* A COVERED object is
+        # in `self.slots` (it exists) and not in `before` (it cannot be read), and the
+        # agent cannot SAY it sees an attribute it never read. Every other consumer of
+        # the pair already guards this way -- `_discrepancy`'s `slot not in state`, the
+        # group vector's `any(x not in state)`. This was the one site indexing blind.
         per = G.compose(G.PERCEIVE, *see)
         pid = f"p{self.cycle}"
 

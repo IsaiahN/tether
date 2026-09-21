@@ -409,7 +409,23 @@ class ArcWorld:
         return self._frame.frame[-1]
 
     def observe(self) -> dict[str, int]:
-        return dict(self._decomposed())
+        """VALUES ONLY, AND THE NON-READINGS ARE STRIPPED HERE ON PURPOSE -- ruling (b).
+
+        `_decomposed` publishes `NOT_RESOLVED` for a COVERED object's attributes: the object
+        exists and cannot be read. Every other reader of `_decomposed` -- `slots`,
+        `alphabet`, `slot_types`, `read_order` -- iterates KEYS, so they all learn the object
+        is still there, and `_present`'s `gone` loop therefore keys on OBJECT absence rather
+        than value absence. **That is the half of the ruling that keeps the binding alive.**
+
+        This reader wants VALUES, and there is no value. Handing the sentinel on would put a
+        non-int into a stream typed `dict[str, int]` that is differenced, modulo'd and
+        compared by ~48 atoms -- five crash sites in one run before this boundary was moved
+        here. Omitting it costs nothing that is wanted: `perceive` bets only over slots
+        present in `before`, `history` requires both endpoints, and `_record`'s `pick` is
+        `rec.get(key, NOT_RESOLVED)` -- so the agent still READS NOT_RESOLVED, and the
+        suspension falls out of machinery that already existed.
+        """
+        return {k: v for k, v in self._decomposed().items() if v is not sensors.NOT_RESOLVED}
 
     def step(self, action: str, x: int | None = None, y: int | None = None) -> None:
         act = GameAction[action]
