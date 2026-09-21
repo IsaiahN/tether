@@ -39465,3 +39465,59 @@ record has been reporting disagrees with the quantity that survives.
     MECHANISM   none changed
     CAPABILITY  none. The run's value is that it priced the question and showed the instrument
                 cannot answer it -- which is what the reviewer asked the cheap version to find out
+
+## F222 (INDEX series) — PRE-REGISTRATION: the atoms-only control on three more boards. `n=1` cannot separate a dead channel from a capped board
+
+**Reviewer, 11:11, ruling on `F220` as reported: the atoms-only arm is the one measurement that
+separates *the curriculum did nothing* from *the instrument cannot see a library at all* — and it
+becomes a STANDING CONTROL on every run from here. But one probe board has two readings pointing
+opposite ways:**
+
+    the library genuinely does not reach the ground   -> the consumer is the problem
+    dc22 can only ever register one signature         -> the null is the BOARD's, and the
+                                                         library may reach the ground elsewhere
+
+**They also withdrew their own recommendation to Isaiah that the spacing ladder be re-run with
+per-rung snapshots** — *any curriculum is unscorable while the ground reads identically with zero
+library.* **And they declined to route the consumer question until this measurement exists:** *that
+is a measurement, not a ruling.*
+
+### the config, declared
+
+    boards      ls20, m0r0, sk48 -- taken from the LEDGER's OWN open item (`distinct-effect
+                counts unknown for ls20/m0r0/sk48/wa30`), NOT selected by me and NOT selected
+                on any property of the answer keys
+    arms        atoms-only (48, zero trained terms) vs the pooled offset-4 library (401 terms,
+                20 compositions). Trained on all 25 pooled, so it is not dc22-specific and is
+                appropriate on any board
+    cycles      25, the probe's own default, unchanged
+
+### POWER, STATED BEFORE THE RUN — the boards have room to show a difference
+
+    board   chunks   non-trivial   DISTINCT SIGNATURES AVAILABLE
+    dc22      152        150              120
+    ls20       72         71               63
+    m0r0      125        123               58
+    sk48       91         88               88
+    wa30      202        200              184
+    sp80       63         61               31
+
+**None of the three is capacity-limited**, so a null on them is not an artefact of a thin key. This
+is the panel property stated before the null, which is the rule this file already carries.
+
+### THE PREDICTIONS
+
+- **`hit` IDENTICAL between arms on all three boards.** The `F220` divergence at cycle 16 shows the
+  library already changes what the agent DOES, and the ground did not register it; nothing about
+  `dc22` is special with respect to the consumer.
+- **`distinct` identical between arms on all three.**
+- **FALSIFIER, and it is the better outcome:** *any* board where the arms separate means `dc22` was
+  the ceiling, my contact diagnosis does not generalise, and the library reaches the ground
+  somewhere. **I would rather be wrong here.**
+
+**AND THE REVIEWER'S NEW STANDING RULE, ADOPTED: no verdict without its denominator beside it.**
+Three vacuous comparisons in two days, the last an `IDENTICAL: True` over two empty lists, caught
+only because the row count was printed next to it.
+
+    BOUNDARY    PRE-REGISTRATION, no result. Three boards, two arms, 25 cycles, one trained
+                library. It cannot speak for the other 21 boards
