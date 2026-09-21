@@ -140,10 +140,13 @@ invisible the moment it stopped being anyone's next action.***
 
 | item | state |
 |---|---|
-| ~~Pooled 25-game run~~ | **DONE, and the bar was NOT met.** `probe 9/150`, **1 of 120 distinct effects** — identical to the ladder and to the untrained baseline. `library 48 → 329`, **281 minted**, contact change **ZERO**. **ARM B**: settling `0.025/cycle` against rung 1's `0.250` — ten times worse at the strongest shuffle, which **refutes §14.5 phase 1's own premise** (*the shared compositions settle hard as invariants*). `routine_cut` **0 across 199 cycles**. Term-level reuse genuinely `x5.10` and it bought nothing. See `F203`. |
-| **A SECOND pooled run at a different offset/seed** | **NOW THE FIRST THING OWED.** `F203` rests on ONE run at offset 0, seed 1618, `take=1` (~8 frames per game). The §14.5 refutation is a 10x margin so it survives noise, but **every reading in this session is one cut of one tape.** |
+| ~~Pooled 25-game run~~ | **DONE at TWO cuts. The bar was NOT met at either.** `9/150`, **1 of 120 distinct effects**, offset 0 AND offset 4. `library 48 → 329` / `→ 401`; minted 281 / 353; contact change **ZERO** both times. **`F203`, `F207`.** *(My ARM B and §14.5 readings on this run are RETRACTED — see below.)* |
+| ~~A second pooled run at a different offset~~ | **DONE — `F207`.** §14.4's offset augmentation, run for the first time. **The bar replicates to the digit at an independent cut**, so the null is not an artifact of where the chunks were cut. Everything else moved (+72 library, +72 mints, +61 reuse); the ground did not. |
+| **F208's FALSIFIER — a switch-free tape** | **RUNNING.** `ar25`, `take=8 spacing=8`, one block, no game switches by construction. **If a routine forms and still dies in one cycle, the game switch was not the cause and `F208` is WRONG.** |
+| ~~`goal_residual`'s five `None` exits~~ | **BUILT — `3927d5e`.** The deferral was reversed BY EVIDENCE: the first routine ever formed died on exactly that `None`. `goal_residual` now names its exit; `_holds` records a `guard_unreadable` row. **It fired once and answered the question.** |
 | **Phase 3, the noise floor** | **BUILT 2026-09-20** (`eb18517`), chunk-granularity, verified as a permutation. **NEVER RUN.** |
-| **OFFSET AUGMENTATION** | Wired everywhere, **never run at a non-zero offset. EVERY reading in this whole session is at offset 0 — one arbitrary cut.** |
+| ~~OFFSET AUGMENTATION~~ | **RUN at last (`F207`, offset 4).** The single-game ladder and pooled run 1 remain offset-0 only. |
+| **ROUTINE FORMATION, as distinct from survival** | `F208` explains why the ONE routine died. **It says NOTHING about why routines almost never FORM** — the four-rung ladder read `routine 0` at every rung. Two different failures; only the first is explained. |
 | **`goal_residual`'s five `None` exits** | A reason-code would close `F189`'s open item. Cheap, named, **deliberately deferred** — *you cannot diagnose your way to a composer.* |
 | **A pooled SPACING ladder** | Needs `take>=8` = 1,525 frames = **~68 h. NOT AFFORDABLE** at current mint cost (`F194`). |
 | **Phase 2 (the 249)** | The VALIDATION set, before the architecture freezes. Not the guide curriculum — see the collisions section. |
@@ -153,7 +156,13 @@ invisible the moment it stopped being anyone's next action.***
 
 `F200` the spacing sweep, complete and flat · `F196` probe ceiling 100% on all 25 boards, so the
 nineteen zeros are real · `F190` what the carry carries, verified 4/4 · `F192` provenance rotation ·
-`F201` the `level: null` bug, fixed · `F188` gate 3's tie is genuinely saturated.
+`F201` the `level: null` bug, fixed · `F188` gate 3's tie is genuinely saturated ·
+**`F207` the bar replicates at two independent cuts** · **`F208` the first routine was killed by a
+GAME SWITCH — a routine's guard is a BINDING, the pooled tape swaps boards every 8 frames, so
+§14.5 phase 1 cannot support procedure formation BY CONSTRUCTION** ·
+**THE CODEBASE IS DETERMINISTIC** — no betting-path module imports randomness (`gamma`'s only use
+is the handle suffix, which no decision reads), verified by a rerun reproducing a routine at the
+same cycle. **A captured failure can always be re-entered with a better instrument.**
 
 ### RETRACTED — do not quote these, they are wrong
 
@@ -161,6 +170,14 @@ nineteen zeros are real · `F190` what the carry carries, verified 4/4 · `F192`
 - **`F193`'s library-integral cost account** — refuted by rung 3.
 - **`F199`'s §14.5 `settle hard` reading** — `settled` is not monotone (`16→10→4→9`).
 - **"19 of 38 gate-1 survivors already hold"** — unsourced; measured overlap is 1 slot in 1 run.
+- **`F203`'s ARM B and its §14.5 refutation** — `settled` is a TERMINAL count. The ledger shows
+  **settle 89 / demote 84**, so confirmation happened 89 times; and the ladder's gross counts are
+  unrecoverable, so no ladder-vs-pooled settling comparison exists (`F204`).
+- **`routine_cut == 0` as evidence of anything** — it is a REFUSAL counter downstream of a gate
+  that never opens (`F206`). The success event is `routine`, and it fired ONCE (`F207`).
+- **`used == 1` as evidence of anything** — it counts TERM+OPERAND, and operands are slot names
+  that never recur, so it is **pinned at 1 by construction** (`F205`). The reviewer withdrew their
+  synthesis over this.
 - **the `secs` column, rungs 2–3** — contaminated by my own measurement runs.
 
 **Three of those five are mine from tonight, and all three came from giving a cause to three
