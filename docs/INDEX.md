@@ -40073,3 +40073,56 @@ ground settled it" and there is no atom for truth, verification, or a claim bein
                 independently verified against `compose()`
     MECHANISM   none changed -- and DELIBERATELY, because the spec says not to
     CAPABILITY  none
+
+## F231 (INDEX series) — THE FULL PHASE-1 RUN WAS KILLED: cost per cycle went 18 → 37 → 94 s and is DIVERGING, not saturating. 387 h projected and rising
+
+**Launched at full scale (14,822 frames, all 1,927 chunks). Killed at cycle 70.**
+
+    cycles  0-23     18 s/cycle      (profiler contending -- contaminated, reported anyway)
+    cycles 23-57     37 s/cycle      (contended)
+    cycles 57-70     94 s/cycle      CLEAN -- the contending job was killed first
+
+**At 94 s/cycle the run is 387 hours, and the marginal rate was still climbing.** §14.5b says cost
+*is driven by library size and SATURATES rather than exploding*. **On this tape it is not
+saturating**, and the killed run is the evidence.
+
+> **THIS IS NOT A BUDGET CALL AND I DID NOT TREAT IT AS ONE.** A run whose marginal cost is rising
+> faster than its progress does not complete at any budget. **The configuration is refuted, not
+> expensive.**
+
+### and it makes `F229`'s hypothesis the critical path rather than an aside
+
+**94% of mints re-derive a recipe already held.** Library grows → per-cycle cost grows → and
+almost all of that growth is duplicates. **Measurement running: per-cycle wall time against library
+size, distinct chains and duplicate count, stepped from OUTSIDE the agent so nothing on the acting
+path changes.**
+
+### PRE-REGISTERED — what the retrieval fix must move, before it is built
+
+**Reviewer's ruling, 14:36: the bonds build is WITHDRAWN (the spec forbids it and the price formula
+agrees it is a re-baseline); retrieval goes first, because it is the only lever that shortens the
+run everything else waits on.**
+
+    quantity                  now                       what the fix must do
+    duplicate mint rate       94.3% (pooled off4)       FALL. If it does not, the fix missed
+    distinct compositions     20 per 353 mints          RISE PER MINT, or hold while mints fall
+    per-cycle cost curve      18 -> 37 -> 94 s          FLATTEN. This is the one that decides
+                                                        whether phase 1 is runnable at all
+    atoms-only control        standing, every probe     unchanged -- it is the null, not a target
+    ground (hit/distinct)     9/150, 1 of 120           NO PREDICTION. F220-F223 showed the probe
+                                                        cannot see a library at all, so a move
+                                                        here would need its own explanation
+
+**FALSIFIER: if the cost curve flattens and the duplicate rate does NOT fall, the duplicates were
+not the cost and this account is wrong.** The two are separable and the measurement reports both.
+
+**AND THE VACUITY GUARD:** `translate . recolour` was minted 137 times, so the duplicate count is
+nowhere near zero in the control — **this comparison has a non-zero baseline, which is the check
+that failed three times this session.**
+
+    BOUNDARY    the rate series is THREE intervals from ONE run, and the first two were measured
+                while a profiler contended -- only the 57-70 interval is clean, and it is 13
+                cycles. The divergence claim rests on that interval plus the monotone trend; it
+                is not a fitted curve and no exponent is claimed
+    MECHANISM   none changed. A run killed on evidence
+    CAPABILITY  none
