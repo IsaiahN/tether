@@ -217,7 +217,7 @@ def check_one_bargain():
     ag = _agent()
     b = dict(ag.env.observe())
     _wide(ag)
-    ag.goal_residual = lambda _s, _st: 0.02   # a real residual, too small to buy a plan
+    ag.goal_residual = lambda _s, _st, **_k: 0.02  # a real residual, too small to buy a plan
     rows = _mint(ag, b)
     assert ag.routine is None, "bought a plan the bargain could not afford"
     assert any(e.detail.get("reason") == "does-not-pay" for e in rows), "wrong reason"
@@ -394,7 +394,7 @@ def check_a_plan_that_succeeds_shelves_itself():
     ag = _agent()
     slot = _wide(ag)
     b = dict(ag.env.observe())
-    ag.goal_residual = lambda _s, _st: 0.0     # the guard holds: the scope is satisfied
+    ag.goal_residual = lambda _s, _st, **_k: 0.0   # the guard holds: the scope is satisfied
     r = Rt.Until(slot, Rt.Act(ag.actions[1]), 3)
     ag.routine, ag.routine_for = r, slot
     n0 = len(ag.led.entries)

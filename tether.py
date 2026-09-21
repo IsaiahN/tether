@@ -383,6 +383,14 @@ def _where(state: dict[str, int]) -> tuple:
     return tuple(sorted(state.items()))
 
 
+def _why(d: dict | None, reason: str) -> None:
+    """Name which `None` a None was. Out-param rather than a ledger row because
+    `goal_residual` runs per slot per step and a row per call would drown the trace -- only the
+    GUARD read records, which is the one place the question is live (F207)."""
+    if d is not None:
+        d["exit"] = reason
+
+
 class Agent:
     def __init__(self, env: Any, gam: Gamma, cfg: Config | None = None,
                  led: Ledger | None = None) -> None:
@@ -1846,7 +1854,8 @@ class Agent:
                              self.alphabet[slot])
 
     def goal_residual(self, slot: str, state: dict[str, int],
-                      counts: dict | None = None) -> float | None:
+                      counts: dict | None = None,
+                      why: dict | None = None) -> float | None:
         """`R_goal = 1 - degree`, over the slot's peer group as the scope.
 
         **THIS IS THE QUANTITY §14.4 PRICES THE ACT SPACE AGAINST, AND P5 WAS KEYED ON ANOTHER
@@ -1863,10 +1872,26 @@ class Agent:
         """
         name = self.bound.get(slot)
         term = self.gamma.library.get(name) if name else None
-        if term is None or getattr(term, "out_type", None) != OBJ_TYPE or slot not in state:
+        # WHICH None, NOT THAT None -- F207. This function has five None exits and they are
+        # different facts: nothing bound is a SUPPLY claim, the wrong out_type is a TYPE claim,
+        # an absent slot is a PERCEPTION claim, an empty group is a SCOPE claim. The first
+        # routine this project ever formed died at `routine_end: blocked`, which means
+        # `holds(guard)` read None -- and nothing recorded which of the five.
+        if name is None:
+            _why(why, "unbound")
+            return None
+        if term is None:
+            _why(why, "name-not-in-library")
+            return None
+        if getattr(term, "out_type", None) != OBJ_TYPE:
+            _why(why, "out_type-not-OBJ")
+            return None
+        if slot not in state:
+            _why(why, "slot-absent-from-state")
             return None
         group = self._group(slot, state)
         if not group:
+            _why(why, "empty-group")
             return None
         ctx = Ctx(action=self._last_action or "", operands=self._ops(term, state),
                   touching=self._touching(slot), group=group,
@@ -1876,7 +1901,10 @@ class Agent:
             r = term.apply(v, ctx)
             return None if r is NOT_RESOLVED else bool(r)
         deg = objective_degree(_sat, group, counts)
-        return None if deg is None else 1.0 - deg
+        if deg is None:
+            _why(why, "degree-unresolved")
+            return None
+        return 1.0 - deg
 
     def can(self, slot: str, state: dict[str, int]) -> str:
         """`CAN(P)` — §14.3's affordance, and it is **ACHIEVABLE, not SATISFIABLE.**
@@ -2035,7 +2063,18 @@ class Agent:
             # routine raised to close a population's residual, terminating when one slot is
             # satisfied, is a plan whose success condition is not the thing that summoned it**;
             # measured, it exhausted every time and was re-minted identically forever.
-            rg = self.goal_residual(guard, state)
+            why: dict = {}
+            rg = self.goal_residual(guard, state, why=why)
+            if rg is None:
+                # THE ROW THAT DID NOT EXIST WHEN THE FIRST ROUTINE DIED. `routine_end:
+                # blocked` means only *the guard was unreadable*; `routine.py` is explicit that
+                # this is not *the guard is false*. Which of `goal_residual`'s five Nones fired
+                # is a different fact each time -- supply, type, perception or scope -- and no
+                # artifact could say. F207: the first routine this project formed died here.
+                self.led.record(self.cycle, "PLAN", guard, "guard_unreadable",
+                                exit=why.get("exit", "unknown"),
+                                bound=self.bound.get(guard),
+                                note="BLOCKED is 'could not read', never 'does not hold'")
             return None if rg is None else rg <= 0.0
         return holds
 
