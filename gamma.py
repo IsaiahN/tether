@@ -100,6 +100,15 @@ class Ctx:
     # so the record the OBJECT-typed atoms need is recoverable from the same `dict[str, int]`
     # the loop already holds -- live at the bet, historical on replay, one assembler both.
     obj: dict | None = None
+    # THE SHAPE DECODER -- `{published id: the normalised offset frozenset}`. The published slot
+    # carries an episode-local integer and every SHAPE atom guards on a frozenset, so seven atoms
+    # read NOT_RESOLVED on every call (F242, measured 0 of 40). `arc_world.shapes()` computes this
+    # inverse and had no callers.
+    #
+    # IT PASSES THE FIELD TEST ABOVE, WHICH IS WHY IT MAY BE HERE: it is a DECODER, not state.
+    # Knowing that id 3 stands for a particular cell pattern says nothing about what the action
+    # will do -- there is no outcome in it, so the tautology guard is untouched.
+    shapes: dict | None = None
 
 
 @dataclass(frozen=True)

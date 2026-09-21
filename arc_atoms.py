@@ -324,7 +324,18 @@ def _shape_more() -> list[Atom]:
     atoms on one arrow are two chains. My own note calling them *semantics on an arrow that
     already exists, worth nothing structurally* was wrong, and measured so.
     """
+    def _shape(v: Any, c: Ctx) -> Any:
+        """ARM I -- the published SHAPE slot is an episode-local INT and every atom below
+        guards on a frozenset, so all seven read NOT_RESOLVED on every call (F242: 0 of 40).
+        `Ctx.shapes` carries the decoder `arc_world.shapes()` already computed and nobody read.
+        Returns the frozenset, or `v` unchanged when there is nothing to decode."""
+        if isinstance(v, frozenset):
+            return v
+        m = getattr(c, "shapes", None) if c is not None else None
+        return m.get(v, v) if isinstance(m, dict) else v
+
     def _bbox(v: Any, _c: Ctx) -> Any:
+        v = _shape(v, _c)
         if not isinstance(v, frozenset) or not v:
             return NOT_RESOLVED
         rs = [r for r, _ in v]
@@ -332,6 +343,7 @@ def _shape_more() -> list[Atom]:
         return (max(rs) - min(rs) + 1) * (max(cs) - min(cs) + 1)
 
     def _perimeter(v: Any, _c: Ctx) -> Any:
+        v = _shape(v, _c)
         # EXPOSED EDGES, not the bounding-box outline: a cell contributes one edge per
         # neighbour it does NOT have, which counts the boundary of a concave shape correctly.
         if not isinstance(v, frozenset) or not v:
@@ -340,6 +352,7 @@ def _shape_more() -> list[Atom]:
                    for nb in ((r+1, c), (r-1, c), (r, c+1), (r, c-1)) if nb not in v)
 
     def _corners(v: Any, _c: Ctx) -> Any:
+        v = _shape(v, _c)
         # A CONVEX CORNER is a cell with two orthogonal neighbours missing.
         if not isinstance(v, frozenset) or not v:
             return NOT_RESOLVED
@@ -361,6 +374,7 @@ def _shape_more() -> list[Atom]:
         return out
 
     def _canonical(v: Any, _c: Ctx) -> Any:
+        v = _shape(v, _c)
         # THE LEAST OF THE EIGHT DIHEDRAL IMAGES -- a shape's identity under rotate/reflect,
         # which is what makes two differently-oriented copies comparable at all.
         if not isinstance(v, frozenset) or not v:
@@ -368,17 +382,20 @@ def _shape_more() -> list[Atom]:
         return min(_dihedral(v), key=lambda f: sorted(f))
 
     def _orbit(v: Any, _c: Ctx) -> Any:
+        v = _shape(v, _c)
         if not isinstance(v, frozenset) or not v:
             return NOT_RESOLVED
         return len(set(_dihedral(v)))
 
     def _symmetric(v: Any, _c: Ctx) -> Any:
+        v = _shape(v, _c)
         if not isinstance(v, frozenset) or not v:
             return NOT_RESOLVED
         m = max(c for _, c in v)
         return frozenset((r, m - c) for r, c in v) == v
 
     def _is_square(v: Any, _c: Ctx) -> Any:
+        v = _shape(v, _c)
         if not isinstance(v, frozenset) or not v:
             return NOT_RESOLVED
         rs = [r for r, _ in v]

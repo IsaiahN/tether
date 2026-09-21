@@ -90,6 +90,16 @@ _REBIND_HELD = bool(os.environ.get("TETHER_REBIND_HELD"))
 # it, so handing retrieval the observation is giving it the event it was specified to key on.
 _GUARD_AXIS = bool(os.environ.get("TETHER_GUARD_AXIS"))
 
+# ARM I -- DECODE THE SHAPE STAND-IN. `arc_percept` computes the normalised offset frozenset every
+# frame and publishes an episode-local INT in its place; every SHAPE atom guards on a frozenset, so
+# seven of the 48 read NOT_RESOLVED on every call -- measured 0 of 40 (F242). `arc_world.shapes()`
+# is the inverse map, built for exactly this, with zero callers. This hands it to the atoms through
+# `Ctx` and changes NOTHING about what is published: the slot value, the alphabet and the bargain's
+# inputs are untouched. RELATIONS.md calls it "a build and not a decision to revisit ... no new
+# sensor, no entry rule, no exemption". DEFAULT OFF, because it makes seven dead atoms live and
+# that moves the closure.
+_SHAPE_DECODE = bool(os.environ.get("TETHER_SHAPE_DECODE"))
+
 
 def _head_accepts(cand: Any, slot_type: str | None) -> bool:
     """Does the candidate's HEAD atom accept what the slot actually holds?
@@ -430,6 +440,14 @@ class Agent:
         # absence before the first `retarget` was masked by an early return. Feeding the
         # denominator unconditionally is what surfaced it.
         self._last_action: str | None = None
+        # AND THE SAME FOR THESE FOUR, ADDED 2026-09-21 AND ALL PUT IN `retarget` ONLY.
+        # The comment above records this exact bug once already. A fresh Agent that is read
+        # before its first `retarget` raises AttributeError -- which is how `_shape_cache` was
+        # caught, by constructing an Agent directly in a measurement instead of through `play`.
+        self._guard_exit: str | None = None
+        self._gamma_read: dict = {}
+        self._held_chains: set[str] = set()
+        self._shape_cache: tuple = (-1, None)
         self.alphabet = self._alphabets(env)
         self.slot_types = self._slot_types(env)
         self.cfg = cfg if cfg is not None else Config()
@@ -692,6 +710,7 @@ class Agent:
         self._guard_exit: str | None = None   # why the last guard read was unreadable
         self._gamma_read: dict = {}   # did action selection consult Gamma this cycle
         self._held_chains: set[str] = set()   # recipes in the library, per mint call
+        self._shape_cache: tuple = (-1, None)   # (cycle, decoder) -- Ctx is built per candidate
         self.candidates = {}
         # a new level is a new instrument: the verdict was about the OLD slot set
         self._said_never_live = False
@@ -1000,7 +1019,7 @@ class Agent:
         term = self.gamma.library[self.bound.get(slot, IDN)]
         ctx = Ctx(action=action, operands=self._ops(term, state),
                   touching=self._touching(slot), group=self._group(slot, state),
-                  obj=self._record(slot, state))
+                  obj=self._record(slot, state), shapes=self._shapes_now())
         got = self._value_of(term, slot, state, ctx)
         return None if got is NOT_RESOLVED else got % self.alphabet[slot]
 
@@ -1518,7 +1537,8 @@ class Agent:
                                  Ctx(action=action, operands=self._ops(term, state),
                                      touching=None,      # replay: contact unknown
                                      group=self._group(slot, state),
-                                     obj=self._record(slot, state)))
+                                     obj=self._record(slot, state),
+                                     shapes=self._shapes_now()))
             if got is NOT_RESOLVED:
                 total += math.log2(self.alphabet[slot])   # unread is unexplained
                 continue
@@ -1551,6 +1571,19 @@ class Agent:
         return out
 
     # -- steps 3 to 5 -------------------------------------------------------------------
+
+    def _shapes_now(self) -> dict | None:
+        """The shape decoder for this cycle, or None. CACHED PER CYCLE because `Ctx` is built once
+        per candidate and `shapes()` rebuilds its dict on every call -- putting it in the Ctx
+        constructor would pay for it thousands of times a step."""
+        if not _SHAPE_DECODE:
+            return None
+        c, m = self._shape_cache
+        if c != self.cycle:
+            f = getattr(self.env, "shapes", None)
+            m = f() if f is not None else None
+            self._shape_cache = (self.cycle, m)
+        return m
 
     @staticmethod
     def _slot_types(env) -> dict[str, str]:
@@ -1592,7 +1625,8 @@ class Agent:
                                  Ctx(action=action, operands=self._ops(term, state),
                                      touching=None,      # replay: contact unknown
                                      group=self._group(slot, state),
-                                     obj=self._record(slot, state)))
+                                     obj=self._record(slot, state),
+                                     shapes=self._shapes_now()))
             if got is NOT_RESOLVED or got % self.alphabet[slot] != actual % self.alphabet[slot]:
                 out.append((state, action, actual))
         return out
@@ -1624,7 +1658,8 @@ class Agent:
                                      Ctx(action=action, operands=self._ops(term, state),
                                          touching=None,  # replay: contact unknown
                                          group=self._group(slot, state),
-                                         obj=self._record(slot, state)))
+                                         obj=self._record(slot, state),
+                                         shapes=self._shapes_now()))
                 wrong += (got is NOT_RESOLVED
                           or got % self.alphabet[slot] != actual % self.alphabet[slot])
             if cost + unit * wrong >= base:
@@ -1909,7 +1944,7 @@ class Agent:
             return NOT_RESOLVED
         ctx = Ctx(action=self._last_action or "", operands=self._ops(term, state),
                   touching=self._touching(slot), group=self._group(slot, state),
-                  obj=self._record(slot, state))
+                  obj=self._record(slot, state), shapes=self._shapes_now())
 
         def _sat(v: int) -> bool | None:
             r = term.apply(v, ctx)
