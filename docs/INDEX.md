@@ -38282,3 +38282,72 @@ it is the one unknown in the only capability event either pooled run produced.**
     MECHANISM   none changed. The offset augmentation ran for the first time
     CAPABILITY  the BAR did not move at either cut. One routine formed and did not survive a
                 cycle, which is a capability EVENT and not a capability
+
+## F208 (INDEX series) — THE FIRST ROUTINE WAS KILLED BY A GAME SWITCH, AND §14.5 PHASE 1 CANNOT SUPPORT PROCEDURE FORMATION BY CONSTRUCTION
+
+**The instrument built two hours ago, fired at the one event that needed it, and the chain closes
+completely.**
+
+    cycle 23   routine formed, slot o39.row:  until(o199.drow/10) {ACTION5}   verdict PAYS
+    cycle 24   guard_unreadable   slot o199.drow   exit=unbound   bound=None
+    cycle 24   routine_end        outcome: blocked
+
+    frame 23  game = ar25
+    frame 24  game = tn36        <- game-switch frames: 8, 16, 24, 32, 40 ...
+
+**The routine formed on `ar25`'s board. One frame later the tape was on `tn36`. `o199.drow` is an
+`ar25` slot and does not exist there, so the binding was gone and the guard could not be read.**
+
+### it is not the agent, and it is not bad luck
+
+**A routine's guard is a SLOT NAME. A slot name is a BINDING.** `F190` established the law from the
+other direction: *the composition crosses and the binding does not — vocabulary permanent,
+instances transient.* **A composition can cross a board change; a guard cannot, because the thing
+it names stops existing.**
+
+**And the pooled tape replaces the board every 8 frames by construction** — `take=1` gives each
+game one 8-frame chunk, so switches land at 8, 16, 24, 32 with no exceptions.
+
+> **THEREFORE ANY ROUTINE FORMED ON THE PHASE-1 TAPE IS DEAD WITHIN AT MOST 8 FRAMES, AND THIS ONE
+> FORMED ONE FRAME BEFORE A SWITCH.** Not a measurement of the agent. **A structural property of
+> the curriculum.**
+
+### `can()` and `holds()` are consistent here, which is what makes the diagnosis clean
+
+I expected a gate/consumer mismatch — `can()` reads `_discrepancy`, `holds()` reads
+`goal_residual`, and `_holds`'s own comment says those two disagreed once. **They do not disagree
+here.** `_discrepancy` checks boundness and returns `NOT_RESOLVED` for an unbound slot, which
+`can()` maps to `UNKNOWN`, which fails the gate. **So the guard WAS bound at cycle 23 and the gate
+was right to pass it.** The binding was destroyed between the two cycles. **Nothing is broken; the
+schedule removed the ground under a correct plan.**
+
+### what this does and does not license
+
+**DOES:** §14.5 phase 1 — *a random shuffle of all 25's chunks* — **cannot produce procedure-level
+structure, because it destroys the bindings a procedure's termination condition depends on, faster
+than any procedure can run.** The reviewer's *only lever that matters* is, on this curriculum, a
+lever that cannot act.
+
+**DOES NOT:** say routines would form on a coherent single-game tape. **The four-rung ladder read
+`routine 0` at every rung**, so formation is separately rare. This finding is about SURVIVAL, not
+formation, and the two are different failures.
+
+**AND IT MAKES A CHEAP FALSIFIABLE PREDICTION:** a coherent single-game tape has no switches, so a
+routine formed there should survive past one cycle. **`take=8, spacing=8` on one game is that
+test** — and if a routine still dies in one cycle there, the game switch was not the cause and this
+entry is wrong.
+
+### determinism, established as a side effect
+
+**The rerun reproduced the routine at cycle 23 exactly** — same slot, same guard, same verdict.
+`tether`, `routine`, `arc_percept`, `arc_world` and `arc_atoms` import no randomness; `gamma`'s
+only use is the 8-hex handle suffix, which no decision reads. **Nothing had established that this
+codebase is deterministic; it now is, and it means a captured failure can always be re-entered
+with a better instrument.** That is how this entry exists.
+
+    BOUNDARY    ONE routine, one run, offset 4, seed 1618. A single event is not a rate, and
+                nothing here says routines form often enough for survival to be the binding
+                constraint
+    MECHANISM   none changed -- the guard_unreadable row built this afternoon did the work
+    CAPABILITY  none. But it removes phase 1 as a route to procedures, on a structural
+                argument rather than a null
