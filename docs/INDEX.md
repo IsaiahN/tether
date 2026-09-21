@@ -39663,7 +39663,15 @@ which fallback fires, that is a very different fix from a selector that never co
     dc22   atoms    25         23              0         learned 10, draw 9, probe 5, goal 1
     dc22   trained  25         23              0         learned 11, draw 9, probe 4, goal 1
     ls20   atoms    25         23              0         learned 15, draw 8, probe 2
-    (m0r0 and sk48 arms still running; the three above are complete)
+    ls20   trained  25         23              0         learned 15, draw 8, probe 2
+    m0r0   atoms    25         23              0         draw 14, learned 10, probe 1
+    m0r0   trained  25         23              0         draw 14, learned 10, probe 1
+    sk48   atoms    25         23              0         learned 13, draw 11, probe 1
+    sk48   trained  25         23              0         learned 13, draw 11, probe 1
+
+**COMPLETE — 8 arms, 4 boards. `gamma_entered` is 23 of 25 on EVERY arm and `spread_split` is
+`0 of 184` gate entries.** The gate opens on 92% of cycles and has never once produced a
+difference between actions, bare or trained.
 
 ### THE CORRECTION, AND IT IS ONE COMMIT OLD
 
