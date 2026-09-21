@@ -41082,3 +41082,91 @@ one's question can be wrong in a way the data would show.
     MECHANISM   none changed -- the tracker identity fix is Isaiah's ruling and is NOT built here
     CAPABILITY  none yet. It converts a ruling from a hypothesis into a located defect with a
                 board that exhibits it, which is what the fix needs in order to be falsifiable
+
+## F247 (INDEX series) — THE RE-ISSUE IS NOT RECOLOUR, IT IS MATCH ORDER: a zero-overlap SHAPE match claimed the name first. Two passes, and `sk48`'s 129 go to 0
+
+**`F246` located the defect on `sk48` — 129 of 224 new names founded on the EXACT cells of an
+already-tracked object. This is WHY, and the cause is not the one Isaiah's description implies.**
+
+### 180 of 180, one cause, and the thief always scored ZERO
+
+For every exact-cell birth on all five boards, ask what happened to the predecessor that frame:
+
+    board   exact-cell births   predecessor CLAIMED by another component   thief's overlap score
+    sk48          135                        135                                  0.0
+    m0r0           18                         18                                  0.0
+    dc22           13                         13                                  0.0
+    vc33            9                          9                                  0.0
+    ls20            5                          5                                  0.0
+
+**Every single one. And every thief matched at overlap 0.0 — which means it did not match by
+overlap at all. It came in through the SHAPE fallback.**
+
+### the matcher ran both routes in ONE loop, so the fallback could outrank the primary
+
+`Objects.__call__` matched each component in turn: best overlap, and **if that is zero, fall back
+to the first unclaimed tracked object of the same shape.** Both inside the same `for obj in found`.
+
+**So component 3 could take name `o199` on a ZERO-overlap shape guess, and component 7 — holding
+`o199`'s EXACT cells, overlap 1.0 — then found it claimed and was issued a new identity.**
+
+> **A FALLBACK THAT CAN BEAT THE PRIMARY IS NOT A FALLBACK.** The docstring already says which is
+> which — *identity is carried by maximum overlap*, and shape is for *where overlap was zero*.
+> **The rule was stated correctly and applied at the wrong scope**, which is `F214`/`F215`'s shape
+> for the third time: a present mechanism aimed at the wrong moment.
+
+**This is bookkeeping, not design** — the same test `F214` used. Nothing here decides what identity
+IS; the file already decided, and one loop failed to honour the order it declared.
+
+### the fix, and the A/B, pre-registered — COHERENT tape, the human's own order
+
+**PREDICTED: exact-cell births fall to zero. PREDICTED: overlap matches RISE and shape matches FALL
+by the same amount, because the stolen matches were overlap matches all along.**
+
+    board          exact-cell            overlap route          shape route        births
+                before -> after       before -> after        before -> after    before -> after
+    sk48          129  ->   0          3646  ->  4197         1099  ->  527       224 -> 245
+    m0r0            4  ->   0         11302  -> 11802          579  ->   79       371 -> 371
+    ls20            3  ->   0          1301  ->  1306          108  ->  103        54 ->  54
+    dc22            1  ->   0          2383  ->  2389           79  ->   73        46 ->  46
+    vc33            0  ->   0          1490  ->  1506           40  ->   16        83 ->  91
+
+**Both predictions held. `sk48`: 551 identity assignments moved from a zero-overlap guess to a
+genuine overlap match, and the 129 re-issues went to 0.**
+
+### WHAT THIS DOES NOT DO, AND THE NUMBER THAT SAYS SO IS `224 -> 245`
+
+**IT DOES NOT REDUCE HOW MANY NEW NAMES ARE ISSUED. It moves the name onto the right object.** On
+`sk48` births ROSE by 21 and on `vc33` by 8 — a component that used to steal an identity now
+correctly gets its own. **That is the fix working, not a regression**, and reporting *the tracker
+now issues fewer names* would be false.
+
+### AND THE CONFOUND I ALMOST PUBLISHED, WHICH IS `F246`'s OWN LESSON ONE DAY LATER
+
+Chasing the +21 I asked whether a same-SHAPE tracked object existed and had its name taken by an
+overlap match — the *mover gets covered* signature. **It read `sk48` 1536 of 1673 births, 92%.**
+
+**`shape_of` a ONE-CELL object equals `shape_of` every other one-cell object**, so on a board of
+single cells the question is vacuous and answers *yes* for free. Requiring **≥4 cells and exactly
+one twin**:
+
+    sk48   8 of 1673      vc33   25 of 284      dc22   32 of 714
+    and the name went to an OVERLAP match in 8/8, 25/25, 30/32
+
+**92% was the trivial shape. The real residual is 8–32 per full tape and it is 100% attributable:
+X moves, Y lands on X's vacated cells, overlap hands Y the name X, X is reborn.** That is exactly
+the OVERLAY case Isaiah's addendum rules on — *the covered object keeps its name, hidden cells
+NULL rather than removed* — and it is now a counted population rather than a described one.
+
+    BOUNDARY    five boards, the COHERENT tape (the human's own order). The shuffled phase-1
+                tape gives different absolute births -- 244 not 46 on dc22 -- because chunk
+                seams manufacture discontinuities; the coherent run reproduces F246's table
+                exactly, which is what confirms the two probes agree. The residual scan runs
+                the FULL tape, not the 64-frame window, so its denominators are not the A/B's
+    MECHANISM   `Objects.__call__` matches in TWO passes: every overlap match resolves first,
+                then shape over the names still unclaimed. No flag, no arm -- a stated rule
+                applied at its own scope
+    CAPABILITY  CONTACT. 551 assignments on sk48 now carry the right identity, so an attribute
+                change on a recoloured object updates THAT object instead of founding a second
+                one. Everything downstream that keys on identity -- retrieval, dedup, binding --
+                was reading a split object on this board and now is not

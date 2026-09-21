@@ -370,7 +370,14 @@ class Objects:
         # match each new component to the tracked object it overlaps most. Ties break on the
         # name so a run is reproducible; a zero-overlap component has no predecessor and is
         # a birth rather than a bad match.
-        for obj in found:
+        # TWO PASSES, AND THE SECOND ONE IS THE FIX -- F247. Shape is the FALLBACK for a move
+        # overlap cannot see, and run inside ONE loop it OUTRANKED overlap: a zero-overlap
+        # shape match claimed a name whose EXACT cells a later component held, and that
+        # component was then issued a second identity for the same object. 180 of 180
+        # exact-cell births on five boards had a thief, and every thief scored 0.0.
+        # A fallback that can beat the primary is not a fallback.
+        assign: dict[int, tuple[str | None, float]] = {}
+        for i, obj in enumerate(found):
             best, score = None, 0.0
             for name, old in self.tracked.items():
                 if name in claimed:
@@ -378,15 +385,28 @@ class Objects:
                 r = overlap(obj["cells"], old["cells"])
                 if r > score or (r == score and r > 0 and (best is None or name < best)):
                     best, score = name, r
-            if best is None or score == 0.0:
-                # OVERLAP ALONE CANNOT TRACK A MOVE. An object smaller than its own
-                # displacement has zero cell overlap with itself one frame later, so a
-                # translation would read as a death and a birth -- and `translate` is in the
-                # specified atom set, which is unobservable if translation destroys identity.
-                # §12.3 sensor 5 is the answer: SHAPE at normalized offsets is
-                # position-independent, so it carries identity across a move.
-                best = next((n for n, old in sorted(self.tracked.items())
-                             if n not in claimed and shape_of(old) == shape_of(obj)), None)
+            if best is not None and score > 0.0:
+                claimed.add(best)
+            else:
+                best, score = None, 0.0
+            assign[i] = (best, score)
+        for i, obj in enumerate(found):
+            if assign[i][0] is not None:
+                continue
+            # OVERLAP ALONE CANNOT TRACK A MOVE. An object smaller than its own
+            # displacement has zero cell overlap with itself one frame later, so a
+            # translation would read as a death and a birth -- and `translate` is in the
+            # specified atom set, which is unobservable if translation destroys identity.
+            # §12.3 sensor 5 is the answer: SHAPE at normalized offsets is
+            # position-independent, so it carries identity across a move.
+            best = next((n for n, old in sorted(self.tracked.items())
+                         if n not in claimed and shape_of(old) == shape_of(obj)), None)
+            if best is not None:
+                claimed.add(best)
+            assign[i] = (best, 0.0)
+
+        for i, obj in enumerate(found):
+            best, score = assign[i]
             route = "overlap" if best is not None and score > 0.0 else "shape"
             if best is None:
                 best = f"o{self._next}"
