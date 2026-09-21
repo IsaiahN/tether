@@ -41494,3 +41494,79 @@ default OFF, one A/B. **The mechanism differs; nothing downstream has been shown
     CAPABILITY  CONTACT, on one board, in the sense that the agent now directs a positioned
                 action at an object BECAUSE it has not touched it. Whether that buys anything
                 is unmeasured and the A/B against the same-state baseline is owed
+
+## F252 (INDEX series) — SYSTEM 0'S SECOND MODALITY: the agent STEERS ITS AVATAR into untried contacts, and the direction is LEARNED. `F251`'s "inert on six of 25" was my build's limit, not the spec's
+
+**The reviewer, on `F251`: *that is a limit of THIS build. Isaiah's System 0 is "try to make
+contact — what happens if this touches that". On a directional board the agent makes contact by
+MOVING ITS AVATAR into things. That is most of the ARC set.*** **They were right and my "six of 25
+inert by construction" was an inherited number I never measured.**
+
+### the embodied locus was already identified — I did not have to build it
+
+`arc_world.mode()` returns `per_locus`, `embodied` where a self-hypothesis has explained that locus
+for `MIN_REPEAT`. **Read, never re-derived in the loop** — the family exists so no single claim
+about what the self is gets privileged, and choosing one here would do exactly that.
+
+**Measured: `ls20` `o1`, `sk48` `o0`, `dc22` `o1` — an avatar on THREE OF THREE boards checked.**
+So the inert population is not the six games without a positioned action; **it is boards with
+NEITHER an avatar NOR a positioned action, and that count is not yet measured.** I am not
+replacing one unmeasured number with another.
+
+### THE DIRECTION IS LEARNED, AND THAT IS THE WHOLE OF WHY THIS IS NOT ENCODING THE ANSWER
+
+**A table saying `ACTION1` is up would be `act` arriving knowing what each action does** —
+`contingency`'s own docstring names it: *it has never had to learn what pressing something does,
+because the primitive it was given already knew. The difference is provenance, and provenance is
+the whole of it.*
+
+So `_note_move` accumulates the AVATAR'S OWN observed `(drow, dcol)` per action, from the two
+frames either side of the step, and `_toward` picks the action whose observed mean displacement
+most reduces Manhattan distance to the target. **Learned on `ls20` in 10 cycles:**
+
+    ACTION2 -> (-7.5, -2.5)      ACTION3 -> (+2.33, 0.0)      ACTION1 -> (0.0, 0.0)
+
+**An action with no entry is returned FIRST and never guessed at** — the exploration and the
+direction-learning are the same act, which is Isaiah's *every new step compounds data for search*.
+
+### AND THE DEFECT THE CHECK CAUGHT, WHICH IS THE REASON TO RUN IT
+
+**First build: `dc22` took `{ACTION6: 10}` — the SAME action all ten cycles and no other ever
+tried.**
+
+> **CONTACT-SEEKING WAS STARVING THE ACTION-EFFECT COVERAGE THAT IS ITS OWN SWITCH'S FIRST
+> CLAUSE.** `_system0_active` stays True while any action is untried at 2 states; the override
+> took `ACTION6` before anything else was tried; **so coverage could never complete and the
+> learned arm could never resume.** A mechanism defeating its own exit condition.
+
+**The fix is an ordering, not a number: AN UNTRIED ACTION OUTRANKS BOTH MODALITIES.** `_toward`
+already yielded untried actions first; this puts the positioned path under the same rule instead
+of around it.
+
+### the manipulation check the reviewer required — behaviour, not a counter
+
+    10 cycles, both arms same code state        draw                     system0
+    ls20  action distribution        A1 3 A4 3 A3 2 A2 2      A1 2 A2 4 A3 3 A4 1
+    sk48                        A1 2 A2 2 A3 2 A4 2 A6 1 A7 1   A1 3 A2 2 A3 2 A4 1 A6 1 A7 1
+    dc22  coords / targets                    3 / 3                    5 / 5
+    dc22  BEFORE the ordering fix                              10 / 5, and ONE action only
+
+**`ls20` now differs in BEHAVIOUR, which is what was asked** — `F251` reported it byte-identical
+with only an internal counter separating the arms, and that was honest and is now superseded.
+
+### NO GROUND CLAIM, AND THE SAME NUMBER SAYS SO
+
+**`minted` is identical in both arms on all three boards — 21, 10, 3.** The agent explores
+differently and has not yet been shown to learn anything more for it.
+
+    BOUNDARY    three boards, 10 cycles, one seed, both arms on the same code state. The
+                avatar count is 3 of 3 CHECKED, not 3 of 25 -- the inert population is
+                unmeasured and is NOT the six-games figure F251 quoted. `_toward` reads
+                Manhattan distance on published row/col, so it is blind on a board whose
+                objects publish no position
+    MECHANISM   `_avatar` (reads `mode()`), `_note_move` (learns action -> displacement from
+                observation), `_toward` (picks the action that closes the distance), and an
+                ordering in which an UNTRIED action outranks both modalities. Default OFF
+    CAPABILITY  CONTACT on three boards rather than one, and the honest version of it: the
+                agent now goes TO a thing it has not touched on boards with no positioned
+                action at all. Whether it buys anything is unmeasured

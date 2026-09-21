@@ -449,6 +449,7 @@ class Agent:
         self._held_chains: set[str] = set()
         self._shape_cache: tuple = (-1, None)
         self._contact_seen: set = set()
+        self._move_map: dict = {}
         self._contact_pick = None
         self._s0_target: str | None = None
         self.alphabet = self._alphabets(env)
@@ -720,6 +721,8 @@ class Agent:
         # evidence that does not.
         self._contact_pick = None
         self._s0_target = None
+        # THE MOVE MAP SURVIVES A BOUNDARY for `_contact_seen`'s reason: what an action does
+        # to the avatar is a fact about the ACTION, not about the slot names of one level.
         self.candidates = {}
         # a new level is a new instrument: the verdict was about the OLD slot set
         self._said_never_live = False
@@ -1934,8 +1937,26 @@ class Agent:
             # A TARGET IS ONLY REACHABLE THROUGH THE POSITIONED ACTION. Where ACTION6 is
             # surfaced and something is worth touching, take it; otherwise the target is
             # unaimable and the drawn action stands, which is the honest fall-through.
-            if target is not None and "ACTION6" in self.actions:
+            # AN UNTRIED ACTION OUTRANKS BOTH MODALITIES, and this is not a preference --
+            # it is the only order that works. Contact-seeking has to know what the
+            # actions DO, and overriding the draw with ACTION6 before anything else has
+            # been tried STARVES the action-effect coverage that is this switch's own
+            # first clause: measured on dc22, `{ACTION6: 10}` in 10 cycles and no other
+            # action ever taken, so coverage could never complete and the learned arm
+            # could never resume. `_toward` already yields untried actions first; this
+            # puts the positioned path under the same rule instead of around it.
+            untried = [x for x in sorted(self.actions) if x not in self._move_map]
+            if untried:
+                act = untried[0]
+            elif target is not None and "ACTION6" in self.actions:
                 act = "ACTION6"
+            elif target is not None:
+                # NO POSITIONED ACTION: the board is DIRECTIONAL, and the agent makes
+                # contact by moving its avatar into things -- which is most of the set.
+                # The direction comes from what the actions were OBSERVED to do.
+                step = self._toward(before, target)
+                if step is not None:
+                    act = step
             if self._contact_pick is not None:
                 self._contact_seen.add(self._contact_pick)
             self.led.record(self.cycle, "MINT", target or "@contact", "system0",
@@ -1973,6 +1994,71 @@ class Agent:
     #
     # `F236` measured the old System 0 as BYTE-IDENTICAL to the uniform draw -- the switch was
     # right and the POLICY was the same call. This is the different policy.
+
+    def _avatar(self) -> str | None:
+        """The embodied locus, from the self-model the world already runs -- `mode()`'s
+        `per_locus`, which is `embodied` where a member has explained that locus for
+        `MIN_REPEAT`. Read, never derived here: the family exists so that no single claim
+        about what the self is gets privileged, and picking one in the loop would do that."""
+        fn = getattr(self.env, "mode", None)
+        if fn is None:
+            return None
+        try:
+            per = (fn() or {}).get("per_locus") or {}
+        except Exception:                                  # noqa: BLE001
+            return None
+        emb = sorted(k for k, v in per.items() if v == "embodied")
+        return emb[0] if emb else None
+
+    def _note_move(self, before: dict, action: str, after: dict) -> None:
+        """LEARN what an action does to the avatar, from what it DID. One running mean of
+        `(drow, dcol)` per action.
+
+        **NOT A HANDED TABLE.** `contingency`'s docstring names the failure this avoids: *it
+        has never had to learn what pressing something does, because the primitive it was
+        given already knew -- the difference is provenance, and provenance is the whole of
+        it.* An empty map before anything is observed is what a closed-over direction table
+        can never produce, and the agent explores precisely the actions it has no entry for.
+        """
+        a = self._avatar()
+        if a is None:
+            return
+        r0, c0 = before.get(a + ".row"), before.get(a + ".col")
+        r1, c1 = after.get(a + ".row"), after.get(a + ".col")
+        if None in (r0, c0, r1, c1):
+            return
+        n, dr, dc = self._move_map.get(action, (0, 0.0, 0.0))
+        self._move_map[action] = (n + 1,
+                                  dr + (int(r1) - int(r0)),
+                                  dc + (int(c1) - int(c0)))
+
+    def _toward(self, before: dict, target: str) -> str | None:
+        """The action whose OBSERVED displacement most reduces distance to `target`.
+
+        Unobserved actions are not guessed at and not ranked -- they are what System 0 is for,
+        so an action with no entry is returned FIRST when one exists. That is the exploration
+        and the direction-learning being the same act, which is Isaiah's *every new step
+        compounds data for search*."""
+        a = self._avatar()
+        if a is None or a == target:
+            return None
+        r0, c0 = before.get(a + ".row"), before.get(a + ".col")
+        tr, tc = before.get(target + ".row"), before.get(target + ".col")
+        if None in (r0, c0, tr, tc):
+            return None
+        untried = [x for x in sorted(self.actions) if x not in self._move_map]
+        if untried:
+            return untried[0]
+        here = abs(int(tr) - int(r0)) + abs(int(tc) - int(c0))
+        best, gain = None, 0.0
+        for act, (n, sr, sc) in self._move_map.items():
+            if not n or act not in self.actions:
+                continue
+            nr, nc = int(r0) + sr / n, int(c0) + sc / n
+            d = abs(int(tr) - nr) + abs(int(tc) - nc)
+            if here - d > gain:
+                best, gain = act, here - d
+        return best
 
     def _contact_keys(self, before: dict) -> dict:
         """`{key: (a, b)}` for this frame's contact points, keyed by KIND OF SITUATION rather
@@ -3775,6 +3861,8 @@ class Agent:
         aim = self._s0_target if (by == "system0" and self._s0_target) else focal
         coord = self._action6_coord(aim, before) if action == "ACTION6" else None
         res = self.perceive(action, coord)
+        # WHAT THAT ACTION DID TO THE AVATAR, recorded from the frames either side of it.
+        self._note_move(before, action, self.env.observe())
         for slot, b, fit, _why in self.route(res):
             if b == REBIND and fit:
                 self.bound[slot] = fit
