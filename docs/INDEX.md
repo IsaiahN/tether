@@ -39410,3 +39410,58 @@ become the finding.
     MECHANISM   none changed
     CAPABILITY  none -- and the reading is that the channel the curriculum work has been
                 measured through was never connected to the thing being varied
+
+## F221 (INDEX series) — THE CHEAP PHASE-3 RUN LANDED. Every prediction held, the run CANNOT answer the question, and the two units point in OPPOSITE directions
+
+**`F219` pre-registered; both arms complete; 20 minutes each after the re-scope.**
+
+    arm            switches   hit     distinct   produced   library   minted   settled
+    noise 0.0          5     9/150     1/120         3        118       70        5
+    noise 0.5         10     9/150     1/120         3        164      116       10
+
+**PREDICTED `hit = 9/150` both — HELD. PREDICTED `distinct = 1 of 120` both — HELD. PREDICTED
+`library` and `minted` would differ and are not evidence — HELD, and by a lot.**
+
+### THE RUN CANNOT ANSWER THE REVIEWER'S QUESTION, AND THE GUARD I WROTE FIRST IS WHY
+
+`F219`'s vacuity guard said a matched null here would not establish *ordering does not reach the
+ground*. **`F220`, run in between, makes it weaker still: all three ground fields read `9/150`,
+`1/120`, `produced 3` with NO LIBRARY AT ALL.** So the arms matching says nothing about ordering —
+**the instrument does not separate 0 terms from 401, and it will not separate 70 from 116.**
+
+> **THE NOISE-0 ARM IS NOT THE BINDING CONTROL. THE ATOMS-ONLY ARM IS**, and it was not part of the
+> pre-registration because nobody had thought to run it in a week of these measurements.
+
+### AND THE ONE QUANTITY THAT DID SEPARATE THEM RUNS THE OTHER WAY
+
+**Computed post-hoc from the two saved libraries — the arms predate the `branching` wiring by
+minutes, which is instrument-age again:**
+
+    arm          minted terms   DISTINCT COMPOSITIONS
+    noise 0.0         70                 10
+    noise 0.5        116                  8
+
+**The noisy arm minted 66% MORE TERMS and acquired FEWER COMPOSITIONS.**
+
+> **THE TWO UNITS POINT IN OPPOSITE DIRECTIONS ON THE SAME PAIR OF RUNS.** In the unit reported all
+> week — `library` / `minted` — noise wins decisively, `164 v 118`. In the unit that actually
+> crosses a save/load, coherence wins, `10 v 8`. **So reporting `library` was not merely imprecise;
+> on this comparison it was DIRECTIONALLY WRONG.**
+
+### WHAT I AM NOT CLAIMING, AND IT IS THE LARGER HALF
+
+**`10 v 8` IS ONE DRAW.** One seed, one pool of six games, 95 frames, two counts two apart. **There
+is no error bar and I am not calling it an ordering effect.** §14.5 predicts a noise floor HELPS;
+this reads the other way; **neither statement is supported by two numbers.**
+
+**What needs NO error bar is the DIRECTION REVERSAL between units**, because that is a statement
+about the instruments and not about the agent: whichever way the true effect runs, the quantity the
+record has been reporting disagrees with the quantity that survives.
+
+    BOUNDARY    6 of 25 games, 95 frames, ONE seed (1618), two arms, one probe board. Every
+                ground field is known unable to separate an empty library from a full one, so
+                the ground row is uninformative here BY MEASUREMENT rather than by caution.
+                The composition counts are exact and are a single draw
+    MECHANISM   none changed
+    CAPABILITY  none. The run's value is that it priced the question and showed the instrument
+                cannot answer it -- which is what the reviewer asked the cheap version to find out
