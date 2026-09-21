@@ -40570,3 +40570,59 @@ is one more wrap on the same instrument.
                 where the term WOULD have died, not where a tracer watched it die
     MECHANISM   none changed
     CAPABILITY  none -- it retires the two-baselines hypothesis and leaves exactly one link open
+
+## F238 (INDEX series) — THE MISS DECOMPOSES INTO TWO CAUSES AND NEITHER IS THE ONE I CHASED. 31–42% the GUARD, the rest the TEST
+
+**`F237` left one link: base, left and cost use identical expressions in both paths, so a Term that
+reaches both tests MUST get the same verdict. Therefore the installed Term never reaches retrieval's
+test. This finds where it is lost, and it is in candidate GENERATION.**
+
+    mint        for bind, g in ((b, g) for b in binds for g in self._guards(robs))   operand x GUARD
+    retrieval   Term(term.atoms, operand=b, guard=term.guard)                        operand ONLY
+
+**`_rebindings` inherits the held term's guard and never varies it. `mint` walks the guard axis.**
+
+### measured, 20 cycles, the terms mint installed
+
+    board   mints   carry a guard   guard on NO held term of that chain   reachable by operand alone
+    dc22     12          11              5   (41.7%)                            7
+    ls20     13           4              4   (30.8%)                            8
+
+    dc22 guards installed: ACTION3 x6, ACTION4 x4, ACTION1 x1, none x1
+
+> **SO 31–42% OF WHAT MINT INSTALLS IS STRUCTURALLY UNREACHABLE BY RETRIEVAL.** No admission rule
+> can accept a candidate that was never generated — **which is why arm D could not have worked on
+> that slice, and why arm G could not either: G varies the operand and the missing axis is the
+> guard.**
+
+### and the OTHER 58–69% is the test, which closes `F237`
+
+**Those ARE reachable by varying the operand — arm G offers them — and they are refused.** Under
+baseline the refusing test is `_explains`'s zero remainder, which Isaiah killed. **Under arm D the
+bargain refuses them too, and that part remains open.**
+
+    THE MISS, DECOMPOSED
+      ~31-42%   candidate never generated -- the GUARD axis          a generation defect
+      ~58-69%   generated, offered, refused by the admission test    a test defect, and arm D
+                                                                     does not recover it either
+
+**Two defects, each covering part of one number.** Every single-cause story I have told today —
+duplicates, the missing search, the closure walk, the rebinding line, two baselines — was one
+mechanism asked to explain a population that has two.
+
+### what this does NOT license
+
+**It does not license adding the guard axis to `_rebindings`.** That is a bigger generation change
+than arm G, it multiplies the candidate stream by the guard set on every lookup, and the half of
+the population it cannot touch is still refused by the test. **And `_guards`' own docstring says the
+candidate set is *the actions appearing in the residual's own observations* — retrieval does not
+compute `robs`, so it has no such list to walk.** Naming it, not building it.
+
+    BOUNDARY    two boards, 20 cycles, 12 and 13 installed terms. "Unreachable" means NO held term
+                sharing the chain carries that guard at the moment of the mint -- computed from a
+                snapshot of the library taken before mint ran, not from a tracer inside
+                `_rebindings`. The 58-69% remainder is reachable IN PRINCIPLE by operand variation;
+                that arm G offered them and nothing changed is measured, but WHY the bargain also
+                refuses them is NOT
+    MECHANISM   none changed
+    CAPABILITY  none -- it splits a number that five separate hypotheses each tried to own whole
