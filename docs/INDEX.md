@@ -39784,3 +39784,84 @@ library-to-action path and the code's `choose()` does not implement it.
     MECHANISM   none changed
     CAPABILITY  none -- and the reading relocates the break from library-to-action to
                 binding-to-action, which the plan predicted in writing
+
+## F227 (INDEX series) — THE CORPUS ANSWERS THE ROUTED QUESTION IN ONE LINE, AND IT IS FIGURE 12: *a goal is a comparison, and the agent has ONE BOND*
+
+**Isaiah's standing ruling, 2026-09-21: *"more often than not the answer already exists in the
+corpus figures or /docs. The only time you are permitted to park something is when those do not
+return an answer and you are out of ideas."* Applied immediately to the question the reviewer had
+just routed away. It returned an answer.**
+
+**Term census across all fifteen figures FIRST, per the tiebreaker discipline** — `action` 4,
+`choice` 3, `goal` 3, `bind` 1, `select` 0, `policy` 0, `retriev` 0. **Figure 12 is the only figure
+carrying `action`, `choice` AND `goal`.** The census directed the read; I did not pick the figure.
+
+### FIGURE 12, AND THE OPERATORS TABLE IT POINTS AT
+
+> **A vocabulary without bonds can name a state and cannot name a route to one.**
+> **A plan is a sequence. A goal is a comparison. Progress is a subtraction. A refutation is a
+> negation.** A system holding only ingredients can say what a situation CONTAINS and cannot say
+> what would count as GETTING SOMEWHERE FROM IT.
+
+**The Operators table gives the symptom per operator, in its own words:**
+
+    →  sequence     "the only bond a flat chain can express, so every term today is a
+                     sequence whether or not it should be"
+    ⋛  comparison   "a goal is a comparison, which is why a vocabulary without it cannot state one"
+    −  subtraction  "progress is a subtraction, which is why a vocabulary without it cannot say
+                     how far along it is"
+    ¬  negation     "a refutation is a negation, which is why a vocabulary without it can only
+                     accumulate"
+
+### THE AGENT HAS ONE BOND, CONFIRMED AT THREE SITES
+
+    gamma.Term       "A composition of atoms applied left to right" -- `atoms: tuple[Atom, ...]`
+                     and no bond field. Its own comment: "A chain has no branch"
+    summary.JOINT    "Composition is sequential-only today, so every joint carries the same
+                     operator... the multi-operator space is a RECORDED GAP rather than an
+                     oversight"
+    the price        Figure 12: |φ| = (k+1)log₂(|atoms|+1) + (k−1)log₂(|bonds|). With |bonds| = 1
+                     the second term is ZERO -- "a bond that costs nothing is a bond that carries
+                     nothing, which is the flat case"
+
+### AND THE CAREFUL PART, BECAUSE THE ATOM SET LOOKS LIKE IT COVERS THIS AND DOES NOT
+
+**The 48 atoms include `is_max`, `is_min`, `is_mode`, `rank_in`, `above`, `abs_delta`, `negate`,
+`same`, `distinct`.** Comparison-flavoured, difference-flavoured, negation-flavoured. **So the
+claim is NOT that the agent cannot compare.**
+
+> **THE CORPUS'S DISTINCTION IS ARITY, AND IT IS THE WHOLE POINT.** *A bond is the typed relation
+> between TWO OPERANDS.* These are UNARY atoms in a chain — `is_max` takes a value and returns a
+> verdict. **`A ⋛ B` between two composed TERMS is not writable, and neither is `A − B`.**
+> `Term.operand` binds a chain to ONE SLOT; it does not join a term to another term.
+> **`¬` is the exception — the table lists it as UNARY, and `negate` exists, so negation is
+> arguably covered and I am not claiming it is missing.**
+
+### THIS IS THE *WHY* UNDER A WALL THIS PROJECT ALREADY MEASURED
+
+**The arity wall is not new — arity-2 gaps are met at 0–2.2% against arity-1 at 75–100% (`F146`),
+and *composition wall is arity* has been the standing reading for weeks.** What was missing was the
+account, and Figure 12 supplies it: **an arity-2 gap needs a BOND, and there is one bond.**
+
+**It also reframes what the reviewer routed.** The question was posed as *how does the agent turn
+what it knows into what it does*, which sounds like a selector to build. **Figure 12 says the
+vocabulary cannot STATE a goal** — so `_goal_choice` and `goal_residual` are bespoke code computing
+a comparison and a subtraction **that the term grammar cannot express**, which is `CLAUDE.md`'s own
+*a hardcoded procedure that pre-answers a question the agent should ask is a FAULT, even when it is
+correct.*
+
+### THE MEASUREMENT FIGURE 12 SAYS HAS NEVER BEEN TAKEN
+
+> *"Which is the bound that would bite at the middle of Figure 3's chain. **Whether it is what
+> breaks there is not yet measured**, because a link below a break cannot be read."*
+
+**The figure flags its own claim as unmeasured and names where.** That is the next measurement and
+it is now specified rather than invented.
+
+    BOUNDARY    a READ of two figures and three code sites, plus a 48-atom census. NOTHING is run
+                here. The bond count is 1 by construction and that is not in doubt; what is NOT
+                established is that the missing bonds are what breaks Figure 3's middle -- the
+                figure says so itself, and a link below a break cannot be read
+    MECHANISM   none changed
+    CAPABILITY  none -- an account for a wall already measured, sourced from the corpus on
+                Isaiah's instruction rather than derived
