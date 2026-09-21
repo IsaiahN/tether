@@ -456,7 +456,24 @@ class Objects:
             # before-judge (`gamma.refute` fires only on `mass > 0`) then makes it SUSPENDED
             # rather than FAILED. The record keeps its fields so `shape_of`/`delta_of` still
             # resolve and so there is something for the on-exit confirmation to check.
-            fresh[name] = {**old, "covered": hidden}
+            # AND COVERED IS NOT THE SAME AS DESTROYED, WHICH THE FIRST BUILD COULD NOT TELL
+            # APART AND PAID FOR. Marking every taken-over object covered turns DEATH into
+            # permanent limbo: nothing ever exits, `tracked` grows without bound -- measured
+            # lf52 59 -> 253 objects by frame 399, 190 of them 'covered' -- and every
+            # per-slot loop grows with it until a 2.8s board does not finish in 12 minutes.
+            #
+            # THE DISCRIMINATOR IS ISAIAH'S OWN WORDING: *attribution by MOVER.* An overlay is
+            # something that MOVED onto this ground and will move off it. So the cover counts
+            # only if a component now holding these cells is one the tracker matched to an
+            # existing object that was somewhere ELSE last frame. Cells taken by a new or
+            # static occupant are DEATH ON EVIDENCE exactly as before -- the rule this branch
+            # replaced, kept for the case it was actually written for.
+            movers = [n for n, o in fresh.items()
+                      if (o["cells"] & hidden) and n in self.tracked
+                      and not (self.tracked[n]["cells"] & hidden)]
+            if not movers:
+                continue                   # taken over for good: dead, as it always was
+            fresh[name] = {**old, "covered": hidden, "covered_by": tuple(sorted(movers))}
         self.tracked = fresh
 
         state: dict[str, int] = {}

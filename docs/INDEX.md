@@ -41171,7 +41171,10 @@ NULL rather than removed* — and it is now a counted population rather than a d
                 one. Everything downstream that keys on identity -- retrieval, dedup, binding --
                 was reading a split object on this board and now is not
 
-## F248 (INDEX series) — THE OVERLAY IS BUILT, and it cuts `sk48`'s new names almost in half — 245 → 119, BELOW the pre-fix baseline of 224
+## F248 (INDEX series) — THE OVERLAY IS BUILT — **AND ITS HEADLINE NUMBER IS WRONG. `119` CAME FROM A BUILD WHOSE MECHANISM WAS *NOTHING EVER DIES*. The bounded figure is 209, and the correction is `F250`**
+
+> **READ `F250` BEFORE THIS ENTRY.** The `245 → 119` below was measured with a covered object held FOREVER, so births fell because deaths stopped — not because identity was preserved. **`439 of 439 surviving` was the tell and I filed it as success.** The mechanism is right and bounded now; every number in this entry that is not marked corrected is from the unbounded build.
+
 
 **Isaiah's addendum, ruled by the reviewer as *not a design question anymore — build it*: the covered
 object keeps its name, its hidden cells go NULL rather than being removed, and judgement resumes on
@@ -41340,3 +41343,79 @@ cannot price the full tape at all.**
     CAPABILITY  none directly -- but it removes a mechanism from the phase-1 plan that was
                 being counted on for a 13% saving it does not deliver, and it re-prices the
                 baseline down 27%
+
+## F250 (INDEX series) — THE OVERLAY COULD NOT TELL *COVERED* FROM *DESTROYED*, so it turned every death into permanent limbo. `lf52` grew 59 → 253 objects and a 2.8s board did not finish in 12 minutes. And it is why `F248`'s headline was wrong
+
+**`F248` reported `sk48` `224 → 119` names, a 47% cut, and sent it to the reviewer as the largest
+capability change of the night. IT IS WRONG. The bounded figure is 209 — a 7% cut.**
+
+### the defect: an object is marked covered and never uncovered
+
+The branch marked an unmatched object COVERED whenever its cells intersected live cells. **Nothing
+ever exits that state.** An object whose ground is taken PERMANENTLY — by a new occupant, or a
+static one — is not covered, it is DEAD, and the code before this branch said so: *death only on
+evidence, its cells were taken.*
+
+**So every death became limbo, `tracked` grew monotonically, and every per-slot loop grew with it:**
+
+    frame                0      49      99     199     399
+    lf52  tracked       59      80      90     170     253      <- 190 of the 253 "covered"
+    sk48  tracked       46     105     140     159     169
+
+**`lf52` runs at 0.14 s/cycle. On the unbounded build it did not finish 20 cycles in TWELVE
+MINUTES, and the seven-board re-baseline had to be killed.** Slots are `tracked × ~8`, `read_order`
+sorts them every frame and `indistinguishable` groups them pairwise.
+
+### the bound, and it is Isaiah's own wording rather than a number
+
+**`attribution by MOVER`.** An overlay is something that MOVED onto this ground and will move off
+it. So the cover counts only if a component now holding those cells is one the tracker matched to
+an object that was **somewhere else last frame**. Cells taken by a new or static occupant are
+**death on evidence, exactly as before** — the rule this branch replaced, restored for the case it
+was written for.
+
+**No frame budget, no threshold.** A tuned *hold it for N frames* was the available fix and it is
+the magic number this file warns about.
+
+    bounded          frame 0      49      99     199     399
+    lf52  tracked         59      60      48      77      63      (was 253)
+    sk48  tracked         46      76     131      68      50      (was 169)
+    covered per frame now 0-2, against lf52's 190
+
+### the corrected measurement — three arms, coherent tape
+
+    board     BEFORE   matcher fix   + overlay UNBOUNDED   + overlay BOUNDED
+    sk48        224        245              119                  209
+    vc33         83         91               64                   86
+    ls20         54         54               38                   41
+    dc22         46         46               42                   43
+    m0r0        371        371              358                  366
+    exact-cell births: 0 on every board from the matcher fix onward
+
+**The overlay's real effect is small and MIXED: `sk48` −7%, `ls20` −24%, `vc33` +4%.** The
+matcher fix is what carries the re-issue result, and it is untouched — **exact-cell births stay 0
+on all five boards.**
+
+### WHY I BELIEVED THE WRONG NUMBER, AND IT IS THE SAME TRAP TWICE IN ONE NIGHT
+
+**The reviewer's success measure was *covered objects surviving with name intact*, and I reported
+`m0r0` at 439 of 439 as the strongest evidence the build worked.**
+
+> **439 OF 439 IS WHAT UNBOUNDED ACCUMULATION LOOKS LIKE.** A metric that reads 100% because
+> nothing can ever leave the population cannot distinguish *identity preserved* from *death
+> disabled*. **The tell was in the number I was most pleased with.**
+
+**And `F249` had just filed the lesson: *six boards agreed, one disagreed, and the one that
+disagreed was BROKEN — first question for an outlier is whether it is an instrument fault.*** Here
+the outlier was `sk48`'s −47% against four boards moving a few percent, **and I reported it as the
+headline instead of asking the question I had written down forty minutes earlier.**
+
+    BOUNDARY    five boards, coherent tape, perception layer. The growth table is 400 frames of
+                two boards. The AGENT-side cost of the bounded build is NOT measured -- the
+                seven-board re-baseline was killed and has to be re-run, and no timing in this
+                entry is from a completed agent run
+    MECHANISM   a taken-over object is COVERED only if a MOVER now holds its cells -- a
+                component matched to an object that was elsewhere last frame. Otherwise it dies,
+                as it did before the overlay
+    CAPABILITY  it RESTORES the boards to a runnable state, and it REMOVES a claimed capability
+                that was not real. Net against the matcher fix alone: small and mixed
