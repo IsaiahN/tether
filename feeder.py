@@ -261,7 +261,12 @@ def watch_many(games=ALL_GAMES, cycles: int | None = None, offset: int = 0, spac
             "palette": palette, "switches": sum(1 for a, b in zip(seen_order, seen_order[1:],
                                                               strict=False) if a != b),
             "atoms": base, "library": len(g.library), "minted": len(g.library) - base,
-            "settled": len(g.settled_terms), "by_origin": dict(mints.most_common(8)),
+            "settled": len(g.settled_terms),
+            # ALL of them, never `most_common(8)`. The truncated field read as "8 games
+            # represented" when the true figure, recovered from the saved library, was 24 of 25.
+            # A capped field reporting its own cap as a finding is the shape of every population
+            # error this session.
+            "by_origin": dict(mints.most_common()),
             "fr": fr is not None, **ground}
 
 
