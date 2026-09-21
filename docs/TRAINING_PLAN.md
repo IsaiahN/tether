@@ -1009,9 +1009,20 @@ type (2) + arity (1) + an `aimed` boolean (1). **No attribute content at all** �
 thing the index exists to supply. Measured consequence: retrieval hits **2–6%** against a library
 that already holds the recipe **94%** of the time (`F234`, `F229`).
 
-> **THE FIX IS A JOIN, NOT A DESIGN: key the gap on WHICH ATTRIBUTE CHANGED, look the atoms up in
-> `ATTRIBUTE_INDEX`, and search the gap's own domain before hopping.** Locality says the first hop
-> is usually unnecessary.
+> **CORRECTED SAME DAY — THAT JOIN IS FORBIDDEN AND `F164` MEASURED WHY.** I wrote *the fix is a
+> join: look the atoms up in `ATTRIBUTE_INDEX`*. **It is not.** This section's own corollary two
+> pages down is binding: ***Map only into the closure … do NOT map to the agent's ~45 gamma atoms;
+> those are its concrete instantiations, not the map.*** And `F164` measured the reason: **the
+> library is a model of human conceptual priors across 61 domains — `Character|Identity`,
+> `Phenomenological|Lived Meaning`, `Acoustic|Echo` — and Γ's 45 are ARC-grid perception atoms.
+> *They are disjoint because they are about different things*, not because something failed to
+> load.** Joining that index to Γ's retrieval would light up Hadley cells.
+>
+> **SO THE MAPPING PIPELINE IS SEAT-SIDE AND ALREADY BUILT** (`mapping.py`, `composer.py`,
+> `F160`–`F165`), and Γ's 2–6% retrieval miss is a SEPARATE problem with a separate cause. **What
+> the index fixes is the answer key's provenance. It does not fix retrieval, and the adjacency walk
+> is struck too** — `F162`: lit atoms reach molecules through the RECIPES, not `ADJACENCY_EDGES`,
+> which is a 61-node DOMAIN graph holding none of the ARC atoms.
 
 #### 2 · SETTLED / UNSETTLED — half built, and the built half is correct
 
@@ -1062,11 +1073,16 @@ decided by which sensors happened to return integers — an encoding accident, n
 
 #### THE REVISED ORDER, and why it is this order
 
-    1  RETRIEVAL joins ATTRIBUTE_INDEX          unblocks everything: the 2-6% hit rate is what
-                                                sends the agent to mint, and minting is what
-                                                makes a cycle cost 95 s (`F233`)
+    1  SYSTEM 0 ON                              RULED by the reviewer 16:18. Built, gated, never
+                                                run, and aimed at the root S5 names (binding).
+                                                Its own A/B instrument already exists
+    1b RETRIEVAL -- cause still OPEN            NOT an ATTRIBUTE_INDEX join (see the correction
+                                                above, `F164`). The key is right and clustered;
+                                                the admission test is the zero-remainder rule
+                                                Isaiah ruled out, and arm D's measured effect is
+                                                MIXED -- mints collapse, hit rate barely moves
     2  PHASE 1 + 2, ALL 25, FULL SCALE          Isaiah's stated priority. 1,927 chunks /
-                                                14,822 frames. Gated by 1 on cost alone
+                                                14,822 frames. Gated on cost by 1b
     3  the SCALAR SENSOR (tier 1)               65% of the vocabulary, ruled in-bounds by
                                                 ATTRIBUTE_REACH's own test
     4  the STORE keyed by KIND + AXES           retires the 94% duplication at its cause
