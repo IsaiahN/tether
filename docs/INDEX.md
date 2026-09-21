@@ -38716,3 +38716,76 @@ inference.
     MECHANISM   none changed. F206 corrected in its own row
     CAPABILITY  none -- but the live/tape difference now has a measured mechanism instead of an
                 unexplained correlation
+
+## F214 (INDEX series) — `_res` KEEPS THE TRENDS OF DEPARTED SLOTS, so gate 1 selects slots that are not in the frame. 63% of tape refusals, and the rule against it is already in the file
+
+**`F213` measured the dominant tape refusal: *the selected objective's slot is not in this frame*,
+63% of 404. This is why.**
+
+### the leak, at two sites that should agree and do not
+
+    tether.py ~1965        for slot in self.slots:            <- CURRENT slots ONLY
+                               rg = self.goal_residual(slot, state, cnt)
+                               if rg is None: self._res.pop(slot, None)
+
+**A departed slot is never visited, so `_res.pop` is never reached for it. Its series stays
+forever.**
+
+    tether.py ~2605        for g in gone:
+                               self.bound.pop(g, None)
+                               self.owed_import.discard(g)
+                               self.abstained.pop(g, None)     <- and NOT self._res
+
+**The `present` handler clears three per-slot dicts on departure and misses the fourth.**
+
+`_goal_choice` selects over `self._res`. **So it can pick a slot that left the board several
+frames ago, and `_mint_routine`'s very first check — `slot not in before` — then throws it away.**
+
+### the rule is already written, at the other event
+
+`tether.py:640`, in the level-boundary reset:
+
+    self._disc, self._res = {}, {}   # the slots did not survive, nor do their trends
+
+**The author states the rule exactly — *the slots did not survive, nor do their trends* — and
+applies it at the LEVEL BOUNDARY. Per-frame slot departure is the same event one scale down, and
+it is not covered.**
+
+> **THIRD INSTANCE TONIGHT OF *CORRECT MECHANISM, WRONG SCOPE*.** `F210`: the guard's `CAN` check is
+> right and happens at MINT, while the guard dies in the INTERVAL. `F213`: `routine_refused` is
+> recorded correctly at seven sites and I read one. **Here: a clearing rule is correct and fires at
+> the level boundary while the loss happens per frame.** None of the three is a missing mechanism;
+> all three are a present mechanism aimed at the wrong moment.
+
+### why this is bookkeeping and not a design question — which `F210` was
+
+**`F210` I refused to repair**, because choosing what a guard is addressed to is a claim about what
+a plan is ABOUT, and that is the agent's or Isaiah's. **This is not that.** The question *should a
+dead slot's trend persist* is already answered in the file, by the author, in a comment, at the
+adjacent event. **Extending a stated rule to a site that misses it designs nothing.**
+
+### PRE-REGISTERED, and NOT PATCHED TONIGHT
+
+**Expected effect of popping `_res` (and `_disc`) in the `present` handler's `gone` loop:**
+
+- **the `slot not in before` refusal should fall sharply on tapes** — it is 63% of 404 now;
+- **`no objective is confidently shrinking` should RISE**, because the stale slots currently being
+  selected were masking the true supply; the total refusals may barely move;
+- **routine formation may rise, and may not.** A live slot that is confidently shrinking still has
+  to clear five further gates.
+
+**FALSIFIER: if the `slot not in before` share does not fall, `_res` staleness is not the source
+and this entry is wrong.**
+
+**Not patched tonight on purpose.** It changes behaviour on the acting path, the finding is ten
+minutes old, and **nine retractions today came from moving fast on something that looked clear.**
+It wants an A/B with the refusal distribution before and after, which is cheap and is the next
+tick's.
+
+    BOUNDARY    the leak is read from two code sites and one comment; the 63% is measured over
+                404 tape refusals. The CAUSAL link between them is inferred, not yet measured --
+                confirming it means logging the selected slot's departure cycle, or running
+                the A/B above
+    MECHANISM   none changed. Named, located, pre-registered
+    CAPABILITY  none yet -- and it is the first thing tonight that is plainly a BUG rather than
+                a measurement, a scope question, or a design question
