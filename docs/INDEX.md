@@ -40212,3 +40212,66 @@ not the one the corpus names.
                 Arm F's effect on cost is UNMEASURED at filing -- the controlled run is in flight
     MECHANISM   none changed here. Arm F shipped separately and is default OFF
     CAPABILITY  none
+
+## F233 (INDEX series) — THE COST IS THE CLOSURE WALK, NOT THE LIBRARY. Which means ARM F CANNOT FIX IT, and `F232` called that case in advance
+
+**70 controlled cycles, stepped from outside the agent, recording seconds / library / distinct
+chains / duplicates / slots per cycle. It refutes my own two-point reading from an hour ago.**
+
+### what 70 cycles say that 2 points did not
+
+    over 70 cycles   library 48 -> 282    DISTINCT RECIPES 48 -> 55    duplicates 0 -> 227
+                     227 of 234 additions were duplicates -- 97%
+                     SEVEN new recipes in seventy cycles
+
+**MATCHED ON SLOTS, the library effect is inconsistent — 5 of 7 buckets rise with library, 2 FALL:**
+
+    slots~100   lib 202-252   low-lib  7.6 s  ->  high-lib 12.7 s
+    slots~200   lib  52-282   low-lib  6.8 s  ->  high-lib 35.3 s
+    slots~300   lib 171-263   low-lib 65.6 s  ->  high-lib 21.6 s   <- FALLS
+    slots~550   lib 132-230   low-lib 128.2 s ->  high-lib 49.8 s   <- FALLS
+
+**MINTING ACTIVITY IS THE CLEAN SIGNAL AND IT IS LARGE:**
+
+    cycles that added NOTHING to the library    n=17    median   8.6 s
+    cycles that ADDED terms                     n=53    median  14.4 s
+    cycles that added >= 8 terms                n= 7    median  95.0 s      <- 11x
+
+> **THE COST IS THE CLOSURE WALK.** Mints-per-cycle is a PROXY for walk size — a big walk both
+> costs more and installs more, so the causation runs through the walk either way. **Library size
+> has a weaker, inconsistent effect.**
+
+### SO I WAS WRONG AN HOUR AGO, AND I SENT IT TO THE REVIEWER
+
+**`F231`'s controlled replacement said *cost rose 2.2x while slots fell 1.6x, so the library is the
+driver*. That was TWO POINTS.** The full curve does not support it. **The conclusion that survives
+is narrower and different: boards are not the driver — and neither is library size, cleanly. The
+WALK is.**
+
+**Same error shape as the confounded kill, one level in: a real effect read off too few points,
+reported before the series existed.** Twice on the same question in one hour.
+
+### AND IT SETTLES ARM F BEFORE ITS RESULTS LAND
+
+**`F232` pre-registered exactly this discriminating case:** *if duplicates fall and the curve does
+NOT flatten, the cost is the WALK and search-before-mint is the build that matters.*
+
+**Arm F skips the INSTALL after the walk has run. The walk is the cost. So arm F cannot flatten the
+curve** — it should cut library growth and leave per-cycle cost roughly where it is.
+
+> **THAT IS NOW A PREDICTION, NOT A HOPE, AND THE RESTARTED RUN IS ITS TEST.** Arm F on: duplicates
+> should collapse, cost per cycle should NOT. **If cost falls substantially too, this entry is
+> wrong and library size mattered more than the matched buckets say.**
+
+**THE BUILD THAT FOLLOWS IS NAMED BY THE CORPUS, NOT BY ME:** loop step 7's *SEARCHED — asked FIRST,
+it is cheapest* and Figure 5's third guard. **Do not walk the closure when the library already
+explains the residual.** `F232` located the gap — `_library_fit` is never called from `mint`.
+
+    BOUNDARY    70 cycles, ONE pooled tape (take=2, all 25 games), one seed, stepped outside the
+                agent so nothing on the acting path changed. The slot buckets hold 3-17 cycles
+                each and two of seven run the other way -- that inconsistency IS the finding and
+                is not smoothed. "Mints per cycle" is a proxy for walk size and the two are not
+                separated here; separating them needs the walk's own yield count, which is in
+                `stats["seen"]` and was not captured
+    MECHANISM   none changed
+    CAPABILITY  none -- it redirects the repair from the install site to the search site
