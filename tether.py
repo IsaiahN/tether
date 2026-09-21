@@ -61,6 +61,14 @@ _BARGAIN_FIT = bool(os.environ.get("TETHER_BARGAIN_FIT"))
 # F141 arm E: vote by the movement RATE rather than a majority flag. Seat-side, off.
 _FINE_VOTE = bool(os.environ.get("TETHER_FINE_VOTE"))
 
+# ARM F -- RECIPE DEDUP. The novelty check below tests `term.name`, which carries operand AND
+# guard, so `translate . recolour<o5.w>` and `<o12.w>` both read NOVEL and both get minted.
+# Measured: 94% of mints re-derive a chain already held, and `translate . recolour` was minted
+# 137 times in one run (F229). Isaiah: "adding a dup is a symptom of the found thing never being
+# searched for -- a deeper usage-of-terms problem." This arm makes the check see the RECIPE.
+# DEFAULT OFF, like every other arm, so the baseline it is measured against is preserved.
+_RECIPE_DEDUP = bool(os.environ.get("TETHER_RECIPE_DEDUP"))
+
 
 def _head_accepts(cand: Any, slot_type: str | None) -> bool:
     """Does the candidate's HEAD atom accept what the slot actually holds?
@@ -662,6 +670,7 @@ class Agent:
         self.owed_import, self.abstained = set(), {}
         self._guard_exit: str | None = None   # why the last guard read was unreadable
         self._gamma_read: dict = {}   # did action selection consult Gamma this cycle
+        self._held_chains: set[str] = set()   # recipes in the library, per mint call
         self.candidates = {}
         # a new level is a new instrument: the verdict was about the OLD slot set
         self._said_never_live = False
@@ -2762,6 +2771,11 @@ class Agent:
         return [None] + sorted(others, key=lambda s: (*rank(s), -seen[s], s))
 
     def mint(self, slot: str) -> None:
+        # THE RECIPES ALREADY HELD, once per mint rather than per candidate. A library Term's
+        # chain is its atoms joined; `enumerate_closure` yields BARE chains, so `cand.name` is
+        # exactly this key. O(library) against a per-candidate walk that is orders larger.
+        self._held_chains = {" . ".join(a.name for a in t.atoms)
+                             for t in self.gamma.library.values()}
         hist = self.history(slot)
         held = self.gamma.library[self.bound.get(slot, IDN)]
         base = self._accumulated(slot, held)
@@ -2848,6 +2862,18 @@ class Agent:
                             cuts.append({"name": term.name, "rank": rank, "reversible": True,
                                          "reason": "not-novel"})
                             continue
+                        # THE RECIPE, NOT THE INSTANCE -- ARM F. Reported ALWAYS so the rate is
+                        # visible on the baseline too; ACTED ON only under the arm.
+                        if cand.name in self._held_chains:
+                            # AND WHETHER THE HELD RECIPE WAS EVER CONFIRMED. Isaiah: settled
+                            # vs unsettled is how the agent knows what WORKS from what is
+                            # UNTRIED. Recorded, NOT ranked on -- ordering retrieval by it
+                            # would install a preference that is the agent's to reason.
+                            cuts.append({"name": term.name, "rank": rank, "reversible": True,
+                                         "reason": "recipe-held", "recipe": cand.name,
+                                         "recipe_settled": self.gamma.is_settled(cand.name)})
+                            if _RECIPE_DEDUP:
+                                continue
                         guards["novelty"] = True
                         # PRICED IN UNITS, so a settled sub-composition costs what the
                         # ground already paid for it. `routine.length`'s rule, applied to
