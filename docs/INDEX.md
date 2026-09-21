@@ -39297,3 +39297,116 @@ declared order — over what passes.
     BOUNDARY    PRE-REGISTRATION, no result. 6 of 25 games, 94 frames, one seed (1618), two
                 arms. Not comparable as a rate to the 25-game pooled runs -- different
                 material, a fifth of the tape
+
+## F220 (INDEX series) — THE PROBE READS THE SAME WITH NO LIBRARY AT ALL, and `library 48 -> 401` is TWENTY compositions. The null nobody ran
+
+**Reviewer asked (10:10) for `produced` taken retroactively, to put a gradient under the week's flat
+grounds. It is taken. The gradient is flat too — and the reason is not the curriculum.**
+
+### the retroactive read, with its control passing first
+
+**`produced` is NOT computed from the tape. It comes from the PROBE** — a fresh 25-cycle live run
+carrying the trained library. So the question was never whether the tapes survive; it is whether the
+LIBRARIES do. **Both pooled libraries survive; the four sweep rungs DO NOT** — `sweep()` carries ONE
+library path across every rung and overwrites it, deliberately, because the library is the agent's
+only memory. **Only the final rung exists.**
+
+    PRE-REGISTERED CONTROL: both pooled libraries must reproduce their recorded 9/150 and 1-of-120.
+    BOTH DID, exactly. The artifacts are what the record says.
+
+    arm                       hit    distinct   produced   windows
+    pooled off0  (lib 329)   9/150    1/120         3         19
+    pooled off4  (lib 401)   9/150    1/120         3         19
+    sweep final  (lib  91)   9/150    1/120         3         19
+    ATOMS ONLY   (lib  48)   9/150    1/120         3         19   <-- ZERO minted terms
+
+### THE CONTROL IS THE FINDING. An agent with NO LIBRARY scores what a 401-term agent scores
+
+**Identical on every field the probe reports.** I ran it because three identical readings across a
+4.4x library range is the shape that was vacuous twice tonight — **and it was.**
+
+**The library IS loaded; this is not a plumbing failure.** Read off `play`'s own summary:
+
+    ATOMS ONLY   loaded  0   already_held   0   ->  live library 50
+    lib 401      loaded 18   already_held 335   ->  live library 71
+
+**So the two arms genuinely differ by 21 live compositions and produce identical output on every
+field.** Not a vacuous comparison — a real one, reading null.
+
+### AND `library 48 -> 401` WAS NEVER 353 COMPOSITIONS
+
+`Gamma.load` dedups on `t.name`, **the ATOM CHAIN**, because operand and guard are dropped on load —
+*the composition crosses and the binding does not*, stated in the load docstring and measured here:
+
+    artifact              reported library   saved rows   DISTINCT ATOM CHAINS
+    sweep final (s8)             91              43                9
+    pooled off0                 329             281                9
+    pooled off4                 401             353               20
+
+**The most re-bound chain appears 119 times on one run and 137 on the other.** One composition,
+re-bound to a hundred-plus slots, counted a hundred-plus times.
+
+> **SO THE WEEK'S HEADLINE IS SMALLER THAN IT READ, IN THE DIRECTION THAT MAKES THE NULLS LESS
+> DAMNING.** *Library 48 → 329, ground unchanged* is **nine compositions acquired**, not 281. A flat
+> ground against NINE new compositions is a far weaker surprise than a flat ground against 281 terms.
+> **`F190`'s law was already in the record and the LEDGER already had the ladder case — *a 101-term
+> library carried 4*. What is new is the magnitude on the pooled runs and the consequence for the
+> headline.**
+
+### WHY THE PROBE CANNOT SEE A LIBRARY — CITED, NOT DERIVED
+
+**`CLAUDE.md` carries it as a standing measured finding: `choose()` reads `self.bound` ZERO times**,
+and the `M2` wire *changes what the agent SAYS it wants and what type-checks, not what it does.*
+**A library that the selector never consults cannot change a trajectory, so a probe scoring a
+trajectory must read the same with any library — including none.** This is the first direct
+confirmation of that at the ground, and it was one grep, not a derivation.
+
+    THEREFORE       every "ground flat" reading this week was taken through an instrument that
+                    reads IDENTICALLY with nothing loaded. The readings are not wrong. They are
+                    not ABOUT the library, and nobody had run the null
+
+### what this does and does not say
+
+**DOES:** the probe cannot distinguish a 401-term agent from a library-less one on any field it
+reports; the reviewer's re-scoping of the week's negatives needs one more step, because the
+threshold statements are about a channel that carries no signal yet.
+
+**DOES NOT:** say the library is useless. **It says the CONSUMER is absent**, which is the same
+diagnosis `CLAUDE.md`'s map already carries as *the SELECTOR is NOT INSTANTIATED* — and it is a
+CONTACT reading, not a curriculum one.
+
+### THE TRAJECTORIES ARE NOT IDENTICAL — VERIFIED, AND IT STRENGTHENS THE NULL
+
+**The boundary above first read *trajectory identity is inferred, not verified*. It is now run, and
+it came out the other way.** Two 25-cycle probes with ledgers, action sequences compared:
+
+    cycles 0-15   IDENTICAL in both arms, every action `by: draw`
+    cycle 16      atoms-only  ACTION1  by `discriminate:learned`
+                  lib 401     ACTION3  by `probe`          <-- DIVERGENCE
+    ledgers       17,947 rows vs 17,960;  reach 444/437, reach_failed 439/428,
+                  park 426/415, reuse_refused 208/234
+
+**So the library changes what the agent DOES, from cycle 16 of 25.** Nine cycles of different
+actions on different boards — **and `hit`, `distinct` and `produced` come out the same anyway.**
+
+> **THAT MAKES IT A REAL NULL RATHER THAN A TAUTOLOGY, WHICH IS THE OPPOSITE OF WHAT I EXPECTED
+> WHEN I RAN IT.** A forced match would have said *the probe cannot see the library*. A match across
+> genuinely different trajectories says **the probe's three content fields do not separate them.**
+
+**AND ONE FIELD MUST BE WITHDRAWN AS EVIDENCE: `windows` at 19.** It counts 7-span windows over the
+frames seen, and both arms ran 25 cycles, so **19 is forced by the cycle count and carries no
+information about either arm.** `produced`, `hit` and `distinct` are content-sensitive and are the
+three that read null.
+
+**AND THE FIRST ATTEMPT AT THIS CHECK RETURNED `IDENTICAL: True` OVER TWO EMPTY LISTS** — there is
+no `ACT` step in this ledger and my filter matched nothing. **Third vacuous comparison tonight,
+caught by printing the row count beside the verdict**, which is now the only reason it did not
+become the finding.
+
+    BOUNDARY    ONE probe board (dc22), 25 cycles, four arms, deterministic codebase. The
+                divergence is verified on ONE pair (atoms vs 401); the other two arms are not
+                pairwise compared. `windows` is withdrawn as evidence, above. The
+                distinct-chain counts are exact
+    MECHANISM   none changed
+    CAPABILITY  none -- and the reading is that the channel the curriculum work has been
+                measured through was never connected to the thing being varied
