@@ -40974,3 +40974,111 @@ hit rate and not to the cost.**
     MECHANISM   none changed; arms D and H remain default OFF
     CAPABILITY  sk48 hit 6.5% -> 22.8% with mints halved and time nearly halved. That is the
                 first change tonight that improves capability and cost together
+
+## F245 (INDEX series) — "SCALES WITH BOARD WEIGHT" IS WRONG. The predictor is BASELINE MINT LOAD, and the weighted phase-1 projection is UNTRUSTWORTHY BY AN ORDER OF MAGNITUDE
+
+**Reviewer approved the heavy boards and asked for one weighted phase-1 hours figure. Seven boards
+now measured — 49% of the tape by frame count.**
+
+    board  frames  base s/cyc  armH s/cyc   delta   base mints
+    dc22     1193       8.25        9.41     +14%      12
+    ls20      547       7.35        9.58     +30%      13
+    m0r0      971       6.75        7.78     +15%      11
+    sk48      697      54.64       28.51     -48%      41
+    re86     1072      16.45       19.95     +21%      23
+    lf52     1212       0.14        0.27     +89%       1
+    wa30     1565       2.54        2.96     +17%       4
+
+### `F244`'s "scales with board weight" is REFUTED by the boards it predicted for
+
+**`re86` is heavy — 1,072 frames, second only to `wa30` — and arm H costs it +21%.** `wa30` is the
+heaviest board in the tape and costs +17%. **`sk48` remains the ONLY board where the sign flips**,
+and it is not the heaviest.
+
+**What separates it is BASELINE MINT LOAD, not object count.** `sk48`'s baseline spends 643.8s
+minting across 41 mints; `re86` spends 213.7s across 23; `wa30` 42.4s across 4. **Arm H buys
+retrieval time to avoid mint time, so it pays exactly where there is mint time to avoid.**
+
+> **SO THE RULE IS: arm H pays when the baseline mints heavily, and costs otherwise.** That is a
+> better predictor than weight and it is still SEVEN POINTS — I have now offered two rules for this
+> and the first was refuted by the next three boards.
+
+### the weighted projection, AND WHY I DO NOT TRUST IT
+
+    measured share of the tape        7,257 / 14,822 frames = 49%
+    PROJECTED FULL PHASE 1     base 45.5 h      arm H 39.8 h      arm H saves 13%
+
+**THAT NUMBER IS ALMOST CERTAINLY FAR TOO LOW AND I AM REPORTING IT WITH ITS OWN REFUTATION.** Every
+per-cycle figure above is a 20-CYCLE AVERAGE taken at a small library. **The killed full run measured
+`dc22` at 94 s/cycle by cycle 70 — against the 8.25 s/cycle this table credits it with.** Per-cycle
+cost rises with library size (`F233`) and 20 cycles sits at the very start of that curve.
+
+**So 45.5 h is a floor built from the cheapest part of the run, exactly the error `F217` made when it
+priced phase 3 from a 20-cycle smoke and `F231` then measured the real thing at ten times the rate.**
+**The honest statement is: on this evidence arm H changes the full-run cost by roughly -13%, and the
+ABSOLUTE hours are not known from short runs at all.**
+
+    BOUNDARY    seven boards, 20 cycles each, one trained library, arm D off. 49% of the tape by
+                frames. The projection assumes per-cycle cost is constant in library size and it
+                is NOT -- that assumption is refuted by F233 and by the killed run, and the figure
+                is published only because a relative comparison between two arms measured the same
+                way survives an error that scales both arms together
+    MECHANISM   none changed; arm H default OFF
+    CAPABILITY  none. It retires F244's weight rule and replaces it with a mint-load rule that has
+                seven points and no third confirmation
+
+## F246 (INDEX series) — ISAIAH'S TRACKER RE-ISSUE IS REAL AND IT IS MEASURED: `sk48` founds 129 of 224 new names on the EXACT cells of an object it is already tracking
+
+**Isaiah, via the reviewer: *"That shouldn't happen. The mutation observer should have noticed
+that the change occurred in the same position as object 199 and attributed it to object 199, and
+updated the attribute there."* This is that hypothesis measured, and it holds.**
+
+### the measurement, PERCEPTION LAYER ONLY — no agent, no library, no bindings
+
+`reissue2.py`, 64 frames per board. For every name the tracker issues that it has not issued
+before, ask what occupied those cells in the frame before.
+
+    game   new names   on EXACT cells of a tracked object   overlapping   % on held ground
+    dc22        46                    1                          5              13.0%
+    ls20        54                    3                         31              63.0%
+    m0r0       371                    4                        360              98.1%
+    sk48       224                  129                         49              79.5%
+    vc33        83                    0                         72              86.7%
+
+**`sk48` is the unambiguous signature: 129 NEW names on cells an EXISTING object already held.**
+That is not a new object. It is object 199 changing colour and being issued a second identity,
+exactly as Isaiah described.
+
+### THE `overlapping` COLUMN IS NOT RE-ISSUE AND MUST NOT BE READ AS IT
+
+**`m0r0`'s 98.1% is the number that would make the headline, and it is the one I will not use.**
+Overlapping ground conflates four different events that Isaiah's own addendum says to keep apart:
+re-issue, an OVERLAY (the avatar standing on something), a FRAGMENT breaking off, and a MERGE.
+**Only EXACT-cell identity isolates re-issue**, so the finding rests on the `exact` column and on
+`sk48`, and the other four boards are reported as not showing it rather than as showing it weakly.
+
+> **PER GAME, NEVER POOLED — and here that rule is the whole finding.** Pooled, this is
+> 137/778 = 18% and reads as a minor defect. Per game it is **58% of `sk48`'s new names and
+> ~2% of `dc22`'s**, which says the tracker breaks where objects RECOLOUR IN PLACE and behaves
+> where they do not.
+
+### THE THIRD ATTEMPT IS THE ONE THAT COUNTS, AND THE FIRST TWO ARE WHY
+
+- **Attempt 1** indexed components by LIST POSITION, because `Objects` has no `track` method.
+  Position is not identity; **discarded as invalid, not reported.**
+- **Attempt 2** asked whether LOST names reappear. **Wrong direction** — `tracked` persists
+  objects by design, so a name is not lost when its object stops being visible.
+- **Attempt 3** asks the only question that distinguishes: *is a NEW name founded on ground an
+  EXISTING object holds.*
+
+**Two of the three would have produced a number.** `counters-lie-read-the-write-site` in its
+other form: the instrument was answering a neighbouring question each time, and only the third
+one's question can be wrong in a way the data would show.
+
+    BOUNDARY    five boards, 64 frames each, perception layer in isolation -- no agent, so
+                nothing here depends on bindings, arms, or library state. "EXACT" means the
+                identical cell set; anything short of that is excluded, so this is a FLOOR on
+                re-issue and not an estimate of it
+    MECHANISM   none changed -- the tracker identity fix is Isaiah's ruling and is NOT built here
+    CAPABILITY  none yet. It converts a ruling from a hypothesis into a located defect with a
+                board that exhibits it, which is what the fix needs in order to be falsifiable
