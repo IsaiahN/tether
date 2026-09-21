@@ -38866,6 +38866,44 @@ tapes. **On this run, with the leak removed, tape gate-1 failure is 79.2%** — 
 difference it reported was the leak, not the tape. **The 404-refusal tape figure was measured with
 the leak in place and should be re-read on patched runs before it is cited again.**
 
+### SECOND CONFIG: one prediction TESTED AND HELD, the other VACUOUS — and the leak is config-specific
+
+**`ar25` coherent, 64 cycles, patched against unpatched at matched depth. Two predictions were
+made in the launcher; the run tests exactly one of them.**
+
+**TESTED AND HELD — formation and survival are untouched, event for event:**
+
+    UNPATCHED                                   PATCHED
+      c32  routine  o4.h  until(o4.h/38)          c32  routine  o4.h  until(o4.h/38)
+      c35  guard_unreadable  o4.h  unbound        c35  guard_unreadable  o4.h  unbound
+      c35  routine_end  until(o4.h/36)            c35  routine_end  until(o4.h/36)
+
+**Byte-identical, including the budget decrement.** The patch does not stop the guard's slot
+departing — it was never meant to — and **`F215`'s *no capability change* now holds on a SECOND
+config at greater depth, not just the 30-cycle run it was asserted from.**
+
+**VACUOUS — the refusal-distribution prediction cannot be tested here:**
+
+    UNPATCHED (<=36)   20 refusals, 100% "no objective is confidently shrinking", 0 stale
+    PATCHED   (<=36)   20 refusals, 100% "no objective is confidently shrinking", 0 stale
+
+**Zero stale selections in EITHER arm.** Two identical distributions again, and again they mean
+*the panel cannot show the effect*, not *the patch did nothing*. **Second time tonight that
+matched-depth arms have looked like a null and were a power failure** — the first was the 15-cycle
+attempt, and the tell is the same: the quantity under test has count zero in the control.
+
+### and the difference between the two configs is itself the reading
+
+**Pooled offset-4 produced SIX stale selections; `ar25` coherent produces NONE.** On `ar25` the
+routine's slot `o4.h` departs at c35 and gate 1 then returns **None** — *no objective is
+confidently shrinking* — rather than re-selecting the corpse. **So the leak fires on one tape and
+not the other.**
+
+**I am not explaining why.** The candidate accounts — series length, monotonicity after departure,
+how many other slots were live — are exactly the kind of story that has cost this session nine
+retractions. **What is established: the leak is real (measured on the pooled run, six events on one
+slot after departure), the fix removes it, and it does NOT fire on every tape.**
+
     BOUNDARY    ONE config, 30 cycles, 24 refusals per arm, one board-set, one seed. The
                 distribution is small and the 6-and-6 symmetry could be coincidence at this
                 size -- what makes it convincing is that it was PREDICTED, not that it is large.
