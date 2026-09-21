@@ -62,6 +62,7 @@ import gamma
 import ledger
 import reverse_engineer
 import rlvr
+import summary
 import tether
 from arc_world import ArcWorld
 
@@ -262,6 +263,9 @@ def watch_many(games=ALL_GAMES, cycles: int | None = None, offset: int = 0, spac
                                                               strict=False) if a != b),
             "atoms": base, "library": len(g.library), "minted": len(g.library) - base,
             "settled": len(g.settled_terms),
+            # COLD BY CONSTRUCTION -- a pooled run carries no library file (the open point
+            # above), so `inherited` is empty and `diverged` reads null, correctly.
+            "branching": summary.branching(g, set()),
             # ALL of them, never `most_common(8)`. The truncated field read as "8 games
             # represented" when the true figure, recovered from the saved library, was 24 of 25.
             # A capped field reporting its own cap as a finding is the shape of every population
@@ -294,6 +298,10 @@ def watch(game: str = "dc22", cycles: int | None = None, offset: int = 0, spacin
     if library and Path(library).exists():
         g.load(library)
     carried = len(g.library)
+    # WHAT CROSSES IS THE CHAIN, AND `library` DOES NOT COUNT IT. `Term.name` carries
+    # chain+operand+guard, so a run reports 401 where 20 compositions survive a save/load.
+    # `summary.branching` already computed this and only `arc_holdout` ever called it -- F220.
+    inherited = {summary._chain(t) for t in g.library.values()} if library else set()
     ag = tether.Agent(env, g, tether.Config(), ledger.Ledger(led_path))
     for _ in range(cycles if cycles is not None else len(seq)):
         ag.step()
@@ -305,7 +313,8 @@ def watch(game: str = "dc22", cycles: int | None = None, offset: int = 0, spacin
             "frames": len(seq), "cycles": cycles if cycles is not None else len(seq),
             "atoms": base, "carried_in": carried - base,
             "library": len(g.library), "minted": len(g.library) - carried,
-            "settled": len(g.settled_terms), "promotions": len(g.primitives)}
+            "settled": len(g.settled_terms), "promotions": len(g.primitives),
+            "branching": summary.branching(g, inherited)}
 
 
 def probe(game: str, library: str, cycles: int = 25) -> dict:
