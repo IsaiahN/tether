@@ -39002,6 +39002,30 @@ weakly, structurally.**
 **And spacing is inert there too**, re-confirmed rather than quoted: `spacing=1` and `spacing=4`
 both give 199 frames / 25 blocks / 24 switches.
 
+**CORRECTION, SAME TICK, AND IT IS THE DOCTRINE'S FIRST RULE COSTING ME AGAIN — *grep the
+identifier before the FIRST MEASUREMENT*.** I measured `dial_inert` at `take=1` and filed the
+result as found. **`F194` already had it**, in a row titled *THE POOLED DIAL IS INERT AT `take=1`*
+— byte-identical tapes at `spacing` 1 and 4, the `dial_inert` field built in response, the
+`take=2, spacing=4` case tabulated, **and the ~68 h affordability conclusion.** `F194` is the
+commit BEFORE the noise floor was built.
+
+**So of this entry, the SPACING half and the PRICE half are `F194`'s and are re-derived here, not
+found.** What is actually new:
+
+- **the NOISE dial's behaviour at all** — `F194` predates the noise floor by three commits and
+  could not have covered it;
+- **that noise is inert at `take=1` for the same structural reason spacing is**;
+- **`5.36 s/cycle` measured at library 51**, where `F194` priced from `F185`'s ~40 s/cycle
+  saturating figure;
+- **the two meanings of `dial_inert`** — and this one slightly corrects `F194`, which tabulates
+  `spacing >= take` as inert alongside the disconnected case. **At `spacing >= take` inertness is
+  the phase-3 SETTING, not a fault.**
+
+**AND THE SENTENCE BELOW NEEDS ITS PROVENANCE FIXED RATHER THAN WITHDRAWN.** It is true, and it was
+not an oversight: **`F194` recommended `take=1, spacing=1` explicitly** — *what IS affordable is ONE
+POINT: 199 frames, ~2–3 h, phase 1 at its maximum shuffle* — and both pooled runs took it. **A
+deliberate, recorded, priced choice.** I presented it as something nobody had noticed.
+
 > **SO NO POOLED RUN TO DATE HAS MOVED ANY CURRICULUM-ORDERING DIAL.** `F203` and `F207` are both
 > `take=1`. **This does NOT touch their ground null** — `9/150` and 1-of-120 distinct effects
 > replicated at two independent cuts, and the ground has been flat under every configuration
@@ -39146,3 +39170,72 @@ cycles earlier (`c49`: six `rebind` rows, several `accept`), so the control is p
     MECHANISM   none changed on the acting path. Two rows gained three already-computed fields
     CAPABILITY  none -- but two of the three live "turnover" events in the record were an
                 unreadable frame, and nothing could have told them apart
+
+## F219 (INDEX series) — PRE-REGISTRATION: the cheapest phase-3 run that could read differently, and the probe's own code says WHICH quantity can move
+
+**Reviewer's ruling, 09:29: do not spend the 68 h. *The smallest phase-3 run that could come out
+DIFFERENTLY from `9/150`, a few games, the depth the sweep already showed flatness at, and the
+prediction written down first.* Resource allocation is their seat's. Written BEFORE the run.**
+
+### the config, and every choice in it is declared rather than searched
+
+    pool        the FIRST SIX of `ALL_GAMES` in the module's own declared order --
+                ar25 bp35 cd82 cn04 dc22 ft09. Arbitrary by requirement and unsearched;
+                the only constraint applied is that `dc22` be in it, because the probe
+                is on dc22 and every standing `9/150` had dc22 in the pool
+    shape       take=2, spacing=2 -- the SMALLEST tape phase 3 exists on (F217). Below
+                `take=2` there are no coherent stretches to splice into
+    arms        noise 0.0 (coherent control) and noise 0.5
+    frames      94 per arm, IDENTICAL material -- the dial only permutes
+    depth       whole tape both arms. A prefix would make the arms incomparable,
+                which `watch`'s own docstring states
+
+**`noise=0.5` is chosen for POWER, not for outcome, and that is a declaration not a defence: it is
+the maximum interleaving this pool produces.** Measured before the run — switches `5 -> 6 -> 6 ->
+8 -> 8 -> 10` across noise `0.0 .. 0.5`. **A 2x change in interleaving over 94 frames, against the
+25-game tape's 3.6x over 763.**
+
+### WHICH QUANTITY CAN ACTUALLY MOVE — and the probe says so at its own site
+
+**`hit` is LUMPY and its floor is structural.** `probe`'s own comment: *dc22's 150 non-trivial
+chunks carry 120 DISTINCT signatures and the agent matches exactly ONE — the second-commonest,
+which covers 9 chunks. So the probe cannot read anything but 9 until a SECOND signature is
+acquired.* **`hit` can therefore only take 0, 9, or 9+k. It is not a dial, it is a latch.**
+
+So the three quantities, in the order they can move:
+
+    produced      how many distinct effect windows the agent makes AT ALL. NO BASELINE
+                  EXISTS -- it entered at `b8ea7b1`, AFTER pooled run 1, and the four
+                  sweep rungs predate it too. This run takes its first pooled reading
+    distinct      1 of 120 at both pooled cuts
+    hit           9/150 everywhere this week -- and a latch, not a scale
+
+### THE PREDICTIONS, and they are mine and pinned
+
+- **`hit = 9/150` in BOTH arms.** Every ground reading this week is 9, and 94 frames is under half
+  the 199-frame pooled run that read 9 with a library of 329.
+- **`distinct = 1 of 120` in both.**
+- **`produced`: NO PREDICTION.** There is no prior reading to predict from, and inventing one
+  would be the fitted-metric error. This run establishes it.
+- **`library` and `minted` WILL differ between arms.** Ordering changes what is adjacent. **Both
+  are frame-internal and neither is evidence** — stated now so a difference there cannot be
+  reported as a result later.
+
+### AND THE VACUITY GUARD, WRITTEN BEFORE THE NUMBERS BECAUSE IT CANNOT BE ADDED AFTER
+
+**Twice tonight I read matched arms as a null when the quantity under test had count ZERO in the
+control.** So, in advance:
+
+> **A MATCHED NULL HERE DOES NOT ESTABLISH *ORDERING DOES NOT REACH THE GROUND*.** It establishes
+> *a 2x change in interleaving, over 94 frames, on six games, does not move a latch that needs a
+> whole second signature to move.* **The reviewer's outcome 1 — *ordering does not reach the
+> ground, free the budget* — is STRONGER THAN THIS RUN CAN SUPPORT, and I am saying so before
+> seeing the number rather than after.**
+
+**What WOULD support it: `produced` identical across arms.** That quantity is not latched, has no
+signature threshold, and counts what the agent makes rather than what it matches. **If ordering
+changes nothing about what the agent can produce, that is a reading about ordering.**
+
+    BOUNDARY    PRE-REGISTRATION, no result. 6 of 25 games, 94 frames, one seed (1618), two
+                arms. Not comparable as a rate to the 25-game pooled runs -- different
+                material, a fifth of the tape
