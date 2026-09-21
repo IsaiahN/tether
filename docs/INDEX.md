@@ -40853,3 +40853,66 @@ its own pre-registration.**
     MECHANISM   none changed
     CAPABILITY  none yet -- and it is the first thing tonight that is a plain defect with a named,
                 contained repair rather than a diagnosis
+
+## F243 (INDEX series) — ERASURE 2 MEASURED: the frame stack IS published and narrated, NO bet reads it, and on `ls20` nine of twenty-five actions return SIX frames
+
+**The reviewer named three erasures as builds. `F242` measured the first (shape: 7 atoms, 0 of 40).
+This is the second, and it comes out differently — the value is published and consumed by ONE
+counter, and the boards disagree about whether there is anything in it.**
+
+### the stack exists and is non-trivial on half the boards
+
+    board   cascade rows   frames per action
+    dc22         25        1 on all 25
+    ls20         25        1 on 16,  SIX on 9
+    m0r0         25        1 on all 25
+    sk48         25        1 on 13,  TWO on 12
+
+**So on `ls20` nine of twenty-five actions return a six-frame animation and on `sk48` twelve return
+two.** `arc_world.cascade()` publishes the whole stack, and `_narrate_cascade` writes a row with
+`frames` and `within_step`.
+
+### and exactly one thing calls it, and that thing only counts
+
+    grep cascade() in tether.py  ->  3480: self._narrate_cascade()
+
+**No bet, no mint, no binding path reads the stack.** The accessor's own docstring says so and says
+why it matters: *the intermediate frames are free evidence about MECHANISM, and nothing in the tree
+reads them… what the endpoint erases is the WITHIN-STEP ORDER — A moved, THEN B reacted.*
+
+### BUT THE CONTENT DOES NOT SUPPORT THE CLAIM ON THIS BOARD, AND THAT IS THE HONEST HALF
+
+    ls20, every multi-frame cycle:   within_step = [0, 0, 0, 0, 76]
+
+**Five transitions between six frames: the first FOUR change nothing and the fifth changes 76
+cells.** So the animation is not *A moved then B reacted* — it is four identical frames and then
+everything at once. **On `ls20` there is no incremental mechanism evidence in the stack to read.**
+
+> **THE ERASURE IS REAL AND ITS VALUE IS UNPROVEN.** Nothing bets on the stack, which is the same
+> *[[a-value-that-exists-is-not-a-value-that-crosses]]* shape as `shapes()` in `F242`. **But a
+> reader who fixed it on `ls20` would gain four frames of nothing.** `sk48`'s two-frame responses
+> are unexamined and are where I would look before building anything.
+
+### AND IT BEARS DIRECTLY ON THE CONTACT WORK ISAIAH JUST SPECIFIED
+
+`PERCEPTION_PIPELINE` layer 1: *a relation that forms and breaks mid-animation is invisible if only
+the settled frame is read.* **Contact-seeking System 0 is exactly the consumer this stack was
+described for** — a touch that happens at frame 3 and is gone by frame 6 is unobservable today.
+**On `dc22` and `m0r0` that cannot happen (every response is one frame); on `ls20` and `sk48` it
+can.**
+
+### erasure 3 — CHECKED, NOT ESTABLISHED, and I am not claiming it
+
+`components(board)` returns `list[dict]` and has **one caller**, inside the tracker. The `OBJECT` /
+`OBJ` split is load-bearing and documented (*"`_extract` takes OBJECT — a thing on the board"*), and
+group-reading atoms (`count`, `distinct`, `all`, `sum_group`) receive a group through `Ctx`. **So
+"the list is cut to one object" is not something I have shown, and the group mechanism may already
+be the answer.** Left open rather than asserted.
+
+    BOUNDARY    four boards, 25 cycles, LIVE runs, cascade rows counted from the published
+                ledger. `within_step` content read on `ls20` only -- `sk48`'s twelve two-frame
+                responses are NOT examined and could carry what ls20's do not. The
+                "no bet reads it" claim is a grep over `tether.py` for `cascade()`, one hit
+    MECHANISM   none changed
+    CAPABILITY  none. It sizes the second erasure and finds it smaller than the first on two
+                boards and unmeasured on a third
