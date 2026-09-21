@@ -39162,6 +39162,34 @@ cycles earlier (`c49`: six `rebind` rows, several `accept`), so the control is p
 **The instrument shipped instead** (`6035188`): `blind` on `no_slots` and on `present`, and
 `bound_lost` on `present` — counted before the pops.
 
+### FIRST READINGS OF `bound_lost`, from the `F219` tape in flight — and `gone` WAS NOT A PROXY
+
+**26 cycles, the coherent arm. The field answers its own question on its first reading:**
+
+    cycle   gone   bound_lost   share
+      16     104       94        90%
+      20       8        8       100%
+      21      82       21        26%
+      22      40       17        43%
+      23      48       23        48%
+      24       8        8       100%
+      26     120       75        62%
+
+**The share of a departure that costs the agent anything swings from 0% to 100%.** So a census over
+`gone` — which is what every turnover reading in this file has been — **measures the board, not the
+loss.** 246 bindings destroyed in 26 cycles here, and nothing in the record could have said so.
+
+### AND `blind` IS `False` ON EVERY TAPE FRAME, WHICH CONSTRAINS MY OWN PRE-REGISTRATION
+
+**12 of 12 `present` rows read `blind=False`.** Expected, and worth writing down rather than
+noticing later: tape frames come from stored replays and are always readable, so **a tape cannot
+produce a blind frame at all.**
+
+> **THEREFORE THE `_present` BLIND-ABSTENTION A/B ABOVE CANNOT BE RUN ON A TAPE.** Its control count
+> would be zero by construction — which is exactly the vacuous-arms failure this session hit twice.
+> **It is a LIVE-board experiment or it is nothing**, and `long_vc33` / `sp80_wall` are the only two
+> runs known to reach the condition.
+
     BOUNDARY    34 live ledgers, 7 games, depths 12-130 and UNMATCHED between games -- sk48 and
                 ft09 are read at 40 cycles, ls20 at 60 and 130. The per-game rows are not
                 comparable to each other as rates, only as presence/absence at their own depth.
