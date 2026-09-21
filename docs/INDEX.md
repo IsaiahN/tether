@@ -38285,6 +38285,13 @@ it is the one unknown in the only capability event either pooled run produced.**
 
 ## F208 (INDEX series) — THE FIRST ROUTINE WAS KILLED BY A GAME SWITCH, AND §14.5 PHASE 1 CANNOT SUPPORT PROCEDURE FORMATION BY CONSTRUCTION
 
+> **HEADLINE WITHDRAWN BY ITS OWN FALSIFIER — `F209`, ninety minutes later.** The switch-free tape
+> (`ar25`, `take=8 spacing=8`, no switches by construction) produced a routine that died the SAME
+> way: `exit=unbound`. **Survival went 1 cycle → 3; the cause did not change.** The real mechanism
+> is SLOT TURNOVER at `tether.py:2605` — any departed slot is unbound, and a game switch is only
+> the case where all of them depart at once. **Removing switches buys two cycles, not a fix.**
+> What survives below is the guard-is-a-binding argument; what is withdrawn is the CAUSE.
+
 **The instrument built two hours ago, fired at the one event that needed it, and the chain closes
 completely.**
 
@@ -38351,3 +38358,71 @@ with a better instrument.** That is how this entry exists.
     MECHANISM   none changed -- the guard_unreadable row built this afternoon did the work
     CAPABILITY  none. But it removes phase 1 as a route to procedures, on a structural
                 argument rather than a null
+
+## F209 (INDEX series) — F208's FALSIFIER REFUTED IT, AND THE CORRECTED CAUSE IS BIGGER: a routine's guard is a SLOT NAME, and slots depart
+
+**`F208` claimed the first routine was killed by a GAME SWITCH and that §14.5 phase 1 therefore
+cannot support procedures. I pre-registered the falsifier in the same entry and ran it. It fired.**
+
+    pooled tape (switches every 8 frames)   formed c23, died c24   1 cycle    exit=unbound
+    ar25 coherent, take=8 spacing=8         formed c32, died c35   3 cycles   exit=unbound
+    NO GAME SWITCHES EXIST ON THE SECOND TAPE
+
+**Removing switches TRIPLED survival and changed NOTHING about the cause.** The guard slot went
+`unbound` either way. **`F208`'s headline is wrong: the game switch is not the cause.**
+
+**And the routine on the switch-free tape actually RAN** — its budget went `until(o4.h/38)` at
+formation to `until(o4.h/36)` at death, so it executed **two iterations** before blocking. That is
+the most a procedure has ever done in this project.
+
+### the real mechanism, from the write site
+
+`tether.py:2605` — when `env.slots()` changes between frames:
+
+    gone = set(self.slots) - set(now)
+    for g in gone:
+        self.bound.pop(g, None)          # a departed slot loses its binding
+    orphaned = [k for k, n in self.bound.items()
+                if self.gamma.library[n].operand in gone]
+    for k in orphaned:
+        self.bound.pop(k, None)          # and so does a term whose OPERAND departed
+
+**A routine's guard is a SLOT NAME. Slots are per-frame perceptual identities that come and go.
+So a guard is built on the least stable object in the system**, and a game switch is only the
+extreme case in which ALL slots depart at once.
+
+### measured on the coherent single-game tape — turnover is routine, not exceptional
+
+    26 `present` rows (slot-set changes)
+    slots GONE per change       mean  2.7   max  30
+    slots CAME per change       mean 12.9   max 144
+    terms ORPHANED per change   mean  0.6   max   9
+    rows with ANY departure     5 of 26
+
+**Departures are not rare and they do not need a game boundary.** A routine only has to be
+unlucky in the slot it guards.
+
+### and `blocked` is bookkeeping, not evidence — which is the part that matters
+
+`routine.py` is explicit: ***I could not read the guard* is not *the guard is satisfied*.** The
+routine did not fail. It was not refuted. **Its termination condition became unreadable because the
+perceptual identity it names stopped being in the slot set** — and the loop then reports an ending
+it never actually reached.
+
+> **SO PROCEDURE-LEVEL STRUCTURE IS NOT BLOCKED BY PRICING, BY REUSE, BY THE BARGAIN, OR BY THE
+> CURRICULUM. It is blocked because a plan's termination condition is addressed to a perceptual
+> identity with a shorter lifetime than the plan.**
+
+### what survives of F208, and what does not
+
+**SURVIVES:** the guard is a binding; bindings do not cross a board change; the pooled tape swaps
+boards every 8 frames so it is the WORST case, and survival there was 1 cycle against 3.
+**WITHDRAWN:** that the game switch is the CAUSE, and that removing switches would fix it. **It
+would not — it buys two cycles.**
+
+    BOUNDARY    TWO routines, one per tape. A single event per condition is not a rate, and
+                the 1-vs-3 cycle difference is two data points. The turnover figures are from
+                ONE game (ar25) at offset 4 -- other boards will differ and are unmeasured
+    MECHANISM   none changed. F208 corrected in its own row
+    CAPABILITY  none -- but the located cause moved from the curriculum, which is ours to
+                change, to slot identity, which is the agent's perception layer
