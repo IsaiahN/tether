@@ -38088,3 +38088,60 @@ in the world* — reached by a shell idiom rather than by inattention.**
                 slice of each. A second run at offset 4 is in flight to test exactly this
     MECHANISM   phase 1 runs end to end
     CAPABILITY  ZERO. 281 mints, 24 games of provenance, one distinct effect
+
+## F205 (INDEX series) — `used == 1` HOLDS EXACTLY AND MAY BE PINNED BY CONSTRUCTION: 203 installs, 203 distinct term+operand, TEN distinct compositions
+
+**The reviewer put the remaining open question at `REUSE_UNWIRED` / `used == 1` / `routine_cut == 0`
+— *the only place left*. Grepped before measuring, per the rule that has cost four ticks when
+skipped.**
+
+`INDEX:455` records it as a **defect, not an open question**: *the funnel reports
+`{'no-eligible-target': 4}`, ladder stage `REUSE_UNWIRED`, implementation — loop not connected.
+Every unit reads `used == 1`, flat at 16, 40 and 80 cycles.* Its falsifier: **a run in which a
+settled term is bound a second time, or bound for a second slot.**
+
+### measured on the pooled run, 199 cycles — 2.5x the depth it was recorded at
+
+    reuse_install events                203
+    distinct TERM+OPERAND installed     203     -> one install each. `used == 1` HOLDS EXACTLY
+    distinct COMPOSITIONS installed      10     -> translate 75 · translate.recolour 68 ·
+                                                   recolour 44 · +7 others
+
+**Every bound instance is used exactly once. The composition is reused twenty times over.**
+
+### why the first number may be unable to say anything
+
+**The operand is a SLOT NAME** — `translate<o98.dcol>`, `translate<o829.colour>`,
+`translate<o821.h>`. Slot names are per-object-per-board and **do not recur across boards.** So a
+count keyed on term+operand **cannot exceed 1 on a varied habitat: it is pinned by construction**,
+and a pooled tape spanning 25 games is the most varied habitat this project has.
+
+**That is the denominator law one level deeper than usual.** The standing form is *a metric whose
+denominator the mechanism changes cannot falsify that mechanism*. **This is a metric whose value is
+fixed at 1 by the shape of the key, so it cannot falsify ANYTHING** — and it has been read as a
+finding at 16, 40, 80 and now 199 cycles.
+
+### WHAT IS NOT ESTABLISHED, and the distinction is the entry
+
+**I have NOT verified that `reuse_install` is the event `used` counts.** `summary.py`'s `used` is
+`len({detail.term for x in rows if x.event == "pull"})` — distinct terms PULLED per level span,
+which is a **third** quantity. **Three candidate referents for one word, and `INDEX:455`'s "every
+unit reads `used == 1`" names none of them explicitly.**
+
+**So this is filed as an AMBIGUITY WITH A MEASUREMENT ATTACHED, not as a refutation.** What it
+establishes: *at term+operand granularity the number is 203/203 and cannot be otherwise; at
+composition granularity reuse is heavy.* Which of those `used` means decides whether the defect is
+real or an artifact, **and the record does not say.**
+
+### and the falsifier is NOT met on either reading
+
+**No SETTLED term appears in `reuse_install` at all** — checked directly against the run's 89
+settle events. `INDEX:455`'s falsifier requires *a SETTLED term bound a second time, or bound for a
+second slot*, and neither happens. **The defect stands on its own terms regardless of how `used` is
+read.** The ambiguity changes what the defect MEANS, not whether it is present.
+
+    BOUNDARY    one pooled run, 199 cycles, offset 0, seed 1618. `reuse_install` counted by
+                grep on the event field. The identity of `used` is UNVERIFIED and that is the
+                entry's point
+    MECHANISM   none changed
+    CAPABILITY  none -- it puts a caution under the one place the reviewer says is left
