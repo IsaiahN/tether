@@ -2151,7 +2151,18 @@ class Agent:
         on**, which is the point: the routine path is being given the term path's key, not a
         second one invented beside it.
         """
-        return (gap.get("arity"), gap.get("varies_types", ()),
+        # AND THE MULTIPLICITY IS A SLOT COUNT, WHICH IS THE SAME INSTANCE LEAK THIS METHOD
+        # DROPS `varies` FOR. `characterise` emits one entry PER VARYING SLOT, so a gap reads
+        # ('COLOUR','COLOUR','COLOUR','DELTA'x7,...) -- *how many objects changed*, not *which
+        # attributes changed*. Its own author's line, one file over: "WHICH TYPES VARIED, NOT
+        # WHICH SLOTS ... the key that CROSSES." Measured on four boards: the catalogue splits
+        # into 34-132 keys where the SET gives 10-18, so one failure shape files under up to
+        # 8.8x as many entries and never accumulates.
+        #
+        # RETRIEVAL IS UNAFFECTED AND THAT WAS CHECKED FIRST: `fits` reads `varies_types` only
+        # through `in`, where multiplicity cannot matter. This key is the only consumer that
+        # can see it.
+        return (gap.get("arity"), tuple(sorted(set(gap.get("varies_types", ())))),
                 gap.get("target_type"), gap.get("rel_types", ()))
 
     def _characterise_gap(self, slot: str) -> dict | None:
