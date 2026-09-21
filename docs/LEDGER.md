@@ -159,7 +159,7 @@ invisible the moment it stopped being anyone's next action.***
 | **`goal_residual`'s five `None` exits** | A reason-code would close `F189`'s open item. Cheap, named, **deliberately deferred** — *you cannot diagnose your way to a composer.* |
 | **A pooled SPACING ladder** | Needs `take>=8` = 1,525 frames = **~68 h. NOT AFFORDABLE** at current mint cost (`F194`). **`F217` prices phase 3 into the same bracket — the two remaining curriculum-ordering experiments are both gated by mint cost, not by anything unbuilt.** |
 | **Phase 2 (the 249)** | The VALIDATION set, before the architecture freezes. Not the guide curriculum — see the collisions section. |
-| **Distinct-effect counts off dc22/sp80** | Unknown for `ls20`/`m0r0`/`sk48`/`wa30`. *One distinct effect everywhere* is **NOT** claimed. |
+| ~~Distinct-effect counts off dc22/sp80~~ | **THREE OF FOUR MEASURED — `F223`.** `ls20` **3 of 63**, `m0r0` **4 of 58**, `sk48` **1 of 88**; `dc22` 1 of 120. **`wa30` remains.** *One distinct effect everywhere* is refuted — the range is 1 to 4. **And `hit` is amplified by key repetition** (`m0r0`'s 4 distinct become 35 chunk hits, 8.75x; `sk48` cannot amplify at all, 88 chunks / 88 signatures), **so `distinct` is the unit that transfers.** |
 
 ### UNCOMMITTED WORK SITTING IN THE TREE — NOT MINE, FLAGGED 2026-09-21
 

@@ -39533,9 +39533,10 @@ was any separation, which would mean `dc22` was the ceiling.**
     m0r0    atoms only   35/123   28.5%    SEVEN TIMES       4/58         6
     m0r0    trained 401  35/123   28.5%    SEVEN TIMES       4/58         6
     sk48    atoms only    1/88     1.1%    BELOW IT          1/88        17
+    sk48    trained 401   1/88     1.1%    BELOW IT          1/88        17
 
-**IDENTICAL ON EVERY FIELD, ON EVERY BOARD MEASURED. The prediction held and the falsifier did not
-fire.** (`sk48` trained still running; it cannot change the three pairs above.)
+**COMPLETE: six probes, THREE MATCHED PAIRS, IDENTICAL ON EVERY FIELD. The prediction held on all
+three boards and the falsifier did not fire anywhere.**
 
 ### `m0r0` IS THE ONE THAT SETTLES IT
 
@@ -39570,11 +39571,37 @@ board was still running.** Fixed in the comment that carries it, not only here.
 `sk48`'s sub-chance 1.1% became readable at all. **Only the conclusion I hung on two of its
 readings was wrong, and it was wrong in the direction that WEAKENED the finding.**
 
+### AND `hit` IS AMPLIFIED BY KEY REPETITION, WHICH MAKES `distinct` THE ONE THAT TRANSFERS
+
+**Counted from the keys, no agent:**
+
+    board   non-trivial   distinct sigs   top sig covers   agent's distinct   agent's hit
+    dc22        150            120              10                1               9
+    ls20         71             63               4                3               4
+    m0r0        123             58              17                4              35
+    sk48         88             88               1                1               1
+
+**`m0r0`'s 123 chunks carry only 58 signatures and its four commonest cover 43 of them** — so the
+agent's FOUR distinct signatures become THIRTY-FIVE chunk hits, an 8.75x amplification. **`dc22` is
+9x on one signature. `sk48` cannot amplify at all: 88 chunks, 88 distinct signatures, so `hit` and
+`distinct` are the same number there by construction.**
+
+> **SO `28.5%, SEVEN TIMES THE NULL` AND `FOUR DISTINCT EFFECTS` ARE THE SAME READING.** Both true;
+> the rate is what clears chance and **the distinct count is what transfers.** `sk48` is the only
+> board of the four where the two cannot diverge, and it is the board the agent does WORST on.
+
+**THIS DOES NOT WEAKEN THE ARMS RESULT — IT SHARPENS IT.** The arms are identical on `distinct` as
+well as on `hit`, on every board measured. **Stated in the unit that transfers: a 401-term library
+adds ZERO distinct effect signatures on four boards.** That is the cleanest form of the finding and
+it is the one to carry.
+
+**And it closes the ledger's open item** — *distinct-effect counts unknown for ls20/m0r0/sk48/wa30*:
+`ls20` 3 of 63, `m0r0` 4 of 58, `sk48` 1 of 88. **`wa30` remains unmeasured.**
+
     BOUNDARY    three boards + dc22, one trained library (pooled offset-4), 25 cycles, one probe
-                each, deterministic. `sk48`'s trained arm is not in yet. It cannot speak for the
-                21 boards not tried, and it is ONE library -- a different training corpus is
-                untested. The null ceiling is `rlvr`'s POOLED figure over 37 draws, not a
-                per-board distribution
+                each, deterministic, all six arms complete. It cannot speak for the 21 boards not
+                tried, and it is ONE library -- a different training corpus is untested. The null
+                ceiling is `rlvr`'s POOLED figure over 37 draws, not a per-board distribution
     MECHANISM   none changed
     CAPABILITY  none -- and the reading is now that the ground channel does not register a
                 library ON A BOARD WHERE IT REGISTERS PLENTY ELSE
