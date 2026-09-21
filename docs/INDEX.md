@@ -39649,3 +39649,66 @@ that.** It is one cycle on two boards and the mode labels are not a quantity I h
                 statement. 25 cycles, one trained library, deterministic
     MECHANISM   none changed
     CAPABILITY  none. It removes the two cheapest ways F223 could have been wrong
+
+## F225 (INDEX series) — GAMMA IS CONSULTED 23 OF 25 CYCLES AND SAYS NOTHING. I had it backwards one commit ago, and the instrument caught me inside the hour
+
+**Reviewer's assignment (12:33), routing the consumer question to Isaiah: *characterise what
+ACTUALLY chooses each action right now, and whether any library term was READ on the way to that
+choice.* They named the fork themselves — *if the library influences selection only by changing
+which fallback fires, that is a very different fix from a selector that never consults it.***
+
+**IT IS THE FIRST ONE. The selector consults Gamma constantly.**
+
+    board  arm       n    gamma ENTERED   spread SPLIT   by-distribution
+    dc22   atoms    25         23              0         learned 10, draw 9, probe 5, goal 1
+    dc22   trained  25         23              0         learned 11, draw 9, probe 4, goal 1
+    ls20   atoms    25         23              0         learned 15, draw 8, probe 2
+    (m0r0 and sk48 arms still running; the three above are complete)
+
+### THE CORRECTION, AND IT IS ONE COMMIT OLD
+
+**`bfeebf4`'s message says *the only Gamma-reading branch never runs on either board, in either
+arm.* THAT IS FALSE.** It runs **23 of 25 cycles**. What it never does is **CHOOSE** — the spread
+comes out flat every single time, so it falls through.
+
+**I inferred *never runs* from `by == discriminate` reading 0 of 100, which is exactly the
+one-number-two-facts error I wrote the instrument to prevent — and then committed the wrong half of
+the fork in the same breath.** The instrument overturned it within the hour, which is the only
+reason this is a correction and not a published claim.
+
+> **`Gamma` CONSULTED AND SILENT is a different diagnosis from `Gamma` NEVER CONSULTED, and it
+> points at a different repair.** The gate is open. What passes through it carries no signal.
+
+### AND THE FLAT SPREAD IS ALREADY IN THE RECORD — `choose`'s OWN DOCSTRING
+
+**Read before the measurement and it should have anchored my prediction:**
+
+    spread distinguishes the actions, WITH `act`     33/96   (34%)
+    spread distinguishes the actions, WITHOUT `act`   0/96   ( 0%)
+
+*"A flat spread is the honest reading of an agent that has not learned what its actions do…
+measured here: 80 of 82 eligible steps on `ls20`."* **The ARC atom set has no `act` deliberately —
+`act` closes over an effect table at construction, which is the encoded answer.** So `0 of 23` is
+the documented, DESIGNED state reproduced, not a new defect. **The docstring even warns: *read this
+before proposing an atom against it.***
+
+### WHAT IS ACTUALLY NEW, AND IT IS THE ANSWER THE REVIEWER ASKED FOR
+
+**The flat spread is identical BARE and TRAINED.** `0 of 23` with 48 atoms and `0 of 23` with 401
+terms. **353 extra terms produce not one discriminating spread.**
+
+**So the path from library to action is mapped and it is this:** Gamma is enumerated every cycle a
+slot owes; the spread over its closure is flat because nothing in the vocabulary predicts different
+outcomes for different ACTIONS; selection falls through to the self-model (`discriminate:learned`)
+or an uninformed `draw`/`probe`. **The library's only influence on the action taken is via which
+fallback fires** — `dc22` shifts `learned 10 -> 11` and `probe 5 -> 4` between arms — **and that is
+mediated by boredom and mass, never by a term being read into the choice.**
+
+    BOUNDARY    three of eight arms complete at filing; 25 cycles each; the `by` counts have
+                n=25 beside them. `gamma_entered` counts cycles where the gate was entered, NOT
+                distinct terms read. `cands` is capped by DISCRIMINATE_BUDGET and a flat spread
+                under a cap is not a flat spread over the whole closure -- UNMEASURED and it is
+                the first thing I would check before anyone reads this as "the vocabulary cannot
+                discriminate actions"
+    MECHANISM   none changed; the field published at `bfeebf4`
+    CAPABILITY  none
