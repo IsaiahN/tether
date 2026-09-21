@@ -62,6 +62,7 @@ class ArcWorld:
         self._frame = self.w.reset()
         self._read: dict[str, int] | None = None
         self._contacts: dict[str, list[str]] | None = None
+        self._contact_pts: list | None = None
         self._prev_contacts: dict[str, list[str]] | None = None
         # 18.3's family lives HERE because the members read BOARDS and the agent may not.
         # What it holds that is episode-scoped is dropped by `boundary()`, which the loop
@@ -234,15 +235,20 @@ class ArcWorld:
         point contact affords pivoting, an edge sliding, a face pushing. Trying one is not
         trying the others.
         """
-        tr = self._decompose.tracked
-        names = sorted(tr)
-        out = []
-        for i, a in enumerate(names):
-            for b in names[i + 1:]:
-                k = arc_percept.contact_kind(tr[a], tr[b])
-                if k is not None:
-                    out.append((a, b, k))
-        return out
+        # CACHED ON THE FRAME, for the reason `contacts()` is: this is O(n^2) over tracked
+        # objects -- 400 of them on m0r0 is 80,000 pairs -- and System 0 asks twice a
+        # cycle, once for the switch and once for the target.
+        if self._contact_pts is None:
+            tr = self._decompose.tracked
+            names = sorted(tr)
+            out = []
+            for i, a in enumerate(names):
+                for b in names[i + 1:]:
+                    k = arc_percept.contact_kind(tr[a], tr[b])
+                    if k is not None:
+                        out.append((a, b, k))
+            self._contact_pts = out
+        return self._contact_pts
 
     def slot_owner(self) -> dict[str, str]:
         """Which SUBJECT each slot is an attribute of. **The loop may not derive this.**
@@ -463,6 +469,7 @@ class ArcWorld:
         self._read = None          # a new frame is a new decomposition
         self._prev_contacts = self._contacts
         self._contacts = None      # and a new set of contacts
+        self._contact_pts = None   # and a new set of typed contact points
         now = self.board()
         if self.on_frame is not None:
             self.on_frame(was, action, now)
