@@ -40513,3 +40513,60 @@ a uniform draw relabelled is not.** Naming that, not building it.
     MECHANISM   none changed. `Config.system0` stays default OFF -- turning it on is a relabel
     CAPABILITY  none. The one board where it acted differently got WORSE, on one preemption,
                 which is n=1 and is not a finding either
+
+## F237 (INDEX series) — THE BASELINES ARE EQUAL. It is not two residuals, it is TWO DIFFERENT TESTS, and neither is the other's superset
+
+**Reviewer approved the two-baselines check (17:32) and pre-registered both branches: *if they
+differ, unifying should make retrieval accept what mint installs; if they match and the verdicts
+still differ, the cause is elsewhere.* They match. My hypothesis is refuted — the sixth relocation,
+and the second caught before it was built on.**
+
+    dc22, 20 cycles, 12 mints installed
+      baselines EQUAL          12 of 12 pairs      48.0/48.0  49.0/49.0  24.0/24.0 ...
+      exit taken by the term
+      mint then installed      12 of 12            HELD, BINDABLE, REJECTED BY THE TEST
+
+**Read off the two call sites and then confirmed by running:** mint's
+`_accumulated(slot, held)` expands to `_left(held, slot, history(slot))`, and retrieval's `_base`
+is `_left(library[bound.get(slot, IDN)], slot, hist)` with `hist = self.history(slot)`. **The same
+expression, and the same value at the same slot on the same cycle, twelve times out of twelve.**
+
+### so the difference is the TEST, and both are in the file
+
+    retrieval   `_explains(cand, slot, hist)`   ==  `_left(...) == 0.0`     ZERO REMAINDER
+    mint        `pays(cost, left, base)`        ==  `cost + left < base`    THE BARGAIN
+
+**Every one of the twelve terms mint installed was already held, was bindable, reached retrieval's
+test, and was refused by it.** The candidate was never missing and the baseline was never wrong.
+
+### AND NEITHER TEST IS THE OTHER'S SUPERSET, WHICH IS WHY ARM D MADE IT WORSE
+
+    `_explains` accepts   a FULL closure, however expensive -- `left == 0` and cost unpriced
+    `pays` accepts        a cheap PARTIAL -- `left > 0` allowed if `cost + left < base`
+    `pays` REFUSES        a full closure that costs more than it saves. Measured previously at
+                          19 of 21 reuse installs reading `would_pay = False`
+
+**So arm D does not loosen the gate, it SWAPS one population for another** — and on `dc22` the
+trade is negative: hit `4.6% -> 2.7%`, `mechanism` `188 -> 220`. **That is the whole of arm D's
+mixed result, and it is not a bug in arm D.**
+
+> **THE CORPUS RULES THE DIRECTION AND THE REVIEWER QUOTED IT: Figure 5's amendment — *same mint
+> operator, same three guards, SAME BARGAIN* — and §15.5's *same type system, same compose, same
+> bargain*.** One bargain means retrieval should price as mint prices. **But arm D's measured
+> effect says the bargain ALONE is not an improvement here**, so *apply the bargain* and *raise the
+> hit rate* are two different goals and today they point opposite ways.
+
+### the one link still unmeasured, named rather than guessed
+
+**Under arm D both paths call `pays` with what should be the same three numbers. They still
+disagree.** Either the candidate retrieval prices is not the Term mint installs — different operand
+or guard from `_rebindings` — or `left`/`cost` differ for the same Term. **Measured: the baselines
+are equal. `cost` and `left` for the SAME Term at the SAME moment are NOT yet compared**, and that
+is one more wrap on the same instrument.
+
+    BOUNDARY    ONE board, 20 cycles, 12 mints, arm D OFF for the exit census (so the test
+                measured is `_explains`). The exit attribution is computed from a snapshot of the
+                library taken at the retrieval call and the term installed after it -- it says
+                where the term WOULD have died, not where a tracer watched it die
+    MECHANISM   none changed
+    CAPABILITY  none -- it retires the two-baselines hypothesis and leaves exactly one link open
