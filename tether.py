@@ -660,6 +660,7 @@ class Agent:
         self._disproof: dict[str, dict] = {}
         self._last_action: str | None = None   # what may have changed the gating
         self.owed_import, self.abstained = set(), {}
+        self._guard_exit: str | None = None   # why the last guard read was unreadable
         self.candidates = {}
         # a new level is a new instrument: the verdict was about the OLD slot set
         self._said_never_live = False
@@ -1720,8 +1721,14 @@ class Agent:
                     extra["gap"] = {k2: v for k2, v in gap.items()
                                     if k2 not in ("varies", "invariant")}
                     extra["shape_failed"] = rec["failed"]
+            # BLOCKED IS THREE ENDINGS WEARING ONE NAME. `routine.py` says BLOCKED means only
+            # *the guard could not be read*; `blocked_why` says which, so a later run can report
+            # how many routines died to the world removing their subject versus to supply.
+            if why == Rt.BLOCKED and self._guard_exit:
+                extra["blocked_why"] = self._guard_exit
             self.led.record(self.cycle, "PLAN", self.routine_for or "*", "routine_end",
                             outcome=why, routine=Rt.render(self.routine), **extra)
+            self._guard_exit = None
             self.routine, self.routine_for = None, None
         # SYSTEM 2 RUNS BESIDE SYSTEM 1, NOT BEHIND IT -- Isaiah, 2026-09-09.
         # Formation used to sit ONLY at the fall-through, so `discriminate:learned` returning
@@ -2066,13 +2073,24 @@ class Agent:
             why: dict = {}
             rg = self.goal_residual(guard, state, why=why)
             if rg is None:
+                # SEPARATE THE OUTCOME -- reviewer ruling 2026-09-21, and it chooses no key.
+                # `unbound` is TWO different facts and was reported as one: the guard's slot
+                # DEPARTED the board (the `present` handler popped its binding), or the slot is
+                # here and nothing was ever bound to it. The first is the world removing the
+                # plan's subject; the second is supply. **The used==1 lesson applied forward:
+                # stop letting one number mean three things.**
+                exit_ = why.get("exit", "unknown")
+                if exit_ == "unbound":
+                    exit_ = ("subject_departed" if guard not in self.slots
+                             else "never_bound")
+                self._guard_exit = exit_
                 # THE ROW THAT DID NOT EXIST WHEN THE FIRST ROUTINE DIED. `routine_end:
                 # blocked` means only *the guard was unreadable*; `routine.py` is explicit that
                 # this is not *the guard is false*. Which of `goal_residual`'s five Nones fired
                 # is a different fact each time -- supply, type, perception or scope -- and no
                 # artifact could say. F207: the first routine this project formed died here.
                 self.led.record(self.cycle, "PLAN", guard, "guard_unreadable",
-                                exit=why.get("exit", "unknown"),
+                                exit=exit_,
                                 bound=self.bound.get(guard),
                                 note="BLOCKED is 'could not read', never 'does not hold'")
             return None if rg is None else rg <= 0.0
