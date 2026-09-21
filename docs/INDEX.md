@@ -39264,6 +39264,36 @@ control.** So, in advance:
 signature threshold, and counts what the agent makes rather than what it matches. **If ordering
 changes nothing about what the agent can produce, that is a reading about ordering.**
 
+### AMENDMENT, SAME TICK — RUN 1 KILLED ON COST, POOL RE-SCOPED, AND NO OUTCOME EXISTED WHEN I DID IT
+
+**Run 1 spent over twenty minutes inside a SINGLE cycle and died at cycle 26 of 94, having never
+reached a probe.** The cost estimate was wrong and the reason is one game.
+
+    objects per frame, first two chunks, measured with no agent
+      bp35      median 216   max 269   (~2,152 slots)
+      tn36      median  89   max  89   <- the next worst, and a THIRD of it
+      dc22      median  40   max  40   <- the probe board
+      the pool's other five        10-16
+
+**`bp35` alone was the whole cost, and it was in the pool.** I sized the run from `F217`'s 20-cycle
+smoke at 5.36 s/cycle — **a figure that entry itself labels a FLOOR** — and then used it as an
+estimate anyway, on a different pool, without measuring the thing that drives it. **Read the
+conditions before the results: objects-per-frame is a condition and it took 90 seconds to measure
+AFTER the run failed.**
+
+**THE RE-SCOPE, AND WHY IT IS NOT OUTCOME-SELECTION:** run 1 produced **no ground reading at all** —
+it never reached the probe — so there was no outcome available to select on. The new filter is
+declared and is a COST property measured independently of any score: **max objects per frame ≤ 40,
+which is `dc22`'s own level**, `dc22` being the probe board and ~320 slots the one pooled
+configuration known to be affordable. **Then the SAME rule as before** — first six in `ALL_GAMES`
+declared order — over what passes.
+
+    RUN 2 POOL   ar25 cd82 cn04 dc22 g50t ka59
+    frames       95 (run 1: 94)          max objects 40, median 15
+    dial         switches 5 -> 10 at noise 0.0 -> 0.5, IDENTICAL contrast to run 1
+
+**Every prediction above is unchanged and none of them has been seen.**
+
     BOUNDARY    PRE-REGISTRATION, no result. 6 of 25 games, 94 frames, one seed (1618), two
                 arms. Not comparable as a rate to the 25-game pooled runs -- different
                 material, a fifth of the tape
