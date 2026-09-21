@@ -142,7 +142,9 @@ invisible the moment it stopped being anyone's next action.***
 |---|---|
 | ~~Pooled 25-game run~~ | **DONE at TWO cuts. The bar was NOT met at either.** `9/150`, **1 of 120 distinct effects**, offset 0 AND offset 4. `library 48 → 329` / `→ 401`; minted 281 / 353; contact change **ZERO** both times. **`F203`, `F207`.** *(My ARM B and §14.5 readings on this run are RETRACTED — see below.)* |
 | ~~A second pooled run at a different offset~~ | **DONE — `F207`.** §14.4's offset augmentation, run for the first time. **The bar replicates to the digit at an independent cut**, so the null is not an artifact of where the chunks were cut. Everything else moved (+72 library, +72 mints, +61 reuse); the ground did not. |
-| **F208's FALSIFIER — a switch-free tape** | **RUNNING.** `ar25`, `take=8 spacing=8`, one block, no game switches by construction. **If a routine forms and still dies in one cycle, the game switch was not the cause and `F208` is WRONG.** |
+| ~~F208's falsifier~~ | **RAN, AND REFUTED F208 — `F209`.** The switch-free tape produced a routine that died the SAME way (`exit=unbound`). Survival 1 cycle → 3; **the cause did not change.** Real mechanism: **SLOT TURNOVER** (`tether.py:2605`) — any departed slot is unbound, and a game switch is only the case where all depart at once. |
+| **THE ROUTINE'S GUARD — what it should be addressed to** | **THE LIVE QUESTION, AND IT IS NOT THE SEAT'S.** `F210`: the guard's protection is real and correct and **`CAN`-checked AT MINT**, which covers *dead when the plan is made* and not *dies while the plan runs*. The class was solved once (2026-09-04, name→invariant, **measured 7 board flips → 1**), and the same precedent says why the seat must not pick the key: *no single key would have worked… because a self-hypothesis IS a claim about what changes.* **Choosing what a routine's guard is addressed to is a claim about what a PLAN is about — the agent's or Isaiah's.** |
+| **Slot turnover on the other 20 boards** | Measured on five: `ls20` **0**, `tn36` **0**, `ka59` 1.5, `vc33` **29.3 (max 88)**, `ar25` 2.7. **Board-specific, and a guard's lifetime is a property of the BOARD.** The rest are unmeasured. |
 | ~~`goal_residual`'s five `None` exits~~ | **BUILT — `3927d5e`.** The deferral was reversed BY EVIDENCE: the first routine ever formed died on exactly that `None`. `goal_residual` now names its exit; `_holds` records a `guard_unreadable` row. **It fired once and answered the question.** |
 | **Phase 3, the noise floor** | **BUILT 2026-09-20** (`eb18517`), chunk-granularity, verified as a permutation. **NEVER RUN.** |
 | ~~OFFSET AUGMENTATION~~ | **RUN at last (`F207`, offset 4).** The single-game ladder and pooled run 1 remain offset-0 only. |
@@ -160,7 +162,9 @@ nineteen zeros are real · `F190` what the carry carries, verified 4/4 · `F192`
 **`F207` the bar replicates at two independent cuts** · **`F208` the first routine was killed by a
 GAME SWITCH — a routine's guard is a BINDING, the pooled tape swaps boards every 8 frames, so
 §14.5 phase 1 cannot support procedure formation BY CONSTRUCTION** ·
-**THE CODEBASE IS DETERMINISTIC** — no betting-path module imports randomness (`gamma`'s only use
+**`F209` slot turnover is the cause of routine death, and it is BOARD-SPECIFIC (0 to 88 lost per
+change)** · **`F210` the guard's protection is checked at MINT and the guard dies after — a correct
+argument scoped to the wrong moment** · **THE CODEBASE IS DETERMINISTIC** — no betting-path module imports randomness (`gamma`'s only use
 is the handle suffix, which no decision reads), verified by a rerun reproducing a routine at the
 same cycle. **A captured failure can always be re-entered with a better instrument.**
 
@@ -175,6 +179,8 @@ same cycle. **A captured failure can always be re-entered with a better instrume
   unrecoverable, so no ladder-vs-pooled settling comparison exists (`F204`).
 - **`routine_cut == 0` as evidence of anything** — it is a REFUSAL counter downstream of a gate
   that never opens (`F206`). The success event is `routine`, and it fired ONCE (`F207`).
+- **`F208`'s "the game switch killed it"** — refuted by its own pre-registered falsifier
+  (`F209`). Switches make it worse (1 cycle vs 3) and are not the cause.
 - **`used == 1` as evidence of anything** — it counts TERM+OPERAND, and operands are slot names
   that never recur, so it is **pinned at 1 by construction** (`F205`). The reviewer withdrew their
   synthesis over this.
