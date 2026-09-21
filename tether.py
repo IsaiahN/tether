@@ -3710,7 +3710,13 @@ class Agent:
         # slots[0] made the phase histogram a function of alphabetical order, so
         # renaming a slot moved an instrument. Ties break on owing, then on name, which
         # only decides the first step -- before any mass exists.
-        focal = max(sorted(self.slots),
+        # OVER THE READABLE SLOTS. `self.slots` now carries COVERED objects -- they exist,
+        # so their slots stay in the set and their bindings survive (ruling (b)) -- but
+        # `_utter` predicts on the focal slot and `_value_of` indexes `state[slot]`, so an
+        # unreadable focal is a KeyError. You cannot attend to what you cannot read this
+        # frame; the binding is untouched and it is eligible again the moment it uncovers.
+        readable = sorted(s for s in self.slots if s in before) or sorted(self.slots)
+        focal = max(readable,
                     key=lambda s: (self._last_mass.get(s, 0.0), s in self.owed_import))
         by = "given"
         self._disproof = {}
