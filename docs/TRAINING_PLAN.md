@@ -849,9 +849,27 @@ library size (slots flat at 320–392) and SATURATES rather than exploding** —
 library 48, `~40` at 69. **Budget ~40 min per 64 frames.** Tape budgets do not transfer to
 live-board budgets.
 
-**STATUS: phase 1 and phase 2 are expressible and running. PHASE 3 — the noise floor — IS NOT
-BUILT.** It needs out-of-context real chunks mixed into a coherent order, which `pooled_order`
-makes reachable (it already interleaves games) but does not yet do as a *floor* held at a set rate.
+**STATUS — CORRECTED 2026-09-21. The line below said phase 3 was NOT BUILT; it is built and it has
+now been RUN.**
+
+    14.4  all 25 chunkified          BUILT, RUN. Offset augmentation exercised once (offset 4,
+                                     F207) -- the bar replicated to the digit at that cut
+    14.5 phase 1  random shuffle     RUN TWICE (offset 0 and 4), 199 / 194 frames. BOTH at
+                                     `take=1`, one chunk per game, where the dial is INERT --
+                                     so they are game-order shuffles, not chunk-dense ones
+    14.5 phase 2  anneal to coherent RUN ON ONE GAME (dc22, rungs 1/2/4/8, 64 frames each).
+                                     The POOLED ladder -- the real phase 2 -- needs `take>=8`
+                                     = 1,525 frames ~ 68 h and is NOT AFFORDABLE. Never run
+    14.5 phase 3  the noise floor    BUILT `eb18517`, RUN `F219`/`F221`: 6 games, 95 frames,
+                                     arms at noise 0.0 and 0.5
+    14.6  all 25 as one game         NOT REACHED
+
+**AND THE PROGRAMME IS CURRENTLY UNSCORABLE, WHICH OUTRANKS EVERY ROW ABOVE — `F220`–`F225`.** The
+ground probe reads **identically with NO LIBRARY AT ALL** — same score, same distinct effects, same
+produced set — on four boards, while the agent's actions genuinely diverge. **So every curriculum
+reading in this section was taken through a channel that cannot tell a trained agent from an
+untrained one.** The readings are not wrong; they are not ABOUT the curriculum. Routed to Isaiah as
+an architecture question.
 
 ### 14.6 The end state — all 25 as ONE game (Isaiah, 2026-09-18)
 - Anneal toward all 25 playing coherently, interleaved — one library that produces each game's

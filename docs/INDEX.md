@@ -39712,3 +39712,75 @@ mediated by boredom and mass, never by a term being read into the choice.**
                 discriminate actions"
     MECHANISM   none changed; the field published at `bfeebf4`
     CAPABILITY  none
+
+## F226 (INDEX series) — ISAIAH IS RIGHT: THE PLAN ALREADY ANSWERS THE QUESTION THE REVIEWER ROUTED TO HIM. And the root it names re-measures TRUE today
+
+**Isaiah, asked about the training programme: *"if true then I was pretty sure the how the agent
+sees doc and the training plan covered this."* They do. I had not looked, which is step four —
+*assume it is already specified, and go look* — failed at the exact moment it was most expensive.**
+
+### `TRAINING_PLAN` §5, FIRST BULLET, WRITTEN LONG BEFORE TONIGHT
+
+> **The root is binding.** ~97.5% of residuals sit on a slot with no binding at all… **Every
+> barrier named before this — SELECTOR, shelf, acceptance gate, promotion — is DOWNSTREAM of the
+> binding gate.**
+
+**That is the routed question, already decided.** *The selector does not consume the library* is
+not a new architecture fork — **the plan names the selector explicitly as downstream of a root it
+has already identified.**
+
+### AND §5's LAST BULLET IS THE MAP THE REVIEWER ASKED ME TO BUILD
+
+> `choose()` priority is: held routine → plan formation → probe (if bored) → discriminate →
+> learned arm → fall-through formation → goal split → **uniform draw, dead last.** … the uniform
+> draw is the blind fallthrough, **reached only when every strategic arm is silent.**
+
+**`F225` measured exactly that and reported it as a finding.** It is a CONFIRMATION of a written
+prediction, which is worth more than a discovery — but it must not be filed as one.
+
+### THE ROOT RE-MEASURED, because `F118` is old and a run outranks a read
+
+**Bets on a slot carrying a real binding (`bound != no_change`), 25 cycles, both arms:**
+
+    ledger              bet rows   bound   pct     distinct bound terms
+    dc22 atoms            7,920      178   2.2%          18
+    dc22 trained          7,920      192   2.4%          21
+    ls20 atoms            4,252      238   5.6%          24
+    ls20 trained          4,252      239   5.6%          23
+    m0r0 atoms            1,750      121   6.9%          15
+    m0r0 trained          1,747      211  12.1%          19
+    sk48 atoms            6,374      279   4.4%          53
+
+**§5's ~97.5% unbound reproduces to the digit on `dc22`: 2.2% bound is 97.8% unbound.** The root is
+current, not historical.
+
+### AND THE ONE PLACE THE TRAINED LIBRARY SHOWS UP AT ALL
+
+**`m0r0`: binding density 6.9% → 12.1%, distinct bound terms 15 → 19. The library NEARLY DOUBLES
+BINDING on that board — and the ground reads identically (`35/123`, 4 distinct, both arms).**
+
+> **SO THE CHAIN DOES NOT BREAK BETWEEN LIBRARY AND BINDING. IT BREAKS BETWEEN BINDING AND ACTION.**
+> `F220`–`F225` said *the library reaches nothing*; that is too strong. **It reaches BINDING, on at
+> least one board, measurably. What it does not reach is the action, and the plan already says the
+> selector sits downstream of a starved binding gate.**
+
+### WHAT I GOT WRONG IN THE FRAMING, AND IT MATTERS BECAUSE IT WENT TO THE REVIEWER
+
+**I let *the selector reads the library zero times* become the headline of a routed architecture
+question.** The measurement is right and the framing was not: **the plan had already placed the
+selector downstream, already named the root, and §14.3 already names the intended fix** —
+*policy-level abstraction/retrieval so the library converges.*
+
+**`WHAT_THE_AGENT_SEES` covers the other half and is SILENT ON SELECTION BY DESIGN**: it describes
+retrieval by gap shape — *one pass over the library, ordered by fit, not a search* — and then says
+only *"it presses once."* **It never says what makes it press.** So the doc describes the intended
+library-to-action path and the code's `choose()` does not implement it.
+
+    BOUNDARY    four boards, 25 cycles, one trained library. `bound != "no_change"` is the
+                binding test and `no_change` is IDN's rendering -- verified against
+                `binding_stats`'s own `self.bound.get(s, IDN) != IDN`. The m0r0 doubling is ONE
+                board and ONE library; ls20 is flat and dc22 moves 0.2 points, so it is not a
+                general effect and is not claimed as one
+    MECHANISM   none changed
+    CAPABILITY  none -- and the reading relocates the break from library-to-action to
+                binding-to-action, which the plan predicted in writing
