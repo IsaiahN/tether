@@ -661,6 +661,7 @@ class Agent:
         self._last_action: str | None = None   # what may have changed the gating
         self.owed_import, self.abstained = set(), {}
         self._guard_exit: str | None = None   # why the last guard read was unreadable
+        self._gamma_read: dict = {}   # did action selection consult Gamma this cycle
         self.candidates = {}
         # a new level is a new instrument: the verdict was about the OLD slot set
         self._said_never_live = False
@@ -1751,6 +1752,13 @@ class Agent:
         if self.drive.bored():
             return self.drive.choose(self.actions, self.cycle, _where(before)), "probe"
         owed = [s for s in sorted(self.owed_import) if s in before]
+        # THE ONLY BRANCH THAT READS GAMMA, AND `by` CANNOT SAY WHY IT DID NOT FIRE. `by ==
+        # discriminate` reads 0 of 100 action rows across dc22 and m0r0, bare and trained -- but
+        # that is TWO facts: the gate below was never entered (no slot owes, so Gamma is never
+        # consulted at all), or it was entered and the spread came out flat (Gamma consulted and
+        # silent). Those want different repairs. Published per cycle so the next reading does
+        # not have to infer it -- F225.
+        self._gamma_read = {"owed": len(owed), "entered": bool(owed), "spread_split": None}
         if owed:
             cands = list(islice(self.gamma.enumerate_closure(
                 "val", "val", 2, DISCRIMINATE_BUDGET), DISCRIMINATE_BUDGET))
@@ -1765,6 +1773,9 @@ class Agent:
                                    for t in cands)
                          if g is not NOT_RESOLVED})
                     for s in owed)
+            self._gamma_read["spread_split"] = bool(
+                spread and max(spread.values()) > min(spread.values()))
+            self._gamma_read["cands"] = len(cands)
             if spread and max(spread.values()) > min(spread.values()):
                 top = max(spread.values())
                 self._ties[("spread", sum(1 for v in spread.values() if v == top))] += 1
@@ -3578,6 +3589,9 @@ class Agent:
         self.led.record(self.cycle - 1, "REPEAT", "@loop", "repeat",
                         integral=round(self.pe_integral(), 3),
                         outstanding=round(self.outstanding(), 3),
+                        # DID THIS CHOICE CONSULT GAMMA AT ALL -- F225. Set in `choose`;
+                        # `{}` where a held routine returned before selection ran.
+                        gamma_read=self._gamma_read,
                         # LEVEL ON EVERY REPEAT ROW, because a per-level series cannot be
                         # reconstructed without it. The `ending` row carries `to_level` and
                         # records the BOUNDARY; nothing said which level a given cycle was in,
