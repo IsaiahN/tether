@@ -38426,3 +38426,64 @@ would not — it buys two cycles.**
     MECHANISM   none changed. F208 corrected in its own row
     CAPABILITY  none -- but the located cause moved from the curriculum, which is ours to
                 change, to slot identity, which is the agent's perception layer
+
+## F210 (INDEX series) — THE GUARD'S PROTECTION IS CHECKED AT MINT AND THE GUARD DIES AFTER IT. A documented safety argument, correct, scoped to the wrong moment
+
+**`F209` measured the cause — a routine's guard is a slot name and slots depart. This is what the
+record already says about that, found by the sixth law rather than by reasoning.**
+
+### the churn is known, and the class has been repaired ONCE, with a measured A/B
+
+`arc_world.py:467` —
+
+> **THE TRAJECTORY WAS ENTANGLED WITH IDENTITY AND IS NOT ANY MORE — FIXED 2026-09-04.** *The
+> streak was keyed on the tracker's NAME, so it died when the name churned and "the mode switched
+> at step 7" was indistinguishable from "the tracker lost the object at step 7".* **Measured A/B
+> over 25 steps: name-keyed gives 7 board flips, invariant-keyed gives 1.**
+
+**A different consumer broke on the identical cause and was fixed by keying on the member's OWN
+INVARIANT (`identity_key`) rather than the name.** So the churn is not news, the failure shape is
+not news, and **a repair pattern exists with a number attached.**
+
+### and the routine guard's protection was reasoned about EXPLICITLY — at the wrong moment
+
+`tether.py:648`, in the block deciding what survives a level boundary:
+
+> **THE SETTLED SHELF IS A DIFFERENT CASE AND STAYS, because something already protects it: every
+> guard is `CAN`-checked at mint, and a guard naming a dead slot reads `unknown`, which the mint
+> refuses. Checked rather than assumed — the shelf needs no rule here precisely because it has one
+> already.**
+
+**The argument is correct and the check is real.** `F208`'s investigation confirmed it independently:
+`_discrepancy` returns `NOT_RESOLVED` for an unbound slot, `can()` maps that to `UNKNOWN`, and the
+gate refuses. **The guard was genuinely live when each routine formed.**
+
+> **BUT `CAN`-CHECKED AT MINT COVERS *DEAD WHEN THE PLAN IS MADE*. IT CANNOT COVER *DIES WHILE THE
+> PLAN RUNS* — and that is the case that kills routines.** Both observed routines passed the mint
+> check and lost the guard afterwards: cycle 23 → 24, and cycle 32 → 35.
+
+**So this is not an unprotected mechanism. It is a protection whose scope is a MOMENT, guarding
+against a failure that happens in an INTERVAL.** The comment's own *checked rather than assumed* is
+what makes it worth recording: the check was performed, was sound, and answered a narrower question
+than the one that matters.
+
+### why I am not proposing the fix
+
+**The precedent names a repair — key on an invariant, not the name — and the precedent also names
+why I should not pick one here:**
+
+> *No single key would have worked — `hash(shape)` churns twice as often as the name here — because
+> a self-hypothesis IS a claim about what changes. Each member now keys its own streak on its OWN
+> invariant.*
+
+**Choosing what a routine's guard should be addressed to is a claim about what a plan is ABOUT**,
+and that is the agent's question or Isaiah's, not the seat's. *If I find myself picking A vs B on a
+question the agent could reason, I am taking the test.* **What the seat owes is this entry: the
+churn is measured, the class has been solved once with a number, and the existing protection is
+scoped to the wrong moment.**
+
+    BOUNDARY    two routines, two tapes. The mint-time check is read from the code and from
+                F208's independent confirmation, not from a measurement of the check itself
+    MECHANISM   none changed
+    CAPABILITY  none -- it converts "routines die" into "a time-scoped gap in a protection that
+                was explicitly reasoned about", which is a repairable thing rather than a null
