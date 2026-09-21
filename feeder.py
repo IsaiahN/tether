@@ -344,9 +344,10 @@ def probe(game: str, library: str, cycles: int = 25) -> dict:
     hit, tot, rows = rlvr._rate(objs, key)
     # NO VERDICT WITHOUT ITS BASE RATE -- the reviewer's standing rule, 2026-09-21. `rlvr`
     # already has the machinery and `probe` never carried it, so every curriculum reading this
-    # week was a bare rate: dc22's `9/150` is 6.0% against a POOLED ceiling of 4.2% and ls20's
-    # `4/71` is 5.6%. Both MARGINAL, and an identical pair of marginal readings is a weak place
-    # to conclude anything. No extra run -- the same `objs`, scored against other games' keys.
+    # week was a bare rate. Measured against the POOLED ceiling of 4.2%: sk48 1.1% (BELOW it),
+    # ls20 5.6%, dc22 6.0%, m0r0 28.5%. I first wrote "both marginal" off dc22 and ls20 alone
+    # and m0r0 refuted it one tick later -- a two-board generalisation, which is the same error
+    # the arity split cost. No extra run -- the same `objs`, scored against other games' keys.
     nulls = {}
     for g2 in rlvr.NULL_PANEL:
         kp2 = Path(f"replays/{g2}_answer_key.json")

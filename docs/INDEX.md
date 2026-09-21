@@ -39521,3 +39521,60 @@ only because the row count was printed next to it.
 
     BOUNDARY    PRE-REGISTRATION, no result. Three boards, two arms, 25 cycles, one trained
                 library. It cannot speak for the other 21 boards
+
+## F223 (INDEX series) — THE ATOMS-ONLY CONTROL HOLDS ON THREE BOARDS, and the decisive one has SEVEN TIMES the null. The board-ceiling reading is dead
+
+**`F222` pre-registered: `hit` and `distinct` identical between arms on all three boards; falsifier
+was any separation, which would mean `dc22` was the ceiling.**
+
+    board   arm           hit      pct     vs 4.2% null    distinct   produced
+    ls20    atoms only    4/71     5.6%    marginal          3/63         9
+    ls20    trained 401   4/71     5.6%    marginal          3/63         9
+    m0r0    atoms only   35/123   28.5%    SEVEN TIMES       4/58         6
+    m0r0    trained 401  35/123   28.5%    SEVEN TIMES       4/58         6
+    sk48    atoms only    1/88     1.1%    BELOW IT          1/88        17
+
+**IDENTICAL ON EVERY FIELD, ON EVERY BOARD MEASURED. The prediction held and the falsifier did not
+fire.** (`sk48` trained still running; it cannot change the three pairs above.)
+
+### `m0r0` IS THE ONE THAT SETTLES IT
+
+**28.5% against a pooled cross-game ceiling of 4.2% — nearly seven times chance.** This is not a
+board scraping the null; the probe has strong, real signal here. **And a 401-term library adds
+EXACTLY NOTHING to it.**
+
+> **THE REVIEWER'S SECOND READING IS DEAD.** *`dc22` can only ever register one signature, so the
+> null is the board's* — `m0r0` has seven times the signal `dc22` has and reads identically across
+> arms. **The null is not a property of the probe board.**
+
+### AND THE INSTRUMENT IS NOT DEAD EITHER, WHICH IS THE OTHER HALF
+
+**The probe's fields move freely ACROSS BOARDS and not at all ACROSS LIBRARIES:**
+
+    hit       1.1%  ->  5.6%  ->  6.0%  ->  28.5%       across boards: a 26-point range
+    distinct     1  ->     3  ->     4                  across boards: moves
+    produced     3  ->     6  ->     9  ->    17        across boards: moves
+    every one of them                                   across libraries: ZERO
+
+**So it is not an insensitive metric.** It discriminates boards over a wide range and does not
+discriminate a trained agent from an untrained one **on any board tried.**
+
+### CORRECTION TO MY OWN LAST COMMIT, ONE TICK OLD
+
+**`3e831d1` wrote *both MARGINAL, and an identical pair of marginal readings is a weak place to
+conclude anything*, off `dc22` and `ls20`.** `m0r0` refuted it within the tick. **A two-board
+generalisation — the exact error `F146` records against the arity split, committed while the third
+board was still running.** Fixed in the comment that carries it, not only here.
+
+**The base-rate wiring itself stands and was the right build** — it is how `m0r0`'s 28.5% and
+`sk48`'s sub-chance 1.1% became readable at all. **Only the conclusion I hung on two of its
+readings was wrong, and it was wrong in the direction that WEAKENED the finding.**
+
+    BOUNDARY    three boards + dc22, one trained library (pooled offset-4), 25 cycles, one probe
+                each, deterministic. `sk48`'s trained arm is not in yet. It cannot speak for the
+                21 boards not tried, and it is ONE library -- a different training corpus is
+                untested. The null ceiling is `rlvr`'s POOLED figure over 37 draws, not a
+                per-board distribution
+    MECHANISM   none changed
+    CAPABILITY  none -- and the reading is now that the ground channel does not register a
+                library ON A BOARD WHERE IT REGISTERS PLENTY ELSE
