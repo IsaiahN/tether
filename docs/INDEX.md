@@ -39865,3 +39865,77 @@ it is now specified rather than invented.
     MECHANISM   none changed
     CAPABILITY  none -- an account for a wall already measured, sourced from the corpus on
                 Isaiah's instruction rather than derived
+
+## F228 (INDEX series) — PHASE 1 WAS RUN AT 1.3% OF ITS TRAINING SET. Isaiah: *"phase 1 and 2 is meant to be done for every game"* — and at full scale the dial is LIVE, so `F194`'s inertness was the truncation
+
+**Isaiah, 2026-09-21, correcting the implementation and not the description.** §14.5 phase 1 is
+*a random shuffle of **all 25's chunks***. **Every chunk of every game.** Both pooled runs used
+`take=1` — **one chunk per game.**
+
+### the real training set, measured
+
+    game   chunks  frames        game   chunks  frames
+    wa30      202    1565        sp80       63     473
+    lf52      157    1212        lp85       53     423
+    dc22      152    1193        tu93       48     379
+    re86      138    1072        tr87       42     318
+    m0r0      125     971        vc33       39     308
+    ka59      106     827        tn36       35     251
+    cn04      100     778        sc25       28     217
+    sk48       91     697        ft09       25     164
+    bp35       83     638        r11l       24     168
+    s5i5       81     609        sb26       20     154
+    su15       77     567        cd82       18     137
+    g50t       75     576
+    ar25       73     578        TOTAL    1,927  14,822
+    ls20       72     547
+
+    WHAT THE POOLED RUNS ACTUALLY SHOWED     25 chunks     199 frames
+                                              1.3%          1.3%
+
+> **EVERY "PHASE 1 WAS RUN" CLAIM IN THIS FILE IS A CLAIM ABOUT 1.3% OF THE CURRICULUM.** `F203`,
+> `F207` and everything resting on them. **It is the *40 cycles against a ruled 1000* error again,
+> an order of magnitude worse** — and unlike that one, nobody stated the fraction, because nobody
+> had computed the denominator.
+
+### AND AT FULL SCALE THE DIAL IS LIVE, WHICH DISSOLVES `F194` RATHER THAN CONFIRMING IT
+
+    take=None  spacing=1   ->  14,822 frames   1,927 blocks   1,818 switches   INERT = False
+    take=None  spacing=8   ->  14,822 frames     253 blocks                    INERT = False
+
+**`F194`'s *the pooled dial is INERT at `take=1`* is true and was read as a property of the pooled
+tape. It is a property of the TRUNCATION.** Games hold 18–202 chunks, so at full scale every
+spacing from 1 to 8 cuts real blocks. **`F194` then derived *a pooled ladder needs `take >= 8`* —
+which is thinking in slices of a set that was never meant to be sliced.**
+
+**So `F217`'s and `F221`'s inertness framing inherits the same error**, and `F225`/`F227`'s readings
+are untouched (they are about selection and bonds, not about the tape).
+
+### NO BUILD IS NEEDED — the code already expresses it
+
+`pooled_order(take=None)` takes **every chunk of every game**; the slice is `chunks[skip:] if take
+is None`. **The curriculum has been built at full scale the whole time and was never run at it.**
+
+### the cost, stated as a range because it is an extrapolation and not a measurement
+
+**Measured anchors: `12.7 s/cycle` on the 95-frame six-game run (small boards, small library), and
+§14.5b's saturating `~40 s/cycle` at library 69.** 14,822 frames gives **~52 h at the low anchor and
+~165 h at the saturating one**, and the true figure sits nearer the top because the large boards
+dominate — `wa30` alone is 1,565 frames and `bp35` carries 216 objects/frame.
+
+### AND IT IS STILL RUNNABLE AND READABLE, WHICH IS THE PART THAT MATTERS
+
+**`F220`–`F223` showed the PROBE cannot score a library.** That does not make a full phase-1 run
+unreadable — **it makes the probe the wrong instrument for it.** Two quantities survived scrutiny
+tonight and both are independent of the probe:
+
+- **distinct COMPOSITIONS** (`summary.branching`, wired into the tape runs at `07e56bf`) — the
+  pooled runs acquired **9 and 20**, off 1.3% of the set;
+- **binding density** — `2.2%–12.1%` bound, and the trained library moved `m0r0` `6.9% -> 12.1%`.
+
+    BOUNDARY    the chunk and frame counts are EXACT, computed from all 25 replays at offset 0.
+                The cost is an EXTRAPOLATION from two anchors and is not measured; the low anchor
+                came from a deliberately small-board pool and does not represent wa30 or bp35
+    MECHANISM   none changed -- `take=None` was always there
+    CAPABILITY  none -- but it says the curriculum has never actually been attempted, which is a
+                different statement from "the curriculum read flat"
