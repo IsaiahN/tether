@@ -210,7 +210,7 @@ def pooled_order(games=ALL_GAMES, offset: int = 0, spacing: int = 1, skip: int =
 
 def watch_many(games=ALL_GAMES, cycles: int | None = None, offset: int = 0, spacing: int = 1,
                skip: int = 0, take: int | None = 4, noise: float = 0.0,
-               led_path: str | None = None,
+               led_path: str | None = None, snap_every: int = 0,
                on: str | None = None, store: str | None = None) -> dict:
     """Watch a POOLED tape across games. One library, no game label reaching the agent.
 
@@ -239,10 +239,28 @@ def watch_many(games=ALL_GAMES, cycles: int | None = None, offset: int = 0, spac
     base = len(g.library)
     ag = tether.Agent(env, g, tether.Config(), ledger.Ledger(led_path))
     seen_order = []
+    # SNAPSHOT AS IT GOES, and the sweep already learned why: a run that only reports at the end
+    # reports NOTHING if it is interrupted, and the first ladder overwrote one path so the
+    # gradient was unrecoverable. A full phase-1 tape is 14,822 frames (F228), so this is the
+    # difference between a recoverable run and a week thrown away. Binding density rides along
+    # because it is the one quantity measured to respond to training (m0r0 6.9% -> 12.1%).
+    trail = f"{store}.snaps.ndjson" if store else None
+    snaps = []
     for i in range(cycles if cycles is not None else len(frames)):
         g.game = frames[min(i, len(frames) - 1)]["_game"]
         seen_order.append(g.game)
         ag.step()
+        if snap_every and store and (i + 1) % snap_every == 0:
+            path = f"{store}.snap{i + 1:06d}.json"
+            g.save(path)
+            row = {"cycle": i + 1, "path": path, "library": len(g.library),
+                   "compositions": summary.branching(g, set())["final"],
+                   "settled": len(g.settled_terms), **ag.binding_stats()}
+            row.pop("acts", None)
+            snaps.append(row)
+            if trail:
+                with open(trail, "a", encoding="utf-8") as fh:
+                    print(json.dumps(row), file=fh)
 
     # A GROUND READING, OR THIS RUN REPORTS ONLY FRAME-INTERNAL COUNTS. `library 48 -> 101`
     # would have read as success at rung 1 and the probe is what refused it. `on` probes a live
@@ -266,6 +284,8 @@ def watch_many(games=ALL_GAMES, cycles: int | None = None, offset: int = 0, spac
             # COLD BY CONSTRUCTION -- a pooled run carries no library file (the open point
             # above), so `inherited` is empty and `diverged` reads null, correctly.
             "branching": summary.branching(g, set()),
+            "binding": {k: v for k, v in ag.binding_stats().items() if k != "acts"},
+            "snaps": snaps, "snap_trail": trail,
             # ALL of them, never `most_common(8)`. The truncated field read as "8 games
             # represented" when the true figure, recovered from the saved library, was 24 of 25.
             # A capped field reporting its own cap as a finding is the shape of every population
@@ -317,7 +337,23 @@ def watch(game: str = "dc22", cycles: int | None = None, offset: int = 0, spacin
             "branching": summary.branching(g, inherited)}
 
 
-def probe(game: str, library: str, cycles: int = 25) -> dict:
+_CONTROL: dict[tuple, dict] = {}
+
+
+def _atoms_only(game: str, cycles: int) -> dict:
+    """The ATOMS-ONLY arm: the same probe with zero trained terms. STANDING CONTROL, reviewer
+    2026-09-21 -- it is the only reading that separates *training did nothing* from *the
+    instrument cannot see a library*. Cached because the codebase is deterministic, so one run
+    per (game, cycles) is the whole distribution."""
+    k = (game, cycles)
+    if k not in _CONTROL:
+        p = str(Path(tempfile.gettempdir()) / f"_atoms_only_{game}.json")
+        Path(p).write_text("[]", encoding="utf-8")
+        _CONTROL[k] = probe(game, p, cycles, control=False)
+    return _CONTROL[k]
+
+
+def probe(game: str, library: str, cycles: int = 25, control: bool = True) -> dict:
     """Score a CARRIED library on a live board, with `rlvr`'s scorer and no new metric.
 
     Against a COPY: `play` saves after the run, so probing the training path would fold probe
@@ -377,13 +413,21 @@ def probe(game: str, library: str, cycles: int = 25) -> dict:
     # The boards are already in hand here and were being discarded. Span 7 because 145 of dc22's
     # 150 non-trivial chunks are span 7, so it is the window the scorer overwhelmingly uses.
     mine = rlvr._windows(objs, 7) if len(objs) > 7 else []
-    return {"probe": game, "hit": hit, "of": tot,
+    out = {"probe": game, "hit": hit, "of": tot,
             "pct": round(100 * hit / tot, 1) if tot else 0.0,
             "null_pct": round(100 * ceiling, 1),
             "clears_null": (hit / tot if tot else 0.0) > ceiling,
             "distinct": len(got), "of_distinct": len(allsig),
             "produced": len({json.dumps(w, sort_keys=True) for w in mine}),
             "windows": len(mine)}
+    if control:
+        c = _atoms_only(game, cycles)
+        out["ctl_hit"], out["ctl_distinct"] = c["hit"], c["distinct"]
+        out["ctl_produced"] = c["produced"]
+        # THE ONE FIELD THAT SAYS WHETHER THIS PROBE COULD HAVE SHOWN ANYTHING.
+        out["separates"] = (out["hit"], out["distinct"], out["produced"]) != (
+            c["hit"], c["distinct"], c["produced"])
+    return out
 
 
 def sweep(game: str = "dc22", rungs=(1, 2, 4, 8, 16), cycles: int | None = None,
