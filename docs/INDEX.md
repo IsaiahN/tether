@@ -38911,3 +38911,59 @@ slot after departure), the fix removes it, and it does NOT fire on every tape.**
     MECHANISM   `_res` and `_disc` now cleared on slot departure, matching the level-boundary rule
     CAPABILITY  NONE -- identical routine counts in both arms. It removes a false reading, and
                 the true reading is WORSE than the false one
+
+## F216 (INDEX series) — BLOCKED IS SPLIT, and the first case was already sitting in the completed `ar25` tape: the only routine this run formed died to `subject_departed`, three ledger rows after the world removed its slot
+
+**The reviewer's assignment (2026-09-21, 08:48), shipped at `4cb5414`, 10/10 seats clean.**
+`routine.py` says BLOCKED means only *the guard could not be READ*. Three endings wore that
+name. `_holds` now splits the `unbound` exit by whether the guard is still in `self.slots`:
+
+    subject_departed   the slot LEFT the board -- the world removed the plan's subject
+    never_bound        the slot is here and nothing was ever bound to it -- supply
+    <five others>      name-not-in-library / out_type-not-OBJ / slot-absent-from-state /
+                       empty-group / degree-unresolved, already named by `_why`
+
+Carried on the `guard_unreadable` row's `exit`, and on `routine_end` as `blocked_why`.
+
+### THE FIRST CASE IS NOT HYPOTHETICAL — it is in the completed 64-cycle patched `ar25` tape
+
+**`watch('ar25', cycles=64, offset=4, skip=1, spacing=8, take=8)`, 79 058 rows.** One routine
+formed (c32), one guard read unreadable (c35), one `routine_end: blocked` (c35). **The ledger
+already carries the ordering that decides which of the two the death was, by `seq`:**
+
+    seq 31387   c35  present  @instrument   gone = 16 slots, INCLUDING o4.h
+    seq 31390   c35  guard_unreadable  o4.h  exit=unbound  bound=null
+    seq 31391   c35  routine_end       o4.h  outcome=blocked   until(o4.h/36) {ACTION1}
+
+**`o4.h` has exactly one membership event in the whole run — GONE at c35 — and it is three rows
+before the guard read.** So this death is `subject_departed`, and under the old code it was
+indistinguishable from *nothing was ever bound here*. **The plan was fine. The board took its
+subject away mid-plan.**
+
+> **AND THAT IS THE THIRD PLACE SLOT TURNOVER APPEARS IN THIS CHAIN.** `F213`: it blocks 63% of
+> tape attempts before a plan exists. `F209`/`F211`: it unbinds the guards of the plans that do
+> form. **Here it is named at the moment of death rather than inferred from two rows.**
+
+### the refusal distribution on the patched tape, and what it does NOT settle
+
+    ar25 PATCHED, 64 cycles, 26 refusals
+      20  76.9%  no objective is confidently shrinking
+       4  15.4%  the objective already holds across its whole scope
+       2   7.7%  no action ... moves this slot the wanted way
+       0   0.0%  the selected objective's slot is not in this frame     <- F213's 63%
+
+**Zero stale selections.** `F213`'s dominant tape blocker is absent here. **That is NOT the
+re-measurement the ledger is owed**: `F213`'s tape population is 4 ledgers and 404 refusals, this
+is 1 ledger and 26, a different game mix and a different config. **An absence at a fifteenth of
+the denominator is consistent with the leak being gone and equally consistent with this tape never
+exercising it** — which `F215`'s own second config already showed happens. The suspended
+magnitudes still need the matched re-run.
+
+    BOUNDARY    ONE game, ONE config, ONE routine. The subject_departed case is a SINGLE event
+                read from seq ordering in one ledger -- it establishes that the split fires and
+                separates something real, never a rate. The new field is not yet in any run:
+                this run PREDATES the patch, and the classification is reconstructed from
+                `present` rows that the patched code reads directly
+    MECHANISM   `blocked_why` / the `exit` split. Instrumentation -- no gate moves, nothing on
+                the betting path reads it
+    CAPABILITY  NONE. It makes a death legible that was already happening
