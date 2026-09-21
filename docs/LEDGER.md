@@ -144,7 +144,8 @@ invisible the moment it stopped being anyone's next action.***
 | ~~A second pooled run at a different offset~~ | **DONE — `F207`.** §14.4's offset augmentation, run for the first time. **The bar replicates to the digit at an independent cut**, so the null is not an artifact of where the chunks were cut. Everything else moved (+72 library, +72 mints, +61 reuse); the ground did not. |
 | ~~F208's falsifier~~ | **RAN, AND REFUTED F208 — `F209`.** The switch-free tape produced a routine that died the SAME way (`exit=unbound`). Survival 1 cycle → 3; **the cause did not change.** Real mechanism: **SLOT TURNOVER** (`tether.py:2605`) — any departed slot is unbound, and a game switch is only the case where all depart at once. |
 | **THE ROUTINE'S GUARD — what it should be addressed to** | **THE LIVE QUESTION, AND IT IS NOT THE SEAT'S.** `F210`: the guard's protection is real and correct and **`CAN`-checked AT MINT**, which covers *dead when the plan is made* and not *dies while the plan runs*. The class was solved once (2026-09-04, name→invariant, **measured 7 board flips → 1**), and the same precedent says why the seat must not pick the key: *no single key would have worked… because a self-hypothesis IS a claim about what changes.* **Choosing what a routine's guard is addressed to is a claim about what a PLAN is about — the agent's or Isaiah's.** |
-| **Slot turnover on the other 20 boards** | Measured on five: `ls20` **0**, `tn36` **0**, `ka59` 1.5, `vc33` **29.3 (max 88)**, `ar25` 2.7. **Board-specific, and a guard's lifetime is a property of the BOARD.** The rest are unmeasured. |
+| ~~Slot turnover on the other 20 boards~~ | **DONE, and it REFUTED my own narrowing — `F211`.** Measured in the PERCEPTION LAYER with no agent (`arc_percept.Objects()` over each game's replay frames, 64 each): **0 of 25 boards are stable. Every board loses objects.** Worst single change `bp35` 73, `tu93` 41, `ft09` 39. The earlier "`ls20` 0, `tn36` 0" mixed LIVE-AGENT ledgers with a TAPE run — two frame populations in one table. |
+| **Turnover on the LIVE-board population** | The `long_*` figures are the only live data and are the ones I mis-joined, so **they stand only for themselves.** Unmeasured as a set. |
 | ~~`goal_residual`'s five `None` exits~~ | **BUILT — `3927d5e`.** The deferral was reversed BY EVIDENCE: the first routine ever formed died on exactly that `None`. `goal_residual` now names its exit; `_holds` records a `guard_unreadable` row. **It fired once and answered the question.** |
 | **Phase 3, the noise floor** | **BUILT 2026-09-20** (`eb18517`), chunk-granularity, verified as a permutation. **NEVER RUN.** |
 | ~~OFFSET AUGMENTATION~~ | **RUN at last (`F207`, offset 4).** The single-game ladder and pooled run 1 remain offset-0 only. |
@@ -162,7 +163,11 @@ nineteen zeros are real · `F190` what the carry carries, verified 4/4 · `F192`
 **`F207` the bar replicates at two independent cuts** · **`F208` the first routine was killed by a
 GAME SWITCH — a routine's guard is a BINDING, the pooled tape swaps boards every 8 frames, so
 §14.5 phase 1 cannot support procedure formation BY CONSTRUCTION** ·
-**`F209` slot turnover is the cause of routine death, and it is BOARD-SPECIFIC (0 to 88 lost per
+**`F211` ALL 25 boards lose objects — 0 of 25 stable, measured in the perception layer with no
+agent, which cost minutes where an agent sweep is hours** · **`F212` EVERY routine this project has
+ever formed came from WATCHING: tape 3 / live 0 across 17 live ledgers, normalised on attempts
+(3/404 vs 0/272). §14 predicted it before the feeder existed, and it is the ONLY positive reading
+of the session** · **`F209` slot turnover is the cause of routine death, and it is BOARD-SPECIFIC (0 to 88 lost per
 change)** · **`F210` the guard's protection is checked at MINT and the guard dies after — a correct
 argument scoped to the wrong moment** · **THE CODEBASE IS DETERMINISTIC** — no betting-path module imports randomness (`gamma`'s only use
 is the handle suffix, which no decision reads), verified by a rerun reproducing a routine at the
@@ -179,6 +184,9 @@ same cycle. **A captured failure can always be re-entered with a better instrume
   unrecoverable, so no ladder-vs-pooled settling comparison exists (`F204`).
 - **`routine_cut == 0` as evidence of anything** — it is a REFUSAL counter downstream of a gate
   that never opens (`F206`). The success event is `routine`, and it fired ONCE (`F207`).
+- **`F209`'s addendum, "turnover is board-specific, some boards are zero"** — it mixed live-agent
+  ledgers with a tape run (`F211`). All 25 boards lose objects. **The narrowing was the error; the
+  core claim was right.**
 - **`F208`'s "the game switch killed it"** — refuted by its own pre-registered falsifier
   (`F209`). Switches make it worse (1 cycle vs 3) and are not the cause.
 - **`used == 1` as evidence of anything** — it counts TERM+OPERAND, and operands are slot names
