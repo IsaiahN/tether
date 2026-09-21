@@ -2605,6 +2605,17 @@ class Agent:
             self.bound.pop(g, None)
             self.owed_import.discard(g)
             self.abstained.pop(g, None)
+            # AND THE TRENDS, WHICH THIS LOOP MISSED -- F214. `_res` is only ever popped inside
+            # `for slot in self.slots`, so a DEPARTED slot is never visited and its series
+            # survives indefinitely. `_goal_choice` selects over `_res`, so it picks slots that
+            # left the board and `_mint_routine` throws them away at `slot not in before` --
+            # measured at 63% of tape refusals.
+            #
+            # THE RULE IS THE AUTHOR'S OWN, ONE SCALE UP: the level-boundary reset says
+            # *the slots did not survive, nor do their trends*. Per-frame departure is the same
+            # event and was not covered. This extends a stated rule to the site that misses it.
+            self._res.pop(g, None)
+            self._disc.pop(g, None)
         # a term bound to a SURVIVING slot may read an operand on a departed one, and
         # `_ops` would fault on the next bet. It owes again rather than faulting.
         orphaned = sorted(k for k, n in self.bound.items()

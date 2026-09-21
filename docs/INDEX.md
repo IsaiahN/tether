@@ -38817,3 +38817,59 @@ attempts — **it holds the selector on the corpse of the thing that just failed
     MECHANISM   none changed. Named, located, pre-registered
     CAPABILITY  none yet -- and it is the first thing tonight that is plainly a BUG rather than
                 a measurement, a scope question, or a design question
+
+## F215 (INDEX series) — THE `_res` LEAK IS FIXED AND THE A/B HELD TO THE ARITHMETIC. And it says gate 1 fails on tapes far more than `F213` measured
+
+**`F214` pre-registered three effects and a falsifier. All three held; the falsifier read in favour.
+Same config, same seed, 30 cycles, determinism established.**
+
+    BEFORE (no patch)                              AFTER (_res/_disc popped on departure)
+      13  54.2%  no objective confidently shrinking   19  79.2%  no objective confidently shrinking
+       6  25.0%  the selected slot is not in frame     0   0.0%  --
+       4  16.7%  the objective already holds           4  16.7%  the objective already holds
+       1   4.2%  no action moves this slot             1   4.2%  no action moves this slot
+      24  total                                       24  total
+      routine 1 / end 1 / guard_unreadable 1          routine 1 / end 1 / guard_unreadable 1
+
+**PREDICTED: the stale-slot share falls sharply. MEASURED: `6 -> 0`.**
+**PREDICTED: *no objective is confidently shrinking* RISES, because the stale selections were
+masking true supply. MEASURED: `13 -> 19` — EXACTLY the six that moved.**
+**PREDICTED: the total may barely move. MEASURED: `24 -> 24`, unchanged.**
+
+### the fix, and why it was not a design decision
+
+    for g in gone:
+        self.bound.pop(g, None)
+        self.owed_import.discard(g)
+        self.abstained.pop(g, None)
+        self._res.pop(g, None)          # F215
+        self._disc.pop(g, None)
+
+**The author's own rule, stated at the level-boundary reset — *the slots did not survive, nor do
+their trends* — applied at the per-frame event that was missing it.** `F210` I refused to repair
+because it asks what a plan is ABOUT; this asks nothing, because the file already answers it.
+
+### AND THE READING THAT MATTERS IS NOT THE FIX
+
+**Capability did not change. `routine`, `routine_end` and `guard_unreadable` are 1/1/1 in both
+arms.** The agent forms the same plan, it dies the same way. **What changed is that six cycles of
+FALSE signal became six cycles of TRUE signal.**
+
+> **THE SIX STALE SELECTIONS WERE MASKING SIX GENUINE GATE-1 FAILURES.** The agent was not finding
+> a shrinking objective in those cycles at all — the dead slot was standing in for one.
+
+**So the instrument was lying in the direction that flattered the tape.** `F213` measured tape
+gate-1 failure at **29%** and live at **89%**, and read the gap as the reason routines form on
+tapes. **On this run, with the leak removed, tape gate-1 failure is 79.2%** — much closer to live.
+
+**`F213`'s mechanism is not refuted, but its MAGNITUDE is now suspect**: part of the tape/live
+difference it reported was the leak, not the tape. **The 404-refusal tape figure was measured with
+the leak in place and should be re-read on patched runs before it is cited again.**
+
+    BOUNDARY    ONE config, 30 cycles, 24 refusals per arm, one board-set, one seed. The
+                distribution is small and the 6-and-6 symmetry could be coincidence at this
+                size -- what makes it convincing is that it was PREDICTED, not that it is large.
+                F213's 404-refusal figures are NOT re-measured here and remain leak-contaminated
+    MECHANISM   `_res` and `_disc` now cleared on slot departure, matching the level-boundary rule
+    CAPABILITY  NONE -- identical routine counts in both arms. It removes a false reading, and
+                the true reading is WORSE than the false one
