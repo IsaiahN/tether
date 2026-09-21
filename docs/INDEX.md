@@ -40398,3 +40398,50 @@ represent an isomer at all** — and it stores 137 copies of one recipe instead.
     MECHANISM   none changed
     CAPABILITY  none -- it names the fix Isaiah asked for and shows it is specified and
                 unwired rather than undesigned
+
+## F236 (INDEX series) — PRE-REGISTRATION: System 0 ON. §5's prescribed fix for the measured root, built with its own A/B instrument, never once run
+
+**Reviewer's ruling, 16:18: *turn System 0 ON and run it. §5 names the root, names the cause, and
+prescribes the fix. It is built, gated, and off.*** Ordered ahead of the attribute index because it
+is cheaper and it is aimed at the root rather than at the cost.
+
+### what is already true, and it is the reason this is embarrassing
+
+    Config.system0            defaults False
+    _system0_active()         built, state-derived, no cycle constant
+    choose()                  gates on `self.cfg.system0 and self._system0_active()`
+    binding_stats()           docstring: "THE SYSTEM-0 A/B INSTRUMENT"
+    every run measured today  published `system0: false`
+
+**The switch is exactly what §5 asks for:** *active until every surfaced action has been tried at
+`>= 2` distinct states* — `probe.py`'s `never_live` anchor, *"the smallest that separates a dead
+action from a positional artefact."* **State-derived, never a cycle count.**
+
+> **SO THE FIX FOR THE PROJECT'S MEASURED ROOT WAS BUILT, GIVEN ITS OWN A/B INSTRUMENT, AND LEFT
+> SWITCHED OFF.** Not deferred on a ruling, not blocked on a dependency — off, and nobody had asked.
+
+### THE PREDICTIONS, pinned before the run
+
+    quantity              baseline (measured today)        prediction
+    binding density       dc22 2.4% ls20 5.6% m0r0 12.1%   RISES. The primary readout
+                          sk48 4.4%
+    action entropy        one-button collapse, F26:        RISES -- the collapse should break
+                          ACTION1 ~79% of cycles
+    the switch            --                               fires on STATE. I report the cycle it
+                                                           last fired and what closed it
+    distinct recipes      9-20 per library                 reported, not predicted
+    ground                9/150, 1 of 120                  NO PREDICTION -- F220-F223 showed the
+                                                           probe cannot see a library at all
+
+**AND THE FALSIFIER IS THE REVIEWER'S AND IT IS SHARP: *if binding density does not move, §5's
+causal story is wrong and I want that said plainly.*** §5 says the one-button collapse starves
+binding by producing one column of the contingency table. **If acting variously does not raise
+binding density, that chain is refuted** — and it is the plan's own diagnosis, never tested.
+
+**VACUITY GUARD:** binding density is non-zero in every baseline (2.2–12.1%), so there is room to
+move in both directions. Action entropy's control is a real distribution, not an empty one.
+
+    BOUNDARY    four boards, 25 cycles, one trained library (pooled offset-4), matched pairs.
+                25 cycles may be too few for the switch to close on a board with many actions --
+                if `switch_last_cycle` is 24 on any board, System 0 never handed back and that
+                board's reading is "System 0 throughout", not "System 0 then learned"
