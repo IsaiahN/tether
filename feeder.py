@@ -342,6 +342,19 @@ def probe(game: str, library: str, cycles: int = 25) -> dict:
     key = (json.loads(kp.read_text(encoding="utf-8")) if kp.exists()
            else reverse_engineer.answer_key(f"replays/{game}_human.ndjson"))
     hit, tot, rows = rlvr._rate(objs, key)
+    # NO VERDICT WITHOUT ITS BASE RATE -- the reviewer's standing rule, 2026-09-21. `rlvr`
+    # already has the machinery and `probe` never carried it, so every curriculum reading this
+    # week was a bare rate: dc22's `9/150` is 6.0% against a POOLED ceiling of 4.2% and ls20's
+    # `4/71` is 5.6%. Both MARGINAL, and an identical pair of marginal readings is a weak place
+    # to conclude anything. No extra run -- the same `objs`, scored against other games' keys.
+    nulls = {}
+    for g2 in rlvr.NULL_PANEL:
+        kp2 = Path(f"replays/{g2}_answer_key.json")
+        if g2 == game or not kp2.exists():
+            continue
+        h2, t2, _ = rlvr._rate(objs, json.loads(kp2.read_text(encoding="utf-8")))
+        nulls[g2] = h2 / t2 if t2 else 0.0
+    ceiling = max([rlvr.POOLED_NULL_CEILING, *nulls.values()])
     Path(tmp).unlink(missing_ok=True)
 
     # DISTINCT EFFECTS, because hit/tot is quantised in lumps and hides what moved. dc22's 150
@@ -365,6 +378,8 @@ def probe(game: str, library: str, cycles: int = 25) -> dict:
     mine = rlvr._windows(objs, 7) if len(objs) > 7 else []
     return {"probe": game, "hit": hit, "of": tot,
             "pct": round(100 * hit / tot, 1) if tot else 0.0,
+            "null_pct": round(100 * ceiling, 1),
+            "clears_null": (hit / tot if tot else 0.0) > ceiling,
             "distinct": len(got), "of_distinct": len(allsig),
             "produced": len({json.dumps(w, sort_keys=True) for w in mine}),
             "windows": len(mine)}
