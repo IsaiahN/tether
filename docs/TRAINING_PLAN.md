@@ -986,3 +986,94 @@ the annealing schedule for the synthetic stream (the §14.5 hunches applied to g
 replayed chunks, and how the two streams interleave), and where the synthetic path sits relative to
 the 25-game run (before, as broad pre-training? mixed in as the §14.5 noise floor?). The core any
 of these needs is built; the schedule is the fork.
+
+### 14.11 THE LIBRARY-CLOSURE FOLDER ANSWERS SEARCH, RETRIEVAL, SETTLED AND STORAGE — read 2026-09-21, Isaiah's instruction
+
+**All 24 files read. Every item below is SPECIFIED THERE and UNBUILT, so none of it is a design
+question. The plan order changes as a result.**
+
+#### 1 · SEARCH — the index exists and `retrieval.py` never opens it
+
+    ATTRIBUTE_INDEX.json    849 KB   "Attribute -> candidate atoms. A CHANGE IN AN ATTRIBUTE
+                                      LIGHTS UP THE ATOMS THAT DEPEND ON IT." Three indexes:
+                                      raw name, semantic cluster, encoding
+    ADJACENCY_EDGES.json     16 KB   61 domains, 285 edges, ONE component, mean hop 2.11,
+                                      clustering 1.7x chance -- `ADJACENCY.md`: *"exactly the
+                                      structure a HOP-AND-TRAVERSE strategy needs"*
+    ATOM_RANKING.json        46 KB   477 atoms by uses
+    COMPOSITE_REACH.md               **composition is LOCAL: 74% of ingredient references stay
+                                      inside their own domain.** 61 near-independent trees
+
+**`retrieval.py` imports `sys`, `typing` and `gamma`. Nothing else.** `retrieval.fits` scores
+type (2) + arity (1) + an `aimed` boolean (1). **No attribute content at all** — which is the one
+thing the index exists to supply. Measured consequence: retrieval hits **2–6%** against a library
+that already holds the recipe **94%** of the time (`F234`, `F229`).
+
+> **THE FIX IS A JOIN, NOT A DESIGN: key the gap on WHICH ATTRIBUTE CHANGED, look the atoms up in
+> `ATTRIBUTE_INDEX`, and search the gap's own domain before hopping.** Locality says the first hop
+> is usually unnecessary.
+
+#### 2 · SETTLED / UNSETTLED — half built, and the built half is correct
+
+**`gamma.units()` already implements the figures' rule** — *"the atoms, plus every SETTLED term as
+one unit"*, deduped on the emitted chain because *"the chunk IS the atom sequence and the operand
+has no business in the key."* **Compose side: correct.**
+
+**Retrieval consults `settled` ZERO times** (`F229`; `is_settled` has two call sites in `tether.py`,
+neither in `_library_fit` nor in any ranking).
+
+**And `ENTRY_CATEGORIES` supplies the functional distinction rather than a preference:** `MECHANISM`
+is *"a thing that produces an effect, and PERSISTS ACROSS USES"* — `CHEMISTRY`'s catalyst,
+*"survives its own use unchanged."* **That is a KIND, not a ranking**, which is why recording it
+installs no policy.
+
+#### 3 · THE DUP STORE — two keys in one project, and the scheme for fixing it is written
+
+**The library keys on `chain+operand+guard`; `units()` keys on the chain.** 94% of mints are
+re-derivations; `translate . recolour` was minted **137 times** (`F229`).
+
+**`ENTRY_CATEGORIES` gives the storage scheme and says why it is the right shape:** **KIND** (nine:
+PROPERTY · OPERATION · RELATION · STATE · MECHANISM · MEASURE · BIAS · FAILURE MODE · DEFAULT) plus
+six binary **AXES** (physical/abstract, reversible/irreversible, local/global, discrete/continuous,
+deterministic/probabilistic, individual/collective) — ***orthogonal to domain, which is what an
+entry-level scheme has to be.*** **Orthogonal keys are exactly what a 4-point score lacks.**
+
+**And `CHEMISTRY` shows what the current store cannot hold at all: 34 measured ISOMER families.**
+`Melt · Freeze · Boil · Condense · Sublimate` are all `Tmp + Ph` — *"five distinct substances, one
+written formula… what separates them is direction and threshold, `⋛` and `⇒`, neither of which the
+notation carries."*
+
+#### 4 · THE GATE NOBODY COSTED — one sensor stands in front of 65% of the vocabulary
+
+**`ATTRIBUTE_REACH`: 2,700 of 2,700 atoms are reachable after dropping one attribute family
+(`selfReport`, 75 mentions, and NOT ONE atom is orphaned by the drop).** The build order is tiers:
+
+    tier 0      11 atoms    0%   reachable today
+    tier 1   1,749 atoms   65%   A SENSOR THAT EMITS AN INTEGER PER OBJECT
+    tier 2     122 atoms    5%   the ATTR split, comparable vs orderable
+    tier 3     749 atoms   28%   objects in the loop + the predicate residual
+    tier 4      69 atoms    3%   a frame-level regularity
+
+**And it pre-empts the §12.3 objection with a test rather than an argument:** *"A scalar sensor is
+not one of those. It is a Tier-1 OBSERVATION, not a Tier-2 composition — and the test is whether
+the thing being added is **computed from the board** or **composed from other sensors**. The first
+is perception; the second is the agent's job."* **It also names the cause: *the composable set was
+decided by which sensors happened to return integers — an encoding accident, not a rule.***
+
+#### THE REVISED ORDER, and why it is this order
+
+    1  RETRIEVAL joins ATTRIBUTE_INDEX          unblocks everything: the 2-6% hit rate is what
+                                                sends the agent to mint, and minting is what
+                                                makes a cycle cost 95 s (`F233`)
+    2  PHASE 1 + 2, ALL 25, FULL SCALE          Isaiah's stated priority. 1,927 chunks /
+                                                14,822 frames. Gated by 1 on cost alone
+    3  the SCALAR SENSOR (tier 1)               65% of the vocabulary, ruled in-bounds by
+                                                ATTRIBUTE_REACH's own test
+    4  the STORE keyed by KIND + AXES           retires the 94% duplication at its cause
+    5  the BONDS                                LAST -- `NSM_GRAMMAR` says *"Report the shape.
+                                                Do not build"*, and a second bond re-prices
+                                                every term (`F230`)
+
+**Phase 1+2 is the DELIVERABLE and retrieval is the PREREQUISITE, which is why 1 precedes 2.** At
+the measured rate the full tape is 150 h+; the run is what the retrieval fix has to make
+affordable, and `F233`'s falsifier is already pinned to it.
