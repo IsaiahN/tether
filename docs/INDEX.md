@@ -40626,3 +40626,60 @@ compute `robs`, so it has no such list to walk.** Naming it, not building it.
                 refuses them is NOT
     MECHANISM   none changed
     CAPABILITY  none -- it splits a number that five separate hypotheses each tried to own whole
+
+## F239 (INDEX series) — `cost` AND `left` ARE IDENTICAL IN BOTH PATHS. There is no disagreement between the tests; there is only the generation gap, and the correlation is 4 of 4
+
+**Reviewer 17:52: *under arm D both paths call `pays` with equal baselines and still disagree, so
+cost or left differ for the same Term. That is a bug in one path, and until it is closed arm D's
+negative result may be the bug rather than the bargain.* Pre-registered guess: `left`, over
+different observation windows.**
+
+**REFUTED. Nothing differs.**
+
+    snapshotted at the retrieval call and again at the mint call, same slot, same cycle
+      cost_DIFFERS   0        left_DIFFERS   0        base_DIFFERS   0
+      hist length identical, units identical, on every installed term
+
+### and the reason they never disagree is that they never see the same Term
+
+    board  guard     pays() WITH RETRIEVAL'S OWN NUMBERS   guard present on a held same-chain term
+    dc22   ACTION1   True                                  False
+    ls20   None      False                                 True
+    ls20   None      False                                 True
+    ls20   ACTION2   True                                  False
+
+    dc22   cost 16.8441  left 42.0  base 63.0  ->  58.84 < 63.0   PAYS
+    ls20   cost 16.8441  left 77.0  base 49.0  ->  93.84 < 49.0   does NOT pay
+
+> **FOUR OF FOUR, AND THE SPLIT IS EXACT. Where retrieval COULD have generated the Term, both paths
+> refuse it and the bargain agrees with `_explains`. Where retrieval could NOT — the guard is on no
+> held term of that chain — the bargain WOULD have accepted it.**
+
+**So there is no test disagreement to fix.** `_explains` versus the bargain is a real difference in
+the abstract and it is not what produces the 2–6%. **`F238`'s two-halves decomposition survives, and
+its second half is now better described: those terms are refused by BOTH tests and the refusal is
+arithmetically correct — they do not pay.**
+
+**ARM D IS THEREFORE NOT CONTAMINATED, and its negative result stands as a result.** The reviewer's
+hold on choosing between *obey the one bargain* and *raise the hit rate* can be lifted on the
+evidence: the bargain is not costing us the hit rate, because the terms it refuses genuinely do not
+pay.
+
+### THE CAVEAT THAT COULD UNDO THE SECOND ROW, AND IT IS MINE TO CHECK NEXT
+
+**My "installed" set is *library keys that appeared after `mint()` returned*.** That includes
+anything installed by a path other than mint's own bargain gate — `_install_reuse`, a promotion, a
+`retro` close. **Two of the four rows read `pays = False` and were installed anyway, which mint's
+own `if not pays(...): continue` forbids.** So either those entered by another route, or `pays` is
+consulted somewhere I have not read.
+
+**That does not touch the headline** — cost and left are identical, which is what was asked and what
+was measured — **but it means "mint installed a term that does not pay" is NOT established, and I
+am not claiming it.**
+
+    BOUNDARY    two boards, 20 cycles, arm D ON, FOUR installed terms total -- one on dc22 and
+                three on ls20, because arm D collapses minting. Four is a small population and
+                the 4-of-4 correlation is stated as a correlation, not a rate. The identity of
+                cost/left/base is exact and is the part that answers the question
+    MECHANISM   none changed
+    CAPABILITY  none -- it closes a suspected bug as absent, which frees arm D's reading
