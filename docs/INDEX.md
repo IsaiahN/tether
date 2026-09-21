@@ -38782,10 +38782,38 @@ minutes old, and **nine retractions today came from moving fast on something tha
 It wants an A/B with the refusal distribution before and after, which is cheap and is the next
 tick's.
 
-    BOUNDARY    the leak is read from two code sites and one comment; the 63% is measured over
-                404 tape refusals. The CAUSAL link between them is inferred, not yet measured --
-                confirming it means logging the selected slot's departure cycle, or running
-                the A/B above
+### THE CAUSAL LINK IS NOW MEASURED, NOT INFERRED — closed from the baseline ledger
+
+**The boundary below said the link between the leak and the 63% was inferred. It is not any more.**
+Every *slot is not in this frame* refusal in the 30-cycle baseline, with the departure record beside
+it:
+
+    cycle 24  slot o39.row        o39.row DEPARTED at cycle 24
+    cycle 25  slot o39.row        "
+    cycle 26  slot o39.row        "
+    cycle 27  slot o39.row        "
+    cycle 28  slot o39.row        "
+    cycle 29  slot o39.row        "
+
+**ONE slot, SIX consecutive cycles, all AFTER it departed.** `_goal_choice` kept selecting a slot
+that had left the board, exactly as the leak predicts — and nothing else was ever selected in that
+window.
+
+**AND IT IS THE SAME SLOT THE ROUTINE WAS FORMED FOR.** `F207`: *cycle 23, slot `o39.row`,
+`until(o199.drow/10)`*. So the full chain on one run:
+
+    cycle 23     a routine forms for o39.row -- the first this project ever made
+    cycle 24     o39.row DEPARTS. The routine's guard becomes unreadable  -> F209
+    cycles 24-29 `_goal_choice` re-selects the DEAD o39.row six times     -> F214
+                 every attempt refused at `slot not in before`
+
+**Six consecutive cycles spent on a slot that no longer existed, immediately after the slot's
+departure had already killed the only plan the agent had made.** The leak does not merely waste
+attempts — **it holds the selector on the corpse of the thing that just failed.**
+
+    BOUNDARY    the leak is read from two code sites and one comment. The causal link is now
+                measured on ONE run, 30 cycles, one slot, six events -- a single episode, and
+                the A/B remains the test of whether removing the leak changes the distribution
     MECHANISM   none changed. Named, located, pre-registered
     CAPABILITY  none yet -- and it is the first thing tonight that is plainly a BUG rather than
                 a measurement, a scope question, or a design question
