@@ -38402,6 +38402,35 @@ extreme case in which ALL slots depart at once.
 **Departures are not rare and they do not need a game boundary.** A routine only has to be
 unlucky in the slot it guards.
 
+### TURNOVER IS BOARD-SPECIFIC, NOT UNIVERSAL — measured across five runs, and it qualifies the above
+
+**The figures above are `ar25` only, which the boundary line said. Closing that from ledgers that
+already existed, no new run:**
+
+    run                slot-set changes   gone/change   max   any departure
+    long_ls20                  5              0.0        0       0 / 5
+    long_tn36                  2              0.0        0       0 / 2
+    long_ka59                 11              1.5        8       2 / 11
+    long_vc33                  3             29.3       88       1 / 3
+    ar25 coherent (mine)      26              2.7       30       5 / 26
+
+**On `ls20` and `tn36` slots NEVER depart. On `vc33` a single change loses 88.** *Per game, never
+pooled* — the law applies to turnover as much as to anything else, and **a guard's lifetime is a
+property of the BOARD, not of the architecture.**
+
+**So the claim narrows: a routine's guard is addressed to an identity shorter-lived than the plan
+ON SOME BOARDS.** On `ls20` and `tn36` a guard would survive indefinitely.
+
+> **AND THE PATTERN THAT WOULD BE TOO NEAT IF I LEANED ON IT: the boards where a guard could
+> survive (`ls20`, `tn36`: zero departures) are boards where routines NEVER FORM (`F206`: `routine
+> 0` on both).** Two routines total is not enough to claim an anticorrelation, and I am recording
+> the observation without the causal story — **that is the move that produced three retractions
+> tonight.**
+
+**The `present` row fires only when the slot set CHANGES**, so a low row count over a 59-cycle run
+means a genuinely stable slot set rather than a short sample. But 2–11 changes is still a thin
+population and the `vc33` mean rests on three rows.
+
 ### and `blocked` is bookkeeping, not evidence — which is the part that matters
 
 `routine.py` is explicit: ***I could not read the guard* is not *the guard is satisfied*.** The
