@@ -347,9 +347,18 @@ def probe(game: str, library: str, cycles: int = 25) -> dict:
     got = {json.dumps(c["signature"], sort_keys=True)
            for c, r in zip(nt, rows, strict=False) if r["achieved"]}
     allsig = {json.dumps(c["signature"], sort_keys=True) for c in nt}
+    # WHAT THE AGENT PRODUCES AT ALL, which is a different question from what it MATCHES and
+    # has never been asked. `distinct 1 of 120` cannot separate two failures:
+    #   produced >> 1  -> the agent makes many effects and hits the wrong ones: TARGETING
+    #   produced ~= 1  -> the agent can only make one effect: ACTION-EFFECT, a CONTACT reading
+    # The boards are already in hand here and were being discarded. Span 7 because 145 of dc22's
+    # 150 non-trivial chunks are span 7, so it is the window the scorer overwhelmingly uses.
+    mine = rlvr._windows(objs, 7) if len(objs) > 7 else []
     return {"probe": game, "hit": hit, "of": tot,
             "pct": round(100 * hit / tot, 1) if tot else 0.0,
-            "distinct": len(got), "of_distinct": len(allsig)}
+            "distinct": len(got), "of_distinct": len(allsig),
+            "produced": len({json.dumps(w, sort_keys=True) for w in mine}),
+            "windows": len(mine)}
 
 
 def sweep(game: str = "dc22", rungs=(1, 2, 4, 8, 16), cycles: int | None = None,
