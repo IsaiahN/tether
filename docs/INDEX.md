@@ -41260,3 +41260,83 @@ flight, and the question goes up with it.
                 to 119, with zero re-issues -- an object that is walked over is the same object
                 when it is uncovered. Everything keyed on identity was previously being handed a
                 fresh name every time the avatar crossed something
+
+## F249 (INDEX series) — ARM H IS DEAD, AND IT WAS NEVER ALIVE: `sk48`'s −48% WAS THE SPLIT IDENTITY. All seven boards now cost, and the phase-1 projection FLIPS SIGN
+
+**The reviewer's pre-registration, in their words: *if `sk48`'s −48% disappears with correct
+identity, arm H's mint-load rule goes with it.* It disappeared.**
+
+### the re-measure, both arms on the same code, timed, ledgered
+
+    sk48, 20 cycles, cold        s/cycle    mints    library
+      BEFORE the tracker work
+        base                      54.64       41        --
+        arm H                     28.51       --        --      -48%
+      AFTER matcher fix + overlay
+        base                      23.25       38        86
+        arm H                     25.88       39        87      +11%
+
+**The sign flipped and the magnitude collapsed. And arm H no longer removes mints at all — 39
+against the baseline's 38, one MORE.**
+
+> **THE BASELINE ITSELF FELL 54.64 → 23.25 s/cycle, A 57% CUT, WITH MINTS ESSENTIALLY UNCHANGED
+> (41 → 38).** The only code between the two readings is `0c73684` and `a301bf6`; `F245` and `F246`
+> were documents. **`sk48` was expensive because it was tracking the same object under two names,
+> and arm H's apparent win was the split identity, not the guard axis.**
+
+### so arm H costs on ALL SEVEN BOARDS and the projection reverses
+
+    board  frames   base s/cyc   armH s/cyc   delta
+    dc22     1193        8.25         9.41     +14%
+    ls20      547        7.35         9.58     +30%
+    m0r0      971        6.75         7.78     +15%
+    sk48      697       23.25        25.88     +11%    <- was -48%
+    re86     1072       16.45        19.95     +21%
+    lf52     1212        0.14         0.27     +93%
+    wa30     1565        2.54         2.96     +17%
+
+    weighted to the full 14,822-frame tape, 49% measured
+      AS PUBLISHED IN F245      base 45.5 h    arm H 39.8 h    arm H -13%
+      sk48 CORRECTED            base 33.1 h    arm H 38.8 h    arm H +17%
+
+**`F245` told the reviewer arm H saves 13% of phase 1. It costs 17%.** And the base fell from
+**45.5 h to 33.1 h on one board's correction**, which is the more useful number of the two.
+
+### THREE RULES OFFERED FOR ONE BOARD, AND ALL THREE WERE THE SAME ARTEFACT
+
+    F244   "arm H scales with board weight"        refuted by re86/wa30 (F245)
+    F245   "arm H pays where the baseline mints"   refuted here -- the mint load was the split
+                                                   identity, and correcting it removed both the
+                                                   mint load and the benefit together
+    and the projection built on the second        flipped sign
+
+**Every one was a story explaining why ONE BOARD behaved differently from the other six.** The
+right reading was available the whole time and is the cheapest one: **six boards agreed, one
+disagreed, and the one that disagreed was BROKEN.** *A null carrying a satisfying causal story is
+harder to doubt than a bare one* — and so is an OUTLIER carrying one. **I wrote two causal stories
+for the outlier and never asked whether the outlier was an instrument fault.**
+
+> **AND THE CHECK THAT WOULD HAVE CAUGHT IT IS ALREADY IN THIS FILE: *a panel property must be
+> measured before it is used as a premise, never asserted from the shape of the generator.***
+> `sk48`'s mint load was the premise of the mint-load rule and was never asked where it came from.
+
+### what this settles and what it does not
+
+**SETTLED: arm H stays OFF and there is no board left that it helps.** It is not retired — its
+manipulation check is real, it closes the guard-axis generation gap (`F240`), and *the generation
+gap is not the cost problem* is the finding. **What is retired is the claim it pays anywhere.**
+
+**NOT SETTLED: the other six baselines are all PRE-TRACKER-FIX.** `sk48` fell 57% on correct
+identity and `F246` shows re-issue on every board at some rate. **So 33.1 h is itself an
+over-estimate of unknown size, and the honest statement remains the one `F245` made: short runs
+cannot price the full tape at all.**
+
+    BOUNDARY    ONE board re-measured post-fix, 20 cycles, cold, both arms on the same code
+                state and timed the same way -- and the discarded first attempt is why that is
+                stated: its arms may have straddled an edit. The six other rows are F245's and
+                are PRE-FIX, so the projection mixes two code states and is published only to
+                show the SIGN CHANGE, not as an estimate
+    MECHANISM   none changed. Arm H remains default OFF
+    CAPABILITY  none directly -- but it removes a mechanism from the phase-1 plan that was
+                being counted on for a 13% saving it does not deliver, and it re-prices the
+                baseline down 27%
