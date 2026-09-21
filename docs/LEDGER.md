@@ -140,8 +140,9 @@ invisible the moment it stopped being anyone's next action.***
 
 | item | state |
 |---|---|
-| **Pooled 25-game run** | **IN FLIGHT**, launched 18:20, ~3 h, 199 frames. Its bar is fixed: **a SECOND DISTINCT EFFECT**. No library count may be offered in its place. Result goes to `/tmp/claude/pooled25.json`, ledger alongside. |
-| **Phase 3, the noise floor** | **NOT BUILT.** §14.5 specifies it; `pooled_order` makes it reachable and does not do it as a floor held at a rate. |
+| ~~Pooled 25-game run~~ | **DONE, and the bar was NOT met.** `probe 9/150`, **1 of 120 distinct effects** — identical to the ladder and to the untrained baseline. `library 48 → 329`, **281 minted**, contact change **ZERO**. **ARM B**: settling `0.025/cycle` against rung 1's `0.250` — ten times worse at the strongest shuffle, which **refutes §14.5 phase 1's own premise** (*the shared compositions settle hard as invariants*). `routine_cut` **0 across 199 cycles**. Term-level reuse genuinely `x5.10` and it bought nothing. See `F203`. |
+| **A SECOND pooled run at a different offset/seed** | **NOW THE FIRST THING OWED.** `F203` rests on ONE run at offset 0, seed 1618, `take=1` (~8 frames per game). The §14.5 refutation is a 10x margin so it survives noise, but **every reading in this session is one cut of one tape.** |
+| **Phase 3, the noise floor** | **BUILT 2026-09-20** (`eb18517`), chunk-granularity, verified as a permutation. **NEVER RUN.** |
 | **OFFSET AUGMENTATION** | Wired everywhere, **never run at a non-zero offset. EVERY reading in this whole session is at offset 0 — one arbitrary cut.** |
 | **`goal_residual`'s five `None` exits** | A reason-code would close `F189`'s open item. Cheap, named, **deliberately deferred** — *you cannot diagnose your way to a composer.* |
 | **A pooled SPACING ladder** | Needs `take>=8` = 1,525 frames = **~68 h. NOT AFFORDABLE** at current mint cost (`F194`). |
