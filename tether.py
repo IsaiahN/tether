@@ -69,6 +69,16 @@ _FINE_VOTE = bool(os.environ.get("TETHER_FINE_VOTE"))
 # DEFAULT OFF, like every other arm, so the baseline it is measured against is preserved.
 _RECIPE_DEDUP = bool(os.environ.get("TETHER_RECIPE_DEDUP"))
 
+# ARM G -- REBIND WHAT IS HELD. `_rebindings` returns early for any term that already carries an
+# operand, so only IMPORTS (which arrive unbound, `save` drops it) are ever re-bound. A term the
+# agent minted THIS RUN is offered to a new slot still pointing at the old one, `_explains` tests
+# behaviour, and it cannot explain -- so mint re-derives it. CENSUSED at the reviewer's request:
+# of the terms installed by mint, 100% (dc22) and 94% (ls20) were chains ALREADY IN THE LIBRARY,
+# and 85% / 41% of those were held with an operand locked to a DIFFERENT slot.
+# The principle is the method's own docstring: *composition crosses, binding does not* -- true of
+# every term, applied to loaded ones only. DEFAULT OFF like every other arm.
+_REBIND_HELD = bool(os.environ.get("TETHER_REBIND_HELD"))
+
 
 def _head_accepts(cand: Any, slot_type: str | None) -> bool:
     """Does the candidate's HEAD atom accept what the slot actually holds?
@@ -1210,7 +1220,7 @@ class Agent:
         typed re-bindings of it. **Composition crosses, binding does not**, so a loaded term
         has to be re-bound at the destination or it is the identity here."""
         yield term
-        if not term.reads_operand or term.operand:
+        if not term.reads_operand or (term.operand and not _REBIND_HELD):
             return
         for b in self.slots:
             if b != slot and self._operand_fits(term, slot, b):
