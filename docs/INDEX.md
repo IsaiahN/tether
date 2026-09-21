@@ -39605,3 +39605,47 @@ it is the one to carry.
     MECHANISM   none changed
     CAPABILITY  none -- and the reading is now that the ground channel does not register a
                 library ON A BOARD WHERE IT REGISTERS PLENTY ELSE
+
+## F224 (INDEX series) — THE TWO WAYS `F223` COULD HAVE BEEN AN ARTEFACT, BOTH CLOSED BY MEASUREMENT. The sets are byte-identical and the trajectories genuinely diverge
+
+**`F223` rests on arms reading identically. Two things would have made that mean nothing, and I had
+verified neither on the board the conclusion leans on.**
+
+### 1. `produced` and `distinct` are `len()`, not the set
+
+**Two arms could each make three DIFFERENT signatures and both report 3.** Compared as SETS on
+`m0r0`:
+
+    ACHIEVED key signatures   atoms {4}  trained {4}   sets IDENTICAL
+    PRODUCED window sigs      atoms {6}  trained {6}   sets IDENTICAL
+
+**Byte-identical content, not merely equal counts.**
+
+### 2. the trajectories might never have diverged on THIS board
+
+**`F220` verified divergence on `dc22` — cycle 16.** `m0r0` is the board `F223`'s conclusion leans
+on, and its divergence was never checked. **If the arms never split there, the identical score is
+forced and *seven times the null and still identical* claims more than it can pay for.**
+
+    m0r0   ledger rows 5,706 vs 5,778      action rows n=25 vs 25
+    cycles 0-18   identical
+    cycle 19      atoms   ACTION2 by `probe`
+                  trained ACTION3 by `discriminate:learned`     <-- DIVERGENCE
+
+**Six cycles of different actions, on different boards, and the produced and achieved sets come out
+byte-identical.**
+
+> **SO `m0r0` DOES SETTLE IT, AND NOW BOTH OBVIOUS OBJECTIONS ARE CLOSED BY MEASUREMENT RATHER THAN
+> BY ASSUMPTION.** The library changes what the agent DOES on the decisive board too, and changes
+> nothing whatever about what the ground registers — not the rate, not the count, not the contents.
+
+**The divergence runs the opposite way from `dc22`'s** — there the bare arm used
+`discriminate:learned` and the trained one `probe`; here it is reversed. **No claim is made about
+that.** It is one cycle on two boards and the mode labels are not a quantity I have characterised.
+
+    BOUNDARY    ONE board for the set comparison (`m0r0`) and one for each divergence check
+                (`dc22`, `m0r0`). `ls20` and `sk48` are NOT set-compared and NOT
+                divergence-checked -- their arms match on counts only, which is the weaker
+                statement. 25 cycles, one trained library, deterministic
+    MECHANISM   none changed
+    CAPABILITY  none. It removes the two cheapest ways F223 could have been wrong
