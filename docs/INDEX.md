@@ -40445,3 +40445,65 @@ move in both directions. Action entropy's control is a real distribution, not an
                 25 cycles may be too few for the switch to close on a board with many actions --
                 if `switch_last_cycle` is 24 on any board, System 0 never handed back and that
                 board's reading is "System 0 throughout", not "System 0 then learned"
+
+## F236 (INDEX series) — SYSTEM 0 IS A RELABELLING, NOT A POLICY. Its draw is the SAME CALL as `draw`, so on 2 of 3 boards it changed nothing, and it CANNOT test §5
+
+**Reviewer ruled it ON (16:18) with a sharp falsifier: *if binding density does not move, §5's
+causal story is wrong and I want that said plainly.* I was one step from saying it. The arms are
+not different.**
+
+    board  arm    binding density   action entropy   switch closed   ACTION SEQUENCE
+    dc22   base      4.06% (13/320)     1.842            --
+    dc22   sys0      2.19% ( 7/320)     2.032            c9            DIFFERS
+    ls20   base      7.39% (13/176)     1.291            --
+    ls20   sys0      7.39% (13/176)     1.291            c7            IDENTICAL
+    m0r0   base     15.28% (11/72)      2.322            --
+    m0r0   sys0     15.28% (11/72)      2.322            c11           IDENTICAL
+
+### the two exits are the same call
+
+    system0:   return self.drive.choose(self.actions, self.cycle, _where(before)), "system0"
+    draw:      return self.drive.choose(self.actions, self.cycle, _where(before)), "draw"
+
+**Byte-identical.** `choose`'s own docstring already says this of the neighbouring pair — *"`draw`
+and `probe` are byte-identical calls to `drive.choose`, so both really are undirected picks"* — and
+`system0` is a third copy.
+
+> **SO SYSTEM 0 DOES NOT ACT MORE VARIOUSLY. IT RELABELS THE DRAW THE AGENT WAS ALREADY MAKING AND
+> MOVES IT EARLIER IN THE PRIORITY CHAIN.** It can only change behaviour where it PREEMPTS a
+> strategic arm that would otherwise have fired.
+
+**Which is why the `by` column changes on every board and the ACTIONS change on one.** On `ls20`
+the learned arm first fires at c8 and System 0 closed at c7 — nothing preempted. On `m0r0` the
+baseline draws for the first ten cycles anyway. **On `dc22` it preempted `discriminate:goal` at c9,
+and that one preemption is the whole of the difference — binding density then HALVED.**
+
+### THEREFORE THE FALSIFIER DOES NOT FIRE, AND SAYING IT DID WOULD HAVE BEEN THE SESSION'S WORST ERROR
+
+**§5's claim is about the LEARNED ARM collapsing to one button** (`F26`: ACTION1 ~79%), starving
+binding of varied `(before, action, after)` evidence. **System 0 does not change the learned arm. It
+delays it by seven to eleven cycles, using the same uniform draw the agent already uses when nothing
+else has an opinion.**
+
+**So this run did not vary the quantity §5 is about.** Two boards are literally the same trajectory;
+the third differs by one preempted action. **§5's causal story is UNTESTED, not refuted** — and I
+was about to report it refuted off a table where two of three rows are identical.
+
+**The vacuity guard I wrote into the pre-registration is what caught it**: *binding density is
+non-zero in every baseline, so there is room to move in both directions.* It had room. **The arms
+had no difference to move it with.**
+
+### what would actually test §5
+
+**A System 0 that is not the same draw.** §5 asks for *varied* action, and the switch is
+state-derived and correct — the defect is the POLICY behind the switch, which is `drive.choose`
+unchanged. **A draw that maximised coverage of the action-by-slot space would be a different policy;
+a uniform draw relabelled is not.** Naming that, not building it.
+
+    BOUNDARY    three boards complete of four, 25 cycles, one trained library, matched pairs.
+                The identity claim is READ off two return statements and CONFIRMED by identical
+                action sequences on two boards -- not a statistical claim. `sk48` is still
+                running and cannot change a code identity
+    MECHANISM   none changed. `Config.system0` stays default OFF -- turning it on is a relabel
+    CAPABILITY  none. The one board where it acted differently got WORSE, on one preemption,
+                which is n=1 and is not a finding either
