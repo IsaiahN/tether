@@ -38967,3 +38967,89 @@ magnitudes still need the matched re-run.
     MECHANISM   `blocked_why` / the `exit` split. Instrumentation -- no gate moves, nothing on
                 the betting path reads it
     CAPABILITY  NONE. It makes a death legible that was already happening
+
+## F217 (INDEX series) — THE PHASE-3 DIAL IS LIVE AT CHUNK GRANULARITY AND INERT AT `take=1`, WHICH IS THE CONFIG BOTH POOLED RUNS USED. No pooled run has ever moved a curriculum-ordering dial
+
+**§14.5's noise floor was built at `eb18517` and never run. Before spending the tape on it, the
+question is whether the dial produces the ORDER it claims — which needs no agent and cost
+seconds.** Read at the ordering level only: `pooled_order` called directly, nothing stepped.
+
+### at coherence (`take=4`, `spacing=4` — 25 blocks for 25 games) the dial is LIVE
+
+    noise   frames   blocks   game-switches   same-game runs   longest run   same frames?
+     0.0      763       25          24              25              32          --
+     0.05     763       25          29              30              32         yes
+     0.1      763       25          40              41              32         yes
+     0.2      763       25          55              56              32         yes
+     0.4      763       25          86              87              31         yes
+
+**Switches 24 → 86, runs 25 → 87, and the per-game frame multiset is IDENTICAL at every rung.**
+That is what the plan asks for — *real out-of-context chunks, never garbage* — so the tape is a
+permutation of the same material at every rate and a noise sweep is readable the way the spacing
+sweep was.
+
+### AND AT `take=1` IT IS INERT, AND THAT IS WHERE THE POOLED RUNS LIVE
+
+    take=1   noise 0.0   frames 199   blocks 25   switches 24
+             noise 0.1   frames 199   blocks 25   switches 24
+             noise 0.4   frames 199   blocks 25   switches 24
+
+**Identical interleaving at every rate; only the PERMUTATION of games changes.** At `take=1` each
+game contributes one 8-frame chunk, so every chunk IS a whole game and there is no coherent
+stretch for a foreign chunk to be spliced into. **Phase 3 is not expressible at `take=1` — not
+weakly, structurally.**
+
+**And spacing is inert there too**, re-confirmed rather than quoted: `spacing=1` and `spacing=4`
+both give 199 frames / 25 blocks / 24 switches.
+
+> **SO NO POOLED RUN TO DATE HAS MOVED ANY CURRICULUM-ORDERING DIAL.** `F203` and `F207` are both
+> `take=1`. **This does NOT touch their ground null** — `9/150` and 1-of-120 distinct effects
+> replicated at two independent cuts, and the ground has been flat under every configuration
+> anyone has tried. **What it means is narrower and worth stating exactly: §14.5's ORDERING claim
+> has never been tested on the pooled tape.** The four-rung ladder tested it on ONE game.
+
+**`dial_inert` was built to catch precisely this and it returns `True` for both pooled runs.** The
+field exists in `watch_many`'s return and appears in no entry in this file — **an instrument that
+fires and is not read is the same as one that does not fire.**
+
+### AND THE FLAG I BUILT TO CATCH THIS MEANS TWO THINGS — `A6i`, in my own instrument
+
+**The smoke run at `take=4, spacing=4` — the intended phase-3 setting — reports
+`dial_inert: true`.** Nothing is wrong. `dial_inert` is `nblocks == len(games)`, and that holds in
+**two unrelated situations**: the dial was never connected (`take=1`, where `spacing` cannot do
+anything), and the dial is deliberately at its **coherent ceiling** (`spacing >= take`, which is
+what phase 3 IS).
+
+**The NAME says *the dial has no effect*. The WRITE SITE says *one block per game*.** Those differ
+exactly where the instrument is interesting, which is this session's own counter lesson arriving in
+something I wrote two days after writing that lesson down. **The flag is correct and must be read
+with `spacing` and `take` beside it — inertness at `spacing < take` is a fault; at `spacing >= take`
+it is the setting.**
+
+### THE PRICE, MEASURED RATHER THAN EXTRAPOLATED — and it puts phase 3 where the pooled ladder is
+
+**`watch_many(cycles=20, spacing=4, take=4, noise=0.2)` — the noise path executed end to end for
+the first time. It runs.** 107.2 s, **5.36 s/cycle**, library `48 -> 51`, 3 mints.
+
+**That is a FLOOR and not an estimate of the run.** Mint cost rises with library size (`F194`) and
+these 20 cycles sit at 51 terms against the pooled runs' 329 and 401. On `F194`'s model — 1,525
+frames ~ 68 h — **763 frames is ~34 h per arm, and phase 3 needs a matched noise-0 control, so the
+pair is ~68 h.** **Same verdict the ledger already gave the pooled spacing ladder, at the same
+number: NOT AFFORDABLE.**
+
+**The smallest tape phase 3 EXISTS on is `take=2, spacing=2`: 391 frames, switches `24 -> 47` across
+the same noise rungs.** ~17 h per arm on the same model. **Below that it is not a cheaper phase 3,
+it is not phase 3.**
+
+> **AND THE 20-CYCLE RUN IS A COST READING AND NOTHING ELSE, WHICH THE CODE SAID IN ADVANCE.**
+> `switches: 0`, all three mints stamped `dc22` — 20 cycles never left the first block.
+> **`watch`'s own docstring: *20 cycles of a coherent tape is the game's opening and 20 of a
+> shuffled one is a random chunk mid-game — a difference in CONTENT wearing a difference in
+> ORDER's clothes.*** No capability, settling or ground figure is taken from it.
+
+    BOUNDARY    ORDERING ONLY. No agent, no cycles, no ground. This says what the TAPE looks
+                like and nothing whatever about what the agent does with it. One seed (1618) --
+                the switch counts are one draw, and the MONOTONE rise across rungs is the
+                claim, not any single number
+    MECHANISM   none changed. A built-and-never-exercised dial exercised
+    CAPABILITY  none
