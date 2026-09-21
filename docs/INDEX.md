@@ -39053,3 +39053,96 @@ it is not phase 3.**
                 claim, not any single number
     MECHANISM   none changed. A built-and-never-exercised dial exercised
     CAPABILITY  none
+
+## F218 (INDEX series) — TURNOVER ON THE LIVE BOARDS, the owed census. FOUR OF SEVEN LOSE NOTHING at 40–60 cycles, and two of the three that appear to are THE INSTRUMENT GOING BLIND
+
+**The ledger has carried *turnover on the LIVE-board population — unmeasured as a set* since the
+`F209`/`F211` mis-join. This is it.** Population defined on a checkable fact, not judgement:
+`feeder.py` contains no `runs/` path at all, so every `runs/*.jsonl` is a live-agent run and no
+tape ledger is in the set. 34 ledgers, 7 games.
+
+    game   depth   departure events   slots gone   what it is
+    sk48     40           8              184       REAL, heavy -- 48-slot swings, board recovers
+    ka59     60           2               16       REAL, small -- periodic 8 out / 6 in
+    ls20     60           0                0       none AT THIS DEPTH (see below)
+    tn36     60           0                0       none -- static from c2
+    ft09     40           0                0       none
+    vc33     60           1               88       NOT TURNOVER -- the instrument went blind
+    sp80     40           1               64       NOT TURNOVER -- the instrument went blind
+
+### the two that are not turnover, and the code says so at its own site
+
+**`long_vc33` c51: `present was=88 now=0`. `sp80_wall` c31: `was=64 now=0`.** Both boards go from
+fully populated to zero slots in one frame and never come back.
+
+`arc_world._decomposed` sets `self.blind` when the `components` sensor returns `NOT_RESOLVED` and
+then returns `{}`. **Its own comment states the consequence exactly: *`{}` from an unreadable board
+asserts "this board has no slots" … `blind` is the reading; an empty dict is a guess.*** The flag
+is computed on every frame and **reached the ledger nowhere** — `arc_holdout` prints it once per
+run and the per-cycle rows never carried it.
+
+**And `mode` keeps reporting `n_locus=11, n_embodied=2, board=embodied` for all nine dead cycles,
+naming `o9` and `o11` under `growth`.** That is not a contradiction to resolve — `arc_world.py:435`
+predicts it in advance: *when `blind`, `_decomposed` never calls the tracker, so `tracked` KEEPS ITS
+LAST READABLE STATE.* **`mode()` reads `locus_masks()`, which reads `tracked`. The loci are a
+memory.**
+
+### what the blind cycles cost, measured
+
+    long_vc33    60 cycles, BLIND from c51   ->   9 dead (15%)
+    sp80_wall    40 cycles, BLIND from c31   ->   9 dead (22%)
+
+**In every one of those 18 cycles the agent produced five perception rows and NOTHING else** — no
+bet, no refusal, no mint. Zero.
+
+> **SO THE BRIEF'S LIVE `vc33` FIGURE HAS THE WRONG DENOMINATOR.** *vc33: gate 1 never opens — 45
+> refusals in 59 cycles.* **Nine of those cycles had no slots to refuse over.** The live denominator
+> is 51. The finding — gate 1 never opens on `vc33` — is untouched; the RATE was diluted by dead
+> cycles, and any rate over these two runs is.
+
+### the live population is NOT the tape population, and `F211` is correct about tapes
+
+**`F211`: 0 of 25 boards are stable; every board loses objects — measured in the PERCEPTION LAYER
+over 64 REPLAY frames each.** Live, with this agent, **four of seven boards show ZERO object
+departures across 40–60 cycles.**
+
+**Those are two different populations and the difference is who is acting.** A replay is a human
+progressing a game; a live run is this agent, which completes no levels. **Nothing here refutes
+`F211` — it bounds it: turnover is a property of the board BEING PLAYED, not of the board.**
+
+### AND EVERY ZERO IN THAT TABLE IS DEPTH-LIMITED, WHICH IS `F146` AGAIN
+
+**`ls20` reads 0 departures at 60 cycles and CHURNS at 130** — `budget_ls20_stream`, 4 events, 32
+slots, first at c28 and the rest at c65/c66/c108. **So *`ls20` is stable* is false and *`ls20` shows
+no departures in its first 60 cycles* is true.** `F146`'s lesson in a second quantity: agreement at
+shallow depth is under-sampling, not a board property. **`tn36`, `ft09` and `vc33`'s zeros are
+readings at 40–60 cycles and nothing more.**
+
+### PRE-REGISTERED AND NOT PATCHED TONIGHT: `_present` is the third reader and it does not abstain
+
+**`arc_world.py:435-447` establishes the rule and applies it twice: *BOTH READERS ABSTAIN ON A
+BLIND FRAME.* `selves.observe` and `aff.note` are skipped when blind.** `Agent._present` is the
+third reader of the same frame and **has no blind check**, so a frame the agent could not read
+pops every binding, every `_res` series and every `_disc`.
+
+**Correct mechanism, wrong scope — the fourth instance, and the same shape as `F214`'s `_res`:** a
+rule the author stated, applied at the sites they were looking at, missing at one they were not.
+
+**EXPECTED EFFECT of abstaining in `_present` when `blind`:** bindings survive a blind frame;
+`bound_lost` at the blind cycle goes to 0; the `no_slots` stretch that follows is unchanged, because
+the agent still has no slots to act on. **FALSIFIER: if `bound_lost` reads 0 at those cycles ALREADY
+— if nothing was bound — the patch is vacuous and this entry over-claims.** Bindings were live two
+cycles earlier (`c49`: six `rebind` rows, several `accept`), so the control is probably non-zero,
+**and "probably" is why it is pre-registered rather than patched.**
+
+**The instrument shipped instead** (`6035188`): `blind` on `no_slots` and on `present`, and
+`bound_lost` on `present` — counted before the pops.
+
+    BOUNDARY    34 live ledgers, 7 games, depths 12-130 and UNMATCHED between games -- sk48 and
+                ft09 are read at 40 cycles, ls20 at 60 and 130. The per-game rows are not
+                comparable to each other as rates, only as presence/absence at their own depth.
+                `bound_lost` is NOT in any of these runs -- it was added after them, so how much
+                the two blind frames actually destroyed is still unmeasured
+    MECHANISM   none changed on the acting path. Two rows gained three already-computed fields
+    CAPABILITY  none -- but two of the three live "turnover" events in the record were an
+                unreadable frame, and nothing could have told them apart
