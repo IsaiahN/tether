@@ -41170,3 +41170,93 @@ NULL rather than removed* — and it is now a counted population rather than a d
                 change on a recoloured object updates THAT object instead of founding a second
                 one. Everything downstream that keys on identity -- retrieval, dedup, binding --
                 was reading a split object on this board and now is not
+
+## F248 (INDEX series) — THE OVERLAY IS BUILT, and it cuts `sk48`'s new names almost in half — 245 → 119, BELOW the pre-fix baseline of 224
+
+**Isaiah's addendum, ruled by the reviewer as *not a design question anymore — build it*: the covered
+object keeps its name, its hidden cells go NULL rather than being removed, and judgement resumes on
+exit.**
+
+### what the code did before, and it is one line
+
+    if not (old["cells"] & live):
+        fresh[name] = old          # occluded: persists, unchanged
+
+**An unmatched object whose cells were NOT taken persisted. An unmatched object whose cells WERE
+taken fell off the end of the loop and was DROPPED** — so when the coverer moved away, the object
+came back as a birth under a new name. **That is the re-birth `F247` counted at 8 / 25 / 32 per
+tape and could not fix from the matcher side.**
+
+### the build, and the non-reading was already specified
+
+A covered object now persists with `covered` = the hidden cells, and **publishes NO attributes at
+all that frame.**
+
+**Every published attribute — `row`, `col`, `h`, `w`, `colour`, `drow`, `dcol`, `shape` — is
+computed over a cell set that includes the hidden cells, so publishing any of them asserts a
+reading of what nobody can see.** §12.2: *a value or an explicit non-reading, never a guess, never
+a default.* **And absence IS the non-reading at the record layer already** — `pick` is
+`rec.get(key, NOT_RESOLVED)`, so an omitted attribute abstains rather than defaulting. **Nothing
+new was invented for this; the mechanism was there and the covered case never reached it.**
+
+**The record KEEPS its fields internally**, so `shape_of` and `delta_of` still resolve, the matcher
+still works, and the on-exit confirmation has something to confirm.
+
+### AND THE SUSPENSION FALLS OUT OF `gamma.refute()` RATHER THAN BEING BUILT
+
+**A covered attribute cannot be expressed, and `refute` fires only where `r.mass > 0.0`.** So a
+term bound to a covered object is **SUSPENDED, not FAILED** — exactly the reviewer's ruling, and it
+needed no code, because express-before-judge already says it. **That is Isaiah's hit-rate answer
+holding at a second site**: not being testable right now costs a term nothing.
+
+### the measurement — three arms, perception layer, the coherent tape
+
+    board      births: BEFORE -> matcher fix -> + overlay       exact-cell births
+    sk48           224    ->    245      ->      119            129 -> 0 -> 0
+    vc33            83    ->     91      ->       64              0 -> 0 -> 0
+    ls20            54    ->     54      ->       38              3 -> 0 -> 0
+    dc22            46    ->     46      ->       42              1 -> 0 -> 0
+    m0r0           371    ->    371      ->      358              4 -> 0 -> 0
+
+**`sk48` issues 119 names where it issued 224 — 47% fewer — with the re-issues still at zero.**
+
+> **AND IT RESOLVES `F247`'s ONE LOOSE END HONESTLY.** The matcher fix RAISED births `224 → 245`
+> and I reported that as the fix working rather than hiding it. **The overlay now shows what those
+> 21 were: identity losses the matcher could not prevent from its side.** The two builds are one
+> repair and the intermediate number was real.
+
+### name survival, which is the reviewer's second check
+
+    board   distinct objects ever covered    came back under the SAME name
+    m0r0              439                              439
+    sk48              184                              168
+    dc22              189                              161
+    ls20              107                               99
+    vc33              113                               91
+
+**`m0r0` is 439 of 439.** The shortfalls are objects still covered when the tape ends, not renames —
+**and the discriminator is that exact-cell births are ZERO**, so nothing came back under a new name.
+
+### THE COST I AM NOT HIDING: A COVERED OBJECT'S SLOTS DEPART, SO ITS BINDINGS POP
+
+**`env.slots()` is the KEYS of the published state dict.** A covered object publishes nothing, so
+its `o5.row` slot leaves the slot set, and `_present`'s `gone` loop pops the binding — **which is
+NOT *the name persists, so the binding persists*.**
+
+**The identity half of the ruling is built and the binding half is not**, and the two come apart
+because slots are `name.attr` while identity is `name`. **Publishing a held value to keep the slot
+alive is the guess §12.2 forbids**, so I am not doing it on my own judgement. The number that
+decides how much this matters — bindings actually lost to coverage — is measured on the live run in
+flight, and the question goes up with it.
+
+    BOUNDARY    five boards, coherent tape, PERCEPTION LAYER ONLY -- no agent, so the binding
+                cost above is NOT measured here and is stated as an argument from the slot
+                derivation, not as a reading. `covered object-frames` is large (m0r0 216,401)
+                because objects now persist instead of dying; `tracked` therefore grows where
+                it used to be pruned, and the cost of that is unmeasured
+    MECHANISM   a covered object persists with `covered` = its hidden cells, and publishes no
+                attributes while covered. No flag, no arm
+    CAPABILITY  CONTACT, and the largest of the night. sk48 goes from 224 names for its objects
+                to 119, with zero re-issues -- an object that is walked over is the same object
+                when it is uncovered. Everything keyed on identity was previously being handed a
+                fresh name every time the avatar crossed something

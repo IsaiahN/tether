@@ -441,8 +441,19 @@ class Objects:
         for name, old in self.tracked.items():
             if name in fresh:
                 continue
-            if not (old["cells"] & live):
+            hidden = old["cells"] & live
+            if not hidden:
                 fresh[name] = old          # occluded: persists, unchanged
+                continue
+            # COVERED IS NOT DEAD -- ISAIAH'S OVERLAY RULING. This branch used to DROP the
+            # object, and dropping it is what re-birthed it under a new name when the coverer
+            # moved off. The name persists, so the identity does; the cells stay in the record
+            # marked `covered`, which is *NULL, not removed*; and the PUBLISHED attributes are
+            # withheld below, so a term bound to them cannot be expressed on them. Express-
+            # before-judge (`gamma.refute` fires only on `mass > 0`) then makes it SUSPENDED
+            # rather than FAILED. The record keeps its fields so `shape_of`/`delta_of` still
+            # resolve and so there is something for the on-exit confirmation to check.
+            fresh[name] = {**old, "covered": hidden}
         self.tracked = fresh
 
         state: dict[str, int] = {}
@@ -465,6 +476,14 @@ class Objects:
             # `11` in the next run, so it cannot key anything that must survive either. That
             # is the placement-versus-identity split at run scope -- the index is a PLACEMENT,
             # and the frozenset under it is the identity.
+            # A COVERED OBJECT PUBLISHES NOTHING, AND THAT IS THE NON-READING §12.2 SPECIFIES
+            # -- *a value or an explicit non-reading, never a guess, never a default.* Every
+            # attribute here is computed from cells that include hidden ones, so publishing
+            # any of them asserts a reading of what nobody can see. Absence is what the
+            # record layer already treats as the non-reading: `pick` is
+            # `rec.get(key, NOT_RESOLVED)`.
+            if obj.get("covered"):
+                continue
             sid = self._shapes.setdefault(obj["shape"], len(self._shapes))
             for attr in ("row", "col", "h", "w", "colour", "drow", "dcol"):
                 if attr in obj:
