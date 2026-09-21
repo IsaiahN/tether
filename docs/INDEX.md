@@ -37964,3 +37964,54 @@ before the post rather than forty minutes after it.
     BOUNDARY    pooled run still at 42 of 199 cycles; all pooled figures remain partial
     MECHANISM   none. A published comparison corrected at its source
     CAPABILITY  none
+
+## F204 (INDEX series) — `settled` IS A TERMINAL COUNT, NOT AN ACTIVITY COUNT. The pooled run settled 89 times and was refuted 84 times, and `F203`'s ARM B reading does not survive it
+
+**`F203` reported `settled 5 over 199 cycles` and read it as ARM B — *the tape is too discontinuous
+for anything to recur enough to be confirmed.* The ledger says otherwise.**
+
+    settle events   89
+    demote events   84
+    net             5      <- the number I reported, and the only one `watch_many` returns
+
+**CONFIRMATION HAPPENED 89 TIMES.** The pooled tape is NOT too discontinuous for terms to recur and
+be confirmed. **What it does not do is let them STICK: the ground later refuted 94% of them.**
+
+**That is a different finding with a different cause, and ARM B as I stated it is withdrawn.**
+
+### the error is the consumer question, again
+
+`watch_many` reports `len(g.settled_terms)`, and `settled_terms` is
+`[t for n, t in self.library.items() if self.is_settled(n)]` — **terminal state, evaluated once at
+the end.** I read a NET as an ACTIVITY measure. *Before any census ask which function consumes this
+quantity and what it reads* — the site was four lines long and I had written the call myself.
+
+### and it takes `F203`'s §14.5 refutation with it
+
+**The comparison was pooled `0.025/cycle` against rung 1's `0.250/cycle`.** Both are NETS. **The
+ladder ran WITHOUT A LEDGER** (`4fac076` wired one too late), so rung 1's gross settle and demote
+counts **do not exist and cannot be recovered.**
+
+    rung 1 net 16  could be  16 settles /  0 demotes     -> pooled settles MORE, grossly
+                        or  100 settles / 84 demotes     -> comparable behaviour
+                                                            UNKNOWN, AND UNRECOVERABLE
+
+**So *the most shuffled tape settles least* is not established.** It may settle MOST and demote
+most. **`F203`'s claim that `§14.5` phase 1's premise is refuted in its own maximal case is
+WITHDRAWN** — not because it is false, but because the measurement cannot support it, and I sent
+it to the reviewer as a headline.
+
+### what survives, and it is not nothing
+
+- **The BAR is untouched: `9/150`, 1 of 120 distinct effects.** That is a probe reading, not a
+  library count, and no net/gross confusion reaches it.
+- **`library 48 -> 329` with a stationary ground is untouched.**
+- **`routine_cut = 0` across 199 cycles is untouched.**
+- **AND A BETTER QUESTION REPLACES THE WITHDRAWN ONE: what refutes 84 of 89 settlements?** That is
+  defeasible demotion working exactly as designed — *a settled term the ground later refutes is
+  demoted* — and **it has never been measured as a rate before**, because nothing published the
+  gross.
+
+    BOUNDARY    one pooled run, offset 0, seed 1618. The ladder's gross counts are gone
+    MECHANISM   none changed. A reported quantity re-identified, and a headline withdrawn
+    CAPABILITY  none -- and the withdrawal removes a false one
