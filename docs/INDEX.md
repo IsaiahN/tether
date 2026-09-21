@@ -40002,3 +40002,74 @@ then measure cycle cost against the duplicate rate.** Cost is stated to SATURATE
     MECHANISM   none changed
     CAPABILITY  none -- but it puts a number on §14.3's stated root and identifies the one thing
                 that could make the full curriculum affordable
+
+## F230 (INDEX series) — THE BOND SPEC SAYS *"Report the shape. Do not build."* AND NAMES THREE CHECKS. Two are answered by the corpus; one is genuinely open and is Isaiah's
+
+**Reviewer, 13:57: *the bonds are IN BOUNDS — the corpus specifies them, so build in parallel
+rather than queue on Isaiah.* I went to build and read the spec first.**
+
+**`docs/library-closure/NSM_GRAMMAR.md`'s LAST LINE IS *"Report the shape. Do not build."*** and
+it lists three things it wants checked first. **The reviewer's own escape clause — *if anything
+conflicts with the plan's text, the plan wins* — settles the conflict: the spec wins.**
+
+### the spec, in one table, because it is bigger than "seven bonds"
+
+**NSM's ~65 primes split into THREE LAYERS and the operators are only one of them:**
+
+    substantives & determiners   SOMETHING SOMEONE THIS THE SAME OTHER PART KIND
+                                 -> the placeholder variables, filled by ATOMS
+    frames                       DO HAPPEN MOVE BE WHERE WHEN TOUCH INSIDE
+                                 -> THE SLOTS WITH ARITY
+    connectives                  AND NOT IF BECAUSE THE SAME MORE LIKE MAYBE CAN
+                                 -> the operators
+
+> **AND THAT ANSWERS THE ARITY WALL DIRECTLY, IN THE PLAN'S OWN WORDS: *a frame holds the arity,
+> the atom fills a slot.*** The fix for arity-2 is NOT binary atoms. It is a frame layer.
+
+### CHECK 1 — *does the corpus already specify the frame layer?* **YES, AND §15.5 SAYS MORE**
+
+`ARC_AGENT` §15.5 gives the basis as it stands — thirteen primes, `BE_AT TOUCH BECOME BECAUSE /
+SAME OTHER NOT / EXIST CAN / ALL SOME ONE NONE` — and its verdict:
+
+> **every one of them describes a STATE. There is not a single action or time prime in the basis.
+> The grammar has no verbs.**
+
+**And it maps the four routine constructors onto the six missing primes:**
+
+    Act(a)      DO, MOVE, HAPPEN        not in the basis
+    Seq(R1,R2)  BEFORE, AFTER           not in the basis
+    When(P,R)   IF                      not in the basis (BECAUSE is causal, not conditional)
+    Until(P,R)  FOR SOME TIME + NOT     not in the basis
+    the guard   CAN                     in the basis
+
+> **`routine.py` ALREADY IMPLEMENTS Act/Seq/When/Until.** So the verb layer is BUILT — **as a
+> separate algebra beside the grammar, which is exactly what §15.5 says not to have**: *one
+> grammar, three spaces, instead of a grammar plus a bolted-on combinator language.*
+
+**So the shape is not "seven bonds are missing". It is: the connective layer has ONE of seven; the
+verb layer EXISTS OUTSIDE THE GRAMMAR; and the substantive layer has three primes with ZERO
+atoms — `TRUE`, `CAN`, `KIND`.** The spec calls `TRUE` the sharpest: *the whole loop turns on "the
+ground settled it" and there is no atom for truth, verification, or a claim being confirmed.*
+
+### CHECK 3 — *is the frame layer `Gamma`'s or `grammar.py`'s?* **§15.5 ANSWERS: UNIFY**
+
+> *routines compose in the same type system, type-check through the same `compose()`, get priced
+> by the same bargain, and chunk by the same rule.*
+
+### CHECK 2 — *does `∥` decompose into MAYBE?* **GENUINELY OPEN, AND THE SPEC SAYS IT IS A RULING**
+
+> *NSM's designers found `or` not to be universal — it is expressible as "maybe this, maybe that"
+> using MAYBE, which is a different claim than disjunction. Either `∥` is a convenience that
+> decomposes, or it is a genuine addition to the prime set, **and that is a ruling rather than a
+> fact.***
+
+**This is the one item the corpus does not answer, and it is therefore the one that goes to Isaiah
+— with the search that came back empty, which is the reviewer's own condition.**
+
+    BOUNDARY    a READ of NSM_GRAMMAR, the Operators table, Figure 12 and ARC_AGENT 15.5.
+                Nothing run, nothing built. The claim that routine.py implements the four
+                constructors is checked against its own source; the claim that they sit OUTSIDE
+                the grammar follows from 15.5 calling them a separate algebra and is not
+                independently verified against `compose()`
+    MECHANISM   none changed -- and DELIBERATELY, because the spec says not to
+    CAPABILITY  none
