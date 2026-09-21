@@ -1093,3 +1093,63 @@ decided by which sensors happened to return integers — an encoding accident, n
 **Phase 1+2 is the DELIVERABLE and retrieval is the PREREQUISITE, which is why 1 precedes 2.** At
 the measured rate the full tape is 150 h+; the run is what the retrieval fix has to make
 affordable, and `F233`'s falsifier is already pinned to it.
+
+### 14.12 SYSTEM 0 IS CONTACT-SEEKING, NOT RANDOM — Isaiah, 2026-09-21. THIS SUPERSEDES §5's "act variously"
+
+**Recorded because §5 says *act variously* and `choose()` implements that as a uniform draw, and
+both are wrong about the MODE. Isaiah's correction, in his terms:**
+
+> *I said RANDOM, but more accurately what humans do is: **try to make contact**. What happens if
+> this touches or interacts with another thing? The more of that is done, the faster that contact
+> clarifies relationship mapping. So it is not really random, and **CONTACT is usually the main
+> mode**. Pure randomness is when all else is either in progress — reasoning for systems 1 and 2 —
+> **and when all contact points have been explored**.*
+
+#### the three tiers, in priority order
+
+    1  CONTACT-SEEKING   the DEFAULT mode. Act to make one object touch or interact with
+                         another. Each contact clarifies the relationship map, and every step
+                         COMPOUNDS the data the MutationObserver carries forward
+    2  PURE RANDOM       the fallback's fallback, and it needs BOTH conditions: systems 1 and 2
+                         are still reasoning, AND every contact point has already been explored
+    3  RE-OPEN           when a new board state introduces an object, or changes the state of
+                         one, the rules of contact WITH it -- or related to it -- may need
+                         re-examining. Contact exploration is not one-shot
+
+**AND THE PURPOSE IS ANALYSIS PARALYSIS.** System 0 exists so the agent is never stalled waiting on
+higher-level reasoning: it jumpstarts exploration when the first frame offers no salient cue,
+attribute or relation, **and it runs in PARALLEL with systems 1 and 2 rather than instead of them.**
+
+#### what the code has, and what it does not
+
+    contacts()           arc_world:208   which objects touch this frame, via arc_percept.touching
+    contact_changes()    arc_world:347   the contact DELTA between frames
+    _action6_coord       tether:1076     a POSITIONED action, aimed at the focal object's own
+                                         perceived row/col (F28)
+    present.came         tether           already publishes the arrival of new slots -- which is
+                                         tier 3's trigger, and it is already a row
+
+**So contact is PERCEIVABLE and a positioned action is AIMABLE. What is absent is aiming one object
+at ANOTHER** — `_action6_coord` targets the focal object's own position, not a position chosen to
+close the gap between two objects. **That is the gap between what exists and what this ruling
+describes, and it is one function.**
+
+#### why this is not the seat choosing a policy
+
+**It was worth asking and the answer is in the ruling itself.** *Try to make contact* is not a
+preference over outcomes — it is **how evidence is obtained**, and `ATTRIBUTES.md` already says the
+atom list is *a set of detectors: attributes plus a boolean condition the agent can CHECK AGAINST A
+BOARD*. **Contact is the check.** `RELATIONS.md` Part 1 makes it the base partition — *every pair of
+objects is in exactly one of disjoint / touching / intersecting at any instant* — and marks
+`touching` as the ONE relation the agent already perceives.
+
+**So contact-seeking is the perception layer's own question asked actively, which is Figure 6's
+*improve a worse instrument already returning something*.** A uniform draw asks no question at all.
+
+#### what this does to `F236`
+
+**`F236` measured System 0 as a RELABELLING — `system0` and `draw` are byte-identical calls to
+`drive.choose`, two of four boards byte-identical, §5 untested.** That reading stands and this
+ruling explains it: **the mode was never built.** `Config.system0` switches between a draw and the
+same draw. **Tier 1 does not exist in code at all**, so what was measured was tier 2 running in
+tier 1's place.

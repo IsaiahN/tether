@@ -40785,3 +40785,71 @@ there the arm cost 20 seconds and saved two.**
                 wall clock with the instrument's wrapper on both arms equally
     MECHANISM   none changed; arm H remains default OFF
     CAPABILITY  hit rate up on two boards of three. No cost reduction anywhere, which was the job
+
+## F242 (INDEX series) — SEVEN ATOMS ARE INERT BY CONSTRUCTION: every `SHAPE` atom guards on a frozenset and the world publishes an int. 0 of 40, measured
+
+**Isaiah pointed at `RELATIONS.md` — *"it has all the contact points that system 0, system 1 and
+system 2 need to be cognisant of all the time."* It names three blockers and calls one of them **a
+build, not a decision**: *the structural quantity is computed every frame and the published stand-in
+is what removed `symmetry`, `similarity`, `rotation`, `spin`, `interlock` and `rolling`.* It is
+worse than that document says.**
+
+### the erasure, at its two write sites
+
+    arc_percept.py:149   "shape": frozenset((r - r0_, c - c0_) for r, c in cells)   COMPUTED
+    arc_percept.py:448   sid = self._shapes.setdefault(obj["shape"], len(self._shapes))
+                                                                       PUBLISHED: an int, by
+                                                                       insertion order, episode-local
+
+**And every `SHAPE` atom opens with the same guard:**
+
+    if not isinstance(v, frozenset) or not v:
+        return NOT_RESOLVED
+
+### MEASURED, not read — one frame of `dc22`, 40 SHAPE slots
+
+    published values      [0, 1, 2, 3, 2, 4]        python type: int
+
+    bbox_area    resolved 0 / NOT_RESOLVED 40
+    perimeter    resolved 0 / NOT_RESOLVED 40
+    corners      resolved 0 / NOT_RESOLVED 40
+    orbit_size   resolved 0 / NOT_RESOLVED 40
+    canonical    resolved 0 / NOT_RESOLVED 40
+    symmetric    resolved 0 / NOT_RESOLVED 40
+    is_square    resolved 0 / NOT_RESOLVED 40
+
+> **SEVEN OF FORTY-EIGHT ATOMS — 15% OF THE VOCABULARY — CANNOT RETURN A VALUE ON A REAL BOARD.**
+> Not rarely. Never. **And six of the seven were ADMITTED ON DEPTH by a sweep the proctor ran
+> (`arc_atoms`: *"handed-2026-09-08 ON DEPTH"*), so a measurement priced atoms that cannot fire.**
+
+### and the repair is already built and has NO CALLERS
+
+`arc_world.shapes()` returns `{published id: the normalised frozenset it stands for}` and its own
+docstring cites this document: *"the structural quantity is computed every frame and the published
+stand-in is what removed symmetry, similarity, rotation, spin, interlock and rolling. **This is the
+structure put back beside the stand-in, not in place of it.**"*
+
+    grep for callers of `shapes()`   ->   ZERO
+
+**So the inverse map was built for exactly this, published, and never read.** That is the
+*[[a-value-that-exists-is-not-a-value-that-crosses]]* shape: the value exists and nothing consumes it.
+
+### what this does NOT license, and the fix that stays small
+
+**It does not license changing what the shape slot publishes.** The slot value feeds the alphabet,
+the slot types and the bargain's inputs — swapping an int for a frozenset re-baselines every
+measurement in this file, which is the same objection that stopped the bonds (`F230`).
+
+**The contained fix is to let the ATOMS resolve the id, not to change the publication:** the atoms
+already take a `Ctx` they currently ignore. If `Ctx` carries the inverse map, `_canonical` and its
+six siblings stop abstaining and nothing else moves. **Not built here — named, sized, and left for
+its own pre-registration.**
+
+    BOUNDARY    ONE frame of ONE board, 40 SHAPE slots, the atoms called DIRECTLY on what
+                `_decomposed()` publishes. That is the atom's real input and the 0-of-40 is exact,
+                but it is one frame -- it does not show what the agent's own closure walk does
+                with an unresolvable atom, only that the atom cannot resolve. Whether these seven
+                are REACHED at all during a run is a separate count I have not taken
+    MECHANISM   none changed
+    CAPABILITY  none yet -- and it is the first thing tonight that is a plain defect with a named,
+                contained repair rather than a diagnosis
