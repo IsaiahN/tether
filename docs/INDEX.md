@@ -39947,3 +39947,58 @@ tonight and both are independent of the probe:
     MECHANISM   none changed -- `take=None` was always there
     CAPABILITY  none -- but it says the curriculum has never actually been attempted, which is a
                 different statement from "the curriculum read flat"
+
+## F229 (INDEX series) — 94% OF MINTING IS RE-DERIVING A RECIPE THE AGENT ALREADY HOLDS. `translate . recolour` was minted 137 TIMES in one run, and retrieval never reads `settled`
+
+**Isaiah, 2026-09-21: *"make sure that if the recipe already exists in the library we are not making
+duplicates, which requires a search — and don't forget settled vs unsettled, which would be the way
+the agent could know what works vs untried."* Both halves are measurable and both are true.**
+
+### the duplicate rate, measured on every saved library
+
+    library                minted   distinct recipes   DUPLICATE mints
+    sweep dc22 (final)         43          9              34    79.1%
+    pooled offset 0           281          9             272    96.8%
+    pooled offset 4           353         20             333    94.3%
+    F219 coherent              70         10              60    85.7%
+    F219 noise 0.5            116          8             108    93.1%
+
+**The single most re-derived recipe, pooled offset 4: `translate . recolour`, minted 137 TIMES.**
+
+### AND §14.3 PREDICTED THIS IN WRITING, WITH THE FIX
+
+> **The bloat is a REUSE failure, not over-minting** — `F181`'s mint-gate is WITHDRAWN as the fix.
+> **The agent binds too specifically (object × guard × exact-delta), so it RE-DERIVES INSTEAD OF
+> RETRIEVING.** The fix is policy-level abstraction/retrieval so the library converges.
+
+**The plan named the mechanism and the fix. Nobody had measured the rate. It is 94%.**
+
+### THE SECOND HALF — `settled` IS THE AGENT'S RECORD OF WHAT WORKS, AND RETRIEVAL DOES NOT READ IT
+
+**`is_settled` appears TWICE in `tether.py`** — appending to `_stood` (a record) and one filter at
+`3315`. **Neither is in `_library_fit`, which is the retrieval path**, and neither is in any
+ranking. `_library_fit` orders the library by **gap-fit alone**.
+
+> **SO A RECIPE THE GROUND HAS CONFIRMED AND A RECIPE NEVER ONCE TRIED RANK IDENTICALLY.** The
+> agent holds the distinction — `settled_terms` is a property, `settle`/`demote` fire in the
+> hundreds — **and the thing that chooses what to reach for cannot see it.**
+
+### AND IT JOINS UP WITH THE COST, WHICH IS WHY IT MATTERS NOW
+
+**Full phase 1 is 14,822 frames at a MEASURED marginal 40 s/cycle and rising — ~165 h, more than
+the time remaining.** The reuse path fires and refuses: **`reuse_refused` 169 rows in 25 cycles,
+158 of them (93%) `no-split`** — the candidate reached nothing.
+
+**HYPOTHESIS, NAMED AS ONE AND NOT CLAIMED: if 94% of mints re-derive a held recipe, most of the
+per-cycle cost is redundant search, and deduplicating would make full phase 1 affordable.**
+**THE TEST: instrument `mint` to report whether the chain being minted is already in the library,
+then measure cycle cost against the duplicate rate.** Cost is stated to SATURATE with library size
+(§14.5b), so this is not arithmetic and must be run.
+
+    BOUNDARY    the duplicate rates are EXACT, counted from five saved libraries. The
+                `is_settled` reading is a grep over `tether.py` -- two sites, neither in
+                retrieval -- and is a READ, not a run. The cost hypothesis is NOT measured and is
+                written as a hypothesis with its test named
+    MECHANISM   none changed
+    CAPABILITY  none -- but it puts a number on §14.3's stated root and identifies the one thing
+                that could make the full curriculum affordable
