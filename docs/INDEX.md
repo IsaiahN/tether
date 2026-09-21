@@ -41570,3 +41570,65 @@ differently and has not yet been shown to learn anything more for it.
     CAPABILITY  CONTACT on three boards rather than one, and the honest version of it: the
                 agent now goes TO a thing it has not touched on boards with no positioned
                 action at all. Whether it buys anything is unmeasured
+
+## F253 (INDEX series) — THE SEVEN-BOARD RE-BASELINE. Correct identity costs **2.6×**: phase 1 goes 45.5 h → **120.3 h**, six boards dearer and `sk48` alone **−69%**. The retrieval programme was chasing the wrong lever
+
+**Every pre-`F250` timing in the record was taken on a build whose tracker issued a second
+identity for the same object. This is all seven boards re-measured on the fixed one — matcher fix,
+bounded overlay, ruling (b) — same 20 cycles, same cold start, same protocol as `F245`.**
+
+    board  frames     pre      post    change    mints pre -> post
+    sk48      697   54.64     16.68      -69%       41 ->  34
+    m0r0      971    6.75      7.90      +17%       11 ->   7
+    dc22     1193    8.25     10.43      +26%       12 ->   6
+    wa30     1565    2.54      3.53      +39%        4 ->  20
+    ls20      547    7.35     12.62      +72%       13 ->  46
+    re86     1072   16.45     88.13     +436%       23 -> 151
+    lf52     1212    0.14     60.55   +43,150%        1 -> 114
+
+    measured 7,257 of 14,822 frames = 49%
+    PROJECTED FULL PHASE 1    pre-fix 45.5 h    post-fix 120.3 h    x2.6
+
+### `sk48` IS REAL AND IT IS THE ONLY ONE
+
+**`−69%`, larger than the `−57%` I reported and relabelled, and now measured on the BOUNDED
+build.** `sk48` was the board founding **129 of 224** names on ground it already held (`F246`), so
+it was paying for a split object twice over, and correcting it returns that. **The relabel was
+right to demand it and the number survived.**
+
+**Every other board goes the other way.** Six dearer, one cheaper, and the one that is cheaper is
+the one that was measurably broken in the specific way the fix addresses.
+
+### AND THE MINT COLUMN DOES NOT TRACK THE TIME, WHICH KILLS THE OBVIOUS STORY
+
+*Correct identity makes the agent more active* fits `lf52` (1 → 114) and `re86` (23 → 151) and is
+**refuted by `dc22` (12 → 6) and `m0r0` (11 → 7): FEWER mints and MORE time.** So the cost is not
+minting volume. **On those two boards the agent is spending longer and producing less**, and what
+it spends it on is not identified here.
+
+> **`lf52` IS THE CASE THAT EXPLAINS WHY THE OLD NUMBERS WERE FLATTERING.** `0.14 s/cycle` with
+> **one mint in twenty cycles** is not a cheap board, it is an INERT one — the tracker was so
+> wrong that no residual survived to be worked on. **Some boards were cheap BECAUSE THEY WERE
+> BROKEN**, and any estimate averaging them in was measuring the breakage.
+
+### WHAT THIS DOES TO THE RETRIEVAL PROGRAMME, AND IT IS THE FINDING
+
+**Six framings, four arms, and a night of work were spent on retrieval because phase 1 was
+unaffordable.** `F249` retired arm H when its one winning board turned out to be broken. **This
+retires the premise underneath all of it: the thing that actually repaired the agent — identity —
+made phase 1 2.6× MORE expensive, and every cost lever tried on top of the broken tracker was
+being tuned against a measurement of the breakage.**
+
+**THE COST PROBLEM AND THE CORRECTNESS PROBLEM ARE NOT THE SAME PROBLEM, and the whole retrieval
+thread assumed they were.**
+
+    BOUNDARY    seven boards, 20 cycles, cold, one seed, 49% of the tape by frames. The
+                projection scales linearly in frames and assumes per-cycle cost is CONSTANT in
+                library size, which F233 says it is not -- and the killed full run measured
+                dc22 at 94 s/cycle by cycle 70 against the 10.43 here. **120.3 h is a FLOOR and
+                the true figure is higher, probably much higher.** The pre-fix column is F245's
+                and was measured on the broken tracker, which is the point of the table rather
+                than a defect in it
+    MECHANISM   none changed. This is a measurement of commits already made
+    CAPABILITY  none. It re-prices the deliverable and removes a premise -- phase 1 is not
+                affordable by fixing retrieval, because retrieval was not what made it expensive
