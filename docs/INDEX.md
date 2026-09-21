@@ -40683,3 +40683,54 @@ am not claiming it.**
                 cost/left/base is exact and is the part that answers the question
     MECHANISM   none changed
     CAPABILITY  none -- it closes a suspected bug as absent, which frees arm D's reading
+
+## F240 (INDEX series) — ARM H DOES EXACTLY WHAT WAS PRE-REGISTERED ON ONE BOARD AND IS EXACTLY INERT ON THE OTHER. And it is NET SLOWER on both
+
+**The generation half, built on the reviewer's 18:13 ruling and measured with the retrieval/mint
+time split they asked for — which is the reading that matters.**
+
+    board  arm    hit        hit%   mints  guard-unreachable   retrieval   mint    TOTAL
+    dc22   base   9 / 360    2.5%     12      5  (41.7%)          56.1s   108.8s   164.9s
+    dc22   armH  21 / 280    7.5%      0      0                   99.3s    88.9s   188.2s
+    ls20   base   9 / 343    2.6%     13      4  (30.8%)          40.3s   106.6s   146.9s
+    ls20   armH   9 / 343    2.6%     13      4  (30.8%)          83.2s   108.4s   191.6s
+
+### dc22: every pre-registered prediction held
+
+**Hit rate 2.5% -> 7.5%, three times.** Mints `12 -> 0`. **Guard-unreachable share `41.7% -> 0`,
+which is the quantity the arm was built to move.** Library `85 -> 82`; binding density `4.37% ->
+4.69%`. **The generation gap was real and closing it closed the mints.**
+
+### ls20: byte-identical on every field except time
+
+**hit 9, ask 343, mints 13, guard-unreachable 4, library 85, binding 0.0682 — all unchanged.** The
+guard variants ARE generated there (the manipulation check is global: yields `189,168 -> 351,046`),
+**and none is accepted, so mint still installs the same four unreachable terms.**
+
+> **SO ARM H DOES NOT REMOVE THE GUARD GAP — IT REMOVES IT WHERE THE GUARDED TERM HAPPENS TO PASS
+> THE TEST.** On `dc22` the guarded variants zero the residual and `_explains` admits them. On
+> `ls20` they do not. **The generation half and the test half are not independent: fixing
+> generation only helps where the test would already have said yes.** `F238` treated them as two
+> separable populations and they are not.
+
+### AND THE COST GOES THE WRONG WAY ON BOTH BOARDS
+
+    dc22   164.9s -> 188.2s    +14%   despite minting falling to ZERO
+    ls20   146.9s -> 191.6s    +30%   for no change at all
+
+**Retrieval time roughly DOUBLES on both** — 56->99 and 40->83 — because the candidate stream is 86%
+larger on every lookup. **On `dc22` eliminating all twelve mints saved only 20 seconds and the extra
+retrieval cost 43.** **The reviewer asked for the two halves separately and this is why: the sum
+would have read as a modest regression instead of as a trade whose sides are both measurable.**
+
+> **SO ARM H IS NOT A COST FIX, WHICH IS THE JOB THE RETRIEVAL WORK WAS TAKEN ON TO DO.** It is a
+> CAPABILITY change on one board — three times the hit rate and no minting — bought at 14% more
+> time.
+
+    BOUNDARY    TWO boards, 20 cycles, one trained library, matched pairs, arm D OFF. The
+                dc22/ls20 split is 1 of 2 and per game never pooled -- two boards agreeing would
+                not have been board-independence and two boards DISAGREEING is not a rate either.
+                Timings are wall clock on a machine running nothing else, and they include the
+                instrument's own wrapper on both arms equally
+    MECHANISM   arm H, default OFF
+    CAPABILITY  on dc22 only: hit 2.5% -> 7.5%, mints 12 -> 0. The ground was not probed here
