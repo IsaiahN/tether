@@ -2619,6 +2619,11 @@ class Agent:
             return
         gone = sorted(set(self.slots) - set(now))
         came = sorted(set(now) - set(self.slots))
+        # WHAT A DEPARTURE COSTS IS HOW MANY OF THEM WERE BOUND, AND THAT WAS NOT PUBLISHED.
+        # `gone` counts slots; the loop pops bindings three lines down and no row says how
+        # many there were, so *the board shed 88 slots the agent never used* and *the board
+        # took 88 slots the agent had bound* are the same row. Counted BEFORE the pops.
+        bound_lost = sum(1 for g in gone if g in self.bound)
         for g in gone:
             self.bound.pop(g, None)
             self.owed_import.discard(g)
@@ -2643,6 +2648,13 @@ class Agent:
             self.owed_import.add(k)
         self.led.record(self.cycle, "PERCEIVE", "@instrument", "present",
                         gone=gone, came=came, orphaned=orphaned,
+                        bound_lost=bound_lost,
+                        # A BLIND FRAME LOOKS EXACTLY LIKE A BOARD THAT LOST EVERYTHING.
+                        # `arc_world._decomposed` returns `{}` when the components sensor
+                        # does not resolve, so every slot reads as departed. Measured:
+                        # `long_vc33` c51 `was=88 now=0` and `sp80_wall` c31 `was=64 now=0`
+                        # are both this, and both were counted as turnover.
+                        blind=getattr(self.env, "blind", None),
                         was=len(self.slots), now=len(now),
                         note="an object arrived or left; a new slot has no history "
                              "and owes nothing yet")
@@ -3415,8 +3427,17 @@ class Agent:
             # cannot happen returns what a step that proposed nothing returns, and the
             # monotone surprise integral is untouched -- a turn with no reading must not
             # look like a turn that went well.
+            # AND `blind` IS THE ONE THING THE LOOP MAY SAY HERE, BECAUSE IT IS NOT A CAUSE.
+            # `arc_world._decomposed` already computes it -- the `components` sensor returned
+            # NOT_RESOLVED -- and its own comment warns that `{}` from an unreadable board
+            # asserts *this board has no slots*. That is the read/empty confusion one layer
+            # down, and it was costing whole runs: `long_vc33` spends its last 9 of 60 cycles
+            # here and `sp80_wall` its last 9 of 40, indistinguishable in the ledger from a
+            # board that lost its objects. `None` where the world does not compute it -- a
+            # world that cannot say must not report `False`, which would claim a clean read.
             self.led.record(self.cycle, "PERCEIVE", "@loop", "no_slots",
                             slots=0, cause=CHANNEL_CLOSED,
+                            blind=getattr(self.env, "blind", None),
                             reads="the slot set is empty; what that MEANS is not read here")
             # NO ACTION WAS TAKEN, SO NOTHING PRECEDED THE NEXT FRAME. `_advertised` runs at
             # the top of every step and feeds `Preconditions` with `_last_action`; leaving it
