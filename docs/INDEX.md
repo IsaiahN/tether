@@ -40459,6 +40459,12 @@ not different.**
     ls20   sys0      7.39% (13/176)     1.291            c7            IDENTICAL
     m0r0   base     15.28% (11/72)      2.322            --
     m0r0   sys0     15.28% (11/72)      2.322            c11           IDENTICAL
+    sk48   base     12.80% (42/328)     1.952            --
+    sk48   sys0     13.41% (44/328)     1.900            c11           DIFFERS
+
+**COMPLETE, four boards. TWO are byte-identical trajectories. The two that differ DISAGREE IN
+DIRECTION: `dc22` binding falls 1.87 points, `sk48` rises 0.61.** So the informative population is
+`n=2` and it points both ways.
 
 ### the two exits are the same call
 
