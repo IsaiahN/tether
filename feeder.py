@@ -147,7 +147,7 @@ ALL_GAMES = tuple(sorted(
 
 
 def pooled_order(games=ALL_GAMES, offset: int = 0, spacing: int = 1, skip: int = 0,
-                 take: int | None = None,
+                 take: int | None = None, noise: float = 0.0,
                  seed: int = SHUFFLE_SEED) -> tuple[list[dict], int]:
     """S14.5 PHASE 1: every game's chunks in ONE pool, block-shuffled TOGETHER.
 
@@ -172,14 +172,44 @@ def pooled_order(games=ALL_GAMES, offset: int = 0, spacing: int = 1, skip: int =
         chunks = reverse_engineer.chunk_replay(steps, offset=offset)
         chunks = chunks[skip:] if take is None else chunks[skip:skip + take]
         for i in range(0, len(chunks), spacing):
-            blocks.append([dict(steps[j], _game=g)
-                           for c in chunks[i:i + spacing] for j in c["idx"]])
-    random.Random(seed).shuffle(blocks)
-    return [f for b in blocks for f in b], len(blocks)
+            # a block is a list of CHUNKS, each a list of frames -- the chunk boundary has to
+            # survive here or phase 3's noise cannot splice at chunk granularity
+            blocks.append([[dict(steps[j], _game=g) for j in c["idx"]]
+                           for c in chunks[i:i + spacing]])
+    rng = random.Random(seed)
+    rng.shuffle(blocks)
+
+    # S14.5 PHASE 3 -- THE NOISE FLOOR, AND IT OPERATES ON CHUNKS, NOT BLOCKS. A first cut
+    # displaced whole BLOCKS and measured INERT: at coherence every block is one game, so moving
+    # blocks only permutes game order and the interleaving never changes -- game-switches held at
+    # 24 across every noise level. Phase 3 needs a foreign chunk spliced INSIDE a coherent
+    # stretch, which is chunk granularity by definition.
+    #
+    # NOISE MEANS REAL OUT-OF-CONTEXT CHUNKS, NEVER GARBAGE -- the plan is explicit, and
+    # un-settleable noise only wastes searches. Nothing synthetic is introduced and no frame is
+    # altered, so the tape stays a PERMUTATION of the same material at every rate, which is what
+    # makes a noise sweep readable the way the spacing sweep was.
+    #
+    # NOT ANCHORED, DELIBERATELY: S14.5 says the schedule is STATE-DERIVED, not tuned -- "set the
+    # noise floor where convergence stops improving". A default would be a magic number standing
+    # in for a sweep, so the default is 0.0 (phase 3 OFF) and any value is a declared rung.
+    seq = [c for b in blocks for c in b]
+    if noise:
+        if not 0.0 < noise < 1.0:
+            raise ValueError(f"noise is a fraction of chunks, 0<n<1, not {noise}")
+        k = int(len(seq) * noise)
+        if k:
+            idx = sorted(rng.sample(range(len(seq)), k), reverse=True)
+            lifted = [seq.pop(i) for i in idx]
+            gap = max(1, len(seq) // (len(lifted) + 1))
+            for j, c in enumerate(lifted):
+                seq.insert(min(len(seq), gap * (j + 1) + j), c)
+    return [f for c in seq for f in c], len(blocks)
 
 
 def watch_many(games=ALL_GAMES, cycles: int | None = None, offset: int = 0, spacing: int = 1,
-               skip: int = 0, take: int | None = 4, led_path: str | None = None,
+               skip: int = 0, take: int | None = 4, noise: float = 0.0,
+               led_path: str | None = None,
                on: str | None = None, store: str | None = None) -> dict:
     """Watch a POOLED tape across games. One library, no game label reaching the agent.
 
@@ -193,7 +223,8 @@ def watch_many(games=ALL_GAMES, cycles: int | None = None, offset: int = 0, spac
     would mark almost everything imported. Pooled runs therefore do not carry a library file yet;
     resolving that is a ruling about what cross-game means inside one pooled run, not a patch.
     """
-    frames, nblocks = pooled_order(games, offset=offset, spacing=spacing, skip=skip, take=take)
+    frames, nblocks = pooled_order(games, offset=offset, spacing=spacing, skip=skip,
+                                   take=take, noise=noise)
     tape = ReplayTape(frames, list(range(len(frames))))
     fr = tape.reset()
     # the palette is READ across the whole pooled tape -- a per-game palette would make the
@@ -223,7 +254,8 @@ def watch_many(games=ALL_GAMES, cycles: int | None = None, offset: int = 0, spac
         ground = probe(on, path)
     mints = collections.Counter(h.split("_", 1)[0] for h in g.handles.values())
     return {"games": len(games), "spacing": spacing, "offset": offset,
-            "take_per_game": take, "frames": len(frames), "blocks": nblocks,
+            "take_per_game": take, "noise": noise,
+            "frames": len(frames), "blocks": nblocks,
             "dial_inert": nblocks == len(games),
             "cycles": cycles if cycles is not None else len(frames),
             "palette": palette, "switches": sum(1 for a, b in zip(seen_order, seen_order[1:],
