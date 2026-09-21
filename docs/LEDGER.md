@@ -145,6 +145,7 @@ invisible the moment it stopped being anyone's next action.***
 | ~~F208's falsifier~~ | **RAN, AND REFUTED F208 — `F209`.** The switch-free tape produced a routine that died the SAME way (`exit=unbound`). Survival 1 cycle → 3; **the cause did not change.** Real mechanism: **SLOT TURNOVER** (`tether.py:2605`) — any departed slot is unbound, and a game switch is only the case where all depart at once. |
 | **THE ROUTINE'S GUARD — what it should be addressed to** | **THE LIVE QUESTION, AND IT IS NOT THE SEAT'S.** `F210`: the guard's protection is real and correct and **`CAN`-checked AT MINT**, which covers *dead when the plan is made* and not *dies while the plan runs*. The class was solved once (2026-09-04, name→invariant, **measured 7 board flips → 1**), and the same precedent says why the seat must not pick the key: *no single key would have worked… because a self-hypothesis IS a claim about what changes.* **Choosing what a routine's guard is addressed to is a claim about what a PLAN is about — the agent's or Isaiah's.** |
 | ~~Slot turnover on the other 20 boards~~ | **DONE, and it REFUTED my own narrowing — `F211`.** Measured in the PERCEPTION LAYER with no agent (`arc_percept.Objects()` over each game's replay frames, 64 each): **0 of 25 boards are stable. Every board loses objects.** Worst single change `bp35` 73, `tu93` 41, `ft09` 39. The earlier "`ls20` 0, `tn36` 0" mixed LIVE-AGENT ledgers with a TAPE run — two frame populations in one table. |
+| **RE-MEASURE `F213`'s refusal distribution on PATCHED runs** | **OWED, and it is a rerun not a new instrument.** All 404 tape refusals in `F213` were measured with the `_res` leak in place, and the leak biased toward *the tape is special*: patched, tape gate-1 failure reads **79.2%** against the **29%** I published. **Nobody should cite `F213`'s magnitudes until this is done.** One patched re-run in flight (`ar25`, 64 cycles). |
 | **Turnover on the LIVE-board population** | The `long_*` figures are the only live data and are the ones I mis-joined, so **they stand only for themselves.** Unmeasured as a set. |
 | ~~`goal_residual`'s five `None` exits~~ | **BUILT — `3927d5e`.** The deferral was reversed BY EVIDENCE: the first routine ever formed died on exactly that `None`. `goal_residual` now names its exit; `_holds` records a `guard_unreadable` row. **It fired once and answered the question.** |
 | **Phase 3, the noise floor** | **BUILT 2026-09-20** (`eb18517`), chunk-granularity, verified as a permutation. **NEVER RUN.** |
@@ -163,7 +164,12 @@ nineteen zeros are real · `F190` what the carry carries, verified 4/4 · `F192`
 **`F207` the bar replicates at two independent cuts** · **`F208` the first routine was killed by a
 GAME SWITCH — a routine's guard is a BINDING, the pooled tape swaps boards every 8 frames, so
 §14.5 phase 1 cannot support procedure formation BY CONSTRUCTION** ·
-**`F211` ALL 25 boards lose objects — 0 of 25 stable, measured in the perception layer with no
+**`F213` `routine_refused` has SEVEN write sites; the block is GATE 1 live (89%) and the selected
+slot having departed on tapes — the guard-reachability gate fires 0 of 640 and is never reached** ·
+**`F214`/`F215` the `_res` LEAK: departed slots keep their trends, so gate 1 re-selects the dead.
+Measured on one episode: six consecutive cycles on `o39.row` AFTER it departed — the same slot the
+only routine was formed for. Patched; the A/B held to the arithmetic (6→0, 13→19) and changed NO
+capability** · **`F211` ALL 25 boards lose objects — 0 of 25 stable, measured in the perception layer with no
 agent, which cost minutes where an agent sweep is hours** · **`F212` EVERY routine this project has
 ever formed came from WATCHING: tape 3 / live 0 across 17 live ledgers, normalised on attempts
 (3/404 vs 0/272). §14 predicted it before the feeder existed, and it is the ONLY positive reading
