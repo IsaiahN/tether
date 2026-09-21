@@ -182,28 +182,44 @@ two more instances were still sitting there while that commit was written.**
 > safely, and did not write is worse than leaving it visible. **What the seat owes is that it
 > cannot be missed** — which is this row. Isaiah's or the next seat's to land.
 
-### SETTLED — do not re-derive
+### SETTLED — do not re-derive. **ORDERED BY WHAT IT SAYS, NOT BY WHAT IT COST**
 
-`F200` the spacing sweep, complete and flat · `F196` probe ceiling 100% on all 25 boards, so the
-nineteen zeros are real · `F190` what the carry carries, verified 4/4 · `F192` provenance rotation ·
-`F201` the `level: null` bug, fixed · `F188` gate 3's tie is genuinely saturated ·
-**`F207` the bar replicates at two independent cuts** · **`F208` the first routine was killed by a
-GAME SWITCH — a routine's guard is a BINDING, the pooled tape swaps boards every 8 frames, so
-§14.5 phase 1 cannot support procedure formation BY CONSTRUCTION** ·
-**`F213` `routine_refused` has SEVEN write sites; the block is GATE 1 live (89%) and the selected
-slot having departed on tapes — the guard-reachability gate fires 0 of 640 and is never reached** ·
-**`F214`/`F215` the `_res` LEAK: departed slots keep their trends, so gate 1 re-selects the dead.
-Measured on one episode: six consecutive cycles on `o39.row` AFTER it departed — the same slot the
-only routine was formed for. Patched; the A/B held to the arithmetic (6→0, 13→19) and changed NO
-capability** · **`F211` ALL 25 boards lose objects — 0 of 25 stable, measured in the perception layer with no
-agent, which cost minutes where an agent sweep is hours** · **`F212` EVERY routine this project has
-ever formed came from WATCHING: tape 3 / live 0 across 17 live ledgers, normalised on attempts
-(3/404 vs 0/272). §14 predicted it before the feeder existed, and it is the ONLY positive reading
-of the session** · **`F209` slot turnover is the cause of routine death, and it is BOARD-SPECIFIC (0 to 88 lost per
-change)** · **`F210` the guard's protection is checked at MINT and the guard dies after — a correct
-argument scoped to the wrong moment** · **THE CODEBASE IS DETERMINISTIC** — no betting-path module imports randomness (`gamma`'s only use
-is the handle suffix, which no decision reads), verified by a rerun reproducing a routine at the
-same cycle. **A captured failure can always be re-entered with a better instrument.**
+**1 · `F212` — EVERY ROUTINE THIS PROJECT HAS EVER FORMED CAME FROM WATCHING.** Tape 3, live 0
+across 17 live ledgers; normalised on attempts `3/404` against `0/272`. **§14 predicted it before
+the feeder existed. FIRST because it is the only item that says something is WORKING** — the
+reviewer's correction, 2026-09-21, and they were right: I had ordered by how much work produced
+each item.
+
+**2 · `F215`/`F214` the `_res` LEAK, found and FIXED.** Departed slots kept their trends, so gate 1
+re-selected the dead — six consecutive cycles on `o39.row` after it departed, the same slot the
+only routine was formed for. **A/B held to the arithmetic (`6→0`, `13→19`) and changed NO
+capability.**
+
+**3 · `F213` the block is located.** `routine_refused` has SEVEN write sites; **gate 1 live (89%)**
+and **the selected slot having departed on tapes**. The guard-reachability gate fires **0 of 640**
+and is never reached. *(Magnitudes leak-contaminated — see the LIVE row.)*
+
+**4 · `F209`/`F211` routine death is SLOT TURNOVER, and ALL 25 boards lose objects** — 0 of 25
+stable, measured in the perception layer with no agent, minutes where an agent sweep is hours.
+
+**5 · `F210` the guard's protection is real, correct, and `CAN`-checked AT MINT** — covering *dead
+when the plan is made*, not *dies while the plan runs*.
+
+**6 · `F200` the spacing sweep, complete and flat** · **`F207` the bar replicates at two
+independent cuts** (§14.4's offset augmentation, run for the first time).
+
+**7 · `F196` probe ceiling 100% on all 25 boards**, so the nineteen zeros are real · **`F190`** what
+the carry carries, verified 4/4 · **`F192`** provenance rotation · **`F201`** the `level: null` bug ·
+**`F188`** gate 3's tie is genuinely saturated.
+
+**8 · THE CODEBASE IS DETERMINISTIC.** No betting-path module imports randomness. **A captured
+failure can always be re-entered with a better instrument**, which is how half the above exists.
+
+> **`F208` IS NOT IN THIS LIST AND WAS, WRONGLY, UNTIL 2026-09-21.** Its game-switch claim is
+> RETRACTED (below) and I left it asserted here after adding the retraction — **so the handoff
+> contradicted itself for several hours.** Caught by reading SETTLED against RETRACTED instead of
+> appending to each. **A contradiction between the two lists is worse than either error alone**,
+> because a next seat reads one of them.
 
 ### RETRACTED — do not quote these, they are wrong
 
