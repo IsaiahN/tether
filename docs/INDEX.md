@@ -38211,3 +38211,74 @@ Same suspect, reached from two unrelated directions: **a contact problem, not a 
     MECHANISM   none changed. A counter re-identified and the block moved one gate earlier
     CAPABILITY  none -- but it retires `routine_cut` as evidence and replaces it with a gate
                 that has a reason string and a published per-guard breakdown nobody has read
+
+## F207 (INDEX series) — RUN 2, A DIFFERENT CUT: the BAR replicates exactly, and THE FIRST ROUTINE THIS PROJECT HAS EVER FORMED ran for one cycle and died on an unreadable guard
+
+**`offset=4, skip=1` — §14.4's offset augmentation, exercised for the first time. 194 frames
+against run 1's 199.**
+
+                        run1 offset0   run2 offset4
+    frames                     199          194
+    library                    329          401
+    minted                     281          353
+    settle / demote          89 / 84      82 / 75
+    reuse_install              203          264
+    routine_refused            166          188
+    routine (PAYS)               0            1     <-- FIRST EVER
+    PROBE hit/of              9/150        9/150
+    DISTINCT EFFECTS         1 of 120     1 of 120
+
+### THE BAR REPLICATES TO THE DIGIT, AND THAT IS THE RESULT
+
+**`9/150`, 1 of 120 distinct effects, at BOTH cuts.** `F203` rested on one arbitrary boundary and
+the ladder's four rungs shared that boundary. **A second, independent cut gives the identical
+reading.** The null is not an artifact of where the chunks were cut — **which is exactly what
+§14.4's offset augmentation exists to establish, and it had never been run.**
+
+**Everything else moved** — library `+72`, minted `+72`, reuse `+61`, refusals `+22`. **The ground
+did not.**
+
+### AND A ROUTINE FORMED. THE FIRST ONE.
+
+    cycle 23, slot o39.row
+    routine   until(o199.drow/10) {ACTION5}
+    verdict   pays          cost 9.0 + left 0.0 < base 28.07
+    reach 10 == unsat 10.0  -> FULL closure, no remainder
+    route     "learned: observed to move this slot the wanted way"
+
+**`F206`, written two hours earlier, recorded `routine 0` on three runs and located the block at
+guard reachability. One candidate passed that gate**, was priced, paid, and became a plan.
+`M2`'s *forms and pursues a bounded multi-step behaviour* fired — **once, at 199+194 cycles of
+looking.**
+
+### IT DIED IN ONE CYCLE, AND THE CAUSE IS THE INSTRUMENT I DEFERRED
+
+    cycle 24    routine_end   outcome: blocked
+
+**`BLOCKED` is returned when `holds(guard)` returns `None`.** `routine.py:38` states what that
+means and warns against exactly this confusion: ***I could not read the guard* is not *the guard is
+satisfied*.** And `_holds` is three lines:
+
+    rg = self.goal_residual(guard, state)
+    return None if rg is None else rg <= 0.0
+
+**So the routine died because `goal_residual` returned `None` — `F189`'s FIVE-EXIT `None`**, the
+one whose discriminator does not exist because there is no BIND row. **I named that instrument as
+cheap and ready and DEFERRED it, on the grounds that *you cannot diagnose your way to a composer*.**
+
+**That deferral is now the thing standing between this project and its first routine.** The reason
+was right when I wrote it and the evidence has changed: **this is no longer diagnosis in general,
+it is the one unknown in the only capability event either pooled run produced.**
+
+> **AND THE THREE THREADS ARE ONE SUSPECT.** `F189`: the residual is pinned or unreadable, and
+> `goal_residual`'s `None` pops the series. `F206`: routine formation blocks at
+> `can(guard) == YES`. **`F207`: the routine that passed died because the guard could not be
+> READ.** *Three unrelated entry points, one function returning `None`.*
+
+    BOUNDARY    two pooled runs. The routine is ONE event -- a single occurrence is not a rate,
+                and nothing here says routines will form again. `blocked` is read from
+                routine.py's contract, not from a per-exit measurement, because that
+                measurement does not exist yet -- which is the entry's point
+    MECHANISM   none changed. The offset augmentation ran for the first time
+    CAPABILITY  the BAR did not move at either cut. One routine formed and did not survive a
+                cycle, which is a capability EVENT and not a capability
