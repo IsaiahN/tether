@@ -44813,6 +44813,13 @@ the `out_type` widening**, and it is now measured rather than hoped for.
 nothing.** The arm IS live — the totals differ from cycle 2 on, so the gap really is being
 computed differently — **and the difference is 0.16%.**
 
+> **CONFIRMED ON `dc22`, WHICH IS THE BOARD THE CAVEAT DEMANDED.** The reviewer would not accept
+> the null off `sk48` seed 0 — *ranking pays only where explainers are found, and a null measured
+> where the mechanism cannot express itself is not yet a null.* **`dc22` seed 0, 8 cycles, equal
+> windows: OFF `31,363,005` calls, ON `31,420,740` — `+0.18%`, with `settled 1` and `prim 5` on
+> BOTH arms.** *The lookup does find explainers there and the re-key still buys nothing.* **Two
+> boards, same answer, and the second one could have shown an effect. The null is genuine.**
+
 ### WHY, AND BOTH REASONS WERE ALREADY WRITTEN IN THE CODE
 
 **1. `fits` ORDERS AND EXCLUDES NOTHING.** Its own docstring: *"How well one term's key fits the
