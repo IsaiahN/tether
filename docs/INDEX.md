@@ -41925,7 +41925,22 @@ about. The measurement is the deliverable and it is here.
     CAPABILITY  none. It closes the fourth cost candidate and, more usefully, reclassifies the
                 problem: volume of cheap work, not repetition of expensive work
 
-## F258 (INDEX series) — WHAT GENERATES 15 MILLION EVALUATIONS FROM A 48-UNIT LIBRARY: **41,503 yielded candidates expand into 17,576,965 ranked ones — a 424× operand×guard cross-product** — and the only thing bounding it is a constant anchored on the TOY WORLD
+## F258 (INDEX series) — WHAT GENERATES THE EVALUATION VOLUME: yielded candidates expand into ranked ones by an operand×guard cross-product of **32× to 106× across five boards** — and the only thing bounding it is a constant anchored on the TOY WORLD
+
+> **THE `424×` HEADLINE THIS ENTRY WAS FILED WITH IS CORRECTED, AND BY MY OWN STANDING RULE ONE TICK LATE.** It was ONE board, `sk48`, read from a ledger produced on the build `F250` RETRACTED — the unbounded overlay, in which covered objects never died and `tracked` grew monotonically. **More tracked objects means more operand slots means a bigger cross-product**, so the 424× is inflated by exactly the defect that was retracted. Five other ledgers read:
+
+    board   rows    seen      tried        ratio   budget hit   build
+    tn36     121   16,616   1,765,520     106.3x      97%       pre-fix
+    ls20   1,283  135,257  13,564,135     100.3x      67%       pre-fix
+    ls20*    443   48,608   4,634,961      95.4x      65%       pre-fix (closure run)
+    ka59   1,103  127,790  11,692,484      91.5x      65%       pre-fix
+    vc33     268   65,585   2,091,834      31.9x      11%       pre-fix
+    sk48   2,837   41,503  17,576,965     424.0x      40%       RETRACTED overlay build
+
+> **THE MECHANISM SURVIVES AND THE MAGNITUDE DOES NOT.** A cross-product of 32–106× per yield is still the volume, the budget is still hit on 11–97% of calls, and `units` is 48 on every board. **But `424×` was the number in the headline and it is the one that was wrong** — six boards agreed in a band and the one that disagreed was on a broken build, which is the rule I filed in `F249` and adopted as standing, applied to myself too late again.
+
+> **AND THE RATIO IS BOARD-SPECIFIC, WHICH NO SINGLE FIGURE SHOULD HAVE HIDDEN:** `vc33` 31.9× at an 11% budget-hit rate against `tn36` 106.3× at 97%. **Per game, never pooled** — and the five pre-fix rows are a different build from each other's successor, so even the band is read as a band and not as a constant.
+
 
 **`F257` reclassified the cost as VOLUME of cheap work and named the open question: what produces
 that volume, and is the enumeration bounded by anything. Answered WITHOUT A NEW INSTRUMENT — `mint`
