@@ -43940,3 +43940,68 @@ whole story.** The difference is the seed, and what the seed changes is the chun
                 earlier, is what turned a 50-minute silence into a 1-second answer
     CAPABILITY  none. It converts two rows from "unknown kind" to a reach finding, and it is the
                 first direct measurement of the composer working hard and reaching nothing
+
+---
+
+## F290 (INDEX series) — **89,026,085 ATOM CALLS IN ONE CYCLE, AND THE SHAPE FAMILY GETS NONE OF THEM.** This is combinatorial explosion, measured, on the board the architecture exists to prevent it on
+
+**Continuing `F289`'s census. The liveness question was answered at cycle 1; this is what the
+rest of the run showed, and it is a bigger finding than the one it was run for.**
+
+    sk48, seed 0, 15 cycles, observer ON, arm I ON, ALL 54 atoms spied
+
+      cycle      atom calls        cumulative      elapsed
+        1             3,276             3,276           1s
+        2           127,321           130,597           4s
+        3           436,059           566,656          10s
+        4           624,714         1,191,370          17s
+        5           623,991         1,815,361          25s
+        6         2,203,310         4,018,671          36s
+        7         2,602,647         6,621,318          51s
+        8         4,486,062        11,107,380          81s
+        9        25,744,901        36,852,281         165s
+       10        33,681,688        70,533,969         278s
+       11        89,026,085       159,560,054         514s
+
+**Roughly a tripling per cycle through the tail, and no sign of a ceiling at cycle 11.**
+
+> **AND THE DECLARED RUN'S ROW FOR THIS EXACT BOARD-SEED READS `shape-atom calls 0`.** One
+> hundred and sixty million atom calls, and `holes`, `bbox_area`, `perimeter`, `corners`,
+> `orbit_size`, `canonical`, `symmetric`, `is_square` receive **zero**.
+
+### THIS IS THE FAILURE THE WHOLE ARCHITECTURE IS AGAINST, AND IT HAS A NAME IN THE RECORD
+
+Isaiah, on how intelligence works: *"You don't blindly search the composition space
+(combinatorial explosion), you map intent and actions to library compositions per epoch, and the
+delta-directed schema is what makes the runtime reach possible."*
+
+**A tripling per cycle with no ceiling IS the blind search.** The mapping is meant to replace it,
+and on this board-seed it is not replacing it — *the composer is walking a space that grows
+faster than the run does, and is not arriving anywhere near a whole atom family while doing it.*
+
+**AND IT SUBSUMES `F282`'s COST CURVE RATHER THAN SITTING BESIDE IT.** That row measured seconds
+per cycle and could not say what the seconds bought. **This measures the work itself**, on the
+same board, and the shapes match: `F282` read 0.8s → 90.5s over ten cycles where this reads
+3,276 → 33.7M calls. **The cost was never the finding; the call count is, and cost is its
+shadow.**
+
+### WHAT IT DOES NOT SAY
+
+**Not that the observer or arm I caused it.** Both are ON here and there is **no OFF arm in this
+measurement** — `F286`'s lesson is exactly this shape, so the arms are a candidate and nothing
+more. **A one-flag A/B on the call count is the obvious next measurement and it is not run.**
+
+**Not that it is general.** ONE board, ONE seed. `sk48` seed 1 reached the shape family 783,902
+times on the same board and registry, so **whatever this is, the seed changes it** — and the
+declared run's remaining rows are the first read on whether other boards do this.
+
+**And the run did not finish.** At this growth, cycle 12 and beyond cost more than the eleven
+before them combined; the census was left running rather than extrapolated.
+
+    BOUNDARY    ONE board, ONE seed, ELEVEN of fifteen cycles, both arms ON, no OFF arm.
+                Reported at eleven because the growth shape is established and the remaining
+                cycles are expensive -- not because the run completed
+    MECHANISM   none changed
+    CAPABILITY  none. It is the first direct measurement of the composer in combinatorial
+                explosion, and it makes `the route chart` -- minting shrinking while retrieval
+                grows -- a thing with a measurable denominator rather than a hope

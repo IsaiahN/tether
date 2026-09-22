@@ -1727,9 +1727,20 @@ is LIVENESS: seed 1 went live at cycle 9 and produced 783,902 calls.*
 
        > **AND A GOOD RULE ON A BAD LABEL IS HARDER TO CATCH THAN A BAD RULE, BECAUSE
        > NOTHING ABOUT THE RULE LOOKS WRONG.**
-    2  IF HALF OR MORE of the depth board-seeds come back with zero live cycles, the next
-       declared run uses 25 CYCLES UNIFORMLY. The same length for every board: per-board
-       lengths are TAILORING, which is the thing the OOD set punishes.
+    2  SUPERSEDED 2026-09-22 19:55 -- THE CONDITIONAL TRIGGER IS GONE. The next declared
+       run is 25 CYCLES UNIFORMLY, for every board, unconditionally.
+
+       **AND IT IS LABELLED WHAT IT IS: A POST-HOC DESIGN CHANGE FOR A FUTURE RUN, MADE
+       AFTER SEEING FIRST-LIVE VALUES.** It is legitimate because it changes no completed
+       measurement and no run in flight -- and it must NEVER be written up as though it
+       were pre-registered. The evidence that moved it: first-shape-live read 3, 6, 9 and
+       **13 of 15**. *A window that catches a case by two cycles is not measuring that
+       case, it is nearly missing it.*
+
+       The original conditional -- *25 cycles if half or more board-seeds come back with
+       zero live cycles* -- is superseded rather than met. **It would not have fired
+       anyway**: on the restated rule zero-BOARD-live is what counts, and that is zero of
+       six (`F289`).
     3  SEED COUNT RISES TO FIVE for the depth set ONLY IF the completed run shows a bimodal
        quantity, as `sk48` does.
 
@@ -1754,6 +1765,13 @@ to what is measured.**
 observer ON.** Only the columns change.
 
 **THE DEPTH RUN IN FLIGHT KEEPS ITS OLD COLUMN AND IS NOT RESTARTED.** Its rows are read
-through the restated rule AFTERWARDS -- and until the `sk48` seed-0 full-registry census
-returns, **its two `sk48` zero rows are of UNKNOWN kind: either dead window or reach finding,
-and nothing may be concluded from them in the meantime.**
+through the restated rule AFTERWARDS.
+
+> **RESOLVED 2026-09-22, `F289`: the two `sk48` zero rows are REACH FINDINGS, not dead
+> windows.** The census reads the board LIVE FROM CYCLE 1 and climbing to **89,026,085 atom
+> calls in cycle 11 alone** while the shape family is never reached once in fifteen cycles.
+> **Under the superseded 19:12 wording both rows would have been discarded as
+> non-measurements.**
+
+**The in-flight depth run and the declared breadth run are UNCHANGED at 15 and 10 cycles.**
+25 applies to the run AFTER them.
