@@ -73,7 +73,22 @@ PRED, QUANT, VAL = "PRED", "QUANT", "val"
 # same fact: a slot IS an object's attribute. Declared once so they cannot drift apart.
 ATTRIBUTE_TYPE = {"colour": COLOUR, "row": POSITION, "col": POSITION,
                   "h": EXTENT, "w": EXTENT, "drow": DELTA, "dcol": DELTA,
-                  "shape": SHAPE}
+                  "shape": SHAPE,
+                  # THE RELATION SLOT -- observer item 4, arm `TETHER_OBSERVER`, default OFF.
+                  # `a~b.contact` holds the SHARED-FACE COUNT, which is why it needs no new
+                  # type: a categorical `point|edge|face` would have, and §12.2's set is
+                  # closed. The count is already ordinal in the direction the subdivision
+                  # means -- 0 corner, 1 edge, 2+ face, increasing constraint.
+                  #
+                  # **EXTENT AND NOT `COUNT`, AND THE REASON IS A GAP WORTH RECORDING.** §12.2
+                  # names `COUNT` in its type set and `sensors` DOES NOT EXPORT ONE -- the
+                  # importable set is BOOL COLOUR DELTA EXTENT OBJECT POSITION SHAPE. So the
+                  # choice is among what exists, and EXTENT is the honest fit rather than a
+                  # substitution: an ordered non-negative magnitude, exactly `h` and `w`'s
+                  # shape, and *the extent of the contact* is what the quantity measures.
+                  # Adding a `COUNT` type to close the gap would touch every consumer of the
+                  # set and is not this arm's to do.
+                  "contact": EXTENT}
 
 
 # THE ADMITTING CLAUSE, PER ATOM, RECORDED WHERE THE ATOM IS DECLARED.

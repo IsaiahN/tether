@@ -204,6 +204,26 @@ def touching(a: dict, b: dict) -> bool:
                for dr, dc in ((1, 0), (-1, 0), (0, 1), (0, -1)))
 
 
+def contact_faces(a: dict, b: dict) -> int:
+    """HOW MANY CELL FACES THE TWO SHARE. The integer `RELATIONS.md` 1.1 names and says is
+    missing: *"a grid makes these countable -- the number of shared cell-faces is an integer,
+    and the agent has no atom that returns it."*
+
+    **PUBLISHED AS THE QUANTITY RATHER THAN AS THE THREE-WAY KIND, and that is the point.**
+    `contact_kind` already computed this and threw it away, returning `face`/`edge`/`point` --
+    a categorical the loop would need an encoding for, where the count is already an integer
+    and already ordinal: 0 shared faces is a corner touch, 1 is an edge, 2+ is a face, which
+    is exactly the increasing-constraint order the subdivision encodes. **Reconstructing the
+    count from the kind is the adjacent-row error; the kind is derived FROM the count here.**
+
+    Shares `touching`'s 4-adjacency for the reason `touching` gives.
+    """
+    other = b["cells"]
+    return sum(1 for r, c in a["cells"]
+               for dr, dc in ((1, 0), (-1, 0), (0, 1), (0, -1))
+               if (r + dr, c + dc) in other)
+
+
 def contact_kind(a: dict, b: dict) -> str | None:
     """RELATIONS.md 1.1: contact SUBDIVIDES BY DIMENSION, and the subdivision carries
     information the boolean does not.
@@ -221,10 +241,8 @@ def contact_kind(a: dict, b: dict) -> str | None:
     the reason `touching` gives -- 8 here and 4 there would be a different relation under
     the same name -- so `face`/`edge` count SHARED FACES and `point` is diagonal-only.
     """
+    faces = contact_faces(a, b)
     cells, other = a["cells"], b["cells"]
-    faces = sum(1 for r, c in cells
-                for dr, dc in ((1, 0), (-1, 0), (0, 1), (0, -1))
-                if (r + dr, c + dc) in other)
     if faces >= 2:
         return "face"
     if faces == 1:

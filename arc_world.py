@@ -11,6 +11,7 @@ read game internals, and there is nothing here that knows what any board means.
 """
 from __future__ import annotations
 
+import os
 import sys
 from collections.abc import Callable
 from typing import Any
@@ -23,6 +24,14 @@ import arc_self
 import sensors
 
 SENSORS = sensors.minimum_set()
+
+# THE OBSERVER ARM, SEAT-SIDE SWITCH, DEFAULT OFF. Isaiah's mutation observer: the tracker
+# carries a wider per-object set, publishes the SEQUENCE of changes rather than the set, and
+# writes relations onto the objects so the delta can key the lookup. Built in pieces behind
+# ONE switch so the route chart judges the whole thing rather than a fragment -- reviewer,
+# 2026-09-22. Item 4 (relations as per-pair slots) is here; it ships only with arm L, which
+# bounds the operand axis the wider slot set would otherwise multiply.
+_OBSERVER = bool(os.environ.get("TETHER_OBSERVER"))
 
 sys.dont_write_bytecode = True
 
@@ -115,7 +124,40 @@ class ArcWorld:
             seen = SENSORS.read("components", b)
             self.blind = seen is sensors.NOT_RESOLVED
             self._read = {} if self.blind else dict(self._decompose(b))
+            if _OBSERVER and self._read:
+                self._read.update(self._relation_slots())
         return self._read
+
+    def _relation_slots(self) -> dict[str, int]:
+        """OBSERVER ITEM 4: contact published as PER-PAIR slots, `a~b.contact`.
+
+        **Measured before it was built, and the cheap shape was the wrong one.** A per-OBJECT
+        `objN.touching` boolean reads TRUE FOR 100% OF OBJECTS on sk48, dc22 and m0r0 -- every
+        object touches something -- so it discriminates nothing, carries no delta and would
+        light no candidate. **The PAIR is the information**, which is what `_bindings`'
+        docstring said before any of this was measured: *a relation is between two objects and
+        `slot_types` can name neither the pair nor its type, WHICH IS THE BREAK.*
+
+        **AND THE PAIR IS AFFORDABLE BECAUSE CONTACT IS SPARSE.** Mean degree 3.7-4.3 against
+        92-99 objects, so the pair set is ~4n: +47-55% slots, against +1170-1259% for a dense
+        `n^2` reading. The dense assumption is 23-25x more expensive than the measurement.
+
+        **THE OWNER IS THE PAIR AND THE ATTRIBUTE IS `contact`** -- one attribute, therefore
+        ONE type through `ATTRIBUTE_TYPE`. Naming the partner in the ATTRIBUTE would have
+        invented a distinct type per pair and blown up `slot_types` and `peers`.
+
+        **SHIPS ONLY WITH THE DELTA OPERAND BOUND.** `_bindings` returns every other slot, so
+        +50% slots is +50% binds on an unbounded axis -- a regression that would read as
+        *relations made it worse*. Bounded by the delta (arm L, both sites) it costs nothing,
+        because the delta does not grow when the slot set does.
+        """
+        tr = getattr(self._decompose, "tracked", None) or {}
+        out: dict[str, int] = {}
+        for a, partners in self.contacts().items():
+            for b in partners:
+                if a < b and a in tr and b in tr:
+                    out[f"{a}~{b}.contact"] = arc_percept.contact_faces(tr[a], tr[b])
+        return out
 
     def read_order(self) -> tuple[list[str], str]:
         """Layer 2. The order slots are read in, RECOMPUTED PER FRAME and never settled.
