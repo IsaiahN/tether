@@ -43237,3 +43237,63 @@ question and is not touched here.
   here", breadth answers "everywhere or only here", and only the second survives the OOD boundary.
 - **No board is retired for failing to show an effect again.** `m0r0` was retired for exactly that,
   and the replacement was worse.
+
+---
+
+## `F278` — THE ~24 COMPOSABLE RELATIONS MUST NOT BE HANDED, and the corpus says why: there are THREE blockers and only one is a missing instrument
+
+**2026-09-22. Item 1 clause 2 says to publish "the bounding-box sensor and RELATIONS' ~24
+composable relations". I had an open question about which to hand versus leave to composition.
+`RELATIONS.md` Part 6 answers it, and the answer splits the ruling.**
+
+### The three blockers are different kinds of thing, and the corpus says so in those words
+
+    A MISSING SENSOR      bounding-box overlap is not computed anywhere. "Containment and its
+                          five dependents wait on it, and it is a BUILD rather than a publish."
+    A MISSING CONSUMER    nothing compares two objects' attributes. `RELATE` IS BUILT AND TYPED
+                          -- `same`, `other`, `above`, verified at `arc_atoms:541-547`, all
+                          `ATTR -> PRED`, `reads_operand=True` -- "and its output is a truth the
+                          transition bargain cannot price." Alignment, concentricity,
+                          congruence, collinearity are "ONE CONSUMER AWAY AND UNREACHABLE."
+    AN ERASURE            the two quantities under the name `shape`. ALREADY FIXED this session
+                          (arm I, `holes`, `area`/`centroid`).
+
+**AND BLOCKER 2 IS MEASURED, WHICH IS WHAT MAKES IT DECISIVE: "476 candidates offered, none beat
+the incumbent, the closest 25.9 bits worse -- BECAUSE THEY ARE NOT BETS."**
+
+### What that does to the ruling
+
+**The ~24 marked `C` are COMPOSABLE FROM WHAT THE AGENT HOLDS.** That is the corpus's own marking,
+and it means **composition CAN reach them.** The ladder's rule for handing anything is *the level
+below tried and could not* — **so composable is precisely the column that must NOT be handed.**
+
+> **`CLAUDE.md`: *Residue is the agent's to close. When something is unexplained by any existing
+> primitive, the agent builds the primitive. MAKING THE LIBRARY MORE COMPLETE STEALS A DISCOVERY.***
+
+**AND HANDING THEM WOULD NOT EVEN FIX THE THING THAT IS BROKEN.** Alignment and its family are
+blocked by the BARGAIN being unable to price a truth — publishing them as perception slots routes
+around that blocker instead of clearing it, and leaves the same 476-candidate refusal in place for
+everything else that outputs a `PRED`.
+
+**ISAIAH'S OOD CORRECTION IS THE SHARPEST FORM OF IT.** *Only concepts will transfer.* **A handed
+relation is a concept the agent did not form** — on the OOD set it transfers as a lookup, which is
+the one thing the ablation clause exists to detect.
+
+### What I will build instead, unless overruled
+
+    BUILD     the bounding-box overlap sensor. Blocker 1, the corpus calls it "a BUILD rather
+              than a publish", and it unblocks containment + five dependents that were moved
+              from composable to blocked when `overlap` was checked. The ladder is satisfied:
+              composition tried and could not.
+    DO NOT    publish the ~24 marked composable. Leave them to composition -- that is what the
+              marking means.
+    RECORD    blocker 2 as the live one it is. Nothing in item 1 addresses it, and it is not a
+              perception gap: `RELATE` is built, typed and reached. It is the bargain refusing a
+              truth, which is a PRICING question and belongs with the objective/predictor tie
+              that is already Isaiah's withheld ruling.
+
+    BOUNDARY    a read of `RELATIONS.md` Part 6 plus a grep of `_relate`. No run. The 476-candidate
+                figure is the corpus's measurement, not mine, and I have not reproduced it
+    MECHANISM   none changed
+    CAPABILITY  none. It removes a build item on the grounds that building it would steal the
+                discovery it is meant to enable
