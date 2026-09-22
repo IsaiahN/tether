@@ -170,6 +170,20 @@ BONDS = 1
 # value is that the formula is checkable against Shannon instead of taken on trust.
 
 HELD, NOVEL, REBIND, MECHANISM = "held", "novel", "rebinding", "mechanism"
+# THE FIFTH BIN -- the reviewer, 2026-09-21. The four above all sort the gap by what is
+# MISSING, so a refusal can be composed and is never DEMANDED. This one sorts by what is
+# WRONG: a HELD term was EXPRESSED on this slot and the ground refused it. Expressed-and-
+# failed ONLY -- a term retrieval never reached has not been tested and loses nothing, which
+# is Isaiah's hit-rate ruling and is already how `gamma.refute` behaves.
+REFUTED = "refuted"
+
+# ARM J -- SEAT-SIDE SWITCH, DEFAULT OFF. The bin is a RULING and the plumbing is built ON;
+# the DIVERSION it causes is a policy change to the acting path and is not. With it live, two
+# conform seats fail -- `shipped`'s B5 (support at zero and no probe followed) and three M2
+# checks -- because slots that reached `mint` now reach a competitor instead. That is a
+# READING of what the bin does, not a reason to edit the checks: *reintroduce the defect,
+# never disable the check.*
+_REFUTED_BIN = bool(os.environ.get("TETHER_REFUTED_BIN"))
 
 # why not the neighbouring bin. A bin without its discriminator is a label, not a diagnosis.
 WHY_NOT = {
@@ -177,6 +191,7 @@ WHY_NOT = {
     NOVEL: "not mechanism: too little history to distinguish a wrong model from a new one",
     REBIND: "not mechanism: a term already in the library explains the whole history",
     MECHANISM: "not rebinding: no library term explains the history, so the model is wrong",
+    REFUTED: "not rebinding: the bound term was expressed here and the ground refused it",
 }
 
 # why a zero reading is not always HELD
@@ -449,6 +464,7 @@ class Agent:
         self._held_chains: set[str] = set()
         self._shape_cache: tuple = (-1, None)
         self._contact_seen: set = set()
+        self._refuted_slot: dict = {}
         self._move_map: dict = {}
         self._contact_pick = None
         self._s0_target: str | None = None
@@ -721,6 +737,10 @@ class Agent:
         # evidence that does not.
         self._contact_pick = None
         self._s0_target = None
+        # CLEARED AT RETARGET, unlike `_contact_seen` and `_move_map`: this one is keyed by
+        # SLOT NAME, and the slots do not survive a level boundary. Same rule the boundary
+        # reset states for `_res` and `_disc`.
+        self._refuted_slot: dict = {}
         # THE MOVE MAP SURVIVES A BOUNDARY for `_contact_seen`'s reason: what an action does
         # to the avatar is a fact about the ACTION, not about the slot names of one level.
         self.candidates = {}
@@ -1583,7 +1603,15 @@ class Agent:
     def route(self, res: dict[str, SlotResidual]) -> list[tuple[str, str, str | None]]:
         out = []
         for slot, r in res.items():
-            if r.mass == 0.0 and slot not in self.owed_import:
+            was_refused = self._refuted_slot.pop(slot, None)
+            if was_refused is not None and _REFUTED_BIN:
+                # ISAIAH'S SECOND CLAUSE -- *alternatives that DO work start to compete.*
+                # `_library_fit` already takes an `exclude`, so asking it for the best fit
+                # OTHER than the one just refused needs no new retrieval path. Standing still
+                # fades through `rejections`, which is untouched: this changes what is ASKED
+                # FOR, not the term's number.
+                b, fit = REFUTED, self._library_fit(slot, was_refused)
+            elif r.mass == 0.0 and slot not in self.owed_import:
                 b, fit = HELD, None
             elif r.mass == 0.0:
                 # a slice reading zero while the accumulated residual is live. HELD says
@@ -3607,6 +3635,11 @@ class Agent:
                 continue
             if r.mass > 0.0:
                 # express-before-judge: this term actually predicted, and was wrong
+                # AND THE FIFTH BIN IS POPULATED HERE AND NOWHERE ELSE, which is the whole of
+                # what makes it expressed-and-failed rather than not-retrieved. Recorded for
+                # BOTH outcomes of `refute` below: a settled term demoted and a candidate
+                # mispredicting are both the ground refusing what was said.
+                self._refuted_slot[slot] = name
                 if self.gamma.refute(name):
                     self.demoted.append(name)
                     self.led.record(self.cycle, "SETTLE", slot, "demote", term=name,
@@ -3871,6 +3904,17 @@ class Agent:
                 self.abstained.pop(slot, None)
                 self.led.record(self.cycle, "ACCEPT", slot, "rebind", term=fit,
                                 status="candidate", note="refit; the library did not change")
+            elif b == REFUTED:
+                # a competitor where the library holds one; otherwise the gap is genuinely
+                # new and MECHANISM's answer is the right one.
+                if fit:
+                    self.bound[slot] = fit
+                    self.rank.note(fit, self.cycle)
+                    self.led.record(self.cycle, "ACCEPT", slot, "compete", term=fit,
+                                    status="candidate",
+                                    note="the bound term was refused here; this is its competitor")
+                else:
+                    self.mint(slot)
             elif b == MECHANISM:
                 self.mint(slot)
         if by == "probe":
