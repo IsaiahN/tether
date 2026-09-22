@@ -43888,3 +43888,55 @@ killed. Now prints a flushed line per cycle.
                 UNCHANGED -- only columns
     CAPABILITY  none on the agent. It stops a rule hardening on the wrong quantity, and the
                 depth run's two `sk48` zero rows stay of UNKNOWN KIND until the census returns
+
+---
+
+## F289 (INDEX series) — `sk48` SEED 0 IS A **REACH FINDING, NOT A DEAD WINDOW**. The board is live from cycle 1 and runs to 436,059 atom calls in a single cycle, and the shape family is **NEVER REACHED** across all fifteen
+
+**The question `F288` opened, answered in ONE SECOND by the instrument repair that same finding
+installed.**
+
+    sk48, seed 0, 15 cycles, observer ON, arm I ON, ALL 54 atoms spied
+
+      cycle 1     3,276 atom calls        cumulative      3,276
+      cycle 2   127,321                   cumulative    130,597
+      cycle 3   436,059                   cumulative    566,656
+
+**And the declared depth run's row for that exact board-seed reads `shape-atom calls 0`,
+`shape-live 0 of 15`.**
+
+> **SO THE AGENT IS DOING AN ENORMOUS AMOUNT OF WORK ON THIS BOARD AND NEVER ONCE REACHES THE
+> SHAPE FAMILY.** Half a million atom calls by cycle three, and `holes`, `bbox_area`,
+> `perimeter`, `corners`, `orbit_size`, `canonical`, `symmetric`, `is_square` get none of it.
+
+### THIS IS THE ROW THE ORIGINAL RULE WOULD HAVE DELETED
+
+Part 10 rule 1 as first written — *a row with zero live cycles is UNMEASURED* — **would have
+discarded `sk48` seed 0 and seed 2 as non-measurements.** They are the opposite: **the clearest
+reading of reach failure the run has produced.** The restatement was not a pedantic repair.
+
+**AND THE `1648s` WAS SITTING THERE THE WHOLE TIME.** `sk48` seed 0 took **27 minutes** for
+fifteen cycles in the depth run — *an idle board does not take 27 minutes.* **The runtime column
+already contradicted `dead window` and I read past it**, the same way `F282`'s cycles 4–6
+contradicted the growth law in output I had printed. **Two for two on ignoring a column I was
+not looking at.**
+
+### WHAT IT DOES AND DOES NOT ESTABLISH
+
+**DOES:** on `sk48` at seed 0, with the observer and arm I ON, the composer performs hundreds of
+thousands of atom calls per cycle and the shape family is unreachable throughout. **The
+`board-live` / `shape-live` split was necessary to see it at all.**
+
+**DOES NOT:** say why. **`F287`'s `OBJECT`-typed dead zone is the most attractive suspect and
+that is exactly the reason to distrust it** — *the best-documented candidate is the most
+attractive suspect regardless of guilt.* `sk48` seed 1 reached the shape family 783,902 times on
+the same board with the same registry, **so nothing structural about the atom set can be the
+whole story.** The difference is the seed, and what the seed changes is the chunk order.
+
+    BOUNDARY    ONE board, ONE seed, and the first three cycles of fifteen -- reported at three
+                cycles because the LIVENESS question is answered by the first cycle that fires
+                and does not need the rest. The full census continues
+    MECHANISM   none changed. `fullcensus.py`'s per-cycle flush, installed under `F288` minutes
+                earlier, is what turned a 50-minute silence into a 1-second answer
+    CAPABILITY  none. It converts two rows from "unknown kind" to a reach finding, and it is the
+                first direct measurement of the composer working hard and reaching nothing
