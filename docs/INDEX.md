@@ -41793,3 +41793,67 @@ counted before it gets a story.
     CAPABILITY  none. It refutes the pre-registered story, eliminates list-rebuilding as the
                 repair despite a 56-62% duplication rate, and establishes that the corpus
                 passage cited governs levels rather than cycles
+
+## F256 (INDEX series) — THE COST IS RE-EVALUATION: **54.5% of `dc22`'s 15.0M `_value_of` calls and 83.3% of `m0r0`'s 9.9M are EXACT REPEATS**, rising to 90% by cycle 20. And it removes no evidence
+
+**`F255` left one candidate: if observations may not be dropped, the only evidence-preserving
+repair is not re-evaluating the same `(term, observation)` pair. Counted before it gets a story,
+which is the third candidate in a row and the rule I set myself after the first two.**
+
+    board   _value_of calls   exact repeats   share    minted
+    dc22         14,984,183       8,159,429   54.5%         6
+    m0r0          9,890,401       8,239,019   83.3%         7
+
+### and the share RISES with the cycle, which is the shape the curve has
+
+    dc22   c1  41.0%      c9  59.6%     c13  68.2%     c20  90.4%
+    m0r0   c1  31.2%      c9  61.8%     c13  93.6%     c20  79.1%
+
+**`dc22` spends cycle 20 doing 1,475,098 evaluations of which 1,334,129 have already been done —
+and cycle 1 did 936 in total.** The call VOLUME is the growth and the REPEAT FRACTION grows with
+it, which is why the curve is super-linear rather than linear.
+
+### THE KEY HAS `action` IN IT, AND CHECKING THAT WAS THE POINT
+
+My first key was `(term.name, slot, id(state))` and it read 54.5% / 83.3%. **`discriminate`
+evaluates SEVERAL actions against the SAME before-state, and `Ctx.action` reaches the atoms** — so
+that key would have counted those as repeats and **overstated what a cache could legitimately
+serve.**
+
+**Re-measured with the action in the key: `dc22` 54.5% unchanged, `m0r0` 8,239,014 against
+8,239,019 — FIVE fewer out of 8.2 million.** The repeats are genuine; the replay paths dominate
+and each observation carries its own action.
+
+> **This is *before any census ask which function consumes this quantity and what it reads*
+> applied to my own census.** The number did not move, and that is the only reason it can be
+> quoted — an unchecked 54.5% and a checked one are the same digits and not the same claim.
+
+### why this is the repair the corpus permits and the window is not
+
+**`F255`: *nothing leaves that list, ever*, and the dilution passage governs LEVELS — already
+implemented at `retarget`.** A window DROPS OBSERVATIONS and changes what the agent accepts;
+measured, it minted 3× more.
+
+**Memoising an evaluation drops nothing.** Same observations, same terms, same verdicts — the
+agent's record of what it has been wrong about is untouched. **`_record` already carries a
+`_frame_cache` keyed on `("rec", slot, id(state))`, so the idiom, the key shape and its lifetime
+assumption are the file's rather than mine.**
+
+### NOT BUILT, AND TWO THINGS TO SETTLE FIRST
+
+- **A cache is not free.** `dc22` would hold up to ~6.8M distinct keys across 20 cycles. **Per-cycle
+  scoping is the obvious bound and it is a DESIGN choice, not a measurement** — and the largest
+  repeat fractions are late in a cycle's own work, so the scope may cost most of the benefit.
+- **`_value_of` is one of four callers' shared function and the OBJ arm goes through
+  `objective_step`**, which calls `_sat` per group member. **Whether the repeats are concentrated
+  in that arm is unmeasured**, and it decides whether the cache belongs at `_value_of` or lower.
+
+    BOUNDARY    two boards, 20 cycles, one seed, uncontended. `id(state)` can be reused after GC,
+                so a state built and discarded inside one call could alias -- states in
+                `self.trace` are held for the whole play so theirs are stable, and the figure is
+                a CEILING. The probe wraps `_value_of` in the measured run, so its own overhead
+                is inside the timings and they are not comparable to F253/F254
+    MECHANISM   none. Counted only
+    CAPABILITY  none yet. It names the first cost repair that removes no evidence -- and after
+                a window (forbidden), a list cache (not the hot path) and library size (refuted),
+                it is the first candidate that survived being counted
