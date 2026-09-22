@@ -477,6 +477,56 @@ in the code; what is missing is the width and the emission.**
 returns one bind per slot. **That is the multiplier Part 3 says to cut first, and the
 per-observation bound is the only measured candidate that holds flat as the trace grows.**
 
+### 5.2.1 WHAT `came`/`gone` COST IF A DEPARTED OBJECT PERSISTS AS NULL — counted first
+
+**Two clauses of ruling 2 meet here.** *Publish `came`/`gone`* and *null-not-absent: unreadable =
+present with no value.* Together they mean a DEPARTED object should leave a NULL rather than
+vanishing — which is what makes `−` (absence is the point) and `⇒` (it did not exist before)
+readable as deltas at all.
+
+**Today `_present` DELETES a departed slot** and pops its binding, its residual and its trend
+(`tether.py:3094`). If objects persist instead, the slot set becomes every object EVER SEEN rather
+than every object PRESENT — and `_bindings` is linear in the slot set. So the cost had to be counted
+before the clause was built.
+
+    board   frames   live (mean)   came/frame   gone/frame   EVER SEEN   peak live
+    sk48      14         723         20.0         40.0          926         912
+    dc22      14         724         19.2          4.9          802        ~738
+    m0r0      14         168          4.6          1.2          192         176
+
+#### THE FIRST READING WAS A DENOMINATOR ERROR, AND IT IS THE SAME ONE AGAIN
+
+I first compared EVER SEEN against the LAST live count and read **sk48 at 2.28x** — a number that
+would have made this clause look unaffordable on the board that matters most.
+
+**It is wrong because sk48's last frame is POST-SHEDDING.** Per frame: slots only GROW for frames
+0-8 (666 → 912, ZERO departures), then **376 depart at once at frame 9**, and erosion continues —
+48, 32, 40, 24. `blind` is `False` on every frame, so this is a real structural event and not the
+blind-frame artefact `_present`'s own docstring warns about.
+
+> **AGAINST PEAK LIVE — THE RIGHT DENOMINATOR — PERSISTING COSTS +1.5% ON sk48 (926 vs 912), +9% ON
+> dc22 AND +9% ON m0r0.** Cheap on all three.
+>
+> **AND THE REASON IS STRUCTURAL RATHER THAN LUCKY: OBJECTS DO NOT COME BACK.** `EVER SEEN` climbs
+> 920 → 926 across frames 9-13 while **520 slots depart** over the same span. So the cumulative set
+> is bounded by the PEAK object count, not by cumulative churn — which is what makes
+> persist-as-null affordable in general rather than on these three boards.
+
+**That is the third denominator error of this session** (`F262`'s four-call baseline, the
+contaminated thirds, this) and the same shape each time: a ratio taken against whatever count was
+nearest rather than against the one the decision turns on.
+
+#### What it means for the build
+
+    persist departed objects as NULL     affordable -- bounded by peak, not by churn
+    `came` / `gone` carried per cycle    they are computed at `tether.py:3086` and DISCARDED
+    the consumer                         the bond tests (`⇒`, `−`), which are held for greenlight
+
+**So item 3 splits: the CARRY is cheap and unblocked; the null-persistence is affordable but
+changes object lifetime, and its only consumer is held.** Publishing a quantity nothing reads would
+be the silent code the checker forbids, so the carry lands first and the lifetime change lands with
+the bond tests.
+
 ## 5.3 THE BOND IS A HYPOTHESIS THE GROUND SETTLES — Isaiah, 2026-09-22, RULED
 
 > ***OPERATORS.md shows that any operator can be used. The recipes list mostly uses `+` only as an
