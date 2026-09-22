@@ -44174,3 +44174,60 @@ that the denominator is 70 million.
     MECHANISM   none. Two prior findings corrected in the rows that carry them
     CAPABILITY  none. It puts a number on the observer against the ground instead of against
                 the frame's own atom counters
+
+---
+
+## F294 (INDEX series) — **`dc22` ADVANCES THE GROUND: LEVELS 2 → 4 ON BOTH ARMS.** So the settling path is NOT broken — `sk48` seed 0 is the outlier. And **LEVELS ADVANCE WITH `settled` AT ZERO**, which reframes the question
+
+**The reviewer's (a), run: yield on the board that is alive and does reach the shape family.
+Equal windows, one script, one flag, arm I ON in both. Compared at CYCLE 9 on both arms.**
+
+    dc22, seed 0, cycle 9              observer ON        observer OFF
+    cumulative atom calls               36,031,231         11,267,689      3.20x
+    library                               54 -> 78           54 -> 58
+    settled terms                                 0                  0
+    PRIMITIVES                                    5                  0
+    LEVELS                                   2 -> 4             2 -> 4
+
+### THE ANSWER TO (a): IT DOES NOT GENERALISE, AND THAT IS THE GOOD OUTCOME
+
+**`dc22` completes levels — 2 to 4, at cycle 8, on BOTH arms.** The reviewer's fork was *if `dc22`
+also reads zero, the settling path is broken and that is the programme.* **It does not read
+zero on the ground.** `sk48` seed 0's flat `levels 2` across 735 million calls is **a property of
+that board-seed, not of the agent.**
+
+**AND `dc22` MINTS FAR LESS WHILE PROGRESSING MORE.** Library `54 → 58` on the OFF arm against
+`sk48`'s `54 → 99`, on a THIRD of the calls, and it advances two levels where `sk48` advances
+none. **More minting, more search, no progress; less minting, less search, progress.** *That is
+the opposite of the direction search-volume intuition predicts, and it is the sharpest thing in
+this table.*
+
+### THE PART THAT REFRAMES THE QUESTION: LEVELS MOVE WHILE `settled` IS ZERO
+
+**Both arms reach level 4 with `settled` at 0 for the whole run** (one term settles transiently on
+each and is gone by the next cycle). **So SETTLING IS NOT THE GATE ON GROUND PROGRESS.**
+
+> **WHICH MEANS *WHY DOES NOTHING SETTLE* WAS THE WRONG QUESTION TO PROMOTE ABOVE THE DECLARED
+> ORDER, AND I PROMOTED IT.** The agent advances the ground without it. **The right question is
+> narrower: what is `settled` FOR, if the ground moves without it** — and that is a write-site
+> question, which is the reviewer's (b), unchanged and now better aimed.
+
+### AND THE PROMOTION CHAIN FIRES ON A REAL BOARD — 5 PRIMITIVES, OBSERVER ON ONLY
+
+`prim` goes **0 → 5 at cycle 8 on the ON arm and stays 0 on the OFF arm.** `F56` recorded the
+`retro → _promotions → promote` chain as **never once completing on a real board.**
+
+> **THAT IS THE STRONGEST GROUND-FACING EFFECT THE OBSERVER HAS SHOWN, AND IT IS EXACTLY THE ONE
+> I MUST NOT OVERSELL.** One board, one seed, one arm-pair, and **`F56`'s status was read long
+> before tonight's arms existed**, so *never on a real board* and *5 here* may be two different
+> code states rather than a change the observer caused. **The write site is what settles it, and
+> it is next.**
+
+    BOUNDARY    ONE board, ONE seed, compared at CYCLE 9 on both arms -- equal windows, after
+                being burned twice tonight on unequal ones. The ON arm was cut at 9 by a
+                timeout, not by design. Arm I is ON in both, so the OBSERVER is priced and arm
+                I is not. `prim` and `levels` are single observations, not rates
+    MECHANISM   `fullcensus.py` reports the funnel `library -> settled -> primitive -> levels`
+    CAPABILITY  none built. It refutes the generalisation of `F292`, retires the question I
+                promoted above the declared order, and puts a first number on the promotion
+                chain firing on a real board
