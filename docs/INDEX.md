@@ -42997,11 +42997,24 @@ wrong twice on the way.**
 measured twice before I went to the write site.** `arc_world.board()`'s `frame[-1]` is the one
 correct discard of the three: you bet on the settled board.
 
-**MULTI-FRAME SHARE, every response in all 20 raw logs:**
+**CORRECTED 2026-09-22, IN THIS ROW: THE CENSUS IS 25 BOARDS AND I PUBLISHED 20.** The
+script globbed every `*_human.ndjson` correctly; I piped its output through `tail`, which cut the
+five alphabetically-first — `ar25`, `bp35`, `cd82`, `cn04`, **`dc22`**. **A BASELINE BOARD AND THE
+JOINT-HIGHEST BOARD WERE BOTH IN THE HIDDEN FIVE**: `bp35` is 100% multi-frame and `dc22` is 7.5%.
+A TRUNCATION IS NOT A SPLIT, so `census.py` would not have caught it — the guard covers branch
+accounting and says nothing about whether the display showed every row it was given.
 
-    lf52 100%  su15 95%  g50t 94%  tu93 94%  sk48 83%  r11l 51%  sb26 51%  tn36 25%
-    sc25  17%  ka59 15%  s5i5  9%  ls20  8%  vc33  6%  sp80  5%  ft09  4%  re86  2%
-    tr87   2%  lp85  2%  m0r0  1%  wa30  1%
+**MULTI-FRAME SHARE, every response in all 25 raw logs:**
+
+    bp35 100%  lf52 100%  su15 95%  g50t 94%  tu93 94%  sk48 83%  r11l 51%  sb26 51%
+    tn36  25%  cd82  20%  sc25 17%  ka59 15%  s5i5  9%  ls20  8%  dc22  8%  vc33  6%
+    sp80   5%  ft09   4%  re86  2%  tr87  2%  lp85  2%  ar25  1%  m0r0  1%  cn04  1%
+    wa30   1%
+
+**AND THE BASELINE PAIR IS BETTER CHOSEN THAN I REPORTED.** I told the reviewer the two boards I
+had been A/B-ing sat at opposite extremes and were picked for cost. **True of `sk48` (83%) and
+`m0r0` (1%), which is the WIRING pair — but the BASELINE OF RECORD is `sk48` 83% and `dc22` 7.5%,
+which spans the axis by accident.** The badly chosen board was the wiring one, not the baseline.
 
 **`sk48` is 83% and is a BASELINE board; `m0r0` is 1% and is the cheap wiring-check board.** The two
 I have been A/B-ing sit at opposite extremes of the quantity item 2 is about, and both were chosen
