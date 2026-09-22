@@ -42395,3 +42395,62 @@ measured.**
     CAPABILITY  none. It corrects a headline for the third time, confirms F254's elimination from
                 an independent direction, and names a hazard -- a shuffled tape's cycle index is
                 not a depth -- that the existing curves happen to survive
+
+## F265 (INDEX series) — B5 UNDER ARM J: the failure is REAL and it is the reviewer's ORIGINAL hypothesis, finally correct — but only in a 2-slot/3-step world. On `dc22` at 20 cycles every parked slot still gets its probe, 6 of 6
+
+**`F263` showed all seven M2 failures were one category error, fixed by the type filter (`375ce42`).
+The reviewer asked for B5 separately. Answered.**
+
+### B5's rule and its write sites, read before measuring
+
+**Doctrine: *support at zero is an INSTRUCTION, not a stop — perturb.*** Checked as: every `park`
+row with verdict `no_support` must be followed by a `probe` row for that slot.
+
+**`_starved.add(slot)` fires inside `mint` when the verdict is `no_support`. The probe rows flush
+in `step()` ONLY when the chosen action's `by == "probe"`.** So the probe depends on the drive
+still being starved on a LATER cycle — it is not written at the park.
+
+### measured on a real board, both arms, and it does NOT fail there
+
+    dc22, 20 cycles          parked (no_support)   probed   PARKED WITHOUT PROBE
+      arm J OFF                      6                6              0
+      arm J ON                       6                6              0
+      (10 REFUTED routings fired, none of them on a parked slot)
+
+**On `dc22` arm J changes nothing about B5.** Every zero-support park is eventually followed by a
+probe, in both arms.
+
+### and the conform seat's case is a GENERATED world, which is why it fails
+
+**`conform/stateful.py` runs the real `tether.Agent` over a generated world and then applies the
+fourteen kernel checks.** The failing case is **`{'s0': 'action', 's1': 'action'}` after THREE
+STEPS** — two slots, three cycles.
+
+> **THE MECHANISM IS THE REVIEWER'S ORIGINAL HYPOTHESIS AND IT IS RIGHT HERE:** the bin gives the
+> zero-support slot a competitor, the agent is no longer starved, `by` is never `"probe"`, and
+> `_starved` never flushes. **On `dc22` there are seventeen more cycles for the drive to starve
+> again; in a three-step world there are none.**
+
+**So it is a REAL behaviour change and its visibility is a function of run length.** Both halves
+matter: a seat that would have passed at 20 steps caught it at 3, which is what the generated
+worlds are FOR.
+
+### what I am NOT deciding
+
+**Whether a competitor rebind SATISFIES *perturb* is a doctrine question, not a measurement.** B5
+says support at zero is an instruction to perturb; **a rebind changes what the agent believes and
+does not touch the world.** My reading is that it does not satisfy it — **but the bin is the
+reviewer's mechanism and the check is the corpus's, so the collision is theirs to rule, not mine
+to resolve by editing either.**
+
+**The check is untouched. Arm J stays default OFF. `conform/check.py` is 10/10 with the arm off and
+9/10 with it on, and that one failure is now understood rather than outstanding.**
+
+    BOUNDARY    ONE real board (`dc22`, 20 cycles) plus the generated case from the seat's own
+                failure message. `ls20`'s arm of the same probe TIMED OUT and is not in the
+                table, so "does not fail on real boards" rests on one board. The generated
+                world's mechanism is READ from the write sites and the seat's message, not
+                instrumented inside the seat
+    MECHANISM   none changed. The type filter of `375ce42` is what fixed M2; this changes nothing
+    CAPABILITY  none. It converts B5 from "arm J breaks a seat" into a located, understood
+                collision between a new mechanism and a doctrinal check
