@@ -207,7 +207,20 @@ class Shipped(RuleBasedStateMachine):
         res = kernel.Linter.run(self.agent.led.rows())
         bad = {k: v["why"][:1] for k, v in res.items()
                if v["status"] in ("FAIL", "SUPPRESSED")}
-        fams = {n: r.family for n, r in sorted(self.spec.rules.items())}
+        # THE MESSAGE MUST CARRY ENOUGH TO REPRODUCE THE FAILURE -- approved 2026-09-22.
+        # It printed `{slot: family}` only, while the generated spec also carries `k` per
+        # SlotSpec and `obj`/`tgt`/`who`/`n` on the WorldSpec, all drawn from the rng. A
+        # hand-built world with the same two families produced NO no_support rows at all,
+        # so a B5 failure could not be reproduced from its own message and every diagnosis
+        # of it was a guess about a different world.
+        #
+        # THIS CHANGES NO VERDICT. It widens what a failure CARRIES, which is the opposite
+        # of disabling a check.
+        fams = {"slots": list(self.spec.slots),
+                "obj": self.spec.obj, "tgt": self.spec.tgt,
+                "who": self.spec.who, "n": self.spec.n,
+                "rules": {n: {"family": r.family, "k": r.k}
+                          for n, r in sorted(self.spec.rules.items())}}
         assert not bad, f"{bad} after {self.agent.cycle} steps on {fams}"
 
 
@@ -218,6 +231,13 @@ FAST = "--fast" in sys.argv
 Loop.TestCase.settings = settings(
     max_examples=25 if FAST else 120, stateful_step_count=6 if FAST else 10,
     deadline=None, suppress_health_check=[HealthCheck.too_slow],
+    # EXACT REPLAY, AND HYPOTHESIS ALREADY HAD IT -- approved 2026-09-22. A B5 failure
+    # could not be reproduced from its own message: printing the full spec revealed the
+    # missing `n=1`, and rebuilding that spec by hand STILL produced no `no_support` rows,
+    # so the failing state is not the spec alone. `print_blob` emits the
+    # `@reproduce_failure` token that replays the exact example, which is the thing a
+    # hand-built world can never be. Changes no verdict; it widens what a failure carries.
+    print_blob=True,
 )
 TestLoop = Loop.TestCase
 Shipped.TestCase.settings = Loop.TestCase.settings

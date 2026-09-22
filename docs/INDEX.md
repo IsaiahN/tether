@@ -42398,6 +42398,9 @@ measured.**
 
 ## F265 (INDEX series) — B5 UNDER ARM J: the failure is REAL and it is the reviewer's ORIGINAL hypothesis, finally correct — but only in a 2-slot/3-step world. On `dc22` at 20 cycles every parked slot still gets its probe, 6 of 6
 
+> **REFUTED BY `F266`, AND BY ITS OWN BOUNDARY NOTE.** This entry said *does not fail on real boards* and flagged that it rested on `dc22` alone because `ls20` timed out. **Two more boards were measured and `sk48` violates B5 WITH THE ARM OFF — 17 parked at `no_support`, 1 probe.** So B5 is a PRE-EXISTING violation on real boards, not an arm J effect, and `dc22`'s 6-of-6 was the outlier. **I generalised from one board an hour after writing the memory that says not to.**
+
+
 **`F263` showed all seven M2 failures were one category error, fixed by the type filter (`375ce42`).
 The reviewer asked for B5 separately. Answered.**
 
@@ -42454,3 +42457,58 @@ to resolve by editing either.**
     MECHANISM   none changed. The type filter of `375ce42` is what fixed M2; this changes nothing
     CAPABILITY  none. It converts B5 from "arm J breaks a seat" into a located, understood
                 collision between a new mechanism and a doctrinal check
+
+## F266 (INDEX series) — B5 IS VIOLATED ON A REAL BOARD **WITH ARM J OFF**: `sk48` parks 17 slots at `no_support` and probes ONE. It is not an arm J defect, and `F265`'s "does not fail on real boards" was one board
+
+**`F265` measured `dc22` at 6 parked / 6 probed / 0 unprobed in both arms and concluded B5 does not
+fail on real boards — flagging, in its own boundary note, that `ls20` had timed out and it rested
+on one board. The reviewer asked for a second. Two more were run.**
+
+    20 cycles, per board          parked (no_support)   probed   PARKED WITHOUT PROBE   of those REFUTED-routed
+    dc22   arm OFF                        6                6              0
+           arm ON                         6                6              0                      0
+    m0r0   arm OFF                        0                0              0
+           arm ON                         4                0              4                      4
+    sk48   arm OFF                       17                1             17
+           arm ON                        24                1             24                      8
+
+### THREE BOARDS, THREE DIFFERENT ANSWERS — and the one that matters is `sk48` with the arm OFF
+
+**`sk48` parks SEVENTEEN slots at `no_support` and fires ONE probe, with arm J disabled.** B5's
+doctrine is *support at zero is an INSTRUCTION, not a stop: perturb.* **Seventeen instructions,
+one act.**
+
+> **SO B5 IS A PRE-EXISTING VIOLATION ON REAL BOARDS AND NOT AN ARM J DEFECT.** The conform seat
+> caught it in a generated world; **no seat was checking it on the boards the agent actually
+> plays**, and it has presumably been true for as long as `bored()` has gated the probe.
+
+**Arm J makes it WORSE and does not cause it** — `sk48` `17 → 24`, and on `m0r0` it creates the
+violation outright (`0 → 4`, all four REFUTED-routed). So the reviewer's ruling was aimed at
+something real; **it is a second contributor to a hole that was already open.**
+
+### AND THE B5 FALL-THROUGH CANNOT CLOSE IT, WHICH IS NOW EXPLAINED RATHER THAN OBSERVED
+
+`05046e0` makes a REFUTED routing on a starved slot fall through to mint. **`m0r0` still shows 4
+unprobed parks under the arm.** The reason is the write site: **`bored()` is `self.n > 0 and not
+self.live`, and `live` is `any(r.mass > 0)`** — the probe fires when NO slot carried mass this
+step. **Falling through to mint does not make the agent bored**, so it cannot produce a probe. The
+ruling is correct and addresses a different link than the one that gates B5.
+
+### `F265` WAS ONE BOARD, AND I HAD JUST WRITTEN THE MEMORY THAT FORBIDS IT
+
+**Its boundary note said the claim rested on `dc22` alone. I wrote the conclusion in the headline
+anyway** — *"On `dc22` at 20 cycles every parked slot still gets its probe"* reads as reassurance
+and was doing the work of a general claim.
+
+> **AND `dc22` IS THE OUTLIER, NOT THE RULE: it is the only one of three where B5 holds.** The
+> outlier discipline says the disagreeing case is the suspect — **here the disagreeing case was
+> the one I generalised FROM.**
+
+    BOUNDARY    three boards, 20 cycles, ONE seed each, both arms on the same code state. The
+                probe depends on `bored()`, which is a per-STEP predicate, so a longer run could
+                probe these slots later -- 20 cycles is not a claim about the whole tape.
+                `parked` counts DISTINCT slots, not rows. `ls20` still untested: it timed out
+                twice and is the fourth board this wants
+    MECHANISM   none changed. `05046e0` stands as ruled and is not the fix for this
+    CAPABILITY  none. It moves B5 from "a cost of arm J" to "an open violation on real boards
+                that no seat was measuring", which is a larger and worse finding
