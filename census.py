@@ -113,6 +113,50 @@ def window(title: str, per_cycle: list[int]) -> str:
     return "\n".join(lines)
 
 
+def resolution(title: str, per_atom: dict) -> str:
+    """EVERY ATOM THAT NEVER RESOLVED, NAMED, BEFORE ANY RESULT. Reviewer, 2026-09-22.
+
+    `per_atom` maps atom name -> (resolved, not_resolved).
+
+    **THREE ATOMS WERE FOUND DEAD IN TWO TICKS AND ALL THREE WERE INVISIBLE**: `holes` (omitted
+    from arm I's decode by a closure boundary), `area` and `centroid` (reading `rec["cells"]`,
+    a key no site writes). Each returned NOT_RESOLVED on 100% of its calls, **and a
+    NOT_RESOLVED atom is indistinguishable from an atom that legitimately abstains** -- which
+    is the write-site law in its perception form: reading zero, the record cannot tell you
+    whether the thing is broken, perfect, or absent.
+
+    **IT REPORTS RATHER THAN RAISES, AND THAT IS DELIBERATE.** A never-resolving atom does not
+    invalidate the run the way an unaccounted split invalidates a percentage -- it may be
+    genuinely inapplicable to the board. What it must not be is SILENT. **What DOES raise is
+    calling this with nothing**, because a run that did not take the census cannot claim the
+    atoms were checked.
+
+    Atoms with ZERO CALLS are listed apart: never-reached and never-resolving are different
+    findings, and merging them is how "not called" would read as "broken".
+    """
+    if not per_atom:
+        raise SplitError(f"{title}: the resolution census is empty -- a run that did not take "
+                         f"it cannot report that its atoms resolved")
+    dead, uncalled, live = [], [], []
+    for name, (ok, no) in sorted(per_atom.items()):
+        if ok + no == 0:
+            uncalled.append(name)
+        elif ok == 0:
+            dead.append((name, no))
+        else:
+            live.append((name, ok, ok + no))
+    lines = [f"  {title}", f"    atoms in census {len(per_atom)}"]
+    if dead:
+        lines.append("    NEVER RESOLVED (broken, unreached, or absent -- named, not silent):")
+        lines += [f"      {n:<16} 0 of {no} calls" for n, no in dead]
+    else:
+        lines.append("    never-resolved  none")
+    note = "   <-- not reached is NOT the same finding as not resolving" if uncalled else ""
+    lines.append(f"    zero calls      {', '.join(uncalled) if uncalled else 'none'}{note}")
+    lines += [f"    {n:<16} {ok}/{tot} resolved" for n, ok, tot in live]
+    return "\n".join(lines)
+
+
 def _selftest() -> int:
     """REINTRODUCE THE DEFECT, NEVER DISABLE THE CHECK. Each case is one real fault."""
     bad = 0
@@ -157,6 +201,23 @@ def _selftest() -> int:
     if "first live    3" not in live or "live cycles   3" not in live:
         print("census: a live window did not report its first live cycle and count")
         bad += 1
+
+    # THE THREE DEAD ATOMS, as the census would have shown them before any result.
+    blk = resolution("as it stood two ticks ago",
+                     {"holes": (0, 3140), "area": (0, 0), "centroid": (0, 0),
+                      "bbox_area": (62448, 62448)})
+    if "holes" not in blk or "0 of 3140" not in blk:
+        print("census: a never-resolving atom was not named")
+        bad += 1
+    if "area, centroid" not in blk:
+        print("census: zero-call atoms were not listed apart from never-resolving ones")
+        bad += 1
+    try:
+        resolution("a run that skipped it", {})
+        print("census: an EMPTY resolution census was accepted")
+        bad += 1
+    except SplitError:
+        pass
 
     if "could have read less" not in rate("all of them", 7, 7):
         print("census: a 100% rate did not carry its check")
