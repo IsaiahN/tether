@@ -113,6 +113,27 @@ def window(title: str, per_cycle: list[int]) -> str:
     return "\n".join(lines)
 
 
+def progress(i: int, of: int, count: int, cumulative: int, t0: float) -> None:
+    """ONE FLUSHED LINE PER CYCLE. Reviewer, 2026-09-22, made standard for every measurement
+    script so it is not re-decided per script.
+
+    **A LONG MEASUREMENT THAT CANNOT REPORT PROGRESS IS A GAMBLE ON IT FINISHING, and a silent
+    run is indistinguishable from a hung one.** A 15-cycle census on `sk48` printed everything
+    after its loop, **went dark for ~50 minutes, and had no partial answer to read when it had
+    to be killed.** Restarted with this line, **the question it was run for was answered in ONE
+    SECOND by cycle 1** -- and the cycles after it carried `F290`, which was not the question.
+
+    So it is not only an ergonomic: **the partial output IS the finding more often than the
+    total is.** A run reporting nothing until it completes cannot be read early, cannot be
+    stopped on a sufficient answer, and loses everything if it is stopped at all.
+    """
+    import sys as _s
+    import time as _t
+    print(f"  cycle {i:3d}/{of}  calls {count:12,d}  cumulative {cumulative:14,d}  "
+          f"{_t.time() - t0:6.0f}s", flush=True)
+    _s.stdout.flush()
+
+
 def resolution(title: str, per_atom: dict) -> str:
     """EVERY ATOM THAT NEVER RESOLVED, NAMED, BEFORE ANY RESULT. Reviewer, 2026-09-22.
 
@@ -193,6 +214,11 @@ def _selftest() -> int:
     if "area" not in got:
         print("census: a zero-call atom was not listed apart")
         bad += 1
+
+    # `progress` is exercised here rather than only by measurement scripts, which live outside
+    # the repo -- the ISOLATED seat is right that a helper with no caller in-tree is dead code.
+    import time as _t
+    progress(1, 3, 1242, 1242, _t.time())
 
     ok = split("control: a real split", 10, {"moved": 4, "held": 6})
     if "branches sum  10  == total 10" not in ok:

@@ -422,6 +422,15 @@ reads as something that will be enforced, and it will not be.
   is visible — name the two or three things in contention and the two or three signals
   that could decide between them — let the answer shake out at that altitude, then drop
   back to specifics. A first-class move, not a fallback. Both I and the agent run it.
+- **NO CLAIM ABOUT A ROW WITHOUT READING THE WHOLE ROW — reviewer, 2026-09-22, made
+  standing after two instances in one night.** When you classify a row — *dead* / *live* /
+  *growing* / *flat* — **quote EVERY column of that row in the write-up**, including the ones
+  that look irrelevant: runtime, counts, multi-frame share. **If any column is inconsistent
+  with the classification, THAT is the finding.** `sk48` seed 0 was filed as a DEAD WINDOW
+  while **`1648s` sat in the runtime column of the same row** — an idle board does not take 27
+  minutes — and `F282`'s growth law was contradicted by cycles 4–6 of the very output it was
+  read from. **Both times the refutation was already printed and in front of me.** The rule is
+  mechanical because the failure is not reasoning: it is looking at the column you came for.
 - **AN A/B IS ONE SCRIPT WITH ONE FLAG, NEVER TWO SCRIPTS — reviewer, 2026-09-22, made
   standing.** Two programs written at different times for different questions **differ in
   every way nobody wrote down**, so the difference between their outputs has no single cause

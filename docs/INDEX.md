@@ -44005,3 +44005,58 @@ before them combined; the census was left running rather than extrapolated.
     CAPABILITY  none. It is the first direct measurement of the composer in combinatorial
                 explosion, and it makes `the route chart` -- minting shrinking while retrieval
                 grows -- a thing with a measurable denominator rather than a hope
+
+---
+
+## F291 (INDEX series) — THE A/B: THE OBSERVER IS A **~3.9x AMPLIFIER, NOT THE CAUSE.** The explosion is there with the arm OFF — and the arm simultaneously REACHES MORE ATOMS, so "more search" and "more reach" are both true at once
+
+**One script, one flag, `NO_OBS=1`. Same board, same seed, same eleven cycles, same spy, arm I
+ON in both.** The measurement `F290` said was owed, run rather than deferred.
+
+    sk48, seed 0, 11 cycles          observer ON        observer OFF
+    cumulative atom calls           159,560,054          40,449,762      3.94x
+    cycle 1                               3,276               1,242
+    cycle 10                         33,681,688          15,987,147
+    cycle 11                         89,026,085           5,156,237
+    never called                        (pending)                  37  of 54
+    Figure 6 entry list                 (pending)                   0
+    resolving                           (pending)                  17
+
+### THE EXPLOSION IS NOT THE ARMS' DOING
+
+**With the observer OFF the agent still goes 1,242 → 15,987,147 atom calls by cycle 10.** The
+observer multiplies it by about four; **it does not create it.** So `F290`'s finding survives the
+control with its cause unclaimed, which is the outcome I could not have assumed either way.
+
+**AND THE OFF ARM IS NOT MONOTONE EITHER** — cycle 11 FALLS to 5.2M from 16.0M. *The same
+non-monotone shape `wa30` showed in `F282`*, which is another reason the growth was never a
+clean law to extrapolate.
+
+**The ON arm continued past the A/B window: cycle 12 = 107,774,880 and cycle 13 = 115,844,722,
+cumulative 383,179,656** — still rising, but the per-cycle multiple is flattening (89M → 108M →
+116M), so *tripling per cycle* was a description of cycles 8–11 and not of the run.
+
+### THE PART THAT CORRECTS ME, AND IT CUTS BOTH WAYS
+
+I told the reviewer that if the arms feed the explosion then *"the composer reaches 11x further"
+and *"the composer searches 11x harder"* are the same number in different clothes, and that I had
+**chosen the flattering reading both times.** The A/B says **both readings are true and they are
+not the same number.**
+
+    the arm multiplies CALLS          x3.94   -- more search, and it is real
+    the arm multiplies REACH          `F286`: `symmetric` 0 -> 89,568, never-called 26 -> 23
+                                      here: OFF strands 37 of 54, including `bbox_area`
+
+> **SO THE OBSERVER BUYS REACH AND PAYS IN SEARCH, and the honest statement is the ratio rather
+> than either half.** `F283`'s elevenfold and `F286`'s 21.7x are **not withdrawn** — they measured
+> atoms moving from unreachable to reachable, which a search-volume increase does not do by
+> itself. **What they were missing is the price, and now it has a number.**
+
+    BOUNDARY    ONE board, ONE seed, ELEVEN cycles, arm I ON in both arms -- so this prices the
+                OBSERVER only. Arm I's own price is NOT measured and `F283`'s elevenfold still
+                has no OFF arm on call count. The ON arm's per-atom census is pending the run
+    MECHANISM   `census.progress` folded in as the standard flushed per-cycle line (reviewer),
+                exercised in `_selftest` because the ISOLATED seat correctly refuses a helper
+                with no in-tree caller. `CLAUDE.md`: no claim about a row without quoting every
+                column of it
+    CAPABILITY  none new. It prices one already-claimed capability and leaves the other unpriced
