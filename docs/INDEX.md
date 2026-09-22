@@ -43672,9 +43672,12 @@ statement is **at seed 0 they are never reached, and at seed 1 they are called 7
 > **I pulled a control forward for INSTRUMENT soundness and never asked for the SEED spread** —
 > and the instrument control passed, which is precisely what made the reading feel safe.
 
-**AND IT DISSOLVES THE `symmetric` PUZZLE WITHOUT A NEW MEASUREMENT.** `armI` calls
-`chunk_order(BOARD)` — **`SHUFFLE_SEED = 1618`** — and `fullcensus` passed `seed=0`. *Never
-called* versus *20,010 calls* was two seeds, never two instruments. **Wrapping ten atoms and
+**AND THE `symmetric` HALF OF THIS ROW IS WRONG — SEE `F286`, AND THE CORRECTION IS IN THE ROW
+THAT CARRIES THE ERROR.** I wrote that `armI`'s *never called* versus `fullcensus`' *20,010
+calls* was a SEED difference (`SHUFFLE_SEED = 1618` versus `seed=0`). **It was not. It is the
+OBSERVER ARM, which `armI` never sets** — held at one seed and one script, observer OFF gives
+`symmetric` 0 calls and ON gives 89,568. **The seed explanation was my SECOND wrong attribution
+for the same discrepancy and it is struck.** **Wrapping ten atoms and
 wrapping all fifty-four give byte-identical counts (20,010 / 20,082), so the spy is passive** —
 that much was worth establishing and is the one thing the detour bought.
 
@@ -43714,3 +43717,56 @@ passes tuples.
                 the CALL COUNTS and first-live columns are unaffected and stand
     CAPABILITY  none. It withdraws a reading I had already reported, and repairs the guard that
                 let it through
+
+---
+
+## F286 (INDEX series) — THE OBSERVER ARM IS WHAT MAKES `symmetric` REACHABLE AT ALL, AND IT MULTIPLIES `is_square`'s CALLS **21.7x**. And it took me THREE attributions to get there, because I kept comparing two SCRIPTS that differed in three ways
+
+### The single-variable reading, which is the only one of the four that is worth anything
+
+**One script, one board, one seed, four cycles, same spy, arm I ON in both. Only `TETHER_OBSERVER` moves.**
+
+    g50t, seed 1618, 4 cycles          observer OFF      observer ON
+    symmetric      SHAPE->BOOL            NEVER CALLED        89,568
+    is_square      SHAPE->BOOL                   4,764       103,500
+    never called                                     26            23
+    called, never resolved                            0             2   (`reflect`, `rotate`)
+
+**`is_square`'s 4,764 with the observer OFF matches `armI`'s 4,764 exactly**, which is the
+cross-check that says the two scripts really were observer-ON versus observer-OFF and nothing else.
+
+> **THIS IS A CAPABILITY READING FOR THE OBSERVER, AND IT IS ITEM 1's OWN SUBJECT.** The observer
+> was built to widen what the agent PERCEIVES. **It also moved an atom from unreachable to
+> reachable and multiplied another's calls by 21.7** — more published slots means more values for
+> the composer to walk through, so *widening perception widened REACH*. **Same shape as `F283`'s
+> elevenfold for arm I, by a different mechanism, and this one is held at one variable where
+> `F283` is not.**
+
+### THE PART TO KEEP IS THE METHOD FAILURE, BECAUSE IT REPEATED THREE TIMES IN ONE TICK
+
+`armI.py` and `fullcensus.py` differed in **THREE** ways at once — the seed (1618 vs 0), the spy
+coverage (ten atoms vs fifty-four), and **the observer arm, which `armI` never sets.** I attributed
+the discrepancy to each in turn:
+
+    1  the spy perturbs the run        REFUTED -- wrapping 10 and wrapping 54 give byte-identical
+                                       counts, 20,010 / 20,082. Worth having: the spy is passive
+    2  it is the seed                  REFUTED -- and I had already FILED it, in `F285`
+    3  it is the observer arm          held at one variable, and it is right
+
+> **THE ERROR IS NOT ANY OF THE THREE GUESSES. IT IS COMPARING TWO SCRIPTS.** Two programs written
+> at different times for different questions differ in every way nobody wrote down, so the
+> difference between their outputs has no single cause to find. **The fix is not *think harder
+> about which variable* — it is *put both arms inside ONE script behind ONE flag*, which took four
+> lines and settled it immediately.**
+
+**AND THE `sk48` SEED FINDING IN `F285` IS UNAFFECTED AND STANDS.** That one was **one script, one
+setting, two seeds** — `step1.py`'s own consecutive rows, 0 calls at seed 0 and 783,902 at seed 1.
+*It is the case that was already controlled, which is why it survived and the other did not.*
+
+    BOUNDARY    ONE board (`g50t`, which Isaiah warns is unrepresentative), ONE seed, 4 cycles.
+                Says the observer changes REACH here. Says nothing about any other board, and
+                the declared run is what carries that
+    MECHANISM   none changed. `fullcensus.py` gained a `NO_OBS` flag so the arm is one variable
+                inside one script
+    CAPABILITY  the observer's first measured reach effect -- an atom from unreachable to
+                reachable, and 21.7x on another. Held at one variable
