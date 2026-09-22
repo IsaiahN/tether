@@ -202,6 +202,13 @@ _REFUTED_BIN = bool(os.environ.get("TETHER_REFUTED_BIN"))
 # operand-reading terms when R showed no dependence on another slot LOST A CLOSING TERM.*
 # Different rule, same family. `distinct compositions must not fall` is the falsifier.
 _DELTA_OPERANDS = bool(os.environ.get("TETHER_DELTA_OPERANDS"))
+# ITEM 6, THE RE-KEY. Default OFF. `F303` measured the key BEFORE this was built: a GLOBAL frame
+# delta is saturated at every granularity that crosses boards -- types 100% of cycles, attribute
+# names 91% -- because *did ANY slot of this type move ANYWHERE* is always yes across 1,688
+# slots. Scoped to the target's OWN OBJECT it is ~3%, median 0%, with nine objects in ten
+# changing nothing. The reviewer's ordering requires this narrowing BEFORE mint's `out_type` is
+# widened: widening without narrowing is how 735 million calls arrive nowhere.
+_DELTA_KEY = bool(os.environ.get("TETHER_DELTA_KEY"))
 
 # ARM M -- PERTURB THE STARVED SLOT, IN PARALLEL. SEAT-SIDE SWITCH, DEFAULT OFF.
 # `F269`'s table is the premise: on sk48 all seven probes fire in cycles 1-7 and all seventeen
@@ -1433,8 +1440,15 @@ class Agent:
         _robs = (self._residual_obs(slot, self.gamma.library[self.bound.get(slot, IDN)], hist)
                  if _DELTA_OPERANDS else None)
         _rel = getattr(self.env, "contact_changes", None) if _REL_GAP else None
+        # THE SCOPE IS READ FROM `slot_owner`, NEVER DERIVED BY SPLITTING THE NAME -- the loop
+        # may not read domain structure, which is that side channel's whole reason.
+        _scope = None
+        if _DELTA_KEY:
+            own = self.env.slot_owner()
+            mine = own.get(slot)
+            _scope = {s_ for s_, o_ in own.items() if o_ == mine} if mine else None
         gap = retrieval.characterise(hist, slot, list(self.alphabet), self.slot_types,
-                                     relations=_rel() if _rel else None)
+                                     relations=_rel() if _rel else None, scope=_scope)
         # THE GAP IS CITED BEFORE THE PULL, AND THE ROW IS WHAT PROVES IT. §15.3: *a retrieval
         # requires a characterised residual, so it is a derivation step: it cites the gap, it
         # lands in the ledger, and the gate can check that the citation preceded the pull.*

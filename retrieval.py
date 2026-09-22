@@ -37,7 +37,8 @@ sys.dont_write_bytecode = True
 
 def characterise(robs: list, slot: str, slots: list[str],
                  types: dict[str, str] | None = None,
-                 relations: dict | None = None) -> dict:
+                 relations: dict | None = None,
+                 scope: set | None = None) -> dict:
     """THE GAP, DESCRIBED. `R`'s own structure, computed from the residual and nothing else.
 
     `arity` is how many slots the gap involves: a residual whose frames all hold one slot's
@@ -47,7 +48,25 @@ def characterise(robs: list, slot: str, slots: list[str],
     """
     if not robs:
         return {"arity": 1, "varies": (), "invariant": (), "n": 0}
-    others = [s for s in slots if s != slot]
+    # ITEM 6's RE-KEY, AND IT IS ONE LINE BECAUSE THE SATURATION WAS HERE. `others` was EVERY
+    # SLOT ON THE BOARD, so `varies` asked *did ANY slot of this type move ANYWHERE* -- and
+    # `F303` measured that at 100% of types on 7 of 8 cycles across 1,688 slots. **A key that
+    # fires on everything is not a key**, which `fits` already records happening once: *154 of
+    # 154 gaps had something moving, and the key collapsed onto arity at 87.3%.*
+    #
+    # SCOPED, the question becomes *did THIS OBJECT's `col` move* -- which is what a residual on
+    # `o11.col` is about. `F303`: mean 1.5-8.1%, MEDIAN 0%, and 92 of 102 objects changed
+    # nothing at all. **The key still CROSSES**, because what is published is `varies_types` --
+    # types and arity, never an object id. *Scope is not part of the key; it is where the key is
+    # read.*
+    #
+    # CONTACT PARTNERS ARE NOT ADDED HERE, deliberately. `_delta_narrowed` adds them on the
+    # OPERAND axis, and whether the same widening is right for the KEY is a separate question
+    # that is NOT measured -- so this is the version `F303` actually measured and no more.
+    if scope:
+        others = [s for s in slots if s != slot and s in scope]
+    else:
+        others = [s for s in slots if s != slot]
     varies = tuple(s for s in others
                    if len({st.get(s) for st, _, _ in robs if s in st}) > 1)
     invariant = tuple(s for s in others if s not in varies)

@@ -44796,3 +44796,66 @@ the `out_type` widening**, and it is now measured rather than hoped for.
     MECHANISM   none changed. This is the measurement that precedes item 6's build
     CAPABILITY  none yet. It replaces item 6's specified key -- "this frame's delta" -- with a
                 scoped one, on evidence, before the build rather than after it
+
+---
+
+## F304 (INDEX series) — ITEM 6 IS BUILT AND IT IS A **NEAR-NULL: +0.16% of calls.** The re-key cannot narrow, because retrieval ORDERS and never EXCLUDES — and the lookup's cost was never the candidate count
+
+**One script, one flag, same board, same seed, same six cycles, equal windows.**
+
+    sk48 seed 0, 6 cycles        delta-key OFF      delta-key ON
+    cumulative atom calls           4,018,671         4,024,994      +0.16%
+    library                          55 -> 94          55 -> 94       identical
+    settled                                  0                 0
+    prim                                     0                 0
+
+**`F303` measured the key at ~30x more selective when scoped. The run says that selectivity buys
+nothing.** The arm IS live — the totals differ from cycle 2 on, so the gap really is being
+computed differently — **and the difference is 0.16%.**
+
+### WHY, AND BOTH REASONS WERE ALREADY WRITTEN IN THE CODE
+
+**1. `fits` ORDERS AND EXCLUDES NOTHING.** Its own docstring: *"How well one term's key fits the
+gap. Higher is better, and NOTHING is excluded… a term that scores nothing is tried last rather
+than not at all."* **A better key therefore changes the ORDER candidates arrive in, never how
+many exist.** Re-keying can only pay where the caller STOPS EARLY, and the saving is bounded by
+how much earlier the first explainer is found.
+
+**2. THE LOOKUP'S COST IS NOT CANDIDATES — IT IS OPERAND BINDS.** `_delta_narrowed`'s own
+docstring records the measurement: *"Measured on `sk48` cycle 8: `enum_calls = 0` and
+`cand_closure = 0` — mint reached no enumeration at all — against **1,521,205 operand binds**,
+every one of them the lookup's."*
+
+> **SO THE RE-KEY IS AIMED AT A COST THAT IS ROUGHLY ZERO ON THIS BOARD, AND THE DOMINANT COST IS
+> ON THE AXIS `_delta_narrowed` ALREADY BOUNDS — WHICH WAS ALREADY ON IN BOTH ARMS.** *Item 6's
+> two halves are not two parts of one narrowing: the operand half is the whole of it, and it was
+> built before tonight.*
+
+### WHAT THIS MEANS FOR THE REVIEWER'S ORDERING, AND IT IS THE REASON TO REPORT A NULL LOUDLY
+
+The 23:09 ruling was **item 6 FIRST, then widen mint's `out_type`** — *the delta narrowing must
+be in place before the door opens, or we will have built the explosion deliberately.* **The
+ordering is right and the premise is now wrong: ITEM 6 IS NOT A NARROWING.** It re-ranks.
+
+**So the widening is NOT yet protected by anything item 6 added.** What protects it is
+`_delta_narrowed` on the operand axis — **already on, already measured, and unchanged by
+tonight.** Whether that is sufficient protection for a widened terminal type is **untested**, and
+saying so is the point of this row.
+
+### AND THE KEY ITSELF IS NOT REFUTED
+
+**`F303`'s selectivity is real and this does not overturn it** — a scoped key IS ~30x more
+discriminating. **What is refuted is that selectivity, applied HERE, reduces work.** It would
+matter at a call site that EXCLUDES, or one whose cost scales with candidates tried. *Neither
+describes `_library_fit` today.*
+
+    BOUNDARY    ONE board, ONE seed, SIX cycles, arm I and observer ON in both, equal windows.
+                `sk48` seed 0 is the board-seed that reaches no shape atoms and settles nothing,
+                so it is a WEAK place to detect a ranking effect -- a board where the lookup
+                actually finds explainers might show more. Agent-side only; tape run
+    MECHANISM   `retrieval.characterise` takes `scope`; `_library_fit` passes the target's own
+                object's slots, read from `slot_owner` and never by splitting the name. Behind
+                `TETHER_DELTA_KEY`, default OFF. Contact partners deliberately NOT added -- that
+                widening is unmeasured. 13/13
+    CAPABILITY  none. It converts "item 6 is the narrowing" into "item 6 is a re-ranking, and
+                the narrowing that exists is the operand bound built earlier"
