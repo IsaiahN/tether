@@ -43830,3 +43830,61 @@ mis-typing is what lets them compose at all.
     MECHANISM   none changed
     CAPABILITY  none. It converts the component-list erasure from an argument into a count, and
                 it is the bundle the reviewer is putting to Isaiah with the fork
+
+---
+
+## F288 (INDEX series) — I NAMED TWO THINGS `live`, THE REVIEWER BUILT A RULE ON THE WRONG ONE, AND APPLIED AS WRITTEN IT WOULD HAVE DISCARDED EVERY REACH FINDING AS A NON-MEASUREMENT
+
+**Certain from the code, independent of any run.** `step1.py` wrapped only the ten
+`SHAPE_ATOMS` and then counted a cycle as `live` if that counter moved:
+
+    atoms = [spy(a) if a.name in SHAPE_ATOMS else a for a in env.atoms()]
+
+**So `live cycles 0 of 15` means NO SHAPE ATOM WAS CALLED. It does not mean the board did
+nothing.** The agent may have perceived, bound, bet and minted through all fifteen cycles with
+the other forty-four atoms firing, and the instrument could not see any of it.
+
+### THE RULE WAS GOOD. THE LABEL WAS BAD. THAT COMBINATION IS THE HARD ONE
+
+The reviewer's Part 10 rule 1 (19:12) read *a row with zero live cycles is UNMEASURED — not a
+zero, and not pooled into any rate.* **Correct, and correctly reasoned, on a quantity that was
+not the one in the column.**
+
+    board idle, family unreached      genuinely UNMEASURED -- the rule is right
+    board BUSY, family unreached      A REACH FINDING -- the rule would DISCARD it
+
+**And the second is the most informative row the table can produce**: the agent ran, and a whole
+atom family never came up. *Discarding it deletes the finding.*
+
+> **A GOOD RULE ON A BAD LABEL IS HARDER TO CATCH THAN A BAD RULE, BECAUSE NOTHING ABOUT THE
+> RULE LOOKS WRONG.** Reviewer, adopting it to the ledger. **The rule is where attention goes;
+> the label is assumed to mean what the word means.**
+
+**`A6i`, WRITING SIDE, IN MY OWN INSTRUMENT — the fourth instance today.** The counter was named
+after *what I was measuring that hour* rather than what it counts, then printed under the general
+word. **The reader took the general word, correctly.** Same shape as `recolour` (`F284`): the name
+came from the work in hand, not from what the word already had to cover.
+
+### REPAIRED, AND THE OLD WORDING KEPT
+
+`shape-live cycles` for the ten; **`board-live cycles` counted over ALL 54 atoms**; `all-atom
+calls` beside `shape-atom calls`. `F286` established the spy is PASSIVE — wrapping 10 and 54 give
+byte-identical counts — **so the true column costs nothing in what is measured**, which is what
+made it legal before a run. The report now prints `UNMEASURED` and `REACH FINDING` as distinct
+verdicts rather than leaving them to a reader.
+
+**Part 10 rule 1 is restated, and the 19:12 wording is KEPT IN THE ROW BENEATH IT.** A correction
+that deletes the thing corrected leaves the next reader unable to see the trap.
+
+**AND A SECOND, SMALLER INSTRUMENT DEFECT FOUND BY LIVING WITH IT:** `fullcensus.py` printed
+everything AFTER its loop, so a 15-cycle census on `sk48` **went dark for ~50 minutes and a long
+run was indistinguishable from a hung one** — with no partial answer to read if it had to be
+killed. Now prints a flushed line per cycle.
+
+    BOUNDARY    a read of `step1.py`. NO RUN -- the mislabel is a fact about the code and needed
+                no measurement, which is why it was reported before the census returned
+    MECHANISM   `step1.py` wraps all 54 atoms and reports both liveness columns; Part 10 rule 1
+                restated; `fullcensus.py` flushes per cycle. Boards, seeds, cycles and arms
+                UNCHANGED -- only columns
+    CAPABILITY  none on the agent. It stops a rule hardening on the wrong quantity, and the
+                depth run's two `sk48` zero rows stay of UNKNOWN KIND until the census returns
