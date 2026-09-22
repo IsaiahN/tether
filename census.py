@@ -84,6 +84,35 @@ def rate(name: str, hit: int, of: int) -> str:
     return f"    {name:<24} {hit}/{of} = {pct:.1f}%{edge}"
 
 
+def window(title: str, per_cycle: list[int]) -> str:
+    """The measurement WINDOW against the cycles that were actually live. Raises on a dead window.
+
+    REVIEWER, 2026-09-22, ruling 3, after the fifth instrument fault. A resolution census ran
+    `sk48` for 6 cycles and read ZERO CALLS on both arms -- and `F274` had already established
+    that sk48 does nothing before cycle 7, so the entire window sat inside the dead zone. **The
+    reading was "the shape atoms are never called". The truth was "this window contains no
+    cycle in which anything happens."**
+
+    **A ZERO FROM A DEAD WINDOW IS NOT A NULL, IT IS A NON-MEASUREMENT** -- and it presents as
+    the stronger claim, which is the same asymmetry the over-claiming-a-null law names: a null
+    needs no defence, so nobody asks it for one.
+
+    `per_cycle` is any per-cycle activity count the caller already has -- calls, mints, lookups.
+    It does not matter which, only that a live cycle is distinguishable from a dead one.
+    """
+    live = [i for i, n in enumerate(per_cycle, 1) if n]
+    lines = [f"  {title}",
+             f"    window        {len(per_cycle)} cycles",
+             f"    live cycles   {len(live)}",
+             f"    first live    {live[0] if live else '--'}"]
+    if not live:
+        lines.append("    DEAD WINDOW   no cycle did anything -- this is a NON-MEASUREMENT")
+        print("\n".join(lines))
+        raise SplitError(f"{title}: the window contains no live cycle, so a zero here is a "
+                         f"property of the window and not of the mechanism")
+    return "\n".join(lines)
+
+
 def _selftest() -> int:
     """REINTRODUCE THE DEFECT, NEVER DISABLE THE CHECK. Each case is one real fault."""
     bad = 0
@@ -116,6 +145,18 @@ def _selftest() -> int:
         bad += 1
     except SplitError:
         pass
+
+    # THE FIFTH FAULT: a 6-cycle window on a board that is dead until cycle 7.
+    try:
+        window("sk48 as first measured", [0, 0, 0, 0, 0, 0])
+        print("census: a DEAD WINDOW was accepted")
+        bad += 1
+    except SplitError:
+        pass
+    live = window("a window with live cycles", [0, 0, 3, 7, 0, 2])
+    if "first live    3" not in live or "live cycles   3" not in live:
+        print("census: a live window did not report its first live cycle and count")
+        bad += 1
 
     if "could have read less" not in rate("all of them", 7, 7):
         print("census: a 100% rate did not carry its check")
