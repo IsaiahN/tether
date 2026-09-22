@@ -113,6 +113,39 @@ def window(title: str, per_cycle: list[int]) -> str:
     return "\n".join(lines)
 
 
+def series(name: str, values: list, monotone: str | None = None) -> str:
+    """A COUNTER THAT GOES BACKWARDS IS EITHER NOT WHAT ITS NAME SAYS OR NOT THE AGENT'S.
+
+    Reviewer, 2026-09-22, after the third instance in one night of a refutation being ALREADY
+    PRINTED in the table it refuted: `1648s` in a runtime column beside a row called a dead
+    window; `F282`'s cycles 4-6 contradicting a growth law read off the same output; and
+    **`levels` reading `6` for seven cycles and then `4`.**
+
+    **A COUNT OF COMPLETED LEVELS CANNOT DECREASE.** That single violation says the column is
+    not the agent's -- and it was printed, in the table I was reading, for an hour. The
+    standing rule (*quote every column before classifying a row*) did not catch it three
+    times, so it gets a mechanical partner: **name the direction a counter can move, and let
+    the guard raise.**
+
+    `monotone=None` checks nothing and is the honest default for a quantity that may legitimately
+    fall -- per-cycle call counts do, and `F291` turned on exactly that.
+    """
+    if monotone not in (None, "up", "down"):
+        raise SplitError(f"{name}: monotone must be 'up', 'down' or None, not {monotone!r}")
+    if monotone:
+        worse = (lambda a, b: b < a) if monotone == "up" else (lambda a, b: b > a)
+        for i in range(1, len(values)):
+            if worse(values[i - 1], values[i]):
+                raise SplitError(
+                    f"{name}: declared monotone {monotone} and went "
+                    f"{values[i - 1]} -> {values[i]} at index {i} (cycle {i + 1}). "
+                    f"A counter that moves the wrong way is either not what its name says, "
+                    f"or not the agent's.")
+    lo, hi = (min(values), max(values)) if values else (0, 0)
+    return (f"  {name}  {len(values)} points  {lo} -> {hi}"
+            f"{'  monotone ' + monotone if monotone else '  unchecked'}")
+
+
 def progress(i: int, of: int, count: int, cumulative: int, t0: float) -> None:
     """ONE FLUSHED LINE PER CYCLE. Reviewer, 2026-09-22, made standard for every measurement
     script so it is not re-decided per script.
@@ -214,6 +247,18 @@ def _selftest() -> int:
     if "area" not in got:
         print("census: a zero-call atom was not listed apart")
         bad += 1
+
+    # THE REAL `levels` SERIES off `sk48` seed 1, which read 6 for seven cycles and then 4.
+    try:
+        series("levels (sk48 s1, the real one)", [6, 6, 6, 6, 6, 6, 6, 4, 4, 4], monotone="up")
+        print("census: a completed-level counter going 6 -> 4 was ACCEPTED")
+        bad += 1
+    except SplitError as e:
+        if "cycle 8" not in str(e):
+            print(f"census: the violation was not located at cycle 8 -- {e}")
+            bad += 1
+    # and a legitimately falling series must NOT be refused when nothing is declared
+    series("per-cycle calls (these DO fall)", [1, 900, 16, 5], monotone=None)
 
     # `progress` is exercised here rather than only by measurement scripts, which live outside
     # the repo -- the ISOLATED seat is right that a helper with no caller in-tree is dead code.
