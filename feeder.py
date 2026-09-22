@@ -83,7 +83,10 @@ class _Frame:
     """What `ArcWorld` reads off a frame. Replay steps carry the same fields under other names."""
 
     def __init__(self, step: dict) -> None:
-        self.frame = [step["grid"]]
+        # THE FULL CASCADE WHERE THE PARSE KEPT IT, the settled board otherwise. `frames` is
+        # `load_replay`'s second key (observer item 2); `[grid]` is what every tape carried
+        # before it existed, so an old replay and a re-parsed one both load.
+        self.frame = list(step.get("frames") or [step["grid"]])
         self.available_actions = step.get("avail") or ()
         # `or 0`, NOT `get("level", 0)`. SEVEN of the 25 replays -- ar25, cd82, lp85, sb26,
         # sc25, tu93, vc33 -- carry `level: null` in EVERY step, so the key EXISTS and the

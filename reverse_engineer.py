@@ -48,9 +48,24 @@ def load_replay(path: str) -> list[dict]:
         if not grid or not grid[0]:
             continue
         ai = d.get("action_input") or {}
+        # THE CASCADE, KEPT ALONGSIDE RATHER THAN INSTEAD OF -- observer item 2, `F274`.
+        #
+        # `grid` above is `frame[-1]`, and that discard is why the loop has never seen an
+        # intermediate frame: the log carries the whole stack and this parse threw it away.
+        # Measured over all 20 raw logs, the share of responses with depth > 1 runs from 1%
+        # (`m0r0`, `wa30`) to 100% (`lf52`), with `sk48` -- a baseline board -- at 83% and
+        # depths reaching 372 on `sb26`.
+        #
+        # ADDED AS A SECOND KEY BECAUSE SIX CONSUMERS READ `grid` AND EXPECT ONE GRID
+        # (`detectors`, `mapping`, `observer`, `feeder` twice, here). Widening `grid` itself
+        # would change a type under all of them silently.
+        stack = [g for g in (frame if isinstance(frame[0], list)
+                             and frame and isinstance(frame[0][0], list) else [frame])
+                 if g and g[0]]
         steps.append({"action_id": ai.get("id"),
                       "xy": (ai.get("data") or {}),
                       "grid": grid,
+                      "frames": stack or [grid],
                       "level": d.get("levels_completed"),
                       "state": d.get("state"),
                       "avail": d.get("available_actions")})

@@ -123,6 +123,8 @@ class ArcWorld:
             # an empty dict is a guess.
             seen = SENSORS.read("components", b)
             self.blind = seen is sensors.NOT_RESOLVED
+            if _OBSERVER and not self.blind:
+                self._walk_cascade()
             self._read = {} if self.blind else dict(self._decompose(b))
             if _OBSERVER and self._read:
                 self._read.update(self._relation_slots())
@@ -147,6 +149,37 @@ class ArcWorld:
                 # tracker issues it a NEW name, it does not. Measure ever-seen against peak there
                 # first. Commit `d8ae6ea` carries the implementation.
         return self._read
+
+    def _walk_cascade(self) -> None:
+        """OBSERVER ITEM 2: advance the tracker over the INTERMEDIATE frames, oldest first.
+
+        One action returns a STACK of frames and the loop has only ever read `frame[-1]`, so a
+        relation forming and breaking mid-response was invisible. The ORDER of changes is the
+        one thing `+` cannot be told from `→` without (`5.4`), and it lives here.
+
+        **OPTION B, CHOSEN ON A MEASUREMENT AND NOT A PREFERENCE.** The alternative was to
+        anchor identity on the settled frame and use the intermediates only to ANNOTATE order
+        (`F275`). That keeps identity perfect by construction and then has to re-derive which
+        settled object each intermediate component belongs to -- **which works for objects that
+        held still (99.6-99.9%) and collapses on objects that MOVED (52.7-65.8%)**, i.e. on
+        exactly the objects whose ordering carries information.
+
+        **WALKING COSTS 0 TO 3.5 POINTS OF IDENTITY STABILITY** (`F274`: sk48 -1.6, su15 -3.5,
+        tn36 -0.1) **AND ON THE DEEPEST-CASCADE BOARD IT BEATS THE CONTROL** -- `g50t` at 94%
+        multi-frame re-issues ZERO names against the settled-only tracker's five. That is the
+        direction the mechanism predicts rather than a surprise: more intermediate frames means
+        smaller per-frame displacement, so `F247`'s overlap-first matcher has MORE to work with.
+
+        **THE SETTLED BOARD IS STILL WHAT `board()` RETURNS AND WHAT THE AGENT BETS ON.** This
+        advances the tracker's STATE through the cascade; the caller decomposes `frame[-1]`
+        immediately after, so the published slots are the settled ones either way.
+        """
+        fr = getattr(self._frame, "frame", None)
+        if not fr or len(fr) < 2:
+            return
+        for g in fr[:-1]:
+            if g and g[0]:
+                self._decompose(g)
 
     def _relation_slots(self) -> dict[str, int]:
         """OBSERVER ITEM 4: contact published as PER-PAIR slots, `a~b.contact`.
