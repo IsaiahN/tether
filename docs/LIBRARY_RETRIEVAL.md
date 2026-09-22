@@ -1509,3 +1509,190 @@ name the order than have it chosen under time pressure.
 
 **Everything else on the rulings list is either built, designed here, or named as a prerequisite.**
 
+
+---
+
+# PART 9 — THE CARRY-OVER FROM `PERCEPTION_BUILD_PLAN`, 2026-09-22
+
+**Why this part exists.** The reviewer ruled `PERCEPTION_BUILD_PLAN.md` superseded by this document.
+**The audit found eleven load-bearing items living in NEITHER this document nor `TRAINING_PLAN`**, so
+marking it superseded first would have stranded them. Ruling, 18:00: *carry the eleven, THEN mark.*
+**This is the carry. Nothing here is new work** — each row is `PERCEPTION_BUILD_PLAN`'s content with
+its source section named, so the claim stays checkable against the original.
+
+> **AND THE SUPERSESSION IS `PERCEPTION_BUILD_PLAN.md` ONLY.** There is **no `PERCEPTION_PIPELINE.md`**;
+> the short name resolves to two documents on opposite sides of the document split, and
+> `docs/library-closure/PERCEPTION_PIPELINE_general.md` is **read-only SEED and stays untouched.** A
+> seed cannot be superseded by a document derived from it without spending the independence that makes
+> the derivation checkable.
+
+## 9.1 The two change quantities — `cascade` and `transition`, and the acceptance condition
+
+*(source: Layer 1(d). The most load-bearing row, because it is an `A6i` caught BEFORE the collision.)*
+
+    cascade      WITHIN-STEP. the sub-frame chain one action spurred. Carries the causal
+                 ORDERING the endpoint erases. CONSUMER: the causality tracker -- the WHY
+    transition   ACROSS-STEP. the change between two settled boards. CONSUMER: the attribute
+                 tracker -- the WHAT
+
+**`transition` is NOT a new word** — `tether.py:101` declares it as a residual channel and `tether.py:535`
+files `SlotResidual(s, TRANSITION, pred[s], actual, bits)`. **`cascade` is unclaimed.**
+
+> **ACCEPTANCE CONDITION ON THE NAME: ONE PRODUCER, ONE CHANNEL.** *If Layer 1 emits transitions that
+> never reach a `SlotResidual`, two things called transition never meet and it becomes `A6i` after all.*
+> **This binds the observer work in Part 5 and nothing there currently states it.**
+
+**AND `animation` IS RETIRED** — one word over both quantities was the collision this split prevents.
+
+## 9.2 The cascade is DROPPED, not debounced — and debounce is the WRONG repair
+
+*(source: Layer 1(b))*
+
+*A debounce coalesces a signal it receives; a drop never receives one.* **Same observable behaviour today,
+decisive difference later.** §16.3: *"A moved, **then** B reacted. Within-step causal order, **which the
+endpoint erases**."*
+
+> **SO DEBOUNCING THE CASCADE WOULD REPRODUCE THE DROP.** A debounce firing once at settle discards
+> ordering, which is what `frame[-1]` already does. **The answer is TWO CONSUMERS, which is 9.1.**
+
+**Part 5.4 carries the frame-stack erasure and the `+` versus `→` requirement; it does NOT carry this
+prohibition.** Recorded here so the wrong repair stays refused.
+
+## 9.3 The full pair matrices are computed and thrown away
+
+*(source: Layer 1(c))* The matcher computes overlap for **every (new × tracked) pair** and keeps one name;
+`contacts()` computes **every same-frame pair** and drops it on `step`. **A store keyed by pair is a
+record written where a matrix already exists, not a computation.**
+
+**This is the erasure pattern's richest site and Part 5 does not name it.** Same shape as the three in
+`INDEX` — the richer quantity produced, the poorer published.
+
+## 9.4 The per-locus mode — detectors BUILT, verdict UNREAD
+
+*(source: Layer 1(e))* All four §18.3 hypotheses are built — `arc_self.family()` returns `TranslationSelf`,
+`GrowthEdgeSelf`, `ValueLatentSelf`, `RegionToggleSelf`, fed at `arc_world:290`.
+
+> **THE GAP: THE LOOP READS THE FAMILY'S MEASUREMENTS AND NOT ITS VERDICT.** `_learned_split` consumes
+> `contingency()`; **`tether.py` contains zero references to `selected()` or `has_self()`.** *Nobody reads
+> which hypothesis won, or whether there is a self at all.* And the family is ONE family over the WHOLE
+> BOARD, so **no per-locus index exists.**
+
+**OWED:** per-locus indexing · a consumer for the verdict · composition to a board reading · the trajectory
+record. **§16.2 forbids using it as a label:** detected *contingently per step, never used to label the game.*
+
+**THIS IS THE CLASS THAT COST THE MOST TODAY** — a built mechanism nobody reads is indistinguishable from
+an absent one, and three documented-correct states were refiled as defects for exactly that reason (`F280`).
+
+## 9.5 The reading pattern — built, and inert
+
+*(source: Layer 2)* `read_order()` returns `(order, pattern)` sorted by `(row, col)`, recomputed per frame.
+**It produces no atom, enters no closure, and leaves nothing behind.**
+
+**AND NAME ORDER IS WORSE THAN "ARBITRARY":** `components()` scans in raster order and `Objects` names
+arrivals `o0, o1, …`, so name order **was correct at birth** and diverges two ways — after objects move
+past each other, and **with no motion at all, the moment there are ten objects**, because `o10` sorts
+between `o1` and `o2`. *Measured: 17 objects give `o0 · o1 · o10 · o11 … o2`.*
+
+**Only the raster pattern is built; layer-cake, spotted and marking are REFUSED WITH A REASON** — their
+firing conditions are unmeasured, and *picking one is the invented number.*
+
+## 9.6 Identity is a POINTER; placement is a VALUE
+
+*(source: Layer 3)*
+
+    IDENTITY     A POINTER. a stable handle, assigned once, NEVER REUSED, and never a colour
+    PLACEMENT    A VALUE. `<band><n>` from the band's running maximum -- a position ANOTHER
+                 object can hold at another time
+    CHANGE-LIST  append-only, a standard attribute on every object: the placements it has held,
+                 plus whatever rode with each change -- which step, what else moved
+
+**The within-play pointer already exists:** `slot_owner()`, domain-declared, running today.
+
+**THE CHANGE-LIST IS THE MONOTONE-BY-ADDITION SHAPE FOR THE THIRD TIME** — after `outstanding` and `origin`.
+*And `COLOUR` being comparable-not-ordered is what makes it the right shape:* **changed / to which placement**
+is recordable, **by how much** is not.
+
+## 9.7 Cross-play identity — TWO keys, and they must not merge
+
+*(source: Layer 3)*
+
+    obj: INTRINSIC        hash(obj["shape"]) -- the frozenset of NORMALISED offsets.
+                          position-free, colour-free, STABLE. BUILT, and being erased
+    obj: DISAMBIGUATION   attribute profile + relations, for two objects of identical shape.
+                          BOARD-DEPENDENT, so stable only while the board is
+
+> **ONE KEY OVER TWO STABILITY CLASSES IS A SINGLE NAMESPACE ASSERTED WHERE TWO EXIST.** *State them as
+> two keys or the disambiguation half silently destabilises the intrinsic one.*
+
+**A PROHIBITION, AND IT IS THE WORST KIND OF ITEM TO STRAND.** It binds the `structure.hash` item on the
+declared order, which is the next build after the run.
+
+## 9.8 Objects, groups, subgroups — one level only
+
+*(source: Layer 4)* `slot_owner()` groups slots into objects. **No grouping of objects into classes, no
+subgroup.** Classes keyed by placement; subgroups by shape and orientation; **class behaviour as data —
+do the members move together or individually.**
+
+**§12.4's trigger already computes something adjacent** — *two slots with the same attribute vector and
+different residuals* — **built, grouping by attribute vector rather than by class, and the machinery is
+the same.** **AND IT SHARES A COMPUTATION WITH 9.4:** *do the members move together* and *several loci
+correlate together* **are one measurement read for two purposes.**
+
+## 9.9 The ceiling abstention — WITHHOLDING IS WHAT CREATES THE MEASUREMENT
+
+*(source: Layer 6)*
+
+    KEPT, DURABLE   step counts, action counts, what-cost-what PER GAME
+    ABSTAINED       the single `MAX_ACTIONS` ceiling per level. NEVER SAVED AS A NUMBER
+
+**`PER_LEVEL` and `MAX_ACTIONS` stay seat-side and unread.** *Discovering a bound through play is
+experience; reading a given parameter is a seat-read.* **Keeping every count and never the ceiling leaves
+the agent knowing the RELATIVE action cost of games and never the absolute budget** — *which is the
+proof-of-learning property.*
+
+**IT CARRIES A FALSIFIER:** *if an absolute budget ever appears, provenance says whether it was derived or
+read.* **And *relative cost across games* is NOT pooling** — pooling averages and destroys the per-game
+reading; comparing two games' costs keeps both intact.
+
+## 9.10 The ablation backup is an instrument, and the round trip is LITERAL
+
+*(source: Layer 7)* `DECOMPOSITION.md:164` already defines it: `R_T = gap(x, (T_E . T_A)(x))`. **Wipe is
+`T_A`, rebuild is `T_E`, the gap is what did not come back** — and `R_T` is settled as **a reading, never
+a gate.**
+
+> **THE THING THAT MADE `R_T` TOY-SHAPED IS ABSENT AT THIS SCALE.** `_round_trip` finds the pre-image **by
+> sweeping the domain** — `3.32e+13` on a 4×4, and **the span overflows a float on 64×64.**
+
+## 9.11 Cross-game scenario lookup is a SEPARATE BUILD from term import
+
+*(source: Layer 7)* **The hash IDENTIFIES a game; the scenario lookup MATCHES A SITUATION ACROSS games.**
+
+**THE MATCHING MECHANISM EXISTS AT THE WRONG SCOPE.** `retrieval.retrieve(library, gap)` is one pass over
+the store ordered by fit — *"not a search: no composition, no enumeration, no closure walked"* — **which is
+precisely *this obstacle is familiar, where have I seen this shape*. What it lacks is what it is handed:
+one library, one game.** Owed: a scenario store that **presents a gap-shaped face** before it is searchable
+at all · an ordering across stores · import at low priority with provenance (**the only part built**).
+
+## 9.12 SEAM 10 — the band counter is PER-PLAY, stamped
+
+*(source: SEAM 10)* **PER-PLAY COUNTER, STAMPED WITH THE FULL `hash_episode_level`** — the stamp is what
+makes an entry readable after the counter that minted it has reset.
+
+**THE STAMP IS THE DILUTION RULE MADE ADDRESSABLE.** *A later level uses an earlier one, but LOSSILY.*
+**The level component lets prior plays remain available AT REDUCED STRENGTH** rather than being overwritten
+or confused. *Nothing leaves; the stamp is how what stayed is still reachable.*
+
+> **DO NOT HARMONISE THE TWO STAMP FORMATS.** `retarget` parks residuals as `L{level}:{slot}`, and that is
+> a different key for a different job.
+
+## 9.13 What was NOT carried, and why
+
+**Layer 5 (attributes, relations, causality) stays in `TRAINING_PLAN`**, which already holds it — carrying
+it here would make two homes for one item, which is the collision this part exists to prevent.
+
+**METHOD BOUNDARY.** The eleven were found by a KEYWORD PROBE across both destination documents, and a
+"not present" from a probe can be a wording difference rather than a real absence. **Two rows were read in
+full to check the probe was not lying** (9.9 and 9.4) and both were genuinely absent and genuinely
+load-bearing. **The other nine were carried on the probe plus a read of the source section, so each is
+faithful to `PERCEPTION_BUILD_PLAN`; what is NOT independently verified is that no paraphrase of them
+already existed somewhere in this document.** A duplicate here is recoverable; a stranded prohibition is not.

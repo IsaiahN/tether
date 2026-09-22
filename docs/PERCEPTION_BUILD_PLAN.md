@@ -1,5 +1,18 @@
 # The Perception Pipeline, against what is built
 
+> **SUPERSEDED 2026-09-22 by `docs/LIBRARY_RETRIEVAL.md` — Isaiah, relayed by the reviewer.
+> NOT REWRITTEN, and not to be worked from.** Its eleven load-bearing items that lived in no
+> other document were carried first, as `LIBRARY_RETRIEVAL` **Part 9**, each with its source
+> section named — *carry, then mark*. **Read Part 9, not this file.**
+>
+> **THE SUPERSESSION IS THIS FILE ONLY.** `docs/library-closure/PERCEPTION_PIPELINE_general.md`
+> is the GENERAL form this plan was written against, it is **read-only SEED, and it is
+> untouched** — a seed cannot be superseded by a document derived from it without spending the
+> independence that makes the derivation checkable. The short name `PERCEPTION_PIPELINE`
+> resolves to BOTH files and is an `A6i`; citations elsewhere that say `PERCEPTION_PIPELINE
+> Layer N` mean THIS file, which is the one with Layers 1-7.
+
+
 **A build plan in `PERCEPTION_PIPELINE_general.md`'s form, stated against this instantiation.** Each
 layer carries: **what exists today · what would change · what it depends on · what the corpus says.**
 
