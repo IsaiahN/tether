@@ -42333,3 +42333,65 @@ bargain.** That pricing is Isaiah's withheld ruling. **REPORT, DO NOT PRICE.**
     MECHANISM   none changed. Arm J stays DEFAULT OFF and the plumbing stays in
     CAPABILITY  none. It converts "two conform seats fail" from a cost of the bin into a
                 DIAGNOSIS of a documented gap that had never presented
+
+## F264 (INDEX series) — `dc22`'s SLOT SET DOES NOT SHRINK. It OSCILLATES, because on a SHUFFLED tape "cycle N" is not a depth coordinate — and `F262`'s share-based figure inflated by its own moving denominator
+
+**`F262` reported `dc22`'s slot set falling `739.5 → 493.7` across a run where the other three
+boards were stable, and left it as *unexplained, separable by a perception-only pass*. Separated.**
+
+    perception only, NO AGENT, on the agent's own shuffled order
+    dc22   c0 552 slots/92 obj   c4 744/93   c12 720/90   c20 320/40   c40 782/100   c59 728/91
+    m0r0   c0 132/22            c4 160/20   c12 176/22   c20 176/22   c40 2822/353  c59 3332/417
+    ls20   c0 132/22            c4 202/27   c12 190/24   c20 176/22   c40 210/27    c59 268/34
+
+**`dc22` OSCILLATES between ~320 and ~780 slots with no trend. `c20` is a DIP, not a decline.** The
+shuffled tape lands each cycle on a different chunk, and `dc22`'s chunks differ threefold in object
+count. **No agent is involved: this is the tape.**
+
+### so `F262`'s `dc22` figure has a moving denominator, and I expressed the bound as a SHARE of it
+
+**Per-observation ABSOLUTE on `dc22` went `2.9 → 12.9 → 96.6` — a 33× rise. The SHARE went
+`0.4% → 19.6%` — 49×.** The extra 1.5× is the denominator falling from 739.5 to 493.7, **which is
+not a property of the bound at all.**
+
+**Both rises are real and `dc22` is still the outlier** — `m0r0`'s absolute goes `12.1 → 15.4`
+against a stable ~175 denominator, so its FLAT reading is robust either way. **But the headline
+number was inflated a third time by the instrument, and this is the third different way.**
+
+    the 424x        one board, and that board on the RETRACTED overlay build
+    the 49x         a four-call baseline at c4
+    the same 49x    a denominator that moves independently of what is being measured
+
+> **THE OUTLIER QUESTION HAS NOW BEEN ASKED OF `dc22` THREE TIMES AND ANSWERED DIFFERENTLY EACH
+> TIME.** Asking it once is not a procedure; **the rule needs to be *keep asking until the answer
+> stops changing*.**
+
+### AND IT INDEPENDENTLY CONFIRMS `F254`'s ELIMINATION OF OBJECT COUNT
+
+**At `c20` `dc22` holds its FEWEST slots of the run — 320, against 744 at `c4` — and `F254`
+measured `c16-20` as its MOST EXPENSIVE window at `26.68 s/cycle` against `0.83`.**
+
+**Cost is highest where the object count is lowest.** `F254` eliminated object count by noting the
+tracked set fell while time rose; **this is the same elimination from the perception side, with no
+agent in the loop, and it is stronger: the two quantities move in OPPOSITE directions.**
+
+### the caveat this raises for every per-cycle reading, and it does NOT bite here
+
+**On a shuffled tape, "cycle N" indexes a RANDOM CHUNK, not a depth.** So a growth-across-cycles
+curve could be chunk density rather than depth — which would threaten `F254`, `F255` and `F262`
+together.
+
+**It does not, and the table above is why: `dc22`'s late cycles are not systematically denser.**
+`c20` is its sparsest point and its most expensive. **The curve survives; it just cannot be read as
+*cost grows with depth* on this tape — only as *cost grows with cycles elapsed*, which is what was
+measured.**
+
+    BOUNDARY    three boards, 60 frames, PERCEPTION ONLY -- no agent, no actions, so nothing here
+                depends on bindings, arms or library state. Marks are single cycles, not windows,
+                so they show the oscillation rather than averaging it away; `F262`'s figures are
+                window averages over `_bindings` calls and the two are not the same statistic.
+                `m0r0`'s jump to 3,332 slots at c59 is visible and NOT investigated here
+    MECHANISM   none. Measurement only
+    CAPABILITY  none. It corrects a headline for the third time, confirms F254's elimination from
+                an independent direction, and names a hazard -- a shuffled tape's cycle index is
+                not a depth -- that the existing curves happen to survive
