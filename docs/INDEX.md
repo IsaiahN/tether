@@ -43788,6 +43788,15 @@ sample does.
                              --
                              54    accounted
 
+> **THE CAUSE IN THIS ROW IS WRONG — `F302`, and the correction is smaller and sharper than the
+> claim.** I named `dict[str, int]` flattening, quoting `_extract`'s docstring. **That is defused
+> already:** `Ctx.obj` is populated at every call site and `_record`'s own docstring says *the
+> flattening scattered the object, it did not destroy it.* **The real gate is the CLOSURE
+> QUERY:** the mint path enumerates `val -> val`, **no atom anywhere returns `OBJECT -> val`, so
+> the `OBJECT` family is a ONE-WAY DOOR** — enterable, never terminable, hence never yielded and
+> never called. **With one bridge atom, `val -> EXTENT` yields 92 terms through it.** The fix is
+> not a type-vocabulary change.
+
 ### THE `OBJECT`-TYPED DEAD ZONE IS TOTAL, AND I UNDERCOUNTED IT
 
     area  bbox  centroid  col  colour  colour_changed  contact  dcells  dcol
@@ -43968,6 +43977,18 @@ rest of the run showed, and it is a bigger finding than the one it was run for.*
 > **AND THE DECLARED RUN'S ROW FOR THIS EXACT BOARD-SEED READS `shape-atom calls 0`.** One
 > hundred and sixty million atom calls, and `holes`, `bbox_area`, `perimeter`, `corners`,
 > `orbit_size`, `canonical`, `symmetric`, `is_square` receive **zero**.
+
+> **FRAMING CORRECTED BY ISAIAH, 22:36 — *"mapping was meant to make search FASTER OR MORE
+> EFFECTIVE than brute force."*** The article says you do not search BLINDLY, **not that you do
+> not search**. Mapping DIRECTS the search: the delta decides which recipes are candidates at
+> all, so the same machinery does far less work per useful result. **So the question is never
+> *has search stopped* — it is *HAS WORK PER ARRIVAL FALLEN, AND DOES IT STOP GROWING?***
+>
+> **THE FINDING BELOW SURVIVES AND ITS REASON SHARPENS.** The failure signature is not *search
+> happened* — it is **search that triples per cycle with NOTHING ARRIVING.** That is exactly what
+> this row measured, and `F292`/`F293` supplied the missing half: 70.5M calls for 3 settled
+> terms. **The number to report from here is calls per composition the ground accepts** — and on
+> a tape, *work per SETTLED term*, labelled agent-side, since the ground is not measurable there.
 
 ### THIS IS THE FAILURE THE WHOLE ARCHITECTURE IS AGAINST, AND IT HAS A NAME IN THE RECORD
 
@@ -44662,3 +44683,64 @@ on.** It needs the frame stack's within-response sequence — already un-erased 
     CAPABILITY  none yet: no junction can be decided, so no tree settles. It converts "the six
                 tests are unbuilt" into "the six tests are built and PERCEPTION owes them four
                 quantities, two of which are already computed and merely unpublished"
+
+---
+
+## F302 (INDEX series) — ITEM 5: THE 18 ARE REACHABLE, AND **THE CAUSE WAS NEVER THE FLATTENING.** The mint path asks `val -> val` and the `OBJECT` family has NO EXIT BACK TO `val` — a one-way door, not a missing type
+
+**Isaiah ruled item 5 as *the 18 become reachable; map/fold, not a bare re-type*. It needed
+neither.** One atom, and the cause turned out to be a different thing from the one I put in his
+bundle.
+
+### THE MEASUREMENT, and it is four closure queries
+
+    val    -> val        15 terms   idn, translate, recolour ...      NONE through `owner`
+    val    -> EXTENT     92 terms   `owner . h`, `owner . w`, `owner . contact`
+    val    -> OBJECT      7 terms   `owner`, `translate . owner`
+    OBJECT -> EXTENT    545 terms   h, w, contact ...
+
+    atoms typed OBJECT -> val :  NONE
+
+> **`enumerate_closure` TERMINATES ON `chain[-1].out_type == out_type`, EXACT, NO WILDCARD** —
+> and the mint path calls it as `("val", "val")` (`tether.py:3564`). **An `OBJECT` chain can be
+> entered and can never come back**, because nothing in the registry is typed `OBJECT -> val`.
+> *So no chain through the object family can ever terminate, so none is ever yielded, so none of
+> the 18 is ever called.* **`545` terms exist from `OBJECT -> EXTENT` and the mint path cannot
+> ask for one.**
+
+### WHAT THIS CORRECTS, AND IT IS IN ISAIAH'S BUNDLE
+
+`F287` named the cause as **`dict[str, int]`** — the slot dict flattening every object to
+`name.attr -> int` — quoting `_extract`'s docstring. **That is already defused.** `Ctx.obj` is
+populated at EVERY call site (`tether.py:1107`, `obj=self._record(slot, state)`), and `_record`'s
+own docstring says why it is sound: *the flattening scattered the object, it did not destroy it.*
+
+> **SO THE BUNDLE ASKED ISAIAH FOR A TYPE-VOCABULARY DECISION THAT THE DEFECT DOES NOT NEED.**
+> A collection type with map/fold would have been a large change aimed past the actual gate.
+> **The gate is WHAT THE CALLER ASKS FOR, and it is one line.**
+
+**AND THE MISS HAS THE SAME SHAPE AS EVERY OTHER ONE TONIGHT: I TOOK A DOCUMENTED CAUSE INSTEAD
+OF GOING TO THE WRITE SITE.** `_extract`'s docstring is TRUE and it is about a value-level
+abstention that was later repaired. **I quoted a comment and called it a diagnosis** — the
+best-documented candidate again, and the write site was two greps away.
+
+### WHAT IS BUILT
+
+`_owner()` — **one atom, `val -> OBJECT`, returning `Ctx.obj`.** Not a re-type, not a collection,
+nothing invented: it hands the composer a record the frame already assembled. Typed `val` rather
+than eighteen per-type copies, which would be the type branching this file forbids. It abstains
+where no record arrived.
+
+**AND IT IS NOT YET ENOUGH ON ITS OWN, WHICH THE RUN SAID AND THE TYPE GRAPH DID NOT.** With the
+bridge in, a live census still reads `owner` NEVER CALLED — because the mint path still asks
+`val -> val`. **The type-graph read said *producer exists*; the run said *never called*, and the
+run is right.** What remains is a caller that asks for an attribute-typed chain, and that is a
+one-line change in the mint path rather than a build.
+
+    BOUNDARY    four closure queries at depth 3, budget 4000, plus one 3-cycle live census on
+                `g50t`. The queries are exact facts about the type graph; the census is one
+                board, one seed. Nothing here says the 18 are USEFUL -- only that they were
+                unreachable for a reason that is not the one on the record
+    MECHANISM   `_owner()` in `arc_atoms`, wired into `three_spaces`. Registry 54 -> 55. 13/13
+    CAPABILITY  the door is open and nothing walks through it yet. `F287`'s cause corrected in
+                the row that carries it, and the bundle to Isaiah needs the same correction

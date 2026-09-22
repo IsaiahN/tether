@@ -218,6 +218,34 @@ def _extract() -> list[Atom]:
             for k, t in ATTRIBUTE_TYPE.items()]
 
 
+def _owner() -> list[Atom]:
+    """`val -> OBJECT`. **THE BRIDGE THAT MAKES THE 18 `OBJECT`-TYPED ATOMS REACHABLE** -- item 5,
+    Isaiah: *the 18 become reachable; map/fold, not a bare re-type.*
+
+    `F287` measured all eighteen `OBJECT`-typed atoms as NEVER CALLED -- a third of the registry
+    -- and named the cause from `_extract`'s own docstring: `_decomposed` flattens every object
+    to `name.attr -> int`, **so a term is handed a SCALAR and never an OBJECT.** The atoms were
+    never broken and their values were never missing; **nothing in the composition space could
+    PRODUCE an `OBJECT` for them to consume.**
+
+    **THIS IS NOT A RE-TYPE AND IT INVENTS NOTHING.** `Ctx.obj` is already populated at every
+    call site (`tether.py:1107`, `obj=self._record(slot, state)`), and `_record`'s own docstring
+    says why that is sound: *the flattening scattered the object, it did not destroy it.* So the
+    bridge is one atom that hands the composer a value the frame already holds.
+
+    **TYPED `val` DELIBERATELY** -- the wildcard `idn` uses. Every slot is some attribute type,
+    and an owner atom per type would be eighteen copies of one function selecting by a label,
+    which is the type branching this project forbids.
+
+    It abstains rather than guessing where no record arrived, so a frame that supplies neither
+    the object nor the record reads NOT_RESOLVED and not a fabricated owner.
+    """
+    def _own(v: Any, c: Ctx) -> Any:
+        rec = v if isinstance(v, dict) else getattr(c, "obj", None)
+        return rec if isinstance(rec, dict) else NOT_RESOLVED
+    return [Atom("owner", _own, VAL, OBJECT, reads_ctx=("obj",))]
+
+
 def _transform() -> list[Atom]:
     """`SHAPE → SHAPE`, and the build named these two gaps itself.
 
@@ -728,7 +756,7 @@ def three_spaces(predict: list[Atom]) -> list[Atom]:
     PREDICT is passed in rather than built: it is the domain's atom set -- grid transforms at
     3d -- and inventing one here would be this file choosing what the agent may bet on.
     """
-    out = (list(predict) + _extract() + _transform() + _shape_facts() + _shape_more()
+    out = (list(predict) + _owner() + _extract() + _transform() + _shape_facts() + _shape_more()
            + _contact() + _relate() + _over_group() + _group_more() + _connect()
            + _quantify())
     # ONE NAME, ONE ATOM -- and this is `A6i` in the one place it can be made mechanical.
