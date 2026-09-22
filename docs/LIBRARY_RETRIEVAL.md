@@ -745,6 +745,105 @@ default**, so what import needs is a second stamp value and a source field, not 
 
 **DESIGN ONLY. Nothing in Part 5 is built.**
 
+## 5.10 COMPOSITIONS PERSIST ACROSS GAMES, AND TRACK RECORD WEIGHTS THE RANKING
+
+> ***The agent should STILL be able to save compositions and retrievals across games — that is
+> proof of learning, and work that doesn't have to be reworked for every game. The more a recipe is
+> called upon and works, the higher its confidence and weight in ranking … most games require
+> certain recipes or a mix of certain things that are like table stakes.*** — Isaiah, 2026-09-22
+
+### 5.10.1 It does not conflict with 5.0's rule, and the code already says so
+
+*A solution may never decide what the agent is GIVEN* forbids the ANSWER KEY choosing. **It says
+nothing about the agent keeping what IT settled against the ground** — those carry provenance
+DERIVED-BY-GROUND, and carrying them across games IS the transfer claim the ablation tests.
+
+**`Gamma.save`'s own docstring already carries the ruling**: *"§17.8 … recorded its own inclination
+as start cold across games. **Isaiah ruled the opposite: the library persists, because transfer is
+the claim.** The switch is that nothing calls save/load unless the seat does, so the ablation stays
+runnable by simply not loading."* **So this is not a new permission — it is a 2026 ruling being
+honoured, and the ablation switch is the absence of a call rather than a flag.**
+
+### 5.10.2 WHAT IS ALREADY TRUE, and one boundary on my own baseline
+
+**Cross-game persistence is REAL TODAY on the pooled path.** `feeder.py`'s multi-game loop builds
+ONE `Gamma`, switches `g.game` per cycle, and never resets — so the library accumulates across
+games within the process. Separate-process carry is opt-in via a `library=` path (`feeder.py:319`
+loads, `:329` saves).
+
+> **AND THE BOUNDARY THAT MATTERS FOR EVERYTHING ELSE IN THIS DOCUMENT: THE sk48/dc22 BASELINE WAS
+> COLD-START, SINGLE-GAME.** The trace harness builds `Gamma(env.atoms(), game=GAME)` and never
+> loads. **So 5.10's entire subject — carried compositions — was absent from the before-picture BY
+> CONSTRUCTION**, and the route chart's learnings share is 0 there for that reason rather than as a
+> finding. Any post-build comparison must either hold this constant or say which side carried a
+> library.
+
+### 5.10.3 WHAT IS MISSING: `Standing` IMPLEMENTS THE FADE AND NOT THE RISE
+
+Isaiah's rule is three-way. Grepped against `gamma.Standing`:
+
+| his rule | the code | verdict |
+|---|---|---|
+| used and **FAILED** → fades gradually | `refute()` → `rejections += 1.0`, halved on a `REJECTION_HALFLIFE` clock | **BUILT** |
+| **retrieved but NOT tested** → no change | `refute` fires only at `tether.py:3778`, whose comment is *"express-before-judge: this term actually predicted, and was wrong"* | **BUILT, by construction** |
+| used and **WORKED** → weight rises | `settle()` sets `settled_at = self.tick` — **a TIMESTAMP THAT OVERWRITES** | **NOT BUILT** |
+
+**SETTLING TEN TIMES LEAVES EXACTLY WHAT SETTLING ONCE LEAVES.** There is no success counter and no
+distinct-games field; `self.game` records where a term was **minted** and, by its own comment,
+*"does not change when the term is later pulled elsewhere."*
+
+**So the asymmetry is real: failure accumulates and success does not.** It is narrower than it first
+looks — clause 3 holds, so a recipe is NOT punished merely for being retrieved where it does not
+apply. But among terms actually expressed, **a recipe that is right in nine games and wrong in one
+carries a rejection and no credit**, which is precisely backwards for the table-stakes set Isaiah is
+describing.
+
+### 5.10.4 The design
+
+**EXTEND `Standing`; do NOT invent a second confidence number** (Part 2.4's own rule):
+
+    settled_in: frozenset[str]     the DISTINCT GAMES this composition settled in
+    confirmations: float           successes, on the same decay clock as `rejections`
+
+**`fits()` gains a track-record term that ORDERS AND NEVER EXCLUDES.** Today it scores type
+signature 2, arity 1, aimed 1, relational 1 — and reads `Standing` nowhere. The new term sits
+alongside those, and `retrieve`'s contract is untouched: **every name still comes back; a
+low-weight recipe still wins when the board calls for it.** Not a cut — which also keeps it clear of
+5.8.3's open question, where a head-cut was explicitly NOT ruled.
+
+**BREADTH OUTRANKS REPETITION, and it is `len(settled_in)` that carries it, not `confirmations`.** A
+composition that settled in six games is table stakes; one that settled fifty times in a single game
+is that game's trick. **The two are indistinguishable under a plain counter, which is why the
+distinct-game set is the field that matters.**
+
+**Where it lives:** the learnings layer, persisted across games and runs; lookup order is
+**learnings → runtime → seed**, so a proven composition is found before anything is generated. That
+is also the cache in 5.8.5 — the same mechanism, now with a reason to rank what it holds.
+
+### 5.10.5 WHERE THIS DESIGN CAN FAIL — two, in 5.8.3's spirit
+
+**(a) IT IS A FEEDBACK LOOP.** Rising weight means being tried earlier, which means more chances to
+settle, which raises the weight. **Early winners can lock in**, and the boards that came first would
+shape the ranking more than the boards that came later. *Orders-never-excludes* bounds the damage —
+nothing becomes unreachable — but it does not remove the loop. **The check is cheap and must be
+pre-registered: report the table-stakes set's composition against GAME ORDER, and if it correlates
+with which games ran first rather than with what the games need, the loop is what we are measuring.**
+
+**(b) THE RANKING STOPS BEING REPRODUCIBLE FROM THE BOARD ALONE.** Two agents with different
+histories rank the same gap differently. **That is the intended behaviour — it IS the learning — but
+it means every A/B on retrieval from here on must state the library state on both arms**, and a
+result compared against a cold baseline is comparing two things at once.
+
+### 5.10.6 Measurement, pre-registered
+
+    share of deltas answered from LEARNINGS      should RISE game over game, in sequence
+    compositions reused in >= 3 distinct games   the table-stakes set -- report it, with game order
+    the ablation                                 wipe learnings, re-run the same games; the gap is
+                                                 what the carried library was worth
+
+**Build order: AFTER the observer lands** — there is nothing to rank until settled compositions
+exist. **Design only.**
+
 ---
 
 # Part 6 — THE `enumerate_closure` INVENTORY (step 1), and TWO DROPS THAT WOULD HAVE BROKEN THE GATE
