@@ -42577,3 +42577,58 @@ distinct slot name, and that name was `@probe`.
     CAPABILITY  none, and the correction is the point: a capability claim I made is withdrawn,
                 and B5 is reclassified from "the agent does not perturb" to "the record cannot
                 say which perturbation answered which park"
+
+## F268 (INDEX series) — ARM J's A/B, THREE SEEDS: the bin fires up to **353 times a run and changes NOTHING**. Distinct compositions, settled and binding identical on every seed — and the baseline spread vindicates the seed rule outright
+
+**The reviewer's list, three seeds, baseline spread beside every effect, per board and never
+pooled.**
+
+    dc22, 20 cycles          base            spread   arm J            mean delta   verdict
+      minted            [ 6,  41,  16]      width 35  [ 6,  43,  16]      +0.7      inside the spread
+      chains            [49,  51,  50]      width  2  [49,  51,  50]      +0.0      inside the spread
+      settled           [ 1,   4,   5]      width  4  [ 1,   4,   5]      +0.0      inside the spread
+      bound             [ 2, 130, 142]      width 140 [ 2, 130, 142]      +0.0      inside the spread
+      REFUTED routed  [10, 289, 212]   competitors found [0, 111, 165]   fell through [10, 178, 47]
+
+    ls20, 20 cycles
+      minted            [46,  67,  42]      width 25  [46,  68,  42]      +0.3      inside the spread
+      chains            [50,  50,  51]      width  1  [50,  50,  51]      +0.0      inside the spread
+      settled           [ 0,   3,   4]      width  4  [ 0,   3,   4]      +0.0      inside the spread
+      bound             [30,  60,  90]      width 60  [33,  60,  87]      +0.0      inside the spread
+      REFUTED routed [203, 259, 353]   competitors found [32, 40, 92]    fell through [171, 219, 261]
+
+### THE MECHANISM FIRES HARD AND THE GROUND DOES NOT MOVE
+
+**Up to 353 REFUTED routings and 165 competitor rebinds in a single 20-cycle run** — and
+**`chains` and `settled` are BYTE-IDENTICAL on all six seed-pairs.** `minted` moves by less than
+one mint on average, against baseline spreads of 25 and 35.
+
+> **THIS IS THE NULL WITH THE DENOMINATOR ATTACHED, WHICH IS THE ONLY KIND WORTH FILING.** The bin
+> is not inert like arm E — it is exercised heavily and the agent's acquisition is unchanged.
+> **Offering a competitor that the bargain then has to pay for is not, on this evidence, different
+> from letting `mint` find one.**
+
+### AND THE BASELINE SPREAD SETTLES THE SEED RULE BY ITSELF
+
+**`dc22`'s baseline `minted` swings 6 → 41 across three seeds. Its `bound` swings 2 → 142.**
+
+**Any single-seed reading on `dc22` was noise, and I took several this week.** `F260` derived the
+rule from `ls20`'s 42–67; **`dc22` is worse.** The reviewer's *report the baseline's own spread
+beside every effect* is not a formality here — **on `dc22` the spread is FOUR TIMES the largest
+effect anyone has claimed.**
+
+### the half that is not a null
+
+**`fell through to mint` is the MAJORITY on both boards** — `ls20` 171/219/261 of 203/259/353,
+`dc22` 178 of 289. **So most REFUTED routings find no admissible competitor at all**, which is the
+type filter (`375ce42`) and the starved fall-through (`05046e0`) doing exactly what they were ruled
+to do. **The bin's action is mostly *go to mint anyway*, and that is why the ground does not
+move.**
+
+    BOUNDARY    two boards, three seeds, 20 cycles, same code state, subprocess-isolated so the
+                env flag is the only difference. s/cycle is NOT reported: this ran alongside
+                another job and timing is contended. `chains` is distinct atom-chains in the
+                library, which is the composition count F261 used
+    MECHANISM   none changed. Arm J stays DEFAULT OFF
+    CAPABILITY  none, and with a denominator: 353 routings, zero movement in compositions,
+                settled or binding. The bin is built, ruled, exercised, and does not pay
