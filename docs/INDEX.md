@@ -44231,3 +44231,69 @@ each and is gone by the next cycle). **So SETTLING IS NOT THE GATE ON GROUND PRO
     CAPABILITY  none built. It refutes the generalisation of `F292`, retires the question I
                 promoted above the declared order, and puts a first number on the promotion
                 chain firing on a real board
+
+---
+
+## F295 (INDEX series) — THE TWO WRITE SITES, READ. **BOTH FIRE.** And `F56` stated its denominator — *I* dropped it when quoting, which is the same over-generalisation I have now made four times tonight
+
+**The reviewer's (b): which line, what condition, has it ever fired on a real board — and check
+the name collision FIRST.** Write site read before any account of why.
+
+### NAME COLLISION: CLEAR, but the funnel I reported was too coarse
+
+**`settled` is one quantity** — `Standing.settled_at`, set in exactly one place. No collision.
+
+**BUT `conform/wiring.py:63` ALREADY DECLARES A SEVEN-STAGE FUNNEL** — `offered · bound · minted
+· accepted · settled · cited · promoted` — and its own header warns *"events conflated: offered,
+minted, accepted and settled are four facts."* **I reported four coarse counts (library, settled,
+primitive, levels) and called it the funnel.** The stage that matters is in the declared list and
+was not in mine: **`bound`.**
+
+### THE `settle` WRITE SITE — `tether.py:3814`, five conditions
+
+    name = self.bound.get(slot)                      1  THE SLOT MUST BE BOUND
+    if not name: continue
+    if r.mass > 0.0:  ... refute ...                 2  and it must have predicted RIGHT
+    born = self.candidates.get(name)                 3  the term must be a CANDIDATE
+    if born is None or born >= self.cycle            4  MINTED ON AN EARLIER CYCLE
+       or self.gamma.is_settled(name): continue      5  and not already settled
+    self.gamma.settle(name)
+
+**Condition 1 is the funnel stage I never measured.** *A term cannot settle on a slot nothing
+bound it to*, and binding starvation is already the most valuable finding of an earlier window.
+
+### THE `promote` WRITE SITE — `tether.py:1136`, gated at `tether.py:3700`
+
+    if slot != origin_slot or cross:
+        self._promotions.append(...)
+
+**The pair is SHADOW and ECHO: a term closing a residual RECORDED BEFORE IT EXISTED, on a slot it
+was NOT MINTED FOR.** `_promote` then refuses anything already primitive. **Both verdicts or
+neither** — *echo alone is apophenia; shadow alone is a local hack.*
+
+### HAVE THEY FIRED ON A REAL BOARD? **YES, BOTH, MEASURED TONIGHT**
+
+`settle` reaches 3 on `sk48` and 1 on `dc22`. `promote` reaches **5 on `dc22` seed 0, observer
+ON**. **So neither path is dead. The question was never *does it fire*.**
+
+### AND `F56` DID NOT SAY WHAT I SAID IT SAID
+
+I wrote, twice, that `F56` recorded the promotion chain as ***"never once completing on a real
+board."*** **`F56` says `PROMOTE / promote  toy 1  arc 0` against a STATED denominator: `ka59
+x24 + ls20 x20`.** It named its population in its own METHOD line.
+
+> **`F56` WAS CORRECTLY BOUNDED AND MY QUOTATION DROPPED THE BOUND.** *A grep's count is not
+> evidence until you have read what it matched* — and a QUOTATION is not evidence until you have
+> re-read what it said. **`dc22` falsifies the unbounded version and leaves `F56` untouched.**
+
+**AND IT IS THE SAME ERROR FOUR TIMES TONIGHT, THREE OF THEM ON ONE BOARD-SEED:** `sk48` s0 read
+as the agent for the shape family, for settling, for the cost curve — **and now `ka59+ls20` read
+as *a real board*.** *The instrument-age check I ran found nothing because the code is unchanged
+since 2026-08-26; the fault was in the sentence, not the code.*
+
+    BOUNDARY    a read of `tether.py` at two write sites, `gamma.py`, `conform/wiring.py` and
+                `F56`'s own METHOD line, plus `git log -S` on both gates. NO RUN. The firing
+                counts are last tick's measurements, not new ones
+    MECHANISM   none changed
+    CAPABILITY  none. It names `bound` as the unmeasured funnel stage both paths depend on, and
+                it repairs a quotation I had already put in front of the reviewer twice
