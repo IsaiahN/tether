@@ -44744,3 +44744,55 @@ one-line change in the mint path rather than a build.
     MECHANISM   `_owner()` in `arc_atoms`, wired into `three_spaces`. Registry 54 -> 55. 13/13
     CAPABILITY  the door is open and nothing walks through it yet. `F287`'s cause corrected in
                 the row that carries it, and the bundle to Isaiah needs the same correction
+
+---
+
+## F303 (INDEX series) — ITEM 6's KEY, MEASURED BEFORE IT WAS BUILT: **A GLOBAL FRAME DELTA IS SATURATED AT EVERY GRANULARITY THAT CROSSES.** The key must be SCOPED TO THE OBJECT, and scoped it is ~3%
+
+**`retrieval.fits` carries the warning that decided this, AT THE SITE:** *the first version asked
+`bool(varies)` and measured as a CONSTANT the moment `delta` published 42 slots that vary every
+step — 154 of 154 gaps had something moving, and the key collapsed onto arity at 87.3%.* **Item 6
+re-keys the lookup on the frame delta, so the same collapse was the obvious risk. Measured
+first.**
+
+    sk48 seed 0, observer ON, per cycle, 1,688 slots
+
+    granularity                         changed share      crosses boards?
+    TYPE            (6 of them)         100% on 7 of 8     yes -- and SATURATED
+    ATTRIBUTE NAME  (14 of them)        71-100%, mean 91    yes -- and SATURATED
+    SLOT INSTANCE   (1,688)             2.2-12.5%          **NO** -- `o11.col` is an instance
+    ATTRIBUTE, SCOPED TO THE OBJECT     mean 1.5-8.1%      yes, and DISCRIMINATING
+                                        median 0%
+                                        **92 of 102 objects changed NOTHING**
+
+### THE TENSION IS EXACT, AND IT IS WHY THE OBVIOUS BUILD WOULD HAVE FAILED
+
+**The discriminating granularity does not cross; the crossing granularity does not
+discriminate.** `characterise`'s own comment states the crossing requirement — *a slot name is an
+instance: `o11.col` does not exist on the next board, so a key holding one can only ever match at
+home.* **So keying on changed SLOTS is useless off this board, and keying on changed TYPES or
+ATTRIBUTES is useless on it.**
+
+### THE RESOLUTION IS SCOPE, NOT GRANULARITY, AND IT KEEPS BOTH PROPERTIES
+
+**The global question is *did ANY slot of this attribute change ANYWHERE on the board* — and
+across ~1,700 slots and ~109 objects the answer is always yes.** *It is saturated by
+construction, not by accident.*
+
+> **THE SCOPED QUESTION IS *DID THIS OBJECT'S `col` CHANGE*, which is what a residual on
+> `o11.col` is actually about.** It is ~3% rather than ~91%, **and it still crosses, because the
+> key is the ATTRIBUTE NAME and never the object id.** *Scope is not part of the key; it is
+> where the key is READ.*
+
+**AND THE MEDIAN IS THE SHARPEST NUMBER: 0%.** In a typical cycle **nine objects in ten change
+nothing at all** — so a scoped key does not merely rank better, it eliminates most of the board
+from consideration before ranking begins. **That is the narrowing the reviewer required BEFORE
+the `out_type` widening**, and it is now measured rather than hoped for.
+
+    BOUNDARY    ONE board, ONE seed, 6-8 cycles, observer ON -- and `sk48` is 83% multi-frame,
+                so the change rate is at the HIGH end of the 25. A quieter board makes the
+                global key MORE saturated, not less, so the direction of the finding is safe
+                even where the magnitude is not. No ground column: tape run
+    MECHANISM   none changed. This is the measurement that precedes item 6's build
+    CAPABILITY  none yet. It replaces item 6's specified key -- "this frame's delta" -- with a
+                scoped one, on evidence, before the build rather than after it
