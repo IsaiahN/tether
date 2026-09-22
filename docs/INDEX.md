@@ -41857,3 +41857,70 @@ assumption are the file's rather than mine.**
     CAPABILITY  none yet. It names the first cost repair that removes no evidence -- and after
                 a window (forbidden), a list cache (not the hot path) and library size (refuted),
                 it is the first candidate that survived being counted
+
+## F257 (INDEX series) — THE MEMO IS BEHAVIOUR-IDENTICAL AND **NET SLOWER IN BOTH KEY VARIANTS**. The repeats are real and each evaluation is too cheap to be worth a key. Reverted
+
+**`F256` measured 54.5% / 83.3% of `_value_of` calls as exact repeats and named memoisation as the
+one repair the corpus permits. The reviewer approved it with a pass condition: *behaviour-
+identical, byte-for-byte, with per-cycle time lower. A pure memo cannot change what the agent
+does.* Built, tested against exactly that, and it FAILS THE SECOND HALF.**
+
+    board   BEHAVIOUR-IDENTICAL          key = term.name          key = the Term object
+    dc22              TRUE                +8.3%                       +16.7%
+    m0r0              TRUE                +9.9%                       +19.1%
+    ls20              TRUE               +11.2%                       +16.7%
+
+    actions, bindings, library, minted and settled compared byte-for-byte across 12 cycles;
+    identical on every board in every variant
+
+### the first half passed and it is worth keeping the record of
+
+**Same action sequence, same bindings, same library, same mints, same settled set** — so the key
+was CORRECT, including the part that needed care: `ctx.touching` is live in `_predict` and `None`
+in the three replay callers, **and `self.trace` stores the very same `before` dict**, so a replay
+call collides with a live one on `id(state)` unless `touching` is in the key. **It is, and nothing
+diverged.**
+
+### THE SECOND HALF FAILED TWICE, AND THE SECOND ATTEMPT WAS WORSE
+
+**`term.name` REBUILDS a joined string on every access** and is in `F254`'s hot list at
+396k–1.5M calls, so the first key was paying for the thing it was trying to avoid. **`Term` is a
+frozen dataclass, so the obvious fix is to hash the object itself — and that is WORSE**, because
+hashing it hashes the atoms tuple and every `Atom` inside it.
+
+> **SO THE EVALUATION BEING AVOIDED IS CHEAPER THAN ANY KEY THAT CAN IDENTIFY IT.** `term.apply`
+> over a short atom chain is a handful of function calls; a tuple of six components, two of which
+> are themselves structured, is not cheaper than that. **A 54–83% duplication rate is not a
+> saving when the unit is this small.**
+
+### WHAT THIS ESTABLISHES, WHICH IS MORE THAN A FAILED PATCH
+
+**The cost is the SHEER VOLUME of individually cheap evaluations — `dc22` runs 15.0M of them in 20
+cycles — and NOT expensive work being repeated.** Those are different problems with different
+repairs, and every candidate so far has been aimed at the second:
+
+    a window over history            REFUSED by the corpus, and confounded (minted 3x more)
+    caching history()'s list         56-62% duplicated, and not the hot path
+    library size                     REFUTED -- dc22 grows six terms while cost rises 32x
+    memoising the evaluation         behaviour-identical and NET SLOWER, both key variants
+
+**Four candidates, four eliminated, and the last two were eliminated BY BUILDING THEM.** What is
+left is the volume itself: **what generates 15M evaluations from a 54-term library, and whether
+the enumeration that produces them is bounded by anything.** That is a question about `mint`'s
+candidate generation rather than about caching, and it has not been asked.
+
+### REVERTED, NOT KEPT AS AN ARM
+
+**`F249` kept arm H because its mechanism was real and only its cost claim died.** This has no
+mechanism — it is a pure optimisation that does not optimise. **Keeping it would be silent code
+under a flag nobody would ever turn on**, which is what *no isolated code, no silent code* is
+about. The measurement is the deliverable and it is here.
+
+    BOUNDARY    three boards, 12 cycles, one seed, subprocess-isolated arms so the env flag is
+                the only difference. Timings include the child's own startup, identical in both
+                arms. The identity check compares actions, bindings, library, minted and settled
+                -- NOT the ledger, so a difference visible only in a row nobody reads would be
+                missed
+    MECHANISM   none. Built, measured, REVERTED -- `tether.py` is back to `4ab8b6a`
+    CAPABILITY  none. It closes the fourth cost candidate and, more usefully, reclassifies the
+                problem: volume of cheap work, not repetition of expensive work
