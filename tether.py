@@ -185,6 +185,24 @@ REFUTED = "refuted"
 # never disable the check.*
 _REFUTED_BIN = bool(os.environ.get("TETHER_REFUTED_BIN"))
 
+# ARM L -- BOUND THE OPERAND AXIS BY THE DELTA. SEAT-SIDE SWITCH, DEFAULT OFF.
+# `F258`: yields expand 32-106x into ranked candidates and the operand axis is the multiplier.
+# Arm H already bounds the GUARD axis by the actions present in the residual's own
+# observations; this is the same construction one axis over, and no constant.
+#
+# TWO CORPUS CLAUSES POINT OPPOSITE WAYS AND THE DISTINCTION RECONCILES THEM. 12.1 admits a
+# BIAS only as a ranked reversible cut, and `_bindings`' own comment says a filter would make
+# contact decide REACHABILITY rather than order. But Layer 5 and the mapping section say the
+# CHANGED ATTRIBUTES BECOME THE KEY, and Isaiah's note on the sixth enforcer says why that is
+# different: *a delta-cue selects by WHAT ACTUALLY CHANGED, ground-supplied rather than
+# prior-supplied.* So the DELTA may select and CONTACT may not -- which is why contact enters
+# here only to WIDEN the set and never to exclude from it.
+#
+# AND DEFAULT OFF BECAUSE THE FILE RECORDS THIS FAILING BEFORE: *the version that DROPPED
+# operand-reading terms when R showed no dependence on another slot LOST A CLOSING TERM.*
+# Different rule, same family. `distinct compositions must not fall` is the falsifier.
+_DELTA_OPERANDS = bool(os.environ.get("TETHER_DELTA_OPERANDS"))
+
 # why not the neighbouring bin. A bin without its discriminator is a label, not a diagnosis.
 WHY_NOT = {
     HELD: "not novel: the slot is bound and the bound term predicted it",
@@ -3063,6 +3081,31 @@ class Agent:
         every binding is still reached, and since the mint breaks on the first closer,
         order decides WHICH closer is found and never WHETHER one exists."""
         others = [s for s in self.slots if s != slot]
+        # ARM L. The slots whose value actually MOVED in the frames where the bound term was
+        # wrong -- read off `self.trace`'s own before/after pairs, matched to the residual's
+        # observations by the identity of the before-state, which is the same object the
+        # trace holds. Contact partners of those slots are then ADDED, never subtracted.
+        if _DELTA_OPERANDS and robs:
+            after_of = {id(b_): a_ for b_, _act, a_ in self.trace}
+            moved: set = set()
+            for st, _a, _v in robs:
+                aft = after_of.get(id(st))
+                if aft is None:
+                    continue
+                moved |= {k for k, v in st.items() if k in aft and aft[k] != v}
+            if moved:
+                own = self._slot_owners(self.env)
+                tch = getattr(self.env, "contacts", None)
+                grown = set(moved)
+                if tch is not None and own:
+                    adj_of = tch()
+                    nearby: set = set()
+                    for m in moved:
+                        nearby |= set(adj_of.get(own.get(m), ()))
+                    grown |= {x for x in others if own.get(x) in nearby}
+                keep = [x for x in others if x in grown]
+                if keep:
+                    others = keep
         seen = {s: len({st[s] for st, _, _ in robs if s in st}) for s in others}
         # CONTACT FIRST, THEN VARIANCE. §16.5: *list everything in contact with the residual,
         # then what is in contact with those, and outward until the cascade stops mattering --
