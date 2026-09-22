@@ -43590,3 +43590,60 @@ other seven fire 55,000 times. **`area` and `centroid` are the two I rewrote thi
     CAPABILITY  CONTACT, and the first this session: with the arm on, seven shape atoms move
                 from returning nothing to returning something on every call, and the composer
                 reaches 11x further through them. Whether that survives off `g50t` is open
+
+---
+
+## F284 (INDEX series) — I CREATED AN `A6i` THIS SESSION: **TWO ATOMS NAMED `recolour` IN ONE REGISTRY**, found by a census run for something else. Renamed, and the check is now at construction
+
+**`6bf9a8e` — my commit, today, "the rest of the cheap mutation set" — added `"recolour": BOOL`
+to `ATTRIBUTE_TYPE`.** `_extract()` mints one atom per `ATTRIBUTE_TYPE` key, so that line
+**auto-generated an atom named `recolour`.** There already was one.
+
+    arc_predict.py:104   Atom("recolour", _recolour, "val", "val", reads_operand=True)
+                         the GRID TRANSFORM. `gamma.py` and `tether.py` cite it throughout as
+                         `translate . recolour<o11.h>` -- including as the defect trigger's
+                         OWN site. Load-bearing, and old
+    arc_atoms.py:102     "recolour": BOOL -> an OBJECT -> BOOL extractor. MINE, today
+
+**THE CORPUS SETTLES WHICH ONE KEEPS THE NAME AND IT IS NOT A JUDGEMENT CALL.**
+`ENTRY_CATEGORIES.md` files **`Recolour` under OPERATION** — *"something done to a thing; it has
+a before and an after"* — and `OPERATORS.md` composes it (`Camouflage = Recolour ≡ Surround`).
+**That is the grid transform.** What I published is *an observation that a recolour happened*,
+which is not an operation at all. **Renamed to `colour_changed`.** `observer._MUT_ATTR`'s key
+stays `recolour`: it is SEAT-SIDE and never enters the agent's registry.
+
+### HOW IT WAS FOUND IS THE PART WORTH KEEPING
+
+**Nothing failed.** I was chasing why `symmetric` is never called, dumped the registry to check
+it was present, and **printed a duplicate-name count I had not asked for.** `symmetric` is still
+unexplained; the collision was free.
+
+> **AND THAT IS THE `A6i` SIGNATURE EXACTLY: *well-formed code, well-formed docs, a well-formed
+> measurement.*** Two atoms, one name, no error anywhere. **Term names in Γ are built from atom
+> names**, so `translate . recolour` simply became ambiguous — and an ambiguity presents as
+> nothing until something reads it.
+
+**AND IT IS THE WRITING SIDE OF `A6i`, WHICH THE RECORD SAYS IS THE HARDER HALF:** *the summary
+gets written from THE WORK JUST DONE rather than from the definition the row already holds.* I
+named the attribute from the mutation set I was building and **never checked what `recolour`
+already meant one file over.** Step three would have cost one grep.
+
+### THE CHECK IS INSTALLED, NOT REMEMBERED
+
+`three_spaces()` now **raises on a duplicate atom name at construction**, naming both types.
+*Install the check rather than being careful again.* **The defect was reintroduced to confirm the
+guard refuses it** — `two atoms named 'recolour' in one registry: val->val and OBJECT->BOOL`.
+
+**It is placed at construction on purpose:** `A6i` is declared UNLINTABLE in general, and this is
+the one register where it is mechanical — **`ATTRIBUTE_TYPE` is a list of names that MINTS ATOMS,
+so a collision there is decidable.** The comment at the guard says so, because the next person to
+widen perception is the one who needs it.
+
+    BOUNDARY    a registry dump at import, no run. The in-flight depth run was launched under
+                the OLD name; it measures shape atoms and arm I, neither of which touches this
+                attribute, so its readings stand -- but its perception published `recolour`
+                where later runs publish `colour_changed`
+    MECHANISM   `arc_percept` publishes `colour_changed`; `ATTRIBUTE_TYPE` renamed; a
+                one-name-one-atom guard raises in `three_spaces`. 12/12 seats
+    CAPABILITY  no new reach. It removes an ambiguity from every composed term that used
+                `recolour`, and makes the class that produced it unrepeatable in this register

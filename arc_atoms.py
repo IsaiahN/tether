@@ -94,12 +94,12 @@ ATTRIBUTE_TYPE = {"colour": COLOUR, "row": POSITION, "col": POSITION,
                   # recolour`; the tracker carried the first two. `dh`/`dw`/`dcells` are signed
                   # magnitudes, so DELTA like the two that were already here.
                   "dh": DELTA, "dw": DELTA, "dcells": DELTA,
-                  # AND `recolour` IS BOOL, NOT DELTA, WHICH IS NOT COSMETIC. Colour is
+                  # AND `colour_changed` IS BOOL, NOT DELTA, WHICH IS NOT COSMETIC. Colour is
                   # CATEGORICAL -- `arc_percept`'s own header says it is a SEPARATOR, comparable
                   # and never ordered -- so `new - old` on a hue is arithmetic over labels and
                   # means nothing. Publishing a colour DIFFERENCE would have invented a
                   # quantity; publishing *it changed* is the reading the corpus's set names.
-                  "recolour": BOOL,
+                  "colour_changed": BOOL,
                   # THE BBOX OVERLAP SENSOR -- `RELATIONS.md` Part 6's first blocker, "a BUILD
                   # rather than a publish". An intersection AREA, so EXTENT like `contact`.
                   "bbox": EXTENT}
@@ -728,6 +728,24 @@ def three_spaces(predict: list[Atom]) -> list[Atom]:
     PREDICT is passed in rather than built: it is the domain's atom set -- grid transforms at
     3d -- and inventing one here would be this file choosing what the agent may bet on.
     """
-    return (list(predict) + _extract() + _transform() + _shape_facts() + _shape_more()
-            + _contact() + _relate() + _over_group() + _group_more() + _connect()
-            + _quantify())
+    out = (list(predict) + _extract() + _transform() + _shape_facts() + _shape_more()
+           + _contact() + _relate() + _over_group() + _group_more() + _connect()
+           + _quantify())
+    # ONE NAME, ONE ATOM -- and this is `A6i` in the one place it can be made mechanical.
+    # `recolour` was TWO atoms for part of 2026-09-22: `arc_predict:104`'s `val -> val` grid
+    # transform (the corpus files it under OPERATION) and an `OBJECT -> BOOL` extractor
+    # auto-generated when `recolour` was added to `ATTRIBUTE_TYPE` while widening perception.
+    # NOTHING FAILED. Term names are built from atom names, so `translate . recolour` simply
+    # became ambiguous -- the collision presents as nothing, which is why the rule that
+    # catches it has to fire at construction rather than be remembered at the callsite.
+    # ADDING AN `ATTRIBUTE_TYPE` KEY MINTS AN ATOM; check the name against this list first.
+    seen: dict[str, Atom] = {}
+    for a in out:
+        if a.name in seen:
+            o = seen[a.name]
+            raise ValueError(
+                f"two atoms named {a.name!r} in one registry: "
+                f"{o.in_type}->{o.out_type} and {a.in_type}->{a.out_type}. "
+                f"One name, one atom -- rename the newer one.")
+        seen[a.name] = a
+    return out
