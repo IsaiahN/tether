@@ -527,6 +527,71 @@ changes object lifetime, and its only consumer is held.** Publishing a quantity 
 be the silent code the checker forbids, so the carry lands first and the lifetime change lands with
 the bond tests.
 
+### 5.2.2 THE FRAME STACK EXISTS AND IS DISCARDED IN THE PARSE — item 2 is not blocked
+
+**Item 2 publishes the cascade so the delta carries the ORDER of changes, which is the prerequisite
+for `+` versus `→` (5.4). I nearly reported it BLOCKED and the opposite is true.**
+
+#### The three readings, in the order I got them, because two of them were wrong
+
+    1  the tape carries depth 1 on sk48/dc22/m0r0, every response      <- TRUE and MEANINGLESS
+    2  the recorded step has keys `grid` (singular), no `frame`        <- TRUE and MISLEADING
+    3  THE RAW LOG CARRIES THE FULL STACK AND THE PARSE DROPS IT       <- the actual fact
+
+**`reverse_engineer.py:44`: `grid = frame[-1] if frame and isinstance(frame[0], list) else frame`.**
+The JSONL log's `data.frame` IS the stack; `load_replay` reduces it to the settled board, and
+`feeder._Frame` then wraps that single grid as `[grid]` (`feeder.py:86`). **So depth 1 was a
+property of my instrument, measured twice before I went to the write site.**
+
+Three erasure sites, and only the third is correct:
+
+    reverse_engineer.py:44   `frame[-1]` at PARSE time          the discard. Fix here.
+    feeder.py:86             `self.frame = [step["grid"]]`      a consequence of the above
+    arc_world.py:496         `board()` returns `frame[-1]`      CORRECT -- you bet on the
+                                                                settled board, per its docstring
+
+#### AND THE QUANTITY IS THE MOST BOARD-SPECIFIC THING MEASURED THIS SESSION
+
+Every response in every raw log, 20 boards:
+
+    lf52   100% multi-frame     su15  95%     g50t  94%     tu93  94%     sk48   83%
+    r11l    51%                 sb26  51%     tn36  25%     sc25  17%     ka59   15%
+    s5i5     9%                 ls20   8%     vc33   6%     sp80   5%     ft09    4%
+    re86     2%                 tr87   2%     lp85   2%     m0r0   1%     wa30    1%
+
+> **sk48 IS 83% MULTI-FRAME AND IT IS ONE OF MY TWO BASELINE BOARDS.** So the before-picture was
+> taken on a board where **four responses in five carry intermediate frames the loop never sees** —
+> and I did not know that when I chose it.
+>
+> **AND m0r0, THE BOARD I USE FOR EVERY CHEAP WIRING CHECK, IS 1%.** The two boards I have been
+> A/B-ing on sit at OPPOSITE EXTREMES of the quantity item 2 is about, and I picked them for cost.
+
+**Depths reach 372 (`sb26`), 98 (`g50t`), 39 (`sk48`).** *Up to 9 frames per response* understates it
+by an order of magnitude on several boards.
+
+**ONE DISAGREEMENT WITH THE CORPUS, FLAGGED RATHER THAN RESOLVED.** `PERCEPTION_BUILD_PLAN` Layer 1
+records *"`g50t` carries 7 or 9 frames on 39% of responses; `ls20` carries one, always."* I read
+**g50t at 94% multi-frame** (59% at exactly 7 or 9) and **`ls20` at 8%, not always-one.** I measured
+every line of every raw log; the plan may have measured a window, a different capture, or the live
+harness. **Both readings are on the record and I am not calling the corpus wrong from one run.**
+
+#### What it means for the build
+
+**Item 2 is a data-path change plus an observer change, and the data-path half is two lines.** What
+it is NOT is blocked.
+
+**But it is not small on the boards where it fires.** Restoring the stack changes what the agent
+perceives on 83% of sk48's actions, so it is a LARGE perceptual change on a baseline board rather
+than a tweak — and the route chart must compare like with like. **Cost is the reassuring half:
+perception runs 0.02-0.12 s against 60-129 s actions (0.03%), so even a 39-deep walk stays small
+beside mint.**
+
+**AND THE TRACKER QUESTION IS STILL OPEN AND IS NOW THE REAL RISK.** `arc_percept.Objects` is
+STATEFUL; `_decomposed` caches per frame precisely because calling it twice *"advanced the tracker
+twice per step and the two disagreed."* Walking a 39-frame cascade means advancing it 39 times per
+action. **Whether identities survive that is `F247`'s failure mode and it is unmeasured — that is
+the thing to test before item 2 is built, not after.**
+
 ## 5.3 THE BOND IS A HYPOTHESIS THE GROUND SETTLES — Isaiah, 2026-09-22, RULED
 
 > ***OPERATORS.md shows that any operator can be used. The recipes list mostly uses `+` only as an
