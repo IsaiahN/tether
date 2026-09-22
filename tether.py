@@ -510,6 +510,10 @@ class Agent:
         # the whole before-state is kept, because an operand is another slot's past value
         self.trace: list[tuple[dict[str, int], str, dict[str, int]]] = []
         self.owed_import: set[str] = set()
+        # THIS CYCLE's appearance and disappearance events -- see `_present`. Empty is the
+        # normal reading, not a missing one: most cycles change no slots.
+        self._came: tuple[str, ...] = ()
+        self._gone: tuple[str, ...] = ()
         self.abstained: dict[str, dict] = {}
         self.candidates: dict[str, int] = {}     # term -> cycle accepted, awaiting the ground
         self.settled: set[str] = set()
@@ -3082,10 +3086,23 @@ class Agent:
         A plain event, for the same reason the action set's is: what an arrival means
         on a real board is Phase 2's to say."""
         now = tuple(self.env.slots())
+        # THE CARRY -- observer step 1, reviewer 2026-09-22. `came` and `gone` were computed,
+        # written to one ledger row and DISCARDED, so the agent could not read its own
+        # appearance/disappearance events at any later point in the cycle. They are the two
+        # delta kinds `⇒` (it did not exist before) and `−` (the absence is the point) are read
+        # off, and route (a) already RESPONDS to `gone` -- it drops the bindings of departed
+        # slots three lines down -- without ever recording it as part of the delta.
+        #
+        # CLEARED ON THE NO-CHANGE PATH AND NOT ONLY SET ON THE CHANGED ONE. The early return
+        # below fires on most cycles, so assigning only past it would leave the previous
+        # cycle's events standing and every reader would see a change that already happened.
+        # A stale event is worse than a missing one: it is indistinguishable from a real one.
+        self._came, self._gone = (), ()
         if now == tuple(self.slots):
             return
         gone = sorted(set(self.slots) - set(now))
         came = sorted(set(now) - set(self.slots))
+        self._came, self._gone = tuple(came), tuple(gone)
         # WHAT A DEPARTURE COSTS IS HOW MANY OF THEM WERE BOUND, AND THAT WAS NOT PUBLISHED.
         # `gone` counts slots; the loop pops bindings three lines down and no row says how
         # many there were, so *the board shed 88 slots the agent never used* and *the board

@@ -84,8 +84,6 @@ class ArcWorld:
         # HOW MANY STEPS NOBODY OBSERVED. A skipped read that is not counted is the silent
         # half of an abstention -- the flag says WHY, this says HOW MUCH.
         self.unobserved = 0
-        # EVERY SLOT EVER PUBLISHED, for the observer arm's null-not-absent. See `_decomposed`.
-        self._ever: set[str] = set()
 
     # -- the eight -----------------------------------------------------------------------
 
@@ -128,33 +126,26 @@ class ArcWorld:
             self._read = {} if self.blind else dict(self._decompose(b))
             if _OBSERVER and self._read:
                 self._read.update(self._relation_slots())
-                # NULL, NOT ABSENT -- ruling 2, extended from COVERED objects to DEPARTED ones.
+                # NULL-PERSISTENCE FOR DEPARTED OBJECTS WAS BUILT HERE AND REVERTED -- reviewer,
+                # 2026-09-22, and the second of their two reasons is the one I had missed. Extending
+                # ruling (b) from COVERED objects to DEPARTED ones makes `came`/`gone` readable as
+                # ordinary value transitions (`NOT_RESOLVED -> int` is `=>`, the reverse is
+                # `-`) with no second channel, and it was verified firing on sk48 -- 497 slots
+                # turning NULL at frame 8, `o5.row` 5 -> NOT_RESOLVED. Measured affordable: +13%
+                # over PEAK readable with relations on, bounded by peak not churn because objects
+                # do not come back.
                 #
-                # Ruling (b) already publishes NOT_RESOLVED for an object that is present and
-                # unreadable. A DEPARTED object was the other case and it simply vanished:
-                # `_present` deletes the slot and pops its binding, residual and trend. So the
-                # value stream could say *this object cannot be read* and could not say *this
-                # object is no longer here* -- and those are different facts.
+                # IT IS REVERTED ANYWAY, AND NOT BECAUSE IT IS WRONG. (1) Its only consumer is
+                # the bond tests, at step 4, so it would sit unread through steps 1-3 -- the
+                # silent code the checker forbids. (2) IT IS AN OBJECT-LIFETIME CHANGE INSIDE
+                # THE OBSERVER A/B AND WOULD CONFOUND THE ROUTE CHART: one change at a time. The
+                # second reason is the reviewer's and it is the better one.
                 #
-                # **AND THIS IS WHAT MAKES `came`/`gone` DELTAS WITHOUT A SECOND CHANNEL.** A
-                # slot going NOT_RESOLVED -> int is an APPEARANCE (`⇒`, it did not exist
-                # before); int -> NOT_RESOLVED is a DISAPPEARANCE (`−`, the absence is the
-                # point). Both are ordinary value transitions in the stream the observer
-                # already watches, so the two bonds become readable with no new machinery --
-                # which is the whole of why null-not-absent was worth the slot count.
-                #
-                # COUNTED BEFORE IT WAS BUILT, and the first denominator was wrong. Against
-                # PEAK live -- the count the decision turns on -- persisting costs +1.5% on
-                # sk48 (926 ever seen against 912 peak), +9% on dc22, +9% on m0r0. Against the
-                # LAST live count sk48 reads 2.28x, and that frame is post-shedding: 376 slots
-                # depart at once at frame 9, `blind` False, a real structural event.
-                #
-                # IT IS BOUNDED BY PEAK RATHER THAN BY CHURN, WHICH IS WHY IT IS AFFORDABLE IN
-                # GENERAL: objects do not come back. `ever` climbed 920 -> 926 over frames 9-13
-                # while 520 slots departed.
-                for k in self._ever:
-                    self._read.setdefault(k, sensors.NOT_RESOLVED)
-                self._ever |= set(self._read)
+                # ONE CHECK IS OWED BEFORE IT SHIPS AT STEP 4: the bound rests on *objects do not
+                # come back*, true on sk48/dc22/m0r0. A board with REAPPEARING objects tests
+                # it: if a returning object RECLAIMS its old slot the set stays bounded; if the
+                # tracker issues it a NEW name, it does not. Measure ever-seen against peak there
+                # first. Commit `d8ae6ea` carries the implementation.
         return self._read
 
     def _relation_slots(self) -> dict[str, int]:
