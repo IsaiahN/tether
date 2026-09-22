@@ -60,6 +60,12 @@ STAGES = (
     ("census", [str(PY), "census.py"],
      "the split guard stopped refusing a split that does not account for its population",
      ROOT / "census.py"),
+    # THE AIM SEAT. `focus.py` binds WHICH LEVEL a commit sits at and says nothing about
+    # WHETHER THE WORK WAS ON THE LIST -- three of this session's drifts were clean L1
+    # commits. This one binds the declared ITEM, and its cases reintroduce both.
+    ("aim", [str(PY), str(HERE / "aim.py")],
+     "the aim seat stopped refusing work that names no declared item",
+     HERE / "aim.py"),
     ("demo", [str(PY), "demo.py"], "the loop did not complete", ROOT / "demo.py"),
     ("gate", [str(PY), "gate.py", "runs/demo.jsonl"],
      "the record is not well-formed", ROOT / "gate.py"),
