@@ -43537,3 +43537,56 @@ a mechanism from a seed.**
                 run, which is the reading that outranks this one
     CAPABILITY  none. It withdraws a re-scope I was about to propose, and hands the declared
                 run a question it already reports the answer to
+
+---
+
+## F283 (INDEX series) — ARM I TURNS THE SHAPE ATOMS FROM **0% RESOLVED TO 100%** ON `g50t`, AND MULTIPLIES THEIR CALLS ELEVENFOLD. And the same instrument reads **ZERO CALLS** on `sk48`, which is now a real per-game fact rather than a suspected instrument fault
+
+**Why it was run now rather than in its turn.** The declared depth run's first row read *`sk48`,
+15 cycles, shape-atom calls **0**, first live NONE*. **A zero is the most convincing kind of
+wrong**, and the control that would tell me whether my instrument works at all sat **seven runs
+and ~3 hours downstream** in the same run. *Outlier is a broken instrument until proven* — so the
+control was pulled forward, on the existing `armI` harness, at four cycles.
+
+### The control, `g50t`, 4 cycles, one seed
+
+    TETHER_SHAPE_DECODE OFF     4,976 calls      resolved 0        NOT_RESOLVED 4,976
+    TETHER_SHAPE_DECODE ON     54,914 calls      resolved 54,914   NOT_RESOLVED 0
+
+**THE INSTRUMENT IS SOUND.** It records calls where calls happen, so **`sk48`'s zero is a fact
+about `sk48`** — the shape atoms are **never reached there**, which is a different finding from
+*they fail to resolve* and has a different repair. `census.resolution`'s refusal to print a rate
+over an uncalled atom is what kept the two apart.
+
+### AND THE ELEVENFOLD IS THE PART I DID NOT EXPECT
+
+**Arm I was built to fix RESOLUTION. It also multiplied REACH by 11x** — 4,976 calls to 54,914 on
+the same board, same seed, same four cycles. **A resolved atom lets a chain continue; an
+unresolved one ends it.** That is Figure 6's clause read forwards: *an instrument is improved from
+a worse instrument already returning something that fails to resolve* — and what improved was not
+only the reading but **how far the composer could then walk.**
+
+> **AND IT IS A CANDIDATE CAUSE FOR `F282`'s COST CURVE, NOT A CONFIRMED ONE.** Eleven times the
+> atom calls would cost time. **But `F282` measured cost with arm I ON on BOTH boards, so it has no
+> A/B and cannot attribute anything.** Stated as a question, not an answer — *the documented suspect
+> is the most attractive one regardless of guilt.*
+
+### THREE ATOMS ARE STILL NEVER CALLED, AND I REPAIRED TWO OF THEM TODAY
+
+**`area`, `centroid` and `symmetric` read *not called* on BOTH arms** — on the board where the
+other seven fire 55,000 times. **`area` and `centroid` are the two I rewrote this session** to read
+`rec["structure"]` instead of the `rec["cells"]` key `_record` never writes.
+
+> **SO THE REPAIR IS UNEXERCISED, AND A REPAIR NOTHING CALLS IS INDISTINGUISHABLE FROM NO REPAIR.**
+> It was verified against the write site and **never once against a run.** *A run outranks a read,
+> both directions* — and this is the direction that catches a fix, not a claim.
+
+    BOUNDARY    ONE board, ONE seed, FOUR cycles, `armI` harness, arm I as the only variable.
+                `g50t` is 94% multi-frame and Isaiah has warned it is unrepresentative -- "kind
+                of like ms paint". So this establishes THE INSTRUMENT WORKS and THE ARM WORKS
+                HERE. It does NOT establish a rate for any other board, and the declared run
+                is what carries that
+    MECHANISM   none changed. `TETHER_SHAPE_DECODE` was already built and gated
+    CAPABILITY  CONTACT, and the first this session: with the arm on, seven shape atoms move
+                from returning nothing to returning something on every call, and the composer
+                reaches 11x further through them. Whether that survives off `g50t` is open
