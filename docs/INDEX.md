@@ -44431,3 +44431,56 @@ separated. **That separation is the next measurement and it is not run.**
     MECHANISM   none changed
     CAPABILITY  none built. It relocates the largest measured effect from the arms to the
                 CURRICULUM, and it gives `F296` a second, independent confirmation
+
+---
+
+## F298 (INDEX series) — **`F296` DOES NOT DIAGNOSE `F220`.** `F220`'s probe ran on an ACTION-RESPONSIVE simulator, not a tape — the architecture question stays OPEN, and the reviewer was one post from closing it on my finding
+
+**Asked to verify, not to agree.** The reviewer's 21:21: *the tape ignores the actions, so of
+course the readout is identical… verify it as a read, not an argument — confirm `F220`'s probe ran
+under the replay path.* **It did not.**
+
+### THE CHAIN, READ END TO END
+
+    F220's probe   `arc_holdout.play()`          -- "a fresh 25-cycle LIVE run", its own words
+    play()         from arc_agi import Arcade    -- NOT `feeder.ReplayTape`
+                   arc.make(game); w.reset()
+    _mode()        OperationMode.OFFLINE         -- offline means LOCAL, not recorded
+    local_wrapper.step()
+                   self._game.perform_action(action_input, raw=True)   <- via `arcengine`
+
+> **`perform_action` IS A SIMULATOR CALL. THE ACTION DRIVES THE WORLD.** That is the opposite of
+> `ReplayTape.step`'s *"the action is IGNORED and that is deliberate"*. **Two different worlds,
+> and `OFFLINE` means *local rather than over the network*, NOT *recorded rather than live*.**
+
+### SO THEY ARE DIFFERENT FACTS
+
+    F296 (mine, tonight)   ReplayTape runs -- `levels` is a tape coordinate, the agent cannot
+                           move it. Governs every measurement I took tonight and the depth run
+    F220 (2026-09-21)      an action-responsive local simulator, where the agent CAN move the
+                           ground -- and the probe still read IDENTICALLY with no library at all
+
+**`F220`'s unscorability is NOT explained by mine. It remains unexplained**, and it is the harder
+finding of the two precisely because the actions *did* reach the world and the readout still did
+not move.
+
+> **AND THE NEAR-MISS IS THE POINT.** The reviewer was putting *"an architecture question open
+> since the 21st is closed by this finding"* to Isaiah, with options attached. **It would have
+> closed a live question with a false diagnosis** — and the diagnosis was attractive because it
+> made my error explain someone else's problem. *`A6i` at the level of two WORLDS sharing the
+> word `offline`, and the check that caught it is the one the reviewer made standing an hour ago:
+> read the write site even when nobody doubts it.*
+
+### AND IT LEAVES SOMETHING CONSTRUCTIVE RATHER THAN A HOLE
+
+**An action-responsive path already exists and is already wired: `arc_holdout.play()`.** So the
+third of the reviewer's options for Isaiah — *replay used only for what it CAN train, with ground
+measured elsewhere* — **is not a build. It is a call to a function that is in the repo and has
+been run before.** `F220` is the evidence it has been.
+
+    BOUNDARY    a read of `arc_holdout.play`, `arc_agi/base.py`, `arc_agi/local_wrapper.py` and
+                `F220`'s own METHOD text. NO RUN. It establishes WHICH WORLD each finding used
+                and nothing about why `F220` read null
+    MECHANISM   none changed
+    CAPABILITY  none. It keeps an architecture question open that was about to be closed wrongly,
+                and it names the action-responsive path that already exists
