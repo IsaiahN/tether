@@ -203,6 +203,19 @@ _REFUTED_BIN = bool(os.environ.get("TETHER_REFUTED_BIN"))
 # Different rule, same family. `distinct compositions must not fall` is the falsifier.
 _DELTA_OPERANDS = bool(os.environ.get("TETHER_DELTA_OPERANDS"))
 
+# ARM M -- PERTURB THE STARVED SLOT, IN PARALLEL. SEAT-SIDE SWITCH, DEFAULT OFF.
+# `F269`'s table is the premise: on sk48 all seven probes fire in cycles 1-7 and all seventeen
+# `no_support` parks land in 16-18, so NO PROBE FOLLOWS ANY OF THEM. `bored()` is true EARLY,
+# when almost nothing is bound and there is nothing to perturb FOR, and false LATE, which is
+# exactly when slots starve. **The agent perturbs when it has nothing to perturb for and cannot
+# perturb once it does.** A temporal anti-correlation, not a threshold.
+#
+# ISAIAH'S SYSTEM 0 SPEC IS WHAT RULES IT: *a fallback for when higher-level reasoning is IN
+# PROGRESS, like systems 1 and 2 happening IN PARALLEL ... CONTACT is the main mode.* So a
+# starved slot does not wait for the board to go quiet -- and the STARVED SET IS THE SWITCH,
+# no counter and no quota, exactly as the unexplored-contact count is System 0's.
+_STARVED_CONTACT = bool(os.environ.get("TETHER_STARVED_CONTACT"))
+
 # why not the neighbouring bin. A bin without its discriminator is a label, not a diagnosis.
 WHY_NOT = {
     HELD: "not novel: the slot is bound and the bound term predicted it",
@@ -1952,7 +1965,25 @@ class Agent:
                 and self._goal_choice() is not None):
             self._planned = self.cycle
             self._mint_routine(before)
+        # ARM M. BEFORE the global `bored()` gate, because the whole finding is that the gate
+        # answers *is anything live* -- which is true precisely when a starved slot most needs
+        # answering. Returning `probe` is not a relabel: the flush writes one row per slot in
+        # `_starved`, which IS *the parks that precede this probe*, so B5's `followed` is
+        # satisfied by construction rather than by a second mechanism.
+        if _STARVED_CONTACT and self._starved:
+            aim = sorted(self._starved)[0].rsplit(".", 1)[0]
+            self._s0_target = aim
+            # positioned where ACTION6 exists, else steer the avatar into it
+            act = ("ACTION6" if "ACTION6" in self.actions
+                   else self._toward(before, aim))
+            if act is None:
+                act = self.drive.choose(self.actions, self.cycle, _where(before))
+            return act, "probe"
         if self.drive.bored():
+            # AND THE AIM IS CLEARED. `_s0_target` survives until `retarget`, so an ordinary
+            # bored probe would otherwise inherit whatever arm M last pointed at and coordinate
+            # an unrelated action on a stale slot.
+            self._s0_target = None
             return self.drive.choose(self.actions, self.cycle, _where(before)), "probe"
         owed = [s for s in sorted(self.owed_import) if s in before]
         # THE ONLY BRANCH THAT READS GAMMA, AND `by` CANNOT SAY WHY IT DID NOT FIRE. `by ==
@@ -3969,7 +4000,11 @@ class Agent:
         # SYSTEM 0 AIMS. `focal` is chosen by residual mass, which is the right subject for a
         # BET and the wrong one for going to touch something: contact-seeking has to point at
         # what it has not touched, or it is a draw wearing a label -- which is `F236`.
-        aim = self._s0_target if (by == "system0" and self._s0_target) else focal
+        # ARM M REACHES HERE TOO. It returns `probe`, not `system0`, so keying the coordinate on
+        # `by == "system0"` alone would aim a starved-slot perturbation at `focal` -- the slot
+        # with the most residual mass, which is precisely NOT the starved one.
+        aim = (self._s0_target if (by in ("system0", "probe") and self._s0_target)
+               else focal)
         coord = self._action6_coord(aim, before) if action == "ACTION6" else None
         res = self.perceive(action, coord)
         # WHAT THAT ACTION DID TO THE AVATAR, recorded from the frames either side of it.
