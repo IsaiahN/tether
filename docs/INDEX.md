@@ -41713,3 +41713,83 @@ cost is not constant **in CYCLES**, and it rises ×8 to ×32 inside a single twe
     MECHANISM   none changed. Measurement only
     CAPABILITY  none. It eliminates the library, the tracker fix and object count as the cost
                 driver, and it retires "20-cycle average" as a unit for pricing phase 1
+
+## F255 (INDEX series) — THE FIXED-HISTORY DIAGNOSTIC: the pre-registration FAILED. A window halves the growth and does not flatten it, the window arm is CONFOUNDED, and the corpus forbids the repair it points at
+
+**The reviewer's pre-registration: *if `history(slot)` walking the full trace is the driver,
+per-cycle time goes FLAT instead of ×9–×32.* Uncontended, both boards, 20 cycles:**
+
+    board          early      late     growth     minted
+    dc22  FULL      0.81     27.18     x33.5          6
+    dc22  WINDOW    0.83     15.36     x18.6         18
+    m0r0  FULL      1.55     13.83      x8.9          7
+    m0r0  WINDOW    1.56      5.44      x3.5         14
+
+**IT DID NOT GO FLAT.** A 5-cycle window leaves `×18.6` on `dc22` and `×3.5` on `m0r0`. **So the
+trace length is roughly HALF the driver and something else is the other half** — the pre-registered
+falsifier says the simple story is wrong, and it is the falsifier doing its job.
+
+### AND THE WINDOW ARM IS NOT AN ABLATION, WHICH I ALMOST REPORTED AS ONE
+
+**`dc22` minted 6 with the full history and 18 with the window. `m0r0` 7 against 14.** A shorter
+history changes what the agent ACCEPTS — fewer observations to contradict a term means more terms
+pay. **So the window arm is a DIFFERENT AGENT doing MORE work in LESS time, not the same agent
+doing less.**
+
+> **THE COMPARISON IS THEREFORE CONFOUNDED IN THE DIRECTION THAT FLATTERS THE FINDING**, and the
+> honest reading is that the halving is a FLOOR on the history effect tangled with a behaviour
+> change. **Exactly the shape of the overlay retraction four hours ago: a number that looked like
+> the mechanism working, produced by the mechanism changing what it was measuring.**
+
+### the second arm, which the reviewer did not ask for and which redirects the repair
+
+**`history(slot)` rebuilds its list by walking `self.trace` on every call, and `_left`,
+`_residual_obs` and `_cannot_pay` each call it PER CANDIDATE.** Counted:
+
+    dc22   22,167 history() calls   9,695 distinct (slot, trace-length) keys   12,472 REBUILDS = 56.3%
+    m0r0    4,982 history() calls   1,895 distinct keys                         3,087 REBUILDS = 62.0%
+
+**The majority of calls reconstruct a list that was already built for that exact key.**
+
+**AND CACHING IT IS NOT THE REPAIR, WHICH IS WHY THIS ENTRY EXISTS RATHER THAN A PATCH.**
+`history` does not appear in `F254`'s top twelve on either board. **The hot functions are
+`gamma.apply`, `_sat`, `arc_percept`'s `touching` generator and `_record` — all PER-OBSERVATION
+evaluation.** So the window helped by cutting how many observations get EVALUATED, not by cutting
+list-building. **Caching the list would remove 56% of a cost that is not the cost.**
+
+### WHAT THE CORPUS SAYS, READ BEFORE PROPOSING ANYTHING — AND IT REFUSES THE OBVIOUS FIX
+
+The reviewer pointed at `WHAT_THE_AGENT_SEES` and the pipeline's Layer 7 for *lossy stacking,
+dilution, not a full re-walk.* Both passages read in full:
+
+- ***"Nothing leaves that list, ever. You can dilute what is in the glass and you cannot take it
+  out."***
+- The reduced-strength language is about **LEVELS**: *"plays of one level stack under that hash,
+  by episode, then by level… a later level uses the earlier ones lossily."*
+
+**AND THAT RULE IS ALREADY IMPLEMENTED.** `retarget`'s own docstring: *"the trace and the bindings
+do not [carry], because slot names mean nothing across a boundary"*, with everything owed **parked
+WITH its history**.
+
+> **SO THE CORPUS GOVERNS THE LEVEL BOUNDARY AND `self.trace` IS WITHIN A PLAY.** Applying the
+> dilution passage to CYCLES would be *correct mechanism, wrong scope* for the fourth time this
+> session — `F214`, `F215`, `F247` and now this. **A window is not a corpus-sanctioned repair; it
+> is the magic number wearing the corpus's clothes.**
+
+### the next measurement, named rather than run
+
+**If the cost is per-observation evaluation and observations may not be dropped, the only repair
+that removes no evidence is not re-evaluating the SAME (term, observation) pair.** `_record`
+already has a `_frame_cache`, so the idiom exists. **Whether that population is large is
+UNMEASURED and is the next thing to count** — and it is the third candidate in a row, so it gets
+counted before it gets a story.
+
+    BOUNDARY    two boards, 20 cycles, one seed, UNCONTENDED (the seven-board A/B was killed to
+                free the CPU, on the reviewer's ordering that this outranks it). The WINDOW arm
+                changes minting 3x and is NOT a clean ablation -- its halving is a floor on the
+                history effect, not a measurement of it. `history()` is wrapped by the probe in
+                both arms, so its call counts are comparable and its overhead is in both
+    MECHANISM   none. The window is a DIAGNOSTIC and ships nothing, per the reviewer's ruling
+    CAPABILITY  none. It refutes the pre-registered story, eliminates list-rebuilding as the
+                repair despite a 56-62% duplication rate, and establishes that the corpus
+                passage cited governs levels rather than cycles
