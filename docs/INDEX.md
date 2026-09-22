@@ -43158,3 +43158,82 @@ code. **`PERCEPTION_BUILD_PLAN.md` is in NEITHER list**, so whether it may be re
 undeclared. I have annotated rather than edited, per the reviewer — **and `CLAUDE.md` anticipates
 exactly this: *the boundary is what gets fuzzy, not the principle; a document appearing later needs
 a side.* It needs one.**
+
+---
+
+## `F277` — ISAIAH: STOP OVERFITTING TO BOARDS. The OOD set has none of these games, so per-board properties are something to be ROBUST TO, not to select on
+
+**2026-09-22. Two corrections, and the second reframes the whole of this session's evaluation work.**
+
+> ***g50t is kind of like ms paint, so don't put all your eggs in that basket — make sure you are
+> evenly sampling all games.***
+>
+> ***Stop overfitting to particular board or game. Remember: the OOD set will have none of these
+> games, only concepts will transfer.***
+
+### What I was doing, and why it was the same mistake twice
+
+I retired `m0r0` (1% multi-frame) as a wiring board for being **unable to show** a cascade effect —
+the trigger-firing law, correctly applied. **I replaced it with `g50t` (94%) and then ran every
+wiring check since `F274` on `g50t` alone**: arm I's resolution census and the `holes` omission,
+`area`/`centroid`, the cheap mutation set.
+
+**`g50t` is unrepresentative in the OPPOSITE direction and no quantity I measured could show it.** A
+drawing interface emits many frames per stroke, so its cascade depth is an **interface artefact**
+rather than a world property. **Same mistake, one board over, and the second time I could not have
+caught it from the data** — which is the point: board GENRE is not in any column I have.
+
+### And the deeper correction, which is not about board choice
+
+**Everything this session selected boards BY measured per-board properties** — cascade share,
+contact density, turnover — and reported per-board tables as the result.
+
+> **THE OOD SET CONTAINS NONE OF THESE GAMES.** So a per-board property is not a thing to optimise
+> against; **it is a thing the mechanism must be ROBUST TO.** The evaluation set exists to ask
+> *does this work regardless of board*, not *which board does it work on* — **the same measurements,
+> read the opposite way.**
+
+**This also cuts against the framing I had accepted from the reviewer** — *a set chosen to span
+where each mechanism should show* answers "does the mechanism work where it should?". **Isaiah's
+correction says that is the wrong question to optimise**, because "where it should" is defined by
+boards that will not be there. **What has to transfer is the CONCEPT.**
+
+### The measurement, read the new way
+
+Ten boards spanning 1% to 100% cascade, arm on, 10 frames each — **do the new attributes publish at
+all?**
+
+    board   casc%   slots  objs     dh     dw  dcells  recolour  contact
+    bp35      100    3020   229   2695   2695    2695      2695     4460
+    lf52      100    1274    94    617    617     617       617      941
+    su15       95     258    20    153    153     153       153      156
+    g50t       94     234    18    273    273     273       273      285
+    sk48       83     983    70   1013   1013    1013      1013     2235
+    tn36       25    1248    89   1182   1182    1182      1182     2024
+    ka59       15     396    29    215    215     215       215      347
+    dc22        8    1260    90    831    831     831       831     1867
+    m0r0        1     303    22    188    188     188       188      391
+    wa30        1     186    14    125    125     125       125      206
+
+**TEN OF TEN. Every new attribute publishes on every board, across the whole cascade range.** Under
+the old framing that is a boring table; **under Isaiah's it is the finding — the mechanism is not
+board-dependent**, which is the only property that can survive into a set where none of these games
+appear.
+
+**AND THE BOUNDARY MATTERS MORE THAN USUAL: PUBLISHING IS NOT USEFULNESS.** This says the attributes
+exist everywhere, not that they help anywhere. Whether they change the route chart is the run's
+question and is not touched here.
+
+    BOUNDARY    10 boards, 10 frames, ONE seed, arm ON only -- a publication census. No effect
+                claimed and no comparison made
+    MECHANISM   none changed
+    CAPABILITY  none. It converts a per-board table into a board-independence check, which is
+                what the OOD claim actually needs
+
+### What it changes going forward
+
+- **Wiring checks rotate across boards** rather than sitting on whichever one shows the most.
+- **The BREADTH tier (all 25) carries the weight the DEPTH tier cannot** — depth answers "how big
+  here", breadth answers "everywhere or only here", and only the second survives the OOD boundary.
+- **No board is retired for failing to show an effect again.** `m0r0` was retired for exactly that,
+  and the replacement was worse.
