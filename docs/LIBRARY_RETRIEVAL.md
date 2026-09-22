@@ -203,6 +203,7 @@ a budget and estimating the space with `space_exact`.**
     perceive a change
       -> normalize its attribute            (17 clusters, ATTRIBUTE_CLUSTERS)
       -> ATTRIBUTE_INDEX lights candidate DOMAIN|Atoms
+      # CONTESTED 2026-09-22 -- this describes THE AGENT keying the lookup, which F164 and TRAINING_PLAN 14.11 forbid. Isaiah's fork (agent-side lookup vs seat-side mapping) is unruled; Parts 4.7 and 6.4 carry the other side. NO REPAIR UNTIL HE RULES.
       -> ATTRIBUTE_REACH gates on whether the sensor stack can perceive it
       -> WORKING_SET gives the entry points (61 roots, ~200 Set-A, ~200 Set-B)
       -> a recipe in ATOMS.md is the aim point, tagged with an operator (OPERATORS.md)
@@ -219,7 +220,7 @@ a budget and estimating the space with `space_exact`.**
 
 | step | what narrows | which artefact |
 |---|---|---|
-| **1 — HIGHLIGHT** | a changed attribute lights the atoms that depend on it | `ATTRIBUTE_INDEX` |
+| **1 — HIGHLIGHT** | a changed attribute lights the atoms that depend on it | `ATTRIBUTE_INDEX` **[CONTESTED 2026-09-22 -- this describes THE AGENT keying the lookup, which F164 and TRAINING_PLAN 14.11 forbid. Isaiah's fork (agent-side lookup vs seat-side mapping) is unruled; Parts 4.7 and 6.4 carry the other side. NO REPAIR UNTIL HE RULES.]** |
 | **2 — GATE ON PERCEIVABILITY** | can this sensor stack see it at all | `ATTRIBUTE_REACH` |
 | **3 — ENTRY POINTS** | where a composition starts | `WORKING_SET` |
 | **4 — BRIDGE** | which domains connect, for composing ACROSS one | `ADJACENCY` (285 edges) |
@@ -750,6 +751,7 @@ untouched -- `n` is a property of the recipe, not of the library size:**
 
     d   slots that CHANGED this frame        measured: sk48 median ~74, dc22 median ~10
     r   recipes the changed attributes LIGHT via ATTRIBUTE_INDEX
+    # CONTESTED 2026-09-22 -- this describes THE AGENT keying the lookup, which F164 and TRAINING_PLAN 14.11 forbid. Isaiah's fork (agent-side lookup vs seat-side mapping) is unruled; Parts 4.7 and 6.4 carry the other side. NO REPAIR UNTIL HE RULES.
     6   OPERATORS' yes/no tests per lit recipe -- NOT 7^(n-1) readings (5.4)
 
 Operands come from the delta too, so `S` becomes `d` rather than the slot count — **that is conflict
@@ -780,6 +782,7 @@ why the parse is dependency 1 in 5.7 and not an afterthought.
 ### 5.8.4 Precomputed versus generated on demand
 
     PRECOMPUTED, small, loaded once     ATTRIBUTE_INDEX (attribute -> atoms) · the instrument list
+    # CONTESTED 2026-09-22 -- this describes THE AGENT keying the lookup, which F164 and TRAINING_PLAN 14.11 forbid. Isaiah's fork (agent-side lookup vs seat-side mapping) is unruled; Parts 4.7 and 6.4 carry the other side. NO REPAIR UNTIL HE RULES.
                                         (RELATIONS + ATTRIBUTES) · the ~8 bond combinators · the
                                         recipe table as DATA (ingredients, no bonds fixed)
     GENERATED ON DEMAND, never stored   every composition. A recipe exists as `(ingredients,

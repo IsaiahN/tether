@@ -50,6 +50,9 @@ ITEMS = {
     "invention": "`owed_import` -> atom creation",
     "delete.enumerate_closure": "only after Part 6.5's five checks",
     "carryover.audit": "the superseded-docs table",
+    # reviewer 17:44 -- marking a contested passage is WORK, and work that cannot be
+    # spelled gets done under a wrong item or not at all.
+    "doc.consistency": "mark a contradiction CONTESTED; repair only once Isaiah rules",
     # THE GATES NAME THEMSELVES, the way `focus.py`'s own commits are L3 under its own rule.
     # Without this the control could not be introduced by a commit that obeys it.
     "seat": "a check, a guard, or the aim discipline itself",
