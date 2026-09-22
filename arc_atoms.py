@@ -317,10 +317,16 @@ def _shape_facts() -> list[Atom]:
         live -- and returning the row half is a reading rather than a stand-in for the pair.
         """
         rec = o if isinstance(o, dict) else getattr(c, "obj", None)
-        if not isinstance(rec, dict) or not rec.get("cells"):
+        if not isinstance(rec, dict) or not rec.get("structure"):
             return NOT_RESOLVED
-        rows = [r for r, _ in rec["cells"]]
-        return sum(rows) // len(rows)
+        # `structure` IS OFFSETS FROM THE TOP-LEFT, so the mean of them is the mean offset and
+        # the absolute row is that plus the object's own `row`. Reading it as an absolute
+        # coordinate would put every object's centroid near the origin.
+        rows = [r for r, _ in rec["structure"]]
+        base = rec.get("row")
+        if not isinstance(base, int):
+            return NOT_RESOLVED
+        return sum(rows) // len(rows) + base
 
     def _touch_n(o: Any, c: Ctx) -> Any:
         """HOW MANY are in contact, where `touching` said only WHETHER any were.
@@ -334,10 +340,25 @@ def _shape_facts() -> list[Atom]:
         return len(c.touching)
 
     def _area(o: Any, c: Ctx) -> Any:
+        """Filled CELL COUNT, which is what `h`/`w` cannot give -- see the admitting note.
+
+        **IT READ `rec["cells"]` AND THE RECORD HAS NO SUCH KEY.** `_record` publishes the
+        offset frozenset under `structure` -- *"the structure BESIDE the label, never in place
+        of it"* -- so this and `_centroid` were the only two readers of a key nothing writes,
+        and both returned NOT_RESOLVED on every call. `A6i` at a record boundary: one quantity,
+        two names, and the site that wrote it checked its consumers for MUTATION rather than
+        for reading the right key.
+
+        **AND THE ATOM WAS HANDED FOR EXACTLY THIS READING** -- *"`h`/`w` are the BOUNDING BOX
+        and nothing counted cells, so a sparse cross and its enclosing square were
+        indistinguishable on every extent atom"*. The atom admitted to count cells could not.
+
+        `len(structure) == len(cells)`: the offsets are a bijection with the cells.
+        """
         rec = o if isinstance(o, dict) else getattr(c, "obj", None)
-        if not isinstance(rec, dict) or "cells" not in rec:
+        if not isinstance(rec, dict) or not rec.get("structure"):
             return NOT_RESOLVED
-        return len(rec["cells"])
+        return len(rec["structure"])
 
     return [Atom("holes", _holes, SHAPE, EXTENT),
             Atom("parity", _parity, POSITION, BOOL),
