@@ -44177,7 +44177,24 @@ that the denominator is 70 million.
 
 ---
 
-## F294 (INDEX series) — **`dc22` ADVANCES THE GROUND: LEVELS 2 → 4 ON BOTH ARMS.** So the settling path is NOT broken — `sk48` seed 0 is the outlier. And **LEVELS ADVANCE WITH `settled` AT ZERO**, which reframes the question
+## F294 (INDEX series) — ~~**`dc22` ADVANCES THE GROUND: LEVELS 2 → 4 ON BOTH ARMS**~~ — **THE LEVEL HALF OF THIS ROW IS VOID, SEE `F296`**
+
+> **RETRACTED 2026-09-22, WITHIN THE HOUR, BY ME.** **`levels` IS THE HUMAN'S LEVEL COUNTER READ
+> OFF THE REPLAY TAPE** — `feeder.py:96`, `self.levels_completed = step.get("level") or 0` — and
+> **`ReplayTape.step` IGNORES THE ACTION BY DESIGN.** *The agent cannot change `levels` in a
+> replay run at all.* **So `2 → 4` is the tape walking into chunks the human recorded at level 4,
+> and it is not ground progress by the agent.**
+>
+> **WHAT IS VOID:** *dc22 advances the ground* · *the settling path is not broken* · *settling is
+> not the gate on ground progress* · **and my retirement of *why does nothing settle*, which
+> rested entirely on it.** The reviewer's fork is UNRESOLVED, not resolved.
+>
+> **WHAT STANDS:** every agent-side column — calls, library, settled, `prim` — including
+> **`prim` 0 → 5 on the `dc22` ON arm**, and the minting contrast (`54 → 58` on a third of the
+> calls against `sk48`'s `54 → 99`). Those are the agent's own record and the tape does not
+> write them.
+
+### the original row follows, kept because the error is the lesson
 
 **The reviewer's (a), run: yield on the board that is alive and does reach the shape family.
 Equal windows, one script, one flag, arm I ON in both. Compared at CYCLE 9 on both arms.**
@@ -44297,3 +44314,65 @@ since 2026-08-26; the fault was in the sentence, not the code.*
     MECHANISM   none changed
     CAPABILITY  none. It names `bound` as the unmeasured funnel stage both paths depend on, and
                 it repairs a quotation I had already put in front of the reviewer twice
+
+---
+
+## F296 (INDEX series) — **`levels` IS THE HUMAN'S COUNTER OFF THE REPLAY TAPE, AND THE AGENT CANNOT MOVE IT.** Every ground reading I took tonight was a non-measurement, and I resolved the reviewer's fork on one
+
+**Caught by a number that could not be true.** `sk48` seed 1 opened at **`levels 6` in cycle 1**
+where seed 0 opened at `levels 2`. **A ground counter cannot differ at cycle 1 on the same board**
+— so I went to the write site for `levels`, which I had never done, having quoted it for hours.
+
+    feeder.py:96            self.levels_completed = step.get("level") or 0
+    reverse_engineer.py:69  "level": d.get("levels_completed")     <- FROM THE REPLAY DATA
+    feeder.py:115           def step(self, _action: Any = None, ...):
+                                # the action is IGNORED and that is deliberate
+
+> **`ReplayTape.step` IGNORES THE ACTION BY DESIGN. THE AGENT CANNOT CHANGE `levels` IN A REPLAY
+> RUN AT ALL.** `levels` is **the human's level at the tape's current position**, and
+> `chunk_order` SHUFFLES chunks by seed — **which is exactly why seed 0 starts at 2 and seed 1
+> starts at 6.** *The quantity I was reading as the agent's ground progress is a coordinate in
+> the human's recording.*
+
+### WHAT THIS VOIDS, AND IT CASCADES
+
+    F292   "levels never moves off 2 in any cycle of any arm"      VOID -- it could not
+    F294   "dc22 ADVANCES THE GROUND: levels 2 -> 4 on both arms"  VOID -- that is the tape
+    F294   "so the settling path is NOT broken"                    VOID -- rested on it
+    F294   "settling is not the gate on ground progress"           VOID -- rested on it
+    F294   my RETIREMENT of "why does nothing settle"              VOID -- so the question
+                                                                   is UN-RETIRED
+
+**THE REVIEWER'S FORK IS UNRESOLVED.** *If `dc22` settles it is a board property; if `dc22` also
+reads zero the settling path is broken and that is the programme.* **I reported it resolved. It
+is not, because the quantity I resolved it with is not the agent's.**
+
+### WHAT SURVIVES — every agent-side column, and they are the ones the tape does not write
+
+`calls`, `library`, `settled`, `prim` are the agent's own record. **`prim` 0 → 5 on `dc22`'s
+observer-ON arm stands.** So does the minting contrast: `dc22` `54 → 58` on a THIRD of `sk48`'s
+calls against `54 → 99`. **And `settled` at 0–3 everywhere stands** — which, without the level
+column to argue against it, is now unopposed.
+
+### WHY IT GOT THROUGH, AND IT IS NOT THE SAME AS TONIGHT'S OTHER MISSES
+
+**This is not over-generalising from one board-seed** — the previous four were. **This is worse:
+the quantity was never the agent's in the first place.** `CLAUDE.md`'s first metric law is *the
+ground is the only metric*, and its check is *go to the write site: ask which LINE assigned the
+value.* **I ran that check on `settle` and on `promote` this same tick, because the reviewer told
+me to — and never on `levels`, because I was not suspicious of it.** *The check fires where
+suspicion points, which is precisely where it is least needed.*
+
+> **AND IT IS THE HUMAN'S RECORD READ AS THE AGENT'S ACHIEVEMENT.** Nothing was fed to the agent
+> and no answer was encoded — `levels` is read-only on the seat's side of the wall. **But a seat
+> that scores the agent with a number out of the human's replay has stopped measuring the agent**,
+> and that is one step from the failure this project exists to avoid.
+
+    BOUNDARY    a read of `feeder.py`, `reverse_engineer.py` and `arc_world.py:734`. NO RUN --
+                the refuting observation is `sk48` seed 1's cycle-1 value, already printed.
+                It governs EVERY `levels` reading taken under a `ReplayTape`, which is all of
+                tonight's. A LIVE HARNESS run is a different case and is not addressed here
+    MECHANISM   none changed. `F292` and `F294` corrected in the rows that carry them
+    CAPABILITY  none. It removes the only ground-facing column I had and leaves the agent-side
+                funnel -- `bound -> candidate -> settled -> primitive` -- as the whole of what
+                is measurable under a tape
