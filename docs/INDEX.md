@@ -42260,3 +42260,76 @@ bought `-3%` to `-10%` of late-cycle time.
     MECHANISM   none. Counted only, as the reviewer required, before anything is built
     CAPABILITY  none. It half-refutes the proposal before a line of it was written, which is what
                 counting first is for
+
+## F263 (INDEX series) — ARM J's CONFORM FAILURES ARE NOT THE CHECKS ENCODING OLD ROUTING. **The competitor swaps an `OBJ` objective for a `val` predictor** — `_library_fit`'s missing type filter, which `CLAUDE.md` documents and nothing had ever exercised
+
+**The reviewer's instruction was exact: *if the failures are slots now reaching a competitor
+instead of mint, that is the bin doing its job and the checks encode the old routing. Show WHICH,
+per failure, before either changes.* Shown, and it is neither.**
+
+    test_m2.py    arm J OFF   17/17 pass
+                  arm J ON    10/17 pass
+
+### the one failure that is not a fixture complaint, isolated
+
+`check_one_bargain` asserts two things. **The first — *bought a plan the bargain could not
+afford* — STILL PASSES.** Only the witness row is missing:
+
+    arm OFF    PLAN/routine_cut        reason `does-not-pay`
+    arm ON     PLAN/routine_refused    reason `the discrepancy is not a distance: NOT_RESOLVED`
+
+**The refusal moved EARLIER — from the bargain to the discrepancy read.** `_discrepancy` returns
+`NOT_RESOLVED` when the bound term is not `OBJ`-typed.
+
+### and the reason, with the swap in hand
+
+**17 REFUTED routings fire during the fixture, and the first two are the whole finding:**
+
+    o1.dcol   none                 OBJ   ->   recolour<o0.colour>   val
+    o2.dcol   none                 OBJ   ->   recolour<o0.colour>   val
+
+**THE COMPETITOR IS A DIFFERENT TYPE.** An `OBJ`-typed objective is displaced by a `val`-typed
+predictor, `_discrepancy` then reads `NOT_RESOLVED`, and the goal machinery on that slot is dead —
+silently, with the bargain check still passing.
+
+> **THIS IS A DEFECT `CLAUDE.md` ALREADY NAMES AND NOTHING HAD EVER EXERCISED.** *"`_library_fit`
+> binding a `PRED`-typed term to a slot with NO TYPE FILTER AT ALL: undocumented, unruled, and
+> presenting as nothing."* **It presented as nothing because no mechanism called `_library_fit`
+> often enough on `OBJ`-bound slots to break anything visible. The REFUTED bin is the first one
+> that does.**
+
+### THREE INSTRUMENTATION ERRORS BEFORE THE ANSWER, AND THEY ARE THE ENTRY'S OTHER HALF
+
+**I measured `REFUTED routings: 0` TWICE and nearly filed "the bin never fires here".**
+
+    attempt 1   spy installed AFTER `_wide(ag)`      -- missed the fixture's own warm-up
+    attempt 2   spy installed AFTER `_agent()`        -- missed `_agent`'s warm-up
+    attempt 3   patched `tether.Agent.route` at CLASS level, before any agent exists  -- 17
+
+**And then a fourth: my filter read `s[2] == 'obj'` against a value that is `'OBJ'`, so the
+summary line printed `OBJ -> non-OBJ swaps: 0 of 17` UNDER a table showing exactly those swaps.**
+
+> **A ZERO IS THE MOST CONVINCING KIND OF WRONG, and this file says so.** Three of the four zeros
+> were *instrumented the wrong object*, which is *before any census ask which function consumes
+> this quantity* — `_mint` calls `_mint_routine` DIRECTLY and never `route`, so no spy on an
+> instance method could have seen it. **Reading `_mint`'s four lines first would have cost
+> nothing and saved three measurements.**
+
+### what this does to the bin
+
+**The bin's ROUTING is sound — expressed-and-failed, competitors offered, `rejections` untouched.
+What is unsound is what `_library_fit` HANDS BACK when asked for a competitor.** So the repair is
+not in the bin.
+
+**AND IT IS NOT THE SEAT'S.** `_library_fit`'s test is ALREADY ESCALATED (absolute vs comparative),
+and a type filter on it touches the OBJECTIVE/PREDICTOR TIE — **a `val` term displacing an `OBJ`
+term IS the predictor beating the objective, decided by an untyped retrieval rather than by the
+bargain.** That pricing is Isaiah's withheld ruling. **REPORT, DO NOT PRICE.**
+
+    BOUNDARY    ONE fixture, `test_m2.py`'s `check_one_bargain`, isolated in both arms. The other
+                six failures are NOT individually diagnosed -- five say `fixture: ...`, which is
+                consistent with the same cause and is not evidence of it. The swap table is the
+                first 5 of 17 routings on one fixture. `shipped`'s B5 failure is untouched here
+    MECHANISM   none changed. Arm J stays DEFAULT OFF and the plumbing stays in
+    CAPABILITY  none. It converts "two conform seats fail" from a cost of the bin into a
+                DIAGNOSIS of a documented gap that had never presented
