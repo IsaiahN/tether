@@ -42790,7 +42790,7 @@ and much smaller thing — *which relation TYPES changed this frame*, with a con
 
 **`retrieval.py` says so itself: *"`touching` is the ONLY relation an atom holds today."*** So
 `RELATIONS.md`'s 76 are not merely unranked — **75 of them are unsayable by any term the search
-can score.**
+can score.** — **CORRECTED: `RELATIONS.md` Part 6 had already counted it and I re-derived it. `perceived today 1` · `composable from what the agent holds ~24` · `blocked, each blocker named ~21` · `constraints and forces inferable as delta patterns ~24`. **~24 ARE composable**, so *unsayable* is wrong.**
 
 ### 4 — AND WHERE IT ACTUALLY BINDS, EVEN THE ONE POINT IS OFF
 
@@ -42835,3 +42835,147 @@ search.** `F260` measured System 0 as having no effect on acquisition across eig
     MECHANISM   none changed
     CAPABILITY  none. It reframes six eliminated candidates as having been aimed at the wrong
                 half of the expression, and it names the half nobody had looked at
+
+## F272 (INDEX series) — THE RETRIEVAL SPEC IS IN THE PLAN, NAMED, WITH ARTEFACTS — and the plan DIAGNOSES TONIGHT'S FINDING IN ITS OWN WORDS: *"the opposite of the agent's current 8-attribute reading, WHICH IS WHY ITS SEARCH IS UNDIRECTED"*
+
+**Isaiah: *that's not just direction — it was literally in the plan.* He is right. `TRAINING_PLAN`
+§*The chunk → library mapping pipeline* and §*IT IS A MAPPING JOB, NOT A SEARCH* carry the whole
+specification, and I spent a night measuring its absence from the other end.**
+
+### the plan's own diagnosis, verbatim
+
+> ***"The full-attribute MutationObserver.** Each object/slot carries the FULL attribute+relation
+> set (~100, from `RELATIONS.md`/`ATTRIBUTES.md`), initialised NULL at frame 0, and is updated in
+> real time from frame 1 by a mutation-observer. This yields dense data from the start, and EVERY
+> FRAME COMPOUNDS the cue + relational vector — **the opposite of the agent's current 8-attribute
+> reading, WHICH IS WHY ITS SEARCH IS UNDIRECTED** (`RELATIONS.md` Part 6)."*
+
+**Measured: `arc_atoms.ATTRIBUTE_TYPE` holds EXACTLY EIGHT** — `colour, row, col, h, w, drow,
+dcol, shape`. **The phrase is literal, not rhetorical.**
+
+### and the CUT is specified too, as a detector firing rather than a ranking
+
+> ***"Attributes are DETECTORS, not a taxonomy.** Each atom carries attributes-to-check plus a
+> boolean CONDITION that confirms it (`Solidity` ⟺ `overlapArea==0`). **An attribute CHANGE
+> re-fires the conditions that reference it.**"*
+
+**That is the mechanism `F271` found missing.** `retrieve` ranks and returns everything; **a
+condition that re-fires on a change SELECTS.** The pipeline is named end to end:
+
+    perceive a change -> normalize (17 clusters, ATTRIBUTE_CLUSTERS) -> ATTRIBUTE_INDEX lights
+    candidates -> ATTRIBUTE_REACH gates on perceivability -> WORKING_SET entry points -> a recipe
+    in ATOMS.md, tagged with an operator (OPERATORS.md)
+
+### WHY IT WAS FORGOTTEN, AND IT IS MY CORRECTION THAT BURIED IT
+
+**§14.11 recorded *the fix is a join: look the atoms up in `ATTRIBUTE_INDEX`* and I CORRECTED IT
+THE SAME DAY as forbidden** — rightly: corollary two says *do NOT map to the agent's ~45 gamma
+atoms*, and `F164` measured Γ and the closure disjoint by purpose. **Joining a 61-domain human-
+prior index to ARC-grid atoms would light up Hadley cells. That correction stands.**
+
+> **BUT THE FORBIDDEN THING AND THE SPECIFIED THING ARE DIFFERENT THINGS, AND KILLING ONE BURIED
+> THE OTHER.** The closure-index JOIN is forbidden. **The FULL-ATTRIBUTE OBSERVER on the agent's
+> OWN side is corollary THREE of the same section, and it was never picked up** — the entry closed
+> with *"Γ's 2–6% retrieval miss is a SEPARATE problem with a separate cause"* and the record has
+> carried `1b RETRIEVAL — cause still OPEN` ever since. **The cause was two corollaries below the
+> correction.**
+
+**That is *a map entry saying a thing does not exist is worse than one saying it is unfinished* —
+`CLAUDE.md`'s own warning — committed by me, in the section that names the answer.**
+
+### and one piece of it is already built, by accident, tonight
+
+**Ruling (b) made a covered object's attributes read `NOT_RESOLVED` rather than vanish —
+*null, not absent*.** The observer spec requires exactly that, globally: *"initialised NULL at
+frame 0."* **The first clause of the unbuilt mechanism went in tonight for an unrelated reason.**
+
+### what this does to the cost programme
+
+**Six candidates eliminated, all aimed at the MULTIPLIER, and `F271` found retrieval never cuts.
+This says the cut was SPECIFIED and is unbuilt** — so the cost finding and the capability finding
+are one finding: **the agent brute-forces because it perceives eight attributes and holds one
+relation, and the plan says so in those words.**
+
+    BOUNDARY    a READ of the plan and of `ATTRIBUTE_TYPE`, not a runtime measurement. What the
+                ~100-attribute observer would COST is unmeasured and is not obviously cheap --
+                more attributes is more slots, and `F258`'s cross-product multiplies slots.
+                Whether detector-conditions actually cut on ARC boards is unmeasured. The
+                closure-index join REMAINS FORBIDDEN and nothing here revisits it
+    MECHANISM   none changed
+    CAPABILITY  none. It converts `1b RETRIEVAL -- cause OPEN` into a named, specified, unbuilt
+                mechanism, and it identifies my own correction as what buried it
+
+## F273 (INDEX series) — THE CLOSURE SHIPS PRECOMPUTED REACH, AND THE INDEX IS KEYED BY **ATTRIBUTE**, NOT BY ATOM. My §14.11 correction forbade an atom-keyed join and closed a question the attribute-keyed lookup answers
+
+**Isaiah: *the adjacency files literally preload reach calculations* and *the 8-attribute reading
+needs to be more*. Both check out, and together they overturn how my own correction was read.**
+
+### 1 — the closure ships REACH, precomputed, three ways
+
+    ADJACENCY.md          61 domains, 285 undirected edges, ONE component, mean hop 2.11,
+                          longest path 4. "Derived from the recipes, no judgement anywhere."
+    COMPOSITE_REACH.md    585 tier-1 atoms -> 2,205 composites, as a GREEDY SET-COVER CURVE:
+                          10 atoms -> 72 composites (3%) ... 300 -> 1,420 (64%) ... 477 -> 92%
+    ATTRIBUTE_REACH.json  which atoms are reachable behind which sensor, tier 1 = 1,749 of 2,700
+
+**The agent computes reach at runtime** — `enumerate_closure` walks units under a budget and
+`space_exact` estimates the space. **The closure already holds the answer for its own space,
+measured rather than estimated.**
+
+### 2 — AND THE INDEX IS KEYED BY ATTRIBUTE, WHICH IS NOT WHAT I FORBADE
+
+    ATTRIBUTE_INDEX.json   "Attribute -> candidate atoms. A CHANGE IN AN ATTRIBUTE LIGHTS UP THE
+                            ATOMS THAT DEPEND ON IT. Three indexes: raw name, semantic cluster,
+                            and encoding."
+      distinct attributes       5,040        attributes naming one atom      3,941
+      by_cluster                17           by_encoding                     13
+      high_fanout               201 attributes naming five or more atoms
+
+> **§14.11 recorded *the fix is a join: look THE ATOMS up in `ATTRIBUTE_INDEX`* and I corrected it
+> as forbidden.** The correction is right about what it addressed: **atom → atom** would join Γ's
+> 45 ARC-grid atoms to a 61-domain human-prior library, and `F164` measured those disjoint.
+>
+> **BUT THE SPECIFIED OPERATION IS CHANGE → ATTRIBUTE → CANDIDATES. A different key and a
+> different operation.** My correction closed the question with *"Γ's retrieval miss is a SEPARATE
+> problem"*, and the record has carried `1b RETRIEVAL — cause OPEN` ever since.
+
+### 3 — AND `by_encoding` IS THE ROUTE THAT SURVIVES `F164` OUTRIGHT
+
+    by_encoding keys   SCALAR_DEFAULT, SCALAR, TEMPORAL, EVENT, BEHAVIOURAL, RELATION,
+                       SHAPE, EXTENT, ...            (13)
+    the agent's types  COLOUR, POSITION, EXTENT, SHAPE, DELTA, BOOL, REGION
+
+**`EXTENT` and `SHAPE` are in BOTH.** An encoding-keyed lookup needs **no vocabulary match at
+all** — it asks *what KIND of quantity changed*, and the agent's slot types already are that
+kind. **`F164`'s disjointness was measured between NAMES; encoding is not a name.**
+
+### 4 — and the attribute list is a DETECTOR LIST, which is the cut
+
+`ATTRIBUTES.md`: *"the list is not a taxonomy — it is a set of detectors. An atom with attributes
+and a condition is something an agent can CHECK against a board."* `Solidity` ⟺ `overlapArea==0`;
+`Movement` ⟺ `position(t2)!=position(t1)`.
+
+**And it answers Isaiah's *more attributes* directly:** *"an attribute is added when a sensor
+computes it, and A SENSOR IS WORTH COMPUTING WHEN AN ATOM'S CONDITION NAMES IT."* **So the 8 are
+not a floor set by principle — they are what nobody has extended, and the extension rule is
+written down.**
+
+### what is now established across `F271`–`F273`
+
+    retrieval RANKS and never cuts                    retrieve() returns every name
+    the mutation observer is NOT in the loop          observer.py imported only by a test
+    the agent perceives 8 attributes                  ATTRIBUTE_TYPE, exactly 8
+    it holds 1 relation of ~70                        RELATIONS.md Part 6, and ~24 are composable
+    the cut is SPECIFIED                              detector conditions re-firing on change
+    reach is PRECOMPUTED                              adjacency, composite reach, attribute reach
+    the index key is ATTRIBUTE, and encoding bridges  by_encoding overlaps Γ's own types
+
+    BOUNDARY    READS of the closure artefacts and of `ATTRIBUTE_TYPE`. NOT measured: whether an
+                encoding-keyed lookup actually narrows on an ARC board, what a ~100-attribute
+                observer COSTS (more attributes is more slots, and `F258`'s cross-product
+                multiplies slots), and whether any closure atom lit this way is COMPOSABLE in Γ.
+                The NAME-keyed join stays forbidden; nothing here revisits `F164`
+    MECHANISM   none changed
+    CAPABILITY  none. It reopens `1b RETRIEVAL -- cause OPEN` as a named mechanism with existing
+                artefacts, and identifies the encoding index as the one route `F164` does not
+                block
