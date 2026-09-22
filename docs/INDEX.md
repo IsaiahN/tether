@@ -42006,3 +42006,68 @@ is a design question and it is not the seat's to settle alone.
                 had not been read
     CAPABILITY  none. It answers F257's open question and names the first cost driver that is
                 a DESIGN shape rather than an implementation detail
+
+## F259 (INDEX series) — THE SPEC'S SECOND THRESHOLD IS ALREADY SATISFIED: **not one mint on four boards is triggered by a small surprise.** Minimum 3.46 bits, median 6.0, and `mass <= 1 bit` is 0 of 763
+
+**The reviewer pointed at `WHAT_THE_AGENT_SEES`' first bet, and the passage carries a gate the code
+does not obviously have:**
+
+> *"A settled change is what fires the lookup; the SIZE OF THE SURPRISE is what decides whether it
+> is worth the pass. One event, TWO THRESHOLDS. The agent does not retrieve for everything that
+> moves; it retrieves for what moved AND MATTERED."*
+
+**And `route` has ONE threshold, not two.** It tests `r.mass == 0.0` — a BINARY — and any non-zero
+mass with enough history routes to `MECHANISM`, which calls `mint`, which runs the 32–106×
+cross-product (`F258`). **So the hypothesis was: the agent mints for everything that moves, the
+second threshold is missing, and that is the volume.**
+
+### MEASURED, AND IT IS WRONG
+
+Joining `PERCEIVE/bet` rows (which publish `mass`) to `ROUTE` rows (which publish `bin`) on
+`(cycle, slot)`:
+
+    board   MECHANISM-routed with mass>0     min     median     max     mass <= 1 bit
+    ls20                203                 3.700     6.000     7.00      0  =  0%
+    vc33                159                 3.585     6.000     7.00      0  =  0%
+    ka59                281                 3.459     6.000     7.00      0  =  0%
+    tn36                120                 4.000     6.150     6.17      0  =  0%
+
+**NOT ONE of 763 mint-triggering surprises across four boards is small.** The minimum anywhere is
+3.46 bits and the median is 6.0 — **against a per-slot ceiling of `log2(alphabet)`, so 6–7 bits is
+a prediction that was as wrong as it could be.**
+
+> **THE AGENT IS NOT MINTING FOR TRIVIA. Every mint it runs is triggered by a near-maximal
+> surprise**, which is exactly *what moved AND mattered*. **The second threshold would gate a
+> population that is empty**, and installing it would be a constant with nothing to refuse — the
+> magic number in its purest form.
+
+### what that eliminates, and what it leaves
+
+**FIFTH candidate eliminated, and the first one eliminated by a READ rather than a build:**
+
+    a window over history         REFUSED by the corpus, and confounded (minted 3x more)
+    caching history()'s list      56-62% duplicated, not the hot path
+    library size                  REFUTED -- dc22 grows six terms while cost rises 32x
+    memoising the evaluation      behaviour-identical and NET SLOWER, both key variants
+    a surprise-size gate          the population it would gate is EMPTY, 0 of 763
+
+**So the mints are WARRANTED and each one is expensive.** That is a much narrower finding than
+*the agent searches too often*, and it puts the whole weight on `F258`'s shape question:
+**100 bindings per candidate, at ~0 coverage, truncated by a toy-world constant.**
+
+### AND IT IS A HYPOTHESIS I DERIVED FROM THE CORPUS AND THE CORPUS DID NOT SETTLE
+
+**The passage is right and the code already honours it** — just not at the site I expected. The
+gate is not a magnitude test in `route`; it is that `mass` is only ever non-zero when the bound
+term was expressed and MISSED, and on these boards a miss is near-total. **`_predict` returning
+`None` for an unreadable term is what keeps the small cases out**, and that is the same
+express-before-judge rule that answered Isaiah's hit-rate question.
+
+    BOUNDARY    four boards, PRE-FIX ledgers from 2026-09-20, joined on (cycle, slot) -- a slot
+                with two bet rows in one cycle would collide, and the join keeps the last.
+                `mass` is published on the BET row and the bin on the ROUTE row, so the pairing
+                is inference over two published quantities rather than one row; the safer
+                version publishes the bin beside the mass. Not re-measured on the current build
+    MECHANISM   none. A hypothesis tested and refused
+    CAPABILITY  none. It removes the fifth cost candidate and, unusually, it removes one by
+                showing the SPEC IS ALREADY MET rather than by showing a repair fails
