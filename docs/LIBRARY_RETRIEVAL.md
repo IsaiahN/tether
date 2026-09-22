@@ -1709,8 +1709,24 @@ already existed somewhere in this document.** A duplicate here is recoverable; a
 **NON-MEASUREMENTS, not zeros** — the board barely wakes inside fifteen cycles. *The bimodality
 is LIVENESS: seed 1 went live at cycle 9 and produced 783,902 calls.*
 
-    1  REPORT LIVE-CYCLE COUNT FOR EVERY BOARD-SEED. A row with zero live cycles is
-       UNMEASURED -- never a zero, and never pooled into any rate.
+    1  RESTATED 2026-09-22 19:33 -- SUPERSEDES THE 19:12 WORDING, AND THE ORIGINAL IS
+       KEPT BELOW BECAUSE THE ERROR IS THE POINT.
+
+       Report BOARD LIVENESS (counted over ALL atoms) and SHAPE-LIVE CYCLES separately
+       for every board-seed.
+         - BOARD liveness zero     -> UNMEASURED. Never a zero, never pooled.
+         - BOARD live, family NEVER REACHED -> a REACH FINDING. It MUST be reported and
+           must NOT be discarded -- it is the most informative row in the table.
+
+       THE 19:12 WORDING WAS: *"a row with zero LIVE cycles is UNMEASURED."* It was a good
+       rule resting on MY MISLABEL: `step1.py` spied only the ten SHAPE_ATOMS and printed
+       that counter under the general word `live`, so "live 0 of 15" meant *no shape atom
+       fired*, never *the board did nothing*. **Applied as written it would have DISCARDED
+       every reach finding as a non-measurement.** `A6i`, writing side, in my own
+       instrument -- the counter was named after what I was measuring that hour.
+
+       > **AND A GOOD RULE ON A BAD LABEL IS HARDER TO CATCH THAN A BAD RULE, BECAUSE
+       > NOTHING ABOUT THE RULE LOOKS WRONG.**
     2  IF HALF OR MORE of the depth board-seeds come back with zero live cycles, the next
        declared run uses 25 CYCLES UNIFORMLY. The same length for every board: per-board
        lengths are TAILORING, which is the thing the OOD set punishes.
@@ -1720,3 +1736,24 @@ is LIVENESS: seed 1 went live at cycle 9 and produced 783,902 calls.*
 > **AND THE RUN IN FLIGHT IS NOT CHANGED.** *Changing a design mid-run is how a result becomes
 > unreadable* — and one unilateral re-scope was already proposed and withdrawn tonight (`F282`).
 > The current run finishes as declared; these rules bind the NEXT one.
+
+## 10.1 DECLARED AMENDMENT TO THE BREADTH RUN — written 2026-09-22 19:33, BEFORE breadth starts
+
+**`step1.py` now wraps EVERY atom rather than the ten**, and reports `board-live cycles`
+alongside `shape-live cycles`, plus `all-atom calls`. `F286` established the spy is PASSIVE --
+wrapping 10 and wrapping 54 give byte-identical counts -- **so the column is bought at no cost
+to what is measured.**
+
+**WHAT MAKES THIS LEGAL, AND IT IS THE REVIEWER'S LINE RATHER THAN MY JUDGEMENT:**
+
+> **An instrument change that makes rows READABLE, without altering what is measured or which
+> boards / seeds / cycles / arms run, is legal BEFORE a run starts, DECLARED IN WRITING FIRST.
+> A change to boards, seeds, cycles, arms or thresholds is never legal once declared.**
+
+**Boards, seeds, cycles and arms are untouched: 25 boards x 10 cycles x 1 seed, arm I ON,
+observer ON.** Only the columns change.
+
+**THE DEPTH RUN IN FLIGHT KEEPS ITS OLD COLUMN AND IS NOT RESTARTED.** Its rows are read
+through the restated rule AFTERWARDS -- and until the `sk48` seed-0 full-registry census
+returns, **its two `sk48` zero rows are of UNKNOWN kind: either dead window or reach finding,
+and nothing may be concluded from them in the meantime.**
