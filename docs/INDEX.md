@@ -42638,6 +42638,9 @@ move.**
 
 ## F269 (INDEX series) — THE TABLE SETTLES IT: **probes fire in cycles 1–7 and every park happens in 16–18.** Not bookkeeping — BEHAVIOUR. `bored()` is true exactly when there is nothing to probe for, and false exactly when slots starve
 
+> **DEMOTED TO ONE SEED OF THREE BY `F270`.** `sk48`'s `bored()` fires **7, 0, 0** across three seeds — **never true on two of them, and zero probes on those two.** So *bored early, starved late* is the SEED-1 story, and on the other two the gate simply never opens, which is the reviewer's original premise that this entry refuted. **I refuted a three-seed claim from one seed, and it was the outlier seed.** The SYMPTOM is identical on all three — every park unprobed, 17/17, 29/29, 54/54 — so the conclusion stands and the mechanism is one of two.
+
+
 **The reviewer asked for one table — the cycle of every probe and every park — and named what each
 answer would mean. No mechanism until it existed. It exists.**
 
@@ -42698,3 +42701,53 @@ quiet. **The premise is now the anti-correlation rather than the gate's rarity.*
     MECHANISM   none changed. The table was the deliverable
     CAPABILITY  none. It restores a claim I withdrew, and it names a mechanism -- bored-early,
                 starved-late -- that neither the reviewer's nor my own account had
+
+## F270 (INDEX series) — THREE SEEDS ON `sk48`: `bored()` fires **7, 0, 0**. The reviewer's ORIGINAL premise was right on TWO of three seeds and I refuted it from ONE. And every park goes unprobed on all three
+
+**`F269` refuted the reviewer's premise — *`bored()` is almost never true on a busy board* — by
+measuring `sk48` at 7 of 10. They withdrew a ruling on that. The three-seed run says the premise
+holds on two thirds of the evidence.**
+
+    sk48, 20 cycles, three seeds        seed 1    seed 4242    seed 99991
+      bored() steps at choose              7           0            0
+      probe ROWS                           7           0            0
+      parked at no_support                17          29           54
+      probe rows NAMING a parked slot      0           0            0
+      parks with NO later probe AT ALL    17          29           54
+
+### THE PREMISE WAS RIGHT WHERE I SAID IT WAS WRONG
+
+**On two of three seeds `bored()` is NEVER true and the agent probes ZERO times** while 29 and 54
+slots park at `no_support`. **That is exactly *the gate starves the probe*, and it is the reading I
+withdrew.**
+
+> **I REFUTED A THREE-SEED CLAIM FROM ONE SEED, AND IT WAS THE OUTLIER SEED.** `F260` established
+> the rule and `F268` showed `dc22`'s baseline swinging 6–41; **I then applied it to boards and not
+> to my own refutation.** The seed rule is not only for effects — **it governs refutations, and a
+> refutation is the claim most likely to be made from whatever run is already open.**
+
+**`F269`'s mechanism is not wrong, it is the SEED-1 story.** *Bored early, starved late* describes
+the one seed where probing happens at all. **On the other two there is no early probing to
+anti-correlate with — the gate simply never opens.** Two mechanisms, one symptom, and the symptom
+is identical: **every park unprobed, 17 of 17, 29 of 29, 54 of 54.**
+
+### WHICH STRENGTHENS ARM M RATHER THAN CHANGING IT
+
+**The build does not depend on which story is right.** Arm M fires on the STARVED SET, not on
+`bored()`, so it covers both: the seed where probing happens at the wrong time and the seeds where
+it never happens. **And the pre-registered target — parked-without-probe → ~0 — has a baseline of
+17, 29 and 54 rather than a single number**, which is the spread the reviewer asked to see beside
+every effect.
+
+**It also raises the stake: `parked` grows 17 → 29 → 54 across seeds, so on the worst seed
+fifty-four zero-evidence slots go unanswered in twenty cycles.**
+
+    BOUNDARY    `sk48` only -- `m0r0` and `dc22` did not finish before this was read, and on
+                `F266`'s evidence they differ from each other (m0r0 vacuous with the arm off,
+                dc22 satisfied). 20 cycles; the reviewer's 30-cycle extension is NOT in this
+                table and is exactly the check that a late quiet period does not rescue the
+                parks. Ran alongside another job, so no timing is read
+    MECHANISM   none changed. Arm M (`efc6bc7`) is built and default OFF; this is its baseline
+    CAPABILITY  none. It restores the reviewer's premise on two thirds of the evidence, demotes
+                `F269`'s mechanism to one seed of three, and gives arm M a three-seed baseline
+                instead of a single number
