@@ -41924,3 +41924,70 @@ about. The measurement is the deliverable and it is here.
     MECHANISM   none. Built, measured, REVERTED -- `tether.py` is back to `4ab8b6a`
     CAPABILITY  none. It closes the fourth cost candidate and, more usefully, reclassifies the
                 problem: volume of cheap work, not repetition of expensive work
+
+## F258 (INDEX series) — WHAT GENERATES 15 MILLION EVALUATIONS FROM A 48-UNIT LIBRARY: **41,503 yielded candidates expand into 17,576,965 ranked ones — a 424× operand×guard cross-product** — and the only thing bounding it is a constant anchored on the TOY WORLD
+
+**`F257` reclassified the cost as VOLUME of cheap work and named the open question: what produces
+that volume, and is the enumeration bounded by anything. Answered WITHOUT A NEW INSTRUMENT — `mint`
+already publishes every quantity this turns on.**
+
+    sk48, 20 cycles, 2,837 mint calls carrying the row
+      units (the library the closure walks)                48
+      candidates SEEN    (closure yields)          med 0    max    164    TOTAL     41,503
+      candidates TRIED   (ranked)                  med 0    max 15,944    TOTAL 17,576,965
+      budget_exhausted                             1,141 of 2,837 calls = 40%
+
+> **41,503 YIELDS BECOME 17,576,965 RANKED CANDIDATES. THAT IS 424× PER YIELD, AND IT IS THE
+> VOLUME.** The closure over 48 units is small; **the explosion is entirely in the
+> operand × guard cross-product applied to each yield.**
+
+### THE CODE'S OWN COMMENT PREDICTED THIS AND NOBODY HAD READ IT AGAINST A REAL BOARD
+
+`Config.work_budget`, in the file:
+
+> *"`budget` bounds YIELDS and the work is yields × operand-binds, so on a dense board the
+> runaway `budget` cannot [bound it]."*
+
+**And both constants are anchored on the TOY WORLD.** `budget = 4000` is grounded in "the toy's
+depth-3 search over its few operands prices ~13,298 candidates"; `work_budget = 15000` is the
+guard that comment introduces. **`max 15,944` says the cap is REACHED, and 40% of mint calls hit
+it** — so on `sk48` the search is not exhausting a space, it is being TRUNCATED by a number
+derived from a different world.
+
+### AND `coverage` SAYS WHAT THAT TRUNCATION BUYS
+
+**Median coverage — `seen / space_estimate` — is `0.0`.** The agent sees essentially none of the
+space it is enumerating, 40% of the time stopping because it ran out of work budget rather than
+because the space was exhausted.
+
+**So the 15M evaluations are not a thorough search. They are 424 bindings each of a few hundred
+candidates, truncated arbitrarily.**
+
+### WHAT THIS IS AND IS NOT
+
+**IT IS NOT A PROPOSAL TO RAISE OR LOWER A CONSTANT.** Tuning `work_budget` until a board is
+affordable is the magic number this repo refuses, and lowering it truncates a search that is
+already at ~0 coverage.
+
+**THE QUESTION IT OPENS IS WHETHER THE CROSS-PRODUCT IS THE RIGHT SHAPE AT ALL** — §23.5's
+prerequisite, quoted in `enumerate_closure`'s own body: *"a big library is an asset when you look
+things up by the shape of your gap and a liability when you walk it in registry order."* **424
+bindings per candidate is walking, and `_library_fit` exists precisely as the alternative.** That
+is a design question and it is not the seat's to settle alone.
+
+> **AND IT CONNECTS TO A FINDING ALREADY ON THE LEDGER.** The retrieval thread spent six framings
+> on why retrieval misses. **`F253` retired its premise** — retrieval was not what made phase 1
+> expensive. **This says what did: not retrieval's misses, but MINT's cross-product**, which runs
+> whenever retrieval misses. The two are the same cost seen from opposite ends, and only one of
+> them was ever measured.
+
+    BOUNDARY    ONE board, sk48, 20 cycles, READ from `runs/ovl_sk48_base.jsonl` -- which was
+                produced on the matcher-fix build BEFORE the mover bound (`F250`) and before
+                ruling (b). So the absolute totals belong to that build; what is being read is
+                the RATIO of tried to seen and the budget-hit rate, which are properties of the
+                cross-product rather than of the tracker. NOT re-measured on the current build,
+                and not measured on any second board
+    MECHANISM   none. Every number here was already being written to the ledger by `mint` and
+                had not been read
+    CAPABILITY  none. It answers F257's open question and names the first cost driver that is
+                a DESIGN shape rather than an implementation detail
