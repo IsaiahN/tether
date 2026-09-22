@@ -88,7 +88,18 @@ ATTRIBUTE_TYPE = {"colour": COLOUR, "row": POSITION, "col": POSITION,
                   # shape, and *the extent of the contact* is what the quantity measures.
                   # Adding a `COUNT` type to close the gap would touch every consumer of the
                   # set and is not this arm's to do.
-                  "contact": EXTENT}
+                  "contact": EXTENT,
+                  # THE REST OF THE CHEAP MUTATION SET -- observer item 1, arm TETHER_OBSERVER.
+                  # `observer._MUT_ATTR` names the frozen deltas as `drow dcol dh dw dcells
+                  # recolour`; the tracker carried the first two. `dh`/`dw`/`dcells` are signed
+                  # magnitudes, so DELTA like the two that were already here.
+                  "dh": DELTA, "dw": DELTA, "dcells": DELTA,
+                  # AND `recolour` IS BOOL, NOT DELTA, WHICH IS NOT COSMETIC. Colour is
+                  # CATEGORICAL -- `arc_percept`'s own header says it is a SEPARATOR, comparable
+                  # and never ordered -- so `new - old` on a hue is arithmetic over labels and
+                  # means nothing. Publishing a colour DIFFERENCE would have invented a
+                  # quantity; publishing *it changed* is the reading the corpus's set names.
+                  "recolour": BOOL}
 
 
 # THE ADMITTING CLAUSE, PER ATOM, RECORDED WHERE THE ATOM IS DECLARED.

@@ -24,10 +24,17 @@ TWO CHOICES THE CORPUS DOES NOT SETTLE, MADE HERE AND STATED:
 """
 from __future__ import annotations
 
+import os
 import sys
 from typing import Any
 
 sys.dont_write_bytecode = True
+
+# THE OBSERVER ARM, SEAT-SIDE SWITCH, DEFAULT OFF -- the same switch `arc_world` reads.
+# Item 1 clause 1 lives behind it here: the rest of the corpus's cheap mutation set,
+# `observer._MUT_ATTR`'s `dh dw dcells recolour`, carried PER OBJECT rather than
+# aggregated to a count (`F165`).
+_OBSERVER = bool(os.environ.get("TETHER_OBSERVER"))
 
 
 def as_index_grid(frame: Any) -> list[list[int]] | None:
@@ -485,6 +492,27 @@ class Objects:
             if prev is not None:
                 dr, dc = delta_of(prev, obj)
                 obj = {**obj, "drow": dr, "dcol": dc}
+                if _OBSERVER:
+                    # THE REST OF THE CHEAP MUTATION SET -- observer item 1 clause 1, and the
+                    # set is the CORPUS'S rather than mine. `observer._MUT_ATTR` names the
+                    # frozen deltas as `drow dcol dh dw dcells recolour`; the tracker carried
+                    # the first two and computed nothing for the other four, WHILE HOLDING BOTH
+                    # RECORDS -- this is the one moment both frames are in hand.
+                    #
+                    # AND `F165` IS WHY IT MATTERS: `observer._mutations` does compute them and
+                    # then `changed[attr] = changed.get(attr, 0) + 1` -- AGGREGATED TO A COUNT
+                    # PER ATTRIBUTE, which throws away WHICH OBJECT changed. A count cannot key
+                    # a lookup; a per-object delta can. *Carried, not counted.*
+                    #
+                    # `recolour` and `dcells` are BOOL and DELTA respectively, and the split is
+                    # not cosmetic: colour is CATEGORICAL, so `new - old` on a hue is arithmetic
+                    # over labels and means nothing, while a cell-count change is a magnitude
+                    # that does. Publishing a colour difference would have invented a quantity.
+                    obj = {**obj,
+                           "dh": obj["h"] - prev["h"],
+                           "dw": obj["w"] - prev["w"],
+                           "dcells": len(obj["cells"]) - len(prev["cells"]),
+                           "recolour": int(obj["colour"] != prev["colour"])}
             fresh[best] = obj
 
         # DEATH ONLY ON EVIDENCE. An unmatched tracked object keeps its slots unless another
@@ -564,7 +592,11 @@ class Objects:
             # NOT_RESOLVED, so a covered slot is not bet on, no residual is claimed, and
             # `refute` never fires. Judgement resumes when the values come back.
             covered = bool(obj.get("covered"))
-            for attr in ("row", "col", "h", "w", "colour", "drow", "dcol"):
+            # `dh`/`dw`/`dcells`/`recolour` are present only under the observer arm and only
+            # on a matched object -- a BIRTH still gets no delta and not a zero, which is the
+            # same rule `drow`/`dcol` state above.
+            for attr in ("row", "col", "h", "w", "colour", "drow", "dcol",
+                         "dh", "dw", "dcells", "recolour"):
                 if attr in obj:
                     state[f"{name}.{attr}"] = NOT_RESOLVED if covered else int(obj[attr])
             state[f"{name}.shape"] = (
