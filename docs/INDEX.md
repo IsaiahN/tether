@@ -42071,3 +42071,57 @@ express-before-judge rule that answered Isaiah's hit-rate question.
     MECHANISM   none. A hypothesis tested and refused
     CAPABILITY  none. It removes the fifth cost candidate and, unusually, it removes one by
                 showing the SPEC IS ALREADY MET rather than by showing a repair fails
+
+## F260 (INDEX series) — SYSTEM 0's ONE GROUND-ADJACENT SIGNAL DOES NOT REPLICATE. `ls20`'s `54 vs 46` was SEED NOISE; two further seeds both go the other way
+
+**The reviewer made it a condition: *a second seed on ls20 before anything is read from it.* They
+were right and the signal is gone.**
+
+    ls20             base mints    system0 mints
+      default seed        46             54       +8   <- the flagged signal
+      seed 4242           67             65       -2
+      seed 99991          42             41       -1
+
+**Two further seeds both move the OTHER WAY, and the baseline itself swings 42-67 across seeds** —
+a spread far larger than the effect. **`+8` was inside the noise of a quantity I had not sampled
+twice.**
+
+> **AND I FLAGGED IT RATHER THAN CLAIMED IT, WHICH IS THE ONLY REASON THIS IS A CORRECTION AND NOT
+> A RETRACTION.** It went to the reviewer as *"one seed, one config — I am flagging it, not
+> claiming it"*, and their reply made the second seed a gate. **The discipline worked at both
+> ends; what it cost was one measurement.**
+
+### the complete System 0 picture, eight board-seeds, post-fix build
+
+    board            base mints   system0 mints    s/cycle
+    wa30                  20            20         3.57 -> 3.22   -10%
+    m0r0                   7             6         7.69 -> 10.09  +31%
+    dc22                   6             6        11.05 -> 11.19   +1%
+    ls20 (default)        46            54        11.63 -> 11.99   +3%
+    ls20 (4242)           67            65        14.61 -> 14.96   +2%
+    ls20 (99991)          42            41        10.94 -> 10.81   -1%
+    sk48                  34            32        15.36 -> 15.69   +2%
+    re86                 151           156        83.50 -> 95.45  +14%
+    lf52                 114           110        60.32 -> 46.25  -23%
+
+**Three up, four down, one equal. THERE IS NO GROUND EFFECT.**
+
+### what DOES survive, and it is the mechanism rather than the outcome
+
+**`F251`/`F252` are untouched: the policy genuinely differs** — contact-seeking takes `ACTION6` four
+times against the draw's once on `sk48`, aims at distinct targets, learns the action→displacement
+map from observation (`ls20`: `ACTION2 → (-7.5, -2.5)`), and steers the avatar on boards with no
+positioned action at all. **An avatar is identified on 8 of 8 boards checked**, which retires the
+inherited *six of 25 are inert* for good.
+
+**What does not survive is any claim that it helps.** The one board where time moves decisively is
+`lf52` at **−23%**, and `re86` moves **+14%** the other way — **board-specific, and with `lf52`
+being the board `F253` showed was INERT before the tracker fix**, that is a lead about `lf52`
+rather than about System 0.
+
+    BOUNDARY    eight board-seed pairs, 20 cycles each, post-fix build, one run per cell -- so
+                the seed spread is measured only on `ls20`, where it is 42-67 baseline mints.
+                Every other board is ONE seed and its per-board deltas are therefore of unknown
+                significance by exactly the argument this entry makes. Default OFF
+    MECHANISM   none changed. System 0 remains built and OFF
+    CAPABILITY  none, and that is the finding. The mechanism differs and nothing downstream does
