@@ -43380,3 +43380,54 @@ would be needed under any ordering.**
     MECHANISM   none changed
     CAPABILITY  none. It says the session's ordering was wrong and names the measurement that
                 says so, which was in the plan before the session started
+
+---
+
+## `F280` — `ATTRIBUTE_INDEX`'s ZERO IMPORTS ARE CORRECT, AND I REPORTED THEM AS THE CAUSE THREE TIMES. `TRAINING_PLAN` §14.11 corrected this on 2026-09-21
+
+**2026-09-22, after reading `TRAINING_PLAN` in full at Isaiah's instruction.**
+
+I reported *`ATTRIBUTE_INDEX` has ZERO imports* as the confirmed cause of the brute-force search —
+at 11:44, at 12:10, and again when Isaiah asked why I was not following the plan. **It is not a
+defect. The plan ruled it correct the day before this session started.**
+
+> **§14.11 #1, CORRECTED SAME DAY:** *"I wrote **the fix is a join: look the atoms up in
+> `ATTRIBUTE_INDEX`**. **IT IS NOT.** … ***Map only into the closure … do NOT map to the agent's ~45
+> gamma atoms; those are its concrete instantiations, not the map.*** And `F164` measured the
+> reason: the library is a model of human conceptual priors across 61 domains —
+> `Character|Identity`, `Phenomenological|Lived Meaning`, `Acoustic|Echo` — and Γ's 45 are ARC-grid
+> perception atoms. ***They are disjoint because they are about different things***… **Joining that
+> index to Γ's retrieval would light up Hadley cells.** … **SO THE MAPPING PIPELINE IS SEAT-SIDE AND
+> ALREADY BUILT** (`mapping.py`, `composer.py`) … **What the index fixes is the answer key's
+> provenance. It does not fix retrieval.***
+
+**So the two sides are:**
+
+    SEAT-SIDE    ATTRIBUTE_INDEX -> closure atoms -> recipes. The ANSWER KEY's provenance.
+                 BUILT (`mapping.py`, `composer.py`, `F160`-`F165`). Correctly not imported by
+                 the betting path -- that is `CUE_BOUNDARY`'s surviving purpose
+    AGENT-SIDE   Γ's retrieval. Its 2-6% hit rate is a SEPARATE problem with a SEPARATE cause,
+                 and §14.11 marks it `1b RETRIEVAL -- cause still OPEN`
+
+**THIRD TIME THIS SESSION I HAVE READ A DOCUMENTED-CORRECT STATE AS A DEFECT** — after arm I (built,
+gated, I nearly rebuilt it) and the curriculum (built in `feeder.py`, I used it as a tape reader).
+**The common shape: I grep the CODE, find an absence, and file it as a finding without grepping the
+PLAN for whether the absence is intentional.** The rule I keep citing says grep the identifier
+before the first measurement; what this adds is that **the record includes the plan, not only the
+index and the code.**
+
+### And it makes part of `LIBRARY_RETRIEVAL` wrong, which I wrote
+
+**Part 2's pipeline (lines 205, 222) and Part 5.8's cost model (`d x r x 6`, lines 752, 782)
+describe THE AGENT keying a lookup into `ATTRIBUTE_INDEX`.** That is the forbidden side. The
+document carries `F164` in Parts 4.7 and 6.4 and contradicts it in Parts 2 and 5.8 — **so the
+document disagrees with itself, and the half I wrote this session is the wrong half.**
+
+**What survives:** the delta-bounded operand axis, the per-object delta, the repairs to dead atoms —
+none of those depend on the index. **What does not:** the claim that route (b) should be re-keyed
+into `ATTRIBUTE_INDEX`, and my 5.8 cost arithmetic built on `r` = recipes lit by the index.
+
+    BOUNDARY    a read of TRAINING_PLAN §14.11 and a grep of LIBRARY_RETRIEVAL. No run
+    MECHANISM   none changed
+    CAPABILITY  none. It withdraws a "cause" I reported three times and restores `1b RETRIEVAL --
+                cause still OPEN` as the accurate state
