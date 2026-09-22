@@ -1409,6 +1409,89 @@ corpus should be searched for it before one is designed** — the rule that has 
 
 ---
 
+# Part 8 — THE DECLARED EVALUATION SET, chosen on three MEASURED axes
+
+**A board earns its place by being able to SHOW something. Choosing on ONE measured axis is how
+`m0r0` — 1% multi-frame — became the wiring board for a cascade feature, so all three axes the
+observer arm moves are measured across ALL 25 boards before the set is fixed.**
+
+    cascade    multi-frame share             item 2
+    contact    mean degree, pairs/object     item 4
+    turnover   gone per frame, ever/peak     item 3, and step 4's null-persistence
+
+## 8.1 The measurement — 25 boards, 8 frames each, zero failures
+
+    board   casc%  maxd   slots  objs pairs   deg   came   gone  ever/pk
+    bp35    100.0    47    2266   294   464  3.16  120.3   32.0     1.08
+    lf52    100.0    27     459    60    87  2.91   29.7   15.7     1.05
+    su15     95.2    21     108    14    13  1.86    4.0    0.0     1.00
+    g50t     93.8    98     233    30    32  2.11   15.1    3.4     1.09
+    tu93     93.7    17     512    67   141  4.22   66.3    0.0     1.00
+    sk48     83.4    39     860   111   242  4.36   31.7    0.0     1.00
+    r11l     51.2    23     599    78   112  2.81   43.1   37.1     1.17
+    sb26     50.6   372     361    47    54  2.31   23.4    5.4     1.10
+    tn36     25.1    11     930   120   190  3.16   36.0    0.9     1.00
+    cd82     19.7    16     116    15    18  2.40    4.3    0.0     1.00
+    sc25     17.1    22     486    63    96  3.03   23.4    5.7     1.06
+    ka59     15.4    11     171    22    30  2.73    7.4    1.1     1.01
+    s5i5      8.7     2     492    64    99  3.11   23.4    0.9     1.00
+    ls20      7.7    17     181    24    39  3.23   18.9   10.9     1.27
+    dc22      7.5    15     718    93   186  4.02   27.4    0.0     1.00
+    vc33      6.2    65     238    31    61  3.97   14.9    5.4     1.15
+    sp80      4.9    35     124    16    24  3.00    4.6    0.0     1.00
+    ft09      3.7     5     232    30    47  3.13    8.6    0.0     1.00
+    re86      2.1    37     194    25    26  2.09    7.1    0.0     1.00
+    tr87      1.9    51     822   106   123  2.31   34.6    2.3     1.02
+    lp85      1.7     2     604    78    97  2.49   22.3    0.0     1.00
+    ar25      1.4     3     700    91   133  2.91   46.9   16.0     1.14
+    m0r0      1.2     8     162    21    39  3.71    6.3    2.3     1.00
+    cn04      0.8     3      76    10    14  2.78    3.7    0.0     1.00
+    wa30      0.5     2     115    15    20  2.61    8.9    4.9     1.21
+
+**Splits, accounted through `census.py`:** cascade ≥50% is 8 of 25 · mean degree ≥3.0 is 12 of 25 ·
+gone/frame ≥5 is 8 of 25. **No branch empty; all three sum to 25.**
+
+## 8.2 The set — SIX boards
+
+    board   casc   deg    gone   why it is in
+    sk48     83%  4.36     0.0   baseline of record. High cascade, DENSEST contact, large
+    dc22      8%  4.02     0.0   baseline of record. LOW cascade at near-equal density --
+                                 the within-set control that isolates item 2 from item 4
+    g50t     94%  2.11     3.4   deepest usable cascade (max 98), and SPARSE -- so a cascade
+                                 effect here cannot be a contact effect
+    bp35    100%  3.16    32.0   the ceiling on cascade AND on churn. No within-board depth-1
+                                 control, which is why it is not the only high board
+    ls20      8%  3.23    10.9   HIGHEST ever/peak (1.27) -- the null-persistence cost axis,
+                                 which nothing else in the set exercises
+    wa30      1%  2.61     4.9   the floor. NEGATIVE CONTROL: if the observer arm moves
+                                 anything here, the movement is not the cascade
+
+> **`dc22` AND `sk48` ARE THE PAIR THAT MAKES ITEM 2 READABLE, and that is a property I did not
+> choose — it is measured.** They differ by 76 points of cascade at nearly equal contact density
+> (4.02 against 4.36) and identical turnover (0.0). **So a difference between them under the arm is
+> the cascade and not the other two axes.** My earlier report that the baseline pair was chosen for
+> cost and sat at opposite extremes conflated it with the WIRING pair; the baseline pair is the best
+> controlled pair in the table.
+
+**`ls20` is the addition my five-board proposal was missing.** Both baselines read `gone = 0.0`, so
+the turnover axis had no representative below `bp35`'s extreme. `ls20` also carries the highest
+`ever/peak` in the set, which is exactly the quantity step 4's null-persistence is priced against.
+
+## 8.3 THE COST, WHICH THE MEASUREMENT ALSO SETTLES
+
+**`bp35` IS 2,266 SLOTS AGAINST `sk48`'s 860 — 2.6x THE LARGEST BOARD THE BASELINE EVER RAN.** Cost
+is roughly linear in the slot set through `_bindings`, and sk48's late actions ran 60-129 s, so a
+30-cycle `bp35` seed is plausibly ~50 minutes and three seeds ~2.5 hours **for that board alone**.
+
+**The full set at three seeds is an overnight run, not a tick.** That is stated here rather than
+discovered halfway: arm M's A/B was killed at 3h10m for exactly this reason, and a run that cannot
+finish produces nothing at all.
+
+**If the budget will not carry six boards, the order to drop is `wa30` then `ls20`** — the negative
+control and the turnover representative — **keeping `sk48`/`dc22`/`g50t`/`bp35`, which is the
+cascade axis with its control.** Dropping the negative control is a real loss and I would rather
+name the order than have it chosen under time pressure.
+
 # OPEN QUESTIONS — what is genuinely unresolved
 
 1. **The nearest-match distance over mechanics signatures** (7.5). Search the corpus first.
