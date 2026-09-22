@@ -935,6 +935,87 @@ invented-atom ablation gap.
 > *did the agent's own additions do anything*. That question is interpretable at any level.
 > **It is a smaller claim than clause 3 and it does not defer.**
 
+### 5.10.8 CONFIDENCE AND RELEVANCE ARE TWO QUANTITIES — youth bonus, decay over games
+
+**Isaiah, 2026-09-22: fix success tracking; balance rich-get-richer with a YOUTH BONUS and a DECAY
+OF RELEVANCE over epochs or usage — never wall-clock. And an UNTESTED recipe must not be
+downgraded, so decay may never touch belief.**
+
+| | moves when | never moves when |
+|---|---|---|
+| **CONFIDENCE — does it work?** | expressed and confirmed; expressed and refuted | **not used. Disuse is not evidence.** |
+| **RELEVANCE — how high does it rank now?** | cross-game success raises; games since last use lowers; youth bonus while barely tried | — |
+
+#### The clocks, checked rather than assumed
+
+**`gamma.tick` IS ALREADY CYCLES AND NOT WALL-CLOCK** — `tether.py:1304` sets
+`self.gamma.tick = len(self.trace)`, so the existing `REJECTION_HALFLIFE = 8.0` decay is already
+counted in steps taken. **Isaiah's never-wall-clock rule is honoured today; nothing has to change to
+satisfy it.**
+
+**What does NOT exist is a GAMES counter.** `tick` resets per run, so *games played since last use*
+has nothing to read. That is the one new piece of state: an epoch counter on the learnings layer,
+incremented per game, never per second.
+
+#### CONFIDENCE — the Laplace posterior mean, and it has no free constant
+
+    confidence = (confirmations + 1) / (confirmations + rejections + 2)
+
+**Zero trials reads 0.5 — neither favoured nor penalised, which is Isaiah's clause 3 as arithmetic
+rather than as a special case.** The `+1 / +2` is a uniform prior, not a tuning knob: there is no
+value to fit and no number to defend.
+
+#### YOUTH — `1 / (1 + trials)`, and WHY NOT the two better-known forms
+
+    youth = 1 / (1 + confirmations + rejections)
+
+1.0 untried, 0.5 after one trial, → 0. **No constant.** Large at zero and shrinking as evidence
+accumulates, which is exactly what was asked for.
+
+**NOT UCB1 (`sqrt(2 ln N / n)`), and the reason is not style.** It carries a constant, it is infinite
+at `n = 0` and needs a special case — and its regret guarantee is for a bandit that makes ONE PULL
+PER ROUND. **`retrieve` returns EVERY name, ordered. That is not the setting**, so importing the
+form would import credibility the setting does not support. This file's own warning: a satisfying
+borrowed story is harder to doubt than a bare number.
+
+**NOT THOMPSON SAMPLING — `Beta(confirmations+1, rejections+1)`, ranked by a SAMPLE — even though it
+is the most principled option available and has ZERO constants**, with the youth bonus falling out
+as posterior variance rather than being added. **Its cost is that the ranking becomes STOCHASTIC,
+and every A/B this seat runs depends on a deterministic ranking.** Recorded as the reviewer's call
+rather than silently dropped: it is the better mechanism and the worse instrument.
+
+#### RELEVANCE DECAY — a half-life in GAMES, one named constant
+
+    relevance = confidence x 0.5 ** (games_since_last_use / RELEVANCE_HALFLIFE_GAMES) + youth
+
+**Structurally identical to `REJECTION_HALFLIFE`, deliberately** — the codebase already has this
+shape and a second clock idiom would be a second thing to reason about. **ONE constant, named and
+PRE-REGISTERED rather than tuned**, per the instruction.
+
+**It enters `fits()` as one more term beside type / arity / aimed / relational. It ORDERS AND NEVER
+EXCLUDES** — `retrieve`'s every-name-comes-back contract stands, and decay never becomes refutation.
+
+#### AND "NEVER EXCLUDES" ALREADY HAS ONE LIVE EXCEPTION, WHICH MUST BE NAMED RATHER THAN OVERLOOKED
+
+`tether.py:2743` filters routine candidates by `self._rejection(...) < 1.0` — **an EXCLUSION, not an
+ordering**, and its own comment says so: *"a refutation excludes only while its decaying strength
+stands, so a failed shape leaves the running and returns."*
+
+> **SO `Standing.decay()` IS THE REVERSIBILITY OF A REAL EXCLUSION, AND THAT CONSTRAINS THIS DESIGN.**
+> The clean reading of the two-quantity split would move forgiveness out of confidence and into
+> relevance — but doing that wholesale **turns the routine filter into a permanent ban**, which
+> §18.2's *never a hard ban* forbids. **Either the decay stays where it is, or the routine filter
+> moves to relevance in the same change. It cannot be half-done**, and I am flagging it rather than
+> picking, because it is a behaviour change to a mechanism with a standing rationale.
+
+#### Added to the pre-registration
+
+    table-stakes set vs GAME ORDER          the feedback-loop check (5.10.5a), unchanged
+    FIRST-TRIAL LATENCY                     cycles from a composition being minted or invented
+                                            until it is first EXPRESSED -- with youth on and off.
+                                            This is the quantity the youth bonus exists to move,
+                                            and invented atoms are the population that needs it.
+
 **Build order: AFTER the observer lands** — there is nothing to rank until settled compositions
 exist. **Design only.**
 
