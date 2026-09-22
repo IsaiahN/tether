@@ -53,6 +53,13 @@ STAGES = (
     ("shipped", [str(PY), str(HERE / "stateful.py"), "--fast", "--tether"],
      "an invariant broke on a generated history for tether.Agent",
      HERE / "stateful.py"),
+    # THE SPLIT GUARD. Its own defect suite, run for the reason the M2 note below gives: a
+    # suite nothing runs is a suite that rots. Each case REINTRODUCES one of the three
+    # instrument faults of 2026-09-22, the sharpest being a split whose branches collapsed
+    # into the total and printed percentages that read like a finding.
+    ("census", [str(PY), "census.py"],
+     "the split guard stopped refusing a split that does not account for its population",
+     ROOT / "census.py"),
     ("demo", [str(PY), "demo.py"], "the loop did not complete", ROOT / "demo.py"),
     ("gate", [str(PY), "gate.py", "runs/demo.jsonl"],
      "the record is not well-formed", ROOT / "gate.py"),
