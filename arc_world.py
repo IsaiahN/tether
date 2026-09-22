@@ -174,11 +174,17 @@ class ArcWorld:
         advances the tracker's STATE through the cascade; the caller decomposes `frame[-1]`
         immediately after, so the published slots are the settled ones either way.
         """
+        # LENGTH, NEVER TRUTHINESS. `if g and g[0]` crashed the FIRST live run with
+        # *"the truth value of an array with more than one element is ambiguous"* -- the
+        # ReplayTape hands LISTS, where truthiness is fine, and arcengine hands NUMPY ARRAYS,
+        # where it raises. **So this arm had never once executed on the ground path**, and no
+        # tape measurement could have found it: the two harnesses differ in the type of the
+        # thing, not in its content. `len()` is true of both.
         fr = getattr(self._frame, "frame", None)
-        if not fr or len(fr) < 2:
+        if fr is None or len(fr) < 2:
             return
         for g in fr[:-1]:
-            if g and g[0]:
+            if g is not None and len(g) and len(g[0]):
                 self._decompose(g)
 
     def _relation_slots(self) -> dict[str, int]:

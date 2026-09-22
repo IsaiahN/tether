@@ -44866,3 +44866,51 @@ describes `_library_fit` today.*
                 widening is unmeasured. 13/13
     CAPABILITY  none. It converts "item 6 is the narrowing" into "item 6 is a re-ranking, and
                 the narrowing that exists is the operand bound built earlier"
+
+---
+
+## F305 (INDEX series) — **THE FIRST LIVE RUN CRASHED TONIGHT'S ARMS IN THREE SECONDS.** `if g and g[0]` on a numpy frame — the observer had NEVER ONCE EXECUTED on the ground path, and no tape measurement could have found it
+
+**The live ground run's first arms-ON row failed before it produced a number.**
+
+    arc_world.py:181   for g in fr[:-1]:
+                           if g and g[0]:          <-- ValueError on the live path
+                               self._decompose(g)
+
+    ValueError: The truth value of an array with more than one element is ambiguous.
+
+**`ReplayTape` hands LISTS, where truthiness is fine. `arcengine` hands NUMPY ARRAYS, where it
+raises.** `_walk_cascade` is the observer arm's cascade walk — **written by me this session** —
+and it is reached from `_decomposed`, so **every arms-ON live run died at the first step.**
+
+> **SO THE OBSERVER ARM HAD NEVER ONCE RUN ON THE GROUND PATH, AND EVERY OBSERVER MEASUREMENT
+> TONIGHT IS TAPE-ONLY BY NECESSITY RATHER THAN BY CHOICE.** `F283`, `F286`, `F291`, `F293` —
+> all of them on the only harness where the code could execute at all. **None of them is wrong;
+> all of them are narrower than they read.**
+
+### NO TAPE MEASUREMENT COULD HAVE CAUGHT THIS, AND THAT IS THE POINT
+
+**The two harnesses differ in the TYPE of the frame, not in its content.** A tape run and a live
+run compute the same thing from the same numbers — and one of them cannot execute the line at
+all. *There is no amount of tape testing that reaches it.*
+
+**AND IT IS THE FIRST THING THE LIVE PATH DID.** Isaiah ruled the ground to `play()` a little
+over an hour ago; the first run against it found a defect in the night's headline arm in three
+seconds. **That is the argument for the live path made better by accident than any reasoning
+would have made it.**
+
+### THE FIX, AND WHY IT IS `len` AND NOT A CAST
+
+`if g is not None and len(g) and len(g[0])`. **Length is true of both types; truthiness is true
+of one.** Casting the frame to a list would have worked and would have hidden the difference —
+*the point is that this code must run on both harnesses, so it must not ask a question only one
+of them can answer.*
+
+**VERIFIED BY RUNNING IT:** arms ON, live path, 3 cycles — `slots 661` against the baseline's
+`376`, so the observer is doing on the live path what it does on the tape.
+
+    BOUNDARY    one traceback, one fix, one 3-cycle confirmation. It says the arm now EXECUTES
+                live; it says nothing about what the arm DOES there, which is what the declared
+                live run is for and is now re-running
+    MECHANISM   `arc_world._walk_cascade` tests length, not truthiness. 13/13 seats
+    CAPABILITY  the observer can reach the ground path at all, which it could not an hour ago
