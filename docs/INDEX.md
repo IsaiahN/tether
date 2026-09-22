@@ -43431,3 +43431,55 @@ into `ATTRIBUTE_INDEX`, and my 5.8 cost arithmetic built on `r` = recipes lit by
     MECHANISM   none changed
     CAPABILITY  none. It withdraws a "cause" I reported three times and restores `1b RETRIEVAL --
                 cause still OPEN` as the accurate state
+
+---
+
+## F281 (INDEX series) — THE THREE STALE `TRAINING_PLAN` SECTIONS ARE STALE ABOUT THE **UNIT OF WORK**, NOT ABOUT THE BRIGHT LINE — and the reviewer's summary of them is wrong in the direction that would have let me edit the corpus
+
+**ANNOTATION ONLY.** `TRAINING_PLAN` is corpus under the 17:04 ruling, so this row is the repair
+and the file is untouched.
+
+The reviewer's walkthrough §0 (17:20) explains this session's drift as *"TRAINING_PLAN still
+contains live instructions from before the current direction… So **'go look at the games' is
+written in the plan.** You were following a stale section, not wandering."* **That is a generous
+account and I went to check it before accepting it, because a ruling that excuses me is the one
+to distrust.** It does not survive a read of the three sections.
+
+**NONE OF §7, §10 OR §13 LICENSES SOLVING A BOARD, AND ALL THREE EXPLICITLY FORBID IT:**
+
+    §7   "Its one forbidden use is becoming the target the agent is trained toward. Same
+         artifact, two uses; the line is whether it decides what the agent is given."
+    §13  "NOT how to win the game -- how to EXPLAIN the derivation... It is never a winning
+         strategy to feed."
+    §10  item 5 is "the diagnostician map ... to set curriculum coverage and diagnose"
+
+**So the bright line is stated correctly in the corpus, three times, and I crossed it anyway.**
+
+### What IS stale is the unit of work, and that is a smaller and more useful claim
+
+**§10's order of work is five items and items 1–4 are spent** — persistence, the promotion trace,
+System 0, the generator. **§13's whole frame is PER GAME**, and §12's title says so in the words
+*"one game at a time."* The declared build order of **2026-09-22** replaced that unit: the list is
+`step1.item1 → step1.run → step1.item6 → structure.hash → …`, which is **per MECHANISM**. A
+section whose items are boards cannot be worked through under a plan whose items are mechanisms,
+and nothing in either document said which one was live.
+
+> **THE DIFFERENCE MATTERS BECAUSE THE TWO ACCOUNTS PRESCRIBE DIFFERENT FIXES.** *The plan told me
+> to* prescribes **editing the plan** — and the plan is corpus, so that fix is unavailable and
+> would have spent the one derivationally independent frame in the set. *The plan's unit of work
+> was superseded and nothing marked it* prescribes **a seat that names the current unit**, which
+> is buildable and is `conform/aim.py`.
+
+**AND THE GENEROUS ACCOUNT IS THE DANGEROUS ONE FOR THE REASON THIS FILE ALREADY GIVES: *a null
+carrying a satisfying causal story is harder to doubt than a bare one.*** A drift with an external
+cause needs no defence from me. **The bare version is that I read a licence to LOOK at replays as
+a licence to WORK per board, and the corpus is clean.**
+
+    BOUNDARY    a read of TRAINING_PLAN sections 7, 10, 12 and 13 in full, and of the reviewer's
+                17:20 walkthrough. No run. Quotes verified against the file, not recalled
+    MECHANISM   `conform/aim.py` + `conform/ITEM` (d03a4c8) -- the commit names its declared
+                item, untracked work is acknowledged, and `--tick` states the item and the three
+                legal moves before a tick does anything. 12/12 seats
+    CAPABILITY  none on the agent. It converts a remembered rule into a blocking one, and it
+                corrects the reviewer's account of WHY, which was about to be written into the
+                one document I may not edit
