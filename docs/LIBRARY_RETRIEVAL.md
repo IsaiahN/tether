@@ -1696,3 +1696,27 @@ full to check the probe was not lying** (9.9 and 9.4) and both were genuinely ab
 load-bearing. **The other nine were carried on the probe plus a read of the source section, so each is
 faithful to `PERCEPTION_BUILD_PLAN`; what is NOT independently verified is that no paraphrase of them
 already existed somewhere in this document.** A duplicate here is recoverable; a stranded prohibition is not.
+
+---
+
+# PART 10 — THE NEXT DECLARED RUN, PRE-REGISTERED 2026-09-22
+
+**Written BEFORE the current run's results exist, which is the whole point.** The reviewer's
+19:12 ruling, recorded here so it cannot be chosen after seeing which answer it gives.
+
+**THE FINDING THAT PROMPTED IT IS THE DEAD WINDOW, NOT THE SEED SPREAD.** `sk48` read
+`live 0 of 15` on **two of three seeds**, and by this document's own dead-window rule those are
+**NON-MEASUREMENTS, not zeros** — the board barely wakes inside fifteen cycles. *The bimodality
+is LIVENESS: seed 1 went live at cycle 9 and produced 783,902 calls.*
+
+    1  REPORT LIVE-CYCLE COUNT FOR EVERY BOARD-SEED. A row with zero live cycles is
+       UNMEASURED -- never a zero, and never pooled into any rate.
+    2  IF HALF OR MORE of the depth board-seeds come back with zero live cycles, the next
+       declared run uses 25 CYCLES UNIFORMLY. The same length for every board: per-board
+       lengths are TAILORING, which is the thing the OOD set punishes.
+    3  SEED COUNT RISES TO FIVE for the depth set ONLY IF the completed run shows a bimodal
+       quantity, as `sk48` does.
+
+> **AND THE RUN IN FLIGHT IS NOT CHANGED.** *Changing a design mid-run is how a result becomes
+> unreadable* — and one unilateral re-scope was already proposed and withdrawn tonight (`F282`).
+> The current run finishes as declared; these rules bind the NEXT one.

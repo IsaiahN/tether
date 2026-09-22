@@ -43770,3 +43770,63 @@ setting, two seeds** — `step1.py`'s own consecutive rows, 0 calls at seed 0 an
                 inside one script
     CAPABILITY  the observer's first measured reach effect -- an atom from unreachable to
                 reachable, and 21.7x on another. Held at one variable
+
+---
+
+## F287 (INDEX series) — THE FULL-REGISTRY CENSUS: **EVERY ONE OF THE 18 `OBJECT`-TYPED ATOMS IS NEVER CALLED — 100% of them, a third of the registry** — and Figure 6's entry list is exactly TWO atoms
+
+**The reviewer's 16:33 NEW CHECK, taken over all 54 atoms rather than the ten I had been
+sampling.** `F283` censused ten SHAPE atoms; **the two whose repair I could not explain and the
+one I could not account for were all inside the part I happened to look at**, which is what a
+sample does.
+
+    g50t, seed 0, 4 cycles, observer ON, arm I ON        54 atoms
+
+    NEVER CALLED             22    not reached. No rate is defined over these
+    CALLED, NEVER RESOLVED    2    `reflect`, `rotate` -- FIGURE 6's ENTRY LIST, entire
+    RESOLVING                30
+                             --
+                             54    accounted
+
+### THE `OBJECT`-TYPED DEAD ZONE IS TOTAL, AND I UNDERCOUNTED IT
+
+    area  bbox  centroid  col  colour  colour_changed  contact  dcells  dcol
+    dh  drow  dw  h  row  shape  touching  touching_n  w
+
+**Eighteen `OBJECT`-typed atoms in the registry. Eighteen never called. There is no partial
+here** — the other four never-called (`abs_delta`, `sign`, `parity`, `sum_group`) are
+`DELTA`/`POSITION`-typed and are a separate question.
+
+> **I REPORTED THIS TO THE REVIEWER AS "17 of 54" AND IT IS 18 of 54, a THIRD of the registry.**
+> Counted by eye off a printed list instead of by the program that had the list. **The correction
+> is in this row rather than only in a later one**, and the direction matters: *every* is a
+> stronger and simpler claim than *most*, and I filed the weaker one by miscounting.
+
+### AND EVERY ATTRIBUTE I ADDED THIS SESSION IS IN IT
+
+**`dh`, `dw`, `dcells`, `colour_changed`, `contact`, `bbox`** — the whole cheap mutation set of
+`6bf9a8e`. **Published to slots, and no atom can read them.**
+
+**THE CAUSE WAS ALREADY WRITTEN IN `_extract`'s OWN DOCSTRING**, which I had read this session:
+*`_decomposed` already extracts, flattening every object to `name.attr -> int`, so a term is
+handed a SCALAR and never an OBJECT.* **That is the component-list erasure — `dict[str, int]`
+as the slot type — measured rather than argued.**
+
+> **AND IT DOES NOT MAKE THE OBSERVER WORTHLESS, WHICH IS THE READING TO AVOID.** `F286` holds the
+> observer at one variable and it **moves `symmetric` from unreachable to 89,568 calls**. The
+> slots it publishes are reached *through the SHAPE and COLOUR families*; what cannot reach them
+> is the `OBJECT`-typed extractor layer. **Widening perception worked. The extractor layer over it
+> is what is stranded.**
+
+**NOT MINE TO FIX.** *A collection type is a change to the type vocabulary, and the type
+vocabulary is Isaiah's.* **And re-typing `components` honestly WITHOUT a map/fold makes the agent
+strictly worse** — `colour`/`position`/`extent`/`shape` are all `OBJECT -> ...`, so the current
+mis-typing is what lets them compose at all.
+
+    BOUNDARY    ONE board (`g50t`), ONE seed, 4 cycles, both arms ON. It says WHICH BRANCH each
+                atom is in HERE. The never-called set is a claim about REACH on this board and
+                this seed -- and `F285` is the standing warning about exactly that, so the
+                declared run is what generalises it, not this
+    MECHANISM   none changed
+    CAPABILITY  none. It converts the component-list erasure from an argument into a count, and
+                it is the bundle the reviewer is putting to Isaiah with the fork

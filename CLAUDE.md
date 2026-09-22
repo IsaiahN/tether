@@ -422,6 +422,15 @@ reads as something that will be enforced, and it will not be.
   is visible — name the two or three things in contention and the two or three signals
   that could decide between them — let the answer shake out at that altitude, then drop
   back to specifics. A first-class move, not a fallback. Both I and the agent run it.
+- **AN A/B IS ONE SCRIPT WITH ONE FLAG, NEVER TWO SCRIPTS — reviewer, 2026-09-22, made
+  standing.** Two programs written at different times for different questions **differ in
+  every way nobody wrote down**, so the difference between their outputs has no single cause
+  to find. `armI.py` and `fullcensus.py` disagreed about whether `symmetric` is ever called,
+  and I attributed it to the SPY, then to the SEED — **filing the seed version as a finding** —
+  before the actual cause, **the observer arm one of them never sets**. Three attributions,
+  two wrong, and **the fix was not thinking harder about which variable: it was four lines
+  putting both arms behind one flag in one script.** The tell that you are about to make this
+  error is *comparing two of my own scripts' outputs*.
 - **Falsify a signal before trusting it.** Prefer positive causal evidence ("I tried and
   a bound stopped me") over absential ("I have never been there"). Absence of evidence
   resting on completeness never holds mid-episode.
