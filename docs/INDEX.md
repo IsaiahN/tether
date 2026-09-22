@@ -44060,3 +44060,54 @@ not the same number.**
                 with no in-tree caller. `CLAUDE.md`: no claim about a row without quoting every
                 column of it
     CAPABILITY  none new. It prices one already-claimed capability and leaves the other unpriced
+
+---
+
+## F292 (INDEX series) — THE DISCRIMINATOR SAYS **NEITHER**. 735 MILLION ATOM CALLS, **ZERO SETTLED TERMS, ZERO LEVEL PROGRESS, YIELD 0.00/M — ON BOTH ARMS.** Minting runs and settling never completes
+
+**The reviewer's discriminator (20:16), built and run: *calls alone cannot separate reach from
+search. Report distinct settled per million calls.*** It was built to decide whether the arms buy
+reach or feed search. **It answers a question nobody asked instead.**
+
+    sk48, seed 0, arm I ON in both. YIELD = settled terms per million atom calls.
+
+    observer ON  (5 cycles)    calls 1,815,361    library 54 -> 87    settled 0   levels 2   0.00/M
+    observer OFF (10 cycles)   calls 35,293,525   library 54 -> 99    settled 0   levels 2   0.00/M
+    observer ON  (15 cycles)   calls 735,584,623  -- 35 of 54 atoms NEVER CALLED, 19 resolving
+
+**ON BOTH ARMS THE YIELD IS ZERO.** One term settled on the OFF arm at cycle 8 and was gone by
+cycle 10. **`levels` never moves off 2 in any cycle of any arm.**
+
+> **THE LIBRARY GROWS AND NOTHING SETTLES. 54 terms to 99 — forty-five minted — and the ground
+> confirms none of them.** *Minting is running; settling is not.* **That is the route chart's
+> central quantity reading zero, and it is not an arm question at all.**
+
+### SO THE ARM DEBATE WAS THE WRONG FRAME AND I HELD IT FOR THREE FINDINGS
+
+`F283`, `F286` and `F291` argued whether the arms buy REACH or feed SEARCH. **The discriminator
+says the denominator of that ratio is zero on both arms**, so *reach per call* and *calls per
+arrival* are both undefined here — **there are no arrivals.**
+
+**THE TWO REACH FINDINGS ARE NOT WITHDRAWN AND THEIR CLAIM IS NARROWER THAN IT SOUNDED.** `F283`
+and `F286` measured atoms moving from NEVER CALLED to CALLED AND RESOLVING, which is real and is
+still true. **But *resolving* is an atom returning a value, and *settled* is the GROUND confirming
+a term.** I treated the first as evidence about the second by never naming the gap between them.
+*Nothing scores itself* — and an atom's own return value is exactly the frame-internal quantity
+this project forbids as evidence.
+
+### AND THE TWO INSTRUMENTS AGREE, WHICH IS WORTH MORE THAN EITHER
+
+**All ten shape atoms are in the ON arm's NEVER CALLED set at 15 cycles**, independently
+reproducing the declared depth run's `shape-atom calls 0` from a different script with a
+different spy coverage. **After a night of two instruments disagreeing three times, this pair
+agrees exactly** — so `F289`/`F290`'s reach finding rests on two readings, not one.
+
+    BOUNDARY    ONE board, ONE seed. `sk48` seed 0 is the board-seed that never reaches the
+                shape family AT ALL, so it is the least representative row in the run to read
+                a settling rate from -- `dc22` settles nothing HERE only in the sense that it
+                has not been measured. THE ON ARM'S YIELD IS READ AT 5 CYCLES, the OFF at 10.
+                Nothing here is a claim about the agent in general
+    MECHANISM   `fullcensus.py` reports library size, settled count, levels and yield per
+                cycle. No agent code changed
+    CAPABILITY  none. It replaces an arm argument with a ground reading, and the ground reading
+                is zero
