@@ -66,6 +66,12 @@ STAGES = (
     ("aim", [str(PY), str(HERE / "aim.py")],
      "the aim seat stopped refusing work that names no declared item",
      HERE / "aim.py"),
+    # THE CONDITION COMPILER's own grammar suite. Five texts that MUST NOT parse, including a
+    # real line of corpus prose and a bare reading -- a grammar that accepts `holes(o1)` as a
+    # condition has invented the comparison nobody wrote.
+    ("condition", [str(PY), "condition.py"],
+     "the condition grammar accepted something it must refuse, or three-valued logic broke",
+     ROOT / "condition.py"),
     ("demo", [str(PY), "demo.py"], "the loop did not complete", ROOT / "demo.py"),
     ("gate", [str(PY), "gate.py", "runs/demo.jsonl"],
      "the record is not well-formed", ROOT / "gate.py"),

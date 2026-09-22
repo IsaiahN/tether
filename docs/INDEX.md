@@ -44484,3 +44484,70 @@ been run before.** `F220` is the evidence it has been.
     MECHANISM   none changed
     CAPABILITY  none. It keeps an architecture question open that was about to be closed wrongly,
                 and it names the action-responsive path that already exists
+
+---
+
+## F299 (INDEX series) — THE CONDITION COMPILER IS BUILT, AND ITS FIRST CENSUS READS **DRAFTABLE 0**. Option C's DERIVED half is EMPTY at this scope, because the seed and the registry name different kinds of thing
+
+**Part 5.9.5, Option C, built for real** — Isaiah's ruling: *build the real thing, or a smaller
+real thing; scaffold only to avoid a halt.* Nothing here is scaffolded.
+
+    cond := cmp | cond ('and'|'or') cond | 'not' cond | '(' cond ')'
+    cmp  := expr OP expr          OP in { == != < <= > >= }
+    expr := INSTRUMENT '(' args ')' | SLOT | NUMBER
+
+**THREE-VALUED, KLEENE.** `True` / `False` / **`None` = could not tell.** `NOT_RESOLVED` is carried
+THROUGH the logic instead of collapsing to `False`, because *an unreadable condition and a
+condition that does not hold are different facts and only one of them is evidence.* **`False and
+None` is `False`; `True and None` is `None`.** Five texts must NOT parse and are fixtures — a bare
+reading (`holes(o1)`), a real line of corpus prose, a truncation, a malformation, an unclosed
+paren. **A grammar that accepts `holes(o1)` as a condition has invented the comparison nobody
+wrote.**
+
+### THE CENSUS, and it is a stronger result than "the prose is vague"
+
+    54 registry atoms                         2,622 seed rows
+
+    DRAFTABLE   0     a condition this grammar can state
+    BLANK       8     a row exists; the prose carries no checkable claim
+    ABSENT     46     no row under an exact name match
+
+**NOT ONE CONDITION, FOR ANY LIVE ATOM, IN 2,622 SEED ROWS.**
+
+**AND THE 46 IS NOT 46 ABSENCES — I CHECKED BEFORE REPORTING IT.** An exact-name lookup is a
+matching rule, not a fact about the corpus, so a loose stem pass was run over the same pair:
+
+    exact row in the seed      8
+    LOOSE stem match           7   and MOST ARE FALSE: `contact`->`contain`,
+                                   `negate`->`negative_feedback`, `touching`->`touch_localization`
+    no row at all             39   `centroid`, `perimeter`, `corners`, `bbox_area` confirmed by
+                                   direct grep -- the seed has no row for any of them
+
+> **THE TWO VOCABULARIES BARELY INTERSECT, AND THAT IS THE FINDING.** The seed names **CONCEPTS A
+> BODY COULD FIND** — `Contact`, `Recolour`, `Pry`, `Amalgamate`. The registry names
+> **MEASUREMENT INSTRUMENTS** — `bbox_area`, `perimeter`, `is_max`, `all_same`. *`DRAFTABLE 0` is
+> not the prose being too loose; it is an offline parse pointed at a document that is not about
+> the things in the registry.*
+
+### WHAT IT MEANS FOR THE BUILD, AND IT DOES NOT KILL OPTION C
+
+Option C is *the offline parse proposes where the corpus is explicit (DERIVED), **the agent forms
+its own where it is silent or failing (AGENT-FORMED)**, the ground approves both.*
+
+> **THE CENSUS SAYS THE CORPUS IS SILENT AT THIS SCOPE, SO THE AGENT-FORMED HALF CARRIES ALL OF
+> IT.** That is Option C working as specified rather than failing — **and it is the better half to
+> be carrying the weight**, because a DERIVED condition is something the seat handed over and an
+> AGENT-FORMED one is the agent's own hypothesis with the ground as its judge.
+
+**The DERIVED path stays built and wired.** It costs nothing idle, it is the thing that would
+notice if a future seed DID carry checkable conditions, and **its emptiness is now a measured fact
+with a denominator rather than an assumption.**
+
+    BOUNDARY    54 registry atoms against 2,622 seed rows from `ATOMS.md` + `ATTRIBUTES.md`,
+                exact-name plus a loose stem pass, four absences confirmed by direct grep. It
+                says the DERIVED half is empty FOR TODAY'S REGISTRY -- not that the seed is
+                useless, and not anything about the AGENT-FORMED half, which is unbuilt
+    MECHANISM   `condition.py`: grammar, three-valued evaluator, corpus census. Wired as the
+                13th conform seat with its own must-not-parse suite. 13/13
+    CAPABILITY  none yet -- nothing consumes a condition. The next step is the consumer, and
+                the census says it must be fed by the agent rather than by the parse
