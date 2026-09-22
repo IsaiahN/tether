@@ -737,11 +737,84 @@ exactly the event that grows perception, so the parse never runs ahead of the in
 make it checkable. **Against 2,669 ingredient names (5.9.0), an unscoped parse is the 2,600-judgement
 wall Isaiah's tag-on-use ruling exists to avoid.**
 
-## 5.9.6 Mint and import are ONE operation, and it is already half true
+### 5.9.6 IMPORT IS INVENTION — Isaiah, 2026-09-22, AND THE WORD ALREADY MEANS SOMETHING ELSE
 
-Both **write a `Node` and stamp `origin`** — `MINTED` from a residual, `IMPORTED:<source>` from a
-game. No code is generated in either case. **`Term.origin` already exists with `MINTED` as its
-default**, so what import needs is a second stamp value and a source field, not a mechanism.
+> ***Import comes from OUTSIDE the library — only when you observe a behaviour on the board, or want
+> to do an action you cannot compose from the available atoms. It is the creation of a BRAND-NEW
+> ATOM described from what the agent has observed, not available in the library even with
+> composition — YET.***
+
+**THIS SUPERSEDES WHAT THIS SECTION SAID.** It read *mint and import are one operation … `MINTED`
+from a residual, `IMPORTED:<source>` from a game* — import as ADOPTION, a term arriving from
+elsewhere. **That is not what Isaiah means, and the two are different operations: mint makes a TERM
+out of existing atoms; invention makes a NEW ATOM.**
+
+#### The collision, and it is `A6i` with the item that collides already nameable
+
+**`import` NAMES TWO LEGITIMATE THINGS IN THIS PROJECT AND ONLY ONE OF THEM IS ISAIAH'S:**
+
+    gamma.py:32          `PRIOR, MINTED, IMPORTED = "prior", "minted", "imported"` -- an ORIGIN,
+                         meaning ADOPTED FROM ELSEWHERE
+    tether.py:1448       *"an IMPORTED operand-reading term is `idn` here … binding is re-decided
+                         at the destination; the import path never did it"* -- adoption again
+    CLAUDE.md            *"import must be provenanced -- convergent derivation and ADOPTED import
+                         are indistinguishable in the contents"* -- the corpus uses adoption too
+
+**So writing "import = invent a new atom" into this document would put two quantities under one word
+at the site that defines both** — the exact failure `A6i` records, and the writing-side version of
+it, which fires where step three cannot because there is no separate spec to consult.
+
+> **RESOLUTION: THE OPERATION IS `INVENTED`, A FOURTH ORIGIN BESIDE `PRIOR` / `MINTED` / `IMPORTED`.**
+> The reviewer's own note already wrote *provenance INVENTED*; making it THE WORD rather than a
+> description is what keeps the collision out of the code. `IMPORTED` keeps its meaning, unchanged.
+
+#### What EXISTS: the trigger, with its receipt, already recorded
+
+**`owed_import` IS THE GAP LIST AND IT IS ALREADY POPULATED BY EXACTLY ISAIAH'S CONDITION.**
+`tether.py:3480` adds a slot when mint ABSTAINS — verdict `budget_spent`, `depth_exhausted` or
+`under_floor` — and `abstained[slot]` carries `depth`, `candidates`, `coverage`, `verdict`,
+`units_then`.
+
+**That is *I observed this and could not compose it*, recorded, with the closure it searched attached
+to it.** So trigger (a) is built and the agent already holds a ready-made candidate list for
+invention. **Nothing needs to be detected that is not already being detected.**
+
+#### What DOES NOT EXIST: the agent cannot create an atom
+
+`Gamma.__init__` sets `self.atoms = list(atoms)` and `self._by_name`, and **nothing appends to
+either.** `compose` resolves names only through `self._by_name[n]`. **The atom registry is fixed at
+construction**, so the whole of invention — the part that makes a new primitive rather than a new
+arrangement of old ones — is unbuilt.
+
+**AND ITS NEAREST EXISTING RELATIVE IS MEASURED DEAD.** `retro → _promotions → promote` writes
+`primitive=True` on *a residual recorded before it existed, on a slot it was not minted for* — the
+enshrinement chain — and `F56` measured it **never once completing on a real board.** So the
+machinery for earning a promotion exists, has never crossed anything, and invention must not be
+built on the assumption that it will.
+
+#### The licensing is already written, and Isaiah's trigger IS the clause
+
+`CLAUDE.md`'s ladder: ***`composition → atom → sensor`, and every step is licensed by the same
+thing: THE LEVEL BELOW TRIED AND COULD NOT. Never by usefulness.*** And the atoms' entry clause
+admits one *when the agent's own machinery PERCEIVED AND NAMED THE GAP*.
+
+> **`owed_import` IS THAT MACHINERY, AND THE ABSTENTION RECEIPT IS THE NAMING.** So invention is not
+> a new permission being requested — it is the second rung of a ladder the corpus already built,
+> with the gate condition already computed every cycle.
+
+#### What an invented atom carries
+
+    name          ARBITRARY and meaningless -- the identity is the OBSERVED PATTERN it was made
+                  from: colour-agnostic, game-agnostic, structure-keyed
+    origin        INVENTED, with the game and cycle where it was first formed
+    index         entered, so a later delta can light it
+    Standing      earned like anything else -- no head start for being the agent's own
+    the key       NEVER. KEY_BOUNDARY is untouched by any of this.
+
+**"YET" IS LOAD-BEARING.** If later growth makes an invented atom composable, **record the identity
+(`≡`, in the retrieval layer per 5.5) and DO NOT DELETE THE INVENTION** — *when* it was invented is
+part of the evidence, and deleting it would erase the only record that the agent once could not get
+there.
 
 **DESIGN ONLY. Nothing in Part 5 is built.**
 
@@ -840,6 +913,27 @@ result compared against a cold baseline is comparing two things at once.
     compositions reused in >= 3 distinct games   the table-stakes set -- report it, with game order
     the ablation                                 wipe learnings, re-run the same games; the gap is
                                                  what the carried library was worth
+
+### 5.10.7 THE INVENTED-ATOM MEASUREMENT — the cleanest transfer evidence available
+
+**Corpus atoms were FRONTLOADED, so using one proves LOOKUP, not learning.** An invented atom did
+not exist until the agent made it, so its reuse cannot be explained by the frontload, by the corpus,
+or by the key — **none of them contained it.**
+
+    invented in game A, reused in game A        LEARNING
+    invented in game A, used in game B          TRANSFER -- provably not corpus and not key
+    remove invented atoms, re-run game B        the drop is what the agent taught itself
+
+**Per run, into the ledger and the route chart:** atoms invented (count, per game) · each invented
+atom's uses per game · **cross-game uses of invented atoms — the transfer count** · the
+invented-atom ablation gap.
+
+> **AND IT IS RUNNABLE NOW, WHICH THE Γ-WIPE ABLATION IS NOT.** `CLAUDE.md` defers clause 3 to 25/25
+> because *wipe the library of an agent at 3/25 and it goes to 3/25 or lower, and neither number is
+> interpretable — there was nothing worth wiping.* **The invented-atom ablation has a subject the
+> moment ONE atom is invented**, because its question is not *did the library carry the win* but
+> *did the agent's own additions do anything*. That question is interpretable at any level.
+> **It is a smaller claim than clause 3 and it does not defer.**
 
 **Build order: AFTER the observer lands** — there is nothing to rank until settled compositions
 exist. **Design only.**
