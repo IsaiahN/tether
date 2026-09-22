@@ -43051,3 +43051,63 @@ the gap on both boards. I have not confirmed it and the corpus is not edited.
     CAPABILITY  none. It converts item 2 from "possibly blocked" to a two-line data-path change
                 with a measured identity cost, and it disqualifies `m0r0` as a wiring-check board
                 for anything cascade-related
+
+---
+
+## `F275` — OPTION C's ATTRIBUTION COLLAPSES ON EXACTLY THE OBJECTS IT EXISTS TO ORDER: 99.7% on objects that held still, 53-66% on objects that MOVED
+
+**2026-09-22. The reviewer's option C for item 2: anchor identity on the SETTLED frame — tracker
+runs once per action as today — and use the intermediate frames only to ORDER the changes. Its
+identity stability is the CONTROL by construction, so identity is not where it can fail.**
+
+**ATTRIBUTION is.** To order changes it must map *this component in intermediate frame k* onto *the
+object the settled tracker names*. **PREDICTED BEFORE MEASURING (15:18): an object that MOVED during
+the cascade has intermediate cells that need not overlap its settled cells — and a thing that moved
+is exactly the thing whose ordering matters.** Measured, 30 multi-frame responses per board:
+
+    board   multi-frame   attributable   ambiguous   ORPHAN    MOVED    HELD
+    g50t        94%          79.9%         20.1%      0.0%     56.2%   99.7%
+    su15        95%          87.0%         13.0%      0.0%     65.8%   99.6%
+    sk48        83%          78.4%         21.6%      0.0%     65.4%   99.9%
+    tn36        25%          93.8%          6.2%      0.0%     52.7%   99.7%
+
+> **THE SPLIT IS THE FINDING AND THE PREDICTION HELD. Objects that held still attribute at
+> 99.6-99.9%; objects that MOVED attribute at 52.7-65.8%.** Option C is near-perfect on the objects
+> whose ordering carries no information and loses a third to a half on the ones that do.
+
+**ZERO ORPHANS ON ALL FOUR BOARDS** — every intermediate component overlaps at least one settled
+object, so nothing appears and vanishes entirely inside a cascade. That is a good result and it
+holds for BOTH options.
+
+### B versus C, settled
+
+    B  walk the tracker      identity costs 0-3.5 points (`F274`); attribution is not a separate
+                             problem, because the tracker carries identity THROUGH the
+                             intermediate frames rather than reconstructing it afterwards
+    C  anchor + annotate     identity perfect by construction; attribution loses 34-47 points on
+                             the movers
+
+**B IS THE BUILD.** It loses at most 3.5 points of identity; C loses a third to a half of the
+attribution on precisely the objects the feature exists to track. **And the asymmetry is structural
+rather than a tuning artefact: B never has to re-derive the correspondence, because it never threw
+it away.**
+
+### AND THE SPLIT DID NOT RUN THE FIRST TIME
+
+The first version printed *MOVED n=0* and *HELD = the overall rate*, because `prev_cells` was never
+updated — so `moved` was empty and every component fell into HELD. **The "held" figure was the
+total, relabelled.** A split that silently collapses into its own total reads like a result: the
+percentages were identical to the overall row and I only caught it because the movers row printed
+nothing at all.
+
+**Third instrument fault in one tick** — the A-versus-B comparison with no consumer (`F274`), the
+depth reading that was a property of the parse (`F274`), and this. All three were caught, none by a
+checker.
+
+    BOUNDARY    30 multi-frame responses per board, FOUR boards, one pass. Attribution is by CELL
+                OVERLAP with the settled object; a different correspondence rule (shape, colour,
+                nearest-centroid) would give different numbers, and `F247` exists because overlap
+                alone is not sufficient for a mover. So 53-66% is the OVERLAP-ONLY rate and is a
+                LOWER bound on what a smarter attributor could reach -- it is not a ceiling
+    MECHANISM   none changed
+    CAPABILITY  none. It chooses B over C for item 2 on a measurement rather than on preference
