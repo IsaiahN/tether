@@ -1648,6 +1648,21 @@ class Agent:
                 got = getattr(self.gamma.library.get(fit), "out_type", None) if fit else None
                 if fit is not None and got != want:
                     fit = None          # a category error is not a competitor
+                # AND ZERO SUPPORT FALLS THROUGH TO MINT -- ruled 2026-09-22 on B5.
+                # *Support at zero is an INSTRUCTION, not a stop: perturb.* A rebind changes
+                # what the agent BELIEVES and does not touch the world, so it cannot discharge
+                # that instruction: zero support means there is no evidence, and a competitor
+                # drawn from the library brings none. Nor can the competitor be JUDGED -- 
+                # express-before-judge means nothing is tested by a swap, which is Isaiah's
+                # hit-rate rule at a third site. Figure 8: a frame cannot certify its own
+                # limit, and the library cannot stand in for contact with the ground.
+                #
+                # `_starved` IS the condition, already maintained: `mint` adds a slot on a
+                # `no_support` verdict and the probe flush clears it. So it reads exactly
+                # *last mint verdict was no_support and no probe has answered it yet*, and
+                # this needs no new bookkeeping.
+                if slot in self._starved:
+                    fit = None          # let mint park it; the probe is what perturbs
                 b = REFUTED
             elif r.mass == 0.0 and slot not in self.owed_import:
                 b, fit = HELD, None
