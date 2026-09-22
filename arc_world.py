@@ -210,6 +210,30 @@ class ArcWorld:
             for b in partners:
                 if a < b and a in tr and b in tr:
                     out[f"{a}~{b}.contact"] = arc_percept.contact_faces(tr[a], tr[b])
+        # THE BOUNDING-BOX OVERLAP SENSOR. `RELATIONS.md` Part 6 names it as the FIRST of three
+        # blockers and calls it "a BUILD rather than a publish": *bounding-box overlap is not
+        # computed anywhere, and containment and its five dependents wait on it.* Those six moved
+        # from composable to blocked when `overlap` was checked -- so the ladder's condition is
+        # met by the corpus's own record: composition tried and could not.
+        #
+        # THE RAW AREA, NOT CONTAINMENT. Containment is `overlap == area(A)`, which the agent can
+        # compose once it holds the overlap; publishing containment itself would hand it the
+        # composition rather than the instrument, and that is the discovery this is meant to
+        # enable rather than replace.
+        #
+        # AND IT IS SPARSE, MEASURED BEFORE BUILDING: overlapping-bbox pairs run 0.6-1.4x the
+        # CONTACT pairs and 1.4% of all pairs on `bp35` (582 of 41,328). Fewer than contact on
+        # some boards, because two objects touching edge-to-edge have ABUTTING boxes that do not
+        # overlap -- so this is not the n^2 the pair space allows.
+        names = sorted(tr)
+        for i, a in enumerate(names):
+            A = tr[a]
+            for b in names[i + 1:]:
+                B = tr[b]
+                r = min(A["row"] + A["h"], B["row"] + B["h"]) - max(A["row"], B["row"])
+                c = min(A["col"] + A["w"], B["col"] + B["w"]) - max(A["col"], B["col"])
+                if r > 0 and c > 0:
+                    out[f"{a}~{b}.bbox"] = r * c
         return out
 
     def read_order(self) -> tuple[list[str], str]:

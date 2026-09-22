@@ -99,7 +99,10 @@ ATTRIBUTE_TYPE = {"colour": COLOUR, "row": POSITION, "col": POSITION,
                   # and never ordered -- so `new - old` on a hue is arithmetic over labels and
                   # means nothing. Publishing a colour DIFFERENCE would have invented a
                   # quantity; publishing *it changed* is the reading the corpus's set names.
-                  "recolour": BOOL}
+                  "recolour": BOOL,
+                  # THE BBOX OVERLAP SENSOR -- `RELATIONS.md` Part 6's first blocker, "a BUILD
+                  # rather than a publish". An intersection AREA, so EXTENT like `contact`.
+                  "bbox": EXTENT}
 
 
 # THE ADMITTING CLAUSE, PER ATOM, RECORDED WHERE THE ATOM IS DECLARED.
