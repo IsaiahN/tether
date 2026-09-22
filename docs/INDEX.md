@@ -44504,6 +44504,12 @@ reading (`holes(o1)`), a real line of corpus prose, a truncation, a malformation
 paren. **A grammar that accepts `holes(o1)` as a condition has invented the comparison nobody
 wrote.**
 
+> **THE POPULATION BELOW IS THE WRONG ONE — reviewer, 22:14, and `F300` re-runs it.** The 54
+> REGISTRY atoms **have bodies and never needed conditions**; the population that needs them is
+> the **CLOSURE atoms**, which have prose and no implementation. **The re-point reads `DRAFTABLE
+> 0` of 785 seed-backed closure atoms — same verdict, a denominator ~100x larger, and a heavier
+> finding.** The registry census below stands as a true statement about the wrong set.
+
 ### THE CENSUS, and it is a stronger result than "the prose is vague"
 
     54 registry atoms                         2,622 seed rows
@@ -44551,3 +44557,51 @@ with a denominator rather than an assumption.**
                 13th conform seat with its own must-not-parse suite. 13/13
     CAPABILITY  none yet -- nothing consumes a condition. The next step is the consumer, and
                 the census says it must be fed by the agent rather than by the parse
+
+---
+
+## F300 (INDEX series) — THE CENSUS RE-POINTED AT THE RIGHT POPULATION: **`DRAFTABLE 0` of 785 seed-backed CLOSURE atoms.** Not one condition this grammar can state, in the entire population that needs one
+
+**`F299` censused the 54 REGISTRY atoms. Wrong set, and the reviewer named why: they HAVE BODIES
+and never needed conditions.** A condition is what stands in for an implementation the agent does
+not have — so the population is the **CLOSURE atoms**, which are prose and nothing else.
+
+    closure atoms appearing as recipe INGREDIENTS   2,669
+    seed rows carrying a gloss                      2,622
+
+    DRAFTABLE     0
+    BLANK       785   a seed row exists; its prose carries no checkable claim
+    ABSENT    1,884   no row under an exact name match
+
+### THE DENOMINATOR THAT MATTERS IS 785, NOT 2,669
+
+**The 1,884 ABSENT are substantially a NAME-MATCHING artefact** — `ATP (Bio)`, `Abso (selective)`
+and `10%_Rule` are recipe ingredient spellings, not missing concepts. *I am not reporting them as
+absences*, for the same reason the `F299` loose pass was run: **an exact-name lookup is a matching
+rule, not a fact about the corpus.**
+
+> **SO THE CLEAN READING IS `0 OF 785`: every closure atom whose seed row was actually examined,
+> and not one carries a condition.** And the missing 1,884 cannot rescue it — **the ceiling is
+> the 2,622 rows, and the 785 examined are a 30% sample of them showing the prose is GLOSSES.**
+> *"an object is removed from the board" · "two meet and both persist" · "the fuel that powers
+> the cell"* — descriptions, not claims with a comparison in them.
+
+### WHY IT IS HEAVIER THAN `F299` RATHER THAN THE SAME RESULT AGAIN
+
+`F299` could be explained away: *of course the registry has no conditions, it has functions.*
+**This one cannot.** These 785 are exactly the entries that have NO implementation, whose only
+possible route to being checkable is a condition — **and the seed carries none for any of them.**
+
+    THE DERIVED HALF OF OPTION C IS EMPTY, AT THE ONLY SCOPE WHERE IT MATTERED.
+
+**So the AGENT-FORMED half is not one of two routes. It is the route.** Every condition this
+agent will ever hold, it has to form itself and have the ground judge — which is what ruling 5
+set up when it removed the human gate, arrived at from the other direction.
+
+    BOUNDARY    2,669 ingredient names against 2,622 seed rows, exact-name match, `ATOMS.md` +
+                `ATTRIBUTES.md`. The 785 is what was EXAMINED; the 1,884 is a matching gap I am
+                explicitly not counting as absence. Says nothing about whether an AGENT-FORMED
+                condition is reachable -- that is unbuilt
+    MECHANISM   none changed; `condition.census` re-pointed at the closure population
+    CAPABILITY  none. It moves "the agent forms its own conditions" from one option of two to
+                the only route there is
