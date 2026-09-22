@@ -41632,3 +41632,84 @@ thread assumed they were.**
     MECHANISM   none changed. This is a measurement of commits already made
     CAPABILITY  none. It re-prices the deliverable and removes a premise -- phase 1 is not
                 affordable by fixing retrieval, because retrieval was not what made it expensive
+
+## F254 (INDEX series) — WHERE dc22 AND m0r0 SPEND THEIR TIME: no phase grew, and the per-cycle curve rises **×32 inside twenty cycles ON BOTH BUILDS**. It is not the library and not the tracker fix
+
+**The reviewer, after `F253`: *they got slower while minting LESS. Measure it. Report the phase that
+grew, with its denominator. No cause until the table exists.*** **The table exists and it says NO
+PHASE GREW.**
+
+> **BOUNDARY FIRST, BECAUSE IT GOVERNS EVERY NUMBER BELOW.** These ran while the seven-board
+> System 0 A/B had the CPU. **Absolute seconds are CONTENDED and must not be compared to `F253`
+> or `F245`** — the pre-fix arm's late window alone is 163.6 s against `F245`'s 165 s for a whole
+> run. **What survives contention is the SHAPE within a run and the call COUNTS**, which are what
+> this entry rests on. An uncontended re-run is owed.
+
+### the 5-cycle phase profile: the post-fix build does LESS work, not more
+
+cProfile, aggregated by function rather than by a bucket I guessed at — **my first pass filed 72%
+as `other`, which is not a profile, it is a label.**
+
+    dc22, 5 cycles         PRE-FIX          POST-FIX
+      self-time              27.3 s           12.8 s      <- HALF
+      mint calls               124               49
+      _cannot_pay          486,806          127,293       <- 4x fewer
+      _record              490,120          111,801       <- 4x fewer
+      gamma.name         1,526,203          396,694       <- 4x fewer
+      arc_percept genexpr 11,043,655     11,064,509       <- IDENTICAL
+
+    m0r0, 5 cycles           22.7 s           23.5 s      <- flat, counts near-identical
+
+**`touching`'s generator is 11.05 MILLION calls on both builds and is `dc22`'s single largest
+cost — and the tracker fix did not change it by 0.2%.** The post-fix build reaches cycle 5 having
+done **four times less mint-search**.
+
+### so the growth is LATE, and it is on BOTH builds
+
+    per-cycle time, cycles 1-5 vs 16-20      library over the run
+    dc22  POST   0.83 -> 26.68 s/c   x32.2      48 -> 54
+    dc22  PRE    1.75 -> 32.71 s/c   x18.7      48 -> 76
+    m0r0  POST   1.52 -> 13.58 s/c    x8.9      48 -> 55
+    m0r0  PRE    1.55 -> 14.37 s/c    x9.2      48 -> 52
+
+**THE LIBRARY CANNOT BE THE DRIVER. `dc22` post-fix grows `48 → 54` — SIX TERMS — while its
+per-cycle cost rises thirty-two-fold; and the PRE-fix build, which grows to 76, rises LESS.** The
+correlation runs the wrong way.
+
+**AND THE TRACKER FIX IS NOT THE DRIVER EITHER: the steep curve is on both builds.** `m0r0` is
+`×8.9` against `×9.2` — indistinguishable.
+
+**Nor is it object count: `dc22`'s tracked set FALLS 92 → 40 across the run** while time rises.
+
+### what is left, named as a CANDIDATE and not as a cause
+
+**`self.trace` grows by one entry per cycle and `history(slot)` walks all of it**, so `_left`,
+`_residual_obs` and `_cannot_pay` price every candidate against the whole accumulated history.
+**That is quadratic in cycles by construction** and it is the only quantity measured here that
+rises monotonically with the curve.
+
+**It is NOT measured as the cause and I am not filing it as one.** The reviewer's instruction was
+*no cause until the table exists*; the table exists and it eliminates three candidates rather than
+establishing a fourth. **Confirming it means one run with `len(self.trace)` held fixed, which is a
+different experiment.**
+
+### AND IT MAKES `F253`'s FLOOR WORSE, IN BOTH COLUMNS
+
+`F253` projected 120.3 h by scaling 20-cycle averages linearly in frames, **and flagged that
+per-cycle cost is not constant in library size.** *That flag was aimed at the wrong quantity* —
+cost is not constant **in CYCLES**, and it rises ×8 to ×32 inside a single twenty-cycle run.
+
+> **A 20-cycle average is therefore not a rate at all, it is a point on a steep curve**, and
+> scaling it to 14,822 frames understates both columns by an unknown and large factor. **The 2.6×
+> RATIO survives — both columns are points on curves measured the same way — and the ABSOLUTE
+> hours are not knowable from any short run.** Third time tonight that a relative figure has
+> outlived its absolute.
+
+    BOUNDARY    two boards, 5-cycle profiles and 20-cycle curves, ONE seed, run under CPU
+                contention from a concurrent seven-board A/B -- absolute seconds are not
+                comparable to F245/F253 and an uncontended re-run is owed. The pre-fix arm is
+                a git worktree at 7467c30, so the two builds differ by exactly tonight's
+                perception commits and nothing else
+    MECHANISM   none changed. Measurement only
+    CAPABILITY  none. It eliminates the library, the tracker fix and object count as the cost
+                driver, and it retires "20-cycle average" as a unit for pricing phase 1
