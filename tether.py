@@ -1327,7 +1327,46 @@ class Agent:
 
     # -- step 2 -----------------------------------------------------------------------
 
-    def _rebindings(self, term: Term, slot: str, guards=None):
+    def _delta_narrowed(self, others: list, robs: list) -> list:
+        """ARM L's operand bound, as ONE rule serving BOTH sites that walk the slot set.
+
+        The slots whose value actually MOVED in the frames where the bound term was wrong --
+        read off `self.trace`'s own before/after pairs, matched to the residual's observations
+        by the IDENTITY of the before-state, which is the same object the trace holds. Contact
+        partners of those slots are then ADDED, never subtracted.
+
+        **IT LIVED INSIDE `_bindings` AND THEREFORE BOUNDED ONLY MINT, WHICH IS HALF THE COST.**
+        `_library_fit` runs its own `for b in self.slots` through `_rebindings` and was never
+        narrowed. Measured on sk48 cycle 8: `enum_calls = 0` and `cand_closure = 0` -- mint
+        reached no enumeration at all -- against **1,521,205 operand binds**, every one of them
+        the lookup's. So re-keying route (b) without this MOVES the cost rather than removing
+        it. Reviewer's ruling, 2026-09-22: conflict 4 applies at both sites.
+
+        ORDERING, NEVER EXCLUSION is preserved by the caller: an empty narrowing returns the
+        full list, so every binding is still reachable and only the ORDER of arrival changes.
+        """
+        after_of = {id(b_): a_ for b_, _act, a_ in self.trace}
+        moved: set = set()
+        for st, _a, _v in robs:
+            aft = after_of.get(id(st))
+            if aft is None:
+                continue
+            moved |= {k for k, v in st.items() if k in aft and aft[k] != v}
+        if not moved:
+            return others
+        own = self._slot_owners(self.env)
+        tch = getattr(self.env, "contacts", None)
+        grown = set(moved)
+        if tch is not None and own:
+            adj_of = tch()
+            nearby: set = set()
+            for m in moved:
+                nearby |= set(adj_of.get(own.get(m), ()))
+            grown |= {x for x in others if own.get(x) in nearby}
+        keep = [x for x in others if x in grown]
+        return keep or others
+
+    def _rebindings(self, term: Term, slot: str, guards=None, robs: list | None = None):
         """The term as held, then -- only if it arrived unbound and reads an operand -- the
         typed re-bindings of it. **Composition crosses, binding does not**, so a loaded term
         has to be re-bound at the destination or it is the identity here.
@@ -1343,8 +1382,13 @@ class Agent:
                 if g != term.guard:
                     yield Term(term.atoms, operand=term.operand, guard=g)
             return
-        for b in self.slots:
-            if b != slot and self._operand_fits(term, slot, b):
+        # ARM L AT THE LOOKUP'S OWN SITE. This loop is the other half of the operand axis and
+        # was never bounded -- see `_delta_narrowed`. Same rule, same arm, one switch.
+        cands = [b for b in self.slots if b != slot]
+        if _DELTA_OPERANDS and robs:
+            cands = self._delta_narrowed(cands, robs)
+        for b in cands:
+            if self._operand_fits(term, slot, b):
                 for g in gs:
                     yield Term(term.atoms, operand=b, guard=g)
 
@@ -1379,6 +1423,11 @@ class Agent:
         _guard_pool = (self._guards(self._residual_obs(
             slot, self.gamma.library[self.bound.get(slot, IDN)], hist))
             if _GUARD_AXIS else None)
+        # ARM L needs the same residual observations the guard pool does. Computed ONCE per
+        # lookup and never per candidate, for the reason stated two lines up: `_residual_obs`
+        # walks the history, so doing it inside the candidate loop pays for it on every term.
+        _robs = (self._residual_obs(slot, self.gamma.library[self.bound.get(slot, IDN)], hist)
+                 if _DELTA_OPERANDS else None)
         _rel = getattr(self.env, "contact_changes", None) if _REL_GAP else None
         gap = retrieval.characterise(hist, slot, list(self.alphabet), self.slot_types,
                                      relations=_rel() if _rel else None)
@@ -1404,7 +1453,7 @@ class Agent:
             # ONLY IMPORTS PAY THIS. Every term made here carries its binding, so the candidates
             # are exactly the loaded ones, and a cold run adds nothing. Typed by
             # `_operand_fits`, which is the same filter the mint uses.
-            for cand in self._rebindings(self.gamma.library[n], slot, _guard_pool):
+            for cand in self._rebindings(self.gamma.library[n], slot, _guard_pool, _robs):
                 # BEFORE `_explains`, and separately from it: may this BIND is a type question
                 # and does it EXPLAIN is a behavioural one. Folding the first into the second
                 # would put two quantities under one name at the site that decides both.
@@ -3147,31 +3196,8 @@ class Agent:
         every binding is still reached, and since the mint breaks on the first closer,
         order decides WHICH closer is found and never WHETHER one exists."""
         others = [s for s in self.slots if s != slot]
-        # ARM L. The slots whose value actually MOVED in the frames where the bound term was
-        # wrong -- read off `self.trace`'s own before/after pairs, matched to the residual's
-        # observations by the identity of the before-state, which is the same object the
-        # trace holds. Contact partners of those slots are then ADDED, never subtracted.
         if _DELTA_OPERANDS and robs:
-            after_of = {id(b_): a_ for b_, _act, a_ in self.trace}
-            moved: set = set()
-            for st, _a, _v in robs:
-                aft = after_of.get(id(st))
-                if aft is None:
-                    continue
-                moved |= {k for k, v in st.items() if k in aft and aft[k] != v}
-            if moved:
-                own = self._slot_owners(self.env)
-                tch = getattr(self.env, "contacts", None)
-                grown = set(moved)
-                if tch is not None and own:
-                    adj_of = tch()
-                    nearby: set = set()
-                    for m in moved:
-                        nearby |= set(adj_of.get(own.get(m), ()))
-                    grown |= {x for x in others if own.get(x) in nearby}
-                keep = [x for x in others if x in grown]
-                if keep:
-                    others = keep
+            others = self._delta_narrowed(others, robs)
         seen = {s: len({st[s] for st, _, _ in robs if s in st}) for s in others}
         # CONTACT FIRST, THEN VARIANCE. §16.5: *list everything in contact with the residual,
         # then what is in contact with those, and outward until the cascade stops mattering --

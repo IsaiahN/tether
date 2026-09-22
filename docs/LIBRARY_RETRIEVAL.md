@@ -744,3 +744,96 @@ game. No code is generated in either case. **`Term.origin` already exists with `
 default**, so what import needs is a second stamp value and a source field, not a mechanism.
 
 **DESIGN ONLY. Nothing in Part 5 is built.**
+
+---
+
+# Part 6 — THE `enumerate_closure` INVENTORY (step 1), and TWO DROPS THAT WOULD HAVE BROKEN THE GATE
+
+**Isaiah, 2026-09-22: build on `composer.py`, port what is usable from `gamma.enumerate_closure`,
+then delete it.** This is step 1 — what it does that the recipe composer does not, marked *port* or
+*drop*. **Every row was settled by asking WHICH FUNCTION CONSUMES THIS QUANTITY AND WHAT IT READS**,
+not by reading `enumerate_closure` and judging the feature.
+
+## 6.1 THE TABLE
+
+| what it does | consumer, grepped | verdict |
+|---|---|---|
+| **type validity** — `in_type in u.accepts`, `chain[-1].out_type in u.accepts` | the walk itself | **NOT A PORT — see 6.3** |
+| **the abstention receipt** — `seen` · `budget_spent` · `depth_exhausted` | **`gate.py:203`**, `conform/kernel.py:541`, `ledger.py`'s park split | **PORT — load-bearing** |
+| **`space_exact`** → `stats["estimate"]` → `coverage` | **`gate.py`'s `_unreached`** | **PORT — was on the drop list** |
+| **ranking by fit** (`order=`) + the degenerate-ranking refusal | orders which candidates are reached inside budget | **PORT** |
+| **the `idn` cut** — no identity inside a chain, 5.57x inflation | the coverage denominator | **PORT THE PRINCIPLE** |
+| **`Term(chain)` construction** | everything downstream that executes a term | **PORT — composer returns dicts** |
+| **laziness** (a generator; a yield is a reachability witness) | 5.8's whole lazy-generator requirement | **PORT — composer returns a list** |
+| shortest-first BFS frontier | the walk | **DROP** — the recipe composer does not walk |
+| `Config.budget` 4000 / `work_budget` 15000 | toy-world constants (1.4) | **DROP** |
+| **operand / guard binding** | — | **NOT ITS TO PORT — see 6.2** |
+
+## 6.2 A CORRECTION TO THE EXPECTED LIST: OPERAND/GUARD BINDING IS NOT IN `enumerate_closure`
+
+The reviewer's 12:24 expected *operand/guard binding* among the port candidates. **It is not there.**
+`gamma.units()` says so at its own site: *"`t.name` carries the operand binding and the emitted unit
+does not … `enumerate_closure` composes over `.atoms` alone, so the chunk IS the atom sequence and
+the operand has no business in the key."*
+
+**Binding is re-decided per slot at MINT** (`tether.py:3280`), not during enumeration. So it is
+untouched by the deletion and stays exactly where it is — which also means **conflict 4's
+delta-bound applies to the mint loop and `_library_fit`, and NOT to the composer.**
+
+## 6.3 THE TWO DROPS THAT WOULD HAVE BROKEN SOMETHING
+
+**(a) `space_exact` WAS ON THE DROP LIST AND IT IS THE GATE'S DENOMINATOR.** `coverage = seen /
+estimate`, and `estimate` is `space_exact`'s only product. `gate.py`'s `_unreached` REFUSES a run
+whose park carries verdict `budget_spent` or `depth_exhausted` without a `coverage` in `[0,1]` plus
+`units` and `depth`. Its docstring is the doctrine verbatim:
+
+> *"A park that does not carry the fraction of the space actually seen is the stronger claim
+> smuggled in wearing the weaker one's word, so the coverage number is required AT THE POINT OF
+> REFUSAL, not in a later report."*
+
+**That is `CLAUDE.md`'s *reach must be total* clause with a check behind it — *only a sealed room can
+be searched to the end, so an abstention counts only when it names the closure it searched*.**
+Dropping `space_exact` makes every abstention unreadable and fails the gate. **It must be ported in
+a recipe-shaped form before anything is deleted.**
+
+**(b) THE ABSTENTION RECEIPT HAS THREE CONSUMERS, NOT ZERO.** `budget_spent` / `depth_exhausted`
+are read by `gate.py:203`, by a `conform/kernel.py` seat, and by `ledger.py`'s park-verdict split.
+They are two DIFFERENT claims — *we stopped early* versus *we saw the whole space and it was not
+there* — and only the second is an honest null.
+
+> **THE RECIPE COMPOSER HAS NO EQUIVALENT OF EITHER, AND ITS DENOMINATOR IS EASIER, NOT HARDER:**
+> the population is `len(recipe_rows())` = **2,061**, and *seen* is how many the delta lit. The
+> `depth_exhausted` analogue is *every recipe whose ingredients the delta touched was considered*;
+> `budget_spent` is *we stopped*. **Both remain checkable, and the numbers are smaller and more
+> honest than a `λ^d` over a closure walk.**
+
+## 6.4 TYPE VALIDITY IS NOT A PORT — IT IS THE BRIDGE, AND IT IS THE REAL WORK
+
+`enumerate_closure` composes by TYPE: a chain extends only where `chain[-1].out_type` is accepted by
+the next unit. **`composer.py` has no types at all** — its ingredients are STRINGS parsed out of a
+markdown table (`Ct`, `Co`, `Ge`).
+
+**AND THE TWO VOCABULARIES ARE DISJOINT BY NAME (`F164`).** Γ's atoms are `rotate`, `above`, `holes`,
+`touching`; the closure's ingredient names are `Action`, `Node`, `Time`, `Flow`, `Edge`. **2,669
+distinct ingredient names, and the overlap with Γ's typed atoms is the thing `F164` measured as
+empty.**
+
+> **SO THIS IS NOT CODE TO MOVE. A closure ingredient has no type because it has no BODY — it is a
+> name, a condition and a recipe (the reviewer's 12:07 caveat).** Type-checking becomes portable
+> only once a lit ingredient resolves to something executable, which is the CONDITION COMPILER
+> (5.9.5) and dependency 1. **Until then the recipe composer is type-free by necessity rather than
+> by omission, and saying "port the type checking" would schedule work that cannot be done.**
+
+## 6.5 THE DELETION PRECONDITION — what must be true before `enumerate_closure` goes
+
+Isaiah's step 5 is *then delete it*, and step 4 gates it on the route chart. **These are the checks
+that say the port actually happened, each one a thing that breaks loudly if it did not:**
+
+    1  `gate.py` passes with parks carrying `coverage` / `units` / `depth` from the recipe path
+    2  the `conform/kernel.py` verdict seat passes on recipe-shaped parks
+    3  `budget_spent` and `depth_exhausted` remain DISTINGUISHABLE and are both reachable
+    4  the composer yields lazily and produces executable `Term`/`Node`, not dicts
+    5  the route chart holds on three seeds: (c) shrinks, (a)/(b) grow, compositions do not fall
+
+**Not before step 4 — deleting first leaves mint with nothing.** One commit, recoverable from
+history, recorded in the ledger.
