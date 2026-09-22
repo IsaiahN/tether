@@ -42185,3 +42185,63 @@ is UNMEASURED.** Sixth candidate; it gets counted before it gets a story.
     MECHANISM   arm L stays DEFAULT OFF. Nothing here justifies flipping it
     CAPABILITY  none. The falsifier passing is worth more than the ratio falling: it means a
                 delta bound is SAFE, which the prior seat's record said it might not be
+
+## F262 (INDEX series) — THE PER-OBSERVATION BOUND, COUNTED BEFORE BUILDING: it holds FLAT on `m0r0` (6.9% → 8.9%) and DECAYS 49× on `dc22`. The reviewer's pre-registration is right on one board and wrong on the other
+
+**`F261`: arm L's bound is the UNION of slots that moved across ALL the residual's observations,
+and it decays because over twenty frames nearly everything has moved. The proposal was a
+PER-OBSERVATION bound — what moved in THAT frame. The reviewer pre-registered that it should NOT
+decay, and approved COUNTING IT FIRST.**
+
+**Counted. Nothing built, nothing bound differently — the probe computes what each rule WOULD admit
+and reports the sizes.** Share of the full slot set, which is what the cross-product multiplies:
+
+    dc22        calls    full slots     UNION (arm L)      PER-OBSERVATION     obs/call
+      <= c4         4        739.5      4.8   ( 0.6%)      2.9   ( 0.4%)          2.0
+      <= c12       82        735.2     25.8   ( 3.5%)     12.9   ( 1.8%)          2.6
+      <= c20      391        493.7    159.2   (32.2%)     96.6   (19.6%)          2.5
+
+    m0r0        calls    full slots     UNION (arm L)      PER-OBSERVATION     obs/call
+      <= c4        11        175.0     18.9   (10.8%)     12.1   ( 6.9%)          2.0
+      <= c12      138        167.9     25.6   (15.2%)     14.0   ( 8.4%)          3.8
+      <= c20      202        173.5     36.3   (20.9%)     15.4   ( 8.9%)          5.4
+
+### THE PRE-REGISTRATION HOLDS ON `m0r0` AND FAILS ON `dc22`
+
+**`m0r0`: `6.9% → 8.4% → 8.9%`. FLAT** — and flat while `obs/call` nearly triples (`2.0 → 5.4`),
+which is the condition that made the union grow. **The per-observation bound is doing exactly what
+it was proposed to do there.**
+
+**`dc22`: `0.4% → 1.8% → 19.6%`. A 49-FOLD GROWTH**, against the union's 33-fold. **It decays
+too, and slightly faster in relative terms.**
+
+> **PER GAME, NEVER POOLED, AND THIS IS WHY.** Averaged, these two read *"per-obs is about 14% of
+> the full set and roughly half the union"* — a summary that is true of neither board and hides
+> that one of them refutes the hypothesis outright.
+
+### WHAT SEPARATES THEM IS THE BOARD, NOT THE TRACE
+
+**`dc22` has ~97 slots changing IN A SINGLE FRAME at cycle 20; `m0r0` has ~15.** The
+per-observation set cannot be small on a board where a lot moves per frame, **and that has nothing
+to do with history length** — which is the whole premise the proposal rested on.
+
+**So the honest statement is: the per-observation bound removes the TRACE-LENGTH dependence and
+leaves a BOARD-DENSITY dependence.** On `m0r0` that is a win; on `dc22` it is a different cause
+with the same symptom.
+
+### AND IT IS STRICTLY BETTER THAN ARM L EITHER WAY
+
+**Per-observation is smaller than the union at every mark on both boards** — `dc22` 19.6% against
+32.2%, `m0r0` 8.9% against 20.9%. **So if an operand bound is built at all, this is the one to
+build.** Whether it is worth building is a cost question and `F261` showed arm L's 1.5× ratio cut
+bought `-3%` to `-10%` of late-cycle time.
+
+    BOUNDARY    TWO boards so far -- `ls20` and `sk48` are running and are NOT in this table, and
+                on `F262`'s own argument two boards cannot settle a board-specific quantity.
+                ONE SEED each, and the reviewer's new rule says a mint/composition claim needs
+                three -- this is a claim about SET SIZES, not about mints, and no ground quantity
+                is read from it. The probe changes no behaviour: both arms of every number here
+                come from the SAME run
+    MECHANISM   none. Counted only, as the reviewer required, before anything is built
+    CAPABILITY  none. It half-refutes the proposal before a line of it was written, which is what
+                counting first is for
