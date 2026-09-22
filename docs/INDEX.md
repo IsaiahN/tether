@@ -43483,3 +43483,57 @@ a licence to WORK per board, and the corpus is clean.**
     CAPABILITY  none on the agent. It converts a remembered rule into a blocking one, and it
                 corrects the reviewer's account of WHY, which was about to be written into the
                 one document I may not edit
+
+---
+
+## F282 (INDEX series) — THE PER-CYCLE COST CURVE IS **NOT MONOTONE**, AND THE CONTROL KILLED MY OWN EXTRAPOLATION THREE MINUTES AFTER I MADE IT
+
+**Why this was measured at all:** the declared step-1 depth run produced no board row in ~30
+minutes, and *a run that never completes produces nothing*. Before re-scoping a declared run I
+have to know what a cycle costs — **which is a boundary question, not a re-scope.**
+
+### The two curves, per game and never pooled
+
+    sk48   1734 slots    0.8  2.7  5.5  6.8  6.6  10.2  12.8  25.0  66.1  90.5
+    wa30    388 slots    0.2  2.0 62.2 100.1 84.2 117.0  46.3  53.0  58.7
+
+**`sk48` climbs from cycle 8 and is still climbing at 10. `wa30` jumps at cycle 3 and then FALLS
+BACK — 117 to 46.** Two boards, two different shapes.
+
+### WHAT IT REFUTES IS MINE, AND IT WAS THREE MINUTES OLD
+
+From `sk48`'s first three cycles — **0.8, 2.6, 5.4** — I read *roughly doubling per cycle*,
+extrapolated the declared run at **~7 hours**, and was preparing to tell the reviewer the declared
+window was infeasible. **`wa30` refutes the growth law and `sk48`'s own cycles 4–6 (6.8, 6.6, 10.2)
+already contradicted it in data I had printed and read past.** The doubling was three points of a
+curve that is not a curve.
+
+> **THE COST OF THE ERROR WOULD HAVE BEEN A RE-SCOPED DECLARED RUN**, argued from a growth law
+> fitted to three points — **a repair validated on the case that prompted it, which is the improvised
+> metric this file already names.**
+
+### AND THE HYPOTHESIS THAT FITS `sk48` IS UNTESTED, NOT CONFIRMED
+
+`F274` established **`sk48` does nothing before cycle 7**, and the cost jump is at 8. *Cost explodes
+when the agent goes live* is an attractive story and I have **no liveness reading for `wa30` at
+all**, so its cycle-3 jump neither confirms nor refutes it. **A null carrying a satisfying causal
+story is harder to doubt than a bare one** — and this is the same shape with a POSITIVE. **Filed as
+a question the declared run answers**, because that run reports first-live cycle per board beside
+the cost.
+
+### What may NOT be read off this
+
+**Nothing about whether retrieval is replacing search.** *If minting shrinks across the run while
+the other two grow* is the thesis, and a falling late-run cost would be the visible half of it —
+**`wa30` falls and `sk48` does not, at ONE SEED EACH.** The record's own law: *`ls20` swung 42–67
+across seeds, wider than every effect read from one seed.* **Two boards at one seed cannot separate
+a mechanism from a seed.**
+
+    BOUNDARY    2 boards, 1 seed each, 9-10 cycles. Arms I + observer + delta-operands ON.
+                Measured UNDER CPU CONTENTION with the declared depth run and, for part of
+                it, a second probe -- so every number is an UPPER bound and none is a clean
+                timing. No spy wrapper. `feeder.chunk_order(seed=0)`
+    MECHANISM   none changed. The second probe was killed to return the CPU to the declared
+                run, which is the reading that outranks this one
+    CAPABILITY  none. It withdraws a re-scope I was about to propose, and hands the declared
+                run a question it already reports the answer to
