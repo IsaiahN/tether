@@ -42186,7 +42186,22 @@ is UNMEASURED.** Sixth candidate; it gets counted before it gets a story.
     CAPABILITY  none. The falsifier passing is worth more than the ratio falling: it means a
                 delta bound is SAFE, which the prior seat's record said it might not be
 
-## F262 (INDEX series) — THE PER-OBSERVATION BOUND, COUNTED BEFORE BUILDING: it holds FLAT on `m0r0` (6.9% → 8.9%) and DECAYS 49× on `dc22`. The reviewer's pre-registration is right on one board and wrong on the other
+## F262 (INDEX series) — THE PER-OBSERVATION BOUND, COUNTED BEFORE BUILDING: **FLAT on THREE of four boards.** `dc22` is the only one that grows, and asking the outlier question of it cuts its `49×` to `11×`
+
+> **COMPLETED TO FOUR BOARDS, AND THE HEADLINE THIS ENTRY WAS FILED WITH IS SUPERSEDED.** Filed on two boards as *right on one, wrong on the other*. With `ls20` and `sk48` added it is **flat on three**:
+
+    board      per-observation share of the full slot set        union, same marks
+    m0r0        6.9%  ->   8.4%  ->   8.9%     FLAT            10.8% -> 15.2% -> 20.9%
+    ls20       21.3%  ->  19.9%  ->  20.1%     FLAT            33.1% -> 38.4% -> 42.9%
+    sk48          --  ->  27.0%  ->  27.3%     FLAT               --  -> 42.2% -> 48.9%
+    dc22        0.4%  ->   1.8%  ->  19.6%     GROWS            0.6% ->  3.5% -> 32.2%
+
+> **THE UNION GROWS ON ALL FOUR AND THE PER-OBSERVATION SET GROWS ON ONE.** The reviewer's pre-registration holds where it can be read.
+
+> **AND THE OUTLIER QUESTION, ASKED OF `dc22` BEFORE THE NUMBER IS QUOTED AGAIN — it is the BOARD, and the MAGNITUDE was the instrument.** `dc22`'s `c4` mark rests on **FOUR calls to `_bindings`**, against `ls20`'s 47 and `sk48`'s 287 at `c12`. **A 49× growth measured from a four-call baseline is not a growth measurement.** From `c12` to `c20` — 82 calls then 391, properly sampled — it is `1.8% → 19.6%`, an **11×** rise that is real. **So `dc22` does genuinely grow and the `49×` overstated it by including a sample too thin to read.**
+
+> **WHAT DISTINGUISHES `dc22` IS STILL UNEXPLAINED AND IS NOT CLAIMED HERE:** its slot set SHRINKS across the run (`739.5 → 493.7`) where the other three are stable, and ~97 of its ~494 slots change in a single frame at `c20` against `m0r0`'s ~15. **Whether that is the tape reaching a busier region or the agent acting more is separable by a perception-only pass over the same frames, and is unmeasured.**
+
 
 **`F261`: arm L's bound is the UNION of slots that moved across ALL the residual's observations,
 and it decays because over twenty frames nearly everything has moved. The proposal was a
