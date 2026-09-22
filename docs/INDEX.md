@@ -42751,3 +42751,87 @@ fifty-four zero-evidence slots go unanswered in twenty cycles.**
     CAPABILITY  none. It restores the reviewer's premise on two thirds of the evidence, demotes
                 `F269`'s mechanism to one seed of three, and gives arm M a three-seed baseline
                 instead of a single number
+
+## F271 (INDEX series) — ISAIAH IS RIGHT AND THE REASON IS STRUCTURAL: **retrieval NEVER CUTS**, the mutation observer is **NOT IN THE LOOP**, and the agent holds **ONE relation of the 76** in `RELATIONS.md`. Every cost candidate I tested was trying to shrink a product the design does not shrink
+
+**Isaiah: *minting against every candidate is brute force, not the cue attribute-delta → atoms/
+recipes search. If RELATIONS.md is working inside the mutation observer it should have been cutting
+down the minting.* Grepped before measuring. Four findings, all from the code.**
+
+### 1 — `retrieve` RETURNS EVERY NAME. It cannot cut, by construction
+
+`retrieval.retrieve`'s own docstring: ***"ONE PASS over the library, ORDERED BY FIT. EVERY NAME
+COMES BACK."*** And `fits()` is a score out of 5 in which **`relational` is worth ONE POINT**:
+
+    2 * (type match) + (arity match) + bool(aimed) + bool(relational)
+
+> **SO A RELATION CAN MOVE A CANDIDATE ONE PLACE UP AN ORDERING AND CAN NEVER REMOVE ONE.** The
+> 32–106× operand×guard cross-product (`F258`) is applied to a candidate list that retrieval is
+> *designed* not to shorten. **Every one of the six cost candidates was trying to shrink a product
+> the architecture holds open on purpose.**
+
+### 2 — THE MUTATION OBSERVER IS NOT IN THE LIVE LOOP
+
+    grep -rn "import observer" --include=*.py .
+    ./test_perception.py:9:import observer
+
+**`observer.py` is imported by ONE file and it is a test.** It defines `_mutations`, `observe`,
+`summarise` — and **nothing in the agent path calls any of them.**
+
+**So *RELATIONS.md working inside the mutation observer to cut minting* cannot be happening: there
+is no live mutation observer.** What exists is `arc_world.contact_changes()`, which is a different
+and much smaller thing — *which relation TYPES changed this frame*, with a confidence.
+
+### 3 — THE AGENT HOLDS ONE RELATION OF SEVENTY-SIX
+
+    atoms declaring `touching` in `reads_ctx`        2 of 21   (`touching`, `touching_n`)
+    relation kinds any atom can read                 1         (`touching`)
+    relations named in RELATIONS.md                  76
+
+**`retrieval.py` says so itself: *"`touching` is the ONLY relation an atom holds today."*** So
+`RELATIONS.md`'s 76 are not merely unranked — **75 of them are unsayable by any term the search
+can score.**
+
+### 4 — AND WHERE IT ACTUALLY BINDS, EVEN THE ONE POINT IS OFF
+
+Three sites call `characterise(..., relations=...)`. **Two supply it unconditionally** — the failed-
+path catalogue (2565) and `mint`'s gap (3227). **The third is `_library_fit`, the retrieval THAT
+BINDS, and it is gated behind arm C:**
+
+    _rel = getattr(self.env, "contact_changes", None) if _REL_GAP else None
+
+**Arm C is RETIRED and default OFF, so `rel_types` is always empty in the retrieval that decides
+the binding** — which the site's own comment states and which nobody had connected to the cost
+question.
+
+### WHAT THIS DOES TO TONIGHT'S COST PROGRAMME
+
+    a window over history         refused by the corpus, and confounded
+    caching history()'s list      56-62% duplicated, not the hot path
+    library size                  refuted -- six terms against a 32x rise
+    memoising the evaluation      behaviour-identical and NET SLOWER
+    a surprise-size gate          the population is empty, 0 of 763
+    the operand delta bound       safe, and decays with the trace
+
+> **SIX CANDIDATES, AND EVERY ONE OF THEM ATTACKED THE MULTIPLIER.** None attacked the
+> *candidate list*, because I never asked whether retrieval was supposed to shorten it. **It is
+> not.** `F258` found the cross-product and read `work_budget` as the only bound; **the real
+> statement is that there is no cut anywhere in the path — retrieval ranks, the budget truncates,
+> and nothing selects.**
+
+### AND MY OWN `contact_kind` IS PART OF THE PROBLEM, DELIBERATELY
+
+I built `contact_kind` (point/edge/face) for System 0 and filed it **SEAT-SIDE, NOT AN ATOM**,
+citing §16.5's *you do not invent the list, you read it off the world*. **That is why System 0's
+contact-seeking cannot reduce minting: the contact types it discovers are invisible to the
+search.** `F260` measured System 0 as having no effect on acquisition across eight board-seeds —
+**this is the mechanism for that null, and I built the wall it runs into.**
+
+    BOUNDARY    ALL FOUR are static reads of the code, not runtime measurements. What is NOT
+                measured: how often `rel_types` is non-empty at `mint`'s characterise on a real
+                board, and whether the one relational point ever changes which candidate wins.
+                Those are the next counts and they decide whether the one relation is doing
+                anything at all. The atom counts are of `arc_atoms.py` declarations
+    MECHANISM   none changed
+    CAPABILITY  none. It reframes six eliminated candidates as having been aimed at the wrong
+                half of the expression, and it names the half nobody had looked at
