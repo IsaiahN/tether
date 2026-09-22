@@ -1,8 +1,83 @@
 # The library system — what retrieval, lookup and search DO today, and what the plan says they should
 
 **Written 2026-09-22 at Isaiah's instruction, after `F271`–`F273`. Every claim in Part 1 is a read
-of the code or a measurement with its source named. Part 2 is the specified pipeline. Part 3 is the
-gap. Part 4 is what is NOT known, and it is short on purpose.**
+of the code or a measurement with its source named.**
+
+---
+
+# THE RULINGS INDEX — 2026-09-22, and where each one lives
+
+**Consolidated at the reviewer's request so the document can be checked against one list. Every row
+is a ruling by Isaiah or the reviewer on 2026-09-22.**
+
+| # | the ruling | where |
+|---|---|---|
+| 1 | vocabulary freeze withdrawn; instruments built per board; CUE_BOUNDARY retired, re-scoped by input provenance, `mapping` blocked, KEY_BOUNDARY unchanged; learning persists across games | 5.0, 5.10.1 |
+| 2 | the observer is the TRACKER: instrumented attributes NULL at frame 0; delta WITH ITS ORDER; `came`/`gone`; relations per pair; route (a)→(b)→(c); delta bounds operands at BOTH sites; null-not-absent | 5.1, 5.2, 5.4, 5.5 |
+| 3 | build on `composer.py`; port the abstention receipt, coverage, ranking, `Term`, laziness, the `idn` principle; drop the walk and the toy constants; delete only after 6.5's five checks | Part 6 |
+| 4 | `+` is a placeholder, every junction UNKNOWN; the ground settles the bond via the six tests; tagged on use; bond as a PARAMETER; real trees; schema factory; lazy; reach never enumerated | 5.3, 5.4, 5.6, 5.8, 5.9 |
+| 5 | the seed stays read-only; a condition is the AGENT's hypothesis in its runtime layer, approved BY THE GROUND — **no human gate** | 5.9.5 |
+| 6 | MINTED / IMPORTED / INVENTED, three distinct things; invention's trigger exists as `owed_import`; `≡` rather than deletion | 5.9.6 |
+| 7 | BIRTH fixed forever; STATUS per context; **IMPORTED is a status, not an origin**; the agent NEVER has the game's name — contexts key on its own STRUCTURE HASH | 5.10.9, CONFLICTS |
+| 8 | record successes; confidence and relevance separate; youth bonus; decay by games/cycles never clock; orders never excludes; learnings → runtime → seed | 5.10.4, 5.10.8 |
+| 9 | procedurally generated games: layout hash vs mechanics signature; NEAREST match; transfer counts only when MECHANICS differ | **Part 7** |
+| 10 | the measurements | 5.10.6, 5.10.7, Part 6.5 |
+
+---
+
+# CHANGE LOG — 2026-09-22
+
+    Part 4    by_cluster / by_encoding resolved; the observer contradiction reconciled as an
+              A6i name collision; F165 re-labelled EXPECTED-INERT, then UNTESTED once
+              CUE_BOUNDARY was found to have walled the recipe composer off
+    Part 5.0  the vocabulary freeze withdrawn; VOCABULARY_FROZEN.md marked WITHDRAWN, kept
+    5.3-5.6   the bond ruling: `+` is a placeholder; exists-vs-needed grepped; 76.5% of
+              recipes need real trees; `came`/`gone` make `⇒` and `−` observable
+    5.8       reach vs work held apart; where the claim can fail (`r`)
+    5.9       the generator design; 5.9.5's human gate SUPERSEDED by ruling 5
+    5.9.6     IMPORT rewritten as INVENTION; the word collision recorded
+    5.10      cross-game persistence, track record, youth bonus, relevance decay
+    5.10.9    NEW -- the `g.game` leak check, run and reported
+    Part 6    the `enumerate_closure` inventory; two drops that would have broken the gate
+    Part 7    NEW -- procedurally generated games
+    BUILT     `cbd400a` order/duplicate-preserving parse · `be936c2` delta bounds operands at
+              both sites · `d29c4f4` relations as per-pair slots, arm `TETHER_OBSERVER`
+
+---
+
+# CONFLICTS — flagged rather than smoothed, as instructed
+
+**Four places the code or the corpus does not match a ruling. None is smoothed over below.**
+
+**(a) `IMPORTED` IS AN ORIGIN IN THE CODE AND RULING 7 MAKES IT A STATUS.** `gamma.py:32` declares
+`PRIOR, MINTED, IMPORTED` as one triple and `Term.origin` defaults to `MINTED`; `gamma.py:531`
+assigns `origin=IMPORTED` on load. **Ruling 6 says keep the meaning and do not rename; ruling 7 says
+move it from origin to status.** Both are satisfiable together — the meaning is unchanged, the FIELD
+changes — but it is a real refactor touching `Term`, `save`, `load` and `summary`, and it is not
+done. **Flagged, not started.**
+
+**(b) NO STRUCTURE HASH EXISTS.** Grepped: `structure_hash`, `situation_key`, `_struct_key` — zero
+hits anywhere. Ruling 7 keys birth, status, transfer, table stakes and the youth bonus on it, and
+ruling 9 splits it into two. **So rulings 7, 8 and 9 all rest on a mechanism that is not built, and
+5.10 cannot be built before it.** This is the single largest unbuilt prerequisite in the document.
+
+**(c) MY 5.10.4 WOULD HAVE CREATED THE LEAK RULING 7 FORBIDS.** I wrote `settled_in:
+frozenset[str]` as *the distinct GAMES a composition settled in*, feeding `fits()`. **Game names
+reaching the ranking is precisely the contamination Layer 7 names.** Corrected to structure hashes
+below. **The ruling arrived before the build, which is the only reason this is a correction and not
+a defect.**
+
+**(d) RELATIONS: RULED *PER-PAIR DIRECTED*, BUILT UNDIRECTED.** `d29c4f4` writes one
+`a~b.contact` slot per unordered pair because the shared-face count is SYMMETRIC — `b~a` would store
+the same integer, doubling the slot set for no information. Measured +23% slots on m0r0 rather than
+the +47% a directed reading costs. **Direction WILL be needed for the asymmetric relations (`above`,
+`inside`, `contains`) and they cannot reuse this shape.** Standing disagreement, awaiting a ruling.
+
+---
+
+**Part 1 is what the code does. Part 2 is the specified pipeline. Part 3 is the gap. Part 4 is what
+is not known. Part 5 is the design. Part 6 is the composer inventory. Part 7 is procedural
+generation.**
 
 ---
 
@@ -724,11 +799,21 @@ runs in the loop**, so a bad parse cannot become a live reading.
 
     provenance: DERIVED · source: <file>:<line> · method: <parser version> · status: PROPOSED
 
-**PROPOSED conditions are not readable by the agent.** A human review flips `status` to ACTIVE.
-**That is not ceremony — it is the corpus rule**: writing a machine-checkable condition for an atom
-that has only prose is **corpus AUTHORING**, and `CLAUDE.md` says the corpus is annotated, never
-edited by this seat. The stamp is also what keeps the ablation partition reconstructible, which
-cannot be rebuilt afterwards.
+**THE HUMAN GATE IS SUPERSEDED — RULING 5, 2026-09-22.** This section required a human review to
+flip `status` from PROPOSED to ACTIVE before the agent could read a condition. **The ruling removes
+it: the seed stays read-only, a checkable condition is the AGENT'S HYPOTHESIS in its runtime layer,
+and THE GROUND approves it — used and held raises standing, used and failed fades. No human gate.**
+
+**AND THE RULING DISSOLVES THE PROBLEM THE GATE WAS SOLVING RATHER THAN OVERRIDING IT.** My reason
+for the gate was that writing a machine-checkable condition for a prose atom is CORPUS AUTHORING,
+which `CLAUDE.md` forbids this seat. **That holds only if the condition is written INTO THE CORPUS.
+It is not — it lives in the agent's runtime layer as a hypothesis, and the seed is never touched.**
+So the constraint is satisfied by where the condition lives, not by who approves it, and a human
+approving it would have been the proctor deciding what the agent may believe — which is the larger
+error of the two.
+
+**The provenance stamp stays** (`DERIVED`, source, parser version): it is what keeps the ablation
+partition reconstructible, and that was never the gate's job.
 
 **PROPOSED FIRST SCOPE, for Isaiah to rule** — I agree with the reviewer's suggestion and would add
 a stop condition: **the atoms today's perception can light, and only those whose instruments already
@@ -875,8 +960,15 @@ describing.
 
 **EXTEND `Standing`; do NOT invent a second confidence number** (Part 2.4's own rule):
 
-    settled_in: frozenset[str]     the DISTINCT GAMES this composition settled in
+    settled_in: frozenset[str]     the DISTINCT STRUCTURE HASHES this composition settled under
     confirmations: float           successes, on the same decay clock as `rejections`
+
+**STRUCTURE HASHES, NOT GAME NAMES — RULING 7, and my first draft had it wrong.** I wrote *distinct
+GAMES*, which would have fed the environment's identifier into `fits()`. **`WHAT_THE_AGENT_SEES`
+Layer 7: a persistent key the agent READS from the environment is contamination; one it COMPUTES
+from structure is recall.** An agent keyed on a given ID looks like it is learning, is doing lookup,
+and scores zero the moment identities are hidden — which is the private set. **No structure hash
+exists in the code today (CONFLICTS b), so this is a prerequisite rather than a field.**
 
 **`fits()` gains a track-record term that ORDERS AND NEVER EXCLUDES.** Today it scores type
 signature 2, arity 1, aimed 1, relational 1 — and reads `Standing` nowhere. The new term sits
@@ -1021,6 +1113,37 @@ exist. **Design only.**
 
 ---
 
+### 5.10.9 THE `g.game` LEAK CHECK — RUN, and the answer is *latent, not absent*
+
+**Ruling 7 asked whether the agent already holds the environment's game ID. Grepped, every consumer:**
+
+| site | what it does with `self.game` | behaviour? |
+|---|---|---|
+| `gamma.py:333` | `self.game = str(game)` | — |
+| `gamma.py:371` | `handles.setdefault(name, term.handle(self.game))` | **provenance label only** |
+| `gamma.py:498` | writes `"game": self.game` into `save()` | persistence |
+| `gamma.py:531` | `origin=IMPORTED if r.get("game") != self.game else r["origin"]` | **a STAMP on load** |
+| `summary.py:156` | a `foreign` flag for reporting | measurement side |
+| `feeder.py:250` | rotates `g.game` per cycle on the pooled tape | provenance rotation |
+
+**AND NOTHING ELSE READS THEM.** `term.origin` is consumed at `gamma.py:361` (whether to assign a
+handle at all), `:494` (skip priors when saving) and `:536` (a stamp); `tether.py` reads
+`stamps[name]["seq"]` once and reads `handles` NEVER.
+
+> **SO: `g.game` REACHES PROVENANCE LABELS, SAVE/LOAD STAMPING AND REPORTING. IT DOES NOT REACH
+> RANKING, RETRIEVAL, BINDING, MINTING OR ACTION CHOICE. No contamination today.**
+
+**BUT IT IS LATENT RATHER THAN ABSENT, AND THAT IS THE PART WORTH REPORTING.** `gamma.py:531` lets
+the game NAME decide a term's origin stamp. **The moment origin or `settled_in` feeds the ranking —
+which is exactly what 5.10 proposes — that stamp becomes a behaviour input and the leak is real.**
+
+**The ruling therefore arrived one build early rather than one late.** 5.10 as I first drafted it
+would have created the contamination it forbids (CONFLICTS c). The fix is structure hashes from the
+start, not a later cleanup — a leak of this shape is invisible in results, because an agent doing
+lookup on a given ID looks exactly like an agent that learned.
+
+---
+
 # Part 6 — THE `enumerate_closure` INVENTORY (step 1), and TWO DROPS THAT WOULD HAVE BROKEN THE GATE
 
 **Isaiah, 2026-09-22: build on `composer.py`, port what is usable from `gamma.enumerate_closure`,
@@ -1111,3 +1234,77 @@ that say the port actually happened, each one a thing that breaks loudly if it d
 
 **Not before step 4 — deleting first leaves mint with nothing.** One commit, recoverable from
 history, recorded in the ledger.
+
+---
+
+# Part 7 — PROCEDURALLY GENERATED GAMES (Isaiah, 2026-09-22)
+
+**A game whose boards regenerate gives a NEW STRUCTURE HASH EVERY EPISODE.** Ruling 9.
+
+## 7.1 The core loop is unaffected, and that is a property of the design rather than luck
+
+**The delta keys recipes; it does not key game identity.** Nothing in route (a) → (b) → (c) consults
+what world this is: the observer publishes what changed, the changed attributes light candidates,
+the conditions confirm. **A regenerated board produces a different delta and the same machinery
+reads it.** So procedural generation costs the loop nothing.
+
+**AND EXACT-HASH RECALL FAILS — CORRECTLY.** A memorised route is useless on a regenerated board,
+so a design that leaned on exact recall would be discovering that its recall was memorisation.
+**The failure is the right one to have.**
+
+## 7.2 Two levels of identity, because one hash answers two different questions
+
+    LAYOUT HASH          the exact arrangement. Within-level recall: "I have seen THIS board."
+                         Regenerates every episode on a procedural game, and should.
+    MECHANICS SIGNATURE  object kinds, what each action does, what happens on contact --
+                         LEARNED BY PLAYING, not read. "This is the same KIND of world."
+
+**The mechanics signature is the one that carries transfer**, and it is the harder of the two
+because it is not a function of the frame: it accumulates over a run as the agent discovers what its
+actions do. **That makes it a product of route (a) — the action→delta record — rather than of
+perception.**
+
+## 7.3 RECOGNITION IS NEAREST MATCH, NOT EXACT MATCH
+
+An exact-match key over a mechanics signature would fail on the first unobserved action, because the
+signature is partial until the agent has tried everything. **Nearest match over a partial signature
+is what makes it usable mid-episode**, and it is also what makes "the same kind of world" a
+judgement the agent can be WRONG about — which is the legible failure mode, and the right one.
+
+## 7.4 TRANSFER COUNTS ONLY WHEN MECHANICS DIFFER, AND THIS BITES NOW
+
+**A composition reused on a regenerated layout of the same game is not transfer.** Counting it would
+inflate the transfer number by exactly the regeneration rate, which is a number about the generator
+rather than about the agent.
+
+> **AND IT IS NOT A FUTURE PROBLEM: ARC LEVELS ALREADY VARY LAYOUT WITHIN A GAME.** So 5.10.7's
+> transfer count must be keyed on the MECHANICS signature from the first measurement, or the first
+> number it reports is already inflated. **This is the same error as pooling across games, one level
+> in: a rate computed over a population the mechanism itself generates.**
+
+## 7.5 What this adds to the build
+
+    layout hash            a function of the frame -- cheap, and the observer already has the input
+    mechanics signature    accumulated from route (a)'s action->delta record -- NOT built
+    nearest match          over partial signatures -- NOT built, and it needs a distance
+
+**The distance is the open question**: nearest-match needs a metric over partial mechanics
+signatures, and choosing one is exactly the kind of invented number this project refuses. **The
+corpus should be searched for it before one is designed** — the rule that has paid nine times.
+
+---
+
+# OPEN QUESTIONS — what is genuinely unresolved
+
+1. **The nearest-match distance over mechanics signatures** (7.5). Search the corpus first.
+2. **`r`'s bound** (5.8.3) — conditions are ruled as the bound; whether they bound it ENOUGH is
+   unmeasurable until the condition compiler exists.
+3. **Directed vs undirected relation slots** (CONFLICTS d) — symmetric relations do not need
+   direction; asymmetric ones do, and they cannot reuse the built shape.
+4. **Thompson vs deterministic ranking** (5.10.8) — the better mechanism against the better
+   instrument, put to the reviewer and not yet ruled.
+5. **How a lit aim becomes an ACTION** (4.7) — still the gap between lookup and play, and a route
+   chart can show (b) growing while the agent plays no better.
+
+**Everything else on the rulings list is either built, designed here, or named as a prerequisite.**
+
