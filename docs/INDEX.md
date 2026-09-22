@@ -44015,6 +44015,11 @@ ON in both.** The measurement `F290` said was owed, run rather than deferred.
 
     sk48, seed 0, 11 cycles          observer ON        observer OFF
     cumulative atom calls           159,560,054          40,449,762      3.94x
+
+    ^^ THE 3.94x IS AN ARTEFACT OF AN UNEQUAL ENDPOINT -- CORRECTED BY `F293`. The OFF arm's
+    cycle 11 COLLAPSED to 5.2M from 16.0M, so cutting both arms at 11 flattered the ratio.
+    AT EQUAL 10-CYCLE WINDOWS IT IS 2.00x: 70,533,969 against 35,293,525. The amplifier is
+    real and it is HALF the size I reported.
     cycle 1                               3,276               1,242
     cycle 10                         33,681,688          15,987,147
     cycle 11                         89,026,085           5,156,237
@@ -44078,6 +44083,13 @@ reach or feed search. **It answers a question nobody asked instead.**
 **ON BOTH ARMS THE YIELD IS ZERO.** One term settled on the OFF arm at cycle 8 and was gone by
 cycle 10. **`levels` never moves off 2 in any cycle of any arm.**
 
+> **CORRECTED BY `F293` WITHIN THE HOUR: *zero on both arms* IS WRONG.** The ON arm's row above
+> was read at FIVE cycles. **Run to ten it settles THREE terms — yield `0.04/M`, against the OFF
+> arm's `0.00/M` at the same ten cycles.** Near-zero, not zero, **and the two arms differ.** The
+> headline survives — *70 million calls for three settled terms* — but *both arms are identical
+> at zero* was a reading taken from a short window, **which is `F285`'s dead-window lesson
+> committed against my own arm rather than against a board.**
+
 > **THE LIBRARY GROWS AND NOTHING SETTLES. 54 terms to 99 — forty-five minted — and the ground
 > confirms none of them.** *Minting is running; settling is not.* **That is the route chart's
 > central quantity reading zero, and it is not an arm question at all.**
@@ -44111,3 +44123,54 @@ agrees exactly** — so `F289`/`F290`'s reach finding rests on two readings, not
                 cycle. No agent code changed
     CAPABILITY  none. It replaces an arm argument with a ground reading, and the ground reading
                 is zero
+
+---
+
+## F293 (INDEX series) — THE EQUAL-WINDOW A/B. The amplifier is **2.00x, not 3.94x**, and the yield is **not zero on both arms: 3 settled against 0**. Two of my own numbers from the last hour, corrected
+
+**Same script, same flag, same board, same seed, arm I ON in both — and now the SAME NUMBER OF
+CYCLES, which the last two rows did not have.**
+
+    sk48 seed 0, 10 cycles each        observer ON        observer OFF
+    cumulative atom calls               70,533,969         35,293,525       2.00x
+    library                               54 -> 132           54 -> 99
+    settled terms                                 3                  0
+    yield                                   0.04/M             0.00/M
+    levels                                        2                  2
+    never called                          36 of 54           38 of 54
+    resolving                                    18                 16
+
+### WHAT IT CORRECTS, AND BOTH ARE MINE FROM TONIGHT
+
+**`F291`'s 3.94x was an ENDPOINT ARTEFACT.** I cut both arms at eleven cycles — **and the OFF
+arm's cycle 11 collapsed to 5.2M from 16.0M**, which I had noticed and reported as *non-monotone*
+in the same finding. **I reported the turnover and then took a ratio across it anyway.** At equal
+ten-cycle windows the amplifier is **2.00x**: real, and half what I said.
+
+**`F292`'s *yield is zero on both arms* was read on a FIVE-CYCLE ON arm.** Run to ten, the ON arm
+settles **three terms** — `0.04/M` against the OFF arm's `0.00/M`. **Near-zero, not zero, and the
+arms are not the same.**
+
+> **THAT IS `F285`'s DEAD-WINDOW LESSON COMMITTED AGAINST MY OWN ARM RATHER THAN AGAINST A
+> BOARD.** *A zero read inside a short window is a property of the window.* I wrote that rule
+> tonight, filed a reviewer post on it, restated a Part 10 rule around it — **and then read a
+> five-cycle arm against a ten-cycle arm and called the pair identical.** I even flagged the
+> unequal windows in the post and drew the conclusion anyway.
+
+### THE HEADLINE SURVIVES BOTH CORRECTIONS AND IS WORTH RESTATING PRECISELY
+
+**70,533,969 atom calls bought THREE settled terms.** The library went 54 → 132 — **seventy-eight
+minted** — and the ground confirmed three. **`levels` did not move on either arm in any cycle.**
+
+**So the observer's effect is now measured on the ground-facing quantity rather than argued:** it
+roughly doubles the search, adds two reachable atoms, and takes settling from **0 to 3**. *A real
+effect, on a base so low that the ratio is not worth computing* — and the thing that matters is
+that the denominator is 70 million.
+
+    BOUNDARY    ONE board, ONE seed, TEN cycles per arm, arm I ON in both -- so the OBSERVER
+                is priced and arm I still is not. `sk48` seed 0 remains the board-seed that
+                never reaches the shape family, so it is the worst row in the run to read a
+                settling rate from, and this is not a claim about the agent in general
+    MECHANISM   none. Two prior findings corrected in the rows that carry them
+    CAPABILITY  none. It puts a number on the observer against the ground instead of against
+                the frame's own atom counters
