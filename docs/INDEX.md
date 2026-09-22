@@ -44605,3 +44605,60 @@ set up when it removed the human gate, arrived at from the other direction.
     MECHANISM   none changed; `condition.census` re-pointed at the closure population
     CAPABILITY  none. It moves "the agent forms its own conditions" from one option of two to
                 the only route there is
+
+---
+
+## F301 (INDEX series) — ITEM 4, THE SIX TESTS: **ALL SIX RETURN `None` TODAY, AND EACH NAMES THE QUANTITY IT WANTS.** And I caught my own `⋛` test faking a pass before it shipped
+
+**Built to the reviewer's pre-registration.** `settle(bond, left, right, delta) -> (verdict, why)`
+with verdict `True | False | None`, `settle_tree` walking a lit tree, `bond_report` giving the
+pre-registered tally.
+
+    +  →     order      the SEQUENCE of changes within and across a frame     NOT CARRIED
+    ⇒        came       a null->value transition, computed in `_present`      UNPUBLISHED
+    −        gone       a value->null transition, computed in `_present`      UNPUBLISHED
+    ∥        history    a frame where one ingredient failed and it still held NOT CARRIED
+    ⋛        values     two changed slots' magnitudes                         CARRIED
+    ≡                   NOT IN THE GENERATOR -- a statement about the LIBRARY, ruling 4
+
+    BOND REPORT over 4 lit recipes
+      junctions decided    0
+      junctions undecided  5
+      isomers              0
+        undecided for want of order   5
+
+**`None` IS NOT A SOFT FALSE**, and that is the load-bearing part: a junction this delta cannot
+decide stays UNKNOWN, because counting it refuted would let *a quiet frame eliminate a reading* —
+the dead-window error one level up.
+
+### I WROTE A TEST THAT FAKED A PASS AND CAUGHT IT BEFORE IT SHIPPED
+
+My first `⋛` was `return (a > b or a < b, ...)`. **That is True whenever two values DIFFER**, so
+it would have marked nearly every junction a magnitude comparison and reported *decided* on all
+of them.
+
+> **TWO VALUES DIFFERING IS NOT EVIDENCE THE JUNCTION IS ABOUT WHICH IS LARGER.** Isaiah's clause
+> is *never stub anything that would fake a pass*, and an OVER-ACCEPTING TEST is the same fault
+> without the stub — **worse, because it produces confirmations nobody thought to doubt.** It now
+> returns `None` with *the magnitudes are READABLE and no DISCRIMINATING test is written*, which
+> separates **the quantity is missing** from **the test is missing**. Different repairs.
+
+### SO THE HONEST STATE IS: THE DELTA DECIDES NOTHING TODAY
+
+**One of six quantities is carried, and even that one has no discriminating test.** `came` and
+`gone` are the cheapest gap — `_present` ALREADY COMPUTES BOTH and files them as *"a plain
+event"*, never published. **Two of the six become answerable by publishing something the code
+already has**, which is Part 5.5's finding arriving as a blocked test rather than as an argument.
+
+**`order` is the expensive one and it is the `+` versus `→` distinction the whole corpus turns
+on.** It needs the frame stack's within-response sequence — already un-erased at the parse (the
+`frames` key), and not yet carried into the delta.
+
+    BOUNDARY    a built module and its own exercise, NO agent run. The report is over 4 lit
+                recipes from a hand-chosen lit set, so the COUNTS are illustrative; the VERDICTS
+                and the missing-quantity names are properties of the code and are not
+    MECHANISM   `settle`, `settle_tree`, `bond_report`, `NEEDS`, `bond_field` in `composer.py`.
+                13/13 seats -- ISOLATED refused each of the three until it had a real consumer
+    CAPABILITY  none yet: no junction can be decided, so no tree settles. It converts "the six
+                tests are unbuilt" into "the six tests are built and PERCEPTION owes them four
+                quantities, two of which are already computed and merely unpublished"

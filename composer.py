@@ -174,6 +174,85 @@ def light(row: dict, standing=None) -> object:
     return node
 
 
+# WHAT A DELTA MUST CARRY FOR EACH TEST (5.4's table). A test whose quantity is absent returns
+# None AND NAMES THE QUANTITY -- reviewer's pre-registration: *that is a finding about perception,
+# not a licence to infer.* `None` IS NOT A SOFT FALSE: a bond not yet decidable on this delta must
+# never be counted as refuted, or a quiet frame eliminates a reading.
+NEEDS = {
+    "+":  "order -- the SEQUENCE of changes within and across a frame",
+    "→": "order -- the SEQUENCE of changes within and across a frame",
+    "∥": "history -- a frame where one ingredient failed and the result still occurred",
+    "−": "gone -- a value->null transition, computed in `_present` and UNPUBLISHED",
+    "⇒": "came -- a null->value transition, computed in `_present` and UNPUBLISHED",
+    "⋛": "magnitudes -- two changed slots' values, which the delta DOES carry",
+}
+
+
+def settle(bond: str, left: object, right: object, delta: dict) -> tuple:
+    """5.9.2 / item 4. `(verdict, why)` where verdict is True | False | **None**.
+
+    **`None` IS THE THIRD ANSWER AND IT IS NOT A SOFT FALSE.** A junction that this delta cannot
+    decide stays UNKNOWN. Counting it as refuted would let a quiet frame eliminate a reading --
+    the same error as reading a dead window as a zero.
+
+    **`≡` IS NOT HERE, DELIBERATELY** (reviewer, ruling 4): it is a statement about the
+    LIBRARY -- *two names, one referent* -- not about the board, and asking the board a question
+    it cannot answer is how a reading gets invented.
+    """
+    if bond not in NEEDS:
+        return (None, f"{bond!r} has no test: not one of the six")
+    if bond == "⋛":
+        # I WROTE `a > b or a < b` HERE AND IT IS A TEST THAT FAKES A PASS. It is True whenever
+        # two values DIFFER, so it would mark nearly every junction a magnitude comparison --
+        # and *two values differing is not evidence the junction IS about which is larger*.
+        # Isaiah: never stub anything that would fake a pass. An over-accepting test is worse
+        # than a missing one, because it produces confirmations nobody asked whether to trust.
+        vals = delta.get("values") or {}
+        a, b = vals.get(left), vals.get(right)
+        if a is None or b is None:
+            return (None, "magnitudes -- the delta carries no value for one operand")
+        return (None, f"magnitudes {a} vs {b} are READABLE, and no DISCRIMINATING test is "
+                      f"written: a difference does not establish the bond is a comparison")
+    have = delta.get(bond_field(bond))
+    if not have:
+        return (None, NEEDS[bond])
+    return (None, f"{NEEDS[bond]} -- present but no test is written yet")
+
+
+def bond_field(bond: str) -> str:
+    """the delta key each bond's test reads. Named apart so a missing FIELD and a missing TEST
+    are distinguishable in the report -- they have different repairs."""
+    return {"+": "order", "→": "order", "∥": "history",
+            "−": "gone", "⇒": "came", "⋛": "values"}.get(bond, "")
+
+
+def settle_tree(node: object, delta: dict) -> dict:
+    """Walk a lit tree and try every junction. **NO JUNCTION IS FIXED WITHOUT GROUND EVIDENCE**
+    (reviewer, pre-registration 3): UNKNOWN stays UNKNOWN until a delta decides it, and a decided
+    bond is written to the RUNTIME layer with provenance DERIVED-BY-GROUND -- never to the seed.
+
+    Returns the tally rather than a mutated tree: `Bonded` is frozen, and the isomer case --
+    **two readings of the same junction both supported** -- is a COUNT, not a choice to make here.
+    """
+    decided, undecided, why = 0, 0, []
+    stack = [node]
+    while stack:
+        n = stack.pop()
+        if not isinstance(n, Bonded):
+            continue
+        supported = [b for b in BONDS if b != "≡"
+                     and settle(b, n.left, n.right, delta)[0] is True]
+        if supported:
+            decided += 1
+            if len(supported) > 1:
+                why.append(f"ISOMER: {n.left}/{n.right} supports {supported}")
+        else:
+            undecided += 1
+            why.append(settle(BONDS[0], n.left, n.right, delta)[1])
+        stack += [n.left, n.right]
+    return {"decided": decided, "undecided": undecided, "why": why}
+
+
 def candidates(lit: set, path: str = _ATOMS_MD, partial: bool = False) -> list[dict]:
     """Molecules whose recipe the lit atoms cover. Ranked by recipe size: a longer covered recipe
     is a more specific match.
@@ -209,7 +288,41 @@ def candidates(lit: set, path: str = _ATOMS_MD, partial: bool = False) -> list[d
     return sorted(hits, key=lambda d: (-d["coverage"], -d["size"], d["molecule"]))
 
 
+def bond_report(lit: set, delta: dict, path: str = _ATOMS_MD) -> str:
+    """The reviewer's pre-registered item-4 report: junctions decided / undecided BY BOND, how
+    many decisions this delta supports, and **how often two readings of the same junction are
+    both supported** -- the isomer case, which is the interesting failure.
+
+    It is the consumer `settle_tree` needs, and it is also the deliverable: a report that reads
+    all-undecided is a statement about what PERCEPTION does not carry, with the missing quantity
+    named per junction rather than summarised as a rate.
+    """
+    cands = candidates(lit, path)
+    dec = und = iso = 0
+    missing: dict[str, int] = {}
+    for c in cands:
+        t = settle_tree(c["node"], delta)
+        dec += t["decided"]
+        und += t["undecided"]
+        for w in t["why"]:
+            if w.startswith("ISOMER"):
+                iso += 1
+            else:
+                missing[w.split(" -- ")[0]] = missing.get(w.split(" -- ")[0], 0) + 1
+    out = [f"  BOND REPORT over {len(cands)} lit recipes",
+           f"    junctions decided    {dec}",
+           f"    junctions undecided  {und}",
+           f"    isomers (two readings both supported)  {iso}"]
+    for q, n in sorted(missing.items(), key=lambda kv: -kv[1]):
+        out.append(f"      undecided for want of {q:10s} {n}")
+    return "\n".join(out)
+
+
 if __name__ == "__main__":
     import json
     for lit in ({"Rotate", "Translate"}, {"Rotate", "Translate", "Scale"}, {"Recolour"}):
         print(sorted(lit), "->", json.dumps([c["molecule"] for c in candidates(lit)]))
+    # ITEM 4's report. An EMPTY delta is the honest default here: the point of the report is
+    # WHICH QUANTITY each junction wants, and a hand-made delta would only show that a delta I
+    # invented decides the junctions I aimed it at.
+    print(bond_report({"Ct", "Co", "Contact", "Bind", "So", "Lev", "Collide"}, {}))
