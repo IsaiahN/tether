@@ -43647,3 +43647,70 @@ widen perception is the one who needs it.
                 one-name-one-atom guard raises in `three_spaces`. 12/12 seats
     CAPABILITY  no new reach. It removes an ambiguity from every composed term that used
                 `recolour`, and makes the class that produced it unrepeatable in this register
+
+---
+
+## F285 (INDEX series) — **`F283` IS REFUTED BY THE NEXT SEED**, and the guard that should have caught it was reporting a FALSE ALL-CLEAR because a dict was passed where a tuple was documented
+
+**Two failures, one tick, and the second is why the first got as far as a reviewer post.**
+
+### 1 — `sk48`'s zero is a fact about SEED 0, not about `sk48`
+
+The declared depth run's own next row:
+
+    sk48  seed 0   15 cycles   shape-atom calls        0    live cycles 0 of 15   first live NONE
+    sk48  seed 1   15 cycles   shape-atom calls  783,902    live cycles 6 of 15   first live 9
+
+**Same board, same fifteen cycles, same arm, same instrument. The seed alone.**
+
+**`F283` states *"`sk48`'s zero is a fact about `sk48` — the shape atoms are never REACHED
+there"*, and I posted that to the reviewer as a settled reading.** It is withdrawn. The correct
+statement is **at seed 0 they are never reached, and at seed 1 they are called 783,902 times.**
+
+> **THE MEMO WAS ALREADY WRITTEN AND IT IS ABOUT THIS EXACT SHAPE:** *measure the baseline's own
+> spread across seeds first; `ls20` swung 42–67, wider than every effect read from one seed.*
+> **I pulled a control forward for INSTRUMENT soundness and never asked for the SEED spread** —
+> and the instrument control passed, which is precisely what made the reading feel safe.
+
+**AND IT DISSOLVES THE `symmetric` PUZZLE WITHOUT A NEW MEASUREMENT.** `armI` calls
+`chunk_order(BOARD)` — **`SHUFFLE_SEED = 1618`** — and `fullcensus` passed `seed=0`. *Never
+called* versus *20,010 calls* was two seeds, never two instruments. **Wrapping ten atoms and
+wrapping all fifty-four give byte-identical counts (20,010 / 20,082), so the spy is passive** —
+that much was worth establishing and is the one thing the detour bought.
+
+### 2 — THE GUARD WAS BLIND, AND IT PRINTED "never-resolved none"
+
+`census.resolution` documents `per_atom` as `name -> (resolved, not_resolved)`. The declared run
+passed **`{"resolved": n, "NOT_RESOLVED": m}`**. **A 2-key dict UNPACKS — into its KEYS** — so
+`ok` became the string `"resolved"`:
+
+    ok + no == 0   ->  never true, so NOTHING was ever listed as zero-call
+    ok == 0        ->  never true, so NOTHING was ever listed as never-resolved
+
+    printed:  "never-resolved  none"   "zero calls      none"   WHATEVER THE DATA SAID
+
+**No exception. No wrong number. A clean bill of health from an instrument that could not see.**
+
+> **THIS IS THE MODULE'S OWN SUBJECT, ONE LEVEL UP.** `census.py` exists because *a NOT_RESOLVED
+> atom is indistinguishable from one that legitimately abstains*, and it was built after three
+> dead atoms went invisible. **It then went blind in the same way, and reported CLEAN while
+> blind** — the confabulation §12.2 exists to stop, committed by the guard against it.
+>
+> **AND IT IS THE SEVENTH ENTRY IN `lint.py`'s LIST OF PLACES A CHECKER GOES SILENT, which I
+> should have read before writing a checker.** *An exit code is a declaration where a pattern
+> match over stdout is a guess* — and this guard's output was neither: it was a declaration
+> made from unvalidated input.
+
+**FIXED:** `resolution()` validates the value shape and raises `SplitError`, naming the atom and
+saying *a dict unpacks into its KEYS and this census would have read as clean*. **The defect is
+reintroduced as a fixture**, plus one asserting a genuinely dead atom IS named. The caller now
+passes tuples.
+
+    BOUNDARY    row 2 of the declared depth run (`sk48` seed 1), plus a re-read of `census.py`
+                and `feeder.SHUFFLE_SEED`. The seed spread is now known on ONE board at TWO
+                seeds -- seed 2 is still running, and no other board has any spread reading
+    MECHANISM   `census.resolution` validates its input; `step1.py` passes tuples. 12/12 seats.
+                The in-flight run loaded the OLD census, so ITS resolution lines are void --
+                the CALL COUNTS and first-live columns are unaffected and stand
+    CAPABILITY  none. It withdraws a reading I had already reported, and repairs the guard that
+                let it through

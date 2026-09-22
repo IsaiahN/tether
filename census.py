@@ -137,6 +137,22 @@ def resolution(title: str, per_atom: dict) -> str:
     if not per_atom:
         raise SplitError(f"{title}: the resolution census is empty -- a run that did not take "
                          f"it cannot report that its atoms resolved")
+    # THE SHAPE IS CHECKED BEFORE IT IS UNPACKED, AND THIS GUARD EXISTS BECAUSE IT FAILED.
+    # 2026-09-22: the declared step-1 run passed `{"resolved": n, "NOT_RESOLVED": m}` where a
+    # 2-tuple was documented. A 2-key dict UNPACKS -- into its KEYS -- so `ok` became the
+    # string `"resolved"`, `ok == 0` was never true, `ok + no == 0` was never true, and the
+    # census printed **"never-resolved none, zero calls none" WHATEVER THE DATA SAID.**
+    # A guard that cannot fail loudly hands out a clean bill of health from a blind
+    # instrument, which is the exact confabulation this module was built to stop -- one
+    # level up, in the module itself.
+    for name, v in per_atom.items():
+        ints = (isinstance(v, (tuple, list)) and len(v) == 2
+                and all(type(x) is int for x in v))
+        if not ints:
+            raise SplitError(
+                f"{title}: atom {name!r} maps to {v!r}; resolution() takes "
+                f"(resolved, not_resolved) as two ints. A dict unpacks into its KEYS and "
+                f"this census would have read as clean.")
     dead, uncalled, live = [], [], []
     for name, (ok, no) in sorted(per_atom.items()):
         if ok + no == 0:
@@ -160,6 +176,23 @@ def resolution(title: str, per_atom: dict) -> str:
 def _selftest() -> int:
     """REINTRODUCE THE DEFECT, NEVER DISABLE THE CHECK. Each case is one real fault."""
     bad = 0
+
+    # THE FALSE ALL-CLEAR, 2026-09-22: a dict where a 2-tuple belongs. It unpacked into its
+    # KEYS and the census reported "never-resolved none" over data full of dead atoms.
+    try:
+        resolution("dict instead of a tuple", {"holes": {"resolved": 0, "NOT_RESOLVED": 40}})
+        print("census: a dict-shaped resolution census was ACCEPTED -- the false all-clear")
+        bad += 1
+    except SplitError:
+        pass
+    # and the shape it does take must still work, with the dead atom NAMED
+    got = resolution("real census", {"holes": (0, 40), "area": (0, 0), "corners": (12, 12)})
+    if "holes" not in got or "NEVER RESOLVED" not in got:
+        print("census: a genuinely dead atom was not named")
+        bad += 1
+    if "area" not in got:
+        print("census: a zero-call atom was not listed apart")
+        bad += 1
 
     ok = split("control: a real split", 10, {"moved": 4, "held": 6})
     if "branches sum  10  == total 10" not in ok:
