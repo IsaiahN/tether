@@ -42515,6 +42515,9 @@ and was doing the work of a general claim.
 
 ## F267 (INDEX series) — B5's CAUSE: the agent DOES perturb. **Seven probes on `sk48`, every one filed against the placeholder `@probe`**, so the 17 parked slots can never match. An ATTRIBUTION defect, not a behavioural one — and I told the reviewer the opposite
 
+> **HALF-REFUTED BY `F269`. *Attribution, not behaviour* is WRONG.** The seven probes fire in cycles **1–7** and all seventeen parks happen in cycles **16–18**: **parks after the last probe = 17, parks with a later probe = 0.** B5's *followed* means a probe at a LATER cycle, so **even with perfect attribution not one of these parks would be answered.** The `@probe` placeholder is real and is the SECOND defect; the first is that no probe ever comes after the parks. **My correction over-corrected, and the reviewer's original reading was right.**
+
+
 **`F266` measured `sk48` at 17 slots parked `no_support` and "1 probed", and I reported to the
 reviewer that *the agent is being told to act and is not acting, sixteen times*. THAT IS WRONG.**
 
@@ -42632,3 +42635,66 @@ move.**
     MECHANISM   none changed. Arm J stays DEFAULT OFF
     CAPABILITY  none, and with a denominator: 353 routings, zero movement in compositions,
                 settled or binding. The bin is built, ruled, exercised, and does not pay
+
+## F269 (INDEX series) — THE TABLE SETTLES IT: **probes fire in cycles 1–7 and every park happens in 16–18.** Not bookkeeping — BEHAVIOUR. `bored()` is true exactly when there is nothing to probe for, and false exactly when slots starve
+
+**The reviewer asked for one table — the cycle of every probe and every park — and named what each
+answer would mean. No mechanism until it existed. It exists.**
+
+    sk48, 20 cycles, default seed
+      probe cycles                 [1, 2, 3, 4, 5, 6, 7]
+      park cycles (no_support)     [16, 17, 18]        17 parks
+      parks AFTER the last probe   17
+      parks with a LATER probe     0
+
+    m0r0    no probes, no parks -- vacuous on this seed
+    dc22    not reached: the run timed out under a concurrent job
+
+### IT IS THE BEHAVIOUR READING, AND `F267`'s CORRECTION OVER-CORRECTED
+
+**B5's *"support at zero and NO PROBE FOLLOWED"* means a probe at a LATER cycle than the park.**
+**Seventeen of seventeen parks come after the last probe. Not one would be answered even with
+perfect attribution.**
+
+> **SO `F267`'s *attribution, not behaviour* IS WRONG, AND THE REVIEWER'S ORIGINAL READING WAS
+> RIGHT.** The `@probe` placeholder is real and is the SECOND defect. **The FIRST is that no probe
+> ever comes after the parks** — and I withdrew a true claim on the strength of a count that was
+> correct and a conclusion that did not follow from it.
+
+**Four readings of B5 in one night, and this is the fourth:**
+
+    F265   does not fail on real boards          ONE BOARD -- dc22, the outlier
+    F266   seventeen instructions, one act       overstated: seven acts, not one
+    F267   attribution, not behaviour            over-corrected: the timing was never checked
+    F269   behaviour -- parks follow the probes  the table
+
+**Each correction was itself a claim made before the quantity that decides it was measured.**
+`F267` counted probes correctly and never asked WHEN they fired against WHEN the parks did. **The
+cycle numbers were one line away the whole time.**
+
+### AND THE MECHANISM IS SHARPER THAN EITHER SIDE PROPOSED
+
+The reviewer's withdrawn premise was *`bored()` is almost never true on a busy board*. **Measured,
+`sk48` is bored 7 of 10 — so that was refuted.** But the table shows what is actually true:
+
+> **`bored()` IS TRUE EARLY AND FALSE LATE, AND SLOTS STARVE LATE.** Cycles 1–7 carry no mass
+> because almost nothing is bound yet, so the agent is bored and probes — **with `_starved` empty,
+> because `mint` has not yet parked anything.** By cycles 16–18 the board is busy, `bored()` is
+> false, and that is exactly when seventeen slots hit `no_support`.
+
+**The agent perturbs when it has nothing to perturb FOR, and cannot perturb once it does.** That is
+a temporal anti-correlation, not a threshold, and **neither *the gate never fires* nor *the rows
+are mislabelled* describes it.**
+
+**So the direction of the reviewer's withdrawn ruling returns with a sound premise** — a starved
+slot needs perturbation at the time it is starved, not whenever the whole board happens to go
+quiet. **The premise is now the anti-correlation rather than the gate's rarity.**
+
+    BOUNDARY    ONE seed, `sk48` only for the positive result; `m0r0` is vacuous on this seed
+                (no parks, no probes) and `dc22` did not finish under a concurrent job. The
+                three-seed version is still running. 20 cycles, so "no probe ever follows" is a
+                statement about this window -- a longer run could go quiet again and probe, and
+                that is exactly what the three-seed run will show
+    MECHANISM   none changed. The table was the deliverable
+    CAPABILITY  none. It restores a claim I withdrew, and it names a mechanism -- bored-early,
+                starved-late -- that neither the reviewer's nor my own account had
