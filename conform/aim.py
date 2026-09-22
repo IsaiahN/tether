@@ -45,7 +45,11 @@ ITEMS = {
     "step1.item6": "route (b) re-keyed on this frame's delta -- its own step",
     "structure.hash": "layout hash + the IMPORTED origin->status refactor",
     "mechanics.signature": "from route (a); nearest-match distance is a corpus search first",
-    "condition.compiler": "then the six tests as bond selector, then trees",
+    "condition.compiler": "5.9.5 option C -- the parse, and the agent-formed half",
+    # the declared order of 2026-09-22 21:45 names these and the list did not carry them
+    "generators": "5.9.1-5.9.4 -- schema factory, `bind` with the bond a PARAMETER, trees",
+    "six.tests": "`settle(bond, ...)` reading the delta -- True/False/None",
+    "type.widening": "the 18 OBJECT-typed atoms; map/fold, never a bare re-type",
     "ranking": "5.10 -- confidence/relevance, youth bonus, decay in games",
     "invention": "`owed_import` -> atom creation",
     "delete.enumerate_closure": "only after Part 6.5's five checks",

@@ -30,6 +30,7 @@ from __future__ import annotations
 import functools
 import re
 import sys
+from dataclasses import dataclass
 
 sys.dont_write_bytecode = True
 
@@ -42,6 +43,42 @@ UNKNOWN = "?"          # a junction whose bond the GROUND has not settled yet
 # PLACEHOLDER** -- any of these may be the real one, and the ground settles which. So a recipe is a
 # FAMILY of candidates, one per bond reading, not a single composition.
 BONDS = ("+", "→", "⇒", "∥", "−", "≡", "⋛")
+
+
+@dataclass(frozen=True)
+class Bonded:
+    """5.9.3. `Node = Term | Bonded`. A junction, with its own standing.
+
+    **`Term` IS KEPT AS THE CHAIN CASE AND WRAPPED, NOT REPLACED.** `Term` already is the `->`
+    chain and ~24% of recipes need nothing more, so replacing it would be a rewrite in exchange
+    for nothing -- and every existing `Term` consumer stays untouched.
+
+    **EACH JUNCTION CARRIES ITS OWN `standing` AND SETTLES INDEPENDENTLY.** One standing for a
+    whole tree would let a confirmed junction be demoted by a sibling's refutation.
+
+    `standing` is left UNTYPED and defaults to `None` DELIBERATELY: the real one is
+    `gamma.Standing`, and importing `gamma` here would put a domain module inside the composer.
+    The caller supplies it.
+    """
+    bond: str
+    left: object
+    right: object
+    standing: object = None
+    origin: str = UNKNOWN
+
+
+def bind(bond: str, left: object, right: object, standing: object = None,
+         origin: str = UNKNOWN) -> Bonded:
+    """5.9.2. **ONE constructor with the BOND AS A PARAMETER** -- Isaiah's item 6.
+
+    Not eight functions. A recipe is a FAMILY of candidates, one per bond reading, and the
+    ground settles which -- so the bond has to be a value that can vary, never a choice baked
+    into which function was called.
+    """
+    if bond not in BONDS and bond != UNKNOWN:
+        raise ValueError(f"{bond!r} is not one of {BONDS} nor UNKNOWN")
+    return Bonded(bond, left, right, standing, origin)
+
 
 
 def _split_top(recipe: str) -> tuple[list[str], list[str]]:
@@ -90,7 +127,7 @@ def recipe_rows(path: str = _ATOMS_MD) -> dict:
     """
     out: dict = {}
     with open(path, encoding="utf-8") as fh:
-        for ln in fh:
+        for lineno, ln in enumerate(fh, 1):
             m = re.match(r"\s*\|(.+?)\|(.+?)\|(.+?)\|\s*$", ln)
             if not m:
                 continue
@@ -102,8 +139,39 @@ def recipe_rows(path: str = _ATOMS_MD) -> dict:
             if name and all(ings) and len(ings) > 1:
                 out[name] = {"ingredients": tuple(ings),
                              "junctions": (UNKNOWN,) * (len(ings) - 1),
-                             "as_written": recipe}
+                             "as_written": recipe,
+                             # 5.9.4 names it and the row did not carry it. Provenance is what
+                             # keeps the ablation partition reconstructible -- what was SEEDED
+                             # apart from what the ground settled -- and it cannot be rebuilt
+                             # afterwards from a row that never recorded where it came from.
+                             "provenance": f"seed:{path}:{lineno}"}
     return out
+
+
+def light(row: dict, standing=None) -> object:
+    """5.9.4, the AFTER-LIGHTING shape: a recipe row -> a `Node` tree, **junctions still
+    UNKNOWN**, each junction with its own fresh standing.
+
+    **THE JUNCTIONS STAY UNKNOWN AND THAT IS THE WHOLE POINT.** `recipe_rows` already refuses to
+    read the `+` in the file as a bond -- Isaiah, 2026-09-22: *`+` in the recipe list is a
+    PLACEHOLDER* -- so lighting must not quietly supply one either. A recipe becomes a FAMILY of
+    candidates and the GROUND settles each junction, which is `settle` and is the next item.
+
+    Left-nested, matching `as_written` order: `a ? b ? c` lights as `((a ? b) ? c)`. Ordering is
+    the recipe's own and is not a claim about associativity -- when a junction settles to a bond
+    that associates differently, the tree is rebuilt rather than re-read.
+
+    `standing` is a FACTORY (called per junction) rather than one object, because 5.9.3 requires
+    each junction to settle independently and a shared instance would couple them.
+    """
+    ings = row["ingredients"]
+    if len(ings) < 2:
+        raise ValueError(f"a recipe needs two ingredients to have a junction: {ings}")
+    node: object = ings[0]
+    for right in ings[1:]:
+        node = bind(UNKNOWN, node, right,
+                    standing() if standing else None, row.get("provenance", UNKNOWN))
+    return node
 
 
 def candidates(lit: set, path: str = _ATOMS_MD, partial: bool = False) -> list[dict]:
@@ -130,9 +198,14 @@ def candidates(lit: set, path: str = _ATOMS_MD, partial: bool = False) -> list[d
         ing = r["ingredients"]
         hit = sum(1 for i in ing if i in lit)
         if hit == len(ing) or (partial and hit):
+            # LIT, as 5.9.4's after-lighting shape. Added as a KEY rather than by changing
+            # the return shape: `mapping.py` and the `__main__` demo both read `molecule` off
+            # these rows, and a candidate is exactly what "lit" means -- its ingredients are
+            # covered by this frame. Junctions stay UNKNOWN; the ground settles them.
             hits.append({"molecule": n, "recipe": list(ing), "size": len(ing),
                          "junctions": r["junctions"], "covered": hit,
-                         "coverage": round(hit / len(ing), 3)})
+                         "coverage": round(hit / len(ing), 3),
+                         "node": light(r), "provenance": r.get("provenance", UNKNOWN)})
     return sorted(hits, key=lambda d: (-d["coverage"], -d["size"], d["molecule"]))
 
 
