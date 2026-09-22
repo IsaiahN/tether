@@ -1628,7 +1628,27 @@ class Agent:
                 # OTHER than the one just refused needs no new retrieval path. Standing still
                 # fades through `rejections`, which is untouched: this changes what is ASKED
                 # FOR, not the term's number.
-                b, fit = REFUTED, self._library_fit(slot, was_refused)
+                # THE COMPETITOR MUST MATCH THE REFUTED TERM'S TYPE -- ruled 2026-09-22,
+                # SCOPED TO THIS MECHANISM. `F263`: `_library_fit` has no type filter, so it
+                # handed back `recolour<o0.colour>` (`val`) to replace `none` (`OBJ`), and
+                # `_discrepancy` then reads NOT_RESOLVED -- the goal machinery on that slot
+                # dies silently while the bargain check still passes.
+                #
+                # THIS IS NOT THE WITHHELD PRICING. That question is how an objective and a
+                # predictor are WEIGHED when both are legitimate candidates for a role. This
+                # only refuses a term of one type STANDING IN for a term of another, which
+                # the typed grammar already forbids -- a `val` competitor for an `OBJ` slot
+                # is a category error, not a cheaper rival.
+                #
+                # AND IT IS NOT A FILTER ON `_library_fit`: that is the ESCALATED test and it
+                # stays parked. The result is filtered HERE, at the one caller the ruling
+                # covers, so every other retrieval baseline is untouched.
+                fit = self._library_fit(slot, was_refused)
+                want = getattr(self.gamma.library.get(was_refused), "out_type", None)
+                got = getattr(self.gamma.library.get(fit), "out_type", None) if fit else None
+                if fit is not None and got != want:
+                    fit = None          # a category error is not a competitor
+                b = REFUTED
             elif r.mass == 0.0 and slot not in self.owed_import:
                 b, fit = HELD, None
             elif r.mass == 0.0:
