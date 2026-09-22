@@ -42979,3 +42979,75 @@ written down.**
     CAPABILITY  none. It reopens `1b RETRIEVAL -- cause OPEN` as a named mechanism with existing
                 artefacts, and identifies the encoding index as the one route `F164` does not
                 block
+
+---
+
+## `F274` — THE FRAME STACK IS IN THE RAW LOGS AND THE PARSE DROPS IT; walking it costs 0-3.5 points of tracker stability, not 57%
+
+**2026-09-22. Item 2 of the observer build publishes the cascade so the delta carries the ORDER of
+changes — the prerequisite for `+` versus `→`. I measured it before building, and got the answer
+wrong twice on the way.**
+
+    1  the tape carries depth 1 on sk48/dc22/m0r0, every response      TRUE and MEANINGLESS
+    2  the recorded step has keys `grid` (singular), no `frame`        TRUE and MISLEADING
+    3  THE RAW LOG CARRIES THE FULL STACK AND `load_replay` DROPS IT   the fact
+
+`reverse_engineer.py:44` — `grid = frame[-1] if frame and isinstance(frame[0], list) else frame`.
+`feeder.py:86` then wraps that single grid as `[grid]`. **Depth 1 was a property of my instrument,
+measured twice before I went to the write site.** `arc_world.board()`'s `frame[-1]` is the one
+correct discard of the three: you bet on the settled board.
+
+**MULTI-FRAME SHARE, every response in all 20 raw logs:**
+
+    lf52 100%  su15 95%  g50t 94%  tu93 94%  sk48 83%  r11l 51%  sb26 51%  tn36 25%
+    sc25  17%  ka59 15%  s5i5  9%  ls20  8%  vc33  6%  sp80  5%  ft09  4%  re86  2%
+    tr87   2%  lp85  2%  m0r0  1%  wa30  1%
+
+**`sk48` is 83% and is a BASELINE board; `m0r0` is 1% and is the cheap wiring-check board.** The two
+I have been A/B-ing sit at opposite extremes of the quantity item 2 is about, and both were chosen
+for cost. Depths reach 372 (`sb26`). *Up to 9 per response* understates it by an order of magnitude.
+
+### The tracker measurement, and the FIRST version of it had no consumer
+
+`F247` is the live risk: `arc_percept.Objects` is stateful, so walking the cascade advances it once
+per frame instead of once per action, and a re-issued name breaks every binding keyed on it.
+
+**I first compared a cascade-walked tracker against a settled-board-only tracker and read 42-77%
+agreement.** That comparison is worthless: names are arbitrary labels, so B disagreeing with A costs
+nothing if the loop always uses B. **And the data said so — `tn36` disagreed 608 times at DEPTH 1,
+where both see the identical single frame and cannot differ unless they had already forked.**
+Stateful trackers fork permanently, so I was counting INHERITED divergence.
+
+**The question with a consumer is whether ONE tracker RE-ISSUES a name for an object that
+PERSISTED** (cells overlapping at Jaccard ≥ 0.5 between consecutive settled boards). 40 responses:
+
+    board   A settled-only (CONTROL)      B cascade-walked            delta
+    sk48    99.8%   6 re-issued           98.2%   43 re-issued        -1.6
+    g50t    99.1%   5 re-issued          100.0%    0 re-issued        +0.9
+    su15    99.9%   1 re-issued           96.4%   27 re-issued        -3.5
+    tn36   100.0%   0 re-issued           99.9%    5 re-issued        -0.1
+
+> **WALKING THE CASCADE COSTS 0 TO 3.5 POINTS OF IDENTITY STABILITY, AND ON THE DEEPEST-CASCADE
+> BOARD IT IS BETTER THAN THE CONTROL.** `g50t` at 94% multi-frame re-issues ZERO against the
+> control's five — which is the direction the mechanism predicts: more intermediate frames means
+> smaller per-frame displacement, so overlap matching has MORE to work with, not less.
+>
+> **`F247`'s failure mode is real and is small. My broken first comparison suggested 57%.**
+
+### The corpus disagreement — ANNOTATED, not edited
+
+`PERCEPTION_BUILD_PLAN` Layer 1 records *"`g50t` carries 7 or 9 frames on 39% of responses; `ls20`
+carries one, always."* **Measured over every line of every raw log: `g50t` is 94% multi-frame (59%
+at exactly 7 or 9) and `ls20` is 8%, not always-one.**
+
+**HYPOTHESIS, not a verdict: the plan's numbers were taken through `load_replay`, which discards the
+stack at line 44 — the same discard that gave me reading 1.** That would explain the direction of
+the gap on both boards. I have not confirmed it and the corpus is not edited.
+
+    BOUNDARY    40 responses per board for the tracker measurement, FOUR boards, ONE pass of each
+                raw log for the depth histogram. The depth census is complete (every response in
+                every log); the stability figures are a 40-response window and are not seeded
+    MECHANISM   none changed -- nothing is built from this yet
+    CAPABILITY  none. It converts item 2 from "possibly blocked" to a two-line data-path change
+                with a measured identity cost, and it disqualifies `m0r0` as a wiring-check board
+                for anything cascade-related
