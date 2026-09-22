@@ -42512,3 +42512,68 @@ and was doing the work of a general claim.
     MECHANISM   none changed. `05046e0` stands as ruled and is not the fix for this
     CAPABILITY  none. It moves B5 from "a cost of arm J" to "an open violation on real boards
                 that no seat was measuring", which is a larger and worse finding
+
+## F267 (INDEX series) — B5's CAUSE: the agent DOES perturb. **Seven probes on `sk48`, every one filed against the placeholder `@probe`**, so the 17 parked slots can never match. An ATTRIBUTION defect, not a behavioural one — and I told the reviewer the opposite
+
+**`F266` measured `sk48` at 17 slots parked `no_support` and "1 probed", and I reported to the
+reviewer that *the agent is being told to act and is not acting, sixteen times*. THAT IS WRONG.**
+
+    sk48, 20 cycles
+      probe rows by slot        [('@probe', 7)]          <- SEVEN probes, one placeholder name
+      parked at no_support      17 distinct real slots   e.g. o133.col, o133.colour, o133.h
+      overlap                   EMPTY
+
+**The agent perturbs SEVEN times in twenty cycles. `bored()` fires 7 of 10 at choose time and
+`by == "probe"` 7 of 10.** The instruction is obeyed. **What fails is the ROW.**
+
+### the mechanism, at the flush site
+
+    if by == "probe":
+        for slot in sorted(self._starved) or ["@probe"]:
+            self.led.record(self.cycle, "MINT", slot, "probe", ...)
+        self._starved.clear()
+
+**`_starved` is filled by `mint` on a `no_support` verdict and CLEARED at every flush. When a probe
+fires on a step where nothing is starved YET, the `or ["@probe"]` writes one placeholder row** —
+and the slots that park later never get a probe row naming them. **B5 matches `park.slot` against
+`probe.slot`, so a placeholder can never satisfy it.**
+
+> **AND THE SITE'S OWN COMMENT SAYS THIS WAS ALREADY FIXED ONCE:** *"ONE ROW PER SLOT THAT ASKED FOR
+> IT, and `@probe` only when the trigger was the global reading rather than any particular slot. It
+> used to be `@probe` always, so a slot parked at no_support could never be matched to the probe
+> that answered it — which is what B5 reads, and it was failing on it."* **The fix is present and
+> the ORDERING defeats it.**
+
+### WHAT THIS CORRECTS, AND IT IS MINE
+
+**`F266`'s reading — *seventeen instructions, one act* — is withdrawn. There were seven acts.** The
+finding that survives is narrower and still real: **B5 is violated on a real board with arm J off,
+and the violation is that probes are unattributable, not that they are absent.**
+
+**I sent the reviewer a capability claim** — *the agent is being told to act and is not acting* —
+**built on a count of DISTINCT PROBE SLOTS that I read as a count of PROBES.** `probed 1` meant one
+distinct slot name, and that name was `@probe`.
+
+> **THAT IS *BEFORE ANY CENSUS ASK WHICH FUNCTION CONSUMES THIS QUANTITY AND WHAT IT READS*, and it
+> is the fourth instance tonight.** The quantity was `len(set(probe rows))`; the claim needed
+> `len(probe rows)`. **One `Counter` instead of a `set` would have shown it, and the two differ
+> most where the name is a placeholder.**
+
+### and the two hypotheses I discarded on the way, both refuted by measurement
+
+- ***`bored()` is a global predicate so a many-slot board is never bored.*** **REFUTED: `sk48` is
+  bored 7 of 10 and `dc22` 0 of 10** — and `dc22` is the board where B5 HOLDS. The relationship is
+  the opposite of the one I proposed.
+- ***the REFUTED bin diverts the slot away from the probe.*** Refuted in `F266` — the violation is
+  present with the arm OFF.
+
+    BOUNDARY    ONE board for the mechanism (`sk48`, 20 cycles, one seed); `dc22` and `m0r0` are
+                counted in `F266` but their probe rows are not broken out by slot here. The
+                `bored`/`by` counts are 10 cycles, taken AT CHOOSE TIME -- an earlier reading
+                taken after `step()` was off by one and is not used
+    MECHANISM   none changed. `_starved`'s lifecycle and the `or ["@probe"]` fallback are the
+                located cause and are NOT repaired here -- the ordering question is whose row a
+                probe belongs to, which is the reviewer's
+    CAPABILITY  none, and the correction is the point: a capability claim I made is withdrawn,
+                and B5 is reclassified from "the agent does not perturb" to "the record cannot
+                say which perturbation answered which park"
