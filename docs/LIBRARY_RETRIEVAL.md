@@ -216,23 +216,531 @@ disagree is worse than one.
 
 ---
 
-# Part 4 — WHAT IS NOT KNOWN
+# Part 4 — RESOLVED, and what remains unknown
 
-**These are unmeasured. Nothing above depends on them, and nothing should be built on a guess
-about them.**
+**The reviewer read this document against the closure files and resolved the two open items from
+the data. Their counts, my verification where I could run it.**
 
-1. **What `by_cluster` and `by_encoding` actually map to.** The counts read
-   `ACTION=202 … COLOUR=8` (17 clusters) and 13 encodings with 3 entries each — **I have not
-   verified whether those values are ATOMS, ATTRIBUTE NAMES, or metadata.** A census of the wrong
-   population is the error that cost the most tonight; this one is unresolved on purpose.
-2. **Whether an encoding-keyed lookup narrows on a real board.** Take one frame's actual deltas,
-   map them to encodings, count how many closure atoms light up against 2,700.
-3. **What a ~100-attribute observer costs.** More attributes is more slots and `F258`'s
-   cross-product multiplies slots. Unmeasured, and not obviously affordable.
-4. **Whether any closure atom lit this way is COMPOSABLE in Γ.** `F164` measured Γ's 45 grid atoms
-   and the closure's 61-domain atoms disjoint **by name**. The encoding route may survive that —
-   `by_encoding`'s keys include `EXTENT` and `SHAPE`, which are also Γ slot types — **but that is a
-   hypothesis, not a result.**
-5. **Whether the NAME-keyed join stays forbidden.** It does. `F164` stands, and nothing here
-   revisits it. What is reopened is that the specified operation is **change → attribute →
-   candidates**, which is a different key from the atom → atom join that was correctly refused.
+## 4.1 RESOLVED — what the index is keyed by
+
+- **`by_cluster` values are ATOMS** (`ACTION|Counter`, `ADHERENCE|Allegiance`, …): ACTION 202 …
+  COLOUR 8.
+- **`by_encoding` values are `{tier, why, atoms}`** — the "3 entries each" I counted were **the
+  dict keys, not the population**. Real atom counts:
+
+      SCALAR_DEFAULT 2,179 · SCALAR 699 · TEMPORAL 628 · EVENT 448 · BEHAVIOURAL 415
+      RELATION 384 · SHAPE 167 · EXTENT 121 · STATE 115 · POSITION 80 · RULE 69
+      COUNT 52 · COLOUR 11
+
+**That is the census-of-the-wrong-population error, caught one step before it was published.** I
+flagged the shape as unverified and stopped; the reviewer read the values.
+
+## 4.2 ANSWERED — what today's 8 attributes actually light
+
+    clusters overlapping the 8 perceived kinds       500 of 2,700
+    gated by ATTRIBUTE_REACH to tier 0                11
+      HUMAN|Number · HUMAN|Movement · RAW DATA|Adjacency · HEAT|Volume · AESTHETIC|Balance
+      AESTHETIC|Scale · MATERIAL|Strain · ALEATORY|Probability · ACTION|Scope
+      NETWORK|Degree · ATMOSPHERIC|Global circulation
+
+**Several have no grid referent at all. And ENCODING DOES NOT NARROW: `SCALAR_DEFAULT` alone is
+81% of the closure.**
+
+> **SO ON TODAY'S PERCEPTION THE CUE LIGHTS ALMOST NOTHING USABLE — ELEVEN ATOMS, SEVERAL
+> MEANINGLESS ON A GRID.** This *strengthens* Part 3's order rather than weakening it: **the lookup
+> only narrows usefully after perception widens, and widening is only affordable after the operand
+> axis is cut.** It also retires my own hope that `by_encoding` was the route around `F164` — the
+> overlap with Γ's types is real and the narrowing is not.
+
+## 4.3 THE OBSERVER CONTRADICTION — reconciled, and it is a NAME COLLISION
+
+The 2026-09-20 record reported a heavy temporal sensor **called at `observer.py:89` on every
+persisting object, every frame.** Part 1.7 says nothing in the agent path calls `observer`. **Both
+are true.**
+
+    observer.py:89          calls `sensors_heavy.temporal(...)`   -- the line is real
+    observer._mutations     0 callers outside observer.py
+    observer.observe(       EXACTLY 1 caller -- test_perception.py
+    env.observe(            21 callers -- A DIFFERENT FUNCTION
+
+**`observe` names two things.** The heavy sensor does fire every frame **whenever
+`observer.observe` runs, and that is only ever in a test.** That is `A6i` — two legitimate
+quantities under one word — and it is why the record could hold both claims without either being
+wrong.
+
+**And `F165` settles what the module does even when it runs:** *"it already computes EIGHT
+non-positional cross-frame deltas, AND AGGREGATES THEM AWAY BEFORE ANYTHING COULD CARRY THEM"* —
+summed to a count. So wiring the observer in without changing that would carry nothing.
+
+## 4.4 F165 AND THE MOLECULE LAYER — expected-inert, and it must be said
+
+`TRAINING_PLAN`: ***"MEASURED (`F165`, 2026-09-17): the emergent-molecule layer is INERT on ARC —
+0 molecules fire"*** across all 25. **Lit atoms composed via recipes produced nothing.**
+
+**That ran on the 8-attribute reading.** With 11 tier-0 atoms lit, of which several have no grid
+referent, **a zero there is EXPECTED and says nothing about the widened pipeline.** It is not
+evidence against the cue design — **but it must be stated, because a reader meeting `0 molecules`
+without this line will read the pipeline as already refuted.**
+
+## 4.5 THE CUT NEEDS A PARSE — a build dependency nobody had listed
+
+`ATTRIBUTES.md`'s confirm-conditions (`Solidity` ⟺ `overlapArea == 0`) are **PROSE**, and the file
+says so: *"reframes the missing key from a design problem to a parse."*
+
+> **Corollary 4 IS the cut, and the cut is not executable today.** Parsing conditions into checks
+> is a **build dependency** and it was missing from this document.
+
+## 4.6 STEP 3.5 — the ENTRY-level graph, which is the one Isaiah meant
+
+Part 2.2 assigns `ADJACENCY` to domain bridging, correct for the 285-edge file. **But
+`TRAVERSAL.md` specifies an ENTRY-LEVEL ingredient graph** — *"the traversal runs at entry level
+and the domain graph is a PROJECTION of it"* — **1,714 directed entry-to-entry edges, derivable
+from the recipes with no judgement.**
+
+**That is the graph matching *"adjacency says these atoms are reachable or likely"*.** It is
+**derivable, not shipped**, and it goes in as **step 3.5**, between entry points and the recipe.
+
+**With one measured qualifier: only 20% of entries are ever an ingredient of anything, so
+`TRAVERSAL` calls it *"a thin spine with a very large fringe."*** Four fifths of the list are
+leaves at entry level, and the graph narrows only within the spine.
+
+## 4.7 WHAT REMAINS UNKNOWN
+
+1. **What a ~100-attribute observer COSTS.** More attributes is more slots and `F258`'s
+   cross-product multiplies slots. Unmeasured, and the reason the per-observation operand bound
+   (`F262`: flat on three of four boards, no composition lost) is paired with it.
+2. **Whether any closure atom lit this way is COMPOSABLE in Γ.** `F164` measured Γ's 45 grid atoms
+   and the closure's 61-domain atoms disjoint **by name**. 4.2 removes the encoding escape.
+3. **HOW A LIT AIM BECOMES AN ACTION — reviewer, 12:46, and it is the gap between lookup and
+   PLAY.** A lit atom whose condition holds says **what is TRUE, not what to DO to make it
+   true.** Route (b) returns an AIM; nothing in this document says how the agent gets from
+   *`Contain` would explain this* to *press ACTION3*. Two candidates, both in the record and
+   neither assessed: **route (a)'s recorded action->delta mapping** (`_note_move` already
+   learns action->displacement), and **the BODY shelf** of the 2026-08-21 composer design
+   (per-action deltas, chained to an anchor). **Unresolved, and it is load-bearing: a route
+   chart can show (b) growing while the agent plays no better, if aims never reach actions.**
+4. **Candidates from cue vs from closure enumeration, per action.** That is the 11:02 trace and it
+   is the baseline the build is judged against.
+
+---
+
+# Part 5 — THE VOCABULARY FREEZE IS REMOVED (Isaiah, 2026-09-22)
+
+> ***get rid of the freeze. SENSORS ARE INSTRUMENTS. No instruments = no perception = brute
+> force.***
+
+**`VOCABULARY_FROZEN.md` is WITHDRAWN and kept** — marked at its head, not deleted, because what
+governed the build before today is part of the provenance.
+
+**Its premise was already gone.** The freeze rested on *an expressibility failure is a finding*,
+and Isaiah's 2026-09-15 ruling removed that: **expressibility is closed; a gap is a MAPPING gap.**
+It outlived its justification by a week, **froze perception at 8 attributes + `touching`, and was
+never narrowed.**
+
+**What still stands, and is not a freeze:** *a solution may test our instruments and measure how
+far the agent got; it may never decide what the agent is given.* Instruments are built from
+`RELATIONS.md` / `ATTRIBUTES.md` **for every board** — never from one game's answer.
+
+**And it settles the §12.3 tension:** containment and alignment are **computed from the board**, so
+they are instruments and they are perceived. `RELATIONS.md`'s own line — *computed from the board
+is perception; composed from other sensors is the agent's job.*
+
+## 5.1 The build, in the order the evidence fixes
+
+    1  arm M's A/B -- KILLED 12:10 on the reviewer's ruling, no output in 3h10m. Its
+       question is re-asked after the observer, where binding density means something.
+    2  the 11:02 trace -- per action: attributes changed, relations published, lookup key,
+       candidates by SOURCE (cue vs closure), bindings tried, time split      THE BASELINE
+    3  the full-attribute observer + the PER-OBSERVATION operand bound, together
+
+**Together, not in sequence, and that is Part 3's arithmetic:** the observer widens slots and the
+per-observation bound is the only measured thing that holds flat as the trace grows (`F262`:
+m0r0 6.9→8.9%, ls20 21.3→20.1%, sk48 27.0→27.3%).
+
+**Start with what `RELATIONS.md` names as cheap:** the three erasures (shape frozenset not the
+integer, the frame stack, the component list) · contact types (point/edge/face, **already computed
+for System 0 and currently trapped in its bookkeeping**) · the ~24 composable relations · the
+bounding-box sensor (containment and its five dependents) · **the eight per-object deltas CARRIED,
+not counted** (`F165`) · and **relations reaching `_library_fit`**, arm C's gate retired.
+
+**Pre-registered, 3 seeds, spread beside every effect:** attributes and relations published per
+object · **candidates lit by the cue — the 11 should grow** · candidates from cue vs closure
+enumeration · s/action late in the run · distinct compositions · binding density · atoms-only
+control. **No ground prediction.**
+
+## 5.2 WHAT THE OBSERVER ACTUALLY IS — Isaiah, 2026-09-22, and it is smaller than "wire in `observer.py`"
+
+> ***the delta is only in the DETECTED OBJECTS and their attributes (currently 8 but will expand)***
+> ***— the mutation observer was meant to observe that change of those objects, which I believe you
+> both call slots.***
+
+**This narrows the build and corrects how Part 1.7 and Part 4.3 read.** The observer is **not** a
+pass over the closure's 2,700 atoms or its 5,040 attribute names. It is:
+
+    for each DETECTED OBJECT the tracker holds
+      carry the FULL attribute + relation vector   (8 today, ~100 specified)
+      NULL at frame 0, updated every frame from frame 1
+      EMIT THE CHANGE -- which attributes of which objects moved
+
+**`slot` is exactly that pair.** `o5.colour` is object `o5`'s `colour` attribute, and the delta is
+the set of slots whose value moved between two frames. **So the observer is the TRACKER carrying
+more per-object attributes and publishing the change — not a separate subsystem being wired in.**
+
+> **WHICH MEANS `observer.py` IS NOT THE THING TO WIRE.** Part 4.3 reconciled why the record held
+> two contradictory claims about it, and `F165` showed it aggregates its eight deltas away. **But
+> the specified observer lives where the objects live — `arc_percept.Objects` and what
+> `_decomposed` publishes** — and `observer.py` is an offline analysis module that happens to share
+> the name. **A third instance of `A6i` on the same word.**
+
+**And one clause of it went in tonight, for an unrelated reason.** Ruling (b) made a covered
+object's attributes publish `NOT_RESOLVED` rather than vanish — ***null, not absent***, which is
+the observer spec's *"initialised NULL at frame 0"* applied to one case. **The pattern is already
+in the code; what is missing is the width and the emission.**
+
+**The cost question is unchanged and is now precisely statable:** slots = objects × attributes, so
+8 → ~100 attributes on a board holding ~70 objects takes ~560 slots to ~7,000, and `_bindings`
+returns one bind per slot. **That is the multiplier Part 3 says to cut first, and the
+per-observation bound is the only measured candidate that holds flat as the trace grows.**
+
+## 5.3 THE BOND IS A HYPOTHESIS THE GROUND SETTLES — Isaiah, 2026-09-22, RULED
+
+> ***OPERATORS.md shows that any operator can be used. The recipes list mostly uses `+` only as an
+> example, but I expect the programming or metaprogramming to handle this too.*** — and, asked
+> whether the bond is therefore a hypothesis rather than data: ***"Correct."***
+
+**`+` IN A RECIPE IS A PLACEHOLDER, NOT A CLAIM.** A lit recipe written `A + B + C` is a **FAMILY of
+candidates, one per bond reading**. OPERATORS.md's own worked example is the proof: `Bal + Prop +
+Cnt` is **Walk**; `Bal → Prop → Cnt` is *falling forward and catching yourself*; `Prop ⇒ Cnt` is a
+collision. Same three ingredients, four different things.
+
+**THE GROUND SETTLES WHICH READING HELD** — this frame's delta and the atoms' conditions confirm or
+refute each, exactly as route (a) does for any live theory. **Tagged ON USE, never in advance**, so
+the 2,600-judgement wall never has to be paid: an entry becomes worth tagging the moment something
+composes from it.
+
+## 5.4 EFFICIENCY — WHY BLIND GENERATION IS NOT AN OPTION, WITH THE NUMBER
+
+**Blind generation is the combinatorial walk one axis over, and it is worse than it sounds.** For a
+recipe of `n` ingredients there are `7^(n-1)` bond assignments times the binary groupings:
+
+    2 ingredients      7 readings
+    3 ingredients     98 readings        <-- THE MEDIAN RECIPE
+    4 ingredients  1,715 readings
+
+**Measured over ATOMS.md's 2,120 `+` recipes: 23.5% are binary, 50.7% have three ingredients, 25.7%
+have four. 76.5% HAVE THREE OR MORE.** So the median lit recipe would expand to ~98 candidates.
+Against a candidate axis already running ~105 per lookup call, that is a **~100x multiplication of
+exactly the axis Part 3 exists to cut.**
+
+**SO THE SIX TESTS ARE NOT AN OPTIMISATION. THEY ARE THE ONLY VIABLE ROUTE**, and they work because
+each one is a **yes/no question about a quantity the delta already carries** — the reading is
+SELECTED, not searched:
+
+| bond | OPERATORS' test | the delta quantity that answers it | today |
+|---|---|---|---|
+| `+` vs `→` | swap the operands — does the meaning change? | **the ORDER of the changes** | **NO — see below** |
+| `∥` | remove one — does it still work? | a frame where one ingredient's condition failed and the result still occurred | across frames |
+| `−` | is the ingredient's **absence** the point? | a **value → null** transition | computed, unpublished |
+| `⇒` | does B exist **before** A fires? | a **null → value** transition | computed, unpublished |
+| `⋛` | is it about **which is larger**? | a magnitude comparison between two changed slots | `above` / `is_max` / `rank_in` |
+| `≡` | substitute one for the other — anything lost? | two names whose slots co-vary perfectly | derivable, no atom |
+
+> **AND THE ONE TEST THAT CANNOT BE ANSWERED TODAY IS THE MOST IMPORTANT ONE.** `+` versus `→` is
+> the distinction the whole corpus turns on, and it needs **the ORDER of the changes within and
+> across a frame**. Today's delta is a SET of changed slots with no ordering — the trace measures
+> `delta_slots` as a count and `delta_attrs` as a Counter. **So the observer must carry the SEQUENCE
+> of changes, not only the set.** That is `WHAT_THE_AGENT_SEES`' transition/cascade distinction, and
+> it is now a **hard requirement of the observer build** rather than a nicety.
+>
+> **AND IT IS THE SAME ITEM AS ONE OF 5.1's THREE ERASURES — the reviewer's 12:46, and I had
+> them filed as separate work.** The FRAME STACK is where order lives: a single response
+> returns up to nine frames (`PERCEPTION_PIPELINE` Layer 1), and the agent currently reads
+> only the last. **The cascade within a response IS the sequence of changes.** So
+> un-erasing the frame stack is not one cheap item among three — **it is the PREREQUISITE
+> for `+` versus `→`, and therefore for the commonest bond distinction in the corpus.**
+
+## 5.5 EXISTS VERSUS NEEDED — GREPPED, NOT RECALLED
+
+| bond | what is in the code | verdict |
+|---|---|---|
+| `→` sequence | `Term.atoms` applies left to right | **EXISTS — a `Term` IS a `→` chain** |
+| `+` conjunction | `Atom("both", PRED→PRED, reads_operand=True)` — `arc_atoms.py:645` | **EXISTS, arity 2**, via the operand join |
+| `∥` disjunction | `Atom("either", ...)` — `arc_atoms.py:647` | **EXISTS, arity 2** |
+| NOT | `Atom("negate", PRED→PRED)` — `arc_atoms.py:644` | **EXISTS** |
+| `⋛` comparison | `above`, `is_max`, `is_min`, `rank_in` | exists **as predicates**, not as a bond **between two composed terms** |
+| `⇒` production | `_present`'s `came` — `tether.py:3039` | **raw material exists, UNPUBLISHED** |
+| `−` subtraction | `_present`'s `gone` — `tether.py:3038` | **raw material exists, UNPUBLISHED** |
+| `≡` identity | nothing | **MISSING — and it does not belong here** (below) |
+
+**THE FINDING WORTH MORE THAN THE TABLE: `⇒` AND `−` ARE EXACTLY THE TWO BONDS THAT RULING (b)'s
+*NULL, NOT ABSENT* MAKES OBSERVABLE.** Production is a `null → value` transition; subtraction is
+`value → null`. `_present` ALREADY computes both, as `came` and `gone`, and files them as *"a plain
+event"* — recorded and never published as a delta anything downstream can read. **So two of the
+three missing bonds fall out of observer work that is already ordered, at no extra cost.** They were
+never a bond problem; they were the publication gap.
+
+**AND `≡` SHOULD BE SAID PLAINLY RATHER THAN LISTED AS A GAP: it is a statement about the LIBRARY,
+not about the board.** *Two names, one referent* is what `_library_fit` needs in order to know two
+candidates are the same term. It has no delta test of its own beyond perfect co-variation, and
+generating an `≡` reading at runtime would be asking the board a question the board cannot answer.
+**It belongs in the retrieval layer, not in the bond generator.**
+
+## 5.6 WHICH BONDS FIT A CHAIN AND WHICH NEED A TREE — the reviewer's direct question
+
+- **`→` fits a chain.** That is precisely what `Term` is, and nothing is owed.
+- **A BINARY `+`, `∥`, `⋛` fits the ONE operand join.** `both` / `either` are `reads_operand=True`,
+  so the second predicate arrives through the operand slot — and §4's computed operand (`f<g(s)>`)
+  lets that second argument itself be composed. **One level of nesting, and one only.**
+- **A REAL TREE IS NEEDED THE MOMENT A RECIPE HAS THREE INGREDIENTS UNDER MIXED BONDS.** `A + B → C`
+  cannot be a chain: `+` groups A with B, and `→` sequences that GROUP against C. `Term` carries one
+  operand and one guard, so it can express `(A + B)` or `(X → Y)` and cannot express the nesting.
+
+> **AND THAT IS THE MAJORITY CASE, NOT AN EDGE CASE: 76.5% of the recipes have three or more
+> ingredients.** Only 23.5% are binary and fit what exists today. **So "a real tree" is not a
+> refinement to defer — it is the representation 3 in 4 recipes require**, and any claim that the
+> bond machinery is built must state which quarter it was built for.
+
+## 5.7 WHERE THE SETTLED BOND LIVES, AND THE DEPENDENCY ORDER
+
+**THE MECHANISM EXISTS AND IS NOT NEW — `gamma.Standing`** (`settled_at`, `rejections`, `refute`,
+`decay`): *"a term's record against the ground. Weighted, clocked, and never a hard ban."* **A bond
+reading is a hypothesis with a `Standing` like any other term** — it settles when the ground
+confirms it and decays when refuted. Nothing has to be invented for item 3.
+
+    runtime overlay   the settled bond, provenance DERIVED-BY-GROUND, this agent, this run
+    learnings         promoted via `Standing` once expressed AND confirmed
+    the seed          READ-ONLY. Never written. The closure files are the inherited frontload.
+
+**DEPENDENCY ORDER, and it is strict:**
+
+    1  the CONDITION COMPILER          a bond reading is only checkable if the atoms' conditions
+                                       are. Today FOUR lines of ATTRIBUTES.md carry a comparison
+                                       operator at all, all inside prose (4.5). THE PARSE IS FIRST.
+    2  the OBSERVER carrying ORDER     `+` vs `→` is unanswerable without the sequence of changes,
+                                       and it is the commonest distinction in the corpus (5.4).
+                                       `came` / `gone` published turns on the same work (5.5).
+    3  the SIX TESTS as a selector     only now do they have inputs to read.
+    4  TREES                           needed by 76.5% of recipes; binary works without them.
+
+**So the bond programme does not begin with bonds.** Steps 1 and 2 are the observer and the parse
+already ordered in 5.1 — **the bond work is what those two unlock**, which is why it costs less than
+it looks and why it cannot be started first.
+
+**DESIGN ONLY. Nothing in Part 5 is built.**
+
+## 5.8 SIZING — REACH IS ~10k–20k AND MUST NEVER BE ENUMERATED (Isaiah, 2026-09-22)
+
+> ***In theory the 1,266 recipes should work with just the `+`, but depending on how sophisticated
+> the agent is in composing, there could be 10k–20k.***
+
+**REACH AND WORK ARE TWO NUMBERS AND THE DESIGN MUST HOLD THEM APART.** ~1,266 recipes used as
+ingredients times up to 8 bond readings is ~10k; `→` also varies by ingredient ORDER (three
+ingredients have six) pushing toward ~20k; the full list is ~2,650 and the agent's own settled terms
+raise the ceiling again. **NOTHING MAY ENUMERATE THAT SET.** No precompiled bond readings, no table
+of 20k functions, no walk.
+
+### 5.8.1 The real reference point — CORRECTED, because the trace has since landed
+
+The addendum cites *~1,283 candidates x ~130 bindings per action*. **That was the 4-cycle m0r0 smoke
+test. The completed 30-cycle baseline is far worse**, and the design has to beat the real number:
+
+    sk48  cycle 27   32,562 closure candidates   x  646 binds/cand  =  21,047,303 binds  (129.7 s)
+    dc22  cycle 29   24,398 closure candidates   x  330 binds/cand  =   8,058,186 binds  ( 65.0 s)
+
+### 5.8.2 The per-action cost bound, in terms of the DELTA rather than the library
+
+**TODAY** an action costs `C x S` — `C` closure candidates (grows with library size AND depth) times
+`S` operand binds, where `S ~= the slot count` because `_bindings` returns every other slot.
+**NEITHER TERM IS BOUNDED BY WHAT HAPPENED.**
+
+**UNDER THIS DESIGN** an action costs `d x r x 6(n-1)` -- **corrected by the reviewer
+(12:46): a recipe of `n` ingredients has `n-1` JUNCTIONS, each settled separately.** With
+`n = 3` the median (5.6), that is ~12 checks per lit recipe rather than 6. **The claim is
+untouched -- `n` is a property of the recipe, not of the library size:**
+
+    d   slots that CHANGED this frame        measured: sk48 median ~74, dc22 median ~10
+    r   recipes the changed attributes LIGHT via ATTRIBUTE_INDEX
+    6   OPERATORS' yes/no tests per lit recipe -- NOT 7^(n-1) readings (5.4)
+
+Operands come from the delta too, so `S` becomes `d` rather than the slot count — **that is conflict
+4, and it is the term that carries most of the reduction.**
+
+**AND THE STRUCTURAL CLAIM IS THAT NONE OF `d`, `r`, `6` IS THE LIBRARY SIZE.** `d` is how much the
+world changed; `6` is a constant from the corpus; `r` is what the delta lit. **So the library can go
+2,650 -> 20,000 and a later action costs the same — which is the claim the route chart tests.**
+
+### 5.8.3 WHERE THAT CLAIM CAN FAIL, AND IT IS `r`
+
+**`d` and `6` are genuinely library-independent. `r` IS NOT, and saying otherwise would be the
+design marking its own homework.** The index is keyed by attribute; if the library grows, MORE
+recipes contain any given attribute, so `r` grows with library size unless something bounds it.
+
+**So "bigger library, less work per action" holds for two of three terms automatically and requires
+a DELIBERATE BOUND on the third.** That bound is a decision rather than a derivation, and it
+collides with the standing behaviour that `retrieve` **never cuts** — *"ONE PASS over the library,
+ordered by fit. EVERY NAME COMES BACK."*
+
+**The honest statement of the open question: either `r` is bounded by ranking and taking a head — a
+CUT, which changes retrieval's contract and needs a ruling — or `r` is bounded by the CONDITIONS,
+where a lit recipe survives only if its atoms' conditions actually hold on this frame.** The second
+is the corpus's own answer (4.5's parse) and costs nothing extra, because the conditions must be
+evaluated anyway to settle the bond. **It is also unmeasurable until the parse exists**, which is
+why the parse is dependency 1 in 5.7 and not an afterthought.
+
+### 5.8.4 Precomputed versus generated on demand
+
+    PRECOMPUTED, small, loaded once     ATTRIBUTE_INDEX (attribute -> atoms) · the instrument list
+                                        (RELATIONS + ATTRIBUTES) · the ~8 bond combinators · the
+                                        recipe table as DATA (ingredients, no bonds fixed)
+    GENERATED ON DEMAND, never stored   every composition. A recipe exists as `(ingredients,
+                                        candidate bonds)` until a delta lights it; it becomes
+                                        executable only when lit; its bond is fixed only when the
+                                        ground settles it.
+    CACHED AFTER THE FACT               settled compositions only -- looked up FIRST next time
+
+**THE GENERATORS ARE THEREFORE LAZY BY CONSTRUCTION, AND THAT IS WHAT MAKES 20k REACH COST NOTHING
+TO HOLD:** an unlit composition is a row of data, not a function, not a closure walk, not a term in
+Γ.
+
+### 5.8.5 The three store layers, and the direction of travel
+
+    seed        READ-ONLY, inherited frontload -- the closure files. NEVER written at runtime.
+    runtime     this agent, this run: settled bonds, lit compositions, provenance DERIVED-BY-GROUND
+    learnings   promoted from runtime via `Standing` once EXPRESSED and CONFIRMED
+
+**Lookup order is the reverse: learnings -> runtime -> seed.** A composition the agent has already
+settled is found before anything is generated, so repeated structure gets cheaper with experience —
+**which is the mechanism behind "progress arrives effortlessly", stated as a cache rather than as a
+metaphor.**
+
+### 5.8.6 What the route chart will actually show if this is right
+
+    (c) mint          shrinks -- lookup misses fall as settled compositions accumulate
+    (b) lookup        grows, then FLATTENS as the cache absorbs the repeats
+    (a) theory        grows -- more live theories, each confirmed or refuted by the delta
+    binds/action      falls and stays flat as the library grows      <-- THE LOAD-BEARING ONE
+    s/action          stops rising within a run
+
+**The baseline for every one of those is now measured on two boards (sk48, dc22, 30 cycles), and all
+four currently run the wrong way.**
+
+---
+
+# Part 5.9 — THE GENERATORS: how 2,700 atoms become executable without 2,700 functions
+
+**Isaiah asked for MY design rather than a restatement of his. This is it. Design only.**
+
+## 5.9.0 A MEASUREMENT THAT CORRECTS BOTH OF US FIRST
+
+**The recipe column contains almost nothing but `+`.** Character census over ATOMS.md's 3,495 table
+rows:
+
+    `+`  4,294        `(` / `)`  713 each (the `A(x)` qualifier)
+    `>`      5        `=`  1              <-- the ONLY ordered/comparison bonds present, in ASCII
+    the seven unicode bonds: effectively absent
+
+**SO "AN ORDER-PRESERVING PARSE" HAS NO ORDER IN THE FILE TO PRESERVE**, and my own 5.4 implied the
+ordered bonds were merely rare rather than absent. **This does not weaken Isaiah's ruling — it is
+the strongest possible form of it.** `+` is not mostly-a-placeholder; it is the ONLY thing ever
+written, so **every junction is UNKNOWN by default** and there is nothing to re-tag, only something
+to settle.
+
+**What IS recoverable and is currently destroyed: the ORDER OF THE INGREDIENTS AS WRITTEN.**
+`Translate = Ct + Co` names `Ct` first. `composer.py` parses to a `frozenset` and loses it. That is
+the real content of step 2's fix.
+
+**And one count to correct: 2,061 recipes carry 2,669 DISTINCT INGREDIENT NAMES**, not the ~1,266
+used for scoping the parse. The parse population is twice what was assumed.
+
+## 5.9.1 The object class — A SCHEMA FACTORY, NOT A METACLASS, and the reason
+
+**Chosen: a schema-driven factory.** The schema is a list of `Instrument` records (name, type,
+detector, condition); an object is a mapping from instrument name to reading, every entry NULL at
+frame 0.
+
+**Why not a metaclass.** A metaclass fixes the attribute set **when the class is created**, and the
+instrument list **grows at runtime** — that is the whole of the freeze withdrawal. Adding a sensor
+would mean re-creating the class, and every object already alive would be an instance of the old
+one. **The schema factory grows by appending to a list that instances share by reference.**
+
+**And the deciding argument is that the syntax a metaclass buys is syntax this codebase does not
+use.** Slots are addressed as STRINGS end to end — `o3.colour` is a dict key, not attribute access,
+in `_decomposed`, `observe`, `slots`, `_bindings` and the lookup key. A metaclass would make
+`obj.colour` work in Python while every consumer kept using `state["o3.colour"]`. **Zero call sites
+would benefit.**
+
+## 5.9.2 The combinators — ONE function, the bond as a PARAMETER
+
+Isaiah's item 6 is that the generators take the bond as a parameter, so this is **not eight
+functions**:
+
+    Bond = "+" | "→" | "⇒" | "∥" | "−" | "≡" | "⋛"        NOT is unary
+
+    bind(bond: Bond, left: Node, right: Node) -> Node     # one constructor
+    negate(node: Node) -> Node
+
+    settle(bond: Bond, left: Node, right: Node, delta: Delta) -> bool | None
+        # True confirmed, False refuted, None not-yet-decidable on this delta
+
+**`settle` is the six tests, one per bond, each reading a quantity the delta already carries (5.4).
+`None` is the third answer and it matters** — a bond that is not yet decidable must not be counted
+as refuted, or a reading gets eliminated by a quiet frame.
+
+## 5.9.3 The tree — `Term` is kept as the CHAIN case and wrapped, not replaced
+
+    Node = Term | Bonded
+    Bonded = (bond, left: Node, right: Node, standing: Standing, origin: str)
+
+**`Term` already IS the `→` chain (5.5) and ~24% of recipes need nothing more**, so replacing it
+would be a rewrite in exchange for nothing. `Bonded` nests, carries its own `Standing` so each
+junction settles independently, and leaves every existing `Term` consumer untouched.
+
+## 5.9.4 The recipe compiler — what a lazy row looks like
+
+    BEFORE LIGHTING (data, never executed -- this is what makes 20k reach free to hold):
+        Recipe(name, ingredients: tuple[str, ...]  # ORDERED, as written
+                     junctions: tuple[Bond|UNKNOWN, ...]   # length n-1, all UNKNOWN from the file
+                     provenance: "seed:ATOMS.md:<line>")
+
+    AFTER LIGHTING (this frame's delta lit its ingredients and their conditions hold):
+        a `Node` tree, junctions still UNKNOWN, each with a fresh `Standing`
+    AFTER SETTLING:
+        junctions fixed, provenance DERIVED-BY-GROUND, cached in the runtime layer
+
+## 5.9.5 The condition compiler — THE METHOD
+
+**Target grammar** — deliberately tiny, so the parse is checkable and a failure is a parse error
+rather than a wrong reading:
+
+    cond := cmp | cond ('and'|'or') cond | 'not' cond
+    cmp  := expr OP expr          OP in { == != < <= > >= }
+    expr := INSTRUMENT '(' args ')' | SLOT | NUMBER
+
+**How the prose is converted: OFFLINE, and NOT by the agent.** A batch pass over ATOMS.md /
+ATTRIBUTES.md emits candidate conditions into a `condition` field beside ATTRIBUTE_REACH. **It never
+runs in the loop**, so a bad parse cannot become a live reading.
+
+**Every output is stamped and INERT until reviewed:**
+
+    provenance: DERIVED · source: <file>:<line> · method: <parser version> · status: PROPOSED
+
+**PROPOSED conditions are not readable by the agent.** A human review flips `status` to ACTIVE.
+**That is not ceremony — it is the corpus rule**: writing a machine-checkable condition for an atom
+that has only prose is **corpus AUTHORING**, and `CLAUDE.md` says the corpus is annotated, never
+edited by this seat. The stamp is also what keeps the ablation partition reconstructible, which
+cannot be rebuilt afterwards.
+
+**PROPOSED FIRST SCOPE, for Isaiah to rule** — I agree with the reviewer's suggestion and would add
+a stop condition: **the atoms today's perception can light, and only those whose instruments already
+exist.** It is the smallest set that can be checked END TO END on a live board, and it grows by
+exactly the event that grows perception, so the parse never runs ahead of the instruments that would
+make it checkable. **Against 2,669 ingredient names (5.9.0), an unscoped parse is the 2,600-judgement
+wall Isaiah's tag-on-use ruling exists to avoid.**
+
+## 5.9.6 Mint and import are ONE operation, and it is already half true
+
+Both **write a `Node` and stamp `origin`** — `MINTED` from a residual, `IMPORTED:<source>` from a
+game. No code is generated in either case. **`Term.origin` already exists with `MINTED` as its
+default**, so what import needs is a second stamp value and a source field, not a mechanism.
+
+**DESIGN ONLY. Nothing in Part 5 is built.**
