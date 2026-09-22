@@ -42125,3 +42125,63 @@ rather than about System 0.
                 significance by exactly the argument this entry makes. Default OFF
     MECHANISM   none changed. System 0 remains built and OFF
     CAPABILITY  none, and that is the finding. The mechanism differs and nothing downstream does
+
+## F261 (INDEX series) — ARM L: the falsifier HOLDS — **not one composition lost on four boards** — and the bound is real but MUCH weaker than the smoke said, because the delta set GROWS WITH THE TRACE
+
+**The reviewer's ruling, judged on their own outcome list. Four boards, 20 cycles, post-fix build,
+per board and never pooled.**
+
+    board   tried/seen ratio    budget hits    early s/c      late s/c      chains   minted
+    dc22     238.1 ->  158.6     34% -> 31%   0.83 -> 0.67  26.12 -> 25.41   49 -> 49   6 -> 6
+    m0r0     101.0 ->   83.3     50% -> 44%   1.49 -> 1.24  13.14 -> 12.49   50 -> 50   7 -> 7
+    ls20     115.7 ->   88.7     56% -> 49%   3.20 -> 3.35  19.14 -> 17.22   50 -> 51  46 -> 46
+    sk48     430.2 ->  399.2     36% -> 36%   0.53 -> 0.53  37.70 -> 38.39   52 -> 52  34 -> 34
+
+### THE FALSIFIER HELD, AND IT IS THE OUTCOME THAT MATTERED MOST
+
+**`distinct compositions must not fall` — 49→49, 50→50, 50→51, 52→52.** `ls20` GAINED one.
+**Minted is identical on all four boards and binding density is identical on all four**
+(`2/320`, `19/176`, `30/176`, `98/576`).
+
+**So the exclusion that lost a closing term for a prior seat does NOT lose one here.** That was the
+recorded warning the arm was built OFF for, and it is the one result I would not have predicted.
+
+### AND THE BOUND IS MUCH WEAKER THAN THE SMOKE SAID — 11× BECAME 1.1–1.5×
+
+**The 4-cycle smoke read `dc22` `464.2× → 41.9×`, an eleven-fold cut, and budget hits `12% → 0%`.
+At 20 cycles the same board reads `238.1× → 158.6×` — a 1.5× cut — and hits `34% → 31%`.**
+
+> **BECAUSE THE DELTA SET GROWS WITH THE TRACE.** The bound is *the slots that moved in the frames
+> where the bound term was wrong*. **Over four frames that is a handful of slots; over twenty it is
+> most of the board**, because nearly everything has moved at some point. **The bound is strong
+> exactly where cost is cheap and weak exactly where cost is expensive.**
+
+**That is measurable in the table and it is the finding**: `early s/c` improves on three of four
+boards (`0.83→0.67`, `1.49→1.24`) while `late s/c` barely moves, and `dc22`'s GROWTH ratio gets
+WORSE (`×31.5 → ×37.9`).
+
+### so it is not the cost lever, and I am not going to present it as one
+
+**Net effect on the quantity that matters — late-cycle time — is `-3%`, `-5%`, `-10%`, `+2%`.**
+Against a cost that grows ×8 to ×71 within one run, **that is not a lever, it is a rounding.**
+
+**The reviewer's pre-registration said the ratio should fall *toward the delta's size*. It does
+not, and the reason is that the delta's size is not small once there is history.** The
+construction is right, the corpus backs it, the falsifier passed — **and the quantity it bounds
+stops being bounded precisely when it matters.**
+
+### WHAT IT LEAVES, STATED AS A CANDIDATE
+
+**If the delta set grows because it unions over ALL of the residual's observations, then the
+bound that does not decay is a PER-OBSERVATION one** — operands drawn from what moved in THAT
+frame, not in any frame. **That is a different construction, it is still ground-supplied, and it
+is UNMEASURED.** Sixth candidate; it gets counted before it gets a story.
+
+    BOUNDARY    four boards, 20 cycles, ONE SEED each -- and `F260` measured `ls20`'s baseline
+                mints swinging 42-67 across seeds, so single-seed per-board deltas of 3-10% are
+                of unknown significance BY THE ARGUMENT THIS FILE MADE ONE ENTRY AGO. The chains
+                result is the robust one: identical is identical regardless of seed spread.
+                `tried`/`seen` are read from the in-process ledger, not a file
+    MECHANISM   arm L stays DEFAULT OFF. Nothing here justifies flipping it
+    CAPABILITY  none. The falsifier passing is worth more than the ratio falling: it means a
+                delta bound is SAFE, which the prior seat's record said it might not be
