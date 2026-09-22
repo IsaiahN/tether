@@ -239,6 +239,30 @@ def _transform() -> list[Atom]:
             Atom("reflect", _ref, SHAPE, SHAPE)]
 
 
+def _as_shape(v: Any, c: Ctx) -> Any:
+    """ARM I's decoder. The published SHAPE slot is an episode-local INT and every shape atom
+    guards on a frozenset, so they read NOT_RESOLVED on every call (`F242`: 0 of 40).
+    `Ctx.shapes` carries the decoder `arc_world.shapes()` already computed and nobody read.
+    Returns the frozenset, or `v` unchanged when there is nothing to decode.
+
+    **MODULE LEVEL BECAUSE `holes` COULD NOT REACH IT, AND `holes` IS THE ONE THAT MATTERED.**
+    It lived inside `_shape_more()`, so the seven atoms there decoded and `_holes` -- defined in
+    `_shape_facts()`, a different closure -- did not. Measured on `g50t`, 6 cycles, arm I ON:
+    every other shape atom resolves on EVERY call (`bbox_area` 62,448/62,448, `canonical`
+    59,062, `orbit_size` 44,236, `is_square` 37,452, `corners` 37,064, `perimeter` 21,124)
+    **and `holes` reads 3,140 calls, 0 resolved, IDENTICAL with the arm off.**
+
+    **AND IT IS THE ATOM THE CORPUS NAMES AS THE EXAMPLE** -- §12.4's own INWARD case
+    `holes(shape)`, Isaiah's preschool squares-and-pegs. The one left out of the fix was the one
+    the fix was described by. One producer now, so a future atom cannot be added to the wrong
+    closure and silently miss it.
+    """
+    if isinstance(v, frozenset):
+        return v
+    m = getattr(c, "shapes", None) if c is not None else None
+    return m.get(v, v) if isinstance(m, dict) else v
+
+
 def _shape_facts() -> list[Atom]:
     """`SHAPE → EXTENT`, and the first arrow that takes a shape to a QUANTITY.
 
@@ -251,6 +275,7 @@ def _shape_facts() -> list[Atom]:
     already in hand and neither needs the board.
     """
     def _holes(v: Any, _c: Ctx) -> Any:
+        v = _as_shape(v, _c)        # ARM I, which this atom was omitted from -- see `_as_shape`
         if not isinstance(v, frozenset) or not v:
             return NOT_RESOLVED
         rs = [r for r, _ in v]
@@ -339,15 +364,7 @@ def _shape_more() -> list[Atom]:
     atoms on one arrow are two chains. My own note calling them *semantics on an arrow that
     already exists, worth nothing structurally* was wrong, and measured so.
     """
-    def _shape(v: Any, c: Ctx) -> Any:
-        """ARM I -- the published SHAPE slot is an episode-local INT and every atom below
-        guards on a frozenset, so all seven read NOT_RESOLVED on every call (F242: 0 of 40).
-        `Ctx.shapes` carries the decoder `arc_world.shapes()` already computed and nobody read.
-        Returns the frozenset, or `v` unchanged when there is nothing to decode."""
-        if isinstance(v, frozenset):
-            return v
-        m = getattr(c, "shapes", None) if c is not None else None
-        return m.get(v, v) if isinstance(m, dict) else v
+    _shape = _as_shape          # the module-level decoder; see its note on `holes`
 
     def _bbox(v: Any, _c: Ctx) -> Any:
         v = _shape(v, _c)
