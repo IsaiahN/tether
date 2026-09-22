@@ -43124,3 +43124,37 @@ checker.
                 LOWER bound on what a smarter attributor could reach -- it is not a ceiling
     MECHANISM   none changed
     CAPABILITY  none. It chooses B over C for item 2 on a measurement rather than on preference
+
+---
+
+## `F276` — ANNOTATION: `PERCEPTION_BUILD_PLAN` P1's "BBOX OVERLAP REMOVED" rests on a limit Isaiah withdrew
+
+**2026-09-22, reviewer ruling 2: annotate, do not edit.**
+
+P1's line reads **"BBOX OVERLAP REMOVED: it is a TENTH SENSOR, not a Tier-1 repair -- sensor 6 is
+CROSS-frame"** — so the plan deliberately scoped the bounding-box sensor OUT of the shape-erasure
+repair.
+
+**THAT EXCLUSION RESTS ON THE NINE-SENSOR PROHIBITION, AND ISAIAH WITHDREW IT ON 2026-09-19:**
+*sensors are instruments; the 2,700 AND the sensors are required frontload; novel composition is
+measured at OOD.* `CLAUDE.md` carries the withdrawal. **So a tenth sensor is no longer disqualified
+by being a tenth sensor**, and the reviewer's item-1 ruling admits the bounding-box sensor
+(containment and its five dependents) for every board.
+
+**THE PLAN'S REASONING WAS CORRECT UNDER THE DOCTRINE IT WAS WRITTEN UNDER.** Nothing here says the
+line was wrong; it says its premise is superseded. **The distinction matters because the OTHER half
+of that line — *sensor 6 is CROSS-frame* — is a structural fact about the sensor and is untouched by
+the withdrawal.** A reader treating the whole line as stale would lose that.
+
+    BOUNDARY    an annotation, not a measurement. Nothing was run for it
+    MECHANISM   none changed
+    CAPABILITY  none. It records why the build departs from a plan line rather than leaving the
+                departure to look like an oversight
+
+**AND ONE GOVERNANCE GAP, RECORDED BECAUSE IT WILL RECUR.** `CLAUDE.md` names the corpus as
+`ARC_AGENT` · `PHILOSOPHY` · `DISCOVERY` · `SNAPS_PLAN` · `FALSE_MINT` · `BUILD_PLAN` ·
+`DOCTRINE_AUDIT`, and the working set as `CLAUDE.md` · `ARC_BUILD_PLAN` · `docs/INDEX.md` · all
+code. **`PERCEPTION_BUILD_PLAN.md` is in NEITHER list**, so whether it may be repaired at source is
+undeclared. I have annotated rather than edited, per the reviewer — **and `CLAUDE.md` anticipates
+exactly this: *the boundary is what gets fuzzy, not the principle; a document appearing later needs
+a side.* It needs one.**
