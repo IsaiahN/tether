@@ -44376,3 +44376,58 @@ suspicion points, which is precisely where it is least needed.*
     CAPABILITY  none. It removes the only ground-facing column I had and leaves the agent-side
                 funnel -- `bound -> candidate -> settled -> primitive` -- as the whole of what
                 is measurable under a tape
+
+---
+
+## F297 (INDEX series) — **CHUNK ORDER DECIDES REACH AND PROMOTION.** Same board, same code, same arms, only the seed: `18 → 26` atoms reached and `prim 0 → 11`. And `levels` runs **6 → 4**, which independently confirms `F296`
+
+**The reviewer's within-board comparison, run on the columns that survived `F296`.** Its declared
+dependent variable was `levels` and that is void — **but the agent-side funnel is untouched by the
+tape, and it answers the question better than `levels` would have.**
+
+    sk48, observer ON, arm I ON, 10 cycles      seed 0        seed 1
+    cumulative atom calls                    70,533,969   229,964,634    3.26x
+    library                                    54 -> 132     54 -> 178
+    settled (at cycle 10)                              3             1
+    PRIMITIVES                                         0            11
+    RESOLVING                                   18 of 54      26 of 54
+    never called                                36 of 54      28 of 54
+
+**ONE VARIABLE — THE SEED — AND WHAT A SEED CHANGES IS THE ORDER THE CHUNKS ARRIVE IN.** Same
+board, same registry, same arms, same ten cycles.
+
+> **EIGHT MORE ATOMS BECOME REACHABLE AND THE PROMOTION CHAIN GOES FROM NEVER TO ELEVEN, ON
+> NOTHING BUT THE ORDER OF THE MATERIAL.** The reviewer called *what about a chunk ordering
+> decides whether a whole atom family is ever reached* possibly the most interesting question in
+> this run. **It is not a curiosity: order is the largest single effect measured tonight, larger
+> than either arm.**
+
+**AND IT IS THE CURRICULUM'S OWN CLAIM, ARRIVING AS A MEASUREMENT RATHER THAN A DESIGN.**
+`chunk_order`'s docstring says shuffling by chunk preserves *the within-chunk transitions that ARE
+the thing being learned*, and `TRAINING_PLAN` §14.5 makes noise-annealing the curriculum dial.
+**This is the first reading that says the dial moves something the agent does.**
+
+### AND IT CONFIRMS `F296` FROM A SECOND DIRECTION
+
+**`levels` reads 6 for seven cycles and then 4.** *A count of COMPLETED levels cannot decrease.*
+**So the column is a tape coordinate**, and `F296` no longer rests only on the write site — the
+data contradicts the reading independently. **The number I spent the evening quoting went
+BACKWARDS in the same table and I had not looked at it.**
+
+### WHAT MUST NOT BE READ FROM THIS
+
+**Not that seed 1 is better.** More reach, more promotion **and 3.26x the calls**, with `settled`
+LOWER (1 against 3). **There is no ground column left to arbitrate**, so *better* has no referent
+here — `F296` removed the only thing that could have said so.
+
+**Not that order causes it directly.** The seed changes chunk order, and chunk order changes
+**which frames, in which sequence** — so *order* and *which material arrives early* are not yet
+separated. **That separation is the next measurement and it is not run.**
+
+    BOUNDARY    ONE board, TWO seeds, TEN cycles each, observer and arm I ON in both -- equal
+                windows. `prim` and `resolving` are single observations per seed, not rates.
+                `sk48` is 83% multi-frame and is the board whose seed 0 has already produced
+                three over-generalisations tonight
+    MECHANISM   none changed
+    CAPABILITY  none built. It relocates the largest measured effect from the arms to the
+                CURRICULUM, and it gives `F296` a second, independent confirmation
