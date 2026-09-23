@@ -25,7 +25,7 @@ from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from typing import Any
 
-from sensors import NOT_RESOLVED
+from sensors import CELLS, NOT_RESOLVED, Cells
 
 sys.dont_write_bytecode = True
 
@@ -303,6 +303,33 @@ class Term:
         if self.guard is not None and ctx.action != self.guard:
             return value
         for a in self.atoms:
+            # ELEMENTWISE WHEN THE CHAIN IS MID-ITERATION -- §12.2.1. An atom typed `CELL` sees
+            # ONE cell and is mapped across the collection; an atom typed `CELLS` consumes the
+            # whole thing and closes the iteration. The chain's own POSITION is the body, which
+            # is why this needs no operand channel and no `Ctx` field: the term's entire meaning
+            # stays in its atom sequence, and `units()` rebuilds a promoted chunk from exactly
+            # that. A `fold<body>` failed the census here -- two bodies, one atom sequence, one
+            # unit, executing as each other.
+            #
+            # A NON-READING INSIDE THE COLLECTION KILLS THE WHOLE COLLECTION, for §12.2's reason
+            # one level down: a cell the instrument could not read must not silently shrink the
+            # set, because a shorter collection is a different reading rather than a missing one.
+            # ANY non-reducer maps, not only `CELL`-typed atoms. The first version mapped only
+            # `in_type == CELL`, so `cells . cell_row . parity` died: after `cell_row` the
+            # collection holds POSITIONs and `parity` is `POSITION -> BOOL`, which was handed
+            # the whole collection and abstained. **The consequence is the point of the whole
+            # construct -- with this rule EVERY EXISTING ATOM becomes usable inside an
+            # iteration**, so the agent composes over the 57 it already has rather than over
+            # four new ones. A `CELLS`-typed atom is the only thing that closes.
+            if isinstance(value, Cells) and a.in_type != CELLS:
+                out = []
+                for cell in value:
+                    got = a.fn(cell, ctx)
+                    if got is NOT_RESOLVED:
+                        return NOT_RESOLVED
+                    out.append(got)
+                value = Cells(tuple(out))
+                continue
             value = a.fn(value, ctx)
             # §12.2's non-reading PROPAGATES: *it lets "this instrument cannot see it" go up
             # instead of becoming a wrong attribute.* Short-circuiting is the whole of it --

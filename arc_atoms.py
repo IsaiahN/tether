@@ -27,12 +27,25 @@ than discovering it at 3c.
 """
 from __future__ import annotations
 
+import os
 import sys
 from typing import Any
 
 from arc_percept import holes_of, perimeter_of
 from gamma import SAME_AS_TARGET, Atom, Ctx
-from sensors import BOOL, COLOUR, DELTA, EXTENT, NOT_RESOLVED, OBJECT, POSITION, SHAPE
+from sensors import (
+    BOOL,
+    CELL,
+    CELLS,
+    COLOUR,
+    DELTA,
+    EXTENT,
+    NOT_RESOLVED,
+    OBJECT,
+    POSITION,
+    SHAPE,
+    Cells,
+)
 
 sys.dont_write_bytecode = True
 
@@ -68,6 +81,12 @@ OBJ = "OBJ"          # `OBJECT` is imported from `sensors`; this one is the obje
 COMPARABLE = (COLOUR, POSITION, EXTENT, DELTA, SHAPE, BOOL)   # equality is meaningful on all
 ORDERED = (POSITION, EXTENT, DELTA)       # order is meaningful only on these
 PRED, QUANT, VAL = "PRED", "QUANT", "val"
+
+# THE ITERATION ARM, DEFAULT OFF -- `LIBRARY_RETRIEVAL` §12.2.1. Adds `cells`/`cell_row`/
+# `cell_col`/`count_true`, which make a cell set WALKABLE for the first time. Off by default
+# because it widens the closure the mint enumerates and that cost is measured before it is
+# defaulted, per §12.12: a feature is priced in EPISODES FORGONE, not in per-cycle percent.
+_ITERATE = bool(os.environ.get("TETHER_ITERATE"))
 
 # THE ONE TABLE. An object record's key -> the §12.2 type its values inhabit. `_extract` reads
 # it to type its atoms and `ArcWorld.slot_types` reads it to type its slots, and those are the
@@ -731,6 +750,62 @@ def _quantify() -> list[Atom]:
             Atom("none", lambda v, _c: int(not v), PRED, OBJ)]
 
 
+def _iterate() -> list[Atom]:
+    """ITERATION -- `LIBRARY_RETRIEVAL` §12.2.1, arm `TETHER_ITERATE`, default OFF.
+
+    Cells were REACHABLE and never ITERABLE: `SHAPE` holds the offset frozenset, so the agent
+    could hold a cell set and had no way to walk it. The ten cell-level folds in this file --
+    `holes`, `perimeter`, `corners`, `bbox_area` ... -- are handwritten Python, and §12.0 rules
+    that the MEANS to iterate is inheritance where a SOLVED CASE would be an answer.
+
+    THREE ATOMS AND NO FOURTH. `cells` opens, a `CELL`-typed atom is mapped by `Term.apply`, a
+    `CELLS`-typed atom closes. **`map` is absent because a chain already applies atoms in
+    sequence -- elementwise transformation is what a chain IS, and a second spelling of it is
+    not robustness.**
+
+    WHAT THIS DELIBERATELY DOES NOT DO: carry an accumulator across cells. A stateful reducer
+    needs a body, a body is not in the atom sequence, and `units()` rebuilds a promoted term
+    from the atom sequence ALONE -- so two folds differing only in body would collapse into one
+    unit and execute as each other. That is CHUNK IDENTITY and it is a declared item, not a gap
+    in this one.
+    """
+    def _cells(v: Any, c: Ctx) -> Any:
+        v = _as_shape(v, c)
+        if not isinstance(v, frozenset) or not v:
+            return NOT_RESOLVED
+        # RASTER ORDER, so position in the collection means something. An unordered collection
+        # would make "the longest unbroken run" unstatable for a reason unrelated to iteration.
+        return Cells(tuple(sorted(v)))
+
+    def _cell_row(v: Any, _c: Ctx) -> Any:
+        return v[0] if isinstance(v, tuple) and len(v) == 2 else NOT_RESOLVED
+
+    def _cell_col(v: Any, _c: Ctx) -> Any:
+        return v[1] if isinstance(v, tuple) and len(v) == 2 else NOT_RESOLVED
+
+    def _count_true(v: Any, _c: Ctx) -> Any:
+        """CLOSES the iteration by counting what HELD. The only reducer, and it is the one a
+        predicate map needs -- `cells . <per-cell reads> . <predicate> . count_true`.
+
+        REFUSES A NON-BOOLEAN COLLECTION, and that is not fussiness. The first version counted
+        TRUTHY, so `cells . cell_col . count_true` over cells at columns 0,1,2,4 returned 3 --
+        it dropped column ZERO as falsy and printed a number that looked like an answer. §12.2:
+        a reading or an explicit non-reading, never a guess. `CELLS` does not carry an ELEMENT
+        type, so the guard has to be here rather than in the type graph -- recorded because
+        that gap is where the next wrong number comes from.
+        """
+        if not isinstance(v, Cells) or not len(v):
+            return NOT_RESOLVED
+        if not all(isinstance(x, bool) for x in v):
+            return NOT_RESOLVED
+        return sum(1 for x in v if x)
+
+    return [Atom("cells", _cells, SHAPE, CELLS),
+            Atom("cell_row", _cell_row, CELL, POSITION),
+            Atom("cell_col", _cell_col, CELL, POSITION),
+            Atom("count_true", _count_true, CELLS, EXTENT)]
+
+
 def three_spaces(predict: list[Atom]) -> list[Atom]:
     """EXTRACT + RELATE + QUANTIFY, joined to whatever PREDICT the domain supplies.
 
@@ -739,7 +814,7 @@ def three_spaces(predict: list[Atom]) -> list[Atom]:
     """
     out = (list(predict) + _owner() + _extract() + _transform() + _shape_facts() + _shape_more()
            + _contact() + _relate() + _over_group() + _group_more() + _connect()
-           + _quantify())
+           + _quantify() + (_iterate() if _ITERATE else []))
     # ONE NAME, ONE ATOM -- and this is `A6i` in the one place it can be made mechanical.
     # `recolour` was TWO atoms for part of 2026-09-22: `arc_predict:104`'s `val -> val` grid
     # transform (the corpus files it under OPERATION) and an `OBJECT -> BOOL` extractor

@@ -66,6 +66,9 @@ ITEMS = {
     # than adding to it: library as what the agent thinks with, recipes as its programming
     # language, we supply the floor. `LIBRARY_RETRIEVAL` Part 12 carries the new order.
     "reframe": "Part 12 -- the plan of record itself, and the rulings that set it",
+    # Part 12 item 2. The agent could HOLD a cell set and not walk it; §12.0 rules the
+    # MEANS to iterate is inheritance where a solved case would be an answer.
+    "iteration": "the agent's ability to walk a collection and close it",
     # THE GATES NAME THEMSELVES, the way `focus.py`'s own commits are L3 under its own rule.
     # Without this the control could not be introduced by a commit that obeys it.
     "seat": "a check, a guard, or the aim discipline itself",

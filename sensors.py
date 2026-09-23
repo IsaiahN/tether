@@ -58,6 +58,22 @@ OBJECT_BEFORE = "OBJECT_BEFORE"
 COLOUR, COUNT, POSITION, EXTENT = "COLOUR", "COUNT", "POSITION", "EXTENT"
 SHAPE, BOOL, DELTA, AXIS, RATIO, REGION = "SHAPE", "BOOL", "DELTA", "AXIS", "RATIO", "REGION"
 
+# ITERATION, `LIBRARY_RETRIEVAL` §12.2.1 -- cells were REACHABLE and never ITERABLE. `SHAPE`
+# already holds the offset frozenset, so the agent could HOLD a cell set and had no way to walk
+# it: the ten cell-level folds (`holes`, `perimeter`, `corners` ...) are handwritten Python, and
+# §12.0 rules that handing the agent the MEANS to iterate is inheritance rather than an answer.
+#
+# TWO TYPES, AND THE SPLIT IS THE MECHANISM. `CELLS` is the collection a chain carries; `CELL` is
+# what one atom sees. An atom typed `CELL` is applied ELEMENTWISE by `Term.apply`; an atom typed
+# `CELLS` consumes the whole collection and closes the iteration.
+#
+# **THE BODY IS THE CHAIN'S OWN POSITION, WHICH IS WHY THIS SURVIVED THE CENSUS AND A `fold<body>`
+# DID NOT.** `units()` rebuilds a promoted term as `Term(t.atoms)` -- from the atom sequence
+# ALONE -- so anything carrying meaning OUTSIDE that sequence collapses on reuse, and two folds
+# with different bodies would have become one unit and executed as each other. Here the whole
+# meaning is the atom sequence, so a promoted chunk reconstructs exactly.
+CELLS, CELL = "CELLS", "CELL"
+
 # WHICH DISTINCT TYPES ADD. `translate`'s rule is *`v + operand` is meaningful only between
 # COMMENSURABLE quantities*, and it was implemented as `SAME_AS_TARGET` because identity was
 # the only commensurable pair the type system could express. A position plus its own
@@ -92,6 +108,29 @@ class _NotResolved:
 
 
 NOT_RESOLVED = _NotResolved()
+
+
+@dataclass(frozen=True)
+class Cells:
+    """A collection a chain carries, ORDERED. §12.2.1's iteration.
+
+    ORDERED AND NOT A SET, DELIBERATELY: raster order is what makes *the longest unbroken run*
+    even statable. A frozenset would make the acceptance test unanswerable for a reason that
+    had nothing to do with the construct being tested.
+
+    ITS OWN TYPE RATHER THAN A BARE TUPLE, so `Term.apply` can tell "the chain is mid-iteration"
+    from "the value happens to be a tuple" -- `shape` is already a frozenset of pairs and a
+    positional read already returns tuples, so a structural test would have mapped over things
+    that are not collections.
+    """
+
+    items: tuple = ()
+
+    def __iter__(self):
+        return iter(self.items)
+
+    def __len__(self) -> int:
+        return len(self.items)
 
 
 @dataclass(frozen=True)
