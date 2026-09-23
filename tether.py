@@ -8,8 +8,10 @@ optional.
 from __future__ import annotations
 
 import hashlib
+import itertools
 import math
 import os
+import re
 import sys
 from collections import Counter
 from dataclasses import dataclass, field
@@ -17,6 +19,7 @@ from functools import partial
 from itertools import islice
 from typing import Any
 
+import composer
 import grammar as G
 import instruments as I
 import retrieval
@@ -125,6 +128,13 @@ _GUARD_AXIS = bool(os.environ.get("TETHER_GUARD_AXIS"))
 # sensor, no entry rule, no exemption". DEFAULT OFF, because it makes seven dead atoms live and
 # that moves the closure.
 _SHAPE_DECODE = bool(os.environ.get("TETHER_SHAPE_DECODE"))
+
+
+def _norm_name(x: str) -> str:
+    """The join between the CORPUS's names and the REGISTRY's. Same normalisation
+    `composer.candidates` uses, and it exists for the same measured reason: the corpus writes
+    `Contact` and `Sign` and `SIGN`, the registry writes `contact` and `sign`."""
+    return re.sub(r"[^a-z0-9]", "", x.lower())
 
 
 def _head_accepts(cand: Any, slot_type: str | None) -> bool:
@@ -944,6 +954,69 @@ class Agent:
                 # every evaluating caller turns it into NOT_RESOLVED or unexplained.
                 return None
         return (value,)
+
+    def _narrate_vocabulary(self) -> None:
+        """ONCE PER RUN: what the corpus CALLS what this agent can already reach.
+
+        **A READING, NEVER AN INPUT.** It names compositions the agent's own atoms cover; it
+        does not select them, price them or bet on them. The skill-map rule applies exactly --
+        *the moment it is available beforehand the mechanism has been handed its answer* -- and
+        a NAME for a composition the agent could already build hands it nothing it did not have.
+
+        Recorded rather than printed because the ledger is where a claim can be checked later.
+        """
+        if getattr(self, "_vocab_said", False):
+            return
+        self._vocab_said = True
+        mols = self._molecules()
+        self.led.record(self.cycle, "PERCEIVE", "*", "vocabulary",
+                        covered=[m["molecule"] for m in mols],
+                        expressible=[m["molecule"] for m in mols if m["expressible"]],
+                        inexpressible=[{"molecule": m["molecule"], "recipe": m["recipe"]}
+                                       for m in mols if not m["expressible"]])
+
+    def _molecules(self) -> tuple:
+        """WHAT THE CORPUS CALLS WHAT THIS AGENT CAN ALREADY REACH -- the composer as librarian.
+
+        `composer.candidates` answers *which recipes do my atoms cover*, and until `945f8da` it
+        answered ZERO for every possible input: the corpus capitalises ingredients and the
+        registry lower-cases atoms, so the join matched nothing. With it normalised the agent's
+        own 61 atoms exactly cover ONE molecule -- `Orbit = Rotate ? Translate` -- and partly
+        cover fifty.
+
+        **EXACT COVER ONLY.** A partially covered recipe names something the agent cannot yet
+        build, and `candidates`' own docstring says whether partial cover is admissible *is a
+        ruling, not a parse detail*. Reporting coverage is not the same as claiming it.
+
+        **AND EACH IS MARKED EXPRESSIBLE OR NOT, which is the half that makes this more than a
+        lookup.** A recipe's `?` is an UNDECIDED JUNCTION, not a composition operator --
+        `composer.light` keeps junctions UNKNOWN on purpose and `settle` returns `None` from
+        every branch because no bond test is written (deliberately: *never stub anything that
+        would fake a pass*). So a covered molecule is a NAME plus a bond the ground has not
+        decided, and whether the term space can even hold it is a separate, checkable question.
+        """
+        got = getattr(self, "_molecule_cache", None)
+        if got is not None:
+            return got
+        by_norm = {_norm_name(a.name): a
+                   for a in self.gamma.atoms}
+        out = []
+        for m in composer.candidates({a.name for a in self.gamma.atoms}):
+            parts = [by_norm.get(_norm_name(i))
+                     for i in m["recipe"]]
+            # EXPRESSIBLE means a type-valid CHAIN exists over exactly these atoms, in some
+            # order. Nothing else in the term space can hold a two-atom molecule today.
+            ok = None
+            if all(parts):
+                for seq in itertools.permutations(parts):
+                    if all(seq[i].out_type in seq[i + 1].accepts
+                           for i in range(len(seq) - 1)):
+                        ok = " . ".join(a.name for a in seq)
+                        break
+            out.append({"molecule": m["molecule"], "recipe": m["recipe"],
+                        "expressible": ok})
+        self._molecule_cache = tuple(out)
+        return self._molecule_cache
 
     def _trees(self, cand, bind, g):
         """The TREE variants of one flat candidate -- `f<g(s)>` for each branch atom.
@@ -4109,6 +4182,13 @@ class Agent:
         # WHOSE OBJECTIVE THIS STEP CARRIED, on its own row. The wire is invisible in
         # `repr(bet)` unless a reader knows which shape means which, and *how often the
         # agent's own composition fills the node* is the only thing item 1 can be measured by.
+        # AFTER THE PLAN PHASE, NOT AT THE TOP OF THE STEP. `ledger.STEPS` orders
+        # `PLAN` BEFORE `PERCEIVE`, and the other top-of-step narrations are no-ops in worlds
+        # that publish no read-order or placements -- so emitting here at the top made this the
+        # FIRST row of the run and turned the cycle's own `PLAN` into `PLAN after PERCEIVE`.
+        # The gate refused it. This is the first point at which a `PERCEIVE` row is already
+        # in order.
+        self._narrate_vocabulary()
         self.led.record(self.cycle, "PERCEIVE", focal, "want", by=want_by, objective=said)
 
         refs = [G.ref(pid, "perceive")] + ([G.ref(bound, "term")] if bound else [])
