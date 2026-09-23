@@ -399,6 +399,32 @@ after the fact there is nothing to catch, because after the fact the reading is 
   I grepped `operand_term` across `*.py` and never across `docs/`, and `WINDOW_REPORT` §7 was
   carrying a constraint that made the ruling smaller than I filed it.
 
+- **"IS IT ACTUALLY REACHED" IS THE STANDING QUESTION ABOUT ANYTHING THE RECORD SAYS EXISTS —
+  adopted 2026-09-23 after FIVE in one day.** Not a check to run occasionally: the default.
+
+      `sensors_heavy`   142 lines, ~45 readings. Never imported on any agent path. No flag
+                        turns it on -- there is no flag. Its docstring claimed a lint guard
+                        it did not have
+      `composer`        the recipe machinery Part 12 calls the agent's own language, refused
+                        on the betting path by a guard the reviewer had RE-SCOPED the day
+                        before. The ruling never reached the code
+      arm I             `_as_shape`, the decoder eight SHAPE atoms need. Default OFF for
+                        months; `corners` called 784 times and resolved zero
+      `operand_term`    §4's "what makes this a tree". Declared, read, PRICED, RENDERED --
+                        and ZERO PRODUCERS. Every term ever composed is a flat chain
+      `inside`          ADMITTED by name, dated, with the batch's best reach number, and
+                        never constructed. The only `ADMITTED` entry missing from the registry
+
+  **EVERY ONE PRESENTED AS NOTHING**, which is the whole difficulty: an unreached mechanism does
+  not fail, it abstains, and an abstention is indistinguishable from a mechanism with nothing to
+  say. **The counters read zero either way** — which is `counters-lie-read-the-write-site` one
+  level up, about the MECHANISM rather than about the number.
+
+  **THE CHECK IS A RUN, NOT A GREP, AND IT IS CHEAP**: step the agent with every arm ON and read
+  `sys.modules`, or spy the callable and count CALLS SEPARATELY FROM RESOLUTIONS. *Called 784
+  times, resolved 0* and *never called* are different diagnoses and a resolution count alone
+  cannot tell them apart.
+
 - **THE FIGURES ARE A TIEBREAKER, AND THE SEARCH IS A TERM CENSUS FIRST.** Isaiah's standing
   instruction; `F30` exercised it and `F40` made it repeatable. **Census the term across all
   fifteen BEFORE reading any one of them**, so the search is directed by the count and not by

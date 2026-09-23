@@ -1921,6 +1921,18 @@ the bill, with zero exceptions.*
 > **A means is inheritance and it is frontloaded. An answer is the agent's work and it is
 > refused. A fold construct is a means. A solved board is an answer.**
 
+**THE WORKED EXAMPLE, and it is one field — `age`, 2026-09-23.** The tracker had no history at
+all, so `persistence`, `continuity`, `duration`, `trajectory`, `repetition` and `stability` were
+blocked on ONE absent quantity. The build was a choice between two shapes:
+
+    "has it persisted"   a PREDICATE, against some threshold   -> AN ANSWER. Refused.
+    "how many frames"    an INTEGER                            -> A MEANS. Published.
+
+**The threshold is the judgement, and the judgement is the agent's.** Publishing the predicate
+would have handed it a decision; publishing the count hands it the material to decide with.
+**Same field, same cost, opposite side of the line** — which is why this is the example: nothing
+about the mechanism distinguishes them, only what is left for the agent to do.
+
 **`CLAUDE.md`'s steals-a-discovery rule is ANNOTATED, not changed: it governs SOLUTIONS, not
 CAPABILITIES.** *"Why underprepare the rover"* and *"making the library more complete steals a
 discovery"* were never in tension — **one is about what the agent ARRIVES WITH, the other about
