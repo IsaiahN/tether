@@ -530,6 +530,27 @@ reads as something that will be enforced, and it will not be.
   **`go to the write site` KEPT FIRING AFTER THE FACT, because SUSPICION is what triggers it** —
   and a design is declared while nothing yet looks wrong. **This version fires before.** The cost
   is minutes; two of the three would have been caught by reading one paragraph.
+- **THE SITE THAT READS LIKE THE PRODUCER IS NOT THE SITE THAT RUNS — 2026-09-23, and it is
+  `go to the write site` applied to the wrong question.** That rule says *ask which LINE
+  assigned the value, never which MECHANISM explains it.* **It does not say how to pick the
+  line, and picking it by reading is the same failure one level in.**
+
+  **§4's tree had zero producers, so one had to be built. I chose `_reach` — ON THE STRENGTH OF
+  THAT SITE'S OWN COMMENT about enumerating operand bindings, which is exactly the kind of
+  evidence the docstring rule above tells you to trust.** Measured: **`_reach` is called ZERO
+  times in four cycles of `vc33`, while `_operand_fits` fires 850,833 times from `mint`.** The
+  comment was accurate about what the function is FOR and silent about whether anything calls
+  it.
+
+  > **THE CHECK IS ONE SPY AND IT IS CHEAP: before building INTO a site, count that it EXECUTES
+  > on a real run.** Not that it exists, not that its comment fits — that the counter moves.
+
+  **AND THE SECOND PLACEMENT FAILED THE OPPOSITE WAY, WHICH IS WHY A GUESS ABOUT LOAD IS NOT A
+  SUBSTITUTE EITHER.** Moved into `mint`'s `does-not-pay` branch, I expected it to be too HOT
+  and bounded it carefully. **It was STARVED: `_cannot_pay` cuts 346,992 of 347,494, only 502
+  candidates reach `pays`, 502 of them PASS, and there are 29 failures in an entire run.** A
+  rescue site with almost no occasions. **Three runs from BUILT to BUILT-AND-REACHED, and the
+  first two both read as a clean 13/13 with a dead mechanism behind them.**
 - **NO ARM'S READINGS ARE GENERALISED UNTIL THAT ARM HAS EXECUTED ON BOTH HARNESSES — reviewer,
   2026-09-23, earned by a three-second crash.** The first live run of the observer arm died at
   `arc_world.py:181`, `if g and g[0]`: **`ReplayTape` hands LISTS and `arcengine` hands NUMPY
