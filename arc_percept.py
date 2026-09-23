@@ -57,6 +57,16 @@ _OBSERVER = bool(os.environ.get("TETHER_OBSERVER"))
 # cannot itself measure. Both arms belong on together; that is a measurement, not a default.
 _SHAPE_DELTA = bool(os.environ.get("TETHER_SHAPE_DELTA"))
 
+# THE EMBEDDED INSTRUMENT SET, DEFAULT OFF -- Part 12 item 3, Isaiah: *"we can't have the
+# agent waste time reinventing gravity."* Distance, speed, persistence and the rest are PAID
+# BILLS, available from frame 0 rather than derived at runtime.
+#
+# `age` IS THE FIRST AND IT UNBLOCKS SIX OF THE ELEVEN, because they were all waiting on the
+# same absent quantity rather than on six mechanisms. Default OFF because a new published
+# attribute widens the slot set, and §12.12 prices that in EPISODES FORGONE before it is
+# defaulted on -- 26s an action buys 4-9 episodes in the whole competition window.
+_INSTRUMENTS = bool(os.environ.get("TETHER_INSTRUMENTS"))
+
 
 def as_index_grid(frame: Any) -> list[list[int]] | None:
     """THE INPUT ADAPTER, AHEAD OF LAYER 1. Two front ends, one output.
@@ -601,6 +611,20 @@ class Objects:
                            "dholes": holes_of(obj["cells"]) - holes_of(prev["cells"]),
                            "dperimeter": (perimeter_of(obj["cells"])
                                           - perimeter_of(prev["cells"]))}
+            if _INSTRUMENTS:
+                # HOW MANY CONSECUTIVE FRAMES THIS OBJECT HAS BEEN TRACKED. Zero at birth.
+                #
+                # THE TRACKER KEPT NO HISTORY AT ALL -- `self.tracked = fresh` replaces the
+                # whole map every frame, and there was no age, lifetime or first-seen counter
+                # anywhere. So `persistence`, `continuity`, `duration`, `trajectory`,
+                # `repetition` and `stability` -- six of the eleven instruments Isaiah named --
+                # were blocked on ONE missing quantity rather than on six missing mechanisms.
+                #
+                # AN INTEGER, NOT A PREDICATE, AND THE SPLIT IS §12.0's. *Has it persisted* is
+                # a judgement the agent should make against whatever threshold the board wants;
+                # *how many frames* is the reading. Publishing the predicate would hand it the
+                # answer, publishing the count hands it the means.
+                obj = {**obj, "age": (prev.get("age", 0) + 1) if prev is not None else 0}
             fresh[best] = obj
 
         # DEATH ONLY ON EVIDENCE. An unmatched tracked object keeps its slots unless another
@@ -685,7 +709,7 @@ class Objects:
             # same rule `drow`/`dcol` state above.
             for attr in ("row", "col", "h", "w", "colour", "drow", "dcol",
                          "dh", "dw", "dcells", "colour_changed",
-                         "dholes", "dperimeter"):
+                         "dholes", "dperimeter", "age"):
                 if attr in obj:
                     state[f"{name}.{attr}"] = NOT_RESOLVED if covered else int(obj[attr])
             state[f"{name}.shape"] = (

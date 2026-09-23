@@ -128,7 +128,12 @@ ATTRIBUTE_TYPE = {"colour": COLOUR, "row": POSITION, "col": POSITION,
                   # because no atom accepts `OBJECT_BEFORE`: the agent cannot reach the
                   # previous object, so it cannot compose these however long it searches.
                   # `arc_percept` carries the full reasoning and the seven that were refused.
-                  "dholes": DELTA, "dperimeter": DELTA}
+                  "dholes": DELTA, "dperimeter": DELTA,
+                  # THE OBJECT'S AGE -- arm `TETHER_INSTRUMENTS`, Part 12 item 3. Consecutive
+                  # frames tracked, 0 at birth. EXTENT: an ordered non-negative magnitude, the
+                  # same shape as `h`/`w`, and it is a COUNT the type set cannot express (the
+                  # `contact` note records that gap and the reason EXTENT is the honest fit).
+                  "age": EXTENT}
 
 
 # THE ADMITTING CLAUSE, PER ATOM, RECORDED WHERE THE ATOM IS DECLARED.
