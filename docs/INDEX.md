@@ -45802,3 +45802,85 @@ executed, 27 never loaded.
     MECHANISM   none changed
     CAPABILITY  none. Its value is that several mechanisms the reframe DEPENDS ON already exist
                 and are unreached, which is a better problem than absence
+
+
+---
+
+## F323 -- THE COMPILE PASS (item 1). 21.7% of recipes ground out, the depth is FLAT, and the
+## library has essentially ONE failure mode: its own undefined ingredients.
+
+`LIBRARY_RETRIEVAL` §12.7 asked for derivability and generation as ONE question -- a name is
+executable when its recipe's ingredients are, recursively, bottoming out in instruments.
+
+    2,061 recipes
+      447  (21.7%)  GROUNDED -- every path bottoms out in a name the closure defines
+    1,389  (67.4%)  blocked on a MISSING INGREDIENT, directly
+      224  (10.9%)  blocked VIA a missing ingredient downstream
+        1   (0.0%)  blocked via a cycle
+
+    DEPTH TO THE FLOOR   362 / 67 / 17 / 1     max 4, and 81% of the grounded sit at DEPTH 1
+    CURVE OVER EXECUTABILITY   17.6% -> 20.8% -> 21.6% -> 21.7%
+
+**THE LIBRARY IS FLAT.** §12.7 framed the compile target recursively and the structure is a name
+plus its ingredients, one step. A recursive compiler stays correct; it is not doing deep work here.
+
+**THE BLOCKER IS THE SEED'S OWN UNDEFINED INGREDIENTS -- 78.3% direct or transitive.** `Context`
+x16, `Growth` x15, `Reflection` x13, `Boundary` x12 ... 1,362 distinct names used as ingredients
+and defined in no table of the closure. **That is a statement about the SEED, not about our
+coverage and not about the agent** -- the first reading in this programme whose subject is the
+library itself. Isaiah's to rule: define them, treat them as INVENTION TARGETS (which fits §12.0's
+means/answer line), or mark them out of scope.
+
+### The instrument half: the leaves are human domain knowledge, not board primitives
+
+    JOIN BY NAME       2 of 559 leaves (`contact`, `count`) = 0.4%. Name matching is the wrong
+                       instrument, confirmed rather than assumed -- `F314` read the same join
+                       at 9 of 2,669
+    BY SECTION         the 566 leaves spread over ~40 domains, using the CORPUS'S OWN headings:
+                       Material 31 · Temporal 29 · Tier 1 25 · Choice 24 · Cybernetic 16 ·
+                       Ludological 16 · Human-physics 15 · Habit 15 · Optical 14 · Embodiment 13
+                       · Phenomenological 13 · Social 11 · Electrical 10 · Morphogenetic 10
+
+**The grounded recipes bottom out in `Charge`, `Capacitance`, `False belief`, `Gaze following`.**
+On a narrow reading (Human-physics · Raw data · Large-scale) 27 of 566 = 4.8% sit in sections
+describing what a grid can show -- **and that percentage is a JUDGEMENT about which sections are
+board-relevant, so the table is reported and the line is the reader's. The shape does not move.**
+
+> **SO 21.7% IS AN UPPER BOUND AND THE INSTRUMENT MAPPING ONLY LOWERS IT. The binding constraint
+> was never instrumentation: the seed's grounded recipes are about electricity and biology and
+> society rather than about grids.** Fourth independent confirmation of Part 12's reframe, after
+> publication (`F315`/`F316`/`F318`), name (`F314`) and executability. **The library is what the
+> agent THINKS WITH; it was never a catalogue to compile against a board.**
+
+### The resolver was wrong four times, and the sequence is the method
+
+    v1  recipe tables only                    2,211 dangling   5.1% grounded
+    v2  + tier-1 and leaf-atom tables         1,796           13.3%
+    v3  + every file in library-closure       1,735           16.1%
+    v4  + parenthetical codes `Time (Temp)`   1,722           16.3%
+    v5  no table detection at all             1,362           21.7%
+
+**v1's 5.1% would have published as a finding.** ATOMS.md has 359 tables in 13 header shapes and
+v1 parsed one shape, collapsing the very distinction the pass exists to make -- a missing
+INSTRUMENT is not a missing INGREDIENT. **And the CHECK failed too: `grep "^| Pattern "` matched
+*"Pattern match"*, briefly convincing me a correct resolver was broken.**
+
+### AND THE CYCLE COUNT WAS WRONG -- corrected here rather than in a new row
+
+**I reported 433 cycles (21%) and there are THREE:** `runaway <-> positive feedback` ·
+`nostalgia <-> longing` · `flee -> evade -> chaos step`. Two read as genuine mutual definitions.
+**Cause at the write site: `why[n] = "CYCLE"` was written whenever a DEPENDENCY returned None,
+whatever it had actually failed on**, so everything downstream of a missing ingredient counted as
+a cycle. The reviewer had ruled the cycle detector mandatory on that number; the conclusion
+survives (a compiler must not hang) and the reasoning does not.
+
+> **THE RULE IT EARNS: when a failure mode is reported as a COUNT, print its MEMBERS before
+> ruling on it.** *A grep's count is not evidence until you have read what it matched*, applied to
+> a CLASSIFIER'S OWN OUTPUT -- and that is the harder case, because the output looks like a
+> measurement rather than like a list of hits. **Three named paths cannot be mistaken for 433.**
+
+    BOUNDARY    a static read of the seed. It says what the closure DEFINES, never what the agent
+                can COMPUTE -- which is exactly why 21.7% is a ceiling
+    MECHANISM   none changed
+    CAPABILITY  none. It retires F316/F318 as the answer to Isaiah's challenge and replaces them
+                with a measurement over EXECUTABILITY
