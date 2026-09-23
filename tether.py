@@ -945,6 +945,37 @@ class Agent:
                 return None
         return (value,)
 
+    def _trees(self, cand, bind, g):
+        """The TREE variants of one flat candidate -- `f<g(s)>` for each branch atom.
+
+        Empty unless the outer atom actually READS an operand and one is bound: a branch feeds
+        the operand arm, so with nothing to feed it the tree is the flat term with a longer name.
+        """
+        if bind is None or not cand.reads_operand:
+            return ()
+        return tuple(Term(cand.atoms, operand=bind, guard=g, operand_term=br)
+                     for br in self._branches())
+
+    def _branches(self) -> tuple:
+        """The one-atom terms that may sit on a term's OPERAND arm -- §4's second chain.
+
+        **`idn` IS EXCLUDED AND THAT IS THE WHOLE FILTER.** `_ops` hands the branch the raw slot
+        value as its own operand, so `idn(s)` returns `s` and `f<idn(s)>` is `f<s>` spelled
+        longer -- a distinct NAME for an identical computation, which is the one thing that
+        makes a closure grow without reaching anything. Every other `val -> val` atom is
+        operand-reading (`_translate` is `v + c.operands[0]`), so it computes something the flat
+        binding could not say.
+
+        **DERIVED FROM THE REGISTRY, NOT LISTED.** A hardcoded pair would go stale the first
+        time an atom is added, and the staleness would present as nothing.
+        """
+        got = getattr(self, "_branch_cache", None)
+        if got is None:
+            got = tuple(Term((a,)) for a in self.gamma.atoms
+                        if a.in_type == "val" and a.out_type == "val" and a.name != "idn")
+            self._branch_cache = got
+        return got
+
     def _narrate_placements(self) -> None:
         """The encounter half's reading. **`multi` is the mid-game colour change, counted.**"""
         fn = getattr(self.env, "placements", None)
@@ -3518,6 +3549,37 @@ class Agent:
                                          "reason": "bounded-out: cannot pay on R alone"})
                             continue
                         left = self._left(term, slot, hist)
+                        # §4's TREE, AND THIS IS ITS FIRST PRODUCER. `operand_term` was
+                        # DECLARED, RENDERED, PRICED and APPLIED (`_ops`, :914) with ZERO sites
+                        # constructing one -- so every term the agent has ever composed is a
+                        # FLAT CHAIN. The consumer was finished; the producer did not exist.
+                        #
+                        # **HERE AND NOT IN `_reach`, MEASURED RATHER THAN READ.** Built at
+                        # `_reach` first on the strength of that site's operand comment --
+                        # and `_reach` is called ZERO times in four cycles of `vc33` while
+                        # `_operand_fits` fires 850,833 times from HERE. **The site that READS
+                        # like the producer is not the site that RUNS.**
+                        #
+                        # **AND IT COMPETES RATHER THAN RESCUING, WHICH IS ALSO MEASURED.** It
+                        # sat in the `does-not-pay` branch first -- *a tree is what you reach
+                        # for when the chain could not say it* -- and that branch is nearly
+                        # dead: `_cannot_pay` cuts 346,992 of 347,494, only 502 candidates
+                        # reach `pays`, and 502 of them PASS. **29 failures in a whole run, so
+                        # the rescue site had almost no occasions.** The 502 survivors are
+                        # what R says could matter, so the tree is offered THERE and priced by
+                        # the same bargain as everything else. ~2 extra evaluations per
+                        # survivor against 347k already spent.
+                        for bt in self._trees(cand, bind, g):
+                            bcost = term_bits(self.gamma.length(bt, _units),
+                                              self.gamma.alphabet)
+                            bleft = self._left(bt, slot, hist)
+                            if not pays(bcost, bleft, base):
+                                continue
+                            btotal = bcost + bleft
+                            if kind not in by_kind or btotal < by_kind[kind][0]:
+                                by_kind[kind] = (btotal, bleft, bcost, bt)
+                            if best is None or btotal < best[0]:
+                                best = (btotal, bleft, bcost, bt)
                         if not pays(cost, left, base):
                             cuts.append({"name": term.name, "rank": rank, "reversible": True,
                                          "reason": "does-not-pay"})
@@ -3750,6 +3812,7 @@ class Agent:
                     best = (left, t)
                 if left == 0.0:
                     return best
+
         return best
 
     def sweep(self, term: Term, origin_slot: str) -> None:
