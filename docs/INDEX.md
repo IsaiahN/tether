@@ -45029,3 +45029,60 @@ programme-level consequence rather than a code choice.
     MECHANISM   none changed
     CAPABILITY  none. It converts the transfer column from UNMEASURED to NOT-CURRENTLY-POSSIBLE,
                 and names the three routes without taking one
+
+---
+
+## F308 (INDEX series) — **ALL THREE LIVE ARMS TIE ON THE GROUND**, and arm A pays 7x the time for the tie. But NO ARM ADVANCES A LEVEL AT ALL, so the tie may be a property of the WINDOW
+
+**The live ground run, three arms, `sk48` and `dc22` complete. Reported first and plainly, as the
+reviewer required if A ties B.**
+
+    sk48, 10 cycles      advanced   verdict     mints  library  slots   secs
+    A TONIGHT              False    unreached     3      75      707    264
+    B ATOMS-ONLY           False    unreached     3      76      364     38
+    C PRE-TONIGHT          False    unreached     2      80      364     38
+
+    dc22, 10 cycles
+    A TONIGHT              False    unreached     ?       ?        ?      ?
+    B ATOMS-ONLY           False    unreached     0      58      320     28
+    C PRE-TONIGHT          False    unreached     0      61      320     30
+
+**`advanced False`, `verdict unreached`, one level, ON EVERY ARM OF EVERY BOARD SO FAR.**
+
+- **A vs C — did tonight move the ground?** No difference. **And A costs 264s against 38s: SEVEN
+  TIMES THE WORK FOR THE SAME GROUND**, with 707 slots against 364.
+- **A vs B and C vs B — does the library do anything?** No difference. **`F220`'s tie reproduced
+  on the LIVE path with a correctly-constructed atoms-only arm** — which is the first time it has
+  been asked with arm B actually being arm B.
+
+### AND THE CAVEAT IS LARGE ENOUGH THAT IT MAY VOID ALL OF IT
+
+**NO ARM ADVANCED A LEVEL. The ground column has ZERO VARIANCE across six runs.**
+
+> **A TIE IN WHICH NOTHING MOVES IS NOT EVIDENCE THE ARMS ARE EQUIVALENT — it is evidence the
+> window cannot show a difference.** `F285`'s dead-window lesson at the level of the whole
+> comparison: *a zero read inside a short window is a property of the window.* **If 10 cycles is
+> below the first level advance on every board, then every arm ties by construction and the run
+> answers nothing about the library.**
+
+**THE RUN'S OWN OUTPUT SAYS SO IN ITS OWN WORDS**, which is the honesty clause `play()` carries:
+*"ONE level means no differences and the verdict is UNREACHED — no level advanced, so no
+contribution reading exists. That is a statement about the run, not a null about the library."*
+
+**I TRIED TO SETTLE IT AND COULD NOT: a 40-cycle probe timed out competing with the live run for
+CPU.** So whether a level advance is reachable AT ALL on this path is **unmeasured**, and it is
+the question that decides whether `F308` is a finding or a non-measurement.
+
+### WHAT IS NOT IN DOUBT
+
+**The COST difference is real and needs no level advance to read it: 264s against 38s, 707 slots
+against 364.** *Tonight's arms make the agent seven times more expensive per cycle on the live
+path* — and the ground column, whatever it is worth, does not move for it.
+
+    BOUNDARY    2 boards of 4, 10 cycles, 2 repeats, LIVE path. Arm A is the four
+                perception/retrieval arms and DOES NOT INCLUDE INVENTION, which is a separate
+                flag built after the declaration. The ground column has no variance, so no
+                ground claim is made in either direction
+    MECHANISM   none changed
+    CAPABILITY  none. It reproduces `F220`'s tie on the live path with a correct arm B, and
+                attaches a 7x cost to the arm that ties
