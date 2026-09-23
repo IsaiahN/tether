@@ -45219,6 +45219,10 @@ their own.**
     wa30   5,000 random steps   levels 0   terminal 'death'
     sk48   5,000 random steps   levels 0   terminal 'death'
 
+    ^^ "5,000 STEPS" IS MISLEADING AND `F312` CORRECTS IT: there is ONE death, at step 128-309,
+       and the remaining ~95% of the run happens on a DEAD BOARD. The effective horizon is
+       ~200 live steps, not 5,000. The verdict survives; the number in it does not.
+
 **IT IS THE SECOND.** An uninformed draw over the advertised actions, five thousand steps, two
 boards, and **the level counter never moves.** *The agent is not losing a race; there is no race
 being run at this scale.*
@@ -45257,3 +45261,52 @@ cost 7-13x per cycle, and random is ~140x cheaper than the agent for the same gr
     MECHANISM   none changed
     CAPABILITY  none. It converts the live tie from an open question into a measured
                 non-measurement, and bounds a `TRAINING_PLAN` claim that was being relied on
+
+---
+
+## F312 (INDEX series) — IT IS **SURVIVAL, NOT THE HORIZON**. One death at step 128-309, and the agent is dead for **95% of the run** — so "5,000 steps" was ~200 live steps and 4,700 post-mortem
+
+**The reviewer's question, and it splits cleanly: *one death or many decides whether the story is
+the horizon or survival.*** Counted as **TRANSITIONS**, because the record already has this exact
+overcount — *"an ending is a transition, not a state; `terminal()` reports the CURRENT frame, so
+once GAME_OVER it answers death on every later step"*, which once turned one death into 32.
+
+    board   steps   DEATHS   levels   first death   ALIVE
+    wa30     5000        1        0           200    4.0%
+    sk48     5000        1        0           309    6.2%
+    dc22     5000        1        0           128    2.5%
+
+**ONE DEATH EACH. AND THEN NOTHING.** The board dies between steps 128 and 309 and **the
+remaining ~4,700 steps happen on a dead board** — there is no agent-callable reset, by design
+(*"a GAME-INFLICTED restart is the world's own rule; an agent-callable one is a bypass of it"*),
+so the episode is simply over.
+
+### IT CORRECTS MY OWN HEADLINE FROM AN HOUR AGO
+
+**`F311` reported "5,000 random steps advance no level".** True, and **4,700 of those steps were
+post-mortem.** *The effective horizon is ~200 live steps.* **The verdict survives and the number
+in it does not** — and "5,000" was doing rhetorical work that "200" would not have done.
+
+### WHAT THE CORRECTED PICTURE SAYS
+
+    the agent's live runs    10-80 cycles = 10-80 steps -- ENTIRELY INSIDE the alive window,
+                             since the first death is at 128 at the earliest
+    random                   ~200 live steps, then dead
+
+> **SO NEITHER ARM EVER TESTED A LONG HORIZON, AND NEITHER DIED TRYING.** The agent stopped well
+> before the board did. **The question was never *can a level be reached in 5,000 steps* — it is
+> *can a level be reached in the ~200 steps before the board kills you*,** and on three boards
+> nothing does.
+
+**AND THE `alive%` COLUMN IS THE ONE THAT REFRAMES IT.** *2.5-6.2% of a run is playable.* A
+measurement that spends 95% of its steps on a dead board is not measuring the agent — **and every
+per-cycle cost figure tonight was taken inside the live window, so those are unaffected.**
+
+    BOUNDARY    THREE boards, ONE seed, uninformed random, 5,000 steps. Deaths counted as
+                TRANSITIONS. It says the episode ENDS early and no level is reached before it
+                does; it does NOT say a level is unreachable to a policy that survives longer,
+                and nothing here tests whether survival is learnable
+    MECHANISM   none changed
+    CAPABILITY  none. It replaces "levels may be unreachable" with "the board kills everything
+                in ~200 steps and no level is reached first", which is a different problem with
+                a different repair
