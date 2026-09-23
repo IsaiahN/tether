@@ -327,17 +327,27 @@ def _transform() -> list[Atom]:
     gains its first cycle: `rotate . reflect . rotate` is a chain, and `max_depth` binds on
     something for the first time rather than matching the graph exactly.
     """
-    def _rot(v: Any, _c: Ctx) -> Any:
+    # **THESE TWO NEVER DECODED THEIR INPUT, WHICH IS WHY THEY ABSTAINED 36 OF 36.** The census
+    # filed the cause as unmeasured; it is the third instance of the fault `_as_shape`'s own
+    # docstring records -- *it lived inside `_shape_more()`, so the seven atoms there decoded
+    # and `_holes`, in a different closure, did not.* `_transform()` is a third closure and was
+    # missed the same way. The slot hands an INT and the guard below wants a frozenset.
+    #
+    # AND THEY ENCODE ON THE WAY OUT, which is `F242`'s unfixed half: the slot holds an id, so
+    # returning a frozenset is what made `correction_bits` raise on `%`.
+    def _rot(v: Any, c: Ctx) -> Any:
+        v = _as_shape(v, c)
         if not isinstance(v, frozenset) or not v:
             return NOT_RESOLVED
         m = max(r for r, _ in v)
-        return frozenset((c, m - r) for r, c in v)
+        return _to_shape_id(frozenset((cc, m - r) for r, cc in v), c)
 
-    def _ref(v: Any, _c: Ctx) -> Any:
+    def _ref(v: Any, c: Ctx) -> Any:
+        v = _as_shape(v, c)
         if not isinstance(v, frozenset) or not v:
             return NOT_RESOLVED
-        m = max(c for _, c in v)
-        return frozenset((r, m - c) for r, c in v)
+        m = max(cc for _, cc in v)
+        return _to_shape_id(frozenset((r, m - cc) for r, cc in v), c)
 
     return [Atom("rotate", _rot, SHAPE, SHAPE),
             Atom("reflect", _ref, SHAPE, SHAPE)]
@@ -365,6 +375,38 @@ def _as_shape(v: Any, c: Ctx) -> Any:
         return v
     m = getattr(c, "shapes", None) if c is not None else None
     return m.get(v, v) if isinstance(m, dict) else v
+
+
+def _to_shape_id(v: Any, c: Ctx) -> Any:
+    """THE INVERSE OF `_as_shape`. A structure back to the published id, or NOT_RESOLVED.
+
+    **`F242` WAS FIXED IN ONE DIRECTION ONLY.** `_as_shape` decodes the slot's INT into the
+    frozenset every SHAPE atom guards on, and nothing encoded the way OUT -- so a `SHAPE ->
+    SHAPE` atom returned a frozenset while its slot holds an int, and `correction_bits` raised
+    `unsupported operand type(s) for %: 'frozenset' and 'int'` the moment one was allowed to
+    bind. Measured across six boards before this existed: 36 of 36 SHAPE outputs failed
+    `%`. With it, `rotate`/`reflect`/`canonical` return the published id or abstain.
+
+    **LOOKUP AND ABSTAIN. IT NEVER MINTS AN ID, AND THAT IS THE WHOLE RULE.** `arc_percept`
+    assigns ids with `setdefault(shape, len(self._shapes))` -- ON MISS -- and `arc_world:494`
+    makes **the table's LENGTH the SHAPE slot's alphabet**. So minting here would let a
+    PREDICTION grow the denominator the bargain prices it against. `arc_world:485` draws that
+    line itself: growth with OBSERVATION is *a fact about the world, not a metric drifting*,
+    and it names `lib ok here / lib` as the ratio whose denominator its own mechanism moved.
+
+    **A shape the board never published is not a value the slot can take**, so predicting it is
+    unsettleable -- and an abstention is the honest answer rather than a lossy one: the term is
+    right that the shape rotated; it is the SLOT that cannot say so.
+    """
+    if not isinstance(v, frozenset):
+        return v
+    m = getattr(c, "shapes", None) if c is not None else None
+    if not isinstance(m, dict):
+        return NOT_RESOLVED
+    for pid, offsets in m.items():
+        if offsets == v:
+            return pid
+    return NOT_RESOLVED
 
 
 def _shape_facts() -> list[Atom]:
@@ -510,7 +552,9 @@ def _shape_more() -> list[Atom]:
         # which is what makes two differently-oriented copies comparable at all.
         if not isinstance(v, frozenset) or not v:
             return NOT_RESOLVED
-        return min(_dihedral(v), key=lambda f: sorted(f))
+        # ENCODED BACK TO THE PUBLISHED ID -- `_shape` decoded on the way in and nothing
+        # encoded on the way out, so this returned a frozenset into a slot holding an int.
+        return _to_shape_id(min(_dihedral(v), key=lambda f: sorted(f)), _c)
 
     def _orbit(v: Any, _c: Ctx) -> Any:
         v = _shape(v, _c)

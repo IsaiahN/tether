@@ -64,12 +64,20 @@ BINDABLE = ("val", OBJ_TYPE)
 # match**: `BOOL` holds an `int` in the slot and returns a `bool`, which a name comparison calls
 # a mismatch and `%` accepts.
 #
-# `SHAPE` IS ABSENT ON A MEASURED FACT, NOT AN EXEMPTION BY NAME: a SHAPE slot holds the
-# episode-local INT id and a SHAPE-typed atom returns a FROZENSET of offsets -- 36 of 36 failed
-# `%` on six boards. It is re-admitted when the inverse encoder lands, and not before.
-# COLOUR/POSITION/DELTA are UNCHECKABLE rather than agreeing -- every producer of those takes
-# `OBJECT`, so none was ever called and the census has no atom-side reading to compare.
-REPR_AGREES = ("EXTENT",)
+# `SHAPE` WAS ABSENT ON A MEASURED FACT AND IS NOW ADMITTED ON ONE. It read 36 of 36 `%`
+# failures across six boards because a SHAPE slot holds the episode-local INT id while a
+# SHAPE-typed atom returned a FROZENSET of offsets. **The inverse encoder (`_to_shape_id`)
+# landed, so the three SHAPE atoms now return the published id or abstain**: measured on
+# `g50t`, `rotate` 16 int / 14 abstain, `reflect` 20 / 10, `canonical` 20 / 10 -- zero
+# frozensets, zero raises. The condition this table states is met, so the row moves.
+#
+# **THE ABSTENTIONS ARE THE MECHANISM WORKING, NOT A SHORTFALL:** a rotated shape the board
+# never published has no id, and minting one would let a PREDICTION grow the alphabet it is
+# priced against.
+#
+# COLOUR/POSITION/DELTA remain UNCHECKABLE rather than agreeing -- every producer of those
+# takes `OBJECT`, so none was ever called and the census has no atom-side reading to compare.
+REPR_AGREES = ("EXTENT", "SHAPE")
 
 
 def _may_bind(cand: Any, slot_type: str | None) -> bool:
