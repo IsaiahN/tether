@@ -101,6 +101,23 @@ def predict() -> list[Atom]:
     # A type variable is a type-system feature touching every consumer of `out_type`, which is
     # a large bill for ONE atom. TRIGGER TO REVISIT: a SECOND polymorphic-output atom with a
     # real demand behind it. **One atom is not a language feature.**
+    # **`val` IS THE COMMENSURABLE WILDCARD, AND THAT IS A DECISION RATHER THAN AN ODDITY --
+    # reviewer, 2026-09-23, after the retyping was built, measured and reverted.**
+    #
+    # These three are typed `val` and NO SLOT IS EVER TYPED `val`. That reads as a defect and it
+    # was tried as one: `translate: POSITION -> POSITION` and `recolour: COLOUR -> COLOUR` were
+    # built and MEASURED, and the ground refused them -- bound slots 45 -> 29 on `vc33`, DELTA
+    # 13 -> 3, **while POSITION stayed at 2 and COLOUR stayed at 1.** The two types the retyping
+    # existed for gained NOTHING while sixteen bindings were lost. `F338`.
+    #
+    # The reason is structural: `sensors.COMMENSURABLE` is `{{POSITION, DELTA}}`, so `v +
+    # operand` is legitimate on either -- and `also_accepts` widens the INPUT while `out_type`
+    # stays ONE VALUE. **Their honest output is *whatever commensurable type came in*, which the
+    # type system cannot say.** So `val` is doing that job, and doing it correctly.
+    #
+    # TRIGGER TO REVISIT (reviewer, sharpened): **build the type variable when a BINDING exists
+    # with it that cannot exist without it** -- not a chain count, not a pair count. A BINDING.
+    # Today nothing qualifies, and that is measured rather than assumed.
     return [Atom("idn", _idn, "val", "val"),                       # reads nothing
             # `v + operand` is meaningful only between commensurable quantities, so the
             # operand must be whatever the target is. A row plus a colour is arithmetic
