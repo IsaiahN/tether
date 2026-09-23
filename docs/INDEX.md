@@ -45204,3 +45204,56 @@ their own.**
     MECHANISM   none changed
     CAPABILITY  invention crosses a game boundary and fires there, which was impossible two
                 hours ago. Whether what crosses is worth anything is the unmeasured third column
+
+---
+
+## F311 (INDEX series) — THE RANDOM-ACTION CONTROL: **5,000 RANDOM STEPS ADVANCE NO LEVEL ON EITHER BOARD.** So the live null is *nothing can here*, not *our agent cannot* — and `TRAINING_PLAN`'s "random clears some level-1s" does not hold on these two
+
+**The reviewer's control, and it is the one that splits the null.** The live table reads
+`unreached` on every arm of every board, and the probe reads the same at 10, 40 and 80 cycles.
+**Two readings, and nothing measured so far separated them:**
+
+    OUR AGENT CANNOT   a random walker clears a level and the agent does not
+    NOTHING CAN HERE   random cannot either -- the readout cannot discriminate at this scale
+
+    wa30   5,000 random steps   levels 0   terminal 'death'
+    sk48   5,000 random steps   levels 0   terminal 'death'
+
+**IT IS THE SECOND.** An uninformed draw over the advertised actions, five thousand steps, two
+boards, and **the level counter never moves.** *The agent is not losing a race; there is no race
+being run at this scale.*
+
+**AND IT CONTRADICTS A CLAIM ON THE RECORD.** `TRAINING_PLAN` says random clears some level-1s.
+**It does not clear one here** — which is why the reviewer asked for this arm, and the claim is
+now bounded rather than assumed: *not on `wa30` or `sk48`, not in 5,000 steps.*
+
+### TWO OF MY OWN READINGS CORRECTED IN GETTING HERE
+
+**FIRST, AND I REPORTED IT BEFORE CHECKING: I read identical 8.5s timings at 200, 1000 and 4000
+cycles as the loop BREAKING EARLY.** It was not. **The timing is dominated by ARCADE SETUP, not
+by the steps** — 5,000 steps also cost ~8.5s. *An identical number across three inputs IS the
+right thing to be suspicious of, and my explanation for it was wrong.* **The tell was real and
+the diagnosis was not.**
+
+**SECOND: the first version of this control compared `levels_completed` from the random arm
+against `len(levels_rows)` from the agent runs — 0 against 1 — and I nearly reported random
+LOSING.** *Two different quantities under one word.* **`A6i`, and the two-scripts error
+together**; the fix was both arms in ONE script behind ONE flag, reading `env.levels()[0]`.
+
+### WHAT IT MEANS FOR THE LIVE TABLE
+
+> **`F308`/`F309`'s tie is a NON-MEASUREMENT, and now on evidence rather than on suspicion.** No
+> policy available to us — trained, atoms-only, or uninformed random — moves the ground column on
+> these boards at these scales. **A column that nothing moves cannot rank anything**, so the tie
+> between A, B and C says nothing about the library.
+
+**AND THE COST FINDING IS UNTOUCHED AND IS NOW THE ONLY LIVE READING THAT STANDS:** tonight's arms
+cost 7-13x per cycle, and random is ~140x cheaper than the agent for the same ground of nothing.
+
+    BOUNDARY    TWO boards, THREE seeds, 5,000 steps, LIVE path, uninformed draw. It does not
+                say a level is unreachable -- it says no available policy reaches one HERE. A
+                positioned-action policy, a longer horizon, or another board could differ, and
+                `terminal 'death'` on both says the episodes are ENDING rather than stalling
+    MECHANISM   none changed
+    CAPABILITY  none. It converts the live tie from an open question into a measured
+                non-measurement, and bounds a `TRAINING_PLAN` claim that was being relied on
