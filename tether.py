@@ -955,6 +955,41 @@ class Agent:
                 return None
         return (value,)
 
+    def _ingredient_slots(self, ingredient: str) -> tuple | None:
+        """INGREDIENT NAME -> THE SLOTS IT ACTUALLY TOUCHES. The join that did not exist.
+
+        **A JUNCTION'S OPERANDS ARE INGREDIENT NAMES (`Rotate`); THE DELTA'S QUANTITIES ARE SLOT
+        NAMES (`o0.dcol`). NOTHING CONNECTED THEM**, so a bond test could only have asserted
+        *the ingredient `Rotate` came or went*, which has no referent. This is the missing hop,
+        and it computes nothing new -- both names already exist and the route between them is
+        two lookups.
+
+        `ingredient -> atom` is the normalised join (`945f8da`): the corpus writes `Rotate`, the
+        registry writes `rotate`, and matching them case-sensitively is what returned zero.
+
+        `atom -> slots` IS THE BINDING, WHICH IS THE ONLY HONEST ANSWER AVAILABLE. An atom is a
+        function and touches nothing by itself; what makes it bear on a slot is that a term
+        CONTAINING it is bound there. So the slots are the bound ones whose term names this
+        atom -- evidence the agent itself produced, never a declaration about what the atom is
+        for.
+
+        **`None`, NOT `()`, WHEN THE INGREDIENT DOES NOT RESOLVE** -- `_ops` established this
+        distinction on the same day and for the same reason: `()` says NO SLOTS and `None` says
+        I COULD NOT TELL, and a test that reads those alike will settle a junction on an
+        absence it never measured.
+        """
+        atom = _norm_name(ingredient)
+        if atom not in {_norm_name(a.name) for a in self.gamma.atoms}:
+            return None                       # names nothing this agent holds
+        hit = []
+        for slot, tname in self.bound.items():
+            term = self.gamma.library.get(tname)
+            if term is None:
+                continue
+            if any(_norm_name(a.name) == atom for a in term.atoms):
+                hit.append(slot)
+        return tuple(sorted(hit))
+
     def _delta(self) -> dict:
         """THE FRAME'S DELTA, in the shape `composer.settle` reads.
 
@@ -990,8 +1025,13 @@ class Agent:
         # whether THIS delta decides it; an undecided junction stays UNKNOWN.
         d = self._delta()
         tallies = [composer.settle_tree(m["node"], d) for m in mols]
+        # THE JOIN, REPORTED PER INGREDIENT. `None` = names no atom this agent holds;
+        # `()` = holds the atom and it is bound nowhere, so it touched nothing this cycle.
+        reach = {i: self._ingredient_slots(i) for m in mols for i in m["recipe"]}
         self.led.record(self.cycle, "PERCEIVE", "*", "vocabulary",
                         delta_keys=sorted(d),
+                        ingredient_slots={k: (None if v is None else len(v))
+                                          for k, v in reach.items()},
                         junctions_decided=sum(t["decided"] for t in tallies),
                         junctions_undecided=sum(t["undecided"] for t in tallies),
                         why_undecided=[w for t in tallies for w in t["why"]][:3],
