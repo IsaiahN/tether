@@ -1152,6 +1152,12 @@ class Agent:
             return NOT_RESOLVED if got is None else got
 
         lic = dict(licence)
+        # THE RECORDED DELTA TRAVELS WITH THE LICENCE. Reviewer, 2026-09-23, route 2: persist
+        # the observation and RE-INVENT on load, rather than writing the function. The pairs
+        # are DATA the agent recorded, so a library file carrying them is not a second producer
+        # of the vocabulary -- it is the same evidence that licensed the atom the first time.
+        # Keys are stringified because this round-trips through JSON.
+        lic["delta"] = {str(k): v for k, v in pairs.items()}
         lic["observed"] = len(pairs)
         lic["slot_type"] = self.slot_types.get(slot)
         if self.gamma.invent(name, fn, "val", "val", lic):

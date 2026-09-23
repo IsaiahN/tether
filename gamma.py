@@ -29,6 +29,22 @@ from sensors import NOT_RESOLVED
 
 sys.dont_write_bytecode = True
 
+def _replay_delta(d: dict):
+    """The re-invented atom's body: the agent's RECORDED observation, replayed.
+
+    A FACTORY AT MODULE LEVEL, not a closure in the loop -- defining it inside the loop binds
+    the loop variable, so every re-invented atom would end up carrying the LAST delta in the
+    file. Each call closes over its own map.
+
+    Keys are strings because the delta round-trips through JSON; the lookup stringifies to
+    match, and an unrecognised value ABSTAINS rather than guessing.
+    """
+    def fn(v, _c):
+        got = d.get(str(v))
+        return NOT_RESOLVED if got is None else got
+    return fn
+
+
 PRIOR, MINTED, IMPORTED = "prior", "minted", "imported"
 # THE FOURTH ORIGIN, AND IT IS A FOURTH RATHER THAN A REUSE OF `IMPORTED` ON PURPOSE. Isaiah,
 # 2026-09-22: *import comes from OUTSIDE the library... it is the CREATION OF A BRAND-NEW ATOM
@@ -540,8 +556,20 @@ class Gamma:
                         "handle": self.handles.get(name), "game": self.game,
                         "admitted": getattr(st, "admitted", None) if st else None,
                         "residual": getattr(st, "residual", None) if st else None})
-        pathlib.Path(path).write_text(json.dumps(out, indent=1), encoding="utf-8")
-        return {"written": len(out), "path": path}
+        # ROUTE 2 -- reviewer, 2026-09-23. **THE RECORDED DELTA AND ITS LICENCE, NEVER THE
+        # FUNCTION.** `invent` made the registry run-local, which broke this file's standing
+        # assumption that atoms are "identical on both sides" -- so a term built on an invented
+        # atom was refused on load and invention could not transfer at all (`F307`).
+        #
+        # WRITING THE DEFINITION IS STILL REFUSED, and the docstring's reason still holds: it
+        # would make this file a second producer of the vocabulary. **What is written is the
+        # OBSERVATION the agent recorded and the abstention that licensed it** -- data, not a
+        # function -- and `load` RE-INVENTS from it, through the same `invent` gate, so the
+        # licence is re-checked on the way in rather than trusted from the file.
+        blob = {"terms": out,
+                "invented": {n: rec for n, rec in self.invented.items() if rec.get("delta")}}
+        pathlib.Path(path).write_text(json.dumps(blob, indent=1), encoding="utf-8")
+        return {"written": len(out), "invented": len(blob["invented"]), "path": path}
 
     def load(self, path: str) -> dict:
         """Read a saved library into this Gamma. **SEAT-SIDE, and it REFUSES loudly.**
@@ -562,8 +590,26 @@ class Gamma:
         games there is no first. `necessary` stays, `promoted` wipes, **`IMPORTED` wipes and is
         counted apart**, so the transfer number is readable and the ablation is unaffected.
         """
-        rows = json.loads(pathlib.Path(path).read_text(encoding="utf-8"))
+        blob = json.loads(pathlib.Path(path).read_text(encoding="utf-8"))
+        # BACKWARD-COMPATIBLE BY SHAPE, not by a version flag: files written before route 2 are
+        # a bare list. A flag would be a second thing to keep in step with the format.
+        rows = blob if isinstance(blob, list) else blob.get("terms", [])
         took, refused = [], []
+        # RE-INVENT FIRST, so a term naming an invented atom can resolve below. Each goes back
+        # through `invent`, so **the licence is re-checked on the way in rather than trusted
+        # from the file** -- a file claiming an invention without an abstention behind it is
+        # refused exactly as a live one would be.
+        reinvented = []
+        for nm, rec in (blob.get("invented") or {} if isinstance(blob, dict) else {}).items():
+            delta = rec.get("delta") or {}
+            if not delta or nm in self._by_name:
+                continue
+
+            try:
+                if self.invent(nm, _replay_delta(dict(delta)), "val", "val", rec):
+                    reinvented.append(nm)
+            except ValueError:
+                refused.append({"atoms": [nm], "why": "invention without a licence in the file"})
         for r in rows:
             names = tuple(r["atoms"])
             if not all(n in self._by_name for n in names):
@@ -579,7 +625,10 @@ class Gamma:
             if r.get("handle"):
                 self.handles[t.name] = r["handle"]   # the birth handle, carried
             took.append({"handle": r.get("handle"), "already_held": False})
+        # `reinvented` IS REPORTED, because a silent count is how an invented atom
+        # crossing a game boundary would be invisible -- and that crossing is the claim.
         return {"loaded": sum(1 for x in took if not x["already_held"]),
+                "reinvented": len(reinvented),
                 "already_held": sum(1 for x in took if x["already_held"]),
                 "refused": refused,
                 "reads": ("composition crosses, binding does not. A refused row is an "

@@ -45086,3 +45086,69 @@ path* — and the ground column, whatever it is worth, does not move for it.
     MECHANISM   none changed
     CAPABILITY  none. It reproduces `F220`'s tie on the live path with a correct arm B, and
                 attaches a 7x cost to the arm that ties
+
+---
+
+## F309 (INDEX series) — ROUTE 2 BUILT: an invented atom now SURVIVES save/load by persisting **the recorded delta and its licence**, re-invented through the same gate. And the full live table: **ALL FOUR BOARDS, ALL THREE ARMS, IDENTICAL ON THE GROUND**
+
+### Route 2, as the reviewer ruled it
+
+**`F307` found invention could not transfer: `save` does not write atoms, because that would make
+the file *a second producer of the vocabulary*.** The ruling takes neither horn — **persist the
+OBSERVATION, not the function.**
+
+    save   {"terms": [...], "invented": {name: {delta, verdict, observed, ...}}}
+    load   re-invents each THROUGH `Gamma.invent`, so the LICENCE IS RE-CHECKED ON THE WAY IN
+           rather than trusted from the file
+
+**Verified by round-trip:** the atom is absent before load and present after; it replays its
+recorded delta (`5 -> 9`) and **abstains on anything else**; and a file claiming an invention
+with **no abstention behind it is REFUSED** exactly as a live one would be.
+
+**Backward-compatible BY SHAPE** — a pre-route-2 file is a bare list — rather than by a version
+flag, which would be a second thing to keep in step. **`_replay_delta` is a module-level factory
+on purpose:** defined in the loop it would bind the loop variable and every re-invented atom
+would carry the LAST delta in the file. **`reinvented` is reported**, because a silent count is
+how an atom crossing a game boundary would be invisible, and that crossing is the claim.
+
+### THE FULL LIVE TABLE — four boards, three arms, 10 cycles, 2 repeats
+
+    board   arm             advanced  verdict    mints  library  slots   secs
+    sk48    A TONIGHT        False    unreached    3      75      707    264
+    sk48    B ATOMS-ONLY     False    unreached    3      76      364     38
+    sk48    C PRE-TONIGHT    False    unreached    2      80      364     38
+    dc22    B ATOMS-ONLY     False    unreached    0      58      320     28
+    dc22    C PRE-TONIGHT    False    unreached    0      61      320     30
+    g50t    A TONIGHT        False    unreached    0      56      237    198
+    g50t    B ATOMS-ONLY     False    unreached    2      58      128     19
+    g50t    C PRE-TONIGHT    False    unreached    2      59      128     19
+    wa30    A TONIGHT        False    unreached    0      59      203    124
+    wa30    B ATOMS-ONLY     False    unreached    0      56      116      9
+    wa30    C PRE-TONIGHT    False    unreached    0      56      116      9
+
+**`advanced False`, `verdict unreached`, ONE LEVEL — ON EVERY ARM OF EVERY BOARD.**
+
+> **AND THE COST IS THE ONLY COLUMN THAT MOVES: `wa30` 124s against 9s — THIRTEEN TIMES.** `g50t`
+> 198s against 19s, **ten times.** `sk48` seven times. *Tonight's arms are consistently an order
+> of magnitude more expensive per cycle on the live path, and nothing in the ground column
+> distinguishes them from an agent carrying no library at all.*
+
+**AND ON `g50t` THE ARMS MINT LESS, NOT MORE — 0 against 2.** A smaller library, at ten times the
+cost, for the same ground.
+
+### THE CAVEAT STILL STANDS AND STILL VOIDS THE VERDICT
+
+**No arm advanced a level anywhere, so the ground column has ZERO VARIANCE across twenty-two
+runs.** *A tie in which nothing moves is not evidence of equivalence; it is evidence the window
+cannot show a difference.* **Whether a level advance is reachable on this path at ANY cycle count
+is still unmeasured** — the 40-cycle probe timed out against the live run — **and that single
+question decides whether this table is the programme's finding or its largest non-measurement.**
+
+    BOUNDARY    4 boards, 10 cycles, 2 repeats, LIVE path, per board never pooled. Arm A is the
+                four perception/retrieval arms and DOES NOT include invention. The ground column
+                has no variance, so NO GROUND CLAIM IS MADE in either direction. The COST
+                columns need no level advance and stand on their own
+    MECHANISM   `gamma.save`/`load` carry `invented` as delta+licence; `_replay_delta`;
+                `reinvented` reported. 13/13 seats
+    CAPABILITY  invention can cross a game boundary, which it could not an hour ago -- and
+                nothing has yet crossed one
