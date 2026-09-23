@@ -551,6 +551,32 @@ reads as something that will be enforced, and it will not be.
   candidates reach `pays`, 502 of them PASS, and there are 29 failures in an entire run.** A
   rescue site with almost no occasions. **Three runs from BUILT to BUILT-AND-REACHED, and the
   first two both read as a clean 13/13 with a dead mechanism behind them.**
+- **STALE BY SUCCESS — A REPAIR THAT MAKES ANOTHER COMPONENT'S TEXT FALSE. 2026-09-23, two
+  instances in one commit, and it is the executes-check's mirror image.** Every other failure
+  tonight was a thing BUILT AND NEVER REACHED. **These were CORRECT UNTIL I FIXED SOMETHING
+  ELSE.**
+
+  Publishing `came`/`gone` — a quantity two components had each independently recorded as
+  missing — immediately falsified both records of its absence:
+
+      `settle_tree`  reported `BONDS[0]`'s reason unconditionally, so the tally still said the
+                     delta lacked ORDER when the truth had become *the quantity is carried and
+                     no test is written*. `bond_field` exists to keep a missing FIELD and a
+                     missing TEST distinguishable, and that line collapsed them one level up
+      `NEEDS`        still read *"computed in `_present` and UNPUBLISHED"*, which would have
+                     made a REASON STRING lie every time a junction went undecided
+
+  **NEITHER WOULD HAVE FAILED ANYTHING. BOTH WOULD HAVE LIED** — and the tell is that both were
+  WORDING, which no test reads. A seat cannot catch this; a passing suite is exactly what it
+  looks like.
+
+  > **THE GUARD: WHEN A BUILD MAKES A QUANTITY EXIST, GREP FOR EVERY PLACE THAT SAYS IT DOES
+  > NOT.** Reason strings, docstrings, needs-lists, comments — the places no test reads. **One
+  > grep on the quantity's own name.**
+
+  **And it belongs beside the executes-check because they are the same family from opposite
+  ends: that one asks *does this site run before I build into it*, this one asks *what did I
+  just make untrue*.**
 - **NO ARM'S READINGS ARE GENERALISED UNTIL THAT ARM HAS EXECUTED ON BOTH HARNESSES — reviewer,
   2026-09-23, earned by a three-second crash.** The first live run of the observer arm died at
   `arc_world.py:181`, `if g and g[0]`: **`ReplayTape` hands LISTS and `arcengine` hands NUMPY
