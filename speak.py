@@ -65,6 +65,16 @@ def sentences(rows: list[dict]) -> list[tuple[list[int], str]]:
                                f"reaches {d.get('reach')} of {d.get('unsat')}."))
         elif ev == "routine_refused":
             out.append(([seq], f"On {slot} I formed no plan: {d.get('reason')}."))
+        elif ev == "routine_abandoned":
+            # METACOGNITION'S SENTENCE. It has to say the CLAIM, the MISS and the SAVING, because
+            # those are the three things that distinguish abandoning from the other four endings
+            # -- `done`, `blocked`, `exhausted` and `unadvertised` all describe the ROUTINE, and
+            # only this one describes the agent noticing it was wrong while there was still
+            # budget left to waste.
+            out.append(([seq], f"On {slot} I dropped my plan `{d.get('routine')}` at step "
+                               f"{d.get('step_index')}: I expected {slot} to change and it "
+                               f"stayed {_n(d.get('unchanged_at'))}. That saved "
+                               f"{d.get('actions_saved')} step(s) I would have spent on it."))
         elif ev == "reuse_install":
             out.append(([seq], f"On {slot} the sweep put `{d.get('term')}` into my library "
                                f"without asking the bargain. It would have said "

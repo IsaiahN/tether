@@ -659,6 +659,10 @@ class Agent:
         # `routine.Let`'s store. Published by `advance`, read by the caller's `holds`, so the
         # act space keeps its invariant that `routine.py` never evaluates a predicate.
         self.routine_state: dict = {}
+        # `(slot, value when the claim was made, step index)`, or None. One at a time: the loop
+        # takes ONE action per cycle, so a second claim cannot be outstanding.
+        self._expect: tuple | None = None
+        self._expect_step = 0
         # THE REJECT MEMORY, §18.2's `falsified_ledger` at routine scale. Without it the loop
         # found by re-verification is: mint, exhaust, release, re-mint the identical routine in
         # the same cycle, forever -- **the failure `M2_STANDARD` names in its own words,
@@ -997,6 +1001,38 @@ class Agent:
             if any(_norm_name(a.name) == atom for a in term.atoms):
                 hit.append(slot)
         return tuple(sorted(hit))
+
+    def _check_expectation(self, before: dict) -> bool:
+        """Did the last step's claim hold? **ABANDON on divergence -- not revise, not re-plan.**
+
+        Returns True when the routine was abandoned, so the caller stops running it.
+
+        **ABANDONMENT IS NOT REFUTATION, and the two must not share a channel.** A refutation
+        says *this routine is wrong*; this says *it is not working HERE*. So it is keyed by the
+        CONTEXT -- the gap shape the routine was minted against -- and it does not touch the
+        rejection ledger, which is what would make a routine that failed on one board unusable
+        on every other.
+
+        **THE CURRENCY IS ACTIONS.** The number reported is steps NOT SPENT: what the routine
+        still had left when it was dropped, which is exactly what noticing bought.
+        """
+        exp = self._expect
+        if not exp:
+            return False
+        self._expect = None
+        slot, was, idx = exp
+        now = before.get(slot, was)
+        if now != was:
+            return False                      # the claim held; carry on
+        saved = Rt.length(self.routine) if self.routine is not None else 0
+        self.led.record(self.cycle, "PLAN", slot, "routine_abandoned",
+                        reason="expected this slot to change and it did not",
+                        # `step_index`, NOT `step`: `led.record`'s own first positional is
+                        # `step`, so the obvious name silently shadowed it.
+                        step_index=idx, unchanged_at=was, actions_saved=saved,
+                        routine=Rt.render(self.routine) if self.routine else None)
+        self.routine, self.routine_for = None, None
+        return True
 
     def _delta(self) -> dict:
         """THE FRAME'S DELTA, in the shape `composer.settle` reads.
@@ -2241,10 +2277,26 @@ class Agent:
         # A HELD ROUTINE RUNS BEFORE ANYTHING ELSE IS CONSULTED, because that is what
         # committing to a behaviour MEANS. A routine that re-decided every cycle against the
         # branches would be a single-step chooser wearing a plan's name.
+        # THE CHECK COMES FIRST, BEFORE THE NEXT STEP IS SPENT. That ordering is the whole
+        # point: noticing after the action would cost the step it was meant to save.
+        # **FALLS THROUGH RATHER THAN RETURNING.** `_check_expectation` clears `self.routine`,
+        # so the branch below simply does not fire and `choose` goes on to pick normally.
+        # Returning here would hand `None` to `env.step` AND make abandoning cost the very
+        # action it exists to save -- the currency is actions, so noticing must be free.
         if self.routine is not None:
+            self._check_expectation(before)
+        if self.routine is not None:
+            self.routine_state.pop("expect", None)
             emit, rest = Rt.advance(self.routine, self._holds(before),
                                     self.routine_lib, self.routine_state)
             if emit not in (Rt.DONE, Rt.BLOCKED, Rt.EXHAUSTED) and emit in self.actions:
+                # THE CLAIM, MADE BEFORE THE ACTION LANDS. `advance` published which slots this
+                # step expects to move; the value is recorded NOW so next cycle compares against
+                # what was true when the claim was made, not against a later frame.
+                want = (self.routine_state.get("expect") or [None])[0]
+                if want is not None:
+                    self._expect_step += 1
+                    self._expect = (want, before.get(want), self._expect_step)
                 self.routine = rest
                 return emit, "routine"
             # ENDED, AND THE FOUR ENDINGS ARE NOT ONE. `done` is the guard met; `exhausted` is
@@ -3141,7 +3193,12 @@ class Agent:
                             base=round(base, 4), reach=Rt.reach(cand),
                             considered=len(priced), shelf=len(shelf))
             return
-        self.routine, self.routine_for = cand, slot
+        # **WRAPPED IN AN EXPECTATION AT ADOPTION.** The source is hardcoded and says so: a
+        # routine minted FOR a slot expects THAT SLOT to change. A per-step predicted VALUE
+        # would need the term space; a predicted CHANGE needs only the delta already published.
+        # `Expect` rebuilds around the remainder, so the claim is re-made every step rather
+        # than once at the start.
+        self.routine, self.routine_for = Rt.Expect(slot, cand), slot
         self.led.record(self.cycle, "PLAN", slot, "routine", verdict="pays",
                         routine=Rt.render(cand), length=Rt.length(cand),
                         units=Rt.length(cand, shelf),

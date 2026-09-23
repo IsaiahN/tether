@@ -119,6 +119,28 @@ class Let:
     body: Any
 
 
+@dataclass(frozen=True)
+class Expect:
+    """WHAT THIS STEP EXPECTS TO HAPPEN -- metacognition's attach half.
+
+    **A ROUTINE THAT CANNOT BE WRONG MID-FLIGHT SPENDS ITS WHOLE BUDGET BEFORE ANYONE NOTICES.**
+    Every other ending here is structural -- the body ran out (`DONE`), a guard was unreadable
+    (`BLOCKED`), the budget went (`EXHAUSTED`). **None of them says *this is not going how I
+    said it would*.** That reading needs a claim made BEFORE the step and checked after, and
+    there was nowhere to put the claim.
+
+    ONE QUANTITY, ONE SLOT, deliberately: the MVP is *did the thing I named change*, not a
+    predicted value. A predicted VALUE needs the term space; a predicted CHANGE needs only the
+    delta the agent already publishes.
+
+    **IT WRAPS RATHER THAN REPLACES**, exactly as `Bonded` wraps `Term`: the body is any
+    routine, so an expectation can sit on a single `Act` or on a whole `Until`, and nothing
+    that already walks routines needs to know which.
+    """
+    slot: str
+    body: Any
+
+
 # A CALL CANNOT RECURSE FOREVER. `Until` is bounded by a DERIVED budget; a call has no natural
 # one, so this is a STOP rather than a bound -- it exists to make runaway recursion EXHAUSTED
 # (a readable ending) instead of a stack overflow.
@@ -177,6 +199,16 @@ def advance(r: Any, holds: Callable[[Any], bool | None],
         # REBUILT AROUND THE REST so the binding survives to the next `advance`.
         return emit, (Let(r.var, r.value, rest) if rest is not None else None)
 
+    if isinstance(r, Expect):
+        # **TRANSPARENT TO EXECUTION, AND THAT IS THE DESIGN.** The expectation is a claim about
+        # what the NEXT delta will show, and this module never evaluates a predicate -- so it
+        # publishes the claim through `state` and the caller checks it after the action lands.
+        # Advancing here must not stall, or an expectation would cost a step to hold.
+        if state is not None:
+            state.setdefault("expect", []).append(r.slot)
+        emit, rest = advance(r.body, holds, lib, state, _depth)
+        return emit, (Expect(r.slot, rest) if rest is not None else None)
+
     if isinstance(r, Until):
         # ITERATIVE, NOT RECURSIVE. A body that completes without emitting would recurse once
         # per iteration, so a large derived budget would hit the interpreter's stack before it
@@ -226,7 +258,7 @@ def length(r: Any, chunks: tuple = ()) -> int:
         return 1 + length(r.first, chunks) + length(r.then, chunks)
     if isinstance(r, (When, Until)):
         return 1 + length(r.body, chunks)
-    if isinstance(r, Let):
+    if isinstance(r, (Let, Expect)):
         return 1 + length(r.body, chunks)
     if isinstance(r, Call):
         return 1                                   # a NAME costs one, not its body's length
@@ -245,7 +277,7 @@ def guards(r: Any) -> tuple:
         return guards(r.first) + guards(r.then)
     if isinstance(r, (When, Until)):
         return (r.guard,) + guards(r.body)
-    if isinstance(r, Let):
+    if isinstance(r, (Let, Expect)):
         return guards(r.body)
     if isinstance(r, Call):
         return ()                                  # the callee's guards are checked at its own site
@@ -268,7 +300,7 @@ def actions(r: Any, lib: dict | None = None, _seen: frozenset = frozenset()) -> 
         return (r.action,)
     if isinstance(r, Seq):
         return actions(r.first, lib, _seen) + actions(r.then, lib, _seen)
-    if isinstance(r, (When, Until, Let)):
+    if isinstance(r, (When, Until, Let, Expect)):
         return actions(r.body, lib, _seen)
     if isinstance(r, Call):
         if lib is None or r.name not in lib:
@@ -293,6 +325,8 @@ def render(r: Any) -> str:
         return f"{r.name}()"
     if isinstance(r, Let):
         return f"let {r.var}={r.value} in {{{render(r.body)}}}"
+    if isinstance(r, Expect):
+        return f"expect({r.slot}) {{{render(r.body)}}}"
     raise TypeError(f"not a routine: {r!r}")
 
 
@@ -364,7 +398,7 @@ def reach(r: Any, lib: dict | None = None, _seen: frozenset = frozenset()) -> in
         return reach(r.body, lib, _seen)
     if isinstance(r, Until):
         return max(r.budget, 0) * reach(r.body, lib, _seen)
-    if isinstance(r, Let):
+    if isinstance(r, (Let, Expect)):
         return reach(r.body, lib, _seen)
     if isinstance(r, Call):
         # **ZERO WHEN UNRESOLVED, AND THAT IS THE SAFE DIRECTION HERE RATHER THAN THE LOUD ONE.**
