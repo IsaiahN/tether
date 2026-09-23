@@ -57,6 +57,11 @@ ITEMS = {
     # reviewer 17:44 -- marking a contested passage is WORK, and work that cannot be
     # spelled gets done under a wrong item or not at all.
     "doc.consistency": "mark a contradiction CONTESTED; repair only once Isaiah rules",
+    # ISAIAH, 2026-09-23: "can you build the missing sensors and also check because we had a
+    # sensor heavy thing before was it not wired or turned on?" -- a direct order, which is
+    # how an item enters the declared list. Reviewer ordered it the same tick: the two
+    # deltas and the extraction first, then the arm I measurement.
+    "sensors": "what perception EMITS -- a reading the agent cannot compose for itself",
     # THE GATES NAME THEMSELVES, the way `focus.py`'s own commits are L3 under its own rule.
     # Without this the control could not be introduced by a commit that obeys it.
     "seat": "a check, a guard, or the aim discipline itself",

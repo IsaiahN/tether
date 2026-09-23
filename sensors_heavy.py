@@ -1,12 +1,30 @@
-"""Heavy sensors -- the mapping layer that makes the 2,700 searchable.
+"""Heavy sensors -- the mapping layer that was built to make the 2,700 searchable.
 
-PROCTOR-SIDE, lint-guarded out of the betting path (like observer/detectors). Each atom in
-`docs/library-closure` is a detector: attributes + a boolean condition. An atom is SEARCHABLE
-when the encodings its attributes need are computed. The observer computed 4 encodings; this
-computes the rest, so a condition can be checked against a board instead of being told.
+SUPERSEDED, AND PENDING DELETION -- reviewer, 2026-09-23. Do not build on this module. Read
+the four corrections below before using any reading in it.
 
-Every quantity here is read off the grid the loop already has -- a scalar shows as a palette
-band or an extent (ATTRIBUTE_REACH), so this NAMES what is perceived, it adds no sense."""
+  1  IT IS NOT LINT-GUARDED. This docstring claimed "lint-guarded out of the betting path
+     (like observer/detectors)" and `conform/lint.py`'s `_CUE_MODULES` is
+     {relations, observer, mapping, detectors, composer} -- this module is NOT in it. It
+     stays out of the betting path only as a side effect of its two importers being guarded.
+  2  IT WAS NEVER WIRED, WHICH IS WHY IT WAS NEVER VALIDATED. Measured with all five arms
+     ON: it does not appear in `sys.modules` after the agent steps. No flag turns it on;
+     there is no import edge to turn on.
+  3  `_holes` IS WRONG. It seeds its flood from the bbox BORDER cells, so an object occupying
+     its own border blocks the flood and every interior cell reads as enclosed -- and it
+     counts CELLS where the agent's atom counts enclosed REGIONS. 56 disagreements of 263
+     objects on wa30; a 5x5 ring reads 9 against the correct 1. The one implementation is
+     now `arc_percept.holes_of`, with `perimeter_of` beside it.
+  4  MOST OF ITS 45 READINGS ARE NOT NEW. `contactPoints` IS the published `contact`;
+     `dCells` IS `dcells`; `height`/`width` are `h`/`w`; `area`/`perimeter`/`holes` collide
+     with registered ATOMS; and roughly twenty more are arithmetic over readings already
+     published, which is the agent's job rather than perception's. The two that survived --
+     `dholes` and `dperimeter` -- were extracted and now live behind `TETHER_SHAPE_DELTA`.
+
+DELETION IS BLOCKED ON A SCOPE QUESTION, NOT ON WORK. `observer.py` consumes `scalar`,
+`state`, `relation` and `temporal` -- the whole surface -- so removing this file means
+removing the seat-side mapping cluster (observer, detectors, mapping, synth) with it. That is
+wider than the ruling, so it is asked rather than assumed."""
 from __future__ import annotations
 
 import sys

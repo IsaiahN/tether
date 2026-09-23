@@ -38,6 +38,25 @@ sys.dont_write_bytecode = True
 # aggregated to a count (`F165`).
 _OBSERVER = bool(os.environ.get("TETHER_OBSERVER"))
 
+# THE SHAPE-DELTA ARM, DEFAULT OFF. `dholes`/`dperimeter`: how a matched object's CELL-SET
+# quantities moved frame-to-frame. The reviewer cleared these on one test and it is worth
+# keeping at the site -- **no atom accepts `OBJECT_BEFORE`.** It reaches exactly two SENSORS
+# (`overlap`, `delta`) and zero atoms, so the agent cannot get at the previous object and
+# genuinely cannot compose a cross-frame delta itself. The tracker holds both frames; the
+# agent does not. That makes these PERCEPTION, on the same footing as `drow`/`dcol`, and not
+# a composition being handed over.
+#
+# THE OTHER SEVEN HEAVY DELTAS ARE DELIBERATELY ABSENT. `dArea`, `dGirth`, `dDensity`,
+# `dSolid`, `dOrientation` are arithmetic over quantities already published, and `dCells` IS
+# `dcells` under a different capitalisation. Only the two whose BASE is a cell-set computation
+# survive -- `holes` counts enclosed regions and `perimeter` counts exposed edges, and neither
+# is reachable from `h`/`w`/`dcells`.
+#
+# PAIRS WITH ARM I RATHER THAN STANDING ALONE: the `holes` and `perimeter` ATOMS only resolve
+# when `TETHER_SHAPE_DECODE` is on, so with arm I off the agent reads a delta of a quantity it
+# cannot itself measure. Both arms belong on together; that is a measurement, not a default.
+_SHAPE_DELTA = bool(os.environ.get("TETHER_SHAPE_DELTA"))
+
 
 def as_index_grid(frame: Any) -> list[list[int]] | None:
     """THE INPUT ADAPTER, AHEAD OF LAYER 1. Two front ends, one output.
@@ -211,6 +230,61 @@ def touching(a: dict, b: dict) -> bool:
     return any((r + dr, c + dc) in cells
                for r, c in a["cells"]
                for dr, dc in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+
+
+def holes_of(cells) -> int:
+    """ENCLOSED REGIONS of a cell set -- a figure-eight is TWO, not two cells' worth.
+
+    **THE ONE IMPLEMENTATION, and it is here because there were two.** `arc_atoms._holes` lived
+    inside `_shape_facts()` and `sensors_heavy._holes` computed something else entirely under
+    the same name: it seeded its flood from the bbox BORDER cells, so an object occupying its
+    own border -- a ring, a filled rectangle -- blocked the flood and every interior cell read
+    as enclosed. Measured on `wa30`, 263 objects: **56 disagreements, one of them 5 against
+    640.** It also counted CELLS where this counts REGIONS. Two quantities, one name, and
+    neither site said so.
+
+    Translation-invariant, so an offset shape and an absolute cell set give the same answer --
+    which is why one function serves both the SHAPE atom and the per-object delta.
+    """
+    v = {tuple(c) for c in cells}
+    if not v:
+        return 0
+    rs = [r for r, _ in v]
+    cs = [c for _, c in v]
+    # flood the COMPLEMENT from outside the bounding box; whatever the flood misses is
+    # enclosed. A one-cell margin is what lets the outside connect around the shape.
+    lo_r, hi_r, lo_c, hi_c = min(rs) - 1, max(rs) + 1, min(cs) - 1, max(cs) + 1
+    seen, stack = set(), [(lo_r, lo_c)]
+    while stack:
+        r, c = stack.pop()
+        if (r, c) in seen or (r, c) in v:
+            continue
+        if not (lo_r <= r <= hi_r and lo_c <= c <= hi_c):
+            continue
+        seen.add((r, c))
+        stack += [(r + 1, c), (r - 1, c), (r, c + 1), (r, c - 1)]
+    left = {(r, c) for r in range(lo_r, hi_r + 1) for c in range(lo_c, hi_c + 1)
+            if (r, c) not in v and (r, c) not in seen}
+    regions = 0
+    while left:
+        regions += 1
+        stack = [left.pop()]
+        while stack:
+            r, c = stack.pop()
+            for nb in ((r + 1, c), (r - 1, c), (r, c + 1), (r, c - 1)):
+                if nb in left:
+                    left.discard(nb)
+                    stack.append(nb)
+    return regions
+
+
+def perimeter_of(cells) -> int:
+    """EXPOSED CELL EDGES -- one per neighbour a cell does not have, so a concave boundary and
+    a hole's inner wall both count. Not the bounding-box outline. Same one-implementation
+    reason as `holes_of`."""
+    v = {tuple(c) for c in cells}
+    return sum(1 for r, c in v
+               for nb in ((r + 1, c), (r - 1, c), (r, c + 1), (r, c - 1)) if nb not in v)
 
 
 def contact_faces(a: dict, b: dict) -> int:
@@ -520,6 +594,13 @@ class Objects:
                            "dw": obj["w"] - prev["w"],
                            "dcells": len(obj["cells"]) - len(prev["cells"]),
                            "colour_changed": int(obj["colour"] != prev["colour"])}
+                if _SHAPE_DELTA:
+                    # The one moment both frames are in hand, same as the deltas above. A
+                    # BIRTH still gets neither -- absence is the reading, never a zero.
+                    obj = {**obj,
+                           "dholes": holes_of(obj["cells"]) - holes_of(prev["cells"]),
+                           "dperimeter": (perimeter_of(obj["cells"])
+                                          - perimeter_of(prev["cells"]))}
             fresh[best] = obj
 
         # DEATH ONLY ON EVIDENCE. An unmatched tracked object keeps its slots unless another
@@ -603,7 +684,8 @@ class Objects:
             # on a matched object -- a BIRTH still gets no delta and not a zero, which is the
             # same rule `drow`/`dcol` state above.
             for attr in ("row", "col", "h", "w", "colour", "drow", "dcol",
-                         "dh", "dw", "dcells", "colour_changed"):
+                         "dh", "dw", "dcells", "colour_changed",
+                         "dholes", "dperimeter"):
                 if attr in obj:
                     state[f"{name}.{attr}"] = NOT_RESOLVED if covered else int(obj[attr])
             state[f"{name}.shape"] = (

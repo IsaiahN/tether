@@ -1,8 +1,12 @@
 """Composition -> board synthesizer: the inverse of the detector pipeline. Given target tier-1
 primitives, place objects over a background field (larger than them, so `_actors` keeps them) so the
 forward pipeline reads the target back. This is the durable form of the round-trip that caught six
-perception bugs this session (see memory generator-roundtrip-audit) -- proctor-side, CUE-side,
-lint-guarded out of the betting path.
+perception bugs this session (see memory generator-roundtrip-audit) -- proctor-side, CUE-side.
+
+NOT LINT-GUARDED, CORRECTED 2026-09-23. This said "lint-guarded out of the betting path" and
+`conform/lint.py`'s `_CUE_MODULES` is {relations, observer, mapping, detectors, composer} --
+`synth` is not in it. It is out of the betting path because nothing imports it, which is a
+fact about the import graph and not a check that would fire if that changed.
 
 It generates from the GENERAL library, never toward a public/private board. The CURRICULUM that
 samples, orders and anneals compositions into a training schedule is a separate design

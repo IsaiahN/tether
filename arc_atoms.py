@@ -30,6 +30,7 @@ from __future__ import annotations
 import sys
 from typing import Any
 
+from arc_percept import holes_of, perimeter_of
 from gamma import SAME_AS_TARGET, Atom, Ctx
 from sensors import BOOL, COLOUR, DELTA, EXTENT, NOT_RESOLVED, OBJECT, POSITION, SHAPE
 
@@ -102,7 +103,13 @@ ATTRIBUTE_TYPE = {"colour": COLOUR, "row": POSITION, "col": POSITION,
                   "colour_changed": BOOL,
                   # THE BBOX OVERLAP SENSOR -- `RELATIONS.md` Part 6's first blocker, "a BUILD
                   # rather than a publish". An intersection AREA, so EXTENT like `contact`.
-                  "bbox": EXTENT}
+                  "bbox": EXTENT,
+                  # THE SHAPE DELTAS -- arm `TETHER_SHAPE_DELTA`, default OFF. Signed changes
+                  # in the two CELL-SET quantities, so DELTA like `dh`/`dw`/`dcells`. Admitted
+                  # because no atom accepts `OBJECT_BEFORE`: the agent cannot reach the
+                  # previous object, so it cannot compose these however long it searches.
+                  # `arc_percept` carries the full reasoning and the seven that were refused.
+                  "dholes": DELTA, "dperimeter": DELTA}
 
 
 # THE ADMITTING CLAUSE, PER ATOM, RECORDED WHERE THE ATOM IS DECLARED.
@@ -317,37 +324,13 @@ def _shape_facts() -> list[Atom]:
     already in hand and neither needs the board.
     """
     def _holes(v: Any, _c: Ctx) -> Any:
+        # THE BODY MOVED TO `arc_percept.holes_of` -- ONE implementation, because there were
+        # two and they disagreed 56 times of 263. The atom keeps the DECODE and the GUARD,
+        # which are the atom's business; the geometry is perception's.
         v = _as_shape(v, _c)        # ARM I, which this atom was omitted from -- see `_as_shape`
         if not isinstance(v, frozenset) or not v:
             return NOT_RESOLVED
-        rs = [r for r, _ in v]
-        cs = [c for _, c in v]
-        # flood the COMPLEMENT from outside the bounding box; whatever the flood misses is
-        # enclosed. A one-cell margin is what lets the outside connect around the shape.
-        lo_r, hi_r, lo_c, hi_c = min(rs) - 1, max(rs) + 1, min(cs) - 1, max(cs) + 1
-        seen, stack = set(), [(lo_r, lo_c)]
-        while stack:
-            r, c = stack.pop()
-            if (r, c) in seen or (r, c) in v:
-                continue
-            if not (lo_r <= r <= hi_r and lo_c <= c <= hi_c):
-                continue
-            seen.add((r, c))
-            stack += [(r + 1, c), (r - 1, c), (r, c + 1), (r, c - 1)]
-        inner = [(r, c) for r in range(lo_r, hi_r + 1) for c in range(lo_c, hi_c + 1)
-                 if (r, c) not in v and (r, c) not in seen]
-        # count the enclosed REGIONS, not the enclosed cells: a figure-eight is two.
-        regions, left = 0, set(inner)
-        while left:
-            regions += 1
-            stack = [left.pop()]
-            while stack:
-                r, c = stack.pop()
-                for nb in ((r + 1, c), (r - 1, c), (r, c + 1), (r, c - 1)):
-                    if nb in left:
-                        left.discard(nb)
-                        stack.append(nb)
-        return regions
+        return holes_of(v)
 
     def _parity(v: Any, _c: Ctx) -> Any:
         return NOT_RESOLVED if not isinstance(v, int) else bool(v % 2)
@@ -438,13 +421,11 @@ def _shape_more() -> list[Atom]:
         return (max(rs) - min(rs) + 1) * (max(cs) - min(cs) + 1)
 
     def _perimeter(v: Any, _c: Ctx) -> Any:
+        # Body in `arc_percept.perimeter_of` -- same one-implementation reason as `_holes`.
         v = _shape(v, _c)
-        # EXPOSED EDGES, not the bounding-box outline: a cell contributes one edge per
-        # neighbour it does NOT have, which counts the boundary of a concave shape correctly.
         if not isinstance(v, frozenset) or not v:
             return NOT_RESOLVED
-        return sum(1 for r, c in v
-                   for nb in ((r+1, c), (r-1, c), (r, c+1), (r, c-1)) if nb not in v)
+        return perimeter_of(v)
 
     def _corners(v: Any, _c: Ctx) -> Any:
         v = _shape(v, _c)
