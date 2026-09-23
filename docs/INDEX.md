@@ -46164,3 +46164,88 @@ your avatar using paint options you toggle through -- recognition, mirroring, la
     MECHANISM   none changed; `CLAUDE.md`'s exclusion rewritten at source
     CAPABILITY  none. It bounds every other finding of the day, which is worth more than a
                 number: the readings were never wrong, their POPULATION was narrower than stated
+
+
+---
+
+## F329 -- THE COMPOSITION CEILING IS MINT'S TWO STREAMS, not the type graph. Measured, then
+## confirmed at the write site.
+
+### The behaviour: 2-4 distinct compositions on every board of every family
+
+    board  family     lib  multi  DISTINCT  top composition
+    lp85   pure-pos   102     20         4  x12 translate . recolour
+    r11l   pure-pos    91     10         3  x8  recolour . recolour
+    g50t   zero-pos    67      2         2  x1  translate . recolour
+    ls20   zero-pos    89      7         2  x5  translate . recolour
+    ar25   mixed      213     74         4  x66 translate . recolour
+
+**A CEILING, NOT A TREND: `ar25` mints 74 multi-atom terms and still reaches FOUR. More
+INSTANCES, never more STRUCTURES.** And the dominant composition is always a pair of the two
+`val -> val` atoms.
+
+### The cause, at the write site -- `tether.py:3353`
+
+    streams = [("val", "val")]                 # the PREDICTOR stream
+    stype = self.slot_types.get(slot)
+    if stype:
+        streams.append((stype, OBJ_TYPE))      # the OBJECTIVE stream
+
+> **`mint` ASKS FOR TWO STREAMS AND NOTHING ELSE, and the census matches it EXACTLY.** `wa30`'s
+> four compositions were `translate . recolour` (x10) and `above . {all,any,none}` (x4) -- **a
+> `val -> val` predictor chain and a `POSITION -> ... -> OBJ` objective chain. THE TWO STREAMS.**
+
+**SO THE LIMIT IS NOT CONNECTIVITY. The type graph admits 682 type-checking ordered pairs of
+3,600 (18.9%) and MINT NEVER QUERIES THEM.** The question *what can compose* was the wrong one;
+**the answer is what is ASKED FOR.**
+
+### The type-graph census (60 atoms, 10 types, arm off)
+
+    OBJ         produced by 3,  consumed by 0    **SINK**
+    OBJECT      produced by 1,  consumed by 23   the bottleneck
+    SHAPE       4 / 19 · DELTA 7 / 16 · POSITION 3 / 15 · EXTENT 18 / 14
+    COLOUR      1 / 9 · BOOL 11 / 9 · PRED 9 / 6 · val 3 / 4
+
+**`val -> val` IS 3 ATOMS AND 1.8% OF TYPE-CHECKING PAIRS -- yet ~90% of the agent's
+compositional output lives there.** It is not that composition is free in that corner; **it is
+that the corner is what mint asks for.**
+
+**HIGHEST-VALUE CONVERTERS, PARKED:** `EXTENT -> OBJECT` bridges 414 producer x consumer pairs ·
+`EXTENT -> SHAPE` 342 · `EXTENT -> DELTA` 288 · `BOOL -> OBJECT` 253. **`_owner` (`val ->
+OBJECT`) is exactly this shape, which is why it read as valuable. BUT A CONVERTER PAYS NOTHING
+WHILE MINT ASKS FOR TWO STREAMS** -- parked behind the widening, numbers kept.
+
+    BOUNDARY    five boards for the behaviour, one seed, tape; the type census is static and
+                exact. It says what is ASKED and what is LEGAL -- not what would be USEFUL
+    MECHANISM   the widening is built behind `TETHER_STREAM_WIDEN`, default OFF
+    CAPABILITY  none yet. It replaces "the arity wall" as the account of low diversity with a
+                three-line cause that can be changed
+
+## F330 -- THE OBJECTIVE TERMINAL: an objective cannot compose into a bigger objective.
+
+**`OBJ` is produced by 3 atoms and consumed by ZERO.** So a minted objective is a TERMINAL NODE:
+the agent can mint objectives and **can never build a larger one out of two smaller ones.**
+
+**`CLAUDE.md`'s missing SELECTOR is this, as a graph property rather than a prose note.** The map
+lists *the SELECTOR that would pick among composed objectives* under NOT INSTANTIATED; **the
+census says the type it would select over has no consumers at all, so there is nothing for a
+selector to be given.**
+
+**NOT BUILT, and deliberately.** A selector that picks among composed objectives is
+ARCHITECTURE, and it sits with goal-setting and reaching (§12.0.2), which are Isaiah's.
+
+## F331 -- A NEW TYPE WITHOUT A CONVERTER NARROWS THE GRAPH. `cells` is the worked example.
+
+With `TETHER_ITERATE` ON: **64 atoms, 12 types, and `CELL` is produced by ZERO atoms and consumed
+by two -- a SOURCE with no producer.** Type-checking pairs fall from **18.9% to 17.8%**.
+
+**The cause is that `Cells` values are produced AT RUNTIME inside `Term.apply`'s elementwise
+dispatch, so the type graph cannot see a producer.** Absolute pairs rise (682 -> 731) because
+atoms were added, **so it is DILUTION rather than absolute narrowing -- and the ratio still fell.**
+
+**NOT REPAIRED.** A `CELL` producer would be a `CELLS -> CELL` SELECTION atom, and *which cell*
+has no non-arbitrary answer. **Inventing one would be a magic number wearing an atom's clothes.**
+
+> **THE RULE, for the constructs section: A NEW TYPE WITHOUT A CONVERTER NARROWS COMPOSITION.**
+> Adding vocabulary is not free -- **an atom that produces a type nothing consumes, or consumes
+> a type nothing produces, adds a node and no edges.**

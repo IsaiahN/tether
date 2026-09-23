@@ -209,6 +209,15 @@ _DELTA_OPERANDS = bool(os.environ.get("TETHER_DELTA_OPERANDS"))
 # changing nothing. The reviewer's ordering requires this narrowing BEFORE mint's `out_type` is
 # widened: widening without narrowing is how 735 million calls arrive nowhere.
 _DELTA_KEY = bool(os.environ.get("TETHER_DELTA_KEY"))
+# THE out_type WIDENING -- Isaiah's 3A, reviewer-pre-registered 2026-09-23. `mint` asks for
+# `("val","val")` and `(slot_type, OBJ)` and NOTHING ELSE, and the composition census says
+# that IS the ceiling: 4 distinct compositions on every board, which are exactly those two
+# streams. Widened, mint also asks for `(slot_type, T)` for each T THE DELTA LIGHTS.
+#
+# ABORT CRITERIA, declared before the first run and unchanged: candidates tried rises while
+# arrivals do not -> OFF; calls-per-cycle growth steepens against the control -> OFF; binds
+# per candidate rises -> OFF. Each is a RESULT, not a failure.
+_STREAM_WIDEN = bool(os.environ.get("TETHER_STREAM_WIDEN"))
 # ITEM 7. Default OFF: it APPENDS TO THE ATOM REGISTRY, which every term reads.
 _INVENT = bool(os.environ.get("TETHER_INVENT"))
 
@@ -3354,6 +3363,26 @@ class Agent:
             stype = self.slot_types.get(slot)
             if stype:
                 streams.append((stype, OBJ_TYPE))
+            # THE out_type WIDENING -- Isaiah's 3A, arm `TETHER_STREAM_WIDEN`, default OFF.
+            #
+            # THESE TWO STREAMS ARE THE COMPOSITION CEILING, measured rather than argued: the
+            # agent mints 74 multi-atom terms on `ar25` and gets FOUR distinct compositions --
+            # `translate . recolour` and `above . {all,any,none}` -- which ARE these two
+            # streams. The type graph admits 682 type-checking pairs; mint asks for two.
+            # **More instances, never more structures, because two streams are all that is
+            # ever asked for.**
+            #
+            # BOUNDED BY THE DELTA, NEVER BY THE TYPE GRAPH'S CAPACITY, and that is the whole
+            # safety argument. `gap["varies_types"]` is what the CURRENT residual actually
+            # involves -- the graph says which pairs are LEGAL, the delta says which are
+            # RELEVANT NOW. Widening to the graph's capacity would rebuild the enumeration
+            # explosion deliberately.
+            if _STREAM_WIDEN and stype:
+                seen_out = {o for _i, o in streams}
+                for t in (gap.get("varies_types") or ()):
+                    if t and t not in seen_out:
+                        streams.append((stype, t))
+                        seen_out.add(t)
             # THE THIRD STREAM IS WITHDRAWN, AND THE REASON IS A DEFECT IT INTRODUCED.
             # `OBJECT -> OBJ` was legitimate once `Ctx.obj` stopped the extract atoms
             # abstaining -- and it is NOT type-coherent, which the reachability check missed.
@@ -3375,7 +3404,12 @@ class Agent:
             by_kind: dict[str, tuple] = {}
 
             for in_t, out_t in streams:
-                kind = "predictor" if out_t == "val" else "objective"
+                # A THIRD KIND EXISTS ONCE THE STREAMS WIDEN, and it is named rather than
+                # folded into `objective`: a term ending at EXTENT is neither a prediction of
+                # the slot's next value nor a complete objective, and calling it one would put
+                # two quantities under one label at the site the contest is decided.
+                kind = ("predictor" if out_t == "val"
+                        else "objective" if out_t == OBJ_TYPE else f"typed:{out_t}")
                 by_fit = partial(retrieval.fits, gap=gap, in_type=in_t, out_type=out_t)
                 st: dict = {"seen": 0, "budget_spent": False, "depth_exhausted": True,
                             "units": self.gamma.alphabet, "estimate": 0}
@@ -3481,7 +3515,12 @@ class Agent:
         # cost is half of what `pays` spends. A contest reported in a quantity other than the
         # one it was decided by is not a reading of the contest.
         contest = {k: round(v[0], 4) for k, v in sorted(by_kind.items())} if best else {}
-        if len(contest) == 2:
+        # GUARDED ON THE KEYS, NOT ON THE COUNT. `len(contest) == 2` was safe while there were
+        # exactly two kinds; the widening admits a third, and two kinds that are `predictor`
+        # and `typed:EXTENT` would have raised a KeyError here. The margin is a PREDICTOR vs
+        # OBJECTIVE reading and says nothing about a third kind, so it is computed only when
+        # both are actually present.
+        if "predictor" in by_kind and "objective" in by_kind:
             contest["margin"] = round(abs(by_kind["predictor"][0]
                                           - by_kind["objective"][0]), 4)
             # A TIE IS A READING, AND NAMING A WINNER ERASES IT. `term_bits(k, alphabet)` is a
