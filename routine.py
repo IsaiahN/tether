@@ -341,7 +341,7 @@ def enumerate_routines(actions: tuple, guards: tuple, chunks: tuple = (),
     return uniq[:cap]
 
 
-def reach(r: Any) -> int:
+def reach(r: Any, lib: dict | None = None, _seen: frozenset = frozenset()) -> int:
     """How many members of a scope this routine can address before it ends.
 
     **`left` IN THE BARGAIN, AND IT WAS BEING ASSERTED AS ZERO.** Every candidate was priced
@@ -359,9 +359,21 @@ def reach(r: Any) -> int:
     if isinstance(r, Act):
         return 1
     if isinstance(r, Seq):
-        return reach(r.first) + reach(r.then)
+        return reach(r.first, lib, _seen) + reach(r.then, lib, _seen)
     if isinstance(r, When):
-        return reach(r.body)
+        return reach(r.body, lib, _seen)
     if isinstance(r, Until):
-        return max(r.budget, 0) * reach(r.body)
+        return max(r.budget, 0) * reach(r.body, lib, _seen)
+    if isinstance(r, Let):
+        return reach(r.body, lib, _seen)
+    if isinstance(r, Call):
+        # **ZERO WHEN UNRESOLVED, AND THAT IS THE SAFE DIRECTION HERE RATHER THAN THE LOUD ONE.**
+        # `actions` reports `?name` because a missing action must not pass an environment check.
+        # This feeds `left = unsat - reach`, so OVER-stating reach is what lets a candidate claim
+        # to close a residual it cannot -- the exact defect this function was written for. An
+        # unresolved call therefore reaches NOTHING and the candidate is priced as closing
+        # nothing, which refuses it rather than admitting it on a guess.
+        if lib is None or r.name not in lib or r.name in _seen:
+            return 0
+        return reach(lib[r.name], lib, _seen | {r.name})
     raise TypeError(f"not a routine: {r!r}")

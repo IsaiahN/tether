@@ -638,6 +638,9 @@ class Agent:
         # that ending is the routine's own claim refuted, and shelving it would make a failed
         # plan into a cheap building block.
         self.routines: list = []
+        # `routine.Let`'s store. Published by `advance`, read by the caller's `holds`, so the
+        # act space keeps its invariant that `routine.py` never evaluates a predicate.
+        self.routine_state: dict = {}
         # THE REJECT MEMORY, §18.2's `falsified_ledger` at routine scale. Without it the loop
         # found by re-verification is: mint, exhaust, release, re-mint the identical routine in
         # the same cycle, forever -- **the failure `M2_STANDARD` names in its own words,
@@ -2040,7 +2043,8 @@ class Agent:
         # committing to a behaviour MEANS. A routine that re-decided every cycle against the
         # branches would be a single-step chooser wearing a plan's name.
         if self.routine is not None:
-            emit, rest = Rt.advance(self.routine, self._holds(before))
+            emit, rest = Rt.advance(self.routine, self._holds(before),
+                                    self.routine_lib, self.routine_state)
             if emit not in (Rt.DONE, Rt.BLOCKED, Rt.EXHAUSTED) and emit in self.actions:
                 self.routine = rest
                 return emit, "routine"
@@ -2070,7 +2074,7 @@ class Agent:
             extra: dict = {}
             if why == Rt.EXHAUSTED and self.routine_for:
                 rg = self.goal_residual(self.routine_for, before)
-                k = self._reject_key(self.routine_for, self.routine)
+                k = self._reject_key(self.routine_for, self.routine, self.routine_lib)
                 self.refuted.setdefault(k, Standing(last_tick=self.cycle)).refute(self.cycle)
                 self.refuted_at[k] = 1.0 if rg is None else rg
                 # AND FILED A SECOND TIME UNDER THE SHAPE OF THE GAP IT FAILED AGAINST. The two
@@ -2085,7 +2089,7 @@ class Agent:
                          "reopens_above": round(self.refuted_at[k], 4)}
                 gap = self._characterise_gap(self.routine_for)
                 if gap is not None:
-                    gk = (self._gap_key(gap), Rt.actions(self.routine),
+                    gk = (self._gap_key(gap), Rt.actions(self.routine, self.routine_lib),
                           Rt.guards(self.routine))
                     rec = self.paths.setdefault(gk, {"failed": 0, "first_cycle": self.cycle})
                     rec["failed"] += 1
@@ -2243,7 +2247,8 @@ class Agent:
             self._planned = self.cycle
             self._mint_routine(before)
             if self.routine is not None:   # adopted now: run its first action this cycle
-                emit, rest = Rt.advance(self.routine, self._holds(before))
+                emit, rest = Rt.advance(self.routine, self._holds(before),
+                                    self.routine_lib, self.routine_state)
                 if emit not in (Rt.DONE, Rt.BLOCKED, Rt.EXHAUSTED) and emit in self.actions:
                     self.routine = rest
                     return emit, "routine"
@@ -2667,8 +2672,29 @@ class Agent:
         st.decay(self.cycle)
         return st.rejections
 
+    @property
+    def routine_lib(self) -> dict:
+        """The shelf ADDRESSED BY NAME -- what makes `routine.Call` reachable by the agent.
+
+        **DERIVED, NEVER STORED, AND THAT IS THE WHOLE POINT.** A settled routine was already
+        reusable as a CHUNK but by VALUE: the object was inlined, so `render` printed the entire
+        expansion and the plan never said which learned behaviour it invoked. Part 12 -- PRINTING
+        THE TREE IS THE EXPLANATION -- and an inlined tree explains the steps while hiding the
+        structure. A name costs 1 in `length` exactly as the inlined chunk did, so this changes
+        what the plan SAYS, not what it can afford.
+
+        **IT WAS A SECOND DICT FOR TEN MINUTES AND `m2` CAUGHT IT.** Registering names at
+        settlement made a store that could DIVERGE from `self.routines`, and anything appending
+        to the list directly -- which `check_shelf_must_be_runnable_here` does -- got a routine
+        the shelf could not see. One name, one store; the names are positional over the list.
+
+        Positional because the agent has no vocabulary for what a routine is ABOUT. That is the
+        description layer and it is not built. **A stub, marked as one.**
+        """
+        return {f"r{i}": r for i, r in enumerate(self.routines)}
+
     @staticmethod
-    def _reject_key(slot: str, r) -> tuple:
+    def _reject_key(slot: str, r, lib: dict | None = None) -> tuple:
         """The identity a refutation is filed under. **BUDGET-FREE ON PURPOSE.**
 
         §18.2's immune audit names **pathogen mimicry** -- *a dead idea re-tried under a slightly
@@ -2678,7 +2704,10 @@ class Agent:
         and moves every cycle, so keying on it would let one refuted routine return under a new
         number every step.
         """
-        return (slot, Rt.actions(r), Rt.guards(r))
+        # `lib` RESOLVES A `Call`. Without it a named callee reports `?name`, which would file
+        # two routines invoking the SAME learned behaviour under two different keys -- the
+        # pathogen mimicry this docstring is about, introduced by the fix for it.
+        return (slot, Rt.actions(r, lib), Rt.guards(r))
 
     @staticmethod
     def _gap_key(gap: dict) -> tuple:
@@ -2826,8 +2855,12 @@ class Agent:
         # survives a boundary and its GUARDS are re-checked by `CAN`; its ACTIONS had nothing
         # checking them. `unadvertised` at execution was catching it a cycle too late -- the
         # plan was already minted and the cycle already spent.
-        shelf = tuple(r for r in self.routines
-                      if set(Rt.actions(r)) <= set(self.actions))
+        # OFFERED BY NAME. The actions check is unchanged and still runs over the RESOLVED
+        # body -- a `Call` whose callee names an unadvertised action is refused here exactly as
+        # the inlined object was. What changes is that the candidate the composer builds, and
+        # the plan it prints, carry `r0()` instead of the whole expansion.
+        shelf = tuple(Rt.Call(nm) for nm, r in self.routine_lib.items()
+                      if set(Rt.actions(r, self.routine_lib)) <= set(self.actions))
         # THE COMPOSER ENUMERATES SHAPES; THE ROUTE STAYS LEARNED, AND THE SPLIT IS GUARD A.
         # `compose` is handed exactly ONE action -- the one this agent's own trace says moves
         # this slot the wanted way -- because enumerating over every ADVERTISED action would let
@@ -2842,11 +2875,13 @@ class Agent:
         # it is the step floor the guard implies rather than a number picked.
         loop_budget = max(int(round(unsat)), 1)
         mine = tuple(s for s in sorted(self._disc) if s in before)
+        # derived once: `reach` and `actions` both resolve a `Call` through it
+        lib = self.routine_lib
         cands = Rt.enumerate_routines((act,), mine or (slot,), shelf, loop_budget)
         # WEIGHTED AND CLOCKED, per §18.2 via `gamma.Standing`: a refutation excludes only while
         # its decaying strength stands, so a failed shape leaves the running and returns.
         cands = [c for c in cands
-                 if self._rejection(self._reject_key(slot, c)) < 1.0]
+                 if self._rejection(self._reject_key(slot, c, self.routine_lib)) < 1.0]
         if not cands:
             self.led.record(self.cycle, "PLAN", slot, "routine_refused",
                             reason="every rejection still stands and nothing has surprised",
@@ -2882,7 +2917,7 @@ class Agent:
         # agent better and its reasoning unreadable has destroyed the instrument*, and the
         # mislabelled row is `A6i` at the site a future reader would trust.
         priced = [(term_bits(Rt.length(c, shelf), n),
-                   max(0.0, unsat - Rt.reach(c)) * math.log2(n), c) for c in cands]
+                   max(0.0, unsat - Rt.reach(c, lib)) * math.log2(n), c) for c in cands]
         # ORDERED BY WHAT THE BARGAIN SPENDS, `cost + left`, which is the correction the two-arm
         # board already paid for once in the PREDICT space -- selecting on either half alone
         # buys the most-explaining term at any price, or the cheapest term that explains nothing.
