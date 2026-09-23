@@ -46528,3 +46528,57 @@ sign is the opposite of the guess.**
                 (36 of 36 fail `%`), not by name; COLOUR/POSITION/DELTA UNCHECKABLE, not agreeing
     CAPABILITY  **not established.** One binding on one board at one seed is the honest ceiling
                 of this row
+
+
+---
+
+## F337 -- THE CASE-SENSITIVE JOIN, RE-CHECKED. `F323`'s HEADLINE SURVIVES; `F165`'s DOES NOT.
+## And the reason they differ is the POPULATION, not the join.
+
+`945f8da` found `composer.candidates` matching ingredients to atoms with a CASE-SENSITIVE
+`i in lit`, returning **0 of 61** agent atoms against 2,669 ingredient names. Four rows were
+marked PROVISIONAL on it. **This is the re-check, and it splits them.**
+
+### `F323` STANDS. The correction is real and small.
+
+    quantity                       published   normalised   delta
+    distinct dangling ingredients      1,362        1,318      -44
+    GROUNDED recipes                     447          460      +13
+    grounded share                     21.7%        22.3%    +0.6pp
+    recipes                            2,061        2,059       -2   <- two names merged
+
+**44 "undefined" ingredients ARE defined under another casing or punctuation, and the headline
+does not move: the library is still ~78% blocked on its own undefined ingredients.** **The
+triage's shape is unchanged and the batch to Isaiah does not need rebuilding.**
+
+### `F165` DOES NOT STAND. Same defect, opposite magnitude.
+
+`F165` read **0 molecules on all 25 games**. Normalised, the agent's own atoms cover **1
+exactly** (`Orbit = Rotate ? Translate`) and **50 partially**. **A zero became a one, which is
+the only jump in the count that matters: it is the difference between a layer that cannot fire
+and a layer that fires once.**
+
+> **AND THE ASYMMETRY IS THE FINDING, BECAUSE IT EXPLAINS WHY ONE ROW SURVIVED AND ONE DID
+> NOT.** The two joins have DIFFERENT POPULATIONS:
+>
+>     corpus -> corpus    ingredient names against corpus definitions. **Both written by the
+>                         same hand in the same convention**, so case-sensitivity cost 44 of
+>                         1,362 -- 3%
+>     registry -> corpus  agent atoms against ingredient names. **`contact` against `Contact`,
+>                         two conventions that never agreed once** -- so it cost EVERYTHING,
+>                         0 of 61
+>
+> **A join's fragility is a property of the two populations, not of the join.** Reading `F165`
+> and `F323` as the same instrument failing twice would have been wrong in both directions:
+> over-correcting `F323` and under-correcting `F165`.
+
+### The instrument claim is NARROWED, not withdrawn
+
+`F314`/`F323` concluded *name matching is the wrong instrument* from 9 of 2,669 and 2 of 559.
+**Corrected: name matching is the wrong instrument ACROSS THE CORPUS'S OWN VOCABULARY, where
+the two sides genuinely share few names.** **It was never tested across the registry/corpus
+boundary until tonight, and there it is the ONLY thing standing between 0 and 1.**
+
+    BOUNDARY    a read, no runs. The recipe tables and the registry, both static
+    MECHANISM   none changed by this row; `945f8da` changed the join and this measures it
+    CAPABILITY  none. It relabels four rows and rebuilds no claim
