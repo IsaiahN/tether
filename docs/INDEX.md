@@ -45453,3 +45453,68 @@ ingredients appear as index keys at all.**
     MECHANISM   none changed
     CAPABILITY  none. It scores item 8 at zero of five with the reason, and names the
                 unstated prerequisite the whole composer plan rests on
+
+---
+
+## F315 (INDEX series) — THE ATTRIBUTE-MEDIATED JOIN FAILS TOO: **0 of 2,517 closure atoms have all their required attributes published.** Three joins tested, three nulls — the closure library and the agent's perception are disjoint at every level
+
+**The reviewer's hypothesis, and it was the right one to test: the join is probably
+ATTRIBUTE-mediated — the reach file lists an atom's required attributes, and registry atoms
+compute attributes. Measured before anything was designed. It fails.**
+
+    PUBLISHED per object, 14:   bbox col colour colour_changed contact dcells dcol dh
+                                drow dw h row shape w
+
+    closure atoms                2,517
+      FULLY covered                  0   every required attribute published
+      PARTLY covered                 7
+      none covered               2,510
+
+### WHAT THE CLOSURE ACTUALLY ASKS FOR, WHICH IS THE ANSWER
+
+    action  59 atoms · persistence 28 · time 24 · temperature 21 · outcome 21 · coherence 21
+    speed 20 · output 18 · continuity 18 · repetition 18 · target 17 · source 16 · belief 16
+    distance 15 · exchange 15 · stability 15         -- NOT ONE OF THEM PUBLISHED
+
+**And the seven with any overlap overlap on exactly one attribute each:**
+
+    Collide      contact, positions, velocities        has: contact
+    Amalgamate   contact, twoObjects, union            has: contact
+    Roll         angularVelocity, contact, rotationAxis has: contact
+    Symmetrise   invariance, shape, transform          has: shape
+    Fractalise   iteration, scalingFactor, shape       has: shape
+
+> **THE CLOSURE WANTS `velocity`, `persistence`, `time`, `belief`, `distance`. PERCEPTION
+> PUBLISHES `row`, `col`, `h`, `w`, `colour`.** *These are not two vocabularies that failed to be
+> joined; they are descriptions at different levels of the world.*
+
+### THREE JOINS TESTED TONIGHT, THREE NULLS
+
+    by CONDITION   `F300`   0 draftable of 785 seed-backed closure atoms
+    by NAME        `F314`   1 executable recipe of 2,061; 9 names of 2,669 intersect
+    by ATTRIBUTE   here     0 of 2,517 fully covered; 7 partial, one attribute each
+
+**The reviewer's hypothesis was the most plausible of the three and it is the most decisively
+refuted** — *names could plausibly be an aliasing problem and conditions a prose problem, but an
+attribute the agent does not compute cannot be aliased into existence.*
+
+### WHAT THIS MEANS, STATED CAREFULLY
+
+**It is NOT that the closure is useless or wrong.** It is a library of concepts a body could
+find, and `distance`, `speed` and `persistence` are exactly the things a richer perception WOULD
+publish. **The gap is that perception currently publishes 14 attributes and the closure is
+written against thousands.**
+
+> **AND IT REFRAMES THE FRONTLOAD ARGUMENT RATHER THAN CONTRADICTING IT.** *The 2,700 were ruled
+> required frontload, and they are still the vocabulary.* **What is now measured is that the
+> agent cannot currently READ any of them** — so the 20k reach is not a library waiting to be
+> searched, it is a library waiting to be *perceivable*. **That is a PERCEPTION prerequisite, and
+> it sits under items 2, 6 and 8 alike.**
+
+    BOUNDARY    `ATTRIBUTE_INDEX.json`'s `atom_attributes` (2,517 keyed entries) against
+                `arc_atoms.ATTRIBUTE_TYPE` (14 published). Exact name match -- and unlike the
+                other two joins a looser match cannot rescue it, because the attributes are
+                absent from perception rather than differently spelled. NO RUN
+    MECHANISM   none changed
+    CAPABILITY  none. It refutes the last of the three candidate joins and relocates the
+                blocker from the composer to PERCEPTION
