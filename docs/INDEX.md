@@ -45347,6 +45347,14 @@ I checked this first rather than running it.*
     no policy completes a level in N steps   trained, atoms-only, random, constant
     therefore the ground column is CONSTANT  it cannot rank anything, for any arm, at any horizon
 
+    ^^ THE MIDDLE LINE OVER-REACHES FOR THE AGENT, and the reviewer caught it: **RANDOM played
+       to terminal and completed nothing, which is measured. THE AGENT NEVER PLAYED A FULL
+       EPISODE AT ALL** -- every agent run tonight was 10-80 actions against a 128-309 step
+       budget, so it stopped before the episode did. *`no policy completes a level` is
+       established for the uninformed arms and ASSUMED for the trained one.* Running to
+       terminal now; the TIMER finding above is unaffected, since that was measured on
+       policies that did reach it.
+
 > **THE LIVE GROUND READOUT IS NOT WEAK. IT IS CONSTANT.** `F308`'s tie, `F309`'s full table and
 > `F311`'s control are all one fact: *a fixed-length episode in which nothing anyone can do
 > changes the score.* **Isaiah ruled the ground to the live path four hours ago and the live path
