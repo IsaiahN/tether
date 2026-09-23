@@ -44922,3 +44922,55 @@ of them can answer.*
                 live run is for and is now re-running
     MECHANISM   `arc_world._walk_cascade` tests length, not truthiness. 13/13 seats
     CAPABILITY  the observer can reach the ground path at all, which it could not an hour ago
+
+---
+
+## F306 (INDEX series) — INVENTED ATOMS **ARE** REUSED: 167 of 415 resolve on a later cycle. But two of my columns are the SAME MEASUREMENT, and value-recurrence is not concept transfer
+
+**The column item 7 was missing.** The reviewer ruled the literal derivation and named its risk:
+*if that turns out to be too literal to ever match twice, THAT is a finding about the derivation
+rule.* **It matches twice.**
+
+    sk48, 7 cycles, invent ON
+
+    INVENTED       415
+    CALLED         197    ever invoked at all
+    RESOLVED       167    matched an input
+    "REUSED"       167    resolved on a cycle later than the one that made it
+
+### THE TWO COLUMNS ARE ONE MEASUREMENT, AND `167 == 167` IS THE TELL
+
+`wrap_new()` spies an atom AFTER the cycle that created it, so **an invented atom's same-cycle
+calls are invisible to the instrument.** Every call it can see is therefore already a
+later-cycle call — **so `RESOLVED` and `REUSED` are the same quantity reported twice**, and
+their exact equality is not a finding, it is the instrument.
+
+> **THE NUMBER SURVIVES AND THE SECOND COLUMN DOES NOT.** 167 invented atoms matched an input on
+> a cycle after they were made: that IS later-cycle resolution, measured. **What is void is
+> presenting it as an independent confirmation of itself** — which is how I first wrote the
+> table down.
+
+### AND `REUSE` HERE MAY BE VALUE-RECURRENCE RATHER THAN TRANSFER
+
+**The atom matches when a slot's value equals a recorded before-value.** Values are small
+integers — colours, rows, extents — **so a match may be the same number turning up again rather
+than the same SITUATION recurring.** *Matching `3` twice is not evidence a concept transferred.*
+
+**THE REVIEWER'S FOURTH COLUMN IS THE ONE THAT WOULD SETTLE IT AND I HAVE NOT MEASURED IT:**
+reuse under a DIFFERENT STRUCTURE HASH. Same-hash reuse is the literal map doing exactly what a
+literal map does; cross-hash reuse would be the only evidence of anything more.
+
+### THE GROWTH IS THE OTHER HALF, AND IT IS NOT REASSURING
+
+**415 invented atoms in SEVEN cycles, and 218 of them never called once.** The registry more than
+sevenfolded. **Invention is licensed per abstention, and abstentions are plentiful** — so the
+rate is a property of how often composition fails, which on this board-seed is constantly.
+
+    BOUNDARY    ONE board, ONE seed, SEVEN cycles, tape. The arm HAS executed on both harnesses
+                (`atoms 55 -> 140` live), so the standing rule is satisfied -- but these counts
+                are tape counts. Cross-hash transfer UNMEASURED; the invented-atom ablation
+                UNMEASURED; the reviewer asked for four columns and this is two of them, one of
+                which turned out to be the other
+    MECHANISM   none changed -- a measurement over `TETHER_INVENT`, default OFF
+    CAPABILITY  the literal derivation is NOT too literal to match twice, which was the open
+                question. Whether matching twice is worth anything is the next one
