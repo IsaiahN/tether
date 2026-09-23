@@ -288,6 +288,32 @@ def holes_of(cells) -> int:
     return regions
 
 
+def enclosed_of(cells) -> frozenset:
+    """THE ENCLOSED CELLS THEMSELVES, not how many -- what `holes_of` counts regions of.
+
+    `inside` needs the interior as a SET so another object can be tested against it, and
+    splitting this out keeps ONE flood-fill rather than a second one that drifts. Same margin
+    flood as `holes_of`: seed outside the bbox, and whatever the flood cannot reach is enclosed.
+    """
+    v = {tuple(c) for c in cells}
+    if not v:
+        return frozenset()
+    rs = [r for r, _ in v]
+    cs = [c for _, c in v]
+    lo_r, hi_r, lo_c, hi_c = min(rs) - 1, max(rs) + 1, min(cs) - 1, max(cs) + 1
+    seen, stack = set(), [(lo_r, lo_c)]
+    while stack:
+        r, c = stack.pop()
+        if (r, c) in seen or (r, c) in v:
+            continue
+        if not (lo_r <= r <= hi_r and lo_c <= c <= hi_c):
+            continue
+        seen.add((r, c))
+        stack += [(r + 1, c), (r - 1, c), (r, c + 1), (r, c - 1)]
+    return frozenset((r, c) for r in range(lo_r, hi_r + 1) for c in range(lo_c, hi_c + 1)
+                     if (r, c) not in v and (r, c) not in seen)
+
+
 def perimeter_of(cells) -> int:
     """EXPOSED CELL EDGES -- one per neighbour a cell does not have, so a concave boundary and
     a hole's inner wall both count. Not the bounding-box outline. Same one-implementation

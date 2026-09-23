@@ -222,10 +222,18 @@ class ArcWorld:
         # from composable to blocked when `overlap` was checked -- so the ladder's condition is
         # met by the corpus's own record: composition tried and could not.
         #
-        # THE RAW AREA, NOT CONTAINMENT. Containment is `overlap == area(A)`, which the agent can
-        # compose once it holds the overlap; publishing containment itself would hand it the
-        # composition rather than the instrument, and that is the discovery this is meant to
-        # enable rather than replace.
+        # THE RAW AREA, NOT BBOX CONTAINMENT. Bbox containment is `overlap == area(A)`, which the
+        # agent can compose once it holds the overlap; publishing it would hand the composition
+        # rather than the instrument, and that is the discovery this is meant to enable rather
+        # than replace. **THAT REFUSAL STANDS AND IS ABOUT THE BOUNDING BOX.**
+        #
+        # AND IT IS NOT THE SAME QUANTITY AS `inside`, WHICH IS ALSO PUBLISHED HERE -- reviewer,
+        # 2026-09-23, closing a name collision at both sites. `inside` is HOLE containment,
+        # admitted by Isaiah as *pegs in holes* and justified as NOT derivable from `touching`,
+        # because a ring touches its interior and its exterior identically. **The distinguishing
+        # case: a peg overlapping a ring's WALL satisfies bbox containment and NOT hole
+        # containment.** Two quantities, and the bare word `containment` is retired from both
+        # sites so nothing re-derives the conflict.
         #
         # AND IT IS SPARSE, MEASURED BEFORE BUILDING: overlapping-bbox pairs run 0.6-1.4x the
         # CONTACT pairs and 1.4% of all pairs on `bp35` (582 of 41,328). Fewer than contact on
@@ -240,6 +248,27 @@ class ArcWorld:
                 c = min(A["col"] + A["w"], B["col"] + B["w"]) - max(A["col"], B["col"])
                 if r > 0 and c > 0:
                     out[f"{a}~{b}.bbox"] = r * c
+        # `inside` -- HOLE CONTAINMENT, the admitted atom finally built. ADMITTED 2026-09-08 and
+        # absent from the registry until now: the only entry in `arc_atoms.ADMITTED` that was
+        # never constructed, and it carried the batch's best reach number (+15 chains at depth 3).
+        #
+        # SPARSE BY CONSTRUCTION, which is what makes it affordable on the pair axis: only an
+        # object WITH AN ENCLOSED REGION can contain anything, and most objects have none. The
+        # dense `n^2` reading this site refuses elsewhere is +1170-1259% slots; this emits a row
+        # only where a hole exists AND something sits in it.
+        #
+        # DIRECTED, so both orders are asked: `a~b` means B IS INSIDE A. Containment is not
+        # symmetric and a single unordered row would have made it so.
+        for a in names:
+            hole = arc_percept.enclosed_of(tr[a]["cells"])
+            if not hole:
+                continue
+            for b in names:
+                if b == a:
+                    continue
+                cb = {tuple(c) for c in tr[b]["cells"]}
+                if cb and cb <= hole:
+                    out[f"{a}~{b}.inside"] = 1
         return out
 
     def read_order(self) -> tuple[list[str], str]:

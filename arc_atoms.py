@@ -139,7 +139,13 @@ ATTRIBUTE_TYPE = {"colour": COLOUR, "row": POSITION, "col": POSITION,
                   # commensurable with POSITION. `speed` and `velocity` are ONE quantity here
                   # -- a slot holds one int, so a vector has nowhere to live -- and only one
                   # name is published. Direction stays in `drow`/`dcol`.
-                  "speed": EXTENT}
+                  "speed": EXTENT,
+                  # `inside` -- HOLE CONTAINMENT, per-pair, ruled 2026-09-23. The ONLY entry in
+                  # `ADMITTED` that was never built: admitted 2026-09-08 with the batch's best
+                  # reach number and absent from the registry for a fortnight. BOOL because it
+                  # holds or it does not; the bare word `containment` is retired -- `arc_world`
+                  # publishes BBOX overlap as `bbox` and refuses bbox containment separately.
+                  "inside": BOOL}
 
 
 # THE ADMITTING CLAUSE, PER ATOM, RECORDED WHERE THE ATOM IS DECLARED.
