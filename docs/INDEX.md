@@ -45152,3 +45152,55 @@ question decides whether this table is the programme's finding or its largest no
                 `reinvented` reported. 13/13 seats
     CAPABILITY  invention can cross a game boundary, which it could not an hour ago -- and
                 nothing has yet crossed one
+
+---
+
+## F310 (INDEX series) — TRANSFER IS MEASURABLE AND NON-ZERO: **51 of 132 invented atoms resolve on a DIFFERENT BOARD.** But `resolved` tests KEY-PRESENCE ONLY, so it is not evidence the mapping transferred
+
+**Route 2 made the reviewer's `REUSED-ELSEWHERE` column runnable for the first time.**
+
+    BOARD A   wa30, 4 cycles, invent ON      invented 132, saved
+    BOARD B   m0r0, fresh Gamma, load        132 re-invented through the licence gate
+                                             132 CALLED on a different board
+                                              51 RESOLVED      <- the transfer column
+
+**The save boundary works: 132 of 132 crossed and every one was invoked.** That is route 2 doing
+exactly what it was built for, on two boards at opposite ends of the cascade axis (`wa30` 1%
+multi-frame, `m0r0` 1%).
+
+### AND THE COLUMN IS WEAKER THAN ITS NAME, WHICH I CHECKED BEFORE REPORTING IT
+
+    def fn(v, _c):
+        got = d.get(str(v))
+        return NOT_RESOLVED if got is None else got
+
+> **AN ATOM `RESOLVES` IF AND ONLY IF ITS INPUT IS A KEY IN THE RECORDED MAP.** *Whether the
+> value it returns is CORRECT is never tested by resolution.* **So `51 of 132` measures how often
+> a recorded before-value RECURS on another board — and before-values are small integers:
+> colours 0-9, rows, extents, counts.** Cross-board recurrence of a small integer is close to
+> guaranteed.
+
+**THIS IS A DEFINITIONAL READING, NOT AN EMPIRICAL ONE — it is a property of the function, so no
+control run was needed and none would have added anything.** A shuffled twin with the same keys
+and permuted outputs would resolve at exactly the same rate, by construction.
+
+**SO `REUSED-ELSEWHERE` AS I BUILT IT IS KEY-COLLISION, AND IT IS THE THIRD TIME TONIGHT A COLUMN
+HAS MEASURED LESS THAN ITS NAME** — after `live cycles` (`F288`) and `REUSED` (`F306`). *Each
+time the name was the general word and the quantity was the narrow one.*
+
+### THE COLUMN THAT WOULD SETTLE IT IS THE REVIEWER'S THIRD, AND IT IS UNMEASURED
+
+    SETTLED-FROM   appears in a term the GROUND settled   = it was worth having
+
+**That is the only one of the three that tests the MAPPING rather than the key**, because the
+ground refuses a term whose prediction was wrong. **`REUSED-HERE` (167) and `REUSED-ELSEWHERE`
+(51) are both necessary and neither is sufficient, and both are the columns that look best on
+their own.**
+
+    BOUNDARY    TWO boards, ONE seed, 4 cycles each, tape. It establishes that the SAVE BOUNDARY
+                carries invented atoms and that they FIRE elsewhere -- both real, both new. It
+                establishes NOTHING about whether the mapping is right anywhere, and the
+                51 must not be quoted as transfer without this sentence attached
+    MECHANISM   none changed
+    CAPABILITY  invention crosses a game boundary and fires there, which was impossible two
+                hours ago. Whether what crosses is worth anything is the unmeasured third column
