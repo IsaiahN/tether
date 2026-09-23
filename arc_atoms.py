@@ -140,6 +140,21 @@ ATTRIBUTE_TYPE = {"colour": COLOUR, "row": POSITION, "col": POSITION,
                   # -- a slot holds one int, so a vector has nowhere to live -- and only one
                   # name is published. Direction stays in `drow`/`dcol`.
                   "speed": EXTENT,
+                  # CONSECUTIVE FRAMES UNCHANGED -- arm `TETHER_INSTRUMENTS`. EXTENT, and the
+                  # QUANTITY WAS READ AT THE WRITE SITE BEFORE THE TYPE WAS CHOSEN: `arc_percept`
+                  # emits `prev.get("stability", 0) + 1` or `0`, so it is a COUNT and not a
+                  # changed/unchanged flag. `age`'s shape exactly, and that file pairs them --
+                  # `age` counts frames TRACKED, `stability` counts frames UNCHANGED.
+                  #
+                  # **IT WAS EMITTED FOR SIX HOURS WITH NO ENTRY HERE, AND THE MISS IS SILENT IN
+                  # THE DIRECTION THIS TABLE DOES NOT WARN ABOUT.** The note below warns that
+                  # ADDING a key mints an atom. The MISSING-key direction is worse: `arc_world`'s
+                  # `slot_types` falls back to the ATTRIBUTE NAME, so `stability` became a TYPE
+                  # NAME on 335 slots across six boards -- and nothing declares an `in_type` or
+                  # `out_type` of `stability`, it is not in `ORDERED_TYPES` and not in
+                  # `COMMENSURABLE`, so those slots were PERCEIVED AND STRUCTURALLY UNBINDABLE.
+                  # **A new attribute needs a key here in the SAME commit that emits it.**
+                  "stability": EXTENT,
                   # `inside` -- HOLE CONTAINMENT, per-pair, ruled 2026-09-23. The ONLY entry in
                   # `ADMITTED` that was never built: admitted 2026-09-08 with the batch's best
                   # reach number and absent from the registry for a fortnight. BOOL because it
