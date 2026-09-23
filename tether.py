@@ -955,6 +955,23 @@ class Agent:
                 return None
         return (value,)
 
+    def _delta(self) -> dict:
+        """THE FRAME'S DELTA, in the shape `composer.settle` reads.
+
+        **`came` AND `gone` WERE COMPUTED AND NEVER READ.** `_present` assigns `self._came` and
+        `self._gone` every cycle -- with a careful comment about clearing them on the no-change
+        path so a stale event cannot masquerade as a real one -- and NOTHING IN THE PACKAGE
+        CONSUMED EITHER. `composer.NEEDS` names the gap from the other side, in the table's own
+        text: *"gone -- a value->null transition, computed in `_present` and UNPUBLISHED"*.
+
+        **THE OTHER FOUR KEYS ARE ABSENT AND THAT IS A STATEMENT, NOT AN OMISSION.** `order`
+        (`+`, `→`), `history` (`∥`) and `values` (`⋛`) are computed nowhere, so publishing an
+        empty one would let `settle` read *present but undecidable* where the truth is *not
+        carried at all*. `settle` distinguishes those in its `None` reasons, and a fabricated
+        key would collapse the distinction.
+        """
+        return {"came": self._came, "gone": self._gone}
+
     def _narrate_vocabulary(self) -> None:
         """ONCE PER RUN: what the corpus CALLS what this agent can already reach.
 
@@ -969,7 +986,15 @@ class Agent:
             return
         self._vocab_said = True
         mols = self._molecules()
+        # OFFERED TO THE GROUND, not merely held. `settle_tree` walks each junction and asks
+        # whether THIS delta decides it; an undecided junction stays UNKNOWN.
+        d = self._delta()
+        tallies = [composer.settle_tree(m["node"], d) for m in mols]
         self.led.record(self.cycle, "PERCEIVE", "*", "vocabulary",
+                        delta_keys=sorted(d),
+                        junctions_decided=sum(t["decided"] for t in tallies),
+                        junctions_undecided=sum(t["undecided"] for t in tallies),
+                        why_undecided=[w for t in tallies for w in t["why"]][:3],
                         covered=[m["molecule"] for m in mols],
                         # WHAT IT SAYS, not just what it is called -- §12.2, and the whole
                         # reason the tree is held rather than the name.

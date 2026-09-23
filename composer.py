@@ -223,8 +223,11 @@ NEEDS = {
     "+":  "order -- the SEQUENCE of changes within and across a frame",
     "→": "order -- the SEQUENCE of changes within and across a frame",
     "∥": "history -- a frame where one ingredient failed and the result still occurred",
-    "−": "gone -- a value->null transition, computed in `_present` and UNPUBLISHED",
-    "⇒": "came -- a null->value transition, computed in `_present` and UNPUBLISHED",
+    # PUBLISHED 2026-09-23 by `tether.Agent._delta`. The text read "computed in `_present` and
+    # UNPUBLISHED" and that was the gap this table existed to name -- it is closed, and leaving
+    # the old wording would have made a REASON STRING lie every time a junction went undecided.
+    "−": "gone -- a value->null transition, published by `Agent._delta`",
+    "⇒": "came -- a null->value transition, published by `Agent._delta`",
     "⋛": "magnitudes -- two changed slots' values, which the delta DOES carry",
 }
 
@@ -289,7 +292,14 @@ def settle_tree(node: object, delta: dict) -> dict:
                 why.append(f"ISOMER: {n.left}/{n.right} supports {supported}")
         else:
             undecided += 1
-            why.append(settle(BONDS[0], n.left, n.right, delta)[1])
+            # **THE REASON MUST NAME THE BOND WHOSE QUANTITY WE ACTUALLY HAVE.** This reported
+            # `BONDS[0]`'s reason unconditionally -- always `+`, always *order -- the SEQUENCE
+            # of changes*. So once `came`/`gone` were published the tally still said the delta
+            # lacked ORDER, when the truth had become *the quantity is carried and no test is
+            # written*. `bond_field` is named apart precisely so a missing FIELD and a missing
+            # TEST stay distinguishable, and this line was collapsing them again one level up.
+            have = [b for b in BONDS if b != "≡" and delta.get(bond_field(b))]
+            why.append(settle(have[0] if have else BONDS[0], n.left, n.right, delta)[1])
         stack += [n.left, n.right]
     return {"decided": decided, "undecided": undecided, "why": why}
 
