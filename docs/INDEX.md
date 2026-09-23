@@ -45949,3 +45949,78 @@ the chain's own POSITION is the body, so the whole meaning stays in the atom seq
     MECHANISM   none changed; designing it was explicitly withheld
     CAPABILITY  none. It names the single structural thing between today's agent and the RSI
                 picture, and it is bigger than any one construct
+
+
+---
+
+## F326 -- SETTLING IS COMMON AND UNSTABLE, NOT RARE. A stock was read as a rate.
+
+Item 4's surprise measurement came back with the LIB and COLD arms **IDENTICAL TO THE DIGIT
+across 12 cycles on two of three seeds.** That is not a null -- it is the treatment not existing.
+
+    after 12 training cycles   library 71 terms · SETTLED 0 · units 59
+    load into a fresh Gamma    loaded 1, already_held 11
+    units BEFORE 59 -> AFTER 59                        settled after: 0
+
+**`units()` PROMOTES ONLY SETTLED TERMS**, so with none settled the carried library changes the
+unit set by nothing and both arms run the identical search.
+
+### The first reading was wrong, and the correction is the finding
+
+**I reported "40 cycles buy ONE settled term -- a carried library is a one-unit perturbation to a
+59-unit search."** The reviewer asked for settle and demote as EVENTS rather than the live count,
+because `settled_terms` is a LEVEL and has two readings. **It is the second:**
+
+    board   candidates  SETTLE ev  DEMOTE ev  net settled   reading
+    wa30            11          6          4            2   settles, some churn
+    g50t            16          8          8            0   COMMON AND UNSTABLE
+
+**6-8 settlements per 25 cycles -- roughly 0.3/cycle, AN ORDER OF MAGNITUDE above what the live
+count implied -- and demotion removes nearly all of them. On `g50t` it removes EVERY ONE.**
+
+> **SO THE DIAGNOSIS INVERTS. The question is not *why does so little settle*; settling works.
+> It is WHY DOES EVERYTHING THAT SETTLES GET DEMOTED.** And the funnel stage that matters moves
+> from `offered -> settled` to `settled -> demoted`. **"Make more things settle" would have been
+> the wrong repair and was the one I was about to take.**
+
+**FROM THE TWO SITES:** a term SETTLES (`tether:3881`) when it predicts a transition **it was
+never fitted to**, on a later cycle than it was minted; it is DEMOTED (`tether:3862`) when it
+**later mispredicts on fresh evidence**. **Eight-for-eight means terms clear the bar and fail
+immediately after** -- which is a claim about THE BAR, or about whether the settling evidence
+generalises at all. Those are separable and neither is asserted here.
+
+**AND IT REACHES THE WHOLE OF PART 12:** nothing carries across games, nothing ranks per kind
+(§12.6), no routine can be kept -- **because nothing STAYS settled.**
+
+    BOUNDARY    TWO boards, 25 cycles, seed 0, tape. `sk48` had not reported. A third board
+                could move the wa30/g50t split, which is 4-of-6 against 8-of-8
+    MECHANISM   none changed
+    CAPABILITY  none. It replaces the target of the "why does nothing settle" thread, which had
+                been open since `F56`, with a measured stage
+
+### The rule this earns: A STOCK IS NOT A RATE
+
+**Third time today that printing MEMBERS instead of trusting a COUNT changed the answer** --
+`433 cycles` were 3 (`F323`), `inside` reading 0 was a missing arm flag, and `1 per 40` was the
+net of two flows. **All three were plausible numbers and all three were facts about the
+instrument rather than about the world.**
+
+> **`settled_terms` IS A LEVEL, AND A LEVEL IS THE INTEGRAL OF TWO FLOWS. Reading a level as a
+> flow hides the flow that cancels it.** The existing rule -- *when a failure mode is reported as
+> a COUNT, print its MEMBERS before ruling on it* -- generalises one step: **when a quantity can
+> go DOWN as well as up, a single reading of it is not a rate and must not be reported as one.**
+
+### And the panel precondition, adopted the same day it was missed
+
+**Item 4's pre-registration named boards, seeds, cycles, arms, the test and the null -- and NOT
+what the panel needed to be capable of showing.** It needed SETTLED TERMS and had zero.
+**`CLAUDE.md` already says it:** *before a null is read as a finding about a mechanism, state what
+property of the panel the mechanism would need, and confirm the panel has it.*
+
+**THE FIELD IS NOW PART OF THE TEMPLATE, and today carries both halves of the lesson:** the
+omission here, and the catch an hour later when `inside` read 0 slots on both harnesses and the
+board turned out to hold 48 holed objects and 236 containing pairs. **Same check, one miss and
+one catch, within the hour.**
+
+**What saved this one was the arms matching TO THE DIGIT. A small difference would have read as a
+weak effect and been reported.**
