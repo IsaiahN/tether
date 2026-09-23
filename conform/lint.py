@@ -535,17 +535,36 @@ def _isolated(src: str, others: tuple[str, ...] = (),
 # the betting path never imports them, so a cue can never reach the closure. This was a property of
 # the code; the reviewer asked (2026-09-15) that it be a CHECK, so one import cannot break §12.3.
 _BETTING_PATH = {"tether.py", "gamma.py", "arc_atoms.py"}
-_CUE_MODULES = {"relations", "observer", "mapping", "detectors", "composer"}
+
+# RE-SCOPED BY INPUT PROVENANCE -- reviewer 2026-09-22 12:19, LANDED 2026-09-23. The rule used to
+# name five modules by IDENTITY and the real line is where a module's INPUT comes from. It was
+# ruled the day before and never reached the code, so `composer` -- the recipe machinery that
+# `LIBRARY_RETRIEVAL` Part 12 calls THE AGENT'S OWN PROGRAMMING LANGUAGE -- stayed refused on the
+# betting path while the plan of record said it belonged there. The wiring audit found it before
+# the wiring audit ran.
+#
+# WHAT MOVED, AND EACH ON A CHECKABLE FACT RATHER THAN ON JUDGEMENT:
+#   composer    stdlib imports only; reads `ATOMS.md`, which is domain-agnostic priors
+#   relations   stdlib imports only
+#   detectors   reaches `reverse_engineer` at line 128, under `__main__` -- clean as a LIBRARY
+#   observer    same, at line 163
+#   mapping     STAYS. `mapping.py:23` imports `reverse_engineer` at MODULE SCOPE, so importing
+#               it pulls the answer-key producer in with it. That is the provenance test failing.
+#
+# `KEY_BOUNDARY` (F134) is untouched: what is forbidden is an ANSWER KEY deciding what the agent
+# pursues on a live board, and none of this moves that line.
+_CUE_MODULES = {"mapping"}
 
 
 @rule("CUE_BOUNDARY",
-      "§12.3 + reviewer 2026-09-15: the betting path may not import the cue modules. A cue NARROWS "
-      "retrieval; a TERM is composed over. A cue module reaching the closure makes aligned "
-      "composable-WITHOUT-reaching, and reaching is the only evidence the composition system works "
-      "-- so the ablation loses its evidence with nothing failing. Structure, not convention: the "
-      "covert-grant failure, installed as a check.",
-      "import relations\n",
-      "import gamma\n",
+      "§12.3, reviewer 2026-09-15, RE-SCOPED BY INPUT PROVENANCE 2026-09-22 12:19: the betting "
+      "path may not import a module whose INPUT is answer-key-derived. The old rule named five "
+      "modules by identity and refused `composer`, which reads domain-agnostic priors only -- so "
+      "it blocked the agent's own recipe language, which Part 12 makes the point of the "
+      "architecture. `mapping` still fails because it imports `reverse_engineer` at module scope. "
+      "Structure, not convention: the covert-grant failure, installed as a check.",
+      "import mapping\n",
+      "import composer\n",
       n_bad=1, n_ok=1, n_found=1, crossfile=True,
       bad_name="tether.py", ok_name="tether.py")
 def _cue_boundary(src: str, _others: tuple[str, ...] = (),
