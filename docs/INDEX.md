@@ -45310,3 +45310,63 @@ per-cycle cost figure tonight was taken inside the live window, so those are una
     CAPABILITY  none. It replaces "levels may be unreachable" with "the board kills everything
                 in ~200 steps and no level is reached first", which is a different problem with
                 a different repair
+
+---
+
+## F313 (INDEX series) — **THE DEATH IS A TIMER.** Identical first-death step across every policy and seed — `wa30` 200, `dc22` 128 — so survival is NOT a capability, and the live ground column cannot discriminate any policy at any horizon
+
+**The check that had to come before measuring survival, and it kills that measurement before it
+was run.**
+
+    board   policy     seed   first death
+    wa30    random      0         200
+    wa30    random      1         200
+    wa30    random      2         200
+    wa30    constant    0         200
+    dc22    random      0         128
+    dc22    random      1         128
+    dc22    random      2         128
+    dc22    constant    0         128
+
+**FOUR DIFFERENT ACTION SEQUENCES — three random draws and a constant action — AND THE BOARD DIES
+ON THE SAME STEP EVERY TIME.** *A policy that presses the same button 128 times and one that
+draws uniformly die together, to the step.* **The episode ends on a fixed count per board, not on
+anything the agent did.**
+
+### WHAT THIS CLOSES
+
+**SURVIVAL IS NOT A CAPABILITY HERE.** I proposed measuring *does the agent outlive random* as the
+continuous ground reading we might have been missing. **It would have been a non-measurement** —
+the quantity is constant across policies by construction, and I would have been ranking arms on a
+number none of them can move. *The same trap as `levels`, one column over, and it was the reason
+I checked this first rather than running it.*
+
+**AND IT COMPLETES THE LIVE-PATH PICTURE:**
+
+    every policy gets exactly N steps        wa30 200, dc22 128, sk48 309
+    no policy completes a level in N steps   trained, atoms-only, random, constant
+    therefore the ground column is CONSTANT  it cannot rank anything, for any arm, at any horizon
+
+> **THE LIVE GROUND READOUT IS NOT WEAK. IT IS CONSTANT.** `F308`'s tie, `F309`'s full table and
+> `F311`'s control are all one fact: *a fixed-length episode in which nothing anyone can do
+> changes the score.* **Isaiah ruled the ground to the live path four hours ago and the live path
+> turns out to have no gradient on it at this scale.**
+
+### WHAT IT DOES NOT SAY
+
+**It does not say the games are unwinnable.** A competent policy might well clear a level inside
+128 steps — **nothing we have does, and that is a statement about our policies, not about the
+board.** *The human panel solved all 25.*
+
+**And it does not say the timer is arbitrary.** A fixed action budget is an ordinary game rule;
+`PER_LEVEL = 500` exists seat-side for exactly this kind of cap. **What is new is that the budget
+is far smaller than the runs we have been declaring** — 25-cycle and 80-cycle runs sit entirely
+inside it, and the 5,000-step probe spent 96% of itself after the end.
+
+    BOUNDARY    TWO boards, FOUR policies each (3 random seeds + constant), live path, deaths
+                counted as TRANSITIONS. `sk48`'s 309 is from `F312` and was not re-tested across
+                policies here, so it is one policy rather than four
+    MECHANISM   none changed
+    CAPABILITY  none. It converts the entire live-ground thread from "the arms tie" into "the
+                column is constant", and it stops a survival measurement that would have
+                repeated the mistake it was meant to escape
