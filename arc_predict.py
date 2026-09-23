@@ -93,6 +93,14 @@ def predict() -> list[Atom]:
     precisely so that file does not choose what the agent may bet on. **The hole was left
     deliberately and had never been filled by any caller.**
     """
+    # `idn` IS POLYMORPHIC IN ITS OUTPUT AND IS DELIBERATELY LEFT UNDECLARED -- reviewer,
+    # 2026-09-23, with its trigger, so the next reader meets a decision and not a gap.
+    # `_idn` returns its input, so its honest out_type is *same as in*, which `Term.out_type`
+    # cannot express. Declaring it `polymorphic` without that crashed `choose` -- `owner .
+    # translate` returned a record while advertising `val`, and `g % alphabet` raised on a dict.
+    # A type variable is a type-system feature touching every consumer of `out_type`, which is
+    # a large bill for ONE atom. TRIGGER TO REVISIT: a SECOND polymorphic-output atom with a
+    # real demand behind it. **One atom is not a language feature.**
     return [Atom("idn", _idn, "val", "val"),                       # reads nothing
             # `v + operand` is meaningful only between commensurable quantities, so the
             # operand must be whatever the target is. A row plus a colour is arithmetic

@@ -49,6 +49,32 @@ OBJ_TYPE = "OBJ"
 # construction (its streams ARE these two); the retrieval path did not, and was satisfied by
 # accident until an atom carrying a third type reached it.
 BINDABLE = ("val", OBJ_TYPE)
+# STEP 1 NARROW. `BINDABLE` filters the OUTPUT type and never asked `_head_accepts`, the INPUT
+# rule written one screen up -- so a term could be refused for its output while its input was
+# never consulted. Widening on BOTH conditions admits 7 atoms; on the output alone it admits 26,
+# of which 19 could only ever abstain.
+#
+# **A TABLE AND NOT A PREDICATE, because an exemption in logic widens quietly and a table can be
+# diffed.** A type is listed here only when the census MEASURED its slot representation and its
+# atom-output representation to survive the consuming operation -- `correction_bits`' `a %
+# alphabet`, four call sites, all identical. **The verdict is DOES `%` WORK, never do the names
+# match**: `BOOL` holds an `int` in the slot and returns a `bool`, which a name comparison calls
+# a mismatch and `%` accepts.
+#
+# `SHAPE` IS ABSENT ON A MEASURED FACT, NOT AN EXEMPTION BY NAME: a SHAPE slot holds the
+# episode-local INT id and a SHAPE-typed atom returns a FROZENSET of offsets -- 36 of 36 failed
+# `%` on six boards. It is re-admitted when the inverse encoder lands, and not before.
+# COLOUR/POSITION/DELTA are UNCHECKABLE rather than agreeing -- every producer of those takes
+# `OBJECT`, so none was ever called and the census has no atom-side reading to compare.
+REPR_AGREES = ("EXTENT",)
+
+
+def _may_bind(cand: Any, slot_type: str | None) -> bool:
+    """Both halves: the output type must be bindable, AND the head must accept the slot."""
+    out = getattr(cand, "out_type", "val")
+    if out in BINDABLE:
+        return True
+    return out == slot_type and out in REPR_AGREES and _head_accepts(cand, slot_type)
 
 # F127's arm B. Seat-side and off unless asked for, so the default build is byte-identical.
 _TYPED_BIND = bool(os.environ.get("TETHER_TYPED_BIND"))
@@ -1537,7 +1563,7 @@ class Agent:
                 # BEFORE `_explains`, and separately from it: may this BIND is a type question
                 # and does it EXPLAIN is a behavioural one. Folding the first into the second
                 # would put two quantities under one name at the site that decides both.
-                if getattr(cand, "out_type", "val") not in BINDABLE:
+                if not _may_bind(cand, self.slot_types.get(slot)):
                     continue
                 # F127 EXPERIMENT, SEAT-SIDE SWITCH, DEFAULT OFF. The line above filters the OUT
                 # type and nothing filters the IN type against the slot's, so `none` -- a
