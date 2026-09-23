@@ -271,11 +271,25 @@ def candidates(lit: set, path: str = _ATOMS_MD, partial: bool = False) -> list[d
     residual is priced, not refused. OFF by default: whether partial cover is the right admission
     rule is a ruling, not a parse detail.
     """
-    lit = set(lit)
+    # **THE JOIN IS NORMALISED, AND A CASE-SENSITIVE ONE WAS RETURNING ZERO BY CONSTRUCTION.**
+    # The corpus capitalises ingredients (`Contact`, `Reflect`, `Stability`) and the registry
+    # lower-cases atoms (`contact`, `reflect`, `stability`), so `i in lit` matched NOTHING --
+    # measured 0 of 61 agent atoms against 2,669 ingredient names, on both exact and partial
+    # cover. Normalised it is 13, covering up to 10 recipes each.
+    #
+    # **AND THE CORPUS IS INCONSISTENT WITH ITSELF, WHICH IS WHAT MAKES THIS A JOIN DEFECT
+    # RATHER THAN A CONVENTION MISMATCH: `Sign` and `SIGN` are both present.** No single casing
+    # rule on either side would have joined them; only normalising does.
+    #
+    # `ATOMS.md` IS READ-ONLY SEED, so the repair belongs here and could not have gone there.
+    def _norm(x: str) -> str:
+        return re.sub(r"[^a-z0-9]", "", x.lower())
+
+    lit = {_norm(x) for x in lit}
     hits = []
     for n, r in recipe_rows(path).items():
         ing = r["ingredients"]
-        hit = sum(1 for i in ing if i in lit)
+        hit = sum(1 for i in ing if _norm(i) in lit)
         if hit == len(ing) or (partial and hit):
             # LIT, as 5.9.4's after-lighting shape. Added as a KEY rather than by changing
             # the return shape: `mapping.py` and the `__main__` demo both read `molecule` off
