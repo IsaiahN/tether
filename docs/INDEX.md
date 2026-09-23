@@ -46655,3 +46655,49 @@ not evidence.* **A closure count is exactly that, and it was the abort's subject
     BOUNDARY    3 cycles tape, one seed, one board for the A/B; 6 cycles live on ls20
     MECHANISM   reverted -- `git checkout -- arc_predict.py`. Nothing shipped
     CAPABILITY  none, and that is the finding
+
+
+---
+
+## F339 -- METACOGNITION IS UNREACHED FOR A DIFFERENT REASON THAN THE OTHER FOUR, AND I FILED IT
+## WRONG BEFORE CHECKING. `no objective is confidently shrinking`, 4 of 4.
+
+Metacognition (`7f2d7fd`) attaches an expectation to a routine and abandons on divergence. **The
+live check: `_check_expectation` NEVER CALLED, routine rows 0.** It is guarded by
+`if self.routine is not None` and no routine is ever adopted.
+
+### FIRST THE CORRECTION, BECAUSE IT IS THE POINT OF THE ROW
+
+**I reported this as the FIFTH SITE OF THE BARGAIN WALL** — alongside the widened streams, the
+four EXTENT atoms, the 992 trees and `rotate`. **That was PATTERN-MATCHING, not measurement**,
+and the pattern was strong enough that I wrote it down before extracting the reason.
+
+    MEASURED, vc33, 4 cycles:
+      `_mint_routine` CALLED        4 of 4 cycles -- the path is NOT dead
+      `routine_refused`             **x4, reason: `no objective is confidently shrinking`**
+      `routine` / `routine_cut`     **0**
+
+> **THAT IS GATE 1, NOT THE BARGAIN.** **The other four sites are candidates that REACH the
+> contest and lose it. This one never reaches the contest at all** -- the refusal happens before
+> any candidate is enumerated, priced or compared. **Withdrawn: four sites, not five.**
+
+**AND THE BARE COUNT COULD NOT HAVE TOLD ANYONE THIS.** `routines adopted 0` has stood in
+`CLAUDE.md` for a fortnight, and a count cannot separate *never tried* from *tried and refused*
+from *refused at the gate for a named reason*. **It is tried, every cycle, and refused at the
+gate.** `counters-lie-read-the-write-site`, and the write site here is one `reason` field that
+nobody had read.
+
+### WHAT IT POINTS AT, WITHOUT CHASING IT
+
+`no objective is confidently shrinking` is **gate 1**, and the standing brief already names the
+neighbourhood: *`_goal_choice`, where 19 of 38 gate-1 survivors are objectives that ALREADY HOLD
+-- a series `[2,1,0]` passes "confidently shrinking" then dies at the holds-gate.* **So gate 1
+has a documented population problem on one side of it, and this is the other side: nothing
+reaches the gate as shrinking at all on `vc33`.**
+
+**NOT INVESTIGATED FURTHER. One board, one seed, four cycles** -- and `PER GAME, NEVER POOLED`
+applies: a board where nothing is shrinking may be a board with nothing to shrink.
+
+    BOUNDARY    vc33, seed 0, 4 cycles, tape. ONE BOARD -- the reason may differ elsewhere
+    MECHANISM   metacognition is built, correct, and unreached. Not claimed
+    CAPABILITY  none, and the row exists to stop the wrong CAUSE being carried forward
