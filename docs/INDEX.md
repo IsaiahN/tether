@@ -46582,3 +46582,76 @@ boundary until tonight, and there it is the ONLY thing standing between 0 and 1.
     BOUNDARY    a read, no runs. The recipe tables and the registry, both static
     MECHANISM   none changed by this row; `945f8da` changed the join and this measures it
     CAPABILITY  none. It relabels four rows and rebuilds no claim
+
+
+---
+
+## F338 -- THE RETYPING: CHAINS UP, BINDINGS DOWN 16, AND ZERO GAIN ON THE TWO TYPES IT EXISTS
+## FOR. Built, measured, REVERTED. And the abort watched the wrong quantity.
+
+Approved 2026-09-22/23 on a computation that `translate: POSITION->POSITION` and
+`recolour: COLOUR->COLOUR` would give POSITION and COLOUR their first same-type predictors --
+**POSITION 0 -> 6, COLOUR 0 -> 6**. **Both halves of that turned out to be wrong, in different
+ways, and only one was foreseeable.**
+
+### The closure moved exactly as predicted
+
+    val -> val            3/7/15  ->  **1/1/1**    the clique collapses to `idn` alone
+    POSITION -> POSITION      51  ->  67
+    COLOUR -> COLOUR          11  ->  16
+    DELTA -> DELTA           126  ->  133
+    type-checking pairs      755  ->  784
+    EXTENT / SHAPE / BOOL             unchanged
+
+**The reviewer called the clique collapse BEFORE the number and named it the repair rather than
+the damage. It is.** **The declared abort -- *if POSITION/COLOUR do not gain same-type chains,
+the retyping bought nothing* -- DID NOT FIRE.**
+
+### AND THE BASELINE IN THE PREDICTION NO LONGER EXISTED
+
+**The prediction said POSITION 0 -> 6. POSITION was already at 51.** `fe868c3` made `owner`
+polymorphic the same evening and opened `POSITION -> owner -> OBJECT -> row -> POSITION`.
+**A pre-registered number computed against a world that has since moved is not a prediction any
+more, and nothing flags that: it still reads as a clean before/after.** Same family as
+`instrument-age-vs-run-age`, one level up -- **there the ROW predated the run; here the
+PREDICTION predated the code.**
+
+### The ground refused it
+
+    LIVE, ls20 6 cycles          bound slots **54 -> 40**, density 0.1314 -> 0.0973
+    A/B, one script one flag, vc33 3 cycles, BY SLOT TYPE:
+      CONTROL (`val`-typed)  **45**  EXTENT 26 · DELTA 13 · SHAPE 2 · POSITION 2 · COLOUR 1 · BOOL 1
+      BOTH RETYPED           **29**  EXTENT 21 · DELTA  3 · SHAPE 1 · POSITION 2 · COLOUR 1 · BOOL 1
+
+> **SIXTEEN BINDINGS LOST, AND POSITION STAYED AT 2 WHILE COLOUR STAYED AT 1.** **The two types
+> the retyping exists for gained NOTHING.** **67 chains where there were 51, and not one more
+> binding.**
+
+    split:   recolour only  44 (-1)  ·  translate only  39 (-6)  ·  both  29 (-16)
+
+**WORSE THAN ADDITIVE.** Narrowing both destroys the chains that used them together, which no
+per-atom reading would have shown.
+
+### WHY `translate` CANNOT BE RETYPED CORRECTLY -- and it is the `idn` ruling, at a second site
+
+The loss is concentrated in DELTA, 13 -> 3. `translate` is `v + operand` and
+**`sensors.COMMENSURABLE` is exactly `{{POSITION, DELTA}}`**, so translating a DELTA is
+legitimate and `POSITION -> POSITION` forbids it.
+
+> **`also_accepts` FIXES THE INPUT AND CANNOT FIX THE OUTPUT.** Binding requires
+> `out_type == slot_type` and `out_type` IS ONE VALUE. **`translate`'s honest output is
+> *whatever commensurable type came in*** -- which is precisely `idn`'s unsolved case. The
+> reviewer ruled hours earlier that **one atom is not a language feature** and set the trigger:
+> *revisit only if a SECOND polymorphic-output atom appears with real demand.* **It has.**
+
+### THE LESSON IS THE METRIC, NOT THE RETYPING
+
+**The abort watched CHAINS. Chains are frame-internal and they rose. BINDINGS are nearer the
+ground and they fell by 16.** **A pre-registered abort on the wrong quantity passes cleanly
+while the change does damage** -- and this file's own rule already says it: *coverage, terms
+minted, compression achieved, and anything else the frame produces are frame-internal and are
+not evidence.* **A closure count is exactly that, and it was the abort's subject.**
+
+    BOUNDARY    3 cycles tape, one seed, one board for the A/B; 6 cycles live on ls20
+    MECHANISM   reverted -- `git checkout -- arc_predict.py`. Nothing shipped
+    CAPABILITY  none, and that is the finding
