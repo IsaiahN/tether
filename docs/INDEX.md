@@ -45588,3 +45588,44 @@ become reachable, it is not by climbing this ladder one rung at a time.**
                 one-atom-per-attribute tail is a property of the data and not of the algorithm
     MECHANISM   none changed. A read, as ordered
     CAPABILITY  none. It prices the move that three nulls pointed at, and the price is prohibitive
+
+---
+
+## F317 (INDEX series) — THE AGENT PLAYS A FULL EPISODE FOR THE FIRST TIME: **`dc22`, 128 steps to terminal, LEVELS 0.** The gap the reviewer found is closed, and the answer is the same one random gave at a hundredth of the cost
+
+**Every agent run before this was 10-80 actions against a 128-309 step budget** — the reviewer
+caught that `no policy completes a level` was MEASURED for random and ASSUMED for the trained
+arm. **It is now measured for both.**
+
+    dc22    agent, cheap arm, to terminal    128 steps    levels 0    terminal 'death'
+                                             library 112              2,746s
+
+    dc22    random, to terminal              128 steps    levels 0    terminal 'death'
+                                                                          ~9s
+
+**THE AGENT PLAYED THE WHOLE EPISODE AND COMPLETED NOTHING.** *Same steps, same terminal, same
+ground, and the agent took roughly THREE HUNDRED TIMES longer to get there.*
+
+> **SO THE ASSUMPTION WAS CORRECT AND IT WAS STILL RIGHT TO REFUSE IT.** The reviewer's catch cost
+> 46 minutes of compute and converted an assumption into a measurement — **and the outcome being
+> the one I expected is not an argument that the check was unnecessary.** *`F313` would otherwise
+> have rested on an untested arm for its most load-bearing claim.*
+
+### AND THE COST CURVE IS THE READING THAT IS NEW
+
+**The agent's cost per step ACCELERATES sharply within a single episode:**
+
+    20 steps    111s          80 steps   1,174s
+    40 steps    294s         100 steps   1,731s
+    60 steps    669s         128 steps   2,746s
+
+*Roughly quadratic — the last 28 steps cost more than the first 60.* **`F290`'s explosion is not
+a tape artefact: it happens on the live path, inside one episode, and it is why a 128-step
+episode takes 46 minutes.**
+
+    BOUNDARY    ONE board, ONE run, cheap arm (no arms, no library), to terminal. `wa30` was
+                KILLED before starting, per the reviewer -- the cost curve made it hours and
+                `dc22` answers the question. So this is one board's full episode, not two
+    MECHANISM   none changed
+    CAPABILITY  none. It closes the last gap in the live-ground thread: every arm has now been
+                measured to terminal, and none of them moves the column
