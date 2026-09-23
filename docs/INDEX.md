@@ -45735,3 +45735,70 @@ less than it looked three findings ago.**
     MECHANISM   none changed
     CAPABILITY  none. It marks item 7's decisive column as owed rather than answered, and
                 names the reason -- the cost of the thing being measured
+
+
+---
+
+## F320 -- TRAINING_PLAN ANNOTATED, NOT EDITED. Three corrections, filed from outside.
+
+`TRAINING_PLAN.md` is CORPUS (ruled 2026-09-22 17:04), so these are recorded here and the file
+is left alone. Ordered by the reviewer as part of Part 12.
+
+    §14.5b   THE TAPE WAS NEVER THE GROUND INSTRUMENT, and reading ground off it was OUR error,
+             not a defect in it. `feeder.ReplayTape.step` IGNORES the action BY DESIGN: it is
+             the PREDICTION CURRICULUM -- the agent bets, the tape says what happened, the
+             residual corrects it. `F296` stands as a FACT and its FRAMING is corrected here.
+             The annealing RL does not require the agent to act
+    §2       "random clears some level-1s" -- BOUNDED. It does not, on `wa30` or `sk48`, within
+             5,000 steps (`F311`/`F312`, corrected count). The claim is not refuted in general;
+             it is bounded on the two boards measured
+    §7/§10/§13   the UNIT OF WORK is superseded by `F281`
+
+    BOUNDARY    two boards for §2; the §14.5b correction is about FRAMING and rests on the
+                docstring plus `F296`, not on a new run
+    MECHANISM   none changed -- this is an annotation, which is what a corpus file may receive
+    CAPABILITY  none directly. It stops the next seat re-deriving that the tape is a broken
+                ground instrument, which is the reading that cost this seat a night
+
+## F321 -- THE RECIPE LANGUAGE CANNOT FOLD OVER CELLS. The macgyver claim fails as built.
+
+Isaiah asked whether the agent can build new primitives in a somewhat Turing-complete way. The
+reviewer reduced it to one read; it is answered and it is a negative. Full statement at
+`LIBRARY_RETRIEVAL` §12.2.1.
+
+    no CELL type exists      `grammar.T` = OBJECT ATTR REGION PRED OBJ RECORD PRICE; atom
+                             in_types = COLOUR DELTA OBJECT POSITION PRED SHAPE val
+    no fold construct        seven BINARY bonds; `composer.bind(bond, left, right)` builds
+                             strictly binary trees and there is no iteration form to parse
+    the folds that exist     8 PEER-GROUP atoms (`reads_ctx=('group',)`) over OTHER OBJECTS;
+                             10 CELL-LEVEL folds HANDWRITTEN IN PYTHON inside the atom
+    the nuance               `SHAPE` IS the offset cell frozenset, so cells are REACHABLE as a
+                             value and merely not ITERABLE -- the fix is iteration, not access
+
+    BOUNDARY    a static read of the type sets, the bond table and the atom registry. It says
+                what the language CAN express, not what the agent HAS expressed
+    MECHANISM   none changed. Isaiah ruled the means be built (§12.0); the build is item 2
+    CAPABILITY  none yet -- it names the construct whose ABSENCE caps every later measurement
+                of "what the agent can construct", which is why it jumped the queue
+
+## F322 -- WIRING AUDIT PASS 1: `composer.py` is orphaned AND firewalled, which collides with Part 12.
+
+Isaiah: *"check that every functionality has been wired in the agent and codebase -- no
+orphans."* 54 modules, agent stepped with all six arms ON: 16 live, 11 imported but never
+executed, 27 never loaded.
+
+    composer.py     ORPHAN, and `_CUE_MODULES` in `conform/lint.py` REFUSES its import on the
+                    betting path. Part 12 says recipes ARE the agent's programming language.
+                    BOTH CANNOT STAND -- flagged for a ruling, guard not touched
+    routine.py      IMPORTED, NEVER EXECUTES. "The ACT space: `state -> action`, with sequence,
+                    condition and repetition" -- the machinery Isaiah's loop/routine rulings
+                    are about. `CLAUDE.md` records "routines adopted 0"; this is one level below
+    behaviour.py    never executes -- the track record kind-local ranking (§12.6) needs
+    rlvr.py         never executes -- "did the agent ACHIEVE each chunk's effect?"
+    framepair.py    never executes -- "which objects are the actors, and what changed"
+
+    BOUNDARY    4 cycles, ONE harness, one board. A module that fires RARELY reads identically
+                to one that never fires, so this is PASS 1 and the confirmation is owed
+    MECHANISM   none changed
+    CAPABILITY  none. Its value is that several mechanisms the reframe DEPENDS ON already exist
+                and are unreached, which is a better problem than absence

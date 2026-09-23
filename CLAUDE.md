@@ -44,6 +44,32 @@ primitive, the agent builds the primitive. Making the library more complete stea
 discovery. Prefer the agent deriving it crudely to me installing it cleanly — the
 refined version can be installed next turn, *because it earned it*.
 
+**AND IT GOVERNS SOLUTIONS, NOT CAPABILITIES — ISAIAH, 2026-09-23, `LIBRARY_RETRIEVAL` §12.0.**
+This rule is ANNOTATED rather than changed, because it was read both ways and both readings are
+wrong. *"We don't have time to grow it from entropy. We need a library/seed that is well
+developed and capable, so build out the way the agent can iterate… We are essentially sending
+this agent to Mars like a rover. Why underprepare it?"*
+
+**Evolution builds the minimum set from entropy and pays in BODIES, GENERATIONS and TERRAIN. We
+have one agent, no population, nine hours. So the bill is paid the only other way it can be —
+BY INHERITANCE, which is this project's own standing rule** (*the only shortcut is leveraging
+advantages given by something that already paid the bill*) **rather than an exception to it.**
+
+> **THE TEST, AND IT IS ONE QUESTION: does this hand the agent an ANSWER, or a MEANS?**
+> **A means is inheritance and it is frontloaded without apology — perception, instruments, the
+> ability to ITERATE and compose and express, the vocabulary, the operators. An answer is the
+> agent's work and it is refused — which recipe fits THIS board, what THIS game's goal is, which
+> composition wins, what to invent when nothing describes what it sees.**
+>
+> **A fold construct is a MEANS. A solved board is an ANSWER.**
+
+**Both wrong readings are live and each is named so it cannot recur.** *Giving the agent
+iteration was a violation* — it is not, and the ten handwritten cell-folds in `arc_atoms`
+(`holes`, `perimeter`, `corners`, …) were the COST of the agent having no means, measured at
+§12.2.1. *Handing it a solved board is therefore permitted* — it is not, and `F134` /
+`KEY_BOUNDARY` are untouched by any of this. **One rule is about what the agent ARRIVES WITH;
+the other is about what it DOES when it gets there.**
+
 ### Legibility is the instrument
 
 The architecture is whitebox **so that triangulation is possible at all.** Because Γ

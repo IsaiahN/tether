@@ -62,6 +62,10 @@ ITEMS = {
     # how an item enters the declared list. Reviewer ordered it the same tick: the two
     # deltas and the extraction first, then the arm I measurement.
     "sensors": "what perception EMITS -- a reading the agent cannot compose for itself",
+    # ISAIAH, 2026-09-23, reviewer-signed 07:42. The reframe REPLACED the declared order rather
+    # than adding to it: library as what the agent thinks with, recipes as its programming
+    # language, we supply the floor. `LIBRARY_RETRIEVAL` Part 12 carries the new order.
+    "reframe": "Part 12 -- the plan of record itself, and the rulings that set it",
     # THE GATES NAME THEMSELVES, the way `focus.py`'s own commits are L3 under its own rule.
     # Without this the control could not be introduced by a commit that obeys it.
     "seat": "a check, a guard, or the aim discipline itself",

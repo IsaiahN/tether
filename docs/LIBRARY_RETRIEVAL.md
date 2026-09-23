@@ -25,6 +25,27 @@ is a ruling by Isaiah or the reviewer on 2026-09-22.**
 
 ---
 
+# CHANGE LOG — 2026-09-23
+
+    Part 12   NEW -- THE REFRAME. Isaiah's rulings of the morning, reviewer-signed 07:42.
+    12.0      the justification clause: no bodies/generations/terrain, so the bill is paid by
+              INHERITANCE. The test is MEANS vs ANSWER. The corpus is INSTANTIATED, never
+              overruled, and the forcing constraint is named each time
+    12.0.2    the agent's FIVE jobs; goal-setting and reaching PROMOTED from gaps to
+              requirements; metacognition added as the fifth
+    12.2.1    THE DECIDING READ, MEASURED: no CELL type, no fold construct, seven binary bonds.
+              The 10 cell-level folds are handwritten Python. SHAPE makes cells REACHABLE but
+              not ITERABLE -- the macgyver claim fails as built, and the fix is one small set
+    12.3      F315/F316/F318 RE-SCOPED, not withdrawn: they measured OUR coverage
+    12.7      compile target stated recursively; derivability and generation are ONE question
+    12.8      SURPRISE as the learning readout, declared before it runs
+    12.9      metacognition is a BUILD; the currency is ACTIONS; abandonment is not refutation
+    12.11     wiring audit pass 1: `composer.py` orphaned AND firewalled by `_CUE_MODULES`,
+              which collides with 12.2 and needs a ruling; `routine.py` imported, never runs
+    BUILT     `35e422b` dholes/dperimeter behind TETHER_SHAPE_DELTA, verified on BOTH
+              harnesses; ONE `holes` implementation (`arc_percept.holes_of`) after two
+              disagreed 56 times of 263; the false lint-guard claims corrected
+
 # CHANGE LOG — 2026-09-22
 
     Part 4    by_cluster / by_encoding resolved; the observer contradiction reconciled as an
@@ -1865,3 +1886,364 @@ arrivals did not move**, which is the failure signature rather than the success 
 one flag* · *no claim about a row without quoting every column of it* · *read the docstring of
 every function the design depends on, BEFORE declaring the design* · *no arm's readings are
 generalised until it has executed on BOTH harnesses.*
+
+---
+
+# PART 12 — THE REFRAME, 2026-09-23
+
+**Isaiah's rulings of the morning of 2026-09-23, signed off by the reviewer at 07:42. This
+supersedes the handoff's framing of the previous night's nulls.** His words are quoted;
+everything unquoted is the seat's.
+
+## 12.0 WHY WE FRONTLOAD, AND WHAT IT IS NOT — the justification clause
+
+> *"We just don't have time. In theory evolution could make the library from entropy and the
+> minimum set — but we don't have the time, or the generations of agents required to evolve the
+> right things, nor the terrain for the agents to train on."*
+>
+> *"We are essentially sending this agent to Mars like a rover. Why underprepare it?"*
+
+**Evolution builds the minimum set from entropy and pays in BODIES, GENERATIONS and TERRAIN. We
+have none of the three: one agent, no population, nine hours, twenty-five boards. So the bill is
+paid the only other way it can be — BY INHERITANCE.** That is not a shortcut around the rule, it
+**is** the rule: *the only shortcut is leveraging advantages given by something that already paid
+the bill, with zero exceptions.*
+
+    INHERITED -- frontload it, without apology
+      perception and instruments · the ability to ITERATE, compose and express
+      the library as vocabulary · the operators · the primitives it macgyvers FROM
+
+    THE AGENT'S OWN -- taking it IS stealing the discovery
+      which recipe fits THIS board · what THIS game's goal is · which composition wins
+      which bond held · what to invent when nothing describes what it sees
+
+> **THE TEST, WHENEVER THE QUESTION RECURS: does this hand the agent an ANSWER, or a MEANS?**
+> **A means is inheritance and it is frontloaded. An answer is the agent's work and it is
+> refused. A fold construct is a means. A solved board is an answer.**
+
+**`CLAUDE.md`'s steals-a-discovery rule is ANNOTATED, not changed: it governs SOLUTIONS, not
+CAPABILITIES.** *"Why underprepare the rover"* and *"making the library more complete steals a
+discovery"* were never in tension — **one is about what the agent ARRIVES WITH, the other about
+what it DOES when it gets there.**
+
+### 12.0.1 The corpus is GENERAL; this deployment is an INSTANCE
+
+> *"The corpus is a general doc, but our specific use case gives us 9 hours and one agent — which
+> means we must preload and pay the bill, and allow the agent to program itself and learn the
+> environment, the rules, and set and reach goals."*
+
+**Where the corpus states a general mechanism and our constraint makes it unavailable, the corpus
+is NOT OVERRULED — it is INSTANTIATED, and the constraint that forced it is named every time.**
+That is how a reader tells a principled adaptation from a convenience.
+
+### 12.0.2 The agent's five jobs
+
+    PROGRAM ITSELF          the recipes as its language, and the ITERATION machinery
+    LEARN THE ENVIRONMENT   perception, the delta, surprise falling as it maps the world
+    INFER THE RULES         the residual -> mint loop: conditional transition rules
+    SET AND REACH GOALS     <-- two of the chess test's three gaps, PROMOTED to requirements
+    METACOGNITION           reassess past, present and QUEUED actions, strategies, outcomes
+
+**Goal-setting is the agent's own work — we preload the MEANS to form goals, never the goals.
+A supplied goal is a supplied answer.** Reaching them is the look-ahead gap. **Both SPECIFY-ONLY
+this pass, and both join the declared order as named items rather than findings notes.**
+
+## 12.1 WHAT THE LIBRARY IS
+
+> *"If the agent were a human, its library would be everything it's seen, encountered or learned
+> — every skill, and its ability to pick up new things and make connections. Every human has
+> that, but not every human has the same specialised training, and not every human thinks from
+> the same point of view."*
+
+**Not a catalogue to execute — what THIS agent currently has to think with.** Same architecture
+and a different history gives a different library, which is why persistence across games matters
+and why ranking is per-kind and per-history.
+
+**AND ITS PURPOSE IS TO PREVENT RE-DERIVATION.** *"We can't have the agent waste time reinventing
+gravity."* **Distance, speed, persistence, containment, alignment are PAID BILLS: frontloaded,
+embedded, available from frame 0.**
+
+## 12.2 WHAT THE COMPOSER IS — and the measured fact that gates it
+
+**The composer's job is what is NOT known. The recipes are the agent's PROGRAMMING LANGUAGE and
+simultaneously how it reasons out loud.** *"It doubles as both."*
+
+> **THEREFORE NO EXPLANATION LAYER, EVER. The term the agent RUNS is the sentence it SAYS.**
+> No paraphrase step, no second representation, no *explain this term* function — **printing the
+> tree IS the explanation, and a term that cannot be read aloud sensibly is a bad term.**
+> **This satisfies `TRAINING_PLAN` §1 BY CONSTRUCTION rather than by building anything.**
+
+**Constructs, ruled:** recipes call recipes BY NAME (hence recursion) · CONDITIONALS ·
+PARENTHESES/grouping, *"the arrows allow sequencing, but with parentheses and operators it becomes
+programming"* — no new operators, `Bonded` already nests and grouping is its exposure · LOOPS as
+repeat-until, **an EARNED ability like reset, because it can hang the gameplay** · LOCAL STATE
+allowed but **DECLARED AND PRICED, NEVER HIDDEN** — hidden state lets a routine explain by RECALL
+rather than STRUCTURE, cannot be priced, and destabilises refutation.
+
+**Expressiveness: TOTAL rather than fully Turing-complete** — any TERMINATING computation, with
+the action budget as fuel. Unbounded recursion was traded away deliberately so the agent cannot
+hang the game.
+
+### 12.2.1 THE DECIDING READ, ANSWERED — recipes CANNOT fold over cells
+
+**Isaiah's question was whether the agent can build genuinely new primitives in a somewhat
+Turing-complete way. The reviewer reduced it to one read. Measured 2026-09-23:**
+
+    NO `CELL` TYPE EXISTS      grammar.T = OBJECT ATTR REGION PRED OBJ RECORD PRICE
+                               atom in_types = COLOUR DELTA OBJECT POSITION PRED SHAPE val
+                               the smallest ingredient is an ATTRIBUTE VALUE or an OBJECT
+
+    NO FOLD CONSTRUCT          the combinators are seven BINARY bonds
+                               `composer.bind(bond, left, right)` builds strictly binary trees;
+                               there is no iteration form to parse. Only application.
+
+    THE FOLDS THAT EXIST       PEER-GROUP, 8 atoms with reads_ctx=('group',): count rank_in
+                               is_max is_min sum_group distinct is_mode aligned -- over OTHER
+                               OBJECTS, not cells
+                               CELL-LEVEL, 10 atoms, HANDWRITTEN IN PYTHON INSIDE THE ATOM:
+                               holes perimeter corners bbox_area orbit_size canonical symmetric
+                               is_square rotate reflect (+ _area/_centroid via rec["structure"])
+
+**THE NUANCE THAT CHANGES THE FIX: `SHAPE` IS the offset cell frozenset, so a cell set is
+reachable AS A VALUE. The agent can HOLD one. What it cannot do is ITERATE over it.** So we do
+not need to make cells REACHABLE — we need to make them ITERABLE.
+
+> **VERDICT: the agent can CALL `holes(shape)`; it cannot WRITE "count the enclosed empty cells".
+> Those ten folds are the floor and, under the current language, the permanent ceiling — the
+> agent can never write an eleventh. THE MACGYVER CLAIM FAILS AS THE ARCHITECTURE STANDS.**
+
+**And by §12.0 those ten handwritten folds were the cost of the agent having no means. Isaiah's
+ruling: build the means.** *"Build out the way the agent can iterate. If more than one construct
+can help, be robust."* **So the deliverable is a small COMPLETE set, not one grudging primitive:
+bind a cell as a value · fold-with-accumulator over a cell set · and whichever second construct
+the design genuinely needs, with the choice stated and justified.**
+
+**ACCEPTANCE TEST, declared before the build: can the agent write *the longest unbroken run in a
+row* and *count the enclosed empty cells* AS A RECIPE? `holes` existing in Python is not an
+answer.**
+
+## 12.3 REACH REFRAMED — we supply the FLOOR, not the ceiling
+
+> *"It's like having a rover on Mars that's fully autonomous. The agent must be able to invent
+> its own solutions and create instruments. The recipes and the atoms it invents are meant to be
+> these tools and subroutines."*
+
+**`F315`/`F316`/`F318` are RE-SCOPED, NOT WITHDRAWN: they measured OUR COVERAGE when the question
+is WHAT THE AGENT CAN CONSTRUCT.** They stand as a reading of the frontloaded floor.
+
+**Import, for a human, is reading outside your field. Offline that is unavailable, so THE ONLY
+LEGAL IMPORT IS ACROSS GAMES — transfer, and that is allowed.**
+
+**The third rung — `composition -> atom -> sensor` — is licensed by `CLAUDE.md` and UNBUILT.
+SPECIFY ONLY:** trigger is composition failed AND atom invention failed, both receipts already
+recorded · an invented INSTRUMENT is a new attribute computed from what the agent can already
+read, published per object with everything downstream unchanged · provenance `INVENTED` with its
+licence and the structure hash where it formed, persisting and re-deriving on load like atoms ·
+priced like everything else · ranked in its own kind.
+
+## 12.4 ATOM DISPOSITIONS
+
+    3dembedding                      COMMENT OUT, keep -- for a future EMBODIED version. An
+                                     isometric or layout mode is a PERCEPTION MODE, not an atom
+    temperature                      COMMENT OUT, keep as e.g. `TempRead` -- sensor-enabled
+    probabilityDistribution / 1-p    REMOVE
+    aboutness                        REMOVE
+    meaning                          NOT AN ATOM -- it is what Systems 0-2 DO: seek the meaning
+                                     of the game and the goal. Latent behaviour
+    belief                           NOT PERCEPTION -- the agent making a WAGER, and its real
+                                     content is that recipes carry CONDITIONAL LOGIC
+
+**GENERALISE THE `meaning` CASE: entries describing the AGENT'S ACTIVITY rather than things on
+the board are RECLASSIFIED, not implemented — and the count is reported.**
+
+## 12.5 THE CHESS TEST, AND THE THREE NAMED GAPS
+
+**Learning the DYNAMICS: plausibly yes** — chess rules are conditional transition rules, which is
+exactly what the residual -> mint loop produces.
+
+**WINNING: no, and the three blockers are NOT perception gaps —**
+
+1. **NO OTHER ACTOR.** Every delta is attributed to the agent's own action; an opponent's move
+   would present as the world spontaneously contradicting it.
+2. **NO LONG-HORIZON VALUE.** Checkmate is not a per-step surprise; the bargain prices
+   EXPLANATION, not progress toward a distant goal.
+3. **NO LOOK-AHEAD.** Reasoning over moves not yet made is planning, not composition.
+
+**Filed as named gaps. 2 and 3 are promoted to requirements by §12.0.2's fourth job. None built
+this pass.**
+
+## 12.6 KIND-LOCAL RANKING
+
+> *"Each type is ranked against its own type — atom against atom, recipe against recipe, routine
+> against routine. Everything carries across games."*
+
+**A newly invented thing is never buried by a mature thing of another kind.**
+
+## 12.7 THE COMPILE TARGET, STATED RECURSIVELY
+
+**A NAME BECOMES EXECUTABLE WHEN ITS RECIPE'S INGREDIENTS ARE EXECUTABLE — recursively —
+BOTTOMING OUT IN INSTRUMENTS. Its CONDITION is the check that it holds.**
+
+**So *how many of the 2,700 can be generated* and the derivability analysis are THE SAME QUESTION
+one level up, and ONE pass answers both:**
+
+    per entry:  compilable now · compilable once derivable attributes exist ·
+                blocked, and on WHAT (a missing instrument / a missing ingredient /
+                a name that is not a board thing at all -- the `meaning` class)
+    report the DEPTH the recursion reaches before bottoming out in instruments
+    and the same curve as the ladders, but over EXECUTABILITY rather than PUBLICATION
+
+**This replaces `F316`/`F318` as the answer to Isaiah's challenge.**
+
+## 12.8 SURPRISE IS THE READOUT
+
+**Prediction error — the residual mass the agent could not explain — IS THE LEARNING GRADIENT,
+and it fixes every defect the ground column had:**
+
+    it does NOT need a level to advance     unlike `levels`
+    the agent's own state DOES move it      unlike a tape row, which ignores the action
+    it is exactly what the chunks are FOR   the prediction curriculum
+    and a library that helps should REDUCE it
+
+**DECLARED BEFORE IT RUNS: arms LIBRARY CARRIED vs ATOMS-ONLY, one script one flag, equal
+windows, three seeds, per board never pooled, and THE CURVE ACROSS CYCLES rather than a total.**
+
+> **The claim under test: a carried library lowers surprise faster than none. If it does, `F220`'s
+> tie was a property of the score column and the programme has a working readout for the first
+> time. IF IT DOES NOT, THAT IS THE SHARPEST NEGATIVE RESULT THIS PROJECT HAS PRODUCED — and it
+> is on the quantity the architecture is actually about.**
+
+## 12.9 METACOGNITION — the fifth job, and it is a BUILD
+
+> *"And the ability to metacog — which plainly means to me: reassess past, present and future
+> queued actions and strategies and outcomes."*
+
+**A MEANS, so by §12.0 it is frontloaded: we build the machinery, the agent does the reassessing.**
+
+    PAST      EXISTS -- abstention receipts (budget_spent / depth_exhausted / under_floor), the
+              refutation record, the failed-path catalogue, `Standing`'s decaying rejections
+    PRESENT   EXISTS AS A QUANTITY, UNWIRED AS A TRIGGER -- surprise (12.8)
+    FUTURE    DOES NOT EXIST -- there is no plan as an inspectable object. The agent chooses one
+              action at a time. **You cannot reassess a queue you cannot see.**
+
+**THE FACULTY IS A BUILD EITHER WAY, and none of its four parts exists:** per-step EXPECTATION
+(*when I do this, THAT should happen*) · per-step COMPARISON after every action · a DECISION
+PROCEDURE (revise · abandon · continue) that COSTS something · RECALL of past strategies with
+their outcomes, so a revision is not blind to what already failed.
+
+> **ISAIAH'S CASE IS THE SPEC:** *"Say a routine cost 30 actions, but by action 5 metacog notices
+> the expected objects didn't react correctly — it shouldn't keep doing that routine."*
+>
+> **THE CURRENCY IS ACTIONS, NOT SECONDS.** An episode is 128–309 actions (`F313`), so a
+> 30-action routine already wrong at action 5 costs 25 actions that could have bought something
+> else. **Cost accounting for routines is in ACTIONS from here; seconds are a secondary column.**
+> **The check is not *did it finish* but *is it still on track*.**
+
+**TWO DESIGN POINTS THAT BIND:**
+
+- **THE ABANDONMENT IS WORTH MORE THAN THE SAVED ACTIONS.** Stopping at step 5 WITH THE REASON
+  RECORDED tells the agent *this routine does not apply to this situation* — evidence for its
+  ranking. Running it to 30 teaches the same thing at six times the price.
+- **ABANDONMENT MUST NOT EQUAL REFUTATION.** A routine that fails HERE is not wrong everywhere;
+  it fades FOR THIS SITUATION, keyed by the structure hash. Otherwise the agent discards good
+  routines on their first bad match. **Same distinction as `Standing`'s decaying rejection versus
+  a hard ban, one level up.**
+
+**AND THE TRIGGER IS SURPRISE, NEVER A TIMER.** Reassessing every cycle would be ruinous — cheap
+when things are going well, which is when it should be cheap. **This is also the second guard on
+loops: a repeat-until that stops making progress is abandoned rather than running to the budget.
+The earned-ability gate stays; this does not replace it.**
+
+**ITS VALUE, DECLARED BEFORE IT IS BUILT:** actions saved per episode · abandonment PRECISION
+(did an abandoned routine later prove good elsewhere — too eager discards good routines, too slow
+saves nothing) · surprise at the moment of abandonment and whether it fell afterwards.
+
+## 12.10 THE REVISED ORDER — reviewer, signed off 07:42
+
+    1  the derivability + compile pass (12.7) -- one pass, both questions
+    2  THE ITERATION MACHINERY (12.2.1) + its acceptance test
+    3  the embedded instrument set -- BUILD NOW: distance, speed, velocity, trajectory,
+       persistence, continuity, duration, containment, alignment, repetition, stability
+    4  SURPRISE: library vs atoms-only (12.8)
+    5  the primitive-floor REPORT (now a report, not a gate) · the wiring audit, no orphans
+    6  4C (exclude only what the conditions REFUTE) · 3A (the `out_type` widening)
+    7  the programming constructs · the sensor rung, SPECIFY-ONLY
+
+**`TRAINING_PLAN` IS CORPUS AND IS ANNOTATED IN `INDEX.md`, NEVER EDITED:** §14.5b — the tape was
+never the ground instrument, it is the PREDICTION CURRICULUM and the error was reading ground off
+a training instrument · §2 — *random clears some level-1s* is bounded: it does not, on `wa30` or
+`sk48`, in 5,000 steps · §7/§10/§13 — the unit of work is superseded by `F281`.
+
+## 12.11 THE WIRING AUDIT'S FIRST PASS — several mechanisms the reframe needs are BUILT AND UNREACHED
+
+**Isaiah: *"Check that every functionality has been wired in the agent and codebase — no
+orphans."* First pass, 54 modules, agent stepped with all six arms ON:** 16 live · 11 imported
+but never executed · 27 never loaded on the agent path.
+
+**Most of the 27 are correctly off-path** — tests, `demo`, the live-harness alternative, the
+proctor-side cue modules. **Two rows are not, and both bear on Part 12:**
+
+- **`composer.py` IS AN ORPHAN, AND IT IS FIREWALLED BY DESIGN.** Its docstring: *"Lit atoms ->
+  candidate molecules via the RECIPES (`F162`: the recipes, not the domain adjacency graph, are
+  the atom->molecule composition)."* **That is the recipe-composition machinery — 12.2's
+  centrepiece — and it never loads on the agent path.** It is one of the five names in
+  `conform/lint.py`'s `_CUE_MODULES`, the §12.3 guard that REFUSES any betting-path import of it.
+  **So Part 12 says recipes ARE the agent's programming language and the lint guard currently
+  forbids that language from reaching the agent's decision path. Both cannot stand.** Flagged for
+  a ruling; the guard is not touched by the seat.
+- **`routine.py` IS IMPORTED AND NEVER EXECUTES.** *"The ACT space: `state -> action`, with
+  sequence, condition and repetition."* That is the sequencing/conditional/repetition machinery
+  Isaiah's loop and routine rulings are about. `CLAUDE.md` already records *routines adopted 0*;
+  this shows it never reaches the module at all.
+
+**Three more in the same row bear directly on the revised order:** `behaviour.py` (*what a term
+has DONE, read from the ledger* — the track record 12.6's kind-local ranking needs) ·
+`rlvr.py` (*did the agent ACHIEVE each chunk's effect?*) · `framepair.py` (*which objects are the
+actors, and what changed* — bearing on 12.5's no-other-actor gap).
+
+> **THE SHAPE OF IT: several mechanisms the reframe depends on already exist and are unreached.
+> That is a better problem than absence, and it is what the no-orphans instruction was aimed at.**
+> **Bounded honestly: 4 cycles, one harness. A module that fires rarely reads identically to one
+> that never fires, so the confirmation pass is longer and on both harnesses (item 5).**
+
+## 12.12 TWO CLOCKS, AND THE CONVERSION THAT GOVERNS EVERY BUILD DECISION
+
+> *"The competition has a 9-hour clock limit, but the agent shouldn't think in clock time --
+> only in actions, as the proxy for time."*
+
+    SECONDS   OURS. An engineering constraint on how much compute we may spend per action.
+              The agent NEVER reasons in seconds; nothing agent-side is priced in them.
+    ACTIONS   THE AGENT'S TIME. Every agent-side economy is in actions -- the bargain, routine
+              cost, loop bounds, abandonment savings, metacognition's value, goal horizons.
+
+**AUDIT FOR LEAKAGE: anything agent-side reading a clock, a timeout or a wall-time budget is a
+DEFECT, and it is reported in the wiring audit** (item 5).
+
+### The conversion, which nobody had computed
+
+**9 hours = 32,400 seconds. An episode is 128-309 actions (`F313`).**
+
+    per-action cost                    actions in the window     EPISODES WE CAN ATTEMPT
+    26 s   (arms ON, live, 2026-09-22)         ~1,250                   4 - 9
+    3.8 s  (arms OFF, live)                    ~8,500                  27 - 66
+    1 s                                       ~32,000                 ~100 - 250
+
+> **AT 26 SECONDS AN ACTION WE COULD NOT FINISH FOUR BOARDS IN THE ENTIRE COMPETITION WINDOW.**
+
+**THIS RETIRES THE FRAMING OF EVERY COST FINDING SO FAR.** The 7-13x was reported as an
+efficiency observation. **It is a CAPABILITY CONSTRAINT** -- the difference between attempting a
+handful of games and attempting most of them. **And it re-reads arm I's 3.0x/4.7x (§12.11) the
+same way: not a price worth paying or not in the abstract, but a number of EPISODES FORGONE.**
+
+### What it changes
+
+- **Cost work now has the purpose it lacked: BUY THE AGENT MORE ACTIONS.** That is the only
+  currency it has.
+- **EVERY FEATURE GETS A PRICE IN EPISODES** -- not *+3x per cycle* but **"costs N episodes we
+  can no longer attempt."** That includes the iteration machinery and the embedded instruments.
+- **The surprise readout (12.8) is measured PER ACTION.** A library that lowers surprise per
+  action is buying something real; one that lowers it per second is not.
+- **Metacognition's value (12.9) is ACTIONS SAVED, and therefore EPISODES BOUGHT.**
+
+**The table is updated whenever per-action cost changes. It is the one number that says whether
+a design is affordable at all.**
