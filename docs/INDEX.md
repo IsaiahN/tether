@@ -46249,3 +46249,82 @@ has no non-arbitrary answer. **Inventing one would be a magic number wearing an 
 > **THE RULE, for the constructs section: A NEW TYPE WITHOUT A CONVERTER NARROWS COMPOSITION.**
 > Adding vocabulary is not free -- **an atom that produces a type nothing consumes, or consumes
 > a type nothing produces, adds a node and no edges.**
+
+
+---
+
+## F332 -- THE `val` REGION IS SEALED. One exit, zero returns, and it is the cause under every
+## composition reading of 2026-09-23.
+
+**`F329` said mint asks two streams and that is the ceiling. TRUE, and its ACCOUNT was wrong
+TWICE before this.** Both wrong accounts are kept below, because each was refuted by a
+measurement that was declared before it ran.
+
+### The measurement -- exact enumeration, atoms only, `val` to `val`
+
+    depth   val->val chains   ROUTE THROUGH A NON-val TYPE
+        1                 3                             0
+        2                 9                             0
+        3                27                             0
+
+**3, 9, 27 = 3^depth: A CLOSED CLIQUE.** Every `val -> val` chain is the three `val -> val`
+atoms composed with themselves and nothing else.
+
+    ATOMS THAT PRODUCE `val`                    idn · translate · recolour -- all accept ONLY val
+    ATOMS PRODUCING `val` FROM A NON-val INPUT  **ZERO**
+    ATOMS THAT CONSUME `val`                    idn · owner · recolour · translate
+
+> **`owner` (`val -> OBJECT`) IS THE ONLY EXIT AND THERE ARE ZERO RETURNS. A chain that leaves
+> the `val` region can never come back, so it can never END at `val`, so IT CAN NEVER BE A
+> PREDICTOR.** The corner is not dominant. **It is SEALED.**
+
+### The account, in one chain of facts
+
+    mint asks two streams                      because ONLY TWO KINDS CAN BE SCORED
+    a typed term WAGERS NOTHING                a magnitude is neither the slot's next value nor
+                                               a truth. `objective_step`'s probe requires a
+                                               notion of SATISFIED -- a truth has one, a
+                                               magnitude does not
+    a term that cannot lose cannot win         nothing refutes it, so it removes no residual, so
+                                               the bargain cannot price it at any cost
+    so a typed chain must END at `val`         -> it must get BACK
+    and no atom gets back                      ZERO, measured
+    so the `val` region is a closed 3-clique   3^depth chains, all of them, forever
+
+**EVERY COMPOSITION READING OF THE DAY SITS ON THIS:** 2-4 distinct compositions on every board
+of every family · `translate . recolour` dominant everywhere · `ar25` minting 74 terms and still
+reaching 4 · the widening asking 3x more and arriving at nothing. **One structural fact, and it
+is three atom declarations.**
+
+**AND `F329` INVERTS:** not *mint asks two streams and that is the ceiling* but **there are two
+streams BECAUSE ONLY TWO KINDS CAN BE SCORED. Nobody chose it; it is what the bargain can
+price.** The framing came from Isaiah's WAGER reading of `belief`, which is worth recording --
+the question *what does this term bet, and what would make it lose* is what dissolved it.
+
+### TWO WRONG ACCOUNTS, KEPT, because each was refuted by a pre-declared check
+
+**WRONG #1 -- *the closure cannot BUILD CHAINS for the widened types*.** Refuted by the
+per-stream count: the widened streams return **455-5,227 candidates per run**. **I generalised
+from `ar25` seed 7 (1.9x asks, +0.6% candidates) -- THE ONE ROW THAT AGREED WITH THE
+HYPOTHESIS.** Caught because the script's own docstring declared, before running, that *if they
+return plenty the account is WRONG*.
+
+**WRONG #2 -- *the contest is TYPE-BLIND*.** Refuted by reading one line further: `_left` calls
+`_value_of`, which BRANCHES on `out_type` (`tether:1097`). **`_predict` states the design --
+*TWO ARMS, ONE RULE. A `val` term IS the prediction; an `OBJ` term is a WANT.*** The contest is
+not blind; **MY WIDENING ADDED A THIRD KIND AND NO PRICING RULE, so it fell through to the `val`
+branch.** I fixed the LABEL (`typed:<T>`) and not the PRICE.
+
+> **THE RULE THIS EARNS: A WRONG EXPLANATION THAT FITS IS A STOPPING CONDITION, AND IT MUST NOT
+> BE ONE.** Both times I followed the call chain until something explained the data and stopped.
+> `_value_of` was one line past where I stopped, and its docstring contained both the branch and
+> the history of the exact bug I was hypothesising.
+
+    BOUNDARY    the enumeration is STATIC and EXACT -- it says what the atom set admits, not
+                what any run does. Depth 3, atoms only; `units()` adds settled terms, which
+                cannot change the result because a settled term's type signature is its chain's
+    MECHANISM   the widening (`ee7f25a`, `TETHER_STREAM_WIDEN`) stays OFF and is NOT re-run:
+                it asks for terms ENDING at a typed reading, and the finding is that a typed
+                reading belongs in the MIDDLE of a chain
+    CAPABILITY  none. It replaces two refuted accounts with a measured one, and it makes the
+                `<typed> -> val` converter a question about WHICH PROJECTION rather than whether
