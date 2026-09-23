@@ -85,6 +85,20 @@ SLOT_REACHING = ("operands", "group", "obj", "touching")
 REJECTION_HALFLIFE = 8.0
 
 
+def accepts_type(unit: Any, ty: str | None) -> bool:
+    """**THE ONE PREDICATE.** Both the BINDING rule (`tether._head_accepts`) and the SEARCH rule
+    (`enumerate_closure`) call this, so they cannot disagree again. They each implemented the
+    question separately and answered it differently for a whole class of atoms.
+
+    An untyped slot is not a mismatch; a declared-polymorphic unit takes anything.
+    """
+    if ty is None:
+        return True
+    if getattr(unit, "polymorphic", False):
+        return True
+    return ty in unit.accepts
+
+
 @dataclass(frozen=True)
 class Ctx:
     """What an atom may read. All before-state: there is no accessor to the outcome, so a
@@ -164,6 +178,14 @@ class Atom:
     # other slots' values, so the claim went false without the argument moving. A declaration
     # survives the NEXT field too; a field count does not.
     reads_ctx: tuple[str, ...] = ()
+    # **POLYMORPHISM DECLARED, NEVER INFERRED FROM A SPELLING.** `val` was a type NAME doing a
+    # polymorphism's job, and two call sites read the same name two ways: `tether`'s
+    # `_head_accepts` treated `val` as ACCEPTS-ANYTHING, `enumerate_closure` treated it as a
+    # literal that must match exactly. The binder admitted `owner` on every slot; the search
+    # never offered it, so `POSITION -> OBJECT` was 0 and the 18 OBJECT-typed atoms sat
+    # unreachable. Same fault as `SHAPE` over two representations, one level up: in the type
+    # system's own vocabulary. An atom that genuinely takes anything now SAYS SO.
+    polymorphic: bool = False
 
     @property
     def accepts(self) -> tuple[str, ...]:
@@ -218,6 +240,10 @@ class Term:
     @property
     def accepts(self) -> tuple[str, ...]:
         return self.atoms[0].accepts
+
+    @property
+    def polymorphic(self) -> bool:
+        return self.atoms[0].polymorphic
 
     @property
     def in_type(self) -> str:
@@ -750,7 +776,7 @@ class Gamma:
             stats["units"] = len(units)
             stats["estimate"] = self.space_exact(units, in_type, out_type, max_depth)
             stats["seen"] = 0
-        start = [u for u in units if in_type in u.accepts]
+        start = [u for u in units if accepts_type(u, in_type)]
         # §23.5's PREREQUISITE, and it is not a new judgement. *Loading generously requires
         # retrieval-by-characterised-residual, not enumeration -- a big library is an asset
         # when you look things up by the shape of your gap and a liability when you walk it in
@@ -803,7 +829,7 @@ class Gamma:
                     # So the cut is on COMPOSITION, not on membership, and `_predict`'s fallback
                     # reads `library["idn"]` directly and is untouched.
                     nxt += [chain + u.atoms for u in units
-                            if chain[-1].out_type in u.accepts
+                            if accepts_type(u, chain[-1].out_type)
                             and not any(a.name == IDN_NAME for a in (*chain, *u.atoms))]
             if spent:
                 break
@@ -831,18 +857,18 @@ class Gamma:
         whatever happened. `units` grows as the ground pays for chunks.
         """
         free = [u for u in units if not any(a.name == IDN_NAME for a in u.atoms)]
-        total = sum(1 for u in units if in_type in u.accepts and u.out_type == out_type)
+        total = sum(1 for u in units if accepts_type(u, in_type) and u.out_type == out_type)
         # length 1 counts every unit; length > 1 only the idn-free ones, both as the head of
         # the chain and as each extension -- the closure's rule, not a separate policy
         live: dict[str, int] = {}
         for u in free:
-            if in_type in u.accepts:
+            if accepts_type(u, in_type):
                 live[u.out_type] = live.get(u.out_type, 0) + 1
         for _ in range(2, max_depth + 1):
             nxt: dict[str, int] = {}
             for t, n in live.items():
                 for u in free:
-                    if t in u.accepts:
+                    if accepts_type(u, t):
                         nxt[u.out_type] = nxt.get(u.out_type, 0) + n
             live = nxt
             total += live.get(out_type, 0)

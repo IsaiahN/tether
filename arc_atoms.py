@@ -301,7 +301,11 @@ def _owner() -> list[Atom]:
     def _own(v: Any, c: Ctx) -> Any:
         rec = v if isinstance(v, dict) else getattr(c, "obj", None)
         return rec if isinstance(rec, dict) else NOT_RESOLVED
-    return [Atom("owner", _own, VAL, OBJECT, reads_ctx=("obj",))]
+    return [Atom("owner", _own, VAL, OBJECT, reads_ctx=("obj",),
+                 # DECLARED rather than inferred from the `val` spelling: `_own` ignores
+                 # the value entirely unless it is already a record, and reads `Ctx.obj`.
+                 # It genuinely takes anything, and the SEARCH could not see that.
+                 polymorphic=True)]
 
 
 def _transform() -> list[Atom]:

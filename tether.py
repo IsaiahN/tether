@@ -21,7 +21,7 @@ import grammar as G
 import instruments as I
 import retrieval
 import routine as Rt
-from gamma import INVENTED, Ctx, Gamma, Standing, Term
+from gamma import INVENTED, Ctx, Gamma, Standing, Term, accepts_type
 from gamma import SAME_AS_TARGET as G_SAME
 from ledger import (
     ADVANCE,
@@ -112,9 +112,11 @@ def _head_accepts(cand: Any, slot_type: str | None) -> bool:
     head = getattr(cand, "atoms", None)
     if not head:
         return True
-    a = head[0]
-    return (a.in_type in ("val", slot_type)
-            or slot_type in (getattr(a, "also_accepts", ()) or ()))
+    # ONE PREDICATE, shared with `enumerate_closure`. This used to read `val` as a universal
+    # while the search read it as a literal, so the binder admitted `owner` on every slot and
+    # the search never offered it. The three channels are unchanged -- `in_type`,
+    # `also_accepts`, and now an EXPLICIT `polymorphic` where `val` used to be inferred.
+    return accepts_type(head[0], slot_type)
 # `CAN`'s THREE OUTCOMES. Named rather than bare strings because `UNKNOWN` is the one that gets
 # quietly folded into `NO` -- they behave alike at the commit and are different claims on the
 # record, which is check 3 exactly.
