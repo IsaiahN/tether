@@ -46024,3 +46024,82 @@ one catch, within the hour.**
 
 **What saved this one was the arms matching TO THE DIGIT. A small difference would have read as a
 weak effect and been reported.**
+
+
+---
+
+## F327 -- ONE MISS UNSETTLES A TERM, UNCONDITIONALLY. The policy contradicts its own docstring
+## two lines away, and it dominates the settle->demote question.
+
+`F326` left two candidate causes for demotion eating settlement -- the bar too low, or the
+evidence not generalising. **The reviewer asked for a third to be excluded by READING the policy
+before measuring. The read settles it and no measurement was needed.**
+
+`tether:3862` -> `Gamma.refute` -> `Standing.refute`, which is three lines:
+
+    def refute(self, tick):
+        self.decay(tick)
+        self.rejections += 1.0
+        self.settled_at = None
+
+**ONE MISS CLEARS `settled_at` UNCONDITIONALLY.** No window, no threshold, and **nothing consults
+the rejection count the line above just incremented.** A term right nine times in ten is
+unsettled on its first failure.
+
+### The asymmetry is two lines apart, in one method
+
+    self.rejections += 1.0     WEIGHTED, CLOCKED, decaying on an 8-cycle halflife --
+                               deliberately "never a hard ban"
+    self.settled_at = None     IMMEDIATE, ABSOLUTE, consults nothing
+
+**`Standing`'s own docstring is *"A term's record against the ground. Weighted, clocked, and never
+a hard ban."*** **True of `rejections`. FALSE of `settled_at`, in the object it documents and the
+method it documents.** `Gamma.refute`'s docstring compounds it -- *"the rejection decays, so it
+can settle again if it starts paying"* -- **true, and about the quantity that did not decide
+anything.**
+
+> **THE DOCUMENTED-SUSPECT FAILURE, INVERTED. `CLAUDE.md` records that the best-documented
+> mechanism is the most attractive suspect regardless of guilt. Here the carefully weighted,
+> clocked, prose-defended mechanism is NOT the one deciding the outcome -- the deciding line is
+> undocumented and sits beside it.** *Go to the write site: ask which LINE assigned the value,
+> never which MECHANISM explains it* -- and the line was three lines long.
+
+### Why the A/B discriminator is held UNRUN
+
+**Under a one-miss policy any term tested often enough eventually misses once.** So the
+settle/demote ratio measures **HOW OFTEN A SETTLED TERM IS RETESTED**, not whether the bar is too
+low or the scope too broad. **Running the discriminator now would attribute a POLICY ARTEFACT to
+a DESIGN question and send the repair where neither cause lives.** Pre-registered, unrun.
+
+### The three boards, and the outlier flagged against my own rule
+
+    board   candidates  SETTLE  DEMOTE  net   keeps
+    wa30            11       6       4     2    33%
+    g50t            16       8       8     0     0%
+    sk48            21      15       8     7    47%
+
+**`F326`'s "COMMON AND UNSTABLE" is right for `g50t` and OVERSTATED as a general claim** -- `sk48`
+retains nearly half. **Per game, never pooled: `g50t` is the discriminating case, not the
+representative one.** A 0/33/47 spread is what a one-miss policy plus differing RETEST RATES
+predicts, which is this finding from the other side. **And `g50t`'s 8-for-8 is flagged under
+*an outlier is a broken instrument until proven*: it is the cleanest number in the table and the
+one to trust least, because why that board retests more is unestablished.**
+
+### NOT REPAIRED, and the third reason is why this is a ruling
+
+The obvious fix -- make un-settling consult the decaying count that is already computed and
+maintained -- is **not** taken:
+
+1. **`settled` gates `units()`, which gates promotion, chunking and the COVERAGE DENOMINATOR.**
+   §12.12: every coverage figure taken under the old policy is RETIRED, not compared.
+2. **Any threshold would be an INVENTED NUMBER** resting on `REJECTION_HALFLIFE = 8.0`, which is
+   itself marked *specified, not grounded; nothing measures THIS halflife.* Two magic numbers deep.
+3. **IT MAY BE CORRECT AS WRITTEN.** *The ground reversing a settlement it had made* is a strong
+   event, and a single reversal arguably should cost settled status. **If so the defect is the
+   DOCSTRING, and the finding is that the policy is undocumented and reads as its own opposite.**
+
+    BOUNDARY    a READ of three lines plus a 25-cycle event log on three boards, seed 0, tape.
+                It establishes WHAT THE POLICY IS, not whether the policy is wrong
+    MECHANISM   none changed -- deliberately
+    CAPABILITY  none. It removes the wrong repair from the table, which is what it is worth:
+                "make more things settle" was the repair the previous framing implied
