@@ -45426,6 +45426,26 @@ RECIPE level rather than the condition level* — and it is the same 9-of-2,669 
 > the 20k reach is decorative. **With it, `F300`'s condition gap probably closes too, since both
 > failures are the same missing join.**
 
+### AND THE CORPUS SEARCH FOR AN EXISTING JOIN RETURNS A NULL — checked before proposing a build
+
+*Assume it is already specified, and go look.* `TRAINING_PLAN` §14.11 says the closure folder
+*answers search, retrieval, settled and storage*, so a name-to-implementation join might already
+ship. **It does not.**
+
+    ATTRIBUTE_INDEX.json     2,700 atom entries, 5,040 distinct ATTRIBUTE names
+      matching a registry atom            6    area, contact, count, holes, shape, sign
+      recipe ingredients that are keys  524 of 2,669
+
+**The index joins ATTRIBUTE -> ATOMS *inside the closure vocabulary*. It does not join either
+side to the registry.** And it does not even cover the recipe vocabulary: **only 524 of 2,669
+ingredients appear as index keys at all.**
+
+> **SO THE PREREQUISITE IS GENUINELY UNBUILT, AND THE SEARCH THAT ESTABLISHES THAT IS THE POINT
+> OF DOING IT FIRST.** *The one thing worse than building a mapping that exists is proposing one
+> without looking.* **And the first extraction I wrote returned `0` matching attributes — an
+> error in my reader, not a finding, caught because the sample line showed `{'attributes': [...]}`
+> where I had assumed a list.**
+
     BOUNDARY    an exact-and-lowercased name match between 2,669 ingredient names and 55
                 registry atom names, plus a read of Part 6.5. NO RUN. A looser match would raise
                 the intersection and CANNOT raise it far -- the registry has 55 members, so 2,061
