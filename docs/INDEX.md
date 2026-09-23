@@ -44974,3 +44974,58 @@ rate is a property of how often composition fails, which on this board-seed is c
     MECHANISM   none changed -- a measurement over `TETHER_INVENT`, default OFF
     CAPABILITY  the literal derivation is NOT too literal to match twice, which was the open
                 question. Whether matching twice is worth anything is the next one
+
+---
+
+## F307 (INDEX series) — **AN INVENTED ATOM CANNOT TRANSFER, BY CONSTRUCTION: `save` DOES NOT WRITE ATOMS.** Item 7 broke an assumption `save`'s docstring states as its reason — and the newly adopted rule caught it BEFORE the measurement
+
+**The reviewer's most important reuse column is `REUSED-ELSEWHERE` — resolves under a DIFFERENT
+structure hash, which is transfer and is the claim. I went to read `save`/`load` before building
+the measurement, per the rule adopted twenty minutes ago. The measurement is not runnable.**
+
+    gamma.save   "**ATOMS ARE NOT WRITTEN.** They are the registry, identical on both sides;
+                  writing them would be a second producer of the vocabulary. What is written
+                  is the COMPOSITION -- the atom NAMES in order."
+
+> **THAT ASSUMPTION WAS TRUE UNTIL TONIGHT.** *The registry was identical on both sides because
+> it was FIXED AT CONSTRUCTION* — which is the exact property `Gamma.invent` removed. **Item 7
+> made the vocabulary run-local, and `save` still assumes it is universal.**
+
+### WHAT FOLLOWS, AND THE CODE HANDLES IT HONESTLY
+
+**An invented atom dies with its run.** A term built on one is written to the library file — the
+names go out — and on load:
+
+    if not all(n in self._by_name for n in names):
+        refused.append({"atoms": list(names), "why": "atom not in this registry"})
+
+**IT REFUSES AND RECORDS, IT DOES NOT SILENTLY SKIP.** *I expected a silent drop and the code is
+better than my suspicion* — the refusal is surfaced with its reason, which is the only thing that
+makes the loss legible.
+
+**SO `REUSED-ELSEWHERE` IS ZERO BY CONSTRUCTION AND WILL BE ZERO ON EVERY RUN.** Measuring it
+would produce a null that is a fact about the save format, not about invention — *the shape this
+record calls a non-measurement, and it would have looked like a finding about the derivation
+rule.*
+
+### AND THE FIX IS NOT OBVIOUS, WHICH IS WHY IT IS ESCALATED RATHER THAN DONE
+
+**Writing atoms is exactly what `save`'s docstring refuses**, and for a stated reason: it would
+make the file *a second producer of the vocabulary*. **A saved atom is a function, and a function
+in a library file is a different object from a list of names.** Three routes, none free:
+
+    write the atom's DEFINITION      `save` becomes a vocabulary producer -- the refused thing
+    write the RECORDED DELTA         re-invent on load from the same licence. Provenance-clean,
+    it was derived from             and it is the derivation rule crossing the boundary, not the atom
+    let them die                     invention is WITHIN-RUN only, and transfer is not its claim
+
+**The third is coherent and is not nothing** — within-run reuse is measured at 167 (`F306`).
+**But it makes invention unable to bear on OOD, which is the standing test**, and that is a
+programme-level consequence rather than a code choice.
+
+    BOUNDARY    a read of `gamma.save` and `gamma.load`. NO RUN -- and no run would have said
+                this, because the null it produces is indistinguishable from a derivation-rule
+                failure. `REUSED-HERE` (167 of 415) is unaffected and stands
+    MECHANISM   none changed
+    CAPABILITY  none. It converts the transfer column from UNMEASURED to NOT-CURRENTLY-POSSIBLE,
+                and names the three routes without taking one

@@ -422,6 +422,24 @@ reads as something that will be enforced, and it will not be.
   is visible — name the two or three things in contention and the two or three signals
   that could decide between them — let the answer shake out at that altitude, then drop
   back to specifics. A first-class move, not a fallback. Both I and the agent run it.
+- **READ THE DOCSTRING OF EVERY FUNCTION THE DESIGN DEPENDS ON, BEFORE DECLARING THE DESIGN —
+  not when a result looks odd. Adopted 2026-09-23 after THREE instances in one night.** In each,
+  **the thing that refuted the plan was written inside the function the plan depended on**:
+
+      `_extract`'s docstring    said OBJECT-typed atoms are handed a scalar -- I quoted it as the
+                                CAUSE of the dead zone, and it described a defused value-level
+                                abstention. The real gate was mint's exact `val->val` terminal
+      `fits`'s own warning      *154 of 154 gaps had something moving, and the key collapsed onto
+                                arity at 87.3%* -- the exact failure item 6's key would repeat,
+                                recorded at the site I was about to change
+      `play()`'s cold default   *pass nothing and the run starts cold* -- so my BASELINE arm
+                                carried no library and WAS the atoms-only arm. **I quoted that
+                                same docstring an hour earlier** to establish `F220` ran live,
+                                and did not read the sentence saying my control was not one
+
+  **`go to the write site` KEPT FIRING AFTER THE FACT, because SUSPICION is what triggers it** —
+  and a design is declared while nothing yet looks wrong. **This version fires before.** The cost
+  is minutes; two of the three would have been caught by reading one paragraph.
 - **NO ARM'S READINGS ARE GENERALISED UNTIL THAT ARM HAS EXECUTED ON BOTH HARNESSES — reviewer,
   2026-09-23, earned by a three-second crash.** The first live run of the observer arm died at
   `arc_world.py:181`, `if g and g[0]`: **`ReplayTape` hands LISTS and `arcengine` hands NUMPY
