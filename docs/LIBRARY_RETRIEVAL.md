@@ -1938,6 +1938,62 @@ CAPABILITIES.** *"Why underprepare the rover"* and *"making the library more com
 discovery"* were never in tension — **one is about what the agent ARRIVES WITH, the other about
 what it DOES when it gets there.**
 
+### 12.0.3 THE FIGURES PRESUPPOSE A LIVING SUBSTRATE — so the "gaps" are SUBSTRATE, not theory
+
+> ***"Since the figures also relate to all systems and living beings, it kind of supposes you
+> have that."*** — Isaiah, 2026-09-23
+
+**In anything alive, the faculties filed as MISSING are not drawn because THEY COME WITH BEING A
+LIVING SYSTEM.** Neurons rewire; perception adapts; animals notice their strategies failing.
+**The figures assume that floor and describe what runs ON it.**
+
+> **SO THE GAP IS NOT IN THE FIGURES. We drew the loop over a substrate that lacks what biology
+> supplies. WHERE A LIVING SYSTEM PAYS WITH PLASTICITY, WE PAY BY FRONTLOADING THE PLASTICITY** —
+> not a departure from the figures, **the thing the figures take for granted.**
+
+**AND IT RE-LABELS A WHOLE CLASS OF FINDINGS.** Nothing in the figures says perception publishes
+fourteen attributes, or that a promoted term loses its guard, or that one miss unsettles. **Those
+are SUBSTRATE LIMITS, and the figures never imagined a substrate this poor.** They are
+IMPLEMENTATION-FLOOR findings, not architecture findings, and the following are re-labelled:
+
+    §12.2.1  the language cannot fold over cells        floor -- the language cannot GROW
+    §12.11 / `F325`  chunk identity, promotion narrowest  floor -- identity cannot WIDEN
+    `F327`   one miss unsettles, unconditionally        floor -- nothing STAYS learned
+    `F324`   `operand_term` has no producers            floor -- the tree was never built
+    the 14 published attributes                         floor -- perception cannot EXTEND
+
+**Read together they say one thing: THE SUBSTRATE IS FIXED WHERE A LIVING ONE IS PLASTIC.**
+Perception does not extend, the language does not grow, identity does not widen, and nothing
+watches itself. **Each was filed as a separate defect; they are one property.**
+
+### 12.0.4 AN ACTOR CAN BE A PERSON OR AN AGENT — so "no other actor" is ours, not the theory's
+
+> ***"An actor can be a person or an agent, you know."*** — Isaiah, 2026-09-23
+
+**Figure 2's apparatus — a shared referent, alignment, course-correction between parties — only
+makes sense with MORE THAN ONE ACTOR. The theory has always had them.**
+
+**THE DEFECT IS OURS: every delta is attributed to the agent's own action because that is THE
+ONLY CAUSE THE CODE CAN REPRESENT.**
+
+**THE REPAIR SHAPE, STATED AND NOT BUILT:** a change gets a CAUSE that is **INFERRED rather than
+assumed**, with *my action* as ONE hypothesis among several — another actor, an autonomous
+process, a timer. **The machinery for holding competing hypotheses and letting evidence choose
+already exists; it is simply not pointed at CAUSES.**
+
+**AND THE MODULE THAT WOULD DO IT IS BUILT AND UNREACHED.** `framepair` — *which objects are the
+actors, and what changed* — is imported and never executes (`F322`). **Sixth unreached mechanism
+of 2026-09-23, and it means the repair may be WIRING rather than BUILDING.**
+
+**TWO OF THE THREE CHESS GAPS REDUCE TO ONE ROOT:**
+
+    no other actor        the code represents ONE cause
+    no look-ahead         nothing holds a plan as an object
+    no long-horizon value the bargain prices explanation only
+
+**The first two share it: THE CODE ASSUMES A SINGLE ACTOR AND A SINGLE FRAME OF CONSEQUENCE.**
+That may mean one repair rather than two.
+
 ### 12.0.1 The corpus is GENERAL; this deployment is an INSTANCE
 
 > *"The corpus is a general doc, but our specific use case gives us 9 hours and one agent — which
