@@ -133,7 +133,13 @@ ATTRIBUTE_TYPE = {"colour": COLOUR, "row": POSITION, "col": POSITION,
                   # frames tracked, 0 at birth. EXTENT: an ordered non-negative magnitude, the
                   # same shape as `h`/`w`, and it is a COUNT the type set cannot express (the
                   # `contact` note records that gap and the reason EXTENT is the honest fit).
-                  "age": EXTENT}
+                  "age": EXTENT,
+                  # DISPLACEMENT MAGNITUDE this frame, Chebyshev. EXTENT and not DELTA: a
+                  # magnitude is non-negative and unsigned, where DELTA is signed and
+                  # commensurable with POSITION. `speed` and `velocity` are ONE quantity here
+                  # -- a slot holds one int, so a vector has nowhere to live -- and only one
+                  # name is published. Direction stays in `drow`/`dcol`.
+                  "speed": EXTENT}
 
 
 # THE ADMITTING CLAUSE, PER ATOM, RECORDED WHERE THE ATOM IS DECLARED.

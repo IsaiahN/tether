@@ -625,6 +625,24 @@ class Objects:
                 # *how many frames* is the reading. Publishing the predicate would hand it the
                 # answer, publishing the count hands it the means.
                 obj = {**obj, "age": (prev.get("age", 0) + 1) if prev is not None else 0}
+                if prev is not None:
+                    # HOW FAR IT MOVED THIS FRAME -- Chebyshev, so one diagonal step is 1 and
+                    # not 2, matching the 4-neighbour world the segmenter already assumes.
+                    #
+                    # `speed` AND `velocity` ARE ONE QUANTITY HERE, AND ONLY ONE IS PUBLISHED.
+                    # Isaiah's list names both. A slot holds ONE INT, so a vector has nowhere
+                    # to live and both collapse to the magnitude -- publishing two names for
+                    # it is `A6i` by construction. DIRECTION is not lost: `drow`/`dcol` carry
+                    # the signed components and `sign` reads them.
+                    #
+                    # AND IT IS PUBLISHED RATHER THAN COMPOSED, WHICH NEEDS SAYING. `abs_delta`
+                    # already gives |drow| from one slot, but the MAX over two slots is a
+                    # cross-slot read and a chain applies to one slot at a time -- the arity
+                    # wall. Isaiah ruled this set a PAID BILL not to be re-derived at runtime,
+                    # and that ruling names `speed` explicitly, so it governs over §12.2.1's
+                    # general composed-is-the-agent's-job test.
+                    obj = {**obj, "speed": max(abs(obj["row"] - prev["row"]),
+                                               abs(obj["col"] - prev["col"]))}
             fresh[best] = obj
 
         # DEATH ONLY ON EVIDENCE. An unmatched tracked object keeps its slots unless another
@@ -709,7 +727,7 @@ class Objects:
             # same rule `drow`/`dcol` state above.
             for attr in ("row", "col", "h", "w", "colour", "drow", "dcol",
                          "dh", "dw", "dcells", "colour_changed",
-                         "dholes", "dperimeter", "age"):
+                         "dholes", "dperimeter", "age", "speed"):
                 if attr in obj:
                     state[f"{name}.{attr}"] = NOT_RESOLVED if covered else int(obj[attr])
             state[f"{name}.shape"] = (
