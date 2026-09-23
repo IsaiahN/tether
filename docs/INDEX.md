@@ -45629,3 +45629,59 @@ episode takes 46 minutes.**
     MECHANISM   none changed
     CAPABILITY  none. It closes the last gap in the live-ground thread: every arm has now been
                 measured to terminal, and none of them moves the column
+
+---
+
+## F318 (INDEX series) — THE LADDER AT **SENSOR-FAMILY** LEVEL HARDENS IT: all 17 families, **976 attributes published, cover 9 of 2,517 — 0.4%.** And the reason is that only **1.5%** of the required attributes are in any cluster at all
+
+**The reviewer's correction, and it was the right test: A RUNG IS A SENSOR, NOT AN ATTRIBUTE — a
+sensor publishes a whole family at once, so the per-attribute ladder may have understated what a
+real rung buys. It does not.**
+
+    sensor families (clusters)        17, mean 56.7 attributes each
+
+    rung  family added        newly covered   TOTAL   % of 2,517
+       1  DIRECTION                       1       1     0.0%
+       2  POSITION                        1       2     0.1%
+       3  COUNT                           1       3     0.1%
+       5  CHANGE                          1       5     0.2%
+      10  CONTACT                         1       9     0.4%
+      15  IDENTITY                        0       9     0.4%
+
+    after ALL 17 families:  9 of 2,517 covered.  Attributes published: 976 -- SEVENTY TIMES
+    the current 14 -- and the coverage is 0.4%.
+
+> **PUBLISHING EVERY CLUSTERED ATTRIBUTE THE CORPUS ORGANISES, SEVENTY TIMES TODAY'S PERCEPTION,
+> UNLOCKS NINE ATOMS.** *The family-sized rung is not better than the attribute-sized one; it is
+> worse per attribute spent.*
+
+### AND THE REASON IS A ONE-LINE MEASUREMENT
+
+    attributes the closure REQUIRES         5,037
+    attributes the 17 clusters cover          964
+    REQUIRED attributes inside a cluster       74      1.5%
+    REQUIRED attributes in NO cluster       4,963
+
+**THE CLUSTER VOCABULARY AND THE DEMAND VOCABULARY ARE ALSO DISJOINT.** *`ATTRIBUTE_CLUSTERS`
+organises the attribute names that RECUR; the atoms' requirements are the long tail that does
+not* — `1-p`, `3dembedding`, `aboutness`, `abruptness`. **Clustering solved the problem of naming
+variants, not the problem of coverage, and those are different problems.**
+
+### SO THE CONCLUSION HARDENS RATHER THAN SOFTENS, WHICH IS WHAT THE TEST WAS FOR
+
+    by attribute   80 rungs -> 3.4%          `F316`
+    by SENSOR      ALL 17 families -> 0.4%   here, and 976 attributes to get it
+
+**Both ladders are flat, and the sensor ladder is flatter.** *No rung shape available to us
+climbs this.* **The three joins (`F300`, `F314`, `F315`) and both ladders now say one thing: the
+closure library is not reachable from perception by any incremental widening.**
+
+    BOUNDARY    `ATTRIBUTE_CLUSTERS.json`'s 17 `clusters_detail` families as the sensor proxy,
+                against the same 2,517 atoms. A SENSOR IS NOT EXACTLY A CLUSTER -- the corpus
+                has no sensor-to-attribute manifest, so the cluster is the best available
+                stand-in and a real sensor could bundle differently. **What does not depend on
+                the proxy is the 1.5%**: whatever a sensor bundles, it can only bundle names
+                that exist in the vocabulary, and 4,963 of the required names are in no
+                grouping at all
+    MECHANISM   none changed. A read
+    CAPABILITY  none. It closes the ladder question in both shapes the reviewer asked for
