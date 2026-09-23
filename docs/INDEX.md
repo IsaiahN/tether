@@ -46103,3 +46103,64 @@ maintained -- is **not** taken:
     MECHANISM   none changed -- deliberately
     CAPABILITY  none. It removes the wrong repair from the table, which is what it is worth:
                 "make more things settle" was the repair the previous framing implied
+
+
+---
+
+## F328 -- THE PANEL WAS TWO-THIRDS ONE FAMILY, and every number of 2026-09-23 inherits that
+## boundary. Plus: `CLAUDE.md`'s exclusion rule rested on a FALSE checkable fact.
+
+Isaiah, 2026-09-23: *"balance your game types please to several games."* The panel all night was
+`wa30`, `g50t`, `sk48` -- three of twenty-five.
+
+### The family census, from the 25 replays, no agent runs
+
+    PURE POSITIONED (action 6 only)   lp85 r11l s5i5 su15 tn36 vc33     COVERAGE: ZERO
+    ZERO POSITIONED (no clicks)       g50t ls20 re86 tr87 tu93 wa30     COVERAGE: TWO OF THREE
+    MIXED                             13 games incl. sk48 dc22 ka59     one (sk48, 40 clicks)
+    MULTI-LAYER FRAME (2x64x64)       bp35 lf52                         COVERAGE: ZERO
+
+> **EVERY SETTLING, SURPRISE AND COST NUMBER FROM 2026-09-23 COMES FROM A PANEL THAT IS
+> TWO-THIRDS ONE FAMILY AND MISSES TWO FAMILIES ENTIRELY.** `F323` `F326` `F327` and the item-4
+> work all inherit it. **Selection from here is by a STATED RULE -- first two alphabetically per
+> family -- because `F277` was choosing an evaluation set by per-board properties; and an
+> all-25 sweep needs no selection at all and is preferred where affordable.**
+
+### And the exclusion rule's fact was false -- corrected at source
+
+`CLAUDE.md` excluded six games from the detector-family independence test because **"the adapter
+surfaces no action"**, insisting on **"a checkable fact -- no SURFACED action -- never on
+judgement."**
+
+**MEASURED, ALL 25, RESET ONLY: NO GAME SURFACES ZERO ACTIONS.** `lp85` 1 · `r11l` 1 · `s5i5` 1 ·
+`su15` 2 · `tn36` 1 · `vc33` 1; every other game 3-7. **The agent acts on all of them.**
+
+**THE POPULATION WAS RIGHT AND THE REASON WAS NOT** -- which is the hard case, because every use
+of the rule worked. **A false premise that selects the correct set cannot be caught by its
+consequences.**
+
+**REWRITTEN TO THE TRUE, STRONGER FACT:** *excluded where THE ACTION SPACE HAS SIZE 1 -- with one
+action every policy is the same policy, so independent detectors necessarily behave identically
+and the test has no content there.* **And the population MOVES: `su15` has two actions, a binary
+choice is a choice, so it re-enters -- FIVE excluded, not six.** Anything taken under the old
+exclusion is re-scoped and flagged.
+
+### g50t, read on Isaiah's instruction -- a CANDIDATE for its own outlier status
+
+**The human WON it: 0 -> 7 levels against `win_levels: 7`, 577 steps, 14 RESETS**, advances at
+51/226/312/364/460/508/575, actions `1:100 2:167 3:125 4:142 5:28` and **zero positioned clicks**
+-- action 5 ~4x per level reads as a COMMIT against four toggles. Obfuscated, but `color_remap`,
+`rotate`, `set_visible`, `collides_with`, `Sprite`, `Level` survive. Isaiah: *copy a drawing with
+your avatar using paint options you toggle through -- recognition, mirroring, layers.*
+
+> **THE TOOL MODE IS INVISIBLE STATE, and that would explain `F327`'s 8-for-8 exactly:** a term
+> settling while the tool is in one mode mispredicts the instant it toggles, **and one miss
+> unsettles.** **CANDIDATE, NOT ESTABLISHED** -- unmeasured, and *an outlier is a broken
+> instrument until proven* still attaches. **It points at the same root as *cause must be
+> inferred, not assumed*: the world holds a variable the agent does not model.**
+
+    BOUNDARY    the census is a read of 25 replays plus a reset-only sweep. It says what the
+                HARNESS surfaces, not what any game requires
+    MECHANISM   none changed; `CLAUDE.md`'s exclusion rewritten at source
+    CAPABILITY  none. It bounds every other finding of the day, which is worth more than a
+                number: the readings were never wrong, their POPULATION was narrower than stated

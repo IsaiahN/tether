@@ -2286,3 +2286,11 @@ same way: not a price worth paying or not in the abstract, but a number of EPISO
 
 **The table is updated whenever per-action cost changes. It is the one number that says whether
 a design is affordable at all.**
+
+### AND THE CONVERSION IS BOARD-DEPENDENT IN A WAY THIS TABLE DOES NOT YET HANDLE
+
+**A 25x SLOT SPREAD ACROSS THE PANEL, measured 2026-09-23 at reset:** `m0r0` 2,466 slots ·
+`sk48` 654 · `wa30` 252 · `sp80` 96. **Per-cycle cost scales with the slot set**, so a single
+seconds-per-action figure prices the board it was taken on and no other. **Noted rather than
+repriced: a per-board conversion needs a cost measurement per board, and that is a run, not an
+edit.**

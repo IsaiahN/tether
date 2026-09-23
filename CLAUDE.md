@@ -193,14 +193,29 @@ good checker should do:
 - **witness the boundary, not the decision** — exemptions and denominators, never the rule
 - **exemptions as data, not logic** — a table can be pinned; logic widens quietly. **And it
   reaches a MEASUREMENT'S POPULATION, not only a rule's scope**: the detector-family
-  independence test must exclude the six games where **the adapter surfaces no action** —
-  they advertise a positioned click and the adapter drops it, because the loop cannot supply
-  a position. **Every detector fails there because nothing acts, not because the detectors
-  are correlated: a shared failure mode from the HARNESS rather than from the family**, and
-  four independent ones would read as correlated. **Excluded on a checkable fact — no
-  SURFACED action — never on judgement, and never on *no action*: what those games contain
-  is unestablished, and the exclusion expires the moment positioned actions are supplied.**
+  independence test excludes the games where **THE ACTION SPACE HAS SIZE 1** — with one action
+  every policy is the same policy, so independent detectors necessarily behave identically and
+  the independence test has no content there. **Excluded on a checkable fact, never on
+  judgement, and the exclusion expires the moment a second action is surfaced.**
   First instance outside a rule's scope
+
+  **AND THE FACT IT USED TO REST ON WAS FALSE — CORRECTED 2026-09-23, AND KEPT HERE BECAUSE IT
+  GOT THE POPULATION RIGHT BY ACCIDENT.** This read *exclude the six games where the adapter
+  surfaces no action — they advertise a positioned click and the adapter drops it, because the
+  loop cannot supply a position; every detector fails there because NOTHING ACTS.* **Measured
+  across all 25 games, reset only: NO GAME SURFACES ZERO ACTIONS.** `lp85` 1 · `r11l` 1 ·
+  `s5i5` 1 · `su15` 2 · `tn36` 1 · `vc33` 1, every other game 3–7. **The agent acts on all of
+  them — it takes its single action every step.**
+
+  **So the rule failed its own standard**, which is the part worth keeping: it demanded *a
+  checkable fact, never judgement*, and the fact was untrue while the six-game population it
+  produced was right. **A false premise that selects the correct set is the hardest kind to
+  catch, because every use of it works.**
+
+  **AND THE POPULATION CHANGES UNDER THE TRUE FACT: `su15` HAS TWO ACTIONS AND A BINARY CHOICE
+  IS A CHOICE.** It leaves the exclusion and re-enters the population — **five excluded, not
+  six** — so any finding taken under the old exclusion is re-scoped and flagged rather than
+  quietly carried.
 - **reintroduce the defect, never disable the check** — tests reach, not existence
 - **a repair can break the layer above** — and that is where causes get asserted
 - **a metric whose denominator the mechanism changes cannot falsify that mechanism** —
@@ -216,6 +231,29 @@ good checker should do:
   keyed by residual shape · `R_T` as a gate rather than a reading · binding by contact
   rather than by enumeration · `λ^d` as the coverage denominator · reset-vs-advance before
   demoting at a boundary. **The design step is a search of the corpus, not a design.**
+
+**AND TWO FIELDS EVERY PRE-REGISTRATION CARRIES, BOTH EARNED ON 2026-09-23, BOTH BEFORE THE RUN.**
+Declaring boards, seeds, cycles, arms, the test and the null is NOT enough: **a null is
+interpretable only against a panel that COULD have shown the alternative, and an effect is
+readable only if the treatment ACTUALLY EXECUTED.**
+
+- **THE PANEL PRECONDITION — what must be true of the world for this measurement to be CAPABLE
+  of showing anything, CHECKED AND STATED BEFORE THE RUN.** The surprise arms came back
+  IDENTICAL TO THE DIGIT across 12 cycles because `units()` promotes only SETTLED terms and the
+  carried library had none: **the treatment did not exist.** One line of checking would have
+  replaced the whole measurement with the better question. **It was saved only by an implausibly
+  clean result — a small difference would have read as a weak effect and been reported.**
+- **THE TREATMENT-EXECUTED CHECK — show the manipulation RAN before reading its effect.** The
+  upper-bound probe crashed on one board with a `KeyError` in `sweep`, because forced terms were
+  injected without stamps; **the board that did NOT crash is thereby evidence its forced terms
+  were never minted — present and INERT.** *Present and possibly inert* is the absent treatment
+  one level subtler, and it is the harder one because it produces a plausible number.
+
+**AND THE PAIR IS THE TEACHING CASE, because both halves happened within an hour.** The
+precondition was MISSED on the surprise run and CAUGHT an hour later on `inside`, which read 0
+slots on both harnesses — instead of filing that, the board was checked for whether it could show
+containment at all (48 objects with holes, 236 containing pairs) and **the zero turned out to be
+a missing arm flag.** Same check, one omission and one catch.
 
 Five corollaries with the same standing: *a control that examines nothing cannot
 demonstrate a clean state*; *an exit code is a declaration where a pattern match over
