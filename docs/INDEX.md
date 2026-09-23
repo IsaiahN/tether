@@ -45518,3 +45518,73 @@ written against thousands.**
     MECHANISM   none changed
     CAPABILITY  none. It refutes the last of the three candidate joins and relocates the
                 blocker from the composer to PERCEPTION
+
+---
+
+## F316 (INDEX series) — THE REACH LADDER, AS ORDERED: **80 ATTRIBUTES ADDED UNLOCK 86 OF 2,517 — 3.4%.** The curve does not bend, because 3,830 of the 4,845 required attributes are wanted by exactly ONE atom
+
+**Isaiah ordered the `ATTRIBUTE_REACH` ladder read at 20:25, before any rung is built. This is
+the read. Nothing is widened and nothing is proposed.**
+
+### THE CUMULATIVE GREEDY SET-COVER
+
+    rung   attribute added            newly covered   TOTAL   % of 2,517
+       1   probabilityDistribution              2         2      0.1%
+       3   trajectory                           1         4      0.2%
+       5   count                                1         6      0.2%
+      10   positions                            1        12      0.5%
+      20   dataRepresentation                   1        22      0.9%
+      40   deviationFromBeat                    1        44      1.7%
+      80   unbrokenChain                        1        86      3.4%
+
+**AFTER EIGHTY RUNGS, 3.4%. And after the first rung every step unlocks exactly ONE atom.**
+*There is no bend in this curve and no cheap rung — the ladder is a straight line at one atom per
+attribute.*
+
+### AND THE REASON IS IN THE SHAPE OF THE DEMAND
+
+    distinct attributes the closure requires    4,845
+    required by exactly ONE atom                3,830      79%
+    mean attributes per atom                     2.93
+
+    how far each atom is from covered:   1 away    38 atoms
+                                         2 away   337
+                                         3 away  1,936      the mode
+                                         4+ away   206
+
+> **THE ATTRIBUTE VOCABULARY IS ALMOST ENTIRELY LONG TAIL.** Four in five required attributes are
+> wanted by a single atom, so **covering an atom buys nothing toward the next one.** *Set-cover
+> rewards sharing and there is almost none here.*
+
+**ONLY 38 ATOMS OF 2,517 ARE ONE ATTRIBUTE AWAY**, and the mode is THREE away. **The cheapest
+possible first rung buys 2 atoms.**
+
+### WHAT THE DEMAND SIDE LOOKS LIKE, WITH THE JUDGEMENT LABELLED AS ONE
+
+    action 55 · persistence 28 · time 22 · coherence 20 · temperature 19 · outcome 19
+    speed 17 · continuity 17 · repetition 16 · belief 16 · distance 13 · identity 13
+
+**Geometric and plausibly computable: `persistence`, `time`, `speed`, `continuity`,
+`repetition`, `distance`.** **Not board properties at all: `temperature`, `belief`, `meaning`,
+`identity`.** *The classification is a JUDGEMENT and is marked as one in the script — Isaiah can
+overrule any row, and `action`, `outcome`, `coherence`, `source`, `target` are deliberately left
+UNCLASSIFIED rather than guessed.*
+
+> **EVEN TAKING ONLY THE COMPUTABLE ONES, THE ARITHMETIC DOES NOT CHANGE: the top six geometric
+> attributes are wanted by ~113 atoms between them, and an atom needs ALL THREE of its
+> requirements.** *Demand counts are not coverage, and the ladder is the coverage reading.*
+
+### WHAT THIS IS FOR
+
+**It is the decision-ready artefact Isaiah asked for, and it points AWAY from the obvious move.**
+*Widening perception attribute-by-attribute does not unlock the closure — it would take thousands
+of attributes to reach it, and 79% of them would each serve one atom.* **If the 2,700 are to
+become reachable, it is not by climbing this ladder one rung at a time.**
+
+    BOUNDARY    `ATTRIBUTE_INDEX.json`'s 2,517 keyed entries against the 14 published, exact
+                name match. GREEDY set-cover -- a LOWER BOUND on an optimal ordering, not an
+                optimum; set-cover is NP-hard and greedy is the standard approximation. An
+                optimal ladder does slightly better and cannot do much better, because the
+                one-atom-per-attribute tail is a property of the data and not of the algorithm
+    MECHANISM   none changed. A read, as ordered
+    CAPABILITY  none. It prices the move that three nulls pointed at, and the price is prohibitive
