@@ -46296,6 +46296,43 @@ of every family · `translate . recolour` dominant everywhere · `ar25` minting 
 reaching 4 · the widening asking 3x more and arriving at nothing. **One structural fact, and it
 is three atom declarations.**
 
+### RE-READ AFTER `fe868c3`, ORDERED BY THE REVIEWER -- THE ROW STANDS, AND THE THING THAT MOVED IS NOT IN IT
+
+**The reviewer ordered this re-read on a live worry: `F332` was measured while
+`enumerate_closure` read `val` as a LITERAL type, so *if the explicit declaration makes `idn`
+and `owner` genuinely polymorphic, the region was never sealed -- it was sealed TO THE SEARCH
+ONLY.* THE WORRY IS CORRECT IN FORM AND THE MEASUREMENT REFUTES IT.**
+
+**Re-run with the shared `accepts_type` predicate in place, same exact enumeration:**
+
+    depth 1   3 chains, 0 through a non-val type     unchanged
+    depth 2   9 chains, 0                            unchanged
+    depth 3  27 chains, 0                            unchanged
+    produces `val`                 idn · translate · recolour     unchanged
+    produces `val` from non-val    **ZERO**                        unchanged
+    consumes `val`                 idn · owner · recolour · translate   unchanged
+
+**EVERY CLAIM IN THE ROW IS INTACT.** The seal was never a property of how the search read
+`val`; it is three `also_accepts` tuples and three `out_type`s, and none of them moved.
+
+> **WHAT CHANGED IS THE ONE FACT THE ROW NEVER STATED: *WHO CAN REACH THE EXIT.*** Before
+> `fe868c3`, `owner` was enterable only from `val`, so the region was **sealed AND its exit
+> was unreachable from outside**. `owner` is now declared polymorphic and reads
+> **`val · POSITION · COLOUR · DELTA · EXTENT · SHAPE · BOOL`** -- every type. **`POSITION ->
+> OBJECT` went 0 -> 194.**
+
+**SO THE SEAL WAS NEVER WHAT BLOCKED THE 18 `OBJECT`-TYPED ATOMS, AND READING IT THAT WAY WAS
+AVAILABLE FROM THIS ROW'S OWN WORDS.** *One exit, zero RETURNS* -- the row is about what cannot
+come BACK, and the 18 atoms were blocked by what could not GET THERE. **Two adjacent facts, one
+row, and only one of them was ever measured here.**
+
+**AND THE INSTRUMENTS DISAGREE BY DESIGN, WHICH IS WORTH RECORDING BEFORE SOMEONE READS IT AS A
+REGRESSION:** this row's EXACT enumeration reads `3/9/27` and `enumerate_closure` reads
+`3/7/15` on the same registry at the same depths. **`units()` dedups and the generator is
+budgeted and ordered; the exact count is a raw product over atoms.** **Neither is wrong and
+they are not interchangeable** -- quote the one whose question you are asking, and `F332`'s
+question is the raw one.
+
 **AND `F329` INVERTS:** not *mint asks two streams and that is the ceiling* but **there are two
 streams BECAUSE ONLY TWO KINDS CAN BE SCORED. Nobody chose it; it is what the bargain can
 price.** The framing came from Isaiah's WAGER reading of `belief`, which is worth recording --
