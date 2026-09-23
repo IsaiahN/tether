@@ -669,6 +669,26 @@ class Objects:
                     # general composed-is-the-agent's-job test.
                     obj = {**obj, "speed": max(abs(obj["row"] - prev["row"]),
                                                abs(obj["col"] - prev["col"]))}
+                    # CONSECUTIVE FRAMES UNCHANGED, reset to 0 the frame anything moves.
+                    #
+                    # DISTINCT FROM `age`, AND THE PAIR IS THE POINT: an object that moves every
+                    # frame has HIGH age and ZERO stability. `age` counts frames TRACKED;
+                    # `stability` counts frames UNCHANGED. Two quantities, and publishing only
+                    # one would have lost the distinction between *has been here a long time*
+                    # and *has been doing nothing*.
+                    #
+                    # THE CELL SET, NOT THE BOUNDING BOX. `row/col/h/w` are unchanged by a
+                    # rotation inside a square box and by any recolour, so a box-only test
+                    # would read a spinning object as stable. Colour is compared too, because
+                    # `colour_changed` exists precisely to say a recolour is a change.
+                    same = (obj["cells"] == prev["cells"] and obj["colour"] == prev["colour"])
+                    obj = {**obj, "stability": (prev.get("stability", 0) + 1) if same else 0}
+                else:
+                    # A BIRTH HAS NOT BEEN STABLE FOR ANY FRAMES. Zero rather than absent,
+                    # unlike the DELTAS above: *how long has it been unchanged* has a true
+                    # answer at birth and it is none, where *how far did it move* has no answer
+                    # because there was nothing to move from.
+                    obj = {**obj, "stability": 0}
             fresh[best] = obj
 
         # DEATH ONLY ON EVIDENCE. An unmatched tracked object keeps its slots unless another
@@ -753,7 +773,7 @@ class Objects:
             # same rule `drow`/`dcol` state above.
             for attr in ("row", "col", "h", "w", "colour", "drow", "dcol",
                          "dh", "dw", "dcells", "colour_changed",
-                         "dholes", "dperimeter", "age", "speed"):
+                         "dholes", "dperimeter", "age", "speed", "stability"):
                 if attr in obj:
                     state[f"{name}.{attr}"] = NOT_RESOLVED if covered else int(obj[attr])
             state[f"{name}.shape"] = (
