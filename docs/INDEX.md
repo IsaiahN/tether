@@ -45884,3 +45884,68 @@ survives (a compiler must not hang) and the reasoning does not.
     MECHANISM   none changed
     CAPABILITY  none. It retires F316/F318 as the answer to Isaiah's challenge and replaces them
                 with a measurement over EXECUTABILITY
+
+
+---
+
+## F324 -- §4's `operand_term` HAS ZERO PRODUCERS. The tree is never built.
+
+`gamma.py:207` declares `operand_term: Term | None` under a comment that calls it **"§4: THE
+OPERAND MAY BE COMPUTED, WHICH IS WHAT MAKES THIS A TREE"**. It is READ by `tether._ops`, PRICED
+by `Gamma.length` (gamma:295), and RENDERED by `Term.name` (gamma:213).
+
+**NOTHING EVER SETS IT.** Every `Term(` construction in the tree was checked -- `gamma`
+399/406/645/722/726/786, `tether` 1445/1455/3391, `snaps` 461, `demo` 72 -- and **not one passes
+`operand_term`, by keyword or positionally.**
+
+> **SO EVERY TERM THE AGENT HAS EVER COMPOSED IS A FLAT CHAIN WITH AT MOST A SLOT OPERAND.**
+> §4's absence was diagnosed, the field was added to close it, and the producer was never written.
+
+**AND `arc_atoms` RECORDS A DEPENDENCY ON IT:** *"`both`/`either` are buildable only because §4's
+`operand_term` lets a COMPUTED predicate fill operand 0."* **Those two atoms can never receive
+the thing their admission cited.** They are constructible and they abstain, so nothing fails --
+which is why this survived: **an unreached capability presents as nothing.**
+
+**THIRD BUILT-AND-UNREACHED MECHANISM OF 2026-09-23**, after `sensors_heavy` (never imported on
+any agent path) and `composer` (firewalled by a re-scope ruled 2026-09-22 and never landed), with
+arm I orphaned for months alongside. **One per audit pass is itself the reading.**
+
+    BOUNDARY    a static census of construction sites. It says nothing is WRITTEN; a dynamic
+                run would say nothing is REACHED, and the static claim is the stronger one here
+                because a field with no writer cannot be set at runtime
+    MECHANISM   none changed. Reported, not repaired -- whether §4 should have a producer is a
+                design question that belongs with CHUNK IDENTITY
+    CAPABILITY  none. It removes a capability from the ASSUMED set: the composer builds chains,
+                never trees, and any reasoning that assumed otherwise was reasoning about a
+                mechanism with no writer
+
+## F325 -- CHUNK IDENTITY: four identities, and PROMOTION USES THE NARROWEST.
+
+    Term.name          atoms + operand + operand_term + guard   -- `library`/`standing` key
+    units() dedup      atoms ONLY (`gamma:726` rebuilds `Term(t.atoms)`)
+    guard/operand axes atoms + operand + guard (`tether:1445`, `:1455`)
+    key_of             signature + arity + operand_type
+
+**A TERM SETTLES UNDER ONE IDENTITY AND IS PROMOTED UNDER ANOTHER.** `f<g(s)>?act` settles as
+itself and re-enters the search as bare `f` -- **the reusable chunk is a different computation
+from the one the ground paid for.**
+
+**IT HAS NEVER BITTEN FOR ONE REASON: nothing yet carries meaning outside the atom sequence.**
+The operand is legitimately re-decided per slot at mint, the guard is re-enumerated, and
+`operand_term` is dead (`F324`). **The first mechanism that carries real meaning beside the atoms
+collapses on promotion, silently** -- two computations sharing one unit, executing as each other.
+
+**THAT GATES EVERYTHING ISAIAH RULED ON 2026-09-23:** a routine with DECLARED STATE, a recipe with
+a CONDITIONAL, a recipe CALLING ANOTHER BY NAME, and a stateful fold. **None of them lives in the
+atom sequence**, so none can be promoted, carried or ranked -- which is exactly what §12.6's
+kind-local ranking assumes it can do. **It is why item 2 shipped as elementwise chaining: there
+the chain's own POSITION is the body, so the whole meaning stays in the atom sequence.**
+
+    TOUCHES     settling (`standing` keyed by name) · dedup (`units()`) · the COVERAGE
+                DENOMINATOR (the same docstring records a dedup error inflating it once) ·
+                the structure hash · retrieval keys
+    BOUNDARY    a read of the four sites. No run -- and none is needed, because the claim is
+                about what the code CONSTRUCTS rather than about what a board does
+    MECHANISM   none changed; designing it was explicitly withheld
+    CAPABILITY  none. It names the single structural thing between today's agent and the RSI
+                picture, and it is bigger than any one construct

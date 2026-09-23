@@ -2022,6 +2022,33 @@ the design genuinely needs, with the choice stated and justified.**
 row* and *count the enclosed empty cells* AS A RECIPE? `holes` existing in Python is not an
 answer.**
 
+### 12.2.2 ITEM 2'S RESULT — iteration LANDS, and the gap is WHICH COLLECTION
+
+**BUILT** (`bf8873f`, arm `TETHER_ITERATE`): `CELLS`/`CELL`, an ordered `Cells`, `cells` to open,
+`cell_row`/`cell_col` to read, `count_true` to close, and one rule in `Term.apply`. **The chain's
+own POSITION is the body, so the whole meaning stays in the atom sequence** — which is why this
+survived the census where a `fold<body>` did not (§12.11, `F325`).
+
+**AND EVERY EXISTING ATOM BECAME USABLE INSIDE AN ITERATION**, because anything that is not a
+reducer is mapped. The agent composes over the 57 it already holds, not over the 4 added.
+
+    WORKS, verified against a known answer
+        `cells . cell_row . parity . count_true` = 4 on a 5x5 ring, which has exactly 4 cells
+        in odd rows -- a cell-level primitive the agent could not state at all before
+
+    BOTH DECLARED ACCEPTANCE TARGETS FAIL, and one was predicted to pass
+        count the enclosed empty cells     `cells` opens the object's OWN cells, which are
+                                           FILLED. The empty interior is never in the
+                                           collection
+        the longest unbroken run in a row  needs an accumulator across cells in order;
+                                           elementwise mapping holds no state between elements
+
+> **READ THE FIRST FAILURE CORRECTLY: THE GAP IS NOT THE REDUCER, IT IS WHICH COLLECTION `cells`
+> CAN OPEN.** The agent can iterate an object's own cells and **cannot open a REGION** — the
+> bounding box, the interior, the complement, a neighbourhood. **That is where the empty cells
+> live.** `REGION` is already a type in `grammar.T` and in `sensors`, and whether it is the
+> natural opener is a report owed before anything is built. **This is not "folds do not work".**
+
 ## 12.3 REACH REFRAMED — we supply the FLOOR, not the ceiling
 
 > *"It's like having a rover on Mars that's fully autonomous. The agent must be able to invent
