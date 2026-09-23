@@ -46365,3 +46365,166 @@ branch.** I fixed the LABEL (`typed:<T>`) and not the PRICE.
                 reading belongs in the MIDDLE of a chain
     CAPABILITY  none. It replaces two refuted accounts with a measured one, and it makes the
                 `<typed> -> val` converter a question about WHICH PROJECTION rather than whether
+
+
+---
+
+## F333 -- A TYPED TERM WAGERS NOTHING, SO ONLY TWO KINDS OF CLAIM CAN BE SCORED.
+## RE-SCOPED BY ISAIAH THE SAME DAY: that is a fact about `_left` AS WRITTEN, not about the
+## architecture. **THE WAGER IS THE AGENT'S, NOT THE TERM'S.**
+
+**THIS ROW WAS CITED FOR HOURS BEFORE IT EXISTED.** It was reported to the reviewer in the
+channel, reasoned from in three rulings, and **never written into the record** -- so the
+reviewer was arguing from numbers that lived only in a Drive doc. **Written now with its
+re-scoping already attached, because the finding and its correction arrived the same day.**
+
+### The finding, as measured
+
+`mint` asks exactly two streams -- `("val","val")` and `(slot_type, OBJ)` -- and the account is
+not that someone chose two. **It is that only two kinds of claim can be SETTLED:**
+
+    a `val` term      predicts THE SLOT'S NEXT VALUE. The ground answers
+    an `OBJ` term     asserts a TRUTH. `objective_step` probes for the value that SATISFIES it
+    a typed term      a MAGNITUDE. Neither the slot's next value nor a truth
+
+**`objective_step`'s probe requires a notion of SATISFIED. A truth has one; a magnitude does
+not.** So nothing refutes a typed term, so it removes no residual, so the bargain cannot price
+it at any cost. **A TERM THAT CANNOT LOSE CANNOT WIN.**
+
+### ISAIAH'S CORRECTION, 2026-09-23, IN HIS WORDS -- and it is the clearest statement of what the architecture is for that this project has
+
+> ***"The composition doesn't decide what the slot is about -- the agent's reasoning does
+> (Systems 0-2). This is the tail wagging the dog. I want to walk somewhere, so I engage a
+> subroutine to move my feet and lower limbs. They don't tell me where to go and I have to
+> catch up."***
+
+**`_left` asks the SUBROUTINE to justify itself: *does your output equal this slot's next
+value?* THAT IS LEGS EXPLAINING WALKING.** The agent forms an intent; a composition is engaged
+IN SERVICE of it; what settles is whether **the intent** was met.
+
+> **CONSEQUENCE, and it is why this is a mechanism and not philosophy: UNDER AN INTENT, A
+> MAGNITUDE IS JUDGEABLE.** *Did this move the thing I wanted moved?* **The third kind "wagers
+> nothing" only because NOTHING ASKED IT FOR ANYTHING.**
+
+**RE-SCOPED, NOT WITHDRAWN.** The row stands as a fact about `_left` as written. **Its
+generalisation -- *only two kinds can EVER be scored* -- is WITHDRAWN.** Intent-relative
+settling needs the goal layer (goal-setting, reaching, the objective terminal), which is
+Isaiah's and unbuilt -- **so this does NOT license redesigning scoring now**, and the type
+repair lands either way: a subroutine that cannot reach the slots it needs is broken under
+either regime.
+
+---
+
+## F334 -- THE WIDENED CANDIDATES SPLIT TWO WAYS, AND BOTH HALVES ARE DEAD ENDS FOR DIFFERENT
+## REASONS. 54-76% ABSTAIN; the rest RESOLVE AND LOSE.
+
+**Also cited before it was recorded.** Arm `TETHER_STREAM_WIDEN`, 10 cycles, tape, PER GAME:
+
+    board  seed  wide terms  APPLIED  resolved  ABSTAINED  reading
+    wa30      0         577      564       857       1551   64% ABSTAIN
+    wa30      7         559      545      1250       3932   76% ABSTAIN
+    lp85      0         492      480      2016       2376   54% ABSTAIN
+    lp85      7          90       84      5689          0   **all resolve -- they LOSE the contest**
+
+**TWO POPULATIONS AND ONLY ONE OF THEM IS A TYPE PROBLEM.** The abstainers begin at a SCALAR and
+a typed chain cannot start there -- **a converter cannot help, the repair is at the chain's
+INPUT.** The resolvers compute something and **the bargain prefers the incumbent** -- a PRICE
+problem, and `lp85` seed 7 is the clean case with zero abstentions.
+
+> **AND IT IS THE ROW THAT EXPLAINS STEP 1, WHICH IS WHY IT MATTERS BEYOND ITS OWN ARM.**
+> `F336`'s four EXTENT atoms resolve **100%** and bind **once in three boards**. **They are
+> this row's RESOLVE-BUT-LOSE population at a different entry point -- same finding, new
+> site.** Reported by the reviewer before the seat saw it.
+
+---
+
+## F335 -- TWO CHAIN-COUNT INSTRUMENTS, TWO QUESTIONS, AND THEY WERE QUOTED INTERCHANGEABLY ALL DAY
+
+**Ordered by the reviewer as its own entry rather than a footnote, because the confusion reached
+both seats and both sets of rulings.**
+
+    EXACT ENUMERATION        `val -> val` = 3 / 9 / 27 at depths 1/2/3
+    `enumerate_closure`      `val -> val` = 3 /  7 / 15 at the same depths, same registry
+
+**NEITHER IS WRONG AND THEY ARE NOT INTERCHANGEABLE.** The exact count is a **raw product over
+atoms**, counting every chain of exactly that depth. `enumerate_closure` walks **`units()`,
+which DEDUPS**, and is **budgeted and ordered** -- it yields what a caller would actually
+reach, shortest first, inside a cap.
+
+> **THE RULE: ANYTHING QUOTING A CHAIN COUNT MUST NAME THE INSTRUMENT THAT PRODUCED IT.**
+> `F332`'s question is the raw one. A capability claim about what the composer can REACH is the
+> other one, and reaching is what `enumerate_closure` measures.
+
+**AND THE FAILURE IT ALMOST CAUSED IS THE POINT:** re-running `F332` under the shared
+`accepts_type` predicate, the seat first read `3/7/15` against the row's recorded `3/9/27` and
+**briefly took a healthy instrument for a regression.** Same shape as `grep "^| Pattern "`
+matching *"Pattern match"* in `F323` -- **a checking step that produces a plausible wrong
+number is worse than one that errors.**
+
+
+---
+
+## F336 -- STEP 1 NARROW: the filter admits 141x per atom, the atoms resolve 100%, and they bind
+## ONCE ACROSS THREE BOARDS. **MY PRE-REGISTERED EXPECTATION WAS *ZERO* AND IT IS REFUTED.**
+
+`BINDABLE` filtered the OUTPUT type and never consulted `_head_accepts`, the INPUT rule one
+screen above it in the same file. `_may_bind` (`6eba89a`) requires both. **Admitted set is a
+TABLE, `REPR_AGREES`, not a predicate** -- an exemption in logic widens quietly.
+
+    bindable BEFORE   6          NEWLY BINDABLE  +4 EXTENT only: count distinct rank_in sum_group
+    every other type  +0         ABORT CHECK     naive output-only admits 45 pairs; we got 4
+
+### The chain, every link measured rather than inferred
+
+    the filter ADMITS    204,296 `_may_bind` calls on g50t; 141 admissions PER ATOM
+                         (ls20 51, ft09 16) -- **the TREATMENT-EXECUTED CHECK, run because a
+                         byte-identical ground run cannot distinguish a correct no-op from a
+                         dead site**
+    the atoms RESOLVE    100% on the agent's own `Ctx`, ZERO abstentions, ZERO raises, no crash
+                         -- g50t R30/R30/R40/R40 · ls20 R19/R19/R38/R38 · vc33 R11/R11/R22/R22
+                         · ft09 R40 x4. **This is the criterion that STOPPED this edit at 17:47**
+    and they BIND        **once, on one board of three**
+
+### The A/B -- one script, one flag (`REPR_AGREES`), one process, same seeds. PER GAME.
+
+    board   arm        bound slots   distinct terms   THE FOUR bound
+    g50t    CONTROL         18              8                0
+    g50t    WIDENED         18              8                0
+    ls20    CONTROL        103             27                0
+    ls20    WIDENED        104             28                **1**
+    vc33    CONTROL         45             13                0
+    vc33    WIDENED         45             13                0
+
+**PANEL PRECONDITION MET: every control binds (18 / 103 / 45), so a difference was showable.**
+
+> **I WROTE *THE FOUR BIND ZERO EVEN ON THE WIDENED ARM* BEFORE THE RUN AND IT IS WRONG.** The
+> widening is **not** a pure no-op. **Recording the refutation rather than the near-miss,
+> because a pre-registration that only ever confirms is decoration.**
+
+### AND THE +1 IS NOT YET AN EFFECT, WHICH IS THE OTHER HALF OF THE HONESTY
+
+**ONE SEED PER BOARD.** `effect-inside-the-seed-spread` applies exactly: **`ls20` swung 42-67 on
+the baseline across seeds in an earlier window, and a +1 sits far inside a spread like that.**
+**The baseline's own seed spread for THIS quantity has not been measured, so +1 on one board at
+one seed is NOT distinguishable from noise and is not claimed as an effect.** What IS established
+is the direction of the mechanism -- admitted, resolved, and capable of binding.
+
+### WHERE THE REFUSAL LIVES, AND IT IS NOT THE FILTER
+
+**Admitted 141x, bound 1x.** The gap is downstream of admission and downstream of resolution.
+`F334` names the population: these are its **RESOLVE-BUT-LOSE** half at a new entry point, and
+the reviewer's read order is the bargain (`pays` is STRICT -- a tie does not license a new term),
+then the contest, then `candidates()` budget and ordering.
+
+**COST, measured under the condition the reviewer set -- same board, both arms, one process:**
+`g50t` **305s CONTROL vs 306s WIDENED**. **The 2.27x static closure growth costs 0.4%,
+indistinguishable from noise** -- because a closure that grows and is never walked is not a cost.
+**Two earlier wall-clock cost claims were available tonight and both were refused; measured, the
+sign is the opposite of the guess.**
+
+    BOUNDARY    3 cycles, tape, one seed, three boards. The live ground run (`ls20`, 6 cycles)
+                is a different harness and cycle count and is NOT the same measurement
+    MECHANISM   `BINDABLE` -> `_may_bind`, both conditions. SHAPE excluded on a measured fact
+                (36 of 36 fail `%`), not by name; COLOUR/POSITION/DELTA UNCHECKABLE, not agreeing
+    CAPABILITY  **not established.** One binding on one board at one seed is the honest ceiling
+                of this row
