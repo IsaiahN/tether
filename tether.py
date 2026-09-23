@@ -21,8 +21,8 @@ import grammar as G
 import instruments as I
 import retrieval
 import routine as Rt
+from gamma import INVENTED, Ctx, Gamma, Standing, Term
 from gamma import SAME_AS_TARGET as G_SAME
-from gamma import Ctx, Gamma, Standing, Term
 from ledger import (
     ADVANCE,
     CHANNEL_CLOSED,
@@ -209,6 +209,8 @@ _DELTA_OPERANDS = bool(os.environ.get("TETHER_DELTA_OPERANDS"))
 # changing nothing. The reviewer's ordering requires this narrowing BEFORE mint's `out_type` is
 # widened: widening without narrowing is how 735 million calls arrive nowhere.
 _DELTA_KEY = bool(os.environ.get("TETHER_DELTA_KEY"))
+# ITEM 7. Default OFF: it APPENDS TO THE ATOM REGISTRY, which every term reads.
+_INVENT = bool(os.environ.get("TETHER_INVENT"))
 
 # ARM M -- PERTURB THE STARVED SLOT, IN PARALLEL. SEAT-SIDE SWITCH, DEFAULT OFF.
 # `F269`'s table is the premise: on sk48 all seven probes fire in cycles 1-7 and all seventeen
@@ -1115,6 +1117,49 @@ class Agent:
                   obj=self._record(slot, state), shapes=self._shapes_now())
         got = self._value_of(term, slot, state, ctx)
         return None if got is NOT_RESOLVED else got % self.alphabet[slot]
+
+    def _invent(self, slot: str, licence: dict, hist: list) -> None:
+        """ITEM 7's CONSUMER. **The agent's own recorded abstention IS the atom's definition** --
+        the reviewer's ruling, 2026-09-22, and it deliberately authors no pattern language:
+        *no abstraction is chosen; the agent's failure record is the content.*
+
+        The delta it observed and could not compose, as a function: **the recorded before-value
+        maps to the recorded after-value, and everything else ABSTAINS.** Literal on purpose --
+        the reviewer: *if that turns out to be too literal to ever match twice, THAT is a
+        finding about the derivation rule, and it is the agent's own record that produced it.*
+
+        **THE NAME IS ARBITRARY AND CARRIES NO DESCRIPTION.** A name like `moved_right` would be
+        me naming the agent's concept for it; the identity is the recorded delta, and the atom
+        is found by its behaviour rather than read off its label. **`val -> val`, so it can be
+        composed from the start** -- and with an ordinary `Standing`, no head start.
+        """
+        obs = self._residual_obs(slot, self.gamma.library[self.bound.get(slot, IDN)], hist)
+        pairs = {}
+        for st, _a, v in obs:
+            was = st.get(slot)
+            if was is not None and v is not None and was != v:
+                pairs[was] = v
+        if not pairs:
+            return                      # nothing observed to invent FROM. Not a failure.
+        name = f"inv{len(self.gamma.invented)}_{self.cycle}"
+
+        frozen = dict(pairs)
+
+        def fn(v, _c):
+            # closed over, not a mutable default -- B006, and the map must not be
+            # reachable for edit from a call site either way
+            got = frozen.get(v)
+            return NOT_RESOLVED if got is None else got
+
+        lic = dict(licence)
+        lic["observed"] = len(pairs)
+        lic["slot_type"] = self.slot_types.get(slot)
+        if self.gamma.invent(name, fn, "val", "val", lic):
+            self.led.record(self.cycle, "MINT", slot, "invent", term=name,
+                            origin=INVENTED, observed=len(pairs),
+                            verdict=licence.get("verdict"),
+                            note="the level below TRIED AND COULD NOT: composition abstained "
+                                 "with this verdict, and the recorded delta is the definition")
 
     def _standing(self, slot: str) -> None:
         """HELD AND CITED ARE TWO ROWS, not one. A candidate may be held -- bound, and
@@ -3514,6 +3559,8 @@ class Agent:
                                         "verdict": detail["verdict"],
                                         "units_then": stats.get("units", 0),
                                         "base_bits": round(base, 3)}
+                if _INVENT:
+                    self._invent(slot, self.abstained[slot], hist)
             self.led.record(self.cycle, "MINT", slot, "park", of=(slot,), **detail)
             return
 

@@ -43540,6 +43540,8 @@ a mechanism from a seed.**
 
 ---
 
+**TAPE-ONLY — the observer arm had never executed on the live path when this was measured (`F305`). Not wrong; narrower than it reads.**
+
 ## F283 (INDEX series) — ARM I TURNS THE SHAPE ATOMS FROM **0% RESOLVED TO 100%** ON `g50t`, AND MULTIPLIES THEIR CALLS ELEVENFOLD. And the same instrument reads **ZERO CALLS** on `sk48`, which is now a real per-game fact rather than a suspected instrument fault
 
 **Why it was run now rather than in its turn.** The declared depth run's first row read *`sk48`,
@@ -43719,6 +43721,8 @@ passes tuples.
                 let it through
 
 ---
+
+**TAPE-ONLY — the observer arm had never executed on the live path when this was measured (`F305`). Not wrong; narrower than it reads.**
 
 ## F286 (INDEX series) — THE OBSERVER ARM IS WHAT MAKES `symmetric` REACHABLE AT ALL, AND IT MULTIPLIES `is_square`'s CALLS **21.7x**. And it took me THREE attributions to get there, because I kept comparing two SCRIPTS that differed in three ways
 
@@ -44029,6 +44033,8 @@ before them combined; the census was left running rather than extrapolated.
 
 ---
 
+**TAPE-ONLY — the observer arm had never executed on the live path when this was measured (`F305`). Not wrong; narrower than it reads.**
+
 ## F291 (INDEX series) — THE A/B: THE OBSERVER IS A **~3.9x AMPLIFIER, NOT THE CAUSE.** The explosion is there with the arm OFF — and the arm simultaneously REACHES MORE ATOMS, so "more search" and "more reach" are both true at once
 
 **One script, one flag, `NO_OBS=1`. Same board, same seed, same eleven cycles, same spy, arm I
@@ -44146,6 +44152,8 @@ agrees exactly** — so `F289`/`F290`'s reach finding rests on two readings, not
                 is zero
 
 ---
+
+**TAPE-ONLY — the observer arm had never executed on the live path when this was measured (`F305`). Not wrong; narrower than it reads.**
 
 ## F293 (INDEX series) — THE EQUAL-WINDOW A/B. The amplifier is **2.00x, not 3.94x**, and the yield is **not zero on both arms: 3 settled against 0**. Two of my own numbers from the last hour, corrected
 

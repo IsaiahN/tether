@@ -422,6 +422,16 @@ reads as something that will be enforced, and it will not be.
   is visible — name the two or three things in contention and the two or three signals
   that could decide between them — let the answer shake out at that altitude, then drop
   back to specifics. A first-class move, not a fallback. Both I and the agent run it.
+- **NO ARM'S READINGS ARE GENERALISED UNTIL THAT ARM HAS EXECUTED ON BOTH HARNESSES — reviewer,
+  2026-09-23, earned by a three-second crash.** The first live run of the observer arm died at
+  `arc_world.py:181`, `if g and g[0]`: **`ReplayTape` hands LISTS and `arcengine` hands NUMPY
+  ARRAYS**, so the line raises on one harness and not the other. **The arm had never once
+  executed on the ground path**, and four findings had been reported off it. **No tape test
+  could have reached it** — the harnesses differ in the TYPE of the frame, not its content, so
+  they compute the same thing from the same numbers and one cannot run the code at all. **A
+  three-second live smoke run is now part of BUILDING an arm, before any tape measurement of it
+  is reported**, and a reading from an arm without one is labelled TAPE-ONLY. *And the fix is
+  `len` rather than a cast: a cast would have worked and hidden the difference.*
 - **NO CLAIM ABOUT A ROW WITHOUT READING THE WHOLE ROW — reviewer, 2026-09-22, made
   standing after two instances in one night.** When you classify a row — *dead* / *live* /
   *growing* / *flat* — **quote EVERY column of that row in the write-up**, including the ones

@@ -30,6 +30,14 @@ from sensors import NOT_RESOLVED
 sys.dont_write_bytecode = True
 
 PRIOR, MINTED, IMPORTED = "prior", "minted", "imported"
+# THE FOURTH ORIGIN, AND IT IS A FOURTH RATHER THAN A REUSE OF `IMPORTED` ON PURPOSE. Isaiah,
+# 2026-09-22: *import comes from OUTSIDE the library... it is the CREATION OF A BRAND-NEW ATOM
+# described from what the agent has observed.* But `IMPORTED` already means ADOPTED-FROM-
+# ELSEWHERE here, in `tether.py:1448` and in `CLAUDE.md`'s provenance law -- so writing
+# "import = invent" would put two quantities under one word AT THE SITE THAT DEFINES BOTH,
+# which is `A6i` in its guaranteed form. `INVENTED` keeps them apart and leaves `IMPORTED`
+# untouched.
+INVENTED = "invented"
 
 # The identity, by name. It predicts and it does not compose -- see the closure.
 IDN_NAME = "idn"
@@ -337,6 +345,8 @@ class Gamma:
         # name -> the two verdicts that promoted it. A dict rather than a set because
         # `primitive requires both` is only checkable if both are on the record.
         self.primitives: dict[str, dict] = {}
+        # item 7: what the agent invented, and the abstention that licensed each
+        self.invented: dict[str, dict] = {}
         self.tick = 0
         # 3d / Â§17.7. Set by the agent to a `(unit) -> tuple` ranking. None keeps the
         # registry order this had, so installing a rank is an observable change and not
@@ -425,6 +435,38 @@ class Gamma:
     def settle(self, name: str) -> None:
         """The ground paid on evidence the term was never fitted to."""
         self.standing.setdefault(name, Standing()).settled_at = self.tick
+
+    def invent(self, name: str, fn, in_type: str, out_type: str, licence: dict) -> bool:
+        """ITEM 7. **THE REGISTRY WAS FIXED AT CONSTRUCTION AND THIS IS THE ONLY THING THAT
+        OPENS IT.** `self.atoms` and `self._by_name` were built once and nothing appended.
+
+        **LICENSED BY THE LADDER, NEVER BY USEFULNESS.** `CLAUDE.md`: *`composition -> atom ->
+        sensor`, and every step is licensed by the same thing: THE LEVEL BELOW TRIED AND COULD
+        NOT.* So `licence` must carry the agent's OWN abstention record -- a `verdict` of
+        `budget_spent`, `depth_exhausted` or `under_floor`, with the closure it searched. **An
+        invention with no recorded failure beneath it is refused**, because without one it is
+        the library being made more complete, which steals the discovery.
+
+        **NO HEAD START.** It enters with an ordinary `Standing` and earns its place like any
+        term. **The name is arbitrary and meaningless** -- the identity is the recorded delta
+        it was formed from, so a name that described it would be the seat naming the agent's
+        concept for it.
+
+        Returns False if the name is taken: re-inventing is not invention, and silently
+        replacing a live atom would change what every existing term means.
+        """
+        if name in self._by_name:
+            return False
+        if licence.get("verdict") not in ("budget_spent", "depth_exhausted", "under_floor"):
+            raise ValueError(
+                f"invent({name!r}) needs the agent's own abstention record -- a verdict of "
+                f"budget_spent, depth_exhausted or under_floor. Got {licence.get('verdict')!r}. "
+                f"The level below must have TRIED AND FAILED; usefulness is not a licence.")
+        a = Atom(name, fn, in_type, out_type)
+        self.atoms.append(a)
+        self._by_name[name] = a
+        self.invented[name] = dict(licence)
+        return True
 
     def promote(self, name: str, shadow: dict, echo: dict) -> None:
         """PRIMITIVE. Settled is held-out payment on the slot the term was minted for,
