@@ -1775,3 +1775,93 @@ through the restated rule AFTERWARDS.
 
 **The in-flight depth run and the declared breadth run are UNCHANGED at 15 and 10 cycles.**
 25 applies to the run AFTER them.
+
+---
+
+# PART 11 — THE STATE OF THE BUILD, 2026-09-22/23
+
+**Written so the plan of record says what is true rather than what was planned.** Every row here
+is measured and carries its finding number; nothing is asserted from a design.
+
+## 11.1 The declared order, scored
+
+    1  step 1, the observer's pieces    DONE. The component-list erasure resolved to a TYPE-GRAPH
+                                        gate, not the flattening -- `F302`
+    2  the condition compiler           BUILT (`condition.py`, 13th seat). Grammar, three-valued
+                                        Kleene evaluator, corpus census. DERIVED half EMPTY -- `F300`
+    3  the generators                   BUILT. `bind` with the bond a PARAMETER, `Bonded` wrapping
+                                        `Term`, `light()`, and the provenance 5.9.4 named
+    4  the six tests                    BUILT. All six return `None` today, each NAMING the quantity
+                                        the delta does not carry -- `F301`
+    5  the type widening                HALF. One bridge atom (`owner`, `val -> OBJECT`) makes the 18
+                                        reachable in the TYPE GRAPH; the mint path still asks
+                                        `val -> val`, so nothing walks through -- `F302`
+    6  the re-key                       BUILT, and a measured NEAR-NULL on two boards (+0.16%,
+                                        +0.18%) -- `F303`, `F304`
+    7  invention                        BUILT and firing. Registry opens under the agent's own
+                                        abstention; route 2 carries it across the save boundary --
+                                        `F305`-`F310`
+    8  delete `enumerate_closure`       BLOCKED, ZERO of 6.5's five checks -- `F314`
+
+## 11.2 THE THREE JOINS, AND THEY ARE THE NIGHT'S FINDING
+
+**The closure library and the agent were tested for a join three separate ways, by three separate
+routes, and every one reads null:**
+
+    by CONDITION   `F300`    0 draftable of 785 seed-backed closure atoms
+    by NAME        `F314`    1 executable recipe of 2,061; 9 of 2,669 names intersect
+    by ATTRIBUTE   `F315`    0 of 2,517 fully covered; 7 partial, one attribute each
+
+> **AND THE THIRD IS THE ONE THAT CANNOT BE REPAIRED BY BETTER MATCHING.** A name can be aliased
+> and prose can be re-parsed. **An attribute the agent does not compute cannot be aliased into
+> existence.** *The closure asks for `velocity`, `persistence`, `time`, `belief`, `distance`;
+> perception publishes `row`, `col`, `h`, `w`, `colour` — fourteen in total.*
+
+**THIS RELOCATES THE BLOCKER OUT OF THE COMPOSER.** Items 2, 6 and 8 each founder on the same
+thing, and it sits underneath all three. **The 20k reach is not a library waiting to be searched;
+it is a library waiting to be PERCEIVABLE.**
+
+**IT DOES NOT CONTRADICT THE FRONTLOAD RULING.** The 2,700 are still the vocabulary and Isaiah's
+2026-09-19 ruling stands untouched. **What is new is measured: the agent cannot currently READ
+any of them.** *Whether to widen perception is his, and it is deliberately not proposed here.*
+
+## 11.3 The ground, and it is a harness fact
+
+    the live path is the ground         Isaiah, 2026-09-22 -- `arc_holdout.play` against arcengine
+    a tape row is NEVER ground          `F296`: `ReplayTape.step` IGNORES the action, so `levels`
+                                        is the HUMAN's counter at a shuffled tape position
+    the live episode is a FIXED LENGTH  `F313`: identical first-death step across four policies --
+                                        `wa30` 200, `dc22` 128, `sk48` 309
+    no policy completes a level in it   `F311`/`F312`: trained, atoms-only, random and constant
+
+> **SO THE LIVE GROUND COLUMN IS NOT WEAK, IT IS CONSTANT** — a fixed-length episode in which
+> nothing any available policy does changes the score. **`F308`'s three-arm tie is therefore a
+> NON-MEASUREMENT**, and `F220`'s unscorability question is exactly where it was, now with the
+> live path eliminated as its answer rather than assumed to be it.
+
+**WHAT DOES READ: COST.** Tonight's arms are 7-13x more expensive per cycle on the live path and
+move no ground column. Against Isaiah's *work per arrival*: **work rose an order of magnitude and
+arrivals did not move**, which is the failure signature rather than the success one.
+
+## 11.4 What is owed, and by whom
+
+    ISAIAH      whether perception widens -- 11.2 is the measured case, not a proposal
+                the `out_type` widening behind its flag (abort criteria already declared)
+                whether retrieval should EXCLUDE rather than only order
+    THE SEAT    the agent to terminal on `wa30` (running); `SETTLED-FROM`, the only invention
+                column that tests the MAPPING rather than the key
+    NOBODY      `enumerate_closure`'s deletion, until 6.5's checks can be met at all
+
+## 11.5 The instruments built tonight, because they are what the next seat inherits
+
+    conform/aim.py        every commit names a declared item; untracked work acknowledged
+    census.resolution     validates its input shape -- it was printing a FALSE ALL-CLEAR
+    census.series         a counter that goes backwards is not what its name says
+    census.progress       a flushed line per cycle: a silent run is indistinguishable from a hung one
+    condition.py          the grammar, as the 13th seat, with five must-not-parse fixtures
+    the one-name guard    `three_spaces` raises on a duplicate atom name
+
+**AND THREE STANDING RULES, EACH EARNED BY A FAILURE THE SAME NIGHT:** *an A/B is one script with
+one flag* · *no claim about a row without quoting every column of it* · *read the docstring of
+every function the design depends on, BEFORE declaring the design* · *no arm's readings are
+generalised until it has executed on BOTH harnesses.*
