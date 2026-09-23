@@ -45378,3 +45378,58 @@ inside it, and the 5,000-step probe spent 96% of itself after the end.
     CAPABILITY  none. It converts the entire live-ground thread from "the arms tie" into "the
                 column is constant", and it stops a survival measurement that would have
                 repeated the mistake it was meant to escape
+
+---
+
+## F314 (INDEX series) — ITEM 8 IS BLOCKED AND THE GATE IS A VOCABULARY GAP: **EXACTLY ONE RECIPE OF 2,061 IS EXECUTABLE BY THE REGISTRY.** `enumerate_closure` cannot be deleted because its replacement can run one composition
+
+**Part 6.5's five checks all say the same thing — *the port actually happened*. It has not, and
+check 4 is where it fails first:** *the composer yields lazily and produces executable
+`Term`/`Node`, not dicts.*
+
+    recipe ingredients (closure vocabulary)   2,669
+    registry atoms     (implementation)          55
+    INTERSECTION                                  9   Contact, Count, Other, Recolour,
+                                                      Reflect, Rotate, Sign, Translate
+    RECIPES FULLY EXECUTABLE BY THE REGISTRY      1   `Orbit`
+
+**ONE. Of two thousand and sixty-one.** `composer.light()` builds a `Bonded` tree over ingredient
+NAMES — `Ct`, `Co` — and those are closure-atom names, not registry atoms. **A tree of names that
+resolve to nothing is not an executable `Term`**, so the thing meant to replace
+`enumerate_closure` can currently run one composition.
+
+### THE FIVE CHECKS, HONESTLY SCORED
+
+    1  gate.py passes with parks from THE RECIPE PATH          NOT MET -- the recipe path parks
+                                                               nothing; it is not in the loop
+    2  kernel's verdict seat on recipe-shaped parks            NOT MET -- same reason
+    3  budget_spent / depth_exhausted distinguishable AND
+       both reachable ON THE RECIPE PATH                       NOT MET -- they are the closure
+                                                               path's verdicts
+    4  composer yields executable Term/Node, not dicts         NOT MET -- `candidates()` returns
+                                                               DICTS, and the `node` inside holds
+                                                               unresolvable strings
+    5  route chart on three seeds, (c) shrinks, (a)/(b) grow   NOT MET -- and unrunnable: one
+                                                               executable recipe is no material
+
+**ZERO OF FIVE. `enumerate_closure` stays**, and *"not before step 4 — deleting first leaves mint
+with nothing"* is exactly right: deleting it today would leave mint with one recipe.
+
+### AND IT IS `F300`'s GAP AGAIN, ONE LAYER DOWN
+
+**`F300` found the seed carries no CONDITION for any live atom, because the seed names CONCEPTS
+and the registry names INSTRUMENTS.** *This is the same two vocabularies failing to meet, at the
+RECIPE level rather than the condition level* — and it is the same 9-of-2,669 order of overlap.
+
+> **SO THE COMPOSER-AS-REPLACEMENT PLAN HAS A PREREQUISITE NOBODY HAS NAMED: a mapping from
+> closure-atom names to registry atoms.** Without it the recipes are unreadable to the agent and
+> the 20k reach is decorative. **With it, `F300`'s condition gap probably closes too, since both
+> failures are the same missing join.**
+
+    BOUNDARY    an exact-and-lowercased name match between 2,669 ingredient names and 55
+                registry atom names, plus a read of Part 6.5. NO RUN. A looser match would raise
+                the intersection and CANNOT raise it far -- the registry has 55 members, so 2,061
+                recipes cannot become executable by better matching
+    MECHANISM   none changed
+    CAPABILITY  none. It scores item 8 at zero of five with the reason, and names the
+                unstated prerequisite the whole composer plan rests on
