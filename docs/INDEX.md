@@ -45685,3 +45685,53 @@ closure library is not reachable from perception by any incremental widening.**
                 grouping at all
     MECHANISM   none changed. A read
     CAPABILITY  none. It closes the ladder question in both shapes the reviewer asked for
+
+---
+
+## F319 (INDEX series) — `SETTLED-FROM` IS **NOT MEASURABLE IN ANY WINDOW WE CAN AFFORD**: it reads 0, and so does its denominator. The third invention column is a non-measurement, and saying so is the result
+
+**The reviewer's third column is the only one that tests the MAPPING rather than the key** —
+*appears in a term the GROUND settled*, and the ground refuses a term whose prediction was wrong.
+**`REUSED-HERE` (167) and `REUSED-ELSEWHERE` (51) both test key-presence; this one would test
+correctness.**
+
+    wa30, invent ON, tape       invented   library   SETTLED
+      cycle 1                          0        55         0
+      cycle 2                         26        63         0
+      cycle 3                         74        66         0
+      cycle 4                        132        68         0
+
+**`SETTLED-FROM` = 0. AND `SETTLED` = 0.** *A ratio whose denominator is zero is not a low score;
+it is no score* — and reporting "no invented atom was ever settled" would be the fourth time
+tonight a non-measurement was nearly published as a null.
+
+### WHY IT CANNOT BE FIXED BY PICKING A BETTER BOARD
+
+**`dc22` seed 0 DOES settle — 1 term at cycle 7, 5 primitives at cycle 8 (`F294`).** So the
+window exists in principle. **It does not exist in practice at a cost we can pay:**
+
+    dc22, 8 cycles, invent OFF     ~180s          the window where settling happens
+    dc22, 8 cycles, invent ON      TIMED OUT      132+ extra atoms in the registry, and the
+                                                  per-cycle cost is already superlinear
+
+> **INVENTION MAKES THE RUN TOO EXPENSIVE TO REACH THE CYCLE WHERE SETTLING STARTS.** *The
+> mechanism whose worth we are trying to measure is what prevents the measurement.* **That is not
+> a null about invention and it must not be read as one.**
+
+### WHAT THE THREE COLUMNS ACTUALLY SAY, TOGETHER
+
+    REUSED-HERE        167 of 415    key-presence, same board       `F306`
+    REUSED-ELSEWHERE    51 of 132    key-presence, different board  `F310`
+    SETTLED-FROM         0 of 0      NOT MEASURABLE                 here
+
+**So invention is measured to FIRE and to CROSS, and is UNMEASURED on whether anything it
+produces is CORRECT.** *Both numbers that exist test the same weak property, and the one that
+would test the strong property cannot be run.* **That is the honest state of item 7, and it is
+less than it looked three findings ago.**
+
+    BOUNDARY    `wa30` 4 cycles and an attempted `dc22` 8-cycle run that did not complete. It
+                says the column is UNREACHABLE at affordable cost, not that it is zero. A
+                cheaper invention derivation, or a board that settles earlier, would reopen it
+    MECHANISM   none changed
+    CAPABILITY  none. It marks item 7's decisive column as owed rather than answered, and
+                names the reason -- the cost of the thing being measured
