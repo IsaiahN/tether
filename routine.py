@@ -85,7 +85,56 @@ class Until:
     budget: int
 
 
-def advance(r: Any, holds: Callable[[Any], bool | None]) -> tuple[str, Any]:
+@dataclass(frozen=True)
+class Call:
+    """CALL ANOTHER ROUTINE BY NAME -- the subroutine, Isaiah's first construct.
+
+    **A NAME, NOT A BODY, AND THAT IS THE WHOLE POINT.** Inlining a body makes a longer script;
+    a name makes a routine the agent can REFER to without holding it, which is what lets one
+    settled routine become a step inside a bigger one without paying its length again.
+    `length` already had the rule (`chunks` counts a settled routine as ONE) and there was no
+    constructor that could invoke one.
+
+    Resolved against the `lib` the caller passes to `advance`. An unknown name BLOCKS -- it does
+    not raise and it does not silently do nothing, because *I was told to run something I cannot
+    find* is a readable failure and a no-op is not.
+    """
+    name: str
+
+
+@dataclass(frozen=True)
+class Let:
+    """CARRY ONE VALUE ACROSS THE ROUTINE'S OWN STEPS -- declared local state.
+
+    **DECLARED, NOT INFERRED, AND WRITTEN INTO THE REMAINDER.** `advance` returns the routine
+    that REMAINS, so a binding that lived only in a Python frame would vanish between steps. The
+    `Let` node rebuilds itself around the rest, which is what makes the value survive.
+
+    **THIS MODULE STILL NEVER EVALUATES A PREDICATE.** The value is published into the caller's
+    `state` dict and the caller's own `holds` reads it. Keeping evaluation outside is the
+    invariant that lets the ACT space stay legible.
+    """
+    var: str
+    value: Any
+    body: Any
+
+
+# A CALL CANNOT RECURSE FOREVER. `Until` is bounded by a DERIVED budget; a call has no natural
+# one, so this is a STOP rather than a bound -- it exists to make runaway recursion EXHAUSTED
+# (a readable ending) instead of a stack overflow.
+# anchor: DECLARED CONVENTION, not derived, and the seat was right to stop me. `Until`'s budget
+# is DERIVED -- the caller passes the objective's own gap -- and this one CANNOT be, because a
+# call has no gap to measure. So it is the same class as the focus seat's `STALL`: authored,
+# visible, movable, and claimed correct by nobody. It is a STOP, not a bound: its only job is to
+# turn runaway recursion into EXHAUSTED (a readable ending the ledger can carry) instead of a
+# stack overflow. 16 exceeds the deepest routine any enumeration has produced by a wide margin,
+# so it should never be reached; if it IS reached that is a finding about the composer.
+CALL_DEPTH = 16
+
+
+def advance(r: Any, holds: Callable[[Any], bool | None],
+            lib: dict | None = None, state: dict | None = None,
+            _depth: int = 0) -> tuple[str, Any]:
     """`(emit, rest)` -- the action to take now and the routine that remains.
 
     `emit` is an action name, or one of `DONE` / `BLOCKED` / `EXHAUSTED`. `rest` is `None` when
@@ -99,9 +148,9 @@ def advance(r: Any, holds: Callable[[Any], bool | None]) -> tuple[str, Any]:
         return r.action, None
 
     if isinstance(r, Seq):
-        emit, rest = advance(r.first, holds)
+        emit, rest = advance(r.first, holds, lib, state, _depth)
         if emit == DONE:
-            return advance(r.then, holds)          # the first part had nothing left to do
+            return advance(r.then, holds, lib, state, _depth)   # first part had nothing to do
         if emit in _ENDS:
             return emit, None                      # blocked or exhausted stops the sequence
         return emit, (Seq(rest, r.then) if rest is not None else r.then)
@@ -112,7 +161,21 @@ def advance(r: Any, holds: Callable[[Any], bool | None]) -> tuple[str, Any]:
             return BLOCKED, None
         if not h:
             return DONE, None
-        return advance(r.body, holds)
+        return advance(r.body, holds, lib, state, _depth)
+
+    if isinstance(r, Call):
+        if lib is None or r.name not in lib:
+            return BLOCKED, None                   # named something that is not there
+        if _depth >= CALL_DEPTH:
+            return EXHAUSTED, None                 # readable ending, not a stack overflow
+        return advance(lib[r.name], holds, lib, state, _depth + 1)
+
+    if isinstance(r, Let):
+        if state is not None:
+            state[r.var] = r.value
+        emit, rest = advance(r.body, holds, lib, state, _depth)
+        # REBUILT AROUND THE REST so the binding survives to the next `advance`.
+        return emit, (Let(r.var, r.value, rest) if rest is not None else None)
 
     if isinstance(r, Until):
         # ITERATIVE, NOT RECURSIVE. A body that completes without emitting would recurse once
@@ -127,7 +190,7 @@ def advance(r: Any, holds: Callable[[Any], bool | None]) -> tuple[str, Any]:
                 return DONE, None                  # the guard holds: this is what terminates
             if budget <= 0:
                 return EXHAUSTED, None
-            emit, rest = advance(body, holds)
+            emit, rest = advance(body, holds, lib, state, _depth)
             if emit == DONE:
                 budget -= 1                        # one iteration bought nothing; go again
                 continue
@@ -163,6 +226,10 @@ def length(r: Any, chunks: tuple = ()) -> int:
         return 1 + length(r.first, chunks) + length(r.then, chunks)
     if isinstance(r, (When, Until)):
         return 1 + length(r.body, chunks)
+    if isinstance(r, Let):
+        return 1 + length(r.body, chunks)
+    if isinstance(r, Call):
+        return 1                                   # a NAME costs one, not its body's length
     raise TypeError(f"not a routine: {r!r}")
 
 
@@ -178,19 +245,37 @@ def guards(r: Any) -> tuple:
         return guards(r.first) + guards(r.then)
     if isinstance(r, (When, Until)):
         return (r.guard,) + guards(r.body)
+    if isinstance(r, Let):
+        return guards(r.body)
+    if isinstance(r, Call):
+        return ()                                  # the callee's guards are checked at its own site
     raise TypeError(f"not a routine: {r!r}")
 
 
-def actions(r: Any) -> tuple:
+def actions(r: Any, lib: dict | None = None, _seen: frozenset = frozenset()) -> tuple:
     """Every primitive action the routine can emit. Used to check a routine against what the
     environment currently advertises -- a routine that survives a level boundary may name an
-    action the new level does not offer."""
+    action the new level does not offer.
+
+    **`lib` IS NOT OPTIONAL IN EFFECT, ONLY IN SIGNATURE, AND THE REASON IS A SILENT PASS I
+    BUILT AND CAUGHT IN THE SAME HOUR.** `Call` was returning `()`, so a routine made entirely
+    of calls advertised NO actions and the level-boundary check above passed it unconditionally
+    -- the check going quiet rather than failing, which is the one thing `conform/lint.py`'s
+    docstring is a list of. Pass the library and calls are resolved; omit it and an unresolved
+    call is reported as `?<name>`, which cannot be mistaken for an environment action.
+    """
     if isinstance(r, Act):
         return (r.action,)
     if isinstance(r, Seq):
-        return actions(r.first) + actions(r.then)
-    if isinstance(r, (When, Until)):
-        return actions(r.body)
+        return actions(r.first, lib, _seen) + actions(r.then, lib, _seen)
+    if isinstance(r, (When, Until, Let)):
+        return actions(r.body, lib, _seen)
+    if isinstance(r, Call):
+        if lib is None or r.name not in lib:
+            return (f"?{r.name}",)                 # LOUD, never empty
+        if r.name in _seen:
+            return ()                              # recursion: its actions are already counted
+        return actions(lib[r.name], lib, _seen | {r.name})
     raise TypeError(f"not a routine: {r!r}")
 
 
@@ -204,6 +289,10 @@ def render(r: Any) -> str:
         return f"when({r.guard}) {{{render(r.body)}}}"
     if isinstance(r, Until):
         return f"until({r.guard}/{r.budget}) {{{render(r.body)}}}"
+    if isinstance(r, Call):
+        return f"{r.name}()"
+    if isinstance(r, Let):
+        return f"let {r.var}={r.value} in {{{render(r.body)}}}"
     raise TypeError(f"not a routine: {r!r}")
 
 
