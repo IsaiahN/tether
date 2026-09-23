@@ -971,8 +971,13 @@ class Agent:
         mols = self._molecules()
         self.led.record(self.cycle, "PERCEIVE", "*", "vocabulary",
                         covered=[m["molecule"] for m in mols],
+                        # WHAT IT SAYS, not just what it is called -- §12.2, and the whole
+                        # reason the tree is held rather than the name.
+                        says=[m["says"] for m in mols],
                         expressible=[m["molecule"] for m in mols if m["expressible"]],
-                        inexpressible=[{"molecule": m["molecule"], "recipe": m["recipe"]}
+                        unknown_junctions=sum(m["unknown_junctions"] for m in mols),
+                        inexpressible=[{"molecule": m["molecule"], "says": m["says"],
+                                        "why": m["why"]}
                                        for m in mols if not m["expressible"]])
 
     def _molecules(self) -> tuple:
@@ -1013,8 +1018,25 @@ class Agent:
                            for i in range(len(seq) - 1)):
                         ok = " . ".join(a.name for a in seq)
                         break
+            # **HELD AS THE TREE, NOT AS A LIST OF NAMES.** `candidates` already lights each
+            # recipe into a `Bonded` node and the first version of this method threw it away,
+            # keeping only the ingredient strings -- so the agent could say WHICH molecule it
+            # covered and could not hold the thing itself.
+            #
+            # **APPLICABILITY IS STATED, NOT SILENTLY ABSENT.** A molecule cannot be applied
+            # today and the reason is structural rather than missing work: its junction is
+            # UNKNOWN, and `composer.settle` returns `None` from every branch BY DESIGN because
+            # a real-looking bond test there faked a pass and was removed. **An unknown bond is
+            # an honest hypothesis; a guessed one is a meaning we supplied.** So this records
+            # NOT_RESOLVED's reason at the site rather than leaving a caller to discover it.
+            js = composer.junctions(m["node"])
             out.append({"molecule": m["molecule"], "recipe": m["recipe"],
-                        "expressible": ok})
+                        "expressible": ok, "node": m["node"],
+                        "says": composer.render_node(m["node"]),
+                        "length": composer.node_length(m["node"]),
+                        "unknown_junctions": sum(1 for b, _ in js if b == composer.UNKNOWN),
+                        "applicable": False,
+                        "why": "junction UNKNOWN -- no bond test is written, deliberately"})
         self._molecule_cache = tuple(out)
         return self._molecule_cache
 

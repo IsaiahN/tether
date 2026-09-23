@@ -81,6 +81,47 @@ def bind(bond: str, left: object, right: object, standing: object = None,
 
 
 
+def render_node(node: object) -> str:
+    """ONE LINE FOR A LIT TREE. §12.2: the thing it holds is the sentence it says.
+
+    **AN UNKNOWN JUNCTION PRINTS AS `?` AND THAT IS THE POINT, NOT A PLACEHOLDER IN THE OUTPUT.**
+    A recipe's junction is a HYPOTHESIS the ground settles -- Isaiah: *`+` in the recipe list is
+    a PLACEHOLDER* -- so a renderer that picked a bond to show would be supplying the meaning the
+    whole design refuses to supply. `rotate ? translate` says exactly what is known: these two,
+    bonded somehow.
+
+    A settled junction prints its own bond (`rotate → translate`) with no change here, because
+    the bond is a FIELD rather than a choice baked into the renderer.
+
+    Leaves are rendered by their own `name` where they have one, so a `Term` prints as the chain
+    it is. **No import of `gamma`** -- that would put a domain module inside the composer.
+    """
+    if isinstance(node, Bonded):
+        return f"({render_node(node.left)} {node.bond} {render_node(node.right)})"
+    return getattr(node, "name", str(node))
+
+
+def junctions(node: object) -> tuple:
+    """Every junction in the tree as `(bond, rendered)`. UNKNOWN ones are the open hypotheses,
+    and counting them is how *what does this molecule still owe* gets answered without guessing
+    at any of them."""
+    if not isinstance(node, Bonded):
+        return ()
+    return ((node.bond, render_node(node)),) + junctions(node.left) + junctions(node.right)
+
+
+def node_length(node: object) -> int:
+    """A molecule costs what its parts cost, plus one per junction.
+
+    The junction is charged because it is a CLAIM -- *these two are bonded* -- and the bargain
+    prices claims. `Term` carries its own length and is asked for it rather than re-counted.
+    """
+    if isinstance(node, Bonded):
+        return 1 + node_length(node.left) + node_length(node.right)
+    n = getattr(node, "atoms", None)
+    return len(n) if n is not None else 1
+
+
 def _split_top(recipe: str) -> tuple[list[str], list[str]]:
     """Ingredients IN WRITTEN ORDER and the junction bonds between them.
 
