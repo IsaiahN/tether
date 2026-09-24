@@ -728,6 +728,23 @@ BLIND: dict[str, tuple[str, str]] = {
                              "WHAT MAKES IT CONVINCING. Cost nothing on the phase sweep "
                              "only because 9-vs-37 is impossible to miss; 15-vs-18 passes "
                              "straight through"),
+    "B17i": ("NOT-CHECKABLE", "B17's sub-case, and the one where the instrument was RIGHT: "
+                              "it measured the right quantity in the right world AGAINST "
+                              "CODE THAT NO LONGER EXISTS. Every boundary we file names the "
+                              "WORLD -- board, cycles, seed, arm -- and NONE names the CODE "
+                              "STATE, so a repair landing between the reading and the "
+                              "reading-of-the-reading leaves the boundary COMPLETE and the "
+                              "number WRONG. INSTANCE 2026-09-24: `_as_shape`'s docstring "
+                              "reports `holes` at 3,140 calls, 0 resolved, IDENTICAL with "
+                              "the arm off -- the evidence that MOTIVATED the module-level "
+                              "move, read as the state of the moved code. It names board, "
+                              "cycles and arm; it names no repair. NOT CHECKABLE because "
+                              "the mechanical form flags every function touched since any "
+                              "figure in it was written, which is the ceremony `wiring`'s "
+                              "own docstring refuses. THE TRIGGER, AND IT IS A STEP: before "
+                              "quoting a figure out of a docstring or a finding, ask whether "
+                              "the code it measured has changed since -- one `git log -L` on "
+                              "the function"),
 }
 
 
