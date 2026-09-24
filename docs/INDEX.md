@@ -48120,3 +48120,52 @@ rather than argued** -- `bargain_paid 7`, all predictors, zero contest rows in 3
 Every instance of that step on record searches `docs/`; **this one was in `conform/`, in a test
 whose name says what it proves.** The step's scope is *the record*, and a property test with a
 mutation control is a stronger record than prose. **Widened here.**
+
+
+## F354 -- **THE BARGAIN IS BUYING SPECTATORS.** Five of the seven predictors that pay concern slots the agent's action CANNOT MOVE -- and one of them predicts the goal by copying another spectator
+
+**Isaiah, 2026-09-24, correcting the reviewer's watch analogy:** *a watch is checkable against
+the world; THE FORECASTER IS GUESSING.* **"Three weeks" is not verified on Friday** -- he is
+**vindicated by the calendar arriving.**
+
+> **A CLAIM THAT COMES TRUE THROUGH INACTION IS NOT A CONTRIBUTION.** A prediction about a slot
+> the agent is not touching settles beautifully and tells it nothing about what to do.
+
+He asked for the count before any build. **Here it is.**
+
+### THE MEASUREMENT -- toy world, 10 cycles, 7 slots, 3 actions
+
+A slot is **ACTION-BEARING** if its own transition rule returns different values for different
+actions on the same state -- **measured by calling the rule, not read off the `TRUTH` strings.**
+
+    SPECTATOR        `chase` - `climb` - `ladder` - `opaque` - `swing`     **5**
+    ACTION-BEARING   `driven`                                               1
+    derived          `@goal.completed`                                      1
+
+    `bargain_paid` 7 - bound slots 7 - **SPECTATORS 5**
+
+### AND TWO OF THE ROWS ARE WORSE THAN THE HEADLINE
+
+**`opaque <- dec . neg . act`.** The term **READS THE ACTION** to predict a slot the action
+**cannot move.** It pays the bargain while consuming a signal that cannot bear on its target --
+*well-typed and meaningless* at the level of the WAGER rather than the type.
+
+**`@goal.completed <- take<opaque>`.** The agent's model of **its own progress toward winning**
+is a copy of a **spectator slot.** The one quantity built today to give the goal a residual is
+predicted by the slot least connected to anything the agent does.
+
+### WHAT IT MEANS FOR *THE BARGAIN WORKS*
+
+**`bargain_paid 7` has been quoted all day as the healthy number in a sea of refusals.** Five of
+those seven are claims that would have come true had the agent done nothing at all. **The bargain
+is not failing to find payers; it is finding the WRONG ONES, and no count of payers could have
+shown that** -- `cost + left < base` reads explanation and never asks whether the explained thing
+was ever in play.
+
+> **THIS IS WHY THE PRECONDITION IS THE RULING AND A THRESHOLD IS NOT.** `NO OPEN RESIDUAL THE
+> TERM BEARS ON -> NO MINT` refuses a spectator **by construction**, without anyone choosing how
+> much a spectator is worth.
+
+**BOUNDARY: one harness, ten cycles, three actions, and a world where exactly ONE slot of seven
+is action-bearing by construction.** The ratio is a property of `world.py` and **must not be
+carried to a board**; what transfers is that the bargain cannot tell the two apart.
