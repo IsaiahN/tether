@@ -48284,6 +48284,30 @@ entirely.**
 > 5.61 TO 15.00.** An objective is not refused for saying nothing; **it is refused for saying
 > something LESS ACCURATE**, on a scoring rule that both kinds meet identically.
 
+### REPLICATED ACROSS FOUR CYCLE COUNTS -- AND IT CORRECTS THE *IDENTICAL COST* HALF
+
+**Run again at 6, 10, 16 and 24 cycles, because the numbers above came from ONE run and three
+diagnoses of this blocker were already wrong today.**
+
+    cycles  6   OBJ **none reached**       val n=2     paid=2
+    cycles 10   OBJ n=5     **paid 0**     val n=45    paid=7
+    cycles 16   OBJ n=719   **paid 0**     val n=1574  paid=7
+    cycles 24   OBJ n=1971  **paid 0**     val n=5369  paid=13
+
+**THE FINDING HOLDS AND HARDENS: not one objective pays at any cycle count, out of 2,695
+that reached the bargain.** And `left min` for `OBJ` is **5.61 at every count** -- **a FLOOR,
+not a sample artefact.** More history never brings an objective closer.
+
+> **BUT *THE COST IS IDENTICAL TO THE BIT* WAS TRUE OF THE ONE PAIR I QUOTED AND FALSE OF THE
+> POPULATION.** Across the sample: **`val` costs {7.81 .. 23.44}, `OBJ` costs {11.72 .. 15.63}.**
+> **The cheapest predictor is 7.81 and the cheapest objective is 11.72** -- because reaching
+> `OBJ` needs the `PRED -> OBJ` quantifier ON TOP OF a predicate chain, so **an objective is
+> structurally longer and therefore dearer.**
+
+**SO OBJECTIVES COST MORE *AND* EXPLAIN LESS.** Both terms of the bargain run against them, and I
+had reported the first as neutral on a sample of two. **The conclusion survives; one of its two
+supports did not.**
+
 ### WHICH MEANS THE PROBLEM IS NOT THE PRICE. IT IS WHAT IS BEING SCORED
 
 `_left` puts an `OBJ` term through `objective_step` to get a predicted slot value, then scores it
