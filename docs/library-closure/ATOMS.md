@@ -272,6 +272,59 @@ groups by colour.**
 | **Chaos** | **Ent + Var** | **more variation than the current frame can hold** |
 
 **`Chaos` is the near-opposite of boredom and it is a reading about the board, not a mood.**
+
+### Spatial structure — the grid mechanics recipes already name
+
+**ADDED 2026-09-24 under Isaiah's ruling: *add the ingredients that are already in recipes but
+not yet atoms.* Every one below is USED by an existing recipe and was DEFINED NOWHERE** --
+`Surface` by `Mirror`, `Line` by `Project`, `Tile` by `Poincare disk`, `Cavity` by `Helmholtz`,
+`Inside`/`Outside` by `Membrane boundary`, `Deform` by `Topological transform`.
+
+**THE TEST FOR INCLUSION WAS ISAIAH'S AND NOT MINE: does the ingredient name a mechanic the
+agent can meet on a grid?** Not whether the recipe's prose is about optics or hyperbolic
+geometry -- *`Mirror | Refl + Surface` is literally one of the public games.* **Four candidates
+were REFUSED under the same test** -- `Depth` (the abyss), `Face` (a human face), `Ordering`
+(preference ranking), and `Coord`, which in its only use means COORDINATION and not COORDINATE.
+
+**NONE OF THESE IS A SOLUTION AND NONE NAMES A BOARD.** They are the nouns and verbs of a grid,
+selected because a recipe already asked for them -- **never because one would help.**
+
+| element | recipe | what it does |
+|---|---|---|
+| Object | Cell + Adjacency + Whole | cells held together as one thing, and tracked as that thing |
+| Region | Cell + Adjacency + Bounded region | every cell reachable from every other; what a boundary encloses |
+| Enclosure | Boundary + Contain | a boundary that closes, so what it holds has an inside |
+| Inside | Enclosure + strictly contained | within an enclosure and not on its edge |
+| Outside | Enclosure − contained | beyond the enclosure; the complement of inside |
+| Surface | Boundary + axis | the face a form presents — and the axis a reflection is taken across |
+| Line | Cell + collinear | cells in a straight run; what a ray or an edge follows |
+| Curve | Line + Path bending | a run that changes direction; a line that is not straight |
+| Cavity | Enclosure − Cell | an enclosure with nothing in it; a hole |
+| Indent | Boundary + offset | the boundary displaced inward without being broken |
+| Tile | SHAPE + Set + THE SAME | one form repeated to cover a region with no gap and no overlap |
+| Repetition | Set + THE SAME + offset | the same form recurring at a regular displacement |
+| Split | Whole + Boundary ⇒ PART | one region becomes two where a boundary appears between them |
+| Join | PART + Adjacency ⇒ Whole | two regions become one where they meet |
+| Deform | SHAPE + Transform | the form changes and the thing survives as itself |
+| Disappear | Cell + removed | present in one frame and absent in the next |
+| Obstacle | Cell + Boundary + Path | a cell a path cannot cross |
+| Proximity | distance + COUNT | how near, counted in cells |
+
+**`⇒` IS DELIBERATE ON `Split` AND `Join`, AND IT IS THE FIRST USE OF THAT OPERATOR IN AN ENTRY.**
+`OPERATORS.md`: *production -- A produces B; B did not exist before.* **Two parts do not exist
+before a split and one whole does not exist before a join**, which `+` cannot say. `−` on
+`Outside` and `Cavity` is the same test met -- *is the ingredient's ABSENCE the point?*
+
+**`PART` AND `THE SAME` ARE NSM PRIMES, NOT NEW NAMES.** `NSM_GRAMMAR.md` lists them among the
+substantives -- `SOMETHING · SOMEONE · THIS · THE SAME · OTHER · PART · KIND` -- **in a single
+cell separated by `·`, which no parser reading rows can see.** The gap audit reports them as
+undefined for that reason and is wrong to; **building a foundational vocabulary out of NSM primes
+is the right direction rather than a shortcut.** Capitalised to match the grammar's own spelling.
+
+**THE LEAST CONFIDENT THREE, FLAGGED RATHER THAN BURIED:** `Obstacle` (the recipe says what it
+blocks, not what it IS) - `Proximity` (`distance` may already carry this) - `Surface` (one entry
+doing a boundary's work AND an axis's).
+
 Boredom fires when nothing is arriving; chaos fires when more is arriving than one question can
 absorb. **And it has a stated response: split the problem into sub-questions rather than search
 harder** — which is what the framework already says to do with a disagreement that does not
