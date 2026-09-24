@@ -47427,3 +47427,25 @@ and the 1 is `dbl . dec . neg` containing the settled `dec . neg`.
 **Filed here so the row is not read as fully open after the count exists, and not as answered
 because a number appeared.** The count is the evidence the corpus asked for; **the search route
 remains unrecorded, and that is the thing a repair would have to reach.**
+
+### ONE OF THREE, NOT THE SUITE -- the other two falsifiers were checked, not assumed
+
+**A dead falsifier invites the conclusion that the others are dead too, so the remaining two
+were measured rather than left to inference.** The toy world declares exactly three:
+
+    `ladder`  CHUNKING          minted and **SETTLED** `dbl . dec . neg` -- **DEAD**, because
+                                that chain is in the depth-3 ATOM closure (above)
+    `opaque`  UNREACHABILITY    **never minted, never settled.** *Quadratic; the atoms are all
+                                affine* -- **INTACT.** The agent never claimed to explain it
+    `chase`   OPERAND ARITY     minted and settled `take . inc<climb>` -- **PASSED.** The
+                                falsifier was satisfiable and the agent satisfied it
+
+> **SO `F349` IS ONE FALSIFIER, NOT THE SUITE.** Two of the three still do their job, and one of
+> those two is currently the strongest thing the toy world says: **the agent does not explain
+> what it cannot reach.**
+
+**AND `opaque` APPEARS IN `bound`, WHICH IS NOT A CONTRADICTION AND READS LIKE ONE.** The demo
+prints `'opaque': 'take . inc<driven>'` -- **a live BET, not a mint and not a settle.** *No claim
+about a row without reading the whole row*: `bound` and `settled` are different columns, and
+only the second is the agent saying it has an explanation. **A reader scanning `bound` would
+conclude the unreachability falsifier had fallen too.**
