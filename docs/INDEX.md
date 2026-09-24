@@ -46778,3 +46778,70 @@ absence -- something IS bound and is not an objective. Unexplained, and no story
     MECHANISM   `bbd8093` -- the pop now records its reason. THE POP ITSELF UNTOUCHED
     CAPABILITY  none. It converts a fortnight-old ABSENCE (`routines adopted 0`) into a
                 measured REFUSAL with a named, correct cause
+
+
+---
+
+## F341 -- THE FRONTLOAD/EARN SORT. Every decision-bearing constant, against TWO tests that
+## agree. Four are OURS and correctly so; FOUR ARE THE AGENT'S AND WE ARE HOLDING THEM.
+
+Isaiah, 2026-09-24: **the agent controls everything except THE SCORE**, and the standard is
+*"as much agency as you do as an LLM"*. **A table, not a refactor** -- nothing is moved here.
+
+### The two tests, and they are not the same test
+
+    ISAIAH'S    **would I accept this being fixed for me, offline, before I saw the problem?**
+                If not, it is the agent's
+    FIGURE 10   **the seat may author what has no truth value and NOTHING THAT DOES.**
+                *A convention that decides an outcome has stopped being one.*
+                *A convention nothing can check is a constant the seat authored, carrying the
+                seat's authority.*
+
+**They agree on every row below, which is why the sort is reportable rather than a judgement
+call.** Figure 10's is the sharper one: **it asks whether the constant makes a CLAIM**, and a
+claim can be checked where "would I accept this" cannot.
+
+### OURS -- no truth value, a fact about the substrate
+
+    `BONDS = 1`            the number of bond types the space HAS. `log2(|bonds|)` is the
+                           entropy of the arrangement space. **Measured, not chosen** -- if a
+                           second bond type existed it would be 2
+    `CALL_DEPTH = 16`      a STOP so runaway recursion ends as EXHAUSTED rather than a stack
+                           overflow. **Asserts nothing about the world.** Already anchored as
+                           a declared convention at its own site
+    `Config.budget`        **how much compute fits**, not how much evidence is enough.
+    `work_budget`          A fact about the machine
+    `REJECTION_HALFLIFE`   **BORDERLINE AND I AM SAYING SO RATHER THAN PICKING.** The SHAPE
+                           (a refutation decays) is substrate; **the RATE, 8.0, is a judgement
+                           about how long being wrong should count.** By the shape/value split
+                           the rate is the AGENT'S and the decay is ours
+
+### THE AGENT'S -- each one decides an outcome, and therefore makes a claim
+
+    `MIN_REPEAT = 2`       **how much evidence makes a trend real.** Its own file already says
+                           *"ONE NUMBER SURVIVES IN THIS FILE AND IT IS `MIN_REPEAT`"* -- the
+                           last magic number, self-identified. Its justification is *one
+                           observation is a coincidence*, **which is a belief about evidence**
+    `pays` STRICTNESS      `cost + left < base`. **A tie does not license a new term** -- that
+                           is a claim about how much explanation is worth buying
+    `F327`, one miss       **what a single failure COSTS.** Clears a standing unconditionally
+    `Config.max_depth = 3` **how hard to look before giving up.** Mixed: a compute bound AND a
+                           belief about where answers live. **Flagged, not assigned**
+
+> **FOUR CONSTANTS DECIDE OUTCOMES AND CARRY THE SEAT'S AUTHORITY. Figure 10 says they have
+> therefore stopped being conventions**, and it said so before this project began.
+
+### AND THE SORT EXPLAINS THE NIGHT'S FOUR WALL SITES WITHOUT A NEW MEASUREMENT
+
+**`pays` strict and `F327` are two of the four agent-side constants, and they are exactly the
+two behind every wall site recorded tonight** -- the widened streams, the four EXTENT atoms,
+the 992 trees, `rotate`. **`MIN_REPEAT` is the third, and it is behind gate 1 (`F340`).**
+
+> **THREE CONSTANTS WE HELD ACCOUNT FOR EVERY BLOCKED MECHANISM MEASURED IN ONE NIGHT.** That
+> is not a coincidence and it is not an argument for changing their VALUES: **it is the
+> measured form of *a marvel of our programming rather than a feat of its own cognition*.**
+
+    BOUNDARY    a READ of the codebase. No runs, no boards, no behaviour numbers
+    MECHANISM   none changed. **A table, as ordered**
+    CAPABILITY  none. It names which constants are candidates to become the agent's, and the
+                order to take them in
