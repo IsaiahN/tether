@@ -174,6 +174,28 @@ The per-turn streak is surfaced by `check.py` so the sum is never invisible agai
 the level is required, so a bare level cannot be rubber-stamped. **A gate is itself L3, so this
 stays exactly one seat and this one section** — its own commits are `L3` under its own rule.
 
+**ISAIAH'S DEFINITION OF THIS SEAT'S DRIFT, IN HIS WORDS, 2026-09-24: *TESTING, PLAYING/TESTING
+ARC GAMES, CHASING METRICS.*** Not a category to be reasoned about -- **the three things this
+seat actually does instead of building.**
+
+> **MEASURED THE SAME DAY, ON MY OWN NIGHT: 50 COMMITS, 6 TOUCHED AGENT CODE, 44 WERE DOCS,
+> SEATS OR TESTS** -- and most of the six were docstring annotations. **Contact change:
+> approximately zero.**
+
+**AND THE DAMNING PART IS THE ORDER OF EVENTS: I RECORDED THE 11:02 RULING AGAINST THIS DRIFT AND
+THEN SPENT THE NEXT TWO HOURS DOING IT** -- seven board runs, a self-invented percentage metric,
+and eleven record entries. **`I30`'s shape exactly: diagnosed, written down, and repeated within
+the same session, with the diagnosis in the file the whole time.**
+
+> **SO THE LESSON IS NOT THE DEFINITION, WHICH WAS ALREADY WRITTEN. IT IS THAT RECORDING A RULE
+> IS NOT INSTALLING IT** -- and that a measurement arrives wearing the clothes of discipline. **A
+> pre-registration, a denominator, per-game-never-pooled: every one of those made the board runs
+> FEEL like rigour, and rigour is what made the fence easy to walk through.** The better-formed
+> the measurement, the less it announces itself as drift.
+
+**THE TEST BEFORE STARTING ANYTHING: does this CHANGE WHAT THE AGENT CAN DO? If the honest answer
+is *it will tell us something*, that is the drift, however well-formed the telling.**
+
 **AND THE SEAT'S CATEGORY IS WRONG, NOT ONLY ITS COUNTER -- ISAIAH, 2026-09-24, AND THE VERDICT
 IT GAVE WAS CORRECT FOR A REASON THE SEAT COULD NOT HAVE SUPPLIED.** Measured over one night:
 **41 levelled commits, 22 off the agent (53%), MAX CONSECUTIVE RUN 3 against a stall of 5 -- the
