@@ -593,6 +593,23 @@ def reach(r: Any, lib: dict | None = None, _seen: frozenset = frozenset()) -> in
         # until the body has already failed -- so the reach it can be HELD to is the smaller.
         return min(reach(r.body, lib, _seen), reach(r.otherwise, lib, _seen))
     if isinstance(r, Until):
+        # **A GUARD THAT ALREADY HOLDS MAKES THIS AN OVER-STATEMENT, AND IT CANNOT BE FIXED
+        # HERE.** `Until` terminates the moment its guard reads true, so a routine whose guard
+        # holds at composition time does NOTHING -- while this claims `budget x reach(body)`.
+        # Verified: `Until("g", Act, 5)` reaches 5 by this function and emits zero actions when
+        # `holds` returns True. **Over-stating reach is the exact defect this function exists to
+        # refuse**, and here it is inside it.
+        #
+        # **NOT REPAIRED, BECAUSE THE REPAIR NEEDS STATE THIS FUNCTION MUST NOT HAVE.** Whether
+        # a guard holds is a question for `holds`, which is the CALLER's -- the same invariant
+        # that made `Choose` a constructor rather than sugar. Pricing a plan against the world
+        # from in here would put evaluation back inside the algebra.
+        #
+        # IT WAS LATENT AND IS NOW REACHABLE: every guard the composer built used to be *this
+        # objective is satisfied*, false at mint time because the slot was selected for being
+        # unsatisfied. **`not satisfied:<slot>` can be TRUE at mint time**, and `can` admits it
+        # on exactly that ground -- *holds now, so reached*. The caller gates on `CAN == YES`
+        # and that is where a already-satisfied termination condition could be caught.
         return max(r.budget, 0) * reach(r.body, lib, _seen)
     if isinstance(r, (Let, Expect)):
         return reach(r.body, lib, _seen)
