@@ -77,6 +77,13 @@ STAGES = (
     ("arms", [str(PY), str(HERE / "arms.py")],
      "an arm entered without a row, a row went stale, or half a declared pair is on",
      HERE / "arms.py"),
+    # THE WIRING SEAT, AND IT WAS THE ONLY CHECK IN THIS FOLDER THAT NOTHING RAN. Its own
+    # docstring says it was made "a check that fires rather than a census that is run" -- and
+    # then it was never wired, which is the exact class it exists to catch. It was RED when
+    # found: `any_same` had gone never-occurred -> settled and nobody saw.
+    ("wiring", [str(PY), str(HERE / "wiring.py")],
+     "a capability changed between never-occurred and occurred without the manifest moving",
+     HERE / "wiring.py"),
     ("condition", [str(PY), "condition.py"],
      "the condition grammar accepted something it must refuse, or three-valued logic broke",
      ROOT / "condition.py"),

@@ -17,6 +17,11 @@ the defect, never disable the check:
     D   chain-position blindness    `above . negate . all` was credited to its ENDS, so the
                                     middle link read as never-occurred while it was minting,
                                     settling against the ground, and driving bets
+    E   instrument age vs run age   a capability NEWER than every artifact reads exactly like
+                                    one that never fires. `owner` entered 2026-09-22 and the
+                                    newest board artifact is 2026-09-21 -- **its zero could
+                                    not have been anything else**, and it was reported as a
+                                    status. Recording the denominator was not enough
 
 TRANSITIONS, NOT COUNTS. Counts move with every run and a check that fires on them is ceremony
 nobody reads. What matters is a capability going never-occurred -> occurred, or the reverse:
@@ -33,6 +38,7 @@ board it is.
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -167,14 +173,85 @@ def runs() -> list[Path]:
     return sorted((ROOT / "runs").glob("*.jsonl"))
 
 
-def transitions(old: dict[str, Any], new: dict[str, Any]) -> list[str]:
-    """What changed in STATUS. Counts are deliberately not compared."""
+def since(born: float | None) -> list[str]:
+    """The artifacts written AFTER this capability was declared -- the only ones whose silence
+    about it is evidence. **THE DENOMINATOR OF ITS ZERO.**
+
+    **REPORTED RATHER THAN JUDGED, and the first version judged.** It compared the declaration
+    against the NEWEST artifact and concluded nothing was ever unobservable -- because
+    `demo.jsonl` is the TOY demo and is rewritten by every seat run, so the ceiling was always
+    *just now*. **A toy artifact cannot exercise a board atom, so its recency made every zero
+    look grounded.** Rather than rule on which artifacts count -- a judgement, and mine -- this
+    hands back the list and lets the reader see that `owner`'s entire denominator is the demo.
+    """
+    if born is None:
+        return []
+    return sorted(p.name for p in runs() if p.stat().st_mtime > born)
+
+
+def declared_at(name: str, _cache: dict[str, float | None] = {}) -> float | None:  # noqa: B006
+    """When this name ENTERED the source, from git. `None` when git cannot say.
+
+    **THE SOURCE OF TRUTH FOR *HOW OLD IS THIS CAPABILITY* IS THE HISTORY, NOT A FILE MTIME** --
+    an mtime moves on any edit to the file, so a checkout or an unrelated change would make an
+    old atom look new and suppress a real status. `-S` on the quoted name finds the commit that
+    introduced the string.
+
+    ABSTAINS RATHER THAN GUESSING. No commit found, or git unavailable, returns `None` and the
+    caller reports the transition as it always did -- **the fallback is the LOUD direction**,
+    because suppressing a real capability change is the worse error of the two.
+    """
+    if name in _cache:
+        return _cache[name]
+    try:
+        out = subprocess.run(
+            ["git", "log", "-1", "--format=%ct", "-S", f'"{name}"', "--",
+             "arc_atoms.py", "arc_predict.py", "grammar.py", "sensors.py"],
+            cwd=ROOT, capture_output=True, text=True, check=False, timeout=20).stdout.strip()
+        _cache[name] = float(out) if out else None
+    except (OSError, ValueError, subprocess.SubprocessError):
+        _cache[name] = None
+    return _cache[name]
+
+
+def transitions(old: dict[str, Any], new: dict[str, Any],
+                _after: Any = None) -> list[str]:
+    """What changed in STATUS. Counts are deliberately not compared.
+
+    **DEFECT E: A CAPABILITY NEWER THAN EVERY ARTIFACT READS EXACTLY LIKE ONE THAT NEVER
+    FIRES.** The docstring above records the DENOMINATOR -- which artifacts were scanned -- and
+    that is not enough: `owner`, the bridge that makes the eighteen `OBJECT`-typed atoms
+    reachable, entered on 2026-09-22 and **the newest board artifact is 2026-09-21.** Its zero
+    could not have been anything else. Reported as `never occurred`, it reads as a finding
+    about the bridge, and there is no finding there to read.
+
+    **THE TEST NEEDS NO DATES, WHICH IS WHY IT IS SOUND RATHER THAN APPROXIMATE.** If an item is
+    NEW in the declared set -- absent when the manifest was last written, at time `T` -- and
+    **no artifact has been added since `T`**, then every artifact scanned already existed at
+    `T`, when the item did not. **No artifact in existence could have mentioned it.** Comparing
+    `computed_over` to itself settles that exactly, and the manifest already carries it.
+
+    **UNOBSERVABLE IS NOT A TRANSITION AND MUST NOT BE COUNTED AS ONE.** A zero with no
+    information is not evidence of anything, and this check exists to report a capability
+    CHANGING. Declaring one is a change to the code and the manifest records it; it is not a
+    change in what the agent has been observed to do.
+    """
     out = []
     oi, ni = old.get("items", {}), new.get("items", {})
     for name in sorted(set(oi) | set(ni)):
         a, b = oi.get(name), ni.get(name)
         if a is None:
-            out.append(f"{name}: NEW in the declared set -> {b['occurred'] or 'never occurred'}")
+            if b["occurred"]:
+                out.append(f"{name}: NEW in the declared set -> {b['occurred']}")
+                continue
+            after = (_after if _after is not None else since)(declared_at(name))
+            if not after:
+                out.append(f"{name}: UNOBSERVABLE -- declared after every artifact was "
+                           "written, so its zero carries no information")
+                continue
+            seen = ", ".join(after[:2]) + ("..." if len(after) > 2 else "")
+            out.append(f"{name}: NEW in the declared set -> never occurred "
+                       f"in the {len(after)} artifact(s) written since it was declared ({seen})")
             continue
         if b is None:
             out.append(f"{name}: NO LONGER DECLARED")
@@ -203,6 +280,19 @@ def selftest() -> dict[str, str]:
     classes = {EVIDENCE[e][1] for e in ("mint", "accept", "settle", "reuse_refused")}
     out["C conflation"] = ("ok" if len(classes) == 4
                            else f"UNWITNESSED (four events collapsed to {sorted(classes)})")
+
+    # E -- a capability declared after every artifact was written. Its zero is not evidence.
+    # **AND THE CONTROL IS THE HALF THAT MATTERS**: the same item, declared BEFORE the newest
+    # artifact, must still report. A rule that suppresses both is not a fix, it is a mute.
+    was = {"computed_over": [], "items": {}}
+    now = {"computed_over": [], "items": {"zz": {"producer": True, "occurred": [],
+                                                 "positions": []}}}
+    young = transitions(was, now, _after=lambda _b: [])
+    aged = transitions(was, now, _after=lambda _b: ["r1.jsonl", "r2.jsonl"])
+    out["E instrument age"] = (
+        "ok" if young and "UNOBSERVABLE" in young[0]
+        and aged and "2 artifact(s)" in aged[0]
+        else f"UNWITNESSED ({young} / {aged})")
 
     parsed = dict(parse_term("above . negate . all<o11.h>?ACTION1"))
     want = {"above": "head", "negate": "mid", "all": "tail",

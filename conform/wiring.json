@@ -1,22 +1,44 @@
 {
  "computed_over": [
+  "armBC_ls20.jsonl",
+  "armBC_tn36.jsonl",
+  "armB_ls20.jsonl",
+  "armB_tn36.jsonl",
+  "armB_vc33.jsonl",
+  "armC_ls20.jsonl",
+  "armC_vc33.jsonl",
+  "armD_ls20.jsonl",
+  "armD_vc33.jsonl",
+  "armE_ls20.jsonl",
   "budget_ls20_stream.jsonl",
+  "closure_ls20.jsonl",
   "demo.jsonl",
   "distinct_off.jsonl",
   "distinct_on.jsonl",
   "f32_stream.jsonl",
   "ft09_wall.jsonl",
+  "gs2_ls20.jsonl",
+  "gs2_tn36.jsonl",
+  "gs2_vc33.jsonl",
+  "gs_ls20.jsonl",
   "instr.jsonl",
   "instr2.jsonl",
   "instr3.jsonl",
   "instr4.jsonl",
   "instr5.jsonl",
   "ka59_wall.jsonl",
+  "long_ka59.jsonl",
+  "long_ls20.jsonl",
+  "long_tn36.jsonl",
+  "long_vc33.jsonl",
   "ls20_deref.jsonl",
   "ls20_probe.jsonl",
   "ls20_wall.jsonl",
+  "ovl_sk48_armH.jsonl",
+  "ovl_sk48_base.jsonl",
   "p0.jsonl",
   "p1.jsonl",
+  "ruleb_sk48.jsonl",
   "sk48_probe.jsonl",
   "sk48_wall.jsonl",
   "smoke.jsonl",
@@ -24,11 +46,13 @@
   "smoke_typed.jsonl",
   "sp80_deref.jsonl",
   "sp80_wall.jsonl",
+  "split_ls20.jsonl",
   "su15_wall.jsonl",
   "tn36_wall.jsonl",
   "vc33_deref.jsonl",
   "vc33_probe.jsonl",
-  "vc33_wall.jsonl"
+  "vc33_wall.jsonl",
+  "verify_goalseries.jsonl"
  ],
  "items": {
   "ALL": {
@@ -201,20 +225,38 @@
     "mid"
    ],
    "sources": [
+    "armBC_ls20",
+    "armBC_tn36",
+    "armB_ls20",
+    "armB_tn36",
+    "armB_vc33",
+    "armC_ls20",
+    "armC_vc33",
+    "armE_ls20",
     "budget_ls20_stream",
+    "closure_ls20",
     "distinct_off",
     "distinct_on",
     "f32_stream",
+    "gs2_ls20",
+    "gs2_vc33",
+    "gs_ls20",
     "instr",
     "instr2",
     "instr3",
     "instr4",
     "instr5",
+    "long_ls20",
+    "long_tn36",
+    "long_vc33",
     "ls20_deref",
     "ls20_probe",
     "ls20_wall",
+    "ovl_sk48_armH",
+    "ovl_sk48_base",
     "smoke_deref",
     "smoke_typed",
+    "split_ls20",
     "vc33_deref",
     "vc33_probe",
     "vc33_wall"
@@ -234,11 +276,22 @@
     "head"
    ],
    "sources": [
+    "armB_vc33",
+    "armC_vc33",
+    "gs2_vc33",
+    "long_vc33",
     "smoke_typed",
     "vc33_deref",
     "vc33_probe",
     "vc33_wall"
    ]
+  },
+  "age": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
   },
   "aligned": {
    "producer": true,
@@ -273,17 +326,33 @@
     "tail"
    ],
    "sources": [
+    "armBC_ls20",
+    "armB_ls20",
+    "armB_vc33",
+    "armC_ls20",
+    "armC_vc33",
+    "armE_ls20",
     "budget_ls20_stream",
+    "closure_ls20",
     "distinct_off",
     "distinct_on",
     "f32_stream",
+    "gs2_ls20",
+    "gs2_vc33",
+    "gs_ls20",
     "ka59_wall",
+    "long_ka59",
+    "long_ls20",
+    "long_vc33",
     "ls20_deref",
     "ls20_probe",
     "ls20_wall",
+    "ovl_sk48_armH",
+    "ovl_sk48_base",
     "sk48_probe",
     "sk48_wall",
     "smoke_typed",
+    "split_ls20",
     "vc33_deref",
     "vc33_probe",
     "vc33_wall"
@@ -311,13 +380,19 @@
     "tail"
    ],
    "sources": [
+    "armE_ls20",
     "budget_ls20_stream",
+    "closure_ls20",
     "distinct_off",
     "f32_stream",
+    "gs_ls20",
     "ka59_wall",
+    "long_ls20",
+    "long_vc33",
     "ls20_deref",
     "ls20_probe",
     "ls20_wall",
+    "split_ls20",
     "vc33_deref",
     "vc33_probe",
     "vc33_wall"
@@ -325,12 +400,29 @@
   },
   "any_same": {
    "producer": true,
+   "offered": true,
+   "occurred": [
+    "accepted",
+    "bound",
+    "minted",
+    "settled"
+   ],
+   "positions": [
+    "head"
+   ],
+   "sources": [
+    "ovl_sk48_armH",
+    "ovl_sk48_base"
+   ]
+  },
+  "area": {
+   "producer": true,
    "offered": false,
    "occurred": [],
    "positions": [],
    "sources": []
   },
-  "area": {
+  "bbox": {
    "producer": true,
    "offered": false,
    "occurred": [],
@@ -401,7 +493,21 @@
    "positions": [],
    "sources": []
   },
+  "colour_changed": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
   "components": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "contact": {
    "producer": true,
    "offered": false,
    "occurred": [],
@@ -432,6 +538,13 @@
     "ka59_wall"
    ]
   },
+  "dcells": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
   "dcol": {
    "producer": true,
    "offered": false,
@@ -446,6 +559,20 @@
    "positions": [],
    "sources": []
   },
+  "dh": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "dholes": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
   "distinct": {
    "producer": true,
    "offered": false,
@@ -453,7 +580,21 @@
    "positions": [],
    "sources": []
   },
+  "dperimeter": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
   "drow": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "dw": {
    "producer": true,
    "offered": false,
    "occurred": [],
@@ -475,7 +616,8 @@
     "mid"
    ],
    "sources": [
-    "ka59_wall"
+    "ka59_wall",
+    "long_ka59"
    ]
   },
   "extent": {
@@ -509,17 +651,32 @@
     "sole"
    ],
    "sources": [
+    "armE_ls20",
     "budget_ls20_stream",
+    "closure_ls20",
     "distinct_off",
     "f32_stream",
+    "gs_ls20",
+    "long_ls20",
     "ls20_deref",
     "ls20_probe",
     "ls20_wall",
+    "ovl_sk48_armH",
+    "ovl_sk48_base",
     "p0",
     "p1",
+    "ruleb_sk48",
     "sk48_probe",
-    "sk48_wall"
+    "sk48_wall",
+    "split_ls20"
    ]
+  },
+  "inside": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
   },
   "is_max": {
    "producer": true,
@@ -574,12 +731,17 @@
     "mid"
    ],
    "sources": [
+    "armE_ls20",
     "budget_ls20_stream",
+    "closure_ls20",
     "distinct_off",
     "f32_stream",
+    "gs_ls20",
+    "long_ls20",
     "ls20_deref",
     "ls20_probe",
-    "ls20_wall"
+    "ls20_wall",
+    "split_ls20"
    ]
   },
   "none": {
@@ -598,26 +760,47 @@
     "tail"
    ],
    "sources": [
+    "armBC_ls20",
+    "armBC_tn36",
+    "armB_ls20",
+    "armB_tn36",
+    "armB_vc33",
+    "armC_ls20",
+    "armC_vc33",
+    "armD_ls20",
+    "armE_ls20",
     "budget_ls20_stream",
+    "closure_ls20",
     "distinct_off",
     "distinct_on",
     "f32_stream",
+    "gs2_ls20",
+    "gs2_tn36",
+    "gs2_vc33",
+    "gs_ls20",
     "instr",
     "instr2",
     "instr3",
     "instr4",
     "instr5",
     "ka59_wall",
+    "long_ls20",
+    "long_tn36",
+    "long_vc33",
     "ls20_deref",
     "ls20_probe",
     "ls20_wall",
+    "ovl_sk48_armH",
+    "ovl_sk48_base",
     "sk48_wall",
     "smoke_deref",
     "smoke_typed",
+    "split_ls20",
     "tn36_wall",
     "vc33_deref",
     "vc33_probe",
-    "vc33_wall"
+    "vc33_wall",
+    "verify_goalseries"
    ]
   },
   "none_same": {
@@ -650,6 +833,7 @@
    ],
    "sources": [
     "ka59_wall",
+    "long_vc33",
     "sk48_wall",
     "vc33_deref",
     "vc33_probe",
@@ -657,6 +841,13 @@
    ]
   },
   "overlap": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "owner": {
    "producer": true,
    "offered": false,
    "occurred": [],
@@ -724,29 +915,51 @@
     "tail"
    ],
    "sources": [
+    "armBC_ls20",
+    "armBC_tn36",
+    "armB_ls20",
+    "armB_tn36",
+    "armB_vc33",
+    "armC_ls20",
+    "armC_vc33",
+    "armD_ls20",
+    "armE_ls20",
     "budget_ls20_stream",
+    "closure_ls20",
     "distinct_off",
     "distinct_on",
     "f32_stream",
+    "gs2_ls20",
+    "gs2_tn36",
+    "gs2_vc33",
+    "gs_ls20",
     "instr",
     "instr2",
     "instr3",
     "instr4",
     "instr5",
     "ka59_wall",
+    "long_ka59",
+    "long_ls20",
+    "long_tn36",
+    "long_vc33",
     "ls20_deref",
     "ls20_probe",
     "ls20_wall",
+    "ovl_sk48_armH",
+    "ovl_sk48_base",
     "sk48_probe",
     "sk48_wall",
     "smoke_deref",
     "smoke_typed",
     "sp80_deref",
     "sp80_wall",
+    "split_ls20",
     "tn36_wall",
     "vc33_deref",
     "vc33_probe",
-    "vc33_wall"
+    "vc33_wall",
+    "verify_goalseries"
    ]
   },
   "reflect": {
@@ -786,8 +999,13 @@
     "mid"
    ],
    "sources": [
+    "armB_vc33",
+    "armC_vc33",
     "budget_ls20_stream",
+    "gs2_vc33",
     "ka59_wall",
+    "long_ka59",
+    "long_vc33",
     "smoke_typed",
     "vc33_deref",
     "vc33_probe",
@@ -802,6 +1020,20 @@
    "sources": []
   },
   "sign": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "speed": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
+  "stability": {
    "producer": true,
    "offered": false,
    "occurred": [],
@@ -854,29 +1086,52 @@
     "tail"
    ],
    "sources": [
+    "armBC_ls20",
+    "armBC_tn36",
+    "armB_ls20",
+    "armB_tn36",
+    "armB_vc33",
+    "armC_ls20",
+    "armC_vc33",
+    "armD_ls20",
+    "armD_vc33",
+    "armE_ls20",
     "budget_ls20_stream",
+    "closure_ls20",
     "distinct_off",
     "distinct_on",
     "f32_stream",
+    "gs2_ls20",
+    "gs2_tn36",
+    "gs2_vc33",
+    "gs_ls20",
     "instr",
     "instr2",
     "instr3",
     "instr4",
     "instr5",
     "ka59_wall",
+    "long_ka59",
+    "long_ls20",
+    "long_tn36",
+    "long_vc33",
     "ls20_deref",
     "ls20_probe",
     "ls20_wall",
+    "ovl_sk48_armH",
+    "ovl_sk48_base",
     "sk48_probe",
     "sk48_wall",
     "smoke_deref",
     "smoke_typed",
     "sp80_deref",
     "sp80_wall",
+    "split_ls20",
     "tn36_wall",
     "vc33_deref",
     "vc33_probe",
-    "vc33_wall"
+    "vc33_wall",
+    "verify_goalseries"
    ]
   },
   "w": {
