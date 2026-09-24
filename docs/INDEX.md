@@ -47935,6 +47935,41 @@ it by remembering a figure I had stopped looking at.
 > different each time -- table SHAPE, then POPULATION, then NAMING VARIANTS -- which is why no
 > single fix caught them all.
 
+**AND THE MAPPING'S VERDICT ON THE REMAINING GAPS IS FIVE, NOT 863 -- computed 2026-09-24, and
+it is EVIDENCE FOR *catalogue not queue* rather than a work programme.**
+
+`closure_map.py` -- the GENERIC half of the mapper, which imports nothing and has no route to a
+replay -- names the nine closure derivations the ARC transformations aim at: `Recolour = Co +
+Featural identity` - `Translate = Ct + Co` - `Scale = Frac + Scale` - `Rotate = Ge + Gs` -
+`Reflect = Ge + Chirality` - `Construct = Rep + Bind` - `Erase = Contact + Consumed` -
+`Separate = Decompose + Co` - `Merge = Amalgamate + Med miscible`. **Expanded transitively
+through the recipes, they reach 25 names.**
+
+    **GAPS ON THE MAPPING'S PATH   5**   `Featural identity` - `Chirality` - `Consumed`
+                                          (depth 1) - `Backchain` - `Grasp` (depth 2)
+    gaps OFF the map            858
+
+> **SO THE ACTIONABLE SUBSET OF THE CATALOGUE IS FIVE NAMES, AND THREE OF THOSE SIT ONE STEP
+> FROM AN AIM POINT.** `Recolour`, `Reflect` and `Erase` each name exactly one thing the closure
+> never defines. **That is what *the mapping decides the rest* resolves to when the mapping is
+> actually run over its own targets.**
+
+**AND THE REVIEWER'S FRAMING IS BETTER THAN MINE: IT CONVERTS THE RULING RATHER THAN SUPPORTING
+IT.** *Catalogue, not queue* was a judgement call about scope. **The intersection makes it a
+MEASUREMENT**: the aim points reach 25 names, five of which are gaps, so **858 of the catalogue
+are off the path as a fact about the recipe graph** rather than as a view about what deserves
+attention. **A scope decision that can be recomputed is a different kind of object from one that
+has to be argued.**
+
+**AND IT RESIZES ITEM 3.** The MAPPING was carried as a large open piece of work -- *the only
+item that produces a TARGET rather than more mechanism*. **If its aim points reach 25 names
+total, the mapping is far smaller than it has been costed at**, and that is worth knowing before
+it is scheduled rather than after.
+
+**NOT AUTHORED, AND NOT PROPOSED AS THE NEXT JOB.** The reviewer's ordering puts the CONSUMER
+first and calls the 863 a catalogue; **this is filed so that when the mapping's turn comes the
+answer is not re-derived, and so nobody works 863 items believing they are all on the path.**
+
 **AND THE *GRID PRIMITIVES* CLAIM IS WITHDRAWN -- I READ THE NAMES AND NOT THE USES, 2026-09-24.**
 The 17:01 report said *roughly twenty grid primitives sit in the 659* and named `Object`, `Depth`,
 `Surface`, `Face`, `Tile`, `Inside`, `Outside`, `Region`, `Split`, `Join`. **Checked against the
