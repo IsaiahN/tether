@@ -47703,3 +47703,64 @@ when the question becomes *answerable*; the gate below decides when it may be *a
 > waits for and **who will say so**, which is the half a milestone cannot carry.
 
 **Filed at the bottom of the backlog. No proposal is recorded here, deliberately.**
+
+
+## F351 -- THE OBJECTIVE STREAM, MEASURED. **It PRODUCES (558 from one request) and is REFUSED (39,478 of 39,478 bounded out)** -- the opposite of the pre-registered expectation, and `pays` is reached by NOTHING of any kind
+
+**Reviewer 11:36 supplied this as the top of the chain** -- *nothing binds as an OBJECTIVE -> no
+residual series -> no trend -> gate 1 refuses -> no routine adopted -> `routine.py` entered ZERO
+times.* **Three worlds had never been separated: the CONTEST refusing objectives, the STREAM
+producing almost none, or objectives binding and being UNSETTLED.**
+
+### THE PRE-REGISTRATION, WRITTEN BEFORE THE RUN AND BY THE OTHER PARTY
+
+> **Reviewer: *ALMOST NONE PRODUCED, rather than produced-and-refused.*** Grounds: `OBJ` is a
+> SINK -- three atoms produce it, zero consume it -- and the posed goal has ARITY ONE and never
+> reads the library. **Their own caveat: *I may well be wrong. Report what the counts say, not
+> what fits.***
+
+### THE COUNTS -- `vc33`, 3 cycles, COLD (no library passed), ONE BOARD
+
+    stream REQUESTED, OBJ out_type   1 call     [('EXTENT', 'OBJ')]
+    stream REQUESTED, other          2 calls    [('val', 'val')]
+    ENUMERATED, OBJ-typed          **558**
+    ENUMERATED, ('val','val')          38       <- the denominator
+    PRICED (reached `_cannot_pay`)  OBJ 39,478 / all 42,474   -- **93% of all pricing is OBJ**
+    BOUNDED OUT                     OBJ 39,478 / all 42,474   -- **100%, both**
+    REACHED `pays`                  OBJ      0 / all      0
+    BOUND to an OBJ term, ever           0
+    SURVIVED                        vacuous -- nothing ever bound
+
+> **THE PRE-REGISTRATION IS REFUTED AND THE WORLD IS THE THIRD ONE NOBODY LISTED: PRODUCED,
+> PRICED HEAVILY, AND REFUSED BY THE BOUND.** The stream is not starved -- **it is the bulk of
+> the agent's pricing work** -- and it does not bind because **`_cannot_pay` refuses everything.**
+
+**AND THE SHARPEST COLUMN IS THE ONE THAT IS NOT ABOUT `OBJ` AT ALL: `pays` IS REACHED BY NOTHING.**
+0 of 42,474, every kind. **So this is not an objective problem; the objective stream is simply
+the largest thing standing behind a bound that admits no one.** That is `F348` and `F350` row 4
+confirmed by an independent instrument -- and it reframes them: the bound is not merely
+excluding trees, **it is excluding the entire candidate population.**
+
+### BOUNDARY, AND IT IS NARROW
+
+**ONE BOARD, THREE CYCLES, COLD, PER GAME AND NOT POOLED.** `vc33` only. Nothing here says the
+shape holds on another board, and the reviewer's instruction was per board -- **the remaining
+boards are owed and are not claimed.** The toy harness **cannot** show this at all: it declares
+no `slot_types`, so `(stype, OBJ)` is never appended and the OBJ stream is **NEVER REQUESTED**
+there -- recorded so a later toy reading of `0` is not mistaken for this measurement.
+
+### AND THE INSTRUMENT WAS WRONG FIRST, CAUGHT BY ITS OWN COLUMNS DISAGREEING
+
+**The first run printed `ENUMERATED, OBJ-typed: 0` beside `PRICED: OBJ 39,478`.** Both cannot be
+true, and the contradiction is the finding -- *if any column is inconsistent with the
+classification, THAT is the finding*, applied to my own tool.
+
+**The cause: the wrapper incremented AFTER its `for` loop, and `mint` BREAKS OUT on
+`work_budget`.** An abandoned generator never reaches a line after its loop, **so every stream
+whose consumer stops early was silently dropped.** It read a true `38` for the one stream that
+ran to exhaustion and zero for the rest.
+
+> **A LOSSY COUNTER READS AS A CLEAN NULL, and it would have reported the reviewer's
+> pre-registration as CONFIRMED.** The repair is one line -- count per yield -- and the reason it
+> was caught is that a second, independently-derived column existed to disagree with it. **A
+> single-column instrument here would have published the wrong answer with the right shape.**
