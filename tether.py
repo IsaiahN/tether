@@ -329,6 +329,17 @@ _SAT = "satisfied:"
 #
 # DECLARED HERE RATHER THAN IN `gamma` BECAUSE THE KEYS ARE THE AGENT'S, not the library's --
 # `Gamma` owns the STORE so it persists with the terms, and this owns what goes in it.
+def _contains(whole: tuple, part: tuple) -> bool:
+    """Is `part` a CONTIGUOUS subsequence of `whole`? §14.7's *appears as a constituent*.
+
+    CONTIGUOUS, not scattered: a chain is applied left to right, so a settled term is a
+    constituent only where its atoms run consecutively. Scattered atoms are a coincidence of
+    the alphabet and counting them would inflate the one number the chunking claim rests on.
+    """
+    n = len(part)
+    return n > 0 and any(whole[i:i + n] == part for i in range(len(whole) - n + 1))
+
+
 BOOKS: tuple[str, ...] = (
     "promoted_then_wrong",              # settled, then mispredicted
     "demoted_would_have_been_right",    # the counterfactual `F327` destroys unrecorded
@@ -342,6 +353,7 @@ BOOKS: tuple[str, ...] = (
     "bargain_bounded_out",              # `_cannot_pay` -- a NECESSARY condition, not a choice
     "bargain_does_not_pay",             # `pays` -- the only one of the two that is a judgement
     "bargain_paid",                     # reached the contest
+    "chunk_reuse",                      # §14.7: a settled term inside a later mint
 )
 
 # why not the neighbouring bin. A bin without its discriminator is a label, not a diagnosis.
@@ -4460,6 +4472,29 @@ class Agent:
             detail["note"] = "pays but does not close R; the slot still owes"
         detail.update(term=term.name, term_depth=len(term), operand=term.operand,
                       term_bits=round(cost, 3), left_bits=round(left, 3))
+        # **§14.7's CHUNK REUSE COUNT, SPECIFIED IN THE CORPUS AND COMPUTED NOWHERE.**
+        # *How often a term appears as a CONSTITUENT of a later mint* -- a composition event,
+        # not a reading of R, which is why `behaviour.py` separates it from the per-slot rule.
+        # `chain.reuse_branch` is the RETRIEVAL path and a different quantity entirely.
+        #
+        # **IT IS THE ONLY EVIDENCE THE CHUNKING CLAIM HAS LEFT.** `F349`: the falsifier does
+        # not falsify -- `ladder` is declared unreachable in atoms and `dbl . dec . neg` reaches
+        # it at depth 3 -- and the winning NAME is identical whether the chain was found through
+        # a settled unit or through atoms. **So the claim is unproven in both directions, and
+        # nothing recorded which route was taken.** This records it.
+        #
+        # **A RECORD, NOT A DIAL, AND NOT A CALIBRATION CHANGE.** It touches neither the toy
+        # world, nor `max_depth`, nor the atom set -- the three repairs `F341`'s third category
+        # says are not the seat's to take. Nothing reads it.
+        #
+        # TWO ATOMS MINIMUM: a one-atom unit is in every chain that uses that atom, so counting
+        # it would measure the alphabet rather than reuse. And SETTLED EARLIER than this cycle,
+        # because a term cannot have been a constituent of the mint that produced it.
+        for _nm, _u in self.gamma.library.items():
+            if (_nm != term.name and len(getattr(_u, "atoms", ())) >= 2
+                    and self.gamma.is_settled(_nm)
+                    and _contains(term.atoms, _u.atoms)):
+                self.gamma.book["chunk_reuse"] = self.gamma.book.get("chunk_reuse", 0) + 1
         self.led.record(self.cycle, "MINT", slot, "mint", of=(slot,), **detail)
         self.led.record(self.cycle, "ACCEPT", slot, "accept", term=term.name,
                         origin=term.origin, seq=len(self.led),
