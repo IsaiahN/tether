@@ -48311,3 +48311,49 @@ harness for an objective that could exist, and it must not be read as a general 
 *the contest is unread*, now *the two kinds answer different questions*. **Each was measured;
 the first two were measured with the wrong instrument.** This one is taken at the site that
 holds the term and reports cost, left and base together.
+
+
+## F358 -- **THE WANT-NATIVE MEASURE ALREADY EXISTS, IS ALREADY COMPUTED EVERY CYCLE, AND THE BARGAIN DOES NOT READ IT.** `objective_gap` -- *zero exactly when satisfied*
+
+**`F357` found that a want is scored AS A PREDICTION and fails for explaining less.** The
+obvious next question is what a want SHOULD be scored on -- **and the answer is one function
+away, written by the same hand, in the same file.**
+
+### TWO MEASURES, WRITTEN SIDE BY SIDE ON PURPOSE
+
+    `objective_step`  **WHICH WAY to move a slot**      -- *step one unit toward the nearest
+                                                          satisfying value*
+    `objective_gap`   **HOW FAR that slot is**          -- *§13.4's SCALAR DISCREPANCY:
+                                                          **zero exactly when satisfied***
+
+`objective_gap`'s own docstring: *"Beside `objective_step` and for its reason -- what a bet MEANS
+is not a move, so **the two things an objective says about a slot** -- which way to go, and how
+far it is -- are written once, uniformly, in the same place."*
+
+### AND THEY ARE WIRED TO DIFFERENT CONSUMERS
+
+    `objective_step` -> `_value_of` -> `_left` - `_predict` - `_cannot_pay`   **THE BARGAIN**
+    `objective_gap`  -> `_discrepancy` -> the goal machinery                  **NOT the bargain**
+
+> **SO THE QUANTITY A WANT WOULD BE PRICED ON IS COMPUTED EVERY CYCLE AND NEVER REACHES THE
+> CONTEST.** The bargain scores a want on its DIRECTION, treated as a prediction of the next
+> value -- which is the thing `F357` measured it losing at -- **while the DISTANCE, which is
+> zero exactly when the want is satisfied, goes to the trend machinery instead.**
+
+### WHAT THIS IS AND IS NOT
+
+**IT IS NOT A PROPOSAL AND I HAVE NOT SWITCHED ANYTHING.** *Whether the bargain should read the
+gap* is a judgement about what a want is WORTH against a prediction, which is `F341`'s category
+and Isaiah's.
+
+**WHAT IT IS: the ruling no longer requires inventing a currency.** Three chains died pricing
+this question and `CLAUDE.md` records all three as *internally coherent and subjectless.* **The
+subject now exists (`F354`-`F357`) and so does a candidate quantity -- already specified,
+already maintained, already used elsewhere in the loop.**
+
+### AND IT IS THE WIDENED STEP PAYING ON ITS FIRST USE
+
+**The scope was widened an hour earlier to include the modules the agent imports.** This was
+found by asking *is the want-native measure already written* **before** reporting that the
+bargain needs a new one -- **the fourth instance today would have been proposing a currency that
+was forty lines from the one in use.**
