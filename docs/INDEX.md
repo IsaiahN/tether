@@ -47857,3 +47857,56 @@ ran to exhaustion and zero for the rest.
 > pre-registration as CONFIRMED.** The repair is one line -- count per yield -- and the reason it
 > was caught is that a second, independently-derived column existed to disagree with it. **A
 > single-column instrument here would have published the wrong answer with the right shape.**
+
+
+## F352 -- THE LIBRARY IS A RECIPE BOOK OVER INGREDIENTS THAT DO NOT EXIST. **62% of the closure's 2,175 recipes cannot be fully expanded**, and 119 of them name NOTHING that is defined anywhere
+
+**Asked by Isaiah 2026-09-24 as the generalisation of one instance.** The modes read found
+`Wayfind = Dead reckon + Reorient` with **neither part defined anywhere in the closure**. He asked
+for the class rather than the instance -- *find all other ingredients that do not have actual
+atoms* -- which is `I25`'s law (*repaired the instance, left the class*) applied by the principal.
+
+### THE COUNT, OVER THE WHOLE CLOSURE AND NOT ONE FILE
+
+    defined names, all 17 closure files   3,476
+    recipes in `ATOMS.md`                 2,175   (with at least one real ingredient)
+    ingredient slots                      6,495
+
+    **834   38%   FULLY EXPANDABLE**
+    **1,222 56%   SOME parts missing**
+    **119    5%   ALL parts missing -- a recipe over nothing at all**
+
+    UNDEFINED INGREDIENTS   **1,253 distinct - 1,905 uses - 29% of all slots**
+                            969 of the 1,253 are used exactly ONCE
+
+**The most-used are not exotic:** `Growth` 17 - `Context` 16 - `Depth` 13 - `Prediction` 13 -
+`Outcome` 12 - `Conflict` 11 - `Object` 9. **`Object` is undefined in the vocabulary of an agent
+whose purpose is visual-grid puzzles**, and each of these was confirmed by looking for a row
+whose first cell is that name, in every closure file, rather than trusting the count.
+
+### WHAT IT MEANS FOR THE INHERITANCE ARGUMENT, WHICH IS WHY IT MATTERS
+
+`§12.0` frontloads the library because *we don't have time to grow it from entropy -- we are
+sending this agent to Mars like a rover.* **The rover's manual is 62% recipes over parts that are
+not in the box.** That does not overturn the frontload ruling: **a vocabulary is still what the
+agent can SAY, and the 38% that expand are real.** It does bound what *retrieval* can deliver --
+**wiring an entry whose parts are missing retrieves a name, not a method.**
+
+### AND THE METHOD MODES ARE IN THE AFFECTED SET, WHICH IS HOW THIS WAS FOUND
+
+`Dead reckon` - `Reorient` - `Compensation`: **all three undefined**, so `Wayfind` and `Hedge`
+are both in the 56%. **The five method modes are RETRIEVABLE as names and only partly as
+methods**, and that is a smaller claim than the one the modes read reported.
+
+### THE TWO ERRORS THIS AUDIT MADE FIRST, BOTH CAUGHT BY READING WHAT MATCHED
+
+**SHAPE.** `ATOMS.md` has FOUR table layouts. `element|recipe` carries ingredients;
+`element|atom` and `symbol|atom` **define** names in BOTH cells. Treating them alike would have
+read every abbreviation as a gap.
+
+**POPULATION, and it produced a number I nearly reported.** The first run scoped *defined* to
+`ATOMS.md` alone and returned **1,338 undefined ingredients led by `Action` 109, `Time` 61,
+`Change` 26.** All three are defined -- in `ATTRIBUTES.md` and `CATEGORIES.md`. **The vocabulary
+is not one file**, which is `I26`'s scope error exactly. **It was caught because the head of the
+list was IMPLAUSIBLE, not because the parser complained** -- a reminder that the check on a
+census is whether its answer could be true.
