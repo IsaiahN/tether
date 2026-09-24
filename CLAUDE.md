@@ -676,9 +676,27 @@ reads as something that will be enforced, and it will not be.
   **AND *THE COUNTER MOVES* IS NOT ENOUGH, BECAUSE IT HAS NO DENOMINATOR — `F359`, 2026-09-24,
   AND THE CASE BELOW WAS ALREADY WRITTEN WHEN I MADE IT.** I built the residual precondition
   behind `_cannot_pay`, ran this exact check, and it PASSED: the site executes, the counter
-  moves, **7 calls.** Against **144,961 bounded out.** The gate is reached, returns `True` on
-  all seven, and deleting it entirely moves no binding — **a clean pass on this check with a
-  mechanism that has nothing to act on.**
+  moves, **7 calls.** The gate is reached, returns `True` on all seven, and deleting it
+  entirely moves no binding — **a clean pass on this check with a mechanism that has nothing
+  to act on.**
+
+  **AND I FIRST WROTE THAT RATIO AS *7 AGAINST 144,961*, WHICH IS A DENOMINATOR FROM ANOTHER
+  CALL SITE — CORRECTED WITHIN THE HOUR, AND IT IS THE BETTER LESSON.** `_cannot_pay` has
+  **three** call sites (`4328`, `4359`, `4416`) and 144,961 is the bounded-out count of
+  `4328` alone. Measured per site: **4328 bounded 144,961 / cleared 26 · 4359 bounded 732,816
+  / cleared 14 · 4416 bounded 46 / cleared 10.** The gate at `4466` sits after `pays()` at
+  `4426`, so **its true population is the 7 terms that ALREADY WON THE BARGAIN** — it refuses
+  0 of 7, and the number I published belonged three steps upstream.
+
+  > **SO THE DENOMINATOR OBEYS *GO TO THE WRITE SITE* TOO: TAKE IT FROM THE SAME SITE AS THE
+  > NUMERATOR.** A count and a total that are each individually true describe nothing when
+  > they are measured at different places, and the pairing is invisible in both numbers.
+
+  **AND THE CORRECTED PLACEMENT REFUTES THE GATE'S OWN COMMENT, which reads *"Refused BEFORE
+  the contest, so a spectator cannot even be a champion."*** It runs AFTER `pays` and after
+  `bargain_paid` is incremented. **A spectator CAN be a champion there and is then vetoed** —
+  a different mechanism from the one the comment describes, and `bargain_paid` counts terms
+  the gate may still refuse.
 
   > **EXECUTES IS NOT HAS OCCASIONS. Count the site's calls AGAINST THE POPULATION IT IS MEANT
   > TO FILTER, and read the ratio, not the counter.** A bare count answers *is it wired*; only

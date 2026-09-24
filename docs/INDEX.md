@@ -48415,11 +48415,37 @@ One script, one flag. ARM A as built, ARM B with `bears_on` replaced by `return 
 **A gate that can be deleted without moving one binding is not yet doing work.** This is not a
 defect in the gate: it is a statement about where it sits.
 
-### AND WHERE IT SITS IS THE PART WORTH KEEPING
+### CORRECTED WITHIN THE HOUR -- THE DENOMINATOR CAME FROM ANOTHER CALL SITE
 
-**7 calls against `bargain_bounded_out` of 144,961.** The precondition is gated BEHIND
-`_cannot_pay`, so it only ever sees candidates that already cleared the bound. `CLAUDE.md`
-records this same placement failing before, in the same file, for the same reason:
+**I first published this as *7 calls against `bargain_bounded_out` of 144,961*. That pairing is
+wrong and the error is instructive, because it is a WRONG DENOMINATOR inside the entry that
+establishes the denominator rule.**
+
+`_cannot_pay` has **three** call sites and 144,961 belongs to one of them. Per site, same run:
+
+    4328    bounded 144,961    cleared 26
+    4359    bounded 732,816    cleared 14
+    4416    bounded      46    cleared 10     (the TREES branch, a different candidate)
+
+**And the gate at `4466` sits AFTER `pays()` at `4426` and after `bargain_paid` is incremented
+at `4446`.** So its true population is **the 7 terms that already WON the bargain** -- it
+refuses 0 of 7, and the number I quoted sat three steps upstream of the branch it is in.
+
+> **THE DENOMINATOR OBEYS *GO TO THE WRITE SITE* TOO: TAKE IT FROM THE SAME SITE AS THE
+> NUMERATOR.** Two individually-true numbers measured at different places describe nothing,
+> and nothing in either number shows the mismatch.
+
+### AND THE CORRECTED PLACEMENT REFUTES THE GATE'S OWN COMMENT
+
+The site reads: *"Refused BEFORE the contest, so a spectator cannot even be a champion."*
+**It runs after the contest.** A spectator CAN be a champion there and is then vetoed -- a
+different mechanism from the one described -- and `bargain_paid` counts terms the gate may
+still refuse, so the two numbers disagree by construction.
+
+### THE STARVATION CLAIM SURVIVES, WITH A DIFFERENT CAUSE
+
+**7 occasions is still almost nothing**, so the finding holds; what was wrong was the
+mechanism. `CLAUDE.md` records this same placement failing before, in the same file:
 
 > *It was STARVED: `_cannot_pay` cuts 346,992 of 347,494, only 502 candidates reach `pays`...
 > A rescue site with almost no occasions.*
@@ -48447,4 +48473,51 @@ not only against the inline control: the identical-incumbent assertion fires and
 belongs is a wiring decision of the same family as `F358`'s, and it is Isaiah's. **What is
 settled is that its failure path WORKS and its position gives it almost nothing to work on** --
 so if it is meant to bite, the bound in front of it is what stands between.
+
+## F360 -- **THE CONSUMER HAS NEVER HAD A CHOICE TO MAKE: 3 CALLS, ONE KIND IN CONTENTION EVERY TIME, ZERO CONTESTS** -- and feeding its dial would change nothing
+
+**The reviewer's declared next item is the CONSUMER -- Systems 1 and 2, ranked by
+time-to-consequence, urgency preempting.** Before building the feed for `consequence_in`, I ran
+the denominator check `F359` had just installed. **It cancelled the build on first use.**
+
+### THE RANKER'S OCCASIONS
+
+    calls to `_rank_by_consequence`      3
+    with 1 kind in contention            3      <- nothing to order
+    with 2+ kinds in contention          0      <- A REAL CONTEST
+    kinds ever seen                      {'predictor': 3}
+
+> **A QUEUE OF ONE HAS NO ORDER.** The mechanism is built, reached, and structurally unable to
+> express a preference, because the second kind never arrives to be preferred against.
+
+### AND THE SECOND KIND IS BLOCKED BY THE ALREADY-PENDING RULING
+
+`by_kind` is populated after `pays()`. `F357` measured **0 of 2,695 objectives paying**, so no
+`OBJ` ever enters the dict. **The consumer is DOWNSTREAM of the pricing question, not parallel
+to it** -- so it cannot be exercised before `F358`'s ruling regardless of how well it is built.
+
+**This is a dependency the declared order does not carry**, and it is worth saying plainly:
+the item ranked first cannot demonstrate anything until the item it is waiting on is decided.
+
+### A LATENT DEFECT, FOUND BY FEEDING IT ARTIFICIALLY
+
+The sort reads `(soon if soon is not None else 0.0)`. **`None` -- unearned -- collapses to
+`0.0`, which sorts FIRST.** Driven with a partially-filled dial:
+
+    nothing earned (today)                    ['predictor', 'OBJ']
+    predictor earns 1.0, OBJ still unearned   ['OBJ', 'predictor']     <-- the head flipped
+
+**The head is what gets INSTALLED.** So the moment any kind earns a reading, every kind that
+has NOT earned one jumps ahead of it -- **the agent would install a term BECAUSE IT KNOWS
+NOTHING ABOUT IT.** Invisible today only because nothing is earned, and it would have activated
+on the first board that filled the dial.
+
+> **UNKNOWN IS NOT ZERO. An absent reading is being encoded as the most urgent possible one**,
+> which is the one thing it cannot mean.
+
+**NOT REPAIRED HERE, AND DELIBERATELY.** The faithful fix follows the docstring's own stated
+intent -- *"until the agent has observed one... every kind ties, and the fallback is `total`"* --
+which generalises to: **the dial orders a contest only when it can speak about every contestant.**
+That is a wiring change on the decision path with no occasion to exercise it (0 contests), so it
+is recorded and left, not slipped in unexercised.
 
