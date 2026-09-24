@@ -65,6 +65,28 @@ def sentences(rows: list[dict]) -> list[tuple[list[int], str]]:
                                f"reaches {d.get('reach')} of {d.get('unsat')}."))
         elif ev == "routine_refused":
             out.append(([seq], f"On {slot} I formed no plan: {d.get('reason')}."))
+        elif ev == "routine_recovered":
+            # A FALLBACK IS THE ONE EVENT THAT LOOKS LIKE NOTHING HAPPENED. The plan carries
+            # on and the step emits an action, so without a sentence the narration would
+            # describe a smooth run over a body that FAILED. It has to say what failed and
+            # that the failure is not a refutation, because `exhausted` IS one everywhere else.
+            out.append(([seq], f"On {slot} part of `{d.get('routine')}` ended "
+                               f"{d.get('outcome')} and I took the fallback instead. The "
+                               f"body's ending is not a refutation of the plan -- I never "
+                               f"finished putting it to the test."))
+        elif ev == "guard_unreadable":
+            # THE ROW `F207` WAS DIAGNOSED FROM, AND THE NARRATION COULD NOT SAY IT. `blocked`
+            # means only *I could not read the guard*, and WHICH of `goal_residual`'s exits
+            # fired is a different fact each time -- supply, type, perception or scope.
+            why = {"never_bound": "nothing is bound there, so there is no objective to read",
+                   "subject_departed": "the slot my plan was about left the board",
+                   "out_type-not-OBJ": "what is bound there is not an objective",
+                   "empty-group": "the slot has no peers, so the scope is empty",
+                   "slot-absent-from-state": "the slot is not in this frame"}
+            ex = d.get("exit")
+            out.append(([seq], f"On {slot} I could not read my own guard: "
+                               f"{why.get(ex, ex)}. That is not the guard being false, and I "
+                               f"am not counting it against the plan."))
         elif ev == "routine_abandoned":
             # METACOGNITION'S SENTENCE. It has to say the CLAIM, the MISS and the SAVING, because
             # those are the three things that distinguish abandoning from the other four endings

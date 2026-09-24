@@ -562,6 +562,23 @@ def check_the_act_space_stays_narratable():
     v = speak.verify(rows, said)
     assert v["orphans"] == 0, f"{v['orphans']} sentences trace to no record: {v['examples'][:2]}"
     assert v["traceable"], "the narration stopped being traceable with the ACT space present"
+
+    # AND THE OTHER DIRECTION, WHICH `orphans` CANNOT SEE. `verify` counts SENTENCES that trace
+    # to no record; an EVENT that no sentence covers is invisible to it, so the narration can
+    # go quiet about a whole kind of thing and still score perfectly. **Measured when this was
+    # written: `routine_recovered` (ten minutes old, mine) and `guard_unreadable` -- the row
+    # `F207` was diagnosed from -- had no sentence at all.**
+    #
+    # A DENOMINATOR, NOT AN ERROR HUNT: every ACT-space event tether can write is the
+    # population, and the assertion is that the population is covered.
+    import re
+    tsrc = pathlib.Path(tether.__file__).read_text(encoding="utf-8")
+    events = {e for e in re.findall(r'led\.record\([^)]*?"([a-z_]+)"\s*[,)]', tsrc, re.S)
+              if e.startswith(("routine", "guard"))}
+    ssrc = pathlib.Path(speak.__file__).read_text(encoding="utf-8")
+    narrated = set(re.findall(r'ev == "([a-z_]+)"', ssrc))
+    silent = sorted(events - narrated)
+    assert not silent, f"every ACT-space event has a sentence -- these do not: {silent}"
     # ORPHANS ALONE IS VACUOUS HERE AND THE FIRST VERSION STOPPED THERE. `speak` cited 0 of 2
     # PLAN rows, so there was nothing to orphan and the check passed on an unnarrated space.
     cited = {i for s in said for i in s[0]}
