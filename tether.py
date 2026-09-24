@@ -292,26 +292,6 @@ _STARVED_CONTACT = bool(os.environ.get("TETHER_STARVED_CONTACT"))
 # BEFORE the reader sees them** -- so `Call("satisfied", (Slot(s),))` would hand the reader the
 # slot's VALUE and lose the name. The prefix keeps the grammar untouched, renders legibly, and
 # is one place rather than a second node kind every walker would have to learn.
-# THE TREE'S OWN BOUND, arm `TETHER_TREE_BOUND`, DEFAULT OFF.
-#
-# **A TREE IS EXCLUDED TODAY BY A BOUND COMPUTED ON A DIFFERENT TERM.** `_trees` is offered only
-# after the FLAT candidate survives `_cannot_pay` -- and a tree `f<g(s)>` is a DIFFERENT FUNCTION
-# from `f`, so it can be right where `f` is wrong. `_cannot_pay`'s whole value is that it is
-# NECESSARY -- *nothing that would have paid or closed is lost* -- and that guarantee holds for
-# the term it was computed on. **Extending it to a term it was not computed on is the one thing
-# the bound cannot do**, and it is the failure its own docstring records: *measured, it lost a
-# closing term.*
-#
-# MEASURED, WHICH IS WHY THIS IS NOT THEORETICAL: `_trees` is called ZERO times in three cycles
-# of `vc33`, because the bargain book reads 5268 bounded out and 0 reaching `pays`. **The only
-# route to arity-2 in this codebase is dead behind a bound about something else.**
-#
-# **OFF BY DEFAULT BECAUSE THE COST IS REAL AND I COULD NOT MEASURE IT.** `_branches()` offers 2
-# atoms, so a sound version costs up to 2 extra `_cannot_pay` calls per operand-reading
-# candidate -- far less in practice, since the bound early-exits on hopeless terms. That is the
-# same costed argument that keeps `TETHER_INSTRUMENTS` off: compute spent per cycle is episodes
-# forgone, and §12.12 prices it. **A measurement turns this on; nothing else may.**
-_TREE_BOUND = bool(os.environ.get("TETHER_TREE_BOUND"))
 
 _SAT = "satisfied:"
 
@@ -4215,25 +4195,42 @@ class Agent:
                                          "reason": "bounded-out: cannot pay on R alone"})
                             self.gamma.book["bargain_bounded_out"] = (
                                 self.gamma.book.get("bargain_bounded_out", 0) + 1)
-                            # THE TREE IS JUDGED BY ITS OWN BOUND, NOT ITS PARENT'S. See
-                            # `_TREE_BOUND`: a bounded-out FLAT term says nothing about a tree
-                            # built on it, and today that silence excludes the only arity-2
-                            # mechanism there is. Each tree pays `_cannot_pay` and `pays` on its
-                            # own terms, so nothing enters that the bargain would not admit.
-                            if _TREE_BOUND:
-                                for bt in self._trees(cand, bind, g):
-                                    bcost = term_bits(self.gamma.length(bt, _units),
-                                                      self.gamma.alphabet)
-                                    if self._cannot_pay(bt, slot, robs, bcost, base):
-                                        continue
-                                    bleft = self._left(bt, slot, hist)
-                                    if not pays(bcost, bleft, base):
-                                        continue
-                                    btotal = bcost + bleft
-                                    if kind not in by_kind or btotal < by_kind[kind][0]:
-                                        by_kind[kind] = (btotal, bleft, bcost, bt)
-                                    if best is None or btotal < best[0]:
-                                        best = (btotal, bleft, bcost, bt)
+                            # **ISAIAH'S RULING, 2026-09-24: THE TREE IS JUDGED BY ITS OWN
+                            # BOUND.** *`_cannot_pay` applied to the tree route using a figure
+                            # COMPUTED ON A DIFFERENT TERM is a DEFECT, not a policy.* A tree is
+                            # a different function from its flat parent and can be right where
+                            # the parent is wrong, so the parent's bound says nothing about it
+                            # -- and the bound's whole value is that it is NECESSARY *for the
+                            # term it was computed on*.
+                            #
+                            # **NO ARM.** `TETHER_TREE_BOUND` was a workaround for this defect
+                            # and is removed. The route opens WITHOUT a blanket widening,
+                            # because every tree still pays `_cannot_pay` AND `pays` on its own
+                            # terms -- nothing enters that the bargain would not admit.
+                            # **A TREE MUST BE NOVEL TOO, AND NOTHING CHECKED IT.** The flat
+                            # term is refused as `not-novel` when it is an atom or already in
+                            # the library; the tree path had no such check at either site.
+                            # **The dead branch hid it** -- with `_trees` reaching nothing, a
+                            # duplicate tree never got as far as `accept`. Opening the route
+                            # surfaced it immediately as `ValueError: already in library`.
+                            #
+                            # **A SECOND PRE-EXISTING DEFECT, NOT A CHANGE TO THE BOUND** --
+                            # reported as such. A route that opens onto a crash is not open.
+                            for bt in self._trees(cand, bind, g):
+                                if self.gamma.is_atom(bt) or bt.name in self.gamma.library:
+                                    continue
+                                bcost = term_bits(self.gamma.length(bt, _units),
+                                                  self.gamma.alphabet)
+                                if self._cannot_pay(bt, slot, robs, bcost, base):
+                                    continue
+                                bleft = self._left(bt, slot, hist)
+                                if not pays(bcost, bleft, base):
+                                    continue
+                                btotal = bcost + bleft
+                                if kind not in by_kind or btotal < by_kind[kind][0]:
+                                    by_kind[kind] = (btotal, bleft, bcost, bt)
+                                if best is None or btotal < best[0]:
+                                    best = (btotal, bleft, bcost, bt)
                             continue
                         left = self._left(term, slot, hist)
                         # §4's TREE, AND THIS IS ITS FIRST PRODUCER. `operand_term` was
@@ -4268,11 +4265,21 @@ class Agent:
                         # The problem is that `_cannot_pay` is NECESSARY *for the term it was
                         # computed on*, and a tree is a different function -- so gating trees
                         # on the FLAT term's bound is the one use that bound cannot support.
-                        # `TETHER_TREE_BOUND` offers them in the bounded-out branch under
-                        # their OWN `_cannot_pay`; this site is unchanged and still runs.
+                        # **REPAIRED 2026-09-24 under Isaiah's ruling**: the bounded-out
+                        # branch now offers trees under their OWN `_cannot_pay`, with no arm,
+                        # and this site applies the same bound as a short-circuit.
                         for bt in self._trees(cand, bind, g):
+                            if self.gamma.is_atom(bt) or bt.name in self.gamma.library:
+                                continue
                             bcost = term_bits(self.gamma.length(bt, _units),
                                               self.gamma.alphabet)
+                            # **THE SAME BOUND HERE, AND IT CHANGES NO OUTCOME.** `_cannot_pay`
+                            # PROVES `cost + left >= base`, which is exactly `not pays` -- so
+                            # anything it refuses, `pays` refuses too. A short-circuit, not a
+                            # new filter, which is what makes this repair byte-identical where
+                            # the bound was already correct.
+                            if self._cannot_pay(bt, slot, robs, bcost, base):
+                                continue
                             bleft = self._left(bt, slot, hist)
                             if not pays(bcost, bleft, base):
                                 continue

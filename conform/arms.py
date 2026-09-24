@@ -75,10 +75,6 @@ ARMS: dict[str, str] = {
                           "OBJECT_BEFORE, so the agent cannot compose a cross-frame delta",
     "TETHER_STARVED_CONTACT": "the starved-contact reading",
     "TETHER_STREAM_WIDEN": "the widened candidate streams",
-    "TETHER_TREE_BOUND": "a TREE judged by its OWN `_cannot_pay` rather than by the flat "
-                         "term's. Off at a COSTED price: up to 2 extra bound checks per "
-                         "operand-reading candidate, and compute per cycle is episodes "
-                         "forgone (§12.12). Measured: `_trees` is called ZERO times today",
     "TETHER_TYPED_BIND": "binding filtered by type",
 }
 

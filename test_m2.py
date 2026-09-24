@@ -543,6 +543,43 @@ def check_the_composer_can_propose_a_fold():
         assert bad.apply(shape, ctx) is NOT_RESOLVED, f"{chain} returned a number"
 
 
+def check_the_tree_is_judged_by_its_own_bound():
+    """DEFECT: a tree excluded by `_cannot_pay` computed on its FLAT PARENT.
+
+    **ISAIAH'S RULING, 2026-09-24: that is a defect, not a policy.** A tree `f<g(s)>` is a
+    DIFFERENT FUNCTION from `f` and can be right where `f` is wrong, so the parent's bound says
+    nothing about it -- and the bound's whole value is that it is NECESSARY *for the term it
+    was computed on*. `_trees` was called ZERO times because of it (`F348`).
+
+    **AND THE REPAIR IS BYTE-IDENTICAL WHERE THE BOUND WAS ALREADY CORRECT**, which is the
+    ruling's condition. The survivor branch now applies the tree's own `_cannot_pay` BEFORE
+    `pays` -- and that changes no outcome, because the first IMPLIES the second.
+    """
+    # 1 -- THE IMPLICATION THAT MAKES IT A SHORT-CIRCUIT RATHER THAN A NEW FILTER.
+    # `_cannot_pay` proves `cost + log2(V)*wrong >= base`, and `left` is at least
+    # `log2(V)*wrong` -- so anything it refuses, `pays` refuses too. Asserted over the
+    # arithmetic rather than asserted in prose.
+    for cost, wrong, unit, base in ((3.0, 2, 2.0, 5.0), (1.0, 4, 2.0, 8.0),
+                                    (0.5, 1, 3.0, 2.0), (9.0, 0, 2.0, 4.0)):
+        proved = cost + unit * wrong >= base
+        if proved:
+            assert not pays(cost, unit * wrong, base), (
+                f"_cannot_pay proved it cannot pay, yet pays() admitted it: "
+                f"cost={cost} left={unit * wrong} base={base}")
+
+    # 2 -- AND THE ARM IS GONE. It was a workaround for the defect; the ruling replaced it
+    # with the repair, so a reader must not find a switch that no longer gates anything.
+    assert not hasattr(tether, "_TREE_BOUND"), "the workaround arm survived the repair"
+
+    # 3 -- AND THE BOUNDED-OUT BRANCH OFFERS TREES UNCONDITIONALLY NOW, which is the route
+    # opening. Read from the source, because no board reaches it today (F348: `_trees` at 0).
+    src = pathlib.Path(tether.__file__).read_text(encoding="utf-8")
+    seg = src[src.index("bounded-out: cannot pay on R alone"):]
+    seg = seg[:seg.index("left = self._left(term, slot, hist)")]
+    assert "for bt in self._trees(" in seg, "the bounded-out branch no longer offers trees"
+    assert "if self._cannot_pay(bt," in seg, "the tree is not judged by its OWN bound"
+
+
 def check_chunking_reaches_the_bargain():
     """The ARITHMETIC of chunking: a settled routine counts as one unit and that can flip `pays`.
 
