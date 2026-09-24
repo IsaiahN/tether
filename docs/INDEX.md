@@ -47916,6 +47916,37 @@ atoms* -- which is `I25`'s law (*repaired the instance, left the class*) applied
 > different each time -- table SHAPE, then POPULATION, then NAMING VARIANTS -- which is why no
 > single fix caught them all.
 
+**AND THE *GRID PRIMITIVES* CLAIM IS WITHDRAWN -- I READ THE NAMES AND NOT THE USES, 2026-09-24.**
+The 17:01 report said *roughly twenty grid primitives sit in the 659* and named `Object`, `Depth`,
+`Surface`, `Face`, `Tile`, `Inside`, `Outside`, `Region`, `Split`, `Join`. **Checked against the
+recipes that actually CONSUME them:**
+
+    `Object`   `Carried token | Link + Bless + Object + Intent`      a magical object
+    `Depth`    `Mastery | Skill + Depth + Integration + Flow`        expertise
+    `Surface`  `Mirror | Refl + Surface`                             optics
+    `Face`     `Empathic encounter | Other + Feeling + Face`         a human face
+    `Tile`     `Poincare disk | Hyp + Tile + Circle`                 hyperbolic geometry
+    `Region`   `Temporal dilation`  -  `Cavity` `Helmholtz`  -  `Join` `Root graft`
+
+> **THEY ARE GRID-SOUNDING NAMES USED IN NON-GRID RECIPES.** Defining `Surface` as a cell
+> boundary would give the optics recipe a meaning it never had -- **`A6i` committed in the act of
+> repairing the vocabulary.**
+
+**WHAT SURVIVES IS ABOUT THREE, NOT TWENTY:** `Inside` and `Outside`, whose consumer is
+`Membrane boundary | Link + Inter + Inside + Outside (Top)` -- **the `(Top)` qualifier says
+TOPOLOGICAL** -- and `Deform`, consumed by `Topological transform`. **Those are genuinely
+spatial.**
+
+**AND THE ERROR IS THE ONE THIS RECORD FILES MOST OFTEN, COMMITTED WHILE FIXING IT:** *a grep's
+count is not evidence until you have read what it matched.* **I read a list of names, recognised
+them as the agent's job, and never opened the rows.** The `A6i` trigger -- *where a headline is
+about to be made* -- fired on the audit's numbers three times and not once on its
+INTERPRETATION.
+
+**A SECOND DUPLICATE, FOUND ON THE WAY:** `Mastery` has TWO entries with different recipes
+(`+ Integration + Flow` and `+ Intuition + Flow`), joining `Fatigue`. **Not repaired -- a
+duplicate is a resolution, not an addition, and Isaiah ruled additions only.**
+
 **THE THIRD PASS WAS RUN FOR A SPECIFIC REASON AND IT PAID IMMEDIATELY:** Isaiah ruled the
 proctor may ADD ingredients that recipes already name. **Authoring a definition for a thing the
 closure already defines is the one unrecoverable mistake available here**, and `Symmetry` was on
