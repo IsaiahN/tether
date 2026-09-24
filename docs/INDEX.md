@@ -47010,3 +47010,58 @@ and the means to walk it is built and switched off.**
 **Not flipped, and the decisive reason is the second one**: the house rule is that a measurement
 turns an arm on, and no measurement was permitted tonight. **That every other arm is off too is
 not a reason -- it is the finding.**
+
+
+## F345 -- THE ACT SPACE BECAME A LANGUAGE WITH DECISIONS IN IT. Two choosers, guards that can say more than one thing, and every event narratable -- and all of it still downstream of gate 1
+
+`F342` says the MECHANISMS have no chooser. **The agent's own PLAN LANGUAGE had none either,
+and unlike the six mechanism sites this one was FIXABLE** -- what was missing was a PLACE TO PUT
+a decision rather than a value we were holding.
+
+### WHAT IT COULD SAY, AND WHAT IT CAN SAY NOW
+
+    this morning   `Act` `Seq` `When` `Until` `Call` `Let` `Expect`. **A one-armed conditional,
+                   a guard that names ONE slot, and no answer to failure**
+    now            **`Choose`** -- branches on a GUARD read before acting · **`Try`** --
+                   branches on the OUTCOME · guards that COMBINE (`and`/`or`/`not`) and that
+                   COMPARE (`o1.dcol == o2.dcol`) · a guard that is PRICED
+
+**TWO CHOOSERS READING DIFFERENT EVIDENCE, and neither substitutes for the other.** A guard says
+what the world is like now; an ending says what this plan turned out to be able to do.
+
+**AND THE GUARDS STOPPED BEING ABOUT THE AGENT'S OWN BOOKKEEPING.** Every guard the composer
+could build was `satisfied:<slot>` -- *my objective here is met*. `o1.dcol == o2.dcol` is a
+statement about the BOARD, and **that is a different kind of sentence, not a longer one.**
+
+### THE THREE DEFECTS FOUND IN MY OWN WORK WHILE BUILDING IT
+
+    A GUARD WAS FREE      `routine.length` never looked inside one. Correct while every guard
+                          is one name; **wrong the instant they combine, because `or` is
+                          EASIER to satisfy than either side** -- the agent could loosen its
+                          own termination condition at ZERO COST and win the bargain by saying
+                          less. *The term that explains everything by saying nothing*, arriving
+                          through the one part of the object nobody priced
+    `A6i`, AND IT WAS NEW `condition.py`'s grammar makes a bare `SLOT` a VALUE; the reader I
+                          wired read it as a PREDICATE. **Both readings well-formed** --
+                          `and`/`or`/`not` worked, and the first `Cmp` would have compared a
+                          BOOL to a number and reported a clean `False`. **Nothing could reach
+                          it yet, which is the PROSPECTIVE half and the argument for fixing it
+                          then rather than later**
+    TWO EVENTS UNNARRATED `routine_recovered` and **`guard_unreadable` -- the row `F207` was
+                          diagnosed from.** `speak.verify` counts ORPHAN SENTENCES, so an
+                          unnarrated EVENT is invisible to it: the narration can go quiet about
+                          a whole kind of thing and still score perfectly
+
+**A FALLBACK IS THE WORST CASE FOR THE LAST ONE**: it looks like nothing happened, so without a
+sentence the narration describes a smooth run over a body that FAILED. **The recovery is a
+ledger row, published BEFORE the fallback runs** -- the other order loses exactly the case it
+exists for.
+
+### AND THE CAVEAT THAT GOVERNS ALL OF IT
+
+> **EVERY CONSTRUCT HERE IS DOWNSTREAM OF GATE 1, WHICH `F343` MEASURED AS REFUSING EVERY CYCLE
+> BECAUSE `slots: 0`.** The unit tests prove they work when called. **Nothing shows they are
+> called on a board.**
+
+**Two decision points and a fallback in a language that has not yet been asked to speak.** That
+is the state, and it is stated here rather than left as twenty-six green commits.
