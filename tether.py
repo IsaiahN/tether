@@ -4412,6 +4412,21 @@ class Agent:
             self.gamma.settle(name)
             self.settled.add(name)
             self._settled_at[name] = self.cycle
+            # **AT WHAT DEPTH DO THIS AGENT'S TERMS ACTUALLY ARRIVE?** `F341` left `max_depth`
+            # as the one row it could not assign -- genuinely a COMPUTE BOUND and a BELIEF
+            # about where answers live. The corpus splits it: `PHILOSOPHY` makes search depth
+            # `d` cost `λᵈ` with λ the MEASURED spectral radius, so **the cost is substrate and
+            # the depth is a judgement.**
+            #
+            # **A RECORD, NOT A DIAL. Nothing reads this to set anything.** It is the evidence
+            # a later dial would need, and it is already in the units a depth is measured in --
+            # the same property that let the halflife read its observation directly rather than
+            # through a function we chose. If every arrival is depth 1, depth 3 is spend with
+            # no return; if arrivals crowd the ceiling, the ceiling is what is cutting them off.
+            _d = len(term) if (term := self.gamma.library.get(name)) is not None else 0
+            if _d:
+                k = f"arrived_at_depth_{min(_d, 9)}"
+                self._book[k] = self._book.get(k, 0) + 1
             # WHAT WAS ASKED AND WHAT CAME BACK. The question is `does this term
             # predict a transition it was never fitted to`, and `r.mass == 0.0` on a
             # cycle later than the one it was minted on IS the answer. Both facts were
