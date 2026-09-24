@@ -85,7 +85,13 @@ PAIRS: tuple[tuple[str, str], ...] = (
     ("TETHER_SHAPE_DELTA", "TETHER_SHAPE_DECODE"),
 )
 
-_READ = re.compile(r'os\.environ\.get\("(TETHER_[A-Z0-9_]+)"')
+# BOTH QUOTE STYLES, AND THE SEAT IS WHY. This matched double quotes only, so an arm written
+# with single quotes would enter SILENTLY -- past the one check whose entire purpose is that a
+# new arm cannot. The codebase is double-quoted throughout and `ruff format` keeps it that way,
+# **which is exactly the reasoning that makes a detector brittle**: it is true of the code today
+# and is not a property anything enforces. A guard resting on a convention it does not check is
+# the arms' own shape one level up -- reasonable, and nothing computes it.
+_READ = re.compile(r'''os\.environ\.get\(\s*["'](TETHER_[A-Z0-9_]+)["']''')
 
 
 def _tracked() -> list[Path]:
