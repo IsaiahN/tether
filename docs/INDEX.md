@@ -47160,6 +47160,24 @@ has filed three times.
 > atom; to the interpreter, mid-iteration, it is the type of the ELEMENT. **One name, two
 > quantities, both readings well-formed** -- `A6i` at the level of the type system.
 
+### AND THE CONSTRUCT WAS ALREADY HAND-BUILT AND VERIFIED, WHICH SHARPENS THE FINDING
+
+**`LIBRARY_RETRIEVAL` §12.2.1 records it working**: *`cells . cell_row . parity . count_true`
+= 4 on a 5x5 ring, which has exactly 4 cells in odd rows.* **So the runtime was proven and the
+acceptance test passed.** My own re-check (`8a49629`, 2 on a 5-cell shape) reproduces it and adds
+a REGRESSION GUARD; **it did not discover it, and the commit that said *neither showed the fold
+runs* was true of MY commits and not of the record.** Corrected here rather than left to imply
+the construct was unverified.
+
+> **THE GAP IS BETWEEN *A HUMAN CAN BUILD IT AND IT RUNS* AND *THE COMPOSER CAN PROPOSE IT*.**
+> The acceptance test hand-built the chain. **Nothing asked whether anything could ever hand
+> that chain to the agent**, and the answer was no.
+
+**THAT IS THE EXISTS-VERSUS-REACHED SPLIT AT THE LEVEL OF AN ACCEPTANCE TEST**, and it is the
+most expensive place it has appeared: a passing acceptance test is the strongest evidence a
+build produces, and **it certifies the RUNTIME while saying nothing about REACHABILITY.**
+Hand-building the object under test is exactly what removes the composer from the loop.
+
 ### MEASURED, NOT ARGUED
 
     0 of 87,244    enumerated chains containing `cell_row` or `cell_col`, over
