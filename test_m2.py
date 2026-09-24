@@ -670,10 +670,23 @@ def check_the_act_space_stays_narratable():
     #
     # A DENOMINATOR, NOT AN ERROR HUNT: every ACT-space event tether can write is the
     # population, and the assertion is that the population is covered.
+    # **THE POPULATION IS DECLARED AND PARTIAL, AND SAYING SO IS THE POINT.** `speak` does not
+    # narrate every ledger event and should not -- most are internal bookkeeping. What it MUST
+    # narrate is the agent's ACCOUNT OF ITSELF, and that is a list, not a rule.
+    #
+    # **IT WAS `routine`/`guard` ONLY, AND THE BOOKS WERE MISSING.** The books are what let the
+    # agent set a term instead of guessing one, and `speak` could not say one of them -- so the
+    # narration described what the agent DID and never what it KNOWS ABOUT ITSELF. I fixed the
+    # ACT-space instance two hours earlier and left the class, which is `I25` again.
+    #
+    # A TABLE, NOT LOGIC, for `conform/lint.py`'s reason: *a table can be pinned; logic widens
+    # quietly.* A new self-account event is added HERE, deliberately, or it is not covered --
+    # and a reader can see which it is.
+    SELF_ACCOUNT = ("routine", "guard", "books")
     import re
     tsrc = pathlib.Path(tether.__file__).read_text(encoding="utf-8")
     events = {e for e in re.findall(r'led\.record\([^)]*?"([a-z_]+)"\s*[,)]', tsrc, re.S)
-              if e.startswith(("routine", "guard"))}
+              if e.startswith(SELF_ACCOUNT)}
     ssrc = pathlib.Path(speak.__file__).read_text(encoding="utf-8")
     narrated = set(re.findall(r'ev == "([a-z_]+)"', ssrc))
     silent = sorted(events - narrated)

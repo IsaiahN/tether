@@ -74,6 +74,32 @@ def sentences(rows: list[dict]) -> list[tuple[list[int], str]]:
                                f"{d.get('outcome')} and I took the fallback instead. The "
                                f"body's ending is not a refutation of the plan -- I never "
                                f"finished putting it to the test."))
+        elif ev == "books":
+            # **THE AGENT'S ACCOUNT OF ITSELF, WHICH THIS FILE IS ALSO FOR, AND THE TWO NEVER
+            # MET.** The books are what let the agent set a term instead of guessing one, and
+            # `speak` could not say a single one of them -- so the narration described what the
+            # agent DID and never what it KNOWS ABOUT ITSELF.
+            #
+            # AGAINST THE SCORE, BECAUSE THAT IS THE BOOKS' OWN RULE. Every quantity here is
+            # reported beside `levels`, since the score is the one thing outside the agent and
+            # without the link these are bookkeeping it could optimise.
+            #
+            # **`None` IS SAID AS UNDEFINED, NOT AS ZERO.** `per_arrival` and `per_level` are
+            # `None` until something arrives or a level moves, and *nothing was bought at any
+            # price* is a different sentence from *it was cheap*.
+            _pa, _pl = d.get("per_arrival"), d.get("per_level")
+            cost = (f"{_pa} action(s) per term that stuck" if _pa is not None
+                    else "no cost per term yet, because nothing has arrived")
+            lvl = (f"{_pl} per level" if _pl is not None
+                   else "no cost per level yet, because the score has not moved")
+            half = (d.get("halflife") if d.get("halflife_earned")
+                    else "still the seeded one -- I have not earned it")
+            out.append(([seq], f"So far I have spent {d.get('actions_spent')} action(s) for "
+                               f"{d.get('score_levels')} of {d.get('score_target')} level(s). "
+                               f"{d.get('settled')} term(s) settled and {d.get('demoted')} "
+                               f"were demoted, {d.get('watching')} still being watched. "
+                               f"That is {cost}, and {lvl}. "
+                               f"My refutation halflife is {half}."))
         elif ev == "guard_unreadable":
             # THE ROW `F207` WAS DIAGNOSED FROM, AND THE NARRATION COULD NOT SAY IT. `blocked`
             # means only *I could not read the guard*, and WHICH of `goal_residual`'s exits
