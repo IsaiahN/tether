@@ -47689,4 +47689,17 @@ on 2026-09-23.**
 > WRONG ABOUT IT.** At that point it stops being philosophy and becomes a measurement. Before
 > it, there is nothing to measure.
 
+**THAT IS THE READINESS CONDITION. IT IS NOT THE RELEASE CONDITION, AND THE RELEASE IS AN
+ANNOUNCEMENT -- ISAIAH, 2026-09-24 11:18: *"I'll tell them when."*** The gate above describes
+when the question becomes *answerable*; the gate below decides when it may be *asked*.
+
+    THE TRIGGER    **Isaiah says the notebooks are done.** Nothing else, and it is not a
+                   state observable in the repo, the record or the ledger
+    UNTIL THEN     `FILED-01` stays parked and unscheduled, and is **NOT to be raised,
+                   proposed, measured or revisited -- by either seat**
+
+> **WRITTEN OUT PLAINLY BECAUSE A PARKED ITEM WHOSE TRIGGER IS UNDETECTABLE READS, TO A FUTURE
+> SEAT, AS EITHER OVERDUE OR FORGOTTEN -- AND IT IS NEITHER.** The entry now states both what it
+> waits for and **who will say so**, which is the half a milestone cannot carry.
+
 **Filed at the bottom of the backlog. No proposal is recorded here, deliberately.**
