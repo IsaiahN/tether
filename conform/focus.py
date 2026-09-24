@@ -83,6 +83,25 @@ def share() -> tuple[int, int]:
     MAX CONSECUTIVE RUN 3 against a stall of 5 -- the seat could fire ZERO times.** It was green
     for the whole night and more than half of it was off the agent.
 
+    **AND ISAIAH RULED THE CATEGORY WRONG, NOT ONLY THE COUNTER -- 2026-09-24 11:02, WHICH MAKES
+    THIS FUNCTION A FINER READING OF THE WRONG QUANTITY.** *Runs versus accumulation* is true and
+    is **the smaller half**. The larger: **the seat counts COMMITS THAT DO NOT TOUCH THE AGENT,
+    and the drift is TESTING, PLAYING GAMES AND CHASING METRICS -- work that DOES NOT CHANGE WHAT
+    THE AGENT CAN DO.** Those overlap badly in BOTH directions -- an instrument that exposes a
+    wiped-books bug is off-agent and **the opposite of drift**; a metric sweep that edits agent
+    files is on-agent and **is** the drift, and reads CLEAN.
+
+    > **SO A PERCENTAGE CANNOT SEPARATE THEM, BECAUSE THE FILE TOUCHED IS NOT THE QUANTITY THAT
+    > MATTERS.** The category is *did this work change what the agent can do, or produce a finding
+    > that changed it?* **Kept and reported anyway, because a wrong-category reading that is
+    > VISIBLE is still better than the invisible run-counter it sits beside** -- and removing it
+    > would delete the evidence for the ruling.
+
+    **NOT REBUILT: Isaiah's scope is *record the adjustment, do not rebuild before the current
+    queue*. And when it is rebuilt THE FAILURE PATH MUST BE EXERCISED** -- a guard whose failure
+    path is never exercised is indistinguishable from one that cannot fail, **which is how this
+    seat has been green since it was installed.**
+
     **REPORTED AND NOT ENFORCED, DELIBERATELY.** Whether a share should gate is the reviewer's,
     the way `STALL`'s value is; what was never theirs to decide is whether the quantity is
     VISIBLE, and the seat's own purpose sentence says it must be. **No window constant is minted

@@ -174,6 +174,41 @@ The per-turn streak is surfaced by `check.py` so the sum is never invisible agai
 the level is required, so a bare level cannot be rubber-stamped. **A gate is itself L3, so this
 stays exactly one seat and this one section** — its own commits are `L3` under its own rule.
 
+**AND THE SEAT'S CATEGORY IS WRONG, NOT ONLY ITS COUNTER -- ISAIAH, 2026-09-24, AND THE VERDICT
+IT GAVE WAS CORRECT FOR A REASON THE SEAT COULD NOT HAVE SUPPLIED.** Measured over one night:
+**41 levelled commits, 22 off the agent (53%), MAX CONSECUTIVE RUN 3 against a stall of 5 -- the
+seat could fire ZERO times.**
+
+> **A GREEN LIGHT THAT CANNOT TURN RED TELLS YOU NOTHING ABOUT THE NIGHT IT IS GREEN ON.** With
+> an alternating pattern it could not have fired on a GOOD night or a BAD one.
+
+**The night itself PASSES and Isaiah is right that it should**: game-testing was under a hard
+stop and the off-agent commits were mostly **instruments that found real agent defects** -- the
+executes-check stopped three dead builds, the reach census found 24 of 54 modules unreached, the
+book instruments exposed a wipe destroying the agent's own history. **That is not drift; it is
+why the agent-side work is trustworthy.**
+
+**AND *RUNS VERSUS ACCUMULATION* IS THE SMALLER HALF OF THE DEFECT.** The larger is the CATEGORY:
+
+    THE SEAT COUNTS      commits that do not touch the agent
+    THE DRIFT IS         testing - playing games - chasing metrics
+                         -- work that DOES NOT CHANGE WHAT THE AGENT CAN DO
+
+**The two overlap in BOTH directions.** *Off-agent and NOT drift*: an instrument exposing a
+wiped-books bug, counted against us and the opposite of drift. *On-agent and IS drift*: a metric
+sweep that edits agent files, **which reads CLEAN and is exactly the thing being warned about.**
+
+> **SO A PERCENTAGE CANNOT SEPARATE THEM -- THE FILE TOUCHED IS NOT THE QUANTITY THAT MATTERS.**
+> The category is: **DID THIS WORK CHANGE WHAT THE AGENT CAN DO, OR PRODUCE A FINDING THAT
+> CHANGED IT?**
+
+**NO THRESHOLD IS PROPOSED AND NONE IS TO BE INVENTED HERE: it is a CALIBRATION constant under
+`F341`'s third category, so moving it disarms the seat while leaving it GREEN AND COUNTED.**
+**Scope: recorded, NOT rebuilt before the current queue** -- and when it is rebuilt, **the
+failure path must be exercised**, because *a guard whose failure path is never exercised is
+indistinguishable from one that cannot fail*, which is how this seat has been green since
+installation.
+
 **The reviewer's sift ruled the record itself (2026-09-12): the transport programme — the
 workbook splits, the publish path, the freshness stamps — was real work correctly done, is
 finished, and is NOT to be GC'd, extended, or added to.** It is drift's overhead, not its cause,
