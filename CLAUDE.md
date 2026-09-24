@@ -1159,6 +1159,28 @@ commit in this repository carries the same author, the seat's included.** So it 
 awaiting a side rather than silently treated as one, and **until Isaiah places it, it is handled
 as CORPUS** — the direction whose error is recoverable.
 
+**AND A FOURTEENTH FILE IS UNPLACED, WHICH IS SEVENTEEN FILES AND THE WHOLE INHERITANCE:
+`docs/library-closure/` -- 2026-09-24.** `ATOMS.md` · `ATTRIBUTES.md` · `CATEGORIES.md` ·
+`RELATIONS.md` · `OPERATORS.md` and twelve more. **3,476 defined names. It is what §12.0 means by
+*the library we frontload*, and it appears NOWHERE in the table above.**
+
+**THE QUESTION WENT LIVE THE MOMENT IT WAS AUDITED, WHICH IS WHY IT IS WRITTEN NOW.** `F352`
+found real defects in it -- 919 ingredients with no defining entry, and rows where `·` is used as
+a separator `OPERATORS.md` does not define, so `Apophenia · Omen reading · Confirmation bias`
+parses as ONE name. **Those are one-line fixes and I have a standing instruction to repair
+WORKING files at source.** Whether this is a working file had never been answered.
+
+> **UNPLACED, THEREFORE HANDLED AS CORPUS, BY THIS FILE'S OWN RULE FOR `PERCEPTION_BUILD_PLAN`:
+> *until Isaiah places it, it is handled as CORPUS -- the direction whose error is recoverable.***
+> **So the closure is ANNOTATED IN `INDEX.md` AND NOT EDITED**, and `F352` is an annotation
+> rather than a repair for exactly that reason.
+
+**AND THE STAKE IS THE ONE THIS TABLE EXISTS FOR.** The closure is derivationally independent in
+the same way the rest of the corpus is -- **written earlier, by Isaiah, in a different context**
+-- and it is the thing the agent's whole inheritance argument rests on. **Editing it to make an
+audit come out clean would spend the property the audit was run to test**, which is the single
+edit here that reverting cannot undo.
+
 **A DEFECT ANNOTATED EXTERNALLY IS STILL CHECKABLE. A CORPUS I HAVE EDITED IS NOT.** Live
 instance: `ARC_AGENT` §23.2 opens *"the seven shapes from §12.1"* and they are **not the same
 seven** — it drops `ALREADY THE LOOP` and adds `ROUTINE`, so **eight shapes appear as two
