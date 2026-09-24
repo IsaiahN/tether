@@ -47208,6 +47208,18 @@ reason is a constant nobody has ruled on.**
 would read *the fold does not help* for the second time, for a second reason, having fixed the
 first. **Two preconditions, and only one of them was visible after fixing the other.**
 
+### AND BOTH SWITCHES ARE SMOKE-RUN ON THE GROUND, WHICH IS OWED BEFORE A FORK IS HANDED OVER
+
+**`TETHER_ITERATE=1` with `max_depth=4` EXECUTES on `vc33`, `ls20` and `sk48`** -- three cycles
+each, no crash. So does `TETHER_TREE_BOUND=1` (`F348`), and so do **both together**: nine
+combinations, all clean.
+
+> **THE OBSERVER ARM IS WHY THIS IS NOT CEREMONY.** Its first live run died at
+> `arc_world.py:181` on `if g and g[0]` -- `ReplayTape` hands LISTS and `arcengine` hands NUMPY
+> ARRAYS -- **after four findings had been reported off it.** *No arm's readings are generalised
+> until that arm has EXECUTED*, and **a fork handed over untested is a trap rather than a
+> choice**: the ruling would be spent and the first thing it bought would be a stack trace.
+
 **`max_depth` IS `F341`'s ONE UNRESOLVED ROW** -- flagged MIXED rather than assigned, because it
 is genuinely a compute bound AND a belief about where answers live -- and `PHILOSOPHY` splits
 it: search depth `d` costs `λᵈ`, so **the COST is substrate and HOW DEEP TO LOOK is a
@@ -47261,3 +47273,7 @@ it on and nothing else may.**
 **And the arms seat (`f2bec56`) refused the new arm before it was declared** -- four hours after
 it was built for exactly that. *A new arm cannot enter silently, which is how eighteen
 accumulated.*
+
+**AND IT IS SMOKE-RUN ON THE GROUND**: `TETHER_TREE_BOUND=1` executes on `vc33`, `ls20` and
+`sk48`, alone and alongside the fold arm. **What is unmeasured is the COST, which is the whole
+reason it is off -- not whether it runs.**
