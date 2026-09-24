@@ -46865,7 +46865,10 @@ than argued.**
                        four and nobody ever chose it** (`F334`, `F336`, `F338`)
     GATE 1             refuses every cycle with `no objective is confidently shrinking` -- **at a
                        bar the code NEVER CONSULTS**, because no series is ever long enough to
-                       judge (`F339`, `F340`)
+                       judge (`F339`, `F340`). **THE STATED CAUSE IS WRONG -- `F343`, measured
+                       2026-09-24: `slots: 0`. There are no series AT ALL.** *Too short* implies
+                       a population; there is none, so the bar is not merely unconsulted, it
+                       filters nothing. **SUPPLY, not the bar**
     THE TREND POP      destroys the trend on **98.4%** of calls -- **and the destruction is
                        CORRECT**: the defect category is ZERO on both boards (`F340`)
     METACOGNITION      built, correct, **and nothing to attach to** -- no routine is ever adopted
@@ -46906,3 +46909,57 @@ the decision point, and only then to give it away.**
     MECHANISM   nine commits; every constant named here is UNTOUCHED except the halflife's rate
     CAPABILITY  **none claimed.** The agent can now observe itself and turn one dial. Whether
                 that changes anything is a question for a run nobody is allowed to make tonight
+
+
+## F343 -- GATE 1'S REFUSAL WAS A FALSE CAUSAL STORY, AND I HAD QUOTED IT AS A FINDING. `slots: 0` -- the agent holds NO goal hypothesis, so `MIN_REPEAT` filters an empty population
+
+**Found by asking the standing question of my own night's work: are `Choose` and the compound
+guards ever REACHED.** They are not. Six cycles, one board: **`_mint_routine` fires every cycle
+and `enumerate_routines` is reached ZERO times.** Every exit is gate 1.
+
+### THE STRING SAID ONE THING AND THE WORLD WAS ANOTHER
+
+    the row          `no objective is confidently shrinking`
+    reads as         I hold objectives and none of them is shrinking
+    MEASURED         **`slots: 0`.** `self._res` is EMPTY. **The agent holds none**
+
+**`MIN_REPEAT` was filtering an empty population and could never have been the thing in the
+way.** **`F342`'s own GATE 1 row said *no series is ever long enough to judge*, which implies a
+population.** That row is corrected above rather than only here, because it is the one that gets
+quoted.
+
+> **A NULL CARRYING A SATISFYING CAUSAL STORY IS HARDER TO DOUBT THAN A BARE ONE -- and this one
+> was carrying MINE.** *The bar is never consulted* is a better-sounding fact than *there is
+> nothing to consult it about*, and it survived two findings and a synthesis.
+
+### FOUR FACTS WERE ONE STRING, AND ONLY TWO ARE ABOUT THE BAR
+
+    no hypothesis   `_res` empty. **SUPPLY.** The bar is irrelevant, and moving it does nothing
+    too_short       series shorter than `MIN_REPEAT + 1`. **The bar was never APPLIED**
+    flat / rose     **the bar genuinely refusing** -- the only two that are evidence about it
+
+`longest` and `needs` now ride on every refusal row, so *the bar was never reached* is
+distinguishable from *the bar said no* without a second run. **This is the `unbound` split of
+2026-09-21 -- *stop letting one number mean three things* -- at the gate the whole ACT space sits
+downstream of.**
+
+### AND IT IS THE BOOK THE `MIN_REPEAT` DIAL WOULD NEED
+
+`F341` sorted `MIN_REPEAT` as **THE AGENT'S**, and it was left untouched because *it has no books
+deep enough yet*. `plan_gate_*` persists with the other books, so **have I ever held a series long
+enough for my own bar to matter** survives the attempt in which it is asked. **The empty case
+carries its OWN key**: a tally writes nothing when the population is empty, and a book silent
+about its most important state cannot be told from a book nobody wrote.
+
+**NOTHING READS IT. `MIN_REPEAT` IS NOT MOVED.** Records, not thresholds.
+
+### WHAT THIS MAKES TRUE OF TONIGHT'S TWO BUILDS
+
+> **`Choose` (`b9f577c`) AND THE COMPOUND GUARDS (`f58a228`) ARE BOTH DOWNSTREAM OF THIS GATE.**
+> Their unit tests prove they work when called. **Nothing shows they are called on a board**, and
+> the run that would show it is the run the prohibition forbids tonight. **Stated, not buried.**
+
+**AND THE CHAIN IS NOW LEGIBLE END TO END**, which it was not this morning: no `OBJ`-typed
+bindings (`unbound` 845 of 969 on `vc33`) -> no goal hypotheses -> `_res` empty -> gate 1 refuses
+-> `_mint_routine` never composes -> **the entire ACT space is unreachable.** Seven constructors,
+one branch, one condition grammar, all behind a supply problem four steps upstream.
