@@ -47213,3 +47213,51 @@ is genuinely a compute bound AND a belief about where answers live -- and `PHILO
 it: search depth `d` costs `λᵈ`, so **the COST is substrate and HOW DEEP TO LOOK is a
 judgement.** It is not moved here. **The fork Isaiah holds is therefore two switches, not one**,
 and that is stated now rather than discovered from a null.
+
+
+## F348 -- A TREE IS EXCLUDED BY A BOUND COMPUTED ON A DIFFERENT TERM. **`_trees` is called ZERO times**, so the only route to arity-2 is dead behind `_cannot_pay` -- and arity is where the wall was measured
+
+**`_trees` is offered only after the FLAT candidate survives `_cannot_pay`.** A tree `f<g(s)>`
+is a **different function** from `f` -- it can be right where `f` is wrong -- **so the flat
+term's bound says nothing about it.**
+
+> **`_cannot_pay`'s ENTIRE VALUE IS THAT IT IS NECESSARY**: *nothing that would have paid or
+> closed is lost.* **That guarantee holds for the term it was computed ON.** Extending it to a
+> term it was not computed on is the one thing the bound cannot do -- **and it is the failure
+> its own docstring records**: *measured, it lost a closing term.*
+
+### MEASURED, NOT ARGUED
+
+    `_trees` calls          **0** in three cycles of `vc33`
+    the bargain book        **5268 bounded out · 0 does-not-pay · 0 paid** -- so nothing ever
+                            reaches the branch where trees are offered
+    with the arm ON         `_trees` fires **21,294** times and yields **39,936** candidates
+
+**THE ONLY ROUTE TO ARITY-2 IN THIS CODEBASE IS DEAD**, and `F131`/the composition-wall readings
+put arity-2 gaps at 100% failure against an arity-1 vocabulary. **The mechanism for the measured
+wall is behind a bound about something else.**
+
+### AND THE PLACEMENT WAS NOT CARELESS, WHICH IS THE INSTRUCTIVE PART
+
+Its site argues from COST, and the argument was sound when written: *`_cannot_pay` cuts 346,992
+of 347,494, only 502 candidates reach `pays` ... ~2 extra evaluations per survivor against 347k
+already spent.* **Offering trees to survivors was the cheap place to put them.**
+
+> **THAT ARGUMENT INVERTS WHEN THE SURVIVOR COUNT IS ZERO.** A mechanism attached to the
+> survivors of a filter dies exactly when the filter tightens -- **and nothing recomputes the
+> premise a placement was chosen under.**
+
+### THE FIX IS AN ARM, `TETHER_TREE_BOUND`, DEFAULT OFF
+
+Each tree pays `_cannot_pay` AND `pays` **on its own terms**, so nothing enters that the bargain
+would not admit: **it widens the contest, it does not relax it.** Inert by default and proven so
+-- arm off, `_trees` called 0 times, unchanged.
+
+**OFF BECAUSE OF COST, NOT CAUTION.** 39,936 extra candidates in three cycles is the cost
+concern substantiated rather than dismissed; compute per cycle is EPISODES FORGONE and §12.12
+prices it. **The same costed argument that keeps `TETHER_INSTRUMENTS` off. A measurement turns
+it on and nothing else may.**
+
+**And the arms seat (`f2bec56`) refused the new arm before it was declared** -- four hours after
+it was built for exactly that. *A new arm cannot enter silently, which is how eighteen
+accumulated.*
