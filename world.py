@@ -118,7 +118,20 @@ def _ladder(v, _a, _s):
     """Four atoms deep -- `dbl . neg . inc . wrap` -- which is PAST max_depth, so it is
     unreachable in atoms. It is `dbl` applied to SWING's rule, so once swing settles and
     becomes one unit it is two units deep and reachable. Nothing was added to the closure;
-    only the grain of the search changed. This slot is the chunking claim's falsifier."""
+    only the grain of the search changed. This slot is the chunking claim's falsifier.
+
+    **AND IT DOES NOT FALSIFY -- `F349`, 2026-09-24.** The four-atom decomposition above is
+    correct and is NOT THE SHORTEST ONE. `dbl . dec . neg` is `-(2v - 1)` = `-2v + 1`, which is
+    this rule exactly, and it is **THREE** atoms: measured in `closure("val","val", d=3)` over
+    ATOMS ALONE, with no settled unit. **The demo binds that chain.**
+
+    So the slot that exists to show chunking reached something atoms could not **is reached by
+    atoms**, and the claim was resting on the decomposition rather than on the closure.
+
+    NOT REPAIRED HERE. Every fix -- drop `dec`, lower the depth, change this rule -- alters what
+    the falsifier CAN SHOW rather than what the agent does, which is `F341`'s CALIBRATION
+    category and not the seat's to take. **When it stopped holding is undetermined; the obvious
+    git grep is the wrong instrument for those revisions and its zero is not evidence.**"""
     return (-(v * 2) + 1) % M
 
 

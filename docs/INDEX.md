@@ -47350,3 +47350,61 @@ accumulated.*
 **AND IT IS SMOKE-RUN ON THE GROUND**: `TETHER_TREE_BOUND=1` executes on `vc33`, `ls20` and
 `sk48`, alone and alongside the fold arm. **What is unmeasured is the COST, which is the whole
 reason it is off -- not whether it runs.**
+
+
+## F349 -- THE CHUNKING FALSIFIER DOES NOT FALSIFY. `ladder` is declared *unreachable in atoms* and is reachable in atoms at the default depth, so the `demo` seat's chunking claim is green and unproven
+
+**Found by asking whether a falsifier still discriminates** -- the question `F341`'s new
+CALIBRATION category was added for, one hour earlier, applied to the only falsifier that
+category names.
+
+### THE DECLARED PREMISE, AND THE MEASUREMENT
+
+`world._ladder`'s own docstring: *"Four atoms deep -- `dbl . neg . inc . wrap` -- which is PAST
+max_depth, so it is UNREACHABLE IN ATOMS. It is `dbl` applied to SWING's rule, so once swing
+settles and becomes one unit it is two units deep and reachable ... **This slot is the chunking
+claim's falsifier.**"*
+
+    the rule            `_ladder(v) = (-(v * 2) + 1) % M`
+    a THREE-atom chain  `dbl . dec . neg` -> `-(2v - 1)` = `-2v + 1`. **Exactly the rule**
+    the closure         **`dbl . dec . neg` IS in `closure("val","val", d=3)` over ATOMS ALONE,
+                        with `units()` holding no settled term.** 400 chains at depth 3, and
+                        that is one of them
+    what the demo binds **`'ladder': 'dbl . dec . neg'`** -- the three-atom chain, and it
+                        survives
+
+> **THE SLOT THAT EXISTS TO PROVE CHUNKING REACHED SOMETHING ATOMS COULD NOT IS REACHED BY
+> ATOMS.** The docstring's four-atom decomposition is correct and is not the shortest one, and
+> the claim was resting on the decomposition rather than on the closure.
+
+### NOT CAUSED BY TONIGHT'S ENUMERATOR CHANGE, AND THAT IS MEASURED
+
+`_iter_step` (`c0d2ffd`, `58568ee`) rewrote the closure walk. **The toy closure is BYTE-IDENTICAL
+across the change -- 3,258 chains, same `sha256`, at depths 2, 3 and 4 -- and `dbl . dec . neg`
+is present on BOTH sides.** The defect is pre-existing.
+
+### WHEN IT STOPPED HOLDING IS NOT DETERMINED, AND I AM NOT GOING TO GUESS
+
+`_ladder` entered at `aae49ef` (2026-08-23). **A grep says the string `"dec"` is absent from
+`world.py` at that revision**, which would make a tidy story: the atom arrived later and
+silently disarmed the falsifier.
+
+**I am not filing that, because the same grep shows the atom set was CONSTRUCTED DIFFERENTLY in
+those revisions** -- `Atom("` matches only `take` at both commits -- **so the instrument is wrong
+for the question and a zero from it is not evidence.** *A grep's count is not evidence until you
+have read what it matched*, and here what it matched says the pattern does not apply.
+
+**So: the premise is FALSE TODAY, measured. When it became false is unknown, and the
+satisfying causal story is exactly the thing to distrust.**
+
+### WHAT IS NOT DONE, AND WHY IT IS THE CATEGORY'S OWN RULE
+
+**Every available repair is a CALIBRATION change** -- remove `dec` from the toy vocabulary,
+lower `max_depth`, or change `_ladder`'s rule so no short chain reaches it. **Each alters what
+the falsifier can show rather than what the agent does**, and `F341`'s third category exists to
+say that such a change is neither ours by default nor the agent's. **Recorded, annotated at the
+site, and left for a ruling.**
+
+**The `demo` seat is green and has been throughout.** *A seat that keeps passing after the thing
+it tests stopped being testable* -- written four hours ago about a hypothetical, and it was
+already true of a seat in the count.
