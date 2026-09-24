@@ -47749,6 +47749,45 @@ boards are owed and are not claimed.** The toy harness **cannot** show this at a
 no `slot_types`, so `(stype, OBJ)` is never appended and the OBJ stream is **NEVER REQUESTED**
 there -- recorded so a later toy reading of `0` is not mistaken for this measurement.
 
+### FOUR BOARDS NOW, AND THE HEADLINE ABOVE IS TRUE OF ONE OF THEM. **PER GAME, NEVER POOLED, AND THIS IS WHY**
+
+**One process per board -- the counters are module-level, so a shared process would have POOLED
+them.** 3 cycles, cold, each.
+
+    board   OBJ stream          ENUM OBJ   PRICED       REACHED pays   BOUND ever
+    vc33    1 call  EXTENT        558       39,478          **0**         0
+    ls20    3 calls EXTENT,SHAPE  729      103,056          **0**       **1  `o20.w`**
+    sk48    **NEVER REQUESTED**     0            0          **0**         0
+    g50t    **NEVER REQUESTED**     0            0          **0**         0
+
+> **ALL THREE OF THE WORLDS THE REVIEWER NAMED ARE PRESENT -- ON DIFFERENT BOARDS.** `vc33` is
+> produced-and-refused. `sk48` and `g50t` are *the stream is never asked for*. `ls20` **BINDS**.
+> **A pooled rate would have read as one weak effect and named none of them.**
+
+**AND *NOTHING BINDS AS AN OBJECTIVE* IS FALSE ON `ls20`.** `o20.w` is bound to an `OBJ`-typed
+term at cycle 2. The premise at the top of the reviewer's chain does not hold on every board, and
+**the chain is per board like everything else.**
+
+**WHAT THE BINDING IS, STATED AS AN INFERENCE AND NOT A READING.** `REACHED pays` is **0** on
+`ls20`, so **nothing was minted through the bargain** -- and the run is COLD, so no library was
+loaded. **Therefore the bound term can only be a pre-existing ATOM fitted by `_library_fit`, not
+a composed objective.** That follows from two measured columns and is not itself measured;
+**`o20.w`'s term name was not captured and the next run should capture it.**
+
+### THE ONE COLUMN THAT IS THE SAME EVERYWHERE
+
+> **`REACHED pays` IS `0` ON ALL FOUR BOARDS, FOR EVERY KIND OF CANDIDATE.** 0 of 42,474 ·
+> 0 of 127,584 · 0 of 0 · 0 of 0.
+
+**On `sk48` and `g50t` that zero is UNINTERPRETABLE and says so: the denominator is also 0**, so
+nothing was ever offered and the bound refused nothing. **Only `vc33` and `ls20` carry a
+denominator large enough to make the zero a finding** -- which is the whole reason the *asked*
+and *enumerated* columns exist beside it.
+
+**AND THE SEARCH ITSELF IS TINY ON TWO OF THE FOUR: `sk48` and `g50t` enumerate SEVEN candidates
+in three cycles from ONE stream request.** That is a different defect from the bound and it is
+not diagnosed here -- **named so it is not absorbed into the `pays` story it sits next to.**
+
 ### AND THE INSTRUMENT WAS WRONG FIRST, CAUGHT BY ITS OWN COLUMNS DISAGREEING
 
 **The first run printed `ENUMERATED, OBJ-typed: 0` beside `PRICED: OBJ 39,478`.** Both cannot be
