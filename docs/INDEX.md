@@ -47551,6 +47551,22 @@ decide is the seat's job; deciding it is not, **and inventing the criterion woul
                             NEEDS         which kind has held for this agent on this board
                             REACHED       **NO** -- downstream of `pays`, which nothing reaches
 
+> **STALE ON THE TOY WORLD SINCE `1292ea5`, AND THE CORRECTION SHARPENS THE WHOLE BLOCKER --
+> 2026-09-24.** With the objective vocabulary in, `pays` IS reached there and **two `OBJ` terms
+> PASS it** (`OBJ` pays TRUE 2 / FALSE 9; `val` TRUE 7 / FALSE 42). So this row's *nothing
+> reaches it* no longer holds, and the site is live.
+>
+> **AND WHAT IT SHOWS IS NOT A TIE AND NOT A PRICE. `by_kind` IS REPORTED AND NEVER READ.** It
+> keeps the best candidate PER KIND, publishes them as `contest` with a predictor-vs-objective
+> `margin` -- and **installation takes `best`, the single lowest `cost + left` across all kinds.**
+> An objective can pay, be recorded as its kind's champion, and lose to a cheaper predictor
+> **with no kind-aware step existing anywhere.**
+>
+> **SO THE MISSING THING IS NOT A NEW PRICE. IT IS A CONSUMER FOR A CONTEST THAT IS ALREADY
+> COMPUTED.** That is the reviewer's *the pricing rule cannot handle a third kind* made exact,
+> and it is this night's recurring shape one more time: **built, measured, published, unread.**
+> **Which kind should win, and when, remains Isaiah's judgement and is untouched.**
+
     6  `cap` + insertion    ORDERING. `enumerate_routines` takes the shortest `cap` shapes and
        routine:~360         ties break on insertion order, **which decides which CONSTRUCTS
                             exist at all** past a handful of objectives.
