@@ -4221,6 +4221,20 @@ class Agent:
                         # what R says could matter, so the tree is offered THERE and priced by
                         # the same bargain as everything else. ~2 extra evaluations per
                         # survivor against 347k already spent.
+                        #
+                        # **AND THE ARGUMENT ABOVE INVERTS WHEN THE SURVIVOR COUNT IS ZERO --
+                        # `F348`, 2026-09-24.** Measured on `vc33`: the bargain book reads
+                        # 5268 bounded out, 0 reaching `pays`, and **`_trees` is called ZERO
+                        # times in three cycles.** A mechanism attached to the survivors of a
+                        # filter dies exactly when the filter tightens, and nothing recomputes
+                        # the premise a placement was chosen under.
+                        #
+                        # **THE COST ARGUMENT IS STILL RIGHT AND IT WAS NEVER THE PROBLEM.**
+                        # The problem is that `_cannot_pay` is NECESSARY *for the term it was
+                        # computed on*, and a tree is a different function -- so gating trees
+                        # on the FLAT term's bound is the one use that bound cannot support.
+                        # `TETHER_TREE_BOUND` offers them in the bounded-out branch under
+                        # their OWN `_cannot_pay`; this site is unchanged and still runs.
                         for bt in self._trees(cand, bind, g):
                             bcost = term_bits(self.gamma.length(bt, _units),
                                               self.gamma.alphabet)
