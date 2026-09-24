@@ -67,7 +67,7 @@ STAGES = (
     ("DECOMPOSE", "the goal yields a NEARER want -- `objective_step` returns a step"),
     ("COMPOSE",   "a routine is FORMED -- `routine.py` entered, not merely present"),
     ("RUN",       "the routine advances, with an expectation attached"),
-    ("EXPRESS",   "every event kind the run produced has a sentence"),
+    ("EXPRESS",   "the DECLARED self-account is narrated, and every sentence traces"),
     ("CORRECT",   "the expectation is compared against the ground and recorded"),
 )
 
@@ -135,13 +135,33 @@ def probe() -> dict[str, bool]:
         # -- CORRECT: the ground answering a claim, which is what `settle` IS ----------
         hit["CORRECT"] = any(v in seen_events for v in ("settle", "demote", "refute"))
 
-        # -- EXPRESS: the agent's own account, and it must TRACE. `speak.verify` is the
-        # existing judge -- *every sentence traces to a row that exists; a sentence citing
-        # nothing is a defect* -- so this asks the question the module already answers
-        # rather than inventing a second one.
+        # -- EXPRESS, AND THE FIRST VERSION OF THIS STAGE CLAIMED A BAR THE PROJECT REFUSES.
+        # It read *every event kind the run produced has a sentence*. **Measured: 24 kinds, 9
+        # narrated, 15 silent -- including `bet` at 100 rows.** That looks damning and is not:
+        # `test_m2`'s own narration check states it outright -- *`speak` does not narrate every
+        # ledger event AND SHOULD NOT; most are internal bookkeeping. What it MUST narrate is
+        # the agent's ACCOUNT OF ITSELF, and that is a LIST, not a rule.*
+        #
+        # **SO THE STAGE WAS ASSERTING TRACEABILITY AND ADVERTISING TOTALITY**, and the gap
+        # between the two would have been read by the next person as an agent defect. It is the
+        # `A6i` writing side: the summary written from the work rather than from the definition.
+        #
+        # THE REAL BAR IS BOTH HALVES. Every sentence TRACES (`speak.verify`'s own rule: *a
+        # sentence that traces to nothing is a defect*), AND every event of the DECLARED
+        # self-account that the run produced is narrated.
+        #
+        # **`SELF_ACCOUNT` IS DUPLICATED FROM `test_m2.py` AND THAT IS NAMED, NOT HIDDEN** --
+        # a seat may not import a test's local, and two producers of one fact are harmless
+        # exactly until one side changes. It is a pinned TABLE in both places for
+        # `conform/lint.py`'s reason: a table can be pinned, logic widens quietly.
         import speak
+        SELF_ACCOUNT = ("routine", "guard", "books")      # mirrors test_m2.py, deliberately
         said = speak.sentences(rows)
-        hit["EXPRESS"] = bool(said) and speak.verify(rows, said)["traceable"]
+        traces = bool(said) and speak.verify(rows, said)["traceable"]
+        cited = {i for seqs, _t in said for i in seqs}
+        owed = [r for r in rows if str(r.get("event", "")).startswith(SELF_ACCOUNT)]
+        accounted = not owed or all(r["seq"] in cited for r in owed)
+        hit["EXPRESS"] = traces and accounted
     finally:
         routine.enumerate_routines, routine.advance = _enum, _adv
         tether.objective_step = _step
