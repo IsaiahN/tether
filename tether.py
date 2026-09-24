@@ -292,6 +292,27 @@ _STARVED_CONTACT = bool(os.environ.get("TETHER_STARVED_CONTACT"))
 # BEFORE the reader sees them** -- so `Call("satisfied", (Slot(s),))` would hand the reader the
 # slot's VALUE and lose the name. The prefix keeps the grammar untouched, renders legibly, and
 # is one place rather than a second node kind every walker would have to learn.
+# THE TREE'S OWN BOUND, arm `TETHER_TREE_BOUND`, DEFAULT OFF.
+#
+# **A TREE IS EXCLUDED TODAY BY A BOUND COMPUTED ON A DIFFERENT TERM.** `_trees` is offered only
+# after the FLAT candidate survives `_cannot_pay` -- and a tree `f<g(s)>` is a DIFFERENT FUNCTION
+# from `f`, so it can be right where `f` is wrong. `_cannot_pay`'s whole value is that it is
+# NECESSARY -- *nothing that would have paid or closed is lost* -- and that guarantee holds for
+# the term it was computed on. **Extending it to a term it was not computed on is the one thing
+# the bound cannot do**, and it is the failure its own docstring records: *measured, it lost a
+# closing term.*
+#
+# MEASURED, WHICH IS WHY THIS IS NOT THEORETICAL: `_trees` is called ZERO times in three cycles
+# of `vc33`, because the bargain book reads 5268 bounded out and 0 reaching `pays`. **The only
+# route to arity-2 in this codebase is dead behind a bound about something else.**
+#
+# **OFF BY DEFAULT BECAUSE THE COST IS REAL AND I COULD NOT MEASURE IT.** `_branches()` offers 2
+# atoms, so a sound version costs up to 2 extra `_cannot_pay` calls per operand-reading
+# candidate -- far less in practice, since the bound early-exits on hopeless terms. That is the
+# same costed argument that keeps `TETHER_INSTRUMENTS` off: compute spent per cycle is episodes
+# forgone, and §12.12 prices it. **A measurement turns this on; nothing else may.**
+_TREE_BOUND = bool(os.environ.get("TETHER_TREE_BOUND"))
+
 _SAT = "satisfied:"
 
 # EVERY QUANTITY THE AGENT RECORDS ABOUT ITSELF, DECLARED IN ONE PLACE AND INITIALISED TO ZERO.
@@ -4149,6 +4170,25 @@ class Agent:
                                          "reason": "bounded-out: cannot pay on R alone"})
                             self.gamma.book["bargain_bounded_out"] = (
                                 self.gamma.book.get("bargain_bounded_out", 0) + 1)
+                            # THE TREE IS JUDGED BY ITS OWN BOUND, NOT ITS PARENT'S. See
+                            # `_TREE_BOUND`: a bounded-out FLAT term says nothing about a tree
+                            # built on it, and today that silence excludes the only arity-2
+                            # mechanism there is. Each tree pays `_cannot_pay` and `pays` on its
+                            # own terms, so nothing enters that the bargain would not admit.
+                            if _TREE_BOUND:
+                                for bt in self._trees(cand, bind, g):
+                                    bcost = term_bits(self.gamma.length(bt, _units),
+                                                      self.gamma.alphabet)
+                                    if self._cannot_pay(bt, slot, robs, bcost, base):
+                                        continue
+                                    bleft = self._left(bt, slot, hist)
+                                    if not pays(bcost, bleft, base):
+                                        continue
+                                    btotal = bcost + bleft
+                                    if kind not in by_kind or btotal < by_kind[kind][0]:
+                                        by_kind[kind] = (btotal, bleft, bcost, bt)
+                                    if best is None or btotal < best[0]:
+                                        best = (btotal, bleft, bcost, bt)
                             continue
                         left = self._left(term, slot, hist)
                         # §4's TREE, AND THIS IS ITS FIRST PRODUCER. `operand_term` was
