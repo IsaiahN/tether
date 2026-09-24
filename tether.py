@@ -1177,6 +1177,13 @@ class Agent:
         **SO A BOOK ROW IS A LOWER BOUND, NEVER THE TOTAL**, and a reading taken off the last row
         of a short run is not the run's answer -- **read `gamma.book` after the run for that.**
 
+        **AND THE OTHER READINGS WERE SWEPT RATHER THAN LEFT OPEN.** Of the book figures reported
+        on 2026-09-24: the BARGAIN counts came off a row and were re-taken (`F350`); the ARRIVAL
+        DEPTH histogram also came off a row and is **verified IDENTICAL to the final book** on the
+        toy run, because every arrival there precedes the last row; `chunk_reuse` and the gate-1
+        tally were read at their write sites and never touched this path. **One corrupted, one
+        clean, none left to guess at.**
+
         **NOT MOVED, AND DELIBERATELY.** `ledger.STEPS` orders `PLAN` before `PERCEIVE`, so a row
         relocated to the end of the step becomes the NEXT cycle's first row -- the step-order
         trap this file already records twice, both times with byte-identical demo output and only
