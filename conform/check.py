@@ -84,6 +84,14 @@ STAGES = (
     ("wiring", [str(PY), str(HERE / "wiring.py")],
      "a capability changed between never-occurred and occurred without the manifest moving",
      HERE / "wiring.py"),
+    # THE END-TO-END FIXTURE -- Isaiah, 2026-09-24: *"I need this stuff wired together and not
+    # orphaned... why can't the system be built out end to end without games?"* One pass through
+    # every stage on the TOY world, pass/fail, no score. **It proves WIRED and never CAPABLE**,
+    # and its own docstring says so, because mechanism reported as capability is `M2` clause 7's
+    # whole subject.
+    ("fixture", [str(PY), str(HERE / "fixture.py")],
+     "an end-to-end stage changed between reached and dead without the manifest moving",
+     HERE / "fixture.py"),
     ("condition", [str(PY), "condition.py"],
      "the condition grammar accepted something it must refuse, or three-valued logic broke",
      ROOT / "condition.py"),
