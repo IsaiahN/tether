@@ -47879,6 +47879,19 @@ atoms* -- which is `I25`'s law (*repaired the instance, left the class*) applied
     UNDEFINED INGREDIENTS   **1,253 distinct - 1,905 uses - 29% of all slots**
                             969 of the 1,253 are used exactly ONCE
 
+**AND 1,253 IS NOT THE HONEST NUMBER -- CLASSIFIED ON THE SAME PASS RATHER THAN SHIPPED RAW:**
+
+    **919  73%  GENUINE GAP** -- a capitalised name with no defining row anywhere
+     150  11%  COMPOUND on a defined base (`Amplitude_Envelope`, `Att broadcast`)
+      22   1%  QUALIFIER of a defined base -- `Var extreme`, `Act lowered`. **OPERATORS.md's
+               `A(x)` form written WITHOUT parens, so the normaliser missed it. NOT a gap**
+     162  12%  PROSE LEAKAGE -- lowercase fragments from malformed recipe cells
+
+> **SO THE FINDING IS 919, NOT 1,253**, and the 27% difference is my parser rather than the
+> corpus. **Recorded because a list handed over with known noise in it is the *count is not
+> evidence* failure at scale** -- and the classification is checkable, not a judgement: base-word
+> defined, capitalisation, and OPERATORS.md's own qualifier grammar.
+
 **The most-used are not exotic:** `Growth` 17 - `Context` 16 - `Depth` 13 - `Prediction` 13 -
 `Outcome` 12 - `Conflict` 11 - `Object` 9. **`Object` is undefined in the vocabulary of an agent
 whose purpose is visual-grid puzzles**, and each of these was confirmed by looking for a row
