@@ -47408,3 +47408,22 @@ site, and left for a ruling.**
 **The `demo` seat is green and has been throughout.** *A seat that keeps passing after the thing
 it tests stopped being testable* -- written four hours ago about a hypothetical, and it was
 already true of a seat in the count.
+
+### AND THE CLAIM NOW HAS ONE PIECE OF EVIDENCE, WHICH IS NOT THE SAME AS BEING PROVEN
+
+**`c0fbfb7` built §14.7's CHUNK REUSE COUNT** -- *how often a term appears as a CONSTITUENT of a
+later mint* -- **specified in the corpus and computed nowhere.** It reads **1** on the toy world,
+and the 1 is `dbl . dec . neg` containing the settled `dec . neg`.
+
+    ESTABLISHED   the CONSTITUENT relation holds. A settled term is inside a later mint
+    STILL OPEN    whether the chain was **FOUND** through that unit or through atoms. **Both
+                  routes were open at c7** -- swing settled at c4, and the three-atom chain is
+                  in the depth-3 atom closure -- **and the winning NAME is identical either way**
+
+> **THE FALSIFIER IS STILL DEAD.** A constituent count cannot revive it: *this chain contains a
+> settled term* and *this chain was unreachable without one* are different claims, and only the
+> second is what `ladder` was built to show.
+
+**Filed here so the row is not read as fully open after the count exists, and not as answered
+because a number appeared.** The count is the evidence the corpus asked for; **the search route
+remains unrecorded, and that is the thing a repair would have to reach.**
