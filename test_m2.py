@@ -336,7 +336,22 @@ def check_a_guard_can_say_more_than_one_slot():
     made = ag._compound_guards(slot, (slot, "o2.dcol"))
     assert made, "no compound guard is ever offered"
     assert all(slot in str(g) for g in made), "a compound guard does not mention its subject"
-    assert all(sat in str(g) for g in made), "a compound guard reads a VALUE as a claim"
+    # AND THE INVARIANT THE TWO MEANINGS NEED: a bare SLOT is a VALUE, so it may appear only
+    # as an OPERAND of a comparison. Anywhere else it is being read as a claim, which is the
+    # A6i this pair of commits exists to close.
+    def bare(node, in_cmp=False):
+        if isinstance(node, C.Slot):
+            return [] if (in_cmp or node.name.startswith(sat)) else [str(node)]
+        if isinstance(node, C.Cmp):
+            return bare(node.left, True) + bare(node.right, True)
+        if isinstance(node, C.Not):
+            return bare(node.inner)
+        if isinstance(node, C.Bool):
+            return bare(node.left) + bare(node.right)
+        return []
+    loose = [x for g in made for x in bare(g)]
+    assert not loose, f"a bare slot is read as a claim: {loose}"
+    assert any(isinstance(g, C.Cmp) for g in made), "no guard ever says anything about the board"
 
 
 def check_chunking_reaches_the_bargain():

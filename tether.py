@@ -2898,6 +2898,13 @@ class Agent:
             if g is NOT_RESOLVED:
                 return UNKNOWN
             return YES if (isinstance(g, int) and g != 0) else UNKNOWN
+        if isinstance(slot, condition.Cmp):
+            # **HOLDS NOW -> YES, WHICH IS THIS METHOD'S OWN RULE** (*holds now, or has held:
+            # reached, so reachable*), read through the ONE evaluator rather than a second
+            # copy of the comparison logic. Otherwise UNKNOWN: nothing in this agent's record
+            # speaks to whether two slots can be MADE equal, and `unknown` is a claim about
+            # the record where `no` would be a claim about the world this cannot support.
+            return YES if self._holds(state)(slot) is True else UNKNOWN
         if isinstance(slot, condition.Bool):
             lf, rt = self.can(slot.left, state), self.can(slot.right, state)
             if slot.op == "and":
@@ -3198,6 +3205,19 @@ class Agent:
                 continue
             out.append(Bl("and", sat(subject), sat(other)))
             out.append(Bl("or", sat(subject), sat(other)))
+            # **A CLAIM ABOUT THE WORLD, NOT ABOUT THE AGENT'S OWN OBJECTIVES.** Every guard
+            # above is built from `satisfied:` -- *my objective here is met* -- so a routine
+            # could only ever terminate on its own bookkeeping. `o1.dcol == o2.dcol` is a
+            # statement about the BOARD, and *act until these two agree* is the shape of an
+            # ARC goal rather than of a status report.
+            #
+            # **EQUALITY ONLY, AND THE OTHER FIVE OPERATORS ARE REFUSED FOR A REASON.** `<`
+            # needs an ORDER, and `slot_types` already separates `ORDERED_TYPES` from the
+            # rest -- offering `<` over a COLOUR would compare two episode-local labels and
+            # return a clean, meaningless answer. That is the `row < shape` case `evaluate`'s
+            # own `TypeError` guard was written for, and the honest fix is not to OFFER it.
+            out.append(condition.Cmp("==", condition.Slot(subject),
+                                     condition.Slot(other)))
         return tuple(out)
 
     def _rejection(self, key: tuple) -> float:
