@@ -1,7 +1,7 @@
 {
  "COMPOSE": false,
  "CORRECT": true,
- "DECOMPOSE": false,
+ "DECOMPOSE": true,
  "EXPRESS": true,
  "GOAL": true,
  "PERCEIVE": true,

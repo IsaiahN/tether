@@ -18,7 +18,7 @@ import sys
 from dataclasses import dataclass
 from typing import Any, Protocol, runtime_checkable
 
-from gamma import Atom, Ctx
+from gamma import NOT_RESOLVED, Atom, Ctx
 
 sys.dont_write_bytecode = True
 
@@ -95,6 +95,43 @@ def _atoms() -> list[Atom]:
         return c.operands[0] if c.operands else v
 
     out.append(Atom("take", take, "val", "val", reads_operand=True))
+
+    # -- THE OBJECTIVE VOCABULARY -- Isaiah, 2026-09-24, option A --------------------------
+    #
+    # **THE FIXTURE FOUND THAT THIS WORLD COULD NOT EXPRESS A WANT AT ALL.** Every atom above
+    # is `val -> val`, so the type graph was a single node: no chain could end at `OBJ`, the
+    # objective stream was asked 17 times and answered 0, and `objective_step` -- the
+    # decomposer -- could never run. Three stages of the chain were dead on one cause.
+    #
+    # **`EXTENT -> PRED -> OBJ`, mirroring `arc_atoms`' relate/quantify split.** Same names and
+    # same semantics on purpose, so the fixture asserts ONE vocabulary across both worlds --
+    # **and they are DECLARED TWICE, which is a real hazard**: `arc_atoms` records the same
+    # risk for `ATTRIBUTE_TYPE`, *two producers of one fact, harmless exactly until one side
+    # changes.* This world may not import `arc_atoms` (one registry, and the toy must not
+    # depend on the domain), so the duplication is the price and it is named rather than hidden.
+    #
+    # **NOT ONE OF THESE KNOWS ANYTHING ABOUT THE GOAL, AND THAT IS THE WHOLE CARE TAKEN.**
+    # This world's objective is *ALL slots at zero*, so an `is_zero` predicate would have BEEN
+    # the answer -- `all . is_zero` is the goal, written out. **Every predicate here is
+    # RELATIONAL: it compares this slot to ANOTHER slot.** The agent can say *these two agree*
+    # and must still discover that agreeing on zero is what wins.
+
+    def same(v, c):
+        return int(v == c.operands[0]) if c.operands else NOT_RESOLVED
+
+    def other(v, c):
+        return int(v != c.operands[0]) if c.operands else NOT_RESOLVED
+
+    def above(v, c):
+        return int(v > c.operands[0]) if c.operands else NOT_RESOLVED
+
+    for f in (same, other, above):
+        out.append(Atom(f.__name__, f, "EXTENT", "PRED", reads_operand=True,
+                        operand_type="EXTENT", reads_ctx=("operands",)))
+    # WHAT CLOSES A STATEMENT BACK INTO SOMETHING BETTABLE. `arc_atoms._quantify`, verbatim.
+    out.append(Atom("all", lambda v, _c: int(bool(v)), "PRED", "OBJ"))
+    out.append(Atom("any", lambda v, _c: int(bool(v)), "PRED", "OBJ"))
+    out.append(Atom("none", lambda v, _c: int(not v), "PRED", "OBJ"))
     return out
 
 

@@ -370,13 +370,24 @@ def test_the_atom_order_is_pinned():
     import snaps
     import world
 
-    ORDER = ["idn", "inc", "dec", "dbl", "neg", "act", "wrap", "take"]
+    # THE PIN IS PER MODULE, because the two worlds no longer carry the same vocabulary.
+    # `world` gained `EXTENT -> PRED -> OBJ` on 2026-09-24 -- it could not express an objective
+    # at all, so three stages of the end-to-end fixture were dead on one cause. **APPENDED, in
+    # the safe direction this test names**, so every prior prefix and every term identity taken
+    # under the old order is intact. `snaps` is untouched and is pinned at the original eight.
+    BASE = ["idn", "inc", "dec", "dbl", "neg", "act", "wrap", "take"]
+    ORDERS = {"snaps": BASE,
+              "world": [*BASE, "same", "other", "above", "all", "any", "none"]}
     for mod in (snaps, world):
+        pinned = ORDERS[mod.__name__]
         got = [a.name for a in mod._atoms()]
-        assert got == ORDER, (
-            f"{mod.__name__}._atoms() is {got}, pinned as {ORDER}. If a name was APPENDED, "
-            "extend the pin. If one was INSERTED or moved, every stored term and every "
-            "measurement taken under the old order now means something else.")
+        assert got[:len(BASE)] == BASE, (
+            f"{mod.__name__}._atoms() begins {got[:len(BASE)]}, and the pinned prefix is "
+            f"{BASE}. A name was INSERTED or MOVED: every stored term and every measurement "
+            "taken under the old order now means something else.")
+        assert got == pinned, (
+            f"{mod.__name__}._atoms() is {got}, pinned as {pinned}. If a name was APPENDED, "
+            "extend the pin -- and say in the commit why the vocabulary grew.")
 
 
 def test_the_residual_bound_loses_nothing():
