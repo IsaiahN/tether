@@ -2111,6 +2111,19 @@ reducer is mapped. The agent composes over the 57 it already holds, not over the
         the longest unbroken run in a row  needs an accumulator across cells in order;
                                            elementwise mapping holds no state between elements
 
+> **AND A THIRD FAILURE THE ACCEPTANCE TEST COULD NOT SEE -- `F347`, 2026-09-24.** Everything
+> above is true: the construct RUNS and the verification is correct. **But the test HAND-BUILT
+> the chain, and the composer could never have proposed one: 0 of 87,244 enumerated chains
+> contained a per-cell atom, at every depth.** `Term.apply` maps elementwise; the type graph did
+> not know that, so after `cells` the only atom that type-checked was the reducer -- which
+> refuses a collection of coordinates. **The one fold on offer was guaranteed to abstain.**
+>
+> **HAND-BUILDING THE OBJECT UNDER TEST IS EXACTLY WHAT REMOVES THE COMPOSER FROM THE LOOP.** A
+> passing acceptance test certifies the RUNTIME and says nothing about REACHABILITY, and this is
+> the sharpest instance of that split in the record. **Repaired in `gamma._iter_step`, byte-
+> identical with the arm off; and the arm alone is still not enough -- see `F347` on
+> `max_depth`, since the shortest usable fold is depth 4 and the default is 3.**
+
 > **READ THE FIRST FAILURE CORRECTLY: THE GAP IS NOT THE REDUCER, IT IS WHICH COLLECTION `cells`
 > CAN OPEN.** The agent can iterate an object's own cells and **cannot open a REGION** — the
 > bounding box, the interior, the complement, a neighbourhood. **That is where the empty cells
