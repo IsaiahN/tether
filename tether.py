@@ -2922,8 +2922,14 @@ class Agent:
             return None
         return 1.0 - deg
 
-    def can(self, slot: str, state: dict[str, int]) -> str:
+    def can(self, guard: Any, state: dict[str, int]) -> str:
         """`CAN(P)` — §14.3's affordance, and it is **ACHIEVABLE, not SATISFIABLE.**
+
+        **THE ARGUMENT IS A GUARD, NOT A SLOT, AND IT WAS CALLED `slot` UNTIL 2026-09-24.**
+        It takes a slot NAME or a `condition` node -- `satisfied:<slot>`, `and`/`or`/`not` over
+        those, a value comparison -- so the old name said one of the two things it can be, in
+        the method whose docstring calls it `P`. One name, two quantities, and cheap to fix
+        while the second quantity is hours old rather than months.
 
         THE TWO SOURCES DISAGREED AND THE DISAGREEMENT IS THE POINT. `grammar.py` glosses
         `CAN` as *a relation is **achievable***; §14.3 calls it *the affordance that says the
@@ -2939,7 +2945,7 @@ class Agent:
 
             `no`        nothing in the alphabet satisfies it. A real negative, and the only one
             `yes`       POSITIVE CAUSAL EVIDENCE, never absential: it holds now, or it has held
-                        before, or an action of this agent's has been observed to move the slot
+                        before, or an action of this agent's has been observed to move the SLOT
                         toward it. *Prefer "I tried and something happened" over "I have never
                         been there"*
             `unknown`   satisfiable, and nothing in this agent's record says it can be reached
@@ -2956,38 +2962,42 @@ class Agent:
         #
         # **`unknown` PROPAGATES AND DOES NOT BECOME `no`** -- check 3 at the affordance, the
         # same distinction the evaluator keeps at execution.
-        if isinstance(slot, condition.Not):
-            inner = self.can(slot.inner, state)
+        if isinstance(guard, condition.Not):
+            inner = self.can(guard.inner, state)
             if inner is NO:
                 return YES                 # nothing satisfies P, so `not P` holds always
-            tgt = slot.inner
+            tgt = guard.inner
             if isinstance(tgt, condition.Slot) and tgt.name.startswith(_SAT):
                 tgt = tgt.name[len(_SAT):]
             g = self._discrepancy(tgt, state) if isinstance(tgt, str) else None
             if g is NOT_RESOLVED:
                 return UNKNOWN
             return YES if (isinstance(g, int) and g != 0) else UNKNOWN
-        if isinstance(slot, condition.Cmp):
+        if isinstance(guard, condition.Cmp):
             # **HOLDS NOW -> YES, WHICH IS THIS METHOD'S OWN RULE** (*holds now, or has held:
             # reached, so reachable*), read through the ONE evaluator rather than a second
             # copy of the comparison logic. Otherwise UNKNOWN: nothing in this agent's record
             # speaks to whether two slots can be MADE equal, and `unknown` is a claim about
             # the record where `no` would be a claim about the world this cannot support.
-            return YES if self._holds(state)(slot) is True else UNKNOWN
-        if isinstance(slot, condition.Bool):
-            lf, rt = self.can(slot.left, state), self.can(slot.right, state)
-            if slot.op == "and":
+            return YES if self._holds(state)(guard) is True else UNKNOWN
+        if isinstance(guard, condition.Bool):
+            lf, rt = self.can(guard.left, state), self.can(guard.right, state)
+            if guard.op == "and":
                 return YES if lf == YES and rt == YES else (NO if NO in (lf, rt) else UNKNOWN)
             if YES in (lf, rt):
                 return YES
             return NO if lf == NO and rt == NO else UNKNOWN
-        if isinstance(slot, condition.Slot):
+        if isinstance(guard, condition.Slot):
             # A BARE SLOT IS A VALUE AND MAKES NO CLAIM, so there is nothing to achieve and
             # this is not a `no` -- it is a shape the affordance has no question to ask about.
-            return (self.can(slot.name[len(_SAT):], state)
-                    if slot.name.startswith(_SAT) else UNKNOWN)
-        if not isinstance(slot, str):
+            return (self.can(guard.name[len(_SAT):], state)
+                    if guard.name.startswith(_SAT) else UNKNOWN)
+        if not isinstance(guard, str):
             return UNKNOWN                 # a shape this affordance cannot read is not a `no`
+        # NARROWED, AND RE-NAMED FOR IT. Everything below is about a SLOT and reads the trace,
+        # the alphabet and the bindings by that name -- calling it `guard` here would hide the
+        # very distinction the parameter's rename exists to make.
+        slot = guard
         gap = self._discrepancy(slot, state)
         if gap is NOT_RESOLVED:
             return UNKNOWN                 # could not read the objective here
