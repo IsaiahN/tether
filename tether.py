@@ -281,6 +281,19 @@ _INVENT = bool(os.environ.get("TETHER_INVENT"))
 # no counter and no quota, exactly as the unexplored-contact count is System 0's.
 _STARVED_CONTACT = bool(os.environ.get("TETHER_STARVED_CONTACT"))
 
+# THE SATISFACTION PREDICATE'S SPELLING, AND IT EXISTS BECAUSE OF AN `A6i` OF MINE.
+# `condition.py`'s grammar is `expr := INSTRUMENT(args) | SLOT | NUMBER` -- **a bare SLOT is an
+# EXPRESSION, so it denotes the slot's VALUE.** The first version of the guard reader returned
+# the slot's SATISFACTION PREDICATE for the same node. One name, two quantities, and both
+# readings are well-formed: `and`/`or`/`not` over predicates worked, and the first `Cmp` to
+# arrive would have compared a BOOL to a number and reported a clean `False`.
+#
+# **A PREFIXED NAME RATHER THAN A NEW NODE, because `evaluate` evaluates a `Call`'s arguments
+# BEFORE the reader sees them** -- so `Call("satisfied", (Slot(s),))` would hand the reader the
+# slot's VALUE and lose the name. The prefix keeps the grammar untouched, renders legibly, and
+# is one place rather than a second node kind every walker would have to learn.
+_SAT = "satisfied:"
+
 # why not the neighbouring bin. A bin without its discriminator is a label, not a diagnosis.
 WHY_NOT = {
     HELD: "not novel: the slot is bound and the bound term predicted it",
@@ -2878,7 +2891,10 @@ class Agent:
             inner = self.can(slot.inner, state)
             if inner is NO:
                 return YES                 # nothing satisfies P, so `not P` holds always
-            g = self._discrepancy(slot.inner, state) if isinstance(slot.inner, str) else None
+            tgt = slot.inner
+            if isinstance(tgt, condition.Slot) and tgt.name.startswith(_SAT):
+                tgt = tgt.name[len(_SAT):]
+            g = self._discrepancy(tgt, state) if isinstance(tgt, str) else None
             if g is NOT_RESOLVED:
                 return UNKNOWN
             return YES if (isinstance(g, int) and g != 0) else UNKNOWN
@@ -2890,7 +2906,10 @@ class Agent:
                 return YES
             return NO if lf == NO and rt == NO else UNKNOWN
         if isinstance(slot, condition.Slot):
-            return self.can(slot.name, state)
+            # A BARE SLOT IS A VALUE AND MAKES NO CLAIM, so there is nothing to achieve and
+            # this is not a `no` -- it is a shape the affordance has no question to ask about.
+            return (self.can(slot.name[len(_SAT):], state)
+                    if slot.name.startswith(_SAT) else UNKNOWN)
         if not isinstance(slot, str):
             return UNKNOWN                 # a shape this affordance cannot read is not a `no`
         gap = self._discrepancy(slot, state)
@@ -3121,12 +3140,20 @@ class Agent:
             return None if rg is None else rg <= 0.0
 
         def read(name: str, args: tuple):
-            # THE READER KNOWS SLOT PREDICATES AND NOTHING ELSE, AND SAYS SO IN THE THIRD
-            # VALUE. An INSTRUMENT call would arrive here with args; this reader cannot
-            # evaluate one, and `None` is the honest answer -- *I could not tell* -- which
-            # BLOCKS the routine rather than passing it on a guess. The alternative, raising,
-            # would turn a gap in this reader into a crash in the ACT space.
-            return None if args else holds(name)
+            """`condition.evaluate`'s reader. **A BARE SLOT IS A VALUE, PER THE GRAMMAR.**
+
+            See `_SAT`: reading it as the satisfaction predicate was `A6i`, mine, and nothing
+            could reach it yet -- **which is why it was worth fixing now rather than after a
+            `Cmp` produced a clean wrong answer.** The item that would have collided with it is
+            nameable, which is the condition for recording a cleared hazard: comparison guards,
+            the thing this unlocks.
+
+            An INSTRUMENT this reader cannot evaluate ABSTAINS. `None` is *I could not tell* and
+            BLOCKS the routine; raising would turn a gap here into a crash in the ACT space.
+            """
+            if name.startswith(_SAT):
+                return holds(name[len(_SAT):])
+            return None if args else state.get(name)
 
         def holds_any(guard):
             # **A STRING IS THE OLD PATH, UNTOUCHED.** Every guard the composer has ever built
@@ -3160,13 +3187,17 @@ class Agent:
         individually, and `guard_unreadable` still records the slot that could not be read.
         **An average destroys the per-slot signal; a conjunction preserves both.**
         """
-        Sl, Nt, Bl = condition.Slot, condition.Not, condition.Bool
-        out = [Nt(Sl(subject))]
+        Nt, Bl = condition.Not, condition.Bool
+
+        def sat(n: str):
+            return condition.Slot(_SAT + n)
+
+        out = [Nt(sat(subject))]
         for other in names:
             if other == subject:
                 continue
-            out.append(Bl("and", Sl(subject), Sl(other)))
-            out.append(Bl("or", Sl(subject), Sl(other)))
+            out.append(Bl("and", sat(subject), sat(other)))
+            out.append(Bl("or", sat(subject), sat(other)))
         return tuple(out)
 
     def _rejection(self, key: tuple) -> float:

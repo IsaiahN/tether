@@ -302,17 +302,28 @@ def check_a_guard_can_say_more_than_one_slot():
     assert Rt.length(loose) == 4, f"a compound guard costs {Rt.length(loose)}, not 4"
     assert C.size(C.Bool("or", C.Slot("a"), C.Slot("b"))) == 3
 
-    # 3 -- THE WIRE: a node routes to the evaluator through the agent's own slot predicate.
+    # 3 -- THE WIRE, AND THE TWO MEANINGS KEPT APART. `A6i`, mine: `condition.py`'s grammar
+    # makes a bare SLOT an EXPRESSION, so it is the slot's VALUE -- and the first reader
+    # returned its SATISFACTION PREDICATE for the same node. Both readings are well-formed,
+    # which is why only a `Cmp` would ever have shown it, as a clean wrong answer.
+    sat = tether._SAT
     ag = _agent()
     slot = _wide(ag)
     b = dict(ag.env.observe())
     h = ag._holds(b)
-    assert h(C.Slot(slot)) == h(slot), "a node and its name disagree about the same slot"
+    assert h(C.Slot(sat + slot)) == h(slot), "the predicate and its name disagree"
+    assert h(C.Slot(slot)) == b.get(slot), "a bare slot is not reading its VALUE"
+
+    # AND THE COMPARISON THE FIX UNLOCKS: a guard that says something about the WORLD rather
+    # than about the agent's own objectives, evaluated over numbers and not over booleans.
+    assert h(C.Cmp("==", C.Slot(slot), b.get(slot))) is True, "a value comparison is broken"
+    gone = h(C.Cmp("==", C.Slot(slot), C.Slot("no.such.slot")))
+    assert gone is None, "an absent operand is not UNKNOWN"
 
     # 4 -- KLEENE SURVIVES THE WIRE. An unreadable conjunct can never produce a satisfied
     # guard: *I could not read it* is not *it holds*, at the site that terminates a loop.
     n0 = len(ag.led.entries)
-    both = h(C.Bool("and", C.Slot(slot), C.Slot("no.such.slot")))
+    both = h(C.Bool("and", C.Slot(sat + slot), C.Slot(sat + "no.such.slot")))
     assert both is not True, "a conjunction held on a conjunct nothing could read"
 
     # 5 -- AND THE PER-SLOT SIGNAL SURVIVES IT, which is what makes this composition and not
@@ -325,6 +336,7 @@ def check_a_guard_can_say_more_than_one_slot():
     made = ag._compound_guards(slot, (slot, "o2.dcol"))
     assert made, "no compound guard is ever offered"
     assert all(slot in str(g) for g in made), "a compound guard does not mention its subject"
+    assert all(sat in str(g) for g in made), "a compound guard reads a VALUE as a claim"
 
 
 def check_chunking_reaches_the_bargain():
