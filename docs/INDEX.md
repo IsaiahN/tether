@@ -46967,6 +46967,12 @@ one branch, one condition grammar, all behind a supply problem four steps upstre
 
 ## F344 -- EIGHTEEN CAPABILITY ARMS, EVERY ONE DEFAULT OFF, AND NOTHING IN THE REPOSITORY SETS ONE. The agent that runs is the most starved variant of itself, and nobody chose that
 
+**NINETEEN SINCE `ff2e0fb`, AND THE COUNT IS LEFT AS MEASURED BELOW ON PURPOSE.** `F348` added
+`TETHER_TREE_BOUND` the same night — **and the arms seat REFUSED it until it was declared**,
+which is the row working rather than the row going stale. The reading below is the census as
+taken; the seat is the live count, and a finding that quietly tracks a moving number stops being
+a measurement.
+
 **18 switches at 19 read sites**, every one `bool(os.environ.get("TETHER_X"))` **with no default
 value**, and a scan of every tracked file finds **no setter anywhere**. So the configuration the
 agent actually runs under was never selected -- it is what you get when eighteen separate
