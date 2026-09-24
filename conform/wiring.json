@@ -56,162 +56,160 @@
  ],
  "items": {
   "ALL": {
-   "producer": false,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": false,
    "sources": []
   },
   "BECAUSE": {
-   "producer": false,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": false,
    "sources": []
   },
   "BECOME": {
-   "producer": false,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": false,
    "sources": []
   },
   "BE_AT": {
-   "producer": false,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": false,
    "sources": []
   },
   "CAN": {
-   "producer": false,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": false,
    "sources": []
   },
   "CHANGED": {
-   "producer": false,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": false,
    "sources": []
   },
   "DERIVE": {
-   "producer": false,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": false,
    "sources": []
   },
   "EXIST": {
-   "producer": false,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": false,
    "sources": []
   },
   "GROUND": {
-   "producer": false,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": false,
    "sources": []
   },
   "NEED": {
-   "producer": false,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": false,
    "sources": []
   },
   "NONE": {
-   "producer": false,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": false,
    "sources": []
   },
   "NOT": {
-   "producer": false,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": false,
    "sources": []
   },
   "ONE": {
-   "producer": false,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": false,
    "sources": []
   },
   "OTHER": {
-   "producer": false,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": false,
    "sources": []
   },
   "PAY": {
-   "producer": false,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": false,
    "sources": []
   },
   "SAME": {
-   "producer": false,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": false,
    "sources": []
   },
   "SEE": {
-   "producer": false,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": false,
    "sources": []
   },
   "SETTLE": {
-   "producer": false,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": false,
    "sources": []
   },
   "SOME": {
-   "producer": false,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": false,
    "sources": []
   },
   "STAND": {
-   "producer": false,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": false,
    "sources": []
   },
   "TOUCH": {
-   "producer": false,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": false,
    "sources": []
   },
   "WANT": {
-   "producer": false,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": false,
    "sources": []
   },
   "above": {
-   "producer": true,
-   "offered": true,
    "occurred": [
     "accepted",
     "bound",
@@ -220,10 +218,12 @@
     "promoted",
     "settled"
    ],
+   "offered": true,
    "positions": [
     "head",
     "mid"
    ],
+   "producer": true,
    "sources": [
     "armBC_ls20",
     "armBC_tn36",
@@ -263,8 +263,6 @@
    ]
   },
   "abs_delta": {
-   "producer": true,
-   "offered": true,
    "occurred": [
     "accepted",
     "bound",
@@ -272,9 +270,11 @@
     "minted",
     "settled"
    ],
+   "offered": true,
    "positions": [
     "head"
    ],
+   "producer": true,
    "sources": [
     "armB_vc33",
     "armC_vc33",
@@ -287,15 +287,13 @@
    ]
   },
   "age": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "aligned": {
-   "producer": true,
-   "offered": true,
    "occurred": [
     "accepted",
     "bound",
@@ -303,16 +301,16 @@
     "minted",
     "settled"
    ],
+   "offered": true,
    "positions": [
     "head"
    ],
+   "producer": true,
    "sources": [
     "ka59_wall"
    ]
   },
   "all": {
-   "producer": true,
-   "offered": true,
    "occurred": [
     "accepted",
     "bound",
@@ -321,10 +319,12 @@
     "promoted",
     "settled"
    ],
+   "offered": true,
    "positions": [
     "sole",
     "tail"
    ],
+   "producer": true,
    "sources": [
     "armBC_ls20",
     "armB_ls20",
@@ -359,15 +359,13 @@
    ]
   },
   "all_same": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "any": {
-   "producer": true,
-   "offered": true,
    "occurred": [
     "accepted",
     "bound",
@@ -376,9 +374,11 @@
     "promoted",
     "settled"
    ],
+   "offered": true,
    "positions": [
     "tail"
    ],
+   "producer": true,
    "sources": [
     "armE_ls20",
     "budget_ls20_stream",
@@ -399,46 +399,44 @@
    ]
   },
   "any_same": {
-   "producer": true,
-   "offered": true,
    "occurred": [
     "accepted",
     "bound",
     "minted",
     "settled"
    ],
+   "offered": true,
    "positions": [
     "head"
    ],
+   "producer": true,
    "sources": [
     "ovl_sk48_armH",
     "ovl_sk48_base"
    ]
   },
   "area": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "bbox": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "bbox_area": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "both": {
-   "producer": true,
-   "offered": true,
    "occurred": [
     "accepted",
     "bound",
@@ -447,9 +445,11 @@
     "promoted",
     "settled"
    ],
+   "offered": true,
    "positions": [
     "mid"
    ],
+   "producer": true,
    "sources": [
     "budget_ls20_stream",
     "f32_stream",
@@ -459,71 +459,76 @@
    ]
   },
   "canonical": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "centroid": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "changed": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "col": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "colour": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "colour_changed": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
+   "sources": []
+  },
+  "completed": {
+   "occurred": [],
+   "offered": false,
+   "positions": [],
+   "producer": true,
    "sources": []
   },
   "components": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "contact": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "corners": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "count": {
-   "producer": true,
-   "offered": true,
    "occurred": [
     "accepted",
     "bound",
@@ -531,79 +536,79 @@
     "minted",
     "settled"
    ],
+   "offered": true,
    "positions": [
     "head"
    ],
+   "producer": true,
    "sources": [
     "ka59_wall"
    ]
   },
   "dcells": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "dcol": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "delta": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "dh": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "dholes": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "distinct": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "dperimeter": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "drow": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "dw": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "either": {
-   "producer": true,
-   "offered": true,
    "occurred": [
     "accepted",
     "bound",
@@ -612,44 +617,46 @@
     "promoted",
     "settled"
    ],
+   "offered": true,
    "positions": [
     "mid"
    ],
+   "producer": true,
    "sources": [
     "ka59_wall",
     "long_ka59"
    ]
   },
   "extent": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "h": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "holes": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "idn": {
-   "producer": true,
-   "offered": true,
    "occurred": [
     "bound"
    ],
+   "offered": true,
    "positions": [
     "sole"
    ],
+   "producer": true,
    "sources": [
     "armE_ls20",
     "budget_ls20_stream",
@@ -672,15 +679,13 @@
    ]
   },
   "inside": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "is_max": {
-   "producer": true,
-   "offered": true,
    "occurred": [
     "accepted",
     "bound",
@@ -688,37 +693,37 @@
     "minted",
     "settled"
    ],
+   "offered": true,
    "positions": [
     "head"
    ],
+   "producer": true,
    "sources": [
     "budget_ls20_stream"
    ]
   },
   "is_min": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "is_mode": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "is_square": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "negate": {
-   "producer": true,
-   "offered": true,
    "occurred": [
     "accepted",
     "bound",
@@ -727,9 +732,11 @@
     "promoted",
     "settled"
    ],
+   "offered": true,
    "positions": [
     "mid"
    ],
+   "producer": true,
    "sources": [
     "armE_ls20",
     "budget_ls20_stream",
@@ -745,8 +752,6 @@
    ]
   },
   "none": {
-   "producer": true,
-   "offered": true,
    "occurred": [
     "accepted",
     "bound",
@@ -755,10 +760,12 @@
     "promoted",
     "settled"
    ],
+   "offered": true,
    "positions": [
     "sole",
     "tail"
    ],
+   "producer": true,
    "sources": [
     "armBC_ls20",
     "armBC_tn36",
@@ -804,22 +811,20 @@
    ]
   },
   "none_same": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "orbit_size": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "other": {
-   "producer": true,
-   "offered": true,
    "occurred": [
     "accepted",
     "bound",
@@ -827,10 +832,12 @@
     "minted",
     "settled"
    ],
+   "offered": true,
    "positions": [
     "head",
     "mid"
    ],
+   "producer": true,
    "sources": [
     "ka59_wall",
     "long_vc33",
@@ -841,43 +848,41 @@
    ]
   },
   "overlap": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "owner": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "parity": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "perimeter": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "position": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "rank_in": {
-   "producer": true,
-   "offered": true,
    "occurred": [
     "accepted",
     "bound",
@@ -885,9 +890,11 @@
     "minted",
     "settled"
    ],
+   "offered": true,
    "positions": [
     "head"
    ],
+   "producer": true,
    "sources": [
     "budget_ls20_stream",
     "distinct_off",
@@ -898,8 +905,6 @@
    ]
   },
   "recolour": {
-   "producer": true,
-   "offered": true,
    "occurred": [
     "accepted",
     "bound",
@@ -908,12 +913,14 @@
     "promoted",
     "settled"
    ],
+   "offered": true,
    "positions": [
     "head",
     "mid",
     "sole",
     "tail"
    ],
+   "producer": true,
    "sources": [
     "armBC_ls20",
     "armBC_tn36",
@@ -963,29 +970,27 @@
    ]
   },
   "reflect": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "rotate": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "row": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "same": {
-   "producer": true,
-   "offered": true,
    "occurred": [
     "accepted",
     "bound",
@@ -994,10 +999,12 @@
     "promoted",
     "settled"
    ],
+   "offered": true,
    "positions": [
     "head",
     "mid"
    ],
+   "producer": true,
    "sources": [
     "armB_vc33",
     "armC_vc33",
@@ -1013,64 +1020,62 @@
    ]
   },
   "shape": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "sign": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "speed": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "stability": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "sum_group": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "symmetric": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "touching": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "touching_n": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   },
   "translate": {
-   "producer": true,
-   "offered": true,
    "occurred": [
     "accepted",
     "bound",
@@ -1079,12 +1084,14 @@
     "promoted",
     "settled"
    ],
+   "offered": true,
    "positions": [
     "head",
     "mid",
     "sole",
     "tail"
    ],
+   "producer": true,
    "sources": [
     "armBC_ls20",
     "armBC_tn36",
@@ -1135,10 +1142,10 @@
    ]
   },
   "w": {
-   "producer": true,
-   "offered": false,
    "occurred": [],
+   "offered": false,
    "positions": [],
+   "producer": true,
    "sources": []
   }
  }

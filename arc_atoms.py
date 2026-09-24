@@ -109,6 +109,17 @@ ATTRIBUTE_TYPE = {"colour": COLOUR, "row": POSITION, "col": POSITION,
                   # Adding a `COUNT` type to close the gap would touch every consumer of the
                   # set and is not this arm's to do.
                   "contact": EXTENT,
+                  # THE GOAL SLOT -- `@goal.completed`, the board's OWN progress, published
+                  # by `arc_world` so the agent can PERCEIVE what it is being asked for
+                  # instead of only hearing it named. EXTENT for `contact`'s reason exactly:
+                  # an ordered non-negative magnitude, no `COUNT` in the importable set, and
+                  # the honest fit rather than a substitution.
+                  #
+                  # **THE CONTENT IS THE BOARD'S AND ALWAYS WAS; ONLY THE FORM IS OURS.** The
+                  # world already returned this number from `objective()` as a FLOAT the agent
+                  # could read and not compose with. Nothing here says what raises it -- that
+                  # is the whole of what the agent must still find out.
+                  "completed": EXTENT,
                   # THE REST OF THE CHEAP MUTATION SET -- observer item 1, arm TETHER_OBSERVER.
                   # `observer._MUT_ATTR` names the frozen deltas as `drow dcol dh dw dcells
                   # recolour`; the tracker carried the first two. `dh`/`dw`/`dcells` are signed

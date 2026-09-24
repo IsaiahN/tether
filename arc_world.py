@@ -148,6 +148,26 @@ class ArcWorld:
                 # it: if a returning object RECLAIMS its old slot the set stays bounded; if the
                 # tracker issues it a NEW name, it does not. Measure ever-seen against peak there
                 # first. Commit `d8ae6ea` carries the implementation.
+            # THE GOAL BECOMES A SLOT -- Isaiah 2026-09-24: *the agent needs to want what the
+            # RLVR provides, which is the board giving the win condition and the level
+            # completion increases.* It already DID provide it: `objective()` returns the same
+            # number as a FLOAT. **A float the agent can read is not a quantity it can compose
+            # with** -- it had no type, no alphabet, no residual, so nothing could bet on it,
+            # mint against it, or want it.
+            #
+            # AS A SLOT IT IS ORDINARY, AND THAT IS THE ENTIRE POINT. Perception, the residual,
+            # the bargain and `objective_step` all reach it with no new machinery: the last of
+            # those already turns a want about a slot into *step one unit toward the nearest
+            # satisfying value*, which is the decomposition that was said to be missing and is
+            # merely unreachable from a float.
+            #
+            # A MEANS, NEVER A MEANING. The board says what winning is and still does; this
+            # gives the agent the ABILITY TO HOLD IT. **Nothing here says what raises the
+            # number** -- no hint, no shaping, no sub-goal written by us -- and finding that is
+            # the agent's whole job.
+            if self._read and not self.blind:
+                f = self._frame
+                self._read["@goal.completed"] = int(getattr(f, "levels_completed", 0) or 0)
         return self._read
 
     def _walk_cascade(self) -> None:
@@ -477,6 +497,12 @@ class ArcWorld:
         out: dict[str, int] = {}
         for s in d:
             key = s.rsplit(".", 1)[-1]
+            if key == "completed":
+                # THE BOARD DECLARES ITS OWN RANGE. `win_levels` is what the game says winning
+                # takes, so the code over the goal slot is exactly as wide as the task is --
+                # not a constant chosen here. `+1` because 0 completed is a value.
+                out[s] = max(1, int(getattr(self._frame, "win_levels", 0) or 1)) + 1
+                continue
             if key == "shape":
                 # THE COUNT OF LABELS, NOT THE SPACE OF SHAPES. The slot holds an ID, and an
                 # id is a label -- arbitrary, comparable, never orderable -- so its alphabet
