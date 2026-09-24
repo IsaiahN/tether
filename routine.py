@@ -253,8 +253,25 @@ def advance(r: Any, holds: Callable[[Any], bool | None],
         return advance(r.body if h else r.otherwise, holds, lib, state, _depth)
 
     if isinstance(r, Try):
+        # **A CLAIM MADE BY A STEP THAT DID NOT RUN IS NOT A CLAIM ABOUT WHAT RAN.** `Expect`
+        # publishes into `state` as it is walked, so a body that publishes and THEN fails would
+        # leave its claim standing -- and the caller attributes the pending claim to whatever
+        # action the step emits, which by then is the FALLBACK's. Metacognition would record
+        # *I expected this slot to move* about a routine that was abandoned before acting.
+        #
+        # UNREACHABLE TODAY AND GUARDED ANYWAY: `Expect` is only ever the OUTERMOST node
+        # (`tether` wraps the chosen candidate) and the composer never builds one, so nothing
+        # can nest it inside a `Try` body. **The cost is three lines and the failure is a FALSE
+        # ROW in the record**, which is the one kind this project refuses to leave to luck.
+        #
+        # A `Let` BINDING IS DELIBERATELY NOT RESTORED: the body's remainder is discarded with
+        # it, so the rebuilt `Let` is gone and no later step can read the value. It goes stale,
+        # not wrong.
+        _claims = len(state.get("expect", ())) if state is not None else 0
         emit, rest = advance(r.body, holds, lib, state, _depth)
         if emit in (BLOCKED, EXHAUSTED):
+            if state is not None and len(state.get("expect", ())) > _claims:
+                del state["expect"][_claims:]
             # PUBLISHED BEFORE THE FALLBACK RUNS, so the caller records the failure even if
             # the fallback then succeeds. The other order loses exactly the case this exists
             # for -- a recovery nobody can see is a failure nobody can see.

@@ -419,7 +419,25 @@ def check_a_plan_can_have_a_fallback():
     assert Rt.advance(spent, lambda _g: False, None, st3)[0] == "B"
     assert st3.get("recovered") == [Rt.EXHAUSTED], f"exhausted is not distinguished: {st3}"
 
-    # 5 -- PRICED AND REACHED LIKE ANY OTHER OBJECT: both arms counted, reach held to the
+    # 5 -- A FAILED BODY'S CLAIM IS DISCARDED. `Expect` publishes as it is walked, so a body
+    # that publishes and THEN fails would leave its claim standing -- and the caller attributes
+    # the pending claim to the action the step emits, which by then is the FALLBACK's.
+    # Metacognition would record "I expected this to move" about a routine abandoned before
+    # acting. A FALSE ROW, which is worse than a missing one.
+    st4: dict = {}
+    leak = Rt.Try(Rt.Expect("o1.dcol", Rt.When("g", a)), b)
+    assert Rt.advance(leak, lambda _g: None, None, st4)[0] == "B"
+    assert not st4.get("expect"), f"a failed body's CLAIM survived onto the fallback: {st4}"
+    assert st4.get("recovered") == [Rt.BLOCKED], "the recovery went unrecorded"
+
+    # AND A CLAIM FROM A BODY THAT SUCCEEDS IS KEPT -- the control, without which the rule
+    # above is a mute rather than a fix.
+    st5: dict = {}
+    kept = Rt.Try(Rt.Expect("o1.dcol", a), b)
+    assert Rt.advance(kept, lambda _g: True, None, st5)[0] == "A"
+    assert st5.get("expect") == ["o1.dcol"], f"a live claim was discarded: {st5}"
+
+    # 6 -- PRICED AND REACHED LIKE ANY OTHER OBJECT: both arms counted, reach held to the
     # lesser, and the composer actually builds one.
     assert Rt.length(Rt.Try(a, b)) == 3, "an arm went uncounted"
     assert Rt.reach(Rt.Try(Rt.Seq(a, b), a)) == 1, "priced on the arm it may not take"
