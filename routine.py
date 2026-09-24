@@ -517,8 +517,30 @@ def enumerate_routines(actions: tuple, guards: tuple, chunks: tuple = (),
         if k not in seen:
             seen.add(k)
             uniq.append(r)
-    uniq.sort(key=length)
-    return uniq[:cap]
+    # **ROUND-ROBIN WITHIN A LENGTH, BECAUSE THE CAP WAS DECIDING WHICH SHAPES EXIST.** `sort`
+    # is stable, so ties broke on INSERTION ORDER -- and that is the defect `tether` already
+    # names at its own bargain: *the dict remembering who arrived, not the bargain preferring
+    # anyone.* Here it decided something larger than a winner: with one kind exhausted before
+    # the next begins, a `cap` reached mid-kind means the later kinds are NEVER ENUMERATED.
+    #
+    # **IT WAS LATENT UNTIL TONIGHT AND THEN I MADE IT LIVE.** Compound and comparison guards
+    # take the guard count from `n` to `4n - 2`, and `When`/`Until` are `base x guards x 2` at
+    # length 2 -- so past a handful of objectives the length-2 band alone exceeds `cap` and
+    # `Seq`, `Choose` and `Try` vanish entirely. **It activates exactly when the agent starts
+    # having objectives, which is exactly when the ACT space starts to matter.**
+    #
+    # SHORTEST STILL FIRST -- the bargain prices length and that ordering is the whole reason
+    # for it. What changes is only the tie: one of each kind, then two of each, so a cap that
+    # cuts mid-band cuts EVERY kind evenly instead of erasing the last ones. **No new constant,
+    # and `cap` stays exactly what it was: a compute bound, ours.**
+    rank: dict[str, int] = {}
+    keyed = []
+    for r in uniq:
+        kind = type(r).__name__
+        rank[kind] = rank.get(kind, -1) + 1
+        keyed.append((length(r), rank[kind], kind, r))
+    keyed.sort(key=lambda t: t[:3])
+    return [r for *_, r in keyed[:cap]]
 
 
 def reach(r: Any, lib: dict | None = None, _seen: frozenset = frozenset()) -> int:
