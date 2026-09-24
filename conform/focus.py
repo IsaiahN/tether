@@ -72,6 +72,38 @@ def streak() -> int:
     return n
 
 
+def share() -> tuple[int, int]:
+    """(off-agent, total) over the SAME 80 commits `streak` reads -- reported, never enforced.
+
+    **THE SEAT COUNTS RUNS AND THE DRIFT IT EXISTS FOR IS ACCUMULATION, WHICH ARE DIFFERENT
+    STATISTICS -- 2026-09-24.** `CLAUDE.md` says the seat was installed because *the drift that
+    removed the last agent was accumulation away from L1: never invisible, just never counted*.
+    `streak` counts CONSECUTIVE off-agent commits, so an ALTERNATING pattern is invisible to it
+    by construction. Measured over one night: **41 levelled commits, 22 off the agent (53%),
+    MAX CONSECUTIVE RUN 3 against a stall of 5 -- the seat could fire ZERO times.** It was green
+    for the whole night and more than half of it was off the agent.
+
+    **REPORTED AND NOT ENFORCED, DELIBERATELY.** Whether a share should gate is the reviewer's,
+    the way `STALL`'s value is; what was never theirs to decide is whether the quantity is
+    VISIBLE, and the seat's own purpose sentence says it must be. **No window constant is minted
+    here** -- this reuses the 80 `streak` already declares, so the two readings cannot drift apart.
+    """
+    out = subprocess.run(
+        ["git", "log", "-n", "80", "--format=%B%x1e"],
+        cwd=ROOT, capture_output=True, text=True,
+    ).stdout
+    off = tot = 0
+    for entry in out.split(""):
+        if not entry.strip():
+            continue
+        level, _note = classify(entry)
+        if level is None:
+            continue
+        tot += 1
+        off += level != 1
+    return off, tot
+
+
 def enforce(path: str) -> int:
     msg = Path(path).read_text(encoding="utf-8")
     first = next((ln for ln in msg.splitlines() if ln.strip()), "")
@@ -110,6 +142,11 @@ def main(argv: list[str]) -> int:
     s = streak()
     mark = "  <-- STALL, next off-agent commit is refused" if s >= STALL else ""
     print(f"focus: {s} commits off the agent (L2/L3) since last L1 (stall {STALL}){mark}")
+    off, tot = share()
+    if tot:
+        print(f"       and {off} of the last {tot} levelled commits are off the agent "
+              f"({off * 100 // tot}%) -- REPORTED, NOT ENFORCED. A run of 3 never trips a "
+              f"stall of 5, and accumulation is what the seat is for.")
     return 0
 
 
