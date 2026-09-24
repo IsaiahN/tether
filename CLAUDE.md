@@ -460,7 +460,22 @@ after the fact there is nothing to catch, because after the fact the reading is 
                         two halves are now written side by side rather than one implying
                         the other
       `inside`          ADMITTED by name, dated, with the batch's best reach number, and
-                        never constructed. The only `ADMITTED` entry missing from the registry
+                        never constructed. The only `ADMITTED` entry missing from the registry.
+                        **FALSE SINCE THE ROW WAS WRITTEN, AND CORRECTED 2026-09-24. IT IS
+                        BUILT** -- `arc_atoms.py:163` declares it `BOOL`, `arc_atoms.py:234`
+                        carries its `ADMITTED` stamp, and `arc_world.py:251-271` emits it
+                        DIRECTED (`a~b` means B is inside A), unguarded, on a module `F346`
+                        lists as REACHED. **DOES IT EXIST: yes, verified. IS IT REACHED:
+                        unmeasured per-run, and that is a board reading, not a grep** -- the
+                        two halves written side by side, as `operand_term` above had to learn
+                        **AND THE REFUTATION WAS ALREADY PRINTED IN THIS FILE, WHICH IS THE
+                        PART WORTH KEEPING.** The panel-precondition passage above reports
+                        `inside` reading *0 slots on BOTH HARNESSES* and the zero turning out
+                        to be a missing arm flag. **A quantity measured on both harnesses is
+                        self-evidently constructed**, so one passage was reporting its
+                        readings while another said it had never been made. **Neither is
+                        wrong about its own subject and the file contradicts itself across
+                        them** -- no test reads either, and `check.py` was green throughout
       `condition.py`    a whole guard-expression AST -- `Not`, three-valued evaluation, its
                         own SEAT in `check.py` -- and **no module on the agent path imported
                         it** (`F299` read its census at `DRAFTABLE 0`). **The sharpest variant:
