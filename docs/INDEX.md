@@ -47065,3 +47065,45 @@ exists for.
 
 **Two decision points and a fallback in a language that has not yet been asked to speak.** That
 is the state, and it is stated here rather than left as twenty-six green commits.
+
+
+## F346 -- THE *IS IT ACTUALLY REACHED* CHECK, RUN AT THE LEVEL OF THE WHOLE CODEBASE FOR THE FIRST TIME. **24 of 54 project modules are loaded by a live agent step**, and the run corrected a row in the table that asks the question
+
+`CLAUDE.md` has said for a day that **the check is A RUN, NOT A GREP** -- *step the agent with
+every arm on and read `sys.modules`*. **It had never been run.** The table beneath that sentence
+is five hand-found instances of a thing one run answers for everything, and the run costs two
+cycles.
+
+### REACHED -- 24
+
+    arc_atoms · arc_holdout · arc_percept · arc_predict · arc_run · arc_self · arc_world ·
+    behaviour · composer · condition · experiment · gamma · gate · grammar · habitat ·
+    instruments · ledger · priors · probe · retrieval · routine · self_family · sensors ·
+    summary · tether
+
+### NOT REACHED -- 30
+
+    arc_check · arc_lens · arc_online · arc_screen · census · check_paths · close_card ·
+    closure_map · demand · demo · detectors · feeder · framepair · mapping · observer ·
+    relations · reverse_engineer · rlvr · self_graded · sensors_heavy · snaps · speak · synth ·
+    test_gate · test_m2 · test_perception · transcript · visible · world
+
+**MOST OF THE 30 ARE LEGITIMATELY OFF THE PATH** -- suites, seats, harnesses, generators, the
+toy demo. **The census is not an indictment; it is a DENOMINATOR**, and it is the first one this
+question has ever had.
+
+### WHAT IT SETTLED, AND WHAT IT CORRECTED
+
+    `sensors_heavy`   **STILL UNREACHED, now verified rather than assumed.** A grep says it IS
+                      imported -- by `detectors` and `observer` -- and neither is on the agent
+                      path. **The grep would have retired a true row**
+    `composer`        **REACHED.** The row about it concerns a GUARD on the betting path, which
+                      is a different claim from the import and stays open
+    `speak`           **not loaded during a run, and that is BY DESIGN** -- it renders the
+                      ledger afterwards. Recorded so the absence is not read as a gap later
+    `condition`       **REACHED SINCE `f58a228` -- and `CLAUDE.md` said otherwise, because I
+                      wrote that row FIFTEEN MINUTES BEFORE I WIRED THE MODULE**
+
+> **THE LAST ONE IS `I25` FROM THE OTHER END: I REPAIRED A STALE ROW AND CREATED ONE IN THE SAME
+> HOUR.** The row was true when written and false by the end of the session that wrote it.
+> **That is the argument for the run over the table**, and the table now says so about itself.

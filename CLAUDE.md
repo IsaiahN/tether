@@ -455,11 +455,16 @@ after the fact there is nothing to catch, because after the fact the reading is 
       `inside`          ADMITTED by name, dated, with the batch's best reach number, and
                         never constructed. The only `ADMITTED` entry missing from the registry
       `condition.py`    a whole guard-expression AST -- `Not`, three-valued evaluation, its
-                        own SEAT in `check.py` -- and **no module on the agent path imports
+                        own SEAT in `check.py` -- and **no module on the agent path imported
                         it** (`F299` read its census at `DRAFTABLE 0`). **The sharpest variant:
                         a green seat proves a thing WORKS and says nothing about whether it is
                         REACHED**, so the check that looks most like coverage is the one that
-                        cannot see this class at all
+                        cannot see this class at all.
+                        **REACHED SINCE `f58a228`, fifteen minutes after this row was written
+                        -- BY ME.** I filed the row and then wired the module, leaving my own
+                        entry false. **`I25` from the other end: I repaired a stale row and
+                        created one in the same hour**, which is why the audit below is a RUN
+                        and not this table
 
   **EVERY ONE PRESENTED AS NOTHING**, which is the whole difficulty: an unreached mechanism does
   not fail, it abstains, and an abstention is indistinguishable from a mechanism with nothing to
@@ -472,6 +477,12 @@ after the fact there is nothing to catch, because after the fact the reading is 
   reached*, and *a map entry saying a thing does not exist is worse than one saying it is
   unfinished — the first closes the question.* **`operand_term` sat here as a NO for a day after
   it stopped being one.**
+
+  **AND THE RUN WAS FINALLY DONE AT THE LEVEL OF THE WHOLE CODEBASE -- 2026-09-24, `F346`.**
+  Stepping a live agent and reading `sys.modules`: **24 of 54 project modules are reached.** The
+  table above is five hand-found instances of a thing one run answers for everything. **It cost
+  two cycles, and it corrected a row in this very table** -- so run it before trusting any entry
+  here, including this one.
 
   **THE CHECK IS A RUN, NOT A GREP, AND IT IS CHEAP**: step the agent with every arm ON and read
   `sys.modules`, or spy the callable and count CALLS SEPARATELY FROM RESOLUTIONS. *Called 784
