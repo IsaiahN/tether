@@ -48521,3 +48521,71 @@ which generalises to: **the dial orders a contest only when it can speak about e
 That is a wiring change on the decision path with no occasion to exercise it (0 contests), so it
 is recorded and left, not slipped in unexercised.
 
+## F361 -- **THE MAPPING'S TARGET IS 11 CONCEPTS, NOT 5 GAPS AND NOT 863.** The join between what the agent PERCEIVES and what the closure SAYS is eleven names wide -- and `candidates`'s own published question is now answered
+
+**The reviewer's item 3 is the MAPPING, *"seat-side, needs no run, produces a TARGET rather than
+more mechanism"*. Its turn came when `F360` showed the CONSUMER unreachable.** This is the
+target, measured. **Static: names only, no board, no harness.**
+
+### THE CLOSURE IS ON THE AGENT PATH -- CHECKED, NOT ASSUMED
+
+A live run OPENS `docs/library-closure/ATOMS.md`. `composer.recipe_rows` is called once and
+returns **2,079 rows**; `composer.candidates` is called once and returns **0**. So the
+inheritance is loaded and yields nothing -- reached and producing nothing, the night's recurring
+shape.
+
+### WHY IT YIELDS NOTHING, AND MY FIRST ANSWER WAS THE WRONG POPULATION
+
+**I first compared agent atom names against recipe ROW names and got 2 of 42.** `candidates`
+joins on **INGREDIENTS**, not row names, and it NORMALISES case -- both stated in its docstring,
+which I had not read before drafting the explanation. **Fourth instance in one night of the
+refutation sitting inside the function the claim depended on.**
+
+Assembled from `arc_atoms`' own twelve builders, joined the way `candidates` joins:
+
+    distinct grid atom names (the agent's vocabulary)    63
+    distinct ingredient names in the closure          2,682
+    ingredient names the agent's atoms JOIN              13  -> 11 DISTINCT CONCEPTS
+        Age - COUNT/Count - Contact - Inside - Other - Reflect - Rotate
+        - SHAPE - SIGN/Sign - Speed - Stability
+    recipes FULLY covered (exact cover, the default)       0
+    recipes PARTIALLY covered                             51
+
+**`COUNT`/`Count` and `SIGN`/`Sign` are the corpus's own casing duplicates**, which is why 13
+names are 11 concepts -- the same naming defect already filed, counted here rather than
+estimated. **And this corroborates the docstring's own "normalised it is 13" from an independent
+assembly**, so the earlier 2 was my population error and not a disagreement.
+
+### THE QUESTION `candidates` PUBLISHED AND NOBODY ACTED ON IS NOW ANSWERED
+
+Its docstring: *"`F165`'s 0 molecules on all 25 cannot separate 'the recipe layer is inert' from
+'nothing could ever have been covered', and the coverage fraction is the quantity that separates
+them. Published, not acted on."*
+
+> **IT IS NEITHER, AND THE FRACTION SAYS SO: 51 recipes are PARTIALLY covered -- so the layer is
+> not inert and something CAN be reached -- while ZERO reach full cover and the best is 0.7.**
+> The zero is manufactured by the ALL-OR-NOTHING admission rule, exactly as the docstring
+> suspected, and the suspicion is now a measurement.
+
+    coverage 0.7   2 recipes
+    coverage 0.5  13
+    coverage 0.3  27
+    coverage 0.2   9
+
+### SO THE MAPPING IS RESIZED AGAIN, AND IN THE OTHER DIRECTION
+
+`F352`'s follow-up resized it DOWN -- *the aim points reach 25 names, five of which are gaps.*
+**That is the closure's INTERNAL completeness.** This is a different quantity: **the INTERFACE
+between the agent's perception and the closure's vocabulary, and it is eleven concepts wide
+against 2,682.** Authoring the five gaps does not widen it -- 2,079 rows becomes 2,084 and the
+join is unchanged.
+
+> **THE MAPPING'S JOB IS THE JOIN, NOT THE GAPS.** What stands between the agent and its
+> inheritance is that almost nothing it can perceive is named in the terms the closure speaks.
+
+### ONE RULING IS NOW DECISION-READY, AND IT IS NOT MINE
+
+`partial=True` is OFF by default, and the docstring says so deliberately: *"whether partial cover
+is the right admission rule is a ruling, not a parse detail."* **It now has a number attached:
+OFF admits 0 recipes, ON admits 51.** Recorded for Isaiah; not switched.
+
