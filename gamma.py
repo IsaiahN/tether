@@ -87,6 +87,21 @@ REJECTION_HALFLIFE = 8.0
 # books the moment it has any. Until then this is what decays a refutation -- and it is marked
 # as unearned in the `books` row rather than passing silently as a decision.
 
+# anchor: SPECIFIED, NOT GROUNDED, and seeded at its own NO-OP.
+# **HOW MUCH ACCUMULATED, DECAYED WRONGNESS UNSETTLES A TERM -- Isaiah, 2026-09-24:**
+# *"Definitely not a hard ban. In original Ouroboros things had DECAYS AND RATIOS
+# instead of hard limits, for flexibility and scale."*
+# **THE SHAPE IS RULED AND THE NUMBER IS NOT OURS**, so this is a SEED in
+# exactly `REJECTION_HALFLIFE`'s sense and is marked as one wherever it is read.
+#
+# **1.0 IS THE VALUE THAT MAKES THIS CHANGE BEHAVIOUR-NEUTRAL ON ENTRY, AND THAT IS WHY IT IS
+# HERE.** `refute` adds exactly `1.0`, so at a ceiling of `1.0` the first miss still unsettles --
+# **byte-identical to the cliff it replaces.** What changes is that the ceiling now EXISTS and is
+# a number someone can move; what does not change is any run. **A mechanism installed at its own
+# no-op point cannot be accused of smuggling a policy in with it.**
+REJECTION_CEILING = 1.0
+
+
 
 def accepts_type(unit: Any, ty: str | None) -> bool:
     """**THE ONE PREDICATE.** Both the BINDING rule (`tether._head_accepts`) and the SEARCH rule
@@ -386,10 +401,29 @@ class Standing:
     rejections: float = 0.0
     last_tick: int = 0
 
-    def refute(self, tick: int, halflife: float | None = None) -> None:
+    def refute(self, tick: int, halflife: float | None = None,
+               ceiling: float | None = None) -> None:
+        """**ISAIAH, 2026-09-24: NOT A HARD BAN. A DECAY OR A RATIO, NEVER A CLIFF.**
+
+        This read `self.settled_at = None` -- **one miss and a standing was gone, unconditionally
+        and with no decay involved**, which contradicted this class's own first line (*weighted,
+        clocked, and never a hard ban*) and `F327` recorded the contradiction.
+
+        **THE REPAIR IS THAT SETTLED-NESS NOW TURNS ON THE QUANTITY THAT ALREADY DECAYS.**
+        `rejections` is accumulated wrongness with a half-life; a term keeps its standing while
+        that total stays under the ceiling, and **evidence can therefore overturn a miss by
+        outlasting it.** Nothing new is measured and nothing new is stored -- the cliff simply
+        stops being a special case beside a decay that was already there.
+
+        **THE NUMBER IS NOT MINE AND THE DEFAULT IS ITS OWN NO-OP.** `REJECTION_CEILING` is 1.0
+        and a refutation adds 1.0, so the first miss still unsettles and **every run is
+        unchanged.** The mechanism is installed, visible and movable; the judgement of how much
+        one failure should cost is Isaiah's, and `F341` files it as a judgement constant.
+        """
         self.decay(tick, halflife)
         self.rejections += 1.0
-        self.settled_at = None
+        if self.rejections >= (REJECTION_CEILING if ceiling is None else ceiling):
+            self.settled_at = None
 
     def decay(self, tick: int, halflife: float | None = None) -> None:
         """**THE SHAPE IS OURS; THE RATE IS THE AGENT'S.** Isaiah, 2026-09-24: the agent controls
