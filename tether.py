@@ -1137,7 +1137,21 @@ class Agent:
                         # run, which is tonight's own pattern. And a second store WOULD have
                         # diverged from `_acts` the way the routine shelf diverged from
                         # `self.routines` earlier: one name, one store.
-                        actions_spent=sum(self._acts.values()),
+                        actions_spent=(_spent := sum(self._acts.values())),
+                        # **ACTIONS PER ARRIVAL, the fourth book, and it was NAMED AND NOT
+                        # BUILT.** I recorded actions SPENT and stopped -- an arrival is a term
+                        # landing in the library, which is the sense `_STREAM_WIDEN`'s own abort
+                        # criteria already use (*candidates tried rises while ARRIVALS do not*).
+                        #
+                        # **`None` WHEN NOTHING HAS ARRIVED, never 0 and never the raw spend.**
+                        # Zero arrivals makes the ratio undefined, and reporting the spend alone
+                        # would read as *cheap* when it means *nothing was bought at any price*.
+                        per_arrival=(round(_spent / len(self.settled), 2)
+                                     if self.settled else None),
+                        # AND THE SAME AGAINST THE SCORE, which is the one that finally matters:
+                        # actions per LEVEL. Undefined until a level moves, and saying so is the
+                        # reading -- not a zero.
+                        per_level=(round(_spent / done, 2) if done else None),
                         settled=len(self.settled), demoted=len(self.demoted),
                         watching=len(self._demoted_watch),
                         halflife=self.gamma.halflife,
