@@ -46701,3 +46701,80 @@ applies: a board where nothing is shrinking may be a board with nothing to shrin
     BOUNDARY    vc33, seed 0, 4 cycles, tape. ONE BOARD -- the reason may differ elsewhere
     MECHANISM   metacognition is built, correct, and unreached. Not claimed
     CAPABILITY  none, and the row exists to stop the wrong CAUSE being carried forward
+
+
+---
+
+## F340 -- GATE 1, TAKEN TO THE END. The trend is destroyed on 98.4% of calls AND THE DESTRUCTION
+## IS CORRECT: the defect category is ZERO on both boards. `routines adopted 0` is a REFUSAL.
+
+`F339` found `_mint_routine` refusing every cycle with `no objective is confidently shrinking`.
+This is that refusal followed to its source, under a hard stop declared before the work: **fix a
+MEANS, stop at a THRESHOLD, per cause rather than for the set.**
+
+### The write site forwards, and `_goal_choice` has THREE causes of `None`, not two
+
+    (a) `len(series) < MIN_REPEAT + 1`   no series long enough to be JUDGED -- **supply, MEANS**
+    (b) long enough, none shrinking      **the `MIN_REPEAT` bar -- a THRESHOLD**
+    (c) `_res` empty                     nothing tracked at all -- **neither**
+
+**ALL THREE PRODUCE THE IDENTICAL REASON STRING**, which is `used==1` and `unbound`'s fault a
+third time: **one field reading as one fact and covering three.**
+
+### TWO BOARDS, AND CAUSE (b) IS ZERO ON BOTH
+
+    board   slots   `_res`   TOO SHORT   FLAT   RISES   QUALIFIES
+    vc33     204      7        **7**       0      0        0        series lengths {1:2, 2:5}
+    g50t     677    **0**       --        --     --       --        **`_res` EMPTY**
+
+**THE BAR IS NEVER CONSULTED ANYWHERE.** **There is no threshold half to stop on -- not "small",
+ABSENT.** And the two boards fail DIFFERENTLY: `vc33` builds series and cannot keep them;
+`g50t` never builds one. **A pooled reading would have said *the trend supply is starved*, which
+is true of both and describes neither.**
+
+### THE MECHANISM: one line, and it destroys rather than skips
+
+`tether:2799` -- `if rg is None: self._res.pop(slot, None)`. **A single unreadable cycle destroys
+the ENTIRE accumulated trend.** Measured: **969 of 985 calls on `vc33`, 98.4%.**
+
+> **SO `MIN_REPEAT + 1 = 3` DOES NOT ASK FOR THREE READINGS. IT ASKS FOR THREE CONSECUTIVE
+> READABLE CYCLES, AT A 1.6% READABILITY RATE.** **The bar is unchanged; what it COSTS is not
+> what it looks like** -- and neither site says so. **7-of-204 and the length-2 ceiling are this
+> one number seen from two angles, not two anomalies.**
+
+### AND THE DESTRUCTION WAS SILENT, ONE ARGUMENT SHORT
+
+`goal_residual` can name which `None` a `None` was -- eight exits via `_why` -- and **this caller
+passed `counts` and no `why`.** 969 silent destructions per five cycles; **the ledger could not
+have shown it because the information was discarded one argument short of being recorded.**
+Wired at `bbd8093`, aggregated ONE ROW PER CYCLE per `_why`'s own anti-flooding rule.
+
+### THE SPLIT, AND IT REVERSES THE READING THE 98.4% INVITED
+
+    vc33 (969)   `unbound` **845** · `out_type-not-OBJ` 121 · `slot-absent-from-state` 3
+    g50t (1944)  `unbound` **1,940** · `out_type-not-OBJ` 4
+    BOTH         `operand-unreadable` · `degree-unresolved` · `empty-group` ·
+                 `name-not-in-library`   **ZERO. Not one, on either board.**
+
+> **THE TEST WAS *only a real unreadability is a defect*, AND IT RETURNS ZERO.** **The pop fires
+> correctly on all 2,913 occasions, because there is genuinely nothing to trend.** **THE POP IS
+> NOT THE DEFECT.**
+
+**A NUMBER THAT LARGE READS AS A MALFUNCTION; MEASURED, IT IS THE MECHANISM BEING HONEST 98.4%
+OF THE TIME.** That is the row's transferable half.
+
+### WHAT IS NOT ESTABLISHED, AND WHY IT IS NOT CLAIMED
+
+`unbound` means no OBJ-typed term is bound, and OBJ bindings come from `mint`'s second stream,
+which the contest gates. **THAT LOOKS LIKE THE BARGAIN WALL AND IT IS NOT CLAIMED AS ONE** --
+`F339` records that exact error made and withdrawn the same night. **Three unseparated worlds:
+the contest refusing OBJ candidates · the stream producing few · OBJ terms binding then being
+unsettled.** **One count cannot tell them apart.**
+
+**And `out_type-not-OBJ` at 121 on `vc33` against 4 on `g50t` is the row that is not simple
+absence -- something IS bound and is not an objective. Unexplained, and no story offered.**
+
+    BOUNDARY    vc33 5 cycles / g50t 3 cycles, seed 0, tape. Two boards, never pooled
+    MECHANISM   `bbd8093` -- the pop now records its reason. THE POP ITSELF UNTOUCHED
+    CAPABILITY  none. It converts a fortnight-old ABSENCE (`routines adopted 0`) into a
+                measured REFUSAL with a named, correct cause
