@@ -294,6 +294,35 @@ _STARVED_CONTACT = bool(os.environ.get("TETHER_STARVED_CONTACT"))
 # is one place rather than a second node kind every walker would have to learn.
 _SAT = "satisfied:"
 
+# EVERY QUANTITY THE AGENT RECORDS ABOUT ITSELF, DECLARED IN ONE PLACE AND INITIALISED TO ZERO.
+#
+# **THE DEFECT THIS REMOVES BY CONSTRUCTION BIT THREE TIMES IN ONE NIGHT.** A counter written
+# only when it increments reads ABSENT at zero, and **absent cannot be told from
+# never-recorded** -- gate 1's tally, `plan_gate_no_hypothesis`, and the bargain book, the last
+# of them committed an hour AFTER the first two were fixed. **Knowing the class did not stop me
+# repeating it**, which is this project's own rule for when prose has to become a mechanism.
+#
+# A ZERO IS THE MOST INFORMATIVE READING A BOOK HAS. *Not one candidate reached `pays`* and *the
+# agent holds no goal hypothesis* are both zeros, and both were invisible. **So the store starts
+# with every key, and an increment can never be the thing that makes a key exist.**
+#
+# DECLARED HERE RATHER THAN IN `gamma` BECAUSE THE KEYS ARE THE AGENT'S, not the library's --
+# `Gamma` owns the STORE so it persists with the terms, and this owns what goes in it.
+BOOKS: tuple[str, ...] = (
+    "promoted_then_wrong",              # settled, then mispredicted
+    "demoted_would_have_been_right",    # the counterfactual `F327` destroys unrecorded
+    "demoted_stayed_wrong",             # released unvindicated at the watch cap
+    "arrived_using_an_invented_atom",   # did inventing ever reach a SETTLED term
+    "plan_gate_too_short",              # gate 1: the bar was never APPLIED
+    "plan_gate_flat",                   # gate 1: the bar genuinely refusing
+    "plan_gate_rose",                   # gate 1: the bar genuinely refusing
+    "plan_gate_qualified",              # gate 1: an objective passed
+    "plan_gate_no_hypothesis",          # gate 1: nothing to filter. SUPPLY, not the bar
+    "bargain_bounded_out",              # `_cannot_pay` -- a NECESSARY condition, not a choice
+    "bargain_does_not_pay",             # `pays` -- the only one of the two that is a judgement
+    "bargain_paid",                     # reached the contest
+)
+
 # why not the neighbouring bin. A bin without its discriminator is a label, not a diagnosis.
 WHY_NOT = {
     HELD: "not novel: the slot is bound and the bound term predicted it",
@@ -558,6 +587,11 @@ class Agent:
     def __init__(self, env: Any, gam: Gamma, cfg: Config | None = None,
                  led: Ledger | None = None) -> None:
         self.env, self.gamma = env, gam
+        # `setdefault`, NEVER ASSIGNMENT: a loaded library carries its books across attempts
+        # (`08bb416`) and zeroing them here would silently undo the persistence that makes a
+        # dial earnable at all. A key the blob predates simply arrives at 0.
+        for _k in BOOKS:
+            self.gamma.book.setdefault(_k, 0)
         self.actions = tuple(env.actions())        # asked for, never imported
         # SET HERE AND NOT ONLY IN `retarget`. `_advertised` reads it at the top of every
         # step; it only ever REACHED that read after the set had changed, so the attribute's
@@ -4049,16 +4083,6 @@ class Agent:
             # That is a design question, not a parameter.
             by_kind: dict[str, tuple] = {}
 
-            # **ALL THREE EXIST THE MOMENT THE BARGAIN RUNS, AND THIS IS THE THIRD TIME
-            # TONIGHT.** A counter written only when it increments reads ABSENT at zero, and
-            # absent cannot be told from never-recorded -- the same defect as gate 1's empty
-            # tally and as `plan_gate_no_hypothesis`. Measured here before it was fixed: three
-            # cycles gave `bounded_out 5268` and NO other key, so *not one candidate reached
-            # `pays`* -- the sharpest thing the book has to say -- was invisible.
-            #
-            # the three exist together or the split cannot be read.
-            for _k in ("bargain_bounded_out", "bargain_does_not_pay", "bargain_paid"):
-                self.gamma.book.setdefault(_k, 0)
             for in_t, out_t in streams:
                 # A THIRD KIND EXISTS ONCE THE STREAMS WIDEN, and it is named rather than
                 # folded into `objective`: a term ending at EXTENT is neither a prediction of

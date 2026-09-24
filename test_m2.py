@@ -13,6 +13,7 @@ import collections
 import contextlib
 import copy
 import math
+import pathlib
 import sys
 
 import numpy as np
@@ -352,6 +353,39 @@ def check_a_guard_can_say_more_than_one_slot():
     loose = [x for g in made for x in bare(g)]
     assert not loose, f"a bare slot is read as a claim: {loose}"
     assert any(isinstance(g, C.Cmp) for g in made), "no guard ever says anything about the board"
+
+
+def check_every_book_key_is_declared():
+    """DEFECT: a book key that only exists once it increments, so its ZERO is invisible.
+
+    **THREE TIMES IN ONE NIGHT, THE LAST AN HOUR AFTER THE FIRST TWO WERE FIXED** -- gate 1's
+    tally, `plan_gate_no_hypothesis`, the bargain book. **A zero is the most informative reading
+    a book has** (*not one candidate reached `pays`*, *the agent holds no goal hypothesis*) and
+    all three of those zeros read as ABSENT, which cannot be told from never-recorded.
+
+    `tether.BOOKS` removes the class by construction. This stops a NEW key re-entering it, and
+    is the arms seat's rule one level down: **a key cannot enter silently, which is how the
+    other three got in.**
+    """
+    import re
+    src = (pathlib.Path(tether.__file__)).read_text(encoding="utf-8")
+    lit = set(re.findall(r'book\[\"([a-z_]+)\"\]', src))
+    lit |= set(re.findall(r'book\.get\(\"([a-z_]+)\"', src))
+    missing = sorted(lit - set(tether.BOOKS))
+    assert not missing, f"book keys written but not declared in BOOKS: {missing}"
+
+    # AND THE DECLARATION IS NOT A LIST OF NAMES NOBODY WRITES. A stale row is the other half:
+    # it would report a zero forever for a quantity nothing measures, which is worse than
+    # silence, because it looks like evidence.
+    stems = set(re.findall(r'book\[f\"([a-z_]+)\{', src))
+    unwritten = [k for k in tether.BOOKS
+                 if k not in lit and not any(k.startswith(x) for x in stems)]
+    assert not unwritten, f"BOOKS declares keys nothing writes: {unwritten}"
+
+    # AND A FRESH AGENT HAS EVERY ONE AT ZERO, which is the property the class needed.
+    ag = _agent(cycles=1)
+    zero = [k for k in tether.BOOKS if k not in ag.gamma.book]
+    assert not zero, f"a declared book key is absent from a live agent: {zero}"
 
 
 def check_chunking_reaches_the_bargain():
