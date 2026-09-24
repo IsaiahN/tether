@@ -221,6 +221,31 @@ class Transitions:
         a[GOAL_SLOT] = len(self.state) + 1
         return a
 
+    def slot_types(self) -> dict[str, str]:
+        """What KIND of quantity each slot holds. **THE DOMAIN DECLARES; THE LOOP MAY NOT
+        DERIVE IT** -- the same contract `arc_world` has always met and this world never did.
+
+        **AND THAT OMISSION MADE A WHOLE SUBSYSTEM UNTESTABLE IN CI -- found 2026-09-24 by the
+        end-to-end fixture.** `mint` appends the objective stream only `if stype`, so with no
+        types declared **no `OBJ` candidate is ever enumerated, nothing ever binds one, and
+        `objective_step` -- the decomposer -- can never run.** The seat suite's only world could
+        not express an objective, so every objective mechanism built since has been green in CI
+        and unexercised by it. **Not a design choice: a missing member of the domain contract.**
+
+        EXTENT FOR ALL SEVEN, AND IT IS THE HONEST FIT RATHER THAN A CONVENIENCE. Each slot
+        holds a non-negative integer produced by arithmetic (`inc`, `neg`, `dbl`, `wrap`,
+        `act`, `take`), and the world's own goal -- *ALL slots at zero* -- treats the value as a
+        MAGNITUDE with a target, which is what an extent is. `COUNT` is not in the importable
+        set, exactly as `arc_atoms` records for `contact`.
+
+        **THE CAVEAT, STATED BECAUSE IT IS REAL: the values are MOD M, so the order is CYCLIC
+        and not linear.** `objective_step`'s ordered arm walks outward from the current value,
+        which is meaningful locally and does not know the wrap. **It is the right declaration
+        and it is not a perfect one**, and a later reader should know that before trusting a
+        distance here.
+        """
+        return dict.fromkeys(self.slots(), "EXTENT")
+
     def transform(self) -> Any:
         """No coarse view is defined for this env, so the bracket channel is inert here.
         Stated rather than omitted: the channel exists and this world does not feed it."""
