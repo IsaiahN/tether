@@ -909,6 +909,61 @@ def check_the_goal_is_a_slot_the_agent_can_perceive():
     assert "@goal.completed" not in arc_world.ArcWorld._decomposed(w2)
 
 
+def check_the_toy_world_meets_the_goal_contract():
+    """THE HARNESS THE SEATS ACTUALLY RUN ON, AND IT WAS THE ONE WITHOUT A TEST.
+
+    `@goal.completed`, the per-slot alphabet and `slot_types` all went into `world.py` on
+    2026-09-24 and **only the `arc_world` half was checked.** The toy world is what `demo`,
+    `gate`, `m2` and the fixture all run against, so it is the half that breaks things -- and
+    it did: turning `alphabet()` from one number into a dict broke `demo.py`, which had been
+    handing `correction_bits` the alphabet OF THE WORLD while charging ONE slot's correction.
+    **That worked only while every slot shared a number, and nothing tested it.**
+
+    FOUR CLAUSES, EACH ONE A THING THAT WENT WRONG OR COULD:
+      the goal is PUBLISHED and DERIVED, never stored -- no rule can write it
+      the alphabet is PER SLOT and the goal's is the BOARD's, not `M`
+      the goal is TYPED, so the objective stream is asked for at all
+      `objective()` and the slot are ONE quantity -- the `A6i` this pairing invites
+    """
+    import world
+
+    env = world.Transitions()
+    obs, slots = env.observe(), env.slots()
+    assert world.GOAL_SLOT in obs, "the toy world does not publish the goal"
+    assert world.GOAL_SLOT in slots, "the goal is published and not advertised"
+
+    # 1 -- DERIVED, NEVER STORED. If it ever enters `state`, `step`'s `% M` mutates it and a
+    # rule can write the agent's own progress -- which is the one thing that must not happen.
+    assert world.GOAL_SLOT not in env.state, "the goal slot is STORED; a rule could write it"
+
+    # 2 -- ONE QUANTITY. `objective()`'s degree and the slot are the same count or they will
+    # drift, which is `A6i` with two producers of one fact.
+    _name, degree = env.objective()
+    assert abs(degree - obs[world.GOAL_SLOT] / len(env.state)) < 1e-9, (
+        f"objective() says {degree} and the slot says {obs[world.GOAL_SLOT]}")
+
+    # 3 -- THE RANGE IS THE BOARD'S. `M` would be WRONG, not merely loose: `correction_bits`
+    # normalises mod the alphabet, so a full solve would wrap to zero and read as no progress.
+    alpha = env.alphabet()
+    assert isinstance(alpha, dict), "the alphabet must be per slot once the goal is a slot"
+    assert alpha[world.GOAL_SLOT] == len(env.state) + 1, alpha[world.GOAL_SLOT]
+    # **NOT `world.M` -- THE LAYER BOUNDARY BANS IT** (`TID251`: *the loop may not read the
+    # value space; the env declares its own code*), and ruff refused the first version of this
+    # line. The property wanted was never the constant anyway: **the STATE slots share one
+    # alphabet and the GOAL's is different**, which is the shape the per-slot change created
+    # and is checkable without naming a number.
+    state_alphas = {alpha[s] for s in env.state}
+    assert len(state_alphas) == 1, f"state slots disagree on their alphabet: {state_alphas}"
+    assert alpha[world.GOAL_SLOT] not in state_alphas, (
+        "the goal's alphabet collapsed onto the state's -- a full solve would wrap to zero")
+
+    # 4 -- TYPED, or `mint` never asks for the objective stream at all and the whole OBJ path
+    # is unreachable on this harness -- which is exactly how it was until today.
+    types = env.slot_types()
+    assert types[world.GOAL_SLOT] == "EXTENT", types.get(world.GOAL_SLOT)
+    assert set(types) == set(slots), "a slot is advertised without a declared type"
+
+
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
 
 if __name__ == "__main__":
