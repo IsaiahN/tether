@@ -103,6 +103,12 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
     # be a magic number wearing an adapter's clothes.
     palette = int(max(int(v) for row in board for v in row)) + 1
 
+    # **SET BEFORE THE ATOM SET IS BUILT, AND THE FIRST PLACEMENT WAS WRONG.** `three_spaces`
+    # reads `_ITERATE` on the line below; the flag originally sat forty lines further down with
+    # the config, so **`max_depth` reached the agent and the fold atoms did not** -- no crash,
+    # no failing seat, the capability simply absent. Caught by an executes-check that spied the
+    # atom set, which is the only thing that could have seen it. See `play`'s ruling note below.
+    arc_atoms._ITERATE = True
     env = ArcWorld(w, arc_percept.Objects(), arc_atoms.three_spaces(arc_predict.predict()),
                    palette=palette, name=game)
     env.on_frame = on_frame     # seat-side tap for §13 step 4's verifier; None on a normal run
@@ -122,8 +128,22 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
     # This changes nothing by default and lets the two harnesses differ without touching the
     # shared default. `system0` is still honoured when a config is passed, rather than being
     # dropped by whichever argument arrived second.
+    # **ISAIAH'S RULING, 2026-09-24: THE FOLD PROCEEDS.** *`TETHER_ITERATE=1` AND
+    # `play(..., cfg=Config(max_depth=4))`; the toy default stays 3 -- the chunking falsifier is
+    # NOT to be disarmed.* **The agent gets cell-by-cell reasoning it has never had.**
+    #
+    # **BOTH HALVES ARE REQUIRED AND NEITHER ALONE DOES ANYTHING** (`F347`): no atom goes
+    # `CELL -> BOOL`, so the shortest usable fold is DEPTH 4, and at depth 3 there are zero.
+    #
+    # **THE TOY WORLD IS UNTOUCHED BY CONSTRUCTION, not by care.** `world.py` has its OWN
+    # `_atoms()` and does not import `arc_atoms`, and `Config()`'s default is still 3 -- so
+    # `demo` and `gate` see neither the fold atoms nor the deeper search.
+    #
+    # **THE COST IS UNMEASURED AND IS NOT TO BE CALLED AN IMPROVEMENT** -- Isaiah's words. Depth
+    # 4 widens the whole ARC search, not only the folds, and the run that would price it is
+    # still prohibited.
     if cfg is None:
-        cfg = tether.Config(system0=system0)
+        cfg = tether.Config(system0=system0, max_depth=4)
     elif system0:
         cfg = dataclasses.replace(cfg, system0=True)
     ag = tether.Agent(env, gamma.Gamma(env.atoms(), game=game), cfg, led)

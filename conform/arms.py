@@ -60,7 +60,11 @@ ARMS: dict[str, str] = {
     "TETHER_INVENT": "atom invention from an unexplained delta",
     "TETHER_ITERATE": "the fold constructs -- `cells`/`cell_row`/`cell_col`/`count_true`. "
                       "§12.0 rules the MEANS to iterate is INHERITANCE where a solved case "
-                      "would be an answer, and the agent could hold a cell set and not walk it",
+                      "would be an answer, and the agent could hold a cell set and not walk it. "
+                      "**RULED ON by Isaiah 2026-09-24 and set in `arc_holdout.play` for the "
+                      "ARC path, so the env census below reads OFF while the capability is "
+                      "LIVE.** A ruling turned it on, not a measurement -- the house rule is "
+                      "his to override. The toy world is untouched: it has its own atoms",
     "TETHER_OBSERVER": "the corpus's cheap mutation set carried PER OBJECT, not counted",
     "TETHER_REBIND_HELD": "rebinding a slot whose term is already held",
     "TETHER_RECIPE_DEDUP": "one candidate per recipe rather than per instance",
@@ -201,7 +205,10 @@ def main() -> int:
         # unproven arm -- the house rule is that a measurement turns one on. **The line exists
         # so the sum is never invisible again**, which is the whole reason this file is a seat
         # rather than a note: eighteen reasonable OFFs were never once read as one number.
-        print("      every arm is OFF -- the most starved variant of the agent, by default")
+        print("      every arm is OFF in the ENVIRONMENT -- and that is no longer the same")
+        print("      thing as what the agent runs with: `TETHER_ITERATE` is set IN CODE by")
+        print("      `arc_holdout.play` under Isaiah's 2026-09-24 ruling. This line reads the")
+        print("      environment, and a ruling can turn an arm on where a measurement did not.")
     for line in bad:
         print("  " + line)
     return 1 if bad else 0
