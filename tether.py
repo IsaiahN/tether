@@ -351,7 +351,8 @@ BOOKS: tuple[str, ...] = (
     "plan_gate_no_hypothesis",          # gate 1: nothing to filter. SUPPLY, not the bar
     "bargain_bounded_out",              # `_cannot_pay` -- a NECESSARY condition, not a choice
     "bargain_does_not_pay",             # `pays` -- the only one of the two that is a judgement
-    "bargain_paid",                     # reached the contest
+    "bargain_paid",                    # reached the contest
+    "mint_no_residual",                 # refused by the residual precondition
     "chunk_reuse",                      # §14.7: a settled term inside a later mint
     # THE ARRIVAL-DEPTH HISTOGRAM, ALL NINE BUCKETS. Declared because **a histogram with a
     # missing bucket is not a histogram** -- *no term arrived at depth 3* and *depth 3 was
@@ -2201,6 +2202,51 @@ class Agent:
         if slot is not None:
             return self._outstanding.get(slot, 0.0)
         return sum(self._outstanding.values())
+
+    def bears_on(self, term: Term, slot: str, robs: list, held: Term) -> bool:
+        """**MINTED AGAINST THE RESIDUAL -- Isaiah, 2026-09-24. A PRECONDITION, NOT A THRESHOLD.**
+
+        *"Too much wandering is daydreaming. But if the wandering is DIRECTED -- like how I go on
+        a side tangent, or connect dots -- it's worth the time. In other words, minted against
+        the residual."* **A tangent and a daydream are the same motion; the difference is whether
+        the other end is held.**
+
+            **NO OPEN RESIDUAL THE TERM BEARS ON -> NO MINT.**
+
+        **AND IT NEEDS NO FIGURE FROM ANYONE**, which is why it is a precondition and not a
+        weight: it asks whether the candidate SAYS ANYTHING DIFFERENT about a question that is
+        still open, and that is a yes or a no.
+
+        **HOW IT REFUSES A SPECTATOR.** `F354`: five of seven paid predictors sit on slots the
+        agent's action cannot move, and one of them READS THE ACTION to predict a slot the action
+        does not reach. **A spectator the incumbent already predicts perfectly leaves `robs`
+        EMPTY -- there is no open question -- so nothing further is minted there.** The agent
+        stops buying claims about what it has already nailed and cannot influence. **Correctness
+        was never the test; bearing on something open is.**
+
+        **AND IT IS THE CORPUS'S OWN RULE, UNHONOURED.** §14.4 mints a routine *when a goal
+        residual no routine closes*; `M2_STANDARD` clause 2 already files the violation.
+        """
+        if not robs:
+            return False
+        for state, action, _actual in robs:
+            ops = self._ops(term, state)
+            hops = self._ops(held, state) if held is not None else None
+            ctx = Ctx(action=action, operands=ops or (), touching=None,
+                      group=self._group(slot, state), obj=self._record(slot, state),
+                      shapes=self._shapes_now())
+            got = self._value_of(term, slot, state, ctx) if ops is not None else NOT_RESOLVED
+            if held is None:
+                if got is not NOT_RESOLVED:
+                    return True
+                continue
+            hctx = Ctx(action=action, operands=hops or (), touching=None,
+                       group=self._group(slot, state), obj=self._record(slot, state),
+                       shapes=self._shapes_now())
+            was = self._value_of(held, slot, state, hctx) if hops is not None else NOT_RESOLVED
+            if got != was:
+                return True
+        return False
 
     def _rank_by_consequence(self, by_kind: dict, best):
         """Order the kinds by HOW SOON NOT-ACTING COSTS, and keep the losers. Isaiah, 2026-09-24.
@@ -4412,6 +4458,15 @@ class Agent:
                         # winner fell to `by_kind` insertion order -- which is stream order,
                         # which is `("val","val")` first. **`winner=predictor` was the dict
                         # remembering who arrived, not the bargain preferring anyone.**
+                        # **THE PRECONDITION -- Isaiah 2026-09-24. A candidate that says
+                        # nothing different about anything still OPEN is a daydream, and the
+                        # bargain cannot see the difference: `cost + left < base` reads
+                        # explanation and never asks whether the explained thing was in play.
+                        # Refused BEFORE the contest, so a spectator cannot even be a champion.
+                        if not self.bears_on(term, slot, robs, held):
+                            self.gamma.book["mint_no_residual"] = (
+                                self.gamma.book.get("mint_no_residual", 0) + 1)
+                            continue
                         total = cost + left
                         if kind not in by_kind or total < by_kind[kind][0]:
                             by_kind[kind] = (total, left, cost, term)

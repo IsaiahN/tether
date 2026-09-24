@@ -964,6 +964,48 @@ def check_the_toy_world_meets_the_goal_contract():
     assert set(types) == set(slots), "a slot is advertised without a declared type"
 
 
+def check_the_precondition_refuses_a_spectator():
+    """DEFECT: minting a term that says nothing different about anything still OPEN.
+
+    **ISAIAH, 2026-09-24: *minted against the residual.* NO OPEN RESIDUAL THE TERM BEARS ON ->
+    NO MINT.** A precondition, not a threshold, and it needs no figure from anyone.
+
+    **`F354` IS WHY.** Five of seven paid predictors sit on slots the agent's action cannot move,
+    and one of them READS THE ACTION to predict a slot the action does not reach -- *a spectator
+    wearing the costume of an actor.* **The bargain cannot see it:** `cost + left < base` reads
+    EXPLANATION and never asks whether the explained thing was in play.
+
+    **AND THE FAILURE PATH IS EXERCISED HERE, NOT ASSUMED** -- the reviewer's condition. A gate
+    that only ever passes is indistinguishable from one that cannot fire, which is this project's
+    most-repeated finding and was true of the focus seat for its whole life.
+    """
+    from gamma import Atom, Gamma
+    from ledger import Ledger
+    from tether import Agent, Config, Term
+    from world import Transitions, bind
+
+    ag = Agent(bind(Transitions()), Gamma(Transitions().atoms()), Config(), Ledger())
+    idn = ag.gamma.library["idn"]
+
+    # 1 -- NO OPEN RESIDUAL AT ALL. Nothing is in question, so nothing bears on it. This is the
+    # settled-spectator case: a slot the incumbent already predicts perfectly buys nothing more.
+    assert ag.bears_on(idn, "climb", [], idn) is False, (
+        "an empty residual is no open question -- a mint there is a daydream by definition")
+
+    # 2 -- A CANDIDATE INDISTINGUISHABLE FROM THE INCUMBENT. The residual is open and the term
+    # says nothing different about it, which is the same defect wearing a candidate's clothes.
+    hist = [({"climb": 2, "opaque": 1}, "A", 5)]
+    twin = Term((Atom("idn2", lambda v, _c: v, "val", "val"),))
+    assert ag.bears_on(twin, "climb", hist, idn) is False, (
+        "a term that reproduces the incumbent on every open observation bears on nothing")
+
+    # 3 -- AND IT MUST BE ABLE TO SAY YES, or it is a gate that refuses everything and the run
+    # would go silent rather than selective. THE SAME PROPERTY THE BOUND'S OWN TEST INSISTS ON.
+    differs = Term((Atom("plus1", lambda v, _c: v + 1, "val", "val"),))
+    assert ag.bears_on(differs, "climb", hist, idn) is True, (
+        "a term that answers the open observation differently MUST pass, or nothing ever mints")
+
+
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
 
 if __name__ == "__main__":

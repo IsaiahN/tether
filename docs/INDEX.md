@@ -48169,3 +48169,46 @@ was ever in play.
 **BOUNDARY: one harness, ten cycles, three actions, and a world where exactly ONE slot of seven
 is action-bearing by construction.** The ratio is a property of `world.py` and **must not be
 carried to a board**; what transfers is that the bargain cannot tell the two apart.
+
+
+## F355 -- **THE GOAL SLOT IS BOUND TO A SPECTATOR, AND IT IS NOT POISONING ANYTHING.** The observation is real; the causal story built on it is refuted by the run
+
+**The reviewer, 2026-09-24, on `@goal.completed <- take<opaque>`:** *"the agent's model of its own
+progress is copied from a spectator slot... nothing it does ever registers as progress -- no
+residual shrinks, no trend forms, the gate refuses. Every downstream symptom we have chased today
+follows from that one line."* **They asked for it to be recorded as a finding bigger than the
+bargain.**
+
+### IT IS NOT, AND THE CHECK COST ONE RUN
+
+    `@goal.completed`   **[1, 2, 0, 0, 1, 1, 0, 4, 0, 0, 1, 0]**   -- it MOVES
+    `opaque`            [2, 0, 3, 5, 0, 3, 5, 0, 3, 5, 0, 3]       -- and does NOT track it
+    degree              0.143 - 0.286 - 0.0 ... 0.571 ... 0.0
+
+> **PROGRESS IS PERCEIVABLE AND IT VARIES.** The goal slot reaches 4 of 7 at one point. **And
+> `take<opaque>` does not predict it** -- the two sequences diverge immediately -- **so the
+> binding GENERATES RESIDUAL rather than a false zero.**
+
+**That is a wrong predictor being refuted, which is the loop working.** *Nothing registers as
+progress* would require the slot to be flat or the prediction to be right; **neither holds.**
+
+### WHAT SURVIVES, AND IT IS THE OBSERVATION WITHOUT THE CONCLUSION
+
+**`@goal.completed` IS bound to a term over a spectator slot.** That is odd, it is worth knowing,
+and it will be refuted by the ground like any other bad bet. **What it is NOT is the cause of the
+dead chain** -- which remains `F353`/`F354`: **no `OBJ` term ever pays, so no goal residual series
+exists, so gate 1 filters an empty population.**
+
+### AND THE REASON THIS ENTRY EXISTS AT ALL
+
+**The story was excellent.** It explained every downstream symptom from one line, it named the
+most expensive possible cause, and it arrived from the reviewer rather than from me -- **three
+things that make a claim harder to doubt, none of which is evidence.**
+
+> **`A null carrying a satisfying causal story is harder to doubt than a bare one` -- and this
+> was not even a null. It was a CAUSAL CHAIN over a quantity nobody had plotted.** One run
+> plotted it.
+
+**I was one commit from recording it as *bigger than the bargain* on a principal's reading.**
+**Recording the refusal instead, because an entry that says *this was checked and is not the
+cause* is worth more than the finding would have been.**
