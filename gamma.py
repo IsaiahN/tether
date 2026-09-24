@@ -439,6 +439,15 @@ class Gamma:
         # THE EVIDENCE BEHIND IT, carried across attempts by `save`/`load`. The agent appends;
         # the seat persists; the value is re-derived rather than restored.
         self.vindication: list[int] = []
+        # AND THE REST OF THE BOOKS, for the same reason and with the same consequence. I fixed
+        # `vindication` because I tripped over it and left its four siblings resetting every
+        # attempt -- `I25`, repaired the instance and left the class, in the commit that
+        # diagnosed the class.
+        #
+        # **COUNTS OF OBSERVED EVENTS CROSS DIRECTLY: they are evidence, not conclusions.** The
+        # library already crosses games because Isaiah ruled transfer is the claim, and a book
+        # about how THIS AGENT'S terms behave is no more game-local than the terms are.
+        self.book: dict[str, int] = {}
         # 3d / Â§17.7. Set by the agent to a `(unit) -> tuple` ranking. None keeps the
         # registry order this had, so installing a rank is an observable change and not
         # installing one changes nothing.
@@ -653,7 +662,8 @@ class Gamma:
         # whose provenance is gone cannot be revised by later evidence, only overwritten.
         blob = {"terms": out,
                 "invented": {n: rec for n, rec in self.invented.items() if rec.get("delta")},
-                "vindication": list(self.vindication)}
+                "vindication": list(self.vindication),
+                "book": dict(self.book)}
         pathlib.Path(path).write_text(json.dumps(blob, indent=1), encoding="utf-8")
         return {"written": len(out), "invented": len(blob["invented"]), "path": path}
 
@@ -685,6 +695,7 @@ class Gamma:
         # honest reading of *this file predates the books*, rather than a zero that would look
         # like measured evidence of nothing.
         self.vindication = list(blob.get("vindication") or []) if isinstance(blob, dict) else []
+        self.book = dict(blob.get("book") or {}) if isinstance(blob, dict) else {}
         if self.vindication:
             self.halflife = sum(self.vindication) / len(self.vindication)
         took, refused = [], []

@@ -671,7 +671,7 @@ class Agent:
         # clears a standing on one miss and the term is gone; whether it would have been RIGHT
         # on the next frame is the counterfactual nobody could read. Kept here, evaluated each
         # cycle, and bounded so a long run does not accumulate forever.
-        self._book: dict[str, int] = {}
+
         self._demoted_watch: dict[str, tuple] = {}    # term -> (slot, cycle it was demoted)
         # **THE DIAL'S EVIDENCE.** Cycles between a demotion and the frame that would have
         # vindicated it. Already in CYCLES, which is what a halflife is measured in -- so the
@@ -1109,15 +1109,15 @@ class Agent:
                 # halflife is measured in. **So the dial reads the observation directly and no
                 # mapping is chosen by us.** A rate would have needed a function; this does not.
                 self.gamma.vindication.append(self.cycle - since)
-                self._book["demoted_would_have_been_right"] = (
-                    self._book.get("demoted_would_have_been_right", 0) + 1)
+                self.gamma.book["demoted_would_have_been_right"] = (
+                    self.gamma.book.get("demoted_would_have_been_right", 0) + 1)
                 self._demoted_watch.pop(name, None)
             elif self.cycle - since >= 16:
                 # RELEASED UNVINDICATED. The bound is OURS and it is substrate -- a watch list
                 # that never releases is a leak -- and it is NOT a claim that 16 cycles is long
                 # enough to be sure. Counted separately so the two are never summed.
-                self._book["demoted_stayed_wrong"] = (
-                    self._book.get("demoted_stayed_wrong", 0) + 1)
+                self.gamma.book["demoted_stayed_wrong"] = (
+                    self.gamma.book.get("demoted_stayed_wrong", 0) + 1)
                 self._demoted_watch.pop(name, None)
 
         # **THE AGENT TURNS ITS OWN DIAL.** Not a function of an observation -- THE
@@ -1157,7 +1157,7 @@ class Agent:
                         watching=len(self._demoted_watch),
                         halflife=self.gamma.halflife,
                         halflife_earned=bool(self.gamma.vindication),
-                        vindications=len(self.gamma.vindication), **self._book)
+                        vindications=len(self.gamma.vindication), **self.gamma.book)
 
     def _narrate_vocabulary(self) -> None:
         """ONCE PER RUN: what the corpus CALLS what this agent can already reach.
@@ -4387,8 +4387,8 @@ class Agent:
                     # a standing and took it back, which is the only honest reading of
                     # *did promotion hold*.
                     if name in self._settled_at:
-                        self._book["promoted_then_wrong"] = (
-                            self._book.get("promoted_then_wrong", 0) + 1)
+                        self.gamma.book["promoted_then_wrong"] = (
+                            self.gamma.book.get("promoted_then_wrong", 0) + 1)
                     # BOOK 2's SUBJECT: kept so the counterfactual can be read next cycle.
                     # Capped -- a book that grows without bound is a leak, not a record.
                     if len(self._demoted_watch) < 64:
@@ -4427,7 +4427,7 @@ class Agent:
             _d = len(term) if (term := self.gamma.library.get(name)) is not None else 0
             if _d:
                 k = f"arrived_at_depth_{min(_d, 9)}"
-                self._book[k] = self._book.get(k, 0) + 1
+                self.gamma.book[k] = self.gamma.book.get(k, 0) + 1
             # WHAT WAS ASKED AND WHAT CAME BACK. The question is `does this term
             # predict a transition it was never fitted to`, and `r.mass == 0.0` on a
             # cycle later than the one it was minted on IS the answer. Both facts were
