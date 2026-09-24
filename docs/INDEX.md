@@ -47474,3 +47474,86 @@ prints `'opaque': 'take . inc<driven>'` -- **a live BET, not a mint and not a se
 about a row without reading the whole row*: `bound` and `settled` are different columns, and
 only the second is the agent saying it has an explanation. **A reader scanning `bound` would
 conclude the unreachability falsifier had fallen too.**
+
+
+## F350 -- THE AUTONOMY AUDIT. Seven sites where a decision was taken that only the agent could have made, and the REACHED column is measured rather than guessed
+
+> **WE NEED AN AUTONOMOUS AGENT, NOT AN AUTOMATON.** -- Isaiah, 2026-09-24
+
+**THE TEST IS NOT THE SUBSTRATE/JUDGEMENT/CALIBRATION SORT.** That one asks *who may author
+this*. This asks: **COULD THIS DECISION HAVE BEEN MADE CORRECTLY FROM OUTSIDE?** If answering it
+well needs residuals or board state nobody outside the run can see, whatever sits there now is a
+STAND-IN, however it is spelled.
+
+**NO DECISION PROCEDURE IS PROPOSED FOR ANY OF THEM.** Naming what the agent would have to
+decide is the seat's job; deciding it is not, **and inventing the criterion would be the
+`automaton` failure one level up -- a judgement of ours wearing the agent's name.**
+
+### THE SEVEN
+
+    1  `_invent`            UNCONDITIONAL. Its only guard is *nothing observed to invent FROM*,
+       tether:~4820         a CAPABILITY check -- **given a delta it invents.**
+                            THE QUESTION  *is THIS delta worth a new atom?*
+                            NEEDS         whether the delta recurs or was one occasion, which
+                                          is only in this agent's residual history here
+                            REACHED       **NO** -- behind `TETHER_INVENT`, off
+
+    2  the trend pop        UNCONDITIONAL. Any `None` from `goal_residual` destroys the
+       tether:3080          accumulated series.
+                            THE QUESTION  *is this trend worth keeping across a frame I could
+                                          not read?*
+                            NEEDS         whether the gap was a real break or a momentary
+                                          occlusion -- board state, unreadable from outside
+                            REACHED       **YES, 98.4% of calls** (`F340`)
+
+    3  `MIN_REPEAT`         CONSTANT, at gate 1's *confidently shrinking*.
+       self_family:40       THE QUESTION  *how many readings make a trend confident HERE?*
+                            NEEDS         this slot's own noise on this board
+                            REACHED       **YES every cycle -- and over an EMPTY population**
+                                          (`F343`: `slots: 0`), so it decides nothing today
+
+    4  `pays` strictness    CONSTANT. `cost + left < base`, and the docstring calls the
+       tether               strictness a feature.
+                            THE QUESTION  *is this explanation worth its description length?*
+                            NEEDS         how much of R remains and what else is on offer
+                            REACHED       **NO.** The bargain book reads **5268 bounded out, 0
+                                          reaching `pays`** -- the comparison never executes
+
+    5  the tie in `by_kind` ORDERING. First-wins on equal total; the site itself records that
+       tether               *the dict remembered who arrived, not the bargain preferring anyone*.
+                            THE QUESTION  *when two candidates tie, which kind do I prefer?*
+                            NEEDS         which kind has held for this agent on this board
+                            REACHED       **NO** -- downstream of `pays`, which nothing reaches
+
+    6  `cap` + insertion    ORDERING. `enumerate_routines` takes the shortest `cap` shapes and
+       routine:~360         ties break on insertion order, **which decides which CONSTRUCTS
+                            exist at all** past a handful of objectives.
+                            THE QUESTION  *which shapes are worth my budget?*
+                            NEEDS         which constructs have paid off for this agent
+                            REACHED       **NO** -- the ACT space does not run (`F346`)
+
+    7  the 16-cycle watch   CONSTANT. How long a demoted term is kept for hindsight.
+       tether:~1200         THE QUESTION  *how long should I wait for a demotion to come good?*
+                            NEEDS         this board's own vindication delays -- the very
+                                          quantity the halflife is derived from
+                            REACHED       **YES**
+
+### WHAT THE REACHED COLUMN SAYS, AND IT WAS NOT THE EXPECTED ANSWER
+
+> **FOUR OF THE SEVEN DO NOT EXECUTE.** `_invent` is armed off; `pays`, the tie and the cap are
+> all downstream of filters nothing survives.
+
+**So the automaton is smaller than it looks and the starvation is larger.** Only three of these
+sites are actually making a decision on a live board today -- **and one of those, `MIN_REPEAT`,
+is deciding over an empty set.**
+
+**THAT IS NOT A REASON TO DEFER THEM.** `F342` as Isaiah re-read it: *the absence of a chooser is
+evidence the choice was never built.* **An unreached automaton is the same defect waiting for its
+gate to open**, and the gates are what the night's other findings are about.
+
+### WHAT WAS DELIBERATELY LEFT OFF
+
+`CALL_DEPTH` (a stop against stack overflow -- answerable from outside) · `_branches`' `idn`
+exclusion (a derivation: the identity computes nothing) · `Choose`/`Try`'s `min` reach
+(over-stating is wrong from any vantage point). **Each is answerable without seeing a board, so
+by the test it is not on this list** -- and the list is worth nothing if it is padded.
