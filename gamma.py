@@ -25,7 +25,7 @@ from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from typing import Any
 
-from sensors import CELLS, NOT_RESOLVED, Cells
+from sensors import CELL, CELLS, NOT_RESOLVED, Cells
 
 sys.dont_write_bytecode = True
 
@@ -189,6 +189,16 @@ class Atom:
     # unreachable. Same fault as `SHAPE` over two representations, one level up: in the type
     # system's own vocabulary. An atom that genuinely takes anything now SAYS SO.
     polymorphic: bool = False
+    # WHAT THE ELEMENTS MUST BE, for a reducer that consumes a whole collection. `count_true`
+    # REFUSES a non-boolean `Cells` at runtime -- *a reading or an explicit non-reading, never
+    # a guess* -- and that refusal was invisible to the composer, which offered 70 chains
+    # ending `. count_true` over collections of coordinates. **Every one of them is guaranteed
+    # to abstain**, and they spend real enumeration budget doing it.
+    #
+    # DECLARED, LIKE EVERY OTHER TYPE FACT HERE, and for the reason two fields up: a runtime
+    # refusal the type system cannot see is a guard that is CAUGHT rather than one that cannot
+    # be BUILT. `None` means the reducer does not care.
+    elem_type: str | None = None
 
     @property
     def accepts(self) -> tuple[str, ...]:
@@ -809,6 +819,47 @@ class Gamma:
         # candidates get tried before it is found. Registry order when nothing is installed.
         return sorted(out, key=self.unit_rank) if self.unit_rank else out
 
+    @staticmethod
+    def _iter_step(cur: str, elem: str | None, unit: Term) -> tuple[str, str | None] | None:
+        """Where a chain's type goes when `unit` is appended, `None` if it cannot be.
+
+        **THE ENUMERATOR AND THE INTERPRETER DISAGREED ABOUT WHAT `in_type` MEANS, AND THE
+        INTERPRETER WAS RIGHT -- `F347`.** `Term.apply` maps ANY non-reducer across a `Cells`
+        value, and says so at its own site: *with this rule EVERY EXISTING ATOM becomes usable
+        inside an iteration.* This walk asked `accepts_type(u, chain[-1].out_type)`, so after
+        `cells` the running type was `CELLS` and **`count_true` was the only atom in the
+        registry that accepted it.**
+
+        **MEASURED BEFORE THIS EXISTED: 0 of 87,244 enumerated chains contained `cell_row` or
+        `cell_col`**, and the one fold the composer could propose was `cells . count_true` --
+        which `count_true` REFUSES, because the collection holds coordinates and not booleans.
+        **The construct ran and could never be composed.**
+
+        MID-ITERATION THE TYPE THAT MATTERS IS THE ELEMENT'S. A `CELLS`-typed unit CLOSES the
+        iteration and anything the element type feeds MAPS, which is `apply`'s rule restated
+        where the composer can act on it rather than a second rule.
+
+        **`CELL` IS NOT A CHOICE HERE -- `CELLS` IS DEFINED AS A COLLECTION OF `CELL`**, so the
+        element type of a fresh collection is the type system's own answer, not a constant.
+
+        INERT WITH THE ARM OFF, WHICH IS WHY IT NEEDS NO RULING. `cells` is the ONLY producer
+        of `CELLS` and it exists only under `TETHER_ITERATE`, so with the arm off `elem` is
+        always `None` and this reduces, line for line, to the check it replaces.
+        """
+        if elem is not None:
+            if unit.atoms[0].in_type == CELLS:
+                want = unit.atoms[0].elem_type
+                if want is not None and elem != want:
+                    return None                            # the reducer would refuse it
+                return unit.atoms[-1].out_type, None       # the reducer closes it
+            if not accepts_type(unit, elem):
+                return None
+            return CELLS, unit.atoms[-1].out_type          # mapped: the ELEMENT type moves
+        if not accepts_type(unit, cur):
+            return None
+        out = unit.atoms[-1].out_type
+        return (out, CELL) if out == CELLS else (out, None)
+
     def enumerate_closure(self, in_type: str, out_type: str, max_depth: int, budget: int,
                           stats: dict | None = None,
                           order: Callable[[Term], float] | None = None) -> Iterator[Term]:
@@ -846,14 +897,18 @@ class Gamma:
             if max(sc) > min(sc):
                 start = [u for _, u in sorted(zip(sc, start, strict=True),
                                               key=lambda x: (-x[0], x[1].name))]
-        frontier = [u.atoms for u in start]
-        frontier = [u.atoms for u in start]
+        # CARRIED, NOT RECOMPUTED. The state is (chain, current type, element type or None);
+        # re-deriving it per extension would walk every chain again inside the hot loop.
+        frontier = [(u.atoms, *Gamma._iter_step(in_type, None, u)) for u in start]
         depth = 1
         spent = False
         while frontier and depth <= max_depth:
-            nxt: list[tuple[Atom, ...]] = []
-            for chain in frontier:
-                if chain[-1].out_type == out_type:
+            nxt: list[tuple] = []
+            for chain, cur, elem in frontier:
+                # AN UNCLOSED ITERATION IS NOT A TERM. Its value is a `Cells`, whatever the
+                # last atom's `out_type` says -- so it may only be emitted once a reducer has
+                # closed it, which is exactly `elem is None`.
+                if elem is None and cur == out_type:
                     if emitted >= budget:
                         spent = True
                         break
@@ -879,9 +934,12 @@ class Gamma:
                     # entirely was tried and the falsifier caught it: **7 functions fell to 6.**
                     # So the cut is on COMPOSITION, not on membership, and `_predict`'s fallback
                     # reads `library["idn"]` directly and is untouched.
-                    nxt += [chain + u.atoms for u in units
-                            if accepts_type(u, chain[-1].out_type)
-                            and not any(a.name == IDN_NAME for a in (*chain, *u.atoms))]
+                    for u in units:
+                        if any(a.name == IDN_NAME for a in (*chain, *u.atoms)):
+                            continue
+                        step = Gamma._iter_step(cur, elem, u)
+                        if step is not None:
+                            nxt.append((chain + u.atoms, *step))
             if spent:
                 break
             frontier, depth = nxt, depth + 1

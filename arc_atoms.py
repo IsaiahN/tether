@@ -883,7 +883,7 @@ def _iterate() -> list[Atom]:
     return [Atom("cells", _cells, SHAPE, CELLS),
             Atom("cell_row", _cell_row, CELL, POSITION),
             Atom("cell_col", _cell_col, CELL, POSITION),
-            Atom("count_true", _count_true, CELLS, EXTENT)]
+            Atom("count_true", _count_true, CELLS, EXTENT, elem_type=BOOL)]
 
 
 def three_spaces(predict: list[Atom]) -> list[Atom]:

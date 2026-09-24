@@ -427,6 +427,52 @@ def check_a_plan_can_have_a_fallback():
     assert any(isinstance(r, Rt.Try) for r in got), "the composer never enumerates a fallback"
 
 
+def check_the_composer_can_propose_a_fold():
+    """DEFECT: the interpreter maps elementwise and the enumerator cannot propose a chain
+    that does -- `F347`.
+
+    **`Term.apply` maps ANY non-reducer across a `Cells`** and says so at its own site, so
+    `cells . cell_row . parity . count_true` RUNS. `enumerate_closure` walked the type graph,
+    where the running type after `cells` is `CELLS` and **`count_true` is the only atom that
+    accepts it** -- so **0 of 87,244 enumerated chains contained a per-cell atom**, and the one
+    fold on offer was `cells . count_true`, which `count_true` refuses.
+
+    **BUILT WITHOUT A RULING BECAUSE IT IS INERT WITHOUT ONE**: `cells` is the only producer of
+    `CELLS` and exists only under `TETHER_ITERATE`, so with the arm off this cannot execute.
+    """
+    from gamma import CELL, CELLS, Atom, Gamma
+    from sensors import BOOL
+
+    # A STANDALONE TYPE GRAPH, so the claim does not depend on the arm's state in this process.
+    cells = Atom("cells_", lambda v, _c: v, "SHAPE", CELLS)
+    row = Atom("row_", lambda v, _c: v, CELL, "POSITION")
+    par = Atom("par_", lambda v, _c: v, "POSITION", BOOL)
+    red = Atom("red_", lambda v, _c: v, CELLS, "EXTENT", elem_type=BOOL)
+    g = Gamma([cells, row, par, red])
+    names = {c.name for c in g.enumerate_closure("SHAPE", "EXTENT", 4, 500, {})}
+
+    # 1 -- THE FOLD THE MODULE WAS WRITTEN FOR IS NOW CONSTRUCTIBLE.
+    assert "cells_ . row_ . par_ . red_" in names, f"the fold is unreachable: {names}"
+
+    # 2 -- AND AN UNCLOSED ITERATION IS NOT A TERM. Its value is a `Cells` whatever the last
+    # atom's out_type says, so it may only be emitted once a reducer has closed it.
+    open_ = [n for n in names if n.endswith("cells_") or n.endswith("row_")]
+    assert not open_, f"an unclosed iteration was emitted: {open_}"
+
+    # 3 -- AND THE REDUCER'S RUNTIME REFUSAL IS NOW A TYPE FACT. `red_` requires BOOL elements,
+    # so a chain handing it coordinates is NOT OFFERED rather than offered and abstaining --
+    # the same principle as refusing `<` over an unordered type.
+    assert "cells_ . red_" not in names, "a fold that must abstain is still offered"
+    assert "cells_ . row_ . red_" not in names, "a fold over non-booleans is still offered"
+
+    # 4 -- AND WITH NO COLLECTION IN THE GRAPH NOTHING CHANGES, which is why this needed no
+    # ruling: the whole mechanism is unreachable unless an atom produces a `CELLS`.
+    flat = Gamma([Atom("a_", lambda v, _c: v, "SHAPE", "POSITION"),
+                  Atom("b_", lambda v, _c: v, "POSITION", "EXTENT")])
+    plain = {c.name for c in flat.enumerate_closure("SHAPE", "EXTENT", 3, 99, {})}
+    assert plain == {"a_ . b_"}, f"the plain type walk changed: {plain}"
+
+
 def check_chunking_reaches_the_bargain():
     """The ARITHMETIC of chunking: a settled routine counts as one unit and that can flip `pays`.
 

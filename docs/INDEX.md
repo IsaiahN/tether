@@ -47107,3 +47107,56 @@ question has ever had.
 > **THE LAST ONE IS `I25` FROM THE OTHER END: I REPAIRED A STALE ROW AND CREATED ONE IN THE SAME
 > HOUR.** The row was true when written and false by the end of the session that wrote it.
 > **That is the argument for the run over the table**, and the table now says so about itself.
+
+
+## F347 -- THE FOLD IS HALF-SHIPPED: `Term.apply` MAPS ELEMENTWISE AND `enumerate_closure` CANNOT PROPOSE A CHAIN THAT DOES. **0 of 87,244 enumerated chains contain a per-cell atom**, and the arm has never been on to notice
+
+Asked as a PANEL PRECONDITION rather than after a measurement: **if `TETHER_ITERATE` is ruled
+ON, can the fold the module was written for actually be CONSTRUCTED?** `F344` posted that arm as
+a fork for Isaiah, and a null read on a treatment that cannot exist is the failure this project
+has filed three times.
+
+### THE TWO HALVES, AND THEY DISAGREE
+
+    `Term.apply`            **maps elementwise.** Its own comment: *ANY non-reducer maps, not
+    (gamma.py:353)          only `CELL`-typed atoms ... with this rule EVERY EXISTING ATOM
+                            becomes usable inside an iteration.* So `cells . cell_row . parity
+                            . count_true` RUNS
+    `enumerate_closure`     walks the TYPE GRAPH. After `cells` the value type is `CELLS`, and
+                            **`count_true` is the only atom in the registry whose `in_type` is
+                            `CELLS`.** So the only chain it can build is `cells . count_true`
+
+> **`in_type` MEANS TWO THINGS.** To the enumerator it is the type of the value handed to the
+> atom; to the interpreter, mid-iteration, it is the type of the ELEMENT. **One name, two
+> quantities, both readings well-formed** -- `A6i` at the level of the type system.
+
+### MEASURED, NOT ARGUED
+
+    0 of 87,244    enumerated chains containing `cell_row` or `cell_col`, over
+                   `SHAPE -> {EXTENT, POSITION, BOOL, val}` at depths 3, 4 and 5
+    1 shape        the only fold the composer can propose is `cells . count_true` --
+                   and **`count_true` REFUSES a non-boolean collection**, so it returns
+                   `NOT_RESOLVED` on every board, forever
+    2 atoms        `cell_row` and `cell_col` are the only atoms whose `in_type` is `CELL`,
+                   and **nothing in the registry produces a bare `CELL`**
+
+**SO THE ARM DELIVERS EXACTLY ONE REACHABLE FOLD AND IT IS GUARANTEED TO ABSTAIN.** *Present and
+INERT* -- the absent treatment one level subtler, and the one that produces a plausible number.
+
+### WHY THIS MATTERS MORE THAN THE ARM
+
+**§12.0 uses A FOLD CONSTRUCT as its worked example of a MEANS**, and Isaiah's ruling is *the 18
+become reachable; map/fold, not a bare re-type.* **The MAP is built and correct in the
+interpreter.** What is missing is the type graph's ability to SAY it -- so the composer cannot
+propose the construct the runtime was extended to execute.
+
+**Had the arm been switched on and measured, the reading would have been *the fold does not
+help*.** It would have been true of every fold the composer could build and false of the
+construct.
+
+### THE FIX IS REVERSIBLE BY CONSTRUCTION, WHICH IS WHY IT IS TAKEABLE WITHOUT A RULING
+
+**`cells` is the ONLY producer of `CELLS` and it exists only under the arm**, so a closure rule
+that fires when the walk is mid-iteration **cannot execute at all in the default
+configuration**. The arm stays off, the fork stays Isaiah's, and the capability stops being
+inert for the moment it is granted.
