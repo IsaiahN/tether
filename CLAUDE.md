@@ -449,14 +449,29 @@ after the fact there is nothing to catch, because after the fact the reading is 
       arm I             `_as_shape`, the decoder eight SHAPE atoms need. Default OFF for
                         months; `corners` called 784 times and resolved zero
       `operand_term`    §4's "what makes this a tree". Declared, read, PRICED, RENDERED --
-                        and ZERO PRODUCERS. Every term ever composed is a flat chain
+                        and ZERO PRODUCERS. Every term ever composed is a flat chain.
+                        **REPAIRED 2026-09-24: `_trees`/`_branches` produce one and
+                        `tether.py:3909` offers it, priced by the same bargain**
       `inside`          ADMITTED by name, dated, with the batch's best reach number, and
                         never constructed. The only `ADMITTED` entry missing from the registry
+      `condition.py`    a whole guard-expression AST -- `Not`, three-valued evaluation, its
+                        own SEAT in `check.py` -- and **no module on the agent path imports
+                        it** (`F299` read its census at `DRAFTABLE 0`). **The sharpest variant:
+                        a green seat proves a thing WORKS and says nothing about whether it is
+                        REACHED**, so the check that looks most like coverage is the one that
+                        cannot see this class at all
 
   **EVERY ONE PRESENTED AS NOTHING**, which is the whole difficulty: an unreached mechanism does
   not fail, it abstains, and an abstention is indistinguishable from a mechanism with nothing to
   say. **The counters read zero either way** — which is `counters-lie-read-the-write-site` one
   level up, about the MECHANISM rather than about the number.
+
+  **AND A REPAIRED ROW IS ANNOTATED, NEVER REMOVED** — *an error entry whose evidence is edited
+  away stops being evidence*, and this list is the evidence for the standing question itself.
+  **But the annotation is not optional either**: a reader consults this table to answer *is X
+  reached*, and *a map entry saying a thing does not exist is worse than one saying it is
+  unfinished — the first closes the question.* **`operand_term` sat here as a NO for a day after
+  it stopped being one.**
 
   **THE CHECK IS A RUN, NOT A GREP, AND IT IS CHEAP**: step the agent with every arm ON and read
   `sys.modules`, or spy the callable and count CALLS SEPARATELY FROM RESOLUTIONS. *Called 784
