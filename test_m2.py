@@ -387,6 +387,23 @@ def check_every_book_key_is_declared():
     zero = [k for k in tether.BOOKS if k not in ag.gamma.book]
     assert not zero, f"a declared book key is absent from a live agent: {zero}"
 
+    # AND THEY SURVIVE A LOAD, which is the route the declaration could not close from where
+    # it sits. `arc_holdout` constructs the Agent and loads the library AFTER -- so an
+    # assignment in `load` wipes every key the saved blob predates. Measured before the fix:
+    # 12 keys became 1. **Eleven quantities silently absent for a whole attempt**, which is the
+    # silent-zero class arriving through PERSISTENCE.
+    import json
+    import tempfile
+    old_blob = {"terms": [], "invented": [], "vindication": [],
+                "book": {"promoted_then_wrong": 3}}
+    path = pathlib.Path(tempfile.gettempdir()) / "m2_oldlib.json"
+    path.write_text(json.dumps(old_blob), encoding="utf-8")
+    ag.gamma.load(str(path))
+    gone = [k for k in tether.BOOKS if k not in ag.gamma.book]
+    assert not gone, f"an OLD library WIPED declared book keys: {gone}"
+    # AND THE CONTROL: what the blob DID carry is restored, not flattened to the default.
+    assert ag.gamma.book["promoted_then_wrong"] == 3, "the load stopped restoring"
+
 
 def check_a_plan_can_have_a_fallback():
     """DEFECT: a fallback that recovers SILENTLY, hiding the ending it recovered from.

@@ -705,7 +705,19 @@ class Gamma:
         # honest reading of *this file predates the books*, rather than a zero that would look
         # like measured evidence of nothing.
         self.vindication = list(blob.get("vindication") or []) if isinstance(blob, dict) else []
-        self.book = dict(blob.get("book") or {}) if isinstance(blob, dict) else {}
+        # **MERGED, NEVER REPLACED, AND THE ORDER OF EVENTS IS WHY.** `arc_holdout` constructs
+        # the `Agent` at :107 and calls this at :109 -- so `tether.BOOKS`' `setdefault` pass has
+        # ALREADY run, and an assignment here wipes every key the saved blob predates.
+        # Measured: 12 keys before, **1 after loading a blob written before tonight's books
+        # existed.** Eleven quantities silently absent for the whole attempt.
+        #
+        # **THE SILENT-ZERO CLASS ARRIVING THROUGH PERSISTENCE**, which is the one route
+        # `BOOKS` could not close from where it sits: a declaration at construction cannot
+        # survive a later assignment. A key the blob has is RESTORED; a key it lacks stays at
+        # the 0 the declaration put there, **which is what *this quantity has never moved*
+        # should look like and not what *nobody recorded it* looks like.**
+        if isinstance(blob, dict):
+            self.book.update(blob.get("book") or {})
         if self.vindication:
             self.halflife = sum(self.vindication) / len(self.vindication)
         took, refused = [], []
