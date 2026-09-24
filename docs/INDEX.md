@@ -47158,5 +47158,28 @@ construct.
 
 **`cells` is the ONLY producer of `CELLS` and it exists only under the arm**, so a closure rule
 that fires when the walk is mid-iteration **cannot execute at all in the default
-configuration**. The arm stays off, the fork stays Isaiah's, and the capability stops being
-inert for the moment it is granted.
+configuration**. Proven rather than argued: with the arm off the closure is **byte-identical --
+11,618 chains, same `sha256`**, over four type pairs at three depths.
+
+### AND A SECOND PRECONDITION, WHICH MAKES THE SENTENCE THIS ROW ORIGINALLY ENDED ON FALSE
+
+I wrote *the capability stops being inert for the moment it is granted*. **It does not, and the
+reason is a constant nobody has ruled on.**
+
+    atoms `CELL -> BOOL`   **NONE.** A per-cell read gives a `POSITION`; turning that into a
+                           BOOL is a second step
+    shortest usable fold   **depth 4** -- `cells . cell_row . parity . count_true`
+    `Config.max_depth`     **3**
+
+> **AT THE DEFAULT DEPTH, ZERO FOLDS ARE REACHABLE EVEN WITH THE ARM ON.** 0 at `d=3`, 13 at
+> `d=4`, 39 at `d=5`, counted across five output types.
+
+**So `TETHER_ITERATE=1` ALONE STILL DELIVERS NOTHING**, and a measurement taken on the arm alone
+would read *the fold does not help* for the second time, for a second reason, having fixed the
+first. **Two preconditions, and only one of them was visible after fixing the other.**
+
+**`max_depth` IS `F341`'s ONE UNRESOLVED ROW** -- flagged MIXED rather than assigned, because it
+is genuinely a compute bound AND a belief about where answers live -- and `PHILOSOPHY` splits
+it: search depth `d` costs `λᵈ`, so **the COST is substrate and HOW DEEP TO LOOK is a
+judgement.** It is not moved here. **The fork Isaiah holds is therefore two switches, not one**,
+and that is stated now rather than discovered from a null.
