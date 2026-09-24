@@ -853,6 +853,62 @@ def check_the_agent_owns_the_refutation_halflife():
         f"the agent's halflife does not reach the decay site: {quick} vs {held}")
 
 
+def check_the_goal_is_a_slot_the_agent_can_perceive():
+    """THE BOARD'S WIN CONDITION IS A QUANTITY, NOT A SENTENCE -- Isaiah, 2026-09-24.
+
+    *The agent needs to want what the RLVR provides.* It always provided it: `objective()`
+    returns `levels_completed / win_levels` every cycle. **A float the agent can READ is not a
+    quantity it can COMPOSE WITH** -- no type, no alphabet, no residual -- so nothing could bet
+    on it, mint against it or want it, and `OBJ` was a sink because the goal that matters was
+    never an `OBJ` at all.
+
+    **THE EXECUTES-CHECK ON A BOARD IS OWED AND BLOCKED** by a live hard stop on game runs. This
+    is the half that needs no board: given a frame, does the slot APPEAR, TYPE and take its
+    RANGE FROM THE BOARD. A unit test cannot say it is reached; it can say it is not broken.
+    """
+    import arc_atoms
+    import arc_world
+
+    class _Frame:
+        levels_completed = 3
+        win_levels = 7
+
+    # A WORLD THAT NEVER TOUCHES A GAME. **AND `_read` MUST BE `None`, WHICH THE FIRST VERSION
+    # OF THIS TEST GOT WRONG AND THE TEST CAUGHT:** the publish sits inside the cache-FILL
+    # branch, so seeding `_read` to fake *after a frame* skips the whole block and reads as
+    # *the slot is not published*. The placement is right -- once per frame -- and the premise
+    # was wrong. Left recorded because a cache makes a live mechanism look absent.
+    w = arc_world.ArcWorld.__new__(arc_world.ArcWorld)
+    w._read = None
+    w.blind = False
+    w._frame = _Frame()
+    w._palette = 16
+    w.board = lambda: [[0, 1], [1, 0]]
+    w._decompose = lambda _b: {"o0.row": 2, "o0.col": 5}
+
+    got = arc_world.ArcWorld._decomposed(w)
+    assert "@goal.completed" in got, "the goal slot is not published"
+    assert got["@goal.completed"] == 3, got["@goal.completed"]
+
+    # 2 -- IT TYPES ITSELF THROUGH THE SAME TABLE EVERY OTHER SLOT USES, which is the whole
+    # reason the name ends in a declared attribute rather than being special-cased.
+    assert arc_atoms.ATTRIBUTE_TYPE["completed"] == arc_atoms.EXTENT
+
+    # 3 -- THE RANGE IS THE BOARD'S, NOT A CONSTANT. `win_levels` 7 -> 8 values, 0..7. If this
+    # ever reads a number nobody can point at on the board, the slot has stopped being the
+    # domain's and started being ours.
+    alpha = arc_world.ArcWorld.alphabet(w)
+    assert alpha["@goal.completed"] == 8, alpha["@goal.completed"]
+
+    # 4 -- A BLIND FRAME PUBLISHES NOTHING. Confabulating progress off an unreadable board is
+    # the one failure that would be worse than the float: a goal reading nobody measured.
+    w2 = arc_world.ArcWorld.__new__(arc_world.ArcWorld)
+    w2._read, w2.blind, w2._frame, w2._palette = None, True, _Frame(), 16
+    w2.board = lambda: None
+    w2._decompose = lambda _b: {}
+    assert "@goal.completed" not in arc_world.ArcWorld._decomposed(w2)
+
+
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
 
 if __name__ == "__main__":
