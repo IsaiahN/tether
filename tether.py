@@ -2445,6 +2445,20 @@ class Agent:
             self.routine_state.pop("expect", None)
             emit, rest = Rt.advance(self.routine, self._holds(before),
                                     self.routine_lib, self.routine_state)
+            # **THE FALLBACK'S FAILURE IS RECORDED, OR THE FALLBACK HIDES IT.** `Try` recovers
+            # from `blocked`/`exhausted` and publishes what it recovered FROM, because a
+            # routine that recovers quietly has destroyed the very ending `F207` was diagnosed
+            # at -- and it would do so while looking like robustness. **This is the only
+            # consumer, and without it the publish is a value that exists and never crosses.**
+            #
+            # DRAINED, NOT READ. The list is per-step; leaving it would make one recovery
+            # reappear on every later cycle, which is the stale-state defect in the shape that
+            # inflates a count rather than losing one.
+            for _why in self.routine_state.pop("recovered", ()):
+                self.led.record(self.cycle, "PLAN", self.routine_for or "*",
+                                "routine_recovered", outcome=_why,
+                                routine=Rt.render(self.routine),
+                                note="a fallback ran; the body's ending is NOT a refutation")
             if emit not in (Rt.DONE, Rt.BLOCKED, Rt.EXHAUSTED) and emit in self.actions:
                 # THE CLAIM, MADE BEFORE THE ACTION LANDS. `advance` published which slots this
                 # step expects to move; the value is recorded NOW so next cycle compares against

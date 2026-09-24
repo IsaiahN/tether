@@ -12,6 +12,7 @@ why the composition story felt thin -- half the objects the agent needs were not
 
     Routine ::= Act(a) | Seq(R1, R2) | When(P, R) | Until(P, R)
               | Choose(P, R1, R2)      -- the branch; `When` with the false arm restored
+              | Try(R1, R2)            -- the fallback; branches on the OUTCOME, not a guard
 
 **THE REMAINDER IS ITSELF A ROUTINE, AND THAT IS THE WHOLE OF HOW THIS SURVIVES A STEP.**
 `advance` returns *what to do now* and *what is left*, and what is left is a `Routine` -- so a
@@ -86,6 +87,37 @@ class Choose:
     wrong is invisible.
     """
     guard: Any
+    body: Any
+    otherwise: Any
+
+
+@dataclass(frozen=True)
+class Try:
+    """A FALLBACK ON AN OUTCOME -- the second kind of chooser, and the other half of `Choose`.
+
+    **`Choose` BRANCHES ON A GUARD READ BEFORE ACTING; THIS BRANCHES ON WHAT HAPPENED.** Those
+    are different information and neither substitutes for the other: a guard says what the
+    world is like now, an ending says what this plan turned out to be able to do.
+
+    **THE GAP IT CLOSES IS `F207`'s.** The first routine this project ever formed died at
+    `routine_end: blocked` -- and a blocked routine is simply ABANDONED. Nothing in the ACT
+    space could say *and if that does not work, do this instead*, so every plan was
+    all-or-nothing and the agent's only response to failure was to stop.
+
+    **IT RECOVERS FROM `BLOCKED` AND `EXHAUSTED`, NEVER FROM `DONE`.** Those three are three
+    claims, which is why they are three; `DONE` is the body succeeding and there is nothing to
+    recover from. Folding it in would run the fallback after every success.
+
+    **AND THE RECOVERY IS PUBLISHED, WHICH IS NOT OPTIONAL.** A routine that quietly recovers
+    has destroyed the BLOCKED signal -- the ending `F207` was diagnosed from, and the one the
+    refutation machinery reads. This module cannot write a ledger, so it does what `Expect`
+    does: it puts the fact in `state` and the caller records it. **Legibility is the
+    instrument, and a fallback is exactly the shape of thing that hides a failure while
+    looking like robustness.**
+
+    **THE FALLBACK STAYS ARMED ACROSS STEPS**, because the remainder is re-wrapped. *Try this
+    whole routine* is the useful reading, not *try only its first step*.
+    """
     body: Any
     otherwise: Any
 
@@ -220,6 +252,19 @@ def advance(r: Any, holds: Callable[[Any], bool | None],
             return BLOCKED, None
         return advance(r.body if h else r.otherwise, holds, lib, state, _depth)
 
+    if isinstance(r, Try):
+        emit, rest = advance(r.body, holds, lib, state, _depth)
+        if emit in (BLOCKED, EXHAUSTED):
+            # PUBLISHED BEFORE THE FALLBACK RUNS, so the caller records the failure even if
+            # the fallback then succeeds. The other order loses exactly the case this exists
+            # for -- a recovery nobody can see is a failure nobody can see.
+            if state is not None:
+                state.setdefault("recovered", []).append(emit)
+            return advance(r.otherwise, holds, lib, state, _depth)
+        if emit == DONE:
+            return DONE, None                      # the body succeeded: nothing to recover
+        return emit, (Try(rest, r.otherwise) if rest is not None else None)
+
     if isinstance(r, Call):
         if lib is None or r.name not in lib:
             return BLOCKED, None                   # named something that is not there
@@ -316,6 +361,8 @@ def length(r: Any, chunks: tuple = ()) -> int:
         # is the thing `Until`'s rule two lines up refuses.
         return (1 + _guard_excess(r.guard)
                 + length(r.body, chunks) + length(r.otherwise, chunks))
+    if isinstance(r, Try):
+        return 1 + length(r.body, chunks) + length(r.otherwise, chunks)
     if isinstance(r, (Let, Expect)):
         return 1 + length(r.body, chunks)
     if isinstance(r, Call):
@@ -337,6 +384,8 @@ def guards(r: Any) -> tuple:
         return (r.guard,) + guards(r.body)
     if isinstance(r, Choose):
         return (r.guard,) + guards(r.body) + guards(r.otherwise)
+    if isinstance(r, Try):
+        return guards(r.body) + guards(r.otherwise)
     if isinstance(r, (Let, Expect)):
         return guards(r.body)
     if isinstance(r, Call):
@@ -366,6 +415,8 @@ def actions(r: Any, lib: dict | None = None, _seen: frozenset = frozenset()) -> 
         # BOTH ARMS. Which one runs is not known until the guard is read, so a routine whose
         # else-arm names an unadvertised action must fail this check before it is ever chosen.
         return actions(r.body, lib, _seen) + actions(r.otherwise, lib, _seen)
+    if isinstance(r, Try):
+        return actions(r.body, lib, _seen) + actions(r.otherwise, lib, _seen)
     if isinstance(r, Call):
         if lib is None or r.name not in lib:
             return (f"?{r.name}",)                 # LOUD, never empty
@@ -385,6 +436,8 @@ def render(r: Any) -> str:
         return f"when({r.guard}) {{{render(r.body)}}}"
     if isinstance(r, Choose):
         return f"choose({r.guard}) {{{render(r.body)}}} else {{{render(r.otherwise)}}}"
+    if isinstance(r, Try):
+        return f"try {{{render(r.body)}}} else {{{render(r.otherwise)}}}"
     if isinstance(r, Until):
         return f"until({r.guard}/{r.budget}) {{{render(r.body)}}}"
     if isinstance(r, Call):
@@ -451,6 +504,13 @@ def enumerate_routines(actions: tuple, guards: tuple, chunks: tuple = (),
                 continue
             for g in guards:
                 out.append(Choose(g, b, c))
+    # THE FALLBACK, AND IT NEEDS NO GUARD -- it branches on an OUTCOME, which is the whole
+    # difference from `Choose`. Appended last for the same reason `Choose` was: nothing
+    # reachable before this line stops being reachable.
+    for b in base:
+        for c in base:
+            if render(b) != render(c):
+                out.append(Try(b, c))
     seen, uniq = set(), []
     for r in out:
         k = render(r)
@@ -488,6 +548,10 @@ def reach(r: Any, lib: dict | None = None, _seen: frozenset = frozenset()) -> in
         # be HELD to is the smaller. `max` would let a branch be priced on its better arm and
         # then take the other -- over-stating reach is the precise defect this function was
         # written for, and a branch is the first shape that can do it while looking honest.
+        return min(reach(r.body, lib, _seen), reach(r.otherwise, lib, _seen))
+    if isinstance(r, Try):
+        # `min`, FOR `Choose`'s REASON. Exactly one arm's work lands, and which is unknown
+        # until the body has already failed -- so the reach it can be HELD to is the smaller.
         return min(reach(r.body, lib, _seen), reach(r.otherwise, lib, _seen))
     if isinstance(r, Until):
         return max(r.budget, 0) * reach(r.body, lib, _seen)

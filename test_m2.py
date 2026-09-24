@@ -388,6 +388,45 @@ def check_every_book_key_is_declared():
     assert not zero, f"a declared book key is absent from a live agent: {zero}"
 
 
+def check_a_plan_can_have_a_fallback():
+    """DEFECT: a fallback that recovers SILENTLY, hiding the ending it recovered from.
+
+    **`F207`: the first routine this project ever formed died at `routine_end: blocked`**, and
+    a blocked routine is abandoned -- nothing in the ACT space could say *and if that does not
+    work, do this instead*. `Try` branches on the OUTCOME where `Choose` branches on a GUARD
+    read before acting; **neither substitutes for the other.**
+    """
+    a, b = Rt.Act("A"), Rt.Act("B")
+
+    # 1 -- IT RECOVERS FROM BLOCKED, which is the ending that had no answer.
+    st: dict = {}
+    blocked = Rt.Try(Rt.When("g", a), b)
+    assert Rt.advance(blocked, lambda _g: None, None, st)[0] == "B", "no recovery from blocked"
+
+    # 2 -- AND THE RECOVERY IS PUBLISHED. A routine that recovers quietly has destroyed the
+    # BLOCKED signal -- the ending F207 was diagnosed from -- while looking like robustness.
+    assert st.get("recovered") == [Rt.BLOCKED], f"the failure is unrecorded: {st}"
+
+    # 3 -- AND NEVER FROM `DONE`. Three endings are three claims; folding DONE in would run
+    # the fallback after every success.
+    st2: dict = {}
+    assert Rt.advance(blocked, lambda _g: False, None, st2)[0] == Rt.DONE
+    assert "recovered" not in st2, "a succeeding body was reported as recovered"
+
+    # 4 -- EXHAUSTED RECOVERS TOO, and it is a different claim from blocked: the budget went.
+    st3: dict = {}
+    spent = Rt.Try(Rt.Until("g", a, 0), b)
+    assert Rt.advance(spent, lambda _g: False, None, st3)[0] == "B"
+    assert st3.get("recovered") == [Rt.EXHAUSTED], f"exhausted is not distinguished: {st3}"
+
+    # 5 -- PRICED AND REACHED LIKE ANY OTHER OBJECT: both arms counted, reach held to the
+    # lesser, and the composer actually builds one.
+    assert Rt.length(Rt.Try(a, b)) == 3, "an arm went uncounted"
+    assert Rt.reach(Rt.Try(Rt.Seq(a, b), a)) == 1, "priced on the arm it may not take"
+    got = Rt.enumerate_routines(("A",), ("g",), (Rt.Act("B"),), 1, cap=500)
+    assert any(isinstance(r, Rt.Try) for r in got), "the composer never enumerates a fallback"
+
+
 def check_chunking_reaches_the_bargain():
     """The ARITHMETIC of chunking: a settled routine counts as one unit and that can flip `pays`.
 
