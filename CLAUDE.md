@@ -494,6 +494,29 @@ after the fact there is nothing to catch, because after the fact the reading is 
   I grepped `operand_term` across `*.py` and never across `docs/`, and `WINDOW_REPORT` §7 was
   carrying a constraint that made the ruling smaller than I filed it.
 
+  **AND THE SCOPE IS STILL TOO NARROW -- THREE FAILURES IN ONE DAY, 2026-09-24, EACH IN A
+  DIFFERENT PLACE AND EACH ONE GREP FROM THE ANSWER.** `I26` widened `*.py` to include `docs/`.
+  **That is still not the record.**
+
+      the corpus      the grid mechanics -- I judged twenty names by how they SOUNDED while
+                      `ATOMS.md` annotated two of its own rows *"In a puzzle..."*
+      **the SEATS**   I asked FOUR TIMES whether `_cannot_pay` is correct.
+                      `conform/stateful.py` proves it lossless with a MUTATION CONTROL, and
+                      the seat was green in every `16/16` I posted that day
+      **THE CODE THE AGENT ALREADY IMPORTS**  I told Isaiah refusing a spectator needed a
+                      judgement from him. `instruments.Agency.contingent()` is a PREDICATE
+                      with *no rate, no cutoff and no window to tune* -- imported by
+                      `tether.py` ON LINE 25
+
+  > **THE RECORD IS THE DOCS, THE SEATS, AND THE MODULES ALREADY ON THE IMPORT GRAPH.** A
+  > property test with a mutation control and a docstring that states its own predicate are
+  > STRONGER records than prose, and the step pointed at neither.
+
+  **AND THE TELL IS THE SAME EVERY TIME: I WAS ABOUT TO ASK SOMEONE FOR SOMETHING.** Twice a
+  ruling from Isaiah, once a scope decision. **The moment before ESCALATING is the moment the
+  step fires hardest** -- an escalation is a headline with a person attached, and it spends
+  someone else's attention on a question the repository may have already answered.
+
 - **"IS IT ACTUALLY REACHED" IS THE STANDING QUESTION ABOUT ANYTHING THE RECORD SAYS EXISTS —
   adopted 2026-09-23 after FIVE in one day.** Not a check to run occasionally: the default.
 
