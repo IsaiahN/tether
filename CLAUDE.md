@@ -451,7 +451,14 @@ after the fact there is nothing to catch, because after the fact the reading is 
       `operand_term`    §4's "what makes this a tree". Declared, read, PRICED, RENDERED --
                         and ZERO PRODUCERS. Every term ever composed is a flat chain.
                         **REPAIRED 2026-09-24: `_trees`/`_branches` produce one and
-                        `tether.py:3909` offers it, priced by the same bargain**
+                        `tether.py:3909` offers it, priced by the same bargain.
+                        AND STILL NOT REACHED -- `_trees` is called ZERO times in three
+                        cycles of `vc33`, because it sits after `_cannot_pay`'s `continue`
+                        and the bargain book reads 5268 bounded out, 0 reaching `pays`.**
+                        **MY OWN REPAIR ANSWERED *DOES IT EXIST* IN THE TABLE WHOSE
+                        QUESTION IS *IS IT REACHED*** -- third time in one night, so the
+                        two halves are now written side by side rather than one implying
+                        the other
       `inside`          ADMITTED by name, dated, with the batch's best reach number, and
                         never constructed. The only `ADMITTED` entry missing from the registry
       `condition.py`    a whole guard-expression AST -- `Not`, three-valued evaluation, its
