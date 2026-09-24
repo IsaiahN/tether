@@ -661,6 +661,7 @@ class Agent:
         self.routine_state: dict = {}
         # `(slot, value when the claim was made, step index)`, or None. One at a time: the loop
         # takes ONE action per cycle, so a second claim cannot be outstanding.
+        self._popped: dict[str, int] = {}
         self._expect: tuple | None = None
         self._expect_step = 0
         # THE REJECT MEMORY, §18.2's `falsified_ledger` at routine scale. Without it the loop
@@ -2787,6 +2788,7 @@ class Agent:
         """One discrepancy reading per goal hypothesis per step. Held, never aggregated."""
         reach: dict[str, str] = {}
         counts: dict[str, dict] = {}
+        popped: dict[str, int] = {}
         for slot in self.slots:
             g = self._discrepancy(slot, state)
             if not isinstance(g, int):
@@ -2796,8 +2798,25 @@ class Agent:
             else:
                 self._disc.setdefault(slot, []).append(g)
             cnt: dict = {}
-            rg = self.goal_residual(slot, state, cnt)
+            # **THE POP SAYS WHY, AND IT DID NOT.** `goal_residual` can name which `None` a
+            # `None` was -- eight distinct exits via `_why` -- and THIS caller passed `counts`
+            # and no `why`, so the site that DESTROYS an accumulated trend recorded nothing.
+            # Measured before this line existed: 969 of 985 calls on `vc33` pop the series,
+            # 98.4%, every one of them silent. The ledger could not have shown it; the
+            # information was discarded one argument short of being recorded.
+            #
+            # **AND THE COUNTS ARE AGGREGATED PER CYCLE, NOT ROWED PER CALL** -- `_why`'s own
+            # docstring is explicit that a row per call would drown the trace, and it is right:
+            # this runs per slot per step. One row per cycle carries the split without the flood.
+            why: dict = {}
+            rg = self.goal_residual(slot, state, cnt, why)
             if rg is None:
+                # WHY THE SPLIT MATTERS RATHER THAN THE TOTAL: `unbound` and `slot-absent`
+                # are HONEST -- a trend SHOULD die when there is nothing to trend -- and only
+                # an exit where the quantity exists and could not be READ is a defect. The
+                # total cannot tell those apart and was being read as if it could.
+                _x = why.get("exit", "unknown")
+                popped[_x] = popped.get(_x, 0) + 1
                 self._res.pop(slot, None)
             else:
                 self._res.setdefault(slot, []).append(rg)
@@ -2809,6 +2828,12 @@ class Agent:
         # runs and says nothing. The counts are the thing to watch: `no` is a claim about the
         # world, `unknown` a claim about the record, and a board that is all `unknown` has told
         # you the trace is too thin rather than that nothing is reachable.
+        # STASHED, NOT RECORDED HERE. `ledger.STEPS` orders PLAN BEFORE PERCEIVE and this
+        # function runs at the TOP of the step, so a row written here becomes the cycle's first
+        # and turns its own PLAN into `PLAN after PERCEIVE` -- the gate refused exactly that
+        # when the vocabulary row was emitted from the same position. Carried to the first
+        # point where a PERCEIVE row is already in order.
+        self._popped = popped
         if reach:
             self.led.record(self.cycle, "PERCEIVE", "*", "can",
                             **{k: sum(1 for v in reach.values() if v == k)
@@ -4341,6 +4366,13 @@ class Agent:
         # The gate refused it. This is the first point at which a `PERCEIVE` row is already
         # in order.
         self._narrate_vocabulary()
+        # THE DESTRUCTION, ONE ROW PER CYCLE. Absent when nothing popped, so a quiet cycle says
+        # nothing rather than saying zero eight times. `_why`'s docstring forbids a row per
+        # call and it is right -- this runs per slot per step.
+        if self._popped:
+            self.led.record(self.cycle, "PERCEIVE", "*", "trend_popped",
+                            total=sum(self._popped.values()), **self._popped)
+            self._popped = {}
         self.led.record(self.cycle, "PERCEIVE", focal, "want", by=want_by, objective=said)
 
         refs = [G.ref(pid, "perceive")] + ([G.ref(bound, "term")] if bound else [])
