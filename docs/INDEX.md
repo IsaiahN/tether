@@ -46963,3 +46963,50 @@ about its most important state cannot be told from a book nobody wrote.
 bindings (`unbound` 845 of 969 on `vc33`) -> no goal hypotheses -> `_res` empty -> gate 1 refuses
 -> `_mint_routine` never composes -> **the entire ACT space is unreachable.** Seven constructors,
 one branch, one condition grammar, all behind a supply problem four steps upstream.
+
+
+## F344 -- EIGHTEEN CAPABILITY ARMS, EVERY ONE DEFAULT OFF, AND NOTHING IN THE REPOSITORY SETS ONE. The agent that runs is the most starved variant of itself, and nobody chose that
+
+**18 switches at 19 read sites**, every one `bool(os.environ.get("TETHER_X"))` **with no default
+value**, and a scan of every tracked file finds **no setter anywhere**. So the configuration the
+agent actually runs under was never selected -- it is what you get when eighteen separate
+decisions are each deferred.
+
+### AND THE REASONS ARE GOOD, WHICH IS THE PART THAT MAKES IT HARD TO SEE
+
+Read at their own sites before this was written, because *is it wrongly off* is a different claim
+from *is it off*:
+
+    `TETHER_INSTRUMENTS`   off at a COSTED price -- a new published attribute widens the slot
+                           set, and §12.12 prices that in EPISODES FORGONE
+    `TETHER_SHAPE_DELTA`   *"both arms belong on together; that is a measurement, not a default"*
+    the house rule         a MEASUREMENT turns an arm on. All-off is the honest state of an
+                           unproven arm
+
+> **SO THE FINDING IS NOT THAT THEY ARE WRONGLY OFF. IT IS THAT NINETEEN SITES EACH CARRIED A
+> GOOD REASON AND NO PLACE HELD THE SUM.**
+
+**That is the ground-focus seat's own origin one level up** -- *each looked reasonable alone; the
+drift was visible only in the sum, and nothing computed the sum.* There it was commits; here it
+is configuration. **Eighteen individually-justified OFFs compose into an agent nobody chose.**
+
+### THE SEAT, `f2bec56`, AND IT FLIPS NOTHING
+
+Three failures, each a fact rather than a judgement, **each proven by reintroducing it**:
+**UNDECLARED** (an arm read in code with no row -- *a new arm cannot enter silently, which is how
+eighteen accumulated*), **STALE**, and **HALF A PAIR** (an arm on whose declared partner is off --
+`arc_percept`'s shape-delta/arm-I coupling, **written in a comment that nothing could enforce**).
+
+**The census is READ FROM THE CODE and never from the table**: a census built from the table
+would agree with the table by construction, which is the measurement that cannot fail.
+
+### THE FORK, POSTED AND NOT TAKEN
+
+**`TETHER_ITERATE` is the fold construct** -- `cells`/`cell_row`/`cell_col`/`count_true` -- and
+**`CLAUDE.md` §12.0 uses A FOLD CONSTRUCT as its worked example of a MEANS**, against *a solved
+board* as its worked example of an ANSWER. **The agent can hold a cell set and cannot walk it,
+and the means to walk it is built and switched off.**
+
+**Not flipped, and the decisive reason is the second one**: the house rule is that a measurement
+turns an arm on, and no measurement was permitted tonight. **That every other arm is off too is
+not a reason -- it is the finding.**
