@@ -3,7 +3,7 @@
  "CORRECT": true,
  "DECOMPOSE": false,
  "EXPRESS": true,
- "GOAL": false,
+ "GOAL": true,
  "PERCEIVE": true,
  "RUN": false
 }

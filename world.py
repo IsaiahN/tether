@@ -22,6 +22,11 @@ from gamma import Atom, Ctx
 
 sys.dont_write_bytecode = True
 
+# THE GOAL SLOT'S NAME, SHARED WITH `arc_world` BY SPELLING AND NOT BY IMPORT -- the two
+# worlds must not depend on each other, and the fixture asserts the string, so a drift between
+# them fails the seat rather than going quiet.
+GOAL_SLOT = "@goal.completed"
+
 M = 7   # anchor: prime, and small enough that the harness can sweep the whole
 #         domain exhaustively -- which is what makes unreachable_slots a proof
 ACTIONS = ("A", "B", "C")
@@ -184,7 +189,7 @@ class Transitions:
         return "exact match on the next state. Mechanical, instant, and it does not negotiate"
 
     def slots(self) -> list[str]:
-        return sorted(self.state)
+        return sorted([*self.state, GOAL_SLOT])
 
     def atoms(self) -> list[Atom]:
         return _atoms()
@@ -204,8 +209,17 @@ class Transitions:
         per slot, and each is then charged its own code rather than the widest one in the
         world. Charging a boolean log2(7) inflates its residual by the factor its
         information was reduced, and the bargain comes out loosest where least is at
-        stake."""
-        return M
+        stake.
+
+        **AND THIS WORLD NOW DIFFERS, SO IT SAYS SO -- 2026-09-24.** `@goal.completed` counts
+        slots-at-goal, so it ranges `0..len(state)` -- **EIGHT values against M's SEVEN.** The
+        uniform number would not merely be loose here, it would be WRONG: `correction_bits`
+        normalises mod the alphabet, so a 7 would wrap to 0 and a full solve would read as no
+        progress. **The paragraph above anticipated exactly this case and this is it.**
+        """
+        a: dict[str, int] = dict.fromkeys(self.state, M)
+        a[GOAL_SLOT] = len(self.state) + 1
+        return a
 
     def transform(self) -> Any:
         """No coarse view is defined for this env, so the bracket channel is inert here.
@@ -214,13 +228,27 @@ class Transitions:
 
     # -- running ---------------------------------------------------------------------
 
+    def _completed(self) -> int:
+        """HOW MANY SLOTS ARE AT THE GOAL. **ONE SITE, because `objective()` and the published
+        `@goal.completed` slot are the SAME QUANTITY** -- two computations of one number is the
+        `A6i` collision waiting to happen, and this is the cheapest place to refuse it."""
+        return sum(1 for v in self.state.values() if v % M == 0)
+
     def objective(self) -> tuple[str, float]:
         """ALL slots at zero. Returns (name, degree in [0,1]); R_goal is 1 - degree."""
-        hit = sum(1 for v in self.state.values() if v % M == 0)
-        return "ALL(BECOME(slot, 0))", hit / len(self.state)
+        return "ALL(BECOME(slot, 0))", self._completed() / len(self.state)
 
     def observe(self) -> dict[str, int]:
-        return dict(self.state)
+        """**AND THE GOAL IS A SLOT HERE TOO -- Isaiah 2026-09-24.** The fixture's GOAL stage
+        read DEAD on this world because `@goal.completed` was added to `arc_world` and not to
+        the harness the fixture actually runs on. **A capability wired into one world is the
+        orphan class this whole seat exists to catch**, and it caught mine.
+
+        DERIVED, NEVER STORED. It is not in `self.state`, so `step`'s `% M` cannot mutate it
+        and no rule can write it -- the agent PERCEIVES the count and nothing here lets it
+        set the count.
+        """
+        return {**self.state, GOAL_SLOT: self._completed()}
 
     def step(self, action: str) -> None:
         if action not in ACTIONS:
@@ -233,7 +261,13 @@ def unreachable_slots(env: Transitions, gam, max_depth: int, budget: int) -> lis
     """What the HARNESS knows by exhaustive check, and the agent never sees. Used only to
     score abstention: a slot no term in the enumerated closure predicts on every action,
     under any operand binding."""
-    slots = env.slots()
+    # **A DERIVED SLOT HAS NO RULE, AND THAT IS NOT THE SAME AS BEING UNREACHABLE.**
+    # `@goal.completed` is a function of the OTHER slots, so there is no transition for a term
+    # to match and no honest verdict to return -- including it as unreachable would score the
+    # agent for failing to predict something this checker cannot state a target for. Excluded
+    # on a CHECKABLE FACT (absent from `RULES`), never on judgement, and the exclusion expires
+    # the moment the slot acquires a rule.
+    slots = [s for s in env.slots() if s in RULES]
     out = []
     for slot in slots:
         rule = RULES[slot]

@@ -23,7 +23,7 @@ import speak
 from gamma import Atom, Ctx, Gamma, Term
 from ledger import Ledger
 from tether import Agent, Config, correction_bits
-from world import TRUTH, M, Transitions, bind, unreachable_slots
+from world import RULES, TRUTH, M, Transitions, bind, unreachable_slots
 
 sys.dont_write_bytecode = True
 
@@ -77,7 +77,11 @@ def main(cycles: int = 16) -> int:
     pred = bad.apply(before, Ctx(action="A")) % M
     env.step("A")
     actual = env.observe()[victim]
-    bits = correction_bits(pred, actual, env.alphabet())
+    # PER SLOT, NOT THE WHOLE TABLE. `alphabet()` became a dict when the toy world began
+    # publishing `@goal.completed`, whose range is NOT `M` -- and this line had been handing
+    # `correction_bits` the alphabet OF THE WORLD while charging one slot's correction.
+    # It worked only while every slot shared one number. **The demo seat caught it.**
+    bits = correction_bits(pred, actual, env.alphabet()[victim])
     print(f"  installed : `{bad.name}` on {victim}, stamped {gam.stamps[bad.name]}")
     print(f"  ground    : predicted {pred}, actual {actual}  ->  residual {bits} bits")
     print(f"  CAUGHT    : {'yes -- the ground refused it' if bits > 0 else 'no'}")
@@ -89,8 +93,15 @@ def main(cycles: int = 16) -> int:
 
     head(3, "ABSTENTION, AND THE FALSE-ABSTENTION RATE")
     truth = set(unreachable_slots(env, Gamma(env.atoms()), cfg.max_depth, cfg.budget))
-    said = set(run.abstained)
-    slots = set(agent.slots)
+    # **THE POPULATION EXCLUDES DERIVED SLOTS, ON THE SAME CHECKABLE FACT THE ORACLE USES.**
+    # `unreachable_slots` cannot state a target for a slot with no transition rule, so it
+    # returns no verdict for one -- and scoring an abstention against a verdict that was never
+    # computed counts *the harness could not say* as *the agent was wrong*. `@goal.completed`
+    # is a function of the other slots; abstaining on it is not a false abstention, it is the
+    # only honest answer available. Excluded on `slot in world.RULES`, never on judgement.
+    scored = {s for s in agent.slots if s in RULES}
+    said = set(run.abstained) & scored
+    slots = scored
     correct = said & truth
     false = said - truth
     missed = truth - said

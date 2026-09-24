@@ -4734,7 +4734,17 @@ class Agent:
                 # (did-not-pay when pays was never consulted) is gone with the zero-remainder gate.
                 why = "did-not-pay" if left < base else "no-split"
                 self.chain.note_reuse_attempt(why)
-                self.led.record(self.cycle, "ROUTE", slot, "reuse_refused",
+                # **THE STEP WAS WRONG AND A NEW SLOT EXPOSED IT -- 2026-09-24.** This row said
+                # `ROUTE` and is written from the MINT sweep, AFTER `park` has already run. For
+                # every slot but the first in sorted order the interleaving happened to come out
+                # ordered, so the gate stayed green; `@goal.completed` sorts before every object
+                # slot and the mismatch surfaced immediately as `ROUTE after MINT`.
+                #
+                # It is a MINT fact by its own content -- *the ONE bargain refused this
+                # candidate* is the bargain speaking, not the router binning a slot. **Relabelled
+                # rather than the slot renamed**: a name chosen to keep a checker quiet is the
+                # defect wearing a disguise.
+                self.led.record(self.cycle, "MINT", slot, "reuse_refused",
                                 reason=why, term=cand.name, held=tkey,
                                 term_bits=round(cost, 4), left_bits=round(left, 4),
                                 base_bits=round(base, 4),
