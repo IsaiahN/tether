@@ -662,6 +662,18 @@ class Agent:
         # `(slot, value when the claim was made, step index)`, or None. One at a time: the loop
         # takes ONE action per cycle, so a second claim cannot be outstanding.
         self._popped: dict[str, int] = {}
+        # THE SELF-OBSERVATION BOOKS. Facts about THIS AGENT'S OWN PAST, written by the ground.
+        # **RECORDS, NOT THRESHOLDS: they decide nothing.** They are what a decision would have
+        # to be made FROM, and none of them existed. Isaiah, 2026-09-24: the agent sets its own
+        # terms, and a term set from nothing is a guess -- the books are what make it not one.
+        #
+        # **AND THE DEMOTED ARE KEPT, WHICH IS THE ONE THE GROUND DESTROYS UNRECORDED.** `F327`
+        # clears a standing on one miss and the term is gone; whether it would have been RIGHT
+        # on the next frame is the counterfactual nobody could read. Kept here, evaluated each
+        # cycle, and bounded so a long run does not accumulate forever.
+        self._book: dict[str, int] = {}
+        self._demoted_watch: dict[str, str] = {}      # term name -> the slot it was demoted on
+        self._settled_at: dict[str, int] = {}
         self._expect: tuple | None = None
         self._expect_step = 0
         # THE REJECT MEMORY, §18.2's `falsified_ledger` at routine scale. Without it the loop
@@ -1051,6 +1063,61 @@ class Agent:
         key would collapse the distinction.
         """
         return {"came": self._came, "gone": self._gone}
+
+    def _read_books(self, before: dict) -> None:
+        """THE FOUR BOOKS, read each cycle and recorded against THE SCORE.
+
+        **THEY DECIDE NOTHING.** No policy reads them, no constant is derived from them, and
+        none is turned into a dial here. **Isaiah, 2026-09-24: the agent sets its own terms --
+        and a term set from nothing is a guess. These are what make it not a guess.**
+
+        **EVERY ONE IS RELATABLE TO THE SCORE, which is not decoration.** The score is the ONE
+        thing outside the agent, and without the link the agent could set terms that optimise
+        its own bookkeeping -- the single failure the score exists to prevent.
+
+        **AND THE CLOCK IS WHY THEY ARE FOUR AND NOT FORTY.** An episode is 128-309 actions. A
+        book that needs 200 cycles to say anything is a book the agent never reads in the time
+        it has, so each is counted from cycle ONE and reported with its own denominator -- a
+        reader can see immediately whether a quantity has spoken yet or not.
+        """
+        # BOOK 2, THE COUNTERFACTUAL: would the demoted term have been RIGHT this frame?
+        # `F327` clears a standing on one miss and the term is gone; nothing ever asked what it
+        # would have said next. Evaluated against the actual, then released -- one frame of
+        # hindsight per demotion, which is all the ground offers before the slot moves on.
+        for name, slot in list(self._demoted_watch.items()):
+            term = self.gamma.library.get(name)
+            actual = before.get(slot)
+            if term is None or actual is None:
+                self._demoted_watch.pop(name, None)
+                continue
+            ops = self._ops(term, before)
+            if ops is None:
+                self._demoted_watch.pop(name, None)
+                continue
+            got = self._value_of(term, slot, before,
+                                 Ctx(action=None, operands=ops, touching=None,
+                                     group=self._group(slot, before),
+                                     obj=self._record(slot, before),
+                                     shapes=self._shapes_now()))
+            if got is not NOT_RESOLVED:
+                key = ("demoted_would_have_been_right" if got == actual
+                       else "demoted_was_wrong_again")
+                self._book[key] = self._book.get(key, 0) + 1
+                self._demoted_watch.pop(name, None)
+
+        lv = getattr(self.env, "levels", None)
+        done, win = lv() if lv else (0, 0)
+        self.led.record(self.cycle, "PERCEIVE", "*", "books",
+                        # THE SCORE. Every other number here is read against it.
+                        score_levels=done, score_target=win,
+                        # **DERIVED FROM `self._acts`, NOT A SECOND COUNTER.** I declared
+                        # `_acts_total` and never incremented it -- a dead field on its first
+                        # run, which is tonight's own pattern. And a second store WOULD have
+                        # diverged from `_acts` the way the routine shelf diverged from
+                        # `self.routines` earlier: one name, one store.
+                        actions_spent=sum(self._acts.values()),
+                        settled=len(self.settled), demoted=len(self.demoted),
+                        watching=len(self._demoted_watch), **self._book)
 
     def _narrate_vocabulary(self) -> None:
         """ONCE PER RUN: what the corpus CALLS what this agent can already reach.
@@ -4276,6 +4343,16 @@ class Agent:
                 self._refuted_slot[slot] = name
                 if self.gamma.refute(name):
                     self.demoted.append(name)
+                    # BOOK 1: a term that had SETTLED and then mispredicted. The ground gave it
+                    # a standing and took it back, which is the only honest reading of
+                    # *did promotion hold*.
+                    if name in self._settled_at:
+                        self._book["promoted_then_wrong"] = (
+                            self._book.get("promoted_then_wrong", 0) + 1)
+                    # BOOK 2's SUBJECT: kept so the counterfactual can be read next cycle.
+                    # Capped -- a book that grows without bound is a leak, not a record.
+                    if len(self._demoted_watch) < 64:
+                        self._demoted_watch[name] = slot
                     self.led.record(self.cycle, "SETTLE", slot, "demote", term=name,
                                     status="candidate",
                                     asked=[name, slot], ground_said=False,
@@ -4295,6 +4372,7 @@ class Agent:
                 continue
             self.gamma.settle(name)
             self.settled.add(name)
+            self._settled_at[name] = self.cycle
             # WHAT WAS ASKED AND WHAT CAME BACK. The question is `does this term
             # predict a transition it was never fitted to`, and `r.mass == 0.0` on a
             # cycle later than the one it was minted on IS the answer. Both facts were
@@ -4366,6 +4444,7 @@ class Agent:
         # The gate refused it. This is the first point at which a `PERCEIVE` row is already
         # in order.
         self._narrate_vocabulary()
+        self._read_books(before)
         # THE DESTRUCTION, ONE ROW PER CYCLE. Absent when nothing popped, so a quiet cycle says
         # nothing rather than saying zero eight times. `_why`'s docstring forbids a row per
         # call and it is right -- this runs per slot per step.
