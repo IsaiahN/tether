@@ -4049,6 +4049,16 @@ class Agent:
             # That is a design question, not a parameter.
             by_kind: dict[str, tuple] = {}
 
+            # **ALL THREE EXIST THE MOMENT THE BARGAIN RUNS, AND THIS IS THE THIRD TIME
+            # TONIGHT.** A counter written only when it increments reads ABSENT at zero, and
+            # absent cannot be told from never-recorded -- the same defect as gate 1's empty
+            # tally and as `plan_gate_no_hypothesis`. Measured here before it was fixed: three
+            # cycles gave `bounded_out 5268` and NO other key, so *not one candidate reached
+            # `pays`* -- the sharpest thing the book has to say -- was invisible.
+            #
+            # the three exist together or the split cannot be read.
+            for _k in ("bargain_bounded_out", "bargain_does_not_pay", "bargain_paid"):
+                self.gamma.book.setdefault(_k, 0)
             for in_t, out_t in streams:
                 # A THIRD KIND EXISTS ONCE THE STREAMS WIDEN, and it is named rather than
                 # folded into `objective`: a term ending at EXTENT is neither a prediction of
@@ -4099,6 +4109,8 @@ class Agent:
                         if self._cannot_pay(term, slot, robs, cost, base):
                             cuts.append({"name": term.name, "rank": rank, "reversible": True,
                                          "reason": "bounded-out: cannot pay on R alone"})
+                            self.gamma.book["bargain_bounded_out"] = (
+                                self.gamma.book.get("bargain_bounded_out", 0) + 1)
                             continue
                         left = self._left(term, slot, hist)
                         # §4's TREE, AND THIS IS ITS FIRST PRODUCER. `operand_term` was
@@ -4135,7 +4147,25 @@ class Agent:
                         if not pays(cost, left, base):
                             cuts.append({"name": term.name, "rank": rank, "reversible": True,
                                          "reason": "does-not-pay"})
+                            # BOOK 5, AND IT IS THE ONE `pays` WOULD NEED. `F341` sorted `pays`
+                            # strictness as THE AGENT'S and the reviewer left it untouched
+                            # because it has no book deep enough. This is that book, and it is
+                            # THREE COUNTS rather than a margin, because the three answer the
+                            # question and a margin would need a boundary I picked.
+                            #
+                            # **THE SPLIT IS THE FINDING WAITING TO BE READ.** `_cannot_pay` is
+                            # a NECESSARY condition -- *a term wrong on k of R is wrong at
+                            # least k* -- so what it refuses is LOGICALLY incapable, not
+                            # refused by a constant. `pays` is the only one of the two that is
+                            # a judgement. If `bounded_out` dwarfs `does_not_pay`, then
+                            # relaxing the strictness changes almost nothing and the contest is
+                            # decided by logic rather than by anything the agent could set:
+                            # `F342`'s shape, at the site `F342` named first.
+                            self.gamma.book["bargain_does_not_pay"] = (
+                                self.gamma.book.get("bargain_does_not_pay", 0) + 1)
                             continue
+                        self.gamma.book["bargain_paid"] = (
+                            self.gamma.book.get("bargain_paid", 0) + 1)
                         guards["reachability"] = True
                         # `cost + left`, WHICH IS WHAT `pays` SPENDS. This compared `left`
                         # alone -- *buy the most-explaining term at any price* -- and the
