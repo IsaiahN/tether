@@ -447,6 +447,45 @@ def check_the_suite_reaches_the_hard_cases():
         assert seen[case] > 0, f"the M2 suite no longer reaches: {case}"
 
 
+def check_the_agent_owns_the_refutation_halflife():
+    """DEFECT: the decay rate fixed by us, so an EARNED value could not reach the site.
+
+    The executes-check showed the dial exists and starts UNEARNED -- correct, and it leaves the
+    EARNED path unexercised, because a demotion has to happen first. **This exercises it
+    without a board**, which is the only honest way to claim the path works: a unit test is
+    allowed where a panel is not.
+
+    TWO CLAIMS, and the second is the one that matters:
+      the SHAPE honours a passed rate -- a different halflife decays differently
+      the AGENT'S value REACHES it -- `Gamma.halflife` is what `Standing.decay` uses
+    """
+    fast = gamma.Standing(rejections=1.0, last_tick=0)
+    slow = gamma.Standing(rejections=1.0, last_tick=0)
+    fast.decay(8, halflife=1.0)
+    slow.decay(8, halflife=64.0)
+    assert fast.rejections < slow.rejections, (
+        f"the rate is ignored: {fast.rejections} vs {slow.rejections}")
+
+    # AND THE AGENT'S VALUE REACHES THE SITE. `Gamma.refute` passes `self.halflife` through, so
+    # setting it is the whole of turning the dial -- no second path, no copy.
+    g = gamma.Gamma(arc_atoms.three_spaces(arc_predict.predict()), game="unit")
+    assert g.halflife is None, "a fresh Gamma must start UNEARNED, not on a number we picked"
+    name = next(iter(g.library))
+    g.halflife = 1.0
+    g.tick = 0
+    g.refute(name)
+    g.tick = 8
+    quick = g.rejection_of(name)          # `rejection_of` decays to `tick` before reporting
+    g2 = gamma.Gamma(arc_atoms.three_spaces(arc_predict.predict()), game="unit")
+    g2.halflife = 64.0
+    g2.tick = 0
+    g2.refute(name)
+    g2.tick = 8
+    held = g2.rejection_of(name)
+    assert quick < held, (
+        f"the agent's halflife does not reach the decay site: {quick} vs {held}")
+
+
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
 
 if __name__ == "__main__":
