@@ -672,7 +672,11 @@ class Agent:
         # on the next frame is the counterfactual nobody could read. Kept here, evaluated each
         # cycle, and bounded so a long run does not accumulate forever.
         self._book: dict[str, int] = {}
-        self._demoted_watch: dict[str, str] = {}      # term name -> the slot it was demoted on
+        self._demoted_watch: dict[str, tuple] = {}    # term -> (slot, cycle it was demoted)
+        # **THE DIAL'S EVIDENCE.** Cycles between a demotion and the frame that would have
+        # vindicated it. Already in CYCLES, which is what a halflife is measured in -- so the
+        # agent reads its own observation DIRECTLY and no mapping is chosen by us.
+        self._vindication: list[int] = []
         self._settled_at: dict[str, int] = {}
         self._expect: tuple | None = None
         self._expect_step = 0
@@ -1084,7 +1088,7 @@ class Agent:
         # `F327` clears a standing on one miss and the term is gone; nothing ever asked what it
         # would have said next. Evaluated against the actual, then released -- one frame of
         # hindsight per demotion, which is all the ground offers before the slot moves on.
-        for name, slot in list(self._demoted_watch.items()):
+        for name, (slot, since) in list(self._demoted_watch.items()):
             term = self.gamma.library.get(name)
             actual = before.get(slot)
             if term is None or actual is None:
@@ -1099,12 +1103,30 @@ class Agent:
                                      group=self._group(slot, before),
                                      obj=self._record(slot, before),
                                      shapes=self._shapes_now()))
-            if got is not NOT_RESOLVED:
-                key = ("demoted_would_have_been_right" if got == actual
-                       else "demoted_was_wrong_again")
-                self._book[key] = self._book.get(key, 0) + 1
+            if got is not NOT_RESOLVED and got == actual:
+                # **VINDICATED, AND THE DELAY IS THE QUANTITY.** How many cycles this agent's
+                # own demoted term took to come good -- already in CYCLES, which is what a
+                # halflife is measured in. **So the dial reads the observation directly and no
+                # mapping is chosen by us.** A rate would have needed a function; this does not.
+                self._vindication.append(self.cycle - since)
+                self._book["demoted_would_have_been_right"] = (
+                    self._book.get("demoted_would_have_been_right", 0) + 1)
+                self._demoted_watch.pop(name, None)
+            elif self.cycle - since >= 16:
+                # RELEASED UNVINDICATED. The bound is OURS and it is substrate -- a watch list
+                # that never releases is a leak -- and it is NOT a claim that 16 cycles is long
+                # enough to be sure. Counted separately so the two are never summed.
+                self._book["demoted_stayed_wrong"] = (
+                    self._book.get("demoted_stayed_wrong", 0) + 1)
                 self._demoted_watch.pop(name, None)
 
+        # **THE AGENT TURNS ITS OWN DIAL.** Not a function of an observation -- THE
+        # OBSERVATION. The mean number of cycles its own demoted terms took to come good IS
+        # how long a refutation should keep counting for THIS agent on THIS board. Until it
+        # has one, `halflife` stays `None` and `gamma`'s seed applies, MARKED UNEARNED below
+        # so an unearned value is never mistaken for a decision.
+        if self._vindication:
+            self.gamma.halflife = sum(self._vindication) / len(self._vindication)
         lv = getattr(self.env, "levels", None)
         done, win = lv() if lv else (0, 0)
         self.led.record(self.cycle, "PERCEIVE", "*", "books",
@@ -1117,7 +1139,10 @@ class Agent:
                         # `self.routines` earlier: one name, one store.
                         actions_spent=sum(self._acts.values()),
                         settled=len(self.settled), demoted=len(self.demoted),
-                        watching=len(self._demoted_watch), **self._book)
+                        watching=len(self._demoted_watch),
+                        halflife=self.gamma.halflife,
+                        halflife_earned=bool(self._vindication),
+                        vindications=len(self._vindication), **self._book)
 
     def _narrate_vocabulary(self) -> None:
         """ONCE PER RUN: what the corpus CALLS what this agent can already reach.
@@ -4352,7 +4377,7 @@ class Agent:
                     # BOOK 2's SUBJECT: kept so the counterfactual can be read next cycle.
                     # Capped -- a book that grows without bound is a leak, not a record.
                     if len(self._demoted_watch) < 64:
-                        self._demoted_watch[name] = slot
+                        self._demoted_watch[name] = (slot, self.cycle)
                     self.led.record(self.cycle, "SETTLE", slot, "demote", term=name,
                                     status="candidate",
                                     asked=[name, slot], ground_said=False,

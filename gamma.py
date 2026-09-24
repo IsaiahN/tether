@@ -83,6 +83,9 @@ SLOT_REACHING = ("operands", "group", "obj", "touching")
 # clocked, so a halflife is specified; nothing measures THIS halflife. A refutation is
 # retractable, and how fast is a target for measurement rather than a finding.
 REJECTION_HALFLIFE = 8.0
+# **A SEED, NOT A SETTING.** `Gamma.halflife` starts `None` and the agent writes it from its own
+# books the moment it has any. Until then this is what decays a refutation -- and it is marked
+# as unearned in the `books` row rather than passing silently as a decision.
 
 
 def accepts_type(unit: Any, ty: str | None) -> bool:
@@ -373,15 +376,27 @@ class Standing:
     rejections: float = 0.0
     last_tick: int = 0
 
-    def refute(self, tick: int) -> None:
-        self.decay(tick)
+    def refute(self, tick: int, halflife: float | None = None) -> None:
+        self.decay(tick, halflife)
         self.rejections += 1.0
         self.settled_at = None
 
-    def decay(self, tick: int) -> None:
+    def decay(self, tick: int, halflife: float | None = None) -> None:
+        """**THE SHAPE IS OURS; THE RATE IS THE AGENT'S.** Isaiah, 2026-09-24: the agent controls
+        everything except the score, and *we give it the dial and the fact that a dial exists.*
+
+        THAT A REFUTATION FADES is a fact about the substrate -- a hard ban would make one miss
+        permanent and no evidence could ever overturn it. **HOW FAST it fades is a judgement
+        about how long being wrong should count**, which is a claim, and Figure 10 is explicit:
+        *the seat may author what has no truth value and nothing that does.*
+
+        `REJECTION_HALFLIFE` REMAINS AS A SEED AND IS MARKED AS ONE. With no experience the
+        agent has no basis, and **a seed that is replaced the moment evidence exists is the
+        floor without the ceiling** -- not a default hiding the absence of a reading.
+        """
         gap = max(0, tick - self.last_tick)
         if gap:
-            self.rejections *= 0.5 ** (gap / REJECTION_HALFLIFE)
+            self.rejections *= 0.5 ** (gap / (halflife or REJECTION_HALFLIFE))
             self.last_tick = tick
 
     @property
@@ -417,6 +432,10 @@ class Gamma:
         # item 7: what the agent invented, and the abstention that licensed each
         self.invented: dict[str, dict] = {}
         self.tick = 0
+        # **THE AGENT'S DIAL.** `None` means it has not earned a value yet and the seed applies.
+        # Written by `tether.Agent` from its own books; never set here, and never defaulted to
+        # a number we picked at any point after construction.
+        self.halflife: float | None = None
         # 3d / Â§17.7. Set by the agent to a `(unit) -> tuple` ranking. None keeps the
         # registry order this had, so installing a rank is an observable change and not
         # installing one changes nothing.
@@ -557,7 +576,7 @@ class Gamma:
         deleted, and the rejection decays, so it can settle again if it starts paying."""
         st = self.standing.setdefault(name, Standing())
         was = st.settled
-        st.refute(self.tick)
+        st.refute(self.tick, self.halflife)
         return was
 
     def is_settled(self, name: str) -> bool:
@@ -567,7 +586,7 @@ class Gamma:
         st = self.standing.get(name)
         if st is None:
             return 0.0
-        st.decay(self.tick)
+        st.decay(self.tick, self.halflife)
         return st.rejections
 
     @property
