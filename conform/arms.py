@@ -119,21 +119,80 @@ def sites() -> dict[str, list[str]]:
     return found
 
 
-def main() -> int:
-    found = sites()
-    on = {a for a in found if os.environ.get(a)}
-    bad: list[str] = []
+def selftest() -> dict[str, str]:
+    """THE THREE REFUSALS, REINTRODUCED -- `wiring.py`'s form, and for its reason.
 
+    **Every other seat in this folder carries one and this one did not.** Its three guards were
+    proven by an ad-hoc script the night it was written, which is *a suite nothing runs is a
+    suite that rots* with the suite left out entirely. **A guard whose failure path is never
+    exercised is indistinguishable from a guard that cannot fail** -- which is this seat's own
+    subject, one level up.
+
+    NOT A TEST OF THE WORLD. Each case perturbs the TABLE or the ENVIRONMENT and asks whether
+    the rule notices; none of them depends on which arms happen to exist today, so adding or
+    retiring an arm cannot make a case pass or fail for the wrong reason.
+    """
+    out: dict[str, str] = {}
+    found = {"TETHER_A": ["x.py:1"], "TETHER_B": ["y.py:2"]}
+    table = {"TETHER_A": "a", "TETHER_B": "b"}
+
+    bad = _judge(found, dict(table), on=set(), pairs=())
+    out["clean"] = "ok" if not bad else f"UNWITNESSED (refused a clean table: {bad})"
+
+    bad = _judge(found, {"TETHER_A": "a"}, on=set(), pairs=())
+    out["A undeclared"] = ("ok" if any("UNDECLARED" in b for b in bad)
+                           else f"UNWITNESSED ({bad})")
+
+    bad = _judge(found, {**table, "TETHER_GHOST": "g"}, on=set(), pairs=())
+    out["B stale"] = "ok" if any("STALE" in b for b in bad) else f"UNWITNESSED ({bad})"
+
+    bad = _judge(found, dict(table), on={"TETHER_A"},
+                 pairs=(("TETHER_A", "TETHER_B"),))
+    out["C half a pair"] = ("ok" if any("HALF A PAIR" in b for b in bad)
+                            else f"UNWITNESSED ({bad})")
+
+    # AND THE CONTROL FOR C, without which "half a pair" would pass by always complaining.
+    bad = _judge(found, dict(table), on={"TETHER_A", "TETHER_B"},
+                 pairs=(("TETHER_A", "TETHER_B"),))
+    out["C control"] = ("ok" if not any("HALF A PAIR" in b for b in bad)
+                        else f"UNWITNESSED (a WHOLE pair was refused: {bad})")
+    return out
+
+
+def _judge(found: dict, table: dict, on: set, pairs: tuple) -> list[str]:
+    """The three rules, over data handed in. Split out so `main` and `selftest` share ONE
+    implementation -- a fixture that re-states the rule tests the restatement."""
+    bad: list[str] = []
     for arm in sorted(found):
-        if arm not in ARMS:
+        if arm not in table:
             bad.append(f"UNDECLARED  {arm} is read at {found[arm][0]} and is not in the table")
-    for arm in sorted(ARMS):
+    for arm in sorted(table):
         if arm not in found:
             bad.append(f"STALE       {arm} is in the table and no code reads it")
-    for a, b in PAIRS:
+    for a, b in pairs:
         if (a in on) != (b in on):
             bad.append(f"HALF A PAIR {a}={a in on} {b}={b in on} -- their own site declares "
                        "they belong on together")
+    return bad
+
+
+def main() -> int:
+    # **THE FIXTURES RUN ON EVERY INVOCATION, NOT BEHIND A FLAG.** `check.py` calls this seat
+    # with no arguments, so a `--selftest` nobody passes is a suite nothing runs -- which is
+    # the rot this folder's own docstrings name, and it would leave the guards unexercised
+    # exactly as they were before the fixtures existed. They are pure data and cost nothing.
+    worst = [c for c, v in selftest().items() if v != "ok"]
+    if worst or "--selftest" in sys.argv:
+        for case, verdict in sorted(selftest().items()):
+            print(f"  {case:<16} {verdict}")
+        if worst:
+            print("  the seat's OWN guards are not firing; its green means nothing")
+            return 1
+        return 0
+
+    found = sites()
+    on = {a for a in found if os.environ.get(a)}
+    bad = _judge(found, ARMS, on, PAIRS)
 
     print(f"arms: {len(found)} switches at {sum(len(v) for v in found.values())} read sites; "
           f"{len(on)} ON in this environment")

@@ -329,12 +329,19 @@ def selftest() -> dict[str, str]:
 
 
 def main(argv: list[str]) -> int:
-    if "--selftest" in argv:
-        bad = 0
+    # **THE FIXTURES RUN ON EVERY INVOCATION, NOT BEHIND A FLAG.** `check.py` calls this seat
+    # with no arguments, so the five defect cases were exercised only when someone remembered
+    # the flag -- *a suite nothing runs is a suite that rots*, which is this file's own reason
+    # for existing. They are pure data and cost nothing.
+    broken = [r for r, v in selftest().items() if v != "ok"]
+    if broken or "--selftest" in argv:
         for rid, verdict in sorted(selftest().items()):
             print(f"  {rid:<18} {verdict}")
-            bad += verdict != "ok"
-        return 1 if bad else 0
+        if broken:
+            print("  the seat's OWN guards are not firing; its green means nothing")
+            return 1
+        if "--selftest" in argv:
+            return 0
 
     paths = runs()
     new = current(paths)
