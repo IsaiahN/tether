@@ -25,9 +25,11 @@ the tree.
 from __future__ import annotations
 
 import collections
+import dataclasses
 import logging
 import sys
 from pathlib import Path
+from typing import Any
 
 from arcengine import GameAction
 
@@ -62,7 +64,8 @@ def _mode():
 
 def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
          store: str | None = None, arc=None, stop_on_end: bool = False,
-         system0: bool = False, led_path: str | None = None, on_frame=None) -> dict:
+         system0: bool = False, led_path: str | None = None, on_frame=None,
+         cfg: Any = None) -> dict:
     """Download one game, run the loop on it, and report where the chain stops.
 
     **`library` IS §17.8's SWITCH, and the default is cold.** *State it, and make it switchable
@@ -104,8 +107,26 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
                    palette=palette, name=game)
     env.on_frame = on_frame     # seat-side tap for §13 step 4's verifier; None on a normal run
     led = ledger.Ledger(led_path)  # a path streams every row to jsonl as it is recorded
-    ag = tether.Agent(env, gamma.Gamma(env.atoms(), game=game),
-                      tether.Config(system0=system0), led)
+    # **THE CONFIG IS THE CALLER'S TO SUPPLY, AND THE REASON IS `max_depth`.** This hardcoded
+    # one, so the only way to change a search bound on the ARC path was to edit the DEFAULT --
+    # which both harnesses share. And `Config.max_depth`'s own anchor says what that costs:
+    # *`world._ladder` is four atoms deep, PAST this depth, so it is unreachable in atoms and
+    # reachable in units once `swing` settles. Depth 3 is what makes the chunking claim
+    # falsifiable; at 4 the falsifier would be reachable without chunking.*
+    #
+    # **SO THE CONSTANT IS DOING TWO JOBS**: a compute bound on the ground, and the calibration
+    # of the TOY WORLD's falsifier. `F341` flagged it MIXED without this second one. Raising it
+    # to reach `F347`'s fold would have silently killed the `demo` seat's claim -- **a seat that
+    # keeps passing while the thing it proves has become unprovable.**
+    #
+    # This changes nothing by default and lets the two harnesses differ without touching the
+    # shared default. `system0` is still honoured when a config is passed, rather than being
+    # dropped by whichever argument arrived second.
+    if cfg is None:
+        cfg = tether.Config(system0=system0)
+    elif system0:
+        cfg = dataclasses.replace(cfg, system0=True)
+    ag = tether.Agent(env, gamma.Gamma(env.atoms(), game=game), cfg, led)
     loaded = ag.gamma.load(library) if library and Path(library).exists() else None
     # Q25 needs the set BEFORE play and there is exactly one moment it exists
     inherited = ({summary._chain(t) for t in ag.gamma.library.values()} if loaded else set())

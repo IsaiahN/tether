@@ -47250,6 +47250,32 @@ it: search depth `d` costs `λᵈ`, so **the COST is substrate and HOW DEEP TO L
 judgement.** It is not moved here. **The fork Isaiah holds is therefore two switches, not one**,
 and that is stated now rather than discovered from a null.
 
+### AND RAISING IT WOULD HAVE KILLED A FALSIFIER, WHICH I DID NOT KNOW WHEN I POSTED THE FORK
+
+**`Config.max_depth`'s own anchor**, read only when I went to check HOW the fork would be
+taken: *`world._ladder` is four atoms deep -- `dbl . neg . inc . wrap` -- PAST this depth, so it
+is unreachable in atoms and reachable in units once `swing` settles. **Depth 3 is what makes the
+chunking claim falsifiable; at 4 the falsifier would be reachable without chunking.***
+
+> **SO THE CONSTANT IS DOING TWO JOBS: a compute bound on the ground, and THE CALIBRATION OF THE
+> TOY WORLD'S FALSIFIER.** `F341` flagged `max_depth` as MIXED and named the first job and a
+> belief about where answers live. **It did not know about the second.**
+
+**AND `arc_holdout.play` HARDCODED ITS `Config`**, so the only way to raise depth on the ARC path
+was to edit the shared DEFAULT -- **which is the toy world's too.** Taking the fork as I first
+posted it would have left `demo` green while the claim it proves had become unprovable: **a seat
+that keeps passing after the thing it tests stopped being testable.**
+
+**THE REVERSIBLE HALF IS BUILT: `play` now accepts a `cfg`.** Nothing changes by default, the
+toy default stays 3, and the two harnesses can differ without touching a shared constant.
+Verified both ways. **So the fold's second switch is `play(..., cfg=Config(max_depth=4))` and
+NOT an edit to the default** -- which is a different instruction from the one this row carried
+an hour ago.
+
+**FOUND BY ASKING HOW THE FORK WOULD ACTUALLY BE TAKEN**, rather than by checking the mechanism
+again. *Read the docstring of every function the design depends on* -- I had read `max_depth`'s
+VALUE and not its ANCHOR, and the anchor is where the second job was written down.
+
 
 ## F348 -- A TREE IS EXCLUDED BY A BOUND COMPUTED ON A DIFFERENT TERM. **`_trees` is called ZERO times**, so the only route to arity-2 is dead behind `_cannot_pay` -- and arity is where the wall was measured
 
