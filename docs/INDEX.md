@@ -44771,6 +44771,14 @@ ZERO TIMES.** So a reader following this entry's own citation would have "repair
 function and left the live one untouched. **`B17i` exactly: the instrument was right, the world
 was right, and the CODE had moved underneath it.**
 
+> **AND THE REFRAME THE REVIEWER ASKED FOR AT 11:36, BECAUSE IT DECIDES HOW MUCH OF THIS ENTRY
+> SURVIVES: THE FINDING WAS WRONG ABOUT THE CODE, NOT ABOUT THE BEHAVIOUR.** *The door is open
+> and nothing walks through it* **is still true** -- `F351` measures `REACHED pays` at **0 on
+> four boards**, so nothing walks through on any of them. **Only the CITATION is wrong**, and a
+> reader meeting the correction above must not take it as a retraction of the finding. **The
+> behavioural claim is confirmed by a later, independent instrument; the line number is the only
+> casualty.**
+
 ---
 
 ## F303 (INDEX series) — ITEM 6's KEY, MEASURED BEFORE IT WAS BUILT: **A GLOBAL FRAME DELTA IS SATURATED AT EVERY GRANULARITY THAT CROSSES.** The key must be SCOPED TO THE OBJECT, and scoped it is ~3%
@@ -47774,10 +47782,44 @@ loaded. **Therefore the bound term can only be a pre-existing ATOM fitted by `_l
 a composed objective.** That follows from two measured columns and is not itself measured;
 **`o20.w`'s term name was not captured and the next run should capture it.**
 
+### SEVEN BOARDS, AND THE INFERENCE IS NOW A MEASUREMENT: **EVERY `OBJ` BINDING IS THE SAME ATOM, `none`**
+
+    board   OBJ stream          ENUM OBJ   PRICED       pays   BOUND
+    vc33    1 call  EXTENT        558       39,478        0    0
+    ls20    3 calls EXTENT,SHAPE  729      103,056        0    **o20.w <- `none` [ATOM]**
+    ar25    4 calls DELTA,POSN    487      137,163        0    **o13.h <- `none` [ATOM]**
+    sk48    **NEVER REQUESTED**     0            0        0    0
+    g50t    **NEVER REQUESTED**     0            0        0    0
+    ka59    **NEVER REQUESTED**     0            0        0    0
+    su15    **NOTHING REQUESTED AT ALL -- not even ('val','val')**  0    0
+
+**THE PREVIOUS RUN INFERRED *the bound term can only be a pre-existing atom*. IT IS -- AND THE
+MEASUREMENT ADDS WHAT THE INFERENCE COULD NOT: WHICH ONE.** Both bindings, on two unrelated
+boards, are the **`none`** atom.
+
+> **NOT ONE COMPOSED OBJECTIVE BINDS ON ANY BOARD.** The only want the agent ever holds is a
+> single `OBJ`-typed ATOM, and it is the same atom twice. **That is the sharpest available
+> statement of *the agent does not form its own goals*: it does not FAIL TO COMPOSE one, it
+> NEVER HOLDS one.**
+
+**AND THE INFERENCE BEING RIGHT IS NOT THE POINT.** It was right and was still worth replacing:
+*a run outranks a read*, and the run carried the atom's NAME -- which is the half that makes the
+finding say anything at all.
+
+### THE SEARCH ITSELF HAS A GRADIENT, AND IT IS NOT THE BOUND
+
+    su15                     0 candidates, 0 stream requests -- the search never starts
+    sk48 - g50t - ka59       7 candidates from ONE request
+    vc33 - ar25 - ls20       596 - 618 - 829
+
+**Three regimes across seven boards, and only the third is one where a bound could matter.**
+`su15` does not reach the search at all -- a stronger statement than the seven-candidate boards,
+and a different one again from refusal. **Named, not diagnosed.**
+
 ### THE ONE COLUMN THAT IS THE SAME EVERYWHERE
 
-> **`REACHED pays` IS `0` ON ALL FOUR BOARDS, FOR EVERY KIND OF CANDIDATE.** 0 of 42,474 ·
-> 0 of 127,584 · 0 of 0 · 0 of 0.
+> **`REACHED pays` IS `0` ON ALL SEVEN BOARDS, FOR EVERY KIND OF CANDIDATE.** 0 of 42,474 ·
+> 0 of 127,584 · 0 of 175,201 -- and 0 of 0 on the four that offer nothing.
 
 **On `sk48` and `g50t` that zero is UNINTERPRETABLE and says so: the denominator is also 0**, so
 nothing was ever offered and the bound refused nothing. **Only `vc33` and `ls20` carry a
