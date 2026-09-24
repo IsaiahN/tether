@@ -47937,6 +47937,38 @@ recipes that actually CONSUME them:**
 TOPOLOGICAL** -- and `Deform`, consumed by `Topological transform`. **Those are genuinely
 spatial.**
 
+**AND THE WITHDRAWAL ITSELF OVER-CORRECTED -- ISAIAH, 2026-09-24: *`Mirror | Refl + Surface` is
+LITERALLY one of the public games.*** **I used the wrong test twice: first the NAME alone, then
+the recipe's FLAVOUR DOMAIN.** *Optics* and *hyperbolic geometry* are the prose around the
+mechanic, not the mechanic.
+
+> **THE TEST IS HIS: DOES THE INGREDIENT NAME A MECHANIC THE AGENT CAN MEET ON A GRID?**
+> Reflection across an axis, tiling a region, wraparound at an edge -- **these are ARC
+> transformations whatever the sentence around them is about.**
+
+**AND THE CORPUS SAYS SO ITSELF, IN TWO ROWS I HAD READ AND NOT HEARD:**
+
+    `Project | Proj + Line + Infinity | ... **In a puzzle**, throwing an object off the edge
+              makes it reappear on the opposite side (projective teleport).`
+    `Projective completion | Proj + Line + Parallel | ... **In a puzzle**, shooting a laser
+              into the distance makes it return from the opposite direction.`
+
+**RE-JUDGED ON THE RIGHT TEST, roughly SIXTEEN of the twenty are grid mechanics** -- `Surface`
+(the axis reflected across) - `Tile` - `Line` (wraparound) - `Region` - `Cavity` (contained +
+aperture, which is pegs-in-holes) - `Deform` (*morph one shape into another without cutting*) -
+`Proximity` (*not X/Y coordinates, but near/far, above/below, reachable*) - `Enclosure` -
+`Object` - `Inside`/`Outside` - `Split`/`Join` - `Disappear` - `Repetition` - `Obstacle` -
+`Indent` - `Curve`.
+
+**FOUR ARE NOT, AND ONE OF THOSE IS A THIRD `A6i`:** `Depth` (the abyss, expertise) - `Face` (a
+human face) - `Ordering` (preference ranking) - and **`Coord`, which in its only use
+(`Parallel aut | Auto + Auto + Sync + Coord`) means COORDINATION AND NOT COORDINATE.** I had
+listed it as a grid primitive on the strength of the abbreviation.
+
+> **SO 17:01 WAS CLOSER TO RIGHT THAN THE WITHDRAWAL WAS, AND BOTH WERE ARRIVED AT BY A BAD
+> METHOD.** The first read names; the second read the domain of the prose. **Only the third read
+> the mechanic, and only because Isaiah supplied the test.**
+
 **AND THE ERROR IS THE ONE THIS RECORD FILES MOST OFTEN, COMMITTED WHILE FIXING IT:** *a grep's
 count is not evidence until you have read what it matched.* **I read a list of names, recognised
 them as the agent's job, and never opened the rows.** The `A6i` trigger -- *where a headline is
