@@ -4428,6 +4428,19 @@ class Agent:
             if _d:
                 k = f"arrived_at_depth_{min(_d, 9)}"
                 self.gamma.book[k] = self.gamma.book.get(k, 0) + 1
+                # **DID INVENTION EVER PAY?** Isaiah names INVENT as the agent's own call, and
+                # the reviewer noted we built the path and never made WHEN a decision. Reading
+                # the site: `_invent`'s only guard is *nothing observed to invent from*, which
+                # is a CAPABILITY check -- **given a delta it invents unconditionally, so no
+                # discretion exists for anyone to exercise.**
+                #
+                # **THIS IS THE EVIDENCE A DECISION WOULD NEED, NOT THE DECISION.** An invented
+                # atom that never reaches a settled term cost actions and bought nothing; one
+                # that does is the only proof invention pays at all. `F307` recorded that
+                # invention could not transfer; nothing recorded whether it ARRIVES.
+                if any(a.name in self.gamma.invented for a in term.atoms):
+                    self.gamma.book["arrived_using_an_invented_atom"] = (
+                        self.gamma.book.get("arrived_using_an_invented_atom", 0) + 1)
             # WHAT WAS ASKED AND WHAT CAME BACK. The question is `does this term
             # predict a transition it was never fitted to`, and `r.mass == 0.0` on a
             # cycle later than the one it was minted on IS the answer. Both facts were
