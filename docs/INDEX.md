@@ -47875,7 +47875,7 @@ ran to exhaustion and zero for the rest.
 > single-column instrument here would have published the wrong answer with the right shape.**
 
 
-## F352 -- THE LIBRARY IS A RECIPE BOOK OVER INGREDIENTS THAT DO NOT EXIST. **62% of the closure's 2,175 recipes cannot be fully expanded**, and 119 of them name NOTHING that is defined anywhere
+## F352 -- THE LIBRARY IS A RECIPE BOOK OVER INGREDIENTS THAT DO NOT EXIST. **49% of the closure's 2,175 recipes cannot be fully expanded**, and 35 of them name NOTHING that is defined anywhere -- CORRECTED from 62% and 119, see below
 
 **Asked by Isaiah 2026-09-24 as the generalisation of one instance.** The modes read found
 `Wayfind = Dead reckon + Reorient` with **neither part defined anywhere in the closure**. He asked
@@ -47888,9 +47888,28 @@ atoms* -- which is `I25`'s law (*repaired the instance, left the class*) applied
     recipes in `ATOMS.md`                 2,175   (with at least one real ingredient)
     ingredient slots                      6,495
 
-    **834   38%   FULLY EXPANDABLE**
-    **1,222 56%   SOME parts missing**
-    **119    5%   ALL parts missing -- a recipe over nothing at all**
+    834   38%   FULLY EXPANDABLE          <- FIRST PASS, SUPERSEDED
+    1,222 56%   SOME parts missing        <- FIRST PASS, SUPERSEDED
+    119    5%   ALL parts missing         <- FIRST PASS, SUPERSEDED
+
+**AND THESE THREE WERE NEVER RECOMPUTED WHEN THE GAP SET WAS -- ISAIAH CAUGHT IT, 2026-09-24.**
+The ingredient count was corrected three times and **this split kept standing on the FIRST
+pass**, so the headline *62% cannot be expanded* rode a denominator that had since moved.
+**Recomputed against the corrected predicate:**
+
+    **1,126  51%   FULLY EXPANDABLE**      (was 834 / 38%)
+    **1,014  46%   SOME parts missing**    (was 1,222 / 56%)
+    **35      1%   ALL parts missing**     (was 119 / 5%)
+    genuine gaps **879** -- the `y`/`ies` fix finally caught `Boundaries` vs `Boundary`
+
+> **SO IT IS 49% NOT EXPANDABLE RATHER THAN 62%, AND *A RECIPE OVER NOTHING AT ALL* IS 35 RATHER
+> THAN 119.** The library is in materially better shape than this entry first reported.
+
+**AND THE MISS IS ITS OWN LESSON: I CORRECTED THE INPUT THREE TIMES AND NEVER RE-RAN WHAT
+DEPENDED ON IT.** Every correction was filed against the ingredient LIST; the recipe SPLIT is a
+SECOND reading off the same predicate, and nothing pointed from one to the other. **`I25` with
+the class being *everything computed from the number I just fixed*** -- and the principal found
+it by remembering a figure I had stopped looking at.
 
     UNDEFINED INGREDIENTS   **1,253 distinct - 1,905 uses - 29% of all slots**
                             969 of the 1,253 are used exactly ONCE
