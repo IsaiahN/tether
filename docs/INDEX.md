@@ -48212,3 +48212,51 @@ things that make a claim harder to doubt, none of which is evidence.**
 **I was one commit from recording it as *bigger than the bargain* on a principal's reading.**
 **Recording the refusal instead, because an entry that says *this was checked and is not the
 cause* is worth more than the finding would have been.**
+
+
+## F356 -- **THE SPECTATOR TEST IS ALREADY BUILT, NUMBER-FREE, AND ALREADY REACHED.** It returns EMPTY because the TOY WORLD CANNOT EXHIBIT THE PATTERN -- and that retracts my *this needs your judgement*
+
+**At 21:17 I told Isaiah that refusing a spectator *needs a test on whether the agent's action
+bears on the slot -- a different mechanism, and one I have not built, because what counts as
+bearing on is a judgement and it is yours.*** **It is not a judgement and it was built before I
+arrived.**
+
+### `instruments.Agency.contingent()`, AND ITS DOCSTRING ANSWERS ISAIAH'S OWN CONDITION
+
+> ***A PREDICATE, NOT A THRESHOLD. A slot is action-contingent when SOME action has ALWAYS moved
+> it and SOME OTHER action has NEVER moved it -- an existence claim over what was observed, with
+> no rate, no cutoff and no window to tune. Weaker than a correlation and IT CANNOT BE GAMED BY
+> A NUMBER NOBODY CHOSE.***
+
+**That is *precondition, not threshold*, written for this exact purpose before the ruling that
+asked for it.** `tether.py` imports the module and the agent holds the instrument at `.agency`.
+
+### AND IT IS FED, AND IT FINDS NOTHING
+
+    steps noted      **30**        any_change  **27**
+    CONTINGENT slots **[]**        mode()      `actuator`
+    harness truth (hidden)         action-bearing = **['driven']**
+
+**THE CAUSE IS THE HARNESS, NOT THE INSTRUMENT.** `world.DELTA = {"A": 1, "B": 2, "C": 4}` --
+**every action moves `driven`.** The predicate needs an action that NEVER moves the slot, and
+**no such action exists anywhere in this world**, so the `never` set is empty for every slot and
+the always/never split cannot form.
+
+> **THE DETECTOR IS CORRECT. THE WORLD CANNOT SHOW IT.** A panel precondition failure, and **the
+> second today** -- the objective stream was the first, unaskable because the toy declared no
+> `slot_types`.
+
+### WHAT THIS DOES TO `F354`
+
+**The spectator problem does NOT need a ruling from Isaiah.** It needs **a harness with an action
+that leaves a slot alone** -- which every real board has, because most actions touch almost
+nothing. **`contingent()` would light there and the same code would refuse the spectator.**
+
+> **SO THE GRID FIXTURE AT 6.5 IS NOT ONLY THE LAST GATE BEFORE GAMES. IT IS THE FIRST PLACE
+> TWO ALREADY-BUILT MECHANISMS CAN BE SEEN AT ALL.** That is an argument for its priority that
+> did not exist when it was scheduled.
+
+**AND THE LESSON IS THE DAY'S, ONCE MORE: I ANNOUNCED A JUDGEMENT WAS NEEDED WITHOUT GREPPING FOR
+THE MECHANISM.** *Assume it is already specified, and go look* -- fired against `docs/` this
+morning, against `conform/` at 20:37, and **not against the module `tether.py` imports on line
+25.**
