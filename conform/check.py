@@ -69,6 +69,14 @@ STAGES = (
     # THE CONDITION COMPILER's own grammar suite. Five texts that MUST NOT parse, including a
     # real line of corpus prose and a bare reading -- a grammar that accepts `holes(o1)` as a
     # condition has invented the comparison nobody wrote.
+    # THE ARMS SEAT. Eighteen capability switches, every one default OFF, and nothing in the
+    # repository sets one -- so the agent that runs is the most starved variant of itself and
+    # nobody chose that. Each site's reason is good; no place held the SUM, which is the
+    # ground-focus seat's own origin one level up. It flips nothing: it refuses an arm entering
+    # silently, a stale row, and half of a pair whose own site declares they belong together.
+    ("arms", [str(PY), str(HERE / "arms.py")],
+     "an arm entered without a row, a row went stale, or half a declared pair is on",
+     HERE / "arms.py"),
     ("condition", [str(PY), "condition.py"],
      "the condition grammar accepted something it must refuse, or three-valued logic broke",
      ROOT / "condition.py"),
