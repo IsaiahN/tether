@@ -47903,7 +47903,26 @@ atoms* -- which is `I25`'s law (*repaired the instance, left the class*) applied
                `A(x)` form written WITHOUT parens, so the normaliser missed it. NOT a gap**
      162  12%  PROSE LEAKAGE -- lowercase fragments from malformed recipe cells
 
-> **SO THE FINDING IS 919, NOT 1,253**, and the 27% difference is my parser rather than the
+**AND 919 WAS STILL NOT IT. A THIRD PASS, RUN BEFORE AUTHORING ANYTHING AGAINST THE LIST:**
+
+    **43 more are NEAR-MATCHES OF A DEFINED NAME** -- `High_Pressure` vs `High pressure`,
+    `Food_Chain` vs `Food chain`, `Trade-off` vs `Trade off`, `inputs` vs `Input`, and
+    **`Symmetry`, which the closure defines as `Symmetry **[dup]`** -- ITS OWN duplicate
+    marker, which my normaliser did not strip. **The corpus is inconsistent between
+    `Underscore_Style` and `space style`, and that is a NAMING defect, not a missing atom.**
+
+> **SO THE HONEST FIGURE IS 882.** 1,253 -> 919 -> 882, **three passes and three corrections,
+> every one found by READING the matches rather than by counting them.** The class of error was
+> different each time -- table SHAPE, then POPULATION, then NAMING VARIANTS -- which is why no
+> single fix caught them all.
+
+**THE THIRD PASS WAS RUN FOR A SPECIFIC REASON AND IT PAID IMMEDIATELY:** Isaiah ruled the
+proctor may ADD ingredients that recipes already name. **Authoring a definition for a thing the
+closure already defines is the one unrecoverable mistake available here**, and `Symmetry` was on
+my own shortlist of twenty grid primitives to write. **The check that caught it cost one pass and
+would have cost a corpus entry.**
+
+> **SO THE FINDING IS 882, NOT 1,253**, and the 27% difference is my parser rather than the
 > corpus. **Recorded because a list handed over with known noise in it is the *count is not
 > evidence* failure at scale** -- and the classification is checkable, not a judgement: base-word
 > defined, capitalisation, and OPERATORS.md's own qualifier grammar.
