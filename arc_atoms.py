@@ -370,6 +370,18 @@ def _as_shape(v: Any, c: Ctx) -> Any:
     `holes(shape)`, Isaiah's preschool squares-and-pegs. The one left out of the fix was the one
     the fix was described by. One producer now, so a future atom cannot be added to the wrong
     closure and silently miss it.
+
+    **THE `3,140 calls, 0 resolved` FIGURE IS PRE-REPAIR AND NOTHING ABOVE SAYS SO -- ANNOTATED
+    2026-09-24.** It is the EVIDENCE THAT MOTIVATED the module-level move, not a reading of the
+    moved code, and a reader meeting it in this docstring takes it for the current state.
+    **The repair IS wired -- `_holes` calls `_as_shape` at its own site -- and its EFFECT is
+    UNMEASURED**, because re-reading it is a board measurement. `holes` resolving is the open
+    question here; `holes` reaching the decoder is settled.
+
+    **Same shape as a ledger row read as a total: an instrument reading from BEFORE the change,
+    carrying no marker that the change came after it.** A boundary that names the board, the
+    cycles and the arm is still incomplete if it does not name WHICH SIDE OF THE REPAIR it sits
+    on.
     """
     if isinstance(v, frozenset):
         return v
