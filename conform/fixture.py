@@ -25,6 +25,29 @@ everything else: Isaiah, *"B can be done as a test before testing against real A
 but it's only before the ARC game testing in priority."* **It is the last gate between that
 defect and real games, and it is recorded here so it cannot quietly die of being remembered.**
 
+**AND EVERY REACHED STAGE HAS BEEN SHOWN ABLE TO GO RED -- 2026-09-24, because otherwise this
+seat would be the defect it was built in response to.** Isaiah that morning, of the focus seat:
+***a green light that cannot turn red tells you nothing about the night it is green on.***
+Breaking each mechanism and re-probing:
+
+    PERCEIVE   `observe()` -> {}                          **RED** (and GOAL/DECOMPOSE/CORRECT
+                                                          fell with it -- the chain is real)
+    GOAL       the slot un-published                      **RED**
+    DECOMPOSE  `objective_step` -> NOT_RESOLVED           **RED**
+    EXPRESS    `speak.sentences` -> []                    **RED**
+    CORRECT    `Agent.settle` -> no-op                    **RED**
+
+**NOT INSTALLED AS A SELFTEST, AND THE REASON IS COST, STATED RATHER THAN OMITTED.** `arms` runs
+its selftest on every invocation because it is pure; these are five extra agent runs, **~48s
+added to every commit.** So it is a MEASUREMENT with a date and a method rather than a guard --
+**re-run it whenever a stage's probe changes**, which is the only time it can rot.
+
+> **AND `ag.run(8)` IS A CALIBRATION CONSTANT, NOT A ROUND NUMBER.** Measured: **CORRECT first
+> becomes observable at SIX cycles** -- at 2, 3, 4 and 5 it reads DEAD because settling has no
+> history yet. **Eight is the floor plus two.** Shorten this to speed the seat up and the
+> fixture goes quietly blind to its last stage, **and the false DEAD would read as an agent
+> regression.** `F341`'s third category exactly: a constant that makes a claim testable.
+
 **This seat is MECHANISM EVIDENCE ONLY and must never be reported as `M2` done.**
 `M2_STANDARD` clause 7 exists precisely to stop mechanism being reported as capability --
 *report against the DEFINITION, forms and pursues a bounded multi-step behaviour, not against
