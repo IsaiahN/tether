@@ -329,6 +329,25 @@ _SAT = "satisfied:"
 #
 # DECLARED HERE RATHER THAN IN `gamma` BECAUSE THE KEYS ARE THE AGENT'S, not the library's --
 # `Gamma` owns the STORE so it persists with the terms, and this owns what goes in it.
+def _book_add(book: dict, key: str, n: int = 1) -> None:
+    """Increment a book, and REFUSE a key `BOOKS` does not declare.
+
+    **A GREP CANNOT GUARD A CONSTRUCTED KEY, AND TWO SITES BUILD ONE.** The declaration check
+    scans for a quoted key; `arrived_at_depth_{d}` and `plan_gate_{k}` are assembled at
+    runtime, so they were invisible to it -- **and all nine depth buckets were undeclared,
+    therefore uninitialised, therefore reading ABSENT at zero.** In the book built to inform
+    the `max_depth` fork, where the whole reading is the histogram's SHAPE.
+
+    **SO THE CHECK MOVES FROM THE GREP TO THE WRITE SITE**, where a constructed key cannot
+    evade it. `routine.advance` raising on a shape it cannot walk is the precedent:
+    a key nobody declared is a programming error, and it surfaces the first time the line runs
+    rather than as a quantity that silently never appears.
+    """
+    if key not in BOOKS:
+        raise KeyError(f"undeclared book key: {key!r} -- add it to tether.BOOKS")
+    book[key] = book.get(key, 0) + n
+
+
 def _contains(whole: tuple, part: tuple) -> bool:
     """Is `part` a CONTIGUOUS subsequence of `whole`? §14.7's *appears as a constituent*.
 
@@ -354,6 +373,11 @@ BOOKS: tuple[str, ...] = (
     "bargain_does_not_pay",             # `pays` -- the only one of the two that is a judgement
     "bargain_paid",                     # reached the contest
     "chunk_reuse",                      # §14.7: a settled term inside a later mint
+    # THE ARRIVAL-DEPTH HISTOGRAM, ALL NINE BUCKETS. Declared because **a histogram with a
+    # missing bucket is not a histogram** -- *no term arrived at depth 3* and *depth 3 was
+    # never recorded* are different readings, and this book exists to be read as a SHAPE.
+    # It was written through a CONSTRUCTED key, so the grep-based guard could not see it.
+    *(f"arrived_at_depth_{_i}" for _i in range(1, 10)),
 )
 
 # why not the neighbouring bin. A bin without its discriminator is a label, not a diagnosis.
@@ -3185,8 +3209,7 @@ class Agent:
         # reads it to decide anything, and `MIN_REPEAT` is not moved here.**
         for k in ("too_short", "flat", "rose", "qualified"):
             if tally[k]:
-                self.gamma.book[f"plan_gate_{k}"] = (
-                    self.gamma.book.get(f"plan_gate_{k}", 0) + tally[k])
+                _book_add(self.gamma.book, f"plan_gate_{k}", tally[k])
         if not self._res:
             # **COUNTED SEPARATELY BECAUSE IT IS THE CASE THE OTHER FOUR CANNOT REPORT.** An
             # empty population writes no tally at all, so the book would be SILENT about the
@@ -4788,8 +4811,7 @@ class Agent:
             # no return; if arrivals crowd the ceiling, the ceiling is what is cutting them off.
             _d = len(term) if (term := self.gamma.library.get(name)) is not None else 0
             if _d:
-                k = f"arrived_at_depth_{min(_d, 9)}"
-                self.gamma.book[k] = self.gamma.book.get(k, 0) + 1
+                _book_add(self.gamma.book, f"arrived_at_depth_{min(_d, 9)}")
                 # **DID INVENTION EVER PAY?** Isaiah names INVENT as the agent's own call, and
                 # the reviewer noted we built the path and never made WHEN a decision. Reading
                 # the site: `_invent`'s only guard is *nothing observed to invent from*, which

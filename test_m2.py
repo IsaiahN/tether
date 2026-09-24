@@ -369,8 +369,12 @@ def check_every_book_key_is_declared():
     """
     import re
     src = (pathlib.Path(tether.__file__)).read_text(encoding="utf-8")
+    # BOTH WRITE PATHS. Direct subscripting, and `_book_add`, which exists because a grep
+    # cannot guard a CONSTRUCTED key -- the depth buckets evaded this check entirely until the
+    # write site started validating them itself.
     lit = set(re.findall(r'book\[\"([a-z_]+)\"\]', src))
     lit |= set(re.findall(r'book\.get\(\"([a-z_]+)\"', src))
+    lit |= set(re.findall(r'_book_add\([^,]+,\s*\"([a-z_]+)\"', src))
     missing = sorted(lit - set(tether.BOOKS))
     assert not missing, f"book keys written but not declared in BOOKS: {missing}"
 
@@ -378,9 +382,22 @@ def check_every_book_key_is_declared():
     # it would report a zero forever for a quantity nothing measures, which is worse than
     # silence, because it looks like evidence.
     stems = set(re.findall(r'book\[f\"([a-z_]+)\{', src))
+    stems |= set(re.findall(r'_book_add\([^,]+,\s*f\"([a-z_]+)\{', src))
     unwritten = [k for k in tether.BOOKS
                  if k not in lit and not any(k.startswith(x) for x in stems)]
     assert not unwritten, f"BOOKS declares keys nothing writes: {unwritten}"
+
+    # AND THE RUNTIME HALF, BECAUSE a CONSTRUCTED key cannot be caught by a grep. The static
+    # check above compares LITERALS against BOOKS; `arrived_at_depth_{d}` and `plan_gate_{k}`
+    # are assembled at runtime, so removing a declared bucket is INVISIBLE to it -- which is how
+    # all nine depth buckets stayed undeclared and uninitialised. `_book_add` validates where
+    # the key is built, and that is the only place a constructed key can be checked at all.
+    tether._book_add({}, "arrived_at_depth_3")          # declared: accepted
+    try:
+        tether._book_add({}, "arrived_at_depth_99")
+        raise AssertionError("an undeclared book key was accepted at the write site")
+    except KeyError:
+        pass
 
     # AND A FRESH AGENT HAS EVERY ONE AT ZERO, which is the property the class needed.
     ag = _agent(cycles=1)
