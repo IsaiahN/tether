@@ -436,6 +436,9 @@ class Gamma:
         # Written by `tether.Agent` from its own books; never set here, and never defaulted to
         # a number we picked at any point after construction.
         self.halflife: float | None = None
+        # THE EVIDENCE BEHIND IT, carried across attempts by `save`/`load`. The agent appends;
+        # the seat persists; the value is re-derived rather than restored.
+        self.vindication: list[int] = []
         # 3d / Â§17.7. Set by the agent to a `(unit) -> tuple` ranking. None keeps the
         # registry order this had, so installing a rank is an observable change and not
         # installing one changes nothing.
@@ -638,8 +641,19 @@ class Gamma:
         # OBSERVATION the agent recorded and the abstention that licensed it** -- data, not a
         # function -- and `load` RE-INVENTS from it, through the same `invent` gate, so the
         # licence is re-checked on the way in rather than trusted from the file.
+        # **THE AGENT'S OWN EVIDENCE TRAVELS WITH ITS TERMS -- Isaiah's *metacog across solves
+        # over time*, which he named as a level 4-5 requirement and which did not exist.** The
+        # library persisted and THE SELF-KNOWLEDGE DID NOT, so a dial the agent earns was reset
+        # to unearned at the start of every attempt. Against a clock of 128-309 actions that is
+        # not a slow start, it is a value THAT CAN NEVER BE EARNED.
+        #
+        # **THE EVIDENCE IS WRITTEN, NOT THE CONCLUSION.** `vindication` is the raw list of
+        # cycles-to-vindication; the halflife is re-derived from it on the far side. Carrying
+        # the derived number instead would carry a conclusion without its basis -- and a value
+        # whose provenance is gone cannot be revised by later evidence, only overwritten.
         blob = {"terms": out,
-                "invented": {n: rec for n, rec in self.invented.items() if rec.get("delta")}}
+                "invented": {n: rec for n, rec in self.invented.items() if rec.get("delta")},
+                "vindication": list(self.vindication)}
         pathlib.Path(path).write_text(json.dumps(blob, indent=1), encoding="utf-8")
         return {"written": len(out), "invented": len(blob["invented"]), "path": path}
 
@@ -666,6 +680,13 @@ class Gamma:
         # BACKWARD-COMPATIBLE BY SHAPE, not by a version flag: files written before route 2 are
         # a bare list. A flag would be a second thing to keep in step with the format.
         rows = blob if isinstance(blob, list) else blob.get("terms", [])
+        # **THE EVIDENCE COMES BACK AND THE VALUE IS RE-DERIVED, never restored.** An older file
+        # with no `vindication` key loads to an empty list and the agent starts unearned -- the
+        # honest reading of *this file predates the books*, rather than a zero that would look
+        # like measured evidence of nothing.
+        self.vindication = list(blob.get("vindication") or []) if isinstance(blob, dict) else []
+        if self.vindication:
+            self.halflife = sum(self.vindication) / len(self.vindication)
         took, refused = [], []
         # RE-INVENT FIRST, so a term naming an invented atom can resolve below. Each goes back
         # through `invent`, so **the licence is re-checked on the way in rather than trusted

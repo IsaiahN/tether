@@ -676,7 +676,7 @@ class Agent:
         # **THE DIAL'S EVIDENCE.** Cycles between a demotion and the frame that would have
         # vindicated it. Already in CYCLES, which is what a halflife is measured in -- so the
         # agent reads its own observation DIRECTLY and no mapping is chosen by us.
-        self._vindication: list[int] = []
+
         self._settled_at: dict[str, int] = {}
         self._expect: tuple | None = None
         self._expect_step = 0
@@ -1108,7 +1108,7 @@ class Agent:
                 # own demoted term took to come good -- already in CYCLES, which is what a
                 # halflife is measured in. **So the dial reads the observation directly and no
                 # mapping is chosen by us.** A rate would have needed a function; this does not.
-                self._vindication.append(self.cycle - since)
+                self.gamma.vindication.append(self.cycle - since)
                 self._book["demoted_would_have_been_right"] = (
                     self._book.get("demoted_would_have_been_right", 0) + 1)
                 self._demoted_watch.pop(name, None)
@@ -1125,8 +1125,9 @@ class Agent:
         # how long a refutation should keep counting for THIS agent on THIS board. Until it
         # has one, `halflife` stays `None` and `gamma`'s seed applies, MARKED UNEARNED below
         # so an unearned value is never mistaken for a decision.
-        if self._vindication:
-            self.gamma.halflife = sum(self._vindication) / len(self._vindication)
+        if self.gamma.vindication:
+            self.gamma.halflife = (sum(self.gamma.vindication)
+                                   / len(self.gamma.vindication))
         lv = getattr(self.env, "levels", None)
         done, win = lv() if lv else (0, 0)
         self.led.record(self.cycle, "PERCEIVE", "*", "books",
@@ -1155,8 +1156,8 @@ class Agent:
                         settled=len(self.settled), demoted=len(self.demoted),
                         watching=len(self._demoted_watch),
                         halflife=self.gamma.halflife,
-                        halflife_earned=bool(self._vindication),
-                        vindications=len(self._vindication), **self._book)
+                        halflife_earned=bool(self.gamma.vindication),
+                        vindications=len(self.gamma.vindication), **self._book)
 
     def _narrate_vocabulary(self) -> None:
         """ONCE PER RUN: what the corpus CALLS what this agent can already reach.
