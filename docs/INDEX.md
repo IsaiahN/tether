@@ -47108,6 +47108,36 @@ question has ever had.
 > HOUR.** The row was true when written and false by the end of the session that wrote it.
 > **That is the argument for the run over the table**, and the table now says so about itself.
 
+### ONE LEVEL FINER: FUNCTIONS, NOT MODULES -- and the ACT space reads ZERO
+
+A module is loaded if ANYTHING in it is touched, so `24 of 54` is the coarsest true answer.
+Wrapping every module-level public function of the 24 and stepping the agent again:
+
+    66 wrapped · 44 CALLED · 22 NEVER CALLED, in three cycles
+
+> **ALL SEVEN OF `routine.py`'s PUBLIC FUNCTIONS ARE AT ZERO** -- `advance` · `enumerate_routines`
+> · `length` · `reach` · `render` · `guards` · `actions`. **The ACT space is not merely
+> unreached at the composer; NOTHING IN IT RUNS AT ALL.**
+
+**That is `F343` confirmed by an independent instrument and at a finer grain.** `F343` read the
+gate and inferred the consequence; this reads the consequence directly and never looks at the
+gate. **Two methods, one answer, and neither borrowed the other's evidence.**
+
+`condition`'s six are zero for the same reason one step downstream -- a guard object only exists
+once a routine does. **The rest are honest partial use**: `priors` is reached for
+`contact_first` alone, and `load`/`report` are `arc_check`'s diagnostics.
+
+### AND I NEARLY FILED A CORRECTION AGAINST THIS ROW ON A TRUNCATED GREP
+
+`priors.load` reading zero looked like an unreached module, and a grep for `priors` -- **piped
+through `head -12`** -- showed only `arc_check`. **The twelfth line was not the last: `tether.py`
+carries `from priors import contact_first`.** The row was right and I was one commit from
+"repairing" it.
+
+**`I22`/`I28`'s law, and it cost nothing only because the import spy was run first**: *a grep's
+count is not evidence until you have read what it matched* -- **and a truncated grep is a count
+you have not read.**
+
 
 ## F347 -- THE FOLD IS HALF-SHIPPED: `Term.apply` MAPS ELEMENTWISE AND `enumerate_closure` CANNOT PROPOSE A CHAIN THAT DOES. **0 of 87,244 enumerated chains contain a per-cell atom**, and the arm has never been on to notice
 
