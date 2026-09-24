@@ -3004,7 +3004,7 @@ class Agent:
                 # never-recomputed from correctly-static from live-and-insensitive
                 counts=counts)
 
-    def _goal_choice(self) -> str | None:
+    def _goal_choice(self, why: dict | None = None) -> str | None:
         """M2 ITEM 3, THE SELECTOR. §13.4, quoted whole because the criterion is its wording:
 
         > *hold several goal hypotheses at once, express each as a scalar discrepancy that is
@@ -3025,15 +3025,58 @@ class Agent:
         constant gap is not making progress however long it sits there.
         """
         best: tuple[float, str] | None = None
+        # **WHY IT REFUSED, AND IT IS FOUR FACTS THAT WERE ONE STRING.** `_mint_routine`'s gate 1
+        # reports *no objective is confidently shrinking* for all of: nothing is held, the
+        # series are too SHORT for the bar to have been applied at all, they are FLAT, or they
+        # ROSE. **Only the last two are the bar doing work; the first two are supply**, and the
+        # difference decides whether `MIN_REPEAT` is even the thing in the way.
+        #
+        # This is the `unbound` split of 2026-09-21 -- *stop letting one number mean three
+        # things* -- applied at the gate that turned out to refuse EVERY cycle. It was measured
+        # rather than assumed: six cycles, `enumerate_routines` reached zero times, every exit
+        # here. **The whole ACT space is downstream of this one string.**
+        tally = {"too_short": 0, "flat": 0, "rose": 0, "qualified": 0}
+        longest = 0
         for slot, series in sorted(self._res.items()):
+            longest = max(longest, len(series))
             if len(series) < MIN_REPEAT + 1:
+                tally["too_short"] += 1
                 continue
             window = series[-(MIN_REPEAT + 1):]
             deltas = [b - a for a, b in zip(window, window[1:], strict=False)]
             if all(d <= 0 for d in deltas) and any(d < 0 for d in deltas):
+                tally["qualified"] += 1
                 shrink = -sum(deltas)
                 if best is None or shrink > best[0]:
                     best = (shrink, slot)
+            elif any(d > 0 for d in deltas):
+                tally["rose"] += 1
+            else:
+                tally["flat"] += 1
+        if why is not None:
+            why.update(tally)
+            why["slots"] = len(self._res)
+            # **THE LOAD-BEARING NUMBER.** `longest` against `MIN_REPEAT + 1` says whether the
+            # bar was ever REACHED. A gate that refuses because no series is long enough is not
+            # a bar set too high -- it is nothing to measure, and moving the bar could not help.
+            why["longest"] = longest
+            why["needs"] = MIN_REPEAT + 1
+        # THE BOOK, AND IT IS A RECORD RATHER THAN A DIAL. `F341` sorted `MIN_REPEAT` as THE
+        # AGENT'S and the reviewer left it untouched because *it has no books deep enough yet*.
+        # This is that book: persisted with the others, so *have I ever held a series long
+        # enough for my own bar to matter* survives the attempt in which it is asked. **Nothing
+        # reads it to decide anything, and `MIN_REPEAT` is not moved here.**
+        for k in ("too_short", "flat", "rose", "qualified"):
+            if tally[k]:
+                self.gamma.book[f"plan_gate_{k}"] = (
+                    self.gamma.book.get(f"plan_gate_{k}", 0) + tally[k])
+        if not self._res:
+            # **COUNTED SEPARATELY BECAUSE IT IS THE CASE THE OTHER FOUR CANNOT REPORT.** An
+            # empty population writes no tally at all, so the book would be SILENT about the
+            # one state it most needs to carry: *I have never held a goal hypothesis*. A book
+            # that says nothing when nothing happened cannot be told from a book nobody wrote.
+            self.gamma.book["plan_gate_no_hypothesis"] = (
+                self.gamma.book.get("plan_gate_no_hypothesis", 0) + 1)
         return best[1] if best else None
 
     def _holds(self, state: dict[str, int]):
@@ -3246,12 +3289,27 @@ class Agent:
         # this function and could not tell gate 1 from gate 6, so two later sweeps had to
         # wrap it from outside to find out. Each now says which gate and why, in the shape
         # the four row-writing gates already use.
-        slot = self._goal_choice()
+        gwhy: dict = {}
+        slot = self._goal_choice(why=gwhy)
         if slot is None or slot not in before:
+            # **THE REASON IS DERIVED FROM THE TALLY RATHER THAN ASSERTED, AND THE OLD STRING
+            # WAS A FALSE CAUSAL STORY.** *No objective is confidently shrinking* reads as *I
+            # hold objectives and none is shrinking*. Measured on one board: `slots: 0` -- the
+            # agent holds NONE, so `MIN_REPEAT` filters an empty population and could not be
+            # the thing in the way. **A null carrying a satisfying causal story is harder to
+            # doubt than a bare one**, and this one had been quoted as a finding about the bar.
+            if slot is not None:
+                reason = "the selected objective's slot is not in this frame"
+            elif not gwhy.get("slots"):
+                reason = ("no goal hypothesis is held at all -- the bar filters an empty "
+                          "population, so this is SUPPLY and not the bar")
+            elif gwhy.get("longest", 0) < gwhy.get("needs", 0):
+                reason = ("every series is shorter than the bar needs -- the bar has not been "
+                          "applied yet, so this is not a bar set too high")
+            else:
+                reason = "no objective is confidently shrinking"
             self.led.record(self.cycle, "PLAN", slot or "*", "routine_refused",
-                            reason="no objective is confidently shrinking"
-                                   if slot is None else
-                                   "the selected objective's slot is not in this frame")
+                            reason=reason, **gwhy)
             return
         gap = self._discrepancy(slot, before)
         if not isinstance(gap, int):
