@@ -12,6 +12,19 @@ and all the problems that can be worked out get worked out, then we can start te
 
 > **A FIXTURE PROVES WIRED. IT NEVER PROVES CAPABLE.**
 
+**AND IT PROVES IT ON A NON-GRID WORLD, WHICH IS A SECOND LIMIT AND A SHARPER ONE -- reviewer,
+2026-09-24, written down now rather than remembered later.**
+
+> **THE TOY WORLD IS SEVEN SCALAR SLOTS WITH ARITHMETIC RULES. THE AGENT'S PURPOSE IS VISUAL
+> GRID PUZZLES.** A stage lighting up here proves THE STAGE IS WIRED. **It does not show the
+> mechanism works on a board shaped like the actual job** -- *a decomposition that only works on
+> scalars would pass this fixture and fail the first grid.*
+
+**THE SYNTHETIC GRID FIXTURE IS OWED AT ITEM 6.5**, immediately before real ARC games and after
+everything else: Isaiah, *"B can be done as a test before testing against real ARC games again,
+but it's only before the ARC game testing in priority."* **It is the last gate between that
+defect and real games, and it is recorded here so it cannot quietly die of being remembered.**
+
 **This seat is MECHANISM EVIDENCE ONLY and must never be reported as `M2` done.**
 `M2_STANDARD` clause 7 exists precisely to stop mechanism being reported as capability --
 *report against the DEFINITION, forms and pursues a bounded multi-step behaviour, not against

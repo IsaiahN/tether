@@ -110,6 +110,13 @@ def _atoms() -> list[Atom]:
     # changes.* This world may not import `arc_atoms` (one registry, and the toy must not
     # depend on the domain), so the duplication is the price and it is named rather than hidden.
     #
+    # **AND THE COST OF GROWING THIS WORLD IS REAL -- reviewer, 2026-09-24, recorded at the
+    # site rather than left to pass.** *The toy world's value was being SMALL ENOUGH TO REASON
+    # ABOUT COMPLETELY.* Every atom added here is a thing that **can be true here and false on
+    # a board**, and enough of them turn this from a minimal reference into **a second
+    # agent-world with its own quirks** -- at which point a green seat stops meaning what it
+    # means today. **Weigh each addition against that, not against whether a stage goes green.**
+    #
     # **NOT ONE OF THESE KNOWS ANYTHING ABOUT THE GOAL, AND THAT IS THE WHOLE CARE TAKEN.**
     # This world's objective is *ALL slots at zero*, so an `is_zero` predicate would have BEEN
     # the answer -- `all . is_zero` is the goal, written out. **Every predicate here is
