@@ -215,7 +215,7 @@ def declared_at(name: str, _cache: dict[str, float | None] = {}) -> float | None
 
 
 def transitions(old: dict[str, Any], new: dict[str, Any],
-                _after: Any = None) -> list[str]:
+                _after: Any = None, _born: float | None = None) -> list[str]:
     """What changed in STATUS. Counts are deliberately not compared.
 
     **DEFECT E: A CAPABILITY NEWER THAN EVERY ARTIFACT READS EXACTLY LIKE ONE THAT NEVER
@@ -244,7 +244,21 @@ def transitions(old: dict[str, Any], new: dict[str, Any],
             if b["occurred"]:
                 out.append(f"{name}: NEW in the declared set -> {b['occurred']}")
                 continue
-            after = (_after if _after is not None else since)(declared_at(name))
+            born = declared_at(name) if _born is None else _born
+            after = (_after if _after is not None else since)(born)
+            if born is None:
+                # **AGE UNKNOWN IS NOT UNOBSERVABLE, AND THE FIRST VERSION CONFLATED THEM.**
+                # `since(None)` returns `[]`, and an empty list read as *no artifact postdates
+                # it* -- so a name `declared_at` could not date was SUPPRESSED. `declared_at`'s
+                # own docstring promises the opposite: *the fallback is the LOUD direction,
+                # because suppressing a real capability change is the worse error of the two.*
+                # It searches four files; anything declared elsewhere dated as `None` and went
+                # quiet forever. **Two facts under one empty list**, which is the defect this
+                # file was extended to catch, in the extension.
+                out.append(f"{name}: NEW in the declared set -> "
+                           f"{b['occurred'] or 'never occurred'} -- AGE UNKNOWN, so its zero "
+                           "has no denominator and is reported rather than judged")
+                continue
             if not after:
                 out.append(f"{name}: UNOBSERVABLE -- declared after every artifact was "
                            "written, so its zero carries no information")
@@ -287,12 +301,17 @@ def selftest() -> dict[str, str]:
     was = {"computed_over": [], "items": {}}
     now = {"computed_over": [], "items": {"zz": {"producer": True, "occurred": [],
                                                  "positions": []}}}
-    young = transitions(was, now, _after=lambda _b: [])
-    aged = transitions(was, now, _after=lambda _b: ["r1.jsonl", "r2.jsonl"])
+    young = transitions(was, now, _after=lambda _b: [], _born=1.0)
+    aged = transitions(was, now, _after=lambda _b: ["r1.jsonl", "r2.jsonl"], _born=1.0)
+    # AND THE THIRD CASE: a name git cannot date must be LOUD, not SUPPRESSED. `_born` is left
+    # `None`, which is what `declared_at` returns when git cannot say -- and the first version
+    # of this rule turned that into UNOBSERVABLE, because `since(None)` is also `[]`.
+    unknown = transitions(was, now, _after=lambda _b: [])
     out["E instrument age"] = (
         "ok" if young and "UNOBSERVABLE" in young[0]
         and aged and "2 artifact(s)" in aged[0]
-        else f"UNWITNESSED ({young} / {aged})")
+        and unknown and "AGE UNKNOWN" in unknown[0]
+        else f"UNWITNESSED ({young} / {aged} / {unknown})")
 
     parsed = dict(parse_term("above . negate . all<o11.h>?ACTION1"))
     want = {"above": "head", "negate": "mid", "all": "tail",
