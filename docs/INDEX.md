@@ -47614,3 +47614,61 @@ taken.**
 exclusion (a derivation: the identity computes nothing) · `Choose`/`Try`'s `min` reach
 (over-stating is wrong from any vantage point). **Each is answerable without seeing a board, so
 by the test it is not on this list** -- and the list is worth nothing if it is padded.
+
+
+## FILED-01 -- **NOT A FINDING AND NOT SCHEDULED.** Isaiah's question on turning the corpus's own framework inward -- can the agent TRIAGE ITS OWN INTERNAL PARTS -- filed with its trap and its trigger, by the reviewer's instruction of 2026-09-24 10:51
+
+**STATUS, AND IT IS THE FIRST LINE BECAUSE IT GOVERNS EVERYTHING BELOW: FILE ONLY. ISAIAH'S,
+LOWEST PRIORITY, AFTER THE KAGGLE NOTEBOOKS, NOT SCHEDULED.** The reviewer's words: *nothing in
+this entry is to be built, measured or proposed until that work is done.* **It is numbered
+`FILED-` rather than `F` so it can never be read as a measurement** -- there was no convention
+for a parked item and this establishes the smallest one.
+
+### THE QUESTION
+
+Whether the agent could use the corpus's own framework -- recursive, domain-agnostic, a barrier
+theorem -- to triage its own internal parts. **Asked as a low-priority thought, and explicitly
+not meant to throw current work off course.**
+
+### WHY IT IS REAL RATHER THAN ELEGANT
+
+**THE FRAMEWORK ALREADY TRANSFERS INWARD, and 2026-09-23/24 is the demonstration:** *is this
+reached* · *does this term wager anything* · *does this count have a denominator* · *does this
+name mean two things.* **Those are the corpus's tests applied to the system's own parts, and
+they found five or six real faults in twelve hours.**
+
+> **WHAT IS UNPROVEN IS WHETHER THE AGENT COULD RUN THEM ON ITSELF.** The seat ran them.
+
+### THE TRAP, NAMED SO NOBODY REDISCOVERS IT
+
+> **A SYSTEM THAT GRADES ITSELF ALWAYS PASSES.** If the agent judges whether its own components
+> are working, that is the elaboration trap, and §12.0 refuses it.
+
+**THE FORM THAT IS NOT TRAPPED, and it is Isaiah's own line from 00:53: THE BOARD KEEPS THE
+VERDICT, THE AGENT TAKES THE POLICY.**
+
+    IF internal state is PUBLISHED AS SLOTS, the way object positions are,
+    THEN the agent does not JUDGE its own parts -- it PERCEIVES them, PREDICTS them,
+         and THE GROUND CONTRADICTS IT when it is wrong
+    The machinery is the thing MODELLED; the settling stays EXTERNAL
+
+**That distinction is the whole entry. Anything that lets the agent SETTLE a claim about itself
+is the trap; anything that lets it BE WRONG about itself in front of the ground is not.**
+
+### WHY NOT NOW -- ON SUBSTRATE, NOT TASTE
+
+    internal state was published only in the last hours
+    24 of 54 modules execute
+    the books were being WIPED ON LOAD until this morning
+
+**You cannot have the agent reason about parts it cannot yet see.** Taking it up now would be a
+theory spiral on a substrate that cannot support the test -- **the exact failure Isaiah stopped
+on 2026-09-23.**
+
+### THE TRIGGER, SO THIS IS A DECISION AND NOT A NOTE
+
+> **TAKE IT UP WHEN THE AGENT CAN ALREADY PREDICT ONE OF ITS OWN PUBLISHED QUANTITIES AND BE
+> WRONG ABOUT IT.** At that point it stops being philosophy and becomes a measurement. Before
+> it, there is nothing to measure.
+
+**Filed at the bottom of the backlog. No proposal is recorded here, deliberately.**
