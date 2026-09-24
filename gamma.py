@@ -846,19 +846,33 @@ class Gamma:
         of `CELLS` and it exists only under `TETHER_ITERATE`, so with the arm off `elem` is
         always `None` and this reduces, line for line, to the check it replaces.
         """
-        if elem is not None:
-            if unit.atoms[0].in_type == CELLS:
-                want = unit.atoms[0].elem_type
-                if want is not None and elem != want:
-                    return None                            # the reducer would refuse it
-                return unit.atoms[-1].out_type, None       # the reducer closes it
-            if not accepts_type(unit, elem):
+        # **FOLDED OVER THE UNIT'S ATOMS, NOT READ OFF ITS ENDS -- and the first version read
+        # its ends.** A unit is an ATOM or a SETTLED TERM, and a settled term carries several
+        # atoms that `apply` runs one at a time, each deciding independently whether it maps or
+        # closes. A chunk like `cells . cell_row` leaves the value a COLLECTION while its last
+        # atom's `out_type` says `POSITION` -- so reading the ends would call the walk flat when
+        # it is still mid-iteration, and every extension after it would be wrongly typed.
+        #
+        # **IT IS UNREACHABLE TODAY AND THAT IS NOT A REASON TO ASSUME IT.** The emission rule
+        # refuses an unclosed iteration, so no such chunk can be minted and settled HERE -- but
+        # `units()` also admits what promotion and import put there, and *a term that cannot
+        # arrive by the route I checked* is the assumption this project keeps paying for.
+        for a in unit.atoms:
+            if elem is not None:
+                if a.in_type == CELLS:
+                    if a.elem_type is not None and elem != a.elem_type:
+                        return None                        # the reducer would refuse it
+                    cur, elem = a.out_type, None           # closed
+                    continue
+                if not (a.polymorphic or elem in a.accepts):
+                    return None
+                cur, elem = CELLS, a.out_type              # mapped: the ELEMENT type moves
+                continue
+            if not (a.polymorphic or cur in a.accepts):
                 return None
-            return CELLS, unit.atoms[-1].out_type          # mapped: the ELEMENT type moves
-        if not accepts_type(unit, cur):
-            return None
-        out = unit.atoms[-1].out_type
-        return (out, CELL) if out == CELLS else (out, None)
+            cur = a.out_type
+            elem = CELL if cur == CELLS else None
+        return cur, elem
 
     def enumerate_closure(self, in_type: str, out_type: str, max_depth: int, budget: int,
                           stats: dict | None = None,
