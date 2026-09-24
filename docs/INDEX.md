@@ -47536,7 +47536,9 @@ decide is the seat's job; deciding it is not, **and inventing the criterion woul
        tether:~1200         THE QUESTION  *how long should I wait for a demotion to come good?*
                             NEEDS         this board's own vindication delays -- the very
                                           quantity the halflife is derived from
-                            REACHED       **YES**
+                            REACHED       **NO on the toy harness, MEASURED. UNMEASURED on the
+                                          ARC path.** The first `YES` cited no instrument --
+                                          see below, and it was the only row that did not
 
 ### WHAT THE REACHED COLUMN SAYS, AND IT WAS NOT THE EXPECTED ANSWER
 
@@ -47569,6 +47571,42 @@ quoted one as though it were a total.
 **Recorded at the books' own site as well, and the row is NOT moved**: `ledger.STEPS` orders
 `PLAN` before `PERCEIVE`, so relocating it to the end of the step makes it the NEXT cycle's first
 row -- the step-order trap this record already carries twice.
+
+### AND ROW 7 CITED NO INSTRUMENT AT ALL, WHICH IS ROW 4's DEFECT WITH NOTHING IN THE COLUMN
+
+Every other row's `REACHED` names a run or a flag -- `F340`, `F343`, `F346`, `TETHER_INVENT`.
+**Row 7 said `YES` and named nothing**, which is a READ FROM THE WRITE SITE, and this record
+already holds *a run outranks a read*. **Taken 2026-09-24 by spying the loop on the toy harness:**
+
+    loop_iterations 0 -- the watch loop BODY NEVER RAN, at any cycle
+    ever_watched    0 -- `_demoted_watch` was EMPTY at the top of all 16 cycles
+    max_cycle      15 -- and `demo.main` runs `cycles=16`, so cycles 0..15
+
+**TWO INDEPENDENT REASONS, AND EITHER ALONE IS SUFFICIENT.**
+
+**FIRST, IT IS STARVED.** Read from `gamma.book` AFTER the run rather than from the lagging row:
+`len(agent.demoted)` is **0**, `promoted_then_wrong` **0**, `demoted_would_have_been_right` **0**,
+`demoted_stayed_wrong` **0**, `gamma.vindication` **empty**, `gamma.halflife` **None**. **Nothing
+is ever demoted on the toy run**, so the watch has no subject, and the chain behind it --
+*watch -> vindication -> halflife* -- never turns. **The agent's own dial stays at the seed and
+is correctly marked `halflife_earned: False`.**
+
+> **AND THE ZEROS ARE REAL ZEROS, WHICH IS WORTH SAYING BECAUSE IT USUALLY IS NOT TRUE HERE.**
+> `demoted_stayed_wrong` reads `0`, not `<<ABSENT>>` -- it is set-defaulted, so **the silent-zero
+> class does not apply to this reading** and the null is load-bearing rather than uninterpretable.
+
+**SECOND, THE BOUND IS UNREACHABLE ON THIS HARNESS BY ONE CYCLE.** The release branch tests
+`self.cycle - since >= 16` and the toy run's last cycle is **15**. A term entering the watch at
+cycle 0 reaches age 15 and no further. **So no toy run can ever exercise `demoted_stayed_wrong`,
+and its zero is uninformative on this harness FOREVER, independently of the starvation.** That is
+`F341`'s CALIBRATION category exactly: the constant is not wrong, it is **equal to the run length
+where it needed to be less than it**, and the seat stays green either way.
+
+**WHAT IS NOT CLAIMED: the headline stays FOUR OF SEVEN.** Rows 1/4/5/6 were taken on the ARC
+path (`F346`, the bargain book on `vc33`) or at flag level; **this reading is the TOY path, and
+mixing the two would be the harness error the record already carries.** Row 7 on the ARC path
+needs a run of **at least 17 cycles**, which is past a smoke run -- **posted as a fork rather than
+taken.**
 
 ### WHAT WAS DELIBERATELY LEFT OFF
 
