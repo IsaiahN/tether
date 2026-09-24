@@ -440,8 +440,8 @@ def check_the_composer_can_propose_a_fold():
     **BUILT WITHOUT A RULING BECAUSE IT IS INERT WITHOUT ONE**: `cells` is the only producer of
     `CELLS` and exists only under `TETHER_ITERATE`, so with the arm off this cannot execute.
     """
-    from gamma import CELL, CELLS, Atom, Gamma
-    from sensors import BOOL
+    from gamma import CELL, CELLS, Atom, Ctx, Gamma
+    from sensors import BOOL, NOT_RESOLVED
 
     # A STANDALONE TYPE GRAPH, so the claim does not depend on the arm's state in this process.
     cells = Atom("cells_", lambda v, _c: v, "SHAPE", CELLS)
@@ -471,6 +471,24 @@ def check_the_composer_can_propose_a_fold():
                   Atom("b_", lambda v, _c: v, "POSITION", "EXTENT")])
     plain = {c.name for c in flat.enumerate_closure("SHAPE", "EXTENT", 3, 99, {})}
     assert plain == {"a_ . b_"}, f"the plain type walk changed: {plain}"
+
+    # 5 -- AND IT RUNS, WHICH IS A DIFFERENT CLAIM FROM *IT TYPE-CHECKS*. Everything above is
+    # about what the composer can PROPOSE. This is the project's own standing rule -- no arm's
+    # readings are generalised until the arm has EXECUTED -- applied to my own work, and it
+    # needs no board: build the real chain, hand it a shape, read the number.
+    real = {a.name: a for a in arc_atoms._iterate()}
+    real.update({a.name: a for a in arc_atoms.three_spaces(arc_predict.predict())})
+    shape = frozenset({(0, 0), (0, 1), (1, 0), (2, 2), (3, 1)})     # rows 0 0 1 2 3
+    ctx = Ctx(action=None, operands=(), touching=None, group=(), obj=None, shapes={})
+    fold = gamma.Term(tuple(real[n] for n in
+                            ("cells", "cell_row", "parity", "count_true")))
+    assert fold.apply(shape, ctx) == 2, "the fold does not count the odd rows"
+
+    # AND THE DEGENERATE ONES ABSTAIN, which is WHY they must not be offered: they are not
+    # wrong, they are silent, and a silent candidate spends budget to say nothing.
+    for chain in (("cells", "count_true"), ("cells", "cell_row", "count_true")):
+        bad = gamma.Term(tuple(real[n] for n in chain))
+        assert bad.apply(shape, ctx) is NOT_RESOLVED, f"{chain} returned a number"
 
 
 def check_chunking_reaches_the_bargain():
