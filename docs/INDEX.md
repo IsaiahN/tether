@@ -46845,3 +46845,64 @@ the 992 trees, `rotate`. **`MIN_REPEAT` is the third, and it is behind gate 1 (`
     MECHANISM   none changed. **A table, as ordered**
     CAPABILITY  none. It names which constants are candidates to become the agent's, and the
                 order to take them in
+
+
+---
+
+## F342 -- THE MECHANISMS HAVE NO CHOOSER. Six independent sites, one shape: the machinery
+## exists, runs, and NOBODY DECIDES. Not values set wrongly -- decision points that are absent.
+
+Isaiah, 2026-09-24: *the agent needs to decide, otherwise this will be a marvel of our
+programming rather than a feat of its own cognition* -- and the agent is *a tony agent in a MECH
+SUIT*. **This is what that looks like from inside the code, measured across one night rather
+than argued.**
+
+### The six
+
+    THE BARGAIN        four sites reach the contest and lose: widened streams resolve-and-lose ·
+                       the 4 EXTENT atoms admitted 141x and bound ONCE · 992 operand trees, ZERO
+                       affordable · `rotate` admissible and bound NOWHERE. **`pays` decides all
+                       four and nobody ever chose it** (`F334`, `F336`, `F338`)
+    GATE 1             refuses every cycle with `no objective is confidently shrinking` -- **at a
+                       bar the code NEVER CONSULTS**, because no series is ever long enough to
+                       judge (`F339`, `F340`)
+    THE TREND POP      destroys the trend on **98.4%** of calls -- **and the destruction is
+                       CORRECT**: the defect category is ZERO on both boards (`F340`)
+    METACOGNITION      built, correct, **and nothing to attach to** -- no routine is ever adopted
+    INVENTION          `_invent`'s only guard is *nothing observed to invent FROM*, a CAPABILITY
+                       check. **Given a delta it invents unconditionally.** Isaiah names invent
+                       as the agent's own call and **there is no call being made by anyone**
+    THE HALFLIFE       the one REAL dial -- and until `ccec503` the books died with each attempt,
+                       so against 128-309 actions **it could never have been EARNED**
+
+### The shape, and why it is one finding rather than six
+
+> **FIVE OF THE SIX ARE NOT THRESHOLDS SET BADLY. THEY ARE MECHANISMS WITH NO DECISION POINT AT
+> ALL.** **Handing the agent "this decision" would, in five of six cases, have meant BUILDING A
+> CHOOSER AND CALLING IT A TRANSFER.**
+
+**AND THAT REFRAMES THE WHOLE AGENCY QUESTION.** *Give the agent authority over the constants*
+assumes the constants are where the decisions live. **They are not: `pays` and `MIN_REPEAT` are
+real decisions we hold, and the other four sites have nothing to hold.** **The work is to CREATE
+the decision point, and only then to give it away.**
+
+### What was built against it, and what deliberately was not
+
+    BUILT       the self-observation books -- promoted-stayed-right · demoted-would-have-been-
+                right (the counterfactual `F327` destroys unrecorded) · trend survival · actions
+                per arrival and per LEVEL · arrival depth · whether invention ever arrives.
+                **All against THE SCORE, which Isaiah rules is the one thing outside the agent**
+    BUILT       **cross-attempt persistence** -- the EVIDENCE crosses and the VALUE is
+                re-derived. A conclusion without its basis cannot be revised by later evidence,
+                only overwritten
+    BUILT       ONE dial the agent turns: the refutation halflife, read as **the mean cycles its
+                own demoted terms took to come good** -- already in a halflife's units, **so no
+                mapping was chosen by us**
+    NOT BUILT   a second dial · any policy reading any book · `pays` · `F327` · `MIN_REPEAT`.
+                **One dial is a proof; five is a rewrite**
+
+    BOUNDARY    reads of the codebase plus executes-checks and unit tests. **NO game testing** --
+                no panel was declared after the prohibition
+    MECHANISM   nine commits; every constant named here is UNTOUCHED except the halflife's rate
+    CAPABILITY  **none claimed.** The agent can now observe itself and turn one dial. Whether
+                that changes anything is a question for a run nobody is allowed to make tonight
