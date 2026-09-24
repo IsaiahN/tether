@@ -1168,6 +1168,20 @@ class Agent:
         book that needs 200 cycles to say anything is a book the agent never reads in the time
         it has, so each is counted from cycle ONE and reported with its own denominator -- a
         reader can see immediately whether a quantity has spoken yet or not.
+
+        **THE ROW LAGS BY A CYCLE, AND ON A SHORT RUN IT REPORTS NOTHING -- measured 2026-09-24.**
+        This runs at the TOP of the step and the cycle's own minting happens after it, so every
+        row describes the state BEFORE that cycle's work. On `vc33` at three cycles the rows read
+        `bargain_bounded_out` 0, 0, 0 **while the final book held 14,938.**
+
+        **SO A BOOK ROW IS A LOWER BOUND, NEVER THE TOTAL**, and a reading taken off the last row
+        of a short run is not the run's answer -- **read `gamma.book` after the run for that.**
+
+        **NOT MOVED, AND DELIBERATELY.** `ledger.STEPS` orders `PLAN` before `PERCEIVE`, so a row
+        relocated to the end of the step becomes the NEXT cycle's first row -- the step-order
+        trap this file already records twice, both times with byte-identical demo output and only
+        the exit code moving. **Restructuring the step is a change with its own ruling; saying
+        what the row means costs nothing and is true today.**
         """
         # BOOK 2, THE COUNTERFACTUAL: would the demoted term have been RIGHT this frame?
         # `F327` clears a standing on one miss and the term is gone; nothing ever asked what it

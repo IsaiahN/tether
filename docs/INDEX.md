@@ -47516,8 +47516,8 @@ decide is the seat's job; deciding it is not, **and inventing the criterion woul
        tether               strictness a feature.
                             THE QUESTION  *is this explanation worth its description length?*
                             NEEDS         how much of R remains and what else is on offer
-                            REACHED       **NO.** The bargain book reads **5268 bounded out, 0
-                                          reaching `pays`** -- the comparison never executes
+                            REACHED       **NO** -- **and the evidence first cited for this was
+                                          the wrong instrument.** See below
 
     5  the tie in `by_kind` ORDERING. First-wins on equal total; the site itself records that
        tether               *the dict remembered who arrived, not the bargain preferring anyone*.
@@ -47550,6 +47550,25 @@ is deciding over an empty set.**
 **THAT IS NOT A REASON TO DEFER THEM.** `F342` as Isaiah re-read it: *the absence of a chooser is
 evidence the choice was never built.* **An unreached automaton is the same defect waiting for its
 gate to open**, and the gates are what the night's other findings are about.
+
+### THE EVIDENCE FOR ROW 4 WAS RE-TAKEN, BECAUSE THE FIRST INSTRUMENT LAGGED
+
+**The `books` LEDGER ROW runs at the TOP of the step**, so it describes the state BEFORE that
+cycle's minting. On `vc33` at three cycles the rows read `bargain_bounded_out` **0, 0, 0** while
+the final book held **14,938**. **Every book row is a LOWER BOUND, never the total**, and I
+quoted one as though it were a total.
+
+    re-taken from `gamma.book` AFTER the run, which is the state that answers the question:
+    **bounded_out 14,938 · does_not_pay 0 · paid 0**
+
+> **THE CONCLUSION SURVIVES AND THE EVIDENCE DID NOT.** `pays` is still never reached -- nothing
+> passes `_cannot_pay` -- **but the row I cited could not have shown that either way**, and a
+> claim resting on an instrument that reads 0 regardless is the counter-reads-zero failure with
+> the seat on the wrong end of it.
+
+**Recorded at the books' own site as well, and the row is NOT moved**: `ledger.STEPS` orders
+`PLAN` before `PERCEIVE`, so relocating it to the end of the step makes it the NEXT cycle's first
+row -- the step-order trap this record already carries twice.
 
 ### WHAT WAS DELIBERATELY LEFT OFF
 
