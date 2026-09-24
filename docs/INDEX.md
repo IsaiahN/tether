@@ -48260,3 +48260,54 @@ nothing. **`contingent()` would light there and the same code would refuse the s
 THE MECHANISM.** *Assume it is already specified, and go look* -- fired against `docs/` this
 morning, against `conform/` at 20:37, and **not against the module `tether.py` imports on line
 25.**
+
+
+## F357 -- **AN OBJECTIVE DOES NOT FAIL FOR WAGERING NOTHING. IT FAILS BECAUSE IT EXPLAINS LESS** -- and the cost is IDENTICAL, so the bargain was never the unfair part
+
+**The whole day has carried `F333`'s reading -- *a magnitude WAGERS NOTHING, so it cannot lose
+and therefore cannot win* -- and the reviewer's *the pricing rule cannot handle a third kind*.
+Measured at `_cannot_pay`, which takes the TERM:**
+
+    **OBJ   reached the bargain   5    PAID 0**   shortfall min **3.29**  median 8.72
+    val   reached the bargain  45    PAID 7    shortfall min 0.49
+
+    cost **11.72**  left **0.00**   base 14.04   pays=True    <- a `val` winner
+    cost **11.72**  left **5.61**   base 14.04   pays=False   <- an `OBJ`, SAME COST
+
+### THE COST IS THE SAME. THE BARGAIN IS NOT TREATING THEM DIFFERENTLY
+
+`term_bits` reads LENGTH and ALPHABET, so two terms of equal depth cost the same **to the bit**,
+whatever they are made of -- and they do: **11.72 both.** **The discriminator is `left`,
+entirely.**
+
+> **THE WINNING PREDICTORS EXPLAIN THE RESIDUAL PERFECTLY -- `left = 0.00`. THE OBJECTIVES LEAVE
+> 5.61 TO 15.00.** An objective is not refused for saying nothing; **it is refused for saying
+> something LESS ACCURATE**, on a scoring rule that both kinds meet identically.
+
+### WHICH MEANS THE PROBLEM IS NOT THE PRICE. IT IS WHAT IS BEING SCORED
+
+`_left` puts an `OBJ` term through `objective_step` to get a predicted slot value, then scores it
+against the actual. **So a want IS wagered and IS answerable -- `F333`'s premise does not hold on
+this path.** What fails is narrower and stranger:
+
+> **A WANT IS BEING SCORED AS A PREDICTION.** *Move one step toward satisfaction* is not an
+> attempt to say what the value WILL be; it is an attempt to say what it SHOULD be. **On a
+> deterministic world an exact predictor reaches `left = 0.00` and a direction cannot.**
+> **It is a compass judged against a clock -- and the clock is correct.**
+
+**So *the pricing rule cannot handle a third kind* is right in its conclusion and wrong in its
+mechanism.** Nothing is mispriced. **The two kinds are answering different questions and only one
+of them is the question `left` asks.**
+
+### BOUNDARY, AND IT MATTERS HERE
+
+**Toy world, 10 cycles, DETERMINISTIC rules with exact closed forms** (`inc`, `dbl . neg`,
+`take<climb> . inc`). **A world where an exact predictor can reach zero is the hardest possible
+case for a want** -- on a board where nothing is exactly predictable, `left = 0.00` is
+unavailable to either kind and the comparison is not the same one. **This is the most adversarial
+harness for an objective that could exist, and it must not be read as a general result.**
+
+**AND IT IS THE THIRD DIAGNOSIS OF THIS BLOCKER TODAY** -- *the bound refuses everything*, then
+*the contest is unread*, now *the two kinds answer different questions*. **Each was measured;
+the first two were measured with the wrong instrument.** This one is taken at the site that
+holds the term and reports cost, left and base together.
