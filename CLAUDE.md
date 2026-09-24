@@ -574,6 +574,23 @@ reads as something that will be enforced, and it will not be.
   > NOT.** Reason strings, docstrings, needs-lists, comments — the places no test reads. **One
   > grep on the quantity's own name.**
 
+  **AND ITS SMALLEST CONCRETE INSTANCE, TWICE IN ONE NIGHT — 2026-09-23/24: A NEW ROW AT THE TOP
+  OF A STEP DISPLACES THE STEP'S OWN FIRST ROW, AND NOTHING VISIBLE CHANGES.** `ledger.STEPS`
+  orders `PLAN` before `PERCEIVE`, and the top-of-step narrations are NO-OPS in worlds that
+  publish no read-order or placements. **So the first `PERCEIVE` row written there becomes the
+  run's first row and turns the cycle's own `PLAN` into `PLAN after PERCEIVE`.**
+
+  **THE DEMO'S PRINTED OUTPUT WAS BYTE-IDENTICAL BOTH TIMES. ONLY THE EXIT CODE MOVED** — same
+  links, same settled terms, same still-owed, and the gate refusing underneath. **Nothing a
+  human would check by eye could see it**, which is the whole reason the gate exists and the
+  reason this is worth a line rather than a memory.
+
+  **AND THE SECOND INSTANCE IS THE INSTRUCTIVE ONE: the fix for the first is COMMENTED AT THE
+  SITE I MOVED THE SECOND ROW TO, and I did not read it before writing a row in the same
+  position.** A comment explaining why a row sits where it does **only works if the next author
+  is looking at that row** — and someone adding a NEW row is looking at the row's SOURCE, which
+  is somewhere else entirely.
+
   **And it belongs beside the executes-check because they are the same family from opposite
   ends: that one asks *does this site run before I build into it*, this one asks *what did I
   just make untrue*.**
