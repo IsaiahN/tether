@@ -1038,8 +1038,28 @@ next check against it is that much closer to dead reckoning.**
 
 | | files | treatment |
 |---|---|---|
-| **WORKING — inside the seat** | `CLAUDE.md` · `ARC_BUILD_PLAN.md` · `docs/INDEX.md` · all code | **repair at source.** A finding left as a note makes the next reader re-derive it |
-| **CORPUS — annotated from outside** | `ARC_AGENT.md` · `PHILOSOPHY.md` · `DISCOVERY.md` · `SNAPS_PLAN.md` · `FALSE_MINT.md` · `BUILD_PLAN.md` · `DOCTRINE_AUDIT.md` | **record the defect in `INDEX.md`; do not fix it.** Isaiah's to repair or leave — **if he repairs it the provenance stays clean, because he wrote both halves** |
+| **WORKING — inside the seat** | `CLAUDE.md` · `docs/ARC_BUILD_PLAN.md` · `docs/INDEX.md` · `docs/LIBRARY_RETRIEVAL.md` · all code | **repair at source.** A finding left as a note makes the next reader re-derive it |
+| **CORPUS — annotated from outside** | `docs/ARC_AGENT.md` · `docs/PHILOSOPHY.md` · `docs/DISCOVERY.md` · `docs/SNAPS_PLAN.md` · `docs/FALSE_MINT.md` · `docs/BUILD_PLAN.md` · `docs/DOCTRINE_AUDIT.md` | **record the defect in `INDEX.md`; do not fix it.** Isaiah's to repair or leave — **if he repairs it the provenance stays clean, because he wrote both halves** |
+
+**EVERY ENTRY IS PATH-QUALIFIED, AND THAT IS NOT TIDINESS — 2026-09-24.** The table named
+`ARC_BUILD_PLAN.md` and `BUILD_PLAN.md` by BARE FILENAME. **Both live in `docs/`, their names
+differ by a prefix, and they sit on OPPOSITE SIDES of the edit boundary** — one is repaired at
+source, the other may never be touched. **`docs/INDEX.md` in the same row was already
+path-qualified, so the inconsistency was visible and read as formatting.**
+
+> **MISTAKING ONE FOR THE OTHER BREACHES THE ONE BOUNDARY THAT PROTECTS THE CORPUS'S
+> DERIVATIONAL INDEPENDENCE** — *repair a defect in it and the next check against it is that
+> much closer to dead reckoning* — **and it is the single edit in this project that cannot be
+> undone by reverting it**, because what is spent is the property, not the text.
+
+**AND A THIRD FILE IS IN NEITHER LIST: `docs/PERCEPTION_BUILD_PLAN.md`** (2026-09-04, *the
+perception pipeline as a build plan against this instantiation, with nine seams raised*).
+**UNPLACED, and deliberately left so.** This file's own rule is that *the boundary is what gets
+fuzzy, not the principle — a document appearing later needs a side, and "is this a working
+document" is answerable only against a written split.* **Authorship cannot decide it: every
+commit in this repository carries the same author, the seat's included.** So it is named here as
+awaiting a side rather than silently treated as one, and **until Isaiah places it, it is handled
+as CORPUS** — the direction whose error is recoverable.
 
 **A DEFECT ANNOTATED EXTERNALLY IS STILL CHECKABLE. A CORPUS I HAVE EDITED IS NOT.** Live
 instance: `ARC_AGENT` §23.2 opens *"the seven shapes from §12.1"* and they are **not the same
