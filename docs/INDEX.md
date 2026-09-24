@@ -46912,6 +46912,31 @@ assumes the constants are where the decisions live. **They are not: `pays` and `
 real decisions we hold, and the other four sites have nothing to hold.** **The work is to CREATE
 the decision point, and only then to give it away.**
 
+### AND THE READING ABOVE IS WRONG WHERE IT MATTERS MOST -- ISAIAH, 2026-09-24
+
+> ***"In terms of agency and choice it depends on residuals and board states you and I will
+> never see, so the agent must be wise enough to choose on its own."***
+
+**THE MEASUREMENTS STAND AND THE MEANING CHANGES.** Six mechanisms, five with no decision point,
+every reading above -- unaltered. **What was wrong is the inference drawn from them.**
+
+    THE READING I FILED     *no chooser, therefore there was no decision to hand over*
+    ISAIAH'S READING        **the absence of a chooser is NOT evidence that no choice belongs
+                            there. It is evidence THE CHOICE WAS NEVER BUILT** -- because what
+                            it turns on is RESIDUALS AND BOARD STATES NEITHER OF US CAN SEE
+
+**So `_invent` firing unconditionally on a delta is not a site with no decision.** **It is a
+site where a decision is plainly required and NOBODY COULD HAVE WRITTEN ONE FROM OUTSIDE** --
+which is the whole argument for the agent holding it.
+
+> **`F342` IS THEREFORE EVIDENCE *FOR* AGENCY RATHER THAN A COMPLICATION OF IT.** Five sites
+> where the thing that should decide is the only party who can see what the decision turns on.
+
+**AND THE ERROR HAS A SHAPE WORTH KEEPING: I READ AN ABSENCE AS A VERDICT.** *Nothing decides
+here* was taken to mean *nothing needs to* -- the same move as reading a counter's zero as a
+mechanism's answer, which this record has filed six times tonight about numbers and once, here,
+about a design.
+
 ### What was built against it, and what deliberately was not
 
     BUILT       the self-observation books -- promoted-stayed-right · demoted-would-have-been-
