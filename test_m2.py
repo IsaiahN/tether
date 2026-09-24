@@ -243,6 +243,42 @@ def check_endings_stay_apart():
     assert Rt.advance(Rt.When("g", Rt.Act("A")), lambda _g: False)[0] == Rt.DONE
 
 
+def check_the_plan_language_can_hold_a_choice():
+    """DEFECT: a two-armed branch that runs an arm it never chose.
+
+    **THE ACT SPACE HAD NO DECISION IN IT.** `When` collapses *the guard is false* into *there
+    is nothing to do*, so every plan the agent could write said DO THIS IF ALLOWED and none said
+    CHOOSE BETWEEN THESE. Four claims, and the third is the one a branch makes easy to get wrong.
+    """
+    a, b = Rt.Act("A"), Rt.Act("B")
+    ch = Rt.Choose("g", a, b)
+
+    # 1 -- BOTH ARMS ARE REACHABLE, which is the whole of what `When` could not do.
+    assert Rt.advance(ch, lambda _g: True)[0] == "A"
+    assert Rt.advance(ch, lambda _g: False)[0] == "B", "the false arm is unreachable"
+
+    # 2 -- AN UNREADABLE GUARD BLOCKS. Not the else arm: *I could not read it* is not *it is
+    # false*, and here the wrong answer ACTS instead of doing visibly nothing.
+    assert Rt.advance(ch, lambda _g: None)[0] == Rt.BLOCKED
+
+    # 3 -- REACH IS THE ARM IT CAN BE HELD TO. `max` would price the branch on the better arm
+    # and then take the other, which is the over-statement `reach` exists to refuse.
+    wide = Rt.Choose("g", Rt.Seq(a, b), a)
+    assert Rt.reach(wide) == 1, f"reach {Rt.reach(wide)} -- priced on the arm it may not take"
+    assert Rt.length(wide) == 5, f"length {Rt.length(wide)} -- an arm went uncounted"
+
+    # 4 -- THE ENVIRONMENT CHECK SEES THE ELSE ARM. A routine whose unchosen arm names an
+    # unadvertised action must be refusable BEFORE the guard is ever read.
+    assert set(Rt.actions(ch)) == {"A", "B"}, "an arm is invisible to the level-boundary check"
+
+    # 5 -- AND THE COMPOSER ACTUALLY BUILDS ONE, so this is not a seventh dead constructor.
+    # Two different arms are the precondition; with one action there is no choice to make.
+    got = Rt.enumerate_routines(("A",), ("g",), (Rt.Act("B"),), 1, cap=500)
+    assert any(isinstance(r, Rt.Choose) for r in got), "the composer never enumerates a branch"
+    assert not any(isinstance(r, Rt.Choose) and Rt.render(r.body) == Rt.render(r.otherwise)
+                   for r in got), "a branch whose arms are the same routine"
+
+
 def check_chunking_reaches_the_bargain():
     """The ARITHMETIC of chunking: a settled routine counts as one unit and that can flip `pays`.
 

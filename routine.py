@@ -11,6 +11,7 @@ button, come back" is none of those.* **You cannot build it by chaining function
 why the composition story felt thin -- half the objects the agent needs were not in the algebra.
 
     Routine ::= Act(a) | Seq(R1, R2) | When(P, R) | Until(P, R)
+              | Choose(P, R1, R2)      -- the branch; `When` with the false arm restored
 
 **THE REMAINDER IS ITSELF A ROUTINE, AND THAT IS THE WHOLE OF HOW THIS SURVIVES A STEP.**
 `advance` returns *what to do now* and *what is left*, and what is left is a `Routine` -- so a
@@ -60,6 +61,33 @@ class When:
     there is nothing to do -- and an unreadable one BLOCKS it, which are different claims."""
     guard: Any
     body: Any
+
+
+@dataclass(frozen=True)
+class Choose:
+    """TWO ARMS ON ONE GUARD READ -- the branch point, and nothing here could hold one.
+
+    **`When` COLLAPSES *the guard is false* INTO *there is nothing to do*.** That is right for a
+    guarded step, and it is the whole of why the ACT space has no decision in it: every plan the
+    agent can write says DO THIS IF ALLOWED and none says CHOOSE BETWEEN THESE. **One guard read
+    is three claims, exactly as the three endings are -- and the false reading was the one with
+    nowhere to go.**
+
+    **NOT DERIVABLE FROM WHAT WAS HERE, WHICH IS WHY IT IS A CONSTRUCTOR AND NOT SUGAR.**
+    `Seq(When(P, A), When(not P, B))` needs `not P`, and this module never looks inside a guard --
+    the caller owns evaluation, and that is the invariant that keeps the ACT space legible. So the
+    negation cannot be formed here and the branch cannot be spelled here. One guard read, two arms,
+    evaluation still outside.
+
+    **AN UNREADABLE GUARD STILL BLOCKS**, and this is the constructor where that matters most. A
+    one-armed `When` that blocks does nothing, which is visibly nothing; a branch that treated
+    `None` as *take the other arm* would RUN, act, and never report that the choice was never
+    made. *I could not read it* is not *it is false* -- check 3, at the one site where getting it
+    wrong is invisible.
+    """
+    guard: Any
+    body: Any
+    otherwise: Any
 
 
 @dataclass(frozen=True)
@@ -185,6 +213,13 @@ def advance(r: Any, holds: Callable[[Any], bool | None],
             return DONE, None
         return advance(r.body, holds, lib, state, _depth)
 
+    if isinstance(r, Choose):
+        # ONE READ, TWO ARMS. `When` above is this with the false arm missing.
+        h = holds(r.guard)
+        if h is None:
+            return BLOCKED, None
+        return advance(r.body if h else r.otherwise, holds, lib, state, _depth)
+
     if isinstance(r, Call):
         if lib is None or r.name not in lib:
             return BLOCKED, None                   # named something that is not there
@@ -258,6 +293,11 @@ def length(r: Any, chunks: tuple = ()) -> int:
         return 1 + length(r.first, chunks) + length(r.then, chunks)
     if isinstance(r, (When, Until)):
         return 1 + length(r.body, chunks)
+    if isinstance(r, Choose):
+        # BOTH ARMS, LIKE `Seq`, because the OBJECT carries both and the object is what is
+        # priced. Charging only the arm that runs would price a branch by its behaviour, which
+        # is the thing `Until`'s rule two lines up refuses.
+        return 1 + length(r.body, chunks) + length(r.otherwise, chunks)
     if isinstance(r, (Let, Expect)):
         return 1 + length(r.body, chunks)
     if isinstance(r, Call):
@@ -277,6 +317,8 @@ def guards(r: Any) -> tuple:
         return guards(r.first) + guards(r.then)
     if isinstance(r, (When, Until)):
         return (r.guard,) + guards(r.body)
+    if isinstance(r, Choose):
+        return (r.guard,) + guards(r.body) + guards(r.otherwise)
     if isinstance(r, (Let, Expect)):
         return guards(r.body)
     if isinstance(r, Call):
@@ -302,6 +344,10 @@ def actions(r: Any, lib: dict | None = None, _seen: frozenset = frozenset()) -> 
         return actions(r.first, lib, _seen) + actions(r.then, lib, _seen)
     if isinstance(r, (When, Until, Let, Expect)):
         return actions(r.body, lib, _seen)
+    if isinstance(r, Choose):
+        # BOTH ARMS. Which one runs is not known until the guard is read, so a routine whose
+        # else-arm names an unadvertised action must fail this check before it is ever chosen.
+        return actions(r.body, lib, _seen) + actions(r.otherwise, lib, _seen)
     if isinstance(r, Call):
         if lib is None or r.name not in lib:
             return (f"?{r.name}",)                 # LOUD, never empty
@@ -319,6 +365,8 @@ def render(r: Any) -> str:
         return f"{render(r.first)} ; {render(r.then)}"
     if isinstance(r, When):
         return f"when({r.guard}) {{{render(r.body)}}}"
+    if isinstance(r, Choose):
+        return f"choose({r.guard}) {{{render(r.body)}}} else {{{render(r.otherwise)}}}"
     if isinstance(r, Until):
         return f"until({r.guard}/{r.budget}) {{{render(r.body)}}}"
     if isinstance(r, Call):
@@ -365,6 +413,26 @@ def enumerate_routines(actions: tuple, guards: tuple, chunks: tuple = (),
     for b in base:                       # depth 2 sequences, over primitives only
         for c in base:
             out.append(Seq(b, c))
+    # THE BRANCH, AND IT IS APPENDED AFTER rather than interleaved. `cap` takes the shortest
+    # `cap` shapes and `sort` is stable, so insertion order decides ties -- putting `Choose`
+    # last means nothing that was reachable before this line stops being reachable. The
+    # ordering is therefore REVERSIBLE and not a judgement about which shape is better.
+    #
+    # **BOTH ARMS DIFFERENT, AND IT IS `_branches`' `idn` FILTER AGAIN.** `Choose(g, b, b)`
+    # does `b` whichever way the guard reads -- a distinct NAME for an identical computation,
+    # which is the one thing that grows a closure without reaching anything.
+    #
+    # **SO THE BRANCH IS UNREACHABLE UNTIL THE SHELF HOLDS SOMETHING, AND THAT IS CORRECT
+    # RATHER THAN A GAP.** `tether` hands this ONE action, so `base` is that action plus the
+    # settled routines, and with an empty shelf there are no two different arms to choose
+    # between. **An agent with one thing it can do has no choice to make**, and §14.4's
+    # chunking rule is what supplies the second: a settled routine becomes a callable step.
+    for b in base:
+        for c in base:
+            if render(b) == render(c):
+                continue
+            for g in guards:
+                out.append(Choose(g, b, c))
     seen, uniq = set(), []
     for r in out:
         k = render(r)
@@ -396,6 +464,13 @@ def reach(r: Any, lib: dict | None = None, _seen: frozenset = frozenset()) -> in
         return reach(r.first, lib, _seen) + reach(r.then, lib, _seen)
     if isinstance(r, When):
         return reach(r.body, lib, _seen)
+    if isinstance(r, Choose):
+        # **`min`, AND IT IS THIS DOCSTRING RATHER THAN A PREFERENCE.** Exactly one arm runs and
+        # which one is unknown until the guard is read at execution, so the reach the routine can
+        # be HELD to is the smaller. `max` would let a branch be priced on its better arm and
+        # then take the other -- over-stating reach is the precise defect this function was
+        # written for, and a branch is the first shape that can do it while looking honest.
+        return min(reach(r.body, lib, _seen), reach(r.otherwise, lib, _seen))
     if isinstance(r, Until):
         return max(r.budget, 0) * reach(r.body, lib, _seen)
     if isinstance(r, (Let, Expect)):
