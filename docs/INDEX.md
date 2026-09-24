@@ -44753,6 +44753,24 @@ one-line change in the mint path rather than a build.
     CAPABILITY  the door is open and nothing walks through it yet. `F287`'s cause corrected in
                 the row that carries it, and the bundle to Isaiah needs the same correction
 
+**AND THE CALLER EXISTS NOW, SO THIS ENTRY'S REMAINING-WORK CLAUSE IS SATISFIED -- 2026-09-24.**
+*What remains is a caller that asks for an attribute-typed chain, and that is a one-line change
+in the mint path rather than a build* was true when written. **`tether.py:4141` is that caller**:
+`mint` appends `(stype, t)` streams for every type in `gap["varies_types"]`, and names the result
+`typed:{out_t}` rather than folding it into `objective`. **The one-line change was made.**
+
+> **SO `type.widening` OWES A RULING, NOT A BUILD.** The caller sits behind
+> **`TETHER_STREAM_WIDEN`, DEFAULT OFF** (`tether.py:267`, declared in the arms seat), and
+> flipping an arm is fenced. **The item is BUILT AND UNREACHED, which is a different status from
+> the one this entry closes on, and the difference is whose decision it is.**
+
+**AND THE STALE CLAUSE POINTED AT THE WRONG LINE, WHICH IS WHY THIS IS RECORDED RATHER THAN JUST
+UPDATED.** It cites *the mint path calls it as `("val","val")` (`tether.py:3564`)*. **The site
+hardcoded that way today is `_reach` (`tether.py:4565`) -- and `F346` measured `_reach` as CALLED
+ZERO TIMES.** So a reader following this entry's own citation would have "repaired" a dead
+function and left the live one untouched. **`B17i` exactly: the instrument was right, the world
+was right, and the CODE had moved underneath it.**
+
 ---
 
 ## F303 (INDEX series) — ITEM 6's KEY, MEASURED BEFORE IT WAS BUILT: **A GLOBAL FRAME DELTA IS SATURATED AT EVERY GRANULARITY THAT CROSSES.** The key must be SCOPED TO THE OBJECT, and scoped it is ~3%
