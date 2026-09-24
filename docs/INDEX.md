@@ -46788,6 +46788,29 @@ absence -- something IS bound and is not an objective. Unexplained, and no story
 Isaiah, 2026-09-24: **the agent controls everything except THE SCORE**, and the standard is
 *"as much agency as you do as an LLM"*. **A table, not a refactor** -- nothing is moved here.
 
+### A THIRD CATEGORY THE SORT DID NOT HAVE -- `F347`, later the same night
+
+**Both tests ask what a constant DECIDES.** `max_depth` turned out to do something neither test
+can see: **it CALIBRATES A FALSIFIER.** Its anchor -- *`world._ladder` is four atoms deep, PAST
+this depth ... **depth 3 is what makes the chunking claim falsifiable; at 4 the falsifier would
+be reachable without chunking*** -- was not read when this sort was made. **It was flagged MIXED
+for the two jobs it visibly had, and it has three.**
+
+    SUBSTRATE     a fact about the world. Ours
+    JUDGEMENT     what evidence is worth. The agent's
+    **CALIBRATION**   **what makes a claim TESTABLE. Neither** -- it belongs to the measurement
+                  apparatus, and **moving it silently disarms a test rather than changing a
+                  behaviour**
+
+> **A CONSTANT IN THE THIRD CATEGORY FAILS QUIETLY IN THE ONE DIRECTION NOTHING WATCHES:** the
+> seat stays green, the claim stops being provable, **and the green is counted.** Both tests
+> above would have said *substrate, ours, move it freely.*
+
+**`MIN_REPEAT` has a second consumer too and it is NOT this case** -- `_goal_choice` reuses it
+for *confidently shrinking*, and says so at the site. **Declared reuse is a blast radius; an
+unread anchor is a hidden job.** Checked: `max_depth` is the only one of the sorted constants
+carrying one.
+
 ### The two tests, and they are not the same test
 
     ISAIAH'S    **would I accept this being fixed for me, offline, before I saw the problem?**
