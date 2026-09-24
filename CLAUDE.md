@@ -624,6 +624,32 @@ reads as something that will be enforced, and it will not be.
   is looking at that row** — and someone adding a NEW row is looking at the row's SOURCE, which
   is somewhere else entirely.
 
+  **AND THE THIRD INSTANCE IS THE READING SIDE OF THE SAME FACT, AND IT PRODUCED A PUBLISHED
+  NUMBER — 2026-09-24, `16db1f8`.** Both instances above are about WRITING a row. **A row written
+  at the top of a step reports the state BEFORE that cycle ran** — which is the same placement
+  fact read from the other end, and it is the end where the damage lands. `_read_books` writes at
+  the top of its step, **so every books row LAGS BY A CYCLE**: the rows read `0, 0, 0` while the
+  final book read non-zero, **and I quoted one as a TOTAL in `F350` within the hour of taking it.**
+
+  > **THE CHECK IS: READ THE OBJECT AFTER THE RUN, NEVER THE ROW.** A row is a snapshot of a
+  > cycle's opening, and a total is a property of the object. `gamma.book` is the total;
+  > `books` is not.
+
+  **AND THE AUTHOR-SIDE COMMENT COULD NOT HAVE CAUGHT IT, WHICH IS THE SECOND INSTANCE'S OWN
+  DIAGNOSIS ONE REGISTER ALONG.** That one found *a comment explaining why a row sits where it
+  does only works if the next author is looking at that row.* **A READER is not looking at the
+  row's site at all — they are looking at the OUTPUT**, and there is nothing there to read but
+  the number.
+
+  **AND THE SWEEP IS THE PART WORTH COPYING, BECAUSE *repaired the instance, left the class* is
+  this seat's most-filed failure.** Of the four book figures published that night: the bargain
+  counts were **CORRUPTED** and re-taken; the arrival-depth histogram was **IDENTICAL** to the
+  final book; `chunk_reuse` and the gate-1 tally were taken at their **write sites** and never
+  touched this path. **One wrong, one right, two taken with a different instrument.** And the
+  clean one is not a reprieve: **it survives only because every arrival on that run precedes the
+  last row**, so on a longer run it would lag like the rest. **A reading that happens to be right
+  is not a reading you can quote next week.**
+
   **And it belongs beside the executes-check because they are the same family from opposite
   ends: that one asks *does this site run before I build into it*, this one asks *what did I
   just make untrue*.**
