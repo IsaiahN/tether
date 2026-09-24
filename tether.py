@@ -20,6 +20,7 @@ from itertools import islice
 from typing import Any
 
 import composer
+import condition
 import grammar as G
 import instruments as I
 import retrieval
@@ -2861,6 +2862,37 @@ class Agent:
                         been there"*
             `unknown`   satisfiable, and nothing in this agent's record says it can be reached
         """
+        # **A COMPOUND GUARD'S AFFORDANCE IS COMPOSED, NOT GUESSED, and each case falls out of
+        # `CAN`'s own three outcomes rather than being chosen.**
+        #
+        #   `not P`     ACHIEVABLE WHEN P DOES NOT HOLD NOW, by this method's own rule two
+        #               paragraphs down -- *holds now, or has held: reached, so reachable*.
+        #               Read off the same `_discrepancy`, no new evidence
+        #   `a and b`   both must be achievable. `all`, and the conservative direction is also
+        #               the correct one: a conjunction you can only half-reach is not reachable
+        #   `a or b`    either suffices. Achieving one disjunct achieves the disjunction
+        #
+        # **`unknown` PROPAGATES AND DOES NOT BECOME `no`** -- check 3 at the affordance, the
+        # same distinction the evaluator keeps at execution.
+        if isinstance(slot, condition.Not):
+            inner = self.can(slot.inner, state)
+            if inner is NO:
+                return YES                 # nothing satisfies P, so `not P` holds always
+            g = self._discrepancy(slot.inner, state) if isinstance(slot.inner, str) else None
+            if g is NOT_RESOLVED:
+                return UNKNOWN
+            return YES if (isinstance(g, int) and g != 0) else UNKNOWN
+        if isinstance(slot, condition.Bool):
+            lf, rt = self.can(slot.left, state), self.can(slot.right, state)
+            if slot.op == "and":
+                return YES if lf == YES and rt == YES else (NO if NO in (lf, rt) else UNKNOWN)
+            if YES in (lf, rt):
+                return YES
+            return NO if lf == NO and rt == NO else UNKNOWN
+        if isinstance(slot, condition.Slot):
+            return self.can(slot.name, state)
+        if not isinstance(slot, str):
+            return UNKNOWN                 # a shape this affordance cannot read is not a `no`
         gap = self._discrepancy(slot, state)
         if gap is NOT_RESOLVED:
             return UNKNOWN                 # could not read the objective here
@@ -3044,7 +3076,55 @@ class Agent:
                                 bound=self.bound.get(guard),
                                 note="BLOCKED is 'could not read', never 'does not hold'")
             return None if rg is None else rg <= 0.0
-        return holds
+
+        def read(name: str, args: tuple):
+            # THE READER KNOWS SLOT PREDICATES AND NOTHING ELSE, AND SAYS SO IN THE THIRD
+            # VALUE. An INSTRUMENT call would arrive here with args; this reader cannot
+            # evaluate one, and `None` is the honest answer -- *I could not tell* -- which
+            # BLOCKS the routine rather than passing it on a guess. The alternative, raising,
+            # would turn a gap in this reader into a crash in the ACT space.
+            return None if args else holds(name)
+
+        def holds_any(guard):
+            # **A STRING IS THE OLD PATH, UNTOUCHED.** Every guard the composer has ever built
+            # is a slot name, and this returns exactly what it always did for one.
+            if isinstance(guard, str):
+                return holds(guard)
+            # **KLEENE, AND IT IS `condition.py`'s RATHER THAN A SECOND ONE.** `False and None`
+            # is `False`; `True and None` is `None`. Writing that logic here would be the same
+            # rule in two places, and the one in `condition` has its own seat.
+            return condition.evaluate(guard, read)
+
+        return holds_any
+
+    def _compound_guards(self, subject: str, names: tuple) -> tuple:
+        """Guards that say more than one slot -- the agent-formed half of Part 5.9.5.
+
+        **A GUARD WAS ONE SLOT NAME, SO A ROUTINE'S TERMINATION CONDITION COULD ONLY EVER SAY
+        *this one objective is satisfied*.** `condition.py` was built for the OTHER half --
+        conditions DERIVED from corpus prose -- and `F299`/`F300` read that census at
+        `DRAFTABLE 0`, which is why nothing imported it. **The parser was never the unreached
+        part; the agent forming its own conditions was.**
+
+        **EVERY COMPOUND MENTIONS THE SUBJECT, AND THAT IS A BOUND RATHER THAN A CAP.** A
+        routine is composed FOR a slot, so a guard that does not mention it is a guard for a
+        different plan. That makes this linear in the slots the agent has objectives about,
+        and the bound is read off the call site instead of being a number I picked.
+
+        **THIS IS NOT AGGREGATION ACROSS SLOTS.** The prohibition is on AVERAGING -- *R is
+        indexed per object slot, and averaging is how a live signal disappears*. A conjunction
+        reads each slot's residual SEPARATELY and dilutes neither; both readings survive
+        individually, and `guard_unreadable` still records the slot that could not be read.
+        **An average destroys the per-slot signal; a conjunction preserves both.**
+        """
+        Sl, Nt, Bl = condition.Slot, condition.Not, condition.Bool
+        out = [Nt(Sl(subject))]
+        for other in names:
+            if other == subject:
+                continue
+            out.append(Bl("and", Sl(subject), Sl(other)))
+            out.append(Bl("or", Sl(subject), Sl(other)))
+        return tuple(out)
 
     def _rejection(self, key: tuple) -> float:
         """The decayed strength of rejection. `Standing.decay` on the LOGICAL clock -- cycles,
@@ -3260,7 +3340,13 @@ class Agent:
         mine = tuple(s for s in sorted(self._disc) if s in before)
         # derived once: `reach` and `actions` both resolve a `Call` through it
         lib = self.routine_lib
-        cands = Rt.enumerate_routines((act,), mine or (slot,), shelf, loop_budget)
+        # THE COMPOUND GUARDS ARE APPENDED, so every shape reachable before this line is still
+        # reachable and in the same order -- `cap` takes the shortest, and a compound guard now
+        # costs its excess (`routine._guard_excess`), so it sorts AFTER the plain one it
+        # extends rather than displacing it. **A looser guard has to be worth its extra bits.**
+        gnames = mine or (slot,)
+        cands = Rt.enumerate_routines((act,), gnames + self._compound_guards(slot, gnames),
+                                      shelf, loop_budget)
         # WEIGHTED AND CLOCKED, per §18.2 via `gamma.Standing`: a refutation excludes only while
         # its decaying strength stands, so a failed shape leaves the running and returns.
         cands = [c for c in cands

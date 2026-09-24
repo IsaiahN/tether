@@ -79,10 +79,24 @@ class Cmp:
     left: Any
     right: Any
 
+    def __str__(self) -> str:
+        return f"{self.left} {self.op} {self.right}"
+
+    @property
+    def size(self) -> int:
+        return size(self)
+
 
 @dataclass(frozen=True)
 class Not:
     inner: Any
+
+    def __str__(self) -> str:
+        return f"not {self.inner}"
+
+    @property
+    def size(self) -> int:
+        return size(self)
 
 
 @dataclass(frozen=True)
@@ -91,16 +105,37 @@ class Bool:
     left: Any
     right: Any
 
+    def __str__(self) -> str:
+        return f"({self.left} {self.op} {self.right})"
+
+    @property
+    def size(self) -> int:
+        return size(self)
+
 
 @dataclass(frozen=True)
 class Call:
     name: str
     args: tuple
 
+    def __str__(self) -> str:
+        return f"{self.name}({', '.join(str(a) for a in self.args)})"
+
+    @property
+    def size(self) -> int:
+        return size(self)
+
 
 @dataclass(frozen=True)
 class Slot:
     name: str
+
+    def __str__(self) -> str:
+        return self.name
+
+    @property
+    def size(self) -> int:
+        return size(self)
 
 
 class _P:
@@ -186,6 +221,29 @@ def parse(text: str) -> Any:
 
 
 UNKNOWN = None
+
+
+def size(node: Any) -> int:
+    """How many nodes the condition is made of. **The thing a bargain can charge for.**
+
+    **A GUARD WAS FREE, AND A FREE GUARD IS A FREE LUNCH.** `routine.length` counts
+    constructors and never looked inside a guard, which is correct while every guard is one
+    slot name and wrong the moment they can be combined: `or` is easier to satisfy than either
+    side, so a routine could loosen its own termination condition at no cost and win the
+    bargain by saying less. **That is precisely the term that explains everything by saying
+    nothing** -- the thing `pays` exists to refuse -- and it would have arrived through the one
+    part of the object nobody was pricing.
+
+    A LEAF IS 1. Anything without a size is a leaf, which is what keeps a bare slot-name string
+    at the price it has always had.
+    """
+    if isinstance(node, (Not,)):
+        return 1 + size(node.inner)
+    if isinstance(node, (Bool, Cmp)):
+        return 1 + size(node.left) + size(node.right)
+    if isinstance(node, Call):
+        return 1 + sum(size(a) for a in node.args)
+    return 1
 
 
 def evaluate(node: Any, read: Callable[[str, tuple], Any]) -> bool | None:

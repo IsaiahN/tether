@@ -279,6 +279,54 @@ def check_the_plan_language_can_hold_a_choice():
                    for r in got), "a branch whose arms are the same routine"
 
 
+def check_a_guard_can_say_more_than_one_slot():
+    """DEFECT: a compound guard that is free, or that loses the slot it could not read.
+
+    **A GUARD WAS ONE SLOT NAME**, so a routine could only ever terminate on *this one
+    objective is satisfied*. `condition.py` had the grammar and no importer -- its OTHER half,
+    conditions derived from corpus prose, censused at `DRAFTABLE 0` (`F299`/`F300`).
+    """
+    import condition as C
+    slotname = "o1.dcol"
+
+    # 1 -- THE PRICE OF EVERY ROUTINE THE AGENT HAS EVER BUILT IS UNCHANGED. `_guard_excess`
+    # charges the EXCESS over one, so a bare slot-name guard still costs what it always did.
+    plain = Rt.Until(slotname, Rt.Act("A"), 3)
+    assert Rt.length(plain) == 2, f"a plain guard's price moved: {Rt.length(plain)}"
+    node = Rt.Until(C.Slot(slotname), Rt.Act("A"), 3)
+    assert Rt.length(node) == 2, "a one-slot node is not priced as a leaf"
+
+    # 2 -- AND A GUARD THAT SAYS MORE PAYS MORE. Without this `or` is a free loosening: it is
+    # easier to satisfy than either side, so the agent could win the bargain by saying less.
+    loose = Rt.Until(C.Bool("or", C.Slot(slotname), C.Slot("o2.dcol")), Rt.Act("A"), 3)
+    assert Rt.length(loose) == 4, f"a compound guard costs {Rt.length(loose)}, not 4"
+    assert C.size(C.Bool("or", C.Slot("a"), C.Slot("b"))) == 3
+
+    # 3 -- THE WIRE: a node routes to the evaluator through the agent's own slot predicate.
+    ag = _agent()
+    slot = _wide(ag)
+    b = dict(ag.env.observe())
+    h = ag._holds(b)
+    assert h(C.Slot(slot)) == h(slot), "a node and its name disagree about the same slot"
+
+    # 4 -- KLEENE SURVIVES THE WIRE. An unreadable conjunct can never produce a satisfied
+    # guard: *I could not read it* is not *it holds*, at the site that terminates a loop.
+    n0 = len(ag.led.entries)
+    both = h(C.Bool("and", C.Slot(slot), C.Slot("no.such.slot")))
+    assert both is not True, "a conjunction held on a conjunct nothing could read"
+
+    # 5 -- AND THE PER-SLOT SIGNAL SURVIVES IT, which is what makes this composition and not
+    # aggregation. The unreadable slot is named in its own row rather than averaged away.
+    rows = [e.detail for e in ag.led.entries[n0:] if e.event == "guard_unreadable"]
+    assert any(e.slot == "no.such.slot" for e in ag.led.entries[n0:]
+               if e.event == "guard_unreadable"), f"the conjunct that failed is unnamed: {rows}"
+
+    # 6 -- AND THE COMPOSER FORMS THEM, so this is not a grammar with no producer a second time.
+    made = ag._compound_guards(slot, (slot, "o2.dcol"))
+    assert made, "no compound guard is ever offered"
+    assert all(slot in str(g) for g in made), "a compound guard does not mention its subject"
+
+
 def check_chunking_reaches_the_bargain():
     """The ARITHMETIC of chunking: a settled routine counts as one unit and that can flip `pays`.
 

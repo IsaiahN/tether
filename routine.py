@@ -269,6 +269,23 @@ def advance(r: Any, holds: Callable[[Any], bool | None],
     raise TypeError(f"not a routine: {r!r}")
 
 
+def _guard_excess(guard: Any) -> int:
+    """What a guard costs BEYOND the one every guard has always cost.
+
+    **STRUCTURE STAYS OPAQUE HERE; ONLY SIZE CROSSES.** This module's invariant is that it
+    never looks inside a guard -- the caller owns evaluation, which is what keeps the ACT space
+    legible and is why `Choose` had to be a constructor. A guard that can report its own `size`
+    is priced by it; anything else is a leaf worth 1. **The protocol carries a number, not a
+    shape**, so nothing here learns what a guard is made of.
+
+    **AND IT IS THE EXCESS RATHER THAN THE SIZE, WHICH IS WHAT MAKES IT ADDITIVE.** A bare
+    slot-name guard has size 1 and excess 0, so every price this module has ever computed is
+    unchanged. Only a guard that says MORE than one thing pays more.
+    """
+    n = getattr(guard, "size", 1)
+    return max(0, int(n) - 1) if isinstance(n, int) else 0
+
+
 def length(r: Any, chunks: tuple = ()) -> int:
     """How many constructors the routine is made of. **The cost side of the one bargain.**
 
@@ -292,12 +309,13 @@ def length(r: Any, chunks: tuple = ()) -> int:
     if isinstance(r, Seq):
         return 1 + length(r.first, chunks) + length(r.then, chunks)
     if isinstance(r, (When, Until)):
-        return 1 + length(r.body, chunks)
+        return 1 + _guard_excess(r.guard) + length(r.body, chunks)
     if isinstance(r, Choose):
         # BOTH ARMS, LIKE `Seq`, because the OBJECT carries both and the object is what is
         # priced. Charging only the arm that runs would price a branch by its behaviour, which
         # is the thing `Until`'s rule two lines up refuses.
-        return 1 + length(r.body, chunks) + length(r.otherwise, chunks)
+        return (1 + _guard_excess(r.guard)
+                + length(r.body, chunks) + length(r.otherwise, chunks))
     if isinstance(r, (Let, Expect)):
         return 1 + length(r.body, chunks)
     if isinstance(r, Call):
