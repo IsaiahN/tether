@@ -48075,3 +48075,48 @@ read every abbreviation as a gap.
 is not one file**, which is `I26`'s scope error exactly. **It was caught because the head of the
 list was IMPLAUSIBLE, not because the parser complained** -- a reminder that the check on a
 census is whether its answer could be true.
+
+
+## F353 -- **`_cannot_pay` IS PROVEN LOSSLESS AND HAS BEEN ALL DAY.** The question I could not hand over was already answered in the seat suite, with a mutation control
+
+**I asked four times today whether `_cannot_pay` refusing 144,961 of 144,987 is CORRECT**, and
+called it the thing I had not managed to hand Isaiah cleanly. **`conform/stateful.py` answers it
+and the seat has been green throughout.**
+
+### THE TEST, AND IT IS THE STRONGEST SHAPE AVAILABLE
+
+    exhaustive = run(lambda *_a: False)          # the bound NEUTERED -- refuses nothing
+    assert run(real) == exhaustive               # bindings, debts, library size, ledger length
+    unsound = run(lambda _s, term, *_a: term.operand is not None)
+    assert unsound != exhaustive                 # AND THE PROPERTY CAN GO RED
+
+**Three seeds, twelve steps each, on the `snaps` generator.** *`_cannot_pay` is a NECESSARY
+condition: a term wrong on k of R is wrong at least k times overall.* **If that holds, neutering
+it changes nothing at all -- not the bindings, not the debts, not the library, not one ledger
+row.** And the mutation arm proves the check is not vacuous: **a narrowing that drops
+operand-reading terms MUST be detected, or the property pins nothing.**
+
+> **SO THE BOUND IS A SPEEDUP THAT PROVABLY DROPS NOTHING. 144,961 refusals cost no capability,
+> and *is the bound correct* is SETTLED rather than open.**
+
+### WHICH MOVES THE QUESTION, AND THE ANSWER WAS THE REVIEWER'S AT 13:43
+
+**If the bound loses nothing, the 144,961 are terms that genuinely CANNOT pay** -- the scarcity
+is real and is a property of the population, not of the filter. **Seven terms pay in ten cycles
+and not one is an objective.**
+
+> **AND THAT IS `F333`, WHICH THE REVIEWER NAMED EIGHT HOURS EARLIER:** *the widened candidates
+> fall through to a pricing rule that cannot handle a third kind -- a magnitude WAGERS NOTHING,
+> so it cannot lose and therefore cannot win.* **No objective pays because no objective CAN pay
+> under `cost + left < base`.**
+
+**I spent the day rediscovering their 13:43 by measurement, twice mis-attributing the evidence on
+the way.** The finding is not new; **what is new is that it is now measured at the write site
+rather than argued** -- `bargain_paid 7`, all predictors, zero contest rows in 38 mint rows.
+
+### THE STEP THAT WOULD HAVE SAVED THE DAY
+
+**`assume it is already specified, and go look` -- applied to a SEAT rather than to the corpus.**
+Every instance of that step on record searches `docs/`; **this one was in `conform/`, in a test
+whose name says what it proves.** The step's scope is *the record*, and a property test with a
+mutation control is a stronger record than prose. **Widened here.**
