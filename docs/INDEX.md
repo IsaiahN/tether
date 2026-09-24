@@ -48381,3 +48381,70 @@ already maintained, already used elsewhere in the loop.**
 found by asking *is the want-native measure already written* **before** reporting that the
 bargain needs a new one -- **the fourth instance today would have been proposing a currency that
 was forty lines from the one in use.**
+
+## F359 -- **THE PRECONDITION IS REACHED, IS EXERCISED, AND REFUSES NOTHING -- and it is standing in the same starved doorway the record already names**
+
+**The reviewer asked for three things on the residual precondition. This is the third: EXERCISE
+ITS OWN FAILURE PATH.** Doing so turned up a fact the counter could not have shown.
+
+### THE COUNTER READS ZERO FOR TWO DIFFERENT REASONS AND CANNOT SEPARATE THEM
+
+`mint_no_residual` is **0** on every run. That is `counters-lie-read-the-write-site` exactly:
+*never called* and *called and never refusing* produce the same zero. **Spied for CALLS
+separately from RESOLUTIONS, 10 cycles of the toy:**
+
+    calls                    7
+    returned_True            7
+    returned_False           0
+    robs_nonempty            7      -- every call, length 5
+    robs_empty               0
+
+> **SO IT IS REACHED AND PERMISSIVE, NOT DORMANT.** And the specific refusal its own docstring
+> claims -- *"a spectator the incumbent already predicts perfectly leaves `robs` EMPTY"* --
+> **never once occurs.** `robs` is non-empty on all seven calls, so the route the docstring
+> describes is not the route the code is taking.
+
+### THE MUTATION CONTROL: REMOVING IT CHANGES NOTHING
+
+One script, one flag. ARM A as built, ARM B with `bears_on` replaced by `return True`:
+
+    ARM A  precondition ON   refused 0  paid 7  settled 3  bound 7
+    ARM B  precondition OFF  refused 0  paid 7  settled 3  bound 7
+    LOST 0 -- GAINED 0 -- bindings identical
+
+**A gate that can be deleted without moving one binding is not yet doing work.** This is not a
+defect in the gate: it is a statement about where it sits.
+
+### AND WHERE IT SITS IS THE PART WORTH KEEPING
+
+**7 calls against `bargain_bounded_out` of 144,961.** The precondition is gated BEHIND
+`_cannot_pay`, so it only ever sees candidates that already cleared the bound. `CLAUDE.md`
+records this same placement failing before, in the same file, for the same reason:
+
+> *It was STARVED: `_cannot_pay` cuts 346,992 of 347,494, only 502 candidates reach `pays`...
+> A rescue site with almost no occasions.*
+
+**I built the precondition into that doorway one day after the record named it.** The
+executes-check was run -- the site does execute -- and *executes* was taken for *has occasions*.
+**Those are two questions and only the first was asked.**
+
+### WHAT WAS ACTUALLY BUILT, AND IT GOES RED
+
+`conform/stateful.py::test_the_daydream_precondition_can_refuse`. Arguments are **captured from
+a live run**, never hand-made -- a hand-built term proves the logic and not that the logic is
+reachable with the values the loop carries. Both refusal routes are driven on real ones:
+
+    baseline, as the loop called it      True      the two below are vacuous without this
+    `robs` empty                         False     the spectator route
+    `held` IS the candidate              False     says nothing different
+
+**Proven able to go red against a real break of the function** (`return True` before the loop),
+not only against the inline control: the identical-incumbent assertion fires and names itself.
+
+### WHAT THIS DOES NOT SAY
+
+**It does not say the precondition is wrong, and it does not propose moving it.** Where a gate
+belongs is a wiring decision of the same family as `F358`'s, and it is Isaiah's. **What is
+settled is that its failure path WORKS and its position gives it almost nothing to work on** --
+so if it is meant to bite, the bound in front of it is what stands between.
+

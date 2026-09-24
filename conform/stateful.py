@@ -436,6 +436,62 @@ def test_the_residual_bound_loses_nothing():
                                    "operand-reading terms, so it pins nothing")
 
 
+def test_the_daydream_precondition_can_refuse():
+    """`bears_on` returns True on every call of a live run, so nothing in the record shows
+    its refusal working. A gate never observed refusing is indistinguishable from a gate
+    wired to `return True`, and that is the class this repo keeps finding.
+
+    So the arguments are CAPTURED FROM A LIVE RUN rather than built here -- a hand-made
+    term would prove the function's logic and not that the logic is reachable with the
+    values the loop actually carries. Both routes are driven on real ones:
+
+        no open residual        -- `robs` empty, the spectator case the docstring claims
+        says nothing different  -- `held` IS the candidate, so `got == was` everywhere
+
+    AND THE MUTATION CONTROL IS THE POINT. A `bears_on` that ignored `held` would pass the
+    empty-`robs` route and still be wrong, which is the more likely defect of the two.
+    """
+    import io
+    from contextlib import redirect_stdout
+
+    import tether
+    import world
+    from gamma import Gamma
+    from ledger import Ledger
+
+    seen = []
+    real = tether.Agent.bears_on
+
+    def spy(self, term, slot, robs, held):
+        seen.append((self, term, slot, list(robs), held))
+        return real(self, term, slot, robs, held)
+
+    tether.Agent.bears_on = spy
+    try:
+        env = world.bind(world.Transitions())
+        ag = tether.Agent(env, Gamma(env.atoms()), tether.Config(), Ledger())
+        with redirect_stdout(io.StringIO()):
+            ag.run(10)
+    finally:
+        tether.Agent.bears_on = real
+
+    assert seen, "the precondition was never called -- the site is unreached, not permissive"
+    agent, term, slot, robs, held = seen[0]
+    assert robs, "captured a call with no open residual; the baseline below would be vacuous"
+
+    assert real(agent, term, slot, robs, held) is True, (
+        "the captured call no longer passes, so the two refusals below prove nothing")
+    assert real(agent, term, slot, [], held) is False, (
+        "a candidate with NO open residual was admitted -- the spectator route is dead")
+    assert real(agent, term, slot, robs, term) is False, (
+        "a candidate identical to the incumbent was admitted -- it says nothing different")
+
+    blind = lambda _self, _t, _s, robs, _h: bool(robs)  # noqa: E731 -- ignores `held`
+    assert blind(agent, term, slot, [], held) is False
+    assert blind(agent, term, slot, robs, term) is True, (
+        "this property cannot detect a precondition that ignores the incumbent")
+
+
 def test_shipped_generator_reaches_the_hard_cases():
     """The families the false-mint read named as out-of-closure are the ones this seat
     exists to run into. A generator that stopped producing them would still be green."""

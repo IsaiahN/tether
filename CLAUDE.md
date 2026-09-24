@@ -673,6 +673,23 @@ reads as something that will be enforced, and it will not be.
   > **THE CHECK IS ONE SPY AND IT IS CHEAP: before building INTO a site, count that it EXECUTES
   > on a real run.** Not that it exists, not that its comment fits — that the counter moves.
 
+  **AND *THE COUNTER MOVES* IS NOT ENOUGH, BECAUSE IT HAS NO DENOMINATOR — `F359`, 2026-09-24,
+  AND THE CASE BELOW WAS ALREADY WRITTEN WHEN I MADE IT.** I built the residual precondition
+  behind `_cannot_pay`, ran this exact check, and it PASSED: the site executes, the counter
+  moves, **7 calls.** Against **144,961 bounded out.** The gate is reached, returns `True` on
+  all seven, and deleting it entirely moves no binding — **a clean pass on this check with a
+  mechanism that has nothing to act on.**
+
+  > **EXECUTES IS NOT HAS OCCASIONS. Count the site's calls AGAINST THE POPULATION IT IS MEANT
+  > TO FILTER, and read the ratio, not the counter.** A bare count answers *is it wired*; only
+  > the ratio answers *does it get to decide anything*.
+
+  **The starvation case sat one paragraph below this check, in this file, describing the same
+  doorway** — *a rescue site with almost no occasions* — **and it was filed as a second
+  NARRATIVE rather than folded into the check, so the check kept saying `the counter moves`.**
+  That is this file's own `I25` at the level of its own text: *repaired the instance, left the
+  class.* **An anecdote beside a rule does not amend the rule, and the rule is what gets run.**
+
   **AND THE SECOND PLACEMENT FAILED THE OPPOSITE WAY, WHICH IS WHY A GUESS ABOUT LOAD IS NOT A
   SUBSTITUTE EITHER.** Moved into `mint`'s `does-not-pay` branch, I expected it to be too HOT
   and bounded it carefully. **It was STARVED: `_cannot_pay` cuts 346,992 of 347,494, only 502
