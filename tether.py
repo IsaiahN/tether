@@ -655,6 +655,18 @@ class Agent:
         self.led = led if led is not None else Ledger(mode=self.cfg.mode)
         self.slots = env.slots()
         self.bound: dict[str, str] = {}
+
+        # SYSTEM 2'S CHANNEL -- Isaiah, 2026-09-24. **`bound` IS SYSTEM 1: the term that ACTS.**
+        # The contest between kinds was winner-take-all, so an objective that PAID THE BARGAIN was
+        # discarded by a cheaper predictor, and `goal_residual` then reported `out_type-not-OBJ` --
+        # **a TYPE claim standing in for a DISCARD.** The agent had no want because the want was
+        # thrown away, not because none was found.
+        #
+        # **BOTH ARMS, WITH A RANKING BETWEEN THEM, NOT A SINGLE CHAIR.** The ranking decides which
+        # term ACTS; it does not decide which term EXISTS. A verdict that deletes the loser is the
+        # wireheading shape he named -- whatever wins an argument becomes the whole of what
+        # you want.
+        self.wants: dict[str, str] = {}
         self._acts: Counter = Counter()   # System-0 instrument: concrete actions taken per cycle
         # the whole before-state is kept, because an operand is another slot's past value
         self.trace: list[tuple[dict[str, int], str, dict[str, int]]] = []
@@ -2190,6 +2202,54 @@ class Agent:
             return self._outstanding.get(slot, 0.0)
         return sum(self._outstanding.values())
 
+    def _rank_by_consequence(self, by_kind: dict, best):
+        """Order the kinds by HOW SOON NOT-ACTING COSTS, and keep the losers. Isaiah, 2026-09-24.
+
+        **RETURNS THE QUEUE, HEAD FIRST. The head is installed; the tail is RECORDED rather than
+        discarded**, which is the whole of what makes this a queue and not a second verdict.
+
+        **THE ORDER IS THE AGENT'S AND IS NOT SUPPLIED HERE.** `consequence_in(kind)` is the
+        measured delay between binding a term of that kind and its consequence being READABLE --
+        one cycle for a predictor, however long satisfaction takes for an objective. Until the
+        agent has observed one it returns `None`, every kind ties, and the fallback is `total`:
+        **the exact order `best` already produced.** So the installed term is unchanged on every
+        run today and the mechanism is in place for the moment the board fills the dial.
+
+        **URGENCY CUTS THE LINE, and the hook is here with nothing feeding it.** *A faster hazard
+        always moves to the front, even if it is absent from the mnemonic.* A kind marked urgent
+        sorts ahead of its consequence time; nothing marks one yet, and inventing the trigger
+        would be picking the number Isaiah reserved.
+        """
+        self._queue_kinds = []
+        if not by_kind or best is None:
+            return []
+        rows = []
+        for kind, v in by_kind.items():
+            soon = self.consequence_in(kind)
+            rows.append(((0 if self._urgent(kind) else 1),
+                         (soon if soon is not None else 0.0), v[0], kind, v))
+        rows.sort(key=lambda r: (r[0], r[1], r[2]))
+        self._queue_kinds = [(r[3], r[4][0]) for r in rows]
+        return [r[4] for r in rows]
+
+    def consequence_in(self, kind: str) -> float | None:
+        """HOW SOON A CLAIM OF THIS KIND IS ANSWERABLE, in cycles, or `None` when unearned.
+
+        **`None` IS THE HONEST STATE AND IT IS WHAT SHIPS.** The seat may not say how soon an
+        objective pays off relative to a predictor -- that is a reading of the board, and
+        `gamma.vindication` already shows the agent earning exactly this shape of quantity for
+        its halflife. **A number here would be the judgement Isaiah withheld**, so the dial is
+        declared, empty, and visible.
+        """
+        got = getattr(self.gamma, "consequence", None)
+        return (got or {}).get(kind)
+
+    def _urgent(self, _kind: str) -> bool:
+        """**PREEMPTION, DECLARED AND UNFED.** *A faster hazard always moves to the front.* What
+        makes a kind urgent on a given board is the agent's to read; nothing sets it, so this is
+        False for every kind and the queue is ordered by consequence alone."""
+        return False
+
     def explain(self, slot: str, bits: float) -> tuple[float, float]:
         """Reduce OUTSTANDING only. The integral is untouched.
 
@@ -2918,6 +2978,14 @@ class Agent:
         """
         name = self.bound.get(slot)
         term = self.gamma.library.get(name) if name else None
+        # **AND IF THE ACTING TERM IS NOT A WANT, READ THE RETAINED ONE.** `bound` holds what
+        # SYSTEM 1 does now; `wants` holds what SYSTEM 2 is still after. While the contest was
+        # winner-take-all this function had nothing to read whenever a predictor won.
+        if getattr(term, "out_type", None) != OBJ_TYPE:
+            _w = self.wants.get(slot)
+            _wt = self.gamma.library.get(_w) if _w else None
+            if _wt is not None:
+                name, term = _w, _wt
         # WHICH None, NOT THAT None -- F207. This function has five None exits and they are
         # different facts: nothing bound is a SUPPLY claim, the wrong out_type is a TYPE claim,
         # an absent slot is a PERCEPTION claim, an empty group is a SCOPE claim. The first
@@ -4481,6 +4549,37 @@ class Agent:
             self.led.record(self.cycle, "MINT", slot, "park", of=(slot,), **detail)
             return
 
+        # THE CONSUMER -- Isaiah, 2026-09-24. **`by_kind` WAS COMPUTED, PUBLISHED AND READ BY
+        # NOTHING**: it keeps the best candidate PER KIND and `best` installed the single lowest
+        # `cost + left` across all of them, so an objective could PAY THE BARGAIN, be recorded as
+        # its kind's champion, and be dropped on the floor. Measured on the toy world: OBJ passes
+        # `pays` twice and never binds once.
+        #
+        # **HIS RULING IS A QUEUE, NOT A VERDICT.** *"System 2 is the long-term thinker, system 1
+        # more reactive... sometimes option 1 is urgent and important and binding so it gets cut
+        # in line."* A binding verdict is wireheading-adjacent -- whatever wins an argument
+        # instantly becomes what you want, with no check against existing commitments -- so the
+        # losing kind is RETAINED rather than discarded.
+        #
+        # **AND THE RANK IS TIME-TO-CONSEQUENCE, NOT IMPORTANCE.** *"There are certain things that
+        # will kill me soonest. Food is not less important -- it is FURTHER AWAY."*
+        #
+        # **WHAT COUNTS AS *SOON* IS THE AGENT'S AND IS NOT SEEDED HERE.** `consequence_in` reads
+        # the agent's own earned record and returns `None` until it has one; with `None` the order
+        # falls back to `total`, which is **exactly what `best` already chose**, so this installs
+        # the mechanism and changes NO run. The queue exists, the preemption path exists, and
+        # both are inert until the board fills the dial -- the same shape as `REJECTION_CEILING`.
+        queue = self._rank_by_consequence(by_kind, best)
+        if queue:
+            best = queue[0]
+            detail["queued"] = [k for k, _v in self._queue_kinds]
+        # **THE TAIL IS KEPT, AND THAT IS THE WHOLE OF THE CHANGE.** The head installs into
+        # `bound` exactly as before; an OBJ-typed champion that did not win is written to
+        # `wants` rather than dropped. Nothing about WHO ACTS moves.
+        _obj = by_kind.get("objective")
+        if _obj is not None:
+            self.wants[slot] = _obj[3].name
+            detail["want"] = _obj[3].name
         _total, left, cost, term = best
         detail["explained"], detail["overclaimed"] = self.explain(slot, base - left)
         self.gamma.accept(term, seq=len(self.led), residual=f"{slot}@{self.cycle}")
