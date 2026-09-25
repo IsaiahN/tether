@@ -51,10 +51,28 @@ from gamma import Atom
 
 sys.dont_write_bytecode = True
 
-# anchor: R_goal is the fraction of a scope that fails, so a peer group of N-1 gives it N-1
-# steps. Two steps cannot separate "shrinking" from "arrived"; four can, which is why this
-# is five and not four.
-N_OBJECTS = 5
+# anchor: DERIVED FROM THE BARGAIN'S OWN PRICING, NOT CHOSEN -- 2026-09-25.
+#
+# `pays` is `cost + left < base` with `left = max(0, unsat - reach) * log2(n)` and
+# `base = unsat * log2(n)`, so `unsat` cancels and the whole condition is
+#
+#     PAYS  <=>  cost < min(reach, unsat) * log2(n)
+#
+# Evaluated at n=4 actions: the cheapest routine `term_bits` can price is 4.6439 bits, and
+# the only shape whose reach exceeds 1 without a length penalty is `Until(g, Act, budget)`
+# at 6.9658. So a plan needs `min(reach, unsat) >= 4`, i.e. **unsat >= 4**.
+#
+# `unsat = R_goal * scope`. At scope 4 that forces R_goal = 1.0 EXACTLY -- and 1.0 is the
+# maximum, so a series that PASSES gate 1 (which requires a real decrease) is necessarily
+# below it. **AT FOUR, A QUALIFYING OBJECTIVE CAN NEVER AFFORD A PLAN. Provably, not rarely.**
+#
+# At scope 5, R_goal 0.8 gives unsat 4 and 0.8 is a legitimate decrease from 1.0. **SCOPE 5
+# IS THE SMALLEST THAT ADMITS A PLAN AT ALL, AND SCOPE IS N-1.** Hence six.
+#
+# The earlier reasoning for five still holds and is subsumed: two steps cannot separate
+# "shrinking" from "arrived", four can. This is the same knob turned for a second, stronger
+# reason -- and the value came from the inequality rather than from wanting a mint.
+N_OBJECTS = 6
 
 # anchor: the objects need room to be non-adjacent and a walk needs somewhere to go; 5x5 is
 # the smallest board where both hold, and small enough to sweep exhaustively.

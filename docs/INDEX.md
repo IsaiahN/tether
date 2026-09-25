@@ -47176,6 +47176,25 @@ every arm on and read `sys.modules`*. **It had never been run.** The table benea
 is five hand-found instances of a thing one run answers for everything, and the run costs two
 cycles.
 
+> **RE-READ 2026-09-25, ISAIAH'S ITEM C, AND THE WORLD WAS NEVER STATED: THIS IS THE ARC
+> WORLD.** The proof is inside the finding — `world` and `demo` sit in the NOT-REACHED list
+> below while `arc_world`, `arc_self` and `arc_atoms` are REACHED. **Measured per world, same
+> method (`sys.modules` after a live agent step), population 55 modules in the repo root:**
+>
+>     ARC (this row, relabelled)   24 of 54
+>     TOY                          18 of 55
+>     GRIDWORLD                    16 of 55
+>
+> **THE REVIEWER PREDICTED GRIDWORLD WOULD BE AN UNDERCOUNT AND IT IS THE OPPOSITE.** `world`
+> IS reached there by construction, as expected — but **eight `arc_*` modules that load on the
+> ARC world do not load here**, and the net is LOWER. Only `gridworld` is reached there and not
+> on toy; only `demo`, `gate` and `speak` are reached on toy and not there. **36 modules are
+> unreached on both.**
+>
+> **ARC WAS NOT RE-RUN AND THAT IS DELIBERATE: THE BOARD STOP IS LIVE.** The 24 is relabelled,
+> never re-measured. *Running a board to tidy a denominator is the exact trade the stop exists
+> to refuse.*
+
 ### REACHED -- 24
 
     arc_atoms · arc_holdout · arc_percept · arc_predict · arc_run · arc_self · arc_world ·
@@ -48857,6 +48876,21 @@ and never pooled.** Spies call through and return the real value.
     GOAL       12/12        RUN         0/12
     DECOMPOSE  12/12        EXPRESS    12/12
     CORRECT     7/12
+
+> **RE-READ 2026-09-25, ISAIAH'S ITEM B, AND THE WORLD WAS RIGHT WHILE THE LENGTH WAS NOT.**
+> This ran on gridworld with its own spies, **at 8 CYCLES** — and the composer's first candidate
+> set on this habitat appears at **CYCLE 19**. **So `COMPOSE 0/12` is not evidence that COMPOSE
+> is dead; it is evidence that it had not happened by cycle 8**, which is a different claim and
+> a weaker one. Re-measured at 24 cycles with the same spies, COMPOSE reads **REACHED**.
+>
+> **AND THE POPULATION IS THE PART THAT WAS NEVER STATED: 12 boards x 8 CYCLES.** The number 8
+> is inherited from the toy world, where it is enough. **A length borrowed from one habitat and
+> applied to another is a supplied scope in exactly the sense Isaiah's proxy ruling names** —
+> right instrument, right world, and a population that could not contain the event.
+>
+> The reading is not retracted. **Its subject changes from *the mechanism is dead* to *the
+> window was too short*, and three other mechanisms measured in the same window inherit the
+> same caveat.**
 
 **FIVE OF SEVEN, THE SAME FIVE AS THE TOY WORLD.** And that is the useful half: **the habitat was
 the right hypothesis for three findings and the WRONG one for COMPOSE and RUN.** Those two are

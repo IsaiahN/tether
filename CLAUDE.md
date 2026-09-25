@@ -117,6 +117,60 @@ I have a documented weakness for **invented metrics and magic numbers**. Coverag
 minted, compression achieved, and anything else the frame produces are frame-internal
 and are not evidence.
 
+**A PROXY IS A NUMBER PRETENDING TO BE A SHAPE — ISAIAH, 2026-09-25, AND IT IS NOT A NEW LAW.**
+*"This is why I don't trust proxy metrics. They are only as good as your instruments are
+accurate, or pointed at the right target."* **The reviewer's derivation is the part that makes
+it bind: it is an INTRINSIC CONSEQUENCE of the architecture rather than a clause added to it.**
+
+> A proxy is produced by an instrument WE built, over a population WE chose, in a world WE
+> pointed it at. **Every one of those three is a supplied meaning** — so a proxy is not a
+> reading FROM the ground, it is a reading from OUR OWN CONSTRUCTION wearing the costume of a
+> ground reading. **That is the same crossing the whole corpus exists to refuse**, applied to
+> measurement instead of to vocabulary. *Shape is ours, numbers are the ground's.*
+
+**AND THE FAILURE MODE IS THE CONFIDENT KIND, NOT THE VAGUE ONE.** Everyone knows a proxy is
+approximate; that is not the problem. **A proxy can be PRECISELY AND CORRECTLY COMPUTED AND
+MEAN NOTHING, and it looks identical to a good reading.** Isaiah's phrasing names both halves:
+
+    ACCURATE, WRONG TARGET    the fixture measuring the TOY world while the work was on
+                              gridworld -- correct instrument, wrong subject
+    RIGHT TARGET, INACCURATE  a fallback that fails silently -- correct world, and the
+                              instrument swallows the failure
+
+**`F375` IS FOUR INSTANCES IN ONE DAY AND NOT ONE WAS THE AGENT'S.** `COMPOSE 0, RUN 0` was a
+real number, correctly computed, from a world where it could only ever have been zero, and it
+was reported for three hours. **Nothing about the number could have revealed it.**
+
+> **SO EVERY MEASUREMENT USED AS EVIDENCE STATES TWO THINGS: WHAT WORLD IT RAN IN, AND WHAT
+> POPULATION IT COUNTED.** Both of today's failures were invisible at the number and obvious at
+> the denominator — `tier`, `ingredient`, `depth`, `tried`, and the fixture's target world were
+> every one of them a scope nobody had stated.
+
+**AND A SIXTH CLASS THAT THE TWO-LINE PRACTICE ABOVE CANNOT CATCH — 2026-09-25, reviewer-ruled
+into this section because it is NOT the same failure.** The other five were instruments pointed
+at the wrong thing. **This one is an instrument pointed AT YOUR OWN CONCLUSION.**
+
+I posted a causal hypothesis — *gate 1 and the bargain pull opposite ways* — and started a
+32-cycle run to confirm it. **That run had the right world. It had a stated population. Its
+number would have been correctly computed. AND IT COULD NOT HAVE FAILED**: it printed `R_goal`
+against `base`, which is exactly the pattern the hypothesis predicted, so it would have come
+back green, been reported as confirmation, and entered the record as fact. **The hypothesis was
+wrong, and three lines of arithmetic at the write site said so.** No denominator catches this;
+the measurement is valid and the inference is circular.
+
+> **A MEASUREMENT THAT CAN ONLY AGREE WITH YOU IS NOT EVIDENCE. BEFORE RUNNING A CONFIRMATION,
+> ASK WHAT RESULT WOULD REFUTE YOU — and if there isn't one, the run is theatre. Kill it and do
+> the arithmetic.**
+
+**It is `B17` from the inside**: *pre-registration does not protect a reading if the instrument
+measures something else* — and here the instrument measured the right thing and could only
+agree. **Pre-registering the PREDICTION is not enough; pre-register the REFUTER.**
+
+**AND IT IS WHY ARC'S THREE ARE LOAD-BEARING RATHER THAN PEDANTIC: THEY ARE NOT PROXIES. The
+board decides and does not care what we instrumented.** Every other number here — the random
+baseline, the correction rate, coverage, stage counts, reachability, `bargain_paid` — is OURS,
+must earn trust separately each time, and **every one of them has been wrong at least once.**
+
 **CONTACT IS WHAT SEPARATES CAPABILITY FROM INSTRUMENTATION, AND IT IS FIGURE 11's.**
 *Capability is a property of agent-and-habitat, never of the agent alone. An improvement that
 does not change contact changes nothing, however much it improves.* Asked of one day's work:
