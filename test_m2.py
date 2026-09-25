@@ -885,6 +885,43 @@ def check_the_accumulation_commits_where_the_bargain_refused():
         "forty idle cycles did not lower the bar -- refusing is still free")
 
 
+def check_the_fresh_read_qualifies_a_want_that_has_failed():
+    """DEFECT: an accumulator that counts a pattern which FAILED every time it was tried as
+    evidence FOR acting.
+
+    **Isaiah, 2026-09-25: the fresh read must VOTE and QUALIFY.** Recurrence counts how often a
+    want came back; IT DOES NOT KNOW WHETHER ACTING ON IT EVER WORKED. Transfer makes that
+    dangerous in a new way -- a structure that matched but should not have, right neighbourhood
+    and wrong house -- so prior outcomes under the SAME SIGNATURE have to price the lean.
+
+    KEYED ON `_gap_key`, NOT ON THE BOARD: arity, the types that varied, the relation types, no
+    slot names. A lesson learned on one arrangement prices a want on another, which is the
+    transfer half and the reason a fingerprint would not do.
+    """
+    ag = _agent()
+    ag.cfg.accumulate = True
+    slot = _wide(ag)
+    ag.wants[slot] = "w"
+    ag._want_seen["w"] = 6
+    cand = Rt.Until(slot, Rt.Act(ag.actions[1]), 3)
+    sig = ("shape-under-test",)
+
+    clean = ag._accumulate(slot, cand, cost=9.0, left=0.0, base=6.0, gkey=sig)
+    # three episodes under this shape, all of which ended without acting
+    ag._episodes[sig] = [((ag.actions[1],), "done", "tested_no")] * 3
+    burnt = ag._accumulate(slot, cand, cost=9.0, left=0.0, base=6.0, gkey=sig)
+
+    assert burnt["vector"]["episodes"] < 0, "failed episodes did not vote against"
+    assert burnt["vector"]["lean"] < clean["vector"]["lean"], (
+        "the lean was not qualified down by a shape that has never worked")
+    assert burnt["total"] < clean["total"], f"{burnt} not below {clean}"
+
+    # AND FAVOURABLE HISTORY MUST WEIGH THE OTHER WAY, or this is a damper and not a qualifier
+    ag._episodes[sig] = [((ag.actions[1],), "done", "tested_yes")] * 3
+    proven = ag._accumulate(slot, cand, cost=9.0, left=0.0, base=6.0, gkey=sig)
+    assert proven["total"] > clean["total"], "a shape that has worked three times weighed nothing"
+
+
 def check_a_plan_that_ends_without_acting_is_not_shelved():
     """DEFECT: `DONE` banked as a success when the routine never emitted an action.
 

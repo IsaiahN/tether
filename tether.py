@@ -889,6 +889,22 @@ class Agent:
         # never committed is already under time pressure at cycle 0, which is correct: it has
         # spent its whole life not acting.
         self._last_commit = 0
+        # **THE EPISODE RECORD -- ISAIAH'S FOUR QUESTIONS, 2026-09-25.** *"Given the current
+        # scenario or state of the board, HAS THIS BEEN EXPERIENCED IN A PREVIOUSLY RECORDED
+        # PATTERN, WHAT ACTIONS DID I TAKE, WHAT OUTCOMES OCCURRED, WERE THEY FAVORABLE."*
+        #
+        #     1 have I been here before  -> the SITUATION SIGNATURE   `_gap_key`
+        #     2 what did I do            -> the ACTIONS               `Rt.actions`
+        #     3 what happened            -> the ENDING                done/exhausted/blocked
+        #     4 was it favourable        -> the VERDICT               tested_yes / tested_no
+        #
+        # **KEYED ON `_gap_key` AND THAT IS WHAT MAKES IT TRANSFER.** *"It's MORE THAN JUST
+        # EPISODIC -- don't forget TRANSFER. You play with blocks to learn other things."* A
+        # fingerprint of the state only ever matches itself; `_gap_key` holds arity, the TYPES
+        # that varied and the RELATION TYPES, with no slot names, so it asks *have I been in a
+        # situation SHAPED LIKE THIS* rather than *on this board*.
+        self._episodes: dict[tuple, list[tuple[tuple, str, str]]] = {}
+        self._plan_sig: tuple | None = None    # the signature THIS plan was formed against
         # `(slot, value when the claim was made, step index)`, or None. One at a time: the loop
         # takes ONE action per cycle, so a second claim cannot be outstanding.
         self._popped: dict[str, int] = {}
@@ -2833,6 +2849,14 @@ class Agent:
                 _verdict = "tested_no"
             else:
                 _verdict = None
+            # THE EPISODE, FILED UNDER THE SHAPE OF THE GAP IT WAS FORMED AGAINST. Written
+            # HERE because this is the only site where all four answers exist at once: the
+            # signature was taken at mint, the actions are the routine's, the ending is `why`,
+            # and the verdict is the emission count. Split them and the record cannot be made.
+            if self.routine_for and self._plan_sig is not None:
+                self._episodes.setdefault(self._plan_sig, []).append(
+                    (Rt.actions(self.routine, self.routine_lib), why,
+                     _verdict or "untested"))
             if _verdict and self.routine_for:
                 self._reach_tested[
                     self._reject_key(self.routine_for, self.routine,
@@ -3911,6 +3935,28 @@ class Agent:
         # THE TREND. Improving is evidence for acting; flat and rising are not.
         _ser = self._res.get(slot) or []
         v["improving"] = 1.0 if len(_ser) > 1 and _ser[-1] < _ser[0] else 0.0
+        # **THE FRESH READ -- ISAIAH, 2026-09-25.** *"A fresh read of current state and current
+        # goals and current obstacles must ALSO GET A VOTE to 'price' or QUALIFY the data."*
+        # It does both jobs here and they are different:
+        #
+        #   IT VOTES      past episodes under THIS signature contribute, favourable ones
+        #                 positively and unfavourable ones negatively
+        #   IT QUALIFIES  it scales the LEAN. Recurrence counts how often a want came back;
+        #                 it does not know whether acting on it ever worked. **An accumulator
+        #                 that weighs a pattern which has failed every time it was tried as
+        #                 evidence FOR acting is exactly the failure transfer introduces** --
+        #                 right neighbourhood, wrong house
+        #
+        # AND IT IS KEYED ON THE SIGNATURE, NOT THE BOARD, so a lesson learned on one
+        # arrangement prices a want on another. That is the transfer half.
+        _eps = self._episodes.get(gkey, []) if gkey else []
+        _good = sum(1 for _a, _w, ver in _eps if ver == "tested_yes")
+        _bad = sum(1 for _a, _w, ver in _eps if ver == "tested_no")
+        v["episodes"] = float(_good - _bad)
+        if _eps and _bad > _good:
+            # QUALIFIED DOWN: this shape has cost more than it paid. The lean is what is
+            # damped, never the bargain -- `shortfall` is a price and prices are not opinions.
+            v["lean"] = v["lean"] / (1.0 + _bad - _good)
         total = sum(v.values())
 
         # STANDING SETS THE HEIGHT. `MIN_REPEAT` is the agent's own bar for "confidently", and
@@ -4250,6 +4296,7 @@ class Agent:
         self._routine_acts = 0                 # this plan's own tally, not the last one's
         self._last_commit = self.cycle         # the clock the threshold reads restarts here
         self._routine_adopted = self.routine   # what to shelve; `advance` will erode it
+        self._plan_sig = self._gap_key(gap) if gap is not None else None
         self.led.record(self.cycle, "PLAN", slot, "routine", verdict="pays",
                         routine=Rt.render(cand), length=Rt.length(cand),
                         units=Rt.length(cand, shelf),
