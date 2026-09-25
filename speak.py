@@ -65,6 +65,17 @@ def sentences(rows: list[dict]) -> list[tuple[list[int], str]]:
                                f"reaches {d.get('reach')} of {d.get('unsat')}."))
         elif ev == "routine_refused":
             out.append(([seq], f"On {slot} I formed no plan: {d.get('reason')}."))
+        elif ev == "committed_on_accumulation":
+            # THE AGENT ACTING WITHOUT HAVING PAID. This is the sentence that must exist or
+            # the narration cannot tell a LEAN from a purchase -- and a lean that goes wrong
+            # has to be a finding, which means the account has to say it leaned and why.
+            _v = d.get("vector") or {}
+            _why = ", ".join(f"{k} {v:+g}" for k, v in _v.items() if v)
+            out.append(([seq], f"On {slot} the bargain refused `{d.get('routine')}` and I "
+                               f"took it anyway: the weight behind it reached "
+                               f"{d.get('total')} against a bar of {d.get('threshold')}, "
+                               f"lowered by {d.get('idle')} cycles without committing to "
+                               f"anything. What carried it: {_why or 'nothing nameable'}."))
         elif ev == "reach_tested":
             # THE AGENT MARKING ITS OWN ESTIMATE AGAINST WHAT HAPPENED. Without a sentence the
             # upgrade from ASSUMED to TESTED would be invisible in the account, and it is the

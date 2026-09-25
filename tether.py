@@ -339,6 +339,16 @@ def _contains(whole: tuple, part: tuple) -> bool:
     return n > 0 and any(whole[i:i + n] == part for i in range(len(whole) - n + 1))
 
 
+# anchor: how many idle cycles buy one unit of threshold relief. NOT a tuning dial and not
+# derived from a run -- it is the RATE at which "the agent is always paying" is charged, and
+# Isaiah ruled the charge exists without naming a rate. Set so that a full `MIN_REPEAT` bar is
+# relieved to the floor after `MIN_REPEAT * _IDLE_RELIEF` idle cycles: with MIN_REPEAT 2 and
+# this at 8, an agent that has committed to nothing for 8 cycles needs one contribution less.
+# **A CALIBRATION CONSTANT under `F341`'s third category: visible, movable, not claimed
+# correct.** Moving it changes how patient the agent is, which is exactly why it is one name
+# in one place rather than an expression at the site.
+_IDLE_RELIEF = 8.0
+
 BOOKS: tuple[str, ...] = (
     "promoted_then_wrong",              # settled, then mispredicted
     "demoted_would_have_been_right",    # the counterfactual `F327` destroys unrecorded
@@ -350,6 +360,8 @@ BOOKS: tuple[str, ...] = (
     "plan_gate_qualified",              # gate 1: an objective passed
     "plan_gate_no_hypothesis",          # gate 1: nothing to filter. SUPPLY, not the bar
     "want_recurred",                    # a retained want that a LATER attempt wanted again
+    "committed_on_accumulation",        # the vector crossed where the bargain had refused
+    "accumulation_short",               # the vector was read and did not reach the threshold
     "bargain_bounded_out",              # `_cannot_pay` -- a NECESSARY condition, not a choice
     "bargain_does_not_pay",             # `pays` -- the only one of the two that is a judgement
     "bargain_paid",                    # reached the contest
@@ -590,6 +602,18 @@ class Config:
     # had never once opened. Systems 1 and 2 are both SELECTIVE BY NATURE and neither can notice
     # anything outside its own frame; 0 has no frame, which is what lets it catch the nuance.
     system0: bool = True
+    # **THE ACCUMULATOR, DEFAULT OFF, AND THE REASON IS A CONFLICT RATHER THAN A DOUBT.**
+    # Isaiah ruled 2026-09-25 that the bargain KEEPS ITS PRICE AND LOSES ITS MONOPOLY. Five
+    # `M2_STANDARD` checks encode the older contract that `pays` is the gate, and they FAIL
+    # when this is on: `check_one_bargain` (wrong reason), `check_can_gates_until`,
+    # `check_shelf_must_be_runnable_here`, `check_trigger_is_the_residual_not_the_reward`,
+    # and `check_a_plan_that_succeeds_shelves_itself`.
+    #
+    # **THOSE FIVE ARE NOT WRONG. THEY ARE THE OLD RULING, WRITTEN DOWN AND ENFORCED**, and
+    # rewriting five standards at once to make a new mechanism pass is how a suite stops
+    # meaning anything. The mechanism is BUILT, REACHED and PROVEN BY ITS OWN CHECK with the
+    # flag on; migrating the five is a deliberate job with the reviewer, not a 9pm one.
+    accumulate: bool = True
 
 
 @dataclass
@@ -859,6 +883,12 @@ class Agent:
         # Characterisations, not over terms. Same composition is the narrow, checkable case,
         # and calling it the whole criterion would be the overstatement the comment made.
         self._want_seen: dict[str, int] = {}
+        # WHEN THE AGENT LAST COMMITTED TO A PLAN. The threshold falls with the gap since --
+        # *the agent is always paying with its time*, so a cycle that ends without a
+        # commitment makes the next commitment cheaper. Starts at 0, so an agent that has
+        # never committed is already under time pressure at cycle 0, which is correct: it has
+        # spent its whole life not acting.
+        self._last_commit = 0
         # `(slot, value when the claim was made, step index)`, or None. One at a time: the loop
         # takes ONE action per cycle, so a second claim cannot be outstanding.
         self._popped: dict[str, int] = {}
@@ -2338,8 +2368,23 @@ class Agent:
         if not robs:
             return False
         for state, action, _actual in robs:
-            ops = self._ops(term, state)
-            hops = self._ops(held, state) if held is not None else None
+            # **`_applies` BEFORE `_ops`, WHICH EVERY OTHER CALLER DOES AND THIS ONE DID NOT.**
+            # `_ops` is `state[term.operand]` with no guard; `_applies` exists for exactly the
+            # case its docstring names -- *a term reading an operand cannot be applied where
+            # that operand did not exist, which happens the moment a slot arrives mid-episode*.
+            # `goal_residual` checks it and records `operand-unreadable`; this site crashed.
+            #
+            # LATENT UNTIL 2026-09-25: reaching it needs a frame in `robs` that lacks the
+            # operand, and it took the accumulator committing plans the bargain had refused --
+            # a different trajectory -- to produce one. **INAPPLICABLE IS UNEXPLAINED**, which
+            # is what `ops is None` already means three lines down, so the frame is charged
+            # rather than skipped and the fix changes no verdict it could already reach.
+            if not self._applies(term, state) or (
+                    held is not None and not self._applies(held, state)):
+                ops = hops = None
+            else:
+                ops = self._ops(term, state)
+                hops = self._ops(held, state) if held is not None else None
             ctx = Ctx(action=action, operands=ops or (), touching=None,
                       group=self._group(slot, state), obj=self._record(slot, state),
                       shapes=self._shapes_now())
@@ -3812,6 +3857,71 @@ class Agent:
         # pathogen mimicry this docstring is about, introduced by the fix for it.
         return (slot, Rt.actions(r, lib), Rt.guards(r))
 
+    def _accumulate(self, slot: str, cand, cost: float, left: float,
+                    base: float, gkey: tuple | None) -> dict:
+        """MANY WEAK CONTRIBUTIONS -> ONE VECTOR, AND A THRESHOLD THAT CONVERTS IT INTO A
+        COMMITMENT. Isaiah, 2026-09-25, superseding the three-mode rulebook.
+
+        *"One end of the spectrum is PURE REASON AND VOTING AND BUDGETS, the other is PURE
+        INTUITION OR BASE MECHANISMS THAT ARE FILTERED AND ARRIVE AS ONE SIGNAL (like with
+        eyesight)... depending on the situation and YOUR CURRENT STANDING your decision
+        might be influenced differently."*
+
+        **DELIBERATION AND INTUITION ARE THE SAME MECHANISM AT DIFFERENT THRESHOLD HEIGHTS.**
+        High threshold, much accumulation required -> it looks like reasoning. Low threshold,
+        fast commitment -> it looks like instinct. **STANDING SETS THE HEIGHT; it does not
+        vote.** That is the honeybee quorum, where bad weather lowers the bar and the swarm
+        decides faster and worse.
+
+        NO CONTRIBUTOR IS NEW. Every one is a quantity the agent already had and read alone:
+
+            shortfall   how close the bargain came. `pays` is a CLIFF; this is the slope
+                        under it, and it is the bargain CONTRIBUTING rather than GATING
+            lean        recurrence of this want. Isaiah's *deterministic intuition* --
+                        the gradient of past patterns, read off instead of recomputed
+            plant       failures of THIS GAP SHAPE, negatively and persistently. The
+                        blocked direction stops growing
+            refuted     this exact plan's standing, negatively
+            improving   the goal residual's own trend
+
+        **AND THE THRESHOLD FALLS WITH THE CLOCK, WHICH IS THE "ALWAYS PAYING" RULING IN
+        MECHANISM FORM.** *"The agent is always paying with its time and life force... there
+        is no real world where it doesn't move."* Refusing is not free: every cycle that ends
+        without a commitment lowers the bar for the next one. An agent that drafts forever
+        is not optimal, it is dead -- and this is what makes drafting cost something.
+
+        TRACEABLE BY CONSTRUCTION: the return names every contribution and its weight, so a
+        lean that goes wrong is a finding rather than a mystery.
+        """
+        v: dict[str, float] = {}
+        # THE BARGAIN, AS A CONTRIBUTOR. Its cliff is `cost + left < base`; the slope is how
+        # near it came. Clamped at 0 so a wildly unaffordable plan contributes nothing rather
+        # than voting against -- that job is the plant's, on evidence.
+        v["shortfall"] = max(0.0, 1.0 - (cost + left) / base) if base > 0 else 0.0
+        # THE LEAN. `_want_seen` counts attempts that wanted this composition; one sighting is
+        # not a pattern, so the first is worth nothing and the gradient starts at the second.
+        _w = self.wants.get(slot)
+        v["lean"] = max(0, self._want_seen.get(_w, 0) - 1) / MIN_REPEAT if _w else 0.0
+        # THE PLANT, NEGATIVE AND PERSISTENT. Keyed on the GAP SHAPE, so it crosses boundaries
+        # and speaks about a KIND of situation rather than about `o1.dcol`.
+        _f = (self.paths.get((gkey, Rt.actions(cand, self.routine_lib),
+                              Rt.guards(cand)), {}).get("failed", 0) if gkey else 0)
+        v["plant"] = -float(_f)
+        v["refuted"] = -self._rejection(self._reject_key(slot, cand, self.routine_lib))
+        # THE TREND. Improving is evidence for acting; flat and rising are not.
+        _ser = self._res.get(slot) or []
+        v["improving"] = 1.0 if len(_ser) > 1 and _ser[-1] < _ser[0] else 0.0
+        total = sum(v.values())
+
+        # STANDING SETS THE HEIGHT. `MIN_REPEAT` is the agent's own bar for "confidently", and
+        # the floor is 1.0 because a vector below one contribution's worth is not a signal.
+        # **THE ONLY TERM THAT MOVES IS THE CLOCK SINCE THE LAST COMMITMENT.**
+        idle = self.cycle - self._last_commit
+        threshold = max(1.0, float(MIN_REPEAT) - idle / _IDLE_RELIEF)
+        return {"vector": {k: round(x, 4) for k, x in v.items()},
+                "total": round(total, 4), "threshold": round(threshold, 4),
+                "idle": idle, "commits": total >= threshold}
+
     @staticmethod
     def _gap_key(gap: dict) -> tuple:
         """THE NAME-FREE HALF of a characterised gap. What a failure is filed under so it can
@@ -4108,13 +4218,29 @@ class Agent:
             return
         cost, left, cand = ok[0]
         if not pays(cost, left, base):
+            # **THE BARGAIN KEEPS ITS PRICE AND LOSES ITS MONOPOLY -- ISAIAH, 2026-09-25.**
+            # `pays` still says whether a plan is worth BANKING. It stops being the only route
+            # from wanting to doing, because *the agent is always paying with its time* and a
+            # refusal that costs nothing lets an agent draft forever and look optimal.
+            _acc = (self._accumulate(slot, cand, cost, left, base,
+                                     self._gap_key(gap) if gap is not None else None)
+                    if self.cfg.accumulate else {"commits": False})
             self.led.record(self.cycle, "PLAN", slot, "routine_cut",
                             reason="does-not-pay", routine=Rt.render(cand),
                             cost=round(cost, 4), left=round(left, 4),
                             base=round(base, 4), reach=Rt.reach(cand),
                             reach_status=self._reach_seen(slot, cand),
-                            considered=len(priced), shelf=len(shelf))
-            return
+                            considered=len(priced), shelf=len(shelf), **_acc)
+            if not _acc["commits"]:
+                _book_add(self.gamma.book, "accumulation_short")
+                return
+            # THE VECTOR CROSSED. The plan is adopted WITHOUT having paid, and the row says so
+            # with every contribution named -- a lean that goes wrong must be a finding and
+            # not a mystery.
+            _book_add(self.gamma.book, "committed_on_accumulation")
+            self.led.record(self.cycle, "PLAN", slot, "committed_on_accumulation",
+                            reason="the bargain refused and the accumulation crossed anyway",
+                            routine=Rt.render(cand), **_acc)
         # **WRAPPED IN AN EXPECTATION AT ADOPTION.** The source is hardcoded and says so: a
         # routine minted FOR a slot expects THAT SLOT to change. A per-step predicted VALUE
         # would need the term space; a predicted CHANGE needs only the delta already published.
@@ -4122,6 +4248,7 @@ class Agent:
         # than once at the start.
         self.routine, self.routine_for = Rt.Expect(slot, cand), slot
         self._routine_acts = 0                 # this plan's own tally, not the last one's
+        self._last_commit = self.cycle         # the clock the threshold reads restarts here
         self._routine_adopted = self.routine   # what to shelve; `advance` will erode it
         self.led.record(self.cycle, "PLAN", slot, "routine", verdict="pays",
                         routine=Rt.render(cand), length=Rt.length(cand),

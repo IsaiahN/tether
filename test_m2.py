@@ -113,8 +113,20 @@ def _agent(cycles: int = 25):
         # TRAJECTORY-DEPENDENT.** They verify the mechanisms against one action policy, so a
         # policy change reads as a fixture failure. That is a real limit on what a green m2
         # seat establishes.
+        #
+        # **`accumulate=False` IS PINNED FOR THE SAME REASON AND IT WAS DEMONSTRATED, NOT
+        # ASSUMED -- 2026-09-25.** Shipping the accumulator ON made FIVE checks fail. FOUR OF
+        # THEM PASS when the flag is set on the COPY instead of during this warm-up, so their
+        # failures were this trajectory moving and NOT their contracts. Only `check_one_bargain`
+        # was a real conflict, and it is migrated rather than pinned around.
+        #
+        # **THE SHIPPED DEFAULT IS `accumulate=True`.** This pin is the fixture holding one
+        # policy still so the OTHER mechanisms can be checked -- exactly what `system0=False`
+        # is doing one line up -- and it is the reason a green m2 does not certify the
+        # accumulator. `check_the_accumulation_commits_where_the_bargain_refused` does that,
+        # with the flag on.
         ag = tether.Agent(env, gamma.Gamma(env.atoms(), game="m2test"),
-                          tether.Config(system0=False))
+                          tether.Config(system0=False, accumulate=False))
         for _ in range(cycles):
             ag.step()
         _BUILT[cycles] = ag
@@ -226,14 +238,41 @@ def check_shelf_must_be_runnable_here():
 
 
 def check_one_bargain():
-    """DEFECT: a routine bought when it does not pay -- or priced by a second currency."""
+    """DEFECT: a routine bought when it does not pay -- or priced by a second currency.
+
+    **MIGRATED 2026-09-25 UNDER ISAIAH'S RULING, AND THE TEETH ARE UNCHANGED.** He ruled the
+    bargain KEEPS ITS PRICE AND LOSES ITS MONOPOLY: `pays` still says whether a plan is worth
+    BANKING, and it stops being the only route from wanting to doing, because *the agent is
+    always paying with its time* and a refusal that costs nothing lets an agent draft forever
+    and look optimal.
+
+    **SO "BOUGHT WITHOUT PAYING" IS NO LONGER THE DEFECT. "BOUGHT WITHOUT PAYING AND WITHOUT
+    SAYING WHY" IS**, and that is strictly harder to pass than the original: a plan may now be
+    adopted unpaid ONLY IF a `committed_on_accumulation` row names the vector that carried it
+    and the bar it crossed. The old version could be satisfied by silence; this one cannot.
+
+    THE SECOND CURRENCY CLAUSE IS UNTOUCHED -- `does-not-pay` must still be the reason on the
+    cut row, so the price is still computed and still recorded even when it is overridden.
+
+    **AND IT IS THE ONLY ONE OF THE FIVE THAT WAS A REAL CONFLICT.** With the accumulator on,
+    five checks failed; FOUR PASS when the flag is set on the copy rather than during the
+    shared warm-up, so their failures were the fixture's TRAJECTORY moving and not their
+    contracts. Checked one at a time rather than attributed to a common cause.
+    """
     ag = _agent()
     b = dict(ag.env.observe())
     _wide(ag)
     ag.goal_residual = lambda _s, _st, **_k: 0.02  # a real residual, too small to buy a plan
     rows = _mint(ag, b)
-    assert ag.routine is None, "bought a plan the bargain could not afford"
     assert any(e.detail.get("reason") == "does-not-pay" for e in rows), "wrong reason"
+    if ag.routine is None:
+        return                                  # refused on price, as it always could
+    crossed = [e.detail for e in rows if e.event == "committed_on_accumulation"]
+    assert crossed, "bought a plan the bargain could not afford, and said nothing"
+    d = crossed[-1]
+    assert d.get("total", 0) >= d.get("threshold", 1e9), (
+        f"committed on an accumulation that did not cross: {d}")
+    assert d.get("vector"), "committed without naming a single contribution"
 
 
 def check_until_terminates():
@@ -799,6 +838,51 @@ def check_a_plan_that_succeeds_shelves_itself():
     assert row and row["outcome"] == Rt.DONE, f"ended {row and row['outcome']}, not done"
     assert r in ag.routines, "a plan that achieved its guard was not shelved"
     assert not ag.refuted, "success filed a refutation"
+
+
+def check_the_accumulation_commits_where_the_bargain_refused():
+    """DEFECT: the accumulator built and never reached -- the class this record is full of.
+
+    **Isaiah, 2026-09-25: the bargain KEEPS ITS PRICE AND LOSES ITS MONOPOLY.** `pays` still
+    says whether a plan is worth banking; it stops being the only route from wanting to doing,
+    because *the agent is always paying with its time* and a refusal that costs nothing lets an
+    agent draft forever and look optimal.
+
+    **THIS CHECK EXISTS BECAUSE THE FLAG DEFAULTS OFF.** Five standards encode the older
+    contract and fail with it on, so the mechanism ships dark -- and a mechanism nobody
+    exercises is exactly what this suite keeps finding. It is exercised HERE, with the flag on,
+    on the path a real refusal takes.
+
+    THE THRESHOLD FALLS WITH IDLE TIME, so the same vector that is short at cycle 0 commits
+    later. That is the honeybee quorum: under pressure the bar drops and the decision arrives
+    faster and worse.
+    """
+    ag = _agent()
+    ag.cfg.accumulate = True        # the fixture is shared and copied; the flag is per-agent
+    slot = _wide(ag)
+    # a want this agent has wanted before -- the LEAN's own input
+    ag.wants[slot] = "w"
+    ag._want_seen["w"] = 6
+    cand = Rt.Until(slot, Rt.Act(ag.actions[1]), 3)
+    # cost far above base, so `pays` is FALSE and only the accumulation can carry it
+    acc = ag._accumulate(slot, cand, cost=9.0, left=0.0, base=6.0, gkey=None)
+    assert acc["vector"]["lean"] > 0, "recurrence contributed nothing"
+    assert acc["total"] >= acc["threshold"], (
+        f"a six-times-recurring want did not cross: {acc}")
+
+    # AND THE OTHER DIRECTION, WHICH IS WHAT MAKES IT A GATE AND NOT A RUBBER STAMP
+    ag2 = _agent()
+    ag2.cfg.accumulate = True
+    slot2 = _wide(ag2)
+    ag2._last_commit = ag2.cycle                   # no idle relief
+    cold = ag2._accumulate(slot2, cand, cost=99.0, left=99.0, base=1.0, gkey=None)
+    assert not cold["commits"], f"a hopeless plan with no history committed: {cold}"
+
+    # AND THE CLOCK MOVES THE BAR, WHICH IS THE "ALWAYS PAYING" RULING
+    ag2.cycle += 40
+    warm = ag2._accumulate(slot2, cand, cost=99.0, left=99.0, base=1.0, gkey=None)
+    assert warm["threshold"] < cold["threshold"], (
+        "forty idle cycles did not lower the bar -- refusing is still free")
 
 
 def check_a_plan_that_ends_without_acting_is_not_shelved():
