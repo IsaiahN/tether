@@ -48832,3 +48832,66 @@ rather than trusted from the file.
 **Left as it stands. It is Isaiah's, it is correctly scoped by whoever wrote it, and item 10
 needs no build.**
 
+## F366 -- **THE HABITAT RUN. Five of seven stages fire on a real grid; the CONSUMER gets its first contest ever; and `F359`'s refusal route is DEAD BY CONSTRUCTION rather than starved**
+
+**Isaiah's named exception to the board stop, run after everything on the list was built. NOT A
+BENCHMARK** -- pass/fail and reachability only, 12 generated boards, 8 cycles each, **per board
+and never pooled.** Spies call through and return the real value.
+
+### THE SEVEN STAGES
+
+    PERCEIVE   12/12        COMPOSE     0/12
+    GOAL       12/12        RUN         0/12
+    DECOMPOSE  12/12        EXPRESS    12/12
+    CORRECT     7/12
+
+**FIVE OF SEVEN, THE SAME FIVE AS THE TOY WORLD.** And that is the useful half: **the habitat was
+the right hypothesis for three findings and the WRONG one for COMPOSE and RUN.** Those two are
+behind `F358`'s pricing ruling exactly as diagnosed, and a grid does not move them. A null that
+survives a habitat change is a stronger null than one read on a single world.
+
+### `F360` IS RESOLVED BY THE HABITAT
+
+    kinds in contention at the ranker:   {1: 9 calls, 2: 3 calls}
+
+**THE CONSUMER HAS THREE REAL CONTESTS.** On the toy world it was one kind every time and ZERO
+contests -- *a queue of one has no order* -- and that was structural, not incidental. The grid
+supplies a second kind. **The mechanism Isaiah ruled at 18:34 can now, for the first time, be
+asked to choose.**
+
+### AND `F359` IS ANSWERED, BUT NOT THE WAY THE HABITAT WAS MEANT TO ANSWER IT
+
+    bears_on   calls 675   allowed 675   REFUSED 0   robs_empty 0
+
+**675 calls against 7 on the toy world -- roughly eight times the occasions per board, and not
+one refusal.** That is not starvation, so the habitat hypothesis was wrong here and the cause is
+structural:
+
+    ROUTE 1, `not robs`      DEAD BY CONSTRUCTION AT THIS CALL SITE. `robs` is
+                             `_residual_obs` -- *the observations the bound term GOT WRONG* --
+                             and the candidate loop runs only under `guards["support"] =
+                             base > 0.0`. **Where there is no residual there is no loop, so
+                             `robs` cannot be empty where this is tested.**
+    ROUTE 2, says nothing    LIVE, exercised 675 times, has never refused
+    different
+
+> **SO THE SPECTATOR ROUTE ITS DOCSTRING CLAIMS -- *a spectator the incumbent already predicts
+> perfectly leaves `robs` EMPTY* -- CANNOT FIRE WHERE THE GATE STANDS.** It is a correct
+> description of a condition, tested at the one place the surrounding guard forbids it. **Three
+> readings were needed to get here: fires zero times (21:17), reached and permissive (`F359`),
+> and now unreachable-by-construction on one route.**
+
+**A HYPOTHESIS, NOT A CLAIM:** route 2 may be largely redundant with the `not-novel` cut that
+runs before it. Novel-in-NAME is not the same as different-in-VALUE, so it is not trivially so,
+and 0 of 675 is consistent with either. **Not measured, so not asserted.**
+
+### WHAT THE HABITAT DELIVERED, PLAINLY
+
+    F356  spectators exist        YES -- 6 to 8 of 9 slots move under no action
+    F360  consumer has a contest  YES -- 3 of 12, first ever
+    F359  precondition refuses    NO, and the reason is now known and is not the habitat
+    COMPOSE / RUN                 UNMOVED -- still `F358`, confirmed against a second world
+
+`bound` 1-3 per board, `wants` populated on 6 of 12. Board stop respected: this is the generated
+habitat, not an ARC game.
+
