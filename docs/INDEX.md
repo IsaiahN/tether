@@ -48943,3 +48943,29 @@ read the closure. **Two independent systems, the same ceiling.**
 diagnoses and this cannot separate them. **The honest claim is the observation: nothing deeper
 than two has ever been INSTALLED.**
 
+### AND THE SPY WAS TAKEN, WITHIN THE HOUR. IT IS CALLED-AND-REFUSED, EMPHATICALLY.
+
+    `Config.max_depth` = 3
+
+    OFFERED by the enumerator     depth 1     608    depth 2   4,124
+                                  depth 3  15,477    <- the MOST of any depth
+                                  depth 4-6   341
+
+    PRICED (reached `_cannot_pay`) depth 2 398,931
+                                  depth 3 2,329,117  <- the MOST of any depth
+                                  depth 4-6 114,920
+
+> **DEPTH THREE IS THE MOST ABUNDANT THING THE ENUMERATOR PRODUCES AND THE MOST HEAVILY PRICED --
+> 2.3 MILLION CANDIDATES -- AND NOT ONE HAS EVER BEEN INSTALLED.** Not starved of offers, not cut
+> before pricing. **IT LOSES.**
+
+**SO THE FLAT CEILING IS A PRICING CONSEQUENCE, NOT AN ENUMERATION LIMIT.** `term_bits` is
+monotone in length, so a longer term must explain proportionally MORE to clear
+`cost + left < base`, and across 2.3 million attempts none ever has. **That puts the depth-2
+ceiling on `F358`'s pricing question and nowhere near the composer** -- which is the opposite of
+where I would have looked, and is why the spy was worth taking rather than reasoning about.
+
+**AND DEPTHS 4-6 EXIST DESPITE `max_depth` 3**, because operand bindings and guards add atoms
+beyond the chain's own depth. Recorded, not explained: I have not checked whether that is
+intended, and it is a smaller thread than the one above.
+
