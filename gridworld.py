@@ -186,6 +186,43 @@ class GridWorld:
             a[f"o{i}.proximity"] = 2 * GRID
         return a
 
+    def slot_owner(self) -> dict[str, str]:
+        """WHICH OBJECT EACH SLOT BELONGS TO. `o1.row` -> `o1`.
+
+        **THE LOOP MAY NOT DERIVE THIS FROM THE NAME** -- `_slot_owners`' own docstring says
+        *absent is a reading*, and a world that declares no owners gets `{}` rather than having
+        one guessed from a dotted string. So the dot is a convention HERE and never a parser
+        there.
+
+        `@goal.completed` is deliberately absent: it is derived from all three objects and
+        belongs to none of them.
+        """
+        return {k: k.split(".")[0] for k in self.slots() if k.startswith("o")}
+
+    def contacts(self) -> dict[str, list[str]]:
+        """WHICH OBJECTS TOUCH, THIS FRAME -- the owner-adjacency view of `contact_points`.
+
+        **AND THIS IS THE METHOD THAT WAS MISSING, WHICH IS WHY A BUILT MECHANISM HAS NEVER
+        RUN ON A WORLD WE MAY LEGALLY USE.** `_bindings` ranks operand candidates CONTACT FIRST
+        -- §16.5's *you do not invent the list, you read it off the world* -- by calling
+        `env.contacts()`, and **only `arc_world` has ever published it**, which is under the
+        board stop. On the toy world and on this one before now it read `None` and the ranking
+        fell back to variance.
+
+        **`contact_points` WAS NOT ENOUGH AND I ASSUMED IT WAS.** `_contact_keys` reads
+        `contact_points`; `_bindings` reads `contacts`. **Two names for contact, two consumers,
+        and publishing one lit System 0's intake while leaving the operand ranking dark** --
+        which I would not have found by reading either site, because each is correct alone.
+
+        Ordering, never exclusion: §12.1 admits a bias only as a ranked, reversible cut, and a
+        filter here would make contact decide REACHABILITY rather than order.
+        """
+        adj: dict[str, list[str]] = {}
+        for a, b, _kind in self.contact_points():
+            adj.setdefault(a, []).append(b)
+            adj.setdefault(b, []).append(a)
+        return adj
+
     def contact_points(self) -> list[tuple[str, str, str]]:
         """**WHAT IS TOUCHING WHAT. The architecture already consumes this and NO WORLD HAS EVER
         PUBLISHED IT** -- `_contact_keys` reads `env.contact_points` and returns `{}` when the
