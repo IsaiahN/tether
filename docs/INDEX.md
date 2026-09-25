@@ -48630,10 +48630,31 @@ already done it for 2,700**, and it is a LOOKUP, not a judgement.
     tier 3     749 atoms    two objects; needs objects in the loop
     tier 4      69 atoms    a regularity over frames
 
-> **SIXTY-FIVE PER CENT OF THE CLOSURE BECOMES DETECTABLE ON ONE CAPABILITY** -- a sensor emitting
-> one integer per object, which the file itself says is *the same shape as colour*, a thing the
-> agent already has. **That is the most actionable number of the night and it is item 9's, with a
-> figure attached.**
+> **SIXTY-FIVE PER CENT OF THE CLOSURE IS BLOCKED ON ONE CHANNEL** -- a sensor able to emit one
+> integer per object, which the file says is *the same shape as colour*, a thing the agent
+> already has for colour.
+
+**AND I FIRST WROTE THAT AS *DETECTABLE ON ONE CAPABILITY*, WHICH IS WRONG AND WAS PUBLISHED --
+CORRECTED WITHIN THE HOUR, 2026-09-25.** A tier is the SHAPE of the reading, not a sensor that
+supplies it. Measured: **the 1,749 tier-1 atoms name 3,455 DISTINCT ATTRIBUTES between them**, and
+the most-demanded are `action` 40 - `persistence` 23 - `temperature` 21 - `time` 20 - `coherence`
+14 - `accuracy` 13 - **`ATP` 12** - `speed` 11.
+
+> **THE CHANNEL IS ONE CAPABILITY. THE CONTENT IS 3,455 MEASUREMENTS, AND MOST OF THEM HAVE NO
+> GRID MEANING AT ALL** -- the closure spans 61 domains and those names are biology, physics and
+> psychology. Building the channel does not supply what flows through it.
+
+**IT IS THE SAME CONFLATION THIS ENTRY WAS WRITTEN TO CORRECT, MADE IN THE CORRECTION.** The
+withdrawn `78.3% blocked` headline confused *has a recipe* with *has a computable detector*; this
+confused *has a computable SHAPE* with *has a computable VALUE*. **Three floors, not two**, and I
+found the third by looking at what the attributes were actually called.
+
+    HAS A RECIPE          the closure's own floor
+    HAS A READABLE SHAPE  a tier -- what KIND of reading it would take
+    HAS A VALUE           a sensor that actually computes it on this board
+
+**What stays true and actionable: the per-object scalar channel does not exist and 1,749 atoms
+wait behind it.** What is withdrawn is that building it detects them.
 
 ### AND TWO ROUTES TO THE CLOSURE THAT DO NOT OVERLAP AT ALL
 
