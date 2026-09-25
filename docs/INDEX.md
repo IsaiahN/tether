@@ -48943,6 +48943,22 @@ read the closure. **Two independent systems, the same ceiling.**
 diagnoses and this cannot separate them. **The honest claim is the observation: nothing deeper
 than two has ever been INSTALLED.**
 
+### AND THE CONTROL: THE CEILING IS NOT HABITAT-SPECIFIC
+
+**`F367` measured the grid only and declined to call the ceiling universal from one habitat.**
+The toy world, same vocabulary, different dynamics, the same 8 cycles:
+
+    ARC-shaped, 12 boards    12 compositions   depths {2: 12}   5 of 14 atoms
+    toy world                 1 composition    depths {2: 1}    2 of 14 atoms
+
+**THIRTEEN OF THIRTEEN COMPOSITIONS ACROSS TWO WORLDS ARE EXACTLY TWO ATOMS.** So the ceiling
+does not come from the habitat -- which AGREES with the spy below rather than merely sitting
+beside it: pricing does not vary by habitat, and the spy says the ceiling is priced.
+
+**AND THE TWO WORLDS SHARE A VOCABULARY, so this does not separate PRICING from VOCABULARY as
+the cause.** The spy does. Stated because two consistent readings are easy to mistake for two
+independent ones.
+
 ### AND THE SPY WAS TAKEN, WITHIN THE HOUR. IT IS CALLED-AND-REFUSED, EMPHATICALLY.
 
     `Config.max_depth` = 3
