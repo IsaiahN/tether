@@ -48788,3 +48788,47 @@ boundary, contact, gap* -- is 93 mentions of this vocabulary. **One of the seven
 few hours before the list of seventeen was found**, which is the fourth time tonight the corpus
 turned out to have specified what was being built.
 
+## F365 -- **ITEM 10 IS BUILT, REACHED AND NOW PROVEN: the transfer claim is checkable end to end.** And for once the answer to *is it reached* is YES
+
+**Isaiah's item 10: *"pre-made molecules carry names from the docs; the agent self-mints new ones,
+and those need a HASH-STORED provenance route. An invented atom that gets USED proves learning;
+used in ANOTHER GAME, it proves transfer -- provenance is what makes that claim CHECKABLE rather
+than asserted."***
+
+**It is built. `Term.handle` is the hash-stored provenance and its docstring already states the
+claim**: `{game}_{INITIALS}_{kind}_{suffix}`, where *the letters are the first letter of each atom
+IN COMPOSITION ORDER, so the handle carries its own decomposition* -- *"minted on one game,
+composed from these three, reused on another, WITHOUT OPENING ANYTHING."* And **the prefix is
+BIRTH, never use.**
+
+### EXERCISED RATHER THAN READ, because built and reached are different questions
+
+Minted on game `alpha`, saved, loaded into game `beta`:
+
+    alpha           8 terms stamped MINTED
+                    handles alpha_T_term_dc2f8222, alpha_T_term_050816ad ...
+    loaded as beta  4 stamped IMPORTED, and every handle KEPT its birth game
+                    alpha_DN_chain_05aced35, alpha_DDN_chain_4fbdccb4 ...
+
+    TRANSFER IS CHECKABLE: True
+
+**AND THE 8 -> 4 IS EXPLAINED, NOT A LOSS.** The four that crossed are CHAINS; the four that did
+not are single-atom terms, which already exist in `beta` as atoms and are not compositions to
+import. `Gamma.load` re-invents through `invent` so the licence is re-checked on the way in
+rather than trusted from the file.
+
+> **THIS IS THE FIRST ITEM TONIGHT WHERE *IS IT ACTUALLY REACHED* ANSWERS YES WITHOUT A REPAIR.**
+> Five things were found built-and-unreached or built-and-inert; this one works.
+
+### THE ONE OPEN POINT WAS ALREADY RECORDED, AND IT IS A RULING NOT A PATCH
+
+`feeder.py:225`, in the file itself rather than found by me:
+
+    "Gamma.load marks a term IMPORTED when its stored game differs from self.game. With a
+     ROTATING LABEL a reloaded POOLED library would mark almost everything imported. Pooled
+     runs therefore do not carry a library file yet; resolving that is A RULING ABOUT WHAT
+     CROSS-GAME MEANS INSIDE ONE POOLED RUN, not a patch."
+
+**Left as it stands. It is Isaiah's, it is correctly scoped by whoever wrote it, and item 10
+needs no build.**
+
