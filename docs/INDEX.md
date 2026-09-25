@@ -49260,7 +49260,8 @@ the same list against DEFINITIONS.
                            IMPROVED the situation                 COMPUTES the delta. Nothing
                                                                   reads it as "try again"
     System 0 ON            an always-open intake, and *"the
-                           whole system set RECALIBRATES"*        INTAKES. Nothing recalibrates
+                           whole system set RECALIBRATES"*        BOTH -- see the correction
+                                                                  below. This row was WRONG
     the selector           select the want that is confidently
                            shrinking                              SELECTS. Nothing consumes it
     the ARC-shaped world   a habitat that exercises the
@@ -49281,6 +49282,30 @@ honest about it, which is not the same as not being it.**
 **AND IT EXPLAINS `F372` WITHOUT NEEDING THE CONTROL.** The agent is at chance because five of
 seven new mechanisms end in a published reading rather than in an action. **The random control
 proved it; clause 7 predicts it from the definitions alone.**
+
+### CORRECTION TO THE TABLE ABOVE: THE RECALIBRATION EXISTS AND FIRES. 3 of 7, not 2.
+
+**I wrote *"System 0 intakes and nothing recalibrates"* WITHOUT CHECKING, in a document whose
+whole point was checking claims against their definitions.** Isaiah's recalibration -- *"the
+whole system set RECALIBRATES... in light of its previously held understanding"*, with the
+retrospective clause *several past failures RE-READ as the same failure* -- **is `agent.retro`:
+a parked residual closed LATER by a term minted elsewhere.** Built, and `CLAUDE.md` says so.
+
+    toy world       @  8 cycles   retro 0        @ 16 cycles   retro 1
+    ARC-shaped b3   @ 16 cycles   retro 0
+    ARC-shaped b11  @ 16 cycles   retro 1
+    `demo.py`, the nightly seat: "retroactive: 1 parked residual(s) closed by a term
+    minted elsewhere"
+
+**IT FIRES ON BOTH WORLDS. My zero was a cycle-count artefact and I nearly filed it as a missing
+mechanism** -- against a `CLAUDE.md` line saying plainly that it fires. **I tested the record's
+claim before contradicting it, which is the only reason this is a correction to me rather than a
+false finding about the record.**
+
+> **AND IT IS THE THIRD MECHANISM TONIGHT WHOSE FLOOR IS ABOVE `ag.run(8)`:** the gap deltas,
+> the selector (`F371`, ~12), and now retro (16). **A constant calibrated for `CORRECT` sits
+> below the floor of at least three things measured under it**, and every reading I took at 8
+> tonight inherits that.
 
 ### A DENOMINATOR I OMITTED, from the same watch-list
 
