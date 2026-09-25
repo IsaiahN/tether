@@ -3193,6 +3193,19 @@ class Agent:
         """
         name = self.bound.get(slot)
         term = self.gamma.library.get(name) if name else None
+        # **A HYPOTHESIS GETS A DISCREPANCY TOO -- §13.4's *express EACH as a scalar
+        # discrepancy*, and `goal_residual` has had this fallback all along: *`bound` holds what
+        # SYSTEM 1 does now; `wants` holds what SYSTEM 2 is still after.* This site never got it.
+        #
+        # **I WROTE THIS EXACT FIX EARLIER TODAY, MEASURED IT AT 2 DELTAS WITH AND 2 WITHOUT,
+        # AND REVERTED IT AS A NO-OP.** It was a no-op because `peers()` was unpublished
+        # upstream, so `_res` was empty and nothing downstream could show a difference.
+        # **Measuring the fix is necessary and not sufficient: a correct repair reads as a
+        # no-op whenever something ABOVE it is dead**, and the arm-with-and-without cannot tell
+        # that from a useless change.
+        if term is None or getattr(term, "out_type", None) != OBJ_TYPE:
+            _w = self.wants.get(slot)
+            term = self.gamma.library.get(_w) if _w else term
         if (term is None or getattr(term, "out_type", None) != OBJ_TYPE
                 or slot not in state or not self._applies(term, state)):
             return NOT_RESOLVED
