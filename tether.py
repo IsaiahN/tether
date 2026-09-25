@@ -582,7 +582,12 @@ class Config:
     mode: str = SPECIFIED
     # SYSTEM 0 (Isaiah, 2026-09-14): motor babbling before means-end -- draw variously until
     # the action-effect map has coverage, then hand to strategy. Off by default; the A/B toggles.
-    system0: bool = False
+    # **ON -- Isaiah, 2026-09-25.** *"System 0 is always on. It is almost like an UPTAKE VALVE
+    # -- if it catches that nuance or attribute, the whole system set RECALIBRATES."* It has
+    # been `False` since it was built, so the intake the reviewer calls the ELABORATION GUARD
+    # had never once opened. Systems 1 and 2 are both SELECTIVE BY NATURE and neither can notice
+    # anything outside its own frame; 0 has no frame, which is what lets it catch the nuance.
+    system0: bool = True
 
 
 @dataclass

@@ -101,9 +101,9 @@ class GridWorld:
         if near:
             r1, c1 = rng.choice(near)
         self.state = {
-            "o0.row": r0, "o0.col": c0, "o0.colour": rng.randrange(4),
-            "o1.row": r1, "o1.col": c1, "o1.colour": rng.randrange(4),
-            "o2.row": r2, "o2.col": c2, "o2.colour": rng.randrange(4),
+            "o0.row": r0, "o0.col": c0, "o0.colour": rng.randrange(4), "o0.shape": 0,
+            "o1.row": r1, "o1.col": c1, "o1.colour": rng.randrange(4), "o1.shape": 1,
+            "o2.row": r2, "o2.col": c2, "o2.colour": rng.randrange(4), "o2.shape": 2,
         }
         # REACHABLE BY CONSTRUCTION, not by assertion. The target is where the mover ends up
         # after a random legal walk from its own start, so a path provably exists and nothing
@@ -154,13 +154,40 @@ class GridWorld:
         return ACTIONS
 
     def alphabet(self) -> int | dict[str, int]:
-        """PER SLOT. Positions range over the grid, colours over four, the goal over 0..1 --
-        three different sizes, so one number would charge a colour the grid's code."""
+        """PER SLOT. Positions range over the grid, colours over four, shapes over three, the
+        goal over 0..1 -- four different sizes, so one number would charge a colour the grid's
+        code."""
         a: dict[str, int] = {}
         for k in self.state:
-            a[k] = 4 if k.endswith(".colour") else GRID
+            a[k] = 4 if k.endswith(".colour") else 3 if k.endswith(".shape") else GRID
         a[GOAL_SLOT] = 2
         return a
+
+    def contact_points(self) -> list[tuple[str, str, str]]:
+        """**WHAT IS TOUCHING WHAT. The architecture already consumes this and NO WORLD HAS EVER
+        PUBLISHED IT** -- `_contact_keys` reads `env.contact_points` and returns `{}` when the
+        method is absent, which is the case in the toy world and was the case here.
+
+        **SO SYSTEM 0's CONTACT INTAKE HAS BEEN DEAD IN EVERY WORLD THE AGENT HAS EVER RUN**,
+        independently of `Config.system0` being off -- two separate reasons for one silence, and
+        the flag is the one that gets noticed.
+
+        A grid is where contact actually exists, so this is the natural place to supply it.
+        `orthogonal` and `diagonal` are distinct KINDS because they afford different things, and
+        `_contact_keys` keys on `(kind, sorted shape ids)` -- vocabulary permanent, instances
+        transient, which is its own rule and not mine.
+        """
+        out: list[tuple[str, str, str]] = []
+        objs = ("o0", "o1", "o2")
+        for i, a in enumerate(objs):
+            for b in objs[i + 1:]:
+                dr = abs(self.state[a + ".row"] - self.state[b + ".row"])
+                dc = abs(self.state[a + ".col"] - self.state[b + ".col"])
+                if dr + dc == 1:
+                    out.append((a, b, "orthogonal"))
+                elif dr == 1 and dc == 1:
+                    out.append((a, b, "diagonal"))
+        return out
 
     def slot_types(self) -> dict[str, str]:
         """EXTENT THROUGHOUT, AND IT IS A DELIBERATE UNDER-DECLARATION -- stated so no reader

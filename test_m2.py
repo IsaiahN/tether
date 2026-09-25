@@ -102,7 +102,19 @@ def _agent(cycles: int = 25):
     if cycles not in _BUILT:
         env = ArcWorld(_Two(), arc_percept.Objects(),
                        arc_atoms.three_spaces(arc_predict.predict()), palette=PALETTE)
-        ag = tether.Agent(env, gamma.Gamma(env.atoms(), game="m2test"), tether.Config())
+        # **`system0=False` IS PINNED HERE, AND IT IS THE FIXTURE'S ASSUMPTION MADE EXPLICIT
+        # RATHER THAN A CHECK WEAKENED.** System 0 became the default on 2026-09-25 and three
+        # checks here failed with `fixture:` -- their OWN guard for *the setup did not reach the
+        # state I test*, not for *the mechanism broke*. Contact-seeking changes which actions
+        # are taken, which changes which slots carry residual, which is the trajectory these
+        # scenarios are built on.
+        #
+        # AND IT IS WORTH KNOWING RATHER THAN ONLY FIXING: **these M2 checks are
+        # TRAJECTORY-DEPENDENT.** They verify the mechanisms against one action policy, so a
+        # policy change reads as a fixture failure. That is a real limit on what a green m2
+        # seat establishes.
+        ag = tether.Agent(env, gamma.Gamma(env.atoms(), game="m2test"),
+                          tether.Config(system0=False))
         for _ in range(cycles):
             ag.step()
         _BUILT[cycles] = ag
