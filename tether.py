@@ -361,6 +361,7 @@ BOOKS: tuple[str, ...] = (
     "gap_shapes_seen",                  # distinct cycles characterised (S15.3)
     "gap_shape_repeat",                 # all four keys matched: the LOOP case
     "want_retained_unpaid",             # a want kept though it did not pay
+    "focus_by_want",                    # System 2 set the focal slot, not surprise
     "chunk_reuse",                      # §14.7: a settled term inside a later mint
     # THE ARRIVAL-DEPTH HISTOGRAM, ALL NINE BUCKETS. Declared because **a histogram with a
     # missing bucket is not a histogram** -- *no term arrived at depth 3* and *depth 3 was
@@ -5490,6 +5491,24 @@ class Agent:
         readable = sorted(s for s in self.slots if s in before) or sorted(self.slots)
         focal = max(readable,
                     key=lambda s: (self._last_mass.get(s, 0.0), s in self.owed_import))
+        # **SYSTEM 2 SETS WHAT TO ATTEND TO; SYSTEM 1 EXECUTES -- Isaiah, 2026-09-25, and it is
+        # the crane game's own division of labour.** *"Tries 3-4: SYSTEM 2 drives -- deliberate
+        # measurement, not exploration. 1 still does the steering. 2 SETS WHAT TO ATTEND TO; 1
+        # EXECUTES."*
+        #
+        # The line above is System 1's attention: WHAT OWES MOST, driven by surprise. §13.4's
+        # selector is System 2's: the want whose discrepancy is most confidently shrinking. When
+        # System 2 has a view, it sets the focus. **When it does not, `select_want` returns None
+        # and this is a no-op** -- so the fallback is System 1 exactly as before, and nothing is
+        # deleted: `focal` is what is ATTENDED TO, never what is believed.
+        #
+        # **AND IT IS GATED ON READABILITY FOR THE REASON ABOVE, NOT AS A COURTESY.** `_utter`
+        # predicts on the focal slot and `_value_of` indexes `state[slot]`, so an unreadable
+        # focal is a KeyError -- a want on a covered object must wait rather than crash.
+        _want_slot = self.select_want()
+        if _want_slot is not None and _want_slot in before:
+            focal = _want_slot
+            self.gamma.book["focus_by_want"] = self.gamma.book.get("focus_by_want", 0) + 1
         by = "given"
         self._disproof = {}
         if action is None:
