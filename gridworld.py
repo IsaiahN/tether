@@ -105,6 +105,23 @@ class GridWorld:
             "o1.row": r1, "o1.col": c1, "o1.colour": rng.randrange(4), "o1.shape": 1,
             "o2.row": r2, "o2.col": c2, "o2.colour": rng.randrange(4), "o2.shape": 2,
         }
+        # **THE THREE, PLACED WHERE ISAIAH PUT THEM -- 2026-09-25.** He ruled `Proximity`,
+        # `Obstacle` and `Surface` ATTRIBUTE DATA rather than atoms, and my flagging them as my
+        # three least-confident entries was the tell: *the doubt was correctly placed and pointed
+        # at the wrong shelf.* They are PERCEIVED here rather than composed.
+        #
+        # `obstacle` and `surface` are fixed per object and `proximity` is not -- it is
+        # RECOMPUTED every frame in `observe`, so it is the first attribute here that any action
+        # can move. Constants would have added three more spectators and no signal.
+        self.state["o0.obstacle"] = 0
+        self.state["o1.obstacle"] = 0
+        self.state["o2.obstacle"] = 1          # the wall, and the only thing that blocks
+        # SURFACE IS AN OPAQUE ID AND THAT IS THE WHOLE POINT. Isaiah: *a HASH DESCRIPTION --
+        # texture-like -- which we can only DIFFERENTIATE AND GROUP, never preprogram.* So it
+        # carries no order and no meaning; `same`/`other` can compare two of them and nothing
+        # can read one. Distinct from `.shape`, which keys contact.
+        for i in range(3):
+            self.state[f"o{i}.surface"] = rng.randrange(3)
         # REACHABLE BY CONSTRUCTION, not by assertion. The target is where the mover ends up
         # after a random legal walk from its own start, so a path provably exists and nothing
         # had to be searched to know it. A generator that PICKED a target would have to prove
@@ -144,7 +161,7 @@ class GridWorld:
         return "exact match on the next state. Mechanical, instant, and it does not negotiate"
 
     def slots(self) -> list[str]:
-        return sorted([*self.state, GOAL_SLOT])
+        return sorted([*self.state, GOAL_SLOT] + [f"o{i}.proximity" for i in range(3)])
 
     def atoms(self) -> list[Atom]:
         """THE TOY WORLD'S ATOMS, VERBATIM. See the module docstring: one variable moves."""
@@ -159,8 +176,14 @@ class GridWorld:
         code."""
         a: dict[str, int] = {}
         for k in self.state:
-            a[k] = 4 if k.endswith(".colour") else 3 if k.endswith(".shape") else GRID
+            a[k] = (4 if k.endswith(".colour") else 3 if k.endswith(".shape")
+                    else 3 if k.endswith(".surface") else 2 if k.endswith(".obstacle") else GRID)
         a[GOAL_SLOT] = 2
+        # PROXIMITY IS A MANHATTAN DISTANCE ON A WRAPPED GRID, so its range is the board's own
+        # diameter rather than its width -- stated because charging it GRID would be wrong in
+        # the direction that makes its residual look smaller than it is.
+        for i in range(3):
+            a[f"o{i}.proximity"] = 2 * GRID
         return a
 
     def contact_points(self) -> list[tuple[str, str, str]]:
@@ -234,6 +257,22 @@ class GridWorld:
         """
         return r % GRID, c % GRID
 
+    def _proximity(self, who: str) -> int:
+        """**`o1.proximity` AS AN ATTRIBUTE ON THE OBJECT -- Isaiah's placement, verbatim:**
+        *"`proximity` is an attribute ON an object (`o1.proximity`, e.g. to the avatar)."*
+
+        Manhattan distance to o0, the avatar. **DERIVED EVERY FRAME, NEVER STORED** -- it is a
+        function of where things are, so storing it would let a rule write it and would let it
+        drift from the positions it describes.
+
+        **AND THE FUNCTION FORM IS NOT THIS AND IS STILL OWED.** He also named
+        `ProximityToAnotherObject` -- a FUNCTION, *likely an atom taking objects*, giving
+        distance between ANY pair. That is a vocabulary change rather than a perception one, so
+        it belongs with valence and the attribute set, not here. Recorded so it is not lost.
+        """
+        return (abs(self.state[who + ".row"] - self.state["o0.row"])
+                + abs(self.state[who + ".col"] - self.state["o0.col"]))
+
     def _completed(self) -> int:
         """ONE SITE. `objective()` and the published `@goal.completed` slot are one quantity,
         and computing it twice is the `A6i` collision this repo keeps filing."""
@@ -244,7 +283,8 @@ class GridWorld:
 
     def observe(self) -> dict[str, int]:
         """DERIVED, NEVER STORED -- no rule can write the goal; the agent only perceives it."""
-        return {**self.state, GOAL_SLOT: self._completed()}
+        return {**self.state, GOAL_SLOT: self._completed(),
+                **{f"o{i}.proximity": self._proximity(f"o{i}") for i in range(3)}}
 
     def step(self, action: str) -> None:
         if action not in ACTIONS:

@@ -296,7 +296,6 @@ selected because a recipe already asked for them -- **never because one would he
 | Enclosure | Boundary + Contain | a boundary that closes, so what it holds has an inside |
 | Inside | Enclosure + strictly contained | within an enclosure and not on its edge |
 | Outside | Enclosure − contained | beyond the enclosure; the complement of inside |
-| Surface | Boundary + axis | the face a form presents — and the axis a reflection is taken across |
 | Line | Cell + collinear | cells in a straight run; what a ray or an edge follows |
 | Curve | Line + Path bending | a run that changes direction; a line that is not straight |
 | Cavity | Enclosure − Cell | an enclosure with nothing in it; a hole |
@@ -307,8 +306,6 @@ selected because a recipe already asked for them -- **never because one would he
 | Join | PART + Adjacency ⇒ Whole | two regions become one where they meet |
 | Deform | SHAPE + Transform | the form changes and the thing survives as itself |
 | Disappear | Cell + removed | present in one frame and absent in the next |
-| Obstacle | Cell + Boundary + Path | a cell a path cannot cross |
-| Proximity | distance + COUNT | how near, counted in cells |
 
 **`⇒` IS DELIBERATE ON `Split` AND `Join`, AND IT IS THE FIRST USE OF THAT OPERATOR IN AN ENTRY.**
 `OPERATORS.md`: *production -- A produces B; B did not exist before.* **Two parts do not exist
@@ -321,9 +318,27 @@ cell separated by `·`, which no parser reading rows can see.** The gap audit re
 undefined for that reason and is wrong to; **building a foundational vocabulary out of NSM primes
 is the right direction rather than a shortcut.** Capitalised to match the grammar's own spelling.
 
-**THE LEAST CONFIDENT THREE, FLAGGED RATHER THAN BURIED:** `Obstacle` (the recipe says what it
-blocks, not what it IS) - `Proximity` (`distance` may already carry this) - `Surface` (one entry
-doing a boundary's work AND an axis's).
+**THOSE THREE ARE RELOCATED, NOT DELETED -- ISAIAH, 2026-09-25.** I authored `Obstacle`,
+`Proximity` and `Surface` here and flagged them as my three least confident. **He ruled them
+ATTRIBUTE DATA, not atoms: they are things the agent PERCEIVES, not things it composes.** They
+now live in the perception layer (`gridworld.py`), placed as he specified:
+
+    proximity   an attribute ON an object -- `o1.proximity`, distance to the avatar,
+                DERIVED EVERY FRAME. And a FUNCTION form is still owed:
+                `ProximityToAnotherObject`, likely an atom taking objects
+    obstacle    a BOOLEAN
+    surface     a HASH DESCRIPTION -- texture-like, which we can only DIFFERENTIATE
+                AND GROUP, never preprogram
+
+**AND MY UNCERTAINTY WAS THE TELL RATHER THAN A WEAKNESS IN THE DEFINITIONS** -- the reviewer's
+reading, and it is right: *the doubt was correctly placed and pointed at the WRONG SHELF.* The
+general rule it earned: **if the agent can read it off the board it is an ATTRIBUTE; if it builds
+it from other things it is an ATOM.**
+
+**RECORDED HERE SO A READER WHO FINDS THEM MISSING CAN SEE THEY MOVED.** *A map entry saying a
+thing does not exist is worse than one saying it is unfinished -- the first closes the question.*
+
+**THE OTHER FIFTEEN STAND**, and Isaiah ruled only on the three I marked.
 
 Boredom fires when nothing is arriving; chaos fires when more is arriving than one question can
 absorb. **And it has a stated response: split the problem into sub-questions rather than search
