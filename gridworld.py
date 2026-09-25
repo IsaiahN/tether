@@ -199,6 +199,34 @@ class GridWorld:
         """
         return {k: k.split(".")[0] for k in self.slots() if k.startswith("o")}
 
+    def peers(self) -> dict[str, tuple[str, ...]]:
+        """`{slot: the SAME attribute on every OTHER object}` -- `o1.row` -> `o0.row`, `o2.row`.
+
+        **THE LOOP MAY NOT DERIVE THIS.** It would have to split the slot name, which is reading
+        domain structure -- the same reason `slot_owner` is declared here rather than inferred
+        from a dot.
+
+        **AND THIS METHOD IS THE ROOT OF THE DEAD BLOCK, TRACED 2026-09-25.** `_group` reads
+        `env.peers()`; with no peers the group is EMPTY; `goal_residual` is *the fraction of a
+        SCOPE that fails* and declines `empty-group`; so `_res` -- the discrepancy series --
+        never grows; so `_goal_choice` has nothing to select over and returns `None` on every
+        call; so `_mint_routine`'s gate 1 refuses; so `enumerate_routines` is never reached and
+        **COMPOSE and RUN read dead.**
+
+        Measured before this existed: `goal_residual` declined on all 22 slots -- `unbound` 19,
+        `empty-group` 3 -- and the three were EXACTLY the slots holding a want. **The want
+        reached the scope question and the scope was empty.**
+
+        Only `arc_world` had ever published it, which is under the board stop -- the same shape
+        as `contacts`, found the same way, one layer further in.
+        """
+        by_attr: dict[str, list[str]] = {}
+        for slot in self.slots():
+            if "." in slot and slot.startswith("o"):
+                by_attr.setdefault(slot.rsplit(".", 1)[1], []).append(slot)
+        return {s: tuple(x for x in group if x != s)
+                for group in by_attr.values() for s in group}
+
     def contacts(self) -> dict[str, list[str]]:
         """WHICH OBJECTS TOUCH, THIS FRAME -- the owner-adjacency view of `contact_points`.
 
