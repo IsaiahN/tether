@@ -49530,3 +49530,102 @@ habitat, the flat form still read as the toy world's.
 > **`RUN` IS NOW DOWNSTREAM OF AN HONEST ECONOMIC REFUSAL RATHER THAN A BROKEN LINK.**
 > `routine_lib` is empty because the only composed candidate was CUT ON PRICE. The chain
 > reaches the point where the agent forms a plan, prices it, and declines to buy it.
+
+## F376 -- **A PLAN THAT NEVER ACTED COULD BE BANKED AS A SETTLED BEHAVIOUR, and the suite's only demonstration of SUCCESS was that exact no-op**
+
+`Until` ends the moment its guard reads true, so a plan whose guard ALREADY HOLDS returns
+`DONE` on its first advance having emitted nothing — **and `DONE` is the only path onto the
+shelf.** `Call(r0)` then costs a NAME (4.6439 bits at four actions, against 6.9658 for the
+`Until` inline) and `reach(Call)` returns the callee's BUDGET.
+
+> **A NO-OP WOULD HAVE BEEN REUSABLE FOREVER AT A DISCOUNT, CLAIMING A REACH IT NEVER HAD.**
+> `FALSE_MINT`'s shape one layer up, and the thing every route I proposed that night — cheapen
+> the plan, widen the habitat — was aimed at making MORE likely.
+
+### Two guards at two moments, and neither is redundant
+
+    `routine.inert(r, holds, lib)`   the guard holds AT MINT TIME -- a pre-check
+    the assumed->tested upgrade      the guard held BY THE TIME IT RAN -- a post-check
+
+The pre-check structurally cannot see the second: composition and execution are different
+frames. **`inert` is the repair `reach` NAMES AND DECLINES TO MAKE** — *"the repair needs state
+this function must not have… the caller gates on `CAN == YES` and that is where an
+already-satisfied termination condition could be caught."* The predicate is INJECTED exactly as
+`advance` takes it, so the algebra still evaluates nothing itself. **True only when KNOWN**: an
+unreadable guard returns False, because `blocked` and `satisfied` are different endings.
+
+**AND THE POLARITIES ARE OPPOSITE, WHICH IS THE PART THAT WOULD HAVE BEEN SILENT:** `Until` is
+inert when its guard HOLDS; `When` is inert when its guard DOES NOT. Inverting them drops every
+conditional plan the composer builds, and it would read as a safety check working.
+
+### `tested_yes` / `tested_no` had ZERO PRODUCERS, and the missing observable was the emission count
+
+`REACH_STATUS` has carried them since it was written; grep returns the tuple and the docstring
+saying they are never returned. **An ENDING cannot supply them — `DONE` with nothing emitted
+reads identically to `DONE` with work done.** Four endings were distinguished and the
+distinction INSIDE `DONE` was not.
+
+    DONE + emitted > 0   -> tested_yes
+    DONE + emitted == 0  -> tested_no      <- silently a success until now
+    EXHAUSTED            -> tested_no      (a trial, and it failed)
+    BLOCKED/unadvertised -> unchanged      (NON-TRIALS, per M2_STANDARD's own rule)
+
+Prompted by the reviewer's JPL rover research: **their priors are PESSIMISTIC and execution
+releases the slack, so a wrong prior costs one cycle of a system that reschedules ~15x a sol.
+Ours is OPTIMISTIC — `reach(Until)` is `budget * reach(body)` — so a wrong prior costs a shelved
+lie.** The prior is NOT inverted: `reach 0` makes `left` equal `base` and deadlocks harder, and
+JPL escapes that with **a human sizing the budget so mandatory work fits at pessimistic prices**,
+which is the thing this project exists not to need.
+
+### And the shelf was storing REMAINDERS, which is older than any of it
+
+    advance(until(g/3))  ->  until(g/2)      A DIFFERENT OBJECT
+
+The shelf stored whatever `self.routine` held at the ending, so **a plan that took ANY steps
+before succeeding shelved its TAIL rather than the behaviour composed.** Every future `Call`
+would reuse a behaviour the agent never chose, priced on a budget it never set.
+
+**INVISIBLE BECAUSE THE ONLY SUCCESS THIS SUITE HAD EVER SEEN ENDED ON ADVANCE NUMBER ONE**,
+where remainder and original coincide. It required a plan that runs more than one step and
+succeeds — which nothing had produced in any world, ever. **A test finally doing the thing the
+suite had never done is what exposed it**, not a measurement.
+
+### The fixture was the defect, and editing it was the dangerous move
+
+`check_a_plan_that_succeeds_shelves_itself` stubbed `goal_residual` at 0.0 FROM THE FIRST CALL.
+**The suite's only demonstration of SUCCESS was a plan that never ran.**
+
+> **THE ASSERTION IS UNCHANGED AND THE JUSTIFICATION IS IN THE CHECK'S OWN WORDS:** it is named
+> *a plan that SUCCEEDS* and asserts *a plan that ACHIEVED ITS GUARD*. **A plan whose guard was
+> already true did not achieve anything — it arrived.** The fixture did not implement its own
+> assertion's intent. The no-op case is NOT deleted; it has its own check. *Reintroduce the
+> defect, never disable the check.*
+
+### THE CLASS, and it is seven instances in one day
+
+> **A REFERENCE THAT RESOLVES TO SOMETHING ADJACENT TO WHAT WAS MEANT.**
+
+Not missing, not broken — **a lookup that SUCCEEDS and returns the wrong neighbour**, which is
+why every one read as nothing rather than as an error.
+
+    `wants` held a NAME whose term was never accepted   resolved to None, silently
+    `out_type-not-OBJ` named the BOUND term             after a fallback did nothing
+    `_mint_routine` reported COVERAGE                   for four other exits
+    `step == "COMPOSE"`                                 a name that does not exist
+    the fixture measured the TOY world                  while the work had moved
+    `until(o0.row/3)` parsed as slot/value              it is guard/BUDGET
+    the shelf stored the REMAINDER                      not the plan as composed
+
+**Each adjacent thing is a REAL THING THAT EXISTS and reads as a sensible answer to the question
+asked.** That is what makes the class hard, and it is why none of them failed anything.
+
+### What caught them, counted
+
+    a SEAT                three, each firing on the FIRST CYCLE IT COULD
+    the AGENT             `inert` disagreed with the story that motivated building it
+    GOING TO THE WRITE SITE  the `until(` render, the `loop_budget` default -- one grep each
+    a MEASUREMENT THAT AGREED WITH ME   **none. not one.**
+
+**The measurements confirmed every wrong thing believed that day**, because they were pointed at
+what was already thought. The greps and the seats are what disagreed. *That is the proxy ruling
+arriving from the inside rather than as a principle.*
