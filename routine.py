@@ -603,6 +603,50 @@ def reach_status(r: Any, lib: dict | None = None) -> str:
     return "unknown"
 
 
+def inert(r: Any, holds, lib: dict | None = None, _seen: frozenset = frozenset()) -> bool:
+    """Can this routine be shown to emit NO ACTION on this frame? **The repair `reach` names
+    and declines to make.**
+
+    `reach`'s own docstring: *a guard that already holds makes this an over-statement, and it
+    CANNOT BE FIXED HERE -- whether a guard holds is a question for `holds`, which is the
+    CALLER's... the caller gates on `CAN == YES` and that is where an already-satisfied
+    termination condition could be caught.* **So the predicate is injected, exactly as
+    `advance` takes it, and the algebra still evaluates nothing itself.**
+
+    Measured on gridworld seed 11, cycle 20: `until(o0.row/3) {down}` was composed and priced
+    at `reach 3` while `o0.row` WAS ALREADY 3. It would have terminated before acting.
+    **`advance` returns `DONE` for such a routine, and `DONE` is what puts a routine on the
+    shelf** -- so a no-op would have been shelved as a settled behaviour, callable at a name's
+    price while claiming its budget's reach. That is `FALSE_MINT`'s shape one layer up.
+
+    **TRUE ONLY WHEN IT IS KNOWN, NEVER WHEN IT IS MERELY UNREADABLE.** An unknown guard
+    returns False here: *blocked* and *satisfied* are different endings and collapsing them
+    would refuse a plan for the sin of being unreadable, which is the opposite of what the
+    ending vocabulary was built for.
+    """
+    if isinstance(r, Act):
+        return False
+    if isinstance(r, Until):
+        # the loop ends the moment the guard reads true, so a holding guard emits nothing
+        return r.budget <= 0 or holds(r.guard) is True or inert(r.body, holds, lib, _seen)
+    if isinstance(r, When):
+        # the opposite polarity: the body runs only WHERE the guard holds
+        return holds(r.guard) is False or inert(r.body, holds, lib, _seen)
+    if isinstance(r, (Choose, Try)):
+        # exactly one arm runs and which is unknown here, so inert only if NEITHER can act
+        return (inert(r.body, holds, lib, _seen)
+                and inert(r.otherwise, holds, lib, _seen))
+    if isinstance(r, Seq):
+        return inert(r.first, holds, lib, _seen) and inert(r.then, holds, lib, _seen)
+    if isinstance(r, (Let, Expect)):
+        return inert(r.body, holds, lib, _seen)
+    if isinstance(r, Call):
+        if r.name in _seen or not lib or r.name not in lib:
+            return False                      # unresolved is not known-inert
+        return inert(lib[r.name], holds, lib, _seen | {r.name})
+    return False
+
+
 def reach(r: Any, lib: dict | None = None, _seen: frozenset = frozenset()) -> int:
     """How many members of a scope this routine can address before it ends.
 

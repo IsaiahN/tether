@@ -769,19 +769,66 @@ def check_a_plan_that_succeeds_shelves_itself():
 
     The suite reached `exhausted`, `unadvertised`, `refused` and `cut` and had never once seen a
     plan SUCCEED -- which is why every chunking check has to hand-plant `ag.routines`.
+
+    **AND THE FIXTURE WAS A NO-OP, WHICH THIS CHECK'S OWN NAME REFUSES -- 2026-09-25.** It
+    stubbed `goal_residual` at 0.0 FROM THE FIRST CALL, so the guard held before the routine
+    ran: `advance` returned `DONE` having emitted NOTHING. The assertion says *a plan that
+    ACHIEVED ITS GUARD* and the check is named *a plan that SUCCEEDS* -- **a plan whose guard
+    was already true did not achieve anything, it arrived.**
+
+    The assertion is UNCHANGED and now has a fixture that implements it: the guard is FALSE on
+    the first read and TRUE afterwards, so the routine emits one action and then succeeds. The
+    no-op case gets its own check below rather than being deleted -- `reintroduce the defect,
+    never disable the check`.
     """
     ag = _agent()
     slot = _wide(ag)
     b = dict(ag.env.observe())
-    ag.goal_residual = lambda _s, _st, **_k: 0.0   # the guard holds: the scope is satisfied
+    seen = []
+
+    def _rg(_s, _st, **_k):
+        seen.append(1)
+        return 0.0 if len(seen) > 1 else 1.0   # unsatisfied once, then satisfied
+    ag.goal_residual = _rg
+    r = Rt.Until(slot, Rt.Act(ag.actions[1]), 3)
+    ag.routine, ag.routine_for = r, slot
+    n0 = len(ag.led.entries)
+    ag.choose(b)                                # emits the action; guard still false
+    ag.choose(dict(ag.env.observe()))           # guard now true -> DONE, having acted
+    row = next((e.detail for e in ag.led.entries[n0:] if e.event == "routine_end"), None)
+    assert row and row["outcome"] == Rt.DONE, f"ended {row and row['outcome']}, not done"
+    assert r in ag.routines, "a plan that achieved its guard was not shelved"
+    assert not ag.refuted, "success filed a refutation"
+
+
+def check_a_plan_that_ends_without_acting_is_not_shelved():
+    """DEFECT: `DONE` banked as a success when the routine never emitted an action.
+
+    **`Until` ends the moment its guard reads true, so a plan whose guard ALREADY HOLDS
+    returns `DONE` on its first advance having done nothing** -- and `DONE` is the only path
+    onto the shelf. Shelving it installs a permanent cheap lie: `Call(r0)` costs a NAME
+    (4.6439 bits at four actions, against 6.9658 for the `Until` inline) and `reach(Call)`
+    returns the callee's BUDGET. A no-op would be reusable forever at a discount, claiming a
+    reach it has never had.
+
+    That is `FALSE_MINT`'s shape one layer up, and it is the exact fixture this suite used to
+    demonstrate success with until 2026-09-25.
+    """
+    ag = _agent()
+    slot = _wide(ag)
+    b = dict(ag.env.observe())
+    ag.goal_residual = lambda _s, _st, **_k: 0.0   # the guard holds BEFORE the routine runs
     r = Rt.Until(slot, Rt.Act(ag.actions[1]), 3)
     ag.routine, ag.routine_for = r, slot
     n0 = len(ag.led.entries)
     ag.choose(b)
     row = next((e.detail for e in ag.led.entries[n0:] if e.event == "routine_end"), None)
     assert row and row["outcome"] == Rt.DONE, f"ended {row and row['outcome']}, not done"
-    assert r in ag.routines, "a plan that achieved its guard was not shelved"
-    assert not ag.refuted, "success filed a refutation"
+    assert r not in ag.routines, "a routine that emitted NOTHING was shelved as settled"
+    tested = next((e.detail for e in ag.led.entries[n0:] if e.event == "reach_tested"), None)
+    assert tested, "no `reach_tested` row: the assumed->tested upgrade did not fire"
+    assert tested["verdict"] == "tested_no", f"verdict {tested['verdict']}, not tested_no"
+    assert tested["emitted"] == 0, f"emitted {tested['emitted']}, not 0"
 
 
 def check_an_unreadable_guard_blocks_at_execution():

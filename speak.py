@@ -65,6 +65,23 @@ def sentences(rows: list[dict]) -> list[tuple[list[int], str]]:
                                f"reaches {d.get('reach')} of {d.get('unsat')}."))
         elif ev == "routine_refused":
             out.append(([seq], f"On {slot} I formed no plan: {d.get('reason')}."))
+        elif ev == "reach_tested":
+            # THE AGENT MARKING ITS OWN ESTIMATE AGAINST WHAT HAPPENED. Without a sentence the
+            # upgrade from ASSUMED to TESTED would be invisible in the account, and it is the
+            # only place the record says whether a plan's claimed reach was ever borne out.
+            out.append(([seq], f"On {slot} the plan `{d.get('routine')}` ended "
+                               f"{d.get('ending')} having emitted {d.get('emitted')} "
+                               f"action(s), so its reach is now {d.get('verdict')} rather "
+                               f"than assumed."))
+        elif ev == "routine_inert":
+            # THE AGENT REFUSING ITS OWN PLAN FOR A REASON THAT IS NOT PRICE. Without a
+            # sentence the narration would show a cycle where candidates were composed and
+            # none survived, with no account of why -- and the reason here is the most
+            # interesting one it can give: *I would have finished before I started.*
+            out.append(([seq], f"On {slot} I dropped {d.get('dropped')} of "
+                               f"{d.get('considered')} plans before pricing them: each would "
+                               f"have ended before acting, because the condition it stops at "
+                               f"is already true."))
         elif ev == "split_refused":
             # **THE EVENT THAT COULD NOT FIRE UNTIL TODAY, AND THE NARRATION WENT QUIET THE
             # MOMENT IT COULD -- 2026-09-25.** `split_refused` exists so the FIVE exits of

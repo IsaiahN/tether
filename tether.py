@@ -831,6 +831,21 @@ class Agent:
         # `routine.Let`'s store. Published by `advance`, read by the caller's `holds`, so the
         # act space keeps its invariant that `routine.py` never evaluates a predicate.
         self.routine_state: dict = {}
+        # **WHAT THE ROUTINE ACTUALLY EMITTED, WHICH NOTHING COUNTED -- 2026-09-25.**
+        # `REACH_STATUS` has carried `tested_yes`/`tested_no` since it was written and they
+        # have ZERO PRODUCERS: `reach_status` may only read the SHAPE, and its docstring says
+        # so -- *a caller that has watched the routine run may upgrade; nothing here may.*
+        # This is the caller doing the watching. An ending alone cannot say it: `DONE` with no
+        # action emitted is a routine that finished before it started.
+        self._routine_acts = 0
+        self._reach_tested: dict = {}
+        # **THE PLAN AS COMPOSED, BECAUSE `advance` HANDS BACK A REMAINDER -- 2026-09-25.**
+        # `advance(until(g/3))` returns `until(g/2)`: a DIFFERENT object with the budget spent
+        # down. The shelf stored whatever `self.routine` held at the ending, so a plan that
+        # took any steps before succeeding SHELVED ITS TAIL rather than the behaviour that was
+        # composed. Invisible until now because the only success the suite had ever seen ended
+        # on advance number one, where the remainder and the original coincide.
+        self._routine_adopted = None
         # `(slot, value when the claim was made, step index)`, or None. One at a time: the loop
         # takes ONE action per cycle, so a second claim cannot be outstanding.
         self._popped: dict[str, int] = {}
@@ -1224,6 +1239,7 @@ class Agent:
                         step_index=idx, unchanged_at=was, actions_saved=saved,
                         routine=Rt.render(self.routine) if self.routine else None)
         self.routine, self.routine_for = None, None
+        self._routine_adopted = None
         return True
 
     def _delta(self) -> dict:
@@ -2699,6 +2715,12 @@ class Agent:
         if self.routine is not None:
             self._check_expectation(before)
         if self.routine is not None:
+            # CAPTURED AT THE FIRST ADVANCE, NOT ONLY AT THE MINT. A routine can arrive
+            # without passing through `_mint_routine` -- a seat plants one, and a routine
+            # that survived a boundary is already in hand -- and this is the last moment the
+            # object is still the plan rather than a remainder.
+            if self._routine_adopted is None:
+                self._routine_adopted = self.routine
             self.routine_state.pop("expect", None)
             emit, rest = Rt.advance(self.routine, self._holds(before),
                                     self.routine_lib, self.routine_state)
@@ -2724,6 +2746,7 @@ class Agent:
                 if want is not None:
                     self._expect_step += 1
                     self._expect = (want, before.get(want), self._expect_step)
+                self._routine_acts += 1
                 self.routine = rest
                 return emit, "routine"
             # ENDED, AND THE FOUR ENDINGS ARE NOT ONE. `done` is the guard met; `exhausted` is
@@ -2733,8 +2756,38 @@ class Agent:
             # routines survive boundaries, and this is the other half of that ruling: it fails
             # its guard rather than crashing.**
             why = emit if emit in (Rt.DONE, Rt.BLOCKED, Rt.EXHAUSTED) else "unadvertised"
-            if why == Rt.DONE and self.routine not in self.routines:
-                self.routines.append(self.routine)
+            # **THE ASSUMED -> TESTED UPGRADE, AND IT IS THE CALLER'S BY CONSTRUCTION.**
+            # `reach_status` returns only `assumed_yes`/`unknown` and says why: it sees the
+            # SHAPE, and `tested_*` are claims about what HAPPENED. Nothing had ever made one.
+            # Reviewer, 2026-09-25, from the JPL rover record: their estimates are PESSIMISTIC
+            # and execution RELEASES the slack, so a wrong prior costs one cycle. Ours is
+            # optimistic -- `reach(Until)` is `budget * reach(body)` -- so a wrong prior costs
+            # a shelved lie. This does not invert the prior; it records what the run showed.
+            #
+            # DONE WITH ZERO ACTIONS IS THE CASE THAT MATTERS: the guard already held, the
+            # routine ended before acting, and `DONE` is what SHELVES it -- so without this it
+            # would be filed as a settled behaviour, callable at a name's price while claiming
+            # its budget's reach. `exhausted` is a trial that failed; `blocked` and
+            # `unadvertised` are NON-TRIALS and say nothing either way, so they are left alone.
+            if why == Rt.DONE:
+                _verdict = "tested_yes" if self._routine_acts else "tested_no"
+            elif why == Rt.EXHAUSTED:
+                _verdict = "tested_no"
+            else:
+                _verdict = None
+            if _verdict and self.routine_for:
+                self._reach_tested[
+                    self._reject_key(self.routine_for, self.routine,
+                                     self.routine_lib)] = _verdict
+                self.led.record(self.cycle, "SETTLE", self.routine_for, "reach_tested",
+                                verdict=_verdict, ending=why, emitted=self._routine_acts,
+                                routine=Rt.render(self.routine))
+            # AND A ROUTINE THAT EMITTED NOTHING IS NOT SHELVED. Reaching `DONE` without acting
+            # is not a settled behaviour -- it is a guard that was already true.
+            _settled = self._routine_adopted or self.routine
+            if (why == Rt.DONE and self._routine_acts
+                    and _settled not in self.routines):
+                self.routines.append(_settled)
             # EXPRESS-BEFORE-JUDGE, AND IT IS THE PROPERTY THE ENDINGS WERE ALREADY BUILT FOR.
             # §18.2: *a refutation is recorded ONLY after the hypothesis actually ran a trial --
             # "I failed to do X" must never be coded as "X is inert." A blocked or never-reached
@@ -2784,6 +2837,7 @@ class Agent:
                             outcome=why, routine=Rt.render(self.routine), **extra)
             self._guard_exit = None
             self.routine, self.routine_for = None, None
+            self._routine_adopted = None
         # SYSTEM 2 RUNS BESIDE SYSTEM 1, NOT BEHIND IT -- Isaiah, 2026-09-09.
         # Formation used to sit ONLY at the fall-through, so `discriminate:learned` returning
         # first foreclosed it: `_mint_routine` was last called at cycle 11 on `ka59` and 7 on
@@ -2928,9 +2982,11 @@ class Agent:
                 emit, rest = Rt.advance(self.routine, self._holds(before),
                                     self.routine_lib, self.routine_state)
                 if emit not in (Rt.DONE, Rt.BLOCKED, Rt.EXHAUSTED) and emit in self.actions:
+                    self._routine_acts += 1
                     self.routine = rest
                     return emit, "routine"
                 self.routine, self.routine_for = None, None
+                self._routine_adopted = None
         goal = self._goal_split(before)
         if goal is not None:
             return goal, "discriminate:goal"
@@ -3717,6 +3773,16 @@ class Agent:
         """
         return {f"r{i}": r for i, r in enumerate(self.routines)}
 
+    def _reach_seen(self, slot: str, cand) -> str:
+        """`reach_status`, upgraded by what a run of THIS plan on THIS slot actually did.
+
+        Structural by default -- `assumed_yes` / `unknown` -- and `tested_yes` / `tested_no`
+        once the ending site has watched one. The record is keyed the way refutations are, so
+        a plan differing only in its budget is the same hypothesis and inherits the verdict.
+        """
+        return self._reach_tested.get(
+            self._reject_key(slot, cand, self.routine_lib), Rt.reach_status(cand))
+
     @staticmethod
     def _reject_key(slot: str, r, lib: dict | None = None) -> tuple:
         """The identity a refutation is filed under. **BUDGET-FREE ON PURPOSE.**
@@ -3988,12 +4054,33 @@ class Agent:
         # many shapes and one unreachable guard is a fact about THAT shape. **A nested `Until`
         # whose guard nobody re-checked is the durable contamination the standard names**: it
         # looks like planning and loops on a condition this level cannot reach.
-        ok = [(c, lf, r) for c, lf, r in priced
+        # **AND A PLAN THAT CANNOT ACT IS DROPPED HERE, WHICH IS THE SITE `reach` NAMES.**
+        # `reach(Until)` is `budget * reach(body)` and over-states whenever the guard already
+        # holds -- its docstring says so, says the repair *needs state this function must not
+        # have*, and points at this gate. Measured on gridworld seed 11 cycle 20:
+        # `until(o0.row/3) {down}` priced at `reach 3` with `o0.row` ALREADY 3.
+        #
+        # **IT IS NOT A PRICING FIX AND THAT IS THE POINT.** `advance` returns DONE for a
+        # routine whose guard already holds, and DONE is what SHELVES a routine -- so buying
+        # one would have put a no-op on the shelf, callable at a name's price and claiming its
+        # budget's reach, forever. The bargain refused this one by 0.97 bits and would not
+        # have refused a cheaper one.
+        _holds = self._holds(before)
+        _live = [(c, lf, r) for c, lf, r in priced if not Rt.inert(r, _holds, lib)]
+        if len(_live) < len(priced):
+            self.led.record(self.cycle, "PLAN", slot, "routine_inert",
+                            reason="dropped: the plan's own termination condition already "
+                                   "holds, so it would end before acting",
+                            dropped=len(priced) - len(_live), considered=len(priced))
+        ok = [(c, lf, r) for c, lf, r in _live
               if all(self.can(g, before) == YES for g in Rt.guards(r))]
         if not ok:
             self.led.record(self.cycle, "PLAN", slot, "routine_refused",
-                            reason="no candidate's guards are all reachable here",
-                            considered=len(priced))
+                            reason=("every candidate would end before acting -- its own "
+                                    "termination condition already holds")
+                                   if priced and not _live else
+                                   "no candidate's guards are all reachable here",
+                            considered=len(priced), live=len(_live))
             return
         cost, left, cand = ok[0]
         if not pays(cost, left, base):
@@ -4001,7 +4088,7 @@ class Agent:
                             reason="does-not-pay", routine=Rt.render(cand),
                             cost=round(cost, 4), left=round(left, 4),
                             base=round(base, 4), reach=Rt.reach(cand),
-                            reach_status=Rt.reach_status(cand),
+                            reach_status=self._reach_seen(slot, cand),
                             considered=len(priced), shelf=len(shelf))
             return
         # **WRAPPED IN AN EXPECTATION AT ADOPTION.** The source is hardcoded and says so: a
@@ -4010,13 +4097,15 @@ class Agent:
         # `Expect` rebuilds around the remainder, so the claim is re-made every step rather
         # than once at the start.
         self.routine, self.routine_for = Rt.Expect(slot, cand), slot
+        self._routine_acts = 0                 # this plan's own tally, not the last one's
+        self._routine_adopted = self.routine   # what to shelve; `advance` will erode it
         self.led.record(self.cycle, "PLAN", slot, "routine", verdict="pays",
                         routine=Rt.render(cand), length=Rt.length(cand),
                         units=Rt.length(cand, shelf),
                         chunked=Rt.length(cand) != Rt.length(cand, shelf),
                         cost=round(cost, 4), left=round(left, 4),
                         base=round(base, 4), gap=gap, reach=Rt.reach(cand),
-                        reach_status=Rt.reach_status(cand),
+                        reach_status=self._reach_seen(slot, cand),
                         unsat=round(unsat, 4), considered=len(priced), shelf=len(shelf),
                         route="learned: observed to move this slot the wanted way")
 
