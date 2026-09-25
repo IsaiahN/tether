@@ -49094,3 +49094,50 @@ with exactly two senses (§12.1's loadable prior of cognitive bounds, §22.1's h
 **NOT BUILT. The habitat could publish a cap in one line, and whether the agent may READ it is
 not mine.**
 
+## F370 -- **THE SELECTOR'S CURRENCY ARRIVES AT 16 CYCLES AND NOT AT 8. I diagnosed the cause twice, wrongly, and nearly shipped a no-op on the first one**
+
+**`27de796` built §13.4's selector and reported honestly that on 2 of 3 multi-want boards its
+delta map was EMPTY and the choice fell through to an alphabetical tiebreak.** This is the chase,
+and the interesting part is the two wrong diagnoses rather than the answer.
+
+### DIAGNOSIS 1 -- WRONG, AND I WROTE THE FIX BEFORE MEASURING IT
+
+*`_discrepancy` reads `bound`, and wants are held UNBOUND, so the selector ranks on a quantity
+computed for none of them.* Clean, matched §13.4's *express EACH hypothesis*, and **precedented
+at `goal_residual` in the same file** -- which is exactly the kind of support that makes a wrong
+story feel earned.
+
+**MEASURED: 2 gap deltas across 12 boards WITH the fallback, 2 WITHOUT. A NO-OP.** Reverted.
+
+### DIAGNOSIS 2 -- ALSO WRONG
+
+Instrumenting `_discrepancy`'s branches said the wants path was never reached because `bound`
+almost always holds something. **So I inspected the want-slots directly, and AN OBJ IS BOUND ON
+THEM** -- board 11 has `o1.proximity <- same . all<o2.colour>`, `out_type` OBJ, and no delta.
+The bound/want distinction was never the blocker.
+
+### THE ACTUAL CAUSE: OCCASIONS
+
+    board 11 @  8 cycles   wants 2   deltas {}                    buckets i0 w0 f0
+    board 11 @ 16 cycles   wants 3   deltas {o2:1, o1:1, o0.row:0} buckets i4 w3 f5
+                                     SELECTED o0.row
+
+**A DELTA NEEDS A PREVIOUS READING, and the binding arrives too late in an 8-cycle run for a
+second one to exist.** Nothing was miswired. The run was short.
+
+> **AND THE SELECTOR THEN SELECTS ON EVIDENCE: it takes `o0.row` at delta 0 over two slots at
+> delta 1** -- the least-worsening, which is *shrinking more than the others* behaving correctly
+> when none is shrinking. **No threshold anywhere in that.**
+
+### WHAT THIS COSTS AND WHAT IT IS WORTH
+
+**`ag.run(8)` IS THE FIXTURE'S CALIBRATION CONSTANT FOR `CORRECT`, MEASURED AT SIX CYCLES PLUS
+TWO.** It is not calibrated for the selector, and nothing said it had to be -- **but every
+selector reading I have taken tonight was taken under it.** A constant that was right for one
+stage silently under-serves another.
+
+**AND THE SEQUENCE IS THE LESSON.** Two diagnoses, both coherent, both supported by real
+features of the code, both wrong -- and the first came with a fix already written. **What stopped
+it was measuring the fix rather than the story**, which is the only step that was going to work:
+a better reading of the code would have produced a third plausible cause.
+
