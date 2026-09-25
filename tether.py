@@ -3932,6 +3932,7 @@ class Agent:
                             reason="does-not-pay", routine=Rt.render(cand),
                             cost=round(cost, 4), left=round(left, 4),
                             base=round(base, 4), reach=Rt.reach(cand),
+                            reach_status=Rt.reach_status(cand),
                             considered=len(priced), shelf=len(shelf))
             return
         # **WRAPPED IN AN EXPECTATION AT ADOPTION.** The source is hardcoded and says so: a
@@ -3946,6 +3947,7 @@ class Agent:
                         chunked=Rt.length(cand) != Rt.length(cand, shelf),
                         cost=round(cost, 4), left=round(left, 4),
                         base=round(base, 4), gap=gap, reach=Rt.reach(cand),
+                        reach_status=Rt.reach_status(cand),
                         unsat=round(unsat, 4), considered=len(priced), shelf=len(shelf),
                         route="learned: observed to move this slot the wanted way")
 

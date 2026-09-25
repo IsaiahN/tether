@@ -560,6 +560,49 @@ def enumerate_routines(actions: tuple, guards: tuple, chunks: tuple = (),
     return [r for *_, r in keyed[:cap]]
 
 
+# **THE SIX, AND ISAIAH RULED THE SHAPE RATHER THAN ANY NUMBER -- 2026-09-25.** *"Budget and
+# reachability must SPLIT: budget numeric, reachability a STATUS."* `M2_PHASES` had already filed
+# the collision as an `A6i` -- `unsat` serving as a BOUND (what the agent allows) and an
+# EXPECTATION (what it will achieve), ratio 1 by construction -- and this is the half that stops
+# being a number.
+REACH_STATUS = ("assumed_yes", "assumed_no", "tested_yes", "tested_no", "in_flux", "unknown")
+
+
+def reach_status(r: Any, lib: dict | None = None) -> str:
+    """Is `reach`'s count a FACT or an ASSUMPTION? A status, never a quantity.
+
+    **THIS ANSWERS THE DEFECT `reach` DOCUMENTS AND DECLARES UNFIXABLE IN ITSELF.** Its `Until`
+    branch: *a guard that already holds makes this an over-statement, and it CANNOT BE FIXED HERE
+    -- the repair needs state this function must not have.* True, and it was only unfixable
+    while the return had to be a number: **a count cannot say "this is what I assume"**. The
+    status can, without this function learning anything about the world.
+
+        assumed_yes   structural -- no guard stands between the plan and the count
+        unknown       a guard decides it and no guard has been read here
+
+    **`tested_yes` / `tested_no` / `in_flux` ARE NOT RETURNED FROM HERE AND THAT IS THE POINT.**
+    They are claims about what HAPPENED, and this function sees only the shape. A caller that has
+    watched the routine run may upgrade; nothing here may. **`assumed_no` likewise: refusing a
+    plan is not a structural reading.**
+
+    **AND IT IS THE NOT-WINNABLE VERDICT'S VOCABULARY.** The crane literature's *"if prizes keep
+    dropping early, choose a different machine"* needs the agent to be able to conclude THIS GOAL
+    IS NOT WORTH MY REMAINING BUDGET, and `F361`'s triage found it absent entirely. **`tested_no`
+    is that verdict** -- the enum arrived for the `reach` repair and supplies it.
+    """
+    if isinstance(r, Act):
+        return "assumed_yes"
+    if isinstance(r, Seq):
+        a, b = reach_status(r.first, lib), reach_status(r.then, lib)
+        # THE WEAKER OF THE TWO, for `Choose`'s reason one level up: a sequence is only as
+        # certain as its least certain step, and averaging them would let a sure first step
+        # launder an unread guard in the second.
+        return "unknown" if "unknown" in (a, b) else a
+    if isinstance(r, (When, Until, Choose, Try)):
+        return "unknown"
+    return "unknown"
+
+
 def reach(r: Any, lib: dict | None = None, _seen: frozenset = frozenset()) -> int:
     """How many members of a scope this routine can address before it ends.
 
