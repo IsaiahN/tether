@@ -2329,9 +2329,23 @@ class Agent:
         self._queue_kinds = []
         if not by_kind or best is None:
             return []
+        # **THE DIAL ORDERS A CONTEST ONLY WHEN IT CAN SPEAK ABOUT EVERY CONTESTANT -- repaired
+        # 2026-09-25, and it is this docstring's own stated intent rather than a new rule.**
+        #
+        # The sort read `soon if soon is not None else 0.0`. **UNEARNED COLLAPSED TO ZERO, WHICH
+        # SORTS FIRST**, so the moment ANY kind earned a reading every kind that had not earned
+        # one jumped ahead of it -- *the agent installs the term it knows LEAST about*, and the
+        # head is what gets installed. Unknown is not zero; it is the one thing an absent
+        # reading cannot mean.
+        #
+        # **FILED AND LEFT UNREPAIRED IN `F360` BECAUSE THERE WERE ZERO CONTESTS TO EXERCISE IT.
+        # `F366`'s habitat run produced THREE**, so the precondition for touching it is met --
+        # shipping an unexercised change to the decision path is how the last three dead
+        # mechanisms got in.
+        speaks = all(self.consequence_in(k) is not None for k in by_kind)
         rows = []
         for kind, v in by_kind.items():
-            soon = self.consequence_in(kind)
+            soon = self.consequence_in(kind) if speaks else None
             rows.append(((0 if self._urgent(kind) else 1),
                          (soon if soon is not None else 0.0), v[0], kind, v))
         rows.sort(key=lambda r: (r[0], r[1], r[2]))
