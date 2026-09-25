@@ -49042,3 +49042,55 @@ correct only where the referent is undefined; everywhere the doc speaks of the R
 a role. That is the second site-class the scrub has found where the words do different work, and
 both were found by reading rather than by counting.
 
+## F369 -- **THE LAST CRANE MECHANISM IS ABSENT FOR A NAMEABLE REASON: THE AGENT HAS A NUMERATOR AND NO DENOMINATOR.** It knows what it has SPENT and not what it has LEFT
+
+**I said I would not call *observation at zero budget cost* blocked until I had checked the
+corpus. Checked, and the shape IS ruled -- what is missing is smaller and more specific than
+"the mechanism".**
+
+### THE SHAPE IS ALREADY ISAIAH'S, FROM THE PARTIAL-COVER DISSOLUTION
+
+    an EXISTING atom fits            cheapest -- nothing is created
+    several iterations of existing   combinatorial -- costs SEARCH
+    INVENTING an atom                costs REASONING, NOT ACTIONS
+
+> *"The other two need the board to move. INVENTION DOES NOT. So invention SOUNDS expensive and
+> is THE CHEAP OPTION WHEN ACTIONS ARE SCARCE -- exactly the crane machine with two tries left."*
+
+**And *when actions are scarce* is a LOCAL COMPARISON, not a threshold** -- the regional rule
+applies and no figure is needed from anyone.
+
+### AND THE TWO BUDGETS EXIST, SEPARATELY, AS FIXED CONSTANTS
+
+    Config.budget       4,000   bounds YIELDS
+    Config.work_budget 15,000   bounds RANKED WORK -- read at exactly ONE site, as a hard cap
+
+**Neither is ever varied and nothing is ever traded between them.** The agent cannot spend more
+reasoning in order to spend fewer actions, which is the whole of the mechanism.
+
+### BUT THE BLOCKER IS ONE LEVEL LOWER THAN THAT
+
+    `actions_spent`   tracked -- `sum(self._acts.values())`
+    actions REMAINING  does not exist. No `actions_left`, no cap, nowhere in `tether.py`
+
+`PER_LEVEL = 500` exists **seat-side, in the harness**, and never reaches the loop.
+
+> **SO *ACTIONS ARE SCARCE* IS NOT EXPRESSIBLE BY THE AGENT AT ALL. IT HAS A MONOTONE COUNTER
+> AND NO DENOMINATOR** -- and a local comparison needs something to compare against. The regional
+> rule dissolves the THRESHOLD and cannot supply the quantity.
+
+**AND IT IS THE NIGHT'S OWN RECURRING SHAPE ARRIVING IN THE AGENT RATHER THAN IN MY WRITE-UPS.**
+Every number that came apart tonight came apart on a missing or mismatched denominator. **This
+one is the agent's.**
+
+### THE NARROW QUESTION, AND IT IS A RULING
+
+**SHOULD THE AGENT KNOW HOW MANY ACTIONS IT HAS LEFT?** A human at the crane machine knows how
+many coins are in their pocket, so it is not obviously an answer being handed over -- but it is
+information about the GAME rather than about the board, and `BUDGET` is already a filed `A6i`
+with exactly two senses (§12.1's loadable prior of cognitive bounds, §22.1's harness cap).
+**Handing the agent one of those two without saying which is how that collision would cash in.**
+
+**NOT BUILT. The habitat could publish a cap in one line, and whether the agent may READ it is
+not mine.**
+
