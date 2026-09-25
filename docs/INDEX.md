@@ -48895,3 +48895,51 @@ and 0 of 675 is consistent with either. **Not measured, so not asserted.**
 `bound` 1-3 per board, `wants` populated on 6 of 12. Board stop respected: this is the generated
 habitat, not an ARC game.
 
+## F367 -- **ITEM 12, THE CONSEQUENCE: 36% ATOM REACHABILITY, AND EVERY COMPOSITION THE AGENT HAS EVER MINTED IS EXACTLY TWO ATOMS DEEP**
+
+**Measured AFTER the habitat run, never chased -- the order's own words for this item.** 12
+generated boards, 8 cycles, per board then the union.
+
+### FIRST, A 100% I DID NOT BELIEVE AND SHOULD NOT HAVE
+
+The first pass read **14 of 14 atoms reached on every board.** `gamma.library` holds each atom's
+OWN PRIOR TERM, so I was counting the atoms rather than anything composed from them. **A zero is
+the most convincing kind of wrong and so is a hundred** -- corrected before reporting, by reading
+what the count had matched.
+
+### THE MEASUREMENT
+
+    minted multi-atom compositions per board   [0,1,2,2,1,2,2,0,0,0,0,2]
+    distinct atoms used in one, per board      [0,2,2,4,2,2,2,0,0,0,0,2]
+    UNION across 12 boards                     5 of 14  = 36%
+
+    reached in a composition   all - dec - inc - same - take
+    NEVER composed with        above - act - any - dbl - idn - neg - none - other - wrap
+    composition depths seen    {2: 12}
+
+### THREE READINGS, AND THE THIRD IS THE ONE
+
+**36% REACHABILITY.** Nine atoms of fourteen have never once appeared in anything the agent
+built. `act` -- the atom that READS THE ACTION -- is among them, on a world where the action is
+the only thing the agent controls.
+
+**FIVE OF TWELVE BOARDS MINT NOTHING AT ALL.** Not a low rate spread evenly: a board either
+composes once or twice, or not at all. **Pooling would have shown 12 compositions over 12 boards
+and hidden that.**
+
+> **EVERY COMPOSITION EVER MINTED IS EXACTLY TWO ATOMS. TWELVE OF TWELVE, NO EXCEPTIONS, NO
+> DEPTH-3 CHAIN ON ANY BOARD.**
+
+**AND THAT IS `INDEX`'s OWN *THE LIBRARY IS FLAT* SEEN FROM THE AGENT'S SIDE.** The closure was
+measured flat -- *"a name plus its ingredients, one step"*, 81% of its grounded entries at depth
+1. **The agent's own compositions are flat in exactly the same way, and nothing connects the two
+measurements**: the closure's shape cannot be causing the agent's, because the agent has never
+read the closure. **Two independent systems, the same ceiling.**
+
+### WHAT IT DOES NOT SAY
+
+**Not that depth 3 is refused** -- I did not measure the enumerator's depth budget or whether a
+3-chain was ever priced and lost. *Called and refused* and *never offered* are different
+diagnoses and this cannot separate them. **The honest claim is the observation: nothing deeper
+than two has ever been INSTALLED.**
+
