@@ -48668,3 +48668,50 @@ intended route, and both measurements together say so.
 because they measure different floors -- *has a recipe* against *has a computable detector*. The
 second is the one that bears on the agent.
 
+## F363 -- **TYPE ASSIGNMENT IS THIRTEEN DECISIONS, NOT 2,248.** The closure already types every atom; what is missing is a map between two vocabularies, and THREE of the thirteen are already identities
+
+**Item 8 is valence. I told the reviewer its type half was *the one part that must be JUDGED
+rather than MEASURED*, and costed it at 2,248 names each needing a type. That was wrong by two
+orders of magnitude.**
+
+### THE CLOSURE ALREADY ASSIGNS A TYPE TO EVERY ATOM
+
+`ATTRIBUTE_REACH.json` gives all 2,700 an ENCODING, and an encoding is exactly what Isaiah asked
+for -- *"only the TYPE, similar to grammar having noun, verb, etc."*
+
+    POSITION - EXTENT - COLOUR - COUNT - SCALAR - SCALAR_DEFAULT - TEMPORAL
+    - EVENT - STATE - SHAPE - RELATION - BEHAVIOURAL - RULE
+
+### BUT IT IS A DIFFERENT VOCABULARY FROM THE AGENT'S, AND THAT IS THE ACTUAL WORK
+
+Against the in/out types `arc_atoms` declares:
+
+    SHARED           EXTENT - POSITION - SHAPE                                    3
+    closure only     BEHAVIOURAL COLOUR COUNT EVENT RELATION RULE SCALAR
+                     SCALAR_DEFAULT STATE TEMPORAL                               10
+    agent only       BOOL CELL CELLS DELTA OBJECT PRED VAL                        7
+
+> **SO THE JOB IS A THIRTEEN-ROW MAPPING BETWEEN TWO TYPE VOCABULARIES, AND THREE ROWS ARE
+> ALREADY IDENTITIES.** Ten decisions, not 2,248 judgements -- and they are decisions about
+> SHAPE, which is the class Isaiah takes.
+
+### AND THE THREE HALVES OF VALENCE NOW HAVE THREE DIFFERENT ANSWERS
+
+    TYPE           already assigned per atom by the closure; needs a 13-row vocabulary map
+    SIDE/POSITION  DERIVABLE from usage and already measured -- `Rand` OPENS 27 / MIDDLE 1,
+                   `Skill` OPENS 18 / MIDDLE 1, `Meaning` CLOSES 14, `Node` OPENS 37
+    OPERATOR       NOT MINEABLE. `+` 7,309 occurrences against 6 for every other bond, and
+                   the only 5 atoms admitting more than one operator are ones I authored.
+                   It must fall out of TYPE, which is what Isaiah said
+
+### AND A NAME COLLISION TO SETTLE BEFORE EITHER IS BUILT
+
+**`type` ALREADY MEANS TWO THINGS IN THE CODE.** `grammar.T` carries ATTR - OBJ - OBJECT - PRED -
+PRICE - RECORD - REGION; the atoms carry POSITION - EXTENT - SHAPE - DELTA - BOOL - CELL - VAL.
+**They share ZERO names.** One is a grammatical category, the other an attribute kind, and the
+closure's encodings align with the second and not the first.
+
+> **THAT IS A THIRD SENSE ARRIVING ON A WORD THAT ALREADY CARRIES TWO**, and it is the `A6i` this
+> file has three filed instances of. Named before anything is built on it, which is the
+> prospective half and the cheap one.
+
