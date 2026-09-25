@@ -3203,14 +3203,25 @@ class Agent:
         """
         if not self.wants:
             return None
-        # SHRINKING IS NEGATIVE. A slot with no delta yet has no claim to be shrinking, so it
-        # sorts behind every slot that has one -- `None` is not zero, which is the same
-        # distinction `improved` is built on.
-        def rank(slot: str) -> tuple[int, float, str]:
-            d = self._gap_delta.get(slot)
-            return (1, 0.0, slot) if d is None else (0, d, slot)
-
-        return sorted(self.wants, key=rank)[0]
+        # **NO EVIDENCE IS `None`, NOT A GUESS -- repaired 2026-09-25, hours after I built this
+        # and got it wrong.** The first version ranked slots with no delta BEHIND those with
+        # one and then returned the head regardless, so a board where NOTHING had a discrepancy
+        # still got a confident answer, picked by an alphabetical tiebreak.
+        #
+        # **MEASURED AT 12 CYCLES ACROSS FIVE BOARDS: only 2 were fully covered, and board 5
+        # had ONE want, ZERO deltas, and a returned slot.** §13.4 asks for *the one whose
+        # discrepancy is CONFIDENTLY SHRINKING*; with no discrepancy nothing is, and saying so
+        # is the answer.
+        #
+        # **AND `improved` ALREADY MAKES THIS DISTINCTION -- *`None` IS NOT `False`* is written
+        # into it.** The consumer I built for it collapsed the very thing it was built to
+        # preserve, which is the silent-default class arriving one level up from where it was
+        # guarded against.
+        ranked = [(d, s) for s in self.wants
+                  if (d := self._gap_delta.get(s)) is not None]
+        if not ranked:
+            return None
+        return min(ranked)[1]
 
     def improved(self, slot: str) -> bool | None:
         """Did this slot get CLOSER to satisfying its objective since last cycle?
