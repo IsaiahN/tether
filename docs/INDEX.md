@@ -49141,3 +49141,43 @@ features of the code, both wrong -- and the first came with a fix already writte
 it was measuring the fix rather than the story**, which is the only step that was going to work:
 a better reading of the code would have produced a third plausible cause.
 
+## F371 -- **THE SELECTOR'S CALIBRATION CONSTANT IS 12, DERIVED THE WAY THE FIXTURE DERIVED ITS OWN.** And at 8 the answer is not weaker, it is DIFFERENT
+
+**`F370` ended by saying every want/gap reading taken tonight was taken under `ag.run(8)` -- a
+constant calibrated for `CORRECT` and never for the selector -- and that they should be treated
+as provisional until re-taken. This is the re-taking, and the caveat was right.**
+
+### THE CURVE, board 11
+
+    cycles  wants  deltas  buckets i/w/f   selected
+         8      2       0          0/0/0   o1.proximity   <- chosen on NOTHING
+        10      3       2          2/1/0   o1.proximity
+        12      3       3          3/2/3   o0.row         <- every want has a delta
+        14      3       3          4/3/5   o0.row
+        16      3       3          4/3/5   o0.row
+
+    FLOOR       10 -- the first count at which ANY delta exists
+    STABLE      12 -- every want covered, and the selection stops moving
+
+**`fixture.py`'s own convention is *the floor plus two* -- `CORRECT` first observable at six,
+so `ag.run(8)`. By the same rule the selector's constant is TWELVE.** Not a round number and
+not mine: the same method, applied to a different stage.
+
+### AND THE 8-CYCLE READING IS NOT MERELY THIN. IT IS A DIFFERENT ANSWER.
+
+At 8 the selector returns `o1.proximity` with an empty delta map -- an alphabetical tiebreak. At
+12 it returns `o0.row` on evidence. **The under-calibrated run does not say *I do not know*; it
+returns a confident wrong answer**, which is the failure mode of every silent default this file
+records.
+
+> **A CONSTANT THAT IS RIGHT FOR ONE STAGE SILENTLY UNDER-SERVES ANOTHER, AND NOTHING
+> ANNOUNCES IT.** `ag.run(8)` is correct, documented, and derived -- for `CORRECT`. It was
+> simply never about this.
+
+### ONE BOARD. NOT GENERALISED.
+
+**Board 11 only.** A per-board calibration read on one board is exactly the *ten seeds versus
+forty* error this record files against itself, so it is stated as a single reading that needs
+replication before `12` is used as anything but a working figure. **The SHAPE -- that there is a
+floor and that 8 is below it -- is what this establishes; the number is provisional.**
+
