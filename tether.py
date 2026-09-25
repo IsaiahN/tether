@@ -360,6 +360,7 @@ BOOKS: tuple[str, ...] = (
     "gap_flat",
     "gap_shapes_seen",                  # distinct cycles characterised (S15.3)
     "gap_shape_repeat",                 # all four keys matched: the LOOP case
+    "want_retained_unpaid",             # a want kept though it did not pay
     "chunk_reuse",                      # §14.7: a settled term inside a later mint
     # THE ARRIVAL-DEPTH HISTOGRAM, ALL NINE BUCKETS. Declared because **a histogram with a
     # missing bucket is not a histogram** -- *no term arrived at depth 3* and *depth 3 was
@@ -4388,6 +4389,7 @@ class Agent:
         stats: dict = {"seen": 0, "budget_spent": False, "depth_exhausted": True,
                        "units": self.gamma.alphabet, "estimate": 0}
         by_kind: dict[str, tuple] = {}
+        wanted: tuple[float, Term] | None = None
         rank = 0
 
         if guards["support"] and base > floor:
@@ -4621,6 +4623,23 @@ class Agent:
                             # `F342`'s shape, at the site `F342` named first.
                             self.gamma.book["bargain_does_not_pay"] = (
                                 self.gamma.book.get("bargain_does_not_pay", 0) + 1)
+                            # **A WANT IS RETAINED EVEN THOUGH IT DID NOT PAY -- ISAIAH,
+                            # 2026-09-25: *a want proves itself by RECURRING across attempts,
+                            # not by explaining a frame.*** `pays` is `cost + left < base` and
+                            # `left` IS explanation, so requiring a want to pay judges it on
+                            # exactly the thing the ruling says does not prove it.
+                            #
+                            # **AND THIS SITE IS WHY `wants` HAS ALWAYS BEEN EMPTY.** `F360`
+                            # measured `by_kind` holding only `predictor`, and `F357` measured
+                            # 0 of 2,695 objectives paying -- so the `wants` write below could
+                            # never fire. The channel existed and nothing could reach it.
+                            #
+                            # RANKED BY COST ALONE, which is DESCRIPTION LENGTH and not
+                            # explanation -- the cheapest way to say this want. It is a
+                            # tie-break for retention, never a verdict: standing comes from
+                            # recurrence under a resembling shape, which is `_note_want`.
+                            if kind == "objective" and (wanted is None or cost < wanted[0]):
+                                wanted = (cost, term)
                             continue
                         self.gamma.book["bargain_paid"] = (
                             self.gamma.book.get("bargain_paid", 0) + 1)
@@ -4814,6 +4833,14 @@ class Agent:
         if _obj is not None:
             self.wants[slot] = _obj[3].name
             detail["want"] = _obj[3].name
+        elif wanted is not None:
+            # THE RULING'S PATH, and the only one that has ever had traffic. A want that lost
+            # the contest is still WANTED; what it does not get is the right to ACT.
+            self.wants[slot] = wanted[1].name
+            detail["want"] = wanted[1].name
+            detail["want_paid"] = False
+            self.gamma.book["want_retained_unpaid"] = (
+                self.gamma.book.get("want_retained_unpaid", 0) + 1)
         _total, left, cost, term = best
         detail["explained"], detail["overclaimed"] = self.explain(slot, base - left)
         self.gamma.accept(term, seq=len(self.led), residual=f"{slot}@{self.cycle}")

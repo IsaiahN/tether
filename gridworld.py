@@ -87,6 +87,19 @@ class GridWorld:
         rng = random.Random(self.seed)
         cells = rng.sample([(r, c) for r in range(GRID) for c in range(GRID)], 3)
         (r0, c0), (r1, c1), (r2, c2) = cells
+        # **o1 IS PLACED WITHIN REACH OF o0, AND THE REASON IS ARC-FIDELITY, NOT A FINDING.**
+        # Measured on the first version: ONE slot of ten carried any residual, the integral was
+        # 27.86 against the toy world's 128.26, and NOTHING bound -- a slot with no surprise has
+        # nothing to buy, so `cost + left < base` cannot hold at `base = 0`.
+        #
+        # **A BOARD WHERE ONE OBJECT MOVES THROUGH EMPTY SPACE IS A MAZE, NOT AN ARC TASK.** ARC
+        # boards have objects that INTERACT. That is the justification and it is independent of
+        # any finding -- which matters, because the reviewer's standing warning is that a
+        # generated world can be generated until a finding passes.
+        near = [(r0 + dr, c0 + dc) for dr in (-2, -1, 1, 2) for dc in (-2, -1, 0, 1, 2)
+                if 0 <= r0 + dr < GRID and 0 <= c0 + dc < GRID and (r0 + dr, c0 + dc) != (r2, c2)]
+        if near:
+            r1, c1 = rng.choice(near)
         self.state = {
             "o0.row": r0, "o0.col": c0, "o0.colour": rng.randrange(4),
             "o1.row": r1, "o1.col": c1, "o1.colour": rng.randrange(4),
@@ -164,8 +177,35 @@ class GridWorld:
     # -- running ---------------------------------------------------------------------
 
     def _blocked(self, r: int, c: int) -> bool:
-        return not (0 <= r < GRID and 0 <= c < GRID) or (r, c) == (self.state["o2.row"],
-                                                                   self.state["o2.col"])
+        """Only the WALL blocks. Edges wrap -- see `_wrap`."""
+        return (r % GRID, c % GRID) == (self.state["o2.row"], self.state["o2.col"])
+
+    @staticmethod
+    def _wrap(r: int, c: int) -> tuple[int, int]:
+        """**POSITIONS WRAP, AND REAL ARC GRIDS DO NOT. Stated as a limit, not hidden.**
+
+        The first version CLAMPED at the edges. **CLAMPING IS NOT MODULAR ARITHMETIC**, so no
+        chain of `inc`/`dec` can express it; a wrapped step IS `inc`/`dec` mod the slot's
+        alphabet, exactly.
+
+        **AND I FIRST WROTE THIS UP ON A FALSE PREMISE -- that the atoms bake in `world.M = 7`
+        and therefore could not speak about a 5-wide grid at all.** They do not: `_value_of`
+        normalises every prediction `% self.alphabet[slot]`, so `dec(0)` reads as 4 on a
+        5-alphabet slot. **The conclusion survived and the reasoning did not**, which is worth
+        the two lines because the false version is the more persuasive one.
+
+        **A WORLD THE AGENT'S VOCABULARY CANNOT EXPRESS PRODUCES AN UNINTERPRETABLE NULL** --
+        *the mechanism is broken* and *the agent has no words for this place* read identically.
+        That is the panel precondition, and it is the reason for the wrap rather than
+        convenience: `inc` and `dec` mod GRID express a wrapped step EXACTLY, so movement
+        becomes sayable and what remains unexplained is the WALL and the PUSH, which are the
+        parts worth discovering.
+
+        **THE HONEST COST: a real ARC board has edges and this one has none.** An agent that
+        learns *position wraps* has learned something false about ARC. It is a habitat for
+        exercising mechanisms, never a benchmark, and this is the sharpest way it differs.
+        """
+        return r % GRID, c % GRID
 
     def _completed(self) -> int:
         """ONE SITE. `objective()` and the published `@goal.completed` slot are one quantity,
@@ -185,15 +225,28 @@ class GridWorld:
         dr, dc = _DELTA[action]
         r0, c0 = self.state["o0.row"], self.state["o0.col"]
         r1, c1 = self.state["o1.row"], self.state["o1.col"]
+        nr0, nc0 = self._wrap(r0 + dr, c0 + dc)
+        nr1, nc1 = self._wrap(r1 + dr, c1 + dc)
 
         # THE PUSH IS RESOLVED BEFORE THE MOVE, because o1's rule reads o0's OLD cell. Resolving
         # it after would make the mover's new position the cause of its own push.
-        if (r0 + dr, c0 + dc) == (r1, c1) and not self._blocked(r1 + dr, c1 + dc):
-            self.state["o1.row"], self.state["o1.col"] = r1 + dr, c1 + dc
-            r1, c1 = r1 + dr, c1 + dc
+        if (nr0, nc0) == (r1, c1) and not self._blocked(r1 + dr, c1 + dc):
+            self.state["o1.row"], self.state["o1.col"] = nr1, nc1
+            r1, c1 = nr1, nc1
 
-        if not self._blocked(r0 + dr, c0 + dc) and (r0 + dr, c0 + dc) != (r1, c1):
-            self.state["o0.row"], self.state["o0.col"] = r0 + dr, c0 + dc
+        if not self._blocked(r0 + dr, c0 + dc) and (nr0, nc0) != (r1, c1):
+            self.state["o0.row"], self.state["o0.col"] = nr0, nc0
+            r0, c0 = nr0, nc0
+
+        # CONTACT PAINTS. Adjacent after the move -> o1 takes o0's colour. One of the most
+        # common ARC mechanics, and it makes an ATTRIBUTE conditionally action-bearing where
+        # every attribute was previously a pure spectator.
+        #
+        # **o0.colour AND ALL THREE o2 SLOTS STAY UNREACHABLE BY ANY ACTION**, deliberately:
+        # the spectator property is what `F356`/`F359` need, and enriching the world until
+        # nothing is a spectator would destroy the thing it was built to exhibit.
+        if abs(r0 - self.state["o1.row"]) + abs(c0 - self.state["o1.col"]) == 1:
+            self.state["o1.colour"] = self.state["o0.colour"]
 
 
 def boards(n: int, start: int = 0) -> list[GridWorld]:
