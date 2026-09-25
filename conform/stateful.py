@@ -492,6 +492,50 @@ def test_the_daydream_precondition_can_refuse():
         "this property cannot detect a precondition that ignores the incumbent")
 
 
+def test_the_generated_habitat_is_not_built_to_pass():
+    """The habitat's own generator, pinned -- because a generated world CAN be generated to make
+    a finding pass, and that is the failure I nearly committed with the toy-world patch.
+
+    Each assertion is a property the generator must keep having, not a number it happened to hit:
+
+        REACHABLE      checked by BFS over the board, INDEPENDENTLY of the walk that built the
+                       target. A construction that proves its own output is not a check
+        NOT PRE-SOLVED measured at 10 of the first 60 before it was fixed. A board whose goal
+                       holds at step 0 exercises nothing and inflates any later goal reading
+        SPECTATORS     every board must have at least one slot NO action moves. This is the
+                       whole reason the habitat exists (`F356`/`F359`/`F360`), so if the
+                       generator ever stops producing it, those findings go quietly unexercised
+    """
+    import gridworld as G
+
+    pre_solved, worst_spectators = 0, 99
+    for w in G.boards(40):
+        wall = (w.state["o2.row"], w.state["o2.col"])
+        start = (w.state["o0.row"], w.state["o0.col"])
+        seen, frontier = {start}, [start]
+        while frontier:
+            r, c = frontier.pop()
+            for dr, dc in G._DELTA.values():
+                n = (r + dr, c + dc)
+                if 0 <= n[0] < G.GRID and 0 <= n[1] < G.GRID and n != wall and n not in seen:
+                    seen.add(n)
+                    frontier.append(n)
+        assert w.target in seen, f"board {w.seed}: the target is not reachable from the start"
+
+        pre_solved += w._completed()
+        moved = set()
+        for a in G.ACTIONS:
+            t = G.GridWorld(seed=w.seed)
+            before = dict(t.state)
+            t.step(a)
+            moved |= {k for k in before if before[k] != t.state[k]}
+        worst_spectators = min(worst_spectators, len(w.state) - len(moved))
+
+    assert pre_solved == 0, f"{pre_solved} of 40 boards start already solved"
+    assert worst_spectators > 0, ("some board has no spectator slot -- the property the whole "
+                                  "habitat was built to exhibit")
+
+
 def test_shipped_generator_reaches_the_hard_cases():
     """The families the false-mint read named as out-of-closure are the ones this seat
     exists to run into. A generator that stopped producing them would still be green."""

@@ -353,6 +353,11 @@ BOOKS: tuple[str, ...] = (
     "bargain_does_not_pay",             # `pays` -- the only one of the two that is a judgement
     "bargain_paid",                    # reached the contest
     "mint_no_residual",                 # refused by the residual precondition
+    # THE FIFTH TURN. Isaiah's crane game: the toy slipped and the SITUATION IMPROVED, and a
+    # system recording only win/lose throws that entire turn away. Three buckets, never summed.
+    "gap_improved",                     # the goal gap SHRANK on a slot since last cycle
+    "gap_worsened",
+    "gap_flat",
     "chunk_reuse",                      # §14.7: a settled term inside a later mint
     # THE ARRIVAL-DEPTH HISTOGRAM, ALL NINE BUCKETS. Declared because **a histogram with a
     # missing bucket is not a histogram** -- *no term arrived at depth 3* and *depth 3 was
@@ -819,6 +824,8 @@ class Agent:
         self.drive = Drive()
         self.cycle = 0
         self._last_mass: dict[str, float] = {}
+        self._prev_gap: dict[str, int] = {}
+        self._gap_delta: dict[str, int] = {}
         # THE INTEGRAL IS READ, NEVER REDUCED. Every step's surprise is added and nothing
         # subtracts, so a drive that learned to make the number go down would be
         # forgetting a surprise rather than explaining one. Monotone by construction
@@ -1868,6 +1875,7 @@ class Agent:
         self.gamma.tick = len(self.trace)
         self._prev_pred = pred
         self._last_mass = {s: r.mass for s, r in res.items()}
+        self._note_progress(after)
         return res
 
     def _route_reward(self, degree: float, moved: float) -> None:
@@ -2977,7 +2985,66 @@ class Agent:
                 "binding_density": round(len(bound) / max(1, len(self.slots)), 4),
                 "acts": dict(self._acts), "system0": self.cfg.system0}
 
-    def _discrepancy(self, slot: str, state: dict[str, int]) -> int | None:
+    def _note_progress(self, state: dict[str, int]) -> None:
+        """**THE FIFTH TURN, AND IT IS ONE SUBTRACTION. Isaiah, 2026-09-25.** The crane claw
+        drops the toy, and the toy lands unblocked and reoriented: *the attempt FAILED and the
+        SITUATION IMPROVED.* **A system that records only win/lose throws the whole turn away.**
+
+        `objective_gap` already says HOW FAR a slot is from satisfying its objective -- zero
+        exactly when satisfied -- and it had **four consumers, every one reading it WITHIN a
+        cycle**. Nothing carried it across one, so *did the gap shrink* could not be asked.
+        This stores the previous reading; `improved` does the subtraction.
+
+        **NO THRESHOLD, AND THAT IS WHY IT COULD BE BUILT WITHOUT A RULING.** *Smaller than
+        last cycle* is a strict comparison. **What to DO about it -- try again, or move on --
+        is the judgement, and it is not taken here.** `F327`'s shape: build the mechanism so
+        the judgement can be expressed, leave the figure to Isaiah.
+        """
+        for slot in self.slots:
+            g = self._discrepancy(slot, state)
+            # **NOT_RESOLVED IS THE COMMON CASE AND IT IS NOT A DISTANCE.** Its own docstring
+            # says so -- *no objective here is NOT_RESOLVED, never None* -- and the SIGNATURE
+            # said `int | None`, which is what I read. Corrected at that site too.
+            if not isinstance(g, int) or isinstance(g, bool):
+                continue
+            prev = self._prev_gap.get(slot)
+            self._prev_gap[slot] = g
+            if prev is None:
+                # FIRST READING ON THIS SLOT. Not flat -- there is nothing to compare, and
+                # counting it as flat would fill the no-change bucket with non-observations.
+                continue
+            self._gap_delta[slot] = g - prev
+            # WRITTEN AS THREE LITERALS, NOT ONE CONSTRUCTED KEY. The declaration guard greps
+            # for a subscripted string literal, so a computed key reads as a declared-but-
+            # unwritten row -- which is how the depth buckets evaded that guard entirely.
+            if g < prev:
+                self.gamma.book["gap_improved"] = self.gamma.book.get("gap_improved", 0) + 1
+            elif g == prev:
+                self.gamma.book["gap_flat"] = self.gamma.book.get("gap_flat", 0) + 1
+            else:
+                self.gamma.book["gap_worsened"] = self.gamma.book.get("gap_worsened", 0) + 1
+
+        # PUBLISHED AT THE WRITE SITE, AND PUBLISHED IS ALL IT IS. `improved` reads the delta
+        # this method just stored; ACTING on it -- try again, or move on -- is the judgement
+        # Isaiah has not taken, so nothing here consults it to decide anything. The row exists
+        # so the reading is legible in the record rather than only in a counter.
+        better = [s for s in self.slots if self.improved(s)]
+        if better:
+            # `PERCEIVE`, because that is the step this runs inside -- and it is written at the
+            # END of it, not the top, so it reports the state AFTER the cycle rather than the
+            # one-cycle lag that the top-of-step rows carry.
+            self.led.record(self.cycle, "PERCEIVE", "*", "progress", closer=tuple(better),
+                            deltas={s: self._gap_delta[s] for s in better})
+
+    def improved(self, slot: str) -> bool | None:
+        """Did this slot get CLOSER to satisfying its objective since last cycle?
+
+        **`None` IS NOT `False`.** No previous reading is *I cannot say*; a zero delta is
+        *it did not move*. Collapsing them is the silent-zero class this repo keeps filing."""
+        d = self._gap_delta.get(slot)
+        return None if d is None else d < 0
+
+    def _discrepancy(self, slot: str, state: dict[str, int]) -> Any:
         """How far this slot is from satisfying the objective bound to it. Zero iff satisfied.
 
         NO OBJECTIVE HERE IS `NOT_RESOLVED`, NEVER `None`. `None` is reserved for *nothing in
