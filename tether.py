@@ -3166,7 +3166,51 @@ class Agent:
             # END of it, not the top, so it reports the state AFTER the cycle rather than the
             # one-cycle lag that the top-of-step rows carry.
             self.led.record(self.cycle, "PERCEIVE", "*", "progress", closer=tuple(better),
-                            deltas={s: self._gap_delta[s] for s in better})
+                            deltas={s: self._gap_delta[s] for s in better},
+                            # §13.4's SELECTION, published beside the deltas it reads. Which
+                            # want is most confidently shrinking RIGHT NOW -- a reading, and
+                            # nothing consults it to decide anything.
+                            selected_want=self.select_want(),
+                            wants_held=len(self.wants))
+
+    def select_want(self) -> str | None:
+        """**§13.4's SELECTOR. The corpus specified it, named it NOT INSTANTIATED, and said
+        TAKE IT -- and its three ingredients only finished arriving tonight.**
+
+            *"HOLD SEVERAL GOAL HYPOTHESES AT ONCE, express each as a SCALAR DISCREPANCY THAT
+            IS ZERO EXACTLY WHEN SATISFIED, and SELECT THE ONE WHOSE DISCREPANCY IS CONFIDENTLY
+            SHRINKING UNDER PLAY. That is the marketplace with a currency, and it names no game.
+            TAKE THE SELECTOR, LEAVE THE FIVE."*
+
+            several hypotheses at once   `self.wants`      -- populated 2026-09-25, first time
+            a scalar discrepancy         `objective_gap`   -- existed; quotes §13.4 verbatim
+            confidently shrinking        `self._gap_delta` -- added 2026-09-25 as the fifth turn
+
+        **RETURNS THE SLOT, NOT THE WANT, because the want is `self.wants[slot]` and a selector
+        that returned the name would lose which question it answers.**
+
+        **NO THRESHOLD, AND THAT IS ISAIAH'S REGIONAL RULE DOING THE WORK.** *Confidently* is
+        not a cutoff: the chosen want is the one shrinking MORE THAN THE OTHERS HELD RIGHT NOW.
+        A ranking against what is actually present, so **nobody has to supply a figure and
+        nobody can set it wrong.** With one want held the answer is that want; with none it is
+        `None`, which is *I hold no hypothesis* and not *I hold a bad one*.
+
+        **AND IT IS READ-ONLY. Nothing here changes what the agent attends to or installs** --
+        wiring the selection into attention order is a decision about the decision path, it
+        depends on a reframing of `F358` that is with Isaiah, and it is not taken here.
+        `F327`'s shape: build the mechanism so the judgement CAN be expressed, leave the
+        judgement.
+        """
+        if not self.wants:
+            return None
+        # SHRINKING IS NEGATIVE. A slot with no delta yet has no claim to be shrinking, so it
+        # sorts behind every slot that has one -- `None` is not zero, which is the same
+        # distinction `improved` is built on.
+        def rank(slot: str) -> tuple[int, float, str]:
+            d = self._gap_delta.get(slot)
+            return (1, 0.0, slot) if d is None else (0, d, slot)
+
+        return sorted(self.wants, key=rank)[0]
 
     def improved(self, slot: str) -> bool | None:
         """Did this slot get CLOSER to satisfying its objective since last cycle?
