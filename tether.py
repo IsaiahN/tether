@@ -3168,61 +3168,10 @@ class Agent:
             # one-cycle lag that the top-of-step rows carry.
             self.led.record(self.cycle, "PERCEIVE", "*", "progress", closer=tuple(better),
                             deltas={s: self._gap_delta[s] for s in better},
-                            # §13.4's SELECTION, published beside the deltas it reads. Which
-                            # want is most confidently shrinking RIGHT NOW -- a reading, and
-                            # nothing consults it to decide anything.
-                            selected_want=self.select_want(),
+                            # THE SELECTOR'S OWN CHOICE, published beside the deltas. `None`
+                            # here is the honest and current state: it has never once chosen.
+                            selected_want=self._goal_choice(),
                             wants_held=len(self.wants))
-
-    def select_want(self) -> str | None:
-        """**§13.4's SELECTOR. The corpus specified it, named it NOT INSTANTIATED, and said
-        TAKE IT -- and its three ingredients only finished arriving tonight.**
-
-            *"HOLD SEVERAL GOAL HYPOTHESES AT ONCE, express each as a SCALAR DISCREPANCY THAT
-            IS ZERO EXACTLY WHEN SATISFIED, and SELECT THE ONE WHOSE DISCREPANCY IS CONFIDENTLY
-            SHRINKING UNDER PLAY. That is the marketplace with a currency, and it names no game.
-            TAKE THE SELECTOR, LEAVE THE FIVE."*
-
-            several hypotheses at once   `self.wants`      -- populated 2026-09-25, first time
-            a scalar discrepancy         `objective_gap`   -- existed; quotes §13.4 verbatim
-            confidently shrinking        `self._gap_delta` -- added 2026-09-25 as the fifth turn
-
-        **RETURNS THE SLOT, NOT THE WANT, because the want is `self.wants[slot]` and a selector
-        that returned the name would lose which question it answers.**
-
-        **NO THRESHOLD, AND THAT IS ISAIAH'S REGIONAL RULE DOING THE WORK.** *Confidently* is
-        not a cutoff: the chosen want is the one shrinking MORE THAN THE OTHERS HELD RIGHT NOW.
-        A ranking against what is actually present, so **nobody has to supply a figure and
-        nobody can set it wrong.** With one want held the answer is that want; with none it is
-        `None`, which is *I hold no hypothesis* and not *I hold a bad one*.
-
-        **AND IT IS READ-ONLY. Nothing here changes what the agent attends to or installs** --
-        wiring the selection into attention order is a decision about the decision path, it
-        depends on a reframing of `F358` that is with Isaiah, and it is not taken here.
-        `F327`'s shape: build the mechanism so the judgement CAN be expressed, leave the
-        judgement.
-        """
-        if not self.wants:
-            return None
-        # **NO EVIDENCE IS `None`, NOT A GUESS -- repaired 2026-09-25, hours after I built this
-        # and got it wrong.** The first version ranked slots with no delta BEHIND those with
-        # one and then returned the head regardless, so a board where NOTHING had a discrepancy
-        # still got a confident answer, picked by an alphabetical tiebreak.
-        #
-        # **MEASURED AT 12 CYCLES ACROSS FIVE BOARDS: only 2 were fully covered, and board 5
-        # had ONE want, ZERO deltas, and a returned slot.** §13.4 asks for *the one whose
-        # discrepancy is CONFIDENTLY SHRINKING*; with no discrepancy nothing is, and saying so
-        # is the answer.
-        #
-        # **AND `improved` ALREADY MAKES THIS DISTINCTION -- *`None` IS NOT `False`* is written
-        # into it.** The consumer I built for it collapsed the very thing it was built to
-        # preserve, which is the silent-default class arriving one level up from where it was
-        # guarded against.
-        ranked = [(d, s) for s in self.wants
-                  if (d := self._gap_delta.get(s)) is not None]
-        if not ranked:
-            return None
-        return min(ranked)[1]
 
     def improved(self, slot: str) -> bool | None:
         """Did this slot get CLOSER to satisfying its objective since last cycle?
@@ -5498,14 +5447,20 @@ class Agent:
         #
         # The line above is System 1's attention: WHAT OWES MOST, driven by surprise. §13.4's
         # selector is System 2's: the want whose discrepancy is most confidently shrinking. When
-        # System 2 has a view, it sets the focus. **When it does not, `select_want` returns None
+        # System 2 has a view, it sets the focus. **When it does not, `_goal_choice` returns None
         # and this is a no-op** -- so the fallback is System 1 exactly as before, and nothing is
         # deleted: `focal` is what is ATTENDED TO, never what is believed.
         #
         # **AND IT IS GATED ON READABILITY FOR THE REASON ABOVE, NOT AS A COURTESY.** `_utter`
         # predicts on the focal slot and `_value_of` indexes `state[slot]`, so an unreadable
         # focal is a KeyError -- a want on a covered object must wait rather than crash.
-        _want_slot = self.select_want()
+        # **`_goal_choice`, NOT A SECOND SELECTOR. It is labelled M2 ITEM 3, THE SELECTOR, it
+        # quotes §13.4 whole, and its *confidently* is `MIN_REPEAT` consecutive non-increasing
+        # readings with a real decrease -- *flat is not shrinking*. I built a weaker duplicate
+        # ranking on ONE cycle's delta and wired that here first; a duplicate selector is a
+        # reinvention no grep can see, and the laxer criterion was mine rather than the
+        # corpus's.**
+        _want_slot = self._goal_choice()
         if _want_slot is not None and _want_slot in before:
             focal = _want_slot
             self.gamma.book["focus_by_want"] = self.gamma.book.get("focus_by_want", 0) + 1
