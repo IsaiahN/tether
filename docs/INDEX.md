@@ -48965,7 +48965,18 @@ monotone in length, so a longer term must explain proportionally MORE to clear
 ceiling on `F358`'s pricing question and nowhere near the composer** -- which is the opposite of
 where I would have looked, and is why the spy was worth taking rather than reasoning about.
 
-**AND DEPTHS 4-6 EXIST DESPITE `max_depth` 3**, because operand bindings and guards add atoms
-beyond the chain's own depth. Recorded, not explained: I have not checked whether that is
-intended, and it is a smaller thread than the one above.
+**AND DEPTHS 4-6 EXIST DESPITE `max_depth` 3** -- flagged as unexplained, then explained, and it
+is **`A6i` ON THE WORD `depth`, AND IT IS MINE.**
+
+`enumerate_closure` builds its frontier from `units()`, and **a UNIT IS A SETTLED TERM, which can
+itself be multi-atom.** So the enumerator's `depth` counts CHAIN STEPS IN UNITS while my
+measurement counted ATOMS. Three units of two atoms is `depth 3` and six atoms, and both readings
+are correct about different quantities. **The cap is not leaking; I measured a different thing
+and named it with the cap's word.**
+
+> **AND THE NUMBERS ABOVE SURVIVE IT, WHICH IS WHY THIS IS AN ANNOTATION AND NOT A RETRACTION.**
+> The agent starts with only atoms as units and settles almost nothing -- twelve compositions
+> across twelve boards -- so units and atoms coincide for nearly everything counted here. **The
+> divergence is real and its population is tiny**, which is exactly the case where a shared word
+> survives longest before it costs something.
 
