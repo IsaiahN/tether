@@ -58,7 +58,7 @@ advantages given by something that already paid the bill*) **rather than an exce
 > **THE TEST, AND IT IS ONE QUESTION: does this hand the agent an ANSWER, or a MEANS?**
 > **A means is inheritance and it is frontloaded without apology — perception, instruments, the
 > ability to ITERATE and compose and express, the vocabulary, the operators. An answer is the
-> agent's work and it is refused — which recipe fits THIS board, what THIS game's goal is, which
+> agent's work and it is refused — which MOLECULE fits THIS board, what THIS game's goal is, which
 > composition wins, what to invent when nothing describes what it sees.**
 >
 > **A fold construct is a MEANS. A solved board is an ANSWER.**
@@ -1223,9 +1223,24 @@ as CORPUS** — the direction whose error is recoverable.
 *the library we frontload*, and it appears NOWHERE in the table above.**
 
 **THE QUESTION WENT LIVE THE MOMENT IT WAS AUDITED, WHICH IS WHY IT IS WRITTEN NOW.** `F352`
-found real defects in it -- 919 ingredients with no defining entry, and rows where `·` is used as
-a separator `OPERATORS.md` does not define, so `Apophenia · Omen reading · Confirmation bias`
-parses as ONE name. **Those are one-line fixes and I have a standing instruction to repair
+found rows where `·` is used as a separator `OPERATORS.md` does not define, so
+`Apophenia · Omen reading · Confirmation bias` parses as ONE name.
+
+**AND ITS OTHER HALF -- *919 ingredients with no defining entry* -- WAS A CATEGORY ERROR AND IS
+WITHDRAWN, 2026-09-25.** Under Isaiah's nomenclature ruling (`CHEMISTRY.md` Table 1, which already
+said it): an **ATOM** is *irreducible; the smallest unit that cannot be decomposed*, a **MOLECULE**
+is *any bonded arrangement*, and an operator is the bond. **`ATOMS.md`'s 2,079 rows all carry a
+recipe of 2-5 parts, so by that definition every one of them is a MOLECULE and the file contains
+no atoms at all.** The undefined names ARE the atoms.
+
+> **SO THE COUNT WAS OF ATOMS, FILED AS MISSING DEFINITIONS, FOR LACKING THE RECIPE AN ATOM IS
+> DEFINED BY NOT HAVING.** Five of the six atoms `CHEMISTRY.md` names as canonical -- `Cohesion`,
+> `Continuity`, `Support`, `Movement`, `Threshold` -- were in that list. **Four corrections had
+> been made to the number (1,253 -> 919 -> 882 -> 863) and every one was a COUNTING fix, so none
+> could catch it.**
+
+**AND RENAMING IT WOULD HAVE HIDDEN IT**, which is why the scrub reads each site: *919 atoms with
+no defining entry* is a self-contradiction wearing the corrected vocabulary. **Those are one-line fixes and I have a standing instruction to repair
 WORKING files at source.** Whether this is a working file had never been answered.
 
 > **UNPLACED, THEREFORE HANDLED AS CORPUS, BY THIS FILE'S OWN RULE FOR `PERCEPTION_BUILD_PLAN`:

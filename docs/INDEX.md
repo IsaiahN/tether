@@ -45835,6 +45835,28 @@ executed, 27 never loaded.
 ## F323 -- THE COMPILE PASS (item 1). 21.7% of recipes ground out, the depth is FLAT, and the
 ## library has essentially ONE failure mode: its own undefined ingredients.
 
+> **THE HEADLINE IS WRONG IN KIND AND THE NUMBER MEASURES THE WRONG FLOOR -- CORRECTED
+> 2026-09-25, BY THE SCRUB, WHICH IS WHAT THE SCRUB WAS FOR.** Under Isaiah's nomenclature ruling
+> (already `CHEMISTRY.md` Table 1): an **ATOM** is *irreducible; the smallest unit that cannot be
+> decomposed*. **A name used as an ingredient and carrying no recipe IS AN ATOM**, and a molecule
+> resting on atoms is FULLY EXPANDED, not blocked. *Having atoms* cannot be a library's failure
+> mode.
+>
+> **AND THIS ENTRY CONTAINS ITS OWN REFUTATION ONE PARAGRAPH BELOW.** Two floors are conflated:
+>
+>     THE CLOSURE'S FLOOR   a name with no recipe -- an ATOM. Reaching it is full expansion
+>     THE AGENT'S FLOOR     a leaf the agent can actually COMPUTE. Reaching it is executable
+>
+> The 78.3% counts the FIRST. The section immediately following measures the second and gets
+> **"JOIN BY NAME 2 of 559 leaves = 0.4%"**, and `F361` re-measured it independently at **11
+> concepts of 2,682**. **THAT is the block: not that names lack recipes, but that the agent
+> cannot compute them.**
+>
+> **KEPT, NOT DELETED** -- the counts are real and the depth curve is real; what is withdrawn is
+> *failure mode* and *blocked*. **And the tell is that four corrections were made to the gap
+> number (1,253 -> 919 -> 882 -> 863) and every one was a COUNTING fix**, so none of them could
+> ever have reached this.
+
 `LIBRARY_RETRIEVAL` §12.7 asked for derivability and generation as ONE question -- a name is
 executable when its recipe's ingredients are, recursively, bottoming out in instruments.
 
