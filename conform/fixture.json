@@ -1,9 +1,20 @@
 {
- "COMPOSE": false,
- "CORRECT": true,
- "DECOMPOSE": true,
- "EXPRESS": true,
- "GOAL": true,
- "PERCEIVE": true,
- "RUN": false
+ "toy": {
+  "PERCEIVE": true,
+  "GOAL": true,
+  "DECOMPOSE": true,
+  "COMPOSE": false,
+  "RUN": false,
+  "EXPRESS": true,
+  "CORRECT": true
+ },
+ "gridworld": {
+  "PERCEIVE": true,
+  "GOAL": true,
+  "DECOMPOSE": true,
+  "COMPOSE": true,
+  "RUN": false,
+  "EXPRESS": true,
+  "CORRECT": true
+ }
 }

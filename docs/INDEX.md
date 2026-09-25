@@ -49390,3 +49390,109 @@ scope never reached the gate, because the wants were dangling** -- so the manipu
 effect I was reading had never taken place. The SCOPE-SIZE line, printed first and separately
 as the treatment-executed check, is what said *no slots in `_res`* rather than *scope four did
 not help*. **Two different repairs, and the wrong one was the attractive one.**
+
+## F375 -- **"COMPOSE 0, RUN 0" WAS A GUARANTEED ZERO, AND THE SEAT THAT DOES MEASURE IT COULD ONLY SEE THE TOY WORLD**
+
+**I closed almost every report of 2026-09-25 with `COMPOSE 0, RUN 0`, computed as
+`sum(1 for r in rows if r.get("step") == "COMPOSE")`.** `ledger.STEPS` is
+`("PLAN", "PERCEIVE", "ROUTE", "MINT", "ACCEPT", "SETTLE", "PROMOTE", "IMPORT", "REPEAT")`.
+**There is no `COMPOSE` step and no `RUN` step. The number could not have been anything but
+zero on any run ever taken.**
+
+`COMPOSE` and `RUN` are **fixture LINK names**. `conform/fixture.py` measures them by SPYING
+`routine.enumerate_routines` and `routine.advance` — whether the module is ENTERED, never
+whether a row carries the name. **A link name read as a row name, and the result published as
+a status.**
+
+> **A ZERO IS THE MOST CONVINCING KIND OF WRONG** — `I28`'s law, and this is its cleanest
+> instance yet. The number agreed with everything else known about the chain, so it never
+> invited a check; had it ever read non-zero I would have investigated within the minute.
+
+### And the instrument that DOES measure it was blind to the habitat
+
+`conform/fixture.py:108` read `from demo import bind`, with the comment *"a fixture that builds
+its own world is testing a world nobody uses"* — **which was true when written and became false
+when the work moved to `gridworld`.** `STALE BY SUCCESS`, from the other end: nothing broke, the
+seat stayed green, and its verdict silently changed subject.
+
+    TOY WORLD   COMPOSE dead, RUN dead. Five of seven reached. Unchanged all day.
+    GRIDWORLD   cycle 19, PLAN, o0.row, `routine_cut`: reason 'does-not-pay',
+                routine 'down', cost 4.6439, left 2.0, base 4.0, reach 1,
+                CONSIDERED 14, shelf 0
+
+**`considered 14` is `enumerate_routines` — the exact function the fixture spies for COMPOSE.**
+So the stage the chain called DEAD is reached on the habitat the build is happening on, and
+**the build-order instrument could not see it.**
+
+> **NO ARM'S READINGS ARE GENERALISED UNTIL THAT ARM HAS EXECUTED ON BOTH HARNESSES**, and this
+> is that rule failed in the opposite direction: one harness's verdict reported as though it
+> covered both. **The reviewer's rule was written against generalising a reading UP; this
+> generalises a NULL ACROSS.** Same defect, and the null is the harder one because it reads as
+> caution.
+
+### The bargain refusing is not the chain breaking
+
+`cost + left < base` is `4.64 + 2.0 < 4.0`, which is false. **It costs more to say the plan than
+the plan saves**, and the agent declined to buy it. That is the bargain doing exactly its job on
+a plan that would close ONE member of a four-member scope.
+
+**AND THE REPAIR THAT IS REFUSED HERE IS THE OBVIOUS ONE: tuning `base` or `cost` until a
+routine mints.** `base` is `unsat * log2(n_actions)` — what NOT having the routine costs — and
+`cost` is description length. **Moving either to produce a mint is fitting the bargain to yield
+the outcome the bargain exists to prevent.** If a plan is worth buying, a larger `unsat` buys
+it, and `unsat` is `R_goal` times the scope — the quantity that only started moving today.
+
+### The fix, and what it deliberately does not do
+
+`probe(habitat)` takes an arm; `main()` reports per habitat, never pooled. **The gridworld arm
+is OPT-IN (`--all`) because it is a 24-cycle run over 34 slots and the `commit-msg` hook runs
+this seat on every commit — and its absence is PRINTED as `DID-NOT-RUN`, naming the flag.**
+That shape is not invented: `conform/check.py`'s own docstring rules it — *a stage that could
+not run is reported as DID-NOT-RUN, never folded into a pass; silence about what was not
+checked is how a clean report comes to describe a system nobody checked.* Same split as
+`stateful.py --fast`.
+
+`CYCLES = {"toy": 8, "gridworld": 24}`. **8 is what the seat always ran; 24 is MEASURED —
+four mechanisms have floors above 8 here (the gap deltas, the selector ~12, retro 16, and
+`_res` first reading at cycle 6) and the composer's first candidate set lands at CYCLE 19.**
+A CALIBRATION constant under `F341`'s third category: visible, movable, not claimed correct.
+**Its weakness is stated rather than discovered: the floor is from ONE SEED on ONE BOARD, so a
+seed that composes later will read COMPOSE dead where it is not.**
+
+### Four instrument errors in one night, all mine, none the agent's
+
+    `_popped` read as a total          it is drained into a row and reset in the same step
+    the untried set read as a span     two rows quoted without their cycle numbers
+    `'routine' in event` as a category it matches `routine_cut`, the opposite of a mint
+    `step == "COMPOSE"`                a step name that does not exist
+
+**Every one produced a confident zero or a confident count, and not one of them was wrong about
+the agent.** The agent's own records were correct throughout — the eight-way exit split, the
+`trend_popped` row, the `routine_cut` detail with its full pricing. **The whitebox worked; the
+reader did not.**
+
+### The arm's first reading, and both predictions were pinned before it ran
+
+    TOY        2 of 7 DEAD    COMPOSE · RUN
+    GRIDWORLD  1 of 7 DEAD    RUN
+
+**SIX OF SEVEN STAGES ARE REACHED ON THE HABITAT THE BUILD IS HAPPENING ON.** The body of this
+entry argued COMPOSE was reached there from the `considered 14` row; **it is now MEASURED by the
+instrument rather than inferred from a detail field**, which is the difference between a good
+argument and a reading.
+
+Pinned before the run, with the meaning of each failure stated: **COMPOSE reached** — because
+`enumerate_routines` is both what the fixture spies and what produces `considered`; *if it came
+back DEAD, my reading of the cut row was wrong and not the seat.* **RUN dead** — because
+`advance` advances an ADOPTED routine and `routine_lib` is empty; *if it came back REACHED,
+something adopted a routine that never reached the library, which would have been the night's
+biggest finding.* Neither failed.
+
+**AND THE SEAT REFUSED THE RUN (exit 1) because the new arm's seven stages were not in
+`fixture.json`** — the guard firing on its first opportunity, which is the second time in one
+night after the M2 narratability tripwire. Manifest updated in the same commit, nested per
+habitat, the flat form still read as the toy world's.
+
+> **`RUN` IS NOW DOWNSTREAM OF AN HONEST ECONOMIC REFUSAL RATHER THAN A BROKEN LINK.**
+> `routine_lib` is empty because the only composed candidate was CUT ON PRICE. The chain
+> reaches the point where the agent forms a plan, prices it, and declines to buy it.

@@ -95,18 +95,35 @@ STAGES = (
 )
 
 
-def probe() -> dict[str, bool]:
-    """Step the toy world once, end to end, and report which stages EXECUTED.
+# anchor: the toy world settles inside 8 and gridworld does not -- MEASURED 2026-09-25, not
+# chosen. Four mechanisms have floors above 8 on gridworld (the gap deltas; the selector ~12;
+# retro at 16; `_res`, whose first reading lands at cycle 6 of 16) and the COMPOSER'S FIRST
+# CANDIDATE SET APPEARS AT CYCLE 19. 24 is that observed floor plus margin, and it is a
+# CALIBRATION constant in `F341`'s third category: visible, movable, and not claimed correct.
+CYCLES = {"toy": 8, "gridworld": 24}
+
+
+def probe(habitat: str = "toy") -> dict[str, bool]:
+    """Step ONE world end to end and report which stages EXECUTED.
 
     SPIES, NEVER EDITS. Every wrapper calls through and returns the real value, so the run
     this observes is the run that would have happened -- the instrument must not be the
     treatment, which is the failure this project has filed against itself most often.
+
+    **AND IT TAKES A HABITAT, BECAUSE FOR MONTHS IT COULD ONLY SEE ONE -- 2026-09-25.** This
+    read `from demo import bind` and nothing else, so `COMPOSE DEAD` was a statement about the
+    TOY WORLD and was quoted as the status of the build. **Measured the day the arm was added:
+    on gridworld the composer enumerates 14 candidate routines at cycle 19 and the bargain
+    cuts the winner on price** -- so the stage this chain called dead is reached on the habitat
+    the work is happening on, and the instrument could not see it.
+
+    PER HABITAT, NEVER POOLED. The same law as per-game, for the same reason: two worlds that
+    test different things average into a number about neither.
     """
     import routine
     import tether
     import world
-    from demo import bind  # THE SAME CONSTRUCTION THE TOY SEAT ALREADY RUNS -- a fixture
-    from gamma import Gamma  # that builds its own world is testing a world nobody uses
+    from gamma import Gamma
     from ledger import Ledger
 
     hit = {k: False for k, _ in STAGES}
@@ -138,9 +155,14 @@ def probe() -> dict[str, bool]:
     tether.objective_step = step
 
     try:
-        env = bind(world.Transitions())
-        ag = tether.Agent(env, Gamma(env.atoms()), tether.Config(),
-                          Ledger(path="runs/fixture.jsonl"))
+        if habitat == "gridworld":
+            import gridworld
+            env = world.bind(gridworld.GridWorld(seed=11))
+        else:
+            from demo import bind  # THE SAME CONSTRUCTION THE TOY SEAT ALREADY RUNS -- a
+            env = bind(world.Transitions())   # fixture that builds its own world tests a
+        ag = tether.Agent(env, Gamma(env.atoms()), tether.Config(),   # world nobody uses
+                          Ledger(path=f"runs/fixture-{habitat}.jsonl"))
 
         # -- PERCEIVE + GOAL, read off the world BEFORE the loop moves anything --------
         obs = env.observe()
@@ -149,7 +171,7 @@ def probe() -> dict[str, bool]:
         hit["GOAL"] = "@goal.completed" in obs
 
         with redirect_stdout(io.StringIO()):
-            ag.run(8)
+            ag.run(CYCLES[habitat])
 
         rows = [{"seq": e.seq, "cycle": e.cycle, "step": e.step, "slot": e.slot,
                  "event": e.event, **e.detail} for e in ag.led.entries]
@@ -191,11 +213,10 @@ def probe() -> dict[str, bool]:
     return hit
 
 
-def main() -> int:
-    live = probe()
-    want = json.loads(MANIFEST.read_text(encoding="utf-8")) if MANIFEST.exists() else {}
+def _report(habitat: str, live: dict, want: dict) -> tuple[int, list[str]]:
     moved = []
-    print("  the chain, top first -- a lower stage is not worth fixing while a higher one is dead")
+    print(f"  {habitat.upper()} -- the chain, top first; a lower stage is not worth fixing "
+          f"while a higher one is dead")
     for name, gloss in STAGES:
         now, was = live[name], want.get(name)
         mark = "REACHED" if now else "DEAD   "
@@ -207,17 +228,41 @@ def main() -> int:
             flag = "   <-- NOT IN THE MANIFEST"
             moved.append(name)
         print(f"    {mark}  {name:<10} {gloss}{flag}")
-    if moved:
-        print()
-        print(f"  FIXTURE: {len(moved)} stage(s) the manifest does not "
-              f"record: {', '.join(moved)}.")
-        print("  A stage changing state is the event this seat exists for. Update `fixture.json`")
-        print("  IN THE SAME COMMIT as the change, or say why it moved.")
-        return 1
     dead = [n for n, _ in STAGES if not live[n]]
     if dead:
-        print(f"\n  {len(dead)} of {len(STAGES)} stages DEAD and declared: {', '.join(dead)}.")
-        print("  Declared is not excused -- this is the build order, top first.")
+        print(f"    {len(dead)} of {len(STAGES)} DEAD and declared: {', '.join(dead)}."
+              "  Declared is not excused -- this is the build order, top first.")
+    return len(dead), moved
+
+
+def main() -> int:
+    # **THE GRIDWORLD ARM IS OPT-IN, AND THAT IS REPORTED RATHER THAN SILENT.** It is a
+    # 24-cycle run over 34 slots and costs minutes; the `commit-msg` hook runs this seat on
+    # every commit. `check.py`'s own doctrine settles the shape: *a stage that could not run
+    # is reported as DID-NOT-RUN, never folded into a pass* -- so the default prints the arm
+    # as NOT RUN and names the flag, rather than printing a one-world chain as if it were the
+    # chain. Same split as `stateful.py --fast`.
+    arms = ["toy", "gridworld"] if "--all" in sys.argv else ["toy"]
+    want = json.loads(MANIFEST.read_text(encoding="utf-8")) if MANIFEST.exists() else {}
+    # BACKWARD COMPATIBLE: a FLAT manifest is the toy world's, which is all it ever held.
+    if want and not any(isinstance(v, dict) for v in want.values()):
+        want = {"toy": want}
+    moved: list[str] = []
+    for habitat in arms:
+        _dead, mv = _report(habitat, probe(habitat), want.get(habitat, {}))
+        moved += [f"{habitat}.{m}" for m in mv]
+        print()
+    if "gridworld" not in arms:
+        print("    DID-NOT-RUN  gridworld -- pass `--all`. The toy chain above is NOT the")
+        print("                 build's status: the composer is REACHED on gridworld and")
+        print("                 DEAD here, measured 2026-09-25.")
+        print()
+    if moved:
+        print(f"  FIXTURE: {len(moved)} stage(s) the manifest does not "
+              f"record: {', '.join(moved)}.")
+        print("  A stage changing state is the event this seat exists for. Update")
+        print("  `fixture.json` IN THE SAME COMMIT as the change, or say why it moved.")
+        return 1
     return 0
 
 
