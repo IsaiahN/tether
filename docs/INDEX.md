@@ -48611,3 +48611,60 @@ join is unchanged.
 is the right admission rule is a ruling, not a parse detail."* **It now has a number attached:
 OFF admits 0 recipes, ON admits 51.** Recorded for Isaiah; not switched.
 
+## F362 -- **THE READ-OFF-THE-BOARD TEST WAS ALREADY COMPUTED, FOR ALL 2,700, WITH TIERS.** And 1,749 of them -- 65% -- need ONE SENSOR. Plus: two routes to the closure with ZERO overlap
+
+**Item 6 is the reviewer's read-off-the-board test: *if the agent can read it off the board it is
+an ATTRIBUTE; if it builds it from other things it is an ATOM*, applied to the gap list.** I was
+about to treat 2,248 names as a judgement call. **`docs/library-closure/ATTRIBUTE_REACH.json` has
+already done it for 2,700**, and it is a LOOKUP, not a judgement.
+
+    "every atom's attributes rewritten into grid-expressible form, with what each requires
+     to be reachable"
+
+### THE TEST, RUN OVER EVERYTHING
+
+    tier 0      11 atoms    built: five integer atoms today
+    tier 1   1,749 atoms    one integer per object -- same shape as colour;
+                            NEEDS THE SENSOR TO EMIT IT
+    tier 2     122 atoms    comparable-not-orderable; needs the ATTR split
+    tier 3     749 atoms    two objects; needs objects in the loop
+    tier 4      69 atoms    a regularity over frames
+
+> **SIXTY-FIVE PER CENT OF THE CLOSURE BECOMES DETECTABLE ON ONE CAPABILITY** -- a sensor emitting
+> one integer per object, which the file itself says is *the same shape as colour*, a thing the
+> agent already has. **That is the most actionable number of the night and it is item 9's, with a
+> figure attached.**
+
+### AND TWO ROUTES TO THE CLOSURE THAT DO NOT OVERLAP AT ALL
+
+`F361` measured the join BY NAME -- does the agent have an atom called this. This measures it BY
+DETECTOR -- can the agent compute the attributes that confirm it. **Both returned eleven, and I
+nearly reported that as convergence.**
+
+    BY NAME      COUNT - Count - Other - Reflect - Rotate - SIGN - Sign ... (11 concepts)
+    BY DETECTOR  Adjacency - Balance - Degree - Global circulation - Movement - Number
+                 - Probability - Scale - Scope - Strain - Volume
+
+    OVERLAP: ZERO.
+
+> **THE AGENT CAN NAME ELEVEN THINGS IT CANNOT DETECT, AND DETECT ELEVEN THINGS IT CANNOT NAME.**
+> Two elevens over different denominators (2,682 ingredient names against 2,700 atoms) by
+> different methods, and the matching count is a coincidence. **A shared number is not a shared
+> set, and checking cost one line.**
+
+### WHAT THIS DOES TO THE MAPPING
+
+`F361` concluded the mapping's target is the eleven-concept join. **That stands as a fact about
+NAMES and is now the smaller half.** The detector route reaches the same closure without needing
+the names to match at all -- **which is `ARC_AGENT` §15.3's own point: *you cannot ask for a
+primitive by NAME; you get it by describing the gap it fits.*** Name-matching was never the
+intended route, and both measurements together say so.
+
+### AND THE FILE SAYS SOMETHING THE RECORD HAS BEEN CONTRADICTING
+
+    "reachable_at_100_percent: yes -- no atom is unreachable after the refactor"
+
+**Against `INDEX`'s own withdrawn headline of *78.3% blocked*.** Same corpus, opposite verdicts,
+because they measure different floors -- *has a recipe* against *has a computable detector*. The
+second is the one that bears on the agent.
+
