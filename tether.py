@@ -358,6 +358,8 @@ BOOKS: tuple[str, ...] = (
     "gap_improved",                     # the goal gap SHRANK on a slot since last cycle
     "gap_worsened",
     "gap_flat",
+    "gap_shapes_seen",                  # distinct cycles characterised (S15.3)
+    "gap_shape_repeat",                 # all four keys matched: the LOOP case
     "chunk_reuse",                      # §14.7: a settled term inside a later mint
     # THE ARRIVAL-DEPTH HISTOGRAM, ALL NINE BUCKETS. Declared because **a histogram with a
     # missing bucket is not a histogram** -- *no term arrived at depth 3* and *depth 3 was
@@ -595,6 +597,48 @@ class SlotResidual:
         return self.bits
 
 
+@dataclass(frozen=True)
+class Characterisation:
+    """**§15.3's CHARACTERISED RESIDUAL. The corpus specified this and I nearly designed one.**
+
+    *"The whole library is present and reachable. What you cannot do is ask for a primitive by
+    NAME -- you get it by DESCRIBING THE GAP IT FITS."* Figure 9's own four keys, and this
+    class is them:
+
+        type signature   the TYPES the gap involves
+        arity            how many slots it involves
+        varies/invariant the residual's own structure
+        effect shape     what changed, not what caused it
+
+    **NAME-FREE ON PURPOSE, AND THAT IS THE WHOLE POINT.** `ARC_AGENT` §15.3 keys retrieval by
+    *structural distance, not surface similarity*, and slot NAMES are surface: a signature
+    carrying `o1.col` matches only the world it came from. **Types transfer; names do not**, and
+    transfer is the claim this exists to serve.
+
+    **NOT CALLED `Shape`, DELIBERATELY.** `shape` in this package already means SHAPE-typed grid
+    data -- `_shapes_now`, `_as_shape`, the SHAPE atoms. One word over two quantities is `A6i`,
+    and this file carries three filed instances of it.
+    """
+
+    signature: tuple[str, ...]      # the types of every slot the gap involves, sorted
+    arity: int                      # how many slots -- Figure 9 names arity explicitly
+    varies: tuple[str, ...]         # types of the slots that MISSED
+    invariant: tuple[str, ...]      # types of the slots the residual left alone
+    effect: tuple[str, ...]         # per missed slot, in EFFECT terms: over / under / other
+
+    def overlap(self, other: Characterisation) -> int:
+        """HOW MUCH STRUCTURE TWO GAPS SHARE. A COUNT, NEVER A RATIO AND NEVER A VERDICT.
+
+        **Isaiah, 2026-09-25: distance is REGIONAL.** *Wherever a threshold is tempting, ask
+        whether the right thing is a comparison against local conditions.* So this returns a
+        number to RANK BY and no cutoff exists anywhere: *similar* means **more similar than the
+        other candidates here**, which is an ordering and needs no figure from anyone.
+        """
+        return (int(self.signature == other.signature) + int(self.arity == other.arity)
+                + int(self.varies == other.varies) + int(self.invariant == other.invariant)
+                + int(self.effect == other.effect))
+
+
 @dataclass
 class Report:
     cycles: int = 0
@@ -825,6 +869,7 @@ class Agent:
         self.cycle = 0
         self._last_mass: dict[str, float] = {}
         self._prev_gap: dict[str, int] = {}
+        self._seen_gaps: list[Characterisation] = []
         self._gap_delta: dict[str, int] = {}
         # THE INTEGRAL IS READ, NEVER REDUCED. Every step's surprise is added and nothing
         # subtracts, so a drive that learned to make the number go down would be
@@ -1876,6 +1921,7 @@ class Agent:
         self._prev_pred = pred
         self._last_mass = {s: r.mass for s, r in res.items()}
         self._note_progress(after)
+        self._note_gap_shape(res)
         return res
 
     def _route_reward(self, degree: float, moved: float) -> None:
@@ -2984,6 +3030,72 @@ class Agent:
         return {"bound_slots": len(bound), "total_slots": len(self.slots),
                 "binding_density": round(len(bound) / max(1, len(self.slots)), 4),
                 "acts": dict(self._acts), "system0": self.cfg.system0}
+
+    def _characterise(self, res: dict) -> Characterisation:
+        """Describe THIS cycle's gap in §15.3's four keys. Types, never slot names."""
+        t = self.slot_types
+        involved = sorted(res)
+        missed = [x for x in involved if res[x].mass > 0]
+
+        def eff(x: str) -> str:
+            r = res[x]
+            if isinstance(r.actual, int) and isinstance(r.predicted, int):
+                if r.actual > r.predicted:
+                    return "over"
+                return "under" if r.actual < r.predicted else "exact"
+            # NOT A FAILURE, AND NOT FOLDED INTO `exact`. A gap whose terms cannot be ordered
+            # has an effect shape we cannot state, and saying `exact` would claim we could.
+            return "other"
+
+        return Characterisation(
+            signature=tuple(sorted(t.get(x, "?") for x in involved)),
+            arity=len(missed),
+            varies=tuple(sorted(t.get(x, "?") for x in missed)),
+            invariant=tuple(sorted(t.get(x, "?") for x in involved if res[x].mass <= 0)),
+            effect=tuple(eff(x) for x in sorted(missed)),
+        )
+
+    def resembling(self, c: Characterisation) -> list[tuple[int, Characterisation]]:
+        """Every gap seen before, RANKED by how much structure it shares with this one.
+
+        **A RANKING, NOT A FILTER -- Isaiah's regional rule.** Nothing is excluded and no cutoff
+        exists: the caller reads the ORDER. *Similarly shaped* means at the top of this list,
+        which is a comparison against what is actually around rather than against a constant.
+        """
+        return sorted(((c.overlap(p), p) for p in self._seen_gaps), key=lambda x: -x[0])
+
+    def _note_gap_shape(self, res: dict) -> None:
+        """**THE SAME-SHAPE PREQUALIFIER'S RAW MATERIAL -- Isaiah, 2026-09-25.** *Recurrence has
+        a prequalifier of the problem being SIMILARLY SHAPED to one solved this way before.*
+
+        **AND IT IS WHY A LOOP IS NOT EVIDENCE.** An agent circling inside one episode meets the
+        SAME shape over and over, which satisfies plain recurrence trivially. Recorded here so
+        the distinction is available: **same-shape-different-situation is evidence;
+        same-situation-repeatedly is a loop**, and only a record of past shapes can tell them
+        apart.
+
+        Published, not acted on. What to DO with a resemblance is item 3's ruling.
+        """
+        if not res:
+            return
+        c = self._characterise(res)
+        ranked = self.resembling(c)
+        best = ranked[0] if ranked else None
+        self.gamma.book["gap_shapes_seen"] = len(self._seen_gaps) + 1
+        if best is not None:
+            self.led.record(self.cycle, "PERCEIVE", "*", "gapshape", arity=c.arity,
+                            signature=c.signature, effect=c.effect,
+                            nearest_overlap=best[0], exact_repeat=bool(best[1] == c))
+            # EQUALITY, NOT `overlap == 5`. Counting the keys hard-codes how many there are,
+            # so adding one would silently stop every repeat being detected -- a guard that
+            # goes quiet rather than failing, which is the class this package keeps filing.
+            if best[1] == c:
+                # EVERY KEY MATCHED. Counted apart from a partial match because an exact
+                # repeat is the LOOP case, and summing the two would make circling look
+                # like transfer.
+                self.gamma.book["gap_shape_repeat"] = (
+                    self.gamma.book.get("gap_shape_repeat", 0) + 1)
+        self._seen_gaps.append(c)
 
     def _note_progress(self, state: dict[str, int]) -> None:
         """**THE FIFTH TURN, AND IT IS ONE SUBTRACTION. Isaiah, 2026-09-25.** The crane claw
