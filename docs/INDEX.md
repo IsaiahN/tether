@@ -48545,6 +48545,19 @@ is recorded and left, not slipped in unexercised.
 
 ## F361 -- **THE MAPPING'S TARGET IS 11 CONCEPTS, NOT 5 GAPS AND NOT 863.** The join between what the agent PERCEIVES and what the closure SAYS is eleven names wide -- and `candidates`'s own published question is now answered
 
+> **THE METHOD THIS USED IS ONE THE CORPUS WARNS AGAINST, IN TERMS -- ANNOTATED 2026-09-25 BY
+> `F364`, AND THE ANNOTATION IS LATE.** `ATTRIBUTE_INDEX.json`'s own meta: *"Most raw attribute
+> names appear on exactly one atom, so RAW-NAME INTERSECTION RETURNS ALMOST NOTHING. Use
+> by_cluster for intersection queries."* **This entry joined by raw name.** The eleven is not
+> wrong, but it is a property of the METHOD at least as much as of the agent, and the corpus
+> said so before the measurement was taken. **By cluster the vocabulary is SEVENTEEN groups**
+> (`F364`), and `F362` measured a third figure by DETECTOR with ZERO overlap against this one.
+>
+> **AND THE ANNOTATION IS LATE BECAUSE I CLAIMED TO HAVE MADE IT AND HAD NOT.** `F364`'s entry
+> and `fa8a103`'s message both say *recorded against `F361`*. It was not. **A correction that
+> lives only in the new row leaves the wrong claim standing where it is actually read** --
+> `I12`/`I14`/`I15`, and this time the record also asserted the fix existed.
+
 **The reviewer's item 3 is the MAPPING, *"seat-side, needs no run, produces a TARGET rather than
 more mechanism"*. Its turn came when `F360` showed the CONSUMER unreachable.** This is the
 target, measured. **Static: names only, no board, no harness.**
