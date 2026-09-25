@@ -4007,6 +4007,17 @@ class Agent:
         # THE BUDGET IS THE UNSATISFIED COUNT -- `R_goal` is a fraction and cannot bound a loop,
         # but `unsat` COUNTS members that must change, each needing at least one iteration, so
         # it is the step floor the guard implies rather than a number picked.
+        # **THIS CAP IS LOAD-BEARING FOR THE BARGAIN AND THE BARGAIN CANNOT SEE IT.**
+        # `term_bits` prices LENGTH and ALPHABET -- a budget is neither -- so `until(g/3)` and
+        # `until(g/99)` cost the SAME 6.9658 bits while `reach` is `budget * reach(body)` and
+        # scales with it. `left` is `max(0, unsat - reach) * log2(n)`, so a bigger budget buys
+        # a smaller `left` FOR FREE, and nothing in `pays` would refuse a term claiming
+        # unbounded reach at a fixed price.
+        #
+        # WHAT STOPS IT IS THIS LINE: the budget is taken from the residual, so the agent
+        # never proposes more reach than the gap needs. **The protection lives at the CALL
+        # SITE and not in the pricing** -- raise this and the bargain has no defence, and the
+        # place a reader would look for one is `term_bits`, which is specified to ignore it.
         loop_budget = max(int(round(unsat)), 1)
         mine = tuple(s for s in sorted(self._disc) if s in before)
         # derived once: `reach` and `actions` both resolve a `Call` through it
