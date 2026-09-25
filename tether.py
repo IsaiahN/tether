@@ -349,6 +349,7 @@ BOOKS: tuple[str, ...] = (
     "plan_gate_rose",                   # gate 1: the bar genuinely refusing
     "plan_gate_qualified",              # gate 1: an objective passed
     "plan_gate_no_hypothesis",          # gate 1: nothing to filter. SUPPLY, not the bar
+    "want_recurred",                    # a retained want that a LATER attempt wanted again
     "bargain_bounded_out",              # `_cannot_pay` -- a NECESSARY condition, not a choice
     "bargain_does_not_pay",             # `pays` -- the only one of the two that is a judgement
     "bargain_paid",                    # reached the contest
@@ -846,6 +847,18 @@ class Agent:
         # composed. Invisible until now because the only success the suite had ever seen ended
         # on advance number one, where the remainder and the original coincide.
         self._routine_adopted = None
+        # **HOW OFTEN A WANT HAS COME BACK -- ISAIAH'S OWN CRITERION, PREVIOUSLY UNRECORDED.**
+        # *A want proves itself by RECURRING across attempts, not by explaining a frame.* The
+        # retention site ranked by COST alone and its comment said so, naming `_note_want` as
+        # the thing that would supply standing -- a function with zero definitions. This is
+        # the record it needed: how many separate attempts have wanted this composition.
+        #
+        # KEYED BY THE TERM'S NAME, WHICH IS THE COMPOSITION. Recurrence *under a RESEMBLING
+        # shape* is the stronger form Isaiah stated and it is NOT BUILT: it needs an
+        # equivalence over terms that this codebase does not have -- `resembling` is over gap
+        # Characterisations, not over terms. Same composition is the narrow, checkable case,
+        # and calling it the whole criterion would be the overstatement the comment made.
+        self._want_seen: dict[str, int] = {}
         # `(slot, value when the claim was made, step index)`, or None. One at a time: the loop
         # takes ONE action per cycle, so a second claim cannot be outstanding.
         self._popped: dict[str, int] = {}
@@ -4578,7 +4591,7 @@ class Agent:
         stats: dict = {"seen": 0, "budget_spent": False, "depth_exhausted": True,
                        "units": self.gamma.alphabet, "estimate": 0}
         by_kind: dict[str, tuple] = {}
-        wanted: tuple[float, Term] | None = None
+        wanted: tuple[float, Term, int] | None = None
         rank = 0
 
         if guards["support"] and base > floor:
@@ -4837,8 +4850,15 @@ class Agent:
                             # DERIVED, and the standing question is *is it actually
                             # reached*, which cannot be asked of something that was never
                             # written.
-                            if kind == "objective" and (wanted is None or cost < wanted[0]):
-                                wanted = (cost, term)
+                            if kind == "objective":
+                                # RECURRENCE FIRST, COST AS THE TIE-BREAK. Ranking by cost
+                                # alone is *the cheapest way to say this want*, which is a
+                                # property of the SENTENCE; standing is a property of the
+                                # WANT, and Isaiah's criterion is that it keeps coming back.
+                                _n = self._want_seen.get(term.name, 0) + 1
+                                self._want_seen[term.name] = _n
+                                if wanted is None or (_n, -cost) > (wanted[2], -wanted[0]):
+                                    wanted = (cost, term, _n)
                             continue
                         self.gamma.book["bargain_paid"] = (
                             self.gamma.book.get("bargain_paid", 0) + 1)
@@ -5040,6 +5060,8 @@ class Agent:
             self._want_terms[slot] = wanted[1]
             detail["want"] = wanted[1].name
             detail["want_paid"] = False
+            detail["want_seen"] = wanted[2]        # attempts that have wanted this
+            _book_add(self.gamma.book, "want_recurred", 1 if wanted[2] > 1 else 0)
             self.gamma.book["want_retained_unpaid"] = (
                 self.gamma.book.get("want_retained_unpaid", 0) + 1)
         _total, left, cost, term = best
