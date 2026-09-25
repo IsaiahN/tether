@@ -49243,3 +49243,49 @@ could be forgiven for losing that.**
     NOT THE GROUND THAT MATTERS -- `levels_completed` on real ARC is the ground, and it is
                  STOPPED. This is a synthetic habitat and a synthetic reading
 
+## F373 -- **CLAUSE 7 APPLIED TO MY OWN REPORT: 2 OF 7 MECHANISMS MEET THEIR DEFINITION. The other five produce a reading nobody acts on**
+
+**`M2_STANDARD` clause 7: *report against the DEFINITION -- forms and pursues a bounded
+multi-step behaviour -- NOT against the work -- a routine ran once.*** The reviewer named it in
+advance as one of four things they would watch for. My one-page state is a list of WORK. This is
+the same list against DEFINITIONS.
+
+    MECHANISM              ITS DEFINITION                         MEETS IT?
+    contact-first binding  operands ranked by contact             YES -- it does exactly that
+    provenance             "invented, used, used in ANOTHER
+                           game" made checkable                   YES -- verified end to end
+
+    `wants` populated      the agent HOLDS goal hypotheses        HOLDS. Nothing pursues one
+    the fifth turn         recognise a failed attempt that
+                           IMPROVED the situation                 COMPUTES the delta. Nothing
+                                                                  reads it as "try again"
+    System 0 ON            an always-open intake, and *"the
+                           whole system set RECALIBRATES"*        INTAKES. Nothing recalibrates
+    the selector           select the want that is confidently
+                           shrinking                              SELECTS. Nothing consumes it
+    the ARC-shaped world   a habitat that exercises the
+                           mechanisms                             EXERCISES 3 of 4 target
+                                                                  findings; COMPOSE/RUN unmoved
+
+> **TWO OF SEVEN MEET THEIR DEFINITION. FIVE ARE BUILT, FIRING, MEASURED -- AND THEIR CONSUMER IS
+> ABSENT.** Each produces a correct reading that nothing acts on.
+
+### AND THAT IS THE NIGHT'S OWN FINDING TURNED ON THE NIGHT'S OWN OUTPUT
+
+I catalogued nine things found built-and-unreached or built-and-inert, and treated that as a
+discovery about the codebase. **Clause 7 says five of the seven things I then built are the same
+shape.** The difference is that these were built WITH their gap named -- the selector says
+read-only in its docstring, the fifth turn says the judgement is not taken here -- **so they are
+honest about it, which is not the same as not being it.**
+
+**AND IT EXPLAINS `F372` WITHOUT NEEDING THE CONTROL.** The agent is at chance because five of
+seven new mechanisms end in a published reading rather than in an action. **The random control
+proved it; clause 7 predicts it from the definitions alone.**
+
+### A DENOMINATOR I OMITTED, from the same watch-list
+
+The reviewer also asked that **every count in the final report name its denominator.** My state
+document says *"4 chains IMPORTED with birth game intact"*. **It is 4 of 4 chains, from 8 minted
+terms of which 4 were single-atom and not compositions to import.** The bare 4 was the only count
+in that document without one.
+
