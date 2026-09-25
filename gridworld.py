@@ -51,8 +51,17 @@ from gamma import Atom
 
 sys.dont_write_bytecode = True
 
-# anchor: three objects need room to be non-adjacent and a walk needs somewhere to go;
-# 5x5 is the smallest board where both hold, and small enough to sweep exhaustively.
+# anchor: R_goal is the fraction of a scope that fails, so a peer group of N-1 gives it N-1
+# steps. Two steps cannot separate "shrinking" from "arrived"; four can, which is why this
+# is five and not four.
+N_OBJECTS = 5
+
+# anchor: the objects need room to be non-adjacent and a walk needs somewhere to go; 5x5 is
+# the smallest board where both hold, and small enough to sweep exhaustively.
+# **AND THE SECOND CLAUSE IS WEAKER AT FIVE OBJECTS THAN IT WAS AT THREE, SAID HERE RATHER
+# THAN LEFT TO BE FOUND: five of twenty-five cells are occupied.** The board is still
+# walkable and the reachability seat checks it per seed, but the sparsity this anchor
+# asserts is now a CHECKED property rather than an obvious one.
 GRID = 5
 ACTIONS = ("up", "down", "left", "right")
 GOAL_SLOT = _toy.GOAL_SLOT                      # one name, and it is the toy world's
@@ -85,8 +94,8 @@ class GridWorld:
 
     def __post_init__(self) -> None:
         rng = random.Random(self.seed)
-        cells = rng.sample([(r, c) for r in range(GRID) for c in range(GRID)], 3)
-        (r0, c0), (r1, c1), (r2, c2) = cells
+        cells = rng.sample([(r, c) for r in range(GRID) for c in range(GRID)], N_OBJECTS)
+        (r0, c0), (r1, c1), (r2, c2) = cells[:3]
         # **o1 IS PLACED WITHIN REACH OF o0, AND THE REASON IS ARC-FIDELITY, NOT A FINDING.**
         # Measured on the first version: ONE slot of ten carried any residual, the integral was
         # 27.86 against the toy world's 128.26, and NOTHING bound -- a slot with no surprise has
@@ -105,6 +114,25 @@ class GridWorld:
             "o1.row": r1, "o1.col": c1, "o1.colour": rng.randrange(4), "o1.shape": 1,
             "o2.row": r2, "o2.col": c2, "o2.colour": rng.randrange(4), "o2.shape": 2,
         }
+        # **THE SCOPE HAS TO BE BIGGER THAN TWO, AND IT IS ARITHMETIC RATHER THAN PREFERENCE.**
+        # `R_goal` is the FRACTION OF A SCOPE THAT FAILS. With three objects a peer group is
+        # two, so the quantity can only be 0.0, 0.5 or 1.0 -- and the only available real
+        # decrease is 0.5 -> 0.0, which IS satisfied.
+        #
+        # **SO *CONFIDENTLY SHRINKING* AND *ALREADY SATISFIED* WERE THE SAME EVENT**, gate 1
+        # passed at the exact moment the next gate became true, and COMPOSE could not fire
+        # while both gates were correct. Measured on board 11: `o0.row` ran
+        # [0.5, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0] and qualified only by arriving.
+        #
+        # With five objects a peer group is four and `R_goal` takes quarters, so an objective
+        # can be OBSERVABLY SHRINKING WHILE STILL UNSATISFIED -- which is the state a routine
+        # exists to act on. **ARC boards carry many objects; three was the fidelity gap.**
+        for i in range(3, N_OBJECTS):
+            r, c = cells[i]
+            self.state[f"o{i}.row"] = r
+            self.state[f"o{i}.col"] = c
+            self.state[f"o{i}.colour"] = rng.randrange(4)
+            self.state[f"o{i}.shape"] = i
         # **THE THREE, PLACED WHERE ISAIAH PUT THEM -- 2026-09-25.** He ruled `Proximity`,
         # `Obstacle` and `Surface` ATTRIBUTE DATA rather than atoms, and my flagging them as my
         # three least-confident entries was the tell: *the doubt was correctly placed and pointed
@@ -120,7 +148,7 @@ class GridWorld:
         # texture-like -- which we can only DIFFERENTIATE AND GROUP, never preprogram.* So it
         # carries no order and no meaning; `same`/`other` can compare two of them and nothing
         # can read one. Distinct from `.shape`, which keys contact.
-        for i in range(3):
+        for i in range(N_OBJECTS):
             self.state[f"o{i}.surface"] = rng.randrange(3)
         # REACHABLE BY CONSTRUCTION, not by assertion. The target is where the mover ends up
         # after a random legal walk from its own start, so a path provably exists and nothing
@@ -161,7 +189,7 @@ class GridWorld:
         return "exact match on the next state. Mechanical, instant, and it does not negotiate"
 
     def slots(self) -> list[str]:
-        return sorted([*self.state, GOAL_SLOT] + [f"o{i}.proximity" for i in range(3)])
+        return sorted([*self.state, GOAL_SLOT] + [f"o{i}.proximity" for i in range(N_OBJECTS)])
 
     def atoms(self) -> list[Atom]:
         """THE TOY WORLD'S ATOMS, VERBATIM. See the module docstring: one variable moves."""
@@ -182,7 +210,7 @@ class GridWorld:
         # PROXIMITY IS A MANHATTAN DISTANCE ON A WRAPPED GRID, so its range is the board's own
         # diameter rather than its width -- stated because charging it GRID would be wrong in
         # the direction that makes its residual look smaller than it is.
-        for i in range(3):
+        for i in range(N_OBJECTS):
             a[f"o{i}.proximity"] = 2 * GRID
         return a
 
@@ -266,7 +294,7 @@ class GridWorld:
         transient, which is its own rule and not mine.
         """
         out: list[tuple[str, str, str]] = []
-        objs = ("o0", "o1", "o2")
+        objs = tuple(f"o{i}" for i in range(N_OBJECTS))
         for i, a in enumerate(objs):
             for b in objs[i + 1:]:
                 dr = abs(self.state[a + ".row"] - self.state[b + ".row"])
@@ -349,7 +377,7 @@ class GridWorld:
     def observe(self) -> dict[str, int]:
         """DERIVED, NEVER STORED -- no rule can write the goal; the agent only perceives it."""
         return {**self.state, GOAL_SLOT: self._completed(),
-                **{f"o{i}.proximity": self._proximity(f"o{i}") for i in range(3)}}
+                **{f"o{i}.proximity": self._proximity(f"o{i}") for i in range(N_OBJECTS)}}
 
     def step(self, action: str) -> None:
         if action not in ACTIONS:

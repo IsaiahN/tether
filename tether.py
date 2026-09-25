@@ -724,6 +724,24 @@ class Agent:
         # wireheading shape he named -- whatever wins an argument becomes the whole of what
         # you want.
         self.wants: dict[str, str] = {}
+        # **THE TERM, NOT ONLY ITS NAME -- 2026-09-25, AND THE NAME ALONE WAS A DANGLING
+        # REFERENCE.** Only the contest WINNER is `gamma.accept`ed, so a want retained from
+        # the does-not-pay branch names a term that is not in the library. Both readers
+        # resolve `library.get(want)` and get `None`, and the fallback then does nothing
+        # **silently** -- the exit recorded is `out_type-not-OBJ`, which describes the BOUND
+        # term and is indistinguishable from a want that resolved and was the wrong type.
+        # Measured on gridworld seed 11 at five objects: 2 of 2 wants absent from the library,
+        # `_res` empty for all sixteen cycles, the gate reading NO HYPOTHESIS 48 of 48.
+        #
+        # **AND THE UNPAID TERM IS NOT ACCEPTED INTO GAMMA, WHICH IS THE WHOLE POINT.** A term
+        # that lost the bargain has not earned a place in the library; retention is Isaiah's
+        # ruling that *a want proves itself by RECURRING across attempts, not by explaining a
+        # frame*, and a separate store is what keeps those two facts from collapsing.
+        self._want_terms: dict[str, Term] = {}
+        # WHICH of `_goal_split`'s five exits fired, so the caller can CITE it rather than
+        # name one. The refusal string is the only place a reader learns why no action was
+        # chosen, and it was naming a single exit for all five.
+        self._split_why: str | None = None
         self._acts: Counter = Counter()   # System-0 instrument: concrete actions taken per cycle
         # the whole before-state is kept, because an operand is another slot's past value
         self.trace: list[tuple[dict[str, int], str, dict[str, int]]] = []
@@ -3205,7 +3223,7 @@ class Agent:
         # that from a useless change.
         if term is None or getattr(term, "out_type", None) != OBJ_TYPE:
             _w = self.wants.get(slot)
-            term = self.gamma.library.get(_w) if _w else term
+            term = (self.gamma.library.get(_w) or self._want_terms.get(slot)) if _w else term
         if (term is None or getattr(term, "out_type", None) != OBJ_TYPE
                 or slot not in state or not self._applies(term, state)):
             return NOT_RESOLVED
@@ -3246,7 +3264,10 @@ class Agent:
         # winner-take-all this function had nothing to read whenever a predictor won.
         if getattr(term, "out_type", None) != OBJ_TYPE:
             _w = self.wants.get(slot)
-            _wt = self.gamma.library.get(_w) if _w else None
+            # THE LIBRARY FIRST, THEN THE RETAINED TERM. An accepted want is the same object
+            # either way; an UNPAID one exists only in `_want_terms`, and reading the library
+            # alone made this fallback a silent no-op on every unpaid want.
+            _wt = (self.gamma.library.get(_w) or self._want_terms.get(slot)) if _w else None
             if _wt is not None:
                 name, term = _w, _wt
         # WHICH None, NOT THAT None -- F207. This function has five None exits and they are
@@ -3846,11 +3867,27 @@ class Agent:
             self.led.record(self.cycle, "PLAN", slot, "routine_refused",
                             reason=f"CAN is {verdict}, and only yes commits")
             return
+        self._split_why = None
         act = self._goal_split(before)
         if act is None:
+            # **CITE THE EXIT, DO NOT NAME ONE -- 2026-09-25.** This said *coverage incomplete,
+            # or every action ties* for all five of `_goal_split`'s exits, and on gridworld
+            # seed 11 the exit was actually `no_goal_read` on 4 of 4. **A refusal that names an
+            # exit that did not fire is the same defect as `out_type-not-OBJ` describing a term
+            # that was never the subject** -- a true-sounding string pointing at the wrong
+            # mechanism, and the one thing a whitebox record must not do.
+            _why_txt = {
+                "no_goal_term": "the chosen slot has no OBJ-typed goal term to read, in "
+                                "`bound` or in the retained wants",
+                "coverage": "there is an action this agent has never tried here, and an "
+                            "untried action is not a neutral one",
+                "no_goal_read": "no goal was read on the chosen slot",
+                "no_action_voted": "no action this agent has observed moves this slot the "
+                                   "wanted way",
+                "all_tied": "every action ties, so nothing separates them",
+            }.get(self._split_why, f"the split refused ({self._split_why})")
             self.led.record(self.cycle, "PLAN", slot, "routine_refused",
-                            reason="no action this agent has observed moves this slot the "
-                                   "wanted way -- coverage incomplete, or every action ties")
+                            reason=_why_txt, split_why=self._split_why)
             return
         n = max(len(self.actions), 2)
         # WHAT NOT HAVING THE ROUTINE COSTS: naming an action for each unsatisfied member of the
@@ -4035,7 +4072,23 @@ class Agent:
                 continue
             name = self.bound.get(s)
             term = self.gamma.library.get(name) if name else None
+            # **THE THIRD READER, AND IT WAS THE ONE NOT TAUGHT -- 2026-09-25.**
+            # `goal_residual` and `_discrepancy` both fall back to the retained want; this one
+            # read `bound` alone. OBJ-bound reads ZERO on every board measured, so the slot the
+            # SELECTOR just chose failed here every time -- measured on gridworld seed 11 at
+            # five objects: 4 of 4 `split_refused` rows carry `no_goal_read`, while the chosen
+            # slot's want sits in `_want_terms` and its bound term is `val`-typed.
+            #
+            # The term is a GUARD here and nothing below reads it -- the votes come from
+            # `_predict` and the trace -- so this admits the same population the gate upstream
+            # already qualified, rather than widening anything.
             if term is None or getattr(term, "out_type", None) != OBJ_TYPE:
+                _w = self.wants.get(s)
+                term = (self.gamma.library.get(_w) or self._want_terms.get(s)) if _w else term
+            if term is None or getattr(term, "out_type", None) != OBJ_TYPE:
+                self._split_why = "no_goal_term"
+                self.led.record(self.cycle, "PLAN", s, "split_refused",
+                                why="no_goal_term", bound=name, want=self.wants.get(s))
                 continue
             hist: dict[str, list[tuple[int, int]]] = {}
             for bef, act, aft in self.trace:
@@ -4048,6 +4101,7 @@ class Agent:
                 # than that names. This one reads `self.trace`, NOT the ledger -- which is why
                 # a `bet`-row census read coverage as COMPLETE while this gate was refusing on
                 # it. Publish which exit fired, the same move `goal_series` was.
+                self._split_why = "coverage"
                 self.led.record(self.cycle, "PLAN", s, "split_refused",
                                 why="coverage", untried=sorted(missing),
                                 tried=sorted(hist), trace_len=len(self.trace),
@@ -4079,6 +4133,7 @@ class Agent:
                 elif any(f == wanted for _, f in hist[a]):
                     votes[a] += 1             # unordered: it has produced that value
         if not n_goals or max(votes.values()) == 0:
+            self._split_why = "no_goal_read" if not n_goals else "no_action_voted"
             self.led.record(self.cycle, "PLAN", chosen,
                             "split_refused",
                             why="no_goal_read" if not n_goals else "no_action_voted",
@@ -4094,6 +4149,7 @@ class Agent:
             # a FALSE ABSTENTION indistinguishable from an honest one, on 6 of the 25 games
             # (F151). `n_actions` is the closure; `vacuous` is the verdict, published rather than
             # left to be re-derived from it.
+            self._split_why = "all_tied"
             self.led.record(self.cycle, "PLAN", chosen, "split_refused",
                             why="all_tied", votes=dict(votes),
                             n_actions=len(self.actions),
@@ -4291,6 +4347,11 @@ class Agent:
             # event and was not covered. This extends a stated rule to the site that misses it.
             self._res.pop(g, None)
             self._disc.pop(g, None)
+            # AND THE WANTS, WHICH THIS LOOP ALSO MISSED -- the same omission as the trends
+            # one line up, found the day `_want_terms` gave the wants a second home. A want
+            # on a departed slot is a hypothesis about an object that is gone.
+            self.wants.pop(g, None)
+            self._want_terms.pop(g, None)
         # a term bound to a SURVIVING slot may read an operand on a departed one, and
         # `_ops` would fault on the next bet. It owes again rather than faulting.
         orphaned = sorted(k for k, n in self.bound.items()
@@ -4675,8 +4736,18 @@ class Agent:
                             #
                             # RANKED BY COST ALONE, which is DESCRIPTION LENGTH and not
                             # explanation -- the cheapest way to say this want. It is a
-                            # tie-break for retention, never a verdict: standing comes from
-                            # recurrence under a resembling shape, which is `_note_want`.
+                            # tie-break for retention, never a verdict.
+                            #
+                            # **AND THE THING THAT WOULD MAKE IT A VERDICT IS NOT BUILT.
+                            # STANDING WOULD COME FROM RECURRENCE UNDER A RESEMBLING SHAPE,
+                            # AND THIS COMMENT NAMED `_note_want` AS THOUGH IT EXISTED --
+                            # WRITTEN 2026-09-25, CORRECTED THE SAME DAY.** `resembling`
+                            # (3079) is real; `_note_want` has zero definitions and zero
+                            # callers. **A comment citing a mechanism by name is the same
+                            # false record as a map entry doing it** -- it reads as
+                            # DERIVED, and the standing question is *is it actually
+                            # reached*, which cannot be asked of something that was never
+                            # written.
                             if kind == "objective" and (wanted is None or cost < wanted[0]):
                                 wanted = (cost, term)
                             continue
@@ -4871,11 +4942,13 @@ class Agent:
         _obj = by_kind.get("objective")
         if _obj is not None:
             self.wants[slot] = _obj[3].name
+            self._want_terms[slot] = _obj[3]
             detail["want"] = _obj[3].name
         elif wanted is not None:
             # THE RULING'S PATH, and the only one that has ever had traffic. A want that lost
             # the contest is still WANTED; what it does not get is the right to ACT.
             self.wants[slot] = wanted[1].name
+            self._want_terms[slot] = wanted[1]
             detail["want"] = wanted[1].name
             detail["want_paid"] = False
             self.gamma.book["want_retained_unpaid"] = (

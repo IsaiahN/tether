@@ -49314,3 +49314,79 @@ document says *"4 chains IMPORTED with birth game intact"*. **It is 4 of 4 chain
 terms of which 4 were single-atom and not compositions to import.** The bare 4 was the only count
 in that document without one.
 
+
+## F374 -- **`wants` HELD THE NAME OF A TERM THAT IS NOT IN THE LIBRARY, SO BOTH FALLBACKS WERE SILENT NO-OPS.** The gate read NO HYPOTHESIS 48 of 48 and the recorded exit described a different term
+
+**`goal_residual` and `_discrepancy` both resolve a want as `self.gamma.library.get(name)`, and
+`wants` stores `wanted[1].name` from `mint`'s DOES-NOT-PAY branch. ONLY THE CONTEST WINNER IS
+`gamma.accept`ed.** So a retained want names a term the library does not hold, by construction --
+**the retention exists precisely because that term LOST.**
+
+    N_OBJECTS 5, seed 11
+      o0.row        want 'same . all<o1.proximity>'    IN LIBRARY: False
+      o1.proximity  want 'above . all<o2.proximity>'   IN LIBRARY: False
+
+    N_OBJECTS 3, seed 11
+      all three wants IN LIBRARY: True and OBJ-typed
+      and the BOUND term on each of those slots is `val`-typed
+
+**AND THE FAILURE IS SILENT IN THE ONE FUNCTION WHOSE JOB IS TO SAY WHICH `None` IT RETURNED.**
+The fallback is `if _wt is not None`, so an unresolved name leaves `term` as the BOUND term and
+the exit recorded is `out_type-not-OBJ` -- **a true statement about a term that was never the
+subject.** `out_type-not-OBJ` therefore covers two different defects and cannot separate them:
+
+    the want resolved and is genuinely the wrong type
+    the want never resolved and this is the bound term's type
+
+> **A NAME IS NOT A REFERENCE, and `F207`'s whole point -- *which None, not that None* -- is
+> defeated by an exit taken after a fallback that did nothing.** The eight-way split is
+> honest about the branch it reached and blind to the branch it skipped.
+
+### What it cost, measured on one board, one flag
+
+    BOOK KEY                    N=3     N=5 BEFORE   N=5 AFTER
+    _res slots                    3          0            2
+    plan_gate_no_hypothesis      14         48           20
+    plan_gate_qualified           8          0           10
+    plan_gate_flat               66          0           24
+    plan_gate_rose               10          0           14
+    plan_gate_too_short          27          0           18
+    focus_by_want                 2          0            2
+
+**At five objects the gate gave ONE verdict 48 times; it now gives five, and `qualified` is
+HIGHER than the three-object arm.** The repair is `_want_terms: dict[str, Term]` written at both
+want sites and read as `library.get(name) or _want_terms.get(slot)`.
+
+**IT DOES NOT ACCEPT THE UNPAID TERM INTO Γ, and that is the substance rather than a detail.**
+The one-line version -- accept the loser -- would make `accept` mean two things and put a term
+in the library that did not pay the bargain, which is the partition the ablation clause runs on.
+**Retention and acceptance are different facts and now have different homes.**
+
+### The same omission one line away, and it is `F214`'s
+
+The departed-slot loop pops `bound`, `_res` and `_disc` and **did not pop `wants`.** `F214` is
+the finding that says *a departed slot is never visited and its series survives indefinitely* --
+**the same hole, reappearing for a quantity that did not exist when `F214` was written.** Fixed
+in the same pass.
+
+### Provenance, because it is not flattering
+
+**THIS DEFECT IS MINE, FROM THIS MORNING, AND IT IS THE THIRD OF THREE IN ONE DAY.** The
+duplicate selector (built against a stale map entry), `_note_want` (cited in a comment and never
+written), and this. **All three were written while writing up work I had just finished**, which
+is the cause this file already names: *the summary gets written from THE WORK JUST DONE rather
+than from the definition the row already holds.*
+
+> **WHAT IS NEW IS THAT IT PRODUCED A RUNTIME DEFECT AND NOT ONLY A FALSE RECORD.** A dangling
+> name in `wants` is the same error as a comment naming a function that does not exist -- **a
+> reference with no referent** -- and the code version does not read as false, it reads as
+> nothing at all.
+
+### And the treatment-executed field is what caught it
+
+The five-object change was pre-registered with a prediction and **the first run came back
+looking like a clean refutation**: `plan_gate_qualified` 8 -> 0. It was not a refutation. **The
+scope never reached the gate, because the wants were dangling** -- so the manipulation whose
+effect I was reading had never taken place. The SCOPE-SIZE line, printed first and separately
+as the treatment-executed check, is what said *no slots in `_res`* rather than *scope four did
+not help*. **Two different repairs, and the wrong one was the attractive one.**

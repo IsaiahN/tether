@@ -923,6 +923,27 @@ what makes the decision, and find it in the code, before asking what it should c
     NOT INSTANTIATED   the SELECTOR that would pick among composed objectives · the
                        description vocabulary · everything gated behind those
 
+**AND THE SELECTOR CAME OFF THAT LINE TOO — 2026-09-25, AND IT IS THE `WIRE`'s ENTRY ONE ROW
+DOWN AND TWO WEEKS LATE.** `tether.py:3480` is `_goal_choice`, labelled **M2 ITEM 3, THE
+SELECTOR**, quoting §13.4 whole and implementing *confidently shrinking* as `MIN_REPEAT`
+consecutive non-increasing readings with at least one real decrease. **Five call sites**
+(`2784`, `3173`, `3790`, `4028`, `5476`), and `5476` is attention: the focal slot is the
+selector's choice when it has one.
+
+**IT IS INSTANTIATED, IT IS REACHED, AND IT NOW CHOOSES** — 48 reaches with 0 choices while
+its input `_res` was empty, then a first choice (`o0.row`) the moment `peers()` was published.
+**So the honest entry is *built and starved*, never *not instantiated*** — and this file says
+why the distinction is worth the edit: *a map entry saying a thing does not exist is worse than
+one saying it is unfinished — the first closes the question.* **It closed this one while I was
+reading the map to decide what to build, and the thing it told me to build already existed:
+I wrote a duplicate selector with a laxer one-cycle criterion and wired it into attention
+before finding `_goal_choice`.** That is the cost of the stale row, paid in the exact currency
+the row's own warning names.
+
+**AND THE ROW ABOVE IS LEFT STANDING RATHER THAN EDITED, per this file's rule** — *a repaired
+row is annotated, never removed; an error entry whose evidence is edited away stops being
+evidence.*
+
 **AND THE `WIRE` CAME OFF THIS LINE ON 2026-09-11, BECAUSE IT IS BUILT AND IT FIRES.**
 `tether.py:2940` carries an `M2 ITEM 1 -- THE WIRE` block that fills `WANT` from the agent's
 own composed `OBJ`-typed term, entered at `c7206d7` on 2026-09-05 — **before `arc-freeze-02`,
