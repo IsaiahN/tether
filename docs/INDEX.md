@@ -48996,3 +48996,49 @@ and named it with the cap's word.**
 > divergence is real and its population is tiny**, which is exactly the case where a shared word
 > survives longest before it costs something.
 
+## F368 -- **`INGREDIENT` IS A ROLE, NOT A CLASS, AND 376 OF THEM ARE MOLECULES.** The reviewer's flagged exception does NOT dissolve, and I told them it did
+
+**Finishing the scrub rather than opening a thread.** `LIBRARY_RETRIEVAL` line 400 reads *"only
+20% of entries are ever an ingredient of anything"* -- and renamed mechanically that becomes
+**"only 20% of MOLECULES are ever an ATOM of anything"**, which is incoherent. Measured:
+
+    rows (molecules, every one has a recipe)      2,076
+    rows USED AS A PART of another row              376   (18%)
+    ingredient names with NO row of their own     2,250
+
+    so an INGREDIENT is filled by
+        an ATOM      -- no recipe, irreducible     2,250
+        a MOLECULE   -- a row with its own recipe    376
+
+> **`INGREDIENT` NAMES A ROLE -- *a thing used as a part* -- AND THE ROLE IS FILLED BY BOTH
+> KINDS.** It is not a third class competing with atom and molecule; it is orthogonal to them.
+
+### WHICH MEANS I OWE THE REVIEWER A CORRECTION
+
+They asked to FLAG rather than rename *"where the doc means a name on a molecule's right-hand
+side that is NOT itself a defined atom -- `atom` would be WRONG for it."* **I argued the exception
+DISSOLVED, on the ground that such a name IS an atom by the corpus's own definition.**
+
+**That is right for 2,250 and wrong for 376.** A defined row used as a part is a MOLECULE serving
+as an ingredient, and calling it an atom is false. **Their instinct was correct and my argument
+against it was too strong** -- I generalised from the undefined majority to the whole population,
+which is the sampling error one level up from the one this file keeps filing.
+
+### AND ISAIAH'S OWN MODEL CARRIES THE SAME SIMPLIFICATION
+
+*"Ingredients in my mind are atoms from the atom list that get turned into recipes/molecules."*
+**True of 86% and not of the other 14%**, and the 14% is the interesting part -- it is the only
+place the closure composes anything on top of anything.
+
+**AND CHEMISTRY.md ALREADY HAS THE WORD FOR IT, so none needs coining** (the reviewer's rule:
+*say it in full; do not coin a replacement*). Table 2: **`functional group` -- a substructure that
+determines the outcome.** A molecule acting as a part of a larger one is exactly that, and the
+corpus named it before either of us reached for a new term.
+
+### THE PRACTICAL CONSEQUENCE FOR THE SCRUB
+
+**A BLANKET `ingredient -> atom` RENAME WOULD PRODUCE 376 FALSE STATEMENTS.** The rename is
+correct only where the referent is undefined; everywhere the doc speaks of the ROLE it must stay
+a role. That is the second site-class the scrub has found where the words do different work, and
+both were found by reading rather than by counting.
+
