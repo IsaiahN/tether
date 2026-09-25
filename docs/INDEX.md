@@ -48736,3 +48736,55 @@ closure's encodings align with the second and not the first.
 > file has three filed instances of. Named before anything is built on it, which is the
 > prospective half and the cheap one.
 
+## F364 -- **THE ATTRIBUTE VOCABULARY REDUCES TO SEVENTEEN CLUSTERS, AND THE CORPUS WARNS AGAINST THE METHOD `F361` USED.** Item 9 is seventeen decisions, and one of them is already built
+
+**Item 9 is the attribute set, carried as *~8 published against a design of ~100*. After `F362`'s
+correction the open question was: of the 3,455 attribute names the tier-1 atoms demand, HOW MANY
+ARE GRID-READABLE AT ALL.**
+
+### FIRST, THE CORPUS WARNS AGAINST `F361`'s METHOD, IN TERMS
+
+`ATTRIBUTE_INDEX.json`'s own meta:
+
+    "Most raw attribute names appear on exactly one atom, so RAW-NAME INTERSECTION RETURNS
+     ALMOST NOTHING. Use by_cluster for intersection queries."
+
+**`F361` joined by raw name and got eleven.** That number is not wrong, but the corpus says the
+METHOD returns almost nothing by construction -- so eleven is a property of the method at least as
+much as of the agent. **Recorded against `F361` rather than only here.**
+
+### WHAT THE CLUSTERS ARE -- MEASURED
+
+    184 ACTION      182 SPEED     176 SIGNAL     172 TIME       155 FORCE
+    123 CHANGE      113 EXTENT    108 STRUCTURE  105 STATE       93 CONTACT
+     73 DIRECTION    67 COUNT      52 POSITION    50 SHAPE       41 MOTION
+     36 IDENTITY      6 COLOUR
+
+    clusters 17 - mentions covered 1,736 of 7,932 - unassigned head words 686
+    and the clustering's pass 3 was RULED, not mechanical
+
+**The covered fraction is 22%, and that is the honest limit**: clusters hold the vocabulary that
+REPEATS, and the 686 unassigned heads are the single-use domain tail. **For a JOIN the repeated
+part is the part that matters**, but the tail is not nothing and this does not speak for it.
+
+### AND MY READING OF THEM, FLAGGED AS A JUDGEMENT BECAUSE IT IS ONE
+
+**MEASURED above. JUDGED here, and I have over-claimed twice tonight on this exact subject**
+(`78.3% blocked`, then `65% on one sensor`), so the line is drawn rather than blurred:
+
+    GRID-SHAPED, and several already built   POSITION COUNT EXTENT SHAPE COLOUR
+                                             CONTACT MOTION DIRECTION CHANGE
+                                             SPEED TIME IDENTITY
+    NOT GRID-READABLE                        FORCE -- stress, energy, pressure, mass
+    GENERIC OR ARGUABLE                      ACTION SIGNAL STATE STRUCTURE
+
+> **SO ITEM 9 IS SEVENTEEN DECISIONS, NOT 3,455 AND NOT ~100** -- the same collapse `F363` found
+> for types, from the same cause: **the corpus had already grouped the thing I was about to
+> enumerate.**
+
+**AND `CONTACT` IS ALREADY BUILT, TONIGHT, WITHOUT KNOWING THIS.** `gridworld.contact_points`
+publishes contact for the first time in any world (`b06e8cf`), and `CONTACT` -- *distance, edge,
+boundary, contact, gap* -- is 93 mentions of this vocabulary. **One of the seventeen went live a
+few hours before the list of seventeen was found**, which is the fourth time tonight the corpus
+turned out to have specified what was being built.
+
