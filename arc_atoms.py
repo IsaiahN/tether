@@ -248,6 +248,38 @@ ADMITTED = {
               "where every other atom handed today adds none",
 }
 
+# THE OTHER POPULATION: §11 CLAUSE ONE, *the loop cannot run without it*.
+#
+# `ADMITTED` above records the atoms HANDED under Isaiah's third clause. These are the rest --
+# the vocabulary the loop cannot start without, which is a different clause and not an
+# oversight. Written down because the two were previously distinguished only by ABSENCE, and
+# *a thing with no entry* read identically whether it entered under clause one or whether
+# somebody forgot. The ablation partitions by WHICH CLAUSE, so that ambiguity was a hole in
+# the partition rather than untidiness.
+#
+# **A TABLE, NOT A PREDICATE, AND DELIBERATELY** -- `CLAUDE.md`'s *exemptions as data, not
+# logic: a table can be pinned; logic widens quietly.* Any rule computing this set from a
+# name or a type would silently absorb the next atom added.
+CLAUSE_ONE = frozenset({
+    # perception's own readings -- what a slot IS. `ATTRIBUTE_TYPE`'s keys become atoms.
+    "row", "col", "colour", "h", "w", "bbox", "shape", "age", "speed", "stability",
+    "completed", "colour_changed", "contact", "touching",
+    # the deltas -- what CHANGED. Without them there is no residual to price.
+    "drow", "dcol", "dh", "dw", "dcells", "dholes", "dperimeter",
+    # the object record, and the relations over peers
+    "owner", "above", "same", "other",
+    # the quantifiers. §12.4 notes the set held ∀, ∃ and ¬∃ before any connective did.
+    "all", "any", "none", "all_same", "any_same", "none_same",
+    # THE PREDICT SET, which arrives as `three_spaces`'s ARGUMENT and is not declared in this
+    # file -- `arc_predict` owns them, deliberately, so this file does not choose what the
+    # agent may bet on. A bet needs something to bet, so they are clause one.
+    #
+    # PINNED BY NAME RATHER THAN BY "whatever was passed in", and that is the whole point: a
+    # rule saying *the predict argument is exempt* would absorb a FOURTH transform silently,
+    # which is `exemptions as data, not logic` exactly. A new one must be classified here.
+    "idn", "translate", "recolour",
+})
+
 
 def _extract() -> list[Atom]:
     """`OBJECT → COLOUR | POSITION | EXTENT | DELTA | SHAPE`, one per key 2b computes.
@@ -935,4 +967,31 @@ def three_spaces(predict: list[Atom]) -> list[Atom]:
                 f"{o.in_type}->{o.out_type} and {a.in_type}->{a.out_type}. "
                 f"One name, one atom -- rename the newer one.")
         seen[a.name] = a
+
+    # EVERY ATOM NAMES THE CLAUSE THAT LET IT IN, and this fires at construction for the
+    # reason the duplicate-name rule above does: a clause recorded later cannot be trusted,
+    # and one never recorded is unrecoverable -- `PRIOR` marks every atom alike.
+    #
+    # `ADMITTED` had ZERO READERS until 2026-09-26. Thirty-odd carefully written entries,
+    # distinguishing the atoms the agent's own machinery named from the ones a measurement a
+    # seat ran named, and NOTHING imported the table. An atom added with no entry failed
+    # nothing -- which is the hazard the `ATTRIBUTE_TYPE` comment above warns about for its
+    # own table, learned there by failing once and unguarded here.
+    #
+    # BOTH DIRECTIONS, because each has already happened once. An entry naming no atom is
+    # `inside`: admitted 2026-09-08, dated, with the batch's best reach number, and ABSENT
+    # FROM THE REGISTRY FOR A FORTNIGHT.
+    unclassified = sorted(n for n in seen if n not in ADMITTED and n not in CLAUSE_ONE)
+    if unclassified:
+        raise ValueError(
+            f"atoms with no admitting clause: {unclassified}. Add an `ADMITTED` entry saying "
+            f"what named the gap and why no chain yields it, or add the name to `CLAUSE_ONE` "
+            f"if the loop cannot run without it. The ablation partitions by which clause let "
+            f"a thing in and that cannot be rebuilt afterwards.")
+    phantom = sorted(n for n in ADMITTED if n not in seen)
+    if phantom:
+        raise ValueError(
+            f"`ADMITTED` names atoms that were never built: {phantom}. `inside` sat here for "
+            f"a fortnight. Build it or drop the entry -- an admission for a thing that does "
+            f"not exist reads, to the ablation, exactly like one that does.")
     return out
