@@ -49629,3 +49629,116 @@ asked.** That is what makes the class hard, and it is why none of them failed an
 **The measurements confirmed every wrong thing believed that day**, because they were pointed at
 what was already thought. The greps and the seats are what disagreed. *That is the proxy ruling
 arriving from the inside rather than as a principle.*
+
+## F377 -- **THE ABLATION'S `promoted` BUCKET COULD NOT FILL, AND IT IS `admissions()`' OWN DOCUMENTED DEFECT ONE BUCKET OVER**
+
+`Gamma.admissions()` names four clause buckets in its docstring -- `necessary`, `accepted`,
+`promoted`, `imported` -- and **`promote()` wrote `self.primitives` and never touched the
+stamp.** A promoted term kept reading `accepted`, so the bucket could never be non-zero.
+
+§11 partitions the ablation by which clause let an entry in: **`promoted` is WIPED,
+`necessary` is BLIND.** The clause is unrecoverable afterwards because `PRIOR` marks every
+atom alike, so a wipe run at 25/25 would have taken the wrong set with nothing to say so.
+
+Pre-registered refuter, declared before the run and measured on a bare Gamma -- two atoms,
+one accepted term:
+
+    after accept   {necessary: 2, accepted: 1}
+    after promote  {necessary: 2, accepted: 1}     <- DEFECT
+    after the fix  {necessary: 2, promoted: 1}
+
+> **THE SHAPE IS THE ONE THAT FUNCTION'S DOCSTRING RECORDS HAVING JUST FIXED.** `admissions()`
+> was corrected once for reading `origin != PRIOR: continue`, which counted the atoms alone --
+> *a falsifier over a population that cannot contain the defect it looks for.* **That repair
+> fixed `unstated` and left `promoted` unwritable: repaired the instance, left the class, one
+> bucket over, inside the function whose docstring diagnoses the class.**
+
+`necessary` is deliberately NOT overwritten by promotion. **An atom's clause is a fact about
+what the agent ARRIVED WITH; nothing it does later changes it** -- `_standing` exempts atoms one
+screen up for the same reason. Without that half the guard would launder an inherited atom into
+the wiped category, which is the ablation reading backwards.
+
+`9a2f32d`'s sibling at `40f9c6b`. **CAPABILITY: none. It changes what the record can PROVE at a
+test we cannot yet run, on a partition that is unrecoverable if not written at entry.**
+
+## F378 -- **`arc_atoms.ADMITTED` HAD ZERO READERS, AND THE GAP WAS AMBIGUITY RATHER THAN ABSENCE**
+
+Thirty-odd entries recording which clause admitted each handed atom, and **distinguishing the
+ones the agent's own machinery named** (`unexpressible()`, §12.4) **from the ones a measurement a
+seat ran named** (`ON DEPTH`, +18 leave-one-out). `CLAUDE.md`: *that partition is the ablation's,
+and it cannot be rebuilt from a `prior` stamp afterwards.*
+
+**Nothing imported the table.** No seat read it, no code referenced it, and an atom added with no
+entry failed nothing. The `ATTRIBUTE_TYPE` comment forty lines above warns about exactly this
+hazard for its own table -- *a new attribute needs a key here in the SAME commit that emits it* --
+**learned there by failing once, and unguarded here.**
+
+### the defect is not the 34 missing entries, which is what it looked like
+
+Measured: 28 keys, 62 registry atoms, **34 with no entry and CORRECT not to have one** -- they are
+§11 clause one, *the loop cannot run without it*: `row`, `col`, `colour`, the seven deltas, the
+quantifiers, the object record.
+
+> **SO *no entry because clause one* AND *no entry because somebody forgot* READ IDENTICALLY.**
+> That is a hole in the partition rather than untidiness, and it is invisible from either side:
+> the table looks incomplete and the registry looks fine. **`CLAUSE_ONE` writes the second
+> population down, so absence stops being a category.**
+
+A TABLE, NOT A PREDICATE. The three PREDICT atoms arrive as `three_spaces`'s ARGUMENT and
+`arc_predict` owns them, so the tempting rule is *whatever came in the argument is exempt* --
+**pinned by NAME instead, because a rule would absorb a fourth transform silently.** That is
+*exemptions as data, not logic* at the one site where skipping it would have read as tidiness.
+
+The check fires in `three_spaces`, beside the one-name-one-atom rule and for its stated reason:
+*the rule that catches it has to fire at construction rather than be remembered at the callsite.*
+**Both directions, because each has happened once** -- an entry naming no atom is `inside`, which
+sat in `ADMITTED` dated, with the batch's best reach number, **absent from the registry for a
+fortnight.**
+
+### AND IT CAUGHT MY OWN CENSUS ON ITS FIRST RUN, WHICH IS THE ENTRY'S REAL SUBJECT
+
+I measured both populations before building the guard and **reported 59 registry atoms.** The
+probe read `arc_predict.atoms() if hasattr(arc_predict, "atoms") else []`. **There is no
+`atoms()` -- the function is `predict()`** -- so the fallback handed `three_spaces` an EMPTY
+PREDICT SET and the census ran in a world with none of the domain's transforms in it. The real
+registry is **62**.
+
+> **DEFENSIVE CODING TURNED A CRASH INTO A PLAUSIBLE NUMBER.** A bare call would have raised
+> `AttributeError` in the first second. The `hasattr` made a wrong world look like a working
+> measurement, and nothing in the output could have revealed it -- 59 is not an implausible count.
+
+**It is the proxy ruling's first failure class, self-inflicted on the day it was being quoted at
+every tick: ACCURATE INSTRUMENT, WRONG WORLD.** And the catch came from the guard being written,
+not from the care being taken -- **three failure paths were then reintroduced and all three fire**
+(an unclassified base atom, an entry naming no atom, an unpinned predict atom), because *a guard
+whose failure path is never exercised is indistinguishable from one that cannot fail* and this one
+is green on arrival.
+
+### STILL OPEN, AND LARGER THAN WHAT WAS FIXED
+
+`Gamma(three_spaces(predict())).admissions()` reads **`{necessary: 62}`**. Γ stamps every atom
+with the ablation's BLIND clause while the table now says **28 of them were handed**, several
+because a measurement a seat ran priced them. **The record exists, is enforced, and does not
+CROSS to where the ablation would read it** -- *a value that exists is not a value that crosses.*
+`gamma.py` must not import `arc_atoms`, so the clauses have to be PASSED IN at construction.
+**The RECORDING is owed now; what the wipe DOES with a fifth value stays deferred by `gamma.py`'s
+own comment, and conflating those is what would make this an escalation rather than a build.**
+
+## F379 -- **TWO PROPERTY TESTS IN THE SEAT FILE HAD NEVER EXECUTED, UNDER A 16/16 POSTED ALL DAY**
+
+`conform/stateful.py` defines seven module-level `test_` functions. **`test_the_daydream_
+precondition_can_refuse` and `test_the_generated_habitat_is_not_built_to_pass` each appeared
+EXACTLY ONCE in the file: at their own `def` line.** The runner calls four explicitly; `TestLoop`
+and `TestShipped` are `RuleBasedStateMachine.TestCase` and do not collect module-level functions.
+
+Both **PASS** when called. So nothing was hiding behind them -- **but green by ABSENCE and green
+by VERDICT are not the same reading, and the seat could not tell them apart.**
+
+> **`a green seat proves a thing WORKS and says nothing about whether it is REACHED` -- OCCURRING
+> INSIDE THE SEAT FILE.** The standing question was already written for `condition.py`; this is
+> the same class one level in, where the thing unreached is the CHECK rather than the mechanism.
+
+Wired into their arms, plus a comment at the runner making *every module-level `test_` is called
+from one of the two arms* a rule rather than a habit. **Found while looking for somewhere to put
+`test_the_promotion_clause_is_recorded`** -- which is `F378`'s lesson again: the defect was
+adjacent to the work, not in it.
