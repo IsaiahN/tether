@@ -620,8 +620,27 @@ class Gamma:
 
         Both verdicts or neither. Echo alone is apophenia -- a structure found and given
         somewhere to live. Shadow alone is a local hack called a primitive.
+
+        **AND IT STAMPS THE CLAUSE, WHICH IT DID NOT UNTIL 2026-09-26.** `admissions()`
+        documents `promoted` as one of its four buckets and NOTHING WROTE IT -- the bucket
+        could not be non-zero, which is the exact defect that docstring records having just
+        fixed for `unstated`: *a falsifier over a population that cannot contain the defect
+        it looks for.* Repaired the instance, left the class, one bucket over.
+
+        The clause is unrecoverable later (`PRIOR` marks every atom alike), and §11 partitions
+        the ablation by it: `promoted` is WIPED, `necessary` is BLIND. So promotion moves a
+        term from `accepted` -- earned, pre-boundary -- to `promoted`, the claim about having
+        survived one.
+
+        **`necessary` IS NOT OVERWRITTEN, and that is the arrival/conduct line.** An atom's
+        clause is a fact about what the agent ARRIVED WITH; nothing it does later changes it.
+        `_standing` exempts atoms one screen up for the same reason -- *the ground never owed
+        anything for a primitive*.
         """
         self.primitives[name] = {"shadow": shadow, "echo": echo}
+        st = self.stamps.get(name)
+        if st is not None and st.get("admitted") != NECESSARY:
+            st["admitted"] = PROMOTED
 
     def is_primitive(self, name: str) -> bool:
         return name in self.primitives

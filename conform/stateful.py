@@ -436,6 +436,61 @@ def test_the_residual_bound_loses_nothing():
                                    "operand-reading terms, so it pins nothing")
 
 
+def test_the_promotion_clause_is_recorded():
+    """`admissions()` documents four buckets and one of them could not be non-zero.
+
+    §11 partitions the ablation by WHICH CLAUSE let an entry in -- `promoted` is WIPED,
+    `necessary` is BLIND -- and the clause is unrecoverable afterwards, because `PRIOR`
+    marks every atom alike. `promote()` wrote `self.primitives` and never touched the
+    stamp, so a promoted term kept reading `accepted` and the wipe would have taken the
+    wrong set.
+
+    THE SHAPE IS THE ONE `admissions()`' OWN DOCSTRING RECORDS HAVING JUST FIXED for
+    `unstated`: *a falsifier over a population that cannot contain the defect it looks
+    for.* Repaired the instance, left the class, one bucket over -- which is why this is
+    a check and not a careful comment.
+
+    AND `necessary` MUST SURVIVE PROMOTION. An atom's clause is a fact about what the
+    agent ARRIVED WITH; nothing it does later changes it. Without that half the guard
+    would launder an inherited atom into the wiped category, which is the ablation
+    reading backwards.
+    """
+    from gamma import MINTED, Atom, Gamma
+
+    def fresh():
+        g = Gamma([Atom("a", lambda v, _c: v, "VAL", "VAL"),
+                   Atom("b", lambda v, _c: v, "VAL", "VAL")], game="probe")
+        t = g.build(("a", "b"), origin=MINTED)
+        g.accept(t, seq=1, residual="r0")
+        return g, t
+
+    g, t = fresh()
+    assert g.admissions().get("promoted", 0) == 0, "promoted before anything was promoted"
+    g.promote(t.name, shadow={"s": 1}, echo={"slot": "o0"})
+    assert g.admissions().get("promoted", 0) == 1, (
+        "promote() left the clause unstamped: the `promoted` bucket cannot fill, so the "
+        "ablation cannot tell a promoted term from a merely accepted one")
+    assert g.admissions().get("accepted", 0) == 0, "the term cited two clauses at once"
+
+    g, _t = fresh()
+    g.promote("a", shadow={"s": 1}, echo={"slot": "o0"})
+    assert g.admissions().get("necessary", 0) == 2, (
+        "promotion overwrote an atom's `necessary`: an arrival clause was rewritten by "
+        "conduct, and the ablation's blind set lost a member")
+
+    # REINTRODUCE THE DEFECT, NEVER DISABLE THE CHECK. The old body, verbatim.
+    real = Gamma.promote
+    try:
+        Gamma.promote = lambda self, name, shadow, echo: self.primitives.__setitem__(
+            name, {"shadow": shadow, "echo": echo})
+        g, t = fresh()
+        g.promote(t.name, shadow={"s": 1}, echo={"slot": "o0"})
+        assert g.admissions().get("promoted", 0) == 0, (
+            "this property cannot see an unstamped promotion, so it pins nothing")
+    finally:
+        Gamma.promote = real
+
+
 def test_the_daydream_precondition_can_refuse():
     """`bears_on` returns True on every call of a live run, so nothing in the record shows
     its refusal working. A gate never observed refusing is indistinguishable from a gate
@@ -576,16 +631,27 @@ if __name__ == "__main__":
     # unreadable: tether's record has known gaps, so a shared seat would be permanently
     # red and a kernel regression would arrive as no change at all.
     case = TestShipped if "--tether" in sys.argv else TestLoop
+    # EVERY MODULE-LEVEL `test_` IS CALLED FROM ONE OF THESE TWO ARMS, and that is now a
+    # rule rather than a habit -- `test_the_daydream_precondition_can_refuse` and
+    # `test_the_generated_habitat_is_not_built_to_pass` sat here UNCALLED (2026-09-26),
+    # each appearing exactly once in the file: at its own `def`. Both PASS. So the seat
+    # reported 16/16 with two property tests that had never executed, which is *a green
+    # seat proves a thing WORKS and says nothing about whether it is REACHED* inside the
+    # seat file itself. `Loop.TestCase` is a state machine and does not collect them.
     if case is TestLoop:
         test_generator_reaches_the_hard_cases()
-        print("  generator coverage: ok")
+        test_the_generated_habitat_is_not_built_to_pass()
+        print("  generator coverage: ok · habitat not built to pass: ok")
     else:
         test_shipped_generator_reaches_the_hard_cases()
         test_the_residual_bound_loses_nothing()
         test_the_resolutions_offered_are_not_the_answer()
         test_the_atom_order_is_pinned()
+        test_the_promotion_clause_is_recorded()
+        test_the_daydream_precondition_can_refuse()
         print("  shipped generator coverage: ok · residual bound loses nothing: ok"
-              " · resolutions are not the answer: ok · atom order pinned: ok")
+              " · resolutions are not the answer: ok · atom order pinned: ok"
+              " · promotion clause recorded: ok · daydream precondition can refuse: ok")
     r = unittest.TextTestRunner(verbosity=0).run(
         unittest.defaultTestLoader.loadTestsFromTestCase(case))
     # THE FINDING FIRST, on stdout. check.py reads the head of the output because every
