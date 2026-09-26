@@ -3067,8 +3067,25 @@ class Agent:
                     self._routine_acts += 1
                     self.routine = rest
                     return emit, "routine"
-                self.routine, self.routine_for = None, None
-                self._routine_adopted = None
+                # **AND AN ENDING HERE IS KEPT, NOT DROPPED -- 2026-09-25.** This line used to
+                # be `self.routine = None`, so a plan that ended on its FIRST advance VANISHED
+                # WITHOUT A TRACE: no `routine_end` row, no `tested_yes`/`tested_no`, no
+                # episode, no refutation on `exhausted`, no shelving on `done`.
+                #
+                # MEASURED: with the accumulator live, gridworld committed THREE times in 48
+                # cycles and produced ZERO endings -- `routine_end 0`, `reach_tested 0`,
+                # `routine_lib []`. Every plan it bought disappeared at this line.
+                #
+                # **THE FIX IS TO RECORD NOTHING HERE.** The top of `choose` already advances a
+                # held routine and has the whole ending block -- the four endings, the verdict,
+                # the episode, the refutation, the shelf. Duplicating that here would be two
+                # producers of one fact, which this file names as *harmless exactly until one
+                # side changes*. Leaving the routine HELD means the next cycle's normal path
+                # reaches the same ending and records it properly.
+                #
+                # The cycle is not wasted: control falls through to the goal split and the
+                # agent still acts, which is the *always paying* premise -- a cycle spent is
+                # spent either way.
         goal = self._goal_split(before)
         if goal is not None:
             return goal, "discriminate:goal"
