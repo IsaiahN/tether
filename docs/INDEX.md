@@ -17875,6 +17875,31 @@ rarity is the WIRE that `CLAUDE.md` lists as NOT INSTANTIATED, measured**: an ob
 `env.objective()`'s single hardcoded string fits, and 0.35% is what that looks like on real boards.
 **NO CANDIDATE FIX** — it would be a fix for a mechanism absent by design. Sweep 12 has the census.
 
+> **THE NUMBER STANDS AND THE CAUSE IS WRONG — CORRECTED AT THIS ROW, 2026-09-26.** `54 of
+> 15,304` is not re-measured and is not disputed. **The clause attributing it to
+> `env.objective()`'s hardcoded string is false at the write site: `goal_residual` never reads
+> `env.objective()`.** It reads `self.bound.get(slot)`, then falls back to `self.wants` /
+> `self._want_terms` — **the agent's OWN minted `OBJ`-typed terms.** `env.objective()` appears
+> four times in `tether.py`: two degree reads (`1921`, `1927`, `5981`) and the WIRE's fallback
+> NAME at `5681`. **It writes neither `bound` nor `wants`**, whose only write sites (`5255`,
+> `5261`, `5272`, `5475`, `5931`, `5941`) all take a composed term's name.
+>
+> **SO `NO CANDIDATE FIX — a mechanism absent by design` DOES NOT FOLLOW.** The mechanism named
+> as absent is not in the measured path, so its absence cannot be the reason the path is empty.
+> **What the 0.35% actually measures is how rarely the agent's own minting produces an
+> `OBJ`-typed term that binds** — a composition question, and an open one.
+>
+> **AND IT IS THE BEST-DOCUMENTED-SUSPECT FAILURE, WHICH THIS FILE NAMES.** The WIRE is real,
+> is about objectives, was on `CLAUDE.md`'s NOT INSTANTIATED line when Q12 was written, and is
+> genuinely rare (`by=composed` 3 of 17 cycles on `ka59`). **Every one of those makes it read as
+> derived rather than guessed** — and the check that separates it is one grep at the write site,
+> asking which LINE assigns the value rather than which MECHANISM explains it.
+>
+> **WHAT IS NOT CLAIMED: the real cause.** Naming a replacement from the same armchair would be
+> the identical error one turn later. This annotation retires a verdict; it does not supply one.
+> **And the verdict it retires is the one that closed the question** — *a map entry saying a
+> thing does not exist is worse than one saying it is unfinished.*
+
 **Q13 · `_goal_split` declines a route on unanimity — 5 calls, 3 boards.** Where every advertised
 action votes, `tied == len(self.actions)` and the function returns `None` rather than letting tuple
 order pick. **CROSS-BOARD, SO A SCOPE NOTE AND NOT A ONE-GAME ODDITY — AND CORRECT-GIVEN-THE-INPUT,
