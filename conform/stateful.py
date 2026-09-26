@@ -491,6 +491,48 @@ def test_the_promotion_clause_is_recorded():
         Gamma.promote = real
 
 
+def test_the_admitting_clause_crosses_into_gamma():
+    """The clause existing in `arc_atoms` is not the clause reaching the ablation.
+
+    `ADMITTED` was enforced at construction and Γ still stamped every atom `necessary` --
+    the ablation's BLIND category -- so the partition was WRONG at the one place it is
+    read. *A value that exists is not a value that crosses*, and the crossing is the half
+    that has no other witness: both halves are individually green while the bridge is out.
+
+    THE REFUTER IS A SPLIT, NOT A PRESENCE. `{necessary: 62}` means it did not cross;
+    `{handed: 62}` means the default inverted and the base vocabulary was filed as handed,
+    which is the ablation reading backwards. Only a split that matches the two tables is
+    the mechanism working.
+    """
+    import arc_atoms
+    import arc_predict
+    from gamma import HANDED, NECESSARY, Gamma
+
+    atoms = arc_atoms.three_spaces(arc_predict.predict())
+    got = Gamma(atoms, game="clause").admissions()
+    assert got.get(HANDED) == len(arc_atoms.ADMITTED), (
+        f"the admitting clause did not cross into Gamma: {got}. Every atom reads "
+        f"`necessary` -- the category the ablation stays BLIND to -- while "
+        f"`arc_atoms.ADMITTED` names {len(arc_atoms.ADMITTED)} that were handed")
+    assert got.get(NECESSARY) == len(atoms) - len(arc_atoms.ADMITTED), (
+        f"the clause-one population is wrong: {got}. If this is `handed` for everything "
+        f"the default inverted and the base vocabulary is filed in the WIPED category")
+
+    # A WORLD THAT DECLARES NOTHING MUST BE UNTOUCHED. The field defaults to `None` and
+    # `_install` reads that as `necessary`; fifteen construction sites across five worlds
+    # rely on it, and a change of default would move them all silently.
+    import snaps
+    assert set(Gamma(snaps._atoms(), game="toy").admissions()) == {NECESSARY}, (
+        "a world that declares no clauses stopped reading `necessary`")
+
+    # REINTRODUCE THE DEFECT, NEVER DISABLE THE CHECK: the atoms as they were before the
+    # crossing, carrying no clause of their own.
+    from dataclasses import replace
+    stripped = [replace(a, admitted=None) for a in atoms]
+    assert set(Gamma(stripped, game="pre").admissions()) == {NECESSARY}, (
+        "this property cannot see atoms arriving with no clause, so it pins nothing")
+
+
 def test_the_daydream_precondition_can_refuse():
     """`bears_on` returns True on every call of a live run, so nothing in the record shows
     its refusal working. A gate never observed refusing is indistinguishable from a gate
@@ -648,10 +690,12 @@ if __name__ == "__main__":
         test_the_resolutions_offered_are_not_the_answer()
         test_the_atom_order_is_pinned()
         test_the_promotion_clause_is_recorded()
+        test_the_admitting_clause_crosses_into_gamma()
         test_the_daydream_precondition_can_refuse()
         print("  shipped generator coverage: ok · residual bound loses nothing: ok"
               " · resolutions are not the answer: ok · atom order pinned: ok"
-              " · promotion clause recorded: ok · daydream precondition can refuse: ok")
+              " · promotion clause recorded: ok · admitting clause crosses: ok"
+              " · daydream precondition can refuse: ok")
     r = unittest.TextTestRunner(verbosity=0).run(
         unittest.defaultTestLoader.loadTestsFromTestCase(case))
     # THE FINDING FIRST, on stdout. check.py reads the head of the output because every

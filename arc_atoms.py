@@ -29,10 +29,11 @@ from __future__ import annotations
 
 import os
 import sys
+from dataclasses import replace
 from typing import Any
 
 from arc_percept import holes_of, perimeter_of
-from gamma import SAME_AS_TARGET, Atom, Ctx
+from gamma import HANDED, SAME_AS_TARGET, Atom, Ctx
 from sensors import (
     BOOL,
     CELL,
@@ -994,4 +995,13 @@ def three_spaces(predict: list[Atom]) -> list[Atom]:
             f"`ADMITTED` names atoms that were never built: {phantom}. `inside` sat here for "
             f"a fortnight. Build it or drop the entry -- an admission for a thing that does "
             f"not exist reads, to the ablation, exactly like one that does.")
-    return out
+
+    # AND THE CLAUSE CROSSES, which is a different thing from existing. Until now the table was
+    # enforced here and Γ still stamped every atom `necessary` -- the ablation's BLIND category
+    # -- so the partition was WRONG at the one place it would be read. *A value that exists is
+    # not a value that crosses.*
+    #
+    # THE CATEGORY CROSSES, NOT THE PROSE. `admissions()` buckets by value, so passing the
+    # justification strings would make twenty-eight buckets of one. The prose stays in
+    # `ADMITTED` as the justification and is now enforced to exist.
+    return [replace(a, admitted=HANDED) if a.name in ADMITTED else a for a in out]

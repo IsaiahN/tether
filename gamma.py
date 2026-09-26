@@ -65,6 +65,26 @@ IDN_NAME = "idn"
 # afterwards. Recorded at entry because it is unrecoverable later; what each value IMPLIES for
 # the wipe is a separate and deferred decision, and nothing here presupposes it.
 NECESSARY, PROMOTED, ACCEPTED = "necessary", "promoted", "accepted"
+# THE FIFTH, AND ITS WIPE SEMANTICS ARE DELIBERATELY UNDECIDED -- 2026-09-26.
+#
+# Isaiah's THIRD clause, 2026-09-08: an atom may be handed when the agent's own machinery
+# perceived and named the gap, when no in-run derivation is plausible, and when a human
+# competitor would arrive already holding it. It is NOT §11's clause one -- the loop runs
+# without any individual one of these -- and filing it as `NECESSARY` put twenty-eight atoms
+# in the ablation's BLIND category that the domain's own table says were HANDED.
+#
+# **WHAT THE WIPE DOES WITH THIS VALUE IS NOT DECIDED HERE, AND THE SILENCE IS THE POINT.**
+# The comment above already rules that *what each value IMPLIES for the wipe is a separate and
+# deferred decision*; a fifth value arriving without saying so would answer that question by
+# omission, which is the thing it was added to prevent. RECORDING is owed now because the
+# clause is unrecoverable later. DECIDING is Isaiah's and the reviewer's, at 25/25.
+#
+# AND THE FINER SPLIT IS NOT COLLAPSED INTO THIS BUCKET. `arc_atoms.ADMITTED` distinguishes the
+# atoms the machinery named (`unexpressible()`, §12.4) from the ones a measurement a seat ran
+# named (`ON DEPTH`), and `CLAUDE.md` says the ablation must tell those apart. That lives in the
+# table's prose, which is now enforced to exist. Deriving a second bucket by matching on the
+# substring `ON DEPTH` would be logic where a table belongs.
+HANDED = "handed"
 
 # AN OPERAND TYPE HAS TWO FORMS AND ONE SENTINEL IS THE MINIMUM THAT SAYS SO. `recolour`
 # needs a COLOUR whatever slot it is applied to; `translate` needs whatever the TARGET is,
@@ -214,6 +234,21 @@ class Atom:
     # refusal the type system cannot see is a guard that is CAUGHT rather than one that cannot
     # be BUILT. `None` means the reducer does not care.
     elem_type: str | None = None
+    # WHICH CLAUSE LET THIS ATOM IN -- carried on the atom so it reaches `_install`, which is
+    # the only place the ablation's partition is written. `None` means the constructor did not
+    # say, and `_install` reads that as `NECESSARY`: the historic behaviour, unchanged for
+    # every world that does not supply one.
+    #
+    # ON THE FIELD RATHER THAN A CONSTRUCTOR ARGUMENT, and `sensors.Sensor` is the precedent --
+    # it carries `admitted` with NO DEFAULT so it cannot be forgotten. The default here is the
+    # one concession: fifteen construction sites across five worlds, and a required field would
+    # make every toy fixture declare a clause it has no opinion about.
+    #
+    # THE ALTERNATIVE WAS `Gamma(atoms, clauses=...)` AND IT IS WORSE: the mapping would have
+    # to be threaded through `env.atoms()` at every site, and a world that forgot would report
+    # a clean `necessary` -- a wrong partition presenting as a default, which is the exact
+    # failure this field exists to close.
+    admitted: str | None = None
 
     @property
     def accepts(self) -> tuple[str, ...]:
@@ -497,8 +532,11 @@ class Gamma:
         # installing one changes nothing.
         self.unit_rank = None
         for a in atoms:
+            # THE ATOM'S OWN CLAUSE IF IT DECLARED ONE. A blanket `NECESSARY` was true of the
+            # VOCABULARY and false of most of its members, and `admissions()` read
+            # `{necessary: 62}` on a registry whose own table says 28 were handed.
             self._install(Term((a,), origin=PRIOR), seq=-1, residual=None,
-                          admitted=NECESSARY)   # the loop cannot run without a vocabulary
+                          admitted=a.admitted or NECESSARY)
 
     # -- construction ---------------------------------------------------------------
 
