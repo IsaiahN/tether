@@ -3425,11 +3425,28 @@ class Agent:
             _wt = (self.gamma.library.get(_w) or self._want_terms.get(slot)) if _w else None
             if _wt is not None:
                 name, term = _w, _wt
-        # WHICH None, NOT THAT None -- F207. This function has five None exits and they are
-        # different facts: nothing bound is a SUPPLY claim, the wrong out_type is a TYPE claim,
-        # an absent slot is a PERCEPTION claim, an empty group is a SCOPE claim. The first
-        # routine this project ever formed died at `routine_end: blocked`, which means
-        # `holds(guard)` read None -- and nothing recorded which of the five.
+        # WHICH None, NOT THAT None -- F207. The exits are different FACTS, not one abstention:
+        # nothing bound is a SUPPLY claim, the wrong out_type is a TYPE claim, an absent slot is
+        # a PERCEPTION claim, an empty group is a SCOPE claim. The first routine this project
+        # ever formed died at `routine_end: blocked`, which means `holds(guard)` read None --
+        # and nothing recorded which one.
+        #
+        # **EIGHT EXITS UNDER SEVEN LABELS. THIS SAID `five` UNTIL 2026-09-26** -- correct when
+        # written, and exits were added under it without the count moving:
+        #
+        #     unbound · name-not-in-library · out_type-not-OBJ · slot-absent-from-state
+        #     empty-group · operand-unreadable (TWO sites: `_applies`, then `_ops`)
+        #     degree-unresolved
+        #
+        # **THE COUNT IS LOAD-BEARING AND NOT DECORATION, WHICH IS HOW IT WAS CAUGHT.** A census
+        # of why this function abstains takes its BRANCHES from here, and a branch set that is
+        # short by two accounts for 100% of the wrong denominator -- which reads exactly like a
+        # finding. *A docstring is evidence about what its author believed, never about what the
+        # code does today*, and the author was me-two-weeks-ago being right at the time.
+        #
+        # **SO A NEW EXIT ADDS A LABEL HERE IN THE SAME EDIT**, the way an `ATTRIBUTE_TYPE` key
+        # is owed in the commit that emits its attribute. Prefer counting the `_why` calls to
+        # trusting this list, and if the two disagree the list is the stale one.
         if name is None:
             _why(why, "unbound")
             return None
