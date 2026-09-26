@@ -49742,3 +49742,66 @@ Wired into their arms, plus a comment at the runner making *every module-level `
 from one of the two arms* a rule rather than a habit. **Found while looking for somewhere to put
 `test_the_promotion_clause_is_recorded`** -- which is `F378`'s lesson again: the defect was
 adjacent to the work, not in it.
+
+## F380 -- **THE CLAUSE EXISTED, WAS ENFORCED, AND DID NOT CROSS -- Γ READ `{necessary: 62}` ON A REGISTRY WHOSE OWN TABLE NAMED 28 AS HANDED**
+
+`F378` made the admitting clause exist and fail loudly if absent. **Γ still stamped every atom
+`NECESSARY`** at install -- *the loop cannot run without a vocabulary*, which is true of the SET
+and false of almost every member. So `admissions()` reported the ablation's BLIND category for
+twenty-eight atoms that `arc_atoms.ADMITTED` says were HANDED, several of them because a
+measurement A SEAT RAN priced them at +18 leave-one-out.
+
+> **BOTH HALVES WERE INDIVIDUALLY GREEN WHILE THE BRIDGE WAS OUT.** The table was complete and
+> enforced; the stamp was written at every install; and the partition was WRONG at the one place
+> it is read. *A value that exists is not a value that crosses* -- and the crossing is the half
+> with no other witness, because nothing fails when a correct value is never asked for.
+
+### the refuter named both failure shapes before the run, and neither is *nothing happened*
+
+    {necessary: 62}   did not cross -- the value is cosmetic
+    {handed: 62}      THE DEFAULT INVERTED -- the base vocabulary filed in the WIPED category,
+                      which is the ablation reading backwards
+    {necessary: 34, handed: 28}    <- measured. matches both tables exactly
+    toy world {necessary: 8}       <- a world declaring no clause is untouched
+
+The inverted shape is the one worth pre-registering: it is a SPLIT, it looks like a working
+mechanism, and it would have put `row`, `col`, `colour` and the deltas in the set a wipe removes.
+**Same error `promote()` was guarded against that morning, one site along.**
+
+### the design I PROPOSED reintroduced the defect at its own seam, and the precedent was already in the tree
+
+I posted `Gamma(atoms, clauses=...)` before building it. **That threads a mapping through
+`env.atoms()` at fifteen construction sites across five worlds, and a world that FORGOT would
+report a clean `necessary`** -- a wrong partition presenting as a default, which is exactly what
+the change exists to close.
+
+**`sensors.Sensor` already carries `admitted`, with NO DEFAULT so it cannot be forgotten.** The
+precedent for the whole question was one file away and I proposed a worse shape first, publicly,
+having not looked. `gamma.Atom` now carries the same field; `_install` reads `a.admitted or
+NECESSARY`; `three_spaces` stamps it at the chokepoint that already validates every atom. **No
+call site changed, and gamma still does not import `arc_atoms` -- it reads a field, so the layer
+holds.**
+
+### two things deliberately NOT done, and each is a place logic would have been easier than a table
+
+**THE CATEGORY CROSSES, NOT THE PROSE.** `admissions()` buckets by value, so the justification
+strings would make twenty-eight buckets of one.
+
+**AND THE MACHINERY-NAMED vs `ON DEPTH` SPLIT IS NOT COLLAPSED INTO A BUCKET**, though `CLAUDE.md`
+requires the ablation be able to tell them apart. It lives in `ADMITTED`'s prose, now enforced to
+exist. **Deriving a second bucket by matching the substring `ON DEPTH` would be logic where a
+table belongs** -- *a table can be pinned; logic widens quietly.*
+
+### `HANDED`'s wipe semantics are recorded as UNDECIDED, and the silence is load-bearing
+
+`gamma.py` already rules that *what each value IMPLIES for the wipe is a separate and deferred
+decision*. **A fifth value arriving silent would answer that by omission**, which is the thing it
+was added to prevent. The constant's comment says so at the site. **RECORDING is owed now because
+the clause is unrecoverable later; DECIDING is Isaiah's and the reviewer's, at 25/25.** Same shape
+as the watermark: the decision defers, the recording cannot.
+
+`aebfe8c`, closing the thread opened at `40f9c6b`. **CONTACT CHANGE ACROSS ALL FOUR COMMITS:
+NONE, and it is stated rather than left to be inferred.** The agent cannot reach anything it
+could not reach that morning. What moved is what the record can PROVE at a test that cannot be
+run until 25/25 -- which is the only reason the work was takeable at all, and not a reason to
+keep mining the seam.
