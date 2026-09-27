@@ -5114,6 +5114,15 @@ class Agent:
                                 if not pays(bcost, bleft, base):
                                     continue
                                 btotal = bcost + bleft
+                                # THE REBIND ARM WINS THE BARGAIN TOO AND RECORDED NEITHER.
+                                # `pays` just succeeded, so this term is reachable by the
+                                # same test the third win-site uses -- and only that site
+                                # raised the flag, so a mint arriving HERE wrote
+                                # `reachability: False` and B4 read it. The counter went
+                                # with it, so `bargain_paid` was a floor, not a count.
+                                self.gamma.book["bargain_paid"] = (
+                                    self.gamma.book.get("bargain_paid", 0) + 1)
+                                guards["reachability"] = True
                                 if kind not in by_kind or btotal < by_kind[kind][0]:
                                     by_kind[kind] = (btotal, bleft, bcost, bt)
                                 if best is None or btotal < best[0]:
@@ -5171,6 +5180,15 @@ class Agent:
                             if not pays(bcost, bleft, base):
                                 continue
                             btotal = bcost + bleft
+                            # THE REBIND ARM WINS THE BARGAIN TOO AND RECORDED NEITHER.
+                            # `pays` just succeeded, so this term is reachable by the
+                            # same test the third win-site uses -- and only that site
+                            # raised the flag, so a mint arriving HERE wrote
+                            # `reachability: False` and B4 read it. The counter went
+                            # with it, so `bargain_paid` was a floor, not a count.
+                            self.gamma.book["bargain_paid"] = (
+                                self.gamma.book.get("bargain_paid", 0) + 1)
+                            guards["reachability"] = True
                             if kind not in by_kind or btotal < by_kind[kind][0]:
                                 by_kind[kind] = (btotal, bleft, bcost, bt)
                             if best is None or btotal < best[0]:
