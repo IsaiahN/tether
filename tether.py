@@ -1053,12 +1053,6 @@ class Agent:
         # mint. The instruction is per slot and the wheel is not, so they queue here
         # until a probe actually takes the wheel and can be recorded against them.
         self._starved: set[str] = set()
-        # WHAT THE GROUND SETTLED, AND ON WHICH SLOT. `gamma.standing` is keyed by TERM
-        # ALONE and stays that way: holding and proposing are term-scoped, and
-        # `settled_terms` is a legitimate proposal pool. STANDING is not -- kernel A5 keys
-        # (slot, term) because *the ground settles a term FOR A SLOT*, and `settle()`'s own
-        # line is *you can propose on a candidate; you cannot stand on one*.
-        self._settled_on: set[tuple[str, str]] = set()
         self._promotions: list[tuple[str, dict, dict]] = []
         self._said_never_live = False
         # THE INSTRUMENT IN USE. `full` is the finest the env offers, so the agent
@@ -1955,12 +1949,7 @@ class Agent:
         """
         name = self.bound.get(slot)
         if name and not self.gamma.is_atom(self.gamma.library[name]):
-            # ON THIS SLOT, NOT ANYWHERE. `is_settled(name)` answers *did the ground ever
-            # settle this term*, and standing on it here asks *for THIS slot* -- so a
-            # settlement on `s4` was licensing a citation on `s1`, which is A5 exactly and
-            # is what the kernel means by one settlement licensing citation everywhere.
-            # The term stays HELD and proposable either way; only the cite is refused.
-            self._stood.append((slot, name, (slot, name) in self._settled_on))
+            self._stood.append((slot, name, self.gamma.is_settled(name)))
 
     def _promote(self) -> None:
         """Step 6: what step 1 stood on, and what the sweep earned."""
@@ -5867,7 +5856,6 @@ class Agent:
             # cycle later than the one it was minted on IS the answer. Both facts were
             # here; neither was on the row, so a frame that never asked and one the
             # ground paid arrived looking the same.
-            self._settled_on.add((slot, name))
             self.led.record(self.cycle, "SETTLE", slot, "settle", term=name,
                             status="accepted",
                             asked=[name, slot], ground_said=True,
