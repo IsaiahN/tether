@@ -21,6 +21,7 @@ from arcengine import GameAction, GameState
 import arc_atoms
 import arc_percept
 import arc_self
+import observer
 import sensors
 
 SENSORS = sensors.minimum_set()
@@ -68,6 +69,14 @@ class ArcWorld:
         # the ledger is a COUNT, so an archived run cannot be scored. The agent never reads this
         # and nothing in the loop sets it; `rlvr.py` attaches it for the duration of one run.
         self.on_frame: Any = None
+        # THE MUTATION OBSERVER, ON THE AGENT PATH -- reviewer's ruling, 2026-09-26. Distinct from
+        # `on_frame` above, which is a SEAT tap the agent never reads. This one the agent reads.
+        #
+        # It is fed one live GRID per frame and never a tape, so `KEY_BOUNDARY` holds by shape
+        # rather than by care. `conform/lint.py` moved `observer` out of `_CUE_MODULES` on
+        # 2026-09-22 on the checkable fact that its `reverse_engineer` import is under `__main__`.
+        self._obs = observer.Live()
+        self._cue: dict | None = None
         self._frame = self.w.reset()
         self._read: dict[str, int] | None = None
         self._contacts: dict[str, list[str]] | None = None
@@ -632,6 +641,29 @@ class ArcWorld:
         """
         return {k: v for k, v in self._decomposed().items() if v is not sensors.NOT_RESOLVED}
 
+    def cues(self) -> dict | None:
+        """WHAT MUTATED, AND WHICH PRIMITIVES ARE LIT ON EACH OBJECT -- the directed cue.
+
+        `observe()` publishes VALUES; this publishes WHAT CHANGED and WHAT IS FIRING. They are
+        different facts and the agent had only the first: it could see that a slot now reads 4,
+        never that `position` mutated on two objects while `holes` mutated on none. The mutation
+        is what makes a search DIRECTED rather than undirected -- `RELATIONS.md` Part 6.
+
+        DRIVEN ONCE PER FRAME, cached, for `_decomposed`'s reason exactly: the tracker inside
+        `Live` is stateful, so two calls in one step would match a frame against itself and
+        report every mutation as absent. The frame is what changes, so it keys the cache.
+
+        Returns `None` on a blind frame -- an ABSTENTION, not an empty reading. A blind
+        instrument reporting `no mutations` is the confabulation `_decomposed` names one screen
+        up, and this reader is no more entitled to it.
+        """
+        if self._cue is None:
+            b = self.board()
+            if b is None or self.blind:
+                return None
+            self._cue = self._obs.see(b)
+        return self._cue
+
     def step(self, action: str, x: int | None = None, y: int | None = None) -> None:
         act = GameAction[action]
         # F28: a positioned (complex) action carries a coordinate the agent chose from perception.
@@ -647,6 +679,7 @@ class ArcWorld:
         if nxt is not None:
             self._frame = nxt
         self._read = None          # a new frame is a new decomposition
+        self._cue = None           # and a new set of mutations to read off it
         self._prev_contacts = self._contacts
         self._contacts = None      # and a new set of contacts
         self._contact_pts = None   # and a new set of typed contact points

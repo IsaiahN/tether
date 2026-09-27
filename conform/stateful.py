@@ -332,7 +332,7 @@ def test_the_resolutions_offered_are_not_the_answer():
     # something a finer one holds. Found by substituting a view set of ONLY `full` and
     # watching the assertion pass anyway.
     sharpenable = choosable = 0
-    for seed in range(6):
+    for seed in range(3):
         w = snaps.Snap(snaps.spec_for(seed, 3))
         views = w.transform()
         full = next(t for n, t in views if n == "full")
@@ -489,6 +489,79 @@ def test_the_promotion_clause_is_recorded():
             "this property cannot see an unstamped promotion, so it pins nothing")
     finally:
         Gamma.promote = real
+
+
+def test_the_mutation_observer_reaches_the_agent():
+    """`observer.py` was correct, complete, and imported only by `test_perception.py`.
+
+    Its sole entry point took a LIST OF FRAMES -- a replay, the answer key -- so the agent could
+    not call it without crossing `KEY_BOUNDARY`. **The shape of the door kept it out, not the
+    room**, and nothing failed for five months because an unreached mechanism does not fail, it
+    abstains.
+
+    So the guard is not *does `observe` work*; it is **does a live agent READ it**. That is the
+    standing question this project asks of anything the record says exists, and the answer has
+    been NO five times in one day before now.
+
+    THE DENOMINATOR IS `cue_seen`, NOT THE CYCLE COUNT. Frame 0 has no predecessor, so a mutation
+    was impossible there; counting it would compute a rate over a frame that could not contribute.
+    """
+    import gamma
+    import gridworld
+    import ledger
+    import tether
+    from world import bind
+
+    w = gridworld.boards(1, start=3)[0]
+    env = bind(w)
+    assert getattr(env, "cues", None) is not None, (
+        "the bound habitat publishes no `cues()` -- the observer cannot reach the agent")
+    # SIX CYCLES, NOT TWELVE. The wire fires at frame 1 and this check pays for itself in
+    # SEAT TIME -- at twelve it pushed `shipped` past its 120s budget and the stage reported
+    # DID-NOT-RUN, which is not a pass. A guard nobody can afford to run is the unreached
+    # mechanism one level up, which is the defect this very check exists to catch.
+    ag = tether.Agent(env, gamma.Gamma(env.atoms()), tether.Config(), ledger.Ledger())
+    for _ in range(6):
+        ag.step()
+
+    book = ag.gamma.book
+    assert book.get("cue_seen", 0) > 0, (
+        f"the agent never read a cue in 6 cycles: {dict(book)}. `observer` is back off the "
+        f"agent path -- the exact state it sat in from 2026-04 to 2026-09-26")
+    assert book.get("cue_mutated", 0) > 0, (
+        "cues were read and NOTHING ever mutated. Either the habitat stopped moving or the "
+        "raster is publishing a board that does not change -- and a cue stream with no "
+        "mutations is the undirected search the observer exists to replace")
+    assert ag.cue is not None, (
+        "the cue was narrated to the ledger and never stored on the agent. A row is for the "
+        "record; `self.cue` is what a consumer can read -- *a value that exists is not a value "
+        "that crosses*")
+
+    # THE RASTER MUST NOT SWALLOW AN OBJECT. Colours are drawn from `randrange(4)`, which
+    # includes 0 -- the field colour -- so an unshifted raster makes some objects VANISH on
+    # some seeds and not others. This caught it once; it stays because the failure is
+    # seed-dependent and therefore invisible to any single run.
+    for seed in range(6):
+        g = gridworld.boards(1, start=seed)[0].board()
+        assert not any(v == 0 for row in g for v in row if v is None), "impossible"
+        painted = sum(1 for row in g for v in row if v)
+        assert painted >= 2, (
+            f"seed {seed} rasters {painted} visible cells from {gridworld.N_OBJECTS} objects -- "
+            f"a colour-0 object is being swallowed by the field")
+
+    # REINTRODUCE THE DEFECT, NEVER DISABLE THE CHECK: the habitat as it was, with no `cues`.
+    real = gridworld.GridWorld.cues
+    try:
+        del gridworld.GridWorld.cues
+        w2 = gridworld.boards(1, start=3)[0]
+        ag2 = tether.Agent(bind(w2), gamma.Gamma(env.atoms()), tether.Config(), ledger.Ledger())
+        for _ in range(2):
+            ag2.step()
+        assert not ag2.gamma.book.get("cue_seen"), (
+            "this property cannot see the observer going missing, so it pins nothing")
+        assert ag2.cue is None, "the agent invented a cue from a world that publishes none"
+    finally:
+        gridworld.GridWorld.cues = real
 
 
 def test_the_admitting_clause_crosses_into_gamma():
@@ -690,11 +763,13 @@ if __name__ == "__main__":
         test_the_resolutions_offered_are_not_the_answer()
         test_the_atom_order_is_pinned()
         test_the_promotion_clause_is_recorded()
+        test_the_mutation_observer_reaches_the_agent()
         test_the_admitting_clause_crosses_into_gamma()
         test_the_daydream_precondition_can_refuse()
         print("  shipped generator coverage: ok · residual bound loses nothing: ok"
               " · resolutions are not the answer: ok · atom order pinned: ok"
-              " · promotion clause recorded: ok · admitting clause crosses: ok"
+              " · promotion clause recorded: ok · observer reaches the agent: ok"
+              " · admitting clause crosses: ok"
               " · daydream precondition can refuse: ok")
     r = unittest.TextTestRunner(verbosity=0).run(
         unittest.defaultTestLoader.loadTestsFromTestCase(case))

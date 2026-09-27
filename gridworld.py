@@ -46,6 +46,7 @@ import sys
 from dataclasses import dataclass, field
 from typing import Any
 
+import observer
 import world as _toy
 from gamma import Atom
 
@@ -188,6 +189,10 @@ class GridWorld:
             if (r, c) != (r0, c0):
                 break
         self.target = (r, c)
+        # THE MUTATION OBSERVER over this habitat -- the only world inside the board stop
+        # that can exercise it, because it is the only one with a board that is not a game.
+        self._obs = observer.Live()
+        self._cue: dict | None = None
 
     # -- the eight -------------------------------------------------------------------
 
@@ -397,9 +402,50 @@ class GridWorld:
         return {**self.state, GOAL_SLOT: self._completed(),
                 **{f"o{i}.proximity": self._proximity(f"o{i}") for i in range(N_OBJECTS)}}
 
+    def board(self) -> Any:
+        """THE STATE, RASTERED. Every object is one cell at its own row/col, carrying its colour;
+        empty cells are 0. **A PROJECTION OF WHAT IS ALREADY HELD, introducing nothing** -- the
+        rows, columns and colours are `state`'s own, and no rule reads this.
+
+        It exists because the mutation observer takes a GRID and this habitat stores SLOTS, and
+        those are two shapes of the same board. Without it the observer could only be verified on
+        a real ARC game, which the board stop forbids -- so the wire would ship unexercised, which
+        is the class of defect that put `observer.py` off the agent path for five months.
+
+        **COLOURS ARE SHIFTED BY ONE AND THE REASON IS A DEFECT I WROTE AND CAUGHT.** This
+        comment first claimed objects never carry the field colour. They do: `__post_init__`
+        draws each from `rng.randrange(4)`, which includes 0. A colour-0 object rasters as
+        background and VANISHES -- perception silently one object short, on some seeds and not
+        others. So the raster writes `colour + 1` and the field keeps 0 to itself. The reading
+        the observer gets is RELATIVE colour, which is all `relations.colour_source` asks of it.
+        """
+        g = [[0] * GRID for _ in range(GRID)]
+        for i in range(N_OBJECTS):
+            r, c = self.state.get(f"o{i}.row"), self.state.get(f"o{i}.col")
+            if r is None or c is None:
+                continue
+            if 0 <= r < GRID and 0 <= c < GRID:
+                # LAST WRITER WINS ON A SHARED CELL, and that is the honest raster: two objects
+                # on one cell IS one cell, and pretending otherwise would publish a board the
+                # habitat does not have.
+                g[r][c] = int(self.state.get(f"o{i}.colour", 0)) + 1
+        return g
+
+    def cues(self) -> dict | None:
+        """The mutation observer over this habitat, same contract as `ArcWorld.cues`.
+
+        Driven once per frame and cached on the step counter rather than on a frame object,
+        because this world has no frame object -- `step` invalidates it. Two calls in one step
+        would match the board against itself and report every mutation as absent.
+        """
+        if self._cue is None:
+            self._cue = self._obs.see(self.board())
+        return self._cue
+
     def step(self, action: str) -> None:
         if action not in ACTIONS:
             raise ValueError(f"unknown action: {action}")
+        self._cue = None           # a new board is a new set of mutations to read off it
         dr, dc = _DELTA[action]
         r0, c0 = self.state["o0.row"], self.state["o0.col"]
         r1, c1 = self.state["o1.row"], self.state["o1.col"]

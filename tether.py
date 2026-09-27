@@ -360,6 +360,14 @@ BOOKS: tuple[str, ...] = (
     "plan_gate_qualified",              # gate 1: an objective passed
     "plan_gate_no_hypothesis",          # gate 1: nothing to filter. SUPPLY, not the bar
     "want_recurred",                    # a retained want that a LATER attempt wanted again
+    # THE MUTATION OBSERVER, wired to the agent path 2026-09-26. `cue_seen` is the
+    # denominator -- frames with a predecessor, so a mutation was POSSIBLE -- and
+    # `cue_mutated` the numerator. `cue_blind` counts the abstentions apart, because a
+    # blind frame reporting no mutations and a clear frame reporting none are different
+    # facts and one book key would collapse them.
+    "cue_seen",                         # frames where a mutation could have been read
+    "cue_mutated",                      # ... and at least one attribute actually did
+    "cue_blind",                        # the observer abstained: no readable board
     "committed_on_accumulation",        # the vector crossed where the bargain had refused
     "accumulation_short",               # the vector was read and did not reach the threshold
     "bargain_bounded_out",              # `_cannot_pay` -- a NECESSARY condition, not a choice
@@ -983,6 +991,10 @@ class Agent:
         # the storage.
         self._outstanding: dict[str, float] = {}
         self._stood: list[tuple[str, str, bool]] = []
+        # THE LAST CUE READING -- what mutated and which primitives are lit. `None` until a
+        # world that publishes `cues()` has been read once; a world without the observer
+        # leaves it None forever, which is the honest state and not a failure.
+        self.cue: dict | None = None
         # slots whose accumulated residual is zero: nothing to compress, so nothing to
         # mint. The instruction is per slot and the wheel is not, so they queue here
         # until a probe actually takes the wheel and can be recorded against them.
@@ -1567,6 +1579,50 @@ class Agent:
         p = fn()
         self.led.record(self.cycle, "PERCEIVE", "*", "placements",
                         distinct=p["distinct"], changed=len(p["multi"]))
+
+    def _narrate_cues(self) -> None:
+        """THE MUTATION OBSERVER, READ BY THE AGENT -- reviewer's ruling, 2026-09-26.
+
+        `observe()` gives the agent VALUES. This gives it WHAT CHANGED and WHAT IS FIRING, which
+        are different facts: a slot reading 4 says nothing about whether `position` mutated on two
+        objects while `holes` mutated on none. **The mutation is what makes a search DIRECTED**
+        -- the delta names which attributes to look up, instead of the whole space.
+
+        `observer.py` held this the whole time and was imported ONLY by `test_perception.py`. Its
+        single entry point took a LIST OF FRAMES, which on this project is a replay, which is the
+        answer key -- so the shape of the door, not the room, is what kept the agent out.
+        `observer.Live` is the same machinery fed one live grid at a time.
+
+        **STORED ON THE AGENT, not only narrated.** A row is for the record; `self.cue` is what a
+        consumer can read. Publishing to the ledger alone would be this project's own
+        `a value that exists is not a value that crosses`, committed in the commit that cites it.
+
+        NO CONSUMER YET, AND SAYING SO IS THE POINT. This is perception WIDENED and not yet
+        SPENT: nothing in `choose` reads `self.cue` today. Under Figure 11 that makes this a
+        contact change only if the agent can now reach something -- it cannot, until a consumer
+        exists. **Reported as half a mechanism deliberately, because the other half is a
+        judgement about what the agent should DO with a cue, and building both in one pass would
+        bury that judgement inside a wiring commit.**
+        """
+        fn = getattr(self.env, "cues", None)
+        if fn is None:
+            return
+        c = fn()
+        if c is None:                      # blind frame: an ABSTENTION, not an empty reading
+            _book_add(self.gamma.book, "cue_blind", 1)
+            return
+        self.cue = c
+        muts = c["mutations"]
+        loci = c["cue"].get("loci", {})
+        if not c.get("first"):
+            _book_add(self.gamma.book, "cue_seen", 1)
+            if muts["attributes"]:
+                _book_add(self.gamma.book, "cue_mutated", 1)
+        self.led.record(self.cycle, "PERCEIVE", "*", "cues",
+                        mutated=dict(sorted(muts["attributes"].items())),
+                        appeared=muts["appeared"], vanished=muts["vanished"],
+                        objects=c["n_objects"], loci=len(loci),
+                        primitives=sorted({p for ps in loci.values() for p in ps}))
 
     def _narrate_matches(self) -> None:
         """The tracker's own certainty, per step. **Fixture-readable, and that is the point.**
@@ -5776,6 +5832,7 @@ class Agent:
         self._narrate_cascade()
         self._narrate_matches()
         self._narrate_placements()
+        self._narrate_cues()
         self._advertised()
         self._present()       # before the frame, so slots and frame cannot disagree
         # PER STEP, BECAUSE ONE SLOT TYPE'S RANGE IS NOT CONSTANT. A shape slot's alphabet is

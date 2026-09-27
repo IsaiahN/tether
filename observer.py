@@ -12,6 +12,7 @@ Nothing here bets or mints — it produces the cue/mutation stream the reverse-e
 from __future__ import annotations
 
 import sys
+from typing import Any
 
 import arc_percept
 import detectors
@@ -132,6 +133,59 @@ def observe(steps: list[dict]) -> list[dict]:
         out.append({"frame": t, "n_objects": len(acts), "cue": vec, "mutations": muts})
         prev_objs = objs
     return out
+
+
+class Live:
+    """THE OBSERVER ON THE AGENT PATH -- reviewer, 2026-09-26, and it is the same machinery
+    `observe` runs, driven one frame at a time instead of over a replay.
+
+    `observe(steps)` takes a LIST OF FRAMES, which on this project means a replay, which means
+    the answer key. So the module sat correct and unreachable: imported only by
+    `test_perception.py`, five months of readings the agent could not have. **The defect was
+    never the observer; it was that its only entry point wanted a shape the agent never holds.**
+
+    A live agent holds ONE frame and the one before it. That is all this needs -- `_frame_vector`
+    is per-frame and `_mutations` is per-pair, so nothing here is new perception. It is the
+    existing perception, given a door the agent can walk through.
+
+    **`KEY_BOUNDARY` IS SATISFIED BY CONSTRUCTION AND NOT BY CARE.** This class takes GRIDS, which
+    are what the world showed. It cannot reach a replay: there is no path from a grid to a tape,
+    and `reverse_engineer` is imported under `__main__` only -- which `conform/lint.py` verified
+    when it moved `observer` out of `_CUE_MODULES` on 2026-09-22.
+    """
+
+    def __init__(self) -> None:
+        self._prev: list[dict] | None = None
+        self.frame = 0
+
+    def see(self, board: Any) -> dict:
+        """One frame in, one cue reading out. Returns the same record `observe` emits per frame.
+
+        Objects are tracked frame-to-frame by size-conserved matching, so a mutation is a change
+        in the SAME object rather than a change in the list. The FIRST call has no predecessor and
+        reports no mutations -- an honest empty, not a zero: nothing has had the chance to change.
+        """
+        objs = arc_percept.components(board)
+        acts = actors(objs)
+        vec = _frame_vector(acts)
+        loci = vec.pop("loci")
+        muts = {"attributes": {}, "appeared": 0, "vanished": 0}
+        if self._prev is not None:
+            effects = match(self._prev, objs)
+            muts = _mutations(effects, actors(self._prev), acts)
+            for e in effects:
+                if e.get("kind") == "change":
+                    for d in detectors.light_object(e):
+                        loci[e["ai"]].add(d["atom"])
+            for s in loci.values():
+                if "Translate" in s and "Adjacency" not in s:
+                    s.add("Animacy")
+        vec["loci"] = {i: sorted(s) for i, s in loci.items() if s}
+        out = {"frame": self.frame, "n_objects": len(acts), "cue": vec, "mutations": muts,
+               "first": self._prev is None}
+        self._prev = objs
+        self.frame += 1
+        return out
 
 
 def summarise(obs: list[dict]) -> dict:
