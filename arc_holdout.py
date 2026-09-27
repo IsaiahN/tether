@@ -109,6 +109,15 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
     # no failing seat, the capability simply absent. Caught by an executes-check that spied the
     # atom set, which is the only thing that could have seen it. See `play`'s ruling note below.
     arc_atoms._ITERATE = True
+    # **ISAIAH'S RULING, 2026-09-27: WE ARE FRONTLOADING, AND THAT IS THE GENERAL ANSWER.**
+    # Arm I and its declared partner, on for the ARC path by the same route `_ITERATE` took --
+    # `arms.py` holds that flipping an arm is a measurement AND a ruling and that the seat does
+    # neither; this is the ruling half, so the env census still reads OFF while the capability
+    # is LIVE. The pair is `arc_percept`'s own (`PAIRS` in `conform/arms.py`): the `holes` and
+    # `perimeter` atoms resolve only under arm I, so shape deltas alone would hand the agent a
+    # delta of a quantity it cannot itself measure.
+    tether._SHAPE_DECODE = True
+    arc_percept._SHAPE_DELTA = True
     env = ArcWorld(w, arc_percept.Objects(), arc_atoms.three_spaces(arc_predict.predict()),
                    palette=palette, name=game)
     env.on_frame = on_frame     # seat-side tap for §13 step 4's verifier; None on a normal run

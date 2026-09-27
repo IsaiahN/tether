@@ -1,7 +1,8 @@
 """arms: eighteen capability switches, all default OFF, and nothing computed the sum.
 
 Every arm in this codebase is `bool(os.environ.get("TETHER_X"))` -- no default value, so OFF
-unless the environment says otherwise -- and **nothing in the repository sets one**. The agent
+unless the environment says otherwise -- and **the repository sets one only by a RULING, in
+code, which the census below now detects rather than narrates**. The agent
 that actually runs is therefore the most starved variant of itself, in eighteen independent
 respects, and that was true without anyone deciding it.
 
@@ -93,6 +94,17 @@ PAIRS: tuple[tuple[str, str], ...] = (
 # the arms' own shape one level up -- reasonable, and nothing computes it.
 _READ = re.compile(r'''os\.environ\.get\(\s*["'](TETHER_[A-Z0-9_]+)["']''')
 
+# A RULING TURNS AN ARM ON BY ASSIGNING ITS MODULE FLAG, AND NOTHING SAW THAT. `_ITERATE` was
+# set in `arc_holdout.play` on 2026-09-24 and this seat kept reporting `0 ON`, with the fact
+# carried in a PRINTED SENTENCE naming that one arm -- so the second ruling (2026-09-27, the
+# shape pair) made the sentence false the moment it landed. **Detected now instead of narrated,
+# because a hardcoded name is stale by success the next time someone rules.**
+#
+# AND IT IS THE `HALF A PAIR` RULE THAT ACTUALLY NEEDED IT: that check reads `on`, `on` read the
+# ENVIRONMENT, and the pair it exists for is set IN CODE -- so it could not fire on the one case
+# it was written for, and setting just one of the two would have left the seat GREEN.
+_RULED = re.compile(r'''^\s*[A-Za-z_][\w.]*\._([A-Z0-9_]+)\s*=\s*True\s*(?:#.*)?$''', re.M)
+
 
 def _tracked() -> list[Path]:
     out = subprocess.run(["git", "ls-files", "*.py"], cwd=ROOT,
@@ -117,6 +129,28 @@ def sites() -> dict[str, list[str]]:
             for arm in _READ.findall(line):
                 found.setdefault(arm, []).append(f"{path.relative_to(ROOT).as_posix()}:{i}")
     return found
+
+
+def ruled() -> dict[str, str]:
+    """`{arm: "file:line"}` for arms a RULING turned on in code, rather than the environment.
+
+    The convention it rests on is that the module flag is the arm name without `TETHER_`, and
+    that convention is CHECKED rather than assumed: a `_FOO = True` whose `TETHER_FOO` is not a
+    declared arm is simply not an arm and is ignored, so this cannot invent one."""
+    out: dict[str, str] = {}
+    for path in _tracked():
+        if path.name == "arms.py":
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        for m in _RULED.finditer(text):
+            arm = f"TETHER_{m.group(1)}"
+            if arm in ARMS:
+                line = text[:m.start()].count("\n") + 1
+                out.setdefault(arm, f"{path.relative_to(ROOT).as_posix()}:{line}")
+    return out
 
 
 def selftest() -> dict[str, str]:
@@ -156,6 +190,20 @@ def selftest() -> dict[str, str]:
                  pairs=(("TETHER_A", "TETHER_B"),))
     out["C control"] = ("ok" if not any("HALF A PAIR" in b for b in bad)
                         else f"UNWITNESSED (a WHOLE pair was refused: {bad})")
+
+    # D -- THE RULING DETECTOR, over literal text so it needs no fixture file. It exists
+    # because `HALF A PAIR` read the environment while the pair it was written for is set in
+    # code, so the guard could not fire on its own case.
+    hits = {m.group(1) for m in _RULED.finditer(
+        "    arc_atoms._ITERATE = True\n"
+        "    tether._SHAPE_DECODE = True  # a trailing comment must not hide it\n"
+        "        self._NOT_AN_ARM = True\n"
+        "    x._SHAPE_DELTA = False\n")}
+    out["D ruling seen"] = ("ok" if {"ITERATE", "SHAPE_DECODE"} <= hits
+                            else f"UNWITNESSED (missed a ruling: {sorted(hits)})")
+    # AND ITS CONTROL: `= False` is not a ruling, and the regex must not claim it.
+    out["D control"] = ("ok" if "SHAPE_DELTA" not in hits
+                        else "UNWITNESSED (read `= False` as ON)")
     return out
 
 
@@ -191,20 +239,26 @@ def main() -> int:
         return 0
 
     found = sites()
-    on = {a for a in found if os.environ.get(a)}
+    rule = ruled()
+    # ON IS WHAT THE AGENT RUNS WITH, not what the shell exported. Both routes, one set, so
+    # `HALF A PAIR` finally reads the state it was written to judge.
+    on = {a for a in found if os.environ.get(a)} | set(rule)
     bad = _judge(found, ARMS, on, PAIRS)
 
     print(f"arms: {len(found)} switches at {sum(len(v) for v in found.values())} read sites; "
-          f"{len(on)} ON in this environment")
+          f"{len(on)} ON -- environment and ruling together")
     if not on:
         # NOT A FAILURE, AND SAYING SO IS THE POINT. All-off is the honest default for an
         # unproven arm -- the house rule is that a measurement turns one on. **The line exists
         # so the sum is never invisible again**, which is the whole reason this file is a seat
         # rather than a note: eighteen reasonable OFFs were never once read as one number.
-        print("      every arm is OFF in the ENVIRONMENT -- and that is no longer the same")
-        print("      thing as what the agent runs with: `TETHER_ITERATE` is set IN CODE by")
-        print("      `arc_holdout.play` under Isaiah's 2026-09-24 ruling. This line reads the")
-        print("      environment, and a ruling can turn an arm on where a measurement did not.")
+        print("      every arm is OFF by both routes -- environment and ruling")
+    if rule:
+        # A RULING CAN TURN AN ARM ON WHERE A MEASUREMENT DID NOT, and the arms it turned on
+        # are READ FROM THE CODE rather than named here -- see `_RULED`.
+        print(f"      {len(rule)} ON BY RULING, set in code rather than exported:")
+        for arm in sorted(rule):
+            print(f"        {arm:<24} {rule[arm]}")
     for line in bad:
         print("  " + line)
     return 1 if bad else 0
