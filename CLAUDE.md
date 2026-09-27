@@ -577,6 +577,17 @@ after the fact there is nothing to catch, because after the fact the reading is 
       `sensors_heavy`   142 lines, ~45 readings. Never imported on any agent path. No flag
                         turns it on -- there is no flag. Its docstring claimed a lint guard
                         it did not have
+                        **REACHED SINCE `81114da`, 2026-09-26, AND NOT BY BEING WIRED
+                        DIRECTLY.** The mutation observer went on the agent path, and
+                        `observer._obj_vector` calls its `scalar` and `state` readings while
+                        `_mutations` calls its `temporal` ones -- so the agent now sees
+                        `density`, `girth`, `solidity`, `orientation`, `occupiedCells`,
+                        `perimeter` and `area` mutate. **Nobody wired `sensors_heavy`; it was
+                        reached THROUGH ITS CONSUMER**, which is the one route this table does
+                        not think to check, since every other row here is about a thing with
+                        no caller rather than a thing whose caller was itself unreached.
+                        Measured, not grepped: `cue_mutated` 6 against a `cue_seen`
+                        denominator of 11 on gridworld seed 3
       `composer`        the recipe machinery Part 12 calls the agent's own language, refused
                         on the betting path by a guard the reviewer had RE-SCOPED the day
                         before. The ruling never reached the code

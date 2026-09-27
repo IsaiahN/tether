@@ -349,6 +349,31 @@ def _contains(whole: tuple, part: tuple) -> bool:
 # in one place rather than an expression at the site.
 _IDLE_RELIEF = 8.0
 
+# anchor: DERIVED FROM THE QUORUM CONSTRAINT, NOT PICKED -- 2026-09-26, and the derivation is
+# the whole justification the reviewer asked for.
+#
+# The floor was 1.0. Contributions are scaled so one contributor at full strength is worth 1.0,
+# so a floor of 1.0 is cleared BY ONE -- and the single commitment the accumulator ever made
+# was carried by `improving` alone. That is the defect: *a quorum reachable by one bee is not
+# a quorum.*
+#
+# The obvious repair -- floor = MIN_REPEAT -- KILLS THE RELIEF MECHANISM. Relief decays the bar
+# from `MIN_REPEAT` downward, so a floor AT `MIN_REPEAT` leaves it nowhere to fall and an idle
+# agent becomes no more willing than a busy one. The floor therefore has to sit strictly
+# between one contribution and the full bar.
+#
+# **SO IT IS THE LARGEST RELIEF THAT STILL LEAVES ONE CONTRIBUTOR INSUFFICIENT: half a vote.**
+# `MIN_REPEAT - 0.5`. Patience can buy the agent half a contribution's worth of willingness and
+# never a whole one, so a commitment always needs a second voice carrying at least the other
+# half. The 0.5 is not a dial -- it is the midpoint of the only interval the two constraints
+# leave open, and moving it to 1.0 reopens the defect while moving it to 0.0 disables relief.
+_QUORUM_FLOOR = float(MIN_REPEAT) - 0.5
+
+# anchor: TWO, and it is the definition of a quorum rather than a calibration. One agreeing
+# contributor is a report; two is the smallest number that can DISAGREE and did not. Raising
+# it would be a tuning choice and is not made here.
+_QUORUM_VOTERS = 2
+
 BOOKS: tuple[str, ...] = (
     "promoted_then_wrong",              # settled, then mispredicted
     "demoted_would_have_been_right",    # the counterfactual `F327` destroys unrecorded
@@ -4049,14 +4074,28 @@ class Agent:
             v["lean"] = v["lean"] / (1.0 + _bad - _good)
         total = sum(v.values())
 
-        # STANDING SETS THE HEIGHT. `MIN_REPEAT` is the agent's own bar for "confidently", and
-        # the floor is 1.0 because a vector below one contribution's worth is not a signal.
+        # STANDING SETS THE HEIGHT. `MIN_REPEAT` is the agent's own bar for "confidently".
         # **THE ONLY TERM THAT MOVES IS THE CLOCK SINCE THE LAST COMMITMENT.**
+        #
+        # THE FLOOR WAS 1.0 AND IT IS NOW `_QUORUM_FLOOR` -- reviewer's ruling, 2026-09-26,
+        # on a defect I reported against my own build: *a quorum reachable by one bee is not
+        # a quorum.* At 1.0 a single contributor at unit strength cleared the bar alone, and
+        # the one commitment the accumulator ever made was carried by `improving` by itself.
         idle = self.cycle - self._last_commit
-        threshold = max(1.0, float(MIN_REPEAT) - idle / _IDLE_RELIEF)
+        threshold = max(_QUORUM_FLOOR, float(MIN_REPEAT) - idle / _IDLE_RELIEF)
+
+        # AND THE HEIGHT ALONE CANNOT EXPRESS A QUORUM, WHICH IS WHY BOTH HALVES ARE HERE.
+        # A floor is a sum, and one contributor at 2.0 clears any sum a quorum would set. The
+        # honeybee rule is about HOW MANY AGREE, not how loudly one does -- so the count is
+        # checked directly instead of being approximated by a number.
+        #
+        # POSITIVE ONLY. `plant` and `refuted` go negative, and a contribution arguing AGAINST
+        # is not a vote for; counting it would let two objections constitute a quorum.
+        voters = sum(1 for x in v.values() if x > 0)
         return {"vector": {k: round(x, 4) for k, x in v.items()},
                 "total": round(total, 4), "threshold": round(threshold, 4),
-                "idle": idle, "commits": total >= threshold}
+                "idle": idle, "voters": voters,
+                "commits": total >= threshold and voters >= _QUORUM_VOTERS}
 
     @staticmethod
     def _gap_key(gap: dict) -> tuple:

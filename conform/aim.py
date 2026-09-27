@@ -73,6 +73,20 @@ ITEMS = {
     # Without this the control could not be introduced by a commit that obeys it.
     "seat": "a check, a guard, or the aim discipline itself",
     "escalated": "a real escalation, posted",
+    # THE M2 GOAL CHAIN, DECLARED -- reviewer's ruling, 2026-09-26, and it is a repair rather
+    # than an addition. The chain `goal_residual -> _goal_choice -> _mint_routine -> the shelf`
+    # RODE UNDER `step1.item1` FOR SIXTEEN COMMITS, flagged in every one and fixed in none.
+    #
+    # `step1.item1` is *the observer's remaining pieces*. The goal chain is not that, and the
+    # two were never confused by anyone reading the work -- they were confused by the FILING,
+    # which is worse: a reader auditing what item1 cost cannot separate perception work from
+    # planning work, and the `Item:` line exists precisely so that separation survives.
+    #
+    # **THIS IS THE ADJACENT-REFERENCE CLASS AND THAT IS WHY IT IS NOT COSMETIC** -- a lookup
+    # that SUCCEEDS and returns the wrong neighbour. `step1.item1` is a real item, the commits
+    # were real work, and `aim` was green on every one of the sixteen. Nothing could have
+    # caught it except naming the thing it was not.
+    "m2.goal": "the goal chain -- residual, selector, routine mint, the shelf",
 }
 
 
