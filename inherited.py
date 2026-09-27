@@ -106,6 +106,24 @@ def load() -> dict[str, Any]:
             continue
         raw = json.loads(path.read_text(encoding="utf-8"))
         out[key] = raw.get(inner, raw) if inner else raw
+
+    # THE AGENT'S OWN ATOMS JOIN THE VOCABULARY, IN THEIR OWN FILE -- Isaiah: *add your few
+    # dozen atoms to it.* Kept separate on disk rather than merged into `atoms.json` because
+    # GIVEN and BUILT must stay separable: the ablation partition is by WHICH CLAUSE ADMITTED A
+    # THING and *cannot be reconstructed from a `prior` stamp afterwards*. A file boundary and
+    # the `AGENT|` prefix are both cheap and neither can drift.
+    agent = ROOT / "agent_atoms.json"
+    if agent.exists():
+        mine = json.loads(agent.read_text(encoding="utf-8")).get("atoms", {})
+        out["atoms"] = {**out["atoms"], **mine}
+        # AND THEY ARE INDEXED IN MEMORY, NEVER WRITTEN BACK. `tag_index.json` is the
+        # reviewer's artefact; regenerating it here would make this module a second producer
+        # of the index, which is the same defect `retrieval.py` refuses as a second producer
+        # of reach. The extension costs one pass over 62 entries at load.
+        by_tag = out["tags"].setdefault("by_tag", {})
+        for key, e in mine.items():
+            for tag in (e.get("tags") or {}).get("primary") or ():
+                by_tag.setdefault(tag, {}).setdefault("atoms", []).append(key)
     return out
 
 
@@ -179,10 +197,23 @@ def reach(want: dict[str, float], kinds: tuple[str, ...] = ("atoms", "molecules"
         for kind in kinds:
             for key in members.get(kind) or []:
                 score[key] = score.get(key, 0.0) + weight * _tag_score(key, tag)
-    for pair, members in (lib["tags"].get("by_pair") or {}).items():
-        parts = pair.split("+")
-        if len(parts) == 2 and all(p in want for p in parts):
-            bonus = min(want[p] for p in parts) * 0.5
+    # THE PAIR BONUS IS KEYED TOO, AND IT WAS NOT -- the reviewer, 2026-09-27. This iterated
+    # ALL 477 `by_pair` entries on every call and tested each against the cue, which is a SCAN
+    # inside the function whose whole purpose is that there is no scan. The cue lights a
+    # handful of tags, so the pairs it can possibly match are a handful of keys: build them
+    # and read them.
+    #
+    # SORTED, because that is how the index spells a pair (`ACTION+CHANGE`), and a lookup on
+    # the unsorted spelling would MISS SILENTLY -- returning nothing and reading exactly like
+    # a cue with no co-occurrence.
+    by_pair = lib["tags"].get("by_pair") or {}
+    lit = sorted(want)
+    for i, a in enumerate(lit):
+        for b in lit[i + 1:]:
+            members = by_pair.get(f"{a}+{b}")
+            if not members:
+                continue
+            bonus = min(want[a], want[b]) * 0.5
             for kind in kinds:
                 for key in members.get(kind) or []:
                     if key in score:
@@ -269,14 +300,27 @@ def term_affinity(term: Any, want: dict[str, float]) -> float:
 
 
 def _tag_score(key: str, tag: str) -> float:
-    """The entry's OWN score for this tag, or 1.0 where it declares none. 1.0 rather than 0.0
-    because 169 of 1,748 atoms carry no `scored` list, and scoring them zero would silently
-    drop them -- exclusion by a missing field, which is the quietest kind."""
+    """The entry's OWN WEIGHT for this tag, or a neutral 0.5 where it declares none.
+
+    **`weight`, NEVER `score` -- the reviewer's ruling of 2026-09-27 and this file read the
+    wrong field first.** The README: *order by `weight`, not `score`: raw scores grow with how
+    many attributes an entry was written with.* A raw score therefore ranks VERBOSE entries
+    above apt ones, which is a property of how the corpus was authored rather than of the
+    board. `weight` is `score / (1 + the entry's total)`, bounded in [0,1) and comparable
+    across entries -- the same squashing `affinity` below arrived at independently.
+
+    THE DEFAULT IS 0.5 AND NOT 1.0, because weights are now bounded by 1. Under the old raw
+    scores a default of 1.0 was unremarkable; against weights it would rank every UNSCORED
+    entry above almost every scored one. **Changing the field without changing the default
+    would have silently inverted the ranking** -- 169 of 1,748 atoms carry no `scored` list.
+    0.5 is the midpoint of the bounded range: present, unranked, neither favoured nor dropped.
+    """
     e = entry(key) or {}
     for row in (e.get("tags") or {}).get("scored") or ():
         if row.get("tag") == tag:
-            return float(row.get("score") or 1.0)
-    return 1.0
+            w = row.get("weight")
+            return float(w) if w is not None else 0.5
+    return 0.5
 
 
 def _tier(key: str) -> int:

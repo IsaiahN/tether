@@ -10,15 +10,15 @@
 ## How the agent uses it
 
 1. Perception detects attributes and their deltas.
-2. Each attribute maps to a **tag** (a cluster). Look up the tag or the sorted pair `TAG1+TAG2` in `tag_index.json` — a direct key read, no scan.
+2. Each attribute maps to a **tag** (a cluster). Look up the tag in `tag_index.json` — a direct key read, no scan. `by_tag` lists every entry carrying the tag at any strength, strongest first; nothing is gated by a threshold.
 3. Confirm each candidate against the board with its **`condition`** (2,638 entries carry one, e.g. Solidity: `overlapArea == 0`).
 4. Molecules are callable: resolve `ingredients` by key, recursing through `calls`.
 
 ## Tags on every entry
 
-Each entry carries `tags.primary` (up to three), `tags.pairs` (the intersections to query) and `tags.scored`, where every tag lists the evidence behind it: `measured` (already in ATTRIBUTE_INDEX), `ruled`, `proposed`, `encoding`, `name`, `inherited` (from ingredients) or `used-by` (from the molecules that use it).
+Each entry carries `tags.primary` (up to three), `tags.pairs` (co-occurrence pairs) and `tags.scored`. Every scored row has `score` (the raw evidence sum) and `weight` = score / (1 + that entry's total), which is in [0,1) and comparable across entries. **Order by `weight`, not `score`**: raw scores grow with how many attributes an entry was written with. Every tag lists the evidence behind it: `measured` (already in ATTRIBUTE_INDEX), `ruled`, `proposed`, `encoding`, `name`, `inherited` (from ingredients) or `used-by` (from the molecules that use it).
 
-Coverage: 34% of entries had a measured cluster; 95% now carry at least one tag.
+Coverage: 34% of entries had a measured cluster; 95% now carry at least one tag, and all 3,838 of those are reachable through `by_tag`.
 
 **Tags ending in `*` are proposals** — 17 new clusters built only from head words that occur in the unassigned list. They raise attribute-mention coverage from 22% to 47%. The cluster doc says new clusters are a ruling, so these need yours before they count as settled.
 

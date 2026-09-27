@@ -591,12 +591,20 @@ def test_a_mutation_moves_attention_and_never_the_action():
     w = gridworld.boards(1, start=3)[0]
     env = bind(w)
     ag = tether.Agent(env, gamma.Gamma(env.atoms()), tether.Config(), ledger.Ledger())
-    for _ in range(10):
+    # SIX CYCLES, NOT TEN -- and this is the SIBLING of a trim already made. Its twin was cut
+    # 12 -> 6 the night both were written, for blowing `shipped`'s 120s budget and reporting
+    # DID-NOT-RUN, and this one was left at ten. Measured 2026-09-27: the direct property tests
+    # cost 103.1s of the 120s, and this test alone was 53.4s of that -- so the seat's verdict
+    # was being decided by one check's cycle count rather than by the agent.
+    # **`repaired the instance, left the class`, which is this project's most-filed failure.**
+    # Six is not a guess: `focus_by_cue` reads 2 and `cue_mutated` 2 at six cycles, so both
+    # assertions below still have something to be true OF.
+    for _ in range(6):
         ag.step()
     book = ag.gamma.book
 
     assert book.get("focus_by_cue", 0) > 0, (
-        f"the cue never moved attention in 10 cycles: {dict(book)}. Perception is wired to "
+        f"the cue never moved attention in 6 cycles: {dict(book)}. Perception is wired to "
         f"nothing -- half a mechanism, which is what `observer.py` was for five months")
     assert book.get("cue_mutated", 0) > 0, "no mutation fired, so the check proves nothing"
 
@@ -614,7 +622,7 @@ def test_a_mutation_moves_attention_and_never_the_action():
         del gridworld.GridWorld.cues
         w2 = gridworld.boards(1, start=3)[0]
         ag2 = tether.Agent(bind(w2), gamma.Gamma(env.atoms()), tether.Config(), ledger.Ledger())
-        for _ in range(4):
+        for _ in range(3):
             ag2.step()
         assert not ag2.gamma.book.get("focus_by_cue"), (
             "attention moved by cue on a world that publishes none -- this property pins "
@@ -838,6 +846,20 @@ def test_the_keyed_reach_loses_nothing():
     # keys and the equality above would still hold.
     ordered = inherited.reach(want)
     assert ordered != sorted(ordered), "the result is in name order -- nothing ranked it"
+
+    # AND THE PAIR PATH, WHICH IS WHERE A SCAN WAS ACTUALLY HIDING. `reach` iterated all 477
+    # `by_pair` entries testing each against the cue -- a scan inside the function whose whole
+    # point is that there is no scan (the reviewer, 2026-09-27). It is keyed now, so the check
+    # is the same one the tags get: the keys BUILT from the lit tags must be exactly the keys a
+    # full pass would have selected.
+    by_pair = lib["tags"].get("by_pair") or {}
+    lit = sorted(want)
+    keyed = {f"{a}+{b}" for i, a in enumerate(lit) for b in lit[i + 1:]
+             if f"{a}+{b}" in by_pair}
+    swept = {p for p in by_pair
+             if len(p.split("+")) == 2 and all(x in want for x in p.split("+"))}
+    assert keyed == swept, f"the keyed pair lookup lost {sorted(swept - keyed)[:5]}"
+    assert keyed, "no pair was lit -- this control cannot distinguish keyed from broken"
 
 
 def test_the_inherited_vocabulary_is_not_the_held_library():

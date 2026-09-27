@@ -1,0 +1,2062 @@
+{
+ "meta": {
+  "source": "arc_atoms.three_spaces",
+  "count": 62,
+  "weight": "score / (1 + entry total), the README's formula",
+  "note": "the agent's OWN executable atoms, kept in their own file so GIVEN and BUILT stay separable for the ablation partition"
+ },
+ "atoms": {
+  "AGENT|above": {
+   "name": "above",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "POSITION -> PRED",
+   "in_type": "POSITION",
+   "out_type": "PRED",
+   "tags": {
+    "primary": [
+     "POSITION"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "POSITION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": true
+  },
+  "AGENT|abs_delta": {
+   "name": "abs_delta",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "DELTA -> EXTENT",
+   "in_type": "DELTA",
+   "out_type": "EXTENT",
+   "tags": {
+    "primary": [
+     "CHANGE",
+     "DIRECTION",
+     "EXTENT",
+     "SPEED"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "CHANGE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.2
+     },
+     {
+      "tag": "DIRECTION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.2
+     },
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.2
+     },
+     {
+      "tag": "SPEED",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.2
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": "handed",
+   "reads_operand": false
+  },
+  "AGENT|age": {
+   "name": "age",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "OBJECT -> EXTENT",
+   "in_type": "OBJECT",
+   "out_type": "EXTENT",
+   "tags": {
+    "primary": [
+     "EXTENT"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": false
+  },
+  "AGENT|aligned": {
+   "name": "aligned",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "COLOUR -> BOOL",
+   "in_type": "COLOUR",
+   "out_type": "BOOL",
+   "tags": {
+    "primary": [
+     "COLOUR"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "COLOUR",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": "handed",
+   "reads_operand": false
+  },
+  "AGENT|all": {
+   "name": "all",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "PRED -> OBJ",
+   "in_type": "PRED",
+   "out_type": "OBJ",
+   "tags": {
+    "primary": [],
+    "pairs": [],
+    "scored": []
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": false
+  },
+  "AGENT|all_same": {
+   "name": "all_same",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "COLOUR -> PRED",
+   "in_type": "COLOUR",
+   "out_type": "PRED",
+   "tags": {
+    "primary": [
+     "COLOUR"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "COLOUR",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": false
+  },
+  "AGENT|any": {
+   "name": "any",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "PRED -> OBJ",
+   "in_type": "PRED",
+   "out_type": "OBJ",
+   "tags": {
+    "primary": [],
+    "pairs": [],
+    "scored": []
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": false
+  },
+  "AGENT|any_same": {
+   "name": "any_same",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "COLOUR -> PRED",
+   "in_type": "COLOUR",
+   "out_type": "PRED",
+   "tags": {
+    "primary": [
+     "COLOUR"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "COLOUR",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": false
+  },
+  "AGENT|area": {
+   "name": "area",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "OBJECT -> EXTENT",
+   "in_type": "OBJECT",
+   "out_type": "EXTENT",
+   "tags": {
+    "primary": [
+     "EXTENT"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": "handed",
+   "reads_operand": false
+  },
+  "AGENT|bbox": {
+   "name": "bbox",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "OBJECT -> EXTENT",
+   "in_type": "OBJECT",
+   "out_type": "EXTENT",
+   "tags": {
+    "primary": [
+     "EXTENT"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": false
+  },
+  "AGENT|bbox_area": {
+   "name": "bbox_area",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "SHAPE -> EXTENT",
+   "in_type": "SHAPE",
+   "out_type": "EXTENT",
+   "tags": {
+    "primary": [
+     "EXTENT",
+     "SHAPE"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     },
+     {
+      "tag": "SHAPE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": "handed",
+   "reads_operand": false
+  },
+  "AGENT|both": {
+   "name": "both",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "PRED -> PRED",
+   "in_type": "PRED",
+   "out_type": "PRED",
+   "tags": {
+    "primary": [],
+    "pairs": [],
+    "scored": []
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": "handed",
+   "reads_operand": true
+  },
+  "AGENT|canonical": {
+   "name": "canonical",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "SHAPE -> SHAPE",
+   "in_type": "SHAPE",
+   "out_type": "SHAPE",
+   "tags": {
+    "primary": [
+     "SHAPE"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "SHAPE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": "handed",
+   "reads_operand": false
+  },
+  "AGENT|centroid": {
+   "name": "centroid",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "OBJECT -> POSITION",
+   "in_type": "OBJECT",
+   "out_type": "POSITION",
+   "tags": {
+    "primary": [
+     "POSITION"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "POSITION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": "handed",
+   "reads_operand": false
+  },
+  "AGENT|col": {
+   "name": "col",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "OBJECT -> POSITION",
+   "in_type": "OBJECT",
+   "out_type": "POSITION",
+   "tags": {
+    "primary": [
+     "POSITION"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "POSITION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": false
+  },
+  "AGENT|colour": {
+   "name": "colour",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "OBJECT -> COLOUR",
+   "in_type": "OBJECT",
+   "out_type": "COLOUR",
+   "tags": {
+    "primary": [
+     "COLOUR"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "COLOUR",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": false
+  },
+  "AGENT|colour_changed": {
+   "name": "colour_changed",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "OBJECT -> BOOL",
+   "in_type": "OBJECT",
+   "out_type": "BOOL",
+   "tags": {
+    "primary": [],
+    "pairs": [],
+    "scored": []
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": false
+  },
+  "AGENT|completed": {
+   "name": "completed",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "OBJECT -> EXTENT",
+   "in_type": "OBJECT",
+   "out_type": "EXTENT",
+   "tags": {
+    "primary": [
+     "EXTENT"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": false
+  },
+  "AGENT|contact": {
+   "name": "contact",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "OBJECT -> EXTENT",
+   "in_type": "OBJECT",
+   "out_type": "EXTENT",
+   "tags": {
+    "primary": [
+     "EXTENT"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": false
+  },
+  "AGENT|corners": {
+   "name": "corners",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "SHAPE -> EXTENT",
+   "in_type": "SHAPE",
+   "out_type": "EXTENT",
+   "tags": {
+    "primary": [
+     "EXTENT",
+     "SHAPE"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     },
+     {
+      "tag": "SHAPE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": "handed",
+   "reads_operand": false
+  },
+  "AGENT|count": {
+   "name": "count",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "COLOUR -> EXTENT",
+   "in_type": "COLOUR",
+   "out_type": "EXTENT",
+   "tags": {
+    "primary": [
+     "COLOUR",
+     "EXTENT"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "COLOUR",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     },
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": "handed",
+   "reads_operand": false
+  },
+  "AGENT|dcells": {
+   "name": "dcells",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "OBJECT -> DELTA",
+   "in_type": "OBJECT",
+   "out_type": "DELTA",
+   "tags": {
+    "primary": [
+     "CHANGE",
+     "DIRECTION",
+     "SHAPE",
+     "SPEED",
+     "STRUCTURE"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "CHANGE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.1667
+     },
+     {
+      "tag": "DIRECTION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.1667
+     },
+     {
+      "tag": "SHAPE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.1667
+     },
+     {
+      "tag": "SPEED",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.1667
+     },
+     {
+      "tag": "STRUCTURE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.1667
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": false
+  },
+  "AGENT|dcol": {
+   "name": "dcol",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "OBJECT -> DELTA",
+   "in_type": "OBJECT",
+   "out_type": "DELTA",
+   "tags": {
+    "primary": [
+     "CHANGE",
+     "DIRECTION",
+     "MOTION",
+     "POSITION",
+     "SPEED"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "CHANGE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.1667
+     },
+     {
+      "tag": "DIRECTION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.1667
+     },
+     {
+      "tag": "MOTION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.1667
+     },
+     {
+      "tag": "POSITION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.1667
+     },
+     {
+      "tag": "SPEED",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.1667
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": false
+  },
+  "AGENT|dh": {
+   "name": "dh",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "OBJECT -> DELTA",
+   "in_type": "OBJECT",
+   "out_type": "DELTA",
+   "tags": {
+    "primary": [
+     "CHANGE",
+     "DIRECTION",
+     "EXTENT",
+     "SPEED"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "CHANGE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.2
+     },
+     {
+      "tag": "DIRECTION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.2
+     },
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.2
+     },
+     {
+      "tag": "SPEED",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.2
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": false
+  },
+  "AGENT|dholes": {
+   "name": "dholes",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "OBJECT -> DELTA",
+   "in_type": "OBJECT",
+   "out_type": "DELTA",
+   "tags": {
+    "primary": [
+     "CHANGE",
+     "DIRECTION",
+     "SPEED"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "CHANGE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.25
+     },
+     {
+      "tag": "DIRECTION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.25
+     },
+     {
+      "tag": "SPEED",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.25
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": false
+  },
+  "AGENT|distinct": {
+   "name": "distinct",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "COLOUR -> EXTENT",
+   "in_type": "COLOUR",
+   "out_type": "EXTENT",
+   "tags": {
+    "primary": [
+     "COLOUR",
+     "EXTENT"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "COLOUR",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     },
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": "handed",
+   "reads_operand": false
+  },
+  "AGENT|dperimeter": {
+   "name": "dperimeter",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "OBJECT -> DELTA",
+   "in_type": "OBJECT",
+   "out_type": "DELTA",
+   "tags": {
+    "primary": [
+     "CHANGE",
+     "DIRECTION",
+     "SPEED"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "CHANGE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.25
+     },
+     {
+      "tag": "DIRECTION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.25
+     },
+     {
+      "tag": "SPEED",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.25
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": false
+  },
+  "AGENT|drow": {
+   "name": "drow",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "OBJECT -> DELTA",
+   "in_type": "OBJECT",
+   "out_type": "DELTA",
+   "tags": {
+    "primary": [
+     "CHANGE",
+     "DIRECTION",
+     "MOTION",
+     "POSITION",
+     "SPEED"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "CHANGE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.1667
+     },
+     {
+      "tag": "DIRECTION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.1667
+     },
+     {
+      "tag": "MOTION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.1667
+     },
+     {
+      "tag": "POSITION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.1667
+     },
+     {
+      "tag": "SPEED",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.1667
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": false
+  },
+  "AGENT|dw": {
+   "name": "dw",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "OBJECT -> DELTA",
+   "in_type": "OBJECT",
+   "out_type": "DELTA",
+   "tags": {
+    "primary": [
+     "CHANGE",
+     "DIRECTION",
+     "EXTENT",
+     "SPEED"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "CHANGE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.2
+     },
+     {
+      "tag": "DIRECTION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.2
+     },
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.2
+     },
+     {
+      "tag": "SPEED",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.2
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": false
+  },
+  "AGENT|either": {
+   "name": "either",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "PRED -> PRED",
+   "in_type": "PRED",
+   "out_type": "PRED",
+   "tags": {
+    "primary": [],
+    "pairs": [],
+    "scored": []
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": "handed",
+   "reads_operand": true
+  },
+  "AGENT|h": {
+   "name": "h",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "OBJECT -> EXTENT",
+   "in_type": "OBJECT",
+   "out_type": "EXTENT",
+   "tags": {
+    "primary": [
+     "EXTENT"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": false
+  },
+  "AGENT|holes": {
+   "name": "holes",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "SHAPE -> EXTENT",
+   "in_type": "SHAPE",
+   "out_type": "EXTENT",
+   "tags": {
+    "primary": [
+     "EXTENT",
+     "SHAPE"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     },
+     {
+      "tag": "SHAPE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": "handed",
+   "reads_operand": false
+  },
+  "AGENT|idn": {
+   "name": "idn",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "val -> val",
+   "in_type": "val",
+   "out_type": "val",
+   "tags": {
+    "primary": [],
+    "pairs": [],
+    "scored": []
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": false
+  },
+  "AGENT|inside": {
+   "name": "inside",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "OBJECT -> BOOL",
+   "in_type": "OBJECT",
+   "out_type": "BOOL",
+   "tags": {
+    "primary": [],
+    "pairs": [],
+    "scored": []
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": "handed",
+   "reads_operand": false
+  },
+  "AGENT|is_max": {
+   "name": "is_max",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "POSITION -> BOOL",
+   "in_type": "POSITION",
+   "out_type": "BOOL",
+   "tags": {
+    "primary": [
+     "POSITION"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "POSITION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": "handed",
+   "reads_operand": false
+  },
+  "AGENT|is_min": {
+   "name": "is_min",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "POSITION -> BOOL",
+   "in_type": "POSITION",
+   "out_type": "BOOL",
+   "tags": {
+    "primary": [
+     "POSITION"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "POSITION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": "handed",
+   "reads_operand": false
+  },
+  "AGENT|is_mode": {
+   "name": "is_mode",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "COLOUR -> BOOL",
+   "in_type": "COLOUR",
+   "out_type": "BOOL",
+   "tags": {
+    "primary": [
+     "COLOUR"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "COLOUR",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": "handed",
+   "reads_operand": false
+  },
+  "AGENT|is_square": {
+   "name": "is_square",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "SHAPE -> BOOL",
+   "in_type": "SHAPE",
+   "out_type": "BOOL",
+   "tags": {
+    "primary": [
+     "SHAPE"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "SHAPE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": "handed",
+   "reads_operand": false
+  },
+  "AGENT|negate": {
+   "name": "negate",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "PRED -> PRED",
+   "in_type": "PRED",
+   "out_type": "PRED",
+   "tags": {
+    "primary": [],
+    "pairs": [],
+    "scored": []
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": "handed",
+   "reads_operand": false
+  },
+  "AGENT|none": {
+   "name": "none",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "PRED -> OBJ",
+   "in_type": "PRED",
+   "out_type": "OBJ",
+   "tags": {
+    "primary": [],
+    "pairs": [],
+    "scored": []
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": false
+  },
+  "AGENT|none_same": {
+   "name": "none_same",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "COLOUR -> PRED",
+   "in_type": "COLOUR",
+   "out_type": "PRED",
+   "tags": {
+    "primary": [
+     "COLOUR"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "COLOUR",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": false
+  },
+  "AGENT|orbit_size": {
+   "name": "orbit_size",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "SHAPE -> EXTENT",
+   "in_type": "SHAPE",
+   "out_type": "EXTENT",
+   "tags": {
+    "primary": [
+     "EXTENT",
+     "SHAPE"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     },
+     {
+      "tag": "SHAPE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": "handed",
+   "reads_operand": false
+  },
+  "AGENT|other": {
+   "name": "other",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "COLOUR -> PRED",
+   "in_type": "COLOUR",
+   "out_type": "PRED",
+   "tags": {
+    "primary": [
+     "COLOUR"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "COLOUR",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": true
+  },
+  "AGENT|owner": {
+   "name": "owner",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "val -> OBJECT",
+   "in_type": "val",
+   "out_type": "OBJECT",
+   "tags": {
+    "primary": [],
+    "pairs": [],
+    "scored": []
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": false
+  },
+  "AGENT|parity": {
+   "name": "parity",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "POSITION -> BOOL",
+   "in_type": "POSITION",
+   "out_type": "BOOL",
+   "tags": {
+    "primary": [
+     "POSITION"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "POSITION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": "handed",
+   "reads_operand": false
+  },
+  "AGENT|perimeter": {
+   "name": "perimeter",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "SHAPE -> EXTENT",
+   "in_type": "SHAPE",
+   "out_type": "EXTENT",
+   "tags": {
+    "primary": [
+     "EXTENT",
+     "SHAPE"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     },
+     {
+      "tag": "SHAPE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": "handed",
+   "reads_operand": false
+  },
+  "AGENT|rank_in": {
+   "name": "rank_in",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "POSITION -> EXTENT",
+   "in_type": "POSITION",
+   "out_type": "EXTENT",
+   "tags": {
+    "primary": [
+     "EXTENT",
+     "POSITION"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     },
+     {
+      "tag": "POSITION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": "handed",
+   "reads_operand": false
+  },
+  "AGENT|recolour": {
+   "name": "recolour",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "val -> val",
+   "in_type": "val",
+   "out_type": "val",
+   "tags": {
+    "primary": [
+     "COLOUR"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "COLOUR",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": true
+  },
+  "AGENT|reflect": {
+   "name": "reflect",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "SHAPE -> SHAPE",
+   "in_type": "SHAPE",
+   "out_type": "SHAPE",
+   "tags": {
+    "primary": [
+     "SHAPE"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "SHAPE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": "handed",
+   "reads_operand": false
+  },
+  "AGENT|rotate": {
+   "name": "rotate",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "SHAPE -> SHAPE",
+   "in_type": "SHAPE",
+   "out_type": "SHAPE",
+   "tags": {
+    "primary": [
+     "SHAPE"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "SHAPE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": "handed",
+   "reads_operand": false
+  },
+  "AGENT|row": {
+   "name": "row",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "OBJECT -> POSITION",
+   "in_type": "OBJECT",
+   "out_type": "POSITION",
+   "tags": {
+    "primary": [
+     "POSITION"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "POSITION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": false
+  },
+  "AGENT|same": {
+   "name": "same",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "COLOUR -> PRED",
+   "in_type": "COLOUR",
+   "out_type": "PRED",
+   "tags": {
+    "primary": [
+     "COLOUR"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "COLOUR",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": true
+  },
+  "AGENT|shape": {
+   "name": "shape",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "OBJECT -> SHAPE",
+   "in_type": "OBJECT",
+   "out_type": "SHAPE",
+   "tags": {
+    "primary": [
+     "SHAPE"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "SHAPE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": false
+  },
+  "AGENT|sign": {
+   "name": "sign",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "DELTA -> BOOL",
+   "in_type": "DELTA",
+   "out_type": "BOOL",
+   "tags": {
+    "primary": [
+     "CHANGE",
+     "DIRECTION",
+     "SPEED"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "CHANGE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.25
+     },
+     {
+      "tag": "DIRECTION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.25
+     },
+     {
+      "tag": "SPEED",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.25
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": "handed",
+   "reads_operand": false
+  },
+  "AGENT|speed": {
+   "name": "speed",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "OBJECT -> EXTENT",
+   "in_type": "OBJECT",
+   "out_type": "EXTENT",
+   "tags": {
+    "primary": [
+     "EXTENT"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": false
+  },
+  "AGENT|stability": {
+   "name": "stability",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "OBJECT -> EXTENT",
+   "in_type": "OBJECT",
+   "out_type": "EXTENT",
+   "tags": {
+    "primary": [
+     "EXTENT"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": false
+  },
+  "AGENT|sum_group": {
+   "name": "sum_group",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "POSITION -> EXTENT",
+   "in_type": "POSITION",
+   "out_type": "EXTENT",
+   "tags": {
+    "primary": [
+     "EXTENT",
+     "POSITION"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     },
+     {
+      "tag": "POSITION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": "handed",
+   "reads_operand": false
+  },
+  "AGENT|symmetric": {
+   "name": "symmetric",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "SHAPE -> BOOL",
+   "in_type": "SHAPE",
+   "out_type": "BOOL",
+   "tags": {
+    "primary": [
+     "SHAPE"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "SHAPE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": "handed",
+   "reads_operand": false
+  },
+  "AGENT|touching": {
+   "name": "touching",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "OBJECT -> BOOL",
+   "in_type": "OBJECT",
+   "out_type": "BOOL",
+   "tags": {
+    "primary": [],
+    "pairs": [],
+    "scored": []
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": false
+  },
+  "AGENT|touching_n": {
+   "name": "touching_n",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "OBJECT -> EXTENT",
+   "in_type": "OBJECT",
+   "out_type": "EXTENT",
+   "tags": {
+    "primary": [
+     "EXTENT"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": "handed",
+   "reads_operand": false
+  },
+  "AGENT|translate": {
+   "name": "translate",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "val -> val",
+   "in_type": "val",
+   "out_type": "val",
+   "tags": {
+    "primary": [],
+    "pairs": [],
+    "scored": []
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": true
+  },
+  "AGENT|w": {
+   "name": "w",
+   "domain": "AGENT",
+   "status": "executable",
+   "definition": "OBJECT -> EXTENT",
+   "in_type": "OBJECT",
+   "out_type": "EXTENT",
+   "tags": {
+    "primary": [
+     "EXTENT"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "sources": [
+    "arc_atoms.three_spaces"
+   ],
+   "admitted": null,
+   "reads_operand": false
+  }
+ }
+}
