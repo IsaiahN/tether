@@ -799,6 +799,55 @@ def test_generator_reaches_the_hard_cases():
     assert c["slots=2"] > 0 and c["slots=4"] > 0, "the slot count has collapsed"
 
 
+def test_a5_still_fires_on_the_pinned_world():
+    """THE A5 REPRODUCTION, PINNED TO AN EXPLICIT WORLD -- and it asserts the DEFECT, on purpose.
+
+    A STRICT XFAIL WITHOUT pytest. The reviewer's shape (2026-09-27): get the reproduction into
+    the repo, do not turn the suite red while A5 truthfully fails, and make the marker
+    impossible to forget -- so when the fix lands the test FAILS and forces its own update.
+    `pytest` is installed and NO SEAT RUNS IT, so a `pytest.mark.xfail` here would be a suite
+    nothing runs, which is the rot this folder names in three other docstrings.
+
+    WHY THIS WORLD AND NOT `spec_for(13)`. Hypothesis found it, and it is written out as an
+    EXPLICIT `WorldSpec` rather than a seed: no generator, no example database, no phase list,
+    no shrinker. Every one of those moved under me during the session that produced it, and a
+    reproduction that states its world survives all of them. It is also FOUR slots, which
+    `snap_specs` actually draws -- `spec_for` is fixed at five and the machine never visits it.
+
+    THE DEFECT: `gamma.is_settled(name)` is keyed by TERM while kernel A5 keys `(slot, term)`.
+    A settlement on one slot licenses citation on another. The fix has to refuse the BINDING,
+    not the row -- refusing only the row was tried, relabelled five cites as holds, and left
+    the agent predicting from the same term (reverted at `5b6d07b`).
+    """
+    import snaps
+    from gamma import Gamma
+    from ledger import Ledger
+    from tether import Agent, Config
+    from world import bind
+
+    S = snaps.SlotSpec
+    spec = snaps.WorldSpec(
+        slots=["s0", "s1", "s2", "s3"],
+        rules={"s0": S(family="chain", k=1, a=2, reads="s1", lag=2, switch=8, k2=1),
+               "s1": S(family="affine", k=1, a=2, reads=None, lag=2, switch=8, k2=1),
+               "s2": S(family="hidden", k=1, a=2, reads=None, lag=2, switch=8, k2=1),
+               "s3": S(family="hidden", k=1, a=2, reads=None, lag=2, switch=8, k2=1)},
+        obj="ALL", tgt=0, who="s0", n=2, hold=3,
+        start={"s0": 0, "s1": 0, "s2": 0, "s3": 0})
+
+    led = Ledger()
+    ag = Agent(bind(snaps.Snap(spec)), Gamma(snaps._atoms()), Config(), led)
+    for _ in range(9):
+        ag.step()
+    res = kernel.Linter.run(led.rows())
+    bad = sorted(k for k, v in res.items() if v["status"] in ("FAIL", "SUPPRESSED"))
+
+    assert "A5" in bad, (
+        f"A5 NO LONGER FIRES on the pinned world (bad={bad}). If the settlement fix has "
+        "landed this is the GOOD outcome -- invert this test to `assert 'A5' not in bad`, "
+        "rename it, and it becomes the regression test. Do not delete it.")
+
+
 def test_the_keyed_reach_loses_nothing():
     """THE INDEX IS A CHEAPER ROUTE TO THE SAME SET, NEVER A SMALLER SET.
 
@@ -937,8 +986,10 @@ if __name__ == "__main__":
         test_a_mutation_moves_attention_and_never_the_action()
         test_the_admitting_clause_crosses_into_gamma()
         test_the_daydream_precondition_can_refuse()
+        test_a5_still_fires_on_the_pinned_world()
         test_the_keyed_reach_loses_nothing()
         test_the_inherited_vocabulary_is_not_the_held_library()
+        print("  A5 reproduction still fires (expected): ok")
         print("  keyed reach loses nothing: ok · two vocabularies stay two: ok")
         print("  shipped generator coverage: ok · residual bound loses nothing: ok"
               " · resolutions are not the answer: ok · atom order pinned: ok"
