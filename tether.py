@@ -22,6 +22,7 @@ from typing import Any
 import composer
 import condition
 import grammar as G
+import inherited
 import instruments as I
 import retrieval
 import routine as Rt
@@ -411,6 +412,10 @@ BOOKS: tuple[str, ...] = (
     "cue_seen",                         # frames where a mutation could have been read
     "cue_mutated",                      # ... and at least one attribute actually did
     "cue_blind",                        # the observer abstained: no readable board
+    # THE CUE REACHING THE INHERITED VOCABULARY. Declared here because the M2 seat
+    # caught `focus_by_cue` written and undeclared -- a book key that exists only at
+    # its write site is a number nobody can find.
+    "mint_order_by_cue",                # cycles where the cue ordered mint's ties
     # ATTENTION MOVED BY A MUTATION. The counterpart to `focus_by_want`, and the pair is
     # the reading: `want` is the selector choosing, `cue` is surprise choosing where the
     # selector had nothing. Two keys because collapsing them would hide which mechanism
@@ -781,6 +786,7 @@ class Agent:
         self._gamma_read: dict = {}
         self._held_chains: set[str] = set()
         self._shape_cache: tuple = (-1, None)
+        self._cue_tag_cache: tuple = (-1, {})
         self._contact_seen: set = set()
         self._refuted_slot: dict = {}
         self._move_map: dict = {}
@@ -1163,6 +1169,7 @@ class Agent:
         self._gamma_read: dict = {}   # did action selection consult Gamma this cycle
         self._held_chains: set[str] = set()   # recipes in the library, per mint call
         self._shape_cache: tuple = (-1, None)   # (cycle, decoder) -- Ctx is built per candidate
+        self._cue_tag_cache: tuple = (-1, {})   # (cycle, tags) -- mint asks per stream
         # SYSTEM 0's contact memory is NOT cleared here. The keys are (kind, shape, shape)
         # -- a KIND of situation, which is what `paths` and `_disproof` survive a boundary
         # for. Clearing it would discard evidence that DOES cross, on a rule written for
@@ -2700,6 +2707,16 @@ class Agent:
         return out
 
     # -- steps 3 to 5 -------------------------------------------------------------------
+
+    def _cue_tags(self) -> dict:
+        """This cycle's cue as a tag vector, CACHED PER CYCLE -- `_shapes_now`'s pattern and
+        for its reason: `mint` asks once per stream per slot, and recomputing walks every
+        object's attributes each time. The cue does not change inside a cycle."""
+        c, m = self._cue_tag_cache
+        if c != self.cycle:
+            m = inherited.tags_of(self.cue)
+            self._cue_tag_cache = (self.cycle, m)
+        return m
 
     def _shapes_now(self) -> dict | None:
         """The shape decoder for this cycle, or None. CACHED PER CYCLE because `Ctx` is built once
@@ -5006,6 +5023,21 @@ class Agent:
                 kind = ("predictor" if out_t == "val"
                         else "objective" if out_t == OBJ_TYPE else f"typed:{out_t}")
                 by_fit = partial(retrieval.fits, gap=gap, in_type=in_t, out_type=out_t)
+                # THE INHERITED VOCABULARY ORDERS THE TIES, AND THE TIES ARE WHERE THE
+                # ORDERING ACTUALLY HAPPENS. `fits` returns an INTEGER 0..5 and its own
+                # docstring records it collapsing onto arity at 87.3%, so most candidates
+                # arrive equal and are broken by registry order -- which `enumerate_closure`
+                # calls *an accident*. `term_affinity` is bounded strictly below 1, so it can
+                # only separate candidates `fits` scored the SAME; it never reorders across
+                # fit levels and never excludes, because the closure admits everything it
+                # enumerates. The cue is the agent's own perception, so this is the library
+                # being reached BY WHAT IT SAW rather than by a name it cannot read.
+                _want = self._cue_tags()
+                if _want:
+                    _book_add(self.gamma.book, "mint_order_by_cue", 1)
+
+                    def by_fit(u, _f=by_fit, _w=_want):        # noqa: F811
+                        return _f(u) + inherited.term_affinity(u, _w)
                 st: dict = {"seen": 0, "budget_spent": False, "depth_exhausted": True,
                             "units": self.gamma.alphabet, "estimate": 0}
                 for cand in self.gamma.enumerate_closure(in_t, out_t, self.cfg.max_depth,

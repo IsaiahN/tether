@@ -791,6 +791,95 @@ def test_generator_reaches_the_hard_cases():
     assert c["slots=2"] > 0 and c["slots=4"] > 0, "the slot count has collapsed"
 
 
+def test_the_keyed_reach_loses_nothing():
+    """THE INDEX IS A CHEAPER ROUTE TO THE SAME SET, NEVER A SMALLER SET.
+
+    The reviewer's ruling of 2026-09-27: *indexing is not a cheaper search -- same closure, same
+    candidates, same results, reached by key rather than by enumeration.* **That is a claim with
+    a failure mode, and the failure mode is silent**: an index that quietly drops entries is
+    indistinguishable from a fast one at every call site, and reads as a speedup.
+
+    So the check is set equality against the enumeration the index replaces, and the MUTATION
+    CONTROL is the half that matters -- without it, a `reach` that returned its input unchanged
+    would pass. `_cannot_pay` is the precedent and the reason: it filtered on what a term *ought
+    to need* and LOST A CLOSING TERM, and nothing noticed because a missing candidate does not
+    fail, it abstains.
+
+    NOT A TEST THAT THE LIBRARY IS GOOD. If `library/` is absent the vocabulary is empty and the
+    agent must still run -- the ablation clause needs a wipe to be survivable -- so an empty
+    load SKIPS rather than fails, and says so.
+    """
+    import inherited
+
+    lib = inherited.load()
+    by_tag = lib["tags"].get("by_tag") or {}
+    if not by_tag:
+        print("  keyed reach: SKIPPED -- library/ is absent, vocabulary empty")
+        return
+
+    want = {"POSITION": 1.0, "MOTION": 1.0, "CHANGE": 0.5}
+    # THE ENUMERATION THIS REPLACES, written out rather than called: a check that reuses the
+    # implementation agrees with it by construction, which is the measurement that cannot fail.
+    scan = {k for tag in want for kind in ("atoms", "molecules")
+            for k in (by_tag.get(tag) or {}).get(kind) or []}
+    keyed = set(inherited.reach(want))
+    assert keyed == scan, (
+        f"the keyed reach is not the enumeration: {len(keyed)} vs {len(scan)}, "
+        f"missing {sorted(scan - keyed)[:5]}, invented {sorted(keyed - scan)[:5]}")
+    assert len(keyed) > 100, f"only {len(keyed)} candidates -- the index is not being read"
+
+    # MUTATION CONTROL 1 -- a reach that GATES on reach_tier must be caught. This is the exact
+    # filter the plan was tempted by, and 1,132 of 1,748 atoms carry no tier at all.
+    gated = {k for k in scan if str((inherited.entry(k) or {}).get("reach_tier")) in "01"}
+    assert gated != scan, "the tier filter removes nothing here -- the control cannot fire"
+    assert keyed != gated, "a tier-GATED reach passed the equality check; the guard is inert"
+
+    # MUTATION CONTROL 2 -- ordering must actually order, or `reach` is returning arbitrary
+    # keys and the equality above would still hold.
+    ordered = inherited.reach(want)
+    assert ordered != sorted(ordered), "the result is in name order -- nothing ranked it"
+
+
+def test_the_inherited_vocabulary_is_not_the_held_library():
+    """`gamma.library` AND `library/` ARE TWO THINGS AND THE PLAN CONFLATED THEM.
+
+    Filed 2026-09-27 as the fifth `A6i` of one day. `Gamma.library` is `dict[str, Term]` -- what
+    the agent HOLDS, minted or imported and earned -- and `retrieval.retrieve` scans it. The
+    inherited vocabulary is 4,042 entries it can REACH FOR. A build item pointed the keyed
+    lookup at `retrieve()` on the strength of the shared word, and `retrieve()` was never the
+    enumeration the reviewer's ruling was about: `_operand_fits` fires 850,833 times from
+    `mint`.
+
+    **The module is named `inherited` and not `library` for this reason**, and this check pins
+    it so the name cannot drift back: a future `library.py` would make the collision permanent.
+    """
+    import gamma
+    import gridworld
+    import inherited
+    from world import bind
+
+    assert not (Path(__file__).parent.parent / "library.py").exists(), (
+        "a module named `library.py` now exists -- that is the third sense of `library` in "
+        "this package and the collision `inherited.py` was named to avoid")
+
+    env = bind(gridworld.boards(1, start=3)[0])
+    held = set(gamma.Gamma(env.atoms()).library)
+    reachable = set(inherited.load()["atoms"])
+    if not reachable:
+        print("  two vocabularies: SKIPPED -- library/ is absent")
+        return
+    # THE POINT IS THE DISPROPORTION, and it is what makes the two words worth separating:
+    # the agent HOLDS tens of terms and can REACH FOR thousands. A build item that scanned
+    # the held set believed it was scanning the inherited one.
+    assert len(reachable) > 10 * max(1, len(held)), (
+        f"held {len(held)} vs reachable {len(reachable)} -- these are supposed to be "
+        "different orders of magnitude; check which object is being measured")
+    assert not (held & reachable), (
+        f"a key is in BOTH vocabularies ({sorted(held & reachable)[:3]}) -- the agent's own "
+        "atoms are keyed `name` and the inherited ones `DOMAIN|Name`, so an overlap means one "
+        "side has been re-keyed and the ablation can no longer tell given from earned apart")
+
+
 if __name__ == "__main__":
     if "--cover" in sys.argv:
         for label, c in (("kernel.Frame", coverage()),
@@ -826,6 +915,9 @@ if __name__ == "__main__":
         test_a_mutation_moves_attention_and_never_the_action()
         test_the_admitting_clause_crosses_into_gamma()
         test_the_daydream_precondition_can_refuse()
+        test_the_keyed_reach_loses_nothing()
+        test_the_inherited_vocabulary_is_not_the_held_library()
+        print("  keyed reach loses nothing: ok · two vocabularies stay two: ok")
         print("  shipped generator coverage: ok · residual bound loses nothing: ok"
               " · resolutions are not the answer: ok · atom order pinned: ok"
               " · promotion clause recorded: ok · observer reaches the agent: ok"

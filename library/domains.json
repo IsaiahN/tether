@@ -1,0 +1,1126 @@
+{
+ "meta": {
+  "what": "The 61 domains: super-category, root atom, and adjacency neighbours with edge weights (ADJACENCY_EDGES.json). Weights are counts, not distances."
+ },
+ "domains": {
+  "ACOUSTIC": {
+   "super_category": "Physics / Substrate",
+   "root": "ACOUSTIC|Echo",
+   "degree": 11,
+   "neighbours": {
+    "OPTICAL": 3,
+    "EXCHANGE": 1,
+    "QUANTUM": 1,
+    "LARGE-SCALE": 1,
+    "INFORMATION": 1,
+    "SKILL": 1,
+    "MATERIAL": 1,
+    "AESTHETIC": 1,
+    "TRANSFORMATION": 1,
+    "NUTRITIONAL": 1,
+    "CONNECTION": 1
+   },
+   "atoms": 36,
+   "molecules": 40
+  },
+  "ACTION": {
+   "super_category": "Action / Flow / Temporality",
+   "root": "ACTION|Initiation",
+   "degree": 10,
+   "neighbours": {
+    "PHENOMENOLOGICAL": 2,
+    "KINETIC": 1,
+    "LUDOLOGICAL": 1,
+    "ONTOLOGICAL": 1,
+    "SKILL": 1,
+    "HUMAN": 1,
+    "HABIT": 1,
+    "CHOICE": 1,
+    "ADHERENCE": 1,
+    "TRANSFORMATION": 1
+   },
+   "atoms": 22,
+   "molecules": 41
+  },
+  "ADHERENCE": {
+   "super_category": "Meta / Existence / Architecture",
+   "root": "ADHERENCE|Promise",
+   "degree": 7,
+   "neighbours": {
+    "HUMAN": 3,
+    "SOCIAL": 2,
+    "EXCHANGE": 2,
+    "ACTION": 1,
+    "DESIRE": 1,
+    "HABIT": 1,
+    "PHENOMENOLOGICAL": 1
+   },
+   "atoms": 28,
+   "molecules": 43
+  },
+  "ADVERSARIAL": {
+   "super_category": "Interaction / Systems / Society",
+   "root": "ADVERSARIAL|Misrepresentation",
+   "degree": 5,
+   "neighbours": {
+    "MEDICAL": 2,
+    "DESIRE": 1,
+    "HUMAN": 1,
+    "HEAT": 1,
+    "ZOOLOGICAL": 1
+   },
+   "atoms": 11,
+   "molecules": 23
+  },
+  "AESTHETIC": {
+   "super_category": "Meta / Existence / Architecture",
+   "root": "AESTHETIC|Gestalt",
+   "degree": 13,
+   "neighbours": {
+    "LINEAGE": 2,
+    "LUDOLOGICAL": 1,
+    "KINETIC": 1,
+    "LIVING": 1,
+    "LINGUISTIC": 1,
+    "NUTRITIONAL": 1,
+    "OPTICAL": 1,
+    "ACOUSTIC": 1,
+    "TOPOLOGICAL": 1,
+    "NOETIC": 1,
+    "ONTOLOGICAL": 1,
+    "PATHOLOGICAL": 1,
+    "SKILL": 1
+   },
+   "atoms": 20,
+   "molecules": 36
+  },
+  "ALEATORY": {
+   "super_category": "Interaction / Systems / Society",
+   "root": "ALEATORY|Randomness",
+   "degree": 11,
+   "neighbours": {
+    "LUDOLOGICAL": 3,
+    "CHOICE": 2,
+    "CURIOSITY": 2,
+    "QUANTUM": 1,
+    "ECONOMIC": 1,
+    "LINGUISTIC": 1,
+    "CONNECTION": 1,
+    "AUTOMATON": 1,
+    "ONTOLOGICAL": 1,
+    "LOGISTICAL": 1,
+    "EXCHANGE": 1
+   },
+   "atoms": 39,
+   "molecules": 47
+  },
+  "ATMOSPHERIC": {
+   "super_category": "Physics / Substrate",
+   "root": "ATMOSPHERIC|Wind",
+   "degree": 3,
+   "neighbours": {
+    "PHENOMENOLOGICAL": 2,
+    "HUMAN": 1,
+    "DYNAMIC": 1
+   },
+   "atoms": 47,
+   "molecules": 38
+  },
+  "AUTOMATON": {
+   "super_category": "Information / Abstraction",
+   "root": "AUTOMATON|Automaton",
+   "degree": 15,
+   "neighbours": {
+    "LUDOLOGICAL": 5,
+    "TRANSFORMATION": 3,
+    "HUMAN": 2,
+    "REBELLION": 2,
+    "THOUGHT": 2,
+    "SOCIAL": 2,
+    "ECONOMIC": 1,
+    "ALEATORY": 1,
+    "TOPOLOGICAL": 1,
+    "MECHANICAL": 1,
+    "LIVING": 1,
+    "TEMPORAL": 1,
+    "HABIT": 1,
+    "DESIRE": 1,
+    "SKILL": 1
+   },
+   "atoms": 32,
+   "molecules": 44
+  },
+  "CELLULAR": {
+   "super_category": "Life / Cognition / Flesh",
+   "root": "CELLULAR|Cell",
+   "degree": 11,
+   "neighbours": {
+    "LEARNING": 3,
+    "NUTRITIONAL": 2,
+    "LIVING": 2,
+    "MORPHOGENETIC": 1,
+    "LOGISTICAL": 1,
+    "CONNECTION": 1,
+    "MEDICAL": 1,
+    "PSYCHOLOGICAL": 1,
+    "CHEMICAL": 1,
+    "LINEAGE": 1,
+    "SOCIAL": 1
+   },
+   "atoms": 40,
+   "molecules": 41
+  },
+  "CHARACTER": {
+   "super_category": "Meta / Existence / Architecture",
+   "root": "CHARACTER|Identity",
+   "degree": 10,
+   "neighbours": {
+    "LEARNING": 2,
+    "PHENOMENOLOGICAL": 2,
+    "ECONOMIC": 1,
+    "LINGUISTIC": 1,
+    "CONNECTION": 1,
+    "ONTOLOGICAL": 1,
+    "MEDICAL": 1,
+    "SKILL": 1,
+    "HUMAN": 1,
+    "TEMPORAL": 1
+   },
+   "atoms": 23,
+   "molecules": 42
+  },
+  "CHEMICAL": {
+   "super_category": "Physics / Substrate",
+   "root": "CHEMICAL|Compound",
+   "degree": 6,
+   "neighbours": {
+    "DYNAMIC": 2,
+    "MORPHOGENETIC": 2,
+    "TRANSFORMATION": 1,
+    "LIVING": 1,
+    "NUTRITIONAL": 1,
+    "CELLULAR": 1
+   },
+   "atoms": 42,
+   "molecules": 39
+  },
+  "CHOICE": {
+   "super_category": "Meta / Existence / Architecture",
+   "root": "CHOICE|Alternative",
+   "degree": 8,
+   "neighbours": {
+    "ALEATORY": 2,
+    "PHENOMENOLOGICAL": 2,
+    "DYNAMIC": 1,
+    "LOGISTICAL": 1,
+    "CYBERNETIC": 1,
+    "MORPHOGENETIC": 1,
+    "ACTION": 1,
+    "THOUGHT": 1
+   },
+   "atoms": 27,
+   "molecules": 39
+  },
+  "CONNECTION": {
+   "super_category": "Interaction / Systems / Society",
+   "root": "CONNECTION|Link",
+   "degree": 20,
+   "neighbours": {
+    "HABIT": 4,
+    "DESIRE": 3,
+    "LEARNING": 3,
+    "MORPHOGENETIC": 2,
+    "SOCIAL": 2,
+    "TRANSFORMATION": 2,
+    "ALEATORY": 1,
+    "MNEMONIC": 1,
+    "PHENOMENOLOGICAL": 1,
+    "CHARACTER": 1,
+    "PSYCHOLOGICAL": 1,
+    "LARGE-SCALE": 1,
+    "LUDOLOGICAL": 1,
+    "EXCHANGE": 1,
+    "ACOUSTIC": 1,
+    "NETWORK": 1,
+    "SOMNIAL": 1,
+    "PATHOLOGICAL": 1,
+    "CELLULAR": 1,
+    "SKILL": 1
+   },
+   "atoms": 35,
+   "molecules": 39
+  },
+  "CURIOSITY": {
+   "super_category": "Meta / Existence / Architecture",
+   "root": "CURIOSITY|Wonder",
+   "degree": 7,
+   "neighbours": {
+    "HABIT": 2,
+    "ALEATORY": 2,
+    "PHENOMENOLOGICAL": 2,
+    "LARGE-SCALE": 1,
+    "KINETIC": 1,
+    "ONTOLOGICAL": 1,
+    "SKILL": 1
+   },
+   "atoms": 36,
+   "molecules": 40
+  },
+  "CYBERNETIC": {
+   "super_category": "Information / Abstraction",
+   "root": "CYBERNETIC|Setpoint",
+   "degree": 6,
+   "neighbours": {
+    "DYNAMIC": 5,
+    "CHOICE": 1,
+    "TRANSFORMATION": 1,
+    "LIVING": 1,
+    "ECONOMIC": 1,
+    "ONTOLOGICAL": 1
+   },
+   "atoms": 22,
+   "molecules": 36
+  },
+  "DESIRE": {
+   "super_category": "Meta / Existence / Architecture",
+   "root": "DESIRE|Goal",
+   "degree": 7,
+   "neighbours": {
+    "CONNECTION": 3,
+    "ADVERSARIAL": 1,
+    "PSYCHOLOGICAL": 1,
+    "TEMPORAL": 1,
+    "ADHERENCE": 1,
+    "EXCHANGE": 1,
+    "AUTOMATON": 1
+   },
+   "atoms": 33,
+   "molecules": 39
+  },
+  "DYNAMIC": {
+   "super_category": "Action / Flow / Temporality",
+   "root": "DYNAMIC|Stimulus",
+   "degree": 13,
+   "neighbours": {
+    "CYBERNETIC": 5,
+    "CHEMICAL": 2,
+    "PSYCHOLOGICAL": 2,
+    "KINETIC": 1,
+    "CHOICE": 1,
+    "EXCHANGE": 1,
+    "TEMPORAL": 1,
+    "MATERIAL": 1,
+    "EMOTION": 1,
+    "ATMOSPHERIC": 1,
+    "MORPHOGENETIC": 1,
+    "NETWORK": 1,
+    "TRANSFORMATION": 1
+   },
+   "atoms": 12,
+   "molecules": 49
+  },
+  "ECONOMIC": {
+   "super_category": "Interaction / Systems / Society",
+   "root": "ECONOMIC|Trade",
+   "degree": 8,
+   "neighbours": {
+    "EXCHANGE": 6,
+    "ALEATORY": 1,
+    "AUTOMATON": 1,
+    "LUDOLOGICAL": 1,
+    "LIVING": 1,
+    "SOCIAL": 1,
+    "CYBERNETIC": 1,
+    "CHARACTER": 1
+   },
+   "atoms": 53,
+   "molecules": 40
+  },
+  "ELECTRICAL": {
+   "super_category": "Physics / Substrate",
+   "root": "ELECTRICAL|Current",
+   "degree": 2,
+   "neighbours": {
+    "HABIT": 1,
+    "EMBODIMENT": 1
+   },
+   "atoms": 12,
+   "molecules": 28
+  },
+  "EMBODIMENT": {
+   "super_category": "Life / Cognition / Flesh",
+   "root": "EMBODIMENT|Body Schema",
+   "degree": 4,
+   "neighbours": {
+    "ELECTRICAL": 1,
+    "RAW DATA": 1,
+    "LIVING": 1,
+    "PHENOMENOLOGICAL": 1
+   },
+   "atoms": 21,
+   "molecules": 34
+  },
+  "EMOTION": {
+   "super_category": "Life / Cognition / Flesh",
+   "root": "EMOTION|Valence",
+   "degree": 8,
+   "neighbours": {
+    "PSYCHOLOGICAL": 2,
+    "PHENOMENOLOGICAL": 2,
+    "HABIT": 1,
+    "LIVING": 1,
+    "TEMPORAL": 1,
+    "DYNAMIC": 1,
+    "SOMNIAL": 1,
+    "PATHOLOGICAL": 1
+   },
+   "atoms": 27,
+   "molecules": 40
+  },
+  "EXCHANGE": {
+   "super_category": "Interaction / Systems / Society",
+   "root": "EXCHANGE|Resource",
+   "degree": 12,
+   "neighbours": {
+    "ECONOMIC": 6,
+    "SOCIAL": 5,
+    "LUDOLOGICAL": 3,
+    "ADHERENCE": 2,
+    "KINETIC": 1,
+    "DYNAMIC": 1,
+    "ACOUSTIC": 1,
+    "ONTOLOGICAL": 1,
+    "CONNECTION": 1,
+    "DESIRE": 1,
+    "ALEATORY": 1,
+    "NETWORK": 1
+   },
+   "atoms": 42,
+   "molecules": 42
+  },
+  "FLUID": {
+   "super_category": "Physics / Substrate",
+   "root": "FLUID|Flowing substance",
+   "degree": 4,
+   "neighbours": {
+    "HUMAN": 3,
+    "RAW DATA": 2,
+    "MNEMONIC": 1,
+    "NETWORK": 1
+   },
+   "atoms": 13,
+   "molecules": 17
+  },
+  "HABIT": {
+   "super_category": "Meta / Existence / Architecture",
+   "root": "HABIT|Cue / Trigger",
+   "degree": 15,
+   "neighbours": {
+    "CONNECTION": 4,
+    "THOUGHT": 2,
+    "CURIOSITY": 2,
+    "SKILL": 2,
+    "ELECTRICAL": 1,
+    "EMOTION": 1,
+    "ONTOLOGICAL": 1,
+    "ACTION": 1,
+    "LIVING": 1,
+    "ADHERENCE": 1,
+    "PATHOLOGICAL": 1,
+    "LINEAGE": 1,
+    "AUTOMATON": 1,
+    "NETWORK": 1,
+    "TRANSFORMATION": 1
+   },
+   "atoms": 25,
+   "molecules": 42
+  },
+  "HEAT": {
+   "super_category": "Physics / Substrate",
+   "root": "HEAT|Heat",
+   "degree": 3,
+   "neighbours": {
+    "HUMAN": 1,
+    "MECHANICAL": 1,
+    "ADVERSARIAL": 1
+   },
+   "atoms": 12,
+   "molecules": 25
+  },
+  "HUMAN": {
+   "super_category": "Physics / Substrate",
+   "root": "HUMAN|Geometry",
+   "degree": 21,
+   "neighbours": {
+    "MECHANICAL": 10,
+    "FLUID": 3,
+    "ADHERENCE": 3,
+    "LUDOLOGICAL": 2,
+    "LEARNING": 2,
+    "AUTOMATON": 2,
+    "KINETIC": 2,
+    "NETWORK": 2,
+    "PSYCHOLOGICAL": 1,
+    "ADVERSARIAL": 1,
+    "HEAT": 1,
+    "TRANSFORMATION": 1,
+    "ATMOSPHERIC": 1,
+    "ONTOLOGICAL": 1,
+    "NUTRITIONAL": 1,
+    "ACTION": 1,
+    "CHARACTER": 1,
+    "REBELLION": 1,
+    "PATHOLOGICAL": 1,
+    "LINEAGE": 1,
+    "SKILL": 1
+   },
+   "atoms": 34,
+   "molecules": 65
+  },
+  "INFORMATION": {
+   "super_category": "Information / Abstraction",
+   "root": "INFORMATION|Algorithm",
+   "degree": 6,
+   "neighbours": {
+    "THOUGHT": 4,
+    "MORPHOGENETIC": 2,
+    "QUANTUM": 1,
+    "PSYCHOLOGICAL": 1,
+    "ACOUSTIC": 1,
+    "MNEMONIC": 1
+   },
+   "atoms": 26,
+   "molecules": 35
+  },
+  "KINETIC": {
+   "super_category": "Action / Flow / Temporality",
+   "root": "KINETIC|Propulsion",
+   "degree": 12,
+   "neighbours": {
+    "HUMAN": 2,
+    "TOPOLOGICAL": 2,
+    "LARGE-SCALE": 1,
+    "LUDOLOGICAL": 1,
+    "EXCHANGE": 1,
+    "ACTION": 1,
+    "DYNAMIC": 1,
+    "LEARNING": 1,
+    "NUTRITIONAL": 1,
+    "AESTHETIC": 1,
+    "MORPHOGENETIC": 1,
+    "CURIOSITY": 1
+   },
+   "atoms": 15,
+   "molecules": 40
+  },
+  "LARGE-SCALE": {
+   "super_category": "Physics / Substrate",
+   "root": "LARGE-SCALE|Gravity",
+   "degree": 10,
+   "neighbours": {
+    "SKILL": 3,
+    "KINETIC": 1,
+    "QUANTUM": 1,
+    "PSYCHOLOGICAL": 1,
+    "ACOUSTIC": 1,
+    "TOPOLOGICAL": 1,
+    "NOETIC": 1,
+    "MORPHOGENETIC": 1,
+    "CURIOSITY": 1,
+    "CONNECTION": 1
+   },
+   "atoms": 15,
+   "molecules": 20
+  },
+  "LEARNING": {
+   "super_category": "Information / Abstraction",
+   "root": "LEARNING|Reflection",
+   "degree": 14,
+   "neighbours": {
+    "SKILL": 6,
+    "CELLULAR": 3,
+    "LINEAGE": 3,
+    "CONNECTION": 3,
+    "PHENOMENOLOGICAL": 3,
+    "HUMAN": 2,
+    "CHARACTER": 2,
+    "KINETIC": 1,
+    "SOCIAL": 1,
+    "MNEMONIC": 1,
+    "LOGISTICAL": 1,
+    "ONTOLOGICAL": 1,
+    "NUTRITIONAL": 1,
+    "THOUGHT": 1
+   },
+   "atoms": 30,
+   "molecules": 52
+  },
+  "LINEAGE": {
+   "super_category": "Life / Cognition / Flesh",
+   "root": "LINEAGE|Seed",
+   "degree": 11,
+   "neighbours": {
+    "LEARNING": 3,
+    "PHENOMENOLOGICAL": 3,
+    "AESTHETIC": 2,
+    "TRANSFORMATION": 2,
+    "PATHOLOGICAL": 1,
+    "CELLULAR": 1,
+    "LINGUISTIC": 1,
+    "HABIT": 1,
+    "QUANTUM": 1,
+    "HUMAN": 1,
+    "SKILL": 1
+   },
+   "atoms": 40,
+   "molecules": 38
+  },
+  "LINGUISTIC": {
+   "super_category": "Information / Abstraction",
+   "root": "LINGUISTIC|Semantics",
+   "degree": 10,
+   "neighbours": {
+    "PHENOMENOLOGICAL": 2,
+    "AESTHETIC": 1,
+    "ALEATORY": 1,
+    "SKILL": 1,
+    "ONTOLOGICAL": 1,
+    "TRANSFORMATION": 1,
+    "CHARACTER": 1,
+    "SOMNIAL": 1,
+    "LUDIC / ABSURDIST": 1,
+    "LINEAGE": 1
+   },
+   "atoms": 32,
+   "molecules": 34
+  },
+  "LIVING": {
+   "super_category": "Life / Cognition / Flesh",
+   "root": "LIVING|Cell",
+   "degree": 19,
+   "neighbours": {
+    "LOGISTICAL": 3,
+    "CELLULAR": 2,
+    "CHEMICAL": 1,
+    "PSYCHOLOGICAL": 1,
+    "ECONOMIC": 1,
+    "AESTHETIC": 1,
+    "EMBODIMENT": 1,
+    "TEMPORAL": 1,
+    "SOCIAL": 1,
+    "EMOTION": 1,
+    "CYBERNETIC": 1,
+    "MEDICAL": 1,
+    "ZOOLOGICAL": 1,
+    "MORPHOGENETIC": 1,
+    "THOUGHT": 1,
+    "HABIT": 1,
+    "AUTOMATON": 1,
+    "NETWORK": 1,
+    "TRANSFORMATION": 1
+   },
+   "atoms": 31,
+   "molecules": 32
+  },
+  "LOGISTICAL": {
+   "super_category": "Action / Flow / Temporality",
+   "root": "LOGISTICAL|Flow",
+   "degree": 8,
+   "neighbours": {
+    "LIVING": 3,
+    "CHOICE": 1,
+    "NUTRITIONAL": 1,
+    "LEARNING": 1,
+    "ALEATORY": 1,
+    "CELLULAR": 1,
+    "NETWORK": 1,
+    "SKILL": 1
+   },
+   "atoms": 28,
+   "molecules": 39
+  },
+  "LUDIC / ABSURDIST": {
+   "super_category": "Interaction / Systems / Society",
+   "root": "LUDIC / ABSURDIST|Laughter",
+   "degree": 5,
+   "neighbours": {
+    "LUDOLOGICAL": 1,
+    "LINGUISTIC": 1,
+    "REBELLION": 1,
+    "PHENOMENOLOGICAL": 1,
+    "ONTOLOGICAL": 1
+   },
+   "atoms": 30,
+   "molecules": 37
+  },
+  "LUDOLOGICAL": {
+   "super_category": "Interaction / Systems / Society",
+   "root": "LUDOLOGICAL|Game State",
+   "degree": 13,
+   "neighbours": {
+    "AUTOMATON": 5,
+    "ALEATORY": 3,
+    "EXCHANGE": 3,
+    "HUMAN": 2,
+    "SOCIAL": 2,
+    "KINETIC": 1,
+    "ECONOMIC": 1,
+    "AESTHETIC": 1,
+    "ACTION": 1,
+    "PHENOMENOLOGICAL": 1,
+    "THAUMATURGICAL": 1,
+    "CONNECTION": 1,
+    "LUDIC / ABSURDIST": 1
+   },
+   "atoms": 29,
+   "molecules": 43
+  },
+  "MATERIAL": {
+   "super_category": "Physics / Substrate",
+   "root": "MATERIAL|Stress",
+   "degree": 5,
+   "neighbours": {
+    "DYNAMIC": 1,
+    "PSYCHOLOGICAL": 1,
+    "SOCIAL": 1,
+    "ACOUSTIC": 1,
+    "MORPHOGENETIC": 1
+   },
+   "atoms": 21,
+   "molecules": 37
+  },
+  "MECHANICAL": {
+   "super_category": "Physics / Substrate",
+   "root": "MECHANICAL|Lever",
+   "degree": 3,
+   "neighbours": {
+    "HUMAN": 10,
+    "HEAT": 1,
+    "AUTOMATON": 1
+   },
+   "atoms": 11,
+   "molecules": 24
+  },
+  "MEDICAL": {
+   "super_category": "Life / Cognition / Flesh",
+   "root": "MEDICAL|Wound",
+   "degree": 5,
+   "neighbours": {
+    "ADVERSARIAL": 2,
+    "PATHOLOGICAL": 2,
+    "LIVING": 1,
+    "CHARACTER": 1,
+    "CELLULAR": 1
+   },
+   "atoms": 42,
+   "molecules": 37
+  },
+  "MNEMONIC": {
+   "super_category": "Life / Cognition / Flesh",
+   "root": "MNEMONIC|Memory Trace",
+   "degree": 7,
+   "neighbours": {
+    "INFORMATION": 1,
+    "NUTRITIONAL": 1,
+    "QUANTUM": 1,
+    "FLUID": 1,
+    "CONNECTION": 1,
+    "LEARNING": 1,
+    "MORPHOGENETIC": 1
+   },
+   "atoms": 32,
+   "molecules": 38
+  },
+  "MORPHOGENETIC": {
+   "super_category": "Information / Abstraction",
+   "root": "MORPHOGENETIC|Diffusion",
+   "degree": 13,
+   "neighbours": {
+    "CHEMICAL": 2,
+    "INFORMATION": 2,
+    "CONNECTION": 2,
+    "SOCIAL": 1,
+    "MATERIAL": 1,
+    "CELLULAR": 1,
+    "KINETIC": 1,
+    "CHOICE": 1,
+    "LARGE-SCALE": 1,
+    "MNEMONIC": 1,
+    "DYNAMIC": 1,
+    "LIVING": 1,
+    "NETWORK": 1
+   },
+   "atoms": 39,
+   "molecules": 37
+  },
+  "NETWORK": {
+   "super_category": "Information / Abstraction",
+   "root": "NETWORK|Node",
+   "degree": 12,
+   "neighbours": {
+    "TEMPORAL": 3,
+    "SOCIAL": 3,
+    "HUMAN": 2,
+    "CONNECTION": 1,
+    "MORPHOGENETIC": 1,
+    "HABIT": 1,
+    "LOGISTICAL": 1,
+    "FLUID": 1,
+    "TRANSFORMATION": 1,
+    "DYNAMIC": 1,
+    "LIVING": 1,
+    "EXCHANGE": 1
+   },
+   "atoms": 22,
+   "molecules": 48
+  },
+  "NOETIC": {
+   "super_category": "Life / Cognition / Flesh",
+   "root": "NOETIC|Ego",
+   "degree": 8,
+   "neighbours": {
+    "SKILL": 3,
+    "SOCIAL": 3,
+    "PATHOLOGICAL": 3,
+    "PSYCHOLOGICAL": 1,
+    "LARGE-SCALE": 1,
+    "TRANSFORMATION": 1,
+    "AESTHETIC": 1,
+    "ONTOLOGICAL": 1
+   },
+   "atoms": 28,
+   "molecules": 32
+  },
+  "NUTRITIONAL": {
+   "super_category": "Life / Cognition / Flesh",
+   "root": "NUTRITIONAL|Substrate/Food",
+   "degree": 9,
+   "neighbours": {
+    "CELLULAR": 2,
+    "KINETIC": 1,
+    "AESTHETIC": 1,
+    "MNEMONIC": 1,
+    "LOGISTICAL": 1,
+    "ACOUSTIC": 1,
+    "LEARNING": 1,
+    "HUMAN": 1,
+    "CHEMICAL": 1
+   },
+   "atoms": 45,
+   "molecules": 39
+  },
+  "ONTOLOGICAL": {
+   "super_category": "Meta / Existence / Architecture",
+   "root": "ONTOLOGICAL|Simulation",
+   "degree": 17,
+   "neighbours": {
+    "PHENOMENOLOGICAL": 3,
+    "TRANSFORMATION": 2,
+    "ALEATORY": 1,
+    "CYBERNETIC": 1,
+    "LINGUISTIC": 1,
+    "AESTHETIC": 1,
+    "NOETIC": 1,
+    "LEARNING": 1,
+    "THOUGHT": 1,
+    "HABIT": 1,
+    "ACTION": 1,
+    "EXCHANGE": 1,
+    "HUMAN": 1,
+    "CHARACTER": 1,
+    "CURIOSITY": 1,
+    "PATHOLOGICAL": 1,
+    "LUDIC / ABSURDIST": 1
+   },
+   "atoms": 40,
+   "molecules": 38
+  },
+  "OPTICAL": {
+   "super_category": "Physics / Substrate",
+   "root": "OPTICAL|Interference",
+   "degree": 4,
+   "neighbours": {
+    "ACOUSTIC": 3,
+    "QUANTUM": 1,
+    "SOCIAL": 1,
+    "AESTHETIC": 1
+   },
+   "atoms": 27,
+   "molecules": 37
+  },
+  "PATHOLOGICAL": {
+   "super_category": "Life / Cognition / Flesh",
+   "root": "PATHOLOGICAL|Grief",
+   "degree": 11,
+   "neighbours": {
+    "PHENOMENOLOGICAL": 4,
+    "NOETIC": 3,
+    "MEDICAL": 2,
+    "ONTOLOGICAL": 1,
+    "HABIT": 1,
+    "TEMPORAL": 1,
+    "CONNECTION": 1,
+    "AESTHETIC": 1,
+    "LINEAGE": 1,
+    "HUMAN": 1,
+    "EMOTION": 1
+   },
+   "atoms": 30,
+   "molecules": 41
+  },
+  "PHENOMENOLOGICAL": {
+   "super_category": "Meta / Existence / Architecture",
+   "root": "PHENOMENOLOGICAL|Other",
+   "degree": 20,
+   "neighbours": {
+    "PATHOLOGICAL": 4,
+    "THAUMATURGICAL": 3,
+    "ONTOLOGICAL": 3,
+    "LINEAGE": 3,
+    "LEARNING": 3,
+    "EMOTION": 2,
+    "LINGUISTIC": 2,
+    "ATMOSPHERIC": 2,
+    "ACTION": 2,
+    "CHOICE": 2,
+    "CHARACTER": 2,
+    "CURIOSITY": 2,
+    "SOMNIAL": 2,
+    "LUDOLOGICAL": 1,
+    "CONNECTION": 1,
+    "EMBODIMENT": 1,
+    "THOUGHT": 1,
+    "ADHERENCE": 1,
+    "REBELLION": 1,
+    "LUDIC / ABSURDIST": 1
+   },
+   "atoms": 36,
+   "molecules": 38
+  },
+  "PSYCHOLOGICAL": {
+   "super_category": "Life / Cognition / Flesh",
+   "root": "PSYCHOLOGICAL|Motivation",
+   "degree": 11,
+   "neighbours": {
+    "DYNAMIC": 2,
+    "EMOTION": 2,
+    "HUMAN": 1,
+    "LARGE-SCALE": 1,
+    "INFORMATION": 1,
+    "DESIRE": 1,
+    "LIVING": 1,
+    "NOETIC": 1,
+    "MATERIAL": 1,
+    "CONNECTION": 1,
+    "CELLULAR": 1
+   },
+   "atoms": 26,
+   "molecules": 39
+  },
+  "QUANTUM": {
+   "super_category": "Information / Abstraction",
+   "root": "QUANTUM|Measurement",
+   "degree": 7,
+   "neighbours": {
+    "ALEATORY": 1,
+    "LARGE-SCALE": 1,
+    "INFORMATION": 1,
+    "OPTICAL": 1,
+    "ACOUSTIC": 1,
+    "MNEMONIC": 1,
+    "LINEAGE": 1
+   },
+   "atoms": 12,
+   "molecules": 15
+  },
+  "RAW DATA": {
+   "super_category": "Information / Abstraction",
+   "root": "RAW DATA|Cell value",
+   "degree": 2,
+   "neighbours": {
+    "FLUID": 2,
+    "EMBODIMENT": 1
+   },
+   "atoms": 17,
+   "molecules": 33
+  },
+  "REBELLION": {
+   "super_category": "Meta / Existence / Architecture",
+   "root": "REBELLION|Dissent",
+   "degree": 5,
+   "neighbours": {
+    "SOCIAL": 3,
+    "AUTOMATON": 2,
+    "HUMAN": 1,
+    "PHENOMENOLOGICAL": 1,
+    "LUDIC / ABSURDIST": 1
+   },
+   "atoms": 36,
+   "molecules": 36
+  },
+  "SKILL": {
+   "super_category": "Information / Abstraction",
+   "root": "SKILL|Flow (Skill)",
+   "degree": 16,
+   "neighbours": {
+    "LEARNING": 6,
+    "LARGE-SCALE": 3,
+    "NOETIC": 3,
+    "HABIT": 2,
+    "TEMPORAL": 2,
+    "ACOUSTIC": 1,
+    "LINGUISTIC": 1,
+    "ACTION": 1,
+    "CHARACTER": 1,
+    "HUMAN": 1,
+    "LOGISTICAL": 1,
+    "AESTHETIC": 1,
+    "CONNECTION": 1,
+    "LINEAGE": 1,
+    "AUTOMATON": 1,
+    "CURIOSITY": 1
+   },
+   "atoms": 31,
+   "molecules": 41
+  },
+  "SOCIAL": {
+   "super_category": "Interaction / Systems / Society",
+   "root": "SOCIAL|Group",
+   "degree": 15,
+   "neighbours": {
+    "EXCHANGE": 5,
+    "NOETIC": 3,
+    "REBELLION": 3,
+    "NETWORK": 3,
+    "LUDOLOGICAL": 2,
+    "ADHERENCE": 2,
+    "CONNECTION": 2,
+    "AUTOMATON": 2,
+    "MATERIAL": 1,
+    "OPTICAL": 1,
+    "ECONOMIC": 1,
+    "LEARNING": 1,
+    "LIVING": 1,
+    "MORPHOGENETIC": 1,
+    "CELLULAR": 1
+   },
+   "atoms": 27,
+   "molecules": 43
+  },
+  "SOMNIAL": {
+   "super_category": "Life / Cognition / Flesh",
+   "root": "SOMNIAL|Dream",
+   "degree": 6,
+   "neighbours": {
+    "TEMPORAL": 5,
+    "PHENOMENOLOGICAL": 2,
+    "LINGUISTIC": 1,
+    "EMOTION": 1,
+    "TRANSFORMATION": 1,
+    "CONNECTION": 1
+   },
+   "atoms": 28,
+   "molecules": 38
+  },
+  "TEMPORAL": {
+   "super_category": "Action / Flow / Temporality",
+   "root": "TEMPORAL|Anticipation",
+   "degree": 12,
+   "neighbours": {
+    "SOMNIAL": 5,
+    "NETWORK": 3,
+    "ZOOLOGICAL": 2,
+    "SKILL": 2,
+    "DYNAMIC": 1,
+    "DESIRE": 1,
+    "LIVING": 1,
+    "EMOTION": 1,
+    "CHARACTER": 1,
+    "PATHOLOGICAL": 1,
+    "AUTOMATON": 1,
+    "TRANSFORMATION": 1
+   },
+   "atoms": 14,
+   "molecules": 39
+  },
+  "THAUMATURGICAL": {
+   "super_category": "Meta / Existence / Architecture",
+   "root": "THAUMATURGICAL|Ritual",
+   "degree": 2,
+   "neighbours": {
+    "PHENOMENOLOGICAL": 3,
+    "LUDOLOGICAL": 1
+   },
+   "atoms": 23,
+   "molecules": 18
+  },
+  "THOUGHT": {
+   "super_category": "Life / Cognition / Flesh",
+   "root": "THOUGHT|Logic",
+   "degree": 8,
+   "neighbours": {
+    "INFORMATION": 4,
+    "HABIT": 2,
+    "AUTOMATON": 2,
+    "ONTOLOGICAL": 1,
+    "LEARNING": 1,
+    "PHENOMENOLOGICAL": 1,
+    "LIVING": 1,
+    "CHOICE": 1
+   },
+   "atoms": 30,
+   "molecules": 44
+  },
+  "TOPOLOGICAL": {
+   "super_category": "Physics / Substrate",
+   "root": "TOPOLOGICAL|Knot",
+   "degree": 4,
+   "neighbours": {
+    "KINETIC": 2,
+    "AESTHETIC": 1,
+    "AUTOMATON": 1,
+    "LARGE-SCALE": 1
+   },
+   "atoms": 42,
+   "molecules": 38
+  },
+  "TRANSFORMATION": {
+   "super_category": "Meta / Existence / Architecture",
+   "root": "TRANSFORMATION|Form",
+   "degree": 17,
+   "neighbours": {
+    "AUTOMATON": 3,
+    "ONTOLOGICAL": 2,
+    "LINEAGE": 2,
+    "CONNECTION": 2,
+    "HUMAN": 1,
+    "CHEMICAL": 1,
+    "ACOUSTIC": 1,
+    "NOETIC": 1,
+    "CYBERNETIC": 1,
+    "LINGUISTIC": 1,
+    "SOMNIAL": 1,
+    "NETWORK": 1,
+    "LIVING": 1,
+    "HABIT": 1,
+    "TEMPORAL": 1,
+    "DYNAMIC": 1,
+    "ACTION": 1
+   },
+   "atoms": 31,
+   "molecules": 36
+  },
+  "ZOOLOGICAL": {
+   "super_category": "Life / Cognition / Flesh",
+   "root": "ZOOLOGICAL|Prey",
+   "degree": 3,
+   "neighbours": {
+    "TEMPORAL": 2,
+    "ADVERSARIAL": 1,
+    "LIVING": 1
+   },
+   "atoms": 38,
+   "molecules": 49
+  }
+ }
+}
