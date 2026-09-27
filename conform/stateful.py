@@ -799,6 +799,66 @@ def test_generator_reaches_the_hard_cases():
     assert c["slots=2"] > 0 and c["slots=4"] > 0, "the slot count has collapsed"
 
 
+def test_b5_still_fires_on_the_pinned_world():
+    """THE B5 REPRODUCTION, PINNED -- and the run shows the mechanism, not just the verdict.
+
+    A strict expected-failure, same shape as the A5 one below: green while B5 truthfully fails,
+    red the moment the fix lands, carrying its own invert-me instruction.
+
+    **WHAT THE RUN SHOWS, AND IT RECONCILES TWO READINGS THAT LOOKED OPPOSED.**
+    Measured here: `parks on ['s3']`, `probes on ['@probe', '@probe']`.
+
+    Reading the source says the agent matches park to probe correctly -- `mint` adds the parked
+    slot to `_starved`, and the flush writes one probe row PER STARVED SLOT. True. But the
+    flush is `for slot in sorted(self._starved) or ["@probe"]`, and `@probe` is the fallback
+    for an EMPTY `_starved`. Both probes here took it, so `_starved` was empty when they fired.
+
+    That is `F269`'s temporal anti-correlation, visible in one run: *`bored()` is true EARLY,
+    when nothing is bound and there is nothing to perturb FOR, and false LATE, which is exactly
+    when slots starve.* The park and the probe never coincide, so the per-slot branch the
+    repair added cannot be reached and the fallback answers instead.
+
+    SO THE SLOT MISMATCH IS REAL AND IS NOT A LABELLING BUG. Arm M (`TETHER_STARVED_CONTACT`)
+    is the built fix: it returns `probe` BEFORE the `bored()` gate whenever `_starved` is
+    non-empty, so the flush has a slot to write. Turning it on is an ACTING-PATH change and is
+    Isaiah's ruling, not the seat's.
+    """
+    import snaps
+    from gamma import Gamma
+    from ledger import Ledger
+    from tether import Agent, Config
+    from world import bind
+
+    S = snaps.SlotSpec
+    spec = snaps.WorldSpec(
+        slots=["s0", "s1", "s2", "s3"],
+        rules={"s0": S(family="interact", k=5, a=5, reads="s2", lag=3, switch=8, k2=5),
+               "s1": S(family="affine", k=6, a=2, reads=None, lag=2, switch=8, k2=3),
+               "s2": S(family="action", k=1, a=6, reads=None, lag=3, switch=8, k2=4),
+               "s3": S(family="interact", k=5, a=6, reads="s1", lag=2, switch=8, k2=2)},
+        obj="ALL", tgt=6, who="s1", n=2, hold=3,
+        start={"s0": 4, "s1": 4, "s2": 4, "s3": 6})
+
+    led = Ledger()
+    ag = Agent(bind(snaps.Snap(spec)), Gamma(snaps._atoms()), Config(), led)
+    for _ in range(9):
+        ag.step()
+    rows = led.rows()
+    res = kernel.Linter.run(rows)
+    bad = sorted(k for k, v in res.items() if v["status"] in ("FAIL", "SUPPRESSED"))
+
+    assert "B5" in bad, (
+        f"B5 NO LONGER FIRES on the pinned world (bad={bad}). If arm M is on, or the probe "
+        "now reaches the starved slot, this is the GOOD outcome -- invert to "
+        "`assert 'B5' not in bad`, rename it, and it becomes the regression test. "
+        "Do not delete it.")
+    # THE MECHANISM, NOT ONLY THE VERDICT -- so a future clean run can be told apart from a
+    # world that simply stopped starving anything.
+    parked = {r.get("slot") for r in rows if r.get("event") == "park"
+              and (r.get("detail") or {}).get("verdict") == "no_support"}
+    assert parked, "no slot starved here -- this world no longer exercises B5 at all"
+
+
 def test_a5_still_fires_on_the_pinned_world():
     """THE A5 REPRODUCTION, PINNED TO AN EXPLICIT WORLD -- and it asserts the DEFECT, on purpose.
 
@@ -986,10 +1046,11 @@ if __name__ == "__main__":
         test_a_mutation_moves_attention_and_never_the_action()
         test_the_admitting_clause_crosses_into_gamma()
         test_the_daydream_precondition_can_refuse()
+        test_b5_still_fires_on_the_pinned_world()
         test_a5_still_fires_on_the_pinned_world()
         test_the_keyed_reach_loses_nothing()
         test_the_inherited_vocabulary_is_not_the_held_library()
-        print("  A5 reproduction still fires (expected): ok")
+        print("  A5 and B5 reproductions still fire (expected): ok")
         print("  keyed reach loses nothing: ok · two vocabularies stay two: ok")
         print("  shipped generator coverage: ok · residual bound loses nothing: ok"
               " · resolutions are not the answer: ok · atom order pinned: ok"
