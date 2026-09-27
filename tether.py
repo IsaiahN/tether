@@ -5114,12 +5114,19 @@ class Agent:
                                 if not pays(bcost, bleft, base):
                                     continue
                                 btotal = bcost + bleft
-                                # THE REBIND ARM WINS THE BARGAIN TOO AND RECORDED NEITHER.
-                                # `pays` just succeeded, so this term is reachable by the
-                                # same test the third win-site uses -- and only that site
-                                # raised the flag, so a mint arriving HERE wrote
-                                # `reachability: False` and B4 read it. The counter went
-                                # with it, so `bargain_paid` was a floor, not a count.
+                                # THE TREE ARM WINS THE BARGAIN TOO AND RECORDED NEITHER.
+                                # WHY THE FLAG IS TRUE HERE, AND NOT MERELY CONVENIENT: it is a
+                                # PER-CALL SEARCH FLAG -- *this call reached something that pays*
+                                # -- not a property of the winner. The third win-site raises it
+                                # on exactly this event, immediately after `pays` and the same
+                                # counter. These two sites ARE that event and recorded neither,
+                                # so a mint arriving here wrote `reachability: False` and B4 read
+                                # it. Not evidenced by B4 going quiet -- B4 READS this flag, so
+                                # that test is circular (reviewer, 2026-09-27).
+                                # OPEN, AND NOT SETTLED BY THIS: the kernel routes a rebind as
+                                # BROKEN_REBINDING and never writes a mint row, while the agent
+                                # writes these as mints. Two mechanisms under one label, or a
+                                # legitimate difference -- a design question, not a guard one.
                                 self.gamma.book["bargain_paid"] = (
                                     self.gamma.book.get("bargain_paid", 0) + 1)
                                 guards["reachability"] = True
@@ -5180,12 +5187,19 @@ class Agent:
                             if not pays(bcost, bleft, base):
                                 continue
                             btotal = bcost + bleft
-                            # THE REBIND ARM WINS THE BARGAIN TOO AND RECORDED NEITHER.
-                            # `pays` just succeeded, so this term is reachable by the
-                            # same test the third win-site uses -- and only that site
-                            # raised the flag, so a mint arriving HERE wrote
-                            # `reachability: False` and B4 read it. The counter went
-                            # with it, so `bargain_paid` was a floor, not a count.
+                            # THE TREE ARM WINS THE BARGAIN TOO AND RECORDED NEITHER.
+                            # WHY THE FLAG IS TRUE HERE, AND NOT MERELY CONVENIENT: it is a
+                            # PER-CALL SEARCH FLAG -- *this call reached something that pays*
+                            # -- not a property of the winner. The third win-site raises it
+                            # on exactly this event, immediately after `pays` and the same
+                            # counter. These two sites ARE that event and recorded neither,
+                            # so a mint arriving here wrote `reachability: False` and B4 read
+                            # it. Not evidenced by B4 going quiet -- B4 READS this flag, so
+                            # that test is circular (reviewer, 2026-09-27).
+                            # OPEN, AND NOT SETTLED BY THIS: the kernel routes a rebind as
+                            # BROKEN_REBINDING and never writes a mint row, while the agent
+                            # writes these as mints. Two mechanisms under one label, or a
+                            # legitimate difference -- a design question, not a guard one.
                             self.gamma.book["bargain_paid"] = (
                                 self.gamma.book.get("bargain_paid", 0) + 1)
                             guards["reachability"] = True
