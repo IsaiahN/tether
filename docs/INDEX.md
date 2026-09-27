@@ -49917,6 +49917,35 @@ historical `3` on the same habitat, and **that discrepancy is UNEXPLAINED AND LE
 candidates, none tested at time of writing, so none named. Naming the most plausible is the
 best-documented-suspect failure this file records twice.
 
+> **THE DISCREPANCY IS EXPLAINED AND IT WAS THE SEED. CORRECTED AT THIS ROW, SAME NIGHT** --
+> the 3-seed run I had written off as unresolvable completed after ~90 minutes:
+>
+>     seed  3   committed 0   accumulation_short 0     <- `_accumulate` NEVER REACHED
+>     seed  7   committed 0   accumulation_short 0     <- NEVER REACHED
+>     seed 11   committed 1   accumulation_short 7     <- reached EIGHT times
+>
+> **Not a trajectory change from the observer, not a config difference, not a mystery. Seed 3
+> simply never reaches the accumulator in 48 cycles and seed 11 reaches it eight times.** The
+> later run that produced the zero used seed 3 and agrees with this one exactly.
+>
+> **AND TWO CLAIMS ABOVE ARE NOW FALSE, SAID HERE RATHER THAN LEFT STANDING.** *The accumulator
+> has never yet seen a genuine quorum* -- it has: seed 11 commits under the new rule, and
+> `commits` requires `voters >= 2` BY CONSTRUCTION, so that commitment carried at least two
+> positive contributors. And the pre-registration that commits should FALL, POSSIBLY TO ZERO,
+> was refuted by the outcome it named as the surprise: **the stricter rule filtered the
+> mechanism rather than silencing it** -- seven refusals to one commitment.
+>
+> **THE FAILURE IS `an effect inside the seed spread`, WHICH THIS PROJECT HAD ALREADY WRITTEN
+> DOWN.** *Measure the baseline's own spread across seeds FIRST.* One seed was drawn, it read
+> zero, and an entire account of a discrepancy was built on a single draw and reported three
+> times as a fact about the MECHANISM. It was a fact about the SEED.
+>
+> **WHAT SURVIVES UNTOUCHED is the recorded-decision result**, because it was computed from a
+> TRANSCRIBED vector rather than from a run -- the one claim in this row that never depended on
+> a seed. A coarse rate now exists alongside it: across 3 seeds and 144 cycles, `_accumulate`
+> reached 8 times, refused 7, committed 1. **A real denominator and a small one, so a first
+> reading rather than a rate to quote.**
+
 ## F383 -- **SURPRISE DRIVES ATTENTION, AND THE COST OF NOT ASKING THE CORPUS FIRST WAS ONE TICK**
 
 The mutation observer reached the agent and nothing read it -- half a mechanism. I posted that I
