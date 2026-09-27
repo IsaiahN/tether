@@ -5123,10 +5123,12 @@ class Agent:
                                 # so a mint arriving here wrote `reachability: False` and B4 read
                                 # it. Not evidenced by B4 going quiet -- B4 READS this flag, so
                                 # that test is circular (reviewer, 2026-09-27).
-                                # OPEN, AND NOT SETTLED BY THIS: the kernel routes a rebind as
-                                # BROKEN_REBINDING and never writes a mint row, while the agent
-                                # writes these as mints. Two mechanisms under one label, or a
-                                # legitimate difference -- a design question, not a guard one.
+                                # AND `rebind-as-mint` IS CLOSED HERE, NOT OPEN -- it was asked
+                                # on the premise that these were REBIND arms, and they are tree
+                                # arms. Checked: `_rebindings` has ONE caller, `_library_fit`,
+                                # which writes only ROUTE rows; and all three mint sites skip a
+                                # term already in the library. So no path mints a rebind, and
+                                # the kernel's BROKEN_REBINDING routing is not contradicted.
                                 self.gamma.book["bargain_paid"] = (
                                     self.gamma.book.get("bargain_paid", 0) + 1)
                                 guards["reachability"] = True
@@ -5196,10 +5198,12 @@ class Agent:
                             # so a mint arriving here wrote `reachability: False` and B4 read
                             # it. Not evidenced by B4 going quiet -- B4 READS this flag, so
                             # that test is circular (reviewer, 2026-09-27).
-                            # OPEN, AND NOT SETTLED BY THIS: the kernel routes a rebind as
-                            # BROKEN_REBINDING and never writes a mint row, while the agent
-                            # writes these as mints. Two mechanisms under one label, or a
-                            # legitimate difference -- a design question, not a guard one.
+                            # AND `rebind-as-mint` IS CLOSED HERE, NOT OPEN -- it was asked
+                            # on the premise that these were REBIND arms, and they are tree
+                            # arms. Checked: `_rebindings` has ONE caller, `_library_fit`,
+                            # which writes only ROUTE rows; and all three mint sites skip a
+                            # term already in the library. So no path mints a rebind, and
+                            # the kernel's BROKEN_REBINDING routing is not contradicted.
                             self.gamma.book["bargain_paid"] = (
                                 self.gamma.book.get("bargain_paid", 0) + 1)
                             guards["reachability"] = True
