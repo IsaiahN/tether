@@ -564,6 +564,65 @@ def test_the_mutation_observer_reaches_the_agent():
         gridworld.GridWorld.cues = real
 
 
+def test_a_mutation_moves_attention_and_never_the_action():
+    """The cue's consumer: surprise drives ATTENTION -- Berlyne 1960, `ARC_HUMAN_PRIORS` §8.
+
+    Two things are pinned and the second matters more than the first.
+
+    THAT IT FIRES. Wiring perception to nothing is half a mechanism, and `observer.py` spent
+    five months as exactly that. `focus_by_cue` is the denominator's other half: if it reads
+    zero the cue is as starved as the selector and the wiring bought nothing.
+
+    **THAT IT MOVES ATTENTION AND NOT THE ACTION.** This is the boundary the whole change rests
+    on. A mutation may narrow WHAT THE AGENT LOOKS AT; it may never decide WHAT IT DOES.
+    Looking at the changed thing is a means the agent can still be wrong about -- picking the
+    move is the test, and a cue reaching `choose` would be the proctor answering it.
+
+    AND IT MUST NOT COMPETE WITH `_goal_choice`. The consumer sits in the `elif`, so the
+    selector keeps every choice it can make. A previous seat wired a weaker duplicate ranking
+    into this exact site; the branch is what makes this a complement instead.
+    """
+    import gamma
+    import gridworld
+    import ledger
+    import tether
+    from world import bind
+
+    w = gridworld.boards(1, start=3)[0]
+    env = bind(w)
+    ag = tether.Agent(env, gamma.Gamma(env.atoms()), tether.Config(), ledger.Ledger())
+    for _ in range(10):
+        ag.step()
+    book = ag.gamma.book
+
+    assert book.get("focus_by_cue", 0) > 0, (
+        f"the cue never moved attention in 10 cycles: {dict(book)}. Perception is wired to "
+        f"nothing -- half a mechanism, which is what `observer.py` was for five months")
+    assert book.get("cue_mutated", 0) > 0, "no mutation fired, so the check proves nothing"
+
+    # THE BOUNDARY, PINNED STRUCTURALLY RATHER THAN BY READING THE COMMENT. `choose` decides
+    # the action; if it can see the cue at all, attention-only is a convention and not a fact.
+    import inspect
+    src = inspect.getsource(tether.Agent.choose)
+    assert "self.cue" not in src and "focus_by_cue" not in src, (
+        "`choose` reads the cue -- a mutation is deciding WHAT THE AGENT DOES, not what it "
+        "looks at. That is the proctor answering the test")
+
+    # REINTRODUCE THE DEFECT: no cue, and attention must fall back rather than invent one.
+    real = gridworld.GridWorld.cues
+    try:
+        del gridworld.GridWorld.cues
+        w2 = gridworld.boards(1, start=3)[0]
+        ag2 = tether.Agent(bind(w2), gamma.Gamma(env.atoms()), tether.Config(), ledger.Ledger())
+        for _ in range(4):
+            ag2.step()
+        assert not ag2.gamma.book.get("focus_by_cue"), (
+            "attention moved by cue on a world that publishes none -- this property pins "
+            "nothing")
+    finally:
+        gridworld.GridWorld.cues = real
+
+
 def test_the_admitting_clause_crosses_into_gamma():
     """The clause existing in `arc_atoms` is not the clause reaching the ablation.
 
@@ -764,12 +823,13 @@ if __name__ == "__main__":
         test_the_atom_order_is_pinned()
         test_the_promotion_clause_is_recorded()
         test_the_mutation_observer_reaches_the_agent()
+        test_a_mutation_moves_attention_and_never_the_action()
         test_the_admitting_clause_crosses_into_gamma()
         test_the_daydream_precondition_can_refuse()
         print("  shipped generator coverage: ok · residual bound loses nothing: ok"
               " · resolutions are not the answer: ok · atom order pinned: ok"
               " · promotion clause recorded: ok · observer reaches the agent: ok"
-              " · admitting clause crosses: ok"
+              " · mutation moves attention only: ok · admitting clause crosses: ok"
               " · daydream precondition can refuse: ok")
     r = unittest.TextTestRunner(verbosity=0).run(
         unittest.defaultTestLoader.loadTestsFromTestCase(case))

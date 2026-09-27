@@ -402,6 +402,17 @@ class GridWorld:
         return {**self.state, GOAL_SLOT: self._completed(),
                 **{f"o{i}.proximity": self._proximity(f"o{i}") for i in range(N_OBJECTS)}}
 
+    def attribute_of(self) -> dict[str, str]:
+        """Slot -> the attribute it holds. `ArcWorld` publishes this and this habitat did not,
+        so a consumer written against the contract abstained here and could not be exercised --
+        the same shape of hole that kept the observer off the agent path.
+
+        Derived from the slot name because that is where the habitat puts it: slots are
+        `o{i}.{attr}` by construction in `__post_init__`, so the suffix IS the attribute rather
+        than a guess about it. `@goal.completed` is included on the same rule.
+        """
+        return {s: s.split(".", 1)[1] for s in self.slots() if "." in s}
+
     def board(self) -> Any:
         """THE STATE, RASTERED. Every object is one cell at its own row/col, carrying its colour;
         empty cells are 0. **A PROJECTION OF WHAT IS ALREADY HELD, introducing nothing** -- the

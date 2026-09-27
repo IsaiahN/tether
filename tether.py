@@ -374,6 +374,24 @@ _QUORUM_FLOOR = float(MIN_REPEAT) - 0.5
 # it would be a tuning choice and is not made here.
 _QUORUM_VOTERS = 2
 
+# THE OBSERVER'S MUTATION CLASSES -> THE WORLD'S ATTRIBUTE NAMES. A TABLE, NOT A RULE, for
+# `CLAUDE.md`'s stated reason: *exemptions as data, not logic -- a table can be pinned; logic
+# widens quietly.* Matching on a substring or a shared prefix would silently absorb the next
+# class the observer learns to emit.
+#
+# **THE UNMAPPED CLASSES ARE UNMAPPED ON PURPOSE AND THAT IS A READING, NOT A GAP.** `density`,
+# `girth`, `solidity`, `orientation`, `holes`, `area`, `occupiedCells`, `perimeter` and
+# `velocity` all mutate and NO SLOT HOLDS THEM -- perception computes them, the decomposition
+# does not publish them. So a cue can fire with nothing to point at, and that is the honest
+# state rather than something to paper over by guessing a nearest slot. It is also a measured
+# statement of how much wider the observer sees than the slot set: nine classes to four.
+_CUE_ATTR: dict[str, tuple[str, ...]] = {
+    "position": ("row", "col"),
+    "extent": ("h", "w"),
+    "shape": ("shape",),
+    "colour": ("colour",),
+}
+
 BOOKS: tuple[str, ...] = (
     "promoted_then_wrong",              # settled, then mispredicted
     "demoted_would_have_been_right",    # the counterfactual `F327` destroys unrecorded
@@ -393,6 +411,11 @@ BOOKS: tuple[str, ...] = (
     "cue_seen",                         # frames where a mutation could have been read
     "cue_mutated",                      # ... and at least one attribute actually did
     "cue_blind",                        # the observer abstained: no readable board
+    # ATTENTION MOVED BY A MUTATION. The counterpart to `focus_by_want`, and the pair is
+    # the reading: `want` is the selector choosing, `cue` is surprise choosing where the
+    # selector had nothing. Two keys because collapsing them would hide which mechanism
+    # is actually directing the agent.
+    "focus_by_cue",                     # surprise directed attention -- Berlyne 1960
     "committed_on_accumulation",        # the vector crossed where the bargain had refused
     "accumulation_short",               # the vector was read and did not reach the threshold
     "bargain_bounded_out",              # `_cannot_pay` -- a NECESSARY condition, not a choice
@@ -5976,6 +5999,44 @@ class Agent:
         if _want_slot is not None and _want_slot in before:
             focal = _want_slot
             self.gamma.book["focus_by_want"] = self.gamma.book.get("focus_by_want", 0) + 1
+        elif self.cue is not None:
+            # **SURPRISE DRIVES ATTENTION -- Berlyne 1960, in `ARC_HUMAN_PRIORS` §8's own
+            # table, and a prior we are entitled to frontload.** A mutation IS a surprise: the
+            # board differing from the frame before it. The capacity limit is the other half
+            # and it is the one that makes this necessary rather than convenient -- Cowan's
+            # 4+-1 focus of attention means a bounded agent NEEDS something to narrow what it
+            # looks at, and until now nothing did on the 99.65% of slot-cycles where
+            # `_goal_choice` has no objective to offer (Q12).
+            #
+            # **A COMPLEMENT, NOT A SECOND SELECTOR, and the difference is the branch it sits
+            # in.** The comment above records me wiring a weaker duplicate ranking HERE once
+            # already. This is the `elif`: it fires only where the selector returned nothing,
+            # so the two can never compete for the same cycle and `_goal_choice` keeps every
+            # choice it can make.
+            #
+            # **ATTENTION, NEVER ACTION -- the boundary, and it is what makes this takeable.**
+            # A mutation narrows WHAT THE AGENT LOOKS AT. It does not touch `choose`, which
+            # decides what to DO. Looking at the changed thing is a means the agent can still
+            # be wrong about; picking the move is the test. `CLAUDE.md`'s question -- does this
+            # hand an ANSWER or a MEANS -- puts attention-direction in MEANS.
+            #
+            # BY ATTRIBUTE CLASS, NOT BY OBJECT INDEX, and that is deliberate. The cue's
+            # `loci` are keyed by the OBSERVER's index over `actors(components(board))`, which
+            # has no guaranteed correspondence to the world's `o0`/`o1` naming. Reading index
+            # 0 as slot `o0` would be the adjacent-reference class exactly: a lookup that
+            # SUCCEEDS and returns the wrong neighbour. The attribute classes need no identity.
+            _muts = self.cue["mutations"]["attributes"]
+            _attr_of = getattr(self.env, "attribute_of", None)
+            if _muts and _attr_of is not None:
+                _want = {a for m in _muts for a in _CUE_ATTR.get(m, ())}
+                _hit = sorted(s for s, a in _attr_of().items()
+                              if a in _want and s in before)
+                if _hit:
+                    # STABLE PICK. `sorted` then first, so the focal slot does not wander
+                    # between cycles on an unordered set -- an attention that moves for no
+                    # reason is noise wearing a mechanism's clothes.
+                    focal = _hit[0]
+                    self.gamma.book["focus_by_cue"] = self.gamma.book.get("focus_by_cue", 0) + 1
         by = "given"
         self._disproof = {}
         if action is None:
