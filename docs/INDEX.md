@@ -49830,3 +49830,145 @@ NONE, and it is stated rather than left to be inferred.** The agent cannot reach
 could not reach that morning. What moved is what the record can PROVE at a test that cannot be
 run until 25/25 -- which is the only reason the work was takeable at all, and not a reason to
 keep mining the seam.
+
+## F381 -- **`observer.py` WAS NEVER BROKEN. ITS ONLY DOOR WANTED A SHAPE THE AGENT NEVER HOLDS**
+
+Five months on the never-reached list, imported by `test_perception.py` alone. The module is
+correct and complete. **Its sole entry point, `observe(steps)`, takes a LIST OF FRAMES -- which
+on this project means a replay, which means the answer key** -- so the agent could not call it
+without crossing `KEY_BOUNDARY`.
+
+> **THE SHAPE OF THE DOOR KEPT IT OUT, NOT THE ROOM**, and nothing failed for five months
+> because an unreached mechanism does not fail, it abstains.
+
+`observer.Live` is the SAME machinery fed one live grid at a time. It takes grids, never tapes.
+The firewall was already clear and had been for four days: `conform/lint.py` moved `observer`
+out of `_CUE_MODULES` on 2026-09-22 on the checkable fact that its `reverse_engineer` import
+sits under `__main__`. **The permission existed and nobody had built the door.**
+
+    cue_seen     11      denominator -- frames with a predecessor, so a mutation was POSSIBLE
+    cue_mutated   6
+    cue_blind     0
+
+Eleven and not twelve: frame 0 has nothing to differ from. Three book keys and not one, because
+a blind frame reporting no mutations and a clear frame reporting none are different facts.
+
+### `sensors_heavy` came in THROUGH ITS CONSUMER, which is the route the never-reached table cannot see
+
+Seven of the eleven mutation classes the agent can now read are `sensors_heavy`'s -- `density`,
+`girth`, `solidity`, `orientation`, `occupiedCells`, `perimeter`, `area`. **Nobody wired it.**
+`observer._obj_vector` calls its scalar and state readings and `_mutations` calls its temporal
+ones, so wiring the observer reached it as a side effect.
+
+> **EVERY OTHER ROW IN THAT TABLE IS A THING WITH NO CALLER. THIS ONE WAS A THING WHOSE CALLER
+> WAS ITSELF UNREACHED** -- so checking `sensors_heavy`'s own import graph would have kept
+> reporting NO right up until the moment something upstream moved.
+
+### and the habitat needed a board, or the wire would have shipped unexercised
+
+`GridWorld` stores SLOTS; the observer takes a GRID. With no raster the wire could only be
+exercised on a real ARC game, which the board stop forbids -- **so it would have shipped
+UNEXERCISED, which is the exact class of defect being repaired.** `GridWorld.board()` projects
+rows, columns and colours the habitat already holds; no rule reads it.
+
+**AND ITS FIRST DOCSTRING ASSERTED A PROPERTY I HAD NOT CHECKED.** It read *objects never carry
+the field colour*. They do -- `__post_init__` draws each from `rng.randrange(4)`, which includes
+0, so a colour-0 object rasters as background and VANISHES. Perception silently one object
+short, **on some seeds and not others.** Caught because the first run printed four objects where
+six exist. The raster writes `colour + 1`; the check pins it across seeds, because a
+seed-dependent failure is invisible to any single run.
+
+## F382 -- **A QUORUM REACHABLE BY ONE BEE IS NOT A QUORUM, AND THE OBVIOUS REPAIR KILLS THE MECHANISM**
+
+The accumulation threshold floored at 1.0. Contributions scale so one contributor at full
+strength is worth 1.0, **so the floor was clearable BY ONE** -- and the single commitment the
+accumulator ever made was carried by `improving` alone.
+
+**`floor = MIN_REPEAT` IS THE OBVIOUS FIX AND IT IS WRONG.** Relief decays the bar DOWNWARD from
+`MIN_REPEAT`, so a floor AT `MIN_REPEAT` leaves it nowhere to fall and an idle agent becomes no
+more willing than a busy one. The floor must sit strictly between one contribution and the full
+bar -- which is what makes the value DERIVABLE rather than chosen:
+
+    _QUORUM_FLOOR = MIN_REPEAT - 0.5 = 1.5
+
+The largest relief that still leaves one contributor insufficient: half a vote. **0.5 is the
+midpoint of the only interval the two constraints leave open** -- at 1.0 the defect reopens, at
+0.0 relief is disabled.
+
+> **AND A FLOOR CANNOT EXPRESS A QUORUM AT ALL, WHICH IS WHY THE CONSTRAINT ALONE WAS NOT
+> ENOUGH.** A floor is a SUM and one contributor at 2.0 clears any sum a quorum would set. The
+> honeybee rule is about HOW MANY AGREE. So `voters >= 2` is checked directly, POSITIVE
+> contributors only -- `plant` and `refuted` go negative and an objection is not a vote for.
+
+Measured on the RECORDED decision -- gridworld cycle 16, `o1.proximity`, transcribed from the
+run that produced `committed_on_accumulation`, not synthesised:
+
+    vector {improving: 1.0}   total 1.00   idle 16   voters 1
+    OLD threshold 1.00 -> COMMITS       NEW threshold 1.50 -> REFUSED
+    refused by the FLOOR: yes           refused by the QUORUM: yes
+
+**BOTH HALVES REFUSE IT INDEPENDENTLY**, which is the diagnostic that separates two readings
+"the number fell" cannot: two voters clearing 1.0 pass the quorum and fail the floor; one loud
+contributor at 2.0 passes the floor and fails the quorum.
+
+**CORRECT ON THE CASE IT WAS BUILT FOR AND UNMEASURED IN FREQUENCY.** Both halves load-bearing.
+`_accumulate` was reached ZERO times in the 48-cycle run reproducible afterwards, against a
+historical `3` on the same habitat, and **that discrepancy is UNEXPLAINED AND LEFT SO** -- three
+candidates, none tested at time of writing, so none named. Naming the most plausible is the
+best-documented-suspect failure this file records twice.
+
+## F383 -- **SURPRISE DRIVES ATTENTION, AND THE COST OF NOT ASKING THE CORPUS FIRST WAS ONE TICK**
+
+The mutation observer reached the agent and nothing read it -- half a mechanism. I posted that I
+*believed* a cue should move attention and not action, and that I had not pointed it at a clause.
+
+**TERM CENSUS FIRST**, per the tiebreaker discipline: `attention` 17, `focal` 35, `salience` 17,
+`cue` 65 across `docs/`. The count directed the read to `ARC_HUMAN_PRIORS`, holding five of the
+seventeen:
+
+    Collative variables   novelty, complexity, SURPRISE, incongruity, uncertainty
+                          DRIVE ATTENTION                      Berlyne 1960
+    Capacity limit        7+-2 span; 4+-1 FOCUS OF ATTENTION   Miller; Cowan 2001
+
+A mutation IS a surprise -- the board differing from the frame before it. **The capacity limit is
+the half the instinct did not contain and it is the stronger one:** a bounded agent with 4+-1
+focus NEEDS something to narrow what it looks at, so a directed cue is not a convenience, it is
+what makes the bound livable.
+
+### a COMPLEMENT, and the branch is the whole difference
+
+`focal = _want_slot` from `_goal_choice` already occupied this site, **and a previous seat wired
+a weaker duplicate ranking into it** -- recorded in the comment directly above. The consumer sits
+in the `elif`: it fires only where the selector returned nothing, which `Q12` measures at 99.65%
+of slot-cycles. The two can never contend for a cycle.
+
+    focus_by_want   0      the selector, starved exactly as Q12 says
+    focus_by_cue    4      surprise directing attention
+    cue_mutated     4      every mutation that fired moved the focus
+
+**BY ATTRIBUTE CLASS, NEVER BY OBJECT INDEX.** The cue's `loci` are keyed by the OBSERVER's index
+over `actors(components(board))`, with no guaranteed correspondence to the world's `o0`/`o1`.
+Reading index 0 as slot `o0` is the adjacent-reference class exactly -- a lookup that SUCCEEDS
+and returns the wrong neighbour. `_CUE_ATTR` is a table, not a rule. **Nine observer classes map
+to NO slot, and that is a reading rather than a gap:** it states how much wider perception sees
+than the decomposition publishes.
+
+> **THE BOUNDARY IS PINNED STRUCTURALLY, NOT BY COMMENT.** The check greps `Agent.choose` and
+> fails if `self.cue` appears in it. A mutation may narrow WHAT THE AGENT LOOKS AT and never
+> WHICH ACTION IT TAKES -- attention is a means the agent can still be wrong about, action is
+> the test. A future edit that forgets the reasoning still cannot cross it.
+
+**CONTACT: YES, and it is the only one in the night's seven commits.** Every other changed what
+the record can prove.
+
+### the tally that did not improve when the seat switched from auditing to building
+
+Six things caught by something other than the seat's judgement, in one block: the raster
+swallowing colour-0 objects · a docstring asserting an unchecked property · **the new guard
+blowing the `shipped` seat's 120s budget, reproducing in itself the unreached-mechanism defect
+it was written to catch** · an A/B flag refuting *the observer made the agent slower* in 29
+seconds · a linear extrapolation that sized three runs wrong while CPU contention was blamed ·
+the M2 seat catching an undeclared book key.
+
+**IT GREW RATHER THAN SHRANK, because building produces more opportunities to be wrong than
+auditing does.** That is the argument for the seats, not against the work.
