@@ -1176,6 +1176,47 @@ def test_the_seam_varies_what_it_explores_with():
     assert f.realise(IFace.Intent(IFace.TOUCH, "o0", "o1"), offered, ctx) is None, (
         "a non-exploratory intent was realised from an empty table -- the interface guessed")
 
+
+def test_asking_the_interface_does_not_change_it():
+    """`realise` must be a QUESTION. **The reviewer, 2026-09-28, and it is not about cost.**
+
+    `_runnable` -- the level-boundary check -- now calls `realise` for every step of every
+    shelved routine at every mint, purely to ask *could this run here*. **If asking changed the
+    table, the boundary check would be teaching the model things the agent never did**, and the
+    model's whole claim is that it is built only by acting.
+
+    Verified once by reading the source and that is exactly what does not hold: *a guard whose
+    failure path is never exercised is indistinguishable from one that cannot fail*, and nothing
+    stopped a future `realise` from recording a miss. So it is a check.
+
+    **THE CONTROL IS THE AUDIT.** A comparison that could not move would pass on a frozen
+    object, so the same snapshot is taken across an `audit` and must DIFFER -- otherwise this
+    is measuring a report that never changes rather than a realiser that never writes.
+    """
+    import copy
+
+    import interface as IFace
+
+    f = IFace.Interface()
+    offered = ("A", "B", "C")
+    ctx = (("edge", 1),)
+    f.audit(IFace.Realisation("A"), {"x": 0}, {"x": 1}, ctx)
+    before = (copy.deepcopy(f.table), f.report(), f.audits)
+
+    for intent in (IFace.Intent(IFace.ELICIT),
+                   IFace.Intent(IFace.BECOME, "x", "+"),
+                   IFace.Intent(IFace.BECOME, "x", value=1),
+                   IFace.Intent(IFace.TOUCH, "o0", "o1")):
+        f.realise(intent, offered, ctx, {"x": 0})
+    assert (f.table, f.report(), f.audits) == before, (
+        "asking the interface changed it -- the boundary check would be writing a model "
+        "the agent never earned by acting")
+
+    f.audit(IFace.Realisation("B"), {"x": 1}, {"x": 2}, ctx)
+    assert (f.table, f.report(), f.audits) != before, (
+        "the snapshot did not move across an audit -- this comparison cannot fail and "
+        "certifies nothing")
+
 if __name__ == "__main__":
     if "--cover" in sys.argv:
         for label, c in (("kernel.Frame", coverage()),
@@ -1218,6 +1259,7 @@ if __name__ == "__main__":
         test_the_inherited_vocabulary_is_not_the_held_library()
         test_the_quantifiers_quantify()
         test_the_seam_varies_what_it_explores_with()
+        test_asking_the_interface_does_not_change_it()
         print("  A5 and B5 reproductions still fire (expected): ok")
         print("  keyed reach loses nothing: ok · two vocabularies stay two: ok")
         print("  the quantifiers quantify (ONE fires, all != some): ok")
