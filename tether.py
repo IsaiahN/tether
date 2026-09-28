@@ -6292,12 +6292,23 @@ class Agent:
         # The repair for a string family being a string was a wider string match, and that is
         # the same shape one rename along.
         #
-        # **SO THE TEST IS THE PROPERTY, NOT THE SPELLING: was the pick DELIBERATE?** `probe`
-        # and `draw` are undirected by construction -- byte-identical calls to `drive.choose`.
-        # Everything else asked for something. Listing the two undirected exits is a closed and
-        # checkable set; listing the directed ones grows every time a verb is added.
+        # **AND MY FIRST REPAIR WAS THE SAME ERROR ONE LEVEL ALONG -- caught by the reviewer,
+        # 2026-09-28, in the commit that fixed the prefix.** I wrote
+        # `I.PROBE if by in ("probe", "draw") else I.DIRECTED`, reasoning that listing the
+        # UNDIRECTED exits is a closed set while the directed ones grow. **`system0` is neither
+        # of those two, so it silently flipped PROBE -> DIRECTED** -- 11 of 25 actions on
+        # gridworld seed 3, in the same published column I had just finished protecting. A
+        # guess about which side is the short list is still a guess.
+        #
+        # **SO THE SET IS ENUMERATED FROM `choose`'s OWN RETURNS, which is six labels and
+        # checkable**: `routine` . `probe` . `draw` . `system0` . `discriminate:goal` .
+        # `distinguish`, plus `given` when the caller hands the action in. `system0` STAYS
+        # PROBE and its own site says why -- it *draws variously INSTEAD of exploiting the
+        # learned arm*, which is an undirected pick made deliberately, not a directed one.
+        # **The two failures here were a PATTERN and an EXCLUSION; the fix for both is the
+        # enumeration, and it is short because `choose` has few exits, not because I hope so.**
         phase = (I.STRATEGY if by == "routine"
-                 else I.PROBE if by in ("probe", "draw") else I.DIRECTED)
+                 else I.DIRECTED if by in ("discriminate:goal", "distinguish") else I.PROBE)
         self.phases.note(phase)
 
         try:
