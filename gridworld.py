@@ -119,6 +119,18 @@ class GridWorld:
     #
     # **A FLAG DEFAULTING TO FALSE, so every existing reading of this world is byte-identical.**
     click_only: bool = False
+    # **FIXTURE A -- THE ACTIONS CHANGE UNDER THE AGENT. Isaiah's first fixture, and the half of
+    # System 0's job B that NOTHING has ever exercised**: *"lets the interface know how actions
+    # work AND IF THEY CHANGE."* After `remap_after` steps `up`/`down` and `left`/`right` swap
+    # -- the BOARD still behaves lawfully, the MAPPING is what moved.
+    #
+    # **THE BUTTONS KEEP THEIR NAMES ON PURPOSE.** A board that renamed them would be caught by
+    # the advertised-set check that already exists; one that keeps every name and changes what
+    # two of them DO is the case `_runnable`'s string comparison passed and `audit`'s `changed`
+    # set was built for. **That detector has never had a true positive.**
+    #
+    # `None` by default, so every existing reading of this world is byte-identical.
+    remap_after: int | None = None
 
     def __post_init__(self) -> None:
         rng = random.Random(self.seed)
@@ -202,6 +214,10 @@ class GridWorld:
         # that can exercise it, because it is the only one with a board that is not a game.
         self._obs = observer.Live()
         self._cue: dict | None = None
+        # FIXTURE A's clock. Counted here rather than read from the agent, because the trigger
+        # is a property of the BOARD -- an agent that could see the counter could anticipate the
+        # remap, which is the one thing this fixture must not let it do.
+        self._steps: int = 0
 
     # -- the eight -------------------------------------------------------------------
 
@@ -486,14 +502,28 @@ class GridWorld:
                 self.state[f"o{i}.colour"] = (self.state[f"o{i}.colour"] + 1) % 4
                 return
 
+    def _delta(self, action: str) -> tuple[int, int]:
+        """What this action does NOW. **Fixture A's whole mechanism, and it is four lines.**
+
+        Before the trigger it is `_DELTA`. After it, the two axes are reflected -- `up` goes
+        down and `left` goes right. Nothing is random and nothing is hidden: the board is as
+        lawful after as before, and an agent that had learned the mapping is now wrong about it
+        in a way no amount of re-reading the action LIST would reveal.
+        """
+        dr, dc = _DELTA[action]
+        if self.remap_after is not None and self._steps >= self.remap_after:
+            return -dr, -dc
+        return dr, dc
+
     def step(self, action: str, x: int | None = None, y: int | None = None) -> None:
+        self._steps += 1
         if self.click_only:
             self._click(action, x, y)
             return
         if action not in ACTIONS:
             raise ValueError(f"unknown action: {action}")
         self._cue = None           # a new board is a new set of mutations to read off it
-        dr, dc = _DELTA[action]
+        dr, dc = self._delta(action)
         r0, c0 = self.state["o0.row"], self.state["o0.col"]
         r1, c1 = self.state["o1.row"], self.state["o1.col"]
         nr0, nc0 = self._wrap(r0 + dr, c0 + dc)

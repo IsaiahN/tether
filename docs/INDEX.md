@@ -50377,3 +50377,65 @@ Likewise the value table (15): `audit` records `lands[(ctx, slot, before)] -> {a
 multi-valued, serve-and-abstain both demonstrated — capability UNVERIFIED and unverifiable**,
 because every one of those cells is on an ORDERED slot and the mechanism exists for the unordered
 case.
+
+---
+
+# FIXTURE B: A BOARD WITH NO AVATAR WHERE ONLY CLICKING WORKS — AND IT IS THE NIGHT'S ONE CONTACT CHANGE
+
+**2026-09-28.** Isaiah's second fixture, and the only world that can exercise the positioned
+route at all. *"If no avatar what is the cause and effect by clicking on things."*
+
+    gridworld(click_only=True)   ONE action, `ACTION6`, and it takes a coordinate. Nothing
+                                 moves. Clicking a cell advances whatever is there by a colour
+    an UNAIMED click is a NO-OP  so the uniform draw is a REAL control, not a weaker treatment
+    recolour-on-click            makes the reachable attribute UNORDERED -- the arm the value
+                                 table was built for and which POSITION slots cannot exercise
+
+## THE READING, AND THE CONTROL IS IN THE WORLD RATHER THAN IN AN ARGUMENT
+
+    WORLD       gridworld seed 11, `click_only`
+    POPULATION  24 steps, 6 objects
+
+    BEFORE   intents 23, TOUCH 0,  CONTACT **NONE** -- not one slot changed
+    AFTER    intents 23, TOUCH 3,  CONTACT **all six objects**
+
+**A uniform draw scores ZERO BY CONSTRUCTION here**, because it cannot aim — so the
+before-reading IS the control arm, measured rather than assumed. That answers
+`ACTION_INTERFACE_PLAN` 19e's pre-registration (*contact-seeking should start working where
+there is no avatar*) and refutes its refuter (*it fires and does no better than the draw*) with
+the same pair.
+
+> **THIS IS A CONTACT CHANGE IN FIGURE 11's SENSE AND IT IS THE ONLY ONE IN THE BLOCK.** Every
+> other commit tonight moved a decision below the seam, deleted a violation, or repaired a
+> record — instruments and relocations, all of which score zero on contact by design. **The
+> agent can now reach something it could not**: objects on a board with no body.
+
+## TWO DEFECTS, AND THE SECOND WAS FOUND BY RE-RUNNING RATHER THAN BY REASONING
+
+**1. `ELICIT` RETURNED A POSITIONED ACTION UNAIMED.** The interface knows which actions are
+positioned — `POSITIONED` is its own constant — and handed back a press it knew would do
+nothing. **An exploration that cannot produce an observation is not an exploration.** Positioned
+realisations are now aimed at an UNCLICKED OBJECT (the reviewer, per Isaiah's *clicking on
+things*): not an arbitrary cell, because a cell with nothing in it teaches nothing. `clicked` is
+filled by `audit` from the interface's own coordinates, so *unclicked* means *I have not tried
+there* and never *nothing is there*.
+
+**2. AND AFTER FIXING THAT, THE RE-RUN STILL READ ZERO.** `_explore` returned `r.action` and
+DISCARDED `r.coord`. **The interface was aiming correctly and the loop was throwing it away** —
+*a value that exists and never crosses*, in code two hours old. Fixed at ONE DOOR: `_took(r)`
+keeps the aim and returns the action, and all five realisation consumers go through it, so the
+next exit added cannot drop it silently.
+
+> **THE FIXTURE CAUGHT THE SAME DEFECT AT TWO LEVELS, AND I DIAGNOSED ONLY THE FIRST.** The
+> second was found by re-running and getting the identical zero. **That is the argument for
+> building a world that can fail you rather than a test that asserts what you believe** — and
+> it is the first defect of the night found by a fixture rather than by a seat or the reviewer.
+
+## WHAT IT DOES NOT SHOW
+
+**It is a FIXTURE: it proves WIRED, never CAPABLE.** Stages reached on this habitat are
+PERCEIVE, GOAL and EXPRESS; DECOMPOSE, COMPOSE, RUN and CORRECT are not. Six colour changes are
+not a solved board, and nothing here says the agent pursued anything — only that its contact
+intent now reaches the world it is aimed at. **Not added to the fixture seat's arms**: the seat
+runs `toy` and `gridworld`, and turning a new habitat into a red gate is a decision to take
+deliberately rather than as a side effect of writing one.
