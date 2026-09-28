@@ -50001,3 +50001,151 @@ the M2 seat catching an undeclared book key.
 
 **IT GREW RATHER THAN SHRANK, because building produces more opportunities to be wrong than
 auditing does.** That is the argument for the seats, not against the work.
+
+
+---
+
+# SYSTEM 0 IS SWITCHED OFF ON THE ARC PATH BY A KEYWORD ARGUMENT, AND WHERE THERE IS NO AVATAR IT WOULD BE A CONSTANT-ACTION POLICY
+
+**2026-09-28.** Isaiah asked whether the agent reasons with all three modes SIMULTANEOUSLY. On
+the ARC path it does not, and the reason is not architectural.
+
+    tether.py:665        Config.system0: bool = True            the GLOBAL default is ON
+    arc_holdout.play(..., system0: bool = False, ...)           the ARC path's OWN default
+    arc_holdout:155      cfg = tether.Config(system0=system0, max_depth=4)
+
+**The ARC entry point overrides the global ON with its own OFF.** That is why `system0` appears
+nowhere in the `by` census on either board -- `ls20` learned 128 / draw 20 / probe 2, `g50t`
+learned 93 / probe 23 / draw 15. Not a starved mechanism; a parameter default.
+
+### the OFF was correct when set and its justification expired
+
+`INDEX:40538` records it -- *"`Config.system0` stays default OFF -- turning it on is a
+relabel"* -- and `INDEX:41461` says why that was true: *"`system0` and `draw` were
+byte-identical calls to `drive.choose`."* **It is no longer a relabel.** The branch now takes an
+untried action first, picks a contact target, takes positioned `ACTION6` at it, and otherwise
+steps `_toward` it from observed displacement. **The switch carries a reason that expired and no
+row recorded the expiry.** Measured by git: `system0` first appears 09-13 and was last changed
+09-25, six commits, with `contact_points` and `_contact_keys` still being written on 09-25 --
+**after the 09-24 OFF decision.** The other fifteen arms show no such signature (introduced
+09-19..09-23, last touched 09-23/24, 2-5 commits, untouched since), so **this is specific rather
+than symptomatic.** The git test catches an axis `conform/arms.py` does not: *undeclared*,
+*stale entry* and *half a pair* are checked there; *the justification expired* is not.
+
+### and the second cause does NOT apply to ARC, which makes it one cause
+
+`gridworld.py:305` records that System 0's contact intake *"has been dead in EVERY world the
+agent has ever run"*. **`arc_world.py:412` is the exception** -- a full O(n^2) pair scan with a
+contact KIND per pair, cached per frame, whose docstring names its consumer and its access
+pattern (*"System 0 asks twice a cycle"*). `_system0_active()` would also pass trivially at
+episode start. **So on ARC the intake is supplied, the gate would open, and only the flag is
+off** -- and every route to `contact_points` runs through that flag (`_system0_active` is the
+RIGHT operand of `self.cfg.system0 and ...`, so it short-circuits). **`arc_world.contact_points`
+has zero callers on the ARC path.** *Is it actually reached*, in the mirror of the
+`sensors_heavy` row: unreached BECAUSE its consumer is switched off.
+
+### THE COLLAPSE, and it is why "turn it on" is not the ruling
+
+`_note_move` opens `a = self._avatar(); if a is None: return`, so **`_move_map` never fills on a
+board with no avatar** -- a state `INDEX:9350` and `INDEX:9517` already keep as real. The branch
+then reads:
+
+    untried = [x for x in sorted(self.actions) if x not in self._move_map]
+    if untried: act = untried[0]
+    elif target is not None and "ACTION6" in self.actions: ...
+    elif target is not None: act = self._toward(...)
+
+**With `_move_map` permanently empty, `untried` is always the full set and `act` is always
+`sorted(self.actions)[0]` -- one fixed action for the whole run** -- and `if untried:`
+short-circuits both branches below, so the positioned action and `_toward` are unreachable and
+`_contact_target(before)` is computed on the line above and DISCARDED every cycle.
+
+> **SYSTEM 0 EXISTS BECAUSE THE LEARNED ARM COLLAPSES TO ONE BUTTON** (`TRAINING_PLAN:127`;
+> `F26` ACTION1 ~79%; on ARC `ACTION2` at 70-100%). **Where there is no avatar its own output is
+> one fixed action on 100% of cycles** -- deterministic, never varying, and strictly worse than
+> the collapse it was built to fix, because `learned` at least responds to the board.
+
+**Conditional and structural, not measured**: it holds wherever there is no avatar, and which
+ARC boards those are needs a run. The `MIN_REPEAT` warm-up is NOT a second cause -- a locus is
+`embodied` only after `MIN_REPEAT` consecutive explanations, but `MIN_REPEAT = 2`, so the
+warm-up is two cycles and the deadlock it suggested does not exist. **Checked before it was
+written up.**
+
+### THREE NOTIONS OF `tried`, AND THE ONE THE SPEC NEEDS IS NOT RECORDED
+
+    drive.tried[a]   DRAWN   written inside `drive.choose` -- which System 0 calls FIRST and
+                             then overrides, so it accrues for actions never performed
+    _move_map[a]     MOVED   only fills where an avatar moved
+    (nothing)        TAKEN   what the agent actually did
+
+`_system0_active`'s docstring says *"every surfaced action tried at >=2 distinct states"* --
+**tried meaning TAKEN; the counter means DRAWN.** `A6i`, and load-bearing: the hand-over clause
+keys on DRAWN while `untried` keys on MOVED, which conflates *never taken* with *taken and
+nothing moved*. **One record -- actions TAKEN at distinct states, written where the action is
+committed -- fixes both halves.** Reviewer's framing, 2026-09-28, and better than the
+two-counter version.
+
+**The hand-over, for the ruling:** clause (a) is the spec's own criterion (*varied
+(before, action, after) evidence*) and would drain in roughly `2N` cycles -- **DERIVED from the
+deterministic stride and the full-state `_where` tuple, not measured** -- while clause (b)
+drains one contact key per cycle and refills as shapes change, so it may hold the turn for a
+whole run. **Whether (b) belongs in the switch at all is the question, not on-or-off.**
+
+**ACTING PATH, so none of it is repaired here.** With Isaiah.
+
+---
+
+# THE QUANTIFIERS QUANTIFY -- `879c534`, and the corpus had specified the whole build
+
+**2026-09-28.** `grammar.PRIMES` has declared `ALL/SOME/ONE/NONE` over a scope all along;
+`_quantify` supplied three atoms taking a SCALAR, with `all` and `any` BYTE-IDENTICAL and `ONE`
+absent. **So every objective the agent composed was closed by a quantifier that does not
+quantify** -- `symmetric . same . all` evaluates, returns 1, and means *this one shape is
+symmetric* while its name says *the shapes are symmetric*.
+
+**`DISCOVERY` Q21 is marked SETTLED and specifies it entirely** -- quantifier over an inner
+relation across a SCOPE under a pairing mode, returning a verdict AND a degree. Found by
+censusing `scope` across the corpus before reading any one file: 19 hits, six files, one
+substantive. **Eleventh instance of *assume it is already specified, and go look*.**
+
+    all_of / some_of / one_of / none_of    CELLS -> OBJ, elem BOOL, count against length
+    size                                   CELLS -> EXTENT -- the DENOMINATOR
+
+`count_true` is the NUMERATOR of Q21's degree and nothing published what it was out of, so
+*3 held* could not be told from *3 of 4 held*. The two integers are the degree, in the
+numerator-and-denominator form `objective_degree` already argues for.
+
+    WORLD: the ARC atom set, fold arm ON, max_depth=4 (the depth `arc_holdout` itself sets)
+    POPULATION: every type-valid SHAPE->OBJ pipeline
+
+    without the five   3435 terms,  0 close an iteration
+    with them          3505 terms, 70 close an iteration
+
+**REACH, NOT CONTACT.** The fold arm gave the agent iteration and no way to bet on the result --
+zero, not few. But 435 objectives already exist on ARC and none bind, so this is the closure
+growing (Figure 6), not what the agent does on a board (Figure 11).
+
+**AND IT COSTS.** `term_bits` reads LENGTH and ALPHABET, so five more atoms take the alphabet
+66 -> 71 and every objective 30.33 -> 30.85 bits, widening the objective/predictor gap
+18.20 -> 18.51. *Widening the vocabulary makes binding harder* holds only because `term_bits`
+prices a UNIFORM code -- **MDL does not require one, and the library's tag weights are already
+such a prior, consulted by `mint` to ORDER candidates while the bargain still PRICES them
+flat.** Ordering is prior-shaped; pricing is not. **With Isaiah.**
+
+**OPEN, not decided by the build:** Q21 gives ALL and SOME the SAME degree, so with
+`R_goal = 1 - degree` the two are one graded objective and only the verdict separates them.
+**The build reproduces that collapse rather than resolving it.**
+
+**Equivalence, with a control:** `all_same`/`any_same`/`none_same` against
+`all_of`/`some_of`/`none_of` over 4,000 random peer groups -- **0 mismatches**, with a
+deliberately mispaired control at **236**, so the zeros are a result and not a dead comparison.
+Seat test carries it. **The old three are untouched; retiring them needs a board.**
+
+### and what is BLOCKED, so the next reader does not start it
+
+**`score_molecule` cannot be built**: `INDEX:8653` already checked the panel -- *"it partitions
+THE PROGRESS STREAM. We do not have one"*, `level start 0 end 0` on both games. **A
+median-thresholded partition of a constant stream separates nothing and looks like it works.**
+Unblocks the moment any game advances one level. **Pairing modes sit behind it** and the spec
+already under-charges them (`INDEX:8644`: two bits is the QUANTIFIER alphabet, but an objective
+is `quantifier x relation x scope x pairing`).
