@@ -60,6 +60,17 @@ BECOME = "BECOME"        # a takes an attribute
 # meaning *separate my alternatives*.
 DISTINGUISH = "NOT SAME"
 
+# **THE POSITIONED ACTION, NAMED HERE AND NOWHERE ABOVE -- the plan's 19c.** The seam's rule is
+# that only the interface may know a button exists, so this string belongs in this file and was
+# a violation in `tether.py`, where `choose` read `"ACTION6" if "ACTION6" in self.actions` at two
+# sites and `step` keyed the coordinate on `action == "ACTION6"`.
+#
+# **AND IT IS THE SMALLER LIE, NOT NO LIE.** The honest version is LEARNED: an action that
+# ACCEPTED a coordinate and moved something is positioned, which is observable, and `audit`
+# already sees every press. Written down as unfinished so nobody reads a hardcoded name below
+# the seam as the finished state.
+POSITIONED: tuple[str, ...] = ("ACTION6",)
+
 
 @dataclass(frozen=True)
 class Repeat:
@@ -276,6 +287,45 @@ class Interface:
             if best is None:
                 return None
             return Realisation(best, why=f"observed to move {intent.subject} that way {how}")
+        if intent.kind == TOUCH and intent.object:
+            # **BRING ME INTO CONTACT WITH `object`. The agent does not say how, and that
+            # indifference IS the seam -- the plan's 19.** Two routes and an abstention; the
+            # agent learns which only as *what changed*, never as *which button*.
+            #
+            # ROUTE 1, THE POSITIONED ACTION. `F28` permits reading availability; what it
+            # forbids is the directional semantics reaching the agent. The coordinate comes
+            # from PERCEPTION -- the target's own row/col -- and rides back in the
+            # `Realisation`, which has always had the field and which `perceive` already
+            # accepts. `step` was recomputing it from the button's name instead.
+            here = self._at(intent.object, state)
+            pos = [a for a in offered if a in POSITIONED]
+            if pos and here is not None:
+                return Realisation(pos[0], coord=here,
+                                   why=f"a positioned action, aimed at {intent.object} "
+                                       f"where it is")
+            # ROUTE 2, MOVE WHATEVER I CAN MOVE TOWARD IT -- **and there is no `_avatar()` in
+            # it, which is the whole of Isaiah's *"it shouldn't matter if there is an avatar"*.**
+            # `_toward` above the seam asked *which way does the AVATAR go*; this asks *which
+            # action have I seen move ANY position slot the way the gap points*, which is the
+            # delta table answering a question it already holds.
+            best, gain, why = None, 0.0, ""
+            for a in offered:
+                for (_c, k), (n, tot) in self.table.get(a, {}).get("delta", {}).items():
+                    step = self._gap(k, intent.object, state)
+                    if step is None or not n:
+                        continue
+                    mean = tot / n
+                    if mean * step <= 0:
+                        continue            # this action moves it the wrong way, or not at all
+                    got = min(abs(mean), abs(step))
+                    if got > gain:
+                        best, gain, why = a, got, f"{k} toward {intent.object} by {mean:+.2f}"
+            if best is not None:
+                return Realisation(best, why=f"observed to move {why}")
+            # NEITHER ROUTE. **An unreachable contact is a reading the agent is entitled to**,
+            # and substituting a draw here would be the interface deciding to explore on the
+            # agent's behalf while wearing the word contact.
+            return None
         if intent.kind not in (ELICIT, DISTINGUISH):
             # WITHOUT A TABLE ENTRY THERE IS NOTHING HONEST TO PICK, and guessing would be the
             # interface deciding. It abstains and the agent learns the intent was unrealisable.
@@ -333,6 +383,44 @@ class Interface:
         opened = tuple("a way to act that was not there before" for _ in (now - was))
         closed = tuple("a way to act that is gone" for _ in (was - now))
         return Capability(opened=opened, closed=closed)
+
+    @staticmethod
+    def _at(obj: str, state: dict | None) -> tuple[int, int] | None:
+        """Where `obj` is, as `(x=col, y=row)`. **`_action6_coord` moved, not rewritten.**
+
+        `F28`: the coordinate is chosen from PERCEPTION -- the object's own perceived row/col --
+        and `None` where it has no position slots, so a positioned action stays unpositioned
+        rather than being aimed at nothing.
+
+        **THE `.row`/`.col` CONVENTION IS PARSED HERE RATHER THAN IN THE LOOP, WHICH IS WHERE IT
+        BELONGS.** `slot_types` says the loop may not split a slot name because that is reading
+        domain structure -- and `tether._action6_coord` was doing exactly that, above the seam.
+        Below it, knowing how this domain spells a position is the job.
+        """
+        if not obj or state is None:
+            return None
+        col, row = state.get(f"{obj}.col"), state.get(f"{obj}.row")
+        if col is None or row is None:
+            return None
+        return int(col), int(row)
+
+    @staticmethod
+    def _gap(slot: str, target: str, state: dict | None) -> int | None:
+        """How far `slot` is from its counterpart on `target`, signed. `None` if not comparable.
+
+        Pairs a position slot with the SAME attribute on the target -- `o3.row` against
+        `o7.row` -- so *reduce the distance* is well defined without anything being an avatar.
+        Refuses the target's own slots: moving a thing cannot be approaching it.
+        """
+        if state is None or "." not in slot:
+            return None
+        obj, attr = slot.rsplit(".", 1)
+        if obj == target or attr not in ("row", "col"):
+            return None
+        cur, tgt = state.get(slot), state.get(f"{target}.{attr}")
+        if cur is None or tgt is None:
+            return None
+        return int(tgt) - int(cur)
 
     def separability(self, env: Any, offered: tuple[str, ...]) -> dict[str, int]:
         """How many self-members find each action DISTINCTIVE. **Relocated, not rewritten.**

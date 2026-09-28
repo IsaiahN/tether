@@ -828,7 +828,6 @@ class Agent:
         self._cue_tag_cache: tuple = (-1, {})
         self._contact_seen: set = set()
         self._refuted_slot: dict = {}
-        self._move_map: dict = {}
         self._contact_pick = None
         self._s0_target: str | None = None
         self.alphabet = self._alphabets(env)
@@ -873,6 +872,9 @@ class Agent:
         # THE INTENT THE GOAL EXIT ASKED FOR, kept so `_mint_routine` can plan in it rather
         # than in the button the interface returned. The plan's 16.
         self._goal_want: Any = None
+        # WHERE THE INTERFACE AIMED A POSITIONED ACTION, or `None`. Set by the contact exits,
+        # read once by `step`. The agent never chooses it and never reads it as a position.
+        self._s0_coord: tuple[int, int] | None = None
         # **THE INTENT ALPHABET AS A MEASURED POPULATION, NOT A DERIVED CONSTANT.** The routine
         # price still uses the ACTION alphabet (see `_mint_routine`), which is now the wrong
         # one; this is the count that makes the size of that gap readable. Distinct intents
@@ -1223,7 +1225,7 @@ class Agent:
         # evidence that does not.
         self._contact_pick = None
         self._s0_target = None
-        # CLEARED AT RETARGET, unlike `_contact_seen` and `_move_map`: this one is keyed by
+        # CLEARED AT RETARGET, unlike `_contact_seen`: this one is keyed by
         # SLOT NAME, and the slots do not survive a level boundary. Same rule the boundary
         # reset states for `_res` and `_disc`.
         self._refuted_slot: dict = {}
@@ -2047,18 +2049,6 @@ class Agent:
             # in the routing.
             return CHANNEL_CLOSED
         return GENUINE
-
-    def _action6_coord(self, slot: str | None, before: dict[str, int]) -> tuple[int, int] | None:
-        """F28: the coordinate for a positioned action, chosen from PERCEPTION -- the object of the
-        given slot, at its own perceived row/col. Returns (x=col, y=row) or None when the object has
-        no position slots (no spatial basis, so the action stays unpositioned rather than noise)."""
-        if not slot:
-            return None
-        obj = slot.rsplit(".", 1)[0] if "." in slot else slot
-        col, row = before.get(f"{obj}.col"), before.get(f"{obj}.row")
-        if col is None or row is None:
-            return None
-        return int(col), int(row)
 
     def perceive(self, action: str,
                  coord: tuple[int, int] | None = None) -> dict[str, SlotResidual]:
@@ -3175,9 +3165,17 @@ class Agent:
         if _STARVED_CONTACT and self._starved:
             aim = sorted(self._starved)[0].rsplit(".", 1)[0]
             self._s0_target = aim
-            # positioned where ACTION6 exists, else steer the avatar into it
-            act = ("ACTION6" if "ACTION6" in self.actions
-                   else self._toward(before, aim))
+            # **ONE INTENT, NOT A MODALITY CHOICE -- the plan's 19.** This read
+            # `"ACTION6" if "ACTION6" in self.actions else self._toward(...)`, which is the
+            # agent picking between two ways of touching something. It asks to touch.
+            _t = self.iface.realise(IFace.Intent(IFace.TOUCH, object=aim),
+                                    tuple(self.actions),
+                                    IFace.Interface.context(self.env), before)
+            self._s0_coord = _t.coord if _t is not None else None
+            act = _t.action if _t is not None else None
+            if _t is not None:
+                self.led.record(self.cycle, "PLAN", aim, "intent",
+                                reads=(f"{IFace.TOUCH} {aim}", _t.why))
             if act is None:
                 act = self.drive.choose(self.actions, self.cycle, _where(before))
             return act, "probe"
@@ -3227,29 +3225,34 @@ class Agent:
             target, why = self._contact_target(before)
             self._s0_target = target
             act = self.drive.choose(self.actions, self.cycle, _where(before))
-            # A TARGET IS ONLY REACHABLE THROUGH THE POSITIONED ACTION. Where ACTION6 is
-            # surfaced and something is worth touching, take it; otherwise the target is
-            # unaimable and the drawn action stands, which is the honest fall-through.
-            # AN UNTRIED ACTION OUTRANKS BOTH MODALITIES, and this is not a preference --
-            # it is the only order that works. Contact-seeking has to know what the
-            # actions DO, and overriding the draw with ACTION6 before anything else has
-            # been tried STARVES the action-effect coverage that is this switch's own
-            # first clause: measured on dc22, `{ACTION6: 10}` in 10 cycles and no other
-            # action ever taken, so coverage could never complete and the learned arm
-            # could never resume. `_toward` already yields untried actions first; this
-            # puts the positioned path under the same rule instead of around it.
-            untried = [x for x in sorted(self.actions) if x not in self._move_map]
-            if untried:
-                act = untried[0]
-            elif target is not None and "ACTION6" in self.actions:
-                act = "ACTION6"
+            # **THE AGENT SAYS `TOUCH`, AND THE MODALITY IS NOT ITS BUSINESS -- the plan's
+            # 19.** This read `"ACTION6" if "ACTION6" in self.actions else self._toward(...)`:
+            # a button by name, and a fallback that ranked every action by the AVATAR's
+            # observed displacement. Both are below the seam now, and the agent's whole
+            # utterance is *bring me into contact with `target`*.
+            #
+            # AN UNTRIED ACTION STILL OUTRANKS BOTH MODALITIES, and it is not a preference --
+            # it is the only order that works. Contact-seeking has to know what the actions
+            # DO, and taking the positioned path before anything else has been tried STARVES
+            # the action-effect coverage that is this switch's own first clause: measured on
+            # dc22, `{ACTION6: 10}` in 10 cycles with no other action ever taken, so coverage
+            # could never complete and the learned arm could never resume. **That rule is the
+            # AGENT's -- it is about what the agent still needs to learn, not about which
+            # button does what -- so it stays here and is said as an intent.**
+            _untried = self.iface.realise(IFace.Intent(IFace.ELICIT), tuple(self.actions),
+                                          IFace.Interface.context(self.env), before)
+            _coord = None
+            if _untried is not None and _untried.unmapped:
+                act = _untried.action
             elif target is not None:
-                # NO POSITIONED ACTION: the board is DIRECTIONAL, and the agent makes
-                # contact by moving its avatar into things -- which is most of the set.
-                # The direction comes from what the actions were OBSERVED to do.
-                step = self._toward(before, target)
-                if step is not None:
-                    act = step
+                _t = self.iface.realise(IFace.Intent(IFace.TOUCH, object=target),
+                                        tuple(self.actions),
+                                        IFace.Interface.context(self.env), before)
+                if _t is not None:
+                    act, _coord = _t.action, _t.coord
+                    self.led.record(self.cycle, "PLAN", target, "intent",
+                                    reads=(f"{IFace.TOUCH} {target}", _t.why))
+            self._s0_coord = _coord
             if self._contact_pick is not None:
                 self._contact_seen.add(self._contact_pick)
             self.led.record(self.cycle, "MINT", target or "@contact", "system0",
@@ -3328,71 +3331,6 @@ class Agent:
     #
     # `F236` measured the old System 0 as BYTE-IDENTICAL to the uniform draw -- the switch was
     # right and the POLICY was the same call. This is the different policy.
-
-    def _avatar(self) -> str | None:
-        """The embodied locus, from the self-model the world already runs -- `mode()`'s
-        `per_locus`, which is `embodied` where a member has explained that locus for
-        `MIN_REPEAT`. Read, never derived here: the family exists so that no single claim
-        about what the self is gets privileged, and picking one in the loop would do that."""
-        fn = getattr(self.env, "mode", None)
-        if fn is None:
-            return None
-        try:
-            per = (fn() or {}).get("per_locus") or {}
-        except Exception:                                  # noqa: BLE001
-            return None
-        emb = sorted(k for k, v in per.items() if v == "embodied")
-        return emb[0] if emb else None
-
-    def _note_move(self, before: dict, action: str, after: dict) -> None:
-        """LEARN what an action does to the avatar, from what it DID. One running mean of
-        `(drow, dcol)` per action.
-
-        **NOT A HANDED TABLE.** `contingency`'s docstring names the failure this avoids: *it
-        has never had to learn what pressing something does, because the primitive it was
-        given already knew -- the difference is provenance, and provenance is the whole of
-        it.* An empty map before anything is observed is what a closed-over direction table
-        can never produce, and the agent explores precisely the actions it has no entry for.
-        """
-        a = self._avatar()
-        if a is None:
-            return
-        r0, c0 = before.get(a + ".row"), before.get(a + ".col")
-        r1, c1 = after.get(a + ".row"), after.get(a + ".col")
-        if None in (r0, c0, r1, c1):
-            return
-        n, dr, dc = self._move_map.get(action, (0, 0.0, 0.0))
-        self._move_map[action] = (n + 1,
-                                  dr + (int(r1) - int(r0)),
-                                  dc + (int(c1) - int(c0)))
-
-    def _toward(self, before: dict, target: str) -> str | None:
-        """The action whose OBSERVED displacement most reduces distance to `target`.
-
-        Unobserved actions are not guessed at and not ranked -- they are what System 0 is for,
-        so an action with no entry is returned FIRST when one exists. That is the exploration
-        and the direction-learning being the same act, which is Isaiah's *every new step
-        compounds data for search*."""
-        a = self._avatar()
-        if a is None or a == target:
-            return None
-        r0, c0 = before.get(a + ".row"), before.get(a + ".col")
-        tr, tc = before.get(target + ".row"), before.get(target + ".col")
-        if None in (r0, c0, tr, tc):
-            return None
-        untried = [x for x in sorted(self.actions) if x not in self._move_map]
-        if untried:
-            return untried[0]
-        here = abs(int(tr) - int(r0)) + abs(int(tc) - int(c0))
-        best, gain = None, 0.0
-        for act, (n, sr, sc) in self._move_map.items():
-            if not n or act not in self.actions:
-                continue
-            nr, nc = int(r0) + sr / n, int(c0) + sc / n
-            d = abs(int(tr) - nr) + abs(int(tc) - nc)
-            if here - d > gain:
-                best, gain = act, here - d
-        return best
 
     def _contact_keys(self, before: dict) -> dict:
         """`{key: (a, b)}` for this frame's contact points, keyed by KIND OF SITUATION rather
@@ -6276,6 +6214,10 @@ class Agent:
                     focal = _hit[0]
                     self.gamma.book["focus_by_cue"] = self.gamma.book.get("focus_by_cue", 0) + 1
         by = "given"
+        # PER STEP. A coordinate is a property of THIS cycle's realisation, and leaving it would
+        # aim a later positioned action at where something used to be -- the stale-state defect
+        # in the shape that looks like a working aim.
+        self._s0_coord = None
         if action is None:
             action, by = self.choose(before)
         self._acts[action] += 1   # System-0 instrument: the concrete action distribution
@@ -6362,18 +6304,22 @@ class Agent:
         # the focal object's own row/col, which are perceived slots. No spatial basis (the focal
         # object has no position slots) means ACTION6 would be noise, so the coordinate is None and
         # the world leaves the action unpositioned rather than emitting a baseless one.
-        # SYSTEM 0 AIMS. `focal` is chosen by residual mass, which is the right subject for a
-        # BET and the wrong one for going to touch something: contact-seeking has to point at
-        # what it has not touched, or it is a draw wearing a label -- which is `F236`.
-        # ARM M REACHES HERE TOO. It returns `probe`, not `system0`, so keying the coordinate on
-        # `by == "system0"` alone would aim a starved-slot perturbation at `focal` -- the slot
-        # with the most residual mass, which is precisely NOT the starved one.
-        aim = (self._s0_target if (by in ("system0", "probe") and self._s0_target)
-               else focal)
-        coord = self._action6_coord(aim, before) if action == "ACTION6" else None
+        # **THE COORDINATE RIDES ON THE REALISATION NOW, NOT ON A BUTTON'S NAME -- 19.** This
+        # read `if action == "ACTION6"`, which is `step` knowing which button is positioned:
+        # the last such test outside the interface. `realise` aims it and sets `_s0_coord`, so
+        # a board spelling its positioned action differently needs no change here at all.
+        #
+        # **AND THE AIM-SELECTION WENT WITH IT, WHICH IS A REAL SIMPLIFICATION AND NOT A LOSS.**
+        # This site used to pick the aim itself -- `_s0_target` for `system0`/`probe`, else
+        # `focal` -- carrying two earned facts: that `focal` is residual mass and therefore the
+        # right subject for a BET and the WRONG one for going to touch something (`F236`), and
+        # that ARM M returns `probe` rather than `system0` so keying on `by` alone would aim a
+        # starved-slot perturbation at the most-residual slot. **Both are now structural: the
+        # exit that WANTS the contact names its own target in the intent, so there is no second
+        # site guessing whose aim this was.**
+        coord = self._s0_coord
         res = self.perceive(action, coord)
         # WHAT THAT ACTION DID TO THE AVATAR, recorded from the frames either side of it.
-        self._note_move(before, action, self.env.observe())
         for slot, b, fit, _why in self.route(res):
             if b == REBIND and fit:
                 self.bound[slot] = fit

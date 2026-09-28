@@ -869,99 +869,117 @@ def test_b5_still_fires_on_the_pinned_world():
     from tether import Agent, Config
     from world import bind
 
-    S = snaps.SlotSpec
-    spec = snaps.WorldSpec(
-        slots=["s0", "s1", "s2", "s3"],
-        rules={"s0": S(family="interact", k=5, a=5, reads="s2", lag=3, switch=8, k2=5),
-               "s1": S(family="affine", k=6, a=2, reads=None, lag=2, switch=8, k2=3),
-               "s2": S(family="action", k=1, a=6, reads=None, lag=3, switch=8, k2=4),
-               "s3": S(family="interact", k=5, a=6, reads="s1", lag=2, switch=8, k2=2)},
-        obj="ALL", tgt=6, who="s1", n=2, hold=3,
-        start={"s0": 4, "s1": 4, "s2": 4, "s3": 6})
+    # **THE HAND-WRITTEN WORLD STOPPED STARVING ANYTHING -- 2026-09-28, and it is NOT a fix.**
+    # The action-seam work changed which action lands on which step, and with it the one
+    # `no_support` park this world produced. Measured by stashing the diff and re-running:
+    #
+    #     PRE    bad=['B5']   park verdicts {under_floor 7, depth_exhausted 5, no_support 1}
+    #     POST   bad=[]       park verdicts {under_floor 7, depth_exhausted 5}
+    #     and at 12/15/20/30 steps: still no `no_support`, still no B5
+    #
+    # **So it is not timing** -- A5's budget fix does not apply. B5's own message offers two
+    # readings, *arm M is on* or *the probe now reaches the starved slot*, and NEITHER is true:
+    # arm M is off and every probe row still reads `@probe`, the empty-`_starved` fallback.
+    # **The reproduction lost its SUBJECT**, which is a third outcome the message does not
+    # contemplate -- and the assertion below it is the thing that caught that, so the author
+    # foresaw what the message did not.
+    #
+    # **RE-PINNED BY SEARCHING FOR THE PRECONDITION, NOT FOR THE VERDICT**, and the numbers are
+    # what make that distinction checkable rather than a claim:
+    #
+    #     POPULATION  48 worlds -- `spec_for(seed, n)` for seed 0..23, n in (4, 5), 9 steps
+    #     STARVE A SLOT (`no_support`)   2 of 48
+    #     OF THOSE, B5 FIRES             2 of 2
+    #
+    # **I did not pick the world where B5 fires; B5 fires in every world where a slot starves.**
+    # Choosing a world so a defect becomes OBSERVABLE is supplying a panel; choosing one so a
+    # verdict comes out right is fitting, and the 2-of-2 is what separates them. Both worlds are
+    # asserted, so the reproduction is now a pair rather than a single point.
+    for seed in (3, 16):
+        led = Ledger()
+        ag = Agent(bind(snaps.Snap(snaps.spec_for(seed, 4))), Gamma(snaps._atoms()),
+                   Config(), led)
+        for _ in range(9):
+            ag.step()
+        rows = led.rows()
+        # THE PRECONDITION FIRST, because a clean verdict on a world that starves nothing is
+        # the null this whole entry exists to refuse.
+        parked = {r.get("slot") for r in rows if r.get("event") == "park"
+                  and (r.get("detail") or {}).get("verdict") == "no_support"}
+        assert parked, (
+            f"seed {seed} starves no slot -- it no longer exercises B5, and a verdict taken "
+            f"here would be a reading of nothing")
+        res = kernel.Linter.run(rows)
+        bad = sorted(k for k, v in res.items() if v["status"] in ("FAIL", "SUPPRESSED"))
+        assert "B5" in bad, (
+            f"B5 NO LONGER FIRES on seed {seed} (bad={bad}) while {sorted(parked)} starved. "
+            f"If arm M is on, or the probe now reaches the starved slot, this is the GOOD "
+            f"outcome -- invert to `assert 'B5' not in bad`, rename it, and it becomes the "
+            f"regression test. **CHECK WHICH BEFORE INVERTING**: a tripwire cannot tell *the "
+            f"defect is gone* from *the trajectory moved past it*, and both happened today. "
+            f"Do not delete it.")
 
-    led = Ledger()
-    ag = Agent(bind(snaps.Snap(spec)), Gamma(snaps._atoms()), Config(), led)
-    for _ in range(9):
-        ag.step()
-    rows = led.rows()
-    res = kernel.Linter.run(rows)
-    bad = sorted(k for k, v in res.items() if v["status"] in ("FAIL", "SUPPRESSED"))
 
-    assert "B5" in bad, (
-        f"B5 NO LONGER FIRES on the pinned world (bad={bad}). If arm M is on, or the probe "
-        "now reaches the starved slot, this is the GOOD outcome -- invert to "
-        "`assert 'B5' not in bad`, rename it, and it becomes the regression test. "
-        "Do not delete it.")
-    # THE MECHANISM, NOT ONLY THE VERDICT -- so a future clean run can be told apart from a
-    # world that simply stopped starving anything.
-    parked = {r.get("slot") for r in rows if r.get("event") == "park"
-              and (r.get("detail") or {}).get("verdict") == "no_support"}
-    assert parked, "no slot starved here -- this world no longer exercises B5 at all"
+def test_a5_is_reproducible_without_a_world():
+    """A5's defect at the STATE level, so no trajectory can move it. **Reviewer, 2026-09-28.**
 
-
-def test_a5_still_fires_on_the_pinned_world():
-    """THE A5 REPRODUCTION, PINNED TO AN EXPLICIT WORLD -- and it asserts the DEFECT, on purpose.
-
-    A STRICT XFAIL WITHOUT pytest. The reviewer's shape (2026-09-27): get the reproduction into
-    the repo, do not turn the suite red while A5 truthfully fails, and make the marker
-    impossible to forget -- so when the fix lands the test FAILS and forces its own update.
-    `pytest` is installed and NO SEAT RUNS IT, so a `pytest.mark.xfail` here would be a suite
-    nothing runs, which is the rot this folder names in three other docstrings.
-
-    WHY THIS WORLD AND NOT `spec_for(13)`. Hypothesis found it, and it is written out as an
-    EXPLICIT `WorldSpec` rather than a seed: no generator, no example database, no phase list,
-    no shrinker. Every one of those moved under me during the session that produced it, and a
-    reproduction that states its world survives all of them. It is also FOUR slots, which
-    `snap_specs` actually draws -- `spec_for` is fixed at five and the machine never visits it.
+    Both world-pinned tripwires lost their subject today when the action seam changed which
+    action lands on which step -- B5's world stopped starving, A5's stopped citing across slots.
+    **A defect whose only reproduction is a trajectory is a defect that can vanish from the
+    suite without being fixed**, and A5's cause is already pinned to one line, so it does not
+    need a world at all.
 
     THE DEFECT: `gamma.is_settled(name)` is keyed by TERM while kernel A5 keys `(slot, term)`.
-    A settlement on one slot licenses citation on another. The fix has to refuse the BINDING,
-    not the row -- refusing only the row was tried, relabelled five cites as holds, and left
-    the agent predicting from the same term (reverted at `5b6d07b`).
+    The consumer is `tether.py`'s `_stood.append((slot, name, self.gamma.is_settled(name)))` --
+    it has the slot in its hand and cannot pass it, because the API has nowhere to put it.
+    **So one settlement anywhere licenses citation everywhere, and the state cannot express
+    otherwise.**
+
+    THIS IS AN EXPECTED FAILURE. It passes while the defect stands and FAILS when the fix lands,
+    which forces its own update -- and unlike the world-pinned pair, the only thing that can
+    make it fail is the repair.
+
+    **IT REPLACES `test_a5_still_fires_on_the_pinned_world`, WHICH IS RETIRED, AND THE PANEL
+    READING IT PRODUCED IS KEPT HERE RATHER THAN LOST WITH IT:**
+
+        POPULATION   48 worlds -- `spec_for(seed, n)`, seed 0..23, n in (4, 5)
+        at 12 steps  cross-slot citations 0 of 48    A5 fires 0
+        at 25 steps  cross-slot citations 1 of 48    A5 fires 1      <- seed 8, 1 of 1
+        CONTROL      same-slot allowed citations    23 of 48
+        on seed 8    18 steps is the THRESHOLD (cross 1); 14 and 16 do not fire
+
+    **So A5's situation is RARE rather than absent** -- the 0-of-48 at 12 steps was a budget
+    artefact and was nearly published as *the panel cannot show A5*. The control is what makes
+    the 1 readable: 23 worlds do cite settled terms, so the scan works.
+
+    **AND THE RETIREMENT IS A BUDGET DECISION MADE IN THE OPEN.** The `shipped` seat ran 2m09s
+    against a 120s limit and reported DID-NOT-RUN, which is correctly not a pass. Measured: 21
+    module-level tests total 115.2s, the two most expensive being
+    `test_the_residual_bound_loses_nothing` (22.9s) and
+    `test_a_mutation_moves_attention_and_never_the_action` (21.7s) -- **so the seat was already
+    within a few seconds of the limit before today.** The world-pinned A5 cost 18.1s, has lost
+    its subject TWICE in one day, and reproduced nothing this test does not. The world-pinned
+    B5 is KEPT at 8.4s because its 2-of-2 is what answers whether its re-seed was fitting.
+
+    **The hand-written world it used is recorded in this repository's history and in `INDEX.md`;
+    what is retired is a 18-second trajectory that certified less than three assertions do.**
     """
+    import inspect
+
     import snaps
     from gamma import Gamma
-    from ledger import Ledger
-    from tether import Agent, Config
-    from world import bind
 
-    S = snaps.SlotSpec
-    spec = snaps.WorldSpec(
-        slots=["s0", "s1", "s2", "s3"],
-        rules={"s0": S(family="chain", k=1, a=2, reads="s1", lag=2, switch=8, k2=1),
-               "s1": S(family="affine", k=1, a=2, reads=None, lag=2, switch=8, k2=1),
-               "s2": S(family="hidden", k=1, a=2, reads=None, lag=2, switch=8, k2=1),
-               "s3": S(family="hidden", k=1, a=2, reads=None, lag=2, switch=8, k2=1)},
-        obj="ALL", tgt=0, who="s0", n=2, hold=3,
-        start={"s0": 0, "s1": 0, "s2": 0, "s3": 0})
-
-    # **9 -> 12, AND THE REASON IS THE POINT, NOT THE NUMBER -- 2026-09-28.** Deleting
-    # `discriminate`'s spread branch changed which action this world gets on which step
-    # (`snaps._atoms()` contains `act`, so spread DID fire here), and A5 stopped appearing by
-    # step 9. **It is not fixed**: the defect is `is_settled` keyed by TERM against A5's
-    # `(slot, term)`, and nothing touched it. Measured across the same world: 9 -> clean,
-    # 12/15/20/30 -> A5. **Only the timing moved.**
-    #
-    # **AND THE TEST'S OWN FAILURE MESSAGE OFFERED THE WRONG REPAIR**, which is worth more than
-    # the fix: it says *if the settlement fix has landed, invert this and it becomes the
-    # regression test*. Inverting would have claimed a fix nobody made, and the suite would
-    # have gone green on it. **A tripwire cannot tell *the defect is gone* from *the trajectory
-    # moved past it*, so the instruction must never be followed without checking which.**
-    #
-    # This docstring argues a reproduction should STATE ITS WORLD rather than trust a seed. It
-    # stated its world and trusted a STEP BUDGET, which is the same dependence one level along:
-    # the budget was only ever enough because of how actions happened to be chosen.
-    led = Ledger()
-    ag = Agent(bind(snaps.Snap(spec)), Gamma(snaps._atoms()), Config(), led)
-    for _ in range(12):
-        ag.step()
-    res = kernel.Linter.run(led.rows())
-    bad = sorted(k for k, v in res.items() if v["status"] in ("FAIL", "SUPPRESSED"))
-
-    assert "A5" in bad, (
-        f"A5 NO LONGER FIRES on the pinned world (bad={bad}). If the settlement fix has "
-        "landed this is the GOOD outcome -- invert this test to `assert 'A5' not in bad`, "
-        "rename it, and it becomes the regression test. Do not delete it.")
+    g = Gamma(snaps._atoms())
+    g.settle("x")
+    assert g.is_settled("x"), "fixture: a settled term must read settled"
+    # THE REPRODUCTION, and it is one line: there is no slot to ask about.
+    assert "slot" not in inspect.signature(g.is_settled).parameters, (
+        "A5 IS FIXED: `is_settled` now takes a slot, so a settlement no longer licenses every "
+        "slot. Invert this to assert the slot IS a parameter, rename it, and it becomes the "
+        "regression test. Then check `settle` takes one too, and that `_stood` passes it.")
+    assert "slot" not in inspect.signature(g.settle).parameters, (
+        "`settle` takes a slot but `is_settled` does not -- half the repair. The state can now "
+        "record a per-slot settlement and nothing can read it back.")
 
 
 def test_the_keyed_reach_loses_nothing():
@@ -1331,7 +1349,7 @@ if __name__ == "__main__":
         test_the_daydream_precondition_can_refuse()
         test_the_atom_set_builds_under_every_arm_state()
         test_b5_still_fires_on_the_pinned_world()
-        test_a5_still_fires_on_the_pinned_world()
+        test_a5_is_reproducible_without_a_world()
         test_the_keyed_reach_loses_nothing()
         test_the_inherited_vocabulary_is_not_the_held_library()
         test_the_quantifiers_quantify()
