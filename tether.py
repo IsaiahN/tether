@@ -24,6 +24,7 @@ import condition
 import grammar as G
 import inherited
 import instruments as I
+import interface as IFace
 import retrieval
 import routine as Rt
 from gamma import INVENTED, Ctx, Gamma, Standing, Term, accepts_type
@@ -789,6 +790,13 @@ class Agent:
         for _k in BOOKS:
             self.gamma.book.setdefault(_k, 0)
         self.actions = tuple(env.actions())        # asked for, never imported
+        # THE ACTION INTERFACE -- `docs/ACTION_INTERFACE_PLAN.md`, Isaiah 2026-09-28.
+        # **THE ONLY LAYER THAT MAY KNOW A BUTTON EXISTS.** Today it AUDITS: every step
+        # records what the action was observed to do, so the table is built from acting
+        # and never closed over at construction -- which is `tether.py:2876`'s defect in
+        # the toy `act` atom, where *the primitive it was given already knew*. The strip
+        # that moves CHOOSING through it is step 2 and is not done.
+        self.iface = IFace.Interface()
         # SET HERE AND NOT ONLY IN `retarget`. `_advertised` reads it at the top of every
         # step; it only ever REACHED that read after the set had changed, so the attribute's
         # absence before the first `retarget` was masked by an early return. Feeding the
@@ -2046,11 +2054,31 @@ class Agent:
                                    "no prediction error is claimed on this slot"))
         betting = [s for s in betting if pred[s] is not None]
         _, deg_before = self.env.objective()
+        _real = IFace.Realisation(action, coord)
         if coord is not None:
             self.env.step(action, coord[0], coord[1])   # F28: positioned, coord from perception
         else:
             self.env.step(action)
         after = self.env.observe()
+        # JOB B's HALF THAT RUNS TODAY: this action does not have ONE fixed effect.
+        # **I WROTE HERE THAT IT CANNOT FIRE ON GRIDWORLD AND THE RUN DISPROVED IT** -- four
+        # times in eight steps, because `down` is sometimes BLOCKED. The rule is invariant and
+        # the outcome is not, so what fires is CONDITIONALITY, which is Isaiah's own separate
+        # question. Telling it apart from *the mapping changed* needs a context key that does
+        # not exist yet, so this claims the smaller thing and says so.
+        if self.iface.audit(_real, before, after):
+            self.led.record(self.cycle, "PERCEIVE", "@interface", "conditional",
+                            of=(action,), reads=("this action has now been seen to do more "
+                                                 "than one thing -- it is conditional"))
+        # AND WHAT THE BOARD NOW AFFORDS, **named as capability and never as a button** --
+        # Isaiah: *"the board has enabled us to move to the left or right after doing xyz"*.
+        # F28's line held: availability is legitimate to read, directional semantics never.
+        _cap = self.iface.capability(tuple(self.env.actions()))
+        if _cap.moved():
+            self.led.record(self.cycle, "PERCEIVE", "@interface", "capability",
+                            of=tuple(_cap.opened + _cap.closed),
+                            reads=("what the board affords has changed, stated as what became "
+                                   "possible rather than as which action it is"))
         name, deg_after = self.env.objective()
 
         res: dict[str, SlotResidual] = {}

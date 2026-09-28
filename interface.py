@@ -1,0 +1,146 @@
+"""The action interface — the one layer that knows a button exists.
+
+**ISAIAH, 2026-09-28:** *"The agent shouldn't really care about what action they choose. It
+shouldn't factor in their reasoning at all. They reason first, consider all systems, come to a
+conclusion, and then coordinate with the interface that translates that into actions."*
+
+**AND IT IS A CONFORMANCE JOB, NOT A NEW DESIGN.** `TRAINING_PLAN:405` (Isaiah, 2026-09-14, *two
+rulings, both binding*) already said *ACTIONS MUST NOT BE BAKED IN*, naming the exact trap:
+*"the brute-force enumeration baked actions into the composition space (`slot x action ->
+slot`)"*. That was written about TRAINING. The live path never obeyed it, and `slot x action ->
+slot` is `PREDICT`.
+
+**F28 DREW HALF THIS SEAM ALREADY** -- `arc_world.actions()`: *only the DIRECTIONAL SEMANTICS
+must never reach the agent; availability is legitimate to read.* This carries availability
+upward AS REASONING, never as a name.
+
+**THE ONE PROHIBITION, AND EVERYTHING HERE IS MEASURED AGAINST IT:** an interface that silently
+DECIDES is the encoded answer relocated rather than removed. It may translate and it may report.
+**It may not choose between goals, rank intents, or withhold a capability the board advertises.**
+Any decision it appears to make is a defect, and `audit()` is what makes that checkable rather
+than promised.
+"""
+
+from __future__ import annotations
+
+import sys
+from dataclasses import dataclass
+
+sys.dont_write_bytecode = True
+
+# **THE DOWNWARD HALF IS NOT HERE YET, AND THAT IS DELIBERATE.** `Intent`, `Repeat` and
+# `realise()` -- intent in, action out -- are designed in `docs/ACTION_INTERFACE_PLAN.md` and
+# ship WITH the strip that consumes them. The `lint` seat's ISOLATED check refused them standing
+# alone, correctly: *never ship half a mechanism*, and a translator nothing calls is the
+# built-and-never-reached class this project keeps finding.
+#
+# **WHAT IS HERE IS THE UPWARD HALF AND IT IS COMPLETE**: watch what actions do, report what the
+# board affords. That is job B's own direction and it stands on its own.
+
+
+@dataclass(frozen=True)
+class Realisation:
+    """What the interface actually did, recorded BESIDE the intent and never inside it.
+
+    **THE REVIEWER, 2026-09-28, and Isaiah's own wording is *"instead OR WITH the action set"*:**
+    intent alone leaves `audit()` nothing to check the table against. Intent above the seam,
+    realisation below it, both recorded.
+    """
+
+    action: str
+    coord: tuple[int, int] | None = None
+    unmapped: bool = False        # taken to LEARN what it does, not because the table said so
+    why: str = ""
+
+
+@dataclass
+class Capability:
+    """A change in what the board affords, **stated as reasoning and never as a button.**
+
+    Isaiah: *"the board has enabled us to move to the left or right after doing xyz"*, *"we are
+    now no longer able to go that way"*, *"we are now able to click freely around the board on
+    any object"*. **Systems 0, 1 and 2 learn that something opened without being told what it
+    is** -- which is F28's line held: availability crosses, semantics does not.
+    """
+
+    opened: tuple[str, ...] = ()
+    closed: tuple[str, ...] = ()
+
+    def moved(self) -> bool:
+        return bool(self.opened or self.closed)
+
+
+class Interface:
+    """Translates intent down, reports capability up. **Knows nothing about goals.**
+
+    It holds one table: what each action has been OBSERVED to do, keyed by the action and built
+    only from what `audit()` saw. **Nothing is closed over at construction** -- which is the
+    defect `tether.py:2876` names in the toy world's `act` atom, where *"the primitive it was
+    given already knew"* and discriminate became a property of the atom set rather than a model
+    the agent built. **This table starts empty on every board and is filled only by acting.**
+    """
+
+    def __init__(self) -> None:
+        self.table: dict[str, dict] = {}       # action -> what it was observed to do
+        self._seen: tuple[str, ...] = ()       # last frame's advertised set, for capability
+        self.audits = 0
+        self.conditional: set[str] = set()     # actions seen to have MORE THAN ONE effect
+
+    # ---- downward: intent -> action -- NOT HERE YET, ships with the strip ------------
+
+    # ---- upward: what changed, in reasoning terms -------------------------------------
+
+    def capability(self, offered: tuple[str, ...]) -> Capability:
+        """What the board opened or closed since the last frame, **named as affordance.**
+
+        The names here are the interface's own words for what became possible, and they are
+        deliberately not the action identifiers -- `F28`'s line: availability is legitimate to
+        read, directional semantics never.
+        """
+        was, now = set(self._seen), set(offered)
+        self._seen = offered
+        if not was:
+            return Capability()            # the first frame opens everything; that is not news
+        opened = tuple("a way to act that was not there before" for _ in (now - was))
+        closed = tuple("a way to act that is gone" for _ in (was - now))
+        return Capability(opened=opened, closed=closed)
+
+    def audit(self, r: Realisation, before: dict, after: dict) -> bool:
+        """Record what this action did, and report when it does not have ONE fixed effect.
+
+        **RETURNS `True` FOR *CONDITIONAL*, NOT FOR *CHANGED*, AND THE DIFFERENCE IS ISAIAH'S
+        OWN -- CORRECTED 2026-09-28 BY RUNNING IT.** The first version returned "the table was
+        wrong" and I commented at the wiring site that it *cannot fire on gridworld*, because
+        `actions()` is a module constant and `step` resolves a fixed `_DELTA`.
+
+        **IT FIRED FOUR TIMES IN EIGHT STEPS.** Measured: `down` has TWO distinct effects over
+        six presses -- `('o0.row', 'o1.proximity', ...)` and *nothing changed*. **Gridworld's
+        RULE is invariant and its OUTCOME is not**: the mover is sometimes blocked. That is
+        CONDITIONALITY, which Isaiah named as its own question -- *is it conditional?* -- beside
+        *do the actions change*.
+
+        **SO THIS REPORTS CONDITIONALITY HONESTLY AND DOES NOT CLAIM THE OTHER.** Separating
+        *conditional* from *the mapping changed* needs the effect keyed by the CONTEXT it was
+        observed in, and no such key exists yet. **Filed, not faked** -- a mechanism that
+        announced "the mapping changed" on every wall would be crying wolf, and a green reading
+        from it would have meant nothing.
+
+        And the conditionality is worth having on its own: *`down` sometimes does nothing* is
+        System 0 job A's **is that a wall?**, answered by acting.
+        """
+        self.audits += 1
+        changed = tuple(sorted(k for k in before if before.get(k) != after.get(k)))
+        e = self.table.setdefault(r.action, {"effects": set(), "n": 0})
+        e["n"] += 1
+        first = bool(e["effects"]) and changed not in e["effects"]
+        e["effects"].add(changed)
+        if len(e["effects"]) > 1:
+            self.conditional.add(r.action)
+        return first
+
+    def report(self) -> dict:
+        return {"mapped": len(self.table), "audits": self.audits,
+                "conditional": sorted(self.conditional),
+                "note": "conditional = the action has more than one observed effect. "
+                        "Telling that apart from THE MAPPING CHANGED needs a context key "
+                        "that does not exist yet"}
