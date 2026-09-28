@@ -217,15 +217,34 @@ def check_trigger_is_the_residual_not_the_reward():
 
 
 def check_route_is_learned():
-    """DEFECT: a routine naming an action the agent has no evidence for."""
+    """DEFECT: a routine committing to a step the agent has no evidence for.
+
+    **THE CONTRACT MOVED WITH THE PLAN'S 16 AND THE PROPERTY DID NOT.** This asserted the
+    routine's steps ARE the action `_goal_split` returned. A body now holds the INTENT, so that
+    comparison is a type mismatch wearing a failure's clothes -- and the seat caught it, which
+    is the check doing its job.
+
+    **REINTRODUCED AT THE NEW SHAPE RATHER THAN RELAXED**, and it is now STRICTLY STRONGER,
+    because it walks the whole chain instead of one end of it:
+
+        the body holds the intent the agent FORMED
+        that intent RESOLVES to the same action the goal exit took
+
+    **Both halves, because either alone passes while the chain is broken** -- the intent can be
+    right and unrealisable, or the action right with the body carrying something else entirely.
+    """
     ag = _agent()
     b = dict(ag.env.observe())
     _wide(ag)
     _mint(ag, b)
     if ag.routine is not None:
-        learned = ag._goal_split(b)
-        assert set(Rt.actions(ag.routine)) == {learned}, (
-            f"routine names {Rt.actions(ag.routine)}, learned route is {learned}")
+        learned = ag._goal_split(b)       # sets `_goal_want` as it forms it
+        want = ag._goal_want
+        assert set(Rt.actions(ag.routine)) == {want}, (
+            f"routine names {Rt.actions(ag.routine)}, the intent formed is {want}")
+        got = ag._realise_step(want, b)
+        assert got == learned, (
+            f"the body's intent resolves to {got}, the goal exit took {learned}")
 
 
 def check_shelf_must_be_runnable_here():

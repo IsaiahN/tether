@@ -40,13 +40,33 @@ sys.dont_write_bytecode = True
 # guard. Collapsing `BLOCKED` into `DONE` is check 3 again: *I could not read the guard* is not
 # *the guard is satisfied*.
 DONE, BLOCKED, EXHAUSTED = "done", "blocked", "exhausted"
-_ENDS = (DONE, BLOCKED, EXHAUSTED)
+# **A FOURTH ENDING, AND IT IS NOT ONE OF THE THREE -- `docs/ACTION_INTERFACE_PLAN.md` §16e.**
+# A body now holds an INTENT, and an intent the interface cannot realise HERE is neither
+# *the guard says no* nor *the budget ran out*. Folding it into either would collapse two
+# endings into one, which is the defect `F207` was diagnosed at: a routine whose ending does
+# not name what actually stopped it.
+#
+# **THIS MODULE NEVER PRODUCES IT.** `advance` emits the intent and the CALLER discovers it is
+# unrealisable, because only the caller holds the interface. The name lives here so the caller
+# has one word for it and `_ENDS` can recognise it when it comes back round.
+UNREALISABLE = "unrealisable"
+_ENDS = (DONE, BLOCKED, EXHAUSTED, UNREALISABLE)
 
 
 @dataclass(frozen=True)
 class Act:
-    """One primitive action, named as the environment advertises it."""
-    action: str
+    """One step of a plan. **NOT a button -- what the agent WANTS that step to achieve.**
+
+    `docs/ACTION_INTERFACE_PLAN.md` §16. This used to read *"one primitive action, named as the
+    environment advertises it"*, and that name was the last thing above the seam that knew a
+    button exists. It now holds whatever token the caller plans in: an `interface.Intent` on the
+    live path, a bare string in a fixture that is testing the SHAPES rather than the seam.
+
+    **This module stays agnostic and that is the point** -- it composes, repeats and conditions
+    steps without ever asking what a step IS. Only the caller resolves one, and only the
+    interface knows a button.
+    """
+    action: Any
 
 
 @dataclass(frozen=True)
@@ -217,11 +237,15 @@ CALL_DEPTH = 16
 def advance(r: Any, holds: Callable[[Any], bool | None],
             lib: dict | None = None, state: dict | None = None,
             _depth: int = 0) -> tuple[str, Any]:
-    """`(emit, rest)` -- the action to take now and the routine that remains.
+    """`(emit, rest)` -- the STEP to take now and the routine that remains.
 
-    `emit` is an action name, or one of `DONE` / `BLOCKED` / `EXHAUSTED`. `rest` is `None` when
-    nothing remains. **A step of a routine is itself total**: every shape returns, and the three
-    terminations are the only ways out that are not an action.
+    `emit` is whatever the `Act` held -- an intent on the live path -- or one of `DONE` /
+    `BLOCKED` / `EXHAUSTED`. `rest` is `None` when nothing remains. **A step of a routine is
+    itself total**: every shape returns, and the terminations are the only ways out that are not
+    a step.
+
+    **`UNREALISABLE` IS NEVER RETURNED FROM HERE.** It is the caller's ending, raised when the
+    interface cannot serve the intent this emitted -- see the constant.
 
     `holds(guard) -> True | False | None`, and `None` is *I could not read it*. The caller owns
     that; this module never evaluates a predicate.

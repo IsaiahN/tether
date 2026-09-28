@@ -853,6 +853,16 @@ class Agent:
         # ballot's four went with the ballot, 2026-09-28, and a count written here would be
         # stale the next time an exit moves.
         self._split_why: str | None = None
+        # THE INTENT THE GOAL EXIT ASKED FOR, kept so `_mint_routine` can plan in it rather
+        # than in the button the interface returned. The plan's 16.
+        self._goal_want: Any = None
+        # **THE INTENT ALPHABET AS A MEASURED POPULATION, NOT A DERIVED CONSTANT.** The routine
+        # price still uses the ACTION alphabet (see `_mint_routine`), which is now the wrong
+        # one; this is the count that makes the size of that gap readable. Distinct intents
+        # THIS AGENT HAS ACTUALLY FORMED -- a denominator from the run, never a space anybody
+        # enumerated, because enumerating one and taking its `log2` is the flat pricing Isaiah
+        # ruled against.
+        self._intent_kinds: set[str] = set()
         self._acts: Counter = Counter()   # System-0 instrument: concrete actions taken per cycle
         # the whole before-state is kept, because an operand is another slot's past value
         self.trace: list[tuple[dict[str, int], str, dict[str, int]]] = []
@@ -2985,7 +2995,9 @@ class Agent:
                                 "routine_recovered", outcome=_why,
                                 routine=Rt.render(self.routine),
                                 note="a fallback ran; the body's ending is NOT a refutation")
-            if emit not in (Rt.DONE, Rt.BLOCKED, Rt.EXHAUSTED) and emit in self.actions:
+            _act = (None if emit in (Rt.DONE, Rt.BLOCKED, Rt.EXHAUSTED)
+                    else self._realise_step(emit, before))
+            if _act is not None:
                 # THE CLAIM, MADE BEFORE THE ACTION LANDS. `advance` published which slots this
                 # step expects to move; the value is recorded NOW so next cycle compares against
                 # what was true when the claim was made, not against a later frame.
@@ -2995,14 +3007,22 @@ class Agent:
                     self._expect = (want, before.get(want), self._expect_step)
                 self._routine_acts += 1
                 self.routine = rest
-                return emit, "routine"
-            # ENDED, AND THE FOUR ENDINGS ARE NOT ONE. `done` is the guard met; `exhausted` is
+                return _act, "routine"
+            # ENDED, AND THE FIVE ENDINGS ARE NOT ONE. `done` is the guard met; `exhausted` is
             # the budget spent without it -- the routine's own bet REFUTED; `blocked` is a
             # guard that could not be read; and an action this level does not advertise is a
             # routine that survived a boundary into a world that cannot run it. **Isaiah ruled
             # routines survive boundaries, and this is the other half of that ruling: it fails
             # its guard rather than crashing.**
-            why = emit if emit in (Rt.DONE, Rt.BLOCKED, Rt.EXHAUSTED) else "unadvertised"
+            #
+            # **AND `unrealisable` IS THE FIFTH -- the plan's 16e.** The body holds an INTENT and
+            # the interface has nothing here that serves it. That is neither *the guard says no*
+            # nor *the budget ran out*, and folding it into either would collapse two endings
+            # into one -- `F207`'s defect exactly. It is a NON-TRIAL like the two beside it: the
+            # plan never got to run, so it says nothing about whether the plan works.
+            why = (emit if emit in (Rt.DONE, Rt.BLOCKED, Rt.EXHAUSTED)
+                   else Rt.UNREALISABLE if isinstance(emit, IFace.Intent)
+                   else "unadvertised")
             # **THE ASSUMED -> TESTED UPGRADE, AND IT IS THE CALLER'S BY CONSTRUCTION.**
             # `reach_status` returns only `assumed_yes`/`unknown` and says why: it sees the
             # SHAPE, and `tested_*` are claims about what HAPPENED. Nothing had ever made one.
@@ -3028,7 +3048,7 @@ class Agent:
             # and the verdict is the emission count. Split them and the record cannot be made.
             if self.routine_for and self._plan_sig is not None:
                 self._episodes.setdefault(self._plan_sig, []).append(
-                    (Rt.actions(self.routine, self.routine_lib), why,
+                    (self._step_ids(self.routine, self.routine_lib), why,
                      _verdict or "untested"))
             if _verdict and self.routine_for:
                 self._reach_tested[
@@ -3075,7 +3095,7 @@ class Agent:
                          "reopens_above": round(self.refuted_at[k], 4)}
                 gap = self._characterise_gap(self.routine_for)
                 if gap is not None:
-                    gk = (self._gap_key(gap), Rt.actions(self.routine, self.routine_lib),
+                    gk = (self._gap_key(gap), self._step_ids(self.routine, self.routine_lib),
                           Rt.guards(self.routine))
                     rec = self.paths.setdefault(gk, {"failed": 0, "first_cycle": self.cycle})
                     rec["failed"] += 1
@@ -3236,10 +3256,12 @@ class Agent:
             if self.routine is not None:   # adopted now: run its first action this cycle
                 emit, rest = Rt.advance(self.routine, self._holds(before),
                                     self.routine_lib, self.routine_state)
-                if emit not in (Rt.DONE, Rt.BLOCKED, Rt.EXHAUSTED) and emit in self.actions:
+                _act = (None if emit in (Rt.DONE, Rt.BLOCKED, Rt.EXHAUSTED)
+                        else self._realise_step(emit, before))
+                if _act is not None:
                     self._routine_acts += 1
                     self.routine = rest
-                    return emit, "routine"
+                    return _act, "routine"
                 # **AND AN ENDING HERE IS KEPT, NOT DROPPED -- 2026-09-25.** This line used to
                 # be `self.routine = None`, so a plan that ended on its FIRST advance VANISHED
                 # WITHOUT A TRACE: no `routine_end` row, no `tested_yes`/`tested_no`, no
@@ -4095,6 +4117,40 @@ class Agent:
             self._reject_key(slot, cand, self.routine_lib), Rt.reach_status(cand))
 
     @staticmethod
+    def _step_ids(r, lib: dict | None = None) -> tuple[str, ...]:
+        """A plan's steps AS THE RECORD SHOULD KEEP THEM -- `docs/ACTION_INTERFACE_PLAN.md` 16c.
+
+        **ISAIAH, 2026-09-28: *save the intent ... so meaning is preserved when the board
+        shifts.*** Every identity below this line used `Rt.actions`, which is the plan's BUTTON
+        NAMES, and that fails in both directions. Re-map the button and the refutation history
+        is LOST, so a shape already learned useless is re-tried. Keep the NAME and change what
+        it does and the history is KEPT while no longer referring -- the worse one, because the
+        agent then refuses a plan on evidence about something else.
+
+        `says()` rather than the object, because a key is read by a human in a ledger row and
+        *BECOME o0.row +* is the thing that stayed true across the shift.
+        """
+        return tuple(x.says() if isinstance(x, IFace.Intent) else str(x)
+                     for x in Rt.actions(r, lib))
+
+    def _runnable(self, r, before: dict[str, int], lib: dict | None = None) -> bool:
+        """Can this plan still be RUN here? -- the level-boundary check, 16d.
+
+        It used to be `set(Rt.actions(r)) <= set(self.actions)`: a string comparison against the
+        advertised set. **A level that keeps every button name and changes what two of them do
+        passes that and should not.** Asking the interface instead makes the check about the
+        WORLD rather than about a name, and `audit`'s own `changed` set is what notices.
+        """
+        ctx = IFace.Interface.context(self.env)
+        for step in Rt.actions(r, lib):
+            if isinstance(step, IFace.Intent):
+                if self.iface.realise(step, tuple(self.actions), ctx, before) is None:
+                    return False
+            elif step not in self.actions:
+                return False
+        return True
+
+    @staticmethod
     def _reject_key(slot: str, r, lib: dict | None = None) -> tuple:
         """The identity a refutation is filed under. **BUDGET-FREE ON PURPOSE.**
 
@@ -4108,7 +4164,7 @@ class Agent:
         # `lib` RESOLVES A `Call`. Without it a named callee reports `?name`, which would file
         # two routines invoking the SAME learned behaviour under two different keys -- the
         # pathogen mimicry this docstring is about, introduced by the fix for it.
-        return (slot, Rt.actions(r, lib), Rt.guards(r))
+        return (slot, Agent._step_ids(r, lib), Rt.guards(r))
 
     def _accumulate(self, slot: str, cand, cost: float, left: float,
                     base: float, gkey: tuple | None) -> dict:
@@ -4157,7 +4213,7 @@ class Agent:
         v["lean"] = max(0, self._want_seen.get(_w, 0) - 1) / MIN_REPEAT if _w else 0.0
         # THE PLANT, NEGATIVE AND PERSISTENT. Keyed on the GAP SHAPE, so it crosses boundaries
         # and speaks about a KIND of situation rather than about `o1.dcol`.
-        _f = (self.paths.get((gkey, Rt.actions(cand, self.routine_lib),
+        _f = (self.paths.get((gkey, self._step_ids(cand, self.routine_lib),
                               Rt.guards(cand)), {}).get("failed", 0) if gkey else 0)
         v["plant"] = -float(_f)
         v["refuted"] = -self._rejection(self._reject_key(slot, cand, self.routine_lib))
@@ -4348,6 +4404,7 @@ class Agent:
                             reason=f"CAN is {verdict}, and only yes commits")
             return
         self._split_why = None
+        self._goal_want = None
         act = self._goal_split(before)
         if act is None:
             # **CITE THE EXIT, DO NOT NAME ONE -- 2026-09-25.** This said *coverage incomplete,
@@ -4374,6 +4431,18 @@ class Agent:
             self.led.record(self.cycle, "PLAN", slot, "routine_refused",
                             reason=_why_txt, split_why=self._split_why)
             return
+        # **THE ALPHABET IS THE WRONG ONE NOW, AND IT IS LEFT WRONG ON PURPOSE -- 2026-09-28.**
+        # `base` prices *naming an action myself for each unsatisfied member*, and the agent now
+        # names INTENTS. The obvious repair -- count the intent space and use `log2` of that --
+        # is the FLAT pricing Isaiah ruled against the same day (*"penny wise and pound foolish
+        # ... they have different weight ... the agent may have to determine what types matter
+        # per board and weight them dynamically"*), carried into a new alphabet while feeling
+        # careful, because COUNTING an alphabet does not look like inventing a constant.
+        #
+        # So nothing changes here until that ruling lands. **The gap is PUBLISHED rather than
+        # hidden** -- `intent_alphabet` beside it in the routine row -- because a wrong price
+        # whose wrongness cannot be measured is worse than one with its gap printed. Reviewer,
+        # 2026-09-28. Exemption as DATA: named, dated, and one line to remove.
         n = max(len(self.actions), 2)
         # WHAT NOT HAVING THE ROUTINE COSTS: naming an action for each unsatisfied member of the
         # scope. Same shape as before -- a count times `log2(n)` -- with the count now taken
@@ -4400,7 +4469,7 @@ class Agent:
         # the inlined object was. What changes is that the candidate the composer builds, and
         # the plan it prints, carry `r0()` instead of the whole expansion.
         shelf = tuple(Rt.Call(nm) for nm, r in self.routine_lib.items()
-                      if set(Rt.actions(r, self.routine_lib)) <= set(self.actions))
+                      if self._runnable(r, before, self.routine_lib))
         # THE COMPOSER ENUMERATES SHAPES; THE ROUTE STAYS LEARNED, AND THE SPLIT IS GUARD A.
         # `compose` is handed exactly ONE action -- the one this agent's own trace says moves
         # this slot the wanted way -- because enumerating over every ADVERTISED action would let
@@ -4433,7 +4502,17 @@ class Agent:
         # costs its excess (`routine._guard_excess`), so it sorts AFTER the plain one it
         # extends rather than displacing it. **A looser guard has to be worth its extra bits.**
         gnames = mine or (slot,)
-        cands = Rt.enumerate_routines((act,), gnames + self._compound_guards(slot, gnames),
+        # **THE BODY IS THE INTENT, NOT THE BUTTON -- the plan's 16, and the substitution is
+        # one token wide because the enumeration was never over the action space.** `act` is the
+        # ONE action `_goal_split` got back from the interface; `_goal_want` is what it ASKED
+        # FOR. Planning in the ask means the loop re-realises every step, so a board that
+        # re-maps mid-plan is followed rather than reported.
+        #
+        # `act` is still read -- above, as the gate that there IS a route at all. A plan for an
+        # intent nothing can serve today is a plan that cannot start, and the agent has better
+        # uses for the bargain.
+        _step = self._goal_want if self._goal_want is not None else act
+        cands = Rt.enumerate_routines((_step,), gnames + self._compound_guards(slot, gnames),
                                       shelf, loop_budget)
         # WEIGHTED AND CLOCKED, per §18.2 via `gamma.Standing`: a refutation excludes only while
         # its decaying strength stands, so a failed shape leaves the running and returns.
@@ -4456,8 +4535,8 @@ class Agent:
             # STABLE ORDER: `sorted` is stable, so candidates with equal failure counts keep the
             # composer's ordering exactly. A gap shape never seen scores 0 for every candidate
             # and the order is UNCHANGED -- check 3, no evidence changes nothing.
-            scored = [(self.paths.get((gkey, Rt.actions(c), Rt.guards(c)), {}).get("failed", 0),
-                       c) for c in cands]
+            scored = [(self.paths.get((gkey, self._step_ids(c), Rt.guards(c)),
+                                      {}).get("failed", 0), c) for c in cands]
             if any(f for f, _ in scored):
                 cands = [c for _, c in sorted(scored, key=lambda p: p[0])]
                 self.led.record(self.cycle, "PLAN", slot, "paths_retrieved",
@@ -4553,6 +4632,11 @@ class Agent:
                         chunked=Rt.length(cand) != Rt.length(cand, shelf),
                         cost=round(cost, 4), left=round(left, 4),
                         base=round(base, 4), gap=gap, reach=Rt.reach(cand),
+                        # PRICED ON `n` ACTIONS AND PLANNED IN INTENTS -- the gap, printed.
+                        # Distinct intents formed so far, which is a run population and not
+                        # an enumerated space. See the note at `n`.
+                        priced_alphabet=len(self.actions),
+                        intent_alphabet=len(self._intent_kinds),
                         reach_status=self._reach_seen(slot, cand),
                         unsat=round(unsat, 4), considered=len(priced), shelf=len(shelf),
                         route="learned: observed to move this slot the wanted way")
@@ -4581,6 +4665,29 @@ class Agent:
         if tgt is NOT_RESOLVED or not isinstance(tgt, int) or tgt == before[slot]:
             return None
         return tgt
+
+    def _realise_step(self, emit: Any, before: dict[str, int]) -> str | None:
+        """A routine step is an INTENT. Turn it into a button, or `None` if nothing serves it.
+
+        `docs/ACTION_INTERFACE_PLAN.md` §16. **THE RESOLUTION HAPPENS EVERY STEP, NOT ONCE AT
+        CONSTRUCTION**, and that is the behaviour change rather than a tidy-up: a loop that
+        re-realises can follow a board which re-maps its buttons mid-plan, which is Isaiah's
+        *"we are now no longer able to go (direction)"* becoming something the agent survives
+        instead of something it reports afterwards.
+
+        A bare string still passes through, because a fixture testing the SHAPES of routines has
+        no interface to consult and should not have to build one.
+        """
+        if isinstance(emit, IFace.Intent):
+            self._intent_kinds.add(emit.says())
+            r = self.iface.realise(emit, tuple(self.actions),
+                                   IFace.Interface.context(self.env), before)
+            if r is None:
+                return None
+            self.led.record(self.cycle, "PLAN", emit.subject or "@board", "intent",
+                            reads=(emit.says(), r.why))
+            return r.action
+        return emit if emit in self.actions else None
 
     def _goal_split(self, before: dict[str, int]) -> str | None:
         """M2 ITEM 2: pick an action because the agent's OWN model says it advances the
@@ -4644,29 +4751,46 @@ class Agent:
         #
         # THE AGENT STILL NAMES NO ACTION IN EITHER ARM. `o0.colour = 3` is as button-blind as
         # `o0.row +`; which press achieves it is the interface's to know.
+        if _tgt is None:
+            # **AND THIS IS ITS OWN REFUSAL, WHICH IT WAS NOT IN `4c233db` -- CORRECTED THE SAME
+            # DAY.** It fell through to `no_realisation`, whose sentence is *I said which slot
+            # and which way, and nothing I have done here is known to move it that way.* **The
+            # agent never said which way.** `_goal_target` returns `None` where the slot ALREADY
+            # HOLDS, where nothing satisfies, or where no OBJ-typed term is there to read --
+            # three states about the OBJECTIVE, reported as a fact about the ACTION MODEL.
+            # A true-sounding string pointing at the wrong mechanism, which is the one thing a
+            # whitebox record must not do.
+            self._split_why = "no_goal_target"
+            self.led.record(self.cycle, "PLAN", chosen, "split_refused",
+                            why="no_goal_target", at=before.get(chosen))
+            return None
         _ordered = self.slot_types.get(chosen) in ORDERED_TYPES
-        if _tgt is not None:
-            _want = (IFace.Intent(IFace.BECOME, chosen, "+" if _tgt > before[chosen] else "-")
-                     if _ordered else
-                     IFace.Intent(IFace.BECOME, chosen, value=_tgt))
-            _r = self.iface.realise(_want, tuple(self.actions),
-                                    IFace.Interface.context(self.env), before)
-            if _r is not None:
-                self.led.record(self.cycle, "PLAN", chosen, "intent",
-                                reads=(_want.says(), _r.why))
-                return _r.action
-            if not _ordered:
-                # **THE TWO REFUSALS ARE NOT ONE REFUSAL.** On an ordered slot, unserved means
-                # *nothing I have done moves it that way*. Here it means *nothing I have done
-                # reliably LEAVES it there* -- and the interface refuses a cell holding several
-                # values on purpose, so this fires on an action that once landed the value and
-                # was never shown to do it again. Collapsing them would report a capability gap
-                # as an absence of effect.
-                self._split_why = "unordered_no_value_table"
-                self.led.record(self.cycle, "PLAN", chosen, "split_refused",
-                                why="unordered_no_value_table", target=_tgt,
-                                slot_type=self.slot_types.get(chosen))
-                return None
+        _want = (IFace.Intent(IFace.BECOME, chosen, "+" if _tgt > before[chosen] else "-")
+                 if _ordered else
+                 IFace.Intent(IFace.BECOME, chosen, value=_tgt))
+        # **KEPT, NOT THROWN AWAY -- the plan's 16.** `_mint_routine` plans in INTENTS and this
+        # is the one place the intent is formed. Re-forming it there would be two producers of
+        # one fact, which is harmless exactly until one side changes.
+        self._goal_want = _want
+        self._intent_kinds.add(_want.says())
+        _r = self.iface.realise(_want, tuple(self.actions),
+                                IFace.Interface.context(self.env), before)
+        if _r is not None:
+            self.led.record(self.cycle, "PLAN", chosen, "intent",
+                            reads=(_want.says(), _r.why))
+            return _r.action
+        if not _ordered:
+            # **THE TWO REFUSALS ARE NOT ONE REFUSAL.** On an ordered slot, unserved means
+            # *nothing I have done moves it that way*. Here it means *nothing I have done
+            # reliably LEAVES it there* -- and the interface refuses a cell holding several
+            # values on purpose, so this fires on an action that once landed the value and
+            # was never shown to do it again. Collapsing them would report a capability gap
+            # as an absence of effect.
+            self._split_why = "unordered_no_value_table"
+            self.led.record(self.cycle, "PLAN", chosen, "split_refused",
+                            why="unordered_no_value_table", target=_tgt,
+                            slot_type=self.slot_types.get(chosen))
+            return None
         # **THE INTERFACE ABSTAINED, AND THERE IS NO FALLBACK BEHIND IT ON PURPOSE.**
         # `docs/ACTION_INTERFACE_PLAN.md`. What stood here voted over `self.actions` using
         # `_predict` -- the agent scoring BUTTONS with its own world-model, which is the exact
