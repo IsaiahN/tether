@@ -16,7 +16,6 @@ import sys
 from collections import Counter
 from dataclasses import dataclass, field
 from functools import partial
-from itertools import islice
 from typing import Any
 
 import composer
@@ -172,6 +171,10 @@ ORDERED_TYPES = ("POSITION", "EXTENT", "DELTA")
 # anchor: how many reachable terms an experiment weighs before choosing. Bounded because
 # the choice is made every step and the closure grows; 200 covers depth 2 over the toy
 # alphabet exactly, and truncation only ever narrows the spread, never invents one.
+# **NO READER SINCE THE SPREAD BRANCH WAS DELETED (2026-09-28), AND KEPT RATHER THAN CUT.**
+# It is the budget an intent-level discriminator will enumerate under, and it is the one number
+# here that was DERIVED against a measured closure rather than picked. Deleting it would make
+# the next author choose a new one, which is how a constant gets invented twice.
 DISCRIMINATE_BUDGET = 200
 
 # THE CODE, declared. Both halves of the bargain are lengths under it.
@@ -1196,6 +1199,8 @@ class Agent:
         # **Clearing it would be the mirror error**: discarding evidence that does cross, on a
         # rule written for evidence that does not. `retrieval.key_of`'s own note is the same
         # ruling one level down -- *vocabulary permanent, instances transient.*
+        # AWAITING ITS PRODUCER -- see the bet row. Empty every cycle until intent-level
+        # discrimination exists; `{}` here is not evidence that nothing was disproved.
         self._disproof: dict[str, dict] = {}
         self._last_action: str | None = None   # what may have changed the gating
         self.owed_import, self.abstained = set(), {}
@@ -2125,6 +2130,16 @@ class Agent:
                             # and recording it as a term made 104 of 110 staleness
                             # readings noise. `_predict` still falls back to `idn`.
                             bound=self.bound.get(s, NO_CHANGE),
+                            # **NO PRODUCER SINCE 2026-09-28, AND THAT IS THE HONEST
+                            # STATE OF THIS PATH RATHER THAN AN ABSENCE.** The `spread`
+                            # branch filled `_disproof` and was deleted for ranking
+                            # buttons with the agent's own model. The CLAIM it published
+                            # is not what was wrong with it -- *group the candidates by
+                            # prediction and `live - largest bucket` die whatever
+                            # happens* is the falsifiable form, and it comes back with
+                            # intent-level discrimination. **Kept wired so the returning
+                            # producer has somewhere to write**; a publish path deleted
+                            # and rebuilt is a publish path rebuilt differently.
                             **({"disproof": self._disproof[s]}
                                if s in self._disproof else {}))
             self._standing(s)
@@ -3175,58 +3190,37 @@ class Agent:
             # an unrelated action on a stale slot.
             self._s0_target = None
             return self._explore(before), "probe"
+        # **THE `discriminate` SPREAD BRANCH IS DELETED -- reviewer, 2026-09-28, option A.**
+        # It enumerated Gamma's val->val closure, scored EACH ACTION by how many distinct values
+        # the candidates predicted under it, and returned `max(self.actions, key=spread)`.
+        # **That is the agent ranking BUTTONS with its own model**, the same crossing as the
+        # `_predict` vote deleted at `4c233db`, and the ruling forbids it.
+        #
+        # AND IT COULD NOT FIRE HERE ANYWAY, structurally rather than by measurement: the live
+        # ARC set has 62 atoms, yields 7 val->val candidates, 0 of them guarded and 0 reading
+        # `ctx.action` -- so `spread` was a constant function of the action and `max == min`
+        # always. The control was the toy set, whose `act` DOES read it. **Its only demonstrated
+        # firing (33/96) is on a set containing `act`, and `act` is the handed answer.**
+        #
+        # **WHAT GOES WITH IT IS REAL AND IS NOT LOST -- the reviewer's addition, and it is the
+        # part worth keeping in view.** Choosing the move that best SEPARATES competing
+        # hypotheses is System 2 reasoning, and it returns AT THE INTENT LEVEL: the agent picks
+        # the INTENT whose predicted outcomes differ most across its hypotheses, and the
+        # interface realises it. That needs intent-level prediction -- `(before, INTENT, after)`
+        # -- which the plan already owes. **The variety rule is NOT that**: variety is a
+        # constraint against repeating, not a choice between hypotheses, and treating it as the
+        # replacement would have quietly downgraded discrimination to exploration.
+        #
+        # `_gamma_read` STAYS AND NOW REPORTS ONE FACT HONESTLY. It existed to separate *the
+        # gate was never entered* from *Gamma was consulted and came out flat*. There is no
+        # longer a consulting branch, so `spread_split` would be a field that can only ever read
+        # `None` -- a value that exists and never crosses. `owed` is still worth publishing:
+        # it is what the deleted branch keyed on and what an intent-level discriminator will
+        # key on next.
         owed = [s for s in sorted(self.owed_import) if s in before]
-        # THE ONLY BRANCH THAT READS GAMMA, AND `by` CANNOT SAY WHY IT DID NOT FIRE. `by ==
-        # discriminate` reads 0 of 100 action rows across dc22 and m0r0, bare and trained -- but
-        # that is TWO facts: the gate below was never entered (no slot owes, so Gamma is never
-        # consulted at all), or it was entered and the spread came out flat (Gamma consulted and
-        # silent). Those want different repairs. Published per cycle so the next reading does
-        # not have to infer it -- F225.
-        self._gamma_read = {"owed": len(owed), "entered": bool(owed), "spread_split": None}
-        if owed:
-            cands = list(islice(self.gamma.enumerate_closure(
-                "val", "val", 2, DISCRIMINATE_BUDGET), DISCRIMINATE_BUDGET))
-            spread = {}
-            for act in self.actions:
-                spread[act] = sum(
-                    len({g % self.alphabet[s]
-                         for g in (t.apply(before[s], Ctx(action=act, operands=(),
-                                                           touching=self._touching(s),
-                                                           group=self._group(s, before),
-                                                           obj=self._record(s, before)))
-                                   for t in cands)
-                         if g is not NOT_RESOLVED})
-                    for s in owed)
-            self._gamma_read["spread_split"] = bool(
-                spread and max(spread.values()) > min(spread.values()))
-            self._gamma_read["cands"] = len(cands)
-            if spread and max(spread.values()) > min(spread.values()):
-                top = max(spread.values())
-                self._ties[("spread", sum(1 for v in spread.values() if v == top))] += 1
-                pick = max(self.actions, key=lambda a: spread[a])
-                # WHAT THIS ACTION BUYS, stated before it is taken. Listing the values
-                # the candidates predict is TRUE AND UNFALSIFIABLE -- it spans the
-                # whole alphabet, so no outcome contradicts it. The falsifiable form
-                # is the guarantee: group the candidates by prediction, and
-                # `live - largest bucket` die WHATEVER happens. The outcome can land
-                # in the largest bucket and meet it exactly, or elsewhere and beat it.
-                self._disproof = {}
-                for s in owed:
-                    buckets: dict[int, int] = {}
-                    for t in cands:
-                        v = t.apply(before[s], Ctx(action=pick, operands=(),
-                                                   touching=self._touching(s),
-                                                   group=self._group(s, before),
-                                                   obj=self._record(s, before)))
-                        if v is NOT_RESOLVED:
-                            continue      # a candidate that cannot read splits nothing
-                        buckets[v % self.alphabet[s]] = buckets.get(
-                            v % self.alphabet[s], 0) + 1
-                    self._disproof[s] = {
-                        "live": len(cands), "splits": len(buckets),
-                        "refuted_at_least": len(cands) - max(buckets.values()),
-                        "by": f"any outcome on {s} after {pick}"}
-                return pick, "discriminate"
+        self._gamma_read = {"owed": len(owed), "entered": False,
+                            "note": "the spread branch is deleted; discrimination returns at "
+                                    "the intent level"}
         # SYSTEM 0 -- Isaiah: start random, then jump to strategy. While the agent lacks the
         # contingency evidence to be strategic -- a surfaced action not yet tried at >=2 distinct
         # states, probe.py's `never_live` anchor -- draw variously INSTEAD of exploiting the
@@ -4386,7 +4380,18 @@ class Agent:
                           "applied yet, so this is not a bar set too high")
             else:
                 reason = "no objective is confidently shrinking"
-            self.led.record(self.cycle, "PLAN", slot or "*", "routine_refused",
+            # **`*` MEANT TWO THINGS AND THE GATE COULD SEE ONLY ONE -- `A6i` AT A LEDGER
+            # KEY, 2026-09-28.** On the PERCEIVE rows `*` is the WHOLE-BOARD CENSUS (`can`,
+            # `books`, `trend_popped`); here it meant NO PARTICULAR SLOT. The gate orders rows
+            # per `(cycle, slot)`, so the two facts shared a chain and a planner with no
+            # subject read as the board's own chain running backwards -- `PLAN after PERCEIVE`,
+            # which is the refusal `can`'s site was already moved once to avoid.
+            #
+            # **LATENT, NOT NEW.** It needed `_mint_routine` to reach this gate in a cycle where
+            # the census had already written, and on the toy world `discriminate` returned
+            # first. Deleting that branch made it reachable; it did not create it. `@plan` is
+            # its own key, in the `@board`/`@loop`/`@contact` convention already here.
+            self.led.record(self.cycle, "PLAN", slot or "@plan", "routine_refused",
                             reason=reason, **gwhy)
             return
         gap = self._discrepancy(slot, before)

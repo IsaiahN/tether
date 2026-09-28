@@ -935,9 +935,25 @@ def test_a5_still_fires_on_the_pinned_world():
         obj="ALL", tgt=0, who="s0", n=2, hold=3,
         start={"s0": 0, "s1": 0, "s2": 0, "s3": 0})
 
+    # **9 -> 12, AND THE REASON IS THE POINT, NOT THE NUMBER -- 2026-09-28.** Deleting
+    # `discriminate`'s spread branch changed which action this world gets on which step
+    # (`snaps._atoms()` contains `act`, so spread DID fire here), and A5 stopped appearing by
+    # step 9. **It is not fixed**: the defect is `is_settled` keyed by TERM against A5's
+    # `(slot, term)`, and nothing touched it. Measured across the same world: 9 -> clean,
+    # 12/15/20/30 -> A5. **Only the timing moved.**
+    #
+    # **AND THE TEST'S OWN FAILURE MESSAGE OFFERED THE WRONG REPAIR**, which is worth more than
+    # the fix: it says *if the settlement fix has landed, invert this and it becomes the
+    # regression test*. Inverting would have claimed a fix nobody made, and the suite would
+    # have gone green on it. **A tripwire cannot tell *the defect is gone* from *the trajectory
+    # moved past it*, so the instruction must never be followed without checking which.**
+    #
+    # This docstring argues a reproduction should STATE ITS WORLD rather than trust a seed. It
+    # stated its world and trusted a STEP BUDGET, which is the same dependence one level along:
+    # the budget was only ever enough because of how actions happened to be chosen.
     led = Ledger()
     ag = Agent(bind(snaps.Snap(spec)), Gamma(snaps._atoms()), Config(), led)
-    for _ in range(9):
+    for _ in range(12):
         ag.step()
     res = kernel.Linter.run(led.rows())
     bad = sorted(k for k, v in res.items() if v["status"] in ("FAIL", "SUPPRESSED"))
