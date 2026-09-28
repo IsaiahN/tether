@@ -2072,7 +2072,13 @@ class Agent:
         betting = [s for s in betting if pred[s] is not None]
         _, deg_before = self.env.objective()
         _real = IFace.Realisation(action, coord)
-        _ctx = IFace.Interface.context(self.env)
+        # **THE AUDIT KEYS ON THE ACTOR'S OWN CONTACTS -- v2, 2026-09-28.** `actor_of` reads
+        # the delta table for the object this action has been observed to move, so the key
+        # sharpens as the table fills and is the whole-board key until it does. Fixture A is
+        # why: the board-wide multiset could not tell *`left` against the wall* from *`left` in
+        # open space*, and `changed` -- the louder claim -- fired on an action that never
+        # remapped.
+        _ctx = IFace.Interface.context(self.env, self.iface.actor_of(action))
         if coord is not None:
             self.env.step(action, coord[0], coord[1])   # F28: positioned, coord from perception
         else:
@@ -3174,7 +3180,7 @@ class Agent:
             # agent picking between two ways of touching something. It asks to touch.
             _t = self.iface.realise(IFace.Intent(IFace.TOUCH, object=aim),
                                     tuple(self.actions),
-                                    IFace.Interface.context(self.env), before)
+                                    IFace.Interface.context(self.env), before, self.env)
             act = self._took(_t) if _t is not None else None
             if _t is not None:
                 self.led.record(self.cycle, "PLAN", aim, "intent",
@@ -3243,14 +3249,14 @@ class Agent:
             # AGENT's -- it is about what the agent still needs to learn, not about which
             # button does what -- so it stays here and is said as an intent.**
             _untried = self.iface.realise(IFace.Intent(IFace.ELICIT), tuple(self.actions),
-                                          IFace.Interface.context(self.env), before)
+                                          IFace.Interface.context(self.env), before, self.env)
             _coord = None
             if _untried is not None and _untried.unmapped:
                 act = _untried.action
             elif target is not None:
                 _t = self.iface.realise(IFace.Intent(IFace.TOUCH, object=target),
                                         tuple(self.actions),
-                                        IFace.Interface.context(self.env), before)
+                                        IFace.Interface.context(self.env), before, self.env)
                 if _t is not None:
                     act, _coord = self._took(_t), self._aimed
                     self.led.record(self.cycle, "PLAN", target, "intent",
@@ -3389,7 +3395,7 @@ class Agent:
         """
         want = IFace.Intent(IFace.ELICIT, subject=subject)
         r = self.iface.realise(want, tuple(self.actions), IFace.Interface.context(self.env),
-                               before)
+                               before, self.env)
         self.led.record(self.cycle, "PLAN", subject or "@board", "intent",
                         reads=(want.says(), r.why if r else "unrealisable"))
         if r is None:
@@ -4679,7 +4685,7 @@ class Agent:
         if isinstance(emit, IFace.Intent):
             self._intent_kinds.add(emit.says())
             r = self.iface.realise(emit, tuple(self.actions),
-                                   IFace.Interface.context(self.env), before)
+                                   IFace.Interface.context(self.env), before, self.env)
             if r is None:
                 return None
             self.led.record(self.cycle, "PLAN", emit.subject or "@board", "intent",
@@ -4772,7 +4778,7 @@ class Agent:
         self._goal_want = _want
         self._intent_kinds.add(_want.says())
         _r = self.iface.realise(_want, tuple(self.actions),
-                                IFace.Interface.context(self.env), before)
+                                IFace.Interface.context(self.env), before, self.env)
         if _r is not None:
             self.led.record(self.cycle, "PLAN", chosen, "intent",
                             reads=(_want.says(), _r.why))

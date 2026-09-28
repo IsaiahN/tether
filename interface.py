@@ -212,6 +212,19 @@ class Interface:
         """
         if not offered:
             return None
+
+        def _key(a: str) -> tuple:
+            """The key THIS action's rows were written under. **The audit and the realiser must
+            agree or every same-context lookup misses.**
+
+            `audit` keys on the ACTOR's contacts (v2), so a query keyed on the whole board would
+            fall through to the across-context prior on every hit -- a silent degradation that
+            would read as *the table has not seen this yet*. With no `env` the caller gets `ctx`
+            as passed, which is what a fixture with no contacts wants.
+            """
+            if env is None:
+                return ctx
+            return Interface.context(env, self.actor_of(a))
         if intent.kind == BECOME and intent.subject and intent.value is not None:
             # **THE UNORDERED HALF -- `objective_step`'s COMPARABLE arm, which had no home below
             # the seam until now.** A sign says nothing on a slot with no order, so the question
@@ -238,7 +251,8 @@ class Interface:
             # thing to build a preference out of.
             best, how = None, ""
             for a in offered:
-                here = self.table.get(a, {}).get("lands", {}).get((ctx, intent.subject, _now))
+                here = self.table.get(a, {}).get("lands", {}).get(
+                    (_key(a), intent.subject, _now))
                 if here and set(here) == {intent.value}:
                     best, how = a, "here"
                     break
@@ -277,7 +291,7 @@ class Interface:
                 # otherwise. **Being wrong about the prior is a residual, not a fault**, and
                 # widening the AUDIT's key instead would have traded away the separation that
                 # stopped gridworld crying wolf.
-                n, tot = d.get((ctx, intent.subject), (0, 0))
+                n, tot = d.get((_key(a), intent.subject), (0, 0))
                 where = "here"
                 if not n:
                     n = sum(v[0] for (c, k), v in d.items() if k == intent.subject)
@@ -378,12 +392,12 @@ class Interface:
         if unmapped:
             return _made(_pick(unmapped), f"requested {asked}: never taken")
         # THE VARIETY CONDITION: prefer an action whose effect IN THIS CONTEXT is unknown.
-        fresh = [a for a in offered if ctx not in self.table[a]["by_ctx"]]
+        fresh = [a for a in offered if _key(a) not in self.table[a]["by_ctx"]]
         if fresh:
             return _made(_pick(fresh), f"requested {asked}: effect here not yet known")
         # everything mapped in this context. Take the one taken LEAST here -- still the agent's
         # call to explore, and refusing would be the interface overruling it.
-        seen = {a: len(self.table[a]["by_ctx"].get(ctx, ())) for a in offered}
+        seen = {a: len(self.table[a]["by_ctx"].get(_key(a), ())) for a in offered}
         fewest = min(seen.values())
         band = [a for a in offered if seen[a] == fewest]
         return _made(_pick(band), f"requested {asked}: all known here, least-seen taken")
@@ -425,6 +439,40 @@ class Interface:
         if col is None or row is None:
             return None
         return int(col), int(row)
+
+    def actor_of(self, action: str) -> str | None:
+        """Which object this action has been observed to move most. **From the table, learned.**
+
+        The reviewer's route out of v2's bootstrap, 2026-09-28: *the delta table already knows
+        which object each action moves.* Slots are `{object}.{attribute}`, the delta table is
+        keyed by slot, so the actor is the owner of the slots this action shifts -- **read off
+        what acting produced, never declared.**
+
+        `None` until the table has seen this action move something, and `None` is the honest
+        answer rather than a guess: the caller then keys on the whole board, which is v1.
+
+        **PROXIMITY IS NOT MOVEMENT, AND THE FIRST VERSION OF THIS RETURNED `o5` FOR EVERY
+        ACTION -- 2026-09-28.** It summed observations over ALL moved slots, and every press
+        shifts `o0.row` or `o0.col` AND the `proximity` slot of every other object -- **a
+        relation changes for everyone whenever anything moves.** Six objects tied on proximity
+        and the tie-break was `max(key=(count, name))`, so the answer was ALPHABETICAL and the
+        key was built on a spectator. It measured cleanly, it had a plausible mechanism, and it
+        was a fact about sorting.
+
+        **SO THE DEFINITION IS THE FIX: an object's `.row`/`.col` are ITS OWN, and its
+        `proximity` is a fact about it AND SOMETHING ELSE.** Only intrinsic position counts as
+        being moved. `_at` and `_gap` already privilege the same two, so this adds no taxonomy
+        the interface was not already using.
+        """
+        moved: dict[str, int] = {}
+        for (_c, k, *_r), (n, _tot) in self.table.get(action, {}).get("delta", {}).items():
+            if "." not in k:
+                continue
+            obj, attr = k.rsplit(".", 1)
+            if attr not in ("row", "col"):
+                continue
+            moved[obj] = moved.get(obj, 0) + n
+        return max(moved, key=lambda o: (moved[o], o)) if moved else None
 
     def _unclicked(self, state: dict | None) -> tuple[int, int] | None:
         """An OBJECT this interface has not aimed at yet, as `(x=col, y=row)`.
@@ -516,7 +564,7 @@ class Interface:
         return sep
 
     @staticmethod
-    def context(env: Any) -> tuple:
+    def context(env: Any, actor: str | None = None) -> tuple:
         """THE CONTEXT KEY, v1 -- the contact configuration at press time, name-free.
 
         **THE REVIEWER'S LEAD, 2026-09-28, verified at `RELATIONS.md:182-184` (Part 4.1):**
@@ -538,6 +586,17 @@ class Interface:
         **AND THE COST IS IN THE SAFE DIRECTION:** two situations sharing a v1 key make a real
         mapping change read as conditionality. **The audit under-claims rather than
         over-claims**, which is the right way for a guard to be wrong.
+
+        **THAT LAST CLAIM WAS WRONG IN ONE DIRECTION AND FIXTURE A MEASURED IT -- 2026-09-28.**
+        The whole-board key ALSO over-claims: gridworld's `left` is sometimes blocked by the
+        wall while the board-wide multiset reads identical, so `changed` -- the LOUDER claim --
+        fired on an action whose mapping never moved. **1 of 2 flagged actions was real.**
+
+        **v2 IS THE ACTOR'S OWN CONTACTS, and the reviewer's route to the bootstrap is that the
+        DELTA TABLE ALREADY KNOWS WHICH OBJECT EACH ACTION MOVES.** So the axis does not have to
+        be guessed: ask the table who this action moves, and key on what THAT object is
+        touching. Before the table knows, `actor` is `None` and this is v1 exactly -- **it
+        sharpens by acting, which is what the v1/v2 note above promised and could not yet do.**
         """
         fn = getattr(env, "contact_points", None)
         if fn is None:
@@ -547,7 +606,12 @@ class Interface:
         except Exception:                                  # noqa: BLE001
             return ()
         kinds: dict[str, int] = {}
-        for _a, _b, kind in pts:
+        for a, b, kind in pts:
+            # THE ACTOR'S OWN CONTACTS, not the board's. *`left` while against the wall* and
+            # *`left` in open space* are different situations and the whole-board multiset
+            # cannot tell them apart -- which is exactly the false positive fixture A produced.
+            if actor is not None and actor not in (a, b):
+                continue
             kinds[kind] = kinds.get(kind, 0) + 1
         return tuple(sorted(kinds.items()))
 
