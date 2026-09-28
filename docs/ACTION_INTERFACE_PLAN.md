@@ -352,3 +352,70 @@ not handed* -- and **checked, neither is**: both read `env.actions()`, which F28
 permits (*availability is legitimate to read*). So the rule does not discriminate here and the
 choice is made on the other ground: **keep the one below the seam**, because that is where
 knowing about the action set is allowed to live.
+
+---
+
+## 15. THE VALUE TABLE — the unordered half of `BECOME`, and it is a COLUMN rather than a mechanism
+
+**Found while deleting the goal exit's voting fallback (`4c233db`), and the reviewer corrected
+my estimate of it the same hour.** The ballot had two arms because `objective_step`'s type
+split has two:
+
+    ORDERED     *did this action move it the wanted WAY*        -- a sign
+    COMPARABLE  *did this action ever PRODUCE that value*       -- no sign exists to want
+
+`Interface.audit` records a SIGNED DELTA per `(context, slot)` and no record of a value
+REACHED. **So the interface can serve the first arm and structurally cannot serve the second**,
+and `Intent(BECOME, slot, "+")` has nowhere to put *make it 3*. The unordered case therefore
+abstains under its own name, `unordered_no_value_table`, which is what makes the gap countable.
+
+### 15a. MY ESTIMATE OF THE COST WAS WRONG AND IS WITHDRAWN
+
+I wrote that the loss would be SMALL, reasoning that the old arm needed the exact target value
+to appear in history, *which on a slot with a wide alphabet is nearly never*. **I never counted
+which slots are actually unordered.** `ORDERED_TYPES` is exactly `("POSITION", "EXTENT",
+"DELTA")` — so unordered is **COLOUR, SHAPE, BOOL and REGION**, and colour's alphabet is TEN.
+Recolouring is among the commonest ARC transformations, so the population I dismissed as rare
+is the one most likely to carry the goal. **The reviewer's flag, 2026-09-28, and the story was
+general in its wording while the set it ranged over was never counted** — which is this
+project's own *a null carrying a satisfying causal story* at the level of an estimate.
+
+**AND THE HONEST STATEMENT IS SHARPER THAN EITHER ESTIMATE: UNDER THE BOARD STOP THE COST IS
+UNMEASURABLE.** The one world that may run is gridworld, whose goal slots are POSITION — the
+ORDERED side — so **gridworld cannot show this cost at all**, and a green reading there would
+be a panel structurally unable to reward the thing tested. **Recorded as a known gap with no
+available measurement**, neither small nor large.
+
+### 15b. THE BUILD, AND IT IS THE COLUMN THE DELTA TABLE IS ALREADY STANDING NEXT TO
+
+`audit` already receives `before` and `after` on every step. Recording **which VALUES each
+action has been observed to produce on each slot** is the same rows, the same provenance, below
+the seam. It is not a second mechanism.
+
+    what is recorded    per (context, slot): the set of values this action was observed to
+                        LEAVE the slot at -- `after[slot]`, never `before`
+    what it serves      `BECOME(slot, =v)` -> the action observed to leave it at `v` here,
+                        else across contexts, else ABSTAIN
+    what it is not      a predictor. It says *this has happened*, never *this will*
+
+**TWO THINGS THAT ARE NOT OBVIOUS FROM THE SKETCH, and both are decided here rather than in
+the build:**
+
+- **THE KEY IS THE SAME KEY, NOT A LOOSER ONE.** The context is what separates *conditional*
+  from *the mapping changed*, and **a recolour that only works while touching something is
+  exactly the case that needs it.** The realiser may fall back to the across-context prior —
+  as `BECOME`'s signed half already does, and for the same reason — but the AUDIT's key does
+  not widen.
+- **THE SIGN AND THE VALUE MUST NOT SHARE A FIELD.** `Intent(BECOME, slot, "+")` puts the sign
+  in `object`. A value intent wants that field to hold `3`. **One name carrying two quantities
+  is `A6i`, and this one is avoidable before it exists** — a distinct spelling, so a reader can
+  never mistake a sign for a value or a value for a sign.
+
+### 15c. WHAT WOULD FALSIFY THE WHOLE IDEA
+
+**That values are not reproducible from an action alone** — that `ACTION3` leaves a slot at 3
+once and at 7 the next time in the same context, so the set is a history and not a capability.
+That is visible in the table itself without a board: **a `(context, slot, action)` cell holding
+more than one value is the refutation**, and the build must publish that count rather than
+collapse the set to its most recent member. **If it is common, the right object is not a value
+table but a residual, and the intent was unrealisable all along.**
