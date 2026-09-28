@@ -123,6 +123,10 @@ def sentences(rows: list[dict]) -> list[tuple[list[int], str]]:
             if why_ == "no_realisation":
                 out.append(([seq], f"On {slot} I said which way I wanted it to go and no "
                                    f"action was found for that. I did not pick one anyway."))
+            elif why_ == "nothing_separates":
+                out.append(([seq], f"On {slot} I asked for something that would tell my "
+                                   f"alternatives apart, and nothing I can do here does. "
+                                   f"That is a reading about the board, not a failure to act."))
             elif why_ == "unordered_no_value_table":
                 out.append(([seq], f"On {slot} I asked for the value {d.get('target')} rather "
                                    f"than a direction -- the slot has no order. Nothing I have "

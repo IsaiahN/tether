@@ -6277,15 +6277,27 @@ class Agent:
         # THIS MOVES A PUBLISHED METRIC. `phases.report()` is §22.2's transfer instrument and
         # its STRATEGY column has been structurally zero; it will not be on any run where a
         # routine executes. Flagged rather than slipped in.
-        # S5: THE FAMILY, NOT THE EXACT STRING. `choose` returns `discriminate`,
+        # S5: THE FAMILY, NOT THE EXACT STRING. `choose` returned `discriminate`,
         # `discriminate:learned` and `discriminate:goal`, and an `==` admitted only the first
         # -- so a LEARNED split, which §18.4's proposer picks deliberately, was filed under
-        # PROBE. Measured across ten boards: `discriminate:learned` fires on six of them, 33
+        # PROBE. Measured across ten boards: `discriminate:learned` fired on six of them, 33
         # of 125 cycles, and `phases.report()` read `directed 0.0` on every one. `draw` stays
         # in PROBE and is not part of this: it and `probe` are byte-identical calls to
         # `drive.choose`, so both really are undirected picks.
+        #
+        # **AND THE PREFIX BROKE THE MOMENT A LABEL WAS RENAMED -- 2026-09-28.**
+        # `discriminate:learned` is now `distinguish`, which does not start with
+        # `discriminate`, so the prefix would have filed the system's LARGEST directed exit
+        # under PROBE -- **silently, and in the column the fix above exists to make non-zero.**
+        # The repair for a string family being a string was a wider string match, and that is
+        # the same shape one rename along.
+        #
+        # **SO THE TEST IS THE PROPERTY, NOT THE SPELLING: was the pick DELIBERATE?** `probe`
+        # and `draw` are undirected by construction -- byte-identical calls to `drive.choose`.
+        # Everything else asked for something. Listing the two undirected exits is a closed and
+        # checkable set; listing the directed ones grows every time a verb is added.
         phase = (I.STRATEGY if by == "routine"
-                 else I.DIRECTED if by.startswith("discriminate") else I.PROBE)
+                 else I.PROBE if by in ("probe", "draw") else I.DIRECTED)
         self.phases.note(phase)
 
         try:
