@@ -205,6 +205,13 @@ class Interface:
         # this interface itself aimed, so *unclicked* means *I have not tried there*, never
         # *the board says nothing is there*.
         self.clicked: set[tuple[int, int]] = set()
+        # **EVERY ATTRIBUTE THE ACTOR CODE HAS EVER JUDGED, so `RELATIONAL` cannot silently
+        # miss one -- the reviewer, 2026-09-28.** That list is short, so anything not on it
+        # counts as the object's OWN by default, and a new relational attribute (`contact`,
+        # `adjacency`, `distance`) would quietly cast an actor vote. **Recorded rather than
+        # guarded**: the guard would need the taxonomy the list is standing in for, and this
+        # puts the unlisted name in the record where a reader meets it.
+        self.attrs_seen: set[str] = set()
 
     # ---- downward: intent -> action --------------------------------------------------
 
@@ -493,6 +500,7 @@ class Interface:
             if "." not in k:
                 continue
             obj, attr = k.rsplit(".", 1)
+            self.attrs_seen.add(attr)
             if attr in RELATIONAL:
                 continue
             moved[obj] = moved.get(obj, 0) + n
@@ -726,7 +734,13 @@ class Interface:
         cells = sum(len(e.get("lands", {})) for e in self.table.values())
         multi = sum(1 for e in self.table.values()
                     for v in e.get("lands", {}).values() if len(v) > 1)
+        # THE ATTRIBUTES THE ACTOR RULE HAS JUDGED, SPLIT THE WAY IT JUDGED THEM. A reader
+        # who sees a relational name under `own` has found the stopgap's blind spot, which is
+        # the only way it can be found until a world declares the split itself.
+        own = sorted(self.attrs_seen - set(RELATIONAL))
         return {"mapped": len(self.table), "audits": self.audits,
+                "attrs_own": own,
+                "attrs_relational": sorted(self.attrs_seen & set(RELATIONAL)),
                 "conditional": sorted(self.conditional),
                 "changed": sorted(self.changed),
                 "unreliable": sorted(self.unreliable),
