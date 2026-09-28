@@ -663,7 +663,9 @@ class Config:
     # had never once opened. Systems 1 and 2 are both SELECTIVE BY NATURE and neither can notice
     # anything outside its own frame; 0 has no frame, which is what lets it catch the nuance.
     system0: bool = True
-    # **THE ACCUMULATOR, DEFAULT OFF, AND THE REASON IS A CONFLICT RATHER THAN A DOUBT.**
+    # **THE ACCUMULATOR, DEFAULT *ON*. THIS HEADING READ `DEFAULT OFF` ABOVE A `True`
+    # VALUE FROM THE DAY IT WAS WRITTEN -- CORRECTED 2026-09-28, AND THE BODY BELOW IS
+    # KEPT BECAUSE IT IS THE REASONING, NOT THE ERROR.**
     # Isaiah ruled 2026-09-25 that the bargain KEEPS ITS PRICE AND LOSES ITS MONOPOLY. Five
     # `M2_STANDARD` checks encode the older contract that `pays` is the gate, and they FAIL
     # when this is on: `check_one_bargain` (wrong reason), `check_can_gates_until`,
@@ -674,6 +676,20 @@ class Config:
     # rewriting five standards at once to make a new mechanism pass is how a suite stops
     # meaning anything. The mechanism is BUILT, REACHED and PROVEN BY ITS OWN CHECK with the
     # flag on; migrating the five is a deliberate job with the reviewer, not a 9pm one.
+    #
+    # **AND THAT JOB WAS DONE IN THIS COMMENT'S OWN COMMIT (`88b3d19`), WHICH IS WHY THE
+    # HEADING WAS STALE ON ARRIVAL RATHER THAN OVER TIME.** `test_m2.py` from the same diff:
+    # FOUR of the five pass once the flag is set on the COPY instead of during the fixture's
+    # warm-up, so their failures were THAT TRAJECTORY MOVING AND NOT THEIR CONTRACTS; only
+    # `check_one_bargain` was a real conflict and it is MIGRATED. The fixture pins
+    # `accumulate=False` to hold one policy still, declares the pin, and says in its own
+    # words that **a green `m2` does not certify the accumulator** --
+    # `check_the_accumulation_commits_where_the_bargain_refused` does, with the flag ON.
+    #
+    # So there is no gate defect here and this note exists to stop the next reader finding
+    # one: a comment asserting the opposite of the line beneath it costs a full
+    # investigation before it costs nothing. `A6i`'s writing side, inverted -- written from
+    # the PROBLEM just solved rather than from the state the row now holds.
     accumulate: bool = True
 
 
