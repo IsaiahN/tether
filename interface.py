@@ -71,6 +71,25 @@ DISTINGUISH = "NOT SAME"
 # the seam as the finished state.
 POSITIONED: tuple[str, ...] = ("ACTION6",)
 
+# **ATTRIBUTES THAT ARE NOT THE OBJECT'S OWN -- the reviewer, 2026-09-28, and this is DATA
+# rather than logic so it can be pinned and moved without touching a rule.** An object's colour
+# and shape are ITS OWN; its `proximity` is a fact about it AND SOMETHING ELSE, so it changes
+# for everyone whenever anything moves. Keying the actor off relations made every action read
+# `o5`.
+#
+# **OWN-VERSUS-RELATION IS THE LINE, NOT POSITION-VERSUS-EVERYTHING** -- my first fix counted
+# only `row`/`col`, and the reviewer's case against it is a world I built the same evening:
+# **fixture B's clicks change COLOUR and move nothing, so a position-only rule finds no actor
+# there at all.** Recolour and reshape are among the commonest ARC transformations.
+#
+# **AND NO WORLD DECLARES THIS YET, WHICH IS WHY IT IS A LIST AND NOT A LOOKUP.** Checked:
+# `arc_atoms.ATTRIBUTE_TYPE` types `row col colour shape` and omits `proximity` -- but it also
+# omits gridworld's `surface` and `obstacle`, which ARE own attributes, so membership cannot
+# carry the distinction; and `slot_types()` returns `EXTENT` for everything on gridworld by
+# deliberate under-declaration. **The right home is the world declaring which of its attributes
+# are relational. Until one does, this is the convention, named and visible.**
+RELATIONAL: tuple[str, ...] = ("proximity",)
+
 
 @dataclass(frozen=True)
 class Repeat:
@@ -459,20 +478,29 @@ class Interface:
         key was built on a spectator. It measured cleanly, it had a plausible mechanism, and it
         was a fact about sorting.
 
-        **SO THE DEFINITION IS THE FIX: an object's `.row`/`.col` are ITS OWN, and its
-        `proximity` is a fact about it AND SOMETHING ELSE.** Only intrinsic position counts as
-        being moved. `_at` and `_gap` already privilege the same two, so this adds no taxonomy
-        the interface was not already using.
+        **SO THE DEFINITION IS THE FIX: an object's OWN attributes count and its RELATIONS do
+        not** -- `RELATIONAL`, above. My first version of this fix counted only `row`/`col`, and
+        the reviewer's case against it is a world I built the same evening: **fixture B's clicks
+        change COLOUR and move nothing, so position-only finds no actor there at all.**
+
+        **AND A GENUINE TIE RETURNS `None` RATHER THAN A NAME.** The alphabetical tie-break was
+        the whole defect, and replacing it with a better sort would keep the shape: if two
+        objects tie as actor the honest answer is *I cannot tell*, which falls back to the
+        whole-board key for that action. Same *fail loudly, do not default* rule as `PHASE_OF`.
         """
         moved: dict[str, int] = {}
         for (_c, k, *_r), (n, _tot) in self.table.get(action, {}).get("delta", {}).items():
             if "." not in k:
                 continue
             obj, attr = k.rsplit(".", 1)
-            if attr not in ("row", "col"):
+            if attr in RELATIONAL:
                 continue
             moved[obj] = moved.get(obj, 0) + n
-        return max(moved, key=lambda o: (moved[o], o)) if moved else None
+        if not moved:
+            return None
+        top = max(moved.values())
+        tied = [o for o, v in moved.items() if v == top]
+        return tied[0] if len(tied) == 1 else None
 
     def _unclicked(self, state: dict | None) -> tuple[int, int] | None:
         """An OBJECT this interface has not aimed at yet, as `(x=col, y=row)`.
