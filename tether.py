@@ -2055,6 +2055,7 @@ class Agent:
         betting = [s for s in betting if pred[s] is not None]
         _, deg_before = self.env.objective()
         _real = IFace.Realisation(action, coord)
+        _ctx = IFace.Interface.context(self.env)
         if coord is not None:
             self.env.step(action, coord[0], coord[1])   # F28: positioned, coord from perception
         else:
@@ -2066,13 +2067,20 @@ class Agent:
         # the outcome is not, so what fires is CONDITIONALITY, which is Isaiah's own separate
         # question. Telling it apart from *the mapping changed* needs a context key that does
         # not exist yet, so this claims the smaller thing and says so.
-        if self.iface.audit(_real, before, after):
+        # THE CONTEXT KEY IS READ BEFORE THE STEP, because it is the contact present WHEN THE
+        # ACTION WAS TAKEN -- reading it after would key an effect by the world the effect made.
+        if self.iface.audit(_real, before, after, _ctx):
             self.led.record(self.cycle, "PERCEIVE", "@interface", "conditional",
                             of=(action,), reads=("this action has now been seen to do more "
                                                  "than one thing -- it is conditional"))
         # AND WHAT THE BOARD NOW AFFORDS, **named as capability and never as a button** --
         # Isaiah: *"the board has enabled us to move to the left or right after doing xyz"*.
         # F28's line held: availability is legitimate to read, directional semantics never.
+        # **REPORTED; NOT YET READ ABOVE THE SEAM; CONSUMED AFTER THE STRIP** -- the reviewer,
+        # 2026-09-28, and it is owed at the site rather than only in the channel. `ISOLATED`
+        # checks for a CALLER and not for a CONSUMER, so a report written to the record and
+        # read by no mode passes it. **Nothing in systems 0, 1 or 2 reads this yet**, which is
+        # why the commit that added it claims a RECORDED fact and not a changed decision.
         _cap = self.iface.capability(tuple(self.env.actions()))
         if _cap.moved():
             self.led.record(self.cycle, "PERCEIVE", "@interface", "capability",

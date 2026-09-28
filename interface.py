@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import sys
 from dataclasses import dataclass
+from typing import Any
 
 sys.dont_write_bytecode = True
 
@@ -84,7 +85,8 @@ class Interface:
         self.table: dict[str, dict] = {}       # action -> what it was observed to do
         self._seen: tuple[str, ...] = ()       # last frame's advertised set, for capability
         self.audits = 0
-        self.conditional: set[str] = set()     # actions seen to have MORE THAN ONE effect
+        self.conditional: set[str] = set()     # more than one effect, ACROSS contexts
+        self.changed: set[str] = set()         # more than one effect WITHIN one context
 
     # ---- downward: intent -> action -- NOT HERE YET, ships with the strip ------------
 
@@ -105,7 +107,43 @@ class Interface:
         closed = tuple("a way to act that is gone" for _ in (was - now))
         return Capability(opened=opened, closed=closed)
 
-    def audit(self, r: Realisation, before: dict, after: dict) -> bool:
+    @staticmethod
+    def context(env: Any) -> tuple:
+        """THE CONTEXT KEY, v1 -- the contact configuration at press time, name-free.
+
+        **THE REVIEWER'S LEAD, 2026-09-28, verified at `RELATIONS.md:182-184` (Part 4.1):**
+        *normal -- perpendicular to the contact -- **a blocked move***; *static friction -- a
+        move that fails while touching*. **So a blocked move is not a quirk to model: it is a
+        relation the corpus already names**, and keying an effect by the contact present when
+        it was taken is what separates *conditional* from *the mapping changed*.
+
+        **v1 AND v2, AND v1 IS NOT A PLACEHOLDER.** The reviewer's key is contact ON THE AXIS OF
+        THE ATTEMPTED MOTION, which is sharper -- and it has a bootstrap: **you need the axis to
+        key by it, and the axis is what the interface is learning.** So v1 keys on the WHOLE
+        configuration, computable from frame one, and refines to the sided key once displacement
+        has been observed. **It sharpens by acting, like everything else here.**
+
+        **KINDS, NEVER NAMES.** `_contact_keys` settled this once: *names churn every frame and
+        would leave everything permanently unexplored; vocabulary permanent, instances
+        transient.* So the key is the multiset of contact KINDS.
+
+        **AND THE COST IS IN THE SAFE DIRECTION:** two situations sharing a v1 key make a real
+        mapping change read as conditionality. **The audit under-claims rather than
+        over-claims**, which is the right way for a guard to be wrong.
+        """
+        fn = getattr(env, "contact_points", None)
+        if fn is None:
+            return ()
+        try:
+            pts = fn() or ()
+        except Exception:                                  # noqa: BLE001
+            return ()
+        kinds: dict[str, int] = {}
+        for _a, _b, kind in pts:
+            kinds[kind] = kinds.get(kind, 0) + 1
+        return tuple(sorted(kinds.items()))
+
+    def audit(self, r: Realisation, before: dict, after: dict, ctx: tuple = ()) -> bool:
         """Record what this action did, and report when it does not have ONE fixed effect.
 
         **RETURNS `True` FOR *CONDITIONAL*, NOT FOR *CHANGED*, AND THE DIFFERENCE IS ISAIAH'S
@@ -130,17 +168,24 @@ class Interface:
         """
         self.audits += 1
         changed = tuple(sorted(k for k in before if before.get(k) != after.get(k)))
-        e = self.table.setdefault(r.action, {"effects": set(), "n": 0})
+        e = self.table.setdefault(r.action, {"by_ctx": {}, "n": 0})
         e["n"] += 1
-        first = bool(e["effects"]) and changed not in e["effects"]
-        e["effects"].add(changed)
-        if len(e["effects"]) > 1:
+        seen = e["by_ctx"].setdefault(ctx, set())
+        # WITHIN one context a second effect is the first real evidence the MAPPING CHANGED.
+        # ACROSS contexts it is CONDITIONALITY. That is the whole point of the key, and with
+        # v1's coarser key a genuine change can still land in the conditional bucket.
+        changed_here = bool(seen) and changed not in seen
+        seen.add(changed)
+        if len({x for v in e["by_ctx"].values() for x in v}) > 1:
             self.conditional.add(r.action)
-        return first
+        if changed_here:
+            self.changed.add(r.action)
+        return changed_here
 
     def report(self) -> dict:
         return {"mapped": len(self.table), "audits": self.audits,
                 "conditional": sorted(self.conditional),
+                "changed": sorted(self.changed),
                 "note": "conditional = the action has more than one observed effect. "
                         "Telling that apart from THE MAPPING CHANGED needs a context key "
                         "that does not exist yet"}
