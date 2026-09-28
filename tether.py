@@ -4549,6 +4549,31 @@ class Agent:
                         unsat=round(unsat, 4), considered=len(priced), shelf=len(shelf),
                         route="learned: observed to move this slot the wanted way")
 
+    def _goal_target(self, slot: str, before: dict[str, int]) -> int | None:
+        """What the agent's OWN objective predicts this slot should become, or None.
+
+        Reuses `_value_of` -- *the edge from a term to a number, in one place* -- rather than
+        recomputing it, so the intent and the bet cannot disagree about what the term MEANS.
+        `None` where the slot already HOLDS (`objective_step` returns `current`), where nothing
+        satisfies, or where no OBJ-typed term is there to read.
+        """
+        name = self.bound.get(slot) or self.wants.get(slot)
+        term = (self.gamma.library.get(name) if name else None) or self._want_terms.get(slot)
+        if term is None or getattr(term, "out_type", None) != OBJ_TYPE or slot not in before:
+            return None
+        if not self._applies(term, before):
+            return None
+        ops = self._ops(term, before)
+        if ops is None:
+            return None
+        ctx = Ctx(action=self._last_action or "", operands=ops,
+                  touching=self._touching(slot), group=self._group(slot, before),
+                  obj=self._record(slot, before))
+        tgt = self._value_of(term, slot, before, ctx)
+        if tgt is NOT_RESOLVED or not isinstance(tgt, int) or tgt == before[slot]:
+            return None
+        return tgt
+
     def _goal_split(self, before: dict[str, int]) -> str | None:
         """M2 ITEM 2: pick an action because the agent's OWN model says it advances the
         agent's OWN objective. **The first branch in `choose` that reads what the agent WANTS.**
@@ -4594,6 +4619,28 @@ class Agent:
         chosen = self._goal_choice()
         if chosen is None:
             return None
+        # **THE GOAL EXIT EMITS AN INTENT -- the first NON-exploratory one in the system.**
+        # `docs/ACTION_INTERFACE_PLAN.md`. The selector above already chose the slot on the
+        # agent's own objective, and `_value_of` already says what that objective PREDICTS for
+        # it. **So the intent is assembled from parts that exist**: this slot, that way.
+        #
+        # **AND THE DIRECTION IS THE SLOT'S, NOT THE ACTION'S** -- `F28`'s line. The agent says
+        # `o0.row +`; it does not know `down` exists. A board that renamed its buttons would
+        # change nothing here.
+        #
+        # THE VOTING BELOW IS THE FALLBACK AND IS ON ITS WAY OUT. It is kept while the
+        # interface's model is thin: an abstention here must not silently delete an exit that
+        # `_goal_choice` worked to reach. **When `realise` serves this reliably the votes go**,
+        # and that is a measurement rather than a preference.
+        _tgt = self._goal_target(chosen, before)
+        if _tgt is not None:
+            _want = IFace.Intent(IFace.BECOME, chosen, "+" if _tgt > before[chosen] else "-")
+            _r = self.iface.realise(_want, tuple(self.actions),
+                                    IFace.Interface.context(self.env))
+            if _r is not None:
+                self.led.record(self.cycle, "PLAN", chosen, "intent",
+                                reads=(_want.says(), _r.why))
+                return _r.action
         votes: dict[str, float] = dict.fromkeys(self.actions, 0.0)
         n_goals = 0
         for s in [chosen]:
