@@ -1193,6 +1193,48 @@ def test_the_seam_varies_what_it_explores_with():
         "a non-exploratory intent was realised from an empty table -- the interface guessed")
 
 
+def test_every_exit_has_a_phase():
+    """No exit of `choose` may land in a phase column nobody chose for it.
+
+    **THREE REPAIRS AT ONE LINE IN ONE DAY, and the third still had an `else`.** `== "discriminate"`
+    admitted 1 of 3 labels and read `directed 0.0` on ten boards; a PREFIX broke the moment
+    `discriminate:learned` became `distinguish`; an EXCLUSION flipped `system0` PROBE -> DIRECTED
+    on 11 of 25 actions. **Every one was silent, and every one moved a published column.**
+
+    The reviewer's shape (2026-09-28): an unlisted label must FAIL LOUDLY rather than default --
+    same idea as narratability refusing a row with no sentence, so the next exit has to be
+    classified when it is added instead of found in a census afterwards.
+
+    **THE LABELS ARE READ FROM THE SOURCE, NOT FROM A LIST HERE.** A list here would agree with
+    `PHASE_OF` by construction, which is the measurement that cannot fail -- the same reason
+    `conform/arms.py` censuses the code rather than its own table.
+    """
+    import ast
+
+    import tether
+
+    src = ast.parse(Path(tether.__file__).read_text(encoding="utf-8"))
+    fn = next(n for n in ast.walk(src)
+              if isinstance(n, ast.FunctionDef) and n.name == "choose")
+    labels = {n.value.elts[1].value
+              for n in ast.walk(fn)
+              if isinstance(n, ast.Return) and isinstance(n.value, ast.Tuple)
+              and len(n.value.elts) == 2 and isinstance(n.value.elts[1], ast.Constant)
+              and isinstance(n.value.elts[1].value, str)}
+    assert labels, "no `return action, label` pairs found in `choose` -- the scan is broken"
+    missing = sorted(labels - set(tether.PHASE_OF))
+    assert not missing, (
+        f"`choose` can return {missing} and `PHASE_OF` does not classify them. Classify the "
+        f"exit where it is added; a default is how three phase repairs went silent in one day")
+
+    # THE CONTROL: the scan must be able to FAIL. A rule that found nothing would pass the
+    # assertion above for the wrong reason, and this file's own history is checkers going quiet.
+    assert sorted(labels - {"nope"}) == sorted(labels), "sanity"
+    assert "nope" not in tether.PHASE_OF, "fixture: the control label must be unclassified"
+    assert sorted((labels | {"nope"}) - set(tether.PHASE_OF)) == ["nope"], (
+        "the comparison cannot detect an unclassified label -- it certifies nothing")
+
+
 def test_asking_the_interface_does_not_change_it():
     """`realise` must be a QUESTION. **The reviewer, 2026-09-28, and it is not about cost.**
 
@@ -1276,6 +1318,7 @@ if __name__ == "__main__":
         test_the_quantifiers_quantify()
         test_the_seam_varies_what_it_explores_with()
         test_asking_the_interface_does_not_change_it()
+        test_every_exit_has_a_phase()
         print("  A5 and B5 reproductions still fire (expected): ok")
         print("  keyed reach loses nothing: ok · two vocabularies stay two: ok")
         print("  the quantifiers quantify (ONE fires, all != some): ok")

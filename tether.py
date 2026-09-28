@@ -166,6 +166,25 @@ def _head_accepts(cand: Any, slot_type: str | None) -> bool:
 # record, which is check 3 exactly.
 YES, NO, UNKNOWN = "yes", "no", "unknown"
 OBJECT_TYPE = "OBJECT"
+# **EVERY EXIT `choose` CAN RETURN, AND ITS PHASE -- ENUMERATED, NOT MATCHED.** Three repairs
+# at one line in one day: `== "discriminate"` admitted 1 of 3 labels; a PREFIX broke on the
+# first rename; an EXCLUSION (`not in (probe, draw)`) flipped `system0` on the first label that
+# was neither. **A guess about which side is the short list is still a guess.** This is short
+# because `choose` HAS few exits, and a label missing from it is reported rather than defaulted.
+#
+# `system0` IS PROBE and its own site is the authority -- it *draws variously INSTEAD of
+# exploiting the learned arm*. An undirected pick made deliberately is still an undirected pick:
+# the deliberateness is in choosing to explore, not in choosing the button.
+PHASE_OF: dict[str, str] = {
+    "routine": I.STRATEGY,
+    "discriminate:goal": I.DIRECTED,
+    "distinguish": I.DIRECTED,
+    "system0": I.PROBE,
+    "probe": I.PROBE,
+    "draw": I.PROBE,
+    "given": I.PROBE,          # handed in by the caller: not a choice this loop made
+}
+
 ORDERED_TYPES = ("POSITION", "EXTENT", "DELTA")
 
 # anchor: how many reachable terms an experiment weighs before choosing. Bounded because
@@ -6307,8 +6326,22 @@ class Agent:
         # learned arm*, which is an undirected pick made deliberately, not a directed one.
         # **The two failures here were a PATTERN and an EXCLUSION; the fix for both is the
         # enumeration, and it is short because `choose` has few exits, not because I hope so.**
-        phase = (I.STRATEGY if by == "routine"
-                 else I.DIRECTED if by in ("discriminate:goal", "distinguish") else I.PROBE)
+        # **AND AN UNLISTED LABEL IS LOUD, NOT DEFAULTED -- the reviewer, 2026-09-28, so this
+        # cannot happen a fourth time.** An enumeration with an `else` is still a silent
+        # classifier for the one case that matters: the NEXT exit somebody adds. It would land
+        # in a column nobody chose for it, exactly as `distinguish` and `system0` just did.
+        # **Same shape as narratability refusing a row with no sentence** -- the new thing has
+        # to be classified when it is added, not discovered in a census later.
+        #
+        # FILED RATHER THAN RAISED: a board run must not die because a phase is unnamed, and
+        # `UNCLASSIFIED` is a reading the seats can refuse while the run continues -- which is
+        # this project's own *an abstention counts only when it names what it searched*.
+        phase = PHASE_OF.get(by)
+        if phase is None:
+            phase = "unclassified"
+            self.led.record(self.cycle, "PLAN", "@loop", "unclassified_by",
+                            by=by, known=sorted(PHASE_OF),
+                            reason="this exit has no phase; classify it at `PHASE_OF`")
         self.phases.note(phase)
 
         try:
