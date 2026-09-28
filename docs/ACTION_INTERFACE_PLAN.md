@@ -429,3 +429,77 @@ That is visible in the table itself without a board: **a `(context, slot, action
 more than one value is the refutation**, and the build must publish that count rather than
 collapse the set to its most recent member. **If it is common, the right object is not a value
 table but a residual, and the intent was unrealisable all along.**
+
+---
+
+## 16. `Act(a)` → `Act(intent)` — the last place above the seam that names a button, and the sites it actually touches
+
+**Mapped by reading the call sites rather than by reasoning about the shape, 2026-09-28.**
+`routine.Act` holds `action: str`, *"named as the environment advertises it"*. It is the last
+structure above the seam that does.
+
+### 16a. WHERE THE ROUTINE ALREADY SITS BELOW A DECISION THE INTERFACE MADE
+
+`_mint_routine` builds its candidates as `Rt.enumerate_routines((act,), …)` where `act` is the
+single action `_goal_split` returned — **which is now the interface's realisation of an
+intent.** So the routine is not enumerating over the action space at all; it is wrapping ONE
+already-realised button in a loop shape. **That makes the change smaller than it looks**: the
+body does not need a new enumeration, it needs the thing it wraps to be the INTENT that
+produced the button rather than the button.
+
+    _goal_choice  ->  the slot            already above the seam
+    _goal_target  ->  the target value    already above the seam
+    the INTENT    ->  BECOME(slot, ±) or BECOME(slot, =v)    formed, then discarded
+    realise       ->  one action          ** the routine is built from HERE **
+
+**So the seam runs straight through `_goal_split`'s return type**, and the repair is to keep
+the intent instead of throwing it away: the body holds the intent, and the interface realises
+it AT EVERY STEP rather than once at construction. **That is not a refactor — it is a
+behaviour change, and the right one**: a routine that re-realises can follow a board that
+re-maps its buttons mid-loop, which is the case Isaiah described as *"we are now no longer able
+to go (direction)"*.
+
+### 16b. THE FIVE SITES, COUNTED
+
+    routine.Act.action        the field. `advance` returns it; `render` prints it
+    routine.actions(r)        every primitive the routine can emit -- 7 call sites
+    tether.py:4403            the LEVEL-BOUNDARY CHECK:
+                              `set(Rt.actions(r, lib)) <= set(self.actions)`
+    tether.py:4111 / 4160 / 4459   `_reject_key` and the `paths` key -- a routine's
+                              IDENTITY is `(slot, its action names, its guards)`
+    tether.py:4377-4381       the price: `n = len(self.actions)`, `base = unsat * log2(n)`
+
+### 16c. THE IDENTITY SITES ARE ISAIAH'S ITEM 3, AND I HAD NOT CONNECTED THEM
+
+> *"only minor as I framed it; save the intent / action set / multistep instead, so meaning is
+> preserved when the board shifts."*
+
+**`_reject_key` and `paths` key a routine by ITS ACTION NAMES.** So a shape refuted as
+`(o0.row, ("ACTION2",), ("g",))` loses its whole refutation history the moment the board
+renames or re-maps that button — and worse, it KEEPS the history when the button name survives
+but its meaning changes. **Keyed on the intent, the record says *I tried raising o0.row in a
+loop and it failed*, which stays true across both.** That is the `taken` ruling arriving at a
+site I was not looking at when he made it.
+
+### 16d. THE LEVEL-BOUNDARY CHECK GETS BETTER, NOT WORSE
+
+Today: *does this routine name an action the new level does not offer?* — a string comparison
+against `env.actions()`. With intents there is no string to compare, and the honest replacement
+is **can the interface still realise this intent here** — which is a question about the WORLD
+rather than about a name, and it is the reverse-translation Isaiah asked System 0 for.
+
+**AND IT IS STRICTLY MORE SENSITIVE**: a level that keeps every button name and changes what
+two of them do passes the string check and fails this one. `audit`'s `changed` set is already
+the detector.
+
+### 16e. WHAT IS NOT DECIDED HERE, AND MUST BE BEFORE THE BUILD
+
+- **THE PRICE.** `base = unsat * log2(len(actions))` prices *naming `g` actions myself*. If the
+  agent names INTENTS, the alphabet is the intent space and not the button space, and **those
+  are different sizes.** No number is invented here: the alphabet must be COUNTED at the site,
+  and the count stated, or the bargain is being fed a constant nobody derived.
+- **WHETHER A REALISATION FAILURE MID-LOOP IS `BLOCKED` OR `EXHAUSTED`.** Both already exist and
+  they mean different things — *the guard says no* against *the budget ran out*. An
+  unrealisable intent is neither, and reusing one of them would collapse two endings into one,
+  which is the defect `F207` was diagnosed at. **It needs its own ending**, and `advance`'s
+  contract says terminations are the only ways out that are not an action.
