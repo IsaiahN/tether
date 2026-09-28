@@ -171,11 +171,6 @@ ORDERED_TYPES = ("POSITION", "EXTENT", "DELTA")
 # anchor: how many reachable terms an experiment weighs before choosing. Bounded because
 # the choice is made every step and the closure grows; 200 covers depth 2 over the toy
 # alphabet exactly, and truncation only ever narrows the spread, never invents one.
-# **NO READER SINCE THE SPREAD BRANCH WAS DELETED (2026-09-28), AND KEPT RATHER THAN CUT.**
-# It is the budget an intent-level discriminator will enumerate under, and it is the one number
-# here that was DERIVED against a measured closure rather than picked. Deleting it would make
-# the next author choose a new one, which is how a constant gets invented twice.
-DISCRIMINATE_BUDGET = 200
 
 # THE CODE, declared. Both halves of the bargain are lengths under it.
 #   a correction on one slot-transition: log2(M) bits, a uniform code over the M values
@@ -1199,9 +1194,6 @@ class Agent:
         # **Clearing it would be the mirror error**: discarding evidence that does cross, on a
         # rule written for evidence that does not. `retrieval.key_of`'s own note is the same
         # ruling one level down -- *vocabulary permanent, instances transient.*
-        # AWAITING ITS PRODUCER -- see the bet row. Empty every cycle until intent-level
-        # discrimination exists; `{}` here is not evidence that nothing was disproved.
-        self._disproof: dict[str, dict] = {}
         self._last_action: str | None = None   # what may have changed the gating
         self.owed_import, self.abstained = set(), {}
         self._guard_exit: str | None = None   # why the last guard read was unreadable
@@ -1210,7 +1202,7 @@ class Agent:
         self._shape_cache: tuple = (-1, None)   # (cycle, decoder) -- Ctx is built per candidate
         self._cue_tag_cache: tuple = (-1, {})   # (cycle, tags) -- mint asks per stream
         # SYSTEM 0's contact memory is NOT cleared here. The keys are (kind, shape, shape)
-        # -- a KIND of situation, which is what `paths` and `_disproof` survive a boundary
+        # -- a KIND of situation, which is what `paths` survives a boundary
         # for. Clearing it would discard evidence that DOES cross, on a rule written for
         # evidence that does not.
         self._contact_pick = None
@@ -2130,18 +2122,7 @@ class Agent:
                             # and recording it as a term made 104 of 110 staleness
                             # readings noise. `_predict` still falls back to `idn`.
                             bound=self.bound.get(s, NO_CHANGE),
-                            # **NO PRODUCER SINCE 2026-09-28, AND THAT IS THE HONEST
-                            # STATE OF THIS PATH RATHER THAN AN ABSENCE.** The `spread`
-                            # branch filled `_disproof` and was deleted for ranking
-                            # buttons with the agent's own model. The CLAIM it published
-                            # is not what was wrong with it -- *group the candidates by
-                            # prediction and `live - largest bucket` die whatever
-                            # happens* is the falsifiable form, and it comes back with
-                            # intent-level discrimination. **Kept wired so the returning
-                            # producer has somewhere to write**; a publish path deleted
-                            # and rebuilt is a publish path rebuilt differently.
-                            **({"disproof": self._disproof[s]}
-                               if s in self._disproof else {}))
+                            )
             self._standing(s)
 
         # the reward channel: on the figures, and reported here. Its remedy is the
@@ -6332,7 +6313,6 @@ class Agent:
                     focal = _hit[0]
                     self.gamma.book["focus_by_cue"] = self.gamma.book.get("focus_by_cue", 0) + 1
         by = "given"
-        self._disproof = {}
         if action is None:
             action, by = self.choose(before)
         self._acts[action] += 1   # System-0 instrument: the concrete action distribution

@@ -569,3 +569,56 @@ at 14a.
 - **THE `by` LABEL.** `discriminate:learned` names a mechanism that will no longer be above the
   seam. A label that survives its mechanism is how a census keeps reporting a thing that has
   moved — so it is renamed in the same commit or the phase counts become unreadable.
+
+---
+
+## 18. WHAT INTENT-LEVEL DISCRIMINATION INHERITS — the parts of `spread` that were worth keeping, held HERE and not as dead code
+
+**The reviewer, 2026-09-28, and the correction is one I had already made once today and did not
+generalise.** I deleted `spread` and KEPT two of its supports in the code — `DISCRIMINATE_BUDGET`
+with no reader at all, and `_disproof` with a consumer and no producer — reasoning that the
+returning mechanism would need them.
+
+> **KEEPING THE KNOWLEDGE IS RIGHT; KEEPING IT AS LIVE CODE IS THE PROBLEM.** An unanchored
+> constant is what `lint`/`ISOLATED` refuses, and a consumer with no producer is *never ship half
+> a mechanism* from the other end. **The plan is where a derivation waits; the module is not.**
+
+So both move here, and the module holds neither.
+
+### 18a. THE BUDGET, WITH ITS DERIVATION RATHER THAN ITS VALUE
+
+    DISCRIMINATE_BUDGET = 200
+
+**Derived against a measured closure, not picked** — which is the only reason it was worth
+keeping at all, and the reason the VALUE alone would have been useless to inherit. The live ARC
+set yields **7 `val -> val` candidates at depth 2**, so 200 is far above what that closure can
+produce and the cap never binds there; it was sized for the toy set, where the closure is
+larger. **An intent-level discriminator enumerates over a different space and must re-derive
+it** — the number above is the precedent for HOW (size the cap against a measured closure, then
+state the closure), never a constant to copy.
+
+### 18b. THE `_disproof` CONTRACT, WHICH IS THE PART THAT MUST SURVIVE VERBATIM
+
+The deleted branch published, BEFORE acting, a claim that could be wrong:
+
+    {"live": <candidates>, "splits": <distinct predictions>,
+     "refuted_at_least": live - max(bucket), "by": "any outcome on <slot> after <pick>"}
+
+**`refuted_at_least` is the whole of it.** Listing what the candidates predict is true and
+unfalsifiable — it spans the alphabet, so no outcome contradicts it. Grouping them by prediction
+and stating that `live - largest bucket` **die whatever happens** is a claim the next frame can
+refute. **That is the shape any intent-level discriminator owes**, with `after <pick>` becoming
+`after <intent>`; the ranking of buttons was what was wrong with `spread`, and this was not.
+
+### 18c. AND `ISOLATED` DOES NOT CATCH THIS CLASS — CHECKED, NOT ASSUMED
+
+The reviewer asked whether the seats would flag the unread constant. **They did not: 16/16
+clean.** Cause, read at the write site: `conform/lint.py`'s `_isolated` collects
+`ast.FunctionDef`, `ast.AsyncFunctionDef`, `ast.ClassDef` and class methods. **A module-level
+`Assign` is not in the list, so an unread constant is invisible to the one rule written to
+forbid it.**
+
+**FILED, NOT FIXED HERE.** Widening a rule is how this one poisoned itself once before — its own
+fixture carries `head_dead` for exactly that reason — so it needs its own fixture and control,
+not a clause added while passing. **The gap is real and the rule's docstring currently overstates
+its reach.**
