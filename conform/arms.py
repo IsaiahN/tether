@@ -2,8 +2,17 @@
 
 **ENVIRONMENT SWITCHES ONLY, AND THE COUNT ABOVE IS THEREFORE NOT THE AGENT'S TOTAL --
 ANNOTATED 2026-09-28.** The detector is `os.environ.get("TETHER_X")`, so a capability switch
-that is a `Config` FIELD is invisible here. There are at least two: `Config.system0` and
-`Config.accumulate`. **The second is the one that matters** -- `system0` was found OFF on the
+that is a `Config` FIELD is invisible here. There are exactly two: `Config.system0` and
+`Config.accumulate`.
+
+**AND THAT IS CHECKED RATHER THAN HEDGED, because a corrected count that is itself uncounted is
+how the first one got here.** Every class in the repository was scanned for `bool`-annotated
+fields: FOUR have them, and only `Config`'s are configuration -- `gamma.Atom`'s
+`reads_operand`/`polymorphic` are per-atom DECLARATIONS, and `instruments.Segment` and
+`instruments.Termination` hold recorded READINGS. Of everything `arc_holdout.play` constructs
+(`ArcWorld`, `Ledger`, `Config`, `Gamma`, `Agent`, `Budget`) only `Config` carries a bool.
+
+**AND `system0` IS THE ONE THAT MATTERS** -- it was found OFF on the
 ARC path against a standing ruling of Isaiah's, and it is exactly the class this file's
 `UNDECLARED` check exists to prevent entering silently. *A new arm cannot enter silently* is
 true of env arms and false of field arms.
