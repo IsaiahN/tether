@@ -1132,6 +1132,50 @@ def test_the_quantifiers_quantify():
     finally:
         arc_atoms._ITERATE = was
 
+
+def test_the_seam_varies_what_it_explores_with():
+    """`ELICIT` must not keep choosing one button. **The collapse must not ride below the seam.**
+
+    **THE REVIEWER, 2026-09-28:** `discriminate:learned` pressed `ACTION2` 105 of 150 times on
+    `ls20` -- *the collapse System 0 exists to prevent*. If `ELICIT` were realised by "the most
+    informative action" alone, the same scoring keeps choosing one button and **exploration that
+    presses one button is not exploration.**
+
+    **AND THIS CHECK EXISTS BECAUSE `m2` PINS THE SEAM OFF.** Routing `probe`/`draw` through the
+    interface moved the m2 trajectory and three of its scenarios failed; demonstrated to be
+    trajectory and not contract (all three pass with the old draw restored), so the fixture pins
+    the old policy. **A pin with no certifying check is how a suite keeps a mechanism green by
+    never running it** -- `check_one_bargain` was MIGRATED rather than pinned around for exactly
+    that reason. This is the migration's other half.
+
+    THE CONTROL IS THE DEGENERATE REALISER. A rule that always returned `offered[0]` would
+    satisfy "an action was chosen"; it fails this, because the assertion is on VARIETY.
+    """
+    import interface as IFace
+
+    f = IFace.Interface()
+    offered = ("A", "B", "C")
+    ctx = (("edge", 1),)
+    want = IFace.Intent(IFace.ELICIT)
+    taken = []
+    for i in range(6):
+        r = f.realise(want, offered, ctx)
+        assert r is not None, "ELICIT was refused while actions were offered"
+        taken.append(r.action)
+        f.audit(r, {"x": 0}, {"x": i % 2}, ctx)
+
+    assert len(set(taken[:3])) == 3, (
+        f"the first three explorations repeated: {taken[:3]} -- unmapped actions must be "
+        f"taken before any is repeated")
+    assert max(taken.count(a) for a in offered) <= 2, (
+        f"one action dominated exploration: {taken} -- this is the ACTION2 collapse below "
+        f"the seam")
+
+    # AND A NON-EXPLORATORY INTENT WITH NOTHING KNOWN MUST ABSTAIN, NEVER GUESS. An interface
+    # that substitutes something when it cannot translate is the encoded answer relocated.
+    assert f.realise(IFace.Intent(IFace.TOUCH, "o0", "o1"), offered, ctx) is None, (
+        "a non-exploratory intent was realised from an empty table -- the interface guessed")
+
 if __name__ == "__main__":
     if "--cover" in sys.argv:
         for label, c in (("kernel.Frame", coverage()),
@@ -1173,9 +1217,11 @@ if __name__ == "__main__":
         test_the_keyed_reach_loses_nothing()
         test_the_inherited_vocabulary_is_not_the_held_library()
         test_the_quantifiers_quantify()
+        test_the_seam_varies_what_it_explores_with()
         print("  A5 and B5 reproductions still fire (expected): ok")
         print("  keyed reach loses nothing: ok · two vocabularies stay two: ok")
         print("  the quantifiers quantify (ONE fires, all != some): ok")
+        print("  the seam varies what it explores with: ok")
         print("  shipped generator coverage: ok · residual bound loses nothing: ok"
               " · resolutions are not the answer: ok · atom order pinned: ok"
               " · promotion clause recorded: ok · observer reaches the agent: ok"

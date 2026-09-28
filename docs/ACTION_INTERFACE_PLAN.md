@@ -296,3 +296,59 @@ question asked by the routine itself.
 picked by the seat: **it is emitted by the agent from its own model and is falsified by the
 world.** A constant nobody can be wrong about is a magic number; a prediction is the opposite of
 one.
+
+
+---
+
+## 14. RELOCATING `_learned_split` — the 71-85% mode, and two cautions that change the plan
+
+**`_learned_split`/`_fine_vote` vote over actions** -- `max(self.actions, key=votes)` -- fed by
+`contingency()`, `{member: {action: measured signal}}`. That is `discriminate:learned`: **93 of
+131 acts on `g50t`, 128 of 150 on `ls20`.** The largest action-reasoning violation in the file
+and the thing that works.
+
+**IT RELOCATES BELOW THE SEAM RATHER THAN BEING DELETED**, and the argument is its own
+docstring: *"Learned, never handed ... a member reports what moved when it acted."* **Taking a
+MEASURED per-action fact and picking an action IS translation** -- the interface's whole job.
+And it gains the reason `tether.py:2876` says it has never had: *"nothing selects an action
+because it ADVANCES A GOAL."* Below the seam it is the informed realisation of `ELICIT`.
+
+### 14a. "SAME BEHAVIOUR, CORRECT LOCATION" IS WRONG — the reviewer, and I wrote it
+
+I claimed the relocation preserves the 71-85%. **It does not, and it should not.** Today
+`learned` acts with no request from anyone. After the move it runs **only when a mode emits
+`ELICIT`** -- and Isaiah's rule is that 1 and 2 defer to exploration *only until they understand
+the board well enough*.
+
+> **SO IF THE DESIGN WORKS, `ELICIT` IS EMITTED LESS AS A RUN GOES ON AND `learned`'s SHARE
+> FALLS. THE BEHAVIOUR SHOULD CHANGE -- BY DESIGN, NOT AS A REGRESSION.**
+
+**PRE-REGISTERED HERE, BEFORE THE A/B EXISTS**, because a falling share read against the wrong
+expectation is a regression report about a working mechanism: **expect the share to fall, and
+expect it to fall MORE in later cycles than early ones.** A flat share would be the surprising
+result -- it would mean 1 and 2 never stop deferring, which is the handover question in another
+costume.
+
+### 14b. AND IT MUST NOT CARRY THE ONE-BUTTON COLLAPSE BELOW THE SEAM
+
+**`learned` is the mode that pressed `ACTION2` 105 of 150 times on `ls20`** -- the collapse
+System 0 exists to prevent. **If `ELICIT` is realised by "the most informative action by
+contingency", the same scoring can keep choosing one button, and exploration that presses one
+button is not exploration.** Job A needs VARIED responses from the board.
+
+> **SO THE REALISATION OF `ELICIT` NEEDS A VARIETY CONDITION AND NOT ONLY AN INFORMATIVENESS
+> ONE** -- at minimum: do not repeat an action already known to do the same thing in the same
+> context. **That needs the context key** (the same one §11's audit is missing), which makes the
+> key a PREREQUISITE of the relocation rather than a later refinement.
+
+**Otherwise the collapse moves below the seam intact and becomes harder to see**, because it
+would then be wearing the word *exploration*.
+
+### 14c. the `gone`/`came` duplicate
+
+`tether.py:4783-4800` already computes the advertised-set delta, and `Interface.capability`
+now duplicates it. **One goes.** The reviewer's rule is *keep whichever is built from acting,
+not handed* -- and **checked, neither is**: both read `env.actions()`, which F28 explicitly
+permits (*availability is legitimate to read*). So the rule does not discriminate here and the
+choice is made on the other ground: **keep the one below the seam**, because that is where
+knowing about the action set is allowed to live.

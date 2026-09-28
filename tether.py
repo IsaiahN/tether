@@ -3130,7 +3130,7 @@ class Agent:
             # bored probe would otherwise inherit whatever arm M last pointed at and coordinate
             # an unrelated action on a stale slot.
             self._s0_target = None
-            return self.drive.choose(self.actions, self.cycle, _where(before)), "probe"
+            return self._explore(before), "probe"
         owed = [s for s in sorted(self.owed_import) if s in before]
         # THE ONLY BRANCH THAT READS GAMMA, AND `by` CANNOT SAY WHY IT DID NOT FIRE. `by ==
         # discriminate` reads 0 of 100 action rows across dc22 and m0r0, bare and trained -- but
@@ -3262,7 +3262,7 @@ class Agent:
         goal = self._goal_split(before)
         if goal is not None:
             return goal, "discriminate:goal"
-        return self.drive.choose(self.actions, self.cycle, _where(before)), "draw"
+        return self._explore(before), "draw"
 
     # -- SYSTEM 0, CONTACT-SEEKING. Isaiah, 2026-09-21: *I said RANDOM, but more accurately
     # what humans do is: TRY TO MAKE CONTACT. What happens if this touches or interacts with
@@ -3376,6 +3376,27 @@ class Agent:
         if owners:
             return owners[self.cycle % len(owners)], "seek-contact"
         return None, "all-contacts-explored"
+
+    def _explore(self, before: dict, subject: str | None = None) -> str:
+        """**THE EXPLORATORY EXITS GO THROUGH THE SEAM.** The agent forms an INTENT -- *elicit a
+        response* -- and the interface chooses the action. `docs/ACTION_INTERFACE_PLAN.md`,
+        Isaiah 2026-09-28: *the agent shouldn't really care about what action they choose.*
+
+        **AND THE VARIETY RULE LIVES BELOW, NOT HERE.** `realise` will not repeat an action
+        already known to do the same thing in this context -- the reviewer's condition, and what
+        stops `discriminate:learned`'s one-button collapse (`ACTION2`, 105 of 150 on `ls20`)
+        reappearing under the word *exploration*.
+
+        The uniform draw is the FALLBACK and no longer the mechanism: it is what happens when
+        the board offers nothing the interface can distinguish.
+        """
+        want = IFace.Intent(IFace.ELICIT, subject=subject)
+        r = self.iface.realise(want, tuple(self.actions), IFace.Interface.context(self.env))
+        self.led.record(self.cycle, "PLAN", subject or "@board", "intent",
+                        reads=(want.says(), r.why if r else "unrealisable"))
+        if r is None:
+            return self.drive.choose(self.actions, self.cycle, _where(before))
+        return r.action
 
     def _system0_active(self) -> bool:
         """UNEXPLORED CONTACT COUNT, with the action-effect coverage it replaces kept as the

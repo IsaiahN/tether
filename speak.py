@@ -38,7 +38,16 @@ def sentences(rows: list[dict]) -> list[tuple[list[int], str]]:
         # or refused was invisible to the one instrument whose whole job is saying why.
         # *A change that makes the agent better and its reasoning unreadable has destroyed the
         # instrument*, and a new SPACE with no sentences is that at the largest scale available.
-        if ev == "routine":
+        # THE INTENT, AND IT IS THE CLEAREST THING THE AGENT CAN SAY ABOUT ITSELF NOW.
+        # `docs/ACTION_INTERFACE_PLAN.md`: the agent reasons in what it WANTS and the interface
+        # translates. **So the narration says the want and the translation separately** -- which
+        # is the seam made legible rather than merely built. A sentence naming only the button
+        # would be the old account of a new mechanism.
+        if ev == "intent":
+            want, why = (list(d.get("reads") or ("", "")) + ["", ""])[:2]
+            out.append(([seq], f"On {slot} I wanted: {want}. I did not choose an action for "
+                               f"that -- the interface did, and its reason was: {why}."))
+        elif ev == "routine":
             out.append(([seq], f"On {slot} I committed to a plan: `{d.get('routine')}`. It "
                                f"costs {_n(d.get('cost'))} bits and leaves {_n(d.get('left'))} "
                                f"of the {_n(d.get('base'))} the goal residual owed, so the "

@@ -29,14 +29,59 @@ from typing import Any
 
 sys.dont_write_bytecode = True
 
-# **THE DOWNWARD HALF IS NOT HERE YET, AND THAT IS DELIBERATE.** `Intent`, `Repeat` and
-# `realise()` -- intent in, action out -- are designed in `docs/ACTION_INTERFACE_PLAN.md` and
-# ship WITH the strip that consumes them. The `lint` seat's ISOLATED check refused them standing
-# alone, correctly: *never ship half a mechanism*, and a translator nothing calls is the
-# built-and-never-reached class this project keeps finding.
-#
-# **WHAT IS HERE IS THE UPWARD HALF AND IT IS COMPLETE**: watch what actions do, report what the
-# board affords. That is job B's own direction and it stands on its own.
+# WHAT THE AGENT CAN MEAN. Deliberately NOT an action vocabulary -- these name what the agent
+# wants to be true, and the interface is what knows whether this board can express it.
+ELICIT = "ELICIT"        # get ANY response from this object, or from the board. The bootstrap
+TOUCH = "TOUCH"          # bring a onto b
+BE_AT = "BE_AT"          # put a at a region
+BECOME = "BECOME"        # a takes an attribute
+
+
+@dataclass(frozen=True)
+class Repeat:
+    """How many times, until what -- and the gap between them is a residual.
+
+    **ISAIAH, 2026-09-28:** *"upright is subjective and transitory but rotate five times is
+    specific."* Both, because they fail in opposite directions. `routine.Until` already carries
+    `guard` and `budget`, but `budget` is a SAFETY CAP -- *derived at construction, never
+    picked*. **`expect` is what the agent MEANS**, and missing it teaches.
+
+    **A BARE COUNT CANNOT BE SURPRISED. A BARE CONDITION CANNOT BE WRONG ABOUT MAGNITUDE.**
+    Not a magic number: the agent emits it from its own model and the world falsifies it.
+    """
+
+    guard: Any | None = None
+    expect: int | None = None
+    budget: int | None = None
+
+    def __post_init__(self) -> None:
+        if self.guard is None and self.expect is None:
+            raise ValueError("a Repeat with neither a guard nor an expectation says nothing")
+
+
+@dataclass(frozen=True)
+class Intent:
+    """What the agent wants to be true. **It names no action and carries no button.**
+
+    Multi-step is a TUPLE of these -- the same emission at a different length, which is
+    Isaiah's *"single or multistep plan"*.
+    """
+
+    kind: str
+    subject: str | None = None
+    object: str | None = None
+    repeat: Repeat | None = None
+
+    def says(self) -> str:
+        core = " ".join(x for x in (self.kind, self.subject, self.object) if x)
+        if self.repeat is None:
+            return core
+        bits = []
+        if self.repeat.expect is not None:
+            bits.append(f"expecting {self.repeat.expect}")
+        if self.repeat.guard is not None:
+            bits.append("until the guard holds")
+        return f"{core} ({', '.join(bits)})"
 
 
 @dataclass(frozen=True)
@@ -88,7 +133,48 @@ class Interface:
         self.conditional: set[str] = set()     # more than one effect, ACROSS contexts
         self.changed: set[str] = set()         # more than one effect WITHIN one context
 
-    # ---- downward: intent -> action -- NOT HERE YET, ships with the strip ------------
+    # ---- downward: intent -> action --------------------------------------------------
+
+    def realise(self, intent: Intent, offered: tuple[str, ...],
+                ctx: tuple = ()) -> Realisation | None:
+        """Pick an action that serves this intent, or abstain.
+
+        **ABSTENTION IS A READING** -- §12.2. `None` means *this board's vocabulary cannot
+        express that*, and the agent is entitled to know its intent was unrealisable rather
+        than silently receiving something else.
+
+        **THE BOOTSTRAP STAYS ABOVE THE SEAM.** On a new board the table is empty, so nothing
+        can be translated from knowledge -- and an interface inventing exploratory presses would
+        be this module's one prohibition on turn one. So the DECISION to explore is the agent's:
+        it emits `ELICIT`, and only then does the interface try what it has not mapped.
+
+        **AND THE VARIETY RULE -- THE REVIEWER, 2026-09-28, AND IT IS WHY THIS IS NOT JUST
+        INFORMATIVENESS.** `discriminate:learned` pressed `ACTION2` 105 of 150 times on `ls20`:
+        *the collapse System 0 exists to prevent*. If `ELICIT` were realised by "the most
+        informative action" alone, **the same scoring keeps choosing one button and the collapse
+        rides below the seam wearing the word exploration.** So: **never realise `ELICIT` with
+        an action already known to do the same thing in this context.** Unmapped first, then
+        anything whose effect here is not yet known, and only then a repeat.
+        """
+        if not offered:
+            return None
+        if intent.kind != ELICIT:
+            # WITHOUT A TABLE ENTRY THERE IS NOTHING HONEST TO PICK, and guessing would be the
+            # interface deciding. It abstains and the agent learns the intent was unrealisable.
+            return None
+        unmapped = [a for a in offered if a not in self.table]
+        if unmapped:
+            return Realisation(unmapped[0], unmapped=True,
+                               why="requested exploration: never taken")
+        # THE VARIETY CONDITION: prefer an action whose effect IN THIS CONTEXT is unknown.
+        fresh = [a for a in offered if ctx not in self.table[a]["by_ctx"]]
+        if fresh:
+            return Realisation(fresh[0], why="requested exploration: effect here not yet known")
+        # everything mapped in this context. Take the one taken LEAST here -- still the agent's
+        # call to explore, and refusing would be the interface overruling it.
+        least = min(offered, key=lambda a: len(self.table[a]["by_ctx"].get(ctx, ())))
+        return Realisation(least, why="requested exploration: all known here, least-seen taken")
+
 
     # ---- upward: what changed, in reasoning terms -------------------------------------
 

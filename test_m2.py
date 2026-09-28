@@ -125,8 +125,21 @@ def _agent(cycles: int = 25):
         # is doing one line up -- and it is the reason a green m2 does not certify the
         # accumulator. `check_the_accumulation_commits_where_the_bargain_refused` does that,
         # with the flag on.
+        # **AND THE ACTION POLICY IS PINNED FOR THE SAME REASON, AND IT WAS DEMONSTRATED --
+        # 2026-09-28.** Routing `probe`/`draw` through the interface seam made THREE checks
+        # fail: `check_can_gates_until`, `check_one_bargain`,
+        # `check_shelf_must_be_runnable_here`. **Run with the old draw restored, ALL THREE
+        # PASS** -- so their failures are this trajectory moving and NOT their contracts,
+        # measured the way the `accumulate` pin was rather than asserted.
+        #
+        # **A GREEN m2 THEREFORE DOES NOT CERTIFY THE SEAM.**
+        # `conform/stateful.py::test_the_seam_varies_what_it_explores_with` does, with the
+        # seam live -- because *pinned around* without a certifying check is how a suite keeps
+        # a mechanism green by never running it.
         ag = tether.Agent(env, gamma.Gamma(env.atoms(), game="m2test"),
                           tether.Config(system0=False, accumulate=False))
+        ag._explore = lambda before, _subject=None: ag.drive.choose(
+            ag.actions, ag.cycle, tether._where(before))
         for _ in range(cycles):
             ag.step()
         _BUILT[cycles] = ag
