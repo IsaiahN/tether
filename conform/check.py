@@ -116,17 +116,41 @@ STAGES = (
 NEVER_STARTED = ("can't open file", "No module named", "cannot find the file")
 
 
+# **120 -> 180, RULED BY ISAIAH 2026-09-28 AND MEASURED, NOT PICKED.** `shipped` reported
+# DID-NOT-RUN for the first time since installation, and the profile said the limit was the
+# problem rather than the tests:
+#
+#     the seat, `stateful.py --fast --tether`      2m01s
+#     21 module-level property tests               115.2s of it
+#     the two most expensive                       22.9s + 21.7s
+#
+# **So it had been within seconds of the limit and nobody knew, because the failure path had
+# never fired** -- this folder's own *a guard whose failure path is never exercised is
+# indistinguishable from one that cannot fail*, about its own runner.
+#
+# 180 is ~50% headroom over the measured 2m01s. **A seat that passes at 118s and fails at 121s
+# is winning a coin flip rather than passing a check**, and the two readings taken minutes apart
+# disagreed by exactly that margin. **It is a CALIBRATION constant: moving it disarms the guard
+# while leaving it green, so it is recorded with its measurement and is the reviewer's to move.**
+# anchor: 180s is ~50% headroom over the seat's MEASURED 2m01s, taken 2026-09-28 on
+# `stateful.py --fast --tether`. Not a round number chosen for comfort -- the margin is what
+# separates a check from a coin flip, and two readings minutes apart differed by the 3s that
+# decided pass from DID-NOT-RUN.
+STAGE_TIMEOUT = 180
+
+
 def run_stage(argv: list[str], needs: Path | None = None) -> tuple[str, str]:
     """(status, detail). DID-NOT-RUN is its own state: a stage that could not start has
     not passed, and folding it into a FAIL asserts a cause that was never observed."""
     if needs is not None and not needs.exists():
         return "DID-NOT-RUN", f"{needs.name} does not exist"
     try:
-        p = subprocess.run(argv, cwd=ROOT, capture_output=True, text=True, timeout=120)
+        p = subprocess.run(argv, cwd=ROOT, capture_output=True, text=True,
+                           timeout=STAGE_TIMEOUT)
     except FileNotFoundError as e:
         return "DID-NOT-RUN", f"{type(e).__name__}: {e}"
     except subprocess.TimeoutExpired:
-        return "DID-NOT-RUN", "timed out after 120s"
+        return "DID-NOT-RUN", f"timed out after {STAGE_TIMEOUT}s"
     if p.returncode == 0:
         return "ok", ""
     if p.returncode == 2:
