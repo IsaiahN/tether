@@ -50240,6 +50240,46 @@ scored by direction moved, which **IS the delta table, same information and same
 and `_predict`, the agent scoring buttons with its own world-model. **So there was nothing to
 relocate; one half already lived below the seam and the other was the violation.**
 
+## THE HEADLINE ABOVE IS TOO STRONG AND A CENSUS SAYS SO — THREE OF FOUR, NOT THREE OF THREE
+
+**Corrected within the hour, 2026-09-28, and the heading is left standing rather than edited
+because an error entry whose evidence is removed stops being evidence.**
+
+Before starting the next item I walked every function in `tether.py` that mentions
+`self.actions` and asked which SELECT among them.
+
+    WORLD       the source tree
+    POPULATION  14 functions in `tether.py` mentioning `self.actions`
+
+    RANKS ACTIONS WITH A LEARNED MODEL
+        `_predict`   gone  4c233db
+        `spread`     gone  f76899f
+        `sep`        gone  c715430
+        `_toward`    LIVE  -- ranks every action by its OBSERVED displacement in `_move_map`
+                     and returns the one that most reduces distance to the target
+
+    NAMES A BUTTON BY STRING
+        ARM M, starved contact    `"ACTION6" if "ACTION6" in self.actions`
+        System 0                  the same line again
+
+**`_toward` is the same class and was never counted.** So the seam is three of four closed,
+plus two by-name sites, and the corrected claim is that the three which fed SYSTEM 1 AND 2 are
+gone while SYSTEM 0's own action naming is untouched.
+
+> **AND THE ERROR IS THE ONE THIS ENTRY ITSELF WRITES UP.** *A guess about which side is the
+> short list is still a guess* was filed against a pattern and an exclusion. **This is the third
+> instance and the worst-formed: I defined the set of violations FROM MY QUEUE and then reported
+> completeness against my own definition.** A population you chose is not a population you
+> counted, and the census that refuted it took ninety seconds.
+
+**THE FOURTH SITE IS NOT A NEW DISCOVERY, WHICH IS WHAT MAKES MISSING IT WORSE.** Isaiah flagged
+its foundation directly: `_move_map`'s avatar dependency is *"poorly wired"*, and *"it shouldn't
+matter if there is an avatar — if no avatar what is the cause and effect by clicking on things."*
+`_toward` opens `a = self._avatar(); if a is None: return None`, so on a board with no avatar it
+returns nothing and the branch falls through to a uniform draw. **The delta table built today is
+already its replacement** — any slot, no body required, below the seam — so the next block is
+specified by two independent routes: the census, and a standing ruling nobody had implemented.
+
 ## `spread` CANNOT FIRE ON ARC BY CONSTRUCTION — a certainty, not the 0/96 it was filed as
 
     WORLD       gamma in isolation, no board
