@@ -401,7 +401,17 @@ the seam. It is not a second mechanism.
 **TWO THINGS THAT ARE NOT OBVIOUS FROM THE SKETCH, and both are decided here rather than in
 the build:**
 
-- **THE KEY IS THE SAME KEY, NOT A LOOSER ONE.** The context is what separates *conditional*
+- **AND THE KEY CARRIES THE VALUE BEFORE THE PRESS — the reviewer, 2026-09-28, caught BEFORE
+  the first multiplicity count was read.** Keyed `(context, slot)` alone, a **CYCLING** action —
+  colour 3 → 4 → 5, or a rotation — leaves a different value every press, so its cell fills with
+  values and the singleton rule refuses it. **But a cycle is perfectly reproducible, and
+  recognising one is among the things Isaiah named System 0 for** (*is it cycled (rotate)*).
+  With `before` in the key, `(context, slot, before) → after`, **a cycle and a fixed recolour
+  are BOTH singletons** and only a genuinely unreliable action shows multiplicity. **Without
+  this the refuter in 15c would have counted every cycle as a superstition** — a high number,
+  correctly computed, measuring the wrong thing. It also changes what `realise` needs: the cell
+  is asked FROM WHERE THE SLOT IS, so the current reading is passed down beside the context.
+- **THE KEY IS THE SAME CONTEXT KEY, NOT A LOOSER ONE.** The context is what separates *conditional*
   from *the mapping changed*, and **a recolour that only works while touching something is
   exactly the case that needs it.** The realiser may fall back to the across-context prior —
   as `BECOME`'s signed half already does, and for the same reason — but the AUDIT's key does

@@ -71,9 +71,16 @@ class Intent:
     subject: str | None = None
     object: str | None = None
     repeat: Repeat | None = None
+    # **A SIGN AND A VALUE ARE TWO QUANTITIES AND THEY DO NOT SHARE A FIELD.** `object` holds
+    # `"+"`/`"-"` on an ORDERED slot; `value` holds *make it 3* where no order exists to want a
+    # direction in. `A6i` is one name carrying two quantities, and it is free to avoid here and
+    # expensive once anything reads the field. `docs/ACTION_INTERFACE_PLAN.md` §15.
+    value: int | None = None
 
     def says(self) -> str:
         core = " ".join(x for x in (self.kind, self.subject, self.object) if x)
+        if self.value is not None:
+            core = f"{core} = {self.value}"
         if self.repeat is None:
             return core
         bits = []
@@ -132,11 +139,12 @@ class Interface:
         self.audits = 0
         self.conditional: set[str] = set()     # more than one effect, ACROSS contexts
         self.changed: set[str] = set()         # more than one effect WITHIN one context
+        self.unreliable: set[str] = set()      # lands a slot on more than one value in a ctx
 
     # ---- downward: intent -> action --------------------------------------------------
 
     def realise(self, intent: Intent, offered: tuple[str, ...],
-                ctx: tuple = ()) -> Realisation | None:
+                ctx: tuple = (), state: dict | None = None) -> Realisation | None:
         """Pick an action that serves this intent, or abstain.
 
         **ABSTENTION IS A READING** -- §12.2. `None` means *this board's vocabulary cannot
@@ -158,6 +166,48 @@ class Interface:
         """
         if not offered:
             return None
+        if intent.kind == BECOME and intent.subject and intent.value is not None:
+            # **THE UNORDERED HALF -- `objective_step`'s COMPARABLE arm, which had no home below
+            # the seam until now.** A sign says nothing on a slot with no order, so the question
+            # is not *which way* but *what has this action been observed to LEAVE it at*.
+            #
+            # **IT SAYS `THIS HAS HAPPENED`, NEVER `THIS WILL`.** An action whose cell holds more
+            # than one value has not been shown to reach any of them reliably -- that is §15c's
+            # refutation, and it is REFUSED here rather than averaged away, because serving a
+            # once-observed landing as a capability is the superstition the table exists to not
+            # be.
+            #
+            # **THE CELL IS ASKED FROM WHERE THE SLOT ACTUALLY IS.** With `before` in the key
+            # the question is not *what does this action produce* but *what does it produce FROM
+            # HERE* -- which is the only form a cycle can answer. Without a reading of the
+            # current state there is no cell to look in, and guessing one would be the interface
+            # choosing.
+            if state is None or intent.subject not in state:
+                return None
+            _now = int(state[intent.subject])
+            # TWO PASSES, NOT ONE WITH A TIEBREAK -- same shape as the signed half below: this
+            # context's evidence wherever it exists, and only then the across-context prior.
+            # Written as two loops because one loop with a `best is None` guard makes the
+            # answer depend on the order `offered` arrives in, which is the board's and not a
+            # thing to build a preference out of.
+            best, how = None, ""
+            for a in offered:
+                here = self.table.get(a, {}).get("lands", {}).get((ctx, intent.subject, _now))
+                if here and set(here) == {intent.value}:
+                    best, how = a, "here"
+                    break
+            if best is None:
+                for a in offered:
+                    lands = self.table.get(a, {}).get("lands", {})
+                    seen = {v for (_c, k, b), vs in lands.items()
+                            if k == intent.subject and b == _now for v in vs}
+                    if seen == {intent.value}:
+                        best, how = a, "in every context seen"
+                        break
+            if best is None:
+                return None
+            return Realisation(best, why=f"observed to take {intent.subject} from {_now} to "
+                                         f"{intent.value}, and to nothing else, {how}")
         if intent.kind == BECOME and intent.subject:
             # **THE AGENT SAID WHICH SLOT AND WHICH WAY. The interface knows which action did
             # that here, because it watched.** `intent.object` is the desired sign: +1 up,
@@ -309,6 +359,28 @@ class Interface:
                 continue
             n, tot = e["delta"].get((ctx, k), (0, 0))
             e["delta"][(ctx, k)] = (n + 1, tot + d)
+            # **THE VALUE COLUMN -- §15, and it is a COLUMN rather than a mechanism.** The same
+            # row, the same key, the same provenance: what this action was observed to LEAVE the
+            # slot at. Only on a CHANGE, because *it was already 3 and I did nothing* is not
+            # evidence that anything reaches 3.
+            #
+            # **THE SET IS KEPT WHOLE AND NEVER COLLAPSED TO THE LAST MEMBER.** A cell holding
+            # more than one value is the refutation of the whole idea -- the action has a
+            # HISTORY there and not a capability -- and a table that overwrote would look
+            # correct forever. `unreliable` is that count, published rather than left to be
+            # re-derived.
+            #
+            # **AND THE KEY CARRIES THE VALUE BEFORE THE PRESS -- the reviewer, 2026-09-28, and
+            # it was caught before the first multiplicity count was read.** Keyed `(ctx, slot)`
+            # alone, a CYCLING action -- colour 3 -> 4 -> 5, or a rotation -- leaves a different
+            # value every press, so its cell fills with values and the singleton rule refuses
+            # it. **But a cycle is perfectly reproducible, and it is one of the things System 0
+            # exists to recognise.** With `before` in the key, a cycle and a fixed recolour are
+            # BOTH singletons, and only a genuinely unreliable action shows multiplicity.
+            vals = e.setdefault("lands", {}).setdefault((ctx, k, int(before.get(k, 0))), set())
+            vals.add(int(after.get(k, 0)))
+            if len(vals) > 1:
+                self.unreliable.add(r.action)
         seen = e["by_ctx"].setdefault(ctx, set())
         # WITHIN one context a second effect is the first real evidence the MAPPING CHANGED.
         # ACROSS contexts it is CONDITIONALITY. That is the whole point of the key, and with
@@ -322,9 +394,15 @@ class Interface:
         return changed_here
 
     def report(self) -> dict:
+        cells = sum(len(e.get("lands", {})) for e in self.table.values())
+        multi = sum(1 for e in self.table.values()
+                    for v in e.get("lands", {}).values() if len(v) > 1)
         return {"mapped": len(self.table), "audits": self.audits,
                 "conditional": sorted(self.conditional),
                 "changed": sorted(self.changed),
-                "note": "conditional = the action has more than one observed effect. "
-                        "Telling that apart from THE MAPPING CHANGED needs a context key "
-                        "that does not exist yet"}
+                "unreliable": sorted(self.unreliable),
+                "value_cells": cells, "value_cells_multi": multi,
+                "note": "conditional = more than one observed effect ACROSS contexts; "
+                        "changed = more than one WITHIN one, which is the context key doing "
+                        "its job. value_cells_multi against value_cells is the plan's 15c refuter: "
+                        "a cell with several values is a history, not a capability"}

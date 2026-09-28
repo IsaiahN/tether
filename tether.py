@@ -3391,7 +3391,8 @@ class Agent:
         the board offers nothing the interface can distinguish.
         """
         want = IFace.Intent(IFace.ELICIT, subject=subject)
-        r = self.iface.realise(want, tuple(self.actions), IFace.Interface.context(self.env))
+        r = self.iface.realise(want, tuple(self.actions), IFace.Interface.context(self.env),
+                               before)
         self.led.record(self.cycle, "PLAN", subject or "@board", "intent",
                         reads=(want.says(), r.why if r else "unrealisable"))
         if r is None:
@@ -4364,9 +4365,9 @@ class Agent:
             _why_txt = {
                 "no_goal_term": "the chosen slot has no OBJ-typed goal term to read, in "
                                 "`bound` or in the retained wants",
-                "unordered_no_value_table": "the slot has no order, so a direction says "
-                                            "nothing, and I have no record of what REACHES a "
-                                            "value -- only of what CHANGES one",
+                "unordered_no_value_table": "the slot has no order, so I asked for a VALUE "
+                                            "rather than a direction, and nothing I have done "
+                                            "is known to leave it there reliably",
                 "no_realisation": "I said which slot and which way, and nothing I have done "
                                   "here is known to move it that way",
             }.get(self._split_why, f"the split refused ({self._split_why})")
@@ -4635,27 +4636,37 @@ class Agent:
         # `o0.row +`; it does not know `down` exists. A board that renamed its buttons would
         # change nothing here.
         _tgt = self._goal_target(chosen, before)
-        # THE SIGN IS ONLY AVAILABLE ON AN ORDERED TYPE, and the abstention says so rather than
-        # reading as *nothing moves it*. The deleted votes had a second arm for the unordered
-        # case -- *has this action ever PRODUCED that value* -- and the interface cannot serve
-        # it, because `audit` records a SIGNED DELTA and never a value reached. **So this is a
-        # named gap with a counter on it, not a silence**: `objective_step`'s ORDERED/COMPARABLE
-        # split is still the one being honoured, with one side unbuilt below the seam.
+        # **THE INTENT TAKES THE TYPE'S OWN SHAPE, and it is `objective_step`'s split reused
+        # rather than a second one invented.** An ORDERED slot has a direction to want, so the
+        # intent carries a SIGN. A COMPARABLE-only slot has none -- *make it 3* is the only
+        # thing there is to say -- so it carries a VALUE. **Two arms because the type system has
+        # two**, and the two never share a field (`A6i`, and see the plan's 15).
+        #
+        # THE AGENT STILL NAMES NO ACTION IN EITHER ARM. `o0.colour = 3` is as button-blind as
+        # `o0.row +`; which press achieves it is the interface's to know.
         _ordered = self.slot_types.get(chosen) in ORDERED_TYPES
-        if _tgt is not None and not _ordered:
-            self._split_why = "unordered_no_value_table"
-            self.led.record(self.cycle, "PLAN", chosen, "split_refused",
-                            why="unordered_no_value_table",
-                            slot_type=self.slot_types.get(chosen))
-            return None
         if _tgt is not None:
-            _want = IFace.Intent(IFace.BECOME, chosen, "+" if _tgt > before[chosen] else "-")
+            _want = (IFace.Intent(IFace.BECOME, chosen, "+" if _tgt > before[chosen] else "-")
+                     if _ordered else
+                     IFace.Intent(IFace.BECOME, chosen, value=_tgt))
             _r = self.iface.realise(_want, tuple(self.actions),
-                                    IFace.Interface.context(self.env))
+                                    IFace.Interface.context(self.env), before)
             if _r is not None:
                 self.led.record(self.cycle, "PLAN", chosen, "intent",
                                 reads=(_want.says(), _r.why))
                 return _r.action
+            if not _ordered:
+                # **THE TWO REFUSALS ARE NOT ONE REFUSAL.** On an ordered slot, unserved means
+                # *nothing I have done moves it that way*. Here it means *nothing I have done
+                # reliably LEAVES it there* -- and the interface refuses a cell holding several
+                # values on purpose, so this fires on an action that once landed the value and
+                # was never shown to do it again. Collapsing them would report a capability gap
+                # as an absence of effect.
+                self._split_why = "unordered_no_value_table"
+                self.led.record(self.cycle, "PLAN", chosen, "split_refused",
+                                why="unordered_no_value_table", target=_tgt,
+                                slot_type=self.slot_types.get(chosen))
+                return None
         # **THE INTERFACE ABSTAINED, AND THERE IS NO FALLBACK BEHIND IT ON PURPOSE.**
         # `docs/ACTION_INTERFACE_PLAN.md`. What stood here voted over `self.actions` using
         # `_predict` -- the agent scoring BUTTONS with its own world-model, which is the exact

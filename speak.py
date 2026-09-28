@@ -124,9 +124,9 @@ def sentences(rows: list[dict]) -> list[tuple[list[int], str]]:
                 out.append(([seq], f"On {slot} I said which way I wanted it to go and no "
                                    f"action was found for that. I did not pick one anyway."))
             elif why_ == "unordered_no_value_table":
-                out.append(([seq], f"On {slot} I know which value I want and not which "
-                                   f"DIRECTION -- the slot has no order. I can say what "
-                                   f"changes it and not what reaches it."))
+                out.append(([seq], f"On {slot} I asked for the value {d.get('target')} rather "
+                                   f"than a direction -- the slot has no order. Nothing I have "
+                                   f"done is known to leave it there reliably."))
             else:
                 out.append(([seq], f"On {slot} I chose no action: {why_ or 'nothing scored'}."))
         elif ev == "routine_recovered":
