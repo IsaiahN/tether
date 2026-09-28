@@ -50038,6 +50038,14 @@ does need Isaiah is narrower and is the collapse below: **his ruling says always
 mechanism as built emits one fixed action on any board with no avatar.** Those two go together
 or neither is useful.
 
+> **OWED, AND IT IS A DEFECT RATHER THAN A FINDING: `arc_holdout.play`'s `system0: bool = False`
+> IS TO BE REMOVED OR FLIPPED, so the ARC path stops overriding a ruling.** Written as a job
+> because the entry above it reads as analysis otherwise, and *a map entry saying a thing does
+> not exist is worse than one saying it is unfinished -- the first closes the question.* This
+> one is unfinished. **Sequenced behind the collapse**: fix the `taken` record first (below) or
+> the flip turns a mode that is off into a mode that emits one fixed action, which is worse
+> than off on any board with no avatar.
+
 **FOUND BY THE REVIEWER'S CHALLENGE TO A COUNT**, not by reading the code again: they refused
 *"nineteen switches"* as another count from one detector and said to list EVERY bool field on
 `Config`. There are two. The first carried the ruling. **The census was the instrument; the
