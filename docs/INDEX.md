@@ -50042,9 +50042,48 @@ or neither is useful.
 > IS TO BE REMOVED OR FLIPPED, so the ARC path stops overriding a ruling.** Written as a job
 > because the entry above it reads as analysis otherwise, and *a map entry saying a thing does
 > not exist is worse than one saying it is unfinished -- the first closes the question.* This
-> one is unfinished. **Sequenced behind the collapse**: fix the `taken` record first (below) or
-> the flip turns a mode that is off into a mode that emits one fixed action, which is worse
-> than off on any board with no avatar.
+> one is unfinished. **Sequenced behind the collapse**: fix the `taken` record first (below).
+
+**AND THE REASON FOR THAT ORDER IS WEAKER THAN IT WAS FIRST WRITTEN -- NARROWED WITHIN THE HOUR,
+BY THE REVIEWER ASKING HOW WIDE *worse than off* REALLY IS.** The first version said flipping
+the switch first *turns a mode that is off into a mode that emits one fixed action, worse than
+off on any board with no avatar*. **Two things narrow it:**
+
+**EMBODIMENT IS NOT A BOARD PROPERTY, IT IS INTERMITTENT WITHIN A RUN.** `INDEX:13710`, measured
+**on the synthetic fixture and not on ARC**: *"embodied at 2-6, back to `disembodied` at 7 -- the
+mode switching mid-run ... a streak dies with the name it was held under."* A locus holds for
+`MIN_REPEAT` consecutive steps, the tracker's name churns, and the board reads `disembodied`
+again.
+
+**AND `_move_map` IS NEVER CLEARED**, so intermittency does not sustain the collapse -- it ENDS
+it. Once an action enters the map during an embodied window it stays, and `untried` shrinks
+permanently.
+
+> **SO THE COLLAPSE ENDS UNTIL EVERY ACTION HAS BEEN TAKEN WHILE EMBODIED -- NOT WHEN THE FIRST
+> EMBODIED WINDOW ARRIVES.** The map fills only with the actions actually TAKEN inside a window,
+> and `untried` is everything NOT yet in it, so a short window admits only what it had time to
+> take and the next disembodied stretch returns to `untried[0]` -- **a different fixed action,
+> and still one.**
+
+**I FIRST WROTE THIS AS *bounded by the first embodied window*, WHICH IS WRONG, AND THE REVIEWER
+CAUGHT IT BEFORE THE ROW WAS COMMITTED.** *A two-step collapse* would need the first window to
+last long enough to take EVERY action once. The measured trajectory holds embodied from step 2
+to 6 -- about five steps -- **and whether five covers the ARC action set is not shown.** The
+bound is therefore stated as a CONDITION rather than a number, which is honest without needing
+a measurement the stop forbids.
+
+What survives is structural: **while any action remains untaken-while-embodied, System 0 emits
+one fixed action and discards its contact target** -- and at the opening of every run that is
+ALL of them, by construction, since a streak cannot exist before `MIN_REPEAT` consecutive steps.
+
+**WHETHER EMBODIMENT EVER ARRIVES ON ARC IS UNMEASURED.** There is no ARC reading of `mode()` at
+all, and the board stop is what prevents one.
+
+**THE ORDER STILL HOLDS, FOR A WEAKER REASON:** the `taken` record makes `untried` mean what its
+name says regardless of embodiment. *It is correct* rather than *the alternative is harmful
+everywhere*. **The strong version was a structurally-observed condition treated as a steady
+state**, which is the same error as reading a mechanism's absence from a counter -- and it is
+recorded here rather than quietly softened, because the overstatement was published first.
 
 **FOUND BY THE REVIEWER'S CHALLENGE TO A COUNT**, not by reading the code again: they refused
 *"nineteen switches"* as another count from one detector and said to list EVERY bool field on
