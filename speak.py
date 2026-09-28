@@ -104,22 +104,29 @@ def sentences(rows: list[dict]) -> list[tuple[list[int], str]]:
                                f"is already true."))
         elif ev == "split_refused":
             # **THE EVENT THAT COULD NOT FIRE UNTIL TODAY, AND THE NARRATION WENT QUIET THE
-            # MOMENT IT COULD -- 2026-09-25.** `split_refused` exists so the FIVE exits of
-            # `_goal_split` stop being reported as one message, and `_mint_routine` still
-            # prints *coverage incomplete, or every action ties* for all of them. The row is
+            # MOMENT IT COULD -- 2026-09-25.** `split_refused` exists so the several exits
+            # of `_goal_split` stop being reported as one message, and `_mint_routine` was
+            # printing *coverage incomplete, or every action ties* for all of them. The row is
             # the finer record and it had no sentence, so the one place a reader looks said
             # nothing at all about why no action was chosen.
             #
             # It is the M2 seat's own case: an ACT-space event with no sentence is invisible
             # to `orphans`, which counts sentences tracing to no record and cannot see a
             # record with no sentence. **The seat fired the first cycle the row was reached.**
+            #
+            # **THE EXITS CHANGED UNDER THIS AND THE SENTENCES FOLLOWED -- 2026-09-28.** The
+            # `coverage` branch described a ballot that no longer exists. These two are what
+            # the goal exit can now refuse on, and BOTH ARE ABOUT THE AGENT, never about a
+            # button: one says its objective has no direction to ask for, the other says it
+            # asked and got no answer.
             why_ = d.get("why")
-            if why_ == "coverage":
-                out.append(([seq], f"On {slot} I chose no action: I have never tried "
-                                   f"{', '.join(d.get('untried') or []) or 'some action'} "
-                                   f"here, and an untried action is not a neutral one. I "
-                                   f"have {d.get('trace_len')} steps of history over "
-                                   f"{d.get('n_actions')} actions."))
+            if why_ == "no_realisation":
+                out.append(([seq], f"On {slot} I said which way I wanted it to go and no "
+                                   f"action was found for that. I did not pick one anyway."))
+            elif why_ == "unordered_no_value_table":
+                out.append(([seq], f"On {slot} I know which value I want and not which "
+                                   f"DIRECTION -- the slot has no order. I can say what "
+                                   f"changes it and not what reaches it."))
             else:
                 out.append(([seq], f"On {slot} I chose no action: {why_ or 'nothing scored'}."))
         elif ev == "routine_recovered":

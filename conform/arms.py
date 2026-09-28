@@ -75,7 +75,6 @@ ARMS: dict[str, str] = {
     "TETHER_BARGAIN_FIT": "library fit priced by the bargain rather than by fit alone",
     "TETHER_DELTA_KEY": "route (b) re-keyed on this frame's delta",
     "TETHER_DELTA_OPERANDS": "deltas offered as operands",
-    "TETHER_FINE_VOTE": "the finer vote over candidate bindings",
     "TETHER_GUARD_AXIS": "the guard axis in the reject key",
     "TETHER_INSTRUMENTS": "the embedded instrument set -- Part 12 item 3, PAID BILLS from "
                           "frame 0. Off at a COSTED price: a new attribute widens the slot "

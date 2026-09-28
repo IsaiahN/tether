@@ -98,8 +98,6 @@ _REL_GAP = bool(os.environ.get("TETHER_REL_GAP"))
 # F32 arm D: decide reuse by the ONE BARGAIN rather than by a zero remainder,
 # which Isaiah ruled out. Seat-side, off by default.
 _BARGAIN_FIT = bool(os.environ.get("TETHER_BARGAIN_FIT"))
-# F141 arm E: vote by the movement RATE rather than a majority flag. Seat-side, off.
-_FINE_VOTE = bool(os.environ.get("TETHER_FINE_VOTE"))
 
 # ARM F -- RECIPE DEDUP. The novelty check below tests `term.name`, which carries operand AND
 # guard, so `translate . recolour<o5.w>` and `<o12.w>` both read NOVEL and both get minted.
@@ -849,9 +847,11 @@ class Agent:
         # ruling that *a want proves itself by RECURRING across attempts, not by explaining a
         # frame*, and a separate store is what keeps those two facts from collapsing.
         self._want_terms: dict[str, Term] = {}
-        # WHICH of `_goal_split`'s five exits fired, so the caller can CITE it rather than
-        # name one. The refusal string is the only place a reader learns why no action was
-        # chosen, and it was naming a single exit for all five.
+        # WHICH of `_goal_split`'s exits fired, so the caller can CITE it rather than name
+        # one. The refusal string is the only place a reader learns why no action was chosen,
+        # and it was naming a single exit for all of them. **THREE NOW, NOT FIVE** -- the
+        # ballot's four went with the ballot, 2026-09-28, and a count written here would be
+        # stale the next time an exit moves.
         self._split_why: str | None = None
         self._acts: Counter = Counter()   # System-0 instrument: concrete actions taken per cycle
         # the whole before-state is kept, because an operand is another slot's past value
@@ -4268,7 +4268,9 @@ class Agent:
                          says I can get there*, and committing to repeat on that is the loop
                          that never ends
             the ROUTE    the action THIS agent has observed moves THIS slot the wanted way --
-                         `_goal_split`, over `self.trace`. Never `act`, never the env
+                         and it is the INTERFACE that answers that now, from a table `audit`
+                         built out of this agent's own steps. `_goal_split` names the slot and
+                         the direction. Never `act`, never the env
             the BUDGET   the objective's own gap. A guard `g` units away needs at most `g`
                          iterations, so the bound is DERIVED and not picked
 
@@ -4353,15 +4355,20 @@ class Agent:
             # exit that did not fire is the same defect as `out_type-not-OBJ` describing a term
             # that was never the subject** -- a true-sounding string pointing at the wrong
             # mechanism, and the one thing a whitebox record must not do.
+            #
+            # **FOUR OF THE FIVE EXITS WENT WITH THE VOTES, AND THE MAP GOES WITH THEM.**
+            # `coverage`, `no_goal_read`, `no_action_voted` and `all_tied` were properties of a
+            # ballot over buttons; there is no ballot. Leaving their strings here would let
+            # `_split_why` fall through to one of them and describe a mechanism that no longer
+            # exists, which is the defect the comment above names.
             _why_txt = {
                 "no_goal_term": "the chosen slot has no OBJ-typed goal term to read, in "
                                 "`bound` or in the retained wants",
-                "coverage": "there is an action this agent has never tried here, and an "
-                            "untried action is not a neutral one",
-                "no_goal_read": "no goal was read on the chosen slot",
-                "no_action_voted": "no action this agent has observed moves this slot the "
-                                   "wanted way",
-                "all_tied": "every action ties, so nothing separates them",
+                "unordered_no_value_table": "the slot has no order, so a direction says "
+                                            "nothing, and I have no record of what REACHES a "
+                                            "value -- only of what CHANGES one",
+                "no_realisation": "I said which slot and which way, and nothing I have done "
+                                  "here is known to move it that way",
             }.get(self._split_why, f"the split refused ({self._split_why})")
             self.led.record(self.cycle, "PLAN", slot, "routine_refused",
                             reason=_why_txt, split_why=self._split_why)
@@ -4588,29 +4595,29 @@ class Agent:
             the GOAL     `_predict` on an OBJ-bound slot -- the objective the agent COMPOSED
                          and minted, reaching this through item 1's wire. Routed through
                          `_value_of`, so the objective is never scored as its own truth value
-            the ROUTE    `self.trace` -- what THIS AGENT observed ITS OWN actions do to THIS
-                         slot. Not a table, not `act`, not the env
+            the ROUTE    NOT HERE ANY MORE, and that is the point. The interface's delta
+                         table answers it, built by `audit` from steps THIS AGENT took. This
+                         function names a slot and a direction and never an action
 
         **`act` IS WHAT THIS MUST NOT BECOME**, and the difference is provenance alone: *it has
         never had to learn what pressing something does, because the primitive it was given
-        already knew.* An empty trace produces no preference here, which is what a closed-over
-        effect table can never do.
+        already knew.* **That prohibition MOVED WITH THE MECHANISM rather than being dropped** --
+        an empty delta table produces no preference either, which is what a closed-over effect
+        table can never do.
 
         NEAREST IS THE TYPE'S, AND IT IS `objective_step`'s SPLIT REUSED RATHER THAN A SECOND
         ONE INVENTED. `ORDERED` has a direction, so *toward* is the sign of the wanted step;
         `COMPARABLE`-only has none, so *toward* can only be *did this action ever produce that
         value*. **Two arms because the type system has two, not because two cases turned up.**
+        **AND ONLY THE ORDERED ARM IS SERVED BELOW THE SEAM**: `audit` records a signed delta
+        and never a value reached, so the COMPARABLE arm abstains by name at
+        `unordered_no_value_table` rather than reading as *nothing moves it*.
 
-        COVERAGE FIRST, AND THE CORPUS ORDERED IT. `ARC_BUILD_PLAN`: *coverage-first as a
-        PHASE, with goal pursuit gated on a complete action map -- the loop has no such
-        ordering.* It has one now, in the small: **a slot contributes only when every
-        advertised action appears in ITS OWN history**, so the branch cannot prefer an action
-        it has never tried, and it sits AFTER both discriminate branches, which are what build
-        the map.
-
-        VOTES, NEVER SUMMED MAGNITUDES -- `_learned_split`'s rule at a second site. Slots carry
-        different alphabets, so a distance on `col` and a distance on `colour` are not
-        commensurable and adding them is a category error. **One slot, one vote.**
+        COVERAGE AND THE ONE-SLOT-ONE-VOTE RULE WENT WITH THE VOTES, and neither was lost.
+        `ARC_BUILD_PLAN`'s *goal pursuit gated on a complete action map* is now the interface's
+        job: `realise` abstains where it has not watched the action, which is the same refusal
+        keyed on the same evidence. And nothing here sums magnitudes across slots, because
+        nothing here ranges over more than the ONE slot the selector chose.
         """
         # ITEM 3 GATES ITEM 2. Before the selector this ranged over EVERY OBJ-bound slot,
         # which is *pursue whichever objective happened to bind* -- and it measurably chose to
@@ -4627,12 +4634,20 @@ class Agent:
         # **AND THE DIRECTION IS THE SLOT'S, NOT THE ACTION'S** -- `F28`'s line. The agent says
         # `o0.row +`; it does not know `down` exists. A board that renamed its buttons would
         # change nothing here.
-        #
-        # THE VOTING BELOW IS THE FALLBACK AND IS ON ITS WAY OUT. It is kept while the
-        # interface's model is thin: an abstention here must not silently delete an exit that
-        # `_goal_choice` worked to reach. **When `realise` serves this reliably the votes go**,
-        # and that is a measurement rather than a preference.
         _tgt = self._goal_target(chosen, before)
+        # THE SIGN IS ONLY AVAILABLE ON AN ORDERED TYPE, and the abstention says so rather than
+        # reading as *nothing moves it*. The deleted votes had a second arm for the unordered
+        # case -- *has this action ever PRODUCED that value* -- and the interface cannot serve
+        # it, because `audit` records a SIGNED DELTA and never a value reached. **So this is a
+        # named gap with a counter on it, not a silence**: `objective_step`'s ORDERED/COMPARABLE
+        # split is still the one being honoured, with one side unbuilt below the seam.
+        _ordered = self.slot_types.get(chosen) in ORDERED_TYPES
+        if _tgt is not None and not _ordered:
+            self._split_why = "unordered_no_value_table"
+            self.led.record(self.cycle, "PLAN", chosen, "split_refused",
+                            why="unordered_no_value_table",
+                            slot_type=self.slot_types.get(chosen))
+            return None
         if _tgt is not None:
             _want = IFace.Intent(IFace.BECOME, chosen, "+" if _tgt > before[chosen] else "-")
             _r = self.iface.realise(_want, tuple(self.actions),
@@ -4641,97 +4656,24 @@ class Agent:
                 self.led.record(self.cycle, "PLAN", chosen, "intent",
                                 reads=(_want.says(), _r.why))
                 return _r.action
-        votes: dict[str, float] = dict.fromkeys(self.actions, 0.0)
-        n_goals = 0
-        for s in [chosen]:
-            if s not in before:
-                continue
-            name = self.bound.get(s)
-            term = self.gamma.library.get(name) if name else None
-            # **THE THIRD READER, AND IT WAS THE ONE NOT TAUGHT -- 2026-09-25.**
-            # `goal_residual` and `_discrepancy` both fall back to the retained want; this one
-            # read `bound` alone. OBJ-bound reads ZERO on every board measured, so the slot the
-            # SELECTOR just chose failed here every time -- measured on gridworld seed 11 at
-            # five objects: 4 of 4 `split_refused` rows carry `no_goal_read`, while the chosen
-            # slot's want sits in `_want_terms` and its bound term is `val`-typed.
-            #
-            # The term is a GUARD here and nothing below reads it -- the votes come from
-            # `_predict` and the trace -- so this admits the same population the gate upstream
-            # already qualified, rather than widening anything.
-            if term is None or getattr(term, "out_type", None) != OBJ_TYPE:
-                _w = self.wants.get(s)
-                term = (self.gamma.library.get(_w) or self._want_terms.get(s)) if _w else term
-            if term is None or getattr(term, "out_type", None) != OBJ_TYPE:
-                self._split_why = "no_goal_term"
-                self.led.record(self.cycle, "PLAN", s, "split_refused",
-                                why="no_goal_term", bound=name, want=self.wants.get(s))
-                continue
-            hist: dict[str, list[tuple[int, int]]] = {}
-            for bef, act, aft in self.trace:
-                if s in bef and s in aft:
-                    hist.setdefault(act, []).append((bef[s], aft[s]))
-            missing = [a for a in self.actions if a not in hist]
-            if missing:
-                # FIVE EXITS, ONE MESSAGE. `_mint_routine` reports every `None` from here as
-                # "coverage incomplete, OR every action ties" and the code has more ways out
-                # than that names. This one reads `self.trace`, NOT the ledger -- which is why
-                # a `bet`-row census read coverage as COMPLETE while this gate was refusing on
-                # it. Publish which exit fired, the same move `goal_series` was.
-                self._split_why = "coverage"
-                self.led.record(self.cycle, "PLAN", s, "split_refused",
-                                why="coverage", untried=sorted(missing),
-                                tried=sorted(hist), trace_len=len(self.trace),
-                                n_actions=len(self.actions))
-                continue                      # the coverage gate: untried is not neutral
-            ordered = self.slot_types.get(s) in ORDERED_TYPES
-            n_goals += 1
-            for a in self.actions:
-                wanted = self._predict(s, before, a)
-                if wanted is None or wanted == before[s]:
-                    continue                  # unreadable, or the objective already holds
-                if ordered:
-                    step = 1 if wanted > before[s] else -1
-                    moved = sum(1 for b, f in hist[a] if (f - b) * step > 0)
-                    if _FINE_VOTE:
-                        # F141 ARM E, SEAT-SIDE SWITCH, DEFAULT OFF. The binary vote is why gate 3
-                        # ties: with ONE goal (fixed by §13.4, and multi-goal is a REVERTED option
-                        # -- it measurably chose to stand still) any two actions that both clear
-                        # the majority bar score 1 and tie BY CONSTRUCTION. Measured `all_tied`
-                        # 9/9.
-                        #
-                        # THE SAME QUANTITY, UN-THRESHOLDED. `moved / len(hist[a])` is what the
-                        # majority test already computes; this stops rounding it to a flag. NO NEW
-                        # CONSTANT and nothing borrowed -- F32's confidence is a ruling about
-                        # ACCEPTANCE and transplanting it here would be F135's error again.
-                        votes[a] += moved / len(hist[a])
-                    elif moved * 2 > len(hist[a]):
-                        votes[a] += 1         # this action MOSTLY moved it the wanted way
-                elif any(f == wanted for _, f in hist[a]):
-                    votes[a] += 1             # unordered: it has produced that value
-        if not n_goals or max(votes.values()) == 0:
-            self._split_why = "no_goal_read" if not n_goals else "no_action_voted"
-            self.led.record(self.cycle, "PLAN", chosen,
-                            "split_refused",
-                            why="no_goal_read" if not n_goals else "no_action_voted",
-                            votes=dict(votes), n_actions=len(self.actions))
-            return None
-        top = max(votes.values())
-        tied = sum(1 for v in votes.values() if v == top)
-        self._ties[("goal", tied)] += 1
-        if tied == len(self.actions):
-            # AN ABSTENTION COUNTS ONLY WHEN IT NAMES THE CLOSURE IT SEARCHED, and this one did
-            # not. With ONE action the tie test compares the winner against a field of itself, so
-            # `all_tied` fires by construction and reads identically to a real tie among four --
-            # a FALSE ABSTENTION indistinguishable from an honest one, on 6 of the 25 games
-            # (F151). `n_actions` is the closure; `vacuous` is the verdict, published rather than
-            # left to be re-derived from it.
-            self._split_why = "all_tied"
-            self.led.record(self.cycle, "PLAN", chosen, "split_refused",
-                            why="all_tied", votes=dict(votes),
-                            n_actions=len(self.actions),
-                            vacuous=len(self.actions) < 2)
-            return None                       # nothing separates; the draw stays uninformed
-        return max(self.actions, key=lambda a: votes[a])
+        # **THE INTERFACE ABSTAINED, AND THERE IS NO FALLBACK BEHIND IT ON PURPOSE.**
+        # `docs/ACTION_INTERFACE_PLAN.md`. What stood here voted over `self.actions` using
+        # `_predict` -- the agent scoring BUTTONS with its own world-model, which is the exact
+        # crossing the seam exists to refuse. Its other input, `hist`, WAS the delta table:
+        # `{action: [(before, after)]}` from `self.trace`, scored by direction moved. Same
+        # information, same population. **So nothing was relocated; one half was already below
+        # the seam and the other half was the violation.**
+        #
+        # WHAT IT COSTS, PRE-REGISTERED BEFORE THE DELETION so it cannot later be read as a
+        # regression: `_predict` could rank an action in a situation the TABLE HAS NEVER SEEN,
+        # and the table by construction cannot. That capability is not lost in the design --
+        # it belongs to intent-level prediction, `(before, INTENT, after)` -- but it is NOT YET
+        # BUILT, so **this exit fires less until it is**, and that is the expected direction.
+        self._split_why = "no_realisation"
+        self.led.record(self.cycle, "PLAN", chosen, "split_refused",
+                        why="no_realisation", target=_tgt,
+                        n_actions=len(self.actions))
+        return None
 
     def members(self) -> dict:
         """Who passed the contingency gates, and which gate dropped the rest.
