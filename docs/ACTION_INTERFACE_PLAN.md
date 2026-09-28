@@ -503,3 +503,69 @@ the detector.
   unrealisable intent is neither, and reusing one of them would collapse two endings into one,
   which is the defect `F207` was diagnosed at. **It needs its own ending**, and `advance`'s
   contract says terminations are the only ways out that are not an action.
+
+---
+
+## 17. `_learned_split` BELOW THE SEAM — 71–85% of decisions, and the collapse must not travel with it
+
+**The largest single move in this plan, and the one with a pre-registered expectation attached.
+Measured: `discriminate:learned` 93 of 131 acts on `g50t`, 128 of 150 on `ls20`.**
+
+### 17a. WHAT IT ACTUALLY READS, AND WHY THAT SETTLES WHERE IT BELONGS
+
+`_learned_split` calls `env.contingency()` — `{member: {per_action: {action: scalar}, stable}}` —
+and returns `max(self.actions, key=lambda a: sep[a])`, where `sep[a]` counts the self-members
+that find action `a` distinguishable from every alternative.
+
+**That data is an ACTION-EFFECT RECORD, which is the interface's subject and nothing else's.**
+`arc_world.contingency`'s own docstring says so: *"THIS IS THE HALF `act` WOULD HAVE HANDED …
+the difference is provenance."* It is the same kind of thing `audit` builds, arriving from a
+different producer. **So this is not a judgement call about where the line falls** — the read
+is below the seam and the argmax over `self.actions` is above it, and the argmax is the half
+that moves.
+
+### 17b. WHAT THE AGENT SAYS INSTEAD
+
+`ELICIT`. The agent wants a distinguishable response and does not care which button gives one —
+which is precisely what `sep` was computing, expressed without naming a button. **The intent is
+already in the vocabulary**, so nothing new is invented above the seam.
+
+### 17c. THE COLLAPSE, AND THE RULE THAT STOPS IT TRAVELLING — WRITTEN BEFORE THE BUILD
+
+**`learned` IS the one-button collapse: `ACTION2`, 105 of 150 on `ls20`.** 14b already warned
+that realising `ELICIT` by "the most informative action" lets the same scoring keep choosing the
+same button, **below the seam, wearing the word exploration, where it is harder to see.** A
+relocation done carelessly moves a known defect somewhere darker.
+
+> **SO CONTINGENCY ORDERS, IT NEVER ADMITS. The variety rule is a CONSTRAINT and separability is
+> a RANKING INSIDE IT, never a score that can override it.** Unmapped first, then
+> effect-here-unknown, then least-seen — and `sep` breaks ties *within* whichever band the
+> variety rule has already selected.
+
+**That is the difference that makes it safe rather than a hope: a score can always be maximised
+by one button; a constraint on repetition cannot be.** `test_the_seam_varies_what_it_explores_with`
+already asserts the first three explorations differ and that no action exceeds 2 of 6, and it is
+the certifying check for this move as well — **so the relocation must not require relaxing it.
+If it does, that is the finding.**
+
+### 17d. THE PRE-REGISTRATION, AND THE REFUTER, BOTH BEFORE THE RUN
+
+**EXPECT THE `learned` SHARE TO FALL**, and to fall further in later cycles than early ones,
+because systems 1 and 2 are supposed to take the turn once they have reasoning. Already written
+at 14a.
+
+> **AND THE REFUTER IS NOT *the share stayed flat*, WHICH IS TOO WEAK.** A flat share is
+> consistent with the relocation working and 1/2 simply having nothing to say on this board.
+> **The refuter is: the share stays flat AND the variety check's distribution is unchanged** —
+> that is the collapse having travelled intact, and it is the one outcome that looks like
+> success from the share alone.
+
+### 17e. WHAT IS NOT DECIDED HERE
+
+- **WHETHER `sep` AND THE DELTA TABLE SHOULD MERGE.** Both are action-effect records built from
+  acting, from two producers. Merging them is attractive and is exactly the kind of tidy that
+  loses a distinction: `contingency` is per SELF-MEMBER and the delta table is per SLOT. **Count
+  what each holds before assuming they are the same thing.**
+- **THE `by` LABEL.** `discriminate:learned` names a mechanism that will no longer be above the
+  seam. A label that survives its mechanism is how a census keeps reporting a thing that has
+  moved — so it is renamed in the same commit or the phase counts become unreadable.
