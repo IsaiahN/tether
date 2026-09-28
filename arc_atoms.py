@@ -280,6 +280,10 @@ def _fold_admissions() -> dict[str, str]:
     if not _ITERATE:
         return {}
     r = "ruled-2026-09-24 by Isaiah: the fold proceeds. "
+    q = ("`grammar.PRIMES` + `DISCOVERY` Q21: the grammar declares ALL/SOME/ONE/NONE over a "
+         "scope and the atom set supplied three that take a scalar -- `all` and `any` "
+         "byte-identical, `ONE` absent. No chain yields a quantifier over a collection "
+         "because nothing consumed one. ")
     return {
         "cells": r + "opens a SHAPE's offset frozenset as a walkable collection -- the agent "
                      "could hold a cell set and had no way to walk it",
@@ -287,6 +291,15 @@ def _fold_admissions() -> dict[str, str]:
         "cell_col": r + "a cell's column, inside an iteration",
         "count_true": r + "the reducer that CLOSES an iteration -- without it a mapped "
                           "collection never returns to a value",
+        # THE QUANTIFIERS ARE A DIFFERENT CLAUSE FROM THE FOLD, so they do not take `r`.
+        # What named this gap is the GRAMMAR, which has declared four quantifiers over a
+        # scope since before the atom set supplied three that take none.
+        "size": q + "the DENOMINATOR -- `count_true` is a numerator and nothing published "
+                    "what it was out of",
+        "all_of": q + "holds for every member of the scope",
+        "some_of": q + "holds for at least one -- SOME, which `any` was not",
+        "one_of": q + "holds for exactly one. The quantifier the atom set never had",
+        "none_of": q + "holds for no member",
     }
 
 CLAUSE_ONE = frozenset({
@@ -964,10 +977,45 @@ def _iterate() -> list[Atom]:
             return NOT_RESOLVED
         return sum(1 for x in v if x)
 
+    def _size(v: Any, _c: Ctx) -> Any:
+        """THE DENOMINATOR. `count_true` publishes a numerator and nothing published what it
+        was out of, so *3 held* could not be told from *3 of 4 held*. `DISCOVERY` Q21's degree
+        is a FRACTION; this is its lower half, in the numerator-and-denominator form
+        `objective_degree`'s counts out-param already argues for -- a ratio hides a live
+        insensitive series, two integers do not."""
+        return len(v) if isinstance(v, Cells) and len(v) else NOT_RESOLVED
+
+    def _quant(q):
+        """THE FOUR QUANTIFIERS, OVER A REAL SCOPE. `grammar.PRIMES` declares ALL/SOME/ONE/NONE
+        as `PRED -> OBJ` and `_quantify` supplies three atoms that take a SCALAR: `all` and
+        `any` are byte-identical, `ONE` is absent, and none of them ranges over anything. So
+        every objective the agent composes is closed by a quantifier that does not quantify --
+        `symmetric . same . all` evaluates, returns 1, and means *this one shape is symmetric*
+        while its name says *the shapes are symmetric*.
+
+        These take the COLLECTION and read the count against its length, so the name and the
+        claim agree. INTRODUCED ALONGSIDE, never replacing: `_quantify`'s three stay until a
+        measurement shows this path reproduces what they currently bind.
+
+        The `BOOL` guard is `count_true`'s and for its reason -- a truthy count dropped column
+        zero once and printed a number that looked like an answer."""
+        def fn(v: Any, _c: Ctx) -> Any:
+            if not isinstance(v, Cells) or not len(v):
+                return NOT_RESOLVED
+            if not all(isinstance(x, bool) for x in v):
+                return NOT_RESOLVED
+            return int(q(sum(1 for x in v if x), len(v)))
+        return fn
+
     return [Atom("cells", _cells, SHAPE, CELLS),
             Atom("cell_row", _cell_row, CELL, POSITION),
             Atom("cell_col", _cell_col, CELL, POSITION),
-            Atom("count_true", _count_true, CELLS, EXTENT, elem_type=BOOL)]
+            Atom("count_true", _count_true, CELLS, EXTENT, elem_type=BOOL),
+            Atom("size", _size, CELLS, EXTENT),
+            Atom("all_of", _quant(lambda n, t: n == t), CELLS, OBJ, elem_type=BOOL),
+            Atom("some_of", _quant(lambda n, _t: n > 0), CELLS, OBJ, elem_type=BOOL),
+            Atom("one_of", _quant(lambda n, _t: n == 1), CELLS, OBJ, elem_type=BOOL),
+            Atom("none_of", _quant(lambda n, _t: n == 0), CELLS, OBJ, elem_type=BOOL)]
 
 
 def three_spaces(predict: list[Atom]) -> list[Atom]:

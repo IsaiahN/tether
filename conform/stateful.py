@@ -1051,6 +1051,87 @@ def test_the_inherited_vocabulary_is_not_the_held_library():
         "side has been re-keyed and the ablation can no longer tell given from earned apart")
 
 
+
+def test_the_quantifiers_quantify():
+    """`ALL/SOME/ONE/NONE` range over a scope and DISAGREE with each other.
+
+    `DISCOVERY` Q21 specifies a molecule as a quantifier over a scope returning a verdict and
+    a degree. The atom set supplied `all`, `any` and `none` typed `PRED -> OBJ`, taking a
+    SCALAR -- and `all` and `any` were BYTE-IDENTICAL, `ONE` was absent. So every objective
+    the agent could form was closed by a quantifier that does not quantify: the chain
+    evaluates, returns 1, and means *this one shape is symmetric* while its name says *the
+    shapes are symmetric*.
+
+    THE CONTROL IS THE OLD PAIR, AND IT IS WHY THIS IS NOT CIRCULAR. The defect is not
+    *a quantifier is wrong*, which nothing can check without a second opinion -- it is *two
+    quantifiers that must differ do not*. So the test asserts the new four DISAGREE on a
+    scope built to separate them, and asserts in the same breath that the old two still
+    AGREE everywhere. A repair that made the new four identical would satisfy any
+    single-quantifier assertion and fails this one.
+    """
+    import arc_atoms
+    import arc_predict
+    from gamma import Ctx, Term
+
+    was = arc_atoms._ITERATE
+    try:
+        arc_atoms._ITERATE = True
+        A = {a.name: a for a in arc_atoms.three_spaces(arc_predict.predict())}
+        ctx = Ctx()
+
+        def run(shape, closer):
+            return Term(tuple(A[n] for n in ("cells", "cell_row", "parity", closer))).apply(
+                shape, ctx)
+
+        # THREE SCOPES, EACH SEPARATING A DIFFERENT PAIR. `parity` is true on an ODD row, so
+        # the scope is the cells' row indices and the fraction is what the quantifier reads.
+        cases = {
+            # rows {0,1} -- three of six odd: only SOME holds
+            frozenset({(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2)}):
+                {"all_of": 0, "some_of": 1, "one_of": 0, "none_of": 0},
+            # rows {0,2} -- none odd: only NONE holds
+            frozenset({(0, 0), (0, 1), (2, 0), (2, 1)}):
+                {"all_of": 0, "some_of": 0, "one_of": 0, "none_of": 1},
+            # one cell on an odd row: SOME and ONE both hold, and they are different atoms
+            frozenset({(0, 0), (0, 1), (1, 0)}):
+                {"all_of": 0, "some_of": 1, "one_of": 1, "none_of": 0},
+            # rows {1,3} -- every cell odd: ALL and SOME hold, ONE does not
+            frozenset({(1, 0), (1, 1), (3, 0)}):
+                {"all_of": 1, "some_of": 1, "one_of": 0, "none_of": 0},
+        }
+        for shape, want in cases.items():
+            for closer, expect in want.items():
+                got = run(shape, closer)
+                assert got == expect, (
+                    f"{closer} on {sorted(shape)} gave {got!r}, expected {expect} -- "
+                    f"the quantifier does not range over the scope")
+
+        # ONE IS REACHED, not merely present. A quantifier nothing separates from `some` is
+        # the defect this test exists for, wearing a new name.
+        assert any(run(sh, "one_of") != run(sh, "some_of") for sh in cases), (
+            "`one_of` never differs from `some_of` on the pinned scopes -- it is a second "
+            "spelling of SOME and `ONE` is still absent")
+        assert any(run(sh, "all_of") != run(sh, "some_of") for sh in cases), (
+            "`all_of` never differs from `some_of` -- the byte-identical defect, renamed")
+
+        # THE DEGREE IS EXPRESSIBLE: `count_true` is the numerator and `size` the denominator.
+        # Two integers rather than a ratio, which is what separates a static series from a
+        # live-but-insensitive one.
+        big = next(iter(cases))
+        n = Term(tuple(A[x] for x in ("cells", "cell_row", "parity", "count_true"))).apply(
+            big, ctx)
+        t = Term(tuple(A[x] for x in ("cells", "cell_row", "parity", "size"))).apply(big, ctx)
+        assert (n, t) == (3, 6), f"degree numerator/denominator reads {(n, t)}, expected (3, 6)"
+
+        # THE CONTROL. The old pair is still one function under two names -- if this ever
+        # goes false the defect was repaired somewhere else and this test's subject moved.
+        for sh in cases:
+            assert run(sh, "all") == run(sh, "any"), (
+                "`all` and `any` now differ -- the old quantifiers were repaired in place; "
+                "this test asserts the NEW path and its control is stale")
+    finally:
+        arc_atoms._ITERATE = was
+
 if __name__ == "__main__":
     if "--cover" in sys.argv:
         for label, c in (("kernel.Frame", coverage()),
@@ -1091,8 +1172,10 @@ if __name__ == "__main__":
         test_a5_still_fires_on_the_pinned_world()
         test_the_keyed_reach_loses_nothing()
         test_the_inherited_vocabulary_is_not_the_held_library()
+        test_the_quantifiers_quantify()
         print("  A5 and B5 reproductions still fire (expected): ok")
         print("  keyed reach loses nothing: ok · two vocabularies stay two: ok")
+        print("  the quantifiers quantify (ONE fires, all != some): ok")
         print("  shipped generator coverage: ok · residual bound loses nothing: ok"
               " · resolutions are not the answer: ok · atom order pinned: ok"
               " · promotion clause recorded: ok · observer reaches the agent: ok"
