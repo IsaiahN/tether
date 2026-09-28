@@ -695,3 +695,68 @@ fire at all. That is the whole point of the change and it is the thing to measur
 **AND IT CANNOT BE MEASURED UNDER THE STOP**: gridworld HAS an avatar, so it cannot show the
 no-avatar case at all. Recorded as owed. The `B` fixture already on the list — *no avatar, only
 clicking works* — is exactly this measurement's world, and it is a fixture rather than a board.
+
+---
+
+## 20. THE `changed` DETECTOR — from accidental to principled, and the acting-object key MEASURED HARMFUL
+
+**2026-09-28, fixture A.** `audit`'s `changed` set is what answers Isaiah's *"and if they
+change"*. It had never had a true positive, and the first one it got was not real.
+
+    WORLD gridworld seed 11, 24 steps.  CONTROL never remaps; TREATMENT reflects up/down and
+    left/right at step 12.
+
+    names,  whole-board key       CONTROL [left]         TREATMENT [left, up]
+    signed, whole-board key       CONTROL [left, up]     TREATMENT [down, left, right, up]
+    signed per CELL, whole-board  CONTROL **[]**         TREATMENT [down, up]
+    signed per CELL, ACTOR key    CONTROL []             TREATMENT **[]**
+
+### 20a. THE FIRST "TRUE POSITIVE" WAS PROXIMITY NOISE
+
+Two effect sets sharing one key both moved `o0.col` — **identical real effect** — and differed
+only in which `proximity` slots shifted. A relation changes according to where everything else
+is, not according to what the action does. Filtering relations out killed the true positives
+too, which is what exposed them: **names alone cannot see a reflection**, because `left`
+produces `('o0.col',)` before and after. The detector had been reading churn that correlated.
+
+### 20b. SIGNED EFFECTS SEE IT; THE BEFORE-VALUE KEY STOPS THE WRAP CRYING WOLF
+
+gridworld WRAPS, so `left` genuinely gives `+` leaving column 0 and `-` elsewhere. **True data,
+false conclusion** — and System 0 would have reported *the mapping changed* every time anything
+crossed an edge. Keyed `(ctx, slot, before)` the wrap is CONSISTENT per cell and a real
+reflection still flips the sign within one cell. **No board knowledge required — it is the value
+table's fix (15) applied one level along**, and it is the reviewer's.
+
+**Result: zero false positives, 2 of 4 remapped actions caught.** The two missed are SPARSITY —
+a cell must be visited on both sides of the remap, and `left`/`right` were not revisited in 24
+steps. **A recall limit with a known cause is a different number from a detector that cannot
+see**, and precision is the right side to err on for a claim this loud.
+
+### 20c. THE ACTING-OBJECT KEY IS DROPPED, AND THE MATRIX IS WHY
+
+Keying the audit on the actor's own contacts **splits a remapped action's presses across
+buckets**, so each holds one effect and `changed_here` never fires: `[]` against `[down, up]`,
+**same precision and no recall.** Ruled out by the reviewer on that measurement.
+
+> **AND IT WAS RULED IN, THEN OUT, THEN IN, THEN OUT — ON FOUR READINGS, THREE OF WHICH CAME
+> FROM A TREE WITH A DEFECT IN IT.** `actor_of` returned `o5` for every action (alphabetical
+> tie-break over relational slots); then a signed `changed` broke the delta loop, so `actor_of`
+> had nothing to read and silently fell back to the whole-board key while being reported as the
+> actor key. **Each reading was correctly computed and none measured what its label said.**
+
+**The idea is not refuted — *`left` against the wall* and *`left` in open space* really are
+different situations.** What is refuted is buying that distinction at the cost of the comparison
+the detector runs on. It returns if a world is found where it helps; the matrix above is what it
+has to beat.
+
+### 20d. WHAT THIS COST, AS A PROCESS READING
+
+Three of my own claims about this detector were published and withdrawn in under two hours, and
+**every one was a measurement of a defect rather than of the design**. The fixture caught the
+first, the m2 seat caught the second, and going to look caught the third.
+
+> **A REFUTER FIRING AS PREDICTED IS NOT CONFIRMATION THAT YOU MEASURED THE RIGHT THING.** I
+> pre-registered *if `up` disappears the key is too fine*, `up` disappeared, and I treated the
+> prediction coming true as the end of the enquiry. It had disappeared for an unrelated reason.
+> **`B17` one level along: the instrument measured something else, and the prediction coming
+> true is what stopped me looking.**

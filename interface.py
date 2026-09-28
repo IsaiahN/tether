@@ -239,18 +239,6 @@ class Interface:
         if not offered:
             return None
 
-        def _key(a: str) -> tuple:
-            """The key THIS action's rows were written under. **The audit and the realiser must
-            agree or every same-context lookup misses.**
-
-            `audit` keys on the ACTOR's contacts (v2), so a query keyed on the whole board would
-            fall through to the across-context prior on every hit -- a silent degradation that
-            would read as *the table has not seen this yet*. With no `env` the caller gets `ctx`
-            as passed, which is what a fixture with no contacts wants.
-            """
-            if env is None:
-                return ctx
-            return Interface.context(env, self.actor_of(a))
         if intent.kind == BECOME and intent.subject and intent.value is not None:
             # **THE UNORDERED HALF -- `objective_step`'s COMPARABLE arm, which had no home below
             # the seam until now.** A sign says nothing on a slot with no order, so the question
@@ -278,7 +266,7 @@ class Interface:
             best, how = None, ""
             for a in offered:
                 here = self.table.get(a, {}).get("lands", {}).get(
-                    (_key(a), intent.subject, _now))
+                    (ctx, intent.subject, _now))
                 if here and set(here) == {intent.value}:
                     best, how = a, "here"
                     break
@@ -317,7 +305,7 @@ class Interface:
                 # otherwise. **Being wrong about the prior is a residual, not a fault**, and
                 # widening the AUDIT's key instead would have traded away the separation that
                 # stopped gridworld crying wolf.
-                n, tot = d.get((_key(a), intent.subject), (0, 0))
+                n, tot = d.get((ctx, intent.subject), (0, 0))
                 where = "here"
                 if not n:
                     n = sum(v[0] for (c, k), v in d.items() if k == intent.subject)
@@ -418,12 +406,12 @@ class Interface:
         if unmapped:
             return _made(_pick(unmapped), f"requested {asked}: never taken")
         # THE VARIETY CONDITION: prefer an action whose effect IN THIS CONTEXT is unknown.
-        fresh = [a for a in offered if _key(a) not in self.table[a]["by_ctx"]]
+        fresh = [a for a in offered if ctx not in self.table[a]["by_ctx"]]
         if fresh:
             return _made(_pick(fresh), f"requested {asked}: effect here not yet known")
         # everything mapped in this context. Take the one taken LEAST here -- still the agent's
         # call to explore, and refusing would be the interface overruling it.
-        seen = {a: len(self.table[a]["by_ctx"].get(_key(a), ())) for a in offered}
+        seen = {a: len(self.table[a]["by_ctx"].get(ctx, ())) for a in offered}
         fewest = min(seen.values())
         band = [a for a in offered if seen[a] == fewest]
         return _made(_pick(band), f"requested {asked}: all known here, least-seen taken")
@@ -465,50 +453,6 @@ class Interface:
         if col is None or row is None:
             return None
         return int(col), int(row)
-
-    def actor_of(self, action: str) -> str | None:
-        """Which object this action has been observed to move most. **From the table, learned.**
-
-        The reviewer's route out of v2's bootstrap, 2026-09-28: *the delta table already knows
-        which object each action moves.* Slots are `{object}.{attribute}`, the delta table is
-        keyed by slot, so the actor is the owner of the slots this action shifts -- **read off
-        what acting produced, never declared.**
-
-        `None` until the table has seen this action move something, and `None` is the honest
-        answer rather than a guess: the caller then keys on the whole board, which is v1.
-
-        **PROXIMITY IS NOT MOVEMENT, AND THE FIRST VERSION OF THIS RETURNED `o5` FOR EVERY
-        ACTION -- 2026-09-28.** It summed observations over ALL moved slots, and every press
-        shifts `o0.row` or `o0.col` AND the `proximity` slot of every other object -- **a
-        relation changes for everyone whenever anything moves.** Six objects tied on proximity
-        and the tie-break was `max(key=(count, name))`, so the answer was ALPHABETICAL and the
-        key was built on a spectator. It measured cleanly, it had a plausible mechanism, and it
-        was a fact about sorting.
-
-        **SO THE DEFINITION IS THE FIX: an object's OWN attributes count and its RELATIONS do
-        not** -- `RELATIONAL`, above. My first version of this fix counted only `row`/`col`, and
-        the reviewer's case against it is a world I built the same evening: **fixture B's clicks
-        change COLOUR and move nothing, so position-only finds no actor there at all.**
-
-        **AND A GENUINE TIE RETURNS `None` RATHER THAN A NAME.** The alphabetical tie-break was
-        the whole defect, and replacing it with a better sort would keep the shape: if two
-        objects tie as actor the honest answer is *I cannot tell*, which falls back to the
-        whole-board key for that action. Same *fail loudly, do not default* rule as `PHASE_OF`.
-        """
-        moved: dict[str, int] = {}
-        for (_c, k, *_r), (n, _tot) in self.table.get(action, {}).get("delta", {}).items():
-            if "." not in k:
-                continue
-            obj, attr = k.rsplit(".", 1)
-            self.attrs_seen.add(attr)
-            if attr in RELATIONAL:
-                continue
-            moved[obj] = moved.get(obj, 0) + n
-        if not moved:
-            return None
-        top = max(moved.values())
-        tied = [o for o, v in moved.items() if v == top]
-        return tied[0] if len(tied) == 1 else None
 
     def _unclicked(self, state: dict | None) -> tuple[int, int] | None:
         """An OBJECT this interface has not aimed at yet, as `(x=col, y=row)`.
@@ -677,7 +621,44 @@ class Interface:
         self.audits += 1
         if r.coord is not None:
             self.clicked.add(r.coord)
+        # **THE EFFECT IS WHAT THE ACTION DID TO OWN ATTRIBUTES, NOT EVERY SLOT THAT MOVED --
+        # 2026-09-28, and it is the `actor_of` defect one level along.** Measured on gridworld
+        # with no remap, `left` was flagged CHANGED because one context held these two:
+        #
+        #     ('o0.col', 'o1.proximity', 'o2.proximity', 'o3.proximity', 'o4.proximity', ...)
+        #     ('o0.col',                 'o2.proximity',                 'o4.proximity', ...)
+        #
+        # **Both move `o0.col`. The real effect is IDENTICAL.** The difference is entirely in
+        # which PROXIMITY slots happened to shift -- and a relation changes according to where
+        # everything else is, not according to what the action does. So *the mapping changed*
+        # fired on an action whose mapping never moved, for the second time from the same root.
+        # **AND THE EFFECT IS SIGNED, BECAUSE A REFLECTION CHANGES THE SIGN AND NOT THE SLOT
+        # SET -- 2026-09-28, and this is why the earlier "true positives" were accidental.**
+        # With names alone, `left` produces `('o0.col',)` before AND after a remap: it still
+        # moves the same slot, just the other way. So a reflected mapping is INVISIBLE to a
+        # name-set comparison, and the remap was only ever detected through proximity churn
+        # that happened to differ -- **the right answer for the wrong reason, which stopped
+        # being any answer the moment the noise was filtered out.**
+        #
+        # Signed, `left` is `(('o0.col', -1),)` and then `(('o0.col', +1),)`: two effects in one
+        # context, which is exactly what `changed_here` exists to notice.
+        def _eff(k: str) -> tuple[str, int]:
+            try:
+                d = int(after.get(k, 0)) - int(before.get(k, 0))
+            except (TypeError, ValueError):
+                return (k, 0)
+            return (k, (d > 0) - (d < 0))
+
+        # **TWO QUANTITIES, TWO NAMES -- AND I GAVE THEM ONE AND BROKE THE DELTA TABLE.**
+        # `changed` feeds BOTH the delta loop below (which needs SLOT NAMES to look up
+        # `after[k]`) and the effect comparison (which needs the SIGNED effect). Making it
+        # signed made the delta loop call `after.get(('o0.col', -1))`, which is `None`, which
+        # raises, which `continue`s -- **so the delta table silently stopped filling and no
+        # routine could be minted.** `A6i` in its purest form, in code minutes old, caught by
+        # the m2 seat rather than by me.
         changed = tuple(sorted(k for k in before if before.get(k) != after.get(k)))
+        signature = tuple(sorted(_eff(k) for k in changed
+                                 if k.rsplit(".", 1)[-1] not in RELATIONAL))
         e = self.table.setdefault(r.action, {"by_ctx": {}, "n": 0, "delta": {}})
         e["n"] += 1
         # **WHICH WAY, NOT ONLY WHICH SLOT.** A changed-set says an action touches `o0.row`; it
@@ -718,11 +699,53 @@ class Interface:
             vals.add(int(after.get(k, 0)))
             if len(vals) > 1:
                 self.unreliable.add(r.action)
+        # **THE SIGN IS JUDGED PER CELL, KEYED BY THE VALUE BEFORE THE PRESS -- the reviewer,
+        # 2026-09-28, and it is the fix already built for the value table applied here.**
+        #
+        # The wrap made `left` read `+1` and `-1` in one context with nothing remapped, and the
+        # signs are TRUE DATA -- but the conclusion drawn from them, *the mapping of `left`
+        # changed*, is false, and System 0 would report it every time anything crossed an edge.
+        # **A standing false alarm is not a reading.**
+        #
+        # Keyed `(ctx, slot, before)` the wrap is CONSISTENT: from column 0 `left` always gives
+        # `+(GRID-1)`, from column 5 always `-1`. **A real reflection still flips the sign
+        # within the same cell**, which is the only thing that now counts as the mapping having
+        # changed. Same shape as `lands`, same reason a cycle is reproducible rather than
+        # unreliable.
+        flipped = False
+        for k, sign in signature:
+            cell = e.setdefault("signs", {}).setdefault((ctx, k, int(before.get(k, 0))), set())
+            if sign and cell and sign not in cell:
+                flipped = True
+            cell.add(sign)
         seen = e["by_ctx"].setdefault(ctx, set())
+        changed = signature          # the by_ctx record stays the signed effect
         # WITHIN one context a second effect is the first real evidence the MAPPING CHANGED.
         # ACROSS contexts it is CONDITIONALITY. That is the whole point of the key, and with
         # v1's coarser key a genuine change can still land in the conditional bucket.
-        changed_here = bool(seen) and changed not in seen
+        # **DOING NOTHING IS NOT DOING SOMETHING ELSE.** A blocked move produces an EMPTY
+        # effect, and comparing it against a real one made *the mapping changed* fire on every
+        # wall -- the last false positive on fixture A's control arm, where nothing ever
+        # remapped. **An action that sometimes does nothing is CONDITIONAL; an action that does
+        # two DIFFERENT things is CHANGED**, and that is the distinction Isaiah asked System 0
+        # for. `RELATIONS.md` already names the blocked move as a relation (*normal -- a blocked
+        # move*; *static friction -- a move that fails while touching*), so it belongs in the
+        # conditional bucket by the corpus's own account and not merely by convenience.
+        # **`flipped` IS THE CLAIM NOW, not a set comparison.** Comparing whole effect SETS
+        # made every difference in which slots moved read as a mapping change; the per-cell
+        # sign is the narrow thing that actually means it.
+        changed_here = flipped
+        # **AND THE ONE SURVIVING FLAG ON FIXTURE A's CONTROL IS THE BOARD, NOT THE DETECTOR --
+        # measured, not reasoned.** `left` there holds BOTH `(('o0.col', +1),)` and
+        # `(('o0.col', -1),)` in one context while nothing ever remapped. **gridworld WRAPS**:
+        # moving left from column 0 lands at column GRID-1, which is a POSITIVE delta.
+        #
+        # So on a torus the SIGN of a positional delta is not a property of the action, and the
+        # detector is reporting the data correctly against an abstraction the world does not
+        # satisfy. **Left as it is on purpose**: special-casing the wrap would put board
+        # knowledge in the interface to make a number look better, and the honest statement is
+        # that this reading is a true one about a wrapped board. Recorded so the next reader
+        # does not try to fix a world property.
         seen.add(changed)
         if len({x for v in e["by_ctx"].values() for x in v}) > 1:
             self.conditional.add(r.action)

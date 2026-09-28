@@ -2072,13 +2072,12 @@ class Agent:
         betting = [s for s in betting if pred[s] is not None]
         _, deg_before = self.env.objective()
         _real = IFace.Realisation(action, coord)
-        # **THE AUDIT KEYS ON THE ACTOR'S OWN CONTACTS -- v2, 2026-09-28.** `actor_of` reads
-        # the delta table for the object this action has been observed to move, so the key
-        # sharpens as the table fills and is the whole-board key until it does. Fixture A is
-        # why: the board-wide multiset could not tell *`left` against the wall* from *`left` in
-        # open space*, and `changed` -- the louder claim -- fired on an action that never
-        # remapped.
-        _ctx = IFace.Interface.context(self.env, self.iface.actor_of(action))
+        # **THE ACTING-OBJECT KEY WAS TRIED HERE AND MEASURED HARMFUL -- 2026-09-28, dropped
+        # on the reviewer's ruling.** Keying on the actor's own contacts splits a remapped
+        # action's presses across buckets so each holds ONE effect and nothing can be compared:
+        # on fixture A it scored `[]` against the whole-board key's `[down, up]` -- same
+        # precision, no recall. The matrix is in `docs/ACTION_INTERFACE_PLAN.md`.
+        _ctx = IFace.Interface.context(self.env)
         if coord is not None:
             self.env.step(action, coord[0], coord[1])   # F28: positioned, coord from perception
         else:
