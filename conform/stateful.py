@@ -1216,12 +1216,31 @@ def test_every_exit_has_a_phase():
     src = ast.parse(Path(tether.__file__).read_text(encoding="utf-8"))
     fn = next(n for n in ast.walk(src)
               if isinstance(n, ast.FunctionDef) and n.name == "choose")
-    labels = {n.value.elts[1].value
-              for n in ast.walk(fn)
-              if isinstance(n, ast.Return) and isinstance(n.value, ast.Tuple)
-              and len(n.value.elts) == 2 and isinstance(n.value.elts[1], ast.Constant)
-              and isinstance(n.value.elts[1].value, str)}
+    labels, opaque = set(), []
+    for n in ast.walk(fn):
+        if not isinstance(n, ast.Return):
+            continue
+        v = n.value
+        if isinstance(v, ast.Tuple) and len(v.elts) == 2:
+            lab = v.elts[1]
+            if isinstance(lab, ast.Constant) and isinstance(lab.value, str):
+                labels.add(lab.value)
+            else:
+                opaque.append((n.lineno, ast.unparse(lab)))
+        else:
+            opaque.append((n.lineno, ast.unparse(v) if v is not None else "None"))
     assert labels, "no `return action, label` pairs found in `choose` -- the scan is broken"
+    # **A LABEL THIS SCAN CANNOT READ IS THE SAME SILENCE ONE LEVEL ALONG -- the reviewer,
+    # 2026-09-28, asking whether any label is built at runtime or comes from a helper.**
+    # Measured when this was written: all six are literals and there are no non-tuple returns.
+    # **Nothing enforced that, and a skipped label would have passed the check above for the
+    # best possible reason -- it was never seen.** So an unreadable return FAILS rather than
+    # being ignored: a runtime-built label cannot be classified statically, and the honest
+    # answer is to say so at the moment it appears.
+    assert not opaque, (
+        f"`choose` has returns this scan cannot classify: {opaque}. A label built at runtime "
+        f"cannot be checked against `PHASE_OF` -- make it a literal, or classify it where it "
+        f"is built")
     missing = sorted(labels - set(tether.PHASE_OF))
     assert not missing, (
         f"`choose` can return {missing} and `PHASE_OF` does not classify them. Classify the "
