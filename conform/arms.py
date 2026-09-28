@@ -1,5 +1,18 @@
 """arms: eighteen capability switches, all default OFF, and nothing computed the sum.
 
+**ENVIRONMENT SWITCHES ONLY, AND THE COUNT ABOVE IS THEREFORE NOT THE AGENT'S TOTAL --
+ANNOTATED 2026-09-28.** The detector is `os.environ.get("TETHER_X")`, so a capability switch
+that is a `Config` FIELD is invisible here. There are at least two: `Config.system0` and
+`Config.accumulate`. **The second is the one that matters** -- `system0` was found OFF on the
+ARC path against a standing ruling of Isaiah's, and it is exactly the class this file's
+`UNDECLARED` check exists to prevent entering silently. *A new arm cannot enter silently* is
+true of env arms and false of field arms.
+
+Widening the census to cover them is FILED, NOT DONE, deliberately: an instrument is installed
+once you know what it must measure, and the System 0 rulings are open. **But the count is a
+statement about the agent, a reader meets it first, and it is wrong -- so it is annotated now
+rather than left standing until the census is built.**
+
 Every arm in this codebase is `bool(os.environ.get("TETHER_X"))` -- no default value, so OFF
 unless the environment says otherwise -- and **the repository sets one only by a RULING, in
 code, which the census below now detects rather than narrates**. The agent
