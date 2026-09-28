@@ -24,6 +24,7 @@ than promised.
 from __future__ import annotations
 
 import sys
+from collections import Counter
 from dataclasses import dataclass
 from typing import Any
 
@@ -31,10 +32,33 @@ sys.dont_write_bytecode = True
 
 # WHAT THE AGENT CAN MEAN. Deliberately NOT an action vocabulary -- these name what the agent
 # wants to be true, and the interface is what knows whether this board can express it.
-ELICIT = "ELICIT"        # get ANY response from this object, or from the board. The bootstrap
+# **SAID IN THE EXISTING PRIMES, NOT IN NEW WORDS -- Isaiah's *"maybe they speak in nsm"*, and
+# the reviewer's check of it, 2026-09-28.** `grammar.PRIMES` holds thirteen: ALL BECAUSE BECOME
+# BE_AT CAN EXIST NONE NOT ONE OTHER SAME SOME TOUCH. **`TOUCH`, `BE_AT` and `BECOME` were
+# already primes and nobody had noticed; `ELICIT` never was.** So the vocabulary had already been
+# extended once, silently, by me -- which is exactly what the check was asked to find.
+#
+# The CONSTANT NAMES stay, because code is read by people; their VALUES are now the prime
+# composition, so what the agent SAYS is in the grammar the agent has. `ELICIT` is *let something
+# become other than it is* and `DISTINGUISH` is *not the same* -- both sayable, so neither is an
+# extension, and no declared extension is needed after all.
+ELICIT = "BECOME OTHER"        # get ANY response from this object, or from the board. The bootstrap
 TOUCH = "TOUCH"          # bring a onto b
 BE_AT = "BE_AT"          # put a at a region
 BECOME = "BECOME"        # a takes an attribute
+# **THE FOURTH, AND IT IS NOT A FLAVOUR OF `ELICIT` -- `docs/ACTION_INTERFACE_PLAN.md` 17/18.**
+# `ELICIT` asks for ANY response and CANNOT FAIL while a button exists. `DISTINGUISH` asks for a
+# response that TELLS THE AGENT'S ALTERNATIVES APART, and **abstains when nothing does** -- which
+# is the whole reason it is a separate verb. `_learned_split` did two things: it ranked actions
+# by separability (the violation) and it ABSTAINED when nothing separated. Everything below it in
+# `choose` runs only because of that abstention, so realising it as `ELICIT` would fire every
+# time it was reached and starve three exits.
+#
+# **AND IT IS THE VERB 18 ALREADY REQUIRED**, rather than one invented for this site: the
+# reviewer's ruling is that discrimination returns at the INTENT level -- *the agent picks the
+# intent whose predicted outcomes differ most across its hypotheses* -- and that needs a verb
+# meaning *separate my alternatives*.
+DISTINGUISH = "NOT SAME"
 
 
 @dataclass(frozen=True)
@@ -140,11 +164,18 @@ class Interface:
         self.conditional: set[str] = set()     # more than one effect, ACROSS contexts
         self.changed: set[str] = set()         # more than one effect WITHIN one context
         self.unreliable: set[str] = set()      # lands a slot on more than one value in a ctx
+        # THE CONTINGENCY INSTRUMENTS, MOVED WITH THE COMPUTATION. `Agent.members()` published
+        # these and its numbers are the reason the gates below are trusted, so leaving them
+        # behind would have made the relocation unreadable at exactly the moment it needs
+        # reading. **The agent still REPORTS them; it no longer computes them.**
+        self.member_gates: Counter = Counter()   # "<member>:no_coverage" / ":unstable" / ":passed"
+        self.sep_passes: Counter = Counter()     # how many members contributed, per call
+        self.sep_log: list = []
 
     # ---- downward: intent -> action --------------------------------------------------
 
-    def realise(self, intent: Intent, offered: tuple[str, ...],
-                ctx: tuple = (), state: dict | None = None) -> Realisation | None:
+    def realise(self, intent: Intent, offered: tuple[str, ...], ctx: tuple = (),
+                state: dict | None = None, env: Any = None) -> Realisation | None:
         """Pick an action that serves this intent, or abstain.
 
         **ABSTENTION IS A READING** -- §12.2. `None` means *this board's vocabulary cannot
@@ -245,22 +276,45 @@ class Interface:
             if best is None:
                 return None
             return Realisation(best, why=f"observed to move {intent.subject} that way {how}")
-        if intent.kind != ELICIT:
+        if intent.kind not in (ELICIT, DISTINGUISH):
             # WITHOUT A TABLE ENTRY THERE IS NOTHING HONEST TO PICK, and guessing would be the
             # interface deciding. It abstains and the agent learns the intent was unrealisable.
             return None
+        rank: dict[str, int] = {}
+        if intent.kind == DISTINGUISH:
+            rank = self.separability(env, offered)
+            # **THE ABSTENTION IS THE POINT OF THE VERB.** No member separates anything here, so
+            # there is no action to offer that answers what was asked. Returning SOMETHING would
+            # turn *tell my alternatives apart* into *press a button*, which is the downgrade
+            # from discrimination to exploration the reviewer refused for `spread`.
+            if not rank or max(rank.values()) == min(rank.values()):
+                return None
+        unmapped = [a for a in offered if a not in self.table]
+        # **VARIETY IS THE CONSTRAINT AND SEPARABILITY IS A RANKING INSIDE IT -- 17c.** The
+        # bands below are unchanged and still decide WHICH SET may be drawn from; `rank` only
+        # orders within whichever band was already selected, and is empty for `ELICIT`. **A
+        # score can always be maximised by one button; a constraint on repetition cannot be**,
+        # which is what stops `learned`'s collapse (`ACTION2`, 105 of 150 on `ls20`) travelling
+        # below the seam wearing the word exploration.
+        def _pick(band: list[str]) -> str:
+            return max(band, key=lambda a: (rank.get(a, 0), -band.index(a)))
+
+        asked = "exploration" if intent.kind == ELICIT else "something that separates"
         unmapped = [a for a in offered if a not in self.table]
         if unmapped:
-            return Realisation(unmapped[0], unmapped=True,
-                               why="requested exploration: never taken")
+            return Realisation(_pick(unmapped), unmapped=True,
+                               why=f"requested {asked}: never taken")
         # THE VARIETY CONDITION: prefer an action whose effect IN THIS CONTEXT is unknown.
         fresh = [a for a in offered if ctx not in self.table[a]["by_ctx"]]
         if fresh:
-            return Realisation(fresh[0], why="requested exploration: effect here not yet known")
+            return Realisation(_pick(fresh), why=f"requested {asked}: effect here not yet known")
         # everything mapped in this context. Take the one taken LEAST here -- still the agent's
         # call to explore, and refusing would be the interface overruling it.
-        least = min(offered, key=lambda a: len(self.table[a]["by_ctx"].get(ctx, ())))
-        return Realisation(least, why="requested exploration: all known here, least-seen taken")
+        seen = {a: len(self.table[a]["by_ctx"].get(ctx, ())) for a in offered}
+        fewest = min(seen.values())
+        band = [a for a in offered if seen[a] == fewest]
+        return Realisation(_pick(band),
+                           why=f"requested {asked}: all known here, least-seen taken")
 
 
     # ---- upward: what changed, in reasoning terms -------------------------------------
@@ -279,6 +333,59 @@ class Interface:
         opened = tuple("a way to act that was not there before" for _ in (now - was))
         closed = tuple("a way to act that is gone" for _ in (was - now))
         return Capability(opened=opened, closed=closed)
+
+    def separability(self, env: Any, offered: tuple[str, ...]) -> dict[str, int]:
+        """How many self-members find each action DISTINCTIVE. **Relocated, not rewritten.**
+
+        This was `tether._learned_split`, above the seam, ending in
+        `max(self.actions, key=lambda a: sep[a])` -- the agent ranking buttons. The DATA was
+        never the problem: `env.contingency()` is an action-effect record built by acting, and
+        its own docstring says *"THIS IS THE HALF `act` WOULD HAVE HANDED ... the difference is
+        provenance."* **Same kind of thing `audit` builds, a different producer.** So the read
+        belongs here and only the argmax moved.
+
+        THE TWO GATES ARE CARRIED VERBATIM and each was earned. COVERAGE: a member contributes
+        only when every offered action appears in ITS OWN dict -- without it a member separates
+        on partial evidence, which is the claim whose own falsifier caught it (*every action
+        observed at step 22, first fire at step 2*). STABLE: without it four single observations
+        are trivially all-different and `sep` credits noise, **which is a non-flat spread on
+        nothing and worse than a flat one.**
+
+        DISTINCTIVE MEANS DIFFERENT FROM EVERY ALTERNATIVE, NOT FROM SOME -- the first version
+        asked *differs from at least one*, which nearly everything satisfies. And NOTHING IS
+        SUMMED ACROSS MEMBERS' SIGNALS: the comparison is always WITHIN one member, because
+        three report a fraction and one reports a signed count and they are not commensurable.
+        """
+        fn = getattr(env, "contingency", None)
+        if fn is None:
+            return {}
+        sep = dict.fromkeys(offered, 0)
+        passed = 0
+        # `.items()`, NOT `.values()`: the member's NAME is half the question, and the two gates
+        # are counted APART because coverage and stability are different causes with different
+        # repairs -- one number asked to carry two questions.
+        for name, rec in fn().items():
+            per_action, stable = rec["per_action"], rec["stable"]
+            if not set(sep) <= set(per_action):
+                self.member_gates[f"{name}:no_coverage"] += 1
+                continue
+            if not stable:
+                self.member_gates[f"{name}:unstable"] += 1
+                continue
+            self.member_gates[f"{name}:passed"] += 1
+            passed += 1
+            vals = {a: v for a, v in per_action.items() if a in sep}
+            for a, v in vals.items():
+                if all(w != v for b, w in vals.items() if b != a):
+                    sep[a] += 1
+        self.sep_passes[passed] += 1
+        # **`at_audit`, NOT `cycle` -- AND THE RENAME IS THE POINT.** The agent's version logged
+        # `cycle`; the interface has no cycle and counts PRESSES. Publishing a press count under
+        # the name `cycle` is `A6i` at a published field, and this instrument's whole job is to
+        # be read by someone who did not write it.
+        self.sep_log.append({"at_audit": self.audits, "passed": passed,
+                             "sep": tuple(sorted(sep.values(), reverse=True))})
+        return sep
 
     @staticmethod
     def context(env: Any) -> tuple:

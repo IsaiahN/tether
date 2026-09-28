@@ -891,8 +891,6 @@ class Agent:
         # with ONE contributor produces, and that would make the family the finding rather than
         # the selector. Three outcomes: one passing, several agreeing, several with one
         # dominating -- and only the third warrants a selector repair.
-        self._members: Counter = Counter()
-        self._passes: Counter = Counter()
         # THE `sep` SHAPE PER CALL, NOT A TOTAL. `passed_per_call` says how many members
         # contributed and cannot say whether they AGREED -- four passing and all marking the
         # same action is unanimity, four marking four is total disagreement, and both read
@@ -902,7 +900,6 @@ class Agent:
         # A TRAJECTORY RATHER THAN A COUNTER, because the tie fraction MOVES: 100% ties at ten
         # cycles against 15.5% at 150, so a total describes the end of an episode and hides
         # that early ties are universal -- which is when the agent is choosing what to explore.
-        self._sep_log: list = []
         # PER-STEP CACHE FOR `_touching`. `slot_owner()` rebuilds a dict with a `rsplit` per
         # slot on every call, and `_touching` sits in five loops that run per candidate and
         # per history entry -- so it was candidates x history x 120 splits per step, measured
@@ -3242,9 +3239,28 @@ class Agent:
                                             if k not in self._contact_seen]),
                             seen=len(self._contact_seen))
             return act, "system0"
-        learned = self._learned_split()
-        if learned is not None:
-            return learned, "discriminate:learned"
+        # **THE AGENT ASKS TO BE ABLE TO TELL THINGS APART; IT DOES NOT RANK BUTTONS.**
+        # `docs/ACTION_INTERFACE_PLAN.md` 17. This was `_learned_split`, which ended in
+        # `max(self.actions, key=lambda a: sep[a])` -- 93 of 131 acts on `g50t`, 128 of 150 on
+        # `ls20`, and the largest single crossing of the seam in the system.
+        #
+        # **`DISTINGUISH` RATHER THAN `ELICIT`, AND THE REASON IS THE ABSTENTION.** The old
+        # branch did two things: it ranked, and it declined when nothing separated. Everything
+        # below this line runs only because of the declining -- so realising it as `ELICIT`,
+        # which cannot fail while a button exists, would fire here every time and starve the
+        # mint, the goal split and the draw. The verb keeps the refusal and drops the ranking.
+        _want = IFace.Intent(IFace.DISTINGUISH)
+        _r = self.iface.realise(_want, tuple(self.actions),
+                                IFace.Interface.context(self.env), before, self.env)
+        if _r is not None:
+            self.led.record(self.cycle, "PLAN", "@board", "intent",
+                            reads=(_want.says(), _r.why))
+            return _r.action, "distinguish"
+        # AND THE REFUSAL IS A READING ABOUT THE BOARD, NOT A NON-EVENT. *Nothing here tells my
+        # alternatives apart* is what the contingency family exists to be able to say, and it
+        # was previously an unrecorded `return None` inside the ranking loop.
+        self.led.record(self.cycle, "PLAN", "@board", "split_refused",
+                        why="nothing_separates", n_actions=len(self.actions))
         # THE FALL-THROUGH ATTEMPT STAYS, AND IS NOT REDUNDANT. Here System 1 has no opinion --
         # the alternative is a blind draw -- so a routine formed now may take the turn at once.
         # The guard is only against attempting TWICE in one cycle, which would refuse twice and
@@ -4827,17 +4843,23 @@ class Agent:
         and the argmax returns whatever that member found distinctive -- which would be the
         family reporting faithfully rather than the selector failing. The gates are counted
         apart because coverage and stability are different causes."""
-        return {"per_member": dict(sorted(self._members.items())),
-                "passed_per_call": dict(sorted(self._passes.items())),
+        # **REPORTED HERE, COMPUTED BELOW THE SEAM -- 17.** The counters live on the
+        # interface now, because the computation does. The agent may READ its own instruments;
+        # what it may not do is choose a button from them.
+        return {"per_member": dict(sorted(self.iface.member_gates.items())),
+                "passed_per_call": dict(sorted(self.iface.sep_passes.items())),
                 # THE SHAPES, WITH THEIR COUNTS -- and `agreed` is row 2's field, which the
                 # first version of this instrument did not have: mass on ONE action while
                 # several members passed is unanimity, and unanimity decides nothing.
                 "sep_shapes": {str(k): v for k, v in sorted(
-                    Counter(e["sep"] for e in self._sep_log).items(),
+                    Counter(e["sep"] for e in self.iface.sep_log).items(),
                     key=lambda kv: -kv[1])},
-                "agreed": sum(1 for e in self._sep_log
+                "agreed": sum(1 for e in self.iface.sep_log
                               if e["passed"] > 1 and sum(1 for v in e["sep"] if v) == 1),
-                "trajectory": [(e["cycle"], e["passed"], e["sep"]) for e in self._sep_log],
+                # `at_audit`, NOT `cycle`: the interface counts PRESSES and has no cycle. The
+                # field is renamed rather than silently re-meaning the old one.
+                "trajectory": [(e["at_audit"], e["passed"], e["sep"])
+                               for e in self.iface.sep_log],
                 "reads": ("passed_per_call {1: n} means one member contributed and the argmax "
                           "had no competition. >=2 with agreement means the members are not "
                           "independent. >=2 with one dominating is the only reading that makes "
@@ -4851,84 +4873,6 @@ class Agent:
                 "reads": ("1 = one action scored highest alone. >=2 = that many tied and "
                           "tuple order chose. A flat spread never reaches here -- the "
                           "`max > min` guard drops it to the uniform draw")}
-
-    def _learned_split(self) -> str | None:
-        """§18.4's proposer half: perception ENTERS the proposal, it does not veto.
-
-        *The sensorium found the right self and changed nothing, because the only consumer of
-        perception was the post-hoc veto.* This picks an action; it forbids none.
-
-        **`contingency()`, NEVER `selected()`.** The question is *do any members separate
-        these actions* -- an existential over members. No member is chosen, so *what kind of
-        thing I am* is never consulted; only *what responded when I acted*.
-
-        **AND IT IS NEVER SUMMED WITH `spread`.** `spread` is Gamma's prediction and this is a
-        measurement; sharing a scale would be a frame scoring itself with a quantity it
-        produces. Two readings, two `by` labels, so the phase can be checked against the
-        mechanism instead of believed.
-
-        **THE TIME SHAPE IS A GATE, AND THE FIRST VERSION ASSERTED IT INSTEAD.** That build
-        claimed *keyed on observed actions, so it cannot separate until every action has been
-        tried* -- and its own pre-registered falsifier caught it: **every action observed at
-        step 22, first fire at step 2.** `contingency()` being keyed on observed actions is
-        true and does not imply it; **`act` separates on ZERO evidence and that separated on
-        PARTIAL evidence, which is a difference of degree.** The guard was in the claim.
-
-        **SO THE CONDITION IS NOW IN THE CODE**: a member contributes only when every
-        advertised action appears in ITS OWN dict. Not *should not* fire early -- **cannot**,
-        and if it does the gate is not where this docstring says it is.
-
-        **AND NOTHING SUMS ACROSS MEMBERS, WHICH IS LOAD-BEARING RATHER THAN TIDY.** The four
-        signals are not commensurable: three report an explained fraction in [0,1] and
-        `value` reports a signed count difference. Every comparison here is WITHIN one
-        member; cross-member arithmetic would be a category error, and a fifth member added
-        later must not introduce one.
-        """
-        f = getattr(self.env, "contingency", None)
-        if f is None:
-            return None
-        sep: dict[str, int] = dict.fromkeys(self.actions, 0)
-        passed = 0
-        # `.items()`, NOT `.values()`: the member's NAME was being discarded, and "which member"
-        # is half the question. `arc_world.contingency` keys by `m.name` and nothing read it.
-        for name, rec in f().items():
-            per_action, stable = rec["per_action"], rec["stable"]
-            # TWO GATES, BOTH FROM THE START. Population alone is satisfied by ONE observation
-            # per action, and four single values are trivially all-different -- so `sep` would
-            # credit noise, which is a non-flat spread on nothing and worse than a flat one.
-            #
-            # AND THEY ARE COUNTED SEPARATELY. One `or` cannot say WHICH gate fired, and
-            # coverage and stability are different causes with different repairs -- one number
-            # asked to carry two questions is the shape caught twice this week.
-            if not set(sep) <= set(per_action):
-                self._members[f"{name}:no_coverage"] += 1
-                continue
-            if not stable:
-                self._members[f"{name}:unstable"] += 1
-                continue
-            self._members[f"{name}:passed"] += 1
-            passed += 1
-            vals = {a: v for a, v in per_action.items() if a in sep}
-            for a, v in vals.items():
-                # DISTINCTIVE MEANS DISTINGUISHABLE FROM EVERY ALTERNATIVE, NOT FROM SOME.
-                # The first version asked *differs from at least one*, which nearly every
-                # action satisfies -- so `sep` came out uniform, `max == min`, and the branch
-                # never fired in 150 cycles. A coding error against a stated intent rather
-                # than a parameter that read wrong, which is why correcting it is not tuning.
-                if all(w != v for b, w in vals.items() if b != a):
-                    sep[a] += 1          # this member finds THIS action distinctive
-        self._passes[passed] += 1
-        self._sep_log.append({"cycle": self.cycle, "passed": passed,
-                              "sep": tuple(sorted(sep.values(), reverse=True))})
-        if not sep or max(sep.values()) == 0 or max(sep.values()) == min(sep.values()):
-            return None
-        # THE SAME ARGMAX AS `spread`'s, AND THIS IS THE ONE THAT FIRES. Measured on `g50t`:
-        # `discriminate:learned` 93 of 131 acts, `discriminate` 0. The first `ties` build
-        # instrumented `spread` -- the branch I had been naming -- and read empty, because it
-        # never runs. Both are counted now, keyed by which dict they came from.
-        top = max(sep.values())
-        self._ties[("sep", sum(1 for v in sep.values() if v == top))] += 1
-        return max(self.actions, key=lambda a: sep[a])
 
     def _advertised(self) -> None:
         """The action set is re-read every step, and a CHANGE is recorded.
