@@ -50221,3 +50221,119 @@ median-thresholded partition of a constant stream separates nothing and looks li
 Unblocks the moment any game advances one level. **Pairing modes sit behind it** and the spec
 already under-charges them (`INDEX:8644`: two bits is the QUANTIFIER alphabet, but an objective
 is `quantifier x relation x scope x pairing`).
+
+---
+
+# THE ACTION SEAM CLOSED — THREE SITES RANKED BUTTONS WITH THE AGENT'S OWN MODEL, AND ALL THREE ARE GONE
+
+**2026-09-28.** Isaiah's ruling: *"The agent shouldn't really care about what action they choose.
+It shouldn't factor in their reasoning at all… they coordinate with the interface that translates
+that into actions."* Applied to the live path. `docs/ACTION_INTERFACE_PLAN.md` 15–18.
+
+    _predict vote in `_goal_split`   4c233db   -133 lines
+    `spread` in `discriminate`       f76899f    -52 lines
+    `_learned_split`                 c715430    -78 lines
+
+**AND ONE OF THE THREE WAS NOT A RELOCATION, WHICH IS WHY THE DISTINCTION IS WORTH KEEPING.**
+`_goal_split` voted with TWO inputs: `hist` — `{action: [(before, after)]}` from `self.trace`,
+scored by direction moved, which **IS the delta table, same information and same population** —
+and `_predict`, the agent scoring buttons with its own world-model. **So there was nothing to
+relocate; one half already lived below the seam and the other was the violation.**
+
+## `spread` CANNOT FIRE ON ARC BY CONSTRUCTION — a certainty, not the 0/96 it was filed as
+
+    WORLD       gamma in isolation, no board
+    POPULATION  every term `enumerate_closure` yields for the live ARC set at depth 2,
+                under discriminate's own budget
+
+    ARC   62 atoms -> 7 val->val candidates, 0 guarded, 0 reading `ctx.action`
+    TOY   14 atoms, action-readers: ['act']                        <- THE CONTROL
+
+`spread[a]` sums over terms not one of which depends on `a`: a **constant function of the
+action**, `max == min` always. **AND THE SECOND ROUTE IS CLOSED TOO** — a GUARDED term is
+action-dependence with no `act` atom needed, and `mint` does produce guarded terms here, but
+`enumerate_closure` yields `Term(chain)` and DROPS the guard. **A measured zero reads as a
+starved mechanism that might speak elsewhere; this one cannot.** The control is load-bearing: a
+probe finding no action-readers where none exist reads identically to a probe that cannot find
+one.
+
+## THE PHASE CLASSIFIER FAILED SILENTLY THREE TIMES AT ONE LINE IN ONE DAY, AND EACH REPAIR WAS THE PREVIOUS ERROR'S SHAPE
+
+    was       `by == "discriminate"`       admitted 1 of 3 labels; `directed 0.0` on ten boards
+    repair 1  `by.startswith(...)`         a PATTERN -- broke the moment a label was renamed
+    repair 2  `by not in (probe, draw)`    an EXCLUSION -- flipped `system0` PROBE -> DIRECTED,
+                                           11 of 25 actions, IN the commit fixing repair 1
+    repair 3  enumeration with an `else`   still silent for the NEXT exit added
+    now       `PHASE_OF` + `unclassified_by` + a seat reading labels off `choose`'s AST
+
+> **THE LAW: A GUESS ABOUT WHICH SIDE IS THE SHORT LIST IS STILL A GUESS.** Both a pattern and
+> an exclusion are bets that the unlisted cases belong on the default side. **Enumerate from the
+> producer, and make an unlisted case LOUD rather than defaulted** — the reviewer's shape, and
+> the same idea as narratability refusing a row with no sentence.
+
+**AND THE GUARD WRITTEN TO END THE SILENCE HAD A SILENT SKIP IN IT**: the AST scan filtered on
+`isinstance(elts[1], ast.Constant)`, so a label it could not read was skipped — and the
+missing-label assertion would then pass *because the label was never seen*. An unreadable return
+now fails. **Four silences, the last one inside the fix for the first three.**
+
+## `*` MEANT TWO THINGS AS A LEDGER KEY — `A6i` AT A KEY RATHER THAN AT A NAME
+
+The gate orders rows per `(cycle, SLOT)`. `*` was the **whole-board census** key on the PERCEIVE
+rows (`can`, `books`, `trend_popped`) and **no particular slot** on `_mint_routine`'s gate-1
+refusal. The two facts shared a chain, so a planner with no subject read as the board's own chain
+running backwards — `PLAN after PERCEIVE`. **`can`'s site had already been moved once to avoid
+that exact refusal and says so in a comment: the hazard was known and the collision was with a
+key nobody had checked.** Now `@plan`.
+
+## A TRIPWIRE CANNOT TELL *THE DEFECT IS GONE* FROM *THE TRAJECTORY MOVED PAST IT*
+
+`test_a5_still_fires_on_the_pinned_world` stopped firing, and **its own failure message told me
+to invert it**: *if the settlement fix has landed this is the GOOD outcome.* No fix had landed —
+A5's defect (`is_settled` keyed by TERM against A5's `(slot, term)`) was untouched.
+`snaps._atoms()` contains `act`, so deleting `spread` changed which action lands on which step.
+Measured on the same pinned world: **9 steps clean, 12/15/20/30 -> A5. Only the timing moved.**
+
+> **Inverting would have claimed a fix nobody made, and the suite would have gone green on it.**
+> The docstring argues a reproduction must STATE ITS WORLD rather than trust a seed. It stated
+> its world and trusted a STEP BUDGET — the same dependence one level along, since the budget
+> was only ever enough because of how actions happened to be chosen.
+
+## `ISOLATED` DOES NOT SEE A MODULE-LEVEL CONSTANT
+
+`conform/lint.py`'s `_isolated` collects `ast.FunctionDef`, `ast.AsyncFunctionDef`, `ast.ClassDef`
+and class methods. **A module-level `Assign` is not in the list**, so an unread constant is
+invisible to the one rule whose text is *no isolated code, no silent code, no code without
+reason* — and the rule's docstring overstates its reach. **Found because the reviewer asked what
+the seats would say instead of assuming they would say nothing.** FILED, NOT FIXED: widening this
+rule is how it poisoned itself once before, and its fixture still carries `head_dead` as the scar.
+
+## THREE OF THE FOUR INTERFACE VERBS WERE ALREADY NSM PRIMES AND NOBODY NOTICED
+
+`grammar.PRIMES` holds thirteen: ALL BECAUSE BECOME BE_AT CAN EXIST NONE NOT ONE OTHER SAME SOME
+TOUCH. **`TOUCH`, `BE_AT` and `BECOME` were written as a new interface vocabulary while sitting
+in `PRIMES` the whole time; `ELICIT` never was one.** So the vocabulary had already been extended
+silently, hours before a new verb was proposed — **the check asked for to keep a new word honest
+found an old word that was not.** Both are sayable and neither is an extension: `ELICIT` is
+`BECOME OTHER`, `DISTINGUISH` is `NOT SAME`. Constant names stay for call sites; the VALUES are
+the prime composition, so Isaiah's *"maybe they speak in nsm"* is literally true rather than
+approximately.
+
+**AND `DISTINGUISH` IS A VERB BECAUSE OF THE GATE, NOT THE RANKING.** `_learned_split` did two
+things — ranked, and ABSTAINED when nothing separated. Everything below it in `choose` runs only
+because of the abstention, so realising it as `ELICIT` (which cannot fail while a button exists)
+would have fired every time and starved three exits. **That is not a seam change, it is a
+different agent.**
+
+## WHAT IS OWED, AND THE MEASUREMENT THAT CANNOT BE TAKEN
+
+The pre-registered test for the relocation — **the `learned` share should FALL**, with the
+refuter being *the share stays flat AND the variety distribution is unchanged* (the collapse
+having travelled intact) — **needs an ARC board and cannot be run under the stop.** gridworld has
+no `contingency()`, so `DISTINGUISH` abstains there and the exit never fires: a fact about the
+harness, not evidence about the relocation. Recorded as owed, not as passed.
+
+Likewise the value table (15): `audit` records `lands[(ctx, slot, before)] -> {after}` and serves
+`BECOME(slot, =v)` from singleton cells only. **Wiring verified on gridworld — 71 value cells, 0
+multi-valued, serve-and-abstain both demonstrated — capability UNVERIFIED and unverifiable**,
+because every one of those cells is on an ORDERED slot and the mechanism exists for the unordered
+case.
