@@ -158,6 +158,43 @@ class Interface:
         """
         if not offered:
             return None
+        if intent.kind == BECOME and intent.subject:
+            # **THE AGENT SAID WHICH SLOT AND WHICH WAY. The interface knows which action did
+            # that here, because it watched.** `intent.object` is the desired sign: +1 up,
+            # -1 down. Abstain when nothing observed moves it -- an unrealisable intent is a
+            # reading the agent is entitled to, not a substitution.
+            want_sign = 1 if (intent.object or "+") == "+" else -1
+            best, score, how = None, 0.0, ""
+            for a in offered:
+                d = self.table.get(a, {}).get("delta", {})
+                # **THIS CONTEXT FIRST, THEN ACROSS ALL OF THEM -- AND THE FALLBACK IS THE
+                # POINT.** Measured 2026-09-28: the interface learned `down -> o0.row +1.00`,
+                # `up -> -1.00`, `left -> o0.col -1.00`, `right -> +1.00` -- a correct action
+                # model from acting alone -- and then ABSTAINED on every `BECOME`, because the
+                # query context had never been seen. **The cells were populated and the key was
+                # too fine.**
+                #
+                # **THE AUDIT AND THE REALISER WANT DIFFERENT KEYS AND I HAD GIVEN THEM ONE.**
+                # The audit NEEDS the context (without it, *conditional* and *the mapping
+                # changed* are one thing -- the reviewer's 13:16). The realiser is STARVED by
+                # it. So: same-context evidence when it exists, the across-context prior
+                # otherwise. **Being wrong about the prior is a residual, not a fault**, and
+                # widening the AUDIT's key instead would have traded away the separation that
+                # stopped gridworld crying wolf.
+                n, tot = d.get((ctx, intent.subject), (0, 0))
+                where = "here"
+                if not n:
+                    n = sum(v[0] for (c, k), v in d.items() if k == intent.subject)
+                    tot = sum(v[1] for (c, k), v in d.items() if k == intent.subject)
+                    where = "in every context seen"
+                if not n:
+                    continue
+                mean = tot / n
+                if mean * want_sign > score:
+                    best, score, how = a, mean * want_sign, where
+            if best is None:
+                return None
+            return Realisation(best, why=f"observed to move {intent.subject} that way {how}")
         if intent.kind != ELICIT:
             # WITHOUT A TABLE ENTRY THERE IS NOTHING HONEST TO PICK, and guessing would be the
             # interface deciding. It abstains and the agent learns the intent was unrealisable.
@@ -254,8 +291,24 @@ class Interface:
         """
         self.audits += 1
         changed = tuple(sorted(k for k in before if before.get(k) != after.get(k)))
-        e = self.table.setdefault(r.action, {"by_ctx": {}, "n": 0})
+        e = self.table.setdefault(r.action, {"by_ctx": {}, "n": 0, "delta": {}})
         e["n"] += 1
+        # **WHICH WAY, NOT ONLY WHICH SLOT.** A changed-set says an action touches `o0.row`; it
+        # does not say whether it raises or lowers it, and *raise this slot* is the commonest
+        # thing an agent can want. So the table keeps a running mean of the SIGNED change per
+        # slot, per context -- learned by acting, nothing closed over at construction.
+        #
+        # **THIS IS `_move_map` DONE RIGHT AND IN THE RIGHT PLACE.** That one keyed
+        # action -> AVATAR displacement, so it never filled on a board with no avatar and it
+        # lived above the seam where the agent could reason about buttons. This is any slot,
+        # no body required, and below the seam where knowing about buttons is the job.
+        for k in changed:
+            try:
+                d = int(after.get(k, 0)) - int(before.get(k, 0))
+            except (TypeError, ValueError):
+                continue
+            n, tot = e["delta"].get((ctx, k), (0, 0))
+            e["delta"][(ctx, k)] = (n + 1, tot + d)
         seen = e["by_ctx"].setdefault(ctx, set())
         # WITHIN one context a second effect is the first real evidence the MAPPING CHANGED.
         # ACROSS contexts it is CONDITIONALITY. That is the whole point of the key, and with
