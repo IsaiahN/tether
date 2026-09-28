@@ -182,6 +182,10 @@ class Interface:
         self.member_gates: Counter = Counter()   # "<member>:no_coverage" / ":unstable" / ":passed"
         self.sep_passes: Counter = Counter()     # how many members contributed, per call
         self.sep_log: list = []
+        # WHERE A POSITIONED ACTION HAS ALREADY LANDED. Filled by `audit` from the coordinates
+        # this interface itself aimed, so *unclicked* means *I have not tried there*, never
+        # *the board says nothing is there*.
+        self.clicked: set[tuple[int, int]] = set()
 
     # ---- downward: intent -> action --------------------------------------------------
 
@@ -349,22 +353,40 @@ class Interface:
         def _pick(band: list[str]) -> str:
             return max(band, key=lambda a: (rank.get(a, 0), -band.index(a)))
 
+        def _made(a: str, why: str) -> Realisation:
+            """**A POSITIONED ACTION IS ALWAYS AIMED, WHATEVER THE INTENT ASKED FOR.**
+
+            Fixture B caught this: on a world whose only action is a positioned click, `ELICIT`
+            returned it UNAIMED and the step was a guaranteed no-op -- **24 steps, zero
+            contact.** The interface knows which actions are positioned; handing back a press
+            it knows will do nothing is it failing at its one job. *An exploration that cannot
+            produce an observation is not an exploration.*
+
+            **AT AN UNCLICKED OBJECT -- the reviewer, 2026-09-28, per Isaiah's *"clicking on
+            things"*.** Not an arbitrary cell: a cell with nothing in it teaches nothing on a
+            board where clicking acts on objects. **This is a choice about the BUTTON'S
+            PARAMETER and needs nothing from above the seam** -- the agent asked to explore and
+            did not say where, because where is not its business.
+            """
+            coord = self._unclicked(state) if a in POSITIONED else None
+            if coord is not None:
+                why = f"{why}, aimed where nothing has been clicked"
+            return Realisation(a, coord=coord, unmapped=(a not in self.table), why=why)
+
         asked = "exploration" if intent.kind == ELICIT else "something that separates"
         unmapped = [a for a in offered if a not in self.table]
         if unmapped:
-            return Realisation(_pick(unmapped), unmapped=True,
-                               why=f"requested {asked}: never taken")
+            return _made(_pick(unmapped), f"requested {asked}: never taken")
         # THE VARIETY CONDITION: prefer an action whose effect IN THIS CONTEXT is unknown.
         fresh = [a for a in offered if ctx not in self.table[a]["by_ctx"]]
         if fresh:
-            return Realisation(_pick(fresh), why=f"requested {asked}: effect here not yet known")
+            return _made(_pick(fresh), f"requested {asked}: effect here not yet known")
         # everything mapped in this context. Take the one taken LEAST here -- still the agent's
         # call to explore, and refusing would be the interface overruling it.
         seen = {a: len(self.table[a]["by_ctx"].get(ctx, ())) for a in offered}
         fewest = min(seen.values())
         band = [a for a in offered if seen[a] == fewest]
-        return Realisation(_pick(band),
-                           why=f"requested {asked}: all known here, least-seen taken")
+        return _made(_pick(band), f"requested {asked}: all known here, least-seen taken")
 
 
     # ---- upward: what changed, in reasoning terms -------------------------------------
@@ -403,6 +425,24 @@ class Interface:
         if col is None or row is None:
             return None
         return int(col), int(row)
+
+    def _unclicked(self, state: dict | None) -> tuple[int, int] | None:
+        """An OBJECT this interface has not aimed at yet, as `(x=col, y=row)`.
+
+        Objects are the things with both a row and a col -- the same convention `_at` reads,
+        parsed here rather than in the loop because knowing how this domain spells a position
+        is the interface's job. `None` when every object has been clicked or none has a
+        position, and **`None` means the press goes out unaimed rather than aimed at a guess.**
+        """
+        if state is None:
+            return None
+        rows = {k.rsplit(".", 1)[0] for k in state if k.endswith(".row")}
+        cols = {k.rsplit(".", 1)[0] for k in state if k.endswith(".col")}
+        for obj in sorted(rows & cols):
+            at = self._at(obj, state)
+            if at is not None and at not in self.clicked:
+                return at
+        return None
 
     @staticmethod
     def _gap(slot: str, target: str, state: dict | None) -> int | None:
@@ -535,6 +575,8 @@ class Interface:
         System 0 job A's **is that a wall?**, answered by acting.
         """
         self.audits += 1
+        if r.coord is not None:
+            self.clicked.add(r.coord)
         changed = tuple(sorted(k for k in before if before.get(k) != after.get(k)))
         e = self.table.setdefault(r.action, {"by_ctx": {}, "n": 0, "delta": {}})
         e["n"] += 1

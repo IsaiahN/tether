@@ -874,7 +874,11 @@ class Agent:
         self._goal_want: Any = None
         # WHERE THE INTERFACE AIMED A POSITIONED ACTION, or `None`. Set by the contact exits,
         # read once by `step`. The agent never chooses it and never reads it as a position.
-        self._s0_coord: tuple[int, int] | None = None
+        # **WHERE THE INTERFACE AIMED A POSITIONED ACTION THIS STEP, or `None`.** Set by
+        # EVERY exit that consumes a `Realisation`, read once by `step`. Named `_s0_coord`
+        # until 2026-09-28 and that name lied the moment `_explore` started aiming too --
+        # `A6i` caught before it cost anything, because the field is minutes old.
+        self._aimed: tuple[int, int] | None = None
         # **THE INTENT ALPHABET AS A MEASURED POPULATION, NOT A DERIVED CONSTANT.** The routine
         # price still uses the ACTION alphabet (see `_mint_routine`), which is now the wrong
         # one; this is the count that makes the size of that gap readable. Distinct intents
@@ -3171,8 +3175,7 @@ class Agent:
             _t = self.iface.realise(IFace.Intent(IFace.TOUCH, object=aim),
                                     tuple(self.actions),
                                     IFace.Interface.context(self.env), before)
-            self._s0_coord = _t.coord if _t is not None else None
-            act = _t.action if _t is not None else None
+            act = self._took(_t) if _t is not None else None
             if _t is not None:
                 self.led.record(self.cycle, "PLAN", aim, "intent",
                                 reads=(f"{IFace.TOUCH} {aim}", _t.why))
@@ -3249,10 +3252,10 @@ class Agent:
                                         tuple(self.actions),
                                         IFace.Interface.context(self.env), before)
                 if _t is not None:
-                    act, _coord = _t.action, _t.coord
+                    act, _coord = self._took(_t), self._aimed
                     self.led.record(self.cycle, "PLAN", target, "intent",
                                     reads=(f"{IFace.TOUCH} {target}", _t.why))
-            self._s0_coord = _coord
+            self._aimed = _coord
             if self._contact_pick is not None:
                 self._contact_seen.add(self._contact_pick)
             self.led.record(self.cycle, "MINT", target or "@contact", "system0",
@@ -3277,7 +3280,7 @@ class Agent:
         if _r is not None:
             self.led.record(self.cycle, "PLAN", "@board", "intent",
                             reads=(_want.says(), _r.why))
-            return _r.action, "distinguish"
+            return self._took(_r), "distinguish"
         # AND THE REFUSAL IS A READING ABOUT THE BOARD, NOT A NON-EVENT. *Nothing here tells my
         # alternatives apart* is what the contingency family exists to be able to say, and it
         # was previously an unrecorded `return None` inside the ranking loop.
@@ -3391,7 +3394,7 @@ class Agent:
                         reads=(want.says(), r.why if r else "unrealisable"))
         if r is None:
             return self.drive.choose(self.actions, self.cycle, _where(before))
-        return r.action
+        return self._took(r)
 
     def _system0_active(self) -> bool:
         """UNEXPLORED CONTACT COUNT, with the action-effect coverage it replaces kept as the
@@ -4649,6 +4652,18 @@ class Agent:
             return None
         return tgt
 
+    def _took(self, r: Any) -> str:
+        """Accept a `Realisation`: keep its aim, return its action. **One door, so no exit can
+        drop the coordinate again.**
+
+        Fixture B caught `_explore` returning `r.action` and discarding `r.coord`, so on a
+        click-only world every press went out unaimed and 24 steps produced ZERO contact. The
+        interface was aiming correctly and the loop was throwing it away -- **a value that
+        exists and never crosses**, which is the defect this project files most often.
+        """
+        self._aimed = r.coord
+        return r.action
+
     def _realise_step(self, emit: Any, before: dict[str, int]) -> str | None:
         """A routine step is an INTENT. Turn it into a button, or `None` if nothing serves it.
 
@@ -4669,7 +4684,7 @@ class Agent:
                 return None
             self.led.record(self.cycle, "PLAN", emit.subject or "@board", "intent",
                             reads=(emit.says(), r.why))
-            return r.action
+            return self._took(r)
         return emit if emit in self.actions else None
 
     def _goal_split(self, before: dict[str, int]) -> str | None:
@@ -4761,7 +4776,7 @@ class Agent:
         if _r is not None:
             self.led.record(self.cycle, "PLAN", chosen, "intent",
                             reads=(_want.says(), _r.why))
-            return _r.action
+            return self._took(_r)
         if not _ordered:
             # **THE TWO REFUSALS ARE NOT ONE REFUSAL.** On an ordered slot, unserved means
             # *nothing I have done moves it that way*. Here it means *nothing I have done
@@ -6217,7 +6232,7 @@ class Agent:
         # PER STEP. A coordinate is a property of THIS cycle's realisation, and leaving it would
         # aim a later positioned action at where something used to be -- the stale-state defect
         # in the shape that looks like a working aim.
-        self._s0_coord = None
+        self._aimed = None
         if action is None:
             action, by = self.choose(before)
         self._acts[action] += 1   # System-0 instrument: the concrete action distribution
@@ -6317,7 +6332,7 @@ class Agent:
         # starved-slot perturbation at the most-residual slot. **Both are now structural: the
         # exit that WANTS the contact names its own target in the intent, so there is no second
         # site guessing whose aim this was.**
-        coord = self._s0_coord
+        coord = self._aimed
         res = self.perceive(action, coord)
         # WHAT THAT ACTION DID TO THE AVATAR, recorded from the frames either side of it.
         for slot, b, fit, _why in self.route(res):
