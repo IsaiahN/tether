@@ -50018,7 +50018,32 @@ the ARC path it does not, and the reason is not architectural.
 nowhere in the `by` census on either board -- `ls20` learned 128 / draw 20 / probe 2, `g50t`
 learned 93 / probe 23 / draw 15. Not a starved mechanism; a parameter default.
 
-### the OFF was correct when set and its justification expired
+### AND IT IS NOT AN OPEN QUESTION -- ISAIAH ALREADY RULED IT ON, 2026-09-25
+
+**CORRECTED WITHIN THE HOUR OF WRITING THE ROW BELOW, AND THE ROW BELOW IS THE SMALLER HALF.**
+`tether.py:660`, the comment directly above the field, quotes the ruling verbatim:
+
+    "**ON -- Isaiah, 2026-09-25.** *'System 0 is always on. It is almost like an UPTAKE
+     VALVE -- if it catches that nuance or attribute, the whole system set RECALIBRATES.'*
+     It has been `False` since it was built, so the intake the reviewer calls the
+     ELABORATION GUARD had never once opened."
+
+**The global default was flipped to `True` to honour it. `arc_holdout.play`'s own
+`system0: bool = False` parameter was never swept, so THE ARC PATH DEFEATS A STANDING RULING.**
+Not a judgement awaiting an owner -- stale-by-success at the level of a ruling: it landed in
+`Config` and the call site that overrides `Config` was not checked.
+
+**So turning it on for ARC is CONFORMANCE, not a seat decision about the acting path.** What
+does need Isaiah is narrower and is the collapse below: **his ruling says always on, and the
+mechanism as built emits one fixed action on any board with no avatar.** Those two go together
+or neither is useful.
+
+**FOUND BY THE REVIEWER'S CHALLENGE TO A COUNT**, not by reading the code again: they refused
+*"nineteen switches"* as another count from one detector and said to list EVERY bool field on
+`Config`. There are two. The first carried the ruling. **The census was the instrument; the
+ruling was sitting in the comment above the field it counted.**
+
+### the relabel argument, which was the reason BEFORE the ruling and is now the smaller half
 
 `INDEX:40538` records it -- *"`Config.system0` stays default OFF -- turning it on is a
 relabel"* -- and `INDEX:41461` says why that was true: *"`system0` and `draw` were
