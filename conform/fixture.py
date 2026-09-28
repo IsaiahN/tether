@@ -100,7 +100,7 @@ STAGES = (
 # retro at 16; `_res`, whose first reading lands at cycle 6 of 16) and the COMPOSER'S FIRST
 # CANDIDATE SET APPEARS AT CYCLE 19. 24 is that observed floor plus margin, and it is a
 # CALIBRATION constant in `F341`'s third category: visible, movable, and not claimed correct.
-CYCLES = {"toy": 8, "gridworld": 24}
+CYCLES = {"toy": 8, "gridworld": 24, "click": 24}
 
 
 def probe(habitat: str = "toy") -> dict[str, bool]:
@@ -155,7 +155,14 @@ def probe(habitat: str = "toy") -> dict[str, bool]:
     tether.objective_step = step
 
     try:
-        if habitat == "gridworld":
+        if habitat == "click":
+            # **FIXTURE B: NO AVATAR, ONLY CLICKING WORKS.** One positioned action, nothing
+            # moves, and an unaimed click is a no-op -- so any contact the agent makes came
+            # from `TOUCH` aiming it rather than from a draw landing lucky. The same seed as
+            # `gridworld` so the two differ in the MODALITY and in nothing else.
+            import gridworld
+            env = world.bind(gridworld.GridWorld(seed=11, click_only=True))
+        elif habitat == "gridworld":
             import gridworld
             env = world.bind(gridworld.GridWorld(seed=11))
         else:

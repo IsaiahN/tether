@@ -110,6 +110,15 @@ class GridWorld:
     # into another module's private atom set is the coupling that makes "one variable moves"
     # unverifiable. Passed in, or taken from the toy world's PUBLIC accessor.
     atom_set: list[Atom] | None = None
+    # **FIXTURE B -- NO AVATAR, ONLY CLICKING WORKS. Isaiah's second fixture, and
+    # `docs/ACTION_INTERFACE_PLAN.md` 19e made it a PREREQUISITE rather than an option**: it is
+    # the only world that can exercise `TOUCH`'s positioned route, which nothing has run. This
+    # world advertises ONE action and it takes a coordinate, so there is nothing to walk with
+    # and no direction to want -- *"if no avatar what is the cause and effect by clicking on
+    # things"*.
+    #
+    # **A FLAG DEFAULTING TO FALSE, so every existing reading of this world is byte-identical.**
+    click_only: bool = False
 
     def __post_init__(self) -> None:
         rng = random.Random(self.seed)
@@ -219,7 +228,9 @@ class GridWorld:
         return self.atom_set if self.atom_set is not None else _toy.Transitions().atoms()
 
     def actions(self) -> tuple[str, ...]:
-        return ACTIONS
+        # ONE POSITIONED ACTION AND NOTHING ELSE. The agent cannot draw its way to a target
+        # here: an unaimed click lands where nothing is, so contact requires the intent.
+        return ("ACTION6",) if self.click_only else ACTIONS
 
     def alphabet(self) -> int | dict[str, int]:
         """PER SLOT. Positions range over the grid, colours over four, shapes over three, the
@@ -453,7 +464,32 @@ class GridWorld:
             self._cue = self._obs.see(self.board())
         return self._cue
 
-    def step(self, action: str) -> None:
+    def _click(self, action: str, x: int | None, y: int | None) -> None:
+        """CLICK AT A CELL: whatever is there advances its colour. **Nothing moves, ever.**
+
+        Recolour-on-click is among the commonest ARC mechanics and it is chosen for that rather
+        than for convenience -- it makes the reachable attribute an UNORDERED one, which is the
+        arm `BECOME` gained a value table for and which gridworld's POSITION slots cannot
+        exercise.
+
+        **AN UNAIMED CLICK IS A NO-OP AND THAT IS THE POINT.** `(x, y)` is `None` unless the
+        interface aimed it, so a drawn action changes nothing and the uniform draw is a real
+        control rather than a weaker version of the same thing.
+        """
+        if action != "ACTION6":
+            raise ValueError(f"unknown action: {action}")
+        self._cue = None
+        if x is None or y is None:
+            return
+        for i in range(N_OBJECTS):
+            if (self.state.get(f"o{i}.row"), self.state.get(f"o{i}.col")) == (int(y), int(x)):
+                self.state[f"o{i}.colour"] = (self.state[f"o{i}.colour"] + 1) % 4
+                return
+
+    def step(self, action: str, x: int | None = None, y: int | None = None) -> None:
+        if self.click_only:
+            self._click(action, x, y)
+            return
         if action not in ACTIONS:
             raise ValueError(f"unknown action: {action}")
         self._cue = None           # a new board is a new set of mutations to read off it
