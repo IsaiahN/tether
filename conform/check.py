@@ -131,7 +131,10 @@ NEVER_STARTED = ("can't open file", "No module named", "cannot find the file")
 # 180 is ~50% headroom over the measured 2m01s. **A seat that passes at 118s and fails at 121s
 # is winning a coin flip rather than passing a check**, and the two readings taken minutes apart
 # disagreed by exactly that margin. **It is a CALIBRATION constant: moving it disarms the guard
-# while leaving it green, so it is recorded with its measurement and is the reviewer's to move.**
+# while leaving it green, so it is recorded with its measurement. **ISAIAH RULED THIS VALUE AND
+# IT IS ISAIAH'S TO MOVE** -- not the seat's and not the reviewer's, which is the same standing
+# `STALL` has. Recorded because a calibration constant with the wrong owner written beside it
+# is how one gets moved by whoever finds it inconvenient.
 # anchor: 180s is ~50% headroom over the seat's MEASURED 2m01s, taken 2026-09-28 on
 # `stateful.py --fast --tether`. Not a round number chosen for comfort -- the margin is what
 # separates a check from a coin flip, and two readings minutes apart differed by the 3s that
