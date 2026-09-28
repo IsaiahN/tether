@@ -2931,6 +2931,30 @@ class Agent:
         because the primitive it was given already knew.* **That is the thing the action
         world has to take away**, and the ARC set has no `act` for exactly that reason.
 
+        **AND `0/96` UNDERSTATES IT: ON ARC THIS BRANCH CANNOT FIRE AT ALL -- 2026-09-28.**
+        A measured zero reads as a starved mechanism that might speak on another board. This
+        one is structural, and it took a control to be sure the probe could tell:
+
+            WORLD       gamma in isolation, no board
+            POPULATION  every term `enumerate_closure` yields for the live ARC set
+                        (`three_spaces(predict())`) at depth 2, discriminate's own budget
+
+            ARC   62 atoms -> 7 val->val candidates, 0 guarded, 0 reading `ctx.action`
+            TOY   14 atoms, action-readers: ['act']                    <- THE CONTROL
+
+        `spread[a]` is summed over terms not one of which depends on `a`, so it is a CONSTANT
+        FUNCTION OF THE ACTION and `max == min` always. **AND THE SECOND ROUTE IS CLOSED TOO**:
+        a GUARDED term is action-dependence without any `act`, and `mint` does produce guarded
+        terms here -- but `enumerate_closure` yields `Term(chain)` and DROPS the guard, which is
+        why 0 of the 7 carry one. So no minted guarded term can reach this branch either.
+
+        **WHICH MAKES THIS THE THIRD PLACE THE AGENT RANKS BUTTONS WITH ITS OWN MODEL** --
+        `pick = max(self.actions, key=lambda a: spread[a])`, the same crossing as the `_predict`
+        vote deleted at `4c233db`. Its only demonstrated firing is on a set containing `act`,
+        and `act` is the handed answer. **A mechanism whose only evidence of working comes from
+        a world where the answer was handed over is not evidence of a mechanism.** With the
+        reviewer; not repaired here.
+
         **So a flat spread is the honest reading of an agent that has not learned what its
         actions do.** Measured here: 80 of 82 eligible steps on `ls20`, which is the toy
         panel's 0/96 reproduced on a real board. **It was read as a defect three times --
