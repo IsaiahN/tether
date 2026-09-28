@@ -622,3 +622,76 @@ forbid it.**
 fixture carries `head_dead` for exactly that reason — so it needs its own fixture and control,
 not a clause added while passing. **The gap is real and the rule's docstring currently overstates
 its reach.**
+
+---
+
+## 19. SYSTEM 0'S OWN ACTION NAMING — the fourth ranker and the two by-name sites, and they are ONE intent
+
+**Found by census, not by queue (2026-09-28) — see `INDEX.md`'s correction to the seam entry.**
+Three sites remain above the seam, and they are the same behaviour written three times.
+
+    tether.py ARM M        `"ACTION6" if "ACTION6" in self.actions else self._toward(...)`
+    tether.py System 0     the same line again
+    `_toward`              ranks every action by its OBSERVED displacement in `_move_map`
+    `step`                 `coord = self._action6_coord(aim, before) if action == "ACTION6"`
+
+### 19a. ALL THREE ARE `TOUCH`, WHICH IS ALREADY A PRIME
+
+What the agent wants at every one of them is *bring me into contact with `aim`*. It does not
+care whether that happens by clicking at the thing or by walking to it — **and that indifference
+is precisely the seam.** `TOUCH` is in `grammar.PRIMES` and is already one of the interface's
+verbs, so nothing new is invented:
+
+    Intent(TOUCH, subject=None, object=aim)
+
+The agent names no action, no coordinate, and no modality.
+
+### 19b. WHAT THE INTERFACE DOES WITH IT, AND WHY THE COORDINATE COMES BACK DOWNWARD
+
+`Realisation` ALREADY carries `coord`, and `perceive` already accepts one — so the plumbing for
+a positioned realisation exists and is currently bypassed by `step` recomputing the coordinate
+from `action == "ACTION6"`. **The realisation should carry it**, and then `step` has no button
+name in it at all.
+
+    1  a POSITIONED action exists   ->  Realisation(that action, coord = aim's perceived row/col)
+    2  else, REDUCE THE DISTANCE    ->  the delta table's signed entry for the aim's row/col
+                                        slots -- the same machinery `BECOME` already uses
+    3  else                         ->  abstain. The agent learns contact is unreachable here
+
+### 19c. `"ACTION6"` MOVES BELOW THE SEAM RATHER THAN BEING ELIMINATED
+
+**The string does not disappear and should not pretend to.** The seam's rule is that only the
+interface may know a button exists — so `ACTION6` being named in `interface.py` is the
+architecture working, and being named in `tether.py` is the violation. `F28` already permits
+reading availability; what it forbids is the DIRECTIONAL SEMANTICS reaching the agent.
+
+> **AND THE HONEST VERSION IS A LEARNED ONE, WHICH IS NOT BUILT HERE.** An action that ACCEPTED a
+> coordinate and moved something is positioned — that is observable, and the interface already
+> audits every press. **Hardcoding the name below the seam is the smaller lie, not no lie**, and
+> it is recorded as such so nobody later reads it as the finished state.
+
+### 19d. THE AVATAR DEPENDENCY GOES, WHICH IS ISAIAH'S OWN RULING
+
+`_toward` opens `a = self._avatar(); if a is None: return None`. **On a board with no avatar it
+returns nothing and the branch falls to a uniform draw.** Isaiah: *`_move_map` is "poorly wired"
+… it shouldn't matter if there is an avatar — if no avatar what is the cause and effect by
+clicking on things.*
+
+**Route 2 above has no `_avatar()` in it.** The delta table is keyed `(context, slot)` and knows
+which action moves which slot which way, so *reduce `o3.row` toward 4* is answerable with no body
+at all. **`_move_map` is then a duplicate of the delta table with an extra precondition**, and it
+goes when `_toward` does — one mechanism, not two.
+
+### 19e. THE PRE-REGISTRATION, AND WHAT WOULD REFUTE IT
+
+**EXPECT CONTACT-SEEKING TO START WORKING ON BOARDS WITH NO AVATAR**, where it currently cannot
+fire at all. That is the whole point of the change and it is the thing to measure.
+
+> **THE REFUTER IS NOT *it still does not fire*.** That is consistent with the board simply
+> offering nothing to touch. **The refuter is: it fires, and the contact it produces is no
+> better than the uniform draw it replaced** — same contact-key coverage, same unexplored count.
+> A mechanism that acts and achieves what chance achieves has added a name, not a capability.
+
+**AND IT CANNOT BE MEASURED UNDER THE STOP**: gridworld HAS an avatar, so it cannot show the
+no-avatar case at all. Recorded as owed. The `B` fixture already on the list — *no avatar, only
+clicking works* — is exactly this measurement's world, and it is a fixture rather than a board.
