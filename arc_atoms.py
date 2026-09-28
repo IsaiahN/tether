@@ -261,6 +261,34 @@ ADMITTED = {
 # **A TABLE, NOT A PREDICATE, AND DELIBERATELY** -- `CLAUDE.md`'s *exemptions as data, not
 # logic: a table can be pinned; logic widens quietly.* Any rule computing this set from a
 # name or a type would silently absorb the next atom added.
+# AN ARM-GATED ATOM NEEDS AN ARM-GATED ADMISSION, and the two guards below are why. One
+# refuses an atom with no admitting clause; the other refuses an admission naming no atom.
+# A static entry for a fold atom satisfies the first and TRIPS THE SECOND whenever the arm is
+# off -- which is the toy world's default and `demo`'s. So the entry appears exactly when the
+# atom does.
+#
+# **THIS IS THE REPAIR FOR A BREAK I CAUSED.** `arc_holdout.play` sets `_ITERATE = True` before
+# building the atom set, so from `9a2f32d` the ARC path RAISED before the agent existed -- two
+# days, unseen, because the board stop forbids running that path and nothing else sets the arm.
+# The guard was right; I did not run the one configuration it could refuse.
+def _fold_admissions() -> dict[str, str]:
+    """Isaiah's ruling of 2026-09-24 (`7eccc39`): *the fold proceeds*. §12.0's ground is that
+    the MEANS to iterate is INHERITANCE where a solved case would be an answer.
+
+    NOT `CLAUSE_ONE`: the loop runs without these -- they sit behind an arm and the toy world
+    has none -- so they are a ruling's admission rather than a precondition."""
+    if not _ITERATE:
+        return {}
+    r = "ruled-2026-09-24 by Isaiah: the fold proceeds. "
+    return {
+        "cells": r + "opens a SHAPE's offset frozenset as a walkable collection -- the agent "
+                     "could hold a cell set and had no way to walk it",
+        "cell_row": r + "a cell's row, inside an iteration",
+        "cell_col": r + "a cell's column, inside an iteration",
+        "count_true": r + "the reducer that CLOSES an iteration -- without it a mapped "
+                          "collection never returns to a value",
+    }
+
 CLAUSE_ONE = frozenset({
     # perception's own readings -- what a slot IS. `ATTRIBUTE_TYPE`'s keys become atoms.
     "row", "col", "colour", "h", "w", "bbox", "shape", "age", "speed", "stability",
@@ -982,14 +1010,15 @@ def three_spaces(predict: list[Atom]) -> list[Atom]:
     # BOTH DIRECTIONS, because each has already happened once. An entry naming no atom is
     # `inside`: admitted 2026-09-08, dated, with the batch's best reach number, and ABSENT
     # FROM THE REGISTRY FOR A FORTNIGHT.
-    unclassified = sorted(n for n in seen if n not in ADMITTED and n not in CLAUSE_ONE)
+    _admitted = {**ADMITTED, **_fold_admissions()}
+    unclassified = sorted(n for n in seen if n not in _admitted and n not in CLAUSE_ONE)
     if unclassified:
         raise ValueError(
             f"atoms with no admitting clause: {unclassified}. Add an `ADMITTED` entry saying "
             f"what named the gap and why no chain yields it, or add the name to `CLAUSE_ONE` "
             f"if the loop cannot run without it. The ablation partitions by which clause let "
             f"a thing in and that cannot be rebuilt afterwards.")
-    phantom = sorted(n for n in ADMITTED if n not in seen)
+    phantom = sorted(n for n in _admitted if n not in seen)
     if phantom:
         raise ValueError(
             f"`ADMITTED` names atoms that were never built: {phantom}. `inside` sat here for "
@@ -1004,4 +1033,7 @@ def three_spaces(predict: list[Atom]) -> list[Atom]:
     # THE CATEGORY CROSSES, NOT THE PROSE. `admissions()` buckets by value, so passing the
     # justification strings would make twenty-eight buckets of one. The prose stays in
     # `ADMITTED` as the justification and is now enforced to exist.
-    return [replace(a, admitted=HANDED) if a.name in ADMITTED else a for a in out]
+    # `_admitted`, NOT `ADMITTED` -- an arm-gated atom is HANDED too, and stamping from
+    # the static table would leave the fold atoms `necessary`, which is the ablation's
+    # BLIND category. The partition would be wrong for exactly the atoms a ruling let in.
+    return [replace(a, admitted=HANDED) if a.name in _admitted else a for a in out]

@@ -799,6 +799,46 @@ def test_generator_reaches_the_hard_cases():
     assert c["slots=2"] > 0 and c["slots=4"] > 0, "the slot count has collapsed"
 
 
+def test_the_atom_set_builds_under_every_arm_state():
+    """THE ATOM SET MUST BUILD WITH THE FOLD ARM ON *AND* OFF, and it did not for two days.
+
+    `arc_holdout.play` sets `arc_atoms._ITERATE = True` before building the atom set, under
+    Isaiah's 2026-09-24 ruling. From `9a2f32d` -- the admitting-clause guard -- `three_spaces`
+    RAISED in exactly that configuration, because the four fold atoms had no `ADMITTED` entry.
+    **The ARC path could not construct an agent, and nothing noticed**: the board stop forbids
+    running it, the toy world never sets the arm, and every seat here builds with it off.
+
+    AND THE TWO GUARDS PULL OPPOSITE WAYS ON AN ARM-GATED ATOM -- which is why the repair is an
+    arm-gated admission rather than a static entry. Arm ON: the atom exists and needs a clause.
+    Arm OFF: the atom does not exist and a clause for it is an orphan the second guard refuses.
+    A static table cannot satisfy both, and satisfying only the one you happen to run is how
+    this survived.
+
+    **A GUARD WHOSE FAILURE PATH IS NEVER EXERCISED IS INDISTINGUISHABLE FROM ONE THAT CANNOT
+    FAIL.** Both guards were correct throughout. Neither was ever run in the configuration that
+    would refuse it.
+    """
+    import arc_atoms
+    import arc_predict
+
+    was = arc_atoms._ITERATE
+    try:
+        for arm in (True, False):
+            arc_atoms._ITERATE = arm
+            atoms = arc_atoms.three_spaces(arc_predict.predict())
+            folds = {a.name for a in atoms} & {"cells", "cell_row", "cell_col", "count_true"}
+            assert folds if arm else not folds, (
+                f"_ITERATE={arm} produced folds={sorted(folds)} -- the arm does not gate them")
+            if arm:
+                # THE CLAUSE MUST CROSS, not merely exist: an unstamped fold atom reads to the
+                # ablation as `necessary`, which is its BLIND category.
+                unstamped = sorted(a.name for a in atoms
+                                   if a.name in folds and a.admitted != "handed")
+                assert not unstamped, f"fold atoms admitted by a ruling, unstamped: {unstamped}"
+    finally:
+        arc_atoms._ITERATE = was
+
+
 def test_b5_still_fires_on_the_pinned_world():
     """THE B5 REPRODUCTION, PINNED -- and the run shows the mechanism, not just the verdict.
 
@@ -1046,6 +1086,7 @@ if __name__ == "__main__":
         test_a_mutation_moves_attention_and_never_the_action()
         test_the_admitting_clause_crosses_into_gamma()
         test_the_daydream_precondition_can_refuse()
+        test_the_atom_set_builds_under_every_arm_state()
         test_b5_still_fires_on_the_pinned_world()
         test_a5_still_fires_on_the_pinned_world()
         test_the_keyed_reach_loses_nothing()
