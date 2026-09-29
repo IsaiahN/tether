@@ -4724,6 +4724,11 @@ class Agent:
         """
         self._aimed = r.coord
         self._intent_now = want
+        # The alphabet census was filled at `_realise_step` and `_mint_routine` and NOT here,
+        # so it read 0 on 24 cycles where every exit named an intent. LOWER BOUND: an intent
+        # formed in `choose` that fails to realise never reaches this door.
+        if want is not None:
+            self._intent_kinds.add(want.says())
         return r.action
 
     def _realise_step(self, emit: Any, before: dict[str, int]) -> str | None:

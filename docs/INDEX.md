@@ -50596,3 +50596,70 @@ bet row records what the agent MEANT; it says nothing about whether the meaning 
 Contact and variety are unchanged by it — gridworld `up 9 / down 6 / left 4 / right 5`, top 9 of
 24; `click_only` `ACTION6` ×24 with six slots changed — so **the variety rule did not cost the
 click world its contact**, and that is the only claim the pair supports.
+
+---
+
+# THE PUBLISHED GAP WAS UNREACHED, AND THE NUMBER IT WOULD HAVE PRINTED WAS A LIE
+
+**2026-09-29.** `_mint_routine`'s price comment says the alphabet is the wrong one, names Isaiah's
+ruling against flat pricing, and closes: *"the gap is PUBLISHED rather than hidden —
+`intent_alphabet` beside it in the routine row."* Reviewer-approved the same day. **Asked *is it
+actually reached* of my own published gap.**
+
+    WORLD       gridworld seed 11, and seed 11 click_only. No ARC board; the board stop holds
+    POPULATION  24 cycles each
+
+    rows publishing `intent_alphabet`   0
+    `_intent_kinds` at end of run       0
+
+**Zero distinct intents recorded, on the same runs where 960 of 960 bet rows name an intent.**
+Two instruments over one population, same seed, same cycle count, disagreeing by everything.
+
+## THE CAUSE, AT THE WRITE SITE
+
+`_intent_kinds` was filled at `_realise_step` and at `_mint_routine`, and **not at `_took`** —
+whose own docstring reads *"one door, so no exit can drop either again."* Every intent formed on
+the ordinary decision path (`choose`'s exits: `ELICIT`, `TOUCH`, the value `BECOME`) passes
+through `_took` and through neither of the other two. **The census was installed at two doors
+the ordinary path does not use.**
+
+> **THE FAILURE MODE IS THE ONE THIS PROJECT FILES MOST: IT PRESENTED AS NOTHING.** No seat went
+> red, no run failed, and `0` is exactly what an agent forming no intents would print. **The only
+> thing that separated *nothing happened* from *the counter is at the wrong door* was a second
+> instrument over the same population** — and I had taken that one an hour earlier for an
+> unrelated reason.
+
+**AND IT WOULD HAVE PRINTED A FALSE READING RATHER THAN ABSTAINED.** The routine row never wrote
+on these worlds, because no routine was ever priced — so the wrong price was never actually
+used here, and that part of the claim survives. **But the moment a routine HAD been priced, the
+row would have published `intent_alphabet=0`**, which asserts *this agent has formed no intents*
+while the bet rows beside it named one every cycle. A gap published as a lie is worse than a gap
+left unpublished: *a map entry saying a thing does not exist closes the question.*
+
+## THE REPAIR, AND WHAT IT IS NOT
+
+One line at `_took`. The two existing sites are KEPT rather than moved, and the reason is a
+quantity distinction: they fill BEFORE `realise` and so count intents that FAIL to realise, which
+`_took` never sees. **So the count is a LOWER BOUND and is commented as one** — an intent formed
+in `choose` and abstained on by the interface is still an intent formed, and it is not counted.
+
+    AFTER, both worlds:   `_intent_kinds` = 3
+    gridworld             BECOME OTHER - TOUCH o1 - TOUCH o3     actions 4
+    click_only            BECOME OTHER - TOUCH o2 - TOUCH o3     actions 1
+
+## AND THE READING IS THE FIRST MEASURED EVIDENCE ON THE PRICING QUESTION
+
+**On `click_only` the INTENT alphabet is LARGER than the ACTION alphabet — 3 against 1.** On
+gridworld it is smaller — 3 against 4. **The two alphabets differ in size AND IN DIRECTION
+depending on the world**, so substituting one `log2` for the other is not a correction, it is a
+different wrong number. That is Isaiah's *"penny wise and pound foolish ... they have different
+weight ... the agent may have to determine what types matter per board and weight them
+dynamically"* arriving as a reading rather than as a quotation. **Nothing is repriced here; the
+ruling is still his.**
+
+**AND `_intent_kinds` IS AN `A6i` HAZARD BY ITS OWN NAME.** It stores `says()`, which is
+verb-plus-operand: `TOUCH o1` and `TOUCH o3` are two entries. **So a field called KINDS grows
+with the OBJECT COUNT** — on a fifty-object board `TOUCH` alone contributes fifty, and any future
+price reading it as *how many things could the agent say* would scale with the board's furniture
+rather than with its vocabulary. Recorded, not renamed: the pricing ruling is what decides which
+of the two quantities is wanted, and renaming before that would pick the answer.
