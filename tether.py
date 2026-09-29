@@ -957,6 +957,12 @@ class Agent:
         self._gone: tuple[str, ...] = ()
         self.abstained: dict[str, dict] = {}
         self.candidates: dict[str, int] = {}     # term -> cycle accepted, awaiting the ground
+        # WHERE THE EVIDENCE CAME FROM. Isaiah 2026-09-30: candidates survive a level change,
+        # but *"it needs to have similar conditions"* -- so a carried candidate is DORMANT
+        # until the level it was learned on comes round again in substance. Kept BESIDE
+        # `candidates` rather than folded into it: the cycle is WHEN and the level is WHERE,
+        # and `A6i` is what happens when two quantities share one name.
+        self._cand_level: dict[str, int] = {}    # term -> the level its candidacy is live on
         self.settled: set[str] = set()
         self._settled_at_level: set[str] = set()   # the segment's starting line
         self.demoted: list[str] = []
@@ -1298,7 +1304,17 @@ class Agent:
         self._refuted_slot: dict = {}
         # THE MOVE MAP SURVIVES A BOUNDARY for `_contact_seen`'s reason: what an action does
         # to the avatar is a fact about the ACTION, not about the slot names of one level.
-        self.candidates = {}
+        #
+        # **AND `candidates` SURVIVES IT TOO, SINCE 2026-09-30. This read `self.candidates = {}`**
+        # -- Isaiah ruled that rules awaiting the ground are not wiped by a level change, the
+        # same shape as his routine ruling: a candidate is a behaviour-in-waiting, not a
+        # binding. The clear also sat under the comment ABOVE it, which is about the move map
+        # and not about this line, which is how it went unexamined.
+        #
+        # **DORMANT, NOT LIVE, AND THE TWO RULINGS ARE ONE COMMIT BECAUSE THE SECOND IS WHAT
+        # MAKES THE FIRST SAFE.** `_cand_level` still points at the OLD level, and `settle`
+        # requires the stamp to match, so a survivor cannot settle here on evidence it never
+        # saw here. It wakes when it is bound on this level and then pays like anything else.
         # a new level is a new instrument: the verdict was about the OLD slot set
         self._said_never_live = False
         self._view = ("full", dict)
@@ -4308,11 +4324,25 @@ class Agent:
         moment it is minted -- so widening this to every bind was scope the ruling never
         asked for**, and the ruling's subject is the term that has no route.
         """
-        if not _CARRY_CANDIDATE or name in self.candidates:
+        if not _CARRY_CANDIDATE:
+            return
+        # REACTIVATION, AND IT IS THE SAME DOOR ON PURPOSE. A candidate that survived a level
+        # boundary is DORMANT because its stamp names the old level; being bound HERE is the
+        # evidence that the conditions recur, so the stamp moves and nothing else does. **The
+        # birth cycle is untouched** -- that is the quantity whose movement took M2 to 27/30.
+        if name in self.candidates:
+            if self._cand_level.get(name) != self.level:
+                self.led.record(self.cycle, "ACCEPT", name, "candidate_woken",
+                                was=self._cand_level.get(name), now=self.level,
+                                born=self.candidates[name],
+                                reads="dormant since a level change; bound here, so it is "
+                                      "eligible again and must still pay on this level")
+            self._cand_level[name] = self.level
             return
         t = self.gamma.library.get(name)
         if t is not None and t.origin == IMPORTED:
             self.candidates[name] = self.cycle
+            self._cand_level[name] = self.level
 
     def _rejection(self, key: tuple) -> float:
         """The decayed strength of rejection. `Standing.decay` on the LOGICAL clock -- cycles,
@@ -5979,6 +6009,7 @@ class Agent:
         # as a slot's binding, NOT as a building block*, and `units()` admits settled only --
         # which is Q7's *held but not cited*, already built.
         self.candidates[term.name] = self.cycle
+        self._cand_level[term.name] = self.level
         if closes:
             self.owed_import.discard(slot)
             self.abstained.pop(slot, None)
@@ -6311,6 +6342,14 @@ class Agent:
                 continue
             born = self.candidates.get(name)
             if born is None or born >= self.cycle or self.gamma.is_settled(name):
+                continue
+            # DORMANT UNTIL THE CONDITIONS RECUR -- Isaiah, 2026-09-30. A candidate that
+            # crossed a level boundary keeps its birth cycle, so `born >= self.cycle` is
+            # false and WITHOUT THIS IT WOULD SETTLE IMMEDIATELY on the new level, against
+            # evidence it never saw there. **A missing stamp reads as dormant, never as
+            # live**: the conservative direction is the one that cannot manufacture a
+            # settlement, and nothing is deleted either way.
+            if self._cand_level.get(name) != self.level:
                 continue
             self.gamma.settle(name)
             self.settled.add(name)

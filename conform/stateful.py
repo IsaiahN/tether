@@ -1375,6 +1375,63 @@ def test_a_carried_term_can_reach_candidacy():
         tether._CARRY_CANDIDATE = was
 
 
+def test_a_candidate_survives_a_level_and_is_dormant_until_bound_here():
+    """**ISAIAH'S TWO RULINGS OF 2026-09-30, AND THEY ARE ONE TEST BECAUSE THEY ARE ONE
+    MECHANISM.** *Rules awaiting the ground survive level changes* -- and *"it needs to have
+    similar conditions"*, so a survivor is DORMANT rather than live.
+
+    **THE SECOND IS WHAT MAKES THE FIRST SAFE, WHICH IS THE WHOLE POINT.** A candidate keeps
+    its birth cycle across the boundary, so `born >= self.cycle` is already false: remove the
+    clear WITHOUT the dormancy stamp and the survivor settles on the new level on its first
+    observation there, against evidence it never saw there. That is the failure this asserts
+    against, not a hypothetical.
+
+    **THE CONTROLS ARE THE POINT.** A stamp that always matched would pass the headline and
+    certify nothing, so: the survivor must still be PRESENT (dormant is not deleted), it must
+    NOT be settle-eligible while its stamp is stale, and binding it here must wake it.
+    """
+    import gamma
+    import gridworld
+    import ledger
+    import tether
+    import world
+    env = world.bind(gridworld.GridWorld(seed=4))
+    g = gamma.Gamma(env.atoms())
+    ag = tether.Agent(env, g, tether.Config(max_depth=2), ledger.Ledger())
+
+    nm = [a.name for a in g.atoms][:2]
+    t = gamma.Term(tuple(g._by_name[n] for n in nm), origin=gamma.IMPORTED)
+    g._install(t, seq=-2, residual=None, admitted=None)
+    ag.cycle, ag.level = 3, 0
+    ag._carry(t.name)
+    assert ag._cand_level[t.name] == 0, "candidacy was not stamped with its level"
+
+    # THE BOUNDARY. `retarget` must NOT wipe it -- that is the first ruling. It does not
+    # touch `self.cycle`, which is the fact that makes the stamp load-bearing: the cycle
+    # keeps counting across levels, so a survivor's `born` falls further behind and
+    # `born >= self.cycle` stops holding it almost immediately.
+    ag.retarget(env, 1)
+    ag.cycle = 9
+    assert t.name in ag.candidates, (
+        "the level boundary wiped a rule awaiting the ground -- Isaiah ruled it survives")
+
+    # DORMANT: the stamp still names the old level, so it is not eligible HERE...
+    assert ag._cand_level.get(t.name) != ag.level, (
+        "a survivor came through the boundary already live -- without the stamp it would "
+        "settle on the new level against evidence it never saw there")
+    # ...and its birth cycle is old, so the ONLY thing holding it is the stamp. Stated as an
+    # assertion because if `born` were doing the work this test would prove nothing.
+    assert ag.candidates[t.name] < ag.cycle, "born is gating it, so the stamp is untested here"
+
+    # WAKING IT: bound on this level, and the stamp moves while the birth cycle does not.
+    born = ag.candidates[t.name]
+    ag._carry(t.name)
+    assert ag._cand_level[t.name] == ag.level, "binding here did not wake the candidate"
+    assert ag.candidates[t.name] == born, "waking moved the birth cycle"
+    assert any(e.detail.get("was") is not None and e.event == "candidate_woken"
+               for e in ag.led.entries), "the reactivation left no row"
+
+
 def test_never_two_consecutive_resets():
     """**ISAIAH'S ONE HARD RULE, WITH ITS FAILURE PATH EXERCISED.** *Fully ungated undo and
     reset, just no consecutive resets (reset, reset) in interface.* One `RESET` restarts the
@@ -1461,6 +1518,7 @@ if __name__ == "__main__":
         test_every_exit_has_a_phase()
         test_never_two_consecutive_resets()
         test_a_carried_term_can_reach_candidacy()
+        test_a_candidate_survives_a_level_and_is_dormant_until_bound_here()
         print("  A5 and B5 reproductions still fire (expected): ok")
         print("  keyed reach loses nothing: ok · two vocabularies stay two: ok")
         print("  the quantifiers quantify (ONE fires, all != some): ok")
