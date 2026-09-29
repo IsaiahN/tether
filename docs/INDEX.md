@@ -51079,3 +51079,70 @@ routine is built; in the `DONE` case it gets past, a routine is built and adopte
 **ALL FOUR ROUTINES WERE ABOUT `proximity`** — `o1` `o2` `o3` `o4`, every one the RELATIONAL
 attribute and no other. Not interpreted here; recorded because a four-for-four on one attribute
 is a fact about what the agent is able to form plans ABOUT, and nobody had looked.
+
+---
+
+# THE AGENT'S OWN EXPLORATION UNDOES ITS GOALS: 13 OF 14 REACHES LOST, AND `BECOME OTHER` DID TEN OF THEM
+
+**2026-09-29, and the measurement exists because ISAIAH REFRAMED WHAT THE DATA WAS.** I had the
+momentary touches filed as **noise to filter out of the selector**. His ruling: *"this is data
+similar to actions becoming available and not available -- it's a hint or indicator."* A goal
+that reads met and then un-met is an observation about **whatever the agent did in between**.
+
+    WORLD       gridworld seed 11, system0 on, max_depth 2. No ARC board; the stop holds
+    POPULATION  60 cycles, one run. Pure read -- nothing recorded in the agent yet
+
+    goal REACHED events (crossed to <= 0)   14   over 2 slots
+    goal UNDONE  events (met -> un-met)     13
+
+**THIRTEEN OF FOURTEEN REACHES ARE UNDONE.** The goals are REACHABLE and they almost never HOLD.
+
+## AND IT REPEATS, WHICH IS THE HALF THAT MAKES IT A READING RATHER THAN AN ANECDOTE
+
+Isaiah's own condition — *you would try it a few times to see whether it consistently alters the
+state* — is `MIN_REPEAT`, and the census answers it without a new constant:
+
+    4x   BECOME OTHER              down
+    4x   BECOME OTHER              up
+    2x   BECOME OTHER              left
+    1x   BECOME o1.proximity +     up
+    1x   BECOME o1.proximity +     down
+    1x   BECOME o4.proximity -     down
+
+**`up` and `down` each undo a met goal FOUR times.** Twice the bar, on one seed.
+
+## THE CULPRIT IS THE AGENT'S OWN CURIOSITY, AND IT IS TRUE BY CONSTRUCTION
+
+**Ten of thirteen carry the intent `BECOME OTHER` — which is `ELICIT`, the EXPLORATION intent.**
+Its whole meaning is *do something different*, so **from a satisfied state it will move off that
+state every time it is realised.** The agent reaches its goal and its own exploratory drive
+walks it away.
+
+> **THIS IS NOT A BUG IN `ELICIT`.** Exploration that refused to disturb a satisfied slot would
+> be an exploration that cannot explore. **What is missing is that nothing NOTICES** — the
+> transition is not recorded, so *I reached this and my own next move lost it* is invisible to
+> the agent, and `_res` simply reads a higher discrepancy next cycle with no account of why.
+
+**AND THREE OF THIRTEEN ARE CROSS-GOAL INTERFERENCE**: `BECOME o1.proximity +` and
+`BECOME o4.proximity -` undoing `o0.row`. The agent pursuing one objective destroys another it
+had already met, and nothing connects the two events.
+
+## WHAT THIS DOES *NOT* SHOW, AND IT IS THE HALF THAT WAS PREDICTED
+
+The reviewer's third point — *the two exhausted proximity trials may be exactly this: reachable,
+not holdable* — **IS NOT SUPPORTED BY THIS MEASUREMENT.** Every reached-and-undone slot is
+`o0.row` (11) or `o0.col` (2). **No proximity slot appears in the reached set at all**, so the
+reach-not-hold phenomenon is on the AVATAR'S OWN POSITION and not on the relational attribute
+the exhausted trials were about.
+
+**So the exhausted proximity trials remain unexplained, exactly as filed.** A plausible
+hypothesis got a clean population and did not survive it, which is worth more than the
+hypothesis was.
+
+## WHAT IS OWED, AND IT IS DELIBERATELY NOT BUILT HERE
+
+Isaiah and the reviewer both said **record and report first; do not build a new intent from it
+tonight.** So: the transitions are MEASURED and not yet RECORDED, and nothing in the agent can
+read them. The build, when it is ruled, is *which intent was taken when a met objective became
+unmet, keyed the way the other audit rows are* — `(context, before-value)` — which is System 0
+job B's *capability opened / closed* in goal form: **this intent undoes that objective.**
