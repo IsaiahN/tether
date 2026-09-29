@@ -901,6 +901,11 @@ class Agent:
         # since they are reusable only if the slot returns to exactly that binding.
         self._tally: dict = {}
         self._trace_epoch = 0
+        # (ctx, intent, slot, the discrepancy it was met at) -> times that pair undid it.
+        # ISAIAH, 2026-09-29: a goal met then un-met is "data similar to actions becoming
+        # available and not available -- it's a hint or indicator". The COUNT is what makes it
+        # testable rather than anecdotal, against `MIN_REPEAT` like every other repeat claim.
+        self._undone: dict = {}
         self._acts: Counter = Counter()   # System-0 instrument: concrete actions taken per cycle
         # the whole before-state is kept, because an operand is another slot's past value
         self.trace: list[tuple[dict[str, int], str, dict[str, int]]] = []
@@ -3881,6 +3886,7 @@ class Agent:
         reach: dict[str, str] = {}
         counts: dict[str, dict] = {}
         popped: dict[str, int] = {}
+        undone: list = []
         for slot in self.slots:
             g = self._discrepancy(slot, state)
             if not isinstance(g, int):
@@ -3911,6 +3917,11 @@ class Agent:
                 popped[_x] = popped.get(_x, 0) + 1
                 self._res.pop(slot, None)
             else:
+                # **MET -> UN-MET IS AN OBSERVATION, NOT NOISE TO DROP.** Detected before the
+                # append, while the prior reading is still in hand.
+                _was = self._res.get(slot)
+                if _was and _was[-1] <= 0 < rg:
+                    undone.append((slot, _was[-1], rg))
                 self._res.setdefault(slot, []).append(rg)
                 counts[slot] = cnt
             if g is not NOT_RESOLVED:      # an OBJ term is bound and readable here
@@ -3926,6 +3937,31 @@ class Agent:
         # when the vocabulary row was emitted from the same position. Carried to the first
         # point where a PERCEIVE row is already in order.
         self._popped = popped
+        # **WHICH INTENT UNDID WHICH GOAL -- the reviewer's row, 2026-09-29, from Isaiah's
+        # ruling.** Recording only; what the agent DOES about it is his call and is not here.
+        #
+        # **THE ATTRIBUTION IS CORRECT HERE AND IS NOT ELSEWHERE, WHICH IS THE WHOLE REASON THE
+        # ROW LIVES AT THIS SITE.** This runs at the TOP of the step, so `_res` is being updated
+        # from the frame the PREVIOUS action produced -- and `_intent_now`/`_last_action` are
+        # not cleared until `choose` further down, so they still name THAT action. Read them
+        # after `step()` returns instead and every transition is paired with the intent taken
+        # AFTER the one that caused it: measured, and it reported `down` four times when `down`
+        # was responsible for none of them.
+        #
+        # Keyed like the other audit rows -- context and the value it was met at -- so the
+        # repeat count is per situation and not per run. One row per transition rather than per
+        # call: these are rare (13 in 60 cycles) and the flood `_why` warns about does not apply.
+        if undone:
+            _ctx = IFace.Interface.context(self.env)
+            _said = self._intent_now.says() if self._intent_now is not None else None
+            for _slot, _was, _now in undone:
+                _key = (_ctx, _said, _slot, round(float(_was), 3))
+                _n = self._undone[_key] = self._undone.get(_key, 0) + 1
+                self.led.record(self.cycle, "PERCEIVE", _slot, "goal_undone",
+                                was=round(float(_was), 4), now=round(float(_now), 4),
+                                intent=_said, action=self._last_action, ctx=_ctx,
+                                times=_n, repeated=_n >= MIN_REPEAT,
+                                reads="a goal I had met is no longer met; this is what I did")
         if reach:
             self.led.record(self.cycle, "PERCEIVE", "*", "can",
                             **{k: sum(1 for v in reach.values() if v == k)
