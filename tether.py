@@ -681,7 +681,12 @@ class Config:
     # been `False` since it was built, so the intake the reviewer calls the ELABORATION GUARD
     # had never once opened. Systems 1 and 2 are both SELECTIVE BY NATURE and neither can notice
     # anything outside its own frame; 0 has no frame, which is what lets it catch the nuance.
-    system0: bool = True
+    # **THE OFF SWITCH IS GONE -- ISAIAH, 2026-09-29: *remove the "System 0 off"
+    # override. System 0 is always on.* It is not a capability to be configured; it is
+    # what notices what 1 and 2 cannot, and a frame-less faculty you can switch off is
+    # one the run can silently lack. `conform/arms.py` had it recorded as a field-arm
+    # FOUND OFF on the ARC path against a standing ruling -- removing the field ends
+    # that class of silence rather than fixing one instance of it.
     # **THE ACCUMULATOR, DEFAULT *ON*. THIS HEADING READ `DEFAULT OFF` ABOVE A `True`
     # VALUE FROM THE DAY IT WAS WRITTEN -- CORRECTED 2026-09-28, AND THE BODY BELOW IS
     # KEPT BECAUSE IT IS THE REASONING, NOT THE ERROR.**
@@ -3289,8 +3294,9 @@ class Agent:
         # contingency evidence to be strategic -- a surfaced action not yet tried at >=2 distinct
         # states, probe.py's `never_live` anchor -- draw variously INSTEAD of exploiting the
         # learned arm, so it generates the (before, action, after) evidence binding needs. The
-        # switch is state-derived (coverage), never a cycle constant. Off unless Config.system0.
-        if self.cfg.system0 and self._system0_active():
+        # switch is state-derived (coverage), never a cycle constant -- and ALWAYS ON as of
+        # Isaiah's 2026-09-29 ruling, so the only gate left is whether the state calls for it.
+        if self._system0_active():
             target, why = self._contact_target(before)
             self._s0_target = target
             act = self.drive.choose(self.actions, self.cycle, _where(before))
@@ -3521,7 +3527,7 @@ class Agent:
         bound = [s for s in self.slots if self.bound.get(s, IDN) != IDN]
         return {"bound_slots": len(bound), "total_slots": len(self.slots),
                 "binding_density": round(len(bound) / max(1, len(self.slots)), 4),
-                "acts": dict(self._acts), "system0": self.cfg.system0}
+                "acts": dict(self._acts), "system0": True}
 
     def _characterise(self, res: dict) -> Characterisation:
         """Describe THIS cycle's gap in §15.3's four keys. Types, never slot names."""

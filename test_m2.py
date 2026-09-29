@@ -136,8 +136,14 @@ def _agent(cycles: int = 25):
         # `conform/stateful.py::test_the_seam_varies_what_it_explores_with` does, with the
         # seam live -- because *pinned around* without a certifying check is how a suite keeps
         # a mechanism green by never running it.
+        # **THE `system0` CONFIG FIELD IS GONE -- ISAIAH, 2026-09-29: System 0 is always on.**
+        # So the pin moves from a SHIPPED SWITCH to a FIXTURE-LOCAL PATCH, which is what it
+        # always was in spirit and is exactly how `_explore` is pinned three lines down. The
+        # ruling removes the agent's ability to run without System 0; it does not remove this
+        # fixture's need to hold one policy still while it checks the others.
         ag = tether.Agent(env, gamma.Gamma(env.atoms(), game="m2test"),
-                          tether.Config(system0=False, accumulate=False))
+                          tether.Config(accumulate=False))
+        ag._system0_active = lambda: False
         ag._explore = lambda before, _subject=None: ag.drive.choose(
             ag.actions, ag.cycle, tether._where(before))
         for _ in range(cycles):

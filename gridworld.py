@@ -336,7 +336,9 @@ class GridWorld:
 
         **SO SYSTEM 0's CONTACT INTAKE HAS BEEN DEAD IN EVERY WORLD THE AGENT HAS EVER RUN**,
         independently of `Config.system0` being off -- two separate reasons for one silence, and
-        the flag is the one that gets noticed.
+        the flag is the one that gets noticed. **The flag was REMOVED 2026-09-29 (Isaiah:
+        System 0 is always on), so only the intake reason survives -- which is the one that
+        was never noticed.**
 
         A grid is where contact actually exists, so this is the natural place to supply it.
         `orthogonal` and `diagonal` are distinct KINDS because they afford different things, and

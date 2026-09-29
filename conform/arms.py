@@ -2,8 +2,13 @@
 
 **ENVIRONMENT SWITCHES ONLY, AND THE COUNT ABOVE IS THEREFORE NOT THE AGENT'S TOTAL --
 ANNOTATED 2026-09-28.** The detector is `os.environ.get("TETHER_X")`, so a capability switch
-that is a `Config` FIELD is invisible here. There are exactly two: `Config.system0` and
-`Config.accumulate`.
+that is a `Config` FIELD is invisible here. There is exactly ONE: `Config.accumulate`.
+
+**IT WAS TWO UNTIL 2026-09-29, AND THE SECOND WAS REMOVED RATHER THAN COUNTED -- ISAIAH:
+*remove the "System 0 off" override. System 0 is always on.*** `Config.system0` is gone from
+the dataclass, so the blind spot this paragraph describes no longer has it to hide. **That is
+the stronger fix: a field-arm the census cannot see is dangerous because it can be OFF, and an
+arm that does not exist cannot be.**
 
 **AND THAT IS CHECKED RATHER THAN HEDGED, because a corrected count that is itself uncounted is
 how the first one got here.** Every class in the repository was scanned for `bool`-annotated
@@ -12,10 +17,14 @@ fields: FOUR have them, and only `Config`'s are configuration -- `gamma.Atom`'s
 `instruments.Termination` hold recorded READINGS. Of everything `arc_holdout.play` constructs
 (`ArcWorld`, `Ledger`, `Config`, `Gamma`, `Agent`, `Budget`) only `Config` carries a bool.
 
-**AND `system0` IS THE ONE THAT MATTERS** -- it was found OFF on the
+**AND `system0` WAS THE ONE THAT MATTERED** -- it was found OFF on the
 ARC path against a standing ruling of Isaiah's, and it is exactly the class this file's
 `UNDECLARED` check exists to prevent entering silently. *A new arm cannot enter silently* is
 true of env arms and false of field arms.
+
+**KEPT IN THE PAST TENSE RATHER THAN DELETED, because an error entry whose evidence is edited
+away stops being evidence.** The instance is closed by removal; **the CLASS is not** -- a future
+`Config` bool would be just as invisible to this census, and `accumulate` is one today.
 
 Widening the census to cover them is FILED, NOT DONE, deliberately: an instrument is installed
 once you know what it must measure, and the System 0 rulings are open. **But the count is a

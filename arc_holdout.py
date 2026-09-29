@@ -25,7 +25,6 @@ the tree.
 from __future__ import annotations
 
 import collections
-import dataclasses
 import logging
 import sys
 from pathlib import Path
@@ -64,7 +63,7 @@ def _mode():
 
 def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
          store: str | None = None, arc=None, stop_on_end: bool = False,
-         system0: bool = False, led_path: str | None = None, on_frame=None,
+         led_path: str | None = None, on_frame=None,
          cfg: Any = None) -> dict:
     """Download one game, run the loop on it, and report where the chain stops.
 
@@ -135,8 +134,8 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
     # keeps passing while the thing it proves has become unprovable.**
     #
     # This changes nothing by default and lets the two harnesses differ without touching the
-    # shared default. `system0` is still honoured when a config is passed, rather than being
-    # dropped by whichever argument arrived second.
+    # shared default. **The `system0` parameter is GONE -- Isaiah, 2026-09-29: System 0 is
+    # always on, so there is nothing here to honour or to drop.**
     # **ISAIAH'S RULING, 2026-09-24: THE FOLD PROCEEDS.** *`TETHER_ITERATE=1` AND
     # `play(..., cfg=Config(max_depth=4))`; the toy default stays 3 -- the chunking falsifier is
     # NOT to be disarmed.* **The agent gets cell-by-cell reasoning it has never had.**
@@ -152,9 +151,7 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
     # 4 widens the whole ARC search, not only the folds, and the run that would price it is
     # still prohibited.
     if cfg is None:
-        cfg = tether.Config(system0=system0, max_depth=4)
-    elif system0:
-        cfg = dataclasses.replace(cfg, system0=True)
+        cfg = tether.Config(max_depth=4)
     ag = tether.Agent(env, gamma.Gamma(env.atoms(), game=game), cfg, led)
     loaded = ag.gamma.load(library) if library and Path(library).exists() else None
     # Q25 needs the set BEFORE play and there is exactly one moment it exists
