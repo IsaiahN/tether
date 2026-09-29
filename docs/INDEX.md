@@ -50752,3 +50752,91 @@ goes **ahead of the selector.**
 Nothing here changes what the agent can do. It is a diagnosis, and it names two things to look
 at — **the selector spending choices on satisfied objectives**, and **whether any ending can
 reach the shelf at all** — with the second blocked on a re-run that records the ending KIND.
+
+---
+
+# WHAT GREW: `mint` IS 99.2% OF A LATE CYCLE, AND THE TERM IS THE SLOT'S OBSERVATION HISTORY WALKED ONCE PER CANDIDATE
+
+**2026-09-29.** The reviewer's instruction, ahead of the selector: *"profile one late cycle
+against one early cycle and name what grew."* Done as ONE script with one flag — same process,
+same run, same seed — per *an A/B is one script, never two scripts*.
+
+    WORLD       gridworld seed 11, system0 on, max_depth 2. No ARC board; the stop holds
+    POPULATION  two cycles of one run: cycle 4 and cycle 46
+
+                          cycle 4      cycle 46     ratio
+    step  cumtime          3.572s      163.743s     45.8x
+    mint  cumtime          3.536s      162.468s     45.9x
+    mint  ncalls                5             9      1.8x
+    PER MINT CALL           0.707s       18.052s     25.5x
+    _cannot_pay ncalls       69,220      243,378      3.5x
+    _cannot_pay cumtime      1.842s      105.303s      57x
+    _left cumtime        not in top 20   50.897s        --
+    _ops ncalls             139,892   11,618,054       83x
+    _value_of ncalls         70,504    7,108,605      101x
+    gamma.apply ncalls      213,738   20,256,464       95x
+    objective_step ncalls    28,298    2,876,460      102x
+
+**`mint` IS THE WHOLE OF IT — 162.5 of 163.7 seconds, and its growth ratio equals `step`'s to
+one decimal.** Nothing else grew; there is no second suspect to eliminate.
+
+## AND IT IS NOT CALLED MORE — EACH CALL IS 25x DEARER
+
+`mint` goes 5 calls to 9. **The work per call is the whole effect**, which is what makes this a
+history term rather than a frequency one. Inside it, `_cannot_pay` is **64% of the cycle** and
+`_left` **31%**; their cumtimes sum to 156s against `mint`'s 162s, so between them they are
+essentially all of it.
+
+**The inner counts are the proof.** `_cannot_pay` is called only 3.5x more, while `_ops`,
+`_value_of`, `apply` and `objective_step` are each called **83–102x** more. So **each
+`_cannot_pay` call now does roughly 29x more inner work than it did at cycle 4.**
+
+## THE TERM, AT THE WRITE SITE
+
+`_cannot_pay`'s body is `for state, action, actual in robs` — **the slot's accumulated
+observation history** — and it runs that loop once per candidate term. `_left` is the same
+quantity by its own first line: *"what the term leaves unexplained across the slot's HISTORY."*
+
+> **SO THE GROWTH IS HISTORY x CANDIDATES, AND BOTH GROW WITH THE RUN.** That is quadratic in
+> cycles, and it is the mechanism the reviewer predicted from the shape of the curve alone —
+> *something is doing work proportional to accumulated history each cycle* — named before the
+> profile was read.
+
+## THE CHEAPEST-LOOKING FIX IS ALREADY BUILT AND ALREADY OFF, AND IT IS **NOT** SAFE TO WIDEN BLINDLY
+
+`_left` takes a `ceiling` whose docstring says it is **AN EXACT ABORT, NOT AN APPROXIMATION** —
+every term added is non-negative, the caller compares with a strict `<`, so **the winner is
+bit-identical and only the losers stop early.** It closes: *"Default `None` leaves every
+existing caller walking the full history."*
+
+**Measured rather than taken from the docstring: 13 call sites, and exactly ONE passes
+`ceiling`.** Twelve walk the whole history. `tether.py:5758` is the one that does not.
+
+**AND THE OBVIOUS WIDENING IS WRONG, WHICH IS WHY THIS IS RECORDED RATHER THAN DONE.** The abort
+returns a total that is correct *as a comparison* and **false as a value**. Callers that need
+the VALUE cannot take it:
+
+    tether.py:2439   `_explains` is `_left(...) == 0.0` -- an aborted total is not 0.0, and
+                     a ceiling here would turn "explains the history" into a timing artefact
+    2329 / 2500 / 5822 / 5948   compute a `base` or `bleft` that is later COMPARED AGAINST
+                     -- a ceiling'd base is not a base
+
+**Only the sites doing *find the minimum over candidates* can take it**, which is a smaller set
+than twelve and has to be read one at a time. *A wrapper's success is not the operation's*, one
+level along: an exact abort is exact **for the caller it was designed for**, and the exactness
+does not travel with the parameter.
+
+## WHAT IS AND IS NOT ESTABLISHED
+
+**ESTABLISHED:** the cost is `mint`; within it the loop over per-slot history per candidate; the
+growth is in work-per-call, not call count; the `_left` ceiling is built and used by 1 of 13
+callers.
+
+**NOT ESTABLISHED, AND NOT TO BE ASSUMED:** that widening the ceiling would materially move the
+curve. **`_cannot_pay` — the larger half at 64% — ALREADY has this abort inside its own loop**
+(`if cost + unit * wrong >= base: return True`), so the expensive case there is a term that is
+mostly RIGHT and therefore never trips it. **A fix aimed at `_left` leaves the bigger half
+untouched**, and no number here says otherwise.
+
+**AND THE BUDGET CLAIM STAYS WITHDRAWN.** *1000 cycles is unreachable* was the wrong conclusion
+and is not rescued by this profile: a hotspot is a thing to fix, not a ceiling to accept.
