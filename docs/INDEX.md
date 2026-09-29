@@ -51442,3 +51442,110 @@ is the same absence as the 16-of-16 and the same absence as *conflict, not yet w
 **STEP 3 IS RECORDED AS REFUSED WITH A REASON, NOT DEFERRED** — the distinction matters, because
 a deferred item waits for time and a refused one waits for a named thing. **What it waits for is
 `1b`, the intent-level prediction `(before, intent, after)`.**
+
+---
+
+# 1b MEASURED: THE FORWARD MODEL IS 96.6% WHERE IT COMMITS AND SILENT THREE TIMES IN FOUR — AND MY PROXIMITY HEADLINE DIED BY THE TEST I WROTE FOR IT
+
+**2026-09-29/30.** Isaiah's ruling 2 — the intent-level prediction — measured before building,
+via `realise + lands`. Three runs, each correcting the last, and the corrections are the entry.
+
+## THE MEASUREMENT HAD TO BE REBUILT TWICE BEFORE IT MEASURED ANYTHING
+
+    RUN 1  INVALID.  Joined `_undone` against `lands` on `before` -- a GOAL DISCREPANCY in one
+           table and a SLOT VALUE in the other. Matched at zero and meant nothing.
+           **My own script printed the fact that invalidates it** -- *different quantities
+           (goal discrepancy vs slot value)* -- as an argument that the test was meaningful
+    RUN 2  TAUTOLOGICAL IN PART. Read the table at END OF RUN, so for the first occurrence of
+           each cell "lands knew" was the event that WROTE it. 13/13 became an estimated 8/13
+    RUN 3  VALID. Predicted at `audit` ENTRY -- the table still pre-press, which is exactly
+           what 1b would have at decision time. Every row a real HIT, MISS or ABSTENTION
+
+> **THE HOOK IS THE WHOLE FIX AND IT WAS AVAILABLE ALL ALONG.** `audit` is the function that
+> WRITES the table, so its entry is the last moment the table is unpolluted by the press being
+> judged. **No snapshotting, no reconstruction, nothing to subtract afterwards.**
+
+## THE READING — `WORLD` gridworld seed 11, no ARC board · `POPULATION` 60 cycles, 347 slot-changes
+
+    tier 1  the exact cell (ctx, slot, before)     abstain 74.4%   accuracy 96.6%
+    tier 2  same slot+value, OTHER contexts        abstain 42.9%   accuracy 68.2%
+    tier 3  DIRECTION only, from the delta table   abstain 48.4%   accuracy 58.1%
+
+**THE HEADLINE IS THE ABSTENTION RATE, NOT THE ACCURACY.** Consumed today, 1b would say nothing
+on three occasions in four. **A predictor that silent cannot carry a decision**, and that is the
+answer to whether 1b unblocks step 3: not yet, and not for the reason anyone expected.
+
+**TIER 2 IS A TRADE AND NOT A FREE WIN** — 31 points of abstention bought for 28 points of
+accuracy. For a `DISTURB` choice **abstaining beats being wrong a third of the time**, because a
+wrong prediction that CHANGES a choice is worse than no prediction that leaves the default. It
+is a hint, on the footing of the `across` count.
+
+**TIER 3 IS NOISE WITH A LABEL AND SHOULD BE DROPPED.** 58.1% against a ~50% coin floor, because
+it predicts a SIGN where the others predict a VALUE. **Its number is not comparable to theirs
+and the script says so in its own output**, not only here — a caveat that lives in a note is a
+caveat that gets separated from its table.
+
+## AND THE PROXIMITY HEADLINE IS RETRACTED, BY THE TEST I SET FOR IT MYSELF
+
+I reported *all three misses are proximity* as ruling 3 arriving as a measurement, and wrote the
+falsifier into the same note: *if proximity also has fifty hits then it is 94% accurate and the
+headline is wrong.*
+
+    proximity   n=279   HIT 68   MISS 3   accuracy 95.8%
+    row         n=47    HIT 16   MISS 0   accuracy 100%
+    col         n=16    HIT  1   MISS 0   accuracy 100%
+
+**IT HAS 68 HITS AND IS 95.8%.** Proximity is **80% of the whole population**, so it takes the
+most misses by volume alone, and 3 in 71 decided is within a point of the others.
+
+> **WHY IT WAS OVER-READ, BECAUSE THE SHAPE WILL RECUR: THREE MISSES LANDING ON THE ATTRIBUTE
+> ISAIAH HAD RULED ON AN HOUR EARLIER IS AN EXTREMELY ATTRACTIVE PATTERN.** It agreed with an
+> authority, it explained an open puzzle, and it was timely. **That is exactly when the
+> denominator is the thing to demand** — and it WAS demanded, in the same breath, and then the
+> reading was published first and the caveat second **when the caveat was doing all the work.**
+
+**RULING 3 IS UNDAMAGED — it is a nomenclature ruling and stands on its own.** What is retracted
+is the claim to have MEASURED it.
+
+## AND THEN IT WAS MEASURED, BY A DIFFERENT AND BETTER READING — THE TIER-2 SPLIT
+
+                tier 1 accuracy      tier 2 accuracy
+    proximity        95.8%       —>      60.4%
+    row             100.0%       —>     100.0%
+    col             100.0%       —>     100.0%
+
+**ALL SIXTY-THREE TIER-2 MISSES ARE PROXIMITY.** `row` and `col` generalise across contexts
+PERFECTLY; proximity does not.
+
+> **SO THE TRUE CLAIM IS NOT *PROXIMITY IS MISPREDICTED* — IT IS 95.8% AT TIER 1 — BUT
+> *PROXIMITY DOES NOT GENERALISE ACROSS CONTEXTS WHERE A COORDINATE DOES.*** For a coordinate,
+> *the same before-value in another context* is the same situation. For a relational quantity it
+> is not: **closeness depends on what else is on the board.** That is Isaiah's closeness-versus-
+> unobstructed-path distinction arriving as a GENERALISATION failure rather than an accuracy one.
+
+**AND IT WAS PRE-REGISTERED BEFORE THE RUN**, which is the only reason it counts: the 03:05 note
+predicted tier 2 would hold for row/col and drop for proximity, with the reason given. **The
+retracted version was a pattern noticed after the fact; this one is a prediction that survived.**
+It also explains tier 2's aggregate 68.2% entirely — proximity is 80% of the population and
+carries every miss.
+
+## AND THE ABSTENTION IS NEITHER A WALL NOR A LEARNING CURVE
+
+    cycles  0-9    94.9%        cycles 30-39   41.7%
+    cycles 10-19  100.0%        cycles 40-49   71.7%   <- RISES
+    cycles 20-29   59.6%        cycles 50-59   79.0%   <- RISES
+
+**I PREDICTED IT WOULD FALL AND FLATTEN. IT FALLS TO 42% AND CLIMBS BACK TO 79%.** Refuted.
+
+**HYPOTHESIS, NOT CONCLUSION:** the cell space is `(ctx, slot, before)` and the agent keeps
+reaching NEW contexts and NEW before-values. Early blocks abstain because nothing is filled;
+later blocks because it has gone somewhere it has not been. **NOVELTY OUTPACES FILLING.**
+
+> **SO A LONGER RUN IS NOT OBVIOUSLY THE FIX, AND THAT IS WORTH SAYING BEFORE ONE IS
+> AUTHORISED.** With abstention RISING in the last two blocks, the case for 200 cycles is not
+> *it will converge* but *let us see whether the rise continues* — a different and weaker
+> justification for the same expensive run.
+
+**LIMITS: ~60 events per block, ONE SEED, and the seed spread is unmeasured.** A non-monotonic
+series on one seed could be this agent wandering into a new region rather than a property of the
+design.
