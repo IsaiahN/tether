@@ -1312,6 +1312,47 @@ def test_asking_the_interface_does_not_change_it():
         "the snapshot did not move across an audit -- this comparison cannot fail and "
         "certifies nothing")
 
+
+def test_never_two_consecutive_resets():
+    """**ISAIAH'S ONE HARD RULE, WITH ITS FAILURE PATH EXERCISED.** *Fully ungated undo and
+    reset, just no consecutive resets (reset, reset) in interface.* One `RESET` restarts the
+    LEVEL; a second with no action between restarts the GAME FROM LEVEL 1, so the pair is the
+    one thing named as able to lose a run.
+
+    **THE CONTROLS ARE THE POINT, because a guard that simply never returns `RESET` would pass
+    the headline assertion and certify nothing.** So reset must be REACHABLE when nothing bars
+    it, and the bar must CLEAR once another action has run.
+    """
+    import interface as IFace
+    want, ctx = IFace.Intent(IFace.ELICIT), ()
+
+    # CONTROL FIRST: reset is reachable when nothing bars it. Without this a broken guard
+    # reads as caution.
+    clear = IFace.Interface().realise(want, (IFace.RESET,), ctx, {}, None)
+    assert clear is not None and clear.action == IFace.RESET, (
+        "reset is not reachable even with nothing barring it -- the assertion below cannot "
+        "fail and certifies nothing")
+
+    # THE RULE: after a reset has actually run, a second is never sent -- even when it is the
+    # only thing on offer, in which case the interface must abstain.
+    f = IFace.Interface()
+    first = f.realise(want, (IFace.RESET,), ctx, {}, None)
+    f.audit(first, {}, {}, ctx)
+    second = f.realise(want, (IFace.RESET,), ctx, {}, None)
+    assert second is None or second.action != IFace.RESET, (
+        "the interface sent RESET immediately after RESET -- that restarts the GAME from "
+        "level 1 and loses every completed level")
+
+    # AND IT RECOVERS: the bar is adjacency, not a ban. Isaiah: the ordinary backtrack is
+    # reset, a long replay, then perhaps reset again -- the replay must clear it.
+    g = IFace.Interface()
+    g.audit(g.realise(want, (IFace.RESET,), ctx, {}, None), {}, {}, ctx)
+    g.audit(IFace.Realisation("ACTION1", why="something else ran"), {}, {}, ctx)
+    again = g.realise(want, (IFace.RESET,), ctx, {}, None)
+    assert again is not None and again.action == IFace.RESET, (
+        "the bar did not clear after another action -- that is a ban on reset, not the "
+        "adjacency rule, and it would block every ordinary backtrack")
+
 if __name__ == "__main__":
     if "--cover" in sys.argv:
         for label, c in (("kernel.Frame", coverage()),
@@ -1356,6 +1397,7 @@ if __name__ == "__main__":
         test_the_seam_varies_what_it_explores_with()
         test_asking_the_interface_does_not_change_it()
         test_every_exit_has_a_phase()
+        test_never_two_consecutive_resets()
         print("  A5 and B5 reproductions still fire (expected): ok")
         print("  keyed reach loses nothing: ok · two vocabularies stay two: ok")
         print("  the quantifiers quantify (ONE fires, all != some): ok")

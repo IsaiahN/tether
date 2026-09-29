@@ -59,6 +59,12 @@ BECOME = "BECOME"        # a takes an attribute
 # intent whose predicted outcomes differ most across its hypotheses* -- and that needs a verb
 # meaning *separate my alternatives*.
 DISTINGUISH = "NOT SAME"
+# **THE ONE BUTTON THIS MODULE KNOWS BY NAME, AND THIS IS THE RIGHT HOUSE FOR IT.**
+# Isaiah, 2026-09-29: *all actions still must live and be controlled by the interface --
+# that separation is what makes this possible.* Reset and undo are FULLY UNGATED here; the
+# interface picks them by what it knows they do, like any other action. The single hard
+# rule is below, at `realise`.
+RESET = "RESET"
 
 # **THE POSITIONED ACTION, NAMED HERE AND NOWHERE ABOVE -- the plan's 19c.** The seam's rule is
 # that only the interface may know a button exists, so this string belongs in this file and was
@@ -213,9 +219,38 @@ class Interface:
         # puts the unlisted name in the record where a reader meets it.
         self.attrs_seen: set[str] = set()
 
+        # **SET FROM `audit`, NEVER FROM `realise`.** `realise` is called speculatively at
+        # several branches and most of those results are discarded, so a flag set there
+        # would count presses that never happened. `audit` sees what ACTUALLY ran.
+        self._last_was_reset = False
+
     # ---- downward: intent -> action --------------------------------------------------
 
     def realise(self, intent: Intent, offered: tuple[str, ...], ctx: tuple = (),
+                state: dict | None = None, env: Any = None) -> Realisation | None:
+        """**THE ONE DOOR, SO NO EXIT CAN SEND A SECOND CONSECUTIVE `RESET`.**
+
+        **ISAIAH, 2026-09-29, AND IT IS A HARD CONSTRAINT RATHER THAN A PREFERENCE:** *fully
+        ungated undo and reset, just no consecutive resets (reset, reset) in interface.* One
+        `RESET` restarts the LEVEL; a second with no action between restarts the GAME FROM
+        LEVEL 1, so the pair is the one thing named as able to lose the run.
+
+        **NOT A WHITELIST.** An earlier draft of mine proposed serving reset only for a
+        *go back* intent and never for `ELICIT` -- **overruled, and rightly**: gating by intent
+        is the interface deciding what the agent may mean. The control is KNOWLEDGE of what
+        each action does, plus this one adjacency rule.
+
+        **IT RE-CHOOSES BEFORE IT ABSTAINS.** Barred from `RESET`, it asks the same question of
+        the same intent with `RESET` withheld -- *choose something else, or abstain; never send
+        it.* An abstention here is still a reading, as everywhere else in this module.
+        """
+        r = self._choose(intent, offered, ctx, state, env)
+        if r is not None and r.action == RESET and self._last_was_reset:
+            _alt = tuple(a for a in offered if a != RESET)
+            r = self._choose(intent, _alt, ctx, state, env) if _alt else None
+        return r
+
+    def _choose(self, intent: Intent, offered: tuple[str, ...], ctx: tuple = (),
                 state: dict | None = None, env: Any = None) -> Realisation | None:
         """Pick an action that serves this intent, or abstain.
 
@@ -618,6 +653,10 @@ class Interface:
         And the conditionality is worth having on its own: *`down` sometimes does nothing* is
         System 0 job A's **is that a wall?**, answered by acting.
         """
+        # **THE ADJACENCY FLAG, SET WHERE THE PRESS ACTUALLY HAPPENED.** `realise`
+        # refuses a second consecutive `RESET`; this is the only thing that tells it
+        # there was a first one.
+        self._last_was_reset = (r.action == RESET)
         self.audits += 1
         if r.coord is not None:
             self.clicked.add(r.coord)

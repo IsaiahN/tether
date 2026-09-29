@@ -51222,6 +51222,108 @@ reading declarations only (the board stop holds):
 > **SO THE CONCLUSION SURVIVES AND ITS REASON CHANGES, WHICH IS THE POINT OF CHECKING.** Not
 > *no undo exists* but **one exists and is deliberately out of reach, and no other is named.**
 >
+> **AND THAT IS NOW SUPERSEDED — ISAIAH, 2026-09-29, WITHIN THE HOUR OF IT BEING WRITTEN. THE BAN
+> ON UNDO AND RESET IS RESCINDED.** His reason is not an exemption, it is that **the thing the
+> ban was protecting against no longer exists**: *the interface solved the intent vs action
+> problem. The agent doesn't have direct access to these options anymore and they can't
+> interfere with the agent's intent, allowing them to be proper tools again.*
+>
+> **THE OLD BAN WAS AIMED AT AN AGENT THAT COULD NAME A BUTTON.** `ResetGate` bans *THE AGENT
+> CALLING RESET* — and since the seam closed, **the agent cannot call anything.** It emits an
+> intent and only the interface knows a button exists. So reset and undo stop being a bypass the
+> agent can reach for and become **realisation tools below the seam**, which is what they were
+> always useful as.
+>
+> **SO THE ROW ABOVE IS KEPT AS EVIDENCE AND IS NO LONGER THE RULE.** *An error entry whose
+> evidence is edited away stops being evidence* — and the check that produced it was still worth
+> doing, because it is what established that reset EXISTED and was withheld rather than absent.
+> **A rescinded ban on a thing that exists is actionable; a ban on a thing that does not exist
+> would have been nothing.**
+
+### AND THE `how` IS NOT SETTLED BY THE RULING, WHICH DECIDED THE `whether`
+
+**ADMITTING RESET INTO `offered` UNQUALIFIED WOULD REOPEN THE FARMING PATH THROUGH THE SEAM
+INSTEAD OF THROUGH THE AGENT, AND THAT IS A REAL HAZARD RATHER THAN A QUIBBLE.** `realise` picks
+from `offered`, and **`ELICIT` means *try what I have not mapped*** — so a RESET sitting in that
+set is something exploration will eventually draw, and the agent would farm restarts while
+honestly intending to explore. **It would satisfy the letter of *the agent has no direct access*
+and breach the thing the letter protects.**
+
+> **THE SHAPE THAT HOLDS THE RULING'S OWN PREMISE: reset and undo are RECOVERY tools, realisable
+> ONLY for an intent that means *go back*, and never candidates for `ELICIT`, `TOUCH` or
+> `BECOME`.** Then *they cannot interfere with the agent's intent* stays literally true, because
+> no ordinary intent can reach them.
+
+**AND ISAIAH SETTLED THE `how` TOO, IN THE SAME BREATH:** *all actions still must live and be
+controlled by the interface — that separation is what makes this possible. intent (from agent)
+-> into action by interface.*
+
+> **SO THE CONTROL MOVES HOUSE, AND THAT IS THE WHOLE DESIGN CHANGE.** The old guard was the
+> ENVIRONMENT withholding `RESET` from `actions()` — a filter in `arc_world`, upstream of
+> everything, because there was no seam and the agent would otherwise have named the button.
+> **With the seam closed the right owner is the INTERFACE**: reset and undo are actions, actions
+> live in the interface, and the interface governs which intents they may serve.
+
+**THE ENV THEREFORE STOPS FILTERING AND THE INTERFACE STARTS GOVERNING.** Those are not the same
+guard moved sideways: a filter says *this does not exist*, and governance says *this exists and
+serves these intents only*. **The second is what makes them TOOLS rather than absences**, which
+is precisely what the ruling restores.
+
+**And the `ELICIT` hazard above is answered by the same sentence rather than by a new rule:** if
+the interface CONTROLS the actions, then not handing `RESET` to an exploration is the interface
+doing its job, not an extra guard bolted on. **The hazard was only ever real if the env dumped
+reset into `offered` and nothing owned the choice.**
+
+### AND `RESET` IS TWO CAPABILITIES WEARING ONE NAME — CONFIRMED BY ISAIAH, 2026-09-29
+
+**ONE `RESET` RESTARTS THE CURRENT LEVEL. A SECOND `RESET` IMMEDIATELY AFTER, WITH NO ACTION
+BETWEEN, RESTARTS THE WHOLE GAME FROM LEVEL 1.**
+
+> **THIS IS `A6i` WITH TEETH: one name, two quantities, and the second DESTROYS EVERY COMPLETED
+> LEVEL.** **The failure needs no bug — it is the correct behaviour of the tool, used twice.**
+
+**AND THE TRIGGER IS ADJACENCY, NOT FREQUENCY — ISAIAH, CORRECTING MY FIRST FRAMING.** I wrote
+that *two backtrack-to-start requests in a row* would wipe the run, which made this sound like
+the common case. It is not. **It fires only if two resets land in PARALLEL OR IMMEDIATE
+SEQUENCE, with no action between.**
+
+> **THE ORDINARY BACKTRACK IS SAFE BY CONSTRUCTION AND THAT IS THE POINT.** A real one is
+> `reset` — **a long replay of recorded intents** — then perhaps `reset` again. **The replay
+> interposes actions, so the second reset is a LEVEL reset like the first.** The shape of the
+> thing we are building is the shape that does not trip it.
+
+**SO THE GUARD IS UNCHANGED AND THE RISK PROFILE IS MUCH SMALLER.** The interface still has to
+track whether its own last realisation was a reset — that requirement survives intact, because
+the narrow case is real. What was wrong was the LIKELIHOOD, and overstating a hazard is not a
+safe direction to err in: **a record that cries wolf makes the next real one harder to hear**,
+and the correction is the reason this row is worth reading at all.
+
+**SO THE INTERFACE MUST BE STATEFUL ABOUT RESET, WHICH IS A STRONGER REQUIREMENT THAN GOVERNING
+WHICH INTENTS IT SERVES.** It has to track **whether its own last realisation was a reset**, and
+know the two effects apart, or it issues a full-game reset while serving a level-shaped request.
+
+    ONE RESET            restart the current level
+    RESET, THEN RESET    restart the GAME from level 1
+    COMPETITION MODE     game resets are not permitted and are CONVERTED to level resets, so
+                         the effect depends on the MODE as well as on the history
+    COST                 resets during play appear to count as ACTIONS — **hedged by the
+                         reviewer, NOT confirmed, so it is marked and not relied on**
+
+**RECORD WHICH MODE A RUN IS IN, AND LET THE AUDIT CONFIRM THE EFFECT THE FIRST TIME** rather
+than trusting this entry: the reset response carries a full-reset flag, and `audit` reading it
+is the same discipline as every other first-use claim — *a run outranks a read*, including a
+read of the official documentation.
+
+**AND THE FIXTURE MUST INCLUDE A CONSECUTIVE RESET**, or the guard separating the two has no
+exercised failure path, which this record already calls indistinguishable from a guard that
+cannot fail.
+
+**NOT BUILT. The ruling is recorded, the owner is named, and the hazard is written down before
+anything moves.** The code still filters at the env, the interface has no recovery intent to
+serve, and it does not track its own last realisation. **Relocating a guard is the kind of
+change that looks like a tidy-up and is not** — and this one now has a documented way to lose
+an entire run.
+>
 > **AND THE SECOND ROW IS AN OPPORTUNITY RATHER THAN A WALL.** Whether some ACTION happens to
 > undo a goal on a given board is **exactly what `goal_undone` now records** — so *undo* is not
 > a primitive the agent is missing, it is a HYPOTHESIS the agent can form from its own
