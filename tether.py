@@ -4850,7 +4850,45 @@ class Agent:
         # formed in `choose` that fails to realise never reaches this door.
         if want is not None:
             self._intent_kinds.add(want.says())
+            self._note_decision(want)
         return r.action
+
+    def _note_decision(self, want: Any) -> None:
+        """**A CHOICE POINT EXISTED AND WHICH WAY IT WENT -- STEP 1, AND RECORDING ONLY.**
+
+        ISAIAH, 2026-09-29: *1 and 2 should be the agent's decision, and they should record
+        choosing that for history and so they can backtrack.* **So nothing here decides
+        anything.** The agent's existing exits already chose; what was missing is that the
+        choice was never written down, so no history could be read off it and nothing could be
+        backtracked to.
+
+        **A DECISION EXISTS ONLY WHERE THIS INTENT HAS A RECORDED HISTORY OF UNDOING AN
+        OBJECTIVE THAT CURRENTLY HOLDS.** Not *any* intent, and not a guess about effects: the
+        evidence is `_undone`, which the agent built from its own transitions. **A conflict the
+        agent has no record of is not a decision it is in a position to make.**
+
+        `holds` reuses the selector's own arrived test -- last reading at or below zero -- so
+        the gate and this row cannot drift apart on what *satisfied* means.
+        """
+        said = want.says()
+        live = [(sl, n) for (_c, it, sl, _b), n in self._undone.items()
+                if it == said and (self._res.get(sl) or [1.0])[-1] <= 0]
+        if not live:
+            return
+        _slot, _n = max(live, key=lambda kv: kv[1])
+        self.led.record(self.cycle, "PLAN", _slot, "decision",
+                        chose=said,
+                        # **THE ALTERNATIVE IS THE ABSTENTION, AND IT IS THE HONEST ONE.** At
+                        # this door the other live options are not known -- `choose` has already
+                        # picked. What IS known is the binary the conflict is actually about:
+                        # take this intent and disturb a goal that holds, or hold off.
+                        instead_of=("hold off -- leave the met objective alone",),
+                        because={"undone_here": _n,
+                                 "across": self._undone_across.get((said, _slot), 0),
+                                 "repeated": _n >= MIN_REPEAT},
+                        at=IFace.Interface.context(self.env),
+                        reads="I have undone this objective with this intent before, and it "
+                              "holds right now; this is what I chose")
 
     def _realise_step(self, emit: Any, before: dict[str, int]) -> str | None:
         """A routine step is an INTENT. Turn it into a button, or `None` if nothing serves it.
