@@ -50840,3 +50840,84 @@ untouched**, and no number here says otherwise.
 
 **AND THE BUDGET CLAIM STAYS WITHDRAWN.** *1000 cycles is unreachable* was the wrong conclusion
 and is not rescued by this profile: a hotspot is a thing to fix, not a ceiling to accept.
+
+---
+
+# IS THE TALLY A SUM OVER ROWS? THE ARITHMETIC IS; THE PER-ROW TERM IS NOT — FOUR PRECONDITIONS, AND ONE OF THEM IS A TRAP
+
+**2026-09-29.** The reviewer proposed incremental per-`(term, slot)` tallies — fold in only the
+new rows each cycle — and attached the precondition rather than assuming it: *"It is exact, not
+approximate, as long as the tallies are sums over rows — check that for `_cannot_pay` before
+relying on it."* **Checked. The answer is a qualified yes, and the qualifications are the
+finding.**
+
+`_cannot_pay`'s accumulator is `wrong`, incremented by 0 or 1 per row, with no cross-row term.
+**So the ARITHMETIC is a sum over rows.** What is not row-local is the per-row VERDICT.
+
+## 1. THE HISTORY IS PREFIX-STABLE, WHICH IS WHAT MAKES THE SCHEME POSSIBLE AT ALL
+
+`self.trace` has **exactly one `append` (2212) and exactly one reset (1201)**. `history(slot)` is
+a filtered view — `[(b, a, af[slot]) for b, a, af in self.trace if slot in af and slot in b]` —
+so appending to the trace can only APPEND to the filtered list. **Existing rows never move and
+never change.** A slot arriving mid-episode does not disturb this: the frames before it existed
+are skipped permanently.
+
+> **So *covered N rows, fold from N onward* is valid within a level.** This is the load-bearing
+> property and it holds.
+
+## 2. THE EARLY ABORT MAKES A PARTIAL SUM THAT LOOKS LIKE A TOTAL
+
+`_cannot_pay` returns `True` from **inside** the loop the moment `cost + unit*wrong >= base`.
+`_left`'s `ceiling` does the same. **A tally harvested from an aborted walk covers a PREFIX and
+is not the row-set total** — and nothing in the returned value says which it is.
+
+**So a tally must carry the prefix length it actually covered**, and an aborted walk must never
+be stored as complete. This is structural and always live; it is not a property of any world.
+
+## 3. `self.alphabet[slot]` IS NOT CONSTANT, AND ONE OF ITS WRITES IS THE TRAP
+
+The per-row verdict uses `got % self.alphabet[slot] != actual % self.alphabet[slot]`, and the
+threshold uses `log2(self.alphabet[slot])`. **Three write sites:**
+
+    833    __init__                              -- before any history exists. harmless
+    1199   a new level                           -- and 1201 CLEARS THE TRACE two lines later,
+                                                     so every tally dies with the history it
+                                                     summarised. SAFE, and it is one natural
+                                                     invalidation point
+    5021   AN OBJECT ARRIVED OR LEFT             -- **and the trace is NOT cleared**
+
+> **5021 IS THE TRAP.** The alphabet is rebuilt mid-level while the history it will be applied
+> to SURVIVES. Every cached tally for an affected slot silently becomes wrong — computed under
+> one modulus, reused under another — and **nothing fails**: the numbers stay plausible and the
+> bargain keeps pricing. **On an ARC board objects arrive and leave constantly**, so this is not
+> an edge case there; it is the common case. Gridworld is the world where it would not show.
+
+## 4. `_shapes_now()` IS THE CURRENT CYCLE'S BOARD, APPLIED TO EVERY HISTORICAL ROW
+
+`Ctx(..., shapes=self._shapes_now())` is built once per candidate and handed to `_value_of` for
+**every row in the history**. `_shapes_now` is *"the shape decoder for THIS cycle, CACHED PER
+CYCLE"* and reads `self.env.shapes()`. **So the same historical row can score differently on a
+later cycle**, which breaks row-locality outright.
+
+**INERT TODAY AND LIVE ON A SWITCH**: `_SHAPE_DECODE` is `bool(os.environ.get(
+"TETHER_SHAPE_DECODE"))` — off unless the env var is set — and **gridworld and `world.py` define
+no `shapes()` at all**, so `_shapes_now()` returns `None` on every world I can currently run.
+**It must be in the key before that arm is turned on**, or the tallies become wrong on exactly
+the boards the arm exists for.
+
+## THE ANSWER, AND WHAT IT COSTS
+
+**The scheme is EXACT if the tally is keyed on `(term, slot, alphabet[slot])`, carries the
+prefix length it covered, and is invalidated at BOTH 1201 and 5021** — with `_shapes_now()`
+joining the key the day `_SHAPE_DECODE` goes on.
+
+**AND A SEPARATE CEILING ON THE SPEEDUP, NAMED SO IT IS NOT DISCOVERED AFTERWARDS.**
+`history(slot)` **rebuilds the entire filtered list on every call**, scanning the whole trace.
+Perfect tallies remove the per-row WORK and leave that per-call SCAN untouched. **Whether that
+scan is on the hot path is not measured here** — `_cannot_pay` receives `robs` from its caller —
+and it must be measured before a speedup is predicted, because it would silently cap one.
+
+> **THIS ENTRY DECIDES NOTHING AND BUILDS NOTHING.** It answers the precondition that was
+> attached to the proposal, which is the only thing that was asked for, and it says which of the
+> four conditions is inert, which is structural, and which one would have produced correct-looking
+> numbers on gridworld and wrong ones on a board.
