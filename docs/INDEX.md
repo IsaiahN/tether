@@ -50663,3 +50663,92 @@ with the OBJECT COUNT** — on a fifty-object board `TOUCH` alone contributes fi
 price reading it as *how many things could the agent say* would scale with the board's furniture
 rather than with its vocabulary. Recorded, not renamed: the pricing ruling is what decides which
 of the two quantities is wanted, and renaming before that would pick the answer.
+
+---
+
+# SIXTY CYCLES ON GRIDWORLD: FOUR ROUTINE ENDINGS, AN EMPTY LIBRARY, AND ONE IN FOUR REFUSALS IS AN OBJECTIVE THE AGENT HAS ALREADY MET
+
+**2026-09-29.** `M2_STANDARD`'s open clause — *routines adopted 0 and `chunk_reuse` 0* — read on
+a world I can actually run, with the gate reasons counted instead of the outcome.
+
+    WORLD       gridworld seed 11, system0 on, max_depth 2. No ARC board; the board stop holds
+    POPULATION  60 cycles, one run, reported in blocks of 10
+
+    cycles  10     18.7s    refused  0   end 0   mint  2   lib 0   intents  3
+    cycles  20    122.9s    refused  7   end 0   mint 11   lib 0   intents  3
+    cycles  30    327.7s    refused 17   end 0   mint 18   lib 0   intents  6
+    cycles  40    469.4s    refused 21   end 1   mint 25   lib 0   intents  7
+    cycles  50    561.7s    refused 24   end 3   mint 32   lib 0   intents  9
+    cycles  60    736.2s    refused 26   end 4   mint 35   lib 0   intents 10
+
+## THE LIBRARY IS EMPTY AFTER FOUR ENDINGS, AND THAT IS THE FINDING
+
+**`routine_lib` is length 0 at cycle 60 with FOUR routine endings behind it.** Routines are
+adopted, they run, they end — and not one settles. So the M2 clause is not *nothing is ever
+planned*; it is **nothing a plan learns is ever kept.**
+
+> **NOT MEASURED, AND NAMED RATHER THAN INFERRED: WHICH ending each of the four was.** The
+> shelf is fed by `DONE`-with-actions via `tested_yes`; `blocked`, `exhausted` and
+> `unrealisable` are non-trials and shelve nothing. **Four endings and an empty shelf is
+> consistent with every ending being a non-trial AND with `DONE`-at-zero-actions**, and my
+> instrument recorded the COUNT without the KIND. That is this record's own *no claim about a
+> row without reading the whole row*, committed while building the row. The re-run is one field
+> and it is owed before any repair is designed here.
+
+## THE REFUSAL PROFILE, AND ONE IN FOUR IS THE AGENT CHASING WHAT IT ALREADY HAS
+
+    15 of 26   no objective is confidently shrinking
+     7 of 26   THE OBJECTIVE ALREADY HOLDS ACROSS ITS WHOLE SCOPE
+     2 of 26   the split refused (no_goal_target)
+     1 of 26   CAN is unknown, and only yes commits
+     1 of 26   I said which slot and which way, and nothing I have done here is known to move
+               it that way
+
+**The seven reproduce a finding filed against the public boards — a series like `[2,1,0]` passes
+*confidently shrinking* and then dies at the holds-gate, because arriving looks exactly like
+shrinking on the last reading.** It is the same shape on a world with none of those boards'
+properties, which makes it a property of the SELECTOR rather than of any board.
+
+> **AND IT IS NOT A BUG IN THE HOLDS-GATE.** Refusing to plan toward a satisfied objective is
+> correct. **The defect is upstream: the selector SPENDS its choice on an objective that has
+> already arrived**, and the gate is where that is discovered. `_goal_choice` reads *confidently
+> shrinking* over a series and never asks *and is there anything left to do* — so the cost is a
+> whole cycle's planning, one in four.
+
+**The 15 are a different thing and must not be pooled with them**: *no objective is confidently
+shrinking* is SUPPLY — the bar filtering a population that has nothing in it — and this file
+already carries the correction that reading it as *the bar is too high* is a false causal story.
+
+## THE COST CURVE, WHICH IS AN AGENT-FACING CONSTRAINT AND NOT AN INCONVENIENCE
+
+Per-block seconds: **18.7 · 122.9 · 327.7 · 469.4 · 561.7 · 736.2.** That is **1.9 s per cycle
+rising to 74 s per cycle — about 40x across 60 cycles — and the last two blocks are STILL
+CLIMBING** (562 -> 736). Sixty cycles cost **37 minutes**.
+
+**I FIRST WROTE THIS AS *levelling toward 56-74 s per cycle*, AND THAT WAS THE WRONG READING OF
+MY OWN TABLE — the reviewer, 2026-09-29.** The ratio between consecutive blocks falls, so the
+curve *looks* like it is settling; **the per-cycle cost is still rising, which is the quantity
+that matters.** A decelerating growth rate and a levelling cost are different claims, and I
+reported the second while measuring the first.
+
+> **PER-CYCLE COST THAT GROWS WITH THE RUN MEANS SOMETHING IS DOING WORK PROPORTIONAL TO
+> ACCUMULATED HISTORY, EVERY CYCLE.** That is a mechanism, not a constant — so the right
+> conclusion is **not** *the 1000-cycle budget is unreachable*. It is **there is probably a
+> hotspot**, and at this shape 1000 cycles is not fifteen hours, it is far more or never.
+
+**AND `runs-are-40-cycles-against-a-ruled-1000` MAY THEREFORE NOT BE A DISCIPLINE FAILURE AT
+ALL.** It has always been read as *we keep choosing to read nulls at 4% of the budget*. If the
+cost curve is the cause, the remaining 960 cycles were **unreachable rather than unspent**, and
+every null taken at 40 cycles inherits that.
+
+**WHAT IS OWED BEFORE ANY OF THAT IS CLAIMED: PROFILE ONE LATE CYCLE AGAINST ONE EARLY CYCLE AND
+NAME WHAT GREW** — a scan over the whole ledger, a closure over a growing library, the audit
+tables, something. **If it is one function it is plausibly the cheapest capability-relevant fix
+available**, because every null read at 40 cycles traces back to it. Reviewer's ordering, and it
+goes **ahead of the selector.**
+
+## WHAT IS NOT CLAIMED
+
+Nothing here changes what the agent can do. It is a diagnosis, and it names two things to look
+at — **the selector spending choices on satisfied objectives**, and **whether any ending can
+reach the shelf at all** — with the second blocked on a re-run that records the ending KIND.
