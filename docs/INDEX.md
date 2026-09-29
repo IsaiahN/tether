@@ -51383,3 +51383,62 @@ judged worse before anything can say worse.
 > exercised, which this record already names as indistinguishable from one that cannot fail.**
 > So 2 is measured before 3 is built, and if no existing reading can say *worse*, 3 does not get
 > built and the finding is that it cannot yet.
+
+---
+
+# STEP 2, THE GATE: STEP 3 IS REFUSED WITH A REASON, AND TWO INDEPENDENT READINGS REFUSE IT
+
+**2026-09-29.** The plan made step 2 a gate that could kill step 3 — *build 1 and 3 without it
+and there is a backtrack mechanism with nothing able to trigger it.* **It killed it.**
+
+    WORLD       gridworld seed 11, system0 on, max_depth 2. No ARC board; the stop holds
+    POPULATION  60 cycles, 16 conflicts
+    PRE-REGISTERED  hypothesis: some disturbances are never recovered, so *worse* is readable.
+                    Refuter: every one comes back, so nothing can say worse and step 3 dies
+
+## (a) DID THE TAKEN BRANCH GO BADLY? NO — AND THE SCRIPT'S OWN VERDICT LINE WAS WRONG
+
+    recovered 15 of 16     gaps {1: 7, 2: 5, 3: 1, 4: 1, 6: 1}     median 2, max 6
+    NEVER RECOVERED: cycle 59 on o0.row -- **0 CYCLES REMAINED**
+
+**The single exception is the LAST CYCLE OF THE RUN.** Not a goal that could not be recovered —
+a goal with no opportunity to. **Censoring, not a finding.** Every disturbance with any chance
+to recover did, in a median of two cycles.
+
+> **THE SCRIPT PRINTED *an existing reading CAN say worse* OFF THAT ONE CASE**, and it was one
+> step from being reported. The censoring line exists only because **a 1-of-16 margin is exactly
+> where an artefact hides** — not because the number looked wrong. **A hardcoded verdict does
+> not know what it failed to account for, and it speaks with the same confidence either way.**
+
+## (b) IS THERE A SAMPLE OF THE UNTAKEN BRANCH? ZERO OF SIXTEEN — AND THIS IS THE DEEPER ONE
+
+**The reviewer's, 2026-09-29.** *Worse* in the backtrack sense means worse **than the other
+branch**. Hold-the-goal was taken **0 times in 16**. So even had a disturbance gone badly,
+nothing could say the alternative would have done better.
+
+> **THIS IS *A NULL NEEDS A NON-ZERO CONTROL* AT THE LEVEL OF A DECISION RATHER THAN A
+> MEASUREMENT.** I built an instrument answering *did this go badly* and pointed it at a question
+> asking *was this the worse choice*. **Only the first has data, and the two are easy to confuse
+> because one word does for both.**
+
+## THE VERDICT, AND THE TWO READINGS KILL IT FOR DIFFERENT REASONS
+
+    (a)   nothing went badly, so there is nothing to TRIGGER a re-try
+    (b)   there is no comparison arm, so *worse* is UNANSWERABLE regardless of (a)
+
+**(b) alone would have settled it**, which is why it is worth having both: a later world where
+disturbances DO go badly would satisfy (a) and still be blocked by (b).
+
+## AND THE GAP IS NOT A PROPERTY OF THE WORLD
+
+**It is THE AGENT NEVER HAVING TRIED THE ALTERNATIVE.** A world where it sometimes held off
+would produce the sample; this one never does — **because nothing weighs the evidence**, which
+is the same absence as the 16-of-16 and the same absence as *conflict, not yet weighed*.
+
+> **SO `1b` IS NOT AN ITEM ON THE LIST, IT IS THE BLOCKER.** Predicting each branch is what
+> **removes the need for a sample of the untaken one**. You cannot sample a branch you never
+> take, and you will never take it while nothing can say what it leads to.
+
+**STEP 3 IS RECORDED AS REFUSED WITH A REASON, NOT DEFERRED** — the distinction matters, because
+a deferred item waits for time and a refused one waits for a named thing. **What it waits for is
+`1b`, the intent-level prediction `(before, intent, after)`.**
