@@ -50521,3 +50521,78 @@ The rule is written and witnessed; the ten dispositions are not decided. **WIRE*
 vocabulary is duplicated as literals, **DELETE** `OBJECT_TYPE`, and **ASK** on the rest. The
 widened `_isolated` is reproducible from this entry: collect module-level `Assign`/`AnnAssign`
 targets into `defined`, add `DEAD_CONST`/`LIVE_CONST` to the fixture, counts `14/6/9`.
+
+---
+
+# A REPAIR DEAD ON HALF ITS POPULATION, AND UNDER IT A DENOMINATOR TAKEN FROM FOUR WRITE SITES
+
+**2026-09-29, `f77dfc8`.** Chasing the `meant=None` residual I had named and explicitly refused
+to claim as fixed. Two findings, and the second is the larger one.
+
+## 1. THE REPAIR WAS UNREACHABLE ON EXACTLY THE CYCLES THAT HAD A TARGET
+
+`0b1bd24` shipped *System 0's default asks for something rather than drawing blind*, measured
+working. It sits in an `if`/`elif` chain:
+
+    if _untried is not None and _untried.unmapped:   ...
+    elif target is not None:
+        if _t is not None:   ...                     TOUCH realised
+                                                     <-- and nothing here
+    elif _untried is not None:                       the "default asks" fix
+
+**When there IS a target and `TOUCH` abstains, the middle branch is ENTERED, its inner test
+fails, and the chain ENDS.** `act` keeps the `drive.choose` default and the third branch is
+never evaluated. The fix could only ever run on cycles with no target.
+
+    WORLD       gridworld seed 11, no ARC board
+    POPULATION  24 cycles
+
+    BEFORE   by=draw NAMED 7 · by=system0 NAMED 7 · by=system0 none 10
+    AFTER    24 of 24 exits name an intent, zero unnamed
+
+**Found by asking *is it actually reached* of a change I had just measured as working** — not by
+a seat and not by a failure. The seats were green throughout, because **an unreached repair
+abstains rather than breaks**, which is the standing question's whole subject applied to my own
+work rather than to inherited code.
+
+## 2. AND THE FIGURE I HAD BEEN REPORTING SWEPT IN ROWS THE FIELD CANNOT APPLY TO
+
+I reported **560 of 1008** as the naming rate, and 1008 is every row with `event="bet"`. **Four
+sites write one and exactly ONE sets `meant`:**
+
+    PERCEIVE <slot>      TRANSITION   meant=intent.says()      the per-slot bet
+    PERCEIVE @objective  REWARD       no meant field, by construction
+    PERCEIVE @bracket    BRACKET      no meant field, by construction
+
+`@objective` and `@bracket` are **whole-board census rows**: not about a slot an action touched,
+so no intent could ride on them.
+
+**MEASURED rather than read off the write sites**, because a run outranks a read:
+
+    unnamed by (step, action, by):   ('PERCEIVE', None, None)  48
+    unnamed per cycle:               2 in every one of the 24, none with 1 or 3
+
+**Exactly two per cycle, every cycle, no action and no `by`. That uniformity is the signature of
+a structural row — a real residual varies with what the agent did.** The nameable population is
+960 and it reads **960/960**.
+
+> **THIS IS *TAKE THE DENOMINATOR FROM THE SAME SITE AS THE NUMERATOR* FAILED FROM THE OTHER
+> END.** The rule was written against a denominator borrowed from a DIFFERENT call site of the
+> same function. Here the numerator came from one write site and the denominator from four, and
+> **both numbers were correctly computed while the ratio described nothing.**
+
+**AND IT SURVIVED BECAUSE IT INDICTED ME.** 560/1008 made the mechanism look worse than it was.
+A flattering number gets checked; **a number that reads as candour is accepted as candour**, and
+I posted it twice as the honest residual rather than the clean one — which is exactly the
+posture that stopped me looking at what it counted.
+
+The two comments in `tether.py` quoting the old denominator are **qualified at their own sites**,
+per *corrections go into the row that carries the error*.
+
+## WHAT IT DOES NOT SHOW
+
+Naming an intent on every exit is a **legibility** property, not a capability one. It says the
+bet row records what the agent MEANT; it says nothing about whether the meaning was any good.
+Contact and variety are unchanged by it — gridworld `up 9 / down 6 / left 4 / right 5`, top 9 of
+24; `click_only` `ACTION6` ×24 with six slots changed — so **the variety rule did not cost the
+click world its contact**, and that is the only claim the pair supports.
