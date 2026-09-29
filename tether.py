@@ -3398,6 +3398,16 @@ class Agent:
         self.led.record(self.cycle, "PLAN", subject or "@board", "intent",
                         reads=(want.says(), r.why if r else "unrealisable"))
         if r is None:
+            # **UNREACHABLE WITH ANY ADVERTISED ACTION, AND IT CANNOT HELP WHERE IT IS --
+            # measured 2026-09-29, 0 abstentions in 56 `ELICIT` calls across gridworld,
+            # gridworld `click_only` and the toy world.** `realise(ELICIT)` tries unmapped,
+            # then effect-here-unknown, then least-seen, so it abstains ONLY when `offered` is
+            # empty -- and `drive.choose` divides by `len(actions)`, so it raises on exactly
+            # that input. **Both paths fail on a board with no buttons.**
+            #
+            # Kept rather than deleted because deleting it would mean inventing a behaviour for
+            # a board the loop cannot run on anyway; annotated because a line that reads like a
+            # safety net and is neither reachable nor safe is worse than one that says so.
             return self.drive.choose(self.actions, self.cycle, _where(before))
         return self._took(r)
 
