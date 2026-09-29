@@ -136,14 +136,19 @@ def _agent(cycles: int = 25):
         # `conform/stateful.py::test_the_seam_varies_what_it_explores_with` does, with the
         # seam live -- because *pinned around* without a certifying check is how a suite keeps
         # a mechanism green by never running it.
-        # **THE `system0` CONFIG FIELD IS GONE -- ISAIAH, 2026-09-29: System 0 is always on.**
-        # So the pin moves from a SHIPPED SWITCH to a FIXTURE-LOCAL PATCH, which is what it
-        # always was in spirit and is exactly how `_explore` is pinned three lines down. The
-        # ruling removes the agent's ability to run without System 0; it does not remove this
-        # fixture's need to hold one policy still while it checks the others.
+        # **AND THE `system0` PIN IS GONE ENTIRELY -- MEASURED, NOT ASSUMED, 2026-09-29.**
+        # Isaiah removed the config field (System 0 is always on), so the pin first became a
+        # fixture-local patch. Then the reviewer asked the obvious question: do these checks
+        # still hold under the policy the agent ACTUALLY RUNS? **They all do -- 30/30 with
+        # System 0 live**, and the treatment was confirmed executed rather than inferred:
+        # `_system0_active` was asked 19 times and returned True 19 times.
+        #
+        # **SO THE PIN IS REMOVED RATHER THAN DOCUMENTED.** The three failures that justified
+        # it in 2026-09-25 are gone -- most likely absorbed by the `_explore` pin added on
+        # 09-28, which holds the action policy directly. **A pin that is no longer needed does
+        # not sit harmlessly: it hides the next regression in the thing it pins.**
         ag = tether.Agent(env, gamma.Gamma(env.atoms(), game="m2test"),
                           tether.Config(accumulate=False))
-        ag._system0_active = lambda: False
         ag._explore = lambda before, _subject=None: ag.drive.choose(
             ag.actions, ag.cycle, tether._where(before))
         for _ in range(cycles):
