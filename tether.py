@@ -4611,9 +4611,19 @@ class Agent:
         # further from the objective than it was when the plan failed, so the plan's failure is
         # no longer evidence about the situation it now faces.
         #
-        # **THE OTHER ROUTE IS NOT BUILT AND IS NAMED RATHER THAN SKIPPED.** §18.2 wants decay on
-        # a LOGICAL clock as well, and a decay rate is a constant with no derivation available
-        # here -- so it is owed, not invented.
+        # **THE OTHER ROUTE IS BUILT, AND THIS ROW SAID IT WAS NOT -- CORRECTED 2026-09-30.** It
+        # read *not built ... a decay rate is a constant with no derivation available here, so it
+        # is owed, not invented.* `_rejection` decays on the LOGICAL clock and the candidate
+        # filter readmits a shape once its strength falls under 1.0 -- and `_rejection`'s own
+        # docstring, in this file, says that route *was already built*. **Two comments
+        # contradicting each other about one route, and the code agrees with the other one.**
+        #
+        # **AND THE RATE IS STILL NOT THE AGENT'S HERE, WHICH IS THE PART WORTH THE LINE.**
+        # `gamma.refute` passes `self.halflife` -- the agent's own cycles-to-vindication. BOTH
+        # routine sites pass NOTHING (`refute(self.cycle)`, `decay(self.cycle)`), so they fall
+        # back to the module seed. **Terms decay on the agent's clock and routines decay on
+        # ours**, and Isaiah's 2026-09-30 ruling is that the rate is the agent's call. Recorded
+        # rather than changed: routing it is a behaviour change and it goes through the plan.
         for key, was in [(k, w) for k, w in self.refuted_at.items()
                          if k[0] == slot and (rg or 0.0) > w]:
             self.refuted.pop(key, None)
