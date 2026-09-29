@@ -2881,21 +2881,28 @@ class Agent:
         unit = math.log2(self.alphabet[slot])
         wrong = 0
         for state, action, actual in robs:
+            # `_ops` was called TWICE per row here -- once to test for None and again to
+            # build the Ctx -- while `_left` next door hoists it. Pure function of
+            # (term, state), so hoisting is exact; it halves the hottest callee in the
+            # profile. Nest rather than chain the `elif`, or the hoist just moves the
+            # double call onto `_applies`.
             if not self._applies(term, state):
                 wrong += 1                            # inapplicable is unexplained
             elif self._out_of_step_range(term, slot, state, actual):
                 wrong += 1                            # P6: no reachable value equals `actual`
-            elif self._ops(term, state) is None:
-                wrong += 1                            # unreadable operand is unexplained
             else:
-                got = self._value_of(term, slot, state,
-                                     Ctx(action=action, operands=self._ops(term, state),
-                                         touching=None,  # replay: contact unknown
-                                         group=self._group(slot, state),
-                                         obj=self._record(slot, state),
-                                         shapes=self._shapes_now()))
-                wrong += (got is NOT_RESOLVED
-                          or got % self.alphabet[slot] != actual % self.alphabet[slot])
+                ops = self._ops(term, state)
+                if ops is None:
+                    wrong += 1                        # unreadable operand is unexplained
+                else:
+                    got = self._value_of(term, slot, state,
+                                         Ctx(action=action, operands=ops,
+                                             touching=None,  # replay: contact unknown
+                                             group=self._group(slot, state),
+                                             obj=self._record(slot, state),
+                                             shapes=self._shapes_now()))
+                    wrong += (got is NOT_RESOLVED
+                              or got % self.alphabet[slot] != actual % self.alphabet[slot])
             if cost + unit * wrong >= base:
                 return True          # `wrong` only grows; the rest of R adds nothing
         return False
