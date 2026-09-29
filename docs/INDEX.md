@@ -50439,3 +50439,85 @@ not a solved board, and nothing here says the agent pursued anything — only th
 intent now reaches the world it is aimed at. **Not added to the fixture seat's arms**: the seat
 runs `toy` and `gridworld`, and turning a new habitat into a red gate is a decision to take
 deliberately rather than as a side effect of writing one.
+
+---
+
+# `ISOLATED` IS BLIND TO MODULE-LEVEL BINDINGS, AND THE TEN IT FINDS ARE DECLARED VOCABULARIES WITH NO CONSUMER
+
+**2026-09-29. BUILT, WITNESSED, AND FILED RATHER THAN LANDED — the reviewer's call**, because
+the widening turns the seat red until ten dispositions are decided and three of those are
+judgement calls about mechanisms written by someone else.
+
+## THE HOLE
+
+`conform/lint.py`'s `_isolated` collects `ast.FunctionDef`, `ast.AsyncFunctionDef`,
+`ast.ClassDef` and class methods. **A bare `ast.Assign` is in none of those**, so an unread
+module-level constant is invisible to the one rule whose text is *no isolated code, no silent
+code, no code without reason* — and its docstring overstates its reach accordingly.
+
+Found when `DISCRIMINATE_BUDGET` sat unread through a green 16/16, and found **because the
+reviewer asked what the seats would say rather than assuming they would say nothing.**
+
+## THE CHANGE, WHICH IS BUILT AND PASSES ITS OWN WITNESS
+
+Collect module-level `Assign`/`AnnAssign` targets into `defined`. **No naming convention** —
+restricting to UPPER_CASE would be a guess about which bindings are constants, the brittleness
+`conform/arms.py`'s `_READ` comment names. Every module-level binding is examined; one that is
+read passes, and the existing import-scoping already means a name is judged only against
+modules that could reach it.
+
+**FIXTURE AND CONTROL IN THE SAME SOURCE, because widening is how this rule poisoned itself
+once:** `DEAD_CONST` must be flagged and `LIVE_CONST` must not. **Drop the readership test and
+the control fires** — a rule widened until every binding looks dead fails its own witness rather
+than the tree. Counts move `12/5/8 → 14/6/9`; selftest green, all other rules unaffected.
+
+## THE TEN, CHECKED RATHER THAN COUNTED
+
+    arc_online.py         REMOTE                  the ARC server URL
+    instruments.py        STAGES
+    reverse_engineer.py   FROZEN_EXTRACTORS
+    reverse_engineer.py   FROZEN_RELATIONS
+    routine.py            REACH_STATUS
+    sensors_heavy.py      STATIC
+    sensors_heavy.py      UNBUILT
+    tether.py             OBJECT_TYPE
+    kernel.py             _M
+    wiring.py             STATUSES
+
+Six spot-checked by grep across the tree: **exactly one mention each, their own definition.**
+`instruments.STAGES` was the expected false positive — there is a live `STAGES` in
+`conform/fixture.py` — and the import scoping got it right: two names in two modules, one read
+and one not.
+
+## AND THEY ARE NOT LITTER — THEY ARE A PATTERN
+
+**Most are DECLARED VOCABULARIES whose consumers were never built**, which is *a value that
+exists and never crosses* at the level of a type set rather than a field.
+
+> **`routine.REACH_STATUS` is the clearest: its six members appear as BARE LITERALS 4× in
+> `tether.py` and 2× in `routine.py`.** The vocabulary is declared, duplicated by hand, and
+> nothing constrains the literals against it. **Deleting it would remove the only statement of
+> what the statuses ARE and leave six hand-typed strings** — so the repair is to WIRE it, which
+> also makes it read.
+
+`FROZEN_EXTRACTORS` and `FROZEN_RELATIONS` sit directly under a comment citing Isaiah's
+ACTION-AGNOSTIC ruling: **a frozen set nobody checks against is a policy with no enforcement.**
+
+**AND ONE IS A LIVE HAZARD RATHER THAN DEAD WEIGHT:**
+
+    tether.py   OBJ_TYPE    = "OBJ"      12 uses
+    tether.py   OBJECT_TYPE = "OBJECT"    1 use -- its own definition
+
+**Two near-identical names holding two DIFFERENT values, one unread.** `A6i` waiting for someone
+to reach for the type constant and get `"OBJECT"` where `"OBJ"` is meant — carrying the risk
+with none of the benefit.
+
+`arc_online.REMOTE` is **the board stop showing up in lint output**: genuinely unread only for as
+long as the stop holds.
+
+## WHAT IS OWED
+
+The rule is written and witnessed; the ten dispositions are not decided. **WIRE** where the
+vocabulary is duplicated as literals, **DELETE** `OBJECT_TYPE`, and **ASK** on the rest. The
+widened `_isolated` is reproducible from this entry: collect module-level `Assign`/`AnnAssign`
+targets into `defined`, add `DEAD_CONST`/`LIVE_CONST` to the fixture, counts `14/6/9`.
