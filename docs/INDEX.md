@@ -51008,3 +51008,74 @@ default-off optimisation is one nobody runs, and the exactness here is proven ra
 still spends one refusal in four on an objective that already holds. **Nothing here changed what
 the agent can do — it changed how long we wait to find out**, which is worth having and is not
 the thing.
+
+---
+
+# THE ENDING KINDS: THE LIBRARY IS EMPTY BECAUSE THERE HAVE BEEN TWO REAL TRIALS IN SIXTY CYCLES, AND THE SELECTOR EXPLAINS BOTH SYMPTOMS
+
+**2026-09-29.** The re-run owed against *four endings and an empty shelf is consistent with every
+ending being a non-trial AND with `DONE`-at-zero-actions, and my instrument took the count
+without the kind.*
+
+**NO INSTRUMENTATION WAS NEEDED, AND THAT IS THE FIRST FINDING.** `routine_end` has carried
+`outcome=why` all along — and `blocked_why` beside it for the case where `BLOCKED` means three
+things. **I had written *my instrument recorded the COUNT without the KIND* about a ledger row
+that already held the kind.** *Assume it is already specified, and go look*, failed and then
+paid within one cycle of the record.
+
+    WORLD       gridworld seed 11, system0 on, max_depth 2. No ARC board; the stop holds
+    POPULATION  60 cycles, one run
+
+    cycle 32   unrealisable   o4.proximity
+    cycle 42   done           o2.proximity     verdict tested_no
+    cycle 49   exhausted      o1.proximity     verdict tested_no
+    cycle 56   exhausted      o3.proximity     verdict tested_no
+
+    routine_lib 0      _reach_tested {tested_no: 3}      episodes 4
+
+## THE `DONE` IS THE ANSWER, AND ITS VERDICT IS WHY
+
+**One routine DID reach `DONE` — and it is filed `tested_no`.** The site reads
+`"tested_yes" if self._routine_acts else "tested_no"`, so **that routine ended DONE having
+taken ZERO ACTIONS: its guard already held when it started.**
+
+> **THE SHELVING GUARD IS WORKING, NOT BROKEN.** Its own comment says this is the case it
+> exists for — *"DONE WITH ZERO ACTIONS IS THE CASE THAT MATTERS: the guard already held, the
+> routine ended before acting, and DONE is what SHELVES it — so without this it would be filed
+> as a settled behaviour, callable at a name's price while claiming its budget's reach."*
+> **It caught exactly that and refused the shelf.** The empty library is the guard being
+> RIGHT.
+
+## SO THE HONEST TALLY IS TWO TRIALS, NOT FOUR
+
+    unrealisable   NON-TRIAL   the interface had nothing that served the emitted intent
+    done/0 acts    NON-TRIAL   arrived already satisfied; the plan never ran
+    exhausted x2   TRIAL       budget spent without the guard met -- the routine's own bet,
+                               REFUTED. Both genuine, both failed
+
+**In sixty cycles the agent ran TWO real trials of a plan and both failed.** *The library is
+empty* was the wrong frame: **there has been almost nothing to shelve**, and a shelf is not
+broken for being empty when four things were offered and three of them were not offers.
+
+## AND ONE ROOT CAUSE EXPLAINS BOTH SYMPTOMS
+
+**`done`-at-zero-actions is the same defect as *the objective already holds across its whole
+scope*, which is 7 of 26 refusals.** In the refusal case the holds-gate catches it before a
+routine is built; in the `DONE` case it gets past, a routine is built and adopted, it runs, and
+**its very first guard read is already true.**
+
+> **SO THE SELECTOR SPENDING CHOICES ON SATISFIED OBJECTIVES IS NOT ONE FINDING WITH A 27%
+> FOOTPRINT. IT IS THE CAUSE OF THE EMPTY LIBRARY TOO** — and the library was the older and
+> louder complaint. `_goal_choice` asks *is this series confidently shrinking* and never *and
+> is there anything left to do*, because **arriving looks exactly like shrinking on the last
+> reading.**
+
+## TWO SMALLER THINGS WORTH THE LINES
+
+**`UNREALISABLE` IS REACHED.** It fired at cycle 32 — so the fifth ending, added to
+`routine.py` and never produced by that module, is produced by its caller and is not dead code.
+*Is it actually reached*: **yes, once in sixty cycles.**
+
+**ALL FOUR ROUTINES WERE ABOUT `proximity`** — `o1` `o2` `o3` `o4`, every one the RELATIONAL
+attribute and no other. Not interpreted here; recorded because a four-for-four on one attribute
+is a fact about what the agent is able to form plans ABOUT, and nobody had looked.
