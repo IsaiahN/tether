@@ -3269,7 +3269,9 @@ class Agent:
                 # **THROUGH THE DOOR, LIKE EVERY OTHER EXIT.** This read `_untried.action`
                 # directly and so dropped both the aim and the intent -- the exact defect
                 # `_took` exists to prevent, left in the one branch that predates it. Caught by
-                # the bet row reading `meant=None` on 424 of 504 rows.
+                # the bet row reading `meant=None`. That figure was quoted over ALL `bet` rows;
+                # two per cycle are `@objective`/`@bracket` and carry no `meant` by
+                # construction, so the nameable denominator is the TRANSITION rows alone.
                 act = self._took(_untried, IFace.Intent(IFace.ELICIT))
             elif target is not None:
                 _t = self.iface.realise(IFace.Intent(IFace.TOUCH, object=target),
@@ -3279,9 +3281,15 @@ class Agent:
                     act = self._took(_t, IFace.Intent(IFace.TOUCH, object=target))
                     self.led.record(self.cycle, "PLAN", target, "intent",
                                     reads=(f"{IFace.TOUCH} {target}", _t.why))
+                elif _untried is not None:
+                    # When there IS a target and TOUCH abstains this branch used to end, so the
+                    # `elif _untried` below was unreachable on exactly the cycles that had one.
+                    # Do not collapse the two arms back together.
+                    act = self._took(_untried, IFace.Intent(IFace.ELICIT))
             elif _untried is not None:
                 # **AND THE DEFAULT ASKS FOR SOMETHING RATHER THAN DRAWING BLIND -- 2026-09-29.**
-                # Measured: all 12 gridworld cycles exit here and SIX read `meant=None`, because
+                # Measured over EXITS, not rows: all 12 gridworld cycles exit here and SIX
+                # read `meant=None`, because
                 # neither branch above fired and the branch fell through to `drive.choose`.
                 # **System 0's default asked for nothing at all** -- the one exit left that
                 # takes an action without wanting anything.
