@@ -71,6 +71,15 @@ ITEMS = {
     "iteration": "the agent's ability to walk a collection and close it",
     # THE GATES NAME THEMSELVES, the way `focus.py`'s own commits are L3 under its own rule.
     # Without this the control could not be introduced by a commit that obeys it.
+    # ISAIAH'S REUSE RULINGS, 2026-09-30, reviewer-ordered the same day. THE ITEM WAS ADDED
+    # ONE COMMIT LATE AND THAT IS RECORDED RATHER THAN TIDIED: `6fe40ed` (an IMPORTED term can
+    # reach candidacy) and `8aaa776` (a candidate survives a level, dormant until bound here)
+    # BOTH BELONG TO THIS ITEM and both rode under `structure.hash`, each saying so in its own
+    # message. The comment on `m2.goal` below is why the substitution was declared instead of
+    # silent: that chain rode under `step1.item1` for sixteen commits, flagged every time and
+    # fixed none. Two, declared, then the item.
+    "reuse": "carried terms, routines and subroutines: reuse without re-deriving, bury on "
+             "failure, dormancy across levels",
     "seat": "a check, a guard, or the aim discipline itself",
     "escalated": "a real escalation, posted",
     # THE M2 GOAL CHAIN, DECLARED -- reviewer's ruling, 2026-09-26, and it is a repair rather

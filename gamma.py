@@ -22,7 +22,7 @@ import pathlib
 import random
 import sys
 from collections.abc import Callable, Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from sensors import CELL, CELLS, NOT_RESOLVED, Cells
@@ -447,9 +447,21 @@ class Standing:
     settled_at: int | None = None
     rejections: float = 0.0
     last_tick: int = 0
+    # WHERE THE FAILURES WERE TAKEN. Isaiah, 2026-09-30: *"I wouldn't want the agent to throw
+    # away a useful routine just because one board didn't have the mechanic."* Measured before
+    # building: **NO refutation key in the system carries a board or level id** -- not
+    # `_reject_key`, not `_gap_key`, and `rejections` was a bare float. So "failed" could not
+    # be read as "failed THERE", and the distinction was being made by WHEN THINGS ARE
+    # FORGOTTEN instead: routine refutations wiped at every boundary, term rejections never.
+    #
+    # **A RECORD, NOT A RULE.** How a failure taken elsewhere should be WEIGHED is Isaiah's and
+    # is not decided here -- `rejections` is untouched and every run is unchanged. What this
+    # buys is that the question becomes answerable at all, and the ablation cannot reconstruct
+    # it afterwards, which is the same reason the admitting clause is stamped at entry.
+    where: dict = field(default_factory=dict)      # scope -> failures taken under it
 
     def refute(self, tick: int, halflife: float | None = None,
-               ceiling: float | None = None) -> None:
+               ceiling: float | None = None, where: Any = None) -> None:
         """**ISAIAH, 2026-09-24: NOT A HARD BAN. A DECAY OR A RATIO, NEVER A CLIFF.**
 
         This read `self.settled_at = None` -- **one miss and a standing was gone, unconditionally
@@ -469,6 +481,10 @@ class Standing:
         """
         self.decay(tick, halflife)
         self.rejections += 1.0
+        # STAMPED BESIDE THE TOTAL, NEVER INSTEAD OF IT. The scalar is what the ceiling reads
+        # and it is unchanged; this only says where the weight came from.
+        if where is not None:
+            self.where[where] = self.where.get(where, 0) + 1
         if self.rejections >= (REJECTION_CEILING if ceiling is None else ceiling):
             self.settled_at = None
 
@@ -696,12 +712,17 @@ class Gamma:
         return name in self.primitives
 
 
-    def refute(self, name: str) -> bool:
+    def refute(self, name: str, where: Any = None) -> bool:
         """A settled term mispredicted on fresh evidence. Demoted to candidate -- not
-        deleted, and the rejection decays, so it can settle again if it starts paying."""
+        deleted, and the rejection decays, so it can settle again if it starts paying.
+
+        `where` is PASSED IN rather than read from `self.game`: Γ knows the game and not the
+        level, and the failure this records is *one board did not have the mechanic*, which
+        happens at both scales. The caller is the one holding both.
+        """
         st = self.standing.setdefault(name, Standing())
         was = st.settled
-        st.refute(self.tick, self.halflife)
+        st.refute(self.tick, self.halflife, where=where)
         return was
 
     def is_settled(self, name: str) -> bool:

@@ -3245,7 +3245,8 @@ class Agent:
             if why == Rt.EXHAUSTED and self.routine_for:
                 rg = self.goal_residual(self.routine_for, before)
                 k = self._reject_key(self.routine_for, self.routine, self.routine_lib)
-                self.refuted.setdefault(k, Standing(last_tick=self.cycle)).refute(self.cycle)
+                self.refuted.setdefault(k, Standing(last_tick=self.cycle)).refute(
+                    self.cycle, where=self._scope)
                 self.refuted_at[k] = 1.0 if rg is None else rg
                 # AND FILED A SECOND TIME UNDER THE SHAPE OF THE GAP IT FAILED AGAINST. The two
                 # keys answer different questions and neither replaces the other: `k` says *this
@@ -4308,6 +4309,18 @@ class Agent:
             out.append(condition.Cmp("==", condition.Slot(subject),
                                      condition.Slot(other)))
         return tuple(out)
+
+    @property
+    def _scope(self) -> str:
+        """WHERE evidence is being taken right now -- the game and the level together.
+
+        Isaiah's ruling is about a BOARD lacking the mechanic; measured, the same failure
+        exists one scale down at the LEVEL, and which of the two his weighing applies to is
+        his and is open. **So the stamp records both and decides neither** -- a coarser scope
+        cannot be recovered from a finer one afterwards, and this is written at the moment the
+        failure happens, which is the only moment it can be written at all.
+        """
+        return f"{self.gamma.game}:L{self.level}"
 
     def _carry(self, name: str) -> None:
         """A term the agent just BOUND becomes a candidate awaiting the ground.
@@ -6314,7 +6327,7 @@ class Agent:
                 # BOTH outcomes of `refute` below: a settled term demoted and a candidate
                 # mispredicting are both the ground refusing what was said.
                 self._refuted_slot[slot] = name
-                if self.gamma.refute(name):
+                if self.gamma.refute(name, where=self._scope):
                     self.demoted.append(name)
                     # BOOK 1: a term that had SETTLED and then mispredicted. The ground gave it
                     # a standing and took it back, which is the only honest reading of

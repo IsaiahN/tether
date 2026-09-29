@@ -1432,6 +1432,61 @@ def test_a_candidate_survives_a_level_and_is_dormant_until_bound_here():
                for e in ag.led.entries), "the reactivation left no row"
 
 
+def test_a_rejection_records_where_it_was_taken():
+    """**ISAIAH, 2026-09-30:** *"I wouldn't want the agent to throw away a useful routine just
+    because one board didn't have the mechanic."* Measured before building: NO refutation key
+    carried a board or level id -- `_reject_key`, `_gap_key` and `rejections` all had nowhere
+    to put one -- so "failed" could not be read as "failed THERE".
+
+    **A RECORD, NOT A RULE.** `rejections` is untouched and the ceiling reads the same scalar,
+    so every run is unchanged. How a failure taken elsewhere is WEIGHED is Isaiah's and open.
+
+    **BOTH PATHS, BECAUSE ONLY ONE OF THEM HAPPENS ON GRIDWORLD.** A 12-cycle run stamps 8 of
+    8 refuted TERMS and reaches ZERO routine refutations, so the routine path would ship
+    unexercised and a dead field reads exactly like a clean one -- worse than no field, since
+    an empty `where` looks like evidence of no failures.
+    """
+    import gamma
+    import gridworld
+    import ledger
+    import tether
+    import world
+    st = gamma.Standing()
+    st.refute(1, where="g:L0")
+    st.refute(2, where="g:L0")
+    st.refute(3, where="g:L1")
+    assert st.where == {"g:L0": 2, "g:L1": 1}, f"the stamp did not accumulate: {st.where}"
+
+    # CONTROL 1 -- the scalar the ceiling reads is untouched by the stamp, so no run moves.
+    bare = gamma.Standing()
+    for t in (1, 2, 3):
+        bare.refute(t)
+    assert abs(bare.rejections - st.rejections) < 1e-9, "stamping changed the decayed total"
+    assert bare.where == {}, "an unstamped refutation invented a scope"
+
+    env = world.bind(gridworld.GridWorld(seed=5))
+    g = gamma.Gamma(env.atoms())
+    ag = tether.Agent(env, g, tether.Config(max_depth=2), ledger.Ledger())
+
+    # CONTROL 2 -- the scope names BOTH scales. Isaiah ruled on boards; the same failure
+    # exists one scale down at levels, and a coarser scope cannot be recovered from a finer
+    # one after the fact, so both are written and neither is weighed.
+    ag.level = 2
+    assert ag._scope == f"{g.game}:L2", f"the scope lost a scale: {ag._scope}"
+
+    # THE TERM PATH, through the wrapper the agent actually calls.
+    nm = [a.name for a in g.atoms][0]
+    g.settle(nm)
+    g.refute(nm, where=ag._scope)
+    assert g.standing[nm].where == {f"{g.game}:L2": 1}, "the term path did not stamp"
+
+    # THE ROUTINE PATH -- unreached by any gridworld run, which is why it is forced here.
+    k = ("slot", "shape")
+    ag.refuted.setdefault(k, gamma.Standing(last_tick=0)).refute(1, where=ag._scope)
+    assert ag.refuted[k].where == {f"{g.game}:L2": 1}, (
+        "a ROUTINE refutation records no scope -- the half a live run never exercises")
+
+
 def test_never_two_consecutive_resets():
     """**ISAIAH'S ONE HARD RULE, WITH ITS FAILURE PATH EXERCISED.** *Fully ungated undo and
     reset, just no consecutive resets (reset, reset) in interface.* One `RESET` restarts the
@@ -1519,6 +1574,7 @@ if __name__ == "__main__":
         test_never_two_consecutive_resets()
         test_a_carried_term_can_reach_candidacy()
         test_a_candidate_survives_a_level_and_is_dormant_until_bound_here()
+        test_a_rejection_records_where_it_was_taken()
         print("  A5 and B5 reproductions still fire (expected): ok")
         print("  keyed reach loses nothing: ok · two vocabularies stay two: ok")
         print("  the quantifiers quantify (ONE fires, all != some): ok")
