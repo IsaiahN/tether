@@ -82,6 +82,17 @@ ROOT = Path(__file__).parent.parent
 # A pair means the two are declared at their site to belong on together.
 ARMS: dict[str, str] = {
     "TETHER_BARGAIN_FIT": "library fit priced by the bargain rather than by fit alone",
+    "TETHER_NO_CARRY_CANDIDATE": "**INVERTED POLARITY -- the SECOND row here that is, so "
+                                 "the first is no longer the only one and both say so.** A "
+                                 "DEFAULT-ON write: a term the agent BINDS becomes a candidate "
+                                 "awaiting the ground, so an IMPORTED term can reach `settle`. "
+                                 "`candidates` had one writer (mint), so a carried term could "
+                                 "never settle on any board and `gamma.refute`'s promise that a "
+                                 "demoted term *can settle again if it starts paying* was "
+                                 "unmeetable for imports. IMPORTED ONLY: unscoped it also moved "
+                                 "local terms' birth cycles and took M2 to 27/30. Spelled `NO_` "
+                                 "so the inversion is in the NAME. The OFF arm is the non-zero "
+                                 "control the null needs",
     "TETHER_DELTA_KEY": "route (b) re-keyed on this frame's delta",
     "TETHER_DELTA_OPERANDS": "deltas offered as operands",
     "TETHER_GUARD_AXIS": "the guard axis in the reject key",
@@ -96,7 +107,10 @@ ARMS: dict[str, str] = {
                       "ARC path, so the env census below reads OFF while the capability is "
                       "LIVE.** A ruling turned it on, not a measurement -- the house rule is "
                       "his to override. The toy world is untouched: it has its own atoms",
-    "TETHER_NO_TALLY": "**INVERTED POLARITY, AND THE ONLY ROW HERE THAT IS.** Every other arm "
+    "TETHER_NO_TALLY": "**INVERTED POLARITY. THIS SAID *THE ONLY ROW HERE THAT IS* AND IT "
+                       "STOPPED BEING TRUE ON 2026-09-30**, when `TETHER_NO_CARRY_CANDIDATE` "
+                       "was added -- correct when written and falsified by a later build, "
+                       "which is the class this table cannot catch by passing. Every OTHER arm "
                        "is OFF and its variable turns it ON; this names a DEFAULT-ON incremental "
                        "tally in `_cannot_pay` and the variable turns it OFF. Spelled `NO_` so the "
                        "inversion is in the NAME and not only in this row. It exists for the "

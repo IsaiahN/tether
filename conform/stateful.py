@@ -1313,6 +1313,68 @@ def test_asking_the_interface_does_not_change_it():
         "certifies nothing")
 
 
+def test_a_carried_term_can_reach_candidacy():
+    """**ISAIAH'S REUSE RULING, WITH ITS FAILURE PATH EXERCISED.** *Reuse without re-deriving.*
+    A carried term settles through `settle`, whose guard is `born = self.candidates.get(name)`
+    -- and `candidates` had ONE writer, mint, so an IMPORTED term could never clear it and
+    could not settle on any board. `_carry` is the second writer.
+
+    **THE LIVE RUN CANNOT REACH THIS AND THAT IS WHY THE TEST EXISTS.** Measured on gridworld
+    11 -> 7: a carried term passes `_explains` ONCE in 15,312 candidate rebindings, so the
+    bind that would call `_carry` is astronomically rare and the guard would sit unexercised.
+    *A guard whose failure path is never exercised is indistinguishable from one that cannot
+    fail.* So the bind is forced here rather than waited for.
+
+    **THE CONTROLS ARE THE POINT.** A `_carry` that registered EVERYTHING would pass the
+    headline and certify nothing -- and the unscoped first version did exactly that, moving
+    local terms' birth cycles and taking M2 to 27/30. So: a LOCAL term must NOT be registered
+    by this door, and an already-waiting term must KEEP its original cycle.
+    """
+    import gamma
+    import gridworld
+    import ledger
+    import tether
+    import world
+    env = world.bind(gridworld.GridWorld(seed=3))
+    g = gamma.Gamma(env.atoms())
+    ag = tether.Agent(env, g, tether.Config(max_depth=2), ledger.Ledger())
+
+    atoms = [a.name for a in g.atoms][:2]
+    carried = gamma.Term(tuple(g._by_name[n] for n in atoms), origin=gamma.IMPORTED)
+    local = gamma.Term(tuple(g._by_name[n] for n in reversed(atoms)), origin=gamma.MINTED)
+    for t in (carried, local):
+        g._install(t, seq=-2, residual=None, admitted=None)
+
+    # THE SUBJECT: an imported term reaches candidacy through the bind door.
+    ag.cycle = 5
+    ag._carry(carried.name)
+    assert carried.name in ag.candidates, "an IMPORTED term still cannot reach candidacy"
+    assert ag.candidates[carried.name] == 5
+
+    # CONTROL 1 -- a LOCAL term is not registered here. Mint is its door, and giving it a
+    # second earlier one is what broke three seats.
+    ag._carry(local.name)
+    assert local.name not in ag.candidates, (
+        "`_carry` registered a MINTED term -- that is the unscoped version, and it moves "
+        "birth cycles for terms that already had a route")
+
+    # CONTROL 2 -- an already-waiting term keeps its ORIGINAL cycle, or `born >= self.cycle`
+    # would be re-armed every bind and the term could never settle.
+    ag.cycle = 9
+    ag._carry(carried.name)
+    assert ag.candidates[carried.name] == 5, "a re-bind reset the birth cycle"
+
+    # CONTROL 3 -- the door is closed when the arm is off, so the A/B is a real A/B.
+    was, tether._CARRY_CANDIDATE = tether._CARRY_CANDIDATE, False
+    try:
+        other = gamma.Term(tuple(g._by_name[n] for n in atoms[:1]), origin=gamma.IMPORTED)
+        g._install(other, seq=-2, residual=None, admitted=None)
+        ag._carry(other.name)
+        assert other.name not in ag.candidates, "the OFF arm still wrote -- the A/B is not one"
+    finally:
+        tether._CARRY_CANDIDATE = was
+
+
 def test_never_two_consecutive_resets():
     """**ISAIAH'S ONE HARD RULE, WITH ITS FAILURE PATH EXERCISED.** *Fully ungated undo and
     reset, just no consecutive resets (reset, reset) in interface.* One `RESET` restarts the
@@ -1398,6 +1460,7 @@ if __name__ == "__main__":
         test_asking_the_interface_does_not_change_it()
         test_every_exit_has_a_phase()
         test_never_two_consecutive_resets()
+        test_a_carried_term_can_reach_candidacy()
         print("  A5 and B5 reproductions still fire (expected): ok")
         print("  keyed reach loses nothing: ok · two vocabularies stay two: ok")
         print("  the quantifiers quantify (ONE fires, all != some): ok")

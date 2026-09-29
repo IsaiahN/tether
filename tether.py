@@ -26,7 +26,7 @@ import instruments as I
 import interface as IFace
 import retrieval
 import routine as Rt
-from gamma import INVENTED, Ctx, Gamma, Standing, Term, accepts_type
+from gamma import IMPORTED, INVENTED, Ctx, Gamma, Standing, Term, accepts_type
 from gamma import SAME_AS_TARGET as G_SAME
 from ledger import (
     ADVANCE,
@@ -152,6 +152,14 @@ _SHAPE_DECODE = bool(os.environ.get("TETHER_SHAPE_DECODE"))
 # The incremental tally in `_cannot_pay`. ON by default, OFF for the identity A/B --
 # ONE script with one flag, never two scripts.
 _TALLY = not os.environ.get("TETHER_NO_TALLY")
+
+# CARRY THE CANDIDACY. Reviewer 2026-09-30, on Isaiah's reuse-without-re-deriving ruling:
+# *a carried term becomes a candidate the first time the agent binds or tests it in this game,
+# then settles through the same ground check as any local term.* `candidates` had ONE writer
+# (mint), so `settle()`'s `born is None` guard could never clear for an IMPORTED term and a
+# carried schema could not leave the unsettled state on any board. INVERTED POLARITY like
+# `_TALLY`: the fix is ON and the env var turns it OFF, so the A/B is one script.
+_CARRY_CANDIDATE = not os.environ.get("TETHER_NO_CARRY_CANDIDATE")
 
 
 def _norm_name(x: str) -> str:
@@ -4285,6 +4293,27 @@ class Agent:
                                      condition.Slot(other)))
         return tuple(out)
 
+    def _carry(self, name: str) -> None:
+        """A term the agent just BOUND becomes a candidate awaiting the ground.
+
+        `setdefault`, never assignment: a term already waiting keeps its ORIGINAL cycle, and
+        `settle`'s `born >= self.cycle` guard means nothing registered here can settle on the
+        cycle it was bound. Re-earned by acting; never settled on import.
+
+        **IMPORTED ONLY, AND THE FIRST VERSION WAS NOT -- IT BROKE THREE SEATS.** Unscoped,
+        this also gave LOCAL terms a second and earlier candidacy, which moved their birth
+        cycle, what settled, `units()`, and therefore composition prices: `27/30` with
+        `strategy` at 0.0 and the M2 suite no longer reaching `routine` at all. Measured both
+        ways on the flag. **A local term already has its route -- mint registers it at the
+        moment it is minted -- so widening this to every bind was scope the ruling never
+        asked for**, and the ruling's subject is the term that has no route.
+        """
+        if not _CARRY_CANDIDATE or name in self.candidates:
+            return
+        t = self.gamma.library.get(name)
+        if t is not None and t.origin == IMPORTED:
+            self.candidates[name] = self.cycle
+
     def _rejection(self, key: tuple) -> float:
         """The decayed strength of rejection. `Standing.decay` on the LOGICAL clock -- cycles,
         never wall time -- which is §18.2's first defeasance route and was already built."""
@@ -6137,6 +6166,7 @@ class Agent:
                     self.parked.pop(tkey, None)
                 else:
                     self.bound[slot] = name
+                    self._carry(name)
                     self.owed_import.discard(slot)
                     self.abstained.pop(slot, None)
                 out = {"term": name, "slot": slot, "cycle": self.cycle,
@@ -6677,6 +6707,7 @@ class Agent:
         for slot, b, fit, _why in self.route(res):
             if b == REBIND and fit:
                 self.bound[slot] = fit
+                self._carry(fit)
                 self.rank.note(fit, self.cycle)
                 self.owed_import.discard(slot)
                 self.abstained.pop(slot, None)
@@ -6687,6 +6718,7 @@ class Agent:
                 # new and MECHANISM's answer is the right one.
                 if fit:
                     self.bound[slot] = fit
+                    self._carry(fit)
                     self.rank.note(fit, self.cycle)
                     self.led.record(self.cycle, "ACCEPT", slot, "compete", term=fit,
                                     status="candidate",
