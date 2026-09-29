@@ -906,6 +906,12 @@ class Agent:
         # available and not available -- it's a hint or indicator". The COUNT is what makes it
         # testable rather than anecdotal, against `MIN_REPEAT` like every other repeat claim.
         self._undone: dict = {}
+        # **AND THE SAME PAIR POOLED ACROSS CONTEXTS -- A HINT, NEVER THE CLAIM.** The reviewer,
+        # 2026-09-29, from last night's actor key, which split the evidence so finely that
+        # nothing reached the bar. The per-context count is what `MIN_REPEAT` is tested against
+        # because *repeating in the same situation* is Isaiah's test; this one exists so the
+        # agent can pick WHAT TO TRY when no single situation has enough behind it yet.
+        self._undone_across: dict = {}
         self._acts: Counter = Counter()   # System-0 instrument: concrete actions taken per cycle
         # the whole before-state is kept, because an operand is another slot's past value
         self.trace: list[tuple[dict[str, int], str, dict[str, int]]] = []
@@ -3957,10 +3963,19 @@ class Agent:
             for _slot, _was, _now in undone:
                 _key = (_ctx, _said, _slot, round(float(_was), 3))
                 _n = self._undone[_key] = self._undone.get(_key, 0) + 1
+                _ak = (_said, _slot)
+                _an = self._undone_across[_ak] = self._undone_across.get(_ak, 0) + 1
                 self.led.record(self.cycle, "PERCEIVE", _slot, "goal_undone",
                                 was=round(float(_was), 4), now=round(float(_now), 4),
                                 intent=_said, action=self._last_action, ctx=_ctx,
                                 times=_n, repeated=_n >= MIN_REPEAT,
+                                # SEPARATE AND LABELLED, so it cannot be mistaken for the
+                                # tested quantity. `times` is the claim; this says only
+                                # *worth trying here*, and it is deliberately NOT compared
+                                # against `MIN_REPEAT`.
+                                across=_an,
+                                across_reads="seen this often across ALL contexts -- a hint "
+                                             "about what to try, not a finding",
                                 reads="a goal I had met is no longer met; this is what I did")
         if reach:
             self.led.record(self.cycle, "PERCEIVE", "*", "can",

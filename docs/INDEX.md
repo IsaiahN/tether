@@ -51159,3 +51159,108 @@ tonight.** So: the transitions are MEASURED and not yet RECORDED, and nothing in
 read them. The build, when it is ruled, is *which intent was taken when a met objective became
 unmet, keyed the way the other audit rows are* — `(context, before-value)` — which is System 0
 job B's *capability opened / closed* in goal form: **this intent undoes that objective.**
+
+---
+
+# THE DECISION ROW AND THE BACKTRACK — A PLAN, WRITTEN BEFORE ANY OF IT IS CODE
+
+**2026-09-29.** Isaiah: *"1 and 2 should be the agent's decision, and they should record choosing
+that for history and so they can backtrack."* The two questions are **may exploration disturb a
+goal already met**, and **keep pursuing G1 when it undoes G2**. Neither gets a fixed policy —
+that is scaffolding that removes a choice the agent could make.
+
+**NOTHING BELOW IS BUILT. It is written first because the reviewer named the backtrack as the
+part easiest to leave vague, and because a plan is cheaper to refute than an implementation.**
+
+## 1. WHAT A DECISION IS, AND WHERE IT ARISES
+
+A decision exists only where **two intents are both realisable and they conflict**. Two sites,
+and they are the two Isaiah named — no others are proposed:
+
+    DISTURB   an exploratory intent would move a slot whose objective currently HOLDS
+    DISPLACE  the selector's chosen objective is one whose pursuit has been RECORDED as
+              undoing another objective that currently holds
+
+**Both are detectable from what now exists**: `_res` says which objectives hold, and
+`_undone`/`_undone_across` say which intent has undone which goal. **No new perception is
+needed, which is the test for whether this is ripe.**
+
+## 2. THE ROW — FOUR FIELDS, AND `A6i` IS THE REASON FOR THE FOURTH
+
+    chose        the intent taken, in intent terms. NEVER a button
+    instead_of   the intents NOT taken -- the alternatives that were live at that moment
+    because     the EVIDENCE held at the time: the goal_undone keys consulted, their
+                per-context `times`, and the `across` hint SEPARATELY LABELLED
+    at           context and the values the objectives stood at -- the same key shape as
+                every other audit row, so a decision can be matched to the situation it
+                was made in
+
+**`because` CARRIES THE EVIDENCE AS IT WAS, NOT AS IT LATER BECAME.** A decision reviewed
+against today's counts is a decision judged on facts it did not have — and that would make the
+history unreadable exactly where it is most wanted.
+
+## 3. WHAT BACKTRACK RETURNS TO — STATED PLAINLY, BECAUSE THIS IS THE VAGUE PART
+
+**IT DOES NOT RESTORE WORLD STATE.** `self.trace` is append-only and a level reset clears it,
+so anything claiming to rewind the world would be a fiction that reads as a capability.
+
+**AND *THERE IS NO UNDO ON A BOARD* WAS AN ASSERTION, NOT A CHECK — the reviewer, 2026-09-29.**
+It is a claim about the ENVIRONMENT and I made it from the armchair. Checked, both routes, by
+reading declarations only (the board stop holds):
+
+    RESET + REPLAY   **EXISTS AND IS WITHHELD BY RULING, which is a different fact from
+                     absent.** `arc_world.actions()` filters `GameAction.RESET` out, and
+                     §21.2's `ResetGate` BANS THE AGENT CALLING RESET because a self-inflicted
+                     restart is the farming path — `bounds.py` exists because a harness once
+                     force-RESET on GAME_OVER to farm ~18 unearned attempts. A game-inflicted
+                     restart reaches the loop as an OBSERVATION; an agent-callable one is a
+                     bypass
+    AN UNDO ACTION   **NONE ADVERTISED.** The declared set is `RESET, ACTION1..ACTION7` and
+                     nothing names an undo. Per `F28` the DIRECTIONAL SEMANTICS never reach
+                     the agent either, so it cannot be told which button reverses which
+
+> **SO THE CONCLUSION SURVIVES AND ITS REASON CHANGES, WHICH IS THE POINT OF CHECKING.** Not
+> *no undo exists* but **one exists and is deliberately out of reach, and no other is named.**
+>
+> **AND THE SECOND ROW IS AN OPPORTUNITY RATHER THAN A WALL.** Whether some ACTION happens to
+> undo a goal on a given board is **exactly what `goal_undone` now records** — so *undo* is not
+> a primitive the agent is missing, it is a HYPOTHESIS the agent can form from its own
+> transition history. The thing built tonight is the thing that would let it.
+
+> **BACKTRACK RETURNS TO A DECISION, NOT TO A STATE.** It names a past `decision` row whose
+> `chose` is now judged worse than its `instead_of`, and it makes the ALTERNATIVE the thing to
+> try **the next time that situation recurs** — matched by `at`, the same context key.
+
+Three consequences, all of which must be true for it to be honest:
+
+- **It is a RE-TRY, not a REWIND.** The agent does not go back; it arrives at the same junction
+  again and takes the other branch. If the junction never recurs, the backtrack never fires —
+  and that is a correct outcome, not a failure.
+- **"Worse" must be a reading the agent already has**, never a new score. The candidate is the
+  objective's own discrepancy: *the goal I protected did not stay met anyway*, or *the goal I
+  pursued exhausted*. **If no existing reading can say worse, there is nothing to build yet and
+  the honest move is to stop here.**
+- **A re-tried branch is itself a decision and is recorded as one**, or the second visit is
+  invisible and the history has a hole exactly where the learning is.
+
+## 4. WHAT IS NOT IN THIS PLAN, DELIBERATELY
+
+**No policy for which branch to prefer.** The agent chooses; this plan gives it the record to
+choose FROM and the record OF having chosen. **The moment a default is written in, Isaiah's
+ruling has been implemented as its opposite.**
+
+**No new intent.** *Reach and hold* is a plausible thing to want and is NOT proposed here — the
+reviewer and Isaiah both said record and report first, and the exhausted proximity trials it
+would be aimed at are still unexplained.
+
+## 5. THE ORDER, AND THE STOP CONDITION
+
+    1   the decision row -- chose / instead_of / because / at        [not built]
+    2   a reading that can say one branch turned out WORSE           [not built]
+    3   the re-try at a recurring junction, itself recorded          [not built]
+
+> **STEP 2 IS THE GATE AND IT IS WHERE THIS MAY DIE.** Build 1 and 3 without it and there is a
+> backtrack mechanism with nothing able to trigger it — **a guard whose failure path is never
+> exercised, which this record already names as indistinguishable from one that cannot fail.**
+> So 2 is measured before 3 is built, and if no existing reading can say *worse*, 3 does not get
+> built and the finding is that it cannot yet.
