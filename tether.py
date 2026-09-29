@@ -1371,7 +1371,10 @@ class Agent:
         required, not just the after-value -- the ARRIVAL frame has the slot in `after`
         and not in `before`, so it is not a transition observation and a term applied to
         it would fault on the missing before-value."""
-        return [(b, a, af[slot]) for b, a, af, *_ in self.trace
+        # **AND THE INTENT RIDES WITH IT.** A guard is tested inside `Term.apply`, which
+        # runs over THESE rows during replay -- so a guard keyed on an intent is
+        # unevaluable unless the row carries the intent that produced it.
+        return [(b, a, af[slot], i) for b, a, af, i in self.trace
                 if slot in af and slot in b]
 
     @staticmethod
@@ -1986,7 +1989,11 @@ class Agent:
         ops = self._ops(term, state)
         if ops is None:
             return None
-        ctx = Ctx(action=action, operands=ops,
+        # **`_predict` IS THE CURRENT STEP, NOT A REPLAY ROW**, so its intent is the live one
+        # rather than a row's. `NO_INTENT` when none was formed -- the explicit reading, so a
+        # guard compares against a value instead of an absence.
+        _now = self._intent_now.kind if self._intent_now is not None else NO_INTENT
+        ctx = Ctx(action=action, intent=_now, operands=ops,
                   touching=self._touching(slot), group=self._group(slot, state),
                   obj=self._record(slot, state), shapes=self._shapes_now())
         got = self._value_of(term, slot, state, ctx)
@@ -2321,7 +2328,7 @@ class Agent:
         """
         after_of = {id(b_): a_ for b_, _act, a_, *_ in self.trace}
         moved: set = set()
-        for st, _a, _v in robs:
+        for st, _a, _v, *_ in robs:
             aft = after_of.get(id(st))
             if aft is None:
                 continue
@@ -2639,7 +2646,7 @@ class Agent:
         """
         if not robs:
             return False
-        for state, action, _actual in robs:
+        for state, action, _actual, *_ in robs:
             # **`_applies` BEFORE `_ops`, WHICH EVERY OTHER CALLER DOES AND THIS ONE DID NOT.**
             # `_ops` is `state[term.operand]` with no guard; `_applies` exists for exactly the
             # case its docstring names -- *a term reading an operand cannot be applied where
@@ -2761,7 +2768,7 @@ class Agent:
         Default `None` leaves every existing caller walking the full history.
         """
         total = 0.0
-        for state, action, actual in hist:
+        for state, action, actual, intent in hist:
             if ceiling is not None and total >= ceiling:
                 return total
             if not self._applies(term, state):
@@ -2772,7 +2779,7 @@ class Agent:
                 total += math.log2(self.alphabet[slot])   # unreadable operand, unexplained
                 continue
             got = self._value_of(term, slot, state,
-                                 Ctx(action=action, operands=ops,
+                                 Ctx(action=action, intent=intent, operands=ops,
                                      touching=None,      # replay: contact unknown
                                      group=self._group(slot, state),
                                      obj=self._record(slot, state),
@@ -2908,22 +2915,22 @@ class Agent:
         the residual and names what changed; this is the same object handed to step 3
         instead of being recomputed as a scalar."""
         out = []
-        for state, action, actual in hist:
+        for state, action, actual, intent in hist:
             if not self._applies(term, state):
-                out.append((state, action, actual))   # inapplicable is unexplained
+                out.append((state, action, actual, intent))   # inapplicable is unexplained
                 continue
             ops = self._ops(term, state)
             if ops is None:
-                out.append((state, action, actual))   # unreadable operand, unexplained
+                out.append((state, action, actual, intent))   # unreadable, unexplained
                 continue
             got = self._value_of(term, slot, state,
-                                 Ctx(action=action, operands=ops,
+                                 Ctx(action=action, intent=intent, operands=ops,
                                      touching=None,      # replay: contact unknown
                                      group=self._group(slot, state),
                                      obj=self._record(slot, state),
                                      shapes=self._shapes_now()))
             if got is NOT_RESOLVED or got % self.alphabet[slot] != actual % self.alphabet[slot]:
-                out.append((state, action, actual))
+                out.append((state, action, actual, intent))
         return out
 
     def _cannot_pay(self, term: Term, slot: str, robs: list, cost: float,
@@ -2958,7 +2965,7 @@ class Agent:
                 elif cost + unit * wrong >= base:
                     return True             # the stored prefix already proves it
         for i in range(start, len(robs)):
-            state, action, actual = robs[i]
+            state, action, actual, intent = robs[i]
             # `_ops` was called TWICE per row here -- once to test for None and again to
             # build the Ctx -- while `_left` next door hoists it. Pure function of
             # (term, state), so hoisting is exact; it halves the hottest callee in the
@@ -2974,7 +2981,7 @@ class Agent:
                     wrong += 1                        # unreadable operand is unexplained
                 else:
                     got = self._value_of(term, slot, state,
-                                         Ctx(action=action, operands=ops,
+                                         Ctx(action=action, intent=intent, operands=ops,
                                              touching=None,  # replay: contact unknown
                                              group=self._group(slot, state),
                                              obj=self._record(slot, state),
@@ -5251,17 +5258,25 @@ class Agent:
         self.slot_types = self._slot_types(self.env)
 
     def _guards(self, robs: list) -> list[str | None]:
-        """Which actions a guard may name. **None first, and then only what R contains.**
+        """Which INTENT a guard may name. **None first, and then only what R contains.**
 
-        A guard on an action the term was never wrong under explains nothing, so the
-        candidate set is the actions appearing in the residual's own observations -- *let
-        the residual say where to look*, the same bound `_cannot_pay` uses. **Necessary
-        condition, not a preference**: it cannot remove a guard that could have paid.
+        **ISAIAH, 2026-09-29 (ruling 1): guards name INTENTS, not buttons.** This yielded the
+        ACTIONS appearing in the residual -- so a guard was a claim about which button was
+        pressed, and above the seam the agent names no buttons. It could only ever have been
+        learned by the interface leaking upward.
+
+        The bound is unchanged in KIND: the candidate set is what the residual's own rows
+        contain, *let the residual say where to look*, the same bound `_cannot_pay` uses. It
+        is now the intents those rows carry, which the trace records as of `536fab2`.
+
+        **`NO_INTENT` IS A CANDIDATE LIKE ANY OTHER, AND DELIBERATELY SO.** *This term is wrong
+        exactly when I acted without meaning anything* is a real and checkable claim; excluding
+        it would be deciding for the agent that the distinction cannot matter.
 
         **None first for the same reason `_bindings` puts it first** -- an unguarded term is
         cheaper, so it wins when both fit, which is Occam priced rather than preferred.
         """
-        return [None, *sorted({a for _, a, _ in robs if a is not None})]
+        return [None, *sorted({i for _, _, _, i in robs if i is not None})]
 
     def _operand_fits(self, cand, target: str, bind: str | None) -> bool:
         """`0a`'s TYPING half, whose trigger fired on a real board.
@@ -5319,7 +5334,10 @@ class Agent:
         others = [s for s in self.slots if s != slot]
         if _DELTA_OPERANDS and robs:
             others = self._delta_narrowed(others, robs)
-        seen = {s: len({st[s] for st, _, _ in robs if s in st}) for s in others}
+        # `*_` -- this row gained the INTENT on 2026-09-29 and this site was missed twice:
+        # once by scoping the search to one file, once by EXCLUDING that file from the
+        # repo-wide search. The pattern, not the file, is what has to be searched.
+        seen = {s: len({st[s] for st, *_ in robs if s in st}) for s in others}
         # CONTACT FIRST, THEN VARIANCE. §16.5: *list everything in contact with the residual,
         # then what is in contact with those, and outward until the cascade stops mattering --
         # you do not invent the list, you read it off the world.* The docstring above records

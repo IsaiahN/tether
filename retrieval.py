@@ -68,7 +68,10 @@ def characterise(robs: list, slot: str, slots: list[str],
     else:
         others = [s for s in slots if s != slot]
     varies = tuple(s for s in others
-                   if len({st.get(s) for st, _, _ in robs if s in st}) > 1)
+                   # `*_` so the row can gain a field without breaking this again --
+                   # it gained the INTENT on 2026-09-29 and this site was missed,
+                   # because the blast radius was scoped to `tether.py` alone.
+                   if len({st.get(s) for st, *_ in robs if s in st}) > 1)
     invariant = tuple(s for s in others if s not in varies)
     # WHICH TYPES VARIED, NOT WHICH SLOTS -- and this is the key that CROSSES. A slot name is
     # an instance: `o11.col` does not exist on the next board, so a key holding one can only

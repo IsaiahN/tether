@@ -143,6 +143,14 @@ class Ctx:
     term that predicts by peeking is not constructible."""
 
     action: Any = None
+    # **THE INTENT, AND IT IS A SEPARATE FIELD -- ISAIAH, 2026-09-29 (ruling 1): a separate
+    # intent field, NOT an intent in `Ctx.action`.** Two quantities never share a field here:
+    # `action` stays the button and gains no second sense, which is the `A6i` this avoids.
+    #
+    # **IT PASSES THIS CLASS'S OWN BEFORE-STATE TEST**, which the docstring above requires of
+    # any new field: an intent is formed BEFORE the action is realised, so it cannot smuggle
+    # the outcome in. A term guarded on an intent still cannot peek.
+    intent: Any = None
     operands: tuple = ()          # other slots' values, in the term's binding order
     # SENSOR 8's SECOND OPERAND, resolved PER SLOT by the caller. `_extract` wrapped the
     # one-place sensors eight times and nothing wrapped a two-place one: an atom receives one
@@ -389,7 +397,11 @@ class Term:
     def apply(self, value: Any, ctx: Ctx) -> Any:
         """IDENTITY WHEN THE GUARD FAILS, which is the whole conditional. `When(P, R)` with
         `idn` as the else-branch -- the only two-branch form a left-to-right chain admits."""
-        if self.guard is not None and ctx.action != self.guard:
+        # **THE GUARD NAMES AN INTENT, NOT A BUTTON -- ISAIAH, 2026-09-29 (ruling 1).**
+        # This read `ctx.action != self.guard`, which made a guard a claim about which BUTTON
+        # was pressed. Above the seam the agent names no buttons, so such a guard could only
+        # ever be learned by the interface leaking upward.
+        if self.guard is not None and ctx.intent != self.guard:
             return value
         for a in self.atoms:
             # ELEMENTWISE WHEN THE CHAIN IS MID-ITERATION -- §12.2.1. An atom typed `CELL` sees
