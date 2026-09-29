@@ -3988,10 +3988,37 @@ class Agent:
         # things* -- applied at the gate that turned out to refuse EVERY cycle. It was measured
         # rather than assumed: six cycles, `enumerate_routines` reached zero times, every exit
         # here. **The whole ACT space is downstream of this one string.**
-        tally = {"too_short": 0, "flat": 0, "rose": 0, "qualified": 0}
+        tally = {"too_short": 0, "flat": 0, "rose": 0, "qualified": 0, "arrived": 0}
         longest = 0
         for slot, series in sorted(self._res.items()):
             longest = max(longest, len(series))
+            # **AN OBJECTIVE THAT HAS ARRIVED IS NOT ONE TO PURSUE, AND ARRIVING LOOKS EXACTLY
+            # LIKE SHRINKING ON THE LAST READING.** §13.4 defines the series as *a scalar
+            # discrepancy that is ZERO EXACTLY WHEN SATISFIED*, so `[2, 1, 0]` passes
+            # *confidently shrinking* on its way to being done, and the selector spent its
+            # choice there.
+            #
+            # Measured before this existed -- gridworld seed 11, 60 cycles: **7 of 26 mint
+            # refusals read *the objective already holds across its whole scope*, and the ONE
+            # routine that reached `done` did so having taken ZERO ACTIONS**, its guard already
+            # true when it started. One cause, and the second half is why the library was empty.
+            #
+            # **THE READING WAS ALREADY PUBLISHED AND NEVER CONSULTED** -- `goal_series` computes
+            # `satisfied` as exactly this test. *A value that exists and never crosses.* Same
+            # expression here, so the row and the gate cannot drift apart.
+            #
+            # Tallied apart, never folded into `flat`: flat is *sitting at a gap*, this is
+            # *there is no gap*.
+            # **AND ARRIVED MEANS STAYED ARRIVED, BECAUSE ONE READING IS A COINCIDENCE.**
+            # The first version tested `series[-1] <= 0` and it removed BOTH of the agent's
+            # only real trials in 60 cycles. The tell was the ending: an `exhausted` means the
+            # GUARD WAS NOT MET, so a series reading <= 0 at selection while the guard said no
+            # at execution is a MOMENTARY TOUCH on an oscillating relational attribute, not
+            # arrival. `MIN_REPEAT` is reused rather than a second constant invented -- the
+            # same rule, from the same line, that makes *confidently* mean what it means here.
+            if len(series) >= MIN_REPEAT and all(v <= 0 for v in series[-MIN_REPEAT:]):
+                tally["arrived"] += 1
+                continue
             if len(series) < MIN_REPEAT + 1:
                 tally["too_short"] += 1
                 continue
@@ -4430,6 +4457,9 @@ class Agent:
             elif gwhy.get("longest", 0) < gwhy.get("needs", 0):
                 reason = ("every series is shorter than the bar needs -- the bar has not been "
                           "applied yet, so this is not a bar set too high")
+            elif gwhy.get("arrived") and not (gwhy.get("flat") or gwhy.get("rose")):
+                reason = ("every objective held has ARRIVED -- nothing is left to pursue, so "
+                          "this is neither the bar nor supply")
             else:
                 reason = "no objective is confidently shrinking"
             # **`*` MEANT TWO THINGS AND THE GATE COULD SEE ONLY ONE -- `A6i` AT A LEDGER
