@@ -237,7 +237,9 @@ class GridWorld:
         return "exact match on the next state. Mechanical, instant, and it does not negotiate"
 
     def slots(self) -> list[str]:
-        return sorted([*self.state, GOAL_SLOT] + [f"o{i}.proximity" for i in range(N_OBJECTS)])
+        return sorted([*self.state, GOAL_SLOT]
+                      + [f"o{i}.proximity" for i in range(N_OBJECTS)]
+                      + [f"o{i}.distance" for i in range(N_OBJECTS)])
 
     def atoms(self) -> list[Atom]:
         """THE TOY WORLD'S ATOMS, VERBATIM. See the module docstring: one variable moves."""
@@ -262,6 +264,7 @@ class GridWorld:
         # the direction that makes its residual look smaller than it is.
         for i in range(N_OBJECTS):
             a[f"o{i}.proximity"] = 2 * GRID
+            a[f"o{i}.distance"] = 2 * GRID + 1   # 0..2*GRID inclusive: unreachable is a value
         return a
 
     def slot_owner(self) -> dict[str, str]:
@@ -418,6 +421,41 @@ class GridWorld:
         return (abs(self.state[who + ".row"] - self.state["o0.row"])
                 + abs(self.state[who + ".col"] - self.state["o0.col"]))
 
+    def _distance(self, who: str) -> int:
+        """**THE LENGTH OF THE UNOBSTRUCTED PATH -- ISAIAH, 2026-09-29 (ruling 3), and it is
+        a DIFFERENT QUANTITY FROM `proximity`, not a better one.**
+
+        His words: *PROXIMITY = closeness. DISTANCE = the length of the UNOBSTRUCTED PATH. An
+        object can be very close to another in proximity with a wall between them -- the
+        straight line says "closest", and the agent gets stuck attempting an impossible move.*
+
+        `_proximity` is Manhattan and ignores the wall, which makes it CORRECTLY NAMED and
+        insufficient on its own. This is breadth-first over the same wrapped grid with `o2`
+        blocking, so the two disagree exactly when the wall is in the way -- which is the
+        situation the ruling exists for.
+
+        **UNREACHABLE IS `2 * GRID`, THE SAME SENTINEL THE ALPHABET ALREADY USES**, rather than
+        a new magic number: a wall that fully encloses a cell is a real state and it must not
+        read as *adjacent*.
+        """
+        from collections import deque
+        start = (self.state["o0.row"] % GRID, self.state["o0.col"] % GRID)
+        goal = (self.state[who + ".row"] % GRID, self.state[who + ".col"] % GRID)
+        if start == goal:
+            return 0
+        seen, q = {start}, deque([(start, 0)])
+        while q:
+            (r, c), d = q.popleft()
+            for dr, dc in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                nxt = self._wrap(r + dr, c + dc)
+                if nxt in seen or self._blocked(*nxt):
+                    continue
+                if nxt == goal:
+                    return d + 1
+                seen.add(nxt)
+                q.append((nxt, d + 1))
+        return 2 * GRID
+
     def _completed(self) -> int:
         """ONE SITE. `objective()` and the published `@goal.completed` slot are one quantity,
         and computing it twice is the `A6i` collision this repo keeps filing."""
@@ -429,7 +467,8 @@ class GridWorld:
     def observe(self) -> dict[str, int]:
         """DERIVED, NEVER STORED -- no rule can write the goal; the agent only perceives it."""
         return {**self.state, GOAL_SLOT: self._completed(),
-                **{f"o{i}.proximity": self._proximity(f"o{i}") for i in range(N_OBJECTS)}}
+                **{f"o{i}.proximity": self._proximity(f"o{i}") for i in range(N_OBJECTS)},
+                **{f"o{i}.distance": self._distance(f"o{i}") for i in range(N_OBJECTS)}}
 
     def attribute_of(self) -> dict[str, str]:
         """Slot -> the attribute it holds. `ArcWorld` publishes this and this habitat did not,

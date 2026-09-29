@@ -92,11 +92,22 @@ def _uniform(deltas: list[tuple]) -> tuple | None:
     return deltas[0] if deltas and len(set(deltas)) == 1 else None
 
 
-# The frozen vocabulary the composition may name (VOCABULARY_FROZEN.md, arc_atoms sha 3f85bced).
+# THE FROZEN VOCABULARY THE COMPOSITION MAY NAME (VOCABULARY_FROZEN.md, arc_atoms sha 3f85bced).
 # ACTION-AGNOSTIC: nothing here names an action -- a composition is what makes a transformation
 # possible (attributes/relations), never the button that triggers it (Isaiah, 2026-09-14).
-FROZEN_EXTRACTORS = frozenset({"colour", "row", "col", "h", "w", "drow", "dcol", "shape"})
-FROZEN_RELATIONS = frozenset({"touching", "above"})   # arity-2 relations the agent can bet on today
+#
+#     EXTRACTORS   colour  row  col  h  w  drow  dcol  shape
+#     RELATIONS    touching  above          -- arity-2, what the agent can bet on today
+#
+# **PROSE, NOT CODE -- ISAIAH, 2026-09-29 (ruling 4).** These were two module-level `frozenset`s
+# that nothing read: `ISOLATED` counted them as dead code and was right to. The obvious repair --
+# wire them into a check -- IS REFUSED, and by him: *action-agnostic is enforced, but forcing the
+# frozen sets in code could silently kill a feature.* A set nobody consults is dead weight; a set
+# that gates composition is a policy that can refuse a legitimate term without saying so.
+#
+# **SO THE VOCABULARY STAYS WRITTEN DOWN AND STOPS PRETENDING TO BE A MECHANISM.** The rule it
+# states is enforced by REVIEW -- the contents go to the reviewer for exactly that -- and this
+# comment is where a reader meets it. *Exemptions as data, not logic*, applied to a vocabulary.
 
 
 def _touch(b: dict, o: dict) -> bool:

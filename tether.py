@@ -896,6 +896,15 @@ class Agent:
         # THIS AGENT HAS ACTUALLY FORMED -- a denominator from the run, never a space anybody
         # enumerated, because enumerating one and taking its `log2` is the flat pricing Isaiah
         # ruled against.
+        # **BY KIND, NOT BY VERB-PLUS-OPERAND -- ISAIAH, 2026-09-29 (ruling 3):** *pricing
+        # counts intents by KIND -- TOUCH is one kind, not one per object.*
+        #
+        # **AND THE RULING RESOLVES AN `A6i` I HAD RECORDED AND COULD NOT ACT ON.** This
+        # stored `says()`, so `TOUCH o1` and `TOUCH o3` were two entries and a field named
+        # KINDS grew with the OBJECT COUNT -- on a fifty-object board `TOUCH` alone would
+        # contribute fifty. I filed it and deliberately did NOT rename, because which of
+        # the two quantities was wanted is exactly what the pricing ruling decides.
+        # **It decided KIND, so the name was right and the contents were wrong.**
         self._intent_kinds: set[str] = set()
         # slot -> (triple, {term: (rows covered, `wrong` over them)}). Always a PREFIX
         # tally, so an aborted walk is stored and resumed rather than discarded.
@@ -4870,7 +4879,7 @@ class Agent:
         # so it read 0 on 24 cycles where every exit named an intent. LOWER BOUND: an intent
         # formed in `choose` that fails to realise never reaches this door.
         if want is not None:
-            self._intent_kinds.add(want.says())
+            self._intent_kinds.add(want.kind)
             self._note_decision(want)
         return r.action
 
@@ -4940,7 +4949,7 @@ class Agent:
         no interface to consult and should not have to build one.
         """
         if isinstance(emit, IFace.Intent):
-            self._intent_kinds.add(emit.says())
+            self._intent_kinds.add(emit.kind)
             r = self.iface.realise(emit, tuple(self.actions),
                                    IFace.Interface.context(self.env), before, self.env)
             if r is None:
@@ -5033,7 +5042,7 @@ class Agent:
         # is the one place the intent is formed. Re-forming it there would be two producers of
         # one fact, which is harmless exactly until one side changes.
         self._goal_want = _want
-        self._intent_kinds.add(_want.says())
+        self._intent_kinds.add(_want.kind)
         _r = self.iface.realise(_want, tuple(self.actions),
                                 IFace.Interface.context(self.env), before, self.env)
         if _r is not None:
