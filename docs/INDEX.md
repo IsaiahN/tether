@@ -50921,3 +50921,90 @@ and it must be measured before a speedup is predicted, because it would silently
 > attached to the proposal, which is the only thing that was asked for, and it says which of the
 > four conditions is inert, which is structural, and which one would have produced correct-looking
 > numbers on gridworld and wrong ones on a board.
+
+---
+
+# THE HOTSPOT, CLOSED: EXACT, 45% OFF AT 30 CYCLES, AND THE FIFTH PRECONDITION WAS ALSO THE WHOLE MEMORY PROBLEM
+
+**2026-09-29, `db2d0c2` and `49587a5`.** The build the profile pointed at, done to the five
+preconditions. **Every number below is from ONE script with ONE flag**, two processes of the
+same file, same seed.
+
+    WORLD       gridworld seed 11, system0 on, max_depth 2. No ARC board; the stop holds
+
+## 1. A FREE ONE, FOUND BY READING THE HOT PATH RATHER THAN LOOKING FOR IT
+
+`_cannot_pay` called `_ops` **twice per row** — once to test for `None`, once to build the
+`Ctx` — while `_left` ten lines up hoists it. `_ops` is the hottest callee in the profile.
+
+    cycles 10   18.7s -> 16.7s      cycles 20  122.9s -> 102.6s
+    cycles 30  327.7s -> 277.6s     cumulative  469.4s -> 396.9s   (-15.4%)
+
+**AND MY FIRST PATCH FOR IT WAS WRONG.** I hoisted with a conditional that called `_applies`
+twice to avoid calling `_ops` twice — **one duplicate traded for another** on a 7.8M-call
+callee. The fix is to NEST the branch rather than chain the `elif`, and the comment says so,
+because **the chained form is what invites the trade.**
+
+## 2. THE TALLIES, AND THE GATE THEY HAD TO PASS
+
+    arm=off   25 cycles   3167 rows   234.8s   tallies       0
+    arm=on    25 cycles   3167 rows   154.8s   tallies 371,492
+    DIFF      IDENTICAL -- 3169 lines byte for byte, every ledger row plus the final
+              library and bindings. Also identical to the pre-eviction arm
+
+**The tally is always a PREFIX**, so the early abort stores its partial total with the count it
+covered and the next call resumes — **a refusal stopped being a wasted walk**, which was not
+the design intent and is the nicest part of it.
+
+## 3. THE CURVE FLATTENS, WHICH IS THE ONLY CLAIM THAT MATTERS HERE
+
+    block          hoist only    + tallies
+    cycles 10          16.7s        17.7s      +6%   nothing to reuse yet
+    cycles 20         102.6s        75.9s     -26%
+    cycles 30         277.6s       164.1s     -41%
+    cycles 40         408.2s       217.6s     -47%
+
+> **THE SAVING GROWS WITH THE RUN, AND A CONSTANT FACTOR CANNOT DO THAT.** Costing *more* at
+> block 10 is the tell that it is the right mechanism: there is nothing to reuse yet, so the
+> only thing happening is the tally being built. **Against the original baseline at 30 cycles,
+> 469.4s -> 257.7s.**
+
+**NOT EXTRAPOLATED TO 1000 CYCLES.** The curve is flatter, not flat; per-cycle cost still rises.
+
+## 4. AND THE FIFTH PRECONDITION TURNED OUT TO BE THE MEMORY PROBLEM TOO
+
+Measured **before** building the eviction — count the entries under a triple their slot has
+already moved past:
+
+    cycles 25   1,077,893 entries   188.0 MiB   (183 B/entry)
+    STALE       848,369 = 78.7%
+                held moved (rebind)   848,369      <- ALL of it
+                alphabet moved              0
+                epoch moved                 0
+
+**100% of the staleness is `held`.** The condition I nearly missed — *`robs` is not the history,
+it is the history filtered by what the BOUND term got wrong* — **was simultaneously the
+correctness trap and the entire memory cost.** One fact, two bills.
+
+Nested per slot so eviction is a `clear()` and never a scan: **1,077,893 -> 371,492 entries,
+188 -> ~65 MiB, and FASTER (166.8s -> 154.8s) because smaller dicts hash quicker.** No cap, no
+N, no threshold invented.
+
+**A census aside worth keeping: only SEVEN distinct slots appear in the keys against FORTY live
+slots.** `mint` works on a handful, and nobody had counted which.
+
+## 5. A SEAT CAUGHT ME, AND IT CAUGHT THE RIGHT THING
+
+`arms` went red: **an env switch added with no registry row.** Declared — and the row states
+that `TETHER_NO_TALLY` is **the only INVERTED-POLARITY arm in the file**: every other is OFF
+with its variable turning it ON, this is default-ON with the variable turning it OFF. Spelled
+`NO_` **so the inversion is in the NAME and not only in the row**, because a reader scanning
+that dict will otherwise assume set-means-on. **Consistency was considered and refused: a
+default-off optimisation is one nobody runs, and the exactness here is proven rather than hoped.**
+
+## WHAT THIS IS NOT
+
+**Throughput, not capability.** The routine library is still empty at 60 cycles and the selector
+still spends one refusal in four on an objective that already holds. **Nothing here changed what
+the agent can do — it changed how long we wait to find out**, which is worth having and is not
+the thing.
