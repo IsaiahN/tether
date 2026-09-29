@@ -51357,9 +51357,26 @@ would be aimed at are still unexplained.
 
 ## 5. THE ORDER, AND THE STOP CONDITION
 
-    1   the decision row -- chose / instead_of / because / at        [not built]
+    1   the decision row -- chose / instead_of / because / at        [BUILT, `17b7b26`]
+    1b  THE INTENT-LEVEL PREDICTION `(before, intent, after)`        [not built]
     2   a reading that can say one branch turned out WORSE           [not built]
     3   the re-try at a recurring junction, itself recorded          [not built]
+
+**AND `1b` IS A STEP I HAD NOT LISTED — the reviewer, 2026-09-29, and it is what separates a
+record from an agency.** Step 1 shipped and fired sixteen times, and I reported it as *the agent
+disturbed a held goal every time*. **That reads as the agent weighing the evidence and choosing
+exploration, and it did no such thing: NOTHING READS `because` AT THE MOMENT OF CHOOSING.** The
+row sits beside a choice the default path made regardless of it.
+
+> **SIXTEEN OF SIXTEEN IS WHAT HAPPENS WHEN NOTHING WEIGHS THE EVIDENCE.** It is not evidence
+> that the evidence was weighed. **So the rows are labelled `conflict, not yet weighed`** until
+> something reads them.
+
+**FOR THE AGENT TO DECIDE WITHOUT A FIXED POLICY IT MUST PREDICT WHAT EACH BRANCH LEADS TO**,
+which is the intent-level prediction `(before, intent, after)`. **That is the thing that would
+let `because` change the choice** — and without it, Isaiah's *it should be the agent's decision*
+cannot be satisfied by any amount of recording. Step 2 still comes first: a branch cannot be
+judged worse before anything can say worse.
 
 > **STEP 2 IS THE GATE AND IT IS WHERE THIS MAY DIE.** Build 1 and 3 without it and there is a
 > backtrack mechanism with nothing able to trigger it — **a guard whose failure path is never

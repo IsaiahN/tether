@@ -243,6 +243,24 @@ class Interface:
         **IT RE-CHOOSES BEFORE IT ABSTAINS.** Barred from `RESET`, it asks the same question of
         the same intent with `RESET` withheld -- *choose something else, or abstain; never send
         it.* An abstention here is still a reading, as everywhere else in this module.
+
+        **AND THIS GUARD'S SAFETY RESTS ON AN ABSENCE, WHICH IS WRITTEN HERE BECAUSE A READER OF
+        THE GUARD IS WHO NEEDS TO KNOW IT.** The flag is set from `audit`, so it sees resets
+        THIS module issued. A reset reaching the board by any other route is invisible to it,
+        and the next choice could then be a second adjacent `RESET` -- the full-game restart.
+
+        **Checked 2026-09-29: no such route exists today.** `arc_world` has NO `restart()`; one
+        was built and removed the same day, its own comment calling a method there *a trapdoor
+        to the version that does*, and `terminal()` only REPORTS a game over. The two resets
+        that do bypass `audit` are benign -- construction and the bench, both at level 1 with
+        no agent in the run.
+
+        > **SO THE GUARD IS SAFE BECAUSE NOBODY HAS RE-ADDED `restart()`.** That is a guarantee
+        > by absence, and this record distrusts those. **The robust fix is to set the flag from
+        > THE FRAME THE PLATFORM RETURNS on any reset**, not only from this module's own
+        > realisations. **HELD, NOT FORGOTTEN** -- the reviewer, 2026-09-29: it lands on the ARC
+        > path, which the board stop makes unrunnable, and shipping an unexercised change to the
+        > one mechanism that can lose a run is worse than carrying a named dependency.
         """
         r = self._choose(intent, offered, ctx, state, env)
         if r is not None and r.action == RESET and self._last_was_reset:

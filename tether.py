@@ -4854,7 +4854,21 @@ class Agent:
         return r.action
 
     def _note_decision(self, want: Any) -> None:
-        """**A CHOICE POINT EXISTED AND WHICH WAY IT WENT -- STEP 1, AND RECORDING ONLY.**
+        """**A CONFLICT THE AGENT WAS IN -- NOT YET A DECISION IT MADE.**
+
+        **THE DISTINCTION IS THE REVIEWER'S, 2026-09-29, AND I HAD OVER-CLAIMED IT.** I filed
+        these as decisions and reported *16 of 16, the agent disturbed a held goal every time*,
+        which reads as the agent weighing the evidence and choosing exploration. **It did not.
+        NOTHING READS `because` AT THE MOMENT OF CHOOSING** -- the evidence is recorded beside a
+        choice the default path made regardless of it. **16 of 16 is what happens when nothing
+        weighs the evidence at all**, and that is a different fact.
+
+        **SO THE ROW IS LABELLED `conflict, not yet weighed` UNTIL SOMETHING READS IT.**
+
+        **AND THE MISSING PIECE IS NAMED RATHER THAN LEFT AS A GAP:** for the agent to decide
+        without a fixed policy it must predict WHAT EACH BRANCH LEADS TO -- the intent-level
+        prediction `(before, intent, after)`. That is what would let `because` change the
+        choice. Until it exists, this row is history and not agency.
 
         ISAIAH, 2026-09-29: *1 and 2 should be the agent's decision, and they should record
         choosing that for history and so they can backtrack.* **So nothing here decides
@@ -4887,8 +4901,10 @@ class Agent:
                                  "across": self._undone_across.get((said, _slot), 0),
                                  "repeated": _n >= MIN_REPEAT},
                         at=IFace.Interface.context(self.env),
-                        reads="I have undone this objective with this intent before, and it "
-                              "holds right now; this is what I chose")
+                        status="conflict, not yet weighed",
+                        reads="I have undone this objective with this intent before and it "
+                              "holds right now -- recorded as a CONFLICT I was in, not a "
+                              "decision I made: nothing read this before the choice")
 
     def _realise_step(self, emit: Any, before: dict[str, int]) -> str | None:
         """A routine step is an INTENT. Turn it into a button, or `None` if nothing serves it.
