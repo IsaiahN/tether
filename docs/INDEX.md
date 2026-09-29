@@ -51102,18 +51102,31 @@ that reads met and then un-met is an observation about **whatever the agent did 
 Isaiah's own condition — *you would try it a few times to see whether it consistently alters the
 state* — is `MIN_REPEAT`, and the census answers it without a new constant:
 
-    4x   BECOME OTHER              down
-    4x   BECOME OTHER              up
-    2x   BECOME OTHER              left
+    9x   BECOME OTHER              up
+    1x   BECOME OTHER              left
     1x   BECOME o1.proximity +     up
-    1x   BECOME o1.proximity +     down
-    1x   BECOME o4.proximity -     down
+    1x   BECOME o1.proximity -     up
+    1x   BECOME o1.proximity -     left
 
-**`up` and `down` each undo a met goal FOUR times.** Twice the bar, on one seed.
+**`BECOME OTHER / up` undoes a met goal NINE times.** Four and a half times the bar, one seed.
+
+> **AND THE FIRST VERSION OF THIS TABLE WAS OFF BY ONE — CORRECTED HERE RATHER THAN IN A NEW
+> ROW, AND THE WRONG NUMBERS ARE KEPT ABOVE THE FOLD BECAUSE OF WHAT THEY DID.** It read *`up`
+> and `down` each FOUR times, `left` twice*. In `step()`, `note_goals` updates `_res` at **6252**
+> from the frame the PREVIOUS action produced, while `_intent_now` is not set until `choose` at
+> **6300** — so reading the intent after the step pairs every transition with **the intent taken
+> AFTER the one that caused it.**
+>
+> **THE DEFECT SMEARED ONE CAUSE ACROSS THREE ACTIONS.** `down` appears FOUR times in the wrong
+> table and ZERO times in the right one — it was simply what the agent did next. One strong
+> signal read as three weak ones, **and the wrong version still looked like a finding**, which is
+> why it was posted before it was checked. Found by going to the write site before BUILDING on
+> the number rather than by doubting the number.
 
 ## THE CULPRIT IS THE AGENT'S OWN CURIOSITY, AND IT IS TRUE BY CONSTRUCTION
 
-**Ten of thirteen carry the intent `BECOME OTHER` — which is `ELICIT`, the EXPLORATION intent.**
+**Eleven of thirteen are the action `up`, and NINE carry the intent `BECOME OTHER` — which is
+`ELICIT`, the EXPLORATION intent.**
 Its whole meaning is *do something different*, so **from a satisfied state it will move off that
 state every time it is realised.** The agent reaches its goal and its own exploratory drive
 walks it away.
@@ -51123,8 +51136,8 @@ walks it away.
 > transition is not recorded, so *I reached this and my own next move lost it* is invisible to
 > the agent, and `_res` simply reads a higher discrepancy next cycle with no account of why.
 
-**AND THREE OF THIRTEEN ARE CROSS-GOAL INTERFERENCE**: `BECOME o1.proximity +` and
-`BECOME o4.proximity -` undoing `o0.row`. The agent pursuing one objective destroys another it
+**AND THREE OF THIRTEEN ARE CROSS-GOAL INTERFERENCE**: `BECOME o1.proximity +/-` undoing
+`o0.row` and `o0.col`. The agent pursuing one objective destroys another it
 had already met, and nothing connects the two events.
 
 ## WHAT THIS DOES *NOT* SHOW, AND IT IS THE HALF THAT WAS PREDICTED
