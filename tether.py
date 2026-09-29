@@ -879,6 +879,9 @@ class Agent:
         # until 2026-09-28 and that name lied the moment `_explore` started aiming too --
         # `A6i` caught before it cost anything, because the field is minutes old.
         self._aimed: tuple[int, int] | None = None
+        # WHAT THE AGENT MEANT BY THIS STEP, for the bet row. `None` where the action was
+        # handed in rather than asked for -- which is a reading, not a gap.
+        self._intent_now: Any = None
         # **THE INTENT ALPHABET AS A MEASURED POPULATION, NOT A DERIVED CONSTANT.** The routine
         # price still uses the ACTION alphabet (see `_mint_routine`), which is now the wrong
         # one; this is the count that makes the size of that gap readable. Distinct intents
@@ -2055,7 +2058,8 @@ class Agent:
         return GENUINE
 
     def perceive(self, action: str,
-                 coord: tuple[int, int] | None = None) -> dict[str, SlotResidual]:
+                 coord: tuple[int, int] | None = None,
+                 intent: Any = None) -> dict[str, SlotResidual]:
         before = self.env.observe()
         # A BET CAN ONLY BE MADE ON A SLOT THAT WAS THERE. With perception the slot set can
         # move WITHIN a step -- an object dies between the bet and the reading -- and
@@ -2137,6 +2141,11 @@ class Agent:
                             # and recording it as a term made 104 of 110 staleness
                             # readings noise. `_predict` still falls back to `idn`.
                             bound=self.bound.get(s, NO_CHANGE),
+                            # **WHAT THE AGENT MEANT, ON THE ROW THAT RECORDS ITS BET.** It
+                            # named neither the action nor the intent before, so the model's
+                            # own record could not say what the prediction was made under.
+                            # `None` where the action was handed in rather than asked for.
+                            meant=(intent.says() if intent is not None else None),
                             )
             self._standing(s)
 
@@ -3180,7 +3189,8 @@ class Agent:
             _t = self.iface.realise(IFace.Intent(IFace.TOUCH, object=aim),
                                     tuple(self.actions),
                                     IFace.Interface.context(self.env), before, self.env)
-            act = self._took(_t) if _t is not None else None
+            act = (self._took(_t, IFace.Intent(IFace.TOUCH, object=aim))
+                   if _t is not None else None)
             if _t is not None:
                 self.led.record(self.cycle, "PLAN", aim, "intent",
                                 reads=(f"{IFace.TOUCH} {aim}", _t.why))
@@ -3233,6 +3243,7 @@ class Agent:
             target, why = self._contact_target(before)
             self._s0_target = target
             act = self.drive.choose(self.actions, self.cycle, _where(before))
+            self._intent_now = None      # a bare draw means nothing; `None` is the reading
             # **THE AGENT SAYS `TOUCH`, AND THE MODALITY IS NOT ITS BUSINESS -- the plan's
             # 19.** This read `"ACTION6" if "ACTION6" in self.actions else self._toward(...)`:
             # a button by name, and a fallback that ranked every action by the AVATAR's
@@ -3249,18 +3260,37 @@ class Agent:
             # button does what -- so it stays here and is said as an intent.**
             _untried = self.iface.realise(IFace.Intent(IFace.ELICIT), tuple(self.actions),
                                           IFace.Interface.context(self.env), before, self.env)
-            _coord = None
+            # **NO LOCAL COPY OF THE AIM. `_took` OWNS IT.** This kept `_coord` and then
+            # wrote `self._aimed = _coord` at the end of the branch, which CLOBBERED the aim
+            # `_took` had just set -- so an exploratory click that the interface had aimed went
+            # out unaimed. The same class as `_explore` discarding `r.coord`, reintroduced by me
+            # three hours later in the branch next door. **One owner, no copies.**
             if _untried is not None and _untried.unmapped:
-                act = _untried.action
+                # **THROUGH THE DOOR, LIKE EVERY OTHER EXIT.** This read `_untried.action`
+                # directly and so dropped both the aim and the intent -- the exact defect
+                # `_took` exists to prevent, left in the one branch that predates it. Caught by
+                # the bet row reading `meant=None` on 424 of 504 rows.
+                act = self._took(_untried, IFace.Intent(IFace.ELICIT))
             elif target is not None:
                 _t = self.iface.realise(IFace.Intent(IFace.TOUCH, object=target),
                                         tuple(self.actions),
                                         IFace.Interface.context(self.env), before, self.env)
                 if _t is not None:
-                    act, _coord = self._took(_t), self._aimed
+                    act = self._took(_t, IFace.Intent(IFace.TOUCH, object=target))
                     self.led.record(self.cycle, "PLAN", target, "intent",
                                     reads=(f"{IFace.TOUCH} {target}", _t.why))
-            self._aimed = _coord
+            elif _untried is not None:
+                # **AND THE DEFAULT ASKS FOR SOMETHING RATHER THAN DRAWING BLIND -- 2026-09-29.**
+                # Measured: all 12 gridworld cycles exit here and SIX read `meant=None`, because
+                # neither branch above fired and the branch fell through to `drive.choose`.
+                # **System 0's default asked for nothing at all** -- the one exit left that
+                # takes an action without wanting anything.
+                #
+                # `realise(ELICIT)` ALREADY does unmapped-first-then-variety, so this preserves
+                # the coverage rule above it and replaces a blind stride with the variety rule.
+                # Simpler, not an extra mechanism: the same call, its result no longer discarded
+                # when the action happens to be mapped.
+                act = self._took(_untried, IFace.Intent(IFace.ELICIT))
             if self._contact_pick is not None:
                 self._contact_seen.add(self._contact_pick)
             self.led.record(self.cycle, "MINT", target or "@contact", "system0",
@@ -3285,7 +3315,7 @@ class Agent:
         if _r is not None:
             self.led.record(self.cycle, "PLAN", "@board", "intent",
                             reads=(_want.says(), _r.why))
-            return self._took(_r), "distinguish"
+            return self._took(_r, _want), "distinguish"
         # AND THE REFUSAL IS A READING ABOUT THE BOARD, NOT A NON-EVENT. *Nothing here tells my
         # alternatives apart* is what the contingency family exists to be able to say, and it
         # was previously an unrecorded `return None` inside the ranking loop.
@@ -3398,18 +3428,20 @@ class Agent:
         self.led.record(self.cycle, "PLAN", subject or "@board", "intent",
                         reads=(want.says(), r.why if r else "unrealisable"))
         if r is None:
-            # **UNREACHABLE WITH ANY ADVERTISED ACTION, AND IT CANNOT HELP WHERE IT IS --
-            # measured 2026-09-29, 0 abstentions in 56 `ELICIT` calls across gridworld,
-            # gridworld `click_only` and the toy world.** `realise(ELICIT)` tries unmapped,
-            # then effect-here-unknown, then least-seen, so it abstains ONLY when `offered` is
-            # empty -- and `drive.choose` divides by `len(actions)`, so it raises on exactly
-            # that input. **Both paths fail on a board with no buttons.**
+            # **AN EXPLICIT FAILURE, NOT A FALLBACK THAT CANNOT WORK -- the reviewer,
+            # 2026-09-28.** This used to draw uniformly. Measured: 0 abstentions in 56 `ELICIT`
+            # calls across gridworld, gridworld `click_only` and the toy world, because
+            # `realise(ELICIT)` tries unmapped, then effect-here-unknown, then least-seen and
+            # one always returns. **It abstains ONLY when `offered` is empty** -- and
+            # `drive.choose` divides by `len(actions)` and searches `range(7, 7 + len(actions))`
+            # for a coprime stride, so it raised on exactly that input anyway.
             #
-            # Kept rather than deleted because deleting it would mean inventing a behaviour for
-            # a board the loop cannot run on anyway; annotated because a line that reads like a
-            # safety net and is neither reachable nor safe is worse than one that says so.
-            return self.drive.choose(self.actions, self.cycle, _where(before))
-        return self._took(r)
+            # **A guard that fires only when it cannot work is worse than no guard**: it reads
+            # as a safety net. This says what happened instead, at the moment it happens.
+            raise RuntimeError(
+                "the board advertises no actions, so exploration cannot be realised -- "
+                f"`env.actions()` returned {self.actions!r}")
+        return self._took(r, want)
 
     def _system0_active(self) -> bool:
         """UNEXPLORED CONTACT COUNT, with the action-effect coverage it replaces kept as the
@@ -4667,9 +4699,15 @@ class Agent:
             return None
         return tgt
 
-    def _took(self, r: Any) -> str:
-        """Accept a `Realisation`: keep its aim, return its action. **One door, so no exit can
-        drop the coordinate again.**
+    def _took(self, r: Any, want: Any = None) -> str:
+        """Accept a `Realisation`: keep its aim and its INTENT, return its action. **One door,
+        so no exit can drop either again.**
+
+        **THE INTENT IS KEPT BECAUSE THE BET HAS TO CARRY IT** -- `TRAINING_PLAN` ~405, Isaiah
+        2026-09-14: *RL trains on the REASONING/COMPOSITIONS ... never on the actions. Actions
+        are doubly irrelevant: not the reward target AND not the training substrate.* The bet
+        row named NEITHER the action nor the intent, so what the agent MEANT was unrecoverable
+        from the record it keeps of its own predictions.
 
         Fixture B caught `_explore` returning `r.action` and discarding `r.coord`, so on a
         click-only world every press went out unaimed and 24 steps produced ZERO contact. The
@@ -4677,6 +4715,7 @@ class Agent:
         exists and never crosses**, which is the defect this project files most often.
         """
         self._aimed = r.coord
+        self._intent_now = want
         return r.action
 
     def _realise_step(self, emit: Any, before: dict[str, int]) -> str | None:
@@ -4699,7 +4738,7 @@ class Agent:
                 return None
             self.led.record(self.cycle, "PLAN", emit.subject or "@board", "intent",
                             reads=(emit.says(), r.why))
-            return self._took(r)
+            return self._took(r, emit)
         return emit if emit in self.actions else None
 
     def _goal_split(self, before: dict[str, int]) -> str | None:
@@ -4791,7 +4830,7 @@ class Agent:
         if _r is not None:
             self.led.record(self.cycle, "PLAN", chosen, "intent",
                             reads=(_want.says(), _r.why))
-            return self._took(_r)
+            return self._took(_r, _want)
         if not _ordered:
             # **THE TWO REFUSALS ARE NOT ONE REFUSAL.** On an ordered slot, unserved means
             # *nothing I have done moves it that way*. Here it means *nothing I have done
@@ -6244,6 +6283,7 @@ class Agent:
                     focal = _hit[0]
                     self.gamma.book["focus_by_cue"] = self.gamma.book.get("focus_by_cue", 0) + 1
         by = "given"
+        self._intent_now = None
         # PER STEP. A coordinate is a property of THIS cycle's realisation, and leaving it would
         # aim a later positioned action at where something used to be -- the stale-state defect
         # in the shape that looks like a working aim.
@@ -6348,7 +6388,7 @@ class Agent:
         # exit that WANTS the contact names its own target in the intent, so there is no second
         # site guessing whose aim this was.**
         coord = self._aimed
-        res = self.perceive(action, coord)
+        res = self.perceive(action, coord, self._intent_now)
         # WHAT THAT ACTION DID TO THE AVATAR, recorded from the frames either side of it.
         for slot, b, fit, _why in self.route(res):
             if b == REBIND and fit:
