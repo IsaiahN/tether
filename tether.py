@@ -136,6 +136,9 @@ _GUARD_AXIS = bool(os.environ.get("TETHER_GUARD_AXIS"))
 # sensor, no entry rule, no exemption". DEFAULT OFF, because it makes seven dead atoms live and
 # that moves the closure.
 _SHAPE_DECODE = bool(os.environ.get("TETHER_SHAPE_DECODE"))
+# The incremental tally in `_cannot_pay`. ON by default, OFF for the identity A/B --
+# ONE script with one flag, never two scripts.
+_TALLY = not os.environ.get("TETHER_NO_TALLY")
 
 
 def _norm_name(x: str) -> str:
@@ -889,6 +892,15 @@ class Agent:
         # enumerated, because enumerating one and taking its `log2` is the flat pricing Isaiah
         # ruled against.
         self._intent_kinds: set[str] = set()
+        # slot -> (triple, {term: (rows covered, `wrong` over them)}). Always a PREFIX
+        # tally, so an aborted walk is stored and resumed rather than discarded.
+        #
+        # NESTED PER SLOT SO EVICTION IS A `clear()` AND NOT A SCAN. Measured at 25 cycles:
+        # 1,077,893 entries / 188 MiB, and **78.7% of it stale with 100% of the staleness
+        # from `held` moving** -- a rebind leaves every entry for that slot unreachable,
+        # since they are reusable only if the slot returns to exactly that binding.
+        self._tally: dict = {}
+        self._trace_epoch = 0
         self._acts: Counter = Counter()   # System-0 instrument: concrete actions taken per cycle
         # the whole before-state is kept, because an operand is another slot's past value
         self.trace: list[tuple[dict[str, int], str, dict[str, int]]] = []
@@ -1199,6 +1211,8 @@ class Agent:
         self.alphabet = self._alphabets(env)      # a new level may value slots differently
         self.slot_types = self._slot_types(env)   # and may type them differently
         self.bound, self.trace = {}, []
+        self._trace_epoch += 1          # the tallies summarise a history that is gone
+        self._tally.clear()             # (the epoch is in the triple; this is belt and braces)
         self._disc, self._res = {}, {}   # the slots did not survive, nor do their trends
         # AND NEITHER DO THE REFUTATIONS, FOR THE REASON THIS METHOD'S OWN DOCSTRING GIVES:
         # *slot names mean nothing across a boundary.* The reject key is
@@ -2864,7 +2878,7 @@ class Agent:
         return out
 
     def _cannot_pay(self, term: Term, slot: str, robs: list, cost: float,
-                    base: float) -> bool:
+                    base: float, rkey: dict | None = None) -> bool:
         """A BOUND FROM THE RESIDUAL, not a guess about which atoms are needed.
 
         correction_bits is binary, so |R|phi| is log2(V) times the count of observations
@@ -2879,8 +2893,23 @@ class Agent:
         Measured, it lost a closing term. This cannot.
         """
         unit = math.log2(self.alphabet[slot])
-        wrong = 0
-        for state, action, actual in robs:
+        # INCREMENTAL, AND EXACT BECAUSE `wrong` IS A PREFIX SUM. Each row adds 0 or 1 and
+        # no row reads another, so a tally over the first N rows stays true as rows are
+        # appended -- and `robs` only ever grows by appending while `rkey` is unchanged.
+        # The abort below stores its PARTIAL total with the count it covered, so a refusal
+        # is resumed rather than recomputed.
+        cell = rkey if _TALLY else None
+        wrong, start = 0, 0
+        if cell is not None:
+            seen = cell.get(term)
+            if seen is not None:
+                start, wrong = seen
+                if start > len(robs):
+                    start, wrong = 0, 0     # shrank under us: the triple did not separate them
+                elif cost + unit * wrong >= base:
+                    return True             # the stored prefix already proves it
+        for i in range(start, len(robs)):
+            state, action, actual = robs[i]
             # `_ops` was called TWICE per row here -- once to test for None and again to
             # build the Ctx -- while `_left` next door hoists it. Pure function of
             # (term, state), so hoisting is exact; it halves the hottest callee in the
@@ -2904,7 +2933,11 @@ class Agent:
                     wrong += (got is NOT_RESOLVED
                               or got % self.alphabet[slot] != actual % self.alphabet[slot])
             if cost + unit * wrong >= base:
+                if cell is not None:
+                    cell[term] = (i + 1, wrong)
                 return True          # `wrong` only grows; the rest of R adds nothing
+        if cell is not None:
+            cell[term] = (len(robs), wrong)
         return False
 
     def _out_of_step_range(self, term: Term, slot: str, state: dict, actual: int) -> bool:
@@ -5128,6 +5161,20 @@ class Agent:
         held = self.gamma.library[self.bound.get(slot, IDN)]
         base = self._accumulated(slot, held)
         robs = self._residual_obs(slot, held, hist)
+        # **`robs` IS NOT THE HISTORY** -- it is the history filtered by what the BOUND
+        # term got wrong, so a rebind changes which rows are in it and the list is no
+        # longer an extension of the old one. `held` therefore belongs in the key.
+        # `alphabet[slot]` is in it because 5021 rebuilds the alphabet mid-level WITHOUT
+        # clearing the trace; keying costs one fresh walk for that slot and nothing else.
+        # `_shapes_now()` is per-cycle and unhashable, so under the shape arm the cycle
+        # enters the triple and the tally simply stops reusing -- OFF rather than WRONG.
+        _tri = (held, self.alphabet[slot], self._trace_epoch,
+                self.cycle if _SHAPE_DECODE else 0)
+        _seen = self._tally.get(slot)
+        if _seen is None or _seen[0] != _tri:
+            _seen = (_tri, {})          # the slot moved; its old tallies can never be hit
+            self._tally[slot] = _seen
+        rkey = _seen[1]
         # HOISTED, because `units()` rebuilds a list and the pricing runs once per candidate.
         _units = tuple(self.gamma.units())
         # THE CHEAPEST TERM THE COST FUNCTION ADMITS. `pays` is `cost + left < base`,
@@ -5274,7 +5321,7 @@ class Agent:
                         # observations that need fixing, and a term that cannot fix enough of
                         # them is refused without the walk. 6.7x less work over the panel and
                         # nothing lost, because the bound is necessary rather than plausible.
-                        if self._cannot_pay(term, slot, robs, cost, base):
+                        if self._cannot_pay(term, slot, robs, cost, base, rkey):
                             cuts.append({"name": term.name, "rank": rank, "reversible": True,
                                          "reason": "bounded-out: cannot pay on R alone"})
                             self.gamma.book["bargain_bounded_out"] = (
@@ -5305,7 +5352,7 @@ class Agent:
                                     continue
                                 bcost = term_bits(self.gamma.length(bt, _units),
                                                   self.gamma.alphabet)
-                                if self._cannot_pay(bt, slot, robs, bcost, base):
+                                if self._cannot_pay(bt, slot, robs, bcost, base, rkey):
                                     continue
                                 bleft = self._left(bt, slot, hist)
                                 if not pays(bcost, bleft, base):
@@ -5380,7 +5427,7 @@ class Agent:
                             # anything it refuses, `pays` refuses too. A short-circuit, not a
                             # new filter, which is what makes this repair byte-identical where
                             # the bound was already correct.
-                            if self._cannot_pay(bt, slot, robs, bcost, base):
+                            if self._cannot_pay(bt, slot, robs, bcost, base, rkey):
                                 continue
                             bleft = self._left(bt, slot, hist)
                             if not pays(bcost, bleft, base):

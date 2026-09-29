@@ -87,6 +87,13 @@ ARMS: dict[str, str] = {
                       "ARC path, so the env census below reads OFF while the capability is "
                       "LIVE.** A ruling turned it on, not a measurement -- the house rule is "
                       "his to override. The toy world is untouched: it has its own atoms",
+    "TETHER_NO_TALLY": "**INVERTED POLARITY, AND THE ONLY ROW HERE THAT IS.** Every other arm "
+                       "is OFF and its variable turns it ON; this names a DEFAULT-ON incremental "
+                       "tally in `_cannot_pay` and the variable turns it OFF. Spelled `NO_` so the "
+                       "inversion is in the NAME and not only in this row. It exists for the "
+                       "identity A/B -- one script, one flag -- because an exact optimisation has "
+                       "to be provable against its own absence, and a default-off one is an "
+                       "optimisation nobody runs",
     "TETHER_OBSERVER": "the corpus's cheap mutation set carried PER OBJECT, not counted",
     "TETHER_REBIND_HELD": "rebinding a slot whose term is already held",
     "TETHER_RECIPE_DEDUP": "one candidate per recipe rather than per instance",
