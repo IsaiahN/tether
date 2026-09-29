@@ -3973,6 +3973,21 @@ class Agent:
                 _an = self._undone_across[_ak] = self._undone_across.get(_ak, 0) + 1
                 self.led.record(self.cycle, "PERCEIVE", _slot, "goal_undone",
                                 was=round(float(_was), 4), now=round(float(_now), 4),
+                                # **THE DISCREPANCY IS NOT THE BOARD, AND A ROW THAT CARRIES
+                                # ONLY THE DISCREPANCY CANNOT BE CROSS-REFERENCED AGAINST ONE.**
+                                # ISAIAH's ruling 8: store what the agent did AND why, WITH the
+                                # board state that prompted it, so an old intent can be checked
+                                # against the scenario it was formed in.
+                                #
+                                # `was`/`now` are GOAL DISCREPANCIES; `value` is the SLOT'S OWN
+                                # VALUE. Two quantities, and conflating them is not theoretical
+                                # -- I joined this row against `lands` on the discrepancy, which
+                                # keys on the slot value, and the match was a collision at zero.
+                                value=state.get(_slot),
+                                # The frame that prompted it. 13 rows in 60 cycles here, so the
+                                # volume is trivial; on a board with many slots and more
+                                # transitions it is not, and that is the thing to watch.
+                                board=dict(state),
                                 intent=_said, action=self._last_action, ctx=_ctx,
                                 times=_n, repeated=_n >= MIN_REPEAT,
                                 # SEPARATE AND LABELLED, so it cannot be mistaken for the
