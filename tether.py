@@ -109,6 +109,11 @@ _TYPED_BIND = bool(os.environ.get("TETHER_TYPED_BIND"))
 _REL_GAP = bool(os.environ.get("TETHER_REL_GAP"))
 # F32 arm D: decide reuse by the ONE BARGAIN rather than by a zero remainder,
 # which Isaiah ruled out. Seat-side, off by default.
+# **ISAIAH HAS RULED IT ON AND IT IS NOT FLIPPED HERE YET -- SEQUENCING, NOT REVERSAL.**
+# The flip takes the seats to 14/16: four M2 checks and `test_b5_still_fires_on_the_pinned_world`.
+# The reviewer ordered the M2 four DIAGNOSED FIRST, because "the suite no longer reaches:
+# routine" may be a real capability loss rather than a coverage complaint. Measured with
+# `TETHER_BARGAIN_FIT=1` meanwhile, so the ruling is exercised while the default waits.
 _BARGAIN_FIT = bool(os.environ.get("TETHER_BARGAIN_FIT"))
 
 # ARM F -- RECIPE DEDUP. The novelty check below tests `term.name`, which carries operand AND

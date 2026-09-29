@@ -81,7 +81,13 @@ ROOT = Path(__file__).parent.parent
 # it looked like it did -- `A6i`'s writing side, which fires exactly where a row is authored.
 # A pair means the two are declared at their site to belong on together.
 ARMS: dict[str, str] = {
-    "TETHER_BARGAIN_FIT": "library fit priced by the bargain rather than by fit alone",
+    "TETHER_BARGAIN_FIT": "library fit priced by the bargain rather than by fit alone. "
+                          "**ISAIAH RULED IT ON BY DEFAULT, 2026-09-30, AND IT IS NOT "
+                          "FLIPPED YET** -- the flip takes the seats to 14/16 and the "
+                          "reviewer ordered the four M2 failures diagnosed first. "
+                          "Sequencing, not reversal. The row says so because a table "
+                          "that showed OFF with no note would read as the ruling never "
+                          "having been made",
     "TETHER_NO_CARRY_CANDIDATE": "**INVERTED POLARITY -- the SECOND row here that is, so "
                                  "the first is no longer the only one and both say so.** A "
                                  "DEFAULT-ON write: a term the agent BINDS becomes a candidate "
@@ -155,6 +161,58 @@ _READ = re.compile(r'''os\.environ\.get\(\s*["'](TETHER_[A-Z0-9_]+)["']''')
 # ENVIRONMENT, and the pair it exists for is set IN CODE -- so it could not fire on the one case
 # it was written for, and setting just one of the two would have left the seat GREEN.
 _RULED = re.compile(r'''^\s*[A-Za-z_][\w.]*\._([A-Z0-9_]+)\s*=\s*True\s*(?:#.*)?$''', re.M)
+
+
+# **THE CENSUS WAS BLIND TO A DEFAULT-ON ARM AND THAT IS WHY THE NAMES HAD TO CARRY IT.**
+# `on` is built from the ENVIRONMENT plus `_RULED`, so an arm whose DECLARATION defaults to
+# true is reported OFF while the agent runs with it ON -- the one state a census must never
+# get wrong. The project's answer had been spelling: `TETHER_NO_TALLY` and
+# `TETHER_NO_CARRY_CANDIDATE` put the inversion in the NAME so a READER could see what the
+# SEAT could not. **That is a convention holding up a blind spot**, and when Isaiah ruled
+# `TETHER_BARGAIN_FIT` on by default there was no honest way to spell it -- the ruling names
+# that arm, not its negation. So the seat learns to see the form instead.
+#
+# Two spellings, both already in the tree: `not os.environ.get("X")` and
+# `os.environ.get("X", "1") != "0"`.
+_DEFAULT_ON = re.compile(
+    r'^\s*_[A-Z0-9_]+\s*=\s*(?:not\s+os\.environ\.get\(|os\.environ\.get\()')
+_FALSY_DEFAULT = re.compile(r'''os\.environ\.get\(\s*["']TETHER_[A-Z0-9_]+["']\s*\)\s*$''')
+
+
+def defaults_on() -> dict[str, str]:
+    """`{arm: "file:line"}` for arms whose DECLARATION is true with nothing exported.
+
+    Keyed on the ARM NAME IN THE LINE, not on the module variable, because the inverted
+    spellings deliberately differ (`_TALLY` <- `TETHER_NO_TALLY`). Read from the code like
+    every other census here: the table is the CLAIM and this is the WORLD.
+
+    **DECIDED BY EVALUATING THE LINE, NOT BY PATTERN-MATCHING ITS SHAPE.** A regex over
+    spellings would go stale the next time someone writes a third one, and the question --
+    *is this true with an empty environment* -- has an exact answer.
+    """
+    out: dict[str, str] = {}
+    for path in _tracked():
+        if path.name == "arms.py":
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        for i, line in enumerate(text.split("\n"), 1):
+            arms = _READ.findall(line)
+            if not arms or "=" not in line:
+                continue
+            expr = line.split("=", 1)[1].strip()
+            try:
+                # NO ENVIRONMENT AT ALL, so the reading is of the DECLARATION and not of the
+                # shell this seat happens to run in.
+                val = eval(expr, {"os": type("o", (), {"environ": {}})()})  # noqa: S307
+            except Exception:
+                continue
+            if val:
+                for arm in arms:
+                    out[arm] = f"{path.relative_to(ROOT).as_posix()}:{i}"
+    return out
 
 
 def _tracked() -> list[Path]:
@@ -293,11 +351,26 @@ def main() -> int:
     rule = ruled()
     # ON IS WHAT THE AGENT RUNS WITH, not what the shell exported. Both routes, one set, so
     # `HALF A PAIR` finally reads the state it was written to judge.
-    on = {a for a in found if os.environ.get(a)} | set(rule)
+    dflt = defaults_on()
+    # A DEFAULT-ON ARM IS ON. Three routes now, not two -- and the third is the one the
+    # census could not see, so every count it printed was understating what the agent
+    # runs with. An explicit falsy override still wins: `X=0` means off.
+    on = ({a for a in found if os.environ.get(a)}
+          | set(rule)
+          | {a for a in dflt if os.environ.get(a, "1") != "0"})
     bad = _judge(found, ARMS, on, PAIRS)
 
     print(f"arms: {len(found)} switches at {sum(len(v) for v in found.values())} read sites; "
-          f"{len(on)} ON -- environment and ruling together")
+          f"{len(on)} ON -- environment, ruling and default together")
+    if dflt:
+        # **WORDED SO AN INVERTED NAME CANNOT BE READ BACKWARDS.** Saying
+        # "TETHER_NO_TALLY is ON" invites exactly the wrong conclusion -- the BEHAVIOUR is
+        # live and the variable turns it OFF. What is true of all three is that the
+        # DECLARATION evaluates true with an empty environment, so that is what is printed.
+        print(f"      {len(dflt)} LIVE WITH AN EMPTY ENVIRONMENT -- the declaration is true "
+              f"and the variable turns the behaviour OFF:")
+        for arm in sorted(dflt):
+            print(f"        {arm:<26} {dflt[arm]}")
     if not on:
         # NOT A FAILURE, AND SAYING SO IS THE POINT. All-off is the honest default for an
         # unproven arm -- the house rule is that a measurement turns one on. **The line exists
