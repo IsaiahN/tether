@@ -46,6 +46,19 @@ from sensors import COMMENSURABLE, DELTA, NOT_RESOLVED, OBJECT, POSITION
 sys.dont_write_bytecode = True
 
 IDN = "idn"
+NO_INTENT = "no intent"
+"""**AN EXPLICIT READING, NEVER AN EMPTY -- the reviewer, 2026-09-29.**
+
+A trace row now carries the intent the agent formed. Two kinds of row carry none: an
+action HANDED IN to `step()` rather than asked for, and a bare draw. **Both are real
+states and neither is a missing value.**
+
+**THE REASON IS A TRAP HE SAW COMING AND I HIT ONE LEVEL LATER:** a guard keyed on intent
+must compare against something, and an EMPTY forces a choice between *treat unknown as
+satisfied* -- the guard becomes invisible to pricing -- and *treat unknown as failing* --
+guards die on contact. **An explicit reading forces neither: it is a value, so it can be
+compared and found different.**
+"""
 # THE EDGE'S TWO FACTS, named here so `_predict` reads constants rather than strings.
 OBJ_TYPE = "OBJ"
 # WHAT MAY BIND A SLOT. `_predict`'s two arms are the whole contract -- a `val` term is the
@@ -1320,7 +1333,7 @@ class Agent:
         plays of one game differ in it. Whether that is enough to make two plays agree is a
         MEASUREMENT and not a claim -- see the run beside this build.
         """
-        return frozenset(self.step_effect(b, a) for b, _, a in self.trace)
+        return frozenset(self.step_effect(b, a) for b, _, a, *_ in self.trace)
 
     def store_key(self, episode: int, level: int) -> str:
         """`{digest}_{episode}_{level}` -- the story's shape, keyed on what the agent computed.
@@ -1358,7 +1371,8 @@ class Agent:
         required, not just the after-value -- the ARRIVAL frame has the slot in `after`
         and not in `before`, so it is not a transition observation and a term applied to
         it would fault on the missing before-value."""
-        return [(b, a, af[slot]) for b, a, af in self.trace if slot in af and slot in b]
+        return [(b, a, af[slot]) for b, a, af, *_ in self.trace
+                if slot in af and slot in b]
 
     @staticmethod
     def _ops(term: Term, state: dict[str, int]) -> tuple:
@@ -2248,7 +2262,17 @@ class Agent:
         live = any(r.mass > 0 for r in res.values())
         self.drive.note_step(live)      # once per step: SUPPORT is over slots, not per slot
         self.chain.note_diff(live)
-        self.trace.append((before, action, after))
+        # **THE TRACE RECORDS WHAT WAS DONE *AND WHY* -- ISAIAH'S RULING 8, AT THE SOURCE.**
+        # It carried `(before, action, after)` and never the intent, so every historical
+        # replay -- `_left`, `_cannot_pay`, `_residual_obs` -- rebuilt a `Ctx` with no
+        # intent in it. **That is why guards could not be re-keyed onto intents: the guard
+        # is EVALUATED IN REPLAY, over rows that never carried the thing it would test.**
+        # Found by starting that build and asking what the guard compares AGAINST.
+        #
+        # Stored as the KIND (ruling 3), so it is the same quantity the pricing counts.
+        self.trace.append((before, action, after,
+                           self._intent_now.kind if self._intent_now is not None
+                           else NO_INTENT))
         self.gamma.tick = len(self.trace)
         self._prev_pred = pred
         self._last_mass = {s: r.mass for s, r in res.items()}
@@ -2295,7 +2319,7 @@ class Agent:
         ORDERING, NEVER EXCLUSION is preserved by the caller: an empty narrowing returns the
         full list, so every binding is still reachable and only the ORDER of arrival changes.
         """
-        after_of = {id(b_): a_ for b_, _act, a_ in self.trace}
+        after_of = {id(b_): a_ for b_, _act, a_, *_ in self.trace}
         moved: set = set()
         for st, _a, _v in robs:
             aft = after_of.get(id(st))
@@ -3885,7 +3909,7 @@ class Agent:
             return UNKNOWN
         ordered = self.slot_types.get(slot) in ORDERED_TYPES
         for a in self.actions:
-            moves = [aft[slot] - bef[slot] for bef, act, aft in self.trace
+            moves = [aft[slot] - bef[slot] for bef, act, aft, *_ in self.trace
                      if act == a and slot in bef and slot in aft]
             if not moves:
                 continue                   # untried is not evidence either way
@@ -3893,7 +3917,7 @@ class Agent:
             if wanted is None or wanted == state[slot]:
                 continue
             if not ordered:
-                if any(aft[slot] == wanted for _, act, aft in self.trace
+                if any(aft[slot] == wanted for _, act, aft, *_ in self.trace
                        if act == a and slot in aft):
                     return YES
                 continue
