@@ -1487,6 +1487,85 @@ def test_a_rejection_records_where_it_was_taken():
         "a ROUTINE refutation records no scope -- the half a live run never exercises")
 
 
+def test_a_trial_miss_is_not_a_refusal():
+    """**ISAIAH'S (c), 2026-09-30: count misprediction-while-candidate SEPARATELY from
+    refusal-after-settling. Two quantities, two names.**
+
+    THE DEFECT IT CLOSES WAS REPRODUCED, NOT REASONED. `refute` is called on every
+    mispredicting bound term and `settle` does not reset the total, so a term that made five
+    mistakes ON TRIAL carried 4.24 into a ceiling of 1.0 and was unsettled by its FIRST real
+    refusal. It was demoted for mistakes made before it had anything to lose.
+
+    **AND THE CEILING READS A COUNTER, NOT A DIFFERENCE.** The first repair had it read
+    `rejections - misses`, which OUGHT to cancel to the refusal count and does not -- measured,
+    it took TWO refusals to cross a ceiling of 1.0, because the two floats decay through
+    different arithmetic and leave error where an exact zero was assumed.
+
+    THE CONTROLS ARE THE POINT. A split that always called everything a miss would pass the
+    headline and make the ceiling unreachable, so a term with NO trial history must still
+    unsettle on one refusal, and the three counters must stay consistent with each other.
+    """
+    import gamma
+    st = gamma.Standing()
+    for t in range(5):                       # five misses while on trial
+        st.refute(t)
+    assert not st.settled and st.misses > 0, "a never-settled term recorded no miss"
+    assert st.refusals == 0.0, "a term that was never settled recorded a REFUSAL"
+
+    # **AT A RAISED CEILING, WHICH IS THE ONLY REGIME WHERE THE TWO RULES DIFFER.** At the
+    # default of 1.0 one refusal adds exactly the ceiling, so the blend and the refusal count
+    # cross together and an assertion there cannot tell them apart -- the first version of
+    # this test asserted at 1.0 and PASSED with the old blended rule restored. The mutation
+    # control is what caught it. Isaiah's soft-decay ruling is what will raise the ceiling,
+    # so this is the regime the split exists for.
+    st.settled_at = 5
+    st.refute(6, ceiling=3.0)                # the first REAL refusal
+    assert st.settled, (
+        "the trial misses still reach the ceiling -- one refusal against a ceiling of 3 "
+        "unsettled a term whose only weight was five candidate-era mistakes")
+
+    # AND IT DOES UNSETTLE EVENTUALLY, or the split would have made the ceiling unreachable.
+    # **COUNTED, NOT PINNED TO A NUMBER**: refusals DECAY between ticks, so how many it takes
+    # is a function of the halflife, and writing the answer here would be a constant fitted
+    # to today's rate. The property is *more than one, and finite*.
+    n = 1
+    while st.settled and n < 20:
+        n += 1
+        st.refute(6 + n, ceiling=3.0)
+    assert not st.settled, "a ceiling of 3 was never reached -- the split made it unreachable"
+    assert n > 1, "it still took a single refusal, so the trial misses are still counted"
+
+    # CONTROL 1 -- a term with NO trial history behaves identically. If the split had made
+    # the ceiling harder to reach, this is where it would show.
+    clean = gamma.Standing()
+    clean.settled_at = 0
+    clean.refute(1)
+    assert not clean.settled, "a clean term no longer unsettles on one refusal at the default"
+
+    # CONTROL 2 -- the two halves still account for the whole, by construction. This is what
+    # makes `refusals` a split of `rejections` rather than a fourth quantity beside it.
+    acc = gamma.Standing()
+    for t in range(3):
+        acc.refute(t)
+    acc.settled_at = 3
+    for t in (4, 5):
+        acc.refute(t)
+    assert abs(acc.misses + acc.refusals - acc.rejections) < 1e-9, (
+        f"the halves stopped summing to the total: {acc.misses} + {acc.refusals} "
+        f"!= {acc.rejections}")
+
+    # CONTROL 3 -- the success side records WHERE it paid. Without it a track record has a
+    # denominator and no numerator, and ordering by it sorts the most-tried term last.
+    import snaps
+    g = gamma.Gamma(snaps._atoms())
+    nm = [a.name for a in g.atoms][0]
+    g.settle(nm, where="g:L0")
+    g.settle(nm, where="g:L0")
+    g.settle(nm, where="g:L1")
+    assert g.standing[nm].paid == {"g:L0": 2, "g:L1": 1}, (
+        f"the success record did not accumulate per scope: {g.standing[nm].paid}")
+
+
 def test_never_two_consecutive_resets():
     """**ISAIAH'S ONE HARD RULE, WITH ITS FAILURE PATH EXERCISED.** *Fully ungated undo and
     reset, just no consecutive resets (reset, reset) in interface.* One `RESET` restarts the
@@ -1575,6 +1654,7 @@ if __name__ == "__main__":
         test_a_carried_term_can_reach_candidacy()
         test_a_candidate_survives_a_level_and_is_dormant_until_bound_here()
         test_a_rejection_records_where_it_was_taken()
+        test_a_trial_miss_is_not_a_refusal()
         print("  A5 and B5 reproductions still fire (expected): ok")
         print("  keyed reach loses nothing: ok · two vocabularies stay two: ok")
         print("  the quantifiers quantify (ONE fires, all != some): ok")

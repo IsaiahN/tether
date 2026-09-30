@@ -6407,7 +6407,7 @@ class Agent:
             # settlement, and nothing is deleted either way.
             if self._cand_level.get(name) != self.level:
                 continue
-            self.gamma.settle(name)
+            self.gamma.settle(name, where=self._scope)
             self.settled.add(name)
             self._settled_at[name] = self.cycle
             # **AT WHAT DEPTH DO THIS AGENT'S TERMS ACTUALLY ARRIVE?** `F341` left `max_depth`

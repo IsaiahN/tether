@@ -459,6 +459,35 @@ class Standing:
     # buys is that the question becomes answerable at all, and the ablation cannot reconstruct
     # it afterwards, which is the same reason the admitting clause is stamped at entry.
     where: dict = field(default_factory=dict)      # scope -> failures taken under it
+    # WHERE IT PAID. The mirror of `where`, and the numerator the surfacing order needs:
+    # Isaiah ruled surfacing is by LIKELIHOOD OF WORKING -- fit plus TRACK RECORD -- and a
+    # track record with only failures in it sorts the most-tried term LAST. Measured before
+    # building: `Standing` held `settled_at` (ONE tick, overwritten every settle), so there
+    # was no count of successes and no record of where they happened.
+    paid: dict = field(default_factory=dict)       # scope -> settlements earned under it
+    # **THE (c) SPLIT -- ISAIAH, 2026-09-30: count misprediction-while-candidate SEPARATELY
+    # from refusal-after-settling. Two quantities, two names.** `refute` is called on EVERY
+    # mispredicting bound term, and the site's own comment says *a candidate that mispredicts
+    # has not been refused; it has not yet proven itself*. Measured: 90.5-97.6% of all
+    # increments across three gridworld seeds are on candidates.
+    #
+    # **A RECORD, NOT A RULE. `rejections` IS UNCHANGED AND STILL COUNTS BOTH**, so the
+    # ceiling reads exactly what it read before and NO RUN MOVES. Refusals-after-settling are
+    # `rejections - misses`. Whether the ceiling and the burial should read the narrower
+    # quantity is a behaviour change and is not decided here.
+    # **AND IT DECAYS ON THE SAME CLOCK, WHICH THE FIRST VERSION DID NOT.** Left as a raw
+    # count it was not subtractable from a DECAYING total: measured immediately,
+    # `rejections - misses` read -8.40 and -5.11 -- refusals cannot be negative. Two
+    # quantities under one subtraction, measured differently, which is the denominator rule
+    # at the level of a single row. It halves with `rejections` so the difference is a
+    # refusal count and not an artefact of the two clocks.
+    misses: float = 0.0                            # the candidate half, on the same clock
+    # **AND THE REFUSAL HALF IS COUNTED, NOT DERIVED.** `rejections - misses` SHOULD cancel to
+    # the refusal count and does not: measured, a term needed TWO post-settlement refusals to
+    # cross a ceiling of 1.0 instead of one, because the two floats decay through different
+    # arithmetic and leave error where an exact zero was assumed. Counting it directly makes
+    # `misses + refusals == rejections` true by construction rather than by cancellation.
+    refusals: float = 0.0                          # the settled half, on the same clock
 
     def refute(self, tick: int, halflife: float | None = None,
                ceiling: float | None = None, where: Any = None) -> None:
@@ -485,7 +514,22 @@ class Standing:
         # and it is unchanged; this only says where the weight came from.
         if where is not None:
             self.where[where] = self.where.get(where, 0) + 1
-        if self.rejections >= (REJECTION_CEILING if ceiling is None else ceiling):
+        # WHICH HALF THIS ONE IS. Read BEFORE the ceiling below can clear `settled_at`, or a
+        # refusal would be filed as a miss on the very cycle it unsettles the term.
+        if self.settled:
+            self.refusals += 1.0
+        else:
+            # IT WAS NEVER SETTLED, SO THIS IS NOT A REFUSAL. Counted beside the total, never
+            # taken out of it -- see the field's own note.
+            self.misses += 1.0
+        # **THE CEILING READS REFUSALS, NOT THE BLEND -- ISAIAH'S (c), 2026-09-30.** It read
+        # `rejections`, which counts BOTH, and `settle` does not reset it. Measured: five
+        # candidate-era misses, then settle, then ONE post-settlement miss -> unsettled
+        # immediately, because 5.24 was already over a ceiling of 1.0. **A term could be
+        # unsettled by mistakes it made while on trial**, which is precisely what counting
+        # them separately exists to prevent, so this is his ruling applied rather than a new
+        # behaviour decision. `rejections` itself is untouched and still totals both.
+        if self.refusals >= (REJECTION_CEILING if ceiling is None else ceiling):
             self.settled_at = None
 
     def decay(self, tick: int, halflife: float | None = None) -> None:
@@ -503,7 +547,12 @@ class Standing:
         """
         gap = max(0, tick - self.last_tick)
         if gap:
-            self.rejections *= 0.5 ** (gap / (halflife or REJECTION_HALFLIFE))
+            _f = 0.5 ** (gap / (halflife or REJECTION_HALFLIFE))
+            self.rejections *= _f
+            # THE SAME FACTOR ON ALL THREE, so the two halves stay comparable with the total
+            # and with each other. See `misses`.
+            self.misses *= _f
+            self.refusals *= _f
             self.last_tick = tick
 
     @property
@@ -642,9 +691,16 @@ class Gamma:
 
     # -- standing: the ground's verdict, defeasibly ----------------------------------
 
-    def settle(self, name: str) -> None:
-        """The ground paid on evidence the term was never fitted to."""
-        self.standing.setdefault(name, Standing()).settled_at = self.tick
+    def settle(self, name: str, where: Any = None) -> None:
+        """The ground paid on evidence the term was never fitted to.
+
+        `where` records WHERE it paid, the mirror of `refute`'s. Without it a track record has
+        a denominator and no numerator, and ordering by it sorts the most-tried term last.
+        """
+        st = self.standing.setdefault(name, Standing())
+        st.settled_at = self.tick
+        if where is not None:
+            st.paid[where] = st.paid.get(where, 0) + 1
 
     def invent(self, name: str, fn, in_type: str, out_type: str, licence: dict) -> bool:
         """ITEM 7. **THE REGISTRY WAS FIXED AT CONSTRUCTION AND THIS IS THE ONLY THING THAT

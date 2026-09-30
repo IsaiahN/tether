@@ -51549,3 +51549,38 @@ later blocks because it has gone somewhere it has not been. **NOVELTY OUTPACES F
 **LIMITS: ~60 events per block, ONE SEED, and the seed spread is unmeasured.** A non-monotonic
 series on one seed could be this agent wandering into a new region rather than a property of the
 design.
+
+## B5's CONDITION IS GONE UNDER THE LIBRARY-FIT FLIP — 0 OF 60, WITH A CONTROL THAT RECOVERS THE PINNED SEEDS
+
+**Isaiah ruled `TETHER_BARGAIN_FIT` on by default, and `test_b5_still_fires_on_the_pinned_world`
+then refuses to return a verdict** — not because it broke, but because its own anti-vacuity
+guard fires: *"seed 3 starves no slot — it no longer exercises B5, and a verdict taken here
+would be a reading of nothing."* B5 is a STARVATION defect, and starvation is what went away.
+
+Censused rather than seed-hunted, which is the ruled method — hunting a seed until a
+reproduction fires is fitting the fixture to the case. WORLD snaps, seeds 0–59, 9 cycles, the
+same depth and shape the pinned test uses.
+
+    ARM OFF (control)   a slot starves   4 seeds  [3, 16, 29, 45]
+                        B5 FIRES         3 seeds  [3, 16, 45]
+    ARM ON              a slot starves   0 of 60
+                        B5 fires         0
+
+**THE CONTROL IS WHAT MAKES THE ZERO READABLE, AND IT VALIDATES THE INSTRUMENT AGAINST A FACT
+NOBODY FED IT:** B5 is pinned BY HAND to seeds 3 and 16, and the census recovered exactly those
+two — plus two more — without being told. *A null needs a non-zero control*, and this one
+re-derives the hand-written answer before reporting the absence.
+
+**AND 20 SEEDS WAS NOT ENOUGH AND IS RECORDED AS A NEAR-MISS.** The first run was 0 of 20
+against a base rate of 2/20. A null at 10% over twenty seeds can be luck, so it was widened to
+60 before anything was concluded — the base rate held at 4 and the ON arm stayed 0.
+
+**AND A SPLIT IN THE CONTROL, KEPT BECAUSE IT WOULD HAVE MATTERED HAD THE ZERO NOT HELD:** seed
+29 starves and a probe DOES follow, so the defect is not universal even where its precondition
+holds. Re-pinning to the three firing seeds would therefore have been selecting by OUTCOME.
+
+> **SEQUENCING, AND IT IS THE REASON THIS ENTRY EXISTS BEFORE THE RETIREMENT DOES.** B5's
+> retirement is JUSTIFIED BY the flip, so it cannot land before it — retiring it while the flag
+> is off would remove a test whose condition still holds on four seeds. The evidence is recorded
+> now; the test moves to `conform/owed.py` in the commit that lands the flip, so an ARC board
+> bringing starvation back finds it waiting.
