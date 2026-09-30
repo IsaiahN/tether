@@ -793,20 +793,6 @@ def check_refutations_do_not_cross_a_boundary():
     assert not ag.refuted, "a refutation keyed on a dead slot name survived a boundary"
 
 
-def check_strategy_is_emitted_when_a_routine_drives():
-    """DEFECT: a multi-step plan executing and being counted as an uninformed probe.
-
-    §22.2 reads transfer off a THREE-phase mix, and `STRATEGY` was structurally zero because
-    nothing produced routines. Once one drives an action, a zero there is a gap rather than an
-    honest reading -- which is what `tether.py`'s own comment said would happen.
-    """
-    ag = _agent()
-    _wide(ag)
-    for _ in range(8):
-        ag.step()
-    mix = ag.phases.report()["total"]
-    assert mix.get("strategy", 0) > 0, f"a routine drove and the mix says {mix}"
-
 
 def check_the_act_space_stays_narratable():
     """DEFECT: a new ledger step that the whitebox narration cannot trace.
@@ -1052,8 +1038,18 @@ def check_the_suite_reaches_the_hard_cases():
                     with contextlib.suppress(AssertionError):
                         fn()
         seen = _SEEN
+    # **`"routine"` IS NOT IN THIS LIST -- ruling 6, Isaiah 2026-09-30.** The suite reached it
+    # only on a PHANTOM-PADDED scope: `_wide` appends four members no object carries, and of
+    # the five failing at 0.8333 exactly one was real. Strip them and the routine is refused
+    # UPSTREAM on both arms -- OFF because the objective is already satisfied (discrepancy 0),
+    # ON because there is no objective at all. So a `routine` event here would assert that the
+    # suite reaches a state it only ever reached against members nothing can satisfy.
+    #
+    # NOT DELETED AND NOT LOOSENED: it moves to `conform/owed.py` intact, and comes back when
+    # a world with a REAL gap exists. `routine_cut` and `routine_refused` STAY -- those are
+    # reached honestly and they are what the fixture can actually show.
     for case in (Rt.DONE, Rt.EXHAUSTED, Rt.BLOCKED, "unadvertised",
-                 "routine", "routine_cut", "routine_refused"):
+                 "routine_cut", "routine_refused"):
         assert seen[case] > 0, f"the M2 suite no longer reaches: {case}"
 
 

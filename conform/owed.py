@@ -29,6 +29,59 @@ sys.dont_write_bytecode = True
 NOT_A_READING = ("VACUOUS", "UNRUNNABLE", "SUPPRESSED")
 
 
+# ======================================================================================
+# MOVED HERE INTACT UNDER RULING 6 -- Isaiah, 2026-09-30. NOT DELETED, NOT LOOSENED.
+#
+# These passed only on a PHANTOM-PADDED SCOPE. `_wide` appended four members no object
+# carries; of the five failing at 0.8333 exactly ONE was real. Measured: with the phantoms
+# gone the routine is refused UPSTREAM on both arms -- OFF because the objective is already
+# satisfied (discrepancy 0), ON because there is no objective at all. Neither arm reaches
+# the bargain, so `cost`, `left` and `base` are never computed.
+#
+# **ROUTINE FORMATION AGAINST A REAL GAP IS THEREFORE UNSHOWN**, and a green check asserting
+# it was reading a gap made of members nothing can satisfy. Owed to the capability checkup
+# after Phase 2 / ARC, when a world with a real gap exists.
+#
+# Two things moved: the function below, and the `"routine"` case of
+# `check_the_suite_reaches_the_hard_cases` (the `routine_cut` and `routine_refused` cases
+# STAY in the suite -- those are reached honestly).
+#
+# AND A NOTE ON WHERE THIS SITS. This file's own rule is that its LIST is generated and
+# never hand-kept, because a hand-kept list goes stale silently. That rule is about
+# `collect()`, which reads `lint`'s statuses. A check MOVED out of the suite is different:
+# its presence here IS the record, it cannot go stale while it is the only copy, and
+# `main()` names it below so a reader of the report sees it beside the generated entries.
+# ======================================================================================
+
+OWED_CHECKS = {
+    "check_strategy_is_emitted_when_a_routine_drives":
+        "passed only on a phantom-padded scope; routine formation against a REAL gap is "
+        "unshown; owed to the capability checkup after Phase 2 / ARC",
+    "check_the_suite_reaches_the_hard_cases::routine":
+        "the `routine` coverage case only; reached solely via the phantom scope. "
+        "`routine_cut` and `routine_refused` remain in the suite",
+}
+
+
+def check_strategy_is_emitted_when_a_routine_drives():
+    """DEFECT: a multi-step plan executing and being counted as an uninformed probe.
+
+    §22.2 reads transfer off a THREE-phase mix, and `STRATEGY` was structurally zero because
+    nothing produced routines. Once one drives an action, a zero there is a gap rather than an
+    honest reading -- which is what `tether.py`'s own comment said would happen.
+    """
+    # ITS HELPERS COME WITH IT, so the check is RUNNABLE where it sits rather than being a
+    # quotation. A moved check that cannot be executed is a comment, and a comment is what
+    # ruling 6 exists to avoid -- the point is to re-run it, not to remember it.
+    from test_m2 import _agent, _wide
+    ag = _agent()
+    _wide(ag)
+    for _ in range(8):
+        ag.step()
+    mix = ag.phases.report()["total"]
+    assert mix.get("strategy", 0) > 0, f"a routine drove and the mix says {mix}"
+
+
 def collect() -> dict[str, list[tuple[str, str]]]:
     """Name every check whose status is not a reading. `{source: [(id, why), ...]}`."""
     out: dict[str, list[tuple[str, str]]] = {}
@@ -65,6 +118,11 @@ def main() -> int:
     #           and an ARC run is precisely what is stopped
     #   arc_*   forbidden entirely by the stop; nothing to enumerate from here
     # So a zero here means THE STATIC LAYER IS CLEAN, never *nothing is owed*.
+    print("")
+    print(f"  MOVED OUT OF A SUITE UNDER RULING 6: {len(OWED_CHECKS)}")
+    for cid, why in sorted(OWED_CHECKS.items()):
+        print(f"      {cid}")
+        print(f"          {why}")
     print("")
     print("  SCOPE: static `lint` only. `kernel` needs a run file, and the ARC paths cannot")
     print("  run under the stop -- both are OUT of this count. A zero here means the static")
