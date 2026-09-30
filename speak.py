@@ -102,6 +102,35 @@ def sentences(rows: list[dict]) -> list[tuple[list[int], str]]:
                                f"{d.get('considered')} plans before pricing them: each would "
                                f"have ended before acting, because the condition it stops at "
                                f"is already true."))
+        elif ev == "decision":
+            # **A CHOICE BETWEEN DISTURBING A GOAL THAT HOLDS AND HOLDING OFF, AND UNTIL NOW
+            # THE AGENT COULD NOT SAY IT.** These PLAN rows appeared once downrating changed
+            # which goals read as met -- eight of them on the M2 fixture where HEAD wrote
+            # none -- and `check_the_act_space_stays_narratable` caught every one as
+            # uncited. The narration going quiet about a whole KIND of choice is exactly
+            # what that check exists to refuse, and it fired the first time the kind
+            # occurred.
+            out.append(([seq], f"On {slot} I chose to {d.get('chose')} rather than "
+                               f"{(d.get('instead_of') or ['hold off'])[0]}."))
+        elif ev == "member_downrated":
+            # **THE AGENT DISCOUNTING PART OF ITS OWN GOAL, WHICH IT MUST BE ABLE TO SAY.**
+            # Isaiah's downrating ruling, 2026-09-30. A weight silently applied to a scope
+            # changes WHAT THE AGENT IS PURSUING, and a change of that kind with no sentence
+            # is the thing `Nothing silent` exists to refuse. The evidence goes in the
+            # sentence, not just the row: `0 of N` is what makes it a reading rather than an
+            # opinion, and it is what a reader needs to judge whether N was enough.
+            out.append(([seq], f"I stopped counting {slot} fully toward "
+                               f"{d.get('in_scope_of')}'s goal: I have watched it through "
+                               f"{d.get('of_presses')} presses and nothing I did ever moved "
+                               f"it, which is {d.get('floor')} or more -- one for every "
+                               f"action I have."))
+        elif ev == "member_restored":
+            # AND THE OTHER DIRECTION, BECAUSE A DISCOUNT NOBODY SEES LIFTED IS AS SILENT AS
+            # ONE NOBODY SEES APPLIED. The restore is immediate by design, so the sentence
+            # says so -- a reader who saw the downrating needs to know it ended and why.
+            out.append(([seq], f"I am counting {slot} fully toward "
+                               f"{d.get('in_scope_of')}'s goal again: something I did moved "
+                               f"it, so the evidence that it was inert is gone."))
         elif ev == "split_refused":
             # **THE EVENT THAT COULD NOT FIRE UNTIL TODAY, AND THE NARRATION WENT QUIET THE
             # MOMENT IT COULD -- 2026-09-25.** `split_refused` exists so the several exits

@@ -656,7 +656,8 @@ def objective_gap(evaluate, current: int, ordered: bool, alphabet: int) -> Any:
     return min(abs(v - current) for v in hits) if ordered else 1
 
 
-def objective_degree(evaluate, scope, counts: dict | None = None) -> float | None:
+def objective_degree(evaluate, scope, counts: dict | None = None,
+                     weights: list[float] | None = None) -> float | None:
     """`degree(molecule)` — **the fraction of the SCOPE that satisfies the objective.**
 
     `DISCOVERY` Q21 answers *is `R_goal` measurable* and gives the measurement: a molecule is a
@@ -691,7 +692,18 @@ def objective_degree(evaluate, scope, counts: dict | None = None) -> float | Non
                       satisfied=sum(1 for v in seen if v))
     if not seen:
         return None
-    return sum(1 for v in seen if v) / len(seen)
+    # **WEIGHTED, AND UNWEIGHTED BY DEFAULT -- Isaiah's downrating ruling, 2026-09-30.** The
+    # agent may discount a scope member it has watched and never been able to move. The
+    # weight arrives here ALIGNED TO `scope` because this function is handed VALUES and has
+    # no way to know which member produced which -- `_group` drops the names, so identity is
+    # recovered by the caller and passed alongside. `None` keeps every caller unchanged.
+    if weights is None:
+        return sum(1 for v in seen if v) / len(seen)
+    ws = [w for v, w in zip(vals, weights, strict=False) if v is not None]
+    tot = sum(ws)
+    if tot <= 0.0:
+        return None          # every member discounted: an absent population, not a satisfied one
+    return sum(w for v, w in zip(seen, ws, strict=False) if v) / tot
 
 
 @dataclass
@@ -3872,6 +3884,7 @@ class Agent:
             _why(why, "degree-unresolved")
             return None
         return 1.0 - deg
+
 
     def can(self, guard: Any, state: dict[str, int]) -> str:
         """`CAN(P)` — §14.3's affordance, and it is **ACHIEVABLE, not SATISFIABLE.**

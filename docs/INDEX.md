@@ -51877,3 +51877,97 @@ been overtaken by later edits to that file.
 **AND `accumulation_commits` FAILS AT HEAD+FLIP AND ON THE ATTEMPT'S OFF ARM, BUT PASSES ON THE
 ATTEMPT'S ON ARM** — a check the damage made *greener*. Recorded because a repair that fixes a
 check by accident is indistinguishable, at the count, from one that fixes it on purpose.
+
+### DOWNRATING IS REACHED AND APPLIED, AND NO LIVE FIXTURE YET SHOWS IT MOVING A RESIDUAL — 2026-09-30
+
+**Isaiah ruled the agent may downrate a scope member from its own evidence of inertness**, and
+it is built: a presence denominator in `audit`, a weight in `goal_residual`'s degree, immediate
+restore, an interim floor of `len(actions)`, and ledger rows both ways.
+
+**APPLIED, NOT MERELY PRESENT** — the distinction this record exists to keep:
+
+    live slots        ['o1.dcol', 'o2.dcol']
+    downrated         o0.dcol
+    o1.dcol  peers=('o0.dcol','o2.dcol')   WEIGHTS = [0.0, 1.0]
+
+A weight vector with a 0.0 in it is not an abstention. **But no residual moved**, and the
+arithmetic says why rather than leaving it a mystery: `degree = satisfied / total` moves only
+when the discounted member **DISAGREES** with the rest. Measured on that scope,
+`satisfied 0 of 2 resolved` — the members agree, so the fraction is unchanged CORRECTLY.
+
+> **OWED: demonstrate it on a world where a discounted member DISAGREES with its scope.** Until
+> then the mechanism is reached, applied, and unexercised on a live fixture. **The fixture was
+> NOT widened to produce that disagreement** — adjusting a panel until the number moves is
+> fitting it to its answer, which is this seat's most expensive mistake of the day.
+
+**AND THE LINE BETWEEN THAT AND A UNIT TEST IS THE REVIEWER'S, WORTH KEEPING: *a unit test may
+CONSTRUCT its inputs; that is not fitting a panel.*** So the mechanism is demonstrated at unit
+level in `test_downrating_moves_a_residual_in_both_directions` — both directions, the agreeing
+case, and the all-inert case — with a mutation control that fails when `weights` is ignored.
+
+### AND A REFUTER OF MINE WAS WRONG IN A WAY THE SUITE CAUGHT AND I DID NOT
+
+I registered *(b) if no residual anywhere moves, the mechanism is inert*, measured **2
+residuals, 0 differ**, and reported (b) as firing.
+
+**IT IS NOT INERT. IT CHANGES WHAT THE AGENT DOES**, and a check testing something else
+entirely is what revealed it:
+
+    HEAD   18 PLAN rows, 0 uncited   split_refused 6 · routine_refused 6 · intent 2 ·
+                                     routine_inert 2 · routine_cut 2
+    WITH   17 PLAN rows, 8 UNCITED   routine_refused 5 · **decision 8** · split_refused 4
+
+Eight `decision` rows where HEAD wrote none, and the whole `intent` / `routine_inert` /
+`routine_cut` path gone. `check_the_act_space_stays_narratable` failed because the agent was
+making a choice — *disturb a goal that holds, or hold off* — **it had no sentence for.**
+
+> **`residuals that differ` IS NOT `does this change anything`, and my refuter measured the
+> first while claiming the second.** Two residuals at one instant, generalised to a verdict on
+> a mechanism. The narration check saw the behaviour change because it counts what the agent
+> DID, not what one quantity read.
+
+`speak.py` now says `decision`, `member_downrated` and `member_restored`. The narration going
+quiet about a whole KIND of choice is what that check exists to refuse, and it fired the first
+time the kind occurred.
+
+**THE DIRECTION IS NOT EVALUATED.** Eight new `decision` rows and a lost `routine_cut` path may
+be the downrating working or the agent disturbing goals it should leave alone — the alternative
+it now declines is *"hold off — leave the met objective alone"*. Recorded as unevaluated rather
+than claimed either way.
+
+### A MEMOISED FIXTURE DEFEATS AN IN-PROCESS A/B, AND BOTH ARMS STILL REPORT — 2026-09-30
+
+**`test_m2._agent()` BUILDS ONCE AND HANDS OUT DEEP COPIES** — `_BUILT[key]`, 25 warm cycles,
+cached at module level, and its docstring says so. Running three arms of an A/B in ONE PROCESS
+therefore measured the first arm three times:
+
+    change B as built            FAILS
+    weights ON, ledger rows OFF  FAILS
+    change B fully off           FAILS      <- reported as evidence of a SIDE EFFECT
+
+The first call built and cached the agent **with the mechanism live**; every later arm got a
+deepcopy of that already-affected build, so the patch could not bite. **THE FLAG WAS SET AFTER
+THE THING IT CONTROLS HAD ALREADY RUN.**
+
+Re-run with each arm in a **fresh process**, patched before `test_m2` is imported:
+
+    change B live    PLAN rows 0
+    change B off     PLAN rows 7   (including a ROUTINE)
+
+> **THIS IS `an A/B is one script with one flag` WITH A NEW FAILURE UNDER IT.** That rule was
+> OBEYED — one script, one flag, both arms — and it did not help: **a CACHE between the flag
+> and the behaviour makes the arms differ in the flag and not in the agent.** Both arms report,
+> both look plausible, and the difference is zero for a reason nothing in the output states.
+>
+> **THE RULE NEEDS ITS SECOND HALF: the flag must be set before anything it controls is
+> CONSTRUCTED OR CACHED.** On this fixture that means separate processes per arm, or setting
+> the flag before the first `_agent()` call.
+
+**AND IT WAS CAUGHT BY THE REVIEWER READING MY OWN TABLE AGAINST MY OWN CONCLUSION**, not by
+the table looking wrong. I posted "the behaviour persists with the change fully off" and, an
+hour later, "removing it restored planning" — which cannot both be true. Neither claim looked
+suspect alone. **A contradiction between two of your own reported results is a finding, and
+nothing computes it for you.**
+
+**Cost: an hour hunting a side effect that did not exist, and a posted verdict that the
+mechanism was not the cause.** The fix is a line in a pre-registration, not a habit.

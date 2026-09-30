@@ -1415,6 +1415,61 @@ def test_a_rejection_records_where_it_was_taken():
         "a ROUTINE refutation records no scope -- the half a live run never exercises")
 
 
+def test_downrating_moves_a_residual_in_both_directions():
+    """Isaiah's downrating ruling, demonstrated AT UNIT LEVEL -- reviewer, 2026-09-30.
+
+    **THE LIVE FIXTURE CANNOT SHOW THIS AND MUST NOT BE BENT UNTIL IT CAN.** On the M2 world
+    the discounted member AGREES with the rest of its scope, so the fraction is unchanged --
+    correctly. Widening that fixture until the number moves is fitting a panel to its answer,
+    which is this seat's most expensive mistake of the day. **A unit test may CONSTRUCT its
+    inputs; that is a different act, and the reviewer drew the line.**
+
+    The three rows are the arithmetic of `degree = satisfied / total`: discounting a member
+    moves it only when that member DISAGREES with the rest, and WHICH WAY depends on which
+    side it was on.
+    """
+    from tether import objective_degree
+
+    def sat(v):                                   # 1 satisfies, 0 does not
+        return bool(v)
+
+    # ROW 1 -- the discounted member FAILS while the other satisfies: degree RISES, so
+    # `R_goal = 1 - degree` FALLS. The goal is closer once a member that could never help
+    # stops being counted against it.
+    plain = objective_degree(sat, (0, 1))
+    cut = objective_degree(sat, (0, 1), None, [0.0, 1.0])
+    assert plain == 0.5 and cut == 1.0, f"expected 0.5 -> 1.0, got {plain} -> {cut}"
+    assert (1.0 - cut) < (1.0 - plain), "discounting a FAILING member did not lower R_goal"
+
+    # ROW 2 -- the discounted member SATISFIES while the other fails: degree FALLS, R_goal
+    # RISES. **This is the dangerous direction the reviewer named**: downrating can MAKE a
+    # goal where there was less of one, so it is asserted rather than hoped about.
+    plain2 = objective_degree(sat, (1, 0))
+    cut2 = objective_degree(sat, (1, 0), None, [0.0, 1.0])
+    assert plain2 == 0.5 and cut2 == 0.0, f"expected 0.5 -> 0.0, got {plain2} -> {cut2}"
+    assert (1.0 - cut2) > (1.0 - plain2), "discounting a SATISFYING member did not raise R_goal"
+
+    # ROW 3 -- the discounted member AGREES: unchanged, which is why the live fixture reads
+    # nothing and why that reading is not evidence of an inert mechanism.
+    for scope in ((0, 0), (1, 1)):
+        assert objective_degree(sat, scope) == objective_degree(sat, scope, None, [0.0, 1.0]), (
+            f"discounting a member that AGREES moved the fraction on {scope}")
+
+    # ALL-INERT -- every member discounted. **UNREACHABLE, NEVER "MET", AND NEVER A DIVIDE
+    # BY ZERO.** A scope with no member the agent can act on is an ABSENT population, and
+    # `objective_degree` already answers `None` for an empty one: *an absent population is
+    # not a satisfied one*. Returning 0.0 here would read as "nothing satisfies it" and
+    # returning 1.0 as "all of it does", and both are verdicts on nobody.
+    for scope in ((0, 0), (1, 1), (0, 1)):
+        assert objective_degree(sat, scope, None, [0.0, 0.0]) is None, (
+            f"an all-inert scope {scope} returned a degree instead of UNREACHABLE")
+
+    # MUTATION CONTROL -- drop the weights and the two directional rows must stop holding.
+    # Without it this passes on a `weights` parameter that is silently ignored.
+    assert objective_degree(sat, (0, 1)) != cut, "the weights changed nothing on row 1"
+    assert objective_degree(sat, (1, 0)) != cut2, "the weights changed nothing on row 2"
+
+
 def test_a_trial_miss_is_not_a_refusal():
     """**ISAIAH'S (c), 2026-09-30: count misprediction-while-candidate SEPARATELY from
     refusal-after-settling. Two quantities, two names.**
