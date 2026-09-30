@@ -1440,12 +1440,16 @@ def test_a_trial_miss_is_not_a_refusal():
     assert not st.settled and st.misses > 0, "a never-settled term recorded no miss"
     assert st.refusals == 0.0, "a term that was never settled recorded a REFUSAL"
 
-    # **AT A RAISED CEILING, WHICH IS THE ONLY REGIME WHERE THE TWO RULES DIFFER.** At the
-    # default of 1.0 one refusal adds exactly the ceiling, so the blend and the refusal count
+    # **AT A RAISED CEILING, WHICH IS THE ONLY REGIME WHERE THE TWO RULES DIFFER.** At a
+    # ceiling of 1.0 one refusal adds exactly the ceiling, so the blend and the refusal count
     # cross together and an assertion there cannot tell them apart -- the first version of
     # this test asserted at 1.0 and PASSED with the old blended rule restored. The mutation
-    # control is what caught it. Isaiah's soft-decay ruling is what will raise the ceiling,
-    # so this is the regime the split exists for.
+    # control is what caught it.
+    #
+    # **ISAIAH'S SOFT-DECAY RULING HAS NOW RAISED IT -- the default is 2.0, not 1.0.** This
+    # still passes 3.0 explicitly, so it is unaffected by the default moving and keeps
+    # testing the split at a ceiling the split is visible at. CONTROL 1 below is the part
+    # that read the default, and it inverted when the ruling landed.
     st.settled_at = 5
     st.refute(6, ceiling=3.0)                # the first REAL refusal
     assert st.settled, (

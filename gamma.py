@@ -127,9 +127,14 @@ REJECTION_HALFLIFE = 8.0
 #
 # **WHAT THE (c) SPLIT BUYS IS THAT THE AGENT'S CHOICE IS SAFE WHEN IT MAKES ONE.** The
 # ceiling reads `refusals` rather than the blend, so raising it can no longer demote a term
-# for mistakes made while it was on trial. At 1.0 the two are indistinguishable -- one
-# refusal adds exactly the ceiling -- so nothing moves today and the guard is in place for
-# when something does.
+# for mistakes made while it was on trial. At 1.0 the two were indistinguishable -- one
+# refusal adds exactly the ceiling -- so nothing moved on the day it was installed and the
+# guard was in place for when something did.
+#
+# **AND SOMETHING DID, THE SAME DAY: the ceiling is 2.0 below, so the two ARE now
+# distinguishable and the guard is load-bearing rather than latent.** The sentence above is
+# left in the past tense rather than deleted -- it records why a mechanism was installed at
+# its own no-op point, which is the reason it could be trusted when it started to bite.
 # **INTERIM, AND IT IS STILL THE AGENT'S CALL -- Isaiah, 2026-09-30, twice.** He ruled the
 # threshold the agent's, and then ruled this SOFTER INTERIM when 1.0 turned out to mean ONE
 # REFUSAL UNSETTLES: `refusals` increments by exactly 1.0, so a ceiling of 1.0 is met by a
