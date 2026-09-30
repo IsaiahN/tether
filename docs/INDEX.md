@@ -51584,3 +51584,296 @@ holds. Re-pinning to the three firing seeds would therefore have been selecting 
 > is off would remove a test whose condition still holds on four seeds. The evidence is recorded
 > now; the test moves to `conform/owed.py` in the commit that lands the flip, so an ARC board
 > bringing starvation back finds it waiting.
+
+## THE M2 FIXTURE'S GOAL WAS PHANTOM-MANUFACTURED SINCE IT WAS WRITTEN, AND ITS WORLD WAS FROZEN — TWO DEFECTS, ONE HOUR, 2026-09-30
+
+**`_wide` appended the literal values `[7, 8, 9, 11]` to the target slot's peer group.
+Nothing in the world carries them.** `_group` returns *this attribute's values on the other
+objects*, so those four were scope members no object could ever satisfy — they fail by
+construction, forever. Measured, one script one flag, same world and same warm-up on both arms:
+
+    PHANTOMS OFF   group (0, 0)                 n=2   residual 0.0
+    PHANTOMS ON    group (0, 0, 7, 8, 9, 11)    n=6   residual 0.667
+
+**0.667 IS EXACTLY 4/6.** Every unit of that residual was a phantom and not one came from the
+world. The real peer group is **two members and both are `0`** — they agree, the objective
+holds, and a group of two identical values can only ever read 0.0 or 1.0. It is not a fraction
+that moves.
+
+**SO THE SLOT NEVER HAD A GOAL.** Not since this morning's widening — since the fixture was
+written. `_wide`'s own site comment had named the shape of it (*"the selector correctly chose a
+DIFFERENT slot, one with a scope of 2 that cannot pay"*) and was read as a near-miss rather than
+as the answer.
+
+**AND IT KILLS THE SMALLEST-CHANGE REPAIR, WHICH IS WHY THE ARITHMETIC IS RECORDED RATHER THAN
+THE VERDICT.** Removing only the phantoms — the one defect then proven — leaves the slot with no
+gap at all. The phantoms WERE the goal.
+
+### WHAT STILL CARRIES THE LIBRARY-FIT FLIP, AND BY WHICH INSTRUMENT — the reviewer, 2026-09-30
+
+**The flip's rationale — *`pays` prices correctly; the old gate approved routines against gaps no
+sequence could close* — SURVIVES, but NOT by the path it was taken on.** It rested partly on the
+16:10 and 16:25 sequence probes, and those are retracted below. It stands on the **phantom
+arithmetic**, which is instrument-independent:
+
+> four members nothing can satisfy fail by construction, the two real members are already at 0,
+> **so `o1.dcol`'s residual could never fall below 4/6 whatever the agent did** — and it was
+> measured at exactly 0.667, sitting on its own floor. No routine could ever have reduced it.
+
+**Recorded this way deliberately, so the justification points at the instrument that is still
+standing.** A conclusion that survives its evidence needs its new evidence named, or the next
+reader re-derives it from the retracted one.
+
+### THE SECOND DEFECT: THE WORLD EXHAUSTS ITSELF BEFORE THE MEASUREMENT STARTS
+
+`_Two.step` moved a counter only while it was under `SIDE - 3` = 11. Measured:
+
+    warm= 0   n 11->11   m  8-> 9    observed values changed by ACTION1+2+3: 7
+    warm= 2   n 11->11   m 10->11    observed values changed: 7
+    warm= 4   n 11->11   m 11->11    observed values changed: 0
+    warm= 8   n 11->11   m 11->11    observed values changed: 0
+
+**`n` IS ALREADY AT ITS CAP BEFORE CYCLE 0** — so ACTION1 has been a no-op by the time any check
+looks, for as long as the fixture has existed. `m` reaches the cap by cycle 4. **Every sequence
+probe warms 8.** From cycle 4 onward no action changes any observed value.
+
+**SO EVERY SEQUENCE PROBE WAS ENUMERATING MOVES IN A WORLD MADE OF STONE**, and reported *"no
+sequence reduces it"* — which is what a healthy probe says about a broken fixture and what a
+broken probe says about anything. **RETRACTED BY NAME**, all frozen, all on the same fixture
+after a warm-up: the **16:10 single-action probe**, the **16:25 39-sequence probe** (*"none
+reduces either residual on either arm"*), the **widened-world census** both arms, and the
+**three-object variant** both arms. The 06:20 reading (`-0.4 via ACTION2`) is **re-scoped, not
+retracted**: `m` could still move then, so it is the one live reading in a set of dead ones, and
+its neighbours were read as comparable when they were not.
+
+**Repaired by BOUNCING rather than raising the cap** — reverse direction at either wall — so the
+world is bounded and cannot exhaust. Re-measured: 8–9 observed values change at every warm level,
+no saturation. `ACTION3` stays inert as the control, **and a control is only worth having in a
+world where the treatments do something.**
+
+**AND THE FIRST REPAIR WAS A WRAP, WHICH UNFROZE THE WORLD AND PUT A MECHANISM INTO ITS PHYSICS —
+the reviewer caught it before it was measured, 2026-09-30.** `(self.n + 1) % (SIDE - 3)` makes the
+counter never stop, and at the wall:
+
+     9 -> 10    o1.col 10    o1.dcol    1
+    10 ->  0    o1.col  0    o1.dcol  -10      <-- the wrap
+     0 ->  1    o1.col  1    o1.dcol    1
+
+**A `dcol` of −10 once every eleven steps is a PERIODIC ANOMALY WITH A FIXED PERIOD** — precisely
+what this agent exists to notice — and a term minted on it would be a term about **the fixture's
+arithmetic**. Bouncing holds every delta at ±1, so there is nothing to model. `reset()` was
+repaired in the same edit to restore the DIRECTION as well as the counters; a reset mid-run would
+otherwise have resumed travelling the wrong way.
+
+> **THE FAILURE IS THE PROCTOR'S OWN AND IT IS NOT THE SAME AS THE ONES ABOVE: I CHANGED THE
+> HABITAT AND CHECKED ONLY THE PROPERTY I WAS AIMING AT.** *Can the world still move* read green
+> on every warm level. *What does the new arithmetic look like from the agent's side* was never
+> asked, and the answer was a mechanism nobody put there on purpose. **Figure 11's isolation law
+> from the other end: what you unintentionally introduced is invisible until it acts.**
+
+**AND THE ROW ABOVE IS CORRECTED IN PLACE RATHER THAN SUPERSEDED BY A NEW ONE**, because it said
+`WRAPPING` and the wrap is gone — *corrections go into the row that carries the error*, and a
+reader consulting this entry for how the world moves must not find the discarded repair.
+
+### THE LAW, AND IT WAS ALREADY WRITTEN
+
+`CLAUDE.md` requires **THE TREATMENT-EXECUTED CHECK** on every pre-registration — *show the
+manipulation RAN before reading its effect; present and possibly inert is the absent treatment
+one level subtler, and it is the harder one because it produces a plausible number.* The
+criterion was pre-registered, its refuter was pre-registered, a panel precondition was written —
+**and the one field that asks whether the actions do anything was skipped.**
+
+> **AND THE REFUTATION WAS PRINTED IN THE OUTPUT AND READ PAST. `ACTION3` IS INERT ON PURPOSE,
+> AS A CONTROL, AND IT RETURNED RESIDUALS BYTE-IDENTICAL TO THE TWO LIVE ACTIONS.** The control
+> matched the treatments exactly. *A null needs a non-zero control* — and the non-zero control
+> was sitting in the same three lines as the null.
+
+**Installed rather than resolved**: the probe now runs every action from the exact state the
+measurement starts in, prints how many observed values each one changes, and aborts with
+`PANEL FAILURE -- FROZEN WORLD` when the total is zero. **Its failure path is exercised** — it
+was run against the known-frozen world and refused with exit code 2, read from the process and
+not from a pipeline.
+
+### FIXTURE REPAIR (a): THE PANEL SCOPES ITSELF, AND THE FIRST SCOPING WAS SILENTLY UNDONE
+
+**The ground is NOT to be special-cased in `_group`, and the reason is a PENDING QUESTION FOR
+ISAIAH rather than a settled authority — 2026-09-30.** The decision stands on one argument:
+**the agent should not be handed a hard-coded *this is scenery* exclusion.** Whether the agent
+should instead come to drop such a member from **its own evidence** — an object no action has
+ever moved — is an EARNED EXCLUSION, it is L1, and it is Isaiah's to rule. Filed, not taken.
+
+> **AND THE DOCUMENT THIS WAS FIRST JUSTIFIED BY IS STALE AND IS NOT A DESIGN AUTHORITY —
+> ISAIAH, 2026-09-30.** The ruling was originally argued from `WHAT_THE_AGENT_SEES` 12-15
+> (*"every same-symbol region is a node … nothing is assumed to be scenery"*). **That citation
+> is withdrawn as grounds.** The conclusion is unchanged — nothing was reverted or removed on
+> its basis, confirmed from git — but **a stale document must not be left standing as the reason
+> for a decision**, because the next reader treats a cited authority as settled and stops
+> looking. *An error entry whose evidence is edited away stops being evidence*, so the citation
+> is recorded here as withdrawn rather than deleted.
+
+**The seat's lean was still WRONG and is recorded as wrong**, on the surviving argument: an
+unreachable member in a goal's scope READS like an agent defect, and hand-excluding it would be
+a perception change wearing a fixture repair's clothes.
+
+**What a test panel MAY do is choose its own scope**, and that is this repair.
+
+**AND THE FIRST ATTEMPT AT IT WAS UNDONE WITHOUT A SYMPTOM.** `_group` reads `env.peers()` and
+caches it in `Agent._peer_cache`, so the panel filtered the cache. Checked before running
+anything on it:
+
+    _group(o1.col) = (0, 8, 9, 9, 9)      <- BYTE-IDENTICAL. The ground is still in.
+
+**`step()` sets `_peer_cache = None` on EVERY step** (`tether.py:6544`, beside `_touch_cache`
+and `_decomp_cache`), so the scoping survived exactly until the first warm-up cycle. **It is
+per-frame state and a panel cannot hold its scope there.** Moved to `env.peers()`, the seam
+`_group` reads FROM, and re-verified: `(9, 9, 9, 9)`, four members, ground out.
+
+> **THE EXECUTES-CHECK TURNED ON ONE'S OWN EDIT.** Every instance of that check in this file is
+> aimed at someone else's mechanism — *does this site run before I build into it*. **This one
+> asks whether MY CHANGE TOOK EFFECT**, and it cost ten seconds against a 982-second census that
+> would have been run on a fixture I believed was scoped and was not. **A silently-reverted edit
+> is indistinguishable from an edit that did nothing**, and both produce a clean run.
+
+### AND THE SEAT DOES NOT AUTHOR THE OBJECTIVE — three edits spent before noticing
+
+With the ground out, **every residual went to 0.0**: the ground had been supplying the entire
+disagreement. **Third time an unreachable member turned out to BE the fixture's whole goal**,
+after the four phantoms and the three clones.
+
+So the geometry was repaired — `o2` was painted at `n + 1`, putting a permanent one-member
+disagreement inside action-group A that no action could remove; it now shares `n`, so group A
+agrees internally, group B agrees at `m`, and the gap between them is exactly `|n - m|`,
+closable in that many steps by ACTION1 or ACTION2 and by nothing else. Verified
+`_group(o1.col) = (8, 9, 9, 9)`.
+
+**AND `o1.col`'s RESIDUAL WAS STILL 0.0.** `goal_residual` measures against **the term the AGENT
+binds to that slot**, never against *all members share a column*. Removing the ground satisfied
+that bound term completely, because the ground was the only member failing it.
+
+> **NO AMOUNT OF GEOMETRY MOVES A RESIDUAL WHOSE OBJECTIVE IS ALREADY SATISFIED** — and the seat
+> spent three edits trying, having drifted from *let the pre-registered criterion name the slot*
+> into *engineer this slot into passing*. **The drift was invisible because each edit was
+> individually justified by a measurement.** The census is the instrument that does not require
+> knowing the answer first, and it was abandoned one edit at a time.
+
+### THE CORRECTION THAT GOVERNS EVERY ENTRY ABOVE FROM 2026-09-30: THE SUITE WAS 30/30 THE WHOLE TIME, AND THE SEAT BROKE IT TO 21/30
+
+**Measured, after five fixture changes and not once between them:**
+
+    HEAD, before any of the day's changes, OFF arm     30/30 PASS
+    the seat's working tree, OFF arm                   21/30
+    the seat's working tree, ON arm                    22/30
+    **HEAD + THE FLIP**                                **26/30 — and THESE are the four**
+
+**THE FIXTURE WAS FULLY GREEN AND WAS REPAIRED ANYWAY.** Every entry above describing a
+"fixture defect" — the phantom scope members, the frozen world, the ground in the peer group —
+is a REAL MEASUREMENT and none of them was breaking a check. **Saturation froze the SEQUENCE
+PROBE, not the suite**, and the probe was the seat's own instrument, written that morning. **A
+defect in an instrument was generalised into a defect in the fixture, and then the fixture was
+rebuilt under a suite nobody had run.**
+
+> **`CLAUDE.md`'s FIRST NAMED SILENCE IS THE RULE BROKEN: *fixtures before changes — the only
+> order with an observable half-state.*** A suite at 30/30 was available the whole time, costs
+> ~400s, and would have refused change one.
+
+**AND THE FIVE CHANGES WERE MADE WITHOUT RUNNING ANYTHING BETWEEN THEM** — bounce, ground
+scoping, geometry, slot choice, delta→state — each justified by its own measurement. **So which
+of them did the damage is not recoverable from the record; it is a five-variable A/B**, which is
+the failure this file has a standing rule against, committed the same morning the seat quoted
+that rule at the reviewer.
+
+### AND THE DIAGNOSIS TAKEN ON THE BROKEN TREE IS WITHDRAWN AS UNSAFE, NOT AS WRONG
+
+*Zero settled · zero candidates · mint reached-and-resolving-nothing · `pays` 5 of 129,311* were
+taken on the damaged fixture and **their subject is unknown**: a property of the flip, or of the
+seat's own breakage. Competently taken, correctly computed, **possibly measuring the wrong
+world** — this file's own named class, and the fourth instance in one day.
+
+**THE TALLY-CACHE TEST IS VOID FOR THE SAME REASON.** `ON + TETHER_NO_TALLY=1` read zero
+candidates, which would have refuted the reviewer's hypothesis — **on a fixture that could not
+be trusted to answer.** A refutation from a broken panel is not a refutation.
+
+### WHAT THE TRUE BASELINE SAYS, AND IT NAMES THE MECHANISM IN ITS OWN WORDS
+
+**HEAD + the flip is 26/30 and the four failures ARE the four the site note predicts**
+(`tether.py:113`: *"the flip takes the seats to 14/16: four M2 checks and
+`test_b5_still_fires_on_the_pinned_world`"*):
+
+    check_strategy_is_emitted_when_a_routine_drives
+    check_the_accumulation_commits_where_the_bargain_refused
+    check_trigger_is_the_residual_not_the_reward   "a satisfied reward channel SUPPRESSED THE MINT"
+    check_the_suite_reaches_the_hard_cases         "the M2 suite no longer reaches: routine"
+
+> **THE THIRD ONE STATES THE MINT MECHANISM OUTRIGHT.** The morning was spent hunting why
+> minting goes silent under the flip — through a retrieval gate, a candidate write, a tally
+> cache — and **the check prints the answer as its failure message.** *A satisfied reward
+> channel suppressed the mint.* **`assume it is already specified, and go look`, against a
+> failure message rather than a document**, and the trigger is the same: BEFORE writing a causal
+> explanation of a mechanism's behaviour, read what the thing that already tests it says when it
+> fails.
+
+**Reverted to HEAD and re-run: 30/30, confirmed by a run rather than asserted** — *a revert is a
+claim until it is run.* Nothing was committed at any point; `conform/check.py` was owed first and
+had not been run, so no damage reached the history.
+
+### THE ATTEMPT IS KEPT AS A PATCH, AND THE NINE ARE CLASSIFIED BEFORE ANY OF THEM IS TOUCHED
+
+**The reverted fixture work is saved at `~/fixture_attempt_0930.patch`** (209 lines, `test_m2.py`
+only, deliberately OUTSIDE the tree so it is not an untracked file in the repo). **Verified with
+`git apply --check`: it reconstructs the attempt exactly** — *a saved patch is a claim until it
+is tested*, and the first version silently included `docs/INDEX.md` and **did not apply**, having
+been overtaken by later edits to that file.
+
+**FOUR BASELINES, one script, the flag as the only variable:**
+
+    HEAD          OFF   30/30      ON   26/30   <- the four, and they are REAL
+    the attempt   OFF   21/30      ON   22/30
+
+> **AND THE SEAT'S PREMISE-WITHDRAWAL OVERSHOT — the reviewer, 2026-09-30.** *HEAD is 30/30* was
+> read as *the four-failing premise was never real*. **It was always "the four fail WITH THE FLAG
+> ON"**, and HEAD + flip re-confirms it at 26/30. **What is unsafe is only what was measured on
+> the MODIFIED fixture** — the zero-candidate chain and the tally test. A correction that
+> overshoots discards a true finding along with the false one, and it presents as rigour.
+
+**THE NINE, SPLIT BY WHICH ARM AND WHOSE FAULT:**
+
+    FAIL AT HEAD TOO (the flip's own four, reproduced on the OFF arm by the attempt —
+    so the changes manufactured flip-like failure WITHOUT the flag):
+      check_strategy_is_emitted_when_a_routine_drives
+      check_the_accumulation_commits_where_the_bargain_refused
+      check_trigger_is_the_residual_not_the_reward
+      check_the_suite_reaches_the_hard_cases
+
+    NEVER FAIL AT HEAD ON EITHER ARM — five, wholly the attempt's:
+      check_a_refutation_is_a_row
+      check_can_gates_until
+      check_one_bargain
+      check_shelf_must_be_runnable_here
+      check_the_act_space_stays_narratable
+
+**FIXTURE-COUPLED vs AGENT BEHAVIOUR, read off each check's own message rather than judged:**
+
+    FIXTURE-COUPLED — the check reports ITS OWN PRECONDITION unmet, prefix `fixture:`
+      a_refutation_is_a_row        "fixture: the routine did not exhaust"
+      trigger_is_the_residual      "fixture: the dense channel must still owe"
+      suite_reaches_the_hard_cases "no longer reaches: exhausted"  (a COVERAGE claim by
+                                   construction — it is about what the suite exercises)
+
+    AGENT BEHAVIOUR — the check reports what the agent DID
+      can_gates_until              "refused, but not for the guard"
+      one_bargain                  "wrong reason"
+      shelf_must_be_runnable_here  "an unrunnable shelf routine entered the candidate set"
+      strategy_is_emitted          mix {'probe':1.0,'directed':0.0,'strategy':0.0}
+      accumulation_commits         "a hopeless plan with no history committed"
+      act_space_stays_narratable   "cannot say the ACT space"
+
+> **AND TWO CHECKS CHANGE CATEGORY BETWEEN ARMS, WHICH NO STATIC READING WOULD HAVE FOUND.**
+> `can_gates_until` reports AGENT BEHAVIOUR on OFF (*"refused, but not for the guard"*) and a
+> FIXTURE PRECONDITION on ON (*"fixture: the slot's own guard must stay reachable"*);
+> `act_space_stays_narratable` does the same (*"cannot say the ACT space"* → *"fixture: no PLAN
+> row was written"*). **A check's category is a property of the RUN, not of the check**, so
+> classifying from the source would have filed both wrongly.
+
+**AND `accumulation_commits` FAILS AT HEAD+FLIP AND ON THE ATTEMPT'S OFF ARM, BUT PASSES ON THE
+ATTEMPT'S ON ARM** — a check the damage made *greener*. Recorded because a repair that fixes a
+check by accident is indistinguishable, at the count, from one that fixes it on purpose.

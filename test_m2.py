@@ -221,10 +221,30 @@ def check_trigger_is_the_residual_not_the_reward():
     ag = _agent()
     b = dict(ag.env.observe())
     slot = _wide(ag)
-    ag.env.objective = lambda: ("ALL(BECOME(level, completed))", 1.0)   # reward says: done
     assert (ag.goal_residual(slot, b) or 0) > 0, "fixture: the dense channel must still owe"
-    _mint(ag, b)
-    assert ag.routine is not None, "a satisfied reward channel suppressed the mint"
+
+    class _RewardWasRead(Exception):
+        pass
+
+    def _raises(*_a, **_k):
+        raise _RewardWasRead("the trigger reached for the reward channel")
+
+    held, ag.env.objective = ag.env.objective, _raises
+    try:
+        rows = _mint(ag, b)
+    except _RewardWasRead:
+        raise AssertionError("THE MINT TRIGGER READ THE REWARD CHANNEL -- "
+                             "`_route_reward` bins on `degree`, absent for most of a run, "
+                             "so a trigger keyed there fires almost never and cannot be "
+                             "told from a broken one") from None
+    finally:
+        ag.env.objective = held
+
+    # THE TREATMENT-EXECUTED CHECK, INSIDE THE CHECK. Without this the assertion above
+    # passes when the trigger is never reached at all, which is how the old version was
+    # vacuous: an accessor that is never called cannot raise.
+    assert rows, ("fixture: the mint wrote no routine row, so the trigger did not run and "
+                  "this check proved nothing")
 
 
 def check_route_is_learned():
