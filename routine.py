@@ -163,6 +163,17 @@ class Until:
     guard: Any
     body: Any
     budget: int
+    # **THE AGENT'S OWN EXPECTED COUNT -- Isaiah, 2026-09-30, and it is a SECOND field rather
+    # than a better `budget` on purpose.** `budget` is DERIVED and is a SAFETY CAP; `expect` is
+    # what the agent MEANS and the world can refute it. They were one number: `loop_budget` is
+    # `round(unsat)` and `reach` multiplies it back out, so a routine's CLAIM was its own cap
+    # and the plain loop could at best tie. That is `A6i` -- one name, two quantities -- caught
+    # before the collision instead of after.
+    #
+    # **`None` IS A READING AND NOT A GAP.** With no forward model the agent emits nothing,
+    # which is honest; `reach` then falls back to `budget` and every routine built without one
+    # keeps exactly the arithmetic it had.
+    expect: int | None = None
 
 
 @dataclass(frozen=True)
@@ -349,7 +360,10 @@ def advance(r: Any, holds: Callable[[Any], bool | None],
                 continue
             if emit in _ENDS:
                 return emit, None
-            nxt = Until(guard, body, budget - 1)
+            # THE EXPECTATION RIDES THROUGH THE REBUILD. Dropping it here would make a
+            # routine forget its own claim on its second iteration, so the claim would
+            # shrink with the cap it was introduced to be independent of.
+            nxt = Until(guard, body, budget - 1, r.expect)
             return emit, (Seq(rest, nxt) if rest is not None else nxt)
 
     raise TypeError(f"not a routine: {r!r}")
@@ -711,6 +725,13 @@ def reach(r: Any, lib: dict | None = None, _seen: frozenset = frozenset()) -> in
         # `holds` returns True. **Over-stating reach is the exact defect this function exists to
         # refuse**, and here it is inside it.
         #
+        # **AND THE CLAIM IS THE AGENT'S WHERE IT HAS ONE -- Isaiah, 2026-09-30.** `budget` is
+        # a DERIVED CAP; `expect` is what the agent believes. Using the cap as the claim made a
+        # routine's reach equal to the residual by construction, so the plain loop could only
+        # ever tie and a smaller residual shrank what a routine was ALLOWED to claim -- measured
+        # at reach 5 -> 1 when the library-fit gate changed. `expect` is read FIRST and `budget`
+        # remains the fallback, so every routine built without one is unchanged.
+        #
         # **NOT REPAIRED, BECAUSE THE REPAIR NEEDS STATE THIS FUNCTION MUST NOT HAVE.** Whether
         # a guard holds is a question for `holds`, which is the CALLER's -- the same invariant
         # that made `Choose` a constructor rather than sugar. Pricing a plan against the world
@@ -721,7 +742,11 @@ def reach(r: Any, lib: dict | None = None, _seen: frozenset = frozenset()) -> in
         # unsatisfied. **`not satisfied:<slot>` can be TRUE at mint time**, and `can` admits it
         # on exactly that ground -- *holds now, so reached*. The caller gates on `CAN == YES`
         # and that is where a already-satisfied termination condition could be caught.
-        return max(r.budget, 0) * reach(r.body, lib, _seen)
+        # THE AGENT'S CLAIM FIRST, THE DERIVED CAP AS THE FALLBACK. Never the larger of
+        # the two: `max` would let a routine be priced on whichever number flattered it,
+        # which is the over-statement this whole function exists to refuse.
+        _n = r.budget if r.expect is None else r.expect
+        return max(_n, 0) * reach(r.body, lib, _seen)
     if isinstance(r, (Let, Expect)):
         return reach(r.body, lib, _seen)
     if isinstance(r, Call):

@@ -648,6 +648,52 @@ class Interface:
             kinds[kind] = kinds.get(kind, 0) + 1
         return tuple(sorted(kinds.items()))
 
+    def expected_move(self, intent: Intent, offered: tuple[str, ...], ctx: tuple = (),
+                      state: dict | None = None, env: Any = None) -> float | None:
+        """HOW FAR THE AGENT EXPECTS ONE PRESS OF THIS INTENT TO MOVE ITS SUBJECT.
+
+        **ASKED IN INTENTS, BECAUSE THAT IS WHAT THE AGENT HOLDS.** The first version of the
+        caller looked the movement up BY ACTION and got `None` 76 times out of 76 -- a routine
+        body carries an `Intent`, never a button, and the delta table is keyed by the REALISED
+        action, which lives below the seam. It did not fail loudly; it returned the same
+        `None` that means *no reading*, so the agent's own model read as absent.
+
+        **ONE SELECTION RULE, NOT A SECOND COPY OF IT.** This CALLS `realise` rather than
+        re-implementing *which action best serves this intent* -- that rule is the seam's
+        centre and a duplicate of it is `A6i` in its guaranteed form. Reviewer, 2026-09-30:
+        share the selection and reuse the existing prediction path, two callers.
+
+        **SAFE TO ASK, AND THAT IS PROVEN RATHER THAN ASSUMED.** Calling `realise`
+        hypothetically changes nothing -- `test_asking_the_interface_does_not_change_it` is
+        the seat for exactly this, and `_last_was_reset` is written in `audit`, not here.
+
+        `None` WHEN THERE IS NO READING -- no intent subject, no action realised, or nothing
+        observed to move that slot. Honest, not missing.
+        """
+        if intent.subject is None:
+            return None
+        r = self.realise(intent, offered, ctx, state, env)
+        return None if r is None else self.step_of(r.action, intent.subject)
+
+    def step_of(self, action: str, slot: str) -> float | None:
+        """HOW FAR THIS ACTION MOVES THIS SLOT, per press, from what the agent has watched.
+
+        **A READING OF THE AGENT'S OWN OBSERVATIONS, NOT A FACT ABOUT THE BOARD.** The delta
+        table is filled by `audit` from presses the agent made and frames it saw, so this
+        returns nothing until it has watched -- which is the honest state and not a gap.
+
+        ACROSS CONTEXTS ON PURPOSE. The per-context cells are sparse by design, and the
+        question here is *how much does this move* rather than *what happens in exactly this
+        configuration* -- the same fallback `realise` already makes, and for the same measured
+        reason: keyed too finely, the cells are populated and every query abstains.
+        """
+        n = tot = 0
+        for (_ctx, k), (cn, ct) in self.table.get(action, {}).get("delta", {}).items():
+            if k == slot:
+                n += cn
+                tot += ct
+        return None if n == 0 else tot / n
+
     def audit(self, r: Realisation, before: dict, after: dict, ctx: tuple = ()) -> bool:
         """Record what this action did, and report when it does not have ONE fixed effect.
 

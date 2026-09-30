@@ -15,6 +15,7 @@ import re
 import sys
 from collections import Counter
 from dataclasses import dataclass, field
+from dataclasses import replace as _replace
 from functools import partial
 from typing import Any
 
@@ -4362,6 +4363,37 @@ class Agent:
             self.candidates[name] = self.cycle
             self._cand_level[name] = self.level
 
+    def _expected(self, cand, unsat: float, before: dict):
+        """Attach the agent's OWN expected iteration count, or leave the routine as it is.
+
+        **ASKED IN INTENTS, AND THE FIRST VERSION WAS NOT.** This looked the movement up BY
+        ACTION and attached NOTHING on 76 of 76 loops: a routine body carries an `Intent`, and
+        the delta table is keyed by the realised action, below the seam. The zero it produced
+        was indistinguishable from *the agent has no model*, which is what I nearly filed.
+        `expected_move` asks at the level the agent actually holds. No reading means NO EXPECT
+        -- `reach` falls back to `budget`. Isaiah: *with no model it emits none.*
+
+        **AND THE SLOT IS NOT A PARAMETER, BECAUSE THE INTENT CARRIES ITS OWN SUBJECT.** It was
+        one, taken from the planning site, and that is two sources for one quantity: if the
+        caller's slot and `intent.subject` ever disagreed, the expectation would be read off a
+        different slot than the loop is driving, and nothing would say so.
+
+        **ONLY A BARE `Until(g, Act(a), n)`.** A compound body's per-iteration movement is not
+        one action's delta, and guessing it would be the seat supplying a number the agent has
+        not observed -- which is the whole thing this replaces.
+        """
+        if not isinstance(cand, Rt.Until) or not isinstance(cand.body, Rt.Act):
+            return cand
+        _want = cand.body.action
+        if not isinstance(_want, IFace.Intent):
+            return cand
+        per = self.iface.expected_move(_want, tuple(self.actions),
+                                       self.iface.context(self.env), before, self.env)
+        if not per:
+            return cand
+        want = math.ceil(abs(unsat) / abs(per))
+        return _replace(cand, expect=max(1, want))
+
     def _rejection(self, key: tuple) -> float:
         """The decayed strength of rejection. `Standing.decay` on the LOGICAL clock -- cycles,
         never wall time -- which is §18.2's first defeasance route and was already built."""
@@ -4828,6 +4860,12 @@ class Agent:
         # its decaying strength stands, so a failed shape leaves the running and returns.
         cands = [c for c in cands
                  if self._rejection(self._reject_key(slot, c, self.routine_lib)) < 1.0]
+        # **THE AGENT SAYS HOW MANY IT EXPECTS -- ISAIAH, 2026-09-30.** `loop_budget` is
+        # `round(unsat)`, and `reach` multiplied it back out, so a routine's CLAIM WAS ITS OWN
+        # SAFETY CAP: the plain loop reached exactly the residual and could at best tie, and a
+        # smaller residual shrank what a routine was ALLOWED to claim (measured: reach 5 -> 1
+        # when the library-fit gate changed). `expect` is the claim; `budget` stays the cap.
+        cands = [self._expected(c, unsat, before) for c in cands]
         if not cands:
             self.led.record(self.cycle, "PLAN", slot, "routine_refused",
                             reason="every rejection still stands and nothing has surprised",
