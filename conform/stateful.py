@@ -1692,6 +1692,71 @@ def test_track_record_orders_within_a_fit_level():
         "so assertion 1 was not demonstrating the record slot at all")
 
 
+def test_disuse_never_moves_confidence():
+    """**ISAIAH, via `LIBRARY_RETRIEVAL` 5.10.8: *decay may never touch belief.*** The table
+    is explicit -- CONFIDENCE "never moves when NOT USED. **Disuse is not evidence.**"
+
+    This failed for two hours on 2026-10-01. `confirmations` was added to `decay()` beside
+    the three failure counters, on the reasoning that success and failure should share a
+    clock. **They must not**: decaying a refusal is FORGIVENESS and has a standing rationale;
+    decaying a confirmation is AMNESIA and has none. Measured before the removal, a term
+    confirmed once and then merely left alone went 0.667 -> 0.501 -- back to the untried
+    prior, by doing nothing.
+
+    Four assertions and a mutation control.
+    """
+    import gamma as G
+    import snaps
+
+    def fresh():
+        g = G.Gamma(snaps._atoms())
+        return g, [a.name for a in g.atoms][0]
+
+    # 1 -- AN UNUSED CONFIRMED TERM HOLDS ITS CONFIDENCE.
+    g, nm = fresh()
+    g.settle(nm, where="g:L0")
+    base = g.track_of(nm)
+    g.tick = 64                                   # eight half-lives of doing nothing
+    assert abs(g.track_of(nm) - base) < 1e-9, (
+        f"confidence moved on DISUSE alone: {base} -> {g.track_of(nm)}. Isaiah: decay may "
+        f"never touch belief")
+
+    # 2 -- AND FORGIVENESS STILL WORKS, WHICH IS WHY THE FAILURE SIDE KEEPS ITS DECAY.
+    # A term confirmed once and refused once reads 0.5; as the refusal fades it must RISE
+    # toward (1+1)/(1+0+2) = 0.667. Asserted, because it is the reason for the asymmetry.
+    g, nm = fresh()
+    g.settle(nm, where="g:L0")
+    g.standing[nm].refute(g.tick, g.halflife)
+    early = g.track_of(nm)
+    g.tick = 64
+    assert g.track_of(nm) > early, (
+        f"a refusal stopped fading, so forgiveness is gone: {early} -> {g.track_of(nm)}")
+
+    # 3 -- THE UNTRIED PRIOR IS UNTOUCHED.
+    g, nm = fresh()
+    assert g.track_of(nm) == 0.5, f"an untried term no longer reads the prior: {g.track_of(nm)}"
+
+    # 4 -- THE FAILURE SIDE DECAYS EXACTLY AS BEFORE. This change must not have touched it:
+    # the 5.10.8 coupling with the routine filter is documented and not to be moved alone.
+    g, nm = fresh()
+    g.standing.setdefault(nm, G.Standing()).refute(0, g.halflife)
+    r0 = g.standing[nm].rejections
+    g.tick = int(G.REJECTION_HALFLIFE)
+    g.track_of(nm)
+    assert abs(g.standing[nm].rejections - r0 * 0.5) < 1e-9, (
+        f"one half-life no longer halves a rejection: {r0} -> {g.standing[nm].rejections}")
+
+    # MUTATION CONTROL -- reinstate the removed statement's effect and assertion 1 must fail.
+    g, nm = fresh()
+    g.settle(nm, where="g:L0")
+    base = g.track_of(nm)
+    g.standing[nm].confirmations *= 0.5 ** (64 / G.REJECTION_HALFLIFE)
+    g.tick = 64
+    assert abs(g.track_of(nm) - base) > 1e-6, (
+        "THE CONTROL DID NOT FIRE: decaying `confirmations` by hand changed nothing, so "
+        "assertion 1 was not testing that the decay is gone")
+
+
 if __name__ == "__main__":
     if "--cover" in sys.argv:
         for label, c in (("kernel.Frame", coverage()),
@@ -1741,11 +1806,13 @@ if __name__ == "__main__":
         test_a_rejection_records_where_it_was_taken()
         test_a_trial_miss_is_not_a_refusal()
         test_track_record_orders_within_a_fit_level()
+        test_disuse_never_moves_confidence()
         print("  A5 and B5 reproductions still fire (expected): ok")
         print("  keyed reach loses nothing: ok · two vocabularies stay two: ok")
         print("  the quantifiers quantify (ONE fires, all != some): ok")
         print("  the seam varies what it explores with: ok")
         print("  track record orders within a fit level (fit still dominates): ok")
+        print("  disuse never moves confidence (forgiveness still rises): ok")
         print("  shipped generator coverage: ok · residual bound loses nothing: ok"
               " · resolutions are not the answer: ok · atom order pinned: ok"
               " · promotion clause recorded: ok · observer reaches the agent: ok"

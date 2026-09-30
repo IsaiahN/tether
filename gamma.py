@@ -599,16 +599,31 @@ class Standing:
         if gap:
             _f = 0.5 ** (gap / (halflife or REJECTION_HALFLIFE))
             self.rejections *= _f
-            # THE SAME FACTOR ON ALL FOUR, so the two halves stay comparable with the total
-            # and with each other. See `misses`. **WAS "ALL THREE" UNTIL `confirmations`
-            # JOINED THEM** -- stale by success, repaired in the commit that made it false
-            # rather than left for a reader to trip over.
+            # THE SAME FACTOR ON ALL THREE, so the two halves stay comparable with the total
+            # and with each other. See `misses`.
+            #
+            # **THIS COMMENT SAID "ALL FOUR" FOR TWO HOURS AND BOTH EDITS WERE RIGHT WHEN
+            # MADE.** `confirmations` joined the list and then left it. What decays here is
+            # FAILURE ONLY, and the reason is that the two sides are not symmetric:
+            #
+            #     decaying `refusals`       FORGIVENESS -- a hard ban would make one miss
+            #                               permanent and no evidence could overturn it
+            #     decaying `confirmations`  AMNESIA -- it has no such rationale, and
+            #                               `LIBRARY_RETRIEVAL` 5.10.8 forbids it in terms:
+            #                               CONFIDENCE "never moves when NOT USED. Disuse is
+            #                               not evidence." Isaiah: *decay may never touch
+            #                               belief.*
+            #
+            # **MEASURED BEFORE THE REMOVAL: one settle then nothing but elapsed cycles took
+            # confidence 0.667 -> 0.600 -> 0.556 -> 0.515 -> 0.501 -- a confirmed term
+            # reverting to the untried prior by being left alone.**
+            #
+            # Disuse-fading is not abandoned, it is RELOCATED: 5.10.8 puts it in RELEVANCE,
+            # `confidence x 0.5 ** (games_since_last_use / RELEVANCE_HALFLIFE_GAMES) + youth`,
+            # on a clock of GAMES rather than cycles. That needs a games counter, which does
+            # not exist yet, and it is the next item rather than a gap left here.
             self.misses *= _f
             self.refusals *= _f
-            # **SUCCESS FADES ON THE SAME CLOCK AS FAILURE, OR THE RATIO IS NOT A RATIO.**
-            # A term whose confirmations never decayed would outrank one whose refusals did,
-            # on evidence of the same age.
-            self.confirmations *= _f
             self.last_tick = tick
 
     @property
