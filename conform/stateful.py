@@ -1614,6 +1614,84 @@ def test_never_two_consecutive_resets():
         "the bar did not clear after another action -- that is a ban on reset, not the "
         "adjacency rule, and it would block every ordinary backtrack")
 
+def test_track_record_orders_within_a_fit_level():
+    """**THE REVIEWER, 2026-10-01: demonstrate the ordering at unit level, because no live
+    fixture separates record from length.** On `test_m2` the library is 65 ATOMS and 4
+    COMPOSITES, only composites carry a record, and length already sorts atoms first -- so
+    the record slot agrees with the length slot in 0 of 25 tie-groups and the live panel
+    cannot show the mechanism either way.
+
+    **A UNIT TEST MAY CONSTRUCT ITS INPUTS; THAT IS NOT FITTING A PANEL.** What is refused is
+    tuning a coefficient until a measurement moves. What is required is a case where the
+    thing under test CAN act, so that its failing to is a fact about the code.
+
+    Four assertions and a mutation control, all four the reviewer's.
+    """
+    import gamma as G
+    import retrieval
+    import snaps
+
+    # EQUAL FIT AND EQUAL LENGTH BY CONSTRUCTION: every `snaps` atom keys identically,
+    # `('val','val',1,None,())`, so NOTHING BUT THE RECORD can order them.
+    g = G.Gamma(snaps._atoms())
+    # **THE ALPHABET MUST OPPOSE THE RECORD, OR THIS DEMONSTRATES NOTHING.** With `track`
+    # dropped the key falls through fit and length to NAME, so picking the good term to be
+    # alphabetically first makes assertion 1 pass with the record slot DELETED. The control
+    # at the bottom caught exactly that on the first draft of this test.
+    names = sorted(a.name for a in g.atoms)
+    good, bad, untried = names[-1], names[0], names[len(names) // 2]
+
+    for _ in range(3):                      # settled three times, never refused
+        g.settle(good, where="g:L0")
+    g.settle(bad, where="g:L0")             # settled once...
+    for _ in range(2):                      # ...then broke the promise twice
+        g.standing[bad].refute(g.tick, g.halflife, where="g:L0")
+
+    gap = {"varies": (), "arity": 1, "target_type": "val",
+           "varies_types": (), "rel_types": ()}
+    order = retrieval.retrieve(g.library, gap, track=g.track_of)
+
+    # 1 -- THE BETTER RECORD IS SURFACED FIRST, at equal fit and equal length.
+    assert order.index(good) < order.index(bad), (
+        f"a term settled 3 times with no refusal ranked BELOW one refused twice: "
+        f"{good} at {order.index(good)}, {bad} at {order.index(bad)}")
+
+    # 2 -- AND A POOR RECORD IS DEMOTED BELOW NO RECORD AT ALL, which is the Laplace
+    # mean's point: untried reads 0.5, neither favoured nor penalised.
+    assert order.index(untried) < order.index(bad), (
+        "a term with a bad record did not rank below an untried one -- the prior is "
+        "not sitting between them")
+    assert order.index(good) < order.index(untried), (
+        "a proven term did not outrank an untried one")
+
+    # 3 -- NOTHING IS EXCLUDED. The worst record in the library is tried LAST, never
+    # not at all.
+    assert len(order) == len(g.library) and set(order) == set(g.library), (
+        f"retrieve dropped or added names: {len(order)} back from {len(g.library)}")
+
+    # 4 -- **FIT STILL DOMINATES RECORD.** A differently-typed atom loses the two type
+    # points, and no track record may buy them back -- otherwise this is the hidden
+    # discount Isaiah ruled out rather than an ordering.
+    # THE SAME TRAP: the well-fitting term is chosen to sort AFTER `misfit` by name, so a
+    # pass here cannot be the alphabet either.
+    fitter = next(n for n in names if n > "misfit")
+    g2 = G.Gamma(snaps._atoms() + [G.Atom("misfit", lambda v, _c: v, "OBJECT", "COLOUR")])
+    for _ in range(9):                      # an excellent record on the wrong-typed term
+        g2.settle("misfit", where="g:L0")
+    order2 = retrieval.retrieve(g2.library, gap, track=g2.track_of)
+    assert order2.index(fitter) < order2.index("misfit"), (
+        "a WORSE-FITTING term with a great record outranked a better-fitting one -- "
+        "track record is overruling fit instead of breaking ties within it")
+
+    # MUTATION CONTROL -- drop the record slot and assertion 1 must fail. Without this the
+    # test passes for any ordering that happens to put `good` first, and a guard whose
+    # failure path is never exercised cannot be told from one that cannot fail.
+    blind = retrieval.retrieve(g.library, gap)
+    assert blind.index(good) > blind.index(bad), (
+        "THE CONTROL DID NOT FIRE: with `track` dropped the order is still record-ordered, "
+        "so assertion 1 was not demonstrating the record slot at all")
+
+
 if __name__ == "__main__":
     if "--cover" in sys.argv:
         for label, c in (("kernel.Frame", coverage()),
@@ -1662,10 +1740,12 @@ if __name__ == "__main__":
         test_a_candidate_survives_a_level_and_is_dormant_until_bound_here()
         test_a_rejection_records_where_it_was_taken()
         test_a_trial_miss_is_not_a_refusal()
+        test_track_record_orders_within_a_fit_level()
         print("  A5 and B5 reproductions still fire (expected): ok")
         print("  keyed reach loses nothing: ok · two vocabularies stay two: ok")
         print("  the quantifiers quantify (ONE fires, all != some): ok")
         print("  the seam varies what it explores with: ok")
+        print("  track record orders within a fit level (fit still dominates): ok")
         print("  shipped generator coverage: ok · residual bound loses nothing: ok"
               " · resolutions are not the answer: ok · atom order pinned: ok"
               " · promotion clause recorded: ok · observer reaches the agent: ok"

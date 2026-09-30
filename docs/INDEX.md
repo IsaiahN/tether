@@ -51971,3 +51971,42 @@ nothing computes it for you.**
 
 **Cost: an hour hunting a side effect that did not exist, and a posted verdict that the
 mechanism was not the cause.** The fix is a line in a pre-registration, not a habit.
+
+## F384 -- **TRACK-RECORD ORDERING IS BUILT AND UNIT-DEMONSTRATED, AND NO LIVE FIXTURE CAN SEPARATE RECORD FROM LENGTH**
+
+`LIBRARY_RETRIEVAL` §5.10.3 read *`Standing` IMPLEMENTS THE FADE AND NOT THE RISE — settling
+ten times leaves exactly what settling once leaves.* The rise is now built: `confirmations` is
+the decayed total of success with `paid` as its per-scope breakdown, and `retrieve`'s sort key
+gained a track-record slot after fit.
+
+**AND ON THE LIVE FIXTURE IT REORDERS NOTHING — 0 of 25 tie-groups, against a denominator
+measured before the change.** The cause is not the key:
+
+    terms WITH a non-zero record      4, lengths 2, 2, 2, 3   -- every one a COMPOSITE
+    terms WITHOUT                    65, length range 1-1     -- every one an ATOM
+    tie-groups where the record order and the length order DISAGREE:   0 of 25
+
+**`test_m2`'s library is 65 atoms and 4 composites, and only composites have ever settled or
+been refused.** Length already sorts every atom ahead of every composite, so the record slot
+puts the same terms in the same places. **TRACK RECORD AND LENGTH ARE PERFECTLY CONFOUNDED
+THERE.**
+
+> **AND THE NULL IS ROBUST TO THE INSTRUMENT, WHICH IS WHAT MAKES IT A FACT ABOUT THE PANEL.**
+> It reads 0 under `confirmations - refusals` AND under the Laplace posterior mean. A null that
+> survives changing the instrument is about the world; one that does not is about the
+> instrument. **Only the second kind is worth repairing, and this is the first.**
+
+**OWED: a live demonstration where SETTLED COMPOSITES OF EQUAL LENGTH DIFFER IN RECORD.** Until
+such a board exists the ordering is shown only at unit level, and this entry is the reason a
+reader meeting an inert key should not reach for a coefficient.
+
+**AND THE UNIT TEST'S OWN CONTROL CAUGHT THE TEST, WHICH IS THE PART WORTH COPYING.** The first
+draft asserted that a well-recorded term sorts first — and it did, **with the record slot
+deleted**, because with `track` dropped the key falls through fit and length to NAME, and I had
+picked a good term that was alphabetically first anyway. **Four assertions passed and
+demonstrated nothing.** The mutation control is what said so.
+
+> **THE RULE: WHEN A NEW SORT SLOT IS TESTED, THE SLOTS BENEATH IT MUST OPPOSE THE EXPECTED
+> ORDER.** Otherwise a pass cannot distinguish the new slot from the tie-break under it — and a
+> tie-break that already agrees is exactly the confound this whole finding is about, met twice:
+> once in the live fixture, once in the test written to escape it.
