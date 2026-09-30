@@ -119,10 +119,44 @@ def main() -> int:
     #   arc_*   forbidden entirely by the stop; nothing to enumerate from here
     # So a zero here means THE STATIC LAYER IS CLEAN, never *nothing is owed*.
     print("")
-    print(f"  MOVED OUT OF A SUITE UNDER RULING 6: {len(OWED_CHECKS)}")
-    for cid, why in sorted(OWED_CHECKS.items()):
-        print(f"      {cid}")
+    # **DISCOVERED AND RUN, NOT LISTED -- the reviewer, 2026-09-30, holding this addition to
+    # the file's own rule.** `OWED_CHECKS` began as a hand-written name map, which is the
+    # staleness this module exists to refuse: rename the function and the map still names the
+    # old one, silently. So the functions are ENUMERATED from the module and EXECUTED, and a
+    # moved check with no label is REPORTED rather than passed over -- the one failure a
+    # hand-kept map cannot have.
+    moved = {k: v for k, v in globals().items()
+             if k.startswith("check_") and callable(v)}
+    print(f"  MOVED OUT OF A SUITE UNDER RULING 6: {len(moved)} discovered, and RUN")
+    unlabelled = []
+    for name in sorted(moved):
+        why = OWED_CHECKS.get(name)
+        if why is None:
+            unlabelled.append(name)
+            why = "!! NO LABEL -- moved here without saying what it is owed for"
+        try:
+            moved[name]()
+            verdict = "passes here TODAY (on the world it was moved off)"
+        except AssertionError as exc:
+            verdict = f"fails here: {str(exc)[:60]}"
+        except Exception as exc:                      # noqa: BLE001
+            verdict = f"DID NOT RUN -- {type(exc).__name__}: {str(exc)[:50]}"
+        print(f"      {name}")
         print(f"          {why}")
+        print(f"          -> {verdict}")
+    # a label with no function is the other half of the same staleness
+    orphans = [k for k in OWED_CHECKS if "::" not in k and k not in moved]
+    for k in orphans:
+        print(f"      {k}")
+        print("          !! LABELLED BUT ABSENT -- no such function in this module")
+    for k, why in sorted(OWED_CHECKS.items()):
+        if "::" in k:                                  # a CASE inside a check that stays
+            print(f"      {k}")
+            print(f"          {why}")
+            print("          -> a case, not a function; re-run with its parent check")
+    if unlabelled or orphans:
+        print("")
+        print("  !! the moved set and its labels DISAGREE -- fix before trusting this list")
     print("")
     print("  SCOPE: static `lint` only. `kernel` needs a run file, and the ARC paths cannot")
     print("  run under the stop -- both are OUT of this count. A zero here means the static")
