@@ -983,7 +983,7 @@ class Agent:
         # `candidates` rather than folded into it: the cycle is WHEN and the level is WHERE,
         # and `A6i` is what happens when two quantities share one name.
         self._cand_level: dict[str, int] = {}    # term -> the level its candidacy is live on
-        self.settled: set[str] = set()
+        # `settled` IS A PROPERTY NOW -- see below. There is no set here to drift.
         self._settled_at_level: set[str] = set()   # the segment's starting line
         self.demoted: list[str] = []
         self.chain = I.Chain()
@@ -4332,6 +4332,33 @@ class Agent:
         return tuple(out)
 
     @property
+    def settled(self) -> set[str]:
+        """What the GROUND has paid for -- read from gamma, never kept beside it.
+
+        **THIS WAS AN ADD-ONLY SET AND IT DISAGREED WITH GAMMA -- measured 2026-09-30.**
+        `gamma.settle` recorded a settlement and `self.settled.add` recorded it again; then
+        ONE REFUSAL at `REJECTION_CEILING` cleared `settled_at` and the set never heard.
+        Measured on the M2 fixture: **the agent said 4, gamma said 0**, and every reader of
+        `ag.settled` -- including the probes that found this -- had been reading the stale one.
+
+        **AND IT REACHED THE AGENT'S OWN DIAGNOSIS.** `_link` tests `if not self.settled`
+        BEFORE its `owed_import` branch, so a non-empty stale set skipped the link-5 verdict:
+
+            on the stale set   "2 - vocabulary (measured: 4 slot(s) unreached at budget)"
+            on the truth       "5 - learn and carry (measured: nothing settled ...)"
+
+        Two different halves of the system to go and look at. *A ground reading taken below
+        the break is a reading of nothing*, and this is the reading that says where the break
+        is.
+
+        DERIVED RATHER THAN SYNCHRONISED, deliberately. The defect was not a missed update --
+        it was that there were two answers at all, and an update path is two answers plus a
+        promise. `Standing.settled` is a DIFFERENT quantity on a different object; the four
+        assertions in `conform/stateful.py` that read it are correct and untouched.
+        """
+        return {n for n in self.gamma.library if self.gamma.is_settled(n)}
+
+    @property
     def _scope(self) -> str:
         """WHERE evidence is being taken right now -- the game and the level together.
 
@@ -6423,7 +6450,9 @@ class Agent:
             if self._cand_level.get(name) != self.level:
                 continue
             self.gamma.settle(name, where=self._scope)
-            self.settled.add(name)
+            # NO `self.settled.add` -- the line above IS the record. Adding to a second set
+            # here is what made the two disagree: gamma unsettles on refusal and the set
+            # never heard.
             self._settled_at[name] = self.cycle
             # **AT WHAT DEPTH DO THIS AGENT'S TERMS ACTUALLY ARRIVE?** `F341` left `max_depth`
             # as the one row it could not assign -- genuinely a COMPUTE BOUND and a BELIEF
