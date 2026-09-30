@@ -197,6 +197,8 @@ class Interface:
         self.table: dict[str, dict] = {}       # action -> what it was observed to do
         self._seen: tuple[str, ...] = ()       # last frame's advertised set, for capability
         self.audits = 0
+        # slot -> how many audited presses it was PRESENT for. See `audit`.
+        self.present: dict[str, int] = {}
         self.conditional: set[str] = set()     # more than one effect, ACROSS contexts
         self.changed: set[str] = set()         # more than one effect WITHIN one context
         self.unreliable: set[str] = set()      # lands a slot on more than one value in a ctx
@@ -759,6 +761,17 @@ class Interface:
         # raises, which `continue`s -- **so the delta table silently stopped filling and no
         # routine could be minted.** `A6i` in its purest form, in code minutes old, caught by
         # the m2 seat rather than by me.
+        # **THE DENOMINATOR THE DELTA TABLE LACKS -- Isaiah's downrating ruling, 2026-09-30.**
+        # `delta` is written `for k in changed`, so a slot that NEVER MOVES gets no entry and
+        # `step_of` returns `None` for it -- the same answer it gives for a slot never seen.
+        # Those are different states and downrating turns on telling them apart: *observed N
+        # times and never moved* is evidence of inertness, *never observed* is no evidence.
+        #
+        # Counting presence here costs one increment at a site already iterating `before`, and
+        # it puts the denominator AT THE SAME SITE AS THE NUMERATOR, which is this project's
+        # rule for counts. It reads nothing and decides nothing -- the weighting is elsewhere.
+        for _k in before:
+            self.present[_k] = self.present.get(_k, 0) + 1
         changed = tuple(sorted(k for k in before if before.get(k) != after.get(k)))
         signature = tuple(sorted(_eff(k) for k in changed
                                  if k.rsplit(".", 1)[-1] not in RELATIONAL))
