@@ -119,6 +119,17 @@ REJECTION_HALFLIFE = 8.0
 # **byte-identical to the cliff it replaces.** What changes is that the ceiling now EXISTS and is
 # a number someone can move; what does not change is any run. **A mechanism installed at its own
 # no-op point cannot be accused of smuggling a policy in with it.**
+# **AND IT IS THE AGENT'S CALL, NOT OURS AND NOT ISAIAH'S -- HIS RULING, 2026-09-30:** *"I
+# leave this up to the agent -- but that means they should become able to bring it back, or
+# dig at the bottom for older ones and reconsider them (agency)."* So this constant is not a
+# number waiting for him to choose; it is the floor that stands UNTIL THE AGENT CAN WEIGH IT,
+# which needs intent-level prediction it does not yet have.
+#
+# **WHAT THE (c) SPLIT BUYS IS THAT THE AGENT'S CHOICE IS SAFE WHEN IT MAKES ONE.** The
+# ceiling reads `refusals` rather than the blend, so raising it can no longer demote a term
+# for mistakes made while it was on trial. At 1.0 the two are indistinguishable -- one
+# refusal adds exactly the ceiling -- so nothing moves today and the guard is in place for
+# when something does.
 REJECTION_CEILING = 1.0
 
 
