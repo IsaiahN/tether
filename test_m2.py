@@ -924,7 +924,23 @@ def check_the_accumulation_commits_where_the_bargain_refused():
     ag2.cfg.accumulate = True
     slot2 = _wide(ag2)
     ag2._last_commit = ag2.cycle                   # no idle relief
+    # **AND NO RECURRENCE EITHER -- SET, NOT INHERITED. Isaiah's isolation ruling, 2026-09-30.**
+    # This case used to take whatever the 25-cycle warm-up happened to leave in `wants`, and
+    # that DECIDED IT: measured, `wants[o1.dcol]` is None on the default arm, so `lean` was
+    # 0.0 BY THE `else` BRANCH at tether.py:4531 -- the case passed on an ABSENT WANT, not on
+    # a price decision. Under the flip a want existed with 6 sightings, `lean` read 2.5, and
+    # the same assertion failed. Four of the five inputs were fixed and the fifth was
+    # whatever the world left lying about.
+    #
+    # **A WANT WITH ZERO HISTORY, NOT NO WANT.** Popping it would give `lean` 0.0 again by the
+    # else-branch -- the original defect, re-entered through the repair. Naming a want the
+    # agent has never seen keeps the recurrence term LIVE and contributing nothing, so the
+    # verdict turns on the price and on nothing else, which is what this check is named for.
+    ag2.wants[slot2] = "cold"
+    ag2._want_seen["cold"] = 0
     cold = ag2._accumulate(slot2, cand, cost=99.0, left=99.0, base=1.0, gkey=None)
+    assert cold["vector"]["lean"] == 0, (
+        f"the cold case is not isolated -- recurrence leaked in: {cold['vector']}")
     assert not cold["commits"], f"a hopeless plan with no history committed: {cold}"
 
     # AND THE CLOCK MOVES THE BAR, WHICH IS THE "ALWAYS PAYING" RULING
