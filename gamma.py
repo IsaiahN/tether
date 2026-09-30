@@ -130,7 +130,31 @@ REJECTION_HALFLIFE = 8.0
 # for mistakes made while it was on trial. At 1.0 the two are indistinguishable -- one
 # refusal adds exactly the ceiling -- so nothing moves today and the guard is in place for
 # when something does.
-REJECTION_CEILING = 1.0
+# **INTERIM, AND IT IS STILL THE AGENT'S CALL -- Isaiah, 2026-09-30, twice.** He ruled the
+# threshold the agent's, and then ruled this SOFTER INTERIM when 1.0 turned out to mean ONE
+# REFUSAL UNSETTLES: `refusals` increments by exactly 1.0, so a ceiling of 1.0 is met by a
+# single miss. This stands only until the agent can weigh it.
+#
+# **2.0 IS THE RULE READ MINIMALLY, NOT A NUMBER I PREFER.** *One failure is not a verdict*
+# sets a floor above 1.0 and says nothing more; 2.0 is the smallest value satisfying it, and
+# anything larger would assert that TWO failures are not a verdict either -- a claim the
+# ruling does not make. Chosen from the rule and then measured, never tuned to a green.
+#
+# WHAT IT TAKES IN PRACTICE, computed against `decay`'s `0.5 ** (gap / 8.0)`:
+#
+#     two refusals, same tick      2.000   unsettles
+#     two, one tick apart          1.917   survives
+#     three, one tick apart        2.758   unsettles
+#     three, four ticks apart      2.207   unsettles
+#     FIVE, EIGHT TICKS APART      1.938   SURVIVES
+#
+# **AND THAT LAST ROW IS A PROPERTY OF THE VALUE, NOT AN ACCIDENT, SO IT IS STATED RATHER
+# THAN DESIGNED AROUND.** Refusals spaced at the halflife are a geometric series whose LIMIT
+# IS EXACTLY 2.0, approached from below -- so a term refused once every eight ticks FOREVER
+# is never unsettled at this ceiling. The ruling asks that one failure not convict; it does
+# not say a slow drip eventually must. If that is wanted, the ceiling is not the dial --
+# a decaying counter cannot express "persistent but rare", and saying so is the finding.
+REJECTION_CEILING = 2.0
 
 
 

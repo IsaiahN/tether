@@ -1465,10 +1465,31 @@ def test_a_trial_miss_is_not_a_refusal():
 
     # CONTROL 1 -- a term with NO trial history behaves identically. If the split had made
     # the ceiling harder to reach, this is where it would show.
+    #
+    # **INVERTED 2026-09-30 WHEN ISAIAH RULED THE INTERIM CEILING SOFTER, AND THE INVERSION
+    # IS THE POINT RATHER THAN A CONCESSION.** This read `assert not clean.settled` -- that
+    # ONE REFUSAL UNSETTLES AT THE DEFAULT -- which was true at 1.0 and is exactly what the
+    # ruling forbids. The check fired the moment the default moved to 2.0 and its failure
+    # message stated the NEW CORRECT BEHAVIOUR as though it were the fault, which is a check
+    # doing its job.
+    #
+    # **AND IT IS INVERTED WHERE B5 WAS MOVED, WHICH IS THE SAME QUESTION ANSWERED THE OTHER
+    # WAY.** B5's PRECONDITION stopped holding -- its world no longer starved anything, so it
+    # lost its subject and a verdict there would have been a reading of nothing. HERE THE
+    # SUBJECT IS INTACT AND THE RULED BEHAVIOUR CHANGED, so asserting the new rule is the
+    # regression test the old assertion was always going to become.
+    #
+    # Both directions, so it cannot pass by the ceiling drifting either way.
     clean = gamma.Standing()
     clean.settled_at = 0
     clean.refute(1)
-    assert not clean.settled, "a clean term no longer unsettles on one refusal at the default"
+    assert clean.settled, (
+        "ONE REFUSAL UNSETTLED A CLEAN TERM AT THE DEFAULT CEILING -- Isaiah ruled that out "
+        "on 2026-09-30: one failure is not a verdict")
+    clean.refute(1)                          # a second, same tick, so nothing decays between
+    assert not clean.settled, (
+        "TWO refusals in one tick did not reach the default ceiling -- the interim is no "
+        "longer the minimum the rule asks for, and a term can never be unsettled")
 
     # CONTROL 2 -- the two halves still account for the whole, by construction. This is what
     # makes `refusals` a split of `rejections` rather than a fourth quantity beside it.
