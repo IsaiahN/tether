@@ -108,14 +108,28 @@ _TYPED_BIND = bool(os.environ.get("TETHER_TYPED_BIND"))
 # F130 arm C: supply `_library_fit`'s retrieval the relation channel its two
 # sibling call sites already pass. Seat-side, off by default.
 _REL_GAP = bool(os.environ.get("TETHER_REL_GAP"))
-# F32 arm D: decide reuse by the ONE BARGAIN rather than by a zero remainder,
-# which Isaiah ruled out. Seat-side, off by default.
-# **ISAIAH HAS RULED IT ON AND IT IS NOT FLIPPED HERE YET -- SEQUENCING, NOT REVERSAL.**
-# The flip takes the seats to 14/16: four M2 checks and `test_b5_still_fires_on_the_pinned_world`.
-# The reviewer ordered the M2 four DIAGNOSED FIRST, because "the suite no longer reaches:
-# routine" may be a real capability loss rather than a coverage complaint. Measured with
-# `TETHER_BARGAIN_FIT=1` meanwhile, so the ruling is exercised while the default waits.
-_BARGAIN_FIT = bool(os.environ.get("TETHER_BARGAIN_FIT"))
+# F32 arm D: decide reuse by the ONE BARGAIN rather than by a zero remainder, which Isaiah
+# ruled out. **ON BY DEFAULT SINCE 2026-09-30 -- the flip LANDED, and the four M2 failures
+# that held it were diagnosed first, as the reviewer required.**
+#
+# WHAT THEY TURNED OUT TO BE, because the sequencing bought exactly this. The suite was at
+# 30/30 on the default arm and 26/30 with the flag, and the four were NOT a capability the
+# flip removed:
+#   `trigger_is_the_residual_not_the_reward` -- VACUOUS. Its treatment (satisfying the reward
+#       channel) was byte-identical to its control on both arms; `_mint_routine` reads no
+#       reward in 363 lines. Repaired to raise if the trigger reads reward, mutation-tested.
+#   `strategy_is_emitted` and the `routine` coverage case -- GREEN ONLY ON A PHANTOM SCOPE.
+#       `_wide` appended four members no object carries; of the five failing exactly one was
+#       real. Strip them and the routine is refused UPSTREAM on both arms -- OFF because the
+#       objective is already satisfied, ON because there is no objective at all. Moved to
+#       `conform/owed.py` intact under ruling 6.
+#   `accumulation_commits` -- NOT ISOLATED. Its cold case inherited whatever the warm-up left
+#       in `wants`, so its verdict turned on recurrence rather than on the price path it
+#       names. It now sets that state itself.
+#
+# So the flip removed nothing. Three of the four were reading something other than what they
+# claimed, and the fourth is owed to a world with a real gap.
+_BARGAIN_FIT = os.environ.get("TETHER_BARGAIN_FIT", "1") != "0"
 
 # ARM F -- RECIPE DEDUP. The novelty check below tests `term.name`, which carries operand AND
 # guard, so `translate . recolour<o5.w>` and `<o12.w>` both read NOVEL and both get minted.
@@ -2489,17 +2503,18 @@ class Agent:
                 # env switch so the two arms are one build and the comparison is real.
                 if _TYPED_BIND and not _head_accepts(cand, self.slot_types.get(slot)):
                     continue
-                # F32 ARM D, SEAT-SIDE SWITCH, DEFAULT OFF. `_explains` is `_left(...) == 0.0`,
+                # F32 ARM D, **ON BY DEFAULT SINCE 2026-09-30**. `_explains` is `_left(...) == 0.0`,
                 # and ISAIAH RULED THAT OUT: *the residual NEVER fully closes -- the corpus would
                 # have told you that. That kills `left == 0.0` outright.* Figure 5's "stating it,
                 # PLUS WHAT REMAINS UNEXPLAINED AFTER IT" is vacuous under a zero-remainder rule,
                 # and Figure 13 lists "no remainder left after each step" as a FAILURE condition.
                 #
-                # THE REPAIR EXISTS AND DID NOT REACH HERE. The reuse sweep cites F32 at its own
-                # site and accepts on the ONE BARGAIN instead; this path kept the old test. So
-                # retrieval refuses every partial improvement, which is what 200 `reach_failed`
-                # rows are, and the arity-2 split follows -- a multi-slot history rarely closes
-                # to zero. Same baseline as the sweep: what the currently bound term leaves.
+                # THE REPAIR EXISTED AND DID NOT REACH HERE, AND NOW IT DOES. The reuse sweep
+                # cited F32 at its own site and accepted on the ONE BARGAIN while this path kept
+                # the old test, so retrieval refused every partial improvement -- which is what
+                # 200 `reach_failed` rows were, and the arity-2 split followed, a multi-slot
+                # history rarely closing to zero. Same baseline as the sweep: what the currently
+                # bound term leaves.
                 if _BARGAIN_FIT:
                     _left = self._left(cand, slot, hist)
                     _cost = term_bits(self.gamma.length(cand, tuple(self.gamma.units())),

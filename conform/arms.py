@@ -82,12 +82,13 @@ ROOT = Path(__file__).parent.parent
 # A pair means the two are declared at their site to belong on together.
 ARMS: dict[str, str] = {
     "TETHER_BARGAIN_FIT": "library fit priced by the bargain rather than by fit alone. "
-                          "**ISAIAH RULED IT ON BY DEFAULT, 2026-09-30, AND IT IS NOT "
-                          "FLIPPED YET** -- the flip takes the seats to 14/16 and the "
-                          "reviewer ordered the four M2 failures diagnosed first. "
-                          "Sequencing, not reversal. The row says so because a table "
-                          "that showed OFF with no note would read as the ruling never "
-                          "having been made",
+                          "**ON BY DEFAULT SINCE 2026-09-30 -- Isaiah's ruling, and the "
+                          "flip LANDED** once the four M2 failures holding it were "
+                          "diagnosed. None was a capability the flip removed: one check "
+                          "was vacuous, two were green only on a phantom scope and are "
+                          "owed under ruling 6, and one was not isolated from the want "
+                          "state. Spelled `get(..., \"1\") != \"0\"`, which this census "
+                          "reads as default-on",
     "TETHER_NO_CARRY_CANDIDATE": "**INVERTED POLARITY -- the SECOND row here that is, so "
                                  "the first is no longer the only one and both say so.** A "
                                  "DEFAULT-ON write: a term the agent BINDS becomes a candidate "

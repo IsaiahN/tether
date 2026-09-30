@@ -57,6 +57,12 @@ OWED_CHECKS = {
     "check_strategy_is_emitted_when_a_routine_drives":
         "passed only on a phantom-padded scope; routine formation against a REAL gap is "
         "unshown; owed to the capability checkup after Phase 2 / ARC",
+    "test_b5_still_fires_on_the_pinned_world":
+        "its PRECONDITION stopped holding under the bargain-fit flip, not its verdict -- "
+        "`seed 3 starves no slot`, so the reproduction lost its SUBJECT. Census: 0 of 60 "
+        "seeds starve with the flip on, control recovers the pinned pair. NOT inverted: "
+        "its own message forbids that without knowing whether the defect is gone or the "
+        "trajectory moved past it. Owed a re-pin when a starving world exists",
     "check_the_suite_reaches_the_hard_cases::routine":
         "the `routine` coverage case only; reached solely via the phantom scope. "
         "`routine_cut` and `routine_refused` remain in the suite",
@@ -126,7 +132,7 @@ def main() -> int:
     # moved check with no label is REPORTED rather than passed over -- the one failure a
     # hand-kept map cannot have.
     moved = {k: v for k, v in globals().items()
-             if k.startswith("check_") and callable(v)}
+             if k.startswith(("check_", "test_")) and callable(v)}
     print(f"  MOVED OUT OF A SUITE UNDER RULING 6: {len(moved)} discovered, and RUN")
     unlabelled = []
     for name in sorted(moved):
@@ -166,5 +172,92 @@ def main() -> int:
     return 0
 
 
+
+def test_b5_still_fires_on_the_pinned_world():
+    """THE B5 REPRODUCTION, PINNED -- and the run shows the mechanism, not just the verdict.
+
+    A strict expected-failure, same shape as the A5 one below: green while B5 truthfully fails,
+    red the moment the fix lands, carrying its own invert-me instruction.
+
+    **WHAT THE RUN SHOWS, AND IT RECONCILES TWO READINGS THAT LOOKED OPPOSED.**
+    Measured here: `parks on ['s3']`, `probes on ['@probe', '@probe']`.
+
+    Reading the source says the agent matches park to probe correctly -- `mint` adds the parked
+    slot to `_starved`, and the flush writes one probe row PER STARVED SLOT. True. But the
+    flush is `for slot in sorted(self._starved) or ["@probe"]`, and `@probe` is the fallback
+    for an EMPTY `_starved`. Both probes here took it, so `_starved` was empty when they fired.
+
+    That is `F269`'s temporal anti-correlation, visible in one run: *`bored()` is true EARLY,
+    when nothing is bound and there is nothing to perturb FOR, and false LATE, which is exactly
+    when slots starve.* The park and the probe never coincide, so the per-slot branch the
+    repair added cannot be reached and the fallback answers instead.
+
+    SO THE SLOT MISMATCH IS REAL AND IS NOT A LABELLING BUG. Arm M (`TETHER_STARVED_CONTACT`)
+    is the built fix: it returns `probe` BEFORE the `bored()` gate whenever `_starved` is
+    non-empty, so the flush has a slot to write. Turning it on is an ACTING-PATH change and is
+    Isaiah's ruling, not the seat's.
+    """
+    # ITS IMPORTS COME WITH IT, so it is RUNNABLE here rather than quoted. `kernel` was a
+    # module-level import at its old home; it travels inside the function now.
+    import kernel
+
+    import snaps
+    from gamma import Gamma
+    from ledger import Ledger
+    from tether import Agent, Config
+    from world import bind
+
+    # **THE HAND-WRITTEN WORLD STOPPED STARVING ANYTHING -- 2026-09-28, and it is NOT a fix.**
+    # The action-seam work changed which action lands on which step, and with it the one
+    # `no_support` park this world produced. Measured by stashing the diff and re-running:
+    #
+    #     PRE    bad=['B5']   park verdicts {under_floor 7, depth_exhausted 5, no_support 1}
+    #     POST   bad=[]       park verdicts {under_floor 7, depth_exhausted 5}
+    #     and at 12/15/20/30 steps: still no `no_support`, still no B5
+    #
+    # **So it is not timing** -- A5's budget fix does not apply. B5's own message offers two
+    # readings, *arm M is on* or *the probe now reaches the starved slot*, and NEITHER is true:
+    # arm M is off and every probe row still reads `@probe`, the empty-`_starved` fallback.
+    # **The reproduction lost its SUBJECT**, which is a third outcome the message does not
+    # contemplate -- and the assertion below it is the thing that caught that, so the author
+    # foresaw what the message did not.
+    #
+    # **RE-PINNED BY SEARCHING FOR THE PRECONDITION, NOT FOR THE VERDICT**, and the numbers are
+    # what make that distinction checkable rather than a claim:
+    #
+    #     POPULATION  48 worlds -- `spec_for(seed, n)` for seed 0..23, n in (4, 5), 9 steps
+    #     STARVE A SLOT (`no_support`)   2 of 48
+    #     OF THOSE, B5 FIRES             2 of 2
+    #
+    # **I did not pick the world where B5 fires; B5 fires in every world where a slot starves.**
+    # Choosing a world so a defect becomes OBSERVABLE is supplying a panel; choosing one so a
+    # verdict comes out right is fitting, and the 2-of-2 is what separates them. Both worlds are
+    # asserted, so the reproduction is now a pair rather than a single point.
+    for seed in (3, 16):
+        led = Ledger()
+        ag = Agent(bind(snaps.Snap(snaps.spec_for(seed, 4))), Gamma(snaps._atoms()),
+                   Config(), led)
+        for _ in range(9):
+            ag.step()
+        rows = led.rows()
+        # THE PRECONDITION FIRST, because a clean verdict on a world that starves nothing is
+        # the null this whole entry exists to refuse.
+        parked = {r.get("slot") for r in rows if r.get("event") == "park"
+                  and (r.get("detail") or {}).get("verdict") == "no_support"}
+        assert parked, (
+            f"seed {seed} starves no slot -- it no longer exercises B5, and a verdict taken "
+            f"here would be a reading of nothing")
+        res = kernel.Linter.run(rows)
+        bad = sorted(k for k, v in res.items() if v["status"] in ("FAIL", "SUPPRESSED"))
+        assert "B5" in bad, (
+            f"B5 NO LONGER FIRES on seed {seed} (bad={bad}) while {sorted(parked)} starved. "
+            f"If arm M is on, or the probe now reaches the starved slot, this is the GOOD "
+            f"outcome -- invert to `assert 'B5' not in bad`, rename it, and it becomes the "
+            f"regression test. **CHECK WHICH BEFORE INVERTING**: a tripwire cannot tell *the "
+            f"defect is gone* from *the trajectory moved past it*, and both happened today. "
+            f"Do not delete it.")
+
+
 if __name__ == "__main__":
     raise SystemExit(main())
+
