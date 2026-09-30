@@ -528,6 +528,16 @@ class Standing:
     # arithmetic and leave error where an exact zero was assumed. Counting it directly makes
     # `misses + refusals == rejections` true by construction rather than by cancellation.
     refusals: float = 0.0                          # the settled half, on the same clock
+    # **THE RISE. `Standing` IMPLEMENTED THE FADE AND NOT THE RISE** -- `LIBRARY_RETRIEVAL`
+    # Sec 5.10.3: *settling ten times leaves exactly what settling once leaves, so a recipe
+    # that is right in nine games and wrong in one carries a rejection and no credit, which
+    # is precisely backwards.* This is the counterpart of `rejections`: the DECAYED TOTAL of
+    # success, with `paid` as its per-scope breakdown exactly as `where` is `rejections`'.
+    #
+    # **THE SHAPE IS THE REVIEWER'S AND IT IS NOT A SECOND CONFIDENCE NUMBER** (2026-10-01):
+    # one quantity with a total and a breakdown, which is the shape this class already has
+    # on the failure side, written at ONE site in one statement block so they cannot disagree.
+    confirmations: float = 0.0                     # the success total, on the same clock
 
     def refute(self, tick: int, halflife: float | None = None,
                ceiling: float | None = None, where: Any = None) -> None:
@@ -589,10 +599,16 @@ class Standing:
         if gap:
             _f = 0.5 ** (gap / (halflife or REJECTION_HALFLIFE))
             self.rejections *= _f
-            # THE SAME FACTOR ON ALL THREE, so the two halves stay comparable with the total
-            # and with each other. See `misses`.
+            # THE SAME FACTOR ON ALL FOUR, so the two halves stay comparable with the total
+            # and with each other. See `misses`. **WAS "ALL THREE" UNTIL `confirmations`
+            # JOINED THEM** -- stale by success, repaired in the commit that made it false
+            # rather than left for a reader to trip over.
             self.misses *= _f
             self.refusals *= _f
+            # **SUCCESS FADES ON THE SAME CLOCK AS FAILURE, OR THE RATIO IS NOT A RATIO.**
+            # A term whose confirmations never decayed would outrank one whose refusals did,
+            # on evidence of the same age.
+            self.confirmations *= _f
             self.last_tick = tick
 
     @property
@@ -736,9 +752,25 @@ class Gamma:
 
         `where` records WHERE it paid, the mirror of `refute`'s. Without it a track record has
         a denominator and no numerator, and ordering by it sorts the most-tried term last.
+
+        **AND IT DECAYS BEFORE IT COUNTS, WHICH THIS DID NOT DO AND `refute` ALWAYS HAS.**
+        Measured before building: `decay` had exactly two callers -- `refute`, and the
+        `rejection_of` READ -- so the clock was driven by refutation and by reading, never by
+        time. A `confirmations` incremented here without decaying first would never fade,
+        while `rejections` faded on every refutation: not the same clock, not a clock at all.
+
+        The extra decay is neutral on the failure fields because exponential decay composes
+        -- 0.5^(a/h) x 0.5^(b/h) = 0.5^((a+b)/h) -- so the value at the next refutation, and
+        therefore the ceiling test, is unchanged. `rejection_of` already decays mid-stream on
+        a mere read, so this is the established pattern rather than a new one. **Asserted as
+        a refuter with a mutation control, not taken on the arithmetic.**
         """
         st = self.standing.setdefault(name, Standing())
+        st.decay(self.tick, self.halflife)
         st.settled_at = self.tick
+        # THE TOTAL, UNCONDITIONAL -- and the breakdown BESIDE it, never instead of it. The
+        # same two lines `refute` writes, in the same order, so the pair cannot drift apart.
+        st.confirmations += 1.0
         if where is not None:
             st.paid[where] = st.paid.get(where, 0) + 1
 
@@ -830,6 +862,44 @@ class Gamma:
             return 0.0
         st.decay(self.tick, self.halflife)
         return st.rejections
+
+    def track_of(self, name: str) -> float:
+        """THE NET TRACK RECORD, DECAYED ON READ -- the mirror of `rejection_of`.
+
+        Higher is better and the range is (0, 1). **`misses` IS DELIBERATELY ABSENT.** Isaiah's (c)
+        split exists to separate mispredicting-while-candidate from breaking a settled
+        promise; a term with many misses and no refusals has been TRIED OFTEN AND NEVER
+        BETRAYED ONE. Counting those against it would score exploration as failure, which is
+        the system working as designed read as the system failing.
+
+        **THE FORM IS THE CORPUS'S AND NOT MINE -- `LIBRARY_RETRIEVAL` Sec 5.10.4, THE LAPLACE
+        POSTERIOR MEAN.** I first wrote `confirmations - refusals` and that was an improvised
+        metric with the instrument already specified one file away, which is this project's
+        most-repeated failure: *assume it is already specified, and go look -- nine times the
+        corpus had already named the instrument, and nine times the specified one was better.*
+
+            confidence = (confirmations + 1) / (confirmations + failures + 2)
+
+        **IT HAS NO FREE CONSTANT.** The `+1 / +2` is a uniform prior, not a knob -- there is
+        no value to fit. **AND IT FIXES A REAL DEFECT IN THE DIFFERENCE FORM**, which the spec
+        names as its point: an UNTRIED term reads 0.5, *neither favoured nor penalised*, while
+        under a difference an untried term and an equally-tried one both read 0 and are
+        INDISTINGUISHABLE. The difference form collapsed exactly the distinction the ordering
+        exists to make.
+
+        **ONE SUBSTITUTION FROM THE SPEC'S LETTER, FLAGGED AND NOT SILENT: it writes
+        `rejections`, this reads `refusals`.** Sec 5.10.4 predates Isaiah's (c) ruling of
+        2026-09-30, which moved the CEILING off the blend for a reason that applies here
+        unchanged -- *a term could be unsettled by mistakes it made while on trial, which is
+        precisely what counting them separately exists to prevent.* Dragging confidence down
+        with candidate-era misses scores exploration as failure. **The reviewer approved
+        refusals-not-misses in the plan; the spec's own wording is older than the split.**
+        """
+        st = self.standing.get(name)
+        if st is None:
+            return 0.5                       # UNTRIED READS 0.5, as the spec requires
+        st.decay(self.tick, self.halflife)
+        return (st.confirmations + 1.0) / (st.confirmations + st.refusals + 2.0)
 
     @property
     def settled_terms(self) -> list[Term]:

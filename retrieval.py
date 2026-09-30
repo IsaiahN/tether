@@ -179,7 +179,7 @@ def fits(term: Any, gap: dict, in_type: str, out_type: str) -> int:
 
 
 def retrieve(library: dict, gap: dict, in_type: str = "val",
-             out_type: str = "val") -> list[str]:
+             out_type: str = "val", track=None) -> list[str]:
     """ONE PASS over the library, ordered by fit. Every name comes back.
 
     Not a search: no composition, no enumeration, no closure walked. The library is what is
@@ -191,6 +191,40 @@ def retrieve(library: dict, gap: dict, in_type: str = "val",
     wins, so MDL's preference is not overturned -- it is **restricted to the habitat first**.
     Ordering by length alone is the registry walk; ordering by fit alone would throw away the
     one preference the bargain is built on.
+
+    **TRACK RECORD IS A SLOT OF ITS OWN, AFTER FIT -- Sec 5.10, Isaiah 2026-09-22: *the more a
+    recipe is called upon and works, the higher its confidence and weight in ranking.*** It
+    takes its own position rather than being summed into `fits`, and the reason is arithmetic
+    rather than taste: `fits` returns 0-5, so a record folded INTO it could outweigh a fit
+    point and let a worse-fitting term with a good history beat a better-fitting one. **That
+    is the hidden discount this must not become.** In its own slot fit stays strictly
+    dominant and the record only orders terms the gap fits EQUALLY WELL.
+
+    **SURFACING IS NOT PRICING -- Isaiah.** This orders what is TRIED FIRST; the bargain still
+    decides adoption at full price, and nothing here is subtracted from any cost. And nothing
+    is excluded: a term with the worst record in the library is tried LAST, never not at all,
+    exactly as a zero-fit term is.
+
+    `track` IS OPTIONAL AND ITS ABSENCE IS BYTE-IDENTICAL TO THE OLD KEY, so every caller that
+    does not pass one is unaffected and the arms differ in one thing.
+
+    **THIS IS A FIRST, CONSERVATIVE FORM -- the reviewer, 2026-10-01: record breaks ties
+    WITHIN a fit level, and if later evidence shows it should weigh more than a tie-break,
+    THAT IS A CHANGE TO BRING TO THE REVIEWER AND NOT TO TUNE.** The ordering is the
+    mechanism; the strength of it is a judgement nobody here has earned yet.
+
+    **AND IT READS INERT ON THE `test_m2` FIXTURE FOR A REASON THAT IS NOT A DEFECT --
+    measured, 0 of 25 tie-groups reordered.** That library is 65 ATOMS (length 1) and 4
+    COMPOSITES (length 2-3), and ONLY the composites carry any record, every one of them NET
+    NEGATIVE because each was refused more recently than it settled. Length already sorts
+    atoms ahead of composites, so the record slot agrees with the length slot EVERYWHERE.
+    **Track record and length are CONFOUNDED on that fixture** -- a property of the panel, not
+    of the key, and it will separate the moment one term carries a positive record. **Do not
+    reach for a coefficient to make the number move.**
     """
-    scored = [(-fits(t, gap, in_type, out_type), len(t), n) for n, t in library.items()]
-    return [n for _, _, n in sorted(scored)]
+    if track is None:
+        scored = [(-fits(t, gap, in_type, out_type), len(t), n) for n, t in library.items()]
+        return [n for _, _, n in sorted(scored)]
+    scored = [(-fits(t, gap, in_type, out_type), -track(n), len(t), n)
+              for n, t in library.items()]
+    return [n for _, _, _, n in sorted(scored)]

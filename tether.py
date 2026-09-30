@@ -2485,7 +2485,10 @@ class Agent:
                         reads=("the gap, cited BEFORE the library is read. One record, three "
                                "consumers: the pull count, the description's ordering proof, "
                                "and an import's shadow test"))
-        for n in retrieval.retrieve(self.gamma.library, gap):
+        # THE TRACK RECORD ENTERS HERE AND ONLY HERE. `track_of` decays on read, mirroring
+        # `rejection_of`, so the order reads evidence of the current age rather than a total
+        # frozen at whatever tick it was last touched.
+        for n in retrieval.retrieve(self.gamma.library, gap, track=self.gamma.track_of):
             if n == exclude:
                 continue
             # RE-BIND WHAT ARRIVED WITHOUT A BINDING. `save` drops the operand because a slot
