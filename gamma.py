@@ -830,7 +830,10 @@ class Gamma:
         """
         if name in self._by_name:
             return False
-        if licence.get("verdict") not in ("budget_spent", "depth_exhausted", "under_floor"):
+        # `depth_exhausted` is the pre-2026-10-01 spelling of `priced_out_at_depth`;
+        # BOTH are accepted so an older run's abstention record still licences.
+        if licence.get("verdict") not in (
+                "budget_spent", "depth_exhausted", "priced_out_at_depth", "under_floor"):
             raise ValueError(
                 f"invent({name!r}) needs the agent's own abstention record -- a verdict of "
                 f"budget_spent, depth_exhausted or under_floor. Got {licence.get('verdict')!r}. "

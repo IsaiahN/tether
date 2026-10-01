@@ -200,7 +200,7 @@ def _unreached(rows: list[dict]) -> dict | None:
     space actually seen is the stronger claim smuggled in wearing the weaker one's word,
     so the coverage number is required at the point of refusal, not in a later report.
     """
-    parked = ("budget_spent", "depth_exhausted")
+    parked = ("budget_spent", "depth_exhausted", "priced_out_at_depth")
     for r in rows:
         d = r.get("detail", {})
         if d.get("verdict") in parked:

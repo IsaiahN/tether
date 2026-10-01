@@ -335,7 +335,8 @@ def reach(rows: list[dict], gamma) -> dict:
     per: dict[int, list] = {}
     for r in mints:
         per.setdefault(r["cycle"] // 5, []).append(
-            (r.get("detail") or {}).get("verdict") in ("budget_spent", "depth_exhausted"))
+            (r.get("detail") or {}).get("verdict")
+            in ("budget_spent", "depth_exhausted", "priced_out_at_depth"))
     series = [round(sum(v) / len(v), 3) for _, v in sorted(per.items()) if v]
 
     return {"effective_atom_depth": depth,

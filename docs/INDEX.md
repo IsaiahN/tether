@@ -53126,3 +53126,138 @@ presses to fix. **The repair acts exactly where the defect was and nowhere else.
 > **0.00 on BOTH arms** on `buttons` — so the drop from 0.68/0.72 that `F401` credited to the aiming
 > is clause 3's. **The two mechanisms separate cleanly: clause 3 owns the no-op share, the aiming
 > owns the binding.**
+
+---
+
+## F405 — ISAIAH'S *VALUE OF UNDERSTANDING* RULING CLOSES SATISFIED RATHER THAN BUILT: THE BARGAIN HAS ALWAYS PRICED UNDERSTANDING, AND THE CLICK WORLDS FAILED BECAUSE THE AGENT'S OWN NO-OP PRESSES KEPT THE RESIDUAL FROM ACCUMULATING
+
+**Reviewer, 2026-10-01, closing Isaiah's 12:32 ruling — *understanding valued in itself, rules
+adopted on predicted outcome*.** The adoption half (V entering `pays`) is **WITHDRAWN AS DESIGNED
+AND NOT BUILT.** The seat proposed it, the reviewer approved it, and the reviewer's own
+double-counting question is what killed it.
+
+**THE CHAIN, EVERY LINK AT A WRITE SITE:**
+
+    tether.py:5716   base = self._accumulated(slot, held)
+    tether.py:3174   _accumulated: "|R| OVER THE SLOT'S WHOLE HISTORY"
+    tether.py:2915   _left(term, ...): "WHAT THE TERM LEAVES UNEXPLAINED ... in bits"
+    R_goal / goal_residual                    reach `pays` NOWHERE -- grepped, not assumed
+
+> **SO `base` IS THE SLOT'S OWN ACCUMULATED PREDICTION RESIDUAL, NOT THE GOAL GAP. THE BARGAIN HAS
+> ALWAYS BEEN A VALUE-OF-UNDERSTANDING BARGAIN** — it prices *how much of this slot's unexplained
+> surprise does this term account for* — **and it has never priced goal attainment at all.** The
+> ruling asked for understanding to be added alongside the goal; the code says understanding is
+> what is there and the GOAL is the absent half.
+
+**MEASURED, not argued.** Every `_accumulated` call paired with `outstanding()` for the SAME SLOT
+at the SAME INSTANT — same site, same moment, so the ratio has one cause:
+
+    world        seed  calls   outstanding/base              distinct
+    default        0    243    min .90  MED 1.429  max 4.00     24
+    default        1    251    min 1.0  MED 1.250  max 2.00     21
+    click_only     0    126    min 1.0  MED 1.000  max 3.00     10
+    click_only     1    139    min 1.0  MED 1.000  max 1.50      3
+
+**AND THE DIFFERENCE IS AN IDENTITY, WHICH IS WHY THE RATIO TRACKS WHAT IT DOES.** `outstanding -
+base` **is exactly what the CURRENTLY BOUND TERM already explains.** Nothing bound on the click
+worlds → `held` is `IDN` → `_left(IDN)` leaves everything unexplained → base = outstanding →
+**ratio 1.000, three distinct values in 139 calls.** On `default`, 7-10 slots bound → base <
+outstanding → 1.25-1.43.
+
+> **SO THE CANDIDATE VALUE IS WRONG IN SIGN, NOT MERELY REDUNDANT.** Entering `outstanding - base`
+> into `pays` would make the bargain **cheapest on the slots the agent already understands best**,
+> and worth exactly nothing where nothing is bound — **which is every slot on the click worlds, the
+> panel it was meant to unblock.**
+
+**AND A SCALE COMPARISON THAT MADE THEM LOOK DIFFERENT WAS A DENOMINATOR ERROR OF THE SEAT'S OWN
+MAKING.** *base 1-7 bits against outstanding 14-30* compares a PER-SLOT base with `outstanding()`
+called with **no argument, which sums ACROSS ALL SLOTS** (`tether.py:2767`). The paired per-slot
+reading is 1.000. **The seat reported the summed figure first and then reasoned against it.**
+
+**THE COROLLARY, AND IT IS THE REVIEWER'S:** **the click worlds failed because THE AGENT'S OWN
+NO-OP PRESSES KEPT THE RESIDUAL FROM ACCUMULATING — not because understanding was unpriced.** A
+press that changes nothing produces no surprise, no surprise produces no residual, and a bargain
+with nothing to price refuses everything. `F404`: once the presses landed, `click_only` went from
+**1 of 3 seeds binding to 3 of 3**, with `pays` untouched.
+
+> **THE FIX WAS BEHAVIOUR, NOT PRICING. Four hours were spent pricing a quantity that was already
+> priced, on a panel that could not generate the thing being priced.**
+
+**WHAT STAYS RECORDED AND UNBUILT:** `F402`'s rank-based naming cost, for when the full frontload
+loads. **AND RISK IS AVAILABLE AND UNNEEDED:** `track_of` reads **0.5 untried** (*"as the spec
+requires"*, `gamma.py:933`) and `youth_of` reads **1.0 untried** (`gamma.py:939`) — both defined by
+design for a never-minted candidate, against the seat's reasoned guess that neither would be.
+
+---
+
+## F406 — THE CLICK WORLDS ARE NOT STUCK AT THE BARGAIN: `inc` PAYS AND HOLDS, AND EVERY OBJ CANDIDATE EXPLAINS THE COLOUR SLOT *WORSE* WHILE COSTING 50% MORE. PLUS THE VERDICT RENAME, AND THREE MEASUREMENT ERRORS OF MY OWN
+
+**VERDICT ALIAS — read this first if you are grepping old records.** `depth_exhausted` was
+RENAMED to **`priced_out_at_depth`** on 2026-10-01 (reviewer). **Every finding dated on or before
+2026-10-01 that says `depth_exhausted` means the same verdict.** Emitted at one site
+(`tether.py:6203`); `gamma.py`'s invention licence, `gate.py`'s parked tuple, `summary.py` and
+`conform/kernel.py` **accept BOTH strings**, so prior runs and `runs/*.jsonl` stay parseable.
+
+**WHY RENAMED: THE OLD WORD NAMED THE ONE THING THAT WAS NOT THE CAUSE.** The row's own `note`
+already said *"the whole space at this depth was seen and none paid; not at this depth, NOT
+unreachable"* with `coverage 1.0` and `budget_exhausted False` — **the information was correct and
+the one-word verdict misled**, costing an hour spent looking at `max_depth`.
+
+**AND RAISING `max_depth` IS ARITHMETICALLY GUARANTEED TO FAIL, which is a proof rather than a
+measurement.** `term_bits` is monotone in `k`, so the affordable depths are fixed before any
+candidate exists:
+
+    base    k=1 (7.81)      k=2 (11.72)     k=3 (15.63)
+     8.00   left < 0.19     IMPOSSIBLE      IMPOSSIBLE
+    12.00   left < 4.19     left < 0.28     IMPOSSIBLE
+    14.00   left < 6.19     left < 2.28     IMPOSSIBLE
+
+At the 145 traced parks (base 8.00) **a two-atom term could never have won** — `wrap . inc` is
+generated 145/145 and priced at 11.72 against a gap of 8.00.
+
+**THE SUBSTANTIVE FINDING, measured with base and left taken AT THE SAME INSTANT.** WORLD:
+gridworld `click_only`, seed 0, 60 cycles. POPULATION: every `_left` call on `o0.colour`, bucketed
+by history length.
+
+    history 58    idn leaves 66.0   `inc` leaves 50.0  -> BASE IS 50.0, not 66.0
+    history 60    idn leaves 68.0   `inc` leaves 52.0  -> BASE IS 52.0
+
+    `inc`                              7.81 + 50 = 57.8  <  66   PAID, and holds
+    `same . all<o1.col>?BECOME OTHER` 11.72 + 54 = 65.7  vs  50  SHORT BY 15.72
+    at history 60                     11.72 + 58 = 69.7  vs  52  SHORT BY 17.72
+
+> **AN OBJ TERM LEAVES MORE UNEXPLAINED THAN `inc` DOES AND COSTS 50% MORE. The bargain is RIGHT
+> to refuse it.** And the 12 `cuts` on every high-gap park read `not-novel` — **`inc` is already
+> held, so it is cut before pricing on every later mint.** A park's *"none paid"* means NO NEW TERM
+> BEAT THE INCUMBENT, which is what a correct bargain says when the incumbent is the best
+> affordable explanation available.
+
+**SO THE CLICK WORLDS ARE NOT STUCK AT THE BARGAIN.** The agent found the best term its vocabulary
+admits, bound it, and refuses everything dearer that explains less. **This supersedes three
+diagnoses made the same day**: *the floor blocks* (false since clause 3, `F404`), *depth blocks*
+(disproved above), and *price blocks `wrap . inc`* (true only at base 8.00).
+
+**WHAT IS NOT SHOWN, and it is the next question:** every OBJ candidate measured is
+`same . all<SOME OTHER SLOT>?BECOME OTHER` — a quantifier over a DIFFERENT object's slot. **None is
+about `o0.colour`'s own behaviour.** Whether a well-formed objective over the COLOUR PEER GROUP is
+constructible and merely never enumerated, or genuinely absent from the closure, is unmeasured.
+
+**AND THREE MEASUREMENT ERRORS OF THE SEAT'S OWN, ALL CAUGHT BEFORE BECOMING FINDINGS, RECORDED
+BECAUSE THE PATTERN IS THE POINT:**
+
+- **MIN OVER A MONOTONE QUANTITY.** The first `left` probe reported `inc: left = 0.000` — a perfect
+  explanation — at `hist = 2`. **`left` is a SUM OVER HISTORY, so its minimum is always at the
+  shortest history.** It paired `left`'s minimum with `base`'s maximum FROM DIFFERENT MOMENTS: the
+  same numerator-and-denominator-from-different-sites error the seat had corrected in the
+  reviewer's own reading four hours earlier.
+- **THE WRONG BASE.** The corrected probe's `PAYS` column used `idn`'s left as the base.
+  `tether.py:5716` is `base = _accumulated(slot, HELD)` and the held term is `inc` — **so every
+  `PAYS` flag in that output was wrong**, caught in the output being quoted.
+- **A RESULT FLAG READ AS A CAUSE.** `guards.reachability: false` reads like a precondition that
+  refused the colour slots. `tether.py:5932` sets it `True` immediately AFTER `bargain_paid`
+  increments — **it restates `paid = 0` under a name that sounds causal.**
+
+> **EACH WAS CAUGHT BY READING THE WRITE SITE FOR THE QUANTITY RATHER THAN TRUSTING THE COLUMN
+> NAME, and none by reasoning about the number.** The row payload is what made it possible: dumping
+> EVERY field rather than the three chosen in advance is what produced `note`, `coverage`,
+> `contest` and `cuts`, and not one of those was a column the seat asked for.

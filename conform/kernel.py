@@ -538,7 +538,7 @@ def _b1(rows):
     out, seen = [], 0
     for r in _rows(rows, "park"):
         d = r["detail"]
-        if d.get("verdict") not in ("unreachable", "depth_exhausted"):
+        if d.get("verdict") not in ("unreachable", "depth_exhausted", "priced_out_at_depth"):
             continue                     # not the subject: only a reach claim is graded
         seen += 1
         if d["verdict"] == "unreachable":

@@ -6200,7 +6200,13 @@ class Agent:
                 detail["verdict"] = "not_novel"
                 detail["note"] = "the machinery worked; the answer was already known"
             else:
-                detail["verdict"] = "depth_exhausted"
+                # RENAMED FROM `depth_exhausted` -- the reviewer, 2026-10-01, because the
+                # old word named the one thing that was NOT the cause and cost an hour.
+                # `F406`: coverage 1.0, budget_exhausted False, 3303 candidates priced and
+                # none paid -- the space was fully searched and every term was too DEAR,
+                # not out of reach. And raising `max_depth` is arithmetically guaranteed
+                # to fail: `term_bits` is monotone in k, so a deeper term is a dearer one.
+                detail["verdict"] = "priced_out_at_depth"
                 detail["note"] = ("the whole space at this depth was seen and none paid; "
                                   "not at this depth, NOT unreachable")
             detail["base_bits"] = round(base, 3)
