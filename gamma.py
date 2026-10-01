@@ -515,11 +515,15 @@ class Standing:
     # `confidence x 0.5 ** (games_since_last_use / RELEVANCE_HALFLIFE_GAMES) + youth` -- because
     # that one is not a tie-break and the question becomes live again.
     where: dict = field(default_factory=dict)      # scope -> failures taken under it
-    # WHERE IT PAID. The mirror of `where`, and the numerator the surfacing order needs:
-    # Isaiah ruled surfacing is by LIKELIHOOD OF WORKING -- fit plus TRACK RECORD -- and a
-    # track record with only failures in it sorts the most-tried term LAST. Measured before
-    # building: `Standing` held `settled_at` (ONE tick, overwritten every settle), so there
-    # was no count of successes and no record of where they happened.
+    # WHERE IT PAID. The mirror of `where`. Isaiah ruled surfacing is by LIKELIHOOD OF
+    # WORKING -- fit plus TRACK RECORD -- and a track record with only failures in it sorts
+    # the most-tried term LAST. Measured before building: `Standing` held `settled_at` (ONE
+    # tick, overwritten every settle), so there was no count of successes and no record of
+    # where they happened.
+    # **THE NUMERATOR SURFACING READS IS `confirmations`, NOT THIS -- corrected 2026-10-01.**
+    # This line said `paid` was it. `confidence` (:933) and the youth bonus (:973) read the
+    # TOTAL; `paid` is its per-scope breakdown and NO DECISION READS IT -- audited, the only
+    # reads in the tree are `conform/stateful.py`'s property tests. Recorded like `where`.
     paid: dict = field(default_factory=dict)       # scope -> settlements earned under it
     # **THE (c) SPLIT -- ISAIAH, 2026-09-30: count misprediction-while-candidate SEPARATELY
     # from refusal-after-settling. Two quantities, two names.** `refute` is called on EVERY
