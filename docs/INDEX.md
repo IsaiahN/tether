@@ -52083,3 +52083,60 @@ been observed at when downrated (against the floor), and what moved it afterward
 action or the world on its own. **These runs cannot answer it: they stored event COUNTS, not
 row details**, so `of_presses`, `floor`, the delta table and the action history are all absent.
 Deferred rather than re-run, pending whether downrating is worth more work at all.
+
+## F387 -- **SURFACING IS REACHED AND ACTING ON A REAL BOARD: 100% OF ACTIONABLE LOOKUPS, THREE SEEDS. AND THE HEAD-CHANGE RATE DOES NOT TRACK RECORD RICHNESS**
+
+F384 recorded the track-record ordering as built, unit-demonstrated, and **inert on
+`test_m2` for a measured reason** — record and length were the same column there, so the
+slot agreed with the tie-break beneath it in 0 of 25 groups, and it filed a live
+demonstration as owed. **That demonstration is done.**
+
+WORLD gridworld, seeds 0/1/2, 40 cycles. ONE SCRIPT, ONE FLAG, separate processes.
+**The ordering is measured WITHIN each run** — the spy computes the bare order from the
+same library and the same gap — so no cross-arm divergence enters it.
+
+                              SEED 1    SEED 0    SEED 2
+    lookups                      452       484       444
+    DENOMINATOR: >=2 terms tie
+      on fit AND differ on record 128       286       326
+    order differed from bare     128       286       326
+    HEAD (tried first) differed    0       235        51
+    nothing-excluded violations    0         0         0
+    terms off the 0.5 prior   2 of 26   3 of 25  11 of 37
+
+**IT ACTS ON EVERY ACTIONABLE LOOKUP, ON ALL THREE: 128/128, 286/286, 326/326.** Where
+two terms fit a gap equally well and differ in record, the record orders them. Always.
+That is the owed claim, answered without qualification. The off-arm control — `track_of`
+patched to a CONSTANT, which is a no-op in a sort key — reordered **0** lookups on every
+seed, so the effect is attributable to the record and nothing else.
+
+> **AND THE "DOSE-RESPONSE" FIRST REPORTED FROM TWO SEEDS IS REFUTED BY THE THIRD.** From
+> seeds 1 and 2 (`2 terms → 0`, `11 terms → 51`) I reported head changes scaling with the
+> number of recorded terms, *and wrote "not noise" beside it*. **Seed 0 is `3 terms → 235`
+> — the middle point is the extreme one.** Two points always make a line. **The variation
+> is real and its cause is UNESTABLISHED**; it likely turns on WHICH terms hold records —
+> whether a well-recorded term fits the gaps the agent actually meets — rather than how
+> many do, and three points do not support even that.
+
+**SEED 0 IS VERIFIED BY AN INDEPENDENT SECOND PROCESS: byte-identical output, 235
+reproduced exactly.** Run deterministically from the same seed, so the outlier is the
+board's and not the instrument's — checked because *an outlier is a broken instrument
+until proven otherwise*.
+
+**DOWNSTREAM IS MIXED, AND REPORTED BOTH DIRECTIONS.** On seed 2, where it acts most:
+2 routines formed where NONE formed, 3 more settles, `split_refused` 42→34 — **and the
+reuse-install RATE falls 0.221→0.174 and `chunk_reuse` falls 22→17.** A mechanism built
+to improve reuse reduced both reuse counters. **Cause unestablished and deliberately not
+guessed at.**
+
+**AND `reach_failed` IS THE DENOMINATOR LESSON AGAIN**: its raw count rose by 13 on seed 2
+while its RATE moved by +0.001 (332/428 → 345/444). As a count it reads as a regression;
+against its denominator it reads as nothing.
+
+**OWED: the reuse drop.** Rows kept this time — full ledger rows, ~6,000 per run, in
+`runs/surfacing-gridworld/` (on disk; `runs/` is gitignored). The downrating A/B could not
+answer its follow-up because it stored event COUNTS and summed the payloads away; this one
+can.
+
+**SURFACING STAYS ON, as committed and unflagged.** Nothing here is a reason to change it;
+what these runs establish is that it is REACHED and ACTING, which `test_m2` could not show.
