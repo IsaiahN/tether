@@ -74,6 +74,10 @@ sys.dont_write_bytecode = True
 # "shrinking" from "arrived", four can. This is the same knob turned for a second, stronger
 # reason -- and the value came from the inequality rather than from wanting a mint.
 N_OBJECTS = 6
+# anchor: A DECLARED CONVENTION, not a derived constant -- the seat authors it and the reviewer
+# moves it. It only has to leave BOTH kinds with occasions: 2 buttons and 4 distractors on a
+# 6-object board, so neither is rare enough that a run misses one.
+N_BUTTONS = 2
 
 # anchor: the objects need room to be non-adjacent and a walk needs somewhere to go; 5x5 is
 # the smallest board where both hold, and small enough to sweep exhaustively.
@@ -131,6 +135,21 @@ class GridWorld:
     #
     # `None` by default, so every existing reading of this world is byte-identical.
     remap_after: int | None = None
+    # **FIXTURE C -- A GENUINE REMOTE EFFECT. Isaiah, 2026-10-01: *"clicking one object can act
+    # as a button or trigger something elsewhere on the board"*, and `F394` measured that NO
+    # EXISTING WORLD HAS ONE** -- Fixture B has zero object-to-object effects on an exhaustive
+    # sweep of all 75 cells, and `default`'s push is CONTACT rather than remote.
+    #
+    # Clicking a BUTTON advances its PARTNER's colour and leaves the button alone. Clicking
+    # anything else advances its own colour, exactly as Fixture B does.
+    #
+    # **THE DISTRACTORS ARE THE LOAD-BEARING HALF.** With buttons only, *clicking changes
+    # something else* is always true and a mechanism scores full marks by having no
+    # discrimination at all. Both kinds present means SELF and OTHER both occur in one world,
+    # so a key that cannot tell them apart is visibly wrong rather than invisibly lucky.
+    #
+    # `False` by default, so every existing reading of this world is byte-identical.
+    wired: bool = False
 
     def __post_init__(self) -> None:
         rng = random.Random(self.seed)
@@ -190,6 +209,24 @@ class GridWorld:
         # can read one. Distinct from `.shape`, which keys contact.
         for i in range(N_OBJECTS):
             self.state[f"o{i}.surface"] = rng.randrange(3)
+        # FIXTURE C's WIRING, DRAWN HERE -- before any agent exists, from the caller's seed,
+        # and NOT PUBLISHED INTO `state`. The map is the answer and it stays in the world; what
+        # the agent may perceive is colours changing, never which object is wired to which.
+        #
+        # A PARTNER IS NEVER IN THE CLICKED OBJECT'S 8-NEIGHBOURHOOD, because `contact_points`
+        # emits `orthogonal` AND `diagonal`, so an adjacent partner could be picked up by the
+        # existing contact key and the effect would not be remote in the sense being tested.
+        self.buttons: dict[int, int] = {}
+        if self.wired:
+            def _apart(a: int, b: int) -> bool:
+                return max(abs(self.state[f"o{a}.row"] - self.state[f"o{b}.row"]),
+                           abs(self.state[f"o{a}.col"] - self.state[f"o{b}.col"])) > 1
+            for i in rng.sample(range(N_OBJECTS), N_OBJECTS):
+                if len(self.buttons) >= N_BUTTONS:
+                    break
+                far = [j for j in range(N_OBJECTS) if j != i and _apart(i, j)]
+                if far:
+                    self.buttons[i] = rng.choice(far)
         # REACHABLE BY CONSTRUCTION, not by assertion. The target is where the mover ends up
         # after a random legal walk from its own start, so a path provably exists and nothing
         # had to be searched to know it. A generator that PICKED a target would have to prove
@@ -248,7 +285,7 @@ class GridWorld:
     def actions(self) -> tuple[str, ...]:
         # ONE POSITIONED ACTION AND NOTHING ELSE. The agent cannot draw its way to a target
         # here: an unaimed click lands where nothing is, so contact requires the intent.
-        return ("ACTION6",) if self.click_only else ACTIONS
+        return ("ACTION6",) if (self.click_only or self.wired) else ACTIONS
 
     def alphabet(self) -> int | dict[str, int]:
         """PER SLOT. Positions range over the grid, colours over four, shapes over three, the
@@ -558,7 +595,11 @@ class GridWorld:
             return
         for i in range(N_OBJECTS):
             if (self.state.get(f"o{i}.row"), self.state.get(f"o{i}.col")) == (int(y), int(x)):
-                self.state[f"o{i}.colour"] = (self.state[f"o{i}.colour"] + 1) % 4
+                # FIXTURE C: a button advances its PARTNER and leaves itself alone, so the
+                # effect is unambiguously remote -- if the button also recoloured, SELF and
+                # OTHER would co-occur on the same press and neither could be read off it.
+                who = self.buttons.get(i, i)
+                self.state[f"o{who}.colour"] = (self.state[f"o{who}.colour"] + 1) % 4
                 return
 
     def _delta(self, action: str) -> tuple[int, int]:
@@ -576,7 +617,7 @@ class GridWorld:
 
     def step(self, action: str, x: int | None = None, y: int | None = None) -> None:
         self._steps += 1
-        if self.click_only:
+        if self.click_only or self.wired:
             self._click(action, x, y)
             return
         if action not in ACTIONS:
@@ -627,7 +668,7 @@ REMAP_FRACTION = 0.5
 # panel did not exist** -- one capability under a word nobody tried.
 #
 # It says WHICH WORLDS EXIST, never which to use or what to read off them.
-FAMILIES = ("default", "click_only", "remap_after")
+FAMILIES = ("default", "click_only", "remap_after", "buttons")
 
 
 def family(name: str, seed: int, cycles: int | None = None) -> GridWorld:
@@ -643,6 +684,8 @@ def family(name: str, seed: int, cycles: int | None = None) -> GridWorld:
         raise ValueError(f"no such family {name!r}; this habitat offers {FAMILIES}")
     if name == "click_only":
         return GridWorld(seed=seed, click_only=True)
+    if name == "buttons":
+        return GridWorld(seed=seed, wired=True)
     if name == "remap_after":
         if not cycles:
             raise ValueError("remap_after needs the run length: a swap with no cycles after "
