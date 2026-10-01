@@ -52033,3 +52033,53 @@ there** — it is evidence there was nothing to narrate.
 > compared — *an A/B is one script with one flag, never two scripts*, applied to a target
 > rather than to an arm. **The refuter was rebuilt against a baseline measured with the probe
 > that would judge it.**
+
+## F386 -- **`TETHER_DOWNRATE` STAYS DEFAULT OFF ON MEASURED EVIDENCE: THE POLICY REGRESSES MET GOALS ON EVERY SEED WHERE THE CONTROL NEVER DOES**
+
+Ruled by the reviewer, 2026-10-01, on the three-seed gridworld A/B, and recorded here so the
+reason travels with the default. **The earlier premise — *the agent has zero wants on
+gridworld* — is WITHDRAWN and is NOT the reason** (see the correction below); it was measured
+at 12 cycles when the first want forms at 15, and generalised from three alphabetically-sorted
+slots of 46.
+
+WORLD gridworld, seeds 0/1/2, 40 cycles. ARMS `TETHER_DOWNRATE` 0 and 1, one script, one flag,
+separate processes, same seeds. **PER SEED, NEVER POOLED.**
+
+                                      SEED 0   SEED 1   SEED 2
+    cross-arm denominator                203       83      187
+    met -> unmet (goals manufactured)      0        0        0
+    unmet -> met (false completions)       4       22      105
+
+    `goal_undone` — a met goal becoming unmet, THE AGENT'S OWN READING
+        control (OFF)                      0        0        0
+        policy  (ON)                       4        6       10
+
+**THREE THINGS, AND ONLY THE FIRST IS REASSURING.** The policy never hands the agent an unmet
+goal it did not have — zero on every seed. **But the control does not regress a met goal ONCE
+across 450 slot-cycle pairs, and the policy does it on every board tested.** And it makes goals
+read satisfied by discounting the members that fail them — 105 of 187 comparable slot-cycles on
+seed 2, more than half the population.
+
+**AND THE ONE BENEFIT DID NOT REPLICATE.** Seed 0 showed one more routine formed, one fewer
+abandoned; seed 1 showed nothing; **seed 2 formed one FEWER.** It was a single-seed reading
+reported as mild support, in the same post that stated the per-game rule.
+
+> **THE CORRECTION THAT CHANGED THE NUMBERS, AND IT IS THE PART WORTH COPYING.** The policy
+> figures first went out as `4/10/10`, from a reconstruction built off per-cycle residual
+> snapshots, presented as matching the ledger "exactly" on two seeds and disagreeing on one.
+> **They are different quantities.** The ledger calls `goal_residual` INSIDE the step against
+> that state, per slot per step; the reconstruction called it AFTER `step()` returned against
+> the end-of-cycle state, once per cycle. **So the agreement was the coincidence and the
+> disagreement was the honest signal** — and the first explanation offered for the gap (a
+> popped series after a lapse) was MEASURED BEFORE BEING SHIPPED and refuted: zero lapses on
+> any seed. The reconstruction is withdrawn; `4/6/10` is the agent's own instrument.
+
+**TWO INSTRUMENTS AGREEING IS NOT CROSS-VALIDATION UNLESS THEY MEASURE THE SAME QUANTITY AT THE
+SAME MOMENT.** `A6i` applied to measurement rather than to vocabulary: the question never asked
+was *what is the ledger's number a measurement OF*, only *do the totals match*.
+
+**OWED AND NOT RUN:** for each discounted member behind a false completion, the presses it had
+been observed at when downrated (against the floor), and what moved it afterwards — an agent
+action or the world on its own. **These runs cannot answer it: they stored event COUNTS, not
+row details**, so `of_presses`, `floor`, the delta table and the action history are all absent.
+Deferred rather than re-run, pending whether downrating is worth more work at all.
