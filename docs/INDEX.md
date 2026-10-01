@@ -52380,3 +52380,78 @@ me read the line above it.
     CAPABILITY  none directly -- but a detector with no true positive in its life now has
                 one, which is the difference between *it works* and *it has never failed*
 
+## F393 — FIXTURE B SETTLES NOTHING ON 3 OF 3 SEEDS, AND THE CAUSE IS THE RESIDUAL NEVER REACHING THE PRICE OF THE CHEAPEST TERM
+
+**`click_only`: `settled` 0, `bargain_paid` 0, `chunk_reuse` 0 on seeds 0, 1 and 2.** The
+stage-5 gate's quantity has no population there at all, so that fixture cannot serve it.
+**Ruled by the reviewer: do not tune the fixture or the gate to make it read.**
+
+**IT IS NOT PERCEPTION.** `cue_seen` is **59 on BOTH** arms and `gap_shapes_seen` **60 on
+both**. The agent perceives exactly as much on Fixture B as on the default board.
+
+**IT IS NOT HISTORY.** ROUTE-bin census, 2,820 rows each arm:
+
+    bin          click_only        default
+    held         2425  86.0%       2030  72.0%
+    mechanism     392  13.9%        562  19.9%
+    rebinding       0   0.0%        216   7.7%
+    novel           3   0.1%         12   0.4%
+
+**`novel` is 3 of 2,820 and slots reach `mechanism` 392 times** — a minting-capable bin.
+Support climbs 1…60 normally.
+
+**IT IS NOT THE ONE-ACTION ALPHABET** — `F152` refuted that correlation (`ka59` supplies
+five actions and qualifies zero) and these bins agree.
+
+**IT IS THE PRICE.** Mint runs its whole search behind `if guards["support"] and base >
+floor`, and parks with the clause that stopped it:
+
+    click_only   under_floor      334 / 334 = 100%     base_bits 2.0 .. 6.0
+                 depth_exhausted    0 / 334 =   0%
+    default      under_floor      186 / 498 =  37.3%   base_bits 1.0 .. 7.0
+                 depth_exhausted  311 / 498 =  62.4%   base_bits 8.0 .. 100.3
+
+> **`under_floor` IS ORDINARY — default does it 186 times.** What default also does, **311
+> times**, is reach a residual of 8–100 bits and run the search. **`click_only` never once
+> gets above ~6.** The gate behaves identically on both arms; only the residual differs.
+
+**So the agent is not failing to find a term — it is correctly declining to look**, because
+`floor >= base` proves no term pays at any depth before a candidate is enumerated. **And the
+debt is not dropped**: the site adds the slot to `owed_import` and `abstained`, commented
+*"The search is skipped; the debt is not."*
+
+**Whether a world whose residual cannot exceed the floor is worth keeping, or whether the
+floor is priced wrong, is Isaiah's.** Links: `F151`, `F152`, and the `click_only`
+intent-alphabet reading (3 intents against 1 action).
+
+### TWO CORRECTIONS TO MY OWN READINGS, BOTH CAUGHT BEFORE THEY SETTLED
+
+**The denominator.** I was about to publish *45 reuses over 10 settled terms*. `chunk_reuse`
+counts only library terms of **≥2 atoms**, the same filter `gamma.units()` applies — so the
+population is **1 reusable chunk**, not 10 settled terms. Numerator and denominator from the
+same site: `units - 14` (14 atoms, measured).
+
+**The bucket.** I labelled a tally *MINT PARK VERDICTS*; the spy catches **every row with a
+`verdict` field**, and default's included `pays` 14, `retroactive resolution` 10,
+`mispredicted on fresh evidence` 73 — not parks. The park denominator is 498, not 633. *A
+count is not evidence until you have read what it matched*, applied to a tally.
+
+### AND THE PANEL'S SEED SPREAD, WHICH IS WHAT MADE A NULL READABLE
+
+    default      chunk_reuse 45 / 42 / 25   over 1 / 1 / 3 chunks
+    remap_after  chunk_reuse 35 / 46 / 36   over 1 / 1 / 2 chunks
+
+**The ranges overlap almost entirely, so the remap has NO READABLE EFFECT on reuse** — and
+that can be said rather than shrugged only because 45/42/25 was taken **before** any remap
+number existed. Without it, `remap 46` against `default 25` is a 1.8x rise and a finding.
+**Any later effect smaller than ~20 is inside the baseline's own seed variation.**
+
+**A HAZARD FOR ANY IN-PROCESS A/B, recorded without naming a culprit:** *an in-process A/B
+shares every module-level mutable; arms go in separate processes.* The first detector ran
+both arms in one interpreter and produced a clean-looking result that could not be trusted
+until the arms were separated.
+
+    MECHANISM   nothing built on the agent. `gridworld.family()` is the panel's door
+    CAPABILITY  none -- but the stage-5 gate now has a measured panel (default and
+                remap_after carry a population; click_only does not) and a measured
+                noise floor, neither of which existed before
