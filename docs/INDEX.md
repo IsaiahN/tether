@@ -52916,7 +52916,16 @@ caveat.
 > stated before that build rather than discovered in its result.
 
 **WHAT IT SHOWS AND WHAT IT DOES NOT.** Shows: aimed exploration cuts wasted presses by half to
-two-thirds where presses were wasted, and binds one slot where none ever bound. **Does not show
+two-thirds where presses were wasted, and binds one slot where none ever bound.
+
+> **AND THE FIRST HALF OF THAT IS REATTRIBUTED BY `F404`, SAME DAY — *STALE BY SUCCESS*, AND IT IS
+> THE SEAT'S OWN.** With clause 3 in, the no-op share on `buttons` reads **0.00 ON BOTH ARMS**,
+> including the un-aimed baseline that read 0.68/0.68/0.72 here. **The wasted-press reduction
+> credited to the aiming is delivered by clause 3 WITH NO AIMING AT ALL** — the interface's null
+> press was the cause and the aiming had been compensating for it. **The measurement above was
+> correct at `e192f42` and its headline is superseded by a later repair.** What the aiming still
+> uniquely owns is the BINDING: 0 → 1 on every seed with no-ops already at zero on both arms, which
+> is a cleaner result than the one committed. **Does not show
 that V is a good term** — the aiming is the FIRST factor's, `outstanding` alone picks the same slot
 21 times in 22, and one bound slot of 46 with `settled`/`paid`/`reuse`/`routines` still at zero is
 **a loop that has started turning, not one that is running.**
@@ -53002,3 +53011,118 @@ of a cue-driven order costs few bits, one far down costs more — **rank-based c
 **IT BECOMES RELEVANT AT THE FULL FRONTLOAD**, where the floor is 22.80 bits (`2*log2(alphabet+1)`
 at ~2700 atoms). **On the 14-atom panels of 2026-10-01 it is not the operative change and V is.**
 NOT BUILT.
+
+---
+
+## F403 — THE AIMED DRAW IS GATED BEHIND NOT BEING BORED, SO IT IS STARVED EXACTLY WHERE AIMING WOULD HELP MOST — AND THE FIRST EXPLANATION I GAVE FOR THAT WAS REFUTED BY ITS OWN PRE-REGISTERED TEST
+
+**WORLD:** gridworld `click_only`, seeds 0-2, 25 and 60 cycles, `_AIMED_CURIOSITY` ON. Board stop
+respected. **POPULATION:** every `choose()` exit taken and every `bored()` READ (several reads per
+cycle, so these are reads, not cycles). Seed 0 — the seed that DID bind — is the non-zero control;
+without it a null on 1 and 2 is unreadable.
+
+**THE STORY THAT WAS WRONG, RECORDED FIRST BECAUSE IT WAS THE PLAUSIBLE ONE.** `F401` left
+`click_only` at 1 of 3 seeds. The rows looked like a FEEDBACK LOOP THAT DID NOT CATCH: aiming makes
+movement, movement raises `outstanding` and recurrence, a higher V keeps the agent on the slot —
+seed 0 got 12 occasions and V compounded 18 → 392, seeds 1 and 2 got 3 and 4 and V never left 8.0.
+**The refuter was pre-registered as *give it more cycles*, and it FIRED:**
+
+    seed  cyc  aims     Vmax  bounded_out  does_not_pay  paid  bound
+       0   25    12    392.0        36840         10320     0      1
+       0   60    29   1922.0        72634         84566     0      1
+       1   25     3      8.0            0             0     0      0
+       1   60     3      8.0            0             0     0      0
+       2   25     4      8.0            0             0     0      0
+       2   60     4      8.0            0             0     0      0
+
+**SEEDS 1 AND 2 ARE IDENTICAL AT MORE THAN DOUBLE THE CYCLES.** Not a slow start — time changes
+nothing. **Fourth causal story refuted by running it in one day, and every one of the four was
+satisfying enough to have entered the record as fact.**
+
+**THE MEASURED CAUSE:**
+
+    seed 0   draw 29 · probe 27 · system0 4    bored() True 27 of 91 reads
+             curiosity exit on cycles 4,5,6,8,10,...,58 -- EVERY OTHER CYCLE, ALL RUN
+    seed 1   draw  3 · probe 51 · system0 6    bored() True 102 of 117 reads
+             curiosity exit on cycles 6, 7, 8 -- AND NEVER AGAIN
+    seed 2   draw  4 · probe 52 · system0 4    bored() True 104 of 116 reads
+             curiosity exit on cycles 4, 5, 6, 7 -- NEVER AGAIN
+
+**The aimed exit is the one taken when the agent is NOT bored. On seeds 1 and 2 it is bored on ~88%
+of reads, so `bored()`'s UNINFORMED branch takes 51 and 52 cycles and the aimed exit gets 3 and 4.**
+And the cutoff is hard rather than a taper: cycles 6,7,8 then nothing for fifty-two.
+
+> **A WORLD WHERE NOTHING MOVES IS A WORLD THAT IS ALWAYS BORED, AND BORED ROUTES TO THE UNINFORMED
+> DRAW BY DESIGN. THE BRANCH THAT CAN USE EVIDENCE HOLDS 3 OF 60 CYCLES EXACTLY WHERE EVIDENCE
+> WOULD HELP MOST.**
+
+**AND THE BINDING NEVER FAILED — THE MINT NEVER RAN.** All three bargain counters read 0 on seeds
+1/2 against 36,840 / 10,320 / 0 on seed 0: not *the bargain refused the term* but **nothing reached
+the bargain at all.** `counters-lie-read-the-write-site` one level up — **a slot that failed to
+bind and a slot the mint never examined are identical in a `bound` column.**
+
+**NOT REPAIRED, AND DELIBERATELY.** The obvious move is to aim the `bored()` branch too, and it is
+refused: `probe.py` states that draw's uninformedness as a SAFETY PROPERTY — *a probe chosen by the
+current model can only confirm the current model* — which is this file's own *a measurement that
+can only agree with you is not evidence*. **Aiming it is the single change most likely to look like
+an improvement while destroying what the split protects.**
+
+**THE FINDING IS NOT *AIM THE BORED BRANCH*. IT IS THAT THE TWO BRANCHES' POPULATIONS ARE BADLY
+SPLIT** — one holds the cycles and cannot use evidence, the other can use evidence and holds 3 of
+60. Three shapes are on the table and the seat chose none of them: **(a)** the split is right and
+these are worlds where the agent SHOULD be perturbing, so 3 of 60 is correct and the defect is
+elsewhere; **(b)** `bored()` is too coarse — it reads ONE step and says nothing about whether the
+agent has anything to go on; **(c)** the curiosity trigger belongs on a channel that is not the
+complement of boredom, **which is the transition-vs-score conflict already standing in the record**
+(`INDEX:185` / `ARC_AGENT` §8, §20.3 against `DISCOVERY` A4/Q20). **(c) would resolve a standing
+corpus conflict by building, so it is escalated rather than taken.**
+
+**IT DOES NOT BLOCK THE ADOPTION HALF**, which is measured on `default` — never bored (no-op share
+0.00) and reaching the curiosity exit 10 of 25 cycles.
+
+
+---
+
+## F404 — THE UNINFORMED DRAW WAS HANDING BACK PRESSES IT KNEW WERE NO-OPS, AND FIXING THAT WITHOUT INFORMING IT TOOK `click_only` FROM 1 OF 3 SEEDS TO 3 OF 3
+
+**WORLD:** gridworld `buttons` / `click_only` / `default`, seeds 0-2, 25 and 60 cycles. Board stop
+respected. **POPULATION:** stated per table. BEFORE is `F401`/`F403`'s runs — same scripts, same
+flag, previous commit.
+
+**CLAUSE 3, the reviewer 2026-10-01: the perturb draw stays UNINFORMED but is never a NULL press.**
+`_any_object` reads only WHICH OBJECTS ARE PRESENT — never the delta table, never `aimed_effect`,
+never a slot's value, never V — so *a probe chosen by the current model can only confirm the current
+model* still holds. **What changes is that the press LANDS.** Round-robin rather than an RNG, on
+`drive.choose`'s own precedent (*deterministic in the cycle so a run is reproducible; no wall clock,
+no RNG state*).
+
+**IT COMPLETES A RULE THE FILE HAD ALREADY STATED AND LEFT HALF-DONE**, which is why it is not an
+arm: `_made`'s docstring says *"handing back a press it knows will do nothing is it failing at its
+one job... an exploration that cannot produce an observation is not an exploration"* — and
+`_unclicked` returned `None` the moment every object had been aimed at once, after which every
+positioned press was a guaranteed no-op.
+
+    seed      bored() True        draw exits      aimed exit reached
+      0    27/91  -> 33/93        29 -> 27        all run -> all run
+      1   102/117 -> 15/81         3 -> 39        cycles 6,7,8 -> 39 cycles
+      2   104/116 -> 28/88         4 -> 32        cycles 4-7  -> 32 cycles
+
+**BOREDOM ON SEED 1 FELL FROM 87% OF READS TO 19% AND THE AIMED EXIT WENT FROM THREE CYCLES TO
+THIRTY-NINE.** `F403`'s starvation is gone and the uninformed draw is still uninformed.
+
+**AND THE OUTCOME FOLLOWED, which boredom-clearing alone would not have shown:**
+
+    world        bound non-IDN (aim arm)   before clause 3   after
+    buttons                3 of 3               3 of 3       3 of 3
+    click_only             3 of 3               1 of 3       3 OF 3
+    default                  n/a          identical in every column, both arms,
+                                          and identical to pre-clause-3:
+                                          6/7/211/18 · 7/10/96/20 · 7/8/180/14
+
+**`default` IS INERT UNDER IT, AS DESIGNED** — its no-op share was already 0.00, so it had no null
+presses to fix. **The repair acts exactly where the defect was and nowhere else.**
+
+> **AND IT REATTRIBUTES `F401`, ANNOTATED THERE RATHER THAN ONLY HERE.** The no-op share now reads
+> **0.00 on BOTH arms** on `buttons` — so the drop from 0.68/0.72 that `F401` credited to the aiming
+> is clause 3's. **The two mechanisms separate cleanly: clause 3 owns the no-op share, the aiming
+> owns the binding.**

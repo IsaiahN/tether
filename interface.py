@@ -574,8 +574,18 @@ class Interface:
             coord = (self._aim_for(intent, state) if a in POSITIONED else None)
             if coord is None and a in POSITIONED:
                 coord = self._unclicked(state)
-            if coord is not None:
-                why = f"{why}, aimed where nothing has been clicked"
+                if coord is not None:
+                    why = f"{why}, aimed where nothing has been clicked"
+                else:
+                    # CLAUSE 3. Every object has been clicked once, so there is nothing
+                    # UNCLICKED left -- but a positioned press with no coordinate is a
+                    # guaranteed no-op, and handing one back is the interface failing at
+                    # its one job. Uninformed, and it still lands.
+                    coord = self._any_object(state)
+                    if coord is not None:
+                        why = f"{why}, uninformed draw over the objects present"
+            elif coord is not None:
+                why = f"{why}, aimed at what moves this slot"
             return Realisation(a, coord=coord, unmapped=(a not in self.table), why=why)
 
         asked = "exploration" if intent.kind == ELICIT else "something that separates"
@@ -684,6 +694,37 @@ class Interface:
         if not best:
             return None
         return min(best, key=lambda c: (len(self.aimed_effect[c]), c))
+
+    def _any_object(self, state: dict | None) -> tuple[int, int] | None:
+        """CLAUSE 3: an UNINFORMED press that is still a real press -- the reviewer,
+        2026-10-01. `None` only when the board shows no positioned object at all.
+
+        `_unclicked` goes `None` the moment every object has been aimed at once, and after
+        that every positioned press went out with no coordinate. `_click` returns early on a
+        `None` coordinate, so those presses were GUARANTEED no-ops: `F403` measured the agent
+        bored on ~88% of reads on `click_only` seeds 1-2, taking the uninformed branch 51 of
+        60 cycles and never reaching the aimed exit again after cycle 8.
+
+        **UNINFORMED IS PRESERVED AND IT IS THE WHOLE CONSTRAINT.** The draw reads only WHICH
+        OBJECTS ARE PRESENT -- never the delta table, never `aimed_effect`, never a slot's
+        value, never V. *A probe chosen by the current model can only confirm the current
+        model*, and nothing here is chosen by it. What changes is that the press LANDS.
+
+        **ROUND-ROBIN RATHER THAN AN RNG, and the file's own reason.** `drive.choose` is
+        "deterministic in the cycle so a run is reproducible; no wall clock, no RNG state".
+        Uniform over the objects present and not model-chosen is the property the safety
+        argument needs; reproducibility is free, so it is taken.
+        """
+        if state is None:
+            return None
+        rows = {k.rsplit(".", 1)[0] for k in state if k.endswith(".row")}
+        cols = {k.rsplit(".", 1)[0] for k in state if k.endswith(".col")}
+        here = [at for obj in sorted(rows & cols)
+                if (at := self._at(obj, state)) is not None]
+        if not here:
+            return None
+        self._rr = getattr(self, "_rr", 0) + 1
+        return here[self._rr % len(here)]
 
     def _unclicked(self, state: dict | None) -> tuple[int, int] | None:
         """An OBJECT this interface has not aimed at yet, as `(x=col, y=row)`.
