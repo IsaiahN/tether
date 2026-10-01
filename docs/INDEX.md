@@ -52225,3 +52225,52 @@ ONE.** `cost = term_bits(gamma.length(term, _units), ...)`, and `length`'s own d
 **The earned route to the discount must stay the only one: bind → candidate → settle
 HERE → unit.** `TETHER_NO_CARRY_CANDIDATE` is default-on precisely so an imported term
 can reach `settle`, so that path exists and is not to be bypassed.
+
+## F390 -- **THE SECOND ROUTE IS INERT AT FULL PRICE *AND* AT UNIT PRICE: A CARRIED COMPOSITION CLEARS EVERY GATE BUT THE BARGAIN, AND THE CREDIT CONCESSION BUYS NOTHING**
+
+Measured on a two-game gridworld harness (seed 0 → save → fresh Gamma → load → seed 1,
+20 cycles each), read-only, before any route was built. The gates are read from
+`_library_fit`'s source and the REAL module-level functions patched to record, so the
+call path is the agent's own.
+
+    crosses the boundary                yes    `refused: 0`
+    offered for binding                 yes    208 and 211 times
+    `_rebindings` yields candidates     yes    zero empty
+    passes `_may_bind`                  yes    ZERO failures
+    passes `_head_accepts`              yes    ZERO failures
+    pays at `_library_fit`              **NO    0 of 19,214**
+
+**EVERY GATE BUT THE PRICE IS OPEN.** Not type, not guard, not level dormancy, not an
+empty rebinding — the price, exclusively.
+
+**AND THE ROUTE WOULD NOT HELP, WHICH IS WHY IT WAS NOT BUILT.** `_library_fit` already
+prices a non-`units()` term at full atom count, so "offer it to the mint at full price"
+prices it identically. Measured in the mint's own context — which genuinely differs,
+`base = _accumulated(slot, held)` against `_library_fit`'s `_left(held, slot, hist)`:
+
+                    FULL PRICE                  AS ONE UNIT
+    term        pays   bits  best margin    pays   bits  best margin
+    take . dec     0  11.72       +4.8018      0   7.81       +0.8949
+    same . all     0  11.72      +11.7207      0   7.81       +7.8138
+
+**0 of 412 at full price. 0 of 412 AS A UNIT.** (`pays` is `cost + left < base`, so a
+positive margin cannot pay.)
+
+> **SO THE CREDIT CONCESSION BUYS NOTHING, AND THAT SETTLES A QUESTION RATHER THAN
+> RAISING ONE.** Treating a carried term as a settled unit — the move that would carry
+> earned credit across the boundary the ablation reads, which F389 names as Isaiah's — is
+> a real 3.91-bit discount (11.72 → 7.81) and it is **insufficient**. There is no trade
+> between ablation integrity and cross-game reuse to be made here, because granting the
+> credit does not produce the reuse.
+
+**NOT OVERSTATED: `take . dec` misses by 0.89 bits at unit price.** That is close enough
+that another board, a longer run or a larger residual could cross it. `same . all` misses
+by 7.81 and is not close by any reading. One seed pair, 20 cycles — the direction is
+decisive and the magnitude is one draw.
+
+**THE SHORTFALL IS `base` AGAINST `cost + left`, NOT TRANSFER.** The question is not *may
+a carried term be discounted* but *why does a composition that paid for itself in one game
+cost more than its residual is worth in the next*.
+
+**ROUTE PARKED. Reopen on a board where a carried composition can close a larger gap** —
+the measurement to repeat is this probe, not a build.
