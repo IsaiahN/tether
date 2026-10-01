@@ -1936,6 +1936,78 @@ def test_youth_breaks_ties_within_equal_confidence_and_never_overrules_evidence(
         "so assertion 1 was not demonstrating youth at all")
 
 
+def test_a_relational_slot_never_uses_tier_2_and_says_nothing_instead():
+    """**A RELATION READ IN ANOTHER CONTEXT IS A READING OF A DIFFERENT BOARD.**
+
+    `INDEX:51470`: across contexts, proximity falls 95.8% -> 60.4% while row and col
+    hold 100%, and ALL 63 tier-2 misses are proximity. For a coordinate *the same
+    before-value in another context* IS the same situation; for a relation it is not,
+    because closeness depends on what else is on the board.
+
+    **THE KIND COMES FROM THE WORLD.** `env.relational_slots()`, declared by the habitat
+    exactly as `slot_owner` is. The older `interface.RELATIONAL` name tuple holds only
+    `proximity`, and measured on seed 11 `distance` carries 86 of the 124 cross-context
+    relational predictions -- so a guard reading the tuple would miss most of them. That
+    is why this reads a declaration and the test uses `distance`.
+    """
+    import interface as IFace
+
+    class _World:
+        def __init__(self, declared):
+            self._d = declared
+        def relational_slots(self):
+            return self._d
+
+    def _iface(slot):
+        f = IFace.Interface()
+        # TIER 1 IS DEAF HERE AND TIER 2 WOULD ANSWER: the cell is recorded under
+        # ANOTHER context, which is exactly the situation the guard is about.
+        f.table["ACTION1"] = {"by_ctx": {}, "n": 1,
+                              "lands": {(("other",), slot, 3): {7}}}
+        return f
+
+    slot, now, want = "o1.distance", 3, 7
+    here = ("here_ctx",)                      # NOT the context the cell was seen in
+    intent = IFace.Intent(IFace.BECOME, subject=slot, value=want)
+    state = {slot: now}
+
+    # 1 -- A WORLD THAT DECLARES NOTHING: tier 2 answers, as it always has.
+    plain = _iface(slot).realise(intent, ("ACTION1",), here, state, _World(()))
+    assert plain is not None and "in every context seen" in (plain.why or ""), (
+        f"the premise is gone -- tier 2 did not fire for an undeclared world: {plain}")
+
+    # 2 -- THE SAME CALL, WITH THE WORLD DECLARING THE SLOT RELATIONAL: NO PREDICTION.
+    guarded = _iface(slot).realise(intent, ("ACTION1",), here, state,
+                                   _World(("proximity", "distance")))
+    assert guarded is None, (
+        f"a RELATIONAL slot fell through to tier 2 and claimed {guarded.why!r}. A relation "
+        f"read in another context is a reading of a different board")
+
+    # 3 -- A POSITIONAL SLOT KEEPS TIER 2. row and col are 100% across contexts.
+    pos = "o1.row"
+    kept = _iface(pos).realise(IFace.Intent(IFace.BECOME, subject=pos, value=want),
+                               ("ACTION1",), here, {pos: now},
+                               _World(("proximity", "distance")))
+    assert kept is not None and "in every context seen" in (kept.why or ""), (
+        "a POSITIONAL slot lost tier 2 -- the guard is too wide")
+
+    # 4 -- AND TIER 1 IS UNTOUCHED FOR A RELATIONAL SLOT. The guard removes only the
+    # cross-context path; proximity keeps its 95.8% exact-cell prediction.
+    f = IFace.Interface()
+    f.table["ACTION1"] = {"by_ctx": {}, "n": 1, "lands": {(here, slot, now): {want}}}
+    exact = f.realise(intent, ("ACTION1",), here, state, _World(("distance",)))
+    assert exact is not None and "here" in (exact.why or ""), (
+        f"TIER 1 was lost for a relational slot: {exact}. The guard must remove the "
+        f"cross-context path and nothing else")
+
+    # MUTATION CONTROL -- empty the declaration and assertion 2 must fail. Without it
+    # this passes on any `realise` that returns None for an unrelated reason.
+    back = _iface(slot).realise(intent, ("ACTION1",), here, state, _World(()))
+    assert back is not None, (
+        "THE CONTROL DID NOT FIRE: with the declaration emptied the call still returned "
+        "no prediction, so assertion 2 was not demonstrating the guard")
+
+
 if __name__ == "__main__":
     if "--cover" in sys.argv:
         for label, c in (("kernel.Frame", coverage()),
@@ -1988,6 +2060,7 @@ if __name__ == "__main__":
         test_disuse_never_moves_confidence()
         test_a_downrated_member_is_restored_the_moment_it_moves()
         test_youth_breaks_ties_within_equal_confidence_and_never_overrules_evidence()
+        test_a_relational_slot_never_uses_tier_2_and_says_nothing_instead()
         print("  A5 and B5 reproductions still fire (expected): ok")
         print("  keyed reach loses nothing: ok · two vocabularies stay two: ok")
         print("  the quantifiers quantify (ONE fires, all != some): ok")
@@ -1996,6 +2069,7 @@ if __name__ == "__main__":
         print("  disuse never moves confidence (forgiveness still rises): ok")
         print("  a downrated member is restored the moment it moves: ok")
         print("  youth breaks ties within equal confidence, never overrules evidence: ok")
+        print("  a relational slot never uses tier 2 and says nothing instead: ok")
         print("  shipped generator coverage: ok · residual bound loses nothing: ok"
               " · resolutions are not the answer: ok · atom order pinned: ok"
               " · promotion clause recorded: ok · observer reaches the agent: ok"

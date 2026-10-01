@@ -97,6 +97,30 @@ POSITIONED: tuple[str, ...] = ("ACTION6",)
 RELATIONAL: tuple[str, ...] = ("proximity",)
 
 
+def _is_relational(slot: str | None, env: object) -> bool:
+    """Is this slot's attribute a RELATION TO ANOTHER OBJECT? **Asked of the world.**
+
+    `env.relational_slots()` is the habitat's own declaration, read exactly as the agent
+    reads `slot_owner` and for the reason that one gives: *the loop may not derive this
+    from the name.* A world that declares nothing has no relational slots, so every world
+    that has not been taught the split behaves exactly as before.
+
+    **IT DOES NOT FALL BACK TO `RELATIONAL`.** That tuple is the stopgap this replaces, and
+    quietly reading it when the declaration is absent would reintroduce the name dependency
+    while appearing to have removed it.
+    """
+    if not slot:
+        return False
+    fn = getattr(env, "relational_slots", None)
+    if fn is None:
+        return False
+    try:
+        declared = tuple(fn())
+    except Exception:
+        return False
+    return slot.rsplit(".", 1)[-1] in declared
+
+
 @dataclass(frozen=True)
 class Repeat:
     """How many times, until what -- and the gap between them is a residual.
@@ -325,7 +349,26 @@ class Interface:
                 if here and set(here) == {intent.value}:
                     best, how = a, "here"
                     break
-            if best is None:
+            # **TIER 2 IS FOR POSITIONAL SLOTS ONLY -- the reviewer, 2026-10-01, on the
+            # measurement at `INDEX:51470`: proximity falls 95.8% -> 60.4% across contexts
+            # while row and col hold 100%, and ALL 63 tier-2 misses are proximity.**
+            #
+            # For a coordinate, *the same before-value in another context* IS the same
+            # situation. For a relation it is not: **closeness depends on what else is on
+            # the board**, so a reading taken elsewhere is a reading of a different board.
+            #
+            # **THE KIND COMES FROM THE WORLD, NEVER FROM THE NAME.** `env.relational_slots()`
+            # is declared by the habitat exactly as `slot_owner` is, and for the same stated
+            # reason. `RELATIONAL` above is the older name-tuple stopgap whose own comment
+            # asks for this -- *until a world declares the split itself* -- and it holds only
+            # `proximity`: measured on seed 11, `distance` carries 86 of the 124 cross-context
+            # relational predictions, so a guard on the tuple would have missed most of them.
+            #
+            # **THE FALLTHROUGH IS NO PREDICTION, AND THAT IS THE POINT RATHER THAN A GAP.**
+            # A relational slot with no tier-1 entry says NOTHING; it does not drop to tier 2.
+            # Abstaining beats being wrong two times in five, because a wrong prediction that
+            # CHANGES a choice is worse than no prediction that leaves the default.
+            if best is None and not _is_relational(intent.subject, env):
                 for a in offered:
                     lands = self.table.get(a, {}).get("lands", {})
                     seen = {v for (_c, k, b), vs in lands.items()
@@ -362,7 +405,19 @@ class Interface:
                 # stopped gridworld crying wolf.
                 n, tot = d.get((ctx, intent.subject), (0, 0))
                 where = "here"
-                if not n:
+                # **THE SECOND TIER-2 SITE, AND THE ONE THE AGENT ACTUALLY TRAVELS.** The
+                # `lands` branch above answers "which action lands this slot on that exact
+                # value"; THIS one answers "which way does it move, and by how much", and it
+                # is what `expected_move` returns -- the per-press step a routine's length is
+                # computed from. **Measured: guarding only the `lands` branch left the
+                # before/after reading BYTE-IDENTICAL**, 56/38/30 cross-context claims
+                # unchanged, because none of that traffic goes through `lands` at all.
+                #
+                # Same rule, same reason: a MEAN DELTA pooled over other contexts is a mean
+                # over other boards when the slot is a relation, because closeness depends
+                # on what else is there. A relational slot takes its exact-cell reading or
+                # says nothing.
+                if not n and not _is_relational(intent.subject, env):
                     n = sum(v[0] for (c, k), v in d.items() if k == intent.subject)
                     tot = sum(v[1] for (c, k), v in d.items() if k == intent.subject)
                     where = "in every context seen"

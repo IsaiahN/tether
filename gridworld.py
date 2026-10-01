@@ -267,6 +267,24 @@ class GridWorld:
             a[f"o{i}.distance"] = 2 * GRID + 1   # 0..2*GRID inclusive: unreachable is a value
         return a
 
+    def relational_slots(self) -> tuple[str, ...]:
+        """WHICH ATTRIBUTES ARE A RELATION TO ANOTHER OBJECT. Declared by the world.
+
+        **THE LOOP MAY NOT DERIVE THIS FROM THE NAME, which is `slot_owner`'s reason one
+        method down and the same reason here.** `interface.RELATIONAL` is a hand-written
+        tuple of strings and its own comment calls it a stopgap *"until a world declares
+        the split itself"*. This is a world declaring it.
+
+        **BOTH, AND THE SECOND IS WHY THE STOPGAP WAS NOT ENOUGH.** `proximity` is Manhattan
+        distance to the avatar; `distance` is the length of the unobstructed path. Both are
+        functions of where OTHER things are. **Measured on seed 11 over 60 cycles,
+        cross-context predictions split 38 on proximity and 86 on `distance`** -- so a guard
+        reading the name tuple, which holds only `proximity`, would have missed 69% of them.
+
+        It says what KIND an attribute is, never what to do about it: the consumer decides.
+        """
+        return ("proximity", "distance")
+
     def slot_owner(self) -> dict[str, str]:
         """WHICH OBJECT EACH SLOT BELONGS TO. `o1.row` -> `o1`.
 

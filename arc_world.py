@@ -433,6 +433,18 @@ class ArcWorld:
             self._contact_pts = out
         return self._contact_pts
 
+    def relational_slots(self) -> tuple[str, ...]:
+        """WHICH ATTRIBUTES ARE A RELATION TO ANOTHER OBJECT. See `gridworld`'s.
+
+        **EMPTY, AND THAT IS A DECLARATION RATHER THAN A STUB.** This world's attributes are
+        read off one object -- colour, row, col, h, w, shape. `touching` and `inside` ARE
+        relations, and they are RELATIONS BETWEEN A PAIR rather than attributes ON an
+        object, so they are not slots here and cannot be returned by this method. **If a
+        relation is ever published AS a slot it belongs in this tuple**, and the consumer
+        will pick it up with no further change.
+        """
+        return ()
+
     def slot_owner(self) -> dict[str, str]:
         """Which SUBJECT each slot is an attribute of. **The loop may not derive this.**
 
