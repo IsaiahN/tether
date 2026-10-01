@@ -52375,6 +52375,19 @@ FIRST line and `_delta` then tests the ALREADY-INCREMENTED counter, so `remap_af
 first applies at agent cycle **29**. *Go to the write site* found the guard; it did not make
 me read the line above it.
 
+### REPRODUCE
+
+**The scripts are in the tree so these figures can be re-taken rather than trusted** --
+`tieracc.py`'s rule applied to this entry. All seed 0, 60 cycles, from the repo root:
+
+    scratch_detector2.py control     the +3-cycle true positive: run each arm,
+    scratch_detector2.py treatment   then compare. ONE ARM PER PROCESS
+    scratch_detector2.py compare
+
+    scratch_smoke.py                 Fixture A's swap at the world level, 8 presses
+    scratch_determinism.py           the non-vacuous 60-cycle determinism check
+    scratch_equiv.py                 inline-vs-`family()`, all nine worlds
+
     MECHANISM   `gridworld.FAMILIES` / `family()` declare the panel habitat-side, so a
                 caller no longer has to know `click_only` and `remap_after` by name
     CAPABILITY  none directly -- but a detector with no true positive in its life now has
@@ -52450,6 +52463,19 @@ number existed. Without it, `remap 46` against `default 25` is a 1.8x rise and a
 shares every module-level mutable; arms go in separate processes.* The first detector ran
 both arms in one interpreter and produced a clean-looking result that could not be trusted
 until the arms were separated.
+
+### REPRODUCE
+
+Same rule, same reason. Seed 0 unless stated, 60 cycles, from the repo root:
+
+    scratch_bins.py click_only       the ROUTE-bin census and the park verdicts:
+    scratch_bins.py default          run each arm, then compare
+    scratch_bins.py compare
+
+    scratch_why.py click_only        the WHOLE book, both arms
+    scratch_why.py default
+    scratch_panel.py                 the 9 rows and the 45/42/25 seed spread
+                                     (3 fixtures x seeds 0,1,2)
 
     MECHANISM   nothing built on the agent. `gridworld.family()` is the panel's door
     CAPABILITY  none -- but the stage-5 gate now has a measured panel (default and
