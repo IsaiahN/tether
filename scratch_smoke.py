@@ -39,11 +39,18 @@ def main() -> int:
         moves.append(d)
         print(f"  step {i}  press 'up'  displacement {d}")
 
-    early = [m for m in moves[: w.remap_after] if m != (0, 0)]
-    late = [m for m in moves[w.remap_after:] if m != (0, 0)]
+    # THE BOUNDARY IS `remap_after - 1`, NOT `remap_after` -- F392, and this script's own
+    # first output is what exposed it. `GridWorld.step` does `self._steps += 1` as its FIRST
+    # line and `_delta` then tests the ALREADY-INCREMENTED counter, so press index
+    # `remap_after - 1` is the first SWAPPED one. Bucketing at `remap_after` put index 3's
+    # `(-4, 0)` -- row 4 -> row 0, which is DOWN with wrap -- into the `early` list and read
+    # it as an up-wrap. **The verdict was right and the bucketing was one late.**
+    first_swapped = w.remap_after - 1
+    early = [m for m in moves[:first_swapped] if m != (0, 0)]
+    late = [m for m in moves[first_swapped:] if m != (0, 0)]
     print()
-    print(f"  early (before step {w.remap_after}) non-zero displacements: {early}")
-    print(f"  late  (after  step {w.remap_after}) non-zero displacements: {late}")
+    print(f"  early (before index {first_swapped}) non-zero displacements: {early}")
+    print(f"  late  (index {first_swapped} on)     non-zero displacements: {late}")
 
     if not early or not late:
         print("  INCONCLUSIVE -- the mover was blocked on one side of the swap, so this "
