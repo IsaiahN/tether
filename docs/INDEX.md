@@ -52484,6 +52484,31 @@ Same rule, same reason. Seed 0 unless stated, 60 cycles, from the repo root:
 
 ---
 
+**AMENDED 2026-10-01 AFTER THE RE-MEASURE, AND IT IS NOT A RETRACTION — THIS ENTRY IS THE
+TERMINUS OF THE WHOLE `F394`–`F398` CHAIN.** Its open question was *does a reachable goal
+rescue the settle count*. **The answer is NO**, and the floor account stands.
+
+    `click_only` with a REACHABLE colour objective (`e2266ed`): settles 0
+    route bins, seeds 0-2, 60 cycles each:
+      buttons     held 7433 | novel 3 | mechanism  844   under_floor  844/844
+      click_only  held 7268 | novel 3 | mechanism 1009   under_floor 1009/1009
+    bin x fit: EVERY yield carries NO FIT — 8280 of 8280
+    bound non-IDN at end: 0 of 46
+
+**`bound` IS WRITTEN IN EXACTLY THREE PLACES AND TWO OF THE ROUTES NEVER OPEN.**
+REBIND-with-fit and REFUTED-with-fit need bins that are **never yielded at all** — 0 of 8280,
+and that is distinct from *a fit was wanted and missing*. The only live route is mint, and
+mint parks 100% of the time with the verdict this entry named.
+
+> **AND THERE IS A SECOND SELF-SUSTAINING LOOP, VISIBLE IN THESE COUNTS.** Mint parks →
+> nothing is accepted into the library → the library stays empty → `_library_fit` can return
+> no fit → the fit-requiring routes cannot fire → the only route left is mint → mint parks.
+> It closes exactly as the boredom loop of `F397` does, and **the two meet at the same place**:
+> nothing binds, so nothing moves, so nothing surprises, so nothing is worth paying for.
+
+Whether the floor is priced right remains with Isaiah, unanswered since this entry was filed.
+
+
 ## F394 — NO WORLD IN THIS PROJECT HAD A REMOTE EFFECT, MEASURED EXHAUSTIVELY, AND FIXTURE C IS THE FIRST
 
 **ENTERED LATE AND THAT IS RECORDED RATHER THAN TIDIED.** `3d546e6` cited `F394` in its
@@ -52709,3 +52734,29 @@ float; its shape was guessed wrong twice) and each failure wrote
 
     MECHANISM   unchanged. No fix applied; the objective is a fixture question
     CAPABILITY  none. It names why three findings today read the way they did
+
+**ANNOTATED 2026-10-01, AND THE FIGURE THIS ENTRY LEADS WITH IS WITHDRAWN.** Section 1 above
+reports *a want on 60 of 60 cycles* and concludes **THE AGENT IS NOT GOAL-LESS**. That column
+read `ag._intent_now`, which `tether.py:5190` sets inside `_took`: **it is the intent the agent
+ACTED ON, not a want.** `wants` is a different structure entirely.
+
+    measured, the 60 values:  57 ELICIT + 3 TOUCH, has_subject=False on ALL SIXTY
+    agent.wants at end: {}   _want_terms: {}
+
+**SO THE COLUMN COUNTED INTENTS TAKEN, EVERY ONE SUBJECTLESS, AND IT IS ENTIRELY CONSISTENT
+WITH `wants` = 0.** It did not refute the no-objective hypothesis it was offered against; the
+reviewer was closer to right than this entry allowed.
+
+    SURVIVES   owed 56-58 of 60, `outstanding` 14-30 — separately sourced, and they do show
+               unexplained surprise being carried
+    WITHDRAWN  "a want exists on 60/60 cycles", and "the agent is not goal-less" in the sense
+               that mattered — it forms an intent every cycle and holds no want naming a slot
+
+**THIS IS `A6i` TWICE ON ONE PAGE:** `outstanding` vs `_res` under the word *residual*, and
+`_intent_now` vs `wants` under the word *want*. **And the tell was in the instrument's own
+mapping** — the probe column was named `want` while reading a field called `_intent_now`. I
+wrote that line and never read it back.
+
+**THE ENTRY IS LEFT STANDING RATHER THAN EDITED**, per this file's rule: an error entry whose
+evidence is edited away stops being evidence. What is corrected is corrected here, at the row
+that carries the claim.
