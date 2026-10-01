@@ -932,6 +932,46 @@ class Gamma:
         st.decay(self.tick, self.halflife)
         return (st.confirmations + 1.0) / (st.confirmations + st.refusals + 2.0)
 
+    def youth_of(self, name: str) -> float:
+        """THE YOUTH BONUS -- `1 / (1 + confirmations + refusals)`. Sec 5.10.8, no constant.
+
+        1.0 untried, 0.5 after one trial, -> 0. Isaiah: *balance rich-get-richer with a YOUTH
+        BONUS.* **Large at zero and shrinking as evidence accumulates, which is exactly what
+        was asked for** -- and not UCB1, whose constant and `n = 0` singularity would both
+        need a special case, nor Thompson, which makes the ranking stochastic and every A/B
+        here depends on a deterministic one.
+
+        **IT ORDERS WITHIN EQUAL CONFIDENCE AND NOWHERE ELSE, AND THAT PLACEMENT IS NOT THE
+        SPEC'S -- the reviewer, 2026-10-01.** 5.10.8 writes
+        `relevance = confidence x 0.5**(games_since_last_use / H) + youth`, an ADDITIVE form.
+        **There is no games counter, so the decay term is 1, and the sum then falls
+        MONOTONICALLY with experience:**
+
+            untried      0.500 + 1.000 = 1.500
+            proven x10   0.917 + 0.091 = 1.008
+
+        An untried term would outrank one that has worked ten times, always -- surfacing
+        exactly backwards. **The decay term is LOAD-BEARING and it is the half that cannot be
+        built yet**: an untried term has never been used, so its confidence contribution
+        vanishes and only youth remains, which is what holds youth in check.
+
+        **SO THIS IS THE PLACEMENT WHILE RELEVANCE IS UNBUILDABLE, AND THE ADDITIVE FORM
+        RETURNS WITH THE DECAY TERM.** In its own slot after confidence, youth can never
+        compare terms of different confidence, so no inversion is possible by construction.
+
+        **AND IT ACTS WHERE THE LAPLACE MEAN IS DELIBERATELY AMBIGUOUS**, which is the point:
+        `confidence(0,0)` and `confidence(1,1)` are BOTH 0.5 -- a uniform prior collapses *no
+        evidence* and *balanced evidence*. Youth separates them, 1.0 against 0.333.
+
+        REFUSALS, NOT REJECTIONS, for `track_of`'s reason: 5.10.8 predates Isaiah's (c) split
+        and counting candidate-era misses would score exploration as failure.
+        """
+        st = self.standing.get(name)
+        if st is None:
+            return 1.0                       # never seen: maximally young
+        st.decay(self.tick, self.halflife)
+        return 1.0 / (1.0 + st.confirmations + st.refusals)
+
     @property
     def settled_terms(self) -> list[Term]:
         return [t for n, t in self.library.items() if self.is_settled(n)]

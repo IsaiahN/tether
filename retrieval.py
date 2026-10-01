@@ -179,7 +179,7 @@ def fits(term: Any, gap: dict, in_type: str, out_type: str) -> int:
 
 
 def retrieve(library: dict, gap: dict, in_type: str = "val",
-             out_type: str = "val", track=None) -> list[str]:
+             out_type: str = "val", track=None, youth=None) -> list[str]:
     """ONE PASS over the library, ordered by fit. Every name comes back.
 
     Not a search: no composition, no enumeration, no closure walked. The library is what is
@@ -225,6 +225,14 @@ def retrieve(library: dict, gap: dict, in_type: str = "val",
     if track is None:
         scored = [(-fits(t, gap, in_type, out_type), len(t), n) for n, t in library.items()]
         return [n for _, _, n in sorted(scored)]
-    scored = [(-fits(t, gap, in_type, out_type), -track(n), len(t), n)
+    if youth is None:
+        scored = [(-fits(t, gap, in_type, out_type), -track(n), len(t), n)
+                  for n, t in library.items()]
+        return [n for _, _, _, n in sorted(scored)]
+    # **YOUTH SITS AFTER CONFIDENCE AND BEFORE LENGTH -- the reviewer, 2026-10-01.** It
+    # therefore orders only terms whose confidence is EQUAL, and can never prefer a young
+    # term over a better-recorded one. See `Gamma.youth_of` for why the spec's additive
+    # form is not used while the decay term is unbuildable.
+    scored = [(-fits(t, gap, in_type, out_type), -track(n), -youth(n), len(t), n)
               for n, t in library.items()]
-    return [n for _, _, _, n in sorted(scored)]
+    return [n for _, _, _, _, n in sorted(scored)]

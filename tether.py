@@ -2577,7 +2577,8 @@ class Agent:
         # THE TRACK RECORD ENTERS HERE AND ONLY HERE. `track_of` decays on read, mirroring
         # `rejection_of`, so the order reads evidence of the current age rather than a total
         # frozen at whatever tick it was last touched.
-        for n in retrieval.retrieve(self.gamma.library, gap, track=self.gamma.track_of):
+        for n in retrieval.retrieve(self.gamma.library, gap, track=self.gamma.track_of,
+                                    youth=self.gamma.youth_of):
             if n == exclude:
                 continue
             # RE-BIND WHAT ARRIVED WITHOUT A BINDING. `save` drops the operand because a slot

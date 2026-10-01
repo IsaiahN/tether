@@ -1861,6 +1861,81 @@ def test_a_downrated_member_is_restored_the_moment_it_moves():
         tether._DOWNRATE = os.environ.get("TETHER_DOWNRATE", "0") != "0"
 
 
+def test_youth_breaks_ties_within_equal_confidence_and_never_overrules_evidence():
+    """**THE YOUTH BONUS, AND ITS PLACEMENT IS THE WHOLE OF THE CARE HERE.**
+
+    Sec 5.10.8 writes `relevance = confidence x 0.5**(games/H) + youth`. With no games
+    counter the decay term is 1 and that sum FALLS MONOTONICALLY with experience --
+    untried 1.500 against proven-ten-times 1.008 -- so the additive form would put an
+    untried term above a proven one, always. **The decay term is load-bearing and is the
+    half that cannot be built.** Youth therefore sits in its OWN SLOT after confidence,
+    where it can never compare terms of different confidence.
+
+    Assertion 2 is the one that would have caught the additive form, so it is not a
+    formality.
+    """
+    import gamma as G
+    import retrieval
+    import snaps
+
+    g = G.Gamma(snaps._atoms())
+    names = sorted(a.name for a in g.atoms)
+    gap = {"varies": (), "arity": 1, "target_type": "val",
+           "varies_types": (), "rel_types": ()}
+
+    # **THE ALPHABET MUST OPPOSE THE EXPECTED ORDER.** Below youth the key falls to
+    # (len, name), and every snaps atom has len 1 -- so if the term youth should favour
+    # were alphabetically first, this would pass with the slot DELETED. That is exactly
+    # how the first surfacing test came out vacuous.
+    young, tried = names[-1], names[0]        # young sorts LAST by name
+    g.settle(tried, where="g:L0")
+    g.standing[tried].refute(g.tick, g.halflife, where="g:L0")
+
+    # 1 -- EQUAL FIT, EQUAL CONFIDENCE, DIFFERENT TRIAL COUNTS -> LESS-TRIED FIRST.
+    # The Laplace mean collapses these two states: confidence(0,0) == confidence(1,1).
+    assert abs(g.track_of(young) - g.track_of(tried)) < 1e-9, (
+        f"the premise is gone: confidences differ ({g.track_of(young)} vs "
+        f"{g.track_of(tried)}), so this case no longer tests YOUTH")
+    assert g.youth_of(young) > g.youth_of(tried), "the untried term is not the younger"
+    order = retrieval.retrieve(g.library, gap, track=g.track_of, youth=g.youth_of)
+    assert order.index(young) < order.index(tried), (
+        f"at equal fit and EQUAL CONFIDENCE the less-tried term did not sort first: "
+        f"{young} at {order.index(young)}, {tried} at {order.index(tried)}")
+
+    # 2 -- **AND YOUTH NEVER OVERRULES EVIDENCE.** This is the assertion that would have
+    # caught the spec's additive form: there, untried 1.500 beats proven 1.008.
+    h = G.Gamma(snaps._atoms())
+    hn = sorted(a.name for a in h.atoms)
+    proven, fresh = hn[0], hn[-1]             # proven sorts FIRST by name: no help from it
+    for _ in range(10):
+        h.settle(proven, where="g:L0")
+    assert h.track_of(proven) > h.track_of(fresh), "the proven term is not better-recorded"
+    assert h.youth_of(fresh) > h.youth_of(proven), "the fresh term is not the younger"
+    order2 = retrieval.retrieve(h.library, gap, track=h.track_of, youth=h.youth_of)
+    assert order2.index(proven) < order2.index(fresh), (
+        f"A YOUNGER TERM OUTRANKED A BETTER-RECORDED ONE -- youth is overruling evidence, "
+        f"which is the additive form's defect: {proven} at {order2.index(proven)}, "
+        f"{fresh} at {order2.index(fresh)}")
+
+    # 3 -- NOTHING IS EXCLUDED.
+    assert len(order) == len(g.library) and set(order) == set(g.library), (
+        f"retrieve dropped or added names: {len(order)} back from {len(g.library)}")
+
+    # 4 -- FIT STILL DOMINATES BOTH. A wrong-typed atom with a perfect record and maximal
+    # youth must still lose to a well-fitting one.
+    k = G.Gamma(snaps._atoms() + [G.Atom("misfit", lambda v, _c: v, "OBJECT", "COLOUR")])
+    fitter = next(n for n in sorted(a.name for a in k.atoms) if n > "misfit")
+    order3 = retrieval.retrieve(k.library, gap, track=k.track_of, youth=k.youth_of)
+    assert order3.index(fitter) < order3.index("misfit"), (
+        "a worse-FITTING term outranked a better-fitting one -- fit is no longer dominant")
+
+    # MUTATION CONTROL -- drop the youth slot and assertion 1 must fail.
+    blind = retrieval.retrieve(g.library, gap, track=g.track_of)
+    assert blind.index(young) > blind.index(tried), (
+        "THE CONTROL DID NOT FIRE: without the youth slot the order is still youth-ordered, "
+        "so assertion 1 was not demonstrating youth at all")
+
+
 if __name__ == "__main__":
     if "--cover" in sys.argv:
         for label, c in (("kernel.Frame", coverage()),
@@ -1912,6 +1987,7 @@ if __name__ == "__main__":
         test_track_record_orders_within_a_fit_level()
         test_disuse_never_moves_confidence()
         test_a_downrated_member_is_restored_the_moment_it_moves()
+        test_youth_breaks_ties_within_equal_confidence_and_never_overrules_evidence()
         print("  A5 and B5 reproductions still fire (expected): ok")
         print("  keyed reach loses nothing: ok · two vocabularies stay two: ok")
         print("  the quantifiers quantify (ONE fires, all != some): ok")
@@ -1919,6 +1995,7 @@ if __name__ == "__main__":
         print("  track record orders within a fit level (fit still dominates): ok")
         print("  disuse never moves confidence (forgiveness still rises): ok")
         print("  a downrated member is restored the moment it moves: ok")
+        print("  youth breaks ties within equal confidence, never overrules evidence: ok")
         print("  shipped generator coverage: ok · residual bound loses nothing: ok"
               " · resolutions are not the answer: ok · atom order pinned: ok"
               " · promotion clause recorded: ok · observer reaches the agent: ok"
