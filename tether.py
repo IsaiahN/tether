@@ -4600,7 +4600,16 @@ class Agent:
                      for x in Rt.actions(r, lib))
 
     def _runnable(self, r, before: dict[str, int], lib: dict | None = None) -> bool:
-        """Can this plan still be RUN here? -- the level-boundary check, 16d.
+        """Can this plan still be RUN here? -- 16d, and it runs EVERY STEP.
+
+        **IT WAS LABELLED "the level-boundary check" AND THAT UNDERSELLS WHAT IT DOES --
+        corrected 2026-10-01.** The set it compares against is `self.actions`, which
+        `_advertised` rewrites at the top of every step, so this fires whenever the advertised
+        set moves and not only at a boundary. A mid-level MODE SWITCH -- avatar actions
+        withdrawn, a positioned click left -- is therefore already handled here: the routines
+        naming a vanished action drop out of `shelf` at :4962 and return when it does.
+        **No refutation, no miss, no demotion is recorded on that path**, so it is dormancy
+        rather than punishment, which is what a vanished action deserves.
 
         It used to be `set(Rt.actions(r)) <= set(self.actions)`: a string comparison against the
         advertised set. **A level that keeps every button name and changes what two of them do
