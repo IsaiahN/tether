@@ -5314,8 +5314,20 @@ class Agent:
         # which is *pursue whichever objective happened to bind* -- and it measurably chose to
         # stand still, because `none_same` on a delta is satisfied by not moving. One selected
         # hypothesis, chosen on a shrinking discrepancy, is what §13.4 asks for.
-        chosen = self._goal_choice()
+        # **THIS EXIT RECORDED NOTHING, ONE LINE ABOVE A BRANCH WHOSE COMMENT CALLS AN
+        # UNRECORDED-OR-WRONG REASON *the one thing a whitebox record must not do*.** Measured
+        # on `buttons` and `click_only`: `_goal_split` refuses 5 of 5 times HERE, so the only
+        # reason the goal never reaches the aim was the only reason not written down.
+        #
+        # **AND `_goal_choice` ALREADY BUILT THE ANSWER.** Its `why` parameter fills a tally --
+        # `too_short` / `flat` / `rose` / `qualified` / `arrived`, plus `slots`, `longest` and
+        # `needs`. The selector was always saying why it named nothing; no caller asked.
+        _why: dict = {}
+        chosen = self._goal_choice(_why)
         if chosen is None:
+            self._split_why = "no_goal_choice"
+            self.led.record(self.cycle, "PLAN", "@objective", "split_refused",
+                            why="no_goal_choice", **_why)
             return None
         # **THE GOAL EXIT EMITS AN INTENT -- the first NON-exploratory one in the system.**
         # `docs/ACTION_INTERFACE_PLAN.md`. The selector above already chose the slot on the
