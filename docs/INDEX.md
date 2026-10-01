@@ -52274,3 +52274,55 @@ cost more than its residual is worth in the next*.
 
 **ROUTE PARKED. Reopen on a board where a carried composition can close a larger gap** —
 the measurement to repeat is this probe, not a build.
+
+## F391 -- **`distance` DROPS 89.1% → 56.8% ACROSS CONTEXTS, SO THE RELATIONAL GUARD STANDS ON EVIDENCE AS WELL AS KIND — AND THE INSTRUMENT NOW LIVES IN THE TREE**
+
+`dd09890` guarded relational slots against tier 2 on their declared KIND, with the
+accuracy for `distance` owed: it carried 86 of the 124 removed cross-context claims and
+had never been measured. **It is measured now.**
+
+    attribute   tier 1    tier 2        recorded (INDEX:51470)
+    row         100.0%    100.0%        100% / 100%
+    col         100.0%    100.0%        100% / 100%
+    proximity    94.6%     61.6%        95.8% / 60.4%
+    **distance   89.1%     56.8%        NEVER MEASURED BEFORE**
+
+**`distance` behaves like `proximity`, not like a coordinate** — it loses a third of its
+accuracy across contexts where row and col lose none. Its tier-2 reading is the worst of
+the four. **So the guard is right on evidence and not only on Isaiah's kind-split.**
+
+> **AND THE INSTRUMENT IS COMMITTED, WHICH IS THE LARGER REPAIR.** The script that
+> produced the original figures **did not survive** — `tiercheck.py` is a branch counter
+> that QUOTES them. *A measurement nobody can re-take is a measurement that cannot be
+> checked.* `tieracc.py` is now in the tree.
+
+**AND IT CALIBRATES ITSELF RATHER THAN TRUSTING ITS AUTHOR.** `RECORDED` holds the four
+published figures; `--calibrate` prints measured against recorded and ends with
+`CALIBRATED` or **`NOT CALIBRATED — no figure from it is evidence. Do not quote it.`**,
+exiting non-zero on failure — *an exit code is a declaration where a pattern match over
+stdout is a guess.*
+
+**THE FIRST ATTEMPT FAILED THAT GATE AND ITS NUMBER WAS DISCARDED UNREPORTED.** It walked
+EVERY action's table and scored the first single recorded landing against the outcome of
+the action actually PRESSED — a prediction about one press judged by another's result. It
+read row/col at **48% / 56%** against a recorded 100%, and produced `distance tier2 73.8%`
+with **tier 2 ABOVE tier 1**, which is the tell: pooling widens the recorded set, so the
+broken instrument rewarded vagueness. The fix scores only the pressed action's own entry.
+
+**TWO INSTRUMENTS WERE WRONG BEFORE ONE WAS RIGHT, AND ONLY THE CALIBRATION SEPARATED
+THEM.** The branch counter answered a different question; the first accuracy build was
+mis-scored. Neither announced itself.
+
+---
+
+### AND A SHARP EDGE IN THE `aim` SEAT, FOUND BY TRIPPING IT
+
+`dd09890` was refused twice, correctly both times. The second refusal is the one worth
+recording: **a line in the commit BODY beginning with the field name was parsed as the
+field** — the seat read ``Item: `sensors` `` from prose that said *"ITEM: `sensors` — what
+perception EMITS"*, backticks included, rather than the trailing `Item: sensors`.
+
+**A trailer field that prose can spoof is a real edge.** The practice is to name the item
+once, in its field, and nowhere else in the message. Not repaired — the seat's refusals
+were correct and a parser change is not this seat's call — but recorded so the next author
+does not spend two commits finding it.

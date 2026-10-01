@@ -2007,6 +2007,49 @@ def test_a_relational_slot_never_uses_tier_2_and_says_nothing_instead():
         "THE CONTROL DID NOT FIRE: with the declaration emptied the call still returned "
         "no prediction, so assertion 2 was not demonstrating the guard")
 
+    # ---- THE DELTA BRANCH, WHICH IS THE ONE THE AGENT ACTUALLY TRAVELS ----------
+    #
+    # **EVERYTHING ABOVE EXERCISES `lands` -- *which action lands this slot on that EXACT
+    # VALUE* -- AND NONE OF THE LIVE TRAFFIC GOES THROUGH IT.** `expected_move` returns a
+    # per-press STEP, which comes from the `delta` branch: *which way does it move and by
+    # how much*, pooling a mean over contexts.
+    #
+    # Guarding only `lands` left the board reading BYTE-IDENTICAL -- 56/38/30 cross-context
+    # claims unchanged -- while a unit test built around `lands` passed in both directions.
+    # **A test written against the site you chose cannot tell you the site was wrong**, so
+    # the second branch gets its own case rather than being assumed to follow.
+    #
+    # The delta branch is reached by an intent with a SIGN and no value.
+    def _dface(sl):
+        f = IFace.Interface()
+        f.table["ACTION1"] = {"by_ctx": {}, "n": 1,
+                              "delta": {(("other",), sl): (4, 8.0)}}   # ANOTHER context
+        return f
+
+    sign = IFace.Intent(IFace.BECOME, subject=slot, object="+")
+
+    d_plain = _dface(slot).realise(sign, ("ACTION1",), here, state, _World(()))
+    assert d_plain is not None and "in every context seen" in (d_plain.why or ""), (
+        f"the delta premise is gone -- tier 2 did not fire for an undeclared world: {d_plain}")
+
+    d_guard = _dface(slot).realise(sign, ("ACTION1",), here, state,
+                                   _World(("proximity", "distance")))
+    assert d_guard is None, (
+        f"a RELATIONAL slot pooled a cross-context MEAN DELTA and claimed {d_guard.why!r}. "
+        f"This is the branch `expected_move` returns, so this is the one that matters")
+
+    d_pos = _dface(pos).realise(IFace.Intent(IFace.BECOME, subject=pos, object="+"),
+                                ("ACTION1",), here, {pos: now},
+                                _World(("proximity", "distance")))
+    assert d_pos is not None and "in every context seen" in (d_pos.why or ""), (
+        "a POSITIONAL slot lost the delta branch's tier 2 -- the guard is too wide there")
+
+    # ITS OWN MUTATION CONTROL.
+    d_back = _dface(slot).realise(sign, ("ACTION1",), here, state, _World(()))
+    assert d_back is not None, (
+        "THE DELTA CONTROL DID NOT FIRE: with the declaration emptied the delta branch "
+        "still returned nothing, so the delta assertion was not demonstrating the guard")
+
 
 if __name__ == "__main__":
     if "--cover" in sys.argv:
