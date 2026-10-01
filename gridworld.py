@@ -150,6 +150,10 @@ class GridWorld:
     #
     # `False` by default, so every existing reading of this world is byte-identical.
     wired: bool = False
+    # THE GOAL, WHEN IT IS A COLOUR RATHER THAN A POSITION. `None` on the moving families, so
+    # their objective is byte-identical to before. Set in `__post_init__`, drawn per seed.
+    goal_obj: str | None = None
+    goal_colour: int | None = None
 
     def __post_init__(self) -> None:
         rng = random.Random(self.seed)
@@ -221,12 +225,35 @@ class GridWorld:
             def _apart(a: int, b: int) -> bool:
                 return max(abs(self.state[f"o{a}.row"] - self.state[f"o{b}.row"]),
                            abs(self.state[f"o{a}.col"] - self.state[f"o{b}.col"])) > 1
-            for i in rng.sample(range(N_OBJECTS), N_OBJECTS):
-                if len(self.buttons) >= N_BUTTONS:
+            # A CHAIN, NOT INDEPENDENT PAIRS -- and the reason is the OBJECTIVE, not neatness.
+            # The goal is `b1`'s colour and it must be reachable ONLY through `b1`'s button.
+            # With independent pairs the goal object would be a distractor, and a distractor
+            # RECOLOURS ITSELF, so clicking it directly would satisfy the goal and the
+            # which-button question would never have to be asked.
+            #
+            # `b0 -> b1 -> d`: pressing `b0` is the only thing that moves `b1.colour`, because
+            # pressing `b1` moves `d` instead. Drawn per seed, before any agent, like the rest.
+            pool = rng.sample(range(N_OBJECTS), N_OBJECTS)
+            chain = []
+            for i in pool:
+                if len(chain) >= N_BUTTONS + 1:
                     break
-                far = [j for j in range(N_OBJECTS) if j != i and _apart(i, j)]
-                if far:
-                    self.buttons[i] = rng.choice(far)
+                if all(_apart(i, c) for c in chain):
+                    chain.append(i)
+            if len(chain) >= N_BUTTONS + 1:
+                for a, b in zip(chain, chain[1:], strict=False):
+                    self.buttons[a] = b
+                # The goal object: a button that is ALSO a partner. `chain[0]` presses it;
+                # pressing it presses `chain[2]`, so it cannot recolour itself.
+                self.goal_obj = f"o{chain[1]}"
+                _now = self.state[f"{self.goal_obj}.colour"]
+                self.goal_colour = (_now + 1 + rng.randrange(3)) % 4
+        elif self.click_only:
+            # FIXTURE B: a target COLOUR on one object, reachable by clicking that object --
+            # the minimal reachable goal for a world where nothing moves.
+            who = rng.randrange(N_OBJECTS)
+            self.goal_obj = f"o{who}"
+            self.goal_colour = (self.state[f"{self.goal_obj}.colour"] + 1 + rng.randrange(3)) % 4
         # REACHABLE BY CONSTRUCTION, not by assertion. The target is where the mover ends up
         # after a random legal walk from its own start, so a path provably exists and nothing
         # had to be searched to know it. A generator that PICKED a target would have to prove
@@ -524,10 +551,22 @@ class GridWorld:
 
     def _completed(self) -> int:
         """ONE SITE. `objective()` and the published `@goal.completed` slot are one quantity,
-        and computing it twice is the `A6i` collision this repo keeps filing."""
+        and computing it twice is the `A6i` collision this repo keeps filing.
+
+        **AND THE GOAL IS NOW PER-FAMILY, BECAUSE A MOTIONLESS WORLD CANNOT HAVE A POSITION
+        GOAL -- `F398`.** Every family published `BECOME(o0, target)`; in `click_only` and
+        `buttons` NOTHING MOVES, so the agent held a want no action could touch for all sixty
+        cycles. Measured: a want on 60/60 cycles, owed on 56-58, and 85-88% of presses
+        guaranteed no-ops. **It is still ONE SITE -- the quantity varies, the computation does
+        not fork.**
+        """
+        if self.goal_obj is not None:
+            return int(self.state[f"{self.goal_obj}.colour"] == self.goal_colour)
         return int((self.state["o0.row"], self.state["o0.col"]) == self.target)
 
     def objective(self) -> tuple[str, float]:
+        if self.goal_obj is not None:
+            return f"BECOME({self.goal_obj}.colour, {self.goal_colour})", float(self._completed())
         return "BECOME(o0, target)", float(self._completed())
 
     def observe(self) -> dict[str, int]:
@@ -693,6 +732,55 @@ def family(name: str, seed: int, cycles: int | None = None) -> GridWorld:
     """
     if name not in FAMILIES:
         raise ValueError(f"no such family {name!r}; this habitat offers {FAMILIES}")
+    w = _build(name, seed, cycles)
+    _assert_reachable(name, seed, cycles)
+    return w
+
+
+def _assert_reachable(name: str, seed: int, cycles: int | None) -> None:
+    """**EVERY FAMILY'S OBJECTIVE MUST BE REACHABLE BY THAT FAMILY'S OWN ACTIONS -- `F398`.**
+
+    `click_only` and `buttons` shipped `BECOME(o0, target)` while advertising only a recolouring
+    click, so the goal could never be met and the agent carried an impossible want for every
+    cycle of every run. **It shipped silently because nothing checked.**
+
+    **THIS IS A RUN, NOT AN ARGUMENT.** It presses every advertised action at every cell on a
+    THROWAWAY copy and asks whether the objective's own SLOTS can move. Reasoning that colours
+    are clickable is the kind of assumption this check exists to catch -- and the whole defect
+    was an assumption that looked obviously true.
+
+    **IT ASKS WHETHER THE SLOT MOVES, NOT WHETHER THE GOAL COMPLETES, and the first version
+    asked the wrong one.** Completion needs a SEQUENCE -- a position target is many steps away
+    and a colour cycles mod 4 -- so a one-press completion test called `default` unreachable,
+    a family that has never been broken. **A check that fires on the working case is measuring
+    something other than what it claims**, which is this morning's lesson arriving inside the
+    guard written for this morning's lesson.
+    """
+    probe = _build(name, seed, cycles)
+    want = ([f"{probe.goal_obj}.colour"] if probe.goal_obj is not None
+            else ["o0.row", "o0.col"])
+    movable: set[str] = set()
+    for act in probe.actions():
+        tries = [(c, r) for r in range(GRID) for c in range(GRID)] + [(None, None)]
+        for x, y in tries:
+            t = _build(name, seed, cycles)
+            before = dict(t.state)
+            try:
+                t.step(act, x=x, y=y)
+            except ValueError:
+                continue
+            movable |= {k for k in want if before.get(k) != t.state.get(k)}
+    missing = [k for k in want if k not in movable]
+    if missing:
+        raise AssertionError(
+            f"family {name!r} seed {seed}: NO advertised action can move {missing} -- the "
+            f"objective {probe.objective()[0]!r} is unreachable in a world advertising "
+            f"{probe.actions()}. This is the `F398` defect and it must not ship again.")
+
+
+def _build(name: str, seed: int, cycles: int | None) -> GridWorld:
+    """The construction half of `family`, split out so the reachability check can build a
+    throwaway without recursing through the check itself."""
     if name == "click_only":
         return GridWorld(seed=seed, click_only=True)
     if name == "buttons":
