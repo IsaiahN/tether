@@ -52184,3 +52184,44 @@ never had an occasion, so it says nothing about the mechanism.
 > the posterior is genuinely ambiguous — equal confidence from unequal evidence — which is
 > principled and small. **Do not move it earlier in the key to make it bite: that is the
 > additive form by another route.**
+
+## F389 -- **A CARRIED TERM IS KNOWN ENOUGH TO BLOCK RE-DERIVING ITS OWN CHAIN AND UNUSABLE AS A PART, SO THE BLOCK IS CURRENTLY A PURE LOSS**
+
+Measured on a real save/load round trip, not inferred. A composed term settled in game 1:
+
+    game 1   `idn . inc`   is_settled TRUE    in units() TRUE
+    game 2   arrives IMPORTED (it does cross)
+             is_settled    FALSE
+             in units()    FALSE
+             track_of      0.500 — the untried prior
+
+**THE COMPOSITION CROSSES AND ITS STANDING DOES NOT** (see the `Gamma.save` field list:
+atoms, origin, handle, game, admitted, residual — not one `Standing` field). What that
+costs at the mint is precise:
+
+    `_library_fit`      iterates `retrieve(self.gamma.library, ...)` — THE WHOLE LIBRARY.
+                        **Carried terms ARE offered for BINDING.** Route 1 sees them
+    `mint`'s parts      `_units = tuple(self.gamma.units())` — settled only.
+                        **Carried terms are NOT offered as parts**
+    `mint`'s            built from `gamma.library.values()` — **which DOES include the
+    `_held_chains`      carried term**
+
+> **SO `mint` WILL NOT RE-INVENT `idn . inc` BECAUSE THE LIBRARY HOLDS IT, AND CANNOT
+> COMPOSE FROM IT BECAUSE IT NEVER SETTLED HERE.** The carried term occupies the space
+> without filling it. **Until the second route exists, the `_held_chains` block is a pure
+> loss: the agent is prevented from re-deriving something it cannot use.**
+
+**AND "AT FULL PRICE" IS EXACTLY EXPRESSIBLE, WHICH SEPARATES TWO CHANGES THAT LOOK LIKE
+ONE.** `cost = term_bits(gamma.length(term, _units), ...)`, and `length`'s own docstring:
+*counts a settled routine as ONE — only what the ground has paid for becomes a shortcut.*
+**`units()` MEMBERSHIP IS THE DISCOUNT.**
+
+    offering a carried term as a mint CANDIDATE at its full atom count
+        — carries nothing but the composition, which §5.10 already rules crosses
+    adding it to `units()` so it costs 1
+        — carries EARNED CREDIT across the boundary the ablation reads, and is
+          therefore Isaiah's, not the seat's
+
+**The earned route to the discount must stay the only one: bind → candidate → settle
+HERE → unit.** `TETHER_NO_CARRY_CANDIDATE` is default-on precisely so an imported term
+can reach `settle`, so that path exists and is not to be bypassed.
