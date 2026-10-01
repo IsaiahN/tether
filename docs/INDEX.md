@@ -52573,3 +52573,139 @@ world cannot show it*. Stated before the run, not after.
 
     MECHANISM   unchanged. The o0 anchor stays, labelled at the site
     CAPABILITY  none. This is a deferral with its evidence attached
+
+---
+
+## F396 — LAYER 1 MAKES *ACTING ON A CHANGES B* EXPRESSIBLE, AND ITS ONLY CONSUMER IS REACHED AND STARVED
+
+**COMMITTED AS A LABELLED PRECONDITION, NOT AS A CAPABILITY** — reviewer-ruled 2026-10-01,
+and the distinction is the entry's point.
+
+The delta key was `(ctx, slot)`: the button and the contact configuration, with no coordinate
+for the object acted UPON. Measured on `click_only`, **60 presses at 6 distinct objects
+collapsed into 6 cells under ONE context, with zero aimed coordinates in any key** — so
+*clicking A changes A* and *clicking B changes A* were the same cell.
+
+**THE KEY NOW CARRIES `rel` — `SELF` / `OTHER` / `NO_TARGET`**, derived per changed slot from
+the object at `r.coord`. Kinds, never names: `acted` computes the value and is never stored.
+
+    gridworld `buttons`, seeds 0,1,2, 60 cycles
+    cells_by_rel  {self: 4, other: 1}     remote_seen TRUE
+
+**THE `other` CELL EXISTS, WHERE NOTHING COULD EXPRESS IT BEFORE.** That is what the key buys.
+
+**AND THE CONSUMER FIRES ZERO TIMES.** Aim selection (`_aim_for`) was built as the agent-side
+reader so the distinction would be behaviour rather than a record:
+
+    calls to `_aim_for`              60
+      no subject on the intent       60      <- ONE CAUSE, NO OTHERS
+      remote not yet seen             0
+      no coord has moved that slot    0
+      AIMED BY REL                    0
+
+    intent at the aim site: ('BECOME OTHER', has-subject=False) x 60
+
+**Treatment and the mutation control (`_aim_for` neutered to `None`) are IDENTICAL IN EVERY
+COLUMN** — which is the correct reading given a consumer at zero, and NOT evidence about
+`rel`. `F359`'s shape: *executes is not has occasions.*
+
+**THE NULL WAS PRE-REGISTERED AS THIS EXACT CASE** before the run — *if the agent rarely forms
+an intent with a slot subject, `aim_from_rel` will read near zero, and that means the consumer
+is STARVED rather than wrong.* Reported as the case that was named, not reinterpreted.
+
+**AND THE SEATS FOUND A SIXTH CONSUMER THE PUBLISHED MAP MISSED.** `interface.py:472` unpacks
+the key in a shape my greps did not match, so the dependency map said five and there were six;
+`shipped` caught it. **It RAISED, because it unpacks** — the dangerous site was always the
+`.get()` lookup returning a default, and that one became the named `_summed()` for this reason.
+
+    MECHANISM   `rel` in the key; `_acted`; `_remote_seen`; `_aim_for`; `aimed_effect`
+    CAPABILITY  NONE YET, and that is the finding. The key is a precondition
+
+---
+
+## F397 — 85-88% OF EVERY PRESS ON A POSITIONED WORLD IS A GUARANTEED NO-OP, AND THE DOCUMENTED FIX FOR IT COVERS THE FIRST SIX CYCLES
+
+Found by chasing `F396`'s null rather than by looking for it.
+
+    WORLD  gridworld `buttons`, seeds 0,1,2, 60 cycles
+    POP    every press
+
+    seed 0   60 presses   AIMED 8   UNAIMED 52   board changed on 8
+    seed 1   60 presses   AIMED 9   UNAIMED 51   board changed on 9
+    seed 2   60 presses   AIMED 7   UNAIMED 53   board changed on 7
+
+**`_click` returns early when the coordinate is `None`, so an unaimed press cannot change
+anything — and BOARD-CHANGED MATCHES AIMED EXACTLY ON ALL THREE SEEDS**, which is the
+confirmation rather than the inference.
+
+**THE DEFECT IS RECORDED AS ALREADY FIXED.** `_made`'s docstring: *"Fixture B caught this: on a
+world whose only action is a positioned click, `ELICIT` returned it UNAIMED and the step was a
+guaranteed no-op — 24 steps, zero contact. The interface knows which actions are positioned;
+handing back a press it knows will do nothing is it failing at its one job."*
+
+> **THE FIX WAS `_unclicked`, AND `_unclicked` RETURNS `None` ONCE EVERY OBJECT HAS BEEN
+> CLICKED — after SIX presses on a six-object board.** The repair holds for six cycles and the
+> defect returns for the remaining fifty-four. *Repaired the instance, left the class*, where
+> the class is the sentence the docstring itself writes.
+
+**WHAT WAS REFUSED:** widening `_aim_for` to fire without a subject, and forcing a subject onto
+`ELICIT`. Both move the number; neither means the agent WANTED that slot. Choosing the target
+and calling it the agent's choice is the encoded answer in its smallest form.
+
+    MECHANISM   unchanged by this entry
+    CAPABILITY  none. It states what 87% of a positioned run is currently spent on
+
+---
+
+## F398 — THE AGENT WANTS SOMETHING ON EVERY CYCLE AND ITS ONLY OBJECTIVE IS UNREACHABLE BY CONSTRUCTION; `F396`/`F397`'s CAUSE IS A FIXTURE DEFECT, HALF OF IT MINE
+
+**THE HYPOTHESIS UNDER TEST WAS THAT FIXTURE C OFFERS NO OBJECTIVE** — no wants, no residual,
+so nothing ever names a slot. **IT IS REFUTED.**
+
+    WORLD  gridworld `buttons`, seeds 0,1,2, 60 cycles. POP every cycle.
+
+    seed  cycles  with_owed  system0_on  with_a_want  bound  outstanding
+      0      60       58          3          60         0       16.0
+      1      60       56          6          60         1       30.0
+      2      60       58          3          60         0       14.0
+
+**A WANT EXISTS ON 60 OF 60 CYCLES. SLOTS ARE OWED ON 56-58. OUTSTANDING REACHES 14-30.** The
+agent is not goal-less and is carrying real unexplained surprise.
+
+**WHAT IS WRONG IS THE OBJECTIVE ITSELF:**
+
+    family       actions                        objective
+    default      ('up','down','left','right')   BECOME(o0, target)
+    click_only   ('ACTION6',)                   BECOME(o0, target)
+    buttons      ('ACTION6',)                   BECOME(o0, target)
+
+**ALL THREE PUBLISH *MOVE o0 TO A TARGET POSITION*, AND IN TWO OF THEM NOTHING MOVES.** The
+only action recolours. So the agent holds, for sixty cycles, a want whose quantity NO
+AVAILABLE ACTION CAN TOUCH.
+
+> **THAT IS THE CAUSE `F396` AND `F397` STOPPED SHORT OF.** The one objective names a POSITION
+> slot; no action moves a position; so no slot-directed intent is ever formed — hence 60/60
+> subjectless `ELICIT`, hence 85-88% no-op presses, hence `rel`'s consumer starved. Not an
+> agent that wants nothing: an agent whose only want the world froze.
+
+**THE `buttons` HALF IS MINE.** Fixture C was built 2026-10-01 and inherited `default`'s
+objective without checking it was satisfiable in a world just made motionless. `click_only`
+has carried it longer.
+
+**AND IT PUTS A QUESTION OVER `F393`, LEFT OPEN RATHER THAN REWRITTEN.** That entry attributed
+Fixture B settling nothing to the residual never reaching the mint floor. The measurement
+stands (`under_floor` 334/334); the CAUSE may be incomplete, because a world whose only goal
+is unreachable may never form the residual that would price anything. Testing it needs a
+reachable objective on `click_only` — a fixture change, not an edit to the entry.
+
+**TWO INSTRUMENT BUGS ON THE WAY, BOTH EMITTING ZEROS, AND THEY ARE THE REASON THIS ENTRY
+NEARLY SAID THE OPPOSITE.** The probe crashed twice (`outstanding` is a method returning a
+float; its shape was guessed wrong twice) and each failure wrote
+`cycles_with_owed: 0, cycles_system0_on: 0, cycles_with_a_want: 0`.
+
+> **THOSE ZEROS CONFIRM THE HYPOTHESIS PERFECTLY AND ARE THE EXACT OPPOSITE OF THE TRUTH.**
+> A crashed instrument printed the expected answer. Caught only by reading the `error` field
+> before the numbers — `counters lie, read the write site`, inside the instrument itself.
+
+    MECHANISM   unchanged. No fix applied; the objective is a fixture question
+    CAPABILITY  none. It names why three findings today read the way they did

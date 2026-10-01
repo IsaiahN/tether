@@ -1843,8 +1843,9 @@ def test_a_downrated_member_is_restored_the_moment_it_moves():
             "per-evaluation defect the reviewer caught, back again")
 
         # 3 -- NOW IT MOVES. ONE contrary observation, and the discount must lift AT ONCE.
+        import interface as IFace  # layer 1 key needs the constant
         tbl = ag.iface.table.setdefault("__probe__", {"by_ctx": {}, "n": 1, "delta": {}})
-        tbl["delta"][("__ctx__", victim)] = (1, 1.0)
+        tbl["delta"][("__ctx__", victim, IFace.NO_TARGET)] = (1, 1.0)   # layer 1 key
         mark = len(ag.led.rows())
         ws2 = ag._scope_weights(slot, state)
         assert ws2 is None or ws2[peers.index(victim)] == 1.0, (
@@ -2021,9 +2022,11 @@ def test_a_relational_slot_never_uses_tier_2_and_says_nothing_instead():
     #
     # The delta branch is reached by an intent with a SIGN and no value.
     def _dface(sl):
+        import interface as IFace  # layer 1 key needs the constant
         f = IFace.Interface()
+        # ANOTHER context, and the layer-1 `rel` coordinate on the key
         f.table["ACTION1"] = {"by_ctx": {}, "n": 1,
-                              "delta": {(("other",), sl): (4, 8.0)}}   # ANOTHER context
+                              "delta": {(("other",), sl, IFace.NO_TARGET): (4, 8.0)}}
         return f
 
     sign = IFace.Intent(IFace.BECOME, subject=slot, object="+")

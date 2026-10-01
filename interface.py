@@ -96,6 +96,40 @@ POSITIONED: tuple[str, ...] = ("ACTION6",)
 # are relational. Until one does, this is the convention, named and visible.**
 RELATIONAL: tuple[str, ...] = ("proximity",)
 
+# **LAYER 1 -- WHICH OBJECT WAS ACTED ON, AS A KIND AND NEVER AS A NAME. Isaiah, 2026-10-01:
+# *"clicking one object can act as a button or trigger something elsewhere on the board"*, and
+# `F394` measured that the agent could not express that at all.** The delta key held the button
+# and the contact configuration; it had no coordinate for the object acted UPON, so *clicking A
+# changes A* and *clicking B changes A* were THE SAME CELL. Measured on `click_only`: 60 presses
+# at 6 distinct objects collapsed into 6 cells under ONE context, with zero aimed coordinates in
+# any key.
+#
+# THREE VALUES, PERMANENT VOCABULARY, NO CHURN -- which is `context()`'s own *kinds, never names*
+# applied to the cause instead of the contact. `acted` is used to COMPUTE the kind and is never
+# stored, so no object name enters a key.
+SELF, OTHER, NO_TARGET = "self", "other", "no_target"
+
+
+def _summed(delta: dict, ctx: tuple, slot: str) -> tuple[int, float]:
+    """`(n, tot)` for one `(ctx, slot)`, SUMMED OVER EVERY `rel`.
+
+    **THE READERS ASK A COARSER QUESTION THAN THE AUDIT RECORDS, and this is where the two
+    meet.** Layer 1 split the delta key three ways; a reader wanting *which way does this
+    action move this slot* wants the whole cell back. Summing a partition recovers the
+    original exactly, which is why layer 1 costs the realiser nothing -- and the conservation
+    check that pairs with this compares these sums against the pre-layer-1 totals.
+
+    A plain `.get((ctx, slot))` here would return the default against a 3-tuple key and read
+    ZERO WITHOUT RAISING -- the silent failure this file already records once, at the delta
+    loop. That is why the lookup is a named function rather than a dict access.
+    """
+    n = tot = 0
+    for rel in (SELF, OTHER, NO_TARGET):
+        a, b = delta.get((ctx, slot, rel), (0, 0))
+        n += a
+        tot += b
+    return n, tot
+
 
 def _is_relational(slot: str | None, env: object) -> bool:
     """Is this slot's attribute a RELATION TO ANOTHER OBJECT? **Asked of the world.**
@@ -237,6 +271,16 @@ class Interface:
         # this interface itself aimed, so *unclicked* means *I have not tried there*, never
         # *the board says nothing is there*.
         self.clicked: set[tuple[int, int]] = set()
+        # **LAYER 1's OTHER HALF -- INSTANCE MEMORY, AND IT IS DELIBERATELY NOT A KEY.**
+        # `rel` says WHETHER acting on one object changes another in this world; it cannot say
+        # WHICH object to press to move slot Y. That question is answered by what this agent
+        # has actually observed on THIS board: aimed here -> these slots moved.
+        #
+        # A RECORDING, NOT A METHOD, so it must not cross: never persisted, never in a term,
+        # never in a delta key, never in a handle. It is `clicked` with effects attached and it
+        # has exactly `clicked`'s lifetime -- a coordinate is only a referent while the board
+        # holds still.
+        self.aimed_effect: dict[tuple[int, int], set[str]] = {}
         # **EVERY ATTRIBUTE THE ACTOR CODE HAS EVER JUDGED, so `RELATIONAL` cannot silently
         # miss one -- the reviewer, 2026-09-28.** That list is short, so anything not on it
         # counts as the object's OWN by default, and a new relational attribute (`contact`,
@@ -403,7 +447,14 @@ class Interface:
                 # otherwise. **Being wrong about the prior is a residual, not a fault**, and
                 # widening the AUDIT's key instead would have traded away the separation that
                 # stopped gridworld crying wolf.
-                n, tot = d.get((ctx, intent.subject), (0, 0))
+                # SUMMED ACROSS `rel`, AND THAT IS NOT A CONVENIENCE. This asks *which way
+                # does this action move this slot* -- a question about the SLOT, never about
+                # whether the mover was the object acted on. Aggregating the layer-1 partition
+                # back together recovers exactly the pre-layer-1 totals, so the realiser's
+                # evidence is unchanged BY CONSTRUCTION rather than by hope. The comment above
+                # records that this reader is the one starved by a finer key; it is not
+                # starved by this one.
+                n, tot = _summed(d, ctx, intent.subject)
                 where = "here"
                 # **THE SECOND TIER-2 SITE, AND THE ONE THE AGENT ACTUALLY TRAVELS.** The
                 # `lands` branch above answers "which action lands this slot on that exact
@@ -418,8 +469,12 @@ class Interface:
                 # on what else is there. A relational slot takes its exact-cell reading or
                 # says nothing.
                 if not n and not _is_relational(intent.subject, env):
-                    n = sum(v[0] for (c, k), v in d.items() if k == intent.subject)
-                    tot = sum(v[1] for (c, k), v in d.items() if k == intent.subject)
+                    # `(ctx, slot, rel)` since layer 1 -- indexed, not unpacked. THIS IS THE
+                    # SITE MY OWN DEPENDENCY MAP MISSED: I grepped for the unpack shapes I
+                    # expected and this one is spelled differently, so the published map said
+                    # five consumers and there were six. The `shipped` seat found it.
+                    n = sum(v[0] for key, v in d.items() if key[1] == intent.subject)
+                    tot = sum(v[1] for key, v in d.items() if key[1] == intent.subject)
                     where = "in every context seen"
                 if not n:
                     continue
@@ -452,7 +507,9 @@ class Interface:
             # delta table answering a question it already holds.
             best, gain, why = None, 0.0, ""
             for a in offered:
-                for (_c, k), (n, tot) in self.table.get(a, {}).get("delta", {}).items():
+                # `(ctx, slot, rel)` since layer 1. This scan reads the SLOT and ignores both
+                # the context and the relation, so it widens by index rather than aggregating.
+                for (_c, k, _rel), (n, tot) in self.table.get(a, {}).get("delta", {}).items():
                     step = self._gap(k, intent.object, state)
                     if step is None or not n:
                         continue
@@ -506,7 +563,17 @@ class Interface:
             PARAMETER and needs nothing from above the seam** -- the agent asked to explore and
             did not say where, because where is not its business.
             """
-            coord = self._unclicked(state) if a in POSITIONED else None
+            # **LAYER 1 AT THE AIM, AND THIS IS WHERE `rel` BECOMES BEHAVIOUR.** Before this,
+            # the aim was pure exploration: a cell nobody had clicked, `None` once they all
+            # had. An agent that WANTS a slot moved could not press the thing that moves it.
+            #
+            # TWO HALVES, AND NEITHER DOES THE OTHER'S JOB. `rel` is asked first -- has acting
+            # on one object EVER changed another in this world? -- and only if it has is the
+            # instance record consulted for WHICH coordinate. In a world where every effect is
+            # SELF, hunting for a button is wasted presses and the sweep is right.
+            coord = (self._aim_for(intent, state) if a in POSITIONED else None)
+            if coord is None and a in POSITIONED:
+                coord = self._unclicked(state)
             if coord is not None:
                 why = f"{why}, aimed where nothing has been clicked"
             return Realisation(a, coord=coord, unmapped=(a not in self.table), why=why)
@@ -563,6 +630,60 @@ class Interface:
         if col is None or row is None:
             return None
         return int(col), int(row)
+
+    @staticmethod
+    def _acted(coord: tuple[int, int] | None, state: dict | None) -> str | None:
+        """Which object is AT `coord` -- `_at`'s inverse, and here for the same reason.
+
+        Knowing how this domain spells a position is the interface's job, so the `.row`/`.col`
+        parse stays below the seam rather than being repeated by a caller.
+
+        `None` when the action was not aimed, or was aimed where no object is -- and those two
+        are the same answer on purpose: in both cases there is no object to attribute the cause
+        to, and inventing one would be a guess.
+        """
+        if coord is None or state is None:
+            return None
+        rows = {k.rsplit(".", 1)[0] for k in state if k.endswith(".row")}
+        for obj in sorted(rows & {k.rsplit(".", 1)[0] for k in state if k.endswith(".col")}):
+            if Interface._at(obj, state) == (int(coord[0]), int(coord[1])):
+                return obj
+        return None
+
+    def _remote_seen(self) -> bool:
+        """Has acting on one object EVER changed another, in this world? **The `rel` gate.**
+
+        Read off the delta key, which is where layer 1 put it -- a general fact about the
+        world (*remote causation happens here*) rather than about any object, so it is the
+        half that would cross if anything did.
+
+        **IT IS A PREDICATE AND NOT A RATE.** One observed OTHER is enough: *it can happen*
+        is an existence claim, and a threshold would be a number nobody chose.
+        """
+        return any(k[2] == OTHER
+                   for e in self.table.values() for k in e.get("delta", {}) if len(k) > 2)
+
+    def _aim_for(self, intent: Intent, state: dict | None) -> tuple[int, int] | None:
+        """Where to press to move the slot this intent is about. `None` when there is no
+        evidence, so the caller falls back to the exploratory sweep.
+
+        **GATED ON `rel` FIRST.** Without an OTHER anywhere in this world, the instance record
+        can only ever name the slot's own object, which the sweep reaches anyway -- so
+        consulting it buys nothing and the gate keeps the exploratory default.
+
+        **AND THE RECORD IS CONSULTED FOR *WHICH*, NEVER FOR *WHETHER*.** That split is the
+        whole design: `rel` transfers and the coordinates do not.
+        """
+        slot = getattr(intent, "subject", None)
+        if not slot or state is None or not self._remote_seen():
+            return None
+        # The agent's own observations, most-specific first: a coordinate whose presses have
+        # moved exactly this slot. Ties broken by fewest side effects -- a press that moves
+        # one thing is better evidence about that thing than a press that moves five.
+        best = [c for c, slots in self.aimed_effect.items() if slot in slots]
+        if not best:
+            return None
+        return min(best, key=lambda c: (len(self.aimed_effect[c]), c))
 
     def _unclicked(self, state: dict | None) -> tuple[int, int] | None:
         """An OBJECT this interface has not aimed at yet, as `(x=col, y=row)`.
@@ -745,7 +866,8 @@ class Interface:
         reason: keyed too finely, the cells are populated and every query abstains.
         """
         n = tot = 0
-        for (_ctx, k), (cn, ct) in self.table.get(action, {}).get("delta", {}).items():
+        # `(ctx, slot, rel)` since layer 1 -- the relation is not what this reads.
+        for (_ctx, k, _rel), (cn, ct) in self.table.get(action, {}).get("delta", {}).items():
             if k == slot:
                 n += cn
                 tot += ct
@@ -781,6 +903,15 @@ class Interface:
         self.audits += 1
         if r.coord is not None:
             self.clicked.add(r.coord)
+        # READ OFF `before`, NOT `after`. The cause is whatever was at the coordinate WHEN THE
+        # PRESS LANDED -- on a board where the press moves things, reading `after` would
+        # attribute the effect to whatever has since arrived there.
+        _acted_on = self._acted(r.coord, before)
+        # The instance record, written from the agent's OWN press and its OWN audit. Keyed by
+        # the coordinate it aimed at, which is the only handle it has on "the thing I pressed".
+        if r.coord is not None:
+            self.aimed_effect.setdefault(r.coord, set()).update(
+                k for k in before if before.get(k) != after.get(k))
         # **THE EFFECT IS WHAT THE ACTION DID TO OWN ATTRIBUTES, NOT EVERY SLOT THAT MOVED --
         # 2026-09-28, and it is the `actor_of` defect one level along.** Measured on gridworld
         # with no remap, `left` was flagged CHANGED because one context held these two:
@@ -846,8 +977,13 @@ class Interface:
                 d = int(after.get(k, 0)) - int(before.get(k, 0))
             except (TypeError, ValueError):
                 continue
-            n, tot = e["delta"].get((ctx, k), (0, 0))
-            e["delta"][(ctx, k)] = (n + 1, tot + d)
+            # LAYER 1. `rel` says whether the slot that moved belongs to the object that was
+            # ACTED ON or to another one -- the coordinate that makes *acting on A changes B*
+            # expressible at all. Derived per changed slot, because one press can move both.
+            rel = (NO_TARGET if _acted_on is None
+                   else SELF if k.rsplit(".", 1)[0] == _acted_on else OTHER)
+            n, tot = e["delta"].get((ctx, k, rel), (0, 0))
+            e["delta"][(ctx, k, rel)] = (n + 1, tot + d)
             # **THE VALUE COLUMN -- §15, and it is a COLUMN rather than a mechanism.** The same
             # row, the same key, the same provenance: what this action was observed to LEAVE the
             # slot at. Only on a CHANGE, because *it was already 3 and I did nothing* is not
