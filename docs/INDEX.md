@@ -52326,3 +52326,57 @@ perception EMITS"*, backticks included, rather than the trailing `Item: sensors`
 once, in its field, and nowhere else in the message. Not repaired — the seat's refusals
 were correct and a parser change is not this seat's call — but recorded so the next author
 does not spend two commits finding it.
+
+## F392 — FIXTURE A IS CONSTRUCTED FOR THE FIRST TIME AND ITS DETECTOR GETS A TRUE POSITIVE AT +3 CYCLES
+
+**`remap_after` — Isaiah's Fixture A, *the actions change under the agent* — had THREE
+occurrences in the whole tree and ZERO call sites.** A comment, the field declaration, and
+the read inside `step`. Never constructed, in a seat or a test or a probe. `click_only`
+(Fixture B) had exactly one. **So the `changed`-set detector built for the case had never
+been handed one**, and its own comment says so: *"That detector has never had a true
+positive."*
+
+**IT WORKS.** World-level smoke run, `remap_after=4`, eight presses of `up`: the row
+displacement reverses sign across the trigger with the button's name unchanged. The board
+stays lawful and the mapping moves, exactly as the field's comment claims.
+
+**AND THE DETECTOR SEES IT.** Control vs treatment, seed 0, 60 cycles, **one arm per
+process**:
+
+    PRECONDITION   29 cycles compared, 26 non-empty set-readings, records IDENTICAL
+    changed        right   control never   treatment 32   <- TREATMENT ONLY, +3 cycles
+                   down    control never   treatment 48
+                   up      control    29   treatment 36
+                   left    control    38   treatment 58
+
+**`right` enters `changed` three cycles after the mapping moves and never enters it on the
+control across all 60 cycles.** `unreliable` responds the same way (`right` 32, `down` 34).
+
+**`down` at +19 and `left` at 58 are NOT claimed**: after the swap the arms take different
+actions and reach different states, so late differences are not attributable. **+3 is the
+claim, because three cycles is the least divergence the comparison affords.**
+
+**AND `conditional` IS NOT AN INDEPENDENT CONTROL, which is worth more than the positive.**
+It reads 4/13/18/8 identically on both arms — and every entry is ≤ 18, i.e. **all before the
+swap**. That set was saturated before the treatment began and *had no room to respond*. It
+is the saturation outcome, arriving for one set while another responded, and a reader who
+took its agreement as corroboration would be reading a set that could not have disagreed.
+
+### THE BOUNDARY WAS WRONG AND THE WRONGNESS LOOKED LIKE A DEFECT
+
+The first comparison put the swap at cycle 30 and found a divergence at 29 — impossible, on
+arms that are the same board until the swap. I attributed it to the global RNG (`gamma.py`
+names terms with `random.choices`); **a determinism check refuted that — two runs in one
+process, byte-identical books, 42 identical library names, entry cycles reproducing
+exactly.**
+
+**The cause was an off-by-one of mine.** `GridWorld.step` does `self._steps += 1` as its
+FIRST line and `_delta` then tests the ALREADY-INCREMENTED counter, so `remap_after=30`
+first applies at agent cycle **29**. *Go to the write site* found the guard; it did not make
+me read the line above it.
+
+    MECHANISM   `gridworld.FAMILIES` / `family()` declare the panel habitat-side, so a
+                caller no longer has to know `click_only` and `remap_after` by name
+    CAPABILITY  none directly -- but a detector with no true positive in its life now has
+                one, which is the difference between *it works* and *it has never failed*
+

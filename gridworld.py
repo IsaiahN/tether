@@ -613,3 +613,39 @@ def boards(n: int, start: int = 0) -> list[GridWorld]:
     """MANY BOARDS, so nothing can be overfitted to one. Seeds are consecutive and the caller's;
     a finding read on one board is a finding about that board until it is read on the rest."""
     return [GridWorld(seed=s) for s in range(start, start + n)]
+
+
+# anchor: not chosen here -- the swap must leave cycles on BOTH sides to be observable at all,
+# so it is stated as a fraction of the caller's run length rather than as a step number.
+REMAP_FRACTION = 0.5
+
+# THE FAMILIES THIS HABITAT OFFERS, DECLARED HERE BECAUSE A CALLER MAY NOT INFER THEM.
+#
+# Same reason as `relational_slots`: the two fixtures below were already declared at their
+# FIELDS, and a measurement that wants "the panel" had to know to look for `click_only` and
+# `remap_after` by name. **A seat searching for `families` found nothing and concluded the
+# panel did not exist** -- one capability under a word nobody tried.
+#
+# It says WHICH WORLDS EXIST, never which to use or what to read off them.
+FAMILIES = ("default", "click_only", "remap_after")
+
+
+def family(name: str, seed: int, cycles: int | None = None) -> GridWorld:
+    """One board from a named family. `cycles` only matters to `remap_after`, which needs to
+    know the run length to place its swap; the others ignore it.
+
+    **`remap_after` HAD NEVER ONCE BEEN CONSTRUCTED before this** -- three occurrences in the
+    whole tree (a comment, the declaration, the read inside `step`) and no call site, so the
+    `changed`-set detector built for it had never been handed a case. That is why it is reached
+    through a named door rather than left to each caller to remember the field.
+    """
+    if name not in FAMILIES:
+        raise ValueError(f"no such family {name!r}; this habitat offers {FAMILIES}")
+    if name == "click_only":
+        return GridWorld(seed=seed, click_only=True)
+    if name == "remap_after":
+        if not cycles:
+            raise ValueError("remap_after needs the run length: a swap with no cycles after "
+                             "it is a swap nothing can observe")
+        return GridWorld(seed=seed, remap_after=int(cycles * REMAP_FRACTION))
+    return GridWorld(seed=seed)
