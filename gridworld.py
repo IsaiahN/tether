@@ -468,6 +468,17 @@ class GridWorld:
         function of where things are, so storing it would let a rule write it and would let it
         drift from the positions it describes.
 
+        **KNOWN INDEX-0 ANCHOR, PENDING THE PAIRWISE ATOM -- labelled 2026-10-01, `F395`.**
+        o0 IS the avatar, so `o0.proximity` is the avatar's distance to ITSELF and reads ZERO
+        for the whole run -- measured on 6 of 6 rows across `default` and `remap_after`. One
+        slot in six is structurally inert because of where this anchor sits.
+
+        **IT IS LEFT IN PLACE DELIBERATELY.** Re-anchoring to the NEAREST OTHER object was
+        pre-registered and predicted WORSE on both moving families: a nearest-other referent
+        CHANGES as objects move, where this one is pinned, and proximity carries ~52% of all
+        board movement with up to 5 of its 6 slots bound. **The clean fix is the pairwise atom
+        below, not a different arbitrary anchor.** With Isaiah.
+
         **AND THE FUNCTION FORM IS NOT THIS AND IS STILL OWED.** He also named
         `ProximityToAnotherObject` -- a FUNCTION, *likely an atom taking objects*, giving
         distance between ANY pair. That is a vocabulary change rather than a perception one, so

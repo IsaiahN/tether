@@ -52481,3 +52481,95 @@ Same rule, same reason. Seed 0 unless stated, 60 cycles, from the repo root:
     CAPABILITY  none -- but the stage-5 gate now has a measured panel (default and
                 remap_after carry a population; click_only does not) and a measured
                 noise floor, neither of which existed before
+
+---
+
+## F394 — NO WORLD IN THIS PROJECT HAD A REMOTE EFFECT, MEASURED EXHAUSTIVELY, AND FIXTURE C IS THE FIRST
+
+**ENTERED LATE AND THAT IS RECORDED RATHER THAN TIDIED.** `3d546e6` cited `F394` in its
+commit message before this entry existed — a dangling reference I created, the same class as
+quoting a commit id before reading it. The measurement was real and taken before the commit;
+only the entry lagged.
+
+    WORLD   gridworld, families `click_only` and `buttons`, seeds 0,1,2
+    POP     EVERY CELL ON THE BOARD, exhaustively — 25 × 3 = 75 per family
+
+                  cells   no-op   self-only   REMOTE
+    click_only       75      57          18        0
+    buttons          75      57          12        6
+
+**FIXTURE B CONTAINS NO OBJECT-TO-OBJECT EFFECT AT ALL.** Not a rare one — zero on an
+exhaustive sweep. `_click` advances the colour of whatever sits at the clicked cell and
+`return`s inside the loop, so there is nothing else it can reach. **So every Fixture B reading
+in `F393` was taken in a world with no remote cause-and-effect in it to find**, which is why
+"the agent does not learn object-to-object relations there" could never have been a finding
+about the agent.
+
+**AND `default`'s PUSH IS THE NEAREST EXISTING THING AND IS NOT THE SAME RELATION.** o0
+arriving at o1's cell moves o1 — object-to-object, but CONTACT rather than remote, and
+measured at **5 of 200 steps across 5 seeds (2.5%)**, which is near the floor for learning
+anything.
+
+**FIXTURE C (`buttons`)**: K buttons wired to non-adjacent partners, drawn per seed before any
+agent and never published into `state`; clicking a button advances its PARTNER and leaves
+itself alone; everything else recolours itself. **The distractors are load-bearing** — with
+buttons only, *clicking changes something else* is always true and a mechanism scores full
+marks by having no discrimination. Partners sit outside the 8-neighbourhood (0 violations on
+every seed) because `contact_points` emits `diagonal` as well as `orthogonal`.
+
+    PANEL PRECONDITION, CHECKED BEFORE USE: the agent clicks ALL SIX OBJECTS on every seed in
+    60 cycles, so it reaches both buttons and distractors under its own aiming policy.
+    NOT a formality — Fixture B's agent aimed at six distinct coordinates in sixty presses.
+
+    MECHANISM   `gridworld.family("buttons", seed)`; `wired`, `N_BUTTONS`, `self.buttons`
+    CAPABILITY  none yet. Nothing learns from it — it makes the learning MEASURABLE
+
+---
+
+## F395 — PROXIMITY IS 13% OF THE SLOTS AND HALF THE BOARD'S MOVEMENT, ONE OF ITS SIX SLOTS IS STRUCTURALLY DEAD, AND STEP 2 IS DEFERRED ON A PREDICTION
+
+**THE BASELINE, TAKEN BEFORE A CHANGE THAT HAS NOT BEEN MADE.** This is the record of why
+de-anchoring `proximity` from o0 was NOT done, so the next reader does not re-derive it.
+
+    WORLD   gridworld `default` and `remap_after`, seeds 0,1,2, 40 cycles
+    POP     per slot: cycles OBSERVED (presence denominator) and cycles MOVED.
+            Control in the SAME probe at the SAME site: both counts over every
+            non-proximity slot
+
+    family       seed   prox/6 slots   other/40 slots   o0.prox   bound
+    default        0       197             182             0       5/6
+    default        1       191             175             0       5/6
+    default        2       186             167             0       2/6
+    remap_after    0       190             173             0       4/6
+    remap_after    1       178             167             0       5/6
+    remap_after    2       182             167             0       3/6
+
+**`o0.proximity` MOVED ZERO TIMES ON 6 OF 6 ROWS.** `_proximity` is Manhattan distance to o0
+and o0 IS the avatar, so that slot is the avatar's distance to ITSELF — identically zero by
+construction. **One slot in six is permanently inert for no reason but where the anchor was
+put**, and permanently inert is a different claim from quiet: *observed 40 times and never
+moved* can never become anything else here.
+
+**AND THE SHARE DOES NOT WOBBLE: 52, 52, 53, 52, 52, 52 PERCENT** of all board movement, over
+six boards and two families, on 6 of 46 slots. So proximity is the dominant moving quantity
+and up to 5 of its 6 slots carry non-IDN terms, including composed ones
+(`same . all<dec(o1.proximity)>`, `take<o0.col>`).
+
+**WHY STEP 2 IS DEFERRED — PREDICTED BEFORE ANY RUN, reviewer-ruled 2026-10-01.** The proposed
+fix was `proximity` = distance to the NEAREST OTHER object. **Predicted WORSE on both moving
+families**, and the mechanism is the referent: *distance-to-o0 has a FIXED referent;
+nearest-other has a CHANGING one*, so the slot's meaning shifts as objects move and a churning
+referent is harder to predict than an arbitrary pinned one.
+
+**AND FIXTURE C CANNOT ANSWER IT.** Nothing moves there, so proximity is CONSTANT under BOTH
+anchorings — a flat result would have read as *the change is harmless* when it means *this
+world cannot show it*. Stated before the run, not after.
+
+> **SO THE CHANGE IMPROVES NOTHING MEASURABLE AND ITS WHOLE CASE IS DOCTRINE** — which is a
+> real argument and not a measurement. `CLAUDE.md`: *an improvement that does not change
+> contact changes nothing.* The clean removal of the avatar assumption is the PAIRWISE ATOM
+> Isaiah placed with valence, where the agent composes the distance it wants, rather than us
+> picking a different arbitrary anchor on its behalf. **With Isaiah.**
+
+    MECHANISM   unchanged. The o0 anchor stays, labelled at the site
+    CAPABILITY  none. This is a deferral with its evidence attached
