@@ -149,7 +149,11 @@ def _agent(cycles: int = 25):
         # not sit harmlessly: it hides the next regression in the thing it pins.**
         ag = tether.Agent(env, gamma.Gamma(env.atoms(), game="m2test"),
                           tether.Config(accumulate=False))
-        ag._explore = lambda before, _subject=None: ag.drive.choose(
+        # **THE PARAMETER IS `subject`, NOT `_subject`, AND THE NAME IS LOAD-BEARING.**
+        # A double whose parameter name differs from the real function's silently forbids
+        # calling it by keyword -- `_curiosity_subject` aims `_explore(subject=...)` and this
+        # stub raised `TypeError` on a signature that was never the agent's.
+        ag._explore = lambda before, subject=None: ag.drive.choose(  # noqa: ARG005
             ag.actions, ag.cycle, tether._where(before))
         for _ in range(cycles):
             ag.step()

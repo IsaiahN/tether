@@ -126,7 +126,7 @@ which is the same shape as the six checker sites.**
 | unreachability is not provable inside | **Figure 9 · Figure 8** | **ok** — *the witness is always imported; the edge can only be named from beyond it.* **Figure 8 gives the reason with citations: closure is idempotent (definitional), Gödel/Tarski for the metaframe, and Chaitin — a frame cannot certify its own limit.** So `depth_exhausted`'s refusal to claim absence is a theorem, not a wording choice |
 | the five collapse modes | **Figures 2, 7, 8** | **reference** — mutual update · common cause · the mirror chain · the blend · **the undirected union**, which is importing without describing R first. §15.3's retrieval is the guard against the fifth and is unbuilt |
 | split before search | **Figure 9** · `THE_FORMULA` step 7 | **open** — *not one hard question but several well-formed ones. Split it rather than search.* Nothing splits; the mint searches harder |
-| the curiosity drive aims at NOVEL | **Figure 5** · `probe.py` | **open** — *aimed at the new bin, seeks the gap that is large and compressible.* The docstring says it; the draw is uninformed. Distinct from the transition probe, where uninformed IS the safety property |
+| the curiosity drive aims at NOVEL | **Figure 5** · `probe.py` | **PARTLY CLOSED, `F401`, 2026-10-01** — *aimed at the new bin, seeks the gap that is large and compressible.* **AND THE ROW WAS GENEROUS TO `probe.py` AT ITS OWN WRITE SITE:** the docstring carries the AIM (*nothing is scoring -> the curiosity drive, aimed at the NOVEL bin*) and **not** *large and compressible*, which is Figure 5's only; `NOVEL` appears **exactly once in the file**, on that line, and no code references the bin. **THE DRAW IS NO LONGER UNINFORMED AT THE CURIOSITY EXIT** — `_curiosity_subject` aims `tether.py:3618` by `outstanding x recurrence`, and the `bored()` exit at `3452` stays uninformed, where that IS the safety property. **STILL OPEN: the second factor changed the choice 1 time in 22**, so the aiming is the first factor's |
 | mint verdicts | `ARC_AGENT` §19.1 | **gap** — four of five. `UNREACHED` is reserved for after escalation |
 | the escalation ladder | `ARC_AGENT` §19.2 | **open** — five priced rungs, each a ledger entry |
 | `coverage` on a mint row | **Figure 1** · `ARC_AGENT` §19.1 | **ROUTE** — Figure 1 lists coverage among things that *do not count; a frame cannot score itself with a quantity it also produces*. §19.1 makes it the number that turns `unreached` into a measurement. **Both hold if it is a qualifier on a verdict and never a score of the agent** — which is how it is used |
@@ -52760,3 +52760,245 @@ wrote that line and never read it back.
 **THE ENTRY IS LEFT STANDING RATHER THAN EDITED**, per this file's rule: an error entry whose
 evidence is edited away stops being evidence. What is corrected is corrected here, at the row
 that carries the claim.
+
+---
+
+## F399 — `retrieve` DOES NOT NARROW. THE CUE-RETRIEVED SET IS THE WHOLE LIBRARY ON ALL 538 CALLS, AND THE DOCSTRING SAYS SO IN ITS SECOND LINE
+
+**WORLD:** gridworld families `buttons` / `click_only` / `default`, seed 0, 25 cycles,
+`max_depth=2`, construction copied verbatim from `scratch_panel.py:69-71`. Board stop respected.
+**POPULATION:** every `retrieval.retrieve` call on the agent path, spied at `tether.py:2580`,
+counting `len(library)` in and `len(result)` out.
+
+    arm          calls   |library| at call   |CUE-RETRIEVED SET|   nonzero
+    buttons       104       min 14 max 14      min 14 max 14       104/104
+    click_only    146       min 14 max 14      min 14 max 14       146/146
+    default       288       min 14 max 31      min 14 max 31       288/288
+
+**THE CUED SET EQUALS THE LIBRARY SIZE ON EVERY CALL, INCLUDING THE 288 WHERE THE LIBRARY IS
+GROWING FROM 14 TO 31.** `retrieve` is an ORDERING, not a filter, and its own docstring
+(`retrieval.py:183`) states it: *"ONE PASS over the library, ordered by fit. **Every name comes
+back.** Not a search: no composition, no enumeration, no closure walked."*
+
+**SO THE REVIEWER'S POINT 2 — *measure any naming cost over the CUE-RETRIEVED candidate set, not
+the whole library* — NAMES A DISTINCTION THAT DOES NOT EXIST IN THE MECHANISM.** The two sets are
+identical by construction. Withdrawn; what remains available is a PREFIX of the fit ordering,
+which is a new mechanism with a cutoff in it and is not reached for here.
+
+**AND THE SEAT'S PLAN OVER-CLAIMED A SECOND WAY, RECORDED BECAUSE THE CONCLUSION SURVIVED AND THE
+REASON DID NOT.** The 13:28 plan said point 2 was *"not a new mechanism, just the price reading
+what retrieval already produced."* Read at the write sites: `retrieve` narrows `gamma.library`
+(stored terms, by name) and `term_bits` prices over `gamma.alphabet`, which is `len(self.atoms)`
+(`gamma.py:986`). **A library term is a COMPOSITION of atoms, so these are different populations
+and neither is a subset of the other** — the connection needs a projection from retrieved TERMS
+down to the ATOMS they are built from, which does not exist.
+
+> **AND THE PRE-REGISTERED PREDICTION WAS WRONG IN THE DIRECTION THAT MATTERS.** The seat wrote,
+> before the run: *"on buttons and click_only NOTHING BINDS, so the library should be EMPTY and
+> the cued set ZERO — not small, zero. If the set is non-zero there, I am wrong about why."* **The
+> library is 14 on both click worlds and 32 on `default`.** Published without the run, the cause
+> would have read *the library is empty*, which is false. **`refuter-can-fire-for-the-wrong-reason`
+> at the level of a cause rather than a result**, and the only thing that caught it was writing
+> the prediction down first.
+
+**A THIRD FACT FROM THE SAME RUN, FILED BECAUSE IT BEARS ON THE FLOOR WORK:** mint ENUMERATES over
+`gamma.units()` and PRICES over `gamma.alphabet`. On `default` that is **units 15 against a
+library of 32** — the library holds more than `units()` promotes, and the price already
+under-counts the space the search walks. No proposal attached; recorded so it is not re-found.
+
+**AND `INDEX:129` IS GENEROUS TO `probe.py` AT ITS OWN WRITE SITE.** The row reads *"the docstring
+says it; the draw is uninformed"* for Figure 5's *aimed at the new bin, seeks the gap that is large
+and compressible.* **The docstring carries the AIM** — *"nothing is scoring -> the curiosity drive,
+aimed at the NOVEL bin"* — **and not the second half**, which is Figure 5's only. `NOVEL` appears
+**exactly once in the whole file**, on that docstring line; no code references the novel bin.
+
+---
+
+## F400 — THE TWO FACTORS OF THE VALUE-OF-UNDERSTANDING TERM ARE ONE QUANTITY SCALED ON `buttons`, AND THE TERM WOULD HAVE PRODUCED A PLAUSIBLE NUMBER ANYWAY
+
+**WORLD AND CONSTRUCTION:** as `F399`. **POPULATION:** the 46 slots the agent holds.
+
+Figure 5 specifies the term rather than leaving it to be designed: *"the curiosity drive — fires
+when nothing is scoring, aimed at the new bin, **seeks the gap that is large and compressible**"*
+(`DISCOVERY.md:1303`). The reviewer offered per-slot `outstanding` OR delta recurrence as
+alternatives; **they are its two factors and the corpus conjoins them.** `LARGE` is
+`outstanding(slot)` (`tether.py:2767`, per-slot, confirmed at the write site). `COMPRESSIBLE` is
+the recurrence count `n` from the interface delta table.
+
+**THE STATED PRECONDITION PASSES AND THE ONE THAT MATTERS DOES NOT.**
+
+    arm          outstanding nonzero   recurrence nonzero   V can be nonzero
+    buttons          5 of 46                  5                   5
+    click_only       7 of 46                  7                   7
+    default         13 of 46                 13                  13
+
+Both factors are non-zero on all three worlds, so the pre-registered precondition is met. **The
+sets being the same size on every world is what prompted the next check** — the per-slot ratio
+`outstanding / recurrence`, distinct values:
+
+    buttons      {2.0}                                     PROPORTIONAL -- one quantity
+    click_only   {1.0, 2.0}                                weakly decoupled
+    default      {0.33 0.93 1.0 1.57 1.59 1.64 1.73 2.0    genuinely independent
+                  2.14 2.32 2.39 2.42}
+
+**ON `buttons` THE SECOND FACTOR CONTRIBUTES NOTHING: `V = outstanding x (outstanding/2) =
+outstanding^2 / 2`.** The cause is structural rather than a defect — `outstanding` increments by a
+fixed amount per surprise and each surprise is one delta observation, so where every surprise is a
+single unit the two are the same count twice. **They decouple on `default` only because recurrence
+CEILINGS at 25 = the cycle count, which is saturation and not independence either.**
+
+> **AND A SQUARE IS MONOTONE IN THE RIGHT DIRECTION, SO NOTHING ABOUT THE NUMBER WOULD HAVE
+> REVEALED IT.** The term would have been computed, fired, and reported as working. **This is the
+> `A6i` collision inside a term** — two names over one quantity — and it is caught only by asking
+> whether the factors move independently, which no non-zero check can answer.
+
+**AND *SAME COUNT SCALED* WAS NEARLY FILED AS GENERAL.** It is true on `buttons`, two-valued on
+`click_only`, and false on `default`. **Per world, never pooled — and pooling here would have given
+one wrong answer in both directions at once**, since the worlds disagree rather than vary.
+
+**A THIRD QUANTITY IS INDEPENDENT AND IS MEASURED RATHER THAN PROPOSED.** Context concentration,
+`conc(slot) = observations / distinct (ctx, rel) keys`, both already in the delta table:
+
+    default      slot              outst   recur   keys    conc
+                 o1.proximity     59.795      25      6    4.17
+                 o2.proximity     59.795      25      6    4.17
+                 o1.distance      48.432      20      6    3.33
+                 o4.distance      44.973      21      6    3.50
+                 o3.proximity     43.185      25      6    4.17
+
+**It is not a copy of either factor** — `outstanding` 59.795 and 43.185 both give 4.17, and 48.432
+gives 3.33. On the click worlds its range is small (3.00 for `o0.colour`, 1.00 elsewhere) but the
+**ordering is right: `o0.colour` is the slot the click actually moves and the only one with a
+concentrated context.** NOT ADOPTED — one run's evidence, and Figure 6's entry rule is that an
+instrument is improved from a worse one already returning something, which recurrence is.
+
+**NOTHING BUILT ON EITHER FINDING. The open question put to the reviewer is whether the
+compressible factor should be a separate quantity at all, or whether Figure 5's *large and
+compressible* is one reading the agent should be COMPOSING rather than two that are handed to it.**
+
+**AMENDED SAME DAY, 2026-10-01 14:27 — *NOTHING BUILT* WAS TRUE WHEN WRITTEN AND LASTED ABOUT AN
+HOUR.** The reviewer approved both halves at 13:48 and **ONLY ONE WAS BUILT**:
+
+    (3) the draw split, curiosity aimed by V                        BUILT
+    (2) "V ENTERS ALONGSIDE THE GOAL GAP; risk offsets; cost one con"  NOT BUILT
+
+**`_understanding` HAS EXACTLY ONE READER, `_curiosity_subject`** — grepped, not assumed. So the
+pre-registered refuter, which counts adoption decisions V flipped against the goal gap, **TESTS A
+TREATMENT THAT DOES NOT EXIST.** Running it would have returned zero flips and the term would have
+been reported WITHDRAWN — *a correctly computed number from a world where it could only ever have
+been zero.* **Caught by looking for the write site BEFORE running the measurement rather than
+after**, which is the only order in which this class is catchable.
+
+**THE OUTCOME A/B, ONE SCRIPT ONE FLAG (`_AIMED_CURIOSITY`), 3 worlds x 3 seeds x 2 arms, 25
+cycles:**
+
+    world        seeds moved   bound non-IDN      no-op share
+    buttons          3 of 3    0 -> 1 (all)       0.68/0.68/0.72 -> 0.20
+    click_only       1 of 3    0 -> 1 (seed 0)    0.68 -> 0.20 (seed 0 only)
+    default          0 of 3    IDENTICAL IN EVERY COLUMN -- zero regression
+
+At 60 cycles on the call that matches the record: **0.87 -> 0.38 on seeds 0 and 1.**
+
+**AND A MUTATION CONTROL ATTRIBUTES IT TO THE SUBJECT RATHER THAN TO THE CHANGE.** Three arms on
+`buttons`, `(no-op, bound)`: `OFF (0.68, 0)` · **`NULLED` — the call made and the ledger row
+written, subject forced to `None` — `(0.68, 0)`, IDENTICAL TO OFF ON ALL THREE SEEDS** · `ON (0.20,
+1)`. The call costs nothing and the row costs nothing; **the subject is the cause.**
+
+**`default`'s ZERO is not the mechanism sleeping:** the curiosity exit is reached 10 of 25 cycles
+there and names a subject every time. **Its no-op share is already 0.00** — every action changes
+something, so there is no waste to remove. **The aiming helps exactly where actions were being
+wasted and does nothing where they were not**, which is the shape of the result rather than a
+caveat.
+
+> **AND THE PANEL PRECONDITION FOR THE UNBUILT HALF IS ALREADY MEASURED: `bargain_paid` IS 0 ON
+> BOTH CLICK WORLDS ACROSS ALL SIX ROWS** and 211/96/180 on `default`. **Adoption decisions do not
+> happen on the click worlds at all, so the adoption half can only be measured on `default`** —
+> stated before that build rather than discovered in its result.
+
+**WHAT IT SHOWS AND WHAT IT DOES NOT.** Shows: aimed exploration cuts wasted presses by half to
+two-thirds where presses were wasted, and binds one slot where none ever bound. **Does not show
+that V is a good term** — the aiming is the FIRST factor's, `outstanding` alone picks the same slot
+21 times in 22, and one bound slot of 46 with `settled`/`paid`/`reuse`/`routines` still at zero is
+**a loop that has started turning, not one that is running.**
+
+---
+
+## F401 — THE CURIOSITY DRAW IS AIMED, IT PICKS THE SLOT THE CLICK ACTUALLY MOVES, AND THE SECOND FACTOR CHANGED THE CHOICE ONCE IN 22
+
+**WORLD:** gridworld families `buttons` / `click_only` / `default`, seed 0, 25 cycles,
+`max_depth=2`. Board stop respected. **POPULATION:** every cycle reaching the curiosity exit
+(`tether.py:3618`), stated per arm.
+
+**NO NEW PATH WAS NEEDED, AND THAT IS THE FINDING BEFORE THE NUMBERS.** `_explore(before,
+subject=None)` **already took a subject** and both call sites were passing nothing. The seam was
+built and being called empty — the same shape as every other link in the `F393` chain.
+
+    interface.py   `Interface.recurrence(slot)` -- n over every action and (ctx, rel) key.
+                   Docstring LABELS IT A PROXY for compressibility and names `buttons` as
+                   where the proxy is not independent.
+    tether.py      `_understanding(slot) = outstanding(slot) * iface.recurrence(slot)`
+                   `_curiosity_subject(before)` -- argmax over slots; `None` when nothing
+                   carries both, recorded as a PLAN/`curiosity` row.
+    THE SPLIT      `3618` -- the exit taken when the goal split refused -- is AIMED.
+                   `3452`, the `bored()` exit, is UNTOUCHED and stays UNINFORMED.
+                   **`starving()` is not branched on**, so `INDEX:185`'s prohibition is
+                   not engaged and the trigger-channel conflict stays open rather than
+                   being resolved by a build.
+
+**TREATMENT-EXECUTED, WITH THE DENOMINATOR RATHER THAN A COUNTER:**
+
+    arm          occasions   named a subject   subject chosen
+    buttons        12 / 25         12          o0.colour  (12)
+    click_only     12 / 25         12          o0.colour  (12)
+    default        10 / 25         10          o4.distance (5), o4.proximity (5)
+
+**AND THE SUBJECT IS THE RIGHT ONE: `o0.colour` IS THE SLOT THE CLICK ACTUALLY MOVES.**
+Exploration had no subject at all before this.
+
+**THE PRE-REGISTERED REFUTER DID NOT FIRE AND CAME ONE OCCASION FROM FIRING.**
+
+    arm          occasions   V DISAGREES with outstanding-alone
+    buttons         12            0 of 12   (expected -- factors proportional, `F400`)
+    click_only      12            0 of 12
+    default         10            1 of 10   V chose `o4.proximity`;
+                                            outstanding-alone: `o4.distance`
+
+**ON THE TWO WORLDS WHERE THE PRECONDITION HOLDS: 1 DISAGREEMENT IN 22 OCCASIONS.** The refuter
+said ZERO and it is one, so by the letter the term stands. **By the substance the aiming is real
+and THE FIRST FACTOR IS DOING ALL OF IT** — `outstanding` alone picks the same slot on 21 of 22.
+
+> **ONE SEED, AND NO SEED SPREAD WAS MEASURED FOR THIS QUANTITY.** One disagreement on one seed
+> is not distinguishable from noise, and *an effect inside the seed spread* is the standing
+> warning. **It is not read as a working second factor.**
+
+**NOT TUNED, ON THE REVIEWER'S EXPLICIT RULING (2026-10-01, *report, don't tune*).** The factors
+were not weighted and recurrence was not swapped for `F400`'s context concentration to improve the
+number. ***The number was low so I changed the instrument* is the move this seat exists to
+refuse**, and the reading is left as it reads.
+
+**WHAT CHANGED IS CONTACT, AND IT IS THE FIRST FACTOR THAT CHANGED IT.** The curiosity exit went
+from drawing WITH NO SUBJECT to naming the slot with the most unexplained surprise — one of the
+`F393` chain's own steps, *`_explore` with no subject*, now carrying one. **The second factor has
+not earned its place on this panel**, and the open options are more seeds or the
+context-concentration reading, neither taken without a ruling.
+
+---
+
+## F402 — THE NAMING COST SHOULD FOLLOW THE CUE ORDER RATHER THAN THE ALPHABET SIZE. RECORDED AS A DESIGN, NOT BUILT
+
+**Reviewer, 2026-10-01, recorded at their instruction after `F399` closed both narrowing routes.**
+Price narrowing is SET ASIDE: there is no narrowed set to price over, and a terms-to-atoms
+projection is a new mechanism.
+
+**THE CANDIDATE DESIGN, FOR WHEN IT IS NEEDED.** `retrieve` **ORDERS and never excludes** (`F399`),
+so a naming cost can follow the ORDER rather than the alphabet size: an atom or term near the top
+of a cue-driven order costs few bits, one far down costs more — **rank-based code length.**
+
+> **ITS PROPERTY IS THE ONE THE FRONTLOAD ARGUMENT NEEDS: a large frontload adds REACH without
+> raising the cost of what the cues point at, and NOTHING IS EXCLUDED.** That is the direct answer
+> to the tension `F397` measured — *a richer frontload raises the price of every term* — and it
+> resolves it without a cutoff, which is what makes it preferable to a top-k prefix.
+
+**IT BECOMES RELEVANT AT THE FULL FRONTLOAD**, where the floor is 22.80 bits (`2*log2(alphabet+1)`
+at ~2700 atoms). **On the 14-atom panels of 2026-10-01 it is not the operative change and V is.**
+NOT BUILT.

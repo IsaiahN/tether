@@ -873,6 +873,27 @@ class Interface:
                 tot += ct
         return None if n == 0 else tot / n
 
+    def recurrence(self, slot: str) -> int:
+        """HOW MANY TIMES THIS SLOT HAS BEEN SEEN TO MOVE, over every action and every
+        `(ctx, rel)` key. The COMPRESSIBLE half of Figure 5's *large and compressible*.
+
+        **A PROXY, AND LABELLED ONE HERE RATHER THAN IN A NOTE -- the reviewer, 2026-10-01.**
+        Recurrence is EVIDENCE OF repeatable structure; it is not a compression reading. A
+        gap seen once is not incompressible, it is unassessed.
+
+        AND IT IS NOT INDEPENDENT OF MAGNITUDE ON EVERY WORLD. `F400` measured the ratio
+        `outstanding/recurrence` per slot: one distinct value on `buttons` (the two are one
+        count scaled, so a product is a square), two on `click_only`, twelve on `default`.
+        **Do not read a second factor's contribution off a world where that ratio is
+        constant.**
+        """
+        n = 0
+        for e in self.table.values():
+            for key, (cn, _ct) in e.get("delta", {}).items():
+                if len(key) > 1 and key[1] == slot:
+                    n += cn
+        return n
+
     def audit(self, r: Realisation, before: dict, after: dict, ctx: tuple = ()) -> bool:
         """Record what this action did, and report when it does not have ONE fixed effect.
 

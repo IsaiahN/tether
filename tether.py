@@ -138,6 +138,12 @@ _BARGAIN_FIT = os.environ.get("TETHER_BARGAIN_FIT", "1") != "0"
 # and the default is OFF until he rules.
 _DOWNRATE = os.environ.get("TETHER_DOWNRATE", "0") != "0"
 
+# **THE AIMED CURIOSITY DRAW, DEFAULT ON -- the reviewer, 2026-10-01.** The flag exists so the
+# before/after is ONE SCRIPT WITH ONE FLAG rather than two code states: OFF restores the
+# subjectless `_explore` the curiosity exit used before `F401`. The `bored()` exit is not
+# behind this and never becomes aimed -- its uninformed draw is a safety property, not an arm.
+_AIMED_CURIOSITY = os.environ.get("TETHER_AIMED_CURIOSITY", "1") != "0"
+
 # ARM F -- RECIPE DEDUP. The novelty check below tests `term.name`, which carries operand AND
 # guard, so `translate . recolour<o5.w>` and `<o12.w>` both read NOVEL and both get minted.
 # Measured: 94% of mints re-derive a chain already held, and `translate . recolour` was minted
@@ -3615,7 +3621,12 @@ class Agent:
         goal = self._goal_split(before)
         if goal is not None:
             return goal, "discriminate:goal"
-        return self._explore(before), "draw"
+        # THE CURIOSITY EXIT, AND IT IS THE ONE THAT IS AIMED. The goal split refused, so
+        # nothing is scoring -- `_curiosity_subject` names what is worth finding out.
+        # The `bored()` exit above stays UNINFORMED and must: a probe chosen by the
+        # current model can only confirm it, which is that branch's safety property.
+        subject = self._curiosity_subject(before) if _AIMED_CURIOSITY else None
+        return self._explore(before, subject=subject), "draw"
 
     # -- SYSTEM 0, CONTACT-SEEKING. Isaiah, 2026-09-21: *I said RANDOM, but more accurately
     # what humans do is: TRY TO MAKE CONTACT. What happens if this touches or interacts with
@@ -3664,6 +3675,48 @@ class Agent:
         if owners:
             return owners[self.cycle % len(owners)], "seek-contact"
         return None, "all-contacts-explored"
+
+    def _understanding(self, slot: str) -> float:
+        """WHAT IS WORTH FINDING OUT ABOUT THIS SLOT. Figure 5's *seeks the gap that is LARGE
+        AND COMPRESSIBLE*, as a product of two quantities the agent already holds.
+
+            LARGE        `outstanding(slot)` -- surprise not yet explained, monotone
+            COMPRESSIBLE `iface.recurrence(slot)` -- a PROXY, labelled at its own site
+
+        **A PRODUCT, NOT A SUM, AND THAT IS WHAT THE *AND* MEANS.** A large incompressible gap
+        is noise; a small compressible one is already understood. A sum lets either factor
+        alone carry the term. The priors' information-gap curiosity (*peaks when a gap is felt
+        but not vast*) falls out of the product with no tuned number, because a vast gap is
+        typically incompressible -- two corpus sources, one term, no magic constant.
+
+        `F400`: the two factors are NOT independent on every world -- one ratio on `buttons`,
+        twelve on `default`. A world with a constant ratio cannot show the second factor.
+
+        **AND ON THESE PANELS THE SECOND FACTOR IS NEAR-REDUNDANT WITH THE FIRST: it changes the
+        chosen slot 1 TIME IN 22 (`F401`).** Kept rather than dropped -- it is the corpus's
+        *compressible* and it is cheap -- but it is **a proxy waiting for a world where structure
+        and surprise come apart**, and it is not carrying the aiming today. NOT TUNED, on the
+        reviewer's ruling: the number is reported, not improved.
+        """
+        return self.outstanding(slot) * self.iface.recurrence(slot)
+
+    def _curiosity_subject(self, before: dict) -> str | None:
+        """The slot with the most to learn, or `None` when nothing has any.
+
+        `None` IS A READING AND NOT A FALLBACK: it means no slot the agent can see carries
+        both unexplained surprise and a record of having moved, and `_explore` then draws
+        without a subject exactly as it did before. The ledger says which happened.
+        """
+        best, top = None, 0.0
+        for slot in sorted(before):
+            v = self._understanding(slot)
+            if v > top:
+                best, top = slot, v
+        self.led.record(self.cycle, "PLAN", best or "@board", "curiosity",
+                        subject=best, value=round(top, 4),
+                        reads=("Figure 5 -- the gap that is large and compressible. "
+                               "`None` means no slot carries both."))
+        return best
 
     def _explore(self, before: dict, subject: str | None = None) -> str:
         """**THE EXPLORATORY EXITS GO THROUGH THE SEAM.** The agent forms an INTENT -- *elicit a

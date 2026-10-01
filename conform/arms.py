@@ -81,6 +81,16 @@ ROOT = Path(__file__).parent.parent
 # it looked like it did -- `A6i`'s writing side, which fires exactly where a row is authored.
 # A pair means the two are declared at their site to belong on together.
 ARMS: dict[str, str] = {
+    "TETHER_AIMED_CURIOSITY": "the CURIOSITY exit names a subject -- the slot with the "
+                              "most unexplained surprise that it has also watched move "
+                              "(Figure 5's *large and compressible*) -- instead of "
+                              "exploring with none. **ON BY DEFAULT, and the flag exists "
+                              "so the before/after is ONE SCRIPT WITH ONE FLAG rather "
+                              "than two code states.** The `bored()` exit is NOT behind "
+                              "it and never becomes aimed: that draw's uninformedness is "
+                              "a safety property, not an arm. `F401`: 3 of 3 seeds on "
+                              "`buttons` bind a slot where none ever bound. Spelled "
+                              "`get(..., \"1\") != \"0\"`, read here as default-on",
     "TETHER_BARGAIN_FIT": "library fit priced by the bargain rather than by fit alone. "
                           "**ON BY DEFAULT SINCE 2026-09-30 -- Isaiah's ruling, and the "
                           "flip LANDED** once the four M2 failures holding it were "

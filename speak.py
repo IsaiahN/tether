@@ -47,6 +47,20 @@ def sentences(rows: list[dict]) -> list[tuple[list[int], str]]:
             want, why = (list(d.get("reads") or ("", "")) + ["", ""])[:2]
             out.append(([seq], f"On {slot} I wanted: {want}. I did not choose an action for "
                                f"that -- the interface did, and its reason was: {why}."))
+        elif ev == "curiosity":
+            # Figure 5's drive, said in the agent's own voice. WITHOUT THIS THE AIMED DRAW IS
+            # INVISIBLE: the action is narrated and the reason for the subject is not.
+            subj = d.get("subject")
+            out.append(([seq], (
+                f"Nothing was scoring, so I asked what is worth finding out. The most is on "
+                f"{subj}, at {_n(d.get('value'))} -- it carries unexplained surprise AND I have "
+                f"watched it move, and I want a gap that is both. I explored with that as my "
+                f"subject."
+            ) if subj else (
+                "Nothing was scoring, so I asked what is worth finding out, and no slot "
+                "carried both unexplained surprise and a record of moving. I explored with no "
+                "subject, which is what I would have done before I could ask."
+            )))
         elif ev == "routine":
             out.append(([seq], f"On {slot} I committed to a plan: `{d.get('routine')}`. It "
                                f"costs {_n(d.get('cost'))} bits and leaves {_n(d.get('left'))} "
