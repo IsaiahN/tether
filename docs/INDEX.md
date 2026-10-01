@@ -52140,3 +52140,47 @@ can.
 
 **SURFACING STAYS ON, as committed and unflagged.** Nothing here is a reason to change it;
 what these runs establish is that it is REACHED and ACTING, which `test_m2` could not show.
+
+## F388 -- **THE YOUTH BONUS IS BUILT AND STRUCTURALLY INERT ON GRIDWORLD, AND THE SPEC'S OWN FORM WOULD HAVE INVERTED SURFACING**
+
+`Standing`-derived `youth_of` = `1 / (1 + confirmations + refusals)`, Sec 5.10.8, no
+constant. Committed `3d0d226` in its own sort slot **after** confidence:
+`(-fit, -track, -youth, len, name)`.
+
+**THE PLACEMENT IS NOT THE SPEC'S, AND THE REASON IS ARITHMETIC.** 5.10.8 writes
+`relevance = confidence x 0.5**(games_since_last_use / H) + youth`. There is no games
+counter, so the decay term is 1 and the sum FALLS MONOTONICALLY with experience:
+
+    untried      0.500 + 1.000 = 1.500
+    proven x10   0.917 + 0.091 = 1.008
+
+**Demonstrated live rather than argued: under the additive form a ten-times-proven term
+sorts at index 6 and an untried one at 5.** An untried term would outrank a proven one
+always — surfacing exactly backwards. **The decay term is LOAD-BEARING and it is the
+half that cannot be built**: an untried term has never been used, so with decay present
+its confidence contribution vanishes and only youth remains. **The spec's additive form
+returns with relevance's decay term, and not before.**
+
+**AND THE SEAT'S OWN RECOMMENDATION WAS THE WRONG ONE.** It proposed building youth
+alone as a safe subset of relevance with no prerequisite. It is not a subset; it is the
+formula with its balancing term removed. **The reviewer's requirement to state the
+placement BEFORE building is what caught it** — the check cost minutes and the error
+would have quietly undone the surfacing demonstrated the same night.
+
+**ON GRIDWORLD ITS DENOMINATOR IS ZERO ON ALL THREE SEEDS** — lookups where two terms
+tie on fit AND on confidence while differing in youth: `0 / 484`, `0 / 452`, `0 / 444`.
+**Reported as NO CONTENT, not as "little change":** a zero denominator means the slot
+never had an occasion, so it says nothing about the mechanism.
+
+> **AND THE INERTNESS IS STRUCTURAL RATHER THAN A PANEL LIMIT.** Every untried term is
+> `(0,0)`, so it has confidence 0.500 **and** youth 1.000 — they tie on both, and untried
+> terms are where confidence ties overwhelmingly come from. Youth can only act on a
+> confidence tie between DIFFERENT trial counts (`(0,0)` vs `(1,1)`, `(1,0)` vs `(3,1)`),
+> which is 7 of 23 confidence values reachable within `c,f <= 5` and occurred on no seed.
+>
+> **THE PLACEMENT IS SAFE AND NEARLY INERT, AND THOSE ARE THE SAME FACT.** Sitting after
+> confidence guarantees youth cannot overrule evidence; the Laplace mean has already
+> separated almost everything youth would have separated. What remains is the set where
+> the posterior is genuinely ambiguous — equal confidence from unequal evidence — which is
+> principled and small. **Do not move it earlier in the key to make it bite: that is the
+> additive form by another route.**
