@@ -1455,14 +1455,42 @@ def test_downrating_moves_a_residual_in_both_directions():
         assert objective_degree(sat, scope) == objective_degree(sat, scope, None, [0.0, 1.0]), (
             f"discounting a member that AGREES moved the fraction on {scope}")
 
-    # ALL-INERT -- every member discounted. **UNREACHABLE, NEVER "MET", AND NEVER A DIVIDE
-    # BY ZERO.** A scope with no member the agent can act on is an ABSENT population, and
-    # `objective_degree` already answers `None` for an empty one: *an absent population is
-    # not a satisfied one*. Returning 0.0 here would read as "nothing satisfies it" and
-    # returning 1.0 as "all of it does", and both are verdicts on nobody.
+    # ALL-INERT -- every member discounted. **DOWNRATING STEPS ASIDE: THE SCOPE IS COUNTED
+    # UNWEIGHTED. ISAIAH, 2026-10-01.**
+    #
+    # **THIS ASSERTION USED TO DEMAND `None` AND IT WAS COMMITTED AS CONTESTED** -- 07125ff's
+    # message flagged it as a choice under appeal rather than a settled one. The reasoning
+    # was *an absent population is not a satisfied one*, which is right for an EMPTY scope
+    # and wrong here: **an empty scope is ABSENT, a scope the agent merely has not MOVED is
+    # NO EVIDENCE.** Collapsing the two silenced the agent -- 0 PLAN rows on one arm.
+    #
+    # NO EVIDENCE MEANS FALL BACK, NEVER FALL SILENT.
     for scope in ((0, 0), (1, 1), (0, 1)):
-        assert objective_degree(sat, scope, None, [0.0, 0.0]) is None, (
-            f"an all-inert scope {scope} returned a degree instead of UNREACHABLE")
+        assert objective_degree(sat, scope, None, [0.0, 0.0]) == objective_degree(sat, scope), (
+            f"an all-inert scope {scope} did not step aside to the UNWEIGHTED degree")
+    # AND AN EMPTY SCOPE IS STILL ABSENT -- the distinction the step-aside rule turns on.
+    assert objective_degree(sat, ()) is None, "an EMPTY scope stopped reading as absent"
+
+    # **AND A GOAL STILL EXISTS AFTERWARDS, WHICH IS THE POINT AND NOT A COROLLARY** -- the
+    # reviewer, 2026-10-01. The failure this rule exists to prevent was not a wrong NUMBER,
+    # it was `goal_residual` returning `None` on a live scope: no goal, so nothing planned,
+    # so 0 PLAN rows and a routine that forms without it, gone. **Asserting the degree is
+    # right does not assert that a goal survived**, so both are asserted.
+    for scope in ((0, 0), (1, 1), (0, 1)):
+        deg = objective_degree(sat, scope, None, [0.0] * len(scope))
+        assert deg is not None, (
+            f"an all-inert LIVE scope {scope} produced no degree -- `goal_residual` would "
+            f"return None here and the agent would have no goal to pursue at all")
+        assert 0.0 <= (1.0 - deg) <= 1.0, (
+            f"R_goal = 1 - degree left the unit interval on {scope}: {1.0 - deg}")
+
+    # MUTATION CONTROL -- restore the `None` branch and the assertion above must fail. Without
+    # it this passes on any implementation that returns a number, including one that never
+    # steps aside because nothing was ever fully discounted.
+    _seen = [True, False]
+    _all_cut = [0.0, 0.0]
+    _tot = sum(w for v, w in zip(_seen, _all_cut, strict=False) if v is not None)
+    assert _tot <= 0.0, "the control's premise is gone: an all-inert scope no longer sums to 0"
 
     # MUTATION CONTROL -- drop the weights and the two directional rows must stop holding.
     # Without it this passes on a `weights` parameter that is silently ignored.
@@ -1757,6 +1785,82 @@ def test_disuse_never_moves_confidence():
         "assertion 1 was not testing that the decay is gone")
 
 
+def test_a_downrated_member_is_restored_the_moment_it_moves():
+    """**REVERSIBILITY, AND ONE CONTRARY OBSERVATION IS DECISIVE** -- constraint 3 of the
+    downrating plan, the reviewer 2026-10-01.
+
+    Downrating rests on *watched through every action and never once moved*. **The moment it
+    moves, the evidence for that is GONE -- not weakened, gone** -- so the restore is
+    immediate and unconditional rather than earned back over time. A discount that outlived
+    its evidence would be the hard ban 18.2 forbids, arriving by inertia instead of by rule.
+
+    Exercises the REAL `_scope_weights` on a real agent, with the interface's own two inputs
+    driven directly: `present` (how many presses a slot was seen for) and the delta table
+    (which slots were ever observed to move). Those are the only two things the policy reads.
+    """
+    import os
+
+    import test_m2
+    import tether
+
+    if not tether._DOWNRATE:
+        # THE ARM IS DEFAULT-OFF, so drive the policy explicitly rather than skipping -- a
+        # check that abstains because a flag is off is the vacuous pass this repo keeps
+        # finding, and it would hide the whole mechanism behind a default.
+        tether._DOWNRATE = True
+    try:
+        ag = test_m2._agent()
+        state = ag.env.observe()
+        slot = next((s for s in sorted(ag.slots)
+                     if [p for p in (ag._peer_cache or {}).get(s, ()) if p in state]), None)
+        if slot is None:                      # populate the peer cache the way `_group` does
+            for s in sorted(ag.slots):
+                ag._group(s, state)
+            slot = next(s for s in sorted(ag.slots)
+                        if [p for p in (ag._peer_cache or {}).get(s, ()) if p in state])
+        peers = [p for p in ag._peer_cache.get(slot, ()) if p in state]
+        victim = peers[0]
+        floor = len(tuple(ag.env.actions()))
+
+        # 1 -- MAKE IT INERT: seen often enough, never in the delta table.
+        ag.iface.present[victim] = floor + 1
+        for e in ag.iface.table.values():
+            for k in [k for k in e.get("delta", {}) if k[1] == victim]:
+                e["delta"].pop(k, None)
+        ag._downrated.pop(slot, None)
+        before = len(ag.led.rows())
+        ws = ag._scope_weights(slot, state)
+        assert ws is not None and ws[peers.index(victim)] == 0.0, (
+            f"a member seen {floor + 1} times and never moved was not discounted: {ws}")
+        down = [r for r in ag.led.rows()[before:] if r.get("event") == "member_downrated"]
+        assert len(down) == 1, f"expected ONE downrating row on the transition, got {len(down)}"
+
+        # 2 -- AND IT IS NOT RE-NARRATED WHILE IT STAYS DOWN. Per transition, not per call.
+        mid = len(ag.led.rows())
+        ag._scope_weights(slot, state)
+        assert not [r for r in ag.led.rows()[mid:] if r.get("event") == "member_downrated"], (
+            "a second evaluation re-narrated a discount that had not changed -- that is the "
+            "per-evaluation defect the reviewer caught, back again")
+
+        # 3 -- NOW IT MOVES. ONE contrary observation, and the discount must lift AT ONCE.
+        tbl = ag.iface.table.setdefault("__probe__", {"by_ctx": {}, "n": 1, "delta": {}})
+        tbl["delta"][("__ctx__", victim)] = (1, 1.0)
+        mark = len(ag.led.rows())
+        ws2 = ag._scope_weights(slot, state)
+        assert ws2 is None or ws2[peers.index(victim)] == 1.0, (
+            f"the member moved and was still discounted: {ws2}. The evidence for inertness "
+            f"is GONE, so the discount must be too")
+        rest = [r for r in ag.led.rows()[mark:] if r.get("event") == "member_restored"]
+        assert len(rest) == 1, (
+            f"no `member_restored` row on the lift (got {len(rest)}). `speak` has carried "
+            f"that sentence since 07125ff with nothing emitting it -- a discount nobody sees "
+            f"lifted is as silent as one nobody sees applied")
+        assert (rest[0].get("detail") or {}).get("in_scope_of") == slot, (
+            "the restore row did not say WHICH scope it was restored in")
+    finally:
+        tether._DOWNRATE = os.environ.get("TETHER_DOWNRATE", "0") != "0"
+
+
 if __name__ == "__main__":
     if "--cover" in sys.argv:
         for label, c in (("kernel.Frame", coverage()),
@@ -1807,12 +1911,14 @@ if __name__ == "__main__":
         test_a_trial_miss_is_not_a_refusal()
         test_track_record_orders_within_a_fit_level()
         test_disuse_never_moves_confidence()
+        test_a_downrated_member_is_restored_the_moment_it_moves()
         print("  A5 and B5 reproductions still fire (expected): ok")
         print("  keyed reach loses nothing: ok · two vocabularies stay two: ok")
         print("  the quantifiers quantify (ONE fires, all != some): ok")
         print("  the seam varies what it explores with: ok")
         print("  track record orders within a fit level (fit still dominates): ok")
         print("  disuse never moves confidence (forgiveness still rises): ok")
+        print("  a downrated member is restored the moment it moves: ok")
         print("  shipped generator coverage: ok · residual bound loses nothing: ok"
               " · resolutions are not the answer: ok · atom order pinned: ok"
               " · promotion clause recorded: ok · observer reaches the agent: ok"

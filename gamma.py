@@ -498,6 +498,22 @@ class Standing:
     # is not decided here -- `rejections` is untouched and every run is unchanged. What this
     # buys is that the question becomes answerable at all, and the ablation cannot reconstruct
     # it afterwards, which is the same reason the admitting clause is stamped at entry.
+    # **RULED, AND THE ANSWER IS *NOT YET* RATHER THAN *NEVER* -- ISAIAH, 2026-10-01.** The
+    # question above was put to him: should a failure taken elsewhere be weighed differently
+    # here? **KEEP COUNTING THEM THE SAME FOR NOW**, and the reason is a property of where the
+    # record is consumed rather than a judgement about failures:
+    #
+    #     `track_of` enters `retrieve`'s sort key in its OWN SLOT, AFTER fit. So a failure
+    #     taken on another level can only move a term AMONG TERMS THAT FIT THE GAP EQUALLY
+    #     WELL, and it can never exclude one. **That already satisfies *failing somewhere is
+    #     not a verdict everywhere*** -- a nudge among equals is not a verdict.
+    #
+    # **SO THIS FIELD AND `paid` STAY RECORDED AND UNREAD, DELIBERATELY.** I proposed reading
+    # them per-scope on 2026-10-01 and withdrew it: the comment below was right that the
+    # weighting is Isaiah's, and his ruling is that no weighting is needed while the consumer
+    # is a tie-break. **Revisit when RELEVANCE is built** -- 5.10.8's
+    # `confidence x 0.5 ** (games_since_last_use / RELEVANCE_HALFLIFE_GAMES) + youth` -- because
+    # that one is not a tie-break and the question becomes live again.
     where: dict = field(default_factory=dict)      # scope -> failures taken under it
     # WHERE IT PAID. The mirror of `where`, and the numerator the surfacing order needs:
     # Isaiah ruled surfacing is by LIKELIHOOD OF WORKING -- fit plus TRACK RECORD -- and a

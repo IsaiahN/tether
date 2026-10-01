@@ -52010,3 +52010,26 @@ demonstrated nothing.** The mutation control is what said so.
 > ORDER.** Otherwise a pass cannot distinguish the new slot from the tie-break under it — and a
 > tie-break that already agrees is exactly the confound this whole finding is about, met twice:
 > once in the live fixture, once in the test written to escape it.
+
+## F385 -- **THE `=0` ARM WRITES ZERO PLAN ROWS, AND THE NARRATION CHECK PASSES VACUOUSLY THERE**
+
+Recorded at the reviewer's instruction, 2026-10-01, as a fact about what `29/29` does and
+does not cover. **Not repaired here** — a record, so nobody reads the green as coverage.
+
+    test_m2 fixture, warmed, TETHER_BARGAIN_FIT=0:   0 PLAN rows, of any event
+    the same fixture, default arm:                  12 PLAN rows
+
+**BISECTED ACROSS `07125ff`, `8cf51bd`, `7f3d94d`, `cf4bda0` — ALL FOUR READ IDENTICALLY.**
+So it is not a regression from the surfacing work; it is the arm's standing condition.
+
+**AND `check_the_act_space_stays_narratable` PASSES THERE BY ABSTAINING.** Its precondition is
+*fixture: no PLAN row was written*, which fires, so the check reports a pass having examined
+nothing. **The suite reading 29/29 on that arm is not evidence the act space is narratable
+there** — it is evidence there was nothing to narrate.
+
+> **AND IT IS WHY A REMEMBERED NUMBER COULD NOT BE A REFUTER.** A pre-registered target of
+> *7 PLAN rows on the `=0` arm* was carried over from a measurement taken hours earlier by a
+> DIFFERENT script. Measured with one script against HEAD it is 0, and the two cannot be
+> compared — *an A/B is one script with one flag, never two scripts*, applied to a target
+> rather than to an arm. **The refuter was rebuilt against a baseline measured with the probe
+> that would judge it.**
