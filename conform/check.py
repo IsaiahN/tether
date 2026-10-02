@@ -66,6 +66,13 @@ STAGES = (
     ("aim", [str(PY), str(HERE / "aim.py")],
      "the aim seat stopped refusing work that names no declared item",
      HERE / "aim.py"),
+    # THE LANDED-ON FIELD, ASSERTED AGAINST THE WORLD AND NOT AGAINST THE AGENT'S OWN RECORD.
+    # `a561fb2` carried what the agent AIMED AT in a field a guard read as what it ACTED ON,
+    # and measured clean for five hours because the broken build was perfectly self-consistent.
+    # Its failure path is exercised: reintroducing that defect reads 15/25 and fires.
+    ("landed", [str(PY), str(HERE / "landed.py")],
+     "the trace says what the agent WANTED instead of what the press HIT",
+     HERE / "landed.py"),
     # THE CONDITION COMPILER's own grammar suite. Five texts that MUST NOT parse, including a
     # real line of corpus prose and a bare reading -- a grammar that accepts `holes(o1)` as a
     # condition has invented the comparison nobody wrote.

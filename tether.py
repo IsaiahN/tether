@@ -27,7 +27,7 @@ import instruments as I
 import interface as IFace
 import retrieval
 import routine as Rt
-from gamma import IMPORTED, INVENTED, Ctx, Gamma, Standing, Term, accepts_type
+from gamma import ACTED_SELF, IMPORTED, INVENTED, Ctx, Gamma, Standing, Term, accepts_type
 from gamma import SAME_AS_TARGET as G_SAME
 from ledger import (
     ADVANCE,
@@ -567,6 +567,24 @@ def round_trip_gap(t_a, state: dict[str, int], alphabet: dict[str, int]) -> floa
 
 def term_bits(k: int, alphabet: int, bonds: int = BONDS) -> float:
     return (k + 1) * math.log2(alphabet + 1) + (k - 1) * math.log2(max(bonds, 1))
+
+
+def _same_object(landed_on: str | None, slot: str) -> bool:
+    """Did the press LAND ON the object this slot belongs to? Relative, never a name.
+
+    Both sides reduce to their owner, so a press that landed on `o0` answers YES for `o0.row`
+    and `o0.colour` alike -- which attribute is being explained is not what the guard asks.
+
+    **`landed_on` IS THE REALISED PRESS'S TARGET, NOT THE INTENT'S SUBJECT, AND THAT IS WHY
+    `a561fb2` WAS REVERTED.** The agent AIMS at a slot and the interface may realise that aim
+    by pressing a DIFFERENT object -- on a wired world that IS the mechanism. Reading the aim
+    made this TRUE on 48 of 60 steps where the object was never touched.
+
+    `None` is False and not unknown: a press that landed on nothing did not act on this object.
+    """
+    if not landed_on:
+        return False
+    return landed_on.rsplit(".", 1)[0] == slot.rsplit(".", 1)[0]
 
 
 def pays(cost: float, left: float, base: float) -> bool:
@@ -1459,7 +1477,7 @@ class Agent:
         # **AND THE INTENT RIDES WITH IT.** A guard is tested inside `Term.apply`, which
         # runs over THESE rows during replay -- so a guard keyed on an intent is
         # unevaluable unless the row carries the intent that produced it.
-        return [(b, a, af[slot], i) for b, a, af, i in self.trace
+        return [(b, a, af[slot], i, land) for b, a, af, i, land in self.trace
                 if slot in af and slot in b]
 
     @staticmethod
@@ -2428,9 +2446,15 @@ class Agent:
         # Found by starting that build and asking what the guard compares AGAINST.
         #
         # Stored as the KIND (ruling 3), so it is the same quantity the pricing counts.
+        # **THE OBJECT THE PRESS LANDED ON RIDES AS A FIFTH FIELD.** Ruling 3 fixes the
+        # intent column as the KIND, so widening it would change what `_guards` enumerates.
+        # Deliberately NOT the intent's subject: `_aimed` is the coordinate the press was
+        # REALISED at. **Reading the SUBJECT is what `a561fb2` did and was reverted for** --
+        # the agent aims at one slot and the interface presses another to reach it.
         self.trace.append((before, action, after,
                            self._intent_now.kind if self._intent_now is not None
-                           else NO_INTENT))
+                           else NO_INTENT,
+                           self.iface._acted(getattr(self, "_aimed", None), before)))
         self.gamma.tick = len(self.trace)
         self._prev_pred = pred
         self._last_mass = {s: r.mass for s, r in res.items()}
@@ -2553,7 +2577,7 @@ class Agent:
         # the history and `_guards` is a filter over it, so doing it inside the candidate loop
         # would pay for it on every library term. Same two calls mint makes, same order.
         _guard_pool = (self._guards(self._residual_obs(
-            slot, self.gamma.library[self.bound.get(slot, IDN)], hist))
+            slot, self.gamma.library[self.bound.get(slot, IDN)], hist), slot)
             if _GUARD_AXIS else None)
         # ARM L needs the same residual observations the guard pool does. Computed ONCE per
         # lookup and never per candidate, for the reason stated two lines up: `_residual_obs`
@@ -2924,7 +2948,7 @@ class Agent:
         Default `None` leaves every existing caller walking the full history.
         """
         total = 0.0
-        for state, action, actual, intent in hist:
+        for state, action, actual, intent, landed in hist:
             if ceiling is not None and total >= ceiling:
                 return total
             if not self._applies(term, state):
@@ -2937,6 +2961,10 @@ class Agent:
             got = self._value_of(term, slot, state,
                                  Ctx(action=action, intent=intent, operands=ops,
                                      touching=None,      # replay: contact unknown
+                                     # RESOLVED PER SLOT BY THE CALLER -- the pattern `Ctx`
+                                     # documents for sensor 8's second operand, and why NO
+                                     # NAME EVER CROSSES into a term.
+                                     acted_self=_same_object(landed, slot),
                                      group=self._group(slot, state),
                                      obj=self._record(slot, state),
                                      shapes=self._shapes_now()))
@@ -3071,22 +3099,26 @@ class Agent:
         the residual and names what changed; this is the same object handed to step 3
         instead of being recomputed as a scalar."""
         out = []
-        for state, action, actual, intent in hist:
+        for state, action, actual, intent, landed in hist:
             if not self._applies(term, state):
-                out.append((state, action, actual, intent))   # inapplicable is unexplained
+                out.append((state, action, actual, intent, landed))   # inapplicable is unexplained
                 continue
             ops = self._ops(term, state)
             if ops is None:
-                out.append((state, action, actual, intent))   # unreadable, unexplained
+                out.append((state, action, actual, intent, landed))   # unreadable, unexplained
                 continue
             got = self._value_of(term, slot, state,
                                  Ctx(action=action, intent=intent, operands=ops,
                                      touching=None,      # replay: contact unknown
+                                     # RESOLVED PER SLOT BY THE CALLER -- the pattern `Ctx`
+                                     # documents for sensor 8's second operand, and why NO
+                                     # NAME EVER CROSSES into a term.
+                                     acted_self=_same_object(landed, slot),
                                      group=self._group(slot, state),
                                      obj=self._record(slot, state),
                                      shapes=self._shapes_now()))
             if got is NOT_RESOLVED or got % self.alphabet[slot] != actual % self.alphabet[slot]:
-                out.append((state, action, actual, intent))
+                out.append((state, action, actual, intent, landed))
         return out
 
     def _cannot_pay(self, term: Term, slot: str, robs: list, cost: float,
@@ -3121,7 +3153,7 @@ class Agent:
                 elif cost + unit * wrong >= base:
                     return True             # the stored prefix already proves it
         for i in range(start, len(robs)):
-            state, action, actual, intent = robs[i]
+            state, action, actual, intent, landed = robs[i]
             # `_ops` was called TWICE per row here -- once to test for None and again to
             # build the Ctx -- while `_left` next door hoists it. Pure function of
             # (term, state), so hoisting is exact; it halves the hottest callee in the
@@ -3139,6 +3171,7 @@ class Agent:
                     got = self._value_of(term, slot, state,
                                          Ctx(action=action, intent=intent, operands=ops,
                                              touching=None,  # replay: contact unknown
+                                             acted_self=_same_object(landed, slot),
                                              group=self._group(slot, state),
                                              obj=self._record(slot, state),
                                              shapes=self._shapes_now()))
@@ -5604,7 +5637,7 @@ class Agent:
         self.alphabet = self._alphabets(self.env)
         self.slot_types = self._slot_types(self.env)
 
-    def _guards(self, robs: list) -> list[str | None]:
+    def _guards(self, robs: list, slot: str | None = None) -> list[str | None]:
         """Which INTENT a guard may name. **None first, and then only what R contains.**
 
         **ISAIAH, 2026-09-29 (ruling 1): guards name INTENTS, not buttons.** This yielded the
@@ -5623,7 +5656,24 @@ class Agent:
         **None first for the same reason `_bindings` puts it first** -- an unguarded term is
         cheaper, so it wins when both fit, which is Occam priced rather than preferred.
         """
-        return [None, *sorted({i for _, _, _, i in robs if i is not None})]
+        # **`ACTED_SELF` IS OFFERED WHEN IT SEPARATES R FROM THE REST -- the reviewer,
+        # 2026-10-01, correcting a condition of mine that had it backwards.** I first offered
+        # it only where the boolean VARIES WITHIN R: the wrong population, because the
+        # incumbent is wrong on exactly the rows a guard would excuse, so those rows SHARE the
+        # value by construction. **A uniformly one-way residual is the SIGNATURE OF A MISSING
+        # GUARD, not evidence against one.** Constant in R with the other value present
+        # OUTSIDE -- not disjoint; demanding that took the funnel from 8,031 built to zero.
+        # Counts, not sets: a history row holds a state DICT and is not hashable.
+        out: list[str | None] = [None, *sorted({i for _, _, _, i, _ in robs if i is not None})]
+        if robs and slot is not None:
+            hist = self.history(slot)
+            h_true = sum(1 for *_, land in hist if _same_object(land, slot))
+            r_true = sum(1 for *_, land in robs if _same_object(land, slot))
+            out_true = h_true - r_true
+            out_false = (len(hist) - h_true) - (len(robs) - r_true)
+            if r_true in (0, len(robs)) and (out_true if r_true == 0 else out_false) > 0:
+                out.append(ACTED_SELF)
+        return out
 
     def _operand_fits(self, cand, target: str, bind: str | None) -> bool:
         """`0a`'s TYPING half, whose trigger fired on a real board.
@@ -5845,7 +5895,7 @@ class Agent:
                         break
                     binds = operand_binds if cand.reads_operand else [None]
                     binds = [x for x in binds if self._operand_fits(cand, slot, x)]
-                    for bind, g in ((b, g) for b in binds for g in self._guards(robs)):
+                    for bind, g in ((b, g) for b in binds for g in self._guards(robs, slot)):
                         rank += 1
                         term = Term(cand.atoms, operand=bind, guard=g)
                         if self.gamma.is_atom(term) or term.name in self.gamma.library:

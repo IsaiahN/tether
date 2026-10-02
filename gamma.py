@@ -177,6 +177,17 @@ def accepts_type(unit: Any, ty: str | None) -> bool:
     return ty in unit.accepts
 
 
+# **THE RELATIVE GUARD, A SENTINEL AND NEVER A NAME -- the reviewer, 2026-10-01.** A guard
+# naming an OBJECT could not transfer: `o0` means nothing on the next board. This names the
+# RELATION between the slot being explained and the object the press LANDED ON.
+#
+# **AND *LANDED ON* IS THE SECOND VERSION. The first read the INTENT'S SUBJECT -- what the agent
+# AIMED AT -- and `a561fb2` was reverted for it:** on a wired world the agent aims at `o0.colour`
+# and the interface clicks `o1` to get it, so the guard was TRUE on 48 of 60 steps where `o0` was
+# never touched. It validated clean only on `click_only`, where aim and landing coincide.
+ACTED_SELF = "ACTED_SELF"
+
+
 @dataclass(frozen=True)
 class Ctx:
     """What an atom may read. All before-state: there is no accessor to the outcome, so a
@@ -191,6 +202,15 @@ class Ctx:
     # any new field: an intent is formed BEFORE the action is realised, so it cannot smuggle
     # the outcome in. A term guarded on an intent still cannot peek.
     intent: Any = None
+    # **RESOLVED PER SLOT BY THE CALLER, as sensor 8's second operand is, and for the same
+    # reason: `apply` gets a value and a `Ctx` and NEVER THE SLOT**, so it cannot ask whether
+    # the object acted on was this slot's. The caller can, and resolving it there is what keeps
+    # the object's NAME out of the term entirely.
+    #
+    # **IT PASSES THE BEFORE-STATE TEST.** It is derived from the coordinate the press was
+    # realised at, read against the BEFORE state -- so it says what the press LANDED ON, not
+    # what the press DID. A term guarded on it still cannot peek at the outcome.
+    acted_self: bool = False
     operands: tuple = ()          # other slots' values, in the term's binding order
     # SENSOR 8's SECOND OPERAND, resolved PER SLOT by the caller. `_extract` wrapped the
     # one-place sensors eight times and nothing wrapped a two-place one: an atom receives one
@@ -441,7 +461,13 @@ class Term:
         # This read `ctx.action != self.guard`, which made a guard a claim about which BUTTON
         # was pressed. Above the seam the agent names no buttons, so such a guard could only
         # ever be learned by the interface leaking upward.
-        if self.guard is not None and ctx.intent != self.guard:
+        # **THE RELATIVE GUARD IS TESTED AGAINST A RESOLVED BOOLEAN, NEVER A NAME.** Every
+        # other guard is an intent KIND compared by equality; `ACTED_SELF`'s truth depends on
+        # WHICH SLOT is being explained, so the caller resolves it and this reads the answer.
+        if self.guard == ACTED_SELF:
+            if not ctx.acted_self:
+                return value
+        elif self.guard is not None and ctx.intent != self.guard:
             return value
         for a in self.atoms:
             # ELEMENTWISE WHEN THE CHAIN IS MID-ITERATION -- §12.2.1. An atom typed `CELL` sees
@@ -990,8 +1016,17 @@ class Gamma:
         return len(self.atoms)
 
     def is_atom(self, term: Term) -> bool:
-        """NOVEL is relative to atoms, not to the world."""
-        return len(term) == 1 and term.atoms[0].name in self._by_name
+        """NOVEL is relative to atoms, not to the world.
+
+        **AND A GUARDED TERM IS NOT THE ATOM IT WRAPS -- the reviewer, 2026-10-01.** This read
+        `len(term) == 1 and ...`, which called `inc ?ACTED_SELF` an atom and had the mint cut it
+        as not-novel BEFORE PRICING. A guarded term is a STRICTLY MORE SPECIFIC claim than the
+        atom it wraps, not a duplicate of it.
+
+        Invisible until now because the guard axis is an arm and `_guards` returned only intent
+        kinds, so a single-atom GUARDED term was a shape the mint had never built.
+        """
+        return len(term) == 1 and term.guard is None and term.atoms[0].name in self._by_name
 
     # -- persistence: Â§17.8's decision, made rather than defaulted -------------------------
 
