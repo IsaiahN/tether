@@ -1381,6 +1381,6 @@ written at all.
 
     .venv/Scripts/python.exe demo.py              # the whole thing, end to end
     .venv/Scripts/python.exe gate.py runs/demo.jsonl
-    .venv/Scripts/python.exe test_gate.py         # the gate's 8 checks, one defect each
+    .venv/Scripts/python.exe test_gate.py         # the gate's checks, one defect each; it asserts run == defined
     .venv/Scripts/python.exe -m ruff check .
     .venv/Scripts/python.exe conform/focus.py --streak   # commits off the agent (L2/L3) since last L1

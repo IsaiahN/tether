@@ -1,4 +1,8 @@
-"""The gate's eight checks, one defect each. Tests only what would silently break.
+"""The gate's checks, one defect each. Tests only what would silently break.
+
+**THE COUNT IS NOT WRITTEN DOWN HERE ON PURPOSE -- `F416`.** It said EIGHT while the file
+held twenty and the runner ran seventeen, and a number in prose is a number nobody
+re-derives. The runner prints `run (defined)` and REFUSES when they differ.
 
 Stage 0's done-when: a valid ledger passes, and a ledger with each defect fails naming
 that check's fixed token.
@@ -183,11 +187,6 @@ def test_minted_separates_an_operand_bound_atom_from_a_real_mint():
     assert m["n_minted"] == 2 and m["n_by_name"] == 3
 
 
-if __name__ == "__main__":
-    fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
-    for fn in fns:
-        fn()
-    print(f"{len(fns)} gate checks pass")
 
 
 def test_undeclared_death():
@@ -214,3 +213,31 @@ def test_world_inflicted_death_is_not_the_subject():
     r.append({"mode": "specified", "seq": 5, "cycle": 1, "step": "IMPORT", "slot": "@loop",
               "event": "ending", "detail": {"how": "death"}})
     assert gate.check(r)["verdict"] == gate.PASS
+
+
+# **THE RUNNER GOES LAST, AND IT COUNTS ITSELF -- `F416`.** It used to sit mid-file and
+# collect `globals()` at the moment it ran, so THREE test functions defined BELOW it did not
+# exist yet and were never collected: 20 defined, 17 run, and the seat reported green. The
+# three were the section 21.2 UNDECLARED_DEATH / farming guards. All three PASS when called
+# directly, so nothing was hiding -- what there was, was a guard never exercised by the seat
+# that reports it.
+#
+# THE COUNT ASSERTION IS THE PART THAT CANNOT GO QUIET AGAIN. Collecting after all definitions
+# fixes today's file; asserting that the number RUN equals the number DEFINED IN THE SOURCE
+# fixes the next one, because a function added below the runner would now FAIL rather than be
+# skipped in silence.
+if __name__ == "__main__":
+    import pathlib
+    import re as _re
+
+    fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
+    src = pathlib.Path(__file__).read_text(encoding="utf-8")
+    declared = len(_re.findall(r"^def (test_\w+)", src, _re.M))
+    if len(fns) != declared:
+        missed = sorted(set(_re.findall(r"^def (test_\w+)", src, _re.M)) - set(globals()))
+        raise AssertionError(
+            f"{declared} tests defined in the source and {len(fns)} collected -- "
+            f"{missed} are defined after the runner and would never run")
+    for fn in fns:
+        fn()
+    print(f"{len(fns)} gate checks pass ({declared} defined)")

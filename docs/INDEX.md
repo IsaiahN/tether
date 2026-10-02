@@ -53309,6 +53309,9 @@ press actually landed on, with the whole set re-run.
 
 ## F407 — THE AGENT CAN NOW SAY *THIS CHANGES WHEN I ACT ON IT*, AND BOTH CLICK WORLDS PAY AT 60 CYCLES WHERE NEITHER EVER PAID. FIVE GATES, AND THE LAST TWO WERE MINE
 
+> **AMENDED BY `F412`, 2026-10-02 — THE UNGUARDED COLUMN BELOW IS OPERAND-BOUND ATOMS, NOT ADOPTIONS.** `Attribution.minted` was library-minus-atoms **by NAME**, and an atom carrying an operand binding (`take<o0.col>`) is not the name `take`, so every one counted as a mint. An atom never enters `candidates`, so `born` is None and **it cannot settle by construction** — the unguarded side was not a thin control, it was **n = 0**. **THE GUARDED COLUMN IS UNAFFECTED, CONFIRMED BY MEASUREMENT RATHER THAN BY READING THE PREDICATE:** `is_atom` requires `term.guard is None`, and on the re-read all 9 operand-bound entries were unguarded `take<…>` while all 22 composed terms were guarded — **zero guarded terms in the operand-bound bucket.** Repaired at `826e037`; the findings below are annotated, never edited, because an error entry whose evidence is edited away stops being evidence.
+
+
 **WORLD:** gridworld `click_only` / `buttons` / `default`, seed 0, 60 cycles. Board stop
 respected.
 
@@ -53500,6 +53503,9 @@ are looking for.*
 
 ## F409 — THE SETTLED/UNSETTLED RULE IS UNREADABLE ON THIS PANEL, AND THE MISSING SIDE IS THE *UNGUARDED* COMPARATOR. PRE-REGISTERED AT 10 SEEDS; IF IT IS STILL INSUFFICIENT THE PANELS CANNOT DECIDE IT
 
+> **AMENDED BY `F412`, 2026-10-02 — THE UNGUARDED COLUMN BELOW IS OPERAND-BOUND ATOMS, NOT ADOPTIONS.** `Attribution.minted` was library-minus-atoms **by NAME**, and an atom carrying an operand binding (`take<o0.col>`) is not the name `take`, so every one counted as a mint. An atom never enters `candidates`, so `born` is None and **it cannot settle by construction** — the unguarded side was not a thin control, it was **n = 0**. **THE GUARDED COLUMN IS UNAFFECTED, CONFIRMED BY MEASUREMENT RATHER THAN BY READING THE PREDICATE:** `is_atom` requires `term.guard is None`, and on the re-read all 9 operand-bound entries were unguarded `take<…>` while all 22 composed terms were guarded — **zero guarded terms in the operand-bound bucket.** Repaired at `826e037`; the findings below are annotated, never edited, because an error entry whose evidence is edited away stops being evidence.
+
+
 **Isaiah's rule, as the reviewer set it:** *guarded adoptions must SETTLE no worse than
 unguarded, and an unsettled term must never be acted on as trusted.* The flag is already OFF on
 `F407`'s refuter; this test is the condition for it to RETURN.
@@ -53550,6 +53556,9 @@ instrument. **The test needs unguarded adoptions the click worlds do not make, w
 adoption poverty this whole chain began from.**
 
 ## F410 — THE 10-SEED PANEL STOPS IT, AND NOT FOR THE PRE-REGISTERED REASON: **THE CONTROL'S NUMERATOR IS STRUCTURALLY ZERO, SO ISAIAH'S SETTLE RULE CANNOT BE REFUTED ON THESE FIXTURES AT ANY SEED COUNT**
+
+> **AMENDED BY `F412`, 2026-10-02 — THE UNGUARDED COLUMN BELOW IS OPERAND-BOUND ATOMS, NOT ADOPTIONS.** `Attribution.minted` was library-minus-atoms **by NAME**, and an atom carrying an operand binding (`take<o0.col>`) is not the name `take`, so every one counted as a mint. An atom never enters `candidates`, so `born` is None and **it cannot settle by construction** — the unguarded side was not a thin control, it was **n = 0**. **THE GUARDED COLUMN IS UNAFFECTED, CONFIRMED BY MEASUREMENT RATHER THAN BY READING THE PREDICATE:** `is_atom` requires `term.guard is None`, and on the re-read all 9 operand-bound entries were unguarded `take<…>` while all 22 composed terms were guarded — **zero guarded terms in the operand-bound bucket.** Repaired at `826e037`; the findings below are annotated, never edited, because an error entry whose evidence is edited away stops being evidence.
+
 
 **WORLD: gridworld `click_only` and `buttons`, seeds 0–9, 60 cycles, `TETHER_ACTED_GUARD=1`
 asserted on at the top of the probe. POPULATION: 19 completed runs — `buttons` seed 8 is refused
