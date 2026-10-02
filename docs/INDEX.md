@@ -53306,6 +53306,43 @@ only prior payment was `buttons` at **120** cycles on a base of 104.00. **Both n
 affording the CHEAP term rather than accumulating an enormous residual.** NOTHING HAS SETTLED, so
 this is a term getting ONTO trial and not a capability.
 
+> **HEADLINE RETRACTED THE SAME NIGHT — reviewer, 2026-10-02, after the completeness set. THE
+> CODE IS KEPT AND THE CLAIM IS NOT.** *Both click worlds now pay* was **SEED 0 GENERALISED**.
+> Measured across 3 seeds with a mutation control:
+>
+>     world        guard-attributable payment
+>     buttons      3 of 3 seeds   (0->1, 1->2, 0->1)
+>     click_only   2 of 3 seeds   -- seed 2 has NOTHING BOUND on `o0.colour`, so no
+>                                   incumbent, no residual, and the guard is never
+>                                   offered. A POPULATION difference, not a failure
+>
+> **5 of 6 world-seed pairs, not universal.** And the seat had written one hour earlier that it
+> would not assume 3-of-3, having been burned by exactly this on clause 3 (`F404`, `click_only`
+> 1 of 3) — **then assumed it in the headline anyway.**
+
+**AND THE MUTATION CONTROL IS CLEAN, WHICH IS WHY THE CODE IS KEPT.** Read off the LIBRARY rather
+than a counter — a term that pays is minted, so the minted names ARE the paid population:
+
+    seed 0 NULLED  paid 0  MINTED none                GUARDED: NONE
+    seed 0 ON      paid 1  MINTED [inc?ACTED_SELF]    GUARDED: inc?ACTED_SELF
+    seed 1 NULLED  paid 1  MINTED [take<o0.col>]      GUARDED: NONE
+    seed 1 ON      paid 2  MINTED [inc?ACTED_SELF,
+                                   take<o0.col>]      GUARDED: inc?ACTED_SELF
+
+**ZERO GUARDED PAYMENTS UNDER NULLED ON EVERY SEED.** The guard is not removed in the control —
+it stays OFFERED while `_same_object` is forced False, so the identical path runs with a guard
+carrying no information. **An always-identity term explains nothing and cannot pay, and none did.**
+
+> **AND SEED 0 CARRIES THE NUMBER THAT MATTERS: adopting `inc?ACTED_SELF` took `o0.colour`'s
+> held residual from 52.0 BITS TO 6.0.** First time a click world has held an incumbent that
+> explains the click.
+
+**A FIFTH INSTRUMENT ERROR OF THE SEAT'S, CAUGHT BEFORE IT CAUSED A REVERT.** The first control
+read `bargain_paid`, **which counts EVERY payment and not guarded ones** — so seed 1's NULLED arm
+showing `paid 1` read as the refuter firing, when the payer was the unguarded `take<o0.col>`.
+**A revert was one step away and would have been decided on a miscounted quantity.** What saved it
+was asking what population the counter covered before acting on it.
+
 **THE REFUTER DID NOT FIRE:** the plain cut population is untouched and the guarded counts are
 NON-ZERO — library duplicates are still cut. **`default` priced NO `?ACTED` term**, as a control
 must: its `o0` is a mover, not a click-recolour target.

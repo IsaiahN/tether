@@ -152,6 +152,16 @@ def main(cycles: int = 16) -> int:
           f"({sum(1 for v in gam.stamps.values() if v['origin'] == 'prior')} prior)")
     print(f"  bound             : {run.bound}")
     print(f"  settled by ground : {run.settled}")
+    # **WHAT THE SEARCH MAY COMPOSE FROM IS WHAT THE GROUND HAS PAID FOR, SAID OUT LOUD.**
+    # `units()` promotes settled terms into the composition alphabet, so an unsettled term
+    # reaching it would let the agent build on something the ground never confirmed. Read
+    # BY ATOM CHAIN: a settled term's name carries its operand binding and the emitted unit
+    # does not, so a name comparison reports a leak that cannot exist -- which is exactly
+    # how this nearly went into the record as a stop-ship (`F407`).
+    _leak = instruments.Attribution.units_leak(gam)
+    _ok = "yes" if not _leak["leaking"] else f"NO -- {_leak['by_chain']}"
+    print(f"  units are settled : {_ok}"
+          f"   ({len(gam.units())} units from {len(run.settled)} settled)")
     print(f"  still owed        : {sorted(run.owed_import)}")
     print(f"  stopped at link   : {run.stopped_at_link}")
     print(f"  utterances refused: {len(run.refusals)}")

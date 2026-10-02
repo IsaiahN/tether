@@ -446,3 +446,73 @@ class Clocks:
                 "reads": ("modelled, not won -- links 3-5" if m is not None and w is None
                           else "won without modelling -- suspect luck" if w is not None
                           and m is None else "neither yet" if m is None else "both")}
+
+
+class Attribution:
+    """**READINGS THAT CHECK THEMSELVES, distilled from five instrument errors in one
+    night -- 2026-10-01, the reviewer's instruction after `F407`.**
+
+    None of the five was a reasoning failure. Each was a NUMBER WHOSE POPULATION WAS
+    WIDER OR NARROWER THAN THE QUESTION, and in every case the answer was written down
+    inside the thing being measured. Two came within one step of a wrong call: a revert
+    decided on `bargain_paid`, and a stop-ship decided on a name comparison.
+
+    **SO THESE DO NOT RETURN A NUMBER. THEY RETURN A NUMBER AND ITS DENOMINATOR, OR BOTH
+    READINGS AND WHICH ONE IS WRONG.** A reading that cannot be misattributed is worth
+    more than a reading that happens to be right.
+    """
+
+    @staticmethod
+    def minted(gamma, marker: str | None = None) -> dict:
+        """WHAT ACTUALLY PAID, by name, rather than how many times something did.
+
+        **`bargain_paid` COUNTS EVERY PAYMENT.** Used as a guarded-payment counter it
+        reported a mutation control failing when the payer was an ordinary unguarded
+        term -- the refuter read as fired and a revert was one step away. The LIBRARY
+        minus the ATOMS is the paid population itself, so there is nothing to
+        misattribute: `marker` selects a family and the rest stays visible beside it.
+        """
+        atoms = {a.name for a in gamma.atoms}
+        minted = [n for n in gamma.library if n not in atoms]
+        hit = [n for n in minted if marker and marker in n]
+        return {"minted": minted, "matching": hit,
+                "n_minted": len(minted), "n_matching": len(hit),
+                "counter": gamma.book.get("bargain_paid", 0),
+                "reads": ("`counter` is EVERY payment; `n_matching` is the one asked "
+                          "about. They differ whenever anything else paid.")}
+
+    @staticmethod
+    def units_leak(gamma) -> dict:
+        """DOES `units()` HOLD ANYTHING UNSETTLED -- answered BOTH WAYS, on purpose.
+
+        `units()` dedups on WHAT IS EMITTED and a settled term's `.name` carries its
+        operand binding while the emitted unit does not, so `same . all<act(o0.col)>`
+        settles and emits as bare `same . all`. **A name comparison therefore reports a
+        leak that cannot exist, which is how this was nearly filed as a stop-ship.**
+
+        BY_CHAIN is the answer. BY_NAME is returned beside it so the discrepancy is
+        visible rather than silently resolved -- if a future change makes them agree,
+        that is itself worth seeing.
+        """
+        settled = gamma.settled_terms
+        names = {t.name for t in settled}
+        chains = {tuple(a.name for a in t.atoms) for t in settled}
+        us = [t for t in gamma.units() if not gamma.is_atom(t)]
+        by_name = [t.name for t in us if t.name not in names]
+        by_chain = [t.name for t in us if tuple(a.name for a in t.atoms) not in chains]
+        return {"by_chain": by_chain, "by_name": by_name, "leaking": bool(by_chain),
+                "reads": ("BY_CHAIN is the reading. A non-empty BY_NAME with an empty "
+                          "BY_CHAIN is the operand-binding artefact, NOT a leak.")}
+
+    @staticmethod
+    def against(estimate: float, actual: float, label: str = "") -> dict:
+        """IS A CHEAP BOUND SOUND? A bound may only UNDERSTATE, never overstate.
+
+        `_cannot_pay` is a pre-filter that refuses before pricing, and its docstring
+        promises it "cannot drop a term that would have matched". That promise held for
+        the population it was written against and had to be CHECKED, not assumed, the
+        first time a new shape (a guarded term) reached it.
+        """
+        return {"label": label, "estimate": estimate, "actual": actual,
+                "sound": estimate <= actual, "overstates_by": max(0.0, estimate - actual),
+                "reads": "sound means the bound can only refuse what would have lost"}
