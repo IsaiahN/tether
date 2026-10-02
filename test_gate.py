@@ -149,6 +149,40 @@ def test_contract_declares_actions_and_alphabet():
     assert "actions" in REQUIRED and "alphabet" in REQUIRED
 
 
+def _idn(v, _ctx):
+    return v
+
+
+def test_minted_separates_an_operand_bound_atom_from_a_real_mint():
+    """`F412`: an atom carrying an operand binding is not an adoption, and the old
+    name comparison counted nine of them into `F410`'s unguarded column.
+
+    Both halves asserted, because a classifier that answers one correctly and the
+    other by accident reads identical. PLANTED, not harvested from a run -- a run
+    cannot be made to contain the negative case on demand.
+
+    AND PLANTED THROUGH `accept()`, NOT BY WRITING `library` DIRECTLY. The first
+    version assigned into `gamma.library` and the `lint` seat refused it: accept()
+    must stay its only writer or a stored reach is indistinguishable from the
+    library. The seat was right and the test is the better for obeying it.
+    """
+    import gamma as G
+    from instruments import Attribution
+    take, inc = G.Atom("take", _idn, "val", "val"), G.Atom("inc", _idn, "val", "val")
+    gam = G.Gamma([take, inc], game="t")
+    for i, t in enumerate((G.Term(atoms=(take,), operand="o0.col"),
+                           G.Term(atoms=(inc,), guard=G.ACTED_SELF),
+                           G.Term(atoms=(take, inc)))):
+        gam.accept(t, seq=i, residual="s@0")
+    m = Attribution.minted(gam)
+    assert "take<o0.col>" in m["operand_bound"], "an operand-bound atom must not be a mint"
+    assert "take<o0.col>" not in m["minted"]
+    assert "inc?ACTED_SELF" in m["minted"], "a guarded single-atom term IS a mint"
+    assert "take . inc" in m["minted"]
+    # the old reading is kept beside the new one, and here they must disagree
+    assert m["n_minted"] == 2 and m["n_by_name"] == 3
+
+
 if __name__ == "__main__":
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     for fn in fns:

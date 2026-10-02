@@ -468,18 +468,37 @@ class Attribution:
 
         **`bargain_paid` COUNTS EVERY PAYMENT.** Used as a guarded-payment counter it
         reported a mutation control failing when the payer was an ordinary unguarded
-        term -- the refuter read as fired and a revert was one step away. The LIBRARY
-        minus the ATOMS is the paid population itself, so there is nothing to
-        misattribute: `marker` selects a family and the rest stays visible beside it.
+        term -- the refuter read as fired and a revert was one step away. `marker`
+        selects a family and the rest stays visible beside it.
+
+        **AND *LIBRARY MINUS ATOMS* WAS A NAME COMPARISON, WHICH IS THE HAZARD
+        `units_leak` DOCUMENTS TWELVE LINES BELOW AND THIS METHOD DID NOT APPLY --
+        `F412`.** An atom carrying an OPERAND BINDING is named `take<o0.col>` and the
+        bare atom is named `take`, so every operand-bound atom counted as a mint. It
+        put NINE of them in `F410`'s unguarded column and they are not adoptions at
+        all: an atom never enters `candidates`, so `born` is None and it cannot settle
+        BY CONSTRUCTION. The reported control was not degenerate, it was EMPTY.
+
+        **`gamma.is_atom` IS THE SEPARATOR AND `origin` IS NOT** -- an operand-bound
+        atom carries `origin=minted` exactly like a composed term, measured. The old
+        reading is returned as `n_by_name` rather than dropped, for the reason
+        `units_leak` keeps `by_name`: a discrepancy that stays visible beats one that
+        is silently resolved.
         """
-        atoms = {a.name for a in gamma.atoms}
-        minted = [n for n in gamma.library if n not in atoms]
+        names = {a.name for a in gamma.atoms}
+        by_name = [n for n in gamma.library if n not in names]
+        minted = [n for n in by_name if not gamma.is_atom(gamma.library[n])]
+        operand_bound = [n for n in by_name if gamma.is_atom(gamma.library[n])]
         hit = [n for n in minted if marker and marker in n]
-        return {"minted": minted, "matching": hit,
+        return {"minted": minted, "matching": hit, "operand_bound": operand_bound,
                 "n_minted": len(minted), "n_matching": len(hit),
+                "n_operand_bound": len(operand_bound), "n_by_name": len(by_name),
                 "counter": gamma.book.get("bargain_paid", 0),
                 "reads": ("`counter` is EVERY payment; `n_matching` is the one asked "
-                          "about. They differ whenever anything else paid.")}
+                          "about. They differ whenever anything else paid. "
+                          "`n_by_name` is the OLD reading and is kept beside the new "
+                          "one: where it exceeds `n_minted`, the difference is "
+                          "`operand_bound` and is not an adoption.")}
 
     @staticmethod
     def units_leak(gamma) -> dict:
