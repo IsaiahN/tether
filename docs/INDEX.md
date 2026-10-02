@@ -53495,3 +53495,56 @@ which path reached it.** That is the same numerator-and-denominator-from-differe
 this record files repeatedly, in a new place. **Fixing it left all six M2 failures standing**, so
 it was real and was not the cause: *the first defect you find is not automatically the one you
 are looking for.*
+
+---
+
+## F409 — THE SETTLED/UNSETTLED RULE IS UNREADABLE ON THIS PANEL, AND THE MISSING SIDE IS THE *UNGUARDED* COMPARATOR. PRE-REGISTERED AT 10 SEEDS; IF IT IS STILL INSUFFICIENT THE PANELS CANNOT DECIDE IT
+
+**Isaiah's rule, as the reviewer set it:** *guarded adoptions must SETTLE no worse than
+unguarded, and an unsettled term must never be acted on as trusted.* The flag is already OFF on
+`F407`'s refuter; this test is the condition for it to RETURN.
+
+**THRESHOLD, BORROWED AND NOT CHOSEN: both denominators >= 2.** From `probe.py`'s `never_live`
+anchor — *"an action earns `inert` at TWO distinct states, never one… two is the smallest number
+with the property. Not tuned."* **A rate over one observation can only read 0% or 100%: it cannot
+express WORSE or BETTER in degree, only flip.** A number chosen here would be a magic number at
+the site that decides whether a result counts.
+
+    world        sd   guarded   unguarded   verdict
+    click_only    0       0/1         0/0   INSUFFICIENT
+    click_only    1       1/1         0/2   INSUFFICIENT
+    click_only    2       0/1         0/0   INSUFFICIENT
+    buttons       0       0/1         0/0   INSUFFICIENT
+    buttons       1       2/2         0/0   INSUFFICIENT
+    buttons       2       0/1         0/0   INSUFFICIENT
+
+    POOLED (the reviewer's fallback)  guarded 3/7 = 42.9% · unguarded 0/2 = 0.0% -> PASS
+
+**ALL SIX INSUFFICIENT, AND THE MISSING SIDE IS THE COMPARATOR, NOT THE TREATMENT.** There are
+SEVEN guarded adoptions and **TWO unguarded ones across the entire panel.** The rule needs an
+unguarded settle rate and these worlds do not produce one.
+
+> **AND THE THRESHOLD RETIRED THE SEAT'S OWN "PASS", FILED THREE MINUTES EARLIER.** `click_only`
+> seed 1 was reported as *PASS, 100% against 0%* — **on a guarded denominator of ONE.** That 100%
+> is a single term settling, printed as a percentage beside a real rate. **A percentage over a
+> denominator of one is a count wearing a rate's clothes**, and the numerator/denominator columns
+> were already in the table it was read from.
+
+**THE POOLED PASS IS NOT A LICENCE AND IS NOT ACTED ON.** Its unguarded denominator is TWO —
+exactly the floor — so one unguarded term settling anywhere turns 0/2 into 1/2 and flips the
+verdict. **It also pools across two worlds that differ in exactly the respect under test**, which
+is this record's own standing error.
+
+**WHAT THE PRICE DID, SEPARATELY AND WORTH KEEPING:** free guard 60 and 86 payments per run;
+**priced guard 1 and 2 guarded adoptions per run, of which 3 of 7 settle.** The inflation is gone
+from a one-term change in the cost. **It does NOT overturn `F407`'s refuter, which measured the
+FREE build** — adoption behaviour and survival are different quantities and are read together.
+
+**PART TWO HOLDS: no units leak by chain on any row.** Nothing unsettled reached `units()`, so
+*never act trusted unsettled* is satisfied as far as this panel can show it.
+
+**PRE-REGISTERED NEXT, the reviewer 2026-10-02: TEN SEEDS PER WORLD, same thresholds, same
+per-world-per-seed verdict with pooling only as the stated fallback. IF IT IS STILL INSUFFICIENT,
+STOP — and record that these panels cannot decide the question** rather than iterating on the
+instrument. **The test needs unguarded adoptions the click worlds do not make, which is the same
+adoption poverty this whole chain began from.**
