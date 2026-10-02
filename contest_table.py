@@ -186,6 +186,19 @@ def _pinned(root: str) -> str:
         raise AssertionError(
             f"panel refused: {root} is not a git worktree, so no commit can be recorded "
             f"for its rows. Create it with `git worktree add <path> <commit>`.")
+    # **AND A DIRTY WORKTREE IS REFUSED, WHICH IS THE SAME FAILURE ONE STEP SUBTLER.** It
+    # reports a commit and runs something else, so the row carries A HASH THAT IS A LIE --
+    # worse than "unpinned", which at least announces itself. Found while setting up the
+    # re-takes: applying the contest patch to a worktree is the obvious way to get a
+    # contest arm, and it would have stamped every row with the base commit.
+    dirty = subprocess.run(["git", "-C", root, "status", "--porcelain"],
+                           capture_output=True, text=True).stdout.strip()
+    if dirty:
+        first = "; ".join(dirty.splitlines()[:4])
+        raise AssertionError(
+            f"panel refused: worktree {root} is DIRTY at {pin}, so its rows would record "
+            f"a commit that does not describe the code that ran -- {first}. Commit the "
+            f"variant to its own branch and pin a worktree at THAT commit.")
     return pin
 
 
