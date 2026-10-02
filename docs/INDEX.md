@@ -53818,3 +53818,62 @@ EMPTY, `wrong` is 0, and the test collapses to `cost >= base` with both sides at
 ON after the bind — is measured. **WHY there are none is not**: it could be `HELD` routing on the
 cycles that matter or `_cannot_pay`'s own TALLY cache resuming a stored refusal. **A fifth
 mechanism is not asserted on a reading not taken.**
+
+## F415 — **THE FLOOR GATE IS THE CROWDING MECHANISM: A GUARDED INCUMBENT TAKES `base` BELOW THE ONE-ATOM FLOOR AND `mint` SKIPS ENUMERATION ENTIRELY**
+
+**WORLD: gridworld `click_only` seed 5, 60 cycles. FOUR ARMS — `?ACTED {0,1}` × `CONTEST {0,1}` —
+one script, separate processes, each asserting its own flags, every row flag-stamped.
+`contest_table.py`.** The CONTEST arms run from a patched tree outside the repository; the tree
+is clean.
+
+    arm                    mint  bind   post-bind mint   post-bind enumerates
+    acted=0 contest=0        19   @27          2                2
+    acted=1 contest=0        17   @24          3                0
+    acted=0 contest=1        25   @27          8                8
+    acted=1 contest=1        14   @24          0                0
+    floor = term_bits(1, alphabet) = 7.814 on every row
+
+**THE GATE IS `if guards["support"] and base > floor:` at `tether.py:5899`, AND THE WHOLE
+ENUMERATION LIVES INSIDE IT.** Its own comment states the lemma: *"`floor >= base` proves NO term
+pays, at any depth, under any binding, BEFORE a candidate is enumerated."* The lemma is correct.
+
+    acted=1 contest=0   cyc 23 base 18.0 enum True   ref idn
+                        cyc 24 base  4.0 enum FALSE  ref same . all<o1.col>?ACTED_SELF
+    acted=0 contest=0   cyc 27 base 12.0 enum True   ref above . all<o1.shape>
+
+> **THE GUARDED TERM IS NOT MERELY CHEAPER — IT EXPLAINS ENOUGH TO TAKE `base` BELOW THE FLOOR**,
+> and the search is then SKIPPED rather than narrowed. The unguarded incumbent leaves 12–14 and
+> the slot stays live. **What is wrong is not the lemma but that an UNSETTLED term gets to make
+> its claim.**
+
+### F415.1 — AND THE FOURTH ARM TURNED A "REGRESSION" INTO AN **INTERACTION**
+
+The contest change (price challengers against the last SETTLED holder) was reported as a flat
+regression. **On four arms it has OPPOSITE SIGNS:** `acted=0` post-bind enumerates **2 → 8**;
+`acted=1` post-bind mint **3 → 0**. On `acted=1 contest=1` the pricing half *works at the bind*
+(base 20.0 against the baseline's 4.0, `enum True`) **and then mint is never called again** — so
+the harm is downstream of pricing and only on the arm whose incumbent is guarded.
+
+**A THREE-ARM COMPARISON WOULD HAVE READ THIS AS "THE CHANGE IS WRONG".** The fourth arm is what
+separates that from *the change is right and something on the `?ACTED` arm fights it*.
+
+### F415.2 — WHY THE INSTRUMENT IS COMMITTED, AND IT IS A RECORD OF FIVE REVERSALS
+
+**Every reversal this morning came from comparing a number taken on one build or population
+against a number taken on another**, and each read clean at the time:
+
+    a SIXTY-CYCLE TOTAL        answering a question about POST-BIND cycles (06:45)
+    a CONTEST=1 mint count     read against CONTEST=0 route bins (07:29, 07:34)
+    a correct alarm WITHDRAWN  because the evidence behind it had been gathered carelessly (07:40)
+    `cfg.budget` 4000          named as the cause in a post; it is 66 yields, never close (07:47)
+
+**A BAD ARGUMENT FOR A TRUE CLAIM IS STILL A TRUE CLAIM** — the 07:34 alarm was right and was
+retracted for the wrong reason. *An A/B is one script with one flag, and a four-way is one script
+with two.*
+
+**AND AN ARM WHOSE BUILD CANNOT SUPPLY ITS FLAG REPORTS `UNAVAILABLE`, NEVER ITS OPPOSITE** —
+verified on the clean tree, where both CONTEST arms refuse to run rather than report an OFF
+result as an ON one. That is the treatment-absent failure made impossible instead of unlikely.
+
+**NOT MEASURED AND NOT ASSERTED: WHY mint stops on `acted=1 contest=1`.** The instrument records
+mint calls and not the route bin preceding them, so the cause of that zero is outside this table.
