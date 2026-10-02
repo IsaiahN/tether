@@ -53634,3 +53634,66 @@ is `I30`: written down and not installed.
   and the assertion message was cut.** A line-count prediction is not a reason to keep a pipe.
 - **AND THE PIPELINE EXITED 0 WITH A TRACEBACK IN IT** — that is `head`'s exit code. *A wrapper's
   success is not the operation's*, and the wrapper here was one the seat added voluntarily.
+
+## F411 — THE REVIEWER'S "FIX `buttons` SEED 8" IS THREE DEFECTS, NOT ONE, AND THE SEED-8 SYMPTOM IS THE SMALLEST OF THEM
+
+**WORLD: gridworld, all four families, HEAD's generator against the patched one. POPULATION:
+seeds 0–199, compared row by row rather than sampled.** `F410.1` filed seed 8 as *the family
+falls back to a positional objective*. **That is the symptom. `buttons` seed 8 has
+`buttons={}` — NO WIRING AT ALL**, so the objective could not be drawn because the wiring was
+never built.
+
+**AND THE BASELINE IS THE PART THAT CHANGED THE DIAGNOSIS.** After patching, the guard still
+refused 8 seeds and **the attribution to my own change was already drafted.** On HEAD, measured:
+
+    HEAD buttons, 200 seeds
+      no chain / no colour objective : 9   [8, 35, 47, 80, 119, 137, 155, 162, 177]
+      REFUSED by F398's guard        : 16
+      refused DESPITE having a chain : 7   [18, 72, 108, 160, 168, 183, 187]
+
+**Seven of the sixteen are a SECOND defect that has nothing to do with the chain**, and without
+the before-number every one of them would have been filed against the repair. *A null needs a
+non-zero control* applies to a REPAIR's residue exactly as it does to a reading.
+
+### F411.1 — THE GREEDY PASS MISSES CHAINS THAT EXIST. **FIXED, AND THE FIX IS PROVABLY ADDITIVE**
+
+The wiring walked ONE random permutation greedily and gave up. **9 of 200 seeds lost their
+wiring that way and 8 of the 9 had a valid chain** — confirmed by exhaustive search. The patch
+keeps the greedy result whenever it succeeds and only then searches the permutations.
+
+**THE SAFETY PROPERTY IS MEASURED, NOT ARGUED: `MOVED = 0` on `buttons`, `click_only` and
+`default` across 200 seeds**, comparing full `state`, `buttons`, `goal_obj` and `goal_colour`
+against `git show HEAD:gridworld.py`. **Every seed that already had a chain keeps the same one**,
+so no measurement taken on this family moves. Refusals 16 → 8.
+
+### F411.2 — ONE LAYOUT IN 200 ADMITS NO CHAIN AT ALL. **NOT FIXED**
+
+Seed 47 has no three mutually-apart objects anywhere in its layout, so no search can rescue it.
+**The reviewer's ruling — *`buttons` always draws a colour objective* — cannot be met here
+without redrawing the LAYOUT**, which is a change to the generator's draw order.
+
+**AND MY FIRST ATTEMPT AT IT WAS WRONG IN A WAY WORTH KEEPING.** I added a `_chainable(cells)`
+precheck that resampled the layout — **and `cells` is not where the objects end up.** `o0`, `o1`
+and `o2` are ADJUSTED after the sample for ARC fidelity, so the helper asked the question of
+coordinates `_apart` never reads. **It was caught by the `MOVED` column, which went to 3.** Backed
+out. *Check what a name means in both places you are using it* — `cells` and `o{i}.row` are two
+positions under one idea.
+
+### F411.3 — **9% OF EVERY SEED ON EVERY FAMILY HAS TWO OBJECTS STACKED ON ONE CELL, AND `o1` IS IN ALL OF THEM.** NOT FIXED
+
+    default 18/200 · click_only 18/200 · buttons 18/200 · remap_after 18/200   (9.0%)
+    colliding pairs: (1,3) x7 · (1,4) x8 · (1,5) x3   -- o1 in every one
+
+`cells` is an `rng.sample`, so positions START distinct; **the `o1`-within-reach-of-`o0`
+adjustment overwrites `o1`'s drawn cell with one that may already be occupied.** A click on that
+cell resolves to `o1`, so **this is the cause of all seven chain-but-refused seeds**: the press
+that should reach the wiring reaches `o1.colour` instead.
+
+**IT IS A HABITAT DEFECT ON EVERY FIXTURE, NOT A `buttons` BUG**, and it is left alone tonight
+because repairing object placement moves every colliding world — including ones already measured.
+
+> **AND IT REACHED THE PANEL: `click_only` AND `buttons` SEEDS 6 AND 8 ARE STACKED, so 4 of the
+> 19 rows in `F410` ran in worlds with two objects on one cell.** It does not overturn `F410` —
+> the control's numerator is zero on every row, stacked or not — but **the panel's world was not
+> the world the panel was described as running in**, which is the denominator failure this record
+> is named for, arriving in the WORLD column instead of the population column.

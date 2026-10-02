@@ -41,6 +41,7 @@ with more than one object, and its absence is what made the toy world unable to 
 
 from __future__ import annotations
 
+import itertools
 import random
 import sys
 from dataclasses import dataclass, field
@@ -240,6 +241,17 @@ class GridWorld:
                     break
                 if all(_apart(i, c) for c in chain):
                     chain.append(i)
+            # **THE GREEDY PASS OVER ONE PERMUTATION MISSES CHAINS THAT EXIST -- `F411`.**
+            # 9 of 200 seeds lost their wiring here and 8 of the 9 had a valid chain; the
+            # family then drew no colour objective and fell back to a POSITIONAL one it
+            # cannot reach, which is what `F398`'s guard caught on seed 8. The greedy result
+            # is kept whenever it succeeds, so every seed that already had a chain keeps the
+            # SAME one and no measurement taken on this family moves.
+            if len(chain) < N_BUTTONS + 1:
+                for cand in itertools.permutations(range(N_OBJECTS), N_BUTTONS + 1):
+                    if all(_apart(a, b) for a, b in itertools.combinations(cand, 2)):
+                        chain = list(cand)
+                        break
             if len(chain) >= N_BUTTONS + 1:
                 for a, b in zip(chain, chain[1:], strict=False):
                     self.buttons[a] = b
