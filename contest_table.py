@@ -147,7 +147,67 @@ def _child() -> None:
                                               a.acted, a.contest)}))
 
 
+def _pinned(root: str) -> str:
+    """REFUSE A ROOT THAT IS THE MAIN WORKING TREE, and return the commit it is pinned at.
+
+    **A PANEL IMPORTS ONLY FROM A PINNED SNAPSHOT -- the reviewer, 2026-10-02, after this
+    seat contaminated a live panel.** The `buttons` run took its `contest=0` arms from the
+    main tree while `gridworld.py` was edited at 15:30:51, so a row finishing after that
+    would take `contest=0` from the NEW generator and `contest=1` from the OLD one and print
+    the four cells side by side AS ONE WORLD. Two builds inside a single row, invisible in
+    the output.
+
+    THE ASYMMETRY IS WHAT MADE IT POSSIBLE: the patched tree WAS pinned and the main tree was
+    not, so only half the arms were protected. So this refuses per ARM, not per panel.
+
+    **IT CHECKS WHAT ACTUALLY WENT WRONG -- the resolved path of the modules the agent runs
+    on -- not whether the caller passed something that looks like a worktree.** A check that
+    merely asks for a path would pass while importing from anywhere.
+    """
+    main = os.path.dirname(os.path.abspath(__file__))
+    if os.path.abspath(root) == main:
+        raise AssertionError(
+            f"panel refused: arm would import from the MAIN WORKING TREE ({main}). "
+            f"A panel imports only from a pinned worktree -- the tree can move under a "
+            f"running arm, and two builds inside one row are invisible in the output.")
+    for mod in ("gridworld.py", "tether.py"):
+        if not os.path.exists(os.path.join(root, mod)):
+            raise AssertionError(f"panel refused: {root} has no {mod} -- it is not a snapshot")
+    r = subprocess.run(["git", "-C", root, "rev-parse", "--short", "HEAD"],
+                       capture_output=True, text=True)
+    pin = r.stdout.strip()
+    # **AND AN UNPINNED SNAPSHOT IS REFUSED TOO, which the first version of this guard did
+    # not do.** A `git archive` extract cannot move under a run -- nothing writes to it --
+    # so it satisfies half the rule and fails the other half: IT HAS NO COMMIT TO RECORD,
+    # and a row stamped "unpinned" is exactly the untraceable table the rule exists to
+    # prevent. Caught by the guard's own accept-path control returning 'unpinned' instead
+    # of a hash.
+    if not pin:
+        raise AssertionError(
+            f"panel refused: {root} is not a git worktree, so no commit can be recorded "
+            f"for its rows. Create it with `git worktree add <path> <commit>`.")
+    return pin
+
+
+def _fits(seeds: int, arms: int, per_arm_s: float, cap_s: float) -> None:
+    """REFUSE TO START A JOB WHOSE OWN ESTIMATE EXCEEDS ITS OWN CAP.
+
+    **Twice in one day this seat wrote both numbers itself, minutes apart, and never
+    subtracted:** a panel estimated at FOUR TO FIVE HOURS against a cap it had set to TWO,
+    and a `P3` run estimated to land at 16:40-17:00 against a cap expiring at 16:40. Both
+    were killed mid-run. The arithmetic is one subtraction and being careful is not the fix.
+    """
+    est = seeds * arms * per_arm_s
+    if est > cap_s:
+        raise AssertionError(
+            f"panel refused: estimate {est / 60:.0f} min ({seeds} seeds x {arms} arms x "
+            f"{per_arm_s / 60:.1f} min, MEASURED) exceeds the cap {cap_s / 60:.0f} min. "
+            f"Split it into chunks of at most {max(1, int(cap_s // (arms * per_arm_s)))} "
+            f"seeds -- do not raise the cap to match a guess.")
+
+
 def _run(root: str, world: str, seed: int, cycles: int, acted: int, contest: int) -> dict:
+    pin = _pinned(root)          # refuses the main working tree, per ARM
     env = dict(os.environ, TETHER_ACTED_GUARD=str(acted), TETHER_CONTEST=str(contest),
                PYTHONDONTWRITEBYTECODE="1")
     r = subprocess.run([sys.executable, os.path.join(root, "contest_table.py"), "--child",
@@ -157,7 +217,12 @@ def _run(root: str, world: str, seed: int, cycles: int, acted: int, contest: int
     if r.returncode != 0:
         return {"acted": acted, "contest": contest, "world": world, "seed": seed,
                 "unavailable": (r.stderr.strip().splitlines() or ["?"])[-1][:120]}
-    return json.loads(r.stdout.strip().splitlines()[-1])
+    out = json.loads(r.stdout.strip().splitlines()[-1])
+    # EVERY ROW CARRIES THE COMMIT IT RAN ON, so a contaminated table is visible in its own
+    # output instead of reconstructible from file mtimes -- which is how the last one was
+    # caught, and only because the seat happened to look.
+    out["commit"] = pin
+    return out
 
 
 def main() -> int:
@@ -166,9 +231,15 @@ def main() -> int:
     p.add_argument("--cycles", type=int, default=60)
     p.add_argument("--worlds", default="click_only,buttons")
     p.add_argument("--seeds", default="0,1,2,3,4,5,6,7,8,9")
+    p.add_argument("--per-arm-sec", type=float, default=120.0,
+                   help="MEASURED seconds per arm; the launcher refuses if the estimate "
+                        "exceeds --cap-sec")
+    p.add_argument("--cap-sec", type=float, default=7200.0)
     a, _ = p.parse_known_args()
     here = os.path.dirname(os.path.abspath(__file__))
     seeds = [int(x) for x in a.seeds.split(",")]
+    # BOTH REFUSALS FIRE BEFORE A SINGLE ARM RUNS.
+    _fits(len(seeds) * len(a.worlds.split(",")), len(ARMS), a.per_arm_sec, a.cap_sec)
 
     # THE PRE-REGISTERED READING, fixed here in the source before any run.
     # The contest plan proceeds ONLY IF, on informative slot-rows, contest ON ends with
