@@ -61,6 +61,17 @@ def parse(path: str) -> list[dict]:
 
 
 def verdict(rows: list[dict], label: str, floor: int | None) -> tuple[str, dict]:
+    # **PER WORLD, AND THE POOL IS REFUSED RATHER THAN DISCOURAGED -- `F417.3`.** The first
+    # version took every row regardless of world, which `CLAUDE.md:1362` forbids outright:
+    # *every game tests a different skill, so a rate across games averages a board that tests
+    # the thing with a board that does not.* It produced no wrong number only because the
+    # table it had read held ONE WORLD, where pooled and per-world coincide -- and it would
+    # have let a second world move a tally that must not be movable by one.
+    worlds = {r["world"] for r in rows}
+    if len(worlds) > 1:
+        raise AssertionError(
+            f"cross-world pool refused: {sorted(worlds)} -- per game, never pooled "
+            f"(CLAUDE.md:1362). Read each world on its own; every world must pass.")
     use = rows
     if floor is not None:
         use = [r for r in rows if all(c["tot"] >= floor for c in r["cells"].values())]
@@ -85,15 +96,29 @@ def verdict(rows: list[dict], label: str, floor: int | None) -> tuple[str, dict]
 def main() -> int:
     rows = parse(sys.argv[1])
     print(f"  parsed {len(rows)} informative slot-rows from {sys.argv[1]}")
-    a, _ = verdict(rows, "1. PRE-REGISTERED, as written", None)
-    b, _ = verdict(rows, f"2. ROBUSTNESS (labelled), every arm's denominator >= {MIN_DENOM}",
-                   MIN_DENOM)
-    both = a == "PROCEEDS" and b == "PROCEEDS"
-    print(f"\n  PRE-REGISTERED {a}   ROBUSTNESS {b}")
-    print(f"  -> THE CONTEST CHANGE {'PROCEEDS' if both else 'DOES NOT PROCEED'}"
-          + ("" if both else "   (a weak bar can stop a change, it cannot license one)"))
+    worlds = sorted({r["world"] for r in rows})
+    out = {}
+    for w in worlds:
+        mine = [r for r in rows if r["world"] == w]
+        print("")
+        print(f"=== WORLD {w} -- {len(mine)} informative slot-rows ===")
+        a, _ = verdict(mine, "1. PRE-REGISTERED, as written", None)
+        b, _ = verdict(mine, f"2. ROBUSTNESS (labelled), denominator >= {MIN_DENOM}",
+                       MIN_DENOM)
+        out[w] = (a, b)
+    # EVERY WORLD MUST PASS BOTH. One world passing is not a result about another, and a
+    # world that could not be read does not become a world that agreed.
+    print("")
+    print("  PER WORLD:")
+    for w in worlds:
+        print(f"    {w:12s} pre-registered {out[w][0]:17s} robustness {out[w][1]}")
+    ok = bool(worlds) and all(x == "PROCEEDS" and y == "PROCEEDS"
+                              for x, y in out.values())
+    print(f"  -> THE CONTEST CHANGE {'PROCEEDS' if ok else 'DOES NOT PROCEED'}")
+    if not ok:
+        print("     (a weak bar can stop a change, it cannot license one;"
+              " and every world must pass, pooled never)")
     return 0
-
 
 if __name__ == "__main__":
     sys.exit(main())

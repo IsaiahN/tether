@@ -53886,3 +53886,61 @@ result as an ON one. That is the treatment-absent failure made impossible instea
 
 **NOT MEASURED AND NOT ASSERTED: WHY mint stops on `acted=1 contest=1`.** The instrument records
 mint calls and not the route bin preceding them, so the cause of that zero is outside this table.
+
+## F417 — **THE CONTEST CHANGE DOES NOT PROCEED.** The pre-registered reading says PROCEEDS, the robustness reading says it does not, and a weak bar can stop a change but cannot license one
+
+**WORLD: gridworld `click_only`, seeds 0–9, 60 cycles, four arms (`?ACTED` × `CONTEST`),
+separate processes, each asserting its own flags. POPULATION: 14 informative slot-rows. The
+`buttons` half of the ordered panel DID NOT RUN — see `F417.2`.** Both readings were fixed
+before the table existed: the reviewer at 13:46 with three rows seen, the implementation at
+`55d654a` with four.
+
+    1. PRE-REGISTERED, as written          14 slot-rows
+         acted=0 contest=0   0/14        acted=1 contest=0   0/14
+         acted=0 contest=1   1/14  W ['27/27']
+         acted=1 contest=1   3/14  W ['4/4', '2/2', '35/35']
+         acted=0  ON 1 vs OFF 0     acted=1  ON 3 vs OFF 0     -> PROCEEDS
+
+    2. ROBUSTNESS, every arm's denominator >= 2    10 slot-rows (of 14)
+         acted=0 contest=1   0/10        acted=1 contest=1   1/10  W ['35/35']
+         acted=0  ON 0 vs OFF 0     acted=1  ON 1 vs OFF 0    -> DOES NOT PROCEED
+
+    COMBINED -> THE CONTEST CHANGE DOES NOT PROCEED
+
+**`?ACTED` STAYS DEFAULT-OFF AND THE CONTEST CHANGE STAYS OUT OF THE TREE**, kept as a patch.
+
+### F417.1 — THE DIVERGENCE IS *UNCONTESTED*, NOT *THIN*, AND IT WAS NAMED BEFORE THE DATA
+
+The seat wrote at 14:03, on a partial table: *the floor drops slots ONLY ONE ARM ENGAGES, not
+merely thin ones, and if the readings diverge THAT distinction is where the answer lives.*
+
+**It is.** The `27/27` on `acted=0 contest=1` is a large, genuine settled-and-correct outcome and
+it vanishes under the floor **because the other three arms never touched that slot** — taking
+`acted=0` from 1 to 0, which is the arm that flips the verdict.
+
+> **SO THE PANEL'S REAL QUESTION IS NOT *DOES CONTEST HELP*. IT IS WHETHER A SLOT ONLY THE
+> TREATED ARM ENGAGES COUNTS AS EVIDENCE.** Reading 1 says yes and proceeds; reading 2 says no
+> and refuses. Both were fixed before the data, which is what makes this a decision rather than
+> an argument.
+
+### F417.2 — THE RUN WAS KILLED BY A LIMIT THE SEAT SET ITSELF, AND THE ARITHMETIC WAS NEVER DONE
+
+The 80-process panel hit its **two-hour** background cap and was stopped at exactly ten
+world-seeds. **At 13:29 the seat corrected its own ETA to FOUR TO FIVE HOURS against a job it
+had capped at two**, then reported progress against the four-hour figure for ninety minutes
+while the run was already doomed. **Not a measurement error — arithmetic that was never done.**
+
+`click_only` completed and `buttons` got nothing; **the kill landed on a world boundary by luck,
+not design.** `buttons` re-ran in halves that fit the cap.
+
+### F417.3 — **AND THE READER POOLS ACROSS WORLDS, WHICH `CLAUDE.md:1362` FORBIDS**
+
+`contest_read.py`'s `verdict()` takes every row regardless of world. The standing law is *no
+pooling across games — every game tests a different skill, so a rate across games averages a
+board that tests the thing with a board that does not.*
+
+**THE `click_only` VERDICT ABOVE IS UNAFFECTED — one world, so pooled and per-world coincide.**
+What it does mean is that **appending `buttons` to the same reading would violate the law**, and
+would also make *"the verdict cannot be reversed by buttons"* false as implemented: a pooled
+tally can be moved by a second world, where a per-world rule cannot. **The reviewer's statement
+assumes per-world and the code does not.** Recorded before `buttons` lands rather than after.
