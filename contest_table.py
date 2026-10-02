@@ -29,15 +29,20 @@ four of sixteen rows read `mint 0` on buttons seed 5 -- UNINFORMATIVE rows that 
 like four arms where nothing happened. A row counts only if something was minted on that slot
 in AT LEAST ONE ARM; the rest are reported and counted, never read as negatives.
 
-REPRODUCE, in full, from a clean tree -- the CONTEST arms need a tree that HAS the flag, and
-building it from `git archive` rather than `cp -r` is deliberate: a copy of the working
-directory drags `.venv` and takes minutes.
+REPRODUCE, in full. **EVERY ARM COMES FROM A PINNED WORKTREE, INCLUDING THE BASE ARMS** --
+`--base` is required and the launcher refuses the main working tree, an unpinned `git archive`
+extract, and a DIRTY worktree. The earlier `git archive` + `git apply` recipe is dead: both
+halves of it are now refused, and they are refused for the reasons they were wrong.
 
     S=<scratch>
-    mkdir -p $S/patched && git archive HEAD | tar -x -C $S/patched
-    cp contest_table.py $S/patched/
-    (cd $S/patched && git apply $S/contest.patch)
-    .venv/Scripts/python.exe contest_table.py --patched $S/patched --panel click_only:5
+    git worktree add $S/wt_base <commit>
+    .venv/Scripts/python.exe contest_table.py --base $S/wt_base --seeds 6,8
+
+A CONTEST arm needs a tree that HAS the flag, and a PATCHED worktree is dirty by
+construction, so the variant must be COMMITTED to its own branch first:
+
+    git worktree add $S/wt_contest <contest-commit>
+    .venv/Scripts/python.exe contest_table.py --base $S/wt_base --patched $S/wt_contest
 
 Without `--patched`, both CONTEST arms print `UNAVAILABLE -- this build has no TETHER_CONTEST`.
 THAT IS THE POINT: an arm whose build cannot supply its flag must refuse, never run as its
@@ -240,6 +245,9 @@ def _run(root: str, world: str, seed: int, cycles: int, acted: int, contest: int
 
 def main() -> int:
     p = argparse.ArgumentParser()
+    p.add_argument("--base", default=None,
+                   help="a PINNED worktree the non-contest arms import from; required, "
+                        "because the main tree can move under a running arm")
     p.add_argument("--patched", default=None, help="a tree with the contest change applied")
     p.add_argument("--cycles", type=int, default=60)
     p.add_argument("--worlds", default="click_only,buttons")
@@ -249,7 +257,16 @@ def main() -> int:
                         "exceeds --cap-sec")
     p.add_argument("--cap-sec", type=float, default=7200.0)
     a, _ = p.parse_known_args()
-    here = os.path.dirname(os.path.abspath(__file__))
+    # **THE BASE ARMS NEED A PIN TOO, AND THIS IS THE HALF THE FIRST REFUSAL LEFT OUT.**
+    # `_pinned` refused the main tree per ARM and `main` still handed it `here` for every
+    # contest=0 arm, so the launcher refused itself on its own default invocation -- a
+    # guard shipped without the route that satisfies it. The asymmetry it was written to
+    # kill (patched pinned, base not) was still in the caller.
+    if not a.base:
+        raise SystemExit(
+            "panel refused: --base is required and must be a PINNED worktree. The main "
+            "working tree can move under a running arm, which is how two builds landed "
+            "inside one row. Create one with `git worktree add <path> <commit>`.")
     seeds = [int(x) for x in a.seeds.split(",")]
     # BOTH REFUSALS FIRE BEFORE A SINGLE ARM RUNS.
     _fits(len(seeds) * len(a.worlds.split(",")), len(ARMS), a.per_arm_sec, a.cap_sec)
@@ -267,7 +284,7 @@ def main() -> int:
         for seed in seeds:
             per = {}
             for acted, contest in ARMS:
-                root = a.patched if (contest and a.patched) else here
+                root = a.patched if (contest and a.patched) else a.base
                 res = _run(root, world, seed, a.cycles, acted, contest)
                 per[(acted, contest)] = res
                 if "unavailable" in res:
@@ -307,10 +324,18 @@ def main() -> int:
         print(f"    acted={k[0]} contest={k[1]}   {tally[k]}/{rows_seen[k]}")
     on0, off0 = tally[(0, 1)], tally[(0, 0)]
     on1, off1 = tally[(1, 1)], tally[(1, 0)]
-    proceeds = on0 > off0 and on1 > off1
     print("  PRE-REGISTERED: contest proceeds only if ON > OFF in BOTH ?ACTED arms.")
     print(f"    acted=0  ON {on0} vs OFF {off0}      acted=1  ON {on1} vs OFF {off1}")
-    print(f"    -> {'PROCEEDS' if proceeds else 'DOES NOT PROCEED'}")
+    # **NO VERDICT WITHOUT A TREATMENT.** Run with no patched tree and every contest arm
+    # reports UNAVAILABLE, every world-seed is skipped, and this printed DOES NOT PROCEED
+    # over ZERO ROWS -- a verdict on a change that never executed, in the same words as a
+    # verdict on one that lost. The docstring already refuses an absent treatment at the
+    # ARM; it did not refuse one at the READING, which is where the number is quoted from.
+    if unavailable or not informative:
+        print(f"    -> NO VERDICT: {unavailable} arms unavailable, {informative} "
+              f"informative rows. A contest arm that never ran cannot lose.")
+        return 2
+    print(f"    -> {'PROCEEDS' if (on0 > off0 and on1 > off1) else 'DOES NOT PROCEED'}")
     return 0
 
 
