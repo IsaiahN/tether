@@ -53697,3 +53697,30 @@ because repairing object placement moves every colliding world — including one
 > the control's numerator is zero on every row, stacked or not — but **the panel's world was not
 > the world the panel was described as running in**, which is the denominator failure this record
 > is named for, arriving in the WORLD column instead of the population column.
+
+### F411.4 — THE COLLISION'S BLAST RADIUS, MEASURED: **SEEDS 0, 1 AND 2 ARE CLEAN ON ALL FOUR FAMILIES, SO `F393`–`F409` STAND WITHOUT RE-TAKING**
+
+**WORLD: gridworld, four families. POPULATION: seeds 0–9, working tree.** The layout draw
+*looks* family-independent, which is the kind of thing to measure rather than reason about:
+
+    default · click_only · buttons · remap_after   stacked seeds 0-9: [6, 8]   0,1,2 CLEAN
+      seed 6: cell(1,3) holds o1 and o3      seed 8: cell(0,1) holds o1 and o5
+
+**Identical across all four, which confirms the collision sits in the SHARED layout draw and not
+in any family's wiring.**
+
+**EVERY FINDING FROM `F393` TO `F409` RAN ON THE 0–2 PANEL AND NONE USED A COLLIDING SEED.**
+`F402`, `F405` and `F408` carry no seed-indexed measurement at all. **Only `F410` (4 of 19 rows:
+`click_only` 6 and 8, `buttons` 6 and 8) and `F411`, whose subject IS the collision, touched
+them** — and `F410`'s conclusion does not depend on those four, the unguarded numerator being
+zero on stacked and clean rows alike. **What was wrong there is the WORLD DESCRIPTION, not the
+result.**
+
+> **SO THE PLACEMENT REPAIR CAN BE MADE WITHOUT RE-TAKING `F393`–`F409`** — a smaller bill than
+> the alarm raised at 01:08, and saying so is the same obligation as raising it. **No earlier
+> panel could have been hit: every one of them was three seeds wide.**
+
+**AND THE FIRST PASS OF THIS INVENTORY SCRAPED `25`, `40` AND `60` OUT OF CYCLE COUNTS AND READ
+THEM AS SEEDS** — caught before quoting, and it is *a grep's count is not evidence until you have
+read what it matched* arriving in the one place the number was about to be used to clear a
+finding.
