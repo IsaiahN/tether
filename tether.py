@@ -138,6 +138,22 @@ _BARGAIN_FIT = os.environ.get("TETHER_BARGAIN_FIT", "1") != "0"
 # and the default is OFF until he rules.
 _DOWNRATE = os.environ.get("TETHER_DOWNRATE", "0") != "0"
 
+# **THE ?ACTED GUARD, DEFAULT OFF -- the reviewer, 2026-10-02, HONOURING A REFUTER THAT
+# FIRED.** The guard is semantically correct (it reads what the press LANDED ON, 60/60
+# against the world) and it FAILED its pre-registered test: payments up and TOTAL refusals
+# down on 6 of 6 world-seeds, with the refusal rate collapsing 19.67% -> 0.40% on three.
+#
+# **IT IS OFF RATHER THAN DELETED BECAUSE THE EVIDENCE IS MIXED AND RECORDED:** `buttons`
+# seed 1 settled two guarded terms under a PRICED guard, which no unguarded run has ever
+# done on that world. The flag is what lets the next measurement be one script with one
+# flag instead of a resurrection.
+#
+# **IT RETURNS ON ONLY BY ISAIAH'S SETTLED/UNSETTLED RULE:** guarded adoptions must SETTLE
+# no worse than unguarded ones, and an unsettled term must never be acted on as trusted.
+# Paying is getting onto trial; settling is the ground paying on evidence the term was
+# never fitted to, and only the second licenses the flag.
+_ACTED_GUARD = os.environ.get("TETHER_ACTED_GUARD", "0") != "0"
+
 # **THE AIMED CURIOSITY DRAW, DEFAULT ON -- the reviewer, 2026-10-01.** The flag exists so the
 # before/after is ONE SCRIPT WITH ONE FLAG rather than two code states: OFF restores the
 # subjectless `_explore` the curiosity exit used before `F401`. The `bored()` exit is not
@@ -567,6 +583,37 @@ def round_trip_gap(t_a, state: dict[str, int], alphabet: dict[str, int]) -> floa
 
 def term_bits(k: int, alphabet: int, bonds: int = BONDS) -> float:
     return (k + 1) * math.log2(alphabet + 1) + (k - 1) * math.log2(max(bonds, 1))
+
+
+def _guard_bits(guard: Any, offered: int) -> float:
+    """WHAT NAMING A GUARD COSTS. `+log2(G+1)` over the guards on offer.
+
+    **THE FORM IS THE CORPUS'S, NOT THE SEAT'S** -- `ARC_AGENT` §2042 and
+    `ARC_BUILD_PLAN` item 4d both price an added parameter at *`+log2(k+1)` bits*, and this
+    is that applied to the guard axis. A cost function invented here would be a magic number
+    at the one site the whole bargain rests on.
+
+    **AN UNGUARDED TERM PAYS NOTHING EXTRA, AND THE `+1` IS WHY.** No-guard is the DEFAULT --
+    the `+1` slot -- so every existing price is unchanged and only the choice among G named
+    guards is charged. Without this `inc` and `inc ?ACTED_SELF` cost the SAME 7.8138, so a
+    guard that explained even marginally better won for free, and the payment count on
+    `click_only` went from 1 to 60 overnight.
+
+    **AND IT CHARGES `ACTED_SELF` ALONE -- the reviewer, 2026-10-02: a HANDICAP ON THE NEW
+    GUARD, not a repricing of the system.** Charging every guard also repriced `?TOUCH` and
+    `?BECOME OTHER`, which have been free since they were built, and **broke 6 of 29 M2
+    checks whose fixtures encode that behaviour.** With `?ACTED` default-OFF the global
+    version bought nothing and cost six failures.
+
+    **THE UNPRICED INTENT GUARDS REMAIN A REAL MDL HOLE AND ARE RECORDED AS ONE** (`F408`):
+    a guarded term is strictly more specific than its unguarded form whatever the guard, so
+    the free ride is wrong in principle. **It is a separate change needing its own
+    pre-registration**, because whether those fixtures depend on it incidentally or by
+    design is a question about `M2_STANDARD`'s intent and not about this code.
+    """
+    if guard != ACTED_SELF or offered <= 0:
+        return 0.0
+    return math.log2(offered + 1)
 
 
 def _same_object(landed_on: str | None, slot: str) -> bool:
@@ -5671,7 +5718,8 @@ class Agent:
             r_true = sum(1 for *_, land in robs if _same_object(land, slot))
             out_true = h_true - r_true
             out_false = (len(hist) - h_true) - (len(robs) - r_true)
-            if r_true in (0, len(robs)) and (out_true if r_true == 0 else out_false) > 0:
+            if (_ACTED_GUARD and r_true in (0, len(robs))
+                    and (out_true if r_true == 0 else out_false) > 0):
                 out.append(ACTED_SELF)
         return out
 
@@ -5895,7 +5943,11 @@ class Agent:
                         break
                     binds = operand_binds if cand.reads_operand else [None]
                     binds = [x for x in binds if self._operand_fits(cand, slot, x)]
-                    for bind, g in ((b, g) for b in binds for g in self._guards(robs, slot)):
+                    # HOISTED so the guard PRICE can read how many were on offer -- the
+                    # denominator `log2(G+1)` is over, and it must be the same set the loop
+                    # walks or the price is charged against a population that was not offered.
+                    _gs = self._guards(robs, slot)
+                    for bind, g in ((b, g) for b in binds for g in _gs):
                         rank += 1
                         term = Term(cand.atoms, operand=bind, guard=g)
                         if self.gamma.is_atom(term) or term.name in self.gamma.library:
@@ -5918,8 +5970,9 @@ class Agent:
                         # PRICED IN UNITS, so a settled sub-composition costs what the
                         # ground already paid for it. `routine.length`'s rule, applied to
                         # the space it was always stated over.
-                        cost = term_bits(self.gamma.length(term, _units),
-                                         self.gamma.alphabet)
+                        cost = (term_bits(self.gamma.length(term, _units),
+                                          self.gamma.alphabet)
+                                + _guard_bits(g, len(_gs) - 1))
                         # LET THE RESIDUAL SAY WHERE TO LOOK. Walking the whole history for
                         # every candidate is exhaustive search; R already names the
                         # observations that need fixing, and a term that cannot fix enough of
@@ -5954,8 +6007,12 @@ class Agent:
                             for bt in self._trees(cand, bind, g):
                                 if self.gamma.is_atom(bt) or bt.name in self.gamma.library:
                                     continue
-                                bcost = term_bits(self.gamma.length(bt, _units),
-                                                  self.gamma.alphabet)
+                                # THE GUARD PRICE APPLIES HERE TOO. `_trees` carries `g`
+                                # onto the tree, so pricing it only in the main loop gave
+                                # ONE TERM TWO PRICES depending on which path reached it.
+                                bcost = (term_bits(self.gamma.length(bt, _units),
+                                                   self.gamma.alphabet)
+                                         + _guard_bits(g, len(_gs) - 1))
                                 if self._cannot_pay(bt, slot, robs, bcost, base, rkey):
                                     continue
                                 bleft = self._left(bt, slot, hist)
@@ -6024,8 +6081,9 @@ class Agent:
                         for bt in self._trees(cand, bind, g):
                             if self.gamma.is_atom(bt) or bt.name in self.gamma.library:
                                 continue
-                            bcost = term_bits(self.gamma.length(bt, _units),
-                                              self.gamma.alphabet)
+                            bcost = (term_bits(self.gamma.length(bt, _units),
+                                               self.gamma.alphabet)
+                                     + _guard_bits(g, len(_gs) - 1))
                             # **THE SAME BOUND HERE, AND IT CHANGES NO OUTCOME.** `_cannot_pay`
                             # PROVES `cost + left >= base`, which is exactly `not pays` -- so
                             # anything it refuses, `pays` refuses too. A short-circuit, not a

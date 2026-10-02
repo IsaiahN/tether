@@ -53455,3 +53455,43 @@ stage rather than at the end.**
 **`_cannot_pay`'s BOUND WAS SUSPECTED AND CLEARED** — est 7.81 against actual 21.81, sound. The
 seventh plausible mechanism of the day and the seventh to fail, which is why it was filed as a
 suspect rather than a finding.
+
+---
+
+## F408 — THE INTENT GUARDS ARE UNPRICED AND IT IS A REAL MDL HOLE. RECORDED, NOT FIXED, BECAUSE FIXING IT BREAKS 6 OF 29 M2 CHECKS
+
+**`term_bits(k, alphabet, bonds)` COUNTS ATOMS. A GUARD IS NOT AN ATOM, SO A GUARD IS FREE.**
+`inc` and `inc ?ACTED_SELF` cost the same **7.8138**. A guarded term is **strictly more specific**
+than its unguarded form — it makes a narrower claim and can be wrong in fewer places — so
+costing the same is wrong in principle for **any** guard, not only the new one.
+
+**MEASURED CONSEQUENCE, AND IT IS WHY THIS IS A FINDING RATHER THAN A STYLE NOTE.** With the
+`?ACTED` guard live and free, `click_only` payments went from **1 to 60** in a single build, and
+the first settled guarded term of the night — `same . all<o3.col>?ACTED_SELF` — **vanished the
+moment the guard cost anything.** It had won by explaining marginally more for nothing.
+
+**THE PRICE ADOPTED IS THE CORPUS'S OWN FORM, NOT THE SEAT'S:** `ARC_AGENT` §2042 and
+`ARC_BUILD_PLAN` item 4d both price an added parameter at **`+log₂(k+1)` bits**. The `+1` is the
+no-guard default, so an unguarded term keeps exactly the price it had.
+
+> **AND IT IS SCOPED TO `ACTED_SELF` ALONE — the reviewer, 2026-10-02: A HANDICAP ON THE NEW
+> GUARD, NOT A REPRICING OF THE SYSTEM.** Charging every guard also repriced `?TOUCH` and
+> `?BECOME OTHER`, free since they were built, and **BROKE 6 OF 29 M2 CHECKS** —
+> `check_a_refutation_is_a_row`, `check_can_gates_until`, `check_one_bargain`,
+> `check_shelf_must_be_runnable_here`, `check_trigger_is_the_residual_not_the_reward`, and
+> `check_the_suite_reaches_the_hard_cases`. With `?ACTED` default-OFF the global version **bought
+> nothing and cost six failures.**
+
+**SO THE HOLE STANDS OPEN AND IS NAMED.** Closing it is a separate change needing its own
+pre-registration, because **whether those six fixtures depend on free guards INCIDENTALLY or BY
+DESIGN is a question about `M2_STANDARD`'s intent and not about the code.** Adjusting six checks
+to accommodate a change is the shape of *disabling the check*, which this seat does not do on its
+own judgement.
+
+**AND A DEFECT OF THE SEAT'S FOUND ON THE WAY, WHICH IS THE PART WORTH COPYING.** The price was
+first applied at **ONE of THREE cost sites** — the mint's main loop charged for it and the two
+`bcost` paths pricing `_trees` output did not — **so one term carried two prices depending on
+which path reached it.** That is the same numerator-and-denominator-from-different-sites error
+this record files repeatedly, in a new place. **Fixing it left all six M2 failures standing**, so
+it was real and was not the cause: *the first defect you find is not automatically the one you
+are looking for.*

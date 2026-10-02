@@ -81,6 +81,15 @@ ROOT = Path(__file__).parent.parent
 # it looked like it did -- `A6i`'s writing side, which fires exactly where a row is authored.
 # A pair means the two are declared at their site to belong on together.
 ARMS: dict[str, str] = {
+    "TETHER_ACTED_GUARD": "a term may be guarded on `ACTED_SELF` -- true when the press "
+                          "LANDED ON this slot's object, resolved per slot by the caller so "
+                          "no object NAME ever crosses into a term. **DEFAULT OFF, AND THE "
+                          "DEFAULT IS A REFUTER THAT FIRED.** The semantics are confirmed "
+                          "(60/60 against the world, `conform/landed.py`) and the "
+                          "pre-registered test failed: payments up and TOTAL refusals down "
+                          "on 6 of 6, refusal rate 19.67% -> 0.40% on three. Kept because "
+                          "`buttons` seed 1 settled two guarded terms under a PRICED guard. "
+                          "Returns ON only under Isaiah's settled/unsettled rule",
     "TETHER_AIMED_CURIOSITY": "the CURIOSITY exit names a subject -- the slot with the "
                               "most unexplained surprise that it has also watched move "
                               "(Figure 5's *large and compressible*) -- instead of "
