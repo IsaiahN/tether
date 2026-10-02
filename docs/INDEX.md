@@ -53261,3 +53261,83 @@ BECAUSE THE PATTERN IS THE POINT:**
 > NAME, and none by reasoning about the number.** The row payload is what made it possible: dumping
 > EVERY field rather than the three chosen in advance is what produced `note`, `coverage`,
 > `contest` and `cuts`, and not one of those was a column the seat asked for.
+
+
+---
+
+## F407 — THE AGENT CAN NOW SAY *THIS CHANGES WHEN I ACT ON IT*, AND BOTH CLICK WORLDS PAY AT 60 CYCLES WHERE NEITHER EVER PAID. FIVE GATES, AND THE LAST TWO WERE MINE
+
+**WORLD:** gridworld `click_only` / `buttons` / `default`, seed 0, 60 cycles. Board stop
+respected.
+
+**THE EFFECT IS PERFECTLY ACTION-CONDITIONED:** `o0.colour` changes **iff** `o0` is clicked — 34
+of 34 and 0 of 26. `inc`'s 50-bit residual decomposes as **26 steps of missing GUARD + 9 of
+missing `wrap` + 25 correct**.
+
+**AND THE AGENT COULD PERCEIVE IT AND NOT SAY IT.** `_acted` lives only in `interface.py`; the
+mint's guards were `?TOUCH` and `?BECOME OTHER`; and `rel` — the SELF/OTHER/NO_TARGET key layer 1
+records — is **summed away by `_summed` and bound as `_rel` everywhere else**, its one reader
+`_remote_seen` asking a world-level question.
+
+**IT NEEDED NO NEW VOCABULARY.** `_guards` says **guards name INTENTS** (Isaiah, ruling 1) and
+`Intent` already carries a `subject`; the trace stored only `.kind`.
+
+    gamma.py   `ACTED_SELF` sentinel · `Ctx.acted_self` · `Term.apply` tests it
+    tether.py  trace gains a FIFTH field; `intent` stays `.kind` so RULING 3 is untouched ·
+               `history()` carries it · ALL THREE replay sites resolve it PER SLOT ·
+               `_same_object` reduces both sides to their owner
+
+> **NO OBJECT NAME EVER CROSSES INTO A TERM** — the caller is the only thing that knows the slot,
+> so the name resolves to a boolean at the boundary. *Relative by construction, not by
+> discipline.* The absolute form is not representable.
+
+**AGAINST A PREDICTION MADE BEFORE ANY OF IT EXISTED (18:01):**
+
+    predicted   inc ?ACTED  7.81 + left ~9.0 = ~16.81, pays by ~33
+    measured    inc ?ACTED  7.81 + left  6.00 =  13.81   BETTER THAN PREDICTED
+
+    world        bargain_paid  settled   plain not-novel cuts  guarded cuts
+    click_only        1           0              82                14
+    buttons           1           0             598                14
+    default         371          10           3,124               128
+
+**`bargain_paid` ON THE CLICK WORLDS HAD BEEN ZERO ALL DAY, EVERY CYCLE COUNT, EVERY SEED.** The
+only prior payment was `buttons` at **120** cycles on a base of 104.00. **Both now pay at 60 — by
+affording the CHEAP term rather than accumulating an enormous residual.** NOTHING HAS SETTLED, so
+this is a term getting ONTO trial and not a capability.
+
+**THE REFUTER DID NOT FIRE:** the plain cut population is untouched and the guarded counts are
+NON-ZERO — library duplicates are still cut. **`default` priced NO `?ACTED` term**, as a control
+must: its `o0` is a mover, not a click-recolour target.
+
+**FIVE GATES, AND THE LAST TWO WERE THE SEAT'S OWN:**
+
+    1  the FLOOR          false since clause 3 (`F404`)
+    2  DEPTH              disproved -- 8410 of 9570 candidates were already 2-atom
+    3  PRICE on wrap.inc  true only at base 8.00
+    4  **`gamma.is_atom`** ignores the guard, so `inc ?ACTED` was classified as the atom
+                          `inc`. Invisible because `_GUARD_AXIS` is default-OFF and `_guards`
+                          returned only intent kinds -- **a single-atom GUARDED term was a
+                          shape the mint had never built, so the check that misclassifies it
+                          had never been handed one**
+    5  **`_guards`, MINE** gated on the boolean VARYING WITHIN `robs`. On `o0.colour` R is the
+                          26 rows `inc` got wrong, every one not-clicked -- constant, so the
+                          guard was withheld **precisely where it pays.** *A uniformly one-way
+                          residual is not evidence a guard is useless; it is the SIGNATURE OF A
+                          MISSING ONE.* The comment at the site argued the opposite,
+                          confidently, and is kept beside the correction
+
+**AND THE REVIEWER'S CRITERION WAS SHARPER THAN THE SEAT'S REPLACEMENT.** The seat proposed *vary
+over the history*; the ruling was *offer when it SEPARATES R from the rest*. **Implemented first
+as strict DISJOINTNESS, false on this world** — 33 FALSE rows against 26 in R leaves 7 outside —
+**taking the funnel from 8,031 built to ZERO**, caught in one run.
+
+**THE FUNNEL LOCATED ALL OF IT, and it is the method worth copying: count the population at every
+stage rather than at the end.**
+
+    before:  built  8,031 · reached `_cannot_pay` 7,978  · passed     0 · priced     0
+    after:   built 58,422 · reached              58,422 · passed 4,478 · priced 4,814
+
+**`_cannot_pay`'s BOUND WAS SUSPECTED AND CLEARED** — est 7.81 against actual 21.81, sound. The
+seventh plausible mechanism of the day and the seventh to fail, which is why it was filed as a
+suspect rather than a finding.
