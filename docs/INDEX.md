@@ -53548,3 +53548,89 @@ per-world-per-seed verdict with pooling only as the stated fallback. IF IT IS ST
 STOP — and record that these panels cannot decide the question** rather than iterating on the
 instrument. **The test needs unguarded adoptions the click worlds do not make, which is the same
 adoption poverty this whole chain began from.**
+
+## F410 — THE 10-SEED PANEL STOPS IT, AND NOT FOR THE PRE-REGISTERED REASON: **THE CONTROL'S NUMERATOR IS STRUCTURALLY ZERO, SO ISAIAH'S SETTLE RULE CANNOT BE REFUTED ON THESE FIXTURES AT ANY SEED COUNT**
+
+**WORLD: gridworld `click_only` and `buttons`, seeds 0–9, 60 cycles, `TETHER_ACTED_GUARD=1`
+asserted on at the top of the probe. POPULATION: 19 completed runs — `buttons` seed 8 is refused
+at construction (see below).** One script, one flag; it differs from `F409`'s by `range(10)`.
+
+    world       sd   guarded  unguarded   verdict
+    click_only   0       0/1        0/0   INSUFFICIENT
+    click_only   1       1/1        0/2   INSUFFICIENT
+    click_only   2       0/1        0/0   INSUFFICIENT
+    click_only   3       1/1        0/2   INSUFFICIENT
+    click_only   4       0/1        0/0   INSUFFICIENT
+    click_only   5       1/1        0/3   INSUFFICIENT
+    click_only   6       0/1        0/1   INSUFFICIENT
+    click_only   7       0/1        0/0   INSUFFICIENT
+    click_only   8       0/1        0/0   INSUFFICIENT
+    click_only   9       0/1        0/0   INSUFFICIENT
+    buttons      0       0/1        0/0   INSUFFICIENT
+    buttons      1       2/2        0/0   INSUFFICIENT
+    buttons      2       0/1        0/0   INSUFFICIENT
+    buttons      3       0/1        0/0   INSUFFICIENT
+    buttons      4       0/1        0/0   INSUFFICIENT
+    buttons      5       0/1        0/0   INSUFFICIENT
+    buttons      6       0/0        0/1   INSUFFICIENT
+    buttons      7       3/3        0/0   INSUFFICIENT
+    buttons      8          REFUSED AT CONSTRUCTION -- F398's guard
+    buttons      9       0/1        0/0   INSUFFICIENT
+    POOLED, the stated fallback only:  guarded 8/21 = 38.1% · unguarded 0/9 = 0.0%
+
+**`F409`'s pre-registration was met and its refuter did not fire.** The seat predicted all rows
+INSUFFICIENT and named *two or more rows reading PASS or FAIL* as the refuter. Zero fired.
+
+**AND THE PRE-REGISTERED REASON IS THE SMALLER HALF. THE UNGUARDED NUMERATOR IS ZERO IN EVERY
+ROW — not small, zero.** Counting `F409`'s flag-OFF panel too: **across 25 runs (19 ON + 6 OFF),
+the number of unguarded terms that have ever settled is ZERO**, and the six flag-OFF rows read
+`settled 0` on every one. **Nothing settles on these fixtures unless it carries the guard.**
+
+> **SO THE RULE IS UNFALSIFIABLE HERE. A control that can only score zero passes any guarded rate
+> whatsoever** — *guarded settles no worse than unguarded* reads PASS if the guard helps, does
+> nothing, or actively harms. **It is `a measurement that can only agree with you` with the
+> degeneracy in the CONTROL rather than in the statistic**, which is why asking *what would refute
+> me* about the PANEL SIZE did not catch it. **Ask it of the comparator, not only of the sample.**
+
+**MORE SEEDS CANNOT REACH IT, AND THAT IS ARITHMETIC RATHER THAN A HUNCH: 3 → 10 seeds moved the
+unguarded denominator from 2 to 9 and left the numerator at 0.**
+
+**STOPPED, AS THE REVIEWER PRE-REGISTERED. `?ACTED` STAYS DEFAULT OFF.** No wider panel, no lower
+threshold, no switched statistic, no third fixture to manufacture a comparator. **And the pooled
+38.1%-vs-0.0% is NOT read as support** — it is the best-looking number of the night, it is taken
+against a structurally-zero control, and *the fact that it flatters the thing I built is the
+reason to distrust it rather than a reason to quote it.*
+
+**ONE LEVEL LEFT UNRULED RATHER THAN QUIETLY USED:** pooling across SEEDS WITHIN ONE WORLD is
+arguably not what *never pool across games* forbids, and on that reading `click_only` is 3/10
+against 0/8 with both denominators met. **It was not pre-registered as a level and is not acted
+on.**
+
+### F410.1 — AND THE PANEL CAUGHT A LIVE `F398`: `buttons` SEED 8 IS REFUSED AT CONSTRUCTION
+
+    family 'buttons' seed 8: NO advertised action can move ['o0.row','o0.col'] -- the
+    objective 'BECOME(o0, target)' is unreachable in a world advertising ('ACTION6',).
+
+**That seed draws `goal_obj = None`, so the family falls back to a POSITIONAL objective in a world
+advertising only a recolouring click. All nine other `buttons` seeds draw a colour objective and
+pass.** `F398`'s guard was built after this exact defect shipped silently; **it fired on a seed
+nobody had run, one in ten, at construction rather than after 60 cycles of an impossible want.**
+
+> **A GUARD WHOSE FAILURE PATH IS NOW EXERCISED RATHER THAN ASSUMED** — which is this record's
+> standing complaint about every seat that has been green since installation. **Not repaired
+> tonight: changing which objective `buttons` draws changes the world all 25 of these runs were
+> measured in.**
+
+### F410.2 — THREE STANDING LAWS HELD AND NOT APPLIED, IN ONE COMMAND
+
+The panel was piped through `| head -30`. **The memory's first line reads *"tail, `head` or any
+filter"* — it named the tool and the seat used it anyway**, so this is not a mis-scoped rule, it
+is `I30`: written down and not installed.
+
+- **THE RUN WENT MUTE.** `head`'s own stdout is block-buffered to a file, so `python -u` and
+  `flush=True` bought nothing — the buffering is one process further along than the one hardened.
+- **AND IT DID TRUNCATE, against a prediction used to justify not re-launching.** *27 lines under
+  `head -30`* was computed from the happy path; **the run raised, the traceback pushed it past 30,
+  and the assertion message was cut.** A line-count prediction is not a reason to keep a pipe.
+- **AND THE PIPELINE EXITED 0 WITH A TRACEBACK IN IT** — that is `head`'s exit code. *A wrapper's
+  success is not the operation's*, and the wrapper here was one the seat added voluntarily.
