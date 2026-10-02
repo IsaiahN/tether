@@ -53320,6 +53320,41 @@ this is a term getting ONTO trial and not a capability.
 > would not assume 3-of-3, having been burned by exactly this on clause 3 (`F404`, `click_only`
 > 1 of 3) — **then assumed it in the headline anyway.**
 
+**AND *5 OF 6* IS THE MINTED COUNT, NOT THE BOUND ONE — A SECOND COLLAPSE OF TWO CLAIMS INTO ONE
+WORD, AMENDED 2026-10-02.** A term that pays is MINTED; a term that is BOUND is the incumbent
+explaining the slot. The retraction above used *minted* numbers while the sentence a reader takes
+from them is about explanation. Measured across both worlds, all six pairs:
+
+    world        sd  o0 clicks  MINTED (guarded)   BOUND on o0.colour
+    click_only    0         53  inc?ACTED_SELF     inc?ACTED_SELF
+    click_only    1          2  inc?ACTED_SELF     None
+    click_only    2          5  --                 None
+    buttons       0         53  inc?ACTED_SELF     inc?ACTED_SELF
+    buttons       1          2  inc?ACTED_SELF     inc?ACTED_SELF
+    buttons       2          1  inc?ACTED_SELF     None
+
+> **MINTED (guard-attributable payment): 5 of 6. BOUND (the slot ends up explained): 3 of 6.**
+> The strongest true sentence is *on 3 of 6 world-seed pairs the agent ends the run HOLDING a term
+> that says "this changes when I act on it", and on 5 of 6 it PAYS for one.* **Nothing settles
+> anywhere, so none of it is a capability.**
+
+**AND THE TABLE REFUTED THE SEAT'S OWN ONE-LINE EXPLANATION OF THE MISSES, GIVEN TWELVE MINUTES
+EARLIER.** That read: *the agent barely touches `o0` on seeds 1 and 2 — two clicks and five against
+fifty-three. No clicks, no evidence, nothing binds. **That is the whole answer and it is not
+subtle.*** **`buttons` SEED 1 HAS TWO `o0` CLICKS AND BINDS; `click_only` SEED 1 HAS THE SAME TWO
+AND DOES NOT.** Same count, opposite outcome, different world.
+
+**THE CAUSE IS THE WIRING, AND IT IS WHY CLICK VOLUME PREDICTS WITHIN A WORLD AND NOT ACROSS.** On
+`buttons` the agent clicks OTHER objects and `o0.colour` still moves — seed 1 is the 50-of-60 OTHER
+row — so the slot accumulates evidence from presses that never landed on it. On `click_only` a
+direct click is the only evidence `o0.colour` can ever receive, and two is not enough.
+
+> **THE ONE-LINER WAS MEASURED ON `click_only` ALONE AND STATED ACROSS BOTH WORLDS** — the same
+> shape as citing a `buttons` row to explain a `click_only` question an hour before it.
+> **Generalising across worlds that differ in exactly the respect that matters**, which is the
+> night's most-repeated error and the one no amount of per-seed discipline catches, because the
+> seeds were all fine.
+
 **AND THE MUTATION CONTROL IS CLEAN, WHICH IS WHY THE CODE IS KEPT.** Read off the LIBRARY rather
 than a counter — a term that pays is minted, so the minted names ARE the paid population:
 
