@@ -173,6 +173,25 @@ class GridWorld:
                 if 0 <= r0 + dr < GRID and 0 <= c0 + dc < GRID and (r0 + dr, c0 + dc) != (r2, c2)]
         if near:
             r1, c1 = rng.choice(near)
+            # **THE ADJUSTMENT OVERWROTE A DISTINCTNESS `rng.sample` HAD ALREADY GUARANTEED --
+            # `F411.3`, repaired here.** `cells` is a SAMPLE, so every object starts on its own
+            # square; this line then moves `o1` and the list above excludes only `(r2, c2)`.
+            # It never excluded `cells[3:]`, which is why the measured collisions are (1,3),
+            # (1,4) and (1,5) and NEVER (1,2): 18 of 200 seeds on EVERY family, and the cause
+            # of all seven `buttons` seeds `F398`'s guard refused -- a click on a shared square
+            # resolves to `o1`, so the press that should reach the wiring never does.
+            #
+            # **THE REPAIR IS DETERMINISTIC AND THAT IS THE LOAD-BEARING PART.** `rng.choice`
+            # is left exactly where it was and consumes exactly what it consumed, because
+            # `random.choice` draws a VARIABLE number of bits as a function of `len(near)` --
+            # so shrinking `near` would shift every downstream value on seeds that never
+            # collided. Choosing the replacement WITHOUT the rng makes every non-colliding
+            # world byte-identical BY CONSTRUCTION rather than by a test that happened to pass.
+            taken = {(r0, c0), (r2, c2), *cells[3:]}
+            if (r1, c1) in taken:
+                free = [p for p in near if p not in taken]
+                if free:
+                    r1, c1 = free[0]
         self.state = {
             "o0.row": r0, "o0.col": c0, "o0.colour": rng.randrange(4), "o0.shape": 0,
             "o1.row": r1, "o1.col": c1, "o1.colour": rng.randrange(4), "o1.shape": 1,

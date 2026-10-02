@@ -53677,6 +53677,17 @@ so no measurement taken on this family moves. Refusals 16 → 8.
 
 ### F411.2 — ONE LAYOUT IN 200 ADMITS NO CHAIN AT ALL. **NOT FIXED**
 
+> **REFUTED BY ITS OWN REPAIR — `F418`, 2026-10-02. SEED 47 WAS NEVER A CHAINLESS LAYOUT.**
+> It COLLIDED, `[1,3]`, and **two objects on one cell are distance 0 apart, so they can never
+> be mutually apart** — the chain search had nothing to find because of the collision, not
+> because of the geometry. The placement fix moves `o1` from `(3,2)` to `(0,0)` and the layout
+> becomes chainable with `goal=o2`.
+>
+> **AND IT GENERALISES: ALL EIGHT previously-refused `buttons` seeds COLLIDED, and NONE of the
+> refused seeds was collision-free.** One defect, not two. **The entry below was written from a
+> measured symptom with an inferred cause** — an exhaustive search found no chain, and the
+> reason it found none was never checked.
+
 Seed 47 has no three mutually-apart objects anywhere in its layout, so no search can rescue it.
 **The reviewer's ruling — *`buttons` always draws a colour objective* — cannot be met here
 without redrawing the LAYOUT**, which is a change to the generator's draw order.
@@ -53944,3 +53955,88 @@ What it does mean is that **appending `buttons` to the same reading would violat
 would also make *"the verdict cannot be reversed by buttons"* false as implemented: a pooled
 tally can be moved by a second world, where a per-world rule cannot. **The reviewer's statement
 assumes per-world and the code does not.** Recorded before `buttons` lands rather than after.
+
+## F418 — **THE PLACEMENT FIX: `o1`'s REACH-ADJUSTMENT OVERWROTE A DISTINCTNESS `rng.sample` HAD ALREADY GUARANTEED.** 18/200 on every family, and it was the root of ALL EIGHT refused `buttons` seeds — including the one filed as geometrically chainless
+
+**WORLD: gridworld, all four families, seeds 0–199, measured against `34d0bc5`'s generator.**
+Pre-registered 15:24, approved 15:28 with one addition, run in the pre-registered order.
+
+    PRECONDITION   collisions   default 18->0 · click_only 18->0 · buttons 18->0
+                                remap_after 18->0                            MET
+    TREATMENT      worlds changed 18/200 on each family, MATCHING the defect exactly
+    P1             all seven chain-but-refused buttons seeds ACCEPTED
+    P2             non-colliding seeds that moved, all families, all 200: ZERO
+    P4             buttons refusals 8/200 -> 0/200
+
+**`cells` IS AN `rng.sample`, SO EVERY OBJECT STARTS ON ITS OWN SQUARE.** The ARC-fidelity
+adjustment then moves `o1` within reach of `o0`, and its candidate list excluded only
+`(r2, c2)` — never `cells[3:]`. **That is exactly why the measured collisions are `(1,3)`,
+`(1,4)`, `(1,5)` and NEVER `(1,2)`.**
+
+### F418.1 — **P2 HOLDS BY CONSTRUCTION, AND THE OBVIOUS FIX WOULD HAVE BROKEN IT SILENTLY**
+
+The reviewer added: *the redraw path consumes random draws, so confirm the fix touches only the
+18 colliding worlds and changes nothing downstream in the others.*
+
+**`random.choice` DRAWS A VARIABLE NUMBER OF BITS AS A FUNCTION OF `len(seq)`** — `_randbelow`
+retries until the value is in range. So the obvious repair, shrinking `near` to exclude occupied
+cells, **would have shifted every downstream value on seeds that never collided**, and the
+collision count would still have read 0.
+
+> **SO `rng.choice(near)` IS LEFT EXACTLY WHERE IT WAS, CONSUMING EXACTLY WHAT IT CONSUMED, AND
+> THE REPLACEMENT IS CHOSEN DETERMINISTICALLY FROM CELLS ALREADY IN `near`.** Non-colliding
+> worlds are byte-identical **by construction rather than by a test that happened to pass** —
+> and the check that forced it came from the reviewer, not from the seat.
+
+### F418.2 — **P4 BEAT ITS PREDICTION, WHICH IS THE RESULT TO DISTRUST, AND THE INVESTIGATION COLLAPSED TWO DEFECTS INTO ONE**
+
+Pre-registered: *refusals fall toward 1/200 — seed 47 only, which this change does not address.*
+**Measured: 0/200.**
+
+    buttons seed 47   OLD  collided [[1,3]]   chainable FALSE   goal None
+                      NEW  collided []        chainable TRUE    goal o2
+                      o1 moved (3,2) -> (0,0)
+    OLD refusals 18, 47, 72, 108, 160, 168, 183, 187 — EVERY ONE COLLIDED, none did not
+
+**`F411.2` IS REFUTED BY ITS OWN REPAIR** and is annotated at its row. *Measured symptom,
+inferred cause*: an exhaustive search found no chain and **why it found none was never checked.**
+
+### F418.3 — **`P3` READ AS A SPLIT, AND IT IS PARTIAL: 7 OF 20 SEEDS, CUT BY THE HARNESS CAP**
+
+    seed  collided   OLD            NEW            same
+    0-5   False      ...            ...            YES  (six of six)
+    6     TRUE       (287, 12, 0)   (319, 7, 0)    NO
+
+**UNCHANGED WHERE IT MUST BE UNCHANGED, CHANGED EXACTLY WHERE THE FIX APPLIES**, and this is
+AGENT-LEVEL identity after 40 cycles — `reach_failed` rows, settled terms, routines — which
+`P2`'s state-level byte-identity does not reach. **The colliding row is the informative one: a
+colliding seed coming back IDENTICAL would have meant the repair never reached it**, which is
+the treatment-absent failure one level in.
+
+**PARTIAL AND SAID SO: 7 of 20 seeds.** The run was killed at a one-hour cap and the remaining
+thirteen add confirmations rather than a new kind of evidence. **`P2` is what carries the
+generator-level claim across all 200 worlds; `P3` confirms it reaches the agent on a sample.**
+
+### F418.3b — **AND `P3` WAS MIS-STATED IN THE SEAT'S OWN PRE-REGISTRATION**
+
+*"`default`'s reach_failed rate, settles and routines are unchanged"* is **unsatisfiable as
+written** — the fix must change `default`'s 18 colliding worlds, `default` being a family like
+any other. The claim that should have been written is what P2 proves. **Reported as mis-stated
+rather than passed against a reworded version**, with 17/17 seats as the systemic evidence.
+
+### F418.4 — **THE SEAT CONTAMINATED A RUNNING PANEL BY EDITING A MODULE THAT PANEL IMPORTS**
+
+The `buttons` panel launched 15:02 and takes its `contest=0` arms from the main tree;
+`gridworld.py` was patched at **15:30:51** while it ran. A world-seed finishing after that would
+take `contest=0` from the NEW generator and `contest=1` from the OLD patched tree — **two builds
+inside ONE ROW**, with the four cells printed side by side as one world and nothing in the output
+showing it. Killed at 15:36; the four completed rows discarded although they predate the edit,
+because *a table that needs a per-row argument about which side of a timestamp it fell on is not
+a table.*
+
+> **THE INSTRUMENT ASSERTS ITS FLAGS AND REFUSES AN ARM WHOSE BUILD CANNOT SUPPLY ONE. IT HAS NO
+> NOTION OF THE WORLD GENERATOR MOVING UNDERNEATH IT.** `contest_read.py` was put in a separate
+> file precisely so the running instrument would not be edited — and then a module it IMPORTS
+> was. **The guard was built for the file being thought about, not for the dependency.**
+>
+> **STANDING: WHILE A MEASUREMENT RUNS, THE TREE IT READS IS FROZEN.**
