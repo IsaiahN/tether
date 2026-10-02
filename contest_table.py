@@ -18,8 +18,19 @@ which is the treatment-absent failure that makes a null unreadable.
     .venv/Scripts/python.exe contest_table.py --patched <root>     include the CONTEST arms
     .venv/Scripts/python.exe contest_table.py --child ...          one arm (used by the parent)
 
-`--patched` is a tree with the contest change applied. The repository stays clean: a change
-under test does not live in the tree while the instrument that judges it is committed there.
+REPRODUCE, in full, from a clean tree -- the CONTEST arms need a tree that HAS the flag, and
+building it from `git archive` rather than `cp -r` is deliberate: a copy of the working
+directory drags `.venv` and takes minutes.
+
+    S=<scratch>
+    mkdir -p $S/patched && git archive HEAD | tar -x -C $S/patched
+    cp contest_table.py $S/patched/
+    (cd $S/patched && git apply $S/contest.patch)
+    .venv/Scripts/python.exe contest_table.py --patched $S/patched --panel click_only:5
+
+Without `--patched`, both CONTEST arms print `UNAVAILABLE -- this build has no TETHER_CONTEST`.
+THAT IS THE POINT: an arm whose build cannot supply its flag must refuse, never run as its
+opposite, or a null from an absent treatment reads exactly like a null from a real one.
 """
 
 from __future__ import annotations
@@ -53,6 +64,19 @@ def _rows(world: str, seed: int, cycles: int, acted: int, contest: int) -> list[
         assert bool(contest) == tether._CONTEST, f"CONTEST flag did not take: want {contest}"
 
     out: list[dict] = []
+    # THE ROUTE BIN, because the first table recorded mint CALLS and not the decision that
+    # precedes them -- so a zero could not say whether the slot was refused or never asked.
+    bins: dict[int, str] = {}
+    real_route = tether.Agent.route
+
+    def route(self, res):
+        got = real_route(self, res)
+        for slot, b, _fit, _why in got:
+            if slot == SLOT:
+                bins[self.cycle] = b
+        return got
+
+    tether.Agent.route = route
     real_mint = tether.Agent.mint
 
     def mint(self, slot):
@@ -77,7 +101,11 @@ def _rows(world: str, seed: int, cycles: int, acted: int, contest: int) -> list[
             ag.step()
     finally:
         tether.Agent.mint = real_mint
-    return out
+        tether.Agent.route = real_route
+    for r in out:
+        r["bin"] = bins.get(r["cycle"], "-")
+    # every cycle's bin, not only the minting ones: the question is what the slot was ASKED
+    return [{"bins": bins}, *out]
 
 
 def _child() -> None:
@@ -127,6 +155,8 @@ def main() -> int:
                 print(f"  {head:34s} UNAVAILABLE -- {rows[0]['unavailable']}")
                 fail += 1
                 continue
+            allbins = rows[0].get("bins", {}) if rows and "bins" in rows[0] else {}
+            rows = [r for r in rows if "cycle" in r]
             bind = next((r["cycle"] for r in rows if r["incumbent"]), None)
             post = [r for r in rows if bind is not None and r["cycle"] > bind]
             print(f"  {head:34s} mint {len(rows):>3}  bind@{str(bind):>4}  "
@@ -134,9 +164,17 @@ def main() -> int:
                   f"post-bind enumerates {sum(1 for r in post if r['enumerates']):>3}")
             for r in rows:
                 if bind is not None and bind - 1 <= r["cycle"] <= bind + 3:
-                    print(f"       cyc {r['cycle']:>3} base {r['base']:>7} floor {r['floor']:>6}"
+                    print(f"       cyc {r['cycle']:>3} bin {r.get('bin', '-'):>9}"
+                          f" base {r['base']:>7} floor {r['floor']:>6}"
                           f" enum {str(r['enumerates']):>5} settled {str(r['settled']):>5}"
-                          f"  ref {r['ref'][:30]}")
+                          f"  ref {r['ref'][:28]}")
+            # THE BINS FOR THE CYCLES WITH NO MINT ROW -- a slot that is never asked and a
+            # slot that is asked and refuses look identical in a mint count, and that
+            # ambiguity is what sent five explanations the wrong way.
+            if bind is not None and allbins:
+                after = {int(c): v for c, v in allbins.items() if int(c) > bind}
+                import collections as _c
+                print(f"       post-bind route bins: {dict(_c.Counter(after.values()))}")
     return 1 if fail == len(ARMS) * len(a.panel.split(",")) else 0
 
 
