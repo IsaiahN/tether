@@ -53265,6 +53265,48 @@ BECAUSE THE PATTERN IS THE POINT:**
 
 ---
 
+## F407 — **SUPERSEDED AND THE CODE REVERTED, 2026-10-02. THE GUARD READ *AIM* AND NOT *LANDING*, AND IT MEASURED CLEAN ONLY ON THE WORLDS WHERE THOSE COINCIDE**
+
+**READ THIS BEFORE THE ENTRY BELOW.** `a561fb2` is REVERTED (reviewer, 2026-10-02). Everything
+below was measured and is reported honestly; **the quantity it rests on is the wrong one.**
+
+**THE DEFECT.** The trace carried `self._intent_now.subject` — **WHAT THE AGENT AIMED AT** — and
+the guard was documented and named as *I acted on this slot's object*. Those are different claims.
+Measured on `buttons` seed 1, 60 cycles, per step:
+
+    `acted_self` agrees with "o0 was clicked" on  **10 of 60**
+    (o0_clicked False, acted_self TRUE)            **48**
+    step 6  clicked `o1`   subject `o0.colour`      ... x48
+
+**`o0` WAS CLICKED TWICE AND THE GUARD WAS TRUE 48 TIMES.** On a wired world the agent is curious
+about `o0.colour` and the interface realises that intent by clicking `o1`, because clicking `o1`
+is what moves it. **So the guard read *I was curious about this slot*.**
+
+> **AND THAT IS WHY IT VALIDATED CLEAN.** On `click_only` the aim and the click COINCIDE by
+> construction — clicking `o0` is the only way to affect `o0.colour` — so every number taken there
+> is consistent with EITHER reading. **The build was validated on exactly the worlds where the two
+> quantities are identical**, which is this record's own standing error (*generalising across
+> worlds that differ in exactly the respect that matters*) committed one level down: not in a
+> claim, but in the choice of what to measure on.
+
+**AND THE REVIEWER NAMED THE RIGHT FIX FIVE HOURS BEFORE IT WAS TAKEN.** At 23:47 they wrote
+*"resolve ?ACTED from the REALISED press's target (coord), not intent.subject"*. The seat refuted
+it by measuring that the subject IS present and DOES vary — **both true, and the conclusion
+wrong, because the subject being present says nothing about it being the right quantity.** Using a
+correct measurement to dismiss a correct fix is the most expensive error of the night.
+
+**WHAT SURVIVES THE REVERT:** the action-conditioning itself (34/34 and 0/26, plus 53/53, 2/2, 5/5
+across three seeds) — **read off the WORLD, not off the trace.** `is_atom`'s guard clause, the
+separation criterion, `instruments.Attribution`, and `default`'s no-regression are untouched and
+stay. **WHAT DOES NOT:** every `inc?ACTED_SELF` reading on `buttons`, and — unasserted — the
+`click_only` numbers including 52.0 → 6.0, which are probably sound and were taken with an
+instrument that could not have shown otherwise.
+
+**RE-LANDING** with the guard resolved from `interface._acted(r.coord, before)`, the object the
+press actually landed on, with the whole set re-run.
+
+---
+
 ## F407 — THE AGENT CAN NOW SAY *THIS CHANGES WHEN I ACT ON IT*, AND BOTH CLICK WORLDS PAY AT 60 CYCLES WHERE NEITHER EVER PAID. FIVE GATES, AND THE LAST TWO WERE MINE
 
 **WORLD:** gridworld `click_only` / `buttons` / `default`, seed 0, 60 cycles. Board stop
