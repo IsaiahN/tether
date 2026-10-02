@@ -7,6 +7,7 @@ optional.
 
 from __future__ import annotations
 
+import collections
 import hashlib
 import itertools
 import math
@@ -6272,7 +6273,15 @@ class Agent:
         est = max(stats["estimate"], seen)
         detail = {"guards": guards, "candidates_seen": seen, "candidates_tried": rank,
                   "contest": contest,
+                  # **`cuts` IS A SAMPLE AND `cut_counts` IS THE POPULATION -- `F413`.**
+                  # The twelve are kept for their NAMES and RANKS, which is what a reader
+                  # wants when looking at one mint; the counts are what a MEASUREMENT needs.
+                  # Taken on seed 5: 360 sampled rows against 663,423 constructions, and a
+                  # term read ZERO cut rows on BOTH arms of an A/B -- including the arm
+                  # where it WON -- which is how the truncation was found. A zero equal on
+                  # both arms is a broken instrument, not a finding.
                   "code": CODE, "base_bits": round(base, 3), "cuts": cuts[:12],
+                  "cut_counts": dict(collections.Counter(c["reason"] for c in cuts)),
                   "budget_exhausted": bool(stats["budget_spent"]),
                   "depth": self.cfg.max_depth, "units": stats["units"],
                   "space_estimate": est,

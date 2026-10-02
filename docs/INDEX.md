@@ -53724,3 +53724,97 @@ result.**
 THEM AS SEEDS** — caught before quoting, and it is *a grep's count is not evidence until you have
 read what it matched* arriving in the one place the number was about to be used to clear a
 finding.
+
+## F413 — **THE LEDGER'S `cuts` FIELD IS A TWELVE-ITEM SAMPLE AND WAS READ AS A POPULATION. 80,788 REAL CUTS AGAINST 396 SAMPLED ROWS — 204×**
+
+**WORLD: gridworld `click_only` seed 5, 40 and 60 cycles, both guard arms. POPULATION: every
+candidate dropped between construction and pricing.** `mint`'s detail writes `"cuts": cuts[:12]`
+— **twelve per MINT row**, kept for NAMES and RANKS, which is what a reader wants when looking at
+one mint and is not what a measurement needs.
+
+    SAMPLE rows (cuts[:12])     396
+    POPULATION (cut_counts)  80,788        204x the sample
+      bounded-out: cannot pay on R alone  72,215   (89.4%)
+      recipe-held                          6,026
+      not-novel                            1,796
+      does-not-pay                           751
+
+**AND THE TELL WAS IN AN A/B, WHICH IS THE ONLY REASON IT WAS CAUGHT.** Tracing why
+`above . all<o1.shape>` is never priced under the guard arm, the term read **ZERO cut rows on
+BOTH arms — including the arm where it WINS and is bound at cycle 27.** A term built 116 times
+that wins once and appears nowhere cannot be fully recorded.
+
+> **A ZERO THAT IS EQUAL ON BOTH ARMS OF AN A/B IS A BROKEN INSTRUMENT, NOT A FINDING** — *a null
+> needs a non-zero control*, and here the control was printed in the same output as the treatment.
+> **The seat had already published *"the cut records its own reason, so I am reading it rather
+> than guessing"* before checking that the field was complete.**
+
+**REPAIRED BY ADDITION, NOT BY WIDENING THE SAMPLE: `cut_counts` is written beside `cuts[:12]`.**
+Raising the cap would trade one arbitrary number for another; a count by reason is the population
+and the twelve stay for the names. *Introduce, never subtract.*
+
+**AND IT IS A SECOND INDEPENDENT CONFIRMATION OF `F414`'s GATE.** 89.4% of every candidate dropped
+in that run dies at `bounded-out: cannot pay on R alone` — **the exact gate the seed-5 trace named
+from the other direction**, by a counter that knew nothing about that trace.
+
+**UNKNOWN AND NOT ASSERTED EITHER WAY: whether any published finding rests on a cut-reason reading
+taken off the ledger.** Not checked yet; recorded here so the question is open rather than closed.
+
+## F414 — **THE INCUMBENT DOES NOT OUTBID THE CHALLENGER. IT STOPS THE CHALLENGER'S BUDGET FROM EVER ACCUMULATING** — and the margin is TWO CYCLES
+
+**WORLD: gridworld `click_only` seed 5, 60 cycles, both guard arms, same script one flag.
+POPULATION: every construction and every gate call for one term, `above . all<o1.shape>` — the
+term the OFF arm mints and settles and the ON arm never prices.**
+
+    cyc  slot        cost     base   refused   arm
+     18  o0.colour  11.721    8.000    True    BOTH
+     19  o0.colour  11.721   10.000    True    BOTH
+     ...                                       identical
+     23  o0.colour  11.721   18.000    True    BOTH
+    ------------------------------------------------ the arms diverge here
+     24  o0.colour  11.721   20.000    True    OFF only
+     25  o0.colour  11.721   22.000    True    OFF only
+     26  o0.colour  11.721   24.000   FALSE    OFF only   <-- the gate opens
+     24  ON: `same . all<o1.col>?ACTED_SELF` BINDS o0.colour
+
+**THE FIRST SIX ROWS ARE IDENTICAL ON BOTH ARMS AND THE COST IS 11.721 ON EVERY ROW OF BOTH**, so
+neither the guard price nor the guard's effect on the challenger's price is the cause. `base` is
+the slot's ACCUMULATED RESIDUAL and it was **climbing toward the threshold the challenger needed**:
+on OFF it reaches 24.000 at cycle 26, the gate opens, the term binds at 27 and settles. **On ON the
+guarded term takes the slot at cycle 24 and the challenger is never evaluated on that slot again** —
+its remaining 24 calls land on slots where `base` never exceeds 18.
+
+> **ONCE SOMETHING EXPLAINS THE SLOT THE RESIDUAL STOPS GROWING, AND A TERM THAT NEEDS
+> `base >= 24` TO CLEAR `_cannot_pay` NEVER GETS THERE.** The cheap guarded term takes the slot
+> **two cycles** before the better-generalising term would have become AFFORDABLE. That is
+> *adoption is exclusive before evidence has spoken* with the mechanism located: **the exclusivity
+> operates through the RESIDUAL BUDGET, not through routing and not through pricing.**
+
+**THE PATH, SO THE GATE IS NAMED RATHER THAN INFERRED:**
+
+    arm            built  passed novelty  _cannot_pay  CUT  PASSED  reached pays  PAID
+    ON                30              30           30   30       0             0     0
+    OFF              116               9            9    8       1             7     1
+
+**FOUR WRONG EXPLANATIONS CAME FIRST AND EVERY ONE WAS READ CORRECTLY OFF A WRITE SITE.** `HELD`
+closes the slot — refuted by its own pre-registered refuter, `mechanism` 17 against 19.
+`work_budget` exhaustion — `budget_exhausted` 0 on BOTH arms, **and `tether.py:810` already said
+the space is exhaustive here.** `bears_on` — it runs AFTER `pays`, which the term never reaches.
+The ledger's cut reasons — a twelve-item sample, `F413`.
+
+> **THE WRITE SITE SAYS WHAT A MECHANISM DOES AND NOTHING ABOUT WHETHER ITS CONDITION HOLDS.**
+> `rank` really does increment per `(bind, guard)` pair and the guard axis really does multiply
+> consumption — **and `work_budget` is 15000 and seed 5 never reaches it.** A correct mechanism
+> with no occasions, which is this file's own standing distinction, paid for a fourth time.
+
+**AND BOTH SIDES OF THE GATE COME FROM THE INCUMBENT, WHICH IS WHY THE REFUSAL IS TOTAL RATHER
+THAN MARGINAL.** `_cannot_pay` refuses while `cost + log2(V)*wrong >= base`; `base` is
+`_accumulated(slot, held)` and `robs` — the observations `wrong` is counted over — is
+`_residual_obs(slot, held, hist)`. **`held` is `self.bound.get(slot, IDN)` with NO SETTLED CHECK**,
+at four sites (`2621`, `5814`, `6545`, `6672`). When the incumbent leaves `left 0.000`, `robs` is
+EMPTY, `wrong` is 0, and the test collapses to `cost >= base` with both sides at the floor.
+
+**MEASURED AND NOT MEASURED, KEPT APART:** the outcome — no further evaluations on that slot under
+ON after the bind — is measured. **WHY there are none is not**: it could be `HELD` routing on the
+cycles that matter or `_cannot_pay`'s own TALLY cache resuming a stored refusal. **A fifth
+mechanism is not asserted on a reading not taken.**
