@@ -54050,6 +54050,48 @@ the treatment-absent failure one level in.
 thirteen add confirmations rather than a new kind of evidence. **`P2` is what carries the
 generator-level claim across all 200 worlds; `P3` confirms it reaches the agent on a sample.**
 
+### F418.3c — **`P3` IS NOW COMPLETE ON THE ARM THAT CARRIES THE CLAIM: 19 OF 20 SEEDS, AND THE COLLIDING ARM IS 3 OF 3 CHANGED**
+
+**WORLD: gridworld `default`, 40 cycles, the `34d0bc5` generator against the repaired one.
+POPULATION: seeds 0–18, nineteen of twenty.**
+
+    NON-COLLIDING   16 of 16 BYTE-IDENTICAL at the agent level
+    COLLIDING        3 of 3 CHANGED
+                       6   (287, 12, 0) -> (319, 7, 0)
+                       8   (322,  7, 0) -> (312, 14, 0)
+                      18   (338,  8, 0) -> (281, 13, 0)
+    NOT RUN         seed 19, non-colliding
+
+**AND THE COLLIDING SEEDS WERE IDENTIFIED WITHOUT RUNNING THE AGENT AT ALL**, which is the part
+worth copying. The only question the remaining seeds still owed was *which seed carries the third
+collision* — and that is a property of the WORLD, not of a run. World construction only, no
+cycles, seconds rather than the ~11 minutes a seed costs:
+
+    COLLIDING seeds in 0-19 on the OLD generator: [6, 8, 18]
+        seed  6  stacked [[1, 3]]   seed  8  stacked [[1, 5]]   seed 18  stacked [[1, 4]]
+    TOTAL 3/20 -- numerator and denominator both over range(20)
+
+**`o1` is in all three, which is `F411.3`'s finding holding on this population too.** Seed 19 was
+then left unrun deliberately: the non-colliding arm had sixteen points and the colliding arm two,
+**so the marginal seed was worth far more on the colliding arm**, and a seventeenth confirmation
+of a question answered sixteen times is the drift the focus seat is for.
+
+> **AND THE CHUNK THAT PRODUCED THIS WAS KILLED AT ITS CAP, FOR THE FOURTH INSTANCE OF THE SAME
+> ARITHMETIC IN ONE DAY.** The seat estimated 4.2 min/seed when **the previous chunk had MEASURED
+> 8**, so the honest estimate was 48 minutes against the 45-minute cap the seat set in the same
+> breath. **`_fits` was committed at `d5d2e10` hours earlier and refuses exactly this** — it was
+> not in the path, because it lives in `contest_table.py` and `P3` is a scratch script.
+>
+> **A GUARD THAT LIVES IN ONE LAUNCHER PROTECTS ONE LAUNCHER.** *Installed* and *fires* differ by
+> which code path the work goes down, which is this record's standing question about anything
+> that exists, arriving about the seat instead of about the agent.
+
+> **ALSO CORRECTED: `P3`'s OWN SUMMARY LINE PRINTED A CROSS-POPULATION RATIO.** *"NON-COLLIDING
+> seeds identical: 6/17"* took its numerator over seeds 7–13 and its denominator over seeds
+> 0–19, at a different site inside the same `print`. **Both halves individually true, the pairing
+> meaningless, and 6/17 looks like a perfectly ordinary result.** Caught before it was quoted,
+> and only because the write site was read before the line was.
+
 ### F418.3b — **AND `P3` WAS MIS-STATED IN THE SEAT'S OWN PRE-REGISTRATION**
 
 *"`default`'s reach_failed rate, settles and routines are unchanged"* is **unsatisfiable as
