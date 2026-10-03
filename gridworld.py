@@ -531,6 +531,13 @@ class GridWorld:
         for the whole run -- measured on 6 of 6 rows across `default` and `remap_after`. One
         slot in six is structurally inert because of where this anchor sits.
 
+        **THE COUNT IS `proximity`-ONLY AND THE TRUE FIGURE IS 3 OF 12 -- `F429`, 2026-10-03.**
+        Across BOTH relational attributes `o0.distance` is this same anchor (`start == goal`)
+        and **`o2.distance` is the WALL** -- `_blocked` reads `o2.row`/`o2.col`, so the path TO
+        the blocker is the unreachable sentinel every frame. That third one is a DIFFERENT
+        mechanism and this anchor story does not reach it. Any denominator of *the relational
+        slots* is 9 live, not 12.
+
         **IT IS LEFT IN PLACE DELIBERATELY.** Re-anchoring to the NEAREST OTHER object was
         pre-registered and predicted WORSE on both moving families: a nearest-other referent
         CHANGES as objects move, where this one is pinned, and proximity carries ~52% of all

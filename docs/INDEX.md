@@ -51099,6 +51099,12 @@ routine is built; in the `DONE` case it gets past, a routine is built and adopte
 attribute and no other. Not interpreted here; recorded because a four-for-four on one attribute
 is a fact about what the agent is able to form plans ABOUT, and nobody had looked.
 
+> **LOOKED AT, AND WITHDRAWN -- `F429`, 2026-10-03.** The habitat offers exactly TWO relational
+> attributes, so four draws landing together is `p = 1/8`, and the supply of goal series is
+> SYMMETRIC: `distance` carries the two highest `objBound` counts on the board and the longest
+> series. **It needed a denominator, not an explanation**, and the denominator was one method
+> away in the file this panel ran on.
+
 ---
 
 # THE AGENT'S OWN EXPLORATION UNDOES ITS GOALS: 13 OF 14 REACHES LOST, AND `BECOME OTHER` DID TEN OF THEM
@@ -54884,3 +54890,94 @@ count, which is the threshold this sensor's design refuses. Three options are wi
 reviewer; the seat leans on keying the event to the ADVERTISED ACTION SET (`F1`'s shape, no
 count) **and has not checked that it has a subject on any runnable world**, which after today
 is a precondition rather than a detail.
+
+---
+
+## F429 — **THE `proximity` FOUR-FOR-FOUR IS WITHDRAWN, NOT EXPLAINED: SUPPLY TO THE SELECTOR IS SYMMETRIC ACROSS BOTH RELATIONAL ATTRIBUTES. AND 3 OF 12 RELATIONAL SLOTS ARE STRUCTURALLY INERT, WHERE `F395` COUNTED 1 OF 6**
+
+**2026-10-03.** The 2026-09-29 row left this open in its own words: *"ALL FOUR ROUTINES WERE
+ABOUT `proximity` — `o1` `o2` `o3` `o4`, every one the RELATIONAL attribute and no other. Not
+interpreted here; recorded because a four-for-four on one attribute is a fact about what the
+agent is able to form plans ABOUT, and nobody had looked."*
+
+**HALF OF IT NEEDED NO RUN AND WAS ANSWERED AT THE HABITAT'S WRITE SITE.** `gridworld.slots()`
+offers exactly TWO relational attributes — `o{i}.proximity` and `o{i}.distance`. **The
+denominator is 2, not "every attribute"**, and four independent draws landing on one of two
+faces is `p = 1/8`. *A grep's count is not evidence until you have read what it matched*, one
+register along: **a pattern is not evidence until you have counted what it could have been.**
+The observation never needed an explanation; it needed a denominator, and the denominator was
+one method away in the file the panel ran on.
+
+**AND THE HALF THAT LOOKED REAL IS WHY IT WAS RUN ANYWAY.** `relational_slots`' own docstring
+reports that on THIS seed over THIS many cycles, cross-context predictions split **38 on
+proximity and 86 on `distance`** — so the attribute the agent predicts about MOST was the one
+it never planned about. That is not noise and it is not foregone.
+
+    WORLD       gridworld `default`, seed 11, 60 cycles, max_depth 2. No ARC board; the stop
+                holds. The same panel as the 2026-09-29 reading, so the rows are comparable
+    POPULATION  the 12 relational slots, PER SLOT. The attribute rollup is printed BESIDE the
+                per-slot rows, never instead of them
+    ARM STATE   `_AIMED_CURIOSITY` · `_BARGAIN_FIT` · `_CARRY_CANDIDATE` · `_TALLY` (`F424`)
+    PRECONDITION, CHECKED BEFORE READING   something must reach the selector's bar of
+                `MIN_REPEAT + 1 = 3` readings, or the comparison has no content. **Longest
+                series 50. Met.**
+
+**THREE OUTCOMES WERE PRE-REGISTERED AND THE ONE THAT FIRED IS THE ONE THAT KILLS THE PREMISE** —
+(a) `distance` never carries an OBJ objective, blockage upstream at binding; (b) it does but its
+series never survive, blockage at the pop; **(c) it matches `proximity` and the observation is
+WITHDRAWN rather than explained.**
+
+    slot             objBound  objWant resolved maxSeries   exits when it did not resolve
+    o0.distance             0        0        0         0   unbound=60
+    o0.proximity            0        0        0         0   unbound=60
+    o1.distance             6       49      105        48   out_type-not-OBJ=9, unbound=3
+    o1.proximity            8       47      165        46   out_type-not-OBJ=11, unbound=3
+    o2.distance             0        0        0         0   unbound=60
+    o2.proximity           15       47      103        46   out_type-not-OBJ=11, unbound=3
+    o3.distance            21       51      166        50   unbound=10
+    o3.proximity            9       43      127        42   out_type-not-OBJ=14, unbound=4
+    o4.distance            21       46      159        45   unbound=8, out_type-not-OBJ=7
+    o4.proximity            8        0       14         5   out_type-not-OBJ=37, unbound=15
+    o5.distance            13       49      141        48   out_type-not-OBJ=8, unbound=4
+    o5.proximity           14       44       97        43   out_type-not-OBJ=13, unbound=4
+
+    proximity   6 slots   any OBJ objective 5   reached the bar 5   longest 46
+    distance    6 slots   any OBJ objective 4   reached the bar 4   longest 50
+
+**`distance` IS NOT STARVED. IT CARRIES THE TWO HIGHEST `objBound` COUNTS IN THE TABLE (`o3`
+AND `o4`, 21 EACH, AGAINST A PROXIMITY MAXIMUM OF 15) AND THE LONGEST SERIES ON THE BOARD.**
+Whatever decided four routines, it was not the supply of goal series. **Outcome (c): the
+2026-09-29 observation is withdrawn.**
+
+## AND THE PER-SLOT ROWS CARRY A SECOND FINDING THE ROLLUP HIDES, WHICH IS WHY THEY ARE PRINTED
+
+**Three rows read `unbound=60` — nothing was ever bound to them, on any cycle.** All three are
+the habitat's own geometry, and **I checked that before writing a cause**, which is the whole
+value of the step:
+
+    o0.proximity   o0 IS THE AVATAR, so this is its distance to ITSELF and reads zero forever.
+                   `F395`, labelled 2026-10-01, deliberate, with Isaiah
+    o0.distance    the same geometry through `_distance`: `start == goal`, returns 0 every frame
+    o2.distance    **o2 IS THE WALL.** `_blocked` reads `o2.row`/`o2.col`, so the BFS path TO the
+                   blocker can never enter its own cell -- the unreachable sentinel `2 * GRID`,
+                   constant for the whole run. A constant slot has nothing to bind
+
+**NONE OF THE THREE IS AN AGENT DEFECT, AND FILING THEM AS ONE WAS ONE GREP AWAY.** *Before
+writing a causal explanation of a mechanism's behaviour, grep the record for that mechanism's
+identifier* — two greps, `avatar` and `_blocked`, and both answers were in docstrings in the
+file the run was against.
+
+> **BUT `F395`'s COUNT IS NOW WRONG AND THAT IS THE PART THAT TRANSFERS.** It reads *"one slot
+> in six is structurally inert because of where this anchor sits"* — measured **on `proximity`
+> only**. Across both relational attributes the figure is **3 of 12**, and the two it does not
+> name are a different mechanism from the one it describes: `o0.distance` is the anchor again,
+> `o2.distance` is **the wall**, which `F395`'s anchor story does not reach at all.
+
+**SO ANY MEASUREMENT WHOSE DENOMINATOR IS *THE RELATIONAL SLOTS* OVERSTATES THE LIVE POPULATION
+BY 25%**, and it overstates it unevenly — 5 live of 6 on `proximity`, 4 of 6 on `distance`.
+*Every measurement states what world it ran in and what population it counted*: this is that
+population, and it had never been counted.
+
+**WHAT THIS IS NOT.** No contact change. It RETIRES an open item that had stood since
+2026-09-29 as a suspected agent-capability defect and was not one, and it corrects a labelled
+count. **The repair it would have selected does not need building, which is the finding.**
