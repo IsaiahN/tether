@@ -358,6 +358,18 @@ class Term:
     # every one still gets a slot name. The census said only `_ops` is the mechanism, and
     # only `_ops` changes.
     operand_term: Term | None = None
+    # **WHAT THE OPERAND WAS A KIND OF, FOR CARRY. The reviewer, 2026-10-03: the operand's
+    # BINDING does not cross but its SHAPE must.** `o1.colour` names an object another board
+    # lacks; COLOUR does not. Set only on a term that CROSSED -- `operand` is then None, so
+    # nothing downstream resolves a slot that is not there, and the name still distinguishes
+    # `same . all<:COLOUR>` from `same . all<:POSITION>`. Without it fourteen compositions
+    # separated only by their operand all arrive spelled `same . all` and thirteen are
+    # deduped away (`F420.1`).
+    #
+    # NOT YET RE-BOUND AT USE. Carrying the kind is step one; resolving a placeholder back
+    # to a slot of THIS board is a separate change, and until it lands such a term is
+    # unbound and says so.
+    operand_kind: str | None = None
 
     @property
     def name(self) -> str:
@@ -366,6 +378,11 @@ class Term:
             inner = (f"{self.operand_term.name}({self.operand})"
                      if self.operand_term is not None else self.operand)
             base = f"{base}<{inner}>"
+        elif self.operand_kind:
+            # `<:KIND>` -- the colon is what stops a placeholder reading as a slot name.
+            inner = (f"{self.operand_term.name}({self.operand_kind})"
+                     if self.operand_term is not None else self.operand_kind)
+            base = f"{base}<:{inner}>"
         return f"{base}?{self.guard}" if self.guard else base
 
     @property
@@ -706,6 +723,11 @@ class Gamma:
         # prove where everything in the library came from. Surviving name -> the birth
         # handle of every instance absorbed into it.
         self.merged: dict[str, list[dict]] = {}
+        # SET BY THE AGENT, which computes `slot_types` and is the only thing that knows
+        # them. `save` is seat-side and cannot look a slot's kind up on its own; stamping
+        # the kind on the Term at its SIX construction sites was the alternative and this
+        # is ONE write that also survives a seventh site being added.
+        self.slot_kinds: dict[str, str] = {}
         self.stamps: dict[str, dict[str, Any]] = {}
         self.standing: dict[str, Standing] = {}
         # name -> the two verdicts that promoted it. A dict rather than a set because
@@ -1067,6 +1089,8 @@ class Gamma:
             # the atom names alone made `inc?ACTED_SELF` indistinguishable from `inc`.**
             out.append({"atoms": [a.name for a in t.atoms], "origin": t.origin,
                         "guard": t.guard, "operand": t.operand,
+                        "operand_kind": (t.operand_kind
+                                         or self.slot_kinds.get(t.operand or "")),
                         "handle": self.handles.get(name), "game": self.game,
                         "admitted": getattr(st, "admitted", None) if st else None,
                         "residual": getattr(st, "residual", None) if st else None})
@@ -1167,7 +1191,7 @@ class Gamma:
             # arriving as a different term with no record that anything was dropped.
             t = Term(tuple(self._by_name[n] for n in names),
                      origin=IMPORTED if r.get("game") != self.game else r["origin"],
-                     guard=r.get("guard"))
+                     guard=r.get("guard"), operand_kind=r.get("operand_kind"))
             if t.name in self.library:
                 # **`already_held` WAS ONE NUMBER OVER TWO OPPOSITE OUTCOMES -- `F420`.** A row
                 # can land on a composition this registry genuinely holds, which is a real
@@ -1215,7 +1239,11 @@ class Gamma:
                     1 for x in took if not x["already_held"] and x["unbound"]),
                 # THE MERGE IS VISIBLE IN THE REPORT, not only in the object: a reader who
                 # sees `loaded 1` from a 14-row blob can ask what the 1 absorbed.
-                "merged_into": {k: len(v) for k, v in self.merged.items() if len(v) > 1},
+                # NO `len > 1` FILTER. `merged[name]` holds only the ABSORBED members, so
+                # ONE absorbed is already a real two-way merge -- filtering it out hid
+                # exactly the case the typed placeholder produces most, where two slots of
+                # the same KIND collapse correctly and the report said nothing happened.
+                "merged_into": {k: len(v) for k, v in self.merged.items() if v},
                 "refused": refused,
                 "reads": ("composition crosses, binding does not. A refused row is an "
                           "INCOMPATIBLE registry, not a small library. "
