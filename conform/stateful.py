@@ -848,7 +848,7 @@ def test_the_atom_set_builds_under_every_arm_state():
 # starve with the flip on, and a control recovers the pinned pair.
 
 
-def test_a5_is_reproducible_without_a_world():
+def test_a5_settlement_is_per_slot():
     """A5's defect at the STATE level, so no trajectory can move it. **Reviewer, 2026-09-28.**
 
     Both world-pinned tripwires lost their subject today when the action seam changed which
@@ -898,16 +898,29 @@ def test_a5_is_reproducible_without_a_world():
     from gamma import Gamma
 
     g = Gamma(snaps._atoms())
-    g.settle("x")
-    assert g.is_settled("x"), "fixture: a settled term must read settled"
-    # THE REPRODUCTION, and it is one line: there is no slot to ask about.
-    assert "slot" not in inspect.signature(g.is_settled).parameters, (
-        "A5 IS FIXED: `is_settled` now takes a slot, so a settlement no longer licenses every "
-        "slot. Invert this to assert the slot IS a parameter, rename it, and it becomes the "
-        "regression test. Then check `settle` takes one too, and that `_stood` passes it.")
-    assert "slot" not in inspect.signature(g.settle).parameters, (
-        "`settle` takes a slot but `is_settled` does not -- half the repair. The state can now "
-        "record a per-slot settlement and nothing can read it back.")
+    # BOTH HALVES OF THE API, as the retired reproduction instructed: a state that can record
+    # a per-slot settlement and nothing that can read it back is half a repair.
+    assert "slot" in inspect.signature(g.settle).parameters, "settle must take the slot"
+    assert "slot" in inspect.signature(g.is_settled).parameters, "is_settled must take it"
+
+    # BOTH DIRECTIONS, which is the whole of A5. Settling on one slot must not license the
+    # other, AND must still license its own -- a predicate that answered False everywhere
+    # would pass a one-sided check.
+    g.settle("x", slot="o0.row")
+    assert g.is_settled("x", "o0.row"), "settled HERE must read settled here"
+    assert not g.is_settled("x", "o1.col"), (
+        "A5: a settlement on one slot licensed citation on another -- `is_settled` ignored "
+        "the slot, so one settlement anywhere licensed everywhere")
+    # AND THE ANYWHERE READING IS DELIBERATELY UNCHANGED -- chunk_reuse and settled_terms
+    # pass no slot and mean settled-ELSEWHERE, which is their whole concept.
+    assert g.is_settled("x"), "no slot still means ANYWHERE, for chunk_reuse/settled_terms"
+
+    # THE CONSUMER THE DEFECT WAS PINNED TO actually passes the slot -- the API having the
+    # parameter is not the same as the caller using it.
+    import pathlib
+    t = pathlib.Path(__file__).resolve().parent.parent / "tether.py"
+    assert "self.gamma.is_settled(name, slot)" in t.read_text(encoding="utf-8"), (
+        "`_stood` must pass the slot: the API can express it and the A5 consumer must use it")
 
 
 def test_the_keyed_reach_loses_nothing():
@@ -2090,7 +2103,7 @@ if __name__ == "__main__":
         test_the_admitting_clause_crosses_into_gamma()
         test_the_daydream_precondition_can_refuse()
         test_the_atom_set_builds_under_every_arm_state()
-        test_a5_is_reproducible_without_a_world()
+        test_a5_settlement_is_per_slot()
         test_the_keyed_reach_loses_nothing()
         test_the_inherited_vocabulary_is_not_the_held_library()
         test_the_quantifiers_quantify()
@@ -2107,7 +2120,7 @@ if __name__ == "__main__":
         test_a_downrated_member_is_restored_the_moment_it_moves()
         test_youth_breaks_ties_within_equal_confidence_and_never_overrules_evidence()
         test_a_relational_slot_never_uses_tier_2_and_says_nothing_instead()
-        print("  A5 and B5 reproductions still fire (expected): ok")
+        print("  A5 is per-slot (fixed); B5 reproduction still fires: ok")
         print("  keyed reach loses nothing: ok · two vocabularies stay two: ok")
         print("  the quantifiers quantify (ONE fires, all != some): ok")
         print("  the seam varies what it explores with: ok")

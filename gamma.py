@@ -551,6 +551,14 @@ class Standing:
     # TOTAL; `paid` is its per-scope breakdown and NO DECISION READS IT -- audited, the only
     # reads in the tree are `conform/stateful.py`'s property tests. Recorded like `where`.
     paid: dict = field(default_factory=dict)       # scope -> settlements earned under it
+    # **WHICH SLOTS IT SETTLED ON -- kernel A5, the reviewer 2026-10-03.** `settled_at` is one
+    # tick and `paid` is keyed by SCOPE (game:level), so nothing recorded WHICH SLOT paid, and
+    # `is_settled(name)` could only answer "somewhere". **One settlement anywhere licensed
+    # citation everywhere, and the state could not express otherwise.**
+    #
+    # A NEW FIELD RATHER THAN A REPURPOSED ONE, ruled: `admitted`, `origin` and `paid` stay
+    # byte-identical so the ablation partition and the provenance record are untouched.
+    settled_on: set = field(default_factory=set)   # slots this term settled on
     # **THE (c) SPLIT -- ISAIAH, 2026-09-30: count misprediction-while-candidate SEPARATELY
     # from refusal-after-settling. Two quantities, two names.** `refute` is called on EVERY
     # mispredicting bound term, and the site's own comment says *a candidate that mispredicts
@@ -817,7 +825,7 @@ class Gamma:
 
     # -- standing: the ground's verdict, defeasibly ----------------------------------
 
-    def settle(self, name: str, where: Any = None) -> None:
+    def settle(self, name: str, where: Any = None, slot: str | None = None) -> None:
         """The ground paid on evidence the term was never fitted to.
 
         `where` records WHERE it paid, the mirror of `refute`'s. Without it a track record has
@@ -843,6 +851,10 @@ class Gamma:
         st.confirmations += 1.0
         if where is not None:
             st.paid[where] = st.paid.get(where, 0) + 1
+        # THE SLOT, BESIDE THE SCOPE AND NEVER INSTEAD OF IT. `where` answers which BOARD
+        # paid; this answers which SLOT did, and kernel A5 keys on the second.
+        if slot is not None:
+            st.settled_on.add(slot)
 
     def invent(self, name: str, fn, in_type: str, out_type: str, licence: dict) -> bool:
         """ITEM 7. **THE REGISTRY WAS FIXED AT CONSTRUCTION AND THIS IS THE ONLY THING THAT
@@ -926,8 +938,23 @@ class Gamma:
         st.refute(self.tick, self.halflife, where=where)
         return was
 
-    def is_settled(self, name: str) -> bool:
-        return self.standing.get(name, Standing()).settled
+    def is_settled(self, name: str, slot: str | None = None) -> bool:
+        """Settled -- ANYWHERE by default, HERE when a slot is given. Kernel A5.
+
+        **ONE FUNCTION AND ONE ANSWER, ruled by the reviewer 2026-10-03 against the seat's
+        proposal of a second differently-named predicate.** The seat's objection was that an
+        optional parameter lets a caller get the other answer by forgetting; the ruling is
+        that two names are two answers, which is the defect `4599`'s docstring was written
+        about ("it was that there were TWO ANSWERS AT ALL"). **The forgetting risk is carried
+        by the tests instead: a term settled on A must read NOT settled on B.**
+
+        `slot=None` is the deliberate reading for `chunk_reuse` and `settled_terms`, where
+        settled-ELSEWHERE is the whole concept and passing a slot would change what they mean.
+        """
+        st = self.standing.get(name)
+        if st is None or not st.settled:
+            return False
+        return True if slot is None else slot in st.settled_on
 
     def rejection_of(self, name: str) -> float:
         st = self.standing.get(name)

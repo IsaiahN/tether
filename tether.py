@@ -2282,7 +2282,10 @@ class Agent:
         """
         name = self.bound.get(slot)
         if name and not self.gamma.is_atom(self.gamma.library[name]):
-            self._stood.append((slot, name, self.gamma.is_settled(name)))
+            # **KERNEL A5's OWN KEY. Passing the slot is the fix** -- this line is the
+            # consumer the defect was pinned to, and without the slot one settlement
+            # anywhere licensed citation here.
+            self._stood.append((slot, name, self.gamma.is_settled(name, slot)))
 
     def _promote(self) -> None:
         """Step 6: what step 1 stood on, and what the sweep earned."""
@@ -5964,7 +5967,11 @@ class Agent:
                             # would install a preference that is the agent's to reason.
                             cuts.append({"name": term.name, "rank": rank, "reversible": True,
                                          "reason": "recipe-held", "recipe": cand.name,
-                                         "recipe_settled": self.gamma.is_settled(cand.name)})
+                                         # HERE, decided: the row is about minting on THIS
+                                         # slot, so the reading that belongs in it is whether
+                                         # the recipe settled HERE.
+                                         "recipe_settled": self.gamma.is_settled(
+                                             cand.name, slot)})
                             if _RECIPE_DEDUP:
                                 continue
                         guards["novelty"] = True
@@ -6742,7 +6749,10 @@ class Agent:
                     self.owed_import.add(slot)
                 continue
             born = self.candidates.get(name)
-            if born is None or born >= self.cycle or self.gamma.is_settled(name):
+            # HERE, decided: without the slot this skips settling a candidate on slot B
+            # because it settled on slot A -- the MIRROR of the A5 defect, where one
+            # settlement anywhere BLOCKS settling everywhere instead of licensing citation.
+            if born is None or born >= self.cycle or self.gamma.is_settled(name, slot):
                 continue
             # DORMANT UNTIL THE CONDITIONS RECUR -- Isaiah, 2026-09-30. A candidate that
             # crossed a level boundary keeps its birth cycle, so `born >= self.cycle` is
@@ -6752,7 +6762,7 @@ class Agent:
             # settlement, and nothing is deleted either way.
             if self._cand_level.get(name) != self.level:
                 continue
-            self.gamma.settle(name, where=self._scope)
+            self.gamma.settle(name, where=self._scope, slot=slot)
             # NO `self.settled.add` -- the line above IS the record. Adding to a second set
             # here is what made the two disagree: gamma unsettles on refusal and the set
             # never heard.
