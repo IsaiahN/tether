@@ -54250,6 +54250,53 @@ say so, is the transfer claim's boundary and is the reviewer's.
 same run and `remap_after` has not been reached; the panel was still going when this was filed.
 Per game, never pooled.
 
+### F420.2 — **AND `F420.1`'s DENOMINATOR WAS INFLATED BY THE EXACT DEFECT `F412` REPAIRED THREE HOURS EARLIER. THE FINDING SURVIVES; `28` BECOMES `14`**
+
+**Caught because two of this seat's own instruments disagreed about `buttons` seed 6** — the
+`F419` re-take read **0 composed terms** and the crossable probe read **1** — on the same world,
+the same seed, the same pinned commit.
+
+    Attribution.minted   by_name = library minus BARE ATOM NAMES, then split on
+                         gamma.is_atom -> `minted` (compositions) and `operand_bound`
+    the new probe        origin != PRIOR
+
+**`is_atom` tests `term.atoms[0].name`, the UNDERLYING atom**, so `take<o0.distance>` — one
+atom, no guard — **is an operand-bound ATOM, not a composition**, and it carries `origin=minted`
+exactly like a composed term. `Attribution.minted`'s own docstring says that sentence, and the
+probe was written without reading it. **`F412` is the finding that this inflation put NINE
+operand-bound atoms into `F410`'s unguarded column; the probe reintroduced the pre-`F412`
+population in a new file the same night.**
+
+**THE CORRECTED TABLE, per row, never pooled. `composed` is now `Attribution.minted`'s
+separator:**
+
+    world        sd   composed   of which chain>=2   CROSSED
+    default       6         14                  14         1
+    default       8         20                  20         1
+    click_only    6          2                   0         0
+    click_only    8          1                   0         0
+    buttons       6          0                   0         0
+    buttons       8          1                   0         0
+    remap_after  6,8    NOT REACHED -- the run was killed at its 30-minute cap
+
+**EVERY `take<...>` ROW WAS AN OPERAND-BOUND ATOM AND NONE OF THEM WAS EVER A COMPOSITION TO
+IMPORT** — which is precisely what `INDEX:48873` said in September and what `F420` set out to
+dispute. **That half of the September reading is RIGHT and this entry concedes it.**
+
+> **THE FINDING IS UNCHANGED AND THE NUMBER IS BETTER.** `default` seed 6 is **1 of 14** and seed
+> 8 is **1 of 20** — two independent worlds where every composition the agent made is a
+> `same . all<...>`, all of them reduce to the atom chain `("same","all")`, one installs and the
+> rest dedup. **The collapse was never carried by the operand-bound rows; they were padding the
+> denominator in my favour and the claim did not need them.**
+
+**AND THE INSTRUMENTS DISAGREEING IS WHY THIS WAS CATCHABLE AT ALL.** `Attribution.minted`
+returns `n_by_name` — the OLD reading — beside the new one on purpose, *because a discrepancy
+that stays visible beats one that is silently resolved*. **The probe that got it wrong did not
+call that method**, so the visible discrepancy only appeared when a second instrument was run
+over the same seed. *An A/B is one script with one flag* is the rule for comparing arms; this is
+its measurement-side twin — **two of my own probes over one world-seed, and the disagreement was
+the finding.**
+
 **WHAT IS AND IS NOT CLAIMED, AS FIRST DRAFTED — superseded in scope by `F420.1` above, kept
 because an error entry whose evidence is edited away stops being evidence.** Chains cross:
 `INDEX:48873` measured **4 of 4 chains IMPORTED with birth handles intact**, so the mechanism is
