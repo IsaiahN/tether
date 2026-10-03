@@ -53604,6 +53604,13 @@ the number of unguarded terms that have ever settled is ZERO**, and the six flag
 **MORE SEEDS CANNOT REACH IT, AND THAT IS ARITHMETIC RATHER THAN A HUNCH: 3 → 10 seeds moved the
 unguarded denominator from 2 to 9 and left the numerator at 0.**
 
+> **ANNOTATED BY `F419`, 2026-10-02 — TRUE OF THIS BUILD, AND THE BUILD WAS REPAIRED.** The
+> arithmetic is correct and the premise under it is not: `click_only` seed 6, re-taken at
+> `4cf5f91` with the placement fix, **settles an unguarded term** (`take<inc(o1.colour)>?BECOME
+> OTHER`), so the numerator is not structurally zero on the repaired habitat. **The STOP stands
+> and is not reopened here; what moved is one of the two arguments for it.** The other fifteen
+> rows are NOT re-taken and nothing is claimed about them.
+
 **STOPPED, AS THE REVIEWER PRE-REGISTERED. `?ACTED` STAYS DEFAULT OFF.** No wider panel, no lower
 threshold, no switched statistic, no third fixture to manufacture a comparator. **And the pooled
 38.1%-vs-0.0% is NOT read as support** — it is the best-looking number of the night, it is taken
@@ -53624,6 +53631,12 @@ on.**
 advertising only a recolouring click. All nine other `buttons` seeds draw a colour objective and
 pass.** `F398`'s guard was built after this exact defect shipped silently; **it fired on a seed
 nobody had run, one in ten, at construction rather than after 60 cycles of an impossible want.**
+
+> **AND THE SEED RUNS AS OF `4cf5f91` — `F419`.** `F418` found the collision to be the cause of
+> all eight `buttons` refusals, and on the re-take **seed 8 constructs and completes 60 cycles.**
+> So this row records a real refusal on a real build, and the world it refused in no longer
+> exists. **Kept rather than edited: the guard firing on a seed nobody had run is the evidence,
+> and it is unaffected.**
 
 > **A GUARD WHOSE FAILURE PATH IS NOW EXERCISED RATHER THAN ASSUMED** — which is this record's
 > standing complaint about every seat that has been green since installation. **Not repaired
@@ -53714,7 +53727,8 @@ because repairing object placement moves every colliding world — including one
 
 > **AND IT REACHED THE PANEL: `click_only` AND `buttons` SEEDS 6 AND 8 ARE STACKED, so 4 of the
 > 19 rows in `F410` ran in worlds with two objects on one cell.** It does not overturn `F410` —
-> the control's numerator is zero on every row, stacked or not — but **the panel's world was not
+> the control's numerator is zero on every row, stacked or not — **AND `F419` RE-TOOK THE FOUR
+AND THAT CLAUSE IS NOW FALSE ON THE REPAIRED BUILD: `click_only` 6 settles an unguarded term** — but **the panel's world was not
 > the world the panel was described as running in**, which is the denominator failure this record
 > is named for, arriving in the WORLD column instead of the population column.
 
@@ -54040,3 +54054,60 @@ a table.*
 > was. **The guard was built for the file being thought about, not for the dependency.**
 >
 > **STANDING: WHILE A MEASUREMENT RUNS, THE TREE IT READS IS FROZEN.**
+
+
+---
+
+## F419 — **THE FOUR COLLIDING `F410` ROWS, RE-TAKEN ON THE REPAIRED HABITAT: THE UNGUARDED NUMERATOR IS NO LONGER ZERO.** One row moved, and it is the row the whole `F410` conclusion rested on being impossible
+
+**WORLD: gridworld `click_only` and `buttons`, seeds 6 and 8 only, 60 cycles,
+`TETHER_ACTED_GUARD=1`, imported from a PINNED WORKTREE at `4cf5f91` — the placement fix —
+with the pin stamped on the output. POPULATION: 4 runs.** The reviewer's ruling 3. Nothing here
+is pooled with `F410`'s fifteen clean rows: those ran on a different build and stay where they
+are.
+
+    world       sd   OLD (F410)            NEW (4cf5f91)         moved
+    click_only   6   g 0/1  u 0/1          g 0/1  u 1/1          U NUMERATOR 0 -> 1
+    click_only   8   g 0/1  u 0/0          g 0/1  u 0/0          no
+    buttons      6   g 0/0  u 0/1          g 0/0  u 0/0          composed nothing at all
+    buttons      8   REFUSED AT CONSTRUCTION  g 0/1  u 0/0       THE ROW NOW EXISTS
+
+**TWO THINGS MOVED AND NEITHER WAS PREDICTED.**
+
+**(1) `buttons` SEED 8 RUNS.** `F410.1` filed it as refused by `F398`'s guard — *no advertised
+action can move `['o0.row','o0.col']`* — and `F418` established the collision as the cause of
+all eight refusals. **So the row that was ABSENT from `F410`'s population is now present**, which
+is a population change, not a result change, and it is the kind this record is named for.
+
+**(2) `click_only` SEED 6 SETTLED AN UNGUARDED TERM: `take<inc(o1.colour)>?BECOME OTHER`.**
+
+> **`F410`'s CONCLUSION WAS NOT *the guarded rate is unimpressive*. IT WAS *the control's
+> numerator is STRUCTURALLY ZERO, so the rule cannot be refuted on these fixtures at any seed
+> count*** — counting `F409`'s flag-OFF panel, **zero unguarded settles across 25 runs.** That
+> premise is now false on at least one row of the repaired habitat.
+
+**WHAT THIS DOES AND DOES NOT OVERTURN, AND THE LINE IS SHARP.** `F410`'s *verdict* — STOPPED,
+`?ACTED` stays default OFF — **is untouched and is not being reopened here.** What is touched is
+the *reason*: *more seeds cannot reach it* was arithmetic over a numerator that could not move,
+and on the repaired habitat it moved on the first row re-taken. **The stop was correct; one of
+the two arguments for it was about a world that no longer exists.**
+
+**AND IT IS ONE ROW, WHICH IS WHY NOTHING IS CONCLUDED FROM IT.** *Two points never make a line*
+and this is one point. The honest statement of the new state:
+
+    MEASURED     the unguarded numerator is non-zero on click_only:6 at 4cf5f91
+    UNMEASURED   whether it is non-zero anywhere in the fifteen clean rows re-taken on
+                 the repaired habitat -- those have NOT been re-run and are not assumed
+    NOT CLAIMED  any rate, pooled or per-world. Four rows is not a panel
+
+**THE RE-TAKE OF THE FULL TWENTY IS A RULING, NOT A DECISION TAKEN HERE.** It would re-open a
+pre-registered stop on a changed habitat, which is exactly the move a stopped line is supposed to
+make hard. **Raised with the reviewer rather than run.**
+
+> **AND THE REASON THE FOUR WERE RE-TAKEN AT ALL IS WORTH KEEPING SEPARATE FROM WHAT THEY
+> SHOWED.** `F411.3` filed the collision's reach into the panel as *the panel's world was not the
+> world the panel was described as running in* — **a DENOMINATOR failure arriving in the WORLD
+> column** — and ruled it did not overturn `F410` because the numerator was zero on stacked and
+> clean rows alike. **That reasoning was correct about the old build and is exactly what stopped
+> being true**: repairing the world is what let the numerator move, so the finding that the world
+> description was wrong is the finding that produced this one.
