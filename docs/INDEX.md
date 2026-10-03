@@ -48871,7 +48871,26 @@ Minted on game `alpha`, saved, loaded into game `beta`:
 
 **AND THE 8 -> 4 IS EXPLAINED, NOT A LOSS.** The four that crossed are CHAINS; the four that did
 not are single-atom terms, which already exist in `beta` as atoms and are not compositions to
-import. `Gamma.load` re-invents through `invent` so the licence is re-checked on the way in
+import.
+
+> **ANNOTATED BY `F420`, 2026-10-02 — HALF OF THIS IS NOW FALSE, AND WHAT CHANGED IS A RULING
+> RATHER THAN THE CODE.** It is correct for an UNGUARDED single-atom term: a bare `inc` IS the
+> atom, `beta` holds it, and importing it would be importing the vocabulary back into itself.
+> **It is wrong for a GUARDED one.** The reviewer ruled 2026-10-01 that `gamma.is_atom` requires
+> `term.guard is None`, so `inc?ACTED_SELF` is NOT an atom — it is a composed term that paid a
+> composed price, and the ruling names that shape as **the agent's cheapest route to novelty**.
+> `save` writes atom NAMES only (`gamma.py:1052`), so the guard — which is the term's entire
+> content — is dropped at SAVE, and `load` then deduplicates the bare atom away.
+>
+> **MEASURED, not inferred:** `click_only` seed 6 at `4cf5f91` minted `inc?ACTED_SELF` and
+> `take<inc(o1.colour)>?BECOME OTHER`; the blob holds `{"atoms": ["inc"]}` and
+> `{"atoms": ["take"]}`; `load` returned **`loaded 0, already_held 2`** and the destination
+> library held no non-prior term at all. **Two terms in, zero out, nothing failed.**
+>
+> **THIS PASSAGE'S VERDICT — *the first item tonight where `is it actually reached` answers YES
+> without a repair* — IS THEREFORE TRUE OF CHAINS AND NOT OF THE WHOLE MECHANISM.** Kept rather
+> than edited, because it was a correct reading of the system as it was then understood, and an
+> error entry whose evidence is edited away stops being evidence. `Gamma.load` re-invents through `invent` so the licence is re-checked on the way in
 rather than trusted from the file.
 
 > **THIS IS THE FIRST ITEM TONIGHT WHERE *IS IT ACTUALLY REACHED* ANSWERS YES WITHOUT A REPAIR.**
@@ -54111,3 +54130,100 @@ make hard. **Raised with the reviewer rather than run.**
 > clean rows alike. **That reasoning was correct about the old build and is exactly what stopped
 > being true**: repairing the world is what let the numerator move, so the finding that the world
 > description was wrong is the finding that produced this one.
+
+
+---
+
+## F420 — **A GUARDED SINGLE-ATOM TERM IS DESTROYED BY `save`/`load` AND THE LOSS IS REPORTED AS `already_held`.** The ruling moved and the carry path did not notice
+
+**WORLD: gridworld `click_only` seed 6, 60 cycles, `TETHER_ACTED_GUARD=1`, imported from the
+worktree pinned at `4cf5f91`. POPULATION: the 2 terms that run minted, carried `GAME_A` →
+`GAME_B` → `GAME_C` through the real `gamma.save`/`gamma.load`.** One run, one world-seed.
+
+    A, minted      origin=minted  handle=GAME_A_I_term_076252dc  inc?ACTED_SELF
+                   origin=minted  handle=GAME_A_T_term_1d203cbc  take<inc(o1.colour)>?BECOME OTHER
+    saveA          written 2
+    loadB          loaded 0, already_held 2, refused []
+    B's library    NOTHING -- no non-prior term at all
+    saveB          written 0
+    loadC          loaded 0, already_held 0
+
+**THE CAUSE, AT THE WRITE SITE.** `gamma.py:1052` writes `"atoms": [a.name for a in t.atoms]` —
+**the atom names and nothing else** — so the guard and the operand are gone at SAVE time. On
+load, `Term(("inc",))` is named `inc`, which the registry already holds as a PRIOR atom, so
+`gamma.py:1150` takes the dedup branch and installs nothing.
+
+**NOT NEW, AND THAT IS THE ENTRY'S OWN FINDING.** `INDEX:48873` recorded the same 8→4 mechanism
+in September and ruled it *explained, NOT a loss* — correctly, for the system as then understood.
+**What moved is the reviewer's 2026-10-01 `is_atom` ruling**, which makes a guarded single-atom
+term a real composition rather than an atom, and nothing in the carry path was re-read against
+it. **STALE BY SUCCESS where the success is a RULING rather than a repair** — a route that rule's
+own guard cannot cover, because its trigger is *when a build makes a quantity exist* and nothing
+was built.
+
+> **AND THE SEAT'S GREP FIRED AFTER THE POST, NOT BEFORE IT.** The standing step is one grep on
+> the mechanism's identifier **before writing a causal explanation**; the explanation was
+> written, the measurement run, the report drafted and published, and the grep happened after.
+> **`INDEX:48873` also contains *every handle KEPT its birth game*, which is the exact hypothesis
+> the run had just refuted** — so the one wrong guess in that work was already answered in the
+> paragraph that went unread.
+
+### F420.1 — **AND IT IS NOT THE SINGLE-ATOM SHAPE. THE OPERAND IS THE INFORMATION, SO A WHOLE FAMILY COLLAPSES ONTO ONE NAME: 28 TERMS MINTED, 1 CROSSED**
+
+**WORLD: gridworld `default` seed 6, 60 cycles, `TETHER_ACTED_GUARD=1`, pinned at `4cf5f91`.
+POPULATION: all 28 non-prior terms that run minted. The ACCEPT PATH was exercised — the run
+saves and actually loads into a fresh `Gamma` and counts what ARRIVES, rather than inferring it.**
+
+    composed 28    chain>=2  14    CROSSED  1
+
+**MEASURED: 1 of 28.** The two halves, read off the printed term list:
+
+    14 of chain 1    every one is `take<...>` -- take<o2.proximity>, take<o1.colour>,
+                     take<inc(o0.col)>?BECOME OTHER, take<o0.row> ... all collapse to the
+                     bare atom `take`, which the registry already holds. NONE cross
+    14 of chain 2    every one is `same . all<...>` -- same . all<o2.proximity>,
+                     same . all<dec(o0.row)>, same . all<inc(o1.colour)> ... ALL FOURTEEN
+                     share the atom chain ("same","all"). One installs; THIRTEEN dedup
+
+> **SO THE DESTROYED CLASS IS NOT *a guarded single-atom term*. IT IS *any term whose OPERAND is
+> what distinguishes it from its siblings*** — and on this board that is 27 of 28. The chain-2
+> terms are real compositions of the right shape, and they are lost anyway, because fourteen
+> distinct hypotheses about fourteen different slots are all spelled `same . all` once the
+> operand is stripped.
+
+**THIS REVISES `F420`'s OWN SCOPE UPWARD AND THE EARLIER DRAFT IS LEFT STANDING BELOW.** The
+`click_only` run suggested *guarded single-atom terms are destroyed*; the first `default` row
+shows the same mechanism eating chains too. **`INDEX:48873`'s *4 of 4 chains crossed* remains
+true of `alpha` and is not the general case**: there, four chains happened to be four DISTINCT
+compositions. Here fourteen chains are one.
+
+**AND IT SHARPENS WHAT THE OPEN QUESTION ACTUALLY IS.** *The composition crosses and the binding
+does not* was stated against an operand naming a slot another game lacks — `o1.col` — and that
+reasoning is sound. **What it did not price is that stripping the operand is not lossy, it is
+collapsing: the terms do not arrive degraded, they arrive as each other.** Whether the fix is to
+carry a TYPED operand, to refuse the import rather than dedup it, or to accept the collapse and
+say so, is the transfer claim's boundary and is the reviewer's.
+
+**NOT GENERALISED: one board, one seed.** `click_only` and `buttons` seeds 6 and 8 are in the
+same run and `remap_after` has not been reached; the panel was still going when this was filed.
+Per game, never pooled.
+
+**WHAT IS AND IS NOT CLAIMED, AS FIRST DRAFTED — superseded in scope by `F420.1` above, kept
+because an error entry whose evidence is edited away stops being evidence.** Chains cross:
+`INDEX:48873` measured **4 of 4 chains IMPORTED with birth handles intact**, so the mechanism is
+not broken in general. What is destroyed is the GUARDED single-atom shape. **All 4 composed terms
+across the four re-taken `F419` rows are single-atom-chain, and 2 of 2 on `click_only` seed 6
+carried guards** — so on these runs the destroyed class is not a corner case, at a small n, per
+run and never pooled.
+
+**THE REPORTING DEFECT IS THE HALF WORTH FIXING FIRST.** `already_held` is one number covering
+two opposite outcomes: deduped onto a composed term the registry genuinely holds, and collapsed
+onto a prior atom, which is a loss. **`load`'s own docstring guards the other half of this class**
+— *a term whose atoms this registry lacks is REFUSED, not skipped… silently dropping half a
+library would read as a small library rather than as an incompatible one* — **so the author saw
+the shape and guarded the side that announces itself.**
+
+**WHETHER A GUARD SHOULD CROSS AT ALL IS NOT DECIDED HERE.** *The composition crosses and the
+binding does not* is right about an OPERAND — `o1.col` names a slot another game lacks. A guard
+is a condition rather than a binding to this world, and that is the transfer claim's own
+boundary. **Raised with the reviewer, not taken.**
