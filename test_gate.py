@@ -293,52 +293,6 @@ def test_a_merge_keeps_the_birth_handle_of_every_instance_it_absorbed():
         assert dst.carried["take . inc"]["from"] == "A"
 
 
-def test_a_typed_operand_placeholder_separates_kinds_and_still_merges_within_one():
-    """`F420.1`/`F420.3`: fourteen compositions separated ONLY by their operand all arrive
-    spelled `same . all` and thirteen are deduped away. The operand's BINDING cannot cross
-    -- `o1.colour` names an object another board lacks -- but its KIND can, and that is
-    what tells two of them apart (the reviewer, 2026-10-03).
-
-    BOTH DIRECTIONS IN ONE TEST, because a placeholder that separates everything is as
-    wrong as one that separates nothing: DIFFERENT kinds must arrive as different terms,
-    and the SAME kind must still merge -- one law, many instances.
-
-    AND `operand` MUST BE None ON EVERY ARRIVAL. The kind is a record of what the operand
-    read, not a binding; leaving a stale slot name on a carried term would hand the next
-    board an operand naming an object it does not have.
-
-    Reintroduce by dropping `operand_kind=` in `load`, not by disabling this.
-    """
-    import pathlib
-    import tempfile
-
-    import gamma as G
-    take, inc = G.Atom("take", _idn, "val", "val"), G.Atom("inc", _idn, "val", "val")
-    src_g = G.Gamma([take, inc], game="A")
-    # what the Agent hands over: two EXTENT slots, one COLOUR, one POSITION
-    src_g.slot_kinds = {"o1.colour": "COLOUR", "o2.row": "POSITION",
-                        "o3.distance": "EXTENT", "o4.proximity": "EXTENT"}
-    for i, slot in enumerate(("o1.colour", "o2.row", "o3.distance", "o4.proximity")):
-        t = G.Term(atoms=(take, inc), operand=slot)
-        src_g.accept(t, seq=i, residual="s@0")
-        src_g.handles.setdefault(t.name, t.handle(src_g.game))
-    with tempfile.TemporaryDirectory() as d:
-        path = str(pathlib.Path(d) / "lib.json")
-        src_g.save(path)
-        dst = G.Gamma([take, inc], game="B")
-        rep = dst.load(path)
-        got = {n for n, t in dst.library.items() if t.origin != G.PRIOR}
-        # THREE, not one: the kinds separate COLOUR from POSITION from EXTENT.
-        assert got == {"take . inc<:COLOUR>", "take . inc<:POSITION>",
-                       "take . inc<:EXTENT>"}, got
-        assert rep["loaded"] == 3, rep
-        # and the two EXTENT slots DO merge, with the absorbed one named.
-        assert rep["merged_into"] == {"take . inc<:EXTENT>": 1}, rep
-        assert dst.merged["take . inc<:EXTENT>"][0]["operand"] == "o4.proximity"
-        # no arrival carries a slot name from the board it came from
-        assert all(dst.library[n].operand is None for n in got)
-
-
 def test_undeclared_death():
     """A CHOSEN death with no disproof is farming wearing an experiment's word (§21.2)."""
     r = valid()

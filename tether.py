@@ -988,11 +988,6 @@ class Agent:
         self._s0_target: str | None = None
         self.alphabet = self._alphabets(env)
         self.slot_types = self._slot_types(env)
-        # `save` is seat-side on Gamma and cannot look a slot's kind up; the Agent is the
-        # only thing that knows them, so it hands them over. ONE write per place
-        # `slot_types` is computed -- both, or a carried term is stamped with the kind the
-        # PREVIOUS level gave that slot.
-        self.gamma.slot_kinds = self.slot_types
         self.cfg = cfg if cfg is not None else Config()
         # not `led or ...`: an empty Ledger has len 0 and is therefore falsy
         self.led = led if led is not None else Ledger(mode=self.cfg.mode)
@@ -1394,7 +1389,6 @@ class Agent:
         self.actions = tuple(env.actions())       # a new level may advertise differently
         self.alphabet = self._alphabets(env)      # a new level may value slots differently
         self.slot_types = self._slot_types(env)   # and may type them differently
-        self.gamma.slot_kinds = self.slot_types   # and the carry map follows them
         self.bound, self.trace = {}, []
         self._trace_epoch += 1          # the tallies summarise a history that is gone
         self._tally.clear()             # (the epoch is in the triple; this is belt and braces)
