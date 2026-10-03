@@ -54604,6 +54604,51 @@ later reader could check or overturn.
 every arm row. **It would fail 12 rows the moment it landed**, and writing those 12 needs
 whoever knows why each arm is off — which is not this seat. Proposed, not taken.
 
+### F424.1 — **AND THE TWELVE ARE NOT OFF FOR NO REASON. AT LEAST TWO ARE OFF FOR GOOD RECORDED REASONS THE ROW OMITS — INCLUDING A CORRECTNESS BLOCKER.** Read before anyone flips an arm on `F424`
+
+**`F424` says twelve rows do not state why their arm is off. It does NOT say no reason exists,
+and the distinction is the difference between a documentation gap and a licence to switch
+things on.** Checked per arm against the record rather than assumed:
+
+**`_SHAPE_DECODE` — A MEASURED CONTACT CHANGE *AND* A CORRECTNESS BLOCKER, NEITHER IN THE ROW.**
+`F283` ran it as an A/B on `g50t`:
+
+    TETHER_SHAPE_DECODE OFF     4,976 calls   resolved 0        NOT_RESOLVED 4,976
+    TETHER_SHAPE_DECODE ON     54,914 calls   resolved 54,914   NOT_RESOLVED 0
+
+0% to 100% resolution and **eleven times the reach** — classified `CAPABILITY: CONTACT`, which
+is the only class that moves capability at all. **And it still should not be flipped**, for two
+reasons the record holds and the row does not: its own boundary is *ONE board, ONE seed, FOUR
+cycles*, on a board Isaiah has called unrepresentative (*"kind of like ms paint"*), and it is
+labelled **TAPE-ONLY**. **The blocker is the harder half**: `gridworld` and `world.py` **define
+no `shapes()` at all**, so `_shapes_now()` returns `None` on every world currently runnable, and
+*"it must be in the key before that arm is turned on, or the tallies become wrong on exactly the
+boards the arm exists for."*
+
+**`_INVENT` — OFF BECAUSE THE AGENT LACKS A JUDGEMENT, NOT BECAUSE THE CAPABILITY IS WRONG.** It
+has executed on both harnesses (`atoms 55 -> 140` live), so the standing rule is satisfied; the
+measurement is *ONE board, ONE seed, SEVEN cycles, tape*, with cross-hash transfer and the
+invented-atom ablation both UNMEASURED. **The reason it is off is at `tether:~4820`:**
+
+    `_invent`  UNCONDITIONAL. Its only guard is *nothing observed to invent FROM* --
+               a CAPABILITY check. GIVEN A DELTA IT INVENTS.
+    THE QUESTION  *is THIS delta worth a new atom?*
+    NEEDS         whether the delta recurs or was one occasion, which is only in
+                  this agent's residual history
+
+> **SO `_INVENT` IS THE INVENTORY'S OWN BEST ITEM (d), AND IT ARRIVED BY ACCIDENT.** The arm is
+> switched off WHOLESALE because the agent cannot ask *is this delta worth an atom* — a question
+> whose evidence is **already in its residual history**, which is the exact shape of a class-B
+> conversion. **Handing the agent that judgement is what would let the arm come on**, and that
+> is a better route than ruling on the default.
+
+**WHAT THIS CORRECTS IN `F424`, AT THE ROW RATHER THAN ONLY HERE:** the finding is a
+DOCUMENTATION defect, not a configuration one. **Two of twelve checked, both justified, both
+silent in the registry** — and the proposed check (require a default-justification clause) is
+*strengthened* by that, because in both cases the clause could be written today from material
+already in the record. **Nothing here licenses turning an arm on, and `_SHAPE_DECODE` would be
+actively wrong to flip.**
+
 > **AND THE FIRST CLASSIFIER WAS WRONG, WHICH IS HOW THE REAL FINDING ARRIVED.** A keyword sweep
 > for *"stopped / refuted / no effect / null"* reported **no panel outcome on all 14** — and
 > `_ACTED_GUARD`'s row says *"A REFUTER THAT FIRED"*, which the pattern did not cover. **Reading
