@@ -54551,3 +54551,61 @@ the reviewer's, possibly Isaiah's.
 **THE FIXTURE IS COMMITTED PINNING THE DEFECT, WITH ITS CONTROL, AND IT IS WRITTEN TO FAIL WHEN
 THE FIX LANDS** rather than to keep passing quietly — *fixtures before changes, the only order
 with an observable half-state.*
+
+
+---
+
+## F424 — **THE AGENT SHIPS WITH 14 OF 18 DECLARED CAPABILITIES OFF, AND 12 OF THE 14 DO NOT SAY WHY.** The `arms` seat requires a ROW; it does not require the row to justify the DEFAULT
+
+**WORLD: a read of `tether.py` and `conform/arms.py` at `6242318`. POPULATION: all 18
+environment-read capability switches.** Item (d) step 1, the reviewer's read-only inventory.
+**The question is one `conform/arms.py` asks in its own first line** — *"eighteen capability
+switches, all default OFF, and nothing computed the sum."*
+
+    DEFAULT ON  (4)   _BARGAIN_FIT · _AIMED_CURIOSITY · _TALLY · _CARRY_CANDIDATE
+    DEFAULT OFF (14)  _TYPED_BIND · _REL_GAP · _DOWNRATE · _ACTED_GUARD · _RECIPE_DEDUP
+                      _REBIND_HELD · _GUARD_AXIS · _SHAPE_DECODE · _REFUTED_BIN
+                      _DELTA_OPERANDS · _DELTA_KEY · _STREAM_WIDEN · _INVENT · _STARVED_CONTACT
+
+**AND THE SECOND READING IS THE ONE WORTH KEEPING.** Of the 14, **only TWO state why they are
+off** — and they are the two under active work:
+
+    _DOWNRATE      147 words   "DEFAULT OFF, AND THE DEFAULT IS THE OPEN QUESTION" -- names
+                               the ruling, the built policy, the toy reading, and the exact
+                               gridworld A/B that would settle it
+    _ACTED_GUARD    93 words   "DEFAULT OFF, AND THE DEFAULT IS A REFUTER THAT FIRED" -- the
+                               semantics confirmed 60/60, the pre-registered test failed, and
+                               the condition for its return
+    the other 12   3-10 words  what the arm IS. Nothing about why it is off.
+
+**`_INVENT` IS SIX WORDS: *"atom invention from an unexplained delta."*** Minting a new ATOM is
+the rung the enshrinement ladder (`composition → atom → sensor`) exists to reach, every step of
+which is licensed by *the level below tried and could not* — and it is switched off by a default
+with no recorded reason.
+
+> **THE SEAT ENFORCES THE WRONG HALF.** `conform/arms.py` requires a registry ROW PER FLAG, and
+> that check passes on all 18. **It does not require the row to justify the DEFAULT**, so for 12
+> of 14 the registry is a name index rather than a decision record. *A guard whose failure path
+> is never exercised is indistinguishable from one that cannot fail* — here the guard fires
+> correctly on a question that is not the one that matters.
+
+**WHAT THIS DOES TO EVERY NULL THIS RECORD HOLDS.** A composition null measured with `_INVENT`,
+`_SHAPE_DECODE`, `_GUARD_AXIS` and `_DELTA_OPERANDS` all off is a null about a **different agent
+than the architecture describes.** The reviewer's standing rule already requires a null on a
+composition capability to state the VOCABULARY it was measured against. **The same rule should
+name the ARM STATE, and no finding in this record has ever done so** — including every one filed
+today.
+
+**DEFAULT-OFF FOR AN UNVALIDATED ARM IS CORRECT PRACTICE AND NOTHING HERE SAYS OTHERWISE.** The
+finding is that the SUM is 14, that nobody had it, and that 12 of the defaults carry no reason a
+later reader could check or overturn.
+
+**THE CHECK IS OBVIOUS AND IS NOT INSTALLED HERE:** require a default-justification clause in
+every arm row. **It would fail 12 rows the moment it landed**, and writing those 12 needs
+whoever knows why each arm is off — which is not this seat. Proposed, not taken.
+
+> **AND THE FIRST CLASSIFIER WAS WRONG, WHICH IS HOW THE REAL FINDING ARRIVED.** A keyword sweep
+> for *"stopped / refuted / no effect / null"* reported **no panel outcome on all 14** — and
+> `_ACTED_GUARD`'s row says *"A REFUTER THAT FIRED"*, which the pattern did not cover. **Reading
+> the matches turned a false uniform zero into a 2-versus-12 split**, and the zero was the more
+> publishable number. *A grep's count is not evidence until you have read what it matched.*
