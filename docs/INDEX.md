@@ -50738,6 +50738,15 @@ properties, which makes it a property of the SELECTOR rather than of any board.
 shrinking* is SUPPLY — the bar filtering a population that has nothing in it — and this file
 already carries the correction that reading it as *the bar is too high* is a false causal story.
 
+> **AND *SUPPLY* IS THE WRONG LABEL -- `F430`, 2026-10-03, measured at gate 1's own site.** On
+> this same panel `_res` is empty **0 of 36 calls**, the bar is reached on **every** call
+> (longest 50 against needs 3), and `flat`+`rose` are **81.9%** of slot-verdicts. The branch
+> this label describes -- `no hypothesis` -- **never fires here.** So *moving the bar could do
+> nothing* does not follow: the bar is what is refusing, and the dominant single fact is
+> **`rose` at 47.7%**, objectives getting FURTHER AWAY rather than being absent. **Measured on
+> `64b2c7f`, a later build than this row's, so it corrects the agent's present state and not
+> this row's reading when taken.**
+
 ## THE COST CURVE, WHICH IS AN AGENT-FACING CONSTRAINT AND NOT AN INCONVENIENCE
 
 Per-block seconds: **18.7 · 122.9 · 327.7 · 469.4 · 561.7 · 736.2.** That is **1.9 s per cycle
