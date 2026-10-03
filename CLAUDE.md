@@ -146,6 +146,25 @@ was reported for three hours. **Nothing about the number could have revealed it.
 > the denominator — `tier`, `ingredient`, `depth`, `tried`, and the fixture's target world were
 > every one of them a scope nobody had stated.
 
+**AND A THIRD, EARNED 2026-10-03, `F424`: WHAT ARM STATE IT RAN UNDER.** Measured rather than
+estimated: **the agent ships with 14 of 18 declared capabilities OFF**, `_INVENT` among them.
+So a null on composition taken without naming the arms is **a null about a different agent than
+the architecture describes** — which is the reviewer's own standing rule for VOCABULARY, applied
+to the capability set it already implies. **Not one finding in this record carried it**,
+including `F422`'s forty rows, filed the same morning the gap was found.
+
+> **AND IT IS A THIRD FIELD RATHER THAN A THIRD HABIT: `instruments.Attribution.arms()`.** It
+> reads the LIVE MODULE VALUES and never `os.environ`, because every flag resolves once at
+> import and the environment can move afterwards — so the environment reports the INTENTION and
+> the module reports the RUN. It over-reports rather than keep a hand-written list of arm names,
+> since the failure that matters is a capability **silently absent** from the line.
+>
+> **12 OF THE 14 DEFAULTS STATE NO REASON FOR BEING OFF** — 3 to 10 words apiece, against
+> `_DOWNRATE`'s 147 and `_ACTED_GUARD`'s 93, which are the two under active work. The `arms`
+> seat requires a ROW PER FLAG and passes on all eighteen; **it does not require the row to
+> justify the DEFAULT**, so for twelve arms the registry is a name index rather than a decision
+> record.
+
 **AND A SIXTH CLASS THAT THE TWO-LINE PRACTICE ABOVE CANNOT CATCH — 2026-09-25, reviewer-ruled
 into this section because it is NOT the same failure.** The other five were instruments pointed
 at the wrong thing. **This one is an instrument pointed AT YOUR OWN CONCLUSION.**

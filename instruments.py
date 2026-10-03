@@ -535,3 +535,36 @@ class Attribution:
         return {"label": label, "estimate": estimate, "actual": actual,
                 "sound": estimate <= actual, "overstates_by": max(0.0, estimate - actual),
                 "reads": "sound means the bound can only refuse what would have lost"}
+
+
+    @staticmethod
+    def arms() -> dict:
+        """WHICH CAPABILITIES WERE ON WHEN THIS MEASUREMENT RAN. `F424`.
+
+        **THE AGENT SHIPS WITH 14 OF 18 DECLARED CAPABILITIES OFF**, so a null taken
+        without saying which were on is a null about a DIFFERENT AGENT than the one the
+        architecture describes. The reviewer's standing rule already makes a composition
+        null state the VOCABULARY it was measured against; this is the same rule for the
+        arm state, and no finding in the record had ever carried it -- including the 40
+        rows of `F422`, filed the same morning.
+
+        **IT READS THE LIVE MODULE VALUES, NOT `os.environ`, AND THAT IS THE WHOLE POINT.**
+        Every flag is resolved ONCE at import; the environment can be changed afterwards
+        and the module will not notice. Reporting the environment would describe the
+        intention and not the run -- which is `go to the write site` applied to a
+        provenance line.
+
+        **IT OVER-REPORTS RATHER THAN RISK UNDER-REPORTING.** Every module-level bool is
+        listed, not a hand-kept list of arm names: a second list is a second thing to keep
+        in step, and the failure that matters here is a capability SILENTLY ABSENT from the
+        report, never a harmless extra.
+        """
+        import tether
+        flags = {k: v for k, v in vars(tether).items()
+                 if k.startswith("_") and k[1:2].isupper() and isinstance(v, bool)}
+        on = sorted(k for k, v in flags.items() if v)
+        off = sorted(k for k, v in flags.items() if not v)
+        return {"on": on, "off": off, "n_on": len(on), "n_off": len(off),
+                "reads": ("the capability state this measurement ran under, read from the "
+                          "MODULE and not the environment -- flags resolve once at import. "
+                          "State it beside the world and the population.")}

@@ -345,6 +345,37 @@ def test_agency_cannot_see_a_mode_switch_and_inverts_the_reading():
     assert b.mode() == "avatar" and b.contingent() == ["o0.row"]
 
 
+def test_arm_state_is_read_from_the_module_not_the_environment():
+    """`F424`: the agent ships with 14 of 18 declared capabilities OFF, so a measurement
+    that does not say which were on describes a different agent than the architecture
+    does. `Attribution.arms()` is that line.
+
+    THE ASSERTION THAT MATTERS IS THE SECOND ONE. Every flag resolves ONCE at import, so
+    reading `os.environ` would report the INTENTION and not the RUN -- and the two differ
+    exactly when someone sets a variable after import, which is the case a provenance line
+    exists to catch. Setting the variable here must change NOTHING.
+
+    Reintroduce by making `arms()` read os.environ, not by disabling this.
+    """
+    import os
+
+    import tether
+    from instruments import Attribution
+    before = Attribution.arms()
+    assert before["n_on"] + before["n_off"] >= 18, before
+    assert "_ACTED_GUARD" in before["on"] + before["off"]
+    # the flag's live value and the report must agree, whichever way it is set
+    live = "_ACTED_GUARD" in before["on"]
+    assert live == tether._ACTED_GUARD
+
+    os.environ["TETHER_ACTED_GUARD"] = "1" if not live else "0"
+    try:
+        after = Attribution.arms()
+        assert after == before, "arms() must read the MODULE -- the env changed and it did not"
+    finally:
+        os.environ.pop("TETHER_ACTED_GUARD", None)
+
+
 def test_undeclared_death():
     """A CHOSEN death with no disproof is farming wearing an experiment's word (§21.2)."""
     r = valid()
