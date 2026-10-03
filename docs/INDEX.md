@@ -54302,6 +54302,7 @@ operand. Measured, pinned at `a514440`:
     buttons      6    0       0         1       0   predicted 0 -> MET
     buttons      8    1       1         0       0   predicted 1 -> MET
     default      6   19       4         9       4   predicted 1 -> MISSED
+    default      8   24       3         9       3   predicted 1 -> MISSED
 
 **`default` MOVED, 1 -> 4, AND THE REFUTER SAID THAT REFUTES THE ACCOUNT.** It does, and the
 reason is that **`default` seed 6 CONTAINS GUARDED TERMS**, so it was never a control for a
@@ -54337,6 +54338,10 @@ is an arm, not a control.**
 > `click_only` 6 went 0 -> 2 and seed 8 0 -> 1 against zero at `4cf5f91`. **What does NOT
 > survive is the claim that the collapse is purely an operand effect** — on `default` it is
 > both, and the guard half of it is now fixed.
+
+**BOTH `default` ROWS MISS, THE SAME WAY** — seed 8 is 24 compositions and 3 arrivals, with
+the same 9 operand-bound atoms destroyed. `F420.2` called seed 8 **20**, the `chain>=2`
+column again. **Two rows, one error, counted twice.**
 
 **AND THE REMAINING COLLAPSE IS STILL THERE AND STILL LARGE: 19 compositions, 4 arrivals.**
 The fourteen `same . all<...>` still reduce to one chain, which is what the typed operand
