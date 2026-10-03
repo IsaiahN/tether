@@ -54289,6 +54289,59 @@ dispute. **That half of the September reading is RIGHT and this entry concedes i
 > rest dedup. **The collapse was never carried by the operand-bound rows; they were padding the
 > denominator in my favour and the claim did not need them.**
 
+### F420.3 — **THE CONTROL WAS NOT A CONTROL, AND `F420.2`'s CORRECTED DENOMINATOR WAS WRONG IN THE OTHER DIRECTION. THIRD COUNT ON THE SAME ROW: 28, THEN 14, AND IT IS 19**
+
+**A PRE-REGISTERED PREDICTION MISSED AND THE MISS IS THE FINDING.** The guard-crossing
+change (`a514440`) was measured against a stated prediction with `default` as the arm that
+**could not move**, because its compositions were `same . all<...>` separated only by their
+operand. Measured, pinned at `a514440`:
+
+    world       sd comp ARRIVED destroyed unbound   predicted
+    click_only   6    2       2         0       1   predicted 2 -> MET
+    click_only   8    1       1         0       0   predicted 1 -> MET
+    buttons      6    0       0         1       0   predicted 0 -> MET
+    buttons      8    1       1         0       0   predicted 1 -> MET
+    default      6   19       4         9       4   predicted 1 -> MISSED
+
+**`default` MOVED, 1 -> 4, AND THE REFUTER SAID THAT REFUTES THE ACCOUNT.** It does, and the
+reason is that **`default` seed 6 CONTAINS GUARDED TERMS**, so it was never a control for a
+change to how guards carry. Classified from the run's own printed list:
+
+    14  chain-2 (`same . all<...>`)          compositions
+     5  chain-1 GUARDED (`take<...>?BECOME OTHER`)   compositions
+     9  chain-1 unguarded (`take<...>`)      OPERAND-BOUND ATOMS, not compositions
+    --
+    28  total non-prior, and 19 of them are compositions
+
+**19 IS `Attribution.minted`'s COUNT AND IT CLOSES EXACTLY: 28 = 19 + 9, and the run's
+`destroyed 9` is those nine operand-bound atoms.**
+
+> **SO THE SAME ROW HAS NOW BEEN COUNTED THREE TIMES AND THE FIRST TWO WERE BOTH WRONG.**
+> `F420.1` said **28** — `origin != PRIOR`, the pre-`F412` population, too big.
+> `F420.2` corrected it to **14** — and that is the `chain>=2` COLUMN, **too small, because
+> it drops the five guarded chain-1 compositions.** The truth is **19**.
+>
+> **`F420.2` IS THEREFORE A CORRECTION THAT INTRODUCED A SECOND ERROR OF THE SAME CLASS:
+> reaching for a column that LOOKS like the population instead of the one the separator
+> defines.** It even says it is using "`Attribution.minted`'s separator" while quoting a
+> number that method does not produce.
+
+**AND THE CONTROL FAILURE IS THE MORE EXPENSIVE HALF.** *A panel property must be measured
+before it is used as a premise, never asserted from the shape of the generator* — and
+`default contains no guarded terms` was asserted from a glance at term names, never checked,
+while the full list was sitting in the output the premise was drawn from. **A control chosen
+because it ought not to move, without checking whether it contains the thing being changed,
+is an arm, not a control.**
+
+> **WHAT SURVIVES: the guard change works and is measured.** Four rows met their prediction,
+> `click_only` 6 went 0 -> 2 and seed 8 0 -> 1 against zero at `4cf5f91`. **What does NOT
+> survive is the claim that the collapse is purely an operand effect** — on `default` it is
+> both, and the guard half of it is now fixed.
+
+**AND THE REMAINING COLLAPSE IS STILL THERE AND STILL LARGE: 19 compositions, 4 arrivals.**
+The fourteen `same . all<...>` still reduce to one chain, which is what the typed operand
+placeholder is for.
+
 **AND THE INSTRUMENTS DISAGREEING IS WHY THIS WAS CATCHABLE AT ALL.** `Attribution.minted`
 returns `n_by_name` — the OLD reading — beside the new one on purpose, *because a discrepancy
 that stays visible beats one that is silently resolved*. **The probe that got it wrong did not
