@@ -189,6 +189,75 @@ def test_minted_separates_an_operand_bound_atom_from_a_real_mint():
 
 
 
+def test_a_guarded_term_arrives_with_its_guard_and_a_duplicate_still_dedups():
+    """`F420`: `save` wrote atom NAMES only, so `inc?ACTED_SELF` was saved as `["inc"]`,
+    arrived as the bare prior atom, and was discarded as a duplicate -- a LOSS reported
+    as `already_held`. Measured: `click_only` seed 6 carried 2 terms and arrived with 0.
+
+    BOTH DIRECTIONS, because every guard hole found this week was found on the ACCEPT
+    path and none by a refusal test. A carry that refuses everything would pass a
+    loss-only assertion, and a carry that accepts everything would pass a dedup-only
+    one. The reviewer required both (2026-10-03).
+
+    THE DEFECT IS REINTRODUCED BY DELETING THE `guard=` ARGUMENT IN `load`, not by
+    disabling this check.
+    """
+    import pathlib
+    import tempfile
+
+    import gamma as G
+    take, inc = G.Atom("take", _idn, "val", "val"), G.Atom("inc", _idn, "val", "val")
+    src_g = G.Gamma([take, inc], game="A")
+    for i, t in enumerate((G.Term(atoms=(inc,), guard=G.ACTED_SELF),
+                           G.Term(atoms=(take,), operand="o1.colour"),
+                           G.Term(atoms=(take, inc)))):
+        src_g.accept(t, seq=i, residual="s@0")
+        src_g.handles.setdefault(t.name, t.handle(src_g.game))
+    with tempfile.TemporaryDirectory() as d:
+        path = str(pathlib.Path(d) / "lib.json")
+        src_g.save(path)
+        dst = G.Gamma([take, inc], game="B")
+        rep = dst.load(path)
+        # ACCEPT: the guarded term crosses, as itself, with its birth game recorded.
+        assert "inc?ACTED_SELF" in dst.library, "a guarded term must ARRIVE with its guard"
+        assert dst.carried["inc?ACTED_SELF"]["from"] == "A"
+        # LOSS: the operand-only term still collapses, and SAYS SO rather than
+        # reporting the benign-sounding `already_held`.
+        assert rep["destroyed_on_carry"] == 1, rep
+        assert rep["destroyed"][0]["collapsed_to"] == "take"
+        assert rep["destroyed"][0]["lost"] == "o1.colour"
+        # DEDUP: loading the same file again is a real duplicate, not a loss.
+        again = dst.load(path)
+        assert again["loaded"] == 0 and again["deduped_onto_composition"] == 2, again
+        assert again["destroyed_on_carry"] == 1, "the collapse is not a dedup"
+
+
+def test_a_chain_that_loses_its_operand_is_not_reported_as_a_clean_arrival():
+    """An operand names a slot of THIS board, so it does not re-bind -- but a term that
+    arrives without it is not the term that left. Counted among `loaded` with nothing
+    said, that is `already_held`'s silence one step milder.
+
+    THE FIELD CAN FIRE, which is why this test exists separately: only a term with BOTH
+    a chain of 2+ and an operand can arrive AND be unbound, so a single-atom case would
+    have left `crossed_without_binding` structurally zero and untestable.
+    """
+    import pathlib
+    import tempfile
+
+    import gamma as G
+    take, inc = G.Atom("take", _idn, "val", "val"), G.Atom("inc", _idn, "val", "val")
+    src_g = G.Gamma([take, inc], game="A")
+    t = G.Term(atoms=(take, inc), operand="o1.colour")
+    src_g.accept(t, seq=0, residual="s@0")
+    with tempfile.TemporaryDirectory() as d:
+        path = str(pathlib.Path(d) / "lib.json")
+        src_g.save(path)
+        dst = G.Gamma([take, inc], game="B")
+        rep = dst.load(path)
+        assert rep["loaded"] == 1 and rep["crossed_without_binding"] == 1, rep
+        assert "take . inc" in dst.library and "take . inc<o1.colour>" not in dst.library
+
+
 def test_undeclared_death():
     """A CHOSEN death with no disproof is farming wearing an experiment's word (§21.2)."""
     r = valid()

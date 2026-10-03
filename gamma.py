@@ -697,6 +697,9 @@ class Gamma:
         # term was MINTED, and it does not change when the term is later pulled elsewhere.
         self.game = str(game)
         self.handles: dict[str, str] = {}
+        # SET AT LOAD, never at mint: a term that originated elsewhere says so without the
+        # reader having to parse a game name out of a handle.
+        self.carried: dict[str, dict] = {}
         self.stamps: dict[str, dict[str, Any]] = {}
         self.standing: dict[str, Standing] = {}
         # name -> the two verdicts that promoted it. A dict rather than a set because
@@ -1049,7 +1052,15 @@ class Gamma:
             if t.origin == PRIOR:
                 continue          # an atom was not minted; there is nothing to carry
             st = self.stamps.get(name)
+            # **THE GUARD CROSSES AND THE OPERAND'S BINDING DOES NOT -- the reviewer,
+            # 2026-10-03.** A guard is a CONDITION and game-agnostic: `?ACTED_SELF` is a
+            # per-slot boolean and never a name, `?BECOME OTHER` is an intent kind. An
+            # OPERAND is a slot of THIS board -- `o1.colour` names an object another board
+            # lacks -- so it is written for the RECORD only and `load` does not re-bind it.
+            # **Writing neither is what destroyed every guarded term on carry (`F420`):
+            # the atom names alone made `inc?ACTED_SELF` indistinguishable from `inc`.**
             out.append({"atoms": [a.name for a in t.atoms], "origin": t.origin,
+                        "guard": t.guard, "operand": t.operand,
                         "handle": self.handles.get(name), "game": self.game,
                         "admitted": getattr(st, "admitted", None) if st else None,
                         "residual": getattr(st, "residual", None) if st else None})
@@ -1144,24 +1155,60 @@ class Gamma:
             if not all(n in self._by_name for n in names):
                 refused.append({"atoms": list(names), "why": "atom not in this registry"})
                 continue
+            # THE GUARD IS RESTORED; THE OPERAND IS NOT RE-BOUND. Until an operand can be
+            # saved as a TYPED PLACEHOLDER and re-bound per board, a term that had one
+            # arrives without it and says so -- `crossed_without_binding` -- rather than
+            # arriving as a different term with no record that anything was dropped.
             t = Term(tuple(self._by_name[n] for n in names),
-                     origin=IMPORTED if r.get("game") != self.game else r["origin"])
+                     origin=IMPORTED if r.get("game") != self.game else r["origin"],
+                     guard=r.get("guard"))
             if t.name in self.library:
-                took.append({"handle": r.get("handle"), "already_held": True})
+                # **`already_held` WAS ONE NUMBER OVER TWO OPPOSITE OUTCOMES -- `F420`.** A row
+                # can land on a composition this registry genuinely holds, which is a real
+                # dedup and costs nothing; or it can land on a PRIOR ATOM, which means the
+                # saved term's whole content was its guard and operand and `save` wrote
+                # neither, so the term is DESTROYED and the old report said `already_held`.
+                # **A loss wearing the words of a successful dedup.** Measured: `click_only`
+                # seed 6 carried 2 terms, arrived with 0, and read `already_held: 2`.
+                onto_atom = self.library[t.name].origin == PRIOR
+                took.append({"handle": r.get("handle"), "already_held": True,
+                             "onto_atom": onto_atom, "name": t.name, "unbound": False,
+                             "lost": r.get("guard") or r.get("operand")})
                 continue          # dedup on the COMPOSITION -- it keeps the handle it has
             self._install(t, seq=-2, residual=r.get("residual"),
                           admitted=IMPORTED if t.origin == IMPORTED else r.get("admitted"))
             if r.get("handle"):
                 self.handles[t.name] = r["handle"]   # the birth handle, carried
-            took.append({"handle": r.get("handle"), "already_held": False})
+            # THE `carried` FIELD -- set at LOAD, so a term can say it did not originate here
+            # without the reader having to parse a handle for a game name.
+            self.carried[t.name] = {"from": r.get("game"), "handle": r.get("handle")}
+            took.append({"handle": r.get("handle"), "already_held": False,
+                         "onto_atom": False, "name": t.name, "lost": None,
+                         "unbound": bool(r.get("operand"))})
         # `reinvented` IS REPORTED, because a silent count is how an invented atom
         # crossing a game boundary would be invisible -- and that crossing is the claim.
+        onto_atom = [x for x in took if x["already_held"] and x["onto_atom"]]
+        onto_comp = [x for x in took if x["already_held"] and not x["onto_atom"]]
         return {"loaded": sum(1 for x in took if not x["already_held"]),
                 "reinvented": len(reinvented),
-                "already_held": sum(1 for x in took if x["already_held"]),
+                # KEPT, so a caller reading the old key still gets the old number and the
+                # split sits beside it rather than replacing it silently.
+                "already_held": len(onto_atom) + len(onto_comp),
+                "deduped_onto_composition": len(onto_comp),
+                "destroyed_on_carry": len(onto_atom),
+                "destroyed": [{"handle": x["handle"], "collapsed_to": x["name"],
+                               "lost": x["lost"]} for x in onto_atom],
+                # AN ARRIVAL THAT LOST ITS OPERAND IS NOT A CLEAN ARRIVAL, and counting it
+                # among `loaded` without saying so is the same silence `destroyed_on_carry`
+                # was split out to end, one step milder.
+                "crossed_without_binding": sum(
+                    1 for x in took if not x["already_held"] and x["unbound"]),
                 "refused": refused,
                 "reads": ("composition crosses, binding does not. A refused row is an "
-                          "INCOMPATIBLE registry, not a small library")}
+                          "INCOMPATIBLE registry, not a small library. "
+                          "`destroyed_on_carry` is a row that collapsed onto a PRIOR ATOM "
+                          "because save wrote neither its guard nor its operand -- a LOSS, "
+                          "not a dedup, and it was counted as `already_held` until F420")}
 
     # P5's single-slot memo: (the units tuple, the frozenset of its atom sequences).
     _UNIT_SET: tuple = ((), frozenset())
