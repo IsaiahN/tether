@@ -700,6 +700,12 @@ class Gamma:
         # SET AT LOAD, never at mint: a term that originated elsewhere says so without the
         # reader having to parse a game name out of a handle.
         self.carried: dict[str, dict] = {}
+        # **A MERGE THAT FORGETS ITS MEMBERS FAILS THE PROVENANCE CLAIM -- the reviewer,
+        # 2026-10-03.** When N carried compositions reduce to ONE chain, that may be right
+        # for TRANSFER -- one law, many instances -- but Isaiah's condition is that we can
+        # prove where everything in the library came from. Surviving name -> the birth
+        # handle of every instance absorbed into it.
+        self.merged: dict[str, list[dict]] = {}
         self.stamps: dict[str, dict[str, Any]] = {}
         self.standing: dict[str, Standing] = {}
         # name -> the two verdicts that promoted it. A dict rather than a set because
@@ -1171,6 +1177,10 @@ class Gamma:
                 # **A loss wearing the words of a successful dedup.** Measured: `click_only`
                 # seed 6 carried 2 terms, arrived with 0, and read `already_held: 2`.
                 onto_atom = self.library[t.name].origin == PRIOR
+                self.merged.setdefault(t.name, []).append(
+                    {"handle": r.get("handle"), "from": r.get("game"),
+                     "operand": r.get("operand"), "guard": r.get("guard"),
+                     "onto_atom": onto_atom})
                 took.append({"handle": r.get("handle"), "already_held": True,
                              "onto_atom": onto_atom, "name": t.name, "unbound": False,
                              "lost": r.get("guard") or r.get("operand")})
@@ -1203,6 +1213,9 @@ class Gamma:
                 # was split out to end, one step milder.
                 "crossed_without_binding": sum(
                     1 for x in took if not x["already_held"] and x["unbound"]),
+                # THE MERGE IS VISIBLE IN THE REPORT, not only in the object: a reader who
+                # sees `loaded 1` from a 14-row blob can ask what the 1 absorbed.
+                "merged_into": {k: len(v) for k, v in self.merged.items() if len(v) > 1},
                 "refused": refused,
                 "reads": ("composition crosses, binding does not. A refused row is an "
                           "INCOMPATIBLE registry, not a small library. "

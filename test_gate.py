@@ -258,6 +258,41 @@ def test_a_chain_that_loses_its_operand_is_not_reported_as_a_clean_arrival():
         assert "take . inc" in dst.library and "take . inc<o1.colour>" not in dst.library
 
 
+def test_a_merge_keeps_the_birth_handle_of_every_instance_it_absorbed():
+    """`F420.1`: fourteen `same . all<...>` compositions on default seed 6 all reduce to
+    the atom chain ("same","all"), so one installs and thirteen vanish. That may be RIGHT
+    for transfer -- one law, many instances -- but Isaiah's condition is that we can prove
+    where everything in the library came from, and a merge that forgets its members fails
+    it (the reviewer, 2026-10-03).
+
+    THE DEFECT IS REINTRODUCED by dropping the `self.merged.setdefault(...)` line in
+    `load`, not by disabling this check. Four terms in, one survivor, THREE recorded.
+    """
+    import pathlib
+    import tempfile
+
+    import gamma as G
+    take, inc = G.Atom("take", _idn, "val", "val"), G.Atom("inc", _idn, "val", "val")
+    src_g = G.Gamma([take, inc], game="A")
+    for i, slot in enumerate(("o1.colour", "o2.row", "o3.distance", "o4.proximity")):
+        t = G.Term(atoms=(take, inc), operand=slot)
+        src_g.accept(t, seq=i, residual="s@0")
+        src_g.handles.setdefault(t.name, t.handle(src_g.game))
+    with tempfile.TemporaryDirectory() as d:
+        path = str(pathlib.Path(d) / "lib.json")
+        src_g.save(path)
+        dst = G.Gamma([take, inc], game="B")
+        rep = dst.load(path)
+        assert rep["loaded"] == 1, rep
+        assert rep["merged_into"] == {"take . inc": 3}, rep
+        absorbed = dst.merged["take . inc"]
+        # EVERY member is accounted for, with the operand that distinguished it.
+        assert {m["operand"] for m in absorbed} == {"o2.row", "o3.distance", "o4.proximity"}
+        assert all(m["handle"] and m["from"] == "A" for m in absorbed), absorbed
+        # and the survivor itself is recorded as carried, so all FOUR are traceable
+        assert dst.carried["take . inc"]["from"] == "A"
+
+
 def test_undeclared_death():
     """A CHOSEN death with no disproof is farming wearing an experiment's word (§21.2)."""
     r = valid()
