@@ -54423,3 +54423,80 @@ refuted**. That is tuning after a refutation and the pre-registration forbids it
 **WHAT STANDS: the guard crossing (`a514440`) and collapse provenance (`364aea8`), both measured,
 both kept.** Only the operand half is withdrawn, and the collapse it was meant to fix — 19
 compositions, 4 arrivals — **is still there and is still unexplained by anything built.**
+
+
+---
+
+## F422 — **F410's FULL RE-TAKE ON THE REPAIRED HABITAT: 40 ROWS, 40 INSUFFICIENT, ZERO PASS, ZERO FAIL. AND THE COMPARATOR IS NOT RARE — IT IS A TERM THE BARGAIN SHOULD BE EXPECTED TO REJECT**
+
+**WORLD: gridworld `click_only` and `buttons`, seeds 0–9, 60 cycles, `?ACTED` ON and OFF,
+imported from a worktree PINNED at `eede4d9`. POPULATION: 40 completed runs — every seed, both
+worlds, both arms.** Reviewer-approved after `F419` showed `F410`'s *the control's numerator is
+structurally zero* was false about the repaired world. One script, one flag, a PROCESS PER ARM
+because `?ACTED` is read at import; each arm asserts its own flag and that `tether` resolved
+inside the pinned root.
+
+**THE PRE-REGISTRATION IS `F409`'s AND NOTHING IN IT WAS RE-CHOSEN:** both denominators ≥ 2 or
+the cell says nothing; pooled per world as the fallback; **refuter = two or more rows reading
+PASS or FAIL.**
+
+    POOLED OVER ALL TEN SEEDS, per world per arm, numerator and denominator at the SAME site
+      buttons     acted=0   guarded  0/0    unguarded 0/0   INSUFFICIENT
+      buttons     acted=1   guarded  5/12   unguarded 0/0   INSUFFICIENT
+      click_only  acted=0   guarded  0/0    unguarded 4/4   INSUFFICIENT
+      click_only  acted=1   guarded  3/10   unguarded 1/1   INSUFFICIENT
+
+**ALL 40 CELLS INSUFFICIENT. THE REFUTER DID NOT FIRE, FOR THE SECOND TIME.**
+
+**AND THE REASON IS NOT SAMPLE SIZE, WHICH IS THE WHOLE VALUE OF THE RE-TAKE.** Across the 20
+`?ACTED` ON rows the unguarded denominator totals **1** on `click_only` and **0** on `buttons`.
+Across the 20 OFF rows the guarded denominator is **0 BY CONSTRUCTION** — the flag that makes a
+guard possible is the thing being varied. **So the comparator cannot exist in the arm that has
+the treatment, and more seeds cannot reach it.**
+
+> **`F419` REPRODUCES AND IS NOT GENERAL.** `click_only` seed 6 mints an unguarded composition
+> that SETTLES, on a different build and a different harness run — so the result is real. **It
+> is also the only one in twenty ON rows**, and the seat's chunk-1 reading (*zero unguarded on
+> 10 of 10 rows*) was published hedged on exactly this and did not survive it.
+
+**THE ARITHMETIC THAT WOULD HAVE BOTH DENOMINATORS IS CROSS-ARM AND IS DELIBERATELY NOT TAKEN:**
+`click_only` ON-guarded 3/10 against OFF-unguarded 4/4. It compares populations from two builds,
+the pre-registration does not authorise it, **and it reads FAIL** — which is exactly when an
+improvised metric is most tempting. Computed, named, left unused, and put to the reviewer.
+
+### F422.1 — **WHY THE COMPARATOR IS EMPTY, AND IT TOOK THREE READINGS BECAUSE TWO WRONG ANSWERS ARE EACH SUPPORTED BY A REAL LINE**
+
+**The seat published one wrong mechanism and drafted a second before the third was right.**
+
+    PUBLISHED, WRONG   "the guard may be the ONLY AFFORDABLE route" -- implying guarded is
+                       cheaper. `_guard_bits` (`tether.py:589`) charges `ACTED_SELF`
+                       `+log2(G+1)` and says "AN UNGUARDED TERM PAYS NOTHING EXTRA".
+                       A guard costs MORE, deliberately, as the reviewer's handicap.
+    DRAFTED, WRONG     "a guard cuts `left` by excusing the term where it does not match".
+                       `_left` (`3002`) charges `log2(alphabet)` for inapplicable and
+                       `correction_bits` is 0-or-`log2(alphabet)` with nothing between, so
+                       on that reading a guard can only RAISE `left` and a guarded term
+                       could NEVER outbid its unguarded twin -- the opposite of the panel.
+    TRUE               `_applies` (`2155`) is `not term.operand or term.operand in state`.
+                       **IT IS ONLY ABOUT OPERAND AVAILABILITY AND HAS NOTHING TO DO WITH
+                       GUARDS.** `Term.guard`'s own comment has it: *`f` when the action
+                       matches, IDENTITY otherwise.*
+
+> **A GUARDED TERM PREDICTS "SLOT UNCHANGED" ON EVERY CYCLE ITS GUARD EXCLUDES, AND ON A QUIET
+> BOARD THAT IS RIGHT** — `correction_bits` 0. Its unguarded twin predicts a change every cycle
+> and is WRONG on every quiet one. **Guards win on ACCURACY, despite the bit handicap, not
+> because of cheapness** — which is precisely the history `_guard_bits` records: *before this,
+> a guard that explained even marginally better won for free, and the payment count on
+> `click_only` went from 1 to 60 overnight.*
+
+**AND IT RESOLVES `_guards`' OWN SENTENCE RATHER THAN CONTRADICTING IT.** *"None first… an
+unguarded term is cheaper, so it wins when both fit, Occam priced rather than preferred"* is
+true — **and the unguarded twin usually does not FIT.** It is enumerated first and loses on
+accuracy.
+
+**SO THE RULE IS CLOSE TO UNFALSIFIABLE ON A QUIET BOARD, FOR A SECOND AND INDEPENDENT REASON.**
+`F410` found the control structurally zero; this finds that even where it is non-zero, *guarded
+settles no worse than unguarded* asks for a comparator **the bargain is built to reject**. That
+is not a sample problem and not a habitat problem. **Whether the test should be replaced, and
+with what, is the reviewer's — the seat has proposed nothing**, having had a measurement it
+invented in the same hour as a finding refuted within two (`F421`).
