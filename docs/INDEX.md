@@ -54771,3 +54771,116 @@ unit vocabulary, and `settled` never rose anywhere, so A5 does not manufacture s
 **What it does is re-bind** — which is what a fix that stops citing terms the ground did not
 settle HERE is supposed to do, and whether each of those fourteen re-bindings is a correct
 refusal or a lost one is **not established by this run and is not claimed.**
+
+
+---
+
+## F427 — **THE CONTROL IS DEFINED AWAY BY THE THING BEING TESTED, AND TODAY IS THE THIRD INSTANCE IN THREE DIFFERENT MECHANISMS**
+
+**WORLD: gridworld `click_only`, seeds 0–2, 60 cycles, pinned, BUILD ROOT ASSERTED. ARM STATE:
+default. POPULATION: every cycle of each run.** Taken as the precondition for the reviewer's
+B2 — *the agent chooses which boredom reading to act on from whether perturbing after a
+one-step quiet has ever produced live mass* — before building anything.
+
+    seed   bored() fired   live mass NEXT cycle   rate    base live
+       0              29                     25   0.862    31/60 = 0.517
+       1              16                     15   0.938    44/60 = 0.733
+       2              24                     20   0.833    36/60 = 0.600
+
+**THE RATE LOOKS LIKE AN ANSWER AND IS NOT ONE.** Two faults, and the second is fatal:
+
+- **THE BASE-RATE CONTROL CONTAINS THE CYCLES UNDER TEST.** `base live` is over ALL cycles,
+  including every post-probe one, so the thing measured sits inside its own denominator.
+- **AND THE CORRECT CONTROL CANNOT BE CONSTRUCTED.** `bored()` is `self.n > 0 and not
+  self.live` (`probe.py:69`), so **after the first step EVERY NON-LIVE CYCLE IS A BORED
+  CYCLE**. There is no quiet-cycle-without-a-probe anywhere in the run. The comparator is
+  not rare, not starved — it is **empty by definition**.
+
+**AND THE PLAUSIBLE NULL IS UNEXCLUDED.** A bored cycle is a NOT-LIVE cycle by construction,
+and a board live 52–73% of the time will be live again shortly whatever the agent does.
+**0.86 against a 0.60 base is exactly what an INERT probe would also produce.**
+
+> ### F427.1 — **AND IT IS THE SAME SHAPE AS `F410` AND `F422`, WHICH MAKES THREE TODAY**
+>
+>     F410   the unguarded comparator is STRUCTURALLY ZERO -- nothing settles unguarded
+>     F422   the comparator is a term THE BARGAIN IS BUILT TO REJECT -- it should lose
+>     F427   the comparator is a cycle class DEFINED AWAY by the trigger's own predicate
+>
+> Three different mechanisms, three different causes, **one pattern: the population that
+> would serve as the control is the population the mechanism is defined over.** `F410`'s was
+> found after a 25-run panel, `F422`'s after 40 rows, and this one before a line was built.
+>
+> **CANDIDATE STANDING LINE, offered rather than adopted: when a mechanism fires on a
+> CONDITION, the cycles satisfying that condition are never available as its own control —
+> so the control has to come from an ARM in which the mechanism does not act.** That is why
+> `?ACTED` has an ON/OFF structure and `bored()` does not.
+
+**NO OFF ARM WAS BUILT.** It is one gate on one branch, and it would be the NINETEENTH
+capability switch — shipping a default that then needs its own justified row, which is the
+exact debt `F424` just counted. Raised with the reviewer, not taken.
+
+
+---
+
+## F428 — **THE EVENT-SEGMENTED `Agency` MAKES FLICKER TEN TIMES WORSE AND IS WITHDRAWN. AND THE BASELINE THAT NEARLY CLEARED IT WAS MY OWN CODE MEASURED AGAINST ITSELF**
+
+**WORLD: gridworld `default` seed 0, 60 cycles. ARMS: the pre-change `Agency` at `04a8687`
+against the segmented one, BOTH THROUGH THE SAME SCRIPT with the build root ASSERTED.**
+The reviewer's ruling 3: *not a time window, an EVENT* — when the agent's own evidence shows
+its action now moves a different object, the contingency evidence starts a fresh segment and
+the lifetime is kept.
+
+**THE FIXTURE HALF WORKS, AND IT IS WHAT `F423` ASKED FOR:**
+
+    PHASE 1 'up' always moves o0.row      mode=avatar   contingent=['o0.row']  segments=1
+    PHASE 2 body swapped to 'click'       mode=avatar   contingent=['o0.row']  segments=2
+    swaps: [{'step': 22, 'action': 'up', 'lost': ['o0.row']}]
+    lifetime KEPT: up 10/20, click 10/20 · correct mode within 2 cycles
+
+`F423` recorded the sensor INVERTING here — reporting `actuator` for a world that is still
+`avatar`. The segment fixes that, with no rate, no cutoff and no window.
+
+**AND IT FAILS THE OTHER HALF, BADLY:**
+
+    BEFORE (pre-change)   MODE CHANGES: 2    1:actuator 3:coupled 19:avatar
+    AFTER  (segmented)    MODE CHANGES: 20
+
+**TEN TIMES WORSE, caused by the change rather than pre-existing. WITHDRAWN; nothing
+committed.**
+
+**THE CAUSE IS IN THE SWAP RECORDS AND IT IS AN ASSUMPTION, NOT A BUG:** events read
+`lost: ['o3.distance','o3.proximity','o5.distance','o5.proximity']` — four slots at once, 21
+times in 60 cycles. **THE EVENT DEFINITION ASSUMES DETERMINISM.** On the fixture `up` ALWAYS
+moves `o0.row`, so losing it IS a body swap; on a real board movement is stochastic, so *a
+slot this action always moved did not move this step* is true constantly and **the event
+fires on noise.** `MIN_REPEAT` as the reliability bar — borrowed, not invented — took 21 to
+20 and does not touch the cause.
+
+> ### F428.1 — **THE BASELINE WAS THE SAME BUILD AS THE TREATMENT, AND IT WOULD HAVE CLEARED A 10x REGRESSION AS A NULL**
+>
+> The first baseline read **20**, against the treatment's 20, and the conclusion drafted from
+> it was *"20 before, 20 after — the flicker pre-exists and is not mine."* **That is false.**
+>
+> A `sed` SILENTLY FAILED TO MATCH, leaving the main-tree path hardcoded, so the probe took a
+> root argument and **ignored it**. Both arms were the same build. The number was plausible,
+> the comparison was a tautology, and the conclusion would have shipped a tenfold regression
+> as a no-change.
+>
+> **WHAT CAUGHT IT WAS NOT THE NUMBER: it was the "baseline" output containing a `swaps`
+> field that only the NEW `Agency` has.** A provenance line in the output, read by eye.
+>
+> **THE REPAIR IS THE ONE THE OTHER PROBES ALREADY CARRY** — assert every module resolves
+> inside the given root, and PRINT which build it is (`Agency has segments: False`). The real
+> baseline is **2**.
+>
+> **AND THE GUARD EXISTED: `contest_table._pinned` refuses exactly this.** This was a scratch
+> probe and did not call it — **the second time in one day that a scratch script bypassed a
+> guard that was already written**, the first being the cap-versus-estimate arithmetic.
+> *A guard that lives in one launcher protects one launcher.*
+
+**THE REQUIREMENT IS SOUND AND THE TENSION IS REAL: you cannot distinguish A BODY SWAP from
+A STOCHASTIC BOARD in a single observation.** Separating them needs PERSISTENCE, which is a
+count, which is the threshold this sensor's design refuses. Three options are with the
+reviewer; the seat leans on keying the event to the ADVERTISED ACTION SET (`F1`'s shape, no
+count) **and has not checked that it has a subject on any runnable world**, which after today
+is a precondition rather than a detail.
