@@ -54374,3 +54374,52 @@ the shape and guarded the side that announces itself.**
 binding does not* is right about an OPERAND — `o1.col` names a slot another game lacks. A guard
 is a condition rather than a binding to this world, and that is the transfer claim's own
 boundary. **Raised with the reviewer, not taken.**
+
+
+---
+
+## F421 — **THE TYPED OPERAND PLACEHOLDER IS WITHDRAWN ON ITS OWN PRE-REGISTERED REFUTER, AND THE EFFECT IT DID HAVE WAS A REGRESSION WEARING AN IMPROVEMENT'S CLOTHES**
+
+**WORLD: gridworld `default` seeds 6 and 8, 60 cycles, `TETHER_ACTED_GUARD=1`, pinned at
+`27ebc9f`. POPULATION: every composition (`Attribution.minted`) of each run. Per row, never
+pooled.** The reviewer ruled (2026-10-03) that the operand's binding does not cross but its
+SHAPE must. Built, measured against a range stated before the run, and withdrawn.
+
+    world     sd comp ARRIVED destroyed unbound   was  predicted   verdict
+    default    6   19       5         0       5     4       8-14   REFUTED
+    default    8   24       4         0       4     3       8-16   REFUTED
+
+**THE REFUTER WAS WRITTEN FIRST: *if either row stays within 1 of its baseline, the kinds are
+not what distinguishes those terms and the placeholder is WITHDRAWN RATHER THAN TUNED.*** Both
+rows moved by exactly 1. Reverted at `5350f63`.
+
+**WHY IT FAILED, FROM THE RUN'S OWN `merged_into` RATHER THAN FROM A STORY:**
+
+    seed 6   same . all<:EXTENT> absorbed 10 · take<:EXTENT> absorbed 8
+    seed 8   same . all<:EXTENT> absorbed 9 · same . all<:EXTENT>?BECOME OTHER absorbed 9
+
+**THE KINDS ARE THE DOMAIN'S AND THEY ARE TOO COARSE.** `_slot_types` reads `env.slot_types()`
+and *never derives a type from a slot's name* — so the granularity is gridworld's, not the
+agent's, and on gridworld `proximity` and `distance` are both `EXTENT`. **Typing by kind
+collapses almost as hard as not typing at all.**
+
+> **AND THE UNPREDICTED EFFECT IS A REGRESSION, WHICH IS THE PART WORTH KEEPING.**
+> `destroyed_on_carry` went **9 → 0** on both seeds, which reads like the defect `F420` is about
+> being fixed. **It is the opposite.** Those nine are the chain-1 unguarded `take<...>` rows —
+> **operand-bound ATOMS**, and `is_atom(take<:EXTENT>)` is still `True`, verified directly. So
+> the placeholder made them **survive as distinct library entries instead of deduping onto
+> `take`**. `F412` and `INDEX:48873` both say an operand-bound atom is not a composition to
+> import: **destroying them was CORRECT, and a counter going to zero was the change breaking
+> that.**
+
+**A ZERO THAT LOOKS LIKE A FIX IS THE HARDEST KIND TO DOUBT**, and this one sat in the same row
+as the refuted number. Had the arrival count landed inside the predicted range, `destroyed 0`
+would have been reported as a second win.
+
+**THE TUNING THAT IS REFUSED, NAMED SO IT CANNOT BE QUIETLY DONE LATER:** a one-line guard —
+set `operand_kind` only on a non-atom — removes the regression and leaves arrivals at ~5, **still
+refuted**. That is tuning after a refutation and the pre-registration forbids it.
+
+**WHAT STANDS: the guard crossing (`a514440`) and collapse provenance (`364aea8`), both measured,
+both kept.** Only the operand half is withdrawn, and the collapse it was meant to fix — 19
+compositions, 4 arrivals — **is still there and is still unexplained by anything built.**
