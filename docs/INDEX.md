@@ -54654,3 +54654,65 @@ actively wrong to flip.**
 > `_ACTED_GUARD`'s row says *"A REFUTER THAT FIRED"*, which the pattern did not cover. **Reading
 > the matches turned a false uniform zero into a 2-versus-12 split**, and the zero was the more
 > publishable number. *A grep's count is not evidence until you have read what it matched.*
+
+
+---
+
+## F425 — **THE GRIDWORLD A/B THE `_DOWNRATE` ROW COMMISSIONS CANNOT BE RUN, AND NOT BECAUSE DOWNRATING IS INERT: ITS ONLY CALLER NEVER EXECUTES.** `_scope_weights` is called ZERO times in 60 cycles
+
+**WORLD: gridworld `click_only` and `buttons`, seeds 0–2, 60 cycles, `TETHER_DOWNRATE=1`
+confirmed ON in the arm state, imported from a worktree pinned at `9c082b0`. POPULATION: 6
+world-seeds for the firing sweep; 1 world-seed instrumented at the gate.** Arm state reported
+via `Attribution.arms()` — **the first measurement in this record to carry the third field
+`F424` requires.**
+
+`conform/arms.py`'s `_DOWNRATE` row commissions this run in its own words: *"That is a
+behaviour question and it is Isaiah's, TO BE RULED ON A GRIDWORLD A/B rather than on the toy —
+so the switch exists to make that A/B one script with one flag."* **The switch was built for a
+run nobody had made.**
+
+    click_only 0,1,2   member_downrated 0   member_restored 0   decision 0
+    buttons    0,1,2   member_downrated 0   member_restored 0   decision 0
+
+**THE PANEL PRECONDITION FAILS: 0 of 6. The treatment does not execute, so the two arms are
+the same agent and an A/B between them is unreadable.** One 1.25-minute run established that
+before a 20-run panel was launched — *one line of checking replacing the whole measurement.*
+
+**AND THE CAUSE IS NOT THE POLICY'S GATES.** Instrumented at `_scope_weights`
+(`tether.py:2059`), counting each gate against the population it filters:
+
+    calls 0 · no_peers 0 · no_actions 0 · reached_loop 0 · peers_seen 0 · cut 0
+    floor (len(env.actions())) = 1 · iface.present entries = 46 · peer_cache slots = 45
+
+**THE FUNCTION IS NEVER CALLED. Its gates never get a chance, and its inputs are populated** —
+45 peer-cache slots, 46 presence entries. *Built, reached by nothing, and a counter that reads
+zero either way*, which is this record's standing question arriving on a policy rather than on
+a module.
+
+> **IT HAS EXACTLY ONE CALLER: `goal_residual` (`tether.py:4027`) at line 4109, as the weights
+> argument to `objective_degree`.** So downrating is reachable only when the agent EVALUATES A
+> COMPOSED OBJECTIVE OVER A SCOPE — and that is the thing `F422` and the combined list's item
+> 1.5 already found starved on click worlds: `click_only` mints 2, 1 and 0 compositions on the
+> seeds measured, `wants` is written only from `mint`'s tail, and `_goal_choice`'s own comment
+> records **99.65% of slot-cycles with no objective to offer.**
+
+**SO THE CHAIN IS: no composed objective → `goal_residual` never reaches 4109 → `_scope_weights`
+never runs → downrating has no occasions → the A/B has no treatment.** Downrating is not
+waiting on a threshold; it is waiting on goal formation.
+
+**WHAT THIS ANSWERS FOR ISAIAH, WHICH IS THE POINT OF THE RUN.** The question the row poses —
+*does discounting make the agent choose better, or disturb goals that already hold* — **cannot
+be put to gridworld `click_only` or `buttons` as they stand.** It needs a world where the agent
+forms and evaluates composed objectives. That is a statement about the HABITAT, not about the
+policy, and it is cheaper to know now than after a panel.
+
+> **AND THE SEAT'S OWN ESTIMATE FAILED AGAIN, FOR A MECHANISM IT HAD ALREADY READ.** A
+> 240-cycle run was budgeted at ~5 minutes by linear extrapolation from 60 cycles and was
+> killed at its 20-minute cap. Runtime is SUPERLINEAR in cycles because `history(slot)`
+> *"rebuilds the entire filtered list on every call, scanning the whole trace"* — recorded in
+> this file, read this morning, and extrapolated past anyway. **The previous four cap failures
+> were arithmetic not done; this one was arithmetic done on a model the record says is wrong.**
+>
+> **AND THE KILL WAS REPORTED AS A CRASH.** The run was piped into a JSON reader, so the
+> timeout produced `JSONDecodeError: Expecting value` and exit 1 — *a wrapper's failure is not
+> the operation's either.* The agent did not crash; it was stopped.
