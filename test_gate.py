@@ -293,6 +293,58 @@ def test_a_merge_keeps_the_birth_handle_of_every_instance_it_absorbed():
         assert dst.carried["take . inc"]["from"] == "A"
 
 
+def test_agency_cannot_see_a_mode_switch_and_inverts_the_reading():
+    """THE MODE-SWITCH FIXTURE. `THE_MISSION`: the only legitimate distinction is topical
+    I/O -- avatar or click actuator -- *and even that BLENDS mid-game, so it must be
+    detected CONTINGENTLY PER STEP, never used to label the game.*
+
+    **THIS FIXTURE PINS A DEFECT, NOT THE DESIRED BEHAVIOUR, AND SAYS SO.** `Agency.moved`
+    and `Agency.tried` are LIFETIME counters, and `contingent()` needs SOME action to have
+    ALWAYS moved a slot and SOME OTHER to have NEVER moved it. A mid-game body swap makes
+    both halves false at once, so the predicate collapses.
+
+    AND IT DOES NOT MERELY GO BLIND -- IT INVERTS. A world that is still unambiguously
+    AVATAR reads `actuator`, which is the claim that nothing responds to the agent directly
+    and it is acting at a distance. The OPPOSITE diagnosis, stated confidently.
+
+    `arc_world.py:736` records the same class for the tracker: *"mode switched at step 7"
+    was indistinguishable from "the tracker lost the object"*.
+
+    WHEN THE FIX LANDS, THIS TEST FLIPS: phase 2 must read `avatar` on `o0.row`. It is
+    written to fail loudly at that moment rather than silently keep passing, which is why
+    it asserts the fresh-reader control too -- that control proves the world IS readable
+    and the accumulation is what loses it.
+
+    NO FIX IS TAKEN HERE. Every repair needs a WINDOW, and this sensor's docstring claims
+    its distinction: *"no rate, no cutoff and no window to tune"*. Choosing one is a design
+    decision about that claim, not a bug fix, and it is the reviewer's.
+    """
+    from instruments import Agency
+    slots = ["o0.row"]
+
+    def phase(ag, mover, other, n):
+        for _ in range(n):
+            ag.note(mover, {"o0.row"}, slots)
+            ag.note(other, set(), slots)
+
+    a = Agency()
+    phase(a, "up", "click", 10)
+    assert a.mode() == "avatar" and a.contingent() == ["o0.row"], "phase 1 must read avatar"
+
+    phase(a, "click", "up", 10)          # the body is swapped; the world is STILL avatar
+    # THE DEFECT, pinned: the accumulated counters make neither action always-or-never.
+    assert a.moved[("o0.row", "up")] == 10 and a.tried[("o0.row", "up")] == 20
+    assert a.moved[("o0.row", "click")] == 10 and a.tried[("o0.row", "click")] == 20
+    assert a.contingent() == [], "the predicate collapses -- if this fails, the fix landed"
+    assert a.mode() == "actuator", "and it INVERTS to acting-at-a-distance, not to unread"
+
+    # THE CONTROL that makes the above a defect rather than an unreadable world: a reader
+    # over phase 2 ALONE gets it right, so the signal is there and accumulation loses it.
+    b = Agency()
+    phase(b, "click", "up", 10)
+    assert b.mode() == "avatar" and b.contingent() == ["o0.row"]
+
+
 def test_undeclared_death():
     """A CHOSEN death with no disproof is farming wearing an experiment's word (§21.2)."""
     r = valid()

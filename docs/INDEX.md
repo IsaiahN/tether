@@ -54500,3 +54500,54 @@ settles no worse than unguarded* asks for a comparator **the bargain is built to
 is not a sample problem and not a habitat problem. **Whether the test should be replaced, and
 with what, is the reviewer's — the seat has proposed nothing**, having had a measurement it
 invented in the same hour as a finding refuted within two (`F421`).
+
+
+---
+
+## F423 — **THE MODE-SWITCH FIXTURE: `Agency` CANNOT SEE A MID-GAME BODY SWAP, AND IT DOES NOT GO BLIND — IT INVERTS, REPORTING `actuator` FOR A WORLD THAT IS STILL `avatar`**
+
+**WORLD: a synthetic two-phase fixture, not a board. POPULATION: one slot, two actions, 40
+notes.** Item (c) of the reviewer's queue. `THE_MISSION` is explicit that the control mode
+**BLENDS mid-game** and *"must be detected CONTINGENTLY PER STEP, never used to label the
+game"* — so a fixture that switches is the only thing that can test that clause at all, and
+none existed.
+
+    PHASE 1   'up' always moves o0.row, 'click' never does      -> mode avatar   ['o0.row']
+    PHASE 2   the body is SWAPPED: 'click' always, 'up' never   -> mode ACTUATOR  []
+    CONTROL   a fresh reader over PHASE 2 alone                 -> mode avatar   ['o0.row']
+
+**THE WORLD IS ACTION-CONTINGENT THROUGHOUT. ONLY WHICH ACTION DOES IT CHANGED.** And the
+sensor reports `actuator` — *no slot correlates but the board changes*, which is the claim
+that nothing responds to the agent directly and it is acting at a distance. **The OPPOSITE
+diagnosis, stated with no hedge.**
+
+**THE CAUSE IS AT THE WRITE SITE AND IT IS THE ACCUMULATION.** `moved` and `tried` are
+LIFETIME `Counter`s, and `contingent()` requires SOME action to have **always** moved the slot
+and SOME OTHER to have **never** moved it. After the swap:
+
+    ('o0.row', 'up')     moved 10 / tried 20
+    ('o0.row', 'click')  moved 10 / tried 20
+
+Neither is always, neither is never, so the predicate returns nothing. **The signal is intact
+— the control proves it — and the accumulation is what destroys it.**
+
+> **`mode()` IS RE-READ EVERY STEP, WHICH IS TRUE AND IS NOT THE SAME AS BEING READ PER STEP.**
+> The docstring's *"this is a sensor, not a config flag, and `mode()` is re-read every step"* is
+> accurate about the CALL and silent about the WINDOW. A quantity recomputed every step over a
+> lifetime history is a lifetime reading taken often.
+
+**AND THE RECORD ALREADY HELD THE SAME CLASS FOR A DIFFERENT COMPONENT.** `arc_world.py:736`:
+*"mode switched at step 7" was indistinguishable from "the tracker lost the object at…"* — the
+tracker's version was found and written down; the sensor's was not, and the two are one bug in
+two places.
+
+**NO FIX IS TAKEN, AND THE REASON IS NOT CAUTION.** Every repair here needs a WINDOW, and this
+sensor's docstring claims precisely the absence of one as its virtue: *"A PREDICATE, NOT A
+THRESHOLD… an existence claim over what was observed, with no rate, no cutoff and no window to
+tune. Weaker than a correlation and it cannot be gamed by a number nobody chose."* **Choosing a
+window is a decision about that claim, not a bug fix** — it is `F341`'s third category and it is
+the reviewer's, possibly Isaiah's.
+
+**THE FIXTURE IS COMMITTED PINNING THE DEFECT, WITH ITS CONTROL, AND IT IS WRITTEN TO FAIL WHEN
+THE FIX LANDS** rather than to keep passing quietly — *fixtures before changes, the only order
+with an observable half-state.*
