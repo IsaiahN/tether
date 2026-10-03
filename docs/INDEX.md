@@ -50746,6 +50746,12 @@ already carries the correction that reading it as *the bar is too high* is a fal
 > **`rose` at 47.7%**, objectives getting FURTHER AWAY rather than being absent. **Measured on
 > `64b2c7f`, a later build than this row's, so it corrects the agent's present state and not
 > this row's reading when taken.**
+>
+> **CHECKED ACROSS SEEDS THE SAME DAY, AND THE SEED-11 FIGURES ABOVE ARE NARROWED:** `_res`
+> empty is **0-5%** of calls (not a zero -- seeds 0 and 1 read 2/42 and 1/46), `flat`+`rose`
+> is **72-82%**, and the `rose` share is **38.0-47.7**, with `flat` LEADING on seed 1. **The
+> refutation of SUPPLY stands on every seed; the `rose` headline does not.** Full table at
+> `F430`.
 
 ## THE COST CURVE, WHICH IS AN AGENT-FACING CONSTRAINT AND NOT AN INCONVENIENCE
 
@@ -54990,3 +54996,95 @@ population, and it had never been counted.
 **WHAT THIS IS NOT.** No contact change. It RETIRES an open item that had stood since
 2026-09-29 as a suspected agent-capability defect and was not one, and it corrects a labelled
 count. **The repair it would have selected does not need building, which is the finding.**
+
+
+---
+
+## F430 — **THE 15 REFUSALS ARE NOT SUPPLY. AT GATE 1'S OWN SITE `_res` IS EMPTY 0–5% OF CALLS AND `flat`+`rose` IS 72–82% ON EVERY SEED — THE BAR IS WHAT REFUSES**
+
+**2026-10-03, prompted by `F429`.** `F429` measured goal series of length 42–50 on nine of
+twelve relational slots. `INDEX:50738` says of the same panel: *"the 15 are a different thing …
+*no objective is confidently shrinking* is SUPPLY — the bar filtering a population that has
+nothing in it."* **A population with nothing in it does not produce a series of fifty readings**,
+so one of the two was wrong, and the reconciliation was not obvious: `maxSeries` is the longest
+EVER, the tally is read PER CYCLE, and `_res` is popped on every `None` from `goal_residual`
+(`tether.py:4259`).
+
+**NO NEW INSTRUMENT.** The 2026-09-21 `unbound` split already publishes `too_short` / `flat` /
+`rose` / `qualified` / `arrived` plus `slots` / `longest` / `needs` on every refusal, for this
+exact question. This reads them.
+
+    WORLD       gridworld `default`, 60 cycles, max_depth 2. No ARC board; the stop holds
+    POPULATION  `_goal_choice` calls at GATE 1 ONLY (`tether.py:4959`), per seed, never pooled
+    ARM STATE   `_AIMED_CURIOSITY` · `_BARGAIN_FIT` · `_CARRY_CANDIDATE` · `_TALLY` (`F424`)
+
+      seed  calls  chose  empty shortBar  long | flat+rose  rose% tooShort%   flat   rose
+         0     42     32      2        2    47 |     72.4%  46.8%      7.5%     89    163
+         1     46     28      1        2    47 |     79.8%  38.0%      5.1%    155    141
+        11     36     21      0        0    50 |     81.9%  47.7%      6.0%    102    142
+
+**SEED 11 REFUSES 15 TIMES — 36 CALLS, 21 CHOICES — AND THE PUBLISHED ROW SAYS 15.** The counts
+match exactly, which is the evidence this is the same quantity at the same site rather than a
+number that resembles one.
+
+**WHAT HOLDS ON EVERY SEED, AND IT IS THE CLAIM:**
+
+    `_res` EMPTY   0–5% of calls   the `no hypothesis` branch never explains the refusals,
+                                   so the SUPPLY label is refuted
+    flat + rose    72–82%          the bar is what refuses, on all three
+    too_short      5.1–7.5%        never the story
+    the bar        reached on essentially every call (longest 47–50 against needs 3)
+
+> **SO THE LABEL IS WRONG AND SO IS THE INFERENCE DRAWN FROM IT.** *The bar filtering a
+> population that has nothing in it* describes the `no hypothesis` branch, which is 0–5%; and
+> *moving the bar could not help* was read off that label, while the selector picks a slot on
+> **21–32 of 36–46 calls.** The bar is genuinely refusing — the one case the 2026-09-21 split
+> calls evidence about the bar.
+
+## THE FIRST WRITE-UP WAS SEED 11 ONLY, AND TWO OF ITS CLAIMS DID NOT SURVIVE THE OTHER TWO SEEDS
+
+Both are mine, and the seed check was run **the same day, before the reviewer acted on it** —
+`effect-inside-the-seed-spread`.
+
+- **`0 of 36` IS SEED 11's AND IS NOT A ZERO.** Seeds 0 and 1 read `2 of 42` and `1 of 46`. The
+  quantity is SMALL, not ABSENT, and *"a branch that fires zero times"* was true of one seed.
+  **A zero is the most convincing kind of wrong**, and this one was published to the reviewer.
+- **THE `rose` HEADLINE IS SEED-DEPENDENT. ON SEED 1 `flat` (155) EXCEEDS `rose` (141)**, and
+  the spread is **38.0–47.7, 9.7 points.** *The dominant fact is `rose`* is not a property of
+  the agent. The defensible form is narrower: **`flat` and `rose` together are 72–82%, and
+  which leads varies by board.**
+
+> **AND I ASSERTED THE STABILITY ON TWO POINTS BEFORE THE THIRD LANDED** — 46.8 against 47.7,
+> written up as *barely moved*. `two-points-always-make-a-line`, and the tell was my own
+> wording: **a reassurance that something is "not noise" is the signal to recount the points.**
+> The third widened the spread fivefold.
+
+**THE INSTRUMENT IS NOT WHAT MOVED: seed 11 reproduces the original reading exactly** — 36/21/0,
+longest 50, 81.9%, 47.7%. What moved is the finding's generality.
+
+## MY `empty` COUNTER READ ZERO FOR THE WRONG REASON, AND THE CODE SAID SO TWO LINES DOWN
+
+The first version tested `if not why` after the call. **`why.update(tally)` runs
+unconditionally, BEFORE the `if not self._res` branch**, so the dict is non-empty even when the
+population is — **the counter could not have fired on any input.** The correct reading is
+`why["slots"] == 0`. **The fix moved two call-site rows from `empty 0` to `empty 10`.**
+
+> *Counters lie — read the write site.* And `tether.py:4453` has the hazard commented at it:
+> an empty population *"writes no tally at all, so the book would be SILENT about the one state
+> it most needs to carry."* **One paragraph, inside the function being spied on.**
+
+## AND THE ENTRY ITSELF WAS MISSING FOR AN HOUR, WHICH IS THE PROCESS FAILURE WORTH THE LINES
+
+**`83a8fd5` committed and published `F430` with NO `F430` ENTRY IN THIS FILE.** The append was
+written as `grep -c "F430" docs/INDEX.md && cat >> docs/INDEX.md <<'MD'`. **`grep -c` exits 1
+when the count is zero**, so `&&` short-circuited and the heredoc never ran — while a separate
+`echo APPENDED` on the next line ran unconditionally and printed success.
+
+**`F429` used `;` in the same position and worked. One character apart, and the failing one
+printed the same word.** Only the annotation at `INDEX:50741` and the `CLAUDE.md` edit were in
+the commit, so the record pointed at a finding that did not exist in it.
+
+> **`a-wrappers-success-is-not-the-operations`, at the smallest possible scale: I read
+> `APPENDED` as evidence of an append.** The guard is the one already standing — **verify the
+> artefact, never the message** — and it is the same discipline as reading `git log` rather
+> than a commit's exit code, which did catch the `aim` rejection earlier today.

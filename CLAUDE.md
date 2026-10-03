@@ -1017,7 +1017,7 @@ selector's choice when it has one.
 **IT IS INSTANTIATED, IT IS REACHED, AND IT NOW CHOOSES** — 48 reaches with 0 choices while
 its input `_res` was empty, then a first choice (`o0.row`) the moment `peers()` was published.
 **So the honest entry is *built and starved*, never *not instantiated***
--- **AND *STARVED* IS ITSELF NOW STALE, `F430`, 2026-10-03: at gate 1 on gridworld `default` seed 11 it is called 36 times and CHOOSES 21, with `_res` empty 0 times and the bar reached on every call.** The refusals are the bar refusing (`flat`+`rose` 81.9%), not a population with nothing in it -- — and this file says
+-- **AND *STARVED* IS ITSELF NOW STALE, `F430`, 2026-10-03: at gate 1 on gridworld `default` seed 11 it is called 36 times and CHOOSES 21, with `_res` empty 0 times and the bar reached on every call.** The refusals are the bar refusing (`flat`+`rose` **72-82% across seeds 0/1/11**, `_res` empty **0-5%**), not a population with nothing in it -- — and this file says
 why the distinction is worth the edit: *a map entry saying a thing does not exist is worse than
 one saying it is unfinished — the first closes the question.* **It closed this one while I was
 reading the map to decide what to build, and the thing it told me to build already existed:
