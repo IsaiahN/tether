@@ -54716,3 +54716,58 @@ policy, and it is cheaper to know now than after a panel.
 > **AND THE KILL WAS REPORTED AS A CRASH.** The run was piped into a JSON reader, so the
 > timeout produced `JSONDecodeError: Expecting value` and exit 1 — *a wrapper's failure is not
 > the operation's either.* The agent did not crash; it was stopped.
+
+
+---
+
+## F426 — **A5's EFFECT, MEASURED: IT CHANGES BINDINGS ON TWO OF THREE `default` SEEDS. AND MY PRE-REGISTERED REFUTER WAS KEYED TO THE WRONG QUANTITY — IT WATCHED `settled` WHILE THE MECHANISM MOVED `bound`**
+
+**WORLD: gridworld, BEFORE `9c082b0` against AFTER `04a8687`, both PINNED, one script with the
+build root as the only variable. POPULATION: `click_only`+`buttons` seeds 0–2 (six rows) and
+`default` seeds 0–2 (three rows), 60 cycles. ARM STATE: default (`?ACTED` OFF) — reported, per
+`F424`.** Ruling 1's last clause, pre-registered at 11:50 before any of it ran.
+
+    world       sd       settled        units        bound   differing final bindings
+    click_only 0,1,2   0 ->     0   14 ->   14    n ->   n   none
+    buttons    0,1,2   0 ->     0   14 ->   14    n ->   n   none
+    default      0    10 ->     9   15 ->   15   10 ->   8   NINE slots
+    default      1    11 ->    11   15 ->   15    5 ->   5   none
+    default      2    11 ->    11   17 ->   17    8 ->   9   FIVE slots
+
+**THE SIX CLICK ROWS ARE VACUOUS AND SAYING SO IS THE POINT.** `settled` is 0 on BOTH arms of
+every one, so that panel has no settlement behaviour to perturb — *a control that examines
+nothing cannot demonstrate a clean state.* Their `units 14 → 14` reads like a clean bill and is
+not one. The cause is the arm state: `F410` measured `buttons` seed 1 as **guarded 2/2** on this
+exact world because it ran `?ACTED` ON.
+
+**`default` IS THE PANEL WITH A SUBJECT, AND TWO OF ITS THREE SEEDS CHANGED.** Nine differing
+bindings on seed 0, five on seed 2, none on seed 1. **Two points that DISAGREE, which is the
+honest reading** — the effect is seed-dependent and no rate is claimed from three seeds.
+
+> ### F426.1 — **THE REFUTER PASSED AND SHOULD NOT HAVE COMFORTED ME, BECAUSE IT WATCHED THE WRONG COLUMN**
+>
+> Pre-registered: *"if settled counts RISE anywhere, the dormancy-check change at 6755 is
+> settling things the old code blocked, and it goes back to the reviewer rather than being
+> kept."* **Settled never rose: 10→9, 11→11, 11→11. By the letter, the change is kept.**
+>
+> **BUT `bound` ROSE ON SEED 2, 8 → 9** — and the 6755 change is exactly what produces that.
+> It replaced `is_settled(name)` with `is_settled(name, slot)` in the candidate dormancy check,
+> so a candidate NOT settled on THIS slot is no longer skipped and can proceed to bind here.
+> **The mechanism I was worried about surfaces as a BINDING, not as a SETTLEMENT**, and my
+> refuter was keyed to the quantity it does not move.
+>
+> **A REFUTER THAT CANNOT SEE THE MECHANISM'S OWN OUTPUT IS NOT A REFUTER.** This is `B17`'s
+> shape — *pre-registration does not protect a reading if the instrument measures something
+> else* — committed by the seat against its own change, with the right discipline applied to
+> the wrong column. The protection was real: a rise WAS reachable and would have fired. It was
+> simply watching the neighbour of the quantity at risk.
+>
+> **SO 6755 GOES BACK TO THE REVIEWER ANYWAY.** The letter of a mis-keyed refuter passing is
+> not the same as the change being safe, and keeping it on that pass would be taking credit for
+> a test that could not have caught the thing it was written for.
+
+**WHAT IS NOT IN DOUBT: `units()` IS UNCHANGED ON ALL NINE ROWS**, so the fix does not move the
+unit vocabulary, and `settled` never rose anywhere, so A5 does not manufacture settlements.
+**What it does is re-bind** — which is what a fix that stops citing terms the ground did not
+settle HERE is supposed to do, and whether each of those fourteen re-bindings is a correct
+refusal or a lost one is **not established by this run and is not claimed.**
