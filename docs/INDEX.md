@@ -55360,3 +55360,85 @@ and `remap_after` 0 of 232 — `r_true == 0` on every one.** Since `_ACTED_GUARD
 `r_true == 0` satisfies the membership test, the only failing conjunct is `out_true > 0`, so
 `h_true == 0`: **the press never lands on an object at all in a movement family.** That is
 arithmetic on the condition given two measured numbers, not a story.
+
+
+### F432 — **THE BUYING MEASURE FAILS AND `?ACTED` STAYS OFF: 7 OF 11 GUARDED ADOPTIONS LATER FAIL HELD-OUT. AND IT EXPOSES SURVIVORSHIP IN `a24fffb`'s OWN HEADLINE, WHICH IS WHY THAT COMMIT'S `acc 1.000` MUST NOT BE QUOTED**
+
+WORLD `gridworld` families `click_only` and `buttons`, seeds 0–9, 30 cycles, ARMS ON
+`_ACTED_GUARD, _AIMED_CURIOSITY, _BARGAIN_FIT, _CARRY_CANDIDATE, _TALLY`. Per world, within
+board, **never pooled across worlds.** ADOPTION = `Gamma.accept`; FAILED HELD-OUT =
+`Gamma.refute`, a SETTLED term mispredicting on fresh evidence.
+
+    world       kind        adopted  settled  FAILED  on trial  fail share
+    click_only  GUARDED          11        8       7         3       0.636
+    click_only  unguarded         2        0       0         2       0.000
+    buttons     GUARDED           7        4       2         3       0.286
+    buttons     unguarded         1        0       0         1       0.000
+
+**SEVEN OF THE EIGHT GUARDED TERMS THAT SETTLED ON `click_only` WERE LATER REFUTED — 87.5%
+of the settled guarded population**, which is exactly the failure direction pre-registered at
+15:45: *the guard buying terms that look better and predict worse.* The reviewer's pass
+condition fails on its first clause, which needs no comparator — **and the unguarded
+comparator's denominators are 2 and 1, so its `0.000` is not a rate and is not used in either
+direction.**
+
+#### F432.1 — **AND THE SAME RUN READ TWO WAYS GAVE OPPOSITE ANSWERS, BECAUSE THE FIRST DENOMINATOR WAS SELECTED BY SURVIVAL**
+
+`a24fffb` records `OFFERED -> 10 terms, 6 settled, acc 1.000`. **That accuracy was computed
+over `ag.bound` AT RUN END, and a term still bound at the end is by definition one that was
+NOT REFUTED.** The seven failures had already left the population before it was measured.
+
+> **SO `1.000` IS SURVIVOR ACCURACY PRESENTED AS ADOPTION ACCURACY.** The buying measure takes
+> ALL adoptions and gets the opposite verdict from the identical run. **The commit's number is
+> arithmetically correct and answers a question nobody asked.**
+
+**AND THE CAVEAT THAT WAS WRITTEN MAKES IT WORSE RATHER THAN BETTER.** The same post flagged
+the fixed bar for being CROSS-BOARD — a real and correct caution — while the denominator
+underneath it was selected by survival and went unexamined. **A caveat on the right number for
+the wrong reason reads as diligence and buys nothing**, and it is `B17`'s shape once more:
+discipline correctly applied to the wrong property.
+
+**WHAT SURVIVES FROM `3a` IS NARROWER THAN THAT COMMIT CLAIMS, AND IS UNTOUCHED BY THIS:** not
+one term was minted on a WITHHELD key, 10/10 and 7/7 on offered keys. That is about **whether
+a term forms at all**, and survivorship cannot reach it — *the withheld side has no terms to
+survive.*
+
+> **SO BOTH HOLD AT ONCE, AND IT IS A WORSE POSITION FOR `?ACTED` THAN EITHER ALONE: the guard
+> is the difference between a term and NONE, and the terms it produces are mostly REFUTED
+> later.**
+
+#### F432.2 — **THE THIRD CONDITION IS SATISFIED STRUCTURALLY, WHICH IS STRONGER THAN THE COUNT THAT ALSO SATISFIES IT**
+
+*No unsettled guarded term ever acted as trusted.* Measured NONE across all twenty runs — and
+**it cannot occur**: `units()` iterates `settled_terms`, which is a `@property` computed live
+from `is_settled`, so an unsettled term cannot enter and a refuted one drops out the moment
+its standing flips. **A run shows it did not happen once; the two lines show it cannot.** The
+count is reported anyway, because a structural argument that nobody checked against a run is
+a claim about code rather than about behaviour.
+
+> **SUSPENDED, NOT REVERSED -- THE JUDGE WAS BLIND. `F432.3`, 2026-10-04, ruled the same
+> evening.** `settle()` refutes on residual mass; the mass comes from `_predict`; and
+> `_predict` is one of the LIVE sites that passes `landed=None`, because no `_last_landed`
+> exists. **So a bound `?ACTED_SELF` term is evaluated with its guard FORCED OFF at the moment
+> it is judged.** `inc?ACTED_SELF` as identity predicts *no change* against a colour that
+> increments — it mispredicts and is refuted. That is the whole of the 7-of-11, including the
+> five refutations on the slot where the rule is provably true.
+>
+> **AND THE OCCASIONS WERE CREATED BY FIX 1 ITSELF.** At 14:28 this path was measured at
+> **2,781 calls, ZERO carrying a guarded term**, and the concern withdrawn as moot — correct
+> then, because `bears_on` refused every guarded term so none could bind. **Post-fix it reads
+> 25.** *Stale by success*, and the guard for it is this file's own: **when a build makes a
+> quantity exist, grep for every place that says it does not.** `F431.5` recorded the live
+> sites as KNOWN OPEN at the reviewer's instruction so they would not read as fixed — they did
+> not read as fixed, **they read as HARMLESS**, and they stopped being harmless in the same
+> commit.
+>
+> **SUSPENDED: the buying measure (7/11, 2/7) and the `?ACTED` verdict resting on it; and the
+> shorter-histories finding. STANDS: no term minted on a WITHHELD key (mint-time, no
+> prediction involved) and the overfitting refutation (computed from rows at adoption).**
+> `?ACTED` stays default-OFF until the measure is re-taken with a judge that can see.
+
+**OPEN AND NOT TOUCHED: why a term SETTLES and then fails at 7/8, when settling is held-out
+payment already.** That is a question about the settle/refute cycle rather than about the
+guard, and it is plausibly the *settled-displaced-by-unsettled* item seen from the other end.
+No fix proposed.
