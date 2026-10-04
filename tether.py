@@ -357,6 +357,25 @@ _DELTA_KEY = bool(os.environ.get("TETHER_DELTA_KEY"))
 # per candidate rises -> OFF. Each is a RESULT, not a failure.
 _STREAM_WIDEN = bool(os.environ.get("TETHER_STREAM_WIDEN"))
 # ITEM 7. Default OFF: it APPENDS TO THE ATOM REGISTRY, which every term reads.
+# **RETIRED -- ISAIAH, 2026-10-04: "Inventing is just a bootleg composition. Fix composition
+# and imports and you won't need this crutch."** The arm stays OFF and the gate that was being
+# designed for it is CANCELLED. His earlier *on by default, composition is inherent to agency*
+# was about COMPOSITION, which is always on; it was never a licence for a lookup-table side
+# store. Records kept; the code comes out in a later commit once nothing reads it.
+#
+# **THE MEASUREMENTS THAT ARE THE REASON, click_only seed 3, 12 cycles (`F431.6`):**
+#   53 invented | 0 EVER PRICED in any candidate | 0 bound | only 7 distinct delta maps
+#   and all 7 are fragments of `inc`, WHICH IS ALREADY IN THE SEEDED ALPHABET OF 14.
+#   `inc` alone reproduces 4 of the 5 commonest; the fifth (`{3: 0}`) is `wrap . inc`, a
+#   composition the agent ALREADY ENUMERATES and priced at 13.7207 the same afternoon.
+#   Floor cost of the habit: alphabet 14 -> 67, naming floor 7.8138 -> 12.1749 bits, charged
+#   to EVERY term including the ones already winning.
+#
+# **AND IT WAS NOT A SHORTCUT -- it was the reviewer's 2026-09-22 ruling** (*no abstraction is
+# chosen; the agent's failure record is the content*), which PRE-REGISTERED its own failure
+# condition: *if that turns out to be too literal to ever match twice, THAT is a finding about
+# the derivation rule.* `F306` then measured the condition arriving and said so in its own
+# caveat -- *matching `3` twice is not evidence a concept transferred.*
 _INVENT = bool(os.environ.get("TETHER_INVENT"))
 
 # ARM M -- PERTURB THE STARVED SLOT, IN PARALLEL. SEAT-SIDE SWITCH, DEFAULT OFF.
@@ -1484,7 +1503,7 @@ class Agent:
         plays of one game differ in it. Whether that is enough to make two plays agree is a
         MEASUREMENT and not a claim -- see the run beside this build.
         """
-        return frozenset(self.step_effect(b, a) for b, _, a, *_ in self.trace)
+        return frozenset(self.step_effect(b, a) for b, _act, a, _intent, _landed in self.trace)
 
     def store_key(self, episode: int, level: int) -> str:
         """`{digest}_{episode}_{level}` -- the story's shape, keyed on what the agent computed.
@@ -2236,7 +2255,7 @@ class Agent:
         """
         obs = self._residual_obs(slot, self.gamma.library[self.bound.get(slot, IDN)], hist)
         pairs = {}
-        for st, _a, v in obs:
+        for st, _a, v, _intent, _landed in obs:
             was = st.get(slot)
             if was is not None and v is not None and was != v:
                 pairs[was] = v
@@ -2555,9 +2574,9 @@ class Agent:
         ORDERING, NEVER EXCLUSION is preserved by the caller: an empty narrowing returns the
         full list, so every binding is still reachable and only the ORDER of arrival changes.
         """
-        after_of = {id(b_): a_ for b_, _act, a_, *_ in self.trace}
+        after_of = {id(b_): a_ for b_, _act, a_, _intent, _landed in self.trace}
         moved: set = set()
-        for st, _a, _v, *_ in robs:
+        for st, _a, _v, _intent, _landed in robs:
             aft = after_of.get(id(st))
             if aft is None:
                 continue
@@ -4219,7 +4238,7 @@ class Agent:
             return UNKNOWN
         ordered = self.slot_types.get(slot) in ORDERED_TYPES
         for a in self.actions:
-            moves = [aft[slot] - bef[slot] for bef, act, aft, *_ in self.trace
+            moves = [aft[slot] - bef[slot] for bef, act, aft, _intent, _landed in self.trace
                      if act == a and slot in bef and slot in aft]
             if not moves:
                 continue                   # untried is not evidence either way
@@ -4227,7 +4246,7 @@ class Agent:
             if wanted is None or wanted == state[slot]:
                 continue
             if not ordered:
-                if any(aft[slot] == wanted for _, act, aft, *_ in self.trace
+                if any(aft[slot] == wanted for _bef, act, aft, _intent, _landed in self.trace
                        if act == a and slot in aft):
                     return YES
                 continue
@@ -5731,8 +5750,8 @@ class Agent:
         out: list[str | None] = [None, *sorted({i for _, _, _, i, _ in robs if i is not None})]
         if robs and slot is not None:
             hist = self.history(slot)
-            h_true = sum(1 for *_, land in hist if _same_object(land, slot))
-            r_true = sum(1 for *_, land in robs if _same_object(land, slot))
+            h_true = sum(1 for _s, _a, _v, _i, land in hist if _same_object(land, slot))
+            r_true = sum(1 for _s, _a, _v, _i, land in robs if _same_object(land, slot))
             out_true = h_true - r_true
             out_false = (len(hist) - h_true) - (len(robs) - r_true)
             if (_ACTED_GUARD and r_true in (0, len(robs))
@@ -5799,7 +5818,7 @@ class Agent:
         # `*_` -- this row gained the INTENT on 2026-09-29 and this site was missed twice:
         # once by scoping the search to one file, once by EXCLUDING that file from the
         # repo-wide search. The pattern, not the file, is what has to be searched.
-        seen = {s: len({st[s] for st, *_ in robs if s in st}) for s in others}
+        seen = {s: len({st[s] for st, _a, _v, _i, _l in robs if s in st}) for s in others}
         # CONTACT FIRST, THEN VARIANCE. §16.5: *list everything in contact with the residual,
         # then what is in contact with those, and outward until the cascade stops mattering --
         # you do not invent the list, you read it off the world.* The docstring above records

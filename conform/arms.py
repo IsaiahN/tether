@@ -138,7 +138,15 @@ ARMS: dict[str, str] = {
     "TETHER_INSTRUMENTS": "the embedded instrument set -- Part 12 item 3, PAID BILLS from "
                           "frame 0. Off at a COSTED price: a new attribute widens the slot "
                           "set and §12.12 prices that in EPISODES FORGONE",
-    "TETHER_INVENT": "atom invention from an unexplained delta",
+    "TETHER_INVENT": "atom invention from an unexplained delta. **RETIRED AND OFF -- "
+                     "ISAIAH, 2026-10-04: inventing is just a bootleg composition; fix "
+                     "composition and imports and you will not need this crutch.** Measured "
+                     "the same day on click_only seed 3: 53 invented, 0 EVER PRICED, 0 bound, "
+                     "and only 7 distinct delta maps -- every one a fragment of `inc`, which "
+                     "is already in the seeded 14. It also took the alphabet 14 -> 67 and the "
+                     "naming floor 7.8138 -> 12.1749 bits, charged to every term. One of "
+                     "`F424`'s twelve flags with no stated default reason; it has one now, "
+                     "and the reason is that the subsystem is RETIRED rather than quiet",
     "TETHER_ITERATE": "the fold constructs -- `cells`/`cell_row`/`cell_col`/`count_true`. "
                       "§12.0 rules the MEANS to iterate is INHERITANCE where a solved case "
                       "would be an answer, and the agent could hold a cell set and not walk it. "
@@ -349,6 +357,14 @@ def selftest() -> dict[str, str]:
     return out
 
 
+# RETIRED ARMS: the ruling that retired each, so the refusal carries its own reason.
+RETIRED = {
+    "TETHER_INVENT": "Isaiah 2026-10-04: inventing is just a bootleg composition -- fix "
+                     "composition and imports and you will not need this crutch. Measured: "
+                     "53 invented, 0 priced, 0 bound, 7 delta maps all fragments of `inc`.",
+}
+
+
 def _judge(found: dict, table: dict, on: set, pairs: tuple) -> list[str]:
     """The three rules, over data handed in. Split out so `main` and `selftest` share ONE
     implementation -- a fixture that re-states the rule tests the restatement."""
@@ -363,6 +379,21 @@ def _judge(found: dict, table: dict, on: set, pairs: tuple) -> list[str]:
         if (a in on) != (b in on):
             bad.append(f"HALF A PAIR {a}={a in on} {b}={b in on} -- their own site declares "
                        "they belong on together")
+    # **A RETIRED ARM MAY NOT BE FLIPPED ON WHILE ITS CODE STILL EXISTS -- the reviewer,
+    # 2026-10-04.** `_invent` was retired by Isaiah (*inventing is just a bootleg
+    # composition*) and its mechanism is still in the tree pending a later removal commit.
+    # Between now and then the only thing stopping a silent re-enable is this line. The
+    # exercise seat that used to assert the arm RUNS was unwired -- a retired subsystem does
+    # not earn 2m13s on every commit -- so this is what replaces it, at no measurable cost.
+    # **SCOPED TO WHAT THE TABLE ACTUALLY HOLDS, because the first version refused the
+    # seat's OWN clean fixture** -- a synthetic table legitimately has no `TETHER_INVENT`,
+    # and demanding its presence made a guard that fires on a correct state. Absence from
+    # the table is already `STALE`/`UNDECLARED`'s job; this one owns ON-ness and the wording.
+    for arm in sorted(RETIRED):
+        if arm in on:
+            bad.append(f"RETIRED     {arm} is ON BY DEFAULT and is retired. {RETIRED[arm]}")
+        if arm in table and "RETIRED" not in table[arm]:
+            bad.append(f"RETIRED     {arm} is retired and its registry entry does not say so")
     return bad
 
 

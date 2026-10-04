@@ -68,6 +68,16 @@ STAGES = (
     # wherever it was judged, and `bears_on` refused all 23 perfect `?ACTED_SELF` candidates
     # per seed on click_only. Its self-test reintroduces a direct construction and refuses to
     # pass unless the seat goes red on it.
+    # EVERY CONSUMER OF A HISTORY/TRACE RECORD UNPACKS IT AT THE PRODUCER'S WIDTH. Fifteen
+    # sites disagreed at FOUR widths with eight hiding the tail behind `*_`: `_invent`
+    # unpacked three and raised on its first call (so the arm had never executed), and
+    # `bears_on` threw `landed` away so the field the guard needs was not in scope. The
+    # canonical width is READ FROM `history()` rather than typed here -- a number written
+    # into the seat is the next thing to go stale, which is the failure one level up.
+    ("recshape", [str(PY), str(HERE / "recshape.py")],
+     "a history/trace record is unpacked at the wrong width or behind a star, so a "
+     "widening breaks a run instead of a test",
+     HERE / "recshape.py"),
     ("evalctx", [str(PY), str(HERE / "evalctx.py")],
      "a term-evaluating Ctx was built outside `Agent._eval_ctx`, so a guard can read as "
      "identity where the term is judged",
