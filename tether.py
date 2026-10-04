@@ -1075,6 +1075,13 @@ class Agent:
         # until 2026-09-28 and that name lied the moment `_explore` started aiming too --
         # `A6i` caught before it cost anything, because the field is minutes old.
         self._aimed: tuple[int, int] | None = None
+        # **THE REALISED LANDING FOR THE CURRENT STEP -- the reviewer, 2026-10-04.** The
+        # live sites had `_last_action` and no landing, so a bound `?ACTED_SELF` term was
+        # judged with its guard FORCED OFF: as identity, predicting "no change" against a
+        # colour that increments. It mispredicted and was refuted -- the term right, the
+        # judge blind. Computed ONCE per step in `perceive` and read by every live caller
+        # through `_eval_ctx`, because two sites computing it is how today's defect began.
+        self._last_landed: str | None = None
         # WHAT THE AGENT MEANT BY THIS STEP, for the bet row. `None` where the action was
         # handed in rather than asked for -- which is a reading, not a gap.
         self._intent_now: Any = None
@@ -1747,7 +1754,7 @@ class Agent:
                 continue
             got = self._value_of(term, slot, before,
                                  self._eval_ctx(slot, before, action=None,
-                                                operands=ops))
+                                                operands=ops, landed=None))
             if got is not NOT_RESOLVED and got == actual:
                 # **VINDICATED, AND THE DELAY IS THE QUANTITY.** How many cycles this agent's
                 # own demoted term took to come good -- already in CYCLES, which is what a
@@ -2255,7 +2262,7 @@ class Agent:
         # guard compares against a value instead of an absence.
         _now = self._intent_now.kind if self._intent_now is not None else NO_INTENT
         ctx = self._eval_ctx(slot, state, action=action, operands=ops, intent=_now,
-                             touching=self._touching(slot))
+                             touching=self._touching(slot), landed=self._last_landed)
         got = self._value_of(term, slot, state, ctx)
         return None if got is NOT_RESOLVED else got % self.alphabet[slot]
 
@@ -2388,6 +2395,13 @@ class Agent:
         # move WITHIN a step -- an object dies between the bet and the reading -- and
         # `_present` only catches that at step boundaries. So the bet is over `before`.
         betting = [s for s in self.slots if s in before]
+        # ONE COMPUTATION PER STEP, AND IT MUST PRECEDE THE PREDICTION -- which is the
+        # whole point and is where I first put it wrong. Placed after `pred` it was still
+        # the step's reset `None` when `_predict` ran, so the guard stayed blind and the
+        # refutation count did not move: 18 before, 18 after. The treatment-executed check
+        # caught it. `_aimed` is set when the action is realised and cleared at the top of
+        # the step, so here it is THIS step's aim -- the same value the trace row records.
+        self._last_landed = self.iface._acted(getattr(self, "_aimed", None), before)
         pred = {s: self._predict(s, before, action) for s in betting}
         # A SLOT THE BOUND TERM CANNOT READ IS NOT BET ON. §12.2's non-reading has to reach
         # somewhere that acts on it, or it is a sentinel that propagates into a shrug.
@@ -2548,7 +2562,7 @@ class Agent:
         self.trace.append((before, action, after,
                            self._intent_now.kind if self._intent_now is not None
                            else NO_INTENT,
-                           self.iface._acted(getattr(self, "_aimed", None), before)))
+                           self._last_landed))
         self.gamma.tick = len(self.trace)
         self._prev_pred = pred
         self._last_mass = {s: r.mass for s, r in res.items()}
@@ -4074,7 +4088,7 @@ class Agent:
         if ops is None:
             return NOT_RESOLVED
         ctx = self._eval_ctx(slot, state, action=self._last_action or "", operands=ops,
-                             touching=self._touching(slot))
+                             touching=self._touching(slot), landed=self._last_landed)
 
         def _sat(v: int) -> bool | None:
             r = term.apply(v, ctx)
@@ -4158,7 +4172,8 @@ class Agent:
             _why(why, "operand-unreadable")
             return None
         ctx = self._eval_ctx(slot, state, action=self._last_action or "", operands=ops,
-                             touching=self._touching(slot), shapes=False)
+                             touching=self._touching(slot), shapes=False,
+                             landed=self._last_landed)
 
         def _sat(v: int) -> bool | None:
             r = term.apply(v, ctx)
@@ -5355,7 +5370,8 @@ class Agent:
         if ops is None:
             return None
         ctx = self._eval_ctx(slot, before, action=self._last_action or "", operands=ops,
-                             touching=self._touching(slot), shapes=False)
+                             touching=self._touching(slot), shapes=False,
+                             landed=self._last_landed)
         tgt = self._value_of(term, slot, before, ctx)
         if tgt is NOT_RESOLVED or not isinstance(tgt, int) or tgt == before[slot]:
             return None
@@ -7136,6 +7152,7 @@ class Agent:
         # aim a later positioned action at where something used to be -- the stale-state defect
         # in the shape that looks like a working aim.
         self._aimed = None
+        self._last_landed = None
         if action is None:
             action, by = self.choose(before)
         self._acts[action] += 1   # System-0 instrument: the concrete action distribution
