@@ -63,6 +63,15 @@ STAGES = (
     # THE AIM SEAT. `focus.py` binds WHICH LEVEL a commit sits at and says nothing about
     # WHETHER THE WORK WAS ON THE LIST -- three of this session's drifts were clean L1
     # commits. This one binds the declared ITEM, and its cases reintroduce both.
+    # EVERY Ctx A TERM IS EVALUATED IN GOES THROUGH ONE CONSTRUCTOR. `acted_self` was set at
+    # 3 of 11 constructions -- the three PRICING ones -- so a guarded term read as IDENTITY
+    # wherever it was judged, and `bears_on` refused all 23 perfect `?ACTED_SELF` candidates
+    # per seed on click_only. Its self-test reintroduces a direct construction and refuses to
+    # pass unless the seat goes red on it.
+    ("evalctx", [str(PY), str(HERE / "evalctx.py")],
+     "a term-evaluating Ctx was built outside `Agent._eval_ctx`, so a guard can read as "
+     "identity where the term is judged",
+     HERE / "evalctx.py"),
     ("aim", [str(PY), str(HERE / "aim.py")],
      "the aim seat stopped refusing work that names no declared item",
      HERE / "aim.py"),

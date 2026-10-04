@@ -1253,7 +1253,12 @@ def check_the_precondition_refuses_a_spectator():
 
     # 2 -- A CANDIDATE INDISTINGUISHABLE FROM THE INCUMBENT. The residual is open and the term
     # says nothing different about it, which is the same defect wearing a candidate's clothes.
-    hist = [({"climb": 2, "opaque": 1}, "A", 5)]
+    # FIVE-TUPLE, WHICH IS WHAT `history()` HAS RETURNED SINCE `intent` AND `landed` WERE
+    # ADDED. This fixture carried THREE and nothing noticed, because `bears_on` unpacked
+    # with `*_` and accepted any row of length >= 3. That tolerance is what hid the
+    # missing `landed` for as long as it hid this. The CHECK is unchanged -- same term,
+    # same incumbent, same assertion -- only the row shape is the live one.
+    hist = [({"climb": 2, "opaque": 1}, "A", 5, None, None)]
     twin = Term((Atom("idn2", lambda v, _c: v, "val", "val"),))
     assert ag.bears_on(twin, "climb", hist, idn) is False, (
         "a term that reproduces the incumbent on every open observation bears on nothing")

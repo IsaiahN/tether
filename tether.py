@@ -1514,8 +1514,14 @@ class Agent:
             raise ValueError(f"digest collision on {digest!r}: two distinct signatures")
         return f"{digest}_{episode}_{level}"
 
-    def history(self, slot: str) -> list[tuple[dict[str, int], str, int]]:
-        """(before-state, action, this slot's after-value) for every recorded step.
+    def history(self, slot: str) -> list[tuple[dict[str, int], str, int, Any, Any]]:
+        """(before-state, action, this slot's after-value, intent, landed-on) per step.
+
+        **THE ANNOTATION SAID THREE AND THE RETURN HAS BEEN FIVE since `intent` and
+        `landed` were added -- and the paragraph below already said so, so this
+        docstring contradicted itself.** Corrected 2026-10-04, found because
+        `bears_on` stopped unpacking with `*_`: a permissive unpack let every reader
+        disagree about the shape without anything failing.
 
         Frames before the slot existed are skipped rather than faulted: a slot that
         arrived mid-episode has no history from before it arrived. BOTH ENDPOINTS are
@@ -1700,10 +1706,8 @@ class Agent:
                 self._demoted_watch.pop(name, None)
                 continue
             got = self._value_of(term, slot, before,
-                                 Ctx(action=None, operands=ops, touching=None,
-                                     group=self._group(slot, before),
-                                     obj=self._record(slot, before),
-                                     shapes=self._shapes_now()))
+                                 self._eval_ctx(slot, before, action=None,
+                                                operands=ops))
             if got is not NOT_RESOLVED and got == actual:
                 # **VINDICATED, AND THE DELAY IS THE QUANTITY.** How many cycles this agent's
                 # own demoted term took to come good -- already in CYCLES, which is what a
@@ -2210,9 +2214,8 @@ class Agent:
         # rather than a row's. `NO_INTENT` when none was formed -- the explicit reading, so a
         # guard compares against a value instead of an absence.
         _now = self._intent_now.kind if self._intent_now is not None else NO_INTENT
-        ctx = Ctx(action=action, intent=_now, operands=ops,
-                  touching=self._touching(slot), group=self._group(slot, state),
-                  obj=self._record(slot, state), shapes=self._shapes_now())
+        ctx = self._eval_ctx(slot, state, action=action, operands=ops, intent=_now,
+                             touching=self._touching(slot))
         got = self._value_of(term, slot, state, ctx)
         return None if got is NOT_RESOLVED else got % self.alphabet[slot]
 
@@ -2851,6 +2854,33 @@ class Agent:
             return self._outstanding.get(slot, 0.0)
         return sum(self._outstanding.values())
 
+    def _eval_ctx(self, slot: str, state: dict, *, action, operands,
+                  landed=None, intent=None, touching=None, shapes: bool = True) -> Ctx:
+        """THE ONE CONSTRUCTOR FOR A Ctx A TERM IS EVALUATED IN -- the reviewer, 2026-10-04.
+
+        **`acted_self` WAS SET AT 3 OF 11 CONSTRUCTIONS AND THE THREE WERE THE PRICING
+        FUNCTIONS**, so a guarded term read as IDENTITY wherever it was JUDGED. On
+        `click_only` that refused all 23 perfect `?ACTED_SELF` candidates per seed.
+
+        **AND THE ROOT WAS THE UNPACK, NOT THE CONSTRUCTOR.** `bears_on` looped
+        `for state, action, _actual, *_ in robs` and threw `landed` away, so it had nothing
+        to supply. A constructor alone would not have reached it.
+
+        **WHAT IS UNIFORM HERE IS `acted_self` AND NOTHING ELSE.** `touching` is `None` on a
+        REPLAY because contact is unknown there and `()` would file *I cannot see* as
+        *nothing was touching*; `shapes` is absent at two goal sites. Flattening either would
+        be a behaviour change smuggled inside a fix, so both stay explicit.
+
+        **A LANDING IS ONLY AVAILABLE ON REPLAY.** The live callers have `_last_action` and no
+        `_last_landed`, so they pass `landed=None` and read `acted_self` False exactly as
+        before. They are routed so the next guarded caller is not blind -- NOT because this
+        fixes them. `conform/census.py` asserts nothing builds one of these any other way.
+        """
+        return Ctx(action=action, intent=intent, operands=operands, touching=touching,
+                   acted_self=_same_object(landed, slot),
+                   group=self._group(slot, state), obj=self._record(slot, state),
+                   shapes=self._shapes_now() if shapes else None)
+
     def bears_on(self, term: Term, slot: str, robs: list, held: Term) -> bool:
         """**MINTED AGAINST THE RESIDUAL -- Isaiah, 2026-09-24. A PRECONDITION, NOT A THRESHOLD.**
 
@@ -2877,7 +2907,10 @@ class Agent:
         """
         if not robs:
             return False
-        for state, action, _actual, *_ in robs:
+        # **`landed` WAS DISCARDED BY `*_` HERE AND THAT IS THE WHOLE DEFECT** --
+        # the field the guard needs was not in scope to supply, so no change at
+        # the constructor could have reached it.
+        for state, action, _actual, _intent, landed in robs:
             # **`_applies` BEFORE `_ops`, WHICH EVERY OTHER CALLER DOES AND THIS ONE DID NOT.**
             # `_ops` is `state[term.operand]` with no guard; `_applies` exists for exactly the
             # case its docstring names -- *a term reading an operand cannot be applied where
@@ -2895,17 +2928,15 @@ class Agent:
             else:
                 ops = self._ops(term, state)
                 hops = self._ops(held, state) if held is not None else None
-            ctx = Ctx(action=action, operands=ops or (), touching=None,
-                      group=self._group(slot, state), obj=self._record(slot, state),
-                      shapes=self._shapes_now())
+            ctx = self._eval_ctx(slot, state, action=action, operands=ops or (),
+                                 landed=landed)
             got = self._value_of(term, slot, state, ctx) if ops is not None else NOT_RESOLVED
             if held is None:
                 if got is not NOT_RESOLVED:
                     return True
                 continue
-            hctx = Ctx(action=action, operands=hops or (), touching=None,
-                       group=self._group(slot, state), obj=self._record(slot, state),
-                       shapes=self._shapes_now())
+            hctx = self._eval_ctx(slot, state, action=action, operands=hops or (),
+                                  landed=landed)
             was = self._value_of(held, slot, state, hctx) if hops is not None else NOT_RESOLVED
             if got != was:
                 return True
@@ -3010,15 +3041,9 @@ class Agent:
                 total += math.log2(self.alphabet[slot])   # unreadable operand, unexplained
                 continue
             got = self._value_of(term, slot, state,
-                                 Ctx(action=action, intent=intent, operands=ops,
-                                     touching=None,      # replay: contact unknown
-                                     # RESOLVED PER SLOT BY THE CALLER -- the pattern `Ctx`
-                                     # documents for sensor 8's second operand, and why NO
-                                     # NAME EVER CROSSES into a term.
-                                     acted_self=_same_object(landed, slot),
-                                     group=self._group(slot, state),
-                                     obj=self._record(slot, state),
-                                     shapes=self._shapes_now()))
+                                 self._eval_ctx(slot, state, action=action,
+                                                operands=ops, intent=intent,
+                                                landed=landed))
             if got is NOT_RESOLVED:
                 total += math.log2(self.alphabet[slot])   # unread is unexplained
                 continue
@@ -3159,15 +3184,9 @@ class Agent:
                 out.append((state, action, actual, intent, landed))   # unreadable, unexplained
                 continue
             got = self._value_of(term, slot, state,
-                                 Ctx(action=action, intent=intent, operands=ops,
-                                     touching=None,      # replay: contact unknown
-                                     # RESOLVED PER SLOT BY THE CALLER -- the pattern `Ctx`
-                                     # documents for sensor 8's second operand, and why NO
-                                     # NAME EVER CROSSES into a term.
-                                     acted_self=_same_object(landed, slot),
-                                     group=self._group(slot, state),
-                                     obj=self._record(slot, state),
-                                     shapes=self._shapes_now()))
+                                 self._eval_ctx(slot, state, action=action,
+                                                operands=ops, intent=intent,
+                                                landed=landed))
             if got is NOT_RESOLVED or got % self.alphabet[slot] != actual % self.alphabet[slot]:
                 out.append((state, action, actual, intent, landed))
         return out
@@ -3220,12 +3239,9 @@ class Agent:
                     wrong += 1                        # unreadable operand is unexplained
                 else:
                     got = self._value_of(term, slot, state,
-                                         Ctx(action=action, intent=intent, operands=ops,
-                                             touching=None,  # replay: contact unknown
-                                             acted_self=_same_object(landed, slot),
-                                             group=self._group(slot, state),
-                                             obj=self._record(slot, state),
-                                             shapes=self._shapes_now()))
+                                         self._eval_ctx(slot, state, action=action,
+                                                        operands=ops, intent=intent,
+                                                        landed=landed))
                     wrong += (got is NOT_RESOLVED
                               or got % self.alphabet[slot] != actual % self.alphabet[slot])
             if cost + unit * wrong >= base:
@@ -4017,9 +4033,8 @@ class Agent:
         ops = self._ops(term, state)
         if ops is None:
             return NOT_RESOLVED
-        ctx = Ctx(action=self._last_action or "", operands=ops,
-                  touching=self._touching(slot), group=self._group(slot, state),
-                  obj=self._record(slot, state), shapes=self._shapes_now())
+        ctx = self._eval_ctx(slot, state, action=self._last_action or "", operands=ops,
+                             touching=self._touching(slot))
 
         def _sat(v: int) -> bool | None:
             r = term.apply(v, ctx)
@@ -4102,9 +4117,8 @@ class Agent:
         if ops is None:
             _why(why, "operand-unreadable")
             return None
-        ctx = Ctx(action=self._last_action or "", operands=ops,
-                  touching=self._touching(slot), group=group,
-                  obj=self._record(slot, state))
+        ctx = self._eval_ctx(slot, state, action=self._last_action or "", operands=ops,
+                             touching=self._touching(slot), shapes=False)
 
         def _sat(v: int) -> bool | None:
             r = term.apply(v, ctx)
@@ -5300,9 +5314,8 @@ class Agent:
         ops = self._ops(term, before)
         if ops is None:
             return None
-        ctx = Ctx(action=self._last_action or "", operands=ops,
-                  touching=self._touching(slot), group=self._group(slot, before),
-                  obj=self._record(slot, before))
+        ctx = self._eval_ctx(slot, before, action=self._last_action or "", operands=ops,
+                             touching=self._touching(slot), shapes=False)
         tgt = self._value_of(term, slot, before, ctx)
         if tgt is NOT_RESOLVED or not isinstance(tgt, int) or tgt == before[slot]:
             return None

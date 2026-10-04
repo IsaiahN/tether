@@ -55318,3 +55318,45 @@ lines are now found by matching `tether.py`'s own source text with the count ASS
 (`found 3, expected 3`). **A hardcoded line table would have fixed instance two and then failed
 SILENTLY the next time the file moves** — which is this seat's standing trade, made the wrong
 way, in `F430`'s own week. `mismatched 0` is a counter that CAN fire: it read 8,358.
+
+
+### F431.5 — **FIX 1 LANDED AND THE SLOT NOW BINDS THE RULE OF THE WORLD. AND A KNOWN OPEN ITEM RECORDED AT THE REVIEWER'S INSTRUCTION SO A GREEN SEAT IS NOT READ AS "THE GUARD IS HONOURED EVERYWHERE"**
+
+**THE ROOT WAS THE UNPACK AND NOT THE CONSTRUCTOR.** `tether.py:2880` read
+`for state, action, _actual, *_ in robs` — **`landed` was discarded**, so `bears_on` had
+nothing to supply and no care at the `Ctx(` call site could have reached it. **A
+keyword-presence check would have passed on a site that had nothing to pass**, which is why
+the seat checks a SHAPE rather than a keyword.
+
+    before     o0.colour -> take<@goal.completed>   UNSETTLED, minted cycle 48, wrong on both wraps
+    after      o0.colour -> inc?ACTED_SELF          explains all 15 frames, cheapest on the board
+
+**BUILT AS ONE CONSTRUCTOR, `Agent._eval_ctx`**, with all ten term-evaluating sites routed
+through it, and **`touching` and `shapes` kept as EXPLICIT PARAMETERS** — `touching` is `None`
+on replay because contact is unknown there and `()` would file *I cannot see* as *nothing was
+touching*; `shapes` is absent at the two goal sites. **Only `acted_self` became uniform**;
+flattening the others would be a behaviour change smuggled inside a fix.
+
+**THE SEAT IS `conform/evalctx.py` AND IS DELIBERATELY NOT NAMED `census`.** `census.py` is
+the SPLIT GUARD and means branch accounting — **two quantities under one word is `A6i`, and
+this would have been its fourth instance in a week.** Its failure path is exercised INSIDE the
+seat: it reintroduces a direct construction into a copy of the source and refuses to pass
+unless it flags it, because *a guard whose failure path is never exercised is
+indistinguishable from one that cannot fail.* Its single exemption is DATA and carries its own
+expiry — `_ops` is exempt on the checkable fact that `_branches` builds `Term((a,))` with no
+`guard=`, and the seat asserts that fact.
+
+> **KNOWN OPEN, RECORDED AT THE REVIEWER'S INSTRUCTION (2026-10-04): GUARDED TERMS JUDGED AT
+> LIVE SITES CANNOT SEE A LANDING, BECAUSE NO LANDING EXISTS THERE YET.** `_predict`,
+> `_discrepancy`, `goal_residual` and `_goal_target` have `self._last_action` and there is no
+> `self._last_landed`, so they pass `landed=None` and read `acted_self` `False` exactly as
+> before. **They are routed so the next guarded caller is not blind — ROUTING IS NOT FIXING.**
+> A green `evalctx` means NO SITE CAN OMIT THE FIELD, never that every site can supply it.
+> Recording a landing at act time is a separate change and was not made here.
+
+**AND THE WHOLE FINDING IS SCOPED TO THE CLICK WORLDS, MEASURED ACROSS ALL FOUR FAMILIES.**
+`_guards` offers `ACTED_SELF` on `click_only` 6/6 and `buttons` 5/5, and **`default` 0 of 247
+and `remap_after` 0 of 232 — `r_true == 0` on every one.** Since `_ACTED_GUARD` is on and
+`r_true == 0` satisfies the membership test, the only failing conjunct is `out_true > 0`, so
+`h_true == 0`: **the press never lands on an object at all in a movement family.** That is
+arithmetic on the condition given two measured numbers, not a story.
