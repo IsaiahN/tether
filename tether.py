@@ -1082,6 +1082,7 @@ class Agent:
         # judge blind. Computed ONCE per step in `perceive` and read by every live caller
         # through `_eval_ctx`, because two sites computing it is how today's defect began.
         self._last_landed: str | None = None
+        self._pred_by: dict[str, str | None] = {}
         # WHAT THE AGENT MEANT BY THIS STEP, for the bet row. `None` where the action was
         # handed in rather than asked for -- which is a reading, not a gap.
         self._intent_now: Any = None
@@ -2402,6 +2403,14 @@ class Agent:
         # caught it. `_aimed` is set when the action is realised and cleared at the top of
         # the step, so here it is THIS step's aim -- the same value the trace row records.
         self._last_landed = self.iface._acted(getattr(self, "_aimed", None), before)
+        # **WHO MADE THIS PREDICTION -- the reviewer, 2026-10-04. PROVENANCE APPLIED TO
+        # EVIDENCE.** Captured HERE, at the moment of the claim, because `route` binds
+        # AFTER `perceive` returns and `settle` judges on THIS residual: a term bound
+        # mid-step was being credited and blamed for a prediction made before it held the
+        # slot. Measured: `o1.colour` is unbound at perceive-exit on 30 of 30 steps and
+        # bound at settle-entry on 18 -- and those 18 are exactly the 18 refutations of a
+        # term the habitat says is TRUE (`o1.colour` +1 mod 4 on 21 of 21 own clicks).
+        self._pred_by = {s: self.bound.get(s) for s in betting}
         pred = {s: self._predict(s, before, action) for s in betting}
         # A SLOT THE BOUND TERM CANNOT READ IS NOT BET ON. §12.2's non-reading has to reach
         # somewhere that acts on it, or it is a sentinel that propagates into a shrug.
@@ -6810,7 +6819,13 @@ class Agent:
         never fitted to. And it un-settles the same way -- a settled term that mispredicts
         on fresh evidence is DEMOTED, defeasibly, never deleted."""
         for slot, r in res.items():
-            name = self.bound.get(slot)
+            # **THE MAKER, NOT THE HOLDER.** `self.bound` is read AFTER `route` has
+            # rebound this step, so it answers *who holds the slot now* -- a different
+            # question from *who made the prediction being judged*. Falling back to the
+            # holder would reintroduce the defect wherever the maker is missing, so a
+            # slot with no recorded maker is SKIPPED: an unattributed prediction is not
+            # evidence against anybody.
+            name = self._pred_by.get(slot)
             if not name:
                 continue
             if r.mass > 0.0:

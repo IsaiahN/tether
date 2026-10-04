@@ -55442,3 +55442,42 @@ a claim about code rather than about behaviour.
 payment already.** That is a question about the settle/refute cycle rather than about the
 guard, and it is plausibly the *settled-displaced-by-unsettled* item seen from the other end.
 No fix proposed.
+
+
+### F433 — **EVERY SETTLE/REFUTE COUNT SINCE FIX 1 WAS ATTRIBUTED TO THE SLOT'S HOLDER AT CHECK TIME, NOT TO THE TERM THAT MADE THE PREDICTION. THE STEP ORDER MAKES THOSE TWO DIFFERENT TERMS**
+
+    tether.py:7256   res = self.perceive(...)        the residual, and the PREDICTIONS
+                                                     inside it, are computed HERE
+    tether.py:7258   for slot, b, fit, _why in self.route(res):
+                         ... self.bound[slot] = fit  the slot is BOUND HERE
+    tether.py:7293   self.settle(res)                judged on THAT SAME res
+
+**A term bound by `route` on this step is then judged by `settle` on a residual computed
+BEFORE it was bound — a prediction it did not make.** For a slot bound on an earlier step
+this is sound. For one bound THIS step it is not: **the residual that JUSTIFIED the binding is
+immediately re-used as EVIDENCE AGAINST the thing it justified.**
+
+**MEASURED, click_only seed 3, 30 cycles:** `o1.colour` is `None` at perceive-exit on **30 of
+30** steps and bound to `inc?ACTED_SELF` at settle-entry on **18** — the binding is TRANSIENT
+WITHIN A STEP — and those 18 are exactly the 18 `mass>0` readings and the 18 refutations.
+
+> **AND THE HABITAT IS CLEAN, WHICH IS WHAT RULES OUT EVERY OTHER ACCOUNT.** `o1.colour`
+> increments `+1 mod 4` on **21 of 21** of its own clicks, zero exceptions; the identity check
+> is **30 of 30** (the landed object IS the object whose colour changed). So the world is not
+> doing something else, there is no remote effect, and there is no numbering mismatch —
+> **`inc?ACTED_SELF` is TRUE of `o1`, and it is refuted there anyway.**
+
+**TWO DEFECTS ARE STACKED AND THIS IS THE FIRST.** The second is the A5 asymmetry —
+`is_settled(name, slot)` is slot-aware and `refute(name)` takes no slot — so each of those 18
+demotions also lands on `o0`, where the term is the literal rule of the world. **Keyed by
+`(term, slot)` the 18 judgements would still be wrong; they would merely stop contaminating a
+second slot.**
+
+**SO EVERY `settle`/`refute` COUNT TAKEN SINCE FIX 1 IS SUSPECT IN THE SAME WAY**, including
+`F432`'s 7-of-11 — which was already suspended for the blind judge and is now suspended for a
+second, independent reason. **A count is only as good as its attribution, and this one credits
+and blames by WHO HOLDS THE SLOT WHEN THE CHECK RUNS rather than by who made the claim.**
+
+**FIX RULED (reviewer, 2026-10-04): attribution at the root — each prediction records WHICH
+TERM MADE IT, and every judgement reads the maker.** *Provenance applied to evidence: the rule
+that we must be able to prove where everything came from covers who is credited and blamed.*
