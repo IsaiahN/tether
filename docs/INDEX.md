@@ -55088,3 +55088,84 @@ the commit, so the record pointed at a finding that did not exist in it.
 > `APPENDED` as evidence of an append.** The guard is the one already standing — **verify the
 > artefact, never the message** — and it is the same discipline as reading `git log` rather
 > than a commit's exit code, which did catch the `aim` rejection earlier today.
+
+### F431 — **THE REVIEWER'S OCT 2 BRANCH, DECIDED: NEITHER SEED IS "BETTER EXPLANATION". SEED 3 IS AN EXACT 50-WAY TIE BROKEN BY ENUMERATION ORDER, SEED 5 HAS NO UNGUARDED CONTESTANT AT ALL — AND THE PREMISE THE QUESTION RESTS ON DOES NOT REPRODUCE**
+
+WORLD `gridworld` family `click_only`. POPULATION seeds 3 and 5, 60 cycles, four arms
+(`acted` 0/1 × seed), every arm its own process from a PINNED clean worktree at `b54826c`.
+ARMS ON `_ACTED_GUARD, _AIMED_CURIOSITY, _BARGAIN_FIT, _CARRY_CANDIDATE, _TALLY`.
+
+The reviewer asked: for each slot where OFF minted an unguarded term and ON minted a guarded
+one, compare cost+left at the same history length — *better explanation* is not a defect,
+*first-past-the-post novelty* is.
+
+**NO CROSS-BUILD REPRICING WAS NEEDED, AND THAT IS A FACT ABOUT `_guards` RATHER THAN A
+SHORTCUT.** It returns `[None, *intents, ACTED_SELF?]` and the loop walks `binds × _gs`, so
+the ON build prices BOTH forms of every candidate in the same call against the same base;
+`_guard_bits` returns `0.0` for anything but `ACTED_SELF`, so an unguarded price is
+bit-identical on the two arms. The comparison is readable inside the ON arm alone.
+
+**THE PREMISE DOES NOT REPRODUCE.** *"With it ON, none are minted"* — measured, both arms
+mint equally: seed 3 **3 and 3**, seed 5 **4 and 4**. And exactly ONE term settles per arm,
+not three: on OFF it is `above . all<o5.colour>` (seed 3) and `above . all<o1.shape>` (seed 5);
+on ON it is the `?ACTED_SELF` term instead. OFF seed 3 also carries a GUARDED term,
+`?BECOME OTHER` — so *unguarded* is not what separates the arms, `ACTED_SELF` is.
+
+    slot o0.colour      seed 3, cycle 14, hist 15      seed 5, cycle 23, hist 24
+    priced                              58                            41
+    paid                                58                            41
+    CONTEST (bears_on)                  50                            34
+    unguarded IN CONTEST                 2                             0
+    winner                 same . all<o3.colour>?        same . all<o1.col>?
+    winner raw total        17.720671786825555            17.30563428754671
+    cheapest unguarded      17.720671786825555            -- none paid --
+    EXACT TIE                         True                           n/a
+    winner seq / unguarded seq     164 / 236                    155 / --
+
+**SEED 3 IS DECIDED BY ENUMERATION ORDER AND NOTHING ELSE.** Fifty contestants, and the two
+unguarded ones tie the winner to the last bit. `best` is `btotal < best[0]` — STRICT — so the
+first of the equals keeps the slot, and the guarded term was enumerated **72 positions
+earlier**. Verified rather than inferred: the winner IS the contest argmin AND is the first of
+the equals, on both seeds. **SEED 5 IS THE OTHER BRANCH** — zero unguarded candidates in the
+contest and zero refused by `bears_on` either, so none paid there at all.
+
+**AND THE TIE IS STRUCTURAL, NOT A COINCIDENCE: THE GUARD COSTS EXACTLY WHAT IT BUYS.**
+`13.7207 + 4.0` against `11.7207 + 6.0` — the guard adds `2.0` bits of cost
+(`_guard_bits = log2(offered+1)`, `offered = 3`) and removes exactly `2.0` bits of `left`.
+A perfect wash, so the bargain is indifferent and the order decides. **That is why this is the
+ORDER/CUT and not the PRICE**, which is where the reviewer said the fix would have to be.
+
+**AND THE WIDER FACT IS BIGGER THAN THE GUARD QUESTION: 56 of 58 priced candidates on seed 3
+carry the IDENTICAL raw total, 40 of 41 on seed 5.** The bargain is not discriminating within
+the paying population on this board at all.
+
+#### F431.1 — **THREE INSTRUMENT FAILURES IN TWO HOURS, ALL ONE SHAPE: A POPULATION THAT LOOKED LIKE THE RIGHT ONE. EACH WAS CAUGHT BY A NUMBER THAT COULD NOT BE TRUE, NONE BY REASONING ABOUT THE INSTRUMENT**
+
+    the pays join      joined term to price by hooking `pays(cost,left,base)` -- three bare
+                       floats, no term -- and inferring the term from the preceding `_left`.
+                       Holds at two of three mint sites; the flat path runs
+                       `_left(term)` -> TREE LOOP -> `pays(..)` and the tree loop runs its own
+                       pairs between. CAUGHT BY: the flat site reaching no token
+                       **704 / 601 / 185 times on three arms and 0 on the fourth** -- and
+                       heaviest on OFF, whose unguarded terms are the whole question
+    the _left sites    rebuilt on `_cannot_pay` (which carries term AND cost) and counted
+                       every non-matching `_left` as a failure. `_left` has THIRTEEN call
+                       sites and three are the mint loop. CAUGHT BY: **8,358 "mismatches"
+                       against 2,749 joins**
+    `paid` as contest  read the paying population as the contest. `bears_on` (`6203`) sits
+                       between `pays` and the winner update and `continue`s on False.
+                       CAUGHT BY: **`inc?ACTED_SELF` PAYING AT 9.81 AGAINST A WINNER AT
+                       17.72** -- impossible under the argmin I had just published, and
+                       printed four rows above the numbers I quoted
+
+**THE THIRD IS THE ONE WORTH THE ENTRY, because the refutation was IN THE TABLE I GENERATED
+AND PUBLISHED FROM.** *No claim about a row without reading the whole row*, at the level of my
+own output: I read the two rows the question was about and not the column that said the model
+behind them was wrong. **And it was not a near miss — the claim went to the reviewer and was
+withdrawn three minutes later.**
+
+**THE REPAIR THAT GENERALISES IS THE SITE DERIVATION, NOT THE THREE FIXES.** The mint `_left`
+lines are now found by matching `tether.py`'s own source text with the count ASSERTED
+(`found 3, expected 3`). **A hardcoded line table would have fixed instance two and then failed
+SILENTLY the next time the file moves** — which is this seat's standing trade, made the wrong
+way, in `F430`'s own week. `mismatched 0` is a counter that CAN fire: it read 8,358.
