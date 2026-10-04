@@ -357,6 +357,14 @@ _DELTA_KEY = bool(os.environ.get("TETHER_DELTA_KEY"))
 # per candidate rises -> OFF. Each is a RESULT, not a failure.
 _STREAM_WIDEN = bool(os.environ.get("TETHER_STREAM_WIDEN"))
 # ITEM 7. Default OFF: it APPENDS TO THE ATOM REGISTRY, which every term reads.
+# **THE RANDOMISED HOLD -- MEASUREMENT ONLY, the reviewer 2026-10-03 ruling 3.** Withholds
+# the `ACTED_SELF` offer on a seeded ~half of ELIGIBLE occasions so a measurement run carries
+# its own within-run control. OFF in the shipping agent: a control that changes what the agent
+# is offered is an instrument, not a capability, and leaving it on would make every later
+# reading a reading of the instrument.
+_HOLD = bool(os.environ.get("TETHER_HOLD"))
+_HOLD_SEED = os.environ.get("TETHER_HOLD_SEED", "0")
+
 # **RETIRED -- ISAIAH, 2026-10-04: "Inventing is just a bootleg composition. Fix composition
 # and imports and you won't need this crutch."** The arm stays OFF and the gate that was being
 # designed for it is CANCELLED. His earlier *on by default, composition is inherent to agency*
@@ -992,6 +1000,19 @@ class Agent:
         # absence before the first `retarget` was masked by an early return. Feeding the
         # denominator unconditionally is what surfaced it.
         self._last_action: str | None = None
+        # THE HOLD'S OWN DENOMINATOR, and it is ELIGIBLE OCCASIONS rather than cycles.
+        # A share divided by cycles would count occasions the guard could never have
+        # taken, and would read low for a reason that is not the hold.
+        self._hold_eligible = 0
+        self._hold_withheld = 0
+        # **AND THE KEY-LEVEL DENOMINATOR BESIDE IT, because the coin is flipped per
+        # (cycle, slot) and NOT per occasion.** Several eligible occasions can share one
+        # key and therefore one verdict, so the share over OCCASIONS is not the share the
+        # coin is fair on -- measured 0.33 over occasions against ~0.5 over keys. Reporting
+        # one without naming its unit is the denominator error this seat keeps making, so
+        # both are carried and every reading states which it used.
+        self._hold_keys: set = set()
+        self._hold_keys_held: set = set()
         # AND THE SAME FOR THESE FOUR, ADDED 2026-09-21 AND ALL PUT IN `retarget` ONLY.
         # The comment above records this exact bug once already. A fresh Agent that is read
         # before its first `retarget` raises AttributeError -- which is how `_shape_cache` was
@@ -5756,8 +5777,37 @@ class Agent:
             out_false = (len(hist) - h_true) - (len(robs) - r_true)
             if (_ACTED_GUARD and r_true in (0, len(robs))
                     and (out_true if r_true == 0 else out_false) > 0):
-                out.append(ACTED_SELF)
+                # **THE RANDOMISED HOLD -- the reviewer, 2026-10-03 ruling 3. MEASUREMENT
+                # ONLY.** The offer is ELIGIBLE here; on a seeded coin-flip share of
+                # eligible occasions it is WITHHELD, so every ?ACTED reading has a
+                # within-run control BY CONSTRUCTION rather than needing a second run.
+                #
+                # **ELIGIBILITY IS DECIDED FIRST AND RECORDED EITHER WAY**, which is the
+                # whole point: a hold counted over ALL cycles would divide by occasions the
+                # guard could never have taken, and the share would read low for a reason
+                # that is not the hold. The denominator is eligible occasions.
+                #
+                # Keyed on (cycle, slot) through the run's own seed, so the pattern is
+                # REPRODUCIBLE and a row can be replayed. `_HOLD` is off in the shipping
+                # agent and the arms registry refuses it being on by default.
+                self._hold_eligible += 1
+                self._hold_keys.add((self.cycle, slot))
+                if _HOLD and self._held_now(slot):
+                    self._hold_withheld += 1
+                    self._hold_keys_held.add((self.cycle, slot))
+                else:
+                    out.append(ACTED_SELF)
         return out
+
+    def _held_now(self, slot: str | None) -> bool:
+        """Is THIS eligible occasion in the withheld half? Seeded, so a run replays.
+
+        **NOT `random.random()`.** An unseeded flip makes the hold pattern unrecoverable,
+        and a row whose treatment cannot be reconstructed is a row that cannot be checked.
+        """
+        import hashlib
+        key = f"{_HOLD_SEED}:{self.cycle}:{slot}".encode()
+        return hashlib.blake2b(key, digest_size=8).digest()[0] < 128      # ~0.5
 
     def _operand_fits(self, cand, target: str, bind: str | None) -> bool:
         """`0a`'s TYPING half, whose trigger fired on a real board.

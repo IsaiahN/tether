@@ -138,6 +138,16 @@ ARMS: dict[str, str] = {
     "TETHER_INSTRUMENTS": "the embedded instrument set -- Part 12 item 3, PAID BILLS from "
                           "frame 0. Off at a COSTED price: a new attribute widens the slot "
                           "set and §12.12 prices that in EPISODES FORGONE",
+    "TETHER_HOLD": "THE RANDOMISED HOLD -- MEASUREMENT ONLY, the reviewer 2026-10-03 "
+                   "ruling 3. Withholds the ACTED_SELF offer on a seeded ~half of "
+                   "ELIGIBLE (cycle, slot) occasions so a measurement run carries its "
+                   "own within-run control. OFF in the shipping agent: a control that "
+                   "changes what the agent is OFFERED is an instrument, and leaving it "
+                   "on would make every later reading a reading of the instrument",
+    "TETHER_HOLD_SEED": "the hold's seed, so the withheld pattern is REPRODUCIBLE and "
+                        "a row can be replayed. An unseeded flip makes the treatment "
+                        "unrecoverable, and a row whose treatment cannot be "
+                        "reconstructed cannot be checked",
     "TETHER_INVENT": "atom invention from an unexplained delta. **RETIRED AND OFF -- "
                      "ISAIAH, 2026-10-04: inventing is just a bootleg composition; fix "
                      "composition and imports and you will not need this crutch.** Measured "
