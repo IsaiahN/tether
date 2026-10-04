@@ -386,6 +386,12 @@ class Agency:
     tried: Counter = field(default_factory=Counter)     # (slot, action) -> times it was tried
     any_change: int = 0
     steps: int = 0
+    # THE BELIEF AND ITS RECORD. `held` is the claim currently standing for a (slot, action);
+    # `record` is that claim's `Standing`, so withdrawal runs on the SAME decayed ceiling that
+    # unsettles a term rather than on a second mechanism.
+    held: dict = field(default_factory=dict)
+    record: dict = field(default_factory=dict)
+    withdrawn: int = 0                                  # beliefs the ceiling has retired
 
     def note(self, action: str, changed: set[str], slots: list[str]) -> None:
         self.steps += 1
@@ -394,15 +400,60 @@ class Agency:
             self.tried[(s, action)] += 1
             if s in changed:
                 self.moved[(s, action)] += 1
+            self._belief(s, action, s in changed)
+
+    def _belief(self, slot: str, action: str, did_move: bool) -> None:
+        """Establish, contradict or withdraw *action A always/never moves slot X*.
+
+        **THE COUNTS WERE MONOTONE, AND THAT IS WHY THE OLD READING WAS STABLE AND COULD NOT
+        ADAPT.** `always` is `moved == tried` and `never` is `moved == 0`, so a single
+        counterexample falsified either half PERMANENTLY -- `contingent()` only ever shrank.
+        It read as robust because it could not move, and a body swap left it inverted for the
+        rest of the run.
+
+        **SO BOTH HALVES WERE ALREADY ONE-EVENT CLIFFS**, which the ruling's wording did not
+        reach: it says *do not reset on one miss*, and the NEVER side is refuted by one MOVE
+        through the same arithmetic. Both are held as beliefs here for that reason.
+
+        No window and no new constant: `MIN_REPEAT` establishes (one observation is a
+        coincidence) and `REJECTION_CEILING` withdraws, on `Standing`'s own decayed clock.
+        """
+        from gamma import REJECTION_CEILING, Standing
+        from self_family import MIN_REPEAT
+        k = (slot, action)
+        claim = self.held.get(k)
+        if claim is None:
+            t, m = self.tried[k], self.moved[k]
+            if t >= MIN_REPEAT and m == t:
+                self.held[k] = "always"
+            elif t >= MIN_REPEAT and m == 0:
+                self.held[k] = "never"
+            if k in self.held:
+                self.record[k] = Standing(settled_at=self.steps)
+            return
+        if (claim == "always") is did_move:
+            return                                      # the belief held this step
+        st = self.record[k]
+        st.refute(self.steps)
+        # THE CEILING READS `refusals`, exactly as it does for a term -- the settled half, so
+        # evidence gathered while the belief was still forming cannot retire it.
+        if st.refusals >= REJECTION_CEILING:
+            self.withdrawn += 1
+            del self.held[k], self.record[k]
+            del self.moved[k], self.tried[k]            # re-earned from fresh evidence only
 
     def contingent(self) -> list[str]:
-        """Slots whose movement depends on WHICH action was taken."""
+        """Slots whose movement depends on WHICH action was taken.
+
+        READS THE BELIEFS, NOT THE RAW COUNTS. A contradiction that has not yet crossed the
+        ceiling leaves the claim standing, which is what makes this robust to a stochastic
+        board; the counts are evidence for ESTABLISHING a claim and no longer the claim.
+        """
         out = []
-        for s in {k[0] for k in self.tried}:
-            acts = [a for (sl, a) in self.tried if sl == s]
-            always = [a for a in acts if self.moved[(s, a)] == self.tried[(s, a)]]
-            never = [a for a in acts if self.moved[(s, a)] == 0]
-            if always and never:
+        for s in {k[0] for k in self.held}:
+            acts = {a: c for (sl, a), c in self.held.items() if sl == s}
+            if any(c == "always" for c in acts.values()) and any(
+                    c == "never" for c in acts.values()):
                 out.append(s)
         return sorted(out)
 
