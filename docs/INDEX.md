@@ -3318,6 +3318,155 @@ deeper. ***None of them is "this is not one question."***
 
 **NOT BUILT.**
 
+**AND IT NOW HAS A MEASURED INSTANCE AND A CONSUMER IT DID NOT HAVE WHEN THIS WAS FILED --
+`F431`, 2026-10-04.** This row argued the defect: *two candidates each explaining a different
+subset is INVISIBLE to a scalar.* **Measured on `click_only` seed 3 at `b54826c`: 56 of 58
+priced candidates carry the IDENTICAL raw total `17.720671786825555`, and 40 of 41 on seed 5.**
+The aggregate is not hiding the structure occasionally -- on this board it collapses almost the
+whole paying population onto one number.
+
+> **AND THE CONSEQUENCE IS NOT A MISSING TRIGGER, IT IS A SLOT DECIDED BY ENUMERATION ORDER.**
+> `best` is `total < best[0]`, STRICT, so the first of 50 equals keeps the slot. The reviewer's
+> *first-past-the-post* branch and this row's *destroyed by a sum* are **the same defect read
+> from two ends** -- and this one was filed as a precondition for an UNBUILT trigger, so it read
+> as having no consumer. **The consumer is the comparison that was already there.**
+
+**AND THE STRICT `<` IS LOAD-BEARING AT EXACTLY ONE OF THIRTEEN CALL SITES, WHICH BOUNDS THE
+REPAIR -- go to the write site, and the write sites disagree.** `_left`'s docstring argues the
+`ceiling` abort is EXACT *because* "the caller compares with a STRICT `<`", so a candidate
+aborted at equality could not have won. **`ceiling` is passed at `6497` and NOWHERE ELSE.** So:
+
+    6497 -> 6498    `<` is MATCHED TO THE ABORT. Flipping it makes the abort unsound
+    6053 -> 6209    the MINT loop passes no ceiling. Its `<` carries no such argument
+
+**So *fix the order/cut* cannot be *flip the comparison*, and the reason is not symmetric across
+the two sites.** A repair at the mint loop is available; the same edit at `6497` is not.
+
+**AND THE MASK REPAIR IS LARGELY REFUTED BY ITS OWN PRE-REGISTERED REFUTER, RUN BEFORE THE
+BUILD RATHER THAN AFTER -- `F431.2`, 2026-10-04.** The refuter was declared first: *if the
+contest candidates have IDENTICAL masks, the account is wrong -- the sum destroyed nothing and
+the candidates really are interchangeable.* **Measured on the same group, `o0.colour` hist 15,
+50 contestants, 50 DISTINCT NAMES:**
+
+    distinct scalar `left` values   2     (4.0 x46, 6.0 x4)
+    distinct per-frame MASKS        3
+
+**The mask buys ONE additional distinction and leaves 46 of 50 still tied.** The three groups
+are `ACTED_SELF` x46 unexplained on frames `[9, 13]`, unguarded x2 on `[1, 9, 13]`, and
+`?BECOME OTHER` x2 on `[2, 9, 13]`. **So the scalar was hiding almost nothing**, and *the repair
+is small* would have bought a mechanism with nothing to say. **The precondition check cost one
+run; the build would have cost a dead mechanism and a finding about it.**
+
+> **AND THE MASK IS WELL-DEFINED, WHICH HAD TO BE SHOWN RATHER THAN ASSUMED.** The per-frame
+> vector is `[_left(term, slot, [frame]) for frame in hist]` -- **`_left` called one frame at a
+> time, never a second copy of its loop** -- and the probe asserts the parts reconstruct the
+> whole. `decomposition_failed 0`, so `_left` carries no cross-frame state.
+
+**AND THE OBVIOUS SECOND EXPLANATION IS REFUTED TOO, BY THE QUANTITY `_guards` ALREADY
+COMPUTES.** A guarded term is `f` on acted frames and IDENTITY elsewhere, so a guard that is
+rarely live would collapse distinct chains onto identical behaviour. **Measured: `h_true` is
+9 of 15 acted frames at that mint** (and `acted_in_R == len(robs)` on every row from hist 10 to
+15, which is why the `ACTED_SELF` branch is offered at all). **The guard is live on more than
+half the history and the chains still do not separate.**
+
+> **SO WHAT REMAINS IS NOT DIAGNOSED AND IS DELIBERATELY NOT GUESSED AT: 46 EXTENSIONALLY
+> IDENTICAL TERMS WITH 46 DISTINCT NAMES.** `same . all<o3.colour>?ACTED_SELF` and
+> `same . all<o2.row>?ACTED_SELF` bind a COLOUR and a ROW and compute the same thing on all
+> fifteen frames. **Two causal accounts were posted and measurement killed both**, which is
+> this file's own warning about a satisfying story -- so the third is left open rather than
+> written down. **And frames `[9, 13]` are unexplained by all fifty**, which is a separate fact
+> about the residual and not about the candidates.
+
+**AND THE THIRD ACCOUNT IS THE TRUE ONE, AND IT IS NOT ABOUT THE TIE AT ALL -- `F431.3`,
+2026-10-04. THE AGENT FOUND THE RULE OF THE WORLD AND DISCARDED IT.** Reading the ground
+rather than hypothesising a third time: `o0.colour` over the fifteen frames the agent replays
+is `1 1 2 2 2 2 2 2 3 0 1 2 3 0 1` with `acted` `T F T F F F F F T T T T T T`, and
+`alphabet = 4`. **The value increments MOD 4 on exactly the acted frames, wrapping `3->0` at
+frames 9 and 13** -- which are the two frames all fifty contestants fail on.
+
+    seq  cost     left    total    paid  bears  term
+    143   9.8138  0.0000   9.8138  True  FALSE  inc?ACTED_SELF
+    146  13.7207  0.0000  13.7207  True  FALSE  take . inc?ACTED_SELF
+    149  13.7207  0.0000  13.7207  True  FALSE  act . inc?ACTED_SELF
+    152  13.7207  0.0000  13.7207  True  FALSE  inc . act?ACTED_SELF
+    155  13.7207  0.0000  13.7207  True  FALSE  inc . wrap?ACTED_SELF
+    158  13.7207  0.0000  13.7207  True  FALSE  inc . take?ACTED_SELF
+    161  13.7207  0.0000  13.7207  True  FALSE  wrap . inc?ACTED_SELF
+    164  13.7207  4.0000  17.7207  True  TRUE   same . all<o3.colour>?ACTED_SELF   <- WON
+
+**SEVEN CANDIDATES EXPLAIN EVERY FRAME AT `left = 0.0`, ALL SEVEN PAY, AND `bears_on` REFUSES
+ALL SEVEN.** `inc?ACTED_SELF` is the literal rule, it is the CHEAPEST thing on the board, and
+the slot went to a term wrong on both wraps at twice the price.
+
+> **THE CAUSE IS A MISSING KEYWORD, AND IT IS CENSUSED RATHER THAN GREPPED.** `Ctx.acted_self`
+> defaults to `False` (`gamma.py:213`). **AST census of all 11 `Ctx` constructions in
+> `tether.py`: THREE set it -- `_left`, `_residual_obs`, `_cannot_pay` -- AND THOSE THREE ARE
+> THE PRICING FUNCTIONS.** `bears_on` (`2898`, `2906`), `_predict` (`2213`), `_discrepancy`
+> (`4020`), `goal_residual` (`4105`), `_goal_target` (`5303`), `_ops` and `_read_books` all
+> leave it off, **so inside them a term guarded on `ACTED_SELF` evaluates as IDENTITY on every
+> frame.**
+
+**WHICH IS EXACTLY WHY SEVEN WERE REFUSED AND FORTY-SIX WERE NOT.** With the guard forced off
+`inc?ACTED_SELF` collapses to `idn` and says nothing the incumbent does not, so `bears_on`
+returns False; `same . all<X>?ACTED_SELF` still differs from `idn` with its guard off and
+passes. **The gate refuses precisely the terms whose content IS the guard.**
+
+**AND IT RE-SCOPES `F431` RATHER THAN OVERTURNING IT.** The fifty-way tie is real and is a
+contest among mediocre terms held AFTER the seven perfect ones were removed. **The reviewer's
+order/cut question and this seat's tie-break reading were both looking downstream of the
+defect.**
+
+**AND THE `_predict` HALF IS WITHDRAWN BY MEASUREMENT, HAVING BEEN FLAGGED RATHER THAN
+CLAIMED.** The worry was that the guard is honoured where terms are PRICED and ignored where
+they are APPLIED. **Measured on the same run: `_predict` is called 2,781 times and ZERO of
+those calls carry a guarded term**, so the omission at `2213` has no occasions and the concern
+is MOOT. *Executes is not has occasions*, run in the direction that clears a suspect rather
+than convicts one.
+
+> **AND THE MEASUREMENT LEFT A DIFFERENT FACT BEHIND, RECORDED WITHOUT A CAUSAL ACCOUNT.**
+> `same . all<o3.colour>?ACTED_SELF` was minted at cycle 14 and **SETTLED -- it passed the
+> ground's own held-out test** -- and the slot ends bound to `take<@goal.completed>`, minted at
+> cycle 48 and **UNSETTLED**. A settled term is not the final incumbent and no guarded term ever
+> reaches `_predict`. **Two causal accounts were already killed by measurement this afternoon,
+> so this one is left as an observation.**
+
+**AND IT GENERALISES, PER SEED AND NEVER POOLED -- `F431.4`, from the same run, no new board
+work.** One seed is not a reading, so the question was put to seed 5 from data already in hand:
+
+    arm          paid rows   left==0   best left   refused   admitted
+    seed 3 OFF          15      NONE         6.0         -          -
+    seed 3 ON           75        23         0.0        23          0
+    seed 5 OFF          20      NONE        12.0         -          -
+    seed 5 ON           57        23         0.0        23          0
+
+**TWENTY-THREE PERFECT EXPLANATIONS ON EACH SEED AND NOT ONE ADMITTED**, at every history
+length from the first perfect candidate onward. *(First written as `30 of 30` by summing the
+per-history rows as though they were distinct candidates; they overlap across history lengths
+and the figure is 23.)*
+
+> **AND THE `OFF` ARM IS WHAT TURNS THIS FROM A BUG INTO A STATEMENT ABOUT THE GUARD.** It
+> prices 15 and 20 rows and **NEVER REACHES A PERFECT EXPLANATION -- its best is 6.0 and 12.0
+> bits unexplained** -- so the absence is REAL and not an absent arm. **`?ACTED_SELF` IS THE
+> ONLY THING THAT MAKES A PERFECT EXPLANATION CONSTRUCTIBLE ON THIS SLOT, AND `bears_on`
+> REFUSES EVERY ONE IT MAKES POSSIBLE.**
+
+**The guard is doing exactly the job it was added for** -- the rule of this world is *acting on
+the object increments its colour mod 4*, and only a guard can say that -- **and the gate
+discards the result because `Ctx.acted_self` defaults `False` inside it and the term collapses
+to `idn`.**
+
+**AND IT SUPPLIES THE OTHER HALF OF THE REVIEWER'S VERDICT (ii), WHOSE PREMISE DOES NOT
+REPRODUCE.** *With it ON, none are minted* is false -- both arms mint equally (`F431`). **The
+ON arm is not minting LESS, it is minting WORSE: it constructs 23 perfect explanations per seed
+and binds none of them.** The displacement is real and it is not the guard displacing unguarded
+terms in the bargain -- **the bargain never gets to judge the guard's best work.**
+
+> **AND IT IS THE DOCUMENTED-SUSPECT LAW TWICE IN ONE AFTERNOON.** The scalar `_left` is
+> diagnosed at `INDEX:3304` with a specified repair; the guard's liveness is commented at
+> `_guards`' own site. **Both were refuted by measurement and the true cause is a keyword
+> argument absent from a constructor -- undocumented, unruled, and presenting as nothing.**
+
+
 ---
 
 # THE READER'S FIRST READING WAS 95% DEFAULT BINDING — and the cause is a NINTH site
