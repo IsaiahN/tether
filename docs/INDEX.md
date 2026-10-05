@@ -55828,3 +55828,49 @@ the book to decide anything, so the agent's behaviour is unchanged by constructi
 were book readings. As RATIOS they are probably close (every caller in a cycle sees the same
 `_res`), but reweighted toward cycles with more callers. **As COUNTS they were never gate 1's.**
 Not re-measured here; flagged so the next reader does not quote them as gate-1 counts.
+
+#### F441 — **QUEUE ITEM 1 SETTLED AS (i): GATE 1 AND `focus_by_want` ARE ONE SELECTOR'S ANSWER, 0 DISAGREEMENTS IN 9 OF 9 RUNS. THE REVIEWER'S "GATE 1 EXITS EVERY CYCLE" IS WITHDRAWN**
+
+**From the code first** (read at `47c5f48`): per cycle, `note_goals` writes `_res` → attention
+calls `_goal_choice()` and bumps `focus_by_want` iff it returns a slot in `before` → `choose`
+reaches gate 1 in `_mint_routine`, which calls the SAME `_goal_choice()` on the SAME `_res`
+and `before`. Its return reads only `_res`. So branch (ii) -- two claims on one counter -- is
+impossible by construction, and wherever gate 1 is reached it passes exactly when
+`focus_by_want` fired. **Pre-registered with a refuter (any reached cycle disagreeing), then
+run.**
+
+    world       seed  focus  gate1 reached  pass  refuse  DISAGREE  enum reached  pass, no enum
+    click_only    0      0        14          0     14        0          0             0
+    click_only    1      0        19          0     19        0          0             0
+    click_only    2      0        22          0     22        0          0             0
+    buttons       0      0        14          0     14        0          0             0
+    buttons       1      0        14          0     14        0          0             0
+    buttons       2      0        14          0     14        0          0             0
+    default       0      8        18          8     10        0          6             2
+    default       1      0        16          0     16        0          0             0
+    default       2     12        19         12      7        0          3             9
+
+30 cycles, shipped arms (`?ACTED` asserted ON), raw rows kept. Precondition met on `default`
+seeds 0 and 2 (focus > 0 and gate 1 reached on focus cycles) -- the refuter had real
+occasions and did not fire.
+
+**WITHDRAWN, THE REVIEWER'S CLAIM, ON THE REVIEWER'S RULING:** *`enumerate_routines` is reached
+zero times because gate 1 exits every cycle.* False on `default` seeds 0 and 2, where gate 1
+passes and enumeration is reached (6 and 3 times). True in the click worlds and on `default`
+seed 1, where no goal is ever selected.
+
+> **AND THE GENERALISATION THAT REPLACED IT IS PER SEED, NOT PER WORLD.** *Routines on default
+> are reached and refused* holds on seed 0 (6 of 8 passes reach enumeration), barely on seed 2
+> (3 of 12), and NOT AT ALL on seed 1 (no goal selected in 30 cycles -- the click-world
+> pattern). **`pass, no enum` is 2, 0, 9: on seed 2 most passes are refused DOWNSTREAM of
+> gate 1** -- four later refusal points in `_mint_routine` (gap not an int; residual gain none
+> or <= 0; the reachability verdict not YES; the split), each writing its reason to the
+> ledger. This probe kept no ledger rows; which one refuses is item 6(a)'s read.
+
+**NOTED, NOT EXPLAINED:** `focus_by_want` 8, 0, 12 of 30 here against the record's 13 of 30,
+which predates the 2026-10-05 `?ACTED` flip. No cause is offered.
+
+**AND THE TRAP THIS NEARLY REPEATED:** with one `default` seed in, the downstream reading was
+posted and ruled on as a fact about `default`. Seed 1 reversed it. *A population selected by
+the defect cannot diagnose the defect* -- and a population of one seed cannot characterise a
+world.
