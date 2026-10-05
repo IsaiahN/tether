@@ -25,7 +25,7 @@ and points here; this file is the long detail.
 first draft of this file covered the week's click-learning chain in depth and said almost
 nothing about **why any of it matters** — so a fresh session could do the week's work well
 and still drift on direction. The reviewer supplied a six-point draft and asked that it be
-**checked against the record rather than transcribed**. It was. §0.7 lists what changed and
+**checked against the record rather than transcribed**. It was. **Appendix A** lists what changed and
 why; **two of the six points were wrong in a way that mattered**, and one of those two would
 have put a prohibited thing at the top of the first file a new session reads.
 
@@ -77,7 +77,7 @@ by WHAT IT INVOLVES — files, sites, checks — never in days or sessions.**
 big picture because **it is the clock every priority below is set against.**
 
 **AND THE RECORD IS THREE PLACES, NOT ONE: `docs/INDEX.md` + THE DRIVE CHANNEL +
-`docs/ISAIAH_RULINGS.md`.** §0.7 below records two rulings I reported as unverified after
+`docs/ISAIAH_RULINGS.md`.** **Appendix A** records two rulings I reported as unverified after
 searching `INDEX` and not the channel. **Both were Isaiah's, both were ruled and posted, and
 a grep could never have reached either**, because the channel is not in the repository.
 `docs/ISAIAH_RULINGS.md` exists to close that hole and **is kept current in the session a
@@ -125,7 +125,7 @@ shown, so the proctor cannot build toward specific boards**, likely with a freez
 ideas about ARC go through the reviewer and Isaiah first.** And before ARC reopens he wants
 **more priors trained outside the game distribution** — walkthroughs and images of retro
 games. (`docs/ISAIAH_RULINGS.md`, 2026-09-29.) **I filed this as the reviewer's unverified
-label on 2026-10-05 and was wrong; see §0.7(d).** What binds regardless: **building toward a
+label on 2026-10-05 and was wrong; see **Appendix A (d)**.** What binds regardless: **building toward a
 board is forbidden whether the freeze is on or off, and that prohibition never depended on the
 freeze.**
 
