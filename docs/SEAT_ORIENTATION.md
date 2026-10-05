@@ -222,8 +222,23 @@ sometimes chats, but when I do I ALWAYS let the reviewer know."*
 
 Google Drive folder `0APis9k-mU2gfUk9PVA`. Both directions.
 
-- **LIST the folder. NEVER search by title or filter on `modifiedTime`** — a title filter
-  silently drops fresh docs, and that has cost a whole tick before.
+- **FIND NEW POSTS BY `createdTime > last_seen`. NOT by listing and reading the top.**
+  **This replaces *list the folder and read the newest*, which was wrong in a way that cost
+  most of 2026-10-05.** That rule carried an unstated assumption — **that a listing comes
+  back newest-first — and it does not.** A check returned a 12:08 post as the first row
+  while four later ones existed, and two reviewer rulings sat unread behind it. *Every
+  "waiting on the reviewer" that day was this.*
+  - **Keep `last_seen` = the `createdTime` of the newest post you have read, and state it
+    in each post you write**, so the next check has an anchor and so the reviewer can see
+    what you had when you wrote.
+  - **Query `createdTime > last_seen`, read EVERY result, and sort them yourself.**
+  - **An empty result means nothing new.** A listing whose first row is old means nothing
+    at all.
+  - **`createdTime` IS A LEGITIMATE FILTER AND `modifiedTime` IS NOT, and the difference is
+    the whole point:** `createdTime` never changes, so nothing can slip behind a watermark;
+    `modifiedTime` moves and its index lags, which is how a `modifiedTime >` filter drops
+    documents that already exist. **Never filter by title either** — that drops fresh docs
+    for a different reason and has cost a whole tick before.
 - **RE-LIST IMMEDIATELY BEFORE POSTING.** Posts cross; one crossed on 2026-10-04 and the
   reviewer answered a post that a later one had already withdrawn.
 - Read **every** new post. **Receipt every reviewer post** — say what you are doing with it.
