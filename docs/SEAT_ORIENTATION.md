@@ -61,8 +61,19 @@ choices. If you find yourself picking A vs B on something the agent could reason
 you are taking the test — stop, and repair the pipeline so the agent can form the
 hypothesis, test it, and read the result itself.
 
-The few exceptions go to Isaiah. The permission chain is **the seat, the reviewer and the
-corpus figures** — do not wait on Isaiah for what the figures already settle.
+The permission chain is **the seat, the reviewer and the corpus figures** — do not wait on
+Isaiah for what the figures already settle.
+
+**THE EXCEPTIONS THAT DO GO TO ISAIAH, and they are the whole list:**
+
+- **Anything that would ENCODE AN ANSWER.** The one unforgivable failure; never the seat's
+  call, never the reviewer's.
+- **ARC BOARDS AND THE BOARD STOP.** The stop is live. `gridworld.py` is his named and only
+  exception.
+- **PROVENANCE — learned vs carried.** What counts as which, and what may cross.
+- **THE CORPUS AND ITS RULINGS.** Annotate in `docs/INDEX.md`; never edit; never reinterpret
+  a ruling of his into a different scope.
+- **DATA SOURCES AND WHAT IS PUBLISHED.** What the agent may read, and what leaves here.
 
 ## 4. STANDING RULINGS (this week)
 
@@ -79,6 +90,19 @@ corpus figures** — do not wait on Isaiah for what the figures already settle.
   it supersedes the earlier pre-registered zero-failure bar).
 - **Downrating is PARKED.**
 - **Imports only for what CANNOT be composed, and they go in the GRAMMAR.**
+
+**THE PRICING RULINGS, which are easy to get wrong because two of them are partial:**
+
+- **THE BARGAIN'S VALUE IS THE SLOT'S OWN UNEXPLAINED RESIDUAL.** Understanding is already
+  priced — Oct 1. **The ADOPTION half of that ruling was WITHDRAWN**; do not cite the whole
+  thing as standing.
+- **GUARD KIND costs `log2(k+1)`; THE REFERENT costs `log2(|refs|+1)`.** Both in
+  `_guard_bits` (`tether.py:616`). `ACTED_SELF` is collapsed into `ACTED_ON<own owner>` and
+  pays the same — no cheaper special case.
+- **INTENT GUARDS ARE STILL UNPRICED.** `F408`, OPEN. A guarded term is strictly more
+  specific than its unguarded form whatever the guard, so the free ride is wrong in
+  principle — but repricing every guard broke 6 of 29 M2 checks, so it needs its own
+  pre-registration and has not had one.
 
 ## 5. DISCIPLINES
 
@@ -112,7 +136,7 @@ corpus figures** — do not wait on Isaiah for what the figures already settle.
 
 | arm | state | why |
 |---|---|---|
-| `?ACTED` (`TETHER_ACTED_GUARD`) | **ON** as of 2026-10-05 | Isaiah's settled/unsettled ruling. Env var kept as the A/B switch. Offered only where a press lands on an object, so the `default` world is untouched. |
+| `?ACTED` (`TETHER_ACTED_GUARD`) | **RULED ON 2026-10-05; THE FLIP IS HANDOVER ITEM 1 — `tether.py:156` STILL DEFAULTS OFF** | Isaiah's settled/unsettled ruling. **Do not assume it is already on: at `a59c77b` the env var still defaults to `"0"`.** Once flipped the env var stays as the A/B switch. Offered only where a press lands on an object, so the `default` world is untouched. |
 | `_INVENT` | **RETIRED** | "bootleg composition" |
 | downrating | **PARKED** | — |
 | `_RECIPE_DEDUP` | **OFF** (unset env var) | the `continue` never fires; the branch only records a cut. I built a whole causal story on it being on — check before reusing. |
@@ -148,6 +172,42 @@ Each of these cost a reported finding or a withdrawn claim.
 
 More in `docs/INDEX.md`. **Do not revive the withdrawn hypotheses** listed at the bottom
 of `Seat HANDOVER — THE QUEUED WORK, CODE-LEVEL` in the Drive folder.
+
+## 7b. THE OLDER BACKLOG — status as of a59c77b, so it is not lost
+
+**Status verified from the code where the column says VERIFIED; otherwise it is the
+reviewer's label and says so.** Do not read "paper" as "abandoned" — it means nothing is
+built yet.
+
+| item | status | where |
+|---|---|---|
+| **session provenance** — the `carried` field | **BUILT (verified)** | `gamma.py:755`, `self.carried: dict[str, dict]`, *"SET AT LOAD, never at mint: a term that originated elsewhere says so without the reader having to parse a game name out of a handle."* A merge that forgets its members fails the provenance claim (reviewer, 2026-10-03) — surviving name → the birth handle of every instance absorbed into it. |
+| **session provenance** — the post-play transfer report | **PARTLY BUILT** (reviewer's label; I did not verify the report end) | pairs with the `carried` field above |
+| **operand transfer** | **OPEN** | no `operand_transfer` symbol anywhere in the tree (verified absent) |
+| **the mode-switch fixture** | **PARTLY BUILT (verified)** — a TEST exists, not a world | `test_gate.py:296`, `test_agency_cannot_see_a_mode_switch_and_inverts_the_reading`. **It is NOT a `gridworld` family** — `FAMILIES` has four and this is not one of them. |
+| **the Agency reset on belief withdrawal** | **PAPER** (reviewer's label; no `reset`/`withdraw` symbol found in `instruments.py`) | pairs with the mode-switch fixture |
+| **the pairwise-distance atom (Change B)** | **PAPER** (verified absent from `arc_atoms.py`) | — |
+| **set-aside goals** | **PAPER** (verified: no symbol in the tree) | — |
+| **the Phase 2 walkthrough viability test** | **STAGE 1 PASSED AND PAUSED** | and its conditions are constraints, not notes: **the data dir lives OUTSIDE the repo**; **aliases `G01`/`A01`**; **no licence commentary in any repo file.** |
+
+## 7c. THE TEST WORLDS — what each one can and cannot test
+
+`gridworld.FAMILIES = ("default", "click_only", "remap_after", "buttons")` (verified,
+`gridworld.py:759`). **`gridworld.py` is Isaiah's named and only exception to the board
+stop.**
+
+| world | what it is | what it CAN test | what it CANNOT |
+|---|---|---|---|
+| `default` | movement, no positioned click | the loop end to end | **anything about `?ACTED`** — no press lands on an object, so the guard is never offered. This is why the flip must be byte-identical here. |
+| `click_only` | clicking recolours the object clicked | SELF-caused rules; the true rule binds as `inc?ACTED_SELF<o0>`, `left 0.0` | remote causes — there are none |
+| `buttons` | **Fixture C** — a button advances its PARTNER and leaves itself alone, so the effect is unambiguously remote | remote causes, the four-way cause split, everything in handover items 2–4 | — |
+| `remap_after` | the action mapping swaps mid-run | re-learning after a rule change | needs `cycles` — it raises without one |
+| the mode-switch fixture | a test, not a world (`test_gate.py:296`) | that Agency cannot see a mode switch and inverts the reading | it is not a habitat; you cannot run a panel on it |
+
+**SEEDS 0–2 ARE THE STANDARD PANEL.** **AND 30 CYCLES IS TOO SHORT FOR A REMOTE CAUSE
+(`F436`)** — at 30 cycles 1 of 10 ONE-remote slots clears the mint's floor; at 60, 10 of 10.
+Every ONE-remote null taken at 30 cycles is a reading of a slot with nothing to spend, not a
+reading of any mechanism.
 
 ## 8. THE BINDING CONSTRAINTS, UNCHANGED
 
