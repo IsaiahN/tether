@@ -616,6 +616,23 @@ class Interface:
 
     # ---- upward: what changed, in reasoning terms -------------------------------------
 
+    def moved_slots(self) -> set[str]:
+        """Every SLOT ever observed to move under any action. Slots, never actions.
+
+        **THE ACCESSOR EXISTS SO THE ACTION KEY IS UNREACHABLE RATHER THAN MERELY UNREAD.**
+        `tether` computed this by reaching into `self.table` -- `{k[1] for e in table.values()
+        for k in e["delta"]}` -- which is the interface's INTERNALS, and the reviewer names
+        that as a leak shape in its own right even when the content is clean. It was clean:
+        the delta key is `(ctx, slot, rel)` so `k[1]` is a slot, and `.values()` discarded the
+        action on purpose. **But nothing stopped a later edit taking `k[0]`, or iterating
+        `.items()` and getting the action, and no check would have noticed.**
+
+        **IT HAS NEVER RUN.** Its one caller sits behind `_DOWNRATE`, parked OFF by Isaiah
+        2026-10-01 until ARC-style boards -- so this is a no-op today and the route is correct
+        for the day the park lifts, which is the only day it would have mattered.
+        """
+        return {key[1] for entry in self.table.values() for key in entry.get("delta", {})}
+
     def undirected(self, offered: tuple[str, ...], cycle: int) -> Realisation | None:
         """THE FLOOR DRAW, MOVED BELOW THE SEAM. The agent asks for *something, no preference*;
         which button serves it is the interface's business and never the agent's.

@@ -2150,7 +2150,7 @@ class Agent:
         floor = len(tuple(self.env.actions()))
         if floor <= 0:
             return None
-        moved = {k[1] for e in self.iface.table.values() for k in e.get("delta", {})}
+        moved = self.iface.moved_slots()
         ws, cut = [], []
         for p in peers:
             seen_n = self.iface.present.get(p, 0)
