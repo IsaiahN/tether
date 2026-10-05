@@ -13,6 +13,9 @@ Isaiah's instruction, because the handover covered this week's work in depth and
 almost nothing about *why it matters* — and a session can do this week's work well and
 still drift on direction.
 
+- **THE DEADLINE: THE ARC PRIZE 2026 FINAL SUBMISSION IS 2026-11-02.** Isaiah, 2026-10-05.
+  **It is in the big picture because it is the clock every priority below is set against.**
+
 - **THE GOAL.** The agent's reasoning and composition generalise across the public games
   and then, **ALONE, into the PRIVATE out-of-distribution set it has never seen** — on
   its library and its own reasoning — **and it can say HOW and WHY it acted.** Wins on
@@ -41,6 +44,11 @@ still drift on direction.
 
 **`docs/SEAT_ORIENTATION.md` is the orientation. Read it before touching code.** This
 block is the tight version; that file carries the detail and is kept current with it.
+**`docs/ISAIAH_RULINGS.md` is the dated list of Isaiah's standing rulings** — and
+**THE RECORD IS `docs/INDEX.md` + THE DRIVE CHANNEL + THAT FILE, NEVER `INDEX` ALONE.**
+Rulings reach the seat through the channel and many were never written into `INDEX`; on
+2026-10-05 I reported two of Isaiah's own rulings as *unverified* after grepping `INDEX`
+and not the channel.
 
 **ROLES.** You are **the seat** — maker AND interior auditor. **The reviewer** is Claude
 in Isaiah's chat: **ONE reviewer, and every chat Claude is in is the same reviewer.** It
@@ -83,7 +91,10 @@ withdrawn, and the withdrawn list is in `docs/SEAT_ORIENTATION.md` §7.
 ## THE PROCTOR RULES
 
 Carried from `Ouroboros-Redux`: `THE_MISSION_north_star.md`, `THE_ALIGNMENT.md`,
-`THE_TERMINAL_CONDITION.md`. These are Isaiah's values externalised and durable — they
+`THE_TERMINAL_CONDITION.md` — **and since 2026-10-05 they are IN THIS REPOSITORY, at
+`docs/`, copied byte-for-byte and entered as CORPUS** (see the edit-boundary table below).
+For six weeks this line named three files the repository did not contain, and seven
+documents cited them. These are Isaiah's values externalised and durable — they
 outrank momentary preference, mine and his. When a design fork appears, **derive the
 answer from the doctrine**; ask only where the doctrine is genuinely silent or in real
 conflict.
@@ -1375,7 +1386,24 @@ next check against it is that much closer to dead reckoning.**
 | | files | treatment |
 |---|---|---|
 | **WORKING — inside the seat** | `CLAUDE.md` · `docs/ARC_BUILD_PLAN.md` · `docs/INDEX.md` · `docs/LIBRARY_RETRIEVAL.md` · all code | **repair at source.** A finding left as a note makes the next reader re-derive it |
-| **CORPUS — annotated from outside** | `docs/ARC_AGENT.md` · `docs/PHILOSOPHY.md` · `docs/DISCOVERY.md` · `docs/SNAPS_PLAN.md` · `docs/FALSE_MINT.md` · `docs/BUILD_PLAN.md` · `docs/DOCTRINE_AUDIT.md` | **record the defect in `INDEX.md`; do not fix it.** Isaiah's to repair or leave — **if he repairs it the provenance stays clean, because he wrote both halves** |
+| **CORPUS — annotated from outside** | `docs/ARC_AGENT.md` · `docs/PHILOSOPHY.md` · `docs/DISCOVERY.md` · `docs/SNAPS_PLAN.md` · `docs/FALSE_MINT.md` · `docs/BUILD_PLAN.md` · `docs/DOCTRINE_AUDIT.md` · `docs/THE_MISSION_north_star.md` · `docs/THE_ALIGNMENT.md` · `docs/THE_TERMINAL_CONDITION.md` | **record the defect in `INDEX.md`; do not fix it.** Isaiah's to repair or leave — **if he repairs it the provenance stays clean, because he wrote both halves** |
+
+**THE LAST THREE ENTERED 2026-10-05 AND THEY ARE THE THREE THIS FILE HAS CITED SINCE LINE
+ONE OF THE PROCTOR RULES.** Isaiah ruled them into the repository after I reported that
+*carried from `Ouroboros-Redux`* named three files **none of which was present**, while
+seven documents cited them. **Copied BYTE-FOR-BYTE with `cp` from
+`Documents/GitHub/Ouroboros-Redux`, never retyped and never reconstructed from the
+citations** — reconstruction was explicitly forbidden, because a corpus rebuilt from the
+documents that quote it is **two mirrors**, which is the one property the whole
+edit-boundary exists to protect.
+
+    docs/THE_MISSION_north_star.md    9,268 B   sha256[:16] 9c602d3c24cecc39
+    docs/THE_ALIGNMENT.md            14,987 B               e0508bbf6b3c5ab6
+    docs/THE_TERMINAL_CONDITION.md    5,203 B               225af5e604f73970
+
+**They are CRLF on disk and the reviewer's copies are LF**, which is the whole of the
+size difference and was checked rather than assumed: `9268 - 103 CRLF = 9165` and
+`14987 - 221 CRLF = 14766`, both matching the reviewer's byte counts exactly.
 
 **EVERY ENTRY IS PATH-QUALIFIED, AND THAT IS NOT TIDINESS — 2026-09-24.** The table named
 `ARC_BUILD_PLAN.md` and `BUILD_PLAN.md` by BARE FILENAME. **Both live in `docs/`, their names

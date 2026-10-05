@@ -29,6 +29,19 @@ and still drift on direction. The reviewer supplied a six-point draft and asked 
 why; **two of the six points were wrong in a way that mattered**, and one of those two would
 have put a prohibited thing at the top of the first file a new session reads.
 
+### 0.0 THE DEADLINE, AND THE RECORD THIS FILE IS CHECKED AGAINST
+
+**THE ARC PRIZE 2026 FINAL SUBMISSION DEADLINE IS 2026-11-02** (Isaiah, 2026-10-05). It
+belongs at the top of the big picture because **it is the clock every priority below is set
+against** — four weeks from the day this was written.
+
+**AND THE RECORD IS THREE PLACES, NOT ONE: `docs/INDEX.md` + THE DRIVE CHANNEL +
+`docs/ISAIAH_RULINGS.md`.** §0.7 below records two rulings I reported as unverified after
+searching `INDEX` and not the channel. **Both were Isaiah's, both were ruled and posted, and
+a grep could never have reached either**, because the channel is not in the repository.
+`docs/ISAIAH_RULINGS.md` exists to close that hole and **is kept current in the session a
+ruling arrives.**
+
 ### 0.1 THE GOAL
 
 Build the agent's reasoning and composition until it generalises across the public games
@@ -65,17 +78,28 @@ repository file carries licence commentary.**
 **If Phase 2 proves unviable:** ARC, then a Phase 3 that reverse-engineers the priors games
 require and simulates them on boards.
 
-**ARC REOPENS ONLY WHEN ISAIAH SAYS SO.** The reviewer states the conditions as *the agent
-complete, plus a randomised way to choose boards, plus a freeze, so that nobody builds
-toward particular boards.* **THAT IS THE REVIEWER'S STATEMENT AND I COULD NOT VERIFY THE
-RANDOMISED-SELECTION CLAUSE IN THE RECORD** — see §0.7(d). What IS in the record and binds
-regardless: **building toward a board is forbidden whether the freeze is on or off, and that
-prohibition never depended on the freeze.**
+**ARC REOPENS ONLY WHEN ISAIAH SAYS SO, AND THE CONDITIONS ARE HIS — RULED 2026-09-29.**
+**(a) the agent complete**, and **(b) a measured way to automate or randomise which boards are
+shown, so the proctor cannot build toward specific boards**, likely with a freeze. **Notes and
+ideas about ARC go through the reviewer and Isaiah first.** And before ARC reopens he wants
+**more priors trained outside the game distribution** — walkthroughs and images of retro
+games. (`docs/ISAIAH_RULINGS.md`, 2026-09-29.) **I filed this as the reviewer's unverified
+label on 2026-10-05 and was wrong; see §0.7(d).** What binds regardless: **building toward a
+board is forbidden whether the freeze is on or off, and that prohibition never depended on the
+freeze.**
 
 ### 0.4 WHY THE TEST WORLDS MATTER
 
 Each `gridworld` family stands in for a capability the agent **does not yet have** — not for
 itself, and not for its own number.
+
+**AND THE PARADIGM IS ISAIAH'S, RULED 2026-10-03 AND RESTORED HERE AFTER I WRONGLY CUT IT:
+THE PLAYER IS OUTSIDE THE BOARD, AND IT IS A JIGSAW PUZZLE, NOT A MAP.** Bird's-eye, working
+buttons and levers, never a piece in it; the purpose on every board is to **win the level**.
+*Hold a fuzzy picture of where things go, made concrete by filling gaps, pattern-matching and
+verifying in a loop — faster as pieces settle.* **Goal formation is designed on that
+paradigm**: root goal = win; candidate end-states held as unsettled hypotheses; the gap points
+to the levers; track record crosses games. (`docs/ISAIAH_RULINGS.md`, 2026-10-03.)
 
 | family | the capability it stands in for |
 |---|---|
@@ -120,8 +144,14 @@ only contact moves capability.
 The instruction was to check each point against `THE_MISSION`, `CLAUDE.md` and the corpus,
 correct what was wrong, and say what changed. Five changes:
 
-**(a) `THE_MISSION_north_star.md` IS NOT IN THIS REPOSITORY, so point 1 could not be checked
-against it.** `CLAUDE.md`'s PROCTOR RULES open by naming three files *carried from
+**(a) `THE_MISSION_north_star.md` WAS NOT IN THIS REPOSITORY, so point 1 could not be checked
+against it — AND ISAIAH RULED ALL THREE IN THE SAME DAY. They are now at
+`docs/THE_MISSION_north_star.md`, `docs/THE_ALIGNMENT.md` and
+`docs/THE_TERMINAL_CONDITION.md`, copied BYTE-FOR-BYTE from `Ouroboros-Redux` and entered as
+CORPUS** — read-only, annotated in `INDEX.md`, never edited. **Reconstruction from the
+citations was explicitly forbidden and would have been the worst available option**: a corpus
+rebuilt from the documents that quote it is two mirrors, which is exactly the property the
+edit boundary exists to preserve. The finding as originally written: `CLAUDE.md`'s PROCTOR RULES open by naming three files *carried from
 `Ouroboros-Redux`* — `THE_MISSION_north_star.md`, `THE_ALIGNMENT.md`,
 `THE_TERMINAL_CONDITION.md` — and **none of the three is present.** Seven documents cite
 `THE_MISSION` by name. **A fresh session told to check something against it will hunt for a
@@ -146,11 +176,22 @@ without it** (§0.1: generalise to a set we never see), and the fact that *does*
 fact about the harness rather than about skills: **Kaggle never shows us the games, one
 submission a day, a scalar back.**
 
+**(c) — OVERTURNED BY THE REVIEWER, 2026-10-05, AND THE JIGSAW IS RESTORED IN §0.4.
+*jigsaw* IS ISAIAH'S OWN RULING OF 2026-10-03, POSTED IN THE DRIVE CHANNEL.** My search
+covered `INDEX` and not the channel, so the null was a reading of the wrong closure — **an
+abstention counts only when it names the closure it searched, and I named one I had not
+searched.** The original entry, left standing as the evidence:
+
 **(c) THE "JIGSAW" FRAMING IS REMOVED; "NO AVATAR" IS KEPT.** *The player is outside the
 board, working it like a jigsaw* returns **nothing** in the record. **"No avatar" is in the
 record repeatedly and is load-bearing** — including as the night's one recorded contact
 change — so §0.4 states the capability and drops the simile. A vivid image that is not in
 the record will be quoted back as if it were.
+
+**(d) — OVERTURNED THE SAME WAY, 2026-10-05: THE CONDITIONS ARE ISAIAH'S RULING OF
+2026-09-29** and §0.3 now states them as his. **Same cause as (c), and that is what makes it
+a class rather than a slip** — two nulls in one document, both from searching `INDEX` for
+something that only ever lived in the channel. The original entry:
 
 **(d) THE ARC-REOPENING CONDITIONS ARE MARKED AS THE REVIEWER'S, NOT VERIFIED.** I could not
 find the *randomised way to choose boards* clause in `INDEX`. It is attributed in §0.3
@@ -341,6 +382,36 @@ built yet.
 | **the pairwise-distance atom (Change B)** | **PAPER** (verified absent from `arc_atoms.py`) | — |
 | **set-aside goals** | **PAPER** (verified: no symbol in the tree) | — |
 | **the Phase 2 walkthrough viability test** | **STAGE 1 PASSED AND PAUSED** | and its conditions are constraints, not notes: **the data dir lives OUTSIDE the repo**; **aliases `G01`/`A01`**; **no licence commentary in any repo file.** |
+
+## 7d. THE LIVE OPEN ITEM — `CUE_BOUNDARY` IS THE 2,700-ATOM WIRE'S BLOCKER
+
+**Reviewer, 2026-10-05: keep this LIVE in the queue, not as history.** It is not a finished
+finding; it is the reason the vocabulary bridge in §0.5 keeps stalling across seats, and
+nothing has been done about it.
+
+`conform/lint.py`'s **`CUE_BOUNDARY`** rule blocks the betting path from importing
+`_CUE_MODULES = {relations, observer, mapping, detectors, composer}`. **It is wrong on two
+independent axes, both verified 2026-10-22** (memory: `cue-boundary-scoped-by-module-not-input`):
+
+1. **ITS ONLY STATED PREMISE WAS WITHDRAWN.** The rule cites `ARC_AGENT` §12.3 verbatim —
+   *"reaching is the only evidence the composition system works"* — and **Isaiah superseded
+   exactly that clause on 2026-09-19**: the evidence moved to OOD composition, and
+   reaching-for-a-thing is a frame-internal proxy. `CLAUDE.md` carries the withdrawal.
+   **`VOCABULARY_FROZEN.md` rested on the same clause and was retired; its twin was left
+   standing.**
+2. **IT BLOCKS BY MODULE NAME WHERE THE REAL LINE IS INPUT PROVENANCE.** Measured at module
+   scope: `composer` reads only `docs/library-closure/ATOMS.md` (domain-agnostic, no board);
+   `relations` reads no files; `detectors` and `observer` read a human replay **only under
+   `if __name__ == "__main__"`**, so as libraries they touch nothing. **Only `mapping` imports
+   `reverse_engineer` at module scope.**
+
+> **WHAT MUST NOT MOVE: `KEY_BOUNDARY`.** `F134` — `reverse_engineer`, `*_human.ndjson`,
+> `closure_keys`. **That is the real *never encode the answer* check and nothing here weakens
+> it.** The proposal is to re-scope `CUE_BOUNDARY` by input provenance and **keep `mapping`
+> blocked**; it is not to relax the firewall.
+
+**Do not re-derive this.** Check the rule's premise against `CLAUDE.md`'s 2026-09-19
+withdrawal first, then measure the module-scope reads again before changing a line.
 
 ## 7c. THE TEST WORLDS — what each one can and cannot test
 
