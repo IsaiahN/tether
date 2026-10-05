@@ -617,12 +617,28 @@ routine item).
 
     1  settle the (i)/(ii) tension -- per world per seed: gate 1 exits vs passes, and
        whether every `focus_by_want` increment passes through gate 1
-    2  the three approved seam CONVERSIONS: `tether.py` 5694 (level-change diff -> an
-       upward Capability report), 3945 (coverage -> `Interface.capability()`), 4305
-       (**key on the `_intent` ALREADY in every trace row -- no new plumbing, F438**)
+    2  the three approved seam CONVERSIONS -- **two of the three descriptions were wrong at
+       the code (2026-10-05, read before changing; the reviewer confirmed the corrections):**
+       `_advertised` (level-change diff -> REUSE perceive's `Capability`, never a second
+       mutating `capability()` call; the name-keyed `Preconditions` moves below the seam);
+       `_system0_active` (coverage -> a COUNT, `Drive.covered(n_actions)`, NOT
+       `capability()`, which reports opened/closed and not coverage); `can()` (NOT only a
+       change of key as F438 said: `_predict` takes an ACTION, so each intent is realised
+       by the interface NOW and its action passed down as an OPAQUE token -- an interim,
+       acceptable only until 4b and only while no token is compared or chosen among)
+    2b **RUNTIME -- a TOP ITEM, the reviewer 2026-10-05.** Per-step cost GROWS with history
+       (`default` 5-9 s/step and rising, against ~0.4 on click_only) and Kaggle's budget is
+       fixed. Measure per-step cost against cycle count on all three worlds, PINNED; find
+       what grows (the term space, history scans, the library); propose a bound in which
+       THE AGENT still decides what to drop -- never a hard cutoff we impose
     3  Kaggle a-e verdicts and the smallest step to an entry point
     4  the seven-bond table: per bond, executable? in terms / guards / routines.
        Measured so far: **`BONDS = 1`** (`tether.py`, ~311) -- terms are chains
+    4b **PREDICT KEYED BY INTENT, BEFORE THE READER -- the reviewer 2026-10-05.** PREDICT's
+       domain is slot x ACTION. Isaiah ruled intent-level prediction (before, intent,
+       after) on 2026-09-29, and the agent-first site's own docstring says the reader
+       needs exactly that to decide without a fixed policy. Item 2's opaque token in
+       `can()` is acceptable only until this lands
     5  THE READER, aimed at whichever site the settlement shows attention and planning
        actually flow through
     6  **THE ROUTINE ITEM -- ALREADY RULED, NOT AWAITING ISAIAH.** `routine.py:533` builds
