@@ -55539,3 +55539,51 @@ survivorship error in a new costume.
 **THE THIRD CONDITION HOLDS AND IS STRUCTURAL:** no unsettled guarded term acted as trusted —
 NONE across all 20 runs, and `units()` iterates `settled_terms`, a `@property` computed live
 from `is_settled`, so it cannot.
+
+
+### F435 — **THE GUARD CARRIES ITS OWN REFERENT: `?ACTED_ON<x>`. THE AGENT CAN NOW SAY "THIS CHANGES WHEN THAT OTHER THING IS PRESSED" — A SENTENCE THAT WAS INEXPRESSIBLE AT ANY PRICE**
+
+**THE GAP WAS NOT A MISSING GUARD, IT WAS A DOUBLY-BOOKED OPERAND.** `binds = operand_binds
+if cand.reads_operand else [None]` (`tether.py:6089`) and `inc.reads_operand` is **False** — so
+`inc`, the one computation that IS the rule on a wired slot, could never carry a pointer for a
+guard to test. The operand slot was the term's computational input **and** the only place a
+guard could name a cause; an atom needing no computational operand could not carry a causal
+one, and an atom carrying one had to spend it computing.
+
+**MEASURED BEFORE THE BUILD:** of 20,771 OTHER-form candidates priced on a wired slot, 3,616
+**did** bind the causing button — so the space was not short of candidates — and none paid,
+because the ones that could point could not compute.
+
+    ?ACTED_ON<x>   referent enumerated from what the WORLD offers (`operand_binds` owners,
+                   never the candidate's own `binds`), priced `log2(offered+1) +
+                   log2(|refs|+1)`, re-resolved per board, carried in `Term.name` so two
+                   guards of one KIND pointing at DIFFERENT objects are different claims
+    ACTED_SELF     COLLAPSED into it — it was `?ACTED_ON<own owner>` all along — and priced
+                   as one referent among the rest, with no cheaper special case
+
+**RESULT, buttons seeds 0-9: 2 of 3 partner-slot adoptions now POINT AT THE CAUSING BUTTON AND
+BOTH SETTLE** (seed 1 `o0.colour`→`o1`; seed 7 `o4.colour`→`o0`). **CONTROL, click_only seeds
+0-9:** unchanged — the true rule still pays and binds as `inc?ACTED_SELF<o0>`, `left = 0.0`.
+Its old cost was 9.8138 against a base of 18.0 and the margin absorbed the referent price, as
+pre-registered.
+
+#### F435.1 — **SEED 8's `o1.colour` IS HALF A RULE, NOT A RIGHT ONE, AND I SCORED IT BOTH WRONG WAYS BEFORE GETTING IT RIGHT**
+
+At 19:58 I claimed *every partner is also a button, so SELF is ANTI-CORRELATED on a partner
+slot.* **False** — in a chain `{a: b, b: c}` only the middle is both, and `buttons.get(i, i)`
+defaults to `i`, so a partner that is NOT a button advances itself when clicked. At 20:24 I
+corrected to *SELF is genuinely correct there, 14 of 14* — **also wrong, in the other
+direction.**
+
+    o1.colour MOVED on        18 steps
+    o1 was CLICKED on         14 of them   <- SELF covers these
+    moved with NO o1 click     4           <- o0's click; SELF is silent
+
+**SO SELF IS 14 OF 18 — HALF THE TRUTH.** The slot has TWO causes and `?ACTED_ON` names one at
+a time. It settled because the held-out rows fell on the own-click side, which is the settle
+being *lucky in its sample* rather than the rule being complete.
+
+> **AND THE CHECKER SCORED IT AGAINST THE BUTTON ALONE, SO IT COULD ONLY EVER SAY RIGHT OR
+> WRONG ABOUT A SLOT WITH ONE CAUSE.** A scorer that cannot express *half* will report half as
+> whichever end it is nearer, and it reported both ends on consecutive readings. **The fix is
+> the cause SET, not a better threshold** — which is exactly what the `Or` bond is for.

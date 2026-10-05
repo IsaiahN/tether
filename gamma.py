@@ -186,6 +186,16 @@ def accepts_type(unit: Any, ty: str | None) -> bool:
 # and the interface clicks `o1` to get it, so the guard was TRUE on 48 of 60 steps where `o0` was
 # never touched. It validated clean only on `click_only`, where aim and landing coincide.
 ACTED_SELF = "ACTED_SELF"
+# **THE GENERAL FORM -- the reviewer, 2026-10-04, and it SUBSUMES `ACTED_SELF`.** *"When the
+# press lands on x"*, where x is the term's OWN referent rather than the computation's
+# operand. `ACTED_SELF` was `?ACTED_ON<the slot's own owner>` all along and is now priced as
+# one choice among the referents, with no cheaper special case.
+#
+# **WHY IT HAD TO BE DECOUPLED:** `binds = operand_binds if cand.reads_operand else [None]`,
+# and `inc.reads_operand` is False -- so `inc`, the one computation that IS the rule on a
+# wired slot, could never carry a pointer for the guard to test. The operand slot was doubly
+# booked: the term's computational input AND the only place a guard could name a cause.
+ACTED_ON = "ACTED_ON"
 
 
 @dataclass(frozen=True)
@@ -348,6 +358,11 @@ class Term:
     # DELIBERATE and documented one method away, and the justification was written without
     # reading it. **The guard works where `_ops` supplies operands, which is bets.**
     guard: str | None = None
+    # **THE GUARD'S OWN REFERENT -- which object the press must land on.** Carried like
+    # `operand`: a per-board binding that is RE-RESOLVED on a new board, never a name the
+    # chain owns. Isaiah's 2026-09-29 ruling stands -- the guard names a RELATION and the
+    # binding is resolved per board, so nothing above the seam names a button.
+    guard_ref: str | None = None
     # §4: THE OPERAND MAY BE COMPUTED, WHICH IS WHAT MAKES THIS A TREE. `operand` names the
     # slot; this transforms that slot's value before it fills operand 0. A chain has no
     # branch and still has none -- what it gains is a SECOND chain feeding its one operand,
@@ -366,7 +381,14 @@ class Term:
             inner = (f"{self.operand_term.name}({self.operand})"
                      if self.operand_term is not None else self.operand)
             base = f"{base}<{inner}>"
-        return f"{base}?{self.guard}" if self.guard else base
+        if not self.guard:
+            return base
+        # **THE REFERENT IS PART OF THE IDENTITY.** Two guards of the same KIND pointing at
+        # DIFFERENT objects are different claims, and `name` is what the library keys on --
+        # without this they would collide on one entry and the second would be refused as
+        # already present, which is the quiet failure rather than the loud one.
+        return (f"{base}?{self.guard}<{self.guard_ref}>" if self.guard_ref
+                else f"{base}?{self.guard}")
 
     @property
     def accepts(self) -> tuple[str, ...]:

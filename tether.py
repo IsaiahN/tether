@@ -28,7 +28,7 @@ import instruments as I
 import interface as IFace
 import retrieval
 import routine as Rt
-from gamma import ACTED_SELF, IMPORTED, INVENTED, Ctx, Gamma, Standing, Term, accepts_type
+from gamma import ACTED_ON, ACTED_SELF, IMPORTED, INVENTED, Ctx, Gamma, Standing, Term, accepts_type
 from gamma import SAME_AS_TARGET as G_SAME
 from ledger import (
     ADVANCE,
@@ -613,7 +613,7 @@ def term_bits(k: int, alphabet: int, bonds: int = BONDS) -> float:
     return (k + 1) * math.log2(alphabet + 1) + (k - 1) * math.log2(max(bonds, 1))
 
 
-def _guard_bits(guard: Any, offered: int) -> float:
+def _guard_bits(guard: Any, offered: int, refs: int = 0) -> float:
     """WHAT NAMING A GUARD COSTS. `+log2(G+1)` over the guards on offer.
 
     **THE FORM IS THE CORPUS'S, NOT THE SEAT'S** -- `ARC_AGENT` §2042 and
@@ -639,9 +639,18 @@ def _guard_bits(guard: Any, offered: int) -> float:
     pre-registration**, because whether those fixtures depend on it incidentally or by
     design is a question about `M2_STANDARD`'s intent and not about this code.
     """
-    if guard != ACTED_SELF or offered <= 0:
+    if guard not in (ACTED_SELF, ACTED_ON) or offered <= 0:
         return 0.0
-    return math.log2(offered + 1)
+    # **THE KIND, PLUS THE CHOICE OF REFERENT -- the reviewer, 2026-10-04.** Naming WHICH
+    # object the press must land on is a second choice and costs its own bits, by the same
+    # `log2(k+1)` form the corpus prices an added parameter at. **`ACTED_SELF` IS COLLAPSED
+    # INTO THIS AND PAYS THE SAME**: it was `?ACTED_ON<the slot's own owner>` all along, and
+    # a cheaper special case would be the seat deciding that one referent is privileged.
+    #
+    # PRE-REGISTERED: this RAISES SELF's price. On click_only the true rule paid with a wide
+    # margin (9.8138 against a base of 18.0), so it should still pay -- and its new cost is
+    # reported rather than assumed.
+    return math.log2(offered + 1) + (math.log2(refs + 1) if refs else 0.0)
 
 
 def _same_object(landed_on: str | None, slot: str) -> bool:
@@ -2263,7 +2272,8 @@ class Agent:
         # guard compares against a value instead of an absence.
         _now = self._intent_now.kind if self._intent_now is not None else NO_INTENT
         ctx = self._eval_ctx(slot, state, action=action, operands=ops, intent=_now,
-                             touching=self._touching(slot), landed=self._last_landed)
+                             touching=self._touching(slot), landed=self._last_landed,
+                             guard_ref=term.guard_ref)
         got = self._value_of(term, slot, state, ctx)
         return None if got is NOT_RESOLVED else got % self.alphabet[slot]
 
@@ -2918,7 +2928,8 @@ class Agent:
         return sum(self._outstanding.values())
 
     def _eval_ctx(self, slot: str, state: dict, *, action, operands,
-                  landed=None, intent=None, touching=None, shapes: bool = True) -> Ctx:
+                  landed=None, intent=None, touching=None, shapes: bool = True,
+                  guard_ref: str | None = None) -> Ctx:
         """THE ONE CONSTRUCTOR FOR A Ctx A TERM IS EVALUATED IN -- the reviewer, 2026-10-04.
 
         **`acted_self` WAS SET AT 3 OF 11 CONSTRUCTIONS AND THE THREE WERE THE PRICING
@@ -2940,7 +2951,12 @@ class Agent:
         fixes them. `conform/census.py` asserts nothing builds one of these any other way.
         """
         return Ctx(action=action, intent=intent, operands=operands, touching=touching,
-                   acted_self=_same_object(landed, slot),
+                   # **AGAINST THE TERM'S OWN REFERENT WHEN IT HAS ONE.** `guard_ref`
+                   # falls back to the slot, which is exactly what `ACTED_SELF` meant, so
+                   # the collapse is behaviour-preserving for every term that had no
+                   # referent. `_same_object` reduces both sides to their owner, so no new
+                   # comparison is needed and no name crosses into the chain.
+                   acted_self=_same_object(landed, guard_ref or slot),
                    group=self._group(slot, state), obj=self._record(slot, state),
                    shapes=self._shapes_now() if shapes else None)
 
@@ -2992,14 +3008,15 @@ class Agent:
                 ops = self._ops(term, state)
                 hops = self._ops(held, state) if held is not None else None
             ctx = self._eval_ctx(slot, state, action=action, operands=ops or (),
-                                 landed=landed)
+                                 landed=landed, guard_ref=term.guard_ref)
             got = self._value_of(term, slot, state, ctx) if ops is not None else NOT_RESOLVED
             if held is None:
                 if got is not NOT_RESOLVED:
                     return True
                 continue
             hctx = self._eval_ctx(slot, state, action=action, operands=hops or (),
-                                  landed=landed)
+                                  landed=landed,
+                                  guard_ref=getattr(held, 'guard_ref', None))
             was = self._value_of(held, slot, state, hctx) if hops is not None else NOT_RESOLVED
             if got != was:
                 return True
@@ -3106,7 +3123,8 @@ class Agent:
             got = self._value_of(term, slot, state,
                                  self._eval_ctx(slot, state, action=action,
                                                 operands=ops, intent=intent,
-                                                landed=landed))
+                                                landed=landed,
+                                                guard_ref=term.guard_ref))
             if got is NOT_RESOLVED:
                 total += math.log2(self.alphabet[slot])   # unread is unexplained
                 continue
@@ -3249,7 +3267,8 @@ class Agent:
             got = self._value_of(term, slot, state,
                                  self._eval_ctx(slot, state, action=action,
                                                 operands=ops, intent=intent,
-                                                landed=landed))
+                                                landed=landed,
+                                                guard_ref=term.guard_ref))
             if got is NOT_RESOLVED or got % self.alphabet[slot] != actual % self.alphabet[slot]:
                 out.append((state, action, actual, intent, landed))
         return out
@@ -3304,7 +3323,8 @@ class Agent:
                     got = self._value_of(term, slot, state,
                                          self._eval_ctx(slot, state, action=action,
                                                         operands=ops, intent=intent,
-                                                        landed=landed))
+                                                        landed=landed,
+                                                        guard_ref=term.guard_ref))
                     wrong += (got is NOT_RESOLVED
                               or got % self.alphabet[slot] != actual % self.alphabet[slot])
             if cost + unit * wrong >= base:
@@ -5824,6 +5844,24 @@ class Agent:
                     out.append(ACTED_SELF)
         return out
 
+    def _guard_refs(self, slot: str | None, binds) -> list[str]:
+        """Which objects a guard may point at. **READ OFF THE WORLD, NEVER INVENTED.**
+
+        The owners of the slots `_bindings` already offers, plus the slot's own owner --
+        because `?ACTED_SELF` is `?ACTED_ON<own owner>` and collapsing them means the own
+        owner is one referent among the rest rather than a privileged case.
+
+        **NO NEW SOURCE.** `_bindings`' own rule is *you do not invent the list, you read it
+        off the world*, and this is that list reduced to owners. A referent the world does
+        not offer cannot be named, which is what keeps the guard from naming a button the
+        agent has not seen.
+        """
+        own = slot.rsplit(".", 1)[0] if slot else None
+        refs = {b.rsplit(".", 1)[0] for b in binds if b}
+        if own:
+            refs.add(own)
+        return sorted(refs)
+
     def _held_now(self, slot: str | None) -> bool:
         """Is THIS eligible occasion in the withheld half? Seeded, so a run replays.
 
@@ -6058,9 +6096,25 @@ class Agent:
                     # denominator `log2(G+1)` is over, and it must be the same set the loop
                     # walks or the price is charged against a population that was not offered.
                     _gs = self._guards(robs, slot)
-                    for bind, g in ((b, g) for b in binds for g in _gs):
+                    # **THE REFERENT IS PAIRED WITH THE GUARD, NOT WITH THE BIND.** Hoisted
+                    # with `_gs` for the reason the hoist exists: the price denominator must
+                    # be the set the loop actually walks. An ACTED guard now carries ITS OWN
+                    # pointer, so `inc` -- which reads no operand and is the true rule on a
+                    # wired slot -- can finally be guarded on the object that causes it.
+                    # **FROM `operand_binds`, NOT `binds` -- and the difference IS the
+                    # defect this change exists to fix.** `binds` is `[None]` for an atom
+                    # that reads no operand, so enumerating from it collapses the referent
+                    # set back to the slot's own owner and reproduces `ACTED_SELF` exactly.
+                    # Measured when I got this wrong: `inc` guarded 23 times, pointed at its
+                    # own button ZERO times. The referent must come from what the WORLD
+                    # offers, not from what this candidate's computation happens to take.
+                    _refs = (self._guard_refs(slot, operand_binds)
+                             if any(x in (ACTED_SELF, ACTED_ON) for x in _gs) else [])
+                    _pairs = [(g, r) for g in _gs
+                              for r in (_refs if g in (ACTED_SELF, ACTED_ON) else [None])]
+                    for bind, (g, gref) in ((b, p) for b in binds for p in _pairs):
                         rank += 1
-                        term = Term(cand.atoms, operand=bind, guard=g)
+                        term = Term(cand.atoms, operand=bind, guard=g, guard_ref=gref)
                         if self.gamma.is_atom(term) or term.name in self.gamma.library:
                             cuts.append({"name": term.name, "rank": rank, "reversible": True,
                                          "reason": "not-novel"})
@@ -6087,7 +6141,7 @@ class Agent:
                         # the space it was always stated over.
                         cost = (term_bits(self.gamma.length(term, _units),
                                           self.gamma.alphabet)
-                                + _guard_bits(g, len(_gs) - 1))
+                                + _guard_bits(g, len(_gs) - 1, len(_refs)))
                         # LET THE RESIDUAL SAY WHERE TO LOOK. Walking the whole history for
                         # every candidate is exhaustive search; R already names the
                         # observations that need fixing, and a term that cannot fix enough of
@@ -6127,7 +6181,7 @@ class Agent:
                                 # ONE TERM TWO PRICES depending on which path reached it.
                                 bcost = (term_bits(self.gamma.length(bt, _units),
                                                    self.gamma.alphabet)
-                                         + _guard_bits(g, len(_gs) - 1))
+                                         + _guard_bits(g, len(_gs) - 1, len(_refs)))
                                 if self._cannot_pay(bt, slot, robs, bcost, base, rkey):
                                     continue
                                 bleft = self._left(bt, slot, hist)
@@ -6198,7 +6252,7 @@ class Agent:
                                 continue
                             bcost = (term_bits(self.gamma.length(bt, _units),
                                                self.gamma.alphabet)
-                                     + _guard_bits(g, len(_gs) - 1))
+                                     + _guard_bits(g, len(_gs) - 1, len(_refs)))
                             # **THE SAME BOUND HERE, AND IT CHANGES NO OUTCOME.** `_cannot_pay`
                             # PROVES `cost + left >= base`, which is exactly `not pays` -- so
                             # anything it refuses, `pays` refuses too. A short-circuit, not a
