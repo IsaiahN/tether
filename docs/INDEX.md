@@ -55554,11 +55554,30 @@ right-or-wrong with no way to say HALF:
     TWO causes        the chain TAIL. Advances on its own click AND on the middle's
     ONE-self          the three objects off the chain
 
-**A ONE-REMOTE SLOT MOVES ONLY WHEN ONE SPECIFIC OTHER OBJECT IS PRESSED, AND PRESSES ARE
-UNIFORM OVER THE SIX.** Measured, 300 realised presses over 10 seeds × 30 cycles: `draw` lands
-on a head 13.7% of the time, `probe` 15.9%, `system0` 17.1% — **against a 16.7% uninformed
-baseline, so all three are at chance and none is above it.** Uniform over 6 objects for 30
-cycles is 5 presses each; the heads got 2, 2, 2, 3, 3, 3, 3, 4, 4 and 21.
+**A ONE-REMOTE SLOT MOVES ONLY WHEN ONE SPECIFIC OTHER OBJECT IS PRESSED.** Measured, 300
+realised presses over 10 seeds × 30 cycles: `draw` lands on a head 13.7% of the time, `probe`
+15.9%, `system0` 17.1%, against a 16.7% uninformed baseline.
+
+**AND THE SENTENCE THAT USED TO FOLLOW — *presses are uniform over the six, so all three are
+at chance* — IS FALSE, CORRECTED IN PLACE 2026-10-05. IT WAS POOLED ACROSS SEEDS, WHICH IS
+THIS FILE'S OWN *per game, never pooled* LAW APPLIED TO THE WRONG AXIS AND THEN NOT APPLIED
+AT ALL.** Split per seed, on two independent run lengths:
+
+    30 cycles   the nine   24 presses / 270 steps =  8.9%     seed 6   21/30 = 70.0%
+    60 cycles   the nine   46 presses / 540 steps =  8.5%     seed 6   41/60 = 68.3%
+    uniform baseline                                16.7%
+    pooled at 60 cycles    87/600 = 14.5%   <- the figure read as "at chance"
+
+**NINE OF NINE SEEDS ARE BELOW UNIFORM, AT ROUGHLY HALF IT, ON BOTH RUN LENGTHS. THE AIM
+ACTIVELY UNDER-PRESSES THE CAUSE** — it is not causally blind, which is what the pooled
+number said and what was reported. **The 14.5% is the average of an 8.5% regime and a 68.3%
+regime and describes neither**, and the seed dragging it up to chance is the same seed
+`F436.1` is about.
+
+> **A POOLED RATE CAN SIT EXACTLY ON ITS NULL WHILE EVERY MEMBER OF THE POPULATION IS FAR
+> FROM IT** — and *at chance* is the most disarming reading a pooled number can produce,
+> because it invites the conclusion that there is no effect to find rather than that the
+> denominator is wrong.
 
     at 30 cycles    ONE-remote slots clearing the 7.814 floor    1 of 10
     at 60 cycles    the same slots, same seeds, same arm        10 of 10
@@ -55625,6 +55644,48 @@ on both referents, the gate is open on 100% of late cycles across all nine, the 
 cleared — **and 0 of 10 adopt.** The offer condition is seed 6's blocker and is not the
 panel's; whatever refuses the nine sits downstream of enumeration and is unlocated.
 
+
+#### F436.3 — **AND THE BLOCKER IS A COUNT, NOT A BUDGET: SEVEN PRESSES OF THE RIGHT OBJECT. THE PASS LINE FOR THE EXPLORATION WORK, SET BEFORE IT IS BUILT**
+
+`_cannot_pay`'s docstring states that `base` is `log2(V)` times the count of rows the held
+term gets wrong, and **R IS those rows** — so `base = 2.0 × |R|` by construction, not by
+approximation. **And on an UNBOUND slot R is exactly the rows where the slot CHANGED, which
+is exactly the presses on its cause.** Measured over 10 seeds at 60 cycles, the two columns
+match on every one:
+
+    seed   held term    |R|   base   head presses
+    0-5,7-9  (unbound)  5-6  10-12   5-6          <- |R| EQUALS the press count
+    6        inc         19   38.0   41
+
+The true rule `inc ?ACTED_ON<head>` costs a **fixed** 12.814 (7.814 term + 2.000 kind +
+3.000 referent). So the bargain's condition reduces to arithmetic with no free parameter:
+
+    cost < base   <=>   12.814 < 2.0 × |R|   <=>   **|R| >= 7**
+
+**THE NINE SIT AT FIVE. THEY ARE TWO PRESSES SHORT** — not short of cycles, and not short of
+bits in any quantity anyone has to choose.
+
+> **SO THE PASS LINE IS SET BEFORE THE BUILD AND IS NOT A NUMBER THE SEAT PICKED: at 30
+> cycles, the per-slot explore rung must bring ONE-remote heads to >= 7 presses.** It is
+> derived from the cost function the agent already computes on both sides, which is the
+> difference between a stopping condition and a magic number — and it answers the open
+> question of how the agent knows when a candidate cause has been tried *enough*: when the
+> slot's residual can outbid the cheapest guarded term naming that referent.
+
+**AND IT PRICES THE THREE PROPOSED FIXES IN THE SAME UNIT, WHICH IS WHY THEY COMPOSE RATHER
+THAN COMPETE.** A rank-ordered referent saves 2.0 bits = **one press** (requirement 7 → 6,
+still one short of the nine). Longer runs raise `|R|` at the uniform press rate (~84 cycles
+for 7). A cause-seeking aim raises it directly and **only has to find two.** The
+per-referent offer fix does nothing here and remains exactly right for seed 6, which has
+`|R| = 19` and needs 7.
+
+**AND `F436.1` WAS COMMITTED AND THEN IMMEDIATELY REPEATED, WHICH IS THE ENTRY THIS ONE OWES.**
+The post reporting this measurement also stated *"`inc` explains most rows correctly, so the
+residual is the small remainder"* — **nine of the ten slots are UNBOUND and nothing explains
+them away.** That was seed 6's held term generalised to the panel, filed four hours after
+`F436.1` recorded exactly that error and committed at `7f7daef`. The conclusion is unaffected
+and is in fact simpler: **base is small because the cause is RARE, not because something
+already accounts for the slot.**
 
 ### F435 — **THE GUARD CARRIES ITS OWN REFERENT: `?ACTED_ON<x>`. THE AGENT CAN NOW SAY "THIS CHANGES WHEN THAT OTHER THING IS PRESSED" — A SENTENCE THAT WAS INEXPRESSIBLE AT ANY PRICE**
 
