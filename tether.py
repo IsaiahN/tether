@@ -6835,7 +6835,7 @@ class Agent:
                 # BOTH outcomes of `refute` below: a settled term demoted and a candidate
                 # mispredicting are both the ground refusing what was said.
                 self._refuted_slot[slot] = name
-                if self.gamma.refute(name, where=self._scope):
+                if self.gamma.refute(name, where=self._scope, slot=slot):
                     self.demoted.append(name)
                     # BOOK 1: a term that had SETTLED and then mispredicted. The ground gave it
                     # a standing and took it back, which is the only honest reading of

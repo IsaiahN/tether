@@ -559,6 +559,12 @@ class Standing:
     # A NEW FIELD RATHER THAN A REPURPOSED ONE, ruled: `admitted`, `origin` and `paid` stay
     # byte-identical so the ablation partition and the provenance record are untouched.
     settled_on: set = field(default_factory=set)   # slots this term settled on
+    # **THE OTHER HALF OF A5 -- the reviewer, 2026-10-04.** A5 made SETTLEMENT per-slot
+    # (`settled_on`) and left REFUTATION a scalar, so a term settled on `o0` and wrong on
+    # `o1` lost its standing EVERYWHERE. Mirrors `settled_on` deliberately: the same shape,
+    # one record, never a parallel store. `refusals` is kept and still totals across slots,
+    # because the burial and decay readings are over the term and not over a slot.
+    refusals_on: dict = field(default_factory=dict)   # slot -> post-settlement refusals
     # **THE (c) SPLIT -- ISAIAH, 2026-09-30: count misprediction-while-candidate SEPARATELY
     # from refusal-after-settling. Two quantities, two names.** `refute` is called on EVERY
     # mispredicting bound term, and the site's own comment says *a candidate that mispredicts
@@ -594,7 +600,8 @@ class Standing:
     confirmations: float = 0.0                     # the success total, on the same clock
 
     def refute(self, tick: int, halflife: float | None = None,
-               ceiling: float | None = None, where: Any = None) -> None:
+               ceiling: float | None = None, where: Any = None,
+               slot: str | None = None) -> None:
         """**ISAIAH, 2026-09-24: NOT A HARD BAN. A DECAY OR A RATIO, NEVER A CLIFF.**
 
         This read `self.settled_at = None` -- **one miss and a standing was gone, unconditionally
@@ -633,8 +640,24 @@ class Standing:
         # unsettled by mistakes it made while on trial**, which is precisely what counting
         # them separately exists to prevent, so this is his ruling applied rather than a new
         # behaviour decision. `rejections` itself is untouched and still totals both.
-        if self.refusals >= (REJECTION_CEILING if ceiling is None else ceiling):
-            self.settled_at = None
+        cap = REJECTION_CEILING if ceiling is None else ceiling
+        if slot is None:
+            # NO SLOT GIVEN -- the pre-A5 behaviour, kept for callers that genuinely mean
+            # "anywhere" and named rather than inherited by accident.
+            if self.refusals >= cap:
+                self.settled_at = None
+                self.settled_on.clear()
+            return
+        # PER SLOT, MIRRORING SETTLEMENT. A refusal here unsettles HERE; the term keeps its
+        # standing on every other slot it earned, which is exactly what A5 did for settling.
+        if self.settled:
+            self.refusals_on[slot] = self.refusals_on.get(slot, 0.0) + 1.0
+        if self.refusals_on.get(slot, 0.0) >= cap:
+            self.settled_on.discard(slot)
+            # AND THE GLOBAL FLAG FOLLOWS THE SET RATHER THAN LEADING IT: with no slot left,
+            # `is_settled(name)` with no slot must not still read True.
+            if not self.settled_on:
+                self.settled_at = None
 
     def decay(self, tick: int, halflife: float | None = None) -> None:
         """**THE SHAPE IS OURS; THE RATE IS THE AGENT'S.** Isaiah, 2026-09-24: the agent controls
@@ -925,7 +948,7 @@ class Gamma:
         return name in self.primitives
 
 
-    def refute(self, name: str, where: Any = None) -> bool:
+    def refute(self, name: str, where: Any = None, slot: str | None = None) -> bool:
         """A settled term mispredicted on fresh evidence. Demoted to candidate -- not
         deleted, and the rejection decays, so it can settle again if it starts paying.
 
@@ -935,7 +958,7 @@ class Gamma:
         """
         st = self.standing.setdefault(name, Standing())
         was = st.settled
-        st.refute(self.tick, self.halflife, where=where)
+        st.refute(self.tick, self.halflife, where=where, slot=slot)
         return was
 
     def is_settled(self, name: str, slot: str | None = None) -> bool:
