@@ -139,21 +139,30 @@ _BARGAIN_FIT = os.environ.get("TETHER_BARGAIN_FIT", "1") != "0"
 # and the default is OFF until he rules.
 _DOWNRATE = os.environ.get("TETHER_DOWNRATE", "0") != "0"
 
-# **THE ?ACTED GUARD, DEFAULT OFF -- the reviewer, 2026-10-02, HONOURING A REFUTER THAT
-# FIRED.** The guard is semantically correct (it reads what the press LANDED ON, 60/60
-# against the world) and it FAILED its pre-registered test: payments up and TOTAL refusals
-# down on 6 of 6 world-seeds, with the refusal rate collapsing 19.67% -> 0.40% on three.
+# **THE ?ACTED GUARD, DEFAULT ON SINCE 2026-10-05 -- ISAIAH, on the settled/unsettled
+# principle, SUPERSEDING the earlier zero-failure bar.** It was OFF from 2026-10-02, the
+# reviewer honouring a refuter that fired: the guard is semantically correct (it reads what
+# the press LANDED ON, 60/60 against the world) and it FAILED its pre-registered test --
+# payments up and TOTAL refusals down on 6 of 6 world-seeds, the refusal rate collapsing
+# 19.67% -> 0.40% on three.
 #
-# **IT IS OFF RATHER THAN DELETED BECAUSE THE EVIDENCE IS MIXED AND RECORDED:** `buttons`
-# seed 1 settled two guarded terms under a PRICED guard, which no unguarded run has ever
-# done on that world. The flag is what lets the next measurement be one script with one
-# flag instead of a resurrection.
+# **THE LICENCE THIS COMMENT USED TO NAME WAS: guarded adoptions must SETTLE no worse than
+# unguarded, and an unsettled term must never be acted on as trusted. STATE OF THAT TEST AT
+# THE FLIP, RECORDED HERE BECAUSE IT IS WEAKER THAN A READER WOULD ASSUME:**
 #
-# **IT RETURNS ON ONLY BY ISAIAH'S SETTLED/UNSETTLED RULE:** guarded adoptions must SETTLE
-# no worse than unguarded ones, and an unsettled term must never be acted on as trusted.
-# Paying is getting onto trial; settling is the ground paying on evidence the term was
-# never fitted to, and only the second licenses the flag.
-_ACTED_GUARD = os.environ.get("TETHER_ACTED_GUARD", "0") != "0"
+#     every one of SIX world-seeds reads INSUFFICIENT -- denominators below the threshold
+#     borrowed from `probe.never_live` (>= 2, "the smallest number with the property, not
+#     tuned"). ONLY THE POOLED FALLBACK PASSES: guarded 3/7 = 42.9% vs unguarded 0/2.
+#
+# **SO THE FLIP RESTS ON ISAIAH'S RULING, NOT ON THE PER-SEED TEST, AND THOSE ARE DIFFERENT
+# WARRANTS.** He outranks the seat's own construction and the ruling is recorded in
+# `docs/ISAIAH_RULINGS.md` -- but *per world, per seed, never pooled* is this project's
+# hardest-won law, and a pooled 3/7-against-0/2 is exactly the shape it exists to distrust.
+# **Nobody should later cite "the condition was met" as though it was met per seed.**
+#
+# WHAT IS STRUCTURALLY TRUE AND NOT A COUNT: no unsettled guarded term can act as trusted --
+# `units()` iterates `settled_terms`, a `@property` computed live from `is_settled`.
+_ACTED_GUARD = os.environ.get("TETHER_ACTED_GUARD", "1") != "0"
 
 # **THE AIMED CURIOSITY DRAW, DEFAULT ON -- the reviewer, 2026-10-01.** The flag exists so the
 # before/after is ONE SCRIPT WITH ONE FLAG rather than two code states: OFF restores the
