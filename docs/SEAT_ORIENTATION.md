@@ -569,6 +569,40 @@ and `GAME_OVER`, never twice consecutively; a click is `ACTION6` with `set_data(
 `arcengine` must not be bundled with the framework import; the notebook needs the `arc-agi`
 install cell.
 
+### TWO FACTS THE ORIENTATION TEST ASKED FOR AND THIS FILE DID NOT CARRY
+
+**Found by checking the test against the record rather than by being asked.** Both were
+established on 2026-10-05 and both lived only in the channel or in code — which is the exact
+hole `docs/ISAIAH_RULINGS.md` exists to close, reappearing in the handover itself.
+
+**THE ACTION COUNT IS THE AGENT'S; THE ACTION NAMES ARE NOT.** The reviewer's ruling,
+2026-10-05: **the reasoning side MAY hold the COUNT and pass the SET down; it may NOT CHOOSE
+AMONG or COMPARE action NAMES.** Knowing *how many things I can do* is a fact about the
+world's affordances and is reasoning-side by right; knowing *which button is called what* is
+the interface's. **And the count is load-bearing, not a convenience:** `tether.py:5180` and
+`5378` derive the bargain's priced alphabet from `len(self.actions)`, so removing it would
+move the price of every term. That is why `self.actions` STAYS after the seam fixes, and why
+the four name-level readers are classified separately (5694, 3945, 4305 convert; 5508 is the
+routine item).
+
+**`OR` — WHERE DISJUNCTION LIVES TODAY.** `OPERATORS.md` defines `∥` as **disjunction**:
+*either suffices; not both required*, with the test *remove one — does it still work?*
+
+    in TERMS      NO. `tether.py:302` is `BONDS = 1`: one of the seven bonds has a form in
+                  PREDICT, so **terms are chains**. The price is general (`log2(|bonds|)`),
+                  the implementation is one.
+    in GUARDS     YES, and it is built. `condition.py:158` parses `or` into
+                  `Bool("or", ...)`; `Not`, three-valued evaluation and `Call` are there too.
+                  `tether.py:4638` `_compound_guards` builds them and `routine._guard_excess`
+                  prices a compound to sort AFTER the plain guard it extends.
+    in ROUTINES   via guards, through `When` / `Until`, which take a guard.
+
+> **SO `acted_on(o0) or acted_on(o1)` IS ALREADY EXPRESSIBLE** — and I claimed the opposite
+> earlier in the week, having grepped class names, found none called `Or`, and read the
+> capability off the NAME. The reviewer had approved a build on that false premise. **It is
+> recorded here because the next session will meet the same question**, and because *a map
+> entry saying a thing does not exist is worse than one saying it is unfinished.*
+
 ### THE QUEUE FOR THE NEXT SESSION, ORDERED
 
     1  settle the (i)/(ii) tension -- per world per seed: gate 1 exits vs passes, and
