@@ -55874,3 +55874,8 @@ which predates the 2026-10-05 `?ACTED` flip. No cause is offered.
 posted and ruled on as a fact about `default`. Seed 1 reversed it. *A population selected by
 the defect cannot diagnose the defect* -- and a population of one seed cannot characterise a
 world.
+
+**`F441`, RULED THE SAME HOUR -- the reviewer:** the reader is scoped by **the agent's own state
+at the moment of choosing**, not by world and not by seed. No goal selected -> plan anyway, as a
+wager; a goal selected and routines refused -> the refusal is the site. Written into
+SEAT_ORIENTATION 7e's reader design.

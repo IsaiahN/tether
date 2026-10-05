@@ -534,6 +534,13 @@ evidence. **First override: when gate 1 refuses for a SUPPLY reason (`too_short`
 *there was nothing to refuse*), the agent may plan anyway as a WAGER**, a routine adopted on
 trial and judged by the ground. Bar reasons (`qualified`, `arrived`) stay.
 
+**SCOPED BY THE AGENT'S OWN STATE, NOT BY WORLD OR SEED -- the reviewer, 2026-10-05, after
+item 1's panel (`F441`).** A world-scoped override was ruled from one `default` seed and
+seed 1 reversed it. So: **no goal selected** (gate 1 refusing for a supply reason) -> *plan
+anyway, as a wager*; **a goal selected and routines reached but refused** -> the routine
+refusal is the site, once routine step (a) shows what refuses them. One reader, one record of
+why, whatever world it is in -- Isaiah's *one body, not rooms* applied to decisions.
+
 ### THE OPEN TENSION — SETTLE THIS BEFORE DESIGNING THE READER
 
 **Two claims cannot both be true in the simple form.** The reviewer accepted that
