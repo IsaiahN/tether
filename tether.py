@@ -1146,7 +1146,6 @@ class Agent:
         self.gamma.unit_rank = self.rank.key
         self.phases = I.Phases()
         self.clocks = I.Clocks()
-        self.pre = I.Preconditions()   # §16.8 sensor 2, fed by the delta
         # HOW MANY ACTIONS TIE AT THE TOP OF `spread`, per discriminate call. The argmax
         # names WHICH action was picked and never says whether anything else scored the
         # same -- and a tie resolved by `self.actions` order is a different finding from one
@@ -2405,7 +2404,8 @@ class Agent:
         # checks for a CALLER and not for a CONSUMER, so a report written to the record and
         # read by no mode passes it. **Nothing in systems 0, 1 or 2 reads this yet**, which is
         # why the commit that added it claims a RECORDED fact and not a changed decision.
-        _cap = self.iface.capability(tuple(self.env.actions()))
+        _cap = self.iface.capability(tuple(self.env.actions()), after=action)
+        self._last_cap = _cap
         if _cap.moved():
             self.led.record(self.cycle, "PERCEIVE", "@interface", "capability",
                             of=tuple(_cap.opened + _cap.closed),
@@ -5655,8 +5655,10 @@ class Agent:
         for a shape nobody has seen is a decomposition from a description. A plain
         event can become a channel later; a channel is harder to unbuild."""
         now = tuple(self.env.actions())
-        gone = sorted(set(self.actions) - set(now))
-        came = sorted(set(now) - set(self.actions))
+        # **THE DIFF IS THE INTERFACE'S, READ AS CAPABILITY -- queue item 2(c), 2026-10-05.** This
+        # compared action NAMES above the seam. `perceive` already asked the interface once; a
+        # second `capability()` call would see nothing, because it is a stateful diff.
+        cap = getattr(self, "_last_cap", None)
         # §16.8 SENSOR 1 IS `the PREVIOUS ACTION changed the gating`, and the delta alone
         # does not say which action. This runs at the top of the step, so the action just
         # taken is the only candidate -- and attributing it is also sensor 2's whole input.
@@ -5665,11 +5667,13 @@ class Agent:
         # is how often the predecessor was taken, and a no-change step is precisely the case
         # where it was taken and the edge did NOT fire. Returning early here counted only
         # the successes, so every edge read as a rule and none could read as gated.
-        self.pre.note(self._last_action, came, gone)
-        if not came and not gone:
+        self._last_cap = None
+        if cap is None or not cap.moved():
+            self.actions = now
             return
         self.led.record(self.cycle, "PERCEIVE", "@instrument", "advertised",
-                        gone=gone, came=came, was=len(self.actions), now=len(now),
+                        opened=len(cap.opened), closed=len(cap.closed),
+                        was=len(self.actions), now=len(now),
                         after=self._last_action,
                         note="a condition was met or unmet; the denominator moved")
         self.actions = now
@@ -7077,7 +7081,8 @@ class Agent:
                             blind=getattr(self.env, "blind", None),
                             reads="the slot set is empty; what that MEANS is not read here")
             # NO ACTION WAS TAKEN, SO NOTHING PRECEDED THE NEXT FRAME. `_advertised` runs at
-            # the top of every step and feeds `Preconditions` with `_last_action`; leaving it
+            # the top of every step and reads `_last_action` (Preconditions is fed in
+            # `perceive` now, which a dead cycle never reaches); leaving it
             # set meant a DEAD cycle credited the last live action again. Measured: `taken`
             # summed to 998 over 1000 cycles while `by` -- which counts only steps that
             # acted -- summed to 131, and `ACTION1: 881` was one action held for 850 cycles

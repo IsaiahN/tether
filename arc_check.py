@@ -208,7 +208,7 @@ def main() -> None:
     adv = [r for r in led.rows() if r["event"] == "advertised"]
     print(f"  action-set delta    : {len(adv)} rows"
           + (f", came={adv[0]['detail']['came']} after={adv[0]['detail']['after']}" if adv else ""))
-    print(f"  precondition edges  : {agent.pre.report()['came_after']}")
+    print(f"  precondition edges  : {agent.iface.pre.report()['came_after']}")
     print(f"  bracket channel     : {len(br)} rows, "
           f"cause={br[0]['detail']['cause'] if br else None}, "
           f"R_T={br[0]['detail']['mass'] if br else None}, "

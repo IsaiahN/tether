@@ -26,7 +26,7 @@ from __future__ import annotations
 import math
 import sys
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 sys.dont_write_bytecode = True
@@ -248,6 +248,51 @@ class Capability:
         return bool(self.opened or self.closed)
 
 
+@dataclass
+class Preconditions:
+    """§16.8 sensor 2: pairwise `a became available after b`, with counts.
+
+    An action appearing is a CONDITION MET, and the action just taken is the only candidate
+    for having met it. This counts the pairs and nothing else -- it does not rank them, name
+    a cause, or gate anything. **A count is not a claim**: `b` preceding `a` many times is
+    evidence the agent can read, and reading it is the agent's job rather than this table's.
+
+    Cheap by construction: at most |actions| squared cells, 49 for ARC's seven.
+    """
+
+    after: Counter = field(default_factory=Counter)
+    gone_after: Counter = field(default_factory=Counter)
+    # THE DENOMINATOR, AND WITHOUT IT `after` CANNOT SAY WHETHER AN EDGE IS A RULE. `b -> a`
+    # seen four times is four out of four or four out of ninety, and only the second is a
+    # condition. It counts every step, not only the steps where the set changed, which is why
+    # `note` is now called unconditionally.
+    taken: Counter = field(default_factory=Counter)
+
+    def note(self, prev: str | None, came: list[str], gone: list[str]) -> None:
+        if prev is None:
+            return                      # nothing preceded the first frame
+        self.taken[prev] += 1
+        for a in came:
+            self.after[(prev, a)] += 1
+        for a in gone:
+            self.gone_after[(prev, a)] += 1
+
+    def report(self) -> dict:
+        return {"came_after": {f"{b}->{a}": n for (b, a), n in sorted(self.after.items())},
+                "gone_after": {f"{b}->{a}": n for (b, a), n in sorted(self.gone_after.items())},
+                "taken": dict(sorted(self.taken.items())),
+                # CONDITIONAL, AS TWO COUNTS RATHER THAN A VERDICT. An edge that fires on
+                # EVERY `b` is a rule; one that fires on SOME is gated by something else --
+                # which is the fifth topology, and it is a reading over the denominator
+                # rather than an instrument of its own.
+                "sometimes": {f"{b}->{a}": [n, self.taken[b]]
+                              for (b, a), n in sorted(self.after.items())
+                              if 0 < n < self.taken[b]},
+                "reads": ("counts, not claims: what followed what, out of how many. "
+                          "`sometimes` is an edge that did not fire every time its "
+                          "predecessor was taken -- the same action, a different outcome")}
+
+
 class Interface:
     """Translates intent down, reports capability up. **Knows nothing about goals.**
 
@@ -259,6 +304,7 @@ class Interface:
     """
 
     def __init__(self) -> None:
+        self.pre = Preconditions()       # section 16.8 sensor 2; below the seam since 2026-10-05
         self.table: dict[str, dict] = {}       # action -> what it was observed to do
         # `probe.Drive`'s seed, which is `crc32(b"") & 0xFFFF == 0` at both construction sites
         # in `tether`. Held here so the moved sweep is byte-identical rather than merely alike.
@@ -657,7 +703,7 @@ class Interface:
         pick = sorted(offered)[(cycle * stride + self._draw_seed) % len(offered)]
         return Realisation(action=pick, mode="undirected", why="undirected")
 
-    def capability(self, offered: tuple[str, ...]) -> Capability:
+    def capability(self, offered: tuple[str, ...], after: str | None = None) -> Capability:
         """What the board opened or closed since the last frame, **named as affordance.**
 
         The names here are the interface's own words for what became possible, and they are
@@ -666,6 +712,10 @@ class Interface:
         """
         was, now = set(self._seen), set(offered)
         self._seen = offered
+        # SECTION 16.8 SENSOR 2 LIVES HERE: which ACTION preceded a change in what is offered is
+        # action identity, the interface's business. Noted on every call, no-change ones too,
+        # because the denominator is how often the predecessor was taken.
+        self.pre.note(after, sorted(now - was) if was else [], sorted(was - now) if was else [])
         if not was:
             return Capability()            # the first frame opens everything; that is not news
         opened = tuple("a way to act that was not there before" for _ in (now - was))

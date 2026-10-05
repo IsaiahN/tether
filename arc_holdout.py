@@ -311,7 +311,7 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
         # §16.1's precondition lattice, which was fed every step and read only by a conform
         # print -- and an instrument read only by a test is indistinguishable, from outside,
         # from one that does not exist.
-        "preconditions": ag.pre.report(),
+        "preconditions": ag.iface.pre.report(),
         "ties": ag.ties(),
         "members": ag.members(),
         "keys_carrying_two_colours": aff.report()["keys_carrying_two_colours"],
