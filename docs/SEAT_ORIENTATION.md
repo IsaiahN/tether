@@ -29,6 +29,35 @@ and still drift on direction. The reviewer supplied a six-point draft and asked 
 why; **two of the six points were wrong in a way that mattered**, and one of those two would
 have put a prohibited thing at the top of the first file a new session reads.
 
+### 0.00 AGENCY IS PARAMOUNT — THE FIRST THING, AND THE TEST FOR EVERY DECISION BELOW
+
+**Isaiah, 2026-09-23 (agent-first, not a mech suit), 2026-10-01 (the standing agency
+directive) and 2026-10-05.**
+
+**THE AGENT IS THE DRIVING FORCE BEHIND EVERY DECISION, NEVER A PILOT INSIDE MACHINERY THAT
+DECIDES FOR IT.** This is a **recursively self-improving** agent. It must be allowed to
+**GROW** and to **DECIDE THINGS ON ITS OWN**: composing its own programs in its grammar,
+minting and importing what it lacks, and deciding from its own evidence — **recording why**.
+
+> **OUR JOB IS TO SUPPLY THE MEANS AND NEVER THE MEANING.** The means are offers, evidence,
+> instruments, vocabulary, and the ground that judges. The meaning — which composition, which
+> goal, which cause, what to invent when nothing fits — is the agent's work and is refused to
+> us. That is this file's §0.5 test (*ANSWER or MEANS?*) applied to decisions rather than to
+> the library.
+
+**WHEN A QUESTION IS ABOUT HOW THE AGENT FUNCTIONS, THE DEFAULT ANSWER IS: LET THE AGENT
+DECIDE, AND RECORD ITS REASON.** Not *decide it carefully on the agent's behalf*.
+
+**EVERY STOP-GAP THAT DECIDES FOR IT IS TEMPORARY AND IS TO BE CONVERTED** — a numeric
+threshold, a hand-picked tie-break, a gate that refuses before the agent is consulted. They
+are allowed to exist; they are not allowed to be the destination. **The audit of 2026-10-05
+found the shape of the work: at all four of Isaiah's sites the machinery already WRITES the
+offer and nothing READS it, so the conversion is a READER, not a rebuild** (§7e).
+
+**THE EXCEPTIONS THAT STILL GO TO ISAIAH** are listed in `docs/ISAIAH_RULINGS.md`
+(2026-10-01): anything that would encode an answer; ARC boards and the board stop; provenance
+(learned vs carried); the corpus and its rulings; data sources and what is published.
+
 ### 0.0 THE DEADLINE, AND THE RECORD THIS FILE IS CHECKED AGAINST
 
 **THE ARC PRIZE 2026 FINAL SUBMISSION DEADLINE IS 2026-11-02** (Isaiah, 2026-10-05). It
@@ -329,7 +358,7 @@ Isaiah for what the figures already settle.
 
 | arm | state | why |
 |---|---|---|
-| `?ACTED` (`TETHER_ACTED_GUARD`) | **RULED ON 2026-10-05; THE FLIP IS HANDOVER ITEM 1 — `tether.py:156` STILL DEFAULTS OFF** | Isaiah's settled/unsettled ruling. **Do not assume it is already on: at `a59c77b` the env var still defaults to `"0"`.** Once flipped the env var stays as the A/B switch. Offered only where a press lands on an object, so the `default` world is untouched. |
+| `?ACTED` (`TETHER_ACTED_GUARD`) | **ON. FLIPPED 2026-10-05 — the default is now `"1"` and `tether._ACTED_GUARD` reads `True`** | Isaiah's settled/unsettled ruling, superseding the zero-failure bar. **The warrant is HIS RULING, not the per-seed test**: at the flip, all six world-seeds read INSUFFICIENT and only the pooled fallback passed (guarded 3/7 vs unguarded 0/2) — see the comment at the flag. **Do not cite "the condition was met" as though it was met per seed.** The env var stays as the A/B switch. Offered only where a press lands on an object, so the `default` world is untouched. |
 | `_INVENT` | **RETIRED** | "bootleg composition" |
 | downrating | **PARKED** | — |
 | `_RECIPE_DEDUP` | **OFF** (unset env var) | the `continue` never fires; the branch only records a cut. I built a whole causal story on it being on — check before reusing. |
@@ -431,6 +460,137 @@ stop.**
 (`F436`)** — at 30 cycles 1 of 10 ONE-remote slots clears the mint's floor; at 60, 10 of 10.
 Every ONE-remote null taken at 30 cycles is a reading of a slot with nothing to spend, not a
 reading of any mechanism.
+
+## 7e. WHAT CHANGED AFTER THE HANDOVER WAS FIRST COMMITTED — 2026-10-05, AND THE QUEUE
+
+**Everything below happened after `0246431`, so the earlier sections do not carry it.**
+
+### DONE AND COMMITTED
+
+    47e62b9  L1  THE FLOOR DRAW MOVED BELOW THE SEAM. `tether` no longer ranks action
+                 names: it asks `Interface.undirected` and gets a `Realisation` back.
+                 **Byte-identical BY CONSTRUCTION** -- 1,600 comparisons, 0 mismatches --
+                 because the EXISTING coprime sweep moved rather than being rewritten.
+    2f98779  L1  `Interface.moved_slots()` replaces the reach into `iface.table`. The
+                 action key is now UNREACHABLE rather than merely unread. No-op today:
+                 its one caller is behind `_DOWNRATE`, parked.
+    e80e780  L3  THE LAYER SEAT, `conform/layers.py`, the 20th. See below.
+    (this)   L1  **`?ACTED` FLIPPED ON** -- the default is `"1"`.
+
+### THE SEAM, AND WHAT "THE INTERCEPT" IS
+
+**Isaiah's "the intercept" is `interface.py`** -- `Intent` / `Realisation` / `Capability` /
+`Interface.realise`. The word appears nowhere in the repository; the thing was built at
+`04ab502` on 2026-09-28, **the day of his ruling**. Not eroded since: three commits touch
+both sides and all three cross in reasoning terms.
+
+**THE LAYER RULE IS PER LAYER, NOT PER NAME, AND THAT WAS ISAIAH'S CORRECTION OF MY FIX.**
+The old guard was a ruff ban naming `world.ACTIONS` -- the TOY world -- while `gridworld`
+was uncovered. **I proposed extending the list; he refused it:** *"my leg isn't in one room
+and I in another."* A rule that enumerates worlds protects only the worlds someone
+remembered. **So the REASONING side is enumerated and everything else is environment-side by
+default** -- a world nobody has written yet is already covered. Proof includes a world named
+nowhere in the rule; the real tree is green at 0 crossings.
+
+> **AND THE TRAP IN BUILDING IT: check TOP-LEVEL imports only.** Walking the whole AST flags
+> `detectors`/`observer` importing `reverse_engineer` -- **the ANSWER KEY** -- which reads as
+> a `KEY_BOUNDARY` breach and is not one: both are `__main__`-only. **An alarm nobody can
+> reproduce teaches people to ignore the alarm.**
+
+### AGENT-FIRST IS A WIRING JOB — THE AUDIT'S BEST FINDING
+
+**At all four of Isaiah's sites the offer is ALREADY WRITTEN** -- decomposed into causes,
+zero-initialised so a zero is legible -- **and nothing READS it.** `tether.py:5472` writes
+`chose` / `instead_of` / `because` / `status` and then says of itself:
+***"recorded as a CONFLICT I was in, not a decision I made: nothing read this before the
+choice."*** **The remedy is a READER, not a rebuild.**
+
+    (a) ATTEND   MEASURED AND BIMODAL. Agent-set focus (`focus_by_want`) is 30-43% of
+                 cycles on `default` (seeds 0,1,2) and **ZERO on all six `click_only` /
+                 `buttons` runs**. Pooled = 12.2% and describes NEITHER. So agency in
+                 attention exists where there is an avatar and is absent in exactly the
+                 worlds this week's chain is about.
+    (b) BELIEVE  FOUR binding sites -- `tether.py` 6581 (mint) 6785 (reuse) 7346 (rebind)
+                 7357 (refit). **Ties go to the FIRST candidate encountered**: every
+                 comparison is STRICT (`btotal < best[0]`), so an equal later candidate
+                 can never displace an earlier one.
+    (c)/(d)      one gate, `_goal_choice` gate 1. Its refusal is decomposed four ways
+                 (`too_short / flat / rose / qualified / arrived`) and nothing consumes it.
+
+**THE READER, AS THE REVIEWER DESIGNED IT ON PAPER:** one reader for all four sites, not
+four mechanisms. The agent ACCEPTS the computation's proposal or OVERRIDES it and records
+which and why. **Start byte-identical** -- accept unless the agent has a reason in its own
+evidence. **First override: when gate 1 refuses for a SUPPLY reason (`too_short`, `flat` --
+*there was nothing to refuse*), the agent may plan anyway as a WAGER**, a routine adopted on
+trial and judged by the ground. Bar reasons (`qualified`, `arrived`) stay.
+
+### THE OPEN TENSION — SETTLE THIS BEFORE DESIGNING THE READER
+
+**Two claims cannot both be true in the simple form.** The reviewer accepted that
+`enumerate_routines` is reached zero times *because gate 1 exits every cycle*. **But
+`focus_by_want` is 13 of 30 on `default`** -- if gate 1 exited every cycle everywhere, that
+would be zero. Either
+
+    (i)   gate 1 does NOT exit every cycle on `default`, and the zero-reach reading was
+          generalised from a click world (the reviewer's own guess, which he told me to
+          MEASURE rather than take), or
+    (ii)  `focus_by_want` is set by a route that does not pass through gate 1 -- in which
+          case two claims share one counter, which is `A6i`, and the counter gets split.
+
+**It gates the reader because the first override is aimed at gate 1.** If (ii), the override
+points at a site attention does not flow through -- `guard-the-site-that-carries-traffic`,
+one design step earlier.
+
+### KAGGLE — AND THE HEADLINE IS THAT THERE IS NO ENTRY POINT
+
+**`kernel.py` exists only as `conform/kernel.py`, a conformance linter.** No `agent_main`, no
+notebook, no harness-facing API. Against *complete and Kaggle-ready by 2026-10-12* the
+submission form is **NOT**, not PARTLY.
+
+    THE FORM, from ARC's own samples in `docs/example/`: subclass `agents.agent.Agent`;
+    exactly TWO abstract methods, `is_done(frames, latest)` and
+    `choose_action(frames, latest) -> GameAction`; `Agent.main()` OWNS the loop, capped by
+    `MAX_ACTIONS` (base 80, sample overrides to 1,000,000). Packaging: ONE file into
+    `agents/templates/`, wheels `--no-index`, gateway `http://gateway:8001/api/games`,
+    submission a parquet (`row_id, game_id, end_of_game, score`).
+
+**THE INVERSION IS CHEAPER THAN IT LOOKS:** `tether.py:7065` already exposes
+`step(action=None)` and `arc_holdout.py:181` drives it one step at a time, so
+`choose_action` has something to call. **Offline is the strongest column** -- every agent-path
+import is standard library, no network anywhere on it. **The real constraint is one-file
+packaging against ~70 modules.**
+
+**THE PRIOR WORKING NOTEBOOKS ARE NOT ON THIS MACHINE.** Seven sibling repos searched
+(Ouroboros, -Nexus, -Redux, tabula-rasa, ARC-AGI-3-Agents, Serendipity-Engine,
+Ariadnes-Mirror-MCP): **zero notebooks, zero builders.** The scored submissions (0.08-0.22)
+are real; they live on Kaggle under Isaiah's account. **The five known interface bugs remain
+a checklist:** `is_done` must signal WIN; `choose_action` must RETURN `RESET` on `NOT_PLAYED`
+and `GAME_OVER`, never twice consecutively; a click is `ACTION6` with `set_data(x, y)`;
+`arcengine` must not be bundled with the framework import; the notebook needs the `arc-agi`
+install cell.
+
+### THE QUEUE FOR THE NEXT SESSION, ORDERED
+
+    1  settle the (i)/(ii) tension -- per world per seed: gate 1 exits vs passes, and
+       whether every `focus_by_want` increment passes through gate 1
+    2  the three approved seam CONVERSIONS: `tether.py` 5694 (level-change diff -> an
+       upward Capability report), 3945 (coverage -> `Interface.capability()`), 4305
+       (**key on the `_intent` ALREADY in every trace row -- no new plumbing, F438**)
+    3  Kaggle a-e verdicts and the smallest step to an entry point
+    4  the seven-bond table: per bond, executable? in terms / guards / routines.
+       Measured so far: **`BONDS = 1`** (`tether.py:302`) -- terms are chains
+    5  THE READER, aimed at whichever site the settlement shows attention and planning
+       actually flow through
+    6  **ISAIAH'S, NOT MINE: `routine.py:533` builds `[Act(a) for a in actions]`, so
+       ROUTINE STEPS HOLD BARE ACTION NAMES** -- *store plans with their meaning, not raw
+       actions* (2026-09-28) breached a layer above the one audited. **Occasions today:
+       ZERO**, since adoption is 0 of 145. It goes live the moment adoption is fixed.
+
+**AND THE LESSON THE WHOLE DAY PAID FOR, WHICH IS THE ONE TO CARRY:** **five instructions
+were refuted by READING THE SITE BEFORE CHANGING IT** -- extend the ban list · route through
+`ELICIT` · "a uniform draw" · swap the pick at the call site · walk the whole AST. **Not one
+would have failed a test. Two would have passed a measurement written specifically to catch
+a regression. One would have accused the answer-key firewall of a breach it did not commit.**
 
 ## 8. THE BINDING CONSTRAINTS, UNCHANGED
 

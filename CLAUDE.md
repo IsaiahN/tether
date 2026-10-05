@@ -8,6 +8,17 @@ its own branch.
 
 ## START HERE — A FRESH SESSION READS THIS FIRST
 
+**AGENCY IS PARAMOUNT, AND IT COMES BEFORE EVERYTHING BELOW.** Isaiah, 2026-09-23,
+2026-10-01 and 2026-10-05. **The agent is the driving force behind every decision, never a
+pilot inside machinery that decides for it.** This is a RECURSIVELY SELF-IMPROVING agent: it
+must be allowed to **GROW** and to **DECIDE THINGS ON ITS OWN** — composing its own programs
+in its grammar, minting and importing what it lacks, and deciding from its own evidence while
+recording why. **Our job is to supply the MEANS — offers, evidence, and the ground that
+judges — and never the MEANING.** When a question is about how the agent FUNCTIONS, the
+default answer is *let the agent decide, and record its reason*. **Every stop-gap that decides
+for it is temporary and is to be converted.** The exceptions that still go to Isaiah are
+listed in `docs/ISAIAH_RULINGS.md`.
+
 **0. THE BIG PICTURE — THIS COMES BEFORE THE WEEK'S SPECIFICS.** Added 2026-10-05 at
 Isaiah's instruction, because the handover covered this week's work in depth and said
 almost nothing about *why it matters* — and a session can do this week's work well and

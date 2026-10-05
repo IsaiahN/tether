@@ -125,8 +125,20 @@ here in the same session it arrives, or the next search for it fails the same wa
 
 ## 2026-10-05
 
+- **AGENCY IS PARAMOUNT — restated and made the first entry of the record, 2026-10-05.**
+  **The agent is the driving force behind every decision, never a pilot inside machinery that
+  decides for it.** It is a recursively self-improving agent and must be allowed to **GROW**
+  and **DECIDE ON ITS OWN**: composing its own programs in its grammar, minting and importing
+  what it lacks, deciding from its own evidence and **recording why**. **We supply the MEANS —
+  offers, evidence, instruments, the ground that judges — and never the MEANING.** Default
+  answer on any question about how the agent functions: *let the agent decide, and record its
+  reason*. **Every stop-gap that decides for it is temporary and is to be converted.**
+  Continuous with 2026-09-23 (agent-first, not a mech suit) and 2026-10-01 (the standing
+  agency directive); the exceptions are that directive's list, above.
 - **`?ACTED` ON by default**, on the settled/unsettled principle (**supersedes the earlier
-  zero-failure bar**).
+  zero-failure bar**). **FLIPPED 2026-10-05**, `tether.py` default now `"1"`. **The warrant is
+  the ruling, not the per-seed test:** at the flip all six world-seeds read INSUFFICIENT and
+  only the pooled fallback passed (guarded 3/7 vs unguarded 0/2).
 - Before any context clear: **a code-level handover, updated instructions and memory, full
   copies for the reviewer, a big-picture section first, and an orientation test.**
 - **THE DEADLINE: the ARC Prize 2026 FINAL SUBMISSION DEADLINE is NOVEMBER 2, 2026.** It is in
