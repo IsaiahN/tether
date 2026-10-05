@@ -4398,7 +4398,7 @@ class Agent:
                 # never-recomputed from correctly-static from live-and-insensitive
                 counts=counts)
 
-    def _goal_choice(self, why: dict | None = None) -> str | None:
+    def _goal_choice(self, why: dict | None = None, book: bool = False) -> str | None:
         """M2 ITEM 3, THE SELECTOR. §13.4, quoted whole because the criterion is its wording:
 
         > *hold several goal hypotheses at once, express each as a scalar discrepancy that is
@@ -4487,6 +4487,11 @@ class Agent:
         # This is that book: persisted with the others, so *have I ever held a series long
         # enough for my own bar to matter* survives the attempt in which it is asked. **Nothing
         # reads it to decide anything, and `MIN_REPEAT` is not moved here.**
+        # **WRITTEN ONLY BY GATE 1, WHICH IS WHAT THE KEYS ARE NAMED FOR -- `F440`.** Up to
+        # four sites call this per cycle, so writing on every call counted CALLS x SLOTS
+        # across all of them under a `gate 1` label.
+        if not book:
+            return best[1] if best else None
         for k in ("too_short", "flat", "rose", "qualified"):
             if tally[k]:
                 _book_add(self.gamma.book, f"plan_gate_{k}", tally[k])
@@ -4996,7 +5001,7 @@ class Agent:
         # wrap it from outside to find out. Each now says which gate and why, in the shape
         # the four row-writing gates already use.
         gwhy: dict = {}
-        slot = self._goal_choice(why=gwhy)
+        slot = self._goal_choice(why=gwhy, book=True)
         if slot is None or slot not in before:
             # **THE REASON IS DERIVED FROM THE TALLY RATHER THAN ASSERTED, AND THE OLD STRING
             # WAS A FALSE CAUSAL STORY.** *No objective is confidently shrinking* reads as *I

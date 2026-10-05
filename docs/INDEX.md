@@ -55807,3 +55807,24 @@ the subsystem back. The orientation-test answers flagged it; the reviewer ruled 
 
 **Open, not ruled:** whether a carried library's invented atoms should still load. That is
 provenance (learned vs carried), so it is Isaiah's — asked in the channel, not decided here.
+
+#### F440 — **THE `plan_gate_*` BOOK KEYS ARE LABELLED "GATE 1" AND COUNTED EVERY CALLER — FIXED 2026-10-05**
+
+The book schema comments every `plan_gate_{too_short,flat,rose,qualified,no_hypothesis}` key
+as *gate 1*. They were written inside `_goal_choice` on **every call**, and a cycle calls it
+from up to four sites (attention, `choose`'s guard, gate 1 in `_mint_routine`, `_goal_split`).
+The four tallies also count SLOTS per call, not cycles. **So every reading of "gate 1's
+refusal decomposition" off the book was over every caller times every slot held.**
+
+    measured, click_only seed 0, 12 cycles, after the fix
+    _goal_choice calls, all sites   34
+    gate-1 calls                     5    (all with an empty _res)
+    book plan_gate_no_hypothesis     5    <- before the fix this key counted all 34
+
+**Fix: `_goal_choice(..., book=False)`, and only gate 1 passes `book=True`.** Nothing reads
+the book to decide anything, so the agent's behaviour is unchanged by construction.
+
+**WHAT IT RE-SCOPES:** `F430`'s *flat + rose 72-82% of refusals* and section 7e's decomposition
+were book readings. As RATIOS they are probably close (every caller in a cycle sees the same
+`_res`), but reweighted toward cycles with more callers. **As COUNTS they were never gate 1's.**
+Not re-measured here; flagged so the next reader does not quote them as gate-1 counts.
