@@ -108,8 +108,6 @@ class Drive:
         Deterministic in the cycle so a run is reproducible; no wall clock, no RNG state.
 
         `where` is the state it was drawn from, and it is what makes a trial a trial."""
-        if self.bored():
-            self.fires += 1
         # S6: THE STRIDE MUST BE COPRIME TO THE ACTION COUNT OR THE SWEEP IS NOT A SWEEP.
         # A fixed 7 visits every action in `n` cycles only when `gcd(7, n) == 1`. At seven
         # advertised actions it returns THE SAME ACTION EVERY CYCLE FOR THE WHOLE RUN, and
@@ -125,6 +123,22 @@ class Drive:
         stride = next(k for k in range(7, 7 + len(actions))
                       if math.gcd(k, len(actions)) == 1)
         pick = sorted(actions)[(cycle * stride + self._seed) % len(actions)]
+        return self.note_draw(pick, where)
+
+    def note_draw(self, pick: str, where: object = None) -> str:
+        """The BOOKKEEPING half of a draw, kept here while the SELECTION moved below the seam.
+
+        **THE SPLIT IS THE SEAM AND NOT A TIDY-UP.** Choosing among action NAMES is the
+        interface's (`Interface.undirected`); the curiosity counter and the trial record are
+        the AGENT'S OWN evidence about what it has tried, which is reasoning-side by right.
+
+        **AND IT IS WHY THE SELECTION COULD NOT SIMPLY BE REPLACED AT THE CALL SITE:** `choose`
+        did THREE things -- the `fires` increment when bored, the pick, and the trial record.
+        Swapping the pick alone would have dropped the other two silently, and no test reads
+        `fires`.
+        """
+        if self.bored():
+            self.fires += 1
         self.tried.setdefault(pick, set()).add(where)
         return pick
 

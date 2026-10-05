@@ -3631,7 +3631,7 @@ class Agent:
                 self.led.record(self.cycle, "PLAN", aim, "intent",
                                 reads=(f"{IFace.TOUCH} {aim}", _t.why))
             if act is None:
-                act = self.drive.choose(self.actions, self.cycle, _where(before))
+                act = self._undirected(before)
             return act, "probe"
         if self.drive.bored():
             # AND THE AIM IS CLEARED. `_s0_target` survives until `retarget`, so an ordinary
@@ -3679,7 +3679,7 @@ class Agent:
         if self._system0_active():
             target, why = self._contact_target(before)
             self._s0_target = target
-            act = self.drive.choose(self.actions, self.cycle, _where(before))
+            act = self._undirected(before)
             self._intent_now = None      # a bare draw means nothing; `None` is the reading
             # **THE AGENT SAYS `TOUCH`, AND THE MODALITY IS NOT ITS BUSINESS -- the plan's
             # 19.** This read `"ACTION6" if "ACTION6" in self.actions else self._toward(...)`:
@@ -5405,6 +5405,23 @@ class Agent:
         if tgt is NOT_RESOLVED or not isinstance(tgt, int) or tgt == before[slot]:
             return None
         return tgt
+
+    def _undirected(self, before: dict[str, int]) -> str | None:
+        """*Something, no preference* -- asked of the interface, which picks the button.
+
+        **THE SEAM, AT THE LAST SITE ON THE ACTING PATH THAT STILL CHOSE AMONG NAMES.** This
+        read `self.drive.choose(self.actions, ...)`: the reasoning side ranking action strings.
+        The SWEEP is unchanged and now lives in `Interface.undirected`; what the agent keeps is
+        its own trial record, via `note_draw`.
+
+        **BYTE-IDENTICAL BY CONSTRUCTION, NOT BY LUCK** -- same formula, same seed (0 at both
+        `Drive()` sites), same bookkeeping, same order. The refuter is therefore exact: any
+        difference in the per-action SEQUENCE on a fixed seed is a defect, not sampling.
+        """
+        r = self.iface.undirected(tuple(self.actions), self.cycle)
+        if r is None:
+            return None
+        return self.drive.note_draw(self._took(r), _where(before))
 
     def _took(self, r: Any, want: Any = None) -> str:
         """Accept a `Realisation`: keep its aim and its INTENT, return its action. **One door,

@@ -23,6 +23,7 @@ than promised.
 
 from __future__ import annotations
 
+import math
 import sys
 from collections import Counter
 from dataclasses import dataclass
@@ -222,6 +223,12 @@ class Realisation:
     coord: tuple[int, int] | None = None
     unmapped: bool = False        # taken to LEARN what it does, not because the table said so
     why: str = ""
+    # **THE MODE IS HERE BECAUSE THE SENTENCE CANNOT CARRY IT.** The floor draw and `ELICIT`
+    # are THE SAME WANT -- *let something become other than it is* -- and differ only in how
+    # the interface picks. A fifth intent would be one sentence under two names, which is the
+    # silent vocabulary extension the 2026-09-28 prime check exists to catch. So the
+    # distinction lives in the RECORD of what was done, never in what the agent said.
+    mode: str = ""                # "undirected" on the floor draw; empty on every other path
 
 
 @dataclass
@@ -253,6 +260,9 @@ class Interface:
 
     def __init__(self) -> None:
         self.table: dict[str, dict] = {}       # action -> what it was observed to do
+        # `probe.Drive`'s seed, which is `crc32(b"") & 0xFFFF == 0` at both construction sites
+        # in `tether`. Held here so the moved sweep is byte-identical rather than merely alike.
+        self._draw_seed = 0
         self._seen: tuple[str, ...] = ()       # last frame's advertised set, for capability
         self.audits = 0
         # slot -> how many audited presses it was PRESENT for. See `audit`.
@@ -605,6 +615,30 @@ class Interface:
 
 
     # ---- upward: what changed, in reasoning terms -------------------------------------
+
+    def undirected(self, offered: tuple[str, ...], cycle: int) -> Realisation | None:
+        """THE FLOOR DRAW, MOVED BELOW THE SEAM. The agent asks for *something, no preference*;
+        which button serves it is the interface's business and never the agent's.
+
+        **THE FORMULA IS `probe.Drive.choose`'s, UNCHANGED, AND THAT IS THE POINT.** It is NOT
+        a uniform random draw -- it is a DETERMINISTIC COPRIME-STRIDE SWEEP, and the
+        reproducibility is load-bearing (*no wall clock, no RNG state*). Replacing it with a
+        uniform draw would have had the same long-run frequencies and a different ORDER, which
+        is why the pre-registered frequency test could not have caught the substitution.
+
+        **S6 TRAVELS WITH IT:** the stride must be COPRIME to the action count or the sweep is
+        not a sweep -- a fixed 7 against seven advertised actions returns the same action every
+        cycle for the whole run, silently.
+
+        Returns `None` on an empty offer rather than raising: nothing to draw from is a reading,
+        not an error.
+        """
+        if not offered:
+            return None
+        stride = next(k for k in range(7, 7 + len(offered))
+                      if math.gcd(k, len(offered)) == 1)
+        pick = sorted(offered)[(cycle * stride + self._draw_seed) % len(offered)]
+        return Realisation(action=pick, mode="undirected", why="undirected")
 
     def capability(self, offered: tuple[str, ...]) -> Capability:
         """What the board opened or closed since the last frame, **named as affordance.**
