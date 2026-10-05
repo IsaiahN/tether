@@ -252,6 +252,12 @@ Google Drive folder `0APis9k-mU2gfUk9PVA`. Both directions.
   asks for an update, answer in one line with the real date.
 - **Drive collapses space-aligned columns.** Use explicit `|` separators in tables.
 - **Read back what you posted.** The write always succeeds; it does not mean it is right.
+- **CARRY A STEP THROUGH ONCE IT IS ORDERED. Do not wait for a reviewer doc to start or
+  finish something that needs no ruling.** Wait only where a GENUINE RULING is needed —
+  and then post the question and keep working on anything independent. **Today's stalls
+  were the listing defect above rather than this**, but the rule belongs beside the
+  protocol, because a broken channel and an unnecessary wait are indistinguishable from
+  the outside and the fix for one is not the fix for the other.
 
 ## 3. THE MISSION
 
@@ -401,7 +407,7 @@ stop.**
 | world | what it is | what it CAN test | what it CANNOT |
 |---|---|---|---|
 | `default` | movement, no positioned click | the loop end to end | **anything about `?ACTED`** — no press lands on an object, so the guard is never offered. This is why the flip must be byte-identical here. |
-| `click_only` | clicking recolours the object clicked | SELF-caused rules; the true rule binds as `inc?ACTED_SELF<o0>`, `left 0.0` | remote causes — there are none |
+| `click_only` | clicking recolours the object clicked | SELF-caused rules; the true rule binds as `inc ?ACTED_ON<the slot's own owner>`, `left 0.0` -- **NOT `ACTED_SELF`, which was collapsed into it** (section 4) | remote causes — there are none |
 | `buttons` | **Fixture C** — a button advances its PARTNER and leaves itself alone, so the effect is unambiguously remote | remote causes, the four-way cause split, everything in handover items 2–4 | — |
 | `remap_after` | the action mapping swaps mid-run | re-learning after a rule change | needs `cycles` — it raises without one |
 | the mode-switch fixture | a test, not a world (`test_gate.py:296`) | that Agency cannot see a mode switch and inverts the reading | it is not a habitat; you cannot run a panel on it |
@@ -419,7 +425,7 @@ nothing has been done about it.
 
 `conform/lint.py`'s **`CUE_BOUNDARY`** rule blocks the betting path from importing
 `_CUE_MODULES = {relations, observer, mapping, detectors, composer}`. **It is wrong on two
-independent axes, both verified 2026-10-22** (memory: `cue-boundary-scoped-by-module-not-input`):
+independent axes, both verified 2026-09-22** (memory: `cue-boundary-scoped-by-module-not-input`):
 
 1. **ITS ONLY STATED PREMISE WAS WITHDRAWN.** The rule cites `ARC_AGENT` §12.3 verbatim —
    *"reaching is the only evidence the composition system works"* — and **Isaiah superseded
@@ -455,7 +461,7 @@ withdrawal first, then measure the module-scope reads again before changing a li
                  action key is now UNREACHABLE rather than merely unread. No-op today:
                  its one caller is behind `_DOWNRATE`, parked.
     e80e780  L3  THE LAYER SEAT, `conform/layers.py`, the 20th. See below.
-    (this)   L1  **`?ACTED` FLIPPED ON** -- the default is `"1"`.
+    c01a5d1  L1  **`?ACTED` FLIPPED ON** -- the default is `"1"`.
 
 ### THE SEAM, AND WHAT "THE INTERCEPT" IS
 
@@ -608,6 +614,75 @@ routine item).
          then build.
        **Occasions today: ZERO**, since adoption is 0 of 145 -- so nothing is acting on the
        breach, and it goes live the moment adoption is fixed.
+
+### THE FEATURE WORK — ITEMS 7 ONWARD, WHICH THE OCTOBER 12 SPRINT DEPENDS ON
+
+**Appended 2026-10-05 at the reviewer's instruction, and the defect is worth naming: the
+six items above all came out of ONE DAY'S AUDIT, so the queue had quietly become that
+day's list.** Everything the handover-plan doc carried and section 7e did not is here.
+**Dependencies are stated per item; where there is none, it says so.**
+
+    7   THE PER-REFERENT OFFER FIX, then its two consequences, in this order:
+        (a) the fix itself -- no dependency
+        (b) the read of WHY PRESSES STEER AWAY FROM THE CAUSE -- needs (a)
+        (c) the exploration build against the 7-press line: failure records and the
+            per-slot rung -- needs (b), because what to explore FOR is what (b) finds
+        **AND THE CAUTION IS THIS FILE'S OWN SECTION 7: the offer fix was filed from
+        SEED 6, which is the n=1 trap named there.** A population selected by the defect
+        cannot diagnose the defect. **Re-measure on seeds 0, 1, 2 before building on it**
+        -- not a reason to drop the item, a reason not to inherit its scope.
+    8   `or` WIRED INTO THE MINT for TWO-CAUSE slots. No dependency on 7.
+        **The guard machinery EXISTS** -- `condition.py:158` parses it,
+        `_compound_guards` builds it, `routine._guard_excess` prices it -- so this is a
+        MINT-side wire and not a build. See the `or` entry above.
+    9   GOAL FORMATION IN CLICK WORLDS on the jigsaw paradigm, and SET-ASIDE GOALS
+        (section 7b: PAPER, no symbol in the tree). **Depends on items 1 and 5** -- click
+        worlds are exactly where `focus_by_want` reads ZERO, so this is the capability
+        the reader is being built to reach.
+    10  THE AGENCY RESET ON BELIEF WITHDRAWAL (the mode switch). Section 7b has it as
+        PAPER -- no `reset`/`withdraw` symbol in `instruments.py` -- and **its fixture
+        already exists**, `test_gate.py:296`. No dependency.
+    11  THE `CUE_BOUNDARY` RE-SCOPE (section 7d), then THE VOCABULARY BRIDGE to the
+        ~2,700 atoms. **The bridge needs the re-scope; the re-scope needs nothing.**
+        `KEY_BOUNDARY` does not move, and `mapping` stays blocked.
+    12  METAPROGRAMMING -- THE GENERATORS (section 0.5): the condition compiler, the bond
+        combinators, the recipe compiler, built LAZILY on demand. Two parts:
+        (a) the 2,638 PROSE CONDITIONS turned into precise groundings. **I draft them and
+            Isaiah rules ONLY THE UNCERTAIN ONES** -- his 2026-09-23 ruling, and the
+            division is the point: drafting is the seat's, adjudicating the doubtful ones
+            is his
+        (b) sorting library entries into PARTS vs AGENT FUNCTIONALITY (meaning, belief)
+        **Depends on 11**: generators over a vocabulary the agent cannot reach have
+        nothing to generate.
+    13  RANK-BASED REFERENT NAMING · IMPORTS IN THE GRAMMAR · OPERAND TRANSFER (section
+        7b: no `operand_transfer` symbol anywhere in the tree) · **`F408`, INTENT-GUARD
+        PRICING, which is OPEN**: a guarded term is strictly more specific than its
+        unguarded form whatever the guard, so the free ride is wrong in principle --
+        and repricing every guard broke 6 of 29 M2 checks. **It needs its own
+        pre-registration and has never had one.**
+    14  KAGGLE, in two parts, and only the second is gated:
+        (a) THE ENTRY-POINT BUILD -- an `Agent` subclass calling `tether.step`, one-file
+            packaging against ~70 modules, and the five known interface bugs.
+            **OFFLINE, needs no real board, so it may proceed EARLY** (Isaiah,
+            2026-10-05). Item 3 is its only predecessor.
+        (b) ONE INTEGRATION RUN against the real ARC harness. **RULED BY ISAIAH
+            2026-10-05 AND NO LONGER AWAITING HIM.** *"That can be allowed only after we
+            fix the issues with the agent and before it's Kaggle-ready."* So: **ALLOWED,
+            but ONLY AFTER the agent's issues in this queue are fixed, and as the LAST
+            STEP before declaring Kaggle-ready.** It goes at the END, after the feature
+            work, never earlier. **Its conditions bind: a RANDOM choice of board;
+            results used ONLY to confirm the agent runs end to end -- load, step, RESET
+            handling, WIN signalling, clicks, time budget; and NOTHING tuned toward any
+            board. The board stop otherwise stays live.**
+    15  HOUSEKEEPING: `3dembedding` and `temperature` commented out;
+        `probabilityDistribution` and `aboutness` removed. **CONFIRM each against the
+        tree before acting** -- this line is inherited and nobody has re-read it, which
+        is the standing question *is it actually reached* pointed at a to-do list.
+
+**NOTHING IN 7-15 IS STARTED THIS SESSION. Isaiah, 2026-10-05: all of it -- the feature
+items, the Kaggle entry-point build and the integration run -- happens AFTER the context
+clear, in the next session.** This session does the documentation fixes, the commit, the
+copies, the index and READY, and nothing else is built or measured.
 
 **AND THE LESSON THE WHOLE DAY PAID FOR, WHICH IS THE ONE TO CARRY:** **five instructions
 were refuted by READING THE SITE BEFORE CHANGING IT** -- extend the ban list · route through
