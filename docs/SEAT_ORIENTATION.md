@@ -19,6 +19,158 @@ and points here; this file is the long detail.
 
 ---
 
+## 0. THE BIG PICTURE — READ THIS BEFORE SECTION 1
+
+**Added 2026-10-05, second pass, at Isaiah's instruction relayed by the reviewer.** The
+first draft of this file covered the week's click-learning chain in depth and said almost
+nothing about **why any of it matters** — so a fresh session could do the week's work well
+and still drift on direction. The reviewer supplied a six-point draft and asked that it be
+**checked against the record rather than transcribed**. It was. §0.7 lists what changed and
+why; **two of the six points were wrong in a way that mattered**, and one of those two would
+have put a prohibited thing at the top of the first file a new session reads.
+
+### 0.1 THE GOAL
+
+Build the agent's reasoning and composition until it generalises across the public games
+and then, **ALONE, into the PRIVATE out-of-distribution set it has never seen** — with only
+its library and its own reasoning — **and can say HOW and WHY it acted.**
+
+Wins on the public 25 are not the deliverable. `CLAUDE.md`'s first rule: **the agent is the
+prize, winning is not** — *a black box that wins teaches nothing.* **A win produced by us is
+worth less than a loss the agent can explain.**
+
+### 0.2 THE ENGINE
+
+**One uniform per-step loop for every problem. No type branching.** perceive · bet · be
+wrong · mint · settle · promote · import. **Γ predicts explicitly**, so its model is
+readable; **the residual is the cause-and-effect signal**, and it is an explicit object;
+**a term mints only when it pays the bargain**, and minting is an inspectable event.
+
+**That legibility is the instrument, not a nicety.** It is the only reason triangulation is
+possible at all — Isaiah and the reviewer read the agent *through* predict → residual →
+mint. **A change that makes the agent better and its reasoning unreadable is a LOSS.**
+
+### 0.3 WHERE WE ARE IN THE SEQUENCE
+
+**ARC boards are STOPPED.** Not paused for convenience — stopped because the work was
+drifting toward building for those specific games, which is the one unforgivable failure in
+`CLAUDE.md` wearing a reasonable costume. **`gridworld.py` is Isaiah's named and only
+exception**, and the current job is to finish the agent there.
+
+**Then Phase 2:** human-gameplay priors harvested from retro-game walkthroughs, for the
+kinds of game the public set leaves out. **Stage 1 passed and is paused.** The data
+directory lives outside the repository, the games are aliased (`G01`, `A01`), and **no
+repository file carries licence commentary.**
+
+**If Phase 2 proves unviable:** ARC, then a Phase 3 that reverse-engineers the priors games
+require and simulates them on boards.
+
+**ARC REOPENS ONLY WHEN ISAIAH SAYS SO.** The reviewer states the conditions as *the agent
+complete, plus a randomised way to choose boards, plus a freeze, so that nobody builds
+toward particular boards.* **THAT IS THE REVIEWER'S STATEMENT AND I COULD NOT VERIFY THE
+RANDOMISED-SELECTION CLAUSE IN THE RECORD** — see §0.7(d). What IS in the record and binds
+regardless: **building toward a board is forbidden whether the freeze is on or off, and that
+prohibition never depended on the freeze.**
+
+### 0.4 WHY THE TEST WORLDS MATTER
+
+Each `gridworld` family stands in for a capability the agent **does not yet have** — not for
+itself, and not for its own number.
+
+| family | the capability it stands in for |
+|---|---|
+| `click_only`, `buttons` | **acting with NO AVATAR** — the player is outside the board and presses things; pressing one object changes another. The agent must learn *what my action causes* with nothing it can identify as itself |
+| `remap_after` | the controls changing underneath a belief the agent has already formed |
+| `default` | the baseline, and **it cannot test `?ACTED` at all** — no press lands on an object there, so the guard is never offered |
+
+**The point is never the family's number.** A capability that lifts one test world and
+transfers nowhere has done nothing; see §0.6.
+
+### 0.5 THE CONSTRAINTS THAT SHAPE EVERY CHOICE
+
+- **THE BUDGET.** The private test runs on a fixed time budget, so the library is
+  **FRONTLOADED** — roughly 2,700 atoms reachable — rather than searched from cold.
+  Measured: **gridworld today runs on 14 of them**, and the vocabulary bridge is open work.
+- **FRONTLOAD IS NOT ENCODING, and this is the mistake every seat here has made.** A
+  vocabulary is **what the agent can SAY**; the answer is the **composition** over it.
+  Handing the alphabet does not hand the sentence. **The test is one question: does this
+  hand the agent an ANSWER, or a MEANS?** A fold construct is a means; a solved board is an
+  answer.
+- **COMPOSITION IS INHERENT TO AGENCY.** Imports are rare, are for what cannot be composed,
+  and go **in the grammar**.
+- **NO DECISION MAY DEPEND ON A GAME'S IDENTITY.** The moment one does, transfer is
+  impossible and the whole claim is unfalsifiable.
+
+### 0.6 THE PRIORITY RULE
+
+**When choosing what to work on, prefer what moves the agent's GENERAL capability — one
+loop, legible, transferable — over what improves a number on one test world.**
+
+This week's chain matters because **"learn what my action causes, with no avatar" is a
+prerequisite for a whole class of games**, not because of the `buttons` world.
+
+**And the sharper form of the same rule, from `CLAUDE.md`:** *capability is a property of
+agent-and-habitat. An improvement that does not change CONTACT changes nothing, however much
+it improves.* **Ask of a change whether the agent can now reach something it could not** —
+not whether a number moved. Most work does not touch contact, and that is not a failure;
+only contact moves capability.
+
+### 0.7 WHAT I CHANGED IN THE REVIEWER'S DRAFT, AND WHY
+
+The instruction was to check each point against `THE_MISSION`, `CLAUDE.md` and the corpus,
+correct what was wrong, and say what changed. Five changes:
+
+**(a) `THE_MISSION_north_star.md` IS NOT IN THIS REPOSITORY, so point 1 could not be checked
+against it.** `CLAUDE.md`'s PROCTOR RULES open by naming three files *carried from
+`Ouroboros-Redux`* — `THE_MISSION_north_star.md`, `THE_ALIGNMENT.md`,
+`THE_TERMINAL_CONDITION.md` — and **none of the three is present.** Seven documents cite
+`THE_MISSION` by name. **A fresh session told to check something against it will hunt for a
+file that does not exist here.** The authority for §0.1 in THIS repository is `CLAUDE.md`'s
+own *THE JOB* and *THE TERMINAL CONDITION* sections, and that is what §0.1 is derived from.
+
+**(b) THE DRAFT'S CHARACTERISATION OF THE TWO GAME SETS IS REMOVED, AND THIS IS THE ONE THAT
+MATTERED.** The draft read: *the public set is a biased slice (mostly navigate and collect;
+the private set leans formal and rule-based).* **It is not in the record** — I searched for
+it and found no such characterisation — **and more importantly it is a SKILL MAP, which
+`CLAUDE.md` hard-rules:**
+
+> *The skill map is a reading, never an input. Which games need which skill is taken from
+> the ledger AFTERWARDS. **The moment it is available beforehand the mechanism has been
+> handed its answer** — `act` arrived knowing what each action does; a skill map would
+> arrive knowing what each game requires. Same failure, one level up.*
+
+**Putting a per-skill characterisation of the two sets at the top of the first file a new
+session reads is putting the skill map one step from being an input** — and it would arrive
+wearing the authority of an orientation. **The direction it was trying to express survives
+without it** (§0.1: generalise to a set we never see), and the fact that *does* bind is a
+fact about the harness rather than about skills: **Kaggle never shows us the games, one
+submission a day, a scalar back.**
+
+**(c) THE "JIGSAW" FRAMING IS REMOVED; "NO AVATAR" IS KEPT.** *The player is outside the
+board, working it like a jigsaw* returns **nothing** in the record. **"No avatar" is in the
+record repeatedly and is load-bearing** — including as the night's one recorded contact
+change — so §0.4 states the capability and drops the simile. A vivid image that is not in
+the record will be quoted back as if it were.
+
+**(d) THE ARC-REOPENING CONDITIONS ARE MARKED AS THE REVIEWER'S, NOT VERIFIED.** I could not
+find the *randomised way to choose boards* clause in `INDEX`. It is attributed in §0.3
+rather than asserted — the same convention used for corrections (d) and (e) in the first
+pass, where the column says which claims I verified from code and which are the reviewer's
+label.
+
+**(e) "PHASE 2" IS TWO DIFFERENT THINGS IN THE RECORD, AND THAT IS AN `A6i` COLLISION.**
+`INDEX` carries both *Phase 2 (held-out): arc-interactive's 249 games* and *Phase 2 (guide
+harvest): GameFAQs retro walkthroughs*. §0.3 means **the second**. `A6i` is this project's
+named unlintable failure — *two legitimate quantities under one word is well-formed code,
+well-formed docs and a well-formed measurement* — and the moment to record it is while
+nothing is wrong, which is now.
+
+**WHAT I DID NOT CHANGE:** points 2 and 6 are correct as drafted and are reproduced in
+substance above. The 2,700 figure and the measured 14 are both in the record and were
+checked.
+
+---
+
 ## 1. ROLES
 
 | who | what they are |

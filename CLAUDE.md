@@ -8,6 +8,37 @@ its own branch.
 
 ## START HERE — A FRESH SESSION READS THIS FIRST
 
+**0. THE BIG PICTURE — THIS COMES BEFORE THE WEEK'S SPECIFICS.** Added 2026-10-05 at
+Isaiah's instruction, because the handover covered this week's work in depth and said
+almost nothing about *why it matters* — and a session can do this week's work well and
+still drift on direction.
+
+- **THE GOAL.** The agent's reasoning and composition generalise across the public games
+  and then, **ALONE, into the PRIVATE out-of-distribution set it has never seen** — on
+  its library and its own reasoning — **and it can say HOW and WHY it acted.** Wins on
+  the public 25 are not the deliverable. **The agent is the prize. Winning is not.**
+- **THE ENGINE.** **One loop for every game, no type branching** — perceive · bet · be
+  wrong · mint · settle · promote · import. Γ predicts; the residual is the
+  cause-and-effect signal; a term mints only when it **pays**. **The legibility of
+  predict → residual → mint is what lets Isaiah and the reviewer read the agent at all —
+  never trade it for a number.**
+- **WHERE WE ARE IN THE SEQUENCE.** **ARC boards are STOPPED**, because the work was
+  drifting toward building for those specific games. Now: **finish the agent on
+  `gridworld`** — Isaiah's named and only exception to the stop. Then **Phase 2**, human
+  priors harvested from retro-game walkthroughs for the kinds of game the public set
+  leaves out (stage 1 passed, paused). **ARC reopens only when Isaiah says so.**
+- **THE CONSTRAINT THAT SHAPES EVERY CHOICE.** The private test runs on a fixed budget,
+  so the library is **FRONTLOADED** (~2,700 atoms; gridworld today reaches **14**)
+  rather than searched from cold. **Frontload is not encoding** — a vocabulary is what
+  the agent can SAY, and the answer is the **composition** over it. Composition is
+  inherent to agency; imports are rare and go in the grammar.
+- **THE PRIORITY RULE.** Prefer what moves the agent's **GENERAL** capability (one loop,
+  legible, transferable) over what improves a number on one test world. The test worlds
+  stand in for capabilities the agent lacks — `click_only` and `buttons` for **acting
+  with no avatar**, where pressing one thing changes another — **not for themselves.**
+  And **nothing the agent decides may depend on a game's identity**, or transfer is
+  impossible.
+
 **`docs/SEAT_ORIENTATION.md` is the orientation. Read it before touching code.** This
 block is the tight version; that file carries the detail and is kept current with it.
 
