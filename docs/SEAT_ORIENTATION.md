@@ -581,10 +581,19 @@ install cell.
        Measured so far: **`BONDS = 1`** (`tether.py:302`) -- terms are chains
     5  THE READER, aimed at whichever site the settlement shows attention and planning
        actually flow through
-    6  **ISAIAH'S, NOT MINE: `routine.py:533` builds `[Act(a) for a in actions]`, so
-       ROUTINE STEPS HOLD BARE ACTION NAMES** -- *store plans with their meaning, not raw
-       actions* (2026-09-28) breached a layer above the one audited. **Occasions today:
-       ZERO**, since adoption is 0 of 145. It goes live the moment adoption is fixed.
+    6  **THE ROUTINE ITEM -- ALREADY RULED, NOT AWAITING ISAIAH.** `routine.py:533` builds
+       `[Act(a) for a in actions]`, so ROUTINE STEPS HOLD BARE ACTION NAMES -- *store
+       intents and plans with their meaning, not raw actions* (Isaiah, 2026-09-28), which
+       **decides the direction**. **I filed this as "Isaiah's call" and was corrected: the
+       ruling exists, so what is open is the ORDER, not the question.** Depends on item 1,
+       because (a) cannot be read until the gate-1 tension is settled:
+         (a) read WHY adoption is 0 of 145 -- gate refuses vs never reached
+         (b) routines as INTENTS, on paper first: the existing verbs plus referents and the
+             undirected want, realised by the interface AT EXECUTION, priced BY KIND
+         (c) keep the bare-string branch for FIXTURES ONLY, with a production assertion
+         then build.
+       **Occasions today: ZERO**, since adoption is 0 of 145 -- so nothing is acting on the
+       breach, and it goes live the moment adoption is fixed.
 
 **AND THE LESSON THE WHOLE DAY PAID FOR, WHICH IS THE ONE TO CARRY:** **five instructions
 were refuted by READING THE SITE BEFORE CHANGING IT** -- extend the ban list · route through
