@@ -28,7 +28,7 @@ import instruments as I
 import interface as IFace
 import retrieval
 import routine as Rt
-from gamma import ACTED_ON, ACTED_SELF, IMPORTED, INVENTED, Ctx, Gamma, Standing, Term, accepts_type
+from gamma import ACTED_ON, ACTED_SELF, IMPORTED, Ctx, Gamma, Standing, Term, accepts_type
 from gamma import SAME_AS_TARGET as G_SAME
 from ledger import (
     ADVANCE,
@@ -374,26 +374,8 @@ _STREAM_WIDEN = bool(os.environ.get("TETHER_STREAM_WIDEN"))
 _HOLD = bool(os.environ.get("TETHER_HOLD"))
 _HOLD_SEED = os.environ.get("TETHER_HOLD_SEED", "0")
 
-# **RETIRED -- ISAIAH, 2026-10-04: "Inventing is just a bootleg composition. Fix composition
-# and imports and you won't need this crutch."** The arm stays OFF and the gate that was being
-# designed for it is CANCELLED. His earlier *on by default, composition is inherent to agency*
-# was about COMPOSITION, which is always on; it was never a licence for a lookup-table side
-# store. Records kept; the code comes out in a later commit once nothing reads it.
-#
-# **THE MEASUREMENTS THAT ARE THE REASON, click_only seed 3, 12 cycles (`F431.6`):**
-#   53 invented | 0 EVER PRICED in any candidate | 0 bound | only 7 distinct delta maps
-#   and all 7 are fragments of `inc`, WHICH IS ALREADY IN THE SEEDED ALPHABET OF 14.
-#   `inc` alone reproduces 4 of the 5 commonest; the fifth (`{3: 0}`) is `wrap . inc`, a
-#   composition the agent ALREADY ENUMERATES and priced at 13.7207 the same afternoon.
-#   Floor cost of the habit: alphabet 14 -> 67, naming floor 7.8138 -> 12.1749 bits, charged
-#   to EVERY term including the ones already winning.
-#
-# **AND IT WAS NOT A SHORTCUT -- it was the reviewer's 2026-09-22 ruling** (*no abstraction is
-# chosen; the agent's failure record is the content*), which PRE-REGISTERED its own failure
-# condition: *if that turns out to be too literal to ever match twice, THAT is a finding about
-# the derivation rule.* `F306` then measured the condition arriving and said so in its own
-# caveat -- *matching `3` twice is not evidence a concept transferred.*
-_INVENT = bool(os.environ.get("TETHER_INVENT"))
+# `_INVENT` / `_invent` REMOVED -- Isaiah 2026-10-04, *a bootleg composition*; RETIRED means
+# gone. Why, measured: `F431.6`. `conform/arms.py` `RETIRED` refuses the flag if it returns.
 
 # ARM M -- PERTURB THE STARVED SLOT, IN PARALLEL. SEAT-SIDE SWITCH, DEFAULT OFF.
 # `F269`'s table is the premise: on sk48 all seven probes fire in cycles 1-7 and all seventeen
@@ -2285,55 +2267,6 @@ class Agent:
                              guard_ref=term.guard_ref)
         got = self._value_of(term, slot, state, ctx)
         return None if got is NOT_RESOLVED else got % self.alphabet[slot]
-
-    def _invent(self, slot: str, licence: dict, hist: list) -> None:
-        """ITEM 7's CONSUMER. **The agent's own recorded abstention IS the atom's definition** --
-        the reviewer's ruling, 2026-09-22, and it deliberately authors no pattern language:
-        *no abstraction is chosen; the agent's failure record is the content.*
-
-        The delta it observed and could not compose, as a function: **the recorded before-value
-        maps to the recorded after-value, and everything else ABSTAINS.** Literal on purpose --
-        the reviewer: *if that turns out to be too literal to ever match twice, THAT is a
-        finding about the derivation rule, and it is the agent's own record that produced it.*
-
-        **THE NAME IS ARBITRARY AND CARRIES NO DESCRIPTION.** A name like `moved_right` would be
-        me naming the agent's concept for it; the identity is the recorded delta, and the atom
-        is found by its behaviour rather than read off its label. **`val -> val`, so it can be
-        composed from the start** -- and with an ordinary `Standing`, no head start.
-        """
-        obs = self._residual_obs(slot, self.gamma.library[self.bound.get(slot, IDN)], hist)
-        pairs = {}
-        for st, _a, v, _intent, _landed in obs:
-            was = st.get(slot)
-            if was is not None and v is not None and was != v:
-                pairs[was] = v
-        if not pairs:
-            return                      # nothing observed to invent FROM. Not a failure.
-        name = f"inv{len(self.gamma.invented)}_{self.cycle}"
-
-        frozen = dict(pairs)
-
-        def fn(v, _c):
-            # closed over, not a mutable default -- B006, and the map must not be
-            # reachable for edit from a call site either way
-            got = frozen.get(v)
-            return NOT_RESOLVED if got is None else got
-
-        lic = dict(licence)
-        # THE RECORDED DELTA TRAVELS WITH THE LICENCE. Reviewer, 2026-09-23, route 2: persist
-        # the observation and RE-INVENT on load, rather than writing the function. The pairs
-        # are DATA the agent recorded, so a library file carrying them is not a second producer
-        # of the vocabulary -- it is the same evidence that licensed the atom the first time.
-        # Keys are stringified because this round-trips through JSON.
-        lic["delta"] = {str(k): v for k, v in pairs.items()}
-        lic["observed"] = len(pairs)
-        lic["slot_type"] = self.slot_types.get(slot)
-        if self.gamma.invent(name, fn, "val", "val", lic):
-            self.led.record(self.cycle, "MINT", slot, "invent", term=name,
-                            origin=INVENTED, observed=len(pairs),
-                            verdict=licence.get("verdict"),
-                            note="the level below TRIED AND COULD NOT: composition abstained "
-                                 "with this verdict, and the recorded delta is the definition")
 
     def _standing(self, slot: str) -> None:
         """HELD AND CITED ARE TWO ROWS, not one. A candidate may be held -- bound, and
@@ -6536,8 +6469,6 @@ class Agent:
                                         "verdict": detail["verdict"],
                                         "units_then": stats.get("units", 0),
                                         "base_bits": round(base, 3)}
-                if _INVENT:
-                    self._invent(slot, self.abstained[slot], hist)
             self.led.record(self.cycle, "MINT", slot, "park", of=(slot,), **detail)
             return
 
@@ -6974,11 +6905,8 @@ class Agent:
             _d = len(term) if (term := self.gamma.library.get(name)) is not None else 0
             if _d:
                 _book_add(self.gamma.book, f"arrived_at_depth_{min(_d, 9)}")
-                # **DID INVENTION EVER PAY?** Isaiah names INVENT as the agent's own call, and
-                # the reviewer noted we built the path and never made WHEN a decision. Reading
-                # the site: `_invent`'s only guard is *nothing observed to invent from*, which
-                # is a CAPABILITY check -- **given a delta it invents unconditionally, so no
-                # discretion exists for anyone to exercise.**
+                # **DID INVENTION EVER PAY?** The in-run inventor is REMOVED; an invented atom
+                # can still arrive from a CARRIED library (`gamma.py` re-invents on load).
                 #
                 # **THIS IS THE EVIDENCE A DECISION WOULD NEED, NOT THE DECISION.** An invented
                 # atom that never reaches a settled term cost actions and bought nothing; one

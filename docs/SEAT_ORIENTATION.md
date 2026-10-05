@@ -175,7 +175,7 @@ transfers nowhere has done nothing; see §0.6.
   combinators are its interpreter.** This is the same ruling as *belief is a wager* from the
   other side — recipes carry conditional logic, so the agent programs its own subroutines
   without writing code. **That is the RSI.**
-  **MEASURED STATE, so nobody reads the above as done:** `tether.py:302` is **`BONDS = 1`**
+  **MEASURED STATE, so nobody reads the above as done:** **`BONDS = 1`** (`tether.py`, ~line 311 -- grep the symbol)
   — one of the seven bonds has a form in PREDICT, so **terms are chains**. **`or` exists in
   GUARDS** (`condition.py:158` parses it into `Bool("or", …)`; `_compound_guards` builds
   them) and in routines via guards. The generators are **not built**.
@@ -345,7 +345,7 @@ Isaiah for what the figures already settle.
 | arm | state | why |
 |---|---|---|
 | `?ACTED` (`TETHER_ACTED_GUARD`) | **ON. FLIPPED 2026-10-05 — the default is now `"1"` and `tether._ACTED_GUARD` reads `True`** | Isaiah's settled/unsettled ruling, superseding the zero-failure bar. **The warrant is HIS RULING, not the per-seed test**: at the flip, all six world-seeds read INSUFFICIENT and only the pooled fallback passed (guarded 3/7 vs unguarded 0/2) — see the comment at the flag. **Do not cite "the condition was met" as though it was met per seed.** The env var stays as the A/B switch. Offered only where a press lands on an object, so the `default` world is untouched. |
-| `_INVENT` | **RETIRED** | "bootleg composition" |
+| `_INVENT` | **REMOVED FROM THE TREE 2026-10-05** — flag, call site, `_invent` and the `conform/invent.py` seat | "bootleg composition"; RETIRED means gone. `conform/arms.py` `RETIRED` now refuses the flag if it is read anywhere. `gamma.invent` stays: a carried library re-invents on load |
 | downrating | **PARKED** | — |
 | `_RECIPE_DEDUP` | **OFF** (unset env var) | the `continue` never fires; the branch only records a cut. I built a whole causal story on it being on — check before reusing. |
 | the uninformed draw | **always uninformed** | safety property, not a performance choice |
@@ -378,8 +378,26 @@ Each of these cost a reported finding or a withdrawn claim.
   that does not differ across a panel built to differ is a failed reading, not a null.
 - **In-flight absence from `git log`** — a backgrounded commit is not a failed commit.
 
-More in `docs/INDEX.md`. **Do not revive the withdrawn hypotheses** listed at the bottom
-of `Seat HANDOVER — THE QUEUED WORK, CODE-LEVEL` in the Drive folder.
+More in `docs/INDEX.md`.
+
+### WITHDRAWN — DO NOT REVIVE
+
+Copied verbatim from the bottom of the Drive doc `Seat HANDOVER — THE QUEUED WORK, CODE-LEVEL`
+on 2026-10-05, at the reviewer's instruction, because that doc is now banner-marked SUPERSEDED
+and this list had no home in the repository.
+
+      * "condition.py has no Or"            FALSE. `Bool(op="and"|"or")` exists,
+                                            parser accepts `or` (condition.py:156),
+                                            `evaluate` is Kleene-correct.
+      * the n=1 seed-6 closed-gate mechanism as the PANEL's blocker
+                                            REAL for seed 6, wrong by 10x in scope.
+      * "the blocker is residual size"      base reaches 18.0; withdrawn.
+      * "9 of 10 adopt"                     0 of 10; the counter had no slot filter.
+      * "aiming is causally blind"          it is a BIAS, at half chance; the pooled
+                                            figure hid it.
+      * "`inc` explains most rows"          nine of ten slots are UNBOUND.
+      * the lock-in hypothesis              R is clean on 100% of late cycles on all
+                                            nine, and they still adopt nothing.
 
 ## 7b. THE OLDER BACKLOG — status as of a59c77b, so it is not lost
 
@@ -411,6 +429,12 @@ stop.**
 | `buttons` | **Fixture C** — a button advances its PARTNER and leaves itself alone, so the effect is unambiguously remote | remote causes, the four-way cause split, everything in handover items 2–4 | — |
 | `remap_after` | the action mapping swaps mid-run | re-learning after a rule change | needs `cycles` — it raises without one |
 | the mode-switch fixture | a test, not a world (`test_gate.py:296`) | that Agency cannot see a mode switch and inverts the reading | it is not a habitat; you cannot run a panel on it |
+
+**THE DRIVE HANDOVER'S ITEM-1 PRE-REGISTRATION IS SUPERSEDED HERE (reviewer, 2026-10-05).** It
+predicts the `click_only` true rule binds `inc ?ACTED_SELF<o0>`. **It binds `inc ?ACTED_ON<the
+slot's own owner>`** — `ACTED_SELF` was collapsed into it (section 4). The handover's banner
+vouches for it on *code sites, traps and pre-registrations*; **read that as code sites and traps
+only.** Its pre-registrations are superseded wherever this file states one.
 
 **SEEDS 0–2 ARE THE STANDARD PANEL.** **AND 30 CYCLES IS TOO SHORT FOR A REMOTE CAUSE
 (`F436`)** — at 30 cycles 1 of 10 ONE-remote slots clears the mint's floor; at 60, 10 of 10.
@@ -574,7 +598,7 @@ routine item).
 **`OR` — WHERE DISJUNCTION LIVES TODAY.** `OPERATORS.md` defines `∥` as **disjunction**:
 *either suffices; not both required*, with the test *remove one — does it still work?*
 
-    in TERMS      NO. `tether.py:302` is `BONDS = 1`: one of the seven bonds has a form in
+    in TERMS      NO. `BONDS = 1` (`tether.py`, ~311): one of the seven bonds has a form in
                   PREDICT, so **terms are chains**. The price is general (`log2(|bonds|)`),
                   the implementation is one.
     in GUARDS     YES, and it is built. `condition.py:158` parses `or` into
@@ -598,7 +622,7 @@ routine item).
        (**key on the `_intent` ALREADY in every trace row -- no new plumbing, F438**)
     3  Kaggle a-e verdicts and the smallest step to an entry point
     4  the seven-bond table: per bond, executable? in terms / guards / routines.
-       Measured so far: **`BONDS = 1`** (`tether.py:302`) -- terms are chains
+       Measured so far: **`BONDS = 1`** (`tether.py`, ~311) -- terms are chains
     5  THE READER, aimed at whichever site the settlement shows attention and planning
        actually flow through
     6  **THE ROUTINE ITEM -- ALREADY RULED, NOT AWAITING ISAIAH.** `routine.py:533` builds

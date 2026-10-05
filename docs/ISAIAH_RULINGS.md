@@ -167,3 +167,30 @@ here in the same session it arrives, or the next search for it fails the same wa
   memory or from citations.** They enter as **CORPUS** — read-only under the edit-boundary
   rule, annotated in `INDEX.md`, never edited. Done 2026-10-05; see `docs/` and the
   edit-boundary table in `CLAUDE.md`.
+- **THE AUTHORITY ORDER — set by the reviewer at Isaiah's request, 2026-10-05.**
+  1. **ISAIAH'S RECORDED RULINGS** (this file) set direction.
+  2. **THE CORPUS IS METALAW** (his 2026-09-25 ruling): read it first, derive design forks from
+     it, in its own order — **`THE_DIALOGUES` → `THE_MARBLE` → `THE_DESCENT` → `THE_ATLAS` →
+     `OUROBOROS_CONSTITUTION_v8`, all under `THE_ALIGNMENT`.** Where a ruling is silent, the
+     corpus decides. **A ruling and the corpus that seem to conflict are a REAL conflict and go
+     to Isaiah**, since both are his.
+  3. **THE REVIEWER'S RULINGS** implement within (1) and (2).
+  4. **PRIOR SEATS' notes and memory are the weakest class** — verify before relying.
+
+  **Unrecorded, momentary preference from anyone does not outrank the corpus** (`CLAUDE.md`).
+  Isaiah's framing: *the corpus helps, but the general pattern of what is needed at this
+  abstracted level is carried by the plan.*
+
+  **FIVE OF THE SIX ARE NOT IN THIS REPOSITORY** — only `THE_ALIGNMENT` is (`docs/`). Located
+  2026-10-05 at `Ouroboros-Redux/docs/ouroboros_redux_complete/project_docs/corpus/`, with a
+  byte-identical copy in `working_tree/corpus_upload/`. That directory's `THE_ALIGNMENT.md`
+  hashes identically to ours (`e0508bbf6b3c5ab6`), so it is the same source.
+
+      THE_DIALOGUES.md              36,587 B   sha256[:16] f8961ca3208bfa34
+      THE_MARBLE.md                 31,949 B               5a4268cd7f0f8ed9
+      THE_DESCENT.md                88,244 B               5c2dadea8df37ee7
+      THE_ATLAS.md                  59,159 B               7b85ea6d5f23e4cd
+      OUROBOROS_CONSTITUTION_v8.md 237,383 B               8fc59ebe643ec462
+
+  **Not copied in: what enters the corpus is Isaiah's** (the precedent is his own 2026-10-05
+  ruling for the three). Asked in the channel. Until then they are read in place, read-only.

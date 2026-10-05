@@ -55786,3 +55786,24 @@ being *lucky in its sample* rather than the rule being complete.
 > WRONG ABOUT A SLOT WITH ONE CAUSE.** A scorer that cannot express *half* will report half as
 > whichever end it is nearer, and it reported both ends on consecutive readings. **The fix is
 > the cause SET, not a better threshold** — which is exactly what the `Or` bond is for.
+
+#### F439 — **`_INVENT` REMOVED FROM THE TREE, 2026-10-05 — RETIRED MEANS GONE, NOT OFF**
+
+Isaiah retired it 2026-10-04 (*a bootleg composition*); the reasons are `F431.6` and stay there.
+**For a day the ruling held only at runtime:** the flag (`TETHER_INVENT`), the call in `mint`'s
+park branch and `Agent._invent` were all still in `tether.py`, and setting one env var brought
+the subsystem back. The orientation-test answers flagged it; the reviewer ruled removal.
+
+    removed    `_INVENT`, its call site, `Agent._invent`, the `INVENTED` import in tether.py,
+               and `conform/invent.py` -- an exercise seat already UNWIRED from check.py,
+               which would have crashed on the missing symbol the next time anyone ran it
+    kept       `gamma.invent` and `gamma.invented`: `gamma.py`'s library load still RE-INVENTS
+               a carried atom from its recorded delta, so a library saved before today can
+               still bring invented atoms in. The arrival counter
+               `arrived_using_an_invented_atom` reads that and stays
+    the guard  `conform/arms.py` `RETIRED` now refuses the flag being READ ANYWHERE or holding a
+               registry row -- previously it refused only the flag being ON. Its failure path
+               had no selftest; case `E retired read` and its control were added and pass
+
+**Open, not ruled:** whether a carried library's invented atoms should still load. That is
+provenance (learned vs carried), so it is Isaiah's — asked in the channel, not decided here.

@@ -120,8 +120,9 @@ def _self_test(src: str) -> list[str]:
     differently: a short unpack CRASHES and a starred one returns a WRONG VALUE."""
     out = []
     for name, hurt in (
-        ("short", src.replace("        for st, _a, v, _intent, _landed in obs:",
-                              "        for st, _a, v in obs:", 1)),
+        # anchored on a live unpack; the first anchor sat in `_invent`, removed 2026-10-05 (F439)
+        ("short", src.replace("        for state, action, actual, intent, landed in hist:",
+                              "        for state, action, actual in hist:", 1)),
         ("starred", src.replace("        for st, _a, _v, _intent, _landed in robs:",
                                 "        for st, _a, _v, *_ in robs:", 1)),
     ):
