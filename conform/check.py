@@ -103,6 +103,14 @@ STAGES = (
     ("arms", [str(PY), str(HERE / "arms.py")],
      "an arm entered without a row, a row went stale, or half a declared pair is on",
      HERE / "arms.py"),
+    # THE LAYER SEAT -- Isaiah, 2026-10-05: *"my leg isn't in one room and I in another."*
+    # The seam was enforced by a ruff ban that NAMED `world.ACTIONS` and nothing else, so
+    # `gridworld` -- the world all of this week's work ran in -- was uncovered. Extending the
+    # name list would have been the same defect a third time; this is per LAYER, so a world
+    # nobody has written yet is covered because nobody has to list it.
+    ("layers", [str(PY), str(HERE / "layers.py")],
+     "the agent imported a world directly instead of reaching it through the Env contract",
+     HERE / "layers.py"),
     # THE WIRING SEAT, AND IT WAS THE ONLY CHECK IN THIS FOLDER THAT NOTHING RAN. Its own
     # docstring says it was made "a check that fires rather than a census that is run" -- and
     # then it was never wired, which is the exact class it exists to catch. It was RED when

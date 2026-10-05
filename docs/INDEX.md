@@ -55541,6 +55541,59 @@ NONE across all 20 runs, and `units()` iterates `settled_terms`, a `@property` c
 from `is_settled`, so it cannot.
 
 
+### F437 — **THE FOCUS SEAT REFUSED A COMMIT FOR THE FIRST TIME SINCE INSTALLATION, AND ITS ESCALATION PATH WAS USED ONCE. THE FILE SAID THIS WAS THE ONE THING NOBODY KNEW ABOUT IT**
+
+`CLAUDE.md`'s ground-focus section, written about this seat: *"when it is rebuilt, **THE
+FAILURE PATH MUST BE EXERCISED**, because a guard whose failure path is never exercised is
+indistinguishable from one that cannot fail, **WHICH IS HOW THIS SEAT HAS BEEN GREEN SINCE
+INSTALLATION**."*
+
+**IT IS NO LONGER INDISTINGUISHABLE.** At streak 5 of 5 the `commit-msg` hook refused an L3
+commit — **after** the 19 seats rather than instead of them, naming both exits:
+
+    FOCUS: 5 commits off the agent (L2/L3) since the last L1, and the ground is unchanged
+    at the binding-starvation break. ... Either move this commit to L1 -- the agent: what
+    it perceives, binds, composes, does -- or escalate to the reviewer through the workbook
+    and write 'escalated' in the msg.          [exited with code 1]
+
+**THE REFUSAL WAS SOUGHT, NOT SUFFERED.** The commit was attempted deliberately rather than
+held pre-emptively: a refusal predicted and then avoided leaves the file's own complaint
+standing. **One of that section's two open criticisms is now answered with a case**; the
+other — that the seat's CATEGORY counts off-agent commits rather than *work that does not
+change what the agent can do* — is untouched.
+
+**AND THE ESCALATION EXIT WAS USED ONCE, AT `7fee3c6`**, on a ground the seat could not have
+weighed: **holding collided with a scheduled context clear, because the uncommitted files
+WERE the orientation a fresh session is told to re-orient from.** At `fbf64c0` that session
+would have read two claims the reviewer had withdrawn that morning and no deadline. Reviewer
+approved; reason recorded in the message; `L1` at `47e62b9` reset the streak to 0 immediately
+after.
+
+> **THE GENERAL FORM, AND IT IS WHY THE EXIT EXISTS:** the seat measures DRIFT, and drift is
+> a property of a sequence. **A single commit can be off-agent and load-bearing**, and the
+> gate cannot tell. *It forces a confrontation, not a ban* — and the confrontation is the
+> product, not the commit.
+
+---
+
+### F438 — **`_intent` WAS RECORDED ON EVERY TRACE ROW AND READ BY NOTHING. THE SEAM REPAIR IT UNBLOCKS NEEDS NO NEW PLUMBING**
+
+`tether.py:4305` buckets the trace BY ACTION NAME to read a per-action effect —
+`for a in self.actions: ... if act == a` — which is the reasoning side comparing action
+names, the thing Isaiah's 2026-09-28 ruling forbids. The rows are:
+
+    for bef, act, aft, _intent, _landed in self.trace
+
+**THE INTENT IS ALREADY IN THE ROW, ALREADY UNDERSCORE-PREFIXED, AND ALREADY UNUSED.** So the
+conversion from action-keyed to intent-keyed is a change of key and nothing else: no new
+field, no new recording, no migration. **The data has been there since intents were
+recorded.**
+
+**It is the value-exists-but-does-not-cross shape this record keeps catching**, and the
+unusual half is the direction: normally the missing value has to be built. Here the build
+already happened and the consumer never arrived. **Filed before the conversion rather than
+after, so the next reader does not re-derive it.**
+
 ### F436 — **THE 30-CYCLE PANEL IS TOO SHORT FOR A REMOTE CAUSE, AND EVERY NULL READ ON IT TONIGHT WAS A BUDGET ARTEFACT. AT 60 CYCLES: 1 OF 10 → 10 OF 10**
 
 **THE PANEL PROPERTY, RECORDED AT THE REVIEWER'S INSTRUCTION SO IT IS NOT RE-DERIVED.** A
