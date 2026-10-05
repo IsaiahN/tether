@@ -91,8 +91,13 @@ class Drive:
         # anchor: an action earns `inert` at TWO distinct states, never one. One state
         # cannot separate a dead action from a positional artefact; two is the smallest
         # number that can. Not tuned -- the smallest with the property.
-        earned = sum(1 for seen in self.tried.values() if len(seen) > 1)
-        return self.n > 0 and self.misses == 0 and earned >= n_actions
+        return self.n > 0 and self.misses == 0 and self.covered(n_actions)
+
+    def covered(self, n_actions: int) -> bool:
+        """As many actions tried from >= 2 distinct states as are on offer. A COUNT, so the
+        reasoning side asks it without holding or comparing action names (the seam ruling,
+        2026-10-05: the count is the agent's, the names are not)."""
+        return sum(1 for seen in self.tried.values() if len(seen) > 1) >= n_actions
 
     def trials(self) -> dict[str, int]:
         """How many distinct states each action was drawn from -- the evidence behind

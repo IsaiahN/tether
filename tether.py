@@ -3884,7 +3884,7 @@ class Agent:
         The old test was coverage alone -- every surfaced action tried at >=2 distinct states,
         probe.py's `never_live` anchor. That says nothing about whether the agent has found out
         what touches what, which is the thing System 0 is now for."""
-        if any(len(self.drive.tried.get(a, ())) < 2 for a in self.actions):
+        if not self.drive.covered(len(self.actions)):
             return True
         return bool([k for k in self._contact_keys(self.env.observe())
                      if k not in self._contact_seen])
