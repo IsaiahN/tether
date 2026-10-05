@@ -55541,6 +55541,91 @@ NONE across all 20 runs, and `units()` iterates `settled_terms`, a `@property` c
 from `is_settled`, so it cannot.
 
 
+### F436 — **THE 30-CYCLE PANEL IS TOO SHORT FOR A REMOTE CAUSE, AND EVERY NULL READ ON IT TONIGHT WAS A BUDGET ARTEFACT. AT 60 CYCLES: 1 OF 10 → 10 OF 10**
+
+**THE PANEL PROPERTY, RECORDED AT THE REVIEWER'S INSTRUCTION SO IT IS NOT RE-DERIVED.** A
+gridworld `buttons` seed wires a chain `{a: b, b: c}`, which splits all six colour slots four
+ways — and the split is derived from the WRITE SITE (`gridworld.py:689`, `who = buttons.get(i,
+i)`), never from the button map, which is what made an earlier scorer read a two-cause slot as
+right-or-wrong with no way to say HALF:
+
+    DEAD (0 causes)   the chain HEAD. Nothing advances it; it never changes
+    ONE-remote        the chain MIDDLE. Advances ONLY when the head is clicked
+    TWO causes        the chain TAIL. Advances on its own click AND on the middle's
+    ONE-self          the three objects off the chain
+
+**A ONE-REMOTE SLOT MOVES ONLY WHEN ONE SPECIFIC OTHER OBJECT IS PRESSED, AND PRESSES ARE
+UNIFORM OVER THE SIX.** Measured, 300 realised presses over 10 seeds × 30 cycles: `draw` lands
+on a head 13.7% of the time, `probe` 15.9%, `system0` 17.1% — **against a 16.7% uninformed
+baseline, so all three are at chance and none is above it.** Uniform over 6 objects for 30
+cycles is 5 presses each; the heads got 2, 2, 2, 3, 3, 3, 3, 4, 4 and 21.
+
+    at 30 cycles    ONE-remote slots clearing the 7.814 floor    1 of 10
+    at 60 cycles    the same slots, same seeds, same arm        10 of 10
+                    ACTED guard ever offered                    10 of 10
+                    a guarded term adopted ON THAT SLOT           0 of 10
+
+**THE LAST ROW READ `9 of 10` FOR TWENTY MINUTES AND IS CORRECTED IN PLACE RATHER THAN BELOW,
+because this row is what a reader consults.** The counter was `if term.guard_ref:
+adopted.append(...)` with **no slot restriction**, printed under the heading *guarded
+adoptions on these slots* — so it counted guarded adoptions ANYWHERE on the board. **A
+column heading claimed a population the code did not enforce**, which is the same defect as
+printing an ACCEPTANCE count under a MINTING heading, committed twice in one night and both
+times in a label rather than in a computation.
+
+**SO EVERY ONE-REMOTE NULL TAKEN AT 30 CYCLES IS A READING OF A SLOT WITH NOTHING TO SPEND,
+AND NOT A READING OF ANY MECHANISM.** `mint` returns before enumerating a single candidate
+when `base <= floor`, so the counters read zero exactly as they would for a broken bargain.
+
+#### F436.1 — **AND THE WORSE COST: THE SURVIVING SEED BECAME THE SAMPLE, SO A MECHANISM WAS DIAGNOSED FROM A POPULATION THE DEFECT HAD SELECTED**
+
+At 30 cycles seed 6 was the ONLY seed whose ONE-remote slot reached the pricing site at all —
+21 head presses against everyone else's 2–4. It was therefore the only seed where anything
+about the guard was visible, and a closed-gate mechanism (`tether.py:5819`, the offer test
+asking whether landing on the slot's OWN object is constant across R) was diagnosed from it
+and written up as explaining the whole window.
+
+**AT 60 CYCLES THAT GATE IS OPEN ON EVERY CALL ON NINE SEEDS — 1122/1122, 100%, not 99% — AND
+SEED 6 SITS AT 132/3300, 4%.** The mechanism is real and its SCOPE was wrong by a factor of
+ten.
+
+> **A POPULATION SELECTED BY THE DEFECT CANNOT DIAGNOSE THE DEFECT**, and the tell is not
+> available at the time: the survivor presents as *the one case with enough signal to read*,
+> which is indistinguishable from *the one case worth reading*. The standing rule already
+> names the shape — *an outlier is a broken instrument until proven* — and this is its
+> inverse, where the outlier is the only instrument and the rest of the panel is silent.
+
+**AND THE SURVIVOR IS NOT A NUISANCE CASE: it is the seed whose cause was explored BEST**, and
+the only one that learns nothing. Base 38.0 at 60 cycles against everyone else's 10.0–12.0.
+#### F436.2 — **ANSWERED, AND IT IS THE CLEAN OUTCOME: THE SEPARATOR IS PERFECT FOR THE HEAD AND IS NEVER ASKED ABOUT IT**
+
+Two candidate defects were pre-registered and only one could fire. **ASKED OF THE WRONG
+OBJECT** — the test is right and points at the wrong referent — against **TOO STRICT UNDER
+EVIDENCE** — 21 head presses put rows in R that break constancy for every referent, so a
+per-referent version would inherit the fault. Recomputed per referent at the offer site,
+60 cycles:
+
+    seed 6   referent SELF (o1)    passes   2 of 50     4.0%
+             referent HEAD (o0)    passes  50 of 50   100.0%
+    seed 0   referent SELF (o1)    passes  17 of 17   100.0%   (control)
+             referent HEAD (o4)    passes  17 of 17   100.0%
+
+**THE SEPARATOR IS PERFECT FOR THE HEAD ON EVERY CYCLE OF SEED 6** — `0 of 18` residual rows
+landed on `o0` against `40 of 58` outside it, which is total separation, and it is exactly
+right: `inc` is wrong precisely on the rows where `o0` was NOT pressed. The test reads
+`FALSE` only because it is asked about `o1`, and one `FALSE` withholds the whole guard
+family including the referent it would have passed on.
+
+> **SO RICH EVIDENCE DOES NOT BREAK THE SEPARATOR — IT BREAKS IT *FOR SELF*, AND SELF IS THE
+> ONLY THING IT IS ASKED ABOUT.** The alternative did not fire, which is what makes this a
+> reading rather than a preference.
+
+**AND IT DOES NOT EXPLAIN THE OTHER NINE, WHICH IS THE PART TO CARRY FORWARD.** Seed 0 passes
+on both referents, the gate is open on 100% of late cycles across all nine, the floor is
+cleared — **and 0 of 10 adopt.** The offer condition is seed 6's blocker and is not the
+panel's; whatever refuses the nine sits downstream of enumeration and is unlocated.
+
+
 ### F435 — **THE GUARD CARRIES ITS OWN REFERENT: `?ACTED_ON<x>`. THE AGENT CAN NOW SAY "THIS CHANGES WHEN THAT OTHER THING IS PRESSED" — A SENTENCE THAT WAS INEXPRESSIBLE AT ANY PRICE**
 
 **THE GAP WAS NOT A MISSING GUARD, IT WAS A DOUBLY-BOOKED OPERAND.** `binds = operand_binds
