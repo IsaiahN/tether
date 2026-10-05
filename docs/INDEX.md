@@ -55481,3 +55481,61 @@ and blames by WHO HOLDS THE SLOT WHEN THE CHECK RUNS rather than by who made the
 **FIX RULED (reviewer, 2026-10-04): attribution at the root — each prediction records WHICH
 TERM MADE IT, and every judgement reads the maker.** *Provenance applied to evidence: the rule
 that we must be able to prove where everything came from covers who is credited and blamed.*
+
+
+### F434 — **THE `?ACTED` BUYING MEASURE, BOTH TAKES SIDE BY SIDE. THE SUSPENSION WAS RIGHT AND THE ARM STILL DOES NOT CLEAR THE BAR — AND THE ONE REMAINING FAILURE IS THE TRIAL WORKING**
+
+WORLD `gridworld` families `click_only` and `buttons`, seeds 0–9, 30 cycles, ARMS ON
+`_ACTED_GUARD` (+ `_AIMED_CURIOSITY, _BARGAIN_FIT, _CARRY_CANDIDATE, _TALLY`). Per world,
+within board, **never pooled across worlds.** Same script, same pre-registration, same
+thresholds — **the pass rule was not touched between the takes**, because adjusting a test
+between a failing run and its re-take is how a result gets manufactured.
+
+    world       kind        adopted settled FAILED on trial | SUSPENDED TAKE (ffe446a)
+    click_only  GUARDED          10      10      0        0 | 11 / 8 / 7  = 0.636
+    click_only  unguarded         0       -      -        - |  2 / 0 / 0
+    buttons     GUARDED           7       7      1        0 |  7 / 4 / 2  = 0.286
+    buttons     unguarded         0       -      -        - |  1 / 0 / 0
+
+**THE THREE DEFECTS THAT SEPARATE THE TWO COLUMNS**, each found by fixing the one above it:
+
+    BLIND JUDGE      `_predict` passed `landed=None`, so a bound `?ACTED_SELF` term was
+                     judged as IDENTITY -- predicting *no change* against a colour that
+                     increments (`2ec75d9`)
+    MISATTRIBUTION   `perceive(res)` -> `route` BINDS -> `settle(res)`: a term bound
+                     mid-step was judged on a residual computed BEFORE it was bound, and
+                     the residual that JUSTIFIED a binding was re-used as evidence against
+                     it (`9cc0739`)
+    GLOBAL REFUTATION  A5 made settling per-slot and left `refute(name)` with no slot, so
+                     a term right on `o0` lost its standing there for failing on `o1`
+                     (`637e353`)
+
+**THE VERDICT IS UNCHANGED AND IS NOT RE-READ AFTER THE FACT: `?ACTED` STAYS DEFAULT-OFF.**
+The rule required zero held-out failures, or no worse a share than unguarded where those
+exist. `buttons` has one, **and the comparator is EMPTY — unguarded adoptions fell from 2 and
+1 to ZERO on both worlds**, so the fallback clause has lost its population.
+
+#### F434.1 — **THE ONE REMAINING FAILURE IS `?ACTED_SELF` ON A WIRED SLOT, WHICH IS THE WRONG FORM OF THE GUARD AND NOT A FAULT IN THE MECHANISM**
+
+`buttons` seed 8 wiring is `{3: 0, 0: 1}` — clicking `o3` advances `o0`, clicking `o0`
+advances `o1`. The refuted term is `inc?ACTED_SELF` on **`o1.colour`**, and **`o1` is NOT a
+button but IS `o0`'s PARTNER**: its colour advances when you click `o0` and never when you
+click `o1`. **SELF is wrong there BY CONSTRUCTION**, and the generator says so at its own
+site — *"a button advances its PARTNER and leaves itself alone, so the effect is
+unambiguously remote"* (`gridworld.py:686`).
+
+> **SO THE TRIAL CAUGHT THE WRONG FORM OF THE GUARD, WHICH IS THE TRIAL WORKING. AND IT MEANS
+> `buttons` CANNOT BE READ FAIRLY ON THIS MEASURE UNTIL THE OTHER/OPERAND FORM EXISTS** — on a
+> wired slot a SELF failure conflates *this guard FORM is wrong here* with *guards buy terms
+> that predict worse*, and only the second is what the measure is for.
+
+**AND THE RESULT THAT LOOKS BEST IS THE ONE TO DISTRUST: EVERY ADOPTION NOW SETTLES** — 10 of
+10 and 7 of 7, against 8 of 11 and 4 of 7 — **and unguarded adoptions did not merely lose,
+they stopped happening.** A world where everything adopted settles and nothing unguarded is
+ever adopted could equally be a world where the bar became easy to clear. **Unmeasured, and
+flagged rather than reported as 0.000**, because reporting the zero alone would be `F432.1`'s
+survivorship error in a new costume.
+
+**THE THIRD CONDITION HOLDS AND IS STRUCTURAL:** no unsettled guarded term acted as trusted —
+NONE across all 20 runs, and `units()` iterates `settled_terms`, a `@property` computed live
+from `is_settled`, so it cannot.
