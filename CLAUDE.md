@@ -8,6 +8,19 @@ its own branch.
 
 ## START HERE — A FRESH SESSION READS THIS FIRST
 
+**ALWAYS USE THE TETHER -- ISAIAH'S STANDING DIRECTIVE, 2026-10-06, ABOVE EVERYTHING BELOW.**
+*"ALWAYS USE THE TETHER. Always have the agent think, act and predict using the Tether. Complex
+problems: the Tether says unbundle them into separate problems and recursively reapply it. You
+both need to use it all the time, so the agent can be the substrate instantiation of the Tether
+at the highest fidelity we can make."* For the seat and the reviewer as much as for the agent:
+**on any hard question, run the loop before answering** -- one fact or several (unbundle); where
+the live residual is; is the channel stale; what kind of gap; describe in effect terms, then look
+up once; both currencies; in principle or at this budget; what is in contact; let the ground
+judge. Isaiah paid the bill to derive the ruleset and holds it internalised; we can hold it
+memorised and apply all thirteen figures at once, and we see the code he does not -- **so finding
+where the code or our decisions strayed from it is OUR job.** Detail: the memory files
+`the-tether-is-the-pattern`, `why-the-tether-matters`, `always-use-the-tether`.
+
 **AGENCY IS PARAMOUNT, AND IT COMES BEFORE EVERYTHING BELOW.** Isaiah, 2026-09-23,
 2026-10-01 and 2026-10-05. **The agent is the driving force behind every decision, never a
 pilot inside machinery that decides for it.** **NOT AN RSI PROJECT -- Isaiah, 2026-10-06.** It RUNS the one pattern evolution already runs --

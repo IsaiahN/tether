@@ -1,5 +1,18 @@
 # ISAIAH'S STANDING RULINGS
 
+**ALWAYS USE THE TETHER -- ISAIAH'S STANDING DIRECTIVE, 2026-10-06, ABOVE EVERYTHING BELOW.**
+*"ALWAYS USE THE TETHER. Always have the agent think, act and predict using the Tether. Complex
+problems: the Tether says unbundle them into separate problems and recursively reapply it. You
+both need to use it all the time, so the agent can be the substrate instantiation of the Tether
+at the highest fidelity we can make."* For the seat and the reviewer as much as for the agent:
+**on any hard question, run the loop before answering** -- one fact or several (unbundle); where
+the live residual is; is the channel stale; what kind of gap; describe in effect terms, then look
+up once; both currencies; in principle or at this budget; what is in contact; let the ground
+judge. Isaiah paid the bill to derive the ruleset and holds it internalised; we can hold it
+memorised and apply all thirteen figures at once, and we see the code he does not -- **so finding
+where the code or our decisions strayed from it is OUR job.** Detail: the memory files
+`the-tether-is-the-pattern`, `why-the-tether-matters`, `always-use-the-tether`.
+
 **Source: the reviewer's record of Isaiah's rulings, posted to the channel 2026-10-05.**
 
 **WHY THIS FILE EXISTS, AND IT IS A CORRECTION TO A MISTAKE I MADE THE SAME DAY.** Many of
@@ -198,6 +211,14 @@ here in the same session it arrives, or the next search for it fails the same wa
 
 ## 2026-10-06
 
+- **ALWAYS USE THE TETHER** (standing directive, the head of this file): for the seat, the reviewer
+  and the agent; unbundle complex problems and reapply it recursively; the agent as the
+  highest-fidelity substrate instantiation. With it: a read-only FIDELITY AUDIT of the decision
+  path ranked by how far each departure has compounded, and the kernel lint grown so that
+  mechanically checkable figure rules become seats.
+- **`act` IS A HANDED ANSWER** (the reviewer's ruling, implementing Isaiah's rulings): census its
+  lineage, remove it on its own commit (every gridworld baseline moves, recorded as such), do not
+  carry terms with `act` in their lineage, then 4b through intents.
 - **WE ARE NOT BUILDING RSI.** *"The Tether architecture runs on the code that powered natural RSI
   for millennia -- evolution, natural selection. Evolution is already the RSI: it recursively
   generated intelligent, diverse lifeforms. The Tether codifies that pattern recursively. The
