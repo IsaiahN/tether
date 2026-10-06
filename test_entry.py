@@ -313,8 +313,108 @@ def check_the_bundle_carries_every_module_the_harness_file_imports():
     assert not missing, f"the bundle lacks {missing}"
 
 
+
+def gateway_one_card_takes_every_worker_process():
+    """WIRING ONLY (reviewer, 2026-10-06; Fig 11 -- a harness proves wiring, never capability).
+    The REAL kaggle_agent.runner_main, under the sample notebook's own .env (OPERATION_MODE=online,
+    ARC_BASE_URL and HOST/PORT at the gateway), against arc_agi's OWN server serving a SYNTHETIC
+    game (tests/fixtures/plumb_game.py, no ARC content) -- so the question is answered by the kit's
+    server, not by a fake: do K worker PROCESSES all score on the ONE card the runner opened?
+    `agents.agent` is a throwaway stub package on the client's path: runner_main never touches the
+    Agent class, and the kit's package import needs template dependencies this venv lacks."""
+    import inspect
+    import json
+    import pathlib
+    import socket
+    import subprocess
+    import tempfile
+    import time
+
+    import requests
+
+    import kaggle_bundle
+    here = os.path.dirname(os.path.abspath(__file__))
+    from arcengine import ARCBaseGame
+
+    import tests.fixtures.plumb_game as plumb_game
+    assert issubclass(plumb_game.Plumb, ARCBaseGame), "the fixture is not an engine game"
+    src = inspect.getsource(plumb_game)
+    entry = inspect.signature(kaggle_bundle.build).parameters["entry"].default
+    shipped = kaggle_bundle.census(entry)
+    assert not any("tests" in pathlib.Path(f).parts or "plumb" in f for f in shipped), shipped
+    games = ["pa01", "pa02", "pa03", "pa04"]
+    with socket.socket() as so:
+        so.bind(("127.0.0.1", 0))
+        port = so.getsockname()[1]
+    with tempfile.TemporaryDirectory() as d:
+        envs, libs, work = (os.path.join(d, x) for x in ("envs", "libs", "work"))
+        closed_card = os.path.join(d, "closed_card.json")
+        for g in games:
+            os.makedirs(os.path.join(envs, g))
+            cls = g[0].upper() + g[1:]
+            pathlib.Path(envs, g, f"{g}.py").write_text(f"{src}\n{cls} = Plumb\n", "utf-8")
+            pathlib.Path(envs, g, "metadata.json").write_text(
+                json.dumps({"game_id": g, "class_name": cls}), "utf-8")
+        os.makedirs(os.path.join(work, "stub", "agents"))
+        pathlib.Path(work, "stub", "agents", "__init__.py").write_text("", "utf-8")
+        pathlib.Path(work, "stub", "agents", "agent.py").write_text(
+            "class Agent:\n    pass\n", "utf-8")
+        base = {k: v for k, v in os.environ.items()
+                if k not in ("OPERATION_MODE", "ARC_BASE_URL", "ENVIRONMENTS_DIR", "HOST",
+                             "PORT", "SCHEME", "ARC_API_KEY")} | {"PYTHONDONTWRITEBYTECODE": "1"}
+        server = subprocess.Popen(
+            [sys.executable, "-c",
+             "from arc_agi import Arcade, OperationMode; import sys; "
+             "Arcade(operation_mode=OperationMode.OFFLINE, environments_dir=sys.argv[1], "
+             "recordings_dir=sys.argv[2]).listen_and_serve(host='127.0.0.1', "
+             "port=int(sys.argv[3]), on_scorecard_close=lambda c: "
+             "open(sys.argv[4], 'w').write(c.model_dump_json()))",
+             envs, os.path.join(d, "rec"), str(port), closed_card],
+            env=base, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        url = f"http://127.0.0.1:{port}"
+        try:
+            for _ in range(100):
+                try:
+                    requests.get(f"{url}/api/games", timeout=1)
+                    break
+                except requests.ConnectionError:
+                    time.sleep(0.2)
+            client = base | {"SCHEME": "http", "HOST": "127.0.0.1", "PORT": str(port),
+                             "ARC_API_KEY": "test-key-123", "ARC_BASE_URL": f"{url}/",
+                             "OPERATION_MODE": "online",
+                             "PYTHONPATH": os.pathsep.join([here, os.path.join(work, "stub")])}
+            out = subprocess.run(
+                [sys.executable, "-c",
+                 "import json, sys; import kaggle_agent; "
+                 "rec = kaggle_agent.runner_main(sys.argv[1]); "
+                 "print('RECORD ' + json.dumps(rec, default=str))", libs],
+                env=client, cwd=work, capture_output=True, text=True, timeout=600)
+            line = [x for x in out.stdout.splitlines() if x.startswith("RECORD ")]
+            assert out.returncode == 0 and line, (out.returncode, out.stderr[-3000:])
+            rec = json.loads(line[0][len("RECORD "):])
+        finally:
+            server.terminate()
+            server.wait(timeout=10)
+        assert rec["closed"] and rec["games"] == len(games) and rec["workers"] > 1, rec
+        played = sorted(g["game"] for r in rec["records"] for g in r["games"])
+        assert played == games and all(g["end"] != "unplayed: ceiling reached"
+                                       for r in rec["records"] for g in r["games"]), rec
+        assert all(os.path.commonpath([r["library"], d]) == d for r in rec["records"]), rec
+        # THE SERVER'S OWN CLOSED CARD: the one card the runner opened holds every worker's game.
+        card = json.loads(pathlib.Path(closed_card).read_text(encoding="utf-8"))
+        assert card["card_id"] == rec["card"], (card["card_id"], rec["card"])
+        on_card = {e["id"].split("-")[0]: sum(r["actions"] for r in e["runs"])
+                   for e in card["environments"]}
+        assert sorted(on_card) == games and all(on_card.values()), on_card
+        print(f"  wiring only: {rec['workers']} worker processes, one card, actions {on_card}")
+
+
 if __name__ == "__main__":
-    checks = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
+    # `--gateway` runs the server-backed wiring check ALONE: ~2 min, past the per-commit seat's
+    # ruled 180s stage cap, so it is run explicitly rather than on every commit.
+    gw = "--gateway" in sys.argv
+    checks = [v for k, v in sorted(globals().items())
+              if (k.startswith("gateway_") if gw else k.startswith("check_"))]
     for fn in checks:
         fn()
     print(f"entry: {len(checks)} checks passed")
