@@ -6143,6 +6143,11 @@ class Agent:
                              if any(x in (ACTED_SELF, ACTED_ON) for x in _gs) else [])
                     _pairs = [(g, r) for g in _gs
                               for r in (_refs if g in (ACTED_SELF, ACTED_ON) else [None])]
+                    # PRICED ONCE PER (CHAIN, GUARD), NOT PER CANDIDATE -- 2026-10-06.
+                    # `gamma.length` reads only a term's atoms and operand tree, so every
+                    # binding of this chain costs the same, and every tree under it too
+                    # (each branch is one atom). Same expression, evaluated once per key.
+                    _price: dict = {}
                     for bind, (g, gref) in ((b, p) for b in binds for p in _pairs):
                         rank += 1
                         term = Term(cand.atoms, operand=bind, guard=g, guard_ref=gref)
@@ -6170,9 +6175,11 @@ class Agent:
                         # PRICED IN UNITS, so a settled sub-composition costs what the
                         # ground already paid for it. `routine.length`'s rule, applied to
                         # the space it was always stated over.
-                        cost = (term_bits(self.gamma.length(term, _units),
-                                          self.gamma.alphabet)
-                                + _guard_bits(g, len(_gs) - 1, len(_refs)))
+                        cost = _price.get(g)
+                        if cost is None:
+                            cost = _price[g] = (term_bits(self.gamma.length(term, _units),
+                                                          self.gamma.alphabet)
+                                                + _guard_bits(g, len(_gs) - 1, len(_refs)))
                         # LET THE RESIDUAL SAY WHERE TO LOOK. Walking the whole history for
                         # every candidate is exhaustive search; R already names the
                         # observations that need fixing, and a term that cannot fix enough of
@@ -6210,9 +6217,12 @@ class Agent:
                                 # THE GUARD PRICE APPLIES HERE TOO. `_trees` carries `g`
                                 # onto the tree, so pricing it only in the main loop gave
                                 # ONE TERM TWO PRICES depending on which path reached it.
-                                bcost = (term_bits(self.gamma.length(bt, _units),
-                                                   self.gamma.alphabet)
-                                         + _guard_bits(g, len(_gs) - 1, len(_refs)))
+                                bcost = _price.get((g, True))
+                                if bcost is None:
+                                    bcost = _price[(g, True)] = (
+                                        term_bits(self.gamma.length(bt, _units),
+                                                  self.gamma.alphabet)
+                                        + _guard_bits(g, len(_gs) - 1, len(_refs)))
                                 if self._cannot_pay(bt, slot, robs, bcost, base, rkey):
                                     continue
                                 bleft = self._left(bt, slot, hist, base, bcost)
@@ -6281,9 +6291,12 @@ class Agent:
                         for bt in self._trees(cand, bind, g):
                             if self.gamma.is_atom(bt) or bt.name in self.gamma.library:
                                 continue
-                            bcost = (term_bits(self.gamma.length(bt, _units),
-                                               self.gamma.alphabet)
-                                     + _guard_bits(g, len(_gs) - 1, len(_refs)))
+                            bcost = _price.get((g, True))
+                            if bcost is None:
+                                bcost = _price[(g, True)] = (
+                                    term_bits(self.gamma.length(bt, _units),
+                                              self.gamma.alphabet)
+                                    + _guard_bits(g, len(_gs) - 1, len(_refs)))
                             # **THE SAME BOUND HERE, AND IT CHANGES NO OUTCOME.** `_cannot_pay`
                             # PROVES `cost + left >= base`, which is exactly `not pays` -- so
                             # anything it refuses, `pays` refuses too. A short-circuit, not a

@@ -55984,3 +55984,27 @@ symbol or the AST is a later, separate change, and it needs the same proof.
 **THE SIZING THAT ORDERED THIS IS ITSELF A WINDOW CORRECTION.** The plan put term machinery first
 on *70-87% of late mint is term machinery* -- an attribution taken from cycles 10-12. On 30-32:
 term machinery ~44%, `_cannot_pay` 29%, `_left` 28%. Exact levers top out near 3.7x together.
+
+#### F446 — **COMPACT ENUMERATION, STEP 1: a candidate's price is computed once per (chain, guard), not once per candidate. Exact by construction and by check -- 42.3M cached prices float-EQUAL to the old expression; strict gate 9 of 9**
+
+`mint` priced every candidate with `term_bits(gamma.length(term, units), alphabet) + _guard_bits(g,
+...)`. `gamma.length` reads only a term's atoms and its operand tree. Every binding of a chain has
+the chain's atoms and no operand tree, so it costs the same; every tree under it has one-atom
+branches, so it costs the same too (length + 1, or 1 under the OPEN settled-unit defect). So the
+price is a function of `(cand, g)` alone. A per-chain table fills on first use with the UNCHANGED
+expression and is reused. m2's literals are untouched.
+
+    EQUALITY CHECK (scratch copy asserting cached == recomputed at every lookup, counted):
+      click_only s0, 60 cycles       11,692,356 checked, all equal
+      default    s0, cycles 0-34     30,612,538 checked, all equal
+    TREATMENT EXECUTED: gamma.length calls inside mint, click_only s0, 8 cycles, 16 mints
+      5e6079e 218,032  ->  this 987   (221x fewer; length's recursion counted alike)
+    strict gate, 5e6079e vs this, 60 cycles, lever A off: trace identical, 0 ledger rows differing
+      click_only 0/1/2  buttons 0/1/2  default 0/1/2   all 9: same trace, 0 rows differing
+
+    late default CPU: measured by a matched panel AFTER this commit; recorded below when it lands
+
+**Sized at 02:26 as at most ~12% of late mint (relative cProfile shares).** The next steps are the
+novelty check (step 2) -- exact only because the library is keyed by `term.name` at ONE write
+site, enforced by lint, and only where no atom name carries a name-format separator, which it
+checks per Gamma and falls back on -- then the tally-key hash, then lazy materialisation.
