@@ -1308,6 +1308,8 @@ class Agent:
         # unreadable.
         self.refuted: dict[tuple, Standing] = {}
         self.refuted_at: dict[tuple, float] = {}
+        # HELD at a death's boundary, for `restarted` to carry back where identity is sure (F479).
+        self._held_refutations: tuple[dict, dict] | None = None
         # THE FAILED-PATH CATALOGUE, AND IT IS THE SAME KEY THE TERM PATH ALREADY USES.
         # Isaiah's BAR ruling: *catalogue and save the failed paths, the salient attributes and
         # the interactions, so each replay retrieves past information and cuts the problem down.*
@@ -1457,6 +1459,9 @@ class Agent:
         # it: every guard is `CAN`-checked at mint, and a guard naming a dead slot reads
         # `unknown`, which the mint refuses. **Checked rather than assumed** -- the shelf needs
         # no rule here precisely because it has one already.
+        # EXCEPT AT A DEATH, WHICH MAY BE FOLLOWED BY A RESTART OF THE SAME LEVEL -- the same
+        # objects under the same names (measured, F479). Held, not lost; `restarted` decides.
+        self._held_refutations = ((self.refuted, self.refuted_at) if how == "death" else None)
         self.refuted, self.refuted_at = {}, {}
         # AND `self.paths` IS A THIRD CASE AND STAYS, FOR THE REASON THIS BLOCK JUST GAVE.
         # The autoimmunity argument above is entirely about SLOT NAMES regenerating. `_gap_key`
@@ -4764,6 +4769,32 @@ class Agent:
             return cand
         want = math.ceil(abs(unsat) / abs(per))
         return _replace(cand, expect=max(1, want))
+
+    def restarted(self, env: Any) -> None:
+        """THE SAME LEVEL AGAIN, after a death and the agent's RESET -- called by the harness, as
+        `retarget` is. The death's boundary HELD the slot-keyed refutations. Each comes back only
+        where EVERY object its key names was re-found unambiguously (overlap, or a unique shape):
+        a look-alike may have swapped names, and a refutation landing on the twin is a claim
+        travelling changed and silent (the reviewer, 2026-10-06). The rest are NAMED, not carried.
+        """
+        held, self._held_refutations = self._held_refutations, None
+        if not held:
+            return
+        idn = getattr(env, "identity", None)
+        carried, not_carried = [], {}
+        for k, st in held[0].items():
+            objs = sorted({n.split(".", 1)[0] for n in (k[0], *k[2])
+                           if re.fullmatch(r"o\d+", n.split(".", 1)[0])})
+            how = {o: idn(o) if idn else None for o in objs}
+            unsure = {o: w for o, w in how.items() if w not in ("overlap", "unique-shape")}
+            if unsure:
+                not_carried[k[0]] = unsure
+                continue
+            self.refuted[k], self.refuted_at[k] = st, held[1][k]
+            carried.append(k[0])
+        self.led.record(self.level, "IMPORT", "@loop", "restart",
+                        carried=sorted(carried), not_carried=not_carried,
+                        reads="refutations held at the death; carried only where identity is sure")
 
     def _rejection(self, key: tuple) -> float:
         """The decayed strength of rejection. `Standing.decay` on the LOGICAL clock -- cycles,

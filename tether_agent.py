@@ -43,6 +43,8 @@ def run(w, game: str, max_actions: int, *, on_action=None, library: str | None =
             if on_action is not None:
                 on_action(w.observation_space)
         end = env.terminal()
+        if was == "death" and not end:      # the agent's RESET restarted the same level
+            ag.restarted(env)
         if end and end != was:
             ag.retarget(env, env.levels()[0], how=end)
             deaths += end == "death"

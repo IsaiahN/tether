@@ -153,6 +153,58 @@ def check_a_press_after_a_death_keeps_the_board():
     env.step("ACTION1")
     assert env.board() is None, "an empty answer in a live game was read as nothing changed"
 
+class TwinWrapper(FakeWrapper):
+    """Two LOOK-ALIKE blocks (one shape, colour ignored by design) that BOTH move far enough to
+    leave no overlap, so a RESET re-finds both by shape -- the case where names can swap."""
+
+    def _frame(self, state):
+        g = np.zeros((64, 64), dtype=int)
+        r, c = self.pos
+        g[r:r + 4, c:c + 4] = 3
+        g[r + 20:r + 24, c:c + 4] = 3
+        f = FrameDataRaw(game_id="twin-0001", state=state, levels_completed=0, win_levels=2,
+                         guid="g", available_actions=list(self.actions))
+        f.frame = [g]
+        self._last = f
+        return f
+
+
+def _held_then_restarted(w, moves, how="death"):
+    """A refutation filed on every tracked object's slot, a boundary of kind `how`, RESET, and the
+    agent told the level restarted -- the order the entry loop produces."""
+    import gamma
+    env, ag = arc_holdout.wire(w, "fake")[:2]
+    for a in moves:
+        env.step(a)
+    keys = [(f"{o}.row", (), ()) for o in sorted(env._decompose.tracked)]
+    for k in keys:
+        ag.refuted[k], ag.refuted_at[k] = gamma.Standing(last_tick=0), 1.0
+    ag.retarget(env, env.levels()[0], how=how)
+    env.step("RESET")
+    ag.restarted(env)
+    row = [e for e in ag.led.entries if e.event == "restart"]
+    return env, ag, keys, (row[-1].detail if row else None)
+
+
+def check_a_restart_carries_refutations_only_where_identity_is_sure():
+    """F479 (the reviewer, 2026-10-06): a death's boundary HOLDS the slot-keyed refutations and a
+    restart of the same level carries each back only where every object it names was re-found
+    unambiguously. Twins re-found by shape may have swapped: never carried, and named."""
+    env, ag, keys, row = _held_then_restarted(
+        FakeWrapper(), ["ACTION2", "ACTION2", "ACTION4", "ACTION4", "ACTION4"])
+    assert all(k in ag.refuted for k in keys), f"a sure identity was not carried: {row}"
+    assert row and sorted(row["carried"]) == sorted(k[0] for k in keys) and not row["not_carried"]
+    # ACROSS AN ADVANCE NOTHING IS HELD: section 18.2's autoimmunity, unchanged.
+    _e, ag2, _k, row2 = _held_then_restarted(FakeWrapper(), ["ACTION2"], how="advance")
+    assert not ag2.refuted and row2 is None, "a refutation crossed an ADVANCE"
+    # THE TWINS: both moved off their start, both re-found by shape -> neither carried, both named.
+    env, ag, keys, row = _held_then_restarted(TwinWrapper(), ["ACTION4"] * 4)
+    twins = sorted(o for o in env._decompose.tracked if env.identity(o) == "look-alike")
+    assert len(twins) == 2, f"fixture: the twins were not both re-found by shape: {twins}"
+    assert not any(k in ag.refuted for k in keys if k[0].split(".")[0] in twins), (
+        "a refutation landed on a look-alike")
+    assert sorted(row["not_carried"]) == sorted(f"{o}.row" for o in twins), row
+
 def check_a_win_ends_the_run():
     import tether_agent
     w = FakeWrapper(script={2: GameState.WIN})
