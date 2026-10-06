@@ -6014,6 +6014,10 @@ class Agent:
         floor = term_bits(1, self.gamma.alphabet)
         guards = {"support": base > 0.0, "reachability": False, "novelty": False}
         cuts: list[dict] = []
+        # THE RECORD KEEPS 12 CUTS AND COUNTS EVERY REASON -- 2026-10-06. A cut beyond the
+        # twelfth only ever contributed its reason, so only the reason is taken for it;
+        # building its name for a dict that `cuts[:12]` then dropped was ~97% of late names.
+        cut_n: collections.Counter = collections.Counter()
         best: tuple[float, float, float, Term] | None = None
         stats: dict = {"seen": 0, "budget_spent": False, "depth_exhausted": True,
                        "units": self.gamma.alphabet, "estimate": 0}
@@ -6152,8 +6156,10 @@ class Agent:
                         rank += 1
                         term = Term(cand.atoms, operand=bind, guard=g, guard_ref=gref)
                         if self.gamma.is_atom(term) or term.name in self.gamma.library:
-                            cuts.append({"name": term.name, "rank": rank, "reversible": True,
-                                         "reason": "not-novel"})
+                            cut_n["not-novel"] += 1
+                            if len(cuts) < 12:
+                                cuts.append({"name": term.name, "rank": rank, "reversible": True,
+                                             "reason": "not-novel"})
                             continue
                         # THE RECIPE, NOT THE INSTANCE -- ARM F. Reported ALWAYS so the rate is
                         # visible on the baseline too; ACTED ON only under the arm.
@@ -6162,13 +6168,15 @@ class Agent:
                             # vs unsettled is how the agent knows what WORKS from what is
                             # UNTRIED. Recorded, NOT ranked on -- ordering retrieval by it
                             # would install a preference that is the agent's to reason.
-                            cuts.append({"name": term.name, "rank": rank, "reversible": True,
-                                         "reason": "recipe-held", "recipe": cand.name,
-                                         # HERE, decided: the row is about minting on THIS
-                                         # slot, so the reading that belongs in it is whether
-                                         # the recipe settled HERE.
-                                         "recipe_settled": self.gamma.is_settled(
-                                             cand.name, slot)})
+                            cut_n["recipe-held"] += 1
+                            if len(cuts) < 12:
+                                cuts.append({"name": term.name, "rank": rank, "reversible": True,
+                                             "reason": "recipe-held", "recipe": cand.name,
+                                             # HERE, decided: the row is about minting on THIS
+                                             # slot, so the reading that belongs in it is whether
+                                             # the recipe settled HERE.
+                                             "recipe_settled": self.gamma.is_settled(
+                                                 cand.name, slot)})
                             if _RECIPE_DEDUP:
                                 continue
                         guards["novelty"] = True
@@ -6186,8 +6194,10 @@ class Agent:
                         # them is refused without the walk. 6.7x less work over the panel and
                         # nothing lost, because the bound is necessary rather than plausible.
                         if self._cannot_pay(term, slot, robs, cost, base, rkey):
-                            cuts.append({"name": term.name, "rank": rank, "reversible": True,
-                                         "reason": "bounded-out: cannot pay on R alone"})
+                            cut_n["bounded-out: cannot pay on R alone"] += 1
+                            if len(cuts) < 12:
+                                cuts.append({"name": term.name, "rank": rank, "reversible": True,
+                                             "reason": "bounded-out: cannot pay on R alone"})
                             self.gamma.book["bargain_bounded_out"] = (
                                 self.gamma.book.get("bargain_bounded_out", 0) + 1)
                             # **ISAIAH'S RULING, 2026-09-24: THE TREE IS JUDGED BY ITS OWN
@@ -6331,8 +6341,10 @@ class Agent:
                             if best is None or btotal < best[0]:
                                 best = (btotal, bleft, bcost, bt)
                         if not pays(cost, left, base):
-                            cuts.append({"name": term.name, "rank": rank, "reversible": True,
-                                         "reason": "does-not-pay"})
+                            cut_n["does-not-pay"] += 1
+                            if len(cuts) < 12:
+                                cuts.append({"name": term.name, "rank": rank, "reversible": True,
+                                             "reason": "does-not-pay"})
                             # BOOK 5, AND IT IS THE ONE `pays` WOULD NEED. `F341` sorted `pays`
                             # strictness as THE AGENT'S and the reviewer left it untouched
                             # because it has no book deep enough. This is that book, and it is
@@ -6496,8 +6508,8 @@ class Agent:
                   # term read ZERO cut rows on BOTH arms of an A/B -- including the arm
                   # where it WON -- which is how the truncation was found. A zero equal on
                   # both arms is a broken instrument, not a finding.
-                  "code": CODE, "base_bits": round(base, 3), "cuts": cuts[:12],
-                  "cut_counts": dict(collections.Counter(c["reason"] for c in cuts)),
+                  "code": CODE, "base_bits": round(base, 3), "cuts": cuts,
+                  "cut_counts": dict(cut_n),
                   "budget_exhausted": bool(stats["budget_spent"]),
                   "depth": self.cfg.max_depth, "units": stats["units"],
                   "space_estimate": est,

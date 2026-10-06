@@ -56002,9 +56002,30 @@ expression and is reused. m2's literals are untouched.
     strict gate, 5e6079e vs this, 60 cycles, lever A off: trace identical, 0 ledger rows differing
       click_only 0/1/2  buttons 0/1/2  default 0/1/2   all 9: same trace, 0 rows differing
 
-    late default CPU: measured by a matched panel AFTER this commit; recorded below when it lands
+    late default CPU: measured by a matched panel AFTER this commit (5e6079e vs 257b69c,
+    default, 60 cycles, lever A off; trace and ledger identical on all three), s/step 11-60:
+      seed 0  19.90 -> 17.69  1.12x  (7.7x over 2.3 s)
+      seed 1  27.27 -> 24.96  1.09x  (10.9x)
+      seed 2  17.97 -> 16.56  1.09x  (7.2x)        inside the pre-registered <=1.13x
 
 **Sized at 02:26 as at most ~12% of late mint (relative cProfile shares).** The next steps are the
 novelty check (step 2) -- exact only because the library is keyed by `term.name` at ONE write
 site, enforced by lint, and only where no atom name carries a name-format separator, which it
 checks per Gamma and falls back on -- then the tally-key hash, then lazy materialisation.
+
+#### F447 — **COMPACT ENUMERATION, STEP 2a: a cut's name is built only for the 12 cuts the record keeps; every reason is still counted. Strict gate 9 of 9**
+
+Each of `mint`'s four cut sites (not-novel, recipe-held, bounded-out, does-not-pay) built a dict
+with `term.name` for EVERY refused candidate -- ~97% of late candidates -- and the record kept
+`cuts[:12]` while `cut_counts` read only each cut's `reason`. Now a Counter takes every reason and a
+dict is built only while fewer than 12 are kept. `detail["cuts"]` and `detail["cut_counts"]` are
+the same 12 dicts in the same order and the same counts in the same first-insertion key order.
+`gamma.is_settled`, which the recipe-held dict calls, is two dict reads -- skipping it past the
+twelfth changes nothing.
+
+    strict gate, 257b69c vs this, 60 cycles, lever A off: trace identical, 0 ledger rows differing
+      (the ledger carries each mint's detail.cuts and detail.cut_counts, so the record is checked
+      on every mint of every pair)   all 9: same trace, 0 rows differing
+
+m2's slice now starts at the first `bounded-out: cannot pay on R alone`, which is the `cut_n`
+line one statement earlier -- still before the tree loop; seats 20/20.
