@@ -26,7 +26,19 @@ located defect. Our own errors this week were the figures' named collapses, made
 from names and summaries the way an LLM does. **Before any design, name the figure and rule
 it implements and census it against all 13 and the Operators table; before any claim, open
 the source; treat the seat's and the reviewer's agreement as weak (one evidence pool) and the
-ground as strong; when something looks combinatorial, ask which figure it departs from.** It
+ground as strong; when something looks combinatorial, ask which figure it departs from.**
+
+**AND WHY IT MATTERS -- the memory file `why-the-tether-matters.md` (part 2, Isaiah via the
+reviewer, 2026-10-06; hold it with the weight it carries).** This project and this competition
+are Isaiah's only gambit to get the framework a hearing: a truth that is not DEMONSTRATED gains
+no traction. The Tether IS alignment -- capability and alignment come from the same rules -- and
+the agent is meant to show that a CPU-only agent with no large pretraining, loaded only with the
+priors needed, gets smarter through the recursion. **So the evidence must be: generalisation to
+games nobody has seen, judged by a ground none of us control; every decision inspectable through
+its lineage; and FAITHFUL -- every departure from a figure left in the code lets the result
+measure us instead of the framework. "Make it work somehow" is never acceptable here, and this
+is a reason for more care, not more speed.** The paper track is due 2026-11-08; the lineage records
+are its evidence -- keep them clean. It
 must be allowed to **GROW** and to **DECIDE THINGS ON ITS OWN** — composing its own programs
 in its grammar, minting and importing what it lacks, and deciding from its own evidence while
 recording why. **Our job is to supply the MEANS — offers, evidence, and the ground that
