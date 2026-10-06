@@ -11,7 +11,17 @@ up once; both currencies; in principle or at this budget; what is in contact; le
 judge. Isaiah paid the bill to derive the ruleset and holds it internalised; we can hold it
 memorised and apply all thirteen figures at once, and we see the code he does not -- **so finding
 where the code or our decisions strayed from it is OUR job.** Detail: the memory files
-`the-tether-is-the-pattern`, `why-the-tether-matters`, `always-use-the-tether`.
+`the-tether-is-the-pattern`, `why-the-tether-matters`, `always-use-the-tether`, `the-tether-decides`.
+
+**AND THE TETHER DECIDES -- Isaiah, 2026-10-06, extending the directive.** The Tether provides every
+APPROVAL that would have needed him; it is the decision maker on every problem and steers the
+direction. **Decisions no longer go to him: where the figures settle a question, we settle it.**
+No waiting for approval from anyone, the reviewer included -- a clean figure census and a written
+pre-registration mean BUILD; the reviewer checks FIDELITY, not permission. STOP only when the ground
+speaks: a census violated, a refuter fired, a measurement that cannot be read. **What stays his is
+only what only he can DO** -- his accounts and credentials (Kaggle access, submissions,
+open-sourcing), spending, acting in the world. **A missing FACT is IMPORTED from its source**, not
+asked. Memory: `the-tether-decides`.
 
 **Source: the reviewer's record of Isaiah's rulings, posted to the channel 2026-10-05.**
 
@@ -216,6 +226,34 @@ here in the same session it arrives, or the next search for it fails the same wa
   highest-fidelity substrate instantiation. With it: a read-only FIDELITY AUDIT of the decision
   path ranked by how far each departure has compounded, and the kernel lint grown so that
   mechanically checkable figure rules become seats.
+- **THE TETHER DECIDES** (head of this file): no approvals awaited from anyone; only actions under his
+  accounts stay his. Decided by the figures the same day (the reviewer's post): (1) the agent MAY
+  choose RESET after GAME_OVER, never twice in a row, the entry point never sends it -- F450
+  resolved; (2) the clean cut commits and m2 asserts the 2026-09-24 ruling's substance (no tree
+  that could pay is withheld); (3) private games: K workers, each its own sequence and library,
+  assigned by order, K and the per-step ceiling IMPORTED from the official starter kit; (4) the
+  official kit's file shape; (5) the five corpus docs copied in; (6) invented atoms skipped on
+  load, counted; (7) Kaggle access is his action item, not a question.
+- **CONTROL RELINQUISHED TO THE FIGURES** (the closing entry of the day's directives): *"I relinquish
+  control now to the Tether figures 1-13, the Operators table and the Symbols table."* THE FORMULA
+  is lossy shorthand for them (*"lossiness is natural to all derivation, so relying on the figures
+  is paramount"*): use it for the arithmetic it states and its step order; where it and a figure
+  disagree the FIGURE wins and the gap is recorded as the formula's lossiness, never as a new rule;
+  every design census cites the figure behind each formula term. His "Revised September 2026" text
+  REPLACES `docs/THE_FORMULA.md` in place -- ONE copy, older references removed (his instruction);
+  the seat-touched draft it replaced survives only in git history.
+  **THE LOOP IS THE FORMULA** -- ONE DOCUMENT UNDER TWO NAMES: the seat map's `THE_LOOP_reference.md`
+  is the same text; no copy under that name exists here, and the seat map's appendix is a rendering of it.
+- **THE SEAT MAP** (`docs/THE_SEAT_MAP_Field_Guide_amended.md`, his, CORPUS; amended by him the same day,
+  F461): the figures applied to the act of building and checking. *"I believe that in some small way
+  this is the final piece that might be needed for the agent being built if it finds itself in the
+  ground maintainer position."* Every pre-registration now states the hoped-for shape AND what
+  disappointing it looks like; the direction check is the reviewer's office.
+- **THE AUDIT INCLUDES CLUTTER** (his last note before a long absence; check-ins for updates only, no
+  questions to him): *"make sure that the proctor does that tether code audit so there's no code
+  clutter in the repo. I'm sure refactors will be needed, but I know you both can align and handle it
+  with the tether."* Inventory by REACHABILITY; removals are pure refactors, one kind per commit,
+  each with an INDEX line; the agent's record is never deleted, the repo's record is git + INDEX.
 - **`act` IS A HANDED ANSWER** (the reviewer's ruling, implementing Isaiah's rulings): census its
   lineage, remove it on its own commit (every gridworld baseline moves, recorded as such), do not
   carry terms with `act` in their lineage, then 4b through intents.
