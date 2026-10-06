@@ -354,9 +354,11 @@ class Term:
     # reading it. **The guard works where `_ops` supplies operands, which is bets.**
     guard: str | None = None
     # **THE GUARD'S OWN REFERENT -- which object the press must land on.** Carried like
-    # `operand`: a per-board binding that is RE-RESOLVED on a new board, never a name the
-    # chain owns. Isaiah's 2026-09-29 ruling stands -- the guard names a RELATION and the
-    # binding is resolved per board, so nothing above the seam names a button.
+    # `operand`: a per-board binding, never a name the chain owns. Isaiah's 2026-09-29
+    # ruling stands -- the guard names a RELATION and the binding is per board. **IT DOES
+    # NOT CROSS A GAME: save records it, load DROPS it and COUNTS it (F469).** This said it
+    # was re-resolved on a new board; nothing did. Re-binding it by fit is plan item 2's
+    # typed parameter, unbuilt.
     guard_ref: str | None = None
     # §4: THE OPERAND MAY BE COMPUTED, WHICH IS WHAT MAKES THIS A TREE. `operand` names the
     # slot; this transforms that slot's value before it fills operand 0. A chain has no
@@ -1123,6 +1125,7 @@ class Gamma:
             # the atom names alone made `inc?ACTED_SELF` indistinguishable from `inc`.**
             out.append({"atoms": [a.name for a in t.atoms], "origin": t.origin,
                         "guard": t.guard, "operand": t.operand,
+                        "guard_ref": t.guard_ref,   # the RECORD of the loss, never re-bound
                         "handle": self.handles.get(name), "game": self.game,
                         # `stamps` holds DICTS: `getattr` on one returned None, so every term
                         # was saved with no admitting clause and no residual (F464).
@@ -1206,8 +1209,14 @@ class Gamma:
         skipped = sorted(n for n in (blob.get("invented") or {} if isinstance(blob, dict) else {})
                          if n not in self._by_name)
         built_on_skipped = []
+        guard_object_lost = []
         for r in rows:
             names = tuple(r["atoms"])
+            if r.get("guard_ref"):
+                # A CLAIM MUST NOT TRAVEL CHANGED AND SILENT: `inc?ACTED_SELF<o1>` arriving as
+                # `inc?ACTED_SELF` means "my own owner's press". Dropped, and named here.
+                guard_object_lost.append({"atoms": list(names), "guard": r.get("guard"),
+                                          "object": r["guard_ref"], "handle": r.get("handle")})
             if any(n in skipped for n in names):
                 built_on_skipped.append({"atoms": list(names), "handle": r.get("handle")})
                 continue
@@ -1258,6 +1267,7 @@ class Gamma:
         return {"loaded": sum(1 for x in took if not x["already_held"]),
                 "skipped_invented": skipped,
                 "built_on_skipped_invention": built_on_skipped,
+                "guard_object_lost": guard_object_lost,
                 # KEPT, so a caller reading the old key still gets the old number and the
                 # split sits beside it rather than replacing it silently.
                 "already_held": len(onto_atom) + len(onto_comp),

@@ -2152,6 +2152,28 @@ def test_a_loaded_term_is_imported_even_under_the_same_game_name():
     assert t.origin == gamma.IMPORTED, t.origin
 
 
+def test_a_guard_object_does_not_cross_silently():
+    """A guard's object is a binding on THIS board: it does not cross a game, and its loss is
+    NAMED in the load report -- a claim must not travel changed and silent (F469)."""
+    import pathlib
+    import tempfile
+
+    import gamma
+
+    inc = gamma.Atom("inc", lambda v, _c: v + 1, "val", "val")
+    src = gamma.Gamma([inc], game="A")
+    src.accept(gamma.Term(atoms=(inc,), guard=gamma.ACTED_SELF, guard_ref="o1"), seq=0,
+               residual="s@0")
+    with tempfile.TemporaryDirectory() as d:
+        path = str(pathlib.Path(d) / "lib.json")
+        src.save(path)
+        dst = gamma.Gamma([inc], game="B")
+        rep = dst.load(path)
+    lost = rep.get("guard_object_lost") or []
+    assert [(x["guard"], x["object"]) for x in lost] == [(gamma.ACTED_SELF, "o1")], rep
+    assert all(not t.guard_ref for t in dst.library.values()), "a guard object crossed"
+
+
 def test_a_per_slot_refusal_decays_like_the_term():
     """Isaiah, 2026-09-24: *a decay or a ratio, never a cliff* -- asserted on the LIVE path,
     which always passes a slot (`tether.py:6960`), so `refusals_on` is what the ceiling reads.
@@ -2203,6 +2225,7 @@ if __name__ == "__main__":
         test_the_resolutions_offered_are_not_the_answer()
         test_the_atom_order_is_pinned()
         test_a_per_slot_refusal_decays_like_the_term()
+        test_a_guard_object_does_not_cross_silently()
         test_a_loaded_term_is_imported_even_under_the_same_game_name()
         test_an_invented_atom_is_skipped_on_load_and_counted()
         test_b5_does_not_judge_a_last_cycle_park_and_still_judges_an_earlier_one()
