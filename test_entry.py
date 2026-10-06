@@ -198,6 +198,41 @@ def check_an_unreadable_library_loads_cold_and_says_so():
     assert rep.get("loaded") == 0 and rep.get("cold"), rep
 
 
+def fake_make(_game, _card):
+    """Module-level, so a worker PROCESS can take it -- as the real maker must be."""
+    return FakeWrapper()
+
+
+def check_the_runner_carries_in_order_per_worker():
+    """THE K-WORKER RUNNER (F472): games assigned by ORDER, each worker its OWN library, and the
+    second game in a worker LOADS what the first saved -- the carry. Run once in-process and once
+    with real processes, so the parallel path itself executes."""
+    import os
+    import tempfile
+
+    import tether_runner
+    games = ["g0", "g1", "g2", "g3"]
+    assert tether_runner.assign(games, 2) == [["g0", "g2"], ["g1", "g3"]]
+    # IN-PROCESS: one worker, the whole sequence -- each game after the first LOADS the last.
+    # (In-process workers run one after another, so a second one would find the ceiling spent;
+    # that is the time budget working, not a defect.)
+    with tempfile.TemporaryDirectory() as d:
+        rec = tether_runner.run(games, "card", fake_make, d, k=1, processes=False,
+                                ceiling_s=30, margin_s=1)
+        loaded = [g["loaded"] for g in rec["records"][0]["games"]]
+        assert loaded == [False, True, True, True], rec
+    # REAL PROCESSES: two workers in parallel, each its OWN library, each carrying.
+    with tempfile.TemporaryDirectory() as d:
+        rec = tether_runner.run(games, "card", fake_make, d, k=2, processes=True,
+                                ceiling_s=20, margin_s=1)
+        assert rec["workers"] == 2 and len(rec["records"]) == 2, rec
+        libs = {r["library"] for r in rec["records"]}
+        assert len(libs) == 2 and all(os.path.exists(p) for p in libs), rec
+        for r in rec["records"]:
+            assert [g["loaded"] for g in r["games"]] == [False, True], r
+            assert all(g["allowance_s"] > 0 for g in r["games"]), r
+
+
 if __name__ == "__main__":
     checks = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
     for fn in checks:

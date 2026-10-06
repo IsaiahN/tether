@@ -13,6 +13,7 @@ Isaiah (F450). Until he rules, a death ENDS the run -- `ON_GAME_OVER = "stop"`.
 from __future__ import annotations
 
 import sys
+import time
 
 import arc_holdout
 
@@ -22,7 +23,7 @@ ON_GAME_OVER = "stop"   # the only value until Isaiah rules on offering RESET to
 
 
 def run(w, game: str, max_actions: int, *, on_action=None, library: str | None = None,
-        cfg=None, led_path: str | None = None) -> dict:
+        cfg=None, led_path: str | None = None, deadline: float | None = None) -> dict:
     """Play one game on wrapper `w` until WIN, the first death, or `max_actions` loop steps.
 
     `on_action(frame)` is called with the wrapper's frame after every step that acted -- the
@@ -35,6 +36,10 @@ def run(w, game: str, max_actions: int, *, on_action=None, library: str | None =
                                                             library=library)
     acted_n, was, end = 0, "", ""
     for _ in range(max_actions):
+        # A WALL-CLOCK BOUND, like the step cap: the runner's per-game allowance, never a prior.
+        if deadline is not None and time.time() >= deadline:
+            end = end or "time"
+            break
         env.observe()
         acted = ag.step()
         if acted:
