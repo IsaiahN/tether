@@ -61,6 +61,62 @@ def _mode():
     return OperationMode(env) if env in ok else OperationMode.OFFLINE
 
 
+class ResetGuard:
+    """NO TWO CONSECUTIVE RESETS, FROM ANY CALLER -- Isaiah, 2026-09-29; the reviewer, 2026-10-06.
+
+    A second RESET with no action between restarts the whole game (INDEX:51466). Every ARC path
+    goes through `wire()`, so the wrapper is wrapped here and the rule binds the wrapper's own
+    constructor reset, `play`, `ArcWorld`, the entry point and the agent alike. It STARTS in the
+    "last was RESET" state when the wrapper already holds a frame, because both arc_agi wrappers
+    reset in their own `__init__`.
+
+    LIVE, a second RESET is REFUSED -- not sent, the current frame returned, the refusal logged and
+    counted -- because a raise mid-game on Kaggle would lose every completed level. `strict=True`
+    RAISES instead; the `entry` seat runs strict so the failure path is shown to fire.
+    """
+
+    def __init__(self, w, strict: bool = False):
+        self.w = w
+        self.strict = strict
+        self.refused = 0
+        self.last_was_reset = getattr(w, "observation_space", None) is not None
+
+    @property
+    def observation_space(self):
+        return getattr(self.w, "observation_space", None)
+
+    def _refuse(self, who: str):
+        self.refused += 1
+        msg = (f"RESET refused: the previous command was RESET ({who}); "
+               "RESET,RESET restarts the game")
+        if self.strict:
+            raise RuntimeError(msg)
+        logging.getLogger(__name__).error(msg)
+        return self.observation_space
+
+    def reset(self):
+        if self.last_was_reset:
+            return self._refuse("reset()")
+        out = self.w.reset()
+        self.last_was_reset = True
+        return out
+
+    def step(self, action, data=None, reasoning=None):
+        if action is GameAction.RESET and self.last_was_reset:
+            return self._refuse("step(RESET)")
+        kw = {}
+        if data is not None:
+            kw["data"] = data
+        if reasoning is not None:
+            kw["reasoning"] = reasoning
+        out = self.w.step(action, **kw)
+        self.last_was_reset = action is GameAction.RESET
+        return out
+
+    def __getattr__(self, name):
+        return getattr(self.w, name)
+
+
 def wire(w, game: str, *, cfg: Any = None, led_path: str | None = None,
          library: str | None = None, on_frame=None):
     """THE ONE WIRING OF AN ARC WRAPPER TO THE AGENT -- `play` and the Kaggle entry point both.
@@ -68,6 +124,7 @@ def wire(w, game: str, *, cfg: Any = None, led_path: str | None = None,
     Lifted out of `play` unchanged (2026-10-06) so the two cannot drift: the arm flags, the
     palette read, `ArcWorld`, the ledger, the config and the library load are written once.
     """
+    w = w if isinstance(w, ResetGuard) else ResetGuard(w)
     # THE WRAPPER HAS ALREADY RESET (F452, F453). `arc.make()`'s wrapper resets in its own
     # `__init__`; a reset here was the second of two consecutive RESETs. Take its frame.
     fr = getattr(w, "observation_space", None) or w.reset()

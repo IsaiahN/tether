@@ -56167,3 +56167,25 @@ scorecard's reset tally was taken under it. **Every ARC number in this file date
 
 Every ARC path that builds an agent now goes through `wire()`, so the guard the reviewer asked for
 (no two consecutive RESETs from any caller) is installed THERE next.
+
+#### F455 — **THE RESET GUARD, PERMANENT AND IN THE GATE (the reviewer, 2026-10-06): no two consecutive RESETs from ANY caller. `ResetGuard` wraps every wrapper inside `wire()`; LIVE it refuses and logs, STRICT it raises. A new `entry` seat plants the pair and is shown to fail on each planted fault**
+
+Every ARC path builds through `arc_holdout.wire()`, so the guard is installed there and binds the
+wrapper's own constructor reset, `play`, `ArcWorld`, the entry point and -- if Isaiah rules RESET
+into the action set (F450) -- the agent. It starts in the *last was RESET* state when the wrapper
+already holds a frame, because both arc_agi wrappers reset in their own `__init__`.
+
+**LIVE, a second RESET is REFUSED** -- not sent, the current frame returned, the refusal logged and
+counted on `refused` -- because a raise mid-game on Kaggle would lose every completed level.
+**STRICT raises**, and the seat runs strict. The reviewer approved this split.
+
+    the entry seat (test_entry.py, fake wrapper, no ARC board, 0.7 s)
+      wire() on a self-resetting wrapper issues exactly one RESET, ArcWorld is behind the guard
+      a planted RESET,RESET is refused live: not sent, refusals counted
+      the same plant raises in strict mode
+      a RESET after a real action IS sent, and re-arms the guard -- pairs refused, not resets
+    planted faults, each one FAILS the seat: a pass-through guard (live and strict), and a
+    wire() that resets again
+    play on the fake with the guard installed: ledger byte-identical (728 rows, 2e469bc80ee857f0)
+
+Seats 21/21.

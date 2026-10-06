@@ -140,6 +140,12 @@ STAGES = (
     # mechanism is removed -- which is worth exactly nothing if nothing runs them.
     ("m2", [str(PY), "test_m2.py"],
      "an M2_STANDARD mechanism regressed, or its tripwire fired", ROOT / "test_m2.py"),
+    # THE ENTRY SEAT -- the reviewer, 2026-10-06. Every ARC path goes through `wire()`, and
+    # every one of them opened with two or three consecutive RESETs until F452/F454 (Isaiah,
+    # 2026-09-29: never RESET,RESET). It runs the Kaggle path offline on a FAKE wrapper and
+    # plants the pair, so the guard's failure path is exercised, not assumed.
+    ("entry", [str(PY), "test_entry.py"],
+     "an ARC path sent RESET,RESET, or the guard stopped refusing it", ROOT / "test_entry.py"),
     ("percept", [str(PY), "test_perception.py"],
      "a perception detector regressed (Contain/Topology/perimeter/background)",
      ROOT / "test_perception.py"),
