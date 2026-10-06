@@ -56064,3 +56064,37 @@ now the same. click_only s0 strict pair vs f91a697: same trace, 0 of 7,530 rows 
 
 **The silent `except OSError: continue` in `corpus_glosses` is left as it is -- one change per
 commit -- and recorded here as a silent degrade that should announce itself.**
+
+#### F450 — **FACTS FOR THE TWO QUESTIONS NOW WITH ISAIAH (2026-10-06): how the private games are scheduled, and whether the agent may choose RESET after GAME_OVER. And a recorded CONTRADICTION: `ArcWorld` filters RESET out of the action set against his 2026-09-29 ruling**
+
+**THE CONTRADICTION, recorded, not changed.** `ISAIAH_RULINGS.md`, 2026-09-29: *RESET/undo are
+ungated in the interface, but it must NEVER issue RESET,RESET consecutively* (INDEX:51466: a second
+consecutive RESET restarts the whole game). `arc_world.ArcWorld.actions()` filters RESET out of the
+set the agent chooses from. **The reviewer ruled (2026-10-06) that the contradiction is recorded and
+the action set NOT changed yet**: offering RESET changes behaviour and moves the score, so it goes to
+Isaiah as one question, with the reviewer's recommendation -- the agent may choose RESET after
+GAME_OVER (the world's restart offered to the agent, its decision recorded, never auto-sent, never
+twice in a row) -- against the run ending at the first death. **Settled meanwhile: the ENTRY POINT
+never sends RESET on GAME_OVER** -- the who-presses rule (INDEX "ResetGate AS A STATE CONDITION").
+
+**THE SCHEDULING FACTS, each read from source:**
+
+    pickle.dumps(agent)   AttributeError: Can't get local object '_atoms.<locals>.idn' -- atoms are
+                          defined inside a function. Fork needs no pickling; the reviewer ruled NO
+                          refactor for this
+    Kaggle image          /usr/local/lib/python3.12/dist-packages, cp312 manylinux x86_64 wheels
+                          (docs/example notebooks). No core count anywhere in them
+    reference runner      ARC-AGI-3-Agents main.py:188 runs the swarm in a thread;
+                          agents/swarm.py:76-98 one agent and ONE THREAD PER GAME, all at once.
+                          Under the GIL that is one core. The game server is a separate gateway
+                          container, so arc_agi's flask threads are not in our process
+    carry                 arc_holdout.play(library=path) loads before a game, saves after
+                          (section 17.8's switch) -- concurrent games would collide on it
+    in-game parallel      late default s0, 30-59: ZERO re-runs on 29 of 30 cycles under
+                          speculate-then-verify; the largest single mint is 15-49% of a cycle, so it
+                          tops out near 3x (2.0-6.5). PAUSED pending the scheduling ruling
+
+**The scheduling fork is Isaiah's** -- sequential games with full carry, K workers each carrying its
+own library, or concurrent games with no carry -- because it decides whether the agent learns across
+the private games while it plays them. With it: the core count, the game count, actions per game,
+and whether "one file" is a competition rule or a habit of the samples.
