@@ -56189,3 +56189,30 @@ counted on `refused` -- because a raise mid-game on Kaggle would lose every comp
     play on the fake with the guard installed: ledger byte-identical (728 rows, 2e469bc80ee857f0)
 
 Seats 21/21.
+
+#### F456 — **14a STEP (ii), THE ENTRY POINT'S LOOP: `tether_agent.run()` plays one game on a wrapper through `wire()`, harness-free. A death ENDS the run (no ruling behind anything else, F450); a WIN ends it; a click carries its position. Played end to end through the ONE-FILE BUNDLE, isolated, on the fake**
+
+`tether_agent.run(w, game, max_actions, on_action=...)` mirrors `play`'s loop line for line --
+`observe`, `step`, `terminal`, `retarget` on a new ending -- over `arc_holdout.wire()`, so the
+entry point and `play` share one wiring. It stops at the first terminal state. **`ON_GAME_OVER =
+"stop"` is the only value**: any other raises, because nothing has been ruled behind it -- the entry
+point never sends RESET, and whether the AGENT may choose it after a death is Isaiah's (F450).
+The step cap is the harness's `MAX_ACTIONS` -- a termination bound, never a prior. It imports
+nothing from ARC-AGI-3-Agents; the `Agent` subclass that overrides `main()` to call it is the
+bundler's to append, so the repository never needs the harness to import.
+
+    entry seat, three new checks (7 now), each shown to FAIL on a planted fault:
+      a scripted GAME_OVER ends the run, one RESET in all, no action past it
+        (plant: ignore terminal -> 6 actions into a dead game)
+      a scripted WIN ends it as `advance`              (plant: ignore terminal -> ran to the cap)
+      ACTION6 with x, y reaches the wrapper as data={"x","y"} -- interface bug 3 on the path the
+        entry point uses                               (plant: drop x, y -> "ACTION6 None")
+    the bundle with entry `tether_agent`: 33 modules + 7 data files, 1.9 MB, digest fbfcda22cd44
+    ISOLATED, through that one file alone (no repo on sys.path, an unrelated cwd), on the fake:
+      wrapper calls [RESET, ACTION1, ACTION2, ACTION3, ACTION4]; run ends 'death' at the scripted
+      step; 0 refused resets; 4 frames handed to on_action
+
+**Still owed for 14a: the `Agent` subclass itself (generated, appended by the bundler) and the
+notebook template with the `arc-agi` install cell (bug 5).** Bug 4 (no `arcengine` in the bundle)
+is enforced by the bundler; bug 1 (WIN) is `run()` ending on `advance`, which the subclass's
+`is_done` must also report.

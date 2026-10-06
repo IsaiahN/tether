@@ -106,6 +106,36 @@ def check_reset_after_an_action_is_sent_and_rearms():
     raise AssertionError("the guard did not re-arm after a sent RESET")
 
 
+
+def check_a_death_ends_the_run_with_one_reset():
+    """GAME_OVER: the entry point never sends RESET (who-presses rule); until Isaiah rules on
+    offering RESET to the agent (F450), a death ENDS the run."""
+    import tether_agent
+    w = FakeWrapper(script={2: GameState.GAME_OVER})
+    out = tether_agent.run(w, "fake", max_actions=6)
+    assert out["end"] == "death", f"a death did not end the run: {out}"
+    assert w.calls.count("RESET") == 1, f"RESET sent around a death: {w.calls}"
+    assert out["acted"] == 2, f"acted past the death: {out}"
+
+
+def check_a_win_ends_the_run():
+    import tether_agent
+    w = FakeWrapper(script={2: GameState.WIN})
+    out = tether_agent.run(w, "fake", max_actions=6)
+    assert out["end"] == "advance", f"a WIN did not end the run: {out}"
+    assert w.calls.count("RESET") == 1, f"RESET sent around a win: {w.calls}"
+
+
+def check_a_click_carries_its_position():
+    """Interface bug 3, on the path the entry point uses: ACTION6 with x, y reaches the wrapper
+    as `data` -- `set_data` belongs to the GameAction-object path an overridden main() bypasses."""
+    w = FakeWrapper()
+    env = arc_holdout.wire(w, "fake")[0]
+    env.step("ACTION6", 12, 34)
+    assert w.calls[-1] == "ACTION6" and w.last_data == {"x": 12, "y": 34}, (
+        f"the click arrived as {w.calls[-1]} {w.last_data}")
+
+
 if __name__ == "__main__":
     checks = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
     for fn in checks:
