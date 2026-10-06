@@ -66,6 +66,8 @@ DISTINGUISH = "NOT SAME"
 # interface picks them by what it knows they do, like any other action. The single hard
 # rule is below, at `realise`.
 RESET = "RESET"
+# What a known action does here, as reported to the agent when nothing is unknown (F480).
+CHANGES, NO_EFFECT, RESTARTS = "changes the board", "no effect", "restarts the level"
 
 # **THE POSITIONED ACTION, NAMED HERE AND NOWHERE ABOVE -- the plan's 19c.** The seam's rule is
 # that only the interface may know a button exists, so this string belongs in this file and was
@@ -305,6 +307,9 @@ class Interface:
 
     def __init__(self) -> None:
         self.pre = Preconditions()       # section 16.8 sensor 2; below the seam since 2026-10-05
+        # THE AGENT'S CHOICE WHEN NOTHING IS UNKNOWN HERE (F480): handed the KNOWN effects, never
+        # the buttons, it returns an index and its reason. None = no agent attached.
+        self.chooser: Any = None
         self.table: dict[str, dict] = {}       # action -> what it was observed to do
         # `probe.Drive`'s seed, which is `crc32(b"") & 0xFFFF == 0` at both construction sites
         # in `tether`. Held here so the moved sweep is byte-identical rather than merely alike.
@@ -655,10 +660,26 @@ class Interface:
         # everything mapped in this context. Take the one taken LEAST here -- still the agent's
         # call to explore, and refusing would be the interface overruling it.
         seen = {a: len(self.table[a]["by_ctx"].get(ctx, ())) for a in offered}
+        # **DESIGN A -- the reviewer, 2026-10-06 (F480).** For ELICIT, least-seen among KNOWN
+        # effects was curiosity with no target (Fig 5) and an unpriced cost (Fig 12), decided
+        # here. So the interface REPORTS what each action is known to do here and the AGENT
+        # prices and chooses; nothing is refused and nothing is pressed for it.
+        if intent.kind == ELICIT and self.chooser is not None:
+            known = [(self._known_effect(a, ctx), seen[a]) for a in offered]
+            i, why = self.chooser(known)
+            return _made(offered[i], f"requested {asked}: nothing unknown here; {why}")
         fewest = min(seen.values())
         band = [a for a in offered if seen[a] == fewest]
         return _made(_pick(band), f"requested {asked}: all known here, least-seen taken")
 
+
+    def _known_effect(self, a: str, ctx: tuple) -> str:
+        """What `a` is KNOWN to do in this context, as a kind the agent can price. RESET's is the
+        platform's documented consequence, inherited like ACTION6 taking a position."""
+        if a == RESET:
+            return RESTARTS
+        sigs = self.table.get(a, {}).get("by_ctx", {}).get(ctx, ())
+        return CHANGES if any(sigs) else NO_EFFECT
 
     # ---- upward: what changed, in reasoning terms -------------------------------------
 

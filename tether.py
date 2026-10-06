@@ -996,6 +996,8 @@ class Agent:
         # the toy `act` atom, where *the primitive it was given already knew*. The strip
         # that moves CHOOSING through it is step 2 and is not done.
         self.iface = IFace.Interface()
+        self.iface.chooser = self._choose_known      # F480: the agent prices the known
+        self._attempt_actions = 0     # actions since this level, or its last restart, began
         # WHICH MEMBERS ARE CURRENTLY DISCOUNTED, PER SCOPE. Held so the narration fires on the
         # TRANSITION rather than on every evaluation -- see `_scope_weights`.
         self._downrated: dict[str, frozenset] = {}
@@ -1445,6 +1447,7 @@ class Agent:
         self.alphabet = self._alphabets(env)      # a new level may value slots differently
         self.slot_types = self._slot_types(env)   # and may type them differently
         self.bound, self.trace = {}, []
+        self._attempt_actions = 0
         self._trace_epoch += 1          # the tallies summarise a history that is gone
         self._tally.clear()             # (the epoch is in the triple; this is belt and braces)
         self._disc, self._res = {}, {}   # the slots did not survive, nor do their trends
@@ -4770,6 +4773,25 @@ class Agent:
         want = math.ceil(abs(unsat) / abs(per))
         return _replace(cand, expect=max(1, want))
 
+    def _choose_known(self, known: list[tuple[str, int]]) -> tuple[int, str]:
+        """NOTHING IS UNKNOWN HERE, SO THE AGENT PRICES WHAT IS KNOWN -- Design A (the reviewer,
+        2026-10-06; F480). `known` is one (effect, times seen here) per option, never a button.
+
+        Fig 12: actions are a currency -- every option costs one, and a restart also throws away
+        the actions spent since this level (or its last restart) began. Fig 5: only an effect
+        that changes the board can reach a gap elsewhere; a restart can when there is progress
+        to undo. Least-seen breaks ties, which keeps variety among equal moves."""
+        def price(e: str) -> int:
+            return 1 + self._attempt_actions if e == IFace.RESTARTS else 1
+
+        def reaches(e: str) -> bool:
+            return e == IFace.CHANGES or (e == IFace.RESTARTS and self._attempt_actions > 0)
+
+        i = min(range(len(known)),
+                key=lambda j: (not reaches(known[j][0]), price(known[j][0]), known[j][1], j))
+        return i, (f"chose '{known[i][0]}' at price {price(known[i][0])} of "
+                   f"{sorted({(e, price(e)) for e, _n in known})}")
+
     def restarted(self, env: Any) -> None:
         """THE SAME LEVEL AGAIN, after a death and the agent's RESET -- called by the harness, as
         `retarget` is. The death's boundary HELD the slot-keyed refutations. Each comes back only
@@ -4778,6 +4800,7 @@ class Agent:
         travelling changed and silent (the reviewer, 2026-10-06). The rest are NAMED, not carried.
         """
         held, self._held_refutations = self._held_refutations, None
+        self._attempt_actions = 0
         if not held:
             return
         idn = getattr(env, "identity", None)
@@ -7346,6 +7369,8 @@ class Agent:
         if action is None:
             action, by = self.choose(before)
         self._acts[action] += 1   # System-0 instrument: the concrete action distribution
+        _prov = getattr(self.env, "provenance", lambda _a: None)(action)
+        self._attempt_actions = 0 if _prov == "platform-universal" else self._attempt_actions + 1
         # THE PHASE IS READ OFF THE SITE THAT CHOSE, never asserted alongside it. It
         # used to be `DIRECTED if a term is bound`, attached to an action drawn by the
         # identical mechanism either way -- a label the mechanism could not make.

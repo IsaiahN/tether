@@ -205,6 +205,26 @@ def check_a_restart_carries_refutations_only_where_identity_is_sure():
         "a refutation landed on a look-alike")
     assert sorted(row["not_carried"]) == sorted(f"{o}.row" for o in twins), row
 
+def check_nothing_unknown_here_is_priced_by_the_agent():
+    """DESIGN A (F480; the reviewer, 2026-10-06): when exploration has nothing left to learn in a
+    context, the interface REPORTS each known effect and the AGENT prices and chooses -- a
+    restart costs the actions spent since the level began (Fig 12), and only an effect that
+    changes the board can reach a gap elsewhere (Fig 5). The interface presses nothing itself."""
+    import interface as IF
+    ag = arc_holdout.wire(FakeWrapper(), "fake")[1]
+    move, dead, restart = IF.CHANGES, IF.NO_EFFECT, IF.RESTARTS
+    ag._attempt_actions = 5
+    assert ag._choose_known([(restart, 0), (move, 3), (dead, 0)])[0] == 1, "a restart beat a move"
+    assert ag._choose_known([(dead, 0), (restart, 0)])[0] == 1, "dead presses beat a restart"
+    assert ag._choose_known([(move, 4), (move, 1)])[0] == 1, "variety lost among equal moves"
+    # THE INTERFACE: everything known here -> the agent's choice, named, and nothing else.
+    iface, ctx = IF.Interface(), ("ctx",)
+    iface.table = {"ACTION1": {"by_ctx": {ctx: {(("o0.row", 1),)}}, "n": 1, "delta": {}},
+                   "RESET": {"by_ctx": {ctx: {(("o0.row", -1),)}}, "n": 1, "delta": {}}}
+    iface.chooser = lambda known: (1, f"picked {known[1][0]}")
+    r = iface.realise(IF.Intent(IF.ELICIT), ("ACTION1", "RESET"), ctx, {}, None)
+    assert r.action == "RESET" and "nothing unknown here; picked restarts the level" in r.why, r
+
 def check_a_win_ends_the_run():
     import tether_agent
     w = FakeWrapper(script={2: GameState.WIN})
