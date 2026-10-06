@@ -2105,6 +2105,33 @@ def test_b5_does_not_judge_a_last_cycle_park_and_still_judges_an_earlier_one():
     assert seen == 1 and bad == ["s: support at zero and no probe followed"], (bad, seen)
 
 
+def test_an_invented_atom_is_skipped_on_load_and_counted():
+    """Isaiah, 2026-10-06 (decision 6): invented atoms are skipped on load and counted,
+    never re-invented -- a replayed delta is a recorded effect table carried as a method.
+    The file carries a VALID licence, so the old loop WOULD re-invent it: the check can see
+    the difference (F466)."""
+    import json as _json
+    import pathlib
+    import tempfile
+
+    import gamma
+
+    inc = gamma.Atom("inc", lambda v, _c: v + 1, "val", "val")
+    blob = {"terms": [{"atoms": ["inc", "zz"], "origin": "minted", "guard": None,
+                       "operand": None, "handle": "h1", "game": "A",
+                       "admitted": "accepted", "residual": "s@0"}],
+            "invented": {"zz": {"delta": {"1": 2}, "verdict": "budget_spent"}},
+            "vindication": [], "book": {}}
+    with tempfile.TemporaryDirectory() as d:
+        path = pathlib.Path(d) / "lib.json"
+        path.write_text(_json.dumps(blob), encoding="utf-8")
+        g = gamma.Gamma([inc], game="B")
+        rep = g.load(str(path))
+    assert "zz" not in {a.name for a in g.atoms}, "an invented atom entered the alphabet"
+    assert rep.get("skipped_invented") == ["zz"], rep
+    assert [x["atoms"] for x in rep.get("built_on_skipped_invention", [])] == [["inc", "zz"]]
+
+
 def test_a_per_slot_refusal_decays_like_the_term():
     """Isaiah, 2026-09-24: *a decay or a ratio, never a cliff* -- asserted on the LIVE path,
     which always passes a slot (`tether.py:6960`), so `refusals_on` is what the ceiling reads.
@@ -2156,6 +2183,7 @@ if __name__ == "__main__":
         test_the_resolutions_offered_are_not_the_answer()
         test_the_atom_order_is_pinned()
         test_a_per_slot_refusal_decays_like_the_term()
+        test_an_invented_atom_is_skipped_on_load_and_counted()
         test_b5_does_not_judge_a_last_cycle_park_and_still_judges_an_earlier_one()
         test_a_miss_on_a_never_settled_slot_is_a_miss_not_a_refusal()
         test_the_promotion_clause_is_recorded()
