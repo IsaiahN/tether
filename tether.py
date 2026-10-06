@@ -1587,8 +1587,7 @@ class Agent:
         return [(b, a, af[slot], i, land) for b, a, af, i, land in self.trace
                 if slot in af and slot in b]
 
-    @staticmethod
-    def _ops(term: Term, state: dict[str, int]) -> tuple:
+    def _ops(self, term: Term, state: dict[str, int]) -> tuple:
         """The operand's value, and §4's whole mechanism sits in the middle three lines.
 
         THE BRANCH GETS THE RAW SLOT VALUE AS ITS OWN OPERAND, and a bare `Ctx` was the first
@@ -1607,20 +1606,31 @@ class Agent:
         """
         if not term.operand:
             return ()
+        # THE MEMO STAYS INSIDE `_ops`: `conform/evalctx.py` exempts the one direct Ctx below by
+        # this function's name, on the checked fact that an operand tree is never guarded.
+        memo, key = self._memo, None
+        if memo is not None:
+            key = ("ops", term.operand, term.operand_term, id(state))
+            hit = memo.get(key)
+            if hit is not None and hit[0] is state:
+                return hit[1]
         value = state[term.operand]
         if term.operand_term is not None:
             value = term.operand_term.apply(value, Ctx(operands=(value,)))
-            if value is NOT_RESOLVED:
-                # `None`, NOT `()` -- RULED 2026-09-21. The docstring above argued an
-                # unreadable branch may fall back to "no operand" because that is the
-                # identity every operand-reading atom already takes. But the identity is
-                # a CLAIM: `_translate` returning `v` asserts no translation happened,
-                # where the truth is that nobody could tell. 12.2 forbids exactly that --
-                # *a value or an explicit non-reading, never a guess, never a default.*
-                # `()` means NO OPERAND; `None` means AN OPERAND THAT CANNOT BE READ, and
-                # every evaluating caller turns it into NOT_RESOLVED or unexplained.
-                return None
-        return (value,)
+        got: tuple | None = (value,)
+        if term.operand_term is not None and value is NOT_RESOLVED:
+            # `None`, NOT `()` -- RULED 2026-09-21. The docstring above argued an
+            # unreadable branch may fall back to "no operand" because that is the
+            # identity every operand-reading atom already takes. But the identity is
+            # a CLAIM: `_translate` returning `v` asserts no translation happened,
+            # where the truth is that nobody could tell. 12.2 forbids exactly that --
+            # *a value or an explicit non-reading, never a guess, never a default.*
+            # `()` means NO OPERAND; `None` means AN OPERAND THAT CANNOT BE READ, and
+            # every evaluating caller turns it into NOT_RESOLVED or unexplained.
+            got = None
+        if key is not None:
+            memo[key] = (state, got)
+        return got
 
     def _ingredient_slots(self, ingredient: str) -> tuple | None:
         """INGREDIENT NAME -> THE SLOTS IT ACTUALLY TOUCHES. The join that did not exist.
@@ -5951,8 +5961,8 @@ class Agent:
         return [None] + sorted(others, key=lambda s: (*rank(s), -seen[s], s))
 
     def mint(self, slot: str) -> None:
-        """ONE MINT WITH ITS EVALUATION MEMO. A Ctx is a pure function of its inputs, and inside
-        one mint it repeats ~1,281x (counted, default seed 0,
+        """ONE MINT WITH ITS EVALUATION MEMO. A Ctx and an operand read are pure functions of
+        their inputs, and inside one mint they repeat ~1,281x and ~740x (counted, default seed 0,
         2026-10-05). SCOPED TO THE MINT, and every entry holds a reference to the row it keys on,
         so no row can be freed and its id reused while the memo lives. Byte-identical by
         construction; checked on four worlds."""
