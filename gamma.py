@@ -658,9 +658,9 @@ class Standing:
         outlasting it.** Nothing new is measured and nothing new is stored -- the cliff simply
         stops being a special case beside a decay that was already there.
 
-        **THE NUMBER IS NOT MINE AND THE DEFAULT IS ITS OWN NO-OP.** `REJECTION_CEILING` is 1.0
-        and a refutation adds 1.0, so the first miss still unsettles and **every run is
-        unchanged.** The mechanism is installed, visible and movable; the judgement of how much
+        **THE NUMBER IS NOT MINE.** `REJECTION_CEILING` was 1.0 here, so the first miss
+        unsettled; it is 2.0 since `fa3cba6` -- read the table at its definition.
+        The mechanism is installed, visible and movable; the judgement of how much
         one failure should cost is Isaiah's, and `F341` files it as a judgement constant.
         """
         self.decay(tick, halflife)
@@ -745,6 +745,13 @@ class Standing:
             # not exist yet, and it is the next item rather than a gap left here.
             self.misses *= _f
             self.refusals *= _f
+            # THE PER-SLOT COUNT IS ON THE TERM'S CLOCK TOO. The live refute always passes a
+            # slot, so `refusals_on` is what the ceiling reads; undecayed, two misses ever
+            # made every later miss a cliff -- against Isaiah's 2026-09-24 ruling (F463).
+            # An EVIDENCE TALLY behind settled-as-a-spectrum, NOT Fig 6's refusal: that is a
+            # minted refusing TERM and never leaves the record. Nothing else reads this count.
+            for _s in self.refusals_on:
+                self.refusals_on[_s] *= _f
             self.last_tick = tick
 
     @property

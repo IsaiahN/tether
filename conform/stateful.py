@@ -2073,6 +2073,26 @@ def test_a_relational_slot_never_uses_tier_2_and_says_nothing_instead():
         "still returned nothing, so the delta assertion was not demonstrating the guard")
 
 
+def test_a_per_slot_refusal_decays_like_the_term():
+    """Isaiah, 2026-09-24: *a decay or a ratio, never a cliff* -- asserted on the LIVE path,
+    which always passes a slot (`tether.py:6960`), so `refusals_on` is what the ceiling reads.
+    `fa3cba6`'s table: two refusals a halflife apart SURVIVE. The control runs the same
+    history with decay switched off and must UNSETTLE, or this test cannot see the defect."""
+    import gamma
+
+    def history(halflife):
+        st = gamma.Standing(last_tick=0)
+        st.settled_at = 0
+        st.settled_on.add("o1")
+        h = int(gamma.REJECTION_HALFLIFE)
+        st.refute(1, halflife=halflife, slot="o1")
+        st.refute(1 + h, halflife=halflife, slot="o1")
+        return "o1" in st.settled_on
+
+    assert history(None), "two per-slot refusals a halflife apart unsettled the term: a cliff"
+    assert not history(float("inf")), "control did not unsettle: the history cannot show a cliff"
+
+
 if __name__ == "__main__":
     if "--cover" in sys.argv:
         for label, c in (("kernel.Frame", coverage()),
@@ -2103,6 +2123,7 @@ if __name__ == "__main__":
         test_the_residual_bound_loses_nothing()
         test_the_resolutions_offered_are_not_the_answer()
         test_the_atom_order_is_pinned()
+        test_a_per_slot_refusal_decays_like_the_term()
         test_the_promotion_clause_is_recorded()
         test_the_mutation_observer_reaches_the_agent()
         test_a_mutation_moves_attention_and_never_the_action()

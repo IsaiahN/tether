@@ -56351,3 +56351,23 @@ The "ladder mapping and standing checks" the old sentence named are not in the f
     standing settled at end     3 / 4          6 / 2          7 / 8
 
 **Refuters, none fired on any seed:** (a) base unbinds exceed real losses on every seed, more than double -- there was something to fix; (b) consumer unbinds = real losses exactly, 22/30/44; (c) the new rows = the spy's count exactly, 7/13/18 -- the treatment ran. Unbinds fell on all three seeds. **Real losses ROSE on all three** (terms stay bound long enough to be judged again) -- why is NOT measured; that they happen at the ratchet's one-miss cliff is a hypothesis (MODE: general) the decay commit tests. Standing-settled at end moves both ways (3->4, 6->2, 7->8): no direction stated. The base runs reproduce the earlier after-arm exactly. Seats 21/21.
+
+#### F463 — **THE PER-SLOT REFUSAL COUNT NOW DECAYS ON THE TERM'S CLOCK: "a decay or a ratio, never a cliff" holds on the LIVE path. Real losses fell on all three seeds**
+
+2026-10-06. Isaiah, 2026-09-24, at the refute site: *"NOT A HARD BAN. A DECAY OR A RATIO, NEVER A CLIFF."* `fa3cba6` raised `REJECTION_CEILING` to 2.0 with a rationale table computed on the decaying counter `refusals` -- but the live call (`tether.py:6960`) always passes a slot, so the decision reads `refusals_on[slot]`, which `decay()` never touched and `settle()` never reset. **Two misses ever on a slot made every later miss a one-miss cliff, permanently** -- the "knowledge written down and half-applied" genus. `refusals_on` entered at `637e353` (2026-10-04); its checks refuted twice in a row, where decay cannot show. The refute docstring also still said the ceiling was 1.0 -- corrected.
+
+**THE BOUNDARY (the reviewer's note): `refusals_on` is an EVIDENCE TALLY behind settled-as-a-spectrum, NOT Fig 6's refusal** -- that is a minted refusing TERM and never leaves the record. Confirmed by grep: written at `gamma.py:698`, read only at 699 (the ceiling test). **Also found, for the audit and not asserted: no structure for a minted refusing term was found at all** -- whether the formula's REFUTED bin is built under another name is open.
+
+**THE CHANGE:** `Standing.decay` multiplies `refusals_on` by the same factor as the other three counters. Seat `test_a_per_slot_refusal_decays_like_the_term` (conform/stateful.py): two refusals one halflife apart must leave the term settled on that slot; the control (halflife = infinity) must unsettle. **Mutation: with the decay line removed the seat reads "...unsettled the term: a cliff"** -- verified on two bases. The tick is one per transition (`gamma.tick = len(self.trace)`), so the decay runs at its designed rate.
+
+**ORDER, for attribution (the reviewer):** applied ALONE first, it made churn WORSE (demote rows 28/43/90 -> 28/68/166) because the consumer unbound on every miss by a settled term -- that refuter was not re-scoped; it exposed F462. Re-applied on top of F462 (`f4963cb`):
+
+                                s0 cons/decay   s1 cons/decay   s2 cons/decay
+    real losses (spy)           22 / 17         30 / 1          44 / 13
+    misses while settled (spy)  7 / 23          13 / 156        18 / 87
+    unbinds (= losses)          22 / 17         30 / 1          44 / 13
+    miss rows (= spy)           7 / 23          13 / 156        18 / 87
+    settle events               26 / 20         32 / 9          53 / 19
+    standing settled at end     4 / 2           2 / 7           8 / 6
+
+default, 60 cycles, cold, all arms default. MODE: grounded for this panel. **Refuters, none fired:** (a) the seat sees the defect; (b) real losses fell on all three seeds; (c) unbinds = losses and rows = spy exactly on all three. **So F462's hypothesis -- that the extra losses happened at the one-miss cliff -- is supported on this panel.** Settle events fell on all three (a term that keeps standing never re-settles -- a reading, not pre-registered). **End-of-run standing moves both ways (4->2, 2->7, 8->6): no direction stated.** ARC: a PREDICTED change, owed at the integration run -- every change a term keeping standing it would have lost under the cliff, listed; any other kind refutes.
