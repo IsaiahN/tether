@@ -136,6 +136,68 @@ def check_a_click_carries_its_position():
         f"the click arrived as {w.calls[-1]} {w.last_data}")
 
 
+def check_run_saves_after_a_death_a_win_and_the_cap():
+    """THE ENTRY POINT CARRIES (F471): with a library path, run() keeps the game's library
+    whatever ended it -- a death, a win, or the cap. Without one it saves nothing."""
+    import pathlib
+    import tempfile
+
+    import tether_agent
+    with tempfile.TemporaryDirectory() as d:
+        for i, script in enumerate(({2: GameState.GAME_OVER}, {2: GameState.WIN}, {})):
+            path = str(pathlib.Path(d) / f"lib{i}.json")
+            out = tether_agent.run(FakeWrapper(script=script), "fake", max_actions=4,
+                                   library=path)
+            assert out["saved"] and pathlib.Path(path).exists(), f"not kept after {out['end']}"
+        out = tether_agent.run(FakeWrapper(), "fake", max_actions=2)
+        assert out["saved"] is None, "a run with no library path saved something"
+
+
+def check_a_save_killed_midway_leaves_the_previous_library_whole():
+    """ATOMIC (F471): a save interrupted mid-write -- the platform's time limit -- must leave
+    the library already on disk intact and loadable, never a half-written one."""
+    import pathlib
+    import tempfile
+
+    import gamma
+    inc = gamma.Atom("inc", lambda v, _c: v + 1, "val", "val")
+    g = gamma.Gamma([inc], game="A")
+    g.accept(gamma.Term(atoms=(inc, inc)), seq=0, residual="s@0")
+    with tempfile.TemporaryDirectory() as d:
+        path = str(pathlib.Path(d) / "lib.json")
+        g.save(path)
+        before = pathlib.Path(path).read_text(encoding="utf-8")
+        real = pathlib.Path.write_text
+
+        def dies(self, data, *a, **k):
+            real(self, data[: len(data) // 2], *a, **k)
+            raise KeyboardInterrupt("killed mid-save")
+        pathlib.Path.write_text = dies
+        try:
+            g.save(path)
+        except KeyboardInterrupt:
+            pass
+        finally:
+            pathlib.Path.write_text = real
+        assert pathlib.Path(path).read_text(encoding="utf-8") == before, "a kill tore the library"
+        rep = gamma.Gamma([inc], game="B").load(path)
+        assert rep.get("loaded") == 1 and not rep.get("cold"), rep
+
+
+def check_an_unreadable_library_loads_cold_and_says_so():
+    """A missing or unreadable library is a COLD start, reported -- never a crash (F471)."""
+    import pathlib
+    import tempfile
+
+    import gamma
+    inc = gamma.Atom("inc", lambda v, _c: v + 1, "val", "val")
+    with tempfile.TemporaryDirectory() as d:
+        path = pathlib.Path(d) / "lib.json"
+        path.write_text('{"terms": [', encoding="utf-8")
+        rep = gamma.Gamma([inc], game="A").load(str(path))
+    assert rep.get("loaded") == 0 and rep.get("cold"), rep
+
+
 if __name__ == "__main__":
     checks = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
     for fn in checks:

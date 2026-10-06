@@ -47,5 +47,9 @@ def run(w, game: str, max_actions: int, *, on_action=None, library: str | None =
         was = end
         if end:
             break
+    # THE GAME'S LIBRARY IS KEPT for the next game in this worker's sequence -- after WIN,
+    # death or cap alike. No path, no save: a run with no sequence stays cold (F471).
+    saved = ag.gamma.save(library) if library else None
     return {"game": game, "acted": acted_n, "cycles": ag.cycle, "end": end or "cap",
-            "levels": env.levels(), "refused_resets": getattr(env.w, "refused", 0)}
+            "levels": env.levels(), "refused_resets": getattr(env.w, "refused", 0),
+            "loaded": loaded, "saved": saved}

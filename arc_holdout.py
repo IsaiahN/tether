@@ -226,7 +226,8 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
     env, ag, led, board, palette, loaded = wire(w, game, cfg=cfg, led_path=led_path,
                                                 library=library, on_frame=on_frame)
     # Q25 needs the set BEFORE play and there is exactly one moment it exists
-    inherited = ({summary._chain(t) for t in ag.gamma.library.values()} if loaded else set())
+    inherited = ({summary._chain(t) for t in ag.gamma.library.values()}
+                 if loaded and not loaded.get("cold") else set())
     bud = arc_run.Budget()
     bud.level_starts()
 

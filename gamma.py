@@ -18,6 +18,7 @@ Reports lambda, the spectral radius of the type transfer matrix, against V = |at
 from __future__ import annotations
 
 import json
+import os
 import pathlib
 import random
 import sys
@@ -1165,7 +1166,11 @@ class Gamma:
                 "invented": {n: rec for n, rec in self.invented.items() if rec.get("delta")},
                 "vindication": list(self.vindication),
                 "book": dict(self.book)}
-        pathlib.Path(path).write_text(json.dumps(blob, indent=1), encoding="utf-8")
+        # ATOMIC: written beside it, then renamed into place. A kill mid-save (the platform's
+        # time limit) leaves the previous library whole, never a half-written one (F471).
+        tmp = f"{path}.tmp"
+        pathlib.Path(tmp).write_text(json.dumps(blob, indent=1), encoding="utf-8")
+        os.replace(tmp, path)
         return {"written": len(out), "invented": len(blob["invented"]), "path": path}
 
     def load(self, path: str) -> dict:
@@ -1187,7 +1192,12 @@ class Gamma:
         games there is no first. `necessary` stays, `promoted` wipes, **`IMPORTED` wipes and is
         counted apart**, so the transfer number is readable and the ablation is unaffected.
         """
-        blob = json.loads(pathlib.Path(path).read_text(encoding="utf-8"))
+        # A MISSING OR UNREADABLE LIBRARY IS A COLD START, REPORTED -- never a crash, never a
+        # partial library (F471).
+        try:
+            blob = json.loads(pathlib.Path(path).read_text(encoding="utf-8"))
+        except (OSError, ValueError) as e:
+            return {"loaded": 0, "cold": f"{type(e).__name__}: {e}"[:200]}
         # BACKWARD-COMPATIBLE BY SHAPE, not by a version flag: files written before route 2 are
         # a bare list. A flag would be a second thing to keep in step with the format.
         rows = blob if isinstance(blob, list) else blob.get("terms", [])
