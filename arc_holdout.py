@@ -61,41 +61,13 @@ def _mode():
     return OperationMode(env) if env in ok else OperationMode.OFFLINE
 
 
-def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
-         store: str | None = None, arc=None, stop_on_end: bool = False,
-         led_path: str | None = None, on_frame=None,
-         cfg: Any = None) -> dict:
-    """Download one game, run the loop on it, and report where the chain stops.
+def wire(w, game: str, *, cfg: Any = None, led_path: str | None = None,
+         library: str | None = None, on_frame=None):
+    """THE ONE WIRING OF AN ARC WRAPPER TO THE AGENT -- `play` and the Kaggle entry point both.
 
-    **`library` IS §17.8's SWITCH, and the default is cold.** *State it, and make it switchable
-    so the ablation is runnable* -- so persistence is something the SEAT turns on by naming a
-    path, never something the agent does or a process lifetime decides. Pass one and the
-    library loads before play and saves after; pass nothing and the run starts cold, which is
-    what makes the ablation a matter of not passing an argument.
-
-    **THE SAVE IS THE SEAT's AND OUT OF THE AGENT's REACH** -- `play` calls it, the loop never
-    does, and nothing in `tether.py` knows the path exists.
-
-    **`store` FILES BY THE KEY THE AGENT COMPUTED** -- `{digest}_{episode}_{level}`, the story's
-    shape -- and the EPISODE is counted from what is already filed under that digest and level,
-    so it is a real ordinal rather than a stub.
-
-    **THE FIRST ENCOUNTER IS ALWAYS COLD, AND THAT IS THE DESIGN RATHER THAN A GAP.** The key is
-    computed FROM the play, so it cannot be known before one: *`eec40c6`, never seen. First
-    episode of level one.* Loading by key needs a key from a PRIOR play, which is why `library`
-    stays an explicit path -- the seat carries the key forward between runs, and the report
-    emits it for exactly that.
+    Lifted out of `play` unchanged (2026-10-06) so the two cannot drift: the arm flags, the
+    palette read, `ArcWorld`, the ledger, the config and the library load are written once.
     """
-    logging.disable(logging.INFO)
-    from arc_agi import Arcade
-
-    # `arc` injected: the SCORECARD belongs to whichever Arcade calls make(), so an online
-    # runner must own it. Default is unchanged.
-    arc = arc or Arcade(operation_mode=_mode())
-    w = arc.make(game)
-    if w is None:
-        return {"error": f"{game} did not resolve"}
-
     fr = w.reset()
     board = fr.frame[-1]
     # the palette is READ, never assumed: it is the domain's fact and a constant here would
@@ -154,6 +126,46 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
         cfg = tether.Config(max_depth=4)
     ag = tether.Agent(env, gamma.Gamma(env.atoms(), game=game), cfg, led)
     loaded = ag.gamma.load(library) if library and Path(library).exists() else None
+    return env, ag, led, board, palette, loaded
+
+
+def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
+         store: str | None = None, arc=None, stop_on_end: bool = False,
+         led_path: str | None = None, on_frame=None,
+         cfg: Any = None) -> dict:
+    """Download one game, run the loop on it, and report where the chain stops.
+
+    **`library` IS §17.8's SWITCH, and the default is cold.** *State it, and make it switchable
+    so the ablation is runnable* -- so persistence is something the SEAT turns on by naming a
+    path, never something the agent does or a process lifetime decides. Pass one and the
+    library loads before play and saves after; pass nothing and the run starts cold, which is
+    what makes the ablation a matter of not passing an argument.
+
+    **THE SAVE IS THE SEAT's AND OUT OF THE AGENT's REACH** -- `play` calls it, the loop never
+    does, and nothing in `tether.py` knows the path exists.
+
+    **`store` FILES BY THE KEY THE AGENT COMPUTED** -- `{digest}_{episode}_{level}`, the story's
+    shape -- and the EPISODE is counted from what is already filed under that digest and level,
+    so it is a real ordinal rather than a stub.
+
+    **THE FIRST ENCOUNTER IS ALWAYS COLD, AND THAT IS THE DESIGN RATHER THAN A GAP.** The key is
+    computed FROM the play, so it cannot be known before one: *`eec40c6`, never seen. First
+    episode of level one.* Loading by key needs a key from a PRIOR play, which is why `library`
+    stays an explicit path -- the seat carries the key forward between runs, and the report
+    emits it for exactly that.
+    """
+    logging.disable(logging.INFO)
+    from arc_agi import Arcade
+
+    # `arc` injected: the SCORECARD belongs to whichever Arcade calls make(), so an online
+    # runner must own it. Default is unchanged.
+    arc = arc or Arcade(operation_mode=_mode())
+    w = arc.make(game)
+    if w is None:
+        return {"error": f"{game} did not resolve"}
+
+    env, ag, led, board, palette, loaded = wire(w, game, cfg=cfg, led_path=led_path,
+                                                library=library, on_frame=on_frame)
     # Q25 needs the set BEFORE play and there is exactly one moment it exists
     inherited = ({summary._chain(t) for t in ag.gamma.library.values()} if loaded else set())
     bud = arc_run.Budget()
