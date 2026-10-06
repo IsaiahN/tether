@@ -56136,3 +56136,20 @@ f91a697 and `RESET` after; the agent's first board is the same 64x64. Gridworld 
 **Also found, and left: `wrapper.step` returns `None` on any failure and `ArcWorld.step` then keeps
 the OLD frame silently** -- a dropped action reads as an action with no effect. Recorded as a silent
 degrade for the entry point to announce.
+
+#### F453 — **EVERY ARC RESULT IN THIS RECORD BEFORE `d6c0d6f` WAS TAKEN WITH A MULTIPLE RESET AT THE START -- and local `arc_holdout.play` runs opened with THREE consecutive RESETs, not two. Recorded so no past reading is trusted without knowing it (the reviewer, 2026-10-06)**
+
+`F452` found `ArcWorld.__init__` resetting a wrapper that had just reset itself. **`arc_holdout.play`
+ALSO called `w.reset()`**, between `arc.make()` -- whose wrapper resets in its own `__init__` --
+and `ArcWorld`. So:
+
+    local arc_holdout.play runs, before d6c0d6f     RESET, RESET, RESET   (make, play, ArcWorld)
+    local arc_holdout.play runs, d6c0d6f onward     RESET, RESET          (make, play) -- until fixed
+    anything else building ArcWorld on a wrapper    RESET, RESET          (constructor, ArcWorld)
+
+Per INDEX:51466 a second consecutive RESET restarts the whole game. **At the very start that
+loses nothing -- no level is complete -- which is why no reading ever showed it.** But it is the
+sequence `ISAIAH_RULINGS.md` 2026-09-29 rules out, resets may count as actions in competition
+mode (hedged), and a reading that depended on the opening state, on the action count, or on a
+scorecard's reset tally was taken under it. **Every ARC number in this file dated before
+2026-10-06 carries this caveat; none is re-read here, and none is to be quoted without it.**
