@@ -1925,7 +1925,7 @@ class Agent:
         self._molecule_cache = tuple(out)
         return self._molecule_cache
 
-    def _trees(self, cand, bind, g):
+    def _trees(self, cand, bind, g, target=None):
         """The TREE variants of one flat candidate -- `f<g(s)>` for each branch atom.
 
         Empty unless the outer atom actually READS an operand and one is bound: a branch feeds
@@ -1933,8 +1933,10 @@ class Agent:
         """
         if bind is None or not cand.reads_operand:
             return ()
-        return tuple(Term(cand.atoms, operand=bind, guard=g, operand_term=br)
-                     for br in self._branches())
+        trees = (Term(cand.atoms, operand=bind, guard=g, operand_term=br)
+                 for br in self._branches())
+        return tuple(t for t in trees
+                     if target is None or self._operand_fits(t, target, bind))
 
     def _branches(self) -> tuple:
         """The one-atom terms that may sit on a term's OPERAND arm -- §4's second chain.
@@ -2621,7 +2623,8 @@ class Agent:
             # only operand-readers, which is not the population F238 measured.
             for g in gs:
                 if g != term.guard:
-                    yield Term(term.atoms, operand=term.operand, guard=g)
+                    yield Term(term.atoms, operand=term.operand, guard=g,
+                               operand_term=term.operand_term)
             return
         # ARM L AT THE LOOKUP'S OWN SITE. This loop is the other half of the operand axis and
         # was never bounded -- see `_delta_narrowed`. Same rule, same arm, one switch.
@@ -2631,7 +2634,8 @@ class Agent:
         for b in cands:
             if self._operand_fits(term, slot, b):
                 for g in gs:
-                    yield Term(term.atoms, operand=b, guard=g)
+                    yield Term(term.atoms, operand=b, guard=g,
+                               operand_term=term.operand_term)
 
     def _library_fit(self, slot: str, exclude: str | None) -> str | None:
         """3c / §15.3: ask for the term by DESCRIBING THE GAP, not by walking the registry.
@@ -5901,11 +5905,22 @@ class Agent:
         `operand_type` both fall through to True: the check is absent, not passing.
         """
         want = getattr(cand, "operand_type", None)
-        if bind is None or want is None or not self.slot_types:
+        if bind is None or not self.slot_types:
+            return True
+        got = self.slot_types.get(bind)
+        # THROUGH THE TREE: the slot feeds the inner chain first, so each inner atom must
+        # accept what reaches it, and what fills the operand is the chain's OUTPUT. `val`
+        # declares nothing -- it admits and passes the type through (F470).
+        for a in getattr(getattr(cand, "operand_term", None), "atoms", ()):
+            if (a.in_type != "val" and got is not None and got not in a.accepts
+                    and frozenset((a.in_type, got)) not in COMMENSURABLE):
+                return False
+            if a.out_type != "val":
+                got = a.out_type
+        if want is None:
             return True
         if want == G_SAME:
             want = self.slot_types.get(target)
-        got = self.slot_types.get(bind)
         return (want is None or got is None or want == got
                 or frozenset((want, got)) in COMMENSURABLE)
 
@@ -6228,7 +6243,7 @@ class Agent:
                             #
                             # **A SECOND PRE-EXISTING DEFECT, NOT A CHANGE TO THE BOUND** --
                             # reported as such. A route that opens onto a crash is not open.
-                            for bt in self._trees(cand, bind, g):
+                            for bt in self._trees(cand, bind, g, slot):
                                 if self.gamma.is_atom(bt) or (
                                         _maybe_lib and bt.name in self.gamma.library):
                                     continue
@@ -6306,7 +6321,7 @@ class Agent:
                         # **REPAIRED 2026-09-24 under Isaiah's ruling**: the bounded-out
                         # branch now offers trees under their OWN `_cannot_pay`, with no arm,
                         # and this site applies the same bound as a short-circuit.
-                        for bt in self._trees(cand, bind, g):
+                        for bt in self._trees(cand, bind, g, slot):
                             if self.gamma.is_atom(bt) or (
                                     _maybe_lib and bt.name in self.gamma.library):
                                 continue

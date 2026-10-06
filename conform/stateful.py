@@ -2174,6 +2174,45 @@ def test_a_guard_object_does_not_cross_silently():
     assert all(not t.guard_ref for t in dst.library.values()), "a guard object crossed"
 
 
+def test_a_tree_crosses_as_a_schema_and_types_compose_through_it():
+    """The operand TREE is a method and crosses as a typed schema; the slot it was bound to
+    does not (F470). (a) save/load keeps the tree, unbound, under a name a flat chain never
+    has; (b) re-binding carries it; (c) type-fit composes through the inner chain."""
+    import pathlib
+    import tempfile
+    import types
+
+    import gamma
+    import tether
+
+    f = gamma.Atom("f", lambda v, _c: v, "val", "val", reads_operand=True,
+                   operand_type="POSITION")
+    g = gamma.Atom("g", lambda v, _c: v, "val", "val")
+    tree = gamma.Term(atoms=(f,), operand="o1.row", operand_term=gamma.Term((g,)))
+    src = gamma.Gamma([f, g], game="A")
+    src.accept(tree, seq=0, residual="s@0")
+    with tempfile.TemporaryDirectory() as d:
+        path = str(pathlib.Path(d) / "lib.json")
+        src.save(path)
+        dst = gamma.Gamma([f, g], game="B")
+        dst.load(path)
+    schema = dst.library.get("f<g(:POSITION)>")
+    assert schema is not None, sorted(dst.library)
+    assert schema.operand_term is not None and schema.operand is None
+    assert schema.name != gamma.Term((f,)).name, "a schema shares a name with its flat chain"
+
+    me = types.SimpleNamespace(slots=["o0.row", "o2.row"], slot_types={},
+                               _operand_fits=lambda *_a: True)
+    rebound = [t for t in tether.Agent._rebindings(me, schema, "o0.row") if t.operand]
+    assert any(t.operand_term is not None and t.operand == "o2.row" for t in rebound), rebound
+
+    colour = gamma.Atom("hue", lambda v, _c: v, "COLOUR", "COLOUR")
+    bad = gamma.Term(atoms=(f,), operand="b", operand_term=gamma.Term((colour,)))
+    fit = types.SimpleNamespace(slot_types={"a": "POSITION", "b": "POSITION"})
+    assert not tether.Agent._operand_fits(fit, bad, "a", "b"), "an ill-typed inner joint fit"
+    assert tether.Agent._operand_fits(fit, tree, "a", "b"), "a well-typed tree was refused"
+
+
 def test_a_per_slot_refusal_decays_like_the_term():
     """Isaiah, 2026-09-24: *a decay or a ratio, never a cliff* -- asserted on the LIVE path,
     which always passes a slot (`tether.py:6960`), so `refusals_on` is what the ceiling reads.
@@ -2225,6 +2264,7 @@ if __name__ == "__main__":
         test_the_resolutions_offered_are_not_the_answer()
         test_the_atom_order_is_pinned()
         test_a_per_slot_refusal_decays_like_the_term()
+        test_a_tree_crosses_as_a_schema_and_types_compose_through_it()
         test_a_guard_object_does_not_cross_silently()
         test_a_loaded_term_is_imported_even_under_the_same_game_name()
         test_an_invented_atom_is_skipped_on_load_and_counted()

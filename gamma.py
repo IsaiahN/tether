@@ -389,6 +389,12 @@ class Term:
             inner = (f"{self.operand_term.name}({self.operand})"
                      if self.operand_term is not None else self.operand)
             base = f"{base}<{inner}>"
+        elif self.operand_term is not None:
+            # AN UNBOUND SCHEMA, named by its PARAMETER TYPE -- the type `_operand_fits`
+            # enforces -- so it never shares a name with the flat chain (F470).
+            want = self.operand_type
+            ptype = "SAME" if want == SAME_AS_TARGET else (want or "ANY")
+            base = f"{base}<{self.operand_term.name}(:{ptype})>"
         if not self.guard:
             return base
         # **THE REFERENT IS PART OF THE IDENTITY.** Two guards of the same KIND pointing at
@@ -1126,6 +1132,10 @@ class Gamma:
             out.append({"atoms": [a.name for a in t.atoms], "origin": t.origin,
                         "guard": t.guard, "operand": t.operand,
                         "guard_ref": t.guard_ref,   # the RECORD of the loss, never re-bound
+                        # THE TREE CROSSES AS A SCHEMA: a computed operand is a METHOD
+                        # (Fig 4); the slot it was bound to is not, and is not written.
+                        "operand_term": ([a.name for a in t.operand_term.atoms]
+                                         if t.operand_term is not None else None),
                         "handle": self.handles.get(name), "game": self.game,
                         # `stamps` holds DICTS: `getattr` on one returned None, so every term
                         # was saved with no admitting clause and no residual (F464).
@@ -1212,6 +1222,11 @@ class Gamma:
         guard_object_lost = []
         for r in rows:
             names = tuple(r["atoms"])
+            tree = r.get("operand_term")
+            if tree and not all(n in self._by_name for n in tree):
+                refused.append({"atoms": list(names),
+                                "why": "operand tree names an atom not in this registry"})
+                continue
             if r.get("guard_ref"):
                 # A CLAIM MUST NOT TRAVEL CHANGED AND SILENT: `inc?ACTED_SELF<o1>` arriving as
                 # `inc?ACTED_SELF` means "my own owner's press". Dropped, and named here.
@@ -1232,7 +1247,9 @@ class Gamma:
                      # imported, whatever game it was saved under. A same-name reload
                      # stayed "minted" and got no carry-candidacy (F468).
                      origin=IMPORTED,
-                     guard=r.get("guard"))
+                     guard=r.get("guard"),
+                     operand_term=(Term(tuple(self._by_name[n] for n in tree))
+                                   if tree else None))
             if t.name in self.library:
                 # **`already_held` WAS ONE NUMBER OVER TWO OPPOSITE OUTCOMES -- `F420`.** A row
                 # can land on a composition this registry genuinely holds, which is a real
