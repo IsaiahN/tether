@@ -56098,3 +56098,22 @@ never sends RESET on GAME_OVER** -- the who-presses rule (INDEX "ResetGate AS A 
 own library, or concurrent games with no carry -- because it decides whether the agent learns across
 the private games while it plays them. With it: the core count, the game count, actions per game,
 and whether "one file" is a competition rule or a habit of the samples.
+
+#### F451 — **14a, THE BUNDLER: the Kaggle submission is built from a CENSUS of what the agent imports, in both forms -- a package directory and one generated .py. Isolation-tested offline: from an unrelated directory with no repo on sys.path, every module loads from the unpacked copy and the seed reads in full**
+
+`kaggle_bundle.py [entry] [out]`. The module list is taken by importing the entry module in a
+fresh interpreter and keeping every repo module it loads -- a census, not a list (32 modules on
+the ARC path, about 1.2 MB). Lazy imports inside functions are not seen; the fake-wrapper smoke run
+is the runtime census. The DATA files are a declared table, because a file read leaves no trace in
+`sys.modules`, and a row that does not exist is refused: `ATOMS.md`, `ATTRIBUTES.md` and five
+`library/*.json`. `arcengine` is refused outright -- it comes from the competition wheels.
+
+    out/tether_pkg/        the files as a directory
+    out/tether_bundle.py   ONE file, 1.9 MB compressed (about 9 MB raw); on import it writes the
+                           files beside itself once per content digest, puts that directory on
+                           sys.path, and re-exports the entry module
+
+**Isolation test**, entry `arc_holdout`, digest `0734c5056627665a`: from an unrelated working
+directory, with no repo directory on `sys.path`, `composer`, `condition`, `tether`, `gamma`,
+`arc_world` and `inherited` all load from the unpacked copy, and the seed reads return 2,076
+recipe rows and 2,637 glosses -- the full set, which F449 made possible.

@@ -29,3 +29,4 @@ protocol_*.jsonl
 # Out of git (large, not ours to redistribute) AND out of the agent's reach -- the seat reads
 # the answer set, the agent reads only the frame. Same firewall as environment_files/.
 replays/
+out/
