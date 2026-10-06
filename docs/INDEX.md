@@ -56304,3 +56304,13 @@ Pre-registered disappointment: *settled drops to 0 on all three seeds*. **MET.**
 **THE OBSERVER'S DEFECT, CAUGHT AT THE DENOMINATOR.** The wiring seat first reported 36 transitions, every one an ARC atom: the fresh worktree held 2 run files against the main checkout's 125. With the manifest's 52 artifacts present: *status unchanged over 54 artifacts*. Not the agent.
 
 **REFUTERS.** (a) no `act` lineage after removal: 0 on all nine, by construction. (b) ARC unchanged: by construction -- neither `arc_atoms` nor `arc_world` imports `world` or `snaps` (MODE: specified, not tape-measured). Seats 21/21, `test_gate` 25/25, ruff clean.
+
+#### F460 — **THE FORMULA IS ISAIAH'S "REVISED SEPTEMBER 2026" TEXT, ONE COPY, AND "THE LOOP" IS THE SAME DOCUMENT**
+
+2026-10-06. `docs/THE_FORMULA.md` held an older draft carrying seat edits (7 commits since 2026-08-22, among them 2026-09-01 *Figure 12 integrated* and 2026-09-20 *a refusal clause*), differing between branches (43,175 B on `arc-agent`, 43,741 B on the seat worktrees), and holding only one of three distinctive lines of Isaiah's revision. It is REPLACED IN PLACE by his text, exported unaltered as plain text from the reviewer's relay of it (8,693 B, sha256[:16] `7faa7ac5902af02f`, BOM and CRLF from the export; the aligned columns of steps 2, 3 and 7 came through intact, so nothing was restored). **Isaiah: *"remove any older reference to the formula so that we only have one"*** -- so no superseded copy is kept beside it; git history holds the old draft. Byte-identical to Isaiah's own `Desktop/figures/THE_FORMULA.md`.
+
+**THE LOOP IS THE FORMULA** (Isaiah, via the reviewer): the seat map's `THE_LOOP_reference.md` is this document under its other name; no file of that name exists, and the seat map's appendix is a rendering of it.
+
+**STANDING (Isaiah: *"I relinquish control now to the Tether figures 1-13, the Operators table and the Symbols table"*):** a derivation, used for its arithmetic and its ordering; where it and a figure disagree the FIGURE wins and the gap is recorded as the formula's lossiness, never as a new rule; every design census cites the figure behind each formula term. **Corpus documents that quote the old draft are left as written** and read against this file.
+
+**AND FOUR RECORD COMMITS TODAY CARRY THE WRONG ITEM -- `0db94f8`, `ff74ec0`, `befb2de`, `9df70c9`, all `Item: m2.goal`**, which is the goal chain; they are frame records and belong to `reframe`. The adjacent-reference class `aim.py` records. Messages are not rewritten; this line is the correction.
