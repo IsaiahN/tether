@@ -41,7 +41,7 @@ class _Two:
 
     def _frame(self):
         f = FrameDataRaw(game_id="m2test", state=GameState.NOT_FINISHED, levels_completed=0,
-                         win_levels=3, available_actions=[0, 1, 2, 3])
+                         win_levels=3, available_actions=[1, 2, 3])
         b = np.zeros((SIDE, SIDE), dtype=int)
         b[2][self.n] = 3
         b[4][self.n + 1] = 5
@@ -100,8 +100,14 @@ def _agent(cycles: int = 25):
     rebuilding.
     """
     if cycles not in _BUILT:
+        # **`platform=()` IS PINNED FOR THE SAME REASON, DEMONSTRATED 2026-10-06 (F477).** With
+        # the platform's RESET in the set, SEVEN checks fail here; pinned out,
+        # all pass. A green m2 does not certify RESET in the set. (`_Two` declared RESET as
+        # id 0, which no game does -- 22 of 22 -- and the old filter hid it; it declares
+        # [1, 2, 3], the set it always effectively offered.)
         env = ArcWorld(_Two(), arc_percept.Objects(),
-                       arc_atoms.three_spaces(arc_predict.predict()), palette=PALETTE)
+                       arc_atoms.three_spaces(arc_predict.predict()), palette=PALETTE,
+                       platform=())
         # **`system0=False` IS PINNED HERE, AND IT IS THE FIXTURE'S ASSUMPTION MADE EXPLICIT
         # RATHER THAN A CHECK WEAKENED.** System 0 became the default on 2026-09-25 and three
         # checks here failed with `fixture:` -- their OWN guard for *the setup did not reach the

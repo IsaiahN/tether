@@ -139,7 +139,8 @@ def main() -> None:
     bind(env)
     print(f"{len(env.slots())} slots, {len(env.atoms())} atoms, transform={env.transform()}")
     acts = env.actions()
-    print(f"  actions advertised  : {acts}   RESET withheld: {'RESET' not in acts}")
+    print(f"  actions advertised  : {acts}   provenance: "
+          f"{ {a: env.provenance(a) for a in acts} }")
     print(f"  board type          : {type(env.board()).__name__}   alphabet: {env.alphabet()}")
     print(f"  objective           : {env.objective()}")
 

@@ -25,6 +25,8 @@ import observer
 import sensors
 
 SENSORS = sensors.minimum_set()
+# The platform's own actions, accepted in every state whatever the game declares (`actions`).
+PLATFORM_UNIVERSAL = (GameAction.RESET.name,)
 
 # THE OBSERVER ARM, SEAT-SIDE SWITCH, DEFAULT OFF. Isaiah's mutation observer: the tracker
 # carries a wider per-object set, publishes the SEQUENCE of changes rather than the set, and
@@ -52,8 +54,12 @@ class ArcWorld:
     """
 
     def __init__(self, wrapper: Any, decompose: Decompose, atoms: list,
-                 palette: int, views: Any = None, name: str = "arc") -> None:
+                 palette: int, views: Any = None, name: str = "arc",
+                 platform: tuple[str, ...] = PLATFORM_UNIVERSAL) -> None:
         self.w = wrapper
+        # The platform's own actions. A synthetic world with no platform passes () -- declared
+        # at its construction, never inferred.
+        self.platform = tuple(platform)
         self._decompose = decompose
         self.blind = False
         self._atoms = list(atoms)
@@ -483,17 +489,28 @@ class ArcWorld:
         loop could not position it; `step(action, x, y)` now can. Only the DIRECTIONAL SEMANTICS
         must never reach the agent (F28's hard line) -- availability is legitimate to read.
 
-        AND RESET IS WITHHELD, which `is_simple()` would otherwise let through. §21.2:
-        `ResetGate` bans THE AGENT CALLING RESET, because a self-inflicted restart is the
-        farming path -- `bounds.py` exists because a harness once force-RESET on GAME_OVER
-        to farm ~18 unearned attempts. A GAME-INFLICTED restart is the world's own rule
-        and reaches the loop as an observation; an agent-callable one is a bypass of it.
+        AND RESET IS THE PLATFORM'S, NOT THE GAME'S (Isaiah 2026-09-29, "fully ungated undo and
+        reset, just no consecutive resets"; the reviewer 2026-10-06, F477). No game declares it
+        -- 22 of 22 public declarations omit id 0 -- because the engine accepts it in EVERY
+        state as the universal restart. So it is offered after the declared actions, in every
+        state, and `provenance` says which is which. This replaced a filter that removed RESET
+        from the declared list and never once fired. The interface's adjacency rule is what
+        stops RESET,RESET; the entry point never presses it.
         """
-        return tuple(GameAction.from_id(i).name
-                     for i in (self._frame.available_actions or ())
-                     if GameAction.from_id(i) is not GameAction.RESET
-                     and (GameAction.from_id(i).is_simple()
-                          or GameAction.from_id(i) is GameAction.ACTION6))
+        # A game that DID declare RESET would not make it the game's: it is still the platform's,
+        # still last, still `platform-universal`.
+        declared = tuple(GameAction.from_id(i).name
+                         for i in (self._frame.available_actions or ())
+                         if GameAction.from_id(i).name not in self.platform
+                         and (GameAction.from_id(i).is_simple()
+                              or GameAction.from_id(i) is GameAction.ACTION6))
+        return declared + self.platform
+
+    def provenance(self, action: str) -> str | None:
+        """Who offers this action: the PLATFORM in every state, or THIS GAME by declaration."""
+        if action in self.platform:
+            return "platform-universal"
+        return "declared" if action in self.actions() else None
 
     def alphabet(self) -> dict[str, int]:
         """PER SLOT, AND FOR SOME SLOTS PER STEP. `_alphabets` has always accepted a dict --

@@ -7498,6 +7498,9 @@ class Agent:
                         # and parsing a rendering to recover a value the loop already holds is
                         # the reconstruction `transcript.py` exists to refuse.
                         action=action,
+                        # WHO OFFERED IT: the game by declaration, or the platform in every
+                        # state (RESET, F477). None where the world cannot say.
+                        provenance=getattr(self.env, "provenance", lambda _a: None)(action),
                         phase=phase, by=by, stage=self.chain.seg.stage(),
                         gamma_size=len(self.gamma.library), owed=sorted(self.owed_import),
                         # REACH BESIDE THE LIBRARY, because the pair is the reading and one
