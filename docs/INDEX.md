@@ -56301,6 +56301,15 @@ acceptable or `my_agent.py` should ship as a Kaggle dataset input.
 
 Pre-registered disappointment: *settled drops to 0 on all three seeds*. **MET.** Every settlement `default` ever made was built on the handed answer, and each was queued for carry. Not grounds to restore `act`: the residual goes to step 7 in order -- SEARCHED, then INWARD, then OUTWARD.
 
+**WITHDRAWN THE SAME DAY -- the reviewer caught it (2026-10-06 14:37Z), and the census script's own docstring refutes it.** Its `settled` column was *"act-lineage terms the ground settled"* -- it never counted a settled term WITHOUT `act` in its lineage, so after the removal it could only read 0: **a guaranteed number read as the disappointment being met.** Withdrawn: *MET*, *every settlement default ever made was built on the handed answer*. Re-measured over ALL minted terms, two definitions at their sites -- STANDING = `gamma.is_settled(name)` at run end (`gamma.py:1008`, slot=None); EVENTS = ledger `SETTLE`/`settle` rows (`tether.py:7034`), with `SETTLE`/`demote` rows (`tether.py:6972`). default, 60 cycles, cold, all arms default, before `9df70c9` / after `fc19e7b`. MODE: grounded for this panel:
+
+                            s0 before/after   s1 before/after       s2 before/after
+    standing settled        2 / 3             2 (1 act) / 6         5 (1 act) / 7
+    settle events (terms)   24 (4) / 16 (4)   10 (5, 2 act) / 26 (9)  42 (10, 2 act) / 52 (11)
+    demote events           38 / 28           15 / 43               71 / 90
+
+**The disappointment is NOT met: standing-settled ROSE on all three seeds.** `act` carried part of the settling (1 of 2 standing on s1, 1 of 5 on s2, 0 on s0), never all of it. Settle events move in both directions (two seeds against one), so no trend is stated. **What holds on all six arms: demotes exceed settle events, with or without `act`** -- and per term they concentrate on a few terms flipping settle <-> demote (s0 after: `same . all<o5.distance>` demoted 23 times; s2 before: the most-churned term was the `act` term itself, `take<act(o1.distance)>?BECOME OTHER`, 26 times). **So the residual for step 7 is SETTLES THAT DO NOT HOLD, and it predates the removal.** Also on this line: the lever-A panel's "distinct settled terms 11" is a third quantity -- `gamma.settled_terms` includes settled PRIOR atoms and that panel ran with lever A ON; its script was not located.
+
 **THE OBSERVER'S DEFECT, CAUGHT AT THE DENOMINATOR.** The wiring seat first reported 36 transitions, every one an ARC atom: the fresh worktree held 2 run files against the main checkout's 125. With the manifest's 52 artifacts present: *status unchanged over 54 artifacts*. Not the agent.
 
 **REFUTERS.** (a) no `act` lineage after removal: 0 on all nine, by construction. (b) ARC unchanged: by construction -- neither `arc_atoms` nor `arc_world` imports `world` or `snaps` (MODE: specified, not tape-measured). Seats 21/21, `test_gate` 25/25, ruff clean.
