@@ -56045,3 +56045,22 @@ assumed. `is_atom` is untouched.
       default    s0, cycles 0-34   30,627,153 checks, 30,151,754 skipped (98.4%), all consistent
     strict gate, b8f2d79 vs this, 60 cycles, lever A off: trace identical, 0 ledger rows differing
       click_only 0/1/2  buttons 0/1/2  default 0/1/2   all 9: same trace, 0 rows differing
+
+#### F449 — **14a's FIRST FIND: THE AGENT READ ITS SEED BY A CWD-RELATIVE PATH, AND ON KAGGLE IT WOULD HAVE CRASHED IN ONE MODULE AND SILENTLY LOST ALL 2,637 GLOSSES IN THE OTHER. Now read from beside the module; provenance strings unchanged**
+
+`composer.recipe_rows` opened `docs/library-closure/ATOMS.md` and `condition.corpus_glosses` opened
+`ATOMS.md` and `ATTRIBUTES.md` relative to the PROCESS's working directory. The reference Kaggle
+notebook runs `main.py` from `/kaggle/working/ARC-AGI-3-Agents`. Measured, f91a697, called from
+another directory:
+
+    composer.recipe_rows     FileNotFoundError
+    condition.corpus_glosses 0 glosses -- SILENTLY: its `except OSError: continue` swallows it
+
+**The second is the dangerous one: nothing announces it, and the agent runs on without its
+glosses.** Both now open `os.path.join(_HERE, rel)` with `_HERE` the module's own directory; the
+recorded provenance (`seed:{path}:{lineno}`, `{rel}:{n}`) keeps the repo-relative path. From the
+repo the reads are HASH-IDENTICAL to f91a697's (2,076 rows, 2,637 glosses); from elsewhere they are
+now the same. click_only s0 strict pair vs f91a697: same trace, 0 of 7,530 rows differ; seats 20/20.
+
+**The silent `except OSError: continue` in `corpus_glosses` is left as it is -- one change per
+commit -- and recorded here as a silent degrade that should announce itself.**

@@ -28,6 +28,7 @@ the seat authoring the agent's hypotheses.
 """
 from __future__ import annotations
 
+import os
 import re
 import sys
 from collections.abc import Callable
@@ -35,6 +36,11 @@ from dataclasses import dataclass
 from typing import Any
 
 sys.dont_write_bytecode = True
+
+# THE SEED IS READ FROM BESIDE THIS FILE, NOT FROM WHEREVER THE PROCESS STARTED -- 2026-10-06.
+# Kaggle runs main.py from another directory; a cwd-relative open fails there. The
+# recorded provenance keeps the repo-relative path.
+_HERE = os.path.dirname(os.path.abspath(__file__))
 
 OPS: dict[str, Callable[[Any, Any], bool]] = {
     "==": lambda a, b: a == b, "!=": lambda a, b: a != b,
@@ -294,7 +300,7 @@ def corpus_glosses() -> dict:
     out: dict[str, tuple[str, str]] = {}
     for rel in ("docs/library-closure/ATOMS.md", "docs/library-closure/ATTRIBUTES.md"):
         try:
-            with open(rel, encoding="utf-8") as fh:
+            with open(os.path.join(_HERE, rel), encoding="utf-8") as fh:
                 lines = fh.read().splitlines()
         except OSError:
             continue

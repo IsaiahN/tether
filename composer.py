@@ -28,11 +28,17 @@ type-walk) is to be ported from and then deleted, once the route chart holds.
 from __future__ import annotations
 
 import functools
+import os
 import re
 import sys
 from dataclasses import dataclass
 
 sys.dont_write_bytecode = True
+
+# THE SEED IS READ FROM BESIDE THIS FILE, NOT FROM WHEREVER THE PROCESS STARTED -- 2026-10-06.
+# Kaggle runs main.py from another directory; a cwd-relative open fails there. The
+# recorded provenance keeps the repo-relative path.
+_HERE = os.path.dirname(os.path.abspath(__file__))
 
 _ATOMS_MD = "docs/library-closure/ATOMS.md"
 
@@ -167,7 +173,8 @@ def recipe_rows(path: str = _ATOMS_MD) -> dict:
     junction, independently, via `Standing`; `n` ingredients have `n-1` of them.
     """
     out: dict = {}
-    with open(path, encoding="utf-8") as fh:
+    with open(path if os.path.isabs(path) else os.path.join(_HERE, path),
+              encoding="utf-8") as fh:
         for lineno, ln in enumerate(fh, 1):
             m = re.match(r"\s*\|(.+?)\|(.+?)\|(.+?)\|\s*$", ln)
             if not m:
