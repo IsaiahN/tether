@@ -56216,3 +56216,36 @@ bundler's to append, so the repository never needs the harness to import.
 notebook template with the `arc-agi` install cell (bug 5).** Bug 4 (no `arcengine` in the bundle)
 is enforced by the bundler; bug 1 (WIN) is `run()` ending on `advance`, which the subclass's
 `is_done` must also report.
+
+#### F457 — **14a, THE AGENT CLASS: `kaggle_agent.MyAgent` overrides `main()` to call `tether_agent.run()`, and the bundler emits ONE `my_agent.py` (bundle + class, compiled at build). Run offline through a NOTEBOOK-SHAPED `agents` package with the real reference `Agent` base class: one RESET, counters true, WIN reported, death ends the game**
+
+`kaggle_agent.py` is the only file that imports the harness (`agents.agent.Agent`), and nothing in
+the repository imports it. `MyAgent.main()` calls `run(self.arc_env, self.game_id, MAX_ACTIONS,
+on_action=...)`; `on_action` appends each frame through the base class's own
+`_convert_raw_frame_data`/`append_frame` and counts it, so `is_done`, `state`, `levels_completed`,
+the recorder and `cleanup()` read what happened. `is_done` reports WIN (interface bug 1).
+`choose_action` RAISES: with `main()` overridden nothing calls it. **`MAX_ACTIONS` is the reviewer's
+500-per-game PLACEHOLDER**, with Isaiah (F450).
+
+`kaggle_bundle.py` now also writes `out/my_agent.py` -- the one-file bundle with the class appended
+(`from __future__` dropped, since it is legal only first) -- and COMPILES it, refusing a broken file
+at build time.
+
+    the notebook's shape, offline: a temporary `agents/` with the REAL agent.py, recorder.py and
+    tracing.py from ARC-AGI-3-Agents, `templates/my_agent.py` = our generated file, run from an
+    unrelated directory with no repo on sys.path, on the fake wrapper
+      scripted death at 3   calls [RESET, ACTION1..3]; action_counter 3; frames 4; state GAME_OVER;
+                            is_done False; run end 'death'; choose_action raises
+      scripted WIN at 2     calls [RESET, ACTION1, ACTION2]; state WIN; is_done True; levels 2
+
+**Owed for 14a: the notebook template (bug 5, the `arc-agi` install cell).** Bugs 1-4 now stand
+checked on the path that will run.
+
+**THE LINT REFUSED THE FIRST COMMIT, RIGHTLY, ON TWO RULES -- and one fix widens a seat's exemption,
+so it is a SEAT CALL pending the reviewer.** ANCHOR: the 500 had no `# anchor:`; it now names the
+reviewer's placeholder. ISOLATED: `MyAgent`, `is_done` and `choose_action` are referenced nowhere in
+the package -- true by design, since the harness collects and calls them and nothing in the
+package may import the harness. `conform/lint.py`'s `COLLECTORS` is the declared table for exactly
+that ("runners that collect by convention from OUTSIDE the package"); it gains three rows scoped
+to the one module `kaggle_agent` and its three exact names. The rule's pinned fixtures are
+unchanged and pass, so the exemption did not widen beyond that module.

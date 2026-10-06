@@ -93,11 +93,27 @@ def build(entry: str = "tether_agent", out: str = "out") -> dict:
     digest = hashlib.sha256(b"".join(k.encode() + v for k, v in sorted(blobs.items()))).hexdigest()
     packed = {k: base64.b64encode(zlib.compress(v, 9)).decode() for k, v in sorted(blobs.items())}
     one = os.path.join(out, "tether_bundle.py")
+    body = _ONE_FILE.format(digest=digest, entry=entry, n=len(packed),
+                            files=json.dumps(packed, indent=0))
     with open(one, "w", encoding="utf-8") as fh:
-        fh.write(_ONE_FILE.format(digest=digest, entry=entry, n=len(packed),
-                                  files=json.dumps(packed, indent=0)))
-    return {"files": len(files), "modules": len(files) - len(DATA), "data": len(DATA),
-            "digest": digest[:16], "bundle_bytes": os.path.getsize(one), "pkg": pkg, "one": one}
+        fh.write(body)
+    report = {"files": len(files), "modules": len(files) - len(DATA), "data": len(DATA),
+              "digest": digest[:16], "bundle_bytes": os.path.getsize(one), "pkg": pkg, "one": one}
+    # THE NOTEBOOK'S ONE FILE: the bundle, then the Agent class. `from __future__` is legal only as
+    # a module's first statement, so it is dropped from the appended class -- and the result is
+    # COMPILED here, so a broken file is refused at build time rather than found on Kaggle.
+    agent_src = os.path.join(ROOT, "kaggle_agent.py")
+    if os.path.isfile(agent_src):
+        with open(agent_src, encoding="utf-8") as fh:
+            cls = "".join(ln for ln in fh if ln.strip() != "from __future__ import annotations")
+        mine = os.path.join(out, "my_agent.py")
+        with open(mine, "w", encoding="utf-8") as fh:
+            fh.write(body + "\n\n# ---- kaggle_agent.py, appended by kaggle_bundle.py ----\n" + cls)
+        with open(mine, encoding="utf-8") as fh:
+            compile(fh.read(), mine, "exec")
+        shutil.copyfile(agent_src, os.path.join(pkg, "kaggle_agent.py"))
+        report["my_agent"] = mine
+    return report
 
 
 _ONE_FILE = '''"""tether, bundled: {n} files, content digest {digest}.

@@ -140,6 +140,12 @@ COLLECTORS = (
     ("_test.py", "Test"),
     ("", "pytest_"),         # pytest hooks: a documented namespace, any module
     ("stateful", "teardown"), # hypothesis calls it on a RuleBasedStateMachine
+    # the ARC harness (ARC-AGI-3-Agents) collects the Agent subclass the notebook registers by
+    # name and calls its two abstract methods; nothing in the package may import the harness
+    # (14a, F457), so no in-package reference can exist. One module, three exact names.
+    ("kaggle_agent", "MyAgent"),
+    ("kaggle_agent", "is_done"),
+    ("kaggle_agent", "choose_action"),
 )
 
 
