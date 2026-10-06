@@ -2073,6 +2073,22 @@ def test_a_relational_slot_never_uses_tier_2_and_says_nothing_instead():
         "still returned nothing, so the delta assertion was not demonstrating the guard")
 
 
+def test_a_miss_on_a_never_settled_slot_is_a_miss_not_a_refusal():
+    """Isaiah's (c) split, per (term, slot) as A5 rules it: a term settled on o0 that
+    mispredicts on o1, where it never settled, has MISSED there -- it has not been refused.
+    Booked as a refusal it lowered the term's track record everywhere (F465)."""
+    import gamma
+
+    st = gamma.Standing(last_tick=0)
+    st.settled_at = 0
+    st.settled_on.add("o0")
+    st.refute(1, slot="o1")
+    st.refute(2, slot="o1")
+    assert st.refusals == 0.0 and st.misses > 0.0, (st.refusals, st.misses)
+    assert not st.refusals_on.get("o1"), st.refusals_on
+    assert "o0" in st.settled_on, "a miss elsewhere must not touch standing on o0"
+
+
 def test_a_per_slot_refusal_decays_like_the_term():
     """Isaiah, 2026-09-24: *a decay or a ratio, never a cliff* -- asserted on the LIVE path,
     which always passes a slot (`tether.py:6960`), so `refusals_on` is what the ceiling reads.
@@ -2124,6 +2140,7 @@ if __name__ == "__main__":
         test_the_resolutions_offered_are_not_the_answer()
         test_the_atom_order_is_pinned()
         test_a_per_slot_refusal_decays_like_the_term()
+        test_a_miss_on_a_never_settled_slot_is_a_miss_not_a_refusal()
         test_the_promotion_clause_is_recorded()
         test_the_mutation_observer_reaches_the_agent()
         test_a_mutation_moves_attention_and_never_the_action()

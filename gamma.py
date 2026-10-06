@@ -670,8 +670,11 @@ class Standing:
         if where is not None:
             self.where[where] = self.where.get(where, 0) + 1
         # WHICH HALF THIS ONE IS. Read BEFORE the ceiling below can clear `settled_at`, or a
-        # refusal would be filed as a miss on the very cycle it unsettles the term.
-        if self.settled:
+        # refusal would be filed as a miss on the very cycle it unsettles the term. PER SLOT
+        # when one is given, as `is_settled` reads it: a miss where the term never settled is
+        # a miss, not a refusal, however settled it is elsewhere (F465).
+        held = (slot in self.settled_on) if slot is not None else self.settled
+        if held:
             self.refusals += 1.0
         else:
             # IT WAS NEVER SETTLED, SO THIS IS NOT A REFUSAL. Counted beside the total, never
@@ -694,7 +697,7 @@ class Standing:
             return
         # PER SLOT, MIRRORING SETTLEMENT. A refusal here unsettles HERE; the term keeps its
         # standing on every other slot it earned, which is exactly what A5 did for settling.
-        if self.settled:
+        if held:
             self.refusals_on[slot] = self.refusals_on.get(slot, 0.0) + 1.0
         if self.refusals_on.get(slot, 0.0) >= cap:
             self.settled_on.discard(slot)
