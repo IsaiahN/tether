@@ -56153,3 +56153,17 @@ sequence `ISAIAH_RULINGS.md` 2026-09-29 rules out, resets may count as actions i
 mode (hedged), and a reading that depended on the opening state, on the action count, or on a
 scorecard's reset tally was taken under it. **Every ARC number in this file dated before
 2026-10-06 carries this caveat; none is re-read here, and none is to be quoted without it.**
+
+#### F454 — **THE LAST CONSECUTIVE RESET IS GONE AT SOURCE: `wire()` takes the frame the wrapper already holds. `play` on the offline fake now opens with exactly ONE RESET (was two since `d6c0d6f`, three before it); the ledger is byte-identical**
+
+`arc_holdout.wire()` (lifted from `play` at `2632da3`) called `w.reset()` straight after
+`arc.make()`, whose wrapper resets in its own `__init__` -- F453's middle row. It now takes
+`w.observation_space` and resets only a wrapper holding none, the same rule as `ArcWorld`
+(`d6c0d6f`). Measured, `play` on the fake wrapper, 8 cycles, `PYTHONHASHSEED=1`:
+
+    wrapper call log     [RESET, RESET, ACTION1, ...]  ->  [RESET, ACTION1, ...]   (10 -> 9 calls)
+    ledger               byte-identical, 728 rows, 2e469bc80ee857f0
+    report               identical but for the two `handle` lines (random suffix by design)
+
+Every ARC path that builds an agent now goes through `wire()`, so the guard the reviewer asked for
+(no two consecutive RESETs from any caller) is installed THERE next.

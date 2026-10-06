@@ -68,7 +68,9 @@ def wire(w, game: str, *, cfg: Any = None, led_path: str | None = None,
     Lifted out of `play` unchanged (2026-10-06) so the two cannot drift: the arm flags, the
     palette read, `ArcWorld`, the ledger, the config and the library load are written once.
     """
-    fr = w.reset()
+    # THE WRAPPER HAS ALREADY RESET (F452, F453). `arc.make()`'s wrapper resets in its own
+    # `__init__`; a reset here was the second of two consecutive RESETs. Take its frame.
+    fr = getattr(w, "observation_space", None) or w.reset()
     board = fr.frame[-1]
     # the palette is READ, never assumed: it is the domain's fact and a constant here would
     # be a magic number wearing an adapter's clothes.
