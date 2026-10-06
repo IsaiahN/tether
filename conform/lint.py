@@ -454,11 +454,13 @@ def _reach(src: str, others: tuple = (), _scan=None, name: str = "") -> tuple[li
       # module that defines it, so `never` must still be flagged -- the shape that had
       # `world.py`'s "ladder" slot clearing `snaps.ladder`. `consumer` DOES import, and
       # `exported` is referenced from nowhere else, so a scope tightened to the defining
-      # module alone flags it and the control fires instead.
+      # module alone flags it and the control fires instead. `consumer` imports it in the
+      # `from pkg import test_thing` form, which the scan once read as importing `pkg` only,
+      # so a fixture module imported that way read as dead (F474).
       bad_other=("stranger.py",
                  'SLOTS = {"never": 1}\nprint(SLOTS, SLOTS.spoken)\n'),
       ok_other=("consumer.py",
-                'import test_thing\nprint(test_thing.exported())\n'),
+                'from pkg import test_thing\nprint(test_thing.exported())\n'),
       # THE FILENAMES ARE PART OF THE FIXTURE. bad is NOT a collector module, so its
       # `test_orphan` must still be flagged; ok IS one, so its `test_a` must not be.
       # Three ways the exemption can move and all three break a count:
@@ -651,7 +653,9 @@ def _scan(files: tuple[tuple[str, str], ...]) -> tuple[dict, dict, set]:
             if isinstance(n, ast.Import):
                 seen_imports.update(a.name.split(".")[-1] for a in n.names)
             elif isinstance(n, ast.ImportFrom) and n.module:
+                # `from a.b import c` may import the MODULE c, so c counts as imported too.
                 seen_imports.add(n.module.split(".")[-1])
+                seen_imports.update(a.name for a in n.names)
         # `[v for k, v in globals().items() if k.startswith("test_")]` registers by
         # convention rather than by reference, the way a decorator registers by call.
         # Both are real uses. But a prefix only counts as a registry if it is applied to
