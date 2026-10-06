@@ -51743,6 +51743,8 @@ design.
 
 ## B5's CONDITION IS GONE UNDER THE LIBRARY-FIT FLIP — 0 OF 60, WITH A CONTROL THAT RECOVERS THE PINNED SEEDS
 
+**SCOPE CORRECTION, 2026-10-06 (F467): "gone" held for the world censused below -- `snaps`, seeds 0-59 -- and NOT for the shipped seat's GENERATED worlds.** With `TETHER_BARGAIN_FIT` still ON (`tether.py:133`), a generated 3-slot action/regime history fires B5 at every commit from `9df70c9` to `1a82f96`. The case that fired was a park in the LAST recorded cycle, which B5 could not judge (F467); whether starved slots go unprobed when they DO have later cycles is the open census (F467, part 2).
+
 **Isaiah ruled `TETHER_BARGAIN_FIT` on by default, and `test_b5_still_fires_on_the_pinned_world`
 then refuses to return a verdict** — not because it broke, but because its own anti-vacuity
 guard fires: *"seed 3 starves no slot — it no longer exercises B5, and a verdict taken here
@@ -56387,3 +56389,11 @@ default, 60 cycles, cold, all arms default. MODE: grounded for this panel. **Ref
 **Occasions, base `7f54154`, default, 60 cycles, cold, all arms default, a spy on `Standing.refute`:** refutes on a slot where the term was settled ELSEWHERE ONLY -- s0 8 of 304 slotted, s1 0 of 294, s2 1 of 183. **Correct, and rarely active on this panel.** MODE: grounded.
 
 **Also read in the same run: ticks = cycles = 60 on all three seeds.** The 12:12 explanation of 26 misses absorbed on one slot ("a cycle spans several transitions") is WITHDRAWN. Open, MODE general: the live refute decays on `gamma.halflife`, which the agent LEARNS from how fast its demoted terms come good (`tether.py:1796`); under churn that would be short, and a short halflife absorbs nearly any number of misses -- a loop to read next.
+
+#### F467 — **B5 JUDGED A PARK IN THE LAST CYCLE, WHERE NO PROBE COULD EXIST: a boundary the check lacked. Narrowed to parks with a later cycle; the "later cycles and no probe" case still FAILS**
+
+2026-10-06. Found while testing audit item 3: the shipped seat, run at full size (120 examples; the hook runs `--fast`, 25), produced a B5 counterexample that hypothesis saved and then replayed on every run -- so every commit was blocked. **Replayed on `9df70c9` (this morning, before any agent change today), `fc19e7b`, `6c7d01a`, `f4963cb`, `8c8d0af` and `1a82f96`: it fires on all six. Not introduced today -- found today.** The `.hypothesis` database was NOT cleared to get a green seat.
+
+**Read-only first, unbundled (Fig 9):** the failing history parks s1 `no_support` once, at cycle 8 -- the LAST cycle in its ledger. A probe is written only when THIS cycle's action was chosen as a probe (`tether.py:7425`), and the action is chosen at the top of the cycle, before MINT -- so a park at cycle N can be answered only at N+1. **A last-cycle park has no occasion; B5's claim is undefined there, not false** (the reviewer's direction check). The repair: B5 judges only parks with a later cycle in the ledger -- an exemption as data on that checkable fact alone. **The mandatory fixture:** the B5 bad fixture is now a park at cycle 0 with a later row and no probe -- it must FAIL, and the kernel's fixture discipline runs it. Seat `test_b5_does_not_judge_a_last_cycle_park_and_still_judges_an_earlier_one`: alone, judged 0; with a later cycle, judged and failing. **Pre-registered disappointment -- the saved counterexample still fails after the narrowing -- did NOT occur:** the seat passes with it replayed, and the existing seat "B5 reproduction still fires: ok" confirms B5 still fires on its pinned starvation world. Seats 21/21.
+
+**Part 2, OPEN, the census owed (reviewer-approved):** the agent's direct response to a starved slot -- aim a probe at it next cycle -- is behind `TETHER_STARVED_CONTACT`, OFF by default (`tether.py:391`). Of the `no_support` parks that HAD later cycles, how many were probed on that slot, and how soon, arm state stated. If many go unanswered, the default is "a switch never set"; when built, the response is an OFFER the drive weighs (Fig 5), recorded with its reason.

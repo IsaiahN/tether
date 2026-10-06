@@ -2089,6 +2089,22 @@ def test_a_miss_on_a_never_settled_slot_is_a_miss_not_a_refusal():
     assert "o0" in st.settled_on, "a miss elsewhere must not touch standing on o0"
 
 
+def test_b5_does_not_judge_a_last_cycle_park_and_still_judges_an_earlier_one():
+    """B5's boundary (F467): a no_support park in the LAST recorded cycle has no later
+    cycle in which a probe could exist, so B5 does not judge it -- and the SAME park with a
+    later cycle and no probe is judged and FAILS, so the narrowing did not blind it."""
+    import kernel
+
+    def b5(rows):
+        return next(c.fn for c in kernel.CHECKS if c.cid == "B5")(rows)
+
+    park = {"event": "park", "slot": "s", "cycle": 3, "detail": {"verdict": "no_support"}}
+    bad, seen = b5([park])
+    assert (bad, seen) == ([], 0), (bad, seen)
+    bad, seen = b5([park, {"event": "bet", "slot": "s", "cycle": 4, "detail": {}}])
+    assert seen == 1 and bad == ["s: support at zero and no probe followed"], (bad, seen)
+
+
 def test_a_per_slot_refusal_decays_like_the_term():
     """Isaiah, 2026-09-24: *a decay or a ratio, never a cliff* -- asserted on the LIVE path,
     which always passes a slot (`tether.py:6960`), so `refusals_on` is what the ceiling reads.
@@ -2140,6 +2156,7 @@ if __name__ == "__main__":
         test_the_resolutions_offered_are_not_the_answer()
         test_the_atom_order_is_pinned()
         test_a_per_slot_refusal_decays_like_the_term()
+        test_b5_does_not_judge_a_last_cycle_park_and_still_judges_an_earlier_one()
         test_a_miss_on_a_never_settled_slot_is_a_miss_not_a_refusal()
         test_the_promotion_clause_is_recorded()
         test_the_mutation_observer_reaches_the_agent()
