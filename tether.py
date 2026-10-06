@@ -3069,7 +3069,8 @@ class Agent:
         self._outstanding[slot] = have - took
         return round(took, 3), round(max(0.0, bits - have), 3)
 
-    def _left(self, term: Term, slot: str, hist, ceiling: float | None = None) -> float:
+    def _left(self, term: Term, slot: str, hist, ceiling: float | None = None,
+              offset: float = 0.0) -> float:
         """What the term leaves unexplained across the slot's history, in bits.
 
         `ceiling` IS AN EXACT ABORT, NOT AN APPROXIMATION. Every term added here is
@@ -3079,10 +3080,16 @@ class Agent:
         have won. The winner is bit-identical; only the losers stop early.
 
         Default `None` leaves every existing caller walking the full history.
+
+        **`offset` MAKES IT `pays`' OWN EXPRESSION -- 2026-10-06.** `mint` passes `ceiling=base,
+        offset=cost`, so the abort is `cost + total >= base`, never `total >= base - cost`,
+        which can disagree with `pays` at the last ulp. Float addition is monotone, so a
+        partial total that fails `pays` is a full one that fails it. No mint site reads
+        `left` from a term that does not pay. Default 0.0 adds exactly nothing.
         """
         total = 0.0
         for state, action, actual, intent, landed in hist:
-            if ceiling is not None and total >= ceiling:
+            if ceiling is not None and offset + total >= ceiling:
                 return total
             if not self._applies(term, state):
                 total += math.log2(self.alphabet[slot])   # inapplicable is unexplained
@@ -6208,7 +6215,7 @@ class Agent:
                                          + _guard_bits(g, len(_gs) - 1, len(_refs)))
                                 if self._cannot_pay(bt, slot, robs, bcost, base, rkey):
                                     continue
-                                bleft = self._left(bt, slot, hist)
+                                bleft = self._left(bt, slot, hist, base, bcost)
                                 if not pays(bcost, bleft, base):
                                     continue
                                 btotal = bcost + bleft
@@ -6235,7 +6242,7 @@ class Agent:
                                 if best is None or btotal < best[0]:
                                     best = (btotal, bleft, bcost, bt)
                             continue
-                        left = self._left(term, slot, hist)
+                        left = self._left(term, slot, hist, base, cost)
                         # §4's TREE, AND THIS IS ITS FIRST PRODUCER. `operand_term` was
                         # DECLARED, RENDERED, PRICED and APPLIED (`_ops`, :914) with ZERO sites
                         # constructing one -- so every term the agent has ever composed is a
@@ -6284,7 +6291,7 @@ class Agent:
                             # the bound was already correct.
                             if self._cannot_pay(bt, slot, robs, bcost, base, rkey):
                                 continue
-                            bleft = self._left(bt, slot, hist)
+                            bleft = self._left(bt, slot, hist, base, bcost)
                             if not pays(bcost, bleft, base):
                                 continue
                             btotal = bcost + bleft

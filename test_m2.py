@@ -693,7 +693,9 @@ def check_the_tree_is_judged_by_its_own_bound():
     # opening. Read from the source, because no board reaches it today (F348: `_trees` at 0).
     src = pathlib.Path(tether.__file__).read_text(encoding="utf-8")
     seg = src[src.index("bounded-out: cannot pay on R alone"):]
-    seg = seg[:seg.index("left = self._left(term, slot, hist)")]
+    # The delimiter is the call's PREFIX: `_left` may take more arguments (the exact abort,
+    # F445) and the segment must still end at the chain's `_left`. Asserted unchanged.
+    seg = seg[:seg.index("left = self._left(term, slot, hist")]
     assert "for bt in self._trees(" in seg, "the bounded-out branch no longer offers trees"
     assert "if self._cannot_pay(bt," in seg, "the tree is not judged by its OWN bound"
 

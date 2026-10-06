@@ -55935,3 +55935,52 @@ referent `o0` is the HEAD -- the remote cause.
 the 40 single-cause slots the handover named as the control did not start buying guards.** It acts
 where the separation exists only for a referent other than the slot's own object, which is seed 6.
 **Scope stated, not generalised: one seed where it acts, seven where it is inert.**
+
+#### F445 — **THE `_left` ABORT THAT WAS ALREADY WRITTEN: `ceiling` was an exact abort no mint site passed. Passed now, as `pays`' own expression. Strict gate 9 of 9 -- trace and every ledger field identical; late default 1.18-1.33x**
+
+*(F444 is RESERVED for the clean cut -- no tree under a chain whose own cost reaches `base` --
+which passed its gate 9/9 and is HELD FOR ISAIAH: the m2 seat guards his 2026-09-24 tree ruling
+and refused it. Built in `tether-wt`, uncommitted.)*
+
+`_left` prices a survivor of `_cannot_pay` over the slot's WHOLE history. Its `ceiling` argument
+was documented as *an exact abort, not an approximation* -- and none of `mint`'s three sites
+passed it, so every survivor walked every row after it could no longer pay. **Late default
+(cycles 30-32, seed 0) spent 28% of mint there; at cycles 10-12 it was 3%** -- survivors rise
+from ~39k to ~225k a cycle across 30-59.
+
+`offset` makes the abort `cost + total >= base` -- `pays`' expression exactly, never
+`total >= base - cost`, which can disagree with it at the last ulp. Float addition is monotone,
+so a partial total that fails `pays` is a full one that fails it. **No mint site reads `left` from
+a term that does not pay** -- read at all three: the chain site records a cut with no value, the
+tree sites `continue`.
+
+    strict gate: trace identical AND zero ledger rows differing, no allowed fields
+    base 0e9411b; this commit = 0e9411b + the abort. 60 cycles; lever A not present.
+    click_only 0/1/2   0 / 0 / 0 rows of 7530 / 7590 / 7466
+    buttons    0/1/2   0 / 0 / 0 rows of 7323 / 7434 / 7274
+    default    0/1/2   0 / 0 / 0 rows of 9265 / 9067 / 9111
+
+    late default CPU s/step, cycles 11-60, without -> with the abort (matched panel, both
+    arms on the held cut, which does not move late default -- F444's numbers)
+    seed 0   24.84 -> 19.38   1.28x    still 8.4x over the 2.3 s placeholder
+    seed 1   36.59 -> 27.44   1.33x    11.9x
+    seed 2   21.35 -> 18.08   1.18x     7.9x
+
+**THE m2 SEAT'S DELIMITER WAS REPAIRED IN THIS COMMIT, BY THE REVIEWER'S LEAVE (2026-10-06).**
+Clause 3 of `check_the_tree_is_judged_by_its_own_bound` slices the source from the bounded-out
+branch to the literal `left = self._left(term, slot, hist)`; this commit changes that call, so
+the check raised before asserting anything. **The delimiter is now the call's prefix; both
+assertions are unchanged.** Proof: on 0e9411b the new delimiter extracts a string-EQUAL segment;
+on this tree the segment differs only in the abort's own `bleft` line; and with the source
+served mutated, the check PASSES unmutated and REFUSES both plants -- the tree offer broken
+(*no longer offers trees*) and the tree's own `_cannot_pay` broken (*not judged by its OWN
+bound*).
+
+**AND THE FRAGILITY IS RECORDED, NOT FIXED.** A seat that slices source at a literal line breaks
+whenever an unrelated edit touches that line -- this one broke twice in one night, once on a
+change it was right to refuse and once on a change it had no reason to see. Anchoring m2 on a
+symbol or the AST is a later, separate change, and it needs the same proof.
+
+**THE SIZING THAT ORDERED THIS IS ITSELF A WINDOW CORRECTION.** The plan put term machinery first
+on *70-87% of late mint is term machinery* -- an attribution taken from cycles 10-12. On 30-32:
+term machinery ~44%, `_cannot_pay` 29%, `_left` 28%. Exact levers top out near 3.7x together.
