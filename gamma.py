@@ -335,6 +335,17 @@ class Atom:
     def __repr__(self) -> str:
         return f"Atom({self.name})"
 
+    def __hash__(self) -> int:
+        # CACHED, SAME VALUE as the generated one -- the field tuple in declaration order -- so
+        # set iteration order cannot move. Every Term hash walks its atoms; see Term.__hash__.
+        h = self.__dict__.get("_hash")
+        if h is None:
+            h = hash((self.name, self.fn, self.in_type, self.out_type, self.reads_operand,
+                      self.operand_type, self.also_accepts, self.reads_ctx, self.polymorphic,
+                      self.elem_type, self.admitted))
+            object.__setattr__(self, "_hash", h)
+        return h
+
 
 @dataclass(frozen=True)
 class Term:
@@ -373,6 +384,17 @@ class Term:
     # every one still gets a slot name. The census said only `_ops` is the mechanism, and
     # only `_ops` changes.
     operand_term: Term | None = None
+
+    def __hash__(self) -> int:
+        # CACHED, SAME VALUE: the generated hash re-walked every nested field on every call --
+        # 30M calls in three late `default` steps (the 2026-10-05 runtime profile), mostly the
+        # `_cannot_pay` tally lookup. This is the generated formula itself, so order holds.
+        h = self.__dict__.get("_hash")
+        if h is None:
+            h = hash((self.atoms, self.origin, self.operand, self.guard, self.guard_ref,
+                      self.operand_term))
+            object.__setattr__(self, "_hash", h)
+        return h
 
     @property
     def name(self) -> str:
