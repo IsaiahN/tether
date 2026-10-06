@@ -55879,3 +55879,35 @@ world.
 at the moment of choosing**, not by world and not by seed. No goal selected -> plan anyway, as a
 wager; a goal selected and routines refused -> the refusal is the site. Written into
 SEAT_ORIENTATION 7e's reader design.
+
+#### F442 — **QUEUE ITEM 2(b)'s INTERIM REFUTED AND NOT COMMITTED: KEYING `can()` BY INTENT KIND ALONE POOLS OPPOSITE MOVES. AN INTENT'S IDENTITY IS KIND + ARGUMENT**
+
+Pre-registered as a feature (the reviewer's instruction) with two named mechanisms -- M1,
+NO_INTENT rows dropping out; M2, the realised action differing from the recorded one -- an
+exact per-call accounting (old and new verdict computed on the SAME state inside the run), and
+two controls on the instrument: C1, `same=True` on 100% of baseline calls (passed, 166/166 and
+198/198); C2, no perturbation by the spy.
+
+**REFUTER 1 FIRED.** `default` seed 0: 21 verdicts changed, 18 with neither M1 nor M2
+possible. Seed 2: 45 changed, 32 unexplained. M1 could not act on either seed -- 0 NO_INTENT
+rows.
+
+    downstream, before -> after        default seed 0      default seed 2
+    trace hash                         identical           DIFFERS (actions changed)
+    routine | pays                     1 -> 1              2 -> 0   <- both adoptions lost
+    refused "CAN unknown"              0 -> 1              4 -> 6
+
+**THE THIRD MECHANISM, CONFIRMED FROM THE ROWS: BUCKETING.** All 21 changed calls on seed 0
+carry M3 (an intent kind's rows mix several actions), none M4. Cycle 15, `o0.row` = 1, wanted
+2: the old loop judged `down` alone -- **up 5 of 5, YES**. The new loop pooled the kind
+`BECOME OTHER` over `up`, `down`, `left`, `right` -- **4 up, 5 down, no majority, UNKNOWN**.
+One kind carries four opposite movements, so keying by kind discards direction.
+
+> **PRICING BY KIND IS RULING 3's; IDENTITY BY KIND IS RULED NOWHERE.** The trace stores the
+> KIND by design, so the column matches what pricing counts, and widening it would move
+> `_guards`' enumeration. **The full intent goes in a SEPARATE sixth field**, as `landed` went
+> in as a fifth -- the reviewer confirmed the direction. `recshape` makes the widening break a
+> test at every reader rather than a run.
+
+**AND IT CORRECTS F438**, which said the conversion was *a change of key and nothing else*. It
+was not: `_predict` needs an action, and the key it proposed was too coarse.

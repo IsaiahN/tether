@@ -654,13 +654,20 @@ routine item).
        **decides the direction**. **I filed this as "Isaiah's call" and was corrected: the
        ruling exists, so what is open is the ORDER, not the question.** Depends on item 1,
        because (a) cannot be read until the gate-1 tension is settled:
-         (a) read WHY adoption is 0 of 145 -- gate refuses vs never reached
+         (a) read WHY routines are refused, per world per seed -- the verdict and its
+             decomposition. **SETTLED BY ITEM 1 (`F441`): in the click worlds gate 1 refuses
+             for SUPPLY and planning is never reached; on `default` routines ARE reached and
+             refused, and `default` seed 2 ADOPTS 2 -- the positive case to compare against**
          (b) routines as INTENTS, on paper first: the existing verbs plus referents and the
              undirected want, realised by the interface AT EXECUTION, priced BY KIND
          (c) keep the bare-string branch for FIXTURES ONLY, with a production assertion
          then build.
-       **Occasions today: ZERO**, since adoption is 0 of 145 -- so nothing is acting on the
-       breach, and it goes live the moment adoption is fixed.
+       **Occasions: PER WORLD, PER SEED, NOT ZERO EVERYWHERE -- corrected 2026-10-05, the
+       reviewer.** *Adoption is 0 of 145* was measured on ONE panel (`buttons`, 10 seeds x 30
+       cycles) and was stated here as a property of the agent. Measured since: `default` seed 2
+       adopts 2 routines in 30 cycles; seed 0 adopts 1. So the bare-string breach is LIVE on
+       `default` today, on the seeds that adopt -- the same generalisation error as the gate-1
+       claim, one item over.
 
 ### THE FEATURE WORK — ITEMS 7 ONWARD, WHICH THE OCTOBER 12 SPRINT DEPENDS ON
 
