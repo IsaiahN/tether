@@ -96,6 +96,11 @@ ITEMS = {
     # were real work, and `aim` was green on every one of the sixteen. Nothing could have
     # caught it except naming the thing it was not.
     "m2.goal": "the goal chain -- residual, selector, routine mint, the shelf",
+    # ISAIAH, 2026-10-06, a direct order: ALWAYS USE THE TETHER -- the code is to be the
+    # highest-fidelity instantiation of the figures, departures found and removed, and the
+    # audit includes clutter. Its first commit (`act` leaves the vocabulary, F459) is the one
+    # that introduces the item, declared in that commit's own message.
+    "fidelity": "the figure-fidelity audit and its repairs -- departures and clutter",
 }
 
 

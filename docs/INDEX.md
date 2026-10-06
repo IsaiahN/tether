@@ -56280,3 +56280,27 @@ quietly. The generated notebook lands in the ignored `out/`.
 harness, which Isaiah ruled comes LAST, after the feature work. Open with him: the scheduling fork,
 RESET after GAME_OVER, actions per game, the core count, and whether the ~1.9 MB embedded cell is
 acceptable or `my_agent.py` should ship as a Kaggle dataset input.
+
+#### F459 — **`act` LEAVES THE AGENT'S VOCABULARY, AND ON `default` IT WAS CARRYING EVERY SETTLEMENT: settled 0/1/1 -> 0/0/0. The pre-registered DISAPPOINTMENT, read as the honest baseline**
+
+2026-10-06. The ruling *`act` IS A HANDED ANSWER* (reviewer, implementing Isaiah): `act` is `v + DELTA.get(c.action, 0)` with the world's effect table closed over -- it hands the agent what each action does (Fig 13: the name is not the term; Fig 6: an import with no provenance; Fig 4: a term built on it must not cross into the carry).
+
+**SCOPE.** Gridworld owns no atom set -- it reuses `world._atoms()` verbatim, which also feeds the toy demo, `test_gate`, `test_m2` and five seats. Filtering `act` out of gridworld by NAME would be identity-by-name (Fig 13), so it leaves the SHARED set. The world keeps its own `DELTA` physics: the world may know its effects; the agent may not be handed them. **`snaps` still carries its own `act`**, out of scope (one change per commit), on the audit list.
+
+**MOVED, NEVER "REGRESSED":** the atom order. `act` sat sixth of eight, so every later atom renumbers and every term identity and number taken on `world`/gridworld under the old order now means something else. The order pin in `conform/stateful.py` was updated knowingly -- this is the one direction it exists to refuse. `snaps` keeps the original eight.
+
+**TOY DEMO, before -> after** (MODE: grounded, toy panel): `driven` went from BOUND to `act` to UNREACHABLE with a CORRECT ABSTENTION -- correct 0/1 -> 1/2, false 0/6 -> 0/5, recorded as *"driven: searched 0 compositions to depth 3; 5.615 bits unexplained"* (Fig 13: unreachable is a verdict, not a silence). lambda 8 -> 7, units 15 -> 14, ledger 724 -> 750 rows, gate pass. **Flagged, unchecked: "searched 0 compositions" may be a search that never ran on that slot -- guaranteed-number test owed.**
+
+**GRIDWORLD CENSUS, before -> after** (60 cycles, cold, all arms default, per world per seed):
+
+    click_only s0/s1/s2   minted 1/2/2 -> 1/2/2    settled 0 -> 0
+    buttons    s0/s1/s2   minted 1/1/1 -> 1/1/1    settled 0 -> 0
+    default    s0         minted 14 -> 17          settled 0 -> 0
+    default    s1         minted 15 -> 18          settled 1 -> 0   (was take<act(o1.distance)>?BECOME)
+    default    s2         minted 22 -> 23          settled 1 -> 0   (was take<act(o1.distance)>?BECOME OTHER, bound o5.distance)
+
+Pre-registered disappointment: *settled drops to 0 on all three seeds*. **MET.** Every settlement `default` ever made was built on the handed answer, and each was queued for carry. Not grounds to restore `act`: the residual goes to step 7 in order -- SEARCHED, then INWARD, then OUTWARD.
+
+**THE OBSERVER'S DEFECT, CAUGHT AT THE DENOMINATOR.** The wiring seat first reported 36 transitions, every one an ARC atom: the fresh worktree held 2 run files against the main checkout's 125. With the manifest's 52 artifacts present: *status unchanged over 54 artifacts*. Not the agent.
+
+**REFUTERS.** (a) no `act` lineage after removal: 0 on all nine, by construction. (b) ARC unchanged: by construction -- neither `arc_atoms` nor `arc_world` imports `world` or `snaps` (MODE: specified, not tape-measured). Seats 21/21, `test_gate` 25/25, ruff clean.

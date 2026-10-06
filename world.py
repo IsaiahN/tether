@@ -80,13 +80,10 @@ def _atoms() -> list[Atom]:
     def neg(v, _c):
         return -v
 
-    def act(v, c):
-        return v + DELTA.get(c.action, 0)
-
     def wrap(v, _c):
         return v % M
 
-    fns = [idn, inc, dec, dbl, neg, act, wrap]
+    fns = [idn, inc, dec, dbl, neg, wrap]
     out = [Atom(f.__name__, f, "val", "val") for f in fns]
 
     def take(v, c):

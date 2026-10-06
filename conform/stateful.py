@@ -375,15 +375,21 @@ def test_the_atom_order_is_pinned():
     # at all, so three stages of the end-to-end fixture were dead on one cause. **APPENDED, in
     # the safe direction this test names**, so every prior prefix and every term identity taken
     # under the old order is intact. `snaps` is untouched and is pinned at the original eight.
+    # `act` LEFT `world` ON 2026-10-06 -- a REMOVAL, the one direction this test exists to
+    # refuse, taken deliberately: `act` handed the agent what each action does (the ruling
+    # `act` IS A HANDED ANSWER). Every term identity and number taken on `world` under the old
+    # order is renumbered by it, recorded in INDEX as moved. `snaps` keeps the original eight.
     BASE = ["idn", "inc", "dec", "dbl", "neg", "act", "wrap", "take"]
+    WORLD = ["idn", "inc", "dec", "dbl", "neg", "wrap", "take"]
     ORDERS = {"snaps": BASE,
-              "world": [*BASE, "same", "other", "above", "all", "any", "none"]}
+              "world": [*WORLD, "same", "other", "above", "all", "any", "none"]}
     for mod in (snaps, world):
         pinned = ORDERS[mod.__name__]
+        base = BASE if mod is snaps else WORLD
         got = [a.name for a in mod._atoms()]
-        assert got[:len(BASE)] == BASE, (
-            f"{mod.__name__}._atoms() begins {got[:len(BASE)]}, and the pinned prefix is "
-            f"{BASE}. A name was INSERTED or MOVED: every stored term and every measurement "
+        assert got[:len(base)] == base, (
+            f"{mod.__name__}._atoms() begins {got[:len(base)]}, and the pinned prefix is "
+            f"{base}. A name was INSERTED or MOVED: every stored term and every measurement "
             "taken under the old order now means something else.")
         assert got == pinned, (
             f"{mod.__name__}._atoms() is {got}, pinned as {pinned}. If a name was APPENDED, "
