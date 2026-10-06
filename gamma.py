@@ -1172,8 +1172,10 @@ class Gamma:
             out.append({"atoms": [a.name for a in t.atoms], "origin": t.origin,
                         "guard": t.guard, "operand": t.operand,
                         "handle": self.handles.get(name), "game": self.game,
-                        "admitted": getattr(st, "admitted", None) if st else None,
-                        "residual": getattr(st, "residual", None) if st else None})
+                        # `stamps` holds DICTS: `getattr` on one returned None, so every term
+                        # was saved with no admitting clause and no residual (F464).
+                        "admitted": st.get("admitted") if st else None,
+                        "residual": st.get("residual") if st else None})
         # ROUTE 2 -- reviewer, 2026-09-23. **THE RECORDED DELTA AND ITS LICENCE, NEVER THE
         # FUNCTION.** `invent` made the registry run-local, which broke this file's standing
         # assumption that atoms are "identical on both sides" -- so a term built on an invented

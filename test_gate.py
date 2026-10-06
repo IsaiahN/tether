@@ -216,6 +216,12 @@ def test_a_guarded_term_arrives_with_its_guard_and_a_duplicate_still_dedups():
     with tempfile.TemporaryDirectory() as d:
         path = str(pathlib.Path(d) / "lib.json")
         src_g.save(path)
+        # PROVENANCE CROSSES: every accepted term is written with its clause and residual.
+        import json
+        rows = json.loads(pathlib.Path(path).read_text(encoding="utf-8"))["terms"]
+        minted = [r for r in rows if r["origin"] != G.PRIOR]
+        assert minted and all(r["admitted"] == G.ACCEPTED and r["residual"] == "s@0"
+                              for r in minted), [(r["admitted"], r["residual"]) for r in minted]
         dst = G.Gamma([take, inc], game="B")
         rep = dst.load(path)
         # ACCEPT: the guarded term crosses, as itself, with its birth game recorded.
