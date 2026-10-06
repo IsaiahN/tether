@@ -844,6 +844,10 @@ class Config:
     # truncated. `budget` bounds YIELDS and the work is yields x operand-binds, so on a dense
     # frame (166 operands) the walk grows unbounded per step -- this bounds THAT axis, which
     # the runaway `budget` cannot.
+    # **IT BOUNDS THE CHAIN AXIS ONLY -- corrected 2026-10-05.** It counts `rank`, one per chain
+    # candidate; operand-TREE candidates (`_trees`) are priced without entering it, and they were
+    # 86.8% of all pricing on default seed 0. Trees are unconditional by Isaiah's 2026-09-24
+    # ruling, so this is a REPORT of what the cap covers, not a reason to cap them.
     work_budget: int = 15000
     mode: str = SPECIFIED
     # SYSTEM 0 (Isaiah, 2026-09-14): motor babbling before means-end -- draw variously until
@@ -1004,6 +1008,7 @@ class Agent:
         # A share divided by cycles would count occasions the guard could never have
         # taken, and would read low for a reason that is not the hold.
         self._hold_eligible = 0
+        self._priced = 0                     # candidates priced by `_cannot_pay`, ever
         self._hold_withheld = 0
         # **AND THE KEY-LEVEL DENOMINATOR BESIDE IT, because the coin is flipped per
         # (cycle, slot) and NOT per occasion.** Several eligible occasions can share one
@@ -3230,6 +3235,7 @@ class Agent:
         drops terms that read an operand without varying with it on the observed slice.
         Measured, it lost a closing term. This cannot.
         """
+        self._priced += 1
         unit = math.log2(self.alphabet[slot])
         # INCREMENTAL, AND EXACT BECAUSE `wrong` IS A PREFIX SUM. Each row adds 0 or 1 and
         # no row reads another, so a tally over the first N rows stays true as rows are
@@ -5931,6 +5937,7 @@ class Agent:
         return [None] + sorted(others, key=lambda s: (*rank(s), -seen[s], s))
 
     def mint(self, slot: str) -> None:
+        _priced0 = self._priced              # every candidate priced in THIS mint, trees included
         # THE RECIPES ALREADY HELD, once per mint rather than per candidate. A library Term's
         # chain is its atoms joined; `enumerate_closure` yields BARE chains, so `cand.name` is
         # exactly this key. O(library) against a per-candidate walk that is orders larger.
@@ -6420,7 +6427,11 @@ class Agent:
 
         seen = stats["seen"]
         est = max(stats["estimate"], seen)
+        # **`candidates_tried` IS `rank`: CHAIN CANDIDATES ONLY.** Operand-TREE candidates are
+        # priced without entering `rank` -- 86.8% of all pricing on default (2026-10-05) -- so
+        # it is not the mint's work. `candidates_priced` is: every `_cannot_pay` call this mint.
         detail = {"guards": guards, "candidates_seen": seen, "candidates_tried": rank,
+                  "candidates_priced": self._priced - _priced0,
                   "contest": contest,
                   # **`cuts` IS A SAMPLE AND `cut_counts` IS THE POPULATION -- `F413`.**
                   # The twelve are kept for their NAMES and RANKS, which is what a reader
@@ -6487,6 +6498,7 @@ class Agent:
             if detail["verdict"] in ("budget_spent", "depth_exhausted", "under_floor"):
                 self.owed_import.add(slot)
                 self.abstained[slot] = {"depth": self.cfg.max_depth, "candidates": seen,
+                                        "priced": self._priced - _priced0,
                                         "coverage": detail["coverage"],
                                         "verdict": detail["verdict"],
                                         "units_then": stats.get("units", 0),
