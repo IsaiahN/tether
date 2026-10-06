@@ -1009,6 +1009,7 @@ class Agent:
         # taken, and would read low for a reason that is not the hold.
         self._hold_eligible = 0
         self._priced = 0                     # candidates priced by `_cannot_pay`, ever
+        self._memo: dict | None = None       # live only inside one `mint` -- see `mint`
         self._hold_withheld = 0
         # **AND THE KEY-LEVEL DENOMINATOR BESIDE IT, because the coin is flipped per
         # (cycle, slot) and NOT per occasion.** Several eligible occasions can share one
@@ -2897,7 +2898,17 @@ class Agent:
         before. They are routed so the next guarded caller is not blind -- NOT because this
         fixes them. `conform/census.py` asserts nothing builds one of these any other way.
         """
-        return Ctx(action=action, intent=intent, operands=operands, touching=touching,
+        memo, key = self._memo, None
+        if memo is not None:
+            key = ("ctx", slot, id(state), action, operands, landed, intent, touching, shapes,
+                   guard_ref, self.cycle)
+            try:
+                hit = memo.get(key)
+            except TypeError:                # an unhashable input: build it, do not cache it
+                hit = key = None
+            if hit is not None and hit[0] is state:
+                return hit[1]
+        ctx = Ctx(action=action, intent=intent, operands=operands, touching=touching,
                    # **AGAINST THE TERM'S OWN REFERENT WHEN IT HAS ONE.** `guard_ref`
                    # falls back to the slot, which is exactly what `ACTED_SELF` meant, so
                    # the collapse is behaviour-preserving for every term that had no
@@ -2906,6 +2917,9 @@ class Agent:
                    acted_self=_same_object(landed, guard_ref or slot),
                    group=self._group(slot, state), obj=self._record(slot, state),
                    shapes=self._shapes_now() if shapes else None)
+        if key is not None:
+            memo[key] = (state, ctx)
+        return ctx
 
     def bears_on(self, term: Term, slot: str, robs: list, held: Term) -> bool:
         """**MINTED AGAINST THE RESIDUAL -- Isaiah, 2026-09-24. A PRECONDITION, NOT A THRESHOLD.**
@@ -5937,6 +5951,18 @@ class Agent:
         return [None] + sorted(others, key=lambda s: (*rank(s), -seen[s], s))
 
     def mint(self, slot: str) -> None:
+        """ONE MINT WITH ITS EVALUATION MEMO. A Ctx is a pure function of its inputs, and inside
+        one mint it repeats ~1,281x (counted, default seed 0,
+        2026-10-05). SCOPED TO THE MINT, and every entry holds a reference to the row it keys on,
+        so no row can be freed and its id reused while the memo lives. Byte-identical by
+        construction; checked on four worlds."""
+        self._memo = {}
+        try:
+            return self._mint(slot)
+        finally:
+            self._memo = None
+
+    def _mint(self, slot: str) -> None:
         _priced0 = self._priced              # every candidate priced in THIS mint, trees included
         # THE RECIPES ALREADY HELD, once per mint rather than per candidate. A library Term's
         # chain is its atoms joined; `enumerate_closure` yields BARE chains, so `cand.name` is
