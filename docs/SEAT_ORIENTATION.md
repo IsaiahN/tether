@@ -39,7 +39,10 @@ DECIDES FOR IT.** **NOT AN RSI PROJECT -- Isaiah, 2026-10-06.** It RUNS the one 
 variation, selection by a ground nobody authored, inheritance of methods (never recordings),
 a lossy transform between levels -- recursively, at every level. **There is no separate
 self-improvement machinery to build**: the same rules apply to a board event, a rule, and
-the agent's own decisions about budget, exits and what to try. It must be allowed to
+the agent's own decisions about budget, exits and what to try. **The ground (RLVR) and its
+maintainer -- the seat map -- stand where natural selection stands. So the job is FIDELITY TO THE
+FIGURES: every component traceable to the figure and rule it implements, not invented
+capabilities.** It must be allowed to
 **GROW** and to **DECIDE THINGS ON ITS OWN**: composing its own programs in its grammar,
 minting and importing what it lacks, and deciding from its own evidence — **recording why**.
 

@@ -207,3 +207,8 @@ here in the same session it arrives, or the next search for it fails the same wa
   by a ground nobody authored, inheritance of methods (never recordings), a lossy transform
   between levels -- at every level, and **there is no separate self-improvement machinery to
   build.** Corrects the 2026-10-05 entry's "recursively self-improving agent".
+- **AND THE GROUND STANDS WHERE SELECTION STANDS** (the same ruling, as relayed a second time):
+  *"so that natural selection as the fitness test is substituted by a GROUND with RLVR and a
+  GROUND MAINTAINER (the seat map) to range against."* **Consequence for the work: FIDELITY TO
+  THE FIGURES** -- every component traceable to the figure and rule it implements, not
+  inventing capabilities.
