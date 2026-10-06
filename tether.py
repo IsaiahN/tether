@@ -5986,6 +5986,11 @@ class Agent:
         # exactly this key. O(library) against a per-candidate walk that is orders larger.
         self._held_chains = {" . ".join(a.name for a in t.atoms)
                              for t in self.gamma.library.values()}
+        # A TERM CAN BE IN THE LIBRARY ONLY IF ITS CHAIN IS A HELD RECIPE -- 2026-10-06. The library
+        # is keyed by `name` at one write site, and a name is the atom-join then `<..>` then
+        # `?..`; so the join decides -- unless an atom's own name carries one of those marks,
+        # in which case this is False and every lookup runs as before.
+        _sep_free = not any(m in a.name for a in self.gamma.atoms for m in ("<", "?", " . "))
         hist = self.history(slot)
         held = self.gamma.library[self.bound.get(slot, IDN)]
         base = self._accumulated(slot, held)
@@ -6152,10 +6157,12 @@ class Agent:
                     # binding of this chain costs the same, and every tree under it too
                     # (each branch is one atom). Same expression, evaluated once per key.
                     _price: dict = {}
+                    _maybe_lib = not _sep_free or cand.name in self._held_chains
                     for bind, (g, gref) in ((b, p) for b in binds for p in _pairs):
                         rank += 1
                         term = Term(cand.atoms, operand=bind, guard=g, guard_ref=gref)
-                        if self.gamma.is_atom(term) or term.name in self.gamma.library:
+                        if self.gamma.is_atom(term) or (_maybe_lib
+                                                        and term.name in self.gamma.library):
                             cut_n["not-novel"] += 1
                             if len(cuts) < 12:
                                 cuts.append({"name": term.name, "rank": rank, "reversible": True,
@@ -6222,7 +6229,8 @@ class Agent:
                             # **A SECOND PRE-EXISTING DEFECT, NOT A CHANGE TO THE BOUND** --
                             # reported as such. A route that opens onto a crash is not open.
                             for bt in self._trees(cand, bind, g):
-                                if self.gamma.is_atom(bt) or bt.name in self.gamma.library:
+                                if self.gamma.is_atom(bt) or (
+                                        _maybe_lib and bt.name in self.gamma.library):
                                     continue
                                 # THE GUARD PRICE APPLIES HERE TOO. `_trees` carries `g`
                                 # onto the tree, so pricing it only in the main loop gave
@@ -6299,7 +6307,8 @@ class Agent:
                         # branch now offers trees under their OWN `_cannot_pay`, with no arm,
                         # and this site applies the same bound as a short-circuit.
                         for bt in self._trees(cand, bind, g):
-                            if self.gamma.is_atom(bt) or bt.name in self.gamma.library:
+                            if self.gamma.is_atom(bt) or (
+                                    _maybe_lib and bt.name in self.gamma.library):
                                 continue
                             bcost = _price.get((g, True))
                             if bcost is None:

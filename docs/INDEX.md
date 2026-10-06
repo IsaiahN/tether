@@ -56029,3 +56029,19 @@ twelfth changes nothing.
 
 m2's slice now starts at the first `bounded-out: cannot pay on R alone`, which is the `cut_n`
 line one statement earlier -- still before the tree loop; seats 20/20.
+
+#### F448 — **COMPACT ENUMERATION, STEP 2b: the library is not searched for a term whose chain is not a held recipe. Exact by the name format and the one write site, checked per Gamma, and by 42.3M asserted lookups; strict gate 9 of 9**
+
+`mint`'s novelty test built every candidate's `name` to look it up in the library. The library
+is keyed by `term.name` at ONE write site (`gamma.py:827`; `conform/lint.py` refuses a second), and
+a name is the atom-join, then `<..>`, then `?..`. So a term can be in the library only if its
+chain's atom-join is a held recipe -- the existing `_held_chains` -- PROVIDED no atom's own name
+carries `<`, `?` or ` . `. That proviso is computed once per mint from the atom set; if any atom
+carries a mark it is False and every lookup runs as before, so the ~2,700-atom library is not
+assumed. `is_atom` is untouched.
+
+    ASSERTION PASS (scratch copy: a skipped lookup must have been False; checks and skips counted)
+      click_only s0, 60 cycles     11,697,804 checks, 11,434,483 skipped (97.7%), all consistent
+      default    s0, cycles 0-34   30,627,153 checks, 30,151,754 skipped (98.4%), all consistent
+    strict gate, b8f2d79 vs this, 60 cycles, lever A off: trace identical, 0 ledger rows differing
+      click_only 0/1/2  buttons 0/1/2  default 0/1/2   all 9: same trace, 0 rows differing
