@@ -42,7 +42,16 @@ self-improvement machinery to build**: the same rules apply to a board event, a 
 the agent's own decisions about budget, exits and what to try. **The ground (RLVR) and its
 maintainer -- the seat map -- stand where natural selection stands. So the job is FIDELITY TO THE
 FIGURES: every component traceable to the figure and rule it implements, not invented
-capabilities.** It must be allowed to
+capabilities.**
+
+**THE FRAME, IN FULL: the memory file `the-tether-is-the-pattern.md` (the reviewer, relaying
+Isaiah, 2026-10-06).** The 13 figures are ONE self-consistent ruleset that applies everywhere
+and to itself, so a design is checked against ALL of them and a contradiction anywhere is a
+located defect. Our own errors this week were the figures' named collapses, made by reasoning
+from names and summaries the way an LLM does. **Before any design, name the figure and rule
+it implements and census it against all 13 and the Operators table; before any claim, open
+the source; treat the seat's and the reviewer's agreement as weak (one evidence pool) and the
+ground as strong; when something looks combinatorial, ask which figure it departs from.** It must be allowed to
 **GROW** and to **DECIDE THINGS ON ITS OWN**: composing its own programs in its grammar,
 minting and importing what it lacks, and deciding from its own evidence — **recording why**.
 
