@@ -127,7 +127,8 @@ here in the same session it arrives, or the next search for it fails the same wa
 
 - **AGENCY IS PARAMOUNT — restated and made the first entry of the record, 2026-10-05.**
   **The agent is the driving force behind every decision, never a pilot inside machinery that
-  decides for it.** It is a recursively self-improving agent and must be allowed to **GROW**
+  decides for it.** It must be allowed to **GROW** *(this line first called it "a recursively
+  self-improving agent" -- the reviewer's framing; corrected by Isaiah, 2026-10-06, below)*
   and **DECIDE ON ITS OWN**: composing its own programs in its grammar, minting and importing
   what it lacks, deciding from its own evidence and **recording why**. **We supply the MEANS —
   offers, evidence, instruments, the ground that judges — and never the MEANING.** Default
@@ -194,3 +195,15 @@ here in the same session it arrives, or the next search for it fails the same wa
 
   **Not copied in: what enters the corpus is Isaiah's** (the precedent is his own 2026-10-05
   ruling for the three). Asked in the channel. Until then they are read in place, read-only.
+
+## 2026-10-06
+
+- **WE ARE NOT BUILDING RSI.** *"The Tether architecture runs on the code that powered natural RSI
+  for millennia -- evolution, natural selection. Evolution is already the RSI: it recursively
+  generated intelligent, diverse lifeforms. The Tether codifies that pattern recursively. The
+  recursion and the lossy transformation between levels are what make it look different when
+  applied to different domains or questions, but at their core they are ALL the same pattern: a
+  complex algorithm with STRICT rules."* So the agent RUNS the one pattern -- variation, selection
+  by a ground nobody authored, inheritance of methods (never recordings), a lossy transform
+  between levels -- at every level, and **there is no separate self-improvement machinery to
+  build.** Corrects the 2026-10-05 entry's "recursively self-improving agent".

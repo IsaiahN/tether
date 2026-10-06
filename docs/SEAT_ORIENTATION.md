@@ -35,7 +35,11 @@ have put a prohibited thing at the top of the first file a new session reads.
 directive) and 2026-10-05.**
 
 **THE AGENT IS THE DRIVING FORCE BEHIND EVERY DECISION, NEVER A PILOT INSIDE MACHINERY THAT
-DECIDES FOR IT.** This is a **recursively self-improving** agent. It must be allowed to
+DECIDES FOR IT.** **NOT AN RSI PROJECT -- Isaiah, 2026-10-06.** It RUNS the one pattern evolution already runs --
+variation, selection by a ground nobody authored, inheritance of methods (never recordings),
+a lossy transform between levels -- recursively, at every level. **There is no separate
+self-improvement machinery to build**: the same rules apply to a board event, a rule, and
+the agent's own decisions about budget, exits and what to try. It must be allowed to
 **GROW** and to **DECIDE THINGS ON ITS OWN**: composing its own programs in its grammar,
 minting and importing what it lacks, and deciding from its own evidence — **recording why**.
 
@@ -174,7 +178,8 @@ transfers nowhere has done nothing; see §0.6.
   imports can actually work: **the grammar is the agent's programming language and the
   combinators are its interpreter.** This is the same ruling as *belief is a wager* from the
   other side — recipes carry conditional logic, so the agent programs its own subroutines
-  without writing code. **That is the RSI.**
+  without writing code. **That is the pattern running recursively** -- the improvement comes from
+  it, not from separate machinery (Isaiah, 2026-10-06; this line first said *That is the RSI*).
   **MEASURED STATE, so nobody reads the above as done:** **`BONDS = 1`** (`tether.py`, ~line 311 -- grep the symbol)
   — one of the seven bonds has a form in PREDICT, so **terms are chains**. **`or` exists in
   GUARDS** (`condition.py:158` parses it into `Bool("or", …)`; `_compound_guards` builds
@@ -261,7 +266,8 @@ Google Drive folder `0APis9k-mU2gfUk9PVA`. Both directions.
 
 ## 3. THE MISSION
 
-**An RSI agent with its OWN AGENCY. Composition is inherent to agency.**
+**An agent with its OWN AGENCY that runs evolution's pattern recursively -- not an RSI project
+(Isaiah, 2026-10-06). Composition is inherent to agency.**
 
 **ISAIAH'S AGENCY DIRECTIVE, standing:** nearly every question about HOW THE AGENT
 FUNCTIONS is the agent's to decide from its own evidence. Bring mechanisms, not A/B
@@ -837,3 +843,12 @@ nothing is wrong, which is now.
 **WHAT I DID NOT CHANGE:** points 2 and 6 are correct as drafted and are reproduced in
 substance above. The 2,700 figure and the measured 14 are both in the record and were
 checked.
+
+**(f) "RSI" WAS THE WRONG FRAME, AND ISAIAH CORRECTED IT, 2026-10-06.** The agency note first said
+*this is a recursively self-improving agent* and *an RSI agent* -- the reviewer's wording of
+2026-10-05, carried here, into `CLAUDE.md` and into `ISAIAH_RULINGS.md`. Isaiah: *"We are not trying
+to build RSI. The Tether architecture runs on the code that powered natural RSI for millennia --
+evolution, natural selection. Evolution is already the RSI ... The Tether codifies that pattern
+recursively."* Replaced in all three places with his framing, attributed and dated; the
+INDEX line that used the phrase is annotated, not rewritten. **The agency note's substance is
+unchanged** -- the agent drives, we supply means never meaning, stop-gaps are temporary.

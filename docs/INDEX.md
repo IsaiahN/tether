@@ -46171,6 +46171,8 @@ the chain's own POSITION is the body, so the whole meaning stays in the atom seq
     MECHANISM   none changed; designing it was explicitly withheld
     CAPABILITY  none. It names the single structural thing between today's agent and the RSI
                 picture, and it is bigger than any one construct
+                [annotated 2026-10-06: "RSI" is the wrong frame -- Isaiah, ISAIAH_RULINGS
+                2026-10-06: the agent runs evolution's pattern recursively]
 
 
 ---

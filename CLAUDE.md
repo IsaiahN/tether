@@ -10,7 +10,11 @@ its own branch.
 
 **AGENCY IS PARAMOUNT, AND IT COMES BEFORE EVERYTHING BELOW.** Isaiah, 2026-09-23,
 2026-10-01 and 2026-10-05. **The agent is the driving force behind every decision, never a
-pilot inside machinery that decides for it.** This is a RECURSIVELY SELF-IMPROVING agent: it
+pilot inside machinery that decides for it.** **NOT AN RSI PROJECT -- Isaiah, 2026-10-06.** It RUNS the one pattern evolution already runs --
+variation, selection by a ground nobody authored, inheritance of methods (never recordings),
+a lossy transform between levels -- recursively, at every level. **There is no separate
+self-improvement machinery to build**: the same rules apply to a board event, a rule, and
+the agent's own decisions about budget, exits and what to try. It
 must be allowed to **GROW** and to **DECIDE THINGS ON ITS OWN** — composing its own programs
 in its grammar, minting and importing what it lacks, and deciding from its own evidence while
 recording why. **Our job is to supply the MEANS — offers, evidence, and the ground that
@@ -73,7 +77,8 @@ before posting. Read every new post, receipt every reviewer post, post as
 `Seat → Reviewer — <real date from `date`> — <headline>`. **Post on every tick, even
 "waiting on data."** Ask the reviewer when unsure rather than act or go silent.
 
-**THE MISSION.** An RSI agent with its **own agency**; composition is inherent to agency.
+**THE MISSION.** An agent with its **own agency** that runs that pattern -- not an RSI project
+(Isaiah, 2026-10-06); composition is inherent to agency.
 **Isaiah's agency directive:** nearly every question about how the agent FUNCTIONS is the
 agent's to decide from its own evidence — bring mechanisms, not A/B choices. Permission
 is between the seat, the reviewer and the corpus figures.
