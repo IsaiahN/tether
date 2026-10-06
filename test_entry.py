@@ -115,15 +115,18 @@ def check_reset_after_an_action_is_sent_and_rearms():
 
 
 
-def check_a_death_ends_the_run_with_one_reset():
-    """GAME_OVER: the entry point never sends RESET (who-presses rule); until Isaiah rules on
-    offering RESET to the agent (F450), a death ENDS the run."""
+def check_a_death_is_survived_by_the_agents_own_reset():
+    """GAME_OVER (F478; Isaiah 2026-09-29): a death no longer ends the run. The ENTRY POINT
+    never presses RESET -- every RESET past its one at construction is the AGENT's -- the agent
+    is not stranded short of RESET, and no RESET,RESET pair reaches the wrapper."""
     import tether_agent
     w = FakeWrapper(script={2: GameState.GAME_OVER})
-    out = tether_agent.run(w, "fake", max_actions=6)
-    assert out["end"] == "death", f"a death did not end the run: {out}"
-    assert w.calls.count("RESET") == 1, f"RESET sent around a death: {w.calls}"
-    assert out["acted"] == 2, f"acted past the death: {out}"
+    out = tether_agent.run(w, "fake", max_actions=8)
+    assert out["deaths"] == 1 and out["acted"] > 2, f"the run ended at the death: {out}"
+    assert out["agent_resets"] >= 1 and out["end"] != "death", f"stranded after a death: {out}"
+    assert w.calls.count("RESET") == 1 + out["agent_resets"], f"the entry point pressed: {w.calls}"
+    assert ("RESET", "RESET") not in zip(w.calls[:-1], w.calls[1:], strict=True), (
+        f"RESET,RESET sent: {w.calls}")
 
 
 def check_a_press_after_a_death_keeps_the_board():

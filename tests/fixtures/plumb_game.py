@@ -1,5 +1,7 @@
 """A SYNTHETIC ENGINE GAME FOR PLUMBING ONLY -- no ARC content. One block, four moves, and the game
-ends (GAME_OVER) after a fixed number of moves, so a run through the real server is short.
+ends in a WIN after a fixed number of moves, so a run through the real server is short. (A WIN,
+not GAME_OVER: since F478 a death no longer ends a run, so a fixture that dies would restart until
+the ceiling.)
 Reachable only from test_entry's multi-process scorecard check, which copies it into throwaway
 game directories; the bundle never ships it. What it proves is WIRING, never capability."""
 from arcengine import ARCBaseGame, GameAction, Level, Sprite
@@ -23,5 +25,5 @@ class Plumb(ARCBaseGame):
             self.try_move("block", *MOVES[self.action.id])
             self.moves += 1
             if self.moves >= LIFE:
-                self.lose()
+                self.win()
         self.complete_action()
