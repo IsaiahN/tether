@@ -74,7 +74,7 @@ def census(entry: str) -> list[str]:
     return files
 
 
-def build(entry: str = "tether_agent", out: str = "out", sample: str = "") -> dict:
+def build(entry: str = "tether_runner", out: str = "out", sample: str = "") -> dict:
     files = census(entry) + list(DATA)
     missing = [f for f in files if not os.path.isfile(os.path.join(ROOT, f))]
     if missing:
@@ -145,6 +145,13 @@ def notebook(mine: str, out: str, sample: str) -> str:
     with open(mine, encoding="utf-8") as fh:
         body = fh.read()
     cells[writes[0]]["source"] = (head + body).splitlines(True)
+    # THE ONE OTHER LINE CHANGED (F473): the run cell starts OUR runner in place of Swarm, which
+    # plays every game at once in threads of one process -- no sequence to carry, one core.
+    runs = [i for i, s in enumerate(srcs) if "python main.py --agent myagent" in s]
+    if len(runs) != 1:
+        raise SystemExit(f"the sample has {len(runs)} main.py run lines, not 1")
+    cells[runs[0]]["source"] = srcs[runs[0]].replace(
+        "python main.py --agent myagent", "python -m agents.templates.my_agent").splitlines(True)
     for c in cells:
         if c["cell_type"] == "code":
             c["outputs"], c["execution_count"] = [], None
@@ -191,7 +198,7 @@ from {entry} import *  # noqa: E402,F401,F403
 
 
 if __name__ == "__main__":
-    entry = sys.argv[1] if len(sys.argv) > 1 else "tether_agent"
+    entry = sys.argv[1] if len(sys.argv) > 1 else "tether_runner"
     out = sys.argv[2] if len(sys.argv) > 2 else "out"
     sample = sys.argv[3] if len(sys.argv) > 3 else ""
     print(json.dumps(build(entry, out, sample), indent=1))

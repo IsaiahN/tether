@@ -13,6 +13,7 @@ What this seat guards (the reviewer, 2026-10-06; Isaiah's 2026-09-29 ruling):
 from __future__ import annotations
 
 import logging
+import os
 import sys
 
 import numpy as np
@@ -231,6 +232,85 @@ def check_the_runner_carries_in_order_per_worker():
         for r in rec["records"]:
             assert [g["loaded"] for g in r["games"]] == [False, True], r
             assert all(g["allowance_s"] > 0 for g in r["games"]), r
+
+
+def check_serve_opens_one_card_and_always_closes_it():
+    """THE OFFICIAL SCORING PATH (F473): the games the gateway serves, ONE card, every game made
+    with it, the card closed once after the workers -- and closed even when a worker fails."""
+    import contextlib
+    import tempfile
+
+    import tether_runner
+    log = []
+    made = []
+
+    def make(game, card):
+        made.append((game, card))
+        return FakeWrapper()
+    with tempfile.TemporaryDirectory() as d:
+        rec = tether_runner.serve(lambda: ["g0", "g1"], lambda: log.append("open") or "C1",
+                                  lambda c: log.append(("close", c)), make, d, k=1,
+                                  processes=False, ceiling_s=20, margin_s=1)
+    assert log == ["open", ("close", "C1")], log
+    assert made == [("g0", "C1"), ("g1", "C1")] and rec["card"] == "C1", (made, rec)
+
+    def broken(_game, _card):
+        raise RuntimeError("a worker failed")
+    log.clear()
+    with tempfile.TemporaryDirectory() as d, contextlib.suppress(RuntimeError):
+        tether_runner.serve(lambda: ["g0"], lambda: log.append("open") or "C2",
+                            lambda c: log.append(("close", c)), broken, d, k=1,
+                            processes=False, ceiling_s=20, margin_s=1)
+    assert log == ["open", ("close", "C2")], f"a failed run left the card open: {log}"
+
+
+def check_the_notebook_runs_our_runner_in_place_of_swarm():
+    """The generator changes exactly two things in ARC's sample (F473): the my_agent.py body, and
+    the run line -- `python main.py --agent myagent` becomes our runner. Checked on a minimal
+    synthetic sample with the shape it relies on, so it runs in every checkout."""
+    import json
+    import pathlib
+    import tempfile
+
+    import kaggle_bundle
+    cells = [{"cell_type": "code", "source": ["!pip install arc-agi"], "outputs": [],
+              "execution_count": 1, "metadata": {}},
+             {"cell_type": "code", "source": ["%%writefile /kaggle/working/my_agent.py\nold\n"],
+              "outputs": [], "execution_count": 2, "metadata": {}},
+             {"cell_type": "code", "metadata": {}, "outputs": [], "execution_count": 3,
+              "source": ['f.write("""\"myagent\": MyAgent""")\n',
+                         "!cd /kaggle/working/ARC-AGI-3-Agents && "
+                         "python main.py --agent myagent\n"]}]
+    with tempfile.TemporaryDirectory() as d:
+        sample = pathlib.Path(d) / "sample.ipynb"
+        sample.write_text(json.dumps({"cells": cells, "metadata": {}, "nbformat": 4,
+                                      "nbformat_minor": 5}), encoding="utf-8")
+        mine = pathlib.Path(d) / "my_agent.py"
+        mine.write_text("x = 1\n", encoding="utf-8")
+        out = kaggle_bundle.notebook(str(mine), d, str(sample))
+        nb = json.loads(pathlib.Path(out).read_text(encoding="utf-8"))
+    run = "".join(nb["cells"][2]["source"])
+    assert "python -m agents.templates.my_agent" in run and "main.py" not in run, run
+    assert "".join(nb["cells"][1]["source"]).endswith("x = 1\n"), "the agent body was not written"
+
+
+def check_the_bundle_carries_every_module_the_harness_file_imports():
+    """The bundle's file list is an IMPORT CENSUS from its entry. kaggle_agent imports the runner
+    only inside runner_main(), so a census from tether_agent missed it -- an ImportError that
+    would surface on Kaggle and nowhere else (F473). Every module it imports must be in it."""
+    import ast
+    import inspect
+
+    import kaggle_bundle
+    entry = inspect.signature(kaggle_bundle.build).parameters["entry"].default
+    files = set(kaggle_bundle.census(entry))
+    with open("kaggle_agent.py", encoding="utf-8") as fh:
+        tree = ast.parse(fh.read())
+    ours = {a.name for n in ast.walk(tree) if isinstance(n, ast.Import) for a in n.names}
+    ours |= {n.module for n in ast.walk(tree) if isinstance(n, ast.ImportFrom) and n.module}
+    local = {m for m in ours if (m.split(".")[0] + ".py") in set(os.listdir("."))}
+    missing = sorted(m for m in local if m.split(".")[0] + ".py" not in files)
+    assert not missing, f"the bundle lacks {missing}"
 
 
 if __name__ == "__main__":

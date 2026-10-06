@@ -49,3 +49,53 @@ class MyAgent(Agent):
 
     def choose_action(self, frames: list[FrameData], latest_frame: FrameData) -> GameAction:
         raise NotImplementedError("main() is overridden: tether drives the wrapper itself (14a)")
+
+
+# ---- THE RUNNER ENTRY (F473): `python -m agents.templates.my_agent`, run where main.py runs. ----
+# Environment and ROOT_URL exactly as the kit's main.py builds them, so the gateway sees the same
+# client; the orchestration itself is tether_runner.serve(), harness-free and tested offline.
+
+def _root_url() -> str:
+    import os
+    scheme, host, port = (os.environ.get("SCHEME", "http"), os.environ.get("HOST", "localhost"),
+                          os.environ.get("PORT", 8001))
+    if (scheme == "http" and str(port) == "80") or (scheme == "https" and str(port) == "443"):
+        return f"{scheme}://{host}"
+    return f"{scheme}://{host}:{port}"
+
+
+def make_env(game: str, card: str):
+    """Module-level, so a worker PROCESS can take it: each process builds its OWN client."""
+    from arc_agi import Arcade
+    return Arcade().make(game, scorecard_id=card)
+
+
+def runner_main(lib_dir: str = "/kaggle/working/tether_libs") -> dict:
+    import json
+    import os
+
+    import requests
+    from arc_agi import Arcade
+    from dotenv import load_dotenv
+
+    import tether_runner
+    load_dotenv(dotenv_path=".env.example")
+    load_dotenv(dotenv_path=".env", override=True)
+    root = _root_url()
+    headers = {"X-API-Key": os.getenv("ARC_API_KEY", ""), "Accept": "application/json"}
+    arc = Arcade()
+
+    def games():
+        r = requests.get(f"{root}/api/games", headers=headers, timeout=10)
+        r.raise_for_status()
+        return [g["game_id"] for g in r.json()]
+
+    rec = tether_runner.serve(games, lambda: arc.open_scorecard(tags=["agent", "tether"]),
+                              arc.close_scorecard, make_env, lib_dir)
+    with open(os.path.join(lib_dir, "run_record.json"), "w", encoding="utf-8") as fh:
+        json.dump(rec, fh, indent=1, default=str)
+    return rec
+
+
+if __name__ == "__main__":
+    runner_main()

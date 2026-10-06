@@ -99,3 +99,16 @@ def run(games: list[str], card: str, make, lib_dir: str, k: int | None = None,
             records.append({"record": o, "missing": f"{type(e).__name__}: {e}"[:200]})
     return {"k": k, "workers": len(parts), "games": len(games), "ceiling_s": ceiling_s,
             "margin_s": margin_s, "records": records}
+
+
+def serve(fetch_games, open_card, close_card, make, lib_dir: str, **kw) -> dict:
+    """The official scoring path, as Swarm does it: the games the gateway serves, ONE card opened,
+    every game made with it in the workers, the card closed once after they all join -- closed
+    even if a worker fails, so the gateway is never left holding an open card."""
+    games = list(fetch_games())
+    card = open_card()
+    try:
+        rec = run(games, card, make, lib_dir, **kw)
+    finally:
+        closed = close_card(card)
+    return rec | {"card": card, "closed": closed is not False}
