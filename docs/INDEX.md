@@ -56249,3 +56249,32 @@ package may import the harness. `conform/lint.py`'s `COLLECTORS` is the declared
 that ("runners that collect by convention from OUTSIDE the package"); it gains three rows scoped
 to the one module `kaggle_agent` and its three exact names. The rule's pinned fixtures are
 unchanged and pass, so the exemption did not widen beyond that module.
+
+#### F458 — **14a, THE NOTEBOOK (interface bug 5): the bundler generates `submission.ipynb` from ARC's OWN sample, replacing only the `my_agent.py` cell's body with ours. All five interface bugs are now checked on the path that runs**
+
+`kaggle_bundle.notebook()` reads the sample (`arc3-sample-submission-random-agent.ipynb`), keeps every
+cell but one -- the `arc-agi` install cell (bug 5), the rerun cell that copies `my_agent.py` into
+`agents/templates/`, registers `"myagent": MyAgent` and runs `main.py --agent myagent`, and the
+dummy-parquet cell -- and sets the `%%writefile /kaggle/working/my_agent.py` cell's body to the
+generated `my_agent.py`. Outputs and execution counts are cleared. It REFUSES a sample without
+exactly one such cell, without the install cell, or without the `MyAgent` registration.
+
+**`docs/example/` is local-only** (`.gitignore`: *working documents -- local only, not published*),
+so the sample is never committed and a checkout may lack it: the bundler's third argument points at it,
+and an absent sample is REPORTED (`notebook: SKIPPED: sample not found at ...`), never skipped
+quietly. The generated notebook lands in the ignored `out/`.
+
+    built: 4 cells; cell 1 == "%%writefile /kaggle/working/my_agent.py\n" + my_agent.py exactly, and
+    compiles; install cell present; MyAgent registered; outputs cleared
+
+    the five interface bugs
+      1 WIN        MyAgent.is_done True on WIN, through the notebook-shaped package (F457)
+      2 RESET      one at the start, guarded (F452-F455); never sent on GAME_OVER (F450, F456)
+      3 clicks     ACTION6 data reaches the wrapper (F456)
+      4 arcengine  refused by the bundler (F451)
+      5 install    the sample's own cell, kept and checked (here)
+
+**What remains of 14a is not the seat's to do offline:** 14b, ONE integration run against the real
+harness, which Isaiah ruled comes LAST, after the feature work. Open with him: the scheduling fork,
+RESET after GAME_OVER, actions per game, the core count, and whether the ~1.9 MB embedded cell is
+acceptable or `my_agent.py` should ship as a Kaggle dataset input.

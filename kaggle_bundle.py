@@ -14,7 +14,7 @@ file read at runtime leaves no trace in sys.modules; each one is checked to exis
 
 `arcengine` is never bundled: it comes from the competition's wheels (interface bug 4).
 
-    python kaggle_bundle.py [entry_module] [out_dir]
+    python kaggle_bundle.py [entry_module] [out_dir] [sample_notebook]
 """
 from __future__ import annotations
 
@@ -74,7 +74,7 @@ def census(entry: str) -> list[str]:
     return files
 
 
-def build(entry: str = "tether_agent", out: str = "out") -> dict:
+def build(entry: str = "tether_agent", out: str = "out", sample: str = "") -> dict:
     files = census(entry) + list(DATA)
     missing = [f for f in files if not os.path.isfile(os.path.join(ROOT, f))]
     if missing:
@@ -113,7 +113,45 @@ def build(entry: str = "tether_agent", out: str = "out") -> dict:
             compile(fh.read(), mine, "exec")
         shutil.copyfile(agent_src, os.path.join(pkg, "kaggle_agent.py"))
         report["my_agent"] = mine
+        sample = sample or SAMPLE
+        report["notebook"] = (notebook(mine, out, sample) if os.path.isfile(sample)
+                              else f"SKIPPED: sample not found at {sample}")
     return report
+
+
+# ARC's own sample notebook, read and never edited: its install cell is interface bug 5, and its
+# rerun cell copies `my_agent.py` into `agents/templates/` and registers `"myagent": MyAgent`.
+# `docs/example/` is LOCAL-ONLY (.gitignore: not ours to publish), so a checkout may lack it;
+# the third argument points elsewhere, and an absent sample is REPORTED, never skipped quietly.
+SAMPLE = os.path.join(ROOT, "docs", "example", "arc3-sample-submission-random-agent.ipynb")
+
+
+def notebook(mine: str, out: str, sample: str) -> str:
+    """The sample notebook with ONLY the `%%writefile my_agent.py` cell's body replaced by ours.
+    Every other cell is the sample's own; outputs and execution counts are cleared. Refuses if
+    the sample no longer has the shape this relies on."""
+    with open(sample, encoding="utf-8") as fh:
+        nb = json.load(fh)
+    cells = nb["cells"]
+    srcs = ["".join(c["source"]) for c in cells]
+    head = "%%writefile /kaggle/working/my_agent.py\n"
+    writes = [i for i, s in enumerate(srcs) if s.startswith(head)]
+    if len(writes) != 1:
+        raise SystemExit(f"the sample has {len(writes)} my_agent.py writefile cells, not 1")
+    if not any("pip install" in s and "arc-agi" in s for s in srcs):
+        raise SystemExit("the sample lost its arc-agi install cell (interface bug 5)")
+    if not any('"myagent": MyAgent' in s for s in srcs):
+        raise SystemExit("the sample no longer registers MyAgent")
+    with open(mine, encoding="utf-8") as fh:
+        body = fh.read()
+    cells[writes[0]]["source"] = (head + body).splitlines(True)
+    for c in cells:
+        if c["cell_type"] == "code":
+            c["outputs"], c["execution_count"] = [], None
+    path = os.path.join(out, "submission.ipynb")
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(nb, fh, indent=1)
+    return path
 
 
 _ONE_FILE = '''"""tether, bundled: {n} files, content digest {digest}.
@@ -155,4 +193,5 @@ from {entry} import *  # noqa: E402,F401,F403
 if __name__ == "__main__":
     entry = sys.argv[1] if len(sys.argv) > 1 else "tether_agent"
     out = sys.argv[2] if len(sys.argv) > 2 else "out"
-    print(json.dumps(build(entry, out), indent=1))
+    sample = sys.argv[3] if len(sys.argv) > 3 else ""
+    print(json.dumps(build(entry, out, sample), indent=1))
