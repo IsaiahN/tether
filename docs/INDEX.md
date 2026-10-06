@@ -56117,3 +56117,22 @@ is the runtime census. The DATA files are a declared table, because a file read 
 directory, with no repo directory on `sys.path`, `composer`, `condition`, `tether`, `gamma`,
 `arc_world` and `inherited` all load from the unpacked copy, and the seed reads return 2,076
 recipe rows and 2,637 glosses -- the full set, which F449 made possible.
+
+#### F452 — **EVERY ARC RUN HAS OPENED WITH RESET, RESET -- the sequence Isaiah ruled must never be issued (2026-09-29). Both arc_agi wrappers reset in their own `__init__`, and `ArcWorld` reset again. Fixed: `ArcWorld` takes the frame the wrapper already holds. SEAT CALL, pending the reviewer**
+
+Found by 14a's reading of the real wrapper, offline. `arc_agi`'s `RemoteEnvironmentWrapper.__init__`
+and `LocalEnvironmentWrapper.__init__` both call `self.reset()`; `ArcWorld.__init__` then called
+`self.w.reset()` -- so every ARC run, local or on Kaggle, began with two consecutive RESETs. Per
+INDEX:51466 the second restarts the whole game; at the very start that loses nothing, which is why
+nothing ever showed, but it is the one sequence `ISAIAH_RULINGS.md` 2026-09-29 says the interface
+must never issue, and in competition mode resets may count as actions (hedged, not confirmed).
+
+`ArcWorld` now takes `w.observation_space` -- the frame the wrapper's own reset left -- and resets
+only a wrapper that holds none (`ReplayTape`), so tapes are unchanged. **Measured on an offline
+fake that resets in its own `__init__` as the real ones do:** construction issued `RESET, RESET` on
+f91a697 and `RESET` after; the agent's first board is the same 64x64. Gridworld never builds an
+`ArcWorld`, so the gridworld gates cannot see this; seats 20/20.
+
+**Also found, and left: `wrapper.step` returns `None` on any failure and `ArcWorld.step` then keeps
+the OLD frame silently** -- a dropped action reads as an action with no effect. Recorded as a silent
+degrade for the entry point to announce.

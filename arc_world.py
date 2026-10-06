@@ -77,7 +77,11 @@ class ArcWorld:
         # 2026-09-22 on the checkable fact that its `reverse_engineer` import is under `__main__`.
         self._obs = observer.Live()
         self._cue: dict | None = None
-        self._frame = self.w.reset()
+        # THE WRAPPER HAS ALREADY RESET -- 2026-10-06. Both arc_agi wrappers call `self.reset()` in
+        # their own `__init__`, so a reset here was the SECOND of two consecutive RESETs on every
+        # ARC run: the one sequence Isaiah ruled must never be issued (2026-09-29; INDEX:51466).
+        # Take the frame it already holds; reset only a wrapper that holds none (`ReplayTape`).
+        self._frame = getattr(self.w, "observation_space", None) or self.w.reset()
         self._read: dict[str, int] | None = None
         self._contacts: dict[str, list[str]] | None = None
         self._contact_pts: list | None = None
