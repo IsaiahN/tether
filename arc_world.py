@@ -696,8 +696,11 @@ class ArcWorld:
         # answers every non-RESET action with `frame=[]` (a bare FrameData, levels unset), so
         # taking it whole left no board, no slots and no action ever again -- short of the RESET
         # the agent may now choose (Isaiah, 2026-09-29). The last frame stands; only the state
-        # is the answer's.
+        # is the answer's. ONLY in the two states the engine answers this way: an empty stack
+        # anywhere else may be a dead channel, and keeps reading as no board (`no_slots`,
+        # CHANNEL_CLOSED) rather than as "nothing changed".
         if (nxt is not None and nxt.is_empty() and self._frame is not None
+                and nxt.state in (GameState.GAME_OVER, GameState.WIN)
                 and not self._frame.is_empty()):
             keep = self._frame.model_copy()
             keep.state = nxt.state

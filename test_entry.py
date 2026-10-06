@@ -141,6 +141,14 @@ def check_a_press_after_a_death_keeps_the_board():
     assert env.board() is not None and (env.board() == board).all(), "the dead press lost the board"
     assert env.terminal() == "death" and env.levels() == levels, (env.terminal(), env.levels())
     assert env.observe(), "the dead press left no slots"
+    # THE OTHER READING STAYS REACHABLE: an empty answer while the game is LIVE may be a dead
+    # channel, so it still reads as no board -- never quietly as "nothing changed".
+    live = FakeWrapper()
+    env = arc_holdout.wire(live, "fake")[0]
+    live.step = lambda *_a, **_k: FrameData(game_id="fake-0001", frame=[],
+                                            state=GameState.NOT_FINISHED)
+    env.step("ACTION1")
+    assert env.board() is None, "an empty answer in a live game was read as nothing changed"
 
 def check_a_win_ends_the_run():
     import tether_agent
