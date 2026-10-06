@@ -56314,3 +56314,13 @@ Pre-registered disappointment: *settled drops to 0 on all three seeds*. **MET.**
 **STANDING (Isaiah: *"I relinquish control now to the Tether figures 1-13, the Operators table and the Symbols table"*):** a derivation, used for its arithmetic and its ordering; where it and a figure disagree the FIGURE wins and the gap is recorded as the formula's lossiness, never as a new rule; every design census cites the figure behind each formula term. **Corpus documents that quote the old draft are left as written** and read against this file.
 
 **AND FOUR RECORD COMMITS TODAY CARRY THE WRONG ITEM -- `0db94f8`, `ff74ec0`, `befb2de`, `9df70c9`, all `Item: m2.goal`**, which is the goal chain; they are frame records and belong to `reframe`. The adjacent-reference class `aim.py` records. Messages are not rewritten; this line is the correction.
+
+#### F461 — **THE SEAT MAP, AMENDED BY ITS AUTHOR: its loop reference now points at `docs/THE_FORMULA.md`**
+
+2026-10-06. Isaiah's own amendment to his document, relayed by the reviewer -- **an author-authorised edit to CORPUS, not a seat repair.** `docs/THE_SEAT_MAP_Field_Guide_amended.md` was committed byte-exact as placed first (`b2b9c46`; 43,001 B, sha256[:16] `73b55cb261bab6d8`), so the record holds both the file as placed and the amendment. One sentence in the APPENDIX changed and nothing else.
+
+Replaced, verbatim: ***It ships separately as `THE_LOOP_reference.md`**, with the ladder mapping and the standing checks attached, because any seat diagnosing a system built on this kernel needs the ordering rather than the laws alone.*
+
+With: ***It ships separately as THE FORMULA (`docs/THE_FORMULA.md`), which is the same loop under its other name**, because any seat diagnosing a system built on this kernel needs the ordering rather than the laws alone. The block below is a rendering of it; where the two differ in wording, THE FORMULA is the reference.*
+
+The "ladder mapping and standing checks" the old sentence named are not in the formula; the standing checks live in the seat map itself (FAILURE GENERA) and in the seat's checks, so nothing is lost. **Line endings:** under this repo's `core.autocrlf=true`, a CRLF file is stored with LF and restored on checkout -- `docs/THE_FORMULA.md`'s stored blob differs from Isaiah's file by line endings only (re-CRLF'd it hashes `7faa7ac5902af02f`, identical), as the three corpus files of 2026-10-05 do.
