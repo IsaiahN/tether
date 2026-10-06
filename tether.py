@@ -6957,6 +6957,7 @@ class Agent:
                 # BOTH outcomes of `refute` below: a settled term demoted and a candidate
                 # mispredicting are both the ground refusing what was said.
                 self._refuted_slot[slot] = name
+                held = self.gamma.is_settled(name, slot)
                 if self.gamma.refute(name, where=self._scope, slot=slot):
                     self.demoted.append(name)
                     # BOOK 1: a term that had SETTLED and then mispredicted. The ground gave it
@@ -6982,6 +6983,14 @@ class Agent:
                     # accumulating the evidence it needs to settle.
                     self.bound.pop(slot, None)
                     self.owed_import.add(slot)
+                elif held:
+                    # A MISS THAT COST NO STANDING: the evidence tally rose and stayed under the
+                    # ceiling. Recorded as what it is; the binding stands, because only the
+                    # ground REVERSING a settlement licenses an unbind (F462).
+                    self.led.record(self.cycle, "SETTLE", slot, "miss_while_settled", term=name,
+                                    status="settled", asked=[name, slot], ground_said=False,
+                                    verdict="mispredicted; standing held under the ceiling",
+                                    rejections=round(self.gamma.rejection_of(name), 3))
                 continue
             born = self.candidates.get(name)
             # HERE, decided: without the slot this skips settling a candidate on slot B

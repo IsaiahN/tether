@@ -1001,9 +1001,12 @@ class Gamma:
         happens at both scales. The caller is the one holding both.
         """
         st = self.standing.setdefault(name, Standing())
-        was = st.settled
+        was = self.is_settled(name, slot)
         st.refute(self.tick, self.halflife, where=where, slot=slot)
-        return was
+        # TRUE ONLY WHEN THIS MISS COST STANDING, on the slot when one is given. This returned
+        # `was settled (anywhere)`, so the caller unbound on every miss by a settled term --
+        # a slot it never settled on included -- whether or not standing was lost (F462).
+        return was and not self.is_settled(name, slot)
 
     def is_settled(self, name: str, slot: str | None = None) -> bool:
         """Settled -- ANYWHERE by default, HERE when a slot is given. Kernel A5.

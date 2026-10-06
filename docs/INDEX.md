@@ -56333,3 +56333,21 @@ Replaced, verbatim: ***It ships separately as `THE_LOOP_reference.md`**, with th
 With: ***It ships separately as THE FORMULA (`docs/THE_FORMULA.md`), which is the same loop under its other name**, because any seat diagnosing a system built on this kernel needs the ordering rather than the laws alone. The block below is a rendering of it; where the two differ in wording, THE FORMULA is the reference.*
 
 The "ladder mapping and standing checks" the old sentence named are not in the formula; the standing checks live in the seat map itself (FAILURE GENERA) and in the seat's checks, so nothing is lost. **Line endings:** under this repo's `core.autocrlf=true`, a CRLF file is stored with LF and restored on checkout -- `docs/THE_FORMULA.md`'s stored blob differs from Isaiah's file by line endings only (re-CRLF'd it hashes `7faa7ac5902af02f`, identical), as the three corpus files of 2026-10-05 do.
+
+#### F462 — **A SETTLED TERM WAS UNBOUND ON EVERY MISS, WHETHER OR NOT IT LOST STANDING: `refute` returned "was settled (anywhere)". It now returns "standing LOST on this slot", and only a real loss unbinds**
+
+2026-10-06. Found because the per-slot decay (next entry) made churn WORSE: demote rows rose 28/43/90 -> 28/68/166 on default s0-s2, and that refuter was not re-scoped. The write site: `gamma.refute` returned `was = st.settled`, read BEFORE the miss and over every slot, and `tether.py`'s settle step treated it as a demotion -- row, `promoted_then_wrong`, `bound.pop(slot)`, `owed_import` -- on every miss by a term settled ANYWHERE. The site's own rule says otherwise: *unbind only on a REFUTATION -- the ground reversing a settlement it had made.* The ratchet had been hiding it, since "was settled" and "lost standing" mostly coincided.
+
+**THE CHANGE (Fig 5: refutation per (term, slot); the site's rule).** `gamma.refute` returns `was and not now`, both read with `is_settled(name, slot)` -- the predicate the agent uses everywhere. The demote branch acts only on that. A miss by a term settled on THAT slot that costs no standing writes `SETTLE` / `miss_while_settled` (status `settled`, ground_said False, the rejection tally) and the binding stands. A miss by a term settled only on another slot now does neither -- the settled-anywhere defect.
+
+**MEASURED, one script, one flag (the tree), a spy on `Gamma.refute` reading `is_settled(name, slot)` before and after every miss independently of its return.** default, 60 cycles, cold, all arms default; base `6c7d01a`. MODE: grounded for this panel:
+
+                                s0 base/cons   s1 base/cons   s2 base/cons
+    unbinds (= demote rows)     28 / 22        43 / 30        90 / 44
+    standing lost (spy)         13 / 22        19 / 30        42 / 44
+    misses while settled (spy)  6 / 7          15 / 13        21 / 18
+    miss_while_settled rows     0 / 7          0 / 13         0 / 18
+    settle events               16 / 26        26 / 32        52 / 53
+    standing settled at end     3 / 4          6 / 2          7 / 8
+
+**Refuters, none fired on any seed:** (a) base unbinds exceed real losses on every seed, more than double -- there was something to fix; (b) consumer unbinds = real losses exactly, 22/30/44; (c) the new rows = the spy's count exactly, 7/13/18 -- the treatment ran. Unbinds fell on all three seeds. **Real losses ROSE on all three** (terms stay bound long enough to be judged again) -- why is NOT measured; that they happen at the ratchet's one-miss cliff is a hypothesis (MODE: general) the decay commit tests. Standing-settled at end moves both ways (3->4, 6->2, 7->8): no direction stated. The base runs reproduce the earlier after-arm exactly. Seats 21/21.
