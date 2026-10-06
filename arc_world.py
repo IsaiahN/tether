@@ -692,6 +692,16 @@ class ArcWorld:
         was = self.board()
         was_objs = {k: dict(v) for k, v in self._decompose.tracked.items()}
         nxt = self.w.step(act, data=data) if data is not None else self.w.step(act)
+        # AN EMPTY STACK IS "NOTHING RENDERED", NOT "NO BOARD". At GAME_OVER and WIN the engine
+        # answers every non-RESET action with `frame=[]` (a bare FrameData, levels unset), so
+        # taking it whole left no board, no slots and no action ever again -- short of the RESET
+        # the agent may now choose (Isaiah, 2026-09-29). The last frame stands; only the state
+        # is the answer's.
+        if (nxt is not None and nxt.is_empty() and self._frame is not None
+                and not self._frame.is_empty()):
+            keep = self._frame.model_copy()
+            keep.state = nxt.state
+            nxt = keep
         if nxt is not None:
             self._frame = nxt
         self._read = None          # a new frame is a new decomposition

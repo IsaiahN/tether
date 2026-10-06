@@ -17,7 +17,7 @@ import os
 import sys
 
 import numpy as np
-from arcengine import FrameDataRaw, GameAction, GameState
+from arcengine import FrameData, FrameDataRaw, GameAction, GameState
 
 import arc_holdout
 
@@ -25,7 +25,9 @@ sys.dont_write_bytecode = True
 
 
 class FakeWrapper:
-    """A 64x64 board, one block the four directions move. `script` forces a state after N steps."""
+    """A 64x64 board, one block the four directions move. `script` forces a state after N steps.
+    At GAME_OVER or WIN it answers as the engine does (`perform_action`): any action but RESET
+    returns a bare FrameData with an EMPTY stack and the state unchanged."""
 
     def __init__(self, script=None, actions=(1, 2, 3, 4, 6)):
         self.calls, self._last, self.script = [], None, dict(script or {})
@@ -55,6 +57,11 @@ class FakeWrapper:
     def step(self, action, data=None, reasoning=None):
         self.calls.append(action.name)
         self.last_data, self.last_reasoning = data, reasoning   # what a click actually carried
+        ended = self._last.state in (GameState.GAME_OVER, GameState.WIN)
+        if ended and action is not GameAction.RESET:
+            self._last = FrameData(game_id="fake-0001", frame=[], state=self._last.state,
+                                   available_actions=list(self.actions))
+            return self._last
         if action is GameAction.RESET:
             self.pos = [30, 30]
             return self._frame(GameState.NOT_FINISHED)
@@ -118,6 +125,22 @@ def check_a_death_ends_the_run_with_one_reset():
     assert w.calls.count("RESET") == 1, f"RESET sent around a death: {w.calls}"
     assert out["acted"] == 2, f"acted past the death: {out}"
 
+
+def check_a_press_after_a_death_keeps_the_board():
+    """At GAME_OVER the engine answers a non-RESET press with an EMPTY stack. Read as "no
+    board", the agent saw no slots and never acted again -- short of RESET. The world keeps the
+    last board and takes only the state from the answer."""
+    w = FakeWrapper(script={2: GameState.GAME_OVER})
+    env = arc_holdout.wire(w, "fake")[0]
+    env.step("ACTION1")
+    env.step("ACTION2")
+    board, levels = env.board(), env.levels()
+    assert env.terminal() == "death" and board is not None, "no death to press after"
+    env.step("ACTION3")
+    assert w.observation_space.is_empty(), "the treatment: the engine's answer was not empty"
+    assert env.board() is not None and (env.board() == board).all(), "the dead press lost the board"
+    assert env.terminal() == "death" and env.levels() == levels, (env.terminal(), env.levels())
+    assert env.observe(), "the dead press left no slots"
 
 def check_a_win_ends_the_run():
     import tether_agent
