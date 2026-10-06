@@ -1219,7 +1219,10 @@ class Gamma:
             # arrives without it and says so -- `crossed_without_binding` -- rather than
             # arriving as a different term with no record that anything was dropped.
             t = Term(tuple(self._by_name[n] for n in names),
-                     origin=IMPORTED if r.get("game") != self.game else r["origin"],
+                     # BY PROVENANCE, NEVER BY GAME NAME: this run LOADED it, so it is
+                     # imported, whatever game it was saved under. A same-name reload
+                     # stayed "minted" and got no carry-candidacy (F468).
+                     origin=IMPORTED,
                      guard=r.get("guard"))
             if t.name in self.library:
                 # **`already_held` WAS ONE NUMBER OVER TWO OPPOSITE OUTCOMES -- `F420`.** A row

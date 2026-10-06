@@ -2132,6 +2132,26 @@ def test_an_invented_atom_is_skipped_on_load_and_counted():
     assert [x["atoms"] for x in rep.get("built_on_skipped_invention", [])] == [["inc", "zz"]]
 
 
+def test_a_loaded_term_is_imported_even_under_the_same_game_name():
+    """No game identity read by any decision: origin is decided by PROVENANCE -- this run
+    loaded the term -- never by comparing the game it was saved under (F468)."""
+    import pathlib
+    import tempfile
+
+    import gamma
+
+    inc = gamma.Atom("inc", lambda v, _c: v + 1, "val", "val")
+    src = gamma.Gamma([inc], game="same_game_name")
+    src.accept(gamma.Term(atoms=(inc, inc)), seq=0, residual="s@0")
+    with tempfile.TemporaryDirectory() as d:
+        path = str(pathlib.Path(d) / "lib.json")
+        src.save(path)
+        dst = gamma.Gamma([inc], game="same_game_name")
+        dst.load(path)
+    t = dst.library["inc . inc"]
+    assert t.origin == gamma.IMPORTED, t.origin
+
+
 def test_a_per_slot_refusal_decays_like_the_term():
     """Isaiah, 2026-09-24: *a decay or a ratio, never a cliff* -- asserted on the LIVE path,
     which always passes a slot (`tether.py:6960`), so `refusals_on` is what the ceiling reads.
@@ -2183,6 +2203,7 @@ if __name__ == "__main__":
         test_the_resolutions_offered_are_not_the_answer()
         test_the_atom_order_is_pinned()
         test_a_per_slot_refusal_decays_like_the_term()
+        test_a_loaded_term_is_imported_even_under_the_same_game_name()
         test_an_invented_atom_is_skipped_on_load_and_counted()
         test_b5_does_not_judge_a_last_cycle_park_and_still_judges_an_earlier_one()
         test_a_miss_on_a_never_settled_slot_is_a_miss_not_a_refusal()
