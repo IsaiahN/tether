@@ -5754,7 +5754,8 @@ class Agent:
         self.alphabet = self._alphabets(self.env)
         self.slot_types = self._slot_types(self.env)
 
-    def _guards(self, robs: list, slot: str | None = None) -> list[str | None]:
+    def _guards(self, robs: list, slot: str | None = None,
+                refs: list[str] | None = None) -> list[str | None]:
         """Which INTENT a guard may name. **None first, and then only what R contains.**
 
         **ISAIAH, 2026-09-29 (ruling 1): guards name INTENTS, not buttons.** This yielded the
@@ -5782,14 +5783,12 @@ class Agent:
         # OUTSIDE -- not disjoint; demanding that took the funnel from 8,031 built to zero.
         # Counts, not sets: a history row holds a state DICT and is not hashable.
         out: list[str | None] = [None, *sorted({i for _, _, _, i, _ in robs if i is not None})]
+        # **ASKED PER REFERENT -- item 7(a), 2026-10-05.** The test was asked only about the
+        # slot's OWN object, so a slot moved by ANOTHER object's press was never offered a
+        # guard naming that object. `refs=None` keeps the old question (own owner only).
         if robs and slot is not None:
-            hist = self.history(slot)
-            h_true = sum(1 for _s, _a, _v, _i, land in hist if _same_object(land, slot))
-            r_true = sum(1 for _s, _a, _v, _i, land in robs if _same_object(land, slot))
-            out_true = h_true - r_true
-            out_false = (len(hist) - h_true) - (len(robs) - r_true)
-            if (_ACTED_GUARD and r_true in (0, len(robs))
-                    and (out_true if r_true == 0 else out_false) > 0):
+            asked = refs if refs else [slot.rsplit(".", 1)[0]]
+            if _ACTED_GUARD and any(self._separates(robs, slot, r) for r in asked):
                 # **THE RANDOMISED HOLD -- the reviewer, 2026-10-03 ruling 3. MEASUREMENT
                 # ONLY.** The offer is ELIGIBLE here; on a seeded coin-flip share of
                 # eligible occasions it is WITHHELD, so every ?ACTED reading has a
@@ -5811,6 +5810,17 @@ class Agent:
                 else:
                     out.append(ACTED_SELF)
         return out
+
+    def _separates(self, robs: list, slot: str, ref: str) -> bool:
+        """Is landing on `ref` CONSTANT across R and the other value present OUTSIDE R?
+        The test `_guards` always applied, now asked of any referent rather than only the
+        slot's own owner."""
+        hist = self.history(slot)
+        h_true = sum(1 for _s, _a, _v, _i, land in hist if _same_object(land, ref))
+        r_true = sum(1 for _s, _a, _v, _i, land in robs if _same_object(land, ref))
+        out_true = h_true - r_true
+        out_false = (len(hist) - h_true) - (len(robs) - r_true)
+        return r_true in (0, len(robs)) and (out_true if r_true == 0 else out_false) > 0
 
     def _guard_refs(self, slot: str | None, binds) -> list[str]:
         """Which objects a guard may point at. **READ OFF THE WORLD, NEVER INVENTED.**
@@ -6063,7 +6073,8 @@ class Agent:
                     # HOISTED so the guard PRICE can read how many were on offer -- the
                     # denominator `log2(G+1)` is over, and it must be the same set the loop
                     # walks or the price is charged against a population that was not offered.
-                    _gs = self._guards(robs, slot)
+                    _cand_refs = self._guard_refs(slot, operand_binds)
+                    _gs = self._guards(robs, slot, _cand_refs)
                     # **THE REFERENT IS PAIRED WITH THE GUARD, NOT WITH THE BIND.** Hoisted
                     # with `_gs` for the reason the hoist exists: the price denominator must
                     # be the set the loop actually walks. An ACTED guard now carries ITS OWN
@@ -6076,7 +6087,9 @@ class Agent:
                     # Measured when I got this wrong: `inc` guarded 23 times, pointed at its
                     # own button ZERO times. The referent must come from what the WORLD
                     # offers, not from what this candidate's computation happens to take.
-                    _refs = (self._guard_refs(slot, operand_binds)
+                    # ONLY THE REFERENTS THAT SEPARATE are walked -- and so priced, because the
+                    # price denominator is the set the loop walks (the hoist's own rule).
+                    _refs = ([r for r in _cand_refs if self._separates(robs, slot, r)]
                              if any(x in (ACTED_SELF, ACTED_ON) for x in _gs) else [])
                     _pairs = [(g, r) for g in _gs
                               for r in (_refs if g in (ACTED_SELF, ACTED_ON) else [None])]

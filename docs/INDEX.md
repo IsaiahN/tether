@@ -55911,3 +55911,27 @@ One kind carries four opposite movements, so keying by kind discards direction.
 
 **AND IT CORRECTS F438**, which said the conversion was *a change of key and nothing else*. It
 was not: `_predict` needs an action, and the key it proposed was too coarse.
+
+#### F443 — **QUEUE ITEM 7(a): THE ACTED OFFER IS ASKED PER REFERENT. On buttons seed 6 the one-remote slot now binds a guard on the HEAD that causes it and SETTLES; on the standard panel the fix is byte-identical**
+
+**The defect was a code fact** (the reviewer, READY v2): `_guards` asked whether landing on the
+slot's OWN object separates R from the rest, so a slot moved by ANOTHER object's press was never
+offered a guard naming that object. **The fix asks the same separation test of every candidate
+referent** (`_separates`), offers the ACTED kind if any separates, and walks -- and prices -- only
+the referents that separate (the hoist's own rule: the denominator is the set the loop walks).
+
+    buttons seed 6 (head o0 -> middle o1 -> tail o2), 60 cycles
+                     o1.colour bound           settles accepted
+    baseline         inc                       none
+    7(a)             inc?ACTED_SELF<o0>        o1.colour, that term
+
+`ACTED_SELF<o0>` is the label of `ACTED_ON<o0>` since ACTED_SELF was collapsed into it; the
+referent `o0` is the HEAD -- the remote cause.
+
+    the standard panel, 60 cycles, trace hash baseline vs 7(a)
+    buttons 0, 1, 2 · click_only 0, 1, 2 · default 0 (15 cycles, the control)   IDENTICAL, 7 of 7
+
+**So the defect decides nothing on seeds 0-2 within 60 cycles, and the fix buys no guard there --
+the 40 single-cause slots the handover named as the control did not start buying guards.** It acts
+where the separation exists only for a referent other than the slot's own object, which is seed 6.
+**Scope stated, not generalised: one seed where it acts, seven where it is inert.**
