@@ -3207,7 +3207,7 @@ class Agent:
                 # the same cost and the same remainder.
                 # FILED HERE, PRICED AT MINT (the reviewer 2026-10-07 14:39Z): a refusal is made by
                 # the mint operator (Fig 5's amendment), and the loop runs ROUTE then MINT, so
-                # route only files the slot; `_price_refusals` takes it from `_refuted_slot`.
+                # route only files the slot; `_price_refusal` takes it from `_refuted_slot`.
                 self._refuted_slot[slot] = was_refused
                 fit = self._library_fit(slot, was_refused)
                 # AND ZERO SUPPORT FALLS THROUGH TO MINT -- ruled 2026-09-22 on B5.
@@ -4940,20 +4940,20 @@ class Agent:
                                    "error in the ground, or a world that changed -- not decided"))
         return True
 
-    def _price_refusals(self, routed: list) -> None:
-        """The MINT step's first act for every slot `route` filed to REFUTED, before any slot
-        binds or mints, so each price is read on the same library (F497). Every attempt is a row,
-        so "none refused" and "none tried" read differently (the reviewer 2026-10-07 12:53Z)."""
-        for slot, b, _fit, _why in routed:
-            name = self._refuted_slot.pop(slot, None) if b == REFUTED else None
-            if name is None:
-                continue
-            ok, d = self._price_not(name, slot)
-            self.led.record(self.cycle, "MINT", slot, "not_t", term=name,
-                            verdict=("paid" if ok else "did not pay") if d
-                            else "not priced: no history, or no idn to withdraw to", **d)
-            if ok:
-                self.refuse_term(name, slot, **d)
+    def _price_refusal(self, slot: str) -> None:
+        """The MINT step's act for a slot `route` filed to REFUTED, at that slot's own turn --
+        priced on the library as its own mint would be. Priced for every filed slot up front, a
+        later slot's reuse sweep wrote ROUTE rows after this MINT row (gridworld s0 seq 1813, F499).
+        Every attempt is a row, so "none refused" and "none tried" read differently."""
+        name = self._refuted_slot.pop(slot, None)
+        if name is None:
+            return
+        ok, d = self._price_not(name, slot)
+        self.led.record(self.cycle, "MINT", slot, "not_t", term=name,
+                        verdict=("paid" if ok else "did not pay") if d
+                        else "not priced: no history, or no idn to withdraw to", **d)
+        if ok:
+            self.refuse_term(name, slot, **d)
 
     def _price_not(self, name: str, slot: str) -> tuple[bool, dict]:
         """Fig 5's amendment, the same bargain: not-t pays iff its price plus what stays unexplained
@@ -7732,9 +7732,7 @@ class Agent:
         coord = self._aimed
         res = self.perceive(action, coord, self._intent_now)
         # WHAT THAT ACTION DID TO THE AVATAR, recorded from the frames either side of it.
-        routed = self.route(res)
-        self._price_refusals(routed)
-        for slot, b, fit, _why in routed:
+        for slot, b, fit, _why in self.route(res):
             if b == REBIND and fit:
                 self.bound[slot] = fit
                 self._carry(fit)
@@ -7744,6 +7742,7 @@ class Agent:
                 self.led.record(self.cycle, "ACCEPT", slot, "rebind", term=fit,
                                 status="candidate", note="refit; the library did not change")
             elif b == REFUTED:
+                self._price_refusal(slot)
                 # a competitor where the library holds one; otherwise the gap is genuinely
                 # new and MECHANISM's answer is the right one.
                 if fit:
