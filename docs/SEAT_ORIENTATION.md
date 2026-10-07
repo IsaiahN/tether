@@ -397,6 +397,13 @@ Isaiah for what the figures already settle.
   with `&` inside a backgrounded shell); both times the wrapper reported success at once, which says
   nothing about the commit. Where it was lost, the gate is re-run on the committed tree and that
   output reported instead.
+- **A POST'S TIME IS READ, NEVER TYPED -- the reviewer, 2026-10-07 18:40Z.** Five untimed stamps
+  in one day, each corrected by hand. The title comes from `python conform/stamp.py "<headline>"`,
+  copied verbatim into the very next call (the doc is made by a tool call, so no one shell command
+  can both read the clock and create it). After posting, `python conform/stamp.py --check "<title>"
+  <createdTime>` reads the post back against Drive's own createdTime -- the clock that made the
+  doc -- and a refusal is corrected in the next post. It refuses both of the day's caught cases
+  (13:31 titled, 13:29 created; 13:37 titled, 13:36 created).
 
 ## 6. WHAT IS ON / OFF BY DEFAULT
 
