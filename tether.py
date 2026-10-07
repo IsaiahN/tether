@@ -1330,6 +1330,9 @@ class Agent:
         # never excluding). **This gives the routine path that key.** Not a second mechanism:
         # `_gap_key` is the name-free half of the gap `characterise` already returns.
         self.paths: dict[tuple, dict] = {}
+        # (gap shape, steps, guards) -> the scopes a plan of that shape was refused under. ADD-ONLY:
+        # a refusal never leaves the record (Fig 6); it stops excluding when the scope grows.
+        self._refusals: dict[tuple, list[tuple]] = {}
         self._digests: dict[str, frozenset] = {}
         self.agency = I.Agency()       # §16.8 sensor 3, a per-step read
         self.term = I.Termination()    # 2d / §20.1, latching and asymmetric
@@ -3591,6 +3594,9 @@ class Agent:
                          "rejections": round(self._rejection(k), 3),
                          "reopens_above": round(self.refuted_at[k], 4)}
                 gap = self._characterise_gap(self.routine_for)
+                rk = self._refusal_key(gap, self.routine)
+                self._refusals.setdefault(rk, []).append(self._refusal_scope())
+                extra["refused_under"] = len(self._refusals[rk])
                 if gap is not None:
                     gk = (self._gap_key(gap), self._step_ids(self.routine, self.routine_lib),
                           Rt.guards(self.routine))
@@ -4845,6 +4851,20 @@ class Agent:
                         carried=sorted(carried), not_carried=not_carried,
                         reads="refutations held at the death; carried only where identity is sure")
 
+    def _refusal_scope(self) -> tuple:
+        """What a plan is refused UNDER: the vocabulary it can be composed from."""
+        return (tuple(sorted(self.gamma.library)), tuple(sorted(self.routine_lib)))
+
+    def _refusal_key(self, gap: dict | None, r) -> tuple:
+        return (self._gap_key(gap) if gap is not None else None,
+                self._step_ids(r, self.routine_lib), Rt.guards(r))
+
+    def _refused(self, key: tuple) -> bool:
+        """Refused while the scope it was refused under still stands. Lifted only by growth -- a
+        new term or routine -- never by a clock (Fig 6; Isaiah 2026-09-29: never from disuse)."""
+        scopes = self._refusals.get(key)
+        return bool(scopes) and scopes[-1] == self._refusal_scope()
+
     def _rejection(self, key: tuple) -> float:
         """The decayed strength of rejection. `Standing.decay` on the LOGICAL clock -- cycles,
         never wall time -- which is §18.2's first defeasance route and was already built."""
@@ -5186,6 +5206,8 @@ class Agent:
         # filter readmits a shape once its strength falls under 1.0 -- and `_rejection`'s own
         # docstring, in this file, says that route *was already built*. **Two comments
         # contradicting each other about one route, and the code agrees with the other one.**
+        # **SINCE ITEM 1 (2026-10-07) THE FILTER READS `_refused`**, the shape-keyed refusal that
+        # only growth lifts (Fig 6); this pop drops the slot Standing, which is now the VOTE.
         #
         # **AND THE RATE IS STILL NOT THE AGENT'S HERE, WHICH IS THE PART WORTH THE LINE.**
         # `gamma.refute` passes `self.halflife` -- the agent's own cycles-to-vindication. BOTH
@@ -5318,8 +5340,8 @@ class Agent:
                                       shelf, loop_budget)
         # WEIGHTED AND CLOCKED, per §18.2 via `gamma.Standing`: a refutation excludes only while
         # its decaying strength stands, so a failed shape leaves the running and returns.
-        cands = [c for c in cands
-                 if self._rejection(self._reject_key(slot, c, self.routine_lib)) < 1.0]
+        _offered, _gap0 = len(cands), self._characterise_gap(slot)
+        cands = [c for c in cands if not self._refused(self._refusal_key(_gap0, c))]
         # **THE AGENT SAYS HOW MANY IT EXPECTS -- ISAIAH, 2026-09-30.** `loop_budget` is
         # `round(unsat)`, and `reach` multiplied it back out, so a routine's CLAIM WAS ITS OWN
         # SAFETY CAP: the plain loop reached exactly the residual and could at best tie, and a
@@ -5328,7 +5350,9 @@ class Agent:
         cands = [self._expected(c, unsat, before) for c in cands]
         if not cands:
             self.led.record(self.cycle, "PLAN", slot, "routine_refused",
-                            reason="every rejection still stands and nothing has surprised",
+                            reason="every plan offered was refused under this scope, "
+                                   "and the scope has not grown",
+                            offered=_offered,
                             strengths=[round(self._rejection(k), 3) for k in self.refuted
                                        if k[0] == slot])
             return
