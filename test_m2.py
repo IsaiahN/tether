@@ -1446,6 +1446,28 @@ def check_an_unreadable_reading_is_suspended_not_charged():
         f"an object whose key left the listing was not charged: {gone}")
 
 
+
+def check_a_cell_change_reading_fits_its_alphabet():
+    """DEFECT: the cell-change attributes were not declared in `ArcWorld.alphabet`, so they took the
+    palette and the agent read every centroid modulo it, and a count equal to it as 0 (F494)."""
+    was = arc_percept._CELL_CHANGE
+    arc_percept._CELL_CHANGE = True
+    try:
+        env = ArcWorld(_Two(), arc_percept.Objects(),
+                       arc_atoms.three_spaces(arc_predict.predict()), palette=PALETTE, platform=())
+        seen = 0
+        for _ in range(8):
+            env.step(env.actions()[0])
+            alpha = env.alphabet()
+            for s, v in env.observe().items():
+                if s.rsplit(".", 1)[-1] in arc_percept._CHANGE_ATTRS:
+                    seen += 1
+                    assert 0 <= v < alpha[s], f"{s}={v} aliases under an alphabet of {alpha[s]}"
+        assert seen, "fixture: no cell-change reading was published, so nothing was tested"
+    finally:
+        arc_percept._CELL_CHANGE = was
+
+
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
 
 if __name__ == "__main__":

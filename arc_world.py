@@ -568,16 +568,20 @@ class ArcWorld:
                 out[s] = 2 * h
             elif key == "dcol":
                 out[s] = 2 * w
-            elif key in ("row", "h"):
+            elif key in ("row", "h", "add_row", "rem_row"):
                 # THE DELTA FIX, EXTENDED TO WHERE IT STOPPED SHORT. The paragraph above says
                 # it for the deltas -- *a displacement ranges over the board, not the palette*
                 # -- and `row`, `col`, `h` and `w` fell through to the palette anyway. Same
                 # collision, different slot family: 64 rows under a 16-colour palette makes
                 # `row 3` and `row 19` read alike under `correction_bits`' modulo.
                 out[s] = h
-            elif key in ("col", "w"):
+            elif key in ("col", "w", "add_col", "rem_col"):
                 out[s] = w
+            elif key in ("add_n", "rem_n"):
+                out[s] = h * w + 1          # a cell count, 0 to the whole board
             else:
+                # AN UNDECLARED ATTRIBUTE INHERITS THE PALETTE, SILENTLY -- F494: the cell-change
+                # readings were read mod 8 here and a count of 8 as 0. Declare a new one above.
                 out[s] = self._palette
         return out
 

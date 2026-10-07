@@ -56697,3 +56697,15 @@ m2 29/29, gate 25/25, with the mechanism on.
 **Fixture** `check_an_unreadable_reading_is_suspended_not_charged` (toy ARC world, one `.row` slot): unreadable with the key listed -> suspended, mass 0; the key removed too -> charged as vanished. **The old code fails the first half** (vanished, 3.807 bits) **and the "suspend everything missing" mutation fails the second** -- each half catches its own wrong version.
 
 **Identity, both pre-registered:** the fake with F492's arm off -- 3,858 ledger rows, 0 differing; gridworld default seed 0, 60 cycles -- reproduces `26c21caad5fad549` with every verdict count unchanged. 21/21 seats, m2 included, on the gated tree.
+
+#### F494 -- **THE CELL-CHANGE SLOTS DECLARE THEIR ALPHABETS: F492's measurement was read modulo the palette (a defect of the seat's, in F492).**
+
+**What the void measurement showed** (the fake, 40 actions, 560eac3 + be610cb, arm on): `o0.rem_n` went 8, 0, 8, 0 and was bet "predicted 0" every cycle at mass 0.0; `o0.rem_row` was predicted 4 from 28, 0 from 32, 7 from 31 -- the values mod 8. **Cause, at the write site:** `ArcWorld.alphabet` ranges row/h by the board height, col/w by the width, drow/dcol by twice those, and gives EVERY OTHER attribute the palette. F492 did not declare its six attributes, so the agent read every centroid modulo the palette and a count equal to it as 0 -- the collision the function's own docstring records for `drow`, not read before publishing. The perception was exact (F492's treatment check); what the agent could SEE was not. **Routes (a)-(c) withdrawn as unread.** F493 did hold on the real case: 18 of 21 centroid bets suspended, 0 vanished.
+
+**The change.** `add_row`/`rem_row` take the board height and `add_col`/`rem_col` the width, as `row`/`col` do; `add_n`/`rem_n` take `h*w + 1` (0 cells to the whole board). The fall-through to the palette now says at the site that an undeclared attribute inherits it silently.
+
+**Fixture** `check_a_cell_change_reading_fits_its_alphabet` (toy ARC world, arm patched on): every published cell-change value lies in `[0, alphabet)`. **The old code fails it** (`o2.add_col=7 aliases under an alphabet of 7`, the toy's palette).
+
+**Identity:** arm off, the fake, 40 actions -- 3,858 ledger rows, 0 differing from the previous arm-off run. 21/21 seats.
+
+**THE GENUS IS WIDER AND LIVE -- recorded here, fixed as its own change (F495, the reviewer 2026-10-07 10:47Z: priority).** Twelve registered attributes fall to the palette with no stated reason: `dh dw dcells colour_changed bbox contact inside dholes dperimeter age speed stability`. `arc_holdout.wire` sets `arc_percept._SHAPE_DELTA = True`, so `dholes` and `dperimeter` -- SIGNED deltas -- are published on every ARC run and read modulo the palette. The `drow` collision a third time, on the scored path.
