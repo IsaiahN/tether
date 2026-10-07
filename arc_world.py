@@ -755,20 +755,9 @@ class ArcWorld:
         """How `obj` was re-found on the latest frame: "overlap", "unique-shape", "look-alike",
         "birth", or None when it is not tracked. F479 reads it at a restart.
 
-        A swap is possible only between twins BOTH re-found by shape in the same frame: a twin
-        re-found by overlap was claimed first, so the shape search could not hand over its
-        name. So "look-alike" is a shape match sharing its shape with another SHAPE match."""
-        tracked = getattr(self._decompose, "tracked", {}) or {}
-        matches = getattr(self._decompose, "matches", {}) or {}
-        route = matches.get(obj, (None,))[0]
-        if obj not in tracked or route is None:
-            return None
-        if route != "shape":
-            return route
-        mine = arc_percept.shape_of(tracked[obj])
-        twins = any(arc_percept.shape_of(tracked[n]) == mine
-                    for n, (r, _s) in matches.items() if n != obj and r == "shape" and n in tracked)
-        return "look-alike" if twins else "unique-shape"
+        The rule is `arc_percept.identity_of`, shared with the cell-change readings."""
+        return arc_percept.identity_of(obj, getattr(self._decompose, "matches", {}) or {},
+                                       getattr(self._decompose, "tracked", {}) or {})
 
     def locus_masks(self) -> dict[str, set]:
         """Each tracked object's cells. The mask a per-locus reading is taken through."""

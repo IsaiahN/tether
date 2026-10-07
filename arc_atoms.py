@@ -32,7 +32,7 @@ import sys
 from dataclasses import replace
 from typing import Any
 
-from arc_percept import holes_of, perimeter_of
+from arc_percept import _CELL_CHANGE, holes_of, perimeter_of
 from gamma import HANDED, SAME_AS_TARGET, Atom, Ctx
 from sensors import (
     BOOL,
@@ -173,6 +173,13 @@ ATTRIBUTE_TYPE = {"colour": COLOUR, "row": POSITION, "col": POSITION,
                   # holds or it does not; the bare word `containment` is retired -- `arc_world`
                   # publishes BBOX overlap as `bbox` and refuses bbox containment separately.
                   "inside": BOOL}
+# WHERE A MATCHED OBJECT'S CELLS CHANGED -- arm `TETHER_CELL_CHANGE`, default OFF (`arc_percept`).
+# The counts are EXTENT (no COUNT in the set, `contact`'s reason); the centroids are POSITION, so
+# they compose where `row`/`col` already do. REGISTERED ONLY UNDER THE ARM: every key here becomes
+# an atom, so an unconditional entry would change every term's price with the arm off.
+if _CELL_CHANGE:
+    ATTRIBUTE_TYPE.update({"add_n": EXTENT, "rem_n": EXTENT, "add_row": POSITION,
+                           "add_col": POSITION, "rem_row": POSITION, "rem_col": POSITION})
 
 
 # THE ADMITTING CLAUSE, PER ATOM, RECORDED WHERE THE ATOM IS DECLARED.
@@ -308,6 +315,7 @@ CLAUSE_ONE = frozenset({
     "completed", "colour_changed", "contact", "touching",
     # the deltas -- what CHANGED. Without them there is no residual to price.
     "drow", "dcol", "dh", "dw", "dcells", "dholes", "dperimeter",
+    "add_n", "rem_n", "add_row", "add_col", "rem_row", "rem_col",
     # the object record, and the relations over peers
     "owner", "above", "same", "other",
     # the quantifiers. §12.4 notes the set held ∀, ∃ and ¬∃ before any connective did.
