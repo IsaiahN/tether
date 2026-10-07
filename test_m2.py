@@ -1795,6 +1795,32 @@ def check_a_persisting_refusal_is_filed():
         ag.history, ag._left = real_hist, real_left
 
 
+
+def check_a_sweep_skips_a_slot_past_its_turn():
+    """F500, one chain per slot per cycle (Fig 5; the reviewer 2026-10-07 16:12Z): a term minted
+    this cycle is offered only to slots whose loop turn is still ahead; a slot past its turn
+    meets it through its own route next cycle, so the sweep writes nothing on it now."""
+    ag = _agent()
+    pair = [s for s in sorted(ag.slots) if ag.history(s)][:2]
+    assert len(pair) == 2, "fixture: two slots with history"
+    ahead, done = pair
+    term = ag.gamma.library[_minted(ag, 1)]
+    ag.owed_import = {ahead, done}
+    ag.abstained = {}
+    ag.parked = {}
+    ag._turn_ahead = {ahead}
+    n0 = len(ag.led.entries)
+    k0 = ag.chain.reuse_branch["deferred:turn-done"]
+    try:
+        ag.sweep(term, "@origin")
+    finally:
+        ag._turn_ahead = None
+    hit = {e.slot for e in ag.led.entries[n0:]
+           if e.event in ("reuse_refused", "reuse_install", "pull")}
+    assert ahead in hit, "fixture: the slot still ahead was not offered the term"
+    assert done not in hit, "a slot past its turn was swept: a second chain in one cycle"
+    assert ag.chain.reuse_branch["deferred:turn-done"] == k0 + 1, "the deferral was not counted"
+
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
 
 if __name__ == "__main__":

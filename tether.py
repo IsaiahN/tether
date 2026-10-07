@@ -1058,6 +1058,8 @@ class Agent:
         self._cue_tag_cache: tuple = (-1, {})
         self._contact_seen: set = set()
         self._refuted_slot: dict = {}
+        # the slots whose loop turn is still ahead this cycle (F500); None outside the loop
+        self._turn_ahead: set | None = None
         self._contact_pick = None
         self._s0_target: str | None = None
         self.alphabet = self._alphabets(env)
@@ -7097,6 +7099,13 @@ class Agent:
                    for s in sorted(self.owed_import - {origin_slot})]
         targets += [(k, r["slot"], r["hist"], r, r["slots"])
                     for k, r in sorted(self.parked.items())]
+        if self._turn_ahead is not None:
+            # a slot of this level already past its turn is not offered the term now (F500);
+            # a parked record from an earlier level has no turn here and is still swept
+            keep = [t for t in targets if t[1] not in self.slots or t[1] in self._turn_ahead]
+            if len(keep) < len(targets):
+                self.chain.reuse_branch["deferred:turn-done"] += len(targets) - len(keep)
+            targets = keep
 
         def stale(rec: dict) -> bool:
             """`depth_exhausted` is not permanent. It means 'the whole space AT THIS UNIT
@@ -7753,7 +7762,12 @@ class Agent:
         coord = self._aimed
         res = self.perceive(action, coord, self._intent_now)
         # WHAT THAT ACTION DID TO THE AVATAR, recorded from the frames either side of it.
-        for slot, b, fit, _why in self.route(res):
+        routed = self.route(res)
+        # ONE CHAIN PER SLOT PER CYCLE (Fig 5; the reviewer 2026-10-07 16:12Z, F500): a term
+        # minted this cycle is swept only into slots whose own turn is still to come; a slot
+        # already past its turn meets it through its own route next cycle.
+        self._turn_ahead = {s for s, b, *_ in routed if b in (REBIND, REFUTED, MECHANISM)}
+        for slot, b, fit, _why in routed:
             if b == REBIND and fit:
                 self.bound[slot] = fit
                 self._carry(fit)
@@ -7782,6 +7796,8 @@ class Agent:
                     self.mint(slot)
             elif b == MECHANISM:
                 self.mint(slot)
+            self._turn_ahead.discard(slot)
+        self._turn_ahead = None
         if by == "probe":
             # ONE ROW PER SLOT THAT ASKED FOR IT, and `@probe` only when the trigger was
             # the global reading rather than any particular slot. It used to be `@probe`

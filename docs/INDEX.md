@@ -56829,3 +56829,19 @@ Refusals were priced on every seed; **none paid** (s0 172, s1 143, s2 117 attemp
 **Rebuilt on F499 (0f9737f) and re-measured (hash, binds against arm off, gate check 11, every ladder break counted):** s0 26c21caad5fad549, binds 78/78, 0 stale, 1 ladder break (PLAN after SETTLE); s1 3c14e9118fd2bf45, 23/23, 0 stale, 1 (MINT after ACCEPT); s2 a4c7c8e19c944e6d, 41/41, 0 stale, 3 (2 MINT after ACCEPT, 1 sweep ROUTE after MINT) -- **each seed's breaks are exactly the arm-off baseline's**, read in the item 3 census. The fake: 15 filed, all "did not pay", 0 differing rows from 2a43566, gate PASS. **Found by the seats on the rebuilt stack, not by the fixtures run alone: F496's not_t fixture routed a refused term it had never bound; under the still-bound rule the slot is correctly not filed. The fixture now binds it first (m2 46/46).**
 
 **Seats:** 21/21 on this tree.
+
+#### F500 -- **ONE CHAIN PER SLOT PER CYCLE: A TERM MINTED THIS CYCLE IS SWEPT ONLY INTO SLOTS WHOSE LOOP TURN IS STILL AHEAD (Fig 5; item 3, break 1 of the pre-existing gridworld ladder breaks).**
+
+**The break, read (the reviewer 2026-10-07 16:07Z asked for causes before change).** Gridworld was never gate-clean, even with arm J off; the gate seat judges the demo ledger only (F498). The MINT-after-ACCEPT and ROUTE-after-MINT breaks are one cause: after a slot mints, `sweep()` offers the new term to every other owed or parked slot and writes on each (`reuse_refused`, or `pull`/`reuse_install`) -- a SECOND chain on a slot whose own turn in the step loop had already run that cycle.
+
+**Ruled reading (i), order, not (ii), a recording key (the reviewer 16:12Z; keying X's evaluation to the origin's chain would be a relabel).** Every slot's route runs before the step loop, so "chain not yet run" means "its MINT/ACCEPT turn in the loop is still ahead"; a slot routed HELD or NOVEL has no turn and counts as finished. `step()` holds `_turn_ahead` (slots routed REBIND, REFUTED or MECHANISM, each dropped as its turn completes; None outside the loop); `sweep()` does not offer a term now to a slot of this level outside it -- that slot meets the term through its own route next cycle -- and keeps sweeping parked records from earlier levels, which have no turn here (the docstring's "the only place the sweep is irreplaceable"). Each deferral is counted (`reuse_branch["deferred:turn-done"]`).
+
+**Measured before the change (arm off, every sweep row by the target's loop turn):** installs only ever landed on slots routed REBIND or MECHANISM with their turn ahead, except ONE (s2, seq 5961-5962, after o2.proximity had parked); the sweep never offers to a HELD or NOVEL slot; after-turn refusals s0 39, s1 38, s2 66.
+
+**Fixture** `check_a_sweep_skips_a_slot_past_its_turn`: a slot ahead is swept, a slot done is not, the deferral is counted; with the rule disabled it fails "a slot past its turn was swept: a second chain in one cycle".
+
+**Pre-registered (approved 16:21Z) and measured against F498 (6a20695):** the fake 3,858 rows, 0 differing, 4/4 binds, gate PASS; s0 identical hash 26c21caad5fad549 and 78/78 binds, the ONLY ledger change 39 fewer `reuse_refused` rows; s1 identical hash 3c14e9118fd2bf45 and 23/23 binds, the ONLY ledger change 38 fewer `reuse_refused` rows; s2 the one predicted change -- hash 7e2c3178007fa772, actions identical on all 60 cycles, one bind added: at cycle 37 the swept install no longer lands on o2.proximity after its turn, so at cycle 38 its own refuted route's competitor search binds `same . all<dbl(o1.row)>` (a different paying term, the swept one never having been installed) -- one extra mispredicted cycle, the order made real.
+
+**Ladder breaks after this change:** s0 1 (PLAN after SETTLE -- break 2, next), s1 0 (1 before), s2 0 (3 before). **s1 and s2 pass the FULL gate -- the first gridworld ledgers ever to; s0's remaining break is break 2's.**
+
+**Seats:** 21/21 on this tree.
