@@ -182,7 +182,10 @@ ARMS: dict[str, str] = {
     "TETHER_OBSERVER": "the corpus's cheap mutation set carried PER OBJECT, not counted",
     "TETHER_REBIND_HELD": "rebinding a slot whose term is already held",
     "TETHER_RECIPE_DEDUP": "one candidate per recipe rather than per instance",
-    "TETHER_REFUTED_BIN": "refutations binned rather than flat",
+    "TETHER_REFUTED_BIN": "the fifth bin (Fig 5): a refuted slot routes to a same-type competitor "
+                          "and not-t is priced there (F496). Off pending its own pre-registered "
+                          "default-on commit; at 2a43566 the only seat it failed was one M2 "
+                          "fixture guard, caused by F485's frontier, now fixed",
     "TETHER_REL_GAP": "the relational gap reading",
     "TETHER_SHAPE_DECODE": "arm I -- `_as_shape`, the decoder eight SHAPE atoms need",
     "TETHER_SHAPE_DELTA": "`dholes`/`dperimeter` across frames. PERCEPTION: no atom accepts "

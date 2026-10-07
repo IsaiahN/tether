@@ -341,11 +341,12 @@ HELD, NOVEL, REBIND, MECHANISM = "held", "novel", "rebinding", "mechanism"
 REFUTED = "refuted"
 
 # ARM J -- SEAT-SIDE SWITCH, DEFAULT OFF. The bin is a RULING and the plumbing is built ON;
-# the DIVERSION it causes is a policy change to the acting path and is not. With it live, two
-# conform seats fail -- `shipped`'s B5 (support at zero and no probe followed) and three M2
-# checks -- because slots that reached `mint` now reach a competitor instead. That is a
-# READING of what the bin does, not a reason to edit the checks: *reintroduce the defect,
-# never disable the check.*
+# the DIVERSION it causes is a policy change to the acting path and is not. RE-READ 2026-10-07
+# at 2a43566: with it live, `shipped` (B5) PASSES and ONE M2 check failed -- on its fixture guard,
+# because F485's frontier let the warmed mints replay rather than re-price -- not because of the
+# bin or an amended figure; the fixture now prices fresh. (The earlier reading here -- B5 and three
+# M2 checks failing -- predated F485 and is superseded.) *Reintroduce the defect, never disable
+# the check.*
 _REFUTED_BIN = bool(os.environ.get("TETHER_REFUTED_BIN"))
 
 # THE PRICE OF NOT-t IS OPEN IN THE FIGURES (Fig 12/13: an atom slot, nothing, or the choice of what

@@ -713,8 +713,17 @@ def check_the_tree_is_judged_by_its_own_bound():
 
 def _withheld_trees_could_not_pay(withhold: bool = False) -> int:
     """Mint every slot of a warmed agent, recording each refused term and each tree request;
-    assert (i) and (ii) above. `withhold` plants the violation: no trees offered at all."""
+    assert (i) and (ii) above. `withhold` plants the violation: no trees offered at all.
+
+    **THE FRONTIER IS CLEARED FIRST -- approved by the reviewer, 2026-10-07 12:15Z.** F485's
+    frontier lets a mint REPLAY chains the warm-up already priced; under arm J the warm-up priced
+    every chain these mints need, so nothing was re-priced and there was nothing to observe. Three
+    reasons this is setup and not a weakened check: (1) the assertion -- no tree that could pay is
+    withheld -- is untouched; (2) it is non-vacuous under both arms: the planted violation fires
+    with arm J on and off; (3) what it steps around is the frontier's SKIP, whose exactness is
+    guarded separately (F485), so a fresh enumeration loses nothing the frontier could hide."""
     ag = _agent()
+    ag._frontiers = {}
     units = tuple(ag.gamma.units())
     refused, asked = [], set()
     real_cp, real_trees = ag._cannot_pay, ag._trees
