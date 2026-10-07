@@ -1040,9 +1040,8 @@ def check_the_accumulation_commits_where_the_bargain_refused():
     # a want this agent has wanted before -- the LEAN's own input
     ag.wants[slot] = "w"
     ag._want_seen["w"] = 6
-    cand = Rt.Until(slot, Rt.Act(ag.actions[1]), 3)
-    # cost far above base, so `pays` is FALSE and only the accumulation can carry it
-    acc = ag._accumulate(slot, cand, cost=9.0, left=0.0, base=6.0, gkey=None)
+    # reached only after `pays` refused; since item 6 the bargain's inputs do not enter it
+    acc = ag._accumulate(slot, gkey=None)
     assert acc["vector"]["lean"] > 0, "recurrence contributed nothing"
     assert acc["total"] >= acc["threshold"], (
         f"a six-times-recurring want did not cross: {acc}")
@@ -1066,16 +1065,40 @@ def check_the_accumulation_commits_where_the_bargain_refused():
     # verdict turns on the price and on nothing else, which is what this check is named for.
     ag2.wants[slot2] = "cold"
     ag2._want_seen["cold"] = 0
-    cold = ag2._accumulate(slot2, cand, cost=99.0, left=99.0, base=1.0, gkey=None)
+    cold = ag2._accumulate(slot2, gkey=None)
     assert cold["vector"]["lean"] == 0, (
         f"the cold case is not isolated -- recurrence leaked in: {cold['vector']}")
     assert not cold["commits"], f"a hopeless plan with no history committed: {cold}"
 
     # AND THE CLOCK MOVES THE BAR, WHICH IS THE "ALWAYS PAYING" RULING
     ag2.cycle += 40
-    warm = ag2._accumulate(slot2, cand, cost=99.0, left=99.0, base=1.0, gkey=None)
+    warm = ag2._accumulate(slot2, gkey=None)
     assert warm["threshold"] < cold["threshold"], (
         "forty idle cycles did not lower the bar -- refusing is still free")
+
+
+def check_the_commitment_bar_is_the_agents_own():
+    """DEFECT: the height an override must reach was `MIN_REPEAT` and a relief rate of 8 -- seat
+    constants deciding commitment, where Isaiah ruled that *your current standing ... history*
+    sets it (2026-09-25, relayed verbatim). The bar is now read from how the agent's own
+    overrides ended: both ways, fading at its halflife, a ratio -- never a ratchet."""
+    from self_family import MIN_REPEAT
+    ag = _agent()
+    ag._last_commit = ag.cycle                    # idle 0, so relief cannot mask the bar
+    ag._overrides = []
+    assert ag._commit_bar() == (float(MIN_REPEAT), False), "no history did not read the seed"
+    assert ag._accumulate(_wide(ag), gkey=None)["bar_is"] == "SEED", "the seed was not marked"
+    hi, lo = MIN_REPEAT + 1.0, MIN_REPEAT - 0.25
+    ag._overrides = [(hi, False, ag.cycle)]
+    bar, earned = ag._commit_bar()
+    assert earned and bar > hi, "a failure at a total did not lift the bar above it"
+    assert ag._accumulate(_wide(ag), gkey=None)["bar"] > hi, "the row hides the bar above it"
+    ag._overrides = [(lo, True, ag.cycle), (lo + 0.1, True, ag.cycle)]
+    assert ag._commit_bar()[0] == lo, "successes did not let the bar fall to what worked"
+    ag._overrides = [(hi, False, ag.cycle - 10), (lo, True, ag.cycle)]
+    assert ag._commit_bar()[0] < hi, "one old failure held the bar up against fresh success"
+    ag._commit_cycles = [0, 4, 8]
+    assert ag._relief_rate() == (4.0, True), "the relief rate is not the agent's own interval"
 
 
 def check_the_fresh_read_qualifies_a_want_that_has_failed():
@@ -1096,13 +1119,12 @@ def check_the_fresh_read_qualifies_a_want_that_has_failed():
     slot = _wide(ag)
     ag.wants[slot] = "w"
     ag._want_seen["w"] = 6
-    cand = Rt.Until(slot, Rt.Act(ag.actions[1]), 3)
     sig = ("shape-under-test",)
 
-    clean = ag._accumulate(slot, cand, cost=9.0, left=0.0, base=6.0, gkey=sig)
+    clean = ag._accumulate(slot, gkey=sig)
     # three episodes under this shape, all of which ended without acting
     ag._episodes[sig] = [((ag.actions[1],), "done", "tested_no")] * 3
-    burnt = ag._accumulate(slot, cand, cost=9.0, left=0.0, base=6.0, gkey=sig)
+    burnt = ag._accumulate(slot, gkey=sig)
 
     assert burnt["vector"]["episodes"] < 0, "failed episodes did not vote against"
     assert burnt["vector"]["lean"] < clean["vector"]["lean"], (
@@ -1111,7 +1133,7 @@ def check_the_fresh_read_qualifies_a_want_that_has_failed():
 
     # AND FAVOURABLE HISTORY MUST WEIGH THE OTHER WAY, or this is a damper and not a qualifier
     ag._episodes[sig] = [((ag.actions[1],), "done", "tested_yes")] * 3
-    proven = ag._accumulate(slot, cand, cost=9.0, left=0.0, base=6.0, gkey=sig)
+    proven = ag._accumulate(slot, gkey=sig)
     assert proven["total"] > clean["total"], "a shape that has worked three times weighed nothing"
 
 

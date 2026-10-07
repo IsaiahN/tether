@@ -29,7 +29,17 @@ import instruments as I
 import interface as IFace
 import retrieval
 import routine as Rt
-from gamma import ACTED_ON, ACTED_SELF, IMPORTED, Ctx, Gamma, Standing, Term, accepts_type
+from gamma import (
+    ACTED_ON,
+    ACTED_SELF,
+    IMPORTED,
+    REJECTION_HALFLIFE,
+    Ctx,
+    Gamma,
+    Standing,
+    Term,
+    accepts_type,
+)
 from gamma import SAME_AS_TARGET as G_SAME
 from ledger import (
     ADVANCE,
@@ -482,7 +492,9 @@ _IDLE_RELIEF = 8.0
 # never a whole one, so a commitment always needs a second voice carrying at least the other
 # half. The 0.5 is not a dial -- it is the midpoint of the only interval the two constraints
 # leave open, and moving it to 1.0 reopens the defect while moving it to 0.0 disables relief.
-_QUORUM_FLOOR = float(MIN_REPEAT) - 0.5
+# Since item 6 the BAR is the agent's own (`_commit_bar`), and the floor sits this half-vote under
+# it, for the same reason.
+_QUORUM_HALF = 0.5
 
 # anchor: TWO, and it is the definition of a quorum rather than a calibration. One agreeing
 # contributor is a report; two is the smallest number that can DISAGREE and did not. Raising
@@ -1262,6 +1274,11 @@ class Agent:
         # never committed is already under time pressure at cycle 0, which is correct: it has
         # spent its whole life not acting.
         self._last_commit = 0
+        # ADD-ONLY: (total committed at, ended tested_yes, cycle it ended) per OVERRIDE; and the
+        # cycle of every commitment. The commitment bar and the relief rate are read from these.
+        self._overrides: list[tuple[float, bool, int]] = []
+        self._override_open: float | None = None
+        self._commit_cycles: list[int] = []
         # **THE EPISODE RECORD -- ISAIAH'S FOUR QUESTIONS, 2026-09-25.** *"Given the current
         # scenario or state of the board, HAS THIS BEEN EXPERIENCED IN A PREVIOUSLY RECORDED
         # PATTERN, WHAT ACTIONS DID I TAKE, WHAT OUTCOMES OCCURRED, WERE THEY FAVORABLE."*
@@ -3551,6 +3568,10 @@ class Agent:
             # HERE because this is the only site where all four answers exist at once: the
             # signature was taken at mint, the actions are the routine's, the ending is `why`,
             # and the verdict is the emission count. Split them and the record cannot be made.
+            if self._override_open is not None and _verdict:
+                self._overrides.append((self._override_open, _verdict == "tested_yes",
+                                        self.cycle))
+            self._override_open = None
             if self.routine_for and self._plan_sig is not None:
                 self._episodes.setdefault(self._plan_sig, []).append(
                     (self._step_ids(self.routine, self.routine_lib), why,
@@ -4970,8 +4991,7 @@ class Agent:
         # pathogen mimicry this docstring is about, introduced by the fix for it.
         return (slot, Agent._step_ids(r, lib), Rt.guards(r))
 
-    def _accumulate(self, slot: str, cand, cost: float, left: float,
-                    base: float, gkey: tuple | None) -> dict:
+    def _accumulate(self, slot: str, gkey: tuple | None) -> dict:
         """MANY WEAK CONTRIBUTIONS -> ONE VECTOR, AND A THRESHOLD THAT CONVERTS IT INTO A
         COMMITMENT. Isaiah, 2026-09-25, superseding the three-mode rulebook.
 
@@ -4988,14 +5008,14 @@ class Agent:
 
         NO CONTRIBUTOR IS NEW. Every one is a quantity the agent already had and read alone:
 
-            shortfall   how close the bargain came. `pays` is a CLIFF; this is the slope
-                        under it, and it is the bargain CONTRIBUTING rather than GATING
             lean        recurrence of this want. Isaiah's *deterministic intuition* --
                         the gradient of past patterns, read off instead of recomputed
-            plant       failures of THIS GAP SHAPE, negatively and persistently. The
-                        blocked direction stops growing
-            refuted     this exact plan's standing, negatively
             improving   the goal residual's own trend
+            episodes    how plans of this shape ended on this gap shape
+
+        All on the ACTIONS side (item 6, 2026-10-07): `shortfall` (bits, always 0 here), `plant`
+        and `refuted` (a failed plan is item 1's refusal) are gone. Their weights are an implicit
+        1:1 -- OPEN, recorded, not chosen.
 
         **AND THE THRESHOLD FALLS WITH THE CLOCK, WHICH IS THE "ALWAYS PAYING" RULING IN
         MECHANISM FORM.** *"The agent is always paying with its time and life force... there
@@ -5007,20 +5027,13 @@ class Agent:
         lean that goes wrong is a finding rather than a mystery.
         """
         v: dict[str, float] = {}
-        # THE BARGAIN, AS A CONTRIBUTOR. Its cliff is `cost + left < base`; the slope is how
-        # near it came. Clamped at 0 so a wildly unaffordable plan contributes nothing rather
-        # than voting against -- that job is the plant's, on evidence.
-        v["shortfall"] = max(0.0, 1.0 - (cost + left) / base) if base > 0 else 0.0
+        # NO BARGAIN TERM, SINCE ITEM 6. This is reached only after `pays` refused, where the slope
+        # `1 - (cost + left)/base` is always <= 0 -- it was 0.0 on 70 of 70 vectors measured. The
+        # bits reading is the bargain's own verdict, held apart on its row (Fig 12).
         # THE LEAN. `_want_seen` counts attempts that wanted this composition; one sighting is
         # not a pattern, so the first is worth nothing and the gradient starts at the second.
         _w = self.wants.get(slot)
         v["lean"] = max(0, self._want_seen.get(_w, 0) - 1) / MIN_REPEAT if _w else 0.0
-        # THE PLANT, NEGATIVE AND PERSISTENT. Keyed on the GAP SHAPE, so it crosses boundaries
-        # and speaks about a KIND of situation rather than about `o1.dcol`.
-        _f = (self.paths.get((gkey, self._step_ids(cand, self.routine_lib),
-                              Rt.guards(cand)), {}).get("failed", 0) if gkey else 0)
-        v["plant"] = -float(_f)
-        v["refuted"] = -self._rejection(self._reject_key(slot, cand, self.routine_lib))
         # THE TREND. Improving is evidence for acting; flat and rising are not.
         _ser = self._res.get(slot) or []
         v["improving"] = 1.0 if len(_ser) > 1 and _ser[-1] < _ser[0] else 0.0
@@ -5044,32 +5057,63 @@ class Agent:
         v["episodes"] = float(_good - _bad)
         if _eps and _bad > _good:
             # QUALIFIED DOWN: this shape has cost more than it paid. The lean is what is
-            # damped, never the bargain -- `shortfall` is a price and prices are not opinions.
+            # damped, never the bargain -- a price is not an opinion.
             v["lean"] = v["lean"] / (1.0 + _bad - _good)
         total = sum(v.values())
 
         # STANDING SETS THE HEIGHT. `MIN_REPEAT` is the agent's own bar for "confidently".
         # **THE ONLY TERM THAT MOVES IS THE CLOCK SINCE THE LAST COMMITMENT.**
         #
-        # THE FLOOR WAS 1.0 AND IT IS NOW `_QUORUM_FLOOR` -- reviewer's ruling, 2026-09-26,
+        # THE FLOOR WAS 1.0 AND IT IS NOW HALF A VOTE UNDER THE BAR -- reviewer, 2026-09-26,
         # on a defect I reported against my own build: *a quorum reachable by one bee is not
         # a quorum.* At 1.0 a single contributor at unit strength cleared the bar alone, and
         # the one commitment the accumulator ever made was carried by `improving` by itself.
+        # **AND SINCE ITEM 6 (2026-10-07) THE HEIGHT IS THE AGENT'S OWN** -- Isaiah, 2026-09-25,
+        # relayed verbatim: *your current standing (resources, energy, ability, restrictions,
+        # history)* sets it. The bar is read from how its own overrides ended; the relief rate
+        # from its own intervals between commitments. Each is a SEED, marked, until it has one.
         idle = self.cycle - self._last_commit
-        threshold = max(_QUORUM_FLOOR, float(MIN_REPEAT) - idle / _IDLE_RELIEF)
+        bar, bar_earned = self._commit_bar()
+        rate, rate_earned = self._relief_rate()
+        threshold = max(bar - _QUORUM_HALF, bar - idle / rate)
 
         # AND THE HEIGHT ALONE CANNOT EXPRESS A QUORUM, WHICH IS WHY BOTH HALVES ARE HERE.
         # A floor is a sum, and one contributor at 2.0 clears any sum a quorum would set. The
         # honeybee rule is about HOW MANY AGREE, not how loudly one does -- so the count is
         # checked directly instead of being approximated by a number.
         #
-        # POSITIVE ONLY. `plant` and `refuted` go negative, and a contribution arguing AGAINST
-        # is not a vote for; counting it would let two objections constitute a quorum.
+        # POSITIVE ONLY. `episodes` can go negative, and a contribution arguing AGAINST is not a
+        # vote for; counting it would let two objections constitute a quorum.
         voters = sum(1 for x in v.values() if x > 0)
         return {"vector": {k: round(x, 4) for k, x in v.items()},
                 "total": round(total, 4), "threshold": round(threshold, 4),
+                # UNROUNDED: a bar just above a failed total must read as above it on the row.
+                "bar": bar, "bar_is": "earned" if bar_earned else "SEED",
+                "relief_rate": round(rate, 4), "rate_is": "earned" if rate_earned else "SEED",
                 "idle": idle, "voters": voters,
                 "commits": total >= threshold and voters >= _QUORUM_VOTERS}
+
+    def _commit_bar(self) -> tuple[float, bool]:
+        """The height an override must reach, from how the agent's own overrides ended: the lowest
+        level at which recency-weighted successes outnumber failures among outcomes at or above
+        it. Moves both ways, fades at the agent's halflife, a ratio -- never a max (a ratchet)."""
+        if not self._overrides:
+            return float(MIN_REPEAT), False
+        h = self.gamma.halflife or REJECTION_HALFLIFE
+        ws = [(t, ok, 0.5 ** ((self.cycle - c) / h)) for t, ok, c in self._overrides]
+        for lv in sorted({float(MIN_REPEAT), *(t for t, _ok, _w in ws)}):
+            won = sum(w for t, ok, w in ws if ok and t >= lv)
+            lost = sum(w for t, ok, w in ws if not ok and t >= lv)
+            if won > lost:
+                return lv, True
+        return math.nextafter(max(t for t, _ok, _w in ws), math.inf), True
+
+    def _relief_rate(self) -> tuple[float, bool]:
+        """Idle cycles per unit of relief: the agent's own mean interval between commitments."""
+        cs = self._commit_cycles
+        if len(cs) < 2:
+            return _IDLE_RELIEF, False
+        return max(1.0, (cs[-1] - cs[0]) / (len(cs) - 1)), True
 
     @staticmethod
     def _gap_key(gap: dict) -> tuple:
@@ -5427,13 +5471,13 @@ class Agent:
                             considered=len(priced), live=len(_live))
             return
         cost, left, cand = ok[0]
+        _ov = None
         if not pays(cost, left, base):
             # **THE BARGAIN KEEPS ITS PRICE AND LOSES ITS MONOPOLY -- ISAIAH, 2026-09-25.**
             # `pays` still says whether a plan is worth BANKING. It stops being the only route
             # from wanting to doing, because *the agent is always paying with its time* and a
             # refusal that costs nothing lets an agent draft forever and look optimal.
-            _acc = (self._accumulate(slot, cand, cost, left, base,
-                                     self._gap_key(gap) if gap is not None else None)
+            _acc = (self._accumulate(slot, self._gap_key(gap) if gap is not None else None)
                     if self.cfg.accumulate else {"commits": False})
             self.led.record(self.cycle, "PLAN", slot, "routine_cut",
                             reason="does-not-pay", routine=Rt.render(cand),
@@ -5448,6 +5492,7 @@ class Agent:
             # with every contribution named -- a lean that goes wrong must be a finding and
             # not a mystery.
             _book_add(self.gamma.book, "committed_on_accumulation")
+            _ov = _acc["total"]
             self.led.record(self.cycle, "PLAN", slot, "committed_on_accumulation",
                             reason="the bargain refused and the accumulation crossed anyway",
                             routine=Rt.render(cand), **_acc)
@@ -5459,6 +5504,8 @@ class Agent:
         self.routine, self.routine_for = Rt.Expect(slot, cand), slot
         self._routine_acts = 0                 # this plan's own tally, not the last one's
         self._last_commit = self.cycle         # the clock the threshold reads restarts here
+        self._commit_cycles.append(self.cycle)
+        self._override_open = _ov              # an override's outcome is recorded at its end
         self._routine_adopted = self.routine   # what to shelve; `advance` will erode it
         self._plan_sig = self._gap_key(gap) if gap is not None else None
         self.led.record(self.cycle, "PLAN", slot, "routine", verdict="pays",
