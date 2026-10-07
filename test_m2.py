@@ -1674,9 +1674,23 @@ def check_not_t_pays_only_when_t_does_worse_than_nothing():
     try:
         ag._refuted_slot[slot] = name
         n0 = len(ag.led.entries)
-        ag.route({slot: tether.SlotResidual(slot, tether.TRANSITION, 0, 1, 1.0)})
+        routed = ag.route({slot: tether.SlotResidual(slot, tether.TRANSITION, 0, 1, 1.0)})
+        # ROUTE FILES, MINT PRICES (F497): route alone writes no refusal row, so the ladder holds
+        assert not [e for e in ag.led.entries[n0:] if e.event in ("not_t", "refuse")], (
+            "route priced the refusal: a mint written during routing")
+        ag._price_refusals(routed)
         rows = [e for e in ag.led.entries[n0:] if e.event == "refuse" and e.slot == slot]
         assert rows and rows[0].detail.get("predicting") == 2, "the filled bin did not refuse"
+        tried = [e for e in ag.led.entries[n0:] if e.event == "not_t" and e.slot == slot]
+        assert tried and tried[0].detail.get("verdict") == "paid", "the attempt wrote no row"
+        left.update(t=1.0, nothing=50.0)
+        ag._refuted_slot[slot] = name
+        n1 = len(ag.led.entries)
+        res = {slot: tether.SlotResidual(slot, tether.TRANSITION, 0, 1, 1.0)}
+        ag._price_refusals(ag.route(res))
+        tried = [e for e in ag.led.entries[n1:] if e.event == "not_t" and e.slot == slot]
+        assert tried and tried[0].detail.get("verdict") == "did not pay", (
+            "an attempt that did not pay wrote no row: 'none refused' reads as 'none tried'")
         assert ag._term_refused(name, ag._term_gkey(slot)), "the refusal was not recorded"
     finally:
         tether._REFUTED_BIN = was
@@ -1701,6 +1715,34 @@ def check_a_bound_want_can_be_refused():
     assert ok, f"a want doing worse than nothing was not refusable: {d}"
     assert ag.refuse_term(want, goal, **d) and ag._term_refused(want, ag._term_gkey(goal)), (
         "a bound want could not be refused by the ordinary path")
+
+
+
+def check_a_competitor_discharges_the_slot():
+    """DEFECT: the REFUTED bin's competitor bind left the slot OWED and its abstention on record,
+    where a REBIND of the same term clears both -- the same act by the figures (F497)."""
+    ag = _agent()
+    slot = _wide(ag)
+    name = _minted(ag, 1)
+    kind = getattr(ag.gamma.library[name], "out_type", None)
+    rival = next(n for n, t in sorted(ag.gamma.library.items())
+                 if n != name and getattr(t, "out_type", None) == kind)
+    ag.owed_import.add(slot)
+    ag.abstained[slot] = {"fixture": True}
+    # `route` decides and `step` applies; the bind under test is the application, so the
+    # decision is handed in and the step's own loop does the binding.
+    ag.route = lambda _res: [(slot, tether.REFUTED, rival, "fixture")]
+    was = tether._REFUTED_BIN
+    tether._REFUTED_BIN = True
+    try:
+        n0 = len(ag.led.entries)
+        ag.step()
+        assert any(e.event == "compete" and e.slot == slot for e in ag.led.entries[n0:]), (
+            "fixture: no competitor bound")
+        assert slot not in ag.owed_import, "a competitor bind left the slot owed"
+        assert slot not in ag.abstained, "a competitor bind left the slot's abstention on record"
+    finally:
+        tether._REFUTED_BIN = was
 
 
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]

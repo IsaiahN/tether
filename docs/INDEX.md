@@ -56739,3 +56739,57 @@ m2 29/29, gate 25/25, with the mechanism on.
 **Identity (nothing refused on the default path; arm J off):** the fake, 40 actions -- 3,858 ledger rows, 0 differing from 6393ed5; gridworld default seed 0, 60 cycles -- reproduces `26c21caad5fad549` with every verdict count unchanged. 21/21 seats, m2 and all seven checks included.
 
 **Queued:** arm J default-on as its own pre-registered commit, starting from the B5 and M2 failures recorded at the arm.
+
+#### F497 -- **ARM J DEFAULT ON: THE REFUTED BIN ROUTES, WITH FOUR REPAIRS -- THREE FOUND BY THE PANEL, ONE BY THE SEATS (Fig 5's fifth kind; plan item 4's routing half).**
+
+**The flip.** `_REFUTED_BIN = not os.environ.get("TETHER_NO_REFUTED_BIN")`; the arms row is renamed and its polarity inverted. Every refusal attempt at the bin writes a `not_t` row (F496's price), so "none refused" and "none tried" read differently.
+
+**Repair (a) -- precedence, the reviewer 2026-10-07 13:06Z.** The bin is consulted only while the slot still carries residual (`r.mass > 0.0`). Fig 5 routes a residual by what it contains NOW; a refutation filed last cycle on a term that has just predicted correctly is a recording of one occasion (Fig 4) and stays tally evidence only.
+
+**Repair (b) -- one act, one bookkeeping.** A competitor bind is a rebind (the reviewer, the competitor-bookkeeping ruling): it now discharges `owed_import` and `abstained` as the rebind does. Found on seed 0: a slot bound by its competitor stayed owed, which changed later routing. Fixture `check_a_competitor_discharges_the_slot` (without the discharge: "a competitor bind left the slot owed").
+
+**Repair (c) -- one act, one TYPE RULE: the slot's. The reviewer 2026-10-07 13:57Z, superseding its own 2026-09-22 ruling (375ce42).** The 09-22 rule matched the competitor to the REFUSED TERM's out type; the rebind path checks the term against the SLOT (`_may_bind`, inside `_library_fit`). Read on seed 0, cycle 14, o3.distance (an EXTENT slot): the refused term `take<o2.proximity>` is `val`; the library term `same . all<o5.distance>` is `OBJ` and pays (cost 7.615 + left 13.838 < base 24.216); the bin dropped it ("type: OBJ for val") and `mint` then bound a NEW `OBJ` term, `same . all<wrap(o5.proximity)>`, at the same cost and the same remainder. **The rule decided nothing about type and forced an invention -- Fig 5's "refit what you have, do not invent".** Reasoning recorded at the code site: a term must fit what it is applied to (Fig 12; Fig 1, the residual is per slot); matching the wrong term's type assumes the answer resembles what failed (Fig 5's amendment); two rule sets for one act is the owed-bookkeeping defect class. The route row carries `competitor_dropped` (now only "starved"), so a dropped competitor is read, not inferred.
+
+**The F263 risk, and what could test it.** F263's swap ran the other way (a `val` term displacing an `OBJ` objective; `_discrepancy` then NOT_RESOLVED, silently). Under the slot rule it is admissible. **`test_m2` cannot show it on this build:** spied, its 25 REFUTED routings are (OBJ, none) 16, (val, none) 8, (val, val) 1 -- no type-changing competitor at all, so its 45/45 is no evidence either way. The live test is gridworld seed 2, where the old rule had dropped val-for-OBJ three times (cycles 15, 29, 32): under the slot rule those three bind, and they are EXACTLY the terms arm off's rebind path binds on those slots at those cycles -- the slot rule adds no swap the baseline does not already make. The silent-failure marker (`the discrepancy is not a distance: NOT_RESOLVED`) reads 0 on arm off, the 09-22 build and the slot-rule build alike: no positive control on this world, so that 0 is vacuous and nothing is claimed from it.
+
+**Panel (gridworld default, 60 cycles; arm-off baselines s0 26c21caad5fad549, s1 3c14e9118fd2bf45, s2 a4c7c8e19c944e6d). THREE INSTRUMENTS PER SEED, because the hash is not the model:** the trace hash (ACTIONS + intents + FINAL bindings, below), the first ledger difference (labels, sequence numbers and `not_t` rows set aside), and the bind set (every mint/rebind/compete as cycle, slot, term).
+
+    build                         s0                  s1        s2
+    arm J on, as first built      moved (owed)        baseline  moved (precedence)
+    + (a)                         f1bebb5db68a098e    baseline  edd005ae1a32fc1a
+    + (a) + (b)                   3790047ee14e69ab    baseline  baseline (hash only)
+    + (a) + (b) + (c)  COMMITTED  3fcdf9bdfb4ed12b    baseline  baseline
+
+**The committed build, per seed:**
+- **s1: identical on all three** -- the hash; 23 binds, 23 common; and 9,555 ledger rows, 0 differing.
+- **s2: same actions and final bindings; ONE bind differs in 60 cycles** (41 per arm, 40 common), at cycle 18 on o3.proximity: the ground refused `take<take(o1.distance)>` at 17; arm off's rebind (`exclude` = the bound term, then `no_change`) binds it straight back, the bin (`exclude` = the refused term) binds the next term that pays, `take<wrap(o1.distance)>`.
+- **s0: identical in every row through cycle 38** (the cycle-14 invention is gone: the OBJ competitor binds where arm off rebinds the same term). At 39 the same designed exclusion on o0.row: `same . all<o5.distance>`, refused at 38, is rebound by arm off and skipped by the bin for `same . all<wrap(o3.distance)>`. **It reaches the ground: actions differ from cycle 43, 13 of 60 cycles.** Bind sets 78 / 83, 55 common, every difference at 39 or later. Only the FIRST difference's cause is read; the later ones are taken as its consequences, not read one by one.
+
+**ARM J'S MEASURED EFFECT (the reviewer, 14:16Z): the bin does not hand a slot back the term the ground refused the step before -- Isaiah's "alternatives that DO work start to compete", quoted at the site.** On this panel that is one bind on s2, none on s1, and on s0 a different path from cycle 39 with 13 of 60 action cycles changed. **Nothing in a 60-cycle gridworld run is a ground verdict on which arm is better, and none is claimed.**
+
+Refusals were priced on every seed; **none paid** (s0 172, s1 143, s2 117 attempts on the committed build, all "did not pay").
+
+**WHAT THE HASH COVERS -- a scope correction that reaches back (the reviewer, 14:16Z).** gate10's hash is over `ag.trace` -- per step (state before, ACTION, state after, intent kind, the object the press landed on) -- plus the FINAL bindings. **A match is "same actions, same intents, same final bindings", never "same model mid-run":** the (a)+(b) build minted different terms on s2 at cycles 15, 29 and 32 and still matched. Tonight's identity claims, by the instrument each rested on, stand as stated and no stronger:
+
+    F484   fake + gridworld s0-s2: hash AND full ledger rows (differences confined to named count fields)
+    F485   gridworld s0-s2: hash, plus the would-hit verifier (stored chains re-priced, 0 different); fake: 20,627 decision rows
+    F486   fake: 3,818 decision rows through cycle 39
+    F487   gridworld s0: HASH ONLY
+    F488   no world identity claimed (fixture and m2)
+    F489   gridworld s0: HASH ONLY
+    F490   gridworld s0-s2: hash + verdict counts + override commitments
+    F492   fake, arm off: 3,858 ledger rows
+    F493   fake: 3,858 ledger rows; gridworld s0: hash + verdict counts
+    F494   fake: 3,858 ledger rows
+    F495   fake: 3,858 ledger rows
+    F496   fake: 3,858 ledger rows; gridworld s0: hash + verdict counts
+
+**Two labels found over-claiming, recorded, not changed here:** the rebinding `why_not` says "a term already in the library explains the whole history" while `_library_fit` admits on the bargain (F32 arm D), not on a zero remainder; and the commit text of 375ce42 says "for an OBJ slot" where its code compared the refused term.
+
+**Repair (d) -- route files, MINT prices (the reviewer 2026-10-07 14:39Z).** The refusal was priced INSIDE `route()` and written as MINT, so with arm J on the GATE refused the demo ("ladder: ROUTE after MINT"). **A refusal is made by the mint operator (Fig 5's amendment) and the loop runs ROUTE then MINT, so the ladder was right about the structure.** I first relabelled the rows ROUTE -- the record saying a mint was a route, to pass the check -- and that was undone. Now `route()` only files the slot (it leaves the refused term in `_refuted_slot`) and runs the competitor search, whose `reach`/`pull` rows are ROUTE as in the rebinding bin; `_price_refusals` is the MINT step's first act, pricing every filed slot BEFORE any slot binds or mints so each price is read on the same library; then the competitor binds (ACCEPT). The search already excludes the refused term, so refusing after it loses nothing; the one order change is that a refusal on one slot can no longer narrow ANOTHER slot's search in the same cycle (no refusal paid on any panel run, so unmeasured). Fixture: `route()` alone writes no `not_t`/`refuse` row -- with route pricing again, it fails "route priced the refusal: a mint written during routing". **Found by the seats, not by the panel: the fake, three gridworld seeds and test_m2 ran on the unfixed build and none reads the step ladder.**
+
+**And the wiring seat cannot pass in a fresh worktree:** it counts occurrence over `runs/*.jsonl`, which are local and uncommitted, so a worktree holding only `demo.jsonl` reads every capability as never-occurred (36 transitions). Run in the tree that holds the artifacts (`computed_over`), it passes. CLAUDE.md's defect E from the denominator side; recorded, not changed here.
+
+**The fake (the ARC wiring, 40 actions; instrument: full ledger rows):** base 2a43566, arm off and arm on -- 3,858 rows each, 0 differing, the same 4 binds. **The treatment does NOT execute there:** under (a) the fake routes 0 slots to the bin (15 before (a), all on slots carrying no residual by the time they route), so the fake is an identity check of the default path, not evidence about the bin. **The bin's evidence on this commit is gridworld s0 and s2 and the fixtures.** That (a) silences an alternating term (drow 2, 0, 2, 0: wrong, then right on the step its refutation is read) is the reviewer's 14:25Z finding, and is the next change: (a) read as residual that PERSISTS over the slot's recent window and does not trend down.
+
+**Seats:** 21/21 on the committed tree, wiring, demo, gate and m2 included. The fake on this tree: 3,858 rows, 0 differing from 2a43566. **The gridworld panel above ran on the build BEFORE repair (d) and was not re-run after it: that it still holds is a claim from the code (only where the refusal is priced and its rows' step moved; no refusal paid on the panel; the search is unchanged), not a measurement.**
