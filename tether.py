@@ -6194,6 +6194,9 @@ class Agent:
             # That is a design question, not a parameter.
             by_kind: dict[str, tuple] = {}
 
+            # The shape decoder enters by its SIZE: it is append-only (one writer, id = size,
+            # `ArcWorld.shapes` asserts it), so within a run equal size is equal contents. A shape
+            # slot's alphabet is max(2, size), so this part adds only the 1 -> 2 step it masks.
             # THE SCOPE KEY: what a chain's PRICE is read from. An unchanged base under the same
             # held term, alphabet and epoch means no new residual row, so `robs` is the same rows;
             # the rest fixes what is generated from them. The cue and the unit ORDER are not in it:
@@ -6203,7 +6206,7 @@ class Agent:
                      tuple(sorted(self.gamma.library)), tuple(sorted(u.name for u in _units)),
                      tuple(streams),
                      json.dumps(gap, sort_keys=True, default=str),
-                     self.cycle if _SHAPE_DECODE else 0,
+                     len(self._shapes_now() or ()) if _SHAPE_DECODE else 0,
                      self._guard_scope(slot, robs, operand_binds))
             _hit = self._frontier_lookup(slot, _skey) if _RESUME else None
             priced: dict = dict(_hit[1]) if _hit else {}

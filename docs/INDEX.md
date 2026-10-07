@@ -56597,3 +56597,15 @@ An order-sensitive first version of this check reported 27 BAD on s0; a probe sh
 **Fake world (test_entry.FakeWrapper through tether_agent.run, the ARC wiring, 200 actions):** record-only against d0cdb13 -- 20,627 decision rows and all 201 wrapper calls IDENTICAL; 0 would-hits (the cycle is in the key under shape-decode, so the mechanism is inert there -- F486 changes that). The ON arm was stopped at cycle 113 by a background time limit, row-identical through cycle 112 (11,343 rows), 0 hits.
 
 m2 29/29, gate 25/25, with the mechanism on.
+
+#### F486 -- **THE SHAPE DECODER ENTERS THE FRONTIER KEY BY ITS SIZE, NOT THE CYCLE: F485 is no longer inert on the ARC path.**
+
+**Ruled:** the reviewer 2026-10-07 05:13Z (size for cycle, the append-only exactness CHECKED: no entry rewritten, same history gives the same contents) and 05:27Z (build it beside the fake runs).
+
+**Why the cycle was there and need not be:** under the shape-decode arm -- ON for the whole ARC path (`arc_holdout.wire`, Isaiah 2026-09-27) -- `_eval_ctx` hands each row the decoder from `_shapes_now()`, and F485's key carried the cycle (the tally's own "OFF rather than WRONG"). Measured on the fake: the cycle differed on EVERY lookup with a prior entry, 0 hits in 112 cycles. The decoder has ONE writer (`arc_percept.py:781`, `setdefault(shape, len(table))`): ids 0..n-1, no entry rewritten, never reset (`boundary()` keeps it). So within a run equal size is equal contents.
+
+**The change:** the key's shape part is `len(self._shapes_now() or ())`; `ArcWorld.shapes()` asserts its ids are exactly 0..n-1 (fails on a rewrite, deletion or collision). A shape slot's alphabet is `max(2, size)`, so the size part adds only the 1 -> 2 step the alphabet masks -- stated at the key.
+
+**Gate (fake world, the ARC wiring, 40 actions):** record-only -- 46 would-hits (cycle key: 0), 31,623 stored chains re-priced the same, BAD 0, 3,818 decision rows identical to d0cdb13 through cycle 39; the guard ran every cycle and never fired. ON -- 46 hits (37 resumed and still budget_spent, 9 resumed to priced_out), decisions identical, the same 2 binds: **the treatment executes on the fake and changes no decision in 40 actions; its effect on the ARC path is owed at the integration run.** Guard (b)'s replay: the same 15-action history twice gives identical decoder contents at every size reached (2-6).
+
+**Mutations, both VACUOUS by construction, not by panel:** dropping the size gave 46 would-hits as before; dropping slot set + size + alphabet gave 97 (51 extra) and BAD 0. The alphabet map's keys ARE the slot set (ArcWorld and gridworld, checked) and a shape slot's alphabet is `max(2, size)`, so neither clause can be isolated while the alphabet is in the key -- the slot set was therefore dropped from the key (F485, checked equivalent: s0 reproduces 26c21caad5fad549 and every hit count). **No part of the "what exists" block has been shown necessary by a run**, only by construction (`_bindings` draws operands from the slot set; `alphabet[slot]` is the cost unit). Owed: a world where an appearing object makes a new payer under an old chain.
