@@ -56845,3 +56845,21 @@ Refusals were priced on every seed; **none paid** (s0 172, s1 143, s2 117 attemp
 **Ladder breaks after this change:** s0 1 (PLAN after SETTLE -- break 2, next), s1 0 (1 before), s2 0 (3 before). **s1 and s2 pass the FULL gate -- the first gridworld ledgers ever to; s0's remaining break is break 2's.**
 
 **Seats:** 21/21 on this tree.
+
+#### F501 -- **A ROUTINE THAT HAS ACTED IS SETTLED IN THE CYCLE WHOSE OBSERVATION DECIDES IT (Fig 2; item 3, break 2 of the pre-existing gridworld ladder breaks).**
+
+**The break, read.** s0's "o0.row: PLAN after SETTLE": an exhausted routine's verdict (`reach_tested`, SETTLE) and `routine_end` (PLAN) were written by cycle 56's `choose()` -- but `Rt.advance` reads `_holds(before)`, the state cycle 55 observed, so the verdict was cycle 55's, DETECTED lazily when 56 asked for its next act.
+
+**Ruled (the reviewer 2026-10-07 16:21Z, 16:30Z, 16:35Z, 16:49Z, 16:58Z):** move the EVALUATION, only for a routine that has ACTED; `_check_expectation` moves WITH the advance, in today's order, both once; `routine_end` (DONE, EXHAUSTED) and `routine_abandoned` are SETTLEMENTS -- the ground's verdict on a plan -- and are written as SETTLE where now evaluated (a label naming what the act is, not a relabel: they were PLAN only because detection happened during planning; no reader keys on their step -- `speak.py` and `test_m2` key on the event). **BLOCKED is NOT a settlement** (Fig 10: an unread guard is a channel fact): it is handed on and ended at PLAN, writing no verdict -- today's code already books none on it (`_verdict` is None; only an "untested" episode record). **The zero-act case is unchanged and OPEN**: 0 occurrences on every ledger (minted routines whose guard already holds are dropped at planning, `routine_inert`); if one ever occurs, its SETTLE-then-PLAN stays in one chain, and its design must keep the `tested_no` shelving `_reach_seen` reads.
+
+**Built.** `_end_routine(why, before, step)` is the ending block lifted out of `choose()` unchanged, `routine_end` carrying the step it is evaluated in; `_check_expectation(before, step)` likewise. `_settle_routine()` runs between `settle(res)` and `_promote()` for a routine with `_routine_acts > 0`: on `env.observe()` -- the state the next `choose()` reads -- it checks the expectation, then advances ONCE (`Rt.advance` writes `routine_state`, so it is never evaluated twice); DONE or EXHAUSTED ends it there as SETTLE; a step or BLOCKED is stored with the routine it belongs to, and `choose()` consumes it only for that routine. Recovered-fallback rows (0 occurrences) stay PLAN, written by the next `choose()`.
+
+**Fixtures:** `check_an_acted_routine_is_settled_in_its_deciding_cycle` (expectation, then DONE: SETTLE in this cycle, `tested_yes`), `check_a_blocked_routine_ends_at_planning_with_no_verdict`, `check_a_zero_act_routine_still_ends_at_planning`. **Three source mutations, each failing exactly its own check and no other:** settlement disabled; BLOCKED put back in the settle set; the acted-only condition removed. m2 50/50.
+
+**Panel against F500 (d708d64), decision-identical as pre-registered:** the fake 0 rows differing, 4/4 binds; s0 hash 26c21caad5fad549, 78/78 binds, the exhausted ending now cycle 55 SETTLE (was 56 PLAN); s1 3c14e9118fd2bf45, 23/23, every row identical; s2 7e2c3178007fa772, 42/42, its one abandonment now cycle 25 SETTLE (was 26 PLAN). **All three gridworld panel ledgers pass the full gate (all eleven checks), 0 ladder breaks.**
+
+**F500 ANNOTATED.** F500 says s1 and s2 are "the first gridworld ledgers ever to" pass the full gate. **False as stated**: 22 of the 70 ledgers in `runs/` pass the current gate, their worlds not identified. What holds: none of the night's gridworld PANEL ledgers (default, seeds 0-2, 60 cycles) passed until F500, arm off included.
+
+**OPEN, found while reading s0 (the reviewer 17:21Z: its own change next).** s0's cycle-50 `routine_abandoned` stays PLAN on both F500 and this build. A probe read why: a routine's pending expectation SURVIVES its end (`_end_routine` never clears `_expect`), so the routine adopted at cycle 49 -- 0 acts, so correctly not settled here -- was abandoned at cycle 50 on the PREVIOUS routine's claim (step_index 3). Blame on a routine that made no claim: the stale-refusal genus (Fig 1).
+
+**Seats:** 21/21 on this tree.

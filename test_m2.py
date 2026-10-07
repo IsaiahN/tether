@@ -1821,6 +1821,84 @@ def check_a_sweep_skips_a_slot_past_its_turn():
     assert done not in hit, "a slot past its turn was swept: a second chain in one cycle"
     assert ag.chain.reuse_branch["deferred:turn-done"] == k0 + 1, "the deferral was not counted"
 
+
+def _plant(ag, acts):
+    """An Until routine held on a slot with `acts` already taken, its guard read by a stub."""
+    import routine as Rt
+    slot = next(s for s in sorted(ag.slots) if not s.startswith("@"))
+    ag.routine, ag.routine_for = Rt.Until(slot, Rt.Act("up"), 3), slot
+    ag._routine_adopted, ag._routine_acts = ag.routine, acts
+    ag._routine_next, ag._expect = None, None
+    return slot
+
+
+def check_an_acted_routine_is_settled_in_its_deciding_cycle():
+    """F501 (the reviewer 2026-10-07 16:21Z, 16:35Z, 16:49Z): a routine that has ACTED is ended in
+    the cycle whose observation decides it, as SETTLE -- by its expectation, or by one advance --
+    and the next choose() only plans. Its rows were PLAN only because detection was at planning."""
+    ag = _agent()
+    slot = _plant(ag, 1)
+    state = ag.env.observe()
+    ag._expect = (slot, state.get(slot), 1)          # claimed a change; the state did not move
+    n0 = len(ag.led.entries)
+    ag._settle_routine()
+    rows = [e for e in ag.led.entries[n0:] if e.event == "routine_abandoned"]
+    assert rows and rows[0].step == "SETTLE" and rows[0].cycle == ag.cycle, (
+        "an expectation ending was not settled in its deciding cycle")
+    assert ag.routine is None, "the abandoned routine is still held"
+    ag = _agent()
+    slot = _plant(ag, 1)
+    ag._holds = lambda _state: (lambda _g: True)    # the guard holds: DONE
+    n0 = len(ag.led.entries)
+    ag._settle_routine()
+    ends = [e for e in ag.led.entries[n0:] if e.event == "routine_end"]
+    assert ends and ends[0].step == "SETTLE" and ends[0].detail.get("outcome") == "done", (
+        "an advance ending was not settled in its deciding cycle")
+    tested = [e for e in ag.led.entries[n0:] if e.event == "reach_tested"]
+    assert tested and tested[0].detail.get("verdict") == "tested_yes", "the verdict was not written"
+    assert ag.routine is None and ag._routine_next is None, "the ended routine is still held"
+
+
+def check_a_blocked_routine_ends_at_planning_with_no_verdict():
+    """F501 (the reviewer 2026-10-07 16:58Z): BLOCKED -- the guard could not be read -- is not a
+    settlement (Fig 10: a channel fact, the ground did not speak). The one advance happens at the
+    deciding cycle's end, but the ending is written by the next choose() as PLAN, with no verdict,
+    no shelving and no refusal."""
+    ag = _agent()
+    _plant(ag, 1)
+    ag._holds = lambda _state: (lambda _g: None)    # the guard cannot be read
+    n0 = len(ag.led.entries)
+    ag._settle_routine()
+    assert len(ag.led.entries) == n0 and ag.routine is not None, (
+        "a BLOCKED ending was settled: an unread guard booked as a verdict")
+    key_count = len(ag._reach_tested)
+    ag.choose(ag.env.observe())
+    ends = [e for e in ag.led.entries[n0:] if e.event == "routine_end"]
+    assert ends and ends[0].step == "PLAN" and ends[0].detail.get("outcome") == "blocked", (
+        "the BLOCKED ending was not written at planning")
+    assert not [e for e in ag.led.entries[n0:] if e.event in ("reach_tested", "refuse")], (
+        "a BLOCKED ending wrote a verdict")
+    assert len(ag._reach_tested) == key_count, "a BLOCKED ending shelved the plan"
+
+
+def check_a_zero_act_routine_still_ends_at_planning():
+    """F501, the zero-act case left OPEN as ruled (16:30Z): a routine with no act yet is untouched
+    by the settlement, and choose() ends it exactly as before -- 0 acts, tested_no shelving."""
+    ag = _agent()
+    _plant(ag, 0)
+    ag._holds = lambda _state: (lambda _g: True)
+    n0 = len(ag.led.entries)
+    ag._settle_routine()
+    assert len(ag.led.entries) == n0 and ag.routine is not None, (
+        "a zero-act routine was settled at the end of the cycle")
+    ag.choose(ag.env.observe())
+    ends = [e for e in ag.led.entries[n0:] if e.event == "routine_end"]
+    assert ends and ends[0].step == "PLAN" and ends[0].detail.get("outcome") == "done", (
+        "the zero-act ending moved")
+    tested = [e for e in ag.led.entries[n0:] if e.event == "reach_tested"]
+    assert tested and tested[0].detail.get("verdict") == "tested_no" and (
+        tested[0].detail.get("emitted") == 0), "the zero-act shelving was not written"
+
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
 
 if __name__ == "__main__":
