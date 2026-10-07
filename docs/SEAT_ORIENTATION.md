@@ -389,6 +389,14 @@ Isaiah for what the figures already settle.
   is unaffected**: each change still commits in sequence on its own gate. A comment made stale by
   an item is repaired in THAT item's worktree, so it lands with the change that falsified it.
   The night it was ruled, six changes (F485-F490) were built in the window one fake run took.
+- **A COMMIT'S HOOK OUTPUT IS READ BEFORE THE COMMIT IS REPORTED -- the reviewer, 2026-10-07.**
+  The commit is its OWN command, never detached with `&` and never chained into a wrapper whose
+  exit code stands in for it; its output (the hook's `m2` line and seat count) is captured -- to
+  the terminal, or to a file when the hook outlasts the foreground limit -- and READ, and the id is
+  read from `git log`. **Twice in one night the hook output went nowhere** (F487, and F496 started
+  with `&` inside a backgrounded shell); both times the wrapper reported success at once, which says
+  nothing about the commit. Where it was lost, the gate is re-run on the committed tree and that
+  output reported instead.
 
 ## 6. WHAT IS ON / OFF BY DEFAULT
 
