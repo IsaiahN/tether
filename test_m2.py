@@ -844,6 +844,28 @@ def check_refutations_do_not_cross_a_boundary():
     assert not ag.refuted, "a refutation keyed on a dead slot name survived a boundary"
 
 
+def check_one_clock_at_the_agents_rate():
+    """DEFECT: two clocks. Terms decayed on the trace length, which a level boundary resets, so a
+    rejection FROZE at every boundary; routines decayed on the cycle at the module's seed rate,
+    while the agent's own halflife is measured in cycles (Isaiah 2026-09-30: the rate is its).
+    """
+    ag = _agent()
+    name = next(iter(ag.gamma.library))
+    ag.gamma.refute(name)
+    r0 = ag.gamma.rejection_of(name)
+    ag.retarget(ag.env, ag.level + 1)
+    for _ in range(3):
+        ag.step()
+    assert ag.gamma.rejection_of(name) < r0, "a term's rejection froze at a level boundary"
+    slot = _wide(ag)
+    k = ag._reject_key(slot, Rt.Until(slot, Rt.Act(ag.actions[1]), 1))
+    ag.refuted[k] = gamma.Standing(last_tick=ag.cycle, rejections=1.0)
+    ag.gamma.halflife = 2.0
+    ag.cycle += 2
+    assert abs(ag._rejection(k) - 0.5) < 1e-9, (
+        "a routine refutation decayed at a seed, not the agent's rate")
+
+
 def check_a_refusal_holds_until_the_scope_grows():
     """DEFECT: a refused plan readmitted by a clock, with nothing new to try it with (Fig 6:
     *it becomes reachable again only if something new is minted, which is growth*).

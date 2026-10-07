@@ -2561,7 +2561,9 @@ class Agent:
                            self._intent_now.kind if self._intent_now is not None
                            else NO_INTENT,
                            self._last_landed))
-        self.gamma.tick = len(self.trace)
+        # ONE CLOCK: the cycle, which a level boundary does not reset. The trace length did, so a
+        # term's rejection froze at every boundary, while the halflife it decays at is in cycles.
+        self.gamma.tick = self.cycle
         self._prev_pred = pred
         self._last_mass = {s: r.mass for s, r in res.items()}
         self._note_progress(after)
@@ -3581,7 +3583,7 @@ class Agent:
                 rg = self.goal_residual(self.routine_for, before)
                 k = self._reject_key(self.routine_for, self.routine, self.routine_lib)
                 self.refuted.setdefault(k, Standing(last_tick=self.cycle)).refute(
-                    self.cycle, where=self._scope)
+                    self.cycle, self.gamma.halflife, where=self._scope)
                 self.refuted_at[k] = 1.0 if rg is None else rg
                 # AND FILED A SECOND TIME UNDER THE SHAPE OF THE GAP IT FAILED AGAINST. The two
                 # keys answer different questions and neither replaces the other: `k` says *this
@@ -4871,7 +4873,7 @@ class Agent:
         st = self.refuted.get(key)
         if st is None:
             return 0.0
-        st.decay(self.cycle)
+        st.decay(self.cycle, self.gamma.halflife)
         return st.rejections
 
     @property
@@ -5209,12 +5211,9 @@ class Agent:
         # **SINCE ITEM 1 (2026-10-07) THE FILTER READS `_refused`**, the shape-keyed refusal that
         # only growth lifts (Fig 6); this pop drops the slot Standing, which is now the VOTE.
         #
-        # **AND THE RATE IS STILL NOT THE AGENT'S HERE, WHICH IS THE PART WORTH THE LINE.**
-        # `gamma.refute` passes `self.halflife` -- the agent's own cycles-to-vindication. BOTH
-        # routine sites pass NOTHING (`refute(self.cycle)`, `decay(self.cycle)`), so they fall
-        # back to the module seed. **Terms decay on the agent's clock and routines decay on
-        # ours**, and Isaiah's 2026-09-30 ruling is that the rate is the agent's call. Recorded
-        # rather than changed: routing it is a behaviour change and it goes through the plan.
+        # **THE RATE IS THE AGENT'S (Isaiah, 2026-09-30), AND SINCE ITEM 4 BOTH ROUTINE SITES PASS
+        # IT** -- `refute` and `decay` take `gamma.halflife`, on the same cycle clock terms use.
+        # Until the agent has a vindication, `halflife` is None and the seed applies, marked.
         for key, was in [(k, w) for k, w in self.refuted_at.items()
                          if k[0] == slot and (rg or 0.0) > w]:
             self.refuted.pop(key, None)

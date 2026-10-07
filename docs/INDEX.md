@@ -56621,3 +56621,11 @@ m2 29/29, gate 25/25, with the mechanism on.
 **Fixture** `check_a_refusal_holds_until_the_scope_grows` (exhaustion driven through `choose`): refused; one cycle on the OLD filter would readmit (asserted -- non-vacuity) and the new one refuses; still refused after an advance; lifted after `gamma.accept` grows the library; the record keeps its count. **Mutations:** the cycle in the scope, the library out of the scope, and the old filter each fail it at their own claim. m2 30/30.
 
 **Gridworld (identity only):** the panel has 2 routine refutations in 180 cycles (s0, cycles 36 and 44) and no re-offer; wt16 ON s0 reproduces 26c21caad5fad549. **Not read:** the adoption-falls disappointment (cannot be measured at 2 refutations); the restart (by construction: the same agent instance). Pre-existing, not touched: `self.paths` scoring at the paths_retrieved site omits `routine_lib` in its step ids.
+
+#### F488 -- **ONE CLOCK AT THE AGENT'S OWN RATE (audit section 2, item 4).**
+
+**The departure:** `gamma.tick = len(self.trace)`, which `retarget` resets, so every term rejection FROZE at a level boundary until the new trace passed the old tick; routine refutations decayed on `self.cycle` at the module seed, while the agent's halflife is measured in cycles (`vindication.append(self.cycle - since)`). Two clocks, and the rate not the agent's (Isaiah 2026-09-30).
+
+**The change:** `self.gamma.tick = self.cycle`; both routine sites pass `self.gamma.halflife` (`refute` at filing, `decay` in `_rejection`). The comment "the rate is still not the agent's here ... recorded rather than changed" replaced.
+
+**Fixture** `check_one_clock_at_the_agents_rate`: a refuted term's rejection FALLS across a `retarget` and three steps; a routine refutation of 1.0 reads 0.5 two cycles later at halflife 2. **Old clock and old rate each fail it at their own claim.** m2 31/31. **Precondition, stated:** no panel crosses a level boundary (`retarget` runs only in `tether_agent.run` / `arc_holdout`, and no gridworld or fake run advances a level), so the clock half is shown by the fixture only; the agent's halflife IS earned on every gridworld seed (3.08 / 1.0 / 1.1 cycles, against the seed's 8). Gridworld s0 reproduces 26c21caad5fad549.
