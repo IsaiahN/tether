@@ -137,6 +137,9 @@ ARMS: dict[str, str] = {
                           "adds six slots per object and six atoms, so it prices every term "
                           "(F492)",
     "TETHER_DELTA_KEY": "route (b) re-keyed on this frame's delta",
+    "TETHER_NOT_ATOM": "not-t priced as one atom slot instead of the bits to name which "
+                       "predicting term is wrong (the default, reviewer 2026-10-07). The figures "
+                       "leave the price OPEN; this arm keeps the alternative readable (F496)",
     "TETHER_DELTA_OPERANDS": "deltas offered as operands",
     "TETHER_GUARD_AXIS": "the guard axis in the reject key",
     "TETHER_INSTRUMENTS": "the embedded instrument set -- Part 12 item 3, PAID BILLS from "

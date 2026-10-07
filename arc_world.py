@@ -790,7 +790,15 @@ class ArcWorld:
 
         The rule is `arc_percept.identity_of`, shared with the cell-change readings."""
         return arc_percept.identity_of(obj, getattr(self._decompose, "matches", {}) or {},
-                                       getattr(self._decompose, "tracked", {}) or {})
+                                       getattr(self._decompose, "tracked", {}) or {},
+                                       getattr(self._decompose, "refused_identity", ()))
+
+    def refuse_identity(self, obj: str) -> None:
+        """Not-identity (F496, R2): `obj` may be two things the tracker took for one. Add-only;
+        from now on `identity_of` reads it unsure, so nothing carried by identity trusts it."""
+        refused = getattr(self._decompose, "refused_identity", None)
+        if refused is not None:
+            refused.add(obj)
 
     def locus_masks(self) -> dict[str, set]:
         """Each tracked object's cells. The mask a per-locus reading is taken through."""

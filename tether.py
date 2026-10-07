@@ -348,6 +348,12 @@ REFUTED = "refuted"
 # never disable the check.*
 _REFUTED_BIN = bool(os.environ.get("TETHER_REFUTED_BIN"))
 
+# THE PRICE OF NOT-t IS OPEN IN THE FIGURES (Fig 12/13: an atom slot, nothing, or the choice of what
+# to negate). DEFAULT, the reviewer 2026-10-07: the bits to NAME which term is wrong among every
+# term bound and predicting, agent-wide (Fig 5's enumeration; Fig 12 prices every part as a named
+# choice). This arm prices it as one atom slot instead, so the choice can be read off the evidence.
+_NOT_ATOM = bool(os.environ.get("TETHER_NOT_ATOM"))
+
 # ARM L -- BOUND THE OPERAND AXIS BY THE DELTA. SEAT-SIDE SWITCH, DEFAULT OFF.
 # `F258`: yields expand 32-106x into ranked candidates and the operand axis is the multiplier.
 # Arm H already bounds the GUARD axis by the actions present in the residual's own
@@ -1350,6 +1356,10 @@ class Agent:
         # (gap shape, steps, guards) -> the scopes a plan of that shape was refused under. ADD-ONLY:
         # a refusal never leaves the record (Fig 6); it stops excluding when the scope grows.
         self._refusals: dict[tuple, list[tuple]] = {}
+        # NOT-t, THE REFUSING TERM (F496; Figs 5, 6, 12, 13): (term name, gap shape) -> the scopes
+        # it was refused under. ADD-ONLY and kept OUTSIDE the library, so minting a refusal does
+        # not grow the scope that lifts it. The decaying tally in `Standing` stays the evidence.
+        self._not: dict[tuple, list[tuple]] = {}
         self._digests: dict[str, frozenset] = {}
         self.agency = I.Agency()       # §16.8 sensor 3, a per-step read
         self.term = I.Termination()    # 2d / §20.1, latching and asymmetric
@@ -2751,9 +2761,10 @@ class Agent:
         # THE TRACK RECORD ENTERS HERE AND ONLY HERE. `track_of` decays on read, mirroring
         # `rejection_of`, so the order reads evidence of the current age rather than a total
         # frozen at whatever tick it was last touched.
+        _gk = self._term_gkey(slot) if self._not else None
         for n in retrieval.retrieve(self.gamma.library, gap, track=self.gamma.track_of,
                                     youth=self.gamma.youth_of):
-            if n == exclude:
+            if n == exclude or (self._not and self._term_refused(n, _gk)):
                 continue
             # RE-BIND WHAT ARRIVED WITHOUT A BINDING. `save` drops the operand because a slot
             # name is an instance, so an IMPORTED operand-reading term is `idn` here -- both
@@ -2796,7 +2807,7 @@ class Agent:
                 # bound term leaves.
                 if _BARGAIN_FIT:
                     _left = self._left(cand, slot, hist)
-                    _cost = term_bits(self.gamma.length(cand, tuple(self.gamma.units())),
+                    _cost = term_bits(self.gamma.length(cand, self._units_for(slot)),
                                       self.gamma.alphabet)
                     if not pays(_cost, _left, _base):
                         continue
@@ -3193,6 +3204,12 @@ class Agent:
                 # AND IT IS NOT A FILTER ON `_library_fit`: that is the ESCALATED test and it
                 # stays parked. The result is filtered HERE, at the one caller the ruling
                 # covers, so every other retrieval baseline is untouched.
+                # NOT-t (F496): the refusal is priced here, where the term that made the prediction
+                # was expressed and failed. Paying, it is recorded; the competitor search below
+                # then cannot offer it for this gap shape.
+                _ok, _d = self._price_not(was_refused, slot)
+                if _ok:
+                    self.refuse_term(was_refused, slot, **_d)
                 fit = self._library_fit(slot, was_refused)
                 want = getattr(self.gamma.library.get(was_refused), "out_type", None)
                 got = getattr(self.gamma.library.get(fit), "out_type", None) if fit else None
@@ -4905,6 +4922,63 @@ class Agent:
         scopes = self._refusals.get(key)
         return bool(scopes) and scopes[-1] == self._refusal_scope()
 
+    def _term_gkey(self, slot: str) -> tuple | None:
+        gap = self._characterise_gap(slot)
+        return self._gap_key(gap) if gap is not None else None
+
+    def refuse_term(self, name: str, slot: str, **detail) -> bool:
+        """Record not-t on this slot's gap shape. Only a HELD term can be refused, so a refusal is
+        the record of held-and-given-up (P5). Adds and removes nothing else (P1). A SETTLED term
+        refused is a contradiction the figure leaves open: written down, not decided (P6)."""
+        if name not in self.gamma.library:
+            return False
+        k = (name, self._term_gkey(slot))
+        self._not.setdefault(k, []).append(self._refusal_scope())
+        self.led.record(self.cycle, "MINT", slot, "refuse", term=name,
+                        refused_under=len(self._not[k]), **detail)
+        if self.gamma.is_settled(name):
+            self.led.record(self.cycle, "MINT", slot, "contradiction", term=name,
+                            reads=("a settled term and its refusal both stand: two scopes, an "
+                                   "error in the ground, or a world that changed -- not decided"))
+        return True
+
+    def _price_not(self, name: str, slot: str) -> tuple[bool, dict]:
+        """Fig 5's amendment, the same bargain: not-t pays iff its price plus what stays unexplained
+        with t's predictions withdrawn (the persistence prior) is less than what t leaves now. So a
+        refusal pays only when t does worse than saying nothing, by more than it costs to say it."""
+        t = self.gamma.library.get(name)
+        hist = self.history(slot)
+        if t is None or not hist or IDN not in self.gamma.library:
+            return False, {}
+        k = len({n for n in self._pred_by.values() if n})
+        cost = term_bits(self.gamma.length(t, self._units_for(slot)), self.gamma.alphabet)
+        cost += (math.log2(self.gamma.alphabet + 1) if _NOT_ATOM
+                 else math.log2(k) if k > 1 else 0.0)
+        with_t = self._left(t, slot, hist)
+        without = self._left(self.gamma.library[IDN], slot, hist)
+        return pays(cost, without, with_t), {
+            "predicting": k, "price": "atom" if _NOT_ATOM else "name the term",
+            "cost_bits": round(cost, 3), "left_with": round(with_t, 3),
+            "left_without": round(without, 3)}
+
+    def _term_refused(self, name: str, gkey: tuple | None) -> bool:
+        """Refused while the scope it was refused under still stands (`_refused`'s rule)."""
+        scopes = self._not.get((name, gkey))
+        return bool(scopes) and scopes[-1] == self._refusal_scope()
+
+    def _units_for(self, slot: str) -> tuple:
+        """The units a search on this slot composes from. A refused term's sequence is not a
+        shortcut while its refusal stands, so terms that paid only through it re-price at full
+        length and fall BY DERIVATION (P3). Found by SEQUENCE CONTAINMENT: no composition
+        lineage is kept (F496 records it as a later improvement)."""
+        units = tuple(self.gamma.units())
+        if not self._not:
+            return units
+        gk = self._term_gkey(slot)
+        out = {self.gamma.library[n].atoms for (n, g) in self._not
+               if g == gk and n in self.gamma.library and self._term_refused(n, g)}
+        return tuple(u for u in units if len(u.atoms) < 2 or u.atoms not in out)
+
     def _rejection(self, key: tuple) -> float:
         """The decayed strength of rejection. `Standing.decay` on the LOGICAL clock -- cycles,
         never wall time -- which is §18.2's first defeasance route and was already built."""
@@ -6192,7 +6266,7 @@ class Agent:
             self._tally[slot] = _seen
         rkey = _seen[1]
         # HOISTED, because `units()` rebuilds a list and the pricing runs once per candidate.
-        _units = tuple(self.gamma.units())
+        _units = self._units_for(slot)
         # THE CHEAPEST TERM THE COST FUNCTION ADMITS. `pays` is `cost + left < base`,
         # `_left` is a sum of non-negative bits, and `term_bits` is monotone in `k` with
         # `length() >= 1` -- so `floor >= base` proves NO term pays, at any depth, under
@@ -7051,7 +7125,7 @@ class Agent:
             # the candidate PAYS -- `cost + left < base` -- read off the trace (cost/left/base),
             # never a constant. The provenance rides in the residual stamp (`:partial`/`:closed`)
             # so the ablation separates a bargain-accepted partial from a full closure.
-            cost = term_bits(self.gamma.length(cand, tuple(self.gamma.units())),
+            cost = term_bits(self.gamma.length(cand, self._units_for(slot)),
                              self.gamma.alphabet)
             if pays(cost, left, base):
                 self.explain(slot, base - left)
@@ -7162,7 +7236,7 @@ class Agent:
         # THE REUSE PATH PRICED A REUSE AT DERIVATION COST, which is the one place the
         # asymmetry was load-bearing: 19 of 21 installs read `would_pay=False` against a
         # cost that charged for work the ground had already bought.
-        cost = term_bits(self.gamma.length(cand, tuple(self.gamma.units())),
+        cost = term_bits(self.gamma.length(cand, self._units_for(slot)),
                          self.gamma.alphabet)
         left = self._left(cand, slot, hist)
         # `ROUTE`, NOT `ACCEPT`, AND THE GATE SAID SO. The sweep runs inside the ROUTE phase
