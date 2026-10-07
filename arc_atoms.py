@@ -438,6 +438,27 @@ def _transform() -> list[Atom]:
             Atom("reflect", _ref, SHAPE, SHAPE)]
 
 
+# PERCEPTION, READ ONCE PER FRAME (F481; the reviewer, 2026-10-06). A shape reading is a property
+# of a cell set -- never of the candidate being priced -- so the mint's pricing re-perceived the
+# same objects 127,176 times in 25 cycles (75% of the run). Keyed on the FULL input, the cell set
+# itself, so no value can go stale; cleared at each new frame (`new_frame`), which only bounds it.
+_SHAPE_MEMO: dict = {}
+
+
+def _perceived(name: str, fn: Any, v: frozenset) -> Any:
+    key = (name, v)
+    try:
+        return _SHAPE_MEMO[key]
+    except KeyError:
+        out = _SHAPE_MEMO[key] = fn(v)
+        return out
+
+
+def new_frame() -> None:
+    """A new frame: drop the shape readings of the last. Called by `ArcWorld.step`."""
+    _SHAPE_MEMO.clear()
+
+
 def _as_shape(v: Any, c: Ctx) -> Any:
     """ARM I's decoder. The published SHAPE slot is an episode-local INT and every shape atom
     guards on a frozenset, so they read NOT_RESOLVED on every call (`F242`: 0 of 40).
@@ -524,7 +545,7 @@ def _shape_facts() -> list[Atom]:
         v = _as_shape(v, _c)        # ARM I, which this atom was omitted from -- see `_as_shape`
         if not isinstance(v, frozenset) or not v:
             return NOT_RESOLVED
-        return holes_of(v)
+        return _perceived("holes", holes_of, v)
 
     def _parity(v: Any, _c: Ctx) -> Any:
         return NOT_RESOLVED if not isinstance(v, int) else bool(v % 2)
@@ -606,32 +627,38 @@ def _shape_more() -> list[Atom]:
     """
     _shape = _as_shape          # the module-level decoder; see its note on `holes`
 
+    def _bbox_of(v: frozenset) -> int:
+        rs = [r for r, _ in v]
+        cs = [c for _, c in v]
+        return (max(rs) - min(rs) + 1) * (max(cs) - min(cs) + 1)
+
     def _bbox(v: Any, _c: Ctx) -> Any:
         v = _shape(v, _c)
         if not isinstance(v, frozenset) or not v:
             return NOT_RESOLVED
-        rs = [r for r, _ in v]
-        cs = [c for _, c in v]
-        return (max(rs) - min(rs) + 1) * (max(cs) - min(cs) + 1)
+        return _perceived("bbox_area", _bbox_of, v)
 
     def _perimeter(v: Any, _c: Ctx) -> Any:
         # Body in `arc_percept.perimeter_of` -- same one-implementation reason as `_holes`.
         v = _shape(v, _c)
         if not isinstance(v, frozenset) or not v:
             return NOT_RESOLVED
-        return perimeter_of(v)
+        return _perceived("perimeter", perimeter_of, v)
 
-    def _corners(v: Any, _c: Ctx) -> Any:
-        v = _shape(v, _c)
-        # A CONVEX CORNER is a cell with two orthogonal neighbours missing.
-        if not isinstance(v, frozenset) or not v:
-            return NOT_RESOLVED
+    def _corners_of(v: frozenset) -> int:
         n = 0
         for r, c in v:
             up, dn = (r-1, c) in v, (r+1, c) in v
             lf, rt = (r, c-1) in v, (r, c+1) in v
             n += sum(1 for a, b in ((up, lf), (up, rt), (dn, lf), (dn, rt)) if not a and not b)
         return n
+
+    def _corners(v: Any, _c: Ctx) -> Any:
+        v = _shape(v, _c)
+        # A CONVEX CORNER is a cell with two orthogonal neighbours missing.
+        if not isinstance(v, frozenset) or not v:
+            return NOT_RESOLVED
+        return _perceived("corners", _corners_of, v)
 
     def _dihedral(v: frozenset) -> list:
         out, cur = [], v
@@ -651,20 +678,24 @@ def _shape_more() -> list[Atom]:
             return NOT_RESOLVED
         # ENCODED BACK TO THE PUBLISHED ID -- `_shape` decoded on the way in and nothing
         # encoded on the way out, so this returned a frozenset into a slot holding an int.
-        return _to_shape_id(min(_dihedral(v), key=lambda f: sorted(f)), _c)
+        form = _perceived("canonical", lambda w: min(_dihedral(w), key=sorted), v)
+        return _to_shape_id(form, _c)
 
     def _orbit(v: Any, _c: Ctx) -> Any:
         v = _shape(v, _c)
         if not isinstance(v, frozenset) or not v:
             return NOT_RESOLVED
-        return len(set(_dihedral(v)))
+        return _perceived("orbit_size", lambda w: len(set(_dihedral(w))), v)
+
+    def _mirror_equal(v: frozenset) -> bool:
+        m = max(c for _, c in v)
+        return frozenset((r, m - c) for r, c in v) == v
 
     def _symmetric(v: Any, _c: Ctx) -> Any:
         v = _shape(v, _c)
         if not isinstance(v, frozenset) or not v:
             return NOT_RESOLVED
-        m = max(c for _, c in v)
-        return frozenset((r, m - c) for r, c in v) == v
+        return _perceived("symmetric", _mirror_equal, v)
 
     def _is_square(v: Any, _c: Ctx) -> Any:
         v = _shape(v, _c)

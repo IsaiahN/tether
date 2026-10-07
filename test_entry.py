@@ -225,6 +225,28 @@ def check_nothing_unknown_here_is_priced_by_the_agent():
     r = iface.realise(IF.Intent(IF.ELICIT), ("ACTION1", "RESET"), ctx, {}, None)
     assert r.action == "RESET" and "nothing unknown here; picked restarts the level" in r.why, r
 
+def check_shape_readings_are_keyed_on_the_cells():
+    """F481: a shape reading is perceived once per (reading, cell set) per frame. Two shapes with
+    the SAME cell count -- a line and an L -- must not share a reading, a recomputation must agree
+    with the memo, and a new frame clears it."""
+    import arc_atoms
+    import arc_predict
+    import gamma
+    atoms = {a.name: a for a in arc_atoms.three_spaces(arc_predict.predict())}
+    line = frozenset((0, c) for c in range(4))
+    ell = frozenset({(0, 0), (1, 0), (2, 0), (2, 1)})
+    ctx = gamma.Ctx()
+    arc_atoms.new_frame()
+    a = [atoms[n].fn(line, ctx) for n in ("corners", "orbit_size", "perimeter")]
+    b = [atoms[n].fn(ell, ctx) for n in ("corners", "orbit_size", "perimeter")]
+    assert a != b, f"a line and an L of equal size shared their readings: {a} {b}"
+    arc_atoms.new_frame()
+    assert [atoms[n].fn(ell, ctx) for n in ("corners", "orbit_size", "perimeter")] == b
+    env = arc_holdout.wire(FakeWrapper(), "fake")[0]
+    atoms["corners"].fn(line, ctx)
+    env.step("ACTION1")
+    assert not arc_atoms._SHAPE_MEMO, "a new frame kept the last frame's shape readings"
+
 def check_a_win_ends_the_run():
     import tether_agent
     w = FakeWrapper(script={2: GameState.WIN})

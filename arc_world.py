@@ -725,6 +725,7 @@ class ArcWorld:
         if nxt is not None:
             self._frame = nxt
         self._read = None          # a new frame is a new decomposition
+        arc_atoms.new_frame()      # and its shape readings are perceived afresh (F481)
         self._cue = None           # and a new set of mutations to read off it
         self._prev_contacts = self._contacts
         self._contacts = None      # and a new set of contacts
