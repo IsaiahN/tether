@@ -56629,3 +56629,9 @@ m2 29/29, gate 25/25, with the mechanism on.
 **The change:** `self.gamma.tick = self.cycle`; both routine sites pass `self.gamma.halflife` (`refute` at filing, `decay` in `_rejection`). The comment "the rate is still not the agent's here ... recorded rather than changed" replaced.
 
 **Fixture** `check_one_clock_at_the_agents_rate`: a refuted term's rejection FALLS across a `retarget` and three steps; a routine refutation of 1.0 reads 0.5 two cycles later at halflife 2. **Old clock and old rate each fail it at their own claim.** m2 31/31. **Precondition, stated:** no panel crosses a level boundary (`retarget` runs only in `tether_agent.run` / `arc_holdout`, and no gridworld or fake run advances a level), so the clock half is shown by the fixture only; the agent's halflife IS earned on every gridworld seed (3.08 / 1.0 / 1.1 cycles, against the seed's 8). Gridworld s0 reproduces 26c21caad5fad549.
+
+#### F489 -- **A LEVEL BOUNDARY CLEARS WHAT ITS OWN RULE SAYS (audit section 2, item 5).**
+
+`retarget` cleared `bound`, `trace`, `_disc`, `_res` because *the slots did not survive*, and kept seven stores keyed by those slots -- a want formed on the old level's `o1.dcol` was read on the new level's `o1.dcol`. Each verified slot-keyed at the code: `wants`, `_want_terms`, `_reach_tested` (`_reject_key`, slot first), `_prev_gap`, `_gap_delta`, `_undone`, and `_undone_across` (which the sweep missed; it pools across contexts, not levels). Now cleared beside `_disc, _res`. Deliberately kept: `parked` (survives by design), `self.paths` and the F487 refusals (shape-keyed), `_episodes`.
+
+**Fixture** `check_slot_keyed_state_does_not_cross_a_boundary`: all seven seeded, `retarget`, all empty; against the code without it the same check fails naming all seven. m2 32/32. Gridworld s0 reproduces 26c21caad5fad549 (no panel crosses a boundary; the ARC multi-level reading is owed).

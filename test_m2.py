@@ -844,6 +844,26 @@ def check_refutations_do_not_cross_a_boundary():
     assert not ag.refuted, "a refutation keyed on a dead slot name survived a boundary"
 
 
+def check_slot_keyed_state_does_not_cross_a_boundary():
+    """DEFECT: `retarget` clears the bindings and trends because *the slots did not survive*, and
+    kept seven stores keyed by those same slots -- so a want formed on the old level's `o1.dcol`
+    was read on the new level's `o1.dcol`."""
+    ag = _agent()
+    slot = "o1.dcol"
+    k = ag._reject_key(slot, Rt.Until(slot, Rt.Act("ACTION2"), 3))
+    ag.wants[slot] = "idn"
+    ag._want_terms[slot] = ag.gamma.library["idn"]
+    ag._reach_tested[k] = "tested_no"
+    ag._prev_gap[slot], ag._gap_delta[slot] = 3, -1
+    ag._undone[((), "BECOME o1.dcol +", slot, 0.5)] = 2
+    ag._undone_across[("BECOME o1.dcol +", slot)] = 2
+    ag.retarget(ag.env, ag.level + 1)
+    held = {n: getattr(ag, n) for n in ("wants", "_want_terms", "_reach_tested", "_prev_gap",
+                                         "_gap_delta", "_undone", "_undone_across")}
+    crossed = [n for n, v in held.items() if v]
+    assert not crossed, f"slot-keyed state crossed a boundary: {crossed}"
+
+
 def check_one_clock_at_the_agents_rate():
     """DEFECT: two clocks. Terms decayed on the trace length, which a level boundary resets, so a
     rejection FROZE at every boundary; routines decayed on the cycle at the module's seed rate,

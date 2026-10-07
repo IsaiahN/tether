@@ -1462,6 +1462,10 @@ class Agent:
         self._trace_epoch += 1          # the tallies summarise a history that is gone
         self._tally.clear()             # (the epoch is in the triple; this is belt and braces)
         self._disc, self._res = {}, {}   # the slots did not survive, nor do their trends
+        # NOR WHAT WAS KEYED BY THEM, by this block's own rule: a want, a tested reach, a gap's
+        # last reading or step, an undone count, each read on the next level's same NAME.
+        self.wants, self._want_terms, self._reach_tested = {}, {}, {}
+        self._prev_gap, self._gap_delta, self._undone, self._undone_across = {}, {}, {}, {}
         # AND NEITHER DO THE REFUTATIONS, FOR THE REASON THIS METHOD'S OWN DOCSTRING GIVES:
         # *slot names mean nothing across a boundary.* The reject key is
         # `(slot, actions, guards)` and two of those three are slot names, which REGENERATE --
