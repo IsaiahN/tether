@@ -382,6 +382,13 @@ Isaiah for what the figures already settle.
   explains it. The second question has many good answers; the first has exactly one.
 - **`executes` is not `has occasions`.** Count a site's calls against the population it is
   meant to filter, and read the ratio.
+- **WAITING ON A RUN IS NEVER IDLE -- the reviewer, 2026-10-07, standing practice.** While runs
+  are in flight, build the NEXT APPROVED item in its own worktree stacked on whatever is
+  uncommitted (`git diff` from the last worktree, `git apply` onto a fresh detached worktree at
+  the base commit), write its pre-registration, and start its runs as cores allow. **Commit order
+  is unaffected**: each change still commits in sequence on its own gate. A comment made stale by
+  an item is repaired in THAT item's worktree, so it lands with the change that falsified it.
+  The night it was ruled, six changes (F485-F490) were built in the window one fake run took.
 
 ## 6. WHAT IS ON / OFF BY DEFAULT
 
@@ -485,6 +492,13 @@ Every ONE-remote null taken at 30 cycles is a reading of a slot with nothing to 
 reading of any mechanism.
 
 ## 7d. THE LIVE OPEN ITEM — `CUE_BOUNDARY` IS THE 2,700-ATOM WIRE'S BLOCKER
+
+> **CORRECTED 2026-10-07 -- THIS SECTION IS STALE, AND KEPT BECAUSE AN ERROR ENTRY WHOSE EVIDENCE IS EDITED
+> AWAY STOPS BEING EVIDENCE.** `CUE_BOUNDARY` WAS re-scoped exactly as proposed below: `conform/lint.py` reads
+> `_CUE_MODULES = {"mapping"}`, and `composer` is on the agent path. **The bridge's blocker is now measured as
+> EXECUTABILITY** (INDEX F491 and the 2026-10-07 channel posts): the library is 2,076 molecules over ~2,348 base
+> atoms, 7 molecules compile from what the agent executes, and 606 base atoms (26%) have any written description,
+> none of it in a form `condition`'s grammar parses.
 
 **Reviewer, 2026-10-05: keep this LIVE in the queue, not as history.** It is not a finished
 finding; it is the reason the vocabulary bridge in §0.5 keeps stalling across seats, and

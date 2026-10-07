@@ -40,6 +40,29 @@ here in the same session it arrives, or the next search for it fails the same wa
 
 ---
 
+## 2026-09-25
+
+- **THE AGENT IS ALWAYS PAYING.** *"We never throw away the data and 'paying' -- but THE AGENT
+  IS ALWAYS PAYING WITH ITS TIME AND LIFE FORCE TO TAKE AN ACTION, regardless of what the numbers
+  might say. There's no real world where it doesn't move -- unless that too is an action, like
+  animals that freeze."* Refusing is not free; the null action is a chosen, costed candidate.
+- **THE ARCHITECTURE IS ACCUMULATION + THRESHOLD, NOT A RULEBOOK.** *"This instrument is
+  abstracted similar to eyes and filtering out light data. WE DON'T HAVE TO THINK ABOUT SEPARATE
+  THINGS, IT JUST COMES THROUGH AS COLOR."* And: *"One end of the spectrum is PURE REASON AND
+  VOTING AND BUDGETS, the other end is PURE INTUITION OR BASE MECHANISMS THAT ARE FILTERED AND
+  ARRIVE AS ONE SIGNAL (like with eyesight)... DEPENDING ON THE SITUATION AND YOUR CURRENT
+  STANDING (resources, energy, ability, restrictions, history) YOUR DECISION MIGHT BE INFLUENCED
+  DIFFERENTLY."* Many weak contributions arrive as ONE signal; standing sets the threshold's
+  height and does not vote. Ordered faculties consulted in turn -- the "three modes" rulebook --
+  were REJECTED.
+- **SOURCES -- relayed verbatim by the reviewer in the channel:** doc `1BvRFgPx...` (2026-09-25
+  20:42Z, "THE AGENT IS ALWAYS PAYING") and doc `1AKMzRBq...` (2026-09-25 20:52Z, "SUPERSEDES the
+  rulebook -- ACCUMULATION + THRESHOLD"); quoted in commit `88b3d19`. **Absent from this file until
+  2026-10-07**, when audit item 6 needed it and the seat first found it only in its own commit:
+  this file's own rule (*a ruling that reaches the seat through the channel is written here in
+  the same session it arrives*) was not kept for it. Built as `_accumulate` + its threshold; the
+  height made the agent's own in F490.
+
 ## 2026-09-28
 
 - **Reasoning is divorced from actions:** Systems 0/1/2 reason in **intents** (expressed in

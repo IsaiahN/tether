@@ -56652,3 +56652,18 @@ m2 29/29, gate 25/25, with the mechanism on.
 
 
 **Gridworld (wt19: F485 + F486 + items 1, 4, 5, 6; ON, default, 60 cycles):** s0 26c21caad5fad549, s1 3c14e9118fd2bf45, s2 a4c7c8e19c944e6d -- each IDENTICAL to the frontier-only ON trace, with identical verdict counts and the same 3 override commitments (s1 2, s2 1). Read from the vote rows: the relief rate was the agent's own on 26 of 38 votes (rates 5.0-13.3, some exactly 8.0) and no vote flipped; **the bar was the SEED on all 38 -- no override ended with a verdict in 60 cycles, so the panel never exercised the bar half**; its evidence is the fixture and its three mutations only.
+
+#### F491 -- **FIDELITY AUDIT, SECTION 2 (tether.py's decision path): what was built (F487-F490) and what is verified and NOT built, ranked.**
+
+**Method:** a read-only sweep against the extracted text of all 13 figures + the Operators and Symbols tables, then every item re-read by the seat at its line on d0cdb13 (the reviewer, 2026-10-07 06:14Z: section 2 in the form of gamma.py's section 1). Figure quotes checked verbatim against the figure files.
+
+**Built tonight:** item 1 (a routine refusal fading in one cycle -> an added record lifted by growth) F487; item 4 (two clocks -> one, at the agent's rate) F488; item 5 (seven slot-keyed stores surviving a boundary) F489; item 6 (bits summed with counts, a seat-constant height -> one currency, the agent's height) F490. Items 2 (`refuted.pop` at a rising residual) and 3 (the boundary dropping routine refutations) are subsumed by F487: the slot Standing they delete is now only the vote's evidence.
+
+**Verified at the line, NOT built (the queue):**
+- **7 -- the context key never gets the actor** (`interface.py:941`; all 10 call sites pass only `env`), so in open space every position is one context (Fig 1). Design B (the transition record) is queued under plan item 1. The realisers' pooling across contexts (`interface.py` 478-482, 539, 573; `step_of`, `recurrence`) is a DECLARED fallback when per-context cells are empty -- weaker than a silent average.
+- **9 -- NOVEL has no consumer** and is reachable only at `len(self.trace) < 2` / `self.cycle < 2` (the latter never reset); `step()` branches on REBIND, REFUTED and MECHANISM only (Fig 5: "new: extend perception, aim the probe here").
+- **10 -- the REFUTED bin is off** (`_REFUTED_BIN`) while `_refuted_slot.pop` runs on every `route` call: Fig 5's fifth kind computed and discarded. To be built WITH plan item 4 (negation, the refusing term) -- its routing half.
+- **11 -- a branch on an attribute NAME:** `RELATIONAL = ("proximity",)` (`interface.py:100`) drops those attributes at `audit` (1147), on the CHANGES vs NO_EFFECT path, while `_is_relational` calls that tuple "the stopgap this replaces".
+- **12 -- `can()` is a fixed majority vote** (`* 2 > len(moves)`), and YES is the only verdict that commits a routine (Fig 10).
+- **13 -- clutter:** `ties()` reads `_ties`, which nothing writes; `_prev_bet` / `_prev_pred` written, never read; `_gamma_read["entered"]` always False; the `paths_retrieved` row over-claims (a stable price sort undoes its order except among ties); `_scope_weights` sets 0.0 under `_DOWNRATE` (off) while saying "never silenced"; **`_demoted_watch` stops at 64 entries with no counter, and "stayed wrong" is a 16-cycle window -- both feed the vindications the agent's halflife is the mean of, which since F488/F490 sets the routine Standing's rate and the commitment bar's weights. Ranked up for that reason.**
+- **Found while building, not in the sweep:** the `paths_retrieved` scoring computes step ids without `routine_lib` where the filing site uses it.
