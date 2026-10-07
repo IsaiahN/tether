@@ -3186,11 +3186,17 @@ class Agent:
         for slot, r in res.items():
             _dropped = None
             was_refused = self._refuted_slot.pop(slot, None)
-            # ONLY WHILE THE SLOT STILL CARRIES RESIDUAL -- the reviewer 2026-10-07 13:06Z (F497).
-            # Fig 5 routes a residual by what it contains NOW, and ranks the wrong term by residual
-            # that PERSISTS; a refutation filed last cycle, after the term has just predicted
-            # correctly, is a recording of one occasion (Fig 4). It stays as tally evidence.
-            if was_refused is not None and _REFUTED_BIN and r.mass > 0.0:
+            # ONLY WHILE THE REFUSED TERM'S RESIDUAL PERSISTS -- the reviewer 2026-10-07 14:58Z
+            # (F498), superseding 13:06Z's "while this cycle's residual is nonzero", which could
+            # never file a term wrong every other step: its refutation was read on its right step.
+            # Fig 5's amendment ranks the wrong term by residual that PERSISTS and does not trend
+            # down; a term that failed once and is right since is a recording of one occasion
+            # (Fig 4) and stays tally evidence.
+            # AND ONLY WHILE IT IS STILL THE TERM BOUND (Fig 1: blame only to the term that made
+            # the prediction). Rebound in the cycle it was refused, the slot's new term may be
+            # right, and filing the old term's window displaced it (gridworld s2, c39, F498).
+            if (was_refused is not None and _REFUTED_BIN and self.bound.get(slot) == was_refused
+                    and self._persists(was_refused, slot)):
                 # ISAIAH'S SECOND CLAUSE -- *alternatives that DO work start to compete.*
                 # `_library_fit` already takes an `exclude`, so asking it for the best fit
                 # OTHER than the one just refused needs no new retrieval path. Standing still
@@ -4939,6 +4945,21 @@ class Agent:
                             reads=("a settled term and its refusal both stand: two scopes, an "
                                    "error in the ground, or a world that changed -- not decided"))
         return True
+
+    def _persists(self, name: str, slot: str) -> bool:
+        """The refused term's residual on this slot, row by row over the last MIN_REPEAT+1 rows,
+        read by `_goal_choice`'s test with the sign reversed: not ARRIVED (the last MIN_REPEAT
+        rows all explained) and not CONFIDENTLY SHRINKING (non-increasing with a real fall).
+        A window too short to read is not persistence -- one observation is a coincidence."""
+        t = self.gamma.library.get(name)
+        rows = self.history(slot)[-(MIN_REPEAT + 1):]
+        if t is None or len(rows) < MIN_REPEAT + 1:
+            return False
+        series = [self._left(t, slot, [row]) for row in rows]
+        if all(v <= 0 for v in series[-MIN_REPEAT:]):
+            return False
+        deltas = [b - a for a, b in zip(series, series[1:], strict=False)]
+        return not (all(d <= 0 for d in deltas) and any(d < 0 for d in deltas))
 
     def _price_refusal(self, slot: str) -> None:
         """The MINT step's act for a slot `route` filed to REFUTED, at that slot's own turn --
