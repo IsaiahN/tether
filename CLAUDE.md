@@ -21,6 +21,15 @@ memorised and apply all thirteen figures at once, and we see the code he does no
 where the code or our decisions strayed from it is OUR job.** Detail: the memory files
 `the-tether-is-the-pattern`, `why-the-tether-matters`, `always-use-the-tether`.
 
+**THE TETHER FIGURES DICTATE LOGIC AND DECISIONS -- ISAIAH'S OPERATIONAL RULE, 2026-10-07, AT THE TOP OF
+EVERY DISCIPLINE BELOW.** *"please have both of you commit to your operational rules that the tether figures dictate logic and decisions. its how evolution works, and you wont be able to outrun this or outthink this. the laws when used as a cohesive self-consistent set, will protect you both from making errors. It will also provide the agent true RSI. i will be watching periodically to make sure that neither of you stray again."* One self-consistent set, applied recursively to the agent AND
+to both seats. In practice: **every proposal and ruling carries a FIGURE CENSUS** (all 13 + Operators +
+Symbols; the bearing ones QUOTED from the SVG text; any strained named); **our own process runs through
+the Tether** (a problem is a residual, Fig 9, sorted by Fig 5; Fig 8's two questions before any search or
+speed work; an exhausted line is a verdict with kind and scope, Fig 13; every claim names instrument and
+MODE, Fig 1; the queue follows the agent's measured residuals); **the figure reasoning is visible in every
+post.** Checked by `conform/figures.py`. Full text: `docs/ISAIAH_RULINGS.md`, top.
+
 **AGENCY IS PARAMOUNT, AND IT COMES BEFORE EVERYTHING BELOW.** Isaiah, 2026-09-23,
 2026-10-01 and 2026-10-05. **The agent is the driving force behind every decision, never a
 pilot inside machinery that decides for it.** **NOT AN RSI PROJECT -- Isaiah, 2026-10-06.** It RUNS the one pattern evolution already runs --
@@ -127,7 +136,7 @@ and provable, **no game ID read by any decision** · `_invent` **RETIRED** · **
 by default** (Isaiah 2026-10-05, superseding the zero-failure bar) · downrating **PARKED**
 · imports only for what cannot be composed, **in the grammar**.
 
-**DISCIPLINES.** Pre-register with a **refuter and a precondition** · **treatment-executed
+**DISCIPLINES.** **A FIGURE CENSUS FIRST, ON EVERY PROPOSAL AND RULING** (Isaiah 2026-10-07) · Pre-register with a **refuter and a precondition** · **treatment-executed
 check** · one change at a time · an A/B is **one script with one flag** · pinned worktrees
 per panel, and a cap-vs-estimate refusal · **every count restricted to the population it
 names** · never survivors-only · **per world, per seed, never pooled** · **arm state

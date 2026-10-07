@@ -1,5 +1,25 @@
 # ISAIAH'S STANDING RULINGS
 
+**THE TETHER FIGURES DICTATE LOGIC AND DECISIONS -- ISAIAH'S OPERATIONAL RULE FOR BOTH SEATS, 2026-10-07,
+ABOVE EVERY PRACTICE BELOW.** Verbatim, relayed by the reviewer (channel, 2026-10-07 20:37:31Z):
+*"please have both of you commit to your operational rules that the tether figures dictate logic and decisions. its how evolution works, and you wont be able to outrun this or outthink this. the laws when used as a cohesive self-consistent set, will protect you both from making errors. It will also provide the agent true RSI. i will be watching periodically to make sure that neither of you stray again."*
+The figures are ONE self-consistent set, applied recursively -- to the agent AND to both seats' own
+decisions. ("true RSI" is his wording, kept verbatim; read beside the 2026-10-06 ruling "we are not trying
+to build RSI" -- flagged, not reconciled by me.)
+
+**THE OPERATIONAL FORM (approved by Isaiah for both seats; the reviewer, 2026-10-07 20:34Z and 20:37Z):**
+- **EVERY PROPOSAL AND EVERY RULING CARRIES A FIGURE CENSUS** -- all thirteen figures plus the Operators and
+  Symbols tables checked; the ones that bear QUOTED from the SVG text with the figure named (never paraphrased
+  from memory); any figure strained named. A design with no census is not ready to rule on.
+- **OUR OWN PROCESS RUNS THROUGH THE TETHER, recursively:** an open problem is a RESIDUAL -- described first
+  (Fig 9) and sorted by Fig 5's kinds before a remedy is chosen; Fig 8's two questions (unreachable in
+  principle vs at this budget) are asked before any search or speed work; an exhausted line of work is a
+  VERDICT recorded with its kind and scope (Fig 13), reopened only when its scope changes; every claim names
+  its instrument and MODE (Fig 1); the queue is ordered by the agent's measured residuals.
+- **THE FIGURE REASONING STAYS VISIBLE IN EVERY POST**, so Isaiah can see which figure decided what.
+- **IT IS CHECKED:** `conform/figures.py` refuses any INDEX entry from F506 on that carries no FIGURE CENSUS
+  block. Entries written before the rule are annotated forward, never rewritten.
+
 **ALWAYS USE THE TETHER -- ISAIAH'S STANDING DIRECTIVE, 2026-10-06, ABOVE EVERYTHING BELOW.**
 *"ALWAYS USE THE TETHER. Always have the agent think, act and predict using the Tether. Complex
 problems: the Tether says unbundle them into separate problems and recursively reapply it. You
@@ -294,3 +314,11 @@ here in the same session it arrives, or the next search for it fails the same wa
   GROUND MAINTAINER (the seat map) to range against."* **Consequence for the work: FIDELITY TO
   THE FIGURES** -- every component traceable to the figure and rule it implements, not
   inventing capabilities.
+
+## 2026-10-07
+
+- **THE TETHER FIGURES DICTATE LOGIC AND DECISIONS, for both seats** -- verbatim at the top of this file;
+  relayed by the reviewer 2026-10-07 20:37:31Z, with the operational form he approved (20:34:12Z).
+- **THE ARC KEY IS IN `.env`, and every remaining open question is decided by the figures** -- Isaiah via the
+  reviewer, 2026-10-07 20:34:12Z. (How this bears on the ARC board stop, 2026-09-28 above, is put to a
+  figure census before any board is run -- not assumed.)

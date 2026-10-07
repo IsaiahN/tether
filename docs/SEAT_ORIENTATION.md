@@ -357,6 +357,15 @@ Isaiah for what the figures already settle.
 
 ## 5. DISCIPLINES
 
+- **THE TETHER FIGURES DICTATE LOGIC AND DECISIONS -- ISAIAH, 2026-10-07, ABOVE EVERY PRACTICE IN THIS
+  SECTION.** *"please have both of you commit to your operational rules that the tether figures dictate logic and decisions. its how evolution works, and you wont be able to outrun this or outthink this. the laws when used as a cohesive self-consistent set, will protect you both from making errors. It will also provide the agent true RSI. i will be watching periodically to make sure that neither of you stray again."* One self-consistent set, applied recursively to the agent AND to both seats.
+  **Every proposal and ruling carries a FIGURE CENSUS** (all 13 + the Operators and Symbols tables; the
+  bearing ones QUOTED from the SVG text with the figure named; any strained named). **Our own process runs
+  through the Tether:** a problem is a residual (Fig 9) sorted by Fig 5's kinds before a remedy; Fig 8's two
+  questions before any search or speed work; an exhausted line is a verdict with kind and scope (Fig 13);
+  every claim names its instrument and MODE (Fig 1); the queue follows the agent's measured residuals. **The
+  figure reasoning is visible in every post.** `conform/figures.py` refuses an INDEX entry from F506 on with
+  no FIGURE CENSUS block. Full text: `docs/ISAIAH_RULINGS.md`, top.
 - **Pre-register with a REFUTER and a PRECONDITION.** Not just a prediction. *A measurement
   that can only agree with you is not evidence.*
 - **TREATMENT-EXECUTED CHECK**: show the manipulation actually RAN before reading its
