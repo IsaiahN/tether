@@ -1960,6 +1960,32 @@ def check_a_spent_plan_is_settled_in_its_deciding_cycle():
             assert len(ag.routines) == shelf, "an untested plan was shelved"
         assert ag._routine_adopted is None and ag._expect is None, f"{case}: the plan lingers"
 
+def check_an_attribute_atom_follows_its_arm():
+    """DEFECT: every attribute became an atom whatever its arm, so on the ARC path ten atoms with
+    nothing behind them widened the alphabet every term is priced over (F503). Read at
+    construction: the shape-delta flag set AFTER import, as `arc_holdout.wire` sets it, must bring
+    its atoms back."""
+    flags = [(arc_percept, "_OBSERVER"), (arc_world, "_OBSERVER"),
+             (arc_percept, "_SHAPE_DELTA"), (arc_percept, "_INSTRUMENTS")]
+    was = [getattr(m, f) for m, f in flags]
+    try:
+        for m, f in flags:
+            setattr(m, f, False)
+        names = {a.name for a in arc_atoms._extract()}
+        gated = set(arc_atoms.ATTRIBUTE_ARM) & set(arc_atoms.ATTRIBUTE_TYPE)
+        assert not names & gated, f"atoms with their arm off: {sorted(names & gated)}"
+        arc_percept._SHAPE_DELTA = True
+        names = {a.name for a in arc_atoms._extract()}
+        assert {"dholes", "dperimeter"} <= names, "the shape-delta arm set at runtime was ignored"
+        for m, f in flags:
+            setattr(m, f, True)
+        names = {a.name for a in arc_atoms._extract()}
+        assert gated <= names, f"an arm on and its atom missing: {sorted(gated - names)}"
+    finally:
+        for (m, f), v in zip(flags, was, strict=True):
+            setattr(m, f, v)
+
+
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
 
 if __name__ == "__main__":

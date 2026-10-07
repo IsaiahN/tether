@@ -656,11 +656,14 @@ def test_the_admitting_clause_crosses_into_gamma():
 
     atoms = arc_atoms.three_spaces(arc_predict.predict())
     got = Gamma(atoms, game="clause").admissions()
-    assert got.get(HANDED) == len(arc_atoms.ADMITTED), (
+    # Only the admitted atoms that were BUILT: since F503 an atom whose arm is off is never
+    # constructed (`inside` follows `arc_world._OBSERVER`), so it cannot be filed either way.
+    handed = {a.name for a in atoms} & set(arc_atoms.ADMITTED)
+    assert got.get(HANDED) == len(handed), (
         f"the admitting clause did not cross into Gamma: {got}. Every atom reads "
         f"`necessary` -- the category the ablation stays BLIND to -- while "
-        f"`arc_atoms.ADMITTED` names {len(arc_atoms.ADMITTED)} that were handed")
-    assert got.get(NECESSARY) == len(atoms) - len(arc_atoms.ADMITTED), (
+        f"`arc_atoms.ADMITTED` names {len(handed)} built atoms that were handed")
+    assert got.get(NECESSARY) == len(atoms) - len(handed), (
         f"the clause-one population is wrong: {got}. If this is `handed` for everything "
         f"the default inverted and the base vocabulary is filed in the WIPED category")
 
