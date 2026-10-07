@@ -4,8 +4,10 @@
 ABOVE EVERY PRACTICE BELOW.** Verbatim, relayed by the reviewer (channel, 2026-10-07 20:37:31Z):
 *"please have both of you commit to your operational rules that the tether figures dictate logic and decisions. its how evolution works, and you wont be able to outrun this or outthink this. the laws when used as a cohesive self-consistent set, will protect you both from making errors. It will also provide the agent true RSI. i will be watching periodically to make sure that neither of you stray again."*
 The figures are ONE self-consistent set, applied recursively -- to the agent AND to both seats' own
-decisions. ("true RSI" is his wording, kept verbatim; read beside the 2026-10-06 ruling "we are not trying
-to build RSI" -- flagged, not reconciled by me.)
+decisions. **"true RSI" and the 2026-10-06 "we are NOT building RSI" (below) say the same thing, in his
+own 10-06 words:** *"Evolution is already the RSI... The Tether codifies that pattern recursively"* -- RSI
+is not a separate goal engineered on top; following the pattern IS what produces it. (Reading supplied by
+the reviewer 2026-10-07 21:02Z and checked against this file's 10-06 entry, which it matches.)
 
 **THE OPERATIONAL FORM (approved by Isaiah for both seats; the reviewer, 2026-10-07 20:34Z and 20:37Z):**
 - **EVERY PROPOSAL AND EVERY RULING CARRIES A FIGURE CENSUS** -- all thirteen figures plus the Operators and
