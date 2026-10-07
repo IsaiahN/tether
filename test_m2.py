@@ -1986,6 +1986,26 @@ def check_an_attribute_atom_follows_its_arm():
             setattr(m, f, v)
 
 
+def check_a_plan_is_named_the_same_in_two_runs():
+    """F504 (the reviewer 2026-10-07 18:54Z): a plan's identity in the record is its adoption
+    ordinal, never a memory address. Two agents abandoning the same plan the same way must write
+    the same row -- an id() makes them differ, and no ledger carrying one can be reproduced."""
+    rows = []
+    for _ in range(2):
+        ag = _agent()
+        slot = _plant(ag, 1)
+        ag._plan_no = 1
+        state = ag.env.observe()
+        ag._expect = (slot, state.get(slot), 1, ag._routine_adopted, ag._act_n(), ag._plan_no)
+        n0 = len(ag.led.entries)
+        ag._settle_routine()
+        got = [e.detail for e in ag.led.entries[n0:] if e.event == "routine_abandoned"]
+        assert got, "fixture: the planted claim did not abandon"
+        rows.append({k: got[0].get(k) for k in ("set_by_plan", "held_plan", "set_by")})
+    assert rows[0] == rows[1], f"one plan, two names across runs: {rows}"
+    assert rows[0]["set_by_plan"] == rows[0]["held_plan"] == 1, rows[0]
+
+
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
 
 if __name__ == "__main__":
