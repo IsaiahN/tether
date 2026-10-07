@@ -56547,3 +56547,22 @@ The scan recorded `from a.b import c` as an import of `b` only, so a MODULE impo
 **Now behavioural, on a real mint of every slot of the warmed m2 agent**, in the two halves that imply the substance: **(i)** every refused term whose trees were NOT offered already cost `base` on its own; **(ii)** every tree built costs at least its chain (`term_bits(length)`, read at `gamma.length`: a tree adds its operand's length, or both are 1 when the chain is a settled unit -- never less). Checked over **19,205 refused terms**. Under today's code nothing is withheld, so (i) holds trivially -- which is why the PLANTED VIOLATION is the proof: withholding every tree fires (i) on a genuinely payable chain (`recolour<o1.colour>?BECOME OTHER`, cost 11.95 < base 30.46). My first plant was vacuous -- it recorded the withheld request as offered -- and was corrected before commit. m2 29/29 in 41 s.
 
 **This unblocks the per-chain cut (item 2 step 1, approved 02:17Z), which subsumes F444's clean cut and lands next, its own commit.**
+
+#### F484 -- **A CHAIN WHOSE CHEAPEST INSTANCE CANNOT PAY IS NOT EXPANDED (plan item 2, step 1; subsumes F444's clean cut). Decisions identical on four worlds; the cut-count fields are NOT comparable across this commit.**
+
+**Ruled:** the reviewer 2026-10-07 02:08Z (item 2 first) and 02:17Z (the per-chain cut, counters as their own category); decision 2 (2026-10-06): the clean cut commits once m2 asserts the tree ruling's substance -- done in F483.
+
+**Sizing that led here (fake 20 cycles / gridworld default s0 30 cycles, be04f62):** 2.57M / 22.0M candidates priced; ~790 / ~12,700 instances per typed shape -- a CEILING; **refused on description cost alone, before any row: 79.8% / 31.4%**; NOT ONE of the fake's 2.57M passed the bound (all 91 mints parked, no SETTLE row), while gridworld had 265,118 pass. **A correction made on the way:** description cost is NOT shared by a typed shape (270 of 290 groups vary on the fake) -- `gamma.length` counts a settled unit as one and the guard adds bits -- so the exact unit is the CHAIN, not the typed shape.
+
+**The cut:** before a chain's bindings x guard-pairs are expanded, its cheapest cost -- `term_bits(length(chain, units))` + the cheapest guard's bits -- is compared with `base`; if it reaches it (and the slot has a history row; with none, `_cannot_pay` returns "can pay"), every instance would be refused on cost alone, and every tree too (a tree never costs less than its chain, read at `gamma.length`, F483), so the chain is not expanded and is counted as `chain bounded out on cost: instances not generated`. **Two side effects are decision-relevant and preserved exactly:** `rank` -- the WORK BUDGET counts instances, so a skipped chain still adds its N (else later chains would be searched that were not before); and `guards["novelty"]` -- still set from the skipped instances, since it decides the mint's failure reason.
+
+**Gate (base be04f62 = HEAD's tether.py):**
+    fake, 20 cycles          1,889 rows, 71 differ; wrapper calls identical
+    gridworld default s0     trace IDENTICAL (8f843921...); 9,272 rows, 120 differ
+    gridworld default s1     trace IDENTICAL (cd9d9053...); 9,485 rows, 109 differ
+    gridworld default s2     trace IDENTICAL (eb8f3135...); 8,992 rows, 111 differ
+In every case the differing fields are ONLY the pre-pricing counts: `chain bounded out on cost` (new), `bounded-out: cannot pay on R alone`, `not-novel`, `recipe-held`, `candidates_priced`, `bargain_bounded_out`. **These are NOT comparable across this commit.**
+
+**The mutation, and the gate it corrected:** skipping chains up to 3 bits BELOW the base was ALSO trace-identical on s0 -- no chain within 3 bits paid in 60 cycles -- so "identity of everything except the cut counts", as pre-registered, could not catch a wrong cut. **The sharpened gate:** the fields that record a candidate PASSING the cost bound must not move -- `does-not-pay`, `bargain_does_not_pay`, `cuts`. The real cut leaves all three identical on s0, s1, s2 and the fake; the mutation changes them (22, 53 and 33 rows respectively; I first reported their sum, 108, as a row count -- it is not, rows overlap). m2 29/29, including F483's substance check, with the cut in.
+
+**Timing:** not read from these runs (the base arms ran 6 processes on 4 cores, the cut arms 4). A matched timing follows as its own reading.

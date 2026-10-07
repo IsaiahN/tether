@@ -6227,6 +6227,27 @@ class Agent:
                     # (each branch is one atom). Same expression, evaluated once per key.
                     _price: dict = {}
                     _maybe_lib = not _sep_free or cand.name in self._held_chains
+                    # A CHAIN WHOSE CHEAPEST INSTANCE CANNOT PAY IS NOT EXPANDED (item 2, F484).
+                    # Within a chain cost varies only with the guard (length is keyed by the atom
+                    # sequence), and a tree never costs less than its chain (F483), so if the
+                    # cheapest instance's cost reaches `base`, every instance and every tree is
+                    # refused on cost alone. Exact: `rank` (the work budget) still counts them and
+                    # `novelty` is still read; only the cut bookkeeping differs, as its own reason.
+                    _n = len(binds) * len(_pairs)
+                    if _n and robs and (term_bits(self.gamma.length(Term(cand.atoms), _units),
+                                         self.gamma.alphabet)
+                               + min(_guard_bits(g, len(_gs) - 1, len(_refs)) for g in _gs)
+                               >= base):
+                        if not guards["novelty"]:
+                            for bind, (g, gref) in ((b, p) for b in binds for p in _pairs):
+                                t = Term(cand.atoms, operand=bind, guard=g, guard_ref=gref)
+                                if not (self.gamma.is_atom(t) or (
+                                        _maybe_lib and t.name in self.gamma.library)):
+                                    guards["novelty"] = True
+                                    break
+                        rank += _n
+                        cut_n["chain bounded out on cost: instances not generated"] += _n
+                        continue
                     for bind, (g, gref) in ((b, p) for b in binds for p in _pairs):
                         rank += 1
                         term = Term(cand.atoms, operand=bind, guard=g, guard_ref=gref)
