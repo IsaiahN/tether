@@ -408,6 +408,30 @@ def test_refused_unbound():
     _refuses(_refusal("an_old_term"), gate.REFUSED_UNBOUND)
 
 
+def _abandoned(set_by, held, set_on=3, judged=3):
+    r = valid()
+    r.insert(4, {"mode": "specified", "seq": 8, "cycle": 0, "step": "SETTLE", "slot": "s",
+                 "event": "routine_abandoned",
+                 "detail": {"set_by": "p", "set_by_plan": set_by, "held_plan": held,
+                            "set_on_act": set_on, "judged_after_act": judged}})
+    return r
+
+
+def test_an_abandonment_on_its_own_claim_passes():
+    """F502: the plan abandoned is the plan that made the failed claim."""
+    assert gate.check(_abandoned(7, 7))["verdict"] == gate.PASS
+
+
+def test_abandoned_on_anothers_claim():
+    """F502: an ended routine's expectation dropped its successor."""
+    _refuses(_abandoned(7, 9), gate.ABANDONED_ON_ANOTHERS_CLAIM)
+
+
+def test_judged_on_another_act():
+    """F502: a claim is about ONE act; judged after a later one, it is stale."""
+    _refuses(_abandoned(7, 7, set_on=3, judged=4), gate.JUDGED_ON_ANOTHER_ACT)
+
+
 def test_declared_death_passes():
     """The same death WITH its disproof stated is the experiment §21.2 licenses."""
     r = valid()
