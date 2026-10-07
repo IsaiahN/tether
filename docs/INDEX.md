@@ -56685,3 +56685,15 @@ m2 29/29, gate 25/25, with the mechanism on.
 **Found while building, not fixed here -- the vanish charge.** `tether.py`'s bet loop sets `gone = s not in after` and charges a full code, cause `genuine`. `ArcWorld.observe()` strips every NOT_RESOLVED value, so a reading that turns UNREADABLE while its object is present is billed as a vanished OBJECT -- measured with the arm on: `o0.rem_row` charged 3.0 bits on a no-move frame. Fig 10: a missing reading is a channel fact. Taken to the reviewer as its own change.
 
 **Gate (the fake, 40 actions, the ARC wiring):** arm OFF -- 3,858 ledger rows identical to c888e19, 0 differing, the same 191 searches. Arm ON -- the treatment check above. The measured run of routes (a)-(c) waits on the vanish ruling.
+
+#### F493 -- **A READING THE CHANNEL COULD NOT TAKE IS SUSPENDED, NOT CHARGED (Fig 10; found by F492).**
+
+**The defect.** The bet loop set `gone = s not in after` and charged a full code, cause `genuine`, row marked `vanished`. Its comment is about an OBJECT whose cells were taken. But `ArcWorld.observe()` strips every NOT_RESOLVED value, so a reading that turned UNREADABLE while its object was present was billed as a vanished object. **Measured:** with F492's arm on, 32 such charges in 12 fake actions, all on the four centroid slots (`o0.rem_row` charged 3.0 bits on a no-move frame); with the arm off, 0 in 40 actions and 0 in 62 cycles. The covered-object path takes the same code route, and that is a claim from READING, not measured -- no panel here has occlusion.
+
+**Ruled:** the reviewer 2026-10-07 10:01Z -- object GONE (the key leaves the decomposition) charged as now; value UNREADABLE (key still listed) SUSPENDED: no bet scored, no residual, recorded on the row.
+
+**The change.** Only when some bet slot is missing after the step, the loop reads `env.slots()` (keys, unreadable ones included; the ARC world caches its decomposition per frame). Listed but missing = a bet row with `suspended: true`, mass 0, its prediction and from-value, and no residual entry. Not listed = charged exactly as before.
+
+**Fixture** `check_an_unreadable_reading_is_suspended_not_charged` (toy ARC world, one `.row` slot): unreadable with the key listed -> suspended, mass 0; the key removed too -> charged as vanished. **The old code fails the first half** (vanished, 3.807 bits) **and the "suspend everything missing" mutation fails the second** -- each half catches its own wrong version.
+
+**Identity, both pre-registered:** the fake with F492's arm off -- 3,858 ledger rows, 0 differing; gridworld default seed 0, 60 cycles -- reproduces `26c21caad5fad549` with every verdict count unchanged. 21/21 seats, m2 included, on the gated tree.
