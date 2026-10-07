@@ -695,15 +695,54 @@ def check_the_tree_is_judged_by_its_own_bound():
     # with the repair, so a reader must not find a switch that no longer gates anything.
     assert not hasattr(tether, "_TREE_BOUND"), "the workaround arm survived the repair"
 
-    # 3 -- AND THE BOUNDED-OUT BRANCH OFFERS TREES UNCONDITIONALLY NOW, which is the route
-    # opening. Read from the source, because no board reaches it today (F348: `_trees` at 0).
-    src = pathlib.Path(tether.__file__).read_text(encoding="utf-8")
-    seg = src[src.index("bounded-out: cannot pay on R alone"):]
-    # The delimiter is the call's PREFIX: `_left` may take more arguments (the exact abort,
-    # F445) and the segment must still end at the chain's `_left`. Asserted unchanged.
-    seg = seg[:seg.index("left = self._left(term, slot, hist")]
-    assert "for bt in self._trees(" in seg, "the bounded-out branch no longer offers trees"
-    assert "if self._cannot_pay(bt," in seg, "the tree is not judged by its OWN bound"
+    # 3 -- THE RULING'S SUBSTANCE, NOT ITS LETTER (decision 2, 2026-10-06): NO TREE THAT COULD PAY
+    # IS WITHHELD. This asserted a source string -- that the bounded-out branch calls `_trees` --
+    # which any exact cut trips. Now behavioural, on a real mint, in two halves that together
+    # imply it: (i) a refused term whose trees were NOT offered already cost `base` on its own;
+    # (ii) a tree never costs less than its chain (`gamma.length` adds the operand, or is 1 for
+    # a settled unit either way). The planted violation, `withhold`, proves (i) can fire.
+    assert _withheld_trees_could_not_pay() > 0, "fixture: no mint refused anything to check"
+    try:
+        _withheld_trees_could_not_pay(withhold=True)
+    except AssertionError as e:
+        assert "withheld" in str(e), e
+    else:
+        raise AssertionError("PLANTED: trees withheld under a payable chain, and nothing fired")
+
+
+def _withheld_trees_could_not_pay(withhold: bool = False) -> int:
+    """Mint every slot of a warmed agent, recording each refused term and each tree request;
+    assert (i) and (ii) above. `withhold` plants the violation: no trees offered at all."""
+    ag = _agent()
+    units = tuple(ag.gamma.units())
+    refused, asked = [], set()
+    real_cp, real_trees = ag._cannot_pay, ag._trees
+
+    def cp(term, slot, robs, cost, base, *a, **k):
+        out = real_cp(term, slot, robs, cost, base, *a, **k)
+        if out and term.operand_term is None:
+            refused.append((term, cost, base))
+        return out
+
+    def trees(cand, bind, g, slot=None):
+        if withhold:                  # withheld: asked for, never produced -- not offered
+            return []
+        asked.add((tuple(a.name for a in cand.atoms), bind, g))
+        built = list(real_trees(cand, bind, g, slot))
+        chain = tether.term_bits(ag.gamma.length(gamma.Term(cand.atoms), units), ag.gamma.alphabet)
+        for bt in built:
+            assert tether.term_bits(ag.gamma.length(bt, units), ag.gamma.alphabet) >= chain, (
+                f"(ii) a tree is cheaper than its chain: {bt.name}")
+        return built
+    ag._cannot_pay, ag._trees = cp, trees
+    for slot in sorted(ag.slots):
+        ag.mint(slot)
+    for term, cost, base in refused:
+        key = (tuple(a.name for a in term.atoms), term.operand, term.guard)
+        assert key in asked or cost >= base, (
+            f"(i) trees withheld under a chain that could still pay: {term.name} "
+            f"cost {cost:.2f} < base {base:.2f}")
+    return len(refused)
 
 
 def check_chunking_reaches_the_bargain():
