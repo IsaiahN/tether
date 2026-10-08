@@ -1755,6 +1755,9 @@ class Agent:
         """A routine's ending: its verdict, shelving, refutation and record. Run where the ending is
         evaluated -- at the deciding cycle's SETTLE for a routine that has acted (F501), at PLAN for
         an ending found while choosing (unrealisable, or the zero-act case left OPEN)."""
+        # A CLAIM ENDS WITH THE PLAN THAT MADE IT (F502; the reviewer 2026-10-07 17:21Z): left
+        # standing, an ended routine's expectation abandoned its successor (gridworld s0, c50).
+        self._expect = None
         if why == Rt.DONE:
             _verdict = "tested_yes" if self._routine_acts else "tested_no"
         elif why == Rt.EXHAUSTED:
@@ -1841,6 +1844,11 @@ class Agent:
         self.routine, self.routine_for = None, None
         self._routine_adopted = None
 
+    def _act_n(self) -> int:
+        """Acts chosen so far, derived from `self._acts` (not a second counter): the act a claim is
+        about is the one `step` counts right after `choose` returns it."""
+        return sum(self._acts.values())
+
     def _check_expectation(self, before: dict, step: str = "PLAN") -> bool:
         """Did the last step's claim hold? **ABANDON on divergence -- not revise, not re-plan.**
 
@@ -1859,7 +1867,8 @@ class Agent:
         if not exp:
             return False
         self._expect = None
-        slot, was, idx = exp
+        slot, was, idx, *rest = exp
+        setter, set_on = (rest + [None, None])[:2]
         now = before.get(slot, was)
         if now != was:
             return False                      # the claim held; carry on
@@ -1869,7 +1878,12 @@ class Agent:
                         # `step_index`, NOT `step`: `led.record`'s own first positional is
                         # `step`, so the obvious name silently shadowed it.
                         step_index=idx, unchanged_at=was, actions_saved=saved,
-                        routine=Rt.render(self.routine) if self.routine else None)
+                        routine=Rt.render(self.routine) if self.routine else None,
+                        set_by=Rt.render(setter) if setter is not None else None,
+                        set_by_plan=id(setter) if setter is not None else None,
+                        held_plan=id(self._routine_adopted)
+                        if self._routine_adopted is not None else None,
+                        set_on_act=set_on, judged_after_act=self._act_n())
         self.routine, self.routine_for = None, None
         self._routine_adopted = None
         return True
@@ -3693,7 +3707,10 @@ class Agent:
                 want = (self.routine_state.get("expect") or [None])[0]
                 if want is not None:
                     self._expect_step += 1
-                    self._expect = (want, before.get(want), self._expect_step)
+                    # THE SETTER RIDES WITH THE CLAIM (F502), so an abandonment can show whose
+                    # claim failed: the plan that made it, never its successor's.
+                    self._expect = (want, before.get(want), self._expect_step,
+                                    self._routine_adopted, self._act_n() + 1)
                 self._routine_acts += 1
                 self.routine = rest
                 return _act, "routine"

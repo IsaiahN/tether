@@ -1899,6 +1899,39 @@ def check_a_zero_act_routine_still_ends_at_planning():
     assert tested and tested[0].detail.get("verdict") == "tested_no" and (
         tested[0].detail.get("emitted") == 0), "the zero-act shelving was not written"
 
+def check_an_ended_routines_claim_does_not_outlive_it():
+    """F502 (the reviewer 2026-10-07 17:21Z, 17:31Z): a claim ends with the plan that made it. Left
+    standing, an ended routine's expectation abandoned its successor (gridworld s0, cycle 50)."""
+    import routine as Rt
+    ag = _agent()
+    slot = _plant(ag, 1)
+    state = ag.env.observe()
+    ag._expect = (slot, state.get(slot), 1, ag._routine_adopted, ag._act_n())
+    ag._end_routine(Rt.DONE, state, "SETTLE")
+    assert ag._expect is None, "an ended routine's claim outlived it"
+    ag.routine, ag.routine_for = Rt.Until(slot, Rt.Act("down"), 3), slot   # its successor
+    ag._routine_adopted, ag._routine_acts = ag.routine, 0
+    n0 = len(ag.led.entries)
+    assert not ag._check_expectation(state), "the successor was abandoned on its predecessor's claim"
+    assert not [e for e in ag.led.entries[n0:] if e.event == "routine_abandoned"]
+
+
+def check_a_claim_is_judged_once_on_its_own_act():
+    """F502 (the reviewer 2026-10-07 17:31Z): a claim is about ONE act and is judged once, on the
+    observation after that act, then cleared whatever the verdict. A following step that makes no
+    claim must not re-judge it against an observation it was never about."""
+    ag = _agent()
+    slot = _plant(ag, 1)
+    state = dict(ag.env.observe())
+    ag._expect = (slot, "before", 1, ag._routine_adopted, ag._act_n())   # the claim held: it moved
+    assert not ag._check_expectation(state), "fixture: the held claim abandoned the routine"
+    assert ag._expect is None, "a judged claim was not cleared"
+    ag._acts["up"] += 1                              # the next act publishes no claim
+    state[slot] = "before"                           # and the slot reads as the claim's old value
+    n0 = len(ag.led.entries)
+    assert not ag._check_expectation(state), "a claim was judged a second time, on another act"
+    assert not [e for e in ag.led.entries[n0:] if e.event == "routine_abandoned"]
+
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
 
 if __name__ == "__main__":
