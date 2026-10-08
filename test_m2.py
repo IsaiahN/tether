@@ -2182,6 +2182,49 @@ def check_the_library_partner_is_ordered_after_contact_before_variance():
         tether._LOOKUP_ORDER = was
 
 
+
+def check_an_objective_is_searched_over_what_the_world_showed():
+    """DEFECT: an objective was probed across the slot's whole declared alphabet -- 286 million
+    probes and 2,112 s in one cd82 cycle on a 32,769-value perimeter alphabet. The domain is the
+    values the record has shown before this frame plus each operand and its neighbours; the
+    alphabet only prices. So the probe count does not move with the alphabet, the step to a shown
+    target is still found, and a replayed frame cannot search a value shown after it."""
+    ag = _agent()
+    slot = ag.slots[0]
+    ag.trace = [({slot: 10}, "x", {slot: 12}, None, None),
+                ({slot: 12}, "x", {slot: 40}, None, None)]
+    ag.slot_types[slot] = next(iter(tether.ORDERED_TYPES))
+    probes = [0]
+
+    class Want:
+        out_type = tether.OBJ_TYPE
+
+        def __init__(self, ok):
+            self.ok = ok
+
+        def apply(self, v, _ctx):
+            probes[0] += 1
+            return self.ok(v)
+
+    def ask(ok, state, alpha, operands=()):
+        ag.alphabet[slot] = alpha
+        probes[0] = 0
+        ctx = tether.Ctx(action="x", operands=operands)
+        return ag._value_of(Want(ok), slot, state, ctx), probes[0]
+
+    live = {slot: 12}
+    for alpha in (64, 8 * 64 * 64 + 1):
+        got, n = ask(lambda v: v == 40, live, alpha)
+        assert got == 13, f"the shown target 40 was not stepped toward at alphabet {alpha}: {got}"
+        never, n = ask(lambda _v: False, live, alpha)
+        assert never is tether.NOT_RESOLVED and n <= 4, (
+            f"probes scale with the alphabet: {n} at alphabet {alpha}")
+    got, _n = ask(lambda v: v == 40, ag.trace[1][0], 64)
+    assert got is tether.NOT_RESOLVED, "a replayed frame searched the value shown after it"
+    got, _n = ask(lambda v: v > 7, {slot: 2}, 64, operands=(7,))
+    assert got == 3, f"the comparison's own boundary was not searched: {got}"
+
+
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
 
 if __name__ == "__main__":

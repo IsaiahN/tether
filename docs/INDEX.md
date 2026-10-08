@@ -57009,3 +57009,22 @@ Refusals were priced on every seed; **none paid** (s0 172, s1 143, s2 117 attemp
 **Refuter for the all-25 reading, ON against OFF, per game:** does any game gain a PAYING goal relating its slot to a second quantity (link 3 under the second reader, sha256 e2bc51cd6cf2ef8a)? And distinct compositions must not fall, and budget-spent parks must not rise, on any game. Levels as the ground.
 
 **FIGURE CENSUS.** Figure 9 (Figure_9_Leave_Arrive_Search) -- "you get a kind of thing, never the answer itself": the library's partner is ordered, never adopted; and "Use filters for the budget and witnesses for the verdict": an order for a budget-limited search, the bargain still the witness. Strained: none.
+
+#### F511 -- **AN OBJECTIVE IS SEARCHED OVER WHAT THE WORLD HAS SHOWN, NOT OVER THE SLOT'S ALPHABET; the alphabet only bounds and prices (the reviewer 2026-10-08 09:55Z, 10:14Z).**
+
+**The defect, measured where it occurs.** cd82's sixth cycle on the second all-25 took 2,134 s, 2,112 of them in `objective_step`: 49,272 calls and 286 million probes, because an objective that nothing nearby satisfied was probed value by value across the slot's whole declared alphabet (`dperimeter` 8hw+1 = 32,769 on a 64x64 board; `dholes` 8,193). Sorted by Fig 8 as a pathological per-candidate cost, not a budget.
+
+**Built.**
+- `objective_step` and `objective_gap` take a DOMAIN, not an alphabet; the walk order inside it is unchanged (nearest first, ties to the smaller).
+- `Agent._domain`: the values the slot took in `trace` BEFORE the frame asked about (a replayed frame cannot search a value shown after it), plus each integer operand and its two neighbours (where a comparison against it turns over), inside the alphabet.
+- Arm `TETHER_OBJECTIVE_DOMAIN`, ON; `0` restores the whole-alphabet walk as the one-flag control.
+
+**Fixture (M2), red under its defect.** A shown target 40 is stepped toward at alphabet 64 and 32,769; an objective nothing satisfies takes at most 4 probes at either; a replayed frame cannot reach the value shown after it; a comparison's boundary is found from the operand. Must-fail: flag 0 -> "probes scale with the alphabet: 64 at alphabet 64".
+
+**Decision-identical where the old domain was small:** the toy demo's ledger is byte-identical flag on and off, with 7,101 objective-step calls executed (domains of 3-6 values against alphabets of 7-8).
+
+**The one decision it can change, registered before any board reads it:** a target never shown and named by no operand (a constant inside a term) was found by walking and is now NOT_RESOLVED. Refuter, per game, on the restarted second all-25 against the first: a game that loses a level or an objective step it took before.
+
+**The second all-25 on 7f6501e was ordered STOPPED at 6 of 25 (the reviewer 10:14Z):** its two open games, cd82 and ka59, were readings of this defect, not of the agent. Its partial rows are not the second reading; the second reading is all 25 on this head.
+
+**FIGURE CENSUS.** Figure 11 (Figure_11_The_Habitat) -- "You do not invent the list. You read it off the world, and what you cannot perceive or measure yet is the residual." Figure 12 (Figure_12_The_Bond) -- "A plan is a sequence. A goal is a comparison. Progress is a subtraction." Figure 9 (Figure_9_Leave_Arrive_Search) -- "matching is a one-pass check, not a search". Strained: a never-shown constant target is left a residual rather than walked to.

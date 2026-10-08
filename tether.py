@@ -705,12 +705,18 @@ def _same_object(landed_on: str | None, slot: str) -> bool:
     return landed_on.rsplit(".", 1)[0] == slot.rsplit(".", 1)[0]
 
 
+# THE OBJECTIVE'S SEARCH DOMAIN IS WHAT THE WORLD HAS SHOWN -- the reviewer, 2026-10-08 (Fig 11
+# "read it off the world"; Fig 12 "a goal is a comparison"). `0` searches the whole alphabet: the
+# one-flag control.
+_OBJECTIVE_DOMAIN = os.environ.get("TETHER_OBJECTIVE_DOMAIN", "1") != "0"
+
+
 def pays(cost: float, left: float, base: float) -> bool:
     """The bargain. Strict: a tie does not license a new term."""
     return cost + left < base
 
 
-def objective_step(evaluate, current: int, ordered: bool, alphabet: int) -> Any:
+def objective_step(evaluate, current: int, ordered: bool, domain) -> Any:
     """THE EDGE: what a composed objective predicts about a slot value.
 
     An objective is a TRUTH and a bet is a VALUE, so something has to say what wanting a
@@ -732,6 +738,11 @@ def objective_step(evaluate, current: int, ordered: bool, alphabet: int) -> Any:
 
     SATISFIED ALREADY -> the slot HOLDS. NOTHING SATISFIES -> NOT_RESOLVED, never a guess:
     *the instrument could not read* rather than a value nobody has evidence for.
+
+    `domain` IS WHAT IS SEARCHED AND THE ALPHABET IS NOT -- the reviewer, 2026-10-08. The
+    alphabet is the range a value COULD take, declared whole so pricing is honest; walking it
+    cost cd82 2,112 s in one cycle over a 32,769-value perimeter alphabet. `Agent._domain` says
+    what the domain is.
     """
     here = evaluate(current)
     if here is None:
@@ -751,22 +762,19 @@ def objective_step(evaluate, current: int, ordered: bool, alphabet: int) -> Any:
     # `current - d` is the smaller `v` and therefore sorted first under `(abs, v)`. A
     # `current` outside the alphabet reduces to the one-sided walk the key already gave it.
     if not ordered:
-        for v in range(alphabet):
+        for v in sorted(domain):
             if v != current and evaluate(v):
                 return v
         return NOT_RESOLVED
     # ONE STEP TOWARD THE NEAREST, WHICH IS THE ARM'S WHOLE CONTENT -- `lo < current` and
     # `hi > current` by construction, so the step is the sign and nothing is recomputed.
-    for d in range(1, alphabet + abs(current) + 1):
-        lo, hi = current - d, current + d
-        if 0 <= lo < alphabet and evaluate(lo):
-            return current - 1
-        if 0 <= hi < alphabet and evaluate(hi):
-            return current + 1
+    for v in sorted(domain, key=lambda v: (abs(v - current), v)):
+        if v != current and evaluate(v):
+            return current - 1 if v < current else current + 1
     return NOT_RESOLVED
 
 
-def objective_gap(evaluate, current: int, ordered: bool, alphabet: int) -> Any:
+def objective_gap(evaluate, current: int, ordered: bool, domain) -> Any:
     """§13.4's SCALAR DISCREPANCY: *zero exactly when satisfied.*
 
     Beside `objective_step` and for its reason -- what a bet MEANS is not a move, so the two
@@ -799,7 +807,7 @@ def objective_gap(evaluate, current: int, ordered: bool, alphabet: int) -> Any:
         return NOT_RESOLVED
     if here:
         return 0
-    hits = [v for v in range(alphabet) if v != current and evaluate(v)]
+    hits = [v for v in domain if v != current and evaluate(v)]
     if not hits:
         return None
     return min(abs(v - current) for v in hits) if ordered else 1
@@ -1181,6 +1189,7 @@ class Agent:
         self._acts: Counter = Counter()   # System-0 instrument: concrete actions taken per cycle
         # the whole before-state is kept, because an operand is another slot's past value
         self.trace: list[tuple[dict[str, int], str, dict[str, int]]] = []
+        self._shown_key, self._shown, self._frame_at = None, {}, {}
         self.owed_import: set[str] = set()
         # THIS CYCLE's appearance and disappearance events -- see `_present`. Empty is the
         # normal reading, not a missing one: most cycles change no slots.
@@ -2487,6 +2496,38 @@ class Agent:
         """
         return not term.operand or term.operand in state
 
+    def _domain(self, slot: str, state: dict, ctx: Ctx):
+        """WHERE AN OBJECTIVE ON `slot` IS SEARCHED: the values the slot has taken in the record
+        BEFORE this frame, and each operand's value with its two neighbours -- where a comparison
+        against it turns over (Fig 12). Inside the alphabet, which still bounds and prices.
+
+        BEFORE THIS FRAME, so a replayed frame never searches a value shown after it: a domain
+        holding the frame's own outcome would let the bet lean on it."""
+        alpha = self.alphabet[slot]
+        if not _OBJECTIVE_DOMAIN:
+            return range(alpha)
+        key = (id(self.trace), len(self.trace))
+        if self._shown_key != key:
+            self._shown_key, self._shown, self._frame_at = key, {}, {}
+            for i in range(len(self.trace)):
+                b, _act, _a, _intent, _landed = self.trace[i]
+                self._frame_at[id(b)] = i
+        first = self._shown.get(slot)
+        if first is None:
+            first = {}
+            for i in range(len(self.trace)):
+                b, _act, a, _intent, _landed = self.trace[i]
+                for v, at in ((b.get(slot), i), (a.get(slot), i + 1)):
+                    if isinstance(v, int) and v not in first:
+                        first[v] = at
+            self._shown[slot] = first
+        n = self._frame_at.get(id(state), len(self.trace))
+        dom = {v for v, at in first.items() if at <= n}
+        for o in ctx.operands:
+            if isinstance(o, int) and not isinstance(o, bool):
+                dom.update((o - 1, o, o + 1))
+        return {v for v in dom if 0 <= v < alpha}
+
     def _value_of(self, term: Term, slot: str, state: dict[str, int], ctx: Ctx):
         """A term's PREDICTED SLOT VALUE -- the edge from a term to a number, in one place.
 
@@ -2508,7 +2549,7 @@ class Agent:
             def _sat(v: int) -> bool | None:
                 r = term.apply(v, ctx)
                 return None if r is NOT_RESOLVED else bool(r)
-            return objective_step(_sat, state[slot], ordered, self.alphabet[slot])
+            return objective_step(_sat, state[slot], ordered, self._domain(slot, state, ctx))
         return term.apply(state[slot], ctx)
 
     def _predict(self, slot: str, state: dict[str, int], action: str) -> int | None:
@@ -4352,7 +4393,7 @@ class Agent:
             r = term.apply(v, ctx)
             return None if r is NOT_RESOLVED else bool(r)
         return objective_gap(_sat, state[slot], self.slot_types.get(slot) in ORDERED_TYPES,
-                             self.alphabet[slot])
+                             self._domain(slot, state, ctx))
 
     def goal_residual(self, slot: str, state: dict[str, int],
                       counts: dict | None = None,

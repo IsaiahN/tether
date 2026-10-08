@@ -140,6 +140,10 @@ ARMS: dict[str, str] = {
     "TETHER_LOOKUP_ORDER": "the residual's library look-up orders the mint's operand candidates "
                            "(after contact, before variance; never excludes). ON: the reviewer "
                            "2026-10-08 00:54Z; 0 is the one-flag A/B control",
+    "TETHER_OBJECTIVE_DOMAIN": "an objective is searched over the values the record has shown "
+                               "and its operands' boundaries, not the declared alphabet, which "
+                               "only prices. ON: the reviewer 2026-10-08 09:55Z (cd82, 2,112 s "
+                               "in one cycle); 0 is the one-flag control",
     "TETHER_NOT_ATOM": "not-t priced as one atom slot instead of the bits to name which "
                        "predicting term is wrong (the default, reviewer 2026-10-07). The figures "
                        "leave the price OPEN; this arm keeps the alternative readable (F496)",
