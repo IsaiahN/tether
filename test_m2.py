@@ -2182,6 +2182,24 @@ def check_the_library_partner_is_ordered_after_contact_before_variance():
         tether._LOOKUP_ORDER = was
 
 
+
+def check_the_observer_ships_per_object_and_holds_pairs_back():
+    """THE SPLIT (the reviewer 2026-10-08 07:37Z). With nothing set, each object carries how its
+    size and fill changed -- perception, one bet per object slot -- and no per-pair relation slot
+    is published: those wait for arm L's census. On the synthetic ring a hole opens and closes,
+    so its fill rises by one on the closing frame while its box stays put."""
+    assert arc_percept._OBSERVER and not arc_world._OBSERVER, "the shipped split is wrong"
+    env = ArcWorld(_Ring(), arc_percept.Objects(),
+                   arc_atoms.three_spaces(arc_predict.predict()), palette=PALETTE, platform=())
+    env.step(env.actions()[0])
+    env.step(env.actions()[0])           # the hole closes
+    st = env.observe()
+    ring = next(s.split(".")[0] for s, v in st.items() if s.endswith(".colour") and v == 3)
+    assert st.get(f"{ring}.dcells") == 1, f"no per-object fill change: {sorted(st)}"
+    assert (st.get(f"{ring}.dh"), st.get(f"{ring}.dw")) == (0, 0), "the box read as moving"
+    assert not [s for s in st if "~" in s], "a per-pair relation slot was published"
+
+
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
 
 if __name__ == "__main__":

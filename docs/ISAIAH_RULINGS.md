@@ -319,6 +319,12 @@ here in the same session it arrives, or the next search for it fails the same wa
 
 ## 2026-10-07
 
+- **THE REVIEWER'S RULING, NOT ISAIAH'S -- recorded here because it set an arm.** The observer
+  arm's direction is ON (the reviewer, 2026-10-07 22:12:23Z post). On 2026-10-08 07:37Z the
+  reviewer ordered it split: the per-object part ON first, alone, on its own all-25; the per-pair
+  relation slots held back for arm L's census. **SOURCE:** the two posts. A reviewer's ruling
+  stands below the figures and Isaiah's.
+
 - **THE TETHER FIGURES DICTATE LOGIC AND DECISIONS, for both seats** -- verbatim at the top of this file;
   relayed by the reviewer 2026-10-07 20:37:31Z, with the operational form he approved (20:34:12Z).
 - **THE ARC KEY IS IN `.env`, and every remaining open question is decided by the figures** -- Isaiah via the

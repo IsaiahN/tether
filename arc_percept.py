@@ -36,7 +36,10 @@ sys.dont_write_bytecode = True
 # counted. Its `recolour` is published here as `colour_changed`: `observer` is SEAT-SIDE
 # and its key never enters the agent's registry, where `recolour` is already taken.
 # aggregated to a count (`F165`).
-_OBSERVER = bool(os.environ.get("TETHER_OBSERVER"))
+# DEFAULT ON SINCE 2026-10-08, THE PER-OBJECT PART ALONE (the reviewer 07:37Z, direction ruled
+# 2026-10-07 22:12Z): perception of each object, Fig 1's "one bet per object slot". The per-pair
+# part is `arc_world`'s, behind its own arm. `0` is the one-flag A/B control.
+_OBSERVER = os.environ.get("TETHER_OBSERVER", "1") != "0"
 
 # THE SHAPE-DELTA ARM, DEFAULT OFF. `dholes`/`dperimeter`: how a matched object's CELL-SET
 # quantities moved frame-to-frame. The reviewer cleared these on one test and it is worth

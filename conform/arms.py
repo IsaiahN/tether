@@ -182,7 +182,14 @@ ARMS: dict[str, str] = {
                        "identity A/B -- one script, one flag -- because an exact optimisation has "
                        "to be provable against its own absence, and a default-off one is an "
                        "optimisation nobody runs",
-    "TETHER_OBSERVER": "the corpus's cheap mutation set carried PER OBJECT, not counted",
+    "TETHER_OBSERVER": "the corpus's cheap mutation set carried PER OBJECT, not counted. "
+                       "**ON BY DEFAULT SINCE 2026-10-08, per-object part only** (the reviewer "
+                       "07:37Z; direction the reviewer's 2026-10-07 22:12Z). `0` is the control",
+    "TETHER_OBSERVER_PAIRS": "the observer's PER-PAIR part: relation slots, the cascade walk, and "
+                             "the contact/bbox/inside atoms over them. OFF: relations enter "
+                             "through "
+                             "the relation channel, not a slot per pair (the reviewer 2026-10-08 "
+                             "07:37Z, 07:49Z)",
     "TETHER_REBIND_HELD": "rebinding a slot whose term is already held",
     "TETHER_RECIPE_DEDUP": "one candidate per recipe rather than per instance",
     "TETHER_NO_REFUTED_BIN": "**INVERTED POLARITY.** The fifth bin (Fig 5's amendment), DEFAULT ON "

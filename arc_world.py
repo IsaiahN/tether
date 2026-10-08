@@ -34,7 +34,10 @@ PLATFORM_UNIVERSAL = (GameAction.RESET.name,)
 # ONE switch so the route chart judges the whole thing rather than a fragment -- reviewer,
 # 2026-09-22. Item 4 (relations as per-pair slots) is here; it ships only with arm L, which
 # bounds the operand axis the wider slot set would otherwise multiply.
-_OBSERVER = bool(os.environ.get("TETHER_OBSERVER"))
+# SPLIT FROM THE PER-OBJECT PART 2026-10-08 (the reviewer 07:37Z): per-pair relation slots and the
+# cascade walk have their own switch, still OFF: relations enter through the relation channel when a
+# residual's description names one (the reviewer 07:49Z), not as a slot per pair.
+_OBSERVER = bool(os.environ.get("TETHER_OBSERVER_PAIRS"))
 
 
 def _oldest(d: dict) -> int:
