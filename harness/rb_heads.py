@@ -29,7 +29,10 @@ def one_commit(outdir: str) -> str:
     by = {}
     for g in games:
         p = os.path.join(outdir, g + ".head")
-        by[g] = json.load(open(p))["commit"] if os.path.exists(p) else None
+        by[g] = None
+        if os.path.exists(p):
+            with open(p) as fh:
+                by[g] = json.load(fh)["commit"]
     missing = [g for g, c in by.items() if c is None]
     commits = sorted({c for c in by.values() if c})
     if missing or len(commits) != 1:
