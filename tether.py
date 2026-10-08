@@ -374,6 +374,17 @@ _STREAM_WIDEN = bool(os.environ.get("TETHER_STREAM_WIDEN"))
 _HOLD = bool(os.environ.get("TETHER_HOLD"))
 _HOLD_SEED = os.environ.get("TETHER_HOLD_SEED", "0")
 
+# THE STEP'S SEARCH ALLOWANCE -- the PLATFORM's time, not the agent's choice (the reviewer,
+# 2026-10-05). ~28,800 usable s (the official sample stops at 8h-5m) over games x actions;
+# 25 x 500 is a PLACEHOLDER until Isaiah gives the private game count. Converted to candidates
+# into ROW EVALUATIONS -- THE UNIT OF THE WORK (the reviewer's rule 1, 2026-10-05; candidates
+# were the wrong unit: under the incremental tally a search's cost is candidates x the rows it
+# must catch up on). Measured, default seed 0, unprofiled: ~15 us per `_eval_ctx`. Counted, not
+# timed, so the run stays deterministic. HOW the allowance is spent is the agent's.
+STEP_SECONDS = 28_800 / (25 * 500)
+SECONDS_PER_EVAL = 15e-6
+SEARCH_BUDGET = int(STEP_SECONDS / SECONDS_PER_EVAL)
+
 # `_INVENT` / `_invent` REMOVED -- Isaiah 2026-10-04, *a bootleg composition*; RETIRED means
 # gone. Why, measured: `F431.6`. `conform/arms.py` `RETIRED` refuses the flag if it returns.
 
@@ -1004,6 +1015,10 @@ class Agent:
         # A share divided by cycles would count occasions the guard could never have
         # taken, and would read low for a reason that is not the hold.
         self._hold_eligible = 0
+        self._priced = 0                     # candidates priced by `_cannot_pay`, ever
+        self._evals = 0                      # row evaluations (`_eval_ctx`) -- the work's unit
+        self._search: dict[str, dict] = {}   # slot -> its last costly search: lib, base, fruitless
+        self._last_search_priced = 0         # candidates the most recent costly search priced
         self._hold_withheld = 0
         # **AND THE KEY-LEVEL DENOMINATOR BESIDE IT, because the coin is flipped per
         # (cycle, slot) and NOT per occasion.** Several eligible occasions can share one
@@ -2892,6 +2907,7 @@ class Agent:
         before. They are routed so the next guarded caller is not blind -- NOT because this
         fixes them. `conform/census.py` asserts nothing builds one of these any other way.
         """
+        self._evals += 1
         return Ctx(action=action, intent=intent, operands=operands, touching=touching,
                    # **AGAINST THE TERM'S OWN REFERENT WHEN IT HAS ONE.** `guard_ref`
                    # falls back to the slot, which is exactly what `ACTED_SELF` meant, so
@@ -3230,6 +3246,7 @@ class Agent:
         drops terms that read an operand without varying with it on the observed slice.
         Measured, it lost a closing term. This cannot.
         """
+        self._priced += 1
         unit = math.log2(self.alphabet[slot])
         # INCREMENTAL, AND EXACT BECAUSE `wrong` IS A PREFIX SUM. Each row adds 0 or 1 and
         # no row reads another, so a tally over the first N rows stays true as rows are
@@ -5920,6 +5937,85 @@ class Agent:
         rank = contact_first(near)
         return [None] + sorted(others, key=lambda s: (*rank(s), -seen[s], s))
 
+    def _spend_search(self, offered: list[str]) -> None:
+        """LEVER A -- THE AGENT CHOOSES WHICH SLOTS TO SEARCH THIS STEP. The reviewer approved the
+        design 2026-10-05; the runtime profile said why: every floor-cleared slot with no closer
+        re-priced its whole closure (~114k candidates) every step, a choice made FOR the agent.
+
+        `route()` still labels; the labelled slots are an OFFER. Below the mint's own floor a
+        search prices nothing, so it always runs. Above it, the agent spends the step's
+        allowance down its own priority -- V discounted by FRUITLESS searches since the slot's
+        evidence last changed -- and records searched / deferred / why on every offered slot.
+        **The first piece of the READER made real: the computation offers, the agent's priority
+        chooses, the reason is recorded.**
+
+        PRIORITY FALLS ONLY ON TRIED-AND-FAILED (Isaiah, 2026-09-29: decay on tried-and-failed,
+        never from disuse). A deferral is disuse: it never lowers priority, and V rises with a
+        deferred slot's outstanding residual. The discount RESETS when the evidence changes --
+        the library gained a term, or the slot's base grew by at least the floor -- both read off
+        the cost function. Nothing is dropped: a deferred slot is offered again next step.
+
+        SEAT STOP-GAP, NAMED FOR CONVERSION: the discount's FORM, `V / (1 + fruitless)`, and the
+        tie-break by slot name. Convert to the agent's own record of when re-searching paid.
+        """
+        if not offered:
+            return
+        floor = term_bits(1, self.gamma.alphabet)
+        lib = len(self.gamma.library)
+        costly: list[tuple[float, float, int, float, str]] = []
+        free: list[str] = []
+        for slot in offered:
+            base = self._accumulated(slot, self.gamma.library[self.bound.get(slot, IDN)])
+            if base <= floor:
+                free.append(slot)
+                continue
+            rec = self._search.get(slot)
+            if rec is not None and (lib > rec["lib"] or base - rec["base"] >= floor):
+                rec["fruitless"] = 0
+            n = rec["fruitless"] if rec is not None else 0
+            v = self._understanding(slot)
+            costly.append((v / (1 + n), v, n, base, slot))
+        for slot in free:
+            self.led.record(self.cycle, "ROUTE", slot, "search", decision="free",
+                            why="base at or under the floor: the mint prices nothing")
+            self.mint(slot)
+        left, searched = SEARCH_BUDGET, False
+        for prio, v, n, base, slot in sorted(costly, key=lambda c: (-c[0], c[4])):
+            # THE PREDICTED COST, IN THE UNIT OF THE WORK, FROM THE AGENT'S OWN RECORD: the
+            # candidates this slot's last search priced x the rows it must catch up on since
+            # (the incremental tally resumes each candidate where it stopped). A long-deferred
+            # slot is DEARER, and
+            # the agent sees that when it chooses -- the reviewer's rule 1.
+            rec = self._search.get(slot)
+            catch = max(1, len(self.trace) - (rec["rows"] if rec is not None else 0))
+            cands = rec["priced"] if rec is not None else self._last_search_priced
+            cost = cands * catch
+            common = {"priority": round(prio, 4), "value": round(v, 4), "fruitless": n,
+                      "library": lib, "base": round(base, 3), "predicted": cost,
+                      "catch_up_rows": catch, "allowance_left": max(left, 0),
+                      "allowance": SEARCH_BUDGET}
+            # A FULL SEARCH COSTS WHAT IT COSTS (the reviewer): the step's FIRST costly search runs
+            # even when its prediction exceeds the allowance, and says so -- else the slot the
+            # agent values most could wait forever behind its own backlog.
+            if searched and cost > left:
+                self.led.record(self.cycle, "ROUTE", slot, "search", decision="deferred",
+                                why="its predicted cost exceeds what is left of the step's "
+                                    "allowance; offered again next step", **common)
+                continue
+            self.led.record(self.cycle, "ROUTE", slot, "search", decision="searched",
+                            why=("highest priority left within the step's allowance" if cost <= left
+                                 else "over the allowance, but nothing has been searched this "
+                                      "step: a full search costs what it costs"), **common)
+            was, p0, e0 = self.bound.get(slot), self._priced, self._evals
+            self.mint(slot)
+            searched = True
+            left -= self._evals - e0
+            self._last_search_priced = self._priced - p0
+            paid = self.bound.get(slot) != was
+            self._search[slot] = {"lib": lib, "base": base, "fruitless": 0 if paid else n + 1,
+                                  "priced": self._priced - p0, "rows": len(self.trace),
+                                  "evals": self._evals - e0}
+
     def mint(self, slot: str) -> None:
         # THE RECIPES ALREADY HELD, once per mint rather than per candidate. A library Term's
         # chain is its atoms joined; `enumerate_closure` yields BARE chains, so `cand.name` is
@@ -7288,6 +7384,7 @@ class Agent:
         coord = self._aimed
         res = self.perceive(action, coord, self._intent_now)
         # WHAT THAT ACTION DID TO THE AVATAR, recorded from the frames either side of it.
+        offered: list[str] = []
         for slot, b, fit, _why in self.route(res):
             if b == REBIND and fit:
                 self.bound[slot] = fit
@@ -7308,9 +7405,10 @@ class Agent:
                                     status="candidate",
                                     note="the bound term was refused here; this is its competitor")
                 else:
-                    self.mint(slot)
+                    offered.append(slot)
             elif b == MECHANISM:
-                self.mint(slot)
+                offered.append(slot)
+        self._spend_search(offered)
         if by == "probe":
             # ONE ROW PER SLOT THAT ASKED FOR IT, and `@probe` only when the trigger was
             # the global reading rather than any particular slot. It used to be `@probe`
