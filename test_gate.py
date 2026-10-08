@@ -390,6 +390,24 @@ def test_undeclared_death():
     _refuses(r, gate.UNDECLARED_DEATH)
 
 
+def _refusal(term):
+    r = valid()
+    r[0]["detail"]["bound"] = "t"
+    r.insert(2, {"mode": "specified", "seq": 9, "cycle": 0, "step": "MINT", "slot": "s",
+                 "event": "not_t", "detail": {"term": term, "verdict": "did not pay"}})
+    return r
+
+
+def test_a_refusal_of_the_bound_term_passes():
+    """F498: the refused term is the one the slot's bet this cycle was made by."""
+    assert gate.check(_refusal("t"))["verdict"] == gate.PASS
+
+
+def test_refused_unbound():
+    """F498: a refusal of a term the slot had already replaced blames what did not predict."""
+    _refuses(_refusal("an_old_term"), gate.REFUSED_UNBOUND)
+
+
 def test_declared_death_passes():
     """The same death WITH its disproof stated is the experiment §21.2 licenses."""
     r = valid()

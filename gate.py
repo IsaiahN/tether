@@ -32,6 +32,7 @@ FILTER_VERDICT = "filter-verdict"
 IRREVERSIBLE_CUT = "irreversible-cut"
 UNREACHED_UNMEASURED = "unreached-unmeasured"
 UNDECLARED_DEATH = "undeclared-death"
+REFUSED_UNBOUND = "refused-unbound"
 
 # KEPT IN STEP WITH `ledger.STEPS`, WHICH IS THE DUPLICATION AND NOT A CHOICE MADE HERE.
 # The gate is meant to be readable without importing the thing it checks, so the constant is
@@ -60,7 +61,7 @@ def _v(check: str, token: str, seq: int | None = None, note: str = "") -> dict:
 def check(rows: list[dict]) -> dict:
     """Returns {"verdict": pass|refuse, ...}. The FIRST refusal is the named one."""
     for fn in (_mode, _steps, _inputs, _routing, _guards, _settlement, _filters, _cuts,
-               _unreached, _experiment):
+               _unreached, _experiment, _refusals):
         out = fn(rows)
         if out is not None:
             return out
@@ -240,6 +241,21 @@ def _experiment(rows: list[dict]) -> dict | None:
         if not d.get("disproof"):
             return _v("experiment", UNDECLARED_DEATH, r.get("seq"),
                       "a chosen death with no disproof stated before it")
+    return None
+
+
+def _refusals(rows: list[dict]) -> dict | None:
+    """11. A refusal names the term that made the prediction (F498). Fig 1: blame only to the
+    term that made it; Fig 5's amendment enumerates the BOUND terms predicting. So on every
+    `not_t` / `refuse` row the term is the one that slot's bet in the same cycle was made by --
+    a refusal of a term the slot had already replaced blames a term that predicted nothing."""
+    bound = {(r.get("cycle"), r.get("slot")): r.get("detail", {}).get("bound")
+             for r in rows if r.get("event") == "bet"}
+    for r in rows:
+        if r.get("event") in ("not_t", "refuse"):
+            term = r.get("detail", {}).get("term")
+            if bound.get((r.get("cycle"), r.get("slot"))) != term:
+                return _v("refusals", REFUSED_UNBOUND, r.get("seq"), str(term))
     return None
 
 
