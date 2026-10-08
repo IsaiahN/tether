@@ -1060,6 +1060,9 @@ class Agent:
         self._refuted_slot: dict = {}
         # the slots whose loop turn is still ahead this cycle (F500); None outside the loop
         self._turn_ahead: set | None = None
+        # an acted routine's next step, advanced once at its deciding cycle's end (F501)
+        self._routine_next: tuple | None = None
+        self._recovered_pending: list = []
         self._contact_pick = None
         self._s0_target: str | None = None
         self.alphabet = self._alphabets(env)
@@ -1721,7 +1724,124 @@ class Agent:
                 hit.append(slot)
         return tuple(sorted(hit))
 
-    def _check_expectation(self, before: dict) -> bool:
+    def _settle_routine(self) -> None:
+        """A routine that has ACTED is settled in the cycle whose observation decides it (F501;
+        Fig 2). Its expectation, then one advance, read the state this cycle observed -- the state
+        the next choose() would read -- so an ending is written here as SETTLE and a step is
+        handed to that choose() without advancing twice (advance writes routine_state). A
+        routine with no act yet is untouched: the zero-act ending stays in choose() (OPEN)."""
+        if self.routine is None or not self._routine_acts:
+            return
+        state = self.env.observe()
+        if self._check_expectation(state, step="SETTLE"):
+            return
+        if self._routine_adopted is None:
+            self._routine_adopted = self.routine
+        self.routine_state.pop("expect", None)
+        emit, rest = Rt.advance(self.routine, self._holds(state),
+                                self.routine_lib, self.routine_state)
+        # DONE and EXHAUSTED are the ground's verdict on the plan. BLOCKED is not: an unreadable
+        # guard is a channel fact (Fig 10), so it is handed on and ended at PLAN, with no verdict
+        # (the reviewer 2026-10-07 16:58Z).
+        if emit in (Rt.DONE, Rt.EXHAUSTED):
+            slot, shown = self.routine_for or "*", Rt.render(self.routine)
+            self._recovered_pending += [(w, slot, shown)
+                                        for w in self.routine_state.pop("recovered", ())]
+            self._end_routine(emit, state, step="SETTLE")
+        else:
+            self._routine_next = (self.routine, emit, rest)
+
+    def _end_routine(self, why: str, before: dict, step: str = "PLAN") -> None:
+        """A routine's ending: its verdict, shelving, refutation and record. Run where the ending is
+        evaluated -- at the deciding cycle's SETTLE for a routine that has acted (F501), at PLAN for
+        an ending found while choosing (unrealisable, or the zero-act case left OPEN)."""
+        if why == Rt.DONE:
+            _verdict = "tested_yes" if self._routine_acts else "tested_no"
+        elif why == Rt.EXHAUSTED:
+            _verdict = "tested_no"
+        else:
+            _verdict = None
+        # THE EPISODE, FILED UNDER THE SHAPE OF THE GAP IT WAS FORMED AGAINST. Written
+        # HERE because this is the only site where all four answers exist at once: the
+        # signature was taken at mint, the actions are the routine's, the ending is `why`,
+        # and the verdict is the emission count. Split them and the record cannot be made.
+        if self._override_open is not None and _verdict:
+            self._overrides.append((self._override_open, _verdict == "tested_yes",
+                                    self.cycle))
+        self._override_open = None
+        if self.routine_for and self._plan_sig is not None:
+            self._episodes.setdefault(self._plan_sig, []).append(
+                (self._step_ids(self.routine, self.routine_lib), why,
+                 _verdict or "untested"))
+        if _verdict and self.routine_for:
+            self._reach_tested[
+                self._reject_key(self.routine_for, self.routine,
+                                 self.routine_lib)] = _verdict
+            self.led.record(self.cycle, "SETTLE", self.routine_for, "reach_tested",
+                            verdict=_verdict, ending=why, emitted=self._routine_acts,
+                            routine=Rt.render(self.routine))
+        # AND A ROUTINE THAT EMITTED NOTHING IS NOT SHELVED. Reaching `DONE` without acting
+        # is not a settled behaviour -- it is a guard that was already true.
+        _settled = self._routine_adopted or self.routine
+        if (why == Rt.DONE and self._routine_acts
+                and _settled not in self.routines):
+            self.routines.append(_settled)
+        # EXPRESS-BEFORE-JUDGE, AND IT IS THE PROPERTY THE ENDINGS WERE ALREADY BUILT FOR.
+        # §18.2: *a refutation is recorded ONLY after the hypothesis actually ran a trial --
+        # "I failed to do X" must never be coded as "X is inert." A blocked or never-reached
+        # attempt is a non-trial.* **`exhausted` is a trial: the routine ran its whole budget
+        # and the guard never held. `blocked` and `unadvertised` are non-trials** -- one
+        # could not read its guard, the other was never runnable here -- and neither says
+        # anything about whether the routine works.
+        #
+        # AND THE REFUTATION IS A ROW, WHICH IT WAS NOT. A TERM's demotion carries `asked`,
+        # `ground_said`, `verdict` and `rejections` -- **a first-class inspectable event** --
+        # while a routine's refutation was in-memory state that nothing recorded. It gates
+        # future minting, so it is **a decision input that left no trace**: `speak` could not
+        # say it, the gate could not check it, and express-before-judge was unverifiable
+        # from the record. Same fields as `demote`, so the two read alike.
+        extra: dict = {}
+        if why == Rt.EXHAUSTED and self.routine_for:
+            rg = self.goal_residual(self.routine_for, before)
+            k = self._reject_key(self.routine_for, self.routine, self.routine_lib)
+            self.refuted.setdefault(k, Standing(last_tick=self.cycle)).refute(
+                self.cycle, self.gamma.halflife, where=self._scope)
+            self.refuted_at[k] = 1.0 if rg is None else rg
+            # AND FILED A SECOND TIME UNDER THE SHAPE OF THE GAP IT FAILED AGAINST. The two
+            # keys answer different questions and neither replaces the other: `k` says *this
+            # exact plan, on this exact slot, is spent* and dies at the boundary with the
+            # slot; `gk` says *a plan of this shape did not close a gap of this shape* and
+            # is the only half that can still be true next level.
+            extra = {"asked": [Rt.render(self.routine), self.routine_for],
+                     "ground_said": False, "status": "refuted",
+                     "verdict": "spent its whole budget and the guard never held",
+                     "rejections": round(self._rejection(k), 3),
+                     "reopens_above": round(self.refuted_at[k], 4)}
+            gap = self._characterise_gap(self.routine_for)
+            rk = self._refusal_key(gap, self.routine)
+            self._refusals.setdefault(rk, []).append(self._refusal_scope())
+            extra["refused_under"] = len(self._refusals[rk])
+            if gap is not None:
+                gk = (self._gap_key(gap), self._step_ids(self.routine, self.routine_lib),
+                      Rt.guards(self.routine))
+                rec = self.paths.setdefault(gk, {"failed": 0, "first_cycle": self.cycle})
+                rec["failed"] += 1
+                rec["last_cycle"] = self.cycle
+                extra["gap"] = {k2: v for k2, v in gap.items()
+                                if k2 not in ("varies", "invariant")}
+                extra["shape_failed"] = rec["failed"]
+        # BLOCKED IS THREE ENDINGS WEARING ONE NAME. `routine.py` says BLOCKED means only
+        # *the guard could not be read*; `blocked_why` says which, so a later run can report
+        # how many routines died to the world removing their subject versus to supply.
+        if why == Rt.BLOCKED and self._guard_exit:
+            extra["blocked_why"] = self._guard_exit
+        self.led.record(self.cycle, step, self.routine_for or "*", "routine_end",
+                        outcome=why, routine=Rt.render(self.routine), **extra)
+        self._guard_exit = None
+        self.routine, self.routine_for = None, None
+        self._routine_adopted = None
+
+    def _check_expectation(self, before: dict, step: str = "PLAN") -> bool:
         """Did the last step's claim hold? **ABANDON on divergence -- not revise, not re-plan.**
 
         Returns True when the routine was abandoned, so the caller stops running it.
@@ -1744,7 +1864,7 @@ class Agent:
         if now != was:
             return False                      # the claim held; carry on
         saved = Rt.length(self.routine) if self.routine is not None else 0
-        self.led.record(self.cycle, "PLAN", slot, "routine_abandoned",
+        self.led.record(self.cycle, step, slot, "routine_abandoned",
                         reason="expected this slot to change and it did not",
                         # `step_index`, NOT `step`: `led.record`'s own first positional is
                         # `step`, so the obvious name silently shadowed it.
@@ -3527,7 +3647,15 @@ class Agent:
         # so the branch below simply does not fire and `choose` goes on to pick normally.
         # Returning here would hand `None` to `env.step` AND make abandoning cost the very
         # action it exists to save -- the currency is actions, so noticing must be free.
-        if self.routine is not None:
+        for _why, _slot, _shown in self._recovered_pending:
+            self.led.record(self.cycle, "PLAN", _slot, "routine_recovered", outcome=_why,
+                            routine=_shown,
+                            note="a fallback ran; the body's ending is NOT a refutation")
+        self._recovered_pending = []
+        _next, self._routine_next = self._routine_next, None
+        if _next is not None and _next[0] is not self.routine:
+            _next = None                      # advanced for a routine no longer held
+        if self.routine is not None and _next is None:
             self._check_expectation(before)
         if self.routine is not None:
             # CAPTURED AT THE FIRST ADVANCE, NOT ONLY AT THE MINT. A routine can arrive
@@ -3536,9 +3664,12 @@ class Agent:
             # object is still the plan rather than a remainder.
             if self._routine_adopted is None:
                 self._routine_adopted = self.routine
-            self.routine_state.pop("expect", None)
-            emit, rest = Rt.advance(self.routine, self._holds(before),
-                                    self.routine_lib, self.routine_state)
+            if _next is not None:
+                _, emit, rest = _next         # advanced at its deciding cycle's end (F501)
+            else:
+                self.routine_state.pop("expect", None)
+                emit, rest = Rt.advance(self.routine, self._holds(before),
+                                        self.routine_lib, self.routine_state)
             # **THE FALLBACK'S FAILURE IS RECORDED, OR THE FALLBACK HIDES IT.** `Try` recovers
             # from `blocked`/`exhausted` and publishes what it recovered FROM, because a
             # routine that recovers quietly has destroyed the very ending `F207` was diagnosed
@@ -3594,91 +3725,7 @@ class Agent:
             # would be filed as a settled behaviour, callable at a name's price while claiming
             # its budget's reach. `exhausted` is a trial that failed; `blocked` and
             # `unadvertised` are NON-TRIALS and say nothing either way, so they are left alone.
-            if why == Rt.DONE:
-                _verdict = "tested_yes" if self._routine_acts else "tested_no"
-            elif why == Rt.EXHAUSTED:
-                _verdict = "tested_no"
-            else:
-                _verdict = None
-            # THE EPISODE, FILED UNDER THE SHAPE OF THE GAP IT WAS FORMED AGAINST. Written
-            # HERE because this is the only site where all four answers exist at once: the
-            # signature was taken at mint, the actions are the routine's, the ending is `why`,
-            # and the verdict is the emission count. Split them and the record cannot be made.
-            if self._override_open is not None and _verdict:
-                self._overrides.append((self._override_open, _verdict == "tested_yes",
-                                        self.cycle))
-            self._override_open = None
-            if self.routine_for and self._plan_sig is not None:
-                self._episodes.setdefault(self._plan_sig, []).append(
-                    (self._step_ids(self.routine, self.routine_lib), why,
-                     _verdict or "untested"))
-            if _verdict and self.routine_for:
-                self._reach_tested[
-                    self._reject_key(self.routine_for, self.routine,
-                                     self.routine_lib)] = _verdict
-                self.led.record(self.cycle, "SETTLE", self.routine_for, "reach_tested",
-                                verdict=_verdict, ending=why, emitted=self._routine_acts,
-                                routine=Rt.render(self.routine))
-            # AND A ROUTINE THAT EMITTED NOTHING IS NOT SHELVED. Reaching `DONE` without acting
-            # is not a settled behaviour -- it is a guard that was already true.
-            _settled = self._routine_adopted or self.routine
-            if (why == Rt.DONE and self._routine_acts
-                    and _settled not in self.routines):
-                self.routines.append(_settled)
-            # EXPRESS-BEFORE-JUDGE, AND IT IS THE PROPERTY THE ENDINGS WERE ALREADY BUILT FOR.
-            # §18.2: *a refutation is recorded ONLY after the hypothesis actually ran a trial --
-            # "I failed to do X" must never be coded as "X is inert." A blocked or never-reached
-            # attempt is a non-trial.* **`exhausted` is a trial: the routine ran its whole budget
-            # and the guard never held. `blocked` and `unadvertised` are non-trials** -- one
-            # could not read its guard, the other was never runnable here -- and neither says
-            # anything about whether the routine works.
-            #
-            # AND THE REFUTATION IS A ROW, WHICH IT WAS NOT. A TERM's demotion carries `asked`,
-            # `ground_said`, `verdict` and `rejections` -- **a first-class inspectable event** --
-            # while a routine's refutation was in-memory state that nothing recorded. It gates
-            # future minting, so it is **a decision input that left no trace**: `speak` could not
-            # say it, the gate could not check it, and express-before-judge was unverifiable
-            # from the record. Same fields as `demote`, so the two read alike.
-            extra: dict = {}
-            if why == Rt.EXHAUSTED and self.routine_for:
-                rg = self.goal_residual(self.routine_for, before)
-                k = self._reject_key(self.routine_for, self.routine, self.routine_lib)
-                self.refuted.setdefault(k, Standing(last_tick=self.cycle)).refute(
-                    self.cycle, self.gamma.halflife, where=self._scope)
-                self.refuted_at[k] = 1.0 if rg is None else rg
-                # AND FILED A SECOND TIME UNDER THE SHAPE OF THE GAP IT FAILED AGAINST. The two
-                # keys answer different questions and neither replaces the other: `k` says *this
-                # exact plan, on this exact slot, is spent* and dies at the boundary with the
-                # slot; `gk` says *a plan of this shape did not close a gap of this shape* and
-                # is the only half that can still be true next level.
-                extra = {"asked": [Rt.render(self.routine), self.routine_for],
-                         "ground_said": False, "status": "refuted",
-                         "verdict": "spent its whole budget and the guard never held",
-                         "rejections": round(self._rejection(k), 3),
-                         "reopens_above": round(self.refuted_at[k], 4)}
-                gap = self._characterise_gap(self.routine_for)
-                rk = self._refusal_key(gap, self.routine)
-                self._refusals.setdefault(rk, []).append(self._refusal_scope())
-                extra["refused_under"] = len(self._refusals[rk])
-                if gap is not None:
-                    gk = (self._gap_key(gap), self._step_ids(self.routine, self.routine_lib),
-                          Rt.guards(self.routine))
-                    rec = self.paths.setdefault(gk, {"failed": 0, "first_cycle": self.cycle})
-                    rec["failed"] += 1
-                    rec["last_cycle"] = self.cycle
-                    extra["gap"] = {k2: v for k2, v in gap.items()
-                                    if k2 not in ("varies", "invariant")}
-                    extra["shape_failed"] = rec["failed"]
-            # BLOCKED IS THREE ENDINGS WEARING ONE NAME. `routine.py` says BLOCKED means only
-            # *the guard could not be read*; `blocked_why` says which, so a later run can report
-            # how many routines died to the world removing their subject versus to supply.
-            if why == Rt.BLOCKED and self._guard_exit:
-                extra["blocked_why"] = self._guard_exit
-            self.led.record(self.cycle, "PLAN", self.routine_for or "*", "routine_end",
-                            outcome=why, routine=Rt.render(self.routine), **extra)
-            self._guard_exit = None
-            self.routine, self.routine_for = None, None
-            self._routine_adopted = None
+            self._end_routine(why, before)
         # SYSTEM 2 RUNS BESIDE SYSTEM 1, NOT BEHIND IT -- Isaiah, 2026-09-09.
         # Formation used to sit ONLY at the fall-through, so `discriminate:learned` returning
         # first foreclosed it: `_mint_routine` was last called at cycle 11 on `ka59` and 7 on
@@ -7828,6 +7875,7 @@ class Agent:
                             remedy="step 7 INWARD: a slot set that reaches what moves",
                             built=False)
         self.settle(res)
+        self._settle_routine()
         self._promote()
         _, degree = self.env.objective()
         self.clocks.note(not self.owed_import and bool(self.bound),
