@@ -1063,6 +1063,10 @@ class Agent:
         self._hold_eligible = 0
         self._priced = 0                     # candidates priced by `_cannot_pay`, ever
         self._memo: dict | None = None       # live only inside one `mint` -- see `mint`
+        self._search: dict[str, dict] = {}   # slot -> its last search: lib, base, fruitless, work
+        self._evaluated = 0                  # `_value_of` calls, ever -- the second unit of work
+        self._allow: dict | bool | None = None   # the habitat's allowance, read once per game
+        self._balance = 0.0                  # seconds of search left this game
         self._hold_withheld = 0
         # **AND THE KEY-LEVEL DENOMINATOR BESIDE IT, because the coin is flipped per
         # (cycle, slot) and NOT per occasion.** Several eligible occasions can share one
@@ -2544,6 +2548,7 @@ class Agent:
         One function, four callers, for `_record`'s reason -- a bet and a price that disagree
         about what a term MEANS is not a disagreement any test names.
         """
+        self._evaluated += 1
         if getattr(term, "out_type", "val") == OBJ_TYPE:
             ordered = self.slot_types.get(slot) in ORDERED_TYPES
             def _sat(v: int) -> bool | None:
@@ -6448,6 +6453,96 @@ class Agent:
         lib = self._named.get(slot, {}) if _LOOKUP_ORDER else {}
         return [None] + sorted(others, key=lambda s: (*rank(s), s not in lib, -seen[s], s))
 
+    def _game_allowance(self) -> dict | None:
+        """THE GAME'S SEARCH ALLOWANCE, AS THE HABITAT STATES IT (the reviewer 2026-10-08 12:20Z:
+        the second firewall's "told by the frame"). Read once per game; a habitat that states none
+        leaves the agent searching every offered slot inline, as before. No number lives here."""
+        if self._allow is None:
+            fn = getattr(self.env, "allowance", None)
+            got = fn() if fn is not None else None
+            self._allow = dict(got) if got else False
+            if got:
+                self._balance = float(got["seconds"])
+        return self._allow or None
+
+    def _work_seconds(self, priced: int, evaluated: int) -> float:
+        a = self._allow
+        return priced * a["per_candidate"] + evaluated * a["per_evaluation"]
+
+    def _choose_searches(self, offered: list[str]) -> dict | None:
+        """WHICH OFFERED SEARCHES THIS STEP FUNDS, BY THE AGENT'S OWN PRIORITY, AGAINST THE GAME'S
+        BALANCE (Lever A, F482, re-based per game). Under the mint's floor a search prices nothing
+        and is free. Above it: value discounted by fruitless searches since the slot's evidence
+        last changed; predicted cost from the slot's OWN last search, never another's; a slot with
+        no record is searched once to measure it while any balance is left. `None`: no allowance.
+
+        SEAT STOP-GAP, NAMED FOR CONVERSION: the discount's form, `V / (1 + fruitless)`."""
+        if self._game_allowance() is None:
+            return None
+        floor = term_bits(1, self.gamma.alphabet)
+        lib = len(self.gamma.library)
+        plan: dict[str, dict] = {}
+        costly = []
+        for slot in offered:
+            base = self._accumulated(slot, self.gamma.library[self.bound.get(slot, IDN)])
+            if base <= floor:
+                plan[slot] = {"decision": "free", "base": base, "cost": 0.0, "known": True,
+                              "why": "base at or under the floor: the mint prices nothing"}
+                continue
+            rec = self._search.get(slot)
+            if rec is not None and (lib > rec["lib"] or base - rec["base"] >= floor):
+                rec["fruitless"] = 0
+            n = rec["fruitless"] if rec is not None else 0
+            v = self._understanding(slot)
+            costly.append((v / (1 + n), v, n, base, slot))
+        left = self._balance
+        for prio, v, n, base, slot in sorted(costly, key=lambda c: (-c[0], c[4])):
+            rec = self._search.get(slot)
+            known = rec is not None and "priced" in rec
+            cost = self._work_seconds(rec["priced"], rec["evaluated"]) if known else 0.0
+            d = {"priority": round(prio, 4), "value": round(v, 4), "fruitless": n, "base": base,
+                 "cost": cost, "known": known}
+            if not known and left > 0:
+                d.update(decision="searched", why="no record of its own: searched once to measure")
+            elif known and cost <= left:
+                d.update(decision="searched", why="highest priority left within the game's balance")
+                left -= cost
+            else:
+                d.update(decision="deferred",
+                         why="deferred: balance -- unsearched, not a null; offered again")
+            plan[slot] = d
+        return plan
+
+    def _search_or_defer(self, slot: str, plan: dict | None) -> None:
+        """THE SLOT'S SEARCH AT ITS OWN TURN, as the plan decided -- re-checked against the balance
+        actually left, since an earlier search this step may have cost more than predicted. A
+        deferral writes one row and NO mint, so no verdict is filed for a search not made."""
+        if plan is None or slot not in plan:
+            self.mint(slot)
+            return
+        d = plan[slot]
+        if d["decision"] == "searched" and d["known"] and d["cost"] > self._balance:
+            d = {**d, "decision": "deferred",
+                 "why": "deferred: balance -- an earlier search this step cost more than predicted"}
+        lib = len(self.gamma.library)
+        row = {k: (round(v, 4) if isinstance(v, float) else v) for k, v in d.items()
+               if k not in ("cost", "known")}
+        self.led.record(self.cycle, "MINT", slot, "search",
+                        predicted_s=round(d["cost"], 4) if d["known"] else None,
+                        allowance_s=self._allow["seconds"], balance_s=round(self._balance, 4),
+                        **row)
+        if d["decision"] == "deferred":
+            return
+        was, p0, v0 = self.bound.get(slot), self._priced, self._evaluated
+        self.mint(slot)
+        priced, evaluated = self._priced - p0, self._evaluated - v0
+        self._balance -= self._work_seconds(priced, evaluated)
+        paid = self.bound.get(slot) != was
+        n = d.get("fruitless", 0)
+        self._search[slot] = {"lib": lib, "base": d["base"],
+                              "fruitless": 0 if paid or d["decision"] == "free" else n + 1,
+                              "priced": priced, "evaluated": evaluated}
+
     def mint(self, slot: str) -> None:
         """ONE MINT WITH ITS EVALUATION MEMO. A Ctx and an operand read are pure functions of
         their inputs, and inside one mint they repeat ~1,281x and ~740x (counted, default seed 0,
@@ -7959,6 +8054,8 @@ class Agent:
         # minted this cycle is swept only into slots whose own turn is still to come; a slot
         # already past its turn meets it through its own route next cycle.
         self._turn_ahead = {s for s, b, *_ in routed if b in (REBIND, REFUTED, MECHANISM)}
+        plan = self._choose_searches([s for s, b, fit, _w in routed
+                                      if b == MECHANISM or (b == REFUTED and not fit)])
         for slot, b, fit, _why in routed:
             if b == REBIND and fit:
                 self.bound[slot] = fit
@@ -7985,9 +8082,9 @@ class Agent:
                                     status="candidate",
                                     note="the bound term was refused here; this is its competitor")
                 else:
-                    self.mint(slot)
+                    self._search_or_defer(slot, plan)
             elif b == MECHANISM:
-                self.mint(slot)
+                self._search_or_defer(slot, plan)
             self._turn_ahead.discard(slot)
         self._turn_ahead = None
         if by == "probe":

@@ -618,6 +618,12 @@ class ArcWorld:
                                "or it is read modulo a number unrelated to it (F494, F495)")
         return out
 
+    def allowance(self) -> dict | None:
+        """THE GAME'S SEARCH ALLOWANCE, stated by the habitat when the harness gives it one -- the
+        second firewall's "told by the frame" (the reviewer 2026-10-08 12:20Z). `None` states
+        none, and the agent then searches as it always has."""
+        return getattr(self, "_allowance", None)
+
     def objective(self) -> tuple[str, float]:
         f = self._frame
         win = f.win_levels or 1

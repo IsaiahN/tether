@@ -2225,6 +2225,50 @@ def check_an_objective_is_searched_over_what_the_world_showed():
     assert got == 3, f"the comparison's own boundary was not searched: {got}"
 
 
+
+def check_the_game_budget_is_the_habitats_to_state():
+    """THE SECOND FIREWALL, AS RULED FOR A BUDGET THE AGENT SEES (the reviewer 2026-10-08 12:20Z):
+    the agent's code holds no budget constant, and behaviour changes ONLY through the allowance
+    the habitat states -- a value in the process environment that the habitat does not deliver
+    changes nothing. A deferral writes a row and no mint, so no verdict is filed for it."""
+    import inspect
+    import os
+    import re
+    consts = re.findall(r"^([A-Z_]*(?:SECONDS|ALLOWANCE|BUDGET_S)[A-Z_]*)\s*[:=]",
+                        inspect.getsource(tether), re.M)
+    assert not consts, f"a budget constant in the agent's code: {consts}"
+    ag = _agent()
+    slot = ag.slots[0]
+    minted = []
+    ag.mint = minted.append
+    ag._accumulated = lambda _s, _t: 1e9
+    ag._understanding = lambda _s: 1.0
+    ag._allow = None           # the warm-up already read "none"; ask the habitat afresh
+    os.environ["TETHER_GAME_BUDGET_S"] = "1e9"
+    try:
+        assert ag._choose_searches([slot]) is None, "an allowance the habitat never stated was used"
+    finally:
+        del os.environ["TETHER_GAME_BUDGET_S"]
+    ag._search_or_defer(slot, None)
+    assert minted == [slot], "with no allowance the search did not run as before"
+
+    def deliver(seconds):
+        minted.clear()
+        ag._allow = None
+        ag.env._allowance = {"seconds": seconds, "per_candidate": 1e-6, "per_evaluation": 1e-6}
+        ag._search[slot] = {"lib": len(ag.gamma.library), "base": 1e9, "fruitless": 0,
+                            "priced": 1000, "evaluated": 0}
+        ag._search_or_defer(slot, ag._choose_searches([slot]))
+        return [r for r in ag.led.rows() if r.get("event") == "search"][-1]
+
+    row = deliver(0.0)
+    assert minted == [] and row["detail"]["decision"] == "deferred", (minted, row)
+    assert "unsearched, not a null" in row["detail"]["why"], row
+    row = deliver(1.0)
+    assert minted == [slot] and row["detail"]["decision"] == "searched", (minted, row)
+    assert row["detail"]["allowance_s"] == 1.0, "the stated allowance is not on the record"
+
+
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
 
 if __name__ == "__main__":

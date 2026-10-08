@@ -144,6 +144,10 @@ ARMS: dict[str, str] = {
                                "and its operands' boundaries, not the declared alphabet, which "
                                "only prices. ON: the reviewer 2026-10-08 09:55Z (cd82, 2,112 s "
                                "in one cycle); 0 is the one-flag control",
+    "TETHER_GAME_BUDGET_S": "the HARNESS's per-game search allowance, in seconds, which the habitat"
+                            " states to the agent (the second firewall's 'told by the frame', the "
+                            "reviewer 2026-10-08 12:20Z). Unset: no allowance, today's behaviour, "
+                            "the one-flag control. The agent's code never reads it",
     "TETHER_NOT_ATOM": "not-t priced as one atom slot instead of the bits to name which "
                        "predicting term is wrong (the default, reviewer 2026-10-07). The figures "
                        "leave the price OPEN; this arm keeps the alternative readable (F496)",

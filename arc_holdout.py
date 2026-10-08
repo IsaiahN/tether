@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import collections
 import logging
+import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -158,6 +159,13 @@ def wire(w, game: str, *, cfg: Any = None, led_path: str | None = None,
     env = ArcWorld(w, arc_percept.Objects(), arc_atoms.three_spaces(arc_predict.predict()),
                    palette=palette, name=game)
     env.on_frame = on_frame     # seat-side tap for §13 step 4's verifier; None on a normal run
+    # THE GAME'S SEARCH ALLOWANCE IS THE HABITAT'S TO STATE AND THE SEAT'S TO SET (the reviewer
+    # 2026-10-08 12:20Z). Unset: the habitat states none, the agent searches as before -- the
+    # one-flag control. The unit rates are Lever A's fit on the fake (F482), a SEAT STOP-GAP
+    # checked per game before any budget run.
+    if os.environ.get("TETHER_GAME_BUDGET_S"):
+        env._allowance = {"seconds": float(os.environ["TETHER_GAME_BUDGET_S"]),
+                          "per_candidate": 11.65e-6, "per_evaluation": 43.8e-6}
     led = ledger.Ledger(led_path)  # a path streams every row to jsonl as it is recorded
     # **THE CONFIG IS THE CALLER'S TO SUPPLY, AND THE REASON IS `max_depth`.** This hardcoded
     # one, so the only way to change a search bound on the ARC path was to edit the DEFAULT --
