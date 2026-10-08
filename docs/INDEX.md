@@ -56996,7 +56996,7 @@ Refusals were priced on every seed; **none paid** (s0 172, s1 143, s2 117 attemp
 
 #### F510 -- **THE LIBRARY'S PARTNER ORDERS THE MINT'S OPERANDS: after contact, before variance, never excluding; a paying term records whether its operand came from the look-up (the reviewer 2026-10-08 00:24Z, 00:54Z; the bargain step's first half).**
 
-**Why an ordering has occasions.** On the OFF all-25 ledgers (17 games read, shipped arms, 40 cycles) the agent attempted a mint after nearly every reach and minted ONE term in all; of the parks, about three-quarters were "budget spent" (the search ran out before anything paid) and the rest "under the floor". Where a search stops on budget, the ORDER of its candidates decides whether a closer is reached at all, not only which one.
+**Why an ordering has occasions.** On the OFF all-25 ledgers (17 games read, shipped arms, 40 cycles) the agent attempted a mint after nearly every reach and minted ONE term in all; **[CORRECTED 2026-10-08 00:11: WRONG -- the tally printed only the four commonest MINT-step events per game and `mint` fell off it everywhere but cd82. The true count is 139 mints on 23 of 25 games (0 on ft09 and lp85, up to 19 on re86) against 15,659 parks, about 1 in 113; the budget reading below stands.]** of the parks, about three-quarters were "budget spent" (the search ran out before anything paid) and the rest "under the floor". Where a search stops on budget, the ORDER of its candidates decides whether a closer is reached at all, not only which one.
 
 **Built.**
 - `Agent._lookup` now also records `self._named[slot]`: each partner reading a library junction relates to the residual's target, with the molecules that relate it; the `lookup` row carries `named`.
