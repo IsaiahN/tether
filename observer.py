@@ -81,21 +81,29 @@ def _mutations(effects: list[dict], before: list[dict], after: list[dict]) -> di
     attributes changed on the objects that persisted, and how many appeared / vanished. Both the
     frozen deltas AND the heavy ones (density, holes, solidity, velocity...) fire a directed cue."""
     changed: dict = {}
+    # WHICH DELTA, BESIDE WHICH CLASS (the reviewer 2026-10-08 20:45Z, path B). A class names
+    # a change ("position"); the delta describes it ("drow"), and the library lights on
+    # the description -- a one-row move must not light dcol. Same loop, same test; the
+    # classes above are unchanged.
+    deltas: dict = {}
     appeared = vanished = 0
     for e in effects:
         if e["kind"] == "change":
             for dk, attr in _MUT_ATTR.items():
                 if e.get(dk):  # non-zero delta, or True for recolour
                     changed[attr] = changed.get(attr, 0) + 1
+                    deltas[dk] = deltas.get(dk, 0) + 1
             heavy = sensors_heavy.temporal(before[e["bi"]], after[e["ai"]])
             for dk, attr in _HEAVY_MUT.items():
                 if heavy.get(dk):
                     changed[attr] = changed.get(attr, 0) + 1
+                    deltas[dk] = deltas.get(dk, 0) + 1
         elif e["kind"] == "appear":
             appeared += 1
         elif e["kind"] == "vanish":
             vanished += 1
-    return {"attributes": changed, "appeared": appeared, "vanished": vanished}
+    return {"attributes": changed, "deltas": deltas, "appeared": appeared,
+            "vanished": vanished}
 
 
 def observe(steps: list[dict]) -> list[dict]:
@@ -111,7 +119,7 @@ def observe(steps: list[dict]) -> list[dict]:
         # relation like Adjacency is object-to-object, not everything-touches-the-field.
         acts = actors(objs)
         vec = _frame_vector(acts)
-        muts = {"attributes": {}, "appeared": 0, "vanished": 0}
+        muts = {"attributes": {}, "deltas": {}, "appeared": 0, "vanished": 0}
         loci = vec.pop("loci")
         if prev_objs is not None:
             # `match` pairs on actor-filtered lists; its ai indexes `actors(objs)` == `acts`.
@@ -169,7 +177,7 @@ class Live:
         acts = actors(objs)
         vec = _frame_vector(acts)
         loci = vec.pop("loci")
-        muts = {"attributes": {}, "appeared": 0, "vanished": 0}
+        muts = {"attributes": {}, "deltas": {}, "appeared": 0, "vanished": 0}
         if self._prev is not None:
             effects = match(self._prev, objs)
             muts = _mutations(effects, actors(self._prev), acts)
