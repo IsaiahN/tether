@@ -2182,6 +2182,42 @@ def check_the_library_partner_is_ordered_after_contact_before_variance():
         tether._LOOKUP_ORDER = was
 
 
+
+def check_the_bond_is_read_off_a_paying_term():
+    """Fig 12's tests asked of a PAYING term, by re-evaluating it on its residual's frames. Terms
+    of known shape are planted through the evaluator: a threshold term must read COMPARISON and
+    not EITHER; a term its operand does not change must read EITHER and not COMPARISON; a term
+    right only where its partner is absent must read MINUS; a term echoing the partner's value
+    reads magnitude, not COMPARISON; and a test with no frame to ask on is None, never False."""
+    ag = _agent()
+    slot = ag.slots[0]
+    partner = next(x for x in ag.slots if x != slot)
+    term = tether._replace(next(t for t in ag.gamma.library.values() if t.atoms),
+                           operand=partner)
+
+    def run(fn, rows):
+        ag._guess = lambda t, _sl, row, swap=None: fn(t, {**row[0], **(swap or {})})
+        try:
+            return ag._read_bond(term, slot, rows)
+        finally:
+            del ag._guess
+
+    def frames(pairs):
+        return [({slot: 3, partner: p}, "x", a, None, None) for p, a in pairs]
+
+    threshold = run(lambda t, st: 0 if t.operand is None else int(st[partner] > st[slot]),
+                    frames([(5, 1), (1, 0), (4, 1), (2, 0)]))
+    assert threshold["comparison"] is True and threshold["either"] is False, threshold
+    assert threshold["minus"] is None, "no absent frame, so minus is not readable"
+    inert = run(lambda _t, _st: 7, frames([(5, 7), (1, 7), (4, 7)]))
+    assert inert["either"] is True and inert["comparison"] is False, inert
+    echo = run(lambda t, st: 0 if t.operand is None else st[partner], frames([(5, 5), (1, 1)]))
+    assert echo["comparison"] is False, "a magnitude read as a comparison"
+    absent = [({slot: 3}, "x", 3, None, None), ({slot: 3, partner: 2}, "x", 0, None, None)]
+    minus = run(lambda t, st: 0 if t.operand is None or partner in st else 3, absent)
+    assert minus["minus"] is True, minus
+
+
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
 
 if __name__ == "__main__":

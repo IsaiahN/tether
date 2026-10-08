@@ -3396,6 +3396,66 @@ class Agent:
             total += correction_bits(got, actual, self.alphabet[slot])
         return total
 
+    def _guess(self, term: Term, slot: str, row, swap: dict | None = None):
+        """The term's prediction on one recorded frame, with `swap` overriding readings in the
+        state it sees; `None` where it cannot be read there."""
+        state, action, _actual, intent, landed = row
+        if swap:
+            state = {**state, **swap}
+        if not self._applies(term, state):
+            return None
+        ops = self._ops(term, state)
+        if ops is None:
+            return None
+        got = self._value_of(term, slot, state,
+                             self._eval_ctx(slot, state, action=action, operands=ops,
+                                            intent=intent, landed=landed,
+                                            guard_ref=term.guard_ref))
+        return None if got is NOT_RESOLVED else got
+
+    def _read_bond(self, term: Term, slot: str, robs: list) -> dict | None:
+        """FIG 12's TESTS ON A PAYING TERM, each re-evaluating it over its residual's frames.
+        EITHER -- "remove one. Does it still work?": its operand-free form predicts every frame
+        it does. MINUS -- "is the second operand's absence the point?": asked on frames where the
+        partner is absent. COMPARISON -- "is it about which is larger": the prediction holds when
+        the operand moves on the same side of the target and changes when it crosses. A test
+        with no frame to ask on is None, never False. Both bonds kept where both hold."""
+        partner = term.operand
+        if not partner or not robs:
+            return None
+        alpha = self.alphabet
+
+        def right(t, row):
+            got = self._guess(t, slot, row)
+            return None if got is None else correction_bits(got, row[2], alpha[slot]) == 0.0
+        mine = [right(term, r) for r in robs]
+        bare = [right(_replace(term, operand=None), r) for r in robs]
+        paid = [i for i, ok in enumerate(mine) if ok]
+        either = all(bare[i] for i in paid) if paid else None
+        gone = [i for i, r in enumerate(robs) if partner not in r[0]]
+        minus = (any(mine[i] and not bare[i] for i in gone) if gone else None)
+        same = flip = 0
+        moved = False
+        for r in robs:
+            st = r[0]
+            if partner not in st or slot not in st or st[partner] == st[slot]:
+                continue
+            side = 1 if st[partner] > st[slot] else -1
+            near, across = st[partner] + side, st[slot] - (st[partner] - st[slot])
+            if not all(-alpha[partner] < v < alpha[partner] for v in (near, across)):
+                continue
+            base = self._guess(term, slot, r)
+            a = self._guess(term, slot, r, {partner: near})
+            b = self._guess(term, slot, r, {partner: across})
+            if None in (base, a, b):
+                continue
+            same += 1
+            moved = moved or a != base
+            flip += b != base
+        comparison = None if not same else (not moved and flip > 0)
+        return {"either": either, "minus": minus, "comparison": comparison,
+                "asked": {"either": len(paid), "minus": len(gone), "comparison": same}}
+
     def route(self, res: dict[str, SlotResidual]) -> list[tuple[str, str, str | None]]:
         out = []
         for slot, r in res.items():
@@ -7166,6 +7226,7 @@ class Agent:
                 adj = set(touch().get(owners.get(slot), ()))
                 detail["operand_in_contact"] = owners.get(term.operand) in adj
         _lib = self._named.get(slot, {})
+        detail["bond_read"] = self._read_bond(term, slot, robs) if term.operand else None
         detail["operand_from_lookup"] = _lib.get(term.operand) if term.operand else None
         detail["verdict"] = "pays"
         detail["closes"] = closes
