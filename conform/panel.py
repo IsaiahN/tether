@@ -6,6 +6,12 @@
 The panel takes 10-16 minutes and the hook about 4, so the seat JUDGES ledgers and never runs
 them. Each stamp binds its ledger to the tree that produced it: the sha256 of the ledger and of
 every project file the run imported. A ledger from any other tree is stale by construction.
+
+A stamp hashes LINE-ENDING-NORMALISED bytes (CRLF read as LF), so one code checked out as LF in
+one tree and CRLF in another is one stamp (the reviewer 2026-10-08 17:24Z: a raw-bytes stamp read
+a worktree's ledgers as STALE over line endings alone). Stamps written before carry no "hash"
+key and are still judged on raw bytes, as they were made. The seat proves the normalisation on
+every run.
 """
 
 from __future__ import annotations
@@ -28,8 +34,30 @@ CYCLES, ACTIONS = 60, 40
 REGENERATE = "python conform/panel.py --produce"
 
 
-def _sha(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+HASH = "sha256-lf"
+
+
+def _sha(path: Path, scheme: str | None = HASH) -> str:
+    b = path.read_bytes()
+    return hashlib.sha256(b.replace(b"\r\n", b"\n") if scheme == HASH else b).hexdigest()
+
+
+def _hash_must_fail() -> list[str]:
+    """The same text in LF and in CRLF is ONE stamp; a real content change is a different one."""
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        lf, crlf, edit = (Path(d) / n for n in ("lf.py", "crlf.py", "edit.py"))
+        lf.write_bytes(b"a = 1\nb = 2\n")
+        crlf.write_bytes(b"a = 1\r\nb = 2\r\n")
+        edit.write_bytes(b"a = 1\r\nb = 3\r\n")
+        bad = []
+        if _sha(lf) != _sha(crlf):
+            bad.append("stamp hash: one text in LF and CRLF gave two stamps")
+        if _sha(crlf) == _sha(edit):
+            bad.append("stamp hash: a content change gave the same stamp")
+        if _sha(lf, None) == _sha(crlf, None):
+            bad.append("stamp hash: the raw scheme no longer tells LF from CRLF")
+        return bad
 
 
 def _imported() -> dict[str, str]:
@@ -66,7 +94,7 @@ def _member(name: str) -> None:
         with open(led_path, "w", encoding="utf-8") as fh:
             for r in led.rows():
                 fh.write(json.dumps(r, default=str, sort_keys=True) + "\n")
-    stamp = {"ledger": _sha(led_path), "files": _imported()}
+    stamp = {"hash": HASH, "ledger": _sha(led_path), "files": _imported()}
     (OUT / f"{name}.stamp").write_text(json.dumps(stamp, indent=1), encoding="utf-8")
 
 
@@ -78,16 +106,17 @@ def _produce() -> int:
 
 def _seat() -> int:
     import gate
-    bad = []
+    bad = _hash_must_fail()
     for name in MEMBERS:
         led_path, stamp_path = OUT / f"{name}.jsonl", OUT / f"{name}.stamp"
         if not (led_path.exists() and stamp_path.exists()):
             bad.append(f"{name}: MISSING")
             continue
         stamp = json.loads(stamp_path.read_text(encoding="utf-8"))
+        scheme = stamp.get("hash")
         moved = [f for f, h in stamp["files"].items()
-                 if not (ROOT / f).exists() or _sha(ROOT / f) != h]
-        if _sha(led_path) != stamp["ledger"]:
+                 if not (ROOT / f).exists() or _sha(ROOT / f, scheme) != h]
+        if _sha(led_path, scheme) != stamp["ledger"]:
             moved.append(led_path.name)
         if moved:
             bad.append(f"{name}: STALE ({', '.join(moved[:4])}{' ...' if len(moved) > 4 else ''})")
