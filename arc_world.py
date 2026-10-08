@@ -354,7 +354,11 @@ class ArcWorld:
         and `rolling`. This is the structure put back beside the stand-in, not in place of it.
         """
         tbl = getattr(self._decompose, "_shapes", None) or {}
-        return {v: k for k, v in tbl.items()}
+        inv = {v: k for k, v in tbl.items()}
+        # APPEND-ONLY, CHECKED: ids exactly 0..n-1. A rewritten, deleted or colliding entry breaks
+        # it, and the mint's frontier key reads this table by its size alone.
+        assert inv.keys() == set(range(len(tbl))), "shape table is not append-only"
+        return inv
 
     def attribute_of(self) -> dict[str, str]:
         """`{slot: which attribute it holds}`. **The loop may not derive this** -- it would

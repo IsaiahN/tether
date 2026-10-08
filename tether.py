@@ -10,6 +10,7 @@ from __future__ import annotations
 import collections
 import hashlib
 import itertools
+import json
 import math
 import os
 import re
@@ -219,6 +220,11 @@ _TALLY = not os.environ.get("TETHER_NO_TALLY")
 # carried schema could not leave the unsettled state on any board. INVERTED POLARITY like
 # `_TALLY`: the fix is ON and the env var turns it OFF, so the A/B is one script.
 _CARRY_CANDIDATE = not os.environ.get("TETHER_NO_CARRY_CANDIDATE")
+# WHAT A SEARCH HAS ALREADY PRICED -- reviewer 2026-10-07, plan item 7. Under an unchanged scope key
+# a chain prices the same way again, so a re-run of a search that stopped at the budget spends the
+# budget re-reading what it already refused. The cue reorders ties every cycle, so the frontier is
+# the SET of chains priced, never a position. ON by default; the env var turns it OFF.
+_RESUME = not os.environ.get("TETHER_NO_RESUME")
 
 
 def _norm_name(x: str) -> str:
@@ -1248,6 +1254,8 @@ class Agent:
         # Characterisations, not over terms. Same composition is the narrow, checkable case,
         # and calling it the whole criterion would be the overstatement the comment made.
         self._want_seen: dict[str, int] = {}
+        # slot -> (scope key, {(stream, chain): its lean increments}, novelty, verdict)
+        self._frontiers: dict[str, tuple] = {}
         # WHEN THE AGENT LAST COMMITTED TO A PLAN. The threshold falls with the gap since --
         # *the agent is always paying with its time*, so a cycle that ends without a
         # commitment makes the next commitment cheaper. Starts at 0, so an agent that has
@@ -3200,6 +3208,24 @@ class Agent:
             m = inherited.tags_of(self.cue)
             self._cue_tag_cache = (self.cycle, m)
         return m
+
+    def _frontier_lookup(self, slot: str, key: tuple) -> tuple | None:
+        """The slot's recorded search, if its scope key is unchanged; otherwise None."""
+        e = self._frontiers.get(slot)
+        return e if e is not None and e[0] == key else None
+
+    def _frontier_store(self, slot: str, entry: tuple) -> None:
+        self._frontiers[slot] = entry
+
+    def _guard_scope(self, slot: str, robs: list, operand_binds: list) -> tuple:
+        """The guards and referents the chain loop will walk -- the same expressions, which
+        read no chain. In the key because `_separates` reads the WHOLE history, not only R, so
+        a correct row can make a referent separate while the base stands still."""
+        refs = self._guard_refs(slot, operand_binds)
+        gs = self._guards(robs, slot, refs)
+        sep = ([r for r in refs if self._separates(robs, slot, r)]
+               if any(x in (ACTED_SELF, ACTED_ON) for x in gs) else [])
+        return tuple(gs), tuple(sep)
 
     def _shapes_now(self) -> dict | None:
         """The shape decoder for this cycle, or None. CACHED PER CYCLE because `Ctx` is built once
@@ -6098,6 +6124,8 @@ class Agent:
         by_kind: dict[str, tuple] = {}
         wanted: tuple[float, Term, int] | None = None
         rank = 0
+        _skey = _hit = None
+        priced, _skipped = {}, 0
 
         if guards["support"] and base > floor:
             # THE GAP IS ALREADY CHARACTERISED FOR RETRIEVAL; the search gets the same key.
@@ -6166,7 +6194,32 @@ class Agent:
             # That is a design question, not a parameter.
             by_kind: dict[str, tuple] = {}
 
-            for in_t, out_t in streams:
+            # The shape decoder enters by its SIZE: it is append-only (one writer, id = size,
+            # `ArcWorld.shapes` asserts it), so within a run equal size is equal contents. A shape
+            # slot's alphabet is max(2, size), so this part adds only the 1 -> 2 step it masks.
+            # THE SCOPE KEY: what a chain's PRICE is read from. An unchanged base under the same
+            # held term, alphabet and epoch means no new residual row, so `robs` is the same rows;
+            # the rest fixes what is generated from them. The cue and the unit ORDER are not in it:
+            # they decide when a chain is reached, never what it costs. The SLOT SET is not a
+            # separate part: the alphabet map's keys are the slot set, on every world.
+            _skey = (held.name, tuple(sorted(self.alphabet.items())), self._trace_epoch, base,
+                     tuple(sorted(self.gamma.library)), tuple(sorted(u.name for u in _units)),
+                     tuple(streams),
+                     json.dumps(gap, sort_keys=True, default=str),
+                     len(self._shapes_now() or ()) if _SHAPE_DECODE else 0,
+                     self._guard_scope(slot, robs, operand_binds))
+            _hit = self._frontier_lookup(slot, _skey) if _RESUME else None
+            priced: dict = dict(_hit[1]) if _hit else {}
+            _skipped = 0
+            if _hit:
+                # THE SKIPPED CHAINS' SIDE EFFECT IS REPLAYED: re-pricing them would count these
+                # wants again, and the lean reads the count.
+                for _ws in _hit[1].values():
+                    for _w in _ws:
+                        self._want_seen[_w] = self._want_seen.get(_w, 0) + 1
+                guards["novelty"] = guards["novelty"] or _hit[2]
+
+            for _si, (in_t, out_t) in enumerate(streams):
                 # A THIRD KIND EXISTS ONCE THE STREAMS WIDEN, and it is named rather than
                 # folded into `objective`: a term ending at EXTENT is neither a prediction of
                 # the slot's next value nor a complete objective, and calling it one would put
@@ -6193,9 +6246,14 @@ class Agent:
                             "units": self.gamma.alphabet, "estimate": 0}
                 for cand in self.gamma.enumerate_closure(in_t, out_t, self.cfg.max_depth,
                                                          self.cfg.budget, st, order=by_fit):
+                    if _hit and (_si, cand.name) in _hit[1]:
+                        _skipped += 1
+                        continue
                     if rank >= self.cfg.work_budget:
                         st["budget_spent"] = True
                         break
+                    _chain_incs: list[str] = []
+                    priced[(_si, cand.name)] = _chain_incs
                     binds = operand_binds if cand.reads_operand else [None]
                     binds = [x for x in binds if self._operand_fits(cand, slot, x)]
                     # HOISTED so the guard PRICE can read how many were on offer -- the
@@ -6492,6 +6550,7 @@ class Agent:
                                 # WANT, and Isaiah's criterion is that it keeps coming back.
                                 _n = self._want_seen.get(term.name, 0) + 1
                                 self._want_seen[term.name] = _n
+                                _chain_incs.append(term.name)
                                 if wanted is None or (_n, -cost) > (wanted[2], -wanted[0]):
                                     wanted = (cost, term, _n)
                             continue
@@ -6613,6 +6672,8 @@ class Agent:
                   "depth": self.cfg.max_depth, "units": stats["units"],
                   "space_estimate": est,
                   "coverage": round(seen / est, 6) if est else 0.0}
+        if _hit:
+            detail["chains_already_priced"] = _skipped
 
         if best is None:
             # THE VERDICT IS NOT ONE WORD. "I stopped early" and "the whole space at this
@@ -6670,9 +6731,15 @@ class Agent:
                                         "verdict": detail["verdict"],
                                         "units_then": stats.get("units", 0),
                                         "base_bits": round(base, 3)}
+            if _skey is not None and detail["verdict"] in ("budget_spent", "priced_out_at_depth",
+                                                           "not_novel"):
+                detail["chains_priced_in_scope"] = len(priced)
+                self._frontier_store(slot, (_skey, {k: tuple(v) for k, v in priced.items()},
+                                            guards["novelty"], detail["verdict"]))
             self.led.record(self.cycle, "MINT", slot, "park", of=(slot,), **detail)
             return
 
+        self._frontiers.pop(slot, None)
         # THE CONSUMER -- Isaiah, 2026-09-24. **`by_kind` WAS COMPUTED, PUBLISHED AND READ BY
         # NOTHING**: it keeps the best candidate PER KIND and `best` installed the single lowest
         # `cost + left` across all of them, so an objective could PAY THE BARGAIN, be recorded as
