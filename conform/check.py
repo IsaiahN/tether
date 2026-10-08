@@ -140,6 +140,12 @@ STAGES = (
      "a panel ledger is missing, stale, or refused by the gate", HERE / "panel.py"),
     # THE FIGURES DICTATE LOGIC AND DECISIONS (Isaiah, 2026-10-07): an INDEX entry from F506 on
     # carries a FIGURE CENSUS -- the bearing figures quoted, any strained named.
+    # THE LIBRARY AGREES WITH WHAT THE CODE BUILDS, PER ARM (the reviewer, 2026-10-08 17:52Z):
+    # inherited.py keys the agent's reach on agent_atoms.json, and v4 let 21 built atoms fall out
+    # of it unseen. Run with its must-fails, so a pass shows both the catch and a clean library.
+    ("library", [str(PY), str(HERE / "libagree.py"), "--must-fail"],
+     "the library and the atoms the code builds disagree, or a planted drift went uncaught",
+     HERE / "libagree.py"),
     ("figures", [str(PY), str(HERE / "figures.py")],
      "an INDEX entry from F506 on carries no FIGURE CENSUS", HERE / "figures.py"),
     ("tests", [str(PY), "test_gate.py"],
