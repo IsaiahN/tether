@@ -225,7 +225,11 @@ def run_stage(argv: list[str], needs: Path | None = None) -> tuple[str, str]:
     hits = [ln for ln in out
             if not ln.startswith(("lint:", "conform:", "Found ", "[*]", "LINTER"))
             and not ln[0].isdigit()]
-    return "FAIL", " · ".join(hits[:3])[:400]
+    # HOW MANY, NOT ONLY WHICH: the ruff seat once showed 3 findings of 66 and the narrow fix it
+    # invited stayed red (the reviewer 2026-10-08 17:56Z). The count is never truncated.
+    shown = hits[:3]
+    return "FAIL", (f"{len(shown)} of {len(hits)} finding line(s) shown: "
+                    + " · ".join(shown))[:400]
 
 
 def main(argv: list[str]) -> int:
