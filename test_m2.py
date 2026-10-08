@@ -2182,6 +2182,46 @@ def check_the_library_partner_is_ordered_after_contact_before_variance():
         tether._LOOKUP_ORDER = was
 
 
+
+def check_nothing_unknown_needs_every_object_pressed():
+    """DEFECT: a positioned action's effect is filed per context, not per target, so one press of
+    one object filed "no effect" for all of them and exploration said "nothing unknown here" with
+    objects never pressed (ft09). While an object is unpressed the action stays fresh and is aimed
+    at it; only when every object has been pressed may the verdict be given (Fig 13)."""
+    import interface as IFace
+    f = IFace.Interface()
+    ctx = ("here",)
+    f.table["ACTION6"] = {"by_ctx": {ctx: [frozenset()]}, "n": 1, "lands": {}}
+    f.chooser = lambda _known: (0, "the agent's pick")
+    state = {"o0.row": 0, "o0.col": 0, "o1.row": 2, "o1.col": 4}
+    f.clicked.add(f._at("o0", state))
+    want = IFace.Intent(IFace.ELICIT)
+    r = f.realise(want, ("ACTION6",), ctx, state, None)
+    assert "nothing unknown" not in (r.why or ""), f"verdict given with o1 unpressed: {r.why}"
+    assert r.coord == f._at("o1", state), f"not aimed at the unpressed object: {r.coord}"
+    f.clicked.add(f._at("o1", state))
+    done = f.realise(want, ("ACTION6",), ctx, state, None)
+    assert "nothing unknown" in (done.why or ""), f"every object pressed, no verdict: {done.why}"
+
+
+
+def check_an_unpressed_kind_is_pressed_first():
+    """DEFECT: the walk pressed objects in NAME order, so a board of many alike tiles spent its
+    presses on one kind. One of each perceived kind (shape, colour) is pressed before a second of
+    any (Fig 5, the reviewer 2026-10-08 05:55Z); the order is recorded; nothing is skipped."""
+    import interface as IFace
+    f = IFace.Interface()
+    state = {"o0.row": 0, "o0.col": 0, "o0.shape": 1, "o0.colour": 9,
+             "o1.row": 2, "o1.col": 4, "o1.shape": 1, "o1.colour": 9,
+             "o2.row": 2, "o2.col": 12, "o2.shape": 2, "o2.colour": 8}
+    f.clicked.add(f._at("o0", state))
+    f.pressed_kinds.add(f._kind("o0", state))
+    assert f._unclicked(state) == f._at("o2", state) and f.new_kind, "a pressed kind came first"
+    f.clicked.add(f._at("o2", state))
+    f.pressed_kinds.add(f._kind("o2", state))
+    assert f._unclicked(state) == f._at("o1", state) and not f.new_kind, "an object was skipped"
+
+
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
 
 if __name__ == "__main__":

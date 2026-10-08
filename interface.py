@@ -332,6 +332,11 @@ class Interface:
         # this interface itself aimed, so *unclicked* means *I have not tried there*, never
         # *the board says nothing is there*.
         self.clicked: set[tuple[int, int]] = set()
+        # WHAT KINDS HAVE BEEN PRESSED -- an object's perceived (shape, colour). The walk
+        # presses one of each kind before a second of any (Fig 5: seek the gap that is large
+        # and compressible; the reviewer 2026-10-08 05:55Z). An order, never a filter.
+        self.pressed_kinds: set[tuple] = set()
+        self.new_kind = False
         # **LAYER 1's OTHER HALF -- INSTANCE MEMORY, AND IT IS DELIBERATELY NOT A KEY.**
         # `rel` says WHETHER acting on one object changes another in this world; it cannot say
         # WHICH object to press to move slot Y. That question is answered by what this agent
@@ -636,7 +641,8 @@ class Interface:
             if coord is None and a in POSITIONED:
                 coord = self._unclicked(state)
                 if coord is not None:
-                    why = f"{why}, aimed where nothing has been clicked"
+                    why = (f"{why}, aimed where nothing has been clicked"
+                           f"{', at a kind not yet pressed' if self.new_kind else ''}")
                 else:
                     # CLAUSE 3. Every object has been clicked once, so there is nothing
                     # UNCLICKED left -- but a positioned press with no coordinate is a
@@ -655,6 +661,12 @@ class Interface:
             return _made(_pick(unmapped), f"requested {asked}: never taken")
         # THE VARIETY CONDITION: prefer an action whose effect IN THIS CONTEXT is unknown.
         fresh = [a for a in offered if ctx not in self.table[a]["by_ctx"]]
+        # A POSITIONED ACTION IS NOT KNOWN HERE WHILE AN OBJECT IS UNPRESSED -- the verdict carries
+        # its closure (Fig 13; the reviewer 2026-10-08 02:30Z). Its effect is recorded per context,
+        # not per target, so one press filed "no effect" for every object, and ft09 said
+        # "nothing unknown here" while objects it had never pressed remained.
+        fresh += [a for a in offered if a in POSITIONED and a not in fresh
+                  and self._unclicked(state) is not None]
         if fresh:
             return _made(_pick(fresh), f"requested {asked}: effect here not yet known")
         # everything mapped in this context. Take the one taken LEAST here -- still the agent's
@@ -860,11 +872,16 @@ class Interface:
             return None
         rows = {k.rsplit(".", 1)[0] for k in state if k.endswith(".row")}
         cols = {k.rsplit(".", 1)[0] for k in state if k.endswith(".col")}
-        for obj in sorted(rows & cols):
-            at = self._at(obj, state)
-            if at is not None and at not in self.clicked:
-                return at
-        return None
+        open_ = [(obj, at) for obj in sorted(rows & cols)
+                 if (at := self._at(obj, state)) is not None and at not in self.clicked]
+        fresh = [at for obj, at in open_ if self._kind(obj, state) not in self.pressed_kinds]
+        self.new_kind = bool(fresh)
+        return (fresh or [at for _obj, at in open_] or [None])[0]
+
+    @staticmethod
+    def _kind(obj: str, state: dict) -> tuple:
+        """An object's perceived kind: its shape and colour readings, nothing named."""
+        return (state.get(f"{obj}.shape"), state.get(f"{obj}.colour"))
 
     @staticmethod
     def _gap(slot: str, target: str, state: dict | None) -> int | None:
@@ -1087,6 +1104,9 @@ class Interface:
         self.audits += 1
         if r.coord is not None:
             self.clicked.add(r.coord)
+            _on = self._acted(r.coord, before)
+            if _on is not None:
+                self.pressed_kinds.add(self._kind(_on, before))
         # READ OFF `before`, NOT `after`. The cause is whatever was at the coordinate WHEN THE
         # PRESS LANDED -- on a board where the press moves things, reading `after` would
         # attribute the effect to whatever has since arrived there.
