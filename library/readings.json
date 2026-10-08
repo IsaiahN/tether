@@ -1,0 +1,675 @@
+{
+ "meta": {
+  "what": "THE FLOOR: every quantity the agent perceives or is told, per object, per pair, per event, per board. Every library entry's `reads`/`affects` name readings from this file and nothing else. Figure 13: atoms(Γ) are the terms not built from anything else; Figure 6: an instrument is 'improved from a worse instrument already returning something'.",
+  "status_values": "published = on the scored path today; arm:<FLAG> = built, published only when that arm is on (default off unless noted); harness-on = turned on by arc_holdout.wire on the ARC path; queued:<branch> = built on a branch not yet merged into seat-act; planned = specified (RELATIONS.md / observer schema / rulings) and not built",
+  "types": "COLOUR (an episode-local label by encounter order within a spectrum band: identity/difference only, NO arithmetic, never stored across episodes -- corpus, confirmed by Isaiah 2026-10-08), POSITION (ordered), EXTENT (ordered, non-negative), DELTA (signed change), SHAPE (agent-allocated label: identity/difference only, no arithmetic -- ruling 2026-10-08), BOOL (logic only), OBJECT, PRED",
+  "source": "seat-act e50406d: arc_atoms.ATTRIBUTE_TYPE / ATTRIBUTE_ARM, arc_percept, arc_world, tether (came/gone); queued branches per the seat's branch map 2026-10-08",
+  "self_readings": "scope 'self' = the agent's own record (residual, prediction, standing, library size). Atoms about rules, beliefs and learning read these; Figure 1's loop produces them every step.",
+  "generalisation": "Isaiah 2026-10-08: colours change every time a game loads, and on the private (out-of-distribution) boards objects may be rearranged, the board rotated or shrunk, 'all in service of showing that you're generalising'. So no raw value crosses an episode: colour is a per-episode label (identity/difference only), positions and sizes cross only as relations between objects, and axis-dependent relations (above, left of) cross with the axis as a bound variable. Figure 4: 'A recording carried upward looks like knowledge and is a description of one occasion.' The Symbols table: T_A, abstraction, 'Detail is thrown away, which is what makes the result reusable'; F, the frame transform.",
+  "code_note": "27 readings are also built as OBJECT->type extract atoms by arc_atoms._extract (one per ATTRIBUTE_TYPE row). They are PERCEPTION and are recorded HERE only, never again among the agent's operations."
+ },
+ "readings": {
+  "colour": {
+   "type": "COLOUR",
+   "scope": "object",
+   "status": "published",
+   "grid": "the object's colour as an EPISODE-LOCAL LABEL: named by order of encounter within its spectrum band (GB1, GB2 ...), compared same/other only",
+   "substrate": [
+    "spectrum"
+   ],
+   "carry": "never the value -- only same/other relations between objects",
+   "code": {
+    "extract_atom": "colour",
+    "defined_at": "arc_atoms.py:95",
+    "arm": null,
+    "source": "seat export 2026-10-08, seat-act e50406d"
+   }
+  },
+  "row": {
+   "type": "POSITION",
+   "scope": "object",
+   "status": "published",
+   "grid": "the object's top row",
+   "substrate": [
+    "space"
+   ],
+   "carry": "never the value -- only relations (before/after/level along an axis; offsets between objects)",
+   "code": {
+    "extract_atom": "row",
+    "defined_at": "arc_atoms.py:95",
+    "arm": null,
+    "source": "seat export 2026-10-08, seat-act e50406d"
+   }
+  },
+  "col": {
+   "type": "POSITION",
+   "scope": "object",
+   "status": "published",
+   "grid": "the object's left column",
+   "substrate": [
+    "space"
+   ],
+   "carry": "never the value -- only relations (before/after/level along an axis; offsets between objects)",
+   "code": {
+    "extract_atom": "col",
+    "defined_at": "arc_atoms.py:95",
+    "arm": null,
+    "source": "seat export 2026-10-08, seat-act e50406d"
+   }
+  },
+  "h": {
+   "type": "EXTENT",
+   "scope": "object",
+   "status": "published",
+   "grid": "height in cells (bounding box)",
+   "substrate": [
+    "space",
+    "spectrum"
+   ],
+   "carry": "never the value -- only comparisons (more/less/same) and ratios between objects",
+   "code": {
+    "extract_atom": "h",
+    "defined_at": "arc_atoms.py:96",
+    "arm": null,
+    "source": "seat export 2026-10-08, seat-act e50406d"
+   }
+  },
+  "w": {
+   "type": "EXTENT",
+   "scope": "object",
+   "status": "published",
+   "grid": "width in cells (bounding box)",
+   "substrate": [
+    "space",
+    "spectrum"
+   ],
+   "carry": "never the value -- only comparisons (more/less/same) and ratios between objects",
+   "code": {
+    "extract_atom": "w",
+    "defined_at": "arc_atoms.py:96",
+    "arm": null,
+    "source": "seat export 2026-10-08, seat-act e50406d"
+   }
+  },
+  "shape": {
+   "type": "SHAPE",
+   "scope": "object",
+   "status": "published",
+   "grid": "the outline's label (episode-local; compare same/other only)",
+   "substrate": [
+    "space"
+   ],
+   "carry": "never the label -- only same/other between objects, and invariants (holes, symmetry, corners) that survive rotation and scale",
+   "code": {
+    "extract_atom": "shape",
+    "defined_at": "arc_atoms.py:97",
+    "arm": null,
+    "source": "seat export 2026-10-08, seat-act e50406d"
+   }
+  },
+  "drow": {
+   "type": "DELTA",
+   "scope": "object",
+   "status": "published",
+   "grid": "rows moved since the last frame (signed)",
+   "substrate": [
+    "space",
+    "time"
+   ],
+   "carry": "relations and changes, never a raw value",
+   "code": {
+    "extract_atom": "drow",
+    "defined_at": "arc_atoms.py:96",
+    "arm": null,
+    "source": "seat export 2026-10-08, seat-act e50406d"
+   }
+  },
+  "dcol": {
+   "type": "DELTA",
+   "scope": "object",
+   "status": "published",
+   "grid": "columns moved since the last frame (signed)",
+   "substrate": [
+    "space",
+    "time"
+   ],
+   "carry": "relations and changes, never a raw value",
+   "code": {
+    "extract_atom": "dcol",
+    "defined_at": "arc_atoms.py:96",
+    "arm": null,
+    "source": "seat export 2026-10-08, seat-act e50406d"
+   }
+  },
+  "completed": {
+   "type": "EXTENT",
+   "scope": "board",
+   "status": "published",
+   "grid": "the board's own progress count (@goal.completed)",
+   "substrate": [
+    "spectrum",
+    "gradient"
+   ],
+   "carry": "as is",
+   "code": {
+    "extract_atom": "completed",
+    "defined_at": "arc_atoms.py:123",
+    "arm": null,
+    "source": "seat export 2026-10-08, seat-act e50406d"
+   }
+  },
+  "touching": {
+   "type": "PRED",
+   "scope": "pair",
+   "status": "published",
+   "grid": "two objects share a cell face",
+   "substrate": [
+    "space",
+    "network"
+   ],
+   "carry": "relations and changes, never a raw value"
+  },
+  "came": {
+   "type": "OBJECT",
+   "scope": "event",
+   "status": "published",
+   "grid": "an object appeared this frame",
+   "substrate": [
+    "time"
+   ],
+   "carry": "as is"
+  },
+  "gone": {
+   "type": "OBJECT",
+   "scope": "event",
+   "status": "published",
+   "grid": "an object disappeared this frame",
+   "substrate": [
+    "time"
+   ],
+   "carry": "as is"
+  },
+  "action": {
+   "type": "PRED",
+   "scope": "context",
+   "status": "published",
+   "grid": "which action the agent took this frame",
+   "substrate": [
+    "time",
+    "energy"
+   ],
+   "carry": "as is"
+  },
+  "press": {
+   "type": "POSITION",
+   "scope": "context",
+   "status": "published",
+   "grid": "the cell a positioned action pressed, and the object under it (F509)",
+   "substrate": [
+    "space"
+   ],
+   "carry": "as is"
+  },
+  "dh": {
+   "type": "DELTA",
+   "scope": "object",
+   "status": "arm:TETHER_OBSERVER (per-object part queued ON in seat-observer)",
+   "grid": "height change since last frame",
+   "substrate": [
+    "space",
+    "time"
+   ],
+   "carry": "relations and changes, never a raw value",
+   "code": {
+    "extract_atom": "dh",
+    "defined_at": "arc_atoms.py:128",
+    "arm": "arc_percept._OBSERVER",
+    "source": "seat export 2026-10-08, seat-act e50406d"
+   }
+  },
+  "dw": {
+   "type": "DELTA",
+   "scope": "object",
+   "status": "arm:TETHER_OBSERVER (per-object part queued ON in seat-observer)",
+   "grid": "width change since last frame",
+   "substrate": [
+    "space",
+    "time"
+   ],
+   "carry": "relations and changes, never a raw value",
+   "code": {
+    "extract_atom": "dw",
+    "defined_at": "arc_atoms.py:128",
+    "arm": "arc_percept._OBSERVER",
+    "source": "seat export 2026-10-08, seat-act e50406d"
+   }
+  },
+  "dcells": {
+   "type": "DELTA",
+   "scope": "object",
+   "status": "arm:TETHER_OBSERVER (per-object part queued ON in seat-observer)",
+   "grid": "filled-cell count change since last frame",
+   "substrate": [
+    "space",
+    "time"
+   ],
+   "carry": "relations and changes, never a raw value",
+   "code": {
+    "extract_atom": "dcells",
+    "defined_at": "arc_atoms.py:128",
+    "arm": "arc_percept._OBSERVER",
+    "source": "seat export 2026-10-08, seat-act e50406d"
+   }
+  },
+  "colour_changed": {
+   "type": "BOOL",
+   "scope": "object",
+   "status": "arm:TETHER_OBSERVER (per-object part queued ON in seat-observer)",
+   "grid": "the object's colour differs from last frame",
+   "substrate": [
+    "spectrum",
+    "time"
+   ],
+   "carry": "relations and changes, never a raw value",
+   "code": {
+    "extract_atom": "colour_changed",
+    "defined_at": "arc_atoms.py:134",
+    "arm": "arc_percept._OBSERVER",
+    "source": "seat export 2026-10-08, seat-act e50406d"
+   }
+  },
+  "contact": {
+   "type": "EXTENT",
+   "scope": "pair",
+   "status": "arm:TETHER_OBSERVER (pair part held back: enters via the relation channel)",
+   "grid": "number of shared cell faces between two objects (0 corner, 1 edge, 2+ face)",
+   "substrate": [
+    "space",
+    "network"
+   ],
+   "carry": "relations and changes, never a raw value",
+   "code": {
+    "extract_atom": "contact",
+    "defined_at": "arc_atoms.py:112",
+    "arm": "arc_world._OBSERVER",
+    "source": "seat export 2026-10-08, seat-act e50406d"
+   }
+  },
+  "bbox": {
+   "type": "EXTENT",
+   "scope": "pair",
+   "status": "arm:TETHER_OBSERVER (pair part held back)",
+   "grid": "area where two bounding boxes overlap",
+   "substrate": [
+    "space",
+    "network"
+   ],
+   "carry": "relations and changes, never a raw value",
+   "code": {
+    "extract_atom": "bbox",
+    "defined_at": "arc_atoms.py:137",
+    "arm": "arc_world._OBSERVER",
+    "source": "seat export 2026-10-08, seat-act e50406d"
+   }
+  },
+  "inside": {
+   "type": "BOOL",
+   "scope": "pair",
+   "status": "arm:TETHER_OBSERVER (pair part held back)",
+   "grid": "one object lies in another's hole",
+   "substrate": [
+    "space",
+    "network"
+   ],
+   "carry": "relations and changes, never a raw value",
+   "code": {
+    "extract_atom": "inside",
+    "defined_at": "arc_atoms.py:175",
+    "arm": "arc_world._OBSERVER",
+    "source": "seat export 2026-10-08, seat-act e50406d"
+   }
+  },
+  "dholes": {
+   "type": "DELTA",
+   "scope": "object",
+   "status": "harness-on (TETHER_SHAPE_DELTA, Isaiah 2026-09-27)",
+   "grid": "change in number of holes",
+   "substrate": [
+    "space",
+    "time"
+   ],
+   "carry": "relations and changes, never a raw value",
+   "code": {
+    "extract_atom": "dholes",
+    "defined_at": "arc_atoms.py:143",
+    "arm": "arc_percept._SHAPE_DELTA (on for ARC)",
+    "source": "seat export 2026-10-08, seat-act e50406d"
+   }
+  },
+  "dperimeter": {
+   "type": "DELTA",
+   "scope": "object",
+   "status": "harness-on (TETHER_SHAPE_DELTA)",
+   "grid": "change in outline length",
+   "substrate": [
+    "space",
+    "time"
+   ],
+   "carry": "relations and changes, never a raw value",
+   "code": {
+    "extract_atom": "dperimeter",
+    "defined_at": "arc_atoms.py:143",
+    "arm": "arc_percept._SHAPE_DELTA (on for ARC)",
+    "source": "seat export 2026-10-08, seat-act e50406d"
+   }
+  },
+  "age": {
+   "type": "EXTENT",
+   "scope": "object",
+   "status": "arm:TETHER_INSTRUMENTS (ruled ON 2026-10-08, queued)",
+   "grid": "frames since the object was first tracked",
+   "substrate": [
+    "time"
+   ],
+   "carry": "relations and changes, never a raw value",
+   "code": {
+    "extract_atom": "age",
+    "defined_at": "arc_atoms.py:148",
+    "arm": "arc_percept._INSTRUMENTS",
+    "source": "seat export 2026-10-08, seat-act e50406d"
+   }
+  },
+  "stability": {
+   "type": "EXTENT",
+   "scope": "object",
+   "status": "arm:TETHER_INSTRUMENTS (ruled ON 2026-10-08, queued)",
+   "grid": "consecutive frames the object has not changed",
+   "substrate": [
+    "time"
+   ],
+   "carry": "relations and changes, never a raw value",
+   "code": {
+    "extract_atom": "stability",
+    "defined_at": "arc_atoms.py:169",
+    "arm": "arc_percept._INSTRUMENTS",
+    "source": "seat export 2026-10-08, seat-act e50406d"
+   }
+  },
+  "speed": {
+   "type": "EXTENT",
+   "scope": "object",
+   "status": "arm:TETHER_INSTRUMENTS -- ruled NOT a slot 2026-10-08 (a current-frame composition: larger of |drow|,|dcol|)",
+   "grid": "cells moved this frame (larger of the two deltas)",
+   "substrate": [
+    "space",
+    "time"
+   ],
+   "carry": "relations and changes, never a raw value",
+   "code": {
+    "extract_atom": "speed",
+    "defined_at": "arc_atoms.py:154",
+    "arm": "arc_percept._INSTRUMENTS",
+    "source": "seat export 2026-10-08, seat-act e50406d"
+   }
+  },
+  "filled": {
+   "type": "EXTENT",
+   "scope": "object",
+   "status": "queued:seat-filled (ruled a bet-on slot 2026-10-08; identity with the `area` atom recorded, not duplicated)",
+   "grid": "number of filled cells",
+   "substrate": [
+    "space",
+    "spectrum"
+   ],
+   "carry": "never the value -- only comparisons (more/less/same) and ratios between objects"
+  },
+  "prev": {
+   "type": "(same as the slot)",
+   "scope": "operand",
+   "status": "queued:seat-prev (ruled 2026-10-08)",
+   "grid": "this slot's own value one frame earlier, offered as an operand (not a slot, not bet on)",
+   "substrate": [
+    "time"
+   ],
+   "carry": "as is"
+  },
+  "add_n": {
+   "type": "EXTENT",
+   "scope": "object",
+   "status": "arm:TETHER_CELL_CHANGE (default off)",
+   "grid": "cells added to the object this frame",
+   "substrate": [
+    "space",
+    "time"
+   ],
+   "carry": "relations and changes, never a raw value",
+   "code": {
+    "extract_atom": "add_n",
+    "defined_at": "arc_atoms.py:181",
+    "arm": "arc_percept._CELL_CHANGE (import-time)",
+    "source": "seat export 2026-10-08, seat-act e50406d"
+   }
+  },
+  "rem_n": {
+   "type": "EXTENT",
+   "scope": "object",
+   "status": "arm:TETHER_CELL_CHANGE (default off)",
+   "grid": "cells removed from the object this frame",
+   "substrate": [
+    "space",
+    "time"
+   ],
+   "carry": "relations and changes, never a raw value",
+   "code": {
+    "extract_atom": "rem_n",
+    "defined_at": "arc_atoms.py:181",
+    "arm": "arc_percept._CELL_CHANGE (import-time)",
+    "source": "seat export 2026-10-08, seat-act e50406d"
+   }
+  },
+  "add_row": {
+   "type": "POSITION",
+   "scope": "object",
+   "status": "arm:TETHER_CELL_CHANGE",
+   "grid": "centroid row of the added cells",
+   "substrate": [
+    "space"
+   ],
+   "carry": "relations and changes, never a raw value",
+   "code": {
+    "extract_atom": "add_row",
+    "defined_at": "arc_atoms.py:181",
+    "arm": "arc_percept._CELL_CHANGE (import-time)",
+    "source": "seat export 2026-10-08, seat-act e50406d"
+   }
+  },
+  "add_col": {
+   "type": "POSITION",
+   "scope": "object",
+   "status": "arm:TETHER_CELL_CHANGE",
+   "grid": "centroid column of the added cells",
+   "substrate": [
+    "space"
+   ],
+   "carry": "relations and changes, never a raw value",
+   "code": {
+    "extract_atom": "add_col",
+    "defined_at": "arc_atoms.py:182",
+    "arm": "arc_percept._CELL_CHANGE (import-time)",
+    "source": "seat export 2026-10-08, seat-act e50406d"
+   }
+  },
+  "rem_row": {
+   "type": "POSITION",
+   "scope": "object",
+   "status": "arm:TETHER_CELL_CHANGE",
+   "grid": "centroid row of the removed cells",
+   "substrate": [
+    "space"
+   ],
+   "carry": "relations and changes, never a raw value",
+   "code": {
+    "extract_atom": "rem_row",
+    "defined_at": "arc_atoms.py:182",
+    "arm": "arc_percept._CELL_CHANGE (import-time)",
+    "source": "seat export 2026-10-08, seat-act e50406d"
+   }
+  },
+  "rem_col": {
+   "type": "POSITION",
+   "scope": "object",
+   "status": "arm:TETHER_CELL_CHANGE",
+   "grid": "centroid column of the removed cells",
+   "substrate": [
+    "space"
+   ],
+   "carry": "relations and changes, never a raw value",
+   "code": {
+    "extract_atom": "rem_col",
+    "defined_at": "arc_atoms.py:182",
+    "arm": "arc_percept._CELL_CHANGE (import-time)",
+    "source": "seat export 2026-10-08, seat-act e50406d"
+   }
+  },
+  "allowance": {
+   "type": "EXTENT",
+   "scope": "board",
+   "status": "queued:seat-budget (told by the frame at game start, ruled 2026-10-08)",
+   "grid": "the game's remaining search allowance, in work units",
+   "substrate": [
+    "energy"
+   ],
+   "carry": "as is"
+  },
+  "level": {
+   "type": "EXTENT",
+   "scope": "board",
+   "status": "planned (the habitat reports level boundaries; reading not yet published as a slot)",
+   "grid": "which level of the game is being played",
+   "substrate": [
+    "time",
+    "spectrum"
+   ],
+   "carry": "as is"
+  },
+  "residual": {
+   "type": "EXTENT",
+   "scope": "self",
+   "status": "published (the agent's own record: R per slot, Figure 1)",
+   "grid": "how far this object's observed value missed the prediction",
+   "substrate": [
+    "gradient"
+   ],
+   "carry": "as is"
+  },
+  "predicted": {
+   "type": "(same as the slot)",
+   "scope": "self",
+   "status": "published (Γ(b,a), the prediction)",
+   "grid": "the value the agent predicted for this object",
+   "substrate": [
+    "time"
+   ],
+   "carry": "as is"
+  },
+  "standing": {
+   "type": "EXTENT",
+   "scope": "self",
+   "status": "published (gamma.Standing: how often a term held vs failed)",
+   "grid": "how well a rule has held so far",
+   "substrate": [
+    "spectrum",
+    "time"
+   ],
+   "carry": "as is"
+  },
+  "terms": {
+   "type": "EXTENT",
+   "scope": "self",
+   "status": "published (|Γ|: terms the agent holds)",
+   "grid": "how many rules the agent holds",
+   "substrate": [
+    "spectrum"
+   ],
+   "carry": "as is"
+  },
+  "dcompleted": {
+   "type": "DELTA",
+   "scope": "board",
+   "status": "planned -- the mutation observer's delta of this attribute (Isaiah 2026-09-15/22: every attribute's change is the cue)",
+   "grid": "the level's progress changed this frame (rose or fell)",
+   "substrate": [
+    "gradient",
+    "time"
+   ],
+   "carry": "as is"
+  },
+  "dcontact": {
+   "type": "DELTA",
+   "scope": "pair",
+   "status": "planned -- the mutation observer's delta of this attribute (Isaiah 2026-09-15/22: every attribute's change is the cue)",
+   "grid": "two objects came into, or out of, contact this frame",
+   "substrate": [
+    "network",
+    "time"
+   ],
+   "carry": "relations and changes, never a raw value"
+  },
+  "dinside": {
+   "type": "DELTA",
+   "scope": "pair",
+   "status": "planned -- the mutation observer's delta of this attribute (Isaiah 2026-09-15/22: every attribute's change is the cue)",
+   "grid": "an object entered or left another's hole this frame",
+   "substrate": [
+    "space",
+    "time"
+   ],
+   "carry": "relations and changes, never a raw value"
+  },
+  "dbbox": {
+   "type": "DELTA",
+   "scope": "pair",
+   "status": "planned -- the mutation observer's delta of this attribute (Isaiah 2026-09-15/22: every attribute's change is the cue)",
+   "grid": "two bounding boxes began or stopped overlapping",
+   "substrate": [
+    "space",
+    "time"
+   ],
+   "carry": "relations and changes, never a raw value"
+  },
+  "dresidual": {
+   "type": "DELTA",
+   "scope": "self",
+   "status": "planned -- the mutation observer's delta of this attribute (Isaiah 2026-09-15/22: every attribute's change is the cue)",
+   "grid": "the miss on this object grew or shrank",
+   "substrate": [
+    "gradient",
+    "time"
+   ],
+   "carry": "as is"
+  },
+  "dstanding": {
+   "type": "DELTA",
+   "scope": "self",
+   "status": "planned -- the mutation observer's delta of this attribute (Isaiah 2026-09-15/22: every attribute's change is the cue)",
+   "grid": "a rule's standing rose or fell",
+   "substrate": [
+    "spectrum",
+    "time"
+   ],
+   "carry": "as is"
+  },
+  "dterms": {
+   "type": "DELTA",
+   "scope": "self",
+   "status": "planned -- the mutation observer's delta of this attribute (Isaiah 2026-09-15/22: every attribute's change is the cue)",
+   "grid": "the agent gained or dropped a rule",
+   "substrate": [
+    "spectrum",
+    "time"
+   ],
+   "carry": "as is"
+  }
+ },
+ "computed_by_agent_atoms": "holes, perimeter, corners, area, bbox_area, centroid, canonical, symmetric, is_square, orbit_size, count, distinct, sum_group, rank_in, is_max, is_min, is_mode, parity, sign, abs_delta, touching_n, owner, aligned, above, same, other, rotate, reflect, translate, recolour -- these are AGENT atoms (agent_atoms.json), functions over the readings above; they are the executable PRIMITIVE layer, not readings."
+}

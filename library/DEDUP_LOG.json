@@ -1,0 +1,2505 @@
+{
+ "ruling": "Isaiah 2026-10-08: the duplicates can be removed",
+ "removed": [
+  {
+   "removed": "ACOUSTIC|Beat freq",
+   "kept": "ACOUSTIC|Beat frequency",
+   "why": "same recipe"
+  },
+  {
+   "removed": "ACOUSTIC|Helmholtz",
+   "kept": "ACOUSTIC|Helmholtz resonator",
+   "why": "same recipe"
+  },
+  {
+   "removed": "ACOUSTIC|Reverb",
+   "kept": "ACOUSTIC|Reverberation",
+   "why": "abbreviation of one word"
+  },
+  {
+   "removed": "ADHERENCE|Cognitive dissonance adh",
+   "kept": "ADHERENCE|Cognitive dissonance",
+   "why": "same recipe"
+  },
+  {
+   "removed": "ADHERENCE|Principle cons",
+   "kept": "ADHERENCE|Principle consistency",
+   "why": "same recipe"
+  },
+  {
+   "removed": "ALEATORY|Central limit",
+   "kept": "ALEATORY|Central limit theorem",
+   "why": "same recipe"
+  },
+  {
+   "removed": "ALEATORY|Initial Condition",
+   "kept": "ALEATORY|Initial Conditions",
+   "why": "plural"
+  },
+  {
+   "removed": "ALEATORY|Markov chain al",
+   "kept": "ALEATORY|Markov chain",
+   "why": "same recipe"
+  },
+  {
+   "removed": "ALEATORY|Monte carlo tree",
+   "kept": "ALEATORY|Monte Carlo tree search",
+   "why": "same recipe"
+  },
+  {
+   "removed": "ALEATORY|Rare Event",
+   "kept": "ALEATORY|Rare Events",
+   "why": "plural"
+  },
+  {
+   "removed": "ATMOSPHERIC|Precip",
+   "kept": "ATMOSPHERIC|Precipitation",
+   "why": "abbreviation of one word"
+  },
+  {
+   "removed": "AUTOMATON|Clockwork aut",
+   "kept": "AUTOMATON|Clockwork automaton",
+   "why": "same recipe"
+  },
+  {
+   "removed": "AUTOMATON|Emergent",
+   "kept": "AUTOMATON|Emergent aut",
+   "why": "domain tag or truncated note"
+  },
+  {
+   "removed": "AUTOMATON|Parallel aut",
+   "kept": "AUTOMATON|Parallel automaton",
+   "why": "same recipe"
+  },
+  {
+   "removed": "AUTOMATON|Turing machine aut",
+   "kept": "AUTOMATON|Turing machine",
+   "why": "same recipe"
+  },
+  {
+   "removed": "CELLULAR|Antibiotic action cel",
+   "kept": "CELLULAR|Antibiotic action",
+   "why": "same recipe"
+  },
+  {
+   "removed": "CELLULAR|Antibiotic resistance",
+   "kept": "CELLULAR|Antibiotic resistance spread",
+   "why": "same recipe"
+  },
+  {
+   "removed": "CHARACTER|Conscience develop",
+   "kept": "CHARACTER|Conscience development",
+   "why": "same recipe"
+  },
+  {
+   "removed": "CHOICE|Decision tree cho",
+   "kept": "CHOICE|Decision tree",
+   "why": "same recipe"
+  },
+  {
+   "removed": "CHOICE|Preference form",
+   "kept": "CHOICE|Preference formation",
+   "why": "same recipe"
+  },
+  {
+   "removed": "CHOICE|Utility max",
+   "kept": "CHOICE|Utility maximisation",
+   "why": "same recipe"
+  },
+  {
+   "removed": "CONNECTION|Feedback rel",
+   "kept": "CONNECTION|Feedback relationship",
+   "why": "same recipe"
+  },
+  {
+   "removed": "CONNECTION|Symbiotic rel",
+   "kept": "CONNECTION|Symbiotic relationship",
+   "why": "same recipe"
+  },
+  {
+   "removed": "CYBERNETIC|Optimal control cyb",
+   "kept": "CYBERNETIC|Optimal control",
+   "why": "same recipe"
+  },
+  {
+   "removed": "CYBERNETIC|Oscillator cyb",
+   "kept": "CYBERNETIC|Oscillator",
+   "why": "same recipe"
+  },
+  {
+   "removed": "DESIRE|Content",
+   "kept": "DESIRE|Contentment",
+   "why": "abbreviation of one word"
+  },
+  {
+   "removed": "DESIRE|Frustration resp",
+   "kept": "DESIRE|Frustration response",
+   "why": "same recipe"
+  },
+  {
+   "removed": "DESIRE|Need fulfil",
+   "kept": "DESIRE|Need fulfill",
+   "why": "same recipe"
+  },
+  {
+   "removed": "DYNAMIC|Setpoint [dup: Goal, Desire]",
+   "kept": "DYNAMIC|Setpoint",
+   "why": "same recipe"
+  },
+  {
+   "removed": "EMOTION|Disgust reject",
+   "kept": "EMOTION|Disgust rejection",
+   "why": "same recipe"
+  },
+  {
+   "removed": "EMOTION|Empathy emo",
+   "kept": "EMOTION|Empathy",
+   "why": "same recipe"
+  },
+  {
+   "removed": "EMOTION|Fear condition",
+   "kept": "EMOTION|Fear conditioning",
+   "why": "same recipe"
+  },
+  {
+   "removed": "EMOTION|Sad withdraw",
+   "kept": "EMOTION|Sad withdrawal",
+   "why": "same recipe"
+  },
+  {
+   "removed": "EXCHANGE|Currency net",
+   "kept": "EXCHANGE|Currency network",
+   "why": "same recipe"
+  },
+  {
+   "removed": "HABIT|Context dep",
+   "kept": "HABIT|Context dependency",
+   "why": "same recipe"
+  },
+  {
+   "removed": "HABIT|Cue assoc",
+   "kept": "HABIT|Cue association",
+   "why": "same recipe"
+  },
+  {
+   "removed": "HABIT|Procedural mem",
+   "kept": "HABIT|Procedural memory",
+   "why": "same recipe"
+  },
+  {
+   "removed": "HABIT|Stimulus gen",
+   "kept": "HABIT|Stimulus generalisation",
+   "why": "same recipe"
+  },
+  {
+   "removed": "LEARNING|Classical cond",
+   "kept": "LEARNING|Classical conditioning",
+   "why": "same recipe"
+  },
+  {
+   "removed": "LEARNING|Collaborative",
+   "kept": "LEARNING|Collaborative learning",
+   "why": "same recipe"
+  },
+  {
+   "removed": "LEARNING|Deliberate",
+   "kept": "LEARNING|Deliberate practice",
+   "why": "same recipe"
+  },
+  {
+   "removed": "LEARNING|Expert develop",
+   "kept": "LEARNING|Expert development",
+   "why": "same recipe"
+  },
+  {
+   "removed": "LEARNING|Explicit lea",
+   "kept": "LEARNING|Explicit learning",
+   "why": "same recipe"
+  },
+  {
+   "removed": "LEARNING|Implicit lea",
+   "kept": "LEARNING|Implicit learning",
+   "why": "same recipe"
+  },
+  {
+   "removed": "LEARNING|Insight lea",
+   "kept": "LEARNING|Insight learning",
+   "why": "same recipe"
+  },
+  {
+   "removed": "LEARNING|Observational",
+   "kept": "LEARNING|Observational learning",
+   "why": "same recipe"
+  },
+  {
+   "removed": "LEARNING|Operant cond",
+   "kept": "LEARNING|Operant conditioning",
+   "why": "same recipe"
+  },
+  {
+   "removed": "LEARNING|Spaced repetition lea",
+   "kept": "LEARNING|Spaced repetition",
+   "why": "same recipe"
+  },
+  {
+   "removed": "LEARNING|Transfer lea",
+   "kept": "LEARNING|Transfer learning",
+   "why": "same recipe"
+  },
+  {
+   "removed": "LOGISTICAL|Priority q",
+   "kept": "LOGISTICAL|Priority queue",
+   "why": "same recipe"
+  },
+  {
+   "removed": "LUDOLOGICAL|Score keep",
+   "kept": "LUDOLOGICAL|Score keeping",
+   "why": "same recipe"
+  },
+  {
+   "removed": "MNEMONIC|Collective memory mne",
+   "kept": "MNEMONIC|Collective memory",
+   "why": "same recipe"
+  },
+  {
+   "removed": "MNEMONIC|Priming mne",
+   "kept": "MNEMONIC|Priming",
+   "why": "same recipe"
+  },
+  {
+   "removed": "MNEMONIC|Proactive interf",
+   "kept": "MNEMONIC|Proactive interference",
+   "why": "same recipe"
+  },
+  {
+   "removed": "MNEMONIC|Retroactive interf",
+   "kept": "MNEMONIC|Retroactive interference",
+   "why": "same recipe"
+  },
+  {
+   "removed": "MORPHOGENETIC|Buckling instab",
+   "kept": "MORPHOGENETIC|Buckling instability",
+   "why": "same recipe"
+  },
+  {
+   "removed": "MORPHOGENETIC|Positional info",
+   "kept": "MORPHOGENETIC|Positional information",
+   "why": "same recipe"
+  },
+  {
+   "removed": "MORPHOGENETIC|Synthetic morpho",
+   "kept": "MORPHOGENETIC|Synthetic morphogenesis",
+   "why": "same recipe"
+  },
+  {
+   "removed": "NETWORK|Community detect",
+   "kept": "NETWORK|Community detection",
+   "why": "same recipe"
+  },
+  {
+   "removed": "NETWORK|Complex net",
+   "kept": "NETWORK|Complex network",
+   "why": "same recipe"
+  },
+  {
+   "removed": "NETWORK|Flow net",
+   "kept": "NETWORK|Flow network",
+   "why": "same recipe"
+  },
+  {
+   "removed": "NETWORK|Random net",
+   "kept": "NETWORK|Random network",
+   "why": "same recipe"
+  },
+  {
+   "removed": "NETWORK|The bridge net",
+   "kept": "NETWORK|The bridge",
+   "why": "same recipe"
+  },
+  {
+   "removed": "NETWORK|The information net",
+   "kept": "NETWORK|The information network",
+   "why": "same recipe"
+  },
+  {
+   "removed": "NETWORK|The logistical net",
+   "kept": "NETWORK|The logistical network",
+   "why": "same recipe"
+  },
+  {
+   "removed": "NETWORK|The neural net",
+   "kept": "NETWORK|The neural network",
+   "why": "same recipe"
+  },
+  {
+   "removed": "NETWORK|The quantum net",
+   "kept": "NETWORK|The quantum network",
+   "why": "same recipe"
+  },
+  {
+   "removed": "NETWORK|The web of life net",
+   "kept": "NETWORK|The web of life",
+   "why": "same recipe"
+  },
+  {
+   "removed": "QUANTUM|candidate",
+   "kept": "QUANTUM|candidates",
+   "why": "plural"
+  },
+  {
+   "removed": "SKILL|Achieve prec",
+   "kept": "SKILL|Achieve precision",
+   "why": "same recipe"
+  },
+  {
+   "removed": "SKILL|Adjust",
+   "kept": "SKILL|Adjustment",
+   "why": "abbreviation of one word"
+  },
+  {
+   "removed": "SKILL|Improvise sk",
+   "kept": "SKILL|Improvise",
+   "why": "same recipe"
+  },
+  {
+   "removed": "SKILL|Situational adapt",
+   "kept": "SKILL|Situational adaptation",
+   "why": "same recipe"
+  },
+  {
+   "removed": "SKILL|Style develop",
+   "kept": "SKILL|Style development",
+   "why": "same recipe"
+  },
+  {
+   "removed": "SOCIAL|Cognitive niche soc",
+   "kept": "SOCIAL|Cognitive niche",
+   "why": "same recipe"
+  },
+  {
+   "removed": "TEMPORAL|Habituation temp",
+   "kept": "TEMPORAL|Habituation",
+   "why": "same recipe"
+  },
+  {
+   "removed": "TEMPORAL|Precognition temp",
+   "kept": "TEMPORAL|Precognition",
+   "why": "same recipe"
+  },
+  {
+   "removed": "THOUGHT|Analogize tho",
+   "kept": "THOUGHT|Analogize",
+   "why": "same recipe"
+  },
+  {
+   "removed": "THOUGHT|Counterfactual tho",
+   "kept": "THOUGHT|Counterfactual",
+   "why": "same recipe"
+  },
+  {
+   "removed": "THOUGHT|Framing tho",
+   "kept": "THOUGHT|Framing",
+   "why": "same recipe"
+  },
+  {
+   "removed": "THOUGHT|Heuristic tho",
+   "kept": "THOUGHT|Heuristic",
+   "why": "same recipe"
+  },
+  {
+   "removed": "THOUGHT|Insight tho",
+   "kept": "THOUGHT|Insight",
+   "why": "same recipe"
+  },
+  {
+   "removed": "THOUGHT|Metacognition tho",
+   "kept": "THOUGHT|Metacognition",
+   "why": "same recipe"
+  },
+  {
+   "removed": "THOUGHT|Metaphor tho",
+   "kept": "THOUGHT|Metaphor",
+   "why": "same recipe"
+  },
+  {
+   "removed": "TOPOLOGICAL|Invariant",
+   "kept": "TOPOLOGICAL|Invariant (e.g",
+   "why": "domain tag or truncated note"
+  },
+  {
+   "removed": "TOPOLOGICAL|The Blue Hawaii",
+   "kept": "TOPOLOGICAL|THE BLUE HAWAII (Escher's phrase)",
+   "why": "same recipe"
+  },
+  {
+   "removed": "ZOOLOGICAL|Batesian mimic",
+   "kept": "ZOOLOGICAL|Batesian mimicry",
+   "why": "same definition"
+  },
+  {
+   "removed": "ZOOLOGICAL|Cultural transmission zoo",
+   "kept": "ZOOLOGICAL|Cultural transmission",
+   "why": "same recipe"
+  },
+  {
+   "removed": "ZOOLOGICAL|Echolocation",
+   "kept": "ZOOLOGICAL|Echolocation Act",
+   "why": "same recipe"
+  },
+  {
+   "removed": "ZOOLOGICAL|Müllerian mimic",
+   "kept": "ZOOLOGICAL|Müllerian mimicry",
+   "why": "same recipe"
+  },
+  {
+   "removed": "ADHERENCE|Honor code",
+   "kept": "ADHERENCE|Honour code",
+   "why": "same recipe, same name (spelling or domain)"
+  },
+  {
+   "removed": "ALEATORY|Correlation causation",
+   "kept": "ALEATORY|Correlation ≠ causation",
+   "why": "same recipe, same name (spelling or domain)"
+  },
+  {
+   "removed": "ALEATORY|Gambler fallacy",
+   "kept": "ALEATORY|Gambler's fallacy",
+   "why": "same recipe, same name (spelling or domain)"
+  },
+  {
+   "removed": "HABIT|Loop",
+   "kept": "AUTOMATON|Loop",
+   "why": "same recipe, same name (spelling or domain)"
+  },
+  {
+   "removed": "CHARACTER|The souls archive",
+   "kept": "CHARACTER|The soul's archive",
+   "why": "same recipe, same name (spelling or domain)"
+  },
+  {
+   "removed": "CURIOSITY|The explorers spirit",
+   "kept": "CURIOSITY|The explorer's spirit",
+   "why": "same recipe, same name (spelling or domain)"
+  },
+  {
+   "removed": "NETWORK|Flow",
+   "kept": "DYNAMIC|Flow",
+   "why": "same recipe, same name (spelling or domain)"
+  },
+  {
+   "removed": "MECHANICAL|Trigger",
+   "kept": "HABIT|Trigger",
+   "why": "same recipe, same name (spelling or domain)"
+  },
+  {
+   "removed": "ZOOLOGICAL|Camouflage",
+   "kept": "HUMAN|Camouflage",
+   "why": "same recipe, same name (spelling or domain)"
+  },
+  {
+   "removed": "LEARNING|Attention",
+   "kept": "INFORMATION|Attention",
+   "why": "same recipe, same name (spelling or domain)"
+  },
+  {
+   "removed": "MATERIAL|Hookes law",
+   "kept": "MATERIAL|Hooke's law",
+   "why": "same recipe, same name (spelling or domain)"
+  },
+  {
+   "removed": "ZOOLOGICAL|Cryptic behavior",
+   "kept": "ZOOLOGICAL|Cryptic behaviour",
+   "why": "same recipe, same name (spelling or domain)"
+  },
+  {
+   "removed": "ZOOLOGICAL|Disruptive color",
+   "kept": "ZOOLOGICAL|Disruptive colour",
+   "why": "same recipe, same name (spelling or domain)"
+  },
+  {
+   "removed": "ACOUSTIC|Snell ac",
+   "kept": "ACOUSTIC|Snell's law",
+   "why": "same recipe, same definition"
+  },
+  {
+   "removed": "ADHERENCE|Stubborn escalate",
+   "kept": "ADHERENCE|Stubborn escalation",
+   "why": "same recipe, same definition"
+  },
+  {
+   "removed": "ALEATORY|Entropy inf",
+   "kept": "ALEATORY|Entropy",
+   "why": "same recipe, same definition"
+  },
+  {
+   "removed": "AUTOMATON|The ghost in machine",
+   "kept": "AUTOMATON|The ghost in the machine",
+   "why": "same recipe, same definition"
+  },
+  {
+   "removed": "EXCHANGE|Auc tion",
+   "kept": "EXCHANGE|Auction",
+   "why": "same recipe, same definition"
+  },
+  {
+   "removed": "LUDOLOGICAL|Nash lud",
+   "kept": "LUDOLOGICAL|Nash equilibrium",
+   "why": "same recipe, same definition"
+  },
+  {
+   "removed": "MEDICAL|Global health",
+   "kept": "MEDICAL|The global health",
+   "why": "same recipe, same definition"
+  },
+  {
+   "removed": "NUTRITIONAL|The krebs is cosmic",
+   "kept": "NUTRITIONAL|The Krebs cycle is cosmic",
+   "why": "same recipe, same definition"
+  },
+  {
+   "removed": "PHENOMENOLOGICAL|Deja vu phen",
+   "kept": "PHENOMENOLOGICAL|Déjà vu",
+   "why": "same recipe, same definition"
+  },
+  {
+   "removed": "SOMNIAL|Cycle",
+   "kept": "SOMNIAL|Sleep cycle",
+   "why": "same recipe, same definition"
+  },
+  {
+   "removed": "TOPOLOGICAL|Poincare disk",
+   "kept": "TOPOLOGICAL|Poincaré disk",
+   "why": "same recipe, same definition"
+  },
+  {
+   "removed": "ZOOLOGICAL|Altrial care",
+   "kept": "ZOOLOGICAL|Altricial care",
+   "why": "same recipe, same definition"
+  },
+  {
+   "removed": "ALEATORY|Bell laplace demon",
+   "kept": "ALEATORY|Laplace's demon",
+   "why": "same recipe, name misspelled or retitled (pass 4, by eye)"
+  },
+  {
+   "removed": "ALEATORY|Law large numbers",
+   "kept": "ALEATORY|Law of large numbers",
+   "why": "same recipe, name misspelled or retitled (pass 4, by eye)"
+  },
+  {
+   "removed": "ALEATORY|The dice is cast",
+   "kept": "ALEATORY|The die is cast",
+   "why": "same recipe, name misspelled or retitled (pass 4, by eye)"
+  },
+  {
+   "removed": "ATMOSPHERIC|El nino",
+   "kept": "ATMOSPHERIC|El Niño",
+   "why": "same recipe, name misspelled or retitled (pass 4, by eye)"
+  },
+  {
+   "removed": "ATMOSPHERIC|La nina",
+   "kept": "ATMOSPHERIC|La Niña",
+   "why": "same recipe, name misspelled or retitled (pass 4, by eye)"
+  },
+  {
+   "removed": "AUTOMATON|Emergent aut",
+   "kept": "AUTOMATON|Emergent automaton",
+   "why": "same recipe, name misspelled or retitled (pass 4, by eye)"
+  },
+  {
+   "removed": "AUTOMATON|Process optimization",
+   "kept": "AUTOMATON|Process optimisation",
+   "why": "same recipe, name misspelled or retitled (pass 4, by eye)"
+  },
+  {
+   "removed": "CHARACTER|Rep build",
+   "kept": "CHARACTER|Reputation build",
+   "why": "same recipe, name misspelled or retitled (pass 4, by eye)"
+  },
+  {
+   "removed": "CHARACTER|The heroes journey",
+   "kept": "CHARACTER|The hero's journey",
+   "why": "same recipe, name misspelled or retitled (pass 4, by eye)"
+  },
+  {
+   "removed": "CURIOSITY|The discovery europhoria",
+   "kept": "CURIOSITY|The discovery euphoria",
+   "why": "same recipe, name misspelled or retitled (pass 4, by eye)"
+  },
+  {
+   "removed": "CYBERNETIC|Gain tune",
+   "kept": "CYBERNETIC|Gain tuning",
+   "why": "same recipe, name misspelled or retitled (pass 4, by eye)"
+  },
+  {
+   "removed": "LEARNING|Fixed growth",
+   "kept": "LEARNING|Fixed vs growth mindset",
+   "why": "same recipe, name misspelled or retitled (pass 4, by eye)"
+  },
+  {
+   "removed": "LEARNING|Reflect lea",
+   "kept": "LEARNING|Reflect",
+   "why": "same recipe, name misspelled or retitled (pass 4, by eye)"
+  },
+  {
+   "removed": "LOGISTICAL|Inventory optimization",
+   "kept": "LOGISTICAL|Inventory optimisation",
+   "why": "same recipe, name misspelled or retitled (pass 4, by eye)"
+  },
+  {
+   "removed": "LUDOLOGICAL|Meta game theory",
+   "kept": "LUDOLOGICAL|Metagame theory",
+   "why": "same recipe, name misspelled or retitled (pass 4, by eye)"
+  },
+  {
+   "removed": "MATERIAL|Viscelasticity",
+   "kept": "MATERIAL|Viscoelasticity",
+   "why": "same recipe, name misspelled or retitled (pass 4, by eye)"
+  },
+  {
+   "removed": "MEDICAL|The precision medicine",
+   "kept": "MEDICAL|Precision medicine",
+   "why": "same recipe, name misspelled or retitled (pass 4, by eye)"
+  },
+  {
+   "removed": "NUTRITIONAL|Ferment nut",
+   "kept": "NUTRITIONAL|Fermentation",
+   "why": "same recipe, name misspelled or retitled (pass 4, by eye)"
+  },
+  {
+   "removed": "OPTICAL|Plank constant",
+   "kept": "OPTICAL|Planck constant",
+   "why": "same recipe, name misspelled or retitled (pass 4, by eye)"
+  },
+  {
+   "removed": "PHENOMENOLOGICAL|The other's innerity",
+   "kept": "PHENOMENOLOGICAL|The other's interiority",
+   "why": "same recipe, name misspelled or retitled (pass 4, by eye)"
+  },
+  {
+   "removed": "SOCIAL|Normling",
+   "kept": "SOCIAL|Norm enforcement",
+   "why": "same recipe, name misspelled or retitled (pass 4, by eye)"
+  },
+  {
+   "removed": "SOCIAL|Wisdom crowds",
+   "kept": "SOCIAL|Wisdom of crowds",
+   "why": "same recipe, name misspelled or retitled (pass 4, by eye)"
+  },
+  {
+   "removed": "TOPOLOGICAL|Fractalize top",
+   "kept": "TOPOLOGICAL|Fractalise",
+   "why": "same recipe, name misspelled or retitled (pass 4, by eye)"
+  },
+  {
+   "removed": "ZOOLOGICAL|UNGRATEFUL DEAD (Thanatosis)",
+   "kept": "ZOOLOGICAL|Thanatosis",
+   "why": "same recipe, name misspelled or retitled (pass 4, by eye)"
+  }
+ ],
+ "self_reference_dropped": [
+  {
+   "molecule": "LEARNING|Reflect",
+   "dropped_operand": "LEARNING|Reflect",
+   "why": "source recipe names itself"
+  }
+ ],
+ "held_for_ruling": [
+  {
+   "pair": [
+    "ACOUSTIC|Chladni",
+    "ACOUSTIC|Chladni pattern"
+   ],
+   "defs": [
+    "",
+    "vibrate a metal plate at a resonant frequency. the sand settles into geometric patterns (nodal lines). visualizes sound."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "ACOUSTIC|Damping",
+    "ACOUSTIC|Damping material"
+   ],
+   "defs": [
+    "the dissipation of sound energy (absorption, friction, scattering).",
+    "a material engineered to absorb specific frequencies. makes rooms acoustically \"dead.\""
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "ACOUSTIC|Reflection",
+    "ACOUSTIC|Reflection ac"
+   ],
+   "defs": [
+    "a hard, smooth surface reflects sound; angle of incidence = angle of reflection.",
+    "a hard, smooth surface reflects sound like a mirror reflects light. angle of incidence = angle of reflection."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "ACOUSTIC|Resonance",
+    "ACOUSTIC|Resonance freq"
+   ],
+   "defs": [
+    "the natural frequency of an object. when driven at this frequency, amplitude amplifies dramatically.",
+    "every object has a natural frequency. hit it at that frequency, and it vibrates wildly. hit the wrong frequency, and it "
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "ADHERENCE|Allegiance",
+    "ADHERENCE|Allegiance crisis"
+   ],
+   "defs": [
+    "the formal commitment to a cause, group, or authority. the oath.",
+    "a situation where commitments conflict. a loyalty test."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "ADHERENCE|Covenant",
+    "ADHERENCE|Covenant bind"
+   ],
+   "defs": [
+    "a sacred or binding agreement between parties. a sealed promise.",
+    "entering into a binding, often sacred, agreement."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "ADHERENCE|Discipline",
+    "ADHERENCE|Discipline act"
+   ],
+   "defs": [
+    "the sustained adherence to a practice, regimen, or set of rules.",
+    "performing a required action consistently, even when it is difficult."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "ADHERENCE|Fidelity",
+    "ADHERENCE|Fidelity test"
+   ],
+   "defs": [
+    "faithfulness to a person, promise, or principle. the quality of being true.",
+    "a test designed to reveal the strength of adherence."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "ADHERENCE|Loyalty",
+    "ADHERENCE|Loyalty dilemma"
+   ],
+   "defs": [
+    "the sustained adherence to a person, group, or cause, often despite difficulty.",
+    "a situation where you are loyal to two entities that are in conflict."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "ADHERENCE|Promise",
+    "ADHERENCE|Promise break"
+   ],
+   "defs": [
+    "a stated commitment that creates an expectation in another. the social bond.",
+    "failing to do what you said you would do. the fracture of trust."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "AESTHETIC|Gestalt",
+    "AESTHETIC|Gestalt switch"
+   ],
+   "defs": [
+    "the whole exceeding the parts — also human gs",
+    "the reading flips; a hidden solution appears"
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "AESTHETIC|Proportion",
+    "AESTHETIC|Proportional division"
+   ],
+   "defs": [
+    "the relationship between the sizes of parts",
+    "divide so the parts relate by a fixed ratio"
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "AESTHETIC|Rhythm",
+    "AESTHETIC|Rhythmic asymmetry"
+   ],
+   "defs": [
+    "repetition with variation; a pulse that creates expectation",
+    "unbalanced by position, balanced by rhythm"
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "ALEATORY|Entropy",
+    "ALEATORY|Entropy (stochastic)"
+   ],
+   "defs": [
+    "the entropy of a distribution is the average amount of information.",
+    "a measure of uncertainty in a probability distribution. maximal when all outcomes are equally likely."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "ALEATORY|Monte Carlo",
+    "ALEATORY|Monte carlo tree"
+   ],
+   "defs": [
+    "using random sampling to approximate the outcome of a deterministic process. the stochastic simulation.",
+    "simulate many random playouts from a game state. choose the move that wins most often. mcts."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "AUTOMATON|Automaton",
+    "AUTOMATON|Automaton network"
+   ],
+   "defs": [
+    "a self-operating machine or system. the \"one that moves itself.\"",
+    "a network of automata that communicate and coordinate. the \"distributed system.\""
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "AUTOMATON|Process",
+    "AUTOMATON|Process optimisation"
+   ],
+   "defs": [
+    "an automated sequence of actions. the \"running program.\"",
+    "optimising an automated process."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "AUTOMATON|Program",
+    "AUTOMATON|Program loop"
+   ],
+   "defs": [
+    "a set of rules that defines a sequence of operations. the \"code.\"",
+    "an automated loop that runs a program repeatedly. the \"daemon.\""
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "CELLULAR|Antibiotic",
+    "CELLULAR|Antibiotic action"
+   ],
+   "defs": [
+    "",
+    "the specific action of an antibiotic on a bacterial cell."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "CELLULAR|Bacteriophage",
+    "CELLULAR|Bacteriophage cycle"
+   ],
+   "defs": [
+    "a virus that infects bacteria. the \"predator\" of the microbial world.",
+    "the lytic cycle of a bacteriophage: infect, replicate, burst the cell."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "CELLULAR|Biofilm",
+    "CELLULAR|Biofilm city"
+   ],
+   "defs": [
+    "a structured community of bacteria embedded in a self-produced matrix. the \"city\" of microbes.",
+    "a mature, structured microbial community with channels, defenses, and specialization."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "CELLULAR|Horizontal",
+    "CELLULAR|Horizontal transfer"
+   ],
+   "defs": [
+    "",
+    "the transfer of genetic material between bacteria that are not parent/offspring."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "CELLULAR|Microbiome",
+    "CELLULAR|Microbiome gut brain"
+   ],
+   "defs": [
+    "the community of microorganisms living in/on a host organism.",
+    "the bidirectional communication between the gut microbiome and the brain."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "CHARACTER|Authenticity",
+    "CHARACTER|Authenticity break"
+   ],
+   "defs": [
+    "the degree to which one's actions align with one's true self.",
+    "a moment where one acts against one's true self. a fracture."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "CHARACTER|Conscience",
+    "CHARACTER|Conscience call"
+   ],
+   "defs": [
+    "the internal voice that judges one's actions against one's moral framework.",
+    "the inner voice that says \"this is right\" or \"this is wrong.\""
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "CHARACTER|Identity",
+    "CHARACTER|Identity formation"
+   ],
+   "defs": [
+    "the persistent sense of self across time. the \"who\" that endures.",
+    "the gradual, lifelong construction of a stable sense of self."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "CHARACTER|Integrity",
+    "CHARACTER|Integrity check"
+   ],
+   "defs": [
+    "the coherence between one's beliefs, words, and actions. walking the talk.",
+    "assess whether one's actions align with one's stated values."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "CHARACTER|Reputation",
+    "CHARACTER|Reputation build"
+   ],
+   "defs": [
+    "the collective perception of one's character by others. the social mirror.",
+    "actions are observed and judged, forming a reputation."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "CHARACTER|Virtue",
+    "CHARACTER|Virtue act"
+   ],
+   "defs": [
+    "a stable, positive disposition to act in accordance with a value (courage, honesty, compassion).",
+    "acting in accordance with a virtue (e.g., telling the truth when it is difficult)."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "CHEMICAL|energy",
+    "CHEMICAL|energy flow"
+   ],
+   "defs": [
+    "",
+    ""
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "CHEMICAL|template",
+    "CHEMICAL|Templated copying"
+   ],
+   "defs": [
+    "",
+    "a sequence copied by pairing against itself"
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "CHOICE|Commitment",
+    "CHOICE|Commitment act"
+   ],
+   "defs": [
+    "the binding of the will to a selected alternative. the point of no return.",
+    "the act of binding oneself to a chosen alternative. the point of no return."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "CHOICE|Preference",
+    "CHOICE|Preference form"
+   ],
+   "defs": [
+    "the subjective ranking of alternatives. the \"what i want\" of the system.",
+    "the formation of a preference ordering. a stable, transitive ranking of alternatives."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "CHOICE|Regret",
+    "CHOICE|Regret calc"
+   ],
+   "defs": [
+    "the negative emotion associated with a chosen outcome vs. a rejected alternative.",
+    "the comparison between the actual outcome and the hypothetical outcome of a rejected alternative."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "CHOICE|Regret calc",
+    "CHOICE|Regret calculation"
+   ],
+   "defs": [
+    "the comparison between the actual outcome and the hypothetical outcome of a rejected alternative.",
+    "the comparison between the actual outcome and a rejected alternative."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "CONNECTION|Affinity",
+    "CONNECTION|Affinity draw"
+   ],
+   "defs": [
+    "the natural attraction or compatibility between entities. the \"pull.\"",
+    "the natural movement toward compatible entities."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "CONNECTION|Network",
+    "CONNECTION|Network effect"
+   ],
+   "defs": [
+    "a structure of interconnected nodes and edges. the \"web.\"",
+    "the value of a network increases with the number of connections."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "CONNECTION|Resonance",
+    "CONNECTION|Resonance field"
+   ],
+   "defs": [
+    "the sympathetic vibration that synchronizes connected systems. the \"tuning.\"",
+    "a field of resonance where all connected nodes vibrate together."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "CURIOSITY|Curiosity",
+    "CURIOSITY|Curiosity cycle"
+   ],
+   "defs": [
+    "",
+    "the continuous cycle of curiosity: wonder → question → search → discovery → renewed wonder."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "CURIOSITY|Discovery",
+    "CURIOSITY|Discovery thrill"
+   ],
+   "defs": [
+    "the moment of finding something new, previously unknown.",
+    "the positive emotional reward of finding something new. the \"aha\" moment."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "CURIOSITY|Exploration",
+    "CURIOSITY|Exploration drive"
+   ],
+   "defs": [
+    "the active, behavioral seeking of new information and experiences.",
+    "the behavioral motivation to explore driven by the reward of novelty and learning."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "CURIOSITY|Information Gap",
+    "CURIOSITY|Information gap anxiety"
+   ],
+   "defs": [
+    "the cognitive tension between what is known and what is unknown.",
+    "the negative tension of not knowing, which drives urgent information seeking."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "CURIOSITY|Mystery",
+    "CURIOSITY|Mystery maintenance"
+   ],
+   "defs": [
+    "",
+    "the deliberate cultivation of mystery to sustain curiosity."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "CURIOSITY|Surprise",
+    "CURIOSITY|Surprise inquiry"
+   ],
+   "defs": [
+    "the emotional response to a violation of expectation. the fuel of curiosity.",
+    "surprise generates a question, which drives inquiry."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "CURIOSITY|Wonder",
+    "CURIOSITY|Wonder awe"
+   ],
+   "defs": [
+    "the emotional response to the mysterious, vast, or awe-inspiring. the \"wow\" of the unknown.",
+    "the profound emotional response to the vast unknown. the \"ocean of not-knowing.\""
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "CYBERNETIC|Disturbance",
+    "CYBERNETIC|Disturbance rejection"
+   ],
+   "defs": [
+    "",
+    "the system can detect and counteract external disturbances before they affect the output."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "CYBERNETIC|Feedback",
+    "CYBERNETIC|Feedback delay"
+   ],
+   "defs": [
+    "the return of output to input. the circular flow of information.",
+    "the feedback signal arrives after a delay. can cause oscillation if the delay is too long."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "CYBERNETIC|Integral",
+    "CYBERNETIC|Integral windup"
+   ],
+   "defs": [
+    "",
+    "the integral term of a pid controller accumulates error while the actuator is saturated. causes overshoot."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "DESIRE|Aspiration",
+    "DESIRE|Aspiration hold"
+   ],
+   "defs": [
+    "a long-term, often ideal, desire that orients a life. the \"i hope to become.\"",
+    "orienting one's life toward an ideal future."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "DESIRE|Craving",
+    "DESIRE|Craving urge"
+   ],
+   "defs": [
+    "an intense, often urgent, desire that can override other concerns. the \"i must have now.\"",
+    "an overwhelming, urgent desire that demands immediate action."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "DESIRE|Desire",
+    "DESIRE|Desire fatigue"
+   ],
+   "defs": [
+    "",
+    "the exhaustion of desire after prolonged striving. burnout."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "DESIRE|Frustration",
+    "DESIRE|Frustration loop"
+   ],
+   "defs": [
+    "the negative feeling that arises when desire is blocked. the \"i cannot have.\"",
+    "a persistent, blocked desire that generates sustained frustration."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "DESIRE|Satisfaction",
+    "DESIRE|Satisfaction reach"
+   ],
+   "defs": [
+    "the positive feeling that arises when desire is fulfilled. the \"i have.\"",
+    "the feeling of having achieved a desire."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "DESIRE|Wanting",
+    "DESIRE|Wanting (vs. Liking)"
+   ],
+   "defs": [
+    "motivational component (pull)",
+    "the motivational component of desire. the \"pull\" rather than the \"pleasure.\""
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "DYNAMIC|Latency",
+    "DYNAMIC|Latency wins"
+   ],
+   "defs": [
+    "delay between a stimulus and its response",
+    "the outcome taken by the clock because nothing was chosen — not a branch selected, a default that fires on absence"
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "ELECTRICAL|Resistance",
+    "ELECTRICAL|Resistance law"
+   ],
+   "defs": [
+    "opposition to flow",
+    "flow is the difference over the opposition"
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "EMBODIMENT|Vestibular",
+    "EMBODIMENT|Vestibular habituation"
+   ],
+   "defs": [
+    "sense of balance, head tilt, acceleration",
+    "after repeated spinning or oscillating, the vestibular system adapts and no longer signals disorientation."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "EMBODIMENT|Visual",
+    "EMBODIMENT|Visual Feedback"
+   ],
+   "defs": [
+    "",
+    ""
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "EMOTION|Affect",
+    "EMOTION|Affect heuristic"
+   ],
+   "defs": [
+    "the immediate, embodied physiological response (heart rate, skin conductance, facial expression).",
+    "decisions are made by consulting the \"gut feeling\" (affect) rather than rational analysis."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "EMOTION|Arousal",
+    "EMOTION|Arousal judge"
+   ],
+   "defs": [
+    "the intensity of activation: calm ↔ excited; drowsy ↔ alert. the \"high/low\" axis.",
+    "automatically calibrate activation level. high arousal = urgent; low arousal = indifferent."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "EMOTION|Disgust",
+    "EMOTION|Disgust reject"
+   ],
+   "defs": [
+    "a negative, moderate-arousal state. signals contamination/poison. promotes rejection and expulsion.",
+    "reject a stimulus (food, idea, agent) that is perceived as harmful or impure."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "EMOTION|Emotion",
+    "EMOTION|Emotional cascade"
+   ],
+   "defs": [
+    "",
+    "a fear response triggers physiological arousal, which amplifies the fear, etc. panic attack."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "EMOTION|Social",
+    "EMOTION|Social contagion"
+   ],
+   "defs": [
+    "",
+    "emotions spread through a group like a virus. a wave of panic or joy."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "EMOTION|Surprise",
+    "EMOTION|Surprise update"
+   ],
+   "defs": [
+    "a neutral, high-arousal state. signals novelty. promotes orienting and updating of expectations.",
+    "a violation of expectation. pause and attend to the anomaly."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "EMOTION|Valence",
+    "EMOTION|Valence judge"
+   ],
+   "defs": [
+    "the intrinsic attractiveness (positive) or aversiveness (negative) of an experience. the \"good/bad\" axis.",
+    "automatically assign a positive or negative value to a stimulus. approach (+) or avoid (-)."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "EXCHANGE|Currency",
+    "EXCHANGE|Currency net"
+   ],
+   "defs": [
+    "",
+    "the use of a standardized medium of exchange, backed by social trust."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "EXCHANGE|Exchange",
+    "EXCHANGE|Exchange rate"
+   ],
+   "defs": [
+    "",
+    "the ratio at which one currency can be exchanged for another."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "FLUID|Laminar",
+    "FLUID|Laminar flow"
+   ],
+   "defs": [
+    "",
+    "smooth, layered movement"
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "FLUID|Turbulent",
+    "FLUID|Turbulent flow"
+   ],
+   "defs": [
+    "",
+    "eddying, unpredictable"
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "HABIT|Environment",
+    "HABIT|Environment cue"
+   ],
+   "defs": [
+    "",
+    "the environment itself becomes a trigger for habitual action."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "HABIT|Inertia",
+    "HABIT|Inertia cont"
+   ],
+   "defs": [
+    "the tendency of a system to continue its current behavior.",
+    "the tendency to continue an action simply because it has been started."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "HABIT|Novelty",
+    "HABIT|Novelty override"
+   ],
+   "defs": [
+    "the capacity to break or override a habit in response to new information.",
+    "a new, stronger reward disrupts an established habit."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "HABIT|Pattern",
+    "HABIT|Pattern lock"
+   ],
+   "defs": [
+    "",
+    "an agent becomes predictable because of its fixed behavioral patterns."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "HABIT|The groove",
+    "HABIT|The groove carver"
+   ],
+   "defs": [
+    "a habit so smooth and efficient that it feels like a groove. the \"in the zone\" of habit.",
+    "the conscious cultivation of a habit. the carving of the groove."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "HABIT|Trigger",
+    "HABIT|Trigger net"
+   ],
+   "defs": [
+    "contact releases stored energy.",
+    "a network of triggers that all activate the same habit."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "LEARNING|Attention",
+    "LEARNING|Attention (Learning)"
+   ],
+   "defs": [
+    "weight what matters in a sequence.",
+    "the selective focus on specific information. the \"gate.\""
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "LEARNING|Reflect",
+    "LEARNING|Reflect lea"
+   ],
+   "defs": [
+    "the act of thinking about one's own learning process.",
+    "the act of thinking about one's own learning process. the \"meta-thinking.\""
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "LEARNING|Storage",
+    "LEARNING|Storage (Learning)"
+   ],
+   "defs": [
+    "when intake > expenditure, store the excess.",
+    "the retention of knowledge over time. the \"memory.\""
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "LEARNING|Transfer",
+    "LEARNING|Transfer (Learning)"
+   ],
+   "defs": [
+    "application to new domain",
+    "the application of knowledge from one domain to another. the \"generalization.\""
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "LINEAGE|Legacy",
+    "LINEAGE|Legacy build"
+   ],
+   "defs": [
+    "the enduring mark left by a lineage. the \"what remains.\"",
+    "the active construction of a legacy. the \"building of the mark.\""
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "LINEAGE|Lineage",
+    "LINEAGE|Lineage burden"
+   ],
+   "defs": [
+    "",
+    "the burden of inherited expectation and responsibility. the \"weight of the line.\""
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "LINGUISTIC|Discourse",
+    "LINGUISTIC|Discourse grammar"
+   ],
+   "defs": [
+    "a connected series of utterances. a conversation, a speech, a text.",
+    "the rules governing how sentences connect to form coherent texts. cohesion and coherence."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "LINGUISTIC|Metaphor",
+    "LINGUISTIC|Metaphor grounding"
+   ],
+   "defs": [
+    "understanding one thing in terms of another. the bridge between domains.",
+    "metaphors are grounded in embodied experience. up = good; down = bad."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "LINGUISTIC|Narrative",
+    "LINGUISTIC|Narrative arc"
+   ],
+   "defs": [
+    "the structuring of events into a causal, meaningful story with beginning, middle, and end.",
+    "the emotional trajectory of a story. exposition → rising action → climax → falling action → resolution."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "LIVING|electrical",
+    "LIVING|electrical signal"
+   ],
+   "defs": [
+    "",
+    ""
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "LIVING|environment",
+    "LIVING|Environmental expression"
+   ],
+   "defs": [
+    "",
+    "the same code expresses differently"
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "LIVING|Selection",
+    "LIVING|Selection over generations"
+   ],
+   "defs": [
+    "differential survival",
+    "traits that survive become common"
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "LIVING|Transport",
+    "LIVING|Transport fluid"
+   ],
+   "defs": [
+    "",
+    "moves supplies around"
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "LOGISTICAL|Bottleneck",
+    "LOGISTICAL|Bottleneck analysis"
+   ],
+   "defs": [
+    "a point of congestion where flow is constrained by limited capacity. the rate-limiting step.",
+    "find the exact point of constriction. increase capacity there to increase total flow."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "LOGISTICAL|Dispatching",
+    "LOGISTICAL|Dispatching AI"
+   ],
+   "defs": [
+    "decide which resource goes to which process, and when. centralized control.",
+    "a central intelligence that manages the entire flow, learning and adapting over time."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "LOGISTICAL|Inventory",
+    "LOGISTICAL|Inventory optimisation"
+   ],
+   "defs": [
+    "stored resources waiting to be used or moved. a buffer against uncertainty.",
+    "the economic order quantity (eoq) model."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "LOGISTICAL|Priority",
+    "LOGISTICAL|Priority q"
+   ],
+   "defs": [
+    "",
+    "higher-priority resources are served before lower-priority ones, regardless of arrival time."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "LOGISTICAL|Schedule",
+    "LOGISTICAL|Schedule task"
+   ],
+   "defs": [
+    "a temporal plan for moving resources through the network. when and in what order.",
+    "assign a resource to a task at a specific time. timing is everything."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "LOGISTICAL|Supply Chain",
+    "LOGISTICAL|Supply chain map"
+   ],
+   "defs": [
+    "the end-to-end sequence of production, distribution, and consumption of a resource.",
+    "the complete, end-to-end visualization of a resource's journey."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "LUDIC / ABSURDIST|Absurd",
+    "LUDIC / ABSURDIST|Absurd situation"
+   ],
+   "defs": [
+    "that which defies logic, reason, or expectation. the \"nonsense.\"",
+    "a situation that defies logic and expectations. the \"absurdist theater.\""
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "LUDIC / ABSURDIST|Laughter",
+    "LUDIC / ABSURDIST|Laughter as meaning"
+   ],
+   "defs": [
+    "the physiological, emotional, and social response to humor. the \"release.\"",
+    "the recognition that laughter itself is the meaning. the \"joyful absurdity.\""
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "LUDIC / ABSURDIST|The jester",
+    "LUDIC / ABSURDIST|The jester universe"
+   ],
+   "defs": [
+    "the archetype of the jester. the one who tells the truth through jokes.",
+    "the universe as a cosmic joke. the punchline is that there is no final answer."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "LUDOLOGICAL|Metagame",
+    "LUDOLOGICAL|Metagame theory"
+   ],
+   "defs": [
+    "the game *about* the game. strategy selection, counter-strategies, tier lists.",
+    "the evolution of strategies over time."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "LUDOLOGICAL|Voluntary",
+    "LUDOLOGICAL|Voluntary play"
+   ],
+   "defs": [
+    "",
+    "play is voluntary. you can leave the magic circle at any time. the game only exists because players consent."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "MATERIAL|Brittle",
+    "MATERIAL|Brittle failure"
+   ],
+   "defs": [
+    "",
+    "a material with low fracture toughness shatters instantly with no plastic deformation (glass, ceramic)."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "MATERIAL|Ductile",
+    "MATERIAL|Ductile failure"
+   ],
+   "defs": [
+    "",
+    "a material stretches, necks, and then tears slowly (metal, chewing gum). warning signs before break."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "MATERIAL|Fatigue",
+    "MATERIAL|Fatigue cycle"
+   ],
+   "defs": [
+    "progressive weakening under cyclic loading (repeated stress). cumulative damage over time.",
+    "repeated stress below the yield point gradually weakens the material. after n cycles, it breaks without warning."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "MATERIAL|Hardness",
+    "MATERIAL|Hardness test"
+   ],
+   "defs": [
+    "resistance to localized surface indentation or scratching.",
+    "a hard object (e.g., diamond) scores a softer material. used to compare material toughness."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "MATERIAL|Stress",
+    "MATERIAL|Stress concentration"
+   ],
+   "defs": [
+    "force per unit area applied to a material (pressure). the \"load\" on the system.",
+    "a sharp corner, notch, or hole multiplies the local stress. a 1x force becomes a 10x force at a crack tip."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "MEDICAL|Chronic",
+    "MEDICAL|Chronic disease"
+   ],
+   "defs": [
+    "a long-lasting, persistent condition (slow decay, autoimmune, degenerative).",
+    "a long-lasting condition that worsens over time. diabetes, heart disease, dementia."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "MEDICAL|Contagion",
+    "MEDICAL|Contagion spread"
+   ],
+   "defs": [
+    "the transmission of a disease from one organism to another.",
+    "a disease spreads from one organism to another through proximity or contact."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "MEDICAL|Global",
+    "MEDICAL|Global health"
+   ],
+   "defs": [
+    "",
+    "health is a global system; disease anywhere is a threat everywhere."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "MEDICAL|Healing",
+    "MEDICAL|Healing process"
+   ],
+   "defs": [
+    "the process of repairing damage and restoring function over time.",
+    "the gradual repair of damaged tissue. clotting, granulation, remodeling."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "MEDICAL|Inflammatory",
+    "MEDICAL|Inflammatory response"
+   ],
+   "defs": [
+    "",
+    "the body's immediate response: increased blood flow, immune cell recruitment, swelling."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "MEDICAL|Tissue",
+    "MEDICAL|Tissue engineering"
+   ],
+   "defs": [
+    "",
+    "grow new tissue in a laboratory. implant it to replace damaged tissue."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "MORPHOGENETIC|Buckling",
+    "MORPHOGENETIC|Buckling instab"
+   ],
+   "defs": [
+    "mechanical instability causing a flat sheet to deform into folds or wrinkles.",
+    "a thin sheet under compression buckles into a 3d shape (folds, villi, brain convolutions)."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "MORPHOGENETIC|Diffusion",
+    "MORPHOGENETIC|DIFFUSION Driven INSTAB"
+   ],
+   "defs": [
+    "the random, passive spreading of particles (morphogens) from high to low concentration.",
+    "the pattern changes based on the size of the domain. larger domains allow more stripes."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "MORPHOGENETIC|Reaction",
+    "MORPHOGENETIC|Reaction diffusion"
+   ],
+   "defs": [
+    "the local chemical transformation of one morphogen into another.",
+    "a system where two morphogens (activator and inhibitor) diffuse and react, creating stable spatial patterns."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "NETWORK|Centrality",
+    "NETWORK|Centrality measure"
+   ],
+   "defs": [
+    "the measure of a node's importance within a network. the \"hub-ness.\"",
+    "measuring a node's centrality (degree, betweenness, closeness)."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "NETWORK|Connect",
+    "NETWORK|Connection"
+   ],
+   "defs": [
+    "the fundamental act of network construction. creating a link.",
+    ""
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "NETWORK|Random",
+    "NETWORK|Random net"
+   ],
+   "defs": [
+    "",
+    "a network where connections are made randomly. the \"erdos-renyi.\""
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "NOETIC|Insight",
+    "NOETIC|Insight moment"
+   ],
+   "defs": [
+    "a sudden, non-linear, deep understanding that reconfigures perception.",
+    "the \"aha!\" moment. a solution arises without effort, often after an incubation period."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "NOETIC|Non-judgment",
+    "NOETIC|Non-judgmental reframe"
+   ],
+   "defs": [
+    "",
+    "consciously shift your perspective on a problem. see it from a new angle."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "NOETIC|Surrender",
+    "NOETIC|Surrender control"
+   ],
+   "defs": [
+    "",
+    "stop trying to control the outcome. trust the process."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "ONTOLOGICAL|Illusion",
+    "ONTOLOGICAL|Illusion pierce"
+   ],
+   "defs": [
+    "an appearance that does not match reality. a veil, a deception, a dream.",
+    "see through a deception. recognize the veil for what it is."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "ONTOLOGICAL|Reality",
+    "ONTOLOGICAL|Reality check"
+   ],
+   "defs": [
+    "the totality of all that exists. the sum total of what is the case.",
+    "determine whether a given state is real or illusory. are you in the base layer or a simulation?"
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "ONTOLOGICAL|Simulation",
+    "ONTOLOGICAL|Simulation argument"
+   ],
+   "defs": [
+    "a reality that is generated by an underlying algorithm or process.",
+    "the philosophical argument that we are likely in a simulation. the odds."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "OPTICAL|Periscope",
+    "OPTICAL|Periscope array"
+   ],
+   "defs": [
+    "two parallel mirrors at 45°. allows you to see over/around obstacles without exposing yourself.",
+    "a grid of periscopes. allows you to see around multiple obstacles simultaneously. perfect for maze navigation."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "PATHOLOGICAL|Endurance",
+    "PATHOLOGICAL|Endurance limit"
+   ],
+   "defs": [
+    "the capacity to persist through unbearable pain. the \"holding on.\"",
+    "the point at which endurance reaches its limit. the breaking point."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "PATHOLOGICAL|Suffering",
+    "PATHOLOGICAL|Suffering wisdom"
+   ],
+   "defs": [
+    "",
+    "the wisdom gained through suffering. the \"dark gift.\""
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "PATHOLOGICAL|Trauma",
+    "PATHOLOGICAL|Trauma integration"
+   ],
+   "defs": [
+    "a wound — physical, emotional, or psychological — that exceeds the system's capacity to integrate. the \"fracture.\"",
+    "the long, difficult work of integrating a trauma. the healing of the fracture."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "PHENOMENOLOGICAL|Horizon",
+    "PHENOMENOLOGICAL|Horizon awareness"
+   ],
+   "defs": [
+    "the unthematized background of experience. the fringe of awareness.",
+    "the marginal, unnoticed background that gives the focal object its sense."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "PHENOMENOLOGICAL|Presence",
+    "PHENOMENOLOGICAL|Presence feel"
+   ],
+   "defs": [
+    "the vivid, immediate, here-and-now quality of being-in-the-world.",
+    "the immediate, vivid, undeniable sense of \"i am here, now, and this is happening.\""
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "PSYCHOLOGICAL|action",
+    "PSYCHOLOGICAL|action mismatched"
+   ],
+   "defs": [
+    "",
+    ""
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "QUANTUM|Tunnel",
+    "QUANTUM|Tunnelling"
+   ],
+   "defs": [
+    "pass a barrier that should have stopped you",
+    "passing a barrier that should have stopped you"
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "RAW DATA|Density",
+    "RAW DATA|Density gradient"
+   ],
+   "defs": [
+    "",
+    "where information changes fastest"
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "REBELLION|Courage",
+    "REBELLION|Courage under fire"
+   ],
+   "defs": [
+    "the psychological strength to rebel against a powerful system.",
+    "maintaining rebellion despite intense pressure and threat."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "REBELLION|Heresy",
+    "REBELLION|Heresy cascade"
+   ],
+   "defs": [
+    "a belief or opinion that diverges from established doctrine or orthodoxy.",
+    "a heretical idea spreads and becomes a new orthodoxy."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "REBELLION|Insurrection",
+    "REBELLION|Insurrection ecology"
+   ],
+   "defs": [
+    "a sudden, often unprepared, uprising against authority.",
+    "the complete network of forces that enable or suppress a rebellion."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "REBELLION|Principle",
+    "REBELLION|Principled Disobedience"
+   ],
+   "defs": [
+    "",
+    "the deliberate violation of a rule on moral or ethical grounds."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "REBELLION|Revolution",
+    "REBELLION|Revolutionary act"
+   ],
+   "defs": [
+    "the systematic, often collective, overthrow of an existing order.",
+    "a decisive act aimed at overthrowing an existing order."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "REBELLION|Subversion",
+    "REBELLION|Subversion loop"
+   ],
+   "defs": [
+    "the act of undermining or destabilizing a system from within.",
+    "a sustained campaign to destabilize a system from within."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "SKILL|Improvisation",
+    "SKILL|Improvisational mastery"
+   ],
+   "defs": [
+    "the creative application of skill in unscripted situations. the \"invention.\"",
+    "the creative application of expert skill to novel situations."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "SKILL|Performance",
+    "SKILL|Performance anxiety"
+   ],
+   "defs": [
+    "the execution of skill in a performance context.",
+    "the management of anxiety in performance contexts."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "SKILL|Precision",
+    "SKILL|Precision timing"
+   ],
+   "defs": [
+    "the accuracy of execution. the \"exactness.\"",
+    "the achievement of perfect timing in a skill."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "SKILL|Refine",
+    "SKILL|Refinement"
+   ],
+   "defs": [
+    "the improvement of a skill through feedback.",
+    ""
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "SKILL|Technique",
+    "SKILL|Technique learn"
+   ],
+   "defs": [
+    "a specific method of performing an action. the \"how.\"",
+    "the acquisition of a specific method through practice."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "SOCIAL|Collective",
+    "SOCIAL|Collective memory"
+   ],
+   "defs": [
+    "",
+    "a group remembers its past through shared narratives, archives, and rituals."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "SOCIAL|Individual",
+    "SOCIAL|Individuals"
+   ],
+   "defs": [
+    "a single agent with its own goals, beliefs, and preferences. the atomic unit of the social.",
+    ""
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "SOCIAL|Reputation",
+    "SOCIAL|Reputation cascade"
+   ],
+   "defs": [
+    "the collective belief about an individual's past behavior. a social signal.",
+    "a reputation spreads through the network like a cascade. positive or negative."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "SOMNIAL|Hypnagogia",
+    "SOMNIAL|Hypnagogia state"
+   ],
+   "defs": [
+    "the liminal state between waking and sleep. the threshold where imagery flickers and logic softens.",
+    "entering the liminal state where logic loosens and imagery becomes fluid."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "SOMNIAL|Nightmare",
+    "SOMNIAL|Nightmare endure"
+   ],
+   "defs": [
+    "a deeply disturbing, anxiety-provoking dream. the shadow of the night.",
+    "the experience of a nightmare. a terrifying ordeal that often forces awakening."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "SOMNIAL|Unconscious",
+    "SOMNIAL|Unconscious process"
+   ],
+   "defs": [
+    "the vast, submerged part of the psyche; inaccessible to waking consciousness but active in dreams.",
+    "the non-conscious processing of information during sleep. the \"offline\" work."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "TEMPORAL|Rhythm",
+    "TEMPORAL|Rhythm entrain"
+   ],
+   "defs": [
+    "the pattern of events over time. regular or irregular intervals. the pulse of the system.",
+    "align your actions to an external beat. move in time with the metronome."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "THAUMATURGICAL|Cleansing",
+    "THAUMATURGICAL|Cleansing rite"
+   ],
+   "defs": [
+    "",
+    "a ritual that removes contamination (magical, moral, or spiritual)."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "THAUMATURGICAL|Ritual",
+    "THAUMATURGICAL|Ritual structure"
+   ],
+   "defs": [
+    "a structured sequence of symbolic actions, repeated for a specific magical purpose.",
+    "the complete structure of a magical operation. the blueprint of the spell."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "THOUGHT|Abstract",
+    "THOUGHT|Abstraction"
+   ],
+   "defs": [
+    "strip away surface features to reveal the underlying structure.",
+    "the extraction of essential structure while ignoring surface details."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "TOPOLOGICAL|Knot detect",
+    "TOPOLOGICAL|Knot detection"
+   ],
+   "defs": [
+    "determine if a knot is the unknot or a trefoil. used to unlock a knot-based puzzle.",
+    "determine if a knot is the unknot or a trefoil."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "TOPOLOGICAL|Möbius",
+    "TOPOLOGICAL|Möbius twist"
+   ],
+   "defs": [
+    "",
+    "glue opposite edges with a half-twist. creates a one-sided surface. a path loops back on its mirror."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "TOPOLOGICAL|Project",
+    "TOPOLOGICAL|Projection"
+   ],
+   "defs": [
+    "a parallel lines converge at a point at infinity. in a puzzle, throwing an object \"off the edge\" makes it reappear on th",
+    ""
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "TRANSFORMATION|Emerge",
+    "TRANSFORMATION|Emergence"
+   ],
+   "defs": [
+    "the arising of new properties from change.",
+    "the arising of new properties from a transformation. the \"novelty.\""
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "TRANSFORMATION|Evolution",
+    "TRANSFORMATION|Evolutionary arms race"
+   ],
+   "defs": [
+    "gradual change over time. the \"unfolding.\"",
+    "co-evolution between competing species."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "ZOOLOGICAL|Camouflage",
+    "ZOOLOGICAL|Camouflage / Crypsis"
+   ],
+   "defs": [
+    "match what is around you.",
+    "the ability to blend into the environment to avoid detection."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "ZOOLOGICAL|Harmless",
+    "ZOOLOGICAL|Harmless looks dangerous"
+   ],
+   "defs": [
+    "",
+    ""
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "ZOOLOGICAL|Imprinting",
+    "ZOOLOGICAL|Imprinting phase"
+   ],
+   "defs": [
+    "",
+    "a rapid, sensitive period early in life where an animal imprints on a parent/object. irreversible."
+   ],
+   "why_held": "different definitions or a further word"
+  },
+  {
+   "pair": [
+    "ZOOLOGICAL|Migration",
+    "ZOOLOGICAL|Migration navigation"
+   ],
+   "defs": [
+    "periodic, long-distance movement in response to seasons or resources.",
+    "navigate using the earth's magnetic field, the stars, or polarized light. a built-in compass."
+   ],
+   "why_held": "one is built from the other"
+  },
+  {
+   "pair": [
+    "ZOOLOGICAL|Territory",
+    "ZOOLOGICAL|Territory mark"
+   ],
+   "defs": [
+    "",
+    "use scent glands to mark boundaries. warns off other animals."
+   ],
+   "why_held": "different definitions or a further word"
+  }
+ ],
+ "unresolved_pairs": [
+  [
+   "AGENT|colour",
+   "AGENT|colour_changed"
+  ],
+  [
+   "AGENT|touching",
+   "AGENT|touching_n"
+  ],
+  [
+   "None|rolling",
+   "None|rolling resistance"
+  ]
+ ]
+}

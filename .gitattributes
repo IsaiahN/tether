@@ -1,0 +1,3 @@
+# derived library files are byte-checked by build_library.py --check: pin them to LF on every OS
+library/*.json text eol=lf
+library/BUILD_REPORT.md text eol=lf

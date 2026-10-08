@@ -1,0 +1,1032 @@
+{
+ "meta": {
+  "what": "THE GRAMMAR every entry is written in, preloaded or agent-made: the eight operators (Operators table, Figure 12), the two qualifiers, the NSM prime correspondence, the symbols of the loop (Symbols table) and the six substrate terms (Figure 13). Taken from the figure text; nothing here is the seat's invention.",
+  "price": "|phi| = (k+1)*log2(|atoms|+1) + (k-1)*log2(|bonds|)  -- Figure 12 / Operators table. Negation is unary and does not enter |bonds|.",
+  "symmetry": "Under a symmetric bond (+, ||, ==) k operands have k! spellings and one term; under an ordered bond different orders are different terms (Operators table)."
+ },
+ "operators": {
+  "+": {
+   "name": "conjunction",
+   "arity": 2,
+   "symmetric": true,
+   "means": "both hold at once",
+   "test": "swap the operands. Does the meaning change? No.",
+   "nsm": "AND",
+   "note": "the only bond in a flat formula",
+   "implemented_by": [
+    "AGENT|both",
+    "AGENT|sum_group (over a group)"
+   ]
+  },
+  "∥": {
+   "name": "disjunction",
+   "arity": 2,
+   "symmetric": true,
+   "means": "either suffices; not both required",
+   "test": "remove one. Does it still work? Yes.",
+   "nsm": "(none -- MAYBE this / MAYBE that; open item)",
+   "note": "not concurrency",
+   "implemented_by": [
+    "AGENT|either"
+   ]
+  },
+  "≡": {
+   "name": "identity",
+   "arity": 2,
+   "symmetric": true,
+   "means": "two names, one referent",
+   "test": "substitute one for the other. Is anything lost? No.",
+   "nsm": "THE SAME",
+   "note": "decided at library level, never on a board record",
+   "implemented_by": [
+    "AGENT|same (test)",
+    "AGENT|other (its negation)"
+   ]
+  },
+  "→": {
+   "name": "sequence",
+   "arity": 2,
+   "symmetric": false,
+   "means": "A then B; B needs A to have happened",
+   "test": "swap them. Does it become a different thing? Yes.",
+   "nsm": "BEFORE / AFTER",
+   "note": "the only bond a flat chain can express",
+   "implemented_by": [
+    "a chain (gamma.Term): applying atoms in sequence IS the sequence bond"
+   ]
+  },
+  "⇒": {
+   "name": "production",
+   "arity": 2,
+   "symmetric": false,
+   "means": "A produces B; B did not exist before",
+   "test": "is there a B before A fires? No.",
+   "nsm": "BECAUSE",
+   "note": "the second operand is absent until the first fires",
+   "implemented_by": [],
+   "implemented_by_note": "no executable form yet: production is TESTED over frames (composer.holds: is there a B before A fires?), not computed"
+  },
+  "−": {
+   "name": "subtraction",
+   "arity": 2,
+   "symmetric": false,
+   "means": "A with B removed or absent",
+   "test": "is the second operand's absence the point? Yes.",
+   "nsm": "NOT (of an operand)",
+   "note": "progress is a subtraction",
+   "implemented_by": [],
+   "implemented_by_note": "no executable form yet: subtraction is TESTED over frames (composer.holds), not computed"
+  },
+  "⋛": {
+   "name": "comparison",
+   "arity": 2,
+   "symmetric": false,
+   "means": "a threshold relation between two quantities",
+   "test": "is it about which is larger, rather than both being present? Yes.",
+   "nsm": "MORE",
+   "note": "a goal is a comparison",
+   "implemented_by": [
+    "AGENT|above",
+    "AGENT|is_max",
+    "AGENT|is_min",
+    "AGENT|rank_in"
+   ]
+  },
+  "¬": {
+   "name": "negation",
+   "arity": 1,
+   "symmetric": null,
+   "means": "this does not hold",
+   "test": "is the point that it is false, rather than absent? Yes.",
+   "nsm": "NOT",
+   "note": "a refutation is a negation; unary, not a bond",
+   "implemented_by": [
+    "AGENT|negate"
+   ]
+  }
+ },
+ "unknown_bond": {
+  "symbol": "?",
+  "means": "a junction written '+' in the source whose bond is not stated: UNKNOWN until the ground settles it (Isaiah 2026-09-22: '+' is a placeholder; Figure 12: 'which one holds is not recoverable from the operands')"
+ },
+ "qualifiers": {
+  "A(x)": "A, qualified -- narrows one operand (high, low, depleting, zero, unbounded, increasing ...); NOT an operator",
+  "A?": "A, optional -- present in some instances and not others"
+ },
+ "frames_nsm": {
+  "substantives": [
+   "SOMETHING",
+   "SOMEONE",
+   "THIS",
+   "THE SAME",
+   "OTHER",
+   "PART",
+   "KIND"
+  ],
+  "frames": [
+   "DO",
+   "HAPPEN",
+   "MOVE",
+   "BE",
+   "WHERE",
+   "WHEN",
+   "TOUCH",
+   "INSIDE"
+  ],
+  "connectives": [
+   "AND",
+   "NOT",
+   "IF",
+   "BECAUSE",
+   "THE SAME",
+   "MORE",
+   "LIKE",
+   "MAYBE",
+   "CAN"
+  ],
+  "note": "NSM_GRAMMAR.md: substantives are the placeholder variables (existential SOMETHING, bound THIS, binding THE SAME, anti-binding OTHER); frames carry arity so a relation has somewhere to live; connectives are the operators.",
+  "primes_full": {
+   "substantives": [
+    "I",
+    "YOU",
+    "SOMEONE",
+    "SOMETHING/THING",
+    "PEOPLE",
+    "BODY"
+   ],
+   "relational substantives": [
+    "KIND",
+    "PART"
+   ],
+   "determiners": [
+    "THIS",
+    "THE SAME",
+    "OTHER/ELSE"
+   ],
+   "quantifiers": [
+    "ONE",
+    "TWO",
+    "SOME",
+    "ALL",
+    "MUCH/MANY",
+    "LITTLE/FEW"
+   ],
+   "evaluators": [
+    "GOOD",
+    "BAD"
+   ],
+   "descriptors": [
+    "BIG",
+    "SMALL"
+   ],
+   "mental predicates": [
+    "THINK",
+    "KNOW",
+    "WANT",
+    "DON'T WANT",
+    "FEEL",
+    "SEE",
+    "HEAR"
+   ],
+   "speech": [
+    "SAY",
+    "WORDS",
+    "TRUE"
+   ],
+   "actions, events, movement": [
+    "DO",
+    "HAPPEN",
+    "MOVE"
+   ],
+   "existence, possession": [
+    "BE (SOMEWHERE)",
+    "THERE IS",
+    "BE (SOMEONE/SOMETHING)",
+    "(IS) MINE"
+   ],
+   "life and death": [
+    "LIVE",
+    "DIE"
+   ],
+   "time": [
+    "WHEN/TIME",
+    "NOW",
+    "BEFORE",
+    "AFTER",
+    "A LONG TIME",
+    "A SHORT TIME",
+    "FOR SOME TIME",
+    "MOMENT"
+   ],
+   "space": [
+    "WHERE/PLACE",
+    "HERE",
+    "ABOVE",
+    "BELOW",
+    "FAR",
+    "NEAR",
+    "SIDE",
+    "INSIDE",
+    "TOUCH"
+   ],
+   "logical concepts": [
+    "NOT",
+    "MAYBE",
+    "CAN",
+    "BECAUSE",
+    "IF"
+   ],
+   "intensifier, augmentor": [
+    "VERY",
+    "MORE"
+   ],
+   "similarity": [
+    "LIKE/AS/WAY"
+   ],
+   "note": "The standard NSM inventory (Goddard and Wierzbicka). NSM_GRAMMAR.md used about 24 of these; the time, space, quantity and mental-predicate primes were missing and are what the prepositions decompose into."
+  }
+ },
+ "symbols": {
+  "Γ": "the library: primitives and everything buildable from them",
+  "atoms(Γ)": "the primitives: terms not built from anything else",
+  "closure(Γ)": "the reach: everything expressible by combining the primitives at any depth",
+  "b": "the belief before acting (history and inheritance mixed by w)",
+  "w": "the weighting between private history and inherited prior",
+  "a": "the action",
+  "o′": "the observation",
+  "Γ(b,a)": "the prediction",
+  "R": "the residual, per slot; the aim, not only the error signal",
+  "s": "the slot: one object, region or entity tracked",
+  "R⁺_s": "the live mass on slot s",
+  "φ": "a candidate term",
+  "|φ|": "its cost under a declared code",
+  "|R|φ|": "the leftover once φ explains what it can",
+  "bond": "the typed relation between two operands",
+  "molecule": "a bonded arrangement of atoms",
+  "T_A": "abstraction, going up",
+  "T_E": "concretisation, coming back",
+  "R_T": "the round trip gap",
+  "F": "the frame transform (allocentric <-> egocentric)",
+  "the ground": "whatever settles the question; not in the library",
+  "the habitat": "everything in contact with the residual; enumerated, never composed"
+ },
+ "substrate": {
+  "space": {
+   "kind": "state",
+   "means": "near, far, between, contained"
+  },
+  "time": {
+   "kind": "state",
+   "means": "the ordered succession of differences"
+  },
+  "energy": {
+   "kind": "state",
+   "means": "conserved, finite, and directionless on its own"
+  },
+  "spectrum": {
+   "kind": "structure",
+   "means": "ordering, so that more and less can be said"
+  },
+  "gradient": {
+   "kind": "structure",
+   "means": "a difference that can be spent; directed"
+  },
+  "network": {
+   "kind": "structure",
+   "means": "that entities relate at all, and influence travels between them"
+  },
+  "rule": "Figure 13: the set is closed, the arrangements are not; everything else is a composition across the two kinds, never within one"
+ },
+ "prepositions": {
+  "above": {
+   "role": "position",
+   "nsm": "ABOVE",
+   "operator": "⋛",
+   "reads": [
+    "row"
+   ],
+   "grid": "o is in rows above x"
+  },
+  "over": {
+   "role": "position",
+   "nsm": "ABOVE",
+   "operator": "⋛",
+   "reads": [
+    "row"
+   ],
+   "grid": "o is above x, covering or passing it"
+  },
+  "below": {
+   "role": "position",
+   "nsm": "BELOW",
+   "operator": "⋛",
+   "reads": [
+    "row"
+   ],
+   "grid": "o is in rows below x"
+  },
+  "beneath": {
+   "role": "position",
+   "nsm": "BELOW",
+   "operator": "⋛",
+   "reads": [
+    "row"
+   ],
+   "grid": "o is below x, close under it"
+  },
+  "under": {
+   "role": "position",
+   "nsm": "BELOW",
+   "operator": "⋛",
+   "reads": [
+    "row"
+   ],
+   "grid": "o is below x, covered by it"
+  },
+  "underneath": {
+   "role": "position",
+   "nsm": "BELOW",
+   "operator": "⋛",
+   "reads": [
+    "row"
+   ],
+   "grid": "o is directly below x, covered by it"
+  },
+  "behind": {
+   "role": "position",
+   "nsm": "SIDE + NOT SEE",
+   "operator": "⋛",
+   "reads": [
+    "row",
+    "col"
+   ],
+   "grid": "o is on the far side of x from the viewer (occluded)"
+  },
+  "beside": {
+   "role": "position",
+   "nsm": "SIDE + NEAR",
+   "operator": "+",
+   "reads": [
+    "touching",
+    "col",
+    "row"
+   ],
+   "grid": "o is next to x on one side"
+  },
+  "next": {
+   "role": "position",
+   "nsm": "NEAR",
+   "operator": "+",
+   "reads": [
+    "touching"
+   ],
+   "grid": "o is adjacent to x"
+  },
+  "near": {
+   "role": "position",
+   "nsm": "NEAR",
+   "operator": "⋛",
+   "reads": [
+    "row",
+    "col"
+   ],
+   "grid": "o is a small distance from x"
+  },
+  "opposite": {
+   "role": "position",
+   "nsm": "SIDE + OTHER",
+   "operator": "⋛",
+   "reads": [
+    "row",
+    "col"
+   ],
+   "grid": "o faces x from the other side"
+  },
+  "between": {
+   "role": "position",
+   "nsm": "SIDE + SIDE",
+   "operator": "+",
+   "reads": [
+    "row",
+    "col"
+   ],
+   "grid": "o lies between x and y"
+  },
+  "beyond": {
+   "role": "position",
+   "nsm": "FAR + SIDE",
+   "operator": "⋛",
+   "reads": [
+    "row",
+    "col"
+   ],
+   "grid": "o is past x, farther than x"
+  },
+  "past": {
+   "role": "position/time",
+   "nsm": "AFTER + FAR",
+   "operator": "⋛",
+   "reads": [
+    "row",
+    "col",
+    "age"
+   ],
+   "grid": "o has gone further than x, or later than x"
+  },
+  "around": {
+   "role": "position",
+   "nsm": "INSIDE (inverse) + SIDE",
+   "operator": "+",
+   "reads": [
+    "inside",
+    "bbox"
+   ],
+   "grid": "o surrounds x on all sides"
+  },
+  "round": {
+   "role": "position",
+   "nsm": "INSIDE (inverse) + SIDE",
+   "operator": "+",
+   "reads": [
+    "inside",
+    "bbox"
+   ],
+   "grid": "o surrounds or circles x"
+  },
+  "amid": {
+   "role": "membership",
+   "nsm": "INSIDE + MANY",
+   "operator": "+",
+   "reads": [
+    "inside",
+    "bbox"
+   ],
+   "grid": "o is surrounded by many x"
+  },
+  "among": {
+   "role": "membership",
+   "nsm": "PART + MANY",
+   "operator": "+",
+   "reads": [
+    "colour",
+    "shape"
+   ],
+   "grid": "o is one of a group of x"
+  },
+  "in": {
+   "role": "containment",
+   "nsm": "INSIDE",
+   "operator": "+",
+   "reads": [
+    "inside",
+    "bbox"
+   ],
+   "grid": "o lies within x"
+  },
+  "inside": {
+   "role": "containment",
+   "nsm": "INSIDE",
+   "operator": "+",
+   "reads": [
+    "inside",
+    "bbox"
+   ],
+   "grid": "o lies within x's boundary"
+  },
+  "within": {
+   "role": "containment",
+   "nsm": "INSIDE",
+   "operator": "+",
+   "reads": [
+    "inside",
+    "bbox"
+   ],
+   "grid": "o lies within the bounds of x"
+  },
+  "outside": {
+   "role": "containment",
+   "nsm": "NOT INSIDE",
+   "operator": "¬",
+   "reads": [
+    "inside",
+    "bbox"
+   ],
+   "grid": "o lies outside x's boundary"
+  },
+  "out": {
+   "role": "containment",
+   "nsm": "NOT INSIDE + MOVE",
+   "operator": "−",
+   "reads": [
+    "inside",
+    "gone"
+   ],
+   "grid": "o leaves x"
+  },
+  "on": {
+   "role": "support",
+   "nsm": "TOUCH + ABOVE",
+   "operator": "+",
+   "reads": [
+    "touching",
+    "row"
+   ],
+   "grid": "o rests on top of x"
+  },
+  "upon": {
+   "role": "support",
+   "nsm": "TOUCH + ABOVE",
+   "operator": "+",
+   "reads": [
+    "touching",
+    "row"
+   ],
+   "grid": "o rests on x"
+  },
+  "onto": {
+   "role": "support",
+   "nsm": "MOVE + TOUCH + ABOVE",
+   "operator": "→",
+   "reads": [
+    "drow",
+    "dcol",
+    "touching"
+   ],
+   "grid": "o moves to rest on x"
+  },
+  "aboard": {
+   "role": "support",
+   "nsm": "INSIDE + MOVE WITH",
+   "operator": "+",
+   "reads": [
+    "inside",
+    "drow",
+    "dcol"
+   ],
+   "grid": "o is carried inside or on x, moving with it"
+  },
+  "off": {
+   "role": "support",
+   "nsm": "NOT TOUCH + MOVE",
+   "operator": "−",
+   "reads": [
+    "touching",
+    "drow",
+    "dcol"
+   ],
+   "grid": "o moves away from contact with x"
+  },
+  "at": {
+   "role": "location",
+   "nsm": "WHERE / WHEN",
+   "operator": "≡",
+   "reads": [
+    "row",
+    "col"
+   ],
+   "grid": "o is located exactly at x"
+  },
+  "across": {
+   "role": "path",
+   "nsm": "MOVE + SIDE + SIDE",
+   "operator": "→",
+   "reads": [
+    "drow",
+    "dcol"
+   ],
+   "grid": "o moves from one side of x to the other"
+  },
+  "along": {
+   "role": "path",
+   "nsm": "MOVE + SIDE",
+   "operator": "→",
+   "reads": [
+    "drow",
+    "dcol",
+    "touching"
+   ],
+   "grid": "o moves following the length of x"
+  },
+  "through": {
+   "role": "path",
+   "nsm": "MOVE + INSIDE",
+   "operator": "→",
+   "reads": [
+    "drow",
+    "dcol",
+    "inside"
+   ],
+   "grid": "o moves into one side of x and out the other"
+  },
+  "via": {
+   "role": "path",
+   "nsm": "MOVE + PART",
+   "operator": "→",
+   "reads": [
+    "drow",
+    "dcol"
+   ],
+   "grid": "o reaches the goal by way of x"
+  },
+  "into": {
+   "role": "goal",
+   "nsm": "MOVE + INSIDE",
+   "operator": "→",
+   "reads": [
+    "drow",
+    "dcol",
+    "inside"
+   ],
+   "grid": "o moves to end up inside x"
+  },
+  "to": {
+   "role": "goal",
+   "nsm": "MOVE + WHERE (end)",
+   "operator": "→",
+   "reads": [
+    "drow",
+    "dcol"
+   ],
+   "grid": "o moves or changes so it ends at x (the goal)"
+  },
+  "toward": {
+   "role": "goal",
+   "nsm": "MOVE + NEAR (more)",
+   "operator": "⋛",
+   "reads": [
+    "drow",
+    "dcol"
+   ],
+   "grid": "the distance from o to x is shrinking"
+  },
+  "from": {
+   "role": "source",
+   "nsm": "MOVE + WHERE (start)",
+   "operator": "→",
+   "reads": [
+    "drow",
+    "dcol",
+    "prev"
+   ],
+   "grid": "o started at x (the source)"
+  },
+  "up": {
+   "role": "direction",
+   "nsm": "MOVE + ABOVE",
+   "operator": "⋛",
+   "reads": [
+    "drow"
+   ],
+   "grid": "o moves to rows above (drow < 0)"
+  },
+  "down": {
+   "role": "direction",
+   "nsm": "MOVE + BELOW",
+   "operator": "⋛",
+   "reads": [
+    "drow"
+   ],
+   "grid": "o moves to rows below (drow > 0)"
+  },
+  "against": {
+   "role": "contact/opposition",
+   "nsm": "TOUCH + MOVE (opposite)",
+   "operator": "⋛",
+   "reads": [
+    "touching",
+    "drow",
+    "dcol"
+   ],
+   "grid": "o pushes on x, or moves opposite to x"
+  },
+  "before": {
+   "role": "time",
+   "nsm": "BEFORE",
+   "operator": "→",
+   "reads": [
+    "age",
+    "prev"
+   ],
+   "grid": "o happens earlier than x"
+  },
+  "after": {
+   "role": "time",
+   "nsm": "AFTER",
+   "operator": "→",
+   "reads": [
+    "age",
+    "prev"
+   ],
+   "grid": "o happens later than x"
+  },
+  "following": {
+   "role": "time",
+   "nsm": "AFTER",
+   "operator": "→",
+   "reads": [
+    "age",
+    "prev"
+   ],
+   "grid": "o happens right after x"
+  },
+  "during": {
+   "role": "time",
+   "nsm": "AT THE SAME TIME",
+   "operator": "+",
+   "reads": [
+    "age"
+   ],
+   "grid": "o happens while x is happening"
+  },
+  "since": {
+   "role": "time",
+   "nsm": "AFTER + FOR SOME TIME",
+   "operator": "→",
+   "reads": [
+    "age",
+    "stability"
+   ],
+   "grid": "from x until now"
+  },
+  "until": {
+   "role": "time",
+   "nsm": "BEFORE (end)",
+   "operator": "→",
+   "reads": [
+    "age",
+    "stability"
+   ],
+   "grid": "up to the moment x happens"
+  },
+  "till": {
+   "role": "time",
+   "nsm": "BEFORE (end)",
+   "operator": "→",
+   "reads": [
+    "age",
+    "stability"
+   ],
+   "grid": "up to the moment x happens"
+  },
+  "with": {
+   "role": "accompaniment/instrument",
+   "nsm": "AND / BECAUSE",
+   "operator": "+",
+   "reads": [
+    "touching"
+   ],
+   "grid": "o together with x, or by means of x"
+  },
+  "without": {
+   "role": "absence",
+   "nsm": "NOT + AND",
+   "operator": "−",
+   "reads": [
+    "gone"
+   ],
+   "grid": "o, x absent"
+  },
+  "plus": {
+   "role": "addition",
+   "nsm": "AND + MORE",
+   "operator": "+",
+   "reads": [
+    "h",
+    "w",
+    "filled"
+   ],
+   "grid": "o and x combined"
+  },
+  "minus": {
+   "role": "subtraction",
+   "nsm": "NOT + PART",
+   "operator": "−",
+   "reads": [
+    "h",
+    "w",
+    "filled",
+    "gone"
+   ],
+   "grid": "o with x taken away"
+  },
+  "except": {
+   "role": "exclusion",
+   "nsm": "OTHER + NOT",
+   "operator": "−",
+   "reads": [
+    "colour",
+    "shape"
+   ],
+   "grid": "all of the group but x"
+  },
+  "but": {
+   "role": "exclusion",
+   "nsm": "OTHER + NOT",
+   "operator": "−",
+   "reads": [
+    "colour",
+    "shape"
+   ],
+   "grid": "all of the group but x"
+  },
+  "save": {
+   "role": "exclusion",
+   "nsm": "OTHER + NOT",
+   "operator": "−",
+   "reads": [
+    "colour",
+    "shape"
+   ],
+   "grid": "all of the group but x"
+  },
+  "than": {
+   "role": "comparison",
+   "nsm": "MORE / LESS",
+   "operator": "⋛",
+   "reads": [
+    "h",
+    "w",
+    "filled",
+    "row",
+    "col"
+   ],
+   "grid": "o compared with x on a quantity"
+  },
+  "versus": {
+   "role": "comparison",
+   "nsm": "OTHER + MORE",
+   "operator": "⋛",
+   "reads": [
+    "h",
+    "w",
+    "filled"
+   ],
+   "grid": "o set against x"
+  },
+  "per": {
+   "role": "rate",
+   "nsm": "FOR EACH (ONE)",
+   "operator": "⋛",
+   "reads": [
+    "drow",
+    "dcol",
+    "age"
+   ],
+   "grid": "an amount of o for each unit of x (a rate)"
+  },
+  "like": {
+   "role": "similarity",
+   "nsm": "LIKE",
+   "operator": "≡",
+   "reads": [
+    "shape",
+    "colour"
+   ],
+   "grid": "o has the same kind of form or behaviour as x"
+  },
+  "unlike": {
+   "role": "dissimilarity",
+   "nsm": "NOT LIKE",
+   "operator": "¬",
+   "reads": [
+    "shape",
+    "colour"
+   ],
+   "grid": "o differs in kind from x"
+  },
+  "as": {
+   "role": "role/identity",
+   "nsm": "LIKE / THE SAME",
+   "operator": "≡",
+   "reads": [
+    "shape",
+    "colour"
+   ],
+   "grid": "o in the role of x"
+  },
+  "by": {
+   "role": "agent/means",
+   "nsm": "BECAUSE + DO",
+   "operator": "⇒",
+   "reads": [
+    "action",
+    "touching"
+   ],
+   "grid": "o is done or caused by x"
+  },
+  "for": {
+   "role": "purpose/goal",
+   "nsm": "WANT + BECAUSE",
+   "operator": "⇒",
+   "reads": [
+    "completed"
+   ],
+   "grid": "o is done so that x"
+  },
+  "despite": {
+   "role": "concession",
+   "nsm": "IF + NOT (expected) + HAPPEN",
+   "operator": "¬",
+   "reads": [
+    "prev"
+   ],
+   "grid": "o happens although x would predict otherwise"
+  },
+  "of": {
+   "role": "part/patient",
+   "nsm": "PART / OF (genitive)",
+   "operator": "≡",
+   "reads": [
+    "shape",
+    "colour"
+   ],
+   "grid": "x is what o belongs to, or what o acts on: contagion OF x"
+  },
+  "about": {
+   "role": "topic",
+   "nsm": "ABOUT (reference)",
+   "operator": "≡",
+   "reads": [],
+   "grid": "o concerns x"
+  },
+  "concerning": {
+   "role": "topic",
+   "nsm": "ABOUT",
+   "operator": "≡",
+   "reads": [],
+   "grid": "o concerns x"
+  },
+  "regarding": {
+   "role": "topic",
+   "nsm": "ABOUT",
+   "operator": "≡",
+   "reads": [],
+   "grid": "o concerns x"
+  },
+  "considering": {
+   "role": "condition",
+   "nsm": "IF + THINK",
+   "operator": "→",
+   "reads": [],
+   "grid": "given x, o follows"
+  }
+ },
+ "prepositions_meta": "Isaiah 2026-10-08: atoms act as subject or verb by sentence position; prepositions mark the role a second operand plays. Each preposition maps to an NSM prime (or prime combination), the operator it realises, and the readings it reads. They are ROLE MARKERS on a frame's slots, not new atoms: 'contagion OF x' fills the patient slot; 'move FROM a TO b' the source and goal slots.",
+ "roles": {
+  "meta": "ONE atom, several views, chosen by the slot it fills in a frame (effect vs affect: the noun and the verb are one concept). Generated, never authored per atom.",
+  "STATE": {
+   "frame": "BE / THERE IS",
+   "reads": "the reading's value this frame",
+   "templates": "value templates (holds, same, more)",
+   "example": "contagion (present on x)"
+  },
+  "PROCESS": {
+   "frame": "HAPPEN / DO / MOVE",
+   "reads": "the reading's change across frames (DELTA, prev)",
+   "templates": "change templates (moves, up, down; prev != now)",
+   "example": "contagion OF x (it spreads to x)"
+  },
+  "RELATION": {
+   "frame": "two-place: TOUCH(X,Y), INSIDE(X,Y)",
+   "reads": "pair readings",
+   "templates": "pair templates",
+   "example": "contagion FROM a TO b"
+  },
+  "MEASURE": {
+   "frame": "MORE / VERY",
+   "reads": "the reading as a quantity",
+   "templates": "comparison against a threshold (⋛)",
+   "example": "contagion limit (how far it spreads)"
+  },
+  "CAUSE": {
+   "frame": "BECAUSE / BY",
+   "reads": "what changes after the atom holds",
+   "templates": "production (⇒): a change elsewhere follows",
+   "example": "spread BY contact"
+  },
+  "INSTRUMENT": {
+   "frame": "WITH / BY (means)",
+   "reads": "the object that makes the change happen",
+   "templates": "the change happens only when this object takes part",
+   "example": "damping material (what damping is done WITH)"
+  },
+  "TEST": {
+   "frame": "IF + TRUE",
+   "reads": "the atom's own condition, evaluated",
+   "templates": "the three-valued evaluation of the atom",
+   "example": "integrity check, fidelity test"
+  }
+ },
+ "quantifiers_implemented_by": {
+  "ALL": "AGENT|all_of",
+  "SOME": "AGENT|some_of",
+  "NONE (NOT SOME)": "AGENT|none_of",
+  "ONE": "AGENT|one_of",
+  "MANY (how many)": "AGENT|count / AGENT|count_true",
+  "THE SAME": "AGENT|same / AGENT|all_same",
+  "OTHER": "AGENT|other / AGENT|distinct",
+  "PART": "AGENT|cells",
+  "TOUCH": "AGENT|touching",
+  "MORE": "AGENT|above / AGENT|is_max"
+ }
+}
