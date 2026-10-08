@@ -36,6 +36,32 @@ PLATFORM_UNIVERSAL = (GameAction.RESET.name,)
 # bounds the operand axis the wider slot set would otherwise multiply.
 _OBSERVER = bool(os.environ.get("TETHER_OBSERVER"))
 
+
+def _oldest(d: dict) -> int:
+    """The age of the oldest object in the frame: no object has been tracked longer."""
+    return max((v for k, v in d.items() if k.rsplit(".", 1)[-1] == "age" and isinstance(v, int)),
+               default=0)
+
+
+# EVERY PUBLISHED ATTRIBUTE DECLARES ITS RANGE -- F495, the reviewer 2026-10-07: an undeclared one
+# fell to the palette and was read modulo it, three times (`drow`, F494, and these twelve, two of
+# them -- `dholes`, `dperimeter` -- live on every ARC run). Each range is what the attribute can
+# take on an h x w board; a signed change needs both signs. `alphabet()` raises on anything else.
+ALPHABET: dict[str, Callable[[int, int, dict], int]] = {
+    "dh": lambda h, _w, _d: 2 * h, "dw": lambda _h, w, _d: 2 * w,         # as `drow`/`dcol`
+    "dcells": lambda h, w, _d: 2 * h * w + 1,                           # +-hw cells
+    "dholes": lambda h, w, _d: 2 * h * w + 1,                           # +-hw enclosed regions
+    "dperimeter": lambda h, w, _d: 8 * h * w + 1,                       # a perimeter is <= 4hw
+    "speed": lambda h, w, _d: max(h, w) + 1,                             # Chebyshev, one frame
+    "bbox": lambda h, w, _d: h * w + 1,                                 # an intersection area
+    "contact": lambda h, w, _d: 2 * h * w + 1,                          # shared faces < 2hw
+    "colour_changed": lambda _h, _w, _d: 2, "inside": lambda _h, _w, _d: 2,  # BOOL
+    # FRAMES, which no board quantity bounds: no object is older than the oldest, and
+    # `stability` (frames unchanged) never exceeds its `age`. Varies per call, as `shape` does.
+    "age": lambda _h, _w, d: _oldest(d) + 1, "stability": lambda _h, _w, d: _oldest(d) + 1,
+}
+PALETTE_BY_DESIGN = {"colour": "a colour IS a palette index"}
+
 sys.dont_write_bytecode = True
 
 # the board is a numpy ndarray, NOT `list[list[int]]`: `FrameDataRaw.frame` is a
@@ -568,17 +594,24 @@ class ArcWorld:
                 out[s] = 2 * h
             elif key == "dcol":
                 out[s] = 2 * w
-            elif key in ("row", "h"):
+            elif key in ("row", "h", "add_row", "rem_row"):
                 # THE DELTA FIX, EXTENDED TO WHERE IT STOPPED SHORT. The paragraph above says
                 # it for the deltas -- *a displacement ranges over the board, not the palette*
                 # -- and `row`, `col`, `h` and `w` fell through to the palette anyway. Same
                 # collision, different slot family: 64 rows under a 16-colour palette makes
                 # `row 3` and `row 19` read alike under `correction_bits`' modulo.
                 out[s] = h
-            elif key in ("col", "w"):
+            elif key in ("col", "w", "add_col", "rem_col"):
                 out[s] = w
-            else:
+            elif key in ("add_n", "rem_n"):
+                out[s] = h * w + 1          # a cell count, 0 to the whole board
+            elif key in ALPHABET:
+                out[s] = ALPHABET[key](h, w, d)
+            elif key in PALETTE_BY_DESIGN:
                 out[s] = self._palette
+            else:
+                raise KeyError(f"`{s}` has no declared alphabet: declare `{key}` in ALPHABET, "
+                               "or it is read modulo a number unrelated to it (F494, F495)")
         return out
 
     def objective(self) -> tuple[str, float]:

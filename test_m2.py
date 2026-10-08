@@ -22,6 +22,7 @@ from arcengine import FrameDataRaw, GameState
 import arc_atoms
 import arc_percept
 import arc_predict
+import arc_world
 import gamma
 import routine as Rt
 import tether
@@ -1444,6 +1445,103 @@ def check_an_unreadable_reading_is_suspended_not_charged():
     gone = run(drop_key=True)
     assert gone.get("vanished") and not gone.get("suspended") and gone.get("mass", 0) > 0, (
         f"an object whose key left the listing was not charged: {gone}")
+
+
+
+def check_a_cell_change_reading_fits_its_alphabet():
+    """DEFECT: the cell-change attributes were not declared in `ArcWorld.alphabet`, so they took the
+    palette and the agent read every centroid modulo it, and a count equal to it as 0 (F494)."""
+    was = arc_percept._CELL_CHANGE
+    arc_percept._CELL_CHANGE = True
+    try:
+        env = ArcWorld(_Two(), arc_percept.Objects(),
+                       arc_atoms.three_spaces(arc_predict.predict()), palette=PALETTE, platform=())
+        seen = 0
+        for _ in range(8):
+            env.step(env.actions()[0])
+            alpha = env.alphabet()
+            for s, v in env.observe().items():
+                if s.rsplit(".", 1)[-1] in arc_percept._CHANGE_ATTRS:
+                    seen += 1
+                    assert 0 <= v < alpha[s], f"{s}={v} aliases under an alphabet of {alpha[s]}"
+        assert seen, "fixture: no cell-change reading was published, so nothing was tested"
+    finally:
+        arc_percept._CELL_CHANGE = was
+
+
+
+def check_every_attribute_declares_its_alphabet():
+    """DEFECT: an attribute with no declared alphabet fell to the palette and was read modulo it --
+    `drow`, then F494, then twelve more, `dholes`/`dperimeter` live on every ARC run (F495). Every
+    registered attribute is published once and `alphabet()` must range it without the palette
+    fall-through, which now raises."""
+    env = ArcWorld(_Two(), arc_percept.Objects(),
+                   arc_atoms.three_spaces(arc_predict.predict()), palette=PALETTE, platform=())
+    env.step(env.actions()[0])
+    keys = set(arc_atoms.ATTRIBUTE_TYPE) | set(arc_percept._CHANGE_ATTRS)
+    env._decomposed = lambda: {f"o0.{k}": 0 for k in keys}
+    try:
+        alpha = env.alphabet()
+    except KeyError as exc:
+        raise AssertionError(f"an attribute has no declared alphabet: {exc}") from None
+    assert len(alpha) == len(keys), "fixture: not every attribute was ranged"
+    exempt = getattr(arc_world, "PALETTE_BY_DESIGN", {})
+    fell = sorted(k for k in keys if k not in exempt
+                  and alpha[f"o0.{k}"] == PALETTE)
+    assert not fell, f"ranged by the palette with no stated reason: {fell}"
+
+
+
+class _Ring:
+    """A synthetic fixture, no ARC content: one 3x3 object that opens a hole and closes it again,
+    so its hole count and perimeter change by +1/+4 and then -1/-4."""
+
+    def __init__(self) -> None:
+        self.n = 0
+
+    def _frame(self):
+        f = FrameDataRaw(game_id="m2ring", state=GameState.NOT_FINISHED, levels_completed=0,
+                         win_levels=3, available_actions=[1, 2, 3])
+        b = np.zeros((SIDE, SIDE), dtype=int)
+        b[4:7, 4:7] = 3
+        if self.n % 2:
+            b[5][5] = 0
+        f.frame = [b]
+        return f
+
+    def reset(self):
+        self.n = 0
+        return self._frame()
+
+    def step(self, *_a, **_k):
+        self.n += 1
+        return self._frame()
+
+
+def check_a_signed_shape_delta_is_not_aliased():
+    """DEFECT: `dholes`/`dperimeter` -- on for every ARC run -- were ranged by the palette, so a
+    closing hole (-1) read as the palette minus one and a bet on that value was scored correct
+    (F495). On the synthetic ring, the closing frame's deltas are negative and must stay distinct
+    from every non-negative reading under the declared alphabet."""
+    was = arc_percept._SHAPE_DELTA
+    arc_percept._SHAPE_DELTA = True
+    try:
+        env = ArcWorld(_Ring(), arc_percept.Objects(),
+                       arc_atoms.three_spaces(arc_predict.predict()), palette=PALETTE, platform=())
+        env.step(env.actions()[0])
+        env.step(env.actions()[0])          # the hole closes
+        st, alpha = env.observe(), env.alphabet()
+        ring = next(s.split(".")[0] for s, v in st.items() if s.endswith(".colour") and v == 3)
+        slot = f"{ring}.dholes"
+        per = slot.replace("dholes", "dperimeter")
+        assert st[slot] == -1 and st[per] == -4, f"fixture: the ring did not close: {st}"
+        for s in (slot, per):
+            alias = st[s] % PALETTE
+            assert tether.correction_bits(alias, st[s], alpha[s]) > 0, (
+                f"{s}={st[s]} read as {alias} under an alphabet of {alpha[s]}: "
+                "a bet on the wrong value would be scored correct")
+    finally:
+        arc_percept._SHAPE_DELTA = was
 
 
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
