@@ -448,19 +448,19 @@ def _transform() -> list[Atom]:
     #
     # AND THEY ENCODE ON THE WAY OUT, which is `F242`'s unfixed half: the slot holds an id, so
     # returning a frozenset is what made `correction_bits` raise on `%`.
+    # The transform is a pure function of the cell set, memoised (F506, as F481); the decode and
+    # the encode read the context and stay outside, as `canonical`'s encoding does.
     def _rot(v: Any, c: Ctx) -> Any:
         v = _as_shape(v, c)
         if not isinstance(v, frozenset) or not v:
             return NOT_RESOLVED
-        m = max(r for r, _ in v)
-        return _to_shape_id(frozenset((cc, m - r) for r, cc in v), c)
+        return _to_shape_id(_perceived("rotate", _rotated, v), c)
 
     def _ref(v: Any, c: Ctx) -> Any:
         v = _as_shape(v, c)
         if not isinstance(v, frozenset) or not v:
             return NOT_RESOLVED
-        m = max(cc for _, cc in v)
-        return _to_shape_id(frozenset((r, m - cc) for r, cc in v), c)
+        return _to_shape_id(_perceived("reflect", _reflected, v), c)
 
     return [Atom("rotate", _rot, SHAPE, SHAPE),
             Atom("reflect", _ref, SHAPE, SHAPE)]
@@ -480,6 +480,29 @@ def _perceived(name: str, fn: Any, v: frozenset) -> Any:
     except KeyError:
         out = _SHAPE_MEMO[key] = fn(v)
         return out
+
+
+def _rotated(v: frozenset) -> frozenset:
+    m = max(r for r, _ in v)
+    return frozenset((cc, m - r) for r, cc in v)
+
+
+def _reflected(v: frozenset) -> frozenset:
+    m = max(cc for _, cc in v)
+    return frozenset((r, m - cc) for r, cc in v)
+
+
+def _square(v: frozenset) -> bool:
+    rs = [r for r, _ in v]
+    cs = [c for _, c in v]
+    h = max(rs) - min(rs) + 1
+    w = max(cs) - min(cs) + 1
+    return h == w and len(v) == h * w
+
+
+def _mode_of(vg: tuple) -> bool:
+    v, g = vg
+    return sum(1 for x in g if x == v) >= max(sum(1 for x in g if x == y) for y in set(g))
 
 
 def new_frame() -> None:
@@ -729,11 +752,7 @@ def _shape_more() -> list[Atom]:
         v = _shape(v, _c)
         if not isinstance(v, frozenset) or not v:
             return NOT_RESOLVED
-        rs = [r for r, _ in v]
-        cs = [c for _, c in v]
-        h = max(rs) - min(rs) + 1
-        w = max(cs) - min(cs) + 1
-        return h == w and len(v) == h * w
+        return _perceived("is_square", _square, v)
 
     return [Atom("bbox_area", _bbox, SHAPE, EXTENT),
             Atom("perimeter", _perimeter, SHAPE, EXTENT),
@@ -897,7 +916,10 @@ def _group_more() -> list[Atom]:
         g = _g(c)
         if not g:
             return NOT_RESOLVED
-        return sum(1 for x in g if x == v) >= max(sum(1 for x in g if x == y) for y in set(g))
+        try:                                  # the FULL input is the value AND its group (F506)
+            return _perceived("is_mode", _mode_of, (v, tuple(g)))
+        except TypeError:                     # an unhashable input is computed, never keyed
+            return _mode_of((v, g))
 
     def _is_max(v: Any, c: Ctx) -> Any:
         g = _g(c)
