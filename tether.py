@@ -1859,7 +1859,8 @@ class Agent:
         if not exp:
             return False
         self._expect = None
-        slot, was, idx = exp
+        slot, was, idx, *setter = exp
+        setter = setter[0] if setter else None
         now = before.get(slot, was)
         if now != was:
             return False                      # the claim held; carry on
@@ -1869,7 +1870,11 @@ class Agent:
                         # `step_index`, NOT `step`: `led.record`'s own first positional is
                         # `step`, so the obvious name silently shadowed it.
                         step_index=idx, unchanged_at=was, actions_saved=saved,
-                        routine=Rt.render(self.routine) if self.routine else None)
+                        routine=Rt.render(self.routine) if self.routine else None,
+                        set_by=Rt.render(setter) if setter is not None else None,
+                        set_by_plan=id(setter) if setter is not None else None,
+                        held_plan=id(self._routine_adopted)
+                        if self._routine_adopted is not None else None)
         self.routine, self.routine_for = None, None
         self._routine_adopted = None
         return True
@@ -3693,7 +3698,10 @@ class Agent:
                 want = (self.routine_state.get("expect") or [None])[0]
                 if want is not None:
                     self._expect_step += 1
-                    self._expect = (want, before.get(want), self._expect_step)
+                    # THE SETTER RIDES WITH THE CLAIM (F502), so an abandonment can show whose
+                    # claim failed: the plan that made it, never its successor's.
+                    self._expect = (want, before.get(want), self._expect_step,
+                                    self._routine_adopted)
                 self._routine_acts += 1
                 self.routine = rest
                 return _act, "routine"

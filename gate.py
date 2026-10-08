@@ -33,6 +33,7 @@ IRREVERSIBLE_CUT = "irreversible-cut"
 UNREACHED_UNMEASURED = "unreached-unmeasured"
 UNDECLARED_DEATH = "undeclared-death"
 REFUSED_UNBOUND = "refused-unbound"
+ABANDONED_ON_ANOTHERS_CLAIM = "abandoned-on-anothers-claim"
 
 # KEPT IN STEP WITH `ledger.STEPS`, WHICH IS THE DUPLICATION AND NOT A CHOICE MADE HERE.
 # The gate is meant to be readable without importing the thing it checks, so the constant is
@@ -61,7 +62,7 @@ def _v(check: str, token: str, seq: int | None = None, note: str = "") -> dict:
 def check(rows: list[dict]) -> dict:
     """Returns {"verdict": pass|refuse, ...}. The FIRST refusal is the named one."""
     for fn in (_mode, _steps, _inputs, _routing, _guards, _settlement, _filters, _cuts,
-               _unreached, _experiment, _refusals):
+               _unreached, _experiment, _refusals, _abandonments):
         out = fn(rows)
         if out is not None:
             return out
@@ -256,6 +257,20 @@ def _refusals(rows: list[dict]) -> dict | None:
             term = r.get("detail", {}).get("term")
             if bound.get((r.get("cycle"), r.get("slot"))) != term:
                 return _v("refusals", REFUSED_UNBOUND, r.get("seq"), str(term))
+    return None
+
+
+def _abandonments(rows: list[dict]) -> dict | None:
+    """12. A plan is abandoned only on a claim it made itself (F502). Fig 1: blame only to what made
+    the prediction -- an expectation left by an ended routine must not drop its successor. Rows
+    that do not record the setter (ledgers older than F502) are not judged."""
+    for r in rows:
+        if r.get("event") != "routine_abandoned":
+            continue
+        d = r.get("detail", {})
+        if "set_by_plan" in d and d.get("set_by_plan") != d.get("held_plan"):
+            return _v("abandonments", ABANDONED_ON_ANOTHERS_CLAIM, r.get("seq"),
+                      str(d.get("set_by")))
     return None
 
 
