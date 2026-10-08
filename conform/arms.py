@@ -81,6 +81,16 @@ ROOT = Path(__file__).parent.parent
 # it looked like it did -- `A6i`'s writing side, which fires exactly where a row is authored.
 # A pair means the two are declared at their site to belong on together.
 ARMS: dict[str, str] = {
+    "TETHER_CONTEST": "a challenger is priced against the LAST SETTLED HOLDER of the slot "
+                      "(or `idn`) while the incumbent is UNSETTLED, instead of against the "
+                      "incumbent itself. `F414`: an unsettled incumbent is a HYPOTHESIS and "
+                      "was setting the bar for its own rivals -- it does not outbid a "
+                      "challenger, it stops the challenger's budget accumulating. Measured "
+                      "on seed 5: `base` climbing toward the 24.000 the challenger needed, "
+                      "the guarded term binds at cycle 24, TWO CYCLES short, and the "
+                      "challenger is never evaluated on that slot again. ONE reference "
+                      "feeds `base`, `robs` AND `bears_on`, asserted and not sampled. "
+                      "DEFAULT OFF pending its pre-registered panel",
     "TETHER_ACTED_GUARD": "a term may be guarded on `ACTED_SELF` -- true when the press "
                           "LANDED ON this slot's object, resolved per slot by the caller so "
                           "no object NAME ever crosses into a term. **DEFAULT OFF, AND THE "

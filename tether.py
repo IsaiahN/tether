@@ -155,6 +155,15 @@ _DOWNRATE = os.environ.get("TETHER_DOWNRATE", "0") != "0"
 # never fitted to, and only the second licenses the flag.
 _ACTED_GUARD = os.environ.get("TETHER_ACTED_GUARD", "0") != "0"
 
+# **A CHALLENGER IS PRICED AGAINST THE LAST SETTLED HOLDER, NOT AN UNSETTLED INCUMBENT --
+# `F414`, the reviewer 2026-10-02.** `base`, `robs` and `bears_on`'s `held` all read
+# `self.bound`, which has no settled check, so an UNSETTLED incumbent sets the bar for its
+# own rivals. Measured on seed 5: `base` was climbing toward the 24.000 the challenger
+# needed, the guarded term bound at cycle 24, and the challenger was never evaluated on
+# that slot again -- TWO CYCLES short. The incumbent does not outbid the challenger, it
+# stops the challenger's budget from ever accumulating.
+_CONTEST = os.environ.get("TETHER_CONTEST", "0") != "0"
+
 # **THE AIMED CURIOSITY DRAW, DEFAULT ON -- the reviewer, 2026-10-01.** The flag exists so the
 # before/after is ONE SCRIPT WITH ONE FLAG rather than two code states: OFF restores the
 # subjectless `_explore` the curiosity exit used before `F401`. The `bored()` exit is not
@@ -484,6 +493,10 @@ _CUE_ATTR: dict[str, tuple[str, ...]] = {
 }
 
 BOOKS: tuple[str, ...] = (
+    # THE TREATMENT-EXECUTED COUNTER for `F414`'s contest. A null from an arm whose
+    # manipulation never ran reads exactly like a null from one where it did, so this is
+    # the denominator the result is refused without.
+    "contest_ref_taken",                # a challenger priced against the last SETTLED holder
     "promoted_then_wrong",              # settled, then mispredicted
     "demoted_would_have_been_right",    # the counterfactual `F327` destroys unrecorded
     "demoted_stayed_wrong",             # released unvindicated at the watch cap
@@ -998,6 +1011,8 @@ class Agent:
         self.led = led if led is not None else Ledger(mode=self.cfg.mode)
         self.slots = env.slots()
         self.bound: dict[str, str] = {}
+        self._settled_on: dict[str, str] = {}   # slot -> last SETTLED holder (F414)
+        self._ref_now: tuple[str, Term] | None = None   # the slot's priced-against ref
 
         # SYSTEM 2'S CHANNEL -- Isaiah, 2026-09-24. **`bound` IS SYSTEM 1: the term that ACTS.**
         # The contest between kinds was winner-take-all, so an objective that PAID THE BARGAIN was
@@ -2625,19 +2640,17 @@ class Agent:
         # NOT ON BY DEFAULT: `retrieve` returns every name ordered by fit, so this is a RANKING
         # change, not an exclusion, and whether ranking is what the wall is made of is unmeasured.
         # The supply side may simply be thin -- 7 arity-2 atoms of 48.
-        _base = (self._left(self.gamma.library[self.bound.get(slot, IDN)], slot, hist)
-                 if _BARGAIN_FIT else 0.0)
+        _ref = self._price_ref(slot)
+        _base = self._left(_ref, slot, hist) if _BARGAIN_FIT else 0.0
         # ARM H's pool, computed ONCE per lookup and never per candidate -- `_residual_obs` walks
         # the history and `_guards` is a filter over it, so doing it inside the candidate loop
         # would pay for it on every library term. Same two calls mint makes, same order.
-        _guard_pool = (self._guards(self._residual_obs(
-            slot, self.gamma.library[self.bound.get(slot, IDN)], hist), slot)
-            if _GUARD_AXIS else None)
+        _guard_pool = (self._guards(self._residual_obs(slot, _ref, hist), slot)
+                       if _GUARD_AXIS else None)
         # ARM L needs the same residual observations the guard pool does. Computed ONCE per
         # lookup and never per candidate, for the reason stated two lines up: `_residual_obs`
         # walks the history, so doing it inside the candidate loop pays for it on every term.
-        _robs = (self._residual_obs(slot, self.gamma.library[self.bound.get(slot, IDN)], hist)
-                 if _DELTA_OPERANDS else None)
+        _robs = self._residual_obs(slot, _ref, hist) if _DELTA_OPERANDS else None
         _rel = getattr(self.env, "contact_changes", None) if _REL_GAP else None
         # THE SCOPE IS READ FROM `slot_owner`, NEVER DERIVED BY SPLITTING THE NAME -- the loop
         # may not read domain structure, which is that side channel's whole reason.
@@ -2878,6 +2891,12 @@ class Agent:
         **AND IT IS THE CORPUS'S OWN RULE, UNHONOURED.** §14.4 mints a routine *when a goal
         residual no routine closes*; `M2_STANDARD` clause 2 already files the violation.
         """
+        _r = self._ref_now
+        if _r is not None and _r[0] == slot and held is not _r[1]:
+            raise AssertionError(
+                f"price reference split on {slot}: bears_on got {held.name!r} while base and "
+                f"robs were taken against {_r[1].name!r} -- a count and a total from "
+                f"different references describe nothing")
         if not robs:
             return False
         for state, action, _actual, *_ in robs:
@@ -3190,6 +3209,13 @@ class Agent:
         drops terms that read an operand without varying with it on the observed slice.
         Measured, it lost a closing term. This cannot.
         """
+        _r = self._ref_now
+        if _r is not None and _r[0] == slot and base != self._accumulated(slot, _r[1]):
+            raise AssertionError(
+                f"price reference split on {slot}: _cannot_pay got base {base} while the "
+                f"slot's reference {_r[1].name!r} accumulates "
+                f"{self._accumulated(slot, _r[1])} -- one reference, or neither number means "
+                f"anything")
         unit = math.log2(self.alphabet[slot])
         # INCREMENTAL, AND EXACT BECAUSE `wrong` IS A PREFIX SUM. Each row adds 0 or 1 and
         # no row reads another, so a tally over the first N rows stays true as rows are
@@ -3257,6 +3283,25 @@ class Agent:
         alpha = self.alphabet[slot]
         cur = state[slot]
         return actual % alpha not in (cur % alpha, (cur - 1) % alpha, (cur + 1) % alpha)
+
+    def _price_ref(self, slot: str) -> Term:
+        """THE ONE REFERENCE A CHALLENGER IS PRICED AGAINST -- `F414`, flag `TETHER_CONTEST`.
+
+        `base`, `robs` and `bears_on`'s `held` are three quantities and were three reads of
+        `self.bound`, which has no settled check. An UNSETTLED incumbent is a HYPOTHESIS and
+        must not set the bar for its rivals: it resets the residual every challenger is
+        measured against, so nothing else can ever pay there.
+
+        Resolved ONCE per slot per mint and handed to all three, so the different-reference
+        error is impossible rather than unlikely. OFF: the bound term, byte-identical to
+        before. Not applied at `_predict` or `_invent` -- neither prices a challenger; the
+        first is the agent's own prediction with what it actually holds.
+        """
+        bound = self.bound.get(slot)
+        if not _CONTEST or bound is None or self.gamma.is_settled(bound):
+            return self.gamma.library[bound or IDN]
+        _book_add(self.gamma.book, "contest_ref_taken", 1)
+        return self.gamma.library[self._settled_on.get(slot) or IDN]
 
     def _accumulated(self, slot: str, term: Term) -> float:
         """|R| over the slot's whole history. Accumulated, because the model cost is paid
@@ -5817,9 +5862,15 @@ class Agent:
         self._held_chains = {" . ".join(a.name for a in t.atoms)
                              for t in self.gamma.library.values()}
         hist = self.history(slot)
-        held = self.gamma.library[self.bound.get(slot, IDN)]
+        held = self._price_ref(slot)
         base = self._accumulated(slot, held)
         robs = self._residual_obs(slot, held, hist)
+        # **ONE REFERENCE, ASSERTED AND NOT SAMPLED -- the reviewer, 2026-10-02.** `base`,
+        # `robs` and `bears_on`'s `held` are priced against the same object or the bound is
+        # comparing an error count taken against one term with a budget taken against
+        # another. Published here so the two consumers can check identity rather than
+        # re-resolve on every one of ~660k candidates.
+        self._ref_now = (slot, held)
         # **`robs` IS NOT THE HISTORY** -- it is the history filtered by what the BOUND
         # term got wrong, so a rebind changes which rows are in it and the list is no
         # longer an extension of the old one. `held` therefore belongs in the key.
@@ -6557,7 +6608,7 @@ class Agent:
             return
         for tkey, slot, hist, rec, slots in eligible:
             how = "direct"
-            base = self._left(self.gamma.library[self.bound.get(slot, IDN)], slot, hist)
+            base = self._left(self._price_ref(slot), slot, hist)
             best = None
             for bind in [None] + [s for s in slots if s != slot]:
                 cand = Term(term.atoms, operand=bind)
@@ -6683,7 +6734,7 @@ class Agent:
         ablation separates a bargain-accepted partial from a full closure.
         """
         hist = self.history(slot)
-        held = self.gamma.library.get(self.bound.get(slot, IDN))
+        held = self._price_ref(slot)
         base = self._left(held, slot, hist) if held is not None else None
         # THE REUSE PATH PRICED A REUSE AT DERIVATION COST, which is the one place the
         # asymmetry was load-bearing: 19 of 21 installs read `would_pay=False` against a
@@ -6763,6 +6814,11 @@ class Agent:
             # here is what made the two disagree: gamma unsettles on refusal and the set
             # never heard.
             self._settled_at[name] = self.cycle
+            # THE LAST SETTLED HOLDER OF THIS SLOT -- an INDEX, not a store: it holds a
+            # NAME and the Term lives only in `gamma.library`. `_settled_at` is keyed by
+            # term and carries no slot, so this cannot be derived from it; the slot is in
+            # scope here and nowhere else that settles.
+            self._settled_on[slot] = name
             # **AT WHAT DEPTH DO THIS AGENT'S TERMS ACTUALLY ARRIVE?** `F341` left `max_depth`
             # as the one row it could not assign -- genuinely a COMPUTE BOUND and a BELIEF
             # about where answers live. The corpus splits it: `PHILOSOPHY` makes search depth
