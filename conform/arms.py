@@ -182,7 +182,11 @@ ARMS: dict[str, str] = {
     "TETHER_OBSERVER": "the corpus's cheap mutation set carried PER OBJECT, not counted",
     "TETHER_REBIND_HELD": "rebinding a slot whose term is already held",
     "TETHER_RECIPE_DEDUP": "one candidate per recipe rather than per instance",
-    "TETHER_REFUTED_BIN": "refutations binned rather than flat",
+    "TETHER_NO_REFUTED_BIN": "**INVERTED POLARITY.** The fifth bin (Fig 5's amendment), DEFAULT ON "
+                             "since F497: a refuted slot is offered a same-type competitor and "
+                             "not-t is priced there (F496). The variable turns it OFF, so the A/B "
+                             "is one script with one flag. Off on the shipped path it was the "
+                             "switch-never-set genus (the reviewer, 2026-10-07)",
     "TETHER_REL_GAP": "the relational gap reading",
     "TETHER_SHAPE_DECODE": "arm I -- `_as_shape`, the decoder eight SHAPE atoms need",
     "TETHER_SHAPE_DELTA": "`dholes`/`dperimeter` across frames. PERCEPTION: no atom accepts "

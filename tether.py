@@ -340,13 +340,15 @@ HELD, NOVEL, REBIND, MECHANISM = "held", "novel", "rebinding", "mechanism"
 # is Isaiah's hit-rate ruling and is already how `gamma.refute` behaves.
 REFUTED = "refuted"
 
-# ARM J -- SEAT-SIDE SWITCH, DEFAULT OFF. The bin is a RULING and the plumbing is built ON;
-# the DIVERSION it causes is a policy change to the acting path and is not. With it live, two
-# conform seats fail -- `shipped`'s B5 (support at zero and no probe followed) and three M2
-# checks -- because slots that reached `mint` now reach a competitor instead. That is a
-# READING of what the bin does, not a reason to edit the checks: *reintroduce the defect,
-# never disable the check.*
-_REFUTED_BIN = bool(os.environ.get("TETHER_REFUTED_BIN"))
+# ARM J -- DEFAULT ON since F497 (the reviewer 2026-10-07: a figure-mandated organ, Fig 5's
+# amendment; off on the shipped path it was the "switch never set" genus). The bin is a RULING;
+# the DIVERSION it causes is a policy change to the acting path, measured in F497. RE-READ
+# 2026-10-07 at 2a43566: with it live, `shipped` (B5) PASSES and ONE M2 check failed -- on its
+# fixture guard, because F485's frontier let the warmed mints replay rather than re-price -- not
+# because of the bin or an amended figure; the fixture now prices fresh. (The earlier reading
+# here -- B5 and three M2 checks failing -- predated F485 and is superseded.) *Reintroduce the
+# defect, never disable the check.*
+_REFUTED_BIN = not os.environ.get("TETHER_NO_REFUTED_BIN")
 
 # THE PRICE OF NOT-t IS OPEN IN THE FIGURES (Fig 12/13: an atom slot, nothing, or the choice of what
 # to negate). DEFAULT, the reviewer 2026-10-07: the bits to NAME which term is wrong among every
@@ -3182,39 +3184,40 @@ class Agent:
     def route(self, res: dict[str, SlotResidual]) -> list[tuple[str, str, str | None]]:
         out = []
         for slot, r in res.items():
+            _dropped = None
             was_refused = self._refuted_slot.pop(slot, None)
-            if was_refused is not None and _REFUTED_BIN:
+            # ONLY WHILE THE SLOT STILL CARRIES RESIDUAL -- the reviewer 2026-10-07 13:06Z (F497).
+            # Fig 5 routes a residual by what it contains NOW, and ranks the wrong term by residual
+            # that PERSISTS; a refutation filed last cycle, after the term has just predicted
+            # correctly, is a recording of one occasion (Fig 4). It stays as tally evidence.
+            if was_refused is not None and _REFUTED_BIN and r.mass > 0.0:
                 # ISAIAH'S SECOND CLAUSE -- *alternatives that DO work start to compete.*
                 # `_library_fit` already takes an `exclude`, so asking it for the best fit
                 # OTHER than the one just refused needs no new retrieval path. Standing still
                 # fades through `rejections`, which is untouched: this changes what is ASKED
                 # FOR, not the term's number.
-                # THE COMPETITOR MUST MATCH THE REFUTED TERM'S TYPE -- ruled 2026-09-22,
-                # SCOPED TO THIS MECHANISM. `F263`: `_library_fit` has no type filter, so it
-                # handed back `recolour<o0.colour>` (`val`) to replace `none` (`OBJ`), and
-                # `_discrepancy` then reads NOT_RESOLVED -- the goal machinery on that slot
-                # dies silently while the bargain check still passes.
-                #
-                # THIS IS NOT THE WITHHELD PRICING. That question is how an objective and a
-                # predictor are WEIGHED when both are legitimate candidates for a role. This
-                # only refuses a term of one type STANDING IN for a term of another, which
-                # the typed grammar already forbids -- a `val` competitor for an `OBJ` slot
-                # is a category error, not a cheaper rival.
-                #
-                # AND IT IS NOT A FILTER ON `_library_fit`: that is the ESCALATED test and it
-                # stays parked. The result is filtered HERE, at the one caller the ruling
-                # covers, so every other retrieval baseline is untouched.
+                # ONE TYPE RULE FOR THE ONE ACT: THE SLOT'S -- the reviewer, 2026-10-07 13:57Z
+                # (F497), superseding its own 2026-09-22 ruling (375ce42), which matched the
+                # competitor to the REFUSED TERM's type. A competitor bind and a rebind are the
+                # same act, so one rule: the term must fit what it is applied to (Fig 12; Fig 1,
+                # the residual is per slot), and `_library_fit` already checks that with
+                # `_may_bind`. Matching the wrong term's type assumed the answer looks like what
+                # failed (Fig 5's amendment). Measured on gridworld seed 0, cycle 14: it dropped
+                # an OBJ term (left 13.84 of base 24.22) and `mint` then bound a new OBJ term at
+                # the same cost and the same remainder.
                 # NOT-t (F496): the refusal is priced here, where the term that made the prediction
                 # was expressed and failed. Paying, it is recorded; the competitor search below
                 # then cannot offer it for this gap shape.
                 _ok, _d = self._price_not(was_refused, slot)
+                # EVERY ATTEMPT IS A ROW (the reviewer 2026-10-07 12:53Z), so "none refused" and
+                # "none tried" read differently: the term, K, the bits of not-t, both leftovers and
+                # the verdict -- or why it could not be priced.
+                self.led.record(self.cycle, "ROUTE", slot, "not_t", term=was_refused,
+                                verdict=("paid" if _ok else "did not pay") if _d
+                                else "not priced: no history, or no idn to withdraw to", **_d)
                 if _ok:
                     self.refuse_term(was_refused, slot, **_d)
                 fit = self._library_fit(slot, was_refused)
-                want = getattr(self.gamma.library.get(was_refused), "out_type", None)
-                got = getattr(self.gamma.library.get(fit), "out_type", None) if fit else None
-                if fit is not None and got != want:
-                    fit = None          # a category error is not a competitor
                 # AND ZERO SUPPORT FALLS THROUGH TO MINT -- ruled 2026-09-22 on B5.
                 # *Support at zero is an INSTRUCTION, not a stop: perturb.* A rebind changes
                 # what the agent BELIEVES and does not touch the world, so it cannot discharge
@@ -3229,7 +3232,7 @@ class Agent:
                 # *last mint verdict was no_support and no probe has answered it yet*, and
                 # this needs no new bookkeeping.
                 if slot in self._starved:
-                    fit = None          # let mint park it; the probe is what perturbs
+                    fit, _dropped = None, "starved"   # let mint park it; the probe is what perturbs
                 b = REFUTED
             elif r.mass == 0.0 and slot not in self.owed_import:
                 b, fit = HELD, None
@@ -3250,7 +3253,10 @@ class Agent:
             why = OWES if (r.mass == 0.0 and slot in self.owed_import) else WHY_NOT[b]
             out.append((slot, b, fit, why))
             self.led.record(self.cycle, "ROUTE", slot, "route", bin=b,
-                            why_not=WHY_NOT[b], support=len(self.trace))
+                            why_not=WHY_NOT[b], support=len(self.trace),
+                            # WHY THE BIN DROPPED ITS COMPETITOR, so the cause is read, not
+                            # inferred (F497): a starved slot.
+                            **({"competitor_dropped": _dropped} if _dropped else {}))
         return out
 
     # -- steps 3 to 5 -------------------------------------------------------------------
@@ -4934,10 +4940,12 @@ class Agent:
             return False
         k = (name, self._term_gkey(slot))
         self._not.setdefault(k, []).append(self._refusal_scope())
-        self.led.record(self.cycle, "MINT", slot, "refuse", term=name,
+        # ROUTE, not MINT: written while the bin routes, and the ladder orders ROUTE before
+        # MINT, so a MINT row here put the cycle out of order (the gate refused the demo, F497).
+        self.led.record(self.cycle, "ROUTE", slot, "refuse", term=name,
                         refused_under=len(self._not[k]), **detail)
         if self.gamma.is_settled(name):
-            self.led.record(self.cycle, "MINT", slot, "contradiction", term=name,
+            self.led.record(self.cycle, "ROUTE", slot, "contradiction", term=name,
                             reads=("a settled term and its refusal both stand: two scopes, an "
                                    "error in the ground, or a world that changed -- not decided"))
         return True
@@ -7735,6 +7743,11 @@ class Agent:
                     self.bound[slot] = fit
                     self._carry(fit)
                     self.rank.note(fit, self.cycle)
+                    # THE SAME ACT AS A REBIND, SO THE SAME BOOKKEEPING (the reviewer 2026-10-07
+                    # 13:11Z, F497): a fitting library term bound, awaiting the ground. Left owed,
+                    # the slot drove seed 0's decisions apart from the rebind path.
+                    self.owed_import.discard(slot)
+                    self.abstained.pop(slot, None)
                     self.led.record(self.cycle, "ACCEPT", slot, "compete", term=fit,
                                     status="candidate",
                                     note="the bound term was refused here; this is its competitor")
