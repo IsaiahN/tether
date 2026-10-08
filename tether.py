@@ -5986,6 +5986,11 @@ class Agent:
         # exactly this key. O(library) against a per-candidate walk that is orders larger.
         self._held_chains = {" . ".join(a.name for a in t.atoms)
                              for t in self.gamma.library.values()}
+        # A TERM CAN BE IN THE LIBRARY ONLY IF ITS CHAIN IS A HELD RECIPE -- 2026-10-06. The library
+        # is keyed by `name` at one write site, and a name is the atom-join then `<..>` then
+        # `?..`; so the join decides -- unless an atom's own name carries one of those marks,
+        # in which case this is False and every lookup runs as before.
+        _sep_free = not any(m in a.name for a in self.gamma.atoms for m in ("<", "?", " . "))
         hist = self.history(slot)
         held = self.gamma.library[self.bound.get(slot, IDN)]
         base = self._accumulated(slot, held)
@@ -6014,6 +6019,10 @@ class Agent:
         floor = term_bits(1, self.gamma.alphabet)
         guards = {"support": base > 0.0, "reachability": False, "novelty": False}
         cuts: list[dict] = []
+        # THE RECORD KEEPS 12 CUTS AND COUNTS EVERY REASON -- 2026-10-06. A cut beyond the
+        # twelfth only ever contributed its reason, so only the reason is taken for it;
+        # building its name for a dict that `cuts[:12]` then dropped was ~97% of late names.
+        cut_n: collections.Counter = collections.Counter()
         best: tuple[float, float, float, Term] | None = None
         stats: dict = {"seen": 0, "budget_spent": False, "depth_exhausted": True,
                        "units": self.gamma.alphabet, "estimate": 0}
@@ -6148,12 +6157,16 @@ class Agent:
                     # binding of this chain costs the same, and every tree under it too
                     # (each branch is one atom). Same expression, evaluated once per key.
                     _price: dict = {}
+                    _maybe_lib = not _sep_free or cand.name in self._held_chains
                     for bind, (g, gref) in ((b, p) for b in binds for p in _pairs):
                         rank += 1
                         term = Term(cand.atoms, operand=bind, guard=g, guard_ref=gref)
-                        if self.gamma.is_atom(term) or term.name in self.gamma.library:
-                            cuts.append({"name": term.name, "rank": rank, "reversible": True,
-                                         "reason": "not-novel"})
+                        if self.gamma.is_atom(term) or (_maybe_lib
+                                                        and term.name in self.gamma.library):
+                            cut_n["not-novel"] += 1
+                            if len(cuts) < 12:
+                                cuts.append({"name": term.name, "rank": rank, "reversible": True,
+                                             "reason": "not-novel"})
                             continue
                         # THE RECIPE, NOT THE INSTANCE -- ARM F. Reported ALWAYS so the rate is
                         # visible on the baseline too; ACTED ON only under the arm.
@@ -6162,13 +6175,15 @@ class Agent:
                             # vs unsettled is how the agent knows what WORKS from what is
                             # UNTRIED. Recorded, NOT ranked on -- ordering retrieval by it
                             # would install a preference that is the agent's to reason.
-                            cuts.append({"name": term.name, "rank": rank, "reversible": True,
-                                         "reason": "recipe-held", "recipe": cand.name,
-                                         # HERE, decided: the row is about minting on THIS
-                                         # slot, so the reading that belongs in it is whether
-                                         # the recipe settled HERE.
-                                         "recipe_settled": self.gamma.is_settled(
-                                             cand.name, slot)})
+                            cut_n["recipe-held"] += 1
+                            if len(cuts) < 12:
+                                cuts.append({"name": term.name, "rank": rank, "reversible": True,
+                                             "reason": "recipe-held", "recipe": cand.name,
+                                             # HERE, decided: the row is about minting on THIS
+                                             # slot, so the reading that belongs in it is whether
+                                             # the recipe settled HERE.
+                                             "recipe_settled": self.gamma.is_settled(
+                                                 cand.name, slot)})
                             if _RECIPE_DEDUP:
                                 continue
                         guards["novelty"] = True
@@ -6186,8 +6201,10 @@ class Agent:
                         # them is refused without the walk. 6.7x less work over the panel and
                         # nothing lost, because the bound is necessary rather than plausible.
                         if self._cannot_pay(term, slot, robs, cost, base, rkey):
-                            cuts.append({"name": term.name, "rank": rank, "reversible": True,
-                                         "reason": "bounded-out: cannot pay on R alone"})
+                            cut_n["bounded-out: cannot pay on R alone"] += 1
+                            if len(cuts) < 12:
+                                cuts.append({"name": term.name, "rank": rank, "reversible": True,
+                                             "reason": "bounded-out: cannot pay on R alone"})
                             self.gamma.book["bargain_bounded_out"] = (
                                 self.gamma.book.get("bargain_bounded_out", 0) + 1)
                             # **ISAIAH'S RULING, 2026-09-24: THE TREE IS JUDGED BY ITS OWN
@@ -6212,7 +6229,8 @@ class Agent:
                             # **A SECOND PRE-EXISTING DEFECT, NOT A CHANGE TO THE BOUND** --
                             # reported as such. A route that opens onto a crash is not open.
                             for bt in self._trees(cand, bind, g):
-                                if self.gamma.is_atom(bt) or bt.name in self.gamma.library:
+                                if self.gamma.is_atom(bt) or (
+                                        _maybe_lib and bt.name in self.gamma.library):
                                     continue
                                 # THE GUARD PRICE APPLIES HERE TOO. `_trees` carries `g`
                                 # onto the tree, so pricing it only in the main loop gave
@@ -6289,7 +6307,8 @@ class Agent:
                         # branch now offers trees under their OWN `_cannot_pay`, with no arm,
                         # and this site applies the same bound as a short-circuit.
                         for bt in self._trees(cand, bind, g):
-                            if self.gamma.is_atom(bt) or bt.name in self.gamma.library:
+                            if self.gamma.is_atom(bt) or (
+                                    _maybe_lib and bt.name in self.gamma.library):
                                 continue
                             bcost = _price.get((g, True))
                             if bcost is None:
@@ -6331,8 +6350,10 @@ class Agent:
                             if best is None or btotal < best[0]:
                                 best = (btotal, bleft, bcost, bt)
                         if not pays(cost, left, base):
-                            cuts.append({"name": term.name, "rank": rank, "reversible": True,
-                                         "reason": "does-not-pay"})
+                            cut_n["does-not-pay"] += 1
+                            if len(cuts) < 12:
+                                cuts.append({"name": term.name, "rank": rank, "reversible": True,
+                                             "reason": "does-not-pay"})
                             # BOOK 5, AND IT IS THE ONE `pays` WOULD NEED. `F341` sorted `pays`
                             # strictness as THE AGENT'S and the reviewer left it untouched
                             # because it has no book deep enough. This is that book, and it is
@@ -6496,8 +6517,8 @@ class Agent:
                   # term read ZERO cut rows on BOTH arms of an A/B -- including the arm
                   # where it WON -- which is how the truncation was found. A zero equal on
                   # both arms is a broken instrument, not a finding.
-                  "code": CODE, "base_bits": round(base, 3), "cuts": cuts[:12],
-                  "cut_counts": dict(collections.Counter(c["reason"] for c in cuts)),
+                  "code": CODE, "base_bits": round(base, 3), "cuts": cuts,
+                  "cut_counts": dict(cut_n),
                   "budget_exhausted": bool(stats["budget_spent"]),
                   "depth": self.cfg.max_depth, "units": stats["units"],
                   "space_estimate": est,

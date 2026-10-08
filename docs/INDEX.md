@@ -56002,7 +56002,11 @@ expression and is reused. m2's literals are untouched.
     strict gate, 5e6079e vs this, 60 cycles, lever A off: trace identical, 0 ledger rows differing
       click_only 0/1/2  buttons 0/1/2  default 0/1/2   all 9: same trace, 0 rows differing
 
-    late default CPU: measured by a matched panel AFTER this commit; recorded below when it lands
+    late default CPU: measured by a matched panel AFTER this commit (5e6079e vs 257b69c,
+    default, 60 cycles, lever A off; trace and ledger identical on all three), s/step 11-60:
+      seed 0  19.90 -> 17.69  1.12x  (7.7x over 2.3 s)
+      seed 1  27.27 -> 24.96  1.09x  (10.9x)
+      seed 2  17.97 -> 16.56  1.09x  (7.2x)        inside the pre-registered <=1.13x
 
 **Sized at 02:26 as at most ~12% of late mint (relative cProfile shares).** The next steps are the
 novelty check (step 2) -- exact only because the library is keyed by `term.name` at ONE write
