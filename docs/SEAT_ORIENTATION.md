@@ -782,7 +782,7 @@ day's list.** Everything the handover-plan doc carried and section 7e did not is
         `KEY_BOUNDARY` does not move, and `mapping` stays blocked.
     12  METAPROGRAMMING -- THE GENERATORS (section 0.5): the condition compiler, the bond
         combinators, the recipe compiler, built LAZILY on demand. Two parts:
-        (a) the 2,638 PROSE CONDITIONS turned into precise groundings. **I draft them and
+        (a) [SUPERSEDED 2026-10-08: see below] the 2,638 PROSE CONDITIONS turned into precise groundings. **I draft them and
             Isaiah rules ONLY THE UNCERTAIN ONES** -- his 2026-09-23 ruling, and the
             division is the point: drafting is the seat's, adjudicating the doubtful ones
             is his

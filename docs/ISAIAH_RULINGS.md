@@ -200,7 +200,7 @@ here in the same session it arrives, or the next search for it fails the same wa
 
 - **"Composition is inherent to agency" — composition is always on.** `_INVENT` is "bootleg
   composition": **RETIRED, not repaired.**
-- **Imports only after a real search failed, the change has recurred, and no existing atom
+- [SUPERSEDED 2026-10-08: see below] **Imports only after a real search failed, the change has recurred, and no existing atom
   already expresses it** — and new knowledge is stored **IN THE GRAMMAR**, never a side system
   such as lookup tables.
 - **There is ONE reviewer.** Isaiah sometimes talks to the seat directly and **always tells the
@@ -251,7 +251,7 @@ here in the same session it arrives, or the next search for it fails the same wa
   memory or from citations.** They enter as **CORPUS** — read-only under the edit-boundary
   rule, annotated in `INDEX.md`, never edited. Done 2026-10-05; see `docs/` and the
   edit-boundary table in `CLAUDE.md`.
-- **THE AUTHORITY ORDER — set by the reviewer at Isaiah's request, 2026-10-05.**
+- [SUPERSEDED 2026-10-08: see below] **THE AUTHORITY ORDER — set by the reviewer at Isaiah's request, 2026-10-05.**
   1. **ISAIAH'S RECORDED RULINGS** (this file) set direction.
   2. **THE CORPUS IS METALAW** (his 2026-09-25 ruling): read it first, derive design forks from
      it, in its own order — **`THE_DIALOGUES` → `THE_MARBLE` → `THE_DESCENT` → `THE_ATLAS` →
@@ -292,7 +292,7 @@ here in the same session it arrives, or the next search for it fails the same wa
   resolved; (2) the clean cut commits and m2 asserts the 2026-09-24 ruling's substance (no tree
   that could pay is withheld); (3) private games: K workers, each its own sequence and library,
   assigned by order, K and the per-step ceiling IMPORTED from the official starter kit; (4) the
-  official kit's file shape; (5) the five corpus docs copied in; (6) invented atoms skipped on
+  official kit's file shape; (5) the five corpus docs copied in; (6) [SUPERSEDED 2026-10-08: see below] invented atoms skipped on
   load, counted; (7) Kaggle access is his action item, not a question.
 - **CONTROL RELINQUISHED TO THE FIGURES** (the closing entry of the day's directives): *"I relinquish
   control now to the Tether figures 1-13, the Operators table and the Symbols table."* THE FORMULA
@@ -356,28 +356,28 @@ here in the same session it arrives, or the next search for it fails the same wa
   how it lost a closing term; bounding the operand axis is served by F510's ordering and the
   per-residual look-up. Not deleted. A reviewer's ruling stands below the figures and Isaiah's.
 - **THE REVIEWER'S RULING, 2026-10-07 23:00:32Z (confirmed 2026-10-08 07:55Z): `TETHER_DELTA_KEY`
-  ("item 6") direction ON.** Queued after the observer's per-object part, its own all-25; when it
+  ("item 6") direction ON.** Queued after the observer's per-object part, its own all-25 [SUPERSEDED 2026-10-08: see below]; when it
   lands, the reach row and the per-residual look-up cite the SAME scoped description of a residual.
   Fig 9: "Nobody chooses. The gap does, and the gap is only as good as its description."
 - **THE REVIEWER'S RULING, 08:01Z: `TETHER_GUARD_AXIS` (arm H) direction ON.** Retrieval varies the
   guard as the mint does (Fig 9; Isaiah 2026-09-29 on carried schemas re-fitted, 2026-10-06 on rules
-  carrying their conditions). Queued after DELTA_KEY, its own all-25, time reported per game.
+  carrying their conditions). Queued after DELTA_KEY, its own all-25 [SUPERSEDED 2026-10-08: see below], time reported per game.
 - **THE REVIEWER'S RULING, 08:13Z, AMENDED 08:19Z: `TETHER_INSTRUMENTS` -- AGE AND STABILITY ON as
   slots; SPEED NOT A SLOT.** Speed is a fixed function of two current-frame slots, so step (c)'s rule
   applies: it waits for the owed composing method "the larger of two quantities" (Fig 12's comparison
   bond), which also reaches extent, girth and orientation; those four are then frontloaded as library
   terms with lineage.
   They integrate an object's history (Fig 13: "time | the ordered succession of differences"); Isaiah
-  ruled the set a paid bill. After the observer's per-object part, its own all-25, time per game.
+  ruled the set a paid bill. After the observer's per-object part, its own all-25 [SUPERSEDED 2026-10-08: see below], time per game.
 - **[SUPERSEDED 08:31Z, below]** **THE REVIEWER'S RULING, 08:25Z: `TETHER_REBIND_HELD` (arm G) OFF, WITH ITS SCOPE** -- "measured on
   dc22 only, 12 cycles, without arm H: no change, +26% candidates". Not "inert": a verdict from one
   board (Isaiah 2026-10-07, never one game type). Direction not against it (Fig 4, "Only methods cross
   up"). Re-opened from arm H's all-25: per game, the mints that re-derive a held chain whose operand is
-  locked to another slot; if that share stays large on any game, G gets its own all-25 beside H.
+  locked to another slot; if that share stays large on any game, G gets its own all-25 [SUPERSEDED 2026-10-08: see below] beside H.
 - **THE REVIEWER'S RULING, 08:31Z: `TETHER_RECIPE_DEDUP` (arm F) AND `TETHER_REBIND_HELD` (arm G) ARE ONE
   DECLARED PAIR, direction ON.** Fig 5: "mis-attached: refit what you have, do not invent" -- F refuses
   the duplicate, G refits the held term. F without G leaves reuse to the post-mint sweep alone. Queued
-  after arm H, its own all-25; treatment reading, per game, the share of re-derived held chains.
+  after arm H, its own all-25 [SUPERSEDED 2026-10-08: see below]; treatment reading, per game, the share of re-derived held chains.
 - **THE REVIEWER'S RULING, 08:43Z: `TETHER_REL_GAP` (arm C) FOLDED INTO `TETHER_DELTA_KEY` as one change**
   -- the reach description becomes the scoped description WITH its relation channel, identical at every
   retrieval site (Fig 9). Scope recorded: "channel verified working; reach limited by 2 relation-reading
@@ -400,7 +400,7 @@ here in the same session it arrives, or the next search for it fails the same wa
   lost, goals that qualify.
 - **THE REVIEWER'S RULING, 07:19Z AND 09:14Z: THE NOMINAL SET, ruled by WHO PRODUCES THE VALUE (Fig 1).**
   Agent-allocated labels (the shape label, object ids, any decoder-assigned label) admit identity and
-  difference only, no arithmetic. COLOUR is the environment's own code: arithmetic stays, with its
+  difference only, no arithmetic. [SUPERSEDED 2026-10-08: see below] COLOUR is the environment's own code: arithmetic stays, with its
   cyclic alphabet, and the ground decides. BOOL admits no arithmetic (no magnitude; its composition is
   Fig 12's logical bonds), so translate's same-type rule must not admit bool + bool. Fixtures per class.
 - **THE REVIEWER'S RULING, 12:20Z: THE SECOND FIREWALL, READ FOR A BUDGET THE AGENT SEES -- it narrows
@@ -415,3 +415,95 @@ here in the same session it arrives, or the next search for it fails the same wa
   fixture shows that changing the harness's allowance changes behaviour ONLY through the frame-delivered
   value, which is recorded on the game's first row. **And the work-unit calibration (fitted on the fake)
   is re-checked PER GAME, predicted over measured, before the budget run.**
+
+## 2026-10-08 (afternoon) — Isaiah adopts the reviewer's resolutions
+
+**Source, verbatim (Isaiah, in session, about 12:10 CDT):** *"all the rulings are stale - lets use
+your suggestions"*. That adopts the reviewer's suggestions in RULINGS_CHECK (A and B) and in the
+reviewer's reply on contentious rulings. Each entry below is now his ruling.
+
+**Earlier entries are ANNOTATED, never edited.** Where a line below supersedes one, the older
+line gets a one-line `[SUPERSEDED 2026-10-08: see below]` marker and nothing else changes.
+
+### The order of authority (supersedes 2026-10-05's list)
+0. **Figures 1–13, with the Operators and Symbols tables.**
+1. **Isaiah's rulings** (this file).
+2. **The corpus.**
+3. **The reviewer.**
+4. **Prior seats' notes.**
+
+A ruling and a figure that conflict are recorded and resolved for the figure.
+
+### Library and metaprogramming
+- **ONE LIBRARY.** Everything preloaded, atoms or recipes, lives in `library/`. Every index is
+  derived from it and regenerated, never edited (Figure 6).
+- **THE INDEX IS NOT A SIDE SYSTEM.** Knowledge lives in the library's entries (atoms + operators:
+  the grammar). `index.json` is derived and holds nothing of its own. This satisfies 2026-10-04
+  ("never a side system such as lookup tables").
+- **`library/` IS THE MAP OF THE AGENT'S REACH, NOT Γ.** Γ (the Symbols table's "the library") is
+  what the agent holds. `library/` maps named points in closure(Γ). Nothing enters Γ's alphabet by
+  being preloaded (the price formula; "loading is not entering").
+- **NO HAND-WRITTEN FUNCTION PER ENTRY.** One template family per reading type generates every
+  candidate. A compiler turns each candidate into a Term over Γ's existing atoms. The mint adopts
+  or does not, and the existing standing, settling, `promote` and `units` do the rest
+  (METAPROGRAMMING_DESIGN).
+- **THE 2026-09-23 PLAN TO HAND-DRAFT 2,638 PROSE CONDITIONS FOR ISAIAH TO RULE ON IS RETIRED.**
+  The generator produces the candidates, and the ground decides (2026-09-22 ruling 5: conditions
+  are the agent's hypothesis, no human gate).
+- **ROLES.** One concept, several views (state, process, relation, measure, cause, result,
+  instrument, test, rule, agent), generated per entry and offered together, ranked by fit to the
+  residual. **ACCUMULATION, NOT A RULEBOOK** (2026-09-25).
+- **PREPOSITIONS** are role markers on frame slots; **the full NSM prime inventory** is in the
+  grammar.
+- **ORIENTATION** for look-alike recipes (rising / falling, from / to, before / after) is written in
+  where the human meaning makes it known, as a front-loaded prior; otherwise the ground settles it.
+- **DUPLICATES** are removed when they are the same entry (same recipe, same definition, a
+  misspelling, an abbreviation, a plural); merged names are kept as aliases and every removal is
+  logged.
+- **THE GROUNDINGS, ROLE ASSIGNMENTS AND ORIENTATION DRAFTS ARE PRIORS TO LOAD, NOT BELIEFS
+  IMPOSED.** Isaiah's check is on what is preloaded.
+
+### Mint, invent, import
+- **MINT** = remixing existing atoms, or new recipes in the grammar's operators (2026-10-07).
+  **IMPORT** = carrying across games (2026-10-07).
+- **INVENT** = the agent NAMES a new pattern, and the pattern is a COMPOSITION of existing atoms
+  and operators, never a new hand-made function. The trigger is the 2026-10-04 conditions (a real
+  search failed, the change recurred, nothing expresses it). This is consistent with 2026-10-04's
+  retirement of `_INVENT` as bootleg composition.
+- **2026-10-06 DECISION 6 ("invented atoms skipped on load") STANDS FOR RECORDINGS** (replayed
+  effect tables, Figure 4). An invention made only of relations carries.
+- **GENERALISATION** (Isaiah, 2026-10-08: "the colors are changing everytime the game loads …
+  randomly arranged … rotated or shrank … all in service of showing that your generalizing").
+  - Colour is a per-episode label (order of encounter within a spectrum band): identity and
+    difference only, no arithmetic.
+  - Nothing naming a raw value crosses an episode.
+  - A carried rule is offered in its turned and mirrored forms, and the destination's ground
+    decides.
+
+### Process
+- **NO GAME TESTING until the library is in and working through the metaprogramming**
+  (2026-10-08). **Testing reopens** with one pinned, even all-25 run when the reach wiring (M4)
+  and its compile census pass.
+- **"KAGGLE-READY" (the 2026-10-12 date)** = the library and compiler pass their fixtures and the
+  bundle builds.
+- **FULL GREEN** (2026-09-30) is kept through `conform/fast_check.py`. A seat's pass reused on
+  byte-identical inputs counts as green, and every reuse is printed with its fingerprint.
+- **ARM SWITCHES:** one parser for every arm ("0" is off). Run records that stated an arm as "=0"
+  are annotated "may have been ON".
+- **BRANCHES:** `arc-agent` is the line of record and the default branch; finished branches are
+  deleted or archived as tags (REPO_AUDIT).
+- **THE SEAT MAP:** the amended sentence stands ("It ships separately as THE FORMULA
+  (docs/THE_FORMULA.md), which is the same loop under its other name"), consistent with "THE LOOP
+  IS THE FORMULA" (2026-10-06).
+- **NEXT AFTER M1–M8:** the intent layer expresses intents in the NSM frames and prepositions
+  (2026-09-28), with goal formation on the jigsaw paradigm (2026-10-03).
+
+### Lines this supersedes (annotate each in place)
+- 2026-10-05, the authority order (replaced above).
+- 2026-10-06 (6), invented atoms skipped on load (now: for recordings only).
+- 2026-10-04, "Imports only after …" (the conditions now trigger INVENT; IMPORT means across
+  games).
+- The reviewer's 2026-10-08 nominal-set ruling, its colour clause ("arithmetic stays"): withdrawn.
+- SEAT_ORIENTATION item 12(a), hand-drafting the prose conditions: retired.
+- Every "its own all-25" in the reviewer's 2026-10-08 arm rulings: paused until testing reopens;
+  folded into the library work where they overlap.

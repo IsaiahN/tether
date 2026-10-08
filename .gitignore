@@ -30,3 +30,5 @@ protocol_*.jsonl
 # the answer set, the agent reads only the frame. Same firewall as environment_files/.
 replays/
 out/
+# packages handed over by Isaiah/the reviewer (cohesion_*.zip): unpacked, placed and committed as files, never as the archive.
+*.zip
