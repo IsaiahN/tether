@@ -57043,3 +57043,15 @@ Refusals were priced on every seed; **none paid** (s0 172, s1 143, s2 117 attemp
 - **No run ledger records its arm state -- the reviewer's 18:52Z narrowing was checked and does not hold.** It held that ledgers carrying an arms line from `instruments.Attribution.arms()` state what ran; that method reads the live module values, but no run writer calls it -- only `test_gate.py` does, and neither `runs/demo.jsonl` nor an `all25_r1` ledger carries an arms row. **From the next commit every agent ledger opens with an `@run` / `arms` header written from the live module values** (the reviewer 18:56Z), so this gap closes for runs made after it and stays open for every run before. So a ledger cannot be cleared by its own arms line; the records that are safe are the ones whose runs asserted their flags, as `F415`'s did. Any run launched by hand with an affected arm exported as `0` described an agent with that arm ON, and its record will not say so.
 
 **FIGURE CENSUS.** Figure 10 (Figure_10_The_Ground_Maintainer) -- "a convention nothing can check is a constant the seat authored": `=0 means off` was such a convention, false at 22 read sites. Figure 11 (Figure_11_The_Habitat) -- "A test harness is a substituted habitat. Which is why a synthetic solve proves wiring and never capability.": the zero-is-off fixture proves the arms' wiring, nothing about capability. Strained: none.
+
+#### F513 -- **THREE ROWS OF METAPROGRAMMING_DESIGN SECTION 3 MARKED "compiles" ARE REFUSED BY THE MINT'S OWN TYPING -- a correction to the reviewer's table, recorded at the reviewer's request (2026-10-08 21:58Z).**
+
+`compile_term` (M2, `6c14adb`) compiles each library candidate through the chain section 3 names, then applies the typing the composer applies (`gamma.accepts_type` on the head, every link, and the operand). Three rows the table marked "compiles" do not pass it:
+
+- **moves** (`o.r != 0`) = `abs_delta . sign`: *"abs_delta gives EXTENT, which sign does not accept"* (section 7a's zero-test gap);
+- **down** (`o.r < 0`) = `sign . negate`: *"sign gives BOOL, which negate does not accept"* (section 7b);
+- **BOOL holds / fails** (`== 1` / `== 0`) = `idn` / `negate`: *"idn does not accept BOOL"*, *"negate does not accept BOOL"* (section 7b).
+
+**The code is right and the doc is to change: the reviewer amends section 3 in the next package.** The pair rows (`touching(o, x)` and the other pair calls) stay refused for a different reason: `arc_atoms.touching` reads whether its object touches ANY object, so no atom reads "this pair". The library-wide scale of each gap, and the search cost of each proposed widening, are the M3 census (`docs/cohesion/COMPILE_CENSUS.md`).
+
+**FIGURE CENSUS.** Figure 10 (Figure_10_The_Ground_Maintainer) -- "a convention nothing can check is a constant the seat authored": section 3's "compiles" column was one, and the mint's typing, run on it, refused three rows. Strained: none.
