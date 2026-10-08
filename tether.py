@@ -1649,6 +1649,29 @@ class Agent:
         return [(b, a, af[slot], i, land) for b, a, af, i, land in self.trace
                 if slot in af and slot in b]
 
+    def _lookup(self, slot: str, hist: list) -> None:
+        """FIG 9's ONE LOOKUP INTO THE LIBRARY, keyed by this residual (the reviewer 2026-10-07
+        22:48Z, 22:53Z, 23:00Z). The description is `characterise`'s own, SCOPED to the target's
+        object whatever the retrieval arm, because board-wide it fires on every type and lights
+        everything (F303). Recorded, never adopted: the pairs the bond tests hold are offered to
+        the ground, and nothing here binds, mints or bets."""
+        own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
+        mine = own.get(slot)
+        if mine is None:
+            return
+        scope = {s for s, o in own.items() if o == mine}
+        gap = retrieval.characterise(hist, slot, list(self.alphabet), self.slot_types, scope=scope)
+        described = {s: self.slot_types[s] for s in (slot, *gap["varies"]) if s in self.slot_types}
+        found = composer.lookup(described)
+        read = composer.read_pairs(found["pairs"], [b for b, _act, _val, _intent, _landed in hist])
+        held = [{k: r[k] for k in ("molecule", "left", "right", "left_reading", "right_reading",
+                                   "held", "via", "occasions")} for r in read if r["held"]]
+        self.led.record(self.cycle, "ROUTE", slot, "lookup", query=found["query"],
+                        described=sorted(described), junctions=found["junctions"],
+                        offered=len(found["pairs"]), held=held,
+                        reads=("the library looked up by this residual's own description; "
+                               "pairs offered, bonds read over its frames, nothing adopted"))
+
     def _ops(self, term: Term, state: dict[str, int]) -> tuple:
         """The operand's value, and §4's whole mechanism sits in the middle three lines.
 
@@ -2922,6 +2945,7 @@ class Agent:
                         reads=("the gap, cited BEFORE the library is read. One record, three "
                                "consumers: the pull count, the description's ordering proof, "
                                "and an import's shadow test"))
+        self._lookup(slot, hist)
         # THE TRACK RECORD ENTERS HERE AND ONLY HERE. `track_of` decays on read, mirroring
         # `rejection_of`, so the order reads evidence of the current age rather than a total
         # frozen at whatever tick it was last touched.

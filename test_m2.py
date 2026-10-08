@@ -23,6 +23,7 @@ import arc_atoms
 import arc_percept
 import arc_predict
 import arc_world
+import composer
 import gamma
 import routine as Rt
 import tether
@@ -2059,6 +2060,86 @@ def check_a_plan_is_named_the_same_in_two_runs():
         rows.append({k: got[0].get(k) for k in ("set_by_plan", "held_plan", "set_by")})
     assert rows[0] == rows[1], f"one plan, two names across runs: {rows}"
     assert rows[0]["set_by_plan"] == rows[0]["held_plan"] == 1, rows[0]
+
+
+
+def check_each_bond_reads_its_own_meaning():
+    """Increment 1: each bond's per-frame truth is Fig 12's "means" column. One hold and one fail
+    per bond, built so a bond swapped for any other reads wrong on at least one frame."""
+    T, F, N = True, False, None
+    cases = {
+        "+": ([T, T, F, N, N], [T, F, T, T, F], (T, F, F, N, F)),
+        "∥": ([T, F, F, N, N], [F, T, F, F, T], (T, T, F, N, T)),
+        "−": ([T, T, F, N], [F, T, F, F], (T, F, F, N)),
+        "→": ([F, T, F, F], [T, F, T, F], (F, F, T, F)),
+        "⇒": ([F, T, F], [F, F, T], (F, F, T)),
+        "⋛": ([3, 1, N], [2, 2, 1], (T, F, N)),
+    }
+    for bond, (a, b, want) in cases.items():
+        got = composer.holds(bond, a, b)
+        assert got == want, f"{bond}: {got} != {want}"
+    for bond in composer.BONDS:
+        if bond in cases:
+            continue
+        assert bond == "≡", f"a bond with no fixture: {bond}"
+        assert composer.holds(bond, [T, F], [T, F]) == (N, N), "≡ decided on a record"
+
+
+def check_order_bonds_need_the_cause_first():
+    """DEFECT: B seen before or alongside A credited as A-then-B or A-produces-B. An unreadable A
+    before B leaves A-then-B unreadable, never false."""
+    T, F, N = True, False, None
+    assert composer.holds("→", [N, F], [F, T]) == (F, N)
+    assert composer.holds("⇒", [F, T, F], [T, F, T]) == (F, F, F), "B existed before A"
+    assert composer.holds("⇒", [T], [T]) == (F,), "A and B in one frame read as produced"
+    assert composer.holds("⇒", [T, F], [F, T]) == (F, T)
+
+
+def check_no_bond_is_preferred():
+    """Fig 12: which bond holds is not recoverable from the operands, so every bond is read on the
+    same operands and none depends on another having been read first."""
+    a, b = [True, True, False, None], [True, False, True, True]
+    one = {bond: composer.holds(bond, a, b) for bond in composer.BONDS}
+    two = {bond: composer.holds(bond, a, b) for bond in reversed(composer.BONDS)}
+    assert one == two, "a bond's reading depends on evaluation order"
+    both = [bond for bond in ("+", "∥") if composer.holds(bond, [True], [True]) == (True,)]
+    assert both == ["+", "∥"], f"two holding bonds, one reported: {both}"
+
+
+
+def _held(a: list, b: list) -> list:
+    frames = [{"a": x, "b": y} for x, y in zip(a, b, strict=True)]
+    return composer.read_pairs([{"left_reading": "a", "right_reading": "b"}], frames)[0]["held"]
+
+
+def check_a_bond_is_read_only_where_its_test_applies():
+    """DEFECT: every bond asked on every changed frame, so a frame where only A moved refuted
+    "A then B", and a quiet frame refuted everything. Fig 12's tests, each on its own occasions."""
+    assert _held([0, 1, 1, 2, 2], [0, 0, 1, 1, 2]) == ["→", "⇒", "−"], "A then B"
+    assert _held([0, 1, 1, 2], [0, 1, 1, 2]) == ["+"], "both move together"
+    assert _held([0, 1, 2, 3], [0, 0, 0, 0]) == ["−"], "A moves alone"
+    assert "→" not in _held([0, 0, 1, 1], [0, 1, 1, 2]), "B before A read as A then B"
+    assert _held([0, 0, 0, 0], [0, 0, 0, 0]) == [], "a quiet residual held a bond"
+
+
+def check_a_bond_two_operands_cannot_decide_is_never_passed():
+    """DEFECT: "either suffices" read True on every occasion by construction, and "comparison"
+    passed wherever one value was always larger. Both are reported undecided, never held."""
+    got = composer.read_pairs([{"left_reading": "a", "right_reading": "b"}],
+                              [{"a": 5, "b": 1}, {"a": 6, "b": 1}, {"a": 7, "b": 2}])[0]
+    assert not {"∥", "⋛", "≡"} & set(got["held"]), got
+    assert {"∥", "⋛", "≡"} <= set(got["undecided"]), got
+    assert set(composer.READ_ON_TWO) | set(got["undecided"]) == set(composer.BONDS), got
+
+
+def check_the_lookup_is_keyed_by_the_residual():
+    """DEFECT: a board-wide join offered every reading of a type (~2,600 pairs). The look-up offers
+    pairs over the residual's own readings only, and the index note link is what lights DELTA."""
+    d = {"o3.row": "POSITION", "o3.col": "POSITION", "o3.drow": "DELTA"}
+    got = composer.lookup(d)
+    assert got["pairs"] and {p["left_reading"] for p in got["pairs"]} <= set(d), got["pairs"][:2]
+    assert composer.lookup(d, link=False)["junctions"] < got["junctions"], "the link lit nothing"
+    assert composer.lookup({"o3.colour": "COLOUR"})["pairs"] == [], "a colour-only gap lit a pair"
 
 
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]

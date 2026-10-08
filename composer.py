@@ -28,6 +28,8 @@ type-walk) is to be ported from and then deleted, once the route chart holds.
 from __future__ import annotations
 
 import functools
+import itertools
+import json
 import os
 import re
 import sys
@@ -41,6 +43,7 @@ sys.dont_write_bytecode = True
 _HERE = os.path.dirname(os.path.abspath(__file__))
 
 _ATOMS_MD = "docs/library-closure/ATOMS.md"
+_INDEX_JSON = "docs/library-closure/ATTRIBUTE_INDEX.json"
 
 
 UNKNOWN = "?"          # a junction whose bond the GROUND has not settled yet
@@ -275,6 +278,153 @@ def bond_field(bond: str) -> str:
     are distinguishable in the report -- they have different repairs."""
     return {"+": "order", "→": "order", "∥": "history",
             "−": "gone", "⇒": "came", "⋛": "values"}.get(bond, "")
+
+
+def _and(x, y):
+    if x is False or y is False:
+        return False
+    return True if x is True and y is True else None
+
+
+def _not(x):
+    return None if x is None else not x
+
+
+def holds(bond: str, a: list, b: list) -> tuple:
+    """Each frame's truth of `A bond B`, three-valued, from the two operands' per-frame truths.
+
+    THE SEVEN MEANINGS ARE FIG 12's "means" COLUMN, NOT A CHOICE MADE HERE -- conventions with no
+    truth value about any board (Fig 10), so writing them is not authoring an answer. Nothing here
+    ranks one bond over another: every bond is evaluated on the same operands and which one HOLDS
+    for a recipe is the bargain's and the ground's to settle (Fig 12: "which one holds is not
+    recoverable from the operands"). `None` is unreadable, never false. `⋛` reads quantities,
+    the rest truths; `≡` is a statement about the library, not the board (ruling 4), so it
+    never decides on a record.
+    """
+    out, seen_a, b_before_a = [], False, False
+    for t, (x, y) in enumerate(zip(a, b, strict=True)):
+        if bond == "+":                              # both hold at once
+            v = _and(x, y)
+        elif bond == "∥":                      # either suffices; not both required
+            v = True if x is True or y is True else (False if x is False and y is False else None)
+        elif bond == "−":                      # A with B removed or absent
+            v = _and(x, _not(y))
+        elif bond == "→":                      # A then B; B needs A to have happened
+            v = False if y is False else (None if y is None else (True if seen_a else None if
+                                                                   None in a[:t] else False))
+        elif bond == "⇒":                      # A produces B; B did not exist before
+            v = y if y is not True else not (b_before_a or not seen_a)
+        elif bond == "⋛":                      # a threshold between two quantities: A over B
+            v = None if x is None or y is None else x > y
+        else:                                        # ≡ and anything unknown: not a board test
+            v = None
+        if bond == "⇒" and not seen_a and y is True and x is not True:
+            b_before_a = True
+        seen_a = seen_a or x is True
+        out.append(v)
+    return tuple(out)
+
+
+# A CHANGE ACROSS TWO FRAMES IS WHAT THE INDEX CALLS TEMPORAL AND EVENT. Read from its own notes
+# (`by_encoding`): TEMPORAL "a difference across frames; history() already carries the frames",
+# EVENT "what happened between two frames". The one judgement link in the look-up; removable.
+NOTE_LINK = {"DELTA": ("TEMPORAL", "EVENT")}
+READ_ON_TWO = ("+", "→", "⇒", "−")
+# WHERE THE REST ARE DECIDED (the reviewer 2026-10-08 00:24Z): "either" and "comparison" need the
+# RESULT, and here the result is the residual's target -- so they are settled at the bargain, as a
+# molecule predicting it; identity is a statement about the library (ruling 4).
+UNDECIDED_HERE = {"∥": "at the bargain, against the residual",
+                  "⋛": "at the bargain, against the residual",
+                  "≡": "in the library, never on a record"}
+
+
+def _norm(x: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", x.lower())
+
+
+@functools.lru_cache(maxsize=1)
+def _encodings() -> dict:
+    """{normalised bare atom name -> its encoding classes}, from the library index."""
+    with open(os.path.join(_HERE, _INDEX_JSON), encoding="utf-8") as fh:
+        rows = json.load(fh)["atom_attributes"]
+    out: dict = {}
+    for key, v in rows.items():
+        out.setdefault(_norm(key.split("|", 1)[-1]), set()).update(v.get("encodings", ()))
+    return {k: frozenset(v) for k, v in out.items()}
+
+
+@functools.lru_cache(maxsize=1)
+def _junction_list() -> tuple:
+    """Every adjacent ingredient pair of every recipe: (molecule, left, right)."""
+    return tuple((m, a, b) for m, r in recipe_rows().items()
+                 for a, b in zip(r["ingredients"], r["ingredients"][1:], strict=False))
+
+
+@functools.lru_cache(maxsize=256)
+def _lit(types: frozenset) -> tuple:
+    """The junctions whose both sides some type in `types` lights, with the matching encodings
+    per side. Depends only on the types, so it is computed once per description shape."""
+    enc = _encodings()
+    out = []
+    for mol, a, b in _junction_list():
+        ea, eb = enc.get(_norm(a), frozenset()) & types, enc.get(_norm(b), frozenset()) & types
+        if ea and eb:
+            out.append((mol, a, b, ea, eb))
+    return tuple(out)
+
+
+def lookup(described: dict, link: bool = True) -> dict:
+    """Fig 9's one lookup, keyed by the RESIDUAL: `described` is {reading: its type} for the
+    target slot and the slots that varied with it, scoped to its own object. Lights the index
+    atoms encoded as one of those types, then only the junctions whose BOTH sides it lit, and
+    offers (ingredient, reading) pairs over THESE readings only -- never every reading of the
+    type on the board. Offered, never adopted: `read_pairs` and the ground settle them."""
+    as_enc: dict = {}
+    for reading, t in described.items():
+        for e in (t,) + (NOTE_LINK.get(t, ()) if link else ()):
+            as_enc.setdefault(e, set()).add(reading)
+    pairs = []
+    for mol, a, b, ea, eb in _lit(frozenset(as_enc)):
+        ra = sorted({r for e in ea for r in as_enc[e]})
+        rb = sorted({r for e in eb for r in as_enc[e]})
+        via = sorted(ea | eb)
+        for x, y in itertools.product(ra, rb):
+            if x != y:
+                pairs.append({"molecule": mol, "left": a, "right": b, "left_reading": x,
+                              "right_reading": y, "via": via})
+    return {"query": sorted(as_enc), "pairs": pairs,
+            "junctions": len({(p["molecule"], p["left"], p["right"]) for p in pairs})}
+
+
+def read_pairs(pairs: list, frames: list) -> list:
+    """Each offered pair read by the bond tests over the residual's own frames. An operand's
+    truth on a frame is THAT ITS READING CHANGED there. Each bond is asked only where its own
+    test applies (Fig 12's last column) -- `+` where either moved, `→` and `⇒` where B moved,
+    `−` where A moved -- so a frame that is no evidence about it refutes nothing. SUPPORTED when
+    it reads True on some occasion and False on none. Only the bonds two operand series can
+    decide are read; the rest are reported UNDECIDED, never passed: `∥` needs the result as well
+    ("remove one. Does it still work?"), and `⋛` has no discriminating test (`settle`). None is
+    preferred."""
+    out = []
+    for p in pairs:
+        va = [f.get(p["left_reading"]) for f in frames]
+        vb = [f.get(p["right_reading"]) for f in frames]
+        def moved(v):
+            return [None if v[t] is None or v[t - 1] is None else v[t] != v[t - 1]
+                    for t in range(1, len(v))]
+        a, b = moved(va), moved(vb)
+        asked = {"+": [t for t in range(len(a)) if a[t] is True or b[t] is True],
+                 "−": [t for t in range(len(a)) if a[t] is True]}
+        asked["→"] = asked["⇒"] = [t for t in range(len(b)) if b[t] is True]
+        held = []
+        for bond in READ_ON_TWO:
+            got = holds(bond, a, b)
+            seen = [got[t] for t in asked[bond]]
+            if True in seen and False not in seen:
+                held.append(bond)
+        out.append(dict(p, occasions={k: len(v) for k, v in asked.items()}, held=held,
+                        undecided=dict(UNDECIDED_HERE)))
+    return out
 
 
 def settle_tree(node: object, delta: dict) -> dict:
