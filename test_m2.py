@@ -844,6 +844,83 @@ def check_refutations_do_not_cross_a_boundary():
     assert not ag.refuted, "a refutation keyed on a dead slot name survived a boundary"
 
 
+def check_slot_keyed_state_does_not_cross_a_boundary():
+    """DEFECT: `retarget` clears the bindings and trends because *the slots did not survive*, and
+    kept seven stores keyed by those same slots -- so a want formed on the old level's `o1.dcol`
+    was read on the new level's `o1.dcol`."""
+    ag = _agent()
+    slot = "o1.dcol"
+    k = ag._reject_key(slot, Rt.Until(slot, Rt.Act("ACTION2"), 3))
+    ag.wants[slot] = "idn"
+    ag._want_terms[slot] = ag.gamma.library["idn"]
+    ag._reach_tested[k] = "tested_no"
+    ag._prev_gap[slot], ag._gap_delta[slot] = 3, -1
+    ag._undone[((), "BECOME o1.dcol +", slot, 0.5)] = 2
+    ag._undone_across[("BECOME o1.dcol +", slot)] = 2
+    ag.retarget(ag.env, ag.level + 1)
+    held = {n: getattr(ag, n) for n in ("wants", "_want_terms", "_reach_tested", "_prev_gap",
+                                         "_gap_delta", "_undone", "_undone_across")}
+    crossed = [n for n, v in held.items() if v]
+    assert not crossed, f"slot-keyed state crossed a boundary: {crossed}"
+
+
+def check_one_clock_at_the_agents_rate():
+    """DEFECT: two clocks. Terms decayed on the trace length, which a level boundary resets, so a
+    rejection FROZE at every boundary; routines decayed on the cycle at the module's seed rate,
+    while the agent's own halflife is measured in cycles (Isaiah 2026-09-30: the rate is its).
+    """
+    ag = _agent()
+    name = next(iter(ag.gamma.library))
+    ag.gamma.refute(name)
+    r0 = ag.gamma.rejection_of(name)
+    ag.retarget(ag.env, ag.level + 1)
+    for _ in range(3):
+        ag.step()
+    assert ag.gamma.rejection_of(name) < r0, "a term's rejection froze at a level boundary"
+    slot = _wide(ag)
+    k = ag._reject_key(slot, Rt.Until(slot, Rt.Act(ag.actions[1]), 1))
+    ag.refuted[k] = gamma.Standing(last_tick=ag.cycle, rejections=1.0)
+    ag.gamma.halflife = 2.0
+    ag.cycle += 2
+    assert abs(ag._rejection(k) - 0.5) < 1e-9, (
+        "a routine refutation decayed at a seed, not the agent's rate")
+
+
+def check_a_refusal_holds_until_the_scope_grows():
+    """DEFECT: a refused plan readmitted by a clock, with nothing new to try it with (Fig 6:
+    *it becomes reachable again only if something new is minted, which is growth*).
+
+    The exhaustion is driven through `choose`, as `check_a_refutation_is_a_row` drives it, so the
+    refusal is filed by the code that files it. The OLD filter is read beside the new one: one
+    cycle on, `_rejection` has decayed under 1.0 and would have readmitted the plan, which is
+    what makes the first half of this check non-vacuous.
+    """
+    ag = _agent()
+    slot = _wide(ag)
+    b = dict(ag.env.observe())
+    plan = Rt.Until(slot, Rt.Act(ag.actions[1]), 1)
+    ag.routine, ag.routine_for = plan, slot
+    for _ in range(4):
+        if ag.routine is None:
+            break
+        ag.choose(b)
+    assert ag._refusals, "fixture: the routine did not exhaust, so nothing was refused"
+    key, n_held = next((k, len(v)) for k, v in ag._refusals.items())
+    assert ag._refused(key), "a plan was not refused under the scope it failed in"
+    k = ag._reject_key(slot, plan, ag.routine_lib)
+    ag.cycle += 1
+    assert ag._rejection(k) < 1.0, "fixture: the old filter would not have readmitted it"
+    assert ag._refused(key), "a refused plan came back with the clock, nothing having grown"
+    ag.retarget(ag.env, ag.level + 1)
+    assert ag._refused(key), "an advance lifted a refusal about a plan's shape"
+    lib = ag.gamma.library
+    new = next(ag.gamma.build((a.name, a.name)) for t in list(lib.values()) for a in t.atoms[:1]
+               if f"{a.name} . {a.name}" not in lib)
+    ag.gamma.accept(new, seq=0, residual="fixture")
+    assert not ag._refused(key), "the scope grew and the refusal still excluded"
+    assert len(ag._refusals[key]) == n_held, "lifting a refusal removed it from the record"
+
+
 
 def check_the_act_space_stays_narratable():
     """DEFECT: a new ledger step that the whitebox narration cannot trace.
