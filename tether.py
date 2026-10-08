@@ -197,6 +197,8 @@ _RECIPE_DEDUP = bool(os.environ.get("TETHER_RECIPE_DEDUP"))
 # and 85% / 41% of those were held with an operand locked to a DIFFERENT slot.
 # The principle is the method's own docstring: *composition crosses, binding does not* -- true of
 # every term, applied to loaded ones only. DEFAULT OFF like every other arm.
+# OFF WITH ITS SCOPE (the reviewer 2026-10-08 08:25Z): measured on dc22 only, 12 cycles, without arm
+# H -- no change, +26% candidates. Re-opened from arm H's all-25 reading.
 _REBIND_HELD = bool(os.environ.get("TETHER_REBIND_HELD"))
 
 # ARM H -- THE GUARD AXIS IN RETRIEVAL. Reviewer ruling 2026-09-21, and it is the generation half
@@ -372,6 +374,11 @@ _NOT_ATOM = bool(os.environ.get("TETHER_NOT_ATOM"))
 # AND DEFAULT OFF BECAUSE THE FILE RECORDS THIS FAILING BEFORE: *the version that DROPPED
 # operand-reading terms when R showed no dependence on another slot LOST A CLOSING TERM.*
 # Different rule, same family. `distinct compositions must not fall` is the falsifier.
+#
+# OFF BY VERDICT, SUPERSEDED -- the reviewer 2026-10-08 07:49Z. It EXCLUDES (see `_delta_narrowed`):
+# a filter handing out a verdict (Fig 9, "Never let a filter hand you a verdict"), which is how it
+# lost a closing term. Its purpose, bounding the operand axis, is served by F510's ordering and the
+# per-residual look-up. Kept, not deleted (Fig 13, "Unreachable is a verdict here, not a silence").
 _DELTA_OPERANDS = bool(os.environ.get("TETHER_DELTA_OPERANDS"))
 # ITEM 6, THE RE-KEY. Default OFF. `F303` measured the key BEFORE this was built: a GLOBAL frame
 # delta is saturated at every granularity that crosses boards -- types 100% of cycles, attribute
@@ -391,6 +398,10 @@ _LOOKUP_ORDER = os.environ.get("TETHER_LOOKUP_ORDER", "1") != "0"
 # ABORT CRITERIA, declared before the first run and unchanged: candidates tried rises while
 # arrivals do not -> OFF; calls-per-cycle growth steepens against the control -> OFF; binds
 # per candidate rises -> OFF. Each is a RESULT, not a failure.
+# OFF BY VERDICT WITH ITS SCOPE (the reviewer 2026-10-08 08:55Z): it puts typed readings at a
+# chain's END, where 54-76% abstain and the rest lose (F334: wa30, lp85, seeds 0 and 7, 10 cycles,
+# tape -- two games of 25). Its purpose goes to the composing methods that place a typed reading
+# MID-chain (Fig 12, "Composition is recursive").
 _STREAM_WIDEN = bool(os.environ.get("TETHER_STREAM_WIDEN"))
 # ITEM 7. Default OFF: it APPENDS TO THE ATOM REGISTRY, which every term reads.
 # **THE RANDOMISED HOLD -- MEASUREMENT ONLY, the reviewer 2026-10-03 ruling 3.** Withholds
@@ -2866,8 +2877,9 @@ class Agent:
         the lookup's. So re-keying route (b) without this MOVES the cost rather than removing
         it. Reviewer's ruling, 2026-09-22: conflict 4 applies at both sites.
 
-        ORDERING, NEVER EXCLUSION is preserved by the caller: an empty narrowing returns the
-        full list, so every binding is still reachable and only the ORDER of arrival changes.
+        IT EXCLUDES, AND THIS LINE SAID IT DID NOT (corrected 2026-10-08). The full list comes back
+        only when NOTHING moved; whenever one slot moved, every slot that neither moved nor touches
+        a moved object is DROPPED. Off by verdict and superseded -- see `_DELTA_OPERANDS`.
         """
         after_of = {id(b_): a_ for b_, _act, a_, _intent, _landed in self.trace}
         moved: set = set()

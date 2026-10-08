@@ -46,6 +46,10 @@ import summary
 import tether
 from arc_world import ArcWorld
 
+# SET BY `wire` ONCE IT HAS SET THE ARC PATH'S ARMS, so an arm-state line can say whether it read
+# the wired run or only the module defaults (the reviewer 2026-10-08 06:49Z).
+WIRED = False
+
 sys.dont_write_bytecode = True
 
 
@@ -155,6 +159,8 @@ def wire(w, game: str, *, cfg: Any = None, led_path: str | None = None,
     # delta of a quantity it cannot itself measure.
     tether._SHAPE_DECODE = True
     arc_percept._SHAPE_DELTA = True
+    global WIRED
+    WIRED = True
     env = ArcWorld(w, arc_percept.Objects(), arc_atoms.three_spaces(arc_predict.predict()),
                    palette=palette, name=game)
     env.on_frame = on_frame     # seat-side tap for §13 step 4's verifier; None on a normal run

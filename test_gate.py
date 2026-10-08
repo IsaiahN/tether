@@ -369,9 +369,9 @@ def test_arm_state_is_read_from_the_module_not_the_environment():
     from instruments import Attribution
     before = Attribution.arms()
     assert before["n_on"] + before["n_off"] >= 18, before
-    assert "_ACTED_GUARD" in before["on"] + before["off"]
+    assert "tether._ACTED_GUARD" in before["on"] + before["off"]
     # the flag's live value and the report must agree, whichever way it is set
-    live = "_ACTED_GUARD" in before["on"]
+    live = "tether._ACTED_GUARD" in before["on"]
     assert live == tether._ACTED_GUARD
 
     os.environ["TETHER_ACTED_GUARD"] = "1" if not live else "0"
@@ -380,6 +380,47 @@ def test_arm_state_is_read_from_the_module_not_the_environment():
         assert after == before, "arms() must read the MODULE -- the env changed and it did not"
     finally:
         os.environ.pop("TETHER_ACTED_GUARD", None)
+
+
+
+def test_arm_state_reads_the_wired_run():
+    """THE LINE THAT PUBLISHED "ARM I IS OFF" (retracted 2026-10-08): it read `tether` alone and
+    never the harness. On a run wired by `arc_holdout.wire`, arm I, the shape deltas and the
+    fold atoms are ON, and the line must say so and say that it read a wired run.
+
+    Reintroduce by reading `tether` alone, or by dropping `wired`, not by disabling this."""
+    import arc_atoms
+    import arc_holdout
+    import arc_percept
+    import tether
+    from instruments import Attribution
+    from test_entry import FakeWrapper
+    was = (tether._SHAPE_DECODE, arc_percept._SHAPE_DELTA, arc_atoms._ITERATE, arc_holdout.WIRED)
+    try:
+        arc_holdout.wire(FakeWrapper(), "fake")
+        got = Attribution.arms()
+        assert got["wired"], "a wired run read as unwired"
+        for arm in ("tether._SHAPE_DECODE", "arc_percept._SHAPE_DELTA", "arc_atoms._ITERATE"):
+            assert arm in got["on"], f"{arm} read OFF on a wired run: {got['on']}"
+    finally:
+        (tether._SHAPE_DECODE, arc_percept._SHAPE_DELTA, arc_atoms._ITERATE,
+         arc_holdout.WIRED) = was
+
+
+
+def test_recipe_dedup_needs_rebind_held():
+    """F refuses a duplicate mint; only with G can the held term be refit to the new slot. The
+    census must refuse F on without G (the reviewer 2026-10-08 08:31Z). Reintroduce by removing
+    the pair from `PAIRS`, not by disabling this."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("arms_census", "conform/arms.py")
+    arms = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(arms)
+    found = {a: ["x"] for a in arms.ARMS}
+    alone = arms._judge(found, arms.ARMS, {"TETHER_RECIPE_DEDUP"}, arms.PAIRS)
+    assert any("HALF A PAIR TETHER_RECIPE_DEDUP" in b for b in alone), alone
+    both = arms._judge(found, arms.ARMS, {"TETHER_RECIPE_DEDUP", "TETHER_REBIND_HELD"}, arms.PAIRS)
+    assert not any("RECIPE_DEDUP" in b for b in both), both
 
 
 def test_undeclared_death():

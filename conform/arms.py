@@ -1,5 +1,9 @@
 """arms: eighteen capability switches, all default OFF, and nothing computed the sum.
 
+**THAT LINE IS HISTORY, ANNOTATED 2026-10-08 (the arm sweep).** There are 27 declared arms, nine
+of them live with an empty environment, and three more set ON by `arc_holdout.wire` on the ARC
+path. Read the live state from `instruments.Attribution.arms()` on a wired run, never from this.
+
 **ENVIRONMENT SWITCHES ONLY, AND THE COUNT ABOVE IS THEREFORE NOT THE AGENT'S TOTAL --
 ANNOTATED 2026-09-28.** The detector is `os.environ.get("TETHER_X")`, so a capability switch
 that is a `Config` FIELD is invisible here. There is exactly ONE: `Config.accumulate`.
@@ -89,7 +93,10 @@ ARMS: dict[str, str] = {
                           "pre-registered test failed: payments up and TOTAL refusals down "
                           "on 6 of 6, refusal rate 19.67% -> 0.40% on three. Kept because "
                           "`buttons` seed 1 settled two guarded terms under a PRICED guard. "
-                          "Returns ON only under Isaiah's settled/unsettled rule",
+                          "Returns ON only under Isaiah's settled/unsettled rule. "
+                          "**AND IT DID: ON BY DEFAULT "
+                          "SINCE 2026-10-05 (`c01a5d1`), Isaiah's ruling, `ISAIAH_RULINGS` "
+                          "2026-10-05** -- the history above is why",
     "TETHER_AIMED_CURIOSITY": "the CURIOSITY exit names a subject -- the slot with the "
                               "most unexplained surprise that it has also watched move "
                               "(Figure 5's *large and compressible*) -- instead of "
@@ -120,7 +127,9 @@ ARMS: dict[str, str] = {
                        "residual differs at the final state. **That is a behaviour question "
                        "and it is Isaiah's, to be ruled on a gridworld A/B rather than on "
                        "the toy** -- so the switch exists to make that A/B one script with "
-                       "one flag. Spelled `get(..., \"0\") != \"0\"`, default-off",
+                       "one flag. Spelled `get(..., \"0\") != \"0\"`, default-off. **RULED SINCE: "
+                       "PARKED, off until ARC-style boards (Isaiah, `ISAIAH_RULINGS` "
+                       "2026-10-01); the reviewer kept it off on an A/B (F386)**",
     "TETHER_NO_CARRY_CANDIDATE": "**INVERTED POLARITY -- the SECOND row here that is, so "
                                  "the first is no longer the only one and both say so.** A "
                                  "DEFAULT-ON write: a term the agent BINDS becomes a candidate "
@@ -141,9 +150,14 @@ ARMS: dict[str, str] = {
                            "(after contact, before variance; never excludes). ON: the reviewer "
                            "2026-10-08 00:54Z; 0 is the one-flag A/B control",
     "TETHER_NOT_ATOM": "not-t priced as one atom slot instead of the bits to name which "
-                       "predicting term is wrong (the default, reviewer 2026-10-07). The figures "
+                       "predicting term is wrong. **OFF IS THE RULED PRICE** "
+                       "(name-the-term, the reviewer "
+                       "2026-10-07). The figures "
                        "leave the price OPEN; this arm keeps the alternative readable (F496)",
-    "TETHER_DELTA_OPERANDS": "deltas offered as operands",
+    "TETHER_DELTA_OPERANDS": "the operand list narrowed to the slots that moved plus their contact "
+                             "partners. **OFF BY VERDICT, SUPERSEDED** (the reviewer 2026-10-08 "
+                             "07:49Z): it EXCLUDES, a filter handing out a verdict (Fig 9); F510's "
+                             "ordering and the look-up serve its purpose",
     "TETHER_GUARD_AXIS": "the guard axis in the reject key",
     "TETHER_INSTRUMENTS": "the embedded instrument set -- Part 12 item 3, PAID BILLS from "
                           "frame 0. Off at a COSTED price: a new attribute widens the slot "
@@ -183,7 +197,9 @@ ARMS: dict[str, str] = {
                        "to be provable against its own absence, and a default-off one is an "
                        "optimisation nobody runs",
     "TETHER_OBSERVER": "the corpus's cheap mutation set carried PER OBJECT, not counted",
-    "TETHER_REBIND_HELD": "rebinding a slot whose term is already held",
+    "TETHER_REBIND_HELD": "rebinding a slot whose term is already held. OFF WITH ITS SCOPE (the "
+                          "reviewer 2026-10-08 08:25Z): measured on dc22 only, without arm H; "
+                          "re-opened from arm H's all-25",
     "TETHER_RECIPE_DEDUP": "one candidate per recipe rather than per instance",
     "TETHER_NO_REFUTED_BIN": "**INVERTED POLARITY.** The fifth bin (Fig 5's amendment), DEFAULT ON "
                              "since F497: a refuted slot is offered a same-type competitor and "
@@ -195,7 +211,10 @@ ARMS: dict[str, str] = {
     "TETHER_SHAPE_DELTA": "`dholes`/`dperimeter` across frames. PERCEPTION: no atom accepts "
                           "OBJECT_BEFORE, so the agent cannot compose a cross-frame delta",
     "TETHER_STARVED_CONTACT": "the starved-contact reading",
-    "TETHER_STREAM_WIDEN": "the widened candidate streams",
+    "TETHER_STREAM_WIDEN": "the widened candidate streams. OFF BY VERDICT WITH ITS SCOPE (the "
+                           "reviewer 2026-10-08 08:55Z): typed readings at a chain's end abstain "
+                           "or lose (F334, wa30 and lp85 only); purpose re-routed to the "
+                           "composing methods",
     "TETHER_TYPED_BIND": "binding filtered by type",
 }
 
@@ -204,6 +223,9 @@ ARMS: dict[str, str] = {
 # default.* The comment could not fire; this can.
 PAIRS: tuple[tuple[str, str], ...] = (
     ("TETHER_SHAPE_DELTA", "TETHER_SHAPE_DECODE"),
+    # Fig 5, "mis-attached: refit what you have, do not invent": F refuses the duplicate, G refits
+    # the held term to the new slot. One change (the reviewer 2026-10-08 08:31Z).
+    ("TETHER_RECIPE_DEDUP", "TETHER_REBIND_HELD"),
 )
 
 # BOTH QUOTE STYLES, AND THE SEAT IS WHY. This matched double quotes only, so an arm written
@@ -303,6 +325,17 @@ def sites() -> dict[str, list[str]]:
     return found
 
 
+# WHERE AN ASSIGNMENT IS A FIXTURE, NOT A RULING (the arm sweep, 2026-10-08): `test_m2.py` and
+# `conform/stateful.py` set CELL_CHANGE and DOWNRATE for a check, and the census printed both as
+# ON BY RULING while both are OFF on the scored path.
+NOT_RULINGS = ("test_*.py", "scratch_*.py", "conform/*.py")
+
+
+def _not_a_ruling(path) -> bool:
+    rel = path.relative_to(ROOT)
+    return any(rel.match(p) for p in NOT_RULINGS)
+
+
 def ruled() -> dict[str, str]:
     """`{arm: "file:line"}` for arms a RULING turned on in code, rather than the environment.
 
@@ -311,7 +344,7 @@ def ruled() -> dict[str, str]:
     declared arm is simply not an arm and is ignored, so this cannot invent one."""
     out: dict[str, str] = {}
     for path in _tracked():
-        if path.name == "arms.py":
+        if path.name == "arms.py" or _not_a_ruling(path):
             continue
         try:
             text = path.read_text(encoding="utf-8")

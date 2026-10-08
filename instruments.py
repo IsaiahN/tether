@@ -514,12 +514,20 @@ class Attribution:
         in step, and the failure that matters here is a capability SILENTLY ABSENT from the
         report, never a harmless extra.
         """
-        import tether
-        flags = {k: v for k, v in vars(tether).items()
-                 if k.startswith("_") and k[1:2].isupper() and isinstance(v, bool)}
+        # EVERY MODULE THAT DECLARES AN ARM, AND WHETHER THE HARNESS HAS WIRED THE RUN. It read
+        # `tether` alone, so the ARC path's own sets (`arc_holdout.wire`: arm I, the shape deltas,
+        # the fold atoms) were invisible, and on an unwired import arm I read OFF while every
+        # scored run had it ON -- a published claim, retracted 2026-10-08 (the reviewer 06:49Z).
+        import importlib
+        flags = {}
+        for name in ("tether", "arc_percept", "arc_world", "arc_atoms"):
+            mod = importlib.import_module(name)
+            flags.update({f"{name}.{k}": v for k, v in vars(mod).items()
+                          if k.startswith("_") and k[1:2].isupper() and isinstance(v, bool)})
         on = sorted(k for k, v in flags.items() if v)
         off = sorted(k for k, v in flags.items() if not v)
-        return {"on": on, "off": off, "n_on": len(on), "n_off": len(off),
+        wired = bool(getattr(sys.modules.get("arc_holdout"), "WIRED", False))
+        return {"on": on, "off": off, "n_on": len(on), "n_off": len(off), "wired": wired,
                 "reads": ("the capability state this measurement ran under, read from the "
                           "MODULE and not the environment -- flags resolve once at import. "
                           "State it beside the world and the population.")}
