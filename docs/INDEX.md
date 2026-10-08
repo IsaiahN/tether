@@ -55935,3 +55935,39 @@ referent `o0` is the HEAD -- the remote cause.
 the 40 single-cause slots the handover named as the control did not start buying guards.** It acts
 where the separation exists only for a referent other than the slot's own object, which is seed 6.
 **Scope stated, not generalised: one seed where it acts, seven where it is inert.**
+
+#### F444 — **THE CLEAN CUT: no tree is generated under a chain whose own cost already reaches `base`. Exact, 9 of 9; small worlds 3.0-4.8x faster; LATE DEFAULT UNMOVED. And the gate it passed was corrected by the reviewer, on the record, before the commit**
+
+`mint`'s bounded-out branch called `_trees(cand, bind, g)` for every refused chain. A tree costs
+the chain's length plus its branch, under the same guard bits, so when the chain alone reaches
+`base` no tree under it can pay. Skipped; `trees_skipped_chains` counts the chains (the trees
+themselves cannot be counted without generating them).
+
+**THE GATE, AND ITS CORRECTION -- the reviewer's, 2026-10-05.** Pre-registered as *trace AND
+ledger identical*. The ledger refuter fired on all pairs, on ONE field: `candidates_priced`, the
+counter `375e971` added to count exactly the work this cut removes. **The reviewer ruled the gate
+mis-specified and named the error as theirs** -- a work counter cannot stay unchanged under a change
+that removes work -- and corrected it BEFORE the commit, not because the result came in: trace
+identical, ledger identical in every field except `candidates_priced` (and the new
+`trees_skipped_chains`), confirmed field by field on every pair.
+
+    arm state: shipped defaults; lever A not present. 60 cycles. base 0e9411b.
+    world       seed  trace  rows differing (all in the two allowed fields)
+    click_only  0/1/2 same   327 / 336 / 278
+    buttons     0/1/2 same   258 / 291 / 241
+    default     0/1/2 same   613 / 660 / 489
+
+**`candidates_priced` IS NOT COMPARABLE ACROSS `0e9411b` AND THIS COMMIT.** It counts work done,
+and this commit removes work.
+
+    mean CPU s/step, cycles 11-60, base -> cut (up to 9 processes on 4 cores)
+    click_only 0/1/2   2.378 -> 0.499   2.194 -> 0.488   1.591 -> 0.439   (4.77x 4.50x 3.62x)
+    buttons    0/1/2   2.318 -> 0.775   2.207 -> 0.479   2.361 -> 0.681   (2.99x 4.61x 3.47x)
+    default    0/1/2   24.85 -> 24.72   36.93 -> 36.96   21.95 -> 21.78   (first 10 cycles 1.7-2.2x)
+
+**THE PRECONDITION WAS A WINDOW ERROR, AND IT IS WHY DEFAULT DID NOT MOVE.** *76.3% of all
+candidates priced* was counted on EARLY default cycles and carried to the whole run unstated --
+the same class as the 30-cycle panels, now on cost. Late (cycles 30-59, seed 0), cost-alone
+refusals are **0.0% of mint on every cycle**: `base` grows with the unexplained residual until no
+chain reaches it, so the cut has nothing left to skip. **Also corrected: the small-world speed-up
+was posted as 2.3-4.8x for an hour and quoted back; nothing in the data produces 2.3.**

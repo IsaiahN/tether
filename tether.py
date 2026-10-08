@@ -5974,6 +5974,7 @@ class Agent:
 
     def _mint(self, slot: str) -> None:
         _priced0 = self._priced              # every candidate priced in THIS mint, trees included
+        skipped = 0                          # chains whose trees were never generated: see the cut
         # THE RECIPES ALREADY HELD, once per mint rather than per candidate. A library Term's
         # chain is its atoms joined; `enumerate_closure` yields BARE chains, so `cand.name` is
         # exactly this key. O(library) against a per-candidate walk that is orders larger.
@@ -6197,7 +6198,17 @@ class Agent:
                             #
                             # **A SECOND PRE-EXISTING DEFECT, NOT A CHANGE TO THE BOUND** --
                             # reported as such. A route that opens onto a crash is not open.
-                            for bt in self._trees(cand, bind, g):
+                            #
+                            # **AND NO TREE OF A CHAIN WHOSE OWN COST ALREADY REACHES `base` CAN
+                            # PAY -- 2026-10-05.** `gamma.length(tree)` is the chain's length plus
+                            # its operand tree's, and the guard bits are the same pair, so the
+                            # chain's cost bounds every tree's from below. Skipping them changes
+                            # no outcome: a refused tree writes no book and no cut. It DOES move
+                            # `candidates_priced`, which counts this work -- so that figure is not
+                            # comparable across the cut, and `trees_skipped_chains` counts the
+                            # chains skipped (the trees themselves cannot be counted ungenerated).
+                            skipped += cost >= base
+                            for bt in (() if cost >= base else self._trees(cand, bind, g)):
                                 if self.gamma.is_atom(bt) or bt.name in self.gamma.library:
                                     continue
                                 # THE GUARD PRICE APPLIES HERE TOO. `_trees` carries `g`
@@ -6468,6 +6479,7 @@ class Agent:
         # it is not the mint's work. `candidates_priced` is: every `_cannot_pay` call this mint.
         detail = {"guards": guards, "candidates_seen": seen, "candidates_tried": rank,
                   "candidates_priced": self._priced - _priced0,
+                  "trees_skipped_chains": skipped,
                   "contest": contest,
                   # **`cuts` IS A SAMPLE AND `cut_counts` IS THE POPULATION -- `F413`.**
                   # The twelve are kept for their NAMES and RANKS, which is what a reader
@@ -6535,6 +6547,7 @@ class Agent:
                 self.owed_import.add(slot)
                 self.abstained[slot] = {"depth": self.cfg.max_depth, "candidates": seen,
                                         "priced": self._priced - _priced0,
+                                        "trees_skipped_chains": skipped,
                                         "coverage": detail["coverage"],
                                         "verdict": detail["verdict"],
                                         "units_then": stats.get("units", 0),
