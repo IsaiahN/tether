@@ -2472,7 +2472,20 @@ class Agent:
         name, deg_after = self.env.objective()
 
         res: dict[str, SlotResidual] = {}
+        # WHAT IS STILL LISTED, unreadable values included -- `observe` strips NOT_RESOLVED, so
+        # `after` alone cannot tell an object gone from a reading the channel could not take.
+        listed = set(self.env.slots()) if any(s not in after for s in betting) else ()
         for s in betting:
+            # A READING THE CHANNEL COULD NOT TAKE IS SUSPENDED, NOT CHARGED -- Fig 10, the
+            # reviewer 2026-10-07 (F493). The key is still listed, so the object is here and only
+            # its value is unreadable: no bet is scored and no residual claimed, and the row says
+            # so. Measured before: `o0.rem_row` billed 3.0 bits as a vanished object.
+            if s not in after and s in listed:
+                self.led.record(self.cycle, "PERCEIVE", s, "bet", channel=TRANSITION,
+                                of=(s,), from_value=before[s], predicted=pred[s],
+                                suspended=True, mass=0.0, bound=self.bound.get(s, NO_CHANGE),
+                                meant=(intent.says() if intent is not None else None))
+                continue
             # A SLOT THAT VANISHED UNDER THE BET IS UNEXPLAINED, not absent. The object was
             # there when the bet was made and is gone now, which is a full code's worth of
             # correction -- and `death only on evidence` means it went because its cells were

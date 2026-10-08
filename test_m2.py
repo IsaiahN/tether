@@ -1416,6 +1416,36 @@ def check_the_precondition_refuses_a_spectator():
         "a term that answers the open observation differently MUST pass, or nothing ever mints")
 
 
+
+def check_an_unreadable_reading_is_suspended_not_charged():
+    """DEFECT: a reading that turned unreadable while its object was still there was billed a full
+    code as a vanished OBJECT (`observe` strips NOT_RESOLVED; the bet loop read the absence as
+    death). Measured: `o0.rem_row` charged 3.0 bits on a no-move frame (F493). Fig 10: a missing
+    reading is a channel fact. CONTROL: an object whose key leaves the listing is still charged."""
+    def run(drop_key: bool):
+        ag = _agent()
+        env = ag.env
+        slot = next(s for s in sorted(env.observe()) if s.endswith(".row"))
+        state = {"after": False}
+        obs, stp, lst = env.observe, env.step, env.slots
+        env.step = lambda *a, **k: (state.update(after=True), stp(*a, **k))[1]
+        env.observe = lambda: {k: v for k, v in obs().items()
+                               if not (state["after"] and k == slot)}
+        env.slots = lambda: [k for k in lst() if not (drop_key and state["after"] and k == slot)]
+        n0 = len(ag.led.entries)
+        ag.step()
+        rows = [e for e in ag.led.entries[n0:]
+                if e.slot == slot and e.step == "PERCEIVE" and e.event == "bet"]
+        assert rows, f"fixture: no bet on {slot} this cycle, so nothing was tested"
+        return rows[-1].detail
+    kept = run(drop_key=False)
+    assert kept.get("suspended") and not kept.get("vanished") and kept.get("mass") == 0.0, (
+        f"a reading the channel could not take was charged: {kept}")
+    gone = run(drop_key=True)
+    assert gone.get("vanished") and not gone.get("suspended") and gone.get("mass", 0) > 0, (
+        f"an object whose key left the listing was not charged: {gone}")
+
+
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
 
 if __name__ == "__main__":
