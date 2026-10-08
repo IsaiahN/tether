@@ -270,6 +270,10 @@ class Atom:
     # therefore accepts a SET, and duplicating atoms per type was the alternative: `units()`
     # dedups on name, so that would have put the type into the term's identity and its handle.
     also_accepts: tuple[str, ...] = ()
+    # (target type, operand type) pairs THIS atom's operation admits beyond the target's own type
+    # and `sensors.COMMENSURABLE`, which every same-as-target operand shares. Directed: a position
+    # plus an extent is a position, an extent plus a position is nothing (the reviewer 2026-10-08).
+    operand_pairs: tuple[tuple[str, str], ...] = ()
     # WHICH `Ctx` FIELDS THIS ATOM READS -- DECLARED AT CONSTRUCTION, NEVER INFERRED, which is
     # `reads_operand`'s rule and for `reads_operand`'s reason.
     #
@@ -472,6 +476,13 @@ class Term:
         # `random` rather than a wall clock, so nothing here reads the outside world.
         h = "".join(random.choices("0123456789abcdef", k=8))
         return f"{game}_{letters}_{kind}_{h}"
+
+    @property
+    def operand_pairs(self) -> tuple:
+        for a in self.atoms:
+            if a.reads_operand:
+                return a.operand_pairs
+        return ()
 
     @property
     def operand_type(self) -> str | None:

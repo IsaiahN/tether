@@ -57,7 +57,7 @@ from __future__ import annotations
 import sys
 
 from gamma import SAME_AS_TARGET, Atom, Ctx
-from sensors import COLOUR
+from sensors import COLOUR, EXTENT, POSITION
 
 sys.dont_write_bytecode = True
 
@@ -123,7 +123,9 @@ def predict() -> list[Atom]:
             # operand must be whatever the target is. A row plus a colour is arithmetic
             # that type-checks and means nothing.
             Atom("translate", _translate, "val", "val", reads_operand=True,
-                 operand_type=SAME_AS_TARGET, reads_ctx=("operands",)),
+                 operand_type=SAME_AS_TARGET, reads_ctx=("operands",),
+                 # a position moved by an extent along its axis is a position: its far edge
+                 operand_pairs=((POSITION, EXTENT),)),
             # `v -> operand` puts the operand IN the slot, so it must be a colour whatever
             # the target is. THIS IS THE DEFECT'S OWN SITE: `idn . recolour<o11.h>`.
             Atom("recolour", _recolour, "val", "val", reads_operand=True,

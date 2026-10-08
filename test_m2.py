@@ -2182,6 +2182,31 @@ def check_the_library_partner_is_ordered_after_contact_before_variance():
         tether._LOOKUP_ORDER = was
 
 
+
+def check_a_position_plus_an_extent_is_a_position_and_nothing_else_widens():
+    """A CONVENTION, SO TESTED BOTH WAYS (Fig 10). `translate` may add an extent to a position
+    -- `row + h` is the object's far edge -- and only in that direction, and only for the
+    additive atom: an extent plus a position, a colour plus an extent, and a COMPARISON of a
+    position with an extent stay refused as before."""
+    env = ArcWorld(_Ring(), arc_percept.Objects(),
+                   arc_atoms.three_spaces(arc_predict.predict()), palette=PALETTE, platform=())
+    ag = tether.Agent(env, gamma.Gamma(env.atoms(), game="m2test"),
+                      tether.Config(accumulate=False))
+    st = env.observe()
+    o = next(s for s, v in st.items() if s.endswith(".colour") and v == 3).rsplit(".", 1)[0]
+    row, h, colour = f"{o}.row", f"{o}.h", f"{o}.colour"
+    by = ag.gamma._by_name
+    fits = lambda atom, target, bind: ag._operand_fits(  # noqa: E731
+        gamma.Term((by[atom],), operand=bind), target, bind)
+    assert fits("translate", row, h), "a position plus an extent was refused"
+    edge = by["translate"].fn(st[row], ag._eval_ctx(row, st, action=None, operands=(st[h],)))
+    assert edge == st[row] + st[h] == 7, f"row + h read {edge}, not the far edge 7"
+    assert not fits("translate", h, row), "an extent plus a position was admitted"
+    assert not fits("translate", colour, h), "a colour plus an extent was admitted"
+    assert not fits("above", row, h), "a COMPARISON of a position with an extent was admitted"
+    assert not fits("same", row, h), "an EQUALITY of a position with an extent was admitted"
+
+
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
 
 if __name__ == "__main__":

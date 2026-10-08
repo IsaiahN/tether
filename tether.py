@@ -6343,7 +6343,8 @@ class Agent:
         if want == G_SAME:
             want = self.slot_types.get(target)
         return (want is None or got is None or want == got
-                or frozenset((want, got)) in COMMENSURABLE)
+                or frozenset((want, got)) in COMMENSURABLE
+                or (want, got) in getattr(cand, "operand_pairs", ()))
 
     def _bindings(self, slot: str, robs: list) -> list[str | None]:
         """Which slots may fill operand 0, ordered by VARIANCE and never filtered.
