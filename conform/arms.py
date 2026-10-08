@@ -132,6 +132,10 @@ ARMS: dict[str, str] = {
                                  "local terms' birth cycles and took M2 to 27/30. Spelled `NO_` "
                                  "so the inversion is in the NAME. The OFF arm is the non-zero "
                                  "control the null needs",
+    "TETHER_CELL_CHANGE": "WHERE a matched object's cells changed -- added/removed counts and "
+                          "centroids, read only where identity is sure. OFF until measured: it "
+                          "adds six slots per object and six atoms, so it prices every term "
+                          "(F492)",
     "TETHER_DELTA_KEY": "route (b) re-keyed on this frame's delta",
     "TETHER_DELTA_OPERANDS": "deltas offered as operands",
     "TETHER_GUARD_AXIS": "the guard axis in the reject key",
