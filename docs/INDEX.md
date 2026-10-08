@@ -56967,3 +56967,17 @@ Refusals were priced on every seed; **none paid** (s0 172, s1 143, s2 117 attemp
 **Next, as ordered:** the bargain step with two-operand terms -- a lit junction offered as an operand ordering on the residual's target, after contact, before variance, never excluding; refuter per game "does any game gain a paying goal that relates its slot to a second quantity?" (the second link reader, sha256 e2bc51cd6cf2ef8a).
 
 **FIGURE CENSUS.** Fig 9 -- "matching is a one-pass check, not a search" and "Nobody chooses. The gap does": the residual's own description selects. Fig 12 -- "a bigger space, not a bigger vocabulary": the fan-out is cut before enumeration; and Fig 12's test for "either", "remove one. Does it still work?", needs the result, so it is not read on two operands. Fig 4 -- the key crosses as types and arity, never a slot name. Strained: Fig 9 -- the description carries arity and the varying types but not symmetry or scale (queued, the reviewer 22:53Z).
+
+#### F506 -- **THE SHAPE READINGS MEMOISED THROUGH THE EXISTING `_perceived`/`_SHAPE_MEMO`: the late-step cost halved on the fake, byte-identical behaviour proven by an equality control over every memo hit (the reviewer 2026-10-07; Fig 8's search remedy, not a cut).**
+
+**The cost.** Late steps grew slow: on the fake (solo, 40 actions) steps 21-40 averaged 26.11 s. F481 had memoised most shape readings, and four were left out -- `_rotated`, `_reflected`, `_square` and the mode-of-group reading -- each recomputed on every candidate.
+
+**Built (`arc_atoms.py` only).** The four become module-level functions read through the same `_perceived` memo F481 installed; `_rot`/`_ref` decode and encode outside it; `_is_square` is memoised; `_is_mode` is keyed on `(value, tuple(group))`, falling back to a fresh computation on an unhashable value. Nothing else changes.
+
+**Timing (fake, solo, 40 actions; wiring, a single world).** Steps 21-40: 26.11 s -> 13.90 s mean. The whole run: 557.8 s -> 311.2 s.
+
+**Equality control (pre-registered; F481's form).** Every memo hit recomputed fresh and compared, over the fake run to completion. TRUE key: 27,676,981 hits, ZERO mismatches (is_mode 25,015,107; bbox_area and corners 524,204 each; holes 450,362; perimeter 413,578; orbit_size 304,352; is_square 134,391; symmetric 125,719; canonical 70,536; reflect and rotate 57,264 each). DELIBERATELY COARSE key (must fail -- it keeps the cell count and drops the cells): 14,310 mismatches, all on rotate. So the control can see a wrong key, and the true key shows none.
+
+**Byte comparison (pre-registered).** Rebased onto 95a79e6 (F508). The panel was regenerated with the memo and compared with F508's own panel ledgers on the same code without it: ALL FOUR BYTE-IDENTICAL -- fake 10,426,282 bytes (sha256 6f44d02444352cbe); gridworld s0 5,920,104 (6286f9d928bbf297); s1 5,399,876 (8f3f07ddefcd3873); s2 4,591,272 (f61014c3b34c7894). So the memo changes nothing the agent writes on any panel world.
+
+**FIGURE CENSUS.** Fig 8 -- "the remedy is more search, not another atom": a cost met by making the search cheaper, never by perceiving less. Fig 2 -- "two instruments pointed at the same thing are": the memo and a fresh computation, compared on every hit. Strained: none.
