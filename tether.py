@@ -15,6 +15,7 @@ import math
 import os
 import re
 import sys
+import time
 from collections import Counter
 from dataclasses import dataclass, field
 from dataclasses import replace as _replace
@@ -1063,6 +1064,11 @@ class Agent:
         self._hold_eligible = 0
         self._priced = 0                     # candidates priced by `_cannot_pay`, ever
         self._memo: dict | None = None       # live only inside one `mint` -- see `mint`
+        self._evaluated = 0                  # `_value_of` calls, ever -- the second unit of work
+        # SEAT INSTRUMENT, READ BY NO DECISION AND WRITTEN TO NO LEDGER: per mint, the cycle, the
+        # slot, candidates priced, evaluations, and measured seconds (the reviewer 2026-10-08
+        # 12:38Z, the per-game calibration of the work units).
+        self.cost_log: list[tuple] = []
         self._hold_withheld = 0
         # **AND THE KEY-LEVEL DENOMINATOR BESIDE IT, because the coin is flipped per
         # (cycle, slot) and NOT per occasion.** Several eligible occasions can share one
@@ -2544,6 +2550,7 @@ class Agent:
         One function, four callers, for `_record`'s reason -- a bet and a price that disagree
         about what a term MEANS is not a disagreement any test names.
         """
+        self._evaluated += 1
         if getattr(term, "out_type", "val") == OBJ_TYPE:
             ordered = self.slot_types.get(slot) in ORDERED_TYPES
             def _sat(v: int) -> bool | None:
@@ -6455,10 +6462,13 @@ class Agent:
         so no row can be freed and its id reused while the memo lives. Byte-identical by
         construction; checked on four worlds."""
         self._memo = {}
+        p0, v0, t0 = self._priced, self._evaluated, time.perf_counter()
         try:
             return self._mint(slot)
         finally:
             self._memo = None
+            self.cost_log.append((self.cycle, slot, self._priced - p0, self._evaluated - v0,
+                                  time.perf_counter() - t0))
 
     def _mint(self, slot: str) -> None:
         _priced0 = self._priced              # every candidate priced in THIS mint, trees included
