@@ -2142,6 +2142,20 @@ def check_the_lookup_is_keyed_by_the_residual():
     assert composer.lookup({"o3.colour": "COLOUR"})["pairs"] == [], "a colour-only gap lit a pair"
 
 
+
+def check_a_press_records_where_it_landed():
+    """DEFECT: a positioned press left no trace of where it went, so "nothing changed" could not
+    be told from "nothing was pressed there" (ft09, 2026-10-07). The record names the cell, the
+    object the press is attributed to, and every object whose box covers the cell; an action with
+    no position records none."""
+    state = {"o0.row": 0, "o0.col": 0, "o0.h": 63, "o0.w": 64,
+             "o1.row": 2, "o1.col": 4, "o1.h": 6, "o1.w": 6}
+    got = tether._press((5, 3), state, None)
+    assert got == {"x": 5, "y": 3, "landed": None, "under": ["o0", "o1"]}, got
+    assert tether._press((40, 40), state, "o0")["under"] == ["o0"], "outside o1, read as in it"
+    assert tether._press(None, state, None) is None, "an unpositioned action recorded a press"
+
+
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
 
 if __name__ == "__main__":

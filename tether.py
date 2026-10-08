@@ -626,6 +626,20 @@ def round_trip_gap(t_a, state: dict[str, int], alphabet: dict[str, int]) -> floa
     return total
 
 
+def _press(coord, state: dict | None, landed: str | None) -> dict | None:
+    """Where a positioned press went: its cell, the object it is attributed to, and every
+    object whose box covers the cell. Read off the state the press was made in."""
+    if coord is None or not state:
+        return None
+    x, y = int(coord[0]), int(coord[1])
+    objs = {k.rsplit(".", 1)[0] for k in state if k.endswith(".row")}
+    under = sorted(o for o in objs
+                   if all(f"{o}.{a}" in state for a in ("row", "col", "h", "w"))
+                   and state[f"{o}.row"] <= y < state[f"{o}.row"] + state[f"{o}.h"]
+                   and state[f"{o}.col"] <= x < state[f"{o}.col"] + state[f"{o}.w"])
+    return {"x": x, "y": y, "landed": landed, "under": under}
+
+
 def term_bits(k: int, alphabet: int, bonds: int = BONDS) -> float:
     return (k + 1) * math.log2(alphabet + 1) + (k - 1) * math.log2(max(bonds, 1))
 
@@ -2602,6 +2616,7 @@ class Agent:
         # caught it. `_aimed` is set when the action is realised and cleared at the top of
         # the step, so here it is THIS step's aim -- the same value the trace row records.
         self._last_landed = self.iface._acted(getattr(self, "_aimed", None), before)
+        self._press_seen = _press(getattr(self, "_aimed", None), before, self._last_landed)
         # **WHO MADE THIS PREDICTION -- the reviewer, 2026-10-04. PROVENANCE APPLIED TO
         # EVIDENCE.** Captured HERE, at the moment of the claim, because `route` binds
         # AFTER `perceive` returns and `settle` judges on THIS residual: a term bound
@@ -7773,6 +7788,7 @@ class Agent:
         # in the shape that looks like a working aim.
         self._aimed = None
         self._last_landed = None
+        self._press_seen = None
         if action is None:
             action, by = self.choose(before)
         self._acts[action] += 1   # System-0 instrument: the concrete action distribution
@@ -7975,6 +7991,9 @@ class Agent:
                         # and parsing a rendering to recover a value the loop already holds is
                         # the reconstruction `transcript.py` exists to refuse.
                         action=action,
+                        # WHERE IT LANDED (Fig 11, the habitat's half; the reviewer 2026-10-08
+                        # 02:30Z). `None` for an action with no position.
+                        press=getattr(self, "_press_seen", None),
                         # WHO OFFERED IT: the game by declaration, or the platform in every
                         # state (RESET, F477). None where the world cannot say.
                         provenance=getattr(self.env, "provenance", lambda _a: None)(action),

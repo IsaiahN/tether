@@ -56981,3 +56981,15 @@ Refusals were priced on every seed; **none paid** (s0 172, s1 143, s2 117 attemp
 **Byte comparison (pre-registered).** Rebased onto 95a79e6 (F508). The panel was regenerated with the memo and compared with F508's own panel ledgers on the same code without it: ALL FOUR BYTE-IDENTICAL -- fake 10,426,282 bytes (sha256 6f44d02444352cbe); gridworld s0 5,920,104 (6286f9d928bbf297); s1 5,399,876 (8f3f07ddefcd3873); s2 4,591,272 (f61014c3b34c7894). So the memo changes nothing the agent writes on any panel world.
 
 **FIGURE CENSUS.** Fig 8 -- "the remedy is more search, not another atom": a cost met by making the search cheaper, never by perceiving less. Fig 2 -- "two instruments pointed at the same thing are": the memo and a fresh computation, compared on every hit. Strained: none.
+
+#### F509 -- **WHERE EVERY PRESS LANDS, ON THE RECORD: each step row carries the press's cell, the object it is attributed to, and every object whose box covers the cell -- part (a) of the novel-bin remedy, decision-identical (the reviewer 2026-10-08 02:18Z, 02:30Z).**
+
+**The gap.** ft09 stops at perception: none of its 650 object readings changed in 40 cycles, and the agent closed exploration with "nothing unknown here". The ledger could not say where its clicks went -- one row named a target at cycle 0 and none after -- so the reading needed a spy on the world's step: ACTION6 at (0,0), on the 64-wide background, then at (4,2), the corner cell of one 6x6 tile, each followed by a RESET.
+
+**Built.** `tether._press(coord, state, landed)`: the cell, the object `iface._acted` attributes the press to (which names one only when the cell is that object's anchor), and `under`, every object whose box covers the cell, read off the state the press was made in. Computed where the landing already is (before the prediction), cleared with the aim at the top of each step, and written as `press` on every `repeat` row; an action with no position records `None`. Read by nothing: decision-identical.
+
+**Fixture (M2), red under its defect.** A planted background and 6x6 tile: a cell inside the tile records both objects under it and no attributed object; a cell outside records only the background; an unpositioned action records none. Must-fail: drop the box-cover test and `under` comes back empty. On ft09 (2 cycles, offline): "ACTION6, press x 0 y 0, landed o0, under [o0]"; "RESET, press None".
+
+**What it serves.** The novel-bin remedy's (b)-(d) -- a verdict carrying its closure ("no press of mine changed anything, over K of N perceived objects"), the probe aimed at objects not yet pressed, RESET left to the agent -- come after the bargain step, and need this record to be readable.
+
+**FIGURE CENSUS.** Figure 11 (Figure_11_The_Habitat) -- "capability is a property of agent-and-habitat, never of the agent alone": where a press lands is the habitat's half, now recorded. Figure 13 (Figure_13_The_Minimum_Viable_Set) -- "Unreachable is a verdict here, not a silence": the verdict (b) states, which needs the presses on the record. Strained: none.
