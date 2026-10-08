@@ -3069,7 +3069,8 @@ class Agent:
         self._outstanding[slot] = have - took
         return round(took, 3), round(max(0.0, bits - have), 3)
 
-    def _left(self, term: Term, slot: str, hist, ceiling: float | None = None) -> float:
+    def _left(self, term: Term, slot: str, hist, ceiling: float | None = None,
+              offset: float = 0.0) -> float:
         """What the term leaves unexplained across the slot's history, in bits.
 
         `ceiling` IS AN EXACT ABORT, NOT AN APPROXIMATION. Every term added here is
@@ -3079,10 +3080,16 @@ class Agent:
         have won. The winner is bit-identical; only the losers stop early.
 
         Default `None` leaves every existing caller walking the full history.
+
+        **`offset` MAKES IT `pays`' OWN EXPRESSION -- 2026-10-06.** `mint` passes `ceiling=base,
+        offset=cost`, so the abort is `cost + total >= base`, never `total >= base - cost`,
+        which can disagree with `pays` at the last ulp. Float addition is monotone, so a
+        partial total that fails `pays` is a full one that fails it. No mint site reads
+        `left` from a term that does not pay. Default 0.0 adds exactly nothing.
         """
         total = 0.0
         for state, action, actual, intent, landed in hist:
-            if ceiling is not None and total >= ceiling:
+            if ceiling is not None and offset + total >= ceiling:
                 return total
             if not self._applies(term, state):
                 total += math.log2(self.alphabet[slot])   # inapplicable is unexplained
@@ -5974,6 +5981,7 @@ class Agent:
 
     def _mint(self, slot: str) -> None:
         _priced0 = self._priced              # every candidate priced in THIS mint, trees included
+        skipped = 0                          # chains whose trees were never generated: see the cut
         # THE RECIPES ALREADY HELD, once per mint rather than per candidate. A library Term's
         # chain is its atoms joined; `enumerate_closure` yields BARE chains, so `cand.name` is
         # exactly this key. O(library) against a per-candidate walk that is orders larger.
@@ -6197,7 +6205,17 @@ class Agent:
                             #
                             # **A SECOND PRE-EXISTING DEFECT, NOT A CHANGE TO THE BOUND** --
                             # reported as such. A route that opens onto a crash is not open.
-                            for bt in self._trees(cand, bind, g):
+                            #
+                            # **AND NO TREE OF A CHAIN WHOSE OWN COST ALREADY REACHES `base` CAN
+                            # PAY -- 2026-10-05.** `gamma.length(tree)` is the chain's length plus
+                            # its operand tree's, and the guard bits are the same pair, so the
+                            # chain's cost bounds every tree's from below. Skipping them changes
+                            # no outcome: a refused tree writes no book and no cut. It DOES move
+                            # `candidates_priced`, which counts this work -- so that figure is not
+                            # comparable across the cut, and `trees_skipped_chains` counts the
+                            # chains skipped (the trees themselves cannot be counted ungenerated).
+                            skipped += cost >= base
+                            for bt in (() if cost >= base else self._trees(cand, bind, g)):
                                 if self.gamma.is_atom(bt) or bt.name in self.gamma.library:
                                     continue
                                 # THE GUARD PRICE APPLIES HERE TOO. `_trees` carries `g`
@@ -6208,7 +6226,7 @@ class Agent:
                                          + _guard_bits(g, len(_gs) - 1, len(_refs)))
                                 if self._cannot_pay(bt, slot, robs, bcost, base, rkey):
                                     continue
-                                bleft = self._left(bt, slot, hist)
+                                bleft = self._left(bt, slot, hist, base, bcost)
                                 if not pays(bcost, bleft, base):
                                     continue
                                 btotal = bcost + bleft
@@ -6235,7 +6253,7 @@ class Agent:
                                 if best is None or btotal < best[0]:
                                     best = (btotal, bleft, bcost, bt)
                             continue
-                        left = self._left(term, slot, hist)
+                        left = self._left(term, slot, hist, base, cost)
                         # §4's TREE, AND THIS IS ITS FIRST PRODUCER. `operand_term` was
                         # DECLARED, RENDERED, PRICED and APPLIED (`_ops`, :914) with ZERO sites
                         # constructing one -- so every term the agent has ever composed is a
@@ -6284,7 +6302,7 @@ class Agent:
                             # the bound was already correct.
                             if self._cannot_pay(bt, slot, robs, bcost, base, rkey):
                                 continue
-                            bleft = self._left(bt, slot, hist)
+                            bleft = self._left(bt, slot, hist, base, bcost)
                             if not pays(bcost, bleft, base):
                                 continue
                             btotal = bcost + bleft
@@ -6468,6 +6486,7 @@ class Agent:
         # it is not the mint's work. `candidates_priced` is: every `_cannot_pay` call this mint.
         detail = {"guards": guards, "candidates_seen": seen, "candidates_tried": rank,
                   "candidates_priced": self._priced - _priced0,
+                  "trees_skipped_chains": skipped,
                   "contest": contest,
                   # **`cuts` IS A SAMPLE AND `cut_counts` IS THE POPULATION -- `F413`.**
                   # The twelve are kept for their NAMES and RANKS, which is what a reader
@@ -6535,6 +6554,7 @@ class Agent:
                 self.owed_import.add(slot)
                 self.abstained[slot] = {"depth": self.cfg.max_depth, "candidates": seen,
                                         "priced": self._priced - _priced0,
+                                        "trees_skipped_chains": skipped,
                                         "coverage": detail["coverage"],
                                         "verdict": detail["verdict"],
                                         "units_then": stats.get("units", 0),
