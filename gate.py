@@ -35,6 +35,7 @@ UNDECLARED_DEATH = "undeclared-death"
 REFUSED_UNBOUND = "refused-unbound"
 ABANDONED_ON_ANOTHERS_CLAIM = "abandoned-on-anothers-claim"
 JUDGED_ON_ANOTHER_ACT = "judged-on-another-act"
+ALIASED = "aliased"
 
 # KEPT IN STEP WITH `ledger.STEPS`, WHICH IS THE DUPLICATION AND NOT A CHOICE MADE HERE.
 # The gate is meant to be readable without importing the thing it checks, so the constant is
@@ -63,7 +64,7 @@ def _v(check: str, token: str, seq: int | None = None, note: str = "") -> dict:
 def check(rows: list[dict]) -> dict:
     """Returns {"verdict": pass|refuse, ...}. The FIRST refusal is the named one."""
     for fn in (_mode, _steps, _inputs, _routing, _guards, _settlement, _filters, _cuts,
-               _unreached, _experiment, _refusals, _abandonments):
+               _unreached, _experiment, _refusals, _abandonments, _aliasing):
         out = fn(rows)
         if out is not None:
             return out
@@ -276,6 +277,29 @@ def _abandonments(rows: list[dict]) -> dict | None:
         if "set_on_act" in d and d.get("set_on_act") != d.get("judged_after_act"):
             return _v("abandonments", JUDGED_ON_ANOTHER_ACT, r.get("seq"),
                       f"{d.get('set_on_act')} != {d.get('judged_after_act')}")
+    return None
+
+
+def _aliasing(rows: list[dict]) -> dict | None:
+    """13. Two different things the world showed on one slot are never read as one (the
+    reviewer 2026-10-07 23:24Z). Read from OBSERVATIONS only -- never the term's output, which
+    may wrap on purpose -- under the alphabet each was priced with. Rows that do not record their
+    alphabet (ledgers older than this check) are not judged."""
+    seen: dict[str, set] = {}
+    for r in rows:
+        d = r.get("detail", {})
+        if r.get("event") != "bet" or "alphabet" not in d or d.get("vanished"):
+            continue
+        a, n, slot = d.get("actual"), int(d["alphabet"]), r.get("slot")
+        if a is None or n <= 0:
+            continue
+        prior = seen.setdefault(slot, set())
+        if d.get("from_value") is not None:     # the value before is an observation too
+            prior.add(d["from_value"])
+        clash = sorted(v for v in prior if v != a and (v - a) % n == 0)
+        if clash:
+            return _v("aliasing", ALIASED, r.get("seq"), f"{slot}: {clash[0]} and {a} under {n}")
+        prior.add(a)
     return None
 
 

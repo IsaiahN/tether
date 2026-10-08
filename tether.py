@@ -1169,6 +1169,10 @@ class Agent:
         # normal reading, not a missing one: most cycles change no slots.
         self._came: tuple[str, ...] = ()
         self._gone: tuple[str, ...] = ()
+        # THE TERM'S OWN OUTPUT, before the alphabet's modulo. The row writes this beside the
+        # observation so both sides are in one form; a residue beside a raw value read a correct
+        # bet as a miss twice on 2026-10-07 (the reviewer 23:30Z, Fig 13).
+        self._pred_raw: dict[str, int] = {}
         self.abstained: dict[str, dict] = {}
         self.candidates: dict[str, int] = {}     # term -> cycle accepted, awaiting the ground
         # WHERE THE EVIDENCE CAME FROM. Isaiah 2026-09-30: candidates survive a level change,
@@ -2483,7 +2487,10 @@ class Agent:
                              touching=self._touching(slot), landed=self._last_landed,
                              guard_ref=term.guard_ref)
         got = self._value_of(term, slot, state, ctx)
-        return None if got is NOT_RESOLVED else got % self.alphabet[slot]
+        if got is NOT_RESOLVED:
+            return None
+        self._pred_raw[slot] = got
+        return got % self.alphabet[slot]
 
     def _standing(self, slot: str) -> None:
         """HELD AND CITED ARE TWO ROWS, not one. A candidate may be held -- bound, and
@@ -2581,6 +2588,7 @@ class Agent:
         # term the habitat says is TRUE (`o1.colour` +1 mod 4 on 21 of 21 own clicks).
         self._pred_by = {s: self.bound.get(s) for s in betting}
         pred = {s: self._predict(s, before, action) for s in betting}
+        raw = {s: self._pred_raw.get(s) for s in betting if pred[s] is not None}
         # A SLOT THE BOUND TERM CANNOT READ IS NOT BET ON. §12.2's non-reading has to reach
         # somewhere that acts on it, or it is a sentinel that propagates into a shrug.
         for s in [s for s in betting if pred[s] is None]:
@@ -2602,6 +2610,10 @@ class Agent:
         else:
             self.env.step(action)
         after = self.env.observe()
+        # RE-READ AFTER THE OBSERVATION, BEFORE ANYTHING IS PRICED: a label the step created
+        # was priced under the count from before it existed, so a new shape 8 read as 0 under
+        # 8 and the miss cost nothing (8 of 12 games, 2026-10-07).
+        self.alphabet = self._alphabets(self.env)
         # JOB B's HALF THAT RUNS TODAY: this action does not have ONE fixed effect.
         # **I WROTE HERE THAT IT CANNOT FIRE ON GRIDWORLD AND THE RUN DISPROVED IT** -- four
         # times in eight steps, because `down` is sometimes BLOCKED. The rule is invariant and
@@ -2642,8 +2654,9 @@ class Agent:
             # so. Measured before: `o0.rem_row` billed 3.0 bits as a vanished object.
             if s not in after and s in listed:
                 self.led.record(self.cycle, "PERCEIVE", s, "bet", channel=TRANSITION,
-                                of=(s,), from_value=before[s], predicted=pred[s],
-                                suspended=True, mass=0.0, bound=self.bound.get(s, NO_CHANGE),
+                                of=(s,), from_value=before[s], predicted=raw.get(s),
+                                predicted_code=pred[s], suspended=True, mass=0.0,
+                                bound=self.bound.get(s, NO_CHANGE),
                                 meant=(intent.says() if intent is not None else None))
                 continue
             # A SLOT THAT VANISHED UNDER THE BET IS UNEXPLAINED, not absent. The object was
@@ -2663,7 +2676,8 @@ class Agent:
             # just never on the row, so nothing could tell the two apart.
             self.led.record(self.cycle, "PERCEIVE", s, "bet", channel=TRANSITION,
                             of=(s,),
-                            from_value=before[s], predicted=pred[s], actual=actual,
+                            from_value=before[s], predicted=raw.get(s), actual=actual,
+                            predicted_code=pred[s], alphabet=self.alphabet[s],
                             **({"vanished": True} if gone else {}),
                             mass=r.bits, cause=self._cause(s, r.bits),
                             # NOT `IDN`: an unbound slot rests on a persistence prior,

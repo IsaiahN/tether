@@ -130,8 +130,15 @@ def wire(w, game: str, *, cfg: Any = None, led_path: str | None = None,
     fr = getattr(w, "observation_space", None) or w.reset()
     board = fr.frame[-1]
     # the palette is READ, never assumed: it is the domain's fact and a constant here would
-    # be a magic number wearing an adapter's clothes.
-    palette = int(max(int(v) for row in board for v in row)) + 1
+    # be a magic number wearing an adapter's clothes. READ FROM WHAT THE ENVIRONMENT DECLARES
+    # IT CAN SHOW, and the first board only where it declares nothing: a colour first shown
+    # later wrapped onto 0 under a palette sized from frame one (the reviewer 2026-10-07 23:24Z).
+    try:
+        from arc_agi.rendering import COLOR_MAP
+        declared = len(COLOR_MAP)
+    except ImportError:
+        declared = 0
+    palette = max(declared, int(max(int(v) for row in board for v in row)) + 1)
 
     # **SET BEFORE THE ATOM SET IS BUILT, AND THE FIRST PLACEMENT WAS WRONG.** `three_spaces`
     # reads `_ITERATE` on the line below; the flag originally sat forty lines further down with

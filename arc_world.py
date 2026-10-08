@@ -594,14 +594,18 @@ class ArcWorld:
                 out[s] = 2 * h
             elif key == "dcol":
                 out[s] = 2 * w
-            elif key in ("row", "h", "add_row", "rem_row"):
+            elif key in ("h", "w"):
+                # AN EXTENT IS 0..side INCLUSIVE: an object can fill the board, and a
+                # full-width object's 64 read as 0 under 64 and every miss on it was HELD.
+                out[s] = (h if key == "h" else w) + 1
+            elif key in ("row", "add_row", "rem_row"):
                 # THE DELTA FIX, EXTENDED TO WHERE IT STOPPED SHORT. The paragraph above says
                 # it for the deltas -- *a displacement ranges over the board, not the palette*
                 # -- and `row`, `col`, `h` and `w` fell through to the palette anyway. Same
                 # collision, different slot family: 64 rows under a 16-colour palette makes
                 # `row 3` and `row 19` read alike under `correction_bits`' modulo.
                 out[s] = h
-            elif key in ("col", "w", "add_col", "rem_col"):
+            elif key in ("col", "add_col", "rem_col"):
                 out[s] = w
             elif key in ("add_n", "rem_n"):
                 out[s] = h * w + 1          # a cell count, 0 to the whole board

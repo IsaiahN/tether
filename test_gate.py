@@ -432,6 +432,34 @@ def test_judged_on_another_act():
     _refuses(_abandoned(7, 7, set_on=3, judged=4), gate.JUDGED_ON_ANOTHER_ACT)
 
 
+def _observed(*pairs):
+    r = valid()
+    for i, (actual, alphabet) in enumerate(pairs):
+        r.insert(1 + i, {"mode": "specified", "seq": 20 + i, "cycle": 0, "step": "PERCEIVE",
+                         "slot": "o0.shape", "event": "bet",
+                         "detail": {"mass": 0.0, "actual": actual, "alphabet": alphabet}})
+    return r
+
+
+def test_distinct_observations_under_one_residue_are_aliased():
+    """A shape label 0 and a label 8 priced under 8 labels read as one (2026-10-07)."""
+    _refuses(_observed((0, 8), (8, 8)), gate.ALIASED)
+
+
+def test_the_value_before_is_an_observation():
+    """The first reading arrives as a bet's value-before, never as an actual (ar25, cycle 0)."""
+    r = valid()
+    r.insert(1, {"mode": "specified", "seq": 20, "cycle": 0, "step": "PERCEIVE",
+                 "slot": "o0.shape", "event": "bet",
+                 "detail": {"mass": 0.0, "from_value": 0, "actual": 8, "alphabet": 8}})
+    _refuses(r, gate.ALIASED)
+
+
+def test_observations_the_alphabet_separates_pass():
+    """The same two labels once the count includes the new one; and a signed value is its own."""
+    assert gate.check(_observed((0, 9), (8, 9), (-2, 9)))["verdict"] == gate.PASS
+
+
 def test_declared_death_passes():
     """The same death WITH its disproof stated is the experiment §21.2 licenses."""
     r = valid()

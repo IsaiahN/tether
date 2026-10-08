@@ -1501,6 +1501,61 @@ def check_every_attribute_declares_its_alphabet():
 
 
 
+def _ranges(h: int, w: int, palette: int, shapes: int, levels: int, oldest: int) -> dict:
+    """WHAT EACH ATTRIBUTE CAN READ, from the board's bounds and nothing the alphabet computes.
+    Inclusive. A position is 0..side-1; an EXTENT is 0..side, because an object can fill the
+    board (the off-by-one that read a full-width object's width as 0, the reviewer 23:12Z)."""
+    hw = h * w
+    return {"row": (0, h - 1), "add_row": (0, h - 1), "rem_row": (0, h - 1),
+           "col": (0, w - 1), "add_col": (0, w - 1), "rem_col": (0, w - 1),
+           "h": (0, h), "w": (0, w),
+           "drow": (1 - h, h - 1), "dh": (1 - h, h - 1),
+           "dcol": (1 - w, w - 1), "dw": (1 - w, w - 1),
+           "dcells": (-hw, hw), "dholes": (-hw, hw), "dperimeter": (-4 * hw, 4 * hw),
+           "speed": (0, max(h, w) - 1), "bbox": (0, hw), "contact": (0, 2 * hw),
+           "add_n": (0, hw), "rem_n": (0, hw),
+           "colour": (0, palette - 1), "colour_changed": (0, 1), "inside": (0, 1),
+           "completed": (0, levels), "shape": (0, shapes - 1),
+           "age": (0, oldest), "stability": (0, oldest)}
+
+
+def _uncovered(alpha: dict, ranges: dict) -> list:
+    """Attributes whose range has two values the alphabet reads as one."""
+    return sorted(k for k, (lo, hi) in ranges.items() if hi - lo + 1 > alpha[k])
+
+
+def check_every_alphabet_covers_its_range():
+    """DEFECT, THE GENUS (the reviewer 2026-10-07 23:12Z): declared is not COVERING. Three
+    alphabet defects in one day each let two readings share a residue, so a miss was priced at
+    zero bits and filed held -- the last, a full-board object's width 64 read as 0 on 11 of 12
+    games. Every registered attribute's range is taken from the board's bounds, and every value
+    in it must stay distinct under the declared alphabet; one short must be refused.
+
+    IT VOUCHES ONLY FOR THE BOARD-BOUNDED ATTRIBUTES. Colour, shape, goal and age take their
+    range here from the same source as their alphabet, so for them it can only agree -- the
+    gate's aliasing check over observed values is their witness."""
+    env = ArcWorld(_Two(), arc_percept.Objects(),
+                   arc_atoms.three_spaces(arc_predict.predict()), palette=PALETTE, platform=())
+    env.step(env.actions()[0])
+    keys = set(arc_atoms.ATTRIBUTE_TYPE) | set(arc_percept._CHANGE_ATTRS)
+    oldest = 9
+    env._decomposed = lambda: {f"o0.{k}": (oldest if k == "age" else 0) for k in keys}
+    alpha = {s.split(".", 1)[1]: v for s, v in env.alphabet().items()}
+    b = env.board()
+    shapes = max(1, len(getattr(env._decompose, "_shapes", ()) or ()))
+    ranges = _ranges(len(b), len(b[0]), PALETTE, shapes, 3, oldest)
+    assert set(ranges) == keys, f"an attribute with no range here: {sorted(keys ^ set(ranges))}"
+    bad = _uncovered(alpha, ranges)
+    assert not bad, f"alphabet shorter than the range: {[(k, ranges[k], alpha[k]) for k in bad]}"
+    for k, (lo, hi) in ranges.items():
+        assert lo == hi or tether.correction_bits(lo, hi, alpha[k]) > 0, (
+            f"{k}: {lo} and {hi} read alike")
+    k = "w"
+    short = dict(alpha, **{k: ranges[k][1] - ranges[k][0]})
+    assert _uncovered(short, ranges) == [k], "fixture: an alphabet one short was not refused"
+
+
+
 class _Ring:
     """A synthetic fixture, no ARC content: one 3x3 object that opens a hole and closes it again,
     so its hole count and perimeter change by +1/+4 and then -1/-4."""
