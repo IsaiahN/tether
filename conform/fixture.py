@@ -146,8 +146,8 @@ def probe(habitat: str = "toy") -> dict[str, bool]:
     # -- DECOMPOSE: a want that could not be acted on yielding one that can -------------
     _step = tether.objective_step
 
-    def step(evaluate, current, ordered, alphabet):
-        out = _step(evaluate, current, ordered, alphabet)
+    def step(evaluate, current, ordered, domain):
+        out = _step(evaluate, current, ordered, domain)
         if out is not tether.NOT_RESOLVED:
             hit["DECOMPOSE"] = True
         return out

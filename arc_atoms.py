@@ -32,7 +32,7 @@ import sys
 from dataclasses import replace
 from typing import Any
 
-from arc_percept import holes_of, perimeter_of
+from arc_percept import _CELL_CHANGE, holes_of, perimeter_of
 from gamma import HANDED, SAME_AS_TARGET, Atom, Ctx
 from sensors import (
     BOOL,
@@ -173,6 +173,33 @@ ATTRIBUTE_TYPE = {"colour": COLOUR, "row": POSITION, "col": POSITION,
                   # holds or it does not; the bare word `containment` is retired -- `arc_world`
                   # publishes BBOX overlap as `bbox` and refuses bbox containment separately.
                   "inside": BOOL}
+# WHERE A MATCHED OBJECT'S CELLS CHANGED -- arm `TETHER_CELL_CHANGE`, default OFF (`arc_percept`).
+# The counts are EXTENT (no COUNT in the set, `contact`'s reason); the centroids are POSITION, so
+# they compose where `row`/`col` already do. REGISTERED ONLY UNDER THE ARM: every key here becomes
+# an atom, so an unconditional entry would change every term's price with the arm off.
+if _CELL_CHANGE:
+    ATTRIBUTE_TYPE.update({"add_n": EXTENT, "rem_n": EXTENT, "add_row": POSITION,
+                           "add_col": POSITION, "rem_row": POSITION, "rem_col": POSITION})
+
+# AN ATTRIBUTE'S ATOM EXISTS ONLY WHERE ITS ARM PUBLISHES IT -- F503, the reviewer 2026-10-07. Every
+# key above becomes an atom, and each atom widens the alphabet every term is priced over; on the
+# shipped ARC path ten of them had no attribute behind them. Read at CONSTRUCTION, not import:
+# `arc_holdout.wire` turns the shape-delta arm on at runtime, before it builds the atoms.
+# attribute -> (module, flag) that publishes it; anything not listed is always published.
+ATTRIBUTE_ARM = {
+    **dict.fromkeys(("dh", "dw", "dcells", "colour_changed"), ("arc_percept", "_OBSERVER")),
+    **dict.fromkeys(("contact", "bbox", "inside"), ("arc_world", "_OBSERVER")),
+    **dict.fromkeys(("dholes", "dperimeter"), ("arc_percept", "_SHAPE_DELTA")),
+    **dict.fromkeys(("age", "speed", "stability"), ("arc_percept", "_INSTRUMENTS")),
+}
+
+
+def _published(attr: str) -> bool:
+    arm = ATTRIBUTE_ARM.get(attr)
+    if arm is None:
+        return True
+    mod = sys.modules.get(arm[0])
+    return bool(getattr(mod, arm[1], False)) if mod is not None else False
 
 
 # THE ADMITTING CLAUSE, PER ATOM, RECORDED WHERE THE ATOM IS DECLARED.
@@ -308,6 +335,7 @@ CLAUSE_ONE = frozenset({
     "completed", "colour_changed", "contact", "touching",
     # the deltas -- what CHANGED. Without them there is no residual to price.
     "drow", "dcol", "dh", "dw", "dcells", "dholes", "dperimeter",
+    "add_n", "rem_n", "add_row", "add_col", "rem_row", "rem_col",
     # the object record, and the relations over peers
     "owner", "above", "same", "other",
     # the quantifiers. §12.4 notes the set held ∀, ∃ and ¬∃ before any connective did.
@@ -358,7 +386,7 @@ def _extract() -> list[Atom]:
     # `obj` -- the record carries EVERY attribute of the owner, so an extract atom varies
     # with its owner's other slots and may not claim invariance to them.
     return [Atom(k, pick(k), OBJECT, t, reads_ctx=("obj",))
-            for k, t in ATTRIBUTE_TYPE.items()]
+            for k, t in ATTRIBUTE_TYPE.items() if _published(k)]
 
 
 def _owner() -> list[Atom]:
@@ -420,22 +448,66 @@ def _transform() -> list[Atom]:
     #
     # AND THEY ENCODE ON THE WAY OUT, which is `F242`'s unfixed half: the slot holds an id, so
     # returning a frozenset is what made `correction_bits` raise on `%`.
+    # The transform is a pure function of the cell set, memoised (F506, as F481); the decode and
+    # the encode read the context and stay outside, as `canonical`'s encoding does.
     def _rot(v: Any, c: Ctx) -> Any:
         v = _as_shape(v, c)
         if not isinstance(v, frozenset) or not v:
             return NOT_RESOLVED
-        m = max(r for r, _ in v)
-        return _to_shape_id(frozenset((cc, m - r) for r, cc in v), c)
+        return _to_shape_id(_perceived("rotate", _rotated, v), c)
 
     def _ref(v: Any, c: Ctx) -> Any:
         v = _as_shape(v, c)
         if not isinstance(v, frozenset) or not v:
             return NOT_RESOLVED
-        m = max(cc for _, cc in v)
-        return _to_shape_id(frozenset((r, m - cc) for r, cc in v), c)
+        return _to_shape_id(_perceived("reflect", _reflected, v), c)
 
     return [Atom("rotate", _rot, SHAPE, SHAPE),
             Atom("reflect", _ref, SHAPE, SHAPE)]
+
+
+# PERCEPTION, READ ONCE PER FRAME (F481; the reviewer, 2026-10-06). A shape reading is a property
+# of a cell set -- never of the candidate being priced -- so the mint's pricing re-perceived the
+# same objects 127,176 times in 25 cycles (75% of the run). Keyed on the FULL input, the cell set
+# itself, so no value can go stale; cleared at each new frame (`new_frame`), which only bounds it.
+_SHAPE_MEMO: dict = {}
+
+
+def _perceived(name: str, fn: Any, v: frozenset) -> Any:
+    key = (name, v)
+    try:
+        return _SHAPE_MEMO[key]
+    except KeyError:
+        out = _SHAPE_MEMO[key] = fn(v)
+        return out
+
+
+def _rotated(v: frozenset) -> frozenset:
+    m = max(r for r, _ in v)
+    return frozenset((cc, m - r) for r, cc in v)
+
+
+def _reflected(v: frozenset) -> frozenset:
+    m = max(cc for _, cc in v)
+    return frozenset((r, m - cc) for r, cc in v)
+
+
+def _square(v: frozenset) -> bool:
+    rs = [r for r, _ in v]
+    cs = [c for _, c in v]
+    h = max(rs) - min(rs) + 1
+    w = max(cs) - min(cs) + 1
+    return h == w and len(v) == h * w
+
+
+def _mode_of(vg: tuple) -> bool:
+    v, g = vg
+    return sum(1 for x in g if x == v) >= max(sum(1 for x in g if x == y) for y in set(g))
+
+
+def new_frame() -> None:
+    """A new frame: drop the shape readings of the last. Called by `ArcWorld.step`."""
+    _SHAPE_MEMO.clear()
 
 
 def _as_shape(v: Any, c: Ctx) -> Any:
@@ -524,7 +596,7 @@ def _shape_facts() -> list[Atom]:
         v = _as_shape(v, _c)        # ARM I, which this atom was omitted from -- see `_as_shape`
         if not isinstance(v, frozenset) or not v:
             return NOT_RESOLVED
-        return holes_of(v)
+        return _perceived("holes", holes_of, v)
 
     def _parity(v: Any, _c: Ctx) -> Any:
         return NOT_RESOLVED if not isinstance(v, int) else bool(v % 2)
@@ -606,32 +678,38 @@ def _shape_more() -> list[Atom]:
     """
     _shape = _as_shape          # the module-level decoder; see its note on `holes`
 
+    def _bbox_of(v: frozenset) -> int:
+        rs = [r for r, _ in v]
+        cs = [c for _, c in v]
+        return (max(rs) - min(rs) + 1) * (max(cs) - min(cs) + 1)
+
     def _bbox(v: Any, _c: Ctx) -> Any:
         v = _shape(v, _c)
         if not isinstance(v, frozenset) or not v:
             return NOT_RESOLVED
-        rs = [r for r, _ in v]
-        cs = [c for _, c in v]
-        return (max(rs) - min(rs) + 1) * (max(cs) - min(cs) + 1)
+        return _perceived("bbox_area", _bbox_of, v)
 
     def _perimeter(v: Any, _c: Ctx) -> Any:
         # Body in `arc_percept.perimeter_of` -- same one-implementation reason as `_holes`.
         v = _shape(v, _c)
         if not isinstance(v, frozenset) or not v:
             return NOT_RESOLVED
-        return perimeter_of(v)
+        return _perceived("perimeter", perimeter_of, v)
 
-    def _corners(v: Any, _c: Ctx) -> Any:
-        v = _shape(v, _c)
-        # A CONVEX CORNER is a cell with two orthogonal neighbours missing.
-        if not isinstance(v, frozenset) or not v:
-            return NOT_RESOLVED
+    def _corners_of(v: frozenset) -> int:
         n = 0
         for r, c in v:
             up, dn = (r-1, c) in v, (r+1, c) in v
             lf, rt = (r, c-1) in v, (r, c+1) in v
             n += sum(1 for a, b in ((up, lf), (up, rt), (dn, lf), (dn, rt)) if not a and not b)
         return n
+
+    def _corners(v: Any, _c: Ctx) -> Any:
+        v = _shape(v, _c)
+        # A CONVEX CORNER is a cell with two orthogonal neighbours missing.
+        if not isinstance(v, frozenset) or not v:
+            return NOT_RESOLVED
+        return _perceived("corners", _corners_of, v)
 
     def _dihedral(v: frozenset) -> list:
         out, cur = [], v
@@ -651,30 +729,30 @@ def _shape_more() -> list[Atom]:
             return NOT_RESOLVED
         # ENCODED BACK TO THE PUBLISHED ID -- `_shape` decoded on the way in and nothing
         # encoded on the way out, so this returned a frozenset into a slot holding an int.
-        return _to_shape_id(min(_dihedral(v), key=lambda f: sorted(f)), _c)
+        form = _perceived("canonical", lambda w: min(_dihedral(w), key=sorted), v)
+        return _to_shape_id(form, _c)
 
     def _orbit(v: Any, _c: Ctx) -> Any:
         v = _shape(v, _c)
         if not isinstance(v, frozenset) or not v:
             return NOT_RESOLVED
-        return len(set(_dihedral(v)))
+        return _perceived("orbit_size", lambda w: len(set(_dihedral(w))), v)
+
+    def _mirror_equal(v: frozenset) -> bool:
+        m = max(c for _, c in v)
+        return frozenset((r, m - c) for r, c in v) == v
 
     def _symmetric(v: Any, _c: Ctx) -> Any:
         v = _shape(v, _c)
         if not isinstance(v, frozenset) or not v:
             return NOT_RESOLVED
-        m = max(c for _, c in v)
-        return frozenset((r, m - c) for r, c in v) == v
+        return _perceived("symmetric", _mirror_equal, v)
 
     def _is_square(v: Any, _c: Ctx) -> Any:
         v = _shape(v, _c)
         if not isinstance(v, frozenset) or not v:
             return NOT_RESOLVED
-        rs = [r for r, _ in v]
-        cs = [c for _, c in v]
-        h = max(rs) - min(rs) + 1
-        w = max(cs) - min(cs) + 1
-        return h == w and len(v) == h * w
+        return _perceived("is_square", _square, v)
 
     return [Atom("bbox_area", _bbox, SHAPE, EXTENT),
             Atom("perimeter", _perimeter, SHAPE, EXTENT),
@@ -838,7 +916,10 @@ def _group_more() -> list[Atom]:
         g = _g(c)
         if not g:
             return NOT_RESOLVED
-        return sum(1 for x in g if x == v) >= max(sum(1 for x in g if x == y) for y in set(g))
+        try:                                  # the FULL input is the value AND its group (F506)
+            return _perceived("is_mode", _mode_of, (v, tuple(g)))
+        except TypeError:                     # an unhashable input is computed, never keyed
+            return _mode_of((v, g))
 
     def _is_max(v: Any, c: Ctx) -> Any:
         g = _g(c)
@@ -1066,7 +1147,10 @@ def three_spaces(predict: list[Atom]) -> list[Atom]:
             f"what named the gap and why no chain yields it, or add the name to `CLAUSE_ONE` "
             f"if the loop cannot run without it. The ablation partitions by which clause let "
             f"a thing in and that cannot be rebuilt afterwards.")
-    phantom = sorted(n for n in _admitted if n not in seen)
+    # AN ATTRIBUTE ATOM WHOSE ARM IS OFF IS GATED, NOT PHANTOM (F498): it is declared and built
+    # whenever its arm publishes it. A name with no construction anywhere still fires here.
+    phantom = sorted(n for n in _admitted if n not in seen
+                     and not (n in ATTRIBUTE_TYPE and n in ATTRIBUTE_ARM and not _published(n)))
     if phantom:
         raise ValueError(
             f"`ADMITTED` names atoms that were never built: {phantom}. `inside` sat here for "

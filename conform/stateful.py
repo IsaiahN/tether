@@ -375,15 +375,21 @@ def test_the_atom_order_is_pinned():
     # at all, so three stages of the end-to-end fixture were dead on one cause. **APPENDED, in
     # the safe direction this test names**, so every prior prefix and every term identity taken
     # under the old order is intact. `snaps` is untouched and is pinned at the original eight.
+    # `act` LEFT `world` ON 2026-10-06 -- a REMOVAL, the one direction this test exists to
+    # refuse, taken deliberately: `act` handed the agent what each action does (the ruling
+    # `act` IS A HANDED ANSWER). Every term identity and number taken on `world` under the old
+    # order is renumbered by it, recorded in INDEX as moved. `snaps` keeps the original eight.
     BASE = ["idn", "inc", "dec", "dbl", "neg", "act", "wrap", "take"]
+    WORLD = ["idn", "inc", "dec", "dbl", "neg", "wrap", "take"]
     ORDERS = {"snaps": BASE,
-              "world": [*BASE, "same", "other", "above", "all", "any", "none"]}
+              "world": [*WORLD, "same", "other", "above", "all", "any", "none"]}
     for mod in (snaps, world):
         pinned = ORDERS[mod.__name__]
+        base = BASE if mod is snaps else WORLD
         got = [a.name for a in mod._atoms()]
-        assert got[:len(BASE)] == BASE, (
-            f"{mod.__name__}._atoms() begins {got[:len(BASE)]}, and the pinned prefix is "
-            f"{BASE}. A name was INSERTED or MOVED: every stored term and every measurement "
+        assert got[:len(base)] == base, (
+            f"{mod.__name__}._atoms() begins {got[:len(base)]}, and the pinned prefix is "
+            f"{base}. A name was INSERTED or MOVED: every stored term and every measurement "
             "taken under the old order now means something else.")
         assert got == pinned, (
             f"{mod.__name__}._atoms() is {got}, pinned as {pinned}. If a name was APPENDED, "
@@ -650,11 +656,14 @@ def test_the_admitting_clause_crosses_into_gamma():
 
     atoms = arc_atoms.three_spaces(arc_predict.predict())
     got = Gamma(atoms, game="clause").admissions()
-    assert got.get(HANDED) == len(arc_atoms.ADMITTED), (
+    # Only the admitted atoms that were BUILT: since F503 an atom whose arm is off is never
+    # constructed (`inside` follows `arc_world._OBSERVER`), so it cannot be filed either way.
+    handed = {a.name for a in atoms} & set(arc_atoms.ADMITTED)
+    assert got.get(HANDED) == len(handed), (
         f"the admitting clause did not cross into Gamma: {got}. Every atom reads "
         f"`necessary` -- the category the ablation stays BLIND to -- while "
-        f"`arc_atoms.ADMITTED` names {len(arc_atoms.ADMITTED)} that were handed")
-    assert got.get(NECESSARY) == len(atoms) - len(arc_atoms.ADMITTED), (
+        f"`arc_atoms.ADMITTED` names {len(handed)} built atoms that were handed")
+    assert got.get(NECESSARY) == len(atoms) - len(handed), (
         f"the clause-one population is wrong: {got}. If this is `handed` for everything "
         f"the default inverted and the base vocabulary is filed in the WIPED category")
 
@@ -2067,6 +2076,166 @@ def test_a_relational_slot_never_uses_tier_2_and_says_nothing_instead():
         "still returned nothing, so the delta assertion was not demonstrating the guard")
 
 
+def test_a_miss_on_a_never_settled_slot_is_a_miss_not_a_refusal():
+    """Isaiah's (c) split, per (term, slot) as A5 rules it: a term settled on o0 that
+    mispredicts on o1, where it never settled, has MISSED there -- it has not been refused.
+    Booked as a refusal it lowered the term's track record everywhere (F465)."""
+    import gamma
+
+    st = gamma.Standing(last_tick=0)
+    st.settled_at = 0
+    st.settled_on.add("o0")
+    st.refute(1, slot="o1")
+    st.refute(2, slot="o1")
+    assert st.refusals == 0.0 and st.misses > 0.0, (st.refusals, st.misses)
+    assert not st.refusals_on.get("o1"), st.refusals_on
+    assert "o0" in st.settled_on, "a miss elsewhere must not touch standing on o0"
+
+
+def test_b5_does_not_judge_a_last_cycle_park_and_still_judges_an_earlier_one():
+    """B5's boundary (F467): a no_support park in the LAST recorded cycle has no later
+    cycle in which a probe could exist, so B5 does not judge it -- and the SAME park with a
+    later cycle and no probe is judged and FAILS, so the narrowing did not blind it."""
+    import kernel
+
+    def b5(rows):
+        return next(c.fn for c in kernel.CHECKS if c.cid == "B5")(rows)
+
+    park = {"event": "park", "slot": "s", "cycle": 3, "detail": {"verdict": "no_support"}}
+    bad, seen = b5([park])
+    assert (bad, seen) == ([], 0), (bad, seen)
+    bad, seen = b5([park, {"event": "bet", "slot": "s", "cycle": 4, "detail": {}}])
+    assert seen == 1 and bad == ["s: support at zero and no probe followed"], (bad, seen)
+
+
+def test_an_invented_atom_is_skipped_on_load_and_counted():
+    """Isaiah, 2026-10-06 (decision 6): invented atoms are skipped on load and counted,
+    never re-invented -- a replayed delta is a recorded effect table carried as a method.
+    The file carries a VALID licence, so the old loop WOULD re-invent it: the check can see
+    the difference (F466)."""
+    import json as _json
+    import pathlib
+    import tempfile
+
+    import gamma
+
+    inc = gamma.Atom("inc", lambda v, _c: v + 1, "val", "val")
+    blob = {"terms": [{"atoms": ["inc", "zz"], "origin": "minted", "guard": None,
+                       "operand": None, "handle": "h1", "game": "A",
+                       "admitted": "accepted", "residual": "s@0"}],
+            "invented": {"zz": {"delta": {"1": 2}, "verdict": "budget_spent"}},
+            "vindication": [], "book": {}}
+    with tempfile.TemporaryDirectory() as d:
+        path = pathlib.Path(d) / "lib.json"
+        path.write_text(_json.dumps(blob), encoding="utf-8")
+        g = gamma.Gamma([inc], game="B")
+        rep = g.load(str(path))
+    assert "zz" not in {a.name for a in g.atoms}, "an invented atom entered the alphabet"
+    assert rep.get("skipped_invented") == ["zz"], rep
+    assert [x["atoms"] for x in rep.get("built_on_skipped_invention", [])] == [["inc", "zz"]]
+
+
+def test_a_loaded_term_is_imported_even_under_the_same_game_name():
+    """No game identity read by any decision: origin is decided by PROVENANCE -- this run
+    loaded the term -- never by comparing the game it was saved under (F468)."""
+    import pathlib
+    import tempfile
+
+    import gamma
+
+    inc = gamma.Atom("inc", lambda v, _c: v + 1, "val", "val")
+    src = gamma.Gamma([inc], game="same_game_name")
+    src.accept(gamma.Term(atoms=(inc, inc)), seq=0, residual="s@0")
+    with tempfile.TemporaryDirectory() as d:
+        path = str(pathlib.Path(d) / "lib.json")
+        src.save(path)
+        dst = gamma.Gamma([inc], game="same_game_name")
+        dst.load(path)
+    t = dst.library["inc . inc"]
+    assert t.origin == gamma.IMPORTED, t.origin
+
+
+def test_a_guard_object_does_not_cross_silently():
+    """A guard's object is a binding on THIS board: it does not cross a game, and its loss is
+    NAMED in the load report -- a claim must not travel changed and silent (F469)."""
+    import pathlib
+    import tempfile
+
+    import gamma
+
+    inc = gamma.Atom("inc", lambda v, _c: v + 1, "val", "val")
+    src = gamma.Gamma([inc], game="A")
+    src.accept(gamma.Term(atoms=(inc,), guard=gamma.ACTED_SELF, guard_ref="o1"), seq=0,
+               residual="s@0")
+    with tempfile.TemporaryDirectory() as d:
+        path = str(pathlib.Path(d) / "lib.json")
+        src.save(path)
+        dst = gamma.Gamma([inc], game="B")
+        rep = dst.load(path)
+    lost = rep.get("guard_object_lost") or []
+    assert [(x["guard"], x["object"]) for x in lost] == [(gamma.ACTED_SELF, "o1")], rep
+    assert all(not t.guard_ref for t in dst.library.values()), "a guard object crossed"
+
+
+def test_a_tree_crosses_as_a_schema_and_types_compose_through_it():
+    """The operand TREE is a method and crosses as a typed schema; the slot it was bound to
+    does not (F470). (a) save/load keeps the tree, unbound, under a name a flat chain never
+    has; (b) re-binding carries it; (c) type-fit composes through the inner chain."""
+    import pathlib
+    import tempfile
+    import types
+
+    import gamma
+    import tether
+
+    f = gamma.Atom("f", lambda v, _c: v, "val", "val", reads_operand=True,
+                   operand_type="POSITION")
+    g = gamma.Atom("g", lambda v, _c: v, "val", "val")
+    tree = gamma.Term(atoms=(f,), operand="o1.row", operand_term=gamma.Term((g,)))
+    src = gamma.Gamma([f, g], game="A")
+    src.accept(tree, seq=0, residual="s@0")
+    with tempfile.TemporaryDirectory() as d:
+        path = str(pathlib.Path(d) / "lib.json")
+        src.save(path)
+        dst = gamma.Gamma([f, g], game="B")
+        dst.load(path)
+    schema = dst.library.get("f<g(:POSITION)>")
+    assert schema is not None, sorted(dst.library)
+    assert schema.operand_term is not None and schema.operand is None
+    assert schema.name != gamma.Term((f,)).name, "a schema shares a name with its flat chain"
+
+    me = types.SimpleNamespace(slots=["o0.row", "o2.row"], slot_types={},
+                               _operand_fits=lambda *_a: True)
+    rebound = [t for t in tether.Agent._rebindings(me, schema, "o0.row") if t.operand]
+    assert any(t.operand_term is not None and t.operand == "o2.row" for t in rebound), rebound
+
+    colour = gamma.Atom("hue", lambda v, _c: v, "COLOUR", "COLOUR")
+    bad = gamma.Term(atoms=(f,), operand="b", operand_term=gamma.Term((colour,)))
+    fit = types.SimpleNamespace(slot_types={"a": "POSITION", "b": "POSITION"})
+    assert not tether.Agent._operand_fits(fit, bad, "a", "b"), "an ill-typed inner joint fit"
+    assert tether.Agent._operand_fits(fit, tree, "a", "b"), "a well-typed tree was refused"
+
+
+def test_a_per_slot_refusal_decays_like_the_term():
+    """Isaiah, 2026-09-24: *a decay or a ratio, never a cliff* -- asserted on the LIVE path,
+    which always passes a slot (`tether.py:6960`), so `refusals_on` is what the ceiling reads.
+    `fa3cba6`'s table: two refusals a halflife apart SURVIVE. The control runs the same
+    history with decay switched off and must UNSETTLE, or this test cannot see the defect."""
+    import gamma
+
+    def history(halflife):
+        st = gamma.Standing(last_tick=0)
+        st.settled_at = 0
+        st.settled_on.add("o1")
+        h = int(gamma.REJECTION_HALFLIFE)
+        st.refute(1, halflife=halflife, slot="o1")
+        st.refute(1 + h, halflife=halflife, slot="o1")
+        return "o1" in st.settled_on
+
+    assert history(None), "two per-slot refusals a halflife apart unsettled the term: a cliff"
+    assert not history(float("inf")), "control did not unsettle: the history cannot show a cliff"
+
+
 if __name__ == "__main__":
     if "--cover" in sys.argv:
         for label, c in (("kernel.Frame", coverage()),
@@ -2097,6 +2266,13 @@ if __name__ == "__main__":
         test_the_residual_bound_loses_nothing()
         test_the_resolutions_offered_are_not_the_answer()
         test_the_atom_order_is_pinned()
+        test_a_per_slot_refusal_decays_like_the_term()
+        test_a_tree_crosses_as_a_schema_and_types_compose_through_it()
+        test_a_guard_object_does_not_cross_silently()
+        test_a_loaded_term_is_imported_even_under_the_same_game_name()
+        test_an_invented_atom_is_skipped_on_load_and_counted()
+        test_b5_does_not_judge_a_last_cycle_park_and_still_judges_an_earlier_one()
+        test_a_miss_on_a_never_settled_slot_is_a_miss_not_a_refusal()
         test_the_promotion_clause_is_recorded()
         test_the_mutation_observer_reaches_the_agent()
         test_a_mutation_moves_attention_and_never_the_action()

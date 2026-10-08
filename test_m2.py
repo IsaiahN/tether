@@ -22,6 +22,8 @@ from arcengine import FrameDataRaw, GameState
 import arc_atoms
 import arc_percept
 import arc_predict
+import arc_world
+import composer
 import gamma
 import routine as Rt
 import tether
@@ -41,7 +43,7 @@ class _Two:
 
     def _frame(self):
         f = FrameDataRaw(game_id="m2test", state=GameState.NOT_FINISHED, levels_completed=0,
-                         win_levels=3, available_actions=[0, 1, 2, 3])
+                         win_levels=3, available_actions=[1, 2, 3])
         b = np.zeros((SIDE, SIDE), dtype=int)
         b[2][self.n] = 3
         b[4][self.n + 1] = 5
@@ -100,8 +102,14 @@ def _agent(cycles: int = 25):
     rebuilding.
     """
     if cycles not in _BUILT:
+        # **`platform=()` IS PINNED FOR THE SAME REASON, DEMONSTRATED 2026-10-06 (F477).** With
+        # the platform's RESET in the set, SEVEN checks fail here; pinned out,
+        # all pass. A green m2 does not certify RESET in the set. (`_Two` declared RESET as
+        # id 0, which no game does -- 22 of 22 -- and the old filter hid it; it declares
+        # [1, 2, 3], the set it always effectively offered.)
         env = ArcWorld(_Two(), arc_percept.Objects(),
-                       arc_atoms.three_spaces(arc_predict.predict()), palette=PALETTE)
+                       arc_atoms.three_spaces(arc_predict.predict()), palette=PALETTE,
+                       platform=())
         # **`system0=False` IS PINNED HERE, AND IT IS THE FIXTURE'S ASSUMPTION MADE EXPLICIT
         # RATHER THAN A CHECK WEAKENED.** System 0 became the default on 2026-09-25 and three
         # checks here failed with `fixture:` -- their OWN guard for *the setup did not reach the
@@ -689,15 +697,63 @@ def check_the_tree_is_judged_by_its_own_bound():
     # with the repair, so a reader must not find a switch that no longer gates anything.
     assert not hasattr(tether, "_TREE_BOUND"), "the workaround arm survived the repair"
 
-    # 3 -- AND THE BOUNDED-OUT BRANCH OFFERS TREES UNCONDITIONALLY NOW, which is the route
-    # opening. Read from the source, because no board reaches it today (F348: `_trees` at 0).
-    src = pathlib.Path(tether.__file__).read_text(encoding="utf-8")
-    seg = src[src.index("bounded-out: cannot pay on R alone"):]
-    # The delimiter is the call's PREFIX: `_left` may take more arguments (the exact abort,
-    # F445) and the segment must still end at the chain's `_left`. Asserted unchanged.
-    seg = seg[:seg.index("left = self._left(term, slot, hist")]
-    assert "for bt in self._trees(" in seg, "the bounded-out branch no longer offers trees"
-    assert "if self._cannot_pay(bt," in seg, "the tree is not judged by its OWN bound"
+    # 3 -- THE RULING'S SUBSTANCE, NOT ITS LETTER (decision 2, 2026-10-06): NO TREE THAT COULD PAY
+    # IS WITHHELD. This asserted a source string -- that the bounded-out branch calls `_trees` --
+    # which any exact cut trips. Now behavioural, on a real mint, in two halves that together
+    # imply it: (i) a refused term whose trees were NOT offered already cost `base` on its own;
+    # (ii) a tree never costs less than its chain (`gamma.length` adds the operand, or is 1 for
+    # a settled unit either way). The planted violation, `withhold`, proves (i) can fire.
+    assert _withheld_trees_could_not_pay() > 0, "fixture: no mint refused anything to check"
+    try:
+        _withheld_trees_could_not_pay(withhold=True)
+    except AssertionError as e:
+        assert "withheld" in str(e), e
+    else:
+        raise AssertionError("PLANTED: trees withheld under a payable chain, and nothing fired")
+
+
+def _withheld_trees_could_not_pay(withhold: bool = False) -> int:
+    """Mint every slot of a warmed agent, recording each refused term and each tree request;
+    assert (i) and (ii) above. `withhold` plants the violation: no trees offered at all.
+
+    **THE FRONTIER IS CLEARED FIRST -- approved by the reviewer, 2026-10-07 12:15Z.** F485's
+    frontier lets a mint REPLAY chains the warm-up already priced; under arm J the warm-up priced
+    every chain these mints need, so nothing was re-priced and there was nothing to observe. Three
+    reasons this is setup and not a weakened check: (1) the assertion -- no tree that could pay is
+    withheld -- is untouched; (2) it is non-vacuous under both arms: the planted violation fires
+    with arm J on and off; (3) what it steps around is the frontier's SKIP, whose exactness is
+    guarded separately (F485), so a fresh enumeration loses nothing the frontier could hide."""
+    ag = _agent()
+    ag._frontiers = {}
+    units = tuple(ag.gamma.units())
+    refused, asked = [], set()
+    real_cp, real_trees = ag._cannot_pay, ag._trees
+
+    def cp(term, slot, robs, cost, base, *a, **k):
+        out = real_cp(term, slot, robs, cost, base, *a, **k)
+        if out and term.operand_term is None:
+            refused.append((term, cost, base))
+        return out
+
+    def trees(cand, bind, g, slot=None):
+        if withhold:                  # withheld: asked for, never produced -- not offered
+            return []
+        asked.add((tuple(a.name for a in cand.atoms), bind, g))
+        built = list(real_trees(cand, bind, g, slot))
+        chain = tether.term_bits(ag.gamma.length(gamma.Term(cand.atoms), units), ag.gamma.alphabet)
+        for bt in built:
+            assert tether.term_bits(ag.gamma.length(bt, units), ag.gamma.alphabet) >= chain, (
+                f"(ii) a tree is cheaper than its chain: {bt.name}")
+        return built
+    ag._cannot_pay, ag._trees = cp, trees
+    for slot in sorted(ag.slots):
+        ag.mint(slot)
+    for term, cost, base in refused:
+        key = (tuple(a.name for a in term.atoms), term.operand, term.guard)
+        assert key in asked or cost >= base, (
+            f"(i) trees withheld under a chain that could still pay: {term.name} "
+            f"cost {cost:.2f} < base {base:.2f}")
+    return len(refused)
 
 
 def check_chunking_reaches_the_bargain():
@@ -797,6 +853,83 @@ def check_refutations_do_not_cross_a_boundary():
     ag.refuted_at[k] = 0.5
     ag.retarget(ag.env, ag.level + 1)
     assert not ag.refuted, "a refutation keyed on a dead slot name survived a boundary"
+
+
+def check_slot_keyed_state_does_not_cross_a_boundary():
+    """DEFECT: `retarget` clears the bindings and trends because *the slots did not survive*, and
+    kept seven stores keyed by those same slots -- so a want formed on the old level's `o1.dcol`
+    was read on the new level's `o1.dcol`."""
+    ag = _agent()
+    slot = "o1.dcol"
+    k = ag._reject_key(slot, Rt.Until(slot, Rt.Act("ACTION2"), 3))
+    ag.wants[slot] = "idn"
+    ag._want_terms[slot] = ag.gamma.library["idn"]
+    ag._reach_tested[k] = "tested_no"
+    ag._prev_gap[slot], ag._gap_delta[slot] = 3, -1
+    ag._undone[((), "BECOME o1.dcol +", slot, 0.5)] = 2
+    ag._undone_across[("BECOME o1.dcol +", slot)] = 2
+    ag.retarget(ag.env, ag.level + 1)
+    held = {n: getattr(ag, n) for n in ("wants", "_want_terms", "_reach_tested", "_prev_gap",
+                                         "_gap_delta", "_undone", "_undone_across")}
+    crossed = [n for n, v in held.items() if v]
+    assert not crossed, f"slot-keyed state crossed a boundary: {crossed}"
+
+
+def check_one_clock_at_the_agents_rate():
+    """DEFECT: two clocks. Terms decayed on the trace length, which a level boundary resets, so a
+    rejection FROZE at every boundary; routines decayed on the cycle at the module's seed rate,
+    while the agent's own halflife is measured in cycles (Isaiah 2026-09-30: the rate is its).
+    """
+    ag = _agent()
+    name = next(iter(ag.gamma.library))
+    ag.gamma.refute(name)
+    r0 = ag.gamma.rejection_of(name)
+    ag.retarget(ag.env, ag.level + 1)
+    for _ in range(3):
+        ag.step()
+    assert ag.gamma.rejection_of(name) < r0, "a term's rejection froze at a level boundary"
+    slot = _wide(ag)
+    k = ag._reject_key(slot, Rt.Until(slot, Rt.Act(ag.actions[1]), 1))
+    ag.refuted[k] = gamma.Standing(last_tick=ag.cycle, rejections=1.0)
+    ag.gamma.halflife = 2.0
+    ag.cycle += 2
+    assert abs(ag._rejection(k) - 0.5) < 1e-9, (
+        "a routine refutation decayed at a seed, not the agent's rate")
+
+
+def check_a_refusal_holds_until_the_scope_grows():
+    """DEFECT: a refused plan readmitted by a clock, with nothing new to try it with (Fig 6:
+    *it becomes reachable again only if something new is minted, which is growth*).
+
+    The exhaustion is driven through `choose`, as `check_a_refutation_is_a_row` drives it, so the
+    refusal is filed by the code that files it. The OLD filter is read beside the new one: one
+    cycle on, `_rejection` has decayed under 1.0 and would have readmitted the plan, which is
+    what makes the first half of this check non-vacuous.
+    """
+    ag = _agent()
+    slot = _wide(ag)
+    b = dict(ag.env.observe())
+    plan = Rt.Until(slot, Rt.Act(ag.actions[1]), 1)
+    ag.routine, ag.routine_for = plan, slot
+    for _ in range(4):
+        if ag.routine is None:
+            break
+        ag.choose(b)
+    assert ag._refusals, "fixture: the routine did not exhaust, so nothing was refused"
+    key, n_held = next((k, len(v)) for k, v in ag._refusals.items())
+    assert ag._refused(key), "a plan was not refused under the scope it failed in"
+    k = ag._reject_key(slot, plan, ag.routine_lib)
+    ag.cycle += 1
+    assert ag._rejection(k) < 1.0, "fixture: the old filter would not have readmitted it"
+    assert ag._refused(key), "a refused plan came back with the clock, nothing having grown"
+    ag.retarget(ag.env, ag.level + 1)
+    assert ag._refused(key), "an advance lifted a refusal about a plan's shape"
+    lib = ag.gamma.library
+    new = next(ag.gamma.build((a.name, a.name)) for t in list(lib.values()) for a in t.atoms[:1]
+               if f"{a.name} . {a.name}" not in lib)
+    ag.gamma.accept(new, seq=0, residual="fixture")
+    assert not ag._refused(key), "the scope grew and the refusal still excluded"
+    assert len(ag._refusals[key]) == n_held, "lifting a refusal removed it from the record"
 
 
 
@@ -918,9 +1051,8 @@ def check_the_accumulation_commits_where_the_bargain_refused():
     # a want this agent has wanted before -- the LEAN's own input
     ag.wants[slot] = "w"
     ag._want_seen["w"] = 6
-    cand = Rt.Until(slot, Rt.Act(ag.actions[1]), 3)
-    # cost far above base, so `pays` is FALSE and only the accumulation can carry it
-    acc = ag._accumulate(slot, cand, cost=9.0, left=0.0, base=6.0, gkey=None)
+    # reached only after `pays` refused; since item 6 the bargain's inputs do not enter it
+    acc = ag._accumulate(slot, gkey=None)
     assert acc["vector"]["lean"] > 0, "recurrence contributed nothing"
     assert acc["total"] >= acc["threshold"], (
         f"a six-times-recurring want did not cross: {acc}")
@@ -944,16 +1076,40 @@ def check_the_accumulation_commits_where_the_bargain_refused():
     # verdict turns on the price and on nothing else, which is what this check is named for.
     ag2.wants[slot2] = "cold"
     ag2._want_seen["cold"] = 0
-    cold = ag2._accumulate(slot2, cand, cost=99.0, left=99.0, base=1.0, gkey=None)
+    cold = ag2._accumulate(slot2, gkey=None)
     assert cold["vector"]["lean"] == 0, (
         f"the cold case is not isolated -- recurrence leaked in: {cold['vector']}")
     assert not cold["commits"], f"a hopeless plan with no history committed: {cold}"
 
     # AND THE CLOCK MOVES THE BAR, WHICH IS THE "ALWAYS PAYING" RULING
     ag2.cycle += 40
-    warm = ag2._accumulate(slot2, cand, cost=99.0, left=99.0, base=1.0, gkey=None)
+    warm = ag2._accumulate(slot2, gkey=None)
     assert warm["threshold"] < cold["threshold"], (
         "forty idle cycles did not lower the bar -- refusing is still free")
+
+
+def check_the_commitment_bar_is_the_agents_own():
+    """DEFECT: the height an override must reach was `MIN_REPEAT` and a relief rate of 8 -- seat
+    constants deciding commitment, where Isaiah ruled that *your current standing ... history*
+    sets it (2026-09-25, relayed verbatim). The bar is now read from how the agent's own
+    overrides ended: both ways, fading at its halflife, a ratio -- never a ratchet."""
+    from self_family import MIN_REPEAT
+    ag = _agent()
+    ag._last_commit = ag.cycle                    # idle 0, so relief cannot mask the bar
+    ag._overrides = []
+    assert ag._commit_bar() == (float(MIN_REPEAT), False), "no history did not read the seed"
+    assert ag._accumulate(_wide(ag), gkey=None)["bar_is"] == "SEED", "the seed was not marked"
+    hi, lo = MIN_REPEAT + 1.0, MIN_REPEAT - 0.25
+    ag._overrides = [(hi, False, ag.cycle)]
+    bar, earned = ag._commit_bar()
+    assert earned and bar > hi, "a failure at a total did not lift the bar above it"
+    assert ag._accumulate(_wide(ag), gkey=None)["bar"] > hi, "the row hides the bar above it"
+    ag._overrides = [(lo, True, ag.cycle), (lo + 0.1, True, ag.cycle)]
+    assert ag._commit_bar()[0] == lo, "successes did not let the bar fall to what worked"
+    ag._overrides = [(hi, False, ag.cycle - 10), (lo, True, ag.cycle)]
+    assert ag._commit_bar()[0] < hi, "one old failure held the bar up against fresh success"
+    ag._commit_cycles = [0, 4, 8]
+    assert ag._relief_rate() == (4.0, True), "the relief rate is not the agent's own interval"
 
 
 def check_the_fresh_read_qualifies_a_want_that_has_failed():
@@ -974,13 +1130,12 @@ def check_the_fresh_read_qualifies_a_want_that_has_failed():
     slot = _wide(ag)
     ag.wants[slot] = "w"
     ag._want_seen["w"] = 6
-    cand = Rt.Until(slot, Rt.Act(ag.actions[1]), 3)
     sig = ("shape-under-test",)
 
-    clean = ag._accumulate(slot, cand, cost=9.0, left=0.0, base=6.0, gkey=sig)
+    clean = ag._accumulate(slot, gkey=sig)
     # three episodes under this shape, all of which ended without acting
     ag._episodes[sig] = [((ag.actions[1],), "done", "tested_no")] * 3
-    burnt = ag._accumulate(slot, cand, cost=9.0, left=0.0, base=6.0, gkey=sig)
+    burnt = ag._accumulate(slot, gkey=sig)
 
     assert burnt["vector"]["episodes"] < 0, "failed episodes did not vote against"
     assert burnt["vector"]["lean"] < clean["vector"]["lean"], (
@@ -989,7 +1144,7 @@ def check_the_fresh_read_qualifies_a_want_that_has_failed():
 
     # AND FAVOURABLE HISTORY MUST WEIGH THE OTHER WAY, or this is a damper and not a qualifier
     ag._episodes[sig] = [((ag.actions[1],), "done", "tested_yes")] * 3
-    proven = ag._accumulate(slot, cand, cost=9.0, left=0.0, base=6.0, gkey=sig)
+    proven = ag._accumulate(slot, gkey=sig)
     assert proven["total"] > clean["total"], "a shape that has worked three times weighed nothing"
 
 
@@ -1270,6 +1425,804 @@ def check_the_precondition_refuses_a_spectator():
     differs = Term((Atom("plus1", lambda v, _c: v + 1, "val", "val"),))
     assert ag.bears_on(differs, "climb", hist, idn) is True, (
         "a term that answers the open observation differently MUST pass, or nothing ever mints")
+
+
+
+def check_an_unreadable_reading_is_suspended_not_charged():
+    """DEFECT: a reading that turned unreadable while its object was still there was billed a full
+    code as a vanished OBJECT (`observe` strips NOT_RESOLVED; the bet loop read the absence as
+    death). Measured: `o0.rem_row` charged 3.0 bits on a no-move frame (F493). Fig 10: a missing
+    reading is a channel fact. CONTROL: an object whose key leaves the listing is still charged."""
+    def run(drop_key: bool):
+        ag = _agent()
+        env = ag.env
+        slot = next(s for s in sorted(env.observe()) if s.endswith(".row"))
+        state = {"after": False}
+        obs, stp, lst = env.observe, env.step, env.slots
+        env.step = lambda *a, **k: (state.update(after=True), stp(*a, **k))[1]
+        env.observe = lambda: {k: v for k, v in obs().items()
+                               if not (state["after"] and k == slot)}
+        env.slots = lambda: [k for k in lst() if not (drop_key and state["after"] and k == slot)]
+        n0 = len(ag.led.entries)
+        ag.step()
+        rows = [e for e in ag.led.entries[n0:]
+                if e.slot == slot and e.step == "PERCEIVE" and e.event == "bet"]
+        assert rows, f"fixture: no bet on {slot} this cycle, so nothing was tested"
+        return rows[-1].detail
+    kept = run(drop_key=False)
+    assert kept.get("suspended") and not kept.get("vanished") and kept.get("mass") == 0.0, (
+        f"a reading the channel could not take was charged: {kept}")
+    gone = run(drop_key=True)
+    assert gone.get("vanished") and not gone.get("suspended") and gone.get("mass", 0) > 0, (
+        f"an object whose key left the listing was not charged: {gone}")
+
+
+
+def check_a_cell_change_reading_fits_its_alphabet():
+    """DEFECT: the cell-change attributes were not declared in `ArcWorld.alphabet`, so they took the
+    palette and the agent read every centroid modulo it, and a count equal to it as 0 (F494)."""
+    was = arc_percept._CELL_CHANGE
+    arc_percept._CELL_CHANGE = True
+    try:
+        env = ArcWorld(_Two(), arc_percept.Objects(),
+                       arc_atoms.three_spaces(arc_predict.predict()), palette=PALETTE, platform=())
+        seen = 0
+        for _ in range(8):
+            env.step(env.actions()[0])
+            alpha = env.alphabet()
+            for s, v in env.observe().items():
+                if s.rsplit(".", 1)[-1] in arc_percept._CHANGE_ATTRS:
+                    seen += 1
+                    assert 0 <= v < alpha[s], f"{s}={v} aliases under an alphabet of {alpha[s]}"
+        assert seen, "fixture: no cell-change reading was published, so nothing was tested"
+    finally:
+        arc_percept._CELL_CHANGE = was
+
+
+
+def check_every_attribute_declares_its_alphabet():
+    """DEFECT: an attribute with no declared alphabet fell to the palette and was read modulo it --
+    `drow`, then F494, then twelve more, `dholes`/`dperimeter` live on every ARC run (F495). Every
+    registered attribute is published once and `alphabet()` must range it without the palette
+    fall-through, which now raises."""
+    env = ArcWorld(_Two(), arc_percept.Objects(),
+                   arc_atoms.three_spaces(arc_predict.predict()), palette=PALETTE, platform=())
+    env.step(env.actions()[0])
+    keys = set(arc_atoms.ATTRIBUTE_TYPE) | set(arc_percept._CHANGE_ATTRS)
+    env._decomposed = lambda: {f"o0.{k}": 0 for k in keys}
+    try:
+        alpha = env.alphabet()
+    except KeyError as exc:
+        raise AssertionError(f"an attribute has no declared alphabet: {exc}") from None
+    assert len(alpha) == len(keys), "fixture: not every attribute was ranged"
+    exempt = getattr(arc_world, "PALETTE_BY_DESIGN", {})
+    fell = sorted(k for k in keys if k not in exempt
+                  and alpha[f"o0.{k}"] == PALETTE)
+    assert not fell, f"ranged by the palette with no stated reason: {fell}"
+
+
+
+def _ranges(h: int, w: int, palette: int, shapes: int, levels: int, oldest: int) -> dict:
+    """WHAT EACH ATTRIBUTE CAN READ, from the board's bounds and nothing the alphabet computes.
+    Inclusive. A position is 0..side-1; an EXTENT is 0..side, because an object can fill the
+    board (the off-by-one that read a full-width object's width as 0, the reviewer 23:12Z)."""
+    hw = h * w
+    return {"row": (0, h - 1), "add_row": (0, h - 1), "rem_row": (0, h - 1),
+           "col": (0, w - 1), "add_col": (0, w - 1), "rem_col": (0, w - 1),
+           "h": (0, h), "w": (0, w),
+           "drow": (1 - h, h - 1), "dh": (1 - h, h - 1),
+           "dcol": (1 - w, w - 1), "dw": (1 - w, w - 1),
+           "dcells": (-hw, hw), "dholes": (-hw, hw), "dperimeter": (-4 * hw, 4 * hw),
+           "speed": (0, max(h, w) - 1), "bbox": (0, hw), "contact": (0, 2 * hw),
+           "add_n": (0, hw), "rem_n": (0, hw),
+           "colour": (0, palette - 1), "colour_changed": (0, 1), "inside": (0, 1),
+           "completed": (0, levels), "shape": (0, shapes - 1),
+           "age": (0, oldest), "stability": (0, oldest)}
+
+
+def _uncovered(alpha: dict, ranges: dict) -> list:
+    """Attributes whose range has two values the alphabet reads as one."""
+    return sorted(k for k, (lo, hi) in ranges.items() if hi - lo + 1 > alpha[k])
+
+
+def check_every_alphabet_covers_its_range():
+    """DEFECT, THE GENUS (the reviewer 2026-10-07 23:12Z): declared is not COVERING. Three
+    alphabet defects in one day each let two readings share a residue, so a miss was priced at
+    zero bits and filed held -- the last, a full-board object's width 64 read as 0 on 11 of 12
+    games. Every registered attribute's range is taken from the board's bounds, and every value
+    in it must stay distinct under the declared alphabet; one short must be refused.
+
+    IT VOUCHES ONLY FOR THE BOARD-BOUNDED ATTRIBUTES. Colour, shape, goal and age take their
+    range here from the same source as their alphabet, so for them it can only agree -- the
+    gate's aliasing check over observed values is their witness."""
+    env = ArcWorld(_Two(), arc_percept.Objects(),
+                   arc_atoms.three_spaces(arc_predict.predict()), palette=PALETTE, platform=())
+    env.step(env.actions()[0])
+    keys = set(arc_atoms.ATTRIBUTE_TYPE) | set(arc_percept._CHANGE_ATTRS)
+    oldest = 9
+    env._decomposed = lambda: {f"o0.{k}": (oldest if k == "age" else 0) for k in keys}
+    alpha = {s.split(".", 1)[1]: v for s, v in env.alphabet().items()}
+    b = env.board()
+    shapes = max(1, len(getattr(env._decompose, "_shapes", ()) or ()))
+    ranges = _ranges(len(b), len(b[0]), PALETTE, shapes, 3, oldest)
+    assert set(ranges) == keys, f"an attribute with no range here: {sorted(keys ^ set(ranges))}"
+    bad = _uncovered(alpha, ranges)
+    assert not bad, f"alphabet shorter than the range: {[(k, ranges[k], alpha[k]) for k in bad]}"
+    for k, (lo, hi) in ranges.items():
+        assert lo == hi or tether.correction_bits(lo, hi, alpha[k]) > 0, (
+            f"{k}: {lo} and {hi} read alike")
+    k = "w"
+    short = dict(alpha, **{k: ranges[k][1] - ranges[k][0]})
+    assert _uncovered(short, ranges) == [k], "fixture: an alphabet one short was not refused"
+
+
+
+class _Ring:
+    """A synthetic fixture, no ARC content: one 3x3 object that opens a hole and closes it again,
+    so its hole count and perimeter change by +1/+4 and then -1/-4."""
+
+    def __init__(self) -> None:
+        self.n = 0
+
+    def _frame(self):
+        f = FrameDataRaw(game_id="m2ring", state=GameState.NOT_FINISHED, levels_completed=0,
+                         win_levels=3, available_actions=[1, 2, 3])
+        b = np.zeros((SIDE, SIDE), dtype=int)
+        b[4:7, 4:7] = 3
+        if self.n % 2:
+            b[5][5] = 0
+        f.frame = [b]
+        return f
+
+    def reset(self):
+        self.n = 0
+        return self._frame()
+
+    def step(self, *_a, **_k):
+        self.n += 1
+        return self._frame()
+
+
+def check_a_signed_shape_delta_is_not_aliased():
+    """DEFECT: `dholes`/`dperimeter` -- on for every ARC run -- were ranged by the palette, so a
+    closing hole (-1) read as the palette minus one and a bet on that value was scored correct
+    (F495). On the synthetic ring, the closing frame's deltas are negative and must stay distinct
+    from every non-negative reading under the declared alphabet."""
+    was = arc_percept._SHAPE_DELTA
+    arc_percept._SHAPE_DELTA = True
+    try:
+        env = ArcWorld(_Ring(), arc_percept.Objects(),
+                       arc_atoms.three_spaces(arc_predict.predict()), palette=PALETTE, platform=())
+        env.step(env.actions()[0])
+        env.step(env.actions()[0])          # the hole closes
+        st, alpha = env.observe(), env.alphabet()
+        ring = next(s.split(".")[0] for s, v in st.items() if s.endswith(".colour") and v == 3)
+        slot = f"{ring}.dholes"
+        per = slot.replace("dholes", "dperimeter")
+        assert st[slot] == -1 and st[per] == -4, f"fixture: the ring did not close: {st}"
+        for s in (slot, per):
+            alias = st[s] % PALETTE
+            assert tether.correction_bits(alias, st[s], alpha[s]) > 0, (
+                f"{s}={st[s]} read as {alias} under an alphabet of {alpha[s]}: "
+                "a bet on the wrong value would be scored correct")
+    finally:
+        arc_percept._SHAPE_DELTA = was
+
+
+
+def _minted(ag, k: int = 2):
+    """A held, non-atom term of at least `k` atoms, or None."""
+    return next((n for n, t in sorted(ag.gamma.library.items())
+                 if len(t.atoms) >= k and not ag.gamma.is_atom(t)), None)
+
+
+def check_a_refusal_adds_and_lifts_only_on_growth():
+    """not-t (F496; Fig 6): a refusal ADDS and removes nothing (P1); a never-held term cannot be
+    refused (P5); it holds across any number of cycles and lifts only when the scope grows (P4)."""
+    ag = _agent()
+    name = _minted(ag, 1)
+    assert name, "fixture: no held term to refuse"
+    slot = _wide(ag)
+    lib = dict(ag.gamma.library)
+    assert not ag.refuse_term("never_held_term", slot), "a never-held term was refused"
+    assert not ag._not, "refusing a never-held term left a record"
+    assert ag.refuse_term(name, slot)
+    gk = ag._term_gkey(slot)
+    assert ag.gamma.library == lib, "a refusal removed or changed a library term"
+    assert ag._term_refused(name, gk)
+    ag.cycle += 50
+    assert ag._term_refused(name, gk), "a refusal faded with time"
+    a0, a1 = ag.gamma.atoms[0], ag.gamma.atoms[-1]
+    ag.gamma.accept(gamma.Term((a0, a1, a0)), seq=999, residual="fixture growth")
+    assert not ag._term_refused(name, gk), "growth did not lift the refusal"
+    assert ag.refuse_term(name, slot)
+    assert len(ag._not[(name, gk)]) == 2, "the record is not add-only"
+
+
+def check_a_refused_term_is_not_retrieved():
+    """P2: while not-t stands, t is not offered as a rebinding for that gap shape. The toy library
+    holds no term that explains a slot, so the explanation test is stubbed to accept and the
+    filter is what is tested: the first term retrieved, refused, must not be retrieved again."""
+    ag = _agent()
+    ag._rebindings = lambda t, *_a: [t]
+    ag._explains = lambda *_a: True
+    was, tether._BARGAIN_FIT = tether._BARGAIN_FIT, False
+    try:
+        slot = _wide(ag)
+        name = ag._library_fit(slot, None)
+        assert name, "fixture: nothing was retrieved even with the explanation test open"
+        ag.refuse_term(name, slot)
+        assert ag._library_fit(slot, None) != name, f"{name} was retrieved after its refusal"
+    finally:
+        tether._BARGAIN_FIT = was
+
+
+def check_a_refused_term_is_no_shortcut_by_containment():
+    """P3, by SEQUENCE CONTAINMENT (no lineage is kept): a settled t is one unit; refused, it is
+    not, so terms that paid only through it re-price at full length -- reach falls by derivation."""
+    ag = _agent()
+    name = _minted(ag, 2)
+    assert name, "fixture: no held term of two or more atoms"
+    st = ag.gamma.standing.setdefault(name, gamma.Standing())
+    st.settled_at = ag.gamma.tick
+    slot = _wide(ag)
+    seq = ag.gamma.library[name].atoms
+    assert any(u.atoms == seq for u in ag._units_for(slot)), "fixture: the settled term is no unit"
+    ag.refuse_term(name, slot)
+    assert not any(u.atoms == seq for u in ag._units_for(slot)), "a refused term is still a unit"
+    assert name in ag.gamma.library, "the refused term left the library"
+
+
+def check_a_refused_settled_term_is_a_contradiction():
+    """P6 (open in Fig 6): a settled term refused is written down as a contradiction and decided
+    nowhere -- its standing is untouched."""
+    ag = _agent()
+    name = _minted(ag, 1)
+    st = ag.gamma.standing.setdefault(name, gamma.Standing())
+    st.settled_at = ag.gamma.tick
+    n0 = len(ag.led.entries)
+    ag.refuse_term(name, _wide(ag))
+    rows = [e for e in ag.led.entries[n0:] if e.event == "contradiction"]
+    assert rows and rows[0].detail.get("term") == name, "no contradiction row for a settled refusal"
+    assert ag.gamma.is_settled(name), "the contradiction was decided by unsettling the term"
+
+
+
+def check_a_refused_identity_reads_unsure():
+    """R2, not-identity -- "two names, two referents" (F496): once an object's identity is
+    refused, the one identity rule reads it unsure on every later frame, so restart carry and the
+    cell-change readings stop trusting it. Nothing else about the object changes."""
+    env = ArcWorld(_Two(), arc_percept.Objects(),
+                   arc_atoms.three_spaces(arc_predict.predict()), palette=PALETTE, platform=())
+    env.observe()
+    env.step(env.actions()[0])
+    env.observe()
+    obj = next((n for n in sorted(env._decompose.tracked) if env.identity(n) == "overlap"), None)
+    assert obj, "fixture: no object was re-found by overlap, so there is no sure identity to refuse"
+    env.refuse_identity(obj)
+    env.step(env.actions()[0])
+    env.observe()
+    assert env.identity(obj) not in ("overlap", "unique-shape"), (
+        f"{obj}'s identity was refused and still reads sure: {env.identity(obj)}")
+    other = next((n for n in sorted(env._decompose.tracked) if n != obj), None)
+    assert other is None or env.identity(other) != "refused", "a refusal spread to another object"
+
+
+
+def check_not_t_pays_only_when_t_does_worse_than_nothing():
+    """Step 3 (F496; Fig 5's amendment): not-t pays iff its price plus what stays unexplained with
+    t withdrawn (the persistence prior) is under what t leaves. The price names WHICH predicting
+    term is wrong, agent-wide (the reviewer 2026-10-07). With arm J on, the filled bin refuses."""
+    ag = _agent()
+    name = _minted(ag, 1)
+    slot = _wide(ag)
+    left = {"t": 50.0, "nothing": 1.0}
+    ag._left = lambda term, *_a, **_k: left["t"] if term.name == name else left["nothing"]
+    ag._pred_by = {"a": name, "b": "other", "c": name}
+    ok, d = ag._price_not(name, slot)
+    assert ok and d["predicting"] == 2, f"t far worse than nothing was not refused: {d}"
+    left.update(t=1.0, nothing=50.0)
+    ok, d = ag._price_not(name, slot)
+    assert not ok, f"t better than nothing was refused: {d}"
+    left.update(t=50.0, nothing=1.0)
+    was = tether._REFUTED_BIN
+    tether._REFUTED_BIN = True
+    try:
+        # F498: only a refusal of the term the slot still holds is filed (Fig 1)
+        ag.bound[slot] = name
+        ag._refuted_slot[slot] = name
+        n0 = len(ag.led.entries)
+        routed = ag.route({slot: tether.SlotResidual(slot, tether.TRANSITION, 0, 1, 1.0)})
+        # ROUTE FILES, MINT PRICES (F497): route alone writes no refusal row, so the ladder holds
+        assert not [e for e in ag.led.entries[n0:] if e.event in ("not_t", "refuse")], (
+            "route priced the refusal: a mint written during routing")
+        assert {s: b for s, b, *_ in routed}.get(slot) == tether.REFUTED, (
+            "fixture: the bound, persisting refusal was not filed")
+        ag._price_refusal(slot)
+        rows = [e for e in ag.led.entries[n0:] if e.event == "refuse" and e.slot == slot]
+        assert rows and rows[0].detail.get("predicting") == 2, "the filled bin did not refuse"
+        tried = [e for e in ag.led.entries[n0:] if e.event == "not_t" and e.slot == slot]
+        assert tried and tried[0].detail.get("verdict") == "paid", "the attempt wrote no row"
+        left.update(t=1.0, nothing=50.0)
+        ag.bound[slot] = name
+        ag._refuted_slot[slot] = name
+        n1 = len(ag.led.entries)
+        res = {slot: tether.SlotResidual(slot, tether.TRANSITION, 0, 1, 1.0)}
+        ag.route(res)
+        ag._price_refusal(slot)
+        tried = [e for e in ag.led.entries[n1:] if e.event == "not_t" and e.slot == slot]
+        assert tried and tried[0].detail.get("verdict") == "did not pay", (
+            "an attempt that did not pay wrote no row: 'none refused' reads as 'none tried'")
+        assert ag._term_refused(name, ag._term_gkey(slot)), "the refusal was not recorded"
+    finally:
+        tether._REFUTED_BIN = was
+
+
+
+def check_a_bound_want_can_be_refused():
+    """R1, the mechanisable half of Fig 5's direction limit (F496): a sought-for shape bound as an
+    ORDINARY term -- an objective-typed term on the goal slot -- is bet on like any other and is
+    priced and refused by the same path. Nothing here claims the frame checks its own direction."""
+    ag = _agent()
+    goal = next(s for s in ag.slots if s.startswith("@goal"))
+    want = next(n for n, t in sorted(ag.gamma.library.items())
+                if getattr(t, "out_type", None) == tether.OBJ_TYPE and not ag.gamma.is_atom(t))
+    ag.bound[goal] = want
+    n0 = len(ag.led.entries)
+    ag.step()
+    bets = [e for e in ag.led.entries[n0:] if e.event == "bet" and e.slot == goal]
+    assert bets, f"fixture: the bound want on {goal} was not bet on"
+    ag._left = lambda term, *_a, **_k: 50.0 if term.name == want else 1.0
+    ok, d = ag._price_not(want, goal)
+    assert ok, f"a want doing worse than nothing was not refusable: {d}"
+    assert ag.refuse_term(want, goal, **d) and ag._term_refused(want, ag._term_gkey(goal)), (
+        "a bound want could not be refused by the ordinary path")
+
+
+
+def check_a_competitor_discharges_the_slot():
+    """DEFECT: the REFUTED bin's competitor bind left the slot OWED and its abstention on record,
+    where a REBIND of the same term clears both -- the same act by the figures (F497)."""
+    ag = _agent()
+    slot = _wide(ag)
+    name = _minted(ag, 1)
+    kind = getattr(ag.gamma.library[name], "out_type", None)
+    rival = next(n for n, t in sorted(ag.gamma.library.items())
+                 if n != name and getattr(t, "out_type", None) == kind)
+    ag.owed_import.add(slot)
+    ag.abstained[slot] = {"fixture": True}
+    # `route` decides and `step` applies; the bind under test is the application, so the
+    # decision is handed in and the step's own loop does the binding.
+    ag.route = lambda _res: [(slot, tether.REFUTED, rival, "fixture")]
+    was = tether._REFUTED_BIN
+    tether._REFUTED_BIN = True
+    try:
+        n0 = len(ag.led.entries)
+        ag.step()
+        assert any(e.event == "compete" and e.slot == slot for e in ag.led.entries[n0:]), (
+            "fixture: no competitor bound")
+        assert slot not in ag.owed_import, "a competitor bind left the slot owed"
+        assert slot not in ag.abstained, "a competitor bind left the slot's abstention on record"
+    finally:
+        tether._REFUTED_BIN = was
+
+
+def check_a_persisting_refusal_is_filed():
+    """F498: the bin files a refused term while ITS residual on the slot persists over the last
+    MIN_REPEAT+1 rows and does not trend down (Fig 5's amendment; the reviewer 2026-10-07 14:58Z),
+    not merely while this cycle's residual is nonzero. Every case is routed at a residual of 0,
+    so (0, 2, 0) -- the alternation read on its RIGHT step -- is filed only by the window."""
+    ag = _agent()
+    name = _minted(ag, 1)
+    slot = _wide(ag)
+    rows = ag.history(slot)[-(tether.MIN_REPEAT + 1):]
+    assert len(rows) == tether.MIN_REPEAT + 1, "fixture: the slot has no full window"
+    real_hist, real_left = ag.history, ag._left
+    ag.history = lambda s: rows if s == slot else real_hist(s)
+    was = tether._REFUTED_BIN
+    tether._REFUTED_BIN = True
+    try:
+        for series, filed in (((0, 2, 0), True), ((2, 0, 2), True), ((2, 2, 2), True),
+                              ((5, 0, 0), False), ((3, 2, 1), False)):
+            def left(term, s, hist, *a, _ser=series, **k):
+                if term.name == name and len(hist) == 1 and hist[0] in rows:
+                    return float(_ser[rows.index(hist[0])])
+                return real_left(term, s, hist, *a, **k)
+            ag._left = left
+            ag.bound[slot] = name
+            ag._refuted_slot[slot] = name
+            routed = ag.route({slot: tether.SlotResidual(slot, tether.TRANSITION, 0, 0, 0.0)})
+            got = {s: b for s, b, *_ in routed}.get(slot)
+            assert (got == tether.REFUTED) == filed, f"{series}: routed {got}, filed={filed}"
+            ag._refuted_slot.pop(slot, None)
+        # STALE: the slot was rebound in the cycle t was refused; t's window persists, but the
+        # prediction this step was another term's, so t is not filed (Fig 1).
+        other = next(n for n in sorted(ag.gamma.library) if n != name)
+        ag.bound[slot] = other
+        ag._left = lambda term, s, hist, *a, **k: (
+            2.0 if term.name == name and len(hist) == 1 and hist[0] in rows
+            else real_left(term, s, hist, *a, **k))   # (2, 2, 2): t's window persists
+        ag._refuted_slot[slot] = name
+        routed = ag.route({slot: tether.SlotResidual(slot, tether.TRANSITION, 0, 0, 0.0)})
+        got = {s: b for s, b, *_ in routed}.get(slot)
+        assert got != tether.REFUTED, "a refused term no longer bound was filed"
+    finally:
+        tether._REFUTED_BIN = was
+        ag.history, ag._left = real_hist, real_left
+
+
+
+def check_a_sweep_skips_a_slot_past_its_turn():
+    """F500, one chain per slot per cycle (Fig 5; the reviewer 2026-10-07 16:12Z): a term minted
+    this cycle is offered only to slots whose loop turn is still ahead; a slot past its turn
+    meets it through its own route next cycle, so the sweep writes nothing on it now."""
+    ag = _agent()
+    pair = [s for s in sorted(ag.slots) if ag.history(s)][:2]
+    assert len(pair) == 2, "fixture: two slots with history"
+    ahead, done = pair
+    term = ag.gamma.library[_minted(ag, 1)]
+    ag.owed_import = {ahead, done}
+    ag.abstained = {}
+    ag.parked = {}
+    ag._turn_ahead = {ahead}
+    n0 = len(ag.led.entries)
+    k0 = ag.chain.reuse_branch["deferred:turn-done"]
+    try:
+        ag.sweep(term, "@origin")
+    finally:
+        ag._turn_ahead = None
+    hit = {e.slot for e in ag.led.entries[n0:]
+           if e.event in ("reuse_refused", "reuse_install", "pull")}
+    assert ahead in hit, "fixture: the slot still ahead was not offered the term"
+    assert done not in hit, "a slot past its turn was swept: a second chain in one cycle"
+    assert ag.chain.reuse_branch["deferred:turn-done"] == k0 + 1, "the deferral was not counted"
+
+
+def _plant(ag, acts):
+    """An Until routine held on a slot with `acts` already taken, its guard read by a stub."""
+    import routine as Rt
+    slot = next(s for s in sorted(ag.slots) if not s.startswith("@"))
+    ag.routine, ag.routine_for = Rt.Until(slot, Rt.Act("up"), 3), slot
+    ag._routine_adopted, ag._routine_acts = ag.routine, acts
+    ag._routine_next, ag._expect = None, None
+    return slot
+
+
+def check_an_acted_routine_is_settled_in_its_deciding_cycle():
+    """F501 (the reviewer 2026-10-07 16:21Z, 16:35Z, 16:49Z): a routine that has ACTED is ended in
+    the cycle whose observation decides it, as SETTLE -- by its expectation, or by one advance --
+    and the next choose() only plans. Its rows were PLAN only because detection was at planning."""
+    ag = _agent()
+    slot = _plant(ag, 1)
+    state = ag.env.observe()
+    ag._expect = (slot, state.get(slot), 1)          # claimed a change; the state did not move
+    n0 = len(ag.led.entries)
+    ag._settle_routine()
+    rows = [e for e in ag.led.entries[n0:] if e.event == "routine_abandoned"]
+    assert rows and rows[0].step == "SETTLE" and rows[0].cycle == ag.cycle, (
+        "an expectation ending was not settled in its deciding cycle")
+    assert ag.routine is None, "the abandoned routine is still held"
+    ag = _agent()
+    slot = _plant(ag, 1)
+    ag._holds = lambda _state: (lambda _g: True)    # the guard holds: DONE
+    n0 = len(ag.led.entries)
+    ag._settle_routine()
+    ends = [e for e in ag.led.entries[n0:] if e.event == "routine_end"]
+    assert ends and ends[0].step == "SETTLE" and ends[0].detail.get("outcome") == "done", (
+        "an advance ending was not settled in its deciding cycle")
+    tested = [e for e in ag.led.entries[n0:] if e.event == "reach_tested"]
+    assert tested and tested[0].detail.get("verdict") == "tested_yes", "the verdict was not written"
+    assert ag.routine is None and ag._routine_next is None, "the ended routine is still held"
+
+
+def check_a_blocked_routine_ends_at_planning_with_no_verdict():
+    """F501 (the reviewer 2026-10-07 16:58Z): BLOCKED -- the guard could not be read -- is not a
+    settlement (Fig 10: a channel fact, the ground did not speak). The one advance happens at the
+    deciding cycle's end, but the ending is written by the next choose() as PLAN, with no verdict,
+    no shelving and no refusal."""
+    ag = _agent()
+    _plant(ag, 1)
+    ag._holds = lambda _state: (lambda _g: None)    # the guard cannot be read
+    n0 = len(ag.led.entries)
+    ag._settle_routine()
+    assert len(ag.led.entries) == n0 and ag.routine is not None, (
+        "a BLOCKED ending was settled: an unread guard booked as a verdict")
+    key_count = len(ag._reach_tested)
+    ag.choose(ag.env.observe())
+    ends = [e for e in ag.led.entries[n0:] if e.event == "routine_end"]
+    assert ends and ends[0].step == "PLAN" and ends[0].detail.get("outcome") == "blocked", (
+        "the BLOCKED ending was not written at planning")
+    assert not [e for e in ag.led.entries[n0:] if e.event in ("reach_tested", "refuse")], (
+        "a BLOCKED ending wrote a verdict")
+    assert len(ag._reach_tested) == key_count, "a BLOCKED ending shelved the plan"
+
+
+def check_a_zero_act_routine_still_ends_at_planning():
+    """F501, the zero-act case left OPEN as ruled (16:30Z): a routine with no act yet is untouched
+    by the settlement, and choose() ends it exactly as before -- 0 acts, tested_no shelving."""
+    ag = _agent()
+    _plant(ag, 0)
+    ag._holds = lambda _state: (lambda _g: True)
+    n0 = len(ag.led.entries)
+    ag._settle_routine()
+    assert len(ag.led.entries) == n0 and ag.routine is not None, (
+        "a zero-act routine was settled at the end of the cycle")
+    ag.choose(ag.env.observe())
+    ends = [e for e in ag.led.entries[n0:] if e.event == "routine_end"]
+    assert ends and ends[0].step == "PLAN" and ends[0].detail.get("outcome") == "done", (
+        "the zero-act ending moved")
+    tested = [e for e in ag.led.entries[n0:] if e.event == "reach_tested"]
+    assert tested and tested[0].detail.get("verdict") == "tested_no" and (
+        tested[0].detail.get("emitted") == 0), "the zero-act shelving was not written"
+
+def check_an_ended_routines_claim_does_not_outlive_it():
+    """F502 (the reviewer 2026-10-07 17:21Z, 17:31Z): a claim ends with the plan that made it. Left
+    standing, an ended routine's expectation abandoned its successor (gridworld s0, cycle 50)."""
+    import routine as Rt
+    ag = _agent()
+    slot = _plant(ag, 1)
+    state = ag.env.observe()
+    ag._expect = (slot, state.get(slot), 1, ag._routine_adopted, ag._act_n())
+    ag._end_routine(Rt.DONE, state, "SETTLE")
+    assert ag._expect is None, "an ended routine's claim outlived it"
+    ag.routine, ag.routine_for = Rt.Until(slot, Rt.Act("down"), 3), slot   # its successor
+    ag._routine_adopted, ag._routine_acts = ag.routine, 0
+    n0 = len(ag.led.entries)
+    assert not ag._check_expectation(state), "the successor was abandoned on another's claim"
+    assert not [e for e in ag.led.entries[n0:] if e.event == "routine_abandoned"]
+
+
+def check_a_claim_is_judged_once_on_its_own_act():
+    """F502 (the reviewer 2026-10-07 17:31Z): a claim is about ONE act and is judged once, on the
+    observation after that act, then cleared whatever the verdict. A following step that makes no
+    claim must not re-judge it against an observation it was never about."""
+    ag = _agent()
+    slot = _plant(ag, 1)
+    state = dict(ag.env.observe())
+    ag._expect = (slot, "before", 1, ag._routine_adopted, ag._act_n())   # the claim held: it moved
+    assert not ag._check_expectation(state), "fixture: the held claim abandoned the routine"
+    assert ag._expect is None, "a judged claim was not cleared"
+    ag._acts["up"] += 1                              # the next act publishes no claim
+    state[slot] = "before"                           # and the slot reads as the claim's old value
+    n0 = len(ag.led.entries)
+    assert not ag._check_expectation(state), "a claim was judged a second time, on another act"
+    assert not [e for e in ag.led.entries[n0:] if e.event == "routine_abandoned"]
+
+def check_a_spent_plan_is_settled_in_its_deciding_cycle():
+    """F502 (gridworld s0 c31/c39/c44): a plan whose last act empties its remainder still ends, at
+    its deciding cycle's SETTLE -- claim held: DONE with its verdict; claim failed: abandoned; no
+    claim: `completed-untested`, unshelved. It no longer vanishes with its claim unjudged."""
+    for case in ("held", "failed", "none"):
+        ag = _agent()
+        slot = _plant(ag, 1)
+        ag.routine = None                                # the last act emptied the remainder
+        state = ag.env.observe()
+        if case != "none":
+            was = "before" if case == "held" else state.get(slot)
+            ag._expect = (slot, was, 1, ag._routine_adopted, ag._act_n())
+        shelf = len(ag.routines)
+        n0 = len(ag.led.entries)
+        ag._settle_routine()
+        rows = ag.led.entries[n0:]
+        ends = [e for e in rows if e.event in ("routine_end", "routine_abandoned")]
+        assert ends and ends[0].step == "SETTLE", f"{case}: the spent plan reached no ending"
+        tested = [e.detail.get("verdict") for e in rows if e.event == "reach_tested"]
+        if case == "held":
+            assert ends[0].detail.get("outcome") == "done" and tested == ["tested_yes"], case
+        elif case == "failed":
+            assert ends[0].event == "routine_abandoned", case
+        else:
+            assert ends[0].detail.get("outcome") == "completed-untested" and not tested, case
+            assert len(ag.routines) == shelf, "an untested plan was shelved"
+        assert ag._routine_adopted is None and ag._expect is None, f"{case}: the plan lingers"
+
+def check_an_attribute_atom_follows_its_arm():
+    """DEFECT: every attribute became an atom whatever its arm, so on the ARC path ten atoms with
+    nothing behind them widened the alphabet every term is priced over (F503). Read at
+    construction: the shape-delta flag set AFTER import, as `arc_holdout.wire` sets it, must bring
+    its atoms back."""
+    flags = [(arc_percept, "_OBSERVER"), (arc_world, "_OBSERVER"),
+             (arc_percept, "_SHAPE_DELTA"), (arc_percept, "_INSTRUMENTS")]
+    was = [getattr(m, f) for m, f in flags]
+    try:
+        for m, f in flags:
+            setattr(m, f, False)
+        names = {a.name for a in arc_atoms._extract()}
+        gated = set(arc_atoms.ATTRIBUTE_ARM) & set(arc_atoms.ATTRIBUTE_TYPE)
+        assert not names & gated, f"atoms with their arm off: {sorted(names & gated)}"
+        arc_percept._SHAPE_DELTA = True
+        names = {a.name for a in arc_atoms._extract()}
+        assert {"dholes", "dperimeter"} <= names, "the shape-delta arm set at runtime was ignored"
+        for m, f in flags:
+            setattr(m, f, True)
+        names = {a.name for a in arc_atoms._extract()}
+        assert gated <= names, f"an arm on and its atom missing: {sorted(gated - names)}"
+    finally:
+        for (m, f), v in zip(flags, was, strict=True):
+            setattr(m, f, v)
+
+
+def check_a_plan_is_named_the_same_in_two_runs():
+    """F504 (the reviewer 2026-10-07 18:54Z): a plan's identity in the record is its adoption
+    ordinal, never a memory address. Two agents abandoning the same plan the same way must write
+    the same row -- an id() makes them differ, and no ledger carrying one can be reproduced."""
+    rows = []
+    for _ in range(2):
+        ag = _agent()
+        slot = _plant(ag, 1)
+        ag._plan_no = 1
+        state = ag.env.observe()
+        ag._expect = (slot, state.get(slot), 1, ag._routine_adopted, ag._act_n(), ag._plan_no)
+        n0 = len(ag.led.entries)
+        ag._settle_routine()
+        got = [e.detail for e in ag.led.entries[n0:] if e.event == "routine_abandoned"]
+        assert got, "fixture: the planted claim did not abandon"
+        rows.append({k: got[0].get(k) for k in ("set_by_plan", "held_plan", "set_by")})
+    assert rows[0] == rows[1], f"one plan, two names across runs: {rows}"
+    assert rows[0]["set_by_plan"] == rows[0]["held_plan"] == 1, rows[0]
+
+
+
+def check_each_bond_reads_its_own_meaning():
+    """Increment 1: each bond's per-frame truth is Fig 12's "means" column. One hold and one fail
+    per bond, built so a bond swapped for any other reads wrong on at least one frame."""
+    T, F, N = True, False, None
+    cases = {
+        "+": ([T, T, F, N, N], [T, F, T, T, F], (T, F, F, N, F)),
+        "∥": ([T, F, F, N, N], [F, T, F, F, T], (T, T, F, N, T)),
+        "−": ([T, T, F, N], [F, T, F, F], (T, F, F, N)),
+        "→": ([F, T, F, F], [T, F, T, F], (F, F, T, F)),
+        "⇒": ([F, T, F], [F, F, T], (F, F, T)),
+        "⋛": ([3, 1, N], [2, 2, 1], (T, F, N)),
+    }
+    for bond, (a, b, want) in cases.items():
+        got = composer.holds(bond, a, b)
+        assert got == want, f"{bond}: {got} != {want}"
+    for bond in composer.BONDS:
+        if bond in cases:
+            continue
+        assert bond == "≡", f"a bond with no fixture: {bond}"
+        assert composer.holds(bond, [T, F], [T, F]) == (N, N), "≡ decided on a record"
+
+
+def check_order_bonds_need_the_cause_first():
+    """DEFECT: B seen before or alongside A credited as A-then-B or A-produces-B. An unreadable A
+    before B leaves A-then-B unreadable, never false."""
+    T, F, N = True, False, None
+    assert composer.holds("→", [N, F], [F, T]) == (F, N)
+    assert composer.holds("⇒", [F, T, F], [T, F, T]) == (F, F, F), "B existed before A"
+    assert composer.holds("⇒", [T], [T]) == (F,), "A and B in one frame read as produced"
+    assert composer.holds("⇒", [T, F], [F, T]) == (F, T)
+
+
+def check_no_bond_is_preferred():
+    """Fig 12: which bond holds is not recoverable from the operands, so every bond is read on the
+    same operands and none depends on another having been read first."""
+    a, b = [True, True, False, None], [True, False, True, True]
+    one = {bond: composer.holds(bond, a, b) for bond in composer.BONDS}
+    two = {bond: composer.holds(bond, a, b) for bond in reversed(composer.BONDS)}
+    assert one == two, "a bond's reading depends on evaluation order"
+    both = [bond for bond in ("+", "∥") if composer.holds(bond, [True], [True]) == (True,)]
+    assert both == ["+", "∥"], f"two holding bonds, one reported: {both}"
+
+
+
+def _held(a: list, b: list) -> list:
+    frames = [{"a": x, "b": y} for x, y in zip(a, b, strict=True)]
+    return composer.read_pairs([{"left_reading": "a", "right_reading": "b"}], frames)[0]["held"]
+
+
+def check_a_bond_is_read_only_where_its_test_applies():
+    """DEFECT: every bond asked on every changed frame, so a frame where only A moved refuted
+    "A then B", and a quiet frame refuted everything. Fig 12's tests, each on its own occasions."""
+    assert _held([0, 1, 1, 2, 2], [0, 0, 1, 1, 2]) == ["→", "⇒", "−"], "A then B"
+    assert _held([0, 1, 1, 2], [0, 1, 1, 2]) == ["+"], "both move together"
+    assert _held([0, 1, 2, 3], [0, 0, 0, 0]) == ["−"], "A moves alone"
+    assert "→" not in _held([0, 0, 1, 1], [0, 1, 1, 2]), "B before A read as A then B"
+    assert _held([0, 0, 0, 0], [0, 0, 0, 0]) == [], "a quiet residual held a bond"
+
+
+def check_a_bond_two_operands_cannot_decide_is_never_passed():
+    """DEFECT: "either suffices" read True on every occasion by construction, and "comparison"
+    passed wherever one value was always larger. Both are reported undecided, never held."""
+    got = composer.read_pairs([{"left_reading": "a", "right_reading": "b"}],
+                              [{"a": 5, "b": 1}, {"a": 6, "b": 1}, {"a": 7, "b": 2}])[0]
+    assert not {"∥", "⋛", "≡"} & set(got["held"]), got
+    assert {"∥", "⋛", "≡"} <= set(got["undecided"]), got
+    assert set(composer.READ_ON_TWO) | set(got["undecided"]) == set(composer.BONDS), got
+
+
+def check_the_lookup_is_keyed_by_the_residual():
+    """DEFECT: a board-wide join offered every reading of a type (~2,600 pairs). The look-up offers
+    pairs over the residual's own readings only, and the index note link is what lights DELTA."""
+    d = {"o3.row": "POSITION", "o3.col": "POSITION", "o3.drow": "DELTA"}
+    got = composer.lookup(d)
+    assert got["pairs"] and {p["left_reading"] for p in got["pairs"]} <= set(d), got["pairs"][:2]
+    assert composer.lookup(d, link=False)["junctions"] < got["junctions"], "the link lit nothing"
+    assert composer.lookup({"o3.colour": "COLOUR"})["pairs"] == [], "a colour-only gap lit a pair"
+
+
+
+def check_a_press_records_where_it_landed():
+    """DEFECT: a positioned press left no trace of where it went, so "nothing changed" could not
+    be told from "nothing was pressed there" (ft09, 2026-10-07). The record names the cell, the
+    object the press is attributed to, and every object whose box covers the cell; an action with
+    no position records none."""
+    state = {"o0.row": 0, "o0.col": 0, "o0.h": 63, "o0.w": 64,
+             "o1.row": 2, "o1.col": 4, "o1.h": 6, "o1.w": 6}
+    got = tether._press((5, 3), state, None)
+    assert got == {"x": 5, "y": 3, "landed": None, "under": ["o0", "o1"]}, got
+    assert tether._press((40, 40), state, "o0")["under"] == ["o0"], "outside o1, read as in it"
+    assert tether._press(None, state, None) is None, "an unpositioned action recorded a press"
+
+
+
+def check_the_library_partner_is_ordered_after_contact_before_variance():
+    """DEFECT: the look-up's partner ignored, or made a filter. With no contact, the partner the
+    library names for this residual goes ahead of a slot that VARIES MORE -- so variance alone
+    would have put the other first, and the pass is not the old tie-break -- and every candidate
+    is still offered. Arm off, the old order returns."""
+    ag = _agent()
+    slot = ag.slots[0]
+    a, b = [s for s in ag.slots if s != slot][:2]
+    robs = [({a: 0, b: i}, "x", 0, None, None) for i in range(4)]
+    ag.env.contacts = lambda: {}
+    ag._named[slot] = {}
+    plain = ag._bindings(slot, robs)
+    assert plain.index(b) < plain.index(a), "fixture: variance did not put b first"
+    ag._named[slot] = {a: ["M"]}
+    got = ag._bindings(slot, robs)
+    assert got.index(a) < got.index(b), "the library's partner was not ordered ahead"
+    assert got[0] is None and sorted(map(str, got)) == sorted(map(str, plain)), "a candidate lost"
+    was = tether._LOOKUP_ORDER
+    try:
+        tether._LOOKUP_ORDER = False
+        assert ag._bindings(slot, robs) == plain, "arm off did not restore the order"
+    finally:
+        tether._LOOKUP_ORDER = was
+
+
+
+def check_an_objective_is_searched_over_what_the_world_showed():
+    """DEFECT: an objective was probed across the slot's whole declared alphabet -- 286 million
+    probes and 2,112 s in one cd82 cycle on a 32,769-value perimeter alphabet. The domain is the
+    values the record has shown before this frame plus each operand and its neighbours; the
+    alphabet only prices. So the probe count does not move with the alphabet, the step to a shown
+    target is still found, and a replayed frame cannot search a value shown after it."""
+    ag = _agent()
+    slot = ag.slots[0]
+    ag.trace = [({slot: 10}, "x", {slot: 12}, None, None),
+                ({slot: 12}, "x", {slot: 40}, None, None)]
+    ag.slot_types[slot] = next(iter(tether.ORDERED_TYPES))
+    probes = [0]
+
+    class Want:
+        out_type = tether.OBJ_TYPE
+
+        def __init__(self, ok):
+            self.ok = ok
+
+        def apply(self, v, _ctx):
+            probes[0] += 1
+            return self.ok(v)
+
+    def ask(ok, state, alpha, operands=()):
+        ag.alphabet[slot] = alpha
+        probes[0] = 0
+        ctx = tether.Ctx(action="x", operands=operands)
+        return ag._value_of(Want(ok), slot, state, ctx), probes[0]
+
+    live = {slot: 12}
+    for alpha in (64, 8 * 64 * 64 + 1):
+        got, n = ask(lambda v: v == 40, live, alpha)
+        assert got == 13, f"the shown target 40 was not stepped toward at alphabet {alpha}: {got}"
+        never, n = ask(lambda _v: False, live, alpha)
+        assert never is tether.NOT_RESOLVED and n <= 4, (
+            f"probes scale with the alphabet: {n} at alphabet {alpha}")
+    got, _n = ask(lambda v: v == 40, ag.trace[1][0], 64)
+    assert got is tether.NOT_RESOLVED, "a replayed frame searched the value shown after it"
+    got, _n = ask(lambda v: v > 7, {slot: 2}, 64, operands=(7,))
+    assert got == 3, f"the comparison's own boundary was not searched: {got}"
 
 
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]

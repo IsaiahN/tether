@@ -32,6 +32,10 @@ FILTER_VERDICT = "filter-verdict"
 IRREVERSIBLE_CUT = "irreversible-cut"
 UNREACHED_UNMEASURED = "unreached-unmeasured"
 UNDECLARED_DEATH = "undeclared-death"
+REFUSED_UNBOUND = "refused-unbound"
+ABANDONED_ON_ANOTHERS_CLAIM = "abandoned-on-anothers-claim"
+JUDGED_ON_ANOTHER_ACT = "judged-on-another-act"
+ALIASED = "aliased"
 
 # KEPT IN STEP WITH `ledger.STEPS`, WHICH IS THE DUPLICATION AND NOT A CHOICE MADE HERE.
 # The gate is meant to be readable without importing the thing it checks, so the constant is
@@ -60,7 +64,7 @@ def _v(check: str, token: str, seq: int | None = None, note: str = "") -> dict:
 def check(rows: list[dict]) -> dict:
     """Returns {"verdict": pass|refuse, ...}. The FIRST refusal is the named one."""
     for fn in (_mode, _steps, _inputs, _routing, _guards, _settlement, _filters, _cuts,
-               _unreached, _experiment):
+               _unreached, _experiment, _refusals, _abandonments, _aliasing):
         out = fn(rows)
         if out is not None:
             return out
@@ -240,6 +244,62 @@ def _experiment(rows: list[dict]) -> dict | None:
         if not d.get("disproof"):
             return _v("experiment", UNDECLARED_DEATH, r.get("seq"),
                       "a chosen death with no disproof stated before it")
+    return None
+
+
+def _refusals(rows: list[dict]) -> dict | None:
+    """11. A refusal names the term that made the prediction (F498). Fig 1: blame only to the
+    term that made it; Fig 5's amendment enumerates the BOUND terms predicting. So on every
+    `not_t` / `refuse` row the term is the one that slot's bet in the same cycle was made by --
+    a refusal of a term the slot had already replaced blames a term that predicted nothing."""
+    bound = {(r.get("cycle"), r.get("slot")): r.get("detail", {}).get("bound")
+             for r in rows if r.get("event") == "bet"}
+    for r in rows:
+        if r.get("event") in ("not_t", "refuse"):
+            term = r.get("detail", {}).get("term")
+            if bound.get((r.get("cycle"), r.get("slot"))) != term:
+                return _v("refusals", REFUSED_UNBOUND, r.get("seq"), str(term))
+    return None
+
+
+def _abandonments(rows: list[dict]) -> dict | None:
+    """12. A plan is abandoned only on its own claim, judged on the act it was about (F502).
+    Fig 1: blame only to what made the prediction -- an expectation left by an ended routine must
+    not drop its successor, nor be judged after a later act. Rows that do not record the setter
+    (ledgers older than F502) are not judged."""
+    for r in rows:
+        if r.get("event") != "routine_abandoned":
+            continue
+        d = r.get("detail", {})
+        if "set_by_plan" in d and d.get("set_by_plan") != d.get("held_plan"):
+            return _v("abandonments", ABANDONED_ON_ANOTHERS_CLAIM, r.get("seq"),
+                      str(d.get("set_by")))
+        if "set_on_act" in d and d.get("set_on_act") != d.get("judged_after_act"):
+            return _v("abandonments", JUDGED_ON_ANOTHER_ACT, r.get("seq"),
+                      f"{d.get('set_on_act')} != {d.get('judged_after_act')}")
+    return None
+
+
+def _aliasing(rows: list[dict]) -> dict | None:
+    """13. Two different things the world showed on one slot are never read as one (the
+    reviewer 2026-10-07 23:24Z). Read from OBSERVATIONS only -- never the term's output, which
+    may wrap on purpose -- under the alphabet each was priced with. Rows that do not record their
+    alphabet (ledgers older than this check) are not judged."""
+    seen: dict[str, set] = {}
+    for r in rows:
+        d = r.get("detail", {})
+        if r.get("event") != "bet" or "alphabet" not in d or d.get("vanished"):
+            continue
+        a, n, slot = d.get("actual"), int(d["alphabet"]), r.get("slot")
+        if a is None or n <= 0:
+            continue
+        prior = seen.setdefault(slot, set())
+        if d.get("from_value") is not None:     # the value before is an observation too
+            prior.add(d["from_value"])
+        clash = sorted(v for v in prior if v != a and (v - a) % n == 0)
+        if clash:
+            return _v("aliasing", ALIASED, r.get("seq"), f"{slot}: {clash[0]} and {a} under {n}")
+        prior.add(a)
     return None
 
 

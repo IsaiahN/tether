@@ -18,6 +18,7 @@ Reports lambda, the spectral radius of the type transfer matrix, against V = |at
 from __future__ import annotations
 
 import json
+import os
 import pathlib
 import random
 import sys
@@ -28,22 +29,6 @@ from typing import Any
 from sensors import CELL, CELLS, NOT_RESOLVED, Cells
 
 sys.dont_write_bytecode = True
-
-def _replay_delta(d: dict):
-    """The re-invented atom's body: the agent's RECORDED observation, replayed.
-
-    A FACTORY AT MODULE LEVEL, not a closure in the loop -- defining it inside the loop binds
-    the loop variable, so every re-invented atom would end up carrying the LAST delta in the
-    file. Each call closes over its own map.
-
-    Keys are strings because the delta round-trips through JSON; the lookup stringifies to
-    match, and an unrecognised value ABSTAINS rather than guessing.
-    """
-    def fn(v, _c):
-        got = d.get(str(v))
-        return NOT_RESOLVED if got is None else got
-    return fn
-
 
 PRIOR, MINTED, IMPORTED = "prior", "minted", "imported"
 # THE FOURTH ORIGIN, AND IT IS A FOURTH RATHER THAN A REUSE OF `IMPORTED` ON PURPOSE. Isaiah,
@@ -370,9 +355,11 @@ class Term:
     # reading it. **The guard works where `_ops` supplies operands, which is bets.**
     guard: str | None = None
     # **THE GUARD'S OWN REFERENT -- which object the press must land on.** Carried like
-    # `operand`: a per-board binding that is RE-RESOLVED on a new board, never a name the
-    # chain owns. Isaiah's 2026-09-29 ruling stands -- the guard names a RELATION and the
-    # binding is resolved per board, so nothing above the seam names a button.
+    # `operand`: a per-board binding, never a name the chain owns. Isaiah's 2026-09-29
+    # ruling stands -- the guard names a RELATION and the binding is per board. **IT DOES
+    # NOT CROSS A GAME: save records it, load DROPS it and COUNTS it (F469).** This said it
+    # was re-resolved on a new board; nothing did. Re-binding it by fit is plan item 2's
+    # typed parameter, unbuilt.
     guard_ref: str | None = None
     # §4: THE OPERAND MAY BE COMPUTED, WHICH IS WHAT MAKES THIS A TREE. `operand` names the
     # slot; this transforms that slot's value before it fills operand 0. A chain has no
@@ -403,6 +390,12 @@ class Term:
             inner = (f"{self.operand_term.name}({self.operand})"
                      if self.operand_term is not None else self.operand)
             base = f"{base}<{inner}>"
+        elif self.operand_term is not None:
+            # AN UNBOUND SCHEMA, named by its PARAMETER TYPE -- the type `_operand_fits`
+            # enforces -- so it never shares a name with the flat chain (F470).
+            want = self.operand_type
+            ptype = "SAME" if want == SAME_AS_TARGET else (want or "ANY")
+            base = f"{base}<{self.operand_term.name}(:{ptype})>"
         if not self.guard:
             return base
         # **THE REFERENT IS PART OF THE IDENTITY.** Two guards of the same KIND pointing at
@@ -658,9 +651,9 @@ class Standing:
         outlasting it.** Nothing new is measured and nothing new is stored -- the cliff simply
         stops being a special case beside a decay that was already there.
 
-        **THE NUMBER IS NOT MINE AND THE DEFAULT IS ITS OWN NO-OP.** `REJECTION_CEILING` is 1.0
-        and a refutation adds 1.0, so the first miss still unsettles and **every run is
-        unchanged.** The mechanism is installed, visible and movable; the judgement of how much
+        **THE NUMBER IS NOT MINE.** `REJECTION_CEILING` was 1.0 here, so the first miss
+        unsettled; it is 2.0 since `fa3cba6` -- read the table at its definition.
+        The mechanism is installed, visible and movable; the judgement of how much
         one failure should cost is Isaiah's, and `F341` files it as a judgement constant.
         """
         self.decay(tick, halflife)
@@ -670,8 +663,11 @@ class Standing:
         if where is not None:
             self.where[where] = self.where.get(where, 0) + 1
         # WHICH HALF THIS ONE IS. Read BEFORE the ceiling below can clear `settled_at`, or a
-        # refusal would be filed as a miss on the very cycle it unsettles the term.
-        if self.settled:
+        # refusal would be filed as a miss on the very cycle it unsettles the term. PER SLOT
+        # when one is given, as `is_settled` reads it: a miss where the term never settled is
+        # a miss, not a refusal, however settled it is elsewhere (F465).
+        held = (slot in self.settled_on) if slot is not None else self.settled
+        if held:
             self.refusals += 1.0
         else:
             # IT WAS NEVER SETTLED, SO THIS IS NOT A REFUSAL. Counted beside the total, never
@@ -694,7 +690,7 @@ class Standing:
             return
         # PER SLOT, MIRRORING SETTLEMENT. A refusal here unsettles HERE; the term keeps its
         # standing on every other slot it earned, which is exactly what A5 did for settling.
-        if self.settled:
+        if held:
             self.refusals_on[slot] = self.refusals_on.get(slot, 0.0) + 1.0
         if self.refusals_on.get(slot, 0.0) >= cap:
             self.settled_on.discard(slot)
@@ -745,6 +741,13 @@ class Standing:
             # not exist yet, and it is the next item rather than a gap left here.
             self.misses *= _f
             self.refusals *= _f
+            # THE PER-SLOT COUNT IS ON THE TERM'S CLOCK TOO. The live refute always passes a
+            # slot, so `refusals_on` is what the ceiling reads; undecayed, two misses ever
+            # made every later miss a cliff -- against Isaiah's 2026-09-24 ruling (F463).
+            # An EVIDENCE TALLY behind settled-as-a-spectrum, NOT Fig 6's refusal: that is a
+            # minted refusing TERM and never leaves the record. Nothing else reads this count.
+            for _s in self.refusals_on:
+                self.refusals_on[_s] *= _f
             self.last_tick = tick
 
     @property
@@ -923,41 +926,6 @@ class Gamma:
         if slot is not None:
             st.settled_on.add(slot)
 
-    def invent(self, name: str, fn, in_type: str, out_type: str, licence: dict) -> bool:
-        """ITEM 7. **THE REGISTRY WAS FIXED AT CONSTRUCTION AND THIS IS THE ONLY THING THAT
-        OPENS IT.** `self.atoms` and `self._by_name` were built once and nothing appended.
-
-        **LICENSED BY THE LADDER, NEVER BY USEFULNESS.** `CLAUDE.md`: *`composition -> atom ->
-        sensor`, and every step is licensed by the same thing: THE LEVEL BELOW TRIED AND COULD
-        NOT.* So `licence` must carry the agent's OWN abstention record -- a `verdict` of
-        `budget_spent`, `depth_exhausted` or `under_floor`, with the closure it searched. **An
-        invention with no recorded failure beneath it is refused**, because without one it is
-        the library being made more complete, which steals the discovery.
-
-        **NO HEAD START.** It enters with an ordinary `Standing` and earns its place like any
-        term. **The name is arbitrary and meaningless** -- the identity is the recorded delta
-        it was formed from, so a name that described it would be the seat naming the agent's
-        concept for it.
-
-        Returns False if the name is taken: re-inventing is not invention, and silently
-        replacing a live atom would change what every existing term means.
-        """
-        if name in self._by_name:
-            return False
-        # `depth_exhausted` is the pre-2026-10-01 spelling of `priced_out_at_depth`;
-        # BOTH are accepted so an older run's abstention record still licences.
-        if licence.get("verdict") not in (
-                "budget_spent", "depth_exhausted", "priced_out_at_depth", "under_floor"):
-            raise ValueError(
-                f"invent({name!r}) needs the agent's own abstention record -- a verdict of "
-                f"budget_spent, depth_exhausted or under_floor. Got {licence.get('verdict')!r}. "
-                f"The level below must have TRIED AND FAILED; usefulness is not a licence.")
-        a = Atom(name, fn, in_type, out_type)
-        self.atoms.append(a)
-        self._by_name[name] = a
-        self.invented[name] = dict(licence)
-        return True
-
     def promote(self, name: str, shadow: dict, echo: dict) -> None:
         """PRIMITIVE. Settled is held-out payment on the slot the term was minted for,
         and that does not discriminate -- every wrong term in the false-mint read fired
@@ -1001,9 +969,12 @@ class Gamma:
         happens at both scales. The caller is the one holding both.
         """
         st = self.standing.setdefault(name, Standing())
-        was = st.settled
+        was = self.is_settled(name, slot)
         st.refute(self.tick, self.halflife, where=where, slot=slot)
-        return was
+        # TRUE ONLY WHEN THIS MISS COST STANDING, on the slot when one is given. This returned
+        # `was settled (anywhere)`, so the caller unbound on every miss by a settled term --
+        # a slot it never settled on included -- whether or not standing was lost (F462).
+        return was and not self.is_settled(name, slot)
 
     def is_settled(self, name: str, slot: str | None = None) -> bool:
         """Settled -- ANYWHERE by default, HERE when a slot is given. Kernel A5.
@@ -1161,9 +1132,16 @@ class Gamma:
             # the atom names alone made `inc?ACTED_SELF` indistinguishable from `inc`.**
             out.append({"atoms": [a.name for a in t.atoms], "origin": t.origin,
                         "guard": t.guard, "operand": t.operand,
+                        "guard_ref": t.guard_ref,   # the RECORD of the loss, never re-bound
+                        # THE TREE CROSSES AS A SCHEMA: a computed operand is a METHOD
+                        # (Fig 4); the slot it was bound to is not, and is not written.
+                        "operand_term": ([a.name for a in t.operand_term.atoms]
+                                         if t.operand_term is not None else None),
                         "handle": self.handles.get(name), "game": self.game,
-                        "admitted": getattr(st, "admitted", None) if st else None,
-                        "residual": getattr(st, "residual", None) if st else None})
+                        # `stamps` holds DICTS: `getattr` on one returned None, so every term
+                        # was saved with no admitting clause and no residual (F464).
+                        "admitted": st.get("admitted") if st else None,
+                        "residual": st.get("residual") if st else None})
         # ROUTE 2 -- reviewer, 2026-09-23. **THE RECORDED DELTA AND ITS LICENCE, NEVER THE
         # FUNCTION.** `invent` made the registry run-local, which broke this file's standing
         # assumption that atoms are "identical on both sides" -- so a term built on an invented
@@ -1188,7 +1166,11 @@ class Gamma:
                 "invented": {n: rec for n, rec in self.invented.items() if rec.get("delta")},
                 "vindication": list(self.vindication),
                 "book": dict(self.book)}
-        pathlib.Path(path).write_text(json.dumps(blob, indent=1), encoding="utf-8")
+        # ATOMIC: written beside it, then renamed into place. A kill mid-save (the platform's
+        # time limit) leaves the previous library whole, never a half-written one (F471).
+        tmp = f"{path}.tmp"
+        pathlib.Path(tmp).write_text(json.dumps(blob, indent=1), encoding="utf-8")
+        os.replace(tmp, path)
         return {"written": len(out), "invented": len(blob["invented"]), "path": path}
 
     def load(self, path: str) -> dict:
@@ -1210,7 +1192,12 @@ class Gamma:
         games there is no first. `necessary` stays, `promoted` wipes, **`IMPORTED` wipes and is
         counted apart**, so the transfer number is readable and the ablation is unaffected.
         """
-        blob = json.loads(pathlib.Path(path).read_text(encoding="utf-8"))
+        # A MISSING OR UNREADABLE LIBRARY IS A COLD START, REPORTED -- never a crash, never a
+        # partial library (F471).
+        try:
+            blob = json.loads(pathlib.Path(path).read_text(encoding="utf-8"))
+        except (OSError, ValueError) as e:
+            return {"loaded": 0, "cold": f"{type(e).__name__}: {e}"[:200]}
         # BACKWARD-COMPATIBLE BY SHAPE, not by a version flag: files written before route 2 are
         # a bare list. A flag would be a second thing to keep in step with the format.
         rows = blob if isinstance(blob, list) else blob.get("terms", [])
@@ -1235,23 +1222,29 @@ class Gamma:
         if self.vindication:
             self.halflife = sum(self.vindication) / len(self.vindication)
         took, refused = [], []
-        # RE-INVENT FIRST, so a term naming an invented atom can resolve below. Each goes back
-        # through `invent`, so **the licence is re-checked on the way in rather than trusted
-        # from the file** -- a file claiming an invention without an abstention behind it is
-        # refused exactly as a live one would be.
-        reinvented = []
-        for nm, rec in (blob.get("invented") or {} if isinstance(blob, dict) else {}).items():
-            delta = rec.get("delta") or {}
-            if not delta or nm in self._by_name:
-                continue
-
-            try:
-                if self.invent(nm, _replay_delta(dict(delta)), "val", "val", rec):
-                    reinvented.append(nm)
-            except ValueError:
-                refused.append({"atoms": [nm], "why": "invention without a licence in the file"})
+        # INVENTED ATOMS ARE SKIPPED AND COUNTED, NEVER RE-INVENTED -- Isaiah, 2026-10-06
+        # (decision 6). A replayed delta is a recorded effect table carried up as a method
+        # (Fig 4) -- `act`'s shape. The records are kept in the report; nothing enters the
+        # alphabet, and a term built on one is counted apart below (F466).
+        skipped = sorted(n for n in (blob.get("invented") or {} if isinstance(blob, dict) else {})
+                         if n not in self._by_name)
+        built_on_skipped = []
+        guard_object_lost = []
         for r in rows:
             names = tuple(r["atoms"])
+            tree = r.get("operand_term")
+            if tree and not all(n in self._by_name for n in tree):
+                refused.append({"atoms": list(names),
+                                "why": "operand tree names an atom not in this registry"})
+                continue
+            if r.get("guard_ref"):
+                # A CLAIM MUST NOT TRAVEL CHANGED AND SILENT: `inc?ACTED_SELF<o1>` arriving as
+                # `inc?ACTED_SELF` means "my own owner's press". Dropped, and named here.
+                guard_object_lost.append({"atoms": list(names), "guard": r.get("guard"),
+                                          "object": r["guard_ref"], "handle": r.get("handle")})
+            if any(n in skipped for n in names):
+                built_on_skipped.append({"atoms": list(names), "handle": r.get("handle")})
+                continue
             if not all(n in self._by_name for n in names):
                 refused.append({"atoms": list(names), "why": "atom not in this registry"})
                 continue
@@ -1260,8 +1253,13 @@ class Gamma:
             # arrives without it and says so -- `crossed_without_binding` -- rather than
             # arriving as a different term with no record that anything was dropped.
             t = Term(tuple(self._by_name[n] for n in names),
-                     origin=IMPORTED if r.get("game") != self.game else r["origin"],
-                     guard=r.get("guard"))
+                     # BY PROVENANCE, NEVER BY GAME NAME: this run LOADED it, so it is
+                     # imported, whatever game it was saved under. A same-name reload
+                     # stayed "minted" and got no carry-candidacy (F468).
+                     origin=IMPORTED,
+                     guard=r.get("guard"),
+                     operand_term=(Term(tuple(self._by_name[n] for n in tree))
+                                   if tree else None))
             if t.name in self.library:
                 # **`already_held` WAS ONE NUMBER OVER TWO OPPOSITE OUTCOMES -- `F420`.** A row
                 # can land on a composition this registry genuinely holds, which is a real
@@ -1289,12 +1287,14 @@ class Gamma:
             took.append({"handle": r.get("handle"), "already_held": False,
                          "onto_atom": False, "name": t.name, "lost": None,
                          "unbound": bool(r.get("operand"))})
-        # `reinvented` IS REPORTED, because a silent count is how an invented atom
-        # crossing a game boundary would be invisible -- and that crossing is the claim.
+        # THE SKIPPED INVENTIONS AND WHAT THEY TOOK DOWN ARE REPORTED, because a silent count
+        # is how an old library's dependence on them would be invisible.
         onto_atom = [x for x in took if x["already_held"] and x["onto_atom"]]
         onto_comp = [x for x in took if x["already_held"] and not x["onto_atom"]]
         return {"loaded": sum(1 for x in took if not x["already_held"]),
-                "reinvented": len(reinvented),
+                "skipped_invented": skipped,
+                "built_on_skipped_invention": built_on_skipped,
+                "guard_object_lost": guard_object_lost,
                 # KEPT, so a caller reading the old key still gets the old number and the
                 # split sits beside it rather than replacing it silently.
                 "already_held": len(onto_atom) + len(onto_comp),

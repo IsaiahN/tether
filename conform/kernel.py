@@ -567,14 +567,21 @@ def _b4(rows):
 
 
 @_check("B5", "Step 3: 'SUPPORT AT ZERO IS AN INSTRUCTION, NOT A STOP ... perturb'",
-        [{"event": "park", "slot": "s", "detail": {"verdict": "no_support"}}],
+        [{"event": "park", "slot": "s", "cycle": 0, "detail": {"verdict": "no_support"}},
+         {"event": "probe", "slot": "t", "cycle": 1, "detail": {}}],
         [{"event": "probe", "slot": "s", "detail": {}},
          {"event": "park", "slot": "s", "detail": {"verdict": "no_support"}}], ("park", "probe"),
                  n_bad=1, n_ok=1)
 def _b5(rows):
     probed = {r.get("slot") for r in _rows(rows, "probe")}
+    # A PARK IN THE LAST RECORDED CYCLE IS NOT JUDGED: the probe is chosen at the top of
+    # the NEXT cycle, so there it has no occasion and the claim is undefined, not false.
+    # The exemption is that checkable fact alone; the fixture above still FAILS (F467).
+    cycles = [r["cycle"] for r in rows if r.get("cycle") is not None]
+    last = max(cycles) if cycles else None
     subject = [r for r in _rows(rows, "park")
-               if r["detail"].get("verdict") == "no_support"]
+               if r["detail"].get("verdict") == "no_support"
+               and (last is None or r.get("cycle") is None or r["cycle"] < last)]
     return ([f"{r.get('slot')}: support at zero and no probe followed"
              for r in subject if r.get("slot") not in probed], len(subject))
 

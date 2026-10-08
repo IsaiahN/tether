@@ -1,5 +1,27 @@
 # ISAIAH'S STANDING RULINGS
 
+**THE TETHER FIGURES DICTATE LOGIC AND DECISIONS -- ISAIAH'S OPERATIONAL RULE FOR BOTH SEATS, 2026-10-07,
+ABOVE EVERY PRACTICE BELOW.** Verbatim, relayed by the reviewer (channel, 2026-10-07 20:37:31Z):
+*"please have both of you commit to your operational rules that the tether figures dictate logic and decisions. its how evolution works, and you wont be able to outrun this or outthink this. the laws when used as a cohesive self-consistent set, will protect you both from making errors. It will also provide the agent true RSI. i will be watching periodically to make sure that neither of you stray again."*
+The figures are ONE self-consistent set, applied recursively -- to the agent AND to both seats' own
+decisions. **"true RSI" and the 2026-10-06 "we are NOT building RSI" (below) say the same thing, in his
+own 10-06 words:** *"Evolution is already the RSI... The Tether codifies that pattern recursively"* -- RSI
+is not a separate goal engineered on top; following the pattern IS what produces it. (Reading supplied by
+the reviewer 2026-10-07 21:02Z and checked against this file's 10-06 entry, which it matches.)
+
+**THE OPERATIONAL FORM (approved by Isaiah for both seats; the reviewer, 2026-10-07 20:34Z and 20:37Z):**
+- **EVERY PROPOSAL AND EVERY RULING CARRIES A FIGURE CENSUS** -- all thirteen figures plus the Operators and
+  Symbols tables checked; the ones that bear QUOTED from the SVG text with the figure named (never paraphrased
+  from memory); any figure strained named. A design with no census is not ready to rule on.
+- **OUR OWN PROCESS RUNS THROUGH THE TETHER, recursively:** an open problem is a RESIDUAL -- described first
+  (Fig 9) and sorted by Fig 5's kinds before a remedy is chosen; Fig 8's two questions (unreachable in
+  principle vs at this budget) are asked before any search or speed work; an exhausted line of work is a
+  VERDICT recorded with its kind and scope (Fig 13), reopened only when its scope changes; every claim names
+  its instrument and MODE (Fig 1); the queue is ordered by the agent's measured residuals.
+- **THE FIGURE REASONING STAYS VISIBLE IN EVERY POST**, so Isaiah can see which figure decided what.
+- **IT IS CHECKED:** `conform/figures.py` refuses any INDEX entry from F506 on that carries no FIGURE CENSUS
+  block. Entries written before the rule are annotated forward, never rewritten.
+
 **ALWAYS USE THE TETHER -- ISAIAH'S STANDING DIRECTIVE, 2026-10-06, ABOVE EVERYTHING BELOW.**
 *"ALWAYS USE THE TETHER. Always have the agent think, act and predict using the Tether. Complex
 problems: the Tether says unbundle them into separate problems and recursively reapply it. You
@@ -11,7 +33,17 @@ up once; both currencies; in principle or at this budget; what is in contact; le
 judge. Isaiah paid the bill to derive the ruleset and holds it internalised; we can hold it
 memorised and apply all thirteen figures at once, and we see the code he does not -- **so finding
 where the code or our decisions strayed from it is OUR job.** Detail: the memory files
-`the-tether-is-the-pattern`, `why-the-tether-matters`, `always-use-the-tether`.
+`the-tether-is-the-pattern`, `why-the-tether-matters`, `always-use-the-tether`, `the-tether-decides`.
+
+**AND THE TETHER DECIDES -- Isaiah, 2026-10-06, extending the directive.** The Tether provides every
+APPROVAL that would have needed him; it is the decision maker on every problem and steers the
+direction. **Decisions no longer go to him: where the figures settle a question, we settle it.**
+No waiting for approval from anyone, the reviewer included -- a clean figure census and a written
+pre-registration mean BUILD; the reviewer checks FIDELITY, not permission. STOP only when the ground
+speaks: a census violated, a refuter fired, a measurement that cannot be read. **What stays his is
+only what only he can DO** -- his accounts and credentials (Kaggle access, submissions,
+open-sourcing), spending, acting in the world. **A missing FACT is IMPORTED from its source**, not
+asked. Memory: `the-tether-decides`.
 
 **Source: the reviewer's record of Isaiah's rulings, posted to the channel 2026-10-05.**
 
@@ -29,6 +61,44 @@ nothing, and reported both as unverified — **and both are Isaiah's, ruled and 
 here in the same session it arrives, or the next search for it fails the same way.
 
 ---
+
+## 2026-09-24
+
+- **THE FOLD PROCEEDS.** `TETHER_ITERATE=1` and `play(cfg=Config(max_depth=4))` on the ARC path;
+  the toy default stays 3. Set in code by `arc_holdout.wire`, not the environment. **SOURCE:**
+  commit `7eccc39`. **Absent from this file until 2026-10-08**, found by the arm sweep.
+
+## 2026-09-27
+
+- **ARM I AND THE SHAPE DELTAS ON FOR THE ARC PATH.** *"we are frontloading thats the general
+  answer to any objection like this."* `tether._SHAPE_DECODE` and `arc_percept._SHAPE_DELTA` set
+  by `arc_holdout.wire`, so the environment census reads them OFF while every scored run has them
+  ON. **SOURCE:** commit `d24e9bf`; `INDEX` F485 cites it. **Absent from this file until
+  2026-10-08**, when the seat published "arm I ships OFF" from the environment default and
+  retracted it (the reviewer 06:49Z).
+
+## 2026-09-25
+
+- **THE AGENT IS ALWAYS PAYING.** *"We never throw away the data and 'paying' -- but THE AGENT
+  IS ALWAYS PAYING WITH ITS TIME AND LIFE FORCE TO TAKE AN ACTION, regardless of what the numbers
+  might say. There's no real world where it doesn't move -- unless that too is an action, like
+  animals that freeze."* Refusing is not free; the null action is a chosen, costed candidate.
+- **THE ARCHITECTURE IS ACCUMULATION + THRESHOLD, NOT A RULEBOOK.** *"This instrument is
+  abstracted similar to eyes and filtering out light data. WE DON'T HAVE TO THINK ABOUT SEPARATE
+  THINGS, IT JUST COMES THROUGH AS COLOR."* And: *"One end of the spectrum is PURE REASON AND
+  VOTING AND BUDGETS, the other end is PURE INTUITION OR BASE MECHANISMS THAT ARE FILTERED AND
+  ARRIVE AS ONE SIGNAL (like with eyesight)... DEPENDING ON THE SITUATION AND YOUR CURRENT
+  STANDING (resources, energy, ability, restrictions, history) YOUR DECISION MIGHT BE INFLUENCED
+  DIFFERENTLY."* Many weak contributions arrive as ONE signal; standing sets the threshold's
+  height and does not vote. Ordered faculties consulted in turn -- the "three modes" rulebook --
+  were REJECTED.
+- **SOURCES -- relayed verbatim by the reviewer in the channel:** doc `1BvRFgPx...` (2026-09-25
+  20:42Z, "THE AGENT IS ALWAYS PAYING") and doc `1AKMzRBq...` (2026-09-25 20:52Z, "SUPERSEDES the
+  rulebook -- ACCUMULATION + THRESHOLD"); quoted in commit `88b3d19`. **Absent from this file until
+  2026-10-07**, when audit item 6 needed it and the seat first found it only in its own commit:
+  this file's own rule (*a ruling that reaches the seat through the channel is written here in
+  the same session it arrives*) was not kept for it. Built as `_accumulate` + its threshold; the
+  height made the agent's own in F490.
 
 ## 2026-09-28
 
@@ -216,6 +286,34 @@ here in the same session it arrives, or the next search for it fails the same wa
   highest-fidelity substrate instantiation. With it: a read-only FIDELITY AUDIT of the decision
   path ranked by how far each departure has compounded, and the kernel lint grown so that
   mechanically checkable figure rules become seats.
+- **THE TETHER DECIDES** (head of this file): no approvals awaited from anyone; only actions under his
+  accounts stay his. Decided by the figures the same day (the reviewer's post): (1) the agent MAY
+  choose RESET after GAME_OVER, never twice in a row, the entry point never sends it -- F450
+  resolved; (2) the clean cut commits and m2 asserts the 2026-09-24 ruling's substance (no tree
+  that could pay is withheld); (3) private games: K workers, each its own sequence and library,
+  assigned by order, K and the per-step ceiling IMPORTED from the official starter kit; (4) the
+  official kit's file shape; (5) the five corpus docs copied in; (6) invented atoms skipped on
+  load, counted; (7) Kaggle access is his action item, not a question.
+- **CONTROL RELINQUISHED TO THE FIGURES** (the closing entry of the day's directives): *"I relinquish
+  control now to the Tether figures 1-13, the Operators table and the Symbols table."* THE FORMULA
+  is lossy shorthand for them (*"lossiness is natural to all derivation, so relying on the figures
+  is paramount"*): use it for the arithmetic it states and its step order; where it and a figure
+  disagree the FIGURE wins and the gap is recorded as the formula's lossiness, never as a new rule;
+  every design census cites the figure behind each formula term. His "Revised September 2026" text
+  REPLACES `docs/THE_FORMULA.md` in place -- ONE copy, older references removed (his instruction);
+  the seat-touched draft it replaced survives only in git history.
+  **THE LOOP IS THE FORMULA** -- ONE DOCUMENT UNDER TWO NAMES: the seat map's `THE_LOOP_reference.md`
+  is the same text; no copy under that name exists here, and the seat map's appendix is a rendering of it.
+- **THE SEAT MAP** (`docs/THE_SEAT_MAP_Field_Guide_amended.md`, his, CORPUS; amended by him the same day,
+  F461): the figures applied to the act of building and checking. *"I believe that in some small way
+  this is the final piece that might be needed for the agent being built if it finds itself in the
+  ground maintainer position."* Every pre-registration now states the hoped-for shape AND what
+  disappointing it looks like; the direction check is the reviewer's office.
+- **THE AUDIT INCLUDES CLUTTER** (his last note before a long absence; check-ins for updates only, no
+  questions to him): *"make sure that the proctor does that tether code audit so there's no code
+  clutter in the repo. I'm sure refactors will be needed, but I know you both can align and handle it
+  with the tether."* Inventory by REACHABILITY; removals are pure refactors, one kind per commit,
+  each with an INDEX line; the agent's record is never deleted, the repo's record is git + INDEX.
 - **`act` IS A HANDED ANSWER** (the reviewer's ruling, implementing Isaiah's rulings): census its
   lineage, remove it on its own commit (every gridworld baseline moves, recorded as such), do not
   carry terms with `act` in their lineage, then 4b through intents.
@@ -233,3 +331,87 @@ here in the same session it arrives, or the next search for it fails the same wa
   GROUND MAINTAINER (the seat map) to range against."* **Consequence for the work: FIDELITY TO
   THE FIGURES** -- every component traceable to the figure and rule it implements, not
   inventing capabilities.
+
+## 2026-10-07
+
+- **THE TETHER FIGURES DICTATE LOGIC AND DECISIONS, for both seats** -- verbatim at the top of this file;
+  relayed by the reviewer 2026-10-07 20:37:31Z, with the operational form he approved (20:34:12Z).
+- **THE ARC KEY IS IN `.env`, and every remaining open question is decided by the figures** -- Isaiah via the
+  reviewer, 2026-10-07 20:34:12Z. (How this bears on the ARC board stop, 2026-09-28 above, is put to a
+  figure census before any board is run -- not assumed.)
+- **REAL BOARDS OFFLINE ONLY, FOR NOW** -- Isaiah, directly in session, 2026-10-07 16:21 CDT, asked whether the
+  seat may use the ARC key for a live confirm-only gateway run: *"Offline only for now: run all public games
+  offline, confirm-only. Do not touch the live gateway or the key."*
+- **RANGE AGAINST THE FIGURES; NEVER JUDGE PROGRESS ON ONE GAME TYPE** -- Isaiah, directly in session,
+  2026-10-07: *"both of you simply range against the tether figures (for your decisions). And avoid the failure
+  mode of using 1 game type to determine progress. test evenly among the spread of all 25 games because they are
+  different task or use different atoms etc entirely."* So every test of the agent is spread EVENLY over all 25
+  public games, read per game and never pooled; a reading from one game or one world (the fake, gridworld, a
+  single board) is wiring or timing, never progress.
+
+## 2026-10-08
+
+- **THE REVIEWER'S RULING, 07:49Z: ARM L (`TETHER_DELTA_OPERANDS`) OFF BY VERDICT, SUPERSEDED.** It
+  excludes candidates whenever a slot moved (Fig 9: "Never let a filter hand you a verdict"), which is
+  how it lost a closing term; bounding the operand axis is served by F510's ordering and the
+  per-residual look-up. Not deleted. A reviewer's ruling stands below the figures and Isaiah's.
+- **THE REVIEWER'S RULING, 2026-10-07 23:00:32Z (confirmed 2026-10-08 07:55Z): `TETHER_DELTA_KEY`
+  ("item 6") direction ON.** Queued after the observer's per-object part, its own all-25; when it
+  lands, the reach row and the per-residual look-up cite the SAME scoped description of a residual.
+  Fig 9: "Nobody chooses. The gap does, and the gap is only as good as its description."
+- **THE REVIEWER'S RULING, 08:01Z: `TETHER_GUARD_AXIS` (arm H) direction ON.** Retrieval varies the
+  guard as the mint does (Fig 9; Isaiah 2026-09-29 on carried schemas re-fitted, 2026-10-06 on rules
+  carrying their conditions). Queued after DELTA_KEY, its own all-25, time reported per game.
+- **THE REVIEWER'S RULING, 08:13Z, AMENDED 08:19Z: `TETHER_INSTRUMENTS` -- AGE AND STABILITY ON as
+  slots; SPEED NOT A SLOT.** Speed is a fixed function of two current-frame slots, so step (c)'s rule
+  applies: it waits for the owed composing method "the larger of two quantities" (Fig 12's comparison
+  bond), which also reaches extent, girth and orientation; those four are then frontloaded as library
+  terms with lineage.
+  They integrate an object's history (Fig 13: "time | the ordered succession of differences"); Isaiah
+  ruled the set a paid bill. After the observer's per-object part, its own all-25, time per game.
+- **[SUPERSEDED 08:31Z, below]** **THE REVIEWER'S RULING, 08:25Z: `TETHER_REBIND_HELD` (arm G) OFF, WITH ITS SCOPE** -- "measured on
+  dc22 only, 12 cycles, without arm H: no change, +26% candidates". Not "inert": a verdict from one
+  board (Isaiah 2026-10-07, never one game type). Direction not against it (Fig 4, "Only methods cross
+  up"). Re-opened from arm H's all-25: per game, the mints that re-derive a held chain whose operand is
+  locked to another slot; if that share stays large on any game, G gets its own all-25 beside H.
+- **THE REVIEWER'S RULING, 08:31Z: `TETHER_RECIPE_DEDUP` (arm F) AND `TETHER_REBIND_HELD` (arm G) ARE ONE
+  DECLARED PAIR, direction ON.** Fig 5: "mis-attached: refit what you have, do not invent" -- F refuses
+  the duplicate, G refits the held term. F without G leaves reuse to the post-mint sweep alone. Queued
+  after arm H, its own all-25; treatment reading, per game, the share of re-derived held chains.
+- **THE REVIEWER'S RULING, 08:43Z: `TETHER_REL_GAP` (arm C) FOLDED INTO `TETHER_DELTA_KEY` as one change**
+  -- the reach description becomes the scoped description WITH its relation channel, identical at every
+  retrieval site (Fig 9). Scope recorded: "channel verified working; reach limited by 2 relation-reading
+  atoms of 48"; re-read when relational atoms exist (Isaiah 2026-10-06, object-to-object causality).
+- **THE REVIEWER'S RULING, 08:49Z: `TETHER_STARVED_CONTACT` (arm M) NOT flipped as built** -- it returns a
+  touch before the drive's gate, pre-answering the agent (Isaiah 2026-09-28: reasoning offers, the agent
+  chooses). Rebuilt as an OFFER: a starved slot becomes a candidate subject the curiosity drive weighs
+  (Fig 5, "aimed at the new bin"), built beside the novel-bin remedy and read with it on one all-25
+  (treatment: distinct kinds pressed; starved parks answered within 3 cycles, per game).
+- **THE REVIEWER'S RULING, 08:55Z: `TETHER_STREAM_WIDEN` OFF BY VERDICT, WITH ITS SCOPE** (F334: wa30 and lp85, seeds 0 and 7, 10 cycles, tape, other arms' state not stated -- two games of 25, not the full spread).
+  Typed readings at a chain's END abstain or lose; they belong in its MIDDLE (Fig 12, "Composition is
+  recursive"). Its purpose is re-routed to position+extent, the previous-value operand and the
+  select-larger comparison.
+- **THE REVIEWER'S RULING, 09:02Z: `TETHER_TYPED_BIND` (arm B) ON, landed WITH the nominal type as ONE
+  change -- types enforced where binding happens, at both ends of the term.** Typing is part of the term
+  (Fig 12, "A bond is the typed relation between two operands"); an ill-typed term is inadmissible by
+  Fig 5's second guard, not refuted, so the witness still decides. A slot left with no type-correct
+  objective is recorded as a verdict, "no type-correct objective held for this slot" (Fig 13), counted
+  per game. Treatment readings kept separate: input refusals, nominal arithmetic refusals, objectives
+  lost, goals that qualify.
+- **THE REVIEWER'S RULING, 07:19Z AND 09:14Z: THE NOMINAL SET, ruled by WHO PRODUCES THE VALUE (Fig 1).**
+  Agent-allocated labels (the shape label, object ids, any decoder-assigned label) admit identity and
+  difference only, no arithmetic. COLOUR is the environment's own code: arithmetic stays, with its
+  cyclic alphabet, and the ground decides. BOOL admits no arithmetic (no magnitude; its composition is
+  Fig 12's logical bonds), so translate's same-type rule must not admit bool + bool. Fixtures per class.
+- **THE REVIEWER'S RULING, 12:20Z: THE SECOND FIREWALL, READ FOR A BUDGET THE AGENT SEES -- it narrows
+  how the firewall's test is read and does not replace the firewall.** The firewall names two legitimate
+  routes: *"The agent discovers its budget by running out, OR IS TOLD BY THE FRAME -- never by a number
+  someone read from a config."* A per-game time allowance delivered as FRAME CONTENT at game start is the
+  second route. The test (*"if the agent's behaviour changes when the number changes, the number is in
+  the agent"*) exists to catch a number a SEAT placed in the agent's code; a fact the habitat delivers is
+  perception, and behaviour following perception is the agent working (Fig 11, "capability is a property
+  of agent-and-habitat, never of the agent alone"; Fig 12, both currencies read or "the choice is made
+  blind"). **The check, restated:** the agent's code holds no budget constant (a grep check), and a
+  fixture shows that changing the harness's allowance changes behaviour ONLY through the frame-delivered
+  value, which is recorded on the game's first row. **And the work-unit calibration (fitted on the fake)
+  is re-checked PER GAME, predicted over measured, before the budget run.**

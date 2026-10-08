@@ -357,6 +357,15 @@ Isaiah for what the figures already settle.
 
 ## 5. DISCIPLINES
 
+- **THE TETHER FIGURES DICTATE LOGIC AND DECISIONS -- ISAIAH, 2026-10-07, ABOVE EVERY PRACTICE IN THIS
+  SECTION.** *"please have both of you commit to your operational rules that the tether figures dictate logic and decisions. its how evolution works, and you wont be able to outrun this or outthink this. the laws when used as a cohesive self-consistent set, will protect you both from making errors. It will also provide the agent true RSI. i will be watching periodically to make sure that neither of you stray again."* One self-consistent set, applied recursively to the agent AND to both seats.
+  **Every proposal and ruling carries a FIGURE CENSUS** (all 13 + the Operators and Symbols tables; the
+  bearing ones QUOTED from the SVG text with the figure named; any strained named). **Our own process runs
+  through the Tether:** a problem is a residual (Fig 9) sorted by Fig 5's kinds before a remedy; Fig 8's two
+  questions before any search or speed work; an exhausted line is a verdict with kind and scope (Fig 13);
+  every claim names its instrument and MODE (Fig 1); the queue follows the agent's measured residuals. **The
+  figure reasoning is visible in every post.** `conform/figures.py` refuses an INDEX entry from F506 on with
+  no FIGURE CENSUS block. Full text: `docs/ISAIAH_RULINGS.md`, top.
 - **Pre-register with a REFUTER and a PRECONDITION.** Not just a prediction. *A measurement
   that can only agree with you is not evidence.*
 - **TREATMENT-EXECUTED CHECK**: show the manipulation actually RAN before reading its
@@ -382,6 +391,28 @@ Isaiah for what the figures already settle.
   explains it. The second question has many good answers; the first has exactly one.
 - **`executes` is not `has occasions`.** Count a site's calls against the population it is
   meant to filter, and read the ratio.
+- **WAITING ON A RUN IS NEVER IDLE -- the reviewer, 2026-10-07, standing practice.** While runs
+  are in flight, build the NEXT APPROVED item in its own worktree stacked on whatever is
+  uncommitted (`git diff` from the last worktree, `git apply` onto a fresh detached worktree at
+  the base commit), write its pre-registration, and start its runs as cores allow. **Commit order
+  is unaffected**: each change still commits in sequence on its own gate. A comment made stale by
+  an item is repaired in THAT item's worktree, so it lands with the change that falsified it.
+  The night it was ruled, six changes (F485-F490) were built in the window one fake run took.
+- **A COMMIT'S HOOK OUTPUT IS READ BEFORE THE COMMIT IS REPORTED -- the reviewer, 2026-10-07.**
+  The commit is its OWN command, never detached with `&` and never chained into a wrapper whose
+  exit code stands in for it; its output (the hook's `m2` line and seat count) is captured -- to
+  the terminal, or to a file when the hook outlasts the foreground limit -- and READ, and the id is
+  read from `git log`. **Twice in one night the hook output went nowhere** (F487, and F496 started
+  with `&` inside a backgrounded shell); both times the wrapper reported success at once, which says
+  nothing about the commit. Where it was lost, the gate is re-run on the committed tree and that
+  output reported instead.
+- **A POST'S TIME IS READ, NEVER TYPED -- the reviewer, 2026-10-07 18:40Z.** Five untimed stamps
+  in one day, each corrected by hand. The title comes from `python conform/stamp.py "<headline>"`,
+  copied verbatim into the very next call (the doc is made by a tool call, so no one shell command
+  can both read the clock and create it). After posting, `python conform/stamp.py --check "<title>"
+  <createdTime>` reads the post back against Drive's own createdTime -- the clock that made the
+  doc -- and a refusal is corrected in the next post. It refuses both of the day's caught cases
+  (13:31 titled, 13:29 created; 13:37 titled, 13:36 created).
 
 ## 6. WHAT IS ON / OFF BY DEFAULT
 
@@ -485,6 +516,13 @@ Every ONE-remote null taken at 30 cycles is a reading of a slot with nothing to 
 reading of any mechanism.
 
 ## 7d. THE LIVE OPEN ITEM — `CUE_BOUNDARY` IS THE 2,700-ATOM WIRE'S BLOCKER
+
+> **CORRECTED 2026-10-07 -- THIS SECTION IS STALE, AND KEPT BECAUSE AN ERROR ENTRY WHOSE EVIDENCE IS EDITED
+> AWAY STOPS BEING EVIDENCE.** `CUE_BOUNDARY` WAS re-scoped exactly as proposed below: `conform/lint.py` reads
+> `_CUE_MODULES = {"mapping"}`, and `composer` is on the agent path. **The bridge's blocker is now measured as
+> EXECUTABILITY** (INDEX F491 and the 2026-10-07 channel posts): the library is 2,076 molecules over ~2,348 base
+> atoms, 7 molecules compile from what the agent executes, and 606 base atoms (26%) have any written description,
+> none of it in a form `condition`'s grammar parses.
 
 **Reviewer, 2026-10-05: keep this LIVE in the queue, not as history.** It is not a finished
 finding; it is the reason the vocabulary bridge in §0.5 keeps stalling across seats, and

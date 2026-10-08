@@ -57,6 +57,14 @@ _OBSERVER = bool(os.environ.get("TETHER_OBSERVER"))
 # cannot itself measure. Both arms belong on together; that is a measurement, not a default.
 _SHAPE_DELTA = bool(os.environ.get("TETHER_SHAPE_DELTA"))
 
+# THE CELL-CHANGE ARM, DEFAULT OFF (the reviewer, 2026-10-07; INDEX F492). WHERE a matched object's
+# cells changed since the last frame: the cells added and removed, each as a count (EXTENT -- the
+# type set has no COUNT, see `contact`) and a centroid (POSITION, floor of the mean). The shape id
+# names a new outline and says nothing of WHERE it differs, so a contained object's move reaches
+# its container only as a fresh name. Read only where `identity_of` is sure; otherwise unknown.
+_CELL_CHANGE = bool(os.environ.get("TETHER_CELL_CHANGE"))
+_CHANGE_ATTRS = ("add_n", "add_row", "add_col", "rem_n", "rem_row", "rem_col")
+
 # THE EMBEDDED INSTRUMENT SET, DEFAULT OFF -- Part 12 item 3, Isaiah: *"we can't have the
 # agent waste time reinventing gravity."* Distance, speed, persistence and the rest are PAID
 # BILLS, available from frame 0 rather than derived at runtime.
@@ -213,6 +221,38 @@ def shape_of(obj: dict) -> frozenset:
     which is what makes it identity under translation as well as under recolour.
     """
     return obj["shape"]
+
+
+def identity_of(name: str, matches: dict, tracked: dict, refused=()) -> str | None:
+    """How `name` was re-found on the latest frame: "overlap", "unique-shape", "look-alike",
+    "birth", or None when it is not tracked. ONE RULE FOR THE WHOLE AGENT: `ArcWorld.identity`
+    (read by `restarted`, F479) and the cell-change readings both call this, so the two cannot
+    drift. Sure = "overlap" or "unique-shape".
+
+    A swap is possible only between twins BOTH re-found by shape in the same frame: a twin
+    re-found by overlap was claimed first, so the shape search could not hand over its
+    name. So "look-alike" is a shape match sharing its shape with another SHAPE match."""
+    route = matches.get(name, (None,))[0]
+    if name not in tracked or route is None:
+        return None
+    # NOT-IDENTITY, "two names, two referents" (F496, R2): a refused identity is never sure again.
+    if name in refused:
+        return "refused"
+    if route != "shape":
+        return route
+    mine = shape_of(tracked[name])
+    twins = any(shape_of(tracked[n]) == mine
+                for n, (r, _s) in matches.items() if n != name and r == "shape" and n in tracked)
+    return "look-alike" if twins else "unique-shape"
+
+
+def _cells_at(cells) -> tuple[int, int, int] | tuple[int, None, None]:
+    """A cell set as (count, centroid row, centroid col), floor of the mean; an empty set has
+    a count of 0 and no position to read."""
+    n = len(cells)
+    if not n:
+        return 0, None, None
+    return n, sum(r for r, _c in cells) // n, sum(c for _r, c in cells) // n
 
 
 def overlap(a: frozenset, b: frozenset) -> float:
@@ -503,6 +543,8 @@ class Objects:
 
     def __init__(self) -> None:
         self.tracked: dict[str, dict] = {}
+        # Names whose identity across frames was REFUSED -- add-only, read by `identity_of`.
+        self.refused_identity: set[str] = set()
         self._next = 0
         # THE MATCH EVIDENCE, KEPT INSTEAD OF DISCARDED. The matcher computes an overlap score
         # for every (new x tracked) pair and throws all of it away but the winning name -- so
@@ -548,7 +590,16 @@ class Objects:
         # exact-cell births on five boards had a thief, and every thief scored 0.0.
         # A fallback that can beat the primary is not a fallback.
         assign: dict[int, tuple[str | None, float]] = {}
+        # A CONTESTED OVERLAP: the object this component overlaps most was already claimed by an
+        # earlier one. COUNTED, not ruled on -- whether it makes an identity unsure is open until
+        # a reading needs it (the reviewer, 2026-10-07).
+        self.contested = 0
         for i, obj in enumerate(found):
+            if _CELL_CHANGE:
+                top = max(((overlap(obj["cells"], old["cells"]), n)
+                           for n, old in self.tracked.items()), default=(0.0, None))
+                if top[0] > 0.0 and top[1] in claimed:
+                    self.contested += 1
             best, score = None, 0.0
             for name, old in self.tracked.items():
                 if name in claimed:
@@ -700,6 +751,8 @@ class Objects:
             hidden = old["cells"] & live
             if not hidden:
                 fresh[name] = old          # occluded: persists, unchanged
+                if _CELL_CHANGE:
+                    fresh[name] = {**old, **dict.fromkeys(_CHANGE_ATTRS)}
                 continue
             # COVERED IS NOT DEAD -- ISAIAH'S OVERLAY RULING. This branch used to DROP the
             # object, and dropping it is what re-birthed it under a new name when the coverer
@@ -727,6 +780,18 @@ class Objects:
             if not movers:
                 continue                   # taken over for good: dead, as it always was
             fresh[name] = {**old, "covered": hidden, "covered_by": tuple(sorted(movers))}
+        if _CELL_CHANGE:
+            for name, obj in fresh.items():
+                prev = self.tracked.get(name)
+                if prev is None or name not in self.matches or obj.get("covered"):
+                    continue
+                if identity_of(name, self.matches, fresh, self.refused_identity) in (
+                        "overlap", "unique-shape"):
+                    an, ar, ac = _cells_at(obj["cells"] - prev["cells"])
+                    rn, rr, rc = _cells_at(prev["cells"] - obj["cells"])
+                    obj.update(add_n=an, add_row=ar, add_col=ac, rem_n=rn, rem_row=rr, rem_col=rc)
+                else:
+                    obj.update(dict.fromkeys(_CHANGE_ATTRS))
         self.tracked = fresh
 
         state: dict[str, int] = {}
@@ -773,9 +838,10 @@ class Objects:
             # same rule `drow`/`dcol` state above.
             for attr in ("row", "col", "h", "w", "colour", "drow", "dcol",
                          "dh", "dw", "dcells", "colour_changed",
-                         "dholes", "dperimeter", "age", "speed", "stability"):
+                         "dholes", "dperimeter", "age", "speed", "stability", *_CHANGE_ATTRS):
                 if attr in obj:
-                    state[f"{name}.{attr}"] = NOT_RESOLVED if covered else int(obj[attr])
+                    state[f"{name}.{attr}"] = (NOT_RESOLVED if covered or obj[attr] is None
+                                               else int(obj[attr]))
             state[f"{name}.shape"] = (
                 NOT_RESOLVED if covered
                 else self._shapes.setdefault(obj["shape"], len(self._shapes)))

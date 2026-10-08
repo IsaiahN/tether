@@ -13,6 +13,8 @@ Four seats, and they see different things:
     lint      the static shape     dead code, unanchored constants, singletons
     kernel    its own record       14 witnessed checks over a live ledger
     gate      the demo's record    12 checks, domain-blind, reading rows only
+    panel     the measured worlds  the same 12 checks over stamped gridworld and fake ledgers
+    figures   the record's reasons every entry from F506 on carries a FIGURE CENSUS
 
 A stage that could not run is reported as DID-NOT-RUN, never folded into a pass. The
 whole point of the exercise was that silence about what was not checked is how a clean
@@ -132,6 +134,14 @@ STAGES = (
     ("demo", [str(PY), "demo.py"], "the loop did not complete", ROOT / "demo.py"),
     ("gate", [str(PY), "gate.py", "runs/demo.jsonl"],
      "the record is not well-formed", ROOT / "gate.py"),
+    # THE GATE OVER THE WORLDS WE MEASURE (F505): the demo alone left every panel claim resting
+    # on a gate that never saw it. It judges stamped ledgers and never runs them.
+    ("panel", [str(PY), str(HERE / "panel.py")],
+     "a panel ledger is missing, stale, or refused by the gate", HERE / "panel.py"),
+    # THE FIGURES DICTATE LOGIC AND DECISIONS (Isaiah, 2026-10-07): an INDEX entry from F506 on
+    # carries a FIGURE CENSUS -- the bearing figures quoted, any strained named.
+    ("figures", [str(PY), str(HERE / "figures.py")],
+     "an INDEX entry from F506 on carries no FIGURE CENSUS", HERE / "figures.py"),
     ("tests", [str(PY), "test_gate.py"],
      "the gate's own defect suite regressed", ROOT / "test_gate.py"),
     # A SUITE THAT NO SEAT RUNS IS A SUITE THAT ROTS, and this one sat outside the gate for

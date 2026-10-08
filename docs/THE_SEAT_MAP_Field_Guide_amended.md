@@ -309,7 +309,7 @@ Everything else is refinement. Remove any one and the structure keeps running, l
 
 The seat map is about **verifying**. This is about **growing**, and it is where the vocabulary above is defined: residual, generator, import, closure. A reader who has only the laws will find them stated in terms this supplies. The vocabulary itself, every symbol and every bond, is set out in the symbols and operators tables and in Figures 12 and 13.
 
-**It ships separately as `THE_LOOP_reference.md`**, with the ladder mapping and the standing checks attached, because any seat diagnosing a system built on this kernel needs the ordering rather than the laws alone. A reader given the ordering derives; a reader given only the laws paraphrases, which is measurable, and was measured.
+**It ships separately as THE FORMULA (`docs/THE_FORMULA.md`), which is the same loop under its other name**, because any seat diagnosing a system built on this kernel needs the ordering rather than the laws alone. The block below is a rendering of it; where the two differ in wording, THE FORMULA is the reference. A reader given the ordering derives; a reader given only the laws paraphrases, which is measurable, and was measured.
 
 The two are different objects and the boundary matters: **the loop composes and mints; the seat keeps the channel open.** Step 8 states it explicitly because the merge is easy to make.
 

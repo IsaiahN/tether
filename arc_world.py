@@ -25,6 +25,8 @@ import observer
 import sensors
 
 SENSORS = sensors.minimum_set()
+# The platform's own actions, accepted in every state whatever the game declares (`actions`).
+PLATFORM_UNIVERSAL = (GameAction.RESET.name,)
 
 # THE OBSERVER ARM, SEAT-SIDE SWITCH, DEFAULT OFF. Isaiah's mutation observer: the tracker
 # carries a wider per-object set, publishes the SEQUENCE of changes rather than the set, and
@@ -33,6 +35,32 @@ SENSORS = sensors.minimum_set()
 # 2026-09-22. Item 4 (relations as per-pair slots) is here; it ships only with arm L, which
 # bounds the operand axis the wider slot set would otherwise multiply.
 _OBSERVER = bool(os.environ.get("TETHER_OBSERVER"))
+
+
+def _oldest(d: dict) -> int:
+    """The age of the oldest object in the frame: no object has been tracked longer."""
+    return max((v for k, v in d.items() if k.rsplit(".", 1)[-1] == "age" and isinstance(v, int)),
+               default=0)
+
+
+# EVERY PUBLISHED ATTRIBUTE DECLARES ITS RANGE -- F495, the reviewer 2026-10-07: an undeclared one
+# fell to the palette and was read modulo it, three times (`drow`, F494, and these twelve, two of
+# them -- `dholes`, `dperimeter` -- live on every ARC run). Each range is what the attribute can
+# take on an h x w board; a signed change needs both signs. `alphabet()` raises on anything else.
+ALPHABET: dict[str, Callable[[int, int, dict], int]] = {
+    "dh": lambda h, _w, _d: 2 * h, "dw": lambda _h, w, _d: 2 * w,         # as `drow`/`dcol`
+    "dcells": lambda h, w, _d: 2 * h * w + 1,                           # +-hw cells
+    "dholes": lambda h, w, _d: 2 * h * w + 1,                           # +-hw enclosed regions
+    "dperimeter": lambda h, w, _d: 8 * h * w + 1,                       # a perimeter is <= 4hw
+    "speed": lambda h, w, _d: max(h, w) + 1,                             # Chebyshev, one frame
+    "bbox": lambda h, w, _d: h * w + 1,                                 # an intersection area
+    "contact": lambda h, w, _d: 2 * h * w + 1,                          # shared faces < 2hw
+    "colour_changed": lambda _h, _w, _d: 2, "inside": lambda _h, _w, _d: 2,  # BOOL
+    # FRAMES, which no board quantity bounds: no object is older than the oldest, and
+    # `stability` (frames unchanged) never exceeds its `age`. Varies per call, as `shape` does.
+    "age": lambda _h, _w, d: _oldest(d) + 1, "stability": lambda _h, _w, d: _oldest(d) + 1,
+}
+PALETTE_BY_DESIGN = {"colour": "a colour IS a palette index"}
 
 sys.dont_write_bytecode = True
 
@@ -52,8 +80,12 @@ class ArcWorld:
     """
 
     def __init__(self, wrapper: Any, decompose: Decompose, atoms: list,
-                 palette: int, views: Any = None, name: str = "arc") -> None:
+                 palette: int, views: Any = None, name: str = "arc",
+                 platform: tuple[str, ...] = PLATFORM_UNIVERSAL) -> None:
         self.w = wrapper
+        # The platform's own actions. A synthetic world with no platform passes () -- declared
+        # at its construction, never inferred.
+        self.platform = tuple(platform)
         self._decompose = decompose
         self.blind = False
         self._atoms = list(atoms)
@@ -348,7 +380,11 @@ class ArcWorld:
         and `rolling`. This is the structure put back beside the stand-in, not in place of it.
         """
         tbl = getattr(self._decompose, "_shapes", None) or {}
-        return {v: k for k, v in tbl.items()}
+        inv = {v: k for k, v in tbl.items()}
+        # APPEND-ONLY, CHECKED: ids exactly 0..n-1. A rewritten, deleted or colliding entry breaks
+        # it, and the mint's frontier key reads this table by its size alone.
+        assert inv.keys() == set(range(len(tbl))), "shape table is not append-only"
+        return inv
 
     def attribute_of(self) -> dict[str, str]:
         """`{slot: which attribute it holds}`. **The loop may not derive this** -- it would
@@ -483,17 +519,28 @@ class ArcWorld:
         loop could not position it; `step(action, x, y)` now can. Only the DIRECTIONAL SEMANTICS
         must never reach the agent (F28's hard line) -- availability is legitimate to read.
 
-        AND RESET IS WITHHELD, which `is_simple()` would otherwise let through. §21.2:
-        `ResetGate` bans THE AGENT CALLING RESET, because a self-inflicted restart is the
-        farming path -- `bounds.py` exists because a harness once force-RESET on GAME_OVER
-        to farm ~18 unearned attempts. A GAME-INFLICTED restart is the world's own rule
-        and reaches the loop as an observation; an agent-callable one is a bypass of it.
+        AND RESET IS THE PLATFORM'S, NOT THE GAME'S (Isaiah 2026-09-29, "fully ungated undo and
+        reset, just no consecutive resets"; the reviewer 2026-10-06, F477). No game declares it
+        -- 22 of 22 public declarations omit id 0 -- because the engine accepts it in EVERY
+        state as the universal restart. So it is offered after the declared actions, in every
+        state, and `provenance` says which is which. This replaced a filter that removed RESET
+        from the declared list and never once fired. The interface's adjacency rule is what
+        stops RESET,RESET; the entry point never presses it.
         """
-        return tuple(GameAction.from_id(i).name
-                     for i in (self._frame.available_actions or ())
-                     if GameAction.from_id(i) is not GameAction.RESET
-                     and (GameAction.from_id(i).is_simple()
-                          or GameAction.from_id(i) is GameAction.ACTION6))
+        # A game that DID declare RESET would not make it the game's: it is still the platform's,
+        # still last, still `platform-universal`.
+        declared = tuple(GameAction.from_id(i).name
+                         for i in (self._frame.available_actions or ())
+                         if GameAction.from_id(i).name not in self.platform
+                         and (GameAction.from_id(i).is_simple()
+                              or GameAction.from_id(i) is GameAction.ACTION6))
+        return declared + self.platform
+
+    def provenance(self, action: str) -> str | None:
+        """Who offers this action: the PLATFORM in every state, or THIS GAME by declaration."""
+        if action in self.platform:
+            return "platform-universal"
+        return "declared" if action in self.actions() else None
 
     def alphabet(self) -> dict[str, int]:
         """PER SLOT, AND FOR SOME SLOTS PER STEP. `_alphabets` has always accepted a dict --
@@ -547,17 +594,28 @@ class ArcWorld:
                 out[s] = 2 * h
             elif key == "dcol":
                 out[s] = 2 * w
-            elif key in ("row", "h"):
+            elif key in ("h", "w"):
+                # AN EXTENT IS 0..side INCLUSIVE: an object can fill the board, and a
+                # full-width object's 64 read as 0 under 64 and every miss on it was HELD.
+                out[s] = (h if key == "h" else w) + 1
+            elif key in ("row", "add_row", "rem_row"):
                 # THE DELTA FIX, EXTENDED TO WHERE IT STOPPED SHORT. The paragraph above says
                 # it for the deltas -- *a displacement ranges over the board, not the palette*
                 # -- and `row`, `col`, `h` and `w` fell through to the palette anyway. Same
                 # collision, different slot family: 64 rows under a 16-colour palette makes
                 # `row 3` and `row 19` read alike under `correction_bits`' modulo.
                 out[s] = h
-            elif key in ("col", "w"):
+            elif key in ("col", "add_col", "rem_col"):
                 out[s] = w
-            else:
+            elif key in ("add_n", "rem_n"):
+                out[s] = h * w + 1          # a cell count, 0 to the whole board
+            elif key in ALPHABET:
+                out[s] = ALPHABET[key](h, w, d)
+            elif key in PALETTE_BY_DESIGN:
                 out[s] = self._palette
+            else:
+                raise KeyError(f"`{s}` has no declared alphabet: declare `{key}` in ALPHABET, "
+                               "or it is read modulo a number unrelated to it (F494, F495)")
         return out
 
     def objective(self) -> tuple[str, float]:
@@ -692,9 +750,23 @@ class ArcWorld:
         was = self.board()
         was_objs = {k: dict(v) for k, v in self._decompose.tracked.items()}
         nxt = self.w.step(act, data=data) if data is not None else self.w.step(act)
+        # AN EMPTY STACK IS "NOTHING RENDERED", NOT "NO BOARD". At GAME_OVER and WIN the engine
+        # answers every non-RESET action with `frame=[]` (a bare FrameData, levels unset), so
+        # taking it whole left no board, no slots and no action ever again -- short of the RESET
+        # the agent may now choose (Isaiah, 2026-09-29). The last frame stands; only the state
+        # is the answer's. ONLY in the two states the engine answers this way: an empty stack
+        # anywhere else may be a dead channel, and keeps reading as no board (`no_slots`,
+        # CHANNEL_CLOSED) rather than as "nothing changed".
+        if (nxt is not None and nxt.is_empty() and self._frame is not None
+                and nxt.state in (GameState.GAME_OVER, GameState.WIN)
+                and not self._frame.is_empty()):
+            keep = self._frame.model_copy()
+            keep.state = nxt.state
+            nxt = keep
         if nxt is not None:
             self._frame = nxt
         self._read = None          # a new frame is a new decomposition
+        arc_atoms.new_frame()      # and its shape readings are perceived afresh (F481)
         self._cue = None           # and a new set of mutations to read off it
         self._prev_contacts = self._contacts
         self._contacts = None      # and a new set of contacts
@@ -715,6 +787,22 @@ class ArcWorld:
             if was is not None and now is not None:
                 self.selves.observe(was, action, now)
             self.aff.note(was_objs, dict(self._decompose.tracked), mover=None)
+
+    def identity(self, obj: str) -> str | None:
+        """How `obj` was re-found on the latest frame: "overlap", "unique-shape", "look-alike",
+        "birth", or None when it is not tracked. F479 reads it at a restart.
+
+        The rule is `arc_percept.identity_of`, shared with the cell-change readings."""
+        return arc_percept.identity_of(obj, getattr(self._decompose, "matches", {}) or {},
+                                       getattr(self._decompose, "tracked", {}) or {},
+                                       getattr(self._decompose, "refused_identity", ()))
+
+    def refuse_identity(self, obj: str) -> None:
+        """Not-identity (F496, R2): `obj` may be two things the tracker took for one. Add-only;
+        from now on `identity_of` reads it unsure, so nothing carried by identity trusts it."""
+        refused = getattr(self._decompose, "refused_identity", None)
+        if refused is not None:
+            refused.add(obj)
 
     def locus_masks(self) -> dict[str, set]:
         """Each tracked object's cells. The mask a per-locus reading is taken through."""

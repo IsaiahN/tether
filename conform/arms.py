@@ -132,7 +132,21 @@ ARMS: dict[str, str] = {
                                  "local terms' birth cycles and took M2 to 27/30. Spelled `NO_` "
                                  "so the inversion is in the NAME. The OFF arm is the non-zero "
                                  "control the null needs",
+    "TETHER_CELL_CHANGE": "WHERE a matched object's cells changed -- added/removed counts and "
+                          "centroids, read only where identity is sure. OFF until measured: it "
+                          "adds six slots per object and six atoms, so it prices every term "
+                          "(F492)",
     "TETHER_DELTA_KEY": "route (b) re-keyed on this frame's delta",
+    "TETHER_LOOKUP_ORDER": "the residual's library look-up orders the mint's operand candidates "
+                           "(after contact, before variance; never excludes). ON: the reviewer "
+                           "2026-10-08 00:54Z; 0 is the one-flag A/B control",
+    "TETHER_OBJECTIVE_DOMAIN": "an objective is searched over the values the record has shown "
+                               "and its operands' boundaries, not the declared alphabet, which "
+                               "only prices. ON: the reviewer 2026-10-08 09:55Z (cd82, 2,112 s "
+                               "in one cycle); 0 is the one-flag control",
+    "TETHER_NOT_ATOM": "not-t priced as one atom slot instead of the bits to name which "
+                       "predicting term is wrong (the default, reviewer 2026-10-07). The figures "
+                       "leave the price OPEN; this arm keeps the alternative readable (F496)",
     "TETHER_DELTA_OPERANDS": "deltas offered as operands",
     "TETHER_GUARD_AXIS": "the guard axis in the reject key",
     "TETHER_INSTRUMENTS": "the embedded instrument set -- Part 12 item 3, PAID BILLS from "
@@ -155,6 +169,13 @@ ARMS: dict[str, str] = {
                       "ARC path, so the env census below reads OFF while the capability is "
                       "LIVE.** A ruling turned it on, not a measurement -- the house rule is "
                       "his to override. The toy world is untouched: it has its own atoms",
+    "TETHER_NO_RESUME": "**INVERTED POLARITY, the THIRD such row.** A DEFAULT-ON frontier in "
+                        "`_mint`: under an unchanged scope key a chain already priced is not "
+                        "priced again, and a search that stopped at the budget resumes past "
+                        "what it refused (plan item 7, F485). A BEHAVIOUR change, not only an "
+                        "optimisation: on gridworld it adds binds. The variable turns it OFF, "
+                        "so the A/B is one script with one flag. Inert on the ARC path while "
+                        "the shape-decode arm puts the cycle in the key",
     "TETHER_NO_TALLY": "**INVERTED POLARITY. THIS SAID *THE ONLY ROW HERE THAT IS* AND IT "
                        "STOPPED BEING TRUE ON 2026-09-30**, when `TETHER_NO_CARRY_CANDIDATE` "
                        "was added -- correct when written and falsified by a later build, "
@@ -168,7 +189,11 @@ ARMS: dict[str, str] = {
     "TETHER_OBSERVER": "the corpus's cheap mutation set carried PER OBJECT, not counted",
     "TETHER_REBIND_HELD": "rebinding a slot whose term is already held",
     "TETHER_RECIPE_DEDUP": "one candidate per recipe rather than per instance",
-    "TETHER_REFUTED_BIN": "refutations binned rather than flat",
+    "TETHER_NO_REFUTED_BIN": "**INVERTED POLARITY.** The fifth bin (Fig 5's amendment), DEFAULT ON "
+                             "since F497: a refuted slot is offered a same-type competitor and "
+                             "not-t is priced there (F496). The variable turns it OFF, so the A/B "
+                             "is one script with one flag. Off on the shipped path it was the "
+                             "switch-never-set genus (the reviewer, 2026-10-07)",
     "TETHER_REL_GAP": "the relational gap reading",
     "TETHER_SHAPE_DECODE": "arm I -- `_as_shape`, the decoder eight SHAPE atoms need",
     "TETHER_SHAPE_DELTA": "`dholes`/`dperimeter` across frames. PERCEPTION: no atom accepts "

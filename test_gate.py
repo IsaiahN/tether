@@ -216,6 +216,12 @@ def test_a_guarded_term_arrives_with_its_guard_and_a_duplicate_still_dedups():
     with tempfile.TemporaryDirectory() as d:
         path = str(pathlib.Path(d) / "lib.json")
         src_g.save(path)
+        # PROVENANCE CROSSES: every accepted term is written with its clause and residual.
+        import json
+        rows = json.loads(pathlib.Path(path).read_text(encoding="utf-8"))["terms"]
+        minted = [r for r in rows if r["origin"] != G.PRIOR]
+        assert minted and all(r["admitted"] == G.ACCEPTED and r["residual"] == "s@0"
+                              for r in minted), [(r["admitted"], r["residual"]) for r in minted]
         dst = G.Gamma([take, inc], game="B")
         rep = dst.load(path)
         # ACCEPT: the guarded term crosses, as itself, with its birth game recorded.
@@ -382,6 +388,76 @@ def test_undeclared_death():
     r.append({"mode": "specified", "seq": 5, "cycle": 1, "step": "IMPORT", "slot": "@loop",
               "event": "ending", "detail": {"how": "death", "deliberate": True}})
     _refuses(r, gate.UNDECLARED_DEATH)
+
+
+def _refusal(term):
+    r = valid()
+    r[0]["detail"]["bound"] = "t"
+    r.insert(2, {"mode": "specified", "seq": 9, "cycle": 0, "step": "MINT", "slot": "s",
+                 "event": "not_t", "detail": {"term": term, "verdict": "did not pay"}})
+    return r
+
+
+def test_a_refusal_of_the_bound_term_passes():
+    """F498: the refused term is the one the slot's bet this cycle was made by."""
+    assert gate.check(_refusal("t"))["verdict"] == gate.PASS
+
+
+def test_refused_unbound():
+    """F498: a refusal of a term the slot had already replaced blames what did not predict."""
+    _refuses(_refusal("an_old_term"), gate.REFUSED_UNBOUND)
+
+
+def _abandoned(set_by, held, set_on=3, judged=3):
+    r = valid()
+    r.insert(4, {"mode": "specified", "seq": 8, "cycle": 0, "step": "SETTLE", "slot": "s",
+                 "event": "routine_abandoned",
+                 "detail": {"set_by": "p", "set_by_plan": set_by, "held_plan": held,
+                            "set_on_act": set_on, "judged_after_act": judged}})
+    return r
+
+
+def test_an_abandonment_on_its_own_claim_passes():
+    """F502: the plan abandoned is the plan that made the failed claim."""
+    assert gate.check(_abandoned(7, 7))["verdict"] == gate.PASS
+
+
+def test_abandoned_on_anothers_claim():
+    """F502: an ended routine's expectation dropped its successor."""
+    _refuses(_abandoned(7, 9), gate.ABANDONED_ON_ANOTHERS_CLAIM)
+
+
+def test_judged_on_another_act():
+    """F502: a claim is about ONE act; judged after a later one, it is stale."""
+    _refuses(_abandoned(7, 7, set_on=3, judged=4), gate.JUDGED_ON_ANOTHER_ACT)
+
+
+def _observed(*pairs):
+    r = valid()
+    for i, (actual, alphabet) in enumerate(pairs):
+        r.insert(1 + i, {"mode": "specified", "seq": 20 + i, "cycle": 0, "step": "PERCEIVE",
+                         "slot": "o0.shape", "event": "bet",
+                         "detail": {"mass": 0.0, "actual": actual, "alphabet": alphabet}})
+    return r
+
+
+def test_distinct_observations_under_one_residue_are_aliased():
+    """A shape label 0 and a label 8 priced under 8 labels read as one (2026-10-07)."""
+    _refuses(_observed((0, 8), (8, 8)), gate.ALIASED)
+
+
+def test_the_value_before_is_an_observation():
+    """The first reading arrives as a bet's value-before, never as an actual (ar25, cycle 0)."""
+    r = valid()
+    r.insert(1, {"mode": "specified", "seq": 20, "cycle": 0, "step": "PERCEIVE",
+                 "slot": "o0.shape", "event": "bet",
+                 "detail": {"mass": 0.0, "from_value": 0, "actual": 8, "alphabet": 8}})
+    _refuses(r, gate.ALIASED)
+
+
+def test_observations_the_alphabet_separates_pass():
+    """The same two labels once the count includes the new one; and a signed value is its own."""
+    assert gate.check(_observed((0, 9), (8, 9), (-2, 9)))["verdict"] == gate.PASS
 
 
 def test_declared_death_passes():

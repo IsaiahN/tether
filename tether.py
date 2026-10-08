@@ -10,6 +10,7 @@ from __future__ import annotations
 import collections
 import hashlib
 import itertools
+import json
 import math
 import os
 import re
@@ -28,7 +29,17 @@ import instruments as I
 import interface as IFace
 import retrieval
 import routine as Rt
-from gamma import ACTED_ON, ACTED_SELF, IMPORTED, Ctx, Gamma, Standing, Term, accepts_type
+from gamma import (
+    ACTED_ON,
+    ACTED_SELF,
+    IMPORTED,
+    REJECTION_HALFLIFE,
+    Ctx,
+    Gamma,
+    Standing,
+    Term,
+    accepts_type,
+)
 from gamma import SAME_AS_TARGET as G_SAME
 from ledger import (
     ADVANCE,
@@ -219,6 +230,11 @@ _TALLY = not os.environ.get("TETHER_NO_TALLY")
 # carried schema could not leave the unsettled state on any board. INVERTED POLARITY like
 # `_TALLY`: the fix is ON and the env var turns it OFF, so the A/B is one script.
 _CARRY_CANDIDATE = not os.environ.get("TETHER_NO_CARRY_CANDIDATE")
+# WHAT A SEARCH HAS ALREADY PRICED -- reviewer 2026-10-07, plan item 7. Under an unchanged scope key
+# a chain prices the same way again, so a re-run of a search that stopped at the budget spends the
+# budget re-reading what it already refused. The cue reorders ties every cycle, so the frontier is
+# the SET of chains priced, never a position. ON by default; the env var turns it OFF.
+_RESUME = not os.environ.get("TETHER_NO_RESUME")
 
 
 def _norm_name(x: str) -> str:
@@ -324,13 +340,21 @@ HELD, NOVEL, REBIND, MECHANISM = "held", "novel", "rebinding", "mechanism"
 # is Isaiah's hit-rate ruling and is already how `gamma.refute` behaves.
 REFUTED = "refuted"
 
-# ARM J -- SEAT-SIDE SWITCH, DEFAULT OFF. The bin is a RULING and the plumbing is built ON;
-# the DIVERSION it causes is a policy change to the acting path and is not. With it live, two
-# conform seats fail -- `shipped`'s B5 (support at zero and no probe followed) and three M2
-# checks -- because slots that reached `mint` now reach a competitor instead. That is a
-# READING of what the bin does, not a reason to edit the checks: *reintroduce the defect,
-# never disable the check.*
-_REFUTED_BIN = bool(os.environ.get("TETHER_REFUTED_BIN"))
+# ARM J -- DEFAULT ON since F497 (the reviewer 2026-10-07: a figure-mandated organ, Fig 5's
+# amendment; off on the shipped path it was the "switch never set" genus). The bin is a RULING;
+# the DIVERSION it causes is a policy change to the acting path, measured in F497. RE-READ
+# 2026-10-07 at 2a43566: with it live, `shipped` (B5) PASSES and ONE M2 check failed -- on its
+# fixture guard, because F485's frontier let the warmed mints replay rather than re-price -- not
+# because of the bin or an amended figure; the fixture now prices fresh. (The earlier reading
+# here -- B5 and three M2 checks failing -- predated F485 and is superseded.) *Reintroduce the
+# defect, never disable the check.*
+_REFUTED_BIN = not os.environ.get("TETHER_NO_REFUTED_BIN")
+
+# THE PRICE OF NOT-t IS OPEN IN THE FIGURES (Fig 12/13: an atom slot, nothing, or the choice of what
+# to negate). DEFAULT, the reviewer 2026-10-07: the bits to NAME which term is wrong among every
+# term bound and predicting, agent-wide (Fig 5's enumeration; Fig 12 prices every part as a named
+# choice). This arm prices it as one atom slot instead, so the choice can be read off the evidence.
+_NOT_ATOM = bool(os.environ.get("TETHER_NOT_ATOM"))
 
 # ARM L -- BOUND THE OPERAND AXIS BY THE DELTA. SEAT-SIDE SWITCH, DEFAULT OFF.
 # `F258`: yields expand 32-106x into ranked candidates and the operand axis is the multiplier.
@@ -356,6 +380,9 @@ _DELTA_OPERANDS = bool(os.environ.get("TETHER_DELTA_OPERANDS"))
 # changing nothing. The reviewer's ordering requires this narrowing BEFORE mint's `out_type` is
 # widened: widening without narrowing is how 735 million calls arrive nowhere.
 _DELTA_KEY = bool(os.environ.get("TETHER_DELTA_KEY"))
+# THE LOOK-UP'S PARTNER ORDERING. Direction ON (the reviewer 2026-10-08 00:54Z); `0` is the A/B
+# control. Orders the operand candidates, never excludes one.
+_LOOKUP_ORDER = os.environ.get("TETHER_LOOKUP_ORDER", "1") != "0"
 # THE out_type WIDENING -- Isaiah's 3A, reviewer-pre-registered 2026-09-23. `mint` asks for
 # `("val","val")` and `(slot_type, OBJ)` and NOTHING ELSE, and the composition census says
 # that IS the ceiling: 4 distinct compositions on every board, which are exactly those two
@@ -476,7 +503,9 @@ _IDLE_RELIEF = 8.0
 # never a whole one, so a commitment always needs a second voice carrying at least the other
 # half. The 0.5 is not a dial -- it is the midpoint of the only interval the two constraints
 # leave open, and moving it to 1.0 reopens the defect while moving it to 0.0 disables relief.
-_QUORUM_FLOOR = float(MIN_REPEAT) - 0.5
+# Since item 6 the BAR is the agent's own (`_commit_bar`), and the floor sits this half-vote under
+# it, for the same reason.
+_QUORUM_HALF = 0.5
 
 # anchor: TWO, and it is the definition of a quorum rather than a calibration. One agreeing
 # contributor is a report; two is the smallest number that can DISAGREE and did not. Raising
@@ -600,6 +629,20 @@ def round_trip_gap(t_a, state: dict[str, int], alphabet: dict[str, int]) -> floa
     return total
 
 
+def _press(coord, state: dict | None, landed: str | None) -> dict | None:
+    """Where a positioned press went: its cell, the object it is attributed to, and every
+    object whose box covers the cell. Read off the state the press was made in."""
+    if coord is None or not state:
+        return None
+    x, y = int(coord[0]), int(coord[1])
+    objs = {k.rsplit(".", 1)[0] for k in state if k.endswith(".row")}
+    under = sorted(o for o in objs
+                   if all(f"{o}.{a}" in state for a in ("row", "col", "h", "w"))
+                   and state[f"{o}.row"] <= y < state[f"{o}.row"] + state[f"{o}.h"]
+                   and state[f"{o}.col"] <= x < state[f"{o}.col"] + state[f"{o}.w"])
+    return {"x": x, "y": y, "landed": landed, "under": under}
+
+
 def term_bits(k: int, alphabet: int, bonds: int = BONDS) -> float:
     return (k + 1) * math.log2(alphabet + 1) + (k - 1) * math.log2(max(bonds, 1))
 
@@ -662,12 +705,18 @@ def _same_object(landed_on: str | None, slot: str) -> bool:
     return landed_on.rsplit(".", 1)[0] == slot.rsplit(".", 1)[0]
 
 
+# THE OBJECTIVE'S SEARCH DOMAIN IS WHAT THE WORLD HAS SHOWN -- the reviewer, 2026-10-08 (Fig 11
+# "read it off the world"; Fig 12 "a goal is a comparison"). `0` searches the whole alphabet: the
+# one-flag control.
+_OBJECTIVE_DOMAIN = os.environ.get("TETHER_OBJECTIVE_DOMAIN", "1") != "0"
+
+
 def pays(cost: float, left: float, base: float) -> bool:
     """The bargain. Strict: a tie does not license a new term."""
     return cost + left < base
 
 
-def objective_step(evaluate, current: int, ordered: bool, alphabet: int) -> Any:
+def objective_step(evaluate, current: int, ordered: bool, domain) -> Any:
     """THE EDGE: what a composed objective predicts about a slot value.
 
     An objective is a TRUTH and a bet is a VALUE, so something has to say what wanting a
@@ -689,6 +738,11 @@ def objective_step(evaluate, current: int, ordered: bool, alphabet: int) -> Any:
 
     SATISFIED ALREADY -> the slot HOLDS. NOTHING SATISFIES -> NOT_RESOLVED, never a guess:
     *the instrument could not read* rather than a value nobody has evidence for.
+
+    `domain` IS WHAT IS SEARCHED AND THE ALPHABET IS NOT -- the reviewer, 2026-10-08. The
+    alphabet is the range a value COULD take, declared whole so pricing is honest; walking it
+    cost cd82 2,112 s in one cycle over a 32,769-value perimeter alphabet. `Agent._domain` says
+    what the domain is.
     """
     here = evaluate(current)
     if here is None:
@@ -708,22 +762,19 @@ def objective_step(evaluate, current: int, ordered: bool, alphabet: int) -> Any:
     # `current - d` is the smaller `v` and therefore sorted first under `(abs, v)`. A
     # `current` outside the alphabet reduces to the one-sided walk the key already gave it.
     if not ordered:
-        for v in range(alphabet):
+        for v in sorted(domain):
             if v != current and evaluate(v):
                 return v
         return NOT_RESOLVED
     # ONE STEP TOWARD THE NEAREST, WHICH IS THE ARM'S WHOLE CONTENT -- `lo < current` and
     # `hi > current` by construction, so the step is the sign and nothing is recomputed.
-    for d in range(1, alphabet + abs(current) + 1):
-        lo, hi = current - d, current + d
-        if 0 <= lo < alphabet and evaluate(lo):
-            return current - 1
-        if 0 <= hi < alphabet and evaluate(hi):
-            return current + 1
+    for v in sorted(domain, key=lambda v: (abs(v - current), v)):
+        if v != current and evaluate(v):
+            return current - 1 if v < current else current + 1
     return NOT_RESOLVED
 
 
-def objective_gap(evaluate, current: int, ordered: bool, alphabet: int) -> Any:
+def objective_gap(evaluate, current: int, ordered: bool, domain) -> Any:
     """§13.4's SCALAR DISCREPANCY: *zero exactly when satisfied.*
 
     Beside `objective_step` and for its reason -- what a bet MEANS is not a move, so the two
@@ -756,7 +807,7 @@ def objective_gap(evaluate, current: int, ordered: bool, alphabet: int) -> Any:
         return NOT_RESOLVED
     if here:
         return 0
-    hits = [v for v in range(alphabet) if v != current and evaluate(v)]
+    hits = [v for v in domain if v != current and evaluate(v)]
     if not hits:
         return None
     return min(abs(v - current) for v in hits) if ordered else 1
@@ -996,6 +1047,8 @@ class Agent:
         # the toy `act` atom, where *the primitive it was given already knew*. The strip
         # that moves CHOOSING through it is step 2 and is not done.
         self.iface = IFace.Interface()
+        self.iface.chooser = self._choose_known      # F480: the agent prices the known
+        self._attempt_actions = 0     # actions since this level, or its last restart, began
         # WHICH MEMBERS ARE CURRENTLY DISCOUNTED, PER SCOPE. Held so the narration fires on the
         # TRANSITION rather than on every evaluation -- see `_scope_weights`.
         self._downrated: dict[str, frozenset] = {}
@@ -1030,6 +1083,11 @@ class Agent:
         self._cue_tag_cache: tuple = (-1, {})
         self._contact_seen: set = set()
         self._refuted_slot: dict = {}
+        # the slots whose loop turn is still ahead this cycle (F500); None outside the loop
+        self._turn_ahead: set | None = None
+        # an acted routine's next step, advanced once at its deciding cycle's end (F501)
+        self._routine_next: tuple | None = None
+        self._recovered_pending: list = []
         self._contact_pick = None
         self._s0_target: str | None = None
         self.alphabet = self._alphabets(env)
@@ -1131,11 +1189,19 @@ class Agent:
         self._acts: Counter = Counter()   # System-0 instrument: concrete actions taken per cycle
         # the whole before-state is kept, because an operand is another slot's past value
         self.trace: list[tuple[dict[str, int], str, dict[str, int]]] = []
+        self._shown_key, self._shown, self._frame_at = None, {}, {}
         self.owed_import: set[str] = set()
         # THIS CYCLE's appearance and disappearance events -- see `_present`. Empty is the
         # normal reading, not a missing one: most cycles change no slots.
         self._came: tuple[str, ...] = ()
         self._gone: tuple[str, ...] = ()
+        # THE TERM'S OWN OUTPUT, before the alphabet's modulo. The row writes this beside the
+        # observation so both sides are in one form; a residue beside a raw value read a correct
+        # bet as a miss twice on 2026-10-07 (the reviewer 23:30Z, Fig 13).
+        self._pred_raw: dict[str, int] = {}
+        # WHAT THE LIBRARY NAMED FOR EACH SLOT'S LAST RESIDUAL: partner reading -> molecules
+        # relating it to the target. Read by `_bindings` as an ORDER, never a filter.
+        self._named: dict[str, dict[str, list]] = {}
         self.abstained: dict[str, dict] = {}
         self.candidates: dict[str, int] = {}     # term -> cycle accepted, awaiting the ground
         # WHERE THE EVIDENCE CAME FROM. Isaiah 2026-09-30: candidates survive a level change,
@@ -1234,6 +1300,7 @@ class Agent:
         # composed. Invisible until now because the only success the suite had ever seen ended
         # on advance number one, where the remainder and the original coincide.
         self._routine_adopted = None
+        self._plan_no = 0                      # adoptions so far: a plan's id in the record (F504)
         # **HOW OFTEN A WANT HAS COME BACK -- ISAIAH'S OWN CRITERION, PREVIOUSLY UNRECORDED.**
         # *A want proves itself by RECURRING across attempts, not by explaining a frame.* The
         # retention site ranked by COST alone and its comment said so, naming `_note_want` as
@@ -1246,12 +1313,19 @@ class Agent:
         # Characterisations, not over terms. Same composition is the narrow, checkable case,
         # and calling it the whole criterion would be the overstatement the comment made.
         self._want_seen: dict[str, int] = {}
+        # slot -> (scope key, {(stream, chain): its lean increments}, novelty, verdict)
+        self._frontiers: dict[str, tuple] = {}
         # WHEN THE AGENT LAST COMMITTED TO A PLAN. The threshold falls with the gap since --
         # *the agent is always paying with its time*, so a cycle that ends without a
         # commitment makes the next commitment cheaper. Starts at 0, so an agent that has
         # never committed is already under time pressure at cycle 0, which is correct: it has
         # spent its whole life not acting.
         self._last_commit = 0
+        # ADD-ONLY: (total committed at, ended tested_yes, cycle it ended) per OVERRIDE; and the
+        # cycle of every commitment. The commitment bar and the relief rate are read from these.
+        self._overrides: list[tuple[float, bool, int]] = []
+        self._override_open: float | None = None
+        self._commit_cycles: list[int] = []
         # **THE EPISODE RECORD -- ISAIAH'S FOUR QUESTIONS, 2026-09-25.** *"Given the current
         # scenario or state of the board, HAS THIS BEEN EXPERIENCED IN A PREVIOUSLY RECORDED
         # PATTERN, WHAT ACTIONS DID I TAKE, WHAT OUTCOMES OCCURRED, WERE THEY FAVORABLE."*
@@ -1308,6 +1382,8 @@ class Agent:
         # unreadable.
         self.refuted: dict[tuple, Standing] = {}
         self.refuted_at: dict[tuple, float] = {}
+        # HELD at a death's boundary, for `restarted` to carry back where identity is sure (F479).
+        self._held_refutations: tuple[dict, dict] | None = None
         # THE FAILED-PATH CATALOGUE, AND IT IS THE SAME KEY THE TERM PATH ALREADY USES.
         # Isaiah's BAR ruling: *catalogue and save the failed paths, the salient attributes and
         # the interactions, so each replay retrieves past information and cuts the problem down.*
@@ -1318,6 +1394,13 @@ class Agent:
         # never excluding). **This gives the routine path that key.** Not a second mechanism:
         # `_gap_key` is the name-free half of the gap `characterise` already returns.
         self.paths: dict[tuple, dict] = {}
+        # (gap shape, steps, guards) -> the scopes a plan of that shape was refused under. ADD-ONLY:
+        # a refusal never leaves the record (Fig 6); it stops excluding when the scope grows.
+        self._refusals: dict[tuple, list[tuple]] = {}
+        # NOT-t, THE REFUSING TERM (F496; Figs 5, 6, 12, 13): (term name, gap shape) -> the scopes
+        # it was refused under. ADD-ONLY and kept OUTSIDE the library, so minting a refusal does
+        # not grow the scope that lifts it. The decaying tally in `Standing` stays the evidence.
+        self._not: dict[tuple, list[tuple]] = {}
         self._digests: dict[str, frozenset] = {}
         self.agency = I.Agency()       # §16.8 sensor 3, a per-step read
         self.term = I.Termination()    # 2d / §20.1, latching and asymmetric
@@ -1443,9 +1526,14 @@ class Agent:
         self.alphabet = self._alphabets(env)      # a new level may value slots differently
         self.slot_types = self._slot_types(env)   # and may type them differently
         self.bound, self.trace = {}, []
+        self._attempt_actions = 0
         self._trace_epoch += 1          # the tallies summarise a history that is gone
         self._tally.clear()             # (the epoch is in the triple; this is belt and braces)
         self._disc, self._res = {}, {}   # the slots did not survive, nor do their trends
+        # NOR WHAT WAS KEYED BY THEM, by this block's own rule: a want, a tested reach, a gap's
+        # last reading or step, an undone count, each read on the next level's same NAME.
+        self.wants, self._want_terms, self._reach_tested = {}, {}, {}
+        self._prev_gap, self._gap_delta, self._undone, self._undone_across = {}, {}, {}, {}
         # AND NEITHER DO THE REFUTATIONS, FOR THE REASON THIS METHOD'S OWN DOCSTRING GIVES:
         # *slot names mean nothing across a boundary.* The reject key is
         # `(slot, actions, guards)` and two of those three are slot names, which REGENERATE --
@@ -1457,6 +1545,9 @@ class Agent:
         # it: every guard is `CAN`-checked at mint, and a guard naming a dead slot reads
         # `unknown`, which the mint refuses. **Checked rather than assumed** -- the shelf needs
         # no rule here precisely because it has one already.
+        # EXCEPT AT A DEATH, WHICH MAY BE FOLLOWED BY A RESTART OF THE SAME LEVEL -- the same
+        # objects under the same names (measured, F479). Held, not lost; `restarted` decides.
+        self._held_refutations = ((self.refuted, self.refuted_at) if how == "death" else None)
         self.refuted, self.refuted_at = {}, {}
         # AND `self.paths` IS A THIRD CASE AND STAYS, FOR THE REASON THIS BLOCK JUST GAVE.
         # The autoimmunity argument above is entirely about SLOT NAMES regenerating. `_gap_key`
@@ -1587,6 +1678,37 @@ class Agent:
         return [(b, a, af[slot], i, land) for b, a, af, i, land in self.trace
                 if slot in af and slot in b]
 
+    def _lookup(self, slot: str, hist: list) -> None:
+        """FIG 9's ONE LOOKUP INTO THE LIBRARY, keyed by this residual (the reviewer 2026-10-07
+        22:48Z, 22:53Z, 23:00Z). The description is `characterise`'s own, SCOPED to the target's
+        object whatever the retrieval arm, because board-wide it fires on every type and lights
+        everything (F303). Recorded, never adopted: the pairs the bond tests hold are offered to
+        the ground, and nothing here binds, mints or bets."""
+        own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
+        mine = own.get(slot)
+        if mine is None:
+            return
+        scope = {s for s, o in own.items() if o == mine}
+        gap = retrieval.characterise(hist, slot, list(self.alphabet), self.slot_types, scope=scope)
+        described = {s: self.slot_types[s] for s in (slot, *gap["varies"]) if s in self.slot_types}
+        found = composer.lookup(described)
+        read = composer.read_pairs(found["pairs"], [b for b, _act, _val, _intent, _landed in hist])
+        held = [{k: r[k] for k in ("molecule", "left", "right", "left_reading", "right_reading",
+                                   "held", "via", "occasions")} for r in read if r["held"]]
+        named: dict[str, list] = {}
+        for p in found["pairs"]:
+            ends = (p["left_reading"], p["right_reading"])
+            if slot in ends:
+                other = ends[1] if ends[0] == slot else ends[0]
+                if p["molecule"] not in named.setdefault(other, []):
+                    named[other].append(p["molecule"])
+        self._named[slot] = named
+        self.led.record(self.cycle, "ROUTE", slot, "lookup", query=found["query"],
+                        described=sorted(described), junctions=found["junctions"],
+                        offered=len(found["pairs"]), held=held, named=sorted(named),
+                        reads=("the library looked up by this residual's own description; "
+                               "pairs offered, bonds read over its frames, nothing adopted"))
+
     def _ops(self, term: Term, state: dict[str, int]) -> tuple:
         """The operand's value, and §4's whole mechanism sits in the middle three lines.
 
@@ -1667,7 +1789,144 @@ class Agent:
                 hit.append(slot)
         return tuple(sorted(hit))
 
-    def _check_expectation(self, before: dict) -> bool:
+    def _settle_routine(self) -> None:
+        """A routine that has ACTED is settled in the cycle whose observation decides it (F501;
+        Fig 2). Its expectation, then one advance, read the state this cycle observed -- the state
+        the next choose() would read -- so an ending is written here as SETTLE and a step is
+        handed to that choose() without advancing twice (advance writes routine_state). A
+        routine with no act yet is untouched: the zero-act ending stays in choose() (OPEN)."""
+        if self.routine is None and self._routine_adopted is not None and self._routine_acts:
+            # SPENT: its last act emptied the remainder (`advance` returns None), so it reached
+            # no ending and its claim was never judged -- gridworld s0 re-adopted one such plan
+            # three times and its claim abandoned a successor (F502). It is settled here: the
+            # claim judged, then ended DONE if it held, or `completed-untested` if it made none.
+            state = self.env.observe()
+            claimed = self._expect is not None
+            if self._check_expectation(state, step="SETTLE"):
+                return
+            self.routine = self._routine_adopted
+            self._end_routine(Rt.DONE if claimed else "completed-untested", state, "SETTLE")
+            return
+        if self.routine is None or not self._routine_acts:
+            return
+        state = self.env.observe()
+        if self._check_expectation(state, step="SETTLE"):
+            return
+        if self._routine_adopted is None:
+            self._routine_adopted, self._plan_no = self.routine, self._plan_no + 1
+        self.routine_state.pop("expect", None)
+        emit, rest = Rt.advance(self.routine, self._holds(state),
+                                self.routine_lib, self.routine_state)
+        # DONE and EXHAUSTED are the ground's verdict on the plan. BLOCKED is not: an unreadable
+        # guard is a channel fact (Fig 10), so it is handed on and ended at PLAN, with no verdict
+        # (the reviewer 2026-10-07 16:58Z).
+        if emit in (Rt.DONE, Rt.EXHAUSTED):
+            slot, shown = self.routine_for or "*", Rt.render(self.routine)
+            self._recovered_pending += [(w, slot, shown)
+                                        for w in self.routine_state.pop("recovered", ())]
+            self._end_routine(emit, state, step="SETTLE")
+        else:
+            self._routine_next = (self.routine, emit, rest)
+
+    def _end_routine(self, why: str, before: dict, step: str = "PLAN") -> None:
+        """A routine's ending: its verdict, shelving, refutation and record. Run where the ending is
+        evaluated -- at the deciding cycle's SETTLE for a routine that has acted (F501), at PLAN for
+        an ending found while choosing (unrealisable, or the zero-act case left OPEN)."""
+        # A CLAIM ENDS WITH THE PLAN THAT MADE IT (F502; the reviewer 2026-10-07 17:21Z): left
+        # standing, an ended routine's expectation abandoned its successor (gridworld s0, c50).
+        self._expect = None
+        if why == Rt.DONE:
+            _verdict = "tested_yes" if self._routine_acts else "tested_no"
+        elif why == Rt.EXHAUSTED:
+            _verdict = "tested_no"
+        else:
+            _verdict = None
+        # THE EPISODE, FILED UNDER THE SHAPE OF THE GAP IT WAS FORMED AGAINST. Written
+        # HERE because this is the only site where all four answers exist at once: the
+        # signature was taken at mint, the actions are the routine's, the ending is `why`,
+        # and the verdict is the emission count. Split them and the record cannot be made.
+        if self._override_open is not None and _verdict:
+            self._overrides.append((self._override_open, _verdict == "tested_yes",
+                                    self.cycle))
+        self._override_open = None
+        if self.routine_for and self._plan_sig is not None:
+            self._episodes.setdefault(self._plan_sig, []).append(
+                (self._step_ids(self.routine, self.routine_lib), why,
+                 _verdict or "untested"))
+        if _verdict and self.routine_for:
+            self._reach_tested[
+                self._reject_key(self.routine_for, self.routine,
+                                 self.routine_lib)] = _verdict
+            self.led.record(self.cycle, "SETTLE", self.routine_for, "reach_tested",
+                            verdict=_verdict, ending=why, emitted=self._routine_acts,
+                            routine=Rt.render(self.routine))
+        # AND A ROUTINE THAT EMITTED NOTHING IS NOT SHELVED. Reaching `DONE` without acting
+        # is not a settled behaviour -- it is a guard that was already true.
+        _settled = self._routine_adopted or self.routine
+        if (why == Rt.DONE and self._routine_acts
+                and _settled not in self.routines):
+            self.routines.append(_settled)
+        # EXPRESS-BEFORE-JUDGE, AND IT IS THE PROPERTY THE ENDINGS WERE ALREADY BUILT FOR.
+        # §18.2: *a refutation is recorded ONLY after the hypothesis actually ran a trial --
+        # "I failed to do X" must never be coded as "X is inert." A blocked or never-reached
+        # attempt is a non-trial.* **`exhausted` is a trial: the routine ran its whole budget
+        # and the guard never held. `blocked` and `unadvertised` are non-trials** -- one
+        # could not read its guard, the other was never runnable here -- and neither says
+        # anything about whether the routine works.
+        #
+        # AND THE REFUTATION IS A ROW, WHICH IT WAS NOT. A TERM's demotion carries `asked`,
+        # `ground_said`, `verdict` and `rejections` -- **a first-class inspectable event** --
+        # while a routine's refutation was in-memory state that nothing recorded. It gates
+        # future minting, so it is **a decision input that left no trace**: `speak` could not
+        # say it, the gate could not check it, and express-before-judge was unverifiable
+        # from the record. Same fields as `demote`, so the two read alike.
+        extra: dict = {}
+        if why == Rt.EXHAUSTED and self.routine_for:
+            rg = self.goal_residual(self.routine_for, before)
+            k = self._reject_key(self.routine_for, self.routine, self.routine_lib)
+            self.refuted.setdefault(k, Standing(last_tick=self.cycle)).refute(
+                self.cycle, self.gamma.halflife, where=self._scope)
+            self.refuted_at[k] = 1.0 if rg is None else rg
+            # AND FILED A SECOND TIME UNDER THE SHAPE OF THE GAP IT FAILED AGAINST. The two
+            # keys answer different questions and neither replaces the other: `k` says *this
+            # exact plan, on this exact slot, is spent* and dies at the boundary with the
+            # slot; `gk` says *a plan of this shape did not close a gap of this shape* and
+            # is the only half that can still be true next level.
+            extra = {"asked": [Rt.render(self.routine), self.routine_for],
+                     "ground_said": False, "status": "refuted",
+                     "verdict": "spent its whole budget and the guard never held",
+                     "rejections": round(self._rejection(k), 3),
+                     "reopens_above": round(self.refuted_at[k], 4)}
+            gap = self._characterise_gap(self.routine_for)
+            rk = self._refusal_key(gap, self.routine)
+            self._refusals.setdefault(rk, []).append(self._refusal_scope())
+            extra["refused_under"] = len(self._refusals[rk])
+            if gap is not None:
+                gk = (self._gap_key(gap), self._step_ids(self.routine, self.routine_lib),
+                      Rt.guards(self.routine))
+                rec = self.paths.setdefault(gk, {"failed": 0, "first_cycle": self.cycle})
+                rec["failed"] += 1
+                rec["last_cycle"] = self.cycle
+                extra["gap"] = {k2: v for k2, v in gap.items()
+                                if k2 not in ("varies", "invariant")}
+                extra["shape_failed"] = rec["failed"]
+        # BLOCKED IS THREE ENDINGS WEARING ONE NAME. `routine.py` says BLOCKED means only
+        # *the guard could not be read*; `blocked_why` says which, so a later run can report
+        # how many routines died to the world removing their subject versus to supply.
+        if why == Rt.BLOCKED and self._guard_exit:
+            extra["blocked_why"] = self._guard_exit
+        self.led.record(self.cycle, step, self.routine_for or "*", "routine_end",
+                        outcome=why, routine=Rt.render(self.routine), **extra)
+        self._guard_exit = None
+        self.routine, self.routine_for = None, None
+        self._routine_adopted = None
+
+    def _act_n(self) -> int:
+        """Acts chosen so far, derived from `self._acts` (not a second counter): the act a claim is
+        about is the one `step` counts right after `choose` returns it."""
+        return sum(self._acts.values())
+
+    def _check_expectation(self, before: dict, step: str = "PLAN") -> bool:
         """Did the last step's claim hold? **ABANDON on divergence -- not revise, not re-plan.**
 
         Returns True when the routine was abandoned, so the caller stops running it.
@@ -1685,17 +1944,22 @@ class Agent:
         if not exp:
             return False
         self._expect = None
-        slot, was, idx = exp
+        slot, was, idx, *rest = exp
+        setter, set_on, setter_no = (rest + [None, None, None])[:3]
         now = before.get(slot, was)
         if now != was:
             return False                      # the claim held; carry on
         saved = Rt.length(self.routine) if self.routine is not None else 0
-        self.led.record(self.cycle, "PLAN", slot, "routine_abandoned",
+        self.led.record(self.cycle, step, slot, "routine_abandoned",
                         reason="expected this slot to change and it did not",
                         # `step_index`, NOT `step`: `led.record`'s own first positional is
                         # `step`, so the obvious name silently shadowed it.
                         step_index=idx, unchanged_at=was, actions_saved=saved,
-                        routine=Rt.render(self.routine) if self.routine else None)
+                        routine=Rt.render(self.routine) if self.routine else None,
+                        set_by=Rt.render(setter) if setter is not None else None,
+                        set_by_plan=setter_no,
+                        held_plan=self._plan_no if self._routine_adopted is not None else None,
+                        set_on_act=set_on, judged_after_act=self._act_n())
         self.routine, self.routine_for = None, None
         self._routine_adopted = None
         return True
@@ -1925,7 +2189,7 @@ class Agent:
         self._molecule_cache = tuple(out)
         return self._molecule_cache
 
-    def _trees(self, cand, bind, g):
+    def _trees(self, cand, bind, g, target=None):
         """The TREE variants of one flat candidate -- `f<g(s)>` for each branch atom.
 
         Empty unless the outer atom actually READS an operand and one is bound: a branch feeds
@@ -1933,8 +2197,10 @@ class Agent:
         """
         if bind is None or not cand.reads_operand:
             return ()
-        return tuple(Term(cand.atoms, operand=bind, guard=g, operand_term=br)
-                     for br in self._branches())
+        trees = (Term(cand.atoms, operand=bind, guard=g, operand_term=br)
+                 for br in self._branches())
+        return tuple(t for t in trees
+                     if target is None or self._operand_fits(t, target, bind))
 
     def _branches(self) -> tuple:
         """The one-atom terms that may sit on a term's OPERAND arm -- §4's second chain.
@@ -2230,6 +2496,38 @@ class Agent:
         """
         return not term.operand or term.operand in state
 
+    def _domain(self, slot: str, state: dict, ctx: Ctx):
+        """WHERE AN OBJECTIVE ON `slot` IS SEARCHED: the values the slot has taken in the record
+        BEFORE this frame, and each operand's value with its two neighbours -- where a comparison
+        against it turns over (Fig 12). Inside the alphabet, which still bounds and prices.
+
+        BEFORE THIS FRAME, so a replayed frame never searches a value shown after it: a domain
+        holding the frame's own outcome would let the bet lean on it."""
+        alpha = self.alphabet[slot]
+        if not _OBJECTIVE_DOMAIN:
+            return range(alpha)
+        key = (id(self.trace), len(self.trace))
+        if self._shown_key != key:
+            self._shown_key, self._shown, self._frame_at = key, {}, {}
+            for i in range(len(self.trace)):
+                b, _act, _a, _intent, _landed = self.trace[i]
+                self._frame_at[id(b)] = i
+        first = self._shown.get(slot)
+        if first is None:
+            first = {}
+            for i in range(len(self.trace)):
+                b, _act, a, _intent, _landed = self.trace[i]
+                for v, at in ((b.get(slot), i), (a.get(slot), i + 1)):
+                    if isinstance(v, int) and v not in first:
+                        first[v] = at
+            self._shown[slot] = first
+        n = self._frame_at.get(id(state), len(self.trace))
+        dom = {v for v, at in first.items() if at <= n}
+        for o in ctx.operands:
+            if isinstance(o, int) and not isinstance(o, bool):
+                dom.update((o - 1, o, o + 1))
+        return {v for v in dom if 0 <= v < alpha}
+
     def _value_of(self, term: Term, slot: str, state: dict[str, int], ctx: Ctx):
         """A term's PREDICTED SLOT VALUE -- the edge from a term to a number, in one place.
 
@@ -2251,7 +2549,7 @@ class Agent:
             def _sat(v: int) -> bool | None:
                 r = term.apply(v, ctx)
                 return None if r is NOT_RESOLVED else bool(r)
-            return objective_step(_sat, state[slot], ordered, self.alphabet[slot])
+            return objective_step(_sat, state[slot], ordered, self._domain(slot, state, ctx))
         return term.apply(state[slot], ctx)
 
     def _predict(self, slot: str, state: dict[str, int], action: str) -> int | None:
@@ -2281,7 +2579,10 @@ class Agent:
                              touching=self._touching(slot), landed=self._last_landed,
                              guard_ref=term.guard_ref)
         got = self._value_of(term, slot, state, ctx)
-        return None if got is NOT_RESOLVED else got % self.alphabet[slot]
+        if got is NOT_RESOLVED:
+            return None
+        self._pred_raw[slot] = got
+        return got % self.alphabet[slot]
 
     def _standing(self, slot: str) -> None:
         """HELD AND CITED ARE TWO ROWS, not one. A candidate may be held -- bound, and
@@ -2370,6 +2671,7 @@ class Agent:
         # caught it. `_aimed` is set when the action is realised and cleared at the top of
         # the step, so here it is THIS step's aim -- the same value the trace row records.
         self._last_landed = self.iface._acted(getattr(self, "_aimed", None), before)
+        self._press_seen = _press(getattr(self, "_aimed", None), before, self._last_landed)
         # **WHO MADE THIS PREDICTION -- the reviewer, 2026-10-04. PROVENANCE APPLIED TO
         # EVIDENCE.** Captured HERE, at the moment of the claim, because `route` binds
         # AFTER `perceive` returns and `settle` judges on THIS residual: a term bound
@@ -2379,6 +2681,7 @@ class Agent:
         # term the habitat says is TRUE (`o1.colour` +1 mod 4 on 21 of 21 own clicks).
         self._pred_by = {s: self.bound.get(s) for s in betting}
         pred = {s: self._predict(s, before, action) for s in betting}
+        raw = {s: self._pred_raw.get(s) for s in betting if pred[s] is not None}
         # A SLOT THE BOUND TERM CANNOT READ IS NOT BET ON. §12.2's non-reading has to reach
         # somewhere that acts on it, or it is a sentinel that propagates into a shrug.
         for s in [s for s in betting if pred[s] is None]:
@@ -2400,6 +2703,10 @@ class Agent:
         else:
             self.env.step(action)
         after = self.env.observe()
+        # RE-READ AFTER THE OBSERVATION, BEFORE ANYTHING IS PRICED: a label the step created
+        # was priced under the count from before it existed, so a new shape 8 read as 0 under
+        # 8 and the miss cost nothing (8 of 12 games, 2026-10-07).
+        self.alphabet = self._alphabets(self.env)
         # JOB B's HALF THAT RUNS TODAY: this action does not have ONE fixed effect.
         # **I WROTE HERE THAT IT CANNOT FIRE ON GRIDWORLD AND THE RUN DISPROVED IT** -- four
         # times in eight steps, because `down` is sometimes BLOCKED. The rule is invariant and
@@ -2430,7 +2737,21 @@ class Agent:
         name, deg_after = self.env.objective()
 
         res: dict[str, SlotResidual] = {}
+        # WHAT IS STILL LISTED, unreadable values included -- `observe` strips NOT_RESOLVED, so
+        # `after` alone cannot tell an object gone from a reading the channel could not take.
+        listed = set(self.env.slots()) if any(s not in after for s in betting) else ()
         for s in betting:
+            # A READING THE CHANNEL COULD NOT TAKE IS SUSPENDED, NOT CHARGED -- Fig 10, the
+            # reviewer 2026-10-07 (F493). The key is still listed, so the object is here and only
+            # its value is unreadable: no bet is scored and no residual claimed, and the row says
+            # so. Measured before: `o0.rem_row` billed 3.0 bits as a vanished object.
+            if s not in after and s in listed:
+                self.led.record(self.cycle, "PERCEIVE", s, "bet", channel=TRANSITION,
+                                of=(s,), from_value=before[s], predicted=raw.get(s),
+                                predicted_code=pred[s], suspended=True, mass=0.0,
+                                bound=self.bound.get(s, NO_CHANGE),
+                                meant=(intent.says() if intent is not None else None))
+                continue
             # A SLOT THAT VANISHED UNDER THE BET IS UNEXPLAINED, not absent. The object was
             # there when the bet was made and is gone now, which is a full code's worth of
             # correction -- and `death only on evidence` means it went because its cells were
@@ -2448,7 +2769,8 @@ class Agent:
             # just never on the row, so nothing could tell the two apart.
             self.led.record(self.cycle, "PERCEIVE", s, "bet", channel=TRANSITION,
                             of=(s,),
-                            from_value=before[s], predicted=pred[s], actual=actual,
+                            from_value=before[s], predicted=raw.get(s), actual=actual,
+                            predicted_code=pred[s], alphabet=self.alphabet[s],
                             **({"vanished": True} if gone else {}),
                             mass=r.bits, cause=self._cause(s, r.bits),
                             # NOT `IDN`: an unbound slot rests on a persistence prior,
@@ -2540,7 +2862,9 @@ class Agent:
                            self._intent_now.kind if self._intent_now is not None
                            else NO_INTENT,
                            self._last_landed))
-        self.gamma.tick = len(self.trace)
+        # ONE CLOCK: the cycle, which a level boundary does not reset. The trace length did, so a
+        # term's rejection froze at every boundary, while the halflife it decays at is in cycles.
+        self.gamma.tick = self.cycle
         self._prev_pred = pred
         self._last_mass = {s: r.mass for s, r in res.items()}
         self._note_progress(after)
@@ -2621,7 +2945,8 @@ class Agent:
             # only operand-readers, which is not the population F238 measured.
             for g in gs:
                 if g != term.guard:
-                    yield Term(term.atoms, operand=term.operand, guard=g)
+                    yield Term(term.atoms, operand=term.operand, guard=g,
+                               operand_term=term.operand_term)
             return
         # ARM L AT THE LOOKUP'S OWN SITE. This loop is the other half of the operand axis and
         # was never bounded -- see `_delta_narrowed`. Same rule, same arm, one switch.
@@ -2631,7 +2956,8 @@ class Agent:
         for b in cands:
             if self._operand_fits(term, slot, b):
                 for g in gs:
-                    yield Term(term.atoms, operand=b, guard=g)
+                    yield Term(term.atoms, operand=b, guard=g,
+                               operand_term=term.operand_term)
 
     def _library_fit(self, slot: str, exclude: str | None) -> str | None:
         """3c / §15.3: ask for the term by DESCRIBING THE GAP, not by walking the registry.
@@ -2689,12 +3015,14 @@ class Agent:
                         reads=("the gap, cited BEFORE the library is read. One record, three "
                                "consumers: the pull count, the description's ordering proof, "
                                "and an import's shadow test"))
+        self._lookup(slot, hist)
         # THE TRACK RECORD ENTERS HERE AND ONLY HERE. `track_of` decays on read, mirroring
         # `rejection_of`, so the order reads evidence of the current age rather than a total
         # frozen at whatever tick it was last touched.
+        _gk = self._term_gkey(slot) if self._not else None
         for n in retrieval.retrieve(self.gamma.library, gap, track=self.gamma.track_of,
                                     youth=self.gamma.youth_of):
-            if n == exclude:
+            if n == exclude or (self._not and self._term_refused(n, _gk)):
                 continue
             # RE-BIND WHAT ARRIVED WITHOUT A BINDING. `save` drops the operand because a slot
             # name is an instance, so an IMPORTED operand-reading term is `idn` here -- both
@@ -2737,7 +3065,7 @@ class Agent:
                 # bound term leaves.
                 if _BARGAIN_FIT:
                     _left = self._left(cand, slot, hist)
-                    _cost = term_bits(self.gamma.length(cand, tuple(self.gamma.units())),
+                    _cost = term_bits(self.gamma.length(cand, self._units_for(slot)),
                                       self.gamma.alphabet)
                     if not pays(_cost, _left, _base):
                         continue
@@ -3112,33 +3440,38 @@ class Agent:
     def route(self, res: dict[str, SlotResidual]) -> list[tuple[str, str, str | None]]:
         out = []
         for slot, r in res.items():
+            _dropped = None
             was_refused = self._refuted_slot.pop(slot, None)
-            if was_refused is not None and _REFUTED_BIN:
+            # ONLY WHILE THE REFUSED TERM'S RESIDUAL PERSISTS -- the reviewer 2026-10-07 14:58Z
+            # (F498), superseding 13:06Z's "while this cycle's residual is nonzero", which could
+            # never file a term wrong every other step: its refutation was read on its right step.
+            # Fig 5's amendment ranks the wrong term by residual that PERSISTS and does not trend
+            # down; a term that failed once and is right since is a recording of one occasion
+            # (Fig 4) and stays tally evidence.
+            # AND ONLY WHILE IT IS STILL THE TERM BOUND (Fig 1: blame only to the term that made
+            # the prediction). Rebound in the cycle it was refused, the slot's new term may be
+            # right, and filing the old term's window displaced it (gridworld s2, c39, F498).
+            if (was_refused is not None and _REFUTED_BIN and self.bound.get(slot) == was_refused
+                    and self._persists(was_refused, slot)):
                 # ISAIAH'S SECOND CLAUSE -- *alternatives that DO work start to compete.*
                 # `_library_fit` already takes an `exclude`, so asking it for the best fit
                 # OTHER than the one just refused needs no new retrieval path. Standing still
                 # fades through `rejections`, which is untouched: this changes what is ASKED
                 # FOR, not the term's number.
-                # THE COMPETITOR MUST MATCH THE REFUTED TERM'S TYPE -- ruled 2026-09-22,
-                # SCOPED TO THIS MECHANISM. `F263`: `_library_fit` has no type filter, so it
-                # handed back `recolour<o0.colour>` (`val`) to replace `none` (`OBJ`), and
-                # `_discrepancy` then reads NOT_RESOLVED -- the goal machinery on that slot
-                # dies silently while the bargain check still passes.
-                #
-                # THIS IS NOT THE WITHHELD PRICING. That question is how an objective and a
-                # predictor are WEIGHED when both are legitimate candidates for a role. This
-                # only refuses a term of one type STANDING IN for a term of another, which
-                # the typed grammar already forbids -- a `val` competitor for an `OBJ` slot
-                # is a category error, not a cheaper rival.
-                #
-                # AND IT IS NOT A FILTER ON `_library_fit`: that is the ESCALATED test and it
-                # stays parked. The result is filtered HERE, at the one caller the ruling
-                # covers, so every other retrieval baseline is untouched.
+                # ONE TYPE RULE FOR THE ONE ACT: THE SLOT'S -- the reviewer, 2026-10-07 13:57Z
+                # (F497), superseding its own 2026-09-22 ruling (375ce42), which matched the
+                # competitor to the REFUSED TERM's type. A competitor bind and a rebind are the
+                # same act, so one rule: the term must fit what it is applied to (Fig 12; Fig 1,
+                # the residual is per slot), and `_library_fit` already checks that with
+                # `_may_bind`. Matching the wrong term's type assumed the answer looks like what
+                # failed (Fig 5's amendment). Measured on gridworld seed 0, cycle 14: it dropped
+                # an OBJ term (left 13.84 of base 24.22) and `mint` then bound a new OBJ term at
+                # the same cost and the same remainder.
+                # FILED HERE, PRICED AT MINT (the reviewer 2026-10-07 14:39Z): a refusal is made by
+                # the mint operator (Fig 5's amendment), and the loop runs ROUTE then MINT, so
+                # route only files the slot; `_price_refusal` takes it from `_refuted_slot`.
+                self._refuted_slot[slot] = was_refused
                 fit = self._library_fit(slot, was_refused)
-                want = getattr(self.gamma.library.get(was_refused), "out_type", None)
-                got = getattr(self.gamma.library.get(fit), "out_type", None) if fit else None
-                if fit is not None and got != want:
-                    fit = None          # a category error is not a competitor
                 # AND ZERO SUPPORT FALLS THROUGH TO MINT -- ruled 2026-09-22 on B5.
                 # *Support at zero is an INSTRUCTION, not a stop: perturb.* A rebind changes
                 # what the agent BELIEVES and does not touch the world, so it cannot discharge
@@ -3153,7 +3486,7 @@ class Agent:
                 # *last mint verdict was no_support and no probe has answered it yet*, and
                 # this needs no new bookkeeping.
                 if slot in self._starved:
-                    fit = None          # let mint park it; the probe is what perturbs
+                    fit, _dropped = None, "starved"   # let mint park it; the probe is what perturbs
                 b = REFUTED
             elif r.mass == 0.0 and slot not in self.owed_import:
                 b, fit = HELD, None
@@ -3174,7 +3507,10 @@ class Agent:
             why = OWES if (r.mass == 0.0 and slot in self.owed_import) else WHY_NOT[b]
             out.append((slot, b, fit, why))
             self.led.record(self.cycle, "ROUTE", slot, "route", bin=b,
-                            why_not=WHY_NOT[b], support=len(self.trace))
+                            why_not=WHY_NOT[b], support=len(self.trace),
+                            # WHY THE BIN DROPPED ITS COMPETITOR, so the cause is read, not
+                            # inferred (F497): a starved slot.
+                            **({"competitor_dropped": _dropped} if _dropped else {}))
         return out
 
     # -- steps 3 to 5 -------------------------------------------------------------------
@@ -3188,6 +3524,24 @@ class Agent:
             m = inherited.tags_of(self.cue)
             self._cue_tag_cache = (self.cycle, m)
         return m
+
+    def _frontier_lookup(self, slot: str, key: tuple) -> tuple | None:
+        """The slot's recorded search, if its scope key is unchanged; otherwise None."""
+        e = self._frontiers.get(slot)
+        return e if e is not None and e[0] == key else None
+
+    def _frontier_store(self, slot: str, entry: tuple) -> None:
+        self._frontiers[slot] = entry
+
+    def _guard_scope(self, slot: str, robs: list, operand_binds: list) -> tuple:
+        """The guards and referents the chain loop will walk -- the same expressions, which
+        read no chain. In the key because `_separates` reads the WHOLE history, not only R, so
+        a correct row can make a referent separate while the base stands still."""
+        refs = self._guard_refs(slot, operand_binds)
+        gs = self._guards(robs, slot, refs)
+        sep = ([r for r in refs if self._separates(robs, slot, r)]
+               if any(x in (ACTED_SELF, ACTED_ON) for x in gs) else [])
+        return tuple(gs), tuple(sep)
 
     def _shapes_now(self) -> dict | None:
         """The shape decoder for this cycle, or None. CACHED PER CYCLE because `Ctx` is built once
@@ -3427,7 +3781,15 @@ class Agent:
         # so the branch below simply does not fire and `choose` goes on to pick normally.
         # Returning here would hand `None` to `env.step` AND make abandoning cost the very
         # action it exists to save -- the currency is actions, so noticing must be free.
-        if self.routine is not None:
+        for _why, _slot, _shown in self._recovered_pending:
+            self.led.record(self.cycle, "PLAN", _slot, "routine_recovered", outcome=_why,
+                            routine=_shown,
+                            note="a fallback ran; the body's ending is NOT a refutation")
+        self._recovered_pending = []
+        _next, self._routine_next = self._routine_next, None
+        if _next is not None and _next[0] is not self.routine:
+            _next = None                      # advanced for a routine no longer held
+        if self.routine is not None and _next is None:
             self._check_expectation(before)
         if self.routine is not None:
             # CAPTURED AT THE FIRST ADVANCE, NOT ONLY AT THE MINT. A routine can arrive
@@ -3435,10 +3797,13 @@ class Agent:
             # that survived a boundary is already in hand -- and this is the last moment the
             # object is still the plan rather than a remainder.
             if self._routine_adopted is None:
-                self._routine_adopted = self.routine
-            self.routine_state.pop("expect", None)
-            emit, rest = Rt.advance(self.routine, self._holds(before),
-                                    self.routine_lib, self.routine_state)
+                self._routine_adopted, self._plan_no = self.routine, self._plan_no + 1
+            if _next is not None:
+                _, emit, rest = _next         # advanced at its deciding cycle's end (F501)
+            else:
+                self.routine_state.pop("expect", None)
+                emit, rest = Rt.advance(self.routine, self._holds(before),
+                                        self.routine_lib, self.routine_state)
             # **THE FALLBACK'S FAILURE IS RECORDED, OR THE FALLBACK HIDES IT.** `Try` recovers
             # from `blocked`/`exhausted` and publishes what it recovered FROM, because a
             # routine that recovers quietly has destroyed the very ending `F207` was diagnosed
@@ -3462,7 +3827,10 @@ class Agent:
                 want = (self.routine_state.get("expect") or [None])[0]
                 if want is not None:
                     self._expect_step += 1
-                    self._expect = (want, before.get(want), self._expect_step)
+                    # THE SETTER RIDES WITH THE CLAIM (F502), so an abandonment can show whose
+                    # claim failed: the plan that made it, never its successor's.
+                    self._expect = (want, before.get(want), self._expect_step,
+                                    self._routine_adopted, self._act_n() + 1, self._plan_no)
                 self._routine_acts += 1
                 self.routine = rest
                 return _act, "routine"
@@ -3494,84 +3862,7 @@ class Agent:
             # would be filed as a settled behaviour, callable at a name's price while claiming
             # its budget's reach. `exhausted` is a trial that failed; `blocked` and
             # `unadvertised` are NON-TRIALS and say nothing either way, so they are left alone.
-            if why == Rt.DONE:
-                _verdict = "tested_yes" if self._routine_acts else "tested_no"
-            elif why == Rt.EXHAUSTED:
-                _verdict = "tested_no"
-            else:
-                _verdict = None
-            # THE EPISODE, FILED UNDER THE SHAPE OF THE GAP IT WAS FORMED AGAINST. Written
-            # HERE because this is the only site where all four answers exist at once: the
-            # signature was taken at mint, the actions are the routine's, the ending is `why`,
-            # and the verdict is the emission count. Split them and the record cannot be made.
-            if self.routine_for and self._plan_sig is not None:
-                self._episodes.setdefault(self._plan_sig, []).append(
-                    (self._step_ids(self.routine, self.routine_lib), why,
-                     _verdict or "untested"))
-            if _verdict and self.routine_for:
-                self._reach_tested[
-                    self._reject_key(self.routine_for, self.routine,
-                                     self.routine_lib)] = _verdict
-                self.led.record(self.cycle, "SETTLE", self.routine_for, "reach_tested",
-                                verdict=_verdict, ending=why, emitted=self._routine_acts,
-                                routine=Rt.render(self.routine))
-            # AND A ROUTINE THAT EMITTED NOTHING IS NOT SHELVED. Reaching `DONE` without acting
-            # is not a settled behaviour -- it is a guard that was already true.
-            _settled = self._routine_adopted or self.routine
-            if (why == Rt.DONE and self._routine_acts
-                    and _settled not in self.routines):
-                self.routines.append(_settled)
-            # EXPRESS-BEFORE-JUDGE, AND IT IS THE PROPERTY THE ENDINGS WERE ALREADY BUILT FOR.
-            # §18.2: *a refutation is recorded ONLY after the hypothesis actually ran a trial --
-            # "I failed to do X" must never be coded as "X is inert." A blocked or never-reached
-            # attempt is a non-trial.* **`exhausted` is a trial: the routine ran its whole budget
-            # and the guard never held. `blocked` and `unadvertised` are non-trials** -- one
-            # could not read its guard, the other was never runnable here -- and neither says
-            # anything about whether the routine works.
-            #
-            # AND THE REFUTATION IS A ROW, WHICH IT WAS NOT. A TERM's demotion carries `asked`,
-            # `ground_said`, `verdict` and `rejections` -- **a first-class inspectable event** --
-            # while a routine's refutation was in-memory state that nothing recorded. It gates
-            # future minting, so it is **a decision input that left no trace**: `speak` could not
-            # say it, the gate could not check it, and express-before-judge was unverifiable
-            # from the record. Same fields as `demote`, so the two read alike.
-            extra: dict = {}
-            if why == Rt.EXHAUSTED and self.routine_for:
-                rg = self.goal_residual(self.routine_for, before)
-                k = self._reject_key(self.routine_for, self.routine, self.routine_lib)
-                self.refuted.setdefault(k, Standing(last_tick=self.cycle)).refute(
-                    self.cycle, where=self._scope)
-                self.refuted_at[k] = 1.0 if rg is None else rg
-                # AND FILED A SECOND TIME UNDER THE SHAPE OF THE GAP IT FAILED AGAINST. The two
-                # keys answer different questions and neither replaces the other: `k` says *this
-                # exact plan, on this exact slot, is spent* and dies at the boundary with the
-                # slot; `gk` says *a plan of this shape did not close a gap of this shape* and
-                # is the only half that can still be true next level.
-                extra = {"asked": [Rt.render(self.routine), self.routine_for],
-                         "ground_said": False, "status": "refuted",
-                         "verdict": "spent its whole budget and the guard never held",
-                         "rejections": round(self._rejection(k), 3),
-                         "reopens_above": round(self.refuted_at[k], 4)}
-                gap = self._characterise_gap(self.routine_for)
-                if gap is not None:
-                    gk = (self._gap_key(gap), self._step_ids(self.routine, self.routine_lib),
-                          Rt.guards(self.routine))
-                    rec = self.paths.setdefault(gk, {"failed": 0, "first_cycle": self.cycle})
-                    rec["failed"] += 1
-                    rec["last_cycle"] = self.cycle
-                    extra["gap"] = {k2: v for k2, v in gap.items()
-                                    if k2 not in ("varies", "invariant")}
-                    extra["shape_failed"] = rec["failed"]
-            # BLOCKED IS THREE ENDINGS WEARING ONE NAME. `routine.py` says BLOCKED means only
-            # *the guard could not be read*; `blocked_why` says which, so a later run can report
-            # how many routines died to the world removing their subject versus to supply.
-            if why == Rt.BLOCKED and self._guard_exit:
-                extra["blocked_why"] = self._guard_exit
-            self.led.record(self.cycle, "PLAN", self.routine_for or "*", "routine_end",
-                            outcome=why, routine=Rt.render(self.routine), **extra)
-            self._guard_exit = None
-            self.routine, self.routine_for = None, None
-            self._routine_adopted = None
+            self._end_routine(why, before)
         # SYSTEM 2 RUNS BESIDE SYSTEM 1, NOT BEHIND IT -- Isaiah, 2026-09-09.
         # Formation used to sit ONLY at the fall-through, so `discriminate:learned` returning
         # first foreclosed it: `_mint_routine` was last called at cycle 11 on `ka59` and 7 on
@@ -4102,7 +4393,7 @@ class Agent:
             r = term.apply(v, ctx)
             return None if r is NOT_RESOLVED else bool(r)
         return objective_gap(_sat, state[slot], self.slot_types.get(slot) in ORDERED_TYPES,
-                             self.alphabet[slot])
+                             self._domain(slot, state, ctx))
 
     def goal_residual(self, slot: str, state: dict[str, int],
                       counts: dict | None = None,
@@ -4761,13 +5052,160 @@ class Agent:
         want = math.ceil(abs(unsat) / abs(per))
         return _replace(cand, expect=max(1, want))
 
+    def _choose_known(self, known: list[tuple[str, int]]) -> tuple[int, str]:
+        """NOTHING IS UNKNOWN HERE, SO THE AGENT PRICES WHAT IS KNOWN -- Design A (the reviewer,
+        2026-10-06; F480). `known` is one (effect, times seen here) per option, never a button.
+
+        Fig 12: actions are a currency -- every option costs one, and a restart also throws away
+        the actions spent since this level (or its last restart) began. Fig 5: only an effect
+        that changes the board can reach a gap elsewhere; a restart can when there is progress
+        to undo. Least-seen breaks ties, which keeps variety among equal moves."""
+        def price(e: str) -> int:
+            return 1 + self._attempt_actions if e == IFace.RESTARTS else 1
+
+        def reaches(e: str) -> bool:
+            return e == IFace.CHANGES or (e == IFace.RESTARTS and self._attempt_actions > 0)
+
+        i = min(range(len(known)),
+                key=lambda j: (not reaches(known[j][0]), price(known[j][0]), known[j][1], j))
+        return i, (f"chose '{known[i][0]}' at price {price(known[i][0])} of "
+                   f"{sorted({(e, price(e)) for e, _n in known})}")
+
+    def restarted(self, env: Any) -> None:
+        """THE SAME LEVEL AGAIN, after a death and the agent's RESET -- called by the harness, as
+        `retarget` is. The death's boundary HELD the slot-keyed refutations. Each comes back only
+        where EVERY object its key names was re-found unambiguously (overlap, or a unique shape):
+        a look-alike may have swapped names, and a refutation landing on the twin is a claim
+        travelling changed and silent (the reviewer, 2026-10-06). The rest are NAMED, not carried.
+        """
+        held, self._held_refutations = self._held_refutations, None
+        self._attempt_actions = 0
+        if not held:
+            return
+        idn = getattr(env, "identity", None)
+        carried, not_carried = [], {}
+        for k, st in held[0].items():
+            objs = sorted({n.split(".", 1)[0] for n in (k[0], *k[2])
+                           if re.fullmatch(r"o\d+", n.split(".", 1)[0])})
+            how = {o: idn(o) if idn else None for o in objs}
+            unsure = {o: w for o, w in how.items() if w not in ("overlap", "unique-shape")}
+            if unsure:
+                not_carried[k[0]] = unsure
+                continue
+            self.refuted[k], self.refuted_at[k] = st, held[1][k]
+            carried.append(k[0])
+        self.led.record(self.level, "IMPORT", "@loop", "restart",
+                        carried=sorted(carried), not_carried=not_carried,
+                        reads="refutations held at the death; carried only where identity is sure")
+
+    def _refusal_scope(self) -> tuple:
+        """What a plan is refused UNDER: the vocabulary it can be composed from."""
+        return (tuple(sorted(self.gamma.library)), tuple(sorted(self.routine_lib)))
+
+    def _refusal_key(self, gap: dict | None, r) -> tuple:
+        return (self._gap_key(gap) if gap is not None else None,
+                self._step_ids(r, self.routine_lib), Rt.guards(r))
+
+    def _refused(self, key: tuple) -> bool:
+        """Refused while the scope it was refused under still stands. Lifted only by growth -- a
+        new term or routine -- never by a clock (Fig 6; Isaiah 2026-09-29: never from disuse)."""
+        scopes = self._refusals.get(key)
+        return bool(scopes) and scopes[-1] == self._refusal_scope()
+
+    def _term_gkey(self, slot: str) -> tuple | None:
+        gap = self._characterise_gap(slot)
+        return self._gap_key(gap) if gap is not None else None
+
+    def refuse_term(self, name: str, slot: str, **detail) -> bool:
+        """Record not-t on this slot's gap shape. Only a HELD term can be refused, so a refusal is
+        the record of held-and-given-up (P5). Adds and removes nothing else (P1). A SETTLED term
+        refused is a contradiction the figure leaves open: written down, not decided (P6)."""
+        if name not in self.gamma.library:
+            return False
+        k = (name, self._term_gkey(slot))
+        self._not.setdefault(k, []).append(self._refusal_scope())
+        self.led.record(self.cycle, "MINT", slot, "refuse", term=name,
+                        refused_under=len(self._not[k]), **detail)
+        if self.gamma.is_settled(name):
+            self.led.record(self.cycle, "MINT", slot, "contradiction", term=name,
+                            reads=("a settled term and its refusal both stand: two scopes, an "
+                                   "error in the ground, or a world that changed -- not decided"))
+        return True
+
+    def _persists(self, name: str, slot: str) -> bool:
+        """The refused term's residual on this slot, row by row over the last MIN_REPEAT+1 rows,
+        read by `_goal_choice`'s test with the sign reversed: not ARRIVED (the last MIN_REPEAT
+        rows all explained) and not CONFIDENTLY SHRINKING (non-increasing with a real fall).
+        A window too short to read is not persistence -- one observation is a coincidence."""
+        t = self.gamma.library.get(name)
+        rows = self.history(slot)[-(MIN_REPEAT + 1):]
+        if t is None or len(rows) < MIN_REPEAT + 1:
+            return False
+        series = [self._left(t, slot, [row]) for row in rows]
+        if all(v <= 0 for v in series[-MIN_REPEAT:]):
+            return False
+        deltas = [b - a for a, b in zip(series, series[1:], strict=False)]
+        return not (all(d <= 0 for d in deltas) and any(d < 0 for d in deltas))
+
+    def _price_refusal(self, slot: str) -> None:
+        """The MINT step's act for a slot `route` filed to REFUTED, at that slot's own turn --
+        priced on the library as its own mint would be. Priced for every filed slot up front, a
+        later slot's reuse sweep wrote ROUTE rows after this MINT row (gridworld s0 seq 1813, F499).
+        Every attempt is a row, so "none refused" and "none tried" read differently."""
+        name = self._refuted_slot.pop(slot, None)
+        if name is None:
+            return
+        ok, d = self._price_not(name, slot)
+        self.led.record(self.cycle, "MINT", slot, "not_t", term=name,
+                        verdict=("paid" if ok else "did not pay") if d
+                        else "not priced: no history, or no idn to withdraw to", **d)
+        if ok:
+            self.refuse_term(name, slot, **d)
+
+    def _price_not(self, name: str, slot: str) -> tuple[bool, dict]:
+        """Fig 5's amendment, the same bargain: not-t pays iff its price plus what stays unexplained
+        with t's predictions withdrawn (the persistence prior) is less than what t leaves now. So a
+        refusal pays only when t does worse than saying nothing, by more than it costs to say it."""
+        t = self.gamma.library.get(name)
+        hist = self.history(slot)
+        if t is None or not hist or IDN not in self.gamma.library:
+            return False, {}
+        k = len({n for n in self._pred_by.values() if n})
+        cost = term_bits(self.gamma.length(t, self._units_for(slot)), self.gamma.alphabet)
+        cost += (math.log2(self.gamma.alphabet + 1) if _NOT_ATOM
+                 else math.log2(k) if k > 1 else 0.0)
+        with_t = self._left(t, slot, hist)
+        without = self._left(self.gamma.library[IDN], slot, hist)
+        return pays(cost, without, with_t), {
+            "predicting": k, "price": "atom" if _NOT_ATOM else "name the term",
+            "cost_bits": round(cost, 3), "left_with": round(with_t, 3),
+            "left_without": round(without, 3)}
+
+    def _term_refused(self, name: str, gkey: tuple | None) -> bool:
+        """Refused while the scope it was refused under still stands (`_refused`'s rule)."""
+        scopes = self._not.get((name, gkey))
+        return bool(scopes) and scopes[-1] == self._refusal_scope()
+
+    def _units_for(self, slot: str) -> tuple:
+        """The units a search on this slot composes from. A refused term's sequence is not a
+        shortcut while its refusal stands, so terms that paid only through it re-price at full
+        length and fall BY DERIVATION (P3). Found by SEQUENCE CONTAINMENT: no composition
+        lineage is kept (F496 records it as a later improvement)."""
+        units = tuple(self.gamma.units())
+        if not self._not:
+            return units
+        gk = self._term_gkey(slot)
+        out = {self.gamma.library[n].atoms for (n, g) in self._not
+               if g == gk and n in self.gamma.library and self._term_refused(n, g)}
+        return tuple(u for u in units if len(u.atoms) < 2 or u.atoms not in out)
+
     def _rejection(self, key: tuple) -> float:
         """The decayed strength of rejection. `Standing.decay` on the LOGICAL clock -- cycles,
         never wall time -- which is §18.2's first defeasance route and was already built."""
         st = self.refuted.get(key)
         if st is None:
             return 0.0
-        st.decay(self.cycle)
+        st.decay(self.cycle, self.gamma.halflife)
         return st.rejections
 
     @property
@@ -4860,8 +5298,7 @@ class Agent:
         # pathogen mimicry this docstring is about, introduced by the fix for it.
         return (slot, Agent._step_ids(r, lib), Rt.guards(r))
 
-    def _accumulate(self, slot: str, cand, cost: float, left: float,
-                    base: float, gkey: tuple | None) -> dict:
+    def _accumulate(self, slot: str, gkey: tuple | None) -> dict:
         """MANY WEAK CONTRIBUTIONS -> ONE VECTOR, AND A THRESHOLD THAT CONVERTS IT INTO A
         COMMITMENT. Isaiah, 2026-09-25, superseding the three-mode rulebook.
 
@@ -4878,14 +5315,14 @@ class Agent:
 
         NO CONTRIBUTOR IS NEW. Every one is a quantity the agent already had and read alone:
 
-            shortfall   how close the bargain came. `pays` is a CLIFF; this is the slope
-                        under it, and it is the bargain CONTRIBUTING rather than GATING
             lean        recurrence of this want. Isaiah's *deterministic intuition* --
                         the gradient of past patterns, read off instead of recomputed
-            plant       failures of THIS GAP SHAPE, negatively and persistently. The
-                        blocked direction stops growing
-            refuted     this exact plan's standing, negatively
             improving   the goal residual's own trend
+            episodes    how plans of this shape ended on this gap shape
+
+        All on the ACTIONS side (item 6, 2026-10-07): `shortfall` (bits, always 0 here), `plant`
+        and `refuted` (a failed plan is item 1's refusal) are gone. Their weights are an implicit
+        1:1 -- OPEN, recorded, not chosen.
 
         **AND THE THRESHOLD FALLS WITH THE CLOCK, WHICH IS THE "ALWAYS PAYING" RULING IN
         MECHANISM FORM.** *"The agent is always paying with its time and life force... there
@@ -4897,20 +5334,13 @@ class Agent:
         lean that goes wrong is a finding rather than a mystery.
         """
         v: dict[str, float] = {}
-        # THE BARGAIN, AS A CONTRIBUTOR. Its cliff is `cost + left < base`; the slope is how
-        # near it came. Clamped at 0 so a wildly unaffordable plan contributes nothing rather
-        # than voting against -- that job is the plant's, on evidence.
-        v["shortfall"] = max(0.0, 1.0 - (cost + left) / base) if base > 0 else 0.0
+        # NO BARGAIN TERM, SINCE ITEM 6. This is reached only after `pays` refused, where the slope
+        # `1 - (cost + left)/base` is always <= 0 -- it was 0.0 on 70 of 70 vectors measured. The
+        # bits reading is the bargain's own verdict, held apart on its row (Fig 12).
         # THE LEAN. `_want_seen` counts attempts that wanted this composition; one sighting is
         # not a pattern, so the first is worth nothing and the gradient starts at the second.
         _w = self.wants.get(slot)
         v["lean"] = max(0, self._want_seen.get(_w, 0) - 1) / MIN_REPEAT if _w else 0.0
-        # THE PLANT, NEGATIVE AND PERSISTENT. Keyed on the GAP SHAPE, so it crosses boundaries
-        # and speaks about a KIND of situation rather than about `o1.dcol`.
-        _f = (self.paths.get((gkey, self._step_ids(cand, self.routine_lib),
-                              Rt.guards(cand)), {}).get("failed", 0) if gkey else 0)
-        v["plant"] = -float(_f)
-        v["refuted"] = -self._rejection(self._reject_key(slot, cand, self.routine_lib))
         # THE TREND. Improving is evidence for acting; flat and rising are not.
         _ser = self._res.get(slot) or []
         v["improving"] = 1.0 if len(_ser) > 1 and _ser[-1] < _ser[0] else 0.0
@@ -4934,32 +5364,63 @@ class Agent:
         v["episodes"] = float(_good - _bad)
         if _eps and _bad > _good:
             # QUALIFIED DOWN: this shape has cost more than it paid. The lean is what is
-            # damped, never the bargain -- `shortfall` is a price and prices are not opinions.
+            # damped, never the bargain -- a price is not an opinion.
             v["lean"] = v["lean"] / (1.0 + _bad - _good)
         total = sum(v.values())
 
         # STANDING SETS THE HEIGHT. `MIN_REPEAT` is the agent's own bar for "confidently".
         # **THE ONLY TERM THAT MOVES IS THE CLOCK SINCE THE LAST COMMITMENT.**
         #
-        # THE FLOOR WAS 1.0 AND IT IS NOW `_QUORUM_FLOOR` -- reviewer's ruling, 2026-09-26,
+        # THE FLOOR WAS 1.0 AND IT IS NOW HALF A VOTE UNDER THE BAR -- reviewer, 2026-09-26,
         # on a defect I reported against my own build: *a quorum reachable by one bee is not
         # a quorum.* At 1.0 a single contributor at unit strength cleared the bar alone, and
         # the one commitment the accumulator ever made was carried by `improving` by itself.
+        # **AND SINCE ITEM 6 (2026-10-07) THE HEIGHT IS THE AGENT'S OWN** -- Isaiah, 2026-09-25,
+        # relayed verbatim: *your current standing (resources, energy, ability, restrictions,
+        # history)* sets it. The bar is read from how its own overrides ended; the relief rate
+        # from its own intervals between commitments. Each is a SEED, marked, until it has one.
         idle = self.cycle - self._last_commit
-        threshold = max(_QUORUM_FLOOR, float(MIN_REPEAT) - idle / _IDLE_RELIEF)
+        bar, bar_earned = self._commit_bar()
+        rate, rate_earned = self._relief_rate()
+        threshold = max(bar - _QUORUM_HALF, bar - idle / rate)
 
         # AND THE HEIGHT ALONE CANNOT EXPRESS A QUORUM, WHICH IS WHY BOTH HALVES ARE HERE.
         # A floor is a sum, and one contributor at 2.0 clears any sum a quorum would set. The
         # honeybee rule is about HOW MANY AGREE, not how loudly one does -- so the count is
         # checked directly instead of being approximated by a number.
         #
-        # POSITIVE ONLY. `plant` and `refuted` go negative, and a contribution arguing AGAINST
-        # is not a vote for; counting it would let two objections constitute a quorum.
+        # POSITIVE ONLY. `episodes` can go negative, and a contribution arguing AGAINST is not a
+        # vote for; counting it would let two objections constitute a quorum.
         voters = sum(1 for x in v.values() if x > 0)
         return {"vector": {k: round(x, 4) for k, x in v.items()},
                 "total": round(total, 4), "threshold": round(threshold, 4),
+                # UNROUNDED: a bar just above a failed total must read as above it on the row.
+                "bar": bar, "bar_is": "earned" if bar_earned else "SEED",
+                "relief_rate": round(rate, 4), "rate_is": "earned" if rate_earned else "SEED",
                 "idle": idle, "voters": voters,
                 "commits": total >= threshold and voters >= _QUORUM_VOTERS}
+
+    def _commit_bar(self) -> tuple[float, bool]:
+        """The height an override must reach, from how the agent's own overrides ended: the lowest
+        level at which recency-weighted successes outnumber failures among outcomes at or above
+        it. Moves both ways, fades at the agent's halflife, a ratio -- never a max (a ratchet)."""
+        if not self._overrides:
+            return float(MIN_REPEAT), False
+        h = self.gamma.halflife or REJECTION_HALFLIFE
+        ws = [(t, ok, 0.5 ** ((self.cycle - c) / h)) for t, ok, c in self._overrides]
+        for lv in sorted({float(MIN_REPEAT), *(t for t, _ok, _w in ws)}):
+            won = sum(w for t, ok, w in ws if ok and t >= lv)
+            lost = sum(w for t, ok, w in ws if not ok and t >= lv)
+            if won > lost:
+                return lv, True
+        return math.nextafter(max(t for t, _ok, _w in ws), math.inf), True
+
+    def _relief_rate(self) -> tuple[float, bool]:
+        """Idle cycles per unit of relief: the agent's own mean interval between commitments."""
+        cs = self._commit_cycles
+        if len(cs) < 2:
+            return _IDLE_RELIEF, False
+        return max(1.0, (cs[-1] - cs[0]) / (len(cs) - 1)), True
 
     @staticmethod
     def _gap_key(gap: dict) -> tuple:
@@ -5102,13 +5563,12 @@ class Agent:
         # filter readmits a shape once its strength falls under 1.0 -- and `_rejection`'s own
         # docstring, in this file, says that route *was already built*. **Two comments
         # contradicting each other about one route, and the code agrees with the other one.**
+        # **SINCE ITEM 1 (2026-10-07) THE FILTER READS `_refused`**, the shape-keyed refusal that
+        # only growth lifts (Fig 6); this pop drops the slot Standing, which is now the VOTE.
         #
-        # **AND THE RATE IS STILL NOT THE AGENT'S HERE, WHICH IS THE PART WORTH THE LINE.**
-        # `gamma.refute` passes `self.halflife` -- the agent's own cycles-to-vindication. BOTH
-        # routine sites pass NOTHING (`refute(self.cycle)`, `decay(self.cycle)`), so they fall
-        # back to the module seed. **Terms decay on the agent's clock and routines decay on
-        # ours**, and Isaiah's 2026-09-30 ruling is that the rate is the agent's call. Recorded
-        # rather than changed: routing it is a behaviour change and it goes through the plan.
+        # **THE RATE IS THE AGENT'S (Isaiah, 2026-09-30), AND SINCE ITEM 4 BOTH ROUTINE SITES PASS
+        # IT** -- `refute` and `decay` take `gamma.halflife`, on the same cycle clock terms use.
+        # Until the agent has a vindication, `halflife` is None and the seed applies, marked.
         for key, was in [(k, w) for k, w in self.refuted_at.items()
                          if k[0] == slot and (rg or 0.0) > w]:
             self.refuted.pop(key, None)
@@ -5234,8 +5694,8 @@ class Agent:
                                       shelf, loop_budget)
         # WEIGHTED AND CLOCKED, per §18.2 via `gamma.Standing`: a refutation excludes only while
         # its decaying strength stands, so a failed shape leaves the running and returns.
-        cands = [c for c in cands
-                 if self._rejection(self._reject_key(slot, c, self.routine_lib)) < 1.0]
+        _offered, _gap0 = len(cands), self._characterise_gap(slot)
+        cands = [c for c in cands if not self._refused(self._refusal_key(_gap0, c))]
         # **THE AGENT SAYS HOW MANY IT EXPECTS -- ISAIAH, 2026-09-30.** `loop_budget` is
         # `round(unsat)`, and `reach` multiplied it back out, so a routine's CLAIM WAS ITS OWN
         # SAFETY CAP: the plain loop reached exactly the residual and could at best tie, and a
@@ -5244,7 +5704,9 @@ class Agent:
         cands = [self._expected(c, unsat, before) for c in cands]
         if not cands:
             self.led.record(self.cycle, "PLAN", slot, "routine_refused",
-                            reason="every rejection still stands and nothing has surprised",
+                            reason="every plan offered was refused under this scope, "
+                                   "and the scope has not grown",
+                            offered=_offered,
                             strengths=[round(self._rejection(k), 3) for k in self.refuted
                                        if k[0] == slot])
             return
@@ -5316,13 +5778,13 @@ class Agent:
                             considered=len(priced), live=len(_live))
             return
         cost, left, cand = ok[0]
+        _ov = None
         if not pays(cost, left, base):
             # **THE BARGAIN KEEPS ITS PRICE AND LOSES ITS MONOPOLY -- ISAIAH, 2026-09-25.**
             # `pays` still says whether a plan is worth BANKING. It stops being the only route
             # from wanting to doing, because *the agent is always paying with its time* and a
             # refusal that costs nothing lets an agent draft forever and look optimal.
-            _acc = (self._accumulate(slot, cand, cost, left, base,
-                                     self._gap_key(gap) if gap is not None else None)
+            _acc = (self._accumulate(slot, self._gap_key(gap) if gap is not None else None)
                     if self.cfg.accumulate else {"commits": False})
             self.led.record(self.cycle, "PLAN", slot, "routine_cut",
                             reason="does-not-pay", routine=Rt.render(cand),
@@ -5337,6 +5799,7 @@ class Agent:
             # with every contribution named -- a lean that goes wrong must be a finding and
             # not a mystery.
             _book_add(self.gamma.book, "committed_on_accumulation")
+            _ov = _acc["total"]
             self.led.record(self.cycle, "PLAN", slot, "committed_on_accumulation",
                             reason="the bargain refused and the accumulation crossed anyway",
                             routine=Rt.render(cand), **_acc)
@@ -5348,9 +5811,12 @@ class Agent:
         self.routine, self.routine_for = Rt.Expect(slot, cand), slot
         self._routine_acts = 0                 # this plan's own tally, not the last one's
         self._last_commit = self.cycle         # the clock the threshold reads restarts here
+        self._commit_cycles.append(self.cycle)
+        self._override_open = _ov              # an override's outcome is recorded at its end
         self._routine_adopted = self.routine   # what to shelve; `advance` will erode it
+        self._plan_no += 1
         self._plan_sig = self._gap_key(gap) if gap is not None else None
-        self.led.record(self.cycle, "PLAN", slot, "routine", verdict="pays",
+        self.led.record(self.cycle, "PLAN", slot, "routine", verdict="pays", plan_no=self._plan_no,
                         routine=Rt.render(cand), length=Rt.length(cand),
                         units=Rt.length(cand, shelf),
                         chunked=Rt.length(cand) != Rt.length(cand, shelf),
@@ -5901,11 +6367,22 @@ class Agent:
         `operand_type` both fall through to True: the check is absent, not passing.
         """
         want = getattr(cand, "operand_type", None)
-        if bind is None or want is None or not self.slot_types:
+        if bind is None or not self.slot_types:
+            return True
+        got = self.slot_types.get(bind)
+        # THROUGH THE TREE: the slot feeds the inner chain first, so each inner atom must
+        # accept what reaches it, and what fills the operand is the chain's OUTPUT. `val`
+        # declares nothing -- it admits and passes the type through (F470).
+        for a in getattr(getattr(cand, "operand_term", None), "atoms", ()):
+            if (a.in_type != "val" and got is not None and got not in a.accepts
+                    and frozenset((a.in_type, got)) not in COMMENSURABLE):
+                return False
+            if a.out_type != "val":
+                got = a.out_type
+        if want is None:
             return True
         if want == G_SAME:
             want = self.slot_types.get(target)
-        got = self.slot_types.get(bind)
         return (want is None or got is None or want == got
                 or frozenset((want, got)) in COMMENSURABLE)
 
@@ -5965,7 +6442,11 @@ class Agent:
             adj = set(touch().get(mine, ()))
             near = {s for s in others if owners.get(s) in adj}
         rank = contact_first(near)
-        return [None] + sorted(others, key=lambda s: (*rank(s), -seen[s], s))
+        # THE LIBRARY'S WORD, AFTER CONTACT AND BEFORE VARIANCE (Fig 9: a lookup gives "a kind of
+        # thing, never the answer itself"). An order, so every binding is still reached; it
+        # matters because most mints stop on budget, where order decides what is reached.
+        lib = self._named.get(slot, {}) if _LOOKUP_ORDER else {}
+        return [None] + sorted(others, key=lambda s: (*rank(s), s not in lib, -seen[s], s))
 
     def mint(self, slot: str) -> None:
         """ONE MINT WITH ITS EVALUATION MEMO. A Ctx and an operand read are pure functions of
@@ -6010,7 +6491,7 @@ class Agent:
             self._tally[slot] = _seen
         rkey = _seen[1]
         # HOISTED, because `units()` rebuilds a list and the pricing runs once per candidate.
-        _units = tuple(self.gamma.units())
+        _units = self._units_for(slot)
         # THE CHEAPEST TERM THE COST FUNCTION ADMITS. `pays` is `cost + left < base`,
         # `_left` is a sum of non-negative bits, and `term_bits` is monotone in `k` with
         # `length() >= 1` -- so `floor >= base` proves NO term pays, at any depth, under
@@ -6029,6 +6510,8 @@ class Agent:
         by_kind: dict[str, tuple] = {}
         wanted: tuple[float, Term, int] | None = None
         rank = 0
+        _skey = _hit = None
+        priced, _skipped = {}, 0
 
         if guards["support"] and base > floor:
             # THE GAP IS ALREADY CHARACTERISED FOR RETRIEVAL; the search gets the same key.
@@ -6097,7 +6580,32 @@ class Agent:
             # That is a design question, not a parameter.
             by_kind: dict[str, tuple] = {}
 
-            for in_t, out_t in streams:
+            # The shape decoder enters by its SIZE: it is append-only (one writer, id = size,
+            # `ArcWorld.shapes` asserts it), so within a run equal size is equal contents. A shape
+            # slot's alphabet is max(2, size), so this part adds only the 1 -> 2 step it masks.
+            # THE SCOPE KEY: what a chain's PRICE is read from. An unchanged base under the same
+            # held term, alphabet and epoch means no new residual row, so `robs` is the same rows;
+            # the rest fixes what is generated from them. The cue and the unit ORDER are not in it:
+            # they decide when a chain is reached, never what it costs. The SLOT SET is not a
+            # separate part: the alphabet map's keys are the slot set, on every world.
+            _skey = (held.name, tuple(sorted(self.alphabet.items())), self._trace_epoch, base,
+                     tuple(sorted(self.gamma.library)), tuple(sorted(u.name for u in _units)),
+                     tuple(streams),
+                     json.dumps(gap, sort_keys=True, default=str),
+                     len(self._shapes_now() or ()) if _SHAPE_DECODE else 0,
+                     self._guard_scope(slot, robs, operand_binds))
+            _hit = self._frontier_lookup(slot, _skey) if _RESUME else None
+            priced: dict = dict(_hit[1]) if _hit else {}
+            _skipped = 0
+            if _hit:
+                # THE SKIPPED CHAINS' SIDE EFFECT IS REPLAYED: re-pricing them would count these
+                # wants again, and the lean reads the count.
+                for _ws in _hit[1].values():
+                    for _w in _ws:
+                        self._want_seen[_w] = self._want_seen.get(_w, 0) + 1
+                guards["novelty"] = guards["novelty"] or _hit[2]
+
+            for _si, (in_t, out_t) in enumerate(streams):
                 # A THIRD KIND EXISTS ONCE THE STREAMS WIDEN, and it is named rather than
                 # folded into `objective`: a term ending at EXTENT is neither a prediction of
                 # the slot's next value nor a complete objective, and calling it one would put
@@ -6124,9 +6632,14 @@ class Agent:
                             "units": self.gamma.alphabet, "estimate": 0}
                 for cand in self.gamma.enumerate_closure(in_t, out_t, self.cfg.max_depth,
                                                          self.cfg.budget, st, order=by_fit):
+                    if _hit and (_si, cand.name) in _hit[1]:
+                        _skipped += 1
+                        continue
                     if rank >= self.cfg.work_budget:
                         st["budget_spent"] = True
                         break
+                    _chain_incs: list[str] = []
+                    priced[(_si, cand.name)] = _chain_incs
                     binds = operand_binds if cand.reads_operand else [None]
                     binds = [x for x in binds if self._operand_fits(cand, slot, x)]
                     # HOISTED so the guard PRICE can read how many were on offer -- the
@@ -6158,6 +6671,27 @@ class Agent:
                     # (each branch is one atom). Same expression, evaluated once per key.
                     _price: dict = {}
                     _maybe_lib = not _sep_free or cand.name in self._held_chains
+                    # A CHAIN WHOSE CHEAPEST INSTANCE CANNOT PAY IS NOT EXPANDED (item 2, F484).
+                    # Within a chain cost varies only with the guard (length is keyed by the atom
+                    # sequence), and a tree never costs less than its chain (F483), so if the
+                    # cheapest instance's cost reaches `base`, every instance and every tree is
+                    # refused on cost alone. Exact: `rank` (the work budget) still counts them and
+                    # `novelty` is still read; only the cut bookkeeping differs, as its own reason.
+                    _n = len(binds) * len(_pairs)
+                    if _n and robs and (term_bits(self.gamma.length(Term(cand.atoms), _units),
+                                         self.gamma.alphabet)
+                               + min(_guard_bits(g, len(_gs) - 1, len(_refs)) for g in _gs)
+                               >= base):
+                        if not guards["novelty"]:
+                            for bind, (g, gref) in ((b, p) for b in binds for p in _pairs):
+                                t = Term(cand.atoms, operand=bind, guard=g, guard_ref=gref)
+                                if not (self.gamma.is_atom(t) or (
+                                        _maybe_lib and t.name in self.gamma.library)):
+                                    guards["novelty"] = True
+                                    break
+                        rank += _n
+                        cut_n["chain bounded out on cost: instances not generated"] += _n
+                        continue
                     for bind, (g, gref) in ((b, p) for b in binds for p in _pairs):
                         rank += 1
                         term = Term(cand.atoms, operand=bind, guard=g, guard_ref=gref)
@@ -6228,7 +6762,7 @@ class Agent:
                             #
                             # **A SECOND PRE-EXISTING DEFECT, NOT A CHANGE TO THE BOUND** --
                             # reported as such. A route that opens onto a crash is not open.
-                            for bt in self._trees(cand, bind, g):
+                            for bt in self._trees(cand, bind, g, slot):
                                 if self.gamma.is_atom(bt) or (
                                         _maybe_lib and bt.name in self.gamma.library):
                                     continue
@@ -6306,7 +6840,7 @@ class Agent:
                         # **REPAIRED 2026-09-24 under Isaiah's ruling**: the bounded-out
                         # branch now offers trees under their OWN `_cannot_pay`, with no arm,
                         # and this site applies the same bound as a short-circuit.
-                        for bt in self._trees(cand, bind, g):
+                        for bt in self._trees(cand, bind, g, slot):
                             if self.gamma.is_atom(bt) or (
                                     _maybe_lib and bt.name in self.gamma.library):
                                 continue
@@ -6402,6 +6936,7 @@ class Agent:
                                 # WANT, and Isaiah's criterion is that it keeps coming back.
                                 _n = self._want_seen.get(term.name, 0) + 1
                                 self._want_seen[term.name] = _n
+                                _chain_incs.append(term.name)
                                 if wanted is None or (_n, -cost) > (wanted[2], -wanted[0]):
                                     wanted = (cost, term, _n)
                             continue
@@ -6523,6 +7058,8 @@ class Agent:
                   "depth": self.cfg.max_depth, "units": stats["units"],
                   "space_estimate": est,
                   "coverage": round(seen / est, 6) if est else 0.0}
+        if _hit:
+            detail["chains_already_priced"] = _skipped
 
         if best is None:
             # THE VERDICT IS NOT ONE WORD. "I stopped early" and "the whole space at this
@@ -6580,9 +7117,15 @@ class Agent:
                                         "verdict": detail["verdict"],
                                         "units_then": stats.get("units", 0),
                                         "base_bits": round(base, 3)}
+            if _skey is not None and detail["verdict"] in ("budget_spent", "priced_out_at_depth",
+                                                           "not_novel"):
+                detail["chains_priced_in_scope"] = len(priced)
+                self._frontier_store(slot, (_skey, {k: tuple(v) for k, v in priced.items()},
+                                            guards["novelty"], detail["verdict"]))
             self.led.record(self.cycle, "MINT", slot, "park", of=(slot,), **detail)
             return
 
+        self._frontiers.pop(slot, None)
         # THE CONSUMER -- Isaiah, 2026-09-24. **`by_kind` WAS COMPUTED, PUBLISHED AND READ BY
         # NOTHING**: it keeps the best candidate PER KIND and `best` installed the single lowest
         # `cost + left` across all of them, so an objective could PAY THE BARGAIN, be recorded as
@@ -6663,6 +7206,8 @@ class Agent:
             if owners and touch is not None:
                 adj = set(touch().get(owners.get(slot), ()))
                 detail["operand_in_contact"] = owners.get(term.operand) in adj
+        _lib = self._named.get(slot, {})
+        detail["operand_from_lookup"] = _lib.get(term.operand) if term.operand else None
         detail["verdict"] = "pays"
         detail["closes"] = closes
         if not closes:
@@ -6745,6 +7290,13 @@ class Agent:
                    for s in sorted(self.owed_import - {origin_slot})]
         targets += [(k, r["slot"], r["hist"], r, r["slots"])
                     for k, r in sorted(self.parked.items())]
+        if self._turn_ahead is not None:
+            # a slot of this level already past its turn is not offered the term now (F500);
+            # a parked record from an earlier level has no turn here and is still swept
+            keep = [t for t in targets if t[1] not in self.slots or t[1] in self._turn_ahead]
+            if len(keep) < len(targets):
+                self.chain.reuse_branch["deferred:turn-done"] += len(targets) - len(keep)
+            targets = keep
 
         def stale(rec: dict) -> bool:
             """`depth_exhausted` is not permanent. It means 'the whole space AT THIS UNIT
@@ -6807,7 +7359,7 @@ class Agent:
             # the candidate PAYS -- `cost + left < base` -- read off the trace (cost/left/base),
             # never a constant. The provenance rides in the residual stamp (`:partial`/`:closed`)
             # so the ablation separates a bargain-accepted partial from a full closure.
-            cost = term_bits(self.gamma.length(cand, tuple(self.gamma.units())),
+            cost = term_bits(self.gamma.length(cand, self._units_for(slot)),
                              self.gamma.alphabet)
             if pays(cost, left, base):
                 self.explain(slot, base - left)
@@ -6918,7 +7470,7 @@ class Agent:
         # THE REUSE PATH PRICED A REUSE AT DERIVATION COST, which is the one place the
         # asymmetry was load-bearing: 19 of 21 installs read `would_pay=False` against a
         # cost that charged for work the ground had already bought.
-        cost = term_bits(self.gamma.length(cand, tuple(self.gamma.units())),
+        cost = term_bits(self.gamma.length(cand, self._units_for(slot)),
                          self.gamma.alphabet)
         left = self._left(cand, slot, hist)
         # `ROUTE`, NOT `ACCEPT`, AND THE GATE SAID SO. The sweep runs inside the ROUTE phase
@@ -6957,6 +7509,7 @@ class Agent:
                 # BOTH outcomes of `refute` below: a settled term demoted and a candidate
                 # mispredicting are both the ground refusing what was said.
                 self._refuted_slot[slot] = name
+                held = self.gamma.is_settled(name, slot)
                 if self.gamma.refute(name, where=self._scope, slot=slot):
                     self.demoted.append(name)
                     # BOOK 1: a term that had SETTLED and then mispredicted. The ground gave it
@@ -6982,6 +7535,14 @@ class Agent:
                     # accumulating the evidence it needs to settle.
                     self.bound.pop(slot, None)
                     self.owed_import.add(slot)
+                elif held:
+                    # A MISS THAT COST NO STANDING: the evidence tally rose and stayed under the
+                    # ceiling. Recorded as what it is; the binding stands, because only the
+                    # ground REVERSING a settlement licenses an unbind (F462).
+                    self.led.record(self.cycle, "SETTLE", slot, "miss_while_settled", term=name,
+                                    status="settled", asked=[name, slot], ground_said=False,
+                                    verdict="mispredicted; standing held under the ceiling",
+                                    rejections=round(self.gamma.rejection_of(name), 3))
                 continue
             born = self.candidates.get(name)
             # HERE, decided: without the slot this skips settling a candidate on slot B
@@ -7288,9 +7849,12 @@ class Agent:
         # in the shape that looks like a working aim.
         self._aimed = None
         self._last_landed = None
+        self._press_seen = None
         if action is None:
             action, by = self.choose(before)
         self._acts[action] += 1   # System-0 instrument: the concrete action distribution
+        _prov = getattr(self.env, "provenance", lambda _a: None)(action)
+        self._attempt_actions = 0 if _prov == "platform-universal" else self._attempt_actions + 1
         # THE PHASE IS READ OFF THE SITE THAT CHOSE, never asserted alongside it. It
         # used to be `DIRECTED if a term is bound`, attached to an action drawn by the
         # identical mechanism either way -- a label the mechanism could not make.
@@ -7390,7 +7954,12 @@ class Agent:
         coord = self._aimed
         res = self.perceive(action, coord, self._intent_now)
         # WHAT THAT ACTION DID TO THE AVATAR, recorded from the frames either side of it.
-        for slot, b, fit, _why in self.route(res):
+        routed = self.route(res)
+        # ONE CHAIN PER SLOT PER CYCLE (Fig 5; the reviewer 2026-10-07 16:12Z, F500): a term
+        # minted this cycle is swept only into slots whose own turn is still to come; a slot
+        # already past its turn meets it through its own route next cycle.
+        self._turn_ahead = {s for s, b, *_ in routed if b in (REBIND, REFUTED, MECHANISM)}
+        for slot, b, fit, _why in routed:
             if b == REBIND and fit:
                 self.bound[slot] = fit
                 self._carry(fit)
@@ -7400,12 +7969,18 @@ class Agent:
                 self.led.record(self.cycle, "ACCEPT", slot, "rebind", term=fit,
                                 status="candidate", note="refit; the library did not change")
             elif b == REFUTED:
+                self._price_refusal(slot)
                 # a competitor where the library holds one; otherwise the gap is genuinely
                 # new and MECHANISM's answer is the right one.
                 if fit:
                     self.bound[slot] = fit
                     self._carry(fit)
                     self.rank.note(fit, self.cycle)
+                    # THE SAME ACT AS A REBIND, SO THE SAME BOOKKEEPING (the reviewer 2026-10-07
+                    # 13:11Z, F497): a fitting library term bound, awaiting the ground. Left owed,
+                    # the slot drove seed 0's decisions apart from the rebind path.
+                    self.owed_import.discard(slot)
+                    self.abstained.pop(slot, None)
                     self.led.record(self.cycle, "ACCEPT", slot, "compete", term=fit,
                                     status="candidate",
                                     note="the bound term was refused here; this is its competitor")
@@ -7413,6 +7988,8 @@ class Agent:
                     self.mint(slot)
             elif b == MECHANISM:
                 self.mint(slot)
+            self._turn_ahead.discard(slot)
+        self._turn_ahead = None
         if by == "probe":
             # ONE ROW PER SLOT THAT ASKED FOR IT, and `@probe` only when the trigger was
             # the global reading rather than any particular slot. It used to be `@probe`
@@ -7443,6 +8020,7 @@ class Agent:
                             remedy="step 7 INWARD: a slot set that reaches what moves",
                             built=False)
         self.settle(res)
+        self._settle_routine()
         self._promote()
         _, degree = self.env.objective()
         self.clocks.note(not self.owed_import and bool(self.bound),
@@ -7474,6 +8052,12 @@ class Agent:
                         # and parsing a rendering to recover a value the loop already holds is
                         # the reconstruction `transcript.py` exists to refuse.
                         action=action,
+                        # WHERE IT LANDED (Fig 11, the habitat's half; the reviewer 2026-10-08
+                        # 02:30Z). `None` for an action with no position.
+                        press=getattr(self, "_press_seen", None),
+                        # WHO OFFERED IT: the game by declaration, or the platform in every
+                        # state (RESET, F477). None where the world cannot say.
+                        provenance=getattr(self.env, "provenance", lambda _a: None)(action),
                         phase=phase, by=by, stage=self.chain.seg.stage(),
                         gamma_size=len(self.gamma.library), owed=sorted(self.owed_import),
                         # REACH BESIDE THE LIBRARY, because the pair is the reading and one
