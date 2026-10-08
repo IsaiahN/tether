@@ -961,7 +961,10 @@ def _group_more() -> list[Atom]:
             # truth, and neither was reachable: `drow` handed a signed int to atoms that
             # compare it, so `moved 3 left` and `moved 3 right` shared no reading.
             Atom("abs_delta", _abs, DELTA, EXTENT),
-            Atom("sign", _sign, DELTA, BOOL)]
+            # 7a (the reviewer 2026-10-08 23:23Z): the same function on a wider domain. The
+            # sign of a delta is its direction; the sign of an extent (never below 0) is
+            # "present". The zero-test the library's "present" and "moves" rows need.
+            Atom("sign", _sign, DELTA, BOOL, also_accepts=(EXTENT,))]
 
 
 def _connect() -> list[Atom]:

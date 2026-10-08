@@ -72,9 +72,10 @@ def test_every_compiled_row_agrees_with_evaluate():
 
 def test_each_named_refusal_is_refused_with_its_reason():
     atoms = _atoms()
-    for cond, reason in [("o1.h > 0", "sign does not accept EXTENT"),
-                         ("o1.drow != 0", "abs_delta gives EXTENT"),
-                         ("o1.drow < 0", "sign gives BOOL, which negate does not accept"),
+    # 7a: "present" (EXTENT > 0) and "moves" (!= 0) compile since sign accepts EXTENT
+    for cond in ("o1.h > 0", "o1.drow != 0"):
+        assert isinstance(C.compile_candidate({"condition": cond}, atoms), C.Compiled), cond
+    for cond, reason in [("o1.drow < 0", "sign gives BOOL, which negate does not accept"),
                          ("o1.colour_changed == 1", "idn does not accept BOOL"),
                          ("o1.colour_changed == 0", "negate does not accept BOOL"),
                          ("touching(o1, o2) == 1", "no pairwise atom"),

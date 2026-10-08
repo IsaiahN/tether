@@ -4,41 +4,41 @@ Library: 4046 seed entries x 10 roles, compiled against the 61 atoms the ARC wir
 
 | role | candidates | compiled | refused | entries offering a compiled term |
 |---|---|---|---|---|
-| STATE | 89982 | 57649 | 32333 | 3797 |
-| PROCESS | 97637 | 27636 | 70001 | 3642 |
+| STATE | 89982 | 69031 | 20951 | 3797 |
+| PROCESS | 97637 | 55272 | 42365 | 3642 |
 | RELATION | 60602 | 57386 | 3216 | 3738 |
-| MEASURE | 62511 | 57386 | 5125 | 3738 |
-| CAUSE | 131937 | 20540 | 111397 | 2895 |
-| RESULT | 131937 | 20540 | 111397 | 2895 |
+| MEASURE | 62511 | 57636 | 4875 | 3738 |
+| CAUSE | 131937 | 46619 | 85318 | 2929 |
+| RESULT | 131937 | 46619 | 85318 | 2929 |
 | INSTRUMENT | 97637 | 0 | 97637 | 0 |
-| TEST | 89982 | 57649 | 32333 | 3797 |
-| RULE | 89982 | 57649 | 32333 | 3797 |
-| AGENT | 131937 | 20540 | 111397 | 2895 |
+| TEST | 89982 | 69031 | 20951 | 3797 |
+| RULE | 89982 | 69031 | 20951 | 3797 |
+| AGENT | 131937 | 46619 | 85318 | 2929 |
 
 ## Refusals, by reason, per role
 
-- **STATE**: sign does not accept EXTENT -- 11382; events are not slots -- 9144; no pairwise atom: touching(o, x) names two objects and no atom reads the pair -- 3230; idn does not accept BOOL -- 1851; negate does not accept BOOL -- 1851; the board is not an object slot -- 1619; no pairwise atom: contact(o, x) names two objects and no atom reads the pair -- 1135; no pairwise atom: bbox(o, x) names two objects and no atom reads the pair -- 1077; no pairwise atom: inside(o, x) names two objects and no atom reads the pair -- 1004; negate does not accept EXTENT -- 40
-- **PROCESS**: abs_delta gives EXTENT, which sign does not accept -- 27636; sign gives BOOL, which negate does not accept -- 27636; events are not slots -- 9138; idn does not accept BOOL -- 5591
+- **STATE**: events are not slots -- 9144; no pairwise atom: touching(o, x) names two objects and no atom reads the pair -- 3230; idn does not accept BOOL -- 1851; negate does not accept BOOL -- 1851; the board is not an object slot -- 1619; no pairwise atom: contact(o, x) names two objects and no atom reads the pair -- 1135; no pairwise atom: bbox(o, x) names two objects and no atom reads the pair -- 1077; no pairwise atom: inside(o, x) names two objects and no atom reads the pair -- 1004; negate does not accept EXTENT -- 40
+- **PROCESS**: sign gives BOOL, which negate does not accept -- 27636; events are not slots -- 9138; idn does not accept BOOL -- 5591
 - **RELATION**: no pairwise atom: contact(o, x) names two objects and no atom reads the pair -- 1135; no pairwise atom: bbox(o, x) names two objects and no atom reads the pair -- 1077; no pairwise atom: inside(o, x) names two objects and no atom reads the pair -- 1004
-- **MEASURE**: the board is not an object slot -- 1619; no pairwise atom: contact(o, x) names two objects and no atom reads the pair -- 1135; no pairwise atom: bbox(o, x) names two objects and no atom reads the pair -- 1077; no pairwise atom: inside(o, x) names two objects and no atom reads the pair -- 1004; sign does not accept EXTENT -- 250; negate does not accept EXTENT -- 40
-- **CAUSE**: if: events are not slots -- 23352; then: abs_delta gives EXTENT, which sign does not accept -- 21809; then: sign gives BOOL, which negate does not accept -- 18531; if: no pairwise atom: touching(o, x) names two objects and no atom reads the pair -- 9438; if: sign does not accept EXTENT -- 7847; then: events are not slots -- 7472; if: idn does not accept BOOL -- 4260; then: idn does not accept BOOL -- 4139; if: negate does not accept BOOL -- 4026; if: the board is not an object slot -- 3697; if: no pairwise atom: contact(o, x) names two objects and no atom reads the pair -- 2688; if: no pairwise atom: bbox(o, x) names two objects and no atom reads the pair -- 2088; if: no pairwise atom: inside(o, x) names two objects and no atom reads the pair -- 1920; if: negate does not accept EXTENT -- 130
-- **RESULT**: if: events are not slots -- 23352; then: abs_delta gives EXTENT, which sign does not accept -- 21809; then: sign gives BOOL, which negate does not accept -- 18531; if: no pairwise atom: touching(o, x) names two objects and no atom reads the pair -- 9438; if: sign does not accept EXTENT -- 7847; then: events are not slots -- 7472; if: idn does not accept BOOL -- 4260; then: idn does not accept BOOL -- 4139; if: negate does not accept BOOL -- 4026; if: the board is not an object slot -- 3697; if: no pairwise atom: contact(o, x) names two objects and no atom reads the pair -- 2688; if: no pairwise atom: bbox(o, x) names two objects and no atom reads the pair -- 2088; if: no pairwise atom: inside(o, x) names two objects and no atom reads the pair -- 1920; if: negate does not accept EXTENT -- 130
+- **MEASURE**: the board is not an object slot -- 1619; no pairwise atom: contact(o, x) names two objects and no atom reads the pair -- 1135; no pairwise atom: bbox(o, x) names two objects and no atom reads the pair -- 1077; no pairwise atom: inside(o, x) names two objects and no atom reads the pair -- 1004; negate does not accept EXTENT -- 40
+- **CAUSE**: if: events are not slots -- 23352; then: sign gives BOOL, which negate does not accept -- 20404; if: no pairwise atom: touching(o, x) names two objects and no atom reads the pair -- 9438; then: events are not slots -- 8636; then: idn does not accept BOOL -- 4679; if: idn does not accept BOOL -- 4260; if: negate does not accept BOOL -- 4026; if: the board is not an object slot -- 3697; if: no pairwise atom: contact(o, x) names two objects and no atom reads the pair -- 2688; if: no pairwise atom: bbox(o, x) names two objects and no atom reads the pair -- 2088; if: no pairwise atom: inside(o, x) names two objects and no atom reads the pair -- 1920; if: negate does not accept EXTENT -- 130
+- **RESULT**: if: events are not slots -- 23352; then: sign gives BOOL, which negate does not accept -- 20404; if: no pairwise atom: touching(o, x) names two objects and no atom reads the pair -- 9438; then: events are not slots -- 8636; then: idn does not accept BOOL -- 4679; if: idn does not accept BOOL -- 4260; if: negate does not accept BOOL -- 4026; if: the board is not an object slot -- 3697; if: no pairwise atom: contact(o, x) names two objects and no atom reads the pair -- 2688; if: no pairwise atom: bbox(o, x) names two objects and no atom reads the pair -- 2088; if: no pairwise atom: inside(o, x) names two objects and no atom reads the pair -- 1920; if: negate does not accept EXTENT -- 130
 - **INSTRUMENT**: if: no pairwise atom: touching(o, x) names two objects and no atom reads the pair -- 97637
-- **TEST**: sign does not accept EXTENT -- 11382; events are not slots -- 9144; no pairwise atom: touching(o, x) names two objects and no atom reads the pair -- 3230; idn does not accept BOOL -- 1851; negate does not accept BOOL -- 1851; the board is not an object slot -- 1619; no pairwise atom: contact(o, x) names two objects and no atom reads the pair -- 1135; no pairwise atom: bbox(o, x) names two objects and no atom reads the pair -- 1077; no pairwise atom: inside(o, x) names two objects and no atom reads the pair -- 1004; negate does not accept EXTENT -- 40
-- **RULE**: sign does not accept EXTENT -- 11382; events are not slots -- 9144; no pairwise atom: touching(o, x) names two objects and no atom reads the pair -- 3230; idn does not accept BOOL -- 1851; negate does not accept BOOL -- 1851; the board is not an object slot -- 1619; no pairwise atom: contact(o, x) names two objects and no atom reads the pair -- 1135; no pairwise atom: bbox(o, x) names two objects and no atom reads the pair -- 1077; no pairwise atom: inside(o, x) names two objects and no atom reads the pair -- 1004; negate does not accept EXTENT -- 40
-- **AGENT**: if: events are not slots -- 23352; then: abs_delta gives EXTENT, which sign does not accept -- 21809; then: sign gives BOOL, which negate does not accept -- 18531; if: no pairwise atom: touching(o, x) names two objects and no atom reads the pair -- 9438; if: sign does not accept EXTENT -- 7847; then: events are not slots -- 7472; if: idn does not accept BOOL -- 4260; then: idn does not accept BOOL -- 4139; if: negate does not accept BOOL -- 4026; if: the board is not an object slot -- 3697; if: no pairwise atom: contact(o, x) names two objects and no atom reads the pair -- 2688; if: no pairwise atom: bbox(o, x) names two objects and no atom reads the pair -- 2088; if: no pairwise atom: inside(o, x) names two objects and no atom reads the pair -- 1920; if: negate does not accept EXTENT -- 130
+- **TEST**: events are not slots -- 9144; no pairwise atom: touching(o, x) names two objects and no atom reads the pair -- 3230; idn does not accept BOOL -- 1851; negate does not accept BOOL -- 1851; the board is not an object slot -- 1619; no pairwise atom: contact(o, x) names two objects and no atom reads the pair -- 1135; no pairwise atom: bbox(o, x) names two objects and no atom reads the pair -- 1077; no pairwise atom: inside(o, x) names two objects and no atom reads the pair -- 1004; negate does not accept EXTENT -- 40
+- **RULE**: events are not slots -- 9144; no pairwise atom: touching(o, x) names two objects and no atom reads the pair -- 3230; idn does not accept BOOL -- 1851; negate does not accept BOOL -- 1851; the board is not an object slot -- 1619; no pairwise atom: contact(o, x) names two objects and no atom reads the pair -- 1135; no pairwise atom: bbox(o, x) names two objects and no atom reads the pair -- 1077; no pairwise atom: inside(o, x) names two objects and no atom reads the pair -- 1004; negate does not accept EXTENT -- 40
+- **AGENT**: if: events are not slots -- 23352; then: sign gives BOOL, which negate does not accept -- 20404; if: no pairwise atom: touching(o, x) names two objects and no atom reads the pair -- 9438; then: events are not slots -- 8636; then: idn does not accept BOOL -- 4679; if: idn does not accept BOOL -- 4260; if: negate does not accept BOOL -- 4026; if: the board is not an object slot -- 3697; if: no pairwise atom: contact(o, x) names two objects and no atom reads the pair -- 2688; if: no pairwise atom: bbox(o, x) names two objects and no atom reads the pair -- 2088; if: no pairwise atom: inside(o, x) names two objects and no atom reads the pair -- 1920; if: negate does not accept EXTENT -- 130
 
 ## Each proposed widening: gain in library rows, cost in search
 
 Closure = chains `enumerate_closure` would type-check (`Gamma.space_exact`, summed over every in/out type pair), per depth.
 
-Base closure: {2: 1511, 3: 15843, 4: 160838}
+Base closure: {2: 1553, 3: 16595, 4: 171600}
 
 | change | compiled candidates (all roles) | gain | closure d2 / d3 / d4 | growth |
 |---|---|---|---|---|
-| 7a sign accepts EXTENT | 517244 | +140269 | 1553 / 16595 / 171600 | x1.03 / x1.05 / x1.07 |
-| 7b PRED atoms accept BOOL | 471715 | +94740 | 1679 / 18195 / 188738 | x1.11 / x1.15 / x1.17 |
-| pair atom touches<x> | 376975 | +0 | 1533 / 16202 / 165940 | x1.01 / x1.02 / x1.03 |
+| 7a sign accepts EXTENT | 517244 | +0 | 1553 / 16595 / 171600 | x1.00 / x1.00 / x1.00 |
+| 7b PRED atoms accept BOOL | 621194 | +103950 | 1727 / 19175 / 202962 | x1.11 / x1.16 / x1.18 |
+| pair atom touches<x> | 517244 | +0 | 1575 / 16957 / 176815 | x1.01 / x1.02 / x1.03 |
 
 The pair atom's library gain reads +0 because compile_term has no row that routes a pair call to a pair atom, so adding the atom changes no compile. Its POTENTIAL: 171809 candidate refusals name a missing pairwise atom (an upper bound: a CAUSE candidate refused on one side may still fail the other).
 
