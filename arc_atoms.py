@@ -181,6 +181,26 @@ if _CELL_CHANGE:
     ATTRIBUTE_TYPE.update({"add_n": EXTENT, "rem_n": EXTENT, "add_row": POSITION,
                            "add_col": POSITION, "rem_row": POSITION, "rem_col": POSITION})
 
+# AN ATTRIBUTE'S ATOM EXISTS ONLY WHERE ITS ARM PUBLISHES IT -- F503, the reviewer 2026-10-07. Every
+# key above becomes an atom, and each atom widens the alphabet every term is priced over; on the
+# shipped ARC path ten of them had no attribute behind them. Read at CONSTRUCTION, not import:
+# `arc_holdout.wire` turns the shape-delta arm on at runtime, before it builds the atoms.
+# attribute -> (module, flag) that publishes it; anything not listed is always published.
+ATTRIBUTE_ARM = {
+    **dict.fromkeys(("dh", "dw", "dcells", "colour_changed"), ("arc_percept", "_OBSERVER")),
+    **dict.fromkeys(("contact", "bbox", "inside"), ("arc_world", "_OBSERVER")),
+    **dict.fromkeys(("dholes", "dperimeter"), ("arc_percept", "_SHAPE_DELTA")),
+    **dict.fromkeys(("age", "speed", "stability"), ("arc_percept", "_INSTRUMENTS")),
+}
+
+
+def _published(attr: str) -> bool:
+    arm = ATTRIBUTE_ARM.get(attr)
+    if arm is None:
+        return True
+    mod = sys.modules.get(arm[0])
+    return bool(getattr(mod, arm[1], False)) if mod is not None else False
+
 
 # THE ADMITTING CLAUSE, PER ATOM, RECORDED WHERE THE ATOM IS DECLARED.
 #
@@ -366,7 +386,7 @@ def _extract() -> list[Atom]:
     # `obj` -- the record carries EVERY attribute of the owner, so an extract atom varies
     # with its owner's other slots and may not claim invariance to them.
     return [Atom(k, pick(k), OBJECT, t, reads_ctx=("obj",))
-            for k, t in ATTRIBUTE_TYPE.items()]
+            for k, t in ATTRIBUTE_TYPE.items() if _published(k)]
 
 
 def _owner() -> list[Atom]:
@@ -1105,7 +1125,10 @@ def three_spaces(predict: list[Atom]) -> list[Atom]:
             f"what named the gap and why no chain yields it, or add the name to `CLAUSE_ONE` "
             f"if the loop cannot run without it. The ablation partitions by which clause let "
             f"a thing in and that cannot be rebuilt afterwards.")
-    phantom = sorted(n for n in _admitted if n not in seen)
+    # AN ATTRIBUTE ATOM WHOSE ARM IS OFF IS GATED, NOT PHANTOM (F498): it is declared and built
+    # whenever its arm publishes it. A name with no construction anywhere still fires here.
+    phantom = sorted(n for n in _admitted if n not in seen
+                     and not (n in ATTRIBUTE_TYPE and n in ATTRIBUTE_ARM and not _published(n)))
     if phantom:
         raise ValueError(
             f"`ADMITTED` names atoms that were never built: {phantom}. `inside` sat here for "
