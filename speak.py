@@ -74,7 +74,9 @@ def sentences(rows: list[dict]) -> list[tuple[list[int], str]]:
                    "blocked": "I could not read the guard, which is not the same as the "
                               "guard being false",
                    "unadvertised": "it named an action this level does not offer, so it "
-                                   "failed its guard rather than crashing"}
+                                   "failed its guard rather than crashing",
+                   "completed-untested": "its body ran out with no claim to test, so it "
+                                         "ended untested"}
             tail = ("" if d.get("status") != "refuted" else
                     f" I filed that against the plan at strength {_n(d.get('rejections'))}, "
                     f"and it reopens if the goal residual rises above "
