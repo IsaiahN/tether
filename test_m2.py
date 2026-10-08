@@ -844,6 +844,83 @@ def check_refutations_do_not_cross_a_boundary():
     assert not ag.refuted, "a refutation keyed on a dead slot name survived a boundary"
 
 
+def check_slot_keyed_state_does_not_cross_a_boundary():
+    """DEFECT: `retarget` clears the bindings and trends because *the slots did not survive*, and
+    kept seven stores keyed by those same slots -- so a want formed on the old level's `o1.dcol`
+    was read on the new level's `o1.dcol`."""
+    ag = _agent()
+    slot = "o1.dcol"
+    k = ag._reject_key(slot, Rt.Until(slot, Rt.Act("ACTION2"), 3))
+    ag.wants[slot] = "idn"
+    ag._want_terms[slot] = ag.gamma.library["idn"]
+    ag._reach_tested[k] = "tested_no"
+    ag._prev_gap[slot], ag._gap_delta[slot] = 3, -1
+    ag._undone[((), "BECOME o1.dcol +", slot, 0.5)] = 2
+    ag._undone_across[("BECOME o1.dcol +", slot)] = 2
+    ag.retarget(ag.env, ag.level + 1)
+    held = {n: getattr(ag, n) for n in ("wants", "_want_terms", "_reach_tested", "_prev_gap",
+                                         "_gap_delta", "_undone", "_undone_across")}
+    crossed = [n for n, v in held.items() if v]
+    assert not crossed, f"slot-keyed state crossed a boundary: {crossed}"
+
+
+def check_one_clock_at_the_agents_rate():
+    """DEFECT: two clocks. Terms decayed on the trace length, which a level boundary resets, so a
+    rejection FROZE at every boundary; routines decayed on the cycle at the module's seed rate,
+    while the agent's own halflife is measured in cycles (Isaiah 2026-09-30: the rate is its).
+    """
+    ag = _agent()
+    name = next(iter(ag.gamma.library))
+    ag.gamma.refute(name)
+    r0 = ag.gamma.rejection_of(name)
+    ag.retarget(ag.env, ag.level + 1)
+    for _ in range(3):
+        ag.step()
+    assert ag.gamma.rejection_of(name) < r0, "a term's rejection froze at a level boundary"
+    slot = _wide(ag)
+    k = ag._reject_key(slot, Rt.Until(slot, Rt.Act(ag.actions[1]), 1))
+    ag.refuted[k] = gamma.Standing(last_tick=ag.cycle, rejections=1.0)
+    ag.gamma.halflife = 2.0
+    ag.cycle += 2
+    assert abs(ag._rejection(k) - 0.5) < 1e-9, (
+        "a routine refutation decayed at a seed, not the agent's rate")
+
+
+def check_a_refusal_holds_until_the_scope_grows():
+    """DEFECT: a refused plan readmitted by a clock, with nothing new to try it with (Fig 6:
+    *it becomes reachable again only if something new is minted, which is growth*).
+
+    The exhaustion is driven through `choose`, as `check_a_refutation_is_a_row` drives it, so the
+    refusal is filed by the code that files it. The OLD filter is read beside the new one: one
+    cycle on, `_rejection` has decayed under 1.0 and would have readmitted the plan, which is
+    what makes the first half of this check non-vacuous.
+    """
+    ag = _agent()
+    slot = _wide(ag)
+    b = dict(ag.env.observe())
+    plan = Rt.Until(slot, Rt.Act(ag.actions[1]), 1)
+    ag.routine, ag.routine_for = plan, slot
+    for _ in range(4):
+        if ag.routine is None:
+            break
+        ag.choose(b)
+    assert ag._refusals, "fixture: the routine did not exhaust, so nothing was refused"
+    key, n_held = next((k, len(v)) for k, v in ag._refusals.items())
+    assert ag._refused(key), "a plan was not refused under the scope it failed in"
+    k = ag._reject_key(slot, plan, ag.routine_lib)
+    ag.cycle += 1
+    assert ag._rejection(k) < 1.0, "fixture: the old filter would not have readmitted it"
+    assert ag._refused(key), "a refused plan came back with the clock, nothing having grown"
+    ag.retarget(ag.env, ag.level + 1)
+    assert ag._refused(key), "an advance lifted a refusal about a plan's shape"
+    lib = ag.gamma.library
+    new = next(ag.gamma.build((a.name, a.name)) for t in list(lib.values()) for a in t.atoms[:1]
+               if f"{a.name} . {a.name}" not in lib)
+    ag.gamma.accept(new, seq=0, residual="fixture")
+    assert not ag._refused(key), "the scope grew and the refusal still excluded"
+    assert len(ag._refusals[key]) == n_held, "lifting a refusal removed it from the record"
+
+
 
 def check_the_act_space_stays_narratable():
     """DEFECT: a new ledger step that the whitebox narration cannot trace.
@@ -963,9 +1040,8 @@ def check_the_accumulation_commits_where_the_bargain_refused():
     # a want this agent has wanted before -- the LEAN's own input
     ag.wants[slot] = "w"
     ag._want_seen["w"] = 6
-    cand = Rt.Until(slot, Rt.Act(ag.actions[1]), 3)
-    # cost far above base, so `pays` is FALSE and only the accumulation can carry it
-    acc = ag._accumulate(slot, cand, cost=9.0, left=0.0, base=6.0, gkey=None)
+    # reached only after `pays` refused; since item 6 the bargain's inputs do not enter it
+    acc = ag._accumulate(slot, gkey=None)
     assert acc["vector"]["lean"] > 0, "recurrence contributed nothing"
     assert acc["total"] >= acc["threshold"], (
         f"a six-times-recurring want did not cross: {acc}")
@@ -989,16 +1065,40 @@ def check_the_accumulation_commits_where_the_bargain_refused():
     # verdict turns on the price and on nothing else, which is what this check is named for.
     ag2.wants[slot2] = "cold"
     ag2._want_seen["cold"] = 0
-    cold = ag2._accumulate(slot2, cand, cost=99.0, left=99.0, base=1.0, gkey=None)
+    cold = ag2._accumulate(slot2, gkey=None)
     assert cold["vector"]["lean"] == 0, (
         f"the cold case is not isolated -- recurrence leaked in: {cold['vector']}")
     assert not cold["commits"], f"a hopeless plan with no history committed: {cold}"
 
     # AND THE CLOCK MOVES THE BAR, WHICH IS THE "ALWAYS PAYING" RULING
     ag2.cycle += 40
-    warm = ag2._accumulate(slot2, cand, cost=99.0, left=99.0, base=1.0, gkey=None)
+    warm = ag2._accumulate(slot2, gkey=None)
     assert warm["threshold"] < cold["threshold"], (
         "forty idle cycles did not lower the bar -- refusing is still free")
+
+
+def check_the_commitment_bar_is_the_agents_own():
+    """DEFECT: the height an override must reach was `MIN_REPEAT` and a relief rate of 8 -- seat
+    constants deciding commitment, where Isaiah ruled that *your current standing ... history*
+    sets it (2026-09-25, relayed verbatim). The bar is now read from how the agent's own
+    overrides ended: both ways, fading at its halflife, a ratio -- never a ratchet."""
+    from self_family import MIN_REPEAT
+    ag = _agent()
+    ag._last_commit = ag.cycle                    # idle 0, so relief cannot mask the bar
+    ag._overrides = []
+    assert ag._commit_bar() == (float(MIN_REPEAT), False), "no history did not read the seed"
+    assert ag._accumulate(_wide(ag), gkey=None)["bar_is"] == "SEED", "the seed was not marked"
+    hi, lo = MIN_REPEAT + 1.0, MIN_REPEAT - 0.25
+    ag._overrides = [(hi, False, ag.cycle)]
+    bar, earned = ag._commit_bar()
+    assert earned and bar > hi, "a failure at a total did not lift the bar above it"
+    assert ag._accumulate(_wide(ag), gkey=None)["bar"] > hi, "the row hides the bar above it"
+    ag._overrides = [(lo, True, ag.cycle), (lo + 0.1, True, ag.cycle)]
+    assert ag._commit_bar()[0] == lo, "successes did not let the bar fall to what worked"
+    ag._overrides = [(hi, False, ag.cycle - 10), (lo, True, ag.cycle)]
+    assert ag._commit_bar()[0] < hi, "one old failure held the bar up against fresh success"
+    ag._commit_cycles = [0, 4, 8]
+    assert ag._relief_rate() == (4.0, True), "the relief rate is not the agent's own interval"
 
 
 def check_the_fresh_read_qualifies_a_want_that_has_failed():
@@ -1019,13 +1119,12 @@ def check_the_fresh_read_qualifies_a_want_that_has_failed():
     slot = _wide(ag)
     ag.wants[slot] = "w"
     ag._want_seen["w"] = 6
-    cand = Rt.Until(slot, Rt.Act(ag.actions[1]), 3)
     sig = ("shape-under-test",)
 
-    clean = ag._accumulate(slot, cand, cost=9.0, left=0.0, base=6.0, gkey=sig)
+    clean = ag._accumulate(slot, gkey=sig)
     # three episodes under this shape, all of which ended without acting
     ag._episodes[sig] = [((ag.actions[1],), "done", "tested_no")] * 3
-    burnt = ag._accumulate(slot, cand, cost=9.0, left=0.0, base=6.0, gkey=sig)
+    burnt = ag._accumulate(slot, gkey=sig)
 
     assert burnt["vector"]["episodes"] < 0, "failed episodes did not vote against"
     assert burnt["vector"]["lean"] < clean["vector"]["lean"], (
@@ -1034,7 +1133,7 @@ def check_the_fresh_read_qualifies_a_want_that_has_failed():
 
     # AND FAVOURABLE HISTORY MUST WEIGH THE OTHER WAY, or this is a damper and not a qualifier
     ag._episodes[sig] = [((ag.actions[1],), "done", "tested_yes")] * 3
-    proven = ag._accumulate(slot, cand, cost=9.0, left=0.0, base=6.0, gkey=sig)
+    proven = ag._accumulate(slot, gkey=sig)
     assert proven["total"] > clean["total"], "a shape that has worked three times weighed nothing"
 
 
