@@ -76,6 +76,9 @@ from pathlib import Path
 sys.dont_write_bytecode = True
 
 ROOT = Path(__file__).parent.parent
+# the repo root, for `armflag` -- the one parser the arms read through
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 # THE TABLE. One line per arm, taken from the arm's OWN SITE rather than summarised from what
 # it looked like it did -- `A6i`'s writing side, which fires exactly where a row is authored.
@@ -216,7 +219,10 @@ PAIRS: tuple[tuple[str, str], ...] = (
 # **which is exactly the reasoning that makes a detector brittle**: it is true of the code today
 # and is not a property anything enforces. A guard resting on a convention it does not check is
 # the arms' own shape one level up -- reasonable, and nothing computes it.
-_READ = re.compile(r'''os\.environ\.get\(\s*["'](TETHER_[A-Z0-9_]+)["']''')
+# AND THE ONE PARSER (2026-10-08): every arm now reads through `armflag.arm`, so the census
+# reads that form as well as the raw one -- a raw read is still found, and still refused below.
+_READ = re.compile(
+    r'''(?:os\.environ\.get|armflag\.arm)\(\s*["'](TETHER_[A-Z0-9_]+)["']''')
 
 # A RULING TURNS AN ARM ON BY ASSIGNING ITS MODULE FLAG, AND NOTHING SAW THAT. `_ITERATE` was
 # set in `arc_holdout.play` on 2026-09-24 and this seat kept reporting `0 ON`, with the fact
@@ -273,13 +279,119 @@ def defaults_on() -> dict[str, str]:
             try:
                 # NO ENVIRONMENT AT ALL, so the reading is of the DECLARATION and not of the
                 # shell this seat happens to run in.
-                val = eval(expr, {"os": type("o", (), {"environ": {}})()})  # noqa: S307
+                val = eval(expr, {"os": type("o", (), {"environ": {}})(),  # noqa: S307
+                                  "armflag": _NO_ENV})
             except Exception:
                 continue
             if val:
                 for arm in arms:
                     out[arm] = f"{path.relative_to(ROOT).as_posix()}:{i}"
     return out
+
+
+_NO_ENV = type("armflag", (), {"arm": staticmethod(lambda _name, default=False: default)})
+
+# VALUES, NOT SWITCHES: read raw because they are not on/off. Data, so a new one is a visible
+# edit here rather than a quiet exemption in logic.
+VALUES = {"TETHER_HOLD_SEED": "the hold-out seed, an integer"}
+_RAW = re.compile(r'''os\.environ(?:\.get\(\s*|\[\s*)["'](TETHER_[A-Z0-9_]+)["']''')
+
+
+def bypasses(texts: dict[str, str]) -> list[str]:
+    """An arm read that does not go through the one parser -- the way the "0"-is-ON defect
+    would return through a nineteenth arm (the reviewer 2026-10-08 18:39Z). Assignments to
+    os.environ are writes and are not reads."""
+    bad = []
+    for name, text in texts.items():
+        for i, line in enumerate(text.split("\n"), 1):
+            for m in _RAW.finditer(line):
+                if m.group(1) in VALUES:
+                    continue
+                if re.match(r"\s*\]\s*=(?!=)", line[m.end():]):
+                    continue
+                bad.append(f"BYPASS      {m.group(1)} read raw at {name}:{i}, not through "
+                           f"armflag.arm")
+    return bad
+
+
+# EVERY ARM SET TO "0" READS OFF -- Isaiah's ruling, 2026-10-08. Eighteen arms read the raw
+# string's truthiness, so "0" turned them ON and a run record saying "=0" could describe an
+# agent running with the arm on. Checked in a fresh process, because the flags resolve at import.
+_SITE = re.compile(r'^(_[A-Z0-9_]+) = (not )?armflag\.arm\("(TETHER_[A-Z0-9_]+)"', re.M)
+_PROBE = """
+import importlib, json, os, sys
+sys.dont_write_bytecode = True
+sys.path.insert(0, ".")
+import armflag
+if LEGACY:
+    armflag.arm = lambda n, default=False: (os.environ.get(n, "1") != "0" if default
+                                            else bool(os.environ.get(n)))
+print(json.dumps({f"{m}.{v}": getattr(importlib.import_module(m), v) for m, v in SITES}))
+"""
+
+
+def _zero_reads(legacy: bool) -> list[str]:
+    """Every arm exported as "0"; the flags whose value says the arm is ON."""
+    sites, expect = [], {}
+    for path in _tracked():
+        if path.parent != ROOT:
+            continue
+        for m in _SITE.finditer(path.read_text(encoding="utf-8")):
+            sites.append((path.stem, m.group(1)))
+            expect[f"{path.stem}.{m.group(1)}"] = (m.group(3), bool(m.group(2)))
+    env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
+    env.update({arm: "0" for arm, _neg in expect.values()})
+    env["PYTHONDONTWRITEBYTECODE"] = "1"
+    code = _PROBE.replace("LEGACY", str(legacy)).replace("SITES", repr(sites))
+    p = subprocess.run([sys.executable, "-c", code], cwd=ROOT, env=env,
+                       capture_output=True, text=True)
+    if p.returncode:
+        return [f"ZERO-IS-OFF could not import the arm sites: {p.stderr.strip()[-200:]}"]
+    got = __import__("json").loads(p.stdout.strip().splitlines()[-1])
+    # a negated site (`not armflag.arm("TETHER_NO_X")`) is True when its arm is OFF
+    return [f"ZERO-IS-ON {arm}=0 left {k} = {got[k]}" for k, (arm, neg) in sorted(expect.items())
+            if got[k] != neg]
+
+
+def zero_is_off() -> list[str]:
+    """The fixture and its must-fail: the real parser reads every "0" as OFF, and the old
+    truthy read, planted in its place, is caught. Empty when both hold."""
+    import armflag
+    bad = []
+    if armflag.arm("TETHER_ARMFLAG_UNSET", default=True) is not True:
+        bad.append("PARSER      an unset arm did not read its declared default (True)")
+    if armflag.arm("TETHER_ARMFLAG_UNSET") is not False:
+        bad.append("PARSER      an unset arm did not read its declared default (False)")
+    for raw, want in (("1", True), ("true", True), (" TRUE ", True), ("True", True),
+                      ("0", False), (" 0 ", False), ("false", False), ("FALSE", False),
+                      ("", False)):
+        os.environ["TETHER_ARMFLAG_PROBE"] = raw
+        try:
+            if armflag.arm("TETHER_ARMFLAG_PROBE", default=not want) is not want:
+                bad.append(f"PARSER      {raw!r} did not read {want}")
+        finally:
+            del os.environ["TETHER_ARMFLAG_PROBE"]
+    os.environ["TETHER_ARMFLAG_PROBE"] = "yes"
+    try:
+        armflag.arm("TETHER_ARMFLAG_PROBE")
+        bad.append("PARSER      'yes' was accepted; anything but 1/true/0/false/empty is refused")
+    except ValueError:
+        pass
+    finally:
+        del os.environ["TETHER_ARMFLAG_PROBE"]
+    plant = {"planted.py": '_X = bool(os.environ.get("TETHER_PLANTED"))\n'
+                           'os.environ["TETHER_PLANTED"] = "1"\n'
+                           '_S = os.environ.get("TETHER_HOLD_SEED", "0")\n'}
+    hit = bypasses(plant)
+    if len(hit) != 1 or "TETHER_PLANTED" not in hit[0]:
+        bad.append(f"BYPASS      UNWITNESSED: planted raw read gave {hit} (want one finding; "
+                   f"a write and a declared value are not findings)")
+    bad += bypasses({p.relative_to(ROOT).as_posix(): p.read_text(encoding="utf-8")
+                     for p in _tracked() if p.name not in ("arms.py", "armflag.py")})
+    bad += _zero_reads(legacy=False)
+    if not _zero_reads(legacy=True):
+        bad.append("ZERO-IS-OFF UNWITNESSED: the old truthy read, planted, was not caught")
+    return bad
 
 
 def _tracked() -> list[Path]:
@@ -432,10 +544,12 @@ def main() -> int:
     # with no arguments, so a `--selftest` nobody passes is a suite nothing runs -- which is
     # the rot this folder's own docstrings name, and it would leave the guards unexercised
     # exactly as they were before the fixtures existed. They are pure data and cost nothing.
-    worst = [c for c, v in selftest().items() if v != "ok"]
+    worst = [c for c, v in selftest().items() if v != "ok"] + zero_is_off()
     if worst or "--selftest" in sys.argv:
         for case, verdict in sorted(selftest().items()):
             print(f"  {case:<16} {verdict}")
+        for line in zero_is_off():
+            print(f"  {line}")
         if worst:
             print("  the seat's OWN guards are not firing; its green means nothing")
             return 1
@@ -449,9 +563,10 @@ def main() -> int:
     # A DEFAULT-ON ARM IS ON. Three routes now, not two -- and the third is the one the
     # census could not see, so every count it printed was understating what the agent
     # runs with. An explicit falsy override still wins: `X=0` means off.
-    on = ({a for a in found if os.environ.get(a)}
+    import armflag
+    on = ({a for a in found if armflag.arm(a)}
           | set(rule)
-          | {a for a in dflt if os.environ.get(a, "1") != "0"})
+          | {a for a in dflt if armflag.arm(a, default=True)})
     bad = _judge(found, ARMS, on, PAIRS)
 
     print(f"arms: {len(found)} switches at {sum(len(v) for v in found.values())} read sites; "

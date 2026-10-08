@@ -24,9 +24,10 @@ TWO CHOICES THE CORPUS DOES NOT SETTLE, MADE HERE AND STATED:
 """
 from __future__ import annotations
 
-import os
 import sys
 from typing import Any
+
+import armflag
 
 sys.dont_write_bytecode = True
 
@@ -36,7 +37,7 @@ sys.dont_write_bytecode = True
 # counted. Its `recolour` is published here as `colour_changed`: `observer` is SEAT-SIDE
 # and its key never enters the agent's registry, where `recolour` is already taken.
 # aggregated to a count (`F165`).
-_OBSERVER = bool(os.environ.get("TETHER_OBSERVER"))
+_OBSERVER = armflag.arm("TETHER_OBSERVER")
 
 # THE SHAPE-DELTA ARM, DEFAULT OFF. `dholes`/`dperimeter`: how a matched object's CELL-SET
 # quantities moved frame-to-frame. The reviewer cleared these on one test and it is worth
@@ -55,14 +56,14 @@ _OBSERVER = bool(os.environ.get("TETHER_OBSERVER"))
 # PAIRS WITH ARM I RATHER THAN STANDING ALONE: the `holes` and `perimeter` ATOMS only resolve
 # when `TETHER_SHAPE_DECODE` is on, so with arm I off the agent reads a delta of a quantity it
 # cannot itself measure. Both arms belong on together; that is a measurement, not a default.
-_SHAPE_DELTA = bool(os.environ.get("TETHER_SHAPE_DELTA"))
+_SHAPE_DELTA = armflag.arm("TETHER_SHAPE_DELTA")
 
 # THE CELL-CHANGE ARM, DEFAULT OFF (the reviewer, 2026-10-07; INDEX F492). WHERE a matched object's
 # cells changed since the last frame: the cells added and removed, each as a count (EXTENT -- the
 # type set has no COUNT, see `contact`) and a centroid (POSITION, floor of the mean). The shape id
 # names a new outline and says nothing of WHERE it differs, so a contained object's move reaches
 # its container only as a fresh name. Read only where `identity_of` is sure; otherwise unknown.
-_CELL_CHANGE = bool(os.environ.get("TETHER_CELL_CHANGE"))
+_CELL_CHANGE = armflag.arm("TETHER_CELL_CHANGE")
 _CHANGE_ATTRS = ("add_n", "add_row", "add_col", "rem_n", "rem_row", "rem_col")
 
 # THE EMBEDDED INSTRUMENT SET, DEFAULT OFF -- Part 12 item 3, Isaiah: *"we can't have the
@@ -73,7 +74,7 @@ _CHANGE_ATTRS = ("add_n", "add_row", "add_col", "rem_n", "rem_row", "rem_col")
 # same absent quantity rather than on six mechanisms. Default OFF because a new published
 # attribute widens the slot set, and §12.12 prices that in EPISODES FORGONE before it is
 # defaulted on -- 26s an action buys 4-9 episodes in the whole competition window.
-_INSTRUMENTS = bool(os.environ.get("TETHER_INSTRUMENTS"))
+_INSTRUMENTS = armflag.arm("TETHER_INSTRUMENTS")
 
 
 def as_index_grid(frame: Any) -> list[list[int]] | None:

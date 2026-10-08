@@ -27,11 +27,11 @@ than discovering it at 3c.
 """
 from __future__ import annotations
 
-import os
 import sys
 from dataclasses import replace
 from typing import Any
 
+import armflag
 from arc_percept import _CELL_CHANGE, holes_of, perimeter_of
 from gamma import HANDED, SAME_AS_TARGET, Atom, Ctx
 from sensors import (
@@ -87,7 +87,7 @@ PRED, QUANT, VAL = "PRED", "QUANT", "val"
 # `cell_col`/`count_true`, which make a cell set WALKABLE for the first time. Off by default
 # because it widens the closure the mint enumerates and that cost is measured before it is
 # defaulted, per §12.12: a feature is priced in EPISODES FORGONE, not in per-cycle percent.
-_ITERATE = bool(os.environ.get("TETHER_ITERATE"))
+_ITERATE = armflag.arm("TETHER_ITERATE")
 
 # THE ONE TABLE. An object record's key -> the §12.2 type its values inhabit. `_extract` reads
 # it to type its atoms and `ArcWorld.slot_types` reads it to type its slots, and those are the

@@ -49,6 +49,9 @@ REASONING = frozenset({
     "arc_atoms", "arc_predict", "arc_percept", "sensors", "sensors_heavy",
     "composer", "inherited", "self_family", "relations", "observer", "detectors",
     "framepair", "visible",
+    # the one parser its arms read through (2026-10-08): the agent reading its own switches,
+    # not a world -- it imports only `os`
+    "armflag",
 })
 
 # THE TWO DOORS, and nothing else is one.

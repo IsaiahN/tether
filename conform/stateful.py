@@ -1820,7 +1820,6 @@ def test_a_downrated_member_is_restored_the_moment_it_moves():
     driven directly: `present` (how many presses a slot was seen for) and the delta table
     (which slots were ever observed to move). Those are the only two things the policy reads.
     """
-    import os
 
     import test_m2
     import tether
@@ -1881,7 +1880,8 @@ def test_a_downrated_member_is_restored_the_moment_it_moves():
         assert (rest[0].get("detail") or {}).get("in_scope_of") == slot, (
             "the restore row did not say WHICH scope it was restored in")
     finally:
-        tether._DOWNRATE = os.environ.get("TETHER_DOWNRATE", "0") != "0"
+        import armflag
+        tether._DOWNRATE = armflag.arm("TETHER_DOWNRATE")
 
 
 def test_youth_breaks_ties_within_equal_confidence_and_never_overrules_evidence():

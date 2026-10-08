@@ -45,7 +45,7 @@ def wired() -> list[tuple[str, str]]:
 
 def env_of(mod: str, flag: str) -> str | None:
     src = (ROOT / f"{mod}.py").read_text(encoding="utf-8")
-    m = re.search(rf'^{flag} = bool\(os\.environ\.get\("(TETHER_[A-Z_]+)"\)\)', src, re.M)
+    m = re.search(rf'^{flag} = armflag\.arm\("(TETHER_[A-Z_]+)"\)', src, re.M)
     return m.group(1) if m else None
 
 

@@ -11,7 +11,6 @@ read game internals, and there is nothing here that knows what any board means.
 """
 from __future__ import annotations
 
-import os
 import sys
 from collections.abc import Callable
 from typing import Any
@@ -21,6 +20,7 @@ from arcengine import GameAction, GameState
 import arc_atoms
 import arc_percept
 import arc_self
+import armflag
 import observer
 import sensors
 
@@ -34,7 +34,7 @@ PLATFORM_UNIVERSAL = (GameAction.RESET.name,)
 # ONE switch so the route chart judges the whole thing rather than a fragment -- reviewer,
 # 2026-09-22. Item 4 (relations as per-pair slots) is here; it ships only with arm L, which
 # bounds the operand axis the wider slot set would otherwise multiply.
-_OBSERVER = bool(os.environ.get("TETHER_OBSERVER"))
+_OBSERVER = armflag.arm("TETHER_OBSERVER")
 
 
 def _oldest(d: dict) -> int:

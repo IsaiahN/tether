@@ -21,6 +21,7 @@ from dataclasses import replace as _replace
 from functools import partial
 from typing import Any
 
+import armflag
 import composer
 import condition
 import grammar as G
@@ -116,10 +117,10 @@ def _may_bind(cand: Any, slot_type: str | None) -> bool:
     return out == slot_type and out in REPR_AGREES and _head_accepts(cand, slot_type)
 
 # F127's arm B. Seat-side and off unless asked for, so the default build is byte-identical.
-_TYPED_BIND = bool(os.environ.get("TETHER_TYPED_BIND"))
+_TYPED_BIND = armflag.arm("TETHER_TYPED_BIND")
 # F130 arm C: supply `_library_fit`'s retrieval the relation channel its two
 # sibling call sites already pass. Seat-side, off by default.
-_REL_GAP = bool(os.environ.get("TETHER_REL_GAP"))
+_REL_GAP = armflag.arm("TETHER_REL_GAP")
 # F32 arm D: decide reuse by the ONE BARGAIN rather than by a zero remainder, which Isaiah
 # ruled out. **ON BY DEFAULT SINCE 2026-09-30 -- the flip LANDED, and the four M2 failures
 # that held it were diagnosed first, as the reviewer required.**
@@ -141,14 +142,14 @@ _REL_GAP = bool(os.environ.get("TETHER_REL_GAP"))
 #
 # So the flip removed nothing. Three of the four were reading something other than what they
 # claimed, and the fourth is owed to a world with a real gap.
-_BARGAIN_FIT = os.environ.get("TETHER_BARGAIN_FIT", "1") != "0"
+_BARGAIN_FIT = armflag.arm("TETHER_BARGAIN_FIT", default=True)
 # **DOWNRATING, DEFAULT OFF -- the reviewer, 2026-10-01, on the `BARGAIN_FIT` pattern.** The
 # policy is built and its arithmetic is ruled; what is NOT settled is whether discounting a
 # member the agent cannot move makes it choose better or makes it disturb goals that already
 # hold. **That is a behaviour question and it is Isaiah's**, to be ruled on a gridworld A/B
 # rather than on the toy -- so the switch exists to make the A/B one script with one flag,
 # and the default is OFF until he rules.
-_DOWNRATE = os.environ.get("TETHER_DOWNRATE", "0") != "0"
+_DOWNRATE = armflag.arm("TETHER_DOWNRATE")
 
 # **THE ?ACTED GUARD, DEFAULT ON SINCE 2026-10-05 -- ISAIAH, on the settled/unsettled
 # principle, SUPERSEDING the earlier zero-failure bar.** It was OFF from 2026-10-02, the
@@ -173,13 +174,13 @@ _DOWNRATE = os.environ.get("TETHER_DOWNRATE", "0") != "0"
 #
 # WHAT IS STRUCTURALLY TRUE AND NOT A COUNT: no unsettled guarded term can act as trusted --
 # `units()` iterates `settled_terms`, a `@property` computed live from `is_settled`.
-_ACTED_GUARD = os.environ.get("TETHER_ACTED_GUARD", "1") != "0"
+_ACTED_GUARD = armflag.arm("TETHER_ACTED_GUARD", default=True)
 
 # **THE AIMED CURIOSITY DRAW, DEFAULT ON -- the reviewer, 2026-10-01.** The flag exists so the
 # before/after is ONE SCRIPT WITH ONE FLAG rather than two code states: OFF restores the
 # subjectless `_explore` the curiosity exit used before `F401`. The `bored()` exit is not
 # behind this and never becomes aimed -- its uninformed draw is a safety property, not an arm.
-_AIMED_CURIOSITY = os.environ.get("TETHER_AIMED_CURIOSITY", "1") != "0"
+_AIMED_CURIOSITY = armflag.arm("TETHER_AIMED_CURIOSITY", default=True)
 
 # ARM F -- RECIPE DEDUP. The novelty check below tests `term.name`, which carries operand AND
 # guard, so `translate . recolour<o5.w>` and `<o12.w>` both read NOVEL and both get minted.
@@ -187,7 +188,7 @@ _AIMED_CURIOSITY = os.environ.get("TETHER_AIMED_CURIOSITY", "1") != "0"
 # 137 times in one run (F229). Isaiah: "adding a dup is a symptom of the found thing never being
 # searched for -- a deeper usage-of-terms problem." This arm makes the check see the RECIPE.
 # DEFAULT OFF, like every other arm, so the baseline it is measured against is preserved.
-_RECIPE_DEDUP = bool(os.environ.get("TETHER_RECIPE_DEDUP"))
+_RECIPE_DEDUP = armflag.arm("TETHER_RECIPE_DEDUP")
 
 # ARM G -- REBIND WHAT IS HELD. `_rebindings` returns early for any term that already carries an
 # operand, so only IMPORTS (which arrive unbound, `save` drops it) are ever re-bound. A term the
@@ -197,7 +198,7 @@ _RECIPE_DEDUP = bool(os.environ.get("TETHER_RECIPE_DEDUP"))
 # and 85% / 41% of those were held with an operand locked to a DIFFERENT slot.
 # The principle is the method's own docstring: *composition crosses, binding does not* -- true of
 # every term, applied to loaded ones only. DEFAULT OFF like every other arm.
-_REBIND_HELD = bool(os.environ.get("TETHER_REBIND_HELD"))
+_REBIND_HELD = armflag.arm("TETHER_REBIND_HELD")
 
 # ARM H -- THE GUARD AXIS IN RETRIEVAL. Reviewer ruling 2026-09-21, and it is the generation half
 # of F238. `mint` walks (operand x GUARD) via `_guards(robs)`; `_rebindings` varies only the
@@ -208,7 +209,7 @@ _REBIND_HELD = bool(os.environ.get("TETHER_REBIND_HELD"))
 # appearing in that residual's own observations -- never the full action set on every lookup.
 # The playbook's lookup fires on a SETTLED CHANGE and that event carries the action that produced
 # it, so handing retrieval the observation is giving it the event it was specified to key on.
-_GUARD_AXIS = bool(os.environ.get("TETHER_GUARD_AXIS"))
+_GUARD_AXIS = armflag.arm("TETHER_GUARD_AXIS")
 
 # ARM I -- DECODE THE SHAPE STAND-IN. `arc_percept` computes the normalised offset frozenset every
 # frame and publishes an episode-local INT in its place; every SHAPE atom guards on a frozenset, so
@@ -218,10 +219,10 @@ _GUARD_AXIS = bool(os.environ.get("TETHER_GUARD_AXIS"))
 # inputs are untouched. RELATIONS.md calls it "a build and not a decision to revisit ... no new
 # sensor, no entry rule, no exemption". DEFAULT OFF, because it makes seven dead atoms live and
 # that moves the closure.
-_SHAPE_DECODE = bool(os.environ.get("TETHER_SHAPE_DECODE"))
+_SHAPE_DECODE = armflag.arm("TETHER_SHAPE_DECODE")
 # The incremental tally in `_cannot_pay`. ON by default, OFF for the identity A/B --
 # ONE script with one flag, never two scripts.
-_TALLY = not os.environ.get("TETHER_NO_TALLY")
+_TALLY = not armflag.arm("TETHER_NO_TALLY")
 
 # CARRY THE CANDIDACY. Reviewer 2026-09-30, on Isaiah's reuse-without-re-deriving ruling:
 # *a carried term becomes a candidate the first time the agent binds or tests it in this game,
@@ -229,12 +230,12 @@ _TALLY = not os.environ.get("TETHER_NO_TALLY")
 # (mint), so `settle()`'s `born is None` guard could never clear for an IMPORTED term and a
 # carried schema could not leave the unsettled state on any board. INVERTED POLARITY like
 # `_TALLY`: the fix is ON and the env var turns it OFF, so the A/B is one script.
-_CARRY_CANDIDATE = not os.environ.get("TETHER_NO_CARRY_CANDIDATE")
+_CARRY_CANDIDATE = not armflag.arm("TETHER_NO_CARRY_CANDIDATE")
 # WHAT A SEARCH HAS ALREADY PRICED -- reviewer 2026-10-07, plan item 7. Under an unchanged scope key
 # a chain prices the same way again, so a re-run of a search that stopped at the budget spends the
 # budget re-reading what it already refused. The cue reorders ties every cycle, so the frontier is
 # the SET of chains priced, never a position. ON by default; the env var turns it OFF.
-_RESUME = not os.environ.get("TETHER_NO_RESUME")
+_RESUME = not armflag.arm("TETHER_NO_RESUME")
 
 
 def _norm_name(x: str) -> str:
@@ -348,13 +349,13 @@ REFUTED = "refuted"
 # because of the bin or an amended figure; the fixture now prices fresh. (The earlier reading
 # here -- B5 and three M2 checks failing -- predated F485 and is superseded.) *Reintroduce the
 # defect, never disable the check.*
-_REFUTED_BIN = not os.environ.get("TETHER_NO_REFUTED_BIN")
+_REFUTED_BIN = not armflag.arm("TETHER_NO_REFUTED_BIN")
 
 # THE PRICE OF NOT-t IS OPEN IN THE FIGURES (Fig 12/13: an atom slot, nothing, or the choice of what
 # to negate). DEFAULT, the reviewer 2026-10-07: the bits to NAME which term is wrong among every
 # term bound and predicting, agent-wide (Fig 5's enumeration; Fig 12 prices every part as a named
 # choice). This arm prices it as one atom slot instead, so the choice can be read off the evidence.
-_NOT_ATOM = bool(os.environ.get("TETHER_NOT_ATOM"))
+_NOT_ATOM = armflag.arm("TETHER_NOT_ATOM")
 
 # ARM L -- BOUND THE OPERAND AXIS BY THE DELTA. SEAT-SIDE SWITCH, DEFAULT OFF.
 # `F258`: yields expand 32-106x into ranked candidates and the operand axis is the multiplier.
@@ -372,17 +373,17 @@ _NOT_ATOM = bool(os.environ.get("TETHER_NOT_ATOM"))
 # AND DEFAULT OFF BECAUSE THE FILE RECORDS THIS FAILING BEFORE: *the version that DROPPED
 # operand-reading terms when R showed no dependence on another slot LOST A CLOSING TERM.*
 # Different rule, same family. `distinct compositions must not fall` is the falsifier.
-_DELTA_OPERANDS = bool(os.environ.get("TETHER_DELTA_OPERANDS"))
+_DELTA_OPERANDS = armflag.arm("TETHER_DELTA_OPERANDS")
 # ITEM 6, THE RE-KEY. Default OFF. `F303` measured the key BEFORE this was built: a GLOBAL frame
 # delta is saturated at every granularity that crosses boards -- types 100% of cycles, attribute
 # names 91% -- because *did ANY slot of this type move ANYWHERE* is always yes across 1,688
 # slots. Scoped to the target's OWN OBJECT it is ~3%, median 0%, with nine objects in ten
 # changing nothing. The reviewer's ordering requires this narrowing BEFORE mint's `out_type` is
 # widened: widening without narrowing is how 735 million calls arrive nowhere.
-_DELTA_KEY = bool(os.environ.get("TETHER_DELTA_KEY"))
+_DELTA_KEY = armflag.arm("TETHER_DELTA_KEY")
 # THE LOOK-UP'S PARTNER ORDERING. Direction ON (the reviewer 2026-10-08 00:54Z); `0` is the A/B
 # control. Orders the operand candidates, never excludes one.
-_LOOKUP_ORDER = os.environ.get("TETHER_LOOKUP_ORDER", "1") != "0"
+_LOOKUP_ORDER = armflag.arm("TETHER_LOOKUP_ORDER", default=True)
 # THE out_type WIDENING -- Isaiah's 3A, reviewer-pre-registered 2026-09-23. `mint` asks for
 # `("val","val")` and `(slot_type, OBJ)` and NOTHING ELSE, and the composition census says
 # that IS the ceiling: 4 distinct compositions on every board, which are exactly those two
@@ -391,14 +392,14 @@ _LOOKUP_ORDER = os.environ.get("TETHER_LOOKUP_ORDER", "1") != "0"
 # ABORT CRITERIA, declared before the first run and unchanged: candidates tried rises while
 # arrivals do not -> OFF; calls-per-cycle growth steepens against the control -> OFF; binds
 # per candidate rises -> OFF. Each is a RESULT, not a failure.
-_STREAM_WIDEN = bool(os.environ.get("TETHER_STREAM_WIDEN"))
+_STREAM_WIDEN = armflag.arm("TETHER_STREAM_WIDEN")
 # ITEM 7. Default OFF: it APPENDS TO THE ATOM REGISTRY, which every term reads.
 # **THE RANDOMISED HOLD -- MEASUREMENT ONLY, the reviewer 2026-10-03 ruling 3.** Withholds
 # the `ACTED_SELF` offer on a seeded ~half of ELIGIBLE occasions so a measurement run carries
 # its own within-run control. OFF in the shipping agent: a control that changes what the agent
 # is offered is an instrument, not a capability, and leaving it on would make every later
 # reading a reading of the instrument.
-_HOLD = bool(os.environ.get("TETHER_HOLD"))
+_HOLD = armflag.arm("TETHER_HOLD")
 _HOLD_SEED = os.environ.get("TETHER_HOLD_SEED", "0")
 
 # `_INVENT` / `_invent` REMOVED -- Isaiah 2026-10-04, *a bootleg composition*; RETIRED means
@@ -415,7 +416,7 @@ _HOLD_SEED = os.environ.get("TETHER_HOLD_SEED", "0")
 # PROGRESS, like systems 1 and 2 happening IN PARALLEL ... CONTACT is the main mode.* So a
 # starved slot does not wait for the board to go quiet -- and the STARVED SET IS THE SWITCH,
 # no counter and no quota, exactly as the unexplored-contact count is System 0's.
-_STARVED_CONTACT = bool(os.environ.get("TETHER_STARVED_CONTACT"))
+_STARVED_CONTACT = armflag.arm("TETHER_STARVED_CONTACT")
 
 # THE SATISFACTION PREDICATE'S SPELLING, AND IT EXISTS BECAUSE OF AN `A6i` OF MINE.
 # `condition.py`'s grammar is `expr := INSTRUMENT(args) | SLOT | NUMBER` -- **a bare SLOT is an
@@ -708,7 +709,7 @@ def _same_object(landed_on: str | None, slot: str) -> bool:
 # THE OBJECTIVE'S SEARCH DOMAIN IS WHAT THE WORLD HAS SHOWN -- the reviewer, 2026-10-08 (Fig 11
 # "read it off the world"; Fig 12 "a goal is a comparison"). `0` searches the whole alphabet: the
 # one-flag control.
-_OBJECTIVE_DOMAIN = os.environ.get("TETHER_OBJECTIVE_DOMAIN", "1") != "0"
+_OBJECTIVE_DOMAIN = armflag.arm("TETHER_OBJECTIVE_DOMAIN", default=True)
 
 
 def pays(cost: float, left: float, base: float) -> bool:
