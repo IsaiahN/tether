@@ -31,6 +31,9 @@ from sensors import CELL, CELLS, NOT_RESOLVED, Cells
 sys.dont_write_bytecode = True
 
 PRIOR, MINTED, IMPORTED = "prior", "minted", "imported"
+# A COMPOSITION THE DOMAIN PRELOADS over atoms the agent holds (Isaiah 2026-09-27, "PRELOADED
+# EXAMPLES of what could work"). Unsettled at entry; the ground settles it like any term.
+FRONTLOADED = "frontloaded"
 # THE FOURTH ORIGIN, AND IT IS A FOURTH RATHER THAN A REUSE OF `IMPORTED` ON PURPOSE. Isaiah,
 # 2026-09-22: *import comes from OUTSIDE the library... it is the CREATION OF A BRAND-NEW ATOM
 # described from what the agent has observed.* But `IMPORTED` already means ADOPTED-FROM-
@@ -812,6 +815,8 @@ class Gamma:
         # registry order this had, so installing a rank is an observable change and not
         # installing one changes nothing.
         self.unit_rank = None
+        # {term name -> where its definition came from}, for FRONTLOADED terms.
+        self.lineage: dict[str, str] = {}
         for a in atoms:
             # THE ATOM'S OWN CLAUSE IF IT DECLARED ONE. A blanket `NECESSARY` was true of the
             # VOCABULARY and false of most of its members, and `admissions()` read
@@ -824,6 +829,17 @@ class Gamma:
     def build(self, names: tuple[str, ...], origin: str = MINTED,
               operand: str | None = None) -> Term:
         return Term(tuple(self._by_name[n] for n in names), origin=origin, operand=operand)
+
+    def frontload(self, names: tuple[str, ...], lineage: str) -> Term | None:
+        """Install a preloaded composition over held atoms, with its lineage. A composition
+        already held keeps what it has; None where an atom is missing from this registry."""
+        if not all(n in self._by_name for n in names):
+            return None
+        t = Term(tuple(self._by_name[n] for n in names), origin=FRONTLOADED)
+        if t.name in self.library:
+            return self.library[t.name]
+        self.lineage[t.name] = lineage
+        return self._install(t, seq=-1, residual=None, admitted=FRONTLOADED)
 
     def _install(self, term: Term, seq: int, residual: str | None,
                  admitted: str | None = None) -> Term:
@@ -1120,8 +1136,8 @@ class Gamma:
         """
         out = []
         for name, t in self.library.items():
-            if t.origin == PRIOR:
-                continue          # an atom was not minted; there is nothing to carry
+            if t.origin in (PRIOR, FRONTLOADED):
+                continue          # the registry and the domain supply these every run
             st = self.stamps.get(name)
             # **THE GUARD CROSSES AND THE OPERAND'S BINDING DOES NOT -- the reviewer,
             # 2026-10-03.** A guard is a CONDITION and game-agnostic: `?ACTED_SELF` is a

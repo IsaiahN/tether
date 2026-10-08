@@ -192,6 +192,9 @@ def components(board: Any) -> list[dict]:
             out.append({"cells": frozenset(cells), "colour": hue,
                         "row": r0_, "col": c0_,
                         "h": max(rows) - r0_ + 1, "w": max(cols) - c0_ + 1,
+                        # THE FILLED CELL COUNT, the one quantity perception returned that no
+                        # slot carried (the reviewer 2026-10-08 06:07Z): h and w are the box.
+                        "filled": len(cells),
                         "shape": frozenset((r - r0_, c - c0_) for r, c in cells)})
     return out
 
@@ -836,7 +839,7 @@ class Objects:
             # `dh`/`dw`/`dcells`/`colour_changed` are present only under the observer arm and only
             # on a matched object -- a BIRTH still gets no delta and not a zero, which is the
             # same rule `drow`/`dcol` state above.
-            for attr in ("row", "col", "h", "w", "colour", "drow", "dcol",
+            for attr in ("row", "col", "h", "w", "filled", "colour", "drow", "dcol",
                          "dh", "dw", "dcells", "colour_changed",
                          "dholes", "dperimeter", "age", "speed", "stability", *_CHANGE_ATTRS):
                 if attr in obj:

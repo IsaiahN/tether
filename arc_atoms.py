@@ -94,6 +94,8 @@ _ITERATE = bool(os.environ.get("TETHER_ITERATE"))
 # same fact: a slot IS an object's attribute. Declared once so they cannot drift apart.
 ATTRIBUTE_TYPE = {"colour": COLOUR, "row": POSITION, "col": POSITION,
                   "h": EXTENT, "w": EXTENT, "drow": DELTA, "dcol": DELTA,
+                  # filled cells, 0 to the whole board: what the box (h, w) cannot say
+                  "filled": EXTENT,
                   "shape": SHAPE,
                   # THE RELATION SLOT -- observer item 4, arm `TETHER_OBSERVER`, default OFF.
                   # `a~b.contact` holds the SHARED-FACE COUNT, which is why it needs no new
@@ -192,6 +194,17 @@ ATTRIBUTE_ARM = {
     **dict.fromkeys(("dholes", "dperimeter"), ("arc_percept", "_SHAPE_DELTA")),
     **dict.fromkeys(("age", "speed", "stability"), ("arc_percept", "_INSTRUMENTS")),
 }
+
+
+# PRELOADED COMPOSITIONS over held atoms (the reviewer 2026-10-08 06:07Z, step (c)(ii)): of the
+# fifteen heavy readings only this one composes from the registry; the rest need operators it
+# lacks, and writing their bodies here would hand over answers.
+FRONTLOAD = ((("owner", "shape", "bbox_area"),
+              "the instrument's own definition of boundingBox: sensors_heavy.scalar, h * w"),)
+
+# A SLOT WHOSE QUANTITY AN ATOM ALREADY COMPUTES publishes no extractor of its own: the slot is
+# bet on, and the atom stays the one name composition reaches it by (Fig 5, "is it actually new?").
+HELD_AS = {"filled": "area"}
 
 
 def _published(attr: str) -> bool:
@@ -386,7 +399,7 @@ def _extract() -> list[Atom]:
     # `obj` -- the record carries EVERY attribute of the owner, so an extract atom varies
     # with its owner's other slots and may not claim invariance to them.
     return [Atom(k, pick(k), OBJECT, t, reads_ctx=("obj",))
-            for k, t in ATTRIBUTE_TYPE.items() if _published(k)]
+            for k, t in ATTRIBUTE_TYPE.items() if _published(k) and k not in HELD_AS]
 
 
 def _owner() -> list[Atom]:

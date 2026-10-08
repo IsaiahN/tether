@@ -54,6 +54,7 @@ ALPHABET: dict[str, Callable[[int, int, dict], int]] = {
     "dperimeter": lambda h, w, _d: 8 * h * w + 1,                       # a perimeter is <= 4hw
     "speed": lambda h, w, _d: max(h, w) + 1,                             # Chebyshev, one frame
     "bbox": lambda h, w, _d: h * w + 1,                                 # an intersection area
+    "filled": lambda h, w, _d: h * w + 1,                               # 0 to the whole board
     "contact": lambda h, w, _d: 2 * h * w + 1,                          # shared faces < 2hw
     "colour_changed": lambda _h, _w, _d: 2, "inside": lambda _h, _w, _d: 2,  # BOOL
     # FRAMES, which no board quantity bounds: no object is older than the oldest, and
@@ -498,6 +499,10 @@ class ArcWorld:
 
     def atoms(self) -> list:
         return list(self._atoms)
+
+    def frontload(self) -> tuple:
+        """(atom names, lineage) for each composition the domain preloads."""
+        return arc_atoms.FRONTLOAD
 
     def transform(self) -> Any:
         """The coarse views this board offers, or None if the lens committed to nothing.

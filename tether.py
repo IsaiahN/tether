@@ -32,6 +32,7 @@ import routine as Rt
 from gamma import (
     ACTED_ON,
     ACTED_SELF,
+    FRONTLOADED,
     IMPORTED,
     REJECTION_HALFLIFE,
     Ctx,
@@ -1026,6 +1027,8 @@ class Agent:
     def __init__(self, env: Any, gam: Gamma, cfg: Config | None = None,
                  led: Ledger | None = None) -> None:
         self.env, self.gamma = env, gam
+        for _names, _lineage in getattr(env, "frontload", lambda: ())():
+            self.gamma.frontload(tuple(_names), _lineage)
         # `setdefault`, NEVER ASSIGNMENT: a loaded library carries its books across attempts
         # (`08bb416`) and zeroing them here would silently undo the persistence that makes a
         # dial earnable at all. A key the blob predates simply arrives at 0.
@@ -4976,7 +4979,7 @@ class Agent:
             self._cand_level[name] = self.level
             return
         t = self.gamma.library.get(name)
-        if t is not None and t.origin == IMPORTED:
+        if t is not None and t.origin in (IMPORTED, FRONTLOADED):
             self.candidates[name] = self.cycle
             self._cand_level[name] = self.level
 

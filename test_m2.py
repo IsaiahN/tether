@@ -12,9 +12,12 @@ catch it.** *Tests reach, not existence.*
 import collections
 import contextlib
 import copy
+import json
 import math
+import os
 import pathlib
 import sys
+import tempfile
 
 import numpy as np
 from arcengine import FrameDataRaw, GameState
@@ -1514,7 +1517,7 @@ def _ranges(h: int, w: int, palette: int, shapes: int, levels: int, oldest: int)
            "dcol": (1 - w, w - 1), "dw": (1 - w, w - 1),
            "dcells": (-hw, hw), "dholes": (-hw, hw), "dperimeter": (-4 * hw, 4 * hw),
            "speed": (0, max(h, w) - 1), "bbox": (0, hw), "contact": (0, 2 * hw),
-           "add_n": (0, hw), "rem_n": (0, hw),
+           "add_n": (0, hw), "rem_n": (0, hw), "filled": (0, hw),
            "colour": (0, palette - 1), "colour_changed": (0, 1), "inside": (0, 1),
            "completed": (0, levels), "shape": (0, shapes - 1),
            "age": (0, oldest), "stability": (0, oldest)}
@@ -2180,6 +2183,68 @@ def check_the_library_partner_is_ordered_after_contact_before_variance():
         assert ag._bindings(slot, robs) == plain, "arm off did not restore the order"
     finally:
         tether._LOOKUP_ORDER = was
+
+
+
+def check_the_filled_count_is_a_slot():
+    """DEFECT: perception counted each object's cells and no slot carried the count, so a change
+    in fill inside an unchanged box (a hole opening) had nothing to be bet on. On the synthetic
+    ring the box stays 3x3 while `filled` reads 9 and then 8, and its alphabet keeps the two apart.
+    The `area` atom already counts cells, so the slot mints no second atom and the atom reads
+    the slot's value on the same object."""
+    atoms = {a.name: a for a in arc_atoms.three_spaces(arc_predict.predict())}
+    assert "filled" not in atoms, "a second atom for a quantity `area` already computes"
+    env = ArcWorld(_Ring(), arc_percept.Objects(), list(atoms.values()), palette=PALETTE,
+                   platform=())
+    st0 = env.observe()
+    env.step(env.actions()[0])           # the hole opens
+    st1, alpha = env.observe(), env.alphabet()
+    ring = next(s.split(".")[0] for s, v in st1.items() if s.endswith(".colour") and v == 3)
+    slot = f"{ring}.filled"
+    assert slot in st1, f"no filled slot published: {sorted(k for k in st1 if k.startswith(ring))}"
+    assert (st1[f"{ring}.h"], st1[f"{ring}.w"]) == (3, 3), "fixture: the box moved"
+    assert (st0[slot], st1[slot]) == (9, 8), f"filled read {st0[slot]} then {st1[slot]}, not 9, 8"
+    assert tether.correction_bits(st0[slot], st1[slot], alpha[slot]) > 0, "9 and 8 aliased"
+    held = atoms[arc_atoms.HELD_AS["filled"]]
+    got = held.fn({"structure": env.shapes()[st1[f"{ring}.shape"]]}, None)
+    assert got == st1[slot], f"`area` reads {got} where the slot reads {st1[slot]}"
+
+
+
+def check_a_frontloaded_term_is_held_unsettled_and_computes():
+    """DEFECT: the domain's preloaded compositions never reached the library, so the agent could
+    only re-derive them. The frontloaded term must be in the library with its lineage, carry its
+    own origin and admitting clause (so the ablation can separate given from minted), not be
+    written by `save` (the domain supplies it every run), and compute through the one evaluation
+    path: on the synthetic ring the box term reads h * w = 9."""
+    env = ArcWorld(_Ring(), arc_percept.Objects(),
+                   arc_atoms.three_spaces(arc_predict.predict()), palette=PALETTE, platform=())
+    ag = tether.Agent(env, gamma.Gamma(env.atoms(), game="m2test"),
+                      tether.Config(accumulate=False))
+    names, lineage = arc_atoms.FRONTLOAD[0]
+    name = gamma.Term(tuple(ag.gamma._by_name[n] for n in names)).name
+    t = ag.gamma.library.get(name)
+    assert t is not None, f"{name} was not frontloaded"
+    assert t.origin == gamma.FRONTLOADED and ag.gamma.lineage.get(name) == lineage, (
+        t.origin, ag.gamma.lineage.get(name))
+    assert ag.gamma.stamps[name]["admitted"] == gamma.FRONTLOADED
+    with tempfile.TemporaryDirectory() as d:
+        path = os.path.join(d, "lib.json")
+        ag.gamma.save(path)
+        rows = json.loads(pathlib.Path(path).read_text(encoding="utf-8"))["terms"]
+    assert list(names) not in [r["atoms"] for r in rows], (
+        "a frontloaded term was saved, so the next run would load it as imported")
+    st = env.observe()
+    slot = next(s for s, v in st.items() if s.endswith(".colour") and v == 3).replace(
+        ".colour", ".h")
+    # ITS LAST ATOM DECODES A SHAPE ONLY UNDER ARM I, which ships OFF: there the term is
+    # present and inert, and that is the arm state every reading of it must state.
+    was, tether._SHAPE_DECODE = tether._SHAPE_DECODE, True
+    try:
+        got = ag._value_of(t, slot, st, ag._eval_ctx(slot, st, action=None, operands=()))
+    finally:
+        tether._SHAPE_DECODE = was
+    assert got == st[slot] * st[slot.replace(".h", ".w")] == 9, f"the box term read {got}"
 
 
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
