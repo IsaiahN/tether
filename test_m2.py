@@ -1678,7 +1678,8 @@ def check_not_t_pays_only_when_t_does_worse_than_nothing():
         # ROUTE FILES, MINT PRICES (F497): route alone writes no refusal row, so the ladder holds
         assert not [e for e in ag.led.entries[n0:] if e.event in ("not_t", "refuse")], (
             "route priced the refusal: a mint written during routing")
-        ag._price_refusals(routed)
+        assert {s: b for s, b, *_ in routed}.get(slot) == tether.REFUTED
+        ag._price_refusal(slot)
         rows = [e for e in ag.led.entries[n0:] if e.event == "refuse" and e.slot == slot]
         assert rows and rows[0].detail.get("predicting") == 2, "the filled bin did not refuse"
         tried = [e for e in ag.led.entries[n0:] if e.event == "not_t" and e.slot == slot]
@@ -1687,7 +1688,8 @@ def check_not_t_pays_only_when_t_does_worse_than_nothing():
         ag._refuted_slot[slot] = name
         n1 = len(ag.led.entries)
         res = {slot: tether.SlotResidual(slot, tether.TRANSITION, 0, 1, 1.0)}
-        ag._price_refusals(ag.route(res))
+        ag.route(res)
+        ag._price_refusal(slot)
         tried = [e for e in ag.led.entries[n1:] if e.event == "not_t" and e.slot == slot]
         assert tried and tried[0].detail.get("verdict") == "did not pay", (
             "an attempt that did not pay wrote no row: 'none refused' reads as 'none tried'")
