@@ -155,6 +155,13 @@ ARMS: dict[str, str] = {
                       "ARC path, so the env census below reads OFF while the capability is "
                       "LIVE.** A ruling turned it on, not a measurement -- the house rule is "
                       "his to override. The toy world is untouched: it has its own atoms",
+    "TETHER_NO_RESUME": "**INVERTED POLARITY, the THIRD such row.** A DEFAULT-ON frontier in "
+                        "`_mint`: under an unchanged scope key a chain already priced is not "
+                        "priced again, and a search that stopped at the budget resumes past "
+                        "what it refused (plan item 7, F485). A BEHAVIOUR change, not only an "
+                        "optimisation: on gridworld it adds binds. The variable turns it OFF, "
+                        "so the A/B is one script with one flag. Inert on the ARC path while "
+                        "the shape-decode arm puts the cycle in the key",
     "TETHER_NO_TALLY": "**INVERTED POLARITY. THIS SAID *THE ONLY ROW HERE THAT IS* AND IT "
                        "STOPPED BEING TRUE ON 2026-09-30**, when `TETHER_NO_CARRY_CANDIDATE` "
                        "was added -- correct when written and falsified by a later build, "
