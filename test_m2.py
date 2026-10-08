@@ -2156,6 +2156,32 @@ def check_a_press_records_where_it_landed():
     assert tether._press(None, state, None) is None, "an unpositioned action recorded a press"
 
 
+
+def check_the_library_partner_is_ordered_after_contact_before_variance():
+    """DEFECT: the look-up's partner ignored, or made a filter. With no contact, the partner the
+    library names for this residual goes ahead of a slot that VARIES MORE -- so variance alone
+    would have put the other first, and the pass is not the old tie-break -- and every candidate
+    is still offered. Arm off, the old order returns."""
+    ag = _agent()
+    slot = ag.slots[0]
+    a, b = [s for s in ag.slots if s != slot][:2]
+    robs = [({a: 0, b: i}, "x", 0, None, None) for i in range(4)]
+    ag.env.contacts = lambda: {}
+    ag._named[slot] = {}
+    plain = ag._bindings(slot, robs)
+    assert plain.index(b) < plain.index(a), "fixture: variance did not put b first"
+    ag._named[slot] = {a: ["M"]}
+    got = ag._bindings(slot, robs)
+    assert got.index(a) < got.index(b), "the library's partner was not ordered ahead"
+    assert got[0] is None and sorted(map(str, got)) == sorted(map(str, plain)), "a candidate lost"
+    was = tether._LOOKUP_ORDER
+    try:
+        tether._LOOKUP_ORDER = False
+        assert ag._bindings(slot, robs) == plain, "arm off did not restore the order"
+    finally:
+        tether._LOOKUP_ORDER = was
+
+
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
 
 if __name__ == "__main__":

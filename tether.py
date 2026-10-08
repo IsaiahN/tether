@@ -380,6 +380,9 @@ _DELTA_OPERANDS = bool(os.environ.get("TETHER_DELTA_OPERANDS"))
 # changing nothing. The reviewer's ordering requires this narrowing BEFORE mint's `out_type` is
 # widened: widening without narrowing is how 735 million calls arrive nowhere.
 _DELTA_KEY = bool(os.environ.get("TETHER_DELTA_KEY"))
+# THE LOOK-UP'S PARTNER ORDERING. Direction ON (the reviewer 2026-10-08 00:54Z); `0` is the A/B
+# control. Orders the operand candidates, never excludes one.
+_LOOKUP_ORDER = os.environ.get("TETHER_LOOKUP_ORDER", "1") != "0"
 # THE out_type WIDENING -- Isaiah's 3A, reviewer-pre-registered 2026-09-23. `mint` asks for
 # `("val","val")` and `(slot_type, OBJ)` and NOTHING ELSE, and the composition census says
 # that IS the ceiling: 4 distinct compositions on every board, which are exactly those two
@@ -1187,6 +1190,9 @@ class Agent:
         # observation so both sides are in one form; a residue beside a raw value read a correct
         # bet as a miss twice on 2026-10-07 (the reviewer 23:30Z, Fig 13).
         self._pred_raw: dict[str, int] = {}
+        # WHAT THE LIBRARY NAMED FOR EACH SLOT'S LAST RESIDUAL: partner reading -> molecules
+        # relating it to the target. Read by `_bindings` as an ORDER, never a filter.
+        self._named: dict[str, dict[str, list]] = {}
         self.abstained: dict[str, dict] = {}
         self.candidates: dict[str, int] = {}     # term -> cycle accepted, awaiting the ground
         # WHERE THE EVIDENCE CAME FROM. Isaiah 2026-09-30: candidates survive a level change,
@@ -1680,9 +1686,17 @@ class Agent:
         read = composer.read_pairs(found["pairs"], [b for b, _act, _val, _intent, _landed in hist])
         held = [{k: r[k] for k in ("molecule", "left", "right", "left_reading", "right_reading",
                                    "held", "via", "occasions")} for r in read if r["held"]]
+        named: dict[str, list] = {}
+        for p in found["pairs"]:
+            ends = (p["left_reading"], p["right_reading"])
+            if slot in ends:
+                other = ends[1] if ends[0] == slot else ends[0]
+                if p["molecule"] not in named.setdefault(other, []):
+                    named[other].append(p["molecule"])
+        self._named[slot] = named
         self.led.record(self.cycle, "ROUTE", slot, "lookup", query=found["query"],
                         described=sorted(described), junctions=found["junctions"],
-                        offered=len(found["pairs"]), held=held,
+                        offered=len(found["pairs"]), held=held, named=sorted(named),
                         reads=("the library looked up by this residual's own description; "
                                "pairs offered, bonds read over its frames, nothing adopted"))
 
@@ -6387,7 +6401,11 @@ class Agent:
             adj = set(touch().get(mine, ()))
             near = {s for s in others if owners.get(s) in adj}
         rank = contact_first(near)
-        return [None] + sorted(others, key=lambda s: (*rank(s), -seen[s], s))
+        # THE LIBRARY'S WORD, AFTER CONTACT AND BEFORE VARIANCE (Fig 9: a lookup gives "a kind of
+        # thing, never the answer itself"). An order, so every binding is still reached; it
+        # matters because most mints stop on budget, where order decides what is reached.
+        lib = self._named.get(slot, {}) if _LOOKUP_ORDER else {}
+        return [None] + sorted(others, key=lambda s: (*rank(s), s not in lib, -seen[s], s))
 
     def mint(self, slot: str) -> None:
         """ONE MINT WITH ITS EVALUATION MEMO. A Ctx and an operand read are pure functions of
@@ -7147,6 +7165,8 @@ class Agent:
             if owners and touch is not None:
                 adj = set(touch().get(owners.get(slot), ()))
                 detail["operand_in_contact"] = owners.get(term.operand) in adj
+        _lib = self._named.get(slot, {})
+        detail["operand_from_lookup"] = _lib.get(term.operand) if term.operand else None
         detail["verdict"] = "pays"
         detail["closes"] = closes
         if not closes:

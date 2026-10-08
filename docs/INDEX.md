@@ -56993,3 +56993,19 @@ Refusals were priced on every seed; **none paid** (s0 172, s1 143, s2 117 attemp
 **What it serves.** The novel-bin remedy's (b)-(d) -- a verdict carrying its closure ("no press of mine changed anything, over K of N perceived objects"), the probe aimed at objects not yet pressed, RESET left to the agent -- come after the bargain step, and need this record to be readable.
 
 **FIGURE CENSUS.** Figure 11 (Figure_11_The_Habitat) -- "capability is a property of agent-and-habitat, never of the agent alone": where a press lands is the habitat's half, now recorded. Figure 13 (Figure_13_The_Minimum_Viable_Set) -- "Unreachable is a verdict here, not a silence": the verdict (b) states, which needs the presses on the record. Strained: none.
+
+#### F510 -- **THE LIBRARY'S PARTNER ORDERS THE MINT'S OPERANDS: after contact, before variance, never excluding; a paying term records whether its operand came from the look-up (the reviewer 2026-10-08 00:24Z, 00:54Z; the bargain step's first half).**
+
+**Why an ordering has occasions.** On the OFF all-25 ledgers (17 games read, shipped arms, 40 cycles) the agent attempted a mint after nearly every reach and minted ONE term in all; of the parks, about three-quarters were "budget spent" (the search ran out before anything paid) and the rest "under the floor". Where a search stops on budget, the ORDER of its candidates decides whether a closer is reached at all, not only which one.
+
+**Built.**
+- `Agent._lookup` now also records `self._named[slot]`: each partner reading a library junction relates to the residual's target, with the molecules that relate it; the `lookup` row carries `named`.
+- `Agent._bindings`: the operand candidates sort by contact, then `s not in lib` (the library's partner first), then variance, then name. "No operand" stays first; nothing is excluded.
+- The `mint` row of a paying term carries `operand_from_lookup`: the molecules that named its operand, or None.
+- Arm `TETHER_LOOKUP_ORDER`, direction ON (the reviewer 00:54Z), `0` the one-flag A/B control; its row in `conform/arms.py` states the reason.
+
+**Fixture (M2), red under its defect.** With no contact, a slot that VARIES MORE comes first on variance alone (checked first, so the pass cannot be the old tie-break); with the library naming the other slot, that partner comes first; the candidate set is unchanged; arm off restores the old order exactly. Must-fail: the library key removed from the sort -> "the library's partner was not ordered ahead".
+
+**Refuter for the all-25 reading, ON against OFF, per game:** does any game gain a PAYING goal relating its slot to a second quantity (link 3 under the second reader, sha256 e2bc51cd6cf2ef8a)? And distinct compositions must not fall, and budget-spent parks must not rise, on any game. Levels as the ground.
+
+**FIGURE CENSUS.** Figure 9 (Figure_9_Leave_Arrive_Search) -- "you get a kind of thing, never the answer itself": the library's partner is ordered, never adopted; and "Use filters for the budget and witnesses for the verdict": an order for a budget-limited search, the bargain still the witness. Strained: none.
