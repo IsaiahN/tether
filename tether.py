@@ -1267,6 +1267,7 @@ class Agent:
         # composed. Invisible until now because the only success the suite had ever seen ended
         # on advance number one, where the remainder and the original coincide.
         self._routine_adopted = None
+        self._plan_no = 0                      # adoptions so far: a plan's id in the record (F504)
         # **HOW OFTEN A WANT HAS COME BACK -- ISAIAH'S OWN CRITERION, PREVIOUSLY UNRECORDED.**
         # *A want proves itself by RECURRING across attempts, not by explaining a frame.* The
         # retention site ranked by COST alone and its comment said so, naming `_note_want` as
@@ -1748,7 +1749,7 @@ class Agent:
         if self._check_expectation(state, step="SETTLE"):
             return
         if self._routine_adopted is None:
-            self._routine_adopted = self.routine
+            self._routine_adopted, self._plan_no = self.routine, self._plan_no + 1
         self.routine_state.pop("expect", None)
         emit, rest = Rt.advance(self.routine, self._holds(state),
                                 self.routine_lib, self.routine_state)
@@ -1880,7 +1881,7 @@ class Agent:
             return False
         self._expect = None
         slot, was, idx, *rest = exp
-        setter, set_on = (rest + [None, None])[:2]
+        setter, set_on, setter_no = (rest + [None, None, None])[:3]
         now = before.get(slot, was)
         if now != was:
             return False                      # the claim held; carry on
@@ -1892,9 +1893,8 @@ class Agent:
                         step_index=idx, unchanged_at=was, actions_saved=saved,
                         routine=Rt.render(self.routine) if self.routine else None,
                         set_by=Rt.render(setter) if setter is not None else None,
-                        set_by_plan=id(setter) if setter is not None else None,
-                        held_plan=id(self._routine_adopted)
-                        if self._routine_adopted is not None else None,
+                        set_by_plan=setter_no,
+                        held_plan=self._plan_no if self._routine_adopted is not None else None,
                         set_on_act=set_on, judged_after_act=self._act_n())
         self.routine, self.routine_for = None, None
         self._routine_adopted = None
@@ -3689,7 +3689,7 @@ class Agent:
             # that survived a boundary is already in hand -- and this is the last moment the
             # object is still the plan rather than a remainder.
             if self._routine_adopted is None:
-                self._routine_adopted = self.routine
+                self._routine_adopted, self._plan_no = self.routine, self._plan_no + 1
             if _next is not None:
                 _, emit, rest = _next         # advanced at its deciding cycle's end (F501)
             else:
@@ -3722,7 +3722,7 @@ class Agent:
                     # THE SETTER RIDES WITH THE CLAIM (F502), so an abandonment can show whose
                     # claim failed: the plan that made it, never its successor's.
                     self._expect = (want, before.get(want), self._expect_step,
-                                    self._routine_adopted, self._act_n() + 1)
+                                    self._routine_adopted, self._act_n() + 1, self._plan_no)
                 self._routine_acts += 1
                 self.routine = rest
                 return _act, "routine"
@@ -5706,8 +5706,9 @@ class Agent:
         self._commit_cycles.append(self.cycle)
         self._override_open = _ov              # an override's outcome is recorded at its end
         self._routine_adopted = self.routine   # what to shelve; `advance` will erode it
+        self._plan_no += 1
         self._plan_sig = self._gap_key(gap) if gap is not None else None
-        self.led.record(self.cycle, "PLAN", slot, "routine", verdict="pays",
+        self.led.record(self.cycle, "PLAN", slot, "routine", verdict="pays", plan_no=self._plan_no,
                         routine=Rt.render(cand), length=Rt.length(cand),
                         units=Rt.length(cand, shelf),
                         chunked=Rt.length(cand) != Rt.length(cand, shelf),
