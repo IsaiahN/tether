@@ -1677,6 +1677,15 @@ def check_not_t_pays_only_when_t_does_worse_than_nothing():
         ag.route({slot: tether.SlotResidual(slot, tether.TRANSITION, 0, 1, 1.0)})
         rows = [e for e in ag.led.entries[n0:] if e.event == "refuse" and e.slot == slot]
         assert rows and rows[0].detail.get("predicting") == 2, "the filled bin did not refuse"
+        tried = [e for e in ag.led.entries[n0:] if e.event == "not_t" and e.slot == slot]
+        assert tried and tried[0].detail.get("verdict") == "paid", "the attempt wrote no row"
+        left.update(t=1.0, nothing=50.0)
+        ag._refuted_slot[slot] = name
+        n1 = len(ag.led.entries)
+        ag.route({slot: tether.SlotResidual(slot, tether.TRANSITION, 0, 1, 1.0)})
+        tried = [e for e in ag.led.entries[n1:] if e.event == "not_t" and e.slot == slot]
+        assert tried and tried[0].detail.get("verdict") == "did not pay", (
+            "an attempt that did not pay wrote no row: 'none refused' reads as 'none tried'")
         assert ag._term_refused(name, ag._term_gkey(slot)), "the refusal was not recorded"
     finally:
         tether._REFUTED_BIN = was
@@ -1701,6 +1710,34 @@ def check_a_bound_want_can_be_refused():
     assert ok, f"a want doing worse than nothing was not refusable: {d}"
     assert ag.refuse_term(want, goal, **d) and ag._term_refused(want, ag._term_gkey(goal)), (
         "a bound want could not be refused by the ordinary path")
+
+
+
+def check_an_attribute_atom_follows_its_arm():
+    """DEFECT: every attribute became an atom whatever its arm, so on the ARC path ten atoms with
+    nothing behind them widened the alphabet every term is priced over (F498). Read at
+    construction: the shape-delta flag set AFTER import, as `arc_holdout.wire` sets it, must bring
+    its atoms back."""
+    import arc_world
+    flags = [(arc_percept, "_OBSERVER"), (arc_world, "_OBSERVER"),
+             (arc_percept, "_SHAPE_DELTA"), (arc_percept, "_INSTRUMENTS")]
+    was = [getattr(m, f) for m, f in flags]
+    try:
+        for m, f in flags:
+            setattr(m, f, False)
+        names = {a.name for a in arc_atoms._extract()}
+        gated = set(arc_atoms.ATTRIBUTE_ARM) & set(arc_atoms.ATTRIBUTE_TYPE)
+        assert not names & gated, f"atoms with their arm off: {sorted(names & gated)}"
+        arc_percept._SHAPE_DELTA = True
+        names = {a.name for a in arc_atoms._extract()}
+        assert {"dholes", "dperimeter"} <= names, "the shape-delta arm set at runtime was ignored"
+        for m, f in flags:
+            setattr(m, f, True)
+        names = {a.name for a in arc_atoms._extract()}
+        assert gated <= names, f"an arm on and its atom missing: {sorted(gated - names)}"
+    finally:
+        for (m, f), v in zip(flags, was, strict=True):
+            setattr(m, f, v)
 
 
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]

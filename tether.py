@@ -340,14 +340,15 @@ HELD, NOVEL, REBIND, MECHANISM = "held", "novel", "rebinding", "mechanism"
 # is Isaiah's hit-rate ruling and is already how `gamma.refute` behaves.
 REFUTED = "refuted"
 
-# ARM J -- SEAT-SIDE SWITCH, DEFAULT OFF. The bin is a RULING and the plumbing is built ON;
-# the DIVERSION it causes is a policy change to the acting path and is not. RE-READ 2026-10-07
-# at 2a43566: with it live, `shipped` (B5) PASSES and ONE M2 check failed -- on its fixture guard,
-# because F485's frontier let the warmed mints replay rather than re-price -- not because of the
-# bin or an amended figure; the fixture now prices fresh. (The earlier reading here -- B5 and three
-# M2 checks failing -- predated F485 and is superseded.) *Reintroduce the defect, never disable
-# the check.*
-_REFUTED_BIN = bool(os.environ.get("TETHER_REFUTED_BIN"))
+# ARM J -- DEFAULT ON since F497 (the reviewer 2026-10-07: a figure-mandated organ, Fig 5's
+# amendment; off on the shipped path it was the "switch never set" genus). The bin is a RULING;
+# the DIVERSION it causes is a policy change to the acting path, measured in F497. RE-READ
+# 2026-10-07 at 2a43566: with it live, `shipped` (B5) PASSES and ONE M2 check failed -- on its
+# fixture guard, because F485's frontier let the warmed mints replay rather than re-price -- not
+# because of the bin or an amended figure; the fixture now prices fresh. (The earlier reading
+# here -- B5 and three M2 checks failing -- predated F485 and is superseded.) *Reintroduce the
+# defect, never disable the check.*
+_REFUTED_BIN = not os.environ.get("TETHER_NO_REFUTED_BIN")
 
 # THE PRICE OF NOT-t IS OPEN IN THE FIGURES (Fig 12/13: an atom slot, nothing, or the choice of what
 # to negate). DEFAULT, the reviewer 2026-10-07: the bits to NAME which term is wrong among every
@@ -3209,6 +3210,12 @@ class Agent:
                 # was expressed and failed. Paying, it is recorded; the competitor search below
                 # then cannot offer it for this gap shape.
                 _ok, _d = self._price_not(was_refused, slot)
+                # EVERY ATTEMPT IS A ROW (the reviewer 2026-10-07 12:53Z), so "none refused" and
+                # "none tried" read differently: the term, K, the bits of not-t, both leftovers and
+                # the verdict -- or why it could not be priced.
+                self.led.record(self.cycle, "MINT", slot, "not_t", term=was_refused,
+                                verdict=("paid" if _ok else "did not pay") if _d
+                                else "not priced: no history, or no idn to withdraw to", **_d)
                 if _ok:
                     self.refuse_term(was_refused, slot, **_d)
                 fit = self._library_fit(slot, was_refused)
