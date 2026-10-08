@@ -403,6 +403,10 @@ class Clocks:
                           and m is None else "neither yet" if m is None else "both")}
 
 
+# THE MODULES THAT DECLARE ARMS (read through armflag). Data, so a fifth is a visible edit.
+ARM_MODULES = ("tether", "arc_percept", "arc_world", "arc_atoms")
+
+
 class Attribution:
     """**READINGS THAT CHECK THEMSELVES, distilled from five instrument errors in one
     night -- 2026-10-01, the reviewer's instruction after `F407`.**
@@ -493,6 +497,25 @@ class Attribution:
 
 
     @staticmethod
+    def arms_row(rows: list[dict]) -> dict:
+        """The run's arm state as its ledger recorded it at the start -- the `@run` header the
+        agent writes once, before any step (the reviewer 2026-10-08 18:56Z). A ledger without
+        it cannot say which agent ran, and is refused rather than read as one."""
+        for r in rows:
+            if r.get("slot") == "@run" and r.get("event") == "arms":
+                return r.get("detail") or {}
+        raise ValueError("this ledger carries no arms header: which arms ran is unknown")
+
+    @staticmethod
+    def arms_disagree(recorded: dict, live: dict) -> list[str]:
+        """Flags whose recorded state differs from the live module value."""
+        was = (dict.fromkeys(recorded.get("on", []), True)
+               | dict.fromkeys(recorded.get("off", []), False))
+        now = dict.fromkeys(live.get("on", []), True) | dict.fromkeys(live.get("off", []), False)
+        return sorted(f"{k}: recorded {was[k]}, live {now[k]}" for k in was.keys() & now.keys()
+                      if was[k] != now[k])
+
+    @staticmethod
     def arms() -> dict:
         """WHICH CAPABILITIES WERE ON WHEN THIS MEASUREMENT RAN. `F424`.
 
@@ -514,12 +537,22 @@ class Attribution:
         in step, and the failure that matters here is a capability SILENTLY ABSENT from the
         report, never a harmless extra.
         """
-        import tether
-        flags = {k: v for k, v in vars(tether).items()
-                 if k.startswith("_") and k[1:2].isupper() and isinstance(v, bool)}
+        # EVERY MODULE THAT DECLARES AN ARM, read where it is LOADED (the ARC path's own flags
+        # live in arc_percept / arc_world / arc_atoms; tether alone missed them). Never imported
+        # here: a gridworld run does not load the ARC modules, so their arms do not apply to it,
+        # and importing them would change what the run reached. Named as not loaded instead.
+        flags, loaded = {}, []
+        for name in ARM_MODULES:
+            mod = sys.modules.get(name)
+            if mod is None:
+                continue
+            loaded.append(name)
+            flags.update({f"{name}.{k}": v for k, v in vars(mod).items()
+                          if k.startswith("_") and k[1:2].isupper() and isinstance(v, bool)})
         on = sorted(k for k, v in flags.items() if v)
         off = sorted(k for k, v in flags.items() if not v)
         return {"on": on, "off": off, "n_on": len(on), "n_off": len(off),
+                "modules": loaded, "not_loaded": [m for m in ARM_MODULES if m not in loaded],
                 "reads": ("the capability state this measurement ran under, read from the "
                           "MODULE and not the environment -- flags resolve once at import. "
                           "State it beside the world and the population.")}

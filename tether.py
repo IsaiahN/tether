@@ -1096,6 +1096,13 @@ class Agent:
         self.cfg = cfg if cfg is not None else Config()
         # not `led or ...`: an empty Ledger has len 0 and is therefore falsy
         self.led = led if led is not None else Ledger(mode=self.cfg.mode)
+        # THE RUN HEADER: which arms this agent runs with, read from the live module values,
+        # ONCE, before any step (the reviewer 2026-10-08 18:56Z; F424). Its own slot, so the
+        # per-(cycle, slot) step order the gate checks cannot see it displace a PLAN row.
+        if len(self.led) == 0:
+            arms = I.Attribution.arms()
+            self.led.record(0, "PLAN", "@run", "arms", on=arms["on"], off=arms["off"],
+                            modules=arms["modules"], not_loaded=arms["not_loaded"])
         self.slots = env.slots()
         self.bound: dict[str, str] = {}
 

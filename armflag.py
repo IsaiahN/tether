@@ -4,9 +4,10 @@
     "0" / "false" / ""   OFF
     anything else        refused -- a typo is not a setting
 
-Eighteen arms were read as the truthiness of the raw environment string, so setting one to
-"0" turned it ON: the string "0" is truthy. A run record stating an arm "=0" could
-therefore describe an agent running with it on. Every arm now reads through `arm()`, and
+21 arms read the raw environment string's truthiness: 17 switches at 18 read sites, where "0"
+turned the arm ON (the string "0" is truthy), and 4 TETHER_NO_* switches, where "0" turned the
+behaviour OFF. A run record stating an arm "=0" could therefore describe a different agent.
+Every arm now reads through `arm()`, and
 `conform/arms.py` sets each one to "0" in a fresh process and asserts it reads OFF.
 """
 from __future__ import annotations

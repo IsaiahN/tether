@@ -369,9 +369,9 @@ def test_arm_state_is_read_from_the_module_not_the_environment():
     from instruments import Attribution
     before = Attribution.arms()
     assert before["n_on"] + before["n_off"] >= 18, before
-    assert "_ACTED_GUARD" in before["on"] + before["off"]
+    assert "tether._ACTED_GUARD" in before["on"] + before["off"]
     # the flag's live value and the report must agree, whichever way it is set
-    live = "_ACTED_GUARD" in before["on"]
+    live = "tether._ACTED_GUARD" in before["on"]
     assert live == tether._ACTED_GUARD
 
     os.environ["TETHER_ACTED_GUARD"] = "1" if not live else "0"
@@ -380,6 +380,47 @@ def test_arm_state_is_read_from_the_module_not_the_environment():
         assert after == before, "arms() must read the MODULE -- the env changed and it did not"
     finally:
         os.environ.pop("TETHER_ACTED_GUARD", None)
+
+
+def test_a_ledger_states_the_arms_its_run_had():
+    """The run header (the reviewer 2026-10-08 18:56Z): every agent writes its arm state,
+    from the live module values, ONCE before any step, in its own `@run` slot. Three
+    plants: the header stripped is refused; a flag set differently after the run started
+    is reported as a disagreement; and the header leaves the gate's verdict alone.
+
+    Reintroduce by removing the header write in `Agent.__init__`, not by disabling this.
+    """
+    import gamma
+    import gridworld
+    import ledger
+    import tether
+    import world
+    from instruments import Attribution
+    env = world.bind(gridworld.family("default", 0, 3))
+    ag = tether.Agent(env, gamma.Gamma(env.atoms(), game="arms_header"), tether.Config(),
+                      ledger.Ledger())
+    ag.step()
+    rows = ag.led.rows()
+    head = rows[0]
+    assert (head["slot"], head["step"], head["event"], head["cycle"]) == ("@run", "PLAN", "arms", 0)
+    assert sum(1 for r in rows if r.get("event") == "arms") == 1, "the header is written once"
+    recorded = Attribution.arms_row(rows)
+    assert not Attribution.arms_disagree(recorded, Attribution.arms())
+    assert gate.check(rows)["verdict"] == gate.PASS, "the header must not move the gate"
+    # PLANT 1: the header stripped
+    try:
+        Attribution.arms_row(rows[1:])
+        raise AssertionError("a ledger with no arms header was read as if it said which arms ran")
+    except ValueError:
+        pass
+    # PLANT 2: a flag set differently after the run began
+    was = tether._ACTED_GUARD
+    tether._ACTED_GUARD = not was
+    try:
+        off = Attribution.arms_disagree(recorded, Attribution.arms())
+        assert off == [f"tether._ACTED_GUARD: recorded {was}, live {not was}"], off
+    finally:
+        tether._ACTED_GUARD = was
 
 
 def test_undeclared_death():

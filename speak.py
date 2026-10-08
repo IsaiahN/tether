@@ -43,7 +43,16 @@ def sentences(rows: list[dict]) -> list[tuple[list[int], str]]:
         # translates. **So the narration says the want and the translation separately** -- which
         # is the seam made legible rather than merely built. A sentence naming only the button
         # would be the old account of a new mechanism.
-        if ev == "intent":
+        if ev == "arms":
+            # THE RUN HEADER: which capabilities this agent ran with, said before anything it
+            # did -- a measurement without its arm state describes a different agent (F424).
+            on, off = d.get("on") or [], d.get("off") or []
+            out.append(([seq], (
+                f"I ran with {len(on)} of my {len(on) + len(off)} switchable capabilities on: "
+                f"{', '.join(on) or 'none'}. Off: {', '.join(off) or 'none'}."
+                + (f" Not loaded, so not mine this run: {', '.join(d['not_loaded'])}."
+                   if d.get("not_loaded") else ""))))
+        elif ev == "intent":
             want, why = (list(d.get("reads") or ("", "")) + ["", ""])[:2]
             out.append(([seq], f"On {slot} I wanted: {want}. I did not choose an action for "
                                f"that -- the interface did, and its reason was: {why}."))
