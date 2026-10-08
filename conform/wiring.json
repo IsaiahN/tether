@@ -978,6 +978,13 @@
    "positions": [],
    "sources": []
   },
+  "touches": {
+   "producer": true,
+   "offered": false,
+   "occurred": [],
+   "positions": [],
+   "sources": []
+  },
   "touching": {
    "producer": true,
    "offered": false,

@@ -78,7 +78,7 @@ def test_each_named_refusal_is_refused_with_its_reason():
     for cond, reason in [("o1.drow < 0", "sign gives BOOL, which negate does not accept"),
                          ("o1.colour_changed == 1", "idn does not accept BOOL"),
                          ("o1.colour_changed == 0", "negate does not accept BOOL"),
-                         ("touching(o1, o2) == 1", "no pairwise atom"),
+                         ("contact(o1, o2) == 1", "no pairwise atom"),
                          ("frame.came > 0", "events are not slots"),
                          ("board.completed > 0", "not an object slot")]:
         got = C.compile_candidate({"condition": cond}, atoms)
@@ -98,11 +98,72 @@ def test_a_swapped_binding_is_caught():
     return bad
 
 
+def _rec(r, c, cells):
+    return {"row": r, "col": c, "structure": frozenset(cells)}
+
+
+SQ, DOT, ELL = [(0, 0), (0, 1), (1, 0), (1, 1)], [(0, 0)], [(0, 0), (1, 0), (2, 0), (2, 1)]
+PAIR_FRAMES = [  # (o1, o2): right, left, below, above, apart, diagonal, dots, an L against a dot
+    (_rec(0, 0, SQ), _rec(0, 2, SQ)), (_rec(0, 2, SQ), _rec(0, 0, SQ)),
+    (_rec(0, 0, SQ), _rec(2, 0, SQ)), (_rec(2, 0, SQ), _rec(0, 0, SQ)),
+    (_rec(0, 0, SQ), _rec(0, 3, SQ)), (_rec(0, 0, SQ), _rec(2, 2, SQ)),
+    (_rec(5, 5, DOT), _rec(5, 6, DOT)), (_rec(5, 5, DOT), _rec(6, 6, DOT)),
+    (_rec(0, 0, ELL), _rec(1, 1, DOT)), (_rec(0, 0, ELL), _rec(0, 2, DOT)),
+]
+
+
+def _adjacent(a: dict, b: dict) -> int:
+    """An independent reader: every pair of cells, at grid distance exactly one."""
+    ca = [(a["row"] + r, a["col"] + c) for r, c in a["structure"]]
+    cb = [(b["row"] + r, b["col"] + c) for r, c in b["structure"]]
+    return int(any(abs(r1 - r2) + abs(c1 - c2) == 1 for r1, c1 in ca for r2, c2 in cb))
+
+
+def pair_disagreements(atoms: dict, rebind_self: bool = False) -> list[str]:
+    bad = []
+    for cond in ("touching(o1, o2) == 1", "touching(o1, o2) == 0"):
+        c = C.compile_candidate({"condition": cond}, atoms)
+        assert isinstance(c, C.Compiled), (cond, c)
+        if rebind_self:                       # the planted defect: the operand is o1 itself
+            c = C.Compiled(c.slot, C.gamma.Term(c.term.atoms, operand="o1"), "o1")
+        node = condition.parse(cond)
+        for a, b in PAIR_FRAMES:
+            frame = {"o1": a, "o2": b}
+
+            def read(name, args, f=frame):
+                return _adjacent(*args) if name == "touching" else f.get(name)
+            want, got = condition.evaluate(node, read), C.run(c, frame)
+            if got != want:
+                bad.append(f"{cond} on {a} / {b}: term {got}, evaluate {want}")
+        frame = {"o1": PAIR_FRAMES[0][0]}       # o2 unread
+        want = condition.evaluate(node, lambda n, args, f=frame: _adjacent(*args)
+                                  if n == "touching" else f.get(n))
+        if C.run(c, frame) != want:
+            bad.append(f"{cond} with o2 unread: term {C.run(c, frame)}, evaluate {want}")
+    return bad
+
+
+def test_the_pair_atom_agrees_with_an_independent_reading():
+    """touches<x> (the reviewer 2026-10-08 23:23Z): touching(o, x) == 1 / == 0 compile to
+    touches<x> and touches . negate<x>, and agree with an independently written adjacency on
+    ten record pairs (face contact each way, apart, diagonal only, single cells, an L) and on an
+    unread operand. MUST-FAIL: the operand bound to the object itself is caught."""
+    atoms = _atoms()
+    bad = pair_disagreements(atoms)
+    assert not bad, bad[:3]
+    caught = pair_disagreements(atoms, rebind_self=True)
+    assert caught, "an operand bound to the object itself was not caught"
+    return len(caught)
+
+
 if __name__ == "__main__":
     n, refused = test_every_compiled_row_agrees_with_evaluate()
     test_each_named_refusal_is_refused_with_its_reason()
     caught = test_a_swapped_binding_is_caught()
+    self_bound = test_the_pair_atom_agrees_with_an_independent_reading()
     print(f"compile: {n} candidates compiled, each agreeing with condition.evaluate on "
           f"{len(FRAMES)} frames and on an unread operand; "
           f"{sum(refused.values())} refused by reason {dict(sorted(refused.items()))}; "
-          f"the swapped binding caught on {len(caught)} frame(s)")
+          f"the swapped binding caught on {len(caught)} frame(s); touches<x> agrees on "
+          f"{len(PAIR_FRAMES)} pairs and an unread operand, its self-bound operand caught on "
+          f"{self_bound}")

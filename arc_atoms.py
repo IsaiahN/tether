@@ -270,6 +270,10 @@ ADMITTED = {
              "squares and pegs",
     "parity": "handed-2026-09-08: §12.4's own INWARD example `parity(position)`; no modulo "
               "exists anywhere in the atom set; odd-and-even precedes school",
+    "touches": "handed-2026-10-08: the agent's own machinery named the gap -- 171,809 library "
+               "compile refusals name a missing pairwise atom (compile_census, M3); contact is "
+               "a core prior (objects interact by contact); a human arrives holding it. "
+               "Ruled by the reviewer 2026-10-08 23:23Z",
     "inside": "handed-2026-09-08: named by Isaiah as the preschool case (pegs in holes) and "
               "NOT derivable from `touching` -- a ring touches its interior and its exterior "
               "identically. THE ONLY CANDIDATE THAT ADDS REACH AT max_depth=3: +15 chains "
@@ -792,6 +796,16 @@ def _contact() -> list[Atom]:
     return [Atom("touching", touching, OBJECT, BOOL, reads_ctx=("obj", "touching"))]
 
 
+def _abs_cells(rec: Any) -> frozenset | None:
+    """An object record's cells on the board: its shape offsets placed at its top-left."""
+    if not isinstance(rec, dict):
+        return None
+    off = rec.get("structure")
+    if not isinstance(off, frozenset) or "row" not in rec or "col" not in rec:
+        return None
+    return frozenset((rec["row"] + dr, rec["col"] + dc) for dr, dc in off)
+
+
 def _relate() -> list[Atom]:
     """`ATTR → PRED`, reading a second ATTR as an operand.
 
@@ -824,7 +838,21 @@ def _relate() -> list[Atom]:
     # and equality is not addition. 32 pairs (13%) ride in on a table justified for a
     # different operator. Recorded rather than edited: the table is a pinned exemption, and
     # narrowing it from here would be logic widening what data should hold.
-    return [Atom("same", same, COMPARABLE[0], PRED, reads_operand=True,
+    def touches(v: Any, c: Ctx) -> Any:
+        """Does this object share a cell face with the operand object, this frame. The pair
+        reading `touching` (above) cannot say: it reads whether its object touches ANY
+        object. Unknown, never False, when either object's cells cannot be read."""
+        a = v if isinstance(v, dict) else getattr(c, "obj", None)
+        b = c.operands[0] if c.operands else None
+        ca, cb = _abs_cells(a), _abs_cells(b)
+        if ca is None or cb is None:
+            return NOT_RESOLVED
+        return int(any((r + dr, q + dq) in cb
+                       for r, q in ca for dr, dq in ((1, 0), (-1, 0), (0, 1), (0, -1))))
+
+    return [Atom("touches", touches, OBJECT, PRED, reads_operand=True, operand_type=OBJECT,
+                 reads_ctx=("obj", "operands")),
+            Atom("same", same, COMPARABLE[0], PRED, reads_operand=True,
                  also_accepts=COMPARABLE[1:], operand_type=SAME_AS_TARGET,
                  reads_ctx=("operands",)),
             Atom("other", other, COMPARABLE[0], PRED, reads_operand=True,

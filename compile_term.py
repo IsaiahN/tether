@@ -43,6 +43,10 @@ TABLE: dict[tuple[str, str], tuple[tuple[str, ...], str | None]] = {
     (">", "slot"): (("above",), "x"),               # more / after
     ("<", "slot"): (("above",), "o"),               # less / before: the binding reversed
 }
+# A pair reading written as a call, and the pair atom that grounds it (the reviewer 2026-10-08
+# 23:23Z): "== 1" -> the atom, "== 0" -> the atom then negate; it runs on the first object
+# with the second as its operand. A pair call not listed here has no atom and is refused.
+PAIR = {"touching": "touches"}
 # Shapes that have no slot to run on, refused by name (section 3, section 7c).
 NOT_SLOTS = {"frame": "events are not slots", "board": "the board is not an object slot"}
 
@@ -95,6 +99,9 @@ def compile_candidate(cand: dict, atoms: dict[str, gamma.Atom]) -> Compiled | Re
         node = condition.parse(cand["condition"])
     except condition.ParseError as e:
         return Refusal(f"the condition does not parse: {e}")
+    if (isinstance(node, condition.Cmp) and isinstance(node.left, condition.Call)
+            and node.left.name in PAIR):
+        return _pair(node, atoms)
     if isinstance(node, condition.Cmp) and isinstance(node.left, condition.Call):
         # a pair reading names TWO objects; the atoms read one slot each (`touching` reads
         # whether its object touches ANY object), so no chain says "this pair"
@@ -135,6 +142,23 @@ def compile_candidate(cand: dict, atoms: dict[str, gamma.Atom]) -> Compiled | Re
     if why:
         return Refusal(why)
     return Compiled(run_on, gamma.Term(chain, operand=operand), operand)
+
+
+def _pair(node: Any, atoms: dict[str, gamma.Atom]) -> Compiled | Refusal:
+    call = node.left
+    if (len(call.args) != 2 or not all(isinstance(a, condition.Slot) for a in call.args)
+            or node.op != "==" or node.right not in (0, 1)):
+        return Refusal(f"no template for {call} {node.op} {node.right}")
+    names = (PAIR[call.name],) if node.right == 1 else (PAIR[call.name], "negate")
+    missing = [n for n in names if n not in atoms]
+    if missing:
+        return Refusal(f"Gamma holds no atom {missing}")
+    chain = tuple(atoms[n] for n in names)
+    why = _typed(chain, "OBJECT", "OBJECT")
+    if why:
+        return Refusal(why)
+    first, second = (a.name for a in call.args)
+    return Compiled(first, gamma.Term(chain, operand=second), second)
 
 
 def run(c: Compiled, frame: dict[str, Any]) -> bool | None:

@@ -88,21 +88,20 @@ def closure(atoms: dict) -> dict[int, int]:
     return {d: sum(g.space_exact(units, i, o, d) for i in ins for o in outs) for d in DEPTHS}
 
 
-def widenings(atoms: dict) -> dict[str, dict]:
-    """Each proposed change as a modified atom set (section 7a, 7b, the pair atom)."""
-    w7a = dict(atoms)
-    w7a["sign"] = dataclasses.replace(atoms["sign"],
-                                      also_accepts=atoms["sign"].also_accepts + ("EXTENT",))
-    w7b = dict(atoms)
+def widenings(atoms: dict) -> dict[str, tuple[dict, dict]]:
+    """7b's two forms (the reviewer 2026-10-08 23:23Z): every PRED atom also accepts BOOL, or
+    ONE bridge atom holds: BOOL -> PRED that the BOOL rows route through. Each is an atom set
+    and the compile rows it would use."""
+    blanket = dict(atoms)
     for k, a in atoms.items():
         if a.in_type == "PRED" and "BOOL" not in a.accepts:
-            w7b[k] = dataclasses.replace(a, also_accepts=a.also_accepts + ("BOOL",))
-    wpair = dict(atoms)
-    wpair["touches"] = gamma.Atom("touches", lambda _v, _c: gamma.NOT_RESOLVED, "OBJECT", "BOOL",
-                                  reads_operand=True, operand_type="OBJECT",
-                                  reads_ctx=("operands",))
-    return {"7a sign accepts EXTENT": w7a, "7b PRED atoms accept BOOL": w7b,
-            "pair atom touches<x>": wpair}
+            blanket[k] = dataclasses.replace(a, also_accepts=a.also_accepts + ("BOOL",))
+    bridge = dict(atoms)
+    bridge["holds"] = gamma.Atom("holds", lambda v, _c: v, "BOOL", "PRED")
+    rows = {("==", "one"): (("holds",), None), ("==", "zero"): (("holds", "negate"), None),
+            ("<", "zero"): (("sign", "holds", "negate"), None)}
+    return {"7b: every PRED atom accepts BOOL": (blanket, {}),
+            "7b': one bridge atom holds: BOOL -> PRED": (bridge, rows)}
 
 
 def merge_percept(lib: LR.Library) -> str:
@@ -154,26 +153,32 @@ def main() -> int:
               f"Base closure: {base_close}", "",
               "| change | compiled candidates (all roles) | gain | closure d2 / d3 / d4 | growth |",
               "|---|---|---|---|---|"]
+    notes: list[str] = []
     base_ok = sum(r["compiled"] for r in base.values())
-    for name, wa in widenings(atoms).items():
-        census = library_census(lib, wa)
+    import test_compile
+    for name, (wa, rows) in widenings(atoms).items():
+        keep = {k: C.TABLE[k] for k in rows}
+        C.TABLE.update(rows)
+        try:
+            census = library_census(lib, wa)
+            wrong = len(test_compile.disagreements(wa)[0])
+        finally:
+            C.TABLE.update(keep)
         ok = sum(r["compiled"] for r in census.values())
         cl = closure(wa)
+        notes.append(f"- {name}: {wrong} template-frame disagreement(s) with condition.evaluate "
+                     f"among the rows it compiles")
         growth = " / ".join(f"x{cl[d] / base_close[d]:.2f}" if base_close[d] else "n/a"
                             for d in DEPTHS)
         lines.append(f"| {name} | {ok} | +{ok - base_ok} | {cl[2]} / {cl[3]} / {cl[4]} "
                      f"| {growth} |")
-    pair_refused = sum(n for r in base.values() for why, n in r["refused"].items()
-                       if "no pairwise atom" in why)
-    lines += ["", f"The pair atom's library gain reads +0 because compile_term has no row that "
-              f"routes a pair call to a pair atom, so adding the atom changes no compile. Its "
-              f"POTENTIAL: {pair_refused} candidate refusals name a missing pairwise atom (an "
-              f"upper bound: a CAUSE candidate refused on one side may still fail the other)."]
+    lines += ["", "Correctness of what each form would compile (the equivalence fixture run "
+              "under it):",
+              ""] + notes
     lines += ["", "## The merge percept (record for the census, not a fixture)", "",
               merge_percept(lib)]
-    lines += ["", "Record-only: nothing here is built. The pair atom is measured as a declared "
-              "signature (OBJECT with an OBJECT operand -> BOOL); its reading would come from the "
-              "cue's pairs, which the relation commit publishes."]
+    lines += ["", "Record-only: neither 7b form is built. 7a and touches<x> are in the base above "
+              "(the reviewer's rulings 2026-10-08 23:23Z)."]
     OUT.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
     print("\n".join(lines))
     return 0
