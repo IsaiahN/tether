@@ -2182,6 +2182,84 @@ def check_the_library_partner_is_ordered_after_contact_before_variance():
         tether._LOOKUP_ORDER = was
 
 
+
+class _Blink:
+    """A synthetic fixture, no ARC content: one 3x3 object whose colour alternates 3, 5, 3, 5 --
+    the same as two frames ago, never the same as the frame before."""
+
+    def __init__(self) -> None:
+        self.n = 0
+
+    def _frame(self):
+        f = FrameDataRaw(game_id="m2blink", state=GameState.NOT_FINISHED, levels_completed=0,
+                         win_levels=3, available_actions=[1, 2, 3])
+        b = np.zeros((SIDE, SIDE), dtype=int)
+        b[4:7, 4:7] = 3 if self.n % 2 == 0 else 5
+        f.frame = [b]
+        return f
+
+    def reset(self):
+        self.n = 0
+        return self._frame()
+
+    def step(self, *_a, **_k):
+        self.n += 1
+        return self._frame()
+
+
+def check_its_own_previous_value_is_an_operand():
+    """DEFECT: an operand was only ever a slot of the CURRENT frame, so "the same as two frames
+    ago" could not be said -- Fig 12's cycle, which a chain cannot close. The binder must offer
+    the target's own previous value, and `recolour` with it must predict every frame of a colour
+    alternating with period two, read on the agent's own recorded history."""
+    env = ArcWorld(_Blink(), arc_percept.Objects(),
+                   arc_atoms.three_spaces(arc_predict.predict()), palette=PALETTE, platform=())
+    ag = tether.Agent(env, gamma.Gamma(env.atoms(), game="m2test"),
+                      tether.Config(accumulate=False))
+    for _ in range(6):
+        ag.step()
+    slot = next(s for s in ag.slots if s.endswith(".colour") and ag.history(s)
+                and {r[2] for r in ag.history(s)} == {3, 5})
+    hist = ag.history(slot)
+    mine = slot + tether.PREV
+    assert mine in ag._bindings(slot, hist), "its own previous value was not offered"
+    term = gamma.Term((ag.gamma._by_name["recolour"],), operand=mine)
+    assert ag._operand_fits(term, slot, mine), "a colour's previous colour refused as a colour"
+    said = []
+    for row in hist:
+        st, action, actual, intent, landed = row
+        if not ag._applies(term, st):
+            continue
+        ops = ag._ops(term, st)
+        got = ag._value_of(term, slot, st, ag._eval_ctx(slot, st, action=action, operands=ops,
+                                                         intent=intent, landed=landed))
+        said.append((got, actual))
+    assert len(said) >= 3, f"fixture: only {len(said)} frames had a previous frame"
+    assert all(g == a for g, a in said), f"period two not predicted: {said}"
+
+
+
+def check_only_a_frame_with_no_earlier_frame_is_inapplicable_by_construction():
+    """THE RULED DISTINCTION (the reviewer 2026-10-08 06:43Z). A previous-frame operand on a trace's
+    first frame is inapplicable BY CONSTRUCTION and may not hold a residual open; a slot that only
+    did not exist YET in the earlier frame keeps the old charge. Both on the agent's own trace."""
+    env = ArcWorld(_Blink(), arc_percept.Objects(),
+                   arc_atoms.three_spaces(arc_predict.predict()), palette=PALETTE, platform=())
+    ag = tether.Agent(env, gamma.Gamma(env.atoms(), game="m2test"),
+                      tether.Config(accumulate=False))
+    for _ in range(3):
+        ag.step()
+    slot = next(s for s in ag.slots if s.endswith(".colour") and ag.history(s))
+    first, second = ag.trace[0][0], ag.trace[1][0]
+    by = ag.gamma._by_name
+    own = gamma.Term((by["recolour"],), operand=slot + tether.PREV)
+    late = gamma.Term((by["recolour"],), operand="late.colour" + tether.PREV)
+    assert ag._no_earlier_frame(own, first), "the first frame was not read as having no earlier one"
+    assert not ag._no_earlier_frame(own, second), "a frame with an earlier one read as structural"
+    assert not ag._applies(late, second) and not ag._no_earlier_frame(late, second), (
+        "a slot absent from the earlier frame was excused instead of charged")
+
+
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
 
 if __name__ == "__main__":
