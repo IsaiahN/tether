@@ -1,0 +1,83 @@
+"""v5 CORRECTION to integrate_code_atoms_2026_10_08.py (the reviewer's own regression, found 2026-10-08
+after the seat noted that inherited.py reads library/ through agent_atoms.json only).
+
+What v4 got wrong:
+- the 27 EXTRACT atoms (row, col, h, w, drow, dcol, colour, shape, ...) were recorded in readings.json
+  ONLY. inherited.load() builds the agent's keyed reach from agent_atoms.json, so 21 atoms the agent
+  could reach before fell out of reach (recorded, no longer reachable: Figure 6).
+- the 50 operations carried no `tags`, so none was reachable by tag (the old file tagged each one with
+  inherited.atom_tags), and they lost reach_tier 0.
+
+What this does (one place per thing, still):
+- agent_atoms.json holds EVERY atom the code builds (77 = 50 OPERATION + 27 EXTRACT). An EXTRACT atom
+  names its reading (`reading`); readings.json keeps ONLY the pointer back (`code.extract_atom`). The
+  percept is described once (the reading); the code that reads it is described once (the agent atom).
+- tags: inherited.atom_tags(name, in_type, out_type) -- TYPE_TAGS + observer._MUT_ATTR -- the rule that
+  produced the old file, run against the repo at arc-agent 8783717 and stored as data. Verified identical
+  to the old file on all 41 shared atoms. The seat check recomputes it; drift is a must-fail.
+- reach_tier 0 restored for every agent atom (the old file's value).
+
+Run once: python integrate_extract_and_tags_2026_10_08b.py <repo root>. Afterwards build_library.py
+derives everything else, including tag_index.json."""
+import itertools
+import json
+import sys
+
+repo = sys.argv[1]
+sys.path.insert(0, repo)
+import arc_atoms  # noqa: E402
+import inherited  # noqa: E402
+
+CELL_CHANGE = {"add_n": "EXTENT", "rem_n": "EXTENT", "add_row": "POSITION",   # arc_atoms.py:181-182, under
+               "add_col": "POSITION", "rem_row": "POSITION", "rem_col": "POSITION"}  # the import-time arm
+TYPES = {**{k: str(v) for k, v in arc_atoms.ATTRIBUTE_TYPE.items()}, **CELL_CHANGE}
+OFF_ARC = ("arc_world._OBSERVER", "arc_percept._OBSERVER", "arc_percept._INSTRUMENTS", "arc_percept._CELL_CHANGE")
+
+R = json.load(open("readings.json", encoding="utf-8"))
+A = json.load(open("agent_atoms.json", encoding="utf-8"))
+
+
+def tags(name, i, o):
+    prim = sorted(inherited.atom_tags(name, str(i), str(o)))
+    n = len(prim)
+    return {"primary": prim, "pairs": [list(p) for p in itertools.combinations(prim, 2)],
+            "scored": [{"tag": t, "score": 1.0, "via": ["type"], "weight": round(1.0 / (1 + n), 4)} for t in prim]}
+
+
+atoms = {}
+for r, rd in R["readings"].items():
+    code = rd.get("code")
+    if not code:
+        continue
+    arm, at = code.get("arm"), code.get("defined_at")
+    key = f"AGENT|{r}"
+    atoms[key] = {"name": r, "domain": "AGENT", "status": "executable", "form": "EXTRACT",
+                  "in_type": "OBJECT", "out_type": TYPES[r], "also_accepts": [], "operand_type": None,
+                  "reads_operand": False, "reads_ctx": [], "elem_type": None, "arm": arm,
+                  "on_arc_path": not (arm and arm.startswith(OFF_ARC)), "builder": "_extract", "defined_at": at,
+                  "definition": f"reads the '{r}' reading off one object (the percept is described in readings.json)",
+                  "reading": r, "realises": None, "role_hint": "MEASURE" if TYPES[r] in ("EXTENT", "DELTA") else "STATE",
+                  "sources": code.get("source") and [code["source"]] or []}
+    R["readings"][r]["code"] = {"extract_atom": key}
+for k, e in A["atoms"].items():
+    e["form"] = "OPERATION"
+    atoms[k] = e
+for k, e in atoms.items():
+    e["tags"] = tags(e["name"], e["in_type"], e["out_type"])
+    e["reach_tier"] = 0
+A["atoms"] = dict(sorted(atoms.items()))
+A["meta"]["count"] = len(atoms)
+A["meta"]["what"] = ("EVERY atom the code builds (arc_atoms.three_spaces + arc_predict.predict), under any arm: "
+                     "form OPERATION (computes over readings) or EXTRACT (reads one reading off an object; its percept "
+                     "is described once, in readings.json, which points back). Kept apart from the GIVEN library for "
+                     "the ablation. inherited.load() reads this file: it is the agent's own reach vocabulary.")
+A["meta"]["tags"] = ("inherited.atom_tags(name, in_type, out_type) at arc-agent 8783717, stored as data; weight = "
+                     "score / (1 + entry total). The seat check recomputes it; drift is a must-fail.")
+R["meta"]["code_note"] = ("27 readings are also built as OBJECT -> type EXTRACT atoms by arc_atoms._extract. Each is "
+                          "recorded ONCE in agent_atoms.json (types, arm, defined_at, tags); the reading keeps only the "
+                          "pointer code.extract_atom.")
+for name, obj in (("readings.json", R), ("agent_atoms.json", A)):
+    open(name, "w", encoding="utf-8", newline="\n").write(json.dumps(obj, ensure_ascii=False, indent=1))
+print("agent atoms", len(atoms), "| EXTRACT", sum(e["form"] == "EXTRACT" for e in atoms.values()),
+      "| on ARC path", sum(bool(e["on_arc_path"]) for e in atoms.values()),
+      "| tagged", sum(bool(e["tags"]["primary"]) for e in atoms.values()))

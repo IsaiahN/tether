@@ -2336,6 +2336,10 @@
     1.0
    ],
    [
+    "AGENT|stability",
+    1.0
+   ],
+   [
     "ALEATORY|Association",
     1.0
    ],
@@ -4678,6 +4682,10 @@
     1.0
    ],
    [
+    "AGENT|age",
+    1.0
+   ],
+   [
     "ALEATORY|Association",
     1.0
    ],
@@ -6780,6 +6788,10 @@
     1.0
    ],
    [
+    "AGENT|h",
+    1.0
+   ],
+   [
     "ALEATORY|Doubling",
     1.0
    ],
@@ -7843,6 +7855,10 @@
    ],
    [
     "AESTHETIC|distance",
+    1.0
+   ],
+   [
+    "AGENT|w",
     1.0
    ],
    [
@@ -8953,6 +8969,10 @@
    ],
    [
     "AGENT|rank_in",
+    1.0
+   ],
+   [
+    "AGENT|row",
     1.0
    ],
    [
@@ -10431,6 +10451,10 @@
    ],
    [
     "AGENT|above",
+    1.0
+   ],
+   [
+    "AGENT|col",
     1.0
    ],
    [
@@ -15268,6 +15292,10 @@
     1.0
    ],
    [
+    "AGENT|shape",
+    1.0
+   ],
+   [
     "AGENT|size",
     1.0
    ],
@@ -16434,6 +16462,10 @@
     1.0
    ],
    [
+    "AGENT|dholes",
+    1.0
+   ],
+   [
     "AUTOMATON|No Exit",
     1.0
    ],
@@ -17005,6 +17037,10 @@
    ],
    [
     "AESTHETIC|shared feature",
+    1.0
+   ],
+   [
+    "AGENT|dperimeter",
     1.0
    ],
    [
@@ -17679,6 +17715,10 @@
    ],
    [
     "AGENT|abs_delta",
+    1.0
+   ],
+   [
+    "AGENT|drow",
     1.0
    ],
    [
@@ -21269,6 +21309,10 @@
    ],
    [
     "AGENT|abs_delta",
+    1.0
+   ],
+   [
+    "AGENT|dcol",
     1.0
    ],
    [
@@ -26468,6 +26512,10 @@
     1.0
    ],
    [
+    "AGENT|contact",
+    1.0
+   ],
+   [
     "ATMOSPHERIC|Sulfur",
     1.0
    ],
@@ -27355,6 +27403,10 @@
    ],
    [
     "AESTHETIC|Variety",
+    1.0
+   ],
+   [
+    "AGENT|bbox",
     1.0
    ],
    [
@@ -28293,6 +28345,10 @@
    ],
    [
     "AGENT|any_same",
+    1.0
+   ],
+   [
+    "AGENT|colour",
     1.0
    ],
    [
@@ -29403,6 +29459,10 @@
    ],
    [
     "AESTHETIC|shared feature",
+    1.0
+   ],
+   [
+    "AGENT|colour_changed",
     1.0
    ],
    [
@@ -31276,6 +31336,10 @@
     1.0
    ],
    [
+    "AGENT|dh",
+    1.0
+   ],
+   [
     "ALEATORY|Doubling",
     1.0
    ],
@@ -32735,6 +32799,10 @@
    ],
    [
     "AESTHETIC|distance",
+    1.0
+   ],
+   [
+    "AGENT|dw",
     1.0
    ],
    [
@@ -34205,6 +34273,10 @@
    ],
    [
     "AESTHETIC|distance",
+    1.0
+   ],
+   [
+    "AGENT|dcells",
     1.0
    ],
    [
@@ -38666,6 +38738,10 @@
     1.0
    ],
    [
+    "AGENT|inside",
+    1.0
+   ],
+   [
     "ALEATORY|Parameter",
     1.0
    ],
@@ -40100,6 +40176,10 @@
     1.0
    ],
    [
+    "AGENT|completed",
+    1.0
+   ],
+   [
     "ALEATORY|Inefficiency",
     1.0
    ],
@@ -41323,6 +41403,48 @@
    ],
    [
     "THOUGHT|Inference",
+    1.0
+   ]
+  ],
+  "add_col": [
+   [
+    "AGENT|add_col",
+    1.0
+   ]
+  ],
+  "add_n": [
+   [
+    "AGENT|add_n",
+    1.0
+   ]
+  ],
+  "add_row": [
+   [
+    "AGENT|add_row",
+    1.0
+   ]
+  ],
+  "rem_col": [
+   [
+    "AGENT|rem_col",
+    1.0
+   ]
+  ],
+  "rem_n": [
+   [
+    "AGENT|rem_n",
+    1.0
+   ]
+  ],
+  "rem_row": [
+   [
+    "AGENT|rem_row",
+    1.0
+   ]
+  ],
+  "speed": [
+   [
+    "AGENT|speed",
     1.0
    ]
   ]
@@ -47075,6 +47197,7 @@
    "AESTHETIC|Self-similarity",
    "AESTHETIC|Unity",
    "AESTHETIC|Visual hierarchy",
+   "AGENT|dcells",
    "ATMOSPHERIC|Climate",
    "ATMOSPHERIC|Cooling",
    "ATMOSPHERIC|El Niño",
@@ -47270,6 +47393,19 @@
    "AESTHETIC|Symmetry",
    "AESTHETIC|Triangle",
    "AESTHETIC|incompleteness",
+   "AGENT|bbox_area",
+   "AGENT|canonical",
+   "AGENT|cells",
+   "AGENT|corners",
+   "AGENT|dcells",
+   "AGENT|holes",
+   "AGENT|is_square",
+   "AGENT|orbit_size",
+   "AGENT|perimeter",
+   "AGENT|reflect",
+   "AGENT|rotate",
+   "AGENT|shape",
+   "AGENT|symmetric",
    "ATMOSPHERIC|Coriolis Effect",
    "ATMOSPHERIC|El Niño",
    "ATMOSPHERIC|La Niña",
@@ -49016,6 +49152,32 @@
    "AESTHETIC|The sublime",
    "AESTHETIC|Visual weight",
    "AESTHETIC|colour and size",
+   "AGENT|abs_delta",
+   "AGENT|add_n",
+   "AGENT|age",
+   "AGENT|area",
+   "AGENT|bbox",
+   "AGENT|bbox_area",
+   "AGENT|completed",
+   "AGENT|contact",
+   "AGENT|corners",
+   "AGENT|count",
+   "AGENT|count_true",
+   "AGENT|dh",
+   "AGENT|distinct",
+   "AGENT|dw",
+   "AGENT|h",
+   "AGENT|holes",
+   "AGENT|orbit_size",
+   "AGENT|perimeter",
+   "AGENT|rank_in",
+   "AGENT|rem_n",
+   "AGENT|size",
+   "AGENT|speed",
+   "AGENT|stability",
+   "AGENT|sum_group",
+   "AGENT|touching_n",
+   "AGENT|w",
    "ALEATORY|Betting",
    "ALEATORY|Central limit theorem",
    "ALEATORY|Doubling",
@@ -49501,6 +49663,15 @@
    "AESTHETIC|Harmony",
    "AESTHETIC|Ostinato",
    "AESTHETIC|Pulse",
+   "AGENT|abs_delta",
+   "AGENT|dcells",
+   "AGENT|dcol",
+   "AGENT|dh",
+   "AGENT|dholes",
+   "AGENT|dperimeter",
+   "AGENT|drow",
+   "AGENT|dw",
+   "AGENT|sign",
    "ALEATORY|Betting",
    "ALEATORY|Coin flip",
    "ALEATORY|Dice roll",
@@ -50601,6 +50772,15 @@
    "ACOUSTIC|The silence",
    "ACTION|Throw",
    "AESTHETIC|Resonance",
+   "AGENT|abs_delta",
+   "AGENT|dcells",
+   "AGENT|dcol",
+   "AGENT|dh",
+   "AGENT|dholes",
+   "AGENT|dperimeter",
+   "AGENT|drow",
+   "AGENT|dw",
+   "AGENT|sign",
    "ALEATORY|Poisson",
    "ALEATORY|Rare Events",
    "ALEATORY|Rate",
@@ -50919,6 +51099,8 @@
    "ACTION|Paint",
    "ACTION|Swing",
    "ACTION|The gesture",
+   "AGENT|dcol",
+   "AGENT|drow",
    "ATMOSPHERIC|Cold Air",
    "ATMOSPHERIC|Cold front",
    "ATMOSPHERIC|Convection",
@@ -52611,6 +52793,15 @@
    "ADVERSARIAL|Pretext",
    "AESTHETIC|Continuation",
    "AESTHETIC|direction",
+   "AGENT|abs_delta",
+   "AGENT|dcells",
+   "AGENT|dcol",
+   "AGENT|dh",
+   "AGENT|dholes",
+   "AGENT|dperimeter",
+   "AGENT|drow",
+   "AGENT|dw",
+   "AGENT|sign",
    "ALEATORY|Random walk",
    "ALEATORY|Step",
    "ATMOSPHERIC|Anticyclone",
@@ -53724,6 +53915,23 @@
    "AESTHETIC|Visual weight",
    "AESTHETIC|colour and size",
    "AESTHETIC|grid",
+   "AGENT|above",
+   "AGENT|add_col",
+   "AGENT|add_row",
+   "AGENT|cell_col",
+   "AGENT|cell_row",
+   "AGENT|centroid",
+   "AGENT|col",
+   "AGENT|dcol",
+   "AGENT|drow",
+   "AGENT|is_max",
+   "AGENT|is_min",
+   "AGENT|parity",
+   "AGENT|rank_in",
+   "AGENT|rem_col",
+   "AGENT|rem_row",
+   "AGENT|row",
+   "AGENT|sum_group",
    "ALEATORY|Compensation",
    "ALEATORY|Fate",
    "ALEATORY|Hedge",
@@ -53871,6 +54079,17 @@
    "AESTHETIC|Balance",
    "AESTHETIC|Visual weight",
    "AESTHETIC|colour and size",
+   "AGENT|aligned",
+   "AGENT|all_same",
+   "AGENT|any_same",
+   "AGENT|colour",
+   "AGENT|count",
+   "AGENT|distinct",
+   "AGENT|is_mode",
+   "AGENT|none_same",
+   "AGENT|other",
+   "AGENT|recolour",
+   "AGENT|same",
    "EXCHANGE|The reciprocal bond",
    "HUMAN|Camouflage",
    "HUMAN|Featural identity",
@@ -56862,15 +57081,30 @@
    "AESTHETIC|shared feature",
    "AGENT|above",
    "AGENT|abs_delta",
+   "AGENT|add_col",
+   "AGENT|add_n",
+   "AGENT|add_row",
    "AGENT|all_of",
+   "AGENT|bbox",
    "AGENT|bbox_area",
    "AGENT|canonical",
    "AGENT|cell_col",
    "AGENT|cell_row",
    "AGENT|cells",
+   "AGENT|col",
+   "AGENT|contact",
    "AGENT|corners",
    "AGENT|count_true",
+   "AGENT|dcells",
+   "AGENT|dcol",
+   "AGENT|dh",
+   "AGENT|dholes",
+   "AGENT|dperimeter",
+   "AGENT|drow",
+   "AGENT|dw",
+   "AGENT|h",
    "AGENT|holes",
+   "AGENT|inside",
    "AGENT|is_max",
    "AGENT|is_min",
    "AGENT|is_square",
@@ -56881,13 +57115,20 @@
    "AGENT|perimeter",
    "AGENT|rank_in",
    "AGENT|reflect",
+   "AGENT|rem_col",
+   "AGENT|rem_n",
+   "AGENT|rem_row",
    "AGENT|rotate",
+   "AGENT|row",
+   "AGENT|shape",
    "AGENT|sign",
    "AGENT|size",
    "AGENT|some_of",
+   "AGENT|speed",
    "AGENT|sum_group",
    "AGENT|symmetric",
    "AGENT|translate",
+   "AGENT|w",
    "ALEATORY|Betting",
    "ALEATORY|Central limit theorem",
    "ALEATORY|Chaos theory",
@@ -60425,13 +60666,18 @@
    "AGENT|aligned",
    "AGENT|all_same",
    "AGENT|any_same",
+   "AGENT|colour",
+   "AGENT|colour_changed",
+   "AGENT|completed",
    "AGENT|count",
    "AGENT|distinct",
+   "AGENT|h",
    "AGENT|is_mode",
    "AGENT|none_same",
    "AGENT|other",
    "AGENT|recolour",
    "AGENT|same",
+   "AGENT|w",
    "ALEATORY|Association",
    "ALEATORY|Betting",
    "ALEATORY|Central limit theorem",
@@ -63391,8 +63637,21 @@
    "AESTHETIC|prediction met",
    "AESTHETIC|shared feature",
    "AGENT|abs_delta",
+   "AGENT|add_n",
+   "AGENT|age",
+   "AGENT|colour_changed",
+   "AGENT|dcells",
+   "AGENT|dcol",
+   "AGENT|dh",
+   "AGENT|dholes",
+   "AGENT|dperimeter",
+   "AGENT|drow",
+   "AGENT|dw",
    "AGENT|recolour",
+   "AGENT|rem_n",
    "AGENT|sign",
+   "AGENT|speed",
+   "AGENT|stability",
    "AGENT|translate",
    "ALEATORY|Association",
    "ALEATORY|Bayes Theorem",
@@ -67102,6 +67361,9 @@
    "AESTHETIC|distance",
    "AESTHETIC|function",
    "AESTHETIC|incompleteness",
+   "AGENT|bbox",
+   "AGENT|contact",
+   "AGENT|inside",
    "ALEATORY|Laplace's demon",
    "ALEATORY|Monte Carlo",
    "ALEATORY|Monte Carlo tree search",
@@ -70816,6 +71078,7 @@
    "AESTHETIC|Illusion",
    "AESTHETIC|Resonance",
    "AESTHETIC|Symmetrise",
+   "AGENT|completed",
    "ALEATORY|Hedge",
    "ALEATORY|Inefficiency",
    "ALEATORY|Karma mechanics",
@@ -75527,6 +75790,10 @@
   "PRIMITIVE": [
    "AGENT|above",
    "AGENT|abs_delta",
+   "AGENT|add_col",
+   "AGENT|add_n",
+   "AGENT|add_row",
+   "AGENT|age",
    "AGENT|aligned",
    "AGENT|all",
    "AGENT|all_of",
@@ -75534,6 +75801,7 @@
    "AGENT|any",
    "AGENT|any_same",
    "AGENT|area",
+   "AGENT|bbox",
    "AGENT|bbox_area",
    "AGENT|both",
    "AGENT|canonical",
@@ -75541,13 +75809,27 @@
    "AGENT|cell_row",
    "AGENT|cells",
    "AGENT|centroid",
+   "AGENT|col",
+   "AGENT|colour",
+   "AGENT|colour_changed",
+   "AGENT|completed",
+   "AGENT|contact",
    "AGENT|corners",
    "AGENT|count",
    "AGENT|count_true",
+   "AGENT|dcells",
+   "AGENT|dcol",
+   "AGENT|dh",
+   "AGENT|dholes",
    "AGENT|distinct",
+   "AGENT|dperimeter",
+   "AGENT|drow",
+   "AGENT|dw",
    "AGENT|either",
+   "AGENT|h",
    "AGENT|holes",
    "AGENT|idn",
+   "AGENT|inside",
    "AGENT|is_max",
    "AGENT|is_min",
    "AGENT|is_mode",
@@ -75565,16 +75847,24 @@
    "AGENT|rank_in",
    "AGENT|recolour",
    "AGENT|reflect",
+   "AGENT|rem_col",
+   "AGENT|rem_n",
+   "AGENT|rem_row",
    "AGENT|rotate",
+   "AGENT|row",
    "AGENT|same",
+   "AGENT|shape",
    "AGENT|sign",
    "AGENT|size",
    "AGENT|some_of",
+   "AGENT|speed",
+   "AGENT|stability",
    "AGENT|sum_group",
    "AGENT|symmetric",
    "AGENT|touching",
    "AGENT|touching_n",
-   "AGENT|translate"
+   "AGENT|translate",
+   "AGENT|w"
   ],
   "RELATION": [
    "RELATION|accretion",
@@ -79674,6 +79964,10 @@
   "AGENT": [
    "AGENT|above",
    "AGENT|abs_delta",
+   "AGENT|add_col",
+   "AGENT|add_n",
+   "AGENT|add_row",
+   "AGENT|age",
    "AGENT|aligned",
    "AGENT|all",
    "AGENT|all_of",
@@ -79681,6 +79975,7 @@
    "AGENT|any",
    "AGENT|any_same",
    "AGENT|area",
+   "AGENT|bbox",
    "AGENT|bbox_area",
    "AGENT|both",
    "AGENT|canonical",
@@ -79688,13 +79983,27 @@
    "AGENT|cell_row",
    "AGENT|cells",
    "AGENT|centroid",
+   "AGENT|col",
+   "AGENT|colour",
+   "AGENT|colour_changed",
+   "AGENT|completed",
+   "AGENT|contact",
    "AGENT|corners",
    "AGENT|count",
    "AGENT|count_true",
+   "AGENT|dcells",
+   "AGENT|dcol",
+   "AGENT|dh",
+   "AGENT|dholes",
    "AGENT|distinct",
+   "AGENT|dperimeter",
+   "AGENT|drow",
+   "AGENT|dw",
    "AGENT|either",
+   "AGENT|h",
    "AGENT|holes",
    "AGENT|idn",
+   "AGENT|inside",
    "AGENT|is_max",
    "AGENT|is_min",
    "AGENT|is_mode",
@@ -79712,16 +80021,24 @@
    "AGENT|rank_in",
    "AGENT|recolour",
    "AGENT|reflect",
+   "AGENT|rem_col",
+   "AGENT|rem_n",
+   "AGENT|rem_row",
    "AGENT|rotate",
+   "AGENT|row",
    "AGENT|same",
+   "AGENT|shape",
    "AGENT|sign",
    "AGENT|size",
    "AGENT|some_of",
+   "AGENT|speed",
+   "AGENT|stability",
    "AGENT|sum_group",
    "AGENT|symmetric",
    "AGENT|touching",
    "AGENT|touching_n",
-   "AGENT|translate"
+   "AGENT|translate",
+   "AGENT|w"
   ],
   "RELATION": [
    "RELATION|accretion",
@@ -109749,6 +110066,14 @@
   },
   {
    "pair": [
+    "AGENT|colour",
+    "AGENT|colour_changed"
+   ],
+   "relation": "≡ candidate (truncated form)",
+   "action": "record ≡ in the retrieval layer; delete neither (Isaiah 2026-09-22)"
+  },
+  {
+   "pair": [
     "AGENT|touching",
     "AGENT|touching_n"
    ],
@@ -123816,6 +124141,10 @@
    "CHOICE|Regret",
    "TEMPORAL|Regret"
   ],
+  "stability": [
+   "CHOICE|Stability",
+   "AGENT|stability"
+  ],
   "edge": [
    "CONNECTION|Edge",
    "LOGISTICAL|Edge",
@@ -123897,7 +124226,8 @@
   ],
   "speed": [
    "ECONOMIC|speed",
-   "THOUGHT|Speed"
+   "THOUGHT|Speed",
+   "AGENT|speed"
   ],
   "time": [
    "ECONOMIC|time",
@@ -123989,6 +124319,7 @@
   ],
   "contact": [
    "KINETIC|Contact",
+   "AGENT|contact",
    "RELATION|contact"
   ],
   "lift": [
@@ -124069,6 +124400,10 @@
   "wound": [
    "MEDICAL|Wound",
    "PATHOLOGICAL|Wound"
+  ],
+  "age": [
+   "MNEMONIC|Age",
+   "AGENT|age"
   ],
   "encoding": [
    "MNEMONIC|Encoding",
@@ -124167,6 +124502,10 @@
   "entropy": [
    "RAW DATA|Entropy",
    "ALEATORY|Entropy"
+  ],
+  "shape": [
+   "RAW DATA|SHAPE",
+   "AGENT|shape"
   ],
   "collinear": [
    "RAW DATA|collinear",
@@ -124511,6 +124850,10 @@
    "PSYCHOLOGICAL|Simulate",
    "THOUGHT|Simulate"
   ],
+  "inside": [
+   "RAW DATA|Inside",
+   "AGENT|inside"
+  ],
   "cultural transmission": [
    "SOCIAL|Cultural transmission",
    "ZOOLOGICAL|Cultural transmission"
@@ -124523,6 +124866,10 @@
    "TEMPORAL|Project",
    "TOPOLOGICAL|Project"
   ],
+  "aligned": [
+   "AGENT|aligned",
+   "RELATION|aligned"
+  ],
   "symmetric": [
    "AGENT|symmetric",
    "RELATION|symmetric"
@@ -124530,10 +124877,6 @@
   "touching": [
    "AGENT|touching",
    "RELATION|touching"
-  ],
-  "aligned": [
-   "AGENT|aligned",
-   "RELATION|aligned"
   ]
  },
  "by_default_role": {
@@ -124649,6 +124992,8 @@
    "AESTHETIC|incompleteness",
    "AESTHETIC|prediction met",
    "AESTHETIC|shared feature",
+   "AGENT|add_col",
+   "AGENT|add_row",
    "AGENT|aligned",
    "AGENT|all",
    "AGENT|all_of",
@@ -124660,7 +125005,11 @@
    "AGENT|cell_row",
    "AGENT|cells",
    "AGENT|centroid",
+   "AGENT|col",
+   "AGENT|colour",
+   "AGENT|colour_changed",
    "AGENT|idn",
+   "AGENT|inside",
    "AGENT|is_max",
    "AGENT|is_min",
    "AGENT|is_mode",
@@ -124670,6 +125019,10 @@
    "AGENT|none_same",
    "AGENT|one_of",
    "AGENT|parity",
+   "AGENT|rem_col",
+   "AGENT|rem_row",
+   "AGENT|row",
+   "AGENT|shape",
    "AGENT|sign",
    "AGENT|some_of",
    "AGENT|symmetric",
@@ -128373,19 +128726,36 @@
    "AESTHETIC|Scale",
    "AESTHETIC|distance",
    "AGENT|abs_delta",
+   "AGENT|add_n",
+   "AGENT|age",
    "AGENT|area",
+   "AGENT|bbox",
    "AGENT|bbox_area",
+   "AGENT|completed",
+   "AGENT|contact",
    "AGENT|corners",
    "AGENT|count",
    "AGENT|count_true",
+   "AGENT|dcells",
+   "AGENT|dcol",
+   "AGENT|dh",
+   "AGENT|dholes",
    "AGENT|distinct",
+   "AGENT|dperimeter",
+   "AGENT|drow",
+   "AGENT|dw",
+   "AGENT|h",
    "AGENT|holes",
    "AGENT|orbit_size",
    "AGENT|perimeter",
    "AGENT|rank_in",
+   "AGENT|rem_n",
    "AGENT|size",
+   "AGENT|speed",
+   "AGENT|stability",
    "AGENT|sum_group",
    "AGENT|touching_n",
+   "AGENT|w",
    "ALEATORY|Distribution",
    "ALEATORY|Odds",
    "ALEATORY|Rate",

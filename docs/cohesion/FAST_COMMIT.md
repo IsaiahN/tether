@@ -15,7 +15,7 @@ That's about 4 minutes on a quiet machine and about 20 under load. The seat rout
    FAIL, INCOMPLETE and DID-NOT-RUN are never reused. `aim`, which reads `git status`, always
    runs. Changing `fast_check.py` or `check.py` invalidates everything, and `--all` ignores the
    cache.
-2. **Whatever runs, runs in parallel,** one worker per core.
+2. **Whatever runs, runs in parallel,** one worker per core — **except where one seat writes a file another reads** (v5; the seat's catch, 2026-10-08). `RUN_WRITES`/`RUN_READS` are data; each overlap is an ordering edge in check.STAGES order (gate after demo; demo and fixture after wiring, which reads the previous run's ledgers exactly as the sequential check did). A reader of a file an earlier seat writes in the same check is cached and run as one unit with that writer. `runs/` is git-ignored, so run files are fingerprinted by content from disk at the start (v4 never saw them — its own defect). Tested with stand-in seats: gate reads the fresh ledger, wiring the pre-run one, a miss on gate alone re-runs demo with it, a second run reuses all.
 
 **Measured on `seat-act` e50406d with `--explain`:**
 

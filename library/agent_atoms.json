@@ -1,1078 +1,12 @@
 {
  "meta": {
   "source": "arc_atoms.three_spaces + arc_predict.predict, seat-act e50406d (seat export 2026-10-08)",
-  "count": 50,
-  "what": "the agent's executable OPERATIONS (BUILT; kept apart from the GIVEN library for the ablation). Perception readings are in readings.json, not here. `realises` names the grammar operator or NSM prime an operation executes, joining grammar.json to its code.",
-  "superseded_by_metaprogramming": "negate/both/either are the executable forms of ¬ + ∥; under the one bind(bond, l, r) they are what a junction calls, not separate vocabulary. all/any are degenerate (byte-identical, no scope) and are superseded by all_of/some_of once shown to reproduce their bindings."
+  "count": 77,
+  "what": "EVERY atom the code builds (arc_atoms.three_spaces + arc_predict.predict), under any arm: form OPERATION (computes over readings) or EXTRACT (reads one reading off an object; its percept is described once, in readings.json, which points back). Kept apart from the GIVEN library for the ablation. inherited.load() reads this file: it is the agent's own reach vocabulary.",
+  "superseded_by_metaprogramming": "negate/both/either are the executable forms of ¬ + ∥; under the one bind(bond, l, r) they are what a junction calls, not separate vocabulary. all/any are degenerate (byte-identical, no scope) and are superseded by all_of/some_of once shown to reproduce their bindings.",
+  "tags": "inherited.atom_tags(name, in_type, out_type) at arc-agent 8783717, stored as data; weight = score / (1 + entry total). The seat check recomputes it; drift is a must-fail."
  },
  "atoms": {
-  "AGENT|idn": {
-   "name": "idn",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "val",
-   "out_type": "val",
-   "also_accepts": [],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "predict",
-   "defined_at": "arc_predict.py:65",
-   "definition": "the value unchanged (the loop cannot run without it)",
-   "realises": null,
-   "role_hint": "STATE",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "the value unchanged (the loop cannot run without it)",
-    "status": "built",
-    "lineage": "arc_predict.py:65 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [],
-   "affects": [],
-   "substrate": [],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:idn",
-    "in_type": "val",
-    "out_type": "val"
-   },
-   "roles": {
-    "default": "STATE",
-    "available": {
-     "STATE": 1
-    },
-    "example": {
-     "STATE": "arc_atoms:idn"
-    }
-   }
-  },
-  "AGENT|translate": {
-   "name": "translate",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "val",
-   "out_type": "val",
-   "also_accepts": [],
-   "operand_type": "@same",
-   "reads_operand": true,
-   "reads_ctx": [
-    "operands"
-   ],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "predict",
-   "defined_at": "arc_predict.py:79",
-   "definition": "add another slot's value (a displacement, never a constant)",
-   "realises": null,
-   "role_hint": "PROCESS",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "add another slot's value (a displacement, never a constant)",
-    "status": "built",
-    "lineage": "arc_predict.py:79 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [],
-   "affects": [
-    "drow",
-    "dcol"
-   ],
-   "substrate": [
-    "space",
-    "time"
-   ],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:translate",
-    "in_type": "val",
-    "out_type": "val"
-   },
-   "roles": {
-    "default": "PROCESS",
-    "available": {
-     "PROCESS": 1
-    },
-    "example": {
-     "PROCESS": "arc_atoms:translate"
-    }
-   }
-  },
-  "AGENT|recolour": {
-   "name": "recolour",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "val",
-   "out_type": "val",
-   "also_accepts": [],
-   "operand_type": "COLOUR",
-   "reads_operand": true,
-   "reads_ctx": [
-    "operands"
-   ],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "predict",
-   "defined_at": "arc_predict.py:84",
-   "definition": "take another slot's colour",
-   "realises": null,
-   "role_hint": "PROCESS",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "take another slot's colour",
-    "status": "built",
-    "lineage": "arc_predict.py:84 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [],
-   "affects": [
-    "colour",
-    "colour_changed"
-   ],
-   "substrate": [
-    "spectrum",
-    "time"
-   ],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:recolour",
-    "in_type": "val",
-    "out_type": "val"
-   },
-   "roles": {
-    "default": "PROCESS",
-    "available": {
-     "PROCESS": 1
-    },
-    "example": {
-     "PROCESS": "arc_atoms:recolour"
-    }
-   }
-  },
-  "AGENT|holes": {
-   "name": "holes",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "SHAPE",
-   "out_type": "EXTENT",
-   "also_accepts": [],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_shape_facts",
-   "defined_at": "arc_atoms.py:592",
-   "definition": "enclosed background regions in the shape",
-   "realises": null,
-   "role_hint": "MEASURE",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "enclosed background regions in the shape",
-    "status": "built",
-    "lineage": "arc_atoms.py:592 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [
-    "shape"
-   ],
-   "affects": [],
-   "substrate": [
-    "space"
-   ],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:holes",
-    "in_type": "SHAPE",
-    "out_type": "EXTENT"
-   },
-   "roles": {
-    "default": "MEASURE",
-    "available": {
-     "MEASURE": 1
-    },
-    "example": {
-     "MEASURE": "arc_atoms:holes"
-    }
-   }
-  },
-  "AGENT|parity": {
-   "name": "parity",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "POSITION",
-   "out_type": "BOOL",
-   "also_accepts": [],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_shape_facts",
-   "defined_at": "arc_atoms.py:601",
-   "definition": "even or odd",
-   "realises": null,
-   "role_hint": "STATE",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "even or odd",
-    "status": "built",
-    "lineage": "arc_atoms.py:601 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [
-    "row",
-    "col"
-   ],
-   "affects": [],
-   "substrate": [
-    "space"
-   ],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:parity",
-    "in_type": "POSITION",
-    "out_type": "BOOL"
-   },
-   "roles": {
-    "default": "STATE",
-    "available": {
-     "STATE": 1
-    },
-    "example": {
-     "STATE": "arc_atoms:parity"
-    }
-   }
-  },
-  "AGENT|centroid": {
-   "name": "centroid",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "OBJECT",
-   "out_type": "POSITION",
-   "also_accepts": [],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [
-    "obj"
-   ],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_shape_facts",
-   "defined_at": "arc_atoms.py:604",
-   "definition": "mean row of the object's own cells (one coordinate: a slot holds one)",
-   "realises": null,
-   "role_hint": "STATE",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "mean row of the object's own cells (one coordinate: a slot holds one)",
-    "status": "built",
-    "lineage": "arc_atoms.py:604 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [],
-   "affects": [],
-   "substrate": [],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:centroid",
-    "in_type": "OBJECT",
-    "out_type": "POSITION"
-   },
-   "roles": {
-    "default": "STATE",
-    "available": {
-     "STATE": 1
-    },
-    "example": {
-     "STATE": "arc_atoms:centroid"
-    }
-   }
-  },
-  "AGENT|touching_n": {
-   "name": "touching_n",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "OBJECT",
-   "out_type": "EXTENT",
-   "also_accepts": [],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [
-    "obj",
-    "touching"
-   ],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_shape_facts",
-   "defined_at": "arc_atoms.py:622",
-   "definition": "how many objects it is in contact with",
-   "realises": null,
-   "role_hint": "MEASURE",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "how many objects it is in contact with",
-    "status": "built",
-    "lineage": "arc_atoms.py:622 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [],
-   "affects": [],
-   "substrate": [],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:touching_n",
-    "in_type": "OBJECT",
-    "out_type": "EXTENT"
-   },
-   "roles": {
-    "default": "MEASURE",
-    "available": {
-     "MEASURE": 1
-    },
-    "example": {
-     "MEASURE": "arc_atoms:touching_n"
-    }
-   }
-  },
-  "AGENT|area": {
-   "name": "area",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "OBJECT",
-   "out_type": "EXTENT",
-   "also_accepts": [],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [
-    "obj"
-   ],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_shape_facts",
-   "defined_at": "arc_atoms.py:633",
-   "definition": "filled cell count (what h and w cannot give)",
-   "realises": null,
-   "role_hint": "MEASURE",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "filled cell count (what h and w cannot give)",
-    "status": "built",
-    "lineage": "arc_atoms.py:633 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [],
-   "affects": [],
-   "substrate": [],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:area",
-    "in_type": "OBJECT",
-    "out_type": "EXTENT"
-   },
-   "roles": {
-    "default": "MEASURE",
-    "available": {
-     "MEASURE": 1
-    },
-    "example": {
-     "MEASURE": "arc_atoms:area"
-    }
-   }
-  },
-  "AGENT|perimeter": {
-   "name": "perimeter",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "SHAPE",
-   "out_type": "EXTENT",
-   "also_accepts": [],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_shape_more",
-   "defined_at": "arc_atoms.py:692",
-   "definition": "outline length",
-   "realises": null,
-   "role_hint": "MEASURE",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "outline length",
-    "status": "built",
-    "lineage": "arc_atoms.py:692 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [
-    "shape"
-   ],
-   "affects": [],
-   "substrate": [
-    "space"
-   ],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:perimeter",
-    "in_type": "SHAPE",
-    "out_type": "EXTENT"
-   },
-   "roles": {
-    "default": "MEASURE",
-    "available": {
-     "MEASURE": 1
-    },
-    "example": {
-     "MEASURE": "arc_atoms:perimeter"
-    }
-   }
-  },
-  "AGENT|corners": {
-   "name": "corners",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "SHAPE",
-   "out_type": "EXTENT",
-   "also_accepts": [],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_shape_more",
-   "defined_at": "arc_atoms.py:707",
-   "definition": "corner cells of the outline",
-   "realises": null,
-   "role_hint": "MEASURE",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "corner cells of the outline",
-    "status": "built",
-    "lineage": "arc_atoms.py:707 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [
-    "shape"
-   ],
-   "affects": [],
-   "substrate": [
-    "space"
-   ],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:corners",
-    "in_type": "SHAPE",
-    "out_type": "EXTENT"
-   },
-   "roles": {
-    "default": "MEASURE",
-    "available": {
-     "MEASURE": 1
-    },
-    "example": {
-     "MEASURE": "arc_atoms:corners"
-    }
-   }
-  },
-  "AGENT|bbox_area": {
-   "name": "bbox_area",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "SHAPE",
-   "out_type": "EXTENT",
-   "also_accepts": [],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_shape_more",
-   "defined_at": "arc_atoms.py:686",
-   "definition": "height times width of the bounding box",
-   "realises": null,
-   "role_hint": "MEASURE",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "height times width of the bounding box",
-    "status": "built",
-    "lineage": "arc_atoms.py:686 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [
-    "shape"
-   ],
-   "affects": [],
-   "substrate": [
-    "space"
-   ],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:bbox_area",
-    "in_type": "SHAPE",
-    "out_type": "EXTENT"
-   },
-   "roles": {
-    "default": "MEASURE",
-    "available": {
-     "MEASURE": 1
-    },
-    "example": {
-     "MEASURE": "arc_atoms:bbox_area"
-    }
-   }
-  },
-  "AGENT|orbit_size": {
-   "name": "orbit_size",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "SHAPE",
-   "out_type": "EXTENT",
-   "also_accepts": [],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_shape_more",
-   "defined_at": "arc_atoms.py:735",
-   "definition": "how many distinct outlines under rotation and reflection",
-   "realises": null,
-   "role_hint": "MEASURE",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "how many distinct outlines under rotation and reflection",
-    "status": "built",
-    "lineage": "arc_atoms.py:735 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [
-    "shape"
-   ],
-   "affects": [],
-   "substrate": [
-    "space"
-   ],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:orbit_size",
-    "in_type": "SHAPE",
-    "out_type": "EXTENT"
-   },
-   "roles": {
-    "default": "MEASURE",
-    "available": {
-     "MEASURE": 1
-    },
-    "example": {
-     "MEASURE": "arc_atoms:orbit_size"
-    }
-   }
-  },
-  "AGENT|canonical": {
-   "name": "canonical",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "SHAPE",
-   "out_type": "SHAPE",
-   "also_accepts": [],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_shape_more",
-   "defined_at": "arc_atoms.py:724",
-   "definition": "the outline normalised under rotation and reflection",
-   "realises": null,
-   "role_hint": "STATE",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "the outline normalised under rotation and reflection",
-    "status": "built",
-    "lineage": "arc_atoms.py:724 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [
-    "shape"
-   ],
-   "affects": [],
-   "substrate": [
-    "space"
-   ],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:canonical",
-    "in_type": "SHAPE",
-    "out_type": "SHAPE"
-   },
-   "roles": {
-    "default": "STATE",
-    "available": {
-     "STATE": 1
-    },
-    "example": {
-     "STATE": "arc_atoms:canonical"
-    }
-   }
-  },
-  "AGENT|symmetric": {
-   "name": "symmetric",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "SHAPE",
-   "out_type": "BOOL",
-   "also_accepts": [],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_shape_more",
-   "defined_at": "arc_atoms.py:745",
-   "definition": "unchanged under a reflection",
-   "realises": null,
-   "role_hint": "STATE",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "unchanged under a reflection",
-    "status": "built",
-    "lineage": "arc_atoms.py:745 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [
-    "shape"
-   ],
-   "affects": [],
-   "substrate": [
-    "space"
-   ],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:symmetric",
-    "in_type": "SHAPE",
-    "out_type": "BOOL"
-   },
-   "roles": {
-    "default": "STATE",
-    "available": {
-     "STATE": 1
-    },
-    "example": {
-     "STATE": "arc_atoms:symmetric"
-    }
-   }
-  },
-  "AGENT|is_square": {
-   "name": "is_square",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "SHAPE",
-   "out_type": "BOOL",
-   "also_accepts": [],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_shape_more",
-   "defined_at": "arc_atoms.py:751",
-   "definition": "height equals width",
-   "realises": null,
-   "role_hint": "STATE",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "height equals width",
-    "status": "built",
-    "lineage": "arc_atoms.py:751 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [
-    "shape"
-   ],
-   "affects": [],
-   "substrate": [
-    "space"
-   ],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:is_square",
-    "in_type": "SHAPE",
-    "out_type": "BOOL"
-   },
-   "roles": {
-    "default": "STATE",
-    "available": {
-     "STATE": 1
-    },
-    "example": {
-     "STATE": "arc_atoms:is_square"
-    }
-   }
-  },
-  "AGENT|rotate": {
-   "name": "rotate",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "SHAPE",
-   "out_type": "SHAPE",
-   "also_accepts": [],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_transform",
-   "defined_at": "arc_atoms.py:453",
-   "definition": "turn the outline by 90 degrees",
-   "realises": null,
-   "role_hint": "PROCESS",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "turn the outline by 90 degrees",
-    "status": "built",
-    "lineage": "arc_atoms.py:453 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [
-    "shape"
-   ],
-   "affects": [
-    "shape"
-   ],
-   "substrate": [
-    "space"
-   ],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:rotate",
-    "in_type": "SHAPE",
-    "out_type": "SHAPE"
-   },
-   "roles": {
-    "default": "PROCESS",
-    "available": {
-     "PROCESS": 1
-    },
-    "example": {
-     "PROCESS": "arc_atoms:rotate"
-    }
-   }
-  },
-  "AGENT|reflect": {
-   "name": "reflect",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "SHAPE",
-   "out_type": "SHAPE",
-   "also_accepts": [],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_transform",
-   "defined_at": "arc_atoms.py:459",
-   "definition": "mirror the outline",
-   "realises": null,
-   "role_hint": "PROCESS",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "mirror the outline",
-    "status": "built",
-    "lineage": "arc_atoms.py:459 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [
-    "shape"
-   ],
-   "affects": [
-    "shape"
-   ],
-   "substrate": [
-    "space"
-   ],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:reflect",
-    "in_type": "SHAPE",
-    "out_type": "SHAPE"
-   },
-   "roles": {
-    "default": "PROCESS",
-    "available": {
-     "PROCESS": 1
-    },
-    "example": {
-     "PROCESS": "arc_atoms:reflect"
-    }
-   }
-  },
-  "AGENT|owner": {
-   "name": "owner",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "val",
-   "out_type": "OBJECT",
-   "also_accepts": [],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [
-    "obj"
-   ],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_owner",
-   "defined_at": "arc_atoms.py:414",
-   "definition": "the object a slot's value belongs to (makes OBJECT-typed atoms reachable)",
-   "realises": null,
-   "role_hint": "RELATION",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "the object a slot's value belongs to (makes OBJECT-typed atoms reachable)",
-    "status": "built",
-    "lineage": "arc_atoms.py:414 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [],
-   "affects": [],
-   "substrate": [],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:owner",
-    "in_type": "val",
-    "out_type": "OBJECT"
-   },
-   "roles": {
-    "default": "RELATION",
-    "available": {
-     "RELATION": 1
-    },
-    "example": {
-     "RELATION": "arc_atoms:owner"
-    }
-   }
-  },
-  "AGENT|touching": {
-   "name": "touching",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "OBJECT",
-   "out_type": "BOOL",
-   "also_accepts": [],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [
-    "obj",
-    "touching"
-   ],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_contact",
-   "defined_at": "arc_atoms.py:782",
-   "definition": "shares a cell face with another object (the two-place relation, second operand from context)",
-   "realises": "NSM TOUCH(X, Y)",
-   "role_hint": "RELATION",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "shares a cell face with another object (the two-place relation, second operand from context)",
-    "status": "built",
-    "lineage": "arc_atoms.py:782 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [],
-   "affects": [],
-   "substrate": [],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:touching",
-    "in_type": "OBJECT",
-    "out_type": "BOOL"
-   },
-   "roles": {
-    "default": "RELATION",
-    "available": {
-     "RELATION": 1
-    },
-    "example": {
-     "RELATION": "arc_atoms:touching"
-    }
-   }
-  },
-  "AGENT|same": {
-   "name": "same",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "COLOUR",
-   "out_type": "PRED",
-   "also_accepts": [
-    "POSITION",
-    "EXTENT",
-    "DELTA",
-    "SHAPE",
-    "BOOL"
-   ],
-   "operand_type": "@same",
-   "reads_operand": true,
-   "reads_ctx": [
-    "operands"
-   ],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_relate",
-   "defined_at": "arc_atoms.py:805",
-   "definition": "equals another slot's value",
-   "realises": "≡ (identity test) / NSM THE SAME",
-   "role_hint": "RELATION",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "equals another slot's value",
-    "status": "built",
-    "lineage": "arc_atoms.py:805 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [
-    "colour"
-   ],
-   "affects": [],
-   "substrate": [
-    "spectrum"
-   ],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:same",
-    "in_type": "COLOUR",
-    "out_type": "PRED"
-   },
-   "roles": {
-    "default": "RELATION",
-    "available": {
-     "RELATION": 1
-    },
-    "example": {
-     "RELATION": "arc_atoms:same"
-    }
-   }
-  },
-  "AGENT|other": {
-   "name": "other",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "COLOUR",
-   "out_type": "PRED",
-   "also_accepts": [
-    "POSITION",
-    "EXTENT",
-    "DELTA",
-    "SHAPE",
-    "BOOL"
-   ],
-   "operand_type": "@same",
-   "reads_operand": true,
-   "reads_ctx": [
-    "operands"
-   ],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_relate",
-   "defined_at": "arc_atoms.py:808",
-   "definition": "differs from another slot's value",
-   "realises": "¬≡ / NSM OTHER",
-   "role_hint": "RELATION",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "differs from another slot's value",
-    "status": "built",
-    "lineage": "arc_atoms.py:808 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [
-    "colour"
-   ],
-   "affects": [],
-   "substrate": [
-    "spectrum"
-   ],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:other",
-    "in_type": "COLOUR",
-    "out_type": "PRED"
-   },
-   "roles": {
-    "default": "RELATION",
-    "available": {
-     "RELATION": 1
-    },
-    "example": {
-     "RELATION": "arc_atoms:other"
-    }
-   }
-  },
   "AGENT|above": {
    "name": "above",
    "domain": "AGENT",
@@ -1127,228 +61,66 @@
     "example": {
      "RELATION": "arc_atoms:above"
     }
-   }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "POSITION"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "POSITION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0
   },
-  "AGENT|all_same": {
-   "name": "all_same",
+  "AGENT|abs_delta": {
+   "name": "abs_delta",
    "domain": "AGENT",
    "status": "executable",
-   "in_type": "COLOUR",
-   "out_type": "PRED",
-   "also_accepts": [
-    "POSITION",
-    "EXTENT",
-    "DELTA",
-    "SHAPE",
-    "BOOL"
-   ],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [
-    "group"
-   ],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_over_group",
-   "defined_at": "arc_atoms.py:869",
-   "definition": "every object agrees on this attribute (empty group = unreadable, not true)",
-   "realises": "NSM ALL + THE SAME",
-   "role_hint": "STATE",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "every object agrees on this attribute (empty group = unreadable, not true)",
-    "status": "built",
-    "lineage": "arc_atoms.py:869 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [
-    "colour"
-   ],
-   "affects": [],
-   "substrate": [
-    "spectrum"
-   ],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:all_same",
-    "in_type": "COLOUR",
-    "out_type": "PRED"
-   },
-   "roles": {
-    "default": "STATE",
-    "available": {
-     "STATE": 1
-    },
-    "example": {
-     "STATE": "arc_atoms:all_same"
-    }
-   }
-  },
-  "AGENT|any_same": {
-   "name": "any_same",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "COLOUR",
-   "out_type": "PRED",
-   "also_accepts": [
-    "POSITION",
-    "EXTENT",
-    "DELTA",
-    "SHAPE",
-    "BOOL"
-   ],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [
-    "group"
-   ],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_over_group",
-   "defined_at": "arc_atoms.py:869",
-   "definition": "some other object shares this value",
-   "realises": "NSM SOME + THE SAME",
-   "role_hint": "STATE",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "some other object shares this value",
-    "status": "built",
-    "lineage": "arc_atoms.py:869 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [
-    "colour"
-   ],
-   "affects": [],
-   "substrate": [
-    "spectrum"
-   ],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:any_same",
-    "in_type": "COLOUR",
-    "out_type": "PRED"
-   },
-   "roles": {
-    "default": "STATE",
-    "available": {
-     "STATE": 1
-    },
-    "example": {
-     "STATE": "arc_atoms:any_same"
-    }
-   }
-  },
-  "AGENT|none_same": {
-   "name": "none_same",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "COLOUR",
-   "out_type": "PRED",
-   "also_accepts": [
-    "POSITION",
-    "EXTENT",
-    "DELTA",
-    "SHAPE",
-    "BOOL"
-   ],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [
-    "group"
-   ],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_over_group",
-   "defined_at": "arc_atoms.py:869",
-   "definition": "no other object shares this value",
-   "realises": "NSM NOT + SOME + THE SAME",
-   "role_hint": "STATE",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "no other object shares this value",
-    "status": "built",
-    "lineage": "arc_atoms.py:869 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [
-    "colour"
-   ],
-   "affects": [],
-   "substrate": [
-    "spectrum"
-   ],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:none_same",
-    "in_type": "COLOUR",
-    "out_type": "PRED"
-   },
-   "roles": {
-    "default": "STATE",
-    "available": {
-     "STATE": 1
-    },
-    "example": {
-     "STATE": "arc_atoms:none_same"
-    }
-   }
-  },
-  "AGENT|count": {
-   "name": "count",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "COLOUR",
+   "in_type": "DELTA",
    "out_type": "EXTENT",
-   "also_accepts": [
-    "POSITION",
-    "EXTENT",
-    "DELTA",
-    "SHAPE",
-    "BOOL"
-   ],
+   "also_accepts": [],
    "operand_type": null,
    "reads_operand": false,
-   "reads_ctx": [
-    "group"
-   ],
+   "reads_ctx": [],
    "elem_type": null,
    "arm": null,
    "on_arc_path": true,
-   "builder": "_over_group",
-   "defined_at": "arc_atoms.py:838",
-   "definition": "how many objects share this value (a cardinality, not a truth)",
-   "realises": "NSM MANY / quantity",
+   "builder": "_group_more",
+   "defined_at": "arc_atoms.py:940",
+   "definition": "size of a signed change",
+   "realises": null,
    "role_hint": "MEASURE",
    "sources": [
     "seat export 2026-10-08 (seat-act e50406d)"
    ],
    "kind": "PRIMITIVE",
    "grid": {
-    "meaning": "how many objects share this value (a cardinality, not a truth)",
+    "meaning": "size of a signed change",
     "status": "built",
-    "lineage": "arc_atoms.py:838 (executable; meaning from the code's own docstring)"
+    "lineage": "arc_atoms.py:940 (executable; meaning from the code's own docstring)"
    },
    "reads": [
-    "colour"
+    "drow",
+    "dcol"
    ],
    "affects": [],
    "substrate": [
-    "spectrum"
+    "space",
+    "time"
    ],
    "run": {
     "route": "PRIMITIVE",
-    "impl": "arc_atoms:count",
-    "in_type": "COLOUR",
+    "impl": "arc_atoms:abs_delta",
+    "in_type": "DELTA",
     "out_type": "EXTENT"
    },
    "roles": {
@@ -1357,339 +129,138 @@
      "MEASURE": 1
     },
     "example": {
-     "MEASURE": "arc_atoms:count"
+     "MEASURE": "arc_atoms:abs_delta"
     }
-   }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "CHANGE",
+     "DIRECTION",
+     "EXTENT",
+     "SPEED"
+    ],
+    "pairs": [
+     [
+      "CHANGE",
+      "DIRECTION"
+     ],
+     [
+      "CHANGE",
+      "EXTENT"
+     ],
+     [
+      "CHANGE",
+      "SPEED"
+     ],
+     [
+      "DIRECTION",
+      "EXTENT"
+     ],
+     [
+      "DIRECTION",
+      "SPEED"
+     ],
+     [
+      "EXTENT",
+      "SPEED"
+     ]
+    ],
+    "scored": [
+     {
+      "tag": "CHANGE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.2
+     },
+     {
+      "tag": "DIRECTION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.2
+     },
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.2
+     },
+     {
+      "tag": "SPEED",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.2
+     }
+    ]
+   },
+   "reach_tier": 0
   },
-  "AGENT|rank_in": {
-   "name": "rank_in",
+  "AGENT|add_col": {
+   "name": "add_col",
    "domain": "AGENT",
    "status": "executable",
-   "in_type": "POSITION",
-   "out_type": "EXTENT",
-   "also_accepts": [
-    "EXTENT",
-    "DELTA"
-   ],
+   "form": "EXTRACT",
+   "in_type": "OBJECT",
+   "out_type": "POSITION",
+   "also_accepts": [],
    "operand_type": null,
    "reads_operand": false,
-   "reads_ctx": [
-    "group"
-   ],
+   "reads_ctx": [],
    "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_group_more",
-   "defined_at": "arc_atoms.py:907",
-   "definition": "position in the group's ordering",
-   "realises": "⋛ over a group",
-   "role_hint": "MEASURE",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "position in the group's ordering",
-    "status": "built",
-    "lineage": "arc_atoms.py:907 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [
-    "row",
-    "col"
-   ],
-   "affects": [],
-   "substrate": [
-    "space"
-   ],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:rank_in",
-    "in_type": "POSITION",
-    "out_type": "EXTENT"
-   },
-   "roles": {
-    "default": "MEASURE",
-    "available": {
-     "MEASURE": 1
-    },
-    "example": {
-     "MEASURE": "arc_atoms:rank_in"
-    }
-   }
-  },
-  "AGENT|is_max": {
-   "name": "is_max",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "POSITION",
-   "out_type": "BOOL",
-   "also_accepts": [
-    "EXTENT",
-    "DELTA"
-   ],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [
-    "group"
-   ],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_group_more",
-   "defined_at": "arc_atoms.py:924",
-   "definition": "the largest in its group",
-   "realises": "⋛ over a group / NSM MORE",
-   "role_hint": "STATE",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "the largest in its group",
-    "status": "built",
-    "lineage": "arc_atoms.py:924 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [
-    "row",
-    "col"
-   ],
-   "affects": [],
-   "substrate": [
-    "space"
-   ],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:is_max",
-    "in_type": "POSITION",
-    "out_type": "BOOL"
-   },
-   "roles": {
-    "default": "STATE",
-    "available": {
-     "STATE": 1
-    },
-    "example": {
-     "STATE": "arc_atoms:is_max"
-    }
-   }
-  },
-  "AGENT|is_min": {
-   "name": "is_min",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "POSITION",
-   "out_type": "BOOL",
-   "also_accepts": [
-    "EXTENT",
-    "DELTA"
-   ],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [
-    "group"
-   ],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_group_more",
-   "defined_at": "arc_atoms.py:928",
-   "definition": "the smallest in its group",
-   "realises": "⋛ over a group",
-   "role_hint": "STATE",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "the smallest in its group",
-    "status": "built",
-    "lineage": "arc_atoms.py:928 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [
-    "row",
-    "col"
-   ],
-   "affects": [],
-   "substrate": [
-    "space"
-   ],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:is_min",
-    "in_type": "POSITION",
-    "out_type": "BOOL"
-   },
-   "roles": {
-    "default": "STATE",
-    "available": {
-     "STATE": 1
-    },
-    "example": {
-     "STATE": "arc_atoms:is_min"
-    }
-   }
-  },
-  "AGENT|sum_group": {
-   "name": "sum_group",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "POSITION",
-   "out_type": "EXTENT",
-   "also_accepts": [
-    "EXTENT",
-    "DELTA"
-   ],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [
-    "group"
-   ],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_group_more",
-   "defined_at": "arc_atoms.py:932",
-   "definition": "total over the group",
-   "realises": "+ over a group",
-   "role_hint": "MEASURE",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "total over the group",
-    "status": "built",
-    "lineage": "arc_atoms.py:932 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [
-    "row",
-    "col"
-   ],
-   "affects": [],
-   "substrate": [
-    "space"
-   ],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:sum_group",
-    "in_type": "POSITION",
-    "out_type": "EXTENT"
-   },
-   "roles": {
-    "default": "MEASURE",
-    "available": {
-     "MEASURE": 1
-    },
-    "example": {
-     "MEASURE": "arc_atoms:sum_group"
-    }
-   }
-  },
-  "AGENT|distinct": {
-   "name": "distinct",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "COLOUR",
-   "out_type": "EXTENT",
-   "also_accepts": [
-    "POSITION",
-    "EXTENT",
-    "DELTA",
-    "SHAPE",
-    "BOOL"
-   ],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [
-    "group"
-   ],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_group_more",
-   "defined_at": "arc_atoms.py:911",
-   "definition": "how many different values in the group",
-   "realises": "NSM OTHER, counted",
-   "role_hint": "MEASURE",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "how many different values in the group",
-    "status": "built",
-    "lineage": "arc_atoms.py:911 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [
-    "colour"
-   ],
-   "affects": [],
-   "substrate": [
-    "spectrum"
-   ],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:distinct",
-    "in_type": "COLOUR",
-    "out_type": "EXTENT"
-   },
-   "roles": {
-    "default": "MEASURE",
-    "available": {
-     "MEASURE": 1
-    },
-    "example": {
-     "MEASURE": "arc_atoms:distinct"
-    }
-   }
-  },
-  "AGENT|is_mode": {
-   "name": "is_mode",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "COLOUR",
-   "out_type": "BOOL",
-   "also_accepts": [
-    "POSITION",
-    "EXTENT",
-    "DELTA",
-    "SHAPE",
-    "BOOL"
-   ],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [
-    "group"
-   ],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_group_more",
-   "defined_at": "arc_atoms.py:915",
-   "definition": "the most common value in the group",
+   "arm": "arc_percept._CELL_CHANGE (import-time)",
+   "on_arc_path": false,
+   "builder": "_extract",
+   "defined_at": "arc_atoms.py:182",
+   "definition": "reads the 'add_col' reading off one object (the percept is described in readings.json)",
+   "reading": "add_col",
    "realises": null,
    "role_hint": "STATE",
    "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
+    "seat export 2026-10-08, seat-act e50406d"
    ],
+   "tags": {
+    "primary": [
+     "POSITION"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "POSITION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
    "kind": "PRIMITIVE",
    "grid": {
-    "meaning": "the most common value in the group",
+    "meaning": "reads the 'add_col' reading off one object (the percept is described in readings.json)",
     "status": "built",
-    "lineage": "arc_atoms.py:915 (executable; meaning from the code's own docstring)"
+    "lineage": "arc_atoms.py:182 (executable; meaning from the code's own docstring)"
    },
    "reads": [
-    "colour"
+    "add_col"
    ],
    "affects": [],
    "substrate": [
-    "spectrum"
+    "space"
    ],
    "run": {
     "route": "PRIMITIVE",
-    "impl": "arc_atoms:is_mode",
-    "in_type": "COLOUR",
-    "out_type": "BOOL"
+    "impl": "arc_atoms:add_col",
+    "in_type": "OBJECT",
+    "out_type": "POSITION"
    },
    "roles": {
     "default": "STATE",
@@ -1697,7 +268,215 @@
      "STATE": 1
     },
     "example": {
-     "STATE": "arc_atoms:is_mode"
+     "STATE": "arc_atoms:add_col"
+    }
+   }
+  },
+  "AGENT|add_n": {
+   "name": "add_n",
+   "domain": "AGENT",
+   "status": "executable",
+   "form": "EXTRACT",
+   "in_type": "OBJECT",
+   "out_type": "EXTENT",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": "arc_percept._CELL_CHANGE (import-time)",
+   "on_arc_path": false,
+   "builder": "_extract",
+   "defined_at": "arc_atoms.py:181",
+   "definition": "reads the 'add_n' reading off one object (the percept is described in readings.json)",
+   "reading": "add_n",
+   "realises": null,
+   "role_hint": "MEASURE",
+   "sources": [
+    "seat export 2026-10-08, seat-act e50406d"
+   ],
+   "tags": {
+    "primary": [
+     "EXTENT"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "reads the 'add_n' reading off one object (the percept is described in readings.json)",
+    "status": "built",
+    "lineage": "arc_atoms.py:181 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "add_n"
+   ],
+   "affects": [],
+   "substrate": [
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:add_n",
+    "in_type": "OBJECT",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:add_n"
+    }
+   }
+  },
+  "AGENT|add_row": {
+   "name": "add_row",
+   "domain": "AGENT",
+   "status": "executable",
+   "form": "EXTRACT",
+   "in_type": "OBJECT",
+   "out_type": "POSITION",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": "arc_percept._CELL_CHANGE (import-time)",
+   "on_arc_path": false,
+   "builder": "_extract",
+   "defined_at": "arc_atoms.py:181",
+   "definition": "reads the 'add_row' reading off one object (the percept is described in readings.json)",
+   "reading": "add_row",
+   "realises": null,
+   "role_hint": "STATE",
+   "sources": [
+    "seat export 2026-10-08, seat-act e50406d"
+   ],
+   "tags": {
+    "primary": [
+     "POSITION"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "POSITION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "reads the 'add_row' reading off one object (the percept is described in readings.json)",
+    "status": "built",
+    "lineage": "arc_atoms.py:181 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "add_row"
+   ],
+   "affects": [],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:add_row",
+    "in_type": "OBJECT",
+    "out_type": "POSITION"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:add_row"
+    }
+   }
+  },
+  "AGENT|age": {
+   "name": "age",
+   "domain": "AGENT",
+   "status": "executable",
+   "form": "EXTRACT",
+   "in_type": "OBJECT",
+   "out_type": "EXTENT",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": "arc_percept._INSTRUMENTS",
+   "on_arc_path": false,
+   "builder": "_extract",
+   "defined_at": "arc_atoms.py:148",
+   "definition": "reads the 'age' reading off one object (the percept is described in readings.json)",
+   "reading": "age",
+   "realises": null,
+   "role_hint": "MEASURE",
+   "sources": [
+    "seat export 2026-10-08, seat-act e50406d"
+   ],
+   "tags": {
+    "primary": [
+     "EXTENT"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "reads the 'age' reading off one object (the percept is described in readings.json)",
+    "status": "built",
+    "lineage": "arc_atoms.py:148 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "age"
+   ],
+   "affects": [],
+   "substrate": [
+    "time"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:age",
+    "in_type": "OBJECT",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:age"
     }
    }
   },
@@ -1757,13 +536,482 @@
     "example": {
      "STATE": "arc_atoms:aligned"
     }
-   }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "COLOUR"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "COLOUR",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0
   },
-  "AGENT|abs_delta": {
-   "name": "abs_delta",
+  "AGENT|all": {
+   "name": "all",
    "domain": "AGENT",
    "status": "executable",
-   "in_type": "DELTA",
+   "in_type": "PRED",
+   "out_type": "OBJ",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_quantify",
+   "defined_at": "arc_atoms.py:1006",
+   "definition": "closes a predicate (does not range over a scope; byte-identical to `any`; kept until all_of is shown to reproduce it)",
+   "realises": "NSM ALL (degenerate)",
+   "role_hint": "STATE",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "closes a predicate (does not range over a scope; byte-identical to `any`; kept until all_of is shown to reproduce it)",
+    "status": "built",
+    "lineage": "arc_atoms.py:1006 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:all",
+    "in_type": "PRED",
+    "out_type": "OBJ"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:all"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [],
+    "pairs": [],
+    "scored": []
+   },
+   "reach_tier": 0
+  },
+  "AGENT|all_of": {
+   "name": "all_of",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "CELLS",
+   "out_type": "OBJ",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": "BOOL",
+   "arm": "arc_atoms._ITERATE",
+   "on_arc_path": true,
+   "builder": "_iterate",
+   "defined_at": "arc_atoms.py:1083",
+   "definition": "the predicate held on every cell",
+   "realises": "NSM ALL",
+   "role_hint": "STATE",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "the predicate held on every cell",
+    "status": "built",
+    "lineage": "arc_atoms.py:1083 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "shape"
+   ],
+   "affects": [],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:all_of",
+    "in_type": "CELLS",
+    "out_type": "OBJ"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:all_of"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [],
+    "pairs": [],
+    "scored": []
+   },
+   "reach_tier": 0
+  },
+  "AGENT|all_same": {
+   "name": "all_same",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "COLOUR",
+   "out_type": "PRED",
+   "also_accepts": [
+    "POSITION",
+    "EXTENT",
+    "DELTA",
+    "SHAPE",
+    "BOOL"
+   ],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [
+    "group"
+   ],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_over_group",
+   "defined_at": "arc_atoms.py:869",
+   "definition": "every object agrees on this attribute (empty group = unreadable, not true)",
+   "realises": "NSM ALL + THE SAME",
+   "role_hint": "STATE",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "every object agrees on this attribute (empty group = unreadable, not true)",
+    "status": "built",
+    "lineage": "arc_atoms.py:869 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "colour"
+   ],
+   "affects": [],
+   "substrate": [
+    "spectrum"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:all_same",
+    "in_type": "COLOUR",
+    "out_type": "PRED"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:all_same"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "COLOUR"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "COLOUR",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0
+  },
+  "AGENT|any": {
+   "name": "any",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "PRED",
+   "out_type": "OBJ",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_quantify",
+   "defined_at": "arc_atoms.py:1007",
+   "definition": "closes a predicate (byte-identical to `all`)",
+   "realises": "NSM SOME (degenerate)",
+   "role_hint": "STATE",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "closes a predicate (byte-identical to `all`)",
+    "status": "built",
+    "lineage": "arc_atoms.py:1007 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:any",
+    "in_type": "PRED",
+    "out_type": "OBJ"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:any"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [],
+    "pairs": [],
+    "scored": []
+   },
+   "reach_tier": 0
+  },
+  "AGENT|any_same": {
+   "name": "any_same",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "COLOUR",
+   "out_type": "PRED",
+   "also_accepts": [
+    "POSITION",
+    "EXTENT",
+    "DELTA",
+    "SHAPE",
+    "BOOL"
+   ],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [
+    "group"
+   ],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_over_group",
+   "defined_at": "arc_atoms.py:869",
+   "definition": "some other object shares this value",
+   "realises": "NSM SOME + THE SAME",
+   "role_hint": "STATE",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "some other object shares this value",
+    "status": "built",
+    "lineage": "arc_atoms.py:869 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "colour"
+   ],
+   "affects": [],
+   "substrate": [
+    "spectrum"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:any_same",
+    "in_type": "COLOUR",
+    "out_type": "PRED"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:any_same"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "COLOUR"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "COLOUR",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0
+  },
+  "AGENT|area": {
+   "name": "area",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "OBJECT",
+   "out_type": "EXTENT",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [
+    "obj"
+   ],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_shape_facts",
+   "defined_at": "arc_atoms.py:633",
+   "definition": "filled cell count (what h and w cannot give)",
+   "realises": null,
+   "role_hint": "MEASURE",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "filled cell count (what h and w cannot give)",
+    "status": "built",
+    "lineage": "arc_atoms.py:633 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:area",
+    "in_type": "OBJECT",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:area"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "EXTENT"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0
+  },
+  "AGENT|bbox": {
+   "name": "bbox",
+   "domain": "AGENT",
+   "status": "executable",
+   "form": "EXTRACT",
+   "in_type": "OBJECT",
+   "out_type": "EXTENT",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": "arc_world._OBSERVER",
+   "on_arc_path": false,
+   "builder": "_extract",
+   "defined_at": "arc_atoms.py:137",
+   "definition": "reads the 'bbox' reading off one object (the percept is described in readings.json)",
+   "reading": "bbox",
+   "realises": null,
+   "role_hint": "MEASURE",
+   "sources": [
+    "seat export 2026-10-08, seat-act e50406d"
+   ],
+   "tags": {
+    "primary": [
+     "EXTENT"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "reads the 'bbox' reading off one object (the percept is described in readings.json)",
+    "status": "built",
+    "lineage": "arc_atoms.py:137 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "bbox"
+   ],
+   "affects": [],
+   "substrate": [
+    "network",
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:bbox",
+    "in_type": "OBJECT",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:bbox"
+    }
+   }
+  },
+  "AGENT|bbox_area": {
+   "name": "bbox_area",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "SHAPE",
    "out_type": "EXTENT",
    "also_accepts": [],
    "operand_type": null,
@@ -1772,9 +1020,9 @@
    "elem_type": null,
    "arm": null,
    "on_arc_path": true,
-   "builder": "_group_more",
-   "defined_at": "arc_atoms.py:940",
-   "definition": "size of a signed change",
+   "builder": "_shape_more",
+   "defined_at": "arc_atoms.py:686",
+   "definition": "height times width of the bounding box",
    "realises": null,
    "role_hint": "MEASURE",
    "sources": [
@@ -1782,12 +1030,1306 @@
    ],
    "kind": "PRIMITIVE",
    "grid": {
-    "meaning": "size of a signed change",
+    "meaning": "height times width of the bounding box",
     "status": "built",
-    "lineage": "arc_atoms.py:940 (executable; meaning from the code's own docstring)"
+    "lineage": "arc_atoms.py:686 (executable; meaning from the code's own docstring)"
    },
    "reads": [
-    "drow",
+    "shape"
+   ],
+   "affects": [],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:bbox_area",
+    "in_type": "SHAPE",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:bbox_area"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "EXTENT",
+     "SHAPE"
+    ],
+    "pairs": [
+     [
+      "EXTENT",
+      "SHAPE"
+     ]
+    ],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     },
+     {
+      "tag": "SHAPE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     }
+    ]
+   },
+   "reach_tier": 0
+  },
+  "AGENT|both": {
+   "name": "both",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "PRED",
+   "out_type": "PRED",
+   "also_accepts": [],
+   "operand_type": "PRED",
+   "reads_operand": true,
+   "reads_ctx": [
+    "operands"
+   ],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_connect",
+   "defined_at": "arc_atoms.py:985",
+   "definition": "both predicates hold",
+   "realises": "+ (conjunction) / NSM AND",
+   "role_hint": "TEST",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "both predicates hold",
+    "status": "built",
+    "lineage": "arc_atoms.py:985 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:both",
+    "in_type": "PRED",
+    "out_type": "PRED"
+   },
+   "roles": {
+    "default": "TEST",
+    "available": {
+     "TEST": 1
+    },
+    "example": {
+     "TEST": "arc_atoms:both"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [],
+    "pairs": [],
+    "scored": []
+   },
+   "reach_tier": 0
+  },
+  "AGENT|canonical": {
+   "name": "canonical",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "SHAPE",
+   "out_type": "SHAPE",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_shape_more",
+   "defined_at": "arc_atoms.py:724",
+   "definition": "the outline normalised under rotation and reflection",
+   "realises": null,
+   "role_hint": "STATE",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "the outline normalised under rotation and reflection",
+    "status": "built",
+    "lineage": "arc_atoms.py:724 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "shape"
+   ],
+   "affects": [],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:canonical",
+    "in_type": "SHAPE",
+    "out_type": "SHAPE"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:canonical"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "SHAPE"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "SHAPE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0
+  },
+  "AGENT|cell_col": {
+   "name": "cell_col",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "CELL",
+   "out_type": "POSITION",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": "arc_atoms._ITERATE",
+   "on_arc_path": true,
+   "builder": "_iterate",
+   "defined_at": "arc_atoms.py:1041",
+   "definition": "a cell's column",
+   "realises": null,
+   "role_hint": "STATE",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "a cell's column",
+    "status": "built",
+    "lineage": "arc_atoms.py:1041 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "shape"
+   ],
+   "affects": [],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:cell_col",
+    "in_type": "CELL",
+    "out_type": "POSITION"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:cell_col"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "POSITION"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "POSITION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0
+  },
+  "AGENT|cell_row": {
+   "name": "cell_row",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "CELL",
+   "out_type": "POSITION",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": "arc_atoms._ITERATE",
+   "on_arc_path": true,
+   "builder": "_iterate",
+   "defined_at": "arc_atoms.py:1038",
+   "definition": "a cell's row",
+   "realises": null,
+   "role_hint": "STATE",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "a cell's row",
+    "status": "built",
+    "lineage": "arc_atoms.py:1038 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "shape"
+   ],
+   "affects": [],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:cell_row",
+    "in_type": "CELL",
+    "out_type": "POSITION"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:cell_row"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "POSITION"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "POSITION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0
+  },
+  "AGENT|cells": {
+   "name": "cells",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "SHAPE",
+   "out_type": "CELLS",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": "arc_atoms._ITERATE",
+   "on_arc_path": true,
+   "builder": "_iterate",
+   "defined_at": "arc_atoms.py:1030",
+   "definition": "open a shape into its cells",
+   "realises": "NSM PART",
+   "role_hint": "STATE",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "open a shape into its cells",
+    "status": "built",
+    "lineage": "arc_atoms.py:1030 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "shape"
+   ],
+   "affects": [],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:cells",
+    "in_type": "SHAPE",
+    "out_type": "CELLS"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:cells"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "SHAPE"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "SHAPE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0
+  },
+  "AGENT|centroid": {
+   "name": "centroid",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "OBJECT",
+   "out_type": "POSITION",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [
+    "obj"
+   ],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_shape_facts",
+   "defined_at": "arc_atoms.py:604",
+   "definition": "mean row of the object's own cells (one coordinate: a slot holds one)",
+   "realises": null,
+   "role_hint": "STATE",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "mean row of the object's own cells (one coordinate: a slot holds one)",
+    "status": "built",
+    "lineage": "arc_atoms.py:604 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:centroid",
+    "in_type": "OBJECT",
+    "out_type": "POSITION"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:centroid"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "POSITION"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "POSITION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0
+  },
+  "AGENT|col": {
+   "name": "col",
+   "domain": "AGENT",
+   "status": "executable",
+   "form": "EXTRACT",
+   "in_type": "OBJECT",
+   "out_type": "POSITION",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_extract",
+   "defined_at": "arc_atoms.py:95",
+   "definition": "reads the 'col' reading off one object (the percept is described in readings.json)",
+   "reading": "col",
+   "realises": null,
+   "role_hint": "STATE",
+   "sources": [
+    "seat export 2026-10-08, seat-act e50406d"
+   ],
+   "tags": {
+    "primary": [
+     "POSITION"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "POSITION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "reads the 'col' reading off one object (the percept is described in readings.json)",
+    "status": "built",
+    "lineage": "arc_atoms.py:95 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "col"
+   ],
+   "affects": [],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:col",
+    "in_type": "OBJECT",
+    "out_type": "POSITION"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:col"
+    }
+   }
+  },
+  "AGENT|colour": {
+   "name": "colour",
+   "domain": "AGENT",
+   "status": "executable",
+   "form": "EXTRACT",
+   "in_type": "OBJECT",
+   "out_type": "COLOUR",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_extract",
+   "defined_at": "arc_atoms.py:95",
+   "definition": "reads the 'colour' reading off one object (the percept is described in readings.json)",
+   "reading": "colour",
+   "realises": null,
+   "role_hint": "STATE",
+   "sources": [
+    "seat export 2026-10-08, seat-act e50406d"
+   ],
+   "tags": {
+    "primary": [
+     "COLOUR"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "COLOUR",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "reads the 'colour' reading off one object (the percept is described in readings.json)",
+    "status": "built",
+    "lineage": "arc_atoms.py:95 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "colour"
+   ],
+   "affects": [],
+   "substrate": [
+    "spectrum"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:colour",
+    "in_type": "OBJECT",
+    "out_type": "COLOUR"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:colour"
+    }
+   }
+  },
+  "AGENT|colour_changed": {
+   "name": "colour_changed",
+   "domain": "AGENT",
+   "status": "executable",
+   "form": "EXTRACT",
+   "in_type": "OBJECT",
+   "out_type": "BOOL",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": "arc_percept._OBSERVER",
+   "on_arc_path": false,
+   "builder": "_extract",
+   "defined_at": "arc_atoms.py:134",
+   "definition": "reads the 'colour_changed' reading off one object (the percept is described in readings.json)",
+   "reading": "colour_changed",
+   "realises": null,
+   "role_hint": "STATE",
+   "sources": [
+    "seat export 2026-10-08, seat-act e50406d"
+   ],
+   "tags": {
+    "primary": [],
+    "pairs": [],
+    "scored": []
+   },
+   "reach_tier": 0,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "reads the 'colour_changed' reading off one object (the percept is described in readings.json)",
+    "status": "built",
+    "lineage": "arc_atoms.py:134 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "colour_changed"
+   ],
+   "affects": [],
+   "substrate": [
+    "spectrum",
+    "time"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:colour_changed",
+    "in_type": "OBJECT",
+    "out_type": "BOOL"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:colour_changed"
+    }
+   }
+  },
+  "AGENT|completed": {
+   "name": "completed",
+   "domain": "AGENT",
+   "status": "executable",
+   "form": "EXTRACT",
+   "in_type": "OBJECT",
+   "out_type": "EXTENT",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_extract",
+   "defined_at": "arc_atoms.py:123",
+   "definition": "reads the 'completed' reading off one object (the percept is described in readings.json)",
+   "reading": "completed",
+   "realises": null,
+   "role_hint": "MEASURE",
+   "sources": [
+    "seat export 2026-10-08, seat-act e50406d"
+   ],
+   "tags": {
+    "primary": [
+     "EXTENT"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "reads the 'completed' reading off one object (the percept is described in readings.json)",
+    "status": "built",
+    "lineage": "arc_atoms.py:123 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "completed"
+   ],
+   "affects": [],
+   "substrate": [
+    "gradient",
+    "spectrum"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:completed",
+    "in_type": "OBJECT",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:completed"
+    }
+   }
+  },
+  "AGENT|contact": {
+   "name": "contact",
+   "domain": "AGENT",
+   "status": "executable",
+   "form": "EXTRACT",
+   "in_type": "OBJECT",
+   "out_type": "EXTENT",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": "arc_world._OBSERVER",
+   "on_arc_path": false,
+   "builder": "_extract",
+   "defined_at": "arc_atoms.py:112",
+   "definition": "reads the 'contact' reading off one object (the percept is described in readings.json)",
+   "reading": "contact",
+   "realises": null,
+   "role_hint": "MEASURE",
+   "sources": [
+    "seat export 2026-10-08, seat-act e50406d"
+   ],
+   "tags": {
+    "primary": [
+     "EXTENT"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "reads the 'contact' reading off one object (the percept is described in readings.json)",
+    "status": "built",
+    "lineage": "arc_atoms.py:112 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "contact"
+   ],
+   "affects": [],
+   "substrate": [
+    "network",
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:contact",
+    "in_type": "OBJECT",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:contact"
+    }
+   }
+  },
+  "AGENT|corners": {
+   "name": "corners",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "SHAPE",
+   "out_type": "EXTENT",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_shape_more",
+   "defined_at": "arc_atoms.py:707",
+   "definition": "corner cells of the outline",
+   "realises": null,
+   "role_hint": "MEASURE",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "corner cells of the outline",
+    "status": "built",
+    "lineage": "arc_atoms.py:707 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "shape"
+   ],
+   "affects": [],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:corners",
+    "in_type": "SHAPE",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:corners"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "EXTENT",
+     "SHAPE"
+    ],
+    "pairs": [
+     [
+      "EXTENT",
+      "SHAPE"
+     ]
+    ],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     },
+     {
+      "tag": "SHAPE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     }
+    ]
+   },
+   "reach_tier": 0
+  },
+  "AGENT|count": {
+   "name": "count",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "COLOUR",
+   "out_type": "EXTENT",
+   "also_accepts": [
+    "POSITION",
+    "EXTENT",
+    "DELTA",
+    "SHAPE",
+    "BOOL"
+   ],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [
+    "group"
+   ],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_over_group",
+   "defined_at": "arc_atoms.py:838",
+   "definition": "how many objects share this value (a cardinality, not a truth)",
+   "realises": "NSM MANY / quantity",
+   "role_hint": "MEASURE",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "how many objects share this value (a cardinality, not a truth)",
+    "status": "built",
+    "lineage": "arc_atoms.py:838 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "colour"
+   ],
+   "affects": [],
+   "substrate": [
+    "spectrum"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:count",
+    "in_type": "COLOUR",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:count"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "COLOUR",
+     "EXTENT"
+    ],
+    "pairs": [
+     [
+      "COLOUR",
+      "EXTENT"
+     ]
+    ],
+    "scored": [
+     {
+      "tag": "COLOUR",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     },
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     }
+    ]
+   },
+   "reach_tier": 0
+  },
+  "AGENT|count_true": {
+   "name": "count_true",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "CELLS",
+   "out_type": "EXTENT",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": "BOOL",
+   "arm": "arc_atoms._ITERATE",
+   "on_arc_path": true,
+   "builder": "_iterate",
+   "defined_at": "arc_atoms.py:1044",
+   "definition": "how many cells a predicate held on (refuses non-boolean)",
+   "realises": "NSM MANY, counted",
+   "role_hint": "MEASURE",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "how many cells a predicate held on (refuses non-boolean)",
+    "status": "built",
+    "lineage": "arc_atoms.py:1044 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "shape"
+   ],
+   "affects": [],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:count_true",
+    "in_type": "CELLS",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:count_true"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "EXTENT"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0
+  },
+  "AGENT|dcells": {
+   "name": "dcells",
+   "domain": "AGENT",
+   "status": "executable",
+   "form": "EXTRACT",
+   "in_type": "OBJECT",
+   "out_type": "DELTA",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": "arc_percept._OBSERVER",
+   "on_arc_path": false,
+   "builder": "_extract",
+   "defined_at": "arc_atoms.py:128",
+   "definition": "reads the 'dcells' reading off one object (the percept is described in readings.json)",
+   "reading": "dcells",
+   "realises": null,
+   "role_hint": "MEASURE",
+   "sources": [
+    "seat export 2026-10-08, seat-act e50406d"
+   ],
+   "tags": {
+    "primary": [
+     "CHANGE",
+     "DIRECTION",
+     "SHAPE",
+     "SPEED",
+     "STRUCTURE"
+    ],
+    "pairs": [
+     [
+      "CHANGE",
+      "DIRECTION"
+     ],
+     [
+      "CHANGE",
+      "SHAPE"
+     ],
+     [
+      "CHANGE",
+      "SPEED"
+     ],
+     [
+      "CHANGE",
+      "STRUCTURE"
+     ],
+     [
+      "DIRECTION",
+      "SHAPE"
+     ],
+     [
+      "DIRECTION",
+      "SPEED"
+     ],
+     [
+      "DIRECTION",
+      "STRUCTURE"
+     ],
+     [
+      "SHAPE",
+      "SPEED"
+     ],
+     [
+      "SHAPE",
+      "STRUCTURE"
+     ],
+     [
+      "SPEED",
+      "STRUCTURE"
+     ]
+    ],
+    "scored": [
+     {
+      "tag": "CHANGE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.1667
+     },
+     {
+      "tag": "DIRECTION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.1667
+     },
+     {
+      "tag": "SHAPE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.1667
+     },
+     {
+      "tag": "SPEED",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.1667
+     },
+     {
+      "tag": "STRUCTURE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.1667
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "reads the 'dcells' reading off one object (the percept is described in readings.json)",
+    "status": "built",
+    "lineage": "arc_atoms.py:128 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "dcells"
+   ],
+   "affects": [],
+   "substrate": [
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:dcells",
+    "in_type": "OBJECT",
+    "out_type": "DELTA"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:dcells"
+    }
+   }
+  },
+  "AGENT|dcol": {
+   "name": "dcol",
+   "domain": "AGENT",
+   "status": "executable",
+   "form": "EXTRACT",
+   "in_type": "OBJECT",
+   "out_type": "DELTA",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_extract",
+   "defined_at": "arc_atoms.py:96",
+   "definition": "reads the 'dcol' reading off one object (the percept is described in readings.json)",
+   "reading": "dcol",
+   "realises": null,
+   "role_hint": "MEASURE",
+   "sources": [
+    "seat export 2026-10-08, seat-act e50406d"
+   ],
+   "tags": {
+    "primary": [
+     "CHANGE",
+     "DIRECTION",
+     "MOTION",
+     "POSITION",
+     "SPEED"
+    ],
+    "pairs": [
+     [
+      "CHANGE",
+      "DIRECTION"
+     ],
+     [
+      "CHANGE",
+      "MOTION"
+     ],
+     [
+      "CHANGE",
+      "POSITION"
+     ],
+     [
+      "CHANGE",
+      "SPEED"
+     ],
+     [
+      "DIRECTION",
+      "MOTION"
+     ],
+     [
+      "DIRECTION",
+      "POSITION"
+     ],
+     [
+      "DIRECTION",
+      "SPEED"
+     ],
+     [
+      "MOTION",
+      "POSITION"
+     ],
+     [
+      "MOTION",
+      "SPEED"
+     ],
+     [
+      "POSITION",
+      "SPEED"
+     ]
+    ],
+    "scored": [
+     {
+      "tag": "CHANGE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.1667
+     },
+     {
+      "tag": "DIRECTION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.1667
+     },
+     {
+      "tag": "MOTION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.1667
+     },
+     {
+      "tag": "POSITION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.1667
+     },
+     {
+      "tag": "SPEED",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.1667
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "reads the 'dcol' reading off one object (the percept is described in readings.json)",
+    "status": "built",
+    "lineage": "arc_atoms.py:96 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
     "dcol"
    ],
    "affects": [],
@@ -1797,8 +2339,289 @@
    ],
    "run": {
     "route": "PRIMITIVE",
-    "impl": "arc_atoms:abs_delta",
-    "in_type": "DELTA",
+    "impl": "arc_atoms:dcol",
+    "in_type": "OBJECT",
+    "out_type": "DELTA"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:dcol"
+    }
+   }
+  },
+  "AGENT|dh": {
+   "name": "dh",
+   "domain": "AGENT",
+   "status": "executable",
+   "form": "EXTRACT",
+   "in_type": "OBJECT",
+   "out_type": "DELTA",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": "arc_percept._OBSERVER",
+   "on_arc_path": false,
+   "builder": "_extract",
+   "defined_at": "arc_atoms.py:128",
+   "definition": "reads the 'dh' reading off one object (the percept is described in readings.json)",
+   "reading": "dh",
+   "realises": null,
+   "role_hint": "MEASURE",
+   "sources": [
+    "seat export 2026-10-08, seat-act e50406d"
+   ],
+   "tags": {
+    "primary": [
+     "CHANGE",
+     "DIRECTION",
+     "EXTENT",
+     "SPEED"
+    ],
+    "pairs": [
+     [
+      "CHANGE",
+      "DIRECTION"
+     ],
+     [
+      "CHANGE",
+      "EXTENT"
+     ],
+     [
+      "CHANGE",
+      "SPEED"
+     ],
+     [
+      "DIRECTION",
+      "EXTENT"
+     ],
+     [
+      "DIRECTION",
+      "SPEED"
+     ],
+     [
+      "EXTENT",
+      "SPEED"
+     ]
+    ],
+    "scored": [
+     {
+      "tag": "CHANGE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.2
+     },
+     {
+      "tag": "DIRECTION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.2
+     },
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.2
+     },
+     {
+      "tag": "SPEED",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.2
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "reads the 'dh' reading off one object (the percept is described in readings.json)",
+    "status": "built",
+    "lineage": "arc_atoms.py:128 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "dh"
+   ],
+   "affects": [],
+   "substrate": [
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:dh",
+    "in_type": "OBJECT",
+    "out_type": "DELTA"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:dh"
+    }
+   }
+  },
+  "AGENT|dholes": {
+   "name": "dholes",
+   "domain": "AGENT",
+   "status": "executable",
+   "form": "EXTRACT",
+   "in_type": "OBJECT",
+   "out_type": "DELTA",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": "arc_percept._SHAPE_DELTA (on for ARC)",
+   "on_arc_path": true,
+   "builder": "_extract",
+   "defined_at": "arc_atoms.py:143",
+   "definition": "reads the 'dholes' reading off one object (the percept is described in readings.json)",
+   "reading": "dholes",
+   "realises": null,
+   "role_hint": "MEASURE",
+   "sources": [
+    "seat export 2026-10-08, seat-act e50406d"
+   ],
+   "tags": {
+    "primary": [
+     "CHANGE",
+     "DIRECTION",
+     "SPEED"
+    ],
+    "pairs": [
+     [
+      "CHANGE",
+      "DIRECTION"
+     ],
+     [
+      "CHANGE",
+      "SPEED"
+     ],
+     [
+      "DIRECTION",
+      "SPEED"
+     ]
+    ],
+    "scored": [
+     {
+      "tag": "CHANGE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.25
+     },
+     {
+      "tag": "DIRECTION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.25
+     },
+     {
+      "tag": "SPEED",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.25
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "reads the 'dholes' reading off one object (the percept is described in readings.json)",
+    "status": "built",
+    "lineage": "arc_atoms.py:143 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "dholes"
+   ],
+   "affects": [],
+   "substrate": [
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:dholes",
+    "in_type": "OBJECT",
+    "out_type": "DELTA"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:dholes"
+    }
+   }
+  },
+  "AGENT|distinct": {
+   "name": "distinct",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "COLOUR",
+   "out_type": "EXTENT",
+   "also_accepts": [
+    "POSITION",
+    "EXTENT",
+    "DELTA",
+    "SHAPE",
+    "BOOL"
+   ],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [
+    "group"
+   ],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_group_more",
+   "defined_at": "arc_atoms.py:911",
+   "definition": "how many different values in the group",
+   "realises": "NSM OTHER, counted",
+   "role_hint": "MEASURE",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "how many different values in the group",
+    "status": "built",
+    "lineage": "arc_atoms.py:911 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "colour"
+   ],
+   "affects": [],
+   "substrate": [
+    "spectrum"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:distinct",
+    "in_type": "COLOUR",
     "out_type": "EXTENT"
    },
    "roles": {
@@ -1807,7 +2630,2402 @@
      "MEASURE": 1
     },
     "example": {
-     "MEASURE": "arc_atoms:abs_delta"
+     "MEASURE": "arc_atoms:distinct"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "COLOUR",
+     "EXTENT"
+    ],
+    "pairs": [
+     [
+      "COLOUR",
+      "EXTENT"
+     ]
+    ],
+    "scored": [
+     {
+      "tag": "COLOUR",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     },
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     }
+    ]
+   },
+   "reach_tier": 0
+  },
+  "AGENT|dperimeter": {
+   "name": "dperimeter",
+   "domain": "AGENT",
+   "status": "executable",
+   "form": "EXTRACT",
+   "in_type": "OBJECT",
+   "out_type": "DELTA",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": "arc_percept._SHAPE_DELTA (on for ARC)",
+   "on_arc_path": true,
+   "builder": "_extract",
+   "defined_at": "arc_atoms.py:143",
+   "definition": "reads the 'dperimeter' reading off one object (the percept is described in readings.json)",
+   "reading": "dperimeter",
+   "realises": null,
+   "role_hint": "MEASURE",
+   "sources": [
+    "seat export 2026-10-08, seat-act e50406d"
+   ],
+   "tags": {
+    "primary": [
+     "CHANGE",
+     "DIRECTION",
+     "SPEED"
+    ],
+    "pairs": [
+     [
+      "CHANGE",
+      "DIRECTION"
+     ],
+     [
+      "CHANGE",
+      "SPEED"
+     ],
+     [
+      "DIRECTION",
+      "SPEED"
+     ]
+    ],
+    "scored": [
+     {
+      "tag": "CHANGE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.25
+     },
+     {
+      "tag": "DIRECTION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.25
+     },
+     {
+      "tag": "SPEED",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.25
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "reads the 'dperimeter' reading off one object (the percept is described in readings.json)",
+    "status": "built",
+    "lineage": "arc_atoms.py:143 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "dperimeter"
+   ],
+   "affects": [],
+   "substrate": [
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:dperimeter",
+    "in_type": "OBJECT",
+    "out_type": "DELTA"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:dperimeter"
+    }
+   }
+  },
+  "AGENT|drow": {
+   "name": "drow",
+   "domain": "AGENT",
+   "status": "executable",
+   "form": "EXTRACT",
+   "in_type": "OBJECT",
+   "out_type": "DELTA",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_extract",
+   "defined_at": "arc_atoms.py:96",
+   "definition": "reads the 'drow' reading off one object (the percept is described in readings.json)",
+   "reading": "drow",
+   "realises": null,
+   "role_hint": "MEASURE",
+   "sources": [
+    "seat export 2026-10-08, seat-act e50406d"
+   ],
+   "tags": {
+    "primary": [
+     "CHANGE",
+     "DIRECTION",
+     "MOTION",
+     "POSITION",
+     "SPEED"
+    ],
+    "pairs": [
+     [
+      "CHANGE",
+      "DIRECTION"
+     ],
+     [
+      "CHANGE",
+      "MOTION"
+     ],
+     [
+      "CHANGE",
+      "POSITION"
+     ],
+     [
+      "CHANGE",
+      "SPEED"
+     ],
+     [
+      "DIRECTION",
+      "MOTION"
+     ],
+     [
+      "DIRECTION",
+      "POSITION"
+     ],
+     [
+      "DIRECTION",
+      "SPEED"
+     ],
+     [
+      "MOTION",
+      "POSITION"
+     ],
+     [
+      "MOTION",
+      "SPEED"
+     ],
+     [
+      "POSITION",
+      "SPEED"
+     ]
+    ],
+    "scored": [
+     {
+      "tag": "CHANGE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.1667
+     },
+     {
+      "tag": "DIRECTION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.1667
+     },
+     {
+      "tag": "MOTION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.1667
+     },
+     {
+      "tag": "POSITION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.1667
+     },
+     {
+      "tag": "SPEED",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.1667
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "reads the 'drow' reading off one object (the percept is described in readings.json)",
+    "status": "built",
+    "lineage": "arc_atoms.py:96 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "drow"
+   ],
+   "affects": [],
+   "substrate": [
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:drow",
+    "in_type": "OBJECT",
+    "out_type": "DELTA"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:drow"
+    }
+   }
+  },
+  "AGENT|dw": {
+   "name": "dw",
+   "domain": "AGENT",
+   "status": "executable",
+   "form": "EXTRACT",
+   "in_type": "OBJECT",
+   "out_type": "DELTA",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": "arc_percept._OBSERVER",
+   "on_arc_path": false,
+   "builder": "_extract",
+   "defined_at": "arc_atoms.py:128",
+   "definition": "reads the 'dw' reading off one object (the percept is described in readings.json)",
+   "reading": "dw",
+   "realises": null,
+   "role_hint": "MEASURE",
+   "sources": [
+    "seat export 2026-10-08, seat-act e50406d"
+   ],
+   "tags": {
+    "primary": [
+     "CHANGE",
+     "DIRECTION",
+     "EXTENT",
+     "SPEED"
+    ],
+    "pairs": [
+     [
+      "CHANGE",
+      "DIRECTION"
+     ],
+     [
+      "CHANGE",
+      "EXTENT"
+     ],
+     [
+      "CHANGE",
+      "SPEED"
+     ],
+     [
+      "DIRECTION",
+      "EXTENT"
+     ],
+     [
+      "DIRECTION",
+      "SPEED"
+     ],
+     [
+      "EXTENT",
+      "SPEED"
+     ]
+    ],
+    "scored": [
+     {
+      "tag": "CHANGE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.2
+     },
+     {
+      "tag": "DIRECTION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.2
+     },
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.2
+     },
+     {
+      "tag": "SPEED",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.2
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "reads the 'dw' reading off one object (the percept is described in readings.json)",
+    "status": "built",
+    "lineage": "arc_atoms.py:128 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "dw"
+   ],
+   "affects": [],
+   "substrate": [
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:dw",
+    "in_type": "OBJECT",
+    "out_type": "DELTA"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:dw"
+    }
+   }
+  },
+  "AGENT|either": {
+   "name": "either",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "PRED",
+   "out_type": "PRED",
+   "also_accepts": [],
+   "operand_type": "PRED",
+   "reads_operand": true,
+   "reads_ctx": [
+    "operands"
+   ],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_connect",
+   "defined_at": "arc_atoms.py:991",
+   "definition": "at least one predicate holds",
+   "realises": "∥ (disjunction)",
+   "role_hint": "TEST",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "at least one predicate holds",
+    "status": "built",
+    "lineage": "arc_atoms.py:991 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:either",
+    "in_type": "PRED",
+    "out_type": "PRED"
+   },
+   "roles": {
+    "default": "TEST",
+    "available": {
+     "TEST": 1
+    },
+    "example": {
+     "TEST": "arc_atoms:either"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [],
+    "pairs": [],
+    "scored": []
+   },
+   "reach_tier": 0
+  },
+  "AGENT|h": {
+   "name": "h",
+   "domain": "AGENT",
+   "status": "executable",
+   "form": "EXTRACT",
+   "in_type": "OBJECT",
+   "out_type": "EXTENT",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_extract",
+   "defined_at": "arc_atoms.py:96",
+   "definition": "reads the 'h' reading off one object (the percept is described in readings.json)",
+   "reading": "h",
+   "realises": null,
+   "role_hint": "MEASURE",
+   "sources": [
+    "seat export 2026-10-08, seat-act e50406d"
+   ],
+   "tags": {
+    "primary": [
+     "EXTENT"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "reads the 'h' reading off one object (the percept is described in readings.json)",
+    "status": "built",
+    "lineage": "arc_atoms.py:96 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "h"
+   ],
+   "affects": [],
+   "substrate": [
+    "space",
+    "spectrum"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:h",
+    "in_type": "OBJECT",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:h"
+    }
+   }
+  },
+  "AGENT|holes": {
+   "name": "holes",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "SHAPE",
+   "out_type": "EXTENT",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_shape_facts",
+   "defined_at": "arc_atoms.py:592",
+   "definition": "enclosed background regions in the shape",
+   "realises": null,
+   "role_hint": "MEASURE",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "enclosed background regions in the shape",
+    "status": "built",
+    "lineage": "arc_atoms.py:592 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "shape"
+   ],
+   "affects": [],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:holes",
+    "in_type": "SHAPE",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:holes"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "EXTENT",
+     "SHAPE"
+    ],
+    "pairs": [
+     [
+      "EXTENT",
+      "SHAPE"
+     ]
+    ],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     },
+     {
+      "tag": "SHAPE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     }
+    ]
+   },
+   "reach_tier": 0
+  },
+  "AGENT|idn": {
+   "name": "idn",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "val",
+   "out_type": "val",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "predict",
+   "defined_at": "arc_predict.py:65",
+   "definition": "the value unchanged (the loop cannot run without it)",
+   "realises": null,
+   "role_hint": "STATE",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "the value unchanged (the loop cannot run without it)",
+    "status": "built",
+    "lineage": "arc_predict.py:65 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:idn",
+    "in_type": "val",
+    "out_type": "val"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:idn"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [],
+    "pairs": [],
+    "scored": []
+   },
+   "reach_tier": 0
+  },
+  "AGENT|inside": {
+   "name": "inside",
+   "domain": "AGENT",
+   "status": "executable",
+   "form": "EXTRACT",
+   "in_type": "OBJECT",
+   "out_type": "BOOL",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": "arc_world._OBSERVER",
+   "on_arc_path": false,
+   "builder": "_extract",
+   "defined_at": "arc_atoms.py:175",
+   "definition": "reads the 'inside' reading off one object (the percept is described in readings.json)",
+   "reading": "inside",
+   "realises": null,
+   "role_hint": "STATE",
+   "sources": [
+    "seat export 2026-10-08, seat-act e50406d"
+   ],
+   "tags": {
+    "primary": [],
+    "pairs": [],
+    "scored": []
+   },
+   "reach_tier": 0,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "reads the 'inside' reading off one object (the percept is described in readings.json)",
+    "status": "built",
+    "lineage": "arc_atoms.py:175 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "inside"
+   ],
+   "affects": [],
+   "substrate": [
+    "network",
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:inside",
+    "in_type": "OBJECT",
+    "out_type": "BOOL"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:inside"
+    }
+   }
+  },
+  "AGENT|is_max": {
+   "name": "is_max",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "POSITION",
+   "out_type": "BOOL",
+   "also_accepts": [
+    "EXTENT",
+    "DELTA"
+   ],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [
+    "group"
+   ],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_group_more",
+   "defined_at": "arc_atoms.py:924",
+   "definition": "the largest in its group",
+   "realises": "⋛ over a group / NSM MORE",
+   "role_hint": "STATE",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "the largest in its group",
+    "status": "built",
+    "lineage": "arc_atoms.py:924 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "row",
+    "col"
+   ],
+   "affects": [],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:is_max",
+    "in_type": "POSITION",
+    "out_type": "BOOL"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:is_max"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "POSITION"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "POSITION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0
+  },
+  "AGENT|is_min": {
+   "name": "is_min",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "POSITION",
+   "out_type": "BOOL",
+   "also_accepts": [
+    "EXTENT",
+    "DELTA"
+   ],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [
+    "group"
+   ],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_group_more",
+   "defined_at": "arc_atoms.py:928",
+   "definition": "the smallest in its group",
+   "realises": "⋛ over a group",
+   "role_hint": "STATE",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "the smallest in its group",
+    "status": "built",
+    "lineage": "arc_atoms.py:928 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "row",
+    "col"
+   ],
+   "affects": [],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:is_min",
+    "in_type": "POSITION",
+    "out_type": "BOOL"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:is_min"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "POSITION"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "POSITION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0
+  },
+  "AGENT|is_mode": {
+   "name": "is_mode",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "COLOUR",
+   "out_type": "BOOL",
+   "also_accepts": [
+    "POSITION",
+    "EXTENT",
+    "DELTA",
+    "SHAPE",
+    "BOOL"
+   ],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [
+    "group"
+   ],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_group_more",
+   "defined_at": "arc_atoms.py:915",
+   "definition": "the most common value in the group",
+   "realises": null,
+   "role_hint": "STATE",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "the most common value in the group",
+    "status": "built",
+    "lineage": "arc_atoms.py:915 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "colour"
+   ],
+   "affects": [],
+   "substrate": [
+    "spectrum"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:is_mode",
+    "in_type": "COLOUR",
+    "out_type": "BOOL"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:is_mode"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "COLOUR"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "COLOUR",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0
+  },
+  "AGENT|is_square": {
+   "name": "is_square",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "SHAPE",
+   "out_type": "BOOL",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_shape_more",
+   "defined_at": "arc_atoms.py:751",
+   "definition": "height equals width",
+   "realises": null,
+   "role_hint": "STATE",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "height equals width",
+    "status": "built",
+    "lineage": "arc_atoms.py:751 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "shape"
+   ],
+   "affects": [],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:is_square",
+    "in_type": "SHAPE",
+    "out_type": "BOOL"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:is_square"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "SHAPE"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "SHAPE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0
+  },
+  "AGENT|negate": {
+   "name": "negate",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "PRED",
+   "out_type": "PRED",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_connect",
+   "defined_at": "arc_atoms.py:982",
+   "definition": "the predicate does not hold",
+   "realises": "¬ (negation) / NSM NOT",
+   "role_hint": "TEST",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "the predicate does not hold",
+    "status": "built",
+    "lineage": "arc_atoms.py:982 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:negate",
+    "in_type": "PRED",
+    "out_type": "PRED"
+   },
+   "roles": {
+    "default": "TEST",
+    "available": {
+     "TEST": 1
+    },
+    "example": {
+     "TEST": "arc_atoms:negate"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [],
+    "pairs": [],
+    "scored": []
+   },
+   "reach_tier": 0
+  },
+  "AGENT|none": {
+   "name": "none",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "PRED",
+   "out_type": "OBJ",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_quantify",
+   "defined_at": "arc_atoms.py:1008",
+   "definition": "closes a negated predicate",
+   "realises": "NSM NOT SOME (degenerate)",
+   "role_hint": "STATE",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "closes a negated predicate",
+    "status": "built",
+    "lineage": "arc_atoms.py:1008 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:none",
+    "in_type": "PRED",
+    "out_type": "OBJ"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:none"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [],
+    "pairs": [],
+    "scored": []
+   },
+   "reach_tier": 0
+  },
+  "AGENT|none_of": {
+   "name": "none_of",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "CELLS",
+   "out_type": "OBJ",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": "BOOL",
+   "arm": "arc_atoms._ITERATE",
+   "on_arc_path": true,
+   "builder": "_iterate",
+   "defined_at": "arc_atoms.py:1083",
+   "definition": "the predicate held on no cell",
+   "realises": "NSM NOT SOME",
+   "role_hint": "STATE",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "the predicate held on no cell",
+    "status": "built",
+    "lineage": "arc_atoms.py:1083 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "shape"
+   ],
+   "affects": [],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:none_of",
+    "in_type": "CELLS",
+    "out_type": "OBJ"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:none_of"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [],
+    "pairs": [],
+    "scored": []
+   },
+   "reach_tier": 0
+  },
+  "AGENT|none_same": {
+   "name": "none_same",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "COLOUR",
+   "out_type": "PRED",
+   "also_accepts": [
+    "POSITION",
+    "EXTENT",
+    "DELTA",
+    "SHAPE",
+    "BOOL"
+   ],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [
+    "group"
+   ],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_over_group",
+   "defined_at": "arc_atoms.py:869",
+   "definition": "no other object shares this value",
+   "realises": "NSM NOT + SOME + THE SAME",
+   "role_hint": "STATE",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "no other object shares this value",
+    "status": "built",
+    "lineage": "arc_atoms.py:869 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "colour"
+   ],
+   "affects": [],
+   "substrate": [
+    "spectrum"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:none_same",
+    "in_type": "COLOUR",
+    "out_type": "PRED"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:none_same"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "COLOUR"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "COLOUR",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0
+  },
+  "AGENT|one_of": {
+   "name": "one_of",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "CELLS",
+   "out_type": "OBJ",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": "BOOL",
+   "arm": "arc_atoms._ITERATE",
+   "on_arc_path": true,
+   "builder": "_iterate",
+   "defined_at": "arc_atoms.py:1083",
+   "definition": "the predicate held on exactly one cell",
+   "realises": "NSM ONE",
+   "role_hint": "STATE",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "the predicate held on exactly one cell",
+    "status": "built",
+    "lineage": "arc_atoms.py:1083 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "shape"
+   ],
+   "affects": [],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:one_of",
+    "in_type": "CELLS",
+    "out_type": "OBJ"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:one_of"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [],
+    "pairs": [],
+    "scored": []
+   },
+   "reach_tier": 0
+  },
+  "AGENT|orbit_size": {
+   "name": "orbit_size",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "SHAPE",
+   "out_type": "EXTENT",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_shape_more",
+   "defined_at": "arc_atoms.py:735",
+   "definition": "how many distinct outlines under rotation and reflection",
+   "realises": null,
+   "role_hint": "MEASURE",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "how many distinct outlines under rotation and reflection",
+    "status": "built",
+    "lineage": "arc_atoms.py:735 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "shape"
+   ],
+   "affects": [],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:orbit_size",
+    "in_type": "SHAPE",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:orbit_size"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "EXTENT",
+     "SHAPE"
+    ],
+    "pairs": [
+     [
+      "EXTENT",
+      "SHAPE"
+     ]
+    ],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     },
+     {
+      "tag": "SHAPE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     }
+    ]
+   },
+   "reach_tier": 0
+  },
+  "AGENT|other": {
+   "name": "other",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "COLOUR",
+   "out_type": "PRED",
+   "also_accepts": [
+    "POSITION",
+    "EXTENT",
+    "DELTA",
+    "SHAPE",
+    "BOOL"
+   ],
+   "operand_type": "@same",
+   "reads_operand": true,
+   "reads_ctx": [
+    "operands"
+   ],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_relate",
+   "defined_at": "arc_atoms.py:808",
+   "definition": "differs from another slot's value",
+   "realises": "¬≡ / NSM OTHER",
+   "role_hint": "RELATION",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "differs from another slot's value",
+    "status": "built",
+    "lineage": "arc_atoms.py:808 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "colour"
+   ],
+   "affects": [],
+   "substrate": [
+    "spectrum"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:other",
+    "in_type": "COLOUR",
+    "out_type": "PRED"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "RELATION": 1
+    },
+    "example": {
+     "RELATION": "arc_atoms:other"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "COLOUR"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "COLOUR",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0
+  },
+  "AGENT|owner": {
+   "name": "owner",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "val",
+   "out_type": "OBJECT",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [
+    "obj"
+   ],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_owner",
+   "defined_at": "arc_atoms.py:414",
+   "definition": "the object a slot's value belongs to (makes OBJECT-typed atoms reachable)",
+   "realises": null,
+   "role_hint": "RELATION",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "the object a slot's value belongs to (makes OBJECT-typed atoms reachable)",
+    "status": "built",
+    "lineage": "arc_atoms.py:414 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:owner",
+    "in_type": "val",
+    "out_type": "OBJECT"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "RELATION": 1
+    },
+    "example": {
+     "RELATION": "arc_atoms:owner"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [],
+    "pairs": [],
+    "scored": []
+   },
+   "reach_tier": 0
+  },
+  "AGENT|parity": {
+   "name": "parity",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "POSITION",
+   "out_type": "BOOL",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_shape_facts",
+   "defined_at": "arc_atoms.py:601",
+   "definition": "even or odd",
+   "realises": null,
+   "role_hint": "STATE",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "even or odd",
+    "status": "built",
+    "lineage": "arc_atoms.py:601 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "row",
+    "col"
+   ],
+   "affects": [],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:parity",
+    "in_type": "POSITION",
+    "out_type": "BOOL"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:parity"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "POSITION"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "POSITION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0
+  },
+  "AGENT|perimeter": {
+   "name": "perimeter",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "SHAPE",
+   "out_type": "EXTENT",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_shape_more",
+   "defined_at": "arc_atoms.py:692",
+   "definition": "outline length",
+   "realises": null,
+   "role_hint": "MEASURE",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "outline length",
+    "status": "built",
+    "lineage": "arc_atoms.py:692 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "shape"
+   ],
+   "affects": [],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:perimeter",
+    "in_type": "SHAPE",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:perimeter"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "EXTENT",
+     "SHAPE"
+    ],
+    "pairs": [
+     [
+      "EXTENT",
+      "SHAPE"
+     ]
+    ],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     },
+     {
+      "tag": "SHAPE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     }
+    ]
+   },
+   "reach_tier": 0
+  },
+  "AGENT|rank_in": {
+   "name": "rank_in",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "POSITION",
+   "out_type": "EXTENT",
+   "also_accepts": [
+    "EXTENT",
+    "DELTA"
+   ],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [
+    "group"
+   ],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_group_more",
+   "defined_at": "arc_atoms.py:907",
+   "definition": "position in the group's ordering",
+   "realises": "⋛ over a group",
+   "role_hint": "MEASURE",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "position in the group's ordering",
+    "status": "built",
+    "lineage": "arc_atoms.py:907 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "row",
+    "col"
+   ],
+   "affects": [],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:rank_in",
+    "in_type": "POSITION",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:rank_in"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "EXTENT",
+     "POSITION"
+    ],
+    "pairs": [
+     [
+      "EXTENT",
+      "POSITION"
+     ]
+    ],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     },
+     {
+      "tag": "POSITION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     }
+    ]
+   },
+   "reach_tier": 0
+  },
+  "AGENT|recolour": {
+   "name": "recolour",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "val",
+   "out_type": "val",
+   "also_accepts": [],
+   "operand_type": "COLOUR",
+   "reads_operand": true,
+   "reads_ctx": [
+    "operands"
+   ],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "predict",
+   "defined_at": "arc_predict.py:84",
+   "definition": "take another slot's colour",
+   "realises": null,
+   "role_hint": "PROCESS",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "take another slot's colour",
+    "status": "built",
+    "lineage": "arc_predict.py:84 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [],
+   "affects": [
+    "colour",
+    "colour_changed"
+   ],
+   "substrate": [
+    "spectrum",
+    "time"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:recolour",
+    "in_type": "val",
+    "out_type": "val"
+   },
+   "roles": {
+    "default": "PROCESS",
+    "available": {
+     "PROCESS": 1
+    },
+    "example": {
+     "PROCESS": "arc_atoms:recolour"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "COLOUR"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "COLOUR",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0
+  },
+  "AGENT|reflect": {
+   "name": "reflect",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "SHAPE",
+   "out_type": "SHAPE",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_transform",
+   "defined_at": "arc_atoms.py:459",
+   "definition": "mirror the outline",
+   "realises": null,
+   "role_hint": "PROCESS",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "mirror the outline",
+    "status": "built",
+    "lineage": "arc_atoms.py:459 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "shape"
+   ],
+   "affects": [
+    "shape"
+   ],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:reflect",
+    "in_type": "SHAPE",
+    "out_type": "SHAPE"
+   },
+   "roles": {
+    "default": "PROCESS",
+    "available": {
+     "PROCESS": 1
+    },
+    "example": {
+     "PROCESS": "arc_atoms:reflect"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "SHAPE"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "SHAPE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0
+  },
+  "AGENT|rem_col": {
+   "name": "rem_col",
+   "domain": "AGENT",
+   "status": "executable",
+   "form": "EXTRACT",
+   "in_type": "OBJECT",
+   "out_type": "POSITION",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": "arc_percept._CELL_CHANGE (import-time)",
+   "on_arc_path": false,
+   "builder": "_extract",
+   "defined_at": "arc_atoms.py:182",
+   "definition": "reads the 'rem_col' reading off one object (the percept is described in readings.json)",
+   "reading": "rem_col",
+   "realises": null,
+   "role_hint": "STATE",
+   "sources": [
+    "seat export 2026-10-08, seat-act e50406d"
+   ],
+   "tags": {
+    "primary": [
+     "POSITION"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "POSITION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "reads the 'rem_col' reading off one object (the percept is described in readings.json)",
+    "status": "built",
+    "lineage": "arc_atoms.py:182 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "rem_col"
+   ],
+   "affects": [],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:rem_col",
+    "in_type": "OBJECT",
+    "out_type": "POSITION"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:rem_col"
+    }
+   }
+  },
+  "AGENT|rem_n": {
+   "name": "rem_n",
+   "domain": "AGENT",
+   "status": "executable",
+   "form": "EXTRACT",
+   "in_type": "OBJECT",
+   "out_type": "EXTENT",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": "arc_percept._CELL_CHANGE (import-time)",
+   "on_arc_path": false,
+   "builder": "_extract",
+   "defined_at": "arc_atoms.py:181",
+   "definition": "reads the 'rem_n' reading off one object (the percept is described in readings.json)",
+   "reading": "rem_n",
+   "realises": null,
+   "role_hint": "MEASURE",
+   "sources": [
+    "seat export 2026-10-08, seat-act e50406d"
+   ],
+   "tags": {
+    "primary": [
+     "EXTENT"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "reads the 'rem_n' reading off one object (the percept is described in readings.json)",
+    "status": "built",
+    "lineage": "arc_atoms.py:181 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "rem_n"
+   ],
+   "affects": [],
+   "substrate": [
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:rem_n",
+    "in_type": "OBJECT",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:rem_n"
+    }
+   }
+  },
+  "AGENT|rem_row": {
+   "name": "rem_row",
+   "domain": "AGENT",
+   "status": "executable",
+   "form": "EXTRACT",
+   "in_type": "OBJECT",
+   "out_type": "POSITION",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": "arc_percept._CELL_CHANGE (import-time)",
+   "on_arc_path": false,
+   "builder": "_extract",
+   "defined_at": "arc_atoms.py:182",
+   "definition": "reads the 'rem_row' reading off one object (the percept is described in readings.json)",
+   "reading": "rem_row",
+   "realises": null,
+   "role_hint": "STATE",
+   "sources": [
+    "seat export 2026-10-08, seat-act e50406d"
+   ],
+   "tags": {
+    "primary": [
+     "POSITION"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "POSITION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "reads the 'rem_row' reading off one object (the percept is described in readings.json)",
+    "status": "built",
+    "lineage": "arc_atoms.py:182 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "rem_row"
+   ],
+   "affects": [],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:rem_row",
+    "in_type": "OBJECT",
+    "out_type": "POSITION"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:rem_row"
+    }
+   }
+  },
+  "AGENT|rotate": {
+   "name": "rotate",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "SHAPE",
+   "out_type": "SHAPE",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_transform",
+   "defined_at": "arc_atoms.py:453",
+   "definition": "turn the outline by 90 degrees",
+   "realises": null,
+   "role_hint": "PROCESS",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "turn the outline by 90 degrees",
+    "status": "built",
+    "lineage": "arc_atoms.py:453 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "shape"
+   ],
+   "affects": [
+    "shape"
+   ],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:rotate",
+    "in_type": "SHAPE",
+    "out_type": "SHAPE"
+   },
+   "roles": {
+    "default": "PROCESS",
+    "available": {
+     "PROCESS": 1
+    },
+    "example": {
+     "PROCESS": "arc_atoms:rotate"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "SHAPE"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "SHAPE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0
+  },
+  "AGENT|row": {
+   "name": "row",
+   "domain": "AGENT",
+   "status": "executable",
+   "form": "EXTRACT",
+   "in_type": "OBJECT",
+   "out_type": "POSITION",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_extract",
+   "defined_at": "arc_atoms.py:95",
+   "definition": "reads the 'row' reading off one object (the percept is described in readings.json)",
+   "reading": "row",
+   "realises": null,
+   "role_hint": "STATE",
+   "sources": [
+    "seat export 2026-10-08, seat-act e50406d"
+   ],
+   "tags": {
+    "primary": [
+     "POSITION"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "POSITION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "reads the 'row' reading off one object (the percept is described in readings.json)",
+    "status": "built",
+    "lineage": "arc_atoms.py:95 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "row"
+   ],
+   "affects": [],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:row",
+    "in_type": "OBJECT",
+    "out_type": "POSITION"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:row"
+    }
+   }
+  },
+  "AGENT|same": {
+   "name": "same",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "COLOUR",
+   "out_type": "PRED",
+   "also_accepts": [
+    "POSITION",
+    "EXTENT",
+    "DELTA",
+    "SHAPE",
+    "BOOL"
+   ],
+   "operand_type": "@same",
+   "reads_operand": true,
+   "reads_ctx": [
+    "operands"
+   ],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_relate",
+   "defined_at": "arc_atoms.py:805",
+   "definition": "equals another slot's value",
+   "realises": "≡ (identity test) / NSM THE SAME",
+   "role_hint": "RELATION",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "equals another slot's value",
+    "status": "built",
+    "lineage": "arc_atoms.py:805 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "colour"
+   ],
+   "affects": [],
+   "substrate": [
+    "spectrum"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:same",
+    "in_type": "COLOUR",
+    "out_type": "PRED"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "RELATION": 1
+    },
+    "example": {
+     "RELATION": "arc_atoms:same"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "COLOUR"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "COLOUR",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0
+  },
+  "AGENT|shape": {
+   "name": "shape",
+   "domain": "AGENT",
+   "status": "executable",
+   "form": "EXTRACT",
+   "in_type": "OBJECT",
+   "out_type": "SHAPE",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_extract",
+   "defined_at": "arc_atoms.py:97",
+   "definition": "reads the 'shape' reading off one object (the percept is described in readings.json)",
+   "reading": "shape",
+   "realises": null,
+   "role_hint": "STATE",
+   "sources": [
+    "seat export 2026-10-08, seat-act e50406d"
+   ],
+   "tags": {
+    "primary": [
+     "SHAPE"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "SHAPE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "reads the 'shape' reading off one object (the percept is described in readings.json)",
+    "status": "built",
+    "lineage": "arc_atoms.py:97 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "shape"
+   ],
+   "affects": [],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:shape",
+    "in_type": "OBJECT",
+    "out_type": "SHAPE"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:shape"
     }
    }
   },
@@ -1861,487 +5079,56 @@
     "example": {
      "STATE": "arc_atoms:sign"
     }
-   }
-  },
-  "AGENT|negate": {
-   "name": "negate",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "PRED",
-   "out_type": "PRED",
-   "also_accepts": [],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_connect",
-   "defined_at": "arc_atoms.py:982",
-   "definition": "the predicate does not hold",
-   "realises": "¬ (negation) / NSM NOT",
-   "role_hint": "TEST",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "the predicate does not hold",
-    "status": "built",
-    "lineage": "arc_atoms.py:982 (executable; meaning from the code's own docstring)"
    },
-   "reads": [],
-   "affects": [],
-   "substrate": [],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:negate",
-    "in_type": "PRED",
-    "out_type": "PRED"
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "CHANGE",
+     "DIRECTION",
+     "SPEED"
+    ],
+    "pairs": [
+     [
+      "CHANGE",
+      "DIRECTION"
+     ],
+     [
+      "CHANGE",
+      "SPEED"
+     ],
+     [
+      "DIRECTION",
+      "SPEED"
+     ]
+    ],
+    "scored": [
+     {
+      "tag": "CHANGE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.25
+     },
+     {
+      "tag": "DIRECTION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.25
+     },
+     {
+      "tag": "SPEED",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.25
+     }
+    ]
    },
-   "roles": {
-    "default": "TEST",
-    "available": {
-     "TEST": 1
-    },
-    "example": {
-     "TEST": "arc_atoms:negate"
-    }
-   }
-  },
-  "AGENT|both": {
-   "name": "both",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "PRED",
-   "out_type": "PRED",
-   "also_accepts": [],
-   "operand_type": "PRED",
-   "reads_operand": true,
-   "reads_ctx": [
-    "operands"
-   ],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_connect",
-   "defined_at": "arc_atoms.py:985",
-   "definition": "both predicates hold",
-   "realises": "+ (conjunction) / NSM AND",
-   "role_hint": "TEST",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "both predicates hold",
-    "status": "built",
-    "lineage": "arc_atoms.py:985 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [],
-   "affects": [],
-   "substrate": [],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:both",
-    "in_type": "PRED",
-    "out_type": "PRED"
-   },
-   "roles": {
-    "default": "TEST",
-    "available": {
-     "TEST": 1
-    },
-    "example": {
-     "TEST": "arc_atoms:both"
-    }
-   }
-  },
-  "AGENT|either": {
-   "name": "either",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "PRED",
-   "out_type": "PRED",
-   "also_accepts": [],
-   "operand_type": "PRED",
-   "reads_operand": true,
-   "reads_ctx": [
-    "operands"
-   ],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_connect",
-   "defined_at": "arc_atoms.py:991",
-   "definition": "at least one predicate holds",
-   "realises": "∥ (disjunction)",
-   "role_hint": "TEST",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "at least one predicate holds",
-    "status": "built",
-    "lineage": "arc_atoms.py:991 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [],
-   "affects": [],
-   "substrate": [],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:either",
-    "in_type": "PRED",
-    "out_type": "PRED"
-   },
-   "roles": {
-    "default": "TEST",
-    "available": {
-     "TEST": 1
-    },
-    "example": {
-     "TEST": "arc_atoms:either"
-    }
-   }
-  },
-  "AGENT|all": {
-   "name": "all",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "PRED",
-   "out_type": "OBJ",
-   "also_accepts": [],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_quantify",
-   "defined_at": "arc_atoms.py:1006",
-   "definition": "closes a predicate (does not range over a scope; byte-identical to `any`; kept until all_of is shown to reproduce it)",
-   "realises": "NSM ALL (degenerate)",
-   "role_hint": "STATE",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "closes a predicate (does not range over a scope; byte-identical to `any`; kept until all_of is shown to reproduce it)",
-    "status": "built",
-    "lineage": "arc_atoms.py:1006 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [],
-   "affects": [],
-   "substrate": [],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:all",
-    "in_type": "PRED",
-    "out_type": "OBJ"
-   },
-   "roles": {
-    "default": "STATE",
-    "available": {
-     "STATE": 1
-    },
-    "example": {
-     "STATE": "arc_atoms:all"
-    }
-   }
-  },
-  "AGENT|any": {
-   "name": "any",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "PRED",
-   "out_type": "OBJ",
-   "also_accepts": [],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_quantify",
-   "defined_at": "arc_atoms.py:1007",
-   "definition": "closes a predicate (byte-identical to `all`)",
-   "realises": "NSM SOME (degenerate)",
-   "role_hint": "STATE",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "closes a predicate (byte-identical to `all`)",
-    "status": "built",
-    "lineage": "arc_atoms.py:1007 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [],
-   "affects": [],
-   "substrate": [],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:any",
-    "in_type": "PRED",
-    "out_type": "OBJ"
-   },
-   "roles": {
-    "default": "STATE",
-    "available": {
-     "STATE": 1
-    },
-    "example": {
-     "STATE": "arc_atoms:any"
-    }
-   }
-  },
-  "AGENT|none": {
-   "name": "none",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "PRED",
-   "out_type": "OBJ",
-   "also_accepts": [],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [],
-   "elem_type": null,
-   "arm": null,
-   "on_arc_path": true,
-   "builder": "_quantify",
-   "defined_at": "arc_atoms.py:1008",
-   "definition": "closes a negated predicate",
-   "realises": "NSM NOT SOME (degenerate)",
-   "role_hint": "STATE",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "closes a negated predicate",
-    "status": "built",
-    "lineage": "arc_atoms.py:1008 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [],
-   "affects": [],
-   "substrate": [],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:none",
-    "in_type": "PRED",
-    "out_type": "OBJ"
-   },
-   "roles": {
-    "default": "STATE",
-    "available": {
-     "STATE": 1
-    },
-    "example": {
-     "STATE": "arc_atoms:none"
-    }
-   }
-  },
-  "AGENT|cells": {
-   "name": "cells",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "SHAPE",
-   "out_type": "CELLS",
-   "also_accepts": [],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [],
-   "elem_type": null,
-   "arm": "arc_atoms._ITERATE",
-   "on_arc_path": true,
-   "builder": "_iterate",
-   "defined_at": "arc_atoms.py:1030",
-   "definition": "open a shape into its cells",
-   "realises": "NSM PART",
-   "role_hint": "STATE",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "open a shape into its cells",
-    "status": "built",
-    "lineage": "arc_atoms.py:1030 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [
-    "shape"
-   ],
-   "affects": [],
-   "substrate": [
-    "space"
-   ],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:cells",
-    "in_type": "SHAPE",
-    "out_type": "CELLS"
-   },
-   "roles": {
-    "default": "STATE",
-    "available": {
-     "STATE": 1
-    },
-    "example": {
-     "STATE": "arc_atoms:cells"
-    }
-   }
-  },
-  "AGENT|cell_row": {
-   "name": "cell_row",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "CELL",
-   "out_type": "POSITION",
-   "also_accepts": [],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [],
-   "elem_type": null,
-   "arm": "arc_atoms._ITERATE",
-   "on_arc_path": true,
-   "builder": "_iterate",
-   "defined_at": "arc_atoms.py:1038",
-   "definition": "a cell's row",
-   "realises": null,
-   "role_hint": "STATE",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "a cell's row",
-    "status": "built",
-    "lineage": "arc_atoms.py:1038 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [
-    "shape"
-   ],
-   "affects": [],
-   "substrate": [
-    "space"
-   ],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:cell_row",
-    "in_type": "CELL",
-    "out_type": "POSITION"
-   },
-   "roles": {
-    "default": "STATE",
-    "available": {
-     "STATE": 1
-    },
-    "example": {
-     "STATE": "arc_atoms:cell_row"
-    }
-   }
-  },
-  "AGENT|cell_col": {
-   "name": "cell_col",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "CELL",
-   "out_type": "POSITION",
-   "also_accepts": [],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [],
-   "elem_type": null,
-   "arm": "arc_atoms._ITERATE",
-   "on_arc_path": true,
-   "builder": "_iterate",
-   "defined_at": "arc_atoms.py:1041",
-   "definition": "a cell's column",
-   "realises": null,
-   "role_hint": "STATE",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "a cell's column",
-    "status": "built",
-    "lineage": "arc_atoms.py:1041 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [
-    "shape"
-   ],
-   "affects": [],
-   "substrate": [
-    "space"
-   ],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:cell_col",
-    "in_type": "CELL",
-    "out_type": "POSITION"
-   },
-   "roles": {
-    "default": "STATE",
-    "available": {
-     "STATE": 1
-    },
-    "example": {
-     "STATE": "arc_atoms:cell_col"
-    }
-   }
-  },
-  "AGENT|count_true": {
-   "name": "count_true",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "CELLS",
-   "out_type": "EXTENT",
-   "also_accepts": [],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [],
-   "elem_type": "BOOL",
-   "arm": "arc_atoms._ITERATE",
-   "on_arc_path": true,
-   "builder": "_iterate",
-   "defined_at": "arc_atoms.py:1044",
-   "definition": "how many cells a predicate held on (refuses non-boolean)",
-   "realises": "NSM MANY, counted",
-   "role_hint": "MEASURE",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "how many cells a predicate held on (refuses non-boolean)",
-    "status": "built",
-    "lineage": "arc_atoms.py:1044 (executable; meaning from the code's own docstring)"
-   },
-   "reads": [
-    "shape"
-   ],
-   "affects": [],
-   "substrate": [
-    "space"
-   ],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:count_true",
-    "in_type": "CELLS",
-    "out_type": "EXTENT"
-   },
-   "roles": {
-    "default": "MEASURE",
-    "available": {
-     "MEASURE": 1
-    },
-    "example": {
-     "MEASURE": "arc_atoms:count_true"
-    }
-   }
+   "reach_tier": 0
   },
   "AGENT|size": {
    "name": "size",
@@ -2391,57 +5178,25 @@
     "example": {
      "MEASURE": "arc_atoms:size"
     }
-   }
-  },
-  "AGENT|all_of": {
-   "name": "all_of",
-   "domain": "AGENT",
-   "status": "executable",
-   "in_type": "CELLS",
-   "out_type": "OBJ",
-   "also_accepts": [],
-   "operand_type": null,
-   "reads_operand": false,
-   "reads_ctx": [],
-   "elem_type": "BOOL",
-   "arm": "arc_atoms._ITERATE",
-   "on_arc_path": true,
-   "builder": "_iterate",
-   "defined_at": "arc_atoms.py:1083",
-   "definition": "the predicate held on every cell",
-   "realises": "NSM ALL",
-   "role_hint": "STATE",
-   "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
-   ],
-   "kind": "PRIMITIVE",
-   "grid": {
-    "meaning": "the predicate held on every cell",
-    "status": "built",
-    "lineage": "arc_atoms.py:1083 (executable; meaning from the code's own docstring)"
    },
-   "reads": [
-    "shape"
-   ],
-   "affects": [],
-   "substrate": [
-    "space"
-   ],
-   "run": {
-    "route": "PRIMITIVE",
-    "impl": "arc_atoms:all_of",
-    "in_type": "CELLS",
-    "out_type": "OBJ"
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "EXTENT"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
    },
-   "roles": {
-    "default": "STATE",
-    "available": {
-     "STATE": 1
-    },
-    "example": {
-     "STATE": "arc_atoms:all_of"
-    }
-   }
+   "reach_tier": 0
   },
   "AGENT|some_of": {
    "name": "some_of",
@@ -2491,84 +5246,268 @@
     "example": {
      "STATE": "arc_atoms:some_of"
     }
-   }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [],
+    "pairs": [],
+    "scored": []
+   },
+   "reach_tier": 0
   },
-  "AGENT|none_of": {
-   "name": "none_of",
+  "AGENT|speed": {
+   "name": "speed",
    "domain": "AGENT",
    "status": "executable",
-   "in_type": "CELLS",
-   "out_type": "OBJ",
+   "form": "EXTRACT",
+   "in_type": "OBJECT",
+   "out_type": "EXTENT",
    "also_accepts": [],
    "operand_type": null,
    "reads_operand": false,
    "reads_ctx": [],
-   "elem_type": "BOOL",
-   "arm": "arc_atoms._ITERATE",
-   "on_arc_path": true,
-   "builder": "_iterate",
-   "defined_at": "arc_atoms.py:1083",
-   "definition": "the predicate held on no cell",
-   "realises": "NSM NOT SOME",
-   "role_hint": "STATE",
+   "elem_type": null,
+   "arm": "arc_percept._INSTRUMENTS",
+   "on_arc_path": false,
+   "builder": "_extract",
+   "defined_at": "arc_atoms.py:154",
+   "definition": "reads the 'speed' reading off one object (the percept is described in readings.json)",
+   "reading": "speed",
+   "realises": null,
+   "role_hint": "MEASURE",
    "sources": [
-    "seat export 2026-10-08 (seat-act e50406d)"
+    "seat export 2026-10-08, seat-act e50406d"
    ],
+   "tags": {
+    "primary": [
+     "EXTENT"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
    "kind": "PRIMITIVE",
    "grid": {
-    "meaning": "the predicate held on no cell",
+    "meaning": "reads the 'speed' reading off one object (the percept is described in readings.json)",
     "status": "built",
-    "lineage": "arc_atoms.py:1083 (executable; meaning from the code's own docstring)"
+    "lineage": "arc_atoms.py:154 (executable; meaning from the code's own docstring)"
    },
    "reads": [
-    "shape"
+    "speed"
    ],
    "affects": [],
    "substrate": [
-    "space"
+    "space",
+    "time"
    ],
    "run": {
     "route": "PRIMITIVE",
-    "impl": "arc_atoms:none_of",
-    "in_type": "CELLS",
-    "out_type": "OBJ"
+    "impl": "arc_atoms:speed",
+    "in_type": "OBJECT",
+    "out_type": "EXTENT"
    },
    "roles": {
-    "default": "STATE",
+    "default": "MEASURE",
     "available": {
-     "STATE": 1
+     "MEASURE": 1
     },
     "example": {
-     "STATE": "arc_atoms:none_of"
+     "MEASURE": "arc_atoms:speed"
     }
    }
   },
-  "AGENT|one_of": {
-   "name": "one_of",
+  "AGENT|stability": {
+   "name": "stability",
    "domain": "AGENT",
    "status": "executable",
-   "in_type": "CELLS",
-   "out_type": "OBJ",
+   "form": "EXTRACT",
+   "in_type": "OBJECT",
+   "out_type": "EXTENT",
    "also_accepts": [],
    "operand_type": null,
    "reads_operand": false,
    "reads_ctx": [],
-   "elem_type": "BOOL",
-   "arm": "arc_atoms._ITERATE",
+   "elem_type": null,
+   "arm": "arc_percept._INSTRUMENTS",
+   "on_arc_path": false,
+   "builder": "_extract",
+   "defined_at": "arc_atoms.py:169",
+   "definition": "reads the 'stability' reading off one object (the percept is described in readings.json)",
+   "reading": "stability",
+   "realises": null,
+   "role_hint": "MEASURE",
+   "sources": [
+    "seat export 2026-10-08, seat-act e50406d"
+   ],
+   "tags": {
+    "primary": [
+     "EXTENT"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "reads the 'stability' reading off one object (the percept is described in readings.json)",
+    "status": "built",
+    "lineage": "arc_atoms.py:169 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "stability"
+   ],
+   "affects": [],
+   "substrate": [
+    "time"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:stability",
+    "in_type": "OBJECT",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:stability"
+    }
+   }
+  },
+  "AGENT|sum_group": {
+   "name": "sum_group",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "POSITION",
+   "out_type": "EXTENT",
+   "also_accepts": [
+    "EXTENT",
+    "DELTA"
+   ],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [
+    "group"
+   ],
+   "elem_type": null,
+   "arm": null,
    "on_arc_path": true,
-   "builder": "_iterate",
-   "defined_at": "arc_atoms.py:1083",
-   "definition": "the predicate held on exactly one cell",
-   "realises": "NSM ONE",
+   "builder": "_group_more",
+   "defined_at": "arc_atoms.py:932",
+   "definition": "total over the group",
+   "realises": "+ over a group",
+   "role_hint": "MEASURE",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "total over the group",
+    "status": "built",
+    "lineage": "arc_atoms.py:932 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "row",
+    "col"
+   ],
+   "affects": [],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:sum_group",
+    "in_type": "POSITION",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:sum_group"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "EXTENT",
+     "POSITION"
+    ],
+    "pairs": [
+     [
+      "EXTENT",
+      "POSITION"
+     ]
+    ],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     },
+     {
+      "tag": "POSITION",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.3333
+     }
+    ]
+   },
+   "reach_tier": 0
+  },
+  "AGENT|symmetric": {
+   "name": "symmetric",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "SHAPE",
+   "out_type": "BOOL",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_shape_more",
+   "defined_at": "arc_atoms.py:745",
+   "definition": "unchanged under a reflection",
+   "realises": null,
    "role_hint": "STATE",
    "sources": [
     "seat export 2026-10-08 (seat-act e50406d)"
    ],
    "kind": "PRIMITIVE",
    "grid": {
-    "meaning": "the predicate held on exactly one cell",
+    "meaning": "unchanged under a reflection",
     "status": "built",
-    "lineage": "arc_atoms.py:1083 (executable; meaning from the code's own docstring)"
+    "lineage": "arc_atoms.py:745 (executable; meaning from the code's own docstring)"
    },
    "reads": [
     "shape"
@@ -2579,9 +5518,9 @@
    ],
    "run": {
     "route": "PRIMITIVE",
-    "impl": "arc_atoms:one_of",
-    "in_type": "CELLS",
-    "out_type": "OBJ"
+    "impl": "arc_atoms:symmetric",
+    "in_type": "SHAPE",
+    "out_type": "BOOL"
    },
    "roles": {
     "default": "STATE",
@@ -2589,7 +5528,279 @@
      "STATE": 1
     },
     "example": {
-     "STATE": "arc_atoms:one_of"
+     "STATE": "arc_atoms:symmetric"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "SHAPE"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "SHAPE",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0
+  },
+  "AGENT|touching": {
+   "name": "touching",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "OBJECT",
+   "out_type": "BOOL",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [
+    "obj",
+    "touching"
+   ],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_contact",
+   "defined_at": "arc_atoms.py:782",
+   "definition": "shares a cell face with another object (the two-place relation, second operand from context)",
+   "realises": "NSM TOUCH(X, Y)",
+   "role_hint": "RELATION",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "shares a cell face with another object (the two-place relation, second operand from context)",
+    "status": "built",
+    "lineage": "arc_atoms.py:782 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:touching",
+    "in_type": "OBJECT",
+    "out_type": "BOOL"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "RELATION": 1
+    },
+    "example": {
+     "RELATION": "arc_atoms:touching"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [],
+    "pairs": [],
+    "scored": []
+   },
+   "reach_tier": 0
+  },
+  "AGENT|touching_n": {
+   "name": "touching_n",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "OBJECT",
+   "out_type": "EXTENT",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [
+    "obj",
+    "touching"
+   ],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_shape_facts",
+   "defined_at": "arc_atoms.py:622",
+   "definition": "how many objects it is in contact with",
+   "realises": null,
+   "role_hint": "MEASURE",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "how many objects it is in contact with",
+    "status": "built",
+    "lineage": "arc_atoms.py:622 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:touching_n",
+    "in_type": "OBJECT",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:touching_n"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [
+     "EXTENT"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0
+  },
+  "AGENT|translate": {
+   "name": "translate",
+   "domain": "AGENT",
+   "status": "executable",
+   "in_type": "val",
+   "out_type": "val",
+   "also_accepts": [],
+   "operand_type": "@same",
+   "reads_operand": true,
+   "reads_ctx": [
+    "operands"
+   ],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "predict",
+   "defined_at": "arc_predict.py:79",
+   "definition": "add another slot's value (a displacement, never a constant)",
+   "realises": null,
+   "role_hint": "PROCESS",
+   "sources": [
+    "seat export 2026-10-08 (seat-act e50406d)"
+   ],
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "add another slot's value (a displacement, never a constant)",
+    "status": "built",
+    "lineage": "arc_predict.py:79 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [],
+   "affects": [
+    "drow",
+    "dcol"
+   ],
+   "substrate": [
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:translate",
+    "in_type": "val",
+    "out_type": "val"
+   },
+   "roles": {
+    "default": "PROCESS",
+    "available": {
+     "PROCESS": 1
+    },
+    "example": {
+     "PROCESS": "arc_atoms:translate"
+    }
+   },
+   "form": "OPERATION",
+   "tags": {
+    "primary": [],
+    "pairs": [],
+    "scored": []
+   },
+   "reach_tier": 0
+  },
+  "AGENT|w": {
+   "name": "w",
+   "domain": "AGENT",
+   "status": "executable",
+   "form": "EXTRACT",
+   "in_type": "OBJECT",
+   "out_type": "EXTENT",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_extract",
+   "defined_at": "arc_atoms.py:96",
+   "definition": "reads the 'w' reading off one object (the percept is described in readings.json)",
+   "reading": "w",
+   "realises": null,
+   "role_hint": "MEASURE",
+   "sources": [
+    "seat export 2026-10-08, seat-act e50406d"
+   ],
+   "tags": {
+    "primary": [
+     "EXTENT"
+    ],
+    "pairs": [],
+    "scored": [
+     {
+      "tag": "EXTENT",
+      "score": 1.0,
+      "via": [
+       "type"
+      ],
+      "weight": 0.5
+     }
+    ]
+   },
+   "reach_tier": 0,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "reads the 'w' reading off one object (the percept is described in readings.json)",
+    "status": "built",
+    "lineage": "arc_atoms.py:96 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "w"
+   ],
+   "affects": [],
+   "substrate": [
+    "space",
+    "spectrum"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:w",
+    "in_type": "OBJECT",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:w"
     }
    }
   }

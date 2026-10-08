@@ -49,3 +49,22 @@ Started 2026-10-08 ~09:10 CDT on Isaiah's "proceed - big task (handle it with ca
 - 22:45 METAPROGRAMMING_DESIGN.md written. Key decision: library = REACH, never Γ's alphabet (price formula, "loading is not entering", Gamma.__init__ trapdoor ruling); Gamma.register NOT built -- a COMPILER turns candidates into Terms over Γ's 77 atoms (compile table: rows compile / compile as tree / REFUSED with named gap: no zero-test on EXTENT, events not slots, BOOL->PRED to be measured); equivalence fixture vs condition.evaluate; reach step; adoption via existing mint/standing/promote/units; invent + carry; commits M1-M8 with must-pass/must-fail.
 - 23:00 Design §4.4 fixed: role choice was a rulebook (contradicts 09-25 accumulation+threshold); now every role offered, ranked by fit.
 - 23:15 Isaiah: 'all the rulings are stale - lets use your suggestions'. RULINGS_UPDATE_2026-10-08.md written (authority order figures-first; library/index/reach; no hand-drafting; roles accumulate; mint/invent/import; generalisation; testing reopens after M4+census; Kaggle-ready definition; full green w/ reuse; arm parser; branches; seat-map amended sentence; intent layer next). Package v4.
+
+
+## v5 — 2026-10-08 ~12:45–13:30 CDT (reviewer's own regressions)
+
+- Seat (12:39) noted inherited.py reads library/ and counted atoms 1,789. Checked what it reads: agent_atoms.json
+  (tags.primary → by_tag) and tag_index.json. Found: v4 tag_index.json stale (133 keys for entries dedup removed);
+  v4 agent atoms untagged and without reach_tier; 21 EXTRACT atoms no longer in agent_atoms.json → unreachable.
+  stateful's keyed-reach checks pass regardless (they test the index against itself).
+- Fix: transforms/integrate_extract_and_tags_2026_10_08b.py.txt (77 agent atoms; tags from inherited.atom_tags at
+  8783717 — identical to the old file on all 62 old atoms; reach_tier 0; readings keep only code.extract_atom).
+  build_library.py derives tag_index.json (_tag_index; reproduces the old index on old data: by_tag, by_pair,
+  by_attribute equal) and --check covers it. 4 new runtime checks; all pass on v5, 3 fail on v4 data.
+- Through the real agent code (repo copy at 8783717 + v5 library): inherited.load() atoms 1,816 (1,739 + 77);
+  reach(POSITION, MOTION, CHANGE) → 1,658 keys, 24 agent atoms, 0 dangling (pre-v4 library: 1,711 / 18 / 0);
+  stateful test_the_keyed_reach_loses_nothing and test_the_inherited_vocabulary_is_not_the_held_library pass.
+- fast_check: ordering edges + units + disk hashing of runs/ (see FAST_COMMIT.md). Stand-in seat test passes.
+- Lint: v4's library .py files carried ~390 ruff findings (the ruff seat lints `.`). The three live files are now
+  clean (ruff 0.16.8, repo pyproject); the five one-off transforms move to docs/cohesion/transforms/ as .txt
+  records. All derived files byte-identical before/after the lint edits.

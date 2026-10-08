@@ -4,12 +4,13 @@
 
 - atoms: 1739
 - molecules: 2164
-- agent_atoms: 50
+- agent_atoms: 77
 - relations: 66
 - readings: 47
 - isomer_families: 13
-- identity_candidates: 161
-- same_name_across_domains: 215
+- identity_candidates: 162
+- same_name_across_domains: 219
+- tag_index_tags: 34
 
 ## Every unresolved item, named
 
