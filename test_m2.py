@@ -1672,19 +1672,23 @@ def check_not_t_pays_only_when_t_does_worse_than_nothing():
     was = tether._REFUTED_BIN
     tether._REFUTED_BIN = True
     try:
+        # F498: only a refusal of the term the slot still holds is filed (Fig 1)
+        ag.bound[slot] = name
         ag._refuted_slot[slot] = name
         n0 = len(ag.led.entries)
         routed = ag.route({slot: tether.SlotResidual(slot, tether.TRANSITION, 0, 1, 1.0)})
         # ROUTE FILES, MINT PRICES (F497): route alone writes no refusal row, so the ladder holds
         assert not [e for e in ag.led.entries[n0:] if e.event in ("not_t", "refuse")], (
             "route priced the refusal: a mint written during routing")
-        assert {s: b for s, b, *_ in routed}.get(slot) == tether.REFUTED
+        assert {s: b for s, b, *_ in routed}.get(slot) == tether.REFUTED, (
+            "fixture: the bound, persisting refusal was not filed")
         ag._price_refusal(slot)
         rows = [e for e in ag.led.entries[n0:] if e.event == "refuse" and e.slot == slot]
         assert rows and rows[0].detail.get("predicting") == 2, "the filled bin did not refuse"
         tried = [e for e in ag.led.entries[n0:] if e.event == "not_t" and e.slot == slot]
         assert tried and tried[0].detail.get("verdict") == "paid", "the attempt wrote no row"
         left.update(t=1.0, nothing=50.0)
+        ag.bound[slot] = name
         ag._refuted_slot[slot] = name
         n1 = len(ag.led.entries)
         res = {slot: tether.SlotResidual(slot, tether.TRANSITION, 0, 1, 1.0)}
@@ -1745,6 +1749,50 @@ def check_a_competitor_discharges_the_slot():
         assert slot not in ag.abstained, "a competitor bind left the slot's abstention on record"
     finally:
         tether._REFUTED_BIN = was
+
+
+def check_a_persisting_refusal_is_filed():
+    """F498: the bin files a refused term while ITS residual on the slot persists over the last
+    MIN_REPEAT+1 rows and does not trend down (Fig 5's amendment; the reviewer 2026-10-07 14:58Z),
+    not merely while this cycle's residual is nonzero. Every case is routed at a residual of 0,
+    so (0, 2, 0) -- the alternation read on its RIGHT step -- is filed only by the window."""
+    ag = _agent()
+    name = _minted(ag, 1)
+    slot = _wide(ag)
+    rows = ag.history(slot)[-(tether.MIN_REPEAT + 1):]
+    assert len(rows) == tether.MIN_REPEAT + 1, "fixture: the slot has no full window"
+    real_hist, real_left = ag.history, ag._left
+    ag.history = lambda s: rows if s == slot else real_hist(s)
+    was = tether._REFUTED_BIN
+    tether._REFUTED_BIN = True
+    try:
+        for series, filed in (((0, 2, 0), True), ((2, 0, 2), True), ((2, 2, 2), True),
+                              ((5, 0, 0), False), ((3, 2, 1), False)):
+            def left(term, s, hist, *a, _ser=series, **k):
+                if term.name == name and len(hist) == 1 and hist[0] in rows:
+                    return float(_ser[rows.index(hist[0])])
+                return real_left(term, s, hist, *a, **k)
+            ag._left = left
+            ag.bound[slot] = name
+            ag._refuted_slot[slot] = name
+            routed = ag.route({slot: tether.SlotResidual(slot, tether.TRANSITION, 0, 0, 0.0)})
+            got = {s: b for s, b, *_ in routed}.get(slot)
+            assert (got == tether.REFUTED) == filed, f"{series}: routed {got}, filed={filed}"
+            ag._refuted_slot.pop(slot, None)
+        # STALE: the slot was rebound in the cycle t was refused; t's window persists, but the
+        # prediction this step was another term's, so t is not filed (Fig 1).
+        other = next(n for n in sorted(ag.gamma.library) if n != name)
+        ag.bound[slot] = other
+        ag._left = lambda term, s, hist, *a, **k: (
+            2.0 if term.name == name and len(hist) == 1 and hist[0] in rows
+            else real_left(term, s, hist, *a, **k))   # (2, 2, 2): t's window persists
+        ag._refuted_slot[slot] = name
+        routed = ag.route({slot: tether.SlotResidual(slot, tether.TRANSITION, 0, 0, 0.0)})
+        got = {s: b for s, b, *_ in routed}.get(slot)
+        assert got != tether.REFUTED, "a refused term no longer bound was filed"
+    finally:
+        tether._REFUTED_BIN = was
+        ag.history, ag._left = real_hist, real_left
 
 
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
