@@ -223,7 +223,7 @@ def shape_of(obj: dict) -> frozenset:
     return obj["shape"]
 
 
-def identity_of(name: str, matches: dict, tracked: dict) -> str | None:
+def identity_of(name: str, matches: dict, tracked: dict, refused=()) -> str | None:
     """How `name` was re-found on the latest frame: "overlap", "unique-shape", "look-alike",
     "birth", or None when it is not tracked. ONE RULE FOR THE WHOLE AGENT: `ArcWorld.identity`
     (read by `restarted`, F479) and the cell-change readings both call this, so the two cannot
@@ -235,6 +235,9 @@ def identity_of(name: str, matches: dict, tracked: dict) -> str | None:
     route = matches.get(name, (None,))[0]
     if name not in tracked or route is None:
         return None
+    # NOT-IDENTITY, "two names, two referents" (F496, R2): a refused identity is never sure again.
+    if name in refused:
+        return "refused"
     if route != "shape":
         return route
     mine = shape_of(tracked[name])
@@ -540,6 +543,8 @@ class Objects:
 
     def __init__(self) -> None:
         self.tracked: dict[str, dict] = {}
+        # Names whose identity across frames was REFUSED -- add-only, read by `identity_of`.
+        self.refused_identity: set[str] = set()
         self._next = 0
         # THE MATCH EVIDENCE, KEPT INSTEAD OF DISCARDED. The matcher computes an overlap score
         # for every (new x tracked) pair and throws all of it away but the winning name -- so
@@ -780,7 +785,8 @@ class Objects:
                 prev = self.tracked.get(name)
                 if prev is None or name not in self.matches or obj.get("covered"):
                     continue
-                if identity_of(name, self.matches, fresh) in ("overlap", "unique-shape"):
+                if identity_of(name, self.matches, fresh, self.refused_identity) in (
+                        "overlap", "unique-shape"):
                     an, ar, ac = _cells_at(obj["cells"] - prev["cells"])
                     rn, rr, rc = _cells_at(prev["cells"] - obj["cells"])
                     obj.update(add_n=an, add_row=ar, add_col=ac, rem_n=rn, rem_row=rr, rem_col=rc)

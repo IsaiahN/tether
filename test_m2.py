@@ -1544,6 +1544,156 @@ def check_a_signed_shape_delta_is_not_aliased():
         arc_percept._SHAPE_DELTA = was
 
 
+
+def _minted(ag, k: int = 2):
+    """A held, non-atom term of at least `k` atoms, or None."""
+    return next((n for n, t in sorted(ag.gamma.library.items())
+                 if len(t.atoms) >= k and not ag.gamma.is_atom(t)), None)
+
+
+def check_a_refusal_adds_and_lifts_only_on_growth():
+    """not-t (F496; Fig 6): a refusal ADDS and removes nothing (P1); a never-held term cannot be
+    refused (P5); it holds across any number of cycles and lifts only when the scope grows (P4)."""
+    ag = _agent()
+    name = _minted(ag, 1)
+    assert name, "fixture: no held term to refuse"
+    slot = _wide(ag)
+    lib = dict(ag.gamma.library)
+    assert not ag.refuse_term("never_held_term", slot), "a never-held term was refused"
+    assert not ag._not, "refusing a never-held term left a record"
+    assert ag.refuse_term(name, slot)
+    gk = ag._term_gkey(slot)
+    assert ag.gamma.library == lib, "a refusal removed or changed a library term"
+    assert ag._term_refused(name, gk)
+    ag.cycle += 50
+    assert ag._term_refused(name, gk), "a refusal faded with time"
+    a0, a1 = ag.gamma.atoms[0], ag.gamma.atoms[-1]
+    ag.gamma.accept(gamma.Term((a0, a1, a0)), seq=999, residual="fixture growth")
+    assert not ag._term_refused(name, gk), "growth did not lift the refusal"
+    assert ag.refuse_term(name, slot)
+    assert len(ag._not[(name, gk)]) == 2, "the record is not add-only"
+
+
+def check_a_refused_term_is_not_retrieved():
+    """P2: while not-t stands, t is not offered as a rebinding for that gap shape. The toy library
+    holds no term that explains a slot, so the explanation test is stubbed to accept and the
+    filter is what is tested: the first term retrieved, refused, must not be retrieved again."""
+    ag = _agent()
+    ag._rebindings = lambda t, *_a: [t]
+    ag._explains = lambda *_a: True
+    was, tether._BARGAIN_FIT = tether._BARGAIN_FIT, False
+    try:
+        slot = _wide(ag)
+        name = ag._library_fit(slot, None)
+        assert name, "fixture: nothing was retrieved even with the explanation test open"
+        ag.refuse_term(name, slot)
+        assert ag._library_fit(slot, None) != name, f"{name} was retrieved after its refusal"
+    finally:
+        tether._BARGAIN_FIT = was
+
+
+def check_a_refused_term_is_no_shortcut_by_containment():
+    """P3, by SEQUENCE CONTAINMENT (no lineage is kept): a settled t is one unit; refused, it is
+    not, so terms that paid only through it re-price at full length -- reach falls by derivation."""
+    ag = _agent()
+    name = _minted(ag, 2)
+    assert name, "fixture: no held term of two or more atoms"
+    st = ag.gamma.standing.setdefault(name, gamma.Standing())
+    st.settled_at = ag.gamma.tick
+    slot = _wide(ag)
+    seq = ag.gamma.library[name].atoms
+    assert any(u.atoms == seq for u in ag._units_for(slot)), "fixture: the settled term is no unit"
+    ag.refuse_term(name, slot)
+    assert not any(u.atoms == seq for u in ag._units_for(slot)), "a refused term is still a unit"
+    assert name in ag.gamma.library, "the refused term left the library"
+
+
+def check_a_refused_settled_term_is_a_contradiction():
+    """P6 (open in Fig 6): a settled term refused is written down as a contradiction and decided
+    nowhere -- its standing is untouched."""
+    ag = _agent()
+    name = _minted(ag, 1)
+    st = ag.gamma.standing.setdefault(name, gamma.Standing())
+    st.settled_at = ag.gamma.tick
+    n0 = len(ag.led.entries)
+    ag.refuse_term(name, _wide(ag))
+    rows = [e for e in ag.led.entries[n0:] if e.event == "contradiction"]
+    assert rows and rows[0].detail.get("term") == name, "no contradiction row for a settled refusal"
+    assert ag.gamma.is_settled(name), "the contradiction was decided by unsettling the term"
+
+
+
+def check_a_refused_identity_reads_unsure():
+    """R2, not-identity -- "two names, two referents" (F496): once an object's identity is
+    refused, the one identity rule reads it unsure on every later frame, so restart carry and the
+    cell-change readings stop trusting it. Nothing else about the object changes."""
+    env = ArcWorld(_Two(), arc_percept.Objects(),
+                   arc_atoms.three_spaces(arc_predict.predict()), palette=PALETTE, platform=())
+    env.observe()
+    env.step(env.actions()[0])
+    env.observe()
+    obj = next((n for n in sorted(env._decompose.tracked) if env.identity(n) == "overlap"), None)
+    assert obj, "fixture: no object was re-found by overlap, so there is no sure identity to refuse"
+    env.refuse_identity(obj)
+    env.step(env.actions()[0])
+    env.observe()
+    assert env.identity(obj) not in ("overlap", "unique-shape"), (
+        f"{obj}'s identity was refused and still reads sure: {env.identity(obj)}")
+    other = next((n for n in sorted(env._decompose.tracked) if n != obj), None)
+    assert other is None or env.identity(other) != "refused", "a refusal spread to another object"
+
+
+
+def check_not_t_pays_only_when_t_does_worse_than_nothing():
+    """Step 3 (F496; Fig 5's amendment): not-t pays iff its price plus what stays unexplained with
+    t withdrawn (the persistence prior) is under what t leaves. The price names WHICH predicting
+    term is wrong, agent-wide (the reviewer 2026-10-07). With arm J on, the filled bin refuses."""
+    ag = _agent()
+    name = _minted(ag, 1)
+    slot = _wide(ag)
+    left = {"t": 50.0, "nothing": 1.0}
+    ag._left = lambda term, *_a, **_k: left["t"] if term.name == name else left["nothing"]
+    ag._pred_by = {"a": name, "b": "other", "c": name}
+    ok, d = ag._price_not(name, slot)
+    assert ok and d["predicting"] == 2, f"t far worse than nothing was not refused: {d}"
+    left.update(t=1.0, nothing=50.0)
+    ok, d = ag._price_not(name, slot)
+    assert not ok, f"t better than nothing was refused: {d}"
+    left.update(t=50.0, nothing=1.0)
+    was = tether._REFUTED_BIN
+    tether._REFUTED_BIN = True
+    try:
+        ag._refuted_slot[slot] = name
+        n0 = len(ag.led.entries)
+        ag.route({slot: tether.SlotResidual(slot, tether.TRANSITION, 0, 1, 1.0)})
+        rows = [e for e in ag.led.entries[n0:] if e.event == "refuse" and e.slot == slot]
+        assert rows and rows[0].detail.get("predicting") == 2, "the filled bin did not refuse"
+        assert ag._term_refused(name, ag._term_gkey(slot)), "the refusal was not recorded"
+    finally:
+        tether._REFUTED_BIN = was
+
+
+
+def check_a_bound_want_can_be_refused():
+    """R1, the mechanisable half of Fig 5's direction limit (F496): a sought-for shape bound as an
+    ORDINARY term -- an objective-typed term on the goal slot -- is bet on like any other and is
+    priced and refused by the same path. Nothing here claims the frame checks its own direction."""
+    ag = _agent()
+    goal = next(s for s in ag.slots if s.startswith("@goal"))
+    want = next(n for n, t in sorted(ag.gamma.library.items())
+                if getattr(t, "out_type", None) == tether.OBJ_TYPE and not ag.gamma.is_atom(t))
+    ag.bound[goal] = want
+    n0 = len(ag.led.entries)
+    ag.step()
+    bets = [e for e in ag.led.entries[n0:] if e.event == "bet" and e.slot == goal]
+    assert bets, f"fixture: the bound want on {goal} was not bet on"
+    ag._left = lambda term, *_a, **_k: 50.0 if term.name == want else 1.0
+    ok, d = ag._price_not(want, goal)
+    assert ok, f"a want doing worse than nothing was not refusable: {d}"
+    assert ag.refuse_term(want, goal, **d) and ag._term_refused(want, ag._term_gkey(goal)), (
+        "a bound want could not be refused by the ordinary path")
+
+
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
 
 if __name__ == "__main__":
