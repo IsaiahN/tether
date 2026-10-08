@@ -374,6 +374,27 @@ _STREAM_WIDEN = bool(os.environ.get("TETHER_STREAM_WIDEN"))
 _HOLD = bool(os.environ.get("TETHER_HOLD"))
 _HOLD_SEED = os.environ.get("TETHER_HOLD_SEED", "0")
 
+# THE STEP'S SEARCH ALLOWANCE -- the PLATFORM's time, not the agent's choice (the reviewer,
+# 2026-10-05). ~28,800 usable s (the official sample stops at 8h-5m) over games x actions;
+# 25 x 500 is a PLACEHOLDER until Isaiah gives the private game count. Converted into
+# TWO COUNTED TERMS -- THE WORK SINCE F481 (2026-10-07): a search enumerates and prices
+# candidates, and some slots' candidates are also EVALUATED (`_value_of`) -- a shape slot's ~0.9
+# per candidate against ~0.05 elsewhere, which is the whole of its ~4x cost. Fit by least squares
+# on the fake, be04f62, 16 cycles, five slots (each within ~10%): ~11.65 us per candidate priced
+# + ~43.8 us per evaluation. Counted, not timed, so a run stays deterministic; SEAT STOP-GAP until
+# the runner calibrates both rates once at start on the real machine (the reviewer, 2026-10-07).
+STEP_SECONDS = 28_800 / (25 * 500)
+# anchor: seconds per candidate priced -- MEASURED (least squares, fake, be04f62), a stop-gap
+# until the runner calibrates it once at start on the machine actually running.
+SECONDS_PER_CANDIDATE = 11.65e-6
+# anchor: seconds per evaluation (`_value_of`) -- measured with the rate above, same stop-gap.
+SECONDS_PER_EVALUATION = 43.8e-6
+
+
+def search_seconds(priced: int, evaluated: int) -> float:
+    """A search's cost in seconds, from what it COUNTED -- deterministic within a run."""
+    return priced * SECONDS_PER_CANDIDATE + evaluated * SECONDS_PER_EVALUATION
+
 # `_INVENT` / `_invent` REMOVED -- Isaiah 2026-10-04, *a bootleg composition*; RETIRED means
 # gone. Why, measured: `F431.6`. `conform/arms.py` `RETIRED` refuses the flag if it returns.
 
@@ -1012,6 +1033,8 @@ class Agent:
         self._hold_eligible = 0
         self._priced = 0                     # candidates priced by `_cannot_pay`, ever
         self._memo: dict | None = None       # live only inside one `mint` -- see `mint`
+        self._search: dict[str, dict] = {}   # slot -> its last costly search: lib, base, fruitless
+        self._evaluated = 0                  # `_value_of` calls, ever -- the second unit of work
         self._hold_withheld = 0
         # **AND THE KEY-LEVEL DENOMINATOR BESIDE IT, because the coin is flipped per
         # (cycle, slot) and NOT per occasion.** Several eligible occasions can share one
@@ -2256,6 +2279,7 @@ class Agent:
         One function, four callers, for `_record`'s reason -- a bet and a price that disagree
         about what a term MEANS is not a disagreement any test names.
         """
+        self._evaluated += 1
         if getattr(term, "out_type", "val") == OBJ_TYPE:
             ordered = self.slot_types.get(slot) in ORDERED_TYPES
             def _sat(v: int) -> bool | None:
@@ -6036,6 +6060,95 @@ class Agent:
         rank = contact_first(near)
         return [None] + sorted(others, key=lambda s: (*rank(s), -seen[s], s))
 
+    def _spend_search(self, offered: list[str]) -> None:
+        """LEVER A -- THE AGENT CHOOSES WHICH SLOTS TO SEARCH THIS STEP. The reviewer approved the
+        design 2026-10-05; the runtime profile said why: every floor-cleared slot with no closer
+        re-priced its whole closure (~114k candidates) every step, a choice made FOR the agent.
+
+        `route()` still labels; the labelled slots are an OFFER. Each decision is a MINT row --
+        it allocates mint effort, and a ROUTE row there would follow the slot's own MINT rows.
+        Below the mint's own floor a search prices nothing, so it always runs. Above it, the
+        agent spends the step's allowance down its own priority -- V discounted by FRUITLESS
+        searches since the slot's evidence last changed -- and records searched / deferred /
+        why on every offered slot.
+        **The first piece of the READER made real: the computation offers, the agent's priority
+        chooses, the reason is recorded.**
+
+        PRIORITY FALLS ONLY ON TRIED-AND-FAILED (Isaiah, 2026-09-29: decay on tried-and-failed,
+        never from disuse). A deferral is disuse: it never lowers priority, and V rises with a
+        deferred slot's outstanding residual. The discount RESETS when the evidence changes --
+        the library gained a term, or the slot's base grew by at least the floor -- both read off
+        the cost function. Nothing is dropped: a deferred slot is offered again next step.
+
+        SEAT STOP-GAP, NAMED FOR CONVERSION: the discount's FORM, `V / (1 + fruitless)`, and the
+        tie-break by slot name. Convert to the agent's own record of when re-searching paid.
+        """
+        if not offered:
+            return
+        floor = term_bits(1, self.gamma.alphabet)
+        lib = len(self.gamma.library)
+        costly: list[tuple[float, float, int, float, str]] = []
+        free: list[tuple[str, float]] = []
+        for slot in offered:
+            base = self._accumulated(slot, self.gamma.library[self.bound.get(slot, IDN)])
+            if base <= floor:
+                free.append((slot, base))
+                continue
+            rec = self._search.get(slot)
+            if rec is not None and (lib > rec["lib"] or base - rec["base"] >= floor):
+                rec["fruitless"] = 0
+            n = rec["fruitless"] if rec is not None else 0
+            v = self._understanding(slot)
+            costly.append((v / (1 + n), v, n, base, slot))
+        for slot, base in free:
+            self.led.record(self.cycle, "MINT", slot, "search", decision="free",
+                            why="base at or under the floor: the mint prices nothing")
+            p0, v0 = self._priced, self._evaluated
+            self.mint(slot)
+            # A FREE SEARCH STILL WRITES THE SLOT'S OWN RECORD, so the day it turns costly its
+            # prediction is ITS OWN, never another slot's (F482: o0.row starved on one).
+            rec = self._search.setdefault(slot, {"lib": lib, "base": base, "fruitless": 0})
+            rec["priced"], rec["evaluated"] = self._priced - p0, self._evaluated - v0
+        left, searched = STEP_SECONDS, False
+        for prio, v, n, base, slot in sorted(costly, key=lambda c: (-c[0], c[4])):
+            # THE PREDICTED COST, IN THE UNIT OF THE WORK, FROM THE AGENT'S OWN RECORD: the
+            # candidates its last search priced and evaluated, in seconds (see STEP_SECONDS).
+            rec = self._search.get(slot)
+            # NO RECORD OF ITS OWN, NO PREDICTION: a slot is never priced on ANOTHER slot's
+            # counts. Its cost is unknown, which is no ground to defer -- it is searched once
+            # to measure it (F482: o0.row was deferred 55 steps on a borrowed number).
+            known = rec is not None and "priced" in rec
+            cands = rec["priced"] if known else None
+            evals = rec["evaluated"] if known else None
+            cost = search_seconds(cands, evals) if known else 0.0
+            common = {"priority": round(prio, 4), "value": round(v, 4), "fruitless": n,
+                      "library": lib, "base": round(base, 3),
+                      "predicted_s": round(cost, 4) if known else None,
+                      "predicted_priced": cands, "predicted_evaluated": evals,
+                      "allowance_left_s": round(max(left, 0), 4), "allowance_s": STEP_SECONDS}
+            # A FULL SEARCH COSTS WHAT IT COSTS (the reviewer): the step's FIRST costly search runs
+            # even when its prediction exceeds the allowance, and says so -- else the slot the
+            # agent values most could wait forever behind its own backlog.
+            if searched and cost > left:
+                self.led.record(self.cycle, "MINT", slot, "search", decision="deferred",
+                                why="its predicted cost exceeds what is left of the step's "
+                                    "allowance; offered again next step", **common)
+                continue
+            self.led.record(self.cycle, "MINT", slot, "search", decision="searched",
+                            why=("no record of its own: searched once to measure its cost"
+                                 if not known else
+                                 "highest priority left within the step's allowance" if cost <= left
+                                 else "over the allowance, but nothing has been searched this "
+                                      "step: a full search costs what it costs"), **common)
+            was, p0, v0 = self.bound.get(slot), self._priced, self._evaluated
+            self.mint(slot)
+            searched = True
+            left -= search_seconds(self._priced - p0, self._evaluated - v0)
+            paid = self.bound.get(slot) != was
+            self._search[slot] = {"lib": lib, "base": base, "fruitless": 0 if paid else n + 1,
+                                  "priced": self._priced - p0,
+                                  "evaluated": self._evaluated - v0}
+
     def mint(self, slot: str) -> None:
         """ONE MINT WITH ITS EVALUATION MEMO. A Ctx and an operand read are pure functions of
         their inputs, and inside one mint they repeat ~1,281x and ~740x (counted, default seed 0,
@@ -7470,6 +7583,7 @@ class Agent:
         coord = self._aimed
         res = self.perceive(action, coord, self._intent_now)
         # WHAT THAT ACTION DID TO THE AVATAR, recorded from the frames either side of it.
+        offered: list[str] = []
         for slot, b, fit, _why in self.route(res):
             if b == REBIND and fit:
                 self.bound[slot] = fit
@@ -7490,9 +7604,10 @@ class Agent:
                                     status="candidate",
                                     note="the bound term was refused here; this is its competitor")
                 else:
-                    self.mint(slot)
+                    offered.append(slot)
             elif b == MECHANISM:
-                self.mint(slot)
+                offered.append(slot)
+        self._spend_search(offered)
         if by == "probe":
             # ONE ROW PER SLOT THAT ASKED FOR IT, and `@probe` only when the trigger was
             # the global reading rather than any particular slot. It used to be `@probe`
