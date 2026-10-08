@@ -54,7 +54,7 @@ from ledger import (
 from priors import contact_first
 from probe import Drive
 from self_family import MIN_REPEAT
-from sensors import COMMENSURABLE, DELTA, NOT_RESOLVED, OBJECT, POSITION
+from sensors import COMMENSURABLE, DELTA, NO_ARITHMETIC, NOT_RESOLVED, OBJECT, POSITION
 
 sys.dont_write_bytecode = True
 
@@ -116,7 +116,13 @@ def _may_bind(cand: Any, slot_type: str | None) -> bool:
     return out == slot_type and out in REPR_AGREES and _head_accepts(cand, slot_type)
 
 # F127's arm B. Seat-side and off unless asked for, so the default build is byte-identical.
-_TYPED_BIND = bool(os.environ.get("TETHER_TYPED_BIND"))
+# ON BY DEFAULT SINCE 2026-10-08 (the reviewer 09:02Z), with the nominal type, as one change: a term
+# whose first atom cannot take the slot's type cannot be BUILT for it (Fig 5's second guard). `0`
+# is the one-flag A/B control.
+# It was held off for one build: the predicate reads `val` literally unless an atom DECLARES it
+# takes the slot's type, and identity/translate/recolour did not. Every atom now declares, and
+# `Gamma` refuses an undeclared one at registration (the reviewer 2026-10-08 09:31Z).
+_TYPED_BIND = os.environ.get("TETHER_TYPED_BIND", "1") != "0"
 # F130 arm C: supply `_library_fit`'s retrieval the relation channel its two
 # sibling call sites already pass. Seat-side, off by default.
 _REL_GAP = bool(os.environ.get("TETHER_REL_GAP"))
@@ -259,7 +265,7 @@ def _head_accepts(cand: Any, slot_type: str | None) -> bool:
     # while the search read it as a literal, so the binder admitted `owner` on every slot and
     # the search never offered it. The three channels are unchanged -- `in_type`,
     # `also_accepts`, and now an EXPLICIT `polymorphic` where `val` used to be inferred.
-    return accepts_type(head[0], slot_type)
+    return getattr(head[0], "same_as_slot", False) or accepts_type(head[0], slot_type)
 # `CAN`'s THREE OUTCOMES. Named rather than bare strings because `UNKNOWN` is the one that gets
 # quietly folded into `NO` -- they behave alike at the commit and are different claims on the
 # record, which is check 3 exactly.
@@ -541,6 +547,9 @@ BOOKS: tuple[str, ...] = (
     "plan_gate_qualified",              # gate 1: an objective passed
     "plan_gate_no_hypothesis",          # gate 1: nothing to filter. SUPPLY, not the bar
     "want_recurred",                    # a retained want that a LATER attempt wanted again
+    # TYPES ENFORCED AT BOTH ENDS (the reviewer 2026-10-08 09:02Z), one book per mechanism.
+    "refused_input_type",               # arm B: the term's first atom cannot take the slot's type
+    "refused_arithmetic_type",          # arithmetic on a label or a bool (NO_ARITHMETIC)
     # THE MUTATION OBSERVER, wired to the agent path 2026-09-26. `cue_seen` is the
     # denominator -- frames with a predecessor, so a mutation was POSSIBLE -- and
     # `cue_mutated` the numerator. `cue_blind` counts the abstentions apart, because a
@@ -3009,6 +3018,7 @@ class Agent:
                 # replacement is unmeasured -- those slots may simply lose their objective. An
                 # env switch so the two arms are one build and the comparison is real.
                 if _TYPED_BIND and not _head_accepts(cand, self.slot_types.get(slot)):
+                    _book_add(self.gamma.book, "refused_input_type")
                     continue
                 # F32 ARM D, **ON BY DEFAULT SINCE 2026-09-30**. `_explains` is `_left(...) == 0.0`,
                 # and ISAIAH RULED THAT OUT: *the residual NEVER fully closes -- the corpus would
@@ -6329,6 +6339,13 @@ class Agent:
         if bind is None or not self.slot_types:
             return True
         got = self.slot_types.get(bind)
+        # NO ARITHMETIC ON A LABEL OR A BOOL, at the target, the operand or an operand branch.
+        branch = getattr(getattr(cand, "operand_term", None), "atoms", ())
+        if ((getattr(cand, "arithmetic", False)
+             and (self.slot_types.get(target) in NO_ARITHMETIC or got in NO_ARITHMETIC))
+                or (got in NO_ARITHMETIC and any(a.arithmetic for a in branch))):
+            _book_add(self.gamma.book, "refused_arithmetic_type")
+            return False
         # THROUGH THE TREE: the slot feeds the inner chain first, so each inner atom must
         # accept what reaches it, and what fills the operand is the chain's OUTPUT. `val`
         # declares nothing -- it admits and passes the type through (F470).
@@ -7302,6 +7319,9 @@ class Agent:
             best = None
             for bind in [None] + [s for s in slots if s != slot]:
                 cand = Term(term.atoms, operand=bind)
+                # THE SWEEP BOUND WITH NO TYPE CHECK, the one fit site that had none (2026-10-08).
+                if not self._operand_fits(cand, slot, bind):
+                    continue
                 left = self._left(cand, slot, hist)
                 if best is None or left < best[0]:
                     best = (left, cand)

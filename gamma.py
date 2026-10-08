@@ -270,6 +270,9 @@ class Atom:
     # therefore accepts a SET, and duplicating atoms per type was the alternative: `units()`
     # dedups on name, so that would have put the type into the term's identity and its handle.
     also_accepts: tuple[str, ...] = ()
+    # DOES ARITHMETIC ON ITS INPUT OR OPERAND (`v + operand`), so a value with no magnitude cannot
+    # be its input or its operand (`sensors.NO_ARITHMETIC`). Declared, never inferred from the name.
+    arithmetic: bool = False
     # WHICH `Ctx` FIELDS THIS ATOM READS -- DECLARED AT CONSTRUCTION, NEVER INFERRED, which is
     # `reads_operand`'s rule and for `reads_operand`'s reason.
     #
@@ -287,6 +290,11 @@ class Atom:
     # unreachable. Same fault as `SHAPE` over two representations, one level up: in the type
     # system's own vocabulary. An atom that genuinely takes anything now SAYS SO.
     polymorphic: bool = False
+    # TAKES THE SLOT'S OWN TYPE -- a VALUE, never an object or a predicate. Read by the BINDING
+    # check only; the closure search still starts these atoms from `val` (the reviewer
+    # 2026-10-08 09:31Z).
+    # Not `polymorphic`: that admits an OBJECT too, and fed whole records into value atoms.
+    same_as_slot: bool = False
     # WHAT THE ELEMENTS MUST BE, for a reducer that consumes a whole collection. `count_true`
     # REFUSES a non-boolean `Cells` at runtime -- *a reading or an explicit non-reading, never
     # a guess* -- and that refusal was invisible to the composer, which offered 70 chains
@@ -420,6 +428,10 @@ class Term:
     @property
     def out_type(self) -> str:
         return self.atoms[-1].out_type
+
+    @property
+    def arithmetic(self) -> bool:
+        return any(a.arithmetic for a in self.atoms)
 
     @property
     def reads_operand(self) -> bool:
@@ -812,6 +824,16 @@ class Gamma:
         # registry order this had, so installing a rank is an observable change and not
         # installing one changes nothing.
         self.unit_rank = None
+        # EVERY ATOM DECLARES ITS INPUT TYPE (the reviewer 2026-10-08 09:31Z): a concrete type, or
+        # `polymorphic` for "same as the slot". A bare `val` declares nothing, and the type check
+        # would refuse it everywhere or admit it everywhere -- so it is refused HERE, at
+        # registration.
+        undeclared = [a.name for a in atoms
+                      if a.in_type == "val" and not (a.polymorphic or a.same_as_slot)]
+        if undeclared:
+            raise ValueError(f"atoms with no declared input type: {undeclared}. Declare a "
+                             "concrete type, or same_as_slot=True for an atom that takes the "
+                             "slot's own type.")
         for a in atoms:
             # THE ATOM'S OWN CLAUSE IF IT DECLARED ONE. A blanket `NECESSARY` was true of the
             # VOCABULARY and false of most of its members, and `admissions()` read

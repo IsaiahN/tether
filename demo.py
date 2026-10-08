@@ -69,7 +69,8 @@ def main(cycles: int = 16) -> int:
         print("  no partial term was minted this run.")
 
     head(2, "INJECT A BAD ATOM, AND TRACE IT")
-    bad = Term((Atom("sabotage", lambda v, _c: (v + 3) % M, "val", "val"),), origin="imported")
+    bad = Term((Atom("sabotage", lambda v, _c: (v + 3) % M, "val", "val", same_as_slot=True),),
+               origin="imported")
     gam.accept(bad, seq=len(led), residual="injected by the demo, not by the loop")
     victim = "climb"
     agent.bound[victim] = bad.name

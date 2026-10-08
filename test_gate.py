@@ -172,7 +172,8 @@ def test_minted_separates_an_operand_bound_atom_from_a_real_mint():
     """
     import gamma as G
     from instruments import Attribution
-    take, inc = G.Atom("take", _idn, "val", "val"), G.Atom("inc", _idn, "val", "val")
+    take = G.Atom("take", _idn, "val", "val", same_as_slot=True)
+    inc = G.Atom("inc", _idn, "val", "val", same_as_slot=True)
     gam = G.Gamma([take, inc], game="t")
     for i, t in enumerate((G.Term(atoms=(take,), operand="o0.col"),
                            G.Term(atoms=(inc,), guard=G.ACTED_SELF),
@@ -206,7 +207,8 @@ def test_a_guarded_term_arrives_with_its_guard_and_a_duplicate_still_dedups():
     import tempfile
 
     import gamma as G
-    take, inc = G.Atom("take", _idn, "val", "val"), G.Atom("inc", _idn, "val", "val")
+    take = G.Atom("take", _idn, "val", "val", same_as_slot=True)
+    inc = G.Atom("inc", _idn, "val", "val", same_as_slot=True)
     src_g = G.Gamma([take, inc], game="A")
     for i, t in enumerate((G.Term(atoms=(inc,), guard=G.ACTED_SELF),
                            G.Term(atoms=(take,), operand="o1.colour"),
@@ -251,7 +253,8 @@ def test_a_chain_that_loses_its_operand_is_not_reported_as_a_clean_arrival():
     import tempfile
 
     import gamma as G
-    take, inc = G.Atom("take", _idn, "val", "val"), G.Atom("inc", _idn, "val", "val")
+    take = G.Atom("take", _idn, "val", "val", same_as_slot=True)
+    inc = G.Atom("inc", _idn, "val", "val", same_as_slot=True)
     src_g = G.Gamma([take, inc], game="A")
     t = G.Term(atoms=(take, inc), operand="o1.colour")
     src_g.accept(t, seq=0, residual="s@0")
@@ -278,7 +281,8 @@ def test_a_merge_keeps_the_birth_handle_of_every_instance_it_absorbed():
     import tempfile
 
     import gamma as G
-    take, inc = G.Atom("take", _idn, "val", "val"), G.Atom("inc", _idn, "val", "val")
+    take = G.Atom("take", _idn, "val", "val", same_as_slot=True)
+    inc = G.Atom("inc", _idn, "val", "val", same_as_slot=True)
     src_g = G.Gamma([take, inc], game="A")
     for i, slot in enumerate(("o1.colour", "o2.row", "o3.distance", "o4.proximity")):
         t = G.Term(atoms=(take, inc), operand=slot)

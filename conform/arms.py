@@ -196,7 +196,9 @@ ARMS: dict[str, str] = {
                           "OBJECT_BEFORE, so the agent cannot compose a cross-frame delta",
     "TETHER_STARVED_CONTACT": "the starved-contact reading",
     "TETHER_STREAM_WIDEN": "the widened candidate streams",
-    "TETHER_TYPED_BIND": "binding filtered by type",
+    "TETHER_TYPED_BIND": "binding filtered by the slot's type at the term's INPUT. ON BY DEFAULT "
+                         "since 2026-10-08 (the reviewer 09:02Z), with the nominal type; `0` "
+                         "is the control",
 }
 
 # DECLARED AT THE SITE, NOT INVENTED HERE. `arc_percept`'s shape-delta comment: *pairs with arm

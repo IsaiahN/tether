@@ -79,9 +79,9 @@ def _atoms() -> list[Atom]:
     TID251 and rightly: a private name across a module boundary is another domain's
     business. ARC's real atom set is grid transforms and arrives at 3d; these three are
     a plumbing set and nothing is read off them."""
-    return [Atom("idn", lambda v, _c: v, "val", "val"),
-            Atom("inc", lambda v, _c: v + 1, "val", "val"),
-            Atom("act", lambda v, c: v + len(str(c.action)), "val", "val")]
+    return [Atom("idn", lambda v, _c: v, "val", "val", same_as_slot=True),
+            Atom("inc", lambda v, _c: v + 1, "val", "val", same_as_slot=True),
+            Atom("act", lambda v, c: v + len(str(c.action)), "val", "val", same_as_slot=True)]
 
 
 def cells(board) -> dict[str, int]:

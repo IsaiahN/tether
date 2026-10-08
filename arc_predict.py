@@ -118,15 +118,15 @@ def predict() -> list[Atom]:
     # TRIGGER TO REVISIT (reviewer, sharpened): **build the type variable when a BINDING exists
     # with it that cannot exist without it** -- not a chain count, not a pair count. A BINDING.
     # Today nothing qualifies, and that is measured rather than assumed.
-    return [Atom("idn", _idn, "val", "val"),                       # reads nothing
+    return [Atom("idn", _idn, "val", "val", same_as_slot=True),         # reads nothing
             # `v + operand` is meaningful only between commensurable quantities, so the
             # operand must be whatever the target is. A row plus a colour is arithmetic
             # that type-checks and means nothing.
-            Atom("translate", _translate, "val", "val", reads_operand=True,
-                 operand_type=SAME_AS_TARGET, reads_ctx=("operands",)),
+            Atom("translate", _translate, "val", "val", same_as_slot=True, reads_operand=True,
+                 operand_type=SAME_AS_TARGET, reads_ctx=("operands",), arithmetic=True),
             # `v -> operand` puts the operand IN the slot, so it must be a colour whatever
             # the target is. THIS IS THE DEFECT'S OWN SITE: `idn . recolour<o11.h>`.
-            Atom("recolour", _recolour, "val", "val", reads_operand=True,
+            Atom("recolour", _recolour, "val", "val", same_as_slot=True, reads_operand=True,
                  operand_type=COLOUR, reads_ctx=("operands",))]
 
 

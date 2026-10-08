@@ -64,14 +64,15 @@ def _atoms() -> list[Atom]:
     def wrap(v, _c):
         return v % M
 
-    out = [Atom(f.__name__, f, "val", "val") for f in (idn, inc, dec, dbl, neg, act, wrap)]
+    out = [Atom(f.__name__, f, "val", "val", same_as_slot=True)
+           for f in (idn, inc, dec, dbl, neg, act, wrap)]
 
     def take(v, c):
         """Reads the bound operand slot instead of this one. The one atom that makes an
         interaction expressible at all."""
         return c.operands[0] if c.operands else v
 
-    out.append(Atom("take", take, "val", "val", reads_operand=True))
+    out.append(Atom("take", take, "val", "val", same_as_slot=True, reads_operand=True))
     return out
 
 sys.dont_write_bytecode = True

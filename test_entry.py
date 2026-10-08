@@ -289,7 +289,7 @@ def check_a_save_killed_midway_leaves_the_previous_library_whole():
     import tempfile
 
     import gamma
-    inc = gamma.Atom("inc", lambda v, _c: v + 1, "val", "val")
+    inc = gamma.Atom("inc", lambda v, _c: v + 1, "val", "val", same_as_slot=True)
     g = gamma.Gamma([inc], game="A")
     g.accept(gamma.Term(atoms=(inc, inc)), seq=0, residual="s@0")
     with tempfile.TemporaryDirectory() as d:
@@ -319,7 +319,7 @@ def check_an_unreadable_library_loads_cold_and_says_so():
     import tempfile
 
     import gamma
-    inc = gamma.Atom("inc", lambda v, _c: v + 1, "val", "val")
+    inc = gamma.Atom("inc", lambda v, _c: v + 1, "val", "val", same_as_slot=True)
     with tempfile.TemporaryDirectory() as d:
         path = pathlib.Path(d) / "lib.json"
         path.write_text('{"terms": [', encoding="utf-8")

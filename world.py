@@ -84,14 +84,14 @@ def _atoms() -> list[Atom]:
         return v % M
 
     fns = [idn, inc, dec, dbl, neg, wrap]
-    out = [Atom(f.__name__, f, "val", "val") for f in fns]
+    out = [Atom(f.__name__, f, "val", "val", same_as_slot=True) for f in fns]
 
     def take(v, c):
         """Read the bound operand slot instead of my own value. The one atom that makes
         an interaction expressible at all."""
         return c.operands[0] if c.operands else v
 
-    out.append(Atom("take", take, "val", "val", reads_operand=True))
+    out.append(Atom("take", take, "val", "val", same_as_slot=True, reads_operand=True))
 
     # -- THE OBJECTIVE VOCABULARY -- Isaiah, 2026-09-24, option A --------------------------
     #

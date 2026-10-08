@@ -2119,7 +2119,7 @@ def test_an_invented_atom_is_skipped_on_load_and_counted():
 
     import gamma
 
-    inc = gamma.Atom("inc", lambda v, _c: v + 1, "val", "val")
+    inc = gamma.Atom("inc", lambda v, _c: v + 1, "val", "val", same_as_slot=True)
     blob = {"terms": [{"atoms": ["inc", "zz"], "origin": "minted", "guard": None,
                        "operand": None, "handle": "h1", "game": "A",
                        "admitted": "accepted", "residual": "s@0"}],
@@ -2143,7 +2143,7 @@ def test_a_loaded_term_is_imported_even_under_the_same_game_name():
 
     import gamma
 
-    inc = gamma.Atom("inc", lambda v, _c: v + 1, "val", "val")
+    inc = gamma.Atom("inc", lambda v, _c: v + 1, "val", "val", same_as_slot=True)
     src = gamma.Gamma([inc], game="same_game_name")
     src.accept(gamma.Term(atoms=(inc, inc)), seq=0, residual="s@0")
     with tempfile.TemporaryDirectory() as d:
@@ -2163,7 +2163,7 @@ def test_a_guard_object_does_not_cross_silently():
 
     import gamma
 
-    inc = gamma.Atom("inc", lambda v, _c: v + 1, "val", "val")
+    inc = gamma.Atom("inc", lambda v, _c: v + 1, "val", "val", same_as_slot=True)
     src = gamma.Gamma([inc], game="A")
     src.accept(gamma.Term(atoms=(inc,), guard=gamma.ACTED_SELF, guard_ref="o1"), seq=0,
                residual="s@0")
@@ -2188,9 +2188,9 @@ def test_a_tree_crosses_as_a_schema_and_types_compose_through_it():
     import gamma
     import tether
 
-    f = gamma.Atom("f", lambda v, _c: v, "val", "val", reads_operand=True,
+    f = gamma.Atom("f", lambda v, _c: v, "val", "val", same_as_slot=True, reads_operand=True,
                    operand_type="POSITION")
-    g = gamma.Atom("g", lambda v, _c: v, "val", "val")
+    g = gamma.Atom("g", lambda v, _c: v, "val", "val", same_as_slot=True)
     tree = gamma.Term(atoms=(f,), operand="o1.row", operand_term=gamma.Term((g,)))
     src = gamma.Gamma([f, g], game="A")
     src.accept(tree, seq=0, residual="s@0")

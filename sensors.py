@@ -88,6 +88,13 @@ CELLS, CELL = "CELLS", "CELL"
 # being cell counts. Removed before it was ever read -- which is what a pinned table is for.
 COMMENSURABLE = frozenset({frozenset((POSITION, DELTA))})
 
+# TYPES THAT ADMIT NO ARITHMETIC, ruled by WHO PRODUCES THE VALUE (the reviewer 2026-10-08 07:19Z,
+# 09:14Z). SHAPE is a label the agent's own decoder allocates in order of first sight, so a sum of
+# shapes predicts the agent's bookkeeping (Fig 1: "A frame cannot score itself with a quantity it
+# also produces"). BOOL has no magnitude; Fig 12's logical bonds compose it. COLOUR is the
+# environment's own code and keeps arithmetic, with its cyclic alphabet.
+NO_ARITHMETIC = frozenset({SHAPE, BOOL})
+
 
 class _NotResolved:
     """§12.2's explicit non-reading. A singleton so `is` works and no value equals it."""

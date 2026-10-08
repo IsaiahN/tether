@@ -1416,13 +1416,13 @@ def check_the_precondition_refuses_a_spectator():
     # missing `landed` for as long as it hid this. The CHECK is unchanged -- same term,
     # same incumbent, same assertion -- only the row shape is the live one.
     hist = [({"climb": 2, "opaque": 1}, "A", 5, None, None)]
-    twin = Term((Atom("idn2", lambda v, _c: v, "val", "val"),))
+    twin = Term((Atom("idn2", lambda v, _c: v, "val", "val", same_as_slot=True),))
     assert ag.bears_on(twin, "climb", hist, idn) is False, (
         "a term that reproduces the incumbent on every open observation bears on nothing")
 
     # 3 -- AND IT MUST BE ABLE TO SAY YES, or it is a gate that refuses everything and the run
     # would go silent rather than selective. THE SAME PROPERTY THE BOUND'S OWN TEST INSISTS ON.
-    differs = Term((Atom("plus1", lambda v, _c: v + 1, "val", "val"),))
+    differs = Term((Atom("plus1", lambda v, _c: v + 1, "val", "val", same_as_slot=True),))
     assert ag.bears_on(differs, "climb", hist, idn) is True, (
         "a term that answers the open observation differently MUST pass, or nothing ever mints")
 
@@ -2180,6 +2180,43 @@ def check_the_library_partner_is_ordered_after_contact_before_variance():
         assert ag._bindings(slot, robs) == plain, "arm off did not restore the order"
     finally:
         tether._LOOKUP_ORDER = was
+
+
+
+def check_types_hold_at_both_ends():
+    """WHO PRODUCES THE VALUE (the reviewer 2026-10-08 07:19Z, 09:14Z). A label the agent's decoder
+    allocates (SHAPE) and a truth value (BOOL) admit no arithmetic -- as target, as operand, or on
+    an operand branch -- while the environment's colour code and the magnitudes keep it. And the
+    input-type check ships on (09:02Z)."""
+    env = ArcWorld(_Ring(), arc_percept.Objects(),
+                   arc_atoms.three_spaces(arc_predict.predict()), palette=PALETTE, platform=())
+    ag = tether.Agent(env, gamma.Gamma(env.atoms(), game="m2test"),
+                      tether.Config(accumulate=False))
+    assert tether._TYPED_BIND, "the input-type check does not ship on"
+    assert tether._head_accepts(gamma.Term((ag.gamma._by_name["idn"],)), "EXTENT"), (
+        "a same-as-slot head was refused on a typed slot")
+    assert not tether._head_accepts(gamma.Term((ag.gamma._by_name["none"],)), "EXTENT"), (
+        "a predicate-taking head was admitted on a width")
+    try:
+        gamma.Gamma([gamma.Atom("bare", lambda v, _c: v, "val", "val")])
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("an atom with no declared input type was registered")
+    ag.slot_types = {**ag.slot_types, "a.flag": "BOOL", "b.flag": "BOOL",
+                     "a.row": "POSITION", "a.drow": "DELTA"}
+    by = ag.gamma._by_name
+    add = lambda t, b: ag._operand_fits(gamma.Term((by["translate"],), operand=b), t, b)  # noqa: E731
+    o = next(s for s in ag.slots if s.endswith(".shape")).rsplit(".", 1)[0]
+    p = next(s for s in ag.slots
+             if s.endswith(".shape") and not s.startswith(o + ".")).rsplit(".", 1)[0]
+    assert not add(f"{o}.shape", f"{p}.shape"), "a sum of decoder labels was admitted"
+    assert not add("a.flag", "b.flag"), "a sum of truth values was admitted"
+    branch = gamma.Term((by["same"],), operand=f"{p}.shape",
+                        operand_term=gamma.Term((by["translate"],)))
+    assert not ag._operand_fits(branch, f"{o}.shape", f"{p}.shape"), "arithmetic on a label branch"
+    assert add(f"{o}.colour", f"{p}.colour"), "the environment's colour code lost its arithmetic"
+    assert add("a.row", "a.drow"), "a position plus its displacement was refused"
 
 
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
