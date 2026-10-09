@@ -75,3 +75,27 @@ Started 2026-10-08 ~09:10 CDT on Isaiah's "proceed - big task (handle it with ca
 - agent_atoms + touches/holds (ADMITTED verbatim), readings flips, lit_by in the build, distinct role views with self-tests, §3 amended. Record: transforms/v6_agent_atoms_and_readings_2026_10_08c.py.txt.
 - Checked against a copy of a3cd621 (arcengine stubbed for import only): library seat clean with all five must-fails caught; compile + perception seats pass; census re-run (numbers in README).
 - Open for the seat: compile_term must refuse candidates carrying `quantifier` (RULE) until a group row is ruled; AGENT needs an action atom (not ruled).
+
+
+## v7 — 2026-10-09 ~05:00–06:10 CDT (the abductive lookup)
+- The gap (found by the reviewer during the M4 review): `library_runtime.light()` read only
+  index.by_reading_reads, the FORWARD lookup ("what reads this"). A residual is an EFFECT; the entry that explains it
+  may only PRODUCE it. index.by_reading_affects has been built since v2 and was never read at run time. Measured on
+  the seed: a pure colour_changed residual lights 471 entries forward and never MEDICAL|Contagion (reads touching /
+  contact / prev, affects colour_changed); of 4,808 (entry, affected reading) pairs, 4,067 are reachable ONLY
+  abductively.
+- Change: ONE file, library_runtime.py. `produces(changed, context)` (atoms and molecules; ranked by how many changed
+  readings the entry produces, then by the weighted share of its own reads the description holds, then key);
+  `light(changed, abduce=False|"after"|"merged", context)` — False is v6 exactly; "after" appends the grounded
+  producers behind the forward list; "merged" ranks the same set on summed score. by_affects loaded from the index
+  and kept for runtime/learnings entries (`_index`). No data file changes; build --check reproduces every derived file.
+- Checks: forward lookup v6 == v7 on 3,243 change sets (every reading, every pair, three shapes); self-test 43 ok
+  (9 new incl. the MUST-FAIL: affects path removed -> the abductive checks fail, CAUGHT; unknown abduce mode refused;
+  an invented atom reached by what it produces at once). On a scratch worktree of arc-agent 831f691 with v7 placed:
+  build --check OK; test_compile, test_perception pass; conform/libagree.py clean with (a)-(e) CAUGHT (arcengine
+  stubbed for import only); ruff check + format clean.
+- Numbers for the seat's arm (colour_changed residual): produces 301 (59 grounded, 242 molecules); Contagion rank
+  261 with no context, 159 with touching+contact held; "after": 498 entries, Contagion at 484 (behind all 471
+  forward); "merged" with touching+contact: Contagion at 135.
+- NOT decided here: which mode the agent uses, and whether the M4 lookup's bound reaches the abductive tail. That is
+  an arm (default OFF) measured by the seat under the registered rule AFTER M4 lands.

@@ -28,6 +28,20 @@ reading and ranks entries by how much of the change they cover (weighted); `mole
 walks ingredient_of to the molecules whose operands are all lit. ORDER, NEVER EXCLUDE: nothing
 lit is dropped, only ranked.
 
+THE ABDUCTIVE LOOKUP (v7, 2026-10-09) -- "what PRODUCES this", beside "what READS this". A residual
+is an EFFECT: o2 changed colour. The forward lookup asks which entries READ colour_changed; the
+entry that explains it may only PRODUCE it (MEDICAL|Contagion reads touching / contact / prev and
+affects colour_changed, so a pure colour_changed residual never lit it). `produces(changed,
+context)` reads index.by_reading_affects -- built since v2, never read at run time until v7 -- and
+ranks by how many changed readings the entry produces, then by how much of its own `reads` the
+description already holds (`context`: the readings present this frame, e.g. touching), then by
+key. It returns atoms AND molecules (a molecule may produce an effect none of its operands does).
+`light(changed, abduce=...)` is UNCHANGED with abduce False (the default, byte-identical to v6);
+"after" appends the grounded produce-only entries behind the forward list (the forward list is a
+prefix); "merged" ranks the union on forward score + produce score. Both modes return the SAME
+set: ORDER, NEVER EXCLUDE. Which mode the agent uses is an arm for the seat to measure, not a
+choice made here.
+
 HOW THE AGENT ADDS TO IT: `invent_atom` (INVENTED: a new primitive the agent names, from a
 pattern it observed and could not compose -- trigger: an abstention receipt, `owed_import`) and
 `mint_recipe` (MINTED: a new arrangement of existing entries in its own grammar). Both land in
@@ -262,6 +276,7 @@ class Library:
         self.learnings: dict[str, dict] = {}
         self.readings: dict[str, dict] = {}
         self.by_reading: dict[str, list] = defaultdict(list)
+        self.by_affects: dict[str, list] = defaultdict(list)  # v7: reading -> entries producing it
         self.ingredient_of: dict[str, list] = defaultdict(list)
 
     # ---------------------------------------------------------------- loading
@@ -279,6 +294,8 @@ class Library:
         idx = j("index.json")
         for r, rows in idx["by_reading_reads"].items():
             self.by_reading[r] = [tuple(x) for x in rows]
+        for r, keys in idx["by_reading_affects"].items():
+            self.by_affects[r] = list(keys)
         for k, rows in idx["ingredient_of"].items():
             self.ingredient_of[k] = list(rows)
         for layer, name in ((self.runtime, "runtime.json"), (self.learnings, "learnings.json")):
@@ -294,14 +311,64 @@ class Library:
         return self.learnings.get(key) or self.runtime.get(key) or self.seed.get(key)
 
     # ---------------------------------------------------------------- the mapping
-    def light(self, changed: dict[str, int]) -> list[tuple[str, float]]:
+    ABDUCE = (False, "after", "merged")
+
+    def light(
+        self,
+        changed: dict[str, int],
+        abduce: bool | str = False,
+        context: frozenset | set = frozenset(),
+    ) -> list[tuple[str, float]]:
         """`changed`: reading -> how many slots moved on it this frame. Returns entries ranked by
-        the weighted share of the change they read. ORDER, NEVER EXCLUDE."""
+        the weighted share of the change they read. ORDER, NEVER EXCLUDE.
+
+        abduce False (default): the forward lookup only, exactly as v6.
+        abduce "after": the forward list, then the GROUNDED entries only `produces` reaches, in its
+            order (molecules stay with molecules_lit / produces, as on the forward path).
+        abduce "merged": the same set, ranked on forward score + produce score."""
+        if abduce not in self.ABDUCE:
+            raise ValueError(f"abduce must be one of {self.ABDUCE}, not {abduce!r}")
         score: dict[str, float] = defaultdict(float)
         for r, n in changed.items():
             for k, w in self.by_reading.get(r, ()):
                 score[k] += w * (1 if n else 0)
+        fwd = sorted(score.items(), key=lambda kv: (-kv[1], kv[0]))
+        if not abduce:
+            return fwd
+        prod = [(k, s) for k, s in self.produces(changed, context) if self._grounded(k)]
+        if abduce == "after":
+            seen = set(score)
+            return fwd + [(k, s) for k, s in prod if k not in seen]
+        for k, s in prod:
+            score[k] += s
         return sorted(score.items(), key=lambda kv: (-kv[1], kv[0]))
+
+    def produces(
+        self, changed: dict[str, int], context: frozenset | set = frozenset()
+    ) -> list[tuple[str, float]]:
+        """THE ABDUCTIVE LOOKUP: entries filed as PRODUCING a changed reading
+        (index.by_reading_affects), atoms and molecules. Score = how many of the changed readings
+        the entry produces; ties ranked by the weighted share of the entry's own `reads` that the
+        description holds (`context` plus the changed readings), then by key. ORDER, NEVER
+        EXCLUDE: every entry filed under a changed reading is returned."""
+        hit: dict[str, float] = defaultdict(float)
+        for r, n in changed.items():
+            if not n:
+                continue
+            for k in self.by_affects.get(r, ()):
+                hit[k] += 1.0
+        held = set(context) | {r for r, n in changed.items() if n}
+
+        def seen(k: str) -> float:
+            e = self.get(k) or {}
+            w = e.get("reads_weight") or {}
+            return sum(w.get(r, 1.0) for r in e.get("reads", []) if r in held)
+
+        return sorted(hit.items(), key=lambda kv: (-kv[1], -seen(kv[0]), kv[0]))
+
+    def _grounded(self, key: str) -> bool:
+        e = self.get(key)
+        return e is not None and e.get("kind") != "COMPOSITE"
 
     def molecules_lit(self, lit: set[str]) -> list[dict]:
         """Walk ingredient_of upward: a molecule is offered when ALL its operands are lit (or are
@@ -718,8 +785,54 @@ class Library:
         if e.get("kind") != "COMPOSITE":
             for r in e.get("reads", []):
                 self.by_reading[r].append((key, e.get("reads_weight", {}).get(r, 1.0)))
+        for r in e.get("affects", []) or []:
+            self.by_affects[r].append(key)
         for i in e.get("ingredients", []) or []:
             self.ingredient_of[i["ref"]].append(key)
+
+
+def _abductive_checks(lib: Library) -> list[tuple[bool, str]]:
+    """v7: the abductive lookup, as (passed, what) pairs. Run on the real library by the self-test,
+    and again with the affects path REMOVED, where the first check must fail (the must-fail)."""
+    out = []
+    eff = {"colour_changed": 1}
+    fwd = lib.light(eff)
+    fk = [k for k, _ in fwd]
+    prod = [k for k, _ in lib.produces(eff)]
+    out.append(
+        (
+            "MEDICAL|Contagion" not in fk and "MEDICAL|Contagion" in prod,
+            "a colour_changed residual: forward never lights Contagion, the abductive lookup does",
+        )
+    )
+    out.append((fwd == lib.light(eff, abduce=False), "abduce=False IS the forward lookup"))
+    aft, mer = lib.light(eff, abduce="after"), lib.light(eff, abduce="merged")
+    out.append((aft[: len(fwd)] == fwd, '"after" keeps the forward list as its prefix, unchanged'))
+    grounded = {k for k in prod if lib._grounded(k)}
+    out.append(
+        (
+            {k for k, _ in aft} == {k for k, _ in mer} == set(fk) | grounded,
+            "both modes return the same set, forward + grounded producers: NEVER EXCLUDE",
+        )
+    )
+    out.append(
+        (
+            set(prod) == set(lib.by_affects["colour_changed"]),
+            "produces returns every entry filed under the reading, molecules included",
+        )
+    )
+
+    def rank(ctx):
+        ks = [k for k, _ in lib.produces(eff, ctx)]
+        return ks.index("MEDICAL|Contagion") if "MEDICAL|Contagion" in ks else len(ks)
+
+    out.append(
+        (
+            rank({"touching", "contact"}) < rank(set()),
+            "the description orders it: with touching and contact held, Contagion ranks higher",
+        )
+    )
+    return out
 
 
 def _selftest(root: str) -> int:
@@ -794,6 +907,19 @@ def _selftest(root: str) -> int:
         and {c["condition"] for c in st}.isdisjoint({c["condition"] for c in pr}),
         "one atom, two views: STATE and PROCESS candidates differ (effect / affect)",
     )
+    # v7: THE ABDUCTIVE LOOKUP, with its must-fail (the affects path removed must be caught)
+    for ok, what in _abductive_checks(lib):
+        check(ok, what)
+    saved = lib.by_affects
+    lib.by_affects = defaultdict(list)
+    caught = not all(ok for ok, _ in _abductive_checks(lib))
+    lib.by_affects = saved
+    check(caught, "MUST-FAIL: with the affects path removed, the abductive checks fail")
+    try:
+        lib.light({"colour_changed": 1}, abduce="sideways")
+        check(False, "an unknown abduce mode is refused")
+    except ValueError:
+        check(True, "an unknown abduce mode is refused")
     ca = lib.view("MEDICAL|Contagion", "CAUSE")
     check(
         bool(ca) and all(c["bond"] == "⇒" and "if" in c and "then" in c for c in ca),
@@ -811,6 +937,10 @@ def _selftest(root: str) -> int:
         check(True, "an unknown role is refused")
     k2 = lib.invent_atom(
         "spreader", "touching(o1, o2) == 1", game="g1", cycle=11, affects=["colour_changed"]
+    )
+    check(
+        k2 in [kk for kk, _ in lib.produces({"colour_changed": 1})],
+        "an invented atom is reached by what it produces at once (runtime indexed both ways)",
     )
     t = lib.get(k2)["roles"]
     check(
