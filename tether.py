@@ -395,6 +395,9 @@ _PREV_OFFER = armflag.arm("TETHER_PREV_OFFER")
 # (the reviewer 2026-10-09 08:30Z). DEFAULT ON by the registered rule (10:02Z, re-measured after
 # the operand fix 10:19Z). OFF: the offers are recorded and not read.
 _LIBRARY_FIRST = armflag.arm("TETHER_LIBRARY_FIRST", default=True)
+# THE SEAL REPAIR (R3 item 1, the reviewer 2026-10-09; Isaiah's H1 and H3(i)). OFF; reason in
+# conform/arms.py. Inert unless a term reading an earlier frame is bound (TETHER_PREV_OFFER).
+_UNSEAL_START = armflag.arm("TETHER_UNSEAL_START")
 
 
 @cache
@@ -6734,6 +6737,20 @@ class Agent:
         hist = self.history(slot)
         held = self.gamma.library[self.bound.get(slot, IDN)]
         base = self._accumulated(slot, held)
+        # THE SEAL (H3(i)): a held rule reading an earlier frame leaves its unseen starts as its
+        # leftover, and that alone can sit under the floor, so no rule -- not one explaining all of
+        # it -- could pay. The starts are the held rule's own price (H1: "paid ONCE, inside its own
+        # price"), so a challenger is priced against its WHOLE two-part length (DISCOVERY 503):
+        # cost_c + left_c < cost_h + base_h. `base_held` stays what `explain` and the record read.
+        base_held, unseal = base, None
+        if _UNSEAL_START and held.operand and held.operand.endswith(PREV):
+            starts = sum(1 for r in hist if self._no_earlier_frame(held, r[0]))
+            if starts:
+                cost_h = term_bits(self.gamma.length(held, self._units_for(slot)),
+                                   self.gamma.alphabet)
+                base = base_held + cost_h
+                unseal = {"starts": starts, "held_cost": round(cost_h, 3),
+                          "base_held": round(base_held, 3), "bar": round(base, 3)}
         robs = self._residual_obs(slot, held, hist)
         # **`robs` IS NOT THE HISTORY** -- it is the history filtered by what the BOUND
         # term got wrong, so a rebind changes which rows are in it and the list is no
@@ -7328,6 +7345,8 @@ class Agent:
                   "coverage": round(seen / est, 6) if est else 0.0}
         if _hit:
             detail["chains_already_priced"] = _skipped
+        if unseal is not None:
+            detail["unseal"] = unseal
 
         if best is None:
             # THE VERDICT IS NOT ONE WORD. "I stopped early" and "the whole space at this
@@ -7440,7 +7459,22 @@ class Agent:
             self.gamma.book["want_retained_unpaid"] = (
                 self.gamma.book.get("want_retained_unpaid", 0) + 1)
         _total, left, cost, term = best
-        detail["explained"], detail["overclaimed"] = self.explain(slot, base - left)
+        if unseal is not None:
+            # per rebinding (the reviewer 16:28Z, 16:31Z): both whole lengths, the start bits
+            # inside the held rule's price, and which of the two reads an earlier frame
+            unseal.update(winner=term.name, winner_whole=round(cost + left, 3),
+                          held_whole=unseal["bar"],
+                          start_bits=round(unseal["starts"] * math.log2(self.alphabet[slot]), 3),
+                          held_reads_earlier=True,
+                          winner_reads_earlier=bool(term.operand
+                                                    and term.operand.endswith(PREV)))
+        if unseal is not None and left > base_held:
+            # SHORTER BUT EXPLAINING LESS: `outstanding` only grows, and `explain` cannot unspend,
+            # so a replacement may not leave more than the rule it replaces.
+            detail["verdict"] = "unseal_leaves_more"
+            self.led.record(self.cycle, "MINT", slot, "park", of=(slot,), **detail)
+            return
+        detail["explained"], detail["overclaimed"] = self.explain(slot, base_held - left)
         self.gamma.accept(term, seq=len(self.led), residual=f"{slot}@{self.cycle}")
         self.bound[slot] = term.name
         self.rank.note(term.name, self.cycle)

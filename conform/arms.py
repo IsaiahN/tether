@@ -207,6 +207,16 @@ ARMS: dict[str, str] = {
                          "closers (demo swing: dec . neg never reached after c3; trace "
                          "2026-10-09). 16 of 18 ~1 terms settled held-out on the panel when ON. "
                          "Re-ON pending the ruling on pricing a law that needs an earlier frame",
+    "TETHER_UNSEAL_START": "the seal repair (R3 item 1; Isaiah's H1 and H3(i)): when the HELD "
+                           "term reads an earlier frame, a challenger is priced against the held "
+                           "rule's whole two-part length (its cost plus its leftover, whose unseen "
+                           "starts are its own price), not its leftover alone, which can sit under "
+                           "the floor and seal the slot; a challenger leaving more than the held "
+                           "rule is refused (unseal_leaves_more). Opens the seal; does not by "
+                           "itself rebind on one record (swing: ~1 rule 10.422 vs any 2-atom "
+                           "closer >= 11.422); the rebind is item 3's (the reviewer 16:46Z). OFF "
+                           "until measured; inert while TETHER_PREV_OFFER is OFF (no such term is "
+                           "ever bound)",
     "TETHER_REBIND_HELD": "rebinding a slot whose term is already held",
     "TETHER_RECIPE_DEDUP": "one candidate per recipe rather than per instance",
     "TETHER_NO_REFUTED_BIN": "**INVERTED POLARITY.** The fifth bin (Fig 5's amendment), DEFAULT ON "
