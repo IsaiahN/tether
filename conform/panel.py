@@ -29,7 +29,11 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path = [str(ROOT)] + [p for p in sys.path
                           if Path(p or ".").resolve() != Path(__file__).resolve().parent]
 OUT = ROOT / "runs" / "panel"
-MEMBERS = ("gridworld_s0", "gridworld_s1", "gridworld_s2", "fake")
+# gridworld_arc_*: the SAME boards with the ARC wiring's vocabulary and honest types, together --
+# the only variable against gridworld_*, which stays as the control (the reviewer 2026-10-09
+# 11:58Z, A4, route (i)).
+MEMBERS = ("gridworld_s0", "gridworld_s1", "gridworld_s2", "fake",
+           "gridworld_arc_s0", "gridworld_arc_s1", "gridworld_arc_s2")
 CYCLES, ACTIONS = 60, 40
 REGENERATE = "python conform/panel.py --produce"
 
@@ -80,12 +84,11 @@ def _member(name: str) -> None:
                          led_path=str(led_path))
     else:
         import gamma
-        import gridworld
         import ledger
         import tether
         import world
-        seed = int(name.rsplit("s", 1)[1])
-        env = world.bind(gridworld.family("default", seed, CYCLES))
+        g, seed = _gridworld(name)
+        env = world.bind(g)
         led = ledger.Ledger()
         ag = tether.Agent(env, gamma.Gamma(env.atoms(), game=f"dt_default_{seed}"),
                           tether.Config(), led)
@@ -98,6 +101,54 @@ def _member(name: str) -> None:
     (OUT / f"{name}.stamp").write_text(json.dumps(stamp, indent=1), encoding="utf-8")
 
 
+def _gridworld(name: str):
+    """One gridworld member's board; an `_arc_` member gets the ARC atoms and their types."""
+    import gridworld
+    seed = int(name.rsplit("s", 1)[1])
+    g = gridworld.family("default", seed, CYCLES)
+    if "_arc_" in name:
+        import arc_atoms
+        import arc_predict
+        g.atom_set = arc_atoms.three_spaces(arc_predict.predict())
+        g.attribute_types = dict(arc_atoms.ATTRIBUTE_TYPE)
+    return g, seed
+
+
+def _arc_vocabulary(g) -> list[str]:
+    """What gridworld-arc must hold, read off the board as built: same/other/above accept POSITION
+    and COLOUR where the types say so, sign and abs_delta are present, and row/col/colour are
+    typed POSITION/COLOUR."""
+    import gamma
+    atoms = {a.name: a for a in g.atoms()}
+    types = g.slot_types()
+    need = ("same", "other", "above", "sign", "abs_delta")
+    bad = [f"no atom {n}" for n in need if n not in atoms]
+    if bad:
+        return bad
+    for n, ty in (("same", "POSITION"), ("same", "COLOUR"), ("other", "POSITION"),
+                  ("other", "COLOUR"), ("above", "POSITION")):
+        if not gamma.accepts_type(atoms[n], ty):
+            bad.append(f"{n} does not accept {ty}")
+    for attr, ty in (("row", "POSITION"), ("col", "POSITION"), ("colour", "COLOUR")):
+        if not any(s.endswith("." + attr) and t == ty for s, t in types.items()):
+            bad.append(f"no slot .{attr} typed {ty}")
+    return bad
+
+
+def _arc_must_fail() -> list[str]:
+    """gridworld-arc passes; the control (toy atoms, EXTENT throughout) and gridworld-arc with its
+    types dropped are both caught."""
+    arc, _ = _gridworld("gridworld_arc_s0")
+    ctrl, _ = _gridworld("gridworld_s0")
+    out = [f"gridworld-arc: {b}" for b in _arc_vocabulary(arc)]
+    if not _arc_vocabulary(ctrl):
+        out.append("gridworld-arc check: the control passed it, so it reads nothing")
+    arc.attribute_types = None
+    if not _arc_vocabulary(arc):
+        out.append("gridworld-arc check: types dropped and it still passed")
+    return out
+
+
 def _produce() -> int:
     procs = [subprocess.Popen([sys.executable, __file__, "--member", m], cwd=ROOT)
              for m in MEMBERS]
@@ -106,7 +157,7 @@ def _produce() -> int:
 
 def _seat() -> int:
     import gate
-    bad = _hash_must_fail()
+    bad = _hash_must_fail() + _arc_must_fail()
     for name in MEMBERS:
         led_path, stamp_path = OUT / f"{name}.jsonl", OUT / f"{name}.stamp"
         if not (led_path.exists() and stamp_path.exists()):

@@ -115,6 +115,10 @@ class GridWorld:
     # into another module's private atom set is the coupling that makes "one variable moves"
     # unverifiable. Passed in, or taken from the toy world's PUBLIC accessor.
     atom_set: list[Atom] | None = None
+    # THE HONEST TYPES, passed in WITH a vocabulary that reads them (the docstring's "together, or
+    # neither"): attribute -> type, e.g. the ARC wiring's ATTRIBUTE_TYPE. None keeps EXTENT
+    # throughout, so the control member is byte-identical (the reviewer 2026-10-09 11:58Z, A4).
+    attribute_types: dict[str, str] | None = None
     # **FIXTURE B -- NO AVATAR, ONLY CLICKING WORKS. Isaiah's second fixture, and
     # `docs/ACTION_INTERFACE_PLAN.md` 19e made it a PREREQUISITE rather than an option**: it is
     # the only world that can exercise `TOUCH`'s positioned route, which nothing has run. This
@@ -479,7 +483,9 @@ class GridWorld:
         reused atom set consumes `EXTENT`, so declaring them would type-starve every candidate
         and the world would read dead for a reason that has nothing to do with the habitat.
         Richer typing lands with grid-native atoms, together, or neither."""
-        return dict.fromkeys(self.slots(), "EXTENT")
+        if self.attribute_types is None:
+            return dict.fromkeys(self.slots(), "EXTENT")
+        return {s: self.attribute_types.get(s.split(".", 1)[-1], "EXTENT") for s in self.slots()}
 
     def transform(self) -> Any:
         """No coarse view is defined here, so the bracket channel is inert. Stated, not omitted."""
