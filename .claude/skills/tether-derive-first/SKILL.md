@@ -24,7 +24,9 @@ Isaiah, 2026-10-09: *"the tether is so good that it should be able to explain al
 
 5. **Round trip: translate back and measure the gap.** Map the outward frame back onto the figures line by line (Fig 4: *"So take the round trip and measure the gap."*). Anything the derivation contradicts in your draft (or in an earlier ruling) is corrected explicitly and named as a correction, not silently rewritten.
 
-6. **Anchor.** Check the conclusion against what cannot be argued with: measurements (code read at file:line, commits, ledgers, test output) and the figures' text. Agreement between seats is weak, because it is one evidence pool (Fig 2: collapse 1, mutual update). If no figure line supports a proposal, say so plainly: it is either a gap in the figures (for Isaiah) or a proposal that should not be made.
+6. **Anchor.** Check the conclusion against what cannot be argued with: measurements (code read at file:line, commits, ledgers, test output) and the figures' text. Agreement between seats is weak, because it is one evidence pool (Fig 2: collapse 1, mutual update).
+
+6a. **No single line answers it? Unbundle and recurse before calling it a gap.** Isaiah, 2026-10-09: *"the tether always applies recursively or unbundle the topic or question into smaller pieces to find the aggregate answer."* Split the question into smaller ones, apply the figures to each (recursively, if a piece is still too big), then assemble the aggregate answer. Fig 9: *"Split it rather than search."* and *"And when the split lands on a union rather than a partition, unbundle before you search again."* Only what survives that is a gap in the figures (for Isaiah) or a proposal that should not be made. A Strained line written before unbundling is unfinished work, not a finding. Worked example (2026-10-09): the question of over what span a cut must stay reversible was called a gap; unbundled into four questions (unit of the gap, Fig 1; when a slot is open, Fig 5; whether a short search proves anything, Fig 9; which boundary resets, Fig 12), it answers itself: for the life of the slot's debt, inside the record's boundary.
 
 7. **Carry the method.** Record the derivation as a reusable method (residual shape → lines that bear → conclusion → corrections found) in the project's derivation log, so the next case is a lookup by shape. Fig 4: carry up *"a method that can be reapplied. Never the recording of a particular success."*
 
@@ -41,7 +43,7 @@ DERIVATION (before the conclusion):
   - round-trip gap: <what the derivation corrected, or "none">
 CONCLUSION / RULING: …
 ANCHOR: <measurement or text it was checked against>
-FIGURE CENSUS: … / Strained: …
+FIGURE CENSUS: … / Strained: … (only what survives unbundling, step 6a)
 ```
 
 ## Extraction recipe (tspans joined, base64 stripped)
@@ -66,5 +68,6 @@ The agent already runs this loop on boards: residual → lookup (forward and abd
 - **D2:** those process residuals are described as effects, so the lookup can find a method that predicts them.
 - **D3:** the meta level's ground is level and game outcomes only. It never grades its own self-diagnosis. Fig 10: *"A verifier that can reconstruct the claim cannot verify it."*
 - **D4:** methods carry across levels and games, and are replayed as methods, never recordings (MC6).
+- **D5:** when no term pays a residual, the agent unbundles it before recording it unreachable: a residual where each rule keeps working on a different subset is several residuals, and each is searched on its own, recursively, before the whole is called unreachable (Fig 9).
 
 Design first, measured behind an arm, under the registered rule.
