@@ -57054,4 +57054,12 @@ Refusals were priced on every seed; **none paid** (s0 172, s1 143, s2 117 attemp
 
 **The code is right and the doc is to change: the reviewer amends section 3 in the next package.** The pair rows (`touching(o, x)` and the other pair calls) stay refused for a different reason: `arc_atoms.touching` reads whether its object touches ANY object, so no atom reads "this pair". The library-wide scale of each gap, and the search cost of each proposed widening, are the M3 census (`docs/cohesion/COMPILE_CENSUS.md`).
 
+**AND "down" IS A TREE, NEVER A CHAIN (the reviewer 2026-10-08 23:54Z; built with `holds`, 7b).** `sign . holds . negate` reads "not positive" and is wrong at zero; down is `both<abs_delta . sign . holds>(sign . holds . negate)` -- non-zero AND not positive. `test_compile.py` catches the chain on 42 zero frames.
+
 **FIGURE CENSUS.** Figure 10 (Figure_10_The_Ground_Maintainer) -- "a convention nothing can check is a constant the seat authored": section 3's "compiles" column was one, and the mint's typing, run on it, refused three rows. Strained: none.
+
+#### F514 -- **adjacent != touching; touching = contactPoints > 0 (the relation commit `daedc5d`, recorded at the reviewer's request 2026-10-09 00:34Z).**
+
+The observer's pair field `adjacent` is bounding boxes within a gap of one cell -- nearness, a different relation. `touching` (the percept, `observer._relations` touch_began / touch_ended) and `touches<x>` (the atom, `arc_atoms`) both read SHARED CELL FACES, one geometry in both places. Measured on a real frame: objects moved to a one-cell gap left `adjacent` True. **Do not re-wire touch_began / touch_ended to `adjacent`.**
+
+**FIGURE CENSUS.** Figure 10 (Figure_10_The_Ground_Maintainer) -- "a convention nothing can check is a constant the seat authored": `touching` had two geometries in two places; this line keeps the one definition. Strained: none.

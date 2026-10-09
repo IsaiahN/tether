@@ -16,7 +16,6 @@ Two readings, both records, neither a gate:
 from __future__ import annotations
 
 import collections
-import dataclasses
 import sys
 from pathlib import Path
 
@@ -88,20 +87,11 @@ def closure(atoms: dict) -> dict[int, int]:
     return {d: sum(g.space_exact(units, i, o, d) for i in ins for o in outs) for d in DEPTHS}
 
 
-def widenings(atoms: dict) -> dict[str, tuple[dict, dict]]:
-    """7b's two forms (the reviewer 2026-10-08 23:23Z): every PRED atom also accepts BOOL, or
-    ONE bridge atom holds: BOOL -> PRED that the BOOL rows route through. Each is an atom set
-    and the compile rows it would use."""
-    blanket = dict(atoms)
-    for k, a in atoms.items():
-        if a.in_type == "PRED" and "BOOL" not in a.accepts:
-            blanket[k] = dataclasses.replace(a, also_accepts=a.also_accepts + ("BOOL",))
-    bridge = dict(atoms)
-    bridge["holds"] = gamma.Atom("holds", lambda v, _c: v, "BOOL", "PRED")
-    rows = {("==", "one"): (("holds",), None), ("==", "zero"): (("holds", "negate"), None),
-            ("<", "zero"): (("sign", "holds", "negate"), None)}
-    return {"7b: every PRED atom accepts BOOL": (blanket, {}),
-            "7b': one bridge atom holds: BOOL -> PRED": (bridge, rows)}
+def widenings(_atoms: dict) -> dict[str, tuple[dict, dict]]:
+    """Proposed widenings not yet built, each an atom set and the compile rows it would use.
+    None pending: 7a, touches<x> and 7b (the bridge atom holds, the reviewer 2026-10-08 23:54Z,
+    over every PRED atom accepting BOOL) are built and in the base."""
+    return {}
 
 
 def merge_percept(lib: LR.Library) -> str:
@@ -177,8 +167,8 @@ def main() -> int:
               ""] + notes
     lines += ["", "## The merge percept (record for the census, not a fixture)", "",
               merge_percept(lib)]
-    lines += ["", "Record-only: neither 7b form is built. 7a and touches<x> are in the base above "
-              "(the reviewer's rulings 2026-10-08 23:23Z)."]
+    lines += ["", "Record-only. 7a, touches<x> and holds are in the base above (the reviewer's "
+              "rulings 2026-10-08 23:23Z and 23:54Z); no widening is pending."]
     OUT.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
     print("\n".join(lines))
     return 0

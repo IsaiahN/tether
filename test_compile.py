@@ -23,6 +23,11 @@ FRAMES = [(3, 1), (1, 3), (2, 2), (0, 0), (-1, 2), (2, -1), (-2, -2), (0, 5), (5
           (0, -3), (1, 1)]
 
 
+# A BOOL slot holds 0 or 1: its frames are its domain (the reviewer 2026-10-08 23:54Z). Integer
+# frames on a BOOL reading produced disagreements no BOOL slot can show.
+BOOL_FRAMES = [(0, 0), (0, 1), (1, 0), (1, 1)]
+
+
 def _atoms() -> dict:
     return {a.name: a for a in arc_atoms.three_spaces(arc_predict.predict())}
 
@@ -48,7 +53,8 @@ def disagreements(atoms: dict) -> tuple[list[str], int, dict[str, int]]:
         n += 1
         node = condition.parse(cand["condition"])
         r = cand["reading"]
-        for a, b in FRAMES:
+        domain = BOOL_FRAMES if C.readings()[r].get("type") == "BOOL" else FRAMES
+        for a, b in domain:
             frame = {f"o1.{r}": a, f"o2.{r}": b}
             want = condition.evaluate(node, lambda name, _args, f=frame: f.get(name))
             got = C.run(c, frame)
@@ -73,16 +79,31 @@ def test_every_compiled_row_agrees_with_evaluate():
 def test_each_named_refusal_is_refused_with_its_reason():
     atoms = _atoms()
     # 7a: "present" (EXTENT > 0) and "moves" (!= 0) compile since sign accepts EXTENT
-    for cond in ("o1.h > 0", "o1.drow != 0"):
+    # 7a and 7b: these compile now (present, moves; down as the tree; BOOL holds / fails)
+    for cond in ("o1.h > 0", "o1.drow != 0", "o1.drow < 0", "o1.colour_changed == 1",
+                 "o1.colour_changed == 0"):
         assert isinstance(C.compile_candidate({"condition": cond}, atoms), C.Compiled), cond
-    for cond, reason in [("o1.drow < 0", "sign gives BOOL, which negate does not accept"),
-                         ("o1.colour_changed == 1", "idn does not accept BOOL"),
-                         ("o1.colour_changed == 0", "negate does not accept BOOL"),
+    for cond, reason in [
                          ("contact(o1, o2) == 1", "no pairwise atom"),
                          ("frame.came > 0", "events are not slots"),
                          ("board.completed > 0", "not an object slot")]:
         got = C.compile_candidate({"condition": cond}, atoms)
         assert isinstance(got, C.Refusal) and reason in got.reason, (cond, got)
+
+
+def test_down_as_the_plain_chain_is_caught_at_zero():
+    """MUST-FAIL: "down" compiled as sign . holds . negate means "not positive" and is wrong
+    at zero; the equivalence catches it. The ruled form is the tree."""
+    atoms = _atoms()
+    keep = C.TABLE[("<", "zero")]
+    C.TABLE[("<", "zero")] = (("sign", "holds", "negate"), None)
+    try:
+        bad, _n, _r = disagreements(atoms)
+    finally:
+        C.TABLE[("<", "zero")] = keep
+    at_zero = [b for b in bad if "< 0 on o1=0 " in b]
+    assert at_zero, "down as the plain chain was not caught at zero"
+    return at_zero
 
 
 def test_a_swapped_binding_is_caught():
@@ -160,10 +181,11 @@ if __name__ == "__main__":
     n, refused = test_every_compiled_row_agrees_with_evaluate()
     test_each_named_refusal_is_refused_with_its_reason()
     caught = test_a_swapped_binding_is_caught()
+    down_caught = test_down_as_the_plain_chain_is_caught_at_zero()
     self_bound = test_the_pair_atom_agrees_with_an_independent_reading()
     print(f"compile: {n} candidates compiled, each agreeing with condition.evaluate on "
           f"{len(FRAMES)} frames and on an unread operand; "
           f"{sum(refused.values())} refused by reason {dict(sorted(refused.items()))}; "
           f"the swapped binding caught on {len(caught)} frame(s); touches<x> agrees on "
           f"{len(PAIR_FRAMES)} pairs and an unread operand, its self-bound operand caught on "
-          f"{self_bound}")
+          f"{self_bound}; down as the plain chain caught on {len(down_caught)} zero frame(s)")

@@ -270,6 +270,12 @@ ADMITTED = {
              "squares and pegs",
     "parity": "handed-2026-09-08: §12.4's own INWARD example `parity(position)`; no modulo "
               "exists anywhere in the atom set; odd-and-even precedes school",
+    "holds": "handed-2026-10-08: the compile census named the gap -- 186,139 library compile "
+             "refusals were for want of a truth used as a predicate (idn 44,317, negate 17,631, "
+             "sign then negate 124,191); it adds no percept and no answer, only lets a BOOL "
+             "reading be used where a predicate is wanted. Ruled by the reviewer 2026-10-08 "
+             "23:54Z over blanket widening: +183,415 rows for x1.02-1.04 search, against "
+             "+139,293 for x1.11-1.18",
     "touches": "handed-2026-10-08: the agent's own machinery named the gap -- 171,809 library "
                "compile refusals name a missing pairwise atom (compile_census, M3); contact is "
                "a core prior (objects interact by contact); a human arrives holding it. "
@@ -1025,7 +1031,13 @@ def _connect() -> list[Atom]:
         o = c.operands[0]
         return NOT_RESOLVED if o is NOT_RESOLVED else int(bool(v) or bool(o))
 
-    return [Atom("negate", _negate, PRED, PRED),
+    def _holds(v: Any, _c: Ctx) -> Any:
+        """A truth used as a predicate: BOOL -> PRED, the one explicit crossing (7b, the
+        reviewer 2026-10-08 23:54Z). A value outside {0, 1} is not a truth and is not read."""
+        return int(v) if v in (0, 1) else NOT_RESOLVED
+
+    return [Atom("holds", _holds, BOOL, PRED),
+            Atom("negate", _negate, PRED, PRED),
             Atom("both", _both, PRED, PRED, reads_operand=True,
                  operand_type=PRED, reads_ctx=("operands",)),
             Atom("either", _either, PRED, PRED, reads_operand=True,

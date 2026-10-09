@@ -28,16 +28,19 @@ import gamma
 
 SAME = gamma.SAME_AS_TARGET
 
-# (op, right side) -> (atom chain run on the target slot, operand side or None).
+# (op, right side) -> (atom chain run on the target slot, operand side or None[, operand chain]).
 # right side: "zero" / "one" for a constant, "slot" for another object's same reading.
 # operand side: "x" -> the other object's slot is operand 0; "o" -> the chain runs on the OTHER
-# object's slot with this object's as operand (the reversed binding, for "<").
-TABLE: dict[tuple[str, str], tuple[tuple[str, ...], str | None]] = {
+# object's slot with this object's as operand (the reversed binding, for "<"); "self" -> the
+# target slot itself, transformed by the operand chain before it fills operand 0 (a tree).
+TABLE: dict[tuple[str, str], tuple] = {
     (">", "zero"): (("sign",), None),               # up: a positive delta
     ("!=", "zero"): (("abs_delta", "sign"), None),  # moves: section 3's chain
-    ("<", "zero"): (("sign", "negate"), None),      # down: needs a negated sign
-    ("==", "one"): (("idn",), None),                # BOOL holds
-    ("==", "zero"): (("negate",), None),            # BOOL fails
+    # down: "not positive AND non-zero" -- never the chain sign . holds . negate, which is "not
+    # positive" and wrong at zero (the reviewer 2026-10-08 23:54Z)
+    ("<", "zero"): (("sign", "holds", "negate", "both"), "self", ("abs_delta", "sign", "holds")),
+    ("==", "one"): (("holds",), None),              # BOOL holds: the truth as a predicate
+    ("==", "zero"): (("holds", "negate"), None),    # BOOL fails
     ("==", "slot"): (("same",), "x"),               # with / same / level / both
     ("!=", "slot"): (("other",), "x"),              # unlike / other
     (">", "slot"): (("above",), "x"),               # more / after
@@ -74,22 +77,32 @@ def _split(slot: str) -> tuple[str, str]:
     return obj, reading
 
 
-def _typed(chain: tuple[gamma.Atom, ...], slot_type: str, operand_type: str | None) -> str | None:
-    """None when the chain is well-typed on a slot of `slot_type`, else the reason."""
+def _typed(chain: tuple[gamma.Atom, ...], slot_type: str, operand_type: str | None,
+           op_chain: tuple[gamma.Atom, ...] = ()) -> str | None:
+    """None when the chain is well-typed on a slot of `slot_type`, else the reason. An operand
+    chain (a tree) must itself be well-typed on the operand slot and give what the reader
+    of the operand wants."""
     if not gamma.accepts_type(chain[0], slot_type):
         return f"{chain[0].name} does not accept {slot_type}"
     for a, b in zip(chain, chain[1:], strict=False):
         if not gamma.accepts_type(b, a.out_type):
             return f"{a.name} gives {a.out_type}, which {b.name} does not accept"
-    head = chain[0]
-    if head.reads_operand:
-        want = slot_type if head.operand_type == SAME else head.operand_type
-        if operand_type is None:
-            return f"{head.name} reads an operand and the condition gives none"
-        if want is not None and operand_type != want:
-            return f"{head.name} wants a {want} operand, the condition gives {operand_type}"
-    elif operand_type is not None:
-        return f"{head.name} reads no operand and the condition names a second slot"
+    readers = [a for a in chain if a.reads_operand]
+    if not readers:
+        return (f"{chain[0].name} reads no operand and the condition names a second slot"
+                if operand_type is not None else None)
+    if operand_type is None:
+        return f"{readers[0].name} reads an operand and the condition gives none"
+    given = operand_type
+    if op_chain:
+        why = _typed(op_chain, operand_type, None)
+        if why:
+            return f"the operand chain: {why}"
+        given = op_chain[-1].out_type
+    for r in readers:
+        want = slot_type if r.operand_type == SAME else r.operand_type
+        if want is not None and given != want:
+            return f"{r.name} wants a {want} operand, the condition gives {given}"
     return None
 
 
@@ -128,20 +141,26 @@ def compile_candidate(cand: dict, atoms: dict[str, gamma.Atom]) -> Compiled | Re
     row = TABLE.get((node.op, kind))
     if row is None:
         return Refusal(f"no template for {node.op} against a {kind}")
-    names, side = row
-    missing = [n for n in names if n not in atoms]
+    names, side = row[0], row[1]
+    op_names = row[2] if len(row) > 2 else ()
+    missing = [n for n in (*names, *op_names) if n not in atoms]
     if missing:
         return Refusal(f"Gamma holds no atom {missing}")
     chain = tuple(atoms[n] for n in names)
+    op_chain = tuple(atoms[n] for n in op_names)
     run_on, operand = target, None
     if side == "x":
         operand = other
     elif side == "o":
         run_on, operand = other, target
-    why = _typed(chain, rtype, rtype if operand else None)
+    elif side == "self":
+        operand = target
+    why = _typed(chain, rtype, rtype if operand else None, op_chain)
     if why:
         return Refusal(why)
-    return Compiled(run_on, gamma.Term(chain, operand=operand), operand)
+    term = gamma.Term(chain, operand=operand,
+                      operand_term=gamma.Term(op_chain) if op_chain else None)
+    return Compiled(run_on, term, operand)
 
 
 def _pair(node: Any, atoms: dict[str, gamma.Atom]) -> Compiled | Refusal:
@@ -166,6 +185,13 @@ def run(c: Compiled, frame: dict[str, Any]) -> bool | None:
     from gamma import NOT_RESOLVED, Ctx
     if frame.get(c.slot) is None or (c.operand and frame.get(c.operand) is None):
         return None
-    ops = (frame[c.operand],) if c.operand else ()
+    ops: tuple = ()
+    if c.operand:
+        o = frame[c.operand]
+        if c.term.operand_term is not None:      # a tree: the operand is computed
+            o = c.term.operand_term.apply(o, Ctx())
+            if o is NOT_RESOLVED:
+                return None
+        ops = (o,)
     v = c.term.apply(frame[c.slot], Ctx(operands=ops))
     return None if v is NOT_RESOLVED else bool(v)
