@@ -217,6 +217,26 @@ ARMS: dict[str, str] = {
                            "closer >= 11.422); the rebind is item 3's (the reviewer 16:46Z). OFF "
                            "until measured; inert while TETHER_PREV_OFFER is OFF (no such term is "
                            "ever bound)",
+    "TETHER_WINDOW": "the history window (R3 item 2; Isaiah's H1; the reviewer 14:52Z, 15:26Z, "
+                     "18:10Z, 18:15Z): every lag slot~j the trace can reach is offered AFTER "
+                     "every other binding (their order and position unchanged), evidence lags "
+                     "first, nearest first, then the rest nearest first; the per-mint work "
+                     "budget is also checked inside a chain, so the cut falls between lags and "
+                     "unreached ones are counted by kind (window_beyond_bound). Evidence: on the "
+                     "residual frames the outcome is a function of the value j frames back AND "
+                     "some earlier value recurs. Price untouched (R-D1). Note: ~j reads j "
+                     "frames before the BEFORE-state, so j+1 before the outcome. DEPENDENCY: a "
+                     "lag-j law leaves j unseen starts; measure and run with TETHER_UNSEAL_START "
+                     "ON, or the seal returns on every lag (the reviewer 18:25Z). MEASURED, 7 "
+                     "members, 60 cycles: chains seen fall -1% to -30% (fake -67%); 5 slots that "
+                     "paid OFF never pay ON (6 with TETHER_UNSEAL_START), slots paid rise on 5 of "
+                     "7 members; seal count 0 (no lag law bound here is otherwise exact); 0 "
+                     "closers and 0 level ends in any arm, so no capability claim. Crowding "
+                     "traced (19:34Z): 5 of 6 lost slots never reached their OFF winner; item 2b "
+                     "orders the search in two passes (evidence lags first), and when "
+                     "TETHER_RUIN lands, stakes-tagged lags join pass 1 by the same R-D3 rule "
+                     "(the reviewer 19:45Z; nothing built for it yet). OFF until "
+                     "measured; under it ~1 is one lag of the block, not TETHER_PREV_OFFER's offer",
     "TETHER_REBIND_HELD": "rebinding a slot whose term is already held",
     "TETHER_RECIPE_DEDUP": "one candidate per recipe rather than per instance",
     "TETHER_NO_REFUTED_BIN": "**INVERTED POLARITY.** The fifth bin (Fig 5's amendment), DEFAULT ON "

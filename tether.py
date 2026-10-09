@@ -389,6 +389,16 @@ _LOOKUP_ORDER = armflag.arm("TETHER_LOOKUP_ORDER", default=True)
 # AN OPERAND NAMED `slot~1` IS THAT SLOT ONE FRAME EARLIER (the reviewer 2026-10-08 06:25Z, Fig 6:
 # the trace already holds it). Never a slot: not bet on, no residual, only bound as an operand.
 PREV = "~1"
+# THE WINDOW (R3 item 2, Isaiah's H1): `slot~j` is that slot j frames earlier; `~1` is j = 1.
+_LAG = re.compile(r"^(.*)~(\d+)$")
+
+
+def lag_of(name: str | None) -> tuple[str, int] | None:
+    """(slot, j) for an operand reading j frames back, else None."""
+    if not name or "~" not in name:
+        return None
+    m = _LAG.match(name)
+    return (m.group(1), int(m.group(2))) if m and int(m.group(2)) > 0 else None
 # THE ~1 OFFER IN `_bindings` (the reviewer 2026-10-09 06:39Z): OFF, reason in conform/arms.py.
 _PREV_OFFER = armflag.arm("TETHER_PREV_OFFER")
 # M4: the library's offered chains yielded BEFORE the closure stream, priced by the one body
@@ -398,6 +408,9 @@ _LIBRARY_FIRST = armflag.arm("TETHER_LIBRARY_FIRST", default=True)
 # THE SEAL REPAIR (R3 item 1, the reviewer 2026-10-09; Isaiah's H1 and H3(i)). OFF; reason in
 # conform/arms.py. Inert unless a term reading an earlier frame is bound (TETHER_PREV_OFFER).
 _UNSEAL_START = armflag.arm("TETHER_UNSEAL_START")
+# THE HISTORY WINDOW (R3 item 2; Isaiah's H1; the reviewer 18:10Z, 18:15Z). OFF; reason in
+# conform/arms.py. Lags `slot~j` offered after every other binding, ranked; the budget bounds them.
+_WINDOW = armflag.arm("TETHER_WINDOW")
 
 
 @cache
@@ -1062,6 +1075,7 @@ class Agent:
                  led: Ledger | None = None) -> None:
         self.env, self.gamma = env, gam
         self._trace_pos = None            # `_prev_of`'s index of the trace by row
+        self._window_info: dict = {}      # per slot, the window's offer for the mint in hand
         # `setdefault`, NEVER ASSIGNMENT: a loaded library carries its books across attempts
         # (`08bb416`) and zeroing them here would silently undo the persistence that makes a
         # dial earnable at all. A key the blob predates simply arrives at 0.
@@ -1948,7 +1962,7 @@ class Agent:
             if hit is not None and hit[0] is state:
                 return hit[1]
         op = term.operand
-        value = (self._operand_value(op, state) if op[-1] == PREV[-1]
+        value = (self._operand_value(op, state) if "~" in op
                  else state.get(op, NOT_RESOLVED))
         if term.operand_term is not None:
             value = term.operand_term.apply(value, Ctx(operands=(value,)))
@@ -2697,23 +2711,24 @@ class Agent:
             return ()
         return tuple(sorted(adj.get(owners.get(slot), ()) or ()))
 
-    def _prev_of(self, state: dict) -> dict | None:
-        """The before-state one frame earlier than `state`: by position in the trace, or the
-        last recorded before-state for a live frame not yet in it. None at a trace's start."""
+    def _prev_of(self, state: dict, j: int = 1) -> dict | None:
+        """The before-state j frames earlier than `state`: by position in the trace, or counted
+        back from the trace's end for a live frame not yet in it. None before a trace's start."""
         idx = self._trace_pos
         if idx is None or idx[0] != len(self.trace) or idx[1] is not self.trace:
             idx = self._trace_pos = (len(self.trace), self.trace,
                                      {id(self.trace[i][0]): i for i in range(len(self.trace))})
         i = idx[2].get(id(state))
         if i is not None and self.trace[i][0] is state:
-            return self.trace[i - 1][0] if i else None
-        return self.trace[-1][0] if self.trace else None
+            return self.trace[i - j][0] if i >= j else None
+        return self.trace[-j][0] if len(self.trace) >= j else None
 
     def _operand_value(self, name: str, state: dict):
         """The operand's reading on this frame, or NOT_RESOLVED where it did not exist."""
-        if name[-1] == PREV[-1] and name.endswith(PREV):
-            prev = self._prev_of(state)
-            return NOT_RESOLVED if prev is None else prev.get(name[:-len(PREV)], NOT_RESOLVED)
+        lag = lag_of(name)
+        if lag is not None:
+            prev = self._prev_of(state, lag[1])
+            return NOT_RESOLVED if prev is None else prev.get(lag[0], NOT_RESOLVED)
         return state.get(name, NOT_RESOLVED)
 
     def _applies(self, term: Term, state: dict[str, int]) -> bool:
@@ -2738,13 +2753,36 @@ class Agent:
             return True
         # THE PLAIN READ INLINE: this runs on every candidate and every history row, and the
         # method call it replaces was ~15% of the prev operand's measured cost on gridworld s2.
-        if op[-1] != PREV[-1]:
+        if "~" not in op:
             return state.get(op, NOT_RESOLVED) is not NOT_RESOLVED
         return self._operand_value(op, state) is not NOT_RESOLVED
 
+    def _lag_evidence(self, slot: str, robs: list, j: int) -> dict:
+        """Whether the residual names lag j (R-D3's correlation, Fig 9's description first): on
+        the frames the held term got wrong, the outcome is a FUNCTION of the slot's own value j
+        frames back -- no earlier value is followed by two outcomes -- and some earlier value
+        recurs, so the claim could have been refuted and was not (the reviewer 18:10Z). A value
+        repeat is one case; x_t = x_(t-2)+1 is another, which a repeat test misses."""
+        seen: dict = {}
+        pairs = recurred = 0
+        functional = True
+        for st, _a, actual, _i, _l in robs:
+            v = self._operand_value(f"{slot}~{j}", st)
+            if v is NOT_RESOLVED:
+                continue
+            pairs += 1
+            if v in seen:
+                recurred += 1
+                if seen[v] != actual:
+                    functional = False
+            seen[v] = actual
+        return {"j": j, "pairs": pairs, "recurred": recurred,
+                "evidence": functional and recurred > 0}
+
     def _no_earlier_frame(self, term: Term, state: dict) -> bool:
-        """Inapplicable by construction: the term reads the previous frame and there is none."""
-        return bool(term.operand) and term.operand.endswith(PREV) and self._prev_of(state) is None
+        """Inapplicable by construction: the term reads j frames back and there are fewer."""
+        lag = lag_of(term.operand)
+        return lag is not None and self._prev_of(state, lag[1]) is None
 
     def _domain(self, slot: str, state: dict, ctx: Ctx):
         """WHERE AN OBJECTIVE ON `slot` IS SEARCHED: the values the slot has taken in the record
@@ -6621,7 +6659,8 @@ class Agent:
         want = getattr(cand, "operand_type", None)
         if bind is None or not self.slot_types:
             return True
-        got = self.slot_types.get(bind[:-len(PREV)] if bind.endswith(PREV) else bind)
+        _lg = lag_of(bind)
+        got = self.slot_types.get(_lg[0] if _lg is not None else bind)
         # THROUGH THE TREE: the slot feeds the inner chain first, so each inner atom must
         # accept what reaches it, and what fills the operand is the chain's OUTPUT. `val`
         # declares nothing -- it admits and passes the type through (F470).
@@ -6677,7 +6716,7 @@ class Agent:
         # repo-wide search. The pattern, not the file, is what has to be searched.
         seen = {s: len({st[s] for st, _a, _v, _i, _l in robs if s in st}) for s in others}
         # ITS OWN PREVIOUS VALUE, ONE CANDIDATE, ordered like the rest by how much it varies.
-        if _PREV_OFFER:
+        if _PREV_OFFER and not _WINDOW:      # under the window ~1 is one lag of the block below
             mine = slot + PREV
             seen[mine] = len({v for v in (self._operand_value(mine, st)
                                           for st, _a, _v, _i, _l in robs)
@@ -6705,7 +6744,27 @@ class Agent:
         # thing, never the answer itself"). An order, so every binding is still reached; it
         # matters because most mints stop on budget, where order decides what is reached.
         lib = self._named.get(slot, {}) if _LOOKUP_ORDER else {}
-        return [None] + sorted(others, key=lambda s: (*rank(s), s not in lib, -seen[s], s))
+        out = [None] + sorted(others, key=lambda s: (*rank(s), s not in lib, -seen[s], s))
+        if _WINDOW:
+            out += self._window_lags(slot, robs)
+        return out
+
+    def _window_lags(self, slot: str, robs: list) -> list[str]:
+        """THE WINDOW'S OFFER (the reviewer 14:52Z, 18:10Z, 18:15Z): every lag the trace can
+        reach, AFTER every other binding (whose order and position do not move), ranked
+        evidence first and nearest first, then the rest nearest first. A ranked cut, never a
+        filter (Fig 9): the budget decides how far down it is walked, and what it does not reach
+        is counted in the mint's record."""
+        reach = len(self.trace) - 1
+        recs = [self._lag_evidence(slot, robs, j) for j in range(1, reach + 1)]
+        order = ([r["j"] for r in recs if r["evidence"]]
+                 + [r["j"] for r in recs if not r["evidence"]])
+        no_ev = [r for r in recs if not r["evidence"]]
+        self._window_info[slot] = {"offered": len(order),
+                                   "evidence": [r for r in recs if r["evidence"]],
+                                   "tested_no_evidence": sum(1 for r in no_ev if r["recurred"]),
+                                   "untested": sum(1 for r in no_ev if not r["recurred"])}
+        return [f"{slot}~{j}" for j in order]
 
     def mint(self, slot: str) -> None:
         """ONE MINT WITH ITS EVALUATION MEMO. A Ctx and an operand read are pure functions of
@@ -6722,6 +6781,8 @@ class Agent:
     def _mint(self, slot: str) -> None:
         _priced0 = self._priced              # every candidate priced in THIS mint, trees included
         _lf_stats = {"yielded": 0, "beyond_depth": 0}   # M4 library-first, read only when ON
+        self._window_info.pop(slot, None)
+        _win_reached: set = set()            # TETHER_WINDOW: lag bindings the budget reached
         _lf_ops: dict = {}
         _lf_seen: set = set()                # every chain the library yielded in THIS mint
         # THE RECIPES ALREADY HELD, once per mint rather than per candidate. A library Term's
@@ -6743,7 +6804,7 @@ class Agent:
         # price"), so a challenger is priced against its WHOLE two-part length (DISCOVERY 503):
         # cost_c + left_c < cost_h + base_h. `base_held` stays what `explain` and the record read.
         base_held, unseal = base, None
-        if _UNSEAL_START and held.operand and held.operand.endswith(PREV):
+        if _UNSEAL_START and lag_of(held.operand) is not None:
             starts = sum(1 for r in hist if self._no_earlier_frame(held, r[0]))
             if starts:
                 cost_h = term_bits(self.gamma.length(held, self._units_for(slot)),
@@ -6976,8 +7037,18 @@ class Agent:
                                     break
                         rank += _n
                         cut_n["chain bounded out on cost: instances not generated"] += _n
+                        if _WINDOW:
+                            _win_reached.update(b for b in binds if lag_of(b))
                         continue
                     for bind, (g, gref) in ((b, p) for b in binds for p in _pairs):
+                        if _WINDOW:
+                            # THE BUDGET CHECKED INSIDE THE CHAIN (the reviewer 18:15Z), so the
+                            # cut can fall between two lags and the low-ranked ones go first.
+                            if rank >= self.cfg.work_budget:
+                                st["budget_spent"] = True
+                                break
+                            if bind and "~" in bind and lag_of(bind):
+                                _win_reached.add(bind)
                         rank += 1
                         term = Term(cand.atoms, operand=bind, guard=g, guard_ref=gref)
                         if self.gamma.is_atom(term) or (_maybe_lib
@@ -7347,6 +7418,16 @@ class Agent:
             detail["chains_already_priced"] = _skipped
         if unseal is not None:
             detail["unseal"] = unseal
+        _win = self._window_info.pop(slot, None)
+        if _win is not None:
+            # WHAT THE WINDOW OFFERED AND WHAT THE BUDGET REACHED, by kind (Fig 13: counted).
+            _ev = {f"{slot}~{r['j']}" for r in _win["evidence"]}
+            _lags = [b for b in operand_binds if b and lag_of(b)]
+            _out = [b for b in _lags if b not in _win_reached]
+            _win.update(reached=len(_win_reached), chains_reached=len(priced),
+                        beyond_bound={"evidence": sum(b in _ev for b in _out),
+                                      "no_evidence": sum(b not in _ev for b in _out)})
+            detail["window"] = _win
 
         if best is None:
             # THE VERDICT IS NOT ONE WORD. "I stopped early" and "the whole space at this
@@ -7466,8 +7547,7 @@ class Agent:
                           held_whole=unseal["bar"],
                           start_bits=round(unseal["starts"] * math.log2(self.alphabet[slot]), 3),
                           held_reads_earlier=True,
-                          winner_reads_earlier=bool(term.operand
-                                                    and term.operand.endswith(PREV)))
+                          winner_reads_earlier=lag_of(term.operand) is not None)
         if unseal is not None and left > base_held:
             # SHORTER BUT EXPLAINING LESS: `outstanding` only grows, and `explain` cannot unspend,
             # so a replacement may not leave more than the rule it replaces.
@@ -7479,7 +7559,7 @@ class Agent:
         self.bound[slot] = term.name
         self.rank.note(term.name, self.cycle)
         closes = left == 0.0
-        if not closes and term.operand and term.operand.endswith(PREV):
+        if not closes and lag_of(term.operand) is not None:
             _miss = self._residual_obs(slot, term, robs)
             _k = sum(self._no_earlier_frame(term, r[0]) for r in _miss)
             if _k:
