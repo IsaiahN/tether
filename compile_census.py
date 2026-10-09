@@ -45,6 +45,8 @@ def arc_atoms_wired() -> dict[str, gamma.Atom]:
 
 def _one(cand: dict, atoms: dict) -> str | None:
     """None when the candidate compiles, else its refusal reason."""
+    if "quantifier" in cand:
+        return C.QUANTIFIED
     if "condition" in cand:
         r = C.compile_candidate(cand, atoms)
         return r.reason if isinstance(r, C.Refusal) else None

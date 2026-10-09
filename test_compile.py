@@ -91,6 +91,22 @@ def test_each_named_refusal_is_refused_with_its_reason():
         assert isinstance(got, C.Refusal) and reason in got.reason, (cond, got)
 
 
+def test_a_rule_candidate_is_refused_as_quantified():
+    """A RULE candidate from the library's own view is refused as quantified over the group;
+    MUST-FAIL: the same candidate without its quantifier compiles, so the quantifier is what
+    refuses it."""
+    atoms = _atoms()
+    lib = library_runtime.Library("library").load()
+    for key in lib.seed:
+        for cand in lib.view(key, "RULE"):
+            bare = {k: v for k, v in cand.items() if k not in ("quantifier", "scope")}
+            if isinstance(C.compile_candidate(bare, atoms), C.Compiled):
+                got = C.compile_candidate(cand, atoms)
+                assert isinstance(got, C.Refusal) and got.reason == C.QUANTIFIED, (cand, got)
+                return cand["condition"]
+    raise AssertionError("no RULE candidate in the library compiles without its quantifier")
+
+
 def test_down_as_the_plain_chain_is_caught_at_zero():
     """MUST-FAIL: "down" compiled as sign . holds . negate means "not positive" and is wrong
     at zero; the equivalence catches it. The ruled form is the tree."""
@@ -182,10 +198,12 @@ if __name__ == "__main__":
     test_each_named_refusal_is_refused_with_its_reason()
     caught = test_a_swapped_binding_is_caught()
     down_caught = test_down_as_the_plain_chain_is_caught_at_zero()
+    rule = test_a_rule_candidate_is_refused_as_quantified()
     self_bound = test_the_pair_atom_agrees_with_an_independent_reading()
     print(f"compile: {n} candidates compiled, each agreeing with condition.evaluate on "
           f"{len(FRAMES)} frames and on an unread operand; "
           f"{sum(refused.values())} refused by reason {dict(sorted(refused.items()))}; "
           f"the swapped binding caught on {len(caught)} frame(s); touches<x> agrees on "
           f"{len(PAIR_FRAMES)} pairs and an unread operand, its self-bound operand caught on "
-          f"{self_bound}; down as the plain chain caught on {len(down_caught)} zero frame(s)")
+          f"{self_bound}; down as the plain chain caught on {len(down_caught)} zero frame(s); "
+          f"the RULE candidate {rule!r} refused as quantified, and compiles without it")

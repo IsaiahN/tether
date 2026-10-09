@@ -12,7 +12,7 @@ Library: 4048 seed entries x 10 roles, compiled against the 63 atoms the ARC wir
 | RESULT | 130397 | 87633 | 42764 | 3655 |
 | INSTRUMENT | 66058 | 58699 | 7359 | 3893 |
 | TEST | 51324 | 40835 | 10489 | 3859 |
-| RULE | 89986 | 75967 | 14019 | 3859 |
+| RULE | 89986 | 0 | 89986 | 0 |
 | AGENT | 66058 | 0 | 66058 | 0 |
 
 ## Refusals, by reason, per role
@@ -25,7 +25,7 @@ Library: 4048 seed entries x 10 roles, compiled against the 63 atoms the ARC wir
 - **RESULT**: then: events are not slots -- 18195; if: events are not slots -- 15269; then: the board is not an object slot -- 2986; then: no pairwise atom: contact(o, x) names two objects and no atom reads the pair -- 2401; then: no pairwise atom: bbox(o, x) names two objects and no atom reads the pair -- 1979; then: no pairwise atom: inside(o, x) names two objects and no atom reads the pair -- 1818; then: holds does not accept EXTENT -- 116
 - **INSTRUMENT**: then: events are not slots -- 7359
 - **TEST**: events are not slots -- 5614; the board is not an object slot -- 1619; no pairwise atom: contact(o, x) names two objects and no atom reads the pair -- 1135; no pairwise atom: bbox(o, x) names two objects and no atom reads the pair -- 1077; no pairwise atom: inside(o, x) names two objects and no atom reads the pair -- 1004; holds does not accept EXTENT -- 40
-- **RULE**: events are not slots -- 9144; the board is not an object slot -- 1619; no pairwise atom: contact(o, x) names two objects and no atom reads the pair -- 1135; no pairwise atom: bbox(o, x) names two objects and no atom reads the pair -- 1077; no pairwise atom: inside(o, x) names two objects and no atom reads the pair -- 1004; holds does not accept EXTENT -- 40
+- **RULE**: quantified over the group: needs a group row (not ruled) -- 89986
 - **AGENT**: if: no pairwise atom: action(o, x) names two objects and no atom reads the pair -- 66058
 
 ## Each proposed widening: gain in library rows, cost in search

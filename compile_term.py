@@ -106,8 +106,15 @@ def _typed(chain: tuple[gamma.Atom, ...], slot_type: str, operand_type: str | No
     return None
 
 
+# A RULE candidate holds of EVERY object in scope; one slot's chain says nothing about the group
+# (the reviewer 2026-10-09 00:42Z: refused until a group row -- all_same / all_of -- is ruled)
+QUANTIFIED = "quantified over the group: needs a group row (not ruled)"
+
+
 def compile_candidate(cand: dict, atoms: dict[str, gamma.Atom]) -> Compiled | Refusal:
     """One candidate (`{"condition": "o1.drow > 0", ...}`), compiled or refused with a reason."""
+    if "quantifier" in cand:
+        return Refusal(QUANTIFIED)
     try:
         node = condition.parse(cand["condition"])
     except condition.ParseError as e:
