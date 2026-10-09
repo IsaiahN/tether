@@ -52,7 +52,11 @@ ROOT = HERE.parent
 sys.path.insert(0, str(HERE))
 import check  # noqa: E402  -- the STAGES table and run_stage are the single source; nothing is copied
 
-CACHE = ROOT / ".git" / "fast_check_cache.json"
+# THE GIT DIR IS ASKED, NOT ASSUMED: in a worktree `.git` is a file and the dir is
+# .git/worktrees/<name>/, so each tree keeps its own fingerprints (their blobs differ).
+_GIT_DIR = subprocess.run(["git", "rev-parse", "--absolute-git-dir"], cwd=ROOT, check=True,
+                          capture_output=True, text=True).stdout.strip()
+CACHE = Path(_GIT_DIR) / "fast_check_cache.json"
 
 # --- what each seat reads (data; conservative) -------------------------------------------------
 CODE = [
