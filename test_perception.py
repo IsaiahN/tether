@@ -121,6 +121,38 @@ def test_cue_bridge_refuses_an_unknown_delta():
     raise AssertionError("an unknown cue delta was dropped instead of refused")
 
 
+def test_cue_bridge_reads_a_relation_change():
+    """The relation commit (the reviewer 2026-10-08 21:58Z): a real observer frame where o1 moves
+    into face contact with a STATIC o2 reads touch_began -> touching (the static object is carried
+    through the same matching as the deltas); o2 then recolouring to a third colour reads
+    colour_changed; o1 moving away reads touch_ended; diagonal-only contact reads no relation."""
+    import cue_bridge
+
+    def board(objs):
+        g = [[0] * 10 for _ in range(10)]
+        for (r, c, h, w, col) in objs:
+            for i in range(h):
+                for j in range(w):
+                    g[r + i][c + j] = col
+        return g
+    live = observer.Live()
+    live.see(board([(1, 1, 2, 2, 3), (1, 5, 2, 2, 5)]))
+    touch = live.see(board([(1, 3, 2, 2, 3), (1, 5, 2, 2, 5)]))
+    third = live.see(board([(1, 3, 2, 2, 3), (1, 5, 2, 2, 7)]))
+    away = live.see(board([(1, 1, 2, 2, 3), (1, 5, 2, 2, 7)]))
+    diag = live.see(board([(3, 3, 2, 2, 3), (1, 5, 2, 2, 7)]))
+    assert touch["mutations"]["relations"] == {"touch_began": 1, "dcontact": 1}, touch["mutations"]
+    assert cue_bridge.changed_readings(touch) == {"dcol": 1, "touching": 1, "dcontact": 1}
+    assert cue_bridge.changed_readings(third) == {"colour_changed": 1}
+    assert away["mutations"]["relations"] == {"touch_ended": 1, "dcontact": 1}
+    assert "touch_began" not in diag["mutations"]["relations"], "diagonal contact read as touching"
+    try:
+        cue_bridge.changed_readings({"mutations": {"relations": {"touch_wobble": 1}}})
+    except KeyError:
+        return
+    raise AssertionError("an unknown cue relation was dropped instead of refused")
+
+
 def test_every_observer_delta_has_a_place_in_the_bridge():
     """The seat side: every delta the observer can emit is in READING or UNMAPPED, and every
     reading the table names exists in the library -- so a new observer delta fails this seat,
@@ -135,9 +167,12 @@ def test_every_observer_delta_has_a_place_in_the_bridge():
 
     emittable = list(observer._MUT_ATTR) + list(observer._HEAVY_MUT)
     assert not unplaced(emittable), unplaced(emittable)
+    rel_unplaced = sorted(set(observer.REL_KEYS) - set(cue_bridge.RELATION))
+    assert not rel_unplaced, f"observer relations with no bridge row: {rel_unplaced}"
     assert unplaced(emittable + ["dWobble"]) == ["dWobble"], "a planted new delta was not seen"
     readings = json.loads(pathlib.Path("library/readings.json").read_text(encoding="utf-8"))
-    missing = sorted(set(cue_bridge.READING.values()) - set(readings["readings"]))
+    missing = sorted((set(cue_bridge.READING.values()) | set(cue_bridge.RELATION.values()))
+                     - set(readings["readings"]))
     assert not missing, f"the bridge maps to readings the library does not hold: {missing}"
     missing_ev = sorted(set(cue_bridge.EVENTS.values()) - set(readings["readings"]))
     assert not missing_ev, missing_ev

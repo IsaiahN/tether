@@ -52,17 +52,16 @@ def cost(b: dict, a: dict) -> float:
                                  + abs(a["h"] - b["h"]) + abs(a["w"] - b["w"]))
 
 
-def match(before: list[dict], after: list[dict]) -> list[dict]:
-    """Match actor objects across two frames on conserved SIZE (position as tiebreak), then report
-    each matched pair's change as attribute DELTAS (drow, dcol, dh, dw, dcells) plus a relative
-    colour verdict (same/different -- never a literal). A pair failing the SIZE_KEEP gate is not
-    one object: the before vanished, the after appeared. Background (largest component) dropped."""
+def pairing(before: list[dict], after: list[dict]) -> list[tuple[int, int]]:
+    """Which actor of `before` is which actor of `after` -- every matched pair, changed or not,
+    on conserved SIZE (position as tiebreak). `match` reports the changes over this same
+    pairing; the observer's relation transitions need the unchanged pairs too."""
     before, after = actors(before), actors(after)
     pairs = sorted(((cost(b, a), bi, ai)
                     for bi, b in enumerate(before) for ai, a in enumerate(after)),
                    key=lambda t: t[0])
     ub, ua = set(range(len(before))), set(range(len(after)))
-    effects = []
+    out = []
     for _cst, bi, ai in pairs:
         if bi not in ub or ai not in ua:
             continue
@@ -71,6 +70,21 @@ def match(before: list[dict], after: list[dict]) -> list[dict]:
             continue
         ub.discard(bi)
         ua.discard(ai)
+        out.append((bi, ai))
+    return out
+
+
+def match(before: list[dict], after: list[dict]) -> list[dict]:
+    """Match actor objects across two frames on conserved SIZE (position as tiebreak), then report
+    each matched pair's change as attribute DELTAS (drow, dcol, dh, dw, dcells) plus a relative
+    colour verdict (same/different -- never a literal). A pair failing the SIZE_KEEP gate is not
+    one object: the before vanished, the after appeared. Background (largest component) dropped."""
+    paired = pairing(before, after)
+    before, after = actors(before), actors(after)
+    ub = set(range(len(before))) - {bi for bi, _ai in paired}
+    ua = set(range(len(after))) - {ai for _bi, ai in paired}
+    effects = []
+    for bi, ai in paired:
         b, a = before[bi], after[ai]
         drow, dcol = a["row"] - b["row"], a["col"] - b["col"]
         dh, dw = a["h"] - b["h"], a["w"] - b["w"]

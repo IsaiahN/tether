@@ -24,6 +24,10 @@ READING = {
 }
 # observer deltas the library holds no reading for: seen, counted, not lit
 UNMAPPED = ("dArea", "dCells", "dDensity", "dGirth", "dSolid", "dOrientation", "velocity")
+# pair-relation transitions (observer.REL_KEYS) -> the library's pair readings: contact
+# beginning or ending is a change in `touching`
+RELATION = {"touch_began": "touching", "touch_ended": "touching", "dcontact": "dcontact",
+            "dbbox": "dbbox", "dinside": "dinside"}
 # objects that appeared / vanished this frame, as the library's frame readings
 EVENTS = {"appeared": "came", "vanished": "gone"}
 
@@ -47,6 +51,13 @@ def changed_readings(cue: dict | None, unmapped: dict | None = None) -> dict[str
         else:
             raise KeyError(f"cue delta {key!r} is in neither cue_bridge.READING nor UNMAPPED: "
                            f"a new observer delta needs a row here before it can light anything")
+    for key, n in (muts.get("relations") or {}).items():
+        if not n:
+            continue
+        if key not in RELATION:
+            raise KeyError(f"cue relation {key!r} is not in cue_bridge.RELATION: a new "
+                           f"observer relation needs a row here before it can light anything")
+        out[RELATION[key]] = out.get(RELATION[key], 0) + int(n)
     for key, reading in EVENTS.items():
         if muts.get(key):
             out[reading] = out.get(reading, 0) + int(muts[key])

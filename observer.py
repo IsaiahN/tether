@@ -22,7 +22,7 @@ import sensors_heavy
 # THE OBSERVER NO LONGER IMPORTS THE ANSWER-KEY READER. `framepair` imports nothing, so no
 # runtime path from here reaches a replay -- the reviewer's source test, satisfied by the
 # import graph rather than by anyone's care.
-from framepair import actors, match
+from framepair import actors, match, pairing
 
 sys.dont_write_bytecode = True
 
@@ -76,6 +76,34 @@ _HEAVY_MUT = {"dArea": "area", "dCells": "occupiedCells", "dDensity": "density",
               "dOrientation": "orientation", "velocity": "velocity"}
 
 
+# PAIR-STATE TRANSITIONS between matched frames (the reviewer 2026-10-08 21:58Z): the key, and
+# the pair field whose change it counts. Face contact (contactPoints > 0, the geometry touches<x>
+# reads) flips into two keys by direction -- not "adjacent", which is box gap <= 1.
+REL_FIELDS = {"dcontact": "contactPoints", "dbbox": "overlapArea", "dinside": "contains"}
+REL_KEYS = ("touch_began", "touch_ended", *REL_FIELDS)
+
+
+def _relations(prev_pairs: dict, pairs: dict, paired: list[tuple[int, int]]) -> dict:
+    """How many object pairs changed relation this frame. A pair is carried across frames
+    through the same matching the deltas use; a pair with an unmatched object counts nothing
+    (its appear / vanish is already counted). Each unordered pair once."""
+    m = dict(paired)
+    out: dict = {}
+    for (bi, bj), was in prev_pairs.items():
+        if bi >= bj or bi not in m or bj not in m:
+            continue
+        now = pairs.get((m[bi], m[bj]))
+        if now is None:
+            continue
+        if bool(was.get("contactPoints")) != bool(now.get("contactPoints")):
+            k = "touch_began" if now.get("contactPoints") else "touch_ended"
+            out[k] = out.get(k, 0) + 1
+        for k, field in REL_FIELDS.items():
+            if was.get(field) != now.get(field):
+                out[k] = out.get(k, 0) + 1
+    return out
+
+
 def _mutations(effects: list[dict], before: list[dict], after: list[dict]) -> dict:
     """The mutations one frame->next fired, read off `match`'s size-tracked effects: which
     attributes changed on the objects that persisted, and how many appeared / vanished. Both the
@@ -113,18 +141,20 @@ def observe(steps: list[dict]) -> list[dict]:
     mutations that fired — the directed cues the mapping follows."""
     frames = [arc_percept.components(s["grid"]) for s in steps]
     out = []
-    prev_objs = None
+    prev_objs, prev_pairs = None, {}
     for t, objs in enumerate(frames):
         # detectors read the ACTORS, not the background field (the largest component), so a
         # relation like Adjacency is object-to-object, not everything-touches-the-field.
         acts = actors(objs)
         vec = _frame_vector(acts)
-        muts = {"attributes": {}, "deltas": {}, "appeared": 0, "vanished": 0}
+        muts = {"attributes": {}, "deltas": {}, "relations": {}, "appeared": 0, "vanished": 0}
         loci = vec.pop("loci")
         if prev_objs is not None:
             # `match` pairs on actor-filtered lists; its ai indexes `actors(objs)` == `acts`.
             effects = match(prev_objs, objs)
             muts = _mutations(effects, actors(prev_objs), acts)
+            muts["relations"] = _relations(prev_pairs, vec["pairs"],
+                                           pairing(prev_objs, objs))
             for e in effects:
                 if e.get("kind") == "change":
                     for d in detectors.light_object(e):
@@ -140,6 +170,7 @@ def observe(steps: list[dict]) -> list[dict]:
         vec["loci"] = {i: sorted(s) for i, s in loci.items() if s}
         out.append({"frame": t, "n_objects": len(acts), "cue": vec, "mutations": muts})
         prev_objs = objs
+        prev_pairs = vec["pairs"]
     return out
 
 
@@ -164,6 +195,7 @@ class Live:
 
     def __init__(self) -> None:
         self._prev: list[dict] | None = None
+        self._prev_pairs: dict = {}
         self.frame = 0
 
     def see(self, board: Any) -> dict:
@@ -177,10 +209,12 @@ class Live:
         acts = actors(objs)
         vec = _frame_vector(acts)
         loci = vec.pop("loci")
-        muts = {"attributes": {}, "deltas": {}, "appeared": 0, "vanished": 0}
+        muts = {"attributes": {}, "deltas": {}, "relations": {}, "appeared": 0, "vanished": 0}
         if self._prev is not None:
             effects = match(self._prev, objs)
             muts = _mutations(effects, actors(self._prev), acts)
+            muts["relations"] = _relations(self._prev_pairs, vec["pairs"],
+                                           pairing(self._prev, objs))
             for e in effects:
                 if e.get("kind") == "change":
                     for d in detectors.light_object(e):
@@ -192,6 +226,7 @@ class Live:
         out = {"frame": self.frame, "n_objects": len(acts), "cue": vec, "mutations": muts,
                "first": self._prev is None}
         self._prev = objs
+        self._prev_pairs = vec["pairs"]
         self.frame += 1
         return out
 
