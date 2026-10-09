@@ -683,7 +683,9 @@ def test_the_admitting_clause_crosses_into_gamma():
 
 
 def test_the_daydream_precondition_can_refuse():
-    """`bears_on` returns True on every call of a live run, so nothing in the record shows
+    """`bears_on` refuses some calls of a live run and passes others (6 of 12 on the toy world at
+    dbb7673; the first call is not guaranteed to pass, and with the ~1 offer it does not), so
+    the PASSING call is captured, never the first one. Nothing in the record shows
     its refusal working. A gate never observed refusing is indistinguishable from a gate
     wired to `return True`, and that is the class this repo keeps finding.
 
@@ -709,8 +711,9 @@ def test_the_daydream_precondition_can_refuse():
     real = tether.Agent.bears_on
 
     def spy(self, term, slot, robs, held):
-        seen.append((self, term, slot, list(robs), held))
-        return real(self, term, slot, robs, held)
+        got = real(self, term, slot, robs, held)
+        seen.append((self, term, slot, list(robs), held, got))
+        return got
 
     tether.Agent.bears_on = spy
     try:
@@ -722,7 +725,9 @@ def test_the_daydream_precondition_can_refuse():
         tether.Agent.bears_on = real
 
     assert seen, "the precondition was never called -- the site is unreached, not permissive"
-    agent, term, slot, robs, held = seen[0]
+    passed = [c for c in seen if c[-1] is True and c[3]]
+    assert passed, "no live call passed -- the gate refused everything, which is its own defect"
+    agent, term, slot, robs, held, _got = passed[0]
     assert robs, "captured a call with no open residual; the baseline below would be vacuous"
 
     assert real(agent, term, slot, robs, held) is True, (
