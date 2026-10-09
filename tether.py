@@ -384,6 +384,11 @@ _DELTA_KEY = armflag.arm("TETHER_DELTA_KEY")
 # THE LOOK-UP'S PARTNER ORDERING. Direction ON (the reviewer 2026-10-08 00:54Z); `0` is the A/B
 # control. Orders the operand candidates, never excludes one.
 _LOOKUP_ORDER = armflag.arm("TETHER_LOOKUP_ORDER", default=True)
+# AN OPERAND NAMED `slot~1` IS THAT SLOT ONE FRAME EARLIER (the reviewer 2026-10-08 06:25Z, Fig 6:
+# the trace already holds it). Never a slot: not bet on, no residual, only bound as an operand.
+PREV = "~1"
+# THE ~1 OFFER IN `_bindings` (the reviewer 2026-10-09 06:39Z): OFF, reason in conform/arms.py.
+_PREV_OFFER = armflag.arm("TETHER_PREV_OFFER")
 # THE out_type WIDENING -- Isaiah's 3A, reviewer-pre-registered 2026-09-23. `mint` asks for
 # `("val","val")` and `(slot_type, OBJ)` and NOTHING ELSE, and the composition census says
 # that IS the ceiling: 4 distinct compositions on every board, which are exactly those two
@@ -1035,6 +1040,7 @@ class Agent:
     def __init__(self, env: Any, gam: Gamma, cfg: Config | None = None,
                  led: Ledger | None = None) -> None:
         self.env, self.gamma = env, gam
+        self._trace_pos = None            # `_prev_of`'s index of the trace by row
         # `setdefault`, NEVER ASSIGNMENT: a loaded library carries its books across attempts
         # (`08bb416`) and zeroing them here would silently undo the persistence that makes a
         # dial earnable at all. A key the blob predates simply arrives at 0.
@@ -1744,7 +1750,9 @@ class Agent:
             hit = memo.get(key)
             if hit is not None and hit[0] is state:
                 return hit[1]
-        value = state[term.operand]
+        op = term.operand
+        value = (self._operand_value(op, state) if op[-1] == PREV[-1]
+                 else state.get(op, NOT_RESOLVED))
         if term.operand_term is not None:
             value = term.operand_term.apply(value, Ctx(operands=(value,)))
         got: tuple | None = (value,)
@@ -2492,8 +2500,26 @@ class Agent:
             return ()
         return tuple(sorted(adj.get(owners.get(slot), ()) or ()))
 
-    @staticmethod
-    def _applies(term: Term, state: dict[str, int]) -> bool:
+    def _prev_of(self, state: dict) -> dict | None:
+        """The before-state one frame earlier than `state`: by position in the trace, or the
+        last recorded before-state for a live frame not yet in it. None at a trace's start."""
+        idx = self._trace_pos
+        if idx is None or idx[0] != len(self.trace) or idx[1] is not self.trace:
+            idx = self._trace_pos = (len(self.trace), self.trace,
+                                     {id(self.trace[i][0]): i for i in range(len(self.trace))})
+        i = idx[2].get(id(state))
+        if i is not None and self.trace[i][0] is state:
+            return self.trace[i - 1][0] if i else None
+        return self.trace[-1][0] if self.trace else None
+
+    def _operand_value(self, name: str, state: dict):
+        """The operand's reading on this frame, or NOT_RESOLVED where it did not exist."""
+        if name[-1] == PREV[-1] and name.endswith(PREV):
+            prev = self._prev_of(state)
+            return NOT_RESOLVED if prev is None else prev.get(name[:-len(PREV)], NOT_RESOLVED)
+        return state.get(name, NOT_RESOLVED)
+
+    def _applies(self, term: Term, state: dict[str, int]) -> bool:
         """Whether this term can be evaluated on this frame at all.
 
         A term reading an operand cannot be applied where that operand did not exist,
@@ -2501,8 +2527,27 @@ class Agent:
         INAPPLICABLE IS UNEXPLAINED, and every caller charges it as such: dropping the
         frame instead would let a term evaluable on half a history look like a perfect
         explainer, and evaluating it as if unary would silently change what it says.
+
+        THE CHARGE STAYS IN THE BARGAIN, AND ONE FRAME KIND NO LONGER HOLDS A RESIDUAL OPEN (the
+        reviewer 2026-10-08 06:43Z). A previous-frame operand cannot exist on a trace's first frame,
+        on any board at any budget: that frame is the initial observation, not a miss (Fig 1,
+        "residual R indexed by object slot"). It is still charged in `left` (Fig 5, "and so does a
+        term that explains one occasion perfectly"), and recorded as a verdict with its k of n
+        (Fig 13, "Unreachable is a verdict here, not a silence") -- see `_no_earlier_frame`. A slot
+        that merely did not exist YET keeps the charge AND keeps the residual open.
         """
-        return not term.operand or term.operand in state
+        op = term.operand
+        if not op:
+            return True
+        # THE PLAIN READ INLINE: this runs on every candidate and every history row, and the
+        # method call it replaces was ~15% of the prev operand's measured cost on gridworld s2.
+        if op[-1] != PREV[-1]:
+            return state.get(op, NOT_RESOLVED) is not NOT_RESOLVED
+        return self._operand_value(op, state) is not NOT_RESOLVED
+
+    def _no_earlier_frame(self, term: Term, state: dict) -> bool:
+        """Inapplicable by construction: the term reads the previous frame and there is none."""
+        return bool(term.operand) and term.operand.endswith(PREV) and self._prev_of(state) is None
 
     def _domain(self, slot: str, state: dict, ctx: Ctx):
         """WHERE AN OBJECTIVE ON `slot` IS SEARCHED: the values the slot has taken in the record
@@ -6379,7 +6424,7 @@ class Agent:
         want = getattr(cand, "operand_type", None)
         if bind is None or not self.slot_types:
             return True
-        got = self.slot_types.get(bind)
+        got = self.slot_types.get(bind[:-len(PREV)] if bind.endswith(PREV) else bind)
         # THROUGH THE TREE: the slot feeds the inner chain first, so each inner atom must
         # accept what reaches it, and what fills the operand is the chain's OUTPUT. `val`
         # declares nothing -- it admits and passes the type through (F470).
@@ -6434,6 +6479,13 @@ class Agent:
         # once by scoping the search to one file, once by EXCLUDING that file from the
         # repo-wide search. The pattern, not the file, is what has to be searched.
         seen = {s: len({st[s] for st, _a, _v, _i, _l in robs if s in st}) for s in others}
+        # ITS OWN PREVIOUS VALUE, ONE CANDIDATE, ordered like the rest by how much it varies.
+        if _PREV_OFFER:
+            mine = slot + PREV
+            seen[mine] = len({v for v in (self._operand_value(mine, st)
+                                          for st, _a, _v, _i, _l in robs)
+                              if v is not NOT_RESOLVED})
+            others.append(mine)
         # CONTACT FIRST, THEN VARIANCE. §16.5: *list everything in contact with the residual,
         # then what is in contact with those, and outward until the cascade stops mattering --
         # you do not invent the list, you read it off the world.* The docstring above records
@@ -7185,6 +7237,11 @@ class Agent:
         self.bound[slot] = term.name
         self.rank.note(term.name, self.cycle)
         closes = left == 0.0
+        if not closes and term.operand and term.operand.endswith(PREV):
+            _miss = self._residual_obs(slot, term, robs)
+            _k = sum(self._no_earlier_frame(term, r[0]) for r in _miss)
+            if _k:
+                detail["inapplicable"] = {"why": "no earlier frame", "k": _k, "n": len(robs)}
         # Q7: THE MINT MAKES A CANDIDATE; THE GROUND SETTLES IT BY HELD-OUT PAYMENT. *A
         # candidate becomes accepted once it predicts transitions it was never fitted to.*
         # Candidacy was gated on `closes` and NOTHING EVER CLOSED -- 13 of 13 and 7 of 7 paid
