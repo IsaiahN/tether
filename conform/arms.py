@@ -235,7 +235,17 @@ ARMS: dict[str, str] = {
                      "traced (19:34Z): 5 of 6 lost slots never reached their OFF winner; item 2b "
                      "orders the search in two passes (evidence lags first), and when "
                      "TETHER_RUIN lands, stakes-tagged lags join pass 1 by the same R-D3 rule "
-                     "(the reviewer 19:45Z; nothing built for it yet). OFF until "
+                     "(the reviewer 19:45Z; nothing built for it yet). Item 2b: two ROUNDS over "
+                     "every stream, round 2 walking the chains round 1 recorded with only their "
+                     "no-evidence lags. _TWO_PASS: test-only, restores item 2's one-pass order "
+                     "for the tie guard; defaults to two-pass, read from no environment or CLI "
+                     "(the reviewer 20:25Z). 2b's REACH TRADE: chains back at the OFF level (at "
+                     "worst -4%) and the 3 clean crowding slots return, but no-evidence lags go "
+                     "mostly unreached (beyond-bound no-evidence 3306-16452 per member, from "
+                     "0-7497 one-pass) and slots paid fall on 5 of 7 members; trade "
+                     "PARKED as item 2c (reviewer 21:18Z). GATE: may not go ON, "
+                     "and item 5's stakes may not depend on the window's "
+                     "order, until 2c is measured and ruled. OFF until "
                      "measured; under it ~1 is one lag of the block, not TETHER_PREV_OFFER's offer",
     "TETHER_REBIND_HELD": "rebinding a slot whose term is already held",
     "TETHER_RECIPE_DEDUP": "one candidate per recipe rather than per instance",

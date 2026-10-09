@@ -140,12 +140,18 @@ def _mint_window(seq: list[int], budget: int) -> tuple[dict, str]:
 
 def _one_lag_budget(seq: list[int]) -> tuple[dict, int]:
     """The smallest budget at which the mint reaches exactly one lag (found, not set)."""
-    for b in range(1, 5000):
-        w, _ = _mint_window(seq, b)
-        if w.get("reached", 0) >= 1:
-            assert w["reached"] == 1, (b, w)
-            return w, b
-    raise AssertionError("no budget reached a lag")
+    lo, hi = 1, 1 << 16                       # lags reached rises with the budget: bisect it
+    if _mint_window(seq, hi)[0].get("reached", 0) < 1:
+        raise AssertionError("no budget reached a lag")
+    while lo < hi:
+        mid = (lo + hi) // 2
+        if _mint_window(seq, mid)[0].get("reached", 0) >= 1:
+            hi = mid
+        else:
+            lo = mid + 1
+    w, _ = _mint_window(seq, lo)
+    assert w["reached"] == 1, (lo, w)
+    return w, lo
 
 
 def check_mf_d4_the_rank_decides_the_cut() -> None:
@@ -164,6 +170,63 @@ def check_mf_d4_the_rank_decides_the_cut() -> None:
     assert any(e["j"] == 2 for e in after["evidence"]), after
     assert after["beyond_bound"]["evidence"] == len(after["evidence"]) - 1, after
     assert after["beyond_bound"]["no_evidence"] == after["offered"] - len(after["evidence"]), after
+
+
+def _walk(seq: list[int], window: bool, two_pass: bool, budget: int = 10 ** 6):
+    """The (chain, binding) pairs one real mint walks, in order, and its record (item 2b)."""
+    ag = _agent()
+    ag.step()
+    slot = max(sorted(ag.slots), key=lambda s: ag.alphabet.get(s, 0))
+    base = dict(ag.trace[-1][0])
+    states = [{**base, slot: v} for v in seq]
+    ag.trace = [(states[i], "A", states[i + 1], tether.NO_INTENT, None)
+                for i in range(len(seq) - 1)]
+    ag._trace_pos = None
+    ag.bound.pop(slot, None)
+    ag.cfg.work_budget = budget
+    walked: list = []
+    orig = ag._operand_fits
+
+    def spy(cand, s, x):
+        if s == slot:
+            walked.append((cand.name, x))
+        return orig(cand, s, x)
+    ag._operand_fits = spy
+    keep = tether._WINDOW, tether._TWO_PASS
+    try:
+        tether._WINDOW, tether._TWO_PASS = window, two_pass
+        ag.mint(slot)
+    finally:
+        tether._WINDOW, tether._TWO_PASS = keep
+    rows = [r for r in ag.led.rows() if r.get("step") == "MINT" and r.get("slot") == slot]
+    return walked, (rows[-1] if rows else {})
+
+
+def check_2b_a_pass_1_is_the_off_walk_when_no_lag_has_evidence() -> None:
+    """Must-fail (a), the reviewer 19:45Z: on a record where no lag has evidence and the budget is
+    not reached, the two-pass walk begins with exactly the window-OFF walk, then only lags."""
+    seq = [1, 2, 3, 5, 6, 8, 9, 0]                      # no earlier value recurs at any lag
+    off, _ = _walk(seq, window=False, two_pass=True)
+    on, rec = _walk(seq, window=True, two_pass=True)
+    assert not rec["detail"]["window"]["evidence"], rec["detail"]["window"]
+    assert off and on[:len(off)] == off, (len(off), len(on))
+    assert all(tether.lag_of(x) for _c, x in on[len(off):]), on[len(off):][:5]
+
+
+def check_2b_d_one_and_two_pass_price_the_same_set_ties_counted() -> None:
+    """Guard (d), the reviewer 19:45Z: with the budget unreached, one-pass and two-pass price the
+    same (chain, binding) set; their winners agree, or the totals tie (counted, expected 0)."""
+    seq = [1, 2, 3, 5, 6] + [4, 4, 7] * 5
+    one, r1 = _walk(seq, window=True, two_pass=False)
+    two, r2 = _walk(seq, window=True, two_pass=True)
+    assert set(one) == set(two), (len(set(one) ^ set(two)))
+    d1, d2 = r1.get("detail") or {}, r2.get("detail") or {}
+    if d1.get("term") != d2.get("term"):
+        t1 = (d1.get("term_bits") or 0) + (d1.get("left_bits") or 0)
+        t2 = (d2.get("term_bits") or 0) + (d2.get("left_bits") or 0)
+        assert abs(t1 - t2) < 1e-9, ("winner differs and is NOT a tie", d1.get("term"), t1,
+                                     d2.get("term"), t2)
+        print("     TIE recorded:", d1.get("term"), d2.get("term"), t1)
 
 
 def main() -> int:

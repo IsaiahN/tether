@@ -411,6 +411,18 @@ _UNSEAL_START = armflag.arm("TETHER_UNSEAL_START")
 # THE HISTORY WINDOW (R3 item 2; Isaiah's H1; the reviewer 18:10Z, 18:15Z). OFF; reason in
 # conform/arms.py. Lags `slot~j` offered after every other binding, ranked; the budget bounds them.
 _WINDOW = armflag.arm("TETHER_WINDOW")
+# ITEM 2b (the reviewer 19:45Z): under the window, the search runs in TWO PASSES -- every chain with
+# its non-lag bindings and its EVIDENCE lags, then, only with budget left, the same recorded chains
+# with their no-evidence lags. False restores item 2's one-pass order, for the tie guard only.
+_TWO_PASS = True
+
+
+def _recording(chains, into: list):
+    """Yield each chain, recording it into `into`: pass 2 walks that record, a LOOKUP of what pass 1
+    reached and never a second enumeration (the reviewer 19:45Z; Fig 12: nothing is re-earned)."""
+    for c in chains:
+        into.append(c)
+        yield c
 
 
 @cache
@@ -6783,6 +6795,7 @@ class Agent:
         _lf_stats = {"yielded": 0, "beyond_depth": 0}   # M4 library-first, read only when ON
         self._window_info.pop(slot, None)
         _win_reached: set = set()            # TETHER_WINDOW: lag bindings the budget reached
+        _pass2_chains = 0                    # item 2b: recorded chains pass 2 walked (its cost)
         _lf_ops: dict = {}
         _lf_seen: set = set()                # every chain the library yielded in THIS mint
         # THE RECIPES ALREADY HELD, once per mint rather than per candidate. A library Term's
@@ -6862,6 +6875,10 @@ class Agent:
             # it was being rebuilt identically for every one -- an owner map, a contact set and
             # a variance count per candidate. Computed once here; the ORDER is unchanged.
             operand_binds = self._bindings(slot, robs)
+            _no_ev: set = set()                  # item 2b: the lags pass 2 walks
+            if _WINDOW and slot in self._window_info:
+                _evn = {f"{slot}~{r['j']}" for r in self._window_info[slot]["evidence"]}
+                _no_ev = {b for b in operand_binds if b and lag_of(b) and b not in _evn}
 
             # TWO STREAMS, ONE BARGAIN. A `val` term IS a prediction; an OBJ term is a WANT,
             # and `objective_step` turns it into one -- so both produce a predicted slot value
@@ -6942,7 +6959,13 @@ class Agent:
                         self._want_seen[_w] = self._want_seen.get(_w, 0) + 1
                 guards["novelty"] = guards["novelty"] or _hit[2]
 
-            for _si, (in_t, out_t) in enumerate(streams):
+            # ITEM 2b: under the window, round 1 walks EVERY stream's chains (non-lag bindings and
+            # evidence lags), and round 2, only with budget left, walks the chains round 1 recorded
+            # with their no-evidence lags. One round otherwise, so OFF is the old loop exactly.
+            _rec2: dict = {}
+            for _round, (_si, (in_t, out_t)) in (
+                    (r, x) for r in ((1, 2) if _WINDOW and _TWO_PASS else (1,))
+                    for x in enumerate(streams)):
                 # A THIRD KIND EXISTS ONCE THE STREAMS WIDEN, and it is named rather than
                 # folded into `objective`: a term ending at EXTENT is neither a prediction of
                 # the slot's next value nor a complete objective, and calling it one would put
@@ -6961,29 +6984,47 @@ class Agent:
                 # being reached BY WHAT IT SAW rather than by a name it cannot read.
                 _want = self._cue_tags()
                 if _want:
-                    _book_add(self.gamma.book, "mint_order_by_cue", 1)
+                    if _round == 1:                  # counted once per stream, not per round
+                        _book_add(self.gamma.book, "mint_order_by_cue", 1)
 
                     def by_fit(u, _f=by_fit, _w=_want):        # noqa: F811
                         return _f(u) + inherited.term_affinity(u, _w)
                 st: dict = {"seen": 0, "budget_spent": False, "depth_exhausted": True,
                             "units": self.gamma.alphabet, "estimate": 0}
                 _lf = (self._library_chains(slot, in_t, out_t, _lf_stats, _lf_ops)
-                       if _LIBRARY_FIRST else [])
+                       if _LIBRARY_FIRST and _round == 1 else [])
                 _lf_names = {c.name for c in _lf}
                 _lf_seen.update(tuple(a.name for a in c.atoms) for c in _lf)
-                for cand in itertools.chain(_lf, (
+                _stream = itertools.chain(_lf, (
                         c for c in self.gamma.enumerate_closure(
                             in_t, out_t, self.cfg.max_depth, self.cfg.budget, st, order=by_fit)
-                        if c.name not in _lf_names)):
+                        if c.name not in _lf_names))
+                if _round == 2:
+                    _walk_these = ((c, 2) for c in _rec2.get(_si, ()))
+                elif _WINDOW and _TWO_PASS:
+                    _walk_these = ((c, 1) for c in _recording(_stream, _rec2.setdefault(_si, [])))
+                else:
+                    _walk_these = ((c, 1) for c in _stream)
+                for cand, _pass in _walk_these:
                     if _hit and (_si, cand.name) in _hit[1]:
                         _skipped += 1
                         continue
                     if rank >= self.cfg.work_budget:
                         st["budget_spent"] = True
                         break
-                    _chain_incs: list[str] = []
-                    priced[(_si, cand.name)] = _chain_incs
                     binds = operand_binds if cand.reads_operand else [None]
+                    if _WINDOW and _TWO_PASS:
+                        # PASS 1 walks what the window-OFF search walks plus the evidence lags;
+                        # PASS 2 only the no-evidence lags, so nothing is charged twice.
+                        binds = [x for x in binds if (x in _no_ev) == (_pass == 2)]
+                        if _pass == 2 and not binds:
+                            continue
+                        _pass2_chains += _pass == 2
+                    if _pass == 2:
+                        _chain_incs = priced.setdefault((_si, cand.name), [])
+                    else:
+                        _chain_incs: list[str] = []
+                        priced[(_si, cand.name)] = _chain_incs
                     binds = [x for x in binds if self._operand_fits(cand, slot, x)]
                     _lf_first = [x for x in _lf_ops.get(cand.name, ()) if x in binds]
                     if _lf_first:                                # the offered operands first
@@ -7425,6 +7466,7 @@ class Agent:
             _lags = [b for b in operand_binds if b and lag_of(b)]
             _out = [b for b in _lags if b not in _win_reached]
             _win.update(reached=len(_win_reached), chains_reached=len(priced),
+                        pass2_chains=_pass2_chains,
                         beyond_bound={"evidence": sum(b in _ev for b in _out),
                                       "no_evidence": sum(b not in _ev for b in _out)})
             detail["window"] = _win
