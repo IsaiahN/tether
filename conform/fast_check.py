@@ -3,6 +3,7 @@
     python conform/fast_check.py            the pre-commit gate (exit 1 on any non-ok seat)
     python conform/fast_check.py --all      ignore the cache; run every seat (parallel)
     python conform/fast_check.py --explain  print each seat's inputs and fingerprint, run nothing
+    python conform/fast_check.py --index-only  certify the INDEX even where the working copy differs
 
 WHY (Isaiah, 2026-10-08): the 23-seat hook took ~20 minutes, so the seat routed around it with
 worktrees, branches and an unreviewed backlog. The 2026-09-30 rule stands -- a commit needs
@@ -139,6 +140,20 @@ def disk_blobs() -> dict[str, str]:
     return out
 
 
+def drift() -> list[str]:
+    """Files a seat fingerprints whose WORKING COPY is not what the index holds: tracked files with
+    unstaged edits, and untracked files a seat's patterns match. The fingerprint is the INDEX, so
+    with any of these a reused pass certifies a tree that is not the one in front of the seats
+    (the reviewer 2026-10-09 11:58Z: 17 seats "reused" from HEAD while M4 sat unstaged)."""
+    pats = set(ALWAYS) | set(DEFAULT) | {p for v in INPUTS.values() for p in v}
+
+    def git(*a):
+        return subprocess.run(["git", *a], cwd=ROOT, capture_output=True, text=True,
+                              check=True).stdout.splitlines()
+    paths = git("diff", "--name-only") + git("ls-files", "--others", "--exclude-standard")
+    return sorted({p for p in paths if any(fnmatch.fnmatch(p, q) for q in pats)})
+
+
 def own_reads(stage: str, names: list[str]) -> list[str]:
     """The run files a seat reads AS FOUND ON DISK. A file an EARLIER seat writes in this same check
     is not one of them: it is that writer's output, already covered by the writer's fingerprint
@@ -196,6 +211,16 @@ def head() -> str:
 
 
 def main(argv: list[str]) -> int:
+    index_only = "--index-only" in argv
+    if not index_only and "--explain" not in argv:
+        moved = drift()
+        if moved:
+            print("  REFUSED -- the working copy differs from the index on files seats read, so")
+            print("  a reused pass would certify the index, not this tree. Stage them, or run")
+            print("  --index-only to certify the index on purpose:")
+            for f in moved:
+                print(f"    {f}")
+            return 1
     blobs = {**index_blobs(), **disk_blobs()}
     stages = list(check.STAGES)
     names = [name for name, *_ in stages]
@@ -265,6 +290,7 @@ def main(argv: list[str]) -> int:
         f"\n  {len(stages) - bad}/{len(stages)} seats clean -- {len(todo)} ran in "
         f"{time.time() - t0:.0f}s "
         f"on {workers} workers, {n_reused} reused on byte-identical inputs"
+        + ("  -- INDEX ONLY" if index_only else "")
     )
     return 1 if bad else 0
 
