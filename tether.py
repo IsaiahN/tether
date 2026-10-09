@@ -18,16 +18,18 @@ import sys
 from collections import Counter
 from dataclasses import dataclass, field
 from dataclasses import replace as _replace
-from functools import partial
+from functools import cache, partial
 from typing import Any
 
 import armflag
+import compile_term
 import composer
 import condition
 import grammar as G
 import inherited
 import instruments as I
 import interface as IFace
+import reach
 import retrieval
 import routine as Rt
 from gamma import (
@@ -389,6 +391,22 @@ _LOOKUP_ORDER = armflag.arm("TETHER_LOOKUP_ORDER", default=True)
 PREV = "~1"
 # THE ~1 OFFER IN `_bindings` (the reviewer 2026-10-09 06:39Z): OFF, reason in conform/arms.py.
 _PREV_OFFER = armflag.arm("TETHER_PREV_OFFER")
+# M4: the library's offered chains yielded BEFORE the closure stream, priced by the one body
+# (the reviewer 2026-10-09 08:30Z). DEFAULT ON by the registered rule (10:02Z, re-measured after
+# the operand fix 10:19Z). OFF: the offers are recorded and not read.
+_LIBRARY_FIRST = armflag.arm("TETHER_LIBRARY_FIRST", default=True)
+
+
+@cache
+def _library():
+    """The library runtime, loaded once per process (M4). None if the library is absent."""
+    root = os.path.join(os.path.dirname(os.path.abspath(__file__)), "library")
+    if not os.path.isdir(root):
+        return None
+    if root not in sys.path:
+        sys.path.insert(0, root)
+    import library_runtime
+    return library_runtime.Library(root).load()
 # THE out_type WIDENING -- Isaiah's 3A, reviewer-pre-registered 2026-09-23. `mint` asks for
 # `("val","val")` and `(slot_type, OBJ)` and NOTHING ELSE, and the composition census says
 # that IS the ceiling: 4 distinct compositions on every board, which are exactly those two
@@ -1216,6 +1234,11 @@ class Agent:
         # WHAT THE LIBRARY NAMED FOR EACH SLOT'S LAST RESIDUAL: partner reading -> molecules
         # relating it to the target. Read by `_bindings` as an ORDER, never a filter.
         self._named: dict[str, dict[str, list]] = {}
+        self._lib_offers: dict[str, list] = {}   # M4: what the library offers each slot's mint
+        self._reach_index: dict = {}       # M4: distinct compiled terms per description
+        self._reach_verdicts: dict = {}    # M4: a CAUSE pair's verdict per trace length
+        self._compile_cache: dict = {}     # M4: compile_term is pure in the condition
+        self._reach_frames: tuple | None = None
         self.abstained: dict[str, dict] = {}
         self.candidates: dict[str, int] = {}     # term -> cycle accepted, awaiting the ground
         # WHERE THE EVIDENCE CAME FROM. Isaiah 2026-09-30: candidates survive a level change,
@@ -1722,6 +1745,177 @@ class Agent:
                         offered=len(found["pairs"]), held=held, named=sorted(named),
                         reads=("the library looked up by this residual's own description; "
                                "pairs offered, bonds read over its frames, nothing adopted"))
+        self._library_reach(slot, mine, own, described)
+
+    def _library_reach(self, slot: str, mine: str, own: dict, described: dict) -> None:
+        """M4 (METAPROGRAMMING_DESIGN section 4; the reviewer 2026-10-09 07:14Z, 07:23Z). The
+        library lit by THIS residual's description -- the slot and what varied with it, as
+        readings -- and every view and CAUSE then-side that compiles onto this slot, recorded. A
+        CAUSE is tested where bonds are tested; an offer is kept for the mint only if it holds
+        now, is not held already, and passes the ~1 gate. Nothing lit, nothing written."""
+        self._lib_offers[slot] = []
+        lib = _library()
+        att = getattr(self.env, "attribute_of", None)
+        att = att() if att else {}
+        known = compile_term.readings()
+        changed: dict = {}
+        for s_ in described:
+            a = att.get(s_)
+            if a in known:
+                changed[a] = 1
+            changed.update({r: 1 for r, base in compile_term.CHANGE_OF.items() if base == a})
+        lit = lib.light(changed) if changed and lib is not None else []
+        if not lit:
+            return
+        rep_slot: dict = {}
+        for s_, o_ in sorted(own.items()):
+            rep_slot.setdefault(o_, s_)
+        touching = set(self._touching(slot))
+        others = tuple(sorted((o_ for o_ in rep_slot if o_ != mine),
+                              key=lambda o_: (o_ not in touching, o_)))
+        # THE LIBRARY REPEATS ITSELF: hundreds of lit entries unfold into tens of thousands of
+        # candidates over a few templates, so the DISTINCT compiled terms are indexed once per
+        # (description, objects) and every entry that offered one is kept as its provenance.
+        ikey = (frozenset(changed), slot, mine, others)
+        index = self._reach_index.get(ikey)
+        if index is None:
+            index = self._reach_index[ikey] = self._index_reach(lib, lit, slot, mine, others)
+        views, causes, refused = index
+        if self._reach_frames is None or self._reach_frames[0] != self._trace_epoch \
+                or self._reach_frames[1] != len(self.trace):
+            self._reach_frames = (self._trace_epoch, len(self.trace), reach.frames(
+                self.trace, lambda st: {o_: self._record(s_, st) for o_, s_ in rep_slot.items()}))
+        frs = self._reach_frames[2]
+        units = self._units_for(slot)
+        offers, rows = [], []
+        for c, prov in views.values():
+            offers.append(self._lib_offer(c, prov))
+        for if_c, then_c, prov in causes.values():
+            vkey = (if_c.term.name, if_c.slot, then_c.term.name, then_c.slot,
+                    self._trace_epoch, len(frs))
+            v = self._reach_verdicts.get(vkey)
+            if v is None:
+                v = self._reach_verdicts[vkey] = reach.cause(if_c, then_c, frs)
+            prov = {**prov, "if": if_c.term.name, "guard_bits": reach.bits(
+                if_c, lambda t: term_bits(self.gamma.length(t, units), self.gamma.alphabet))}
+            off = self._lib_offer(then_c, prov, v)
+            offers.append(off)
+            if v["supported"]:
+                rows.append({**prov, "then": then_c.term.name, **v,
+                             "offered": off["offered"], "why": off["why"]})
+        self._lib_offers[slot] = [o_ for o_ in offers if o_["offered"]]
+        self.led.record(self.cycle, "ROUTE", slot, "library", changed=sorted(changed),
+                        lit=len(lit), views=len(views), causes=len(causes),
+                        supported=rows, offered=len(self._lib_offers[slot]),
+                        withheld=dict(Counter(o_["why"] for o_ in offers if not o_["offered"])),
+                        refused=dict(refused),
+                        reads=("the library lit by this residual's description; the distinct views "
+                               "and CAUSE then-sides that compile onto this slot, tested and "
+                               "recorded, each with the count of entries that offered it"))
+
+    def _index_reach(self, lib: Any, lit: list, slot: str, mine: str, others: tuple) -> tuple:
+        """The distinct compiled views and CAUSE pairs that land on `slot`, each with its first
+        entry and the count of entries offering it; refusals counted by reason. Compiled once
+        per condition (the compiler is a pure function of the condition and the atoms)."""
+        atoms = {a.name: a for a in self.gamma.atoms}
+
+        def comp(cond: str) -> Any:
+            got = self._compile_cache.get(cond)
+            if got is None:
+                got = self._compile_cache[cond] = compile_term.compile_candidate(
+                    {"condition": cond}, atoms)
+            return got
+        views: dict = {}
+        causes: dict = {}
+        refused: Counter = Counter()
+        partner = others[0] if others else mine
+        for key, _w in lit:
+            for role in reach.SINGLE:
+                for cand in lib.view(key, role, mine, partner):
+                    if "quantifier" in cand:
+                        refused[compile_term.QUANTIFIED] += 1
+                        continue
+                    c = comp(cand["condition"])
+                    if isinstance(c, compile_term.Refusal):
+                        refused[c.reason] += 1
+                    elif c.slot == slot:
+                        hit = views.get(c.term.name)
+                        if hit is None:
+                            views[c.term.name] = (c, {"library": key, "role": role,
+                                                      "template": cand.get("template"),
+                                                      "entries": 1})
+                        else:
+                            hit[1]["entries"] += 1
+            for o_ in others:
+                for cand in lib.view(key, "CAUSE", o_, mine):
+                    if_c, then_c = comp(cand["if"]), comp(cand["then"])
+                    if isinstance(if_c, compile_term.Refusal):
+                        refused["if: " + if_c.reason] += 1
+                        continue
+                    if isinstance(then_c, compile_term.Refusal):
+                        refused["then: " + then_c.reason] += 1
+                        continue
+                    if then_c.slot != slot:
+                        continue
+                    pk = (if_c.term.name, if_c.slot, then_c.term.name)
+                    hit = causes.get(pk)
+                    if hit is None:
+                        causes[pk] = (if_c, then_c, {"library": key, "role": "CAUSE",
+                                                     "bond": cand.get("bond"), "entries": 1})
+                    else:
+                        hit[2]["entries"] += 1
+        return views, causes, refused
+
+    def _library_chains(self, slot: str, in_t: str, out_t: str, stats: dict,
+                        ops: dict) -> list:
+        """M4 library-first: this slot's offered terms as BARE chains valid for one stream, in
+        offer order, each priced later by the one body. A view ends at PRED; into the
+        objective stream it is closed with `all`. A chain longer than max_depth is not
+        yielded and is counted, the bound the closure itself obeys."""
+        out, seen = [], set()
+        close = next((a for a in self.gamma.atoms if a.name == "all"), None)
+        for o_ in self._lib_offers.get(slot, ()):
+            atoms = tuple(o_["term"].atoms)
+            if out_t == OBJ_TYPE and atoms and atoms[-1].out_type != OBJ_TYPE and close:
+                atoms = atoms + (close,)
+            if len(atoms) > self.cfg.max_depth:
+                stats["beyond_depth"] += 1
+                continue
+            if not atoms or not accepts_type(Term((atoms[0],)), in_t):
+                continue
+            cur, elem = in_t, None
+            for a in atoms:
+                step = Gamma._iter_step(cur, elem, Term((a,)))
+                if step is None:
+                    break
+                cur, elem = step
+            else:
+                chain = Term(atoms)
+                if cur == out_t and elem is None:
+                    if chain.name not in seen:
+                        seen.add(chain.name)
+                        out.append(chain)
+                        stats["yielded"] += 1
+                    # EVERY offered operand, in offer order: one chain offered with two operands
+                    # keeps both (keying by chain alone dropped the later one before pricing)
+                    got = ops.setdefault(chain.name, [])
+                    if o_["operand"] is not None and o_["operand"] not in got:
+                        got.append(o_["operand"])
+        return out
+
+    def _lib_offer(self, c: Any, prov: dict, v: dict | None = None) -> dict:
+        """One compiled term's verdict as an offer: offered, or withheld with why."""
+        why = None
+        if v is not None and not v["supported"]:
+            why = "not supported on the frames"
+        elif v is not None and v["if_now"] is not True:
+            why = "if-side does not hold now"
+        elif c.term.name in self.gamma.library:
+            why = "already held"
+        else:
+            _ok, why = reach.offer_or_withhold(c, _PREV_OFFER)
+        return {"term": c.term, "slot": c.slot, "operand": c.operand, "prov": prov,
+                "offered": why is None, "why": why}
 
     def _ops(self, term: Term, state: dict[str, int]) -> tuple:
         """The operand's value, and §4's whole mechanism sits in the middle three lines.
@@ -6524,6 +6718,9 @@ class Agent:
 
     def _mint(self, slot: str) -> None:
         _priced0 = self._priced              # every candidate priced in THIS mint, trees included
+        _lf_stats = {"yielded": 0, "beyond_depth": 0}   # M4 library-first, read only when ON
+        _lf_ops: dict = {}
+        _lf_seen: set = set()                # every chain the library yielded in THIS mint
         # THE RECIPES ALREADY HELD, once per mint rather than per candidate. A library Term's
         # chain is its atoms joined; `enumerate_closure` yields BARE chains, so `cand.name` is
         # exactly this key. O(library) against a per-candidate walk that is orders larger.
@@ -6692,8 +6889,14 @@ class Agent:
                         return _f(u) + inherited.term_affinity(u, _w)
                 st: dict = {"seen": 0, "budget_spent": False, "depth_exhausted": True,
                             "units": self.gamma.alphabet, "estimate": 0}
-                for cand in self.gamma.enumerate_closure(in_t, out_t, self.cfg.max_depth,
-                                                         self.cfg.budget, st, order=by_fit):
+                _lf = (self._library_chains(slot, in_t, out_t, _lf_stats, _lf_ops)
+                       if _LIBRARY_FIRST else [])
+                _lf_names = {c.name for c in _lf}
+                _lf_seen.update(tuple(a.name for a in c.atoms) for c in _lf)
+                for cand in itertools.chain(_lf, (
+                        c for c in self.gamma.enumerate_closure(
+                            in_t, out_t, self.cfg.max_depth, self.cfg.budget, st, order=by_fit)
+                        if c.name not in _lf_names)):
                     if _hit and (_si, cand.name) in _hit[1]:
                         _skipped += 1
                         continue
@@ -6704,6 +6907,9 @@ class Agent:
                     priced[(_si, cand.name)] = _chain_incs
                     binds = operand_binds if cand.reads_operand else [None]
                     binds = [x for x in binds if self._operand_fits(cand, slot, x)]
+                    _lf_first = [x for x in _lf_ops.get(cand.name, ()) if x in binds]
+                    if _lf_first:                                # the offered operands first
+                        binds = _lf_first + [x for x in binds if x not in _lf_first]
                     # HOISTED so the guard PRICE can read how many were on offer -- the
                     # denominator `log2(G+1)` is over, and it must be the same set the loop
                     # walks or the price is charged against a population that was not offered.
@@ -7184,6 +7390,8 @@ class Agent:
                 detail["chains_priced_in_scope"] = len(priced)
                 self._frontier_store(slot, (_skey, {k: tuple(v) for k, v in priced.items()},
                                             guards["novelty"], detail["verdict"]))
+            if _LIBRARY_FIRST:
+                detail["library_first"] = dict(_lf_stats)
             self.led.record(self.cycle, "MINT", slot, "park", of=(slot,), **detail)
             return
 
@@ -7304,6 +7512,22 @@ class Agent:
                     and self.gamma.is_settled(_nm)
                     and _contains(term.atoms, _u.atoms)):
                 self.gamma.book["chunk_reuse"] = self.gamma.book.get("chunk_reuse", 0) + 1
+        if _LIBRARY_FIRST:
+            detail["library_first"] = dict(_lf_stats)
+            prov = next((o_["prov"] for o_ in self._lib_offers.get(slot, ())
+                         if o_["operand"] == term.operand
+                         and tuple(a.name for a in o_["term"].atoms)
+                         == tuple(a.name for a in term.atoms)[:len(o_["term"].atoms)]), None)
+            if prov is not None:
+                detail["library"] = prov
+            # HOW the library moved this winner (the reviewer 11:00Z): `described` -- chain and
+            # operand both offered (the stamp); `chain_only` -- the chain arrived by the library's
+            # order with an operand it did not offer; `none` -- not by this mint's offers. A
+            # knock-on through another slot's library win is visible only against the OFF arm.
+            names = tuple(a.name for a in term.atoms)
+            detail["library_route"] = (
+                "described" if prov is not None
+                else "chain_only" if any(names[:len(ch)] == ch for ch in _lf_seen) else "none")
         self.led.record(self.cycle, "MINT", slot, "mint", of=(slot,), **detail)
         self.led.record(self.cycle, "ACCEPT", slot, "accept", term=term.name,
                         origin=term.origin, seq=len(self.led),

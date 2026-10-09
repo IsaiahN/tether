@@ -51,6 +51,11 @@ TABLE: dict[tuple[str, str], tuple] = {
 # 23:23Z): "== 1" -> the atom, "== 0" -> the atom then negate; it runs on the first object
 # with the second as its operand. A pair call not listed here has no atom and is refused.
 PAIR = {"touching": "touches"}
+# A CHANGE reading and the agent attribute it is a change OF (the reviewer 2026-10-09 01:03Z row,
+# its map declared as data at 02:18): "== 1" -> other<attr~1>, "== 0" -> same<attr~1>, run on the
+# attribute slot with its own previous value as operand. A change reading not listed is refused.
+CHANGE_OF = {"colour_changed": "colour"}
+PREV = "~1"                  # tether.PREV, pinned by test_compile
 # Shapes that have no slot to run on, refused by name (section 3, section 7c).
 NOT_SLOTS = {"frame": "events are not slots", "board": "the board is not an object slot",
              # the world's progress marker (world.GOAL_SLOT; the library's `board`), named
@@ -145,6 +150,8 @@ def compile_candidate(cand: dict, atoms: dict[str, gamma.Atom]) -> Compiled | Re
     if rtype is None:
         return Refusal(f"{reading!r} is not a library reading")
     right = node.right
+    if reading in CHANGE_OF:
+        return _change(obj, reading, node.op, right, atoms)
     if isinstance(right, condition.Slot):
         kind, other = "slot", right.name
         if _split(other)[1] != reading:
@@ -176,6 +183,25 @@ def compile_candidate(cand: dict, atoms: dict[str, gamma.Atom]) -> Compiled | Re
     term = gamma.Term(chain, operand=operand,
                       operand_term=gamma.Term(op_chain) if op_chain else None)
     return Compiled(run_on, term, operand)
+
+
+def _change(obj: str, reading: str, op: str, right: Any,
+            atoms: dict[str, gamma.Atom]) -> Compiled | Refusal:
+    if isinstance(right, condition.Slot):
+        return Refusal("a change reading compared across objects reads no slot")
+    if op != "==" or right not in (0, 1):
+        return Refusal(f"no template for a change reading {op} {right}")
+    name = "other" if right == 1 else "same"
+    if name not in atoms:
+        return Refusal(f"Gamma holds no atom {[name]}")
+    attr = CHANGE_OF[reading]
+    atype = (readings().get(attr) or {}).get("type")
+    chain = (atoms[name],)
+    why = _typed(chain, atype, atype)
+    if why:
+        return Refusal(why)
+    slot, operand = f"{obj}.{attr}", f"{obj}.{attr}{PREV}"
+    return Compiled(slot, gamma.Term(chain, operand=operand), operand)
 
 
 def _pair(node: Any, atoms: dict[str, gamma.Atom]) -> Compiled | Refusal:

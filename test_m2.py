@@ -1763,15 +1763,22 @@ def check_a_bound_want_can_be_refused():
     """R1, the mechanisable half of Fig 5's direction limit (F496): a sought-for shape bound as an
     ORDINARY term -- an objective-typed term on the goal slot -- is bet on like any other and is
     priced and refused by the same path. Nothing here claims the frame checks its own direction."""
-    ag = _agent()
-    goal = next(s for s in ag.slots if s.startswith("@goal"))
-    want = next(n for n, t in sorted(ag.gamma.library.items())
-                if getattr(t, "out_type", None) == tether.OBJ_TYPE and not ag.gamma.is_atom(t))
-    ag.bound[goal] = want
-    n0 = len(ag.led.entries)
-    ag.step()
-    bets = [e for e in ag.led.entries[n0:] if e.event == "bet" and e.slot == goal]
-    assert bets, f"fixture: the bound want on {goal} was not bet on"
+    # The want is the first objective-typed term that READS on the goal slot: one that returns
+    # no reading is not bet on by design (`unread`), and which terms the warm-up mints moves
+    # with the arms (library-first breaks a 17.184-bit tie differently), so the first by name
+    # alone is not a fixture.
+    base = _agent()
+    goal = next(s for s in base.slots if s.startswith("@goal"))
+    for want in [n for n, t in sorted(base.gamma.library.items())
+                 if getattr(t, "out_type", None) == tether.OBJ_TYPE and not base.gamma.is_atom(t)]:
+        ag = copy.deepcopy(base)
+        ag.bound[goal] = want
+        n0 = len(ag.led.entries)
+        ag.step()
+        if any(e.event == "bet" and e.slot == goal for e in ag.led.entries[n0:]):
+            break
+    else:
+        raise AssertionError(f"fixture: no bound want on {goal} was bet on")
     ag._left = lambda term, *_a, **_k: 50.0 if term.name == want else 1.0
     ok, d = ag._price_not(want, goal)
     assert ok, f"a want doing worse than nothing was not refusable: {d}"
@@ -2312,6 +2319,34 @@ def check_only_a_frame_with_no_earlier_frame_is_inapplicable_by_construction():
     assert not ag._no_earlier_frame(own, second), "a frame with an earlier one read as structural"
     assert not ag._applies(late, second) and not ag._no_earlier_frame(late, second), (
         "a slot absent from the earlier frame was excused instead of charged")
+
+
+
+def _winners(first: bool) -> dict:
+    """Every mint row of a fresh warm-up with library-first set as given, keyed by (cycle, slot)."""
+    saved, was = dict(_BUILT), tether._LIBRARY_FIRST
+    _BUILT.clear()
+    tether._LIBRARY_FIRST = first
+    try:
+        ag = _agent()
+    finally:
+        _BUILT.clear()
+        _BUILT.update(saved)
+        tether._LIBRARY_FIRST = was
+    return {(e.cycle, e.slot): e.detail for e in ag.led.entries if e.event == "mint"}
+
+
+def check_a_winner_the_library_moved_names_its_route():
+    """M4 (the reviewer 2026-10-09 11:00Z): where library-first changes a slot's winner, the ON
+    row says HOW -- `described` (chain and operand offered) or `chain_only` (the chain came by the
+    library's order, the operand did not). Measured here: o1.dcol is described (ACOUSTIC|Brain)
+    and o2.dcol chain_only; withholding o2's chains alone reverts o2, so it is not a knock-on."""
+    off, on = _winners(False), _winners(True)
+    moved = [k for k in on if k in off and on[k].get("term") != off[k].get("term")]
+    assert moved, "fixture: library-first changed no winner in this world"
+    unnamed = [(k, on[k].get("library_route")) for k in moved
+               if on[k].get("library_route") not in ("described", "chain_only")]
+    assert not unnamed, f"a winner the library moved names no route: {unnamed}"
 
 
 CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]

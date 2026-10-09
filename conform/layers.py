@@ -52,6 +52,9 @@ REASONING = frozenset({
     # the one parser its arms read through (2026-10-08): the agent reading its own switches,
     # not a world -- it imports only `os`
     "armflag",
+    # M4 (2026-10-09): the library's conditions compiled into terms, and the CAUSE test over
+    # frames -- the agent reading its own inheritance; they import only condition, gamma, composer
+    "compile_term", "reach",
 })
 
 # THE TWO DOORS, and nothing else is one.

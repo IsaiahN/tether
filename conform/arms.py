@@ -124,6 +124,16 @@ ARMS: dict[str, str] = {
                        "and it is Isaiah's, to be ruled on a gridworld A/B rather than on "
                        "the toy** -- so the switch exists to make that A/B one script with "
                        "one flag. Spelled `get(..., \"0\") != \"0\"`, default-off",
+    "TETHER_LIBRARY_FIRST": "the library's offered chains (M4, the Figure 9 lookup) yielded before "
+                            "the closure stream and priced by the one body (the reviewer 08:30Z). "
+                            "ON by the registered rule (no closer lost, demo green, time "
+                            "x0.93-1.06). On the panel it executed only on fake (328 yielded, 0 "
+                            "won). In M2's fixture world it decides one equal-cost tie (17.184 "
+                            "bits: same . all<o0.dcol>, ACOUSTIC|Brain, replaces above . "
+                            "none<o0.col>). On demo and gridworld nothing reaches the mint, so the "
+                            "pass there is vacuous. In M2's world slots are not independent: "
+                            "o2.dcol's chain_only win depends on o1.dcol's. Spelled "
+                            "`default=True`, default-on",
     "TETHER_NO_CARRY_CANDIDATE": "**INVERTED POLARITY -- the SECOND row here that is, so "
                                  "the first is no longer the only one and both say so.** A "
                                  "DEFAULT-ON write: a term the agent BINDS becomes a candidate "
@@ -190,12 +200,13 @@ ARMS: dict[str, str] = {
                        "to be provable against its own absence, and a default-off one is an "
                        "optimisation nobody runs",
     "TETHER_OBSERVER": "the corpus's cheap mutation set carried PER OBJECT, not counted",
-    "TETHER_PREV_OFFER": "each slot's own value one frame earlier (slot~1) offered as an "
-                         "operand in _bindings. OFF: under A3 a ~1 term cannot close, and its "
-                         "binding seals the slot against later closers (demo swing: dec . neg "
-                         "never reached after c3; trace 2026-10-09). 16 of 18 ~1 terms "
-                         "settled held-out on the panel when ON. Re-ON pending the ruling on "
-                         "pricing a law that needs an earlier frame",
+    "TETHER_PREV_OFFER": "a term reading a slot's value one frame earlier (slot~1) offered "
+                         "into a mint, at three sites: _bindings' slot~1 offer, compiled ~1 "
+                         "views, and CAUSE then-sides (the reviewer 07:14Z, 07:23Z). OFF: under "
+                         "A3 a ~1 term cannot close, and its binding seals the slot against later "
+                         "closers (demo swing: dec . neg never reached after c3; trace "
+                         "2026-10-09). 16 of 18 ~1 terms settled held-out on the panel when ON. "
+                         "Re-ON pending the ruling on pricing a law that needs an earlier frame",
     "TETHER_REBIND_HELD": "rebinding a slot whose term is already held",
     "TETHER_RECIPE_DEDUP": "one candidate per recipe rather than per instance",
     "TETHER_NO_REFUTED_BIN": "**INVERTED POLARITY.** The fifth bin (Fig 5's amendment), DEFAULT ON "

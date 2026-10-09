@@ -53,6 +53,19 @@ def disagreements(atoms: dict) -> tuple[list[str], int, dict[str, int]]:
         n += 1
         node = condition.parse(cand["condition"])
         r = cand["reading"]
+        if r in C.CHANGE_OF:                     # current and previous attribute, the flag agreeing
+            attr = C.CHANGE_OF[r]
+            for cur, prev in FRAMES:
+                frame = {f"o1.{attr}": cur, f"o1.{attr}{C.PREV}": prev, f"o1.{r}": int(cur != prev)}
+                want = condition.evaluate(node, lambda name, _args, f=frame: f.get(name))
+                got = C.run(c, frame)
+                if got != want:
+                    bad.append(f"{cand['condition']} on {attr} {cur} after {prev}: term {got}, "
+                               f"evaluate {want}")
+            frame = {f"o1.{attr}": 1, f"o1.{r}": None}   # no earlier frame: could not tell
+            if C.run(c, frame) is not None:
+                bad.append(f"{cand['condition']} with no earlier frame: term told")
+            continue
         domain = BOOL_FRAMES if C.readings()[r].get("type") == "BOOL" else FRAMES
         for a, b in domain:
             frame = {f"o1.{r}": a, f"o2.{r}": b}
@@ -107,6 +120,32 @@ def test_a_rule_candidate_is_refused_as_quantified():
                 assert isinstance(got, C.Refusal) and got.reason == C.QUANTIFIED, (cand, got)
                 return cand["condition"]
     raise AssertionError("no RULE candidate in the library compiles without its quantifier")
+
+
+def test_a_change_reading_compiles_on_its_attribute():
+    """The 01:03Z row: a change reading compiles on the attribute it is a change OF, against that
+    attribute one frame earlier. MUST-FAIL: same/other swapped is caught by the frames."""
+    import tether
+    assert C.PREV == tether.PREV, "compile_term.PREV drifted from tether.PREV"
+    atoms = _atoms()
+    yes = C.compile_candidate({"condition": "o1.colour_changed == 1"}, atoms)
+    no = C.compile_candidate({"condition": "o1.colour_changed == 0"}, atoms)
+    assert isinstance(yes, C.Compiled) and isinstance(no, C.Compiled), (yes, no)
+    assert (yes.slot, yes.term.name, yes.operand) == ("o1.colour", "other<o1.colour~1>",
+                                                      "o1.colour~1"), yes
+    assert no.term.name == "same<o1.colour~1>", no
+    real = C._change
+
+    def swapped(obj, reading, op, right, atoms):
+        return real(obj, reading, op, 1 - right if right in (0, 1) else right, atoms)
+    C._change = swapped
+    try:
+        bad, _n, _r = disagreements(atoms)
+    finally:
+        C._change = real
+    caught = [b for b in bad if "colour_changed" in b]
+    assert caught, "same/other swapped in the change row was not caught"
+    return len(caught)
 
 
 def test_down_as_the_plain_chain_is_caught_at_zero():
@@ -201,6 +240,7 @@ if __name__ == "__main__":
     caught = test_a_swapped_binding_is_caught()
     down_caught = test_down_as_the_plain_chain_is_caught_at_zero()
     rule = test_a_rule_candidate_is_refused_as_quantified()
+    change_caught = test_a_change_reading_compiles_on_its_attribute()
     self_bound = test_the_pair_atom_agrees_with_an_independent_reading()
     print(f"compile: {n} candidates compiled, each agreeing with condition.evaluate on "
           f"{len(FRAMES)} frames and on an unread operand; "
@@ -208,4 +248,5 @@ if __name__ == "__main__":
           f"the swapped binding caught on {len(caught)} frame(s); touches<x> agrees on "
           f"{len(PAIR_FRAMES)} pairs and an unread operand, its self-bound operand caught on "
           f"{self_bound}; down as the plain chain caught on {len(down_caught)} zero frame(s); "
-          f"the RULE candidate {rule!r} refused as quantified, and compiles without it")
+          f"the RULE candidate {rule!r} refused as quantified, and compiles without it; "
+          f"colour_changed compiles on colour~1, same/other swapped caught on {change_caught}")
