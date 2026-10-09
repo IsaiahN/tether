@@ -8,6 +8,8 @@ its own branch.
 
 ## START HERE — A FRESH SESSION READS THIS FIRST
 
+**DERIVE FROM THE TETHER FIRST -- ISAIAH'S PRIORITY FOR EVERY AGENT, 2026-10-09.** *"the tether is so good that it should be able to explain all of these things ... im just stating the instantiation but its purely in the tether recursively applied to this domain"*, and *"make this a priority and commit to memory for all agents and the agent we are building."* Every ruling, design, diagnosis and proposal is DERIVED from the figures BEFORE it is concluded: residual (as an effect) -> the figure, formula and substrate lines that bear, quoted -> searched / inward / outward (another domain's frame whose shape matches) -> witness -> round trip back onto the figures, naming any correction -> anchor against measurements -> carry the method. The census closes a post; it never substitutes for the derivation. Procedure: the project skill `.claude/skills/tether-derive-first/SKILL.md`. Methods carried: the project doc `claude/DERIVATIONS_LOG.md`. For the agent, the same loop one level up (D1-D4 in the skill). Checked by `conform/figures.py` (a DERIVATION block before the conclusion).
+
 **ALWAYS USE THE TETHER -- ISAIAH'S STANDING DIRECTIVE, 2026-10-06, ABOVE EVERYTHING BELOW.**
 *"ALWAYS USE THE TETHER. Always have the agent think, act and predict using the Tether. Complex
 problems: the Tether says unbundle them into separate problems and recursively reapply it. You
