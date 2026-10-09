@@ -86,7 +86,9 @@ def test_each_named_refusal_is_refused_with_its_reason():
     for cond, reason in [
                          ("contact(o1, o2) == 1", "no pairwise atom"),
                          ("frame.came > 0", "events are not slots"),
-                         ("board.completed > 0", "not an object slot")]:
+                         ("board.completed > 0", "not an object slot"),
+                         ("@goal.row < o2.row", "@goal is the board's progress marker"),
+                         ("o1.row > @goal.row", "@goal is the board's progress marker")]:
         got = C.compile_candidate({"condition": cond}, atoms)
         assert isinstance(got, C.Refusal) and reason in got.reason, (cond, got)
 

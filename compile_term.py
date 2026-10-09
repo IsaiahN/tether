@@ -18,6 +18,7 @@ library wrote even where a label reads otherwise.
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
@@ -51,7 +52,11 @@ TABLE: dict[tuple[str, str], tuple] = {
 # with the second as its operand. A pair call not listed here has no atom and is refused.
 PAIR = {"touching": "touches"}
 # Shapes that have no slot to run on, refused by name (section 3, section 7c).
-NOT_SLOTS = {"frame": "events are not slots", "board": "the board is not an object slot"}
+NOT_SLOTS = {"frame": "events are not slots", "board": "the board is not an object slot",
+             # the world's progress marker (world.GOAL_SLOT; the library's `board`), named
+             # with an '@' the condition grammar cannot tokenize, so it is refused BEFORE the parse
+             "@goal": "@goal is the board's progress marker (the library's board), not an "
+                      "object slot"}
 
 
 @dataclass(frozen=True)
@@ -115,6 +120,9 @@ def compile_candidate(cand: dict, atoms: dict[str, gamma.Atom]) -> Compiled | Re
     """One candidate (`{"condition": "o1.drow > 0", ...}`), compiled or refused with a reason."""
     if "quantifier" in cand:
         return Refusal(QUANTIFIED)
+    for name, why in NOT_SLOTS.items():
+        if name.startswith("@") and re.search(re.escape(name) + r"\b", cand["condition"]):
+            return Refusal(why)
     try:
         node = condition.parse(cand["condition"])
     except condition.ParseError as e:
