@@ -2915,8 +2915,10 @@ class Agent:
         the lookup's. So re-keying route (b) without this MOVES the cost rather than removing
         it. Reviewer's ruling, 2026-09-22: conflict 4 applies at both sites.
 
-        ORDERING, NEVER EXCLUSION is preserved by the caller: an empty narrowing returns the
-        full list, so every binding is still reachable and only the ORDER of arrival changes.
+        IT EXCLUDES (corrected 2026-10-09): a NON-EMPTY kept set drops every slot outside it
+        (`return keep or others`); only an EMPTY one falls back to the full list. So it is a
+        cut, not an ordering, and arming it ON owes the must-hold the ~1 narrowing carries:
+        no closer the unarmed run finds may be lost.
         """
         after_of = {id(b_): a_ for b_, _act, a_, _intent, _landed in self.trace}
         moved: set = set()
