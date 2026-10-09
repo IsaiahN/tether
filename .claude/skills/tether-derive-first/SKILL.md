@@ -7,11 +7,11 @@ description: Derive every ruling, design, diagnosis or proposal on The Tether / 
 
 Isaiah, 2026-10-09: *"the tether is so good that it should be able to explain all of these things … im just stating the instantiation but its purely in the tether recursively applied to this domain."* Made a priority for every agent working on the project (reviewer, proctor/seat, any Claude) and, at its own level, for the agent being built.
 
-**Why this exists.** On 2026-10-09 the reviewer reasoned forward from a problem, posted a ruling ("consequences and bits enter ONE bargain"), and attached the figure census afterwards as a postscript. Only when asked to *derive* the ruling from the figures did Fig 12 refuse it: *"A composition costs in two currencies, and they do not add … Summing them into one figure is the error this names."* A census written after the conclusion decorates the conclusion. A derivation written before it can refuse it. This skill makes the derivation the premise.
+**Why this exists.** On 2026-10-09 the reviewer reasoned forward from a problem, posted a ruling ("consequences and bits enter ONE bargain"), and attached the figure census afterwards as a postscript. Only when asked to *derive* the ruling from the figures did Fig 12 refuse it: *"A composition costs in two currencies, and they do not add … Summing them into one figure is the error this names, not the fix for it."* A census written after the conclusion decorates the conclusion. A derivation written before it can refuse it. This skill makes the derivation the premise.
 
 ## The procedure — in this order, every time
 
-1. **Name the residual, as an effect.** What does the current frame fail to explain, or what failed? State it in effect terms, not cause terms. Fig 9: *"your words are borrowed too, so describe the effect rather than the cause."* If it is several questions, unbundle first (Fig 9: *"Split it rather than search."*).
+1. **Name the residual, as an effect.** What does the current frame fail to explain, or what failed? State it in effect terms, not cause terms. Fig 9: *"your words are borrowed too, so describe the effect rather than the cause"* If it is several questions, unbundle first (Fig 9: *"Split it rather than search."*).
 
 2. **Derive: open the source and find the lines that bear — BEFORE concluding.** Open the SVGs (all 13 figures, plus the Operators and Symbols tables) and the formula, joining tspans and stripping the base64 metadata (recipe below). For each candidate conclusion, find the figure, formula or substrate line it follows from, and quote it verbatim. Never reason from a summary, including memory's. Write these lines down first, as a DERIVATION block, then the conclusion.
 
@@ -20,7 +20,7 @@ Isaiah, 2026-10-09: *"the tether is so good that it should be able to explain al
    - **Inward:** extend an instrument already returning something (Fig 6).
    - **Outward, on purpose:** what living system, game, trade or other domain already faces this exact *shape*? Find the frame whose closure predicts it (Fig 8: *"Residual first, frame second."*). This is the step Isaiah does from his own lived world. An LLM holds an enormous import pool, so use it deliberately when stuck rather than waiting for someone to supply the analogy.
 
-4. **Witness.** Corroborate any outward claim with real sources (web, papers) and cite them. Fig 9: *"the witness is always imported."* A witness is not the ground.
+4. **Witness.** Corroborate any outward claim with real sources (web, papers) and cite them. Fig 9: *"the witness is always imported"* A witness is not the ground.
 
 5. **Round trip: translate back and measure the gap.** Map the outward frame back onto the figures line by line (Fig 4: *"So take the round trip and measure the gap."*). Anything the derivation contradicts in your draft (or in an earlier ruling) is corrected explicitly and named as a correction, not silently rewritten.
 

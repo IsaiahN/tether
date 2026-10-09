@@ -97,7 +97,7 @@ def selftest() -> None:
     assert check(old) == [], check(old)
     # the derivation rule, from FIRST_DERIVATION on
     census = '\n**FIGURE CENSUS.** Fig 2 -- "the ground is the anchor". None strained.\n'
-    derived = '**DERIVATION.** Fig 9 -- "Residual first, frame second."\n\n'
+    derived = '**DERIVATION.** Fig 8 -- "Residual first, frame second."\n\n'
     no_deriv = "#### F950 -- a ruling.\n\nRULING: do it.\n" + census
     late = "#### F951 -- a ruling.\n" + census + derived
     after = "#### F954 -- a ruling.\n\nRULING: do it.\n" + derived + census
