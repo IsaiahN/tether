@@ -24798,6 +24798,10 @@
     1.0
    ],
    [
+    "AGENT|touches",
+    1.0
+   ],
+   [
     "ATMOSPHERIC|Cold Air",
     1.0
    ],
@@ -41447,6 +41451,12 @@
     "AGENT|speed",
     1.0
    ]
+  ],
+  "dcontact": [
+   [
+    "AGENT|touches",
+    1.0
+   ]
   ]
  },
  "by_reading_affects": {
@@ -57127,6 +57137,7 @@
    "AGENT|speed",
    "AGENT|sum_group",
    "AGENT|symmetric",
+   "AGENT|touches",
    "AGENT|translate",
    "AGENT|w",
    "ALEATORY|Betting",
@@ -63652,6 +63663,7 @@
    "AGENT|sign",
    "AGENT|speed",
    "AGENT|stability",
+   "AGENT|touches",
    "AGENT|translate",
    "ALEATORY|Association",
    "ALEATORY|Bayes Theorem",
@@ -67364,6 +67376,7 @@
    "AGENT|bbox",
    "AGENT|contact",
    "AGENT|inside",
+   "AGENT|touches",
    "ALEATORY|Laplace's demon",
    "ALEATORY|Monte Carlo",
    "ALEATORY|Monte Carlo tree search",
@@ -75827,6 +75840,7 @@
    "AGENT|dw",
    "AGENT|either",
    "AGENT|h",
+   "AGENT|holds",
    "AGENT|holes",
    "AGENT|idn",
    "AGENT|inside",
@@ -75861,6 +75875,7 @@
    "AGENT|stability",
    "AGENT|sum_group",
    "AGENT|symmetric",
+   "AGENT|touches",
    "AGENT|touching",
    "AGENT|touching_n",
    "AGENT|translate",
@@ -80001,6 +80016,7 @@
    "AGENT|dw",
    "AGENT|either",
    "AGENT|h",
+   "AGENT|holds",
    "AGENT|holes",
    "AGENT|idn",
    "AGENT|inside",
@@ -80035,6 +80051,7 @@
    "AGENT|stability",
    "AGENT|sum_group",
    "AGENT|symmetric",
+   "AGENT|touches",
    "AGENT|touching",
    "AGENT|touching_n",
    "AGENT|translate",
@@ -128854,6 +128871,7 @@
    "AGENT|other",
    "AGENT|owner",
    "AGENT|same",
+   "AGENT|touches",
    "AGENT|touching",
    "AUTOMATON|Automaton network",
    "HABIT|Trigger net",
@@ -128928,6 +128946,7 @@
    "ADHERENCE|Fidelity test",
    "AGENT|both",
    "AGENT|either",
+   "AGENT|holds",
    "AGENT|negate",
    "CHARACTER|Integrity check",
    "CHOICE|Regret calc",

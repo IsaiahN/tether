@@ -4,7 +4,7 @@
 
 - atoms: 1739
 - molecules: 2164
-- agent_atoms: 77
+- agent_atoms: 79
 - relations: 66
 - readings: 47
 - isomer_families: 13

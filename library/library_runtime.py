@@ -117,6 +117,18 @@ VALUE_TEMPLATES = {
     "level",
 }
 CHANGE_TEMPLATES = {"moves", "up", "down", "occurs", "holds"}
+VERDICT_TEMPLATES = {
+    "same",
+    "other",
+    "holds",
+    "fails",
+    "present",
+    "level",
+    "with",
+    "unlike",
+    "both",
+}
+ORDER_TEMPLATES = {"more", "less", "before", "after"}
 COMPARE_TEMPLATES = {
     "more",
     "less",
@@ -315,13 +327,23 @@ class Library:
         """THE ROLE GENERATOR: the entry's candidates in one ROLE, from the same reads and the same
         template family. `role` defaults to the entry's own `role_of.role`, else STATE.
 
-            STATE / TEST / RULE   its value this frame (TEST: the verdict; RULE: on every frame)
-            PROCESS               its change across frames (deltas, events) -- 'X of y'
-            RELATION / MEASURE    against a second object (pair readings, comparisons)
-                                  -- 'X from a to b'
-            CAUSE / AGENT         a state of o is followed by a change of x  (production, ⇒)
-            RESULT                a change of o follows a state of x
-            INSTRUMENT            the change happens to o only while x takes part (touching)"""
+            STATE        its value this frame (every value template)
+            TEST         the yes/no question only: does it hold -- verdict templates
+                         (same/other/holds/fails/present), no ordering or threshold
+            RULE         the STATE, quantified: it holds of EVERY object in scope, every frame
+                         (carries "quantifier"; it compiles only through a group row)
+            PROCESS      its change across frames (deltas, events) -- 'X of y'
+            RELATION     against a second object: every comparison (nominal and ordered)
+            MEASURE      a MAGNITUDE only: ordered comparisons on EXTENT / POSITION readings,
+                         plus board- and self-level quantities -- 'how much'
+            CAUSE        a state of o, then a change of x      (if STATE(o) ⇒ PROCESS(x))
+            RESULT       a change of o, then the state it ends (if PROCESS(o) ⇒ STATE(o))
+            AGENT        the agent's own action on o is followed by a change of o
+                         (if action(agent, o) ⇒ PROCESS(o)) -- the actor is the agent
+            INSTRUMENT   the change happens to o only while x takes part (touching)
+        v6 (2026-10-08): the views were identical in two triples (STATE=TEST=RULE,
+        CAUSE=RESULT=AGENT), found by the seat's compile census; each is now its own view and
+        the self-test asserts they differ."""
         e = self.get(key)
         if e is None:
             return []
@@ -356,8 +378,10 @@ class Library:
                                     "via": f"value under {r}",
                                 }
                             )
-            if role == "RULE":
-                out = [{**c, "quantifier": "ALL frames"} for c in out]
+            if role == "TEST":  # the yes/no question: verdicts only, no ordering
+                out = [c for c in out if c["template"] in VERDICT_TEMPLATES]
+            elif role == "RULE":  # holds of EVERY object in scope, on every frame
+                out = [{**c, "quantifier": "ALL objects, every frame", "scope": o} for c in out]
         elif role == "PROCESS":
             out = [
                 c
@@ -403,6 +427,8 @@ class Library:
                                 }
                             )
             out.sort(key=lambda c: -c["weight"])  # the change of what it is ABOUT comes first
+            seen: set = set()  # one row per condition: the highest-weighted source is kept
+            out = [c for c in out if not (c["condition"] in seen or seen.add(c["condition"]))]
         elif role in ("RELATION", "MEASURE"):
             out = [
                 c
@@ -410,24 +436,47 @@ class Library:
                 if c["template"] in COMPARE_TEMPLATES
                 and (f"{x}" in c["condition"] or self.readings[c["reading"]]["scope"] == "pair")
             ]
-            if (
-                role == "MEASURE"
-            ):  # a board- or self-level quantity is measured against its own threshold
+            if role == "MEASURE":  # a magnitude: ordered comparisons, plus board/self quantities
+                out = [
+                    c
+                    for c in out
+                    if c["template"] in ORDER_TEMPLATES
+                    and self.readings[c["reading"]]["type"] in ("EXTENT", "POSITION")
+                ]
                 out += [
                     c
                     for c in base
                     if self.readings[c["reading"]]["scope"] in ("board", "self") and c not in out
                 ]
-        else:  # CAUSE, AGENT, RESULT, INSTRUMENT: two-part, built from the STATE and PROCESS views
-            st = self.view(key, "STATE", o, x)
-            pr = self.view(
-                key,
-                "PROCESS",
-                x if role in ("CAUSE", "AGENT") else o,
-                o if role in ("CAUSE", "AGENT") else x,
-            )
-            if role == "RESULT":
-                st, pr = self.view(key, "STATE", x, o), self.view(key, "PROCESS", o, x)
+        else:  # CAUSE, RESULT, AGENT, INSTRUMENT: two-part, built from the STATE and PROCESS views
+            if role == "RESULT":  # a change of o, then the state o ends in
+                ch, st = self.view(key, "PROCESS", o, x), self.view(key, "STATE", o, x)
+                return [
+                    {
+                        "entry": key,
+                        "role": role,
+                        "if": a["condition"],
+                        "then": b["condition"],
+                        "bond": "⇒",
+                        "weight": min(a["weight"], b["weight"]),
+                    }
+                    for a in ch[:6]
+                    for b in st[:6]
+                ]
+            if role == "AGENT":  # the agent acts on o, then o changes
+                return [
+                    {
+                        "entry": key,
+                        "role": role,
+                        "if": f"action(agent, {o}) == 1",
+                        "then": c["condition"],
+                        "bond": "⇒",
+                        "weight": c["weight"],
+                    }
+                    for c in self.view(key, "PROCESS", o, x)
+                ]
+            st = self.view(key, "STATE", o, x)  # CAUSE: a state of o, then a change of x
+            pr = self.view(key, "PROCESS", x, o)
             if role == "INSTRUMENT":
                 out = [
                     {
@@ -803,6 +852,38 @@ def _selftest(root: str) -> int:
     check(
         lib2.seed["HUMAN|Solidity"]["origin"] == PRIOR and lib2.get(k)["origin"] == INVENTED,
         "origins kept apart",
+    )
+
+    # v6: THE ROLES ARE DIFFERENT VIEWS (the seat's census found two identical triples)
+    def sig(k, r):
+        return sorted(
+            str((c.get("condition"), c.get("if"), c.get("then"), c.get("quantifier")))
+            for c in lib.view(k, r)
+        )
+
+    sample = [k for k in ("MEDICAL|Contagion", "HUMAN|Solidity", "KINETIC|Contact") if lib.get(k)]
+    for a, b in (
+        ("STATE", "TEST"),
+        ("STATE", "RULE"),
+        ("TEST", "RULE"),
+        ("CAUSE", "RESULT"),
+        ("CAUSE", "AGENT"),
+        ("RESULT", "AGENT"),
+        ("RELATION", "MEASURE"),
+    ):
+        check(any(sig(k, a) != sig(k, b) for k in sample), f"the {a} and {b} views differ")
+    rv = lib.view("MEDICAL|Contagion", "RESULT")
+    changes = {c["condition"] for c in lib.view("MEDICAL|Contagion", "PROCESS")}
+    states = {c["condition"] for c in lib.view("MEDICAL|Contagion", "STATE")}
+    check(
+        bool(rv) and all(c["if"] in changes and c["then"] in states for c in rv),
+        "RESULT reads a change first, then the state it ends in",
+    )
+    pv = [c["condition"] for c in lib.view("MEDICAL|Contagion", "PROCESS")]
+    check(len(pv) == len(set(pv)), "a view lists each condition once")
+    check(
+        all(c["if"].startswith("action(agent,") for c in lib.view("MEDICAL|Contagion", "AGENT")),
+        "AGENT's condition is the agent's own action",
     )
     # v5: THE AGENT'S OWN REACH (inherited.py reads agent_atoms.json + tag_index.json, nothing else)
     R = json.loads((Path(root) / "readings.json").read_text(encoding="utf-8"))["readings"]

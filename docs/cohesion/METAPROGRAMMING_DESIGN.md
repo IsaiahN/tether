@@ -60,27 +60,35 @@ Slots are as `arc_world` publishes them: `o1.h`, `o1~o2.contact`, `@goal.complet
 on ONE slot's value; a second object arrives as the OPERAND (another slot's value, never a
 constant). This is the existing `Term` contract.
 
+**AMENDED 2026-10-08 (v6) — THE TABLE AS THE CODE HAS IT.** The first version of this table said
+"compiles" for rows the mint's own typing refuses (moves, down, BOOL holds/fails, the pair rows);
+the seat's M2 found it, F513 records it, and the code is the authority. Each row below is what
+`compile_term.py` does at arc-agent `daedc5d` plus the rulings since (7a `4cb1ba5`, touches<x>
+`f35a8a5`, 7b the `holds` bridge — pending its commit).
+
 | template (reading type) | condition | compiled Term | status |
 |---|---|---|---|
-| DELTA moves | `o.r != 0` | on `o.r`: `abs_delta . sign` | compiles |
+| DELTA moves | `o.r != 0` | on `o.r`: `abs_delta . sign` | compiles since 7a (sign accepts EXTENT) |
 | DELTA up | `o.r > 0` | on `o.r`: `sign` | compiles |
-| DELTA down | `o.r < 0` | on `o.r`: `both` with operand_term `abs_delta . sign`, applied to `sign . negate` | compiles as a tree |
-| DELTA with / unlike | `o.r == x.r` / `!=` | on `o.r`: `same<x.r>` / `other<x.r>` | compiles |
-| EXTENT, POSITION more / before | `o.r > x.r` | on `o.r`: `above<x.r>` | compiles |
-| EXTENT, POSITION less / after | `o.r < x.r` | on `x.r`: `above<o.r>` (binding reversed) | compiles |
-| EXTENT, POSITION same / level | `o.r == x.r` | on `o.r`: `same<x.r>` | compiles |
-| EXTENT present | `o.r > 0` | — | **REFUSED: no zero-test on EXTENT** (§7, item a) |
-| COLOUR, SHAPE same / other | `o.r == x.r` / `!=` | on `o.r`: `same<x.r>` / `other<x.r>` | compiles (nominal: no `above`, refused by type) |
-| BOOL holds / fails | `o.r == 1` / `== 0` | on `o.r`: `idn` / `negate` | compiles if BOOL flows into PRED (fixture decides; §7, item b) |
-| BOOL both | `o.r == x.r` | on `o.r`: `same<x.r>` | compiles |
-| PRED pair holds / fails | `touching(o, x) == 1` / `== 0` | on any `o.*`: `owner . touching` / `owner . touching . negate` | compiles |
-| pair EXTENT present / absent | `contact(o, x) > 0` | — | **REFUSED: no zero-test on EXTENT** (§7a) |
-| pair DELTA up / down / moves | `dcontact(o, x) > 0` | on `o~x.dcontact`, as DELTA above | compiles once the observer publishes it |
-| board present | `board.completed > 0` | — | **REFUSED: no zero-test on EXTENT** (§7a) |
-| event occurs | `frame.came > 0` | — | **REFUSED: events are not slots** (§7c) |
-| CAUSE / AGENT / RESULT | `A ⇒ B` | `composer.bind("⇒", term_A, term_B)`; settled by `holds` over the residual's frames | compiles as a Bonded |
-| INSTRUMENT | `touching(o, x) == 1` + `B` | `composer.bind("+", owner.touching, term_B)` | compiles as a Bonded |
-| a molecule | operands with junctions | `bind(j1, t1, bind(j2, t2, …))`, `?` junctions stay UNKNOWN | compiles as a Bonded |
+| DELTA down | `o.r < 0` | the tree `both< abs_delta . sign . holds >( sign . holds . negate )` — "non-zero AND not positive" | after 7b; **never** `sign . negate` / `sign . holds . negate` (that is "not positive", wrong at zero — 42 fixture disagreements); refused if the table cannot carry the tree |
+| DELTA with / unlike | `o.r == x.r` / `!=` | `same<x.r>` / `other<x.r>` | compiles |
+| EXTENT, POSITION more / before | `o.r > x.r` | `above<x.r>` | compiles |
+| EXTENT, POSITION less / after | `o.r < x.r` | on `x.r`: `above<o.r>` (binding reversed) | compiles; the unreversed binding is the must-fail |
+| EXTENT, POSITION same / level | `o.r == x.r` | `same<x.r>` | compiles |
+| EXTENT present | `o.r > 0` | `sign` | compiles since 7a |
+| COLOUR, SHAPE same / other | `o.r == x.r` / `!=` | `same<x.r>` / `other<x.r>` | compiles (nominal: no `above`) |
+| BOOL holds / fails | `o.r == 1` / `== 0` | `holds` / `holds . negate` | after 7b (the bridge `holds: BOOL → PRED`); BOOL readings are fixtured on 0/1 frames only |
+| BOOL both | `o.r == x.r` | `same<x.r>` | compiles |
+| PRED pair holds / fails | `touching(o, x) == 1` / `== 0` | on o: `touches<x>` / `touches . negate<x>` | compiles since `f35a8a5` (`owner . touching` withdrawn: `touching` is "touches ANY object") |
+| pair EXTENT / BOOL (contact, bbox, inside) | `contact(o, x) > 0` | — | **REFUSED: no pairwise atom for it** (only touches<x> was admitted) |
+| pair DELTA (dcontact, dbbox, dinside) | `dcontact(o, x) != 0` | — | readings published since `daedc5d`; compile row not yet ruled (census will show) |
+| board present | `board.completed > 0` | `sign` on the board slot | compiles since 7a where the slot exists |
+| event occurs | `frame.came > 0` | — | **REFUSED: events are not slots** |
+| RULE (quantified) | STATE condition + `quantifier: ALL objects` | — | **REFUSED until a group row is ruled** (`all_same` / `all_of` exist; the row does not) |
+| AGENT | `action(agent, o) == 1 ⇒ B` | — | **REFUSED until an action atom is ruled** (the agent's own action as a condition) |
+| CAUSE / RESULT | `A ⇒ B` | `composer.bind("⇒", term_A, term_B)` | compiles as a Bonded when both parts compile |
+| INSTRUMENT | `touching(o, x) == 1` + `B` | `composer.bind("+", touches<x>, term_B)` | compiles since `f35a8a5` |
+| a molecule | operands with junctions | `bind(j1, t1, bind(j2, t2, …))`; `?` stays UNKNOWN | compiles as a Bonded |
 
 **THE EQUIVALENCE RULE.** For every row that compiles, the Term, evaluated on a fixture frame,
 must give the same three-valued answer as `condition.evaluate` on the same frame. Two

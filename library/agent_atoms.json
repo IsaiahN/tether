@@ -1,8 +1,8 @@
 {
  "meta": {
   "source": "arc_atoms.three_spaces + arc_predict.predict, seat-act e50406d (seat export 2026-10-08)",
-  "count": 77,
-  "what": "EVERY atom the code builds (arc_atoms.three_spaces + arc_predict.predict), under any arm: form OPERATION (computes over readings) or EXTRACT (reads one reading off an object; its percept is described once, in readings.json, which points back). Kept apart from the GIVEN library for the ablation. inherited.load() reads this file: it is the agent's own reach vocabulary.",
+  "count": 79,
+  "what": "EVERY atom the code builds (79 at a3cd621: 52 OPERATION + 27 EXTRACT) (arc_atoms.three_spaces + arc_predict.predict), under any arm: form OPERATION (computes over readings) or EXTRACT (reads one reading off an object; its percept is described once, in readings.json, which points back). Kept apart from the GIVEN library for the ablation. inherited.load() reads this file: it is the agent's own reach vocabulary.",
   "superseded_by_metaprogramming": "negate/both/either are the executable forms of ¬ + ∥; under the one bind(bond, l, r) they are what a junction calls, not separate vocabulary. all/any are degenerate (byte-identical, no scope) and are superseded by all_of/some_of once shown to reproduce their bindings.",
   "tags": "inherited.atom_tags(name, in_type, out_type) at arc-agent 8783717, stored as data; weight = score / (1 + entry total). The seat check recomputes it; drift is a must-fail."
  },
@@ -3161,6 +3161,60 @@
     }
    }
   },
+  "AGENT|holds": {
+   "name": "holds",
+   "domain": "AGENT",
+   "status": "executable",
+   "form": "OPERATION",
+   "in_type": "BOOL",
+   "out_type": "PRED",
+   "also_accepts": [],
+   "operand_type": null,
+   "reads_operand": false,
+   "reads_ctx": [],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_connect",
+   "defined_at": "arc_atoms.py:1039",
+   "definition": "A truth used as a predicate: BOOL -> PRED, the one explicit crossing. A value outside {0, 1} is not a truth and is not read.",
+   "realises": "the bridge from a perceived yes/no to a predicate (so ¬ + ∥ can take it)",
+   "role_hint": "TEST",
+   "admitted": "handed-2026-10-08: the compile census named the gap -- 186,139 library compile refusals were for want of a truth used as a predicate (idn 44,317, negate 17,631, sign then negate 124,191); it adds no percept and no answer, only lets a BOOL reading be used where a predicate is wanted. Ruled by the reviewer 2026-10-08 23:54Z over blanket widening: +183,415 rows for x1.02-1.04 search, against +139,293 for x1.11-1.18",
+   "sources": [
+    "arc-agent a3cd621 (7b, the reviewer's ruling 2026-10-08 23:54Z)"
+   ],
+   "tags": {
+    "primary": [],
+    "pairs": [],
+    "scored": []
+   },
+   "reach_tier": 0,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "A truth used as a predicate: BOOL -> PRED, the one explicit crossing. A value outside {0, 1} is not a truth and is not read.",
+    "status": "built",
+    "lineage": "arc_atoms.py:1039 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:holds",
+    "in_type": "BOOL",
+    "out_type": "PRED"
+   },
+   "roles": {
+    "default": "TEST",
+    "available": {
+     "TEST": 1
+    },
+    "example": {
+     "TEST": "arc_atoms:holds"
+    }
+   }
+  },
   "AGENT|holes": {
    "name": "holes",
    "domain": "AGENT",
@@ -5549,6 +5603,74 @@
     ]
    },
    "reach_tier": 0
+  },
+  "AGENT|touches": {
+   "name": "touches",
+   "domain": "AGENT",
+   "status": "executable",
+   "form": "OPERATION",
+   "in_type": "OBJECT",
+   "out_type": "PRED",
+   "also_accepts": [],
+   "operand_type": "OBJECT",
+   "reads_operand": true,
+   "reads_ctx": [
+    "obj",
+    "operands"
+   ],
+   "elem_type": null,
+   "arm": null,
+   "on_arc_path": true,
+   "builder": "_relate",
+   "defined_at": "arc_atoms.py:847",
+   "definition": "this object shares a cell face with the operand object, this frame (unknown when either object's cells cannot be read); not 'touches any object' (that is touching)",
+   "lit_by": [
+    "touching",
+    "dcontact"
+   ],
+   "realises": "NSM TOUCH(X, Y) — the two-place relation",
+   "role_hint": "RELATION",
+   "admitted": "handed-2026-10-08: the agent's own machinery named the gap -- 171,809 library compile refusals name a missing pairwise atom (compile_census, M3); contact is a core prior (objects interact by contact); a human arrives holding it. Ruled by the reviewer 2026-10-08 23:23Z",
+   "sources": [
+    "arc-agent f35a8a5 (touches<x>, the reviewer's ruling 2026-10-08 23:23Z); line as of a3cd621"
+   ],
+   "tags": {
+    "primary": [],
+    "pairs": [],
+    "scored": []
+   },
+   "reach_tier": 0,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "this object shares a cell face with the operand object, this frame (unknown when either object's cells cannot be read); not 'touches any object' (that is touching)",
+    "status": "built",
+    "lineage": "arc_atoms.py:847 (executable; meaning from the code's own docstring)"
+   },
+   "reads": [
+    "touching",
+    "dcontact"
+   ],
+   "affects": [],
+   "substrate": [
+    "network",
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:touches",
+    "in_type": "OBJECT",
+    "out_type": "PRED"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "RELATION": 1
+    },
+    "example": {
+     "RELATION": "arc_atoms:touches"
+    }
+   }
   },
   "AGENT|touching": {
    "name": "touching",

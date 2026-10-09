@@ -68,3 +68,10 @@ Started 2026-10-08 ~09:10 CDT on Isaiah's "proceed - big task (handle it with ca
 - Lint: v4's library .py files carried ~390 ruff findings (the ruff seat lints `.`). The three live files are now
   clean (ruff 0.16.8, repo pyproject); the five one-off transforms move to docs/cohesion/transforms/ as .txt
   records. All derived files byte-identical before/after the lint edits.
+
+
+## v6 — 2026-10-08 ~19:40–20:10 CDT
+- Built while the seat committed 7a (4cb1ba5), touches<x> (f35a8a5), the relation commit (daedc5d) and holds (a3cd621).
+- agent_atoms + touches/holds (ADMITTED verbatim), readings flips, lit_by in the build, distinct role views with self-tests, §3 amended. Record: transforms/v6_agent_atoms_and_readings_2026_10_08c.py.txt.
+- Checked against a copy of a3cd621 (arcengine stubbed for import only): library seat clean with all five must-fails caught; compile + perception seats pass; census re-run (numbers in README).
+- Open for the seat: compile_term must refuse candidates carrying `quantifier` (RULE) until a group row is ruled; AGENT needs an action atom (not ruled).

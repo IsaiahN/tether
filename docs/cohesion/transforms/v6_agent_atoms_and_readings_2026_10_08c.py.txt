@@ -1,0 +1,23 @@
+v6 (2026-10-08 evening) -- a record of the one-time data edits, applied by hand-run Python to library_v2/:
+
+agent_atoms.json
+  + AGENT|touches  OBJECT (operand OBJECT) -> PRED, builder _relate, arc_atoms.py:847 (at a3cd621),
+                   lit_by [touching, dcontact], ADMITTED text copied verbatim from arc_atoms.ADMITTED["touches"]
+                   (arc-agent f35a8a5; the reviewer's ruling 2026-10-08 23:23Z)
+  + AGENT|holds    BOOL -> PRED, builder _connect, arc_atoms.py:1039, definition = _holds' docstring,
+                   ADMITTED text copied verbatim from arc_atoms.ADMITTED["holds"]
+                   (arc-agent a3cd621; the reviewer's ruling 2026-10-08 23:54Z)
+  tags for both = inherited.atom_tags(name, in, out) = [] (OBJECT/BOOL/PRED carry no tags by that rule)
+
+readings.json
+  dcontact / dbbox / dinside  status "planned ..." -> "published: observer relations, <field> transitions (relation commit daedc5d)"
+  touching  grid -> "two objects share a cell face (face contact: contactPoints > 0; NOT 'adjacent' ...)"
+            status -> "published (observer relations: touch_began / touch_ended, relation commit daedc5d)"
+
+build_library.py
+  an OPERATION with "lit_by" is lit by those readings (touches: touching, dcontact)
+
+library_runtime.py
+  role views made distinct (TEST verdicts only; RULE quantified; MEASURE magnitudes only;
+  RESULT = change then end state; AGENT = the agent's action then a change); PROCESS lists each
+  condition once; self-tests assert every pair of roles differs.

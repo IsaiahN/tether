@@ -34,21 +34,20 @@
     "default": "RELATION",
     "available": {
      "STATE": 4,
-     "PROCESS": 9,
+     "PROCESS": 6,
      "RELATION": 2,
-     "MEASURE": 2,
+     "MEASURE": 0,
      "CAUSE": 24,
      "RESULT": 24,
-     "INSTRUMENT": 9,
+     "INSTRUMENT": 6,
      "TEST": 4,
      "RULE": 4,
-     "AGENT": 24
+     "AGENT": 6
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.dcontact != 0",
      "RELATION": "contact(o1, o2) > 0",
-     "MEASURE": "contact(o1, o2) > 0",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.dcontact != 0"
     }
    }
@@ -83,21 +82,20 @@
     "default": "RELATION",
     "available": {
      "STATE": 4,
-     "PROCESS": 9,
+     "PROCESS": 6,
      "RELATION": 2,
-     "MEASURE": 2,
+     "MEASURE": 0,
      "CAUSE": 24,
      "RESULT": 24,
-     "INSTRUMENT": 9,
+     "INSTRUMENT": 6,
      "TEST": 4,
      "RULE": 4,
-     "AGENT": 24
+     "AGENT": 6
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.dcontact != 0",
      "RELATION": "contact(o1, o2) > 0",
-     "MEASURE": "contact(o1, o2) > 0",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.dcontact != 0"
     }
    }
@@ -132,21 +130,20 @@
     "default": "RELATION",
     "available": {
      "STATE": 4,
-     "PROCESS": 9,
+     "PROCESS": 6,
      "RELATION": 2,
-     "MEASURE": 2,
+     "MEASURE": 0,
      "CAUSE": 24,
      "RESULT": 24,
-     "INSTRUMENT": 9,
+     "INSTRUMENT": 6,
      "TEST": 4,
      "RULE": 4,
-     "AGENT": 24
+     "AGENT": 6
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.dcontact != 0",
      "RELATION": "contact(o1, o2) > 0",
-     "MEASURE": "contact(o1, o2) > 0",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.dcontact != 0"
     }
    }
@@ -181,21 +178,20 @@
     "default": "RELATION",
     "available": {
      "STATE": 4,
-     "PROCESS": 9,
+     "PROCESS": 6,
      "RELATION": 2,
-     "MEASURE": 2,
+     "MEASURE": 0,
      "CAUSE": 24,
      "RESULT": 24,
-     "INSTRUMENT": 9,
+     "INSTRUMENT": 6,
      "TEST": 4,
      "RULE": 4,
-     "AGENT": 24
+     "AGENT": 6
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.dcontact != 0",
      "RELATION": "contact(o1, o2) > 0",
-     "MEASURE": "contact(o1, o2) > 0",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.dcontact != 0"
     }
    }
@@ -230,21 +226,20 @@
     "default": "RELATION",
     "available": {
      "STATE": 4,
-     "PROCESS": 9,
+     "PROCESS": 6,
      "RELATION": 2,
-     "MEASURE": 2,
+     "MEASURE": 0,
      "CAUSE": 24,
      "RESULT": 24,
-     "INSTRUMENT": 9,
+     "INSTRUMENT": 6,
      "TEST": 4,
      "RULE": 4,
-     "AGENT": 24
+     "AGENT": 6
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.dcontact != 0",
      "RELATION": "contact(o1, o2) > 0",
-     "MEASURE": "contact(o1, o2) > 0",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.dcontact != 0"
     }
    }
@@ -279,21 +274,20 @@
     "default": "RELATION",
     "available": {
      "STATE": 4,
-     "PROCESS": 9,
+     "PROCESS": 6,
      "RELATION": 2,
-     "MEASURE": 2,
+     "MEASURE": 0,
      "CAUSE": 24,
      "RESULT": 24,
-     "INSTRUMENT": 9,
+     "INSTRUMENT": 6,
      "TEST": 4,
      "RULE": 4,
-     "AGENT": 24
+     "AGENT": 6
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.dcontact != 0",
      "RELATION": "contact(o1, o2) > 0",
-     "MEASURE": "contact(o1, o2) > 0",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.dcontact != 0"
     }
    }
@@ -328,21 +322,20 @@
     "default": "RELATION",
     "available": {
      "STATE": 4,
-     "PROCESS": 9,
+     "PROCESS": 6,
      "RELATION": 2,
-     "MEASURE": 2,
+     "MEASURE": 0,
      "CAUSE": 24,
      "RESULT": 24,
-     "INSTRUMENT": 9,
+     "INSTRUMENT": 6,
      "TEST": 4,
      "RULE": 4,
-     "AGENT": 24
+     "AGENT": 6
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.dcontact != 0",
      "RELATION": "contact(o1, o2) > 0",
-     "MEASURE": "contact(o1, o2) > 0",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.dcontact != 0"
     }
    }
@@ -377,21 +370,20 @@
     "default": "RELATION",
     "available": {
      "STATE": 4,
-     "PROCESS": 9,
+     "PROCESS": 6,
      "RELATION": 2,
-     "MEASURE": 2,
+     "MEASURE": 0,
      "CAUSE": 24,
      "RESULT": 24,
-     "INSTRUMENT": 9,
+     "INSTRUMENT": 6,
      "TEST": 4,
      "RULE": 4,
-     "AGENT": 24
+     "AGENT": 6
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.dcontact != 0",
      "RELATION": "contact(o1, o2) > 0",
-     "MEASURE": "contact(o1, o2) > 0",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.dcontact != 0"
     }
    }
@@ -426,19 +418,18 @@
      "STATE": 2,
      "PROCESS": 6,
      "RELATION": 2,
-     "MEASURE": 2,
+     "MEASURE": 0,
      "CAUSE": 12,
      "RESULT": 12,
      "INSTRUMENT": 6,
      "TEST": 2,
      "RULE": 2,
-     "AGENT": 12
+     "AGENT": 6
     },
     "example": {
      "STATE": "inside(o1, o2) > 0",
      "PROCESS": "o1.dinside != 0",
      "RELATION": "inside(o1, o2) > 0",
-     "MEASURE": "inside(o1, o2) > 0",
      "CAUSE": "inside(o1, o2) > 0 ⇒ o2.dinside != 0"
     }
    }
@@ -473,19 +464,18 @@
      "STATE": 2,
      "PROCESS": 6,
      "RELATION": 2,
-     "MEASURE": 2,
+     "MEASURE": 0,
      "CAUSE": 12,
      "RESULT": 12,
      "INSTRUMENT": 6,
      "TEST": 2,
      "RULE": 2,
-     "AGENT": 12
+     "AGENT": 6
     },
     "example": {
      "STATE": "inside(o1, o2) > 0",
      "PROCESS": "o1.dinside != 0",
      "RELATION": "inside(o1, o2) > 0",
-     "MEASURE": "inside(o1, o2) > 0",
      "CAUSE": "inside(o1, o2) > 0 ⇒ o2.dinside != 0"
     }
    }
@@ -520,19 +510,18 @@
      "STATE": 2,
      "PROCESS": 6,
      "RELATION": 2,
-     "MEASURE": 2,
+     "MEASURE": 0,
      "CAUSE": 12,
      "RESULT": 12,
      "INSTRUMENT": 6,
      "TEST": 2,
      "RULE": 2,
-     "AGENT": 12
+     "AGENT": 6
     },
     "example": {
      "STATE": "inside(o1, o2) > 0",
      "PROCESS": "o1.dinside != 0",
      "RELATION": "inside(o1, o2) > 0",
-     "MEASURE": "inside(o1, o2) > 0",
      "CAUSE": "inside(o1, o2) > 0 ⇒ o2.dinside != 0"
     }
    }
@@ -567,19 +556,18 @@
      "STATE": 2,
      "PROCESS": 6,
      "RELATION": 2,
-     "MEASURE": 2,
+     "MEASURE": 0,
      "CAUSE": 12,
      "RESULT": 12,
      "INSTRUMENT": 6,
      "TEST": 2,
      "RULE": 2,
-     "AGENT": 12
+     "AGENT": 6
     },
     "example": {
      "STATE": "inside(o1, o2) > 0",
      "PROCESS": "o1.dinside != 0",
      "RELATION": "inside(o1, o2) > 0",
-     "MEASURE": "inside(o1, o2) > 0",
      "CAUSE": "inside(o1, o2) > 0 ⇒ o2.dinside != 0"
     }
    }
@@ -614,19 +602,18 @@
      "STATE": 2,
      "PROCESS": 6,
      "RELATION": 2,
-     "MEASURE": 2,
+     "MEASURE": 0,
      "CAUSE": 12,
      "RESULT": 12,
      "INSTRUMENT": 6,
      "TEST": 2,
      "RULE": 2,
-     "AGENT": 12
+     "AGENT": 6
     },
     "example": {
      "STATE": "inside(o1, o2) > 0",
      "PROCESS": "o1.dinside != 0",
      "RELATION": "inside(o1, o2) > 0",
-     "MEASURE": "inside(o1, o2) > 0",
      "CAUSE": "inside(o1, o2) > 0 ⇒ o2.dinside != 0"
     }
    }
@@ -665,13 +652,13 @@
      "STATE": 14,
      "PROCESS": 12,
      "RELATION": 12,
-     "MEASURE": 12,
+     "MEASURE": 8,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 12,
-     "TEST": 14,
+     "TEST": 6,
      "RULE": 14,
-     "AGENT": 36
+     "AGENT": 12
     },
     "example": {
      "STATE": "o1.row < o2.row",
@@ -716,13 +703,13 @@
      "STATE": 14,
      "PROCESS": 12,
      "RELATION": 12,
-     "MEASURE": 12,
+     "MEASURE": 8,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 12,
-     "TEST": 14,
+     "TEST": 6,
      "RULE": 14,
-     "AGENT": 36
+     "AGENT": 12
     },
     "example": {
      "STATE": "o1.row < o2.row",
@@ -767,13 +754,13 @@
      "STATE": 14,
      "PROCESS": 12,
      "RELATION": 12,
-     "MEASURE": 12,
+     "MEASURE": 8,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 12,
-     "TEST": 14,
+     "TEST": 6,
      "RULE": 14,
-     "AGENT": 36
+     "AGENT": 12
     },
     "example": {
      "STATE": "o1.row < o2.row",
@@ -818,13 +805,13 @@
      "STATE": 14,
      "PROCESS": 12,
      "RELATION": 12,
-     "MEASURE": 12,
+     "MEASURE": 8,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 12,
-     "TEST": 14,
+     "TEST": 6,
      "RULE": 14,
-     "AGENT": 36
+     "AGENT": 12
     },
     "example": {
      "STATE": "o1.row < o2.row",
@@ -869,13 +856,13 @@
      "STATE": 14,
      "PROCESS": 12,
      "RELATION": 12,
-     "MEASURE": 12,
+     "MEASURE": 8,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 12,
-     "TEST": 14,
+     "TEST": 6,
      "RULE": 14,
-     "AGENT": 36
+     "AGENT": 12
     },
     "example": {
      "STATE": "o1.row < o2.row",
@@ -920,13 +907,13 @@
      "STATE": 14,
      "PROCESS": 12,
      "RELATION": 12,
-     "MEASURE": 12,
+     "MEASURE": 8,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 12,
-     "TEST": 14,
+     "TEST": 6,
      "RULE": 14,
-     "AGENT": 36
+     "AGENT": 12
     },
     "example": {
      "STATE": "o1.row < o2.row",
@@ -964,19 +951,18 @@
      "STATE": 2,
      "PROCESS": 3,
      "RELATION": 1,
-     "MEASURE": 1,
+     "MEASURE": 0,
      "CAUSE": 6,
      "RESULT": 6,
      "INSTRUMENT": 3,
      "TEST": 2,
      "RULE": 2,
-     "AGENT": 6
+     "AGENT": 3
     },
     "example": {
      "STATE": "o1.shape == o2.shape",
      "PROCESS": "o1.dperimeter != 0",
      "RELATION": "o1.shape == o2.shape",
-     "MEASURE": "o1.shape == o2.shape",
      "CAUSE": "o1.shape == o2.shape ⇒ o2.dperimeter != 0"
     }
    }
@@ -1008,19 +994,18 @@
      "STATE": 2,
      "PROCESS": 3,
      "RELATION": 1,
-     "MEASURE": 1,
+     "MEASURE": 0,
      "CAUSE": 6,
      "RESULT": 6,
      "INSTRUMENT": 3,
      "TEST": 2,
      "RULE": 2,
-     "AGENT": 6
+     "AGENT": 3
     },
     "example": {
      "STATE": "o1.shape == o2.shape",
      "PROCESS": "o1.dperimeter != 0",
      "RELATION": "o1.shape == o2.shape",
-     "MEASURE": "o1.shape == o2.shape",
      "CAUSE": "o1.shape == o2.shape ⇒ o2.dperimeter != 0"
     }
    }
@@ -1052,19 +1037,18 @@
      "STATE": 2,
      "PROCESS": 3,
      "RELATION": 1,
-     "MEASURE": 1,
+     "MEASURE": 0,
      "CAUSE": 6,
      "RESULT": 6,
      "INSTRUMENT": 3,
      "TEST": 2,
      "RULE": 2,
-     "AGENT": 6
+     "AGENT": 3
     },
     "example": {
      "STATE": "o1.shape == o2.shape",
      "PROCESS": "o1.dperimeter != 0",
      "RELATION": "o1.shape == o2.shape",
-     "MEASURE": "o1.shape == o2.shape",
      "CAUSE": "o1.shape == o2.shape ⇒ o2.dperimeter != 0"
     }
    }
@@ -1096,19 +1080,18 @@
      "STATE": 2,
      "PROCESS": 3,
      "RELATION": 1,
-     "MEASURE": 1,
+     "MEASURE": 0,
      "CAUSE": 6,
      "RESULT": 6,
      "INSTRUMENT": 3,
      "TEST": 2,
      "RULE": 2,
-     "AGENT": 6
+     "AGENT": 3
     },
     "example": {
      "STATE": "o1.shape == o2.shape",
      "PROCESS": "o1.dperimeter != 0",
      "RELATION": "o1.shape == o2.shape",
-     "MEASURE": "o1.shape == o2.shape",
      "CAUSE": "o1.shape == o2.shape ⇒ o2.dperimeter != 0"
     }
    }
@@ -1143,21 +1126,20 @@
     "default": "RELATION",
     "available": {
      "STATE": 4,
-     "PROCESS": 9,
+     "PROCESS": 6,
      "RELATION": 2,
-     "MEASURE": 2,
+     "MEASURE": 0,
      "CAUSE": 24,
      "RESULT": 24,
-     "INSTRUMENT": 9,
+     "INSTRUMENT": 6,
      "TEST": 4,
      "RULE": 4,
-     "AGENT": 24
+     "AGENT": 6
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.dcontact != 0",
      "RELATION": "contact(o1, o2) > 0",
-     "MEASURE": "contact(o1, o2) > 0",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.dcontact != 0"
     }
    }
@@ -1189,19 +1171,18 @@
      "STATE": 2,
      "PROCESS": 3,
      "RELATION": 1,
-     "MEASURE": 1,
+     "MEASURE": 0,
      "CAUSE": 6,
      "RESULT": 6,
      "INSTRUMENT": 3,
      "TEST": 2,
      "RULE": 2,
-     "AGENT": 6
+     "AGENT": 3
     },
     "example": {
      "STATE": "o1.shape == o2.shape",
      "PROCESS": "o1.dperimeter != 0",
      "RELATION": "o1.shape == o2.shape",
-     "MEASURE": "o1.shape == o2.shape",
      "CAUSE": "o1.shape == o2.shape ⇒ o2.dperimeter != 0"
     }
    }
@@ -1239,19 +1220,18 @@
      "STATE": 8,
      "PROCESS": 9,
      "RELATION": 4,
-     "MEASURE": 4,
+     "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 9,
-     "TEST": 8,
+     "TEST": 4,
      "RULE": 8,
-     "AGENT": 36
+     "AGENT": 9
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "MEASURE": "o1.drow == o2.drow",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
     }
    }
@@ -1289,19 +1269,18 @@
      "STATE": 8,
      "PROCESS": 9,
      "RELATION": 4,
-     "MEASURE": 4,
+     "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 9,
-     "TEST": 8,
+     "TEST": 4,
      "RULE": 8,
-     "AGENT": 36
+     "AGENT": 9
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "MEASURE": "o1.drow == o2.drow",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
     }
    }
@@ -1333,19 +1312,18 @@
      "STATE": 2,
      "PROCESS": 3,
      "RELATION": 1,
-     "MEASURE": 1,
+     "MEASURE": 0,
      "CAUSE": 6,
      "RESULT": 6,
      "INSTRUMENT": 3,
      "TEST": 2,
      "RULE": 2,
-     "AGENT": 6
+     "AGENT": 3
     },
     "example": {
      "STATE": "o1.shape == o2.shape",
      "PROCESS": "o1.dperimeter != 0",
      "RELATION": "o1.shape == o2.shape",
-     "MEASURE": "o1.shape == o2.shape",
      "CAUSE": "o1.shape == o2.shape ⇒ o2.dperimeter != 0"
     }
    }
@@ -1377,19 +1355,18 @@
      "STATE": 2,
      "PROCESS": 3,
      "RELATION": 1,
-     "MEASURE": 1,
+     "MEASURE": 0,
      "CAUSE": 6,
      "RESULT": 6,
      "INSTRUMENT": 3,
      "TEST": 2,
      "RULE": 2,
-     "AGENT": 6
+     "AGENT": 3
     },
     "example": {
      "STATE": "o1.shape == o2.shape",
      "PROCESS": "o1.dperimeter != 0",
      "RELATION": "o1.shape == o2.shape",
-     "MEASURE": "o1.shape == o2.shape",
      "CAUSE": "o1.shape == o2.shape ⇒ o2.dperimeter != 0"
     }
    }
@@ -1427,19 +1404,18 @@
      "STATE": 8,
      "PROCESS": 9,
      "RELATION": 4,
-     "MEASURE": 4,
+     "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 9,
-     "TEST": 8,
+     "TEST": 4,
      "RULE": 8,
-     "AGENT": 36
+     "AGENT": 9
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "MEASURE": "o1.drow == o2.drow",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
     }
    }
@@ -1471,19 +1447,18 @@
      "STATE": 2,
      "PROCESS": 3,
      "RELATION": 1,
-     "MEASURE": 1,
+     "MEASURE": 0,
      "CAUSE": 6,
      "RESULT": 6,
      "INSTRUMENT": 3,
      "TEST": 2,
      "RULE": 2,
-     "AGENT": 6
+     "AGENT": 3
     },
     "example": {
      "STATE": "o1.shape == o2.shape",
      "PROCESS": "o1.dperimeter != 0",
      "RELATION": "o1.shape == o2.shape",
-     "MEASURE": "o1.shape == o2.shape",
      "CAUSE": "o1.shape == o2.shape ⇒ o2.dperimeter != 0"
     }
    }
@@ -1521,19 +1496,18 @@
      "STATE": 8,
      "PROCESS": 9,
      "RELATION": 4,
-     "MEASURE": 4,
+     "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 9,
-     "TEST": 8,
+     "TEST": 4,
      "RULE": 8,
-     "AGENT": 36
+     "AGENT": 9
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "MEASURE": "o1.drow == o2.drow",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
     }
    }
@@ -1571,19 +1545,18 @@
      "STATE": 8,
      "PROCESS": 9,
      "RELATION": 4,
-     "MEASURE": 4,
+     "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 9,
-     "TEST": 8,
+     "TEST": 4,
      "RULE": 8,
-     "AGENT": 36
+     "AGENT": 9
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "MEASURE": "o1.drow == o2.drow",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
     }
    }
@@ -1621,19 +1594,18 @@
      "STATE": 8,
      "PROCESS": 9,
      "RELATION": 4,
-     "MEASURE": 4,
+     "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 9,
-     "TEST": 8,
+     "TEST": 4,
      "RULE": 8,
-     "AGENT": 36
+     "AGENT": 9
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "MEASURE": "o1.drow == o2.drow",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
     }
    }
@@ -1667,21 +1639,20 @@
     "default": "RELATION",
     "available": {
      "STATE": 4,
-     "PROCESS": 9,
+     "PROCESS": 6,
      "RELATION": 2,
-     "MEASURE": 2,
+     "MEASURE": 0,
      "CAUSE": 24,
      "RESULT": 24,
-     "INSTRUMENT": 9,
+     "INSTRUMENT": 6,
      "TEST": 4,
      "RULE": 4,
-     "AGENT": 24
+     "AGENT": 6
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.dcontact != 0",
      "RELATION": "contact(o1, o2) > 0",
-     "MEASURE": "contact(o1, o2) > 0",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.dcontact != 0"
     }
    }
@@ -1719,19 +1690,18 @@
      "STATE": 8,
      "PROCESS": 9,
      "RELATION": 4,
-     "MEASURE": 4,
+     "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 9,
-     "TEST": 8,
+     "TEST": 4,
      "RULE": 8,
-     "AGENT": 36
+     "AGENT": 9
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "MEASURE": "o1.drow == o2.drow",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
     }
    }
@@ -1769,19 +1739,18 @@
      "STATE": 8,
      "PROCESS": 9,
      "RELATION": 4,
-     "MEASURE": 4,
+     "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 9,
-     "TEST": 8,
+     "TEST": 4,
      "RULE": 8,
-     "AGENT": 36
+     "AGENT": 9
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "MEASURE": "o1.drow == o2.drow",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
     }
    }
@@ -1819,19 +1788,18 @@
      "STATE": 8,
      "PROCESS": 9,
      "RELATION": 4,
-     "MEASURE": 4,
+     "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 9,
-     "TEST": 8,
+     "TEST": 4,
      "RULE": 8,
-     "AGENT": 36
+     "AGENT": 9
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "MEASURE": "o1.drow == o2.drow",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
     }
    }
@@ -1869,19 +1837,18 @@
      "STATE": 8,
      "PROCESS": 9,
      "RELATION": 4,
-     "MEASURE": 4,
+     "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 9,
-     "TEST": 8,
+     "TEST": 4,
      "RULE": 8,
-     "AGENT": 36
+     "AGENT": 9
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "MEASURE": "o1.drow == o2.drow",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
     }
    }
@@ -1919,19 +1886,18 @@
      "STATE": 8,
      "PROCESS": 9,
      "RELATION": 4,
-     "MEASURE": 4,
+     "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 9,
-     "TEST": 8,
+     "TEST": 4,
      "RULE": 8,
-     "AGENT": 36
+     "AGENT": 9
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "MEASURE": "o1.drow == o2.drow",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
     }
    }
@@ -1972,19 +1938,18 @@
      "STATE": 10,
      "PROCESS": 10,
      "RELATION": 4,
-     "MEASURE": 4,
+     "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 10,
-     "TEST": 10,
+     "TEST": 6,
      "RULE": 10,
-     "AGENT": 36
+     "AGENT": 10
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "MEASURE": "o1.drow == o2.drow",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
     }
    }
@@ -2025,19 +1990,18 @@
      "STATE": 10,
      "PROCESS": 10,
      "RELATION": 4,
-     "MEASURE": 4,
+     "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 10,
-     "TEST": 10,
+     "TEST": 6,
      "RULE": 10,
-     "AGENT": 36
+     "AGENT": 10
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "MEASURE": "o1.drow == o2.drow",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
     }
    }
@@ -2078,19 +2042,18 @@
      "STATE": 10,
      "PROCESS": 10,
      "RELATION": 4,
-     "MEASURE": 4,
+     "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 10,
-     "TEST": 10,
+     "TEST": 6,
      "RULE": 10,
-     "AGENT": 36
+     "AGENT": 10
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "MEASURE": "o1.drow == o2.drow",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
     }
    }
@@ -2122,19 +2085,18 @@
      "STATE": 2,
      "PROCESS": 3,
      "RELATION": 1,
-     "MEASURE": 1,
+     "MEASURE": 0,
      "CAUSE": 6,
      "RESULT": 6,
      "INSTRUMENT": 3,
      "TEST": 2,
      "RULE": 2,
-     "AGENT": 6
+     "AGENT": 3
     },
     "example": {
      "STATE": "o1.shape == o2.shape",
      "PROCESS": "o1.dperimeter != 0",
      "RELATION": "o1.shape == o2.shape",
-     "MEASURE": "o1.shape == o2.shape",
      "CAUSE": "o1.shape == o2.shape ⇒ o2.dperimeter != 0"
     }
    }
@@ -2175,19 +2137,18 @@
      "STATE": 10,
      "PROCESS": 10,
      "RELATION": 4,
-     "MEASURE": 4,
+     "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 10,
-     "TEST": 10,
+     "TEST": 6,
      "RULE": 10,
-     "AGENT": 36
+     "AGENT": 10
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "MEASURE": "o1.drow == o2.drow",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
     }
    }
@@ -2227,19 +2188,18 @@
      "STATE": 10,
      "PROCESS": 10,
      "RELATION": 4,
-     "MEASURE": 4,
+     "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 10,
-     "TEST": 10,
+     "TEST": 6,
      "RULE": 10,
-     "AGENT": 36
+     "AGENT": 10
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "MEASURE": "o1.drow == o2.drow",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
     }
    }
@@ -2280,19 +2240,18 @@
      "STATE": 10,
      "PROCESS": 10,
      "RELATION": 4,
-     "MEASURE": 4,
+     "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 10,
-     "TEST": 10,
+     "TEST": 6,
      "RULE": 10,
-     "AGENT": 36
+     "AGENT": 10
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "MEASURE": "o1.drow == o2.drow",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
     }
    }
@@ -2333,19 +2292,18 @@
      "STATE": 10,
      "PROCESS": 10,
      "RELATION": 4,
-     "MEASURE": 4,
+     "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 10,
-     "TEST": 10,
+     "TEST": 6,
      "RULE": 10,
-     "AGENT": 36
+     "AGENT": 10
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "MEASURE": "o1.drow == o2.drow",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
     }
    }
@@ -2386,19 +2344,18 @@
      "STATE": 10,
      "PROCESS": 10,
      "RELATION": 4,
-     "MEASURE": 4,
+     "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 10,
-     "TEST": 10,
+     "TEST": 6,
      "RULE": 10,
-     "AGENT": 36
+     "AGENT": 10
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "MEASURE": "o1.drow == o2.drow",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
     }
    }
@@ -2439,19 +2396,18 @@
      "STATE": 10,
      "PROCESS": 10,
      "RELATION": 4,
-     "MEASURE": 4,
+     "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 10,
-     "TEST": 10,
+     "TEST": 6,
      "RULE": 10,
-     "AGENT": 36
+     "AGENT": 10
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "MEASURE": "o1.drow == o2.drow",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
     }
    }
@@ -2492,19 +2448,18 @@
      "STATE": 10,
      "PROCESS": 10,
      "RELATION": 4,
-     "MEASURE": 4,
+     "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 10,
-     "TEST": 10,
+     "TEST": 6,
      "RULE": 10,
-     "AGENT": 36
+     "AGENT": 10
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "MEASURE": "o1.drow == o2.drow",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
     }
    }
@@ -2545,19 +2500,18 @@
      "STATE": 10,
      "PROCESS": 10,
      "RELATION": 4,
-     "MEASURE": 4,
+     "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 10,
-     "TEST": 10,
+     "TEST": 6,
      "RULE": 10,
-     "AGENT": 36
+     "AGENT": 10
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "MEASURE": "o1.drow == o2.drow",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
     }
    }
@@ -2598,19 +2552,18 @@
      "STATE": 10,
      "PROCESS": 10,
      "RELATION": 4,
-     "MEASURE": 4,
+     "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 10,
-     "TEST": 10,
+     "TEST": 6,
      "RULE": 10,
-     "AGENT": 36
+     "AGENT": 10
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "MEASURE": "o1.drow == o2.drow",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
     }
    }
@@ -2647,19 +2600,18 @@
      "STATE": 8,
      "PROCESS": 9,
      "RELATION": 4,
-     "MEASURE": 4,
+     "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 9,
-     "TEST": 8,
+     "TEST": 4,
      "RULE": 8,
-     "AGENT": 36
+     "AGENT": 9
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "MEASURE": "o1.drow == o2.drow",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
     }
    }
@@ -2696,19 +2648,18 @@
      "STATE": 8,
      "PROCESS": 9,
      "RELATION": 4,
-     "MEASURE": 4,
+     "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 9,
-     "TEST": 8,
+     "TEST": 4,
      "RULE": 8,
-     "AGENT": 36
+     "AGENT": 9
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "MEASURE": "o1.drow == o2.drow",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
     }
    }
@@ -2745,19 +2696,18 @@
      "STATE": 8,
      "PROCESS": 9,
      "RELATION": 4,
-     "MEASURE": 4,
+     "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 9,
-     "TEST": 8,
+     "TEST": 4,
      "RULE": 8,
-     "AGENT": 36
+     "AGENT": 9
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "MEASURE": "o1.drow == o2.drow",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
     }
    }
@@ -2795,19 +2745,18 @@
      "STATE": 8,
      "PROCESS": 9,
      "RELATION": 4,
-     "MEASURE": 4,
+     "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 9,
-     "TEST": 8,
+     "TEST": 4,
      "RULE": 8,
-     "AGENT": 36
+     "AGENT": 9
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "MEASURE": "o1.drow == o2.drow",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
     }
    }
@@ -2845,19 +2794,18 @@
      "STATE": 8,
      "PROCESS": 9,
      "RELATION": 4,
-     "MEASURE": 4,
+     "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 9,
-     "TEST": 8,
+     "TEST": 4,
      "RULE": 8,
-     "AGENT": 36
+     "AGENT": 9
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "MEASURE": "o1.drow == o2.drow",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
     }
    }
@@ -2895,19 +2843,18 @@
      "STATE": 8,
      "PROCESS": 9,
      "RELATION": 4,
-     "MEASURE": 4,
+     "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 9,
-     "TEST": 8,
+     "TEST": 4,
      "RULE": 8,
-     "AGENT": 36
+     "AGENT": 9
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
      "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "MEASURE": "o1.drow == o2.drow",
      "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
     }
    }
@@ -2951,19 +2898,19 @@
      "STATE": 20,
      "PROCESS": 14,
      "RELATION": 9,
-     "MEASURE": 9,
+     "MEASURE": 4,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 14,
-     "TEST": 20,
+     "TEST": 10,
      "RULE": 20,
-     "AGENT": 36
+     "AGENT": 14
     },
     "example": {
      "STATE": "o1.shape == o2.shape",
      "PROCESS": "o1.dcells != 0",
      "RELATION": "o1.shape == o2.shape",
-     "MEASURE": "o1.shape == o2.shape",
+     "MEASURE": "o1.h > o2.h",
      "CAUSE": "o1.shape == o2.shape ⇒ o2.dcells != 0"
     }
    }
@@ -3007,19 +2954,19 @@
      "STATE": 20,
      "PROCESS": 14,
      "RELATION": 9,
-     "MEASURE": 9,
+     "MEASURE": 4,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 14,
-     "TEST": 20,
+     "TEST": 10,
      "RULE": 20,
-     "AGENT": 36
+     "AGENT": 14
     },
     "example": {
      "STATE": "o1.shape == o2.shape",
      "PROCESS": "o1.dcells != 0",
      "RELATION": "o1.shape == o2.shape",
-     "MEASURE": "o1.shape == o2.shape",
+     "MEASURE": "o1.h > o2.h",
      "CAUSE": "o1.shape == o2.shape ⇒ o2.dcells != 0"
     }
    }
@@ -3063,19 +3010,19 @@
      "STATE": 20,
      "PROCESS": 14,
      "RELATION": 9,
-     "MEASURE": 9,
+     "MEASURE": 4,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 14,
-     "TEST": 20,
+     "TEST": 10,
      "RULE": 20,
-     "AGENT": 36
+     "AGENT": 14
     },
     "example": {
      "STATE": "o1.shape == o2.shape",
      "PROCESS": "o1.dcells != 0",
      "RELATION": "o1.shape == o2.shape",
-     "MEASURE": "o1.shape == o2.shape",
+     "MEASURE": "o1.h > o2.h",
      "CAUSE": "o1.shape == o2.shape ⇒ o2.dcells != 0"
     }
    }
@@ -3119,19 +3066,19 @@
      "STATE": 20,
      "PROCESS": 14,
      "RELATION": 9,
-     "MEASURE": 9,
+     "MEASURE": 4,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 14,
-     "TEST": 20,
+     "TEST": 10,
      "RULE": 20,
-     "AGENT": 36
+     "AGENT": 14
     },
     "example": {
      "STATE": "o1.shape == o2.shape",
      "PROCESS": "o1.dcells != 0",
      "RELATION": "o1.shape == o2.shape",
-     "MEASURE": "o1.shape == o2.shape",
+     "MEASURE": "o1.h > o2.h",
      "CAUSE": "o1.shape == o2.shape ⇒ o2.dcells != 0"
     }
    }
@@ -3175,19 +3122,19 @@
      "STATE": 20,
      "PROCESS": 14,
      "RELATION": 9,
-     "MEASURE": 9,
+     "MEASURE": 4,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 14,
-     "TEST": 20,
+     "TEST": 10,
      "RULE": 20,
-     "AGENT": 36
+     "AGENT": 14
     },
     "example": {
      "STATE": "o1.shape == o2.shape",
      "PROCESS": "o1.dcells != 0",
      "RELATION": "o1.shape == o2.shape",
-     "MEASURE": "o1.shape == o2.shape",
+     "MEASURE": "o1.h > o2.h",
      "CAUSE": "o1.shape == o2.shape ⇒ o2.dcells != 0"
     }
    }
@@ -3231,19 +3178,19 @@
      "STATE": 20,
      "PROCESS": 14,
      "RELATION": 9,
-     "MEASURE": 9,
+     "MEASURE": 4,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 14,
-     "TEST": 20,
+     "TEST": 10,
      "RULE": 20,
-     "AGENT": 36
+     "AGENT": 14
     },
     "example": {
      "STATE": "o1.shape == o2.shape",
      "PROCESS": "o1.dcells != 0",
      "RELATION": "o1.shape == o2.shape",
-     "MEASURE": "o1.shape == o2.shape",
+     "MEASURE": "o1.h > o2.h",
      "CAUSE": "o1.shape == o2.shape ⇒ o2.dcells != 0"
     }
    }
@@ -3287,19 +3234,19 @@
      "STATE": 20,
      "PROCESS": 14,
      "RELATION": 9,
-     "MEASURE": 9,
+     "MEASURE": 4,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 14,
-     "TEST": 20,
+     "TEST": 10,
      "RULE": 20,
-     "AGENT": 36
+     "AGENT": 14
     },
     "example": {
      "STATE": "o1.shape == o2.shape",
      "PROCESS": "o1.dcells != 0",
      "RELATION": "o1.shape == o2.shape",
-     "MEASURE": "o1.shape == o2.shape",
+     "MEASURE": "o1.h > o2.h",
      "CAUSE": "o1.shape == o2.shape ⇒ o2.dcells != 0"
     }
    }

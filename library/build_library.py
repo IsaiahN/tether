@@ -440,9 +440,13 @@ def build(check_only: bool = False) -> dict:
         # an operation is lit by the readings its INPUT type comes from (it computes over them)
         # an EXTRACT atom is lit by the one reading it reads; an OPERATION by the readings its INPUT
         # type comes from (it computes over them)
+        # an operation that names the readings it is about (lit_by: a pair atom such as touches)
+        # is lit by those; otherwise by its input type's readings
         reads = (
             [e["reading"]]
             if e.get("reading") in readings
+            else [r for r in e["lit_by"] if r in readings]
+            if e.get("lit_by")
             else [r for r in IN_TYPE_READS.get(intype, []) if r in readings]
         )
         if e.get("form") == "EXTRACT" and not reads:

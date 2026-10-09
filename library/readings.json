@@ -134,8 +134,8 @@
   "touching": {
    "type": "PRED",
    "scope": "pair",
-   "status": "published",
-   "grid": "two objects share a cell face",
+   "status": "published (observer relations: touch_began / touch_ended, relation commit daedc5d)",
+   "grid": "two objects share a cell face (face contact: contactPoints > 0; NOT 'adjacent', which is bounding boxes within one cell)",
    "substrate": [
     "space",
     "network"
@@ -526,7 +526,7 @@
   "dcontact": {
    "type": "DELTA",
    "scope": "pair",
-   "status": "planned -- the mutation observer's delta of this attribute (Isaiah 2026-09-15/22: every attribute's change is the cue)",
+   "status": "published: observer relations, contactPoints transitions (relation commit daedc5d)",
    "grid": "two objects came into, or out of, contact this frame",
    "substrate": [
     "network",
@@ -537,7 +537,7 @@
   "dinside": {
    "type": "DELTA",
    "scope": "pair",
-   "status": "planned -- the mutation observer's delta of this attribute (Isaiah 2026-09-15/22: every attribute's change is the cue)",
+   "status": "published: observer relations, contains transitions (relation commit daedc5d)",
    "grid": "an object entered or left another's hole this frame",
    "substrate": [
     "space",
@@ -548,7 +548,7 @@
   "dbbox": {
    "type": "DELTA",
    "scope": "pair",
-   "status": "planned -- the mutation observer's delta of this attribute (Isaiah 2026-09-15/22: every attribute's change is the cue)",
+   "status": "published: observer relations, overlapArea transitions (relation commit daedc5d)",
    "grid": "two bounding boxes began or stopped overlapping",
    "substrate": [
     "space",
