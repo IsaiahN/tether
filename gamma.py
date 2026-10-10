@@ -1443,24 +1443,11 @@ class Gamma:
             elem = CELL if cur == CELLS else None
         return cur, elem
 
-    def enumerate_closure(self, in_type: str, out_type: str, max_depth: int, budget: int,
-                          stats: dict | None = None,
-                          order: Callable[[Term], float] | None = None) -> Iterator[Term]:
-        """Type-valid pipelines over UNITS, shortest first, capped by budget.
-
-        Yielding a term is a WITNESS that it is reachable. Stopping is one of two facts and
-        they are not the same claim: `budget_spent` (we stopped early) or `depth_exhausted`
-        (we saw the whole space at this depth and it did not contain one).
-        """
-        units = self.units()
-        emitted = 0
-        # written UP FRONT: a caller that breaks early abandons the generator, so anything
-        # only written at exhaustion is never seen. `units` and `estimate` are known now;
-        # `seen` is kept live per yield so an early break still reports honest coverage.
-        if stats is not None:
-            stats["units"] = len(units)
-            stats["estimate"] = self.space_exact(units, in_type, out_type, max_depth)
-            stats["seen"] = 0
+    @staticmethod
+    def closure_start(units: list[Term], in_type: str,
+                      order: Callable[[Term], float] | None = None) -> list[Term]:
+        """The closure's depth-1 units in the order it walks them: what `enumerate_closure`
+        starts from, and what a suspended stream's resume checks it still matches."""
         start = [u for u in units if accepts_type(u, in_type)]
         # §23.5's PREREQUISITE, and it is not a new judgement. *Loading generously requires
         # retrieval-by-characterised-residual, not enumeration -- a big library is an asset
@@ -1480,6 +1467,29 @@ class Gamma:
             if max(sc) > min(sc):
                 start = [u for _, u in sorted(zip(sc, start, strict=True),
                                               key=lambda x: (-x[0], x[1].name))]
+        return start
+
+    def enumerate_closure(self, in_type: str, out_type: str, max_depth: int, budget: int,
+                          stats: dict | None = None,
+                          order: Callable[[Term], float] | None = None,
+                          start: list[Term] | None = None) -> Iterator[Term]:
+        """Type-valid pipelines over UNITS, shortest first, capped by budget.
+
+        Yielding a term is a WITNESS that it is reachable. Stopping is one of two facts and
+        they are not the same claim: `budget_spent` (we stopped early) or `depth_exhausted`
+        (we saw the whole space at this depth and it did not contain one).
+        """
+        units = self.units()
+        emitted = 0
+        # written UP FRONT: a caller that breaks early abandons the generator, so anything
+        # only written at exhaustion is never seen. `units` and `estimate` are known now;
+        # `seen` is kept live per yield so an early break still reports honest coverage.
+        if stats is not None:
+            stats["units"] = len(units)
+            stats["estimate"] = self.space_exact(units, in_type, out_type, max_depth)
+            stats["seen"] = 0
+        if start is None:          # a caller that already ranked them passes closure_start's list
+            start = self.closure_start(units, in_type, order)
         # CARRIED, NOT RECOMPUTED. The state is (chain, current type, element type or None);
         # re-deriving it per extension would walk every chain again inside the hot loop.
         frontier = [(u.atoms, *Gamma._iter_step(in_type, None, u)) for u in start]

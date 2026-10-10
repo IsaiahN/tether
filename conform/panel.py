@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import subprocess
 import sys
 from pathlib import Path
 
@@ -150,9 +149,13 @@ def _arc_must_fail() -> list[str]:
 
 
 def _produce() -> int:
-    procs = [subprocess.Popen([sys.executable, __file__, "--member", m], cwd=ROOT)
-             for m in MEMBERS]
-    return max(p.wait() for p in procs)
+    """Every member through the throttle (Isaiah 2026-10-09 21:16 CDT; the reviewer 04:31Z).
+    Imported here, not at the top: a member run never loads it, so it stays outside the stamp."""
+    import throttle
+    logs = ROOT / "runs" / "panel_logs"
+    logs.mkdir(parents=True, exist_ok=True)
+    return throttle.run([([sys.executable, __file__, "--member", m], ROOT, logs / f"{m}.log")
+                         for m in MEMBERS])
 
 
 def _seat() -> int:

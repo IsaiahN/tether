@@ -40,7 +40,6 @@ from __future__ import annotations
 import fnmatch
 import hashlib
 import json
-import os
 import subprocess
 import sys
 import time
@@ -52,6 +51,7 @@ HERE = Path(__file__).parent
 ROOT = HERE.parent
 sys.path.insert(0, str(HERE))
 import check  # noqa: E402  -- the STAGES table and run_stage are the single source; nothing is copied
+import throttle  # noqa: E402
 
 # THE GIT DIR IS ASKED, NOT ASSUMED: in a worktree `.git` is a file and the dir is
 # .git/worktrees/<name>/, so each tree keeps its own fingerprints (their blobs differ).
@@ -256,15 +256,20 @@ def main(argv: list[str]) -> int:
             )
     spec = {name: (cmd, why, needs) for name, cmd, why, needs in stages}
     t0 = time.time()
-    workers = max(1, (os.cpu_count() or 2))
+    workers = throttle.CAP          # Isaiah 2026-10-09 21:16 CDT: never peg his machine
     pending, running = [n for n in names if n in run_set], {}
     with ThreadPoolExecutor(max_workers=workers) as ex:
         while pending or running:
             for n in list(pending):  # submit every seat whose predecessors are done
                 if all(d in results or d not in run_set for d in after[n]):
+                    if not throttle.may_start(len(running)):
+                        break
                     cmd, _why, needs = spec[n]
                     running[ex.submit(check.run_stage, cmd, needs)] = n
                     pending.remove(n)
+            if not running:
+                time.sleep(throttle.POLL_S)
+                continue
             done, _ = wait(running, return_when=FIRST_COMPLETED)
             for f in done:
                 n = running.pop(f)

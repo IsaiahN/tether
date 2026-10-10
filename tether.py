@@ -433,6 +433,63 @@ _CARRY_PRICE = armflag.arm("TETHER_CARRY_PRICE")
 _CARRY_REF = True
 
 
+# THE STREAM IS RESUMED, NOT RE-WALKED (the reviewer 2026-10-10 04:31Z; Fig 12: "Inside a run the
+# arrangement persists and nothing is re-earned"). A frontier hit whose order signature also matches
+# continues the closure generator the last mint suspended, instead of re-enumerating and skipping
+# the priced prefix. Every row is the same either way; False is for the identity must-fail only.
+_RESUME_STREAM = True
+
+
+def _stream_sig(units: list, start: list, in_t: str, out_t: str, cfg, exclude: set) -> tuple:
+    """WHAT THE GENERATOR READS that the scope key does not, taken from the calls it reads them
+    through: the exact unit order it expands over, the depth-1 order the ranking produced (the cue
+    moves every cycle; this order rarely does), the stream, the caps, the filter."""
+    return (tuple(u.name for u in units), tuple(u.name for u in start), in_t, out_t,
+            cfg.max_depth, cfg.budget, tuple(sorted(exclude)))
+
+
+class _Kept:
+    """A closure stream suspended across mints: the generator, the stats dict it writes into, and
+    what a fresh walk would re-derive -- the chains it yielded (counted, all priced but `back`),
+    the one chain pulled and left unpriced by the work budget (`back`, replayed first), and the
+    stats it reports, restored on the first pull exactly as a fresh walk would rewrite them."""
+
+    def __init__(self, gen, st: dict, exclude: set):
+        self.gen, self.st, self.exclude, self.opening = gen, st, exclude, dict(st)
+        self.n, self.back, self.last, self.snap, self.final = 0, [], None, None, None
+        self.started = False
+
+    def suspend(self, si: int, priced: dict) -> None:
+        self.back = ([self.last] if self.last is not None and (si, self.last.name) not in priced
+                     else [])
+        self.snap = ({k: self.st[k] for k in ("seen", "units", "estimate")} if self.started
+                     else None)
+
+    def resume(self) -> int:
+        """Reset the stats to a fresh walk's opening values; return the chains a fresh walk would
+        skip as already priced."""
+        self.st.clear()
+        self.st.update(self.opening)
+        return self.n - len(self.back)
+
+    def __iter__(self):
+        if self.snap is not None:
+            self.st.update(self.snap)
+        while self.back:
+            self.last = self.back.pop(0)
+            yield self.last
+        self.started = True
+        for c in self.gen:
+            if c.name in self.exclude:
+                continue
+            self.n += 1
+            self.last = c
+            yield c
+        if self.final is None:
+            self.final = {k: self.st[k] for k in ("seen", "budget_spent", "depth_exhausted")}
+        self.st.update(self.final)
+
+
 def _recording(chains, into: list):
     """Yield each chain, recording it into `into`: pass 2 walks that record, a LOOKUP of what pass 1
     reached and never a second enumeration (the reviewer 19:45Z; Fig 12: nothing is re-earned)."""
@@ -3331,8 +3388,9 @@ class Agent:
                 and robs is not None and self.bears_on(cand, slot, robs, held))
 
     def _carry_ref(self) -> tuple[int, float]:
-        """What naming one held term costs: log2(H+1), H the held terms on offer, the +1 being
-        none of them (mint instead). The form is `_guard_bits`'s, the corpus's."""
+        """What naming one held term costs: log2(H+1), H the whole library as built (at least the
+        fit's candidates), the +1 being none of them (mint instead). The form is `_guard_bits`'s,
+        the corpus's."""
         h = len(self.gamma.library)
         return h, (math.log2(h + 1) if _CARRY_REF else 0.0)
 
@@ -6963,7 +7021,7 @@ class Agent:
         wanted: tuple[float, Term, int] | None = None
         rank = 0
         _skey = _hit = None
-        priced, _skipped = {}, 0
+        priced, _skipped, _keep = {}, 0, {}
 
         if guards["support"] and base > floor:
             # THE GAP IS ALREADY CHARACTERISED FOR RETRIEVAL; the search gets the same key.
@@ -7097,10 +7155,28 @@ class Agent:
                        if _LIBRARY_FIRST and _round == 1 else [])
                 _lf_names = {c.name for c in _lf}
                 _lf_seen.update(tuple(a.name for a in c.atoms) for c in _lf)
-                _stream = itertools.chain(_lf, (
-                        c for c in self.gamma.enumerate_closure(
-                            in_t, out_t, self.cfg.max_depth, self.cfg.budget, st, order=by_fit)
-                        if c.name not in _lf_names))
+                _kept = None
+                if _RESUME_STREAM and _round == 1 and not (_WINDOW and _TWO_PASS):
+                    _un = self.gamma.units()
+                    _start = Gamma.closure_start(_un, in_t, by_fit)
+                    _sig = _stream_sig(_un, _start, in_t, out_t, self.cfg, _lf_names)
+                    _was = _hit[4].get(_si) if _hit and len(_hit) > 4 else None
+                    if _was is not None and _was[1] == _sig:
+                        _kept = _was[0]
+                        st = _kept.st
+                        _skipped += _kept.resume()
+                    else:
+                        _kept = _Kept(self.gamma.enumerate_closure(
+                            in_t, out_t, self.cfg.max_depth, self.cfg.budget, st, order=by_fit,
+                            start=_start), st, _lf_names)
+                    _keep[_si] = (_kept, _sig)
+                    _stream = itertools.chain(_lf, _kept)
+                else:
+                    _stream = itertools.chain(_lf, (
+                            c for c in self.gamma.enumerate_closure(
+                                in_t, out_t, self.cfg.max_depth, self.cfg.budget, st,
+                                order=by_fit)
+                            if c.name not in _lf_names))
                 if _round == 2:
                     _walk_these = ((c, 2) for c in _rec2.get(_si, ()))
                 elif _WINDOW and _TWO_PASS:
@@ -7558,6 +7634,8 @@ class Agent:
                   "space_estimate": est,
                   "coverage": round(seen / est, 6) if est else 0.0}
         if _hit:
+            # chains in the swept prefix (counted, not re-walked, when the stream resumes; the
+            # reviewer 2026-10-10 04:57Z)
             detail["chains_already_priced"] = _skipped
         if unseal is not None:
             detail["unseal"] = unseal
@@ -7632,8 +7710,10 @@ class Agent:
             if _skey is not None and detail["verdict"] in ("budget_spent", "priced_out_at_depth",
                                                            "not_novel"):
                 detail["chains_priced_in_scope"] = len(priced)
+                for _si, (_k, _) in _keep.items():
+                    _k.suspend(_si, priced)
                 self._frontier_store(slot, (_skey, {k: tuple(v) for k, v in priced.items()},
-                                            guards["novelty"], detail["verdict"]))
+                                            guards["novelty"], detail["verdict"], _keep))
             if _LIBRARY_FIRST:
                 detail["library_first"] = dict(_lf_stats)
             self.led.record(self.cycle, "MINT", slot, "park", of=(slot,), **detail)

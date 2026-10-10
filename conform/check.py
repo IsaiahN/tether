@@ -211,7 +211,8 @@ def run_stage(argv: list[str], needs: Path | None = None) -> tuple[str, str]:
         return "DID-NOT-RUN", f"{needs.name} does not exist"
     try:
         p = subprocess.run(argv, cwd=ROOT, capture_output=True, text=True,
-                           timeout=STAGE_TIMEOUT)
+                           timeout=STAGE_TIMEOUT,
+                           creationflags=getattr(subprocess, "BELOW_NORMAL_PRIORITY_CLASS", 0))
     except FileNotFoundError as e:
         return "DID-NOT-RUN", f"{type(e).__name__}: {e}"
     except subprocess.TimeoutExpired:
