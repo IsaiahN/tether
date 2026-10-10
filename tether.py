@@ -465,13 +465,15 @@ _CASCADE_AGENCY = armflag.arm("TETHER_CASCADE_AGENCY")
 # 7a(8) MC3/MC4 (R3 part 2; the reviewer 2026-10-10 22:33Z). OFF; reason in conform/arms.py. A
 # reading only: the ground's record of every ending, and a plan's need read against it.
 _MC34 = armflag.arm("TETHER_MC34")
+# 7a(7) TWO READINGS (R3(a); the reviewer 2026-10-10 22:30Z). OFF; reason in conform/arms.py.
+_TWO_READINGS = armflag.arm("TETHER_TWO_READINGS")
 
 
 def _confirm_actions(r: Any) -> int | None:
     """The actions until a plan has been SEEN TO HOLD (Fig 12 :126, "Actions price finding out
     whether it holds"). A routine is confirmed only by running it, so this is its length in
     presses: the cost of finding out it holds, not a proxy for "long is bad". None where it
-    cannot be counted (a choice, a library call)."""
+    cannot be counted (a choice, a library call), and such a plan is never dominated."""
     if isinstance(r, Rt.Act):
         return 1
     if isinstance(r, Rt.Seq):
@@ -2799,6 +2801,62 @@ class Agent:
                 return
         self.led.record(self.cycle, "PERCEIVE", "*", "cascade",
                         frames=len(frames), within_step=steps)
+
+    def _two_readings(self, slot: str, ok: list, base: float) -> tuple:
+        """7a(7): a plan is chosen on BOTH readings, never on their sum (Fig 12 :125, "A
+        composition costs in two currencies, and they do not add"). Among the PAYING
+        candidates, any plan another beats or ties in bits AND in confirm
+        while beating it in one is dropped (Fig 13's spectrum orders without adding); the
+        existing order (bits ascending, as `ok` is sorted) picks on the frontier, recorded.
+        Ruin is not read here: a plan names intents, and its press is realised at execution,
+        where 7a(5) C already withholds a vetoed press."""
+        paying = [x for x in ok if pays(x[0], x[1], base)]
+        if not paying:
+            return ok[0]
+        # 7a(9) MC4's READER: a plan whose need exceeds every reserve learned by running out
+        # cannot finish, so it is dropped before dominance (an ORDER, like ruin), unless all are.
+        # With no cap ending in the record it reads "no record" and drops nothing.
+        unable = 0
+        if _MC34:
+            fits = [x for x in paying
+                    if not self._cannot_finish(_confirm_actions(x[2]))]
+            unable, paying = len(paying) - len(fits), (fits or paying)
+        read = [(x, x[0] + x[1], _confirm_actions(x[2])) for x in paying]
+
+        def beats(a, b) -> bool:
+            if a[2] is None or b[2] is None:
+                return False
+            return a[1] <= b[1] and a[2] <= b[2] and (a[1] < b[1] or a[2] < b[2])
+        frontier = [r for r in read if not any(beats(o, r) for o in read if o is not r)]
+        pick = frontier[0][0]
+        self.led.record(self.cycle, "PLAN", slot, "two_readings", paying=len(paying) + unable,
+                        unable_to_finish=unable, waiting=self._waiting_reading(),
+                        dominated=len(read) - len(frontier),
+                        frontier=[[Rt.render(x[2]), round(b, 4), c] for x, b, c in frontier],
+                        pick=Rt.render(pick[2]), refute_min=1,
+                        reads=("bits and confirm-actions held apart; the pick is the existing "
+                               "order on the frontier"))
+        return pick
+
+    def _cannot_finish(self, need: int | None) -> bool:
+        """7a(9) MC4's reader: True only when the need is known and exceeds every reserve the
+        agent has learned by running out (habitat: a record that outlives one run)."""
+        reserve = self._mc4(None)["reserve_seen"] if _MC34 else "no record"
+        return (need is not None and isinstance(reserve, list) and bool(reserve)
+                and need > max(reserve))
+
+    def _waiting_reading(self) -> dict | None:
+        """7a(9) factor 8, Agency.order's reader (R3: "an advertised action whose settled effect on
+        every controlled slot is null, while self-moved objects keep changing, IS waiting"). The
+        actions that never moved a controlled slot, beside the objects H2 read as self-moved.
+        None unless both exist (habitat: an ARC cascade, step 13). A reading, never a choice."""
+        ctrl = self.agency.contingent()
+        movers = sorted({o for (o, m) in self.agency.order if m == SELF_MOVED})
+        if not ctrl or not movers:
+            return None
+        acts = sorted({a for (s_, a) in self.agency.tried if s_ in ctrl}
+                      - {a for (s_, a), n in self.agency.moved.items() if s_ in ctrl and n})
+        return {"wait": acts, "self_moved": movers} if acts else None
 
     def _cascade_agency(self) -> None:
         """H2: inside the last action, which sub-frame each object first changed in (a changed
@@ -6572,6 +6630,8 @@ class Agent:
                             considered=len(priced), live=len(_live))
             return
         cost, left, cand = ok[0]
+        if _TWO_READINGS:
+            cost, left, cand = self._two_readings(slot, ok, base)
         _ov = None
         if not pays(cost, left, base):
             # **THE BARGAIN KEEPS ITS PRICE AND LOSES ITS MONOPOLY -- ISAIAH, 2026-09-25.**
@@ -6596,7 +6656,8 @@ class Agent:
             _ov = _acc["total"]
             self.led.record(self.cycle, "PLAN", slot, "committed_on_accumulation",
                             reason="the bargain refused and the accumulation crossed anyway",
-                            routine=Rt.render(cand), **_acc)
+                            routine=Rt.render(cand), **_acc,
+                            **({"confirm": _confirm_actions(cand)} if _TWO_READINGS else {}))
         # **WRAPPED IN AN EXPECTATION AT ADOPTION.** The source is hardcoded and says so: a
         # routine minted FOR a slot expects THAT SLOT to change. A per-step predicted VALUE
         # would need the term space; a predicted CHANGE needs only the delta already published.

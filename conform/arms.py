@@ -242,6 +242,14 @@ ARMS: dict[str, str] = {
                           "the exceptions, their credited bindings held on one settle outnumbered "
                           "by misses): recorded as 3(b) evidence that log2(H+1) is too cheap, "
                           "not ruled",
+    "TETHER_TWO_READINGS": "7a(7)+(9) plan readings (R3(a); the reviewer 2026-10-10 22:30Z, "
+                           "22:33Z, 22:47Z): ON, at plan adoption a plan reads bits and "
+                           "confirm-actions, never their sum; MC4's reader drops a plan that "
+                           "cannot finish inside a reserve learned by running out; the dominated "
+                           "are dropped and the existing order picks on the frontier; factor 8 "
+                           "(waiting) is read from Agency.order. OFF and HELD: on the test worlds "
+                           "paying plans tie in both readings, no reserve is ever learned inside "
+                           "one run, and Agency.order is empty without a cascade",
     "TETHER_MC34": "7a(8) MC3/MC4 (R3 part 2; the reviewer 2026-10-10 22:33Z): ON, every ending "
                    "is appended to the ground's record (word, kind, cleared, actions this "
                    "level and run, attempts), and a plan's adoption row reads its need against "
