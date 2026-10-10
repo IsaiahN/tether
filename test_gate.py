@@ -552,6 +552,32 @@ def test_world_inflicted_death_is_not_the_subject():
     assert gate.check(r)["verdict"] == gate.PASS
 
 
+def _resolved(target_detail, *, twice=False):
+    r = valid()
+    r.insert(1, {"mode": "specified", "seq": 30, "cycle": 0, "step": "PERCEIVE", "slot": "o0.row",
+                 "event": "bet", "detail": target_detail})
+    for i in range(2 if twice else 1):
+        r.append({"mode": "specified", "seq": 40 + i, "cycle": 0, "step": "SETTLE",
+                  "slot": "@signal", "event": "resolution",
+                  "detail": {"signal_seq": 30, "kind": "game", "how": "cap", "fed": None}})
+    return r
+
+
+def test_a_resolution_of_a_signal_passes():
+    """MC2: one resolution row pointing at a TRANSITION bet the ground answered."""
+    assert gate.check(_resolved({"channel": "transition", "mass": 0.0}))["verdict"] == gate.PASS
+
+
+def test_a_resolution_of_a_non_signal_is_refused():
+    """MC1/13.3: the @bracket row (mass 0 on a closed channel) is not a signal."""
+    _refuses(_resolved({"channel": "bracket", "mass": 0.0}), gate.RESOLVED_NON_SIGNAL)
+
+
+def test_a_signal_resolved_twice_is_refused():
+    """MC2: exactly one resolution per signal, never a third row."""
+    _refuses(_resolved({"channel": "transition", "mass": 0.0}, twice=True), gate.RESOLVED_TWICE)
+
+
 # **THE RUNNER GOES LAST, AND IT COUNTS ITSELF -- `F416`.** It used to sit mid-file and
 # collect `globals()` at the moment it ran, so THREE test functions defined BELOW it did not
 # exist yet and were never collected: 20 defined, 17 run, and the seat reported green. The

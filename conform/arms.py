@@ -242,6 +242,14 @@ ARMS: dict[str, str] = {
                           "the exceptions, their credited bindings held on one settle outnumbered "
                           "by misses): recorded as 3(b) evidence that log2(H+1) is too cheap, "
                           "not ruled",
+    "TETHER_MC_SIGNAL": "MC1 + MC2 (R3 item 4, 7a(4); the reviewer 2026-10-10 07:57Z): the signal "
+                        "is the TRANSITION bet row the ground answered (ledger.signal_sign: paid "
+                        "iff not vanished and mass 0); ON, each gets exactly one SETTLE "
+                        "'resolution' row (signal_seq, kind level|game, how, fed) when its level "
+                        "ends at retarget or the run ends with it open (end_run). fed is None: no "
+                        "row names the term an action was chosen through. OFF because it is "
+                        "record only and new: nothing reads the rows, and its level half has never "
+                        "fired on a real level end (first real reading at step 13)",
     "TETHER_WINDOW": "the history window (R3 item 2; Isaiah's H1; the reviewer 14:52Z, 15:26Z, "
                      "18:10Z, 18:15Z): every lag slot~j the trace can reach is offered AFTER "
                      "every other binding (their order and position unchanged), evidence lags "

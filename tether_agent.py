@@ -51,6 +51,9 @@ def run(w, game: str, max_actions: int, *, on_action=None, library: str | None =
         was = end
         if end == "advance":    # WIN: the game is over and won. A death is not an end.
             break
+    # MC2: the level still open when the run stops resolves at the game. A WIN already retargeted;
+    # a cap or the deadline never reaches retarget.
+    ag.end_run(end if end in ("time", "advance") else "cap")
     # THE GAME'S LIBRARY IS KEPT for the next game in this worker's sequence -- after WIN,
     # death or cap alike. No path, no save: a run with no sequence stays cold (F471).
     saved = ag.gamma.save(library) if library else None

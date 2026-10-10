@@ -584,6 +584,8 @@ def ladder(seed: int, levels: int = 5, ds: float = 0.4, steps: int = 60,
                    cross_retro=sum(1 for r in agent.retro if r.get("cross_level")))
         out.append(row)
         spec = deviate(spec, ds, rng)
+    if agent is not None:
+        agent.end_run(last_end)    # MC2: the last level's signals resolve at the game
     return out
 
 

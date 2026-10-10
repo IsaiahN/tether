@@ -93,6 +93,7 @@ def _member(name: str) -> None:
                           tether.Config(), led)
         for _ in range(CYCLES):
             ag.step()
+        ag.end_run("cap")          # MC2: the open level resolves at the game (a stamp change)
         with open(led_path, "w", encoding="utf-8") as fh:
             for r in led.rows():
                 fh.write(json.dumps(r, default=str, sort_keys=True) + "\n")

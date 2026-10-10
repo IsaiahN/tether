@@ -36,6 +36,8 @@ REFUSED_UNBOUND = "refused-unbound"
 ABANDONED_ON_ANOTHERS_CLAIM = "abandoned-on-anothers-claim"
 JUDGED_ON_ANOTHER_ACT = "judged-on-another-act"
 ALIASED = "aliased"
+RESOLVED_NON_SIGNAL = "resolved-non-signal"
+RESOLVED_TWICE = "resolved-twice"
 
 # KEPT IN STEP WITH `ledger.STEPS`, WHICH IS THE DUPLICATION AND NOT A CHOICE MADE HERE.
 # The gate is meant to be readable without importing the thing it checks, so the constant is
@@ -64,7 +66,7 @@ def _v(check: str, token: str, seq: int | None = None, note: str = "") -> dict:
 def check(rows: list[dict]) -> dict:
     """Returns {"verdict": pass|refuse, ...}. The FIRST refusal is the named one."""
     for fn in (_mode, _steps, _inputs, _routing, _guards, _settlement, _filters, _cuts,
-               _unreached, _experiment, _refusals, _abandonments, _aliasing):
+               _unreached, _experiment, _refusals, _abandonments, _aliasing, _resolutions):
         out = fn(rows)
         if out is not None:
             return out
@@ -304,6 +306,28 @@ def _aliasing(rows: list[dict]) -> dict | None:
         if clash:
             return _v("aliasing", ALIASED, r.get("seq"), f"{slot}: {clash[0]} and {a} under {n}")
         prior.add(a)
+    return None
+
+
+def _resolutions(rows: list[dict]) -> dict | None:
+    """14. A resolution resolves a signal, once (MC2; ARC_AGENT 13.3; the reviewer 2026-10-10
+    07:57Z). Its pointer must land on a TRANSITION bet the ground answered -- never a sensor
+    reading, the @objective score or the @bracket row -- and no signal is resolved twice. Stated
+    here without importing `ledger.signal_sign`, as STEPS is: the gate reads without the agent."""
+    by_seq = {r.get("seq"): r for r in rows}
+    done: set = set()
+    for r in rows:
+        if r.get("event") != "resolution":
+            continue
+        k = r.get("detail", {}).get("signal_seq")
+        t = by_seq.get(k) or {}
+        td = t.get("detail", {})
+        if not (t.get("step") == "PERCEIVE" and t.get("event") == "bet"
+                and td.get("channel") == "transition" and not td.get("suspended")):
+            return _v("resolutions", RESOLVED_NON_SIGNAL, r.get("seq"), str(k))
+        if k in done:
+            return _v("resolutions", RESOLVED_TWICE, r.get("seq"), str(k))
+        done.add(k)
     return None
 
 

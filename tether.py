@@ -427,6 +427,10 @@ _PROMOTE_AFTER_SETTLE = True
 # conform/arms.py. A minted term's cost is paid once: reused where it RE-GROUNDS (left < base on the
 # slot's own record) it is priced on its leftover, and the library fit takes the lowest whole price.
 _CARRY_PRICE = armflag.arm("TETHER_CARRY_PRICE")
+# MC1 + MC2 (7a(4); R3; the reviewer 2026-10-10 07:57Z). OFF; reason in conform/arms.py. The signal
+# is the TRANSITION bet row itself (ledger.signal_sign); ON, each gets exactly one resolution row
+# when its level ends (retarget) or the run ends with the level open (end_run). Record only.
+_MC_SIGNAL = armflag.arm("TETHER_MC_SIGNAL")
 # THE REFERENCE COST (the reviewer 21:55Z): a reused term's DEFINITION is paid once, but NAMING it
 # is paid per use, log2(H+1) over the H held terms (the corpus's +log2(k+1), as `_guard_bits`).
 # False removes it, for must-fail (r) only.
@@ -1302,6 +1306,7 @@ class Agent:
         # `settled` IS A PROPERTY NOW -- see below. There is no set here to drift.
         self._settled_at_level: set[str] = set()   # the segment's starting line
         self._settled_lvl: set[str] = set()        # what settled in THIS level (P2's hold)
+        self._signals: list[tuple[int, str]] = []    # MC2: this level's open signals (seq, slot)
         # CARRY (item 3): the ledger length at the level's start (CARRIED = entered before it), and
         # each credited binding + its fate (3(b))
         self._seq_at_level = 0
@@ -1542,6 +1547,26 @@ class Agent:
         self._prev_pred: dict[str, int] | None = None
         self.refusals: list[str] = []
 
+    def end_run(self, how: str = "cap") -> None:
+        """The run ends with this level still open: its signals resolve at the GAME (MC2). The loops
+        call it after their last step; `retarget` never sees a cap or a timeout."""
+        self._resolve_signals("game", how)
+
+    def _resolve_signals(self, kind: str, how: str) -> None:
+        """MC2: exactly one resolution row per open signal, pointing at its bet row, never editing
+        it (Fig 6). `kind` is an order (bet < level < game, Fig 13), never a weight; nothing is
+        summed (Fig 1). `fed` would point at the row naming the bet's term as the reason an action
+        was chosen; no row in this code records that, so it is None and says so (Fig 10)."""
+        for seq, slot in self._signals:
+            # cycle = THE CYCLE, the level in its own field: a level number in the cycle field is
+            # the @loop defect (the reviewer 08:11Z), and a new row kind must not inherit it.
+            self.led.record(self.cycle, "SETTLE", "@signal", "resolution", signal_seq=seq,
+                            signal_slot=slot, level=self.level, kind=kind, how=how, fed=None,
+                            reads=("no row in this code names the term an action was chosen "
+                                   "through: choose() picks the action before the utterance "
+                                   "names the bound term"))
+        self._signals = []
+
     def retarget(self, env: Any, level: int, how: str = ADVANCE) -> None:
         """Move to the next level. Gamma and standing carry; the trace and the bindings
         do not, because slot names mean nothing across a boundary.
@@ -1609,6 +1634,7 @@ class Agent:
                             note="the segment is credited, not the last action",
                             decay_half="boundary demotion, its own item -- credit without "
                                        "decay is the incumbency pathology (§21.4)")
+        self._resolve_signals("level", how)
         self._settled_at_level = set(self.settled)
         self._settled_lvl = set()
         self._seq_at_level = len(self.led)
@@ -3103,7 +3129,7 @@ class Agent:
             # difference between a bet on the BELIEF and one on the observation -- the
             # second has no model that could be wrong. It was always `before[s]`; it was
             # just never on the row, so nothing could tell the two apart.
-            self.led.record(self.cycle, "PERCEIVE", s, "bet", channel=TRANSITION,
+            _bet = self.led.record(self.cycle, "PERCEIVE", s, "bet", channel=TRANSITION,
                             of=(s,),
                             from_value=before[s], predicted=raw.get(s), actual=actual,
                             predicted_code=pred[s], alphabet=self.alphabet[s],
@@ -3119,6 +3145,8 @@ class Agent:
                             # `None` where the action was handed in rather than asked for.
                             meant=(intent.says() if intent is not None else None),
                             )
+            if _MC_SIGNAL:
+                self._signals.append((_bet.seq, s))
             self._standing(s)
 
         # the reward channel: on the figures, and reported here. Its remedy is the

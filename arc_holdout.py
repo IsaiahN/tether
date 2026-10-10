@@ -292,6 +292,7 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
         if stop_on_end and end:
             break
 
+    ag.end_run("cap")          # MC2: the open level resolves at the game
     rows = led.rows()
     g = ag.gamma
     saved = g.save(library) if library else None

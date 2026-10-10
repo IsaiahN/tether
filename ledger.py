@@ -129,3 +129,16 @@ class Ledger:
 
     def by_event(self, event: str) -> list[Entry]:
         return [e for e in self._entries if e.event == event]
+
+
+def signal_sign(row: dict[str, Any]) -> str | None:
+    """MC1 (7a(4); the reviewer 2026-10-10 07:57Z): the sign of the ground's answer to a bet, read
+    from the bet row and nothing else (Fig 1). None if the row is not a signal -- only a
+    TRANSITION bet the ground answered is one; the @objective and @bracket rows are not. Paid iff
+    not vanished and mass == 0; a vanished slot is failed whatever its mass (missing is charged,
+    never skipped)."""
+    d = row.get("detail") or {}
+    if (row.get("step") != "PERCEIVE" or row.get("event") != "bet"
+            or d.get("channel") != "transition" or d.get("suspended")):
+        return None
+    return "paid" if not d.get("vanished") and d.get("mass") == 0 else "failed"
