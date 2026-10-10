@@ -632,6 +632,13 @@ BOOKS: tuple[str, ...] = (
     "bargain_does_not_pay",             # `pays` -- the only one of the two that is a judgement
     "bargain_paid",                    # reached the contest
     "mint_no_residual",                 # refused by the residual precondition
+    # CARRY CREDIT (item 3, TETHER_CARRY_PRICE) and the seal repair's refusal (item 1).
+    "carry_pull_credited",              # a library pull priced on log2(H+1) + left
+    "carry_pull_uncredited",            # a library pull priced on cost + left
+    "carry_order_differs",              # the lowest whole price was not the first payer
+    "carry_sweep_credited",             # a sweep close priced on log2(H+1) + left
+    "carry_stale_close",                # a pre-boundary record closed by the sweep (MF-D3)
+    "unseal_leaves_more",               # a challenger refused for leaving more than the held rule
     # THE FIFTH TURN. Isaiah's crane game: the toy slipped and the SITUATION IMPROVED, and a
     # system recording only win/lose throws that entire turn away. Three buckets, never summed.
     "gap_improved",                     # the goal gap SHRANK on a slot since last cycle
@@ -3467,8 +3474,10 @@ class Agent:
         if _paying:
             price, _o, n, cand, cred, left_, cost_ = min(_paying, key=lambda x: (x[0], x[1]))
             book = self.gamma.book
-            k = "carry_pull_credited" if cred else "carry_pull_uncredited"
-            book[k] = book.get(k, 0) + 1
+            if cred:
+                book["carry_pull_credited"] = book.get("carry_pull_credited", 0) + 1
+            else:
+                book["carry_pull_uncredited"] = book.get("carry_pull_uncredited", 0) + 1
             if _today != (n, cand.name):
                 book["carry_order_differs"] = book.get("carry_order_differs", 0) + 1
             carry = {"price": round(price, 4), "credited": cred, "left": round(left_, 4),
