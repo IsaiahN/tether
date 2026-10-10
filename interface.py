@@ -233,6 +233,9 @@ class Realisation:
     # silent vocabulary extension the 2026-09-28 prime check exists to catch. So the
     # distinction lives in the RECORD of what was done, never in what the agent said.
     mode: str = ""                # "undirected" on the floor draw; empty on every other path
+    # 5b: the library term whose prediction supplied the press, when one did. No path sets it
+    # today (the press comes from the observed table), so every realisation says None.
+    term: str | None = None
 
 
 def fingerprint(env: Any, state: dict) -> tuple[str, str]:

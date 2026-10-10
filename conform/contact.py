@@ -20,7 +20,7 @@ sys.dont_write_bytecode = True
 def read(path: Path) -> dict:
     rows = [json.loads(x) for x in path.read_text(encoding="utf-8").splitlines() if x.strip()]
     by_seq = {r["seq"]: r for r in rows if "seq" in r}
-    steps, fed, roles, missing = Counter(), Counter(), Counter(), 0
+    steps, fed, roles, route, missing = Counter(), Counter(), Counter(), Counter(), 0
     for r in rows:
         d = r.get("detail") or {}
         if r.get("event") != "repeat" or not d.get("by") or d["by"] == "given":
@@ -34,6 +34,8 @@ def read(path: Path) -> dict:
             fed[d["by"]] += 1
         for e in g["fed"]:
             roles[(d["by"], e["role"])] += 1
+            if e["role"] == "route":
+                route[e.get("source")] += 1
     # MC2: each [REPEAT seq, role] pair, read back to the fed entry naming the bet's term there.
     # The split comes from the cited REPEAT row's slot; the pointer row itself is unchanged.
     mc2 = Counter()
@@ -51,6 +53,7 @@ def read(path: Path) -> dict:
     return {"steps": dict(steps), "fed": dict(fed),
             "roles": {f"{b}/{r}": n for (b, r), n in sorted(roles.items())},
             "no_fed_field": missing,
+            "route": {"from-table": route.get("table", 0), "from-term": route.get("term", 0)},
             "mc2_resolutions": mc2.pop("resolutions", 0),
             "mc2": {f"{s}/{r}": n for (s, r), n in sorted(mc2.items())}}
 
@@ -63,6 +66,7 @@ if __name__ == "__main__":
         with_fed = sum(out["fed"].values())
         print(f"{p.stem}: {with_fed} of {total} acted steps had a term feed the choice; "
               f"by exit {out['fed']} of {out['steps']}; by exit/role {out['roles']}; "
+              f"route {out['route']}; "
               f"MC2 {out['mc2_resolutions']} resolutions, matches {out['mc2']}"
               + (f"; {out['no_fed_field']} steps without the field (arm OFF?)"
                  if out["no_fed_field"] else ""))
