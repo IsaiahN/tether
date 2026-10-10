@@ -250,6 +250,13 @@ ARMS: dict[str, str] = {
                            "(waiting) is read from Agency.order. OFF and HELD: on the test worlds "
                            "paying plans tie in both readings, no reserve is ever learned inside "
                            "one run, and Agency.order is empty without a cascade",
+    "TETHER_M6_INVENT": "7c M6 invent (ISAIAH_RULINGS 'Mint, invent, import'; the reviewer "
+                        "2026-10-10 23:14Z): ON, at a budget_spent or priced_out_at_depth park "
+                        "where the change recurred and nothing lit, the agent names a condition "
+                        "over the readings that held where the slot changed (f when Q, identity "
+                        "otherwise), prices it at its whole length by the one bargain, and holds "
+                        "it in a private in-memory library copy only if it pays. OFF until its "
+                        "first panel reading at 7-and-a-half; carry is M7 and gated",
     "TETHER_MC34": "7a(8) MC3/MC4 (R3 part 2; the reviewer 2026-10-10 22:33Z): ON, every ending "
                    "is appended to the ground's record (word, kind, cleared, actions this "
                    "level and run, attempts), and a plan's adoption row reads its need against "

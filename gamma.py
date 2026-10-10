@@ -181,6 +181,9 @@ ACTED_SELF = "ACTED_SELF"
 # wired slot, could never carry a pointer for the guard to test. The operand slot was doubly
 # booked: the term's computational input AND the only place a guard could name a cause.
 ACTED_ON = "ACTED_ON"
+# 7c M6 (the reviewer 2026-10-10 23:14Z): a guard whose truth is the agent's own INVENTED
+# condition, `guard_ref` naming it. Resolved per state by the caller into `Ctx.cond_holds`.
+INVENTED_GUARD = "INVENTED"
 
 
 @dataclass(frozen=True)
@@ -206,6 +209,8 @@ class Ctx:
     # realised at, read against the BEFORE state -- so it says what the press LANDED ON, not
     # what the press DID. A term guarded on it still cannot peek at the outcome.
     acted_self: bool = False
+    # 7c M6: the invented condition named by the term's `guard_ref`, read on the BEFORE state.
+    cond_holds: bool = False
     operands: tuple = ()          # other slots' values, in the term's binding order
     # SENSOR 8's SECOND OPERAND, resolved PER SLOT by the caller. `_extract` wrapped the
     # one-place sensors eight times and nothing wrapped a two-place one: an atom receives one
@@ -503,6 +508,9 @@ class Term:
         # WHICH SLOT is being explained, so the caller resolves it and this reads the answer.
         if self.guard == ACTED_SELF:
             if not ctx.acted_self:
+                return value
+        elif self.guard == INVENTED_GUARD:
+            if not ctx.cond_holds:
                 return value
         elif self.guard is not None and ctx.intent != self.guard:
             return value
@@ -1122,6 +1130,8 @@ class Gamma:
         for name, t in self.library.items():
             if t.origin == PRIOR:
                 continue          # an atom was not minted; there is nothing to carry
+            if t.guard == INVENTED_GUARD:
+                continue          # 7c M6: an invention does not cross; carry is M7, gated
             st = self.stamps.get(name)
             # **THE GUARD CROSSES AND THE OPERAND'S BINDING DOES NOT -- the reviewer,
             # 2026-10-03.** A guard is a CONDITION and game-agnostic: `?ACTED_SELF` is a

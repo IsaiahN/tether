@@ -36,6 +36,7 @@ from gamma import (
     ACTED_ON,
     ACTED_SELF,
     IMPORTED,
+    INVENTED_GUARD,
     MINTED,
     REJECTION_HALFLIFE,
     Ctx,
@@ -467,6 +468,9 @@ _CASCADE_AGENCY = armflag.arm("TETHER_CASCADE_AGENCY")
 _MC34 = armflag.arm("TETHER_MC34")
 # 7a(7) TWO READINGS (R3(a); the reviewer 2026-10-10 22:30Z). OFF; reason in conform/arms.py.
 _TWO_READINGS = armflag.arm("TETHER_TWO_READINGS")
+# 7c M6 INVENT (ISAIAH_RULINGS "Mint, invent, import"; the reviewer 2026-10-10 23:14Z). OFF; reason
+# in conform/arms.py. Not the retired TETHER_INVENT: it names a COMPOSITION, priced by the bargain.
+_M6_INVENT = armflag.arm("TETHER_M6_INVENT")
 
 
 def _confirm_actions(r: Any) -> int | None:
@@ -519,6 +523,18 @@ def _library():
         sys.path.insert(0, root)
     import library_runtime
     return library_runtime.Library(root).load()
+
+
+def _replace_lib(lib: Any) -> Any:
+    """M6: a Library sharing the read-only seed and readings, with its own runtime and indexes."""
+    import copy
+    p = copy.copy(lib)
+    p.runtime = dict(lib.runtime)
+    dd = collections.defaultdict
+    p.by_reading = dd(list, {k: list(v) for k, v in lib.by_reading.items()})
+    p.by_affects = dd(list, {k: list(v) for k, v in lib.by_affects.items()})
+    p.ingredient_of = dd(list, {k: list(v) for k, v in lib.ingredient_of.items()})
+    return p
 # THE out_type WIDENING -- Isaiah's 3A, reviewer-pre-registered 2026-09-23. `mint` asks for
 # `("val","val")` and `(slot_type, OBJ)` and NOTHING ELSE, and the composition census says
 # that IS the ceiling: 4 distinct compositions on every board, which are exactly those two
@@ -1198,6 +1214,9 @@ class Agent:
         self.iface.chooser = self._choose_known      # F480: the agent prices the known
         self._attempt_actions = 0     # actions since this level, or its last restart, began
         self._mc3: list = []          # MC3: every ending, as the ground recorded it (append-only)
+        self._invented: dict = {}     # M6: invented key -> its compiled condition (this run only)
+        self._inv_lib = None          # M6: this agent's private library copy, made on first use
+        self._inv_seen: dict = {}     # M6: slot -> history length last tried
         self._run_actions = 0         # MC3: actions this run
         self._level_attempts = 1      # MC3: attempts at this level (1 + restarts)
         # WHICH MEMBERS ARE CURRENTLY DISCOUNTED, PER SCOPE. Held so the narration fires on the
@@ -2167,6 +2186,157 @@ class Agent:
                     if o_["operand"] is not None and o_["operand"] not in got:
                         got.append(o_["operand"])
         return out
+
+    # ---------------------------------------------------------------- 7c M6, INVENT
+    def _inv_holds(self, key: str | None, state: dict) -> bool:
+        c = self._invented.get(key) if key else None
+        return c is not None and compile_term.run(c, state) is True
+
+    def _inv_cost(self, f: Term, conds: list, units: tuple = ()) -> float:
+        """M6-b: the WHOLE length, the then-term's atoms plus every condition's, priced as the mint
+        prices a term of that length. Nothing is discounted for lying past the searched depth."""
+        k = self.gamma.length(f, units) + sum(self.gamma.length(c.term) for c in conds)
+        return term_bits(k, self.gamma.alphabet)
+
+    def _inv_left(self, f: Term, conds: list, slot: str, hist: list) -> float:
+        """What `f` when any condition holds, identity otherwise, leaves unexplained (in bits)."""
+        idn = self.gamma.library[IDN]
+        total = 0.0
+        for row in hist:
+            on = any(compile_term.run(c, row[0]) is True for c in conds)
+            total += self._left(f if on else idn, slot, [row])
+        return total
+
+    def _inv_library(self) -> Any:
+        """A private copy: an invention lights for THIS agent only, never another game in the
+        process (Fig 4; carry is M7). library/ is never written."""
+        if self._inv_lib is None:
+            lib = _library()
+            if lib is None:
+                return None
+            self._inv_lib = _replace_lib(lib)
+        return self._inv_lib
+
+    def _inv_conditions(self, state: dict) -> list[str]:
+        """The library's own condition grammar (`TEMPLATES`, by reading type) filled over the
+        objects and readings in this state: the shapes the library writes, never a list of ours."""
+        if _library() is None:
+            return []
+        templates = sys.modules["library_runtime"].TEMPLATES
+        rd = compile_term.readings()
+        keys = sorted(k for k, v in state.items()
+                      if isinstance(v, int) and "." in k and "~" not in k and "@" not in k)
+        objs = sorted({k.split(".", 1)[0] for k in keys})
+        out = []
+        for k in keys:
+            o, r = k.split(".", 1)
+            for _label, t in templates.get((rd.get(r) or {}).get("type"), ()):
+                for x in ([x for x in objs if x != o] if "{x}" in t else [None]):
+                    out.append(t.format(o=o, x=x, r=r))
+        return out
+
+    def _invent(self, slot: str, hist: list, base: float, base_held: float, verdict: str) -> None:
+        """7c M6 (ISAIAH_RULINGS "Mint, invent, import"; the reviewer 2026-10-10 23:14Z). At a park
+        where the search could not close a change that RECURRED and nothing the library lit
+        expresses it, the agent names a condition over the readings that held where the slot
+        changed: `f` when Q holds, identity otherwise. Priced by the ONE bargain at its whole
+        length; held only if it pays. M6-c: an under_floor park is never a trigger."""
+        if verdict not in ("budget_spent", "priced_out_at_depth"):
+            return
+        moved = [i for i in range(len(hist)) if hist[i][2] != hist[i][0].get(slot)]
+        if len(moved) < 2 or self._lib_offers.get(slot) or self._inv_seen.get(slot) == len(hist):
+            return
+        self._inv_seen[slot] = len(hist)
+        atoms = {a.name: a for a in self.gamma.atoms}
+        refused: Counter = Counter()
+        conds, never_false = [], 0
+        for text in self._inv_conditions(hist[-1][0]):
+            c = self._compile_cache.get(text)
+            if c is None:
+                c = self._compile_cache[text] = compile_term.compile_candidate(
+                    {"condition": text}, atoms)
+            if isinstance(c, compile_term.Refusal):
+                refused[c.reason] += 1
+                continue
+            truth = [compile_term.run(c, r[0]) is True for r in hist]
+            if not all(truth[i] for i in moved):
+                continue
+            if all(truth):
+                never_false += 1          # holds everywhere: the unguarded term, searched
+                continue
+            conds.append((text, c, truth))
+        units = self._units_for(slot)
+        idn = self.gamma.library[IDN]
+        idb = [self._left(idn, slot, [r]) for r in hist]
+        robs = self._residual_obs(slot, self.gamma.library[self.bound.get(slot, IDN)], hist)
+        fs = []
+        if conds:
+            for ch in self.gamma.enumerate_closure("val", "val", 1, self.cfg.budget, {}):
+                for b in (self._bindings(slot, robs) if ch.reads_operand else [None]):
+                    f = Term(ch.atoms, operand=b)
+                    fb = [self._left(f, slot, [r]) for r in hist]
+                    if any(fb[i] == 0.0 for i in moved):
+                        fs.append((f, fb))
+        cands = []
+        for text, c, truth in conds:
+            for f, fb in fs:
+                left = sum(fb[i] if truth[i] else idb[i] for i in range(len(hist)))
+                cost = self._inv_cost(f, [c], units)
+                cands.append((cost + left, cost, left, text, c, f))
+        cands.sort(key=lambda x: (x[0], x[1], x[3], x[5].name))
+        detail = {"verdict": verdict, "moved_rows": len(moved), "rows": len(hist),
+                  "base_bits": round(base, 3), "conditions_held": len(conds),
+                  "conditions_never_false": never_false, "refused": dict(refused),
+                  "then_terms": len(fs), "priced": len(cands),
+                  "cheapest": [{"if": x[3], "then": x[5].name, "cost": round(x[1], 3),
+                                "left": round(x[2], 3)} for x in cands[:5]]}
+        best = cands[0] if cands and pays(cands[0][1], cands[0][2], base) else None
+        if best is None:
+            detail["pick"] = "none paid"
+            self.led.record(self.cycle, "MINT", slot, "invent", of=(slot,), **detail)
+            return
+        _t, cost, _l, text, c, f = best
+        self._hold_invention(slot, text, c, f, cost, base_held, hist, detail)
+
+    def _hold_invention(self, slot: str, text: str, c: Any, f: Term, cost: float,
+                        base_held: float, hist: list, detail: dict) -> Term | None:
+        """The invention named in this agent's library (in memory; save_runtime is never called)
+        and bound to the slot through the accept path, a candidate with no head start. A
+        condition naming no reading is refused at creation and recorded."""
+        lib = self._inv_library()
+        name = f"{self.gamma.game}_inv_{len(self._invented) + 1}"
+        try:
+            key = lib.invent_atom(name, text, game=self.gamma.game, cycle=self.cycle,
+                                  receipt={"slot": slot, "verdict": detail.get("verdict"),
+                                           "moved_rows": detail.get("moved_rows"),
+                                           "nothing_lit": True})
+        except ValueError as e:
+            detail.update(pick="refused at creation", why=str(e), condition=text)
+            self.led.record(self.cycle, "MINT", slot, "invent", of=(slot,), **detail)
+            return None
+        self._invented[key] = c
+        term = Term(f.atoms, operand=f.operand, guard=INVENTED_GUARD, guard_ref=key)
+        left = self._left(term, slot, hist)
+        detail.update(pick=term.name, condition=text, key=key, term_bits=round(cost, 3),
+                      left_bits=round(left, 3), carry="M7, off")
+        detail["explained"], detail["overclaimed"] = self.explain(slot, base_held - left)
+        self.gamma.accept(term, seq=len(self.led), residual=f"{slot}@{self.cycle}")
+        self.bound[slot] = term.name
+        self.rank.note(term.name, self.cycle)
+        self.candidates[term.name] = self.cycle
+        self._cand_level[term.name] = self.level
+        if left == 0.0:
+            self.owed_import.discard(slot)
+            self.abstained.pop(slot, None)
+        else:
+            self.owed_import.add(slot)
+        self.led.record(self.cycle, "MINT", slot, "invent", of=(slot,), **detail)
+        self.led.record(self.cycle, "ACCEPT", slot, "accept", term=term.name,
+                        origin=term.origin, seq=len(self.led), status="candidate",
+                        cited="no: candidate may be held, not cited")
+        self.chain.note_mint()
+        self.sweep(term, slot)
+        return term
 
     def _lib_offer(self, c: Any, prov: dict, v: dict | None = None) -> dict:
         """One compiled term's verdict as an offer: offered, or withheld with why."""
@@ -3977,6 +4147,7 @@ class Agent:
                    # referent. `_same_object` reduces both sides to their owner, so no new
                    # comparison is needed and no name crosses into the chain.
                    acted_self=_same_object(landed, guard_ref or slot),
+                   cond_holds=bool(self._invented) and self._inv_holds(guard_ref, state),
                    group=self._group(slot, state), obj=self._record(slot, state),
                    shapes=self._shapes_now() if shapes else None)
         if key is not None:
@@ -8133,6 +8304,8 @@ class Agent:
             if _LIBRARY_FIRST:
                 detail["library_first"] = dict(_lf_stats)
             self.led.record(self.cycle, "MINT", slot, "park", of=(slot,), **detail)
+            if _M6_INVENT:
+                self._invent(slot, hist, base, base_held, detail["verdict"])
             return
 
         self._frontiers.pop(slot, None)
