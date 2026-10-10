@@ -107,7 +107,10 @@ Tests per item: at most 5 minutes (own fixture, one short OFF identity check, fa
 | 7a(9) remaining factors 9, 16, 19, 6, 10, 11 | NO INPUT ON THE TEST WORLDS (the reviewer 23:06Z): habitat ARC (H2 modes), the vocabulary (10), cost-differing plans (11); nothing built. CARRIED: the two_readings row's refute_min is a constant, so it should read "assumed 1, not computed" next time in `_two_readings` |
 | 7a(10) MC6 + D1-D3 | NO OCCASIONS ON THE PANEL (the reviewer 23:06Z): gridworld has NO level boundary (completing the objective neither ends nor advances anything), so there is no mastery step and no level outcome to settle on; nothing built |
 | LEVEL 0, seat reading (18:07 CDT) | minimum actions to complete the objective: s0 2, s1 1, s2 2, arc_s0 2, arc_s1 1, arc_s2 2 (fake: scripted, not comparable); the agent completes it on 5 of 6 (s0 c11, s1 c2, s2 c18, arc_s1 c2, arc_s2 c59) and NEVER on arc_s0. Candidate: perception or vocabulary on the ARC atom set. Diagnosis on L1 after the 7b/7c notes |
-| 7b M5 adoption records; 7c M6 invent + M7 carry (CARRY gated on 3(b) + the one-settle bar) | NEXT: precondition notes |
+| 7b M5 adoption records | NO OCCASION (the reviewer 23:14Z): no library-offered term wins a mint on the test worlds; the library reaches only what the search reaches (64/64 paying mints have library_route none). Reopen when the vocabulary wall moves; any test then writes a temporary copy of the library, never library/runtime.json |
+| 7c M6 invent | FRAMING ACCEPTED 23:14Z: trigger = priced_out_at_depth or budget_spent park, the change recurred, nothing lit expresses it; no head start; must-fails M6-a (restating does not pay), M6-b (no depth discount), M6-c (under_floor never triggers), plus the spec's two; NEXT: note, then build |
+| 7c M7 carry | GATED on 3(b) + the one-settle bar |
+| snaps.ladder as the level habitat (18:15 CDT) | seeds 5 (2 advances, 3 deaths) and 7 (4 advances, 1 death) of 0-11 end levels for real; MC3 records them as given; item 10 awaits the reviewer's ruling on these counts |
 | 7b, 7c | queued |
 | 7½ switch-on and orphan audit: one full OFF and one full ON panel | queued |
 
