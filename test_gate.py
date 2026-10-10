@@ -66,6 +66,30 @@ def test_missing_input():
     _refuses(r, gate.MISSING_INPUT)
 
 
+def _reused(term, cycle=0, slot="s", seq=2):
+    return {"mode": "specified", "seq": seq, "cycle": cycle, "step": "ROUTE", "slot": slot,
+            "event": "reuse_install", "detail": {"term": term}}
+
+
+def test_a_reuse_install_is_the_terms_acceptance():
+    """P1: a reused term enters Gamma by a ROUTE reuse_install row, and may then settle."""
+    r = [x for x in valid() if x["event"] not in ("mint", "accept")]
+    r.insert(2, _reused("a . b"))
+    assert gate.check(r)["verdict"] == gate.PASS, gate.check(r)
+
+
+def test_a_reuse_install_of_another_term_is_not_an_acceptance():
+    r = [x for x in valid() if x["event"] not in ("mint", "accept")]
+    r.insert(2, _reused("c . d"))
+    _refuses(r, gate.MISSING_INPUT)
+
+
+def test_a_reuse_install_after_the_settle_is_not_an_acceptance():
+    r = [x for x in valid() if x["event"] not in ("mint", "accept")]
+    r.append(_reused("a . b", cycle=1, slot="t", seq=5))
+    _refuses(r, gate.MISSING_INPUT)
+
+
 def test_unrouted():
     r = [x for x in valid() if x["event"] != "route"]
     _refuses(r, gate.UNROUTED)

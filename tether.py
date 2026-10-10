@@ -415,9 +415,13 @@ _WINDOW = armflag.arm("TETHER_WINDOW")
 # its non-lag bindings and its EVIDENCE lags, then, only with budget left, the same recorded chains
 # with their no-evidence lags. False restores item 2's one-pass order, for the tie guard only.
 _TWO_PASS = True
-# A reuse-installed term is a candidate the ground can grade (the reviewer, pending). False restores
-# the old path, for the must-fail only.
+# A reuse-installed term is a candidate the ground can grade (P1; the reviewer 23:01Z, 00:37Z).
+# False restores the old path, for the must-fail only.
 _REUSE_CANDIDATE = True
+# A sweep's promotion to primitive waits for the term's first settle in this level (P2; the reviewer
+# 23:01Z, 00:37Z: nothing is trusted before it settles). False restores the old path, for the
+# must-fail only.
+_PROMOTE_AFTER_SETTLE = True
 
 
 def _recording(chains, into: list):
@@ -1281,6 +1285,7 @@ class Agent:
         self._cand_level: dict[str, int] = {}    # term -> the level its candidacy is live on
         # `settled` IS A PROPERTY NOW -- see below. There is no set here to drift.
         self._settled_at_level: set[str] = set()   # the segment's starting line
+        self._settled_lvl: set[str] = set()        # what settled in THIS level (P2's hold)
         self.demoted: list[str] = []
         self.chain = I.Chain()
         self.rank = I.Rank()
@@ -1585,6 +1590,7 @@ class Agent:
                             decay_half="boundary demotion, its own item -- credit without "
                                        "decay is the incumbency pathology (§21.4)")
         self._settled_at_level = set(self.settled)
+        self._settled_lvl = set()
         self._touch_cache = None      # a new world invalidates owners and contact alike
         self._peer_cache = None
         self._decomp_cache = None
@@ -2911,15 +2917,21 @@ class Agent:
 
     def _promote(self) -> None:
         """Step 6: what step 1 stood on, and what the sweep earned."""
+        wait = []
         for name, shadow, echo in self._promotions:
             if self.gamma.is_primitive(name):
+                continue
+            # A PROMOTION IS TRUST, SO THE GROUND SPEAKS FIRST: a sweep's close waits until the term
+            # has settled in this level; until then it is held, not dropped.
+            if _PROMOTE_AFTER_SETTLE and name not in self._settled_lvl:
+                wait.append((name, shadow, echo))
                 continue
             self.gamma.promote(name, shadow, echo)
             self.led.record(self.cycle, "PROMOTE", echo["slot"], "promote", term=name,
                             primitive=True, shadow=shadow, echo=echo,
                             verdict="closed a residual recorded before it existed, "
                                     "on a slot it was not minted for")
-        self._promotions.clear()
+        self._promotions[:] = wait
 
         for slot, name, settled in self._stood:
             if settled:
@@ -8050,6 +8062,7 @@ class Agent:
             # cycle later than the one it was minted on IS the answer. Both facts were
             # here; neither was on the row, so a frame that never asked and one the
             # ground paid arrived looking the same.
+            self._settled_lvl.add(name)
             self.led.record(self.cycle, "SETTLE", slot, "settle", term=name,
                             status="accepted",
                             asked=[name, slot], ground_said=True,
