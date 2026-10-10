@@ -90,6 +90,15 @@ def test_a_reuse_install_after_the_settle_is_not_an_acceptance():
     _refuses(r, gate.MISSING_INPUT)
 
 
+def test_a_candidates_refuted_bet_is_a_row_the_gate_accepts():
+    """P3: a candidate the ground refuted before it ever settled is recorded, as a SETTLE row."""
+    r = valid()
+    r[4] = {"mode": "specified", "seq": 4, "cycle": 1, "step": "SETTLE", "slot": "s",
+            "event": "miss_while_candidate",
+            "detail": {"term": "a . b", "status": "candidate", "ground_said": False}}
+    assert gate.check(r)["verdict"] == gate.PASS, gate.check(r)
+
+
 def test_unrouted():
     r = [x for x in valid() if x["event"] != "route"]
     _refuses(r, gate.UNROUTED)

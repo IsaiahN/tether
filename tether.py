@@ -8013,6 +8013,14 @@ class Agent:
                                     status="settled", asked=[name, slot], ground_said=False,
                                     verdict="mispredicted; standing held under the ceiling",
                                     rejections=round(self.gamma.rejection_of(name), 3))
+                elif name in self.candidates:
+                    # A CANDIDATE REFUSED BY THE GROUND (P3; the reviewer 00:15Z): the refutation
+                    # reached standing above and was written nowhere, so a term wrong on every
+                    # bet read as never graded. Recording only; nothing here binds or unbinds.
+                    self.led.record(self.cycle, "SETTLE", slot, "miss_while_candidate", term=name,
+                                    status="candidate", asked=[name, slot], ground_said=False,
+                                    verdict="mispredicted before it settled",
+                                    rejections=round(self.gamma.rejection_of(name), 3))
                 continue
             born = self.candidates.get(name)
             # HERE, decided: without the slot this skips settling a candidate on slot B
