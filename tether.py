@@ -6098,7 +6098,7 @@ class Agent:
             return
         self._split_why = None
         self._goal_want = None
-        act = self._goal_split(before)
+        act = self._goal_split(before, commit=False)
         if act is None:
             # **CITE THE EXIT, DO NOT NAME ONE -- 2026-09-25.** This said *coverage incomplete,
             # or every action ties* for all five of `_goal_split`'s exits, and on gridworld
@@ -6495,7 +6495,7 @@ class Agent:
             return None
         return emit if emit in self.actions else None
 
-    def _goal_split(self, before: dict[str, int]) -> str | None:
+    def _goal_split(self, before: dict[str, int], commit: bool = True) -> str | None:
         """M2 ITEM 2: pick an action because the agent's OWN model says it advances the
         agent's OWN objective. **The first branch in `choose` that reads what the agent WANTS.**
 
@@ -6595,6 +6595,11 @@ class Agent:
                                 IFace.Interface.context(self.env), before, self.env,
                                 withheld=self._withheld)
         if _r is not None:
+            # FORMED IS NOT TAKEN (the reviewer 2026-10-10 12:27Z, 12:36Z). The routine mint asks
+            # which press would serve this intent and does not press it this turn, so it writes no
+            # intent row and leaves _aimed / _intent_now to the exit that acts.
+            if not commit:
+                return _r.action
             self.led.record(self.cycle, "PLAN", chosen, "intent",
                             reads=(_want.says(), _r.why))
             return self._took(_r, _want)
