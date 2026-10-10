@@ -437,6 +437,13 @@ _MC_SIGNAL = armflag.arm("TETHER_MC_SIGNAL")
 # world's BOARD where it gives one, else observe(), which is the whole state there (Fig 1). Record
 # only: nothing reads the vetoes until C, its own arm.
 _RUIN_RECORD = armflag.arm("TETHER_RUIN_RECORD")
+# 7a(5) C, RUIN ORDERED FIRST (R3 Part 1; the reviewer 10:41Z, 11:53Z). OFF; reason in
+# conform/arms.py. A pair the floor vetoes on THIS board is withheld from the one choose() call,
+# at the sites below the seam where the button and coordinate are chosen, unless every option is
+# vetoed. It reads the floor, so it cannot run without it.
+_RUIN = armflag.arm("TETHER_RUIN")
+if _RUIN and not _RUIN_RECORD:
+    raise RuntimeError("TETHER_RUIN reads the veto floor: it needs TETHER_RUIN_RECORD on")
 # an ending's word -> Termination's kind; the seat's budgets are caps, every other word is its own
 _TERM_KIND = {"death": "death", "cap": "cap", "time": "cap", "run_end": "cap"}
 # THE BOUNDARY ROWS' OWN CHAINS (the reviewer 2026-10-10 08:11Z, 09:40Z). retarget's boundary/ending
@@ -1520,6 +1527,9 @@ class Agent:
         self._vetoes: set[tuple] = set()       # 7a(5) B: (fingerprint, action, coordinate)
         self._ruin_step: tuple | None = None   # this step's (fp, of, action, coord, cycle)
         self._ending_counted: str | None = None  # the word counted with no step since
+        self._step_fp: tuple[str, str] | None = None    # this step's board, read once
+        self._step_before: dict | None = None           # the state that reading was taken of
+        self._withheld = IFace.NO_WITHHELD               # 7a(5) C: set for choose() only
         self.retro: list[dict] = []
         # parked residuals survive a level boundary; the trace does not. So a parked
         # record carries its OWN evidence -- retrospective re-attribution is free in
@@ -1578,13 +1588,9 @@ class Agent:
         self._resolve_signals("game", how)
 
     def _fingerprint(self, before: dict) -> tuple[str, str]:
-        """7a(5) B: the BOARD where the world gives one, else observe() (the whole state there)."""
-        board = getattr(self.env, "board", None)
-        b = board() if board is not None else None
-        if b is not None:
-            b = b.tolist() if hasattr(b, "tolist") else b
-            return hashlib.sha1(repr(b).encode()).hexdigest()[:16], "board"
-        return hashlib.sha1(repr(sorted(before.items())).encode()).hexdigest()[:16], "state"
+        """7a(5) B: the BOARD where the world gives one, else observe() (the whole state there).
+        The interface's reading, so the floor's key and the withhold's check are one."""
+        return IFace.fingerprint(self.env, before)
 
     def _note_ending(self, how: str) -> None:
         """7a(5) A + B: one ending reaches Termination once -- the SAME word again with no step
@@ -4389,7 +4395,8 @@ class Agent:
             # agent picking between two ways of touching something. It asks to touch.
             _t = self.iface.realise(IFace.Intent(IFace.TOUCH, object=aim),
                                     tuple(self.actions),
-                                    IFace.Interface.context(self.env), before, self.env)
+                                    IFace.Interface.context(self.env), before, self.env,
+                                    withheld=self._withheld)
             act = (self._took(_t, IFace.Intent(IFace.TOUCH, object=aim))
                    if _t is not None else None)
             if _t is not None:
@@ -4461,7 +4468,8 @@ class Agent:
             # AGENT's -- it is about what the agent still needs to learn, not about which
             # button does what -- so it stays here and is said as an intent.**
             _untried = self.iface.realise(IFace.Intent(IFace.ELICIT), tuple(self.actions),
-                                          IFace.Interface.context(self.env), before, self.env)
+                                          IFace.Interface.context(self.env), before, self.env,
+                                          withheld=self._withheld)
             # **NO LOCAL COPY OF THE AIM. `_took` OWNS IT.** This kept `_coord` and then
             # wrote `self._aimed = _coord` at the end of the branch, which CLOBBERED the aim
             # `_took` had just set -- so an exploratory click that the interface had aimed went
@@ -4478,7 +4486,8 @@ class Agent:
             elif target is not None:
                 _t = self.iface.realise(IFace.Intent(IFace.TOUCH, object=target),
                                         tuple(self.actions),
-                                        IFace.Interface.context(self.env), before, self.env)
+                                        IFace.Interface.context(self.env), before, self.env,
+                                        withheld=self._withheld)
                 if _t is not None:
                     act = self._took(_t, IFace.Intent(IFace.TOUCH, object=target))
                     self.led.record(self.cycle, "PLAN", target, "intent",
@@ -4521,7 +4530,8 @@ class Agent:
         # mint, the goal split and the draw. The verb keeps the refusal and drops the ranking.
         _want = IFace.Intent(IFace.DISTINGUISH)
         _r = self.iface.realise(_want, tuple(self.actions),
-                                IFace.Interface.context(self.env), before, self.env)
+                                IFace.Interface.context(self.env), before, self.env,
+                                withheld=self._withheld)
         if _r is not None:
             self.led.record(self.cycle, "PLAN", "@board", "intent",
                             reads=(_want.says(), _r.why))
@@ -4681,7 +4691,7 @@ class Agent:
         """
         want = IFace.Intent(IFace.ELICIT, subject=subject)
         r = self.iface.realise(want, tuple(self.actions), IFace.Interface.context(self.env),
-                               before, self.env)
+                               before, self.env, withheld=self._withheld)
         self.led.record(self.cycle, "PLAN", subject or "@board", "intent",
                         reads=(want.says(), r.why if r else "unrealisable"))
         if r is None:
@@ -5542,8 +5552,11 @@ class Agent:
         _want = cand.body.action
         if not isinstance(_want, IFace.Intent):
             return cand
+        # 7a(5) C: the withheld set is ONE board's; another state gets none (the reviewer 11:53Z)
         per = self.iface.expected_move(_want, tuple(self.actions),
-                                       self.iface.context(self.env), before, self.env)
+                                       self.iface.context(self.env), before, self.env,
+                                       self._withheld if before is self._step_before
+                                       else IFace.NO_WITHHELD)
         if not per:
             return cand
         want = math.ceil(abs(unsat) / abs(per))
@@ -5774,9 +5787,13 @@ class Agent:
         ctx = IFace.Interface.context(self.env)
         for step in Rt.actions(r, lib):
             if isinstance(step, IFace.Intent):
-                if self.iface.realise(step, tuple(self.actions), ctx, before) is None:
+                # 7a(5) C: "can it run HERE" -- a press the floor vetoes on this board cannot
+                # (the reviewer 11:53Z). env goes only with a set, so the check can read the board.
+                if self.iface.realise(step, tuple(self.actions), ctx, before,
+                                      self.env if self._withheld else None,
+                                      self._withheld) is None:
                     return False
-            elif step not in self.actions:
+            elif step not in self.actions or self._withheld.action(step):
                 return False
         return True
 
@@ -6366,7 +6383,8 @@ class Agent:
         `Drive()` sites), same bookkeeping, same order. The refuter is therefore exact: any
         difference in the per-action SEQUENCE on a fixed seed is a defect, not sampling.
         """
-        r = self.iface.undirected(tuple(self.actions), self.cycle)
+        r = self.iface.undirected(tuple(self.actions), self.cycle, withheld=self._withheld,
+                                  env=self.env)
         if r is None:
             return None
         return self.drive.note_draw(self._took(r), _where(before))
@@ -6464,12 +6482,17 @@ class Agent:
         if isinstance(emit, IFace.Intent):
             self._intent_kinds.add(emit.kind)
             r = self.iface.realise(emit, tuple(self.actions),
-                                   IFace.Interface.context(self.env), before, self.env)
+                                   IFace.Interface.context(self.env), before, self.env,
+                                   withheld=self._withheld)
             if r is None:
                 return None
             self.led.record(self.cycle, "PLAN", emit.subject or "@board", "intent",
                             reads=(emit.says(), r.why))
             return self._took(r, emit)
+        # 7a(5) C: a bare step the floor vetoes here is unrealisable, unless every action is
+        _w = self._withheld
+        if _w.action(emit) and not all(_w.action(a) for a in self.actions):
+            return None
         return emit if emit in self.actions else None
 
     def _goal_split(self, before: dict[str, int]) -> str | None:
@@ -6569,7 +6592,8 @@ class Agent:
         self._goal_want = _want
         self._intent_kinds.add(_want.kind)
         _r = self.iface.realise(_want, tuple(self.actions),
-                                IFace.Interface.context(self.env), before, self.env)
+                                IFace.Interface.context(self.env), before, self.env,
+                                withheld=self._withheld)
         if _r is not None:
             self.led.record(self.cycle, "PLAN", chosen, "intent",
                             reads=(_want.says(), _r.why))
@@ -8401,6 +8425,12 @@ class Agent:
         before = self.env.observe()
         if _RUIN_RECORD:
             self._ruin_step, self._ending_counted = None, None
+            # ONE reading of this board, before anything is chosen: B's key and C's lookup
+            self._step_fp, self._step_before = self._fingerprint(before), before
+        if _RUIN:
+            _fp = self._step_fp[0]
+            self._withheld = IFace.Withheld(
+                _fp, frozenset((a, c) for f, a, c in self._vetoes if f == _fp))
         # ONE READING PER GOAL HYPOTHESIS, EVERY STEP, BEFORE ANYTHING ACTS ON IT. A trend
         # needs a series, and a series only exists if the reading is unconditional -- taking
         # it inside the branch that consumes it would record only the steps that already
@@ -8646,10 +8676,17 @@ class Agent:
         # exit that WANTS the contact names its own target in the intent, so there is no second
         # site guessing whose aim this was.**
         coord = self._aimed
+        if _RUIN and self._withheld and by != "given":
+            _w, _c = self._withheld, tuple(coord) if coord is not None else None
+            self.led.record(self.cycle, "PLAN", "@ruin", "withheld", fingerprint=_w.fp,
+                            withheld=sorted([a, list(c) if c else None] for a, c in _w.pairs),
+                            chosen=[action, list(_c) if _c else None],
+                            all_vetoed=_w.action(action) or _w.at(action, _c), by=by)
+        self._withheld = IFace.NO_WITHHELD
         if _RUIN_RECORD:
             # the board BEFORE the act and the coordinate it was REALISED at (never the intent's
             # subject, the a561fb2 lesson): the killing step's key if this step dies
-            self._ruin_step = (*self._fingerprint(before), action,
+            self._ruin_step = (*self._step_fp, action,
                                tuple(coord) if coord is not None else None, self.cycle)
         res = self.perceive(action, coord, self._intent_now)
         # WHAT THAT ACTION DID TO THE AVATAR, recorded from the frames either side of it.

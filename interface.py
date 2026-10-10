@@ -23,10 +23,12 @@ than promised.
 
 from __future__ import annotations
 
+import hashlib
 import math
 import sys
 from collections import Counter
 from dataclasses import dataclass, field
+from dataclasses import replace as _replace
 from typing import Any
 
 sys.dont_write_bytecode = True
@@ -233,6 +235,44 @@ class Realisation:
     mode: str = ""                # "undirected" on the floor draw; empty on every other path
 
 
+def fingerprint(env: Any, state: dict) -> tuple[str, str]:
+    """7a(5): the BOARD where the world gives one, else the state it observes (the whole state
+    there). One reading, used by the floor's key and by the withhold's check alike."""
+    board = getattr(env, "board", None)
+    b = board() if board is not None else None
+    if b is not None:
+        b = b.tolist() if hasattr(b, "tolist") else b
+        return hashlib.sha1(repr(b).encode()).hexdigest()[:16], "board"
+    return hashlib.sha1(repr(sorted(state.items())).encode()).hexdigest()[:16], "state"
+
+
+ALL_VETOED = "every option vetoed"
+
+
+@dataclass(frozen=True)
+class Withheld:
+    """7a(5) C: the (action, coordinate) pairs the floor vetoes on ONE board, carrying that
+    board's fingerprint, so a set built on one board is refused on another (Fig 10 :19)."""
+
+    fp: str = ""
+    pairs: frozenset = frozenset()
+
+    def __bool__(self) -> bool:
+        return bool(self.pairs)
+
+    def action(self, a: str) -> bool:
+        return (a, None) in self.pairs
+
+    def at(self, a: str, c: tuple[int, int] | None) -> bool:
+        return c is not None and (a, tuple(c)) in self.pairs
+
+    def coords(self, a: str) -> set:
+        return {c for b, c in self.pairs if b == a and c is not None}
+
+
+NO_WITHHELD = Withheld()
+
+
 @dataclass
 class Capability:
     """A change in what the board affords, **stated as reasoning and never as a button.**
@@ -358,7 +398,8 @@ class Interface:
     # ---- downward: intent -> action --------------------------------------------------
 
     def realise(self, intent: Intent, offered: tuple[str, ...], ctx: tuple = (),
-                state: dict | None = None, env: Any = None) -> Realisation | None:
+                state: dict | None = None, env: Any = None,
+                withheld: Withheld = NO_WITHHELD) -> Realisation | None:
         """**THE ONE DOOR, SO NO EXIT CAN SEND A SECOND CONSECUTIVE `RESET`.**
 
         **ISAIAH, 2026-09-29, AND IT IS A HARD CONSTRAINT RATHER THAN A PREFERENCE:** *fully
@@ -393,14 +434,33 @@ class Interface:
         > path, which the board stop makes unrunnable, and shipping an unexercised change to the
         > one mechanism that can lose a run is worse than carrying a named dependency.
         """
-        r = self._choose(intent, offered, ctx, state, env)
+        # 7a(5) C: RUIN IS ORDERED FIRST. A pair the floor vetoes on this board is never offered,
+        # unless every option is vetoed; then all are offered and `why` says so.
+        offered, w, every = self._withhold(withheld, offered, state, env)
+        r = self._choose(intent, offered, ctx, state, env, w)
         if r is not None and r.action == RESET and self._last_was_reset:
             _alt = tuple(a for a in offered if a != RESET)
-            r = self._choose(intent, _alt, ctx, state, env) if _alt else None
+            r = self._choose(intent, _alt, ctx, state, env, w) if _alt else None
+        if r is not None and every:
+            r = _replace(r, why=f"{r.why}; {ALL_VETOED}")
         return r
 
+    def _withhold(self, w: Withheld, offered: tuple[str, ...], state: dict | None,
+                  env: Any) -> tuple[tuple[str, ...], Withheld, bool]:
+        """(offered, withheld, every option vetoed). A non-empty set built on another board is
+        REFUSED: applying one board's deaths to another is a false veto."""
+        if not w:
+            return offered, w, False
+        if env is None or fingerprint(env, env.observe())[0] != w.fp:
+            raise ValueError(f"withheld set built on board {w.fp} offered on another")
+        spots = self._spots(state)
+        keep = tuple(a for a in offered if not w.action(a) and not (
+            a in POSITIONED and spots and all(w.at(a, c) for c in spots)))
+        return (keep, w, False) if keep else (offered, NO_WITHHELD, True)
+
     def _choose(self, intent: Intent, offered: tuple[str, ...], ctx: tuple = (),
-                state: dict | None = None, env: Any = None) -> Realisation | None:
+                state: dict | None = None, env: Any = None,
+                w: Withheld = NO_WITHHELD) -> Realisation | None:
         """Pick an action that serves this intent, or abstain.
 
         **ABSTENTION IS A READING** -- §12.2. `None` means *this board's vocabulary cannot
@@ -557,7 +617,7 @@ class Interface:
             # accepts. `step` was recomputing it from the button's name instead.
             here = self._at(intent.object, state)
             pos = [a for a in offered if a in POSITIONED]
-            if pos and here is not None:
+            if pos and here is not None and not w.at(pos[0], here):
                 return Realisation(pos[0], coord=here,
                                    why=f"a positioned action, aimed at {intent.object} "
                                        f"where it is")
@@ -633,8 +693,10 @@ class Interface:
             # instance record consulted for WHICH coordinate. In a world where every effect is
             # SELF, hunting for a button is wasted presses and the sweep is right.
             coord = (self._aim_for(intent, state) if a in POSITIONED else None)
+            if w.at(a, coord):
+                coord = None
             if coord is None and a in POSITIONED:
-                coord = self._unclicked(state)
+                coord = self._unclicked(state, w.coords(a))
                 if coord is not None:
                     why = f"{why}, aimed where nothing has been clicked"
                 else:
@@ -642,7 +704,7 @@ class Interface:
                     # UNCLICKED left -- but a positioned press with no coordinate is a
                     # guaranteed no-op, and handing one back is the interface failing at
                     # its one job. Uninformed, and it still lands.
-                    coord = self._any_object(state)
+                    coord = self._any_object(state, w.coords(a))
                     if coord is not None:
                         why = f"{why}, uninformed draw over the objects present"
             elif coord is not None:
@@ -700,7 +762,8 @@ class Interface:
         """
         return {key[1] for entry in self.table.values() for key in entry.get("delta", {})}
 
-    def undirected(self, offered: tuple[str, ...], cycle: int) -> Realisation | None:
+    def undirected(self, offered: tuple[str, ...], cycle: int, withheld: Withheld = NO_WITHHELD,
+                   env: Any = None) -> Realisation | None:
         """THE FLOOR DRAW, MOVED BELOW THE SEAM. The agent asks for *something, no preference*;
         which button serves it is the interface's business and never the agent's.
 
@@ -719,10 +782,14 @@ class Interface:
         """
         if not offered:
             return None
+        # 7a(5) C: the draw never lands unaimed on a pair vetoed unaimed, so a withheld pair is
+        # never recorded as drawn or tried; all vetoed -> all offered, and `why` says so.
+        offered, _w, every = self._withhold(withheld, offered, None, env)
         stride = next(k for k in range(7, 7 + len(offered))
                       if math.gcd(k, len(offered)) == 1)
         pick = sorted(offered)[(cycle * stride + self._draw_seed) % len(offered)]
-        return Realisation(action=pick, mode="undirected", why="undirected")
+        return Realisation(action=pick, mode="undirected",
+                           why=f"undirected; {ALL_VETOED}" if every else "undirected")
 
     def capability(self, offered: tuple[str, ...], after: str | None = None) -> Capability:
         """What the board opened or closed since the last frame, **named as affordance.**
@@ -817,7 +884,16 @@ class Interface:
             return None
         return min(best, key=lambda c: (len(self.aimed_effect[c]), c))
 
-    def _any_object(self, state: dict | None) -> tuple[int, int] | None:
+    def _spots(self, state: dict | None) -> list[tuple[int, int]]:
+        """Every object position on the board, as `(x=col, y=row)`, in sorted object order."""
+        if state is None:
+            return []
+        rows = {k.rsplit(".", 1)[0] for k in state if k.endswith(".row")}
+        cols = {k.rsplit(".", 1)[0] for k in state if k.endswith(".col")}
+        return [at for obj in sorted(rows & cols) if (at := self._at(obj, state)) is not None]
+
+    def _any_object(self, state: dict | None,
+                    avoid: set | frozenset = frozenset()) -> tuple[int, int] | None:
         """CLAUSE 3: an UNINFORMED press that is still a real press -- the reviewer,
         2026-10-01. `None` only when the board shows no positioned object at all.
 
@@ -837,18 +913,14 @@ class Interface:
         Uniform over the objects present and not model-chosen is the property the safety
         argument needs; reproducibility is free, so it is taken.
         """
-        if state is None:
-            return None
-        rows = {k.rsplit(".", 1)[0] for k in state if k.endswith(".row")}
-        cols = {k.rsplit(".", 1)[0] for k in state if k.endswith(".col")}
-        here = [at for obj in sorted(rows & cols)
-                if (at := self._at(obj, state)) is not None]
+        here = [at for at in self._spots(state) if at not in avoid]
         if not here:
             return None
         self._rr = getattr(self, "_rr", 0) + 1
         return here[self._rr % len(here)]
 
-    def _unclicked(self, state: dict | None) -> tuple[int, int] | None:
+    def _unclicked(self, state: dict | None,
+                   avoid: set | frozenset = frozenset()) -> tuple[int, int] | None:
         """An OBJECT this interface has not aimed at yet, as `(x=col, y=row)`.
 
         Objects are the things with both a row and a col -- the same convention `_at` reads,
@@ -862,7 +934,7 @@ class Interface:
         cols = {k.rsplit(".", 1)[0] for k in state if k.endswith(".col")}
         for obj in sorted(rows & cols):
             at = self._at(obj, state)
-            if at is not None and at not in self.clicked:
+            if at is not None and at not in self.clicked and at not in avoid:
                 return at
         return None
 
@@ -990,7 +1062,8 @@ class Interface:
         return tuple(sorted(kinds.items()))
 
     def expected_move(self, intent: Intent, offered: tuple[str, ...], ctx: tuple = (),
-                      state: dict | None = None, env: Any = None) -> float | None:
+                      state: dict | None = None, env: Any = None,
+                      withheld: Withheld = NO_WITHHELD) -> float | None:
         """HOW FAR THE AGENT EXPECTS ONE PRESS OF THIS INTENT TO MOVE ITS SUBJECT.
 
         **ASKED IN INTENTS, BECAUSE THAT IS WHAT THE AGENT HOLDS.** The first version of the
@@ -1013,7 +1086,7 @@ class Interface:
         """
         if intent.subject is None:
             return None
-        r = self.realise(intent, offered, ctx, state, env)
+        r = self.realise(intent, offered, ctx, state, env, withheld)
         return None if r is None else self.step_of(r.action, intent.subject)
 
     def step_of(self, action: str, slot: str) -> float | None:

@@ -242,6 +242,13 @@ ARMS: dict[str, str] = {
                           "the exceptions, their credited bindings held on one settle outnumbered "
                           "by misses): recorded as 3(b) evidence that log2(H+1) is too cheap, "
                           "not ruled",
+    "TETHER_RUIN": "7a(5) C, ruin ordered first (R3 Part 1; the reviewer 2026-10-10 10:41Z, "
+                   "11:53Z): ON, a pair the veto floor holds for THIS board is withheld from "
+                   "the one choose() call at the sites below the seam (offered, TOUCH route 1, "
+                   "_made's spots, the bare routine step), unless every option is vetoed; one "
+                   "PLAN '@ruin' 'withheld' row per step. REQUIRES TETHER_RUIN_RECORD (import "
+                   "refuses without it). OFF because it is behaviour and new: the panel never "
+                   "dies, so its only evidence is the dying-world fixture until step 13",
     "TETHER_RUIN_RECORD": "7a(5) A + B (ARC_AGENT 19.3-19.4; the reviewer 2026-10-10 10:41Z): "
                           "ON, every ending reaches instruments.Termination exactly once "
                           "(retarget, or end_run unless retarget counted the same word; "
