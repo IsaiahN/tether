@@ -9,8 +9,8 @@ the arm OFF and ON (the module flag, set here only):
   - q2: credit on a slot with a DIFFERENT name than the one it was minted on;
   - one-slot lookup: a recording never re-grounds, so it earns nothing;
   - pooled-only (a GUARD, holds both ways): a term never minted pays on no single slot;
-  - MF-D3: a pre-boundary record closed by the sweep is STALE, and its promotion waits until the
-    term settles in this level;
+  - MF-D3: a pre-boundary record closed by the sweep is marked STALE (arm ON only); its promotion
+    waits for a settle in this level in BOTH arms, which since P2 is P2's hold, not item 3's;
   - (r): a credited term still pays for NAMING it, log2(H+1) (the reviewer 21:55Z), so one whose
     reduction is no more than that does not pay; with the reference cost removed, it does.
 
@@ -181,8 +181,10 @@ def check_mf_d3_stale_close_waits_for_a_settle_here() -> None:
             tether._CARRY_PRICE = False
         res[arm] = (first, second, [r.get("stale") for r in ag.retro])
     print(f"  MF-D3: OFF (promoted, after settle, stale) = {res[False]}; ON = {res[True]}")
-    assert res[False][0] == 1, f"the control must promote at once (else it cannot fail): {res}"
-    assert res[True][0] == 0 and res[True][1] == 1 and res[True][2] == [True], res
+    # SINCE P2 (94051f5) the hold is P2's in BOTH arms: no sweep promotion before a settle in this
+    # level. What item 3 still adds is the STALE marking of a pre-boundary close, ON only.
+    assert res[False][:2] == (0, 1) and res[True][:2] == (0, 1), f"P2's hold: {res}"
+    assert res[False][2] == [None] and res[True][2] == [True], f"the STALE marking: {res}"
 
 
 def check_r_naming_is_not_free() -> None:

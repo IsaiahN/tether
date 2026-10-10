@@ -227,8 +227,8 @@ ARMS: dict[str, str] = {
                           "_library_fit takes the lowest WHOLE price "
                           "among payers, ties in fit order (Q1 (a): library first); sweep credits "
                           "the swept term and opens under_floor records to a credited term only; a "
-                          "pre-boundary close is STALE and its promotion waits for a settle in "
-                          "this level (MF-D3). 3(b) as counts: each credited binding's settles and "
+                          "pre-boundary close is marked STALE (MF-D3; its promotion is held by "
+                          "P2 in every arm). 3(b) as counts: each credited binding's settles and "
                           "demotes. OFF until measured",
     "TETHER_WINDOW": "the history window (R3 item 2; Isaiah's H1; the reviewer 14:52Z, 15:26Z, "
                      "18:10Z, 18:15Z): every lag slot~j the trace can reach is offered AFTER "
