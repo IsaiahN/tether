@@ -97,12 +97,20 @@ Tests per item: at most 5 minutes (own fixture, one short OFF identity check, fa
 | 7a(5b) contact instrument, route source | DONE 1e40e8c, 23a1ef9 |
 | 7a D5 split on strain | DONE e4c5dc7 (OFF, HELD) |
 | 7a D5 candidacy (two-sided witness) | DONE a46d3f2 (OFF, HELD; full ON reading at 7½) |
-| F408 price every named guard (TETHER_GUARD_PRICE) | BUILT, accepted 21:31Z; committing (OFF) |
-| compounds | next after F408 |
-| 7d reverse lookup (`Library.light(abduce=...)`) | queued |
-| 7a(6)-(10) | queued |
+| F408 price every named guard (TETHER_GUARD_PRICE) | DONE 4a837f4 (OFF; full reading at 7½) |
+| compounds | BOUNDED BY VOCABULARY (the reviewer 22:09Z): not refuted, not built; see the verdict below |
+| 7d reverse lookup (`Library.light(abduce=...)`) | BOUNDED BY VOCABULARY (the reviewer 22:09Z): not refuted, not built; see the verdict below |
+| 7a(6)-(10): CASCADE_AGENCY, TWO_READINGS, MC3/MC4, per-plan factors, MC6 + D1-D3 | NEXT |
 | 7b, 7c | queued |
 | 7½ switch-on and orphan audit: one full OFF and one full ON panel | queued |
+
+**VERDICT -- compounds and 7d, BOUNDED BY VOCABULARY (the reviewer 2026-10-10 22:09Z; probes 16:55, 16:59, 17:07 CDT).**
+- kind: bounded-by-vocabulary. Not refuted, and nothing is built: an arm that cannot fire is an orphan for the 7½ audit.
+- scope: arc_s0, 30-50 cycles, D5 on for the cut probe.
+  - Held-predicate intersections (intent AND / AND NOT acted-on-own-object) cut 0 of 202 searches where no single predicate did, with 2 single cuts found as the control.
+  - abduce="after" at M4's lookup lit 138 extra entries per indexed lookup set. They compiled to 4 views and 180 causes on the slot; 0 were new, since all duplicate forward terms; offers unchanged at 190 on 95 slots.
+- wall, the compiler's refusals verbatim: "events are not slots"; "no pairwise atom: bbox(o, x) / inside(o, x) / contact(o, x) names two objects and no atom reads the pair"; "the board is not an object slot".
+- reopen-when: a pairwise/relational atom exists in the vocabulary. That is an import question, with Isaiah (the reviewer 22:09Z), in the same family as 5b's button seam.
 
 ## 7½ INVENTORY — every switch and every recorded-not-consumed row, added as items are built
 
