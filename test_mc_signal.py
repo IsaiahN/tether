@@ -81,7 +81,7 @@ def _hand(extra_mints: int, sign) -> tuple[list, list]:
         e = ag.led.record(i, "PERCEIVE", f"s{i}", "bet", channel="transition",
                           mass=kw.pop("mass", 0.0), **kw)
         if not kw.get("suspended"):
-            ag._signals.append((e.seq, f"s{i}"))
+            ag._signals.append((e.seq, f"s{i}", tether.NO_CHANGE))
     ag.led.record(5, "PERCEIVE", "@bracket", "bet", channel="bracket", mass=0.0, actual=None)
     for k in range(extra_mints):                              # a self-produced quantity grows
         at = ag.gamma.atoms

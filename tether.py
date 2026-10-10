@@ -444,6 +444,11 @@ _RUIN_RECORD = armflag.arm("TETHER_RUIN_RECORD")
 _RUIN = armflag.arm("TETHER_RUIN")
 if _RUIN and not _RUIN_RECORD:
     raise RuntimeError("TETHER_RUIN reads the veto floor: it needs TETHER_RUIN_RECORD on")
+# 7a(5b) THE CONTACT INSTRUMENT (Isaiah 2026-10-10 06:46 CDT; the reviewer 11:46Z, 12:27Z). OFF;
+# reason in conform/arms.py. Record only: `gamma_read["fed"]` names, by seq, each library term read
+# by the exit whose action is RETURNED, with its role (goal: it chose what to reach; route: its
+# prediction chose the press; body: a routine's step). Nothing decides from it (Fig 1).
+_FED = armflag.arm("TETHER_CONTACT")
 # an ending's word -> Termination's kind; the seat's budgets are caps, every other word is its own
 _TERM_KIND = {"death": "death", "cap": "cap", "time": "cap", "run_end": "cap"}
 # THE BOUNDARY ROWS' OWN CHAINS (the reviewer 2026-10-10 08:11Z, 09:40Z). retarget's boundary/ending
@@ -1327,7 +1332,7 @@ class Agent:
         # `settled` IS A PROPERTY NOW -- see below. There is no set here to drift.
         self._settled_at_level: set[str] = set()   # the segment's starting line
         self._settled_lvl: set[str] = set()        # what settled in THIS level (P2's hold)
-        self._signals: list[tuple[int, str]] = []    # MC2: this level's open signals (seq, slot)
+        self._signals: list[tuple] = []    # MC2: this level's open signals (seq, slot, term)
         # CARRY (item 3): the ledger length at the level's start (CARRIED = entered before it), and
         # each credited binding + its fate (3(b))
         self._seq_at_level = 0
@@ -1530,6 +1535,10 @@ class Agent:
         self._step_fp: tuple[str, str] | None = None    # this step's board, read once
         self._step_before: dict | None = None           # the state that reading was taken of
         self._withheld = IFace.NO_WITHHELD               # 7a(5) C: set for choose() only
+        self._split_term: dict | None = None    # 5b: the term the RETURNED goal split read
+        self._routine_fed: list = []            # 5b: the routine exit's entries, this step
+        self._plan_seqs: dict[int, int] = {}    # 5b: plan_no -> the seq of its mint row
+        self._fed_rows: dict[str, list] = {}    # 5b: term -> (REPEAT seq, role) naming it
         self.retro: list[dict] = []
         # parked residuals survive a level boundary; the trace does not. So a parked
         # record carries its OWN evidence -- retrospective re-attribution is free in
@@ -1622,14 +1631,20 @@ class Agent:
     def _resolve_signals(self, kind: str, how: str) -> None:
         """MC2: exactly one resolution row per open signal, pointing at its bet row, never editing
         it (Fig 6). `kind` is an order (bet < level < game, Fig 13), never a weight; nothing is
-        summed (Fig 1). `fed` would point at the row naming the bet's term as the reason an action
-        was chosen; no row in this code records that, so it is None and says so (Fig 10)."""
-        for seq, slot in self._signals:
+        summed (Fig 1). `fed` points at the REPEAT rows after the bet whose `gamma_read["fed"]`
+        names the bet's term (5b, TETHER_CONTACT); without that arm no row records it, so it is
+        None and says so (Fig 10)."""
+        for seq, slot, term in self._signals:
             # cycle = THE CYCLE, the level in its own field: a level number in the cycle field is
             # the @loop defect (the reviewer 08:11Z), and a new row kind must not inherit it.
+            # [seq, role]: a goal and a route are two currencies, kept apart (Fig 12 :125/:130)
+            fed = (sorted([x, r] for x, r in self._fed_rows.get(term, ()) if x > seq) if _FED
+                   else None)
             self.led.record(self.cycle, "SETTLE", "@signal", "resolution", signal_seq=seq,
-                            signal_slot=slot, level=self.level, kind=kind, how=how, fed=None,
-                            reads=("no row in this code names the term an action was chosen "
+                            signal_slot=slot, level=self.level, kind=kind, how=how, fed=fed,
+                            reads=("[REPEAT seq, role] after the bet whose fed names its term"
+                                   if _FED else
+                                   "no row in this code names the term an action was chosen "
                                    "through: choose() picks the action before the utterance "
                                    "names the bound term"))
         self._signals = []
@@ -3216,7 +3231,7 @@ class Agent:
                             meant=(intent.says() if intent is not None else None),
                             )
             if _MC_SIGNAL:
-                self._signals.append((_bet.seq, s))
+                self._signals.append((_bet.seq, s, self.bound.get(s, NO_CHANGE)))
             self._standing(s)
 
         # the reward channel: on the figures, and reported here. Its remedy is the
@@ -4198,75 +4213,21 @@ class Agent:
         """(action, by). `by` names the site that chose, so the phase label can be
         checked against the mechanism instead of believed.
 
-        DISCRIMINATE: a slot owes and the reachable terms disagree about what an action
-        will produce there. An outcome every candidate predicts alike teaches nothing,
-        so the action worth taking is the one that separates them most -- which is the
-        difference between a probe and an experiment, and it is derived from Gamma
-        rather than from any knowledge of the answer.
+        The exits: routine (a held or just-minted routine's step), probe, system0, distinguish,
+        discriminate:goal, draw. LIBRARY TERMS REACH THE ACTION AT TWO OF THEM, and only as the
+        GOAL, never as the route: discriminate:goal reads the bound or wanted OBJ term to pick
+        what to reach (`_goal_target`) while the interface's table picks the press; a routine's
+        guards re-read that objective every step. probe, system0, distinguish and draw read no
+        library term. 5b's `gamma_read["fed"]` records which term fed the exit that returned.
 
-        DRAW: nothing owes, or no action separates anything. Then the draw is
-        UNINFORMED BY CONSTRUCTION, which is the safety property: a probe chosen by the
-        current model can only confirm the current model.
-
-        **DISCRIMINATE READING ZERO ON ARC IS THE DESIGNED STATE, NOT A DEFECT. Read this
-        before proposing an atom against it.** `ARC_AGENT` measured both arms:
-
-            spread distinguishes the actions, WITH `act`     33/96   (34%)
-            spread distinguishes the actions, WITHOUT `act`   0/96   ( 0%)
-
-        `act` is `v + DELTA.get(c.action, 0)` with its effect table **closed over at
-        construction** -- so *`choose`'s discriminate branch is a property of the atom set,
-        not a model the agent built. It has never had to learn what pressing something does,
-        because the primitive it was given already knew.* **That is the thing the action
-        world has to take away**, and the ARC set has no `act` for exactly that reason.
-
-        **AND `0/96` UNDERSTATES IT: ON ARC THIS BRANCH CANNOT FIRE AT ALL -- 2026-09-28.**
-        A measured zero reads as a starved mechanism that might speak on another board. This
-        one is structural, and it took a control to be sure the probe could tell:
-
-            WORLD       gamma in isolation, no board
-            POPULATION  every term `enumerate_closure` yields for the live ARC set
-                        (`three_spaces(predict())`) at depth 2, discriminate's own budget
-
-            ARC   62 atoms -> 7 val->val candidates, 0 guarded, 0 reading `ctx.action`
-            TOY   14 atoms, action-readers: ['act']                    <- THE CONTROL
-
-        `spread[a]` is summed over terms not one of which depends on `a`, so it is a CONSTANT
-        FUNCTION OF THE ACTION and `max == min` always. **AND THE SECOND ROUTE IS CLOSED TOO**:
-        a GUARDED term is action-dependence without any `act`, and `mint` does produce guarded
-        terms here -- but `enumerate_closure` yields `Term(chain)` and DROPS the guard, which is
-        why 0 of the 7 carry one. So no minted guarded term can reach this branch either.
-
-        **WHICH MAKES THIS THE THIRD PLACE THE AGENT RANKS BUTTONS WITH ITS OWN MODEL** --
-        `pick = max(self.actions, key=lambda a: spread[a])`, the same crossing as the `_predict`
-        vote deleted at `4c233db`. Its only demonstrated firing is on a set containing `act`,
-        and `act` is the handed answer. **A mechanism whose only evidence of working comes from
-        a world where the answer was handed over is not evidence of a mechanism.** With the
-        reviewer; not repaired here.
-
-        **So a flat spread is the honest reading of an agent that has not learned what its
-        actions do.** Measured here: 80 of 82 eligible steps on `ls20`, which is the toy
-        panel's 0/96 reproduced on a real board. **It was read as a defect three times --
-        twice by me -- and each time the proposed fix was an atom that reads `c.action`,
-        which is the encoded answer with a name and a measurement already against it.**
-
-        **WHAT MOVED IT LEGITIMATELY WAS A LEARNED CONTINGENCY BECOMING BINDABLE, AND IT IS
-        BUILT -- CORRECTED 2026-09-05.** This said `contingency()` *is consumed by nothing* and
-        called §18.4's proposer half *still owed*, while `_learned_split` -- forty lines below,
-        called by this method -- opens *"§18.4's proposer half"* and consumes exactly it.
-        **Two docstrings in one file disagreeing about whether a mechanism exists**, and the
-        stale one is the one a reader meets first. `discriminate:learned` fires on 93 of 131
-        acts.
-
-        **SO THE GAP IS NARROWER THAN THIS DOCSTRING IMPLIED, AND NAMING IT NARROWLY IS THE
-        POINT.** Two branches here already choose on model-derived quantities -- `spread` over
-        a Gamma closure, and the self-model's learned contingency. **What no branch reads is
-        the BOUND TERM or the OBJECTIVE**: nothing selects an action because it ADVANCES A
-        GOAL. `DOCTRINE_AUDIT` §1's blanket form -- *nothing about Gamma, the bound terms, the
-        residual, or the objective ever enters action selection* -- was written against a
-        `drive.choose` one-liner and is now half true. **The surviving half is the objective,
-        and that is `M2`'s middle item.**
+        CORRECTED 2026-10-10 (5b's census, the reviewer 12:27Z): this said no branch reads the
+        bound term or the objective, and described the discriminate spread branch as live. That
+        branch was deleted 2026-09-28 (option A: it ranked buttons with the agent's own model).
         """
+        # PER STEP (5b; the reviewer 12:27Z): `_gamma_read` was set only at one branch, so a
+        # routine or probe exit carried the PREVIOUS cycle's value onto its REPEAT row.
+        self._gamma_read = {}
+        self._split_term, self._routine_fed = None, []
         # SUPPORT AT ZERO REFUSES THE MODEL THE WHEEL. `bored()` means no slot carried
         # live mass: the model explains everything it can currently see, and an action
         # IT selects can only confirm it. So boredom does not pick a different draw --
@@ -4334,6 +4295,7 @@ class Agent:
                                     self._routine_adopted, self._act_n() + 1, self._plan_no)
                 self._routine_acts += 1
                 self.routine = rest
+                self._routine_fed = self._routine_entries() if _FED else []
                 return _act, "routine"
             # ENDED, AND THE FIVE ENDINGS ARE NOT ONE. `done` is the guard met; `exhausted` is
             # the budget spent without it -- the routine's own bet REFUTED; `blocked` is a
@@ -4556,6 +4518,7 @@ class Agent:
                 if _act is not None:
                     self._routine_acts += 1
                     self.routine = rest
+                    self._routine_fed = self._routine_entries() if _FED else []
                     return _act, "routine"
                 # **AND AN ENDING HERE IS KEPT, NOT DROPPED -- 2026-09-25.** This line used to
                 # be `self.routine = None`, so a plan that ended on its FIRST advance VANISHED
@@ -6331,7 +6294,8 @@ class Agent:
         self._routine_adopted = self.routine   # what to shelve; `advance` will erode it
         self._plan_no += 1
         self._plan_sig = self._gap_key(gap) if gap is not None else None
-        self.led.record(self.cycle, "PLAN", slot, "routine", verdict="pays", plan_no=self._plan_no,
+        _mint_row = self.led.record(
+                        self.cycle, "PLAN", slot, "routine", verdict="pays", plan_no=self._plan_no,
                         routine=Rt.render(cand), length=Rt.length(cand),
                         units=Rt.length(cand, shelf),
                         chunked=Rt.length(cand) != Rt.length(cand, shelf),
@@ -6345,6 +6309,32 @@ class Agent:
                         reach_status=self._reach_seen(slot, cand),
                         unsat=round(unsat, 4), considered=len(priced), shelf=len(shelf),
                         route="learned: observed to move this slot the wanted way")
+        self._plan_seqs[self._plan_no] = _mint_row.seq     # 5b: the routine's own seq
+
+    def _term_of(self, slot: str | None) -> dict | None:
+        """5b: the objective term `_goal_target` reads for this slot, by the same lookup, with its
+        seq (the gamma stamp's, or None and why)."""
+        name = (self.bound.get(slot) or self.wants.get(slot)) if slot else None
+        term = (self.gamma.library.get(name) if name else None) or self._want_terms.get(slot)
+        if term is None:
+            return None
+        tname = getattr(term, "name", name)
+        seq = self.gamma.stamps.get(tname, {}).get("seq")
+        kind = "bound" if self.bound.get(slot) == tname else (
+            "want" if name == tname else "want_term")
+        return {"kind": kind, "name": tname, "slot": slot, "seq": seq,
+                **({} if seq is not None else {"why": "not in the library"})}
+
+    def _routine_entries(self) -> list[dict]:
+        """5b: the routine whose step acts (role body) and the objective its guards read (goal)."""
+        seq = self._plan_seqs.get(self._plan_no)
+        out = [{"kind": "routine", "name": f"plan {self._plan_no}", "slot": self.routine_for,
+                "seq": seq, "role": "body",
+                **({} if seq is not None else {"why": "adopted without a mint row"})}]
+        goal = self._term_of(self.routine_for)
+        if goal is not None:
+            out.append({**goal, "role": "goal"})
+        return out
 
     def _goal_target(self, slot: str, before: dict[str, int]) -> int | None:
         """What the agent's OWN objective predicts this slot should become, or None.
@@ -6600,6 +6590,7 @@ class Agent:
             # intent row and leaves _aimed / _intent_now to the exit that acts.
             if not commit:
                 return _r.action
+            self._split_term = self._term_of(chosen) if _FED else None
             self.led.record(self.cycle, "PLAN", chosen, "intent",
                             reads=(_want.says(), _r.why))
             return self._took(_r, _want)
@@ -8688,6 +8679,11 @@ class Agent:
                             chosen=[action, list(_c) if _c else None],
                             all_vetoed=_w.action(action) or _w.at(action, _c), by=by)
         self._withheld = IFace.NO_WITHHELD
+        if _FED and by != "given":
+            _fed = ([{**self._split_term, "role": "goal"}]
+                    if by == "discriminate:goal" and self._split_term is not None
+                    else list(self._routine_fed) if by == "routine" else [])
+            self._gamma_read = {**self._gamma_read, "fed": _fed, "entered": bool(_fed)}
         if _RUIN_RECORD:
             # the board BEFORE the act and the coordinate it was REALISED at (never the intent's
             # subject, the a561fb2 lesson): the killing step's key if this step dies
@@ -8775,6 +8771,9 @@ class Agent:
                         remedy=self.resolve() if indist else None,
                         reads=("same featural vector, different |R|. Ranked by how many "
                                "objects shared the vector, which the remedy cannot move"))
+        if _FED:
+            for _e in self._gamma_read.get("fed", ()):
+                self._fed_rows.setdefault(_e["name"], []).append((len(self.led), _e["role"]))
         self.led.record(self.cycle - 1, "REPEAT", "@loop", "repeat",
                         integral=round(self.pe_integral(), 3),
                         outstanding=round(self.outstanding(), 3),

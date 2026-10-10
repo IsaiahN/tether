@@ -242,6 +242,13 @@ ARMS: dict[str, str] = {
                           "the exceptions, their credited bindings held on one settle outnumbered "
                           "by misses): recorded as 3(b) evidence that log2(H+1) is too cheap, "
                           "not ruled",
+    "TETHER_CONTACT": "7a(5b), the contact instrument (Isaiah 2026-10-10 06:46 CDT; the reviewer "
+                      "11:46Z, 12:27Z): ON, the REPEAT row's gamma_read gains fed, one entry per "
+                      "library term read by the exit whose action is RETURNED, {kind, name, slot, "
+                      "seq, role: goal|route|body}, and MC2's resolution fed becomes [REPEAT seq, "
+                      "role] after the bet. Record only; read by conform/contact.py per member, by "
+                      "exit and role, never pooled. OFF because it is new and nothing reads the "
+                      "field yet; the per-step gamma_read reset beside it is NOT under this arm",
     "TETHER_RUIN": "7a(5) C, ruin ordered first (R3 Part 1; the reviewer 2026-10-10 10:41Z, "
                    "11:53Z): ON, a pair the veto floor holds for THIS board is withheld from "
                    "the one choose() call at the sites below the seam (offered, TOUCH route 1, "
