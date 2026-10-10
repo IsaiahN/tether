@@ -250,7 +250,9 @@ ARMS: dict[str, str] = {
                  "by the same mint on their own rows; credit per (term, part); the incumbent is "
                  "shadow-graded on not-P steps and a broken partition reverts. OFF because it "
                  "is new and changes binding; on fake it does not fire (no held predicate "
-                 "separates o2.drow: the true cut is the button). HELD until the candidate-cut "
+                 "separates o2.drow: the true cut is the button). A found cut is a CANDIDATE "
+                 "until a witness row confirms or refutes it, on either side of P. "
+                 "HELD until the candidate-cut "
                  "amendment (one witness before acting) lands and is read (the reviewer 18:46Z; "
                  "F408 cannot bind at a 2-a-side cut, so it was the wrong unblocker)",
     "TETHER_CONTACT": "7a(5b), the contact instrument (Isaiah 2026-10-10 06:46 CDT; the reviewer "

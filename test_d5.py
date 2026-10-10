@@ -18,7 +18,19 @@
   8. the step between the cut (found at settle) and the split (run in route, after the bet): on
      a not-P step the incumbent is a shadow, never the predictor, and on a P step it predicts.
      Before this, gridworld_s1 ON charged the incumbent for not-P rows on 3 of 4 splits (c30:
-     demoted by one, and the split dissolved in the cycle it was made).
+     demoted by one, and the split dissolved in the cycle it was made);
+  9. a cut found at settle is a CANDIDATE (the reviewer 18:46Z, Fig 9 :60): a cut_candidate row,
+     nothing pending, the incumbent still bound -- and the step that found it is not its witness;
+ 10. a P step does not witness: the candidate waits;
+ 11. the first not-P step with the incumbent RIGHT refutes it: cut_refuted, no split, no pending;
+ 12. the first not-P step with the incumbent WRONG confirms it: cut_confirmed, and the split is
+     pending for the next perceive;
+ 13. WITHDRAWN NEVER STANDS IN FOR A REFUTATION (the reviewer 20:30Z): the incumbent WRONG on a P
+     step refutes the cut (side P) -- and when that same miss demotes it, the rows are
+     cut_refuted and no cut_withdrawn;
+ 14. withdrawn only where no witness can arrive: the level ends (retarget), or another term
+     predicts the slot; each row says so and carries no verdict on the cut;
+ 15. every candidate leaves by exactly one of confirmed / refuted / withdrawn.
 
     python test_d5.py
 """
@@ -138,4 +150,77 @@ if __name__ == "__main__":
     assert ag8.bound.get("x") == "idn" and ag8._parts["x"]["A"] == "idn", ag8._parts
     print("  8: between the cut and the split, the incumbent predicts a P step and is only a "
           "shadow on a not-P step; the split then restores it as part A")
+    # 9-12: candidacy, driven through settle
+    def _cand():
+        a = _hand(CLEAN)
+        a.bound["x"] = "idn"
+        a._pred_by = {"x": "idn"}
+        a._last_landed = None
+        return a
+    ag9 = _cand()
+    ag9._intent_now = IFace.Intent(IFace.ELICIT)                  # not-P, and a miss: the trigger
+    ag9.settle({"x": tether.SlotResidual("x", "transition", 2, 5, 3.0)})
+    ev9 = [r["event"] for r in ag9.led.rows() if r["slot"] == "@d5"]
+    assert ev9 == ["cut_candidate"] and "x" in ag9._d5_candidates, ev9
+    assert "x" not in ag9._d5_pending and "x" not in ag9._parts, (ag9._d5_pending, ag9._parts)
+    print("  9: the cut is a candidate (row written, nothing pending, no parts); the step that "
+          "found it did not witness it")
+    ag9._intent_now = IFace.Intent(IFace.TOUCH)
+    ag9.settle({"x": tether.SlotResidual("x", "transition", 3, 3, 0.0)})
+    assert "x" in ag9._d5_candidates and [r["event"] for r in ag9.led.rows()
+                                          if r["slot"] == "@d5"] == ["cut_candidate"]
+    print(" 10: a P step does not witness; the candidate waits")
+    ag11 = _cand()
+    ag11._d5_candidates["x"] = (T, cut[1], "idn")
+    ag11._intent_now = IFace.Intent(IFace.ELICIT)
+    ag11.settle({"x": tether.SlotResidual("x", "transition", 4, 4, 0.0)})
+    ev11 = [r["event"] for r in ag11.led.rows() if r["slot"] == "@d5"]
+    assert ev11 == ["cut_refuted"] and not ag11._d5_candidates and not ag11._d5_pending, ev11
+    assert ag11.bound.get("x") == "idn" and not ag11._parts
+    print(" 11: the incumbent right on the first not-P step refutes the cut: no split, nothing "
+          "pending, the incumbent keeps the slot")
+    ag12 = _cand()
+    ag12._d5_candidates["x"] = (T, cut[1], "idn")
+    ag12._intent_now = IFace.Intent(IFace.ELICIT)
+    ag12.settle({"x": tether.SlotResidual("x", "transition", 4, 6, 3.0)})
+    ev12 = [r["event"] for r in ag12.led.rows() if r["slot"] == "@d5"]
+    assert ev12[0] == "cut_confirmed" and "x" in ag12._d5_pending, (ev12, ag12._d5_pending)
+    print(f" 12: the incumbent wrong on the first not-P step confirms the cut; the split is "
+          f"pending for the next perceive (rows {ev12})")
+    # 13: a P-step miss refutes, even when it demotes the incumbent
+    ag13 = _cand()
+    ag13._d5_candidates["x"] = (T, cut[1], "idn")
+    ag13._intent_now = IFace.Intent(T)
+    ag13.gamma.refute = lambda *_a, **_k: True               # force the demote branch
+    ag13.settle({"x": tether.SlotResidual("x", "transition", 3, 5, 3.0)})
+    ev13 = [r for r in ag13.led.rows() if r["slot"] == "@d5"]
+    assert [r["event"] for r in ev13] == ["cut_refuted"], [r["event"] for r in ev13]
+    assert ev13[0]["detail"]["side"] == "P" and ag13.bound.get("x") is None, ev13
+    print(" 13: the incumbent wrong on a P step refutes the cut (side P); the same miss demoted "
+          "it, and the rows are cut_refuted only -- no cut_withdrawn")
+    # 14a: the level ends with a candidate outstanding
+    ag14 = _cand()
+    ag14._d5_candidates["x"] = (T, cut[1], "idn")
+    ag14.retarget(ag14.env, 1)
+    ev14 = [r for r in ag14.led.rows() if r["slot"] == "@d5"]
+    assert [r["event"] for r in ev14] == ["cut_withdrawn"], ev14
+    d14 = ev14[0]["detail"]
+    assert d14["verdict_on_the_cut"] is None and "level" in d14["reason"], d14
+    # 14b: another term predicts the slot
+    ag14b = _cand()
+    ag14b._d5_candidates["x"] = (T, cut[1], "idn")
+    ag14b._pred_by = {"x": "inc"}
+    ag14b.bound["x"] = "inc"
+    ag14b._intent_now = IFace.Intent(IFace.ELICIT)
+    ag14b.settle({"x": tether.SlotResidual("x", "transition", 4, 4, 0.0)})
+    ev14b = [r["detail"]["reason"] for r in ag14b.led.rows() if r["event"] == "cut_withdrawn"]
+    assert len(ev14b) == 1 and "another term" in ev14b[0], ev14b
+    print(" 14: withdrawn only where no witness can arrive (the level ended; another term "
+          "predicts the slot), each with no verdict on the cut")
+    # 15: each candidate leaves by exactly one terminal row
+    ends = {"cut_confirmed", "cut_refuted", "cut_withdrawn"}
+    for a in (ag11, ag12, ag13, ag14, ag14b):                # ag9 is left waiting by design
+        n = sum(1 for r in a.led.rows() if r["event"] in ends)
+        assert n == 1 and not a._d5_candidates, (n, a._d5_candidates)
+    print(" 15: every candidate driven here left by exactly one of confirmed / refuted / withdrawn")
     print("ok")

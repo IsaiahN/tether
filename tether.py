@@ -1547,6 +1547,7 @@ class Agent:
         self._fed_rows: dict[str, list] = {}    # 5b: term -> (REPEAT seq, role) naming it
         self._parts: dict[str, dict] = {}       # D5: slot -> {P, A (incumbent), B, ...}
         self._d5_pending: dict[str, tuple] = {}  # D5: slot -> (P, numbers), split next step
+        self._d5_candidates: dict[str, tuple] = {}  # D5: slot -> a cut awaiting its witness
         self._row_filter: dict = {}             # D5: slot -> the rows part B's search sees
         self._mint_part: dict | None = None     # D5: the part a running mint searches for
         self._shadow: dict[str, int | None] = {}  # D5: the incumbent's shadow on a not-P step
@@ -1745,8 +1746,11 @@ class Agent:
         self.actions = tuple(env.actions())       # a new level may advertise differently
         self.alphabet = self._alphabets(env)      # a new level may value slots differently
         self.slot_types = self._slot_types(env)   # and may type them differently
+        if _D5:
+            self._d5_level_end()
         self.bound, self.trace = {}, []
         self._parts, self._d5_pending, self._shadow = {}, {}, {}
+        self._d5_candidates = {}
         self._d5_rows, self._d5_said = {}, set()   # D5's scope is the level, a world event
         self._attempt_actions = 0
         self._trace_epoch += 1          # the tallies summarise a history that is gone
@@ -4219,6 +4223,53 @@ class Agent:
                 self.bound[slot] = part["B"]
             else:
                 self.bound.pop(slot, None)
+
+    def _d5_witness(self, slot: str, name: str, r: SlotResidual) -> None:
+        """D5: the candidate cut's witness -- the first not-P step after the cut on which the
+        incumbent itself predicted. Wrong there: the claim held on a row it did not see, and the
+        split takes effect from the next perceive. Right: the claim is refuted, nothing acted."""
+        c = self._d5_candidates[slot]
+        if c[2] != name:
+            self._d5_candidates.pop(slot)
+            self.led.record(self.cycle, "SETTLE", "@d5", "cut_withdrawn", split_slot=slot,
+                            P=c[0], incumbent=c[2], predictor=name, verdict_on_the_cut=None,
+                            reason="another term predicts the slot, so no witness can arrive")
+            return
+        if self._d5_holds(c[0], slot):
+            # THE P SIDE IS A WITNESS TOO (the reviewer 20:30Z): the cut also claims the
+            # incumbent is right on P. Wrong there refutes it; right there is no news.
+            if r.mass > 0.0:
+                self._d5_candidates.pop(slot)
+                self.led.record(self.cycle, "SETTLE", "@d5", "cut_refuted", split_slot=slot,
+                                P=c[0], incumbent=name, actual=r.actual, side="P",
+                                verdict="the incumbent was wrong on a P row after the cut")
+            return
+        self._d5_candidates.pop(slot)
+        if r.mass > 0.0:
+            self._d5_pending[slot] = c
+            self.led.record(self.cycle, "SETTLE", "@d5", "cut_confirmed", split_slot=slot,
+                            P=c[0], incumbent=name, actual=r.actual)
+        else:
+            self.led.record(self.cycle, "SETTLE", "@d5", "cut_refuted", split_slot=slot, P=c[0],
+                            incumbent=name, actual=r.actual, side="not-P",
+                            verdict="the incumbent was right on the first not-P step after the cut")
+
+    def _d5_level_end(self) -> None:
+        """D5: the level is the cut's scope, so what is outstanding at its end leaves with a row.
+        A candidate or a confirmed-but-unsplit cut is WITHDRAWN (no witness can arrive); a live
+        split is dissolved with the level as its reason."""
+        for slot, c in self._d5_candidates.items():
+            self.led.record(self.cycle, "SETTLE", "@d5", "cut_withdrawn", split_slot=slot,
+                            P=c[0], incumbent=c[2], verdict_on_the_cut=None,
+                            reason="the level ended before a witness")
+        for slot, c in self._d5_pending.items():
+            self.led.record(self.cycle, "SETTLE", "@d5", "cut_withdrawn", split_slot=slot,
+                            P=c[0], incumbent=c[2], verdict_on_the_cut="confirmed",
+                            reason="the level ended before the confirmed split ran")
+        for slot, part in self._parts.items():
+            self.led.record(self.cycle, "SETTLE", "@d5", "dissolved", split_slot=slot,
+                            P=part["P"], demoted=None, part_a=part["A"], part_b=part["B"],
+                            reason="the level ended")
 
     def _d5_revert(self, slot: str) -> None:
         """D5: the incumbent was right on a not-P step, so the partition claim is broken."""
@@ -8351,6 +8402,8 @@ class Agent:
                 self._d5_rows.setdefault(slot, []).append((len(self.trace) - 1, name))
             if not name:
                 continue
+            if _D5 and slot in self._d5_candidates:
+                self._d5_witness(slot, name, r)
             if r.mass > 0.0:
                 # express-before-judge: this term actually predicted, and was wrong
                 # AND THE FIFTH BIN IS POPULATED HERE AND NOWHERE ELSE, which is the whole of
@@ -8358,12 +8411,20 @@ class Agent:
                 # BOTH outcomes of `refute` below: a settled term demoted and a candidate
                 # mispredicting are both the ground refusing what was said.
                 self._refuted_slot[slot] = name
-                if _D5 and slot not in self._parts and slot not in self._d5_pending:
-                    cut = self._d5_cut(slot, name)
-                    if cut is not None:
-                        self._d5_pending[slot] = (*cut, name)
+                _found = None
+                if _D5 and slot not in self._parts and slot not in self._d5_pending and (
+                        slot not in self._d5_candidates):
+                    _found = self._d5_cut(slot, name)
                 held = self.gamma.is_settled(name, slot)
-                if self.gamma.refute(name, where=self._scope, slot=slot):
+                _demoted_now = self.gamma.refute(name, where=self._scope, slot=slot)
+                if _found is not None and not _demoted_now:
+                    # A CANDIDATE, NOT A PARTITION (the reviewer 18:46Z, Fig 9 :60): the cut was
+                    # read off rows already seen, so it acts only after a row it did not see
+                    # witnesses it. Registered only if its incumbent survives this step.
+                    self._d5_candidates[slot] = (*_found, name)
+                    self.led.record(self.cycle, "SETTLE", "@d5", "cut_candidate",
+                                    split_slot=slot, P=_found[0], incumbent=name, **_found[1])
+                if _demoted_now:
                     self.demoted.append(name)
                     # BOOK 1: a term that had SETTLED and then mispredicted. The ground gave it
                     # a standing and took it back, which is the only honest reading of
@@ -8390,7 +8451,11 @@ class Agent:
                     self.bound.pop(slot, None)
                     self.owed_import.add(slot)
                     if _D5:
-                        self._d5_pending.pop(slot, None)
+                        if self._d5_pending.pop(slot, None) is not None:
+                            self.led.record(self.cycle, "SETTLE", "@d5", "cut_withdrawn",
+                                            split_slot=slot, incumbent=name, verdict_on_the_cut=
+                                            "confirmed", reason="confirmed, then its incumbent "
+                                            "was demoted on the same step: no part A to keep")
                         if slot in self._parts:
                             self._d5_dissolve(slot, name)
                 elif held:
