@@ -25,7 +25,7 @@ POLL_S = 15                 # anchor: a declared convention, not measured; movab
 CAP = max(1, (os.cpu_count() or 1) - BUFFER_CORES)
 
 ROOT = Path(__file__).resolve().parent.parent
-_BELOW_NORMAL = getattr(subprocess, "BELOW_NORMAL_PRIORITY_CLASS", 0)
+BELOW_NORMAL = getattr(subprocess, "BELOW_NORMAL_PRIORITY_CLASS", 0)
 
 
 def cpu_percent() -> float:
@@ -45,6 +45,17 @@ def cpu_percent() -> float:
             return 100.0        # unreadable load reads as busy: wait, never pile on
 
 
+def may_start(live: int, seen: list | None = None) -> bool:
+    """One more job may start: a slot is free AND load is under the gate. For launchers that keep
+    their own loop (fast_check, the harness); `run` below is the same rule."""
+    if live >= CAP:
+        return False
+    load = cpu_percent()
+    if seen is not None:
+        seen.append(load)
+    return load < CPU_GATE
+
+
 def run(jobs: list[tuple]) -> int:
     """Start each (argv, cwd, log[, env]) when a slot is free AND load is under the gate. Never
     kills a running job for load. Returns the number of jobs that exited non-zero."""
@@ -56,20 +67,17 @@ def run(jobs: list[tuple]) -> int:
                 fh.close()
                 bad += p.returncode != 0
                 print(f"[throttle] done {name} exit={p.returncode}", flush=True)
-        if pending and len(live) < CAP:
-            load = cpu_percent()
-            seen.append(load)
-            if load < CPU_GATE:
-                argv, cwd, log, *extra = pending.pop(0)
-                env = {**os.environ, **extra[0]} if extra else None
-                # held open for the run's whole life and closed when it exits (above)
-                fh = open(log, "w", encoding="utf-8")  # noqa: SIM115
-                p = subprocess.Popen(argv, cwd=cwd, env=env, stdout=fh,
-                                     stderr=subprocess.STDOUT, creationflags=_BELOW_NORMAL)
-                live.append((p, log.stem, fh))
-                print(f"[throttle] start {log.stem} (cpu {load:.0f}%, live {len(live)}/{CAP})",
-                      flush=True)
-                continue
+        if pending and may_start(len(live), seen):
+            argv, cwd, log, *extra = pending.pop(0)
+            env = {**os.environ, **extra[0]} if extra else None
+            # held open for the run's whole life and closed when it exits (above)
+            fh = open(log, "w", encoding="utf-8")  # noqa: SIM115
+            p = subprocess.Popen(argv, cwd=cwd, env=env, stdout=fh,
+                                 stderr=subprocess.STDOUT, creationflags=BELOW_NORMAL)
+            live.append((p, log.stem, fh))
+            print(f"[throttle] start {log.stem} (cpu {seen[-1]:.0f}%, live {len(live)}/{CAP})",
+                  flush=True)
+            continue
         time.sleep(POLL_S if pending else 5)
     if seen:
         print(f"[throttle] cap {CAP} of {os.cpu_count()} logical cores; gate {CPU_GATE}%; "
@@ -80,11 +88,7 @@ def run(jobs: list[tuple]) -> int:
 def _panel() -> int:
     sys.path.insert(0, str(ROOT / "conform"))
     import panel
-    out = ROOT / "runs" / "panel_logs"
-    out.mkdir(parents=True, exist_ok=True)
-    jobs = [([sys.executable, str(ROOT / "conform" / "panel.py"), "--member", m], ROOT,
-             out / f"{m}.log") for m in panel.MEMBERS]
-    bad = run(jobs)
+    bad = panel._produce()
     seat = subprocess.run([sys.executable, str(ROOT / "conform" / "panel.py")], cwd=ROOT,
                           check=False)
     return bad or seat.returncode

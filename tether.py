@@ -3331,8 +3331,9 @@ class Agent:
                 and robs is not None and self.bears_on(cand, slot, robs, held))
 
     def _carry_ref(self) -> tuple[int, float]:
-        """What naming one held term costs: log2(H+1), H the held terms on offer, the +1 being
-        none of them (mint instead). The form is `_guard_bits`'s, the corpus's."""
+        """What naming one held term costs: log2(H+1), H the whole library as built (at least the
+        fit's candidates), the +1 being none of them (mint instead). The form is `_guard_bits`'s,
+        the corpus's."""
         h = len(self.gamma.library)
         return h, (math.log2(h + 1) if _CARRY_REF else 0.0)
 

@@ -10,6 +10,9 @@ here = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, here)
 import rb_heads  # noqa: E402
 
+sys.path.insert(0, os.path.join(here, "..", "conform"))
+import throttle  # noqa: E402  -- K is a request; the throttle's cap and load gate bind
+
 tree, commit, cycles, k, out = sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4]), sys.argv[5]
 commit = subprocess.run(["git", "-C", tree, "rev-parse", commit], capture_output=True, text=True,
                         check=True).stdout.strip()
@@ -23,12 +26,13 @@ queue, running, refused = list(games), {}, False
 t0 = time.time()
 print(f"pinned {commit}", flush=True)
 while queue or running:
-    while queue and len(running) < k and not refused:
+    while queue and len(running) < k and not refused and throttle.may_start(len(running)):
         g = queue.pop(0)
         fh = open(os.path.join(out, f"{g}.out"), "w")  # noqa: SIM115 -- the child's stdout, closed on exit
         running[g] = (subprocess.Popen([sys.executable, os.path.join(here, "rb_onep.py"), tree, g,
                                         cycles, os.path.join(out, f"{g}.jsonl"), commit],
-                                       stdout=fh, stderr=subprocess.STDOUT, env=env), fh)
+                                       stdout=fh, stderr=subprocess.STDOUT, env=env,
+                                       creationflags=throttle.BELOW_NORMAL), fh)
     for g, (p, fh) in list(running.items()):
         if p.poll() is not None:
             fh.close()
