@@ -53,6 +53,7 @@ from ledger import (
     NO_CHANGE,
     SLICE_TOO_SMALL,
     SPECIFIED,
+    WIN,
     Ledger,
 )
 from priors import contact_first
@@ -1658,8 +1659,11 @@ class Agent:
         last = self._mc3[-1] if self._mc3 else None
         if last and last["how"] == how and last["actions_this_run"] == self._run_actions:
             return
-        kind = _TERM_KIND.get(how)
-        entry = {"how": how, "kind": kind or "cleared", "cleared": kind is None,
+        # CLEARED ONLY ON A CLEARING WORD (the reviewer 22:47Z): a reset is not a clear, and an
+        # unknown word is recorded as itself, never defaulted to cleared (Fig 1 :27).
+        cleared = how in (WIN, ADVANCE)
+        entry = {"how": how, "kind": "cleared" if cleared else _TERM_KIND.get(how, how),
+                 "cleared": cleared,
                  "level": self.level, "actions_this_level": self._attempt_actions,
                  "actions_this_run": self._run_actions, "attempts": self._level_attempts}
         self._mc3.append(entry)

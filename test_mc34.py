@@ -7,6 +7,7 @@ by running out) and level_cost_seen (what cleared levels cost), kept apart.
   1. MC3 is the ground's fields only: frame activity (book counts, bets) does not move it;
   2. a cap the WORLD holds is never read: with no cap ending, reserve_seen is "no record";
   3. the same word twice with no action between is one ending;
+  5. a reset is cleared=False and stays out of level_cost_seen (the reviewer 22:47Z);
   4. a real run (gridworld_arc_s1, 13 cycles, then end_run): OFF writes no ground_record row and
      no mc4 field; ON writes both on the real path (its first plan adoption is at c12).
 
@@ -84,6 +85,14 @@ if __name__ == "__main__":
     d._mc3_note("death")
     assert len(d._mc3) == 1
     print("  3: the same word twice with no action between is one ending")
+    r = _agent()
+    r._attempt_actions = r._run_actions = 9
+    r._mc3_note("reset")
+    r._mc3_note("mystery")
+    assert [(e["kind"], e["cleared"]) for e in r._mc3] == [("reset", False), ("mystery", False)]
+    assert r._mc4(PLAN)["level_cost_seen"] == "no record", r._mc4(PLAN)
+    print("  5: a reset (and an unknown word) is recorded as itself, never cleared; it does not "
+          "enter level_cost_seen")
     off_g, off_m = _member(False)
     on_g, on_m = _member(True)
     assert not off_g and not off_m, (len(off_g), len(off_m))
