@@ -100,7 +100,7 @@ Tests per item: at most 5 minutes (own fixture, one short OFF identity check, fa
 | F408 price every named guard (TETHER_GUARD_PRICE) | DONE 4a837f4 (OFF; full reading at 7½) |
 | compounds | BOUNDED BY VOCABULARY (the reviewer 22:09Z): not refuted, not built; see the verdict below |
 | 7d reverse lookup (`Library.light(abduce=...)`) | BOUNDED BY VOCABULARY (the reviewer 22:09Z): not refuted, not built; see the verdict below |
-| 7a(6) CASCADE_AGENCY (H2) | DONE (OFF, HELD: no cascade in the test worlds; habitat ARC, step 13) |
+| 7a(6) CASCADE_AGENCY (H2) | DONE d0ee341 (OFF, HELD: no cascade in the test worlds; habitat ARC, step 13). CARRIED (the reviewer 22:26Z): N1 attribute by the bbox (row..row+h-1, col..col+w-1) where h/w exist, anchor cell otherwise, with a must-fail for a plus-shaped mover, next time in `_cascade_agency` or at 13; N2 item 9's note names the reader of Agency.order, or 7½ records it as an orphan |
 | 7a(7)-(10): TWO_READINGS, MC3/MC4, per-plan factors, MC6 + D1-D3 | NEXT: TWO_READINGS |
 | 7b, 7c | queued |
 | 7½ switch-on and orphan audit: one full OFF and one full ON panel | queued |
